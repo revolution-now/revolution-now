@@ -35,9 +35,9 @@ using namespace std;
 *****************************************************************/
 struct world : testing::World {
   world() {
-    add_player( e_nation::english );
-    add_player( e_nation::french );
-    set_default_player( e_nation::french );
+    add_player( e_player::english );
+    add_player( e_player::french );
+    set_default_player_type( e_player::french );
     set_default_player_as_human();
     create_default_map();
   }
@@ -70,7 +70,7 @@ TEST_CASE( "[rebel-sentiment] updated_rebel_sentiment" ) {
 
   // One foreign colony, empty.
   Colony& foreign_colony_1 =
-      w.add_colony( { .x = 0, .y = 0 }, e_nation::english );
+      w.add_colony( { .x = 0, .y = 0 }, e_player::english );
   REQUIRE( f() == 0 );
 
   // With some non-rebels.
@@ -90,7 +90,7 @@ TEST_CASE( "[rebel-sentiment] updated_rebel_sentiment" ) {
 
   // One friendly colony, empty.
   Colony& colony_1 =
-      w.add_colony( { .x = 1, .y = 0 }, e_nation::french );
+      w.add_colony( { .x = 1, .y = 0 }, e_player::french );
   REQUIRE( f() == 0 );
 
   // With some non-rebels.
@@ -112,7 +112,7 @@ TEST_CASE( "[rebel-sentiment] updated_rebel_sentiment" ) {
 
   // A second friendly colony, empty.
   Colony& colony_2 =
-      w.add_colony( { .x = 0, .y = 1 }, e_nation::french );
+      w.add_colony( { .x = 0, .y = 1 }, e_player::french );
   REQUIRE( f() == 100 );
 
   // With some non-rebels.
@@ -148,7 +148,7 @@ TEST_CASE( "[rebel-sentiment] updated_rebel_sentiment" ) {
                      colony_2.location );
   w.add_unit_on_map( e_unit_type::free_colonist,
                      foreign_colony_1.location,
-                     e_nation::english );
+                     e_player::english );
   w.add_unit_in_port( e_unit_type::free_colonist );
   REQUIRE( f() == 75 );
 }
@@ -293,12 +293,12 @@ TEST_CASE(
   world w;
   RebelSentimentChangeReport report;
 
-  auto& mind           = w.euro_mind( e_nation::french );
+  auto& mind           = w.euro_mind( e_player::french );
   Player const& player = w.french();
 
   auto const f = [&] {
     co_await_test( show_rebel_sentiment_change_report(
-        w.french(), w.euro_mind( e_nation::french ), report ) );
+        w.french(), w.euro_mind( e_player::french ), report ) );
   };
 
   REQUIRE( player.revolution.last_reported_rebel_sentiment ==
@@ -458,28 +458,28 @@ TEST_CASE(
 TEST_CASE( "[rebel-sentiment] unit_count_for_rebel_sentiment" ) {
   world w;
 
-  auto const f = [&]( e_nation const nation ) {
-    return unit_count_for_rebel_sentiment( w.ss(), nation );
+  auto const f = [&]( e_player const player ) {
+    return unit_count_for_rebel_sentiment( w.ss(), player );
   };
 
-  using enum e_nation;
+  using enum e_player;
 
   // Default.
   REQUIRE( f( english ) == 0 );
   REQUIRE( f( french ) == 0 );
 
   w.add_unit_on_map( e_unit_type::free_colonist,
-                     { .x = 0, .y = 0 }, e_nation::french );
+                     { .x = 0, .y = 0 }, e_player::french );
   REQUIRE( f( english ) == 0 );
   REQUIRE( f( french ) == 1 );
 
   w.add_unit_on_map( e_unit_type::free_colonist,
-                     { .x = 1, .y = 0 }, e_nation::english );
+                     { .x = 1, .y = 0 }, e_player::english );
   REQUIRE( f( english ) == 1 );
   REQUIRE( f( french ) == 1 );
 
   w.add_unit_on_map( e_unit_type::artillery, { .x = 0, .y = 0 },
-                     e_nation::french );
+                     e_player::french );
   REQUIRE( f( english ) == 1 );
   REQUIRE( f( french ) == 1 );
 }

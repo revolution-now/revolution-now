@@ -49,9 +49,9 @@ using ::mock::matchers::_;
 struct World : testing::World {
   using Base = testing::World;
   World() : Base() {
-    add_player( e_nation::dutch );
-    add_player( e_nation::english );
-    set_default_player( e_nation::dutch );
+    add_player( e_player::dutch );
+    add_player( e_player::english );
+    set_default_player_type( e_player::dutch );
     set_default_player_as_human();
     create_default_map();
   }
@@ -80,7 +80,8 @@ TEST_CASE( "[raid] raid_unit" ) {
   Coord const attacker_coord{ .x = 0, .y = 0 };
   MockINativeMind& native_mind =
       W.native_mind( e_tribe::arawak );
-  MockIEuroMind& euro_mind = W.euro_mind( W.default_nation() );
+  MockIEuroMind& euro_mind =
+      W.euro_mind( W.default_player_type() );
 
   auto [dwelling, brave] = W.add_dwelling_and_brave(
       attacker_coord, e_tribe::arawak );
@@ -257,24 +258,24 @@ TEST_CASE( "[raid] raid_unit" ) {
   }
 
   // Here we do the same as above but create the units with the
-  // non-default (and hence non-human) nation, that way the
+  // non-default (and hence non-human) player, that way the
   // battle will not be viz'able and so the animation should be
   // suppressed.
   SECTION( "brave, three euro, brave loses, no anim" ) {
     // The soldier should be chosen as defender.
     Unit const& free_colonist1 =
         W.add_unit_on_map( e_unit_type::free_colonist,
-                           defender_coord, e_nation::english );
+                           defender_coord, e_player::english );
     UnitId const free_colonist1_id = free_colonist1.id();
     // Put the soldier in the middle so we can test that it gets
     // picked for the right reasons.
     Unit const& soldier =
         W.add_unit_on_map( e_unit_type::soldier, defender_coord,
-                           e_nation::english );
+                           e_player::english );
     UnitId const soldier_id = soldier.id();
     Unit const& free_colonist2 =
         W.add_unit_on_map( e_unit_type::free_colonist,
-                           defender_coord, e_nation::english );
+                           defender_coord, e_player::english );
     UnitId const free_colonist2_id = free_colonist2.id();
 
     combat = {
@@ -294,11 +295,11 @@ TEST_CASE( "[raid] raid_unit" ) {
     W.combat()
         .EXPECT__brave_attack_euro( brave, soldier )
         .returns( combat );
-    W.euro_mind( e_nation::english )
+    W.euro_mind( e_player::english )
         .EXPECT__message_box(
             "[Arawaks] make surprise raid! Terror descends upon "
             "colonists! Arawak chief unavailable for comment." );
-    W.euro_mind( e_nation::english )
+    W.euro_mind( e_player::english )
         .EXPECT__message_box(
             "[English] Soldier defeats [Arawak] Brave in the "
             "wilderness!" );
@@ -342,7 +343,7 @@ TEST_CASE( "[raid] raid_colony" ) {
   Unit const& worker =
       W.add_unit_indoors( colony.id, e_indoor_job::bells );
   MockIEuroMind& mock_euro_mind =
-      W.euro_mind( W.default_nation() );
+      W.euro_mind( W.default_player_type() );
   MockINativeMind& mock_native_mind =
       W.native_mind( tribe_type );
   Player& player = W.default_player();
@@ -360,11 +361,11 @@ TEST_CASE( "[raid] raid_colony" ) {
     NativeUnit& attacker = W.add_native_unit_on_map(
         e_native_unit_type::brave, attacker_coord, dwelling.id );
     Unit const& defender = W.add_unit_on_map(
-        e_unit_type::soldier, colony.location, colony.nation );
+        e_unit_type::soldier, colony.location, colony.player );
     Unit const& caravel = W.add_unit_on_map(
-        e_unit_type::caravel, colony.location, colony.nation );
+        e_unit_type::caravel, colony.location, colony.player );
     Unit const& frigate = W.add_unit_on_map(
-        e_unit_type::frigate, colony.location, colony.nation );
+        e_unit_type::frigate, colony.location, colony.player );
 
     // We'll give this colony a dry-dock so that we can test that
     // the damaged ship stays in this colony.
@@ -461,7 +462,7 @@ TEST_CASE( "[raid] raid_colony" ) {
     NativeUnit& attacker = W.add_native_unit_on_map(
         e_native_unit_type::brave, attacker_coord, dwelling.id );
     Unit const& caravel = W.add_unit_on_map(
-        e_unit_type::caravel, colony.location, colony.nation );
+        e_unit_type::caravel, colony.location, colony.player );
     Unit const& defender = W.add_unit_in_cargo(
         e_unit_type::soldier, caravel.id() );
 
@@ -673,11 +674,11 @@ TEST_CASE( "[raid] raid_colony" ) {
         e_native_unit_type::brave, attacker_coord, dwelling.id );
     Unit& wagon_train =
         W.add_unit_on_map( e_unit_type::wagon_train,
-                           colony.location, colony.nation );
+                           colony.location, colony.player );
     Unit const& caravel = W.add_unit_on_map(
-        e_unit_type::caravel, colony.location, colony.nation );
+        e_unit_type::caravel, colony.location, colony.player );
     Unit const& frigate = W.add_unit_on_map(
-        e_unit_type::frigate, colony.location, colony.nation );
+        e_unit_type::frigate, colony.location, colony.player );
     Unit const& onboard = W.add_unit_in_cargo(
         e_unit_type::free_colonist, caravel.id() );
 
@@ -685,7 +686,7 @@ TEST_CASE( "[raid] raid_colony" ) {
     Unit const& defender = wagon_train;
     wagon_train.fortify();
     Unit& pioneer = W.add_unit_on_map(
-        e_unit_type::pioneer, colony.location, colony.nation );
+        e_unit_type::pioneer, colony.location, colony.player );
 
     // These are for after the raid when they may no longer exist
     // and thus the associated references might be dangling.

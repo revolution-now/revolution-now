@@ -55,11 +55,11 @@ using clear      = FogStatus::clear;
 struct world : testing::World {
   using Base = testing::World;
   world() : Base() {
-    set_default_player( e_nation::french );
-    add_player( e_nation::french );
-    add_player( e_nation::english );
+    set_default_player_type( e_player::french );
+    add_player( e_player::french );
+    add_player( e_player::english );
     /* no dutch */
-    add_player( e_nation::spanish );
+    add_player( e_player::spanish );
   }
 
   void create_default_map() {
@@ -109,9 +109,10 @@ struct world : testing::World {
   }
 
   void give_de_soto() {
-    for( e_nation nation : refl::enum_values<e_nation> )
-      if( players().players[nation].has_value() )
-        player( nation )
+    for( e_player const player_type :
+         refl::enum_values<e_player> )
+      if( players().players[player_type].has_value() )
+        player( player_type )
             .fathers.has[e_founding_father::hernando_de_soto] =
             true;
   }
@@ -127,8 +128,8 @@ struct world : testing::World {
   }
 
   unique_ptr<IVisibility const> make_viz(
-      maybe<e_nation> nation ) const {
-    return create_visibility_for( ss(), nation );
+      maybe<e_player> player ) const {
+    return create_visibility_for( ss(), player );
   };
 };
 
@@ -143,7 +144,7 @@ TEST_CASE( "[visibility] unit_visible_squares" ) {
   vector<Coord> expected;
 
   auto f = [&] {
-    return unit_visible_squares( W.ss(), W.default_nation(),
+    return unit_visible_squares( W.ss(), W.default_player_type(),
                                  type, tile );
   };
 
@@ -243,7 +244,7 @@ TEST_CASE( "[visibility] Visibility" ) {
   SECTION( "no player" ) {
     VisibilityEntire const viz( W.ss() );
 
-    REQUIRE( viz.nation() == nothing );
+    REQUIRE( viz.player() == nothing );
 
     // visible.
     REQUIRE( viz.visible( { .x = 0, .y = 0 } ) ==
@@ -284,9 +285,9 @@ TEST_CASE( "[visibility] Visibility" ) {
   }
 
   SECTION( "with player, no visibility" ) {
-    VisibilityForNation const viz( W.ss(), e_nation::english );
+    VisibilityForNation const viz( W.ss(), e_player::english );
 
-    REQUIRE( viz.nation() == e_nation::english );
+    REQUIRE( viz.player() == e_player::english );
 
     // visible.
     REQUIRE( viz.visible( { .x = 0, .y = 0 } ) ==
@@ -327,13 +328,13 @@ TEST_CASE( "[visibility] Visibility" ) {
   }
 
   SECTION( "with player, some visibility, no fog" ) {
-    VisibilityForNation const viz( W.ss(), e_nation::english );
+    VisibilityForNation const viz( W.ss(), e_player::english );
 
-    REQUIRE( viz.nation() == e_nation::english );
+    REQUIRE( viz.player() == e_player::english );
 
     gfx::Matrix<PlayerSquare>& player_map =
         W.terrain()
-            .mutable_player_terrain( e_nation::english )
+            .mutable_player_terrain( e_player::english )
             .map;
     player_map[{ .x = 1, .y = 0 }]
         .emplace<explored>()
@@ -381,13 +382,13 @@ TEST_CASE( "[visibility] Visibility" ) {
   }
 
   SECTION( "with player, some visibility, some fog" ) {
-    VisibilityForNation const viz( W.ss(), e_nation::english );
+    VisibilityForNation const viz( W.ss(), e_player::english );
 
-    REQUIRE( viz.nation() == e_nation::english );
+    REQUIRE( viz.player() == e_player::english );
 
     gfx::Matrix<PlayerSquare>& player_map =
         W.terrain()
-            .mutable_player_terrain( e_nation::english )
+            .mutable_player_terrain( e_player::english )
             .map;
     player_map[{ .x = 1, .y = 0 }]
         .emplace<explored>()
@@ -444,53 +445,53 @@ TEST_CASE( "[visibility] set_map_visibility" ) {
   MockLandViewPlane mock_land_view;
   W.planes().get().set_bottom<ILandViewPlane>( mock_land_view );
 
-  maybe<e_nation> revealed;
+  maybe<e_player> revealed;
 
   auto f = [&] { update_map_visibility( W.ts(), revealed ); };
 
-  REQUIRE( W.map_updater().options().nation == nothing );
+  REQUIRE( W.map_updater().options().player == nothing );
 
-  mock_land_view.EXPECT__set_visibility( maybe<e_nation>{} );
+  mock_land_view.EXPECT__set_visibility( maybe<e_player>{} );
   revealed = nothing;
   f();
-  REQUIRE( W.map_updater().options().nation == nothing );
+  REQUIRE( W.map_updater().options().player == nothing );
 
-  mock_land_view.EXPECT__set_visibility( e_nation::spanish );
-  revealed = e_nation::spanish;
+  mock_land_view.EXPECT__set_visibility( e_player::spanish );
+  revealed = e_player::spanish;
   f();
-  REQUIRE( W.map_updater().options().nation ==
-           e_nation::spanish );
+  REQUIRE( W.map_updater().options().player ==
+           e_player::spanish );
 
-  mock_land_view.EXPECT__set_visibility( maybe<e_nation>{} );
+  mock_land_view.EXPECT__set_visibility( maybe<e_player>{} );
   revealed = nothing;
   f();
-  REQUIRE( W.map_updater().options().nation == nothing );
+  REQUIRE( W.map_updater().options().player == nothing );
 
-  mock_land_view.EXPECT__set_visibility( e_nation::french );
-  revealed = e_nation::french;
+  mock_land_view.EXPECT__set_visibility( e_player::french );
+  revealed = e_player::french;
   f();
-  REQUIRE( W.map_updater().options().nation ==
-           e_nation::french );
+  REQUIRE( W.map_updater().options().player ==
+           e_player::french );
 }
 
-TEST_CASE( "[visibility] recompute_fog_for_nation" ) {
+TEST_CASE( "[visibility] recompute_fog_for_player" ) {
   world W;
   W.create_default_map();
 
   auto f = [&] {
-    recompute_fog_for_nation( W.ss(), W.ts(),
-                              e_nation::english );
+    recompute_fog_for_player( W.ss(), W.ts(),
+                              e_player::english );
   };
 
   gfx::Matrix<PlayerSquare>& eng_map =
       W.ss()
           .mutable_terrain_use_with_care
-          .mutable_player_terrain( e_nation::english )
+          .mutable_player_terrain( e_player::english )
           .map;
   gfx::Matrix<PlayerSquare>& fr_map =
       W.ss()
           .mutable_terrain_use_with_care
-          .mutable_player_terrain( e_nation::french )
+          .mutable_player_terrain( e_player::french )
           .map;
 
   // Make a checkerboard pattern of visibility.
@@ -672,15 +673,15 @@ TEST_CASE( "[visibility] recompute_fog_for_nation" ) {
                .get_if<clear>() );
 
   W.add_unit_on_map( e_unit_type::free_colonist,
-                     { .x = 0, .y = 7 }, e_nation::english );
+                     { .x = 0, .y = 7 }, e_player::english );
   W.add_unit_on_map( e_unit_type::free_colonist,
-                     { .x = 2, .y = 2 }, e_nation::english );
+                     { .x = 2, .y = 2 }, e_player::english );
   W.add_unit_on_map( e_unit_type::free_colonist,
-                     { .x = 3, .y = 9 }, e_nation::french );
+                     { .x = 3, .y = 9 }, e_player::french );
   W.add_unit_on_map( e_unit_type::scout, { .x = 5, .y = 5 },
-                     e_nation::english );
-  W.add_colony( { .x = 7, .y = 2 }, e_nation::english );
-  W.map_updater().make_squares_visible( e_nation::english,
+                     e_player::english );
+  W.add_colony( { .x = 7, .y = 2 }, e_player::english );
+  W.map_updater().make_squares_visible( e_player::english,
                                         { { .x = 7, .y = 2 },
                                           { .x = 6, .y = 1 },
                                           { .x = 7, .y = 1 },
@@ -811,7 +812,7 @@ TEST_CASE( "[visibility] should_animate_move" ) {
   viz = W.make_viz( nothing );
   REQUIRE( f() );
 
-  viz = W.make_viz( W.default_nation() );
+  viz = W.make_viz( W.default_player_type() );
   REQUIRE_FALSE( f() );
 
   W.player_square( { .x = 1, .y = 0 } )
@@ -865,35 +866,35 @@ TEST_CASE( "[visibility] should_animate_move" ) {
 }
 
 TEST_CASE(
-    "[visibility] does_nation_have_fog_removed_on_square" ) {
+    "[visibility] does_player_have_fog_removed_on_square" ) {
   world W;
   W.create_small_map();
   Coord const coord = { .x = 0, .y = 0 };
-  e_nation nation   = {};
+  e_player player   = {};
 
   auto f = [&] {
-    return does_nation_have_fog_removed_on_square(
-        W.ss(), nation, coord );
+    return does_player_have_fog_removed_on_square(
+        W.ss(), player, coord );
   };
 
   // Sanity check.
   REQUIRE_FALSE(
-      W.players().players[e_nation::dutch].has_value() );
+      W.players().players[e_player::dutch].has_value() );
 
-  nation = e_nation::dutch;
+  player = e_player::dutch;
   REQUIRE_FALSE( f() );
 
-  nation = e_nation::french;
+  player = e_player::french;
   REQUIRE_FALSE( f() );
 
-  nation = e_nation::french;
-  W.player_square( coord, nation )
+  player = e_player::french;
+  W.player_square( coord, player )
       .emplace<explored>()
       .fog_status.emplace<fogged>();
   REQUIRE_FALSE( f() );
 
-  nation = e_nation::french;
-  W.player_square( coord, nation )
+  player = e_player::french;
+  W.player_square( coord, player )
       .emplace<explored>()
       .fog_status.emplace<clear>();
   REQUIRE( f() );
@@ -906,17 +907,17 @@ TEST_CASE( "[visibility] VisibilityWithOverrides" ) {
   Coord const kOutsideCoord = { .x = 2, .y = 2 };
   BASE_CHECK( !W.terrain().square_exists( kOutsideCoord ) );
   VisibilityEntire viz_entire( W.ss() );
-  VisibilityForNation viz_nation( W.ss(), e_nation::english );
+  VisibilityForNation viz_player( W.ss(), e_player::english );
   VisibilityOverrides overrides;
   // This will keep a reference to the overrides.
   VisibilityWithOverrides viz_overrides_entire(
       W.ss(), viz_entire, overrides );
-  VisibilityWithOverrides viz_overrides_nation(
-      W.ss(), viz_nation, overrides );
+  VisibilityWithOverrides viz_overrides_player(
+      W.ss(), viz_player, overrides );
 
   gfx::Matrix<PlayerSquare>& player_map =
       W.terrain()
-          .mutable_player_terrain( e_nation::english )
+          .mutable_player_terrain( e_player::english )
           .map;
 
   MapSquare& real_square0 = W.square( { .x = 0, .y = 0 } );
@@ -986,7 +987,7 @@ TEST_CASE( "[visibility] VisibilityWithOverrides" ) {
 
   SECTION( "no overrides, player" ) {
     BASE_CHECK( overrides.squares.empty() );
-    p_viz = &viz_overrides_nation;
+    p_viz = &viz_overrides_player;
     coord = { .x = 0, .y = 0 };
     REQUIRE( visible() == e_tile_visibility::clear );
     REQUIRE( colony_at() == nothing );
@@ -1060,7 +1061,7 @@ TEST_CASE( "[visibility] VisibilityWithOverrides" ) {
   }
 
   SECTION( "with overrides, player" ) {
-    p_viz = &viz_overrides_nation;
+    p_viz = &viz_overrides_player;
     MapSquare const override_square2{
       .overlay = e_land_overlay::forest };
     MapSquare const override_square3{
@@ -1112,17 +1113,17 @@ TEST_CASE( "[visibility] resource_at" ) {
   BASE_CHECK( !W.terrain().square_exists( kOutsideCoord ) );
 
   VisibilityEntire viz_entire( W.ss() );
-  VisibilityForNation viz_nation( W.ss(), e_nation::english );
+  VisibilityForNation viz_player( W.ss(), e_player::english );
   VisibilityOverrides overrides;
   // These will keep references to `overrides`.
   VisibilityWithOverrides viz_overrides_entire(
       W.ss(), viz_entire, overrides );
-  VisibilityWithOverrides viz_overrides_nation(
-      W.ss(), viz_nation, overrides );
+  VisibilityWithOverrides viz_overrides_player(
+      W.ss(), viz_player, overrides );
 
   gfx::Matrix<PlayerSquare>& player_map =
       W.terrain()
-          .mutable_player_terrain( e_nation::english )
+          .mutable_player_terrain( e_player::english )
           .map;
 
   MapSquare& real_square = W.square( { .x = 0, .y = 1 } );
@@ -1139,19 +1140,19 @@ TEST_CASE( "[visibility] resource_at" ) {
 
   SECTION( "no resources" ) {
     REQUIRE( viz_entire.resource_at( tile ) == nothing );
-    REQUIRE( viz_nation.resource_at( tile ) == nothing );
+    REQUIRE( viz_player.resource_at( tile ) == nothing );
     REQUIRE( viz_overrides_entire.resource_at( tile ) ==
              nothing );
-    REQUIRE( viz_overrides_nation.resource_at( tile ) ==
+    REQUIRE( viz_overrides_player.resource_at( tile ) ==
              nothing );
   }
 
   SECTION( "real ground resource" ) {
     real_square.ground_resource = sugar;
     REQUIRE( viz_entire.resource_at( tile ) == sugar );
-    REQUIRE( viz_nation.resource_at( tile ) == nothing );
+    REQUIRE( viz_player.resource_at( tile ) == nothing );
     REQUIRE( viz_overrides_entire.resource_at( tile ) == sugar );
-    REQUIRE( viz_overrides_nation.resource_at( tile ) ==
+    REQUIRE( viz_overrides_player.resource_at( tile ) ==
              nothing );
   }
 
@@ -1160,18 +1161,18 @@ TEST_CASE( "[visibility] resource_at" ) {
     frozen_square.square.ground_resource =
         real_square.ground_resource;
     REQUIRE( viz_entire.resource_at( tile ) == sugar );
-    REQUIRE( viz_nation.resource_at( tile ) == sugar );
+    REQUIRE( viz_player.resource_at( tile ) == sugar );
     REQUIRE( viz_overrides_entire.resource_at( tile ) == sugar );
-    REQUIRE( viz_overrides_nation.resource_at( tile ) == sugar );
+    REQUIRE( viz_overrides_player.resource_at( tile ) == sugar );
   }
 
   SECTION( "real forest resource" ) {
     real_square.forest_resource = deer;
     real_square.overlay         = e_land_overlay::forest;
     REQUIRE( viz_entire.resource_at( tile ) == deer );
-    REQUIRE( viz_nation.resource_at( tile ) == nothing );
+    REQUIRE( viz_player.resource_at( tile ) == nothing );
     REQUIRE( viz_overrides_entire.resource_at( tile ) == deer );
-    REQUIRE( viz_overrides_nation.resource_at( tile ) ==
+    REQUIRE( viz_overrides_player.resource_at( tile ) ==
              nothing );
   }
 
@@ -1182,18 +1183,18 @@ TEST_CASE( "[visibility] resource_at" ) {
         real_square.forest_resource;
     frozen_square.square.overlay = real_square.overlay;
     REQUIRE( viz_entire.resource_at( tile ) == deer );
-    REQUIRE( viz_nation.resource_at( tile ) == deer );
+    REQUIRE( viz_player.resource_at( tile ) == deer );
     REQUIRE( viz_overrides_entire.resource_at( tile ) == deer );
-    REQUIRE( viz_overrides_nation.resource_at( tile ) == deer );
+    REQUIRE( viz_overrides_player.resource_at( tile ) == deer );
   }
 
   SECTION( "real ground and forest resource, with ground" ) {
     real_square.ground_resource = sugar;
     real_square.forest_resource = deer;
     REQUIRE( viz_entire.resource_at( tile ) == sugar );
-    REQUIRE( viz_nation.resource_at( tile ) == nothing );
+    REQUIRE( viz_player.resource_at( tile ) == nothing );
     REQUIRE( viz_overrides_entire.resource_at( tile ) == sugar );
-    REQUIRE( viz_overrides_nation.resource_at( tile ) ==
+    REQUIRE( viz_overrides_player.resource_at( tile ) ==
              nothing );
   }
 
@@ -1202,9 +1203,9 @@ TEST_CASE( "[visibility] resource_at" ) {
     real_square.forest_resource = deer;
     real_square.overlay         = e_land_overlay::forest;
     REQUIRE( viz_entire.resource_at( tile ) == deer );
-    REQUIRE( viz_nation.resource_at( tile ) == nothing );
+    REQUIRE( viz_player.resource_at( tile ) == nothing );
     REQUIRE( viz_overrides_entire.resource_at( tile ) == deer );
-    REQUIRE( viz_overrides_nation.resource_at( tile ) ==
+    REQUIRE( viz_overrides_player.resource_at( tile ) ==
              nothing );
   }
 
@@ -1212,10 +1213,10 @@ TEST_CASE( "[visibility] resource_at" ) {
     real_square.ground_resource = sugar;
     real_square.lost_city_rumor = true;
     REQUIRE( viz_entire.resource_at( tile ) == nothing );
-    REQUIRE( viz_nation.resource_at( tile ) == nothing );
+    REQUIRE( viz_player.resource_at( tile ) == nothing );
     REQUIRE( viz_overrides_entire.resource_at( tile ) ==
              nothing );
-    REQUIRE( viz_overrides_nation.resource_at( tile ) ==
+    REQUIRE( viz_overrides_player.resource_at( tile ) ==
              nothing );
   }
 
@@ -1224,10 +1225,10 @@ TEST_CASE( "[visibility] resource_at" ) {
     real_square.overlay         = e_land_overlay::forest;
     real_square.lost_city_rumor = true;
     REQUIRE( viz_entire.resource_at( tile ) == nothing );
-    REQUIRE( viz_nation.resource_at( tile ) == nothing );
+    REQUIRE( viz_player.resource_at( tile ) == nothing );
     REQUIRE( viz_overrides_entire.resource_at( tile ) ==
              nothing );
-    REQUIRE( viz_overrides_nation.resource_at( tile ) ==
+    REQUIRE( viz_overrides_player.resource_at( tile ) ==
              nothing );
   }
 
@@ -1235,10 +1236,10 @@ TEST_CASE( "[visibility] resource_at" ) {
     real_square.ground_resource = sugar;
     W.add_dwelling( tile, e_tribe::cherokee );
     REQUIRE( viz_entire.resource_at( tile ) == nothing );
-    REQUIRE( viz_nation.resource_at( tile ) == nothing );
+    REQUIRE( viz_player.resource_at( tile ) == nothing );
     REQUIRE( viz_overrides_entire.resource_at( tile ) ==
              nothing );
-    REQUIRE( viz_overrides_nation.resource_at( tile ) ==
+    REQUIRE( viz_overrides_player.resource_at( tile ) ==
              nothing );
   }
 
@@ -1247,10 +1248,10 @@ TEST_CASE( "[visibility] resource_at" ) {
     real_square.overlay         = e_land_overlay::forest;
     W.add_dwelling( tile, e_tribe::cherokee );
     REQUIRE( viz_entire.resource_at( tile ) == nothing );
-    REQUIRE( viz_nation.resource_at( tile ) == nothing );
+    REQUIRE( viz_player.resource_at( tile ) == nothing );
     REQUIRE( viz_overrides_entire.resource_at( tile ) ==
              nothing );
-    REQUIRE( viz_overrides_nation.resource_at( tile ) ==
+    REQUIRE( viz_overrides_player.resource_at( tile ) ==
              nothing );
   }
 
@@ -1258,10 +1259,10 @@ TEST_CASE( "[visibility] resource_at" ) {
     real_square.ground_resource = sugar;
     overrides.dwellings[tile]   = Dwelling{ .id = 555 };
     REQUIRE( viz_entire.resource_at( tile ) == sugar );
-    REQUIRE( viz_nation.resource_at( tile ) == nothing );
+    REQUIRE( viz_player.resource_at( tile ) == nothing );
     REQUIRE( viz_overrides_entire.resource_at( tile ) ==
              nothing );
-    REQUIRE( viz_overrides_nation.resource_at( tile ) ==
+    REQUIRE( viz_overrides_player.resource_at( tile ) ==
              nothing );
   }
 
@@ -1270,10 +1271,10 @@ TEST_CASE( "[visibility] resource_at" ) {
     real_square.overlay         = e_land_overlay::forest;
     overrides.dwellings[tile]   = Dwelling{ .id = 555 };
     REQUIRE( viz_entire.resource_at( tile ) == deer );
-    REQUIRE( viz_nation.resource_at( tile ) == nothing );
+    REQUIRE( viz_player.resource_at( tile ) == nothing );
     REQUIRE( viz_overrides_entire.resource_at( tile ) ==
              nothing );
-    REQUIRE( viz_overrides_nation.resource_at( tile ) ==
+    REQUIRE( viz_overrides_player.resource_at( tile ) ==
              nothing );
   }
 
@@ -1283,9 +1284,9 @@ TEST_CASE( "[visibility] resource_at" ) {
     overrides.squares[tile]                 = real_square;
     overrides.squares[tile].lost_city_rumor = false;
     REQUIRE( viz_entire.resource_at( tile ) == nothing );
-    REQUIRE( viz_nation.resource_at( tile ) == nothing );
+    REQUIRE( viz_player.resource_at( tile ) == nothing );
     REQUIRE( viz_overrides_entire.resource_at( tile ) == sugar );
-    REQUIRE( viz_overrides_nation.resource_at( tile ) == sugar );
+    REQUIRE( viz_overrides_player.resource_at( tile ) == sugar );
   }
 
   SECTION( "real forest resource under LCR, override LCR" ) {
@@ -1295,9 +1296,9 @@ TEST_CASE( "[visibility] resource_at" ) {
     overrides.squares[tile]     = real_square;
     overrides.squares[tile].lost_city_rumor = false;
     REQUIRE( viz_entire.resource_at( tile ) == nothing );
-    REQUIRE( viz_nation.resource_at( tile ) == nothing );
+    REQUIRE( viz_player.resource_at( tile ) == nothing );
     REQUIRE( viz_overrides_entire.resource_at( tile ) == deer );
-    REQUIRE( viz_overrides_nation.resource_at( tile ) == deer );
+    REQUIRE( viz_overrides_player.resource_at( tile ) == deer );
   }
 }
 
@@ -1307,15 +1308,15 @@ TEST_CASE( "[visibility] ScopedMapViewer" ) {
   MockLandViewPlane mock_land_view;
   w.planes().get().set_bottom<ILandViewPlane>( mock_land_view );
 
-  using enum e_nation;
+  using enum e_player;
 
   w.french().human = true;
 
   auto& map_revealed = w.land_view().map_revealed;
 
   // This will cause the french to be the default viewer.
-  w.turn().cycle.emplace<TurnCycle::nation>().nation =
-      e_nation::french;
+  w.turn().cycle.emplace<TurnCycle::nation>().european_nation =
+      e_european_nation::french;
 
   SECTION( "english human" ) {
     w.english().human = true;
@@ -1336,7 +1337,7 @@ TEST_CASE( "[visibility] ScopedMapViewer" ) {
       {
         ScopedMapViewer const _( w.ss(), w.ts(), english );
         REQUIRE( map_revealed ==
-                 MapRevealed::nation{ .nation = english } );
+                 MapRevealed::player{ .type = english } );
       }
       REQUIRE( map_revealed == MapRevealed::no_special_view{} );
     }
@@ -1360,27 +1361,27 @@ TEST_CASE( "[visibility] ScopedMapViewer" ) {
     }
 
     SECTION( "nation/french -> french" ) {
-      map_revealed = MapRevealed::nation{ .nation = french };
+      map_revealed = MapRevealed::player{ .type = french };
       {
         ScopedMapViewer const _( w.ss(), w.ts(), french );
         REQUIRE( map_revealed ==
-                 MapRevealed::nation{ .nation = french } );
+                 MapRevealed::player{ .type = french } );
       }
       REQUIRE( map_revealed ==
-               MapRevealed::nation{ .nation = french } );
+               MapRevealed::player{ .type = french } );
     }
 
     SECTION( "nation/french -> english" ) {
-      map_revealed = MapRevealed::nation{ .nation = french };
+      map_revealed = MapRevealed::player{ .type = french };
       mock_land_view.EXPECT__set_visibility( english );
       mock_land_view.EXPECT__set_visibility( french );
       {
         ScopedMapViewer const _( w.ss(), w.ts(), english );
         REQUIRE( map_revealed ==
-                 MapRevealed::nation{ .nation = english } );
+                 MapRevealed::player{ .type = english } );
       }
       REQUIRE( map_revealed ==
-               MapRevealed::nation{ .nation = french } );
+               MapRevealed::player{ .type = french } );
     }
   }
 
@@ -1425,25 +1426,25 @@ TEST_CASE( "[visibility] ScopedMapViewer" ) {
     }
 
     SECTION( "nation/french -> french" ) {
-      map_revealed = MapRevealed::nation{ .nation = french };
+      map_revealed = MapRevealed::player{ .type = french };
       {
         ScopedMapViewer const _( w.ss(), w.ts(), french );
         REQUIRE( map_revealed ==
-                 MapRevealed::nation{ .nation = french } );
+                 MapRevealed::player{ .type = french } );
       }
       REQUIRE( map_revealed ==
-               MapRevealed::nation{ .nation = french } );
+               MapRevealed::player{ .type = french } );
     }
 
     SECTION( "nation/french -> english" ) {
-      map_revealed = MapRevealed::nation{ .nation = french };
+      map_revealed = MapRevealed::player{ .type = french };
       {
         ScopedMapViewer const _( w.ss(), w.ts(), english );
         REQUIRE( map_revealed ==
-                 MapRevealed::nation{ .nation = french } );
+                 MapRevealed::player{ .type = french } );
       }
       REQUIRE( map_revealed ==
-               MapRevealed::nation{ .nation = french } );
+               MapRevealed::player{ .type = french } );
     }
   }
 }

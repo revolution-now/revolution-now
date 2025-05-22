@@ -45,9 +45,9 @@ using ::gfx::point;
 struct World : testing::World {
   using Base = testing::World;
   World() : Base() {
-    add_player( e_nation::english );
-    add_player( e_nation::french );
-    set_default_player( e_nation::english );
+    add_player( e_player::english );
+    add_player( e_player::french );
+    set_default_player_type( e_player::english );
     create_default_map();
   }
 
@@ -70,10 +70,10 @@ TEST_CASE( "[unit-flag] euro_unit_type_orders_flag_info" ) {
   UnitFlagRenderInfo expected;
   e_unit_type unit_type = {};
   unit_orders orders    = {};
-  e_nation nation       = {};
+  e_player player       = {};
 
   auto f = [&] {
-    return euro_unit_type_flag_info( unit_type, orders, nation );
+    return euro_unit_type_flag_info( unit_type, orders, player );
   };
 
   // Common.
@@ -101,7 +101,7 @@ TEST_CASE( "[unit-flag] euro_unit_type_orders_flag_info" ) {
   // free_colonist.
   unit_type = e_unit_type::free_colonist;
   orders    = unit_orders::none{};
-  nation    = e_nation::english;
+  player    = e_player::english;
   REQUIRE( f() == expected );
 
   // Fortified.
@@ -123,7 +123,7 @@ TEST_CASE( "[unit-flag] euro_unit_type_orders_flag_info" ) {
   // Man-o-war.
   unit_type         = e_unit_type::man_o_war;
   orders            = unit_orders::none{};
-  nation            = e_nation::english;
+  player            = e_player::english;
   expected          = baseline;
   expected.in_front = true;
   expected.offsets  = {
@@ -136,7 +136,7 @@ TEST_CASE( "[unit-flag] euro_unit_flag_render_info" ) {
   World W;
   UnitFlagRenderInfo expected;
   Unit unit;
-  maybe<e_nation> viewer;
+  maybe<e_player> viewer;
   UnitFlagOptions options;
 
   auto create = [&]( e_unit_type type ) {
@@ -171,7 +171,7 @@ TEST_CASE( "[unit-flag] euro_unit_flag_render_info" ) {
 
   // free_colonist.
   unit    = create( e_unit_type::free_colonist );
-  viewer  = e_nation::english;
+  viewer  = e_player::english;
   options = { .flag_count = e_flag_count::single,
               .type       = e_flag_char_type::normal };
   REQUIRE( f() == expected );
@@ -194,7 +194,7 @@ TEST_CASE( "[unit-flag] euro_unit_flag_render_info" ) {
 
   // Man-o-war.
   unit              = create( e_unit_type::man_o_war );
-  viewer            = e_nation::english;
+  viewer            = e_player::english;
   options           = { .flag_count = e_flag_count::single,
                         .type       = e_flag_char_type::normal };
   expected          = baseline;
@@ -206,7 +206,7 @@ TEST_CASE( "[unit-flag] euro_unit_flag_render_info" ) {
 
   // Privateer / visible.
   unit             = create( e_unit_type::privateer );
-  viewer           = e_nation::english;
+  viewer           = e_player::english;
   options          = { .flag_count = e_flag_count::multiple,
                        .type       = e_flag_char_type::normal };
   expected         = baseline;
@@ -225,7 +225,7 @@ TEST_CASE( "[unit-flag] euro_unit_flag_render_info" ) {
   REQUIRE( f() == expected );
 
   // Privateer / hidden.
-  viewer                 = e_nation::french;
+  viewer                 = e_player::french;
   expected               = baseline;
   expected.offsets       = { .offset_first   = { .w = 0, .h = 0 },
                              .offset_stacked = { .w = 2, .h = 2 } };
@@ -242,7 +242,7 @@ TEST_CASE( "[unit-flag] euro_unit_flag_render_info/cargo" ) {
   World W;
   UnitFlagRenderInfo expected;
   Unit* unit = {};
-  maybe<e_nation> viewer;
+  maybe<e_player> viewer;
   UnitFlagOptions options;
 
   Unit& merchantman =
@@ -277,7 +277,7 @@ TEST_CASE( "[unit-flag] euro_unit_flag_render_info/cargo" ) {
 
   SECTION( "Merchantman (friendly, no cargo)" ) {
     unit              = &merchantman;
-    viewer            = e_nation::english;
+    viewer            = e_player::english;
     options           = { .flag_count = e_flag_count::single,
                           .type       = e_flag_char_type::normal };
     expected.in_front = false;
@@ -290,7 +290,7 @@ TEST_CASE( "[unit-flag] euro_unit_flag_render_info/cargo" ) {
     unit = &merchantman;
     W.add_unit_in_cargo( e_unit_type::free_colonist,
                          merchantman.id() );
-    viewer            = e_nation::english;
+    viewer            = e_player::english;
     options           = { .flag_count = e_flag_count::single,
                           .type       = e_flag_char_type::normal };
     expected.in_front = false;
@@ -303,7 +303,7 @@ TEST_CASE( "[unit-flag] euro_unit_flag_render_info/cargo" ) {
     unit = &merchantman;
     W.add_commodity_in_cargo( e_commodity::food,
                               merchantman.id() );
-    viewer            = e_nation::english;
+    viewer            = e_player::english;
     options           = { .flag_count = e_flag_count::single,
                           .type       = e_flag_char_type::normal };
     expected.in_front = false;
@@ -318,7 +318,7 @@ TEST_CASE( "[unit-flag] euro_unit_flag_render_info/cargo" ) {
                          merchantman.id() );
     W.add_commodity_in_cargo( e_commodity::food,
                               merchantman.id() );
-    viewer            = e_nation::english;
+    viewer            = e_player::english;
     options           = { .flag_count = e_flag_count::single,
                           .type       = e_flag_char_type::normal };
     expected.in_front = false;
@@ -381,7 +381,7 @@ TEST_CASE( "[unit-flag] euro_unit_flag_render_info/cargo" ) {
 
   SECTION( "Merchantman (foreign, no cargo)" ) {
     unit              = &merchantman;
-    viewer            = e_nation::french;
+    viewer            = e_player::french;
     options           = { .flag_count = e_flag_count::single,
                           .type       = e_flag_char_type::normal };
     expected.in_front = false;
@@ -397,7 +397,7 @@ TEST_CASE( "[unit-flag] euro_unit_flag_render_info/cargo" ) {
     unit = &merchantman;
     W.add_unit_in_cargo( e_unit_type::free_colonist,
                          merchantman.id() );
-    viewer            = e_nation::french;
+    viewer            = e_player::french;
     options           = { .flag_count = e_flag_count::single,
                           .type       = e_flag_char_type::normal };
     expected.in_front = false;
@@ -413,7 +413,7 @@ TEST_CASE( "[unit-flag] euro_unit_flag_render_info/cargo" ) {
     unit = &merchantman;
     W.add_commodity_in_cargo( e_commodity::food,
                               merchantman.id() );
-    viewer            = e_nation::french;
+    viewer            = e_player::french;
     options           = { .flag_count = e_flag_count::single,
                           .type       = e_flag_char_type::normal };
     expected.in_front = false;
@@ -431,7 +431,7 @@ TEST_CASE( "[unit-flag] euro_unit_flag_render_info/cargo" ) {
                          merchantman.id() );
     W.add_commodity_in_cargo( e_commodity::food,
                               merchantman.id() );
-    viewer            = e_nation::french;
+    viewer            = e_player::french;
     options           = { .flag_count = e_flag_count::single,
                           .type       = e_flag_char_type::normal };
     expected.in_front = false;
@@ -453,7 +453,7 @@ TEST_CASE( "[unit-flag] euro_unit_flag_render_info/cargo" ) {
                               merchantman.id() );
     W.add_commodity_in_cargo( e_commodity::silver,
                               merchantman.id() );
-    viewer            = e_nation::french;
+    viewer            = e_player::french;
     options           = { .flag_count = e_flag_count::single,
                           .type       = e_flag_char_type::normal };
     expected.in_front = false;
@@ -471,7 +471,7 @@ TEST_CASE( "[unit-flag] euro_unit_flag_render_info/cargo" ) {
                          privateer.id() );
     W.add_commodity_in_cargo( e_commodity::food,
                               privateer.id() );
-    viewer           = e_nation::english;
+    viewer           = e_player::english;
     options          = { .flag_count = e_flag_count::multiple,
                          .type       = e_flag_char_type::normal };
     expected.stacked = true;
@@ -500,7 +500,7 @@ TEST_CASE( "[unit-flag] euro_unit_flag_render_info/cargo" ) {
                          privateer.id() );
     W.add_commodity_in_cargo( e_commodity::food,
                               privateer.id() );
-    viewer           = e_nation::french;
+    viewer           = e_player::french;
     expected.offsets = { .offset_first   = { .w = 0, .h = 0 },
                          .offset_stacked = { .w = 2, .h = 2 } };
     expected.outline_color = {

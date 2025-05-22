@@ -43,9 +43,9 @@ using namespace std;
 struct World : testing::World {
   using Base = testing::World;
   World() : Base() {
-    add_player( e_nation::dutch );
-    add_player( e_nation::french );
-    set_default_player( e_nation::dutch );
+    add_player( e_player::dutch );
+    add_player( e_player::french );
+    set_default_player_type( e_player::dutch );
     MapSquare const L = make_grassland();
     vector<MapSquare> tiles{
       L, L, L, L, //
@@ -238,7 +238,7 @@ TEST_CASE(
   SECTION( "foreign missionary" ) {
     UnitType const type = e_unit_type::jesuit_missionary;
     W.add_missionary_in_dwelling( type, dwelling.id,
-                                  e_nation::french );
+                                  e_player::french );
     expected = nothing;
     REQUIRE( f() == expected );
   }
@@ -249,7 +249,7 @@ TEST_CASE(
                           e_unit_type::petty_criminal )
             .value();
     W.add_missionary_in_dwelling( type, dwelling.id,
-                                  e_nation::dutch );
+                                  e_player::dutch );
     expected = .11;
     REQUIRE( f() == expected );
   }
@@ -260,7 +260,7 @@ TEST_CASE(
                           e_unit_type::indentured_servant )
             .value();
     W.add_missionary_in_dwelling( type, dwelling.id,
-                                  e_nation::dutch );
+                                  e_player::dutch );
     expected = .22;
     REQUIRE( f() == expected );
   }
@@ -271,7 +271,7 @@ TEST_CASE(
                           e_unit_type::free_colonist )
             .value();
     W.add_missionary_in_dwelling( type, dwelling.id,
-                                  e_nation::dutch );
+                                  e_player::dutch );
     expected = .33;
     REQUIRE( f() == expected );
   }
@@ -282,7 +282,7 @@ TEST_CASE(
                           e_unit_type::expert_farmer )
             .value();
     W.add_missionary_in_dwelling( type, dwelling.id,
-                                  e_nation::dutch );
+                                  e_player::dutch );
     expected = .33;
     REQUIRE( f() == expected );
   }
@@ -290,7 +290,7 @@ TEST_CASE(
   SECTION( "friendly missionary (jesuit_missionary)" ) {
     UnitType const type = e_unit_type::jesuit_missionary;
     W.add_missionary_in_dwelling( type, dwelling.id,
-                                  e_nation::dutch );
+                                  e_player::dutch );
     expected = .66;
     REQUIRE( f() == expected );
   }
@@ -331,119 +331,119 @@ TEST_CASE( "[missionary] player_missionaries_in_tribe" ) {
   W.add_tribe( e_tribe::apache );
   W.add_tribe( e_tribe::cherokee );
 
-  auto f = [&]( e_nation nation, e_tribe tribe ) {
+  auto f = [&]( e_player player, e_tribe tribe ) {
     return player_missionaries_in_tribe(
-        W.ss(), W.player( nation ), tribe );
+        W.ss(), W.player( player ), tribe );
   };
 
-  REQUIRE( f( e_nation::dutch, e_tribe::apache ) == V{} );
-  REQUIRE( f( e_nation::french, e_tribe::cherokee ) == V{} );
+  REQUIRE( f( e_player::dutch, e_tribe::apache ) == V{} );
+  REQUIRE( f( e_player::french, e_tribe::cherokee ) == V{} );
 
   DwellingId dwelling1_id =
       W.add_dwelling( { .x = 0, .y = 0 }, e_tribe::apache ).id;
 
-  REQUIRE( f( e_nation::dutch, e_tribe::apache ) == V{} );
-  REQUIRE( f( e_nation::french, e_tribe::cherokee ) == V{} );
+  REQUIRE( f( e_player::dutch, e_tribe::apache ) == V{} );
+  REQUIRE( f( e_player::french, e_tribe::cherokee ) == V{} );
 
   UnitId missionary1_id = W.add_missionary_in_dwelling(
                                e_unit_type::missionary,
-                               dwelling1_id, e_nation::dutch )
+                               dwelling1_id, e_player::dutch )
                               .id();
 
-  REQUIRE( f( e_nation::dutch, e_tribe::apache ) ==
+  REQUIRE( f( e_player::dutch, e_tribe::apache ) ==
            V{ missionary1_id } );
-  REQUIRE( f( e_nation::dutch, e_tribe::cherokee ) == V{} );
-  REQUIRE( f( e_nation::french, e_tribe::apache ) == V{} );
-  REQUIRE( f( e_nation::french, e_tribe::cherokee ) == V{} );
+  REQUIRE( f( e_player::dutch, e_tribe::cherokee ) == V{} );
+  REQUIRE( f( e_player::french, e_tribe::apache ) == V{} );
+  REQUIRE( f( e_player::french, e_tribe::cherokee ) == V{} );
 
   DwellingId dwelling2_id =
       W.add_dwelling( { .x = 1, .y = 0 }, e_tribe::apache ).id;
 
-  REQUIRE( f( e_nation::dutch, e_tribe::apache ) ==
+  REQUIRE( f( e_player::dutch, e_tribe::apache ) ==
            V{ missionary1_id } );
-  REQUIRE( f( e_nation::dutch, e_tribe::cherokee ) == V{} );
-  REQUIRE( f( e_nation::french, e_tribe::apache ) == V{} );
-  REQUIRE( f( e_nation::french, e_tribe::cherokee ) == V{} );
+  REQUIRE( f( e_player::dutch, e_tribe::cherokee ) == V{} );
+  REQUIRE( f( e_player::french, e_tribe::apache ) == V{} );
+  REQUIRE( f( e_player::french, e_tribe::cherokee ) == V{} );
 
   UnitId missionary2_id = W.add_missionary_in_dwelling(
                                e_unit_type::missionary,
-                               dwelling2_id, e_nation::dutch )
+                               dwelling2_id, e_player::dutch )
                               .id();
 
-  REQUIRE( f( e_nation::dutch, e_tribe::apache ) ==
+  REQUIRE( f( e_player::dutch, e_tribe::apache ) ==
            V{ missionary1_id, missionary2_id } );
-  REQUIRE( f( e_nation::dutch, e_tribe::cherokee ) == V{} );
-  REQUIRE( f( e_nation::french, e_tribe::apache ) == V{} );
-  REQUIRE( f( e_nation::french, e_tribe::cherokee ) == V{} );
+  REQUIRE( f( e_player::dutch, e_tribe::cherokee ) == V{} );
+  REQUIRE( f( e_player::french, e_tribe::apache ) == V{} );
+  REQUIRE( f( e_player::french, e_tribe::cherokee ) == V{} );
 
   DwellingId dwelling3_id =
       W.add_dwelling( { .x = 2, .y = 0 }, e_tribe::cherokee ).id;
 
-  REQUIRE( f( e_nation::dutch, e_tribe::apache ) ==
+  REQUIRE( f( e_player::dutch, e_tribe::apache ) ==
            V{ missionary1_id, missionary2_id } );
-  REQUIRE( f( e_nation::dutch, e_tribe::cherokee ) == V{} );
-  REQUIRE( f( e_nation::french, e_tribe::apache ) == V{} );
-  REQUIRE( f( e_nation::french, e_tribe::cherokee ) == V{} );
+  REQUIRE( f( e_player::dutch, e_tribe::cherokee ) == V{} );
+  REQUIRE( f( e_player::french, e_tribe::apache ) == V{} );
+  REQUIRE( f( e_player::french, e_tribe::cherokee ) == V{} );
 
   UnitId missionary3_id = W.add_missionary_in_dwelling(
                                e_unit_type::jesuit_missionary,
-                               dwelling3_id, e_nation::dutch )
+                               dwelling3_id, e_player::dutch )
                               .id();
 
-  REQUIRE( f( e_nation::dutch, e_tribe::apache ) ==
+  REQUIRE( f( e_player::dutch, e_tribe::apache ) ==
            V{ missionary1_id, missionary2_id } );
-  REQUIRE( f( e_nation::dutch, e_tribe::cherokee ) ==
+  REQUIRE( f( e_player::dutch, e_tribe::cherokee ) ==
            V{ missionary3_id } );
-  REQUIRE( f( e_nation::french, e_tribe::apache ) == V{} );
-  REQUIRE( f( e_nation::french, e_tribe::cherokee ) == V{} );
+  REQUIRE( f( e_player::french, e_tribe::apache ) == V{} );
+  REQUIRE( f( e_player::french, e_tribe::cherokee ) == V{} );
 
   DwellingId dwelling4_id =
       W.add_dwelling( { .x = 3, .y = 0 }, e_tribe::cherokee ).id;
 
-  REQUIRE( f( e_nation::dutch, e_tribe::apache ) ==
+  REQUIRE( f( e_player::dutch, e_tribe::apache ) ==
            V{ missionary1_id, missionary2_id } );
-  REQUIRE( f( e_nation::dutch, e_tribe::cherokee ) ==
+  REQUIRE( f( e_player::dutch, e_tribe::cherokee ) ==
            V{ missionary3_id } );
-  REQUIRE( f( e_nation::french, e_tribe::apache ) == V{} );
-  REQUIRE( f( e_nation::french, e_tribe::cherokee ) == V{} );
+  REQUIRE( f( e_player::french, e_tribe::apache ) == V{} );
+  REQUIRE( f( e_player::french, e_tribe::cherokee ) == V{} );
 
   UnitId missionary4_id = W.add_missionary_in_dwelling(
                                e_unit_type::jesuit_missionary,
-                               dwelling4_id, e_nation::french )
+                               dwelling4_id, e_player::french )
                               .id();
 
-  REQUIRE( f( e_nation::dutch, e_tribe::apache ) ==
+  REQUIRE( f( e_player::dutch, e_tribe::apache ) ==
            V{ missionary1_id, missionary2_id } );
-  REQUIRE( f( e_nation::dutch, e_tribe::cherokee ) ==
+  REQUIRE( f( e_player::dutch, e_tribe::cherokee ) ==
            V{ missionary3_id } );
-  REQUIRE( f( e_nation::french, e_tribe::apache ) == V{} );
-  REQUIRE( f( e_nation::french, e_tribe::cherokee ) ==
+  REQUIRE( f( e_player::french, e_tribe::apache ) == V{} );
+  REQUIRE( f( e_player::french, e_tribe::cherokee ) ==
            V{ missionary4_id } );
 
   UnitOwnershipChanger( W.ss(), missionary1_id ).destroy();
   UnitOwnershipChanger( W.ss(), missionary3_id ).destroy();
 
-  REQUIRE( f( e_nation::dutch, e_tribe::apache ) ==
+  REQUIRE( f( e_player::dutch, e_tribe::apache ) ==
            V{ missionary2_id } );
-  REQUIRE( f( e_nation::dutch, e_tribe::cherokee ) == V{} );
-  REQUIRE( f( e_nation::french, e_tribe::apache ) == V{} );
-  REQUIRE( f( e_nation::french, e_tribe::cherokee ) ==
+  REQUIRE( f( e_player::dutch, e_tribe::cherokee ) == V{} );
+  REQUIRE( f( e_player::french, e_tribe::apache ) == V{} );
+  REQUIRE( f( e_player::french, e_tribe::cherokee ) ==
            V{ missionary4_id } );
 
   UnitOwnershipChanger( W.ss(), missionary2_id ).destroy();
   UnitOwnershipChanger( W.ss(), missionary4_id ).destroy();
 
-  REQUIRE( f( e_nation::dutch, e_tribe::apache ) == V{} );
-  REQUIRE( f( e_nation::dutch, e_tribe::cherokee ) == V{} );
-  REQUIRE( f( e_nation::french, e_tribe::apache ) == V{} );
-  REQUIRE( f( e_nation::french, e_tribe::cherokee ) == V{} );
+  REQUIRE( f( e_player::dutch, e_tribe::apache ) == V{} );
+  REQUIRE( f( e_player::dutch, e_tribe::cherokee ) == V{} );
+  REQUIRE( f( e_player::french, e_tribe::apache ) == V{} );
+  REQUIRE( f( e_player::french, e_tribe::cherokee ) == V{} );
 }
 
 TEST_CASE( "[missionary] tribe_reaction_to_missionary" ) {
   World W;
   Tribe& tribe = W.add_tribe( e_tribe::inca );
   TribeRelationship& relationship =
-      tribe.relationship[W.default_nation()];
+      tribe.relationship[W.default_player_type()];
   relationship.encountered = true;
 
   auto f = [&] {

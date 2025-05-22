@@ -59,71 +59,71 @@ TEST_CASE( "[roles] player_for_role" ) {
   REQUIRE( f( e_player_role::active ) == nothing );
 
   // Add french player.
-  W.add_player( e_nation::french );
+  W.add_player( e_player::french );
   REQUIRE( f( e_player_role::viewer ) == nothing );
   REQUIRE( f( e_player_role::active ) == nothing );
 
   // Add dutch player.
-  W.add_player( e_nation::dutch );
+  W.add_player( e_player::dutch );
   REQUIRE( f( e_player_role::viewer ) == nothing );
   REQUIRE( f( e_player_role::active ) == nothing );
 
   // Make dutch human.
   W.dutch().human = true;
-  REQUIRE( f( e_player_role::viewer ) == e_nation::dutch );
+  REQUIRE( f( e_player_role::viewer ) == e_player::dutch );
   REQUIRE( f( e_player_role::active ) == nothing );
 
   // Add spanish player.
-  W.add_player( e_nation::spanish );
-  REQUIRE( f( e_player_role::viewer ) == e_nation::dutch );
+  W.add_player( e_player::spanish );
+  REQUIRE( f( e_player_role::viewer ) == e_player::dutch );
   REQUIRE( f( e_player_role::active ) == nothing );
 
   // Make spanish active.
-  W.turn().cycle =
-      TurnCycle::nation{ .nation = e_nation::spanish };
-  REQUIRE( f( e_player_role::viewer ) == e_nation::dutch );
-  REQUIRE( f( e_player_role::active ) == e_nation::spanish );
+  W.turn().cycle = TurnCycle::nation{
+    .european_nation = e_european_nation::spanish };
+  REQUIRE( f( e_player_role::viewer ) == e_player::dutch );
+  REQUIRE( f( e_player_role::active ) == e_player::spanish );
 
   // Make spanish human.
   W.spanish().human = true;
-  REQUIRE( f( e_player_role::viewer ) == e_nation::spanish );
-  REQUIRE( f( e_player_role::active ) == e_nation::spanish );
+  REQUIRE( f( e_player_role::viewer ) == e_player::spanish );
+  REQUIRE( f( e_player_role::active ) == e_player::spanish );
 
   // Remove human status from spanish.
   W.spanish().human = false;
-  REQUIRE( f( e_player_role::viewer ) == e_nation::dutch );
-  REQUIRE( f( e_player_role::active ) == e_nation::spanish );
+  REQUIRE( f( e_player_role::viewer ) == e_player::dutch );
+  REQUIRE( f( e_player_role::active ) == e_player::spanish );
 
   // Remove human status from dutch.
   W.dutch().human = false;
-  REQUIRE( f( e_player_role::viewer ) == e_nation::spanish );
-  REQUIRE( f( e_player_role::active ) == e_nation::spanish );
+  REQUIRE( f( e_player_role::viewer ) == e_player::spanish );
+  REQUIRE( f( e_player_role::active ) == e_player::spanish );
 
   // Add english player.
-  W.add_player( e_nation::english );
-  REQUIRE( f( e_player_role::viewer ) == e_nation::spanish );
-  REQUIRE( f( e_player_role::active ) == e_nation::spanish );
+  W.add_player( e_player::english );
+  REQUIRE( f( e_player_role::viewer ) == e_player::spanish );
+  REQUIRE( f( e_player_role::active ) == e_player::spanish );
 
   // Switch to entire-map-view.
   W.land_view().map_revealed = MapRevealed::entire{};
   REQUIRE( f( e_player_role::viewer ) == nothing );
-  REQUIRE( f( e_player_role::active ) == e_nation::spanish );
+  REQUIRE( f( e_player_role::active ) == e_player::spanish );
 
   // Switch to english nation-map-view.
   W.land_view().map_revealed =
-      MapRevealed::nation{ .nation = e_nation::english };
-  REQUIRE( f( e_player_role::viewer ) == e_nation::english );
-  REQUIRE( f( e_player_role::active ) == e_nation::spanish );
+      MapRevealed::player{ .type = e_player::english };
+  REQUIRE( f( e_player_role::viewer ) == e_player::english );
+  REQUIRE( f( e_player_role::active ) == e_player::spanish );
 
   // Make french human.
   W.french().human = true;
-  REQUIRE( f( e_player_role::viewer ) == e_nation::english );
-  REQUIRE( f( e_player_role::active ) == e_nation::spanish );
+  REQUIRE( f( e_player_role::viewer ) == e_player::english );
+  REQUIRE( f( e_player_role::active ) == e_player::spanish );
 
   // Switch to no special view.
   W.land_view().map_revealed = MapRevealed::no_special_view{};
-  REQUIRE( f( e_player_role::viewer ) == e_nation::french );
-  REQUIRE( f( e_player_role::active ) == e_nation::spanish );
+  REQUIRE( f( e_player_role::viewer ) == e_player::french );
+  REQUIRE( f( e_player_role::active ) == e_player::spanish );
 }
 
 } // namespace

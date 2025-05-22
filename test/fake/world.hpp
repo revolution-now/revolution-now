@@ -128,7 +128,7 @@ struct World {
 
   // This gets the terrain info from the player-specific map.
   PlayerSquare& player_square(
-      gfx::point p, maybe<e_nation> nation = nothing );
+      gfx::point p, maybe<e_player> player = nothing );
 
   void add_forest( gfx::point p );
   void add_mountains( gfx::point p );
@@ -142,7 +142,7 @@ struct World {
   // Creating units.
   // ------------------------------------------------------------
   Unit& add_unit_in_port( e_unit_type type,
-                          maybe<e_nation> nation = nothing );
+                          maybe<e_player> player = nothing );
 
   NativeUnit& add_native_unit_on_map( e_native_unit_type type,
                                       gfx::point tile,
@@ -150,19 +150,19 @@ struct World {
 
   Unit& add_unit_on_map( UnitComposition const& comp,
                          gfx::point where,
-                         maybe<e_nation> nation = nothing );
+                         maybe<e_player> player = nothing );
 
   Unit& add_missionary_in_dwelling(
       UnitType missionary_type, DwellingId dwelling_id,
-      maybe<e_nation> nation = nothing );
+      maybe<e_player> player = nothing );
 
-  // Unit created will be the same nation as the holder.
+  // Unit created will be the same player as the holder.
   Unit& add_unit_in_cargo( e_unit_type type, UnitId holder );
 
   // This will create a unit that is registered in the game but
   // without any ownership.
   Unit& add_free_unit( e_unit_type type,
-                       maybe<e_nation> nation = nothing );
+                       maybe<e_player> player = nothing );
 
   // Create a unit and add give it the specified indoor job in
   // the colony.
@@ -214,7 +214,7 @@ struct World {
   // This one should be preferred where it works, since it is
   // fastest.
   Colony& add_colony( Coord where,
-                      maybe<e_nation> nation = nothing );
+                      maybe<e_player> player = nothing );
 
   // Create a colony using the founder unit on the same square as
   // the unit, and uses the same routine to do so as is used by
@@ -226,11 +226,11 @@ struct World {
   // Same as above but will first create a free colonist on the
   // square and then use it to found the colony.
   std::pair<Colony&, Unit&> found_colony_with_new_unit(
-      Coord where, maybe<e_nation> nation = nothing );
+      Coord where, maybe<e_player> player = nothing );
 
   // Calls the proper destroy_colony method on all colonies for
-  // the given nation. E.g., it will also erase the road.
-  void kill_all_colonies( maybe<e_nation> nation = nothing );
+  // the given player. E.g., it will also erase the road.
+  void kill_all_colonies( maybe<e_player> player = nothing );
 
   // ------------------------------------------------------------
   // Creating Native Dwellings.
@@ -297,21 +297,23 @@ struct World {
   // ------------------------------------------------------------
   // Players.
   // ------------------------------------------------------------
-  void add_player( e_nation nation );
-  void add_all_players( maybe<e_nation> human = nothing );
+  void add_player( e_player player );
+  void add_all_players( maybe<e_player> human = nothing );
   void add_default_player();
 
-  e_nation default_nation() const { return default_nation_; }
+  e_player default_player_type() const {
+    return default_player_type_;
+  }
 
-  void set_default_player( e_nation nation ) {
-    default_nation_ = nation;
+  void set_default_player_type( e_player const player_type ) {
+    default_player_type_ = player_type;
   }
 
   // Note that this function has a different convention than the
   // usual in this module. When `nation` is nothing it means that
   // there is no human player, as opposed to the usual meaning
   // which would be that the "default" player is selected.
-  void set_human_player( maybe<e_nation> nation );
+  void set_human_player( maybe<e_player> player );
 
   void set_default_player_as_human();
 
@@ -331,13 +333,13 @@ struct World {
   Player& default_player();
   Player const& default_player() const;
 
-  Player& player( maybe<e_nation> nation = nothing );
-  Player const& player( maybe<e_nation> nation = nothing ) const;
+  Player& player( maybe<e_player> player = nothing );
+  Player const& player( maybe<e_player> player = nothing ) const;
 
   // ------------------------------------------------------------
   // Revolution Status.
   // ------------------------------------------------------------
-  void declare_independence( maybe<e_nation> nation = nothing );
+  void declare_independence( maybe<e_player> player = nothing );
 
   // ------------------------------------------------------------
   // Serialized State / Transient State / Planes.
@@ -377,7 +379,7 @@ struct World {
   TerrainConnectivity& connectivity();
 
   MockINativeMind& native_mind( e_tribe tribe );
-  MockIEuroMind& euro_mind( maybe<e_nation> nation = nothing );
+  MockIEuroMind& euro_mind( maybe<e_player> player = nothing );
 
   NativeMinds& native_minds();
   EuroMinds& euro_minds();
@@ -410,7 +412,7 @@ struct World {
   void initialize_ts();
 
  private:
-  e_nation default_nation_ = e_nation::dutch;
+  e_player default_player_type_ = e_player::dutch;
 
   // These are unique_ptrs so that we can forward declare them.
   // Otherwise every unit test would have to pull in all of these

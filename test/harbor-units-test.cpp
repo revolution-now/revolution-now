@@ -64,8 +64,8 @@ struct World : testing::World {
     };
     // clang-format on
     build_map( std::move( tiles ), 10 );
-    add_player( e_nation::dutch );
-    add_player( e_nation::french );
+    add_player( e_player::dutch );
+    add_player( e_player::french );
   }
 };
 
@@ -169,23 +169,23 @@ TEST_CASE( "[harbor-units] harbor_units_?" ) {
   w.add_unit_on_map( e_unit_type::soldier, coord );
   w.add_unit_on_map( e_unit_type::soldier, coord );
 
-  REQUIRE( harbor_units_on_dock( w.units(), e_nation::dutch ) ==
+  REQUIRE( harbor_units_on_dock( w.units(), e_player::dutch ) ==
            vector<UnitId>{ free_colonist2, free_colonist1 } );
-  REQUIRE( harbor_units_in_port( w.units(), e_nation::dutch ) ==
+  REQUIRE( harbor_units_in_port( w.units(), e_player::dutch ) ==
            vector<UnitId>{ caravel2, caravel1 } );
-  REQUIRE( harbor_units_inbound( w.units(), e_nation::dutch ) ==
+  REQUIRE( harbor_units_inbound( w.units(), e_player::dutch ) ==
            vector<UnitId>{ merchantman2 } );
-  REQUIRE( harbor_units_outbound( w.units(), e_nation::dutch ) ==
+  REQUIRE( harbor_units_outbound( w.units(), e_player::dutch ) ==
            vector<UnitId>{ merchantman1 } );
 
-  REQUIRE( harbor_units_on_dock( w.units(), e_nation::french ) ==
+  REQUIRE( harbor_units_on_dock( w.units(), e_player::french ) ==
            vector<UnitId>{} );
-  REQUIRE( harbor_units_in_port( w.units(), e_nation::french ) ==
+  REQUIRE( harbor_units_in_port( w.units(), e_player::french ) ==
            vector<UnitId>{} );
-  REQUIRE( harbor_units_inbound( w.units(), e_nation::french ) ==
+  REQUIRE( harbor_units_inbound( w.units(), e_player::french ) ==
            vector<UnitId>{} );
   REQUIRE(
-      harbor_units_outbound( w.units(), e_nation::french ) ==
+      harbor_units_outbound( w.units(), e_player::french ) ==
       vector<UnitId>{} );
 }
 
@@ -193,10 +193,10 @@ TEST_CASE( "[harbor-units] create_unit_in_harbor" ) {
   World w;
   Player& player = w.default_player();
   UnitId id1 =
-      create_unit_in_harbor( w.ss(), w.player( e_nation::dutch ),
+      create_unit_in_harbor( w.ss(), w.player( e_player::dutch ),
                              e_unit_type::soldier );
   UnitId id2 =
-      create_unit_in_harbor( w.ss(), w.player( e_nation::dutch ),
+      create_unit_in_harbor( w.ss(), w.player( e_player::dutch ),
                              e_unit_type::free_colonist );
   REQUIRE( player.old_world.harbor_state.selected_unit ==
            nothing );
@@ -588,7 +588,7 @@ TEST_CASE(
     Coord const ship_loc{ .x = 8, .y = 5 };
     UnitId dutch_caravel =
         w.add_unit_on_map( e_unit_type::caravel, ship_loc,
-                           e_nation::dutch )
+                           e_player::dutch )
             .id();
     unit_sail_to_harbor( w.ss(), dutch_caravel );
     unit_move_to_port( w.ss(), dutch_caravel );
@@ -596,7 +596,7 @@ TEST_CASE(
 
     UnitId dutch_caravel2 =
         w.add_unit_on_map( e_unit_type::caravel, ship_loc,
-                           e_nation::dutch )
+                           e_player::dutch )
             .id();
     REQUIRE( find_new_world_arrival_square(
                  w.ss(), w.ts(), w.dutch(),
@@ -614,7 +614,7 @@ TEST_CASE(
     Coord const ship_loc{ .x = 8, .y = 5 };
     UnitId dutch_caravel =
         w.add_unit_on_map( e_unit_type::caravel, ship_loc,
-                           e_nation::dutch )
+                           e_player::dutch )
             .id();
     unit_sail_to_harbor( w.ss(), dutch_caravel );
     unit_move_to_port( w.ss(), dutch_caravel );
@@ -622,7 +622,7 @@ TEST_CASE(
 
     UnitId french_caravel =
         w.add_unit_on_map( e_unit_type::caravel, ship_loc,
-                           e_nation::french )
+                           e_player::french )
             .id();
     REQUIRE( w.units().from_coord( ship_loc ).size() == 1 );
     REQUIRE( w.units()
@@ -641,14 +641,14 @@ TEST_CASE(
     Coord const ship_loc{ .x = 0, .y = 0 };
     UnitId dutch_caravel =
         w.add_unit_on_map( e_unit_type::caravel, ship_loc,
-                           e_nation::dutch )
+                           e_player::dutch )
             .id();
     unit_sail_to_harbor( w.ss(), dutch_caravel );
     unit_move_to_port( w.ss(), dutch_caravel );
     REQUIRE( w.units().from_coord( ship_loc ).empty() );
 
     w.add_unit_on_map( e_unit_type::caravel, ship_loc,
-                       e_nation::french );
+                       e_player::french );
     Coord const expected{ .x = 1, .y = 0 };
     REQUIRE( find_new_world_arrival_square(
                  w.ss(), w.ts(), w.dutch(),
@@ -661,7 +661,7 @@ TEST_CASE(
     Coord const ship_loc{ .x = 0, .y = 0 };
     UnitId dutch_caravel =
         w.add_unit_on_map( e_unit_type::caravel, ship_loc,
-                           e_nation::dutch )
+                           e_player::dutch )
             .id();
     unit_sail_to_harbor( w.ss(), dutch_caravel );
     unit_move_to_port( w.ss(), dutch_caravel );
@@ -670,35 +670,35 @@ TEST_CASE(
     w.add_unit_on_map(
         e_unit_type::caravel,
         ship_loc + Delta{ .h = 0 } + Delta{ .w = 0 },
-        e_nation::french );
+        e_player::french );
     w.add_unit_on_map(
         e_unit_type::caravel,
         ship_loc + Delta{ .h = 0 } + Delta{ .w = 1 },
-        e_nation::french );
+        e_player::french );
     w.add_unit_on_map(
         e_unit_type::caravel,
         ship_loc + Delta{ .h = 0 } + Delta{ .w = 2 },
-        e_nation::french );
+        e_player::french );
     w.add_unit_on_map(
         e_unit_type::caravel,
         ship_loc + Delta{ .h = 1 } + Delta{ .w = 0 },
-        e_nation::french );
+        e_player::french );
     w.add_unit_on_map(
         e_unit_type::caravel,
         ship_loc + Delta{ .h = 1 } + Delta{ .w = 1 },
-        e_nation::french );
+        e_player::french );
     w.add_unit_on_map(
         e_unit_type::caravel,
         ship_loc + Delta{ .h = 1 } + Delta{ .w = 2 },
-        e_nation::french );
+        e_player::french );
     w.add_unit_on_map(
         e_unit_type::caravel,
         ship_loc + Delta{ .h = 2 } + Delta{ .w = 0 },
-        e_nation::french );
+        e_player::french );
     w.add_unit_on_map(
         e_unit_type::caravel,
         ship_loc + Delta{ .h = 2 } + Delta{ .w = 1 },
-        e_nation::french );
+        e_player::french );
     Coord const expected{ .x = 3, .y = 0 };
     REQUIRE( find_new_world_arrival_square(
                  w.ss(), w.ts(), w.dutch(),
@@ -711,7 +711,7 @@ TEST_CASE(
     Coord const ship_loc{ .x = 0, .y = 0 };
     UnitId dutch_caravel =
         w.add_unit_on_map( e_unit_type::caravel, ship_loc,
-                           e_nation::dutch )
+                           e_player::dutch )
             .id();
     unit_sail_to_harbor( w.ss(), dutch_caravel );
     unit_move_to_port( w.ss(), dutch_caravel );
@@ -724,7 +724,7 @@ TEST_CASE(
       if( w.terrain().square_at( r.upper_left() ).surface ==
           e_surface::water )
         w.add_unit_on_map( e_unit_type::caravel, r.upper_left(),
-                           e_nation::french );
+                           e_player::french );
 
     REQUIRE( find_new_world_arrival_square(
                  w.ss(), w.ts(), w.dutch(),
@@ -737,7 +737,7 @@ TEST_CASE(
     Coord const ship_loc{ .x = 0, .y = 0 };
     UnitId dutch_caravel =
         w.add_unit_on_map( e_unit_type::caravel, ship_loc,
-                           e_nation::dutch )
+                           e_player::dutch )
             .id();
     unit_sail_to_harbor( w.ss(), dutch_caravel );
     unit_move_to_port( w.ss(), dutch_caravel );
@@ -937,7 +937,8 @@ TEST_CASE( "[harbor-units] unit ordering on dock" ) {
   vector<UnitId> expected;
 
   auto const f = [&] {
-    return harbor_units_on_dock( w.units(), w.default_nation() );
+    return harbor_units_on_dock( w.units(),
+                                 w.default_player_type() );
   };
 
   UnitId const unit1 =
@@ -983,7 +984,8 @@ TEST_CASE( "[harbor-units] unit ordering in port" ) {
   vector<UnitId> expected;
 
   auto const f = [&] {
-    return harbor_units_in_port( w.units(), w.default_nation() );
+    return harbor_units_in_port( w.units(),
+                                 w.default_player_type() );
   };
 
   UnitId const unit1 =

@@ -50,11 +50,11 @@ using namespace std;
 struct World : testing::World {
   using Base = testing::World;
   World() : Base() {
-    add_player( e_nation::english );
-    add_player( e_nation::french );
-    add_player( e_nation::spanish );
-    add_player( e_nation::dutch );
-    set_default_player( e_nation::english );
+    add_player( e_player::english );
+    add_player( e_player::french );
+    add_player( e_player::spanish );
+    add_player( e_player::dutch );
+    set_default_player_type( e_player::english );
     create_default_map();
   }
 
@@ -109,7 +109,7 @@ TEST_CASE( "[meet-natives] check_meet_tribes" ) {
     square   = { .x = 0, .y = 1 };
     expected = {
       MeetTribe{
-        .nation        = e_nation::english,
+        .player        = e_player::english,
         .tribe         = e_tribe::inca,
         .num_dwellings = 2,
         .land_awarded  = {},
@@ -123,8 +123,9 @@ TEST_CASE( "[meet-natives] check_meet_tribes" ) {
     W.add_dwelling( { .x = 4, .y = 4 }, e_tribe::inca );
     square      = { .x = 0, .y = 1 };
     Tribe& inca = W.natives().tribe_for( e_tribe::inca );
-    inca.relationship[W.default_nation()].encountered = true;
-    expected                                          = {};
+    inca.relationship[W.default_player_type()].encountered =
+        true;
+    expected = {};
     REQUIRE( f() == expected );
   }
 
@@ -143,13 +144,13 @@ TEST_CASE( "[meet-natives] check_meet_tribes" ) {
     square   = { .x = 0, .y = 1 };
     expected = {
       MeetTribe{
-        .nation        = e_nation::english,
+        .player        = e_player::english,
         .tribe         = e_tribe::aztec,
         .num_dwellings = 1,
         .land_awarded  = {},
       },
       MeetTribe{
-        .nation        = e_nation::english,
+        .player        = e_player::english,
         .tribe         = e_tribe::inca,
         .num_dwellings = 2,
         .land_awarded  = {},
@@ -165,7 +166,7 @@ TEST_CASE( "[meet-natives] check_meet_tribes" ) {
     square   = { .x = 0, .y = 1 };
     expected = {
       MeetTribe{
-        .nation        = e_nation::english,
+        .player        = e_player::english,
         .tribe         = e_tribe::inca,
         .num_dwellings = 3,
         .land_awarded  = {},
@@ -198,7 +199,7 @@ TEST_CASE( "[meet-natives] check_meet_tribes" ) {
     square   = { .x = 3, .y = 3 };
     expected = {
       MeetTribe{
-        .nation        = e_nation::english,
+        .player        = e_player::english,
         .tribe         = e_tribe::inca,
         .num_dwellings = 1,
         .land_awarded  = {},
@@ -233,7 +234,7 @@ TEST_CASE( "[meet-natives] check_meet_tribes" ) {
                          e_outdoor_job::food );
     square   = { .x = 3, .y = 3 };
     expected = {
-      MeetTribe{ .nation        = e_nation::english,
+      MeetTribe{ .player        = e_player::english,
                  .tribe         = e_tribe::inca,
                  .num_dwellings = 1,
                  .land_awarded  = { { .x = 1, .y = 3 },
@@ -270,7 +271,7 @@ TEST_CASE( "[meet-natives] check_meet_tribes" ) {
                          e_outdoor_job::food );
     square   = { .x = 3, .y = 3 };
     expected = {
-      MeetTribe{ .nation        = e_nation::english,
+      MeetTribe{ .player        = e_player::english,
                  .tribe         = e_tribe::inca,
                  .num_dwellings = 1,
                  .land_awarded  = {} },
@@ -291,13 +292,13 @@ TEST_CASE( "[meet-natives] check_meet_europeans" ) {
   };
 
   W.add_unit_on_map( e_unit_type::free_colonist,
-                     { .x = 1, .y = 1 }, e_nation::english );
+                     { .x = 1, .y = 1 }, e_player::english );
   W.add_unit_on_map( e_unit_type::free_colonist,
-                     { .x = 2, .y = 1 }, e_nation::french );
+                     { .x = 2, .y = 1 }, e_player::french );
   W.add_unit_on_map( e_unit_type::caravel, { .x = 0, .y = 0 },
-                     e_nation::spanish );
+                     e_player::spanish );
   W.add_unit_on_map( e_unit_type::free_colonist,
-                     { .x = 0, .y = 1 }, e_nation::dutch );
+                     { .x = 0, .y = 1 }, e_player::dutch );
 
   DwellingId const apache_dwelling_id =
       W.add_dwelling( { .x = 3, .y = 0 }, e_tribe::apache ).id;
@@ -305,25 +306,25 @@ TEST_CASE( "[meet-natives] check_meet_europeans" ) {
                             { .x = 2, .y = 0 },
                             apache_dwelling_id );
 
-  W.apache().relationship[e_nation::dutch].encountered = true;
+  W.apache().relationship[e_player::dutch].encountered = true;
   W.add_tribe( e_tribe::cherokee );
-  W.cherokee().relationship[e_nation::english].encountered =
+  W.cherokee().relationship[e_player::english].encountered =
       true;
 
   // Set up english colonists on apache owned land.
   Colony const& colony =
-      W.add_colony( { .x = 1, .y = 2 }, e_nation::english );
+      W.add_colony( { .x = 1, .y = 2 }, e_player::english );
   W.add_unit_outdoors( colony.id, e_direction::n,
                        e_outdoor_job::food );
   W.natives().mark_land_owned( apache_dwelling_id,
                                { .x = 1, .y = 1 } );
 
   expected = {
-    MeetTribe{ .nation        = e_nation::english,
+    MeetTribe{ .player        = e_player::english,
                .tribe         = e_tribe::apache,
                .num_dwellings = 1,
                .land_awarded  = { { .x = 1, .y = 1 } } },
-    MeetTribe{ .nation        = e_nation::french,
+    MeetTribe{ .player        = e_player::french,
                .tribe         = e_tribe::apache,
                .num_dwellings = 1 } };
   REQUIRE( f( { .x = 1, .y = 0 } ) == expected );
@@ -335,7 +336,7 @@ TEST_CASE( "[meet-natives] perform_meet_tribe" ) {
   MeetTribe meet_tribe;
   e_declare_war_on_natives declare_war = {};
   e_tribe const tribe                  = e_tribe::cherokee;
-  e_nation const nation                = W.default_nation();
+  e_player const player_type           = W.default_player_type();
 
   auto f = [&] {
     perform_meet_tribe( W.ss(), W.default_player(), meet_tribe,
@@ -347,11 +348,11 @@ TEST_CASE( "[meet-natives] perform_meet_tribe" ) {
 
   REQUIRE( !W.natives()
                 .tribe_for( tribe )
-                .relationship[nation]
+                .relationship[player_type]
                 .encountered );
 
   meet_tribe = {
-    .nation        = e_nation::dutch,
+    .player        = e_player::dutch,
     .tribe         = tribe,
     .num_dwellings = 3,
     .land_awarded = { { .x = 1, .y = 0 }, { .x = 2, .y = 0 } } };
@@ -362,11 +363,12 @@ TEST_CASE( "[meet-natives] perform_meet_tribe" ) {
   SECTION( "no declare war" ) {
     declare_war = e_declare_war_on_natives::no;
     f();
-    REQUIRE(
-        W.natives().tribe_for( tribe ).relationship[nation] ==
-        TribeRelationship{ .encountered  = true,
-                           .at_war       = false,
-                           .tribal_alarm = 10 } );
+    REQUIRE( W.natives()
+                 .tribe_for( tribe )
+                 .relationship[player_type] ==
+             TribeRelationship{ .encountered  = true,
+                                .at_war       = false,
+                                .tribal_alarm = 10 } );
     REQUIRE( !is_land_native_owned( W.ss(), player,
                                     { .x = 1, .y = 0 } ) );
     REQUIRE( !is_land_native_owned( W.ss(), player,
@@ -380,11 +382,12 @@ TEST_CASE( "[meet-natives] perform_meet_tribe" ) {
   SECTION( "declare war" ) {
     declare_war = e_declare_war_on_natives::yes;
     f();
-    REQUIRE(
-        W.natives().tribe_for( tribe ).relationship[nation] ==
-        TribeRelationship{ .encountered  = true,
-                           .at_war       = true,
-                           .tribal_alarm = 10 } );
+    REQUIRE( W.natives()
+                 .tribe_for( tribe )
+                 .relationship[player_type] ==
+             TribeRelationship{ .encountered  = true,
+                                .at_war       = true,
+                                .tribal_alarm = 10 } );
   }
 
   // The perform_meet_tribe function may receive some owned land
@@ -395,11 +398,12 @@ TEST_CASE( "[meet-natives] perform_meet_tribe" ) {
     declare_war = e_declare_war_on_natives::no;
     W.add_colony( { .x = 1, .y = 0 } );
     f();
-    REQUIRE(
-        W.natives().tribe_for( tribe ).relationship[nation] ==
-        TribeRelationship{ .encountered  = true,
-                           .at_war       = false,
-                           .tribal_alarm = 10 } );
+    REQUIRE( W.natives()
+                 .tribe_for( tribe )
+                 .relationship[player_type] ==
+             TribeRelationship{ .encountered  = true,
+                                .at_war       = false,
+                                .tribal_alarm = 10 } );
     REQUIRE( !is_land_native_owned( W.ss(), player,
                                     { .x = 1, .y = 0 } ) );
     REQUIRE( !is_land_native_owned( W.ss(), player,
@@ -419,18 +423,18 @@ TEST_CASE( "[meet-natives] perform_meet_tribe arawak" ) {
   e_declare_war_on_natives declare_war = {};
   e_tribe const tribe                  = e_tribe::arawak;
   Tribe const& tribe_obj               = W.add_tribe( tribe );
-  e_nation const nation                = W.default_nation();
+  e_player const player_type           = W.default_player_type();
 
   auto f = [&] {
     perform_meet_tribe( W.ss(), W.default_player(), meet_tribe,
                         declare_war );
   };
 
-  meet_tribe = { .nation        = e_nation::dutch,
+  meet_tribe = { .player        = e_player::dutch,
                  .tribe         = tribe,
                  .num_dwellings = 3 };
   f();
-  REQUIRE( tribe_obj.relationship[nation] ==
+  REQUIRE( tribe_obj.relationship[player_type] ==
            TribeRelationship{ .encountered  = true,
                               .at_war       = false,
                               .tribal_alarm = 30 } );
@@ -448,7 +452,7 @@ TEST_CASE( "[meet-natives] perform_meet_tribe_ui_sequence" ) {
   };
 
   meet_tribe = {
-    .nation        = w.default_nation(),
+    .player        = w.default_player_type(),
     .tribe         = e_tribe::tupi,
     .num_dwellings = 3,
     .land_awarded  = { { .x = 1, .y = 1 }, { .x = 2, .y = 1 } },

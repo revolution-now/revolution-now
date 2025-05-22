@@ -59,9 +59,9 @@ using clear      = FogStatus::clear;
 struct World : testing::World {
   using Base = testing::World;
   World() : Base() {
-    add_player( e_nation::dutch );
-    add_player( e_nation::french );
-    set_default_player( e_nation::dutch );
+    add_player( e_player::dutch );
+    add_player( e_player::french );
+    set_default_player_type( e_player::dutch );
     create_default_map();
   }
 
@@ -513,7 +513,7 @@ TEST_CASE( "[fathers] on_father_received: john_paul_jones" ) {
       as_const( W.units() ).state_of( UnitId{ 1 } );
   Unit const& unit = state.unit;
   REQUIRE( unit.type() == e_unit_type::frigate );
-  REQUIRE( unit.nation() == player.nation );
+  REQUIRE( unit.player_type() == player.type );
   maybe<UnitOwnership::world const&> world =
       state.ownership.get_if<UnitOwnership::world>();
   REQUIRE( world.has_value() );
@@ -528,19 +528,19 @@ TEST_CASE(
       e_founding_father::bartolome_de_las_casas;
 
   W.add_unit_on_map( e_unit_type::native_convert,
-                     { .x = 1, .y = 1 }, e_nation::dutch );
+                     { .x = 1, .y = 1 }, e_player::dutch );
   W.add_unit_on_map( e_unit_type::free_colonist,
-                     { .x = 1, .y = 1 }, e_nation::dutch );
+                     { .x = 1, .y = 1 }, e_player::dutch );
   W.add_unit_on_map( e_unit_type::native_convert,
-                     { .x = 1, .y = 1 }, e_nation::dutch );
+                     { .x = 1, .y = 1 }, e_player::dutch );
   W.add_unit_on_map( e_unit_type::petty_criminal,
-                     { .x = 1, .y = 1 }, e_nation::dutch );
+                     { .x = 1, .y = 1 }, e_player::dutch );
   W.add_unit_on_map( e_unit_type::native_convert,
-                     { .x = 1, .y = 0 }, e_nation::french );
+                     { .x = 1, .y = 0 }, e_player::french );
   W.add_unit_on_map( e_unit_type::free_colonist,
-                     { .x = 1, .y = 0 }, e_nation::french );
+                     { .x = 1, .y = 0 }, e_player::french );
   W.add_unit_on_map( e_unit_type::native_convert,
-                     { .x = 1, .y = 0 }, e_nation::french );
+                     { .x = 1, .y = 0 }, e_player::french );
 
   REQUIRE( W.units().all().size() == 7 );
   REQUIRE( W.units().unit_for( UnitId{ 1 } ).type() ==
@@ -614,15 +614,15 @@ TEST_CASE(
   W.create_large_map();
   Coord const kDutchColony{ .x = 6, .y = 6 };
   Coord const kFrenchColony{ .x = 18, .y = 18 };
-  W.found_colony_with_new_unit( kDutchColony, e_nation::dutch );
+  W.found_colony_with_new_unit( kDutchColony, e_player::dutch );
   W.found_colony_with_new_unit( kFrenchColony,
-                                e_nation::french );
+                                e_player::french );
 
   // First make sure that the dutch player can only see the
   // squares around their colony.
   Rect expected_visible{ .x = 5, .y = 5, .w = 3, .h = 3 };
   UNWRAP_CHECK( dutch_map, W.terrain()
-                               .player_terrain( e_nation::dutch )
+                               .player_terrain( e_player::dutch )
                                .member( &PlayerTerrain::map ) );
   for( Rect r :
        gfx::subrects( W.terrain().world_rect_tiles() ) ) {
@@ -667,13 +667,13 @@ TEST_CASE( "[fathers] on_father_received: sieur_de_la_salle" ) {
   Coord const kFrenchColony{ .x = 0, .y = 2 };
   auto [dutch_colony1, dutch1_founder] =
       W.found_colony_with_new_unit( kDutchColony1,
-                                    e_nation::dutch );
+                                    e_player::dutch );
   auto [dutch_colony2, dutch2_founder] =
       W.found_colony_with_new_unit( kDutchColony2,
-                                    e_nation::dutch );
+                                    e_player::dutch );
   auto [french_colony, french_founder] =
       W.found_colony_with_new_unit( kFrenchColony,
-                                    e_nation::french );
+                                    e_player::french );
   W.add_unit_indoors( dutch_colony1.id, e_indoor_job::bells );
   W.add_unit_indoors( dutch_colony2.id, e_indoor_job::bells );
   W.add_unit_indoors( dutch_colony2.id, e_indoor_job::bells );
@@ -708,15 +708,15 @@ TEST_CASE( "[fathers] on_father_received: pocahontas" ) {
   Tribe& tupi    = W.add_tribe( e_tribe::tupi );
   Tribe& aztec   = W.add_tribe( e_tribe::aztec );
   TribeRelationship& inca_relationship =
-      inca.relationship[player.nation];
+      inca.relationship[player.type];
   inca_relationship.encountered = true;
   TribeRelationship& arawak_relationship =
-      arawak.relationship[player.nation];
+      arawak.relationship[player.type];
   arawak_relationship.encountered = true;
   TribeRelationship& tupi_relationship =
-      tupi.relationship[player.nation];
+      tupi.relationship[player.type];
   tupi_relationship.encountered = true;
-  auto& aztec_relationship = aztec.relationship[player.nation];
+  auto& aztec_relationship = aztec.relationship[player.type];
 
   auto f = [&] {
     on_father_received( W.ss(), W.ts(), player,
@@ -798,7 +798,7 @@ TEST_CASE( "[fathers] on_father_received: hernando_de_soto" ) {
   auto visible = [&]( Coord coord ) {
     auto const& player_square =
         W.ss()
-            .terrain.player_terrain( W.default_nation() )
+            .terrain.player_terrain( W.default_player_type() )
             ->map[coord];
     return player_square.inner_if<explored>().get_if<clear>();
   };
@@ -806,7 +806,7 @@ TEST_CASE( "[fathers] on_father_received: hernando_de_soto" ) {
   auto hidden = [&]( Coord coord ) {
     auto const& player_square =
         W.ss()
-            .terrain.player_terrain( W.default_nation() )
+            .terrain.player_terrain( W.default_player_type() )
             ->map[coord];
     return player_square == unexplored{};
   };

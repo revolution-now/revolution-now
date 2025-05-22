@@ -127,8 +127,8 @@ TEST_CASE(
 
 TEST_CASE( "[immigration] compute_crosses (dutch)" ) {
   World world;
-  world.add_player( e_nation::dutch );
-  world.set_default_player( e_nation::dutch );
+  world.add_player( e_player::dutch );
+  world.set_default_player_type( e_player::dutch );
   world.create_default_map();
 
   UnitsState const& units_state = world.units();
@@ -138,7 +138,7 @@ TEST_CASE( "[immigration] compute_crosses (dutch)" ) {
   CrossesCalculation crosses, expected;
 
   SECTION( "default" ) {
-    crosses  = compute_crosses( units_state, player.nation );
+    crosses  = compute_crosses( units_state, player.type );
     expected = {
       .dock_crosses_bonus = 2,
       .crosses_needed     = 8 + 2 * ( 0 + 0 ),
@@ -153,7 +153,7 @@ TEST_CASE( "[immigration] compute_crosses (dutch)" ) {
   SECTION( "some units in new world" ) {
     world.add_unit_on_map( e_unit_type::free_colonist, Coord{} );
     world.add_unit_on_map( e_unit_type::free_colonist, Coord{} );
-    crosses  = compute_crosses( units_state, player.nation );
+    crosses  = compute_crosses( units_state, player.type );
     expected = {
       .dock_crosses_bonus = 2,
       .crosses_needed     = 8 + 2 * ( 2 + 0 ),
@@ -167,7 +167,7 @@ TEST_CASE( "[immigration] compute_crosses (dutch)" ) {
 
   SECTION( "one unit on dock, no production" ) {
     world.add_unit_in_port( e_unit_type::free_colonist );
-    crosses  = compute_crosses( units_state, player.nation );
+    crosses  = compute_crosses( units_state, player.type );
     expected = {
       .dock_crosses_bonus = -2,
       // Dock units are counted twice.
@@ -182,7 +182,7 @@ TEST_CASE( "[immigration] compute_crosses (dutch)" ) {
 
   SECTION( "one unit on dock" ) {
     world.add_unit_in_port( e_unit_type::free_colonist );
-    crosses  = compute_crosses( units_state, player.nation );
+    crosses  = compute_crosses( units_state, player.type );
     expected = {
       .dock_crosses_bonus = -2,
       // Dock units are counted twice.
@@ -205,7 +205,7 @@ TEST_CASE( "[immigration] compute_crosses (dutch)" ) {
         world.add_unit_in_port( e_unit_type::caravel ).id();
     world.add_unit_in_cargo( e_unit_type::free_colonist, ship );
     world.add_unit_in_cargo( e_unit_type::free_colonist, ship );
-    crosses  = compute_crosses( units_state, player.nation );
+    crosses  = compute_crosses( units_state, player.type );
     expected = {
       .dock_crosses_bonus = -4,
       // Dock units are counted twice.
@@ -229,7 +229,7 @@ TEST_CASE( "[immigration] compute_crosses (dutch)" ) {
     world.add_unit_in_cargo( e_unit_type::free_colonist, ship );
     world.add_unit_in_cargo( e_unit_type::free_colonist, ship );
     world.ship_to_outbound( ship );
-    crosses  = compute_crosses( units_state, player.nation );
+    crosses  = compute_crosses( units_state, player.type );
     expected = {
       .dock_crosses_bonus = 2,
       // Dock units are counted twice.
@@ -247,7 +247,7 @@ TEST_CASE( "[immigration] compute_crosses (dutch)" ) {
     world.add_unit_in_port( e_unit_type::free_colonist );
     world.add_unit_on_map( e_unit_type::free_colonist, Coord{} );
     world.add_unit_on_map( e_unit_type::free_colonist, Coord{} );
-    crosses  = compute_crosses( units_state, player.nation );
+    crosses  = compute_crosses( units_state, player.type );
     expected = {
       .dock_crosses_bonus = -4,
       // Dock units are counted twice.
@@ -263,8 +263,8 @@ TEST_CASE( "[immigration] compute_crosses (dutch)" ) {
 
 TEST_CASE( "[immigration] compute_crosses (english)" ) {
   World world;
-  world.add_player( e_nation::english );
-  world.set_default_player( e_nation::english );
+  world.add_player( e_player::english );
+  world.set_default_player_type( e_player::english );
   world.create_default_map();
 
   UnitsState const& units_state = world.units();
@@ -274,7 +274,7 @@ TEST_CASE( "[immigration] compute_crosses (english)" ) {
   CrossesCalculation crosses, expected;
 
   SECTION( "default" ) {
-    crosses  = compute_crosses( units_state, player.nation );
+    crosses  = compute_crosses( units_state, player.type );
     expected = {
       .dock_crosses_bonus = 2,
       .crosses_needed =
@@ -290,7 +290,7 @@ TEST_CASE( "[immigration] compute_crosses (english)" ) {
   SECTION( "some units in new world" ) {
     world.add_unit_on_map( e_unit_type::free_colonist, Coord{} );
     world.add_unit_on_map( e_unit_type::free_colonist, Coord{} );
-    crosses  = compute_crosses( units_state, player.nation );
+    crosses  = compute_crosses( units_state, player.type );
     expected = {
       .dock_crosses_bonus = 2,
       .crosses_needed =
@@ -305,7 +305,7 @@ TEST_CASE( "[immigration] compute_crosses (english)" ) {
 
   SECTION( "one unit on dock, no production" ) {
     world.add_unit_in_port( e_unit_type::free_colonist );
-    crosses  = compute_crosses( units_state, player.nation );
+    crosses  = compute_crosses( units_state, player.type );
     expected = {
       .dock_crosses_bonus = -2,
       // Dock units are counted twice.
@@ -630,8 +630,9 @@ TEST_CASE( "[immigration] rush_recruit_next_immigrant" ) {
   pool[1]      = e_unit_type::pioneer;
   pool[2]      = e_unit_type::petty_criminal;
   player.money = 1000;
-  REQUIRE( compute_crosses( W.units(), player.nation )
-               .crosses_needed == 8 ); // sanity check.
+  REQUIRE(
+      compute_crosses( W.units(), player.type ).crosses_needed ==
+      8 ); // sanity check.
   player.crosses                                   = 5;
   player.old_world.immigration.num_recruits_rushed = 3;
 

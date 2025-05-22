@@ -60,9 +60,9 @@ using ::mock::matchers::StrContains;
 struct World : testing::World {
   using Base = testing::World;
   World() : Base() {
-    add_player( e_nation::english );
-    add_player( e_nation::french );
-    set_default_player( e_nation::english );
+    add_player( e_player::english );
+    add_player( e_player::french );
+    set_default_player_type( e_player::english );
     create_default_map();
   }
 
@@ -102,11 +102,11 @@ TEST_CASE( "[enter-dwelling] enter_native_dwelling_options" ) {
       W.add_dwelling( { .x = 1, .y = 1 }, e_tribe::iroquois );
   Tribe& tribe = W.natives().tribe_for( e_tribe::iroquois );
   Unit const& missionary = W.add_free_unit(
-      e_unit_type::jesuit_missionary, e_nation::english );
+      e_unit_type::jesuit_missionary, e_player::english );
   Unit const& foreign_missionary = W.add_free_unit(
-      e_unit_type::jesuit_missionary, e_nation::french );
+      e_unit_type::jesuit_missionary, e_player::french );
   TribeRelationship& relationship =
-      tribe.relationship[W.default_nation()];
+      tribe.relationship[W.default_player_type()];
   e_unit_type unit_type = {};
   EnterNativeDwellingOptions expected;
 
@@ -115,9 +115,9 @@ TEST_CASE( "[enter-dwelling] enter_native_dwelling_options" ) {
         W.ss(), W.default_player(), unit_type, dwelling );
   };
 
-  dwelling.relationship[W.default_nation()].dwelling_only_alarm =
-      50;
-  expected.dwelling_id = dwelling.id;
+  dwelling.relationship[W.default_player_type()]
+      .dwelling_only_alarm = 50;
+  expected.dwelling_id     = dwelling.id;
 
   // Free colonist, no contact.
   relationship.encountered = false;
@@ -368,8 +368,9 @@ TEST_CASE( "[enter-dwelling] present_dwelling_entry_options" ) {
       W.add_dwelling( { .x = 1, .y = 1 }, e_tribe::iroquois );
   EnterNativeDwellingOptions options;
   e_enter_dwelling_option expected = {};
-  W.iroquois().relationship[W.default_nation()].encountered =
-      true;
+  W.iroquois()
+      .relationship[W.default_player_type()]
+      .encountered = true;
 
   auto f = [&] {
     wait<e_enter_dwelling_option> w =
@@ -415,9 +416,9 @@ TEST_CASE( "[enter-dwelling] compute_live_among_the_natives" ) {
       W.add_dwelling( { .x = 1, .y = 1 }, e_tribe::tupi );
   dwelling.teaches = e_native_skill::ore_mining;
   Tribe& tribe     = W.natives().tribe_for( e_tribe::tupi );
-  tribe.relationship[W.default_nation()].encountered = true;
+  tribe.relationship[W.default_player_type()].encountered = true;
   TribeRelationship& relationship =
-      tribe.relationship[W.default_nation()];
+      tribe.relationship[W.default_player_type()];
   LiveAmongTheNatives expected;
   UnitComposition comp;
 
@@ -446,22 +447,22 @@ TEST_CASE( "[enter-dwelling] compute_live_among_the_natives" ) {
   // unhappy (tribal).
   expected                  = LiveAmongTheNatives::unhappy{};
   relationship.tribal_alarm = 99;
-  dwelling.relationship[W.default_nation()].dwelling_only_alarm =
-      0;
-  comp = e_unit_type::free_colonist;
+  dwelling.relationship[W.default_player_type()]
+      .dwelling_only_alarm = 0;
+  comp                     = e_unit_type::free_colonist;
   REQUIRE( f() == expected );
 
   // unhappy (dwelling).
   expected                  = LiveAmongTheNatives::unhappy{};
   relationship.tribal_alarm = 0;
-  dwelling.relationship[W.default_nation()].dwelling_only_alarm =
-      99;
-  comp = e_unit_type::free_colonist;
+  dwelling.relationship[W.default_player_type()]
+      .dwelling_only_alarm = 99;
+  comp                     = e_unit_type::free_colonist;
   REQUIRE( f() == expected );
 
   relationship.tribal_alarm = 0;
-  dwelling.relationship[W.default_nation()].dwelling_only_alarm =
-      0;
+  dwelling.relationship[W.default_player_type()]
+      .dwelling_only_alarm = 0;
 
   // already_taught.
   dwelling.has_taught = true;
@@ -570,10 +571,10 @@ TEST_CASE( "[enter-dwelling] compute_speak_with_chief" ) {
   Dwelling& dwelling_tupi =
       W.add_dwelling( { .x = 4, .y = 4 }, e_tribe::tupi );
   W.add_tribe( e_tribe::tupi )
-      .relationship[W.default_nation()]
+      .relationship[W.default_player_type()]
       .encountered = true;
   DwellingRelationship& relationship =
-      dwelling_tupi.relationship[W.default_nation()];
+      dwelling_tupi.relationship[W.default_player_type()];
   Unit& scout_petty = W.add_unit_on_map(
       UnitType::create( e_unit_type::scout,
                         e_unit_type::petty_criminal )
@@ -692,7 +693,7 @@ TEST_CASE( "[enter-dwelling] compute_speak_with_chief" ) {
 
   // outcome: gift + seasoned + civilized.
   W.add_tribe( e_tribe::inca )
-      .relationship[W.default_nation()]
+      .relationship[W.default_player_type()]
       .encountered = true;
   dwelling         = &dwelling_inca;
   p_unit           = &scout_seasoned;
@@ -773,10 +774,10 @@ TEST_CASE( "[enter-dwelling] do_speak_with_chief" ) {
   Dwelling& dwelling =
       W.add_dwelling( { .x = 4, .y = 4 }, e_tribe::tupi );
   W.add_tribe( e_tribe::tupi )
-      .relationship[W.default_nation()]
+      .relationship[W.default_player_type()]
       .encountered = true;
   DwellingRelationship& relationship =
-      dwelling.relationship[W.default_nation()];
+      dwelling.relationship[W.default_player_type()];
   Unit& scout_petty = W.add_unit_on_map(
       UnitType::create( e_unit_type::scout,
                         e_unit_type::petty_criminal )
@@ -860,15 +861,16 @@ TEST_CASE( "[enter-dwelling] do_speak_with_chief" ) {
     W.gui().EXPECT__wait_for( 20ms ).returns( 20000us );
     W.gui().EXPECT__wait_for( 20ms ).returns( 20000us );
     W.gui().EXPECT__wait_for( 600ms ).returns( 600000us );
-    VisibilityForNation const viz( W.ss(), W.default_nation() );
+    VisibilityForNation const viz( W.ss(),
+                                   W.default_player_type() );
     W.map_updater().make_squares_visible(
-        W.default_nation(), { { .x = 3, .y = 6 } } );
+        W.default_player_type(), { { .x = 3, .y = 6 } } );
     W.map_updater().make_squares_visible(
-        W.default_nation(), { { .x = 1, .y = 6 } } );
+        W.default_player_type(), { { .x = 1, .y = 6 } } );
     W.map_updater().make_squares_fogged(
-        W.default_nation(), { { .x = 3, .y = 6 } } );
+        W.default_player_type(), { { .x = 3, .y = 6 } } );
     W.map_updater().make_squares_fogged(
-        W.default_nation(), { { .x = 1, .y = 6 } } );
+        W.default_player_type(), { { .x = 1, .y = 6 } } );
     REQUIRE( viz.visible( { .x = 0, .y = 6 } ) ==
              e_tile_visibility::hidden );
     REQUIRE( viz.visible( { .x = 1, .y = 6 } ) ==
@@ -926,7 +928,7 @@ TEST_CASE( "[enter-dwelling] compute_establish_mission" ) {
   EstablishMissionResult expected;
   Tribe& tribe = W.add_tribe( e_tribe::sioux );
   TribeRelationship& relationship =
-      tribe.relationship[W.default_nation()];
+      tribe.relationship[W.default_player_type()];
   relationship.encountered = true;
   Dwelling& dwelling =
       W.add_dwelling( { .x = 1, .y = 1 }, e_tribe::sioux );

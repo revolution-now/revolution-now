@@ -43,9 +43,9 @@ using clear      = FogStatus::clear;
 struct World : testing::World {
   using Base = testing::World;
   World() : Base() {
-    add_player( e_nation::dutch );
-    add_player( e_nation::french );
-    set_default_player( e_nation::dutch );
+    add_player( e_player::dutch );
+    add_player( e_player::french );
+    set_default_player_type( e_player::dutch );
     create_default_map();
   }
 
@@ -70,18 +70,18 @@ TEST_CASE(
   World W;
   NonRenderingMapUpdater map_updater( W.ss() );
   vector<BuffersUpdated> expected_buffers;
-  e_nation const nation = W.default_nation();
+  e_player const player = W.default_player_type();
   PlayerTerrain& player_terrain =
       W.ss()
           .mutable_terrain_use_with_care.mutable_player_terrain(
-              nation );
+              player );
   Coord const tile = { .x = 1, .y = 1 };
 
   MapSquare& real_square = W.square( tile );
   PlayerSquare expected_fog_square;
 
   auto f = [&] {
-    return map_updater.make_squares_fogged( nation, { tile } );
+    return map_updater.make_squares_fogged( player, { tile } );
   };
 
   auto frozen_square = [&]() -> PlayerSquare& {
@@ -170,18 +170,18 @@ TEST_CASE(
   World W;
   NonRenderingMapUpdater map_updater( W.ss() );
   vector<BuffersUpdated> expected_buffers;
-  e_nation nation = W.default_nation();
+  e_player player = W.default_player_type();
   PlayerTerrain& player_terrain =
       W.ss()
           .mutable_terrain_use_with_care.mutable_player_terrain(
-              nation );
+              player );
   Coord const tile = { .x = 1, .y = 1 };
 
   MapSquare& real_square = W.square( tile );
   PlayerSquare expected_fog_square;
 
   auto f = [&] {
-    return map_updater.make_squares_visible( nation, { tile } );
+    return map_updater.make_squares_visible( player, { tile } );
   };
 
   auto frozen_square = [&]() -> PlayerSquare& {
@@ -192,7 +192,7 @@ TEST_CASE(
   REQUIRE( frozen_square() == unexplored{} );
 
   // On hidden.
-  nation           = W.default_nation();
+  player           = W.default_player_type();
   expected_buffers = {
     { .tile = tile, .landscape = true, .obfuscation = true } };
   expected_fog_square.emplace<explored>()
@@ -200,9 +200,9 @@ TEST_CASE(
   REQUIRE( f() == expected_buffers );
   REQUIRE( frozen_square() == expected_fog_square );
 
-  // On hidden for non-existent nation.
-  nation = e_nation::french;
-  BASE_CHECK( nation != W.default_nation() );
+  // On hidden for non-existent player.
+  player = e_player::french;
+  BASE_CHECK( player != W.default_player_type() );
   expected_buffers = {
     { .tile = tile, .landscape = true, .obfuscation = true } };
   expected_fog_square.emplace<explored>()
@@ -211,7 +211,7 @@ TEST_CASE(
   REQUIRE( frozen_square() == expected_fog_square );
 
   // On visible and clear.
-  nation = W.default_nation();
+  player = W.default_player_type();
   frozen_square()
       .emplace<explored>()
       .fog_status.emplace<clear>();
@@ -223,7 +223,7 @@ TEST_CASE(
   REQUIRE( frozen_square() == expected_fog_square );
 
   // On fogged.
-  nation = W.default_nation();
+  player = W.default_player_type();
   frozen_square()
       .emplace<explored>()
       .fog_status.emplace<fogged>()
@@ -236,7 +236,7 @@ TEST_CASE(
   REQUIRE( frozen_square() == expected_fog_square );
 
   // On fogged with map update.
-  nation = W.default_nation();
+  player = W.default_player_type();
   frozen_square()
       .emplace<explored>()
       .fog_status.emplace<fogged>()
@@ -255,7 +255,7 @@ TEST_CASE(
     "[map-updater] NonRenderingMapUpdater::modify_map_square" ) {
   World W;
   NonRenderingMapUpdater map_updater( W.ss() );
-  e_nation const nation = e_nation::dutch;
+  e_player const player = e_player::dutch;
   BuffersUpdated expected_buffers;
   auto* mutator    = +[]( MapSquare& ) {};
   Coord const tile = { .x = 1, .y = 1 };
@@ -271,14 +271,14 @@ TEST_CASE(
     PlayerTerrain& player_terrain =
         W.ss()
             .mutable_terrain_use_with_care
-            .mutable_player_terrain( nation );
+            .mutable_player_terrain( player );
     return player_terrain.map[tile];
   };
 
   // Initially totally not visible.
   REQUIRE( frozen_square() == unexplored{} );
 
-  // No-op, with no nation.
+  // No-op, with no player.
   {
     expected_buffers = {
       .tile = tile, .landscape = false, .obfuscation = false };
@@ -289,11 +289,11 @@ TEST_CASE(
     REQUIRE( frozen_square() == unexplored{} );
   }
 
-  // No-op, with nation.
+  // No-op, with player.
   {
     auto _ = map_updater.push_options_and_redraw(
         []( auto& options ) {
-          options.nation = e_nation::dutch;
+          options.player = e_player::dutch;
         } );
     expected_buffers = {
       .tile = tile, .landscape = false, .obfuscation = false };
@@ -304,10 +304,10 @@ TEST_CASE(
     REQUIRE( frozen_square() == unexplored{} );
   }
 
-  // Add road, with no nation. The landscape buffer should always
+  // Add road, with no player. The landscape buffer should always
   // get updated here since the whole map is visible and clear.
   {
-    REQUIRE( map_updater.options().nation == nothing );
+    REQUIRE( map_updater.options().player == nothing );
     expected_buffers = {
       .tile = tile, .landscape = true, .obfuscation = false };
     expected_real_square      = real_square;
@@ -319,14 +319,14 @@ TEST_CASE(
     REQUIRE( frozen_square() == unexplored{} );
   }
 
-  // Remove road, with nation. The landscape buffer should not
-  // get updated here becauase the nation has no visibility.
+  // Remove road, with player. The landscape buffer should not
+  // get updated here becauase the player has no visibility.
   {
     auto _ = map_updater.push_options_and_redraw(
         []( auto& options ) {
-          options.nation = e_nation::dutch;
+          options.player = e_player::dutch;
         } );
-    REQUIRE( map_updater.options().nation == e_nation::dutch );
+    REQUIRE( map_updater.options().player == e_player::dutch );
     expected_buffers = {
       .tile = tile, .landscape = false, .obfuscation = false };
     expected_real_square      = real_square;
@@ -338,13 +338,13 @@ TEST_CASE(
     REQUIRE( frozen_square() == unexplored{} );
   }
 
-  // Add road, with nation that has explored but still fog.
+  // Add road, with player that has explored but still fog.
   {
     auto _ = map_updater.push_options_and_redraw(
         []( auto& options ) {
-          options.nation = e_nation::dutch;
+          options.player = e_player::dutch;
         } );
-    REQUIRE( map_updater.options().nation == e_nation::dutch );
+    REQUIRE( map_updater.options().player == e_player::dutch );
     expected_buffers = {
       .tile = tile, .landscape = false, .obfuscation = false };
     frozen_square()
@@ -360,13 +360,13 @@ TEST_CASE(
         frozen_square().inner_if<explored>().get_if<fogged>() );
   }
 
-  // Remove road, with nation that has clear visibility.
+  // Remove road, with player that has clear visibility.
   {
     auto _ = map_updater.push_options_and_redraw(
         []( auto& options ) {
-          options.nation = e_nation::dutch;
+          options.player = e_player::dutch;
         } );
-    REQUIRE( map_updater.options().nation == e_nation::dutch );
+    REQUIRE( map_updater.options().player == e_player::dutch );
     expected_buffers = {
       .tile = tile, .landscape = true, .obfuscation = false };
     BASE_CHECK( !frozen_square().holds<unexplored>() );
@@ -398,24 +398,24 @@ TEST_CASE(
     map_updater.modify_entire_map_no_redraw( mutator );
   };
 
-  auto frozen_square = [&]( e_nation nation ) -> PlayerSquare& {
+  auto frozen_square = [&]( e_player player ) -> PlayerSquare& {
     PlayerTerrain& player_terrain =
         W.ss()
             .mutable_terrain_use_with_care
-            .mutable_player_terrain( nation );
+            .mutable_player_terrain( player );
     return player_terrain.map[tile];
   };
 
   // Initially totally not visible.
-  REQUIRE( frozen_square( e_nation::dutch ) == unexplored{} );
-  REQUIRE( frozen_square( e_nation::french ) == unexplored{} );
+  REQUIRE( frozen_square( e_player::dutch ) == unexplored{} );
+  REQUIRE( frozen_square( e_player::french ) == unexplored{} );
 
-  // No-op, with no nation.
+  // No-op, with no player.
   expected_real_square = real_square;
   f( []( auto& ) {} );
   REQUIRE( real_square == expected_real_square );
-  REQUIRE( frozen_square( e_nation::dutch ) == unexplored{} );
-  REQUIRE( frozen_square( e_nation::french ) == unexplored{} );
+  REQUIRE( frozen_square( e_player::dutch ) == unexplored{} );
+  REQUIRE( frozen_square( e_player::french ) == unexplored{} );
 
   // Add road.
   expected_real_square      = real_square;
@@ -424,8 +424,8 @@ TEST_CASE(
     real_terrain.map[tile].road = !real_terrain.map[tile].road;
   } );
   REQUIRE( real_square == expected_real_square );
-  REQUIRE( frozen_square( e_nation::dutch ) == unexplored{} );
-  REQUIRE( frozen_square( e_nation::french ) == unexplored{} );
+  REQUIRE( frozen_square( e_player::dutch ) == unexplored{} );
+  REQUIRE( frozen_square( e_player::french ) == unexplored{} );
 }
 
 // This test case will do some additional (possibly redundant)
@@ -435,11 +435,11 @@ TEST_CASE( "[map-updater] fog of war" ) {
   World W;
   NonRenderingMapUpdater map_updater( W.ss() );
   vector<BuffersUpdated> expected;
-  e_nation const nation = W.default_nation();
+  e_player const player = W.default_player_type();
   PlayerTerrain& player_terrain =
       W.ss()
           .mutable_terrain_use_with_care.mutable_player_terrain(
-              nation );
+              player );
   Coord const coord1 = { .x = 0, .y = 0 };
   Coord const coord2 = { .x = 1, .y = 0 };
 
@@ -453,7 +453,7 @@ TEST_CASE( "[map-updater] fog of war" ) {
         .landscape   = true,
         .obfuscation = true } };
     REQUIRE( map_updater.make_squares_visible(
-                 nation, { coord1, coord2 } ) == expected );
+                 player, { coord1, coord2 } ) == expected );
     REQUIRE( !player_terrain.map[coord1].holds<unexplored>() );
     REQUIRE( !player_terrain.map[coord2].holds<unexplored>() );
     PlayerSquare const& fog_square1 = player_terrain.map[coord1];
@@ -470,7 +470,7 @@ TEST_CASE( "[map-updater] fog of war" ) {
                    .landscape   = false,
                    .obfuscation = true } };
     REQUIRE( map_updater.make_squares_fogged(
-                 nation, { coord1, coord2 } ) == expected );
+                 player, { coord1, coord2 } ) == expected );
     REQUIRE( !player_terrain.map[coord1].holds<unexplored>() );
     REQUIRE( !player_terrain.map[coord2].holds<unexplored>() );
     PlayerSquare const& fog_square1 = player_terrain.map[coord1];
@@ -484,7 +484,7 @@ TEST_CASE( "[map-updater] fog of war" ) {
                    .landscape   = false,
                    .obfuscation = true } };
     REQUIRE( map_updater.make_squares_visible(
-                 nation, { coord1 } ) == expected );
+                 player, { coord1 } ) == expected );
     REQUIRE( !player_terrain.map[coord1].holds<unexplored>() );
     REQUIRE( !player_terrain.map[coord2].holds<unexplored>() );
     PlayerSquare const& fog_square1 = player_terrain.map[coord1];
@@ -502,7 +502,7 @@ TEST_CASE( "[map-updater] fog of war" ) {
 
     player_terrain.map[coord1] = unexplored{};
     REQUIRE( map_updater.make_squares_visible(
-                 nation, { coord1, coord2 } ) == expected );
+                 player, { coord1, coord2 } ) == expected );
     REQUIRE( !player_terrain.map[coord1].holds<unexplored>() );
     REQUIRE( !player_terrain.map[coord2].holds<unexplored>() );
     PlayerSquare const& fog_square1 = player_terrain.map[coord1];
@@ -519,7 +519,7 @@ TEST_CASE( "[map-updater] fog of war" ) {
                    .landscape   = false,
                    .obfuscation = false } };
     REQUIRE( map_updater.make_squares_visible(
-                 nation, { coord1, coord2 } ) == expected );
+                 player, { coord1, coord2 } ) == expected );
     REQUIRE( !player_terrain.map[coord1].holds<unexplored>() );
     REQUIRE( !player_terrain.map[coord2].holds<unexplored>() );
     PlayerSquare const& fog_square1 = player_terrain.map[coord1];
@@ -536,7 +536,7 @@ TEST_CASE( "[map-updater] fog of war" ) {
                    .landscape   = false,
                    .obfuscation = false } };
     REQUIRE( map_updater.make_squares_visible(
-                 nation, { coord1, coord2 } ) == expected );
+                 player, { coord1, coord2 } ) == expected );
     REQUIRE( !player_terrain.map[coord1].holds<unexplored>() );
     REQUIRE( !player_terrain.map[coord2].holds<unexplored>() );
     PlayerSquare const& fog_square1 = player_terrain.map[coord1];
@@ -550,7 +550,7 @@ TEST_CASE( "[map-updater] fog of war" ) {
                    .landscape   = false,
                    .obfuscation = true } };
     REQUIRE( map_updater.make_squares_fogged(
-                 nation, { coord1 } ) == expected );
+                 player, { coord1 } ) == expected );
     expected = { { .tile        = coord1,
                    .landscape   = false,
                    .obfuscation = true },
@@ -558,7 +558,7 @@ TEST_CASE( "[map-updater] fog of war" ) {
                    .landscape   = false,
                    .obfuscation = false } };
     REQUIRE( map_updater.make_squares_visible(
-                 nation, { coord1, coord2 } ) == expected );
+                 player, { coord1, coord2 } ) == expected );
     REQUIRE( !player_terrain.map[coord1].holds<unexplored>() );
     REQUIRE( !player_terrain.map[coord2].holds<unexplored>() );
     PlayerSquare const& fog_square1 = player_terrain.map[coord1];

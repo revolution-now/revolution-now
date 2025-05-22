@@ -138,9 +138,9 @@ NativeMinds& World::native_minds() {
 EuroMinds& World::euro_minds() {
   if( uninitialized_euro_minds_ == nullptr )
     uninitialized_euro_minds_ = [] {
-      unordered_map<e_nation, unique_ptr<IEuroMind>> holder;
-      for( e_nation const nation : refl::enum_values<e_nation> )
-        holder[nation] = make_unique<MockIEuroMind>( nation );
+      unordered_map<e_player, unique_ptr<IEuroMind>> holder;
+      for( e_player const player : refl::enum_values<e_player> )
+        holder[player] = make_unique<MockIEuroMind>( player );
       return make_unique<EuroMinds>( std::move( holder ) );
     }();
   return *uninitialized_euro_minds_;
@@ -150,9 +150,9 @@ MockINativeMind& World::native_mind( e_tribe tribe ) {
   return static_cast<MockINativeMind&>( native_minds()[tribe] );
 }
 
-MockIEuroMind& World::euro_mind( maybe<e_nation> nation ) {
+MockIEuroMind& World::euro_mind( maybe<e_player> player ) {
   return static_cast<MockIEuroMind&>(
-      euro_minds()[nation.value_or( default_nation_ )] );
+      euro_minds()[player.value_or( default_player_type_ )] );
 }
 
 Planes& World::planes() {
@@ -268,10 +268,10 @@ void World::update_terrain_connectivity() {
 }
 
 void World::init_player_maps() {
-  for( e_nation nation : refl::enum_values<e_nation> ) {
-    if( !ss().players.players[nation].has_value() ) continue;
+  for( e_player player : refl::enum_values<e_player> ) {
+    if( !ss().players.players[player].has_value() ) continue;
     ss().mutable_terrain_use_with_care.initialize_player_terrain(
-        nation, /*visible=*/false );
+        player, /*visible=*/false );
   }
 }
 
@@ -280,11 +280,11 @@ MapSquare& World::square( point const p ) {
 }
 
 PlayerSquare& World::player_square(
-    point const p, maybe<e_nation> const nation ) {
+    point const p, maybe<e_player> const player_type ) {
   return ss()
       .mutable_terrain_use_with_care
       .mutable_player_terrain(
-          nation.value_or( default_nation() ) )
+          player_type.value_or( default_player_type() ) )
       .map[Coord::from_gfx( p )];
 }
 
@@ -336,9 +336,10 @@ void World::add_major_river( point const p ) {
 }
 
 Unit& World::add_unit_in_port( e_unit_type type,
-                               maybe<e_nation> nation ) {
+                               maybe<e_player> player_type ) {
   return units().unit_for( create_unit_in_harbor(
-      ss(), player( nation.value_or( default_nation_ ) ),
+      ss(),
+      player( player_type.value_or( default_player_type_ ) ),
       type ) );
 }
 
@@ -351,20 +352,20 @@ NativeUnit& World::add_native_unit_on_map(
 
 Unit& World::add_unit_on_map( UnitComposition const& comp,
                               point const tile,
-                              maybe<e_nation> nation ) {
-  if( !nation ) nation = default_nation_;
+                              maybe<e_player> player_type ) {
+  if( !player_type ) player_type = default_player_type_;
   UnitId const unit_id = create_unit_on_map_non_interactive(
-      ss(), ts(), player( *nation ), comp, tile );
+      ss(), ts(), player( *player_type ), comp, tile );
   return units().unit_for( unit_id );
 }
 
 Unit& World::add_missionary_in_dwelling(
     UnitType missionary_type, DwellingId dwelling_id,
-    maybe<e_nation> nation ) {
+    maybe<e_player> player_type ) {
   CHECK( is_missionary( missionary_type.type() ) );
-  if( !nation ) nation = default_nation_;
+  if( !player_type ) player_type = default_player_type_;
   UnitId const unit_id = create_free_unit(
-      units(), player( *nation ), missionary_type );
+      units(), player( *player_type ), missionary_type );
   UnitOwnershipChanger( ss(), unit_id )
       .change_to_dwelling( dwelling_id );
   return units().unit_for( unit_id );
@@ -372,19 +373,20 @@ Unit& World::add_missionary_in_dwelling(
 
 Unit& World::add_unit_in_cargo( e_unit_type type,
                                 UnitId holder ) {
-  e_nation const nation = units().unit_for( holder ).nation();
+  e_player const player_type =
+      units().unit_for( holder ).player_type();
   UnitId held =
-      create_free_unit( units(), player( nation ), type );
+      create_free_unit( units(), player( player_type ), type );
   UnitOwnershipChanger( ss(), held )
       .change_to_cargo( holder, /*starting_slot=*/0 );
   return units().unit_for( held );
 }
 
 Unit& World::add_free_unit( e_unit_type type,
-                            maybe<e_nation> nation ) {
-  if( !nation ) nation = default_nation_;
+                            maybe<e_player> player_type ) {
+  if( !player_type ) player_type = default_player_type_;
   UnitId const id =
-      create_free_unit( units(), player( *nation ), type );
+      create_free_unit( units(), player( *player_type ), type );
   return units().unit_for( id );
 }
 
@@ -393,7 +395,7 @@ Unit& World::add_unit_indoors( ColonyId colony_id,
                                e_unit_type type ) {
   Colony& colony  = colonies().colony_for( colony_id );
   Coord const loc = colonies().coord_for( colony_id );
-  Unit& unit      = add_unit_on_map( type, loc, colony.nation );
+  Unit& unit      = add_unit_on_map( type, loc, colony.player );
   ColonyJob::indoor const job{ .job = indoor_job };
   UnitOwnershipChanger( ss(), unit.id() )
       .change_to_colony( ts(), colony, job );
@@ -419,7 +421,7 @@ Unit& World::add_unit_outdoors( ColonyId colony_id,
                                 e_unit_type type ) {
   Colony& colony = colonies().colony_for( colony_id );
   Coord loc      = colonies().coord_for( colony_id );
-  Unit& unit     = add_unit_on_map( type, loc, colony.nation );
+  Unit& unit     = add_unit_on_map( type, loc, colony.player );
   ColonyJob::outdoor job{ .direction = d, .job = outdoor_job };
   UnitOwnershipChanger( ss(), unit.id() )
       .change_to_colony( ts(), colony, job );
@@ -454,36 +456,36 @@ void World::add_commodity_in_cargo( e_commodity type,
       starting_slot );
 }
 
-void World::add_player( e_nation nation ) {
-  root().players.players[nation] = Player{};
+void World::add_player( e_player player_type ) {
+  root().players.players[player_type] = Player{};
   // This is the minimal amount that we need to set for a player.
-  root().players.players[nation]->nation = nation;
-  root().players.players[nation]->european_nation =
-      european_nation_for( nation );
+  root().players.players[player_type]->type = player_type;
+  root().players.players[player_type]->european_nation =
+      european_nation_for( player_type );
   root().zzz_terrain.initialize_player_terrain(
-      nation, /*visible=*/false );
+      player_type, /*visible=*/false );
 }
 
-void World::add_all_players( maybe<e_nation> const human ) {
-  for( e_nation const nation : refl::enum_values<e_nation> )
-    add_player( nation );
+void World::add_all_players( maybe<e_player> const human ) {
+  for( e_player const player_type : refl::enum_values<e_player> )
+    add_player( player_type );
   set_human_player( human );
   if( human.has_value() )
-    set_default_player( *human );
+    set_default_player_type( *human );
   else
-    set_default_player( e_nation::english );
+    set_default_player_type( e_player::english );
 }
 
 void World::add_default_player() {
-  add_player( default_nation() );
+  add_player( default_player_type() );
 }
 
-void World::set_human_player( maybe<e_nation> nation ) {
-  set_unique_human_player( players(), nation );
+void World::set_human_player( maybe<e_player> player_type ) {
+  set_unique_human_player( players(), player_type );
 }
 
 void World::set_default_player_as_human() {
-  set_human_player( default_nation() );
+  set_human_player( default_player_type() );
 }
 
 Colony& World::found_colony( UnitId founder ) {
@@ -491,18 +493,18 @@ Colony& World::found_colony( UnitId founder ) {
       colonies().last_colony_id().value_or( 0 ) + 1 );
   ColonyId id = rn::found_colony(
       ss(), ts(),
-      player( ss().units.unit_for( founder ).nation() ), founder,
-      name );
+      player( ss().units.unit_for( founder ).player_type() ),
+      founder, name );
   return colonies().colony_for( id );
 }
 
 Colony& World::add_colony( Coord where,
-                           maybe<e_nation> nation ) {
+                           maybe<e_player> player_type ) {
   string name = fmt::to_string(
       colonies().last_colony_id().value_or( 0 ) + 1 );
   Colony& colony = colonies().colony_for( create_empty_colony(
-      colonies(), nation.value_or( default_nation_ ), where,
-      name ) );
+      colonies(), player_type.value_or( default_player_type_ ),
+      where, name ) );
   // Reproduce the things that we need that "found_colony" does.
   colony.buildings = config_colony.initial_colony_buildings;
   set_road( map_updater(), where );
@@ -510,15 +512,16 @@ Colony& World::add_colony( Coord where,
 }
 
 pair<Colony&, Unit&> World::found_colony_with_new_unit(
-    Coord where, maybe<e_nation> nation ) {
-  if( !nation ) nation = default_nation_;
+    Coord where, maybe<e_player> player_type ) {
+  if( !player_type ) player_type = default_player_type_;
   Unit& founder  = add_unit_on_map( e_unit_type::free_colonist,
-                                    where, *nation );
+                                    where, *player_type );
   Colony& colony = this->found_colony( founder.id() );
   return { colony, founder };
 }
 
-void World::kill_all_colonies( maybe<e_nation> const nation ) {
+void World::kill_all_colonies(
+    maybe<e_player> const player_type ) {
   auto const& colonies = ss().colonies.all();
   // We can't destroy the colonies while iterating through the
   // above map since it would then be mutated as we iterate, so
@@ -529,7 +532,8 @@ void World::kill_all_colonies( maybe<e_nation> const nation ) {
     colony_ids.push_back( colony_id );
   for( ColonyId const colony_id : colony_ids ) {
     Colony& colony = ss().colonies.colony_for( colony_id );
-    if( nation.has_value() && colony.nation != *nation )
+    if( player_type.has_value() &&
+        colony.player != *player_type )
       continue;
     destroy_colony( ss(), ts(), colony );
   }
@@ -645,82 +649,82 @@ void World::set_tax_rate( int rate ) {
 // --------------------------------------------------------------
 Player& World::dutch() {
   UNWRAP_CHECK( player,
-                root().players.players[e_nation::dutch] );
+                root().players.players[e_player::dutch] );
   return player;
 }
 
 Player& World::english() {
   UNWRAP_CHECK( player,
-                root().players.players[e_nation::english] );
+                root().players.players[e_player::english] );
   return player;
 }
 
 Player& World::spanish() {
   UNWRAP_CHECK( player,
-                root().players.players[e_nation::spanish] );
+                root().players.players[e_player::spanish] );
   return player;
 }
 
 Player& World::french() {
   UNWRAP_CHECK( player,
-                root().players.players[e_nation::french] );
+                root().players.players[e_player::french] );
   return player;
 }
 
 Player const& World::dutch() const {
   UNWRAP_CHECK( player,
-                root().players.players[e_nation::dutch] );
+                root().players.players[e_player::dutch] );
   return player;
 }
 
 Player const& World::english() const {
   UNWRAP_CHECK( player,
-                root().players.players[e_nation::english] );
+                root().players.players[e_player::english] );
   return player;
 }
 
 Player const& World::spanish() const {
   UNWRAP_CHECK( player,
-                root().players.players[e_nation::spanish] );
+                root().players.players[e_player::spanish] );
   return player;
 }
 
 Player const& World::french() const {
   UNWRAP_CHECK( player,
-                root().players.players[e_nation::french] );
+                root().players.players[e_player::french] );
   return player;
 }
 
 Player& World::default_player() {
-  return player( default_nation_ );
+  return player( default_player_type_ );
 }
 
 Player const& World::default_player() const {
-  return player( default_nation_ );
+  return player( default_player_type_ );
 }
 
-Player& World::player( maybe<e_nation> nation ) {
-  switch( nation.value_or( default_nation_ ) ) {
-    case e_nation::dutch:
+Player& World::player( maybe<e_player> player ) {
+  switch( player.value_or( default_player_type_ ) ) {
+    case e_player::dutch:
       return dutch();
-    case e_nation::english:
+    case e_player::english:
       return english();
-    case e_nation::french:
+    case e_player::french:
       return french();
-    case e_nation::spanish:
+    case e_player::spanish:
       return spanish();
   }
 }
 
-Player const& World::player( maybe<e_nation> nation ) const {
-  switch( nation.value_or( default_nation_ ) ) {
-    case e_nation::dutch:
+Player const& World::player( maybe<e_player> player ) const {
+  switch( player.value_or( default_player_type_ ) ) {
+    case e_player::dutch:
       return dutch();
-    case e_nation::english:
+    case e_player::english:
       return english();
-    case e_nation::french:
+    case e_player::french:
       return french();
-    case e_nation::spanish:
+    case e_player::spanish:
       return spanish();
   }
 }
@@ -728,8 +732,8 @@ Player const& World::player( maybe<e_nation> nation ) const {
 // --------------------------------------------------------------
 // Revolution Status.
 // --------------------------------------------------------------
-void World::declare_independence( maybe<e_nation> nation ) {
-  player( nation ).revolution.status =
+void World::declare_independence( maybe<e_player> player_type ) {
+  player( player_type ).revolution.status =
       e_revolution_status::declared;
 }
 

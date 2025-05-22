@@ -54,11 +54,11 @@ using ::refl::enum_values;
 *****************************************************************/
 struct world : testing::World {
   world() {
-    add_player( e_nation::english );
-    add_player( e_nation::french );
-    add_player( e_nation::spanish );
-    add_player( e_nation::dutch );
-    set_default_player( e_nation::french );
+    add_player( e_player::english );
+    add_player( e_player::french );
+    add_player( e_player::spanish );
+    add_player( e_player::dutch );
+    set_default_player_type( e_player::french );
     set_default_player_as_human();
     create_default_map();
   }
@@ -135,7 +135,7 @@ TEST_CASE( "[rebel-sentiment] should_do_war_of_succession" ) {
 
   SECTION( "fewer than four players" ) {
     REQUIRE( f() );
-    w.players().players[e_nation::spanish].reset();
+    w.players().players[e_player::spanish].reset();
     REQUIRE_FALSE( f() );
   }
 
@@ -154,91 +154,91 @@ TEST_CASE( "[rebel-sentiment] should_do_war_of_succession" ) {
 }
 
 TEST_CASE(
-    "[rebel-sentiment] select_nations_for_war_of_succession" ) {
+    "[rebel-sentiment] select_players_for_war_of_succession" ) {
   world w;
   WarOfSuccessionNations expected;
 
   auto const f = [&] {
-    return select_nations_for_war_of_succession( w.ss() );
+    return select_players_for_war_of_succession( w.ss() );
   };
 
   // Start off with no human players.
-  for( e_nation const nation : enum_values<e_nation> )
-    w.player( nation ).human = false;
+  for( e_player const player : enum_values<e_player> )
+    w.player( player ).human = false;
 
   // No humans.
-  expected = { .withdraws = e_nation::english,
-               .receives  = e_nation::french };
+  expected = { .withdraws = e_player::english,
+               .receives  = e_player::french };
   REQUIRE( f() == expected );
 
   w.english().human = true;
-  expected          = { .withdraws = e_nation::french,
-                        .receives  = e_nation::spanish };
+  expected          = { .withdraws = e_player::french,
+                        .receives  = e_player::spanish };
   REQUIRE( f() == expected );
 
   w.english().human = false;
   w.french().human  = true;
-  expected          = { .withdraws = e_nation::english,
-                        .receives  = e_nation::spanish };
+  expected          = { .withdraws = e_player::english,
+                        .receives  = e_player::spanish };
   REQUIRE( f() == expected );
 
   w.spanish().human = true;
-  expected          = { .withdraws = e_nation::english,
-                        .receives  = e_nation::dutch };
+  expected          = { .withdraws = e_player::english,
+                        .receives  = e_player::dutch };
   REQUIRE( f() == expected );
 
   w.spanish().human = false;
-  expected          = { .withdraws = e_nation::english,
-                        .receives  = e_nation::spanish };
+  expected          = { .withdraws = e_player::english,
+                        .receives  = e_player::spanish };
   REQUIRE( f() == expected );
 
   w.add_unit_on_map( e_unit_type::artillery, { .x = 0, .y = 0 },
-                     e_nation::english );
-  expected = { .withdraws = e_nation::english,
-               .receives  = e_nation::spanish };
+                     e_player::english );
+  expected = { .withdraws = e_player::english,
+               .receives  = e_player::spanish };
   REQUIRE( f() == expected );
 
   w.add_unit_on_map( e_unit_type::dragoon, { .x = 0, .y = 0 },
-                     e_nation::english );
-  expected = { .withdraws = e_nation::spanish,
-               .receives  = e_nation::dutch };
+                     e_player::english );
+  expected = { .withdraws = e_player::spanish,
+               .receives  = e_player::dutch };
   REQUIRE( f() == expected );
 
   w.add_unit_on_map( e_unit_type::soldier, { .x = 1, .y = 0 },
-                     e_nation::spanish );
-  expected = { .withdraws = e_nation::dutch,
-               .receives  = e_nation::english };
+                     e_player::spanish );
+  expected = { .withdraws = e_player::dutch,
+               .receives  = e_player::english };
   REQUIRE( f() == expected );
 
   w.add_unit_on_map( e_unit_type::native_convert,
-                     { .x = 1, .y = 0 }, e_nation::english );
-  expected = { .withdraws = e_nation::dutch,
-               .receives  = e_nation::spanish };
+                     { .x = 1, .y = 0 }, e_player::english );
+  expected = { .withdraws = e_player::dutch,
+               .receives  = e_player::spanish };
   REQUIRE( f() == expected );
 
   w.french().human = false;
-  expected         = { .withdraws = e_nation::french,
-                       .receives  = e_nation::dutch };
+  expected         = { .withdraws = e_player::french,
+                       .receives  = e_player::dutch };
   REQUIRE( f() == expected );
 
   w.english().human = true;
-  expected          = { .withdraws = e_nation::french,
-                        .receives  = e_nation::dutch };
+  expected          = { .withdraws = e_player::french,
+                        .receives  = e_player::dutch };
   REQUIRE( f() == expected );
 
-  w.add_colony( { .x = 0, .y = 0 }, e_nation::french );
-  expected = { .withdraws = e_nation::dutch,
-               .receives  = e_nation::french };
+  w.add_colony( { .x = 0, .y = 0 }, e_player::french );
+  expected = { .withdraws = e_player::dutch,
+               .receives  = e_player::french };
   REQUIRE( f() == expected );
 
-  w.add_colony( { .x = 2, .y = 0 }, e_nation::french );
-  expected = { .withdraws = e_nation::dutch,
-               .receives  = e_nation::spanish };
+  w.add_colony( { .x = 2, .y = 0 }, e_player::french );
+  expected = { .withdraws = e_player::dutch,
+               .receives  = e_player::spanish };
   REQUIRE( f() == expected );
 
-  w.players().players[e_nation::french].reset();
-  expected = { .withdraws = e_nation::dutch,
-               .receives  = e_nation::spanish };
+  w.players().players[e_player::french].reset();
+  expected = { .withdraws = e_player::dutch,
+               .receives  = e_player::spanish };
   REQUIRE( f() == expected );
 }
 
@@ -256,28 +256,28 @@ TEST_CASE( "[rebel-sentiment] war_of_succession_plan" ) {
   expected = {};
   REQUIRE( f() == expected );
 
-  nations.receives  = e_nation::french;
-  nations.withdraws = e_nation::spanish;
+  nations.receives  = e_player::french;
+  nations.withdraws = e_player::spanish;
 
   expected = { .nations = nations };
   REQUIRE( f() == expected );
 
   UnitId const removed_1 =
       w.add_unit_in_port( e_unit_type::free_colonist,
-                          e_nation::spanish )
+                          e_player::spanish )
           .id();
   w.add_unit_in_port( e_unit_type::free_colonist,
-                      e_nation::french );
+                      e_player::french );
   UnitId const reassign_unit_1 =
       w.add_unit_in_port( e_unit_type::caravel,
-                          e_nation::spanish )
+                          e_player::spanish )
           .id();
   unit_sail_to_new_world( w.ss(), reassign_unit_1 );
   w.add_unit_in_cargo( e_unit_type::free_colonist,
                        reassign_unit_1 );
   UnitId const reassign_unit_2 =
       w.add_unit_in_port( e_unit_type::privateer,
-                          e_nation::spanish )
+                          e_player::spanish )
           .id();
   unit_sail_to_new_world( w.ss(), reassign_unit_2 );
   REQUIRE( advance_unit_on_high_seas( w.ss(), w.spanish(),
@@ -286,20 +286,20 @@ TEST_CASE( "[rebel-sentiment] war_of_succession_plan" ) {
   unit_sail_to_harbor( w.ss(), reassign_unit_2 );
 
   ColonyId const reassign_colony_1 =
-      w.add_colony( { .x = 0, .y = 0 }, e_nation::spanish ).id;
+      w.add_colony( { .x = 0, .y = 0 }, e_player::spanish ).id;
   w.add_unit_indoors( reassign_colony_1, e_indoor_job::bells );
-  w.add_colony( { .x = 2, .y = 0 }, e_nation::french );
+  w.add_colony( { .x = 2, .y = 0 }, e_player::french );
 
   ColonyId const reassign_colony_2 =
-      w.add_colony( { .x = 2, .y = 2 }, e_nation::spanish ).id;
+      w.add_colony( { .x = 2, .y = 2 }, e_player::spanish ).id;
   UnitId const reassign_unit_3 =
       w.add_unit_on_map( e_unit_type::dragoon,
-                         { .x = 2, .y = 1 }, e_nation::spanish )
+                         { .x = 2, .y = 1 }, e_player::spanish )
           .id();
   w.add_unit_on_map( e_unit_type::dragoon, { .x = 0, .y = 1 },
-                     e_nation::french );
+                     e_player::french );
   ColonyId const reassign_colony_3 =
-      w.add_colony( { .x = 0, .y = 2 }, e_nation::spanish ).id;
+      w.add_colony( { .x = 0, .y = 2 }, e_player::spanish ).id;
 
   w.add_dwelling( { .x = 1, .y = 2 }, e_tribe::iroquois );
   DwellingId const dwelling_id_2 =
@@ -307,7 +307,7 @@ TEST_CASE( "[rebel-sentiment] war_of_succession_plan" ) {
   UnitId const reassign_unit_4 =
       w.add_missionary_in_dwelling(
            e_unit_type::jesuit_missionary, dwelling_id_2,
-           e_nation::spanish )
+           e_player::spanish )
           .id();
 
   expected = {
@@ -337,22 +337,22 @@ TEST_CASE( "[rebel-sentiment] do_war_of_succession" ) {
 
   UnitId const removed_1 =
       w.add_unit_in_port( e_unit_type::free_colonist,
-                          e_nation::spanish )
+                          e_player::spanish )
           .id();
   UnitId const dutch_unit_1 =
       w.add_unit_in_port( e_unit_type::free_colonist,
-                          e_nation::dutch )
+                          e_player::dutch )
           .id();
   UnitId const reassign_unit_1 =
       w.add_unit_in_port( e_unit_type::caravel,
-                          e_nation::spanish )
+                          e_player::spanish )
           .id();
   unit_sail_to_new_world( w.ss(), reassign_unit_1 );
   w.add_unit_in_cargo( e_unit_type::free_colonist,
                        reassign_unit_1 );
   UnitId const reassign_unit_2 =
       w.add_unit_in_port( e_unit_type::privateer,
-                          e_nation::spanish )
+                          e_player::spanish )
           .id();
   unit_sail_to_new_world( w.ss(), reassign_unit_2 );
   REQUIRE( advance_unit_on_high_seas( w.ss(), w.spanish(),
@@ -361,7 +361,7 @@ TEST_CASE( "[rebel-sentiment] do_war_of_succession" ) {
   unit_sail_to_harbor( w.ss(), reassign_unit_2 );
 
   Colony& reassign_colony_1_obj =
-      w.add_colony( { .x = 0, .y = 0 }, e_nation::spanish );
+      w.add_colony( { .x = 0, .y = 0 }, e_player::spanish );
   reassign_colony_1_obj.sons_of_liberty
       .num_rebels_from_bells_only = 2;
   reassign_colony_1_obj.sons_of_liberty
@@ -369,20 +369,20 @@ TEST_CASE( "[rebel-sentiment] do_war_of_succession" ) {
   ColonyId const reassign_colony_1 = reassign_colony_1_obj.id;
   w.add_unit_indoors( reassign_colony_1, e_indoor_job::bells );
   ColonyId const french_colony_1 =
-      w.add_colony( { .x = 2, .y = 0 }, e_nation::french ).id;
+      w.add_colony( { .x = 2, .y = 0 }, e_player::french ).id;
 
   ColonyId const reassign_colony_2 =
-      w.add_colony( { .x = 2, .y = 2 }, e_nation::spanish ).id;
+      w.add_colony( { .x = 2, .y = 2 }, e_player::spanish ).id;
   UnitId const reassign_unit_3 =
       w.add_unit_on_map( e_unit_type::dragoon,
-                         { .x = 2, .y = 1 }, e_nation::spanish )
+                         { .x = 2, .y = 1 }, e_player::spanish )
           .id();
   UnitId const french_unit_1 =
       w.add_unit_on_map( e_unit_type::dragoon,
-                         { .x = 0, .y = 1 }, e_nation::french )
+                         { .x = 0, .y = 1 }, e_player::french )
           .id();
   ColonyId const reassign_colony_3 =
-      w.add_colony( { .x = 0, .y = 2 }, e_nation::spanish ).id;
+      w.add_colony( { .x = 0, .y = 2 }, e_player::spanish ).id;
 
   w.add_dwelling( { .x = 1, .y = 2 }, e_tribe::iroquois );
   DwellingId const dwelling_id_2 =
@@ -390,26 +390,26 @@ TEST_CASE( "[rebel-sentiment] do_war_of_succession" ) {
   UnitId const reassign_unit_4 =
       w.add_missionary_in_dwelling(
            e_unit_type::jesuit_missionary, dwelling_id_2,
-           e_nation::spanish )
+           e_player::spanish )
           .id();
   UnitId const reassign_unit_5 =
       w.add_unit_on_map( e_unit_type::soldier,
-                         { .x = 2, .y = 1 }, e_nation::spanish )
+                         { .x = 2, .y = 1 }, e_player::spanish )
           .id();
   UnitOwnershipChanger( w.ss(), reassign_unit_5 ).destroy();
 
   w.map_updater().make_squares_visible(
-      observer.nation, { point{ .x = 0, .y = 0 } } );
+      observer.type, { point{ .x = 0, .y = 0 } } );
   w.map_updater().make_squares_visible(
-      observer.nation, { point{ .x = 1, .y = 0 } } );
+      observer.type, { point{ .x = 1, .y = 0 } } );
   w.map_updater().make_squares_visible(
-      observer.nation, { point{ .x = 0, .y = 2 } } );
+      observer.type, { point{ .x = 0, .y = 2 } } );
   w.map_updater().make_squares_visible(
-      observer.nation, { point{ .x = 2, .y = 2 } } );
+      observer.type, { point{ .x = 2, .y = 2 } } );
 
   w.map_updater().make_squares_fogged(
-      observer.nation, { point{ .x = 1, .y = 0 } } );
-  VisibilityForNation const viz( w.ss(), observer.nation );
+      observer.type, { point{ .x = 1, .y = 0 } } );
+  VisibilityForNation const viz( w.ss(), observer.type );
   BASE_CHECK( viz.visible( { .x = 1, .y = 0 } ) ==
               e_tile_visibility::fogged );
 
@@ -422,31 +422,31 @@ TEST_CASE( "[rebel-sentiment] do_war_of_succession" ) {
   REQUIRE( w.units().exists( dutch_unit_1 ) );
   REQUIRE( w.units().exists( french_unit_1 ) );
   REQUIRE_FALSE( w.units().exists( reassign_unit_5 ) );
-  REQUIRE( w.units().unit_for( reassign_unit_1 ).nation() ==
-           e_nation::spanish );
-  REQUIRE( w.units().unit_for( reassign_unit_2 ).nation() ==
-           e_nation::spanish );
-  REQUIRE( w.units().unit_for( reassign_unit_3 ).nation() ==
-           e_nation::spanish );
-  REQUIRE( w.units().unit_for( reassign_unit_4 ).nation() ==
-           e_nation::spanish );
-  REQUIRE( w.units().unit_for( dutch_unit_1 ).nation() ==
-           e_nation::dutch );
-  REQUIRE( w.units().unit_for( french_unit_1 ).nation() ==
-           e_nation::french );
+  REQUIRE( w.units().unit_for( reassign_unit_1 ).player_type() ==
+           e_player::spanish );
+  REQUIRE( w.units().unit_for( reassign_unit_2 ).player_type() ==
+           e_player::spanish );
+  REQUIRE( w.units().unit_for( reassign_unit_3 ).player_type() ==
+           e_player::spanish );
+  REQUIRE( w.units().unit_for( reassign_unit_4 ).player_type() ==
+           e_player::spanish );
+  REQUIRE( w.units().unit_for( dutch_unit_1 ).player_type() ==
+           e_player::dutch );
+  REQUIRE( w.units().unit_for( french_unit_1 ).player_type() ==
+           e_player::french );
   REQUIRE( w.colonies().all().size() == 4 );
   REQUIRE( w.colonies().exists( reassign_colony_1 ) );
   REQUIRE( w.colonies().exists( reassign_colony_2 ) );
   REQUIRE( w.colonies().exists( reassign_colony_3 ) );
   REQUIRE( w.colonies().exists( french_colony_1 ) );
-  REQUIRE( w.colonies().colony_for( reassign_colony_1 ).nation ==
-           e_nation::spanish );
-  REQUIRE( w.colonies().colony_for( reassign_colony_2 ).nation ==
-           e_nation::spanish );
-  REQUIRE( w.colonies().colony_for( reassign_colony_3 ).nation ==
-           e_nation::spanish );
-  REQUIRE( w.colonies().colony_for( french_colony_1 ).nation ==
-           e_nation::french );
+  REQUIRE( w.colonies().colony_for( reassign_colony_1 ).player ==
+           e_player::spanish );
+  REQUIRE( w.colonies().colony_for( reassign_colony_2 ).player ==
+           e_player::spanish );
+  REQUIRE( w.colonies().colony_for( reassign_colony_3 ).player ==
+           e_player::spanish );
+  REQUIRE( w.colonies().colony_for( french_colony_1 ).player ==
+           e_player::french );
   REQUIRE( reassign_colony_1_obj.sons_of_liberty
                .num_rebels_from_bells_only == 2 );
   REQUIRE( reassign_colony_1_obj.sons_of_liberty
@@ -466,15 +466,15 @@ TEST_CASE( "[rebel-sentiment] do_war_of_succession" ) {
                ->frozen->mission.has_value() );
   REQUIRE(
       *viz.dwelling_at( { .x = 1, .y = 0 } )->frozen->mission ==
-      FrozenMission{ .nation = e_nation::spanish,
+      FrozenMission{ .player = e_player::spanish,
                      .level  = e_missionary_type::jesuit } );
-  REQUIRE( w.players().players[e_nation::spanish].has_value() );
-  REQUIRE( w.players().players[e_nation::french].has_value() );
+  REQUIRE( w.players().players[e_player::spanish].has_value() );
+  REQUIRE( w.players().players[e_player::french].has_value() );
   REQUIRE_FALSE( w.events().war_of_succession_done );
 
   plan = {
-    .nations            = { .withdraws = e_nation::spanish,
-                            .receives  = e_nation::french },
+    .nations            = { .withdraws = e_player::spanish,
+                            .receives  = e_player::french },
     .remove_units       = { removed_1 },
     .reassign_units     = { reassign_unit_1, reassign_unit_2,
                             reassign_unit_3, reassign_unit_4,
@@ -497,31 +497,31 @@ TEST_CASE( "[rebel-sentiment] do_war_of_succession" ) {
   REQUIRE( w.units().exists( dutch_unit_1 ) );
   REQUIRE( w.units().exists( french_unit_1 ) );
   REQUIRE_FALSE( w.units().exists( reassign_unit_5 ) );
-  REQUIRE( w.units().unit_for( reassign_unit_1 ).nation() ==
-           e_nation::french );
-  REQUIRE( w.units().unit_for( reassign_unit_2 ).nation() ==
-           e_nation::french );
-  REQUIRE( w.units().unit_for( reassign_unit_3 ).nation() ==
-           e_nation::french );
-  REQUIRE( w.units().unit_for( reassign_unit_4 ).nation() ==
-           e_nation::french );
-  REQUIRE( w.units().unit_for( dutch_unit_1 ).nation() ==
-           e_nation::dutch );
-  REQUIRE( w.units().unit_for( french_unit_1 ).nation() ==
-           e_nation::french );
+  REQUIRE( w.units().unit_for( reassign_unit_1 ).player_type() ==
+           e_player::french );
+  REQUIRE( w.units().unit_for( reassign_unit_2 ).player_type() ==
+           e_player::french );
+  REQUIRE( w.units().unit_for( reassign_unit_3 ).player_type() ==
+           e_player::french );
+  REQUIRE( w.units().unit_for( reassign_unit_4 ).player_type() ==
+           e_player::french );
+  REQUIRE( w.units().unit_for( dutch_unit_1 ).player_type() ==
+           e_player::dutch );
+  REQUIRE( w.units().unit_for( french_unit_1 ).player_type() ==
+           e_player::french );
   REQUIRE( w.colonies().all().size() == 4 );
   REQUIRE( w.colonies().exists( reassign_colony_1 ) );
   REQUIRE( w.colonies().exists( reassign_colony_2 ) );
   REQUIRE( w.colonies().exists( reassign_colony_3 ) );
   REQUIRE( w.colonies().exists( french_colony_1 ) );
-  REQUIRE( w.colonies().colony_for( reassign_colony_1 ).nation ==
-           e_nation::french );
-  REQUIRE( w.colonies().colony_for( reassign_colony_2 ).nation ==
-           e_nation::french );
-  REQUIRE( w.colonies().colony_for( reassign_colony_3 ).nation ==
-           e_nation::french );
-  REQUIRE( w.colonies().colony_for( french_colony_1 ).nation ==
-           e_nation::french );
+  REQUIRE( w.colonies().colony_for( reassign_colony_1 ).player ==
+           e_player::french );
+  REQUIRE( w.colonies().colony_for( reassign_colony_2 ).player ==
+           e_player::french );
+  REQUIRE( w.colonies().colony_for( reassign_colony_3 ).player ==
+           e_player::french );
+  REQUIRE( w.colonies().colony_for( french_colony_1 ).player ==
+           e_player::french );
   REQUIRE( reassign_colony_1_obj.sons_of_liberty
                .num_rebels_from_bells_only == 0 );
   REQUIRE( reassign_colony_1_obj.sons_of_liberty
@@ -541,11 +541,11 @@ TEST_CASE( "[rebel-sentiment] do_war_of_succession" ) {
                ->frozen->mission.has_value() );
   REQUIRE(
       *viz.dwelling_at( { .x = 1, .y = 0 } )->frozen->mission ==
-      FrozenMission{ .nation = e_nation::french,
+      FrozenMission{ .player = e_player::french,
                      .level  = e_missionary_type::jesuit } );
   REQUIRE_FALSE(
-      w.players().players[e_nation::spanish].has_value() );
-  REQUIRE( w.players().players[e_nation::french].has_value() );
+      w.players().players[e_player::spanish].has_value() );
+  REQUIRE( w.players().players[e_player::french].has_value() );
   REQUIRE( w.events().war_of_succession_done );
 }
 
@@ -557,8 +557,8 @@ TEST_CASE( "[rebel-sentiment] do_war_of_succession_ui_seq" ) {
     co_await_test( do_war_of_succession_ui_seq( w.ts(), plan ) );
   };
 
-  plan = { .nations = { .withdraws = e_nation::spanish,
-                        .receives  = e_nation::french } };
+  plan = { .nations = { .withdraws = e_player::spanish,
+                        .receives  = e_player::french } };
 
   w.gui().EXPECT__message_box( StrContains(
       "All property and territory owned by the [Spanish] has "

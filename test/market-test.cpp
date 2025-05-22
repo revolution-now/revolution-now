@@ -48,11 +48,11 @@ struct World : testing::World {
   using Base = testing::World;
   World() : Base() {
     create_default_map();
-    set_default_player( e_nation::french );
-    add_player( e_nation::french );
-    add_player( e_nation::english );
-    add_player( e_nation::dutch );
-    add_player( e_nation::spanish );
+    set_default_player_type( e_player::french );
+    add_player( e_player::french );
+    add_player( e_player::english );
+    add_player( e_player::dutch );
+    add_player( e_player::spanish );
   }
 
   void create_default_map() {
@@ -67,7 +67,7 @@ struct World : testing::World {
 *****************************************************************/
 TEST_CASE( "[market] market_price" ) {
   World W;
-  Player& french = W.player( e_nation::french );
+  Player& french = W.player( e_player::french );
 
   french.old_world.market.commodities[e_commodity::ore]
       .bid_price = 5;
@@ -160,8 +160,8 @@ TEST_CASE( "[market] apply_invoice" ) {
     .player_volume_delta      = 345,
     .intrinsic_volume_delta =
         {
-          { e_nation::english, 9 },
-          { e_nation::french, 11 },
+          { e_player::english, 9 },
+          { e_player::french, 11 },
         },
     .global_intrinsic_volume_deltas =
         {
@@ -178,10 +178,10 @@ TEST_CASE( "[market] apply_invoice" ) {
   REQUIRE( p.royal_money == 0 );
   REQUIRE( p.old_world.market.commodities[e_commodity::silver]
                .player_traded_volume == 0 );
-  REQUIRE( W.player( e_nation::english )
+  REQUIRE( W.player( e_player::english )
                .old_world.market.commodities[e_commodity::silver]
                .intrinsic_volume == 0 );
-  REQUIRE( W.player( e_nation::french )
+  REQUIRE( W.player( e_player::french )
                .old_world.market.commodities[e_commodity::silver]
                .intrinsic_volume == 0 );
   REQUIRE( W.ss()
@@ -202,10 +202,10 @@ TEST_CASE( "[market] apply_invoice" ) {
   REQUIRE( p.royal_money == 42 * 1 );
   REQUIRE( p.old_world.market.commodities[e_commodity::silver]
                .player_traded_volume == 345 );
-  REQUIRE( W.player( e_nation::english )
+  REQUIRE( W.player( e_player::english )
                .old_world.market.commodities[e_commodity::silver]
                .intrinsic_volume == 9 );
-  REQUIRE( W.player( e_nation::french )
+  REQUIRE( W.player( e_player::french )
                .old_world.market.commodities[e_commodity::silver]
                .intrinsic_volume == 11 );
   REQUIRE( W.ss()
@@ -227,10 +227,10 @@ TEST_CASE( "[market] apply_invoice" ) {
   REQUIRE( p.royal_money == 42 * 2 );
   REQUIRE( p.old_world.market.commodities[e_commodity::silver]
                .player_traded_volume == 345 * 2 );
-  REQUIRE( W.player( e_nation::english )
+  REQUIRE( W.player( e_player::english )
                .old_world.market.commodities[e_commodity::silver]
                .intrinsic_volume == 9 * 2 );
-  REQUIRE( W.player( e_nation::french )
+  REQUIRE( W.player( e_player::french )
                .old_world.market.commodities[e_commodity::silver]
                .intrinsic_volume == 11 * 2 );
   REQUIRE( W.ss()
@@ -250,7 +250,7 @@ TEST_CASE( "[market] evolve_group_model_volumes" ) {
   // We'll set dutch=true just to make sure that nothing special
   // happens during the evolution; the dutch should only get an
   // advantage when buying/selling in the price group model.
-  Player& player = W.player( e_nation::dutch );
+  Player& player = W.player( e_player::dutch );
 
   W.ss()
       .players.global_market_state.commodities[e_commodity::rum]
@@ -328,7 +328,7 @@ TEST_CASE( "[market] evolve_group_model_volumes" ) {
 
 TEST_CASE( "[market] evolve_player_prices (non-dutch)" ) {
   World W;
-  W.set_default_player( e_nation::french );
+  W.set_default_player_type( e_player::french );
   Player& player = W.default_player();
   // Set each price to its middle value.
   for( e_commodity c : refl::enum_values<e_commodity> ) {
@@ -357,16 +357,16 @@ TEST_CASE( "[market] evolve_player_prices (non-dutch)" ) {
           .players.global_market_state
           .commodities[e_commodity::coats];
 
-  W.player( e_nation::dutch )
+  W.player( e_player::dutch )
       .old_world.market.commodities[e_commodity::rum]
       .player_traded_volume = 100;
-  W.player( e_nation::french )
+  W.player( e_player::french )
       .old_world.market.commodities[e_commodity::rum]
       .player_traded_volume   = 100;
   global_rum.intrinsic_volume = 200;
   // Rum total: 400.
 
-  W.player( e_nation::french )
+  W.player( e_player::french )
       .old_world.market.commodities[e_commodity::cigars]
       .player_traded_volume      = 100;
   global_cigars.intrinsic_volume = 200;
@@ -375,13 +375,13 @@ TEST_CASE( "[market] evolve_player_prices (non-dutch)" ) {
   global_cloth.intrinsic_volume = 200;
   // Cloth total: 200.
 
-  W.player( e_nation::english )
+  W.player( e_player::english )
       .old_world.market.commodities[e_commodity::coats]
       .player_traded_volume = 100;
-  W.player( e_nation::french )
+  W.player( e_player::french )
       .old_world.market.commodities[e_commodity::coats]
       .player_traded_volume = 100;
-  W.player( e_nation::spanish )
+  W.player( e_player::spanish )
       .old_world.market.commodities[e_commodity::coats]
       .player_traded_volume     = 100;
   global_coats.intrinsic_volume = 100;
@@ -413,7 +413,7 @@ TEST_CASE( "[market] evolve_player_prices (non-dutch)" ) {
   };
   auto total_traded_vol = [&]( e_commodity c ) {
     int sum = 0;
-    for( auto const& [nation, player] : W.ss().players.players )
+    for( auto const& [type, player] : W.ss().players.players )
       if( player.has_value() )
         sum += player->old_world.market.commodities[c]
                    .player_traded_volume;
@@ -662,7 +662,7 @@ TEST_CASE( "[market] evolve_player_prices (non-dutch)" ) {
 
 TEST_CASE( "[market] evolve_player_prices (dutch)" ) {
   World W;
-  W.set_default_player( e_nation::dutch );
+  W.set_default_player_type( e_player::dutch );
   Player& player = W.default_player();
   // Set each price to its middle value.
   for( e_commodity c : refl::enum_values<e_commodity> ) {
@@ -691,16 +691,16 @@ TEST_CASE( "[market] evolve_player_prices (dutch)" ) {
           .players.global_market_state
           .commodities[e_commodity::coats];
 
-  W.player( e_nation::dutch )
+  W.player( e_player::dutch )
       .old_world.market.commodities[e_commodity::rum]
       .player_traded_volume = 100;
-  W.player( e_nation::french )
+  W.player( e_player::french )
       .old_world.market.commodities[e_commodity::rum]
       .player_traded_volume   = 100;
   global_rum.intrinsic_volume = 200;
   // Rum total: 400.
 
-  W.player( e_nation::french )
+  W.player( e_player::french )
       .old_world.market.commodities[e_commodity::cigars]
       .player_traded_volume      = 100;
   global_cigars.intrinsic_volume = 200;
@@ -709,13 +709,13 @@ TEST_CASE( "[market] evolve_player_prices (dutch)" ) {
   global_cloth.intrinsic_volume = 200;
   // Cloth total: 200.
 
-  W.player( e_nation::english )
+  W.player( e_player::english )
       .old_world.market.commodities[e_commodity::coats]
       .player_traded_volume = 100;
-  W.player( e_nation::french )
+  W.player( e_player::french )
       .old_world.market.commodities[e_commodity::coats]
       .player_traded_volume = 100;
-  W.player( e_nation::spanish )
+  W.player( e_player::spanish )
       .old_world.market.commodities[e_commodity::coats]
       .player_traded_volume     = 100;
   global_coats.intrinsic_volume = 100;
@@ -747,7 +747,7 @@ TEST_CASE( "[market] evolve_player_prices (dutch)" ) {
   };
   auto total_traded_vol = [&]( e_commodity c ) {
     int sum = 0;
-    for( auto const& [nation, player] : W.ss().players.players )
+    for( auto const& [type, player] : W.ss().players.players )
       if( player.has_value() )
         sum += player->old_world.market.commodities[c]
                    .player_traded_volume;
@@ -999,7 +999,7 @@ TEST_CASE( "[market] evolve_player_prices (dutch)" ) {
 TEST_CASE(
     "[market] processed good buy remains within limits" ) {
   World W;
-  W.set_default_player( e_nation::french );
+  W.set_default_player_type( e_player::french );
   e_immediate_price_change_allowed const
       immediate_price_change_allowed =
           e_immediate_price_change_allowed::allowed;
@@ -1038,7 +1038,7 @@ TEST_CASE(
 TEST_CASE(
     "[market] default model good buy remains within limits" ) {
   World W;
-  W.set_default_player( e_nation::french );
+  W.set_default_player_type( e_player::french );
   e_immediate_price_change_allowed const
       immediate_price_change_allowed =
           e_immediate_price_change_allowed::allowed;
@@ -1088,7 +1088,7 @@ TEST_CASE( "[market] transaction_invoice buy" ) {
       .intrinsic_volume = 1000;
 
   SECTION( "human, conquistador, non-dutch" ) {
-    W.set_default_player( e_nation::french );
+    W.set_default_player_type( e_player::french );
     Player& player = W.default_player();
     W.set_default_player_as_human();
     W.settings().game_setup_options.difficulty =
@@ -1110,10 +1110,10 @@ TEST_CASE( "[market] transaction_invoice buy" ) {
       .player_volume_delta      = -50,
       .intrinsic_volume_delta =
           {
-            { e_nation::english, -200 }, // volatility...
-            { e_nation::french, -200 },
-            { e_nation::spanish, -200 },
-            { e_nation::dutch, -200 },
+            { e_player::english, -200 }, // volatility...
+            { e_player::french, -200 },
+            { e_player::spanish, -200 },
+            { e_player::dutch, -200 },
           },
       .global_intrinsic_volume_deltas = {},
       .price_change =
@@ -1143,7 +1143,7 @@ TEST_CASE( "[market] transaction_invoice buy" ) {
     REQUIRE( f() == expected );
   }
   SECTION( "human, conquistador, dutch" ) {
-    W.set_default_player( e_nation::dutch );
+    W.set_default_player_type( e_player::dutch );
     Player& player = W.default_player();
     W.set_default_player_as_human();
     W.settings().game_setup_options.difficulty =
@@ -1165,10 +1165,10 @@ TEST_CASE( "[market] transaction_invoice buy" ) {
       .player_volume_delta      = -50,
       .intrinsic_volume_delta =
           {
-            { e_nation::english, -200 }, // volatility...
-            { e_nation::french, -200 },
-            { e_nation::spanish, -200 },
-            { e_nation::dutch, -200 },
+            { e_player::english, -200 }, // volatility...
+            { e_player::french, -200 },
+            { e_player::spanish, -200 },
+            { e_player::dutch, -200 },
           },
       .global_intrinsic_volume_deltas = {},
       .price_change =
@@ -1198,7 +1198,7 @@ TEST_CASE( "[market] transaction_invoice buy" ) {
     REQUIRE( f() == expected );
   }
   SECTION( "human, discoverer, non-dutch" ) {
-    W.set_default_player( e_nation::french );
+    W.set_default_player_type( e_player::french );
     Player& player = W.default_player();
     W.set_default_player_as_human();
     W.settings().game_setup_options.difficulty =
@@ -1220,10 +1220,10 @@ TEST_CASE( "[market] transaction_invoice buy" ) {
       .player_volume_delta      = -50,
       .intrinsic_volume_delta =
           {
-            { e_nation::english, -133 }, // volatility...
-            { e_nation::french, -133 },
-            { e_nation::spanish, -133 },
-            { e_nation::dutch, -133 },
+            { e_player::english, -133 }, // volatility...
+            { e_player::french, -133 },
+            { e_player::spanish, -133 },
+            { e_player::dutch, -133 },
           },
       .global_intrinsic_volume_deltas = {},
       .price_change =
@@ -1253,7 +1253,7 @@ TEST_CASE( "[market] transaction_invoice buy" ) {
     REQUIRE( f() == expected );
   }
   SECTION( "human, discoverer, dutch" ) {
-    W.set_default_player( e_nation::dutch );
+    W.set_default_player_type( e_player::dutch );
     Player& player = W.default_player();
     W.set_default_player_as_human();
     W.settings().game_setup_options.difficulty =
@@ -1275,10 +1275,10 @@ TEST_CASE( "[market] transaction_invoice buy" ) {
       .player_volume_delta      = -50,
       .intrinsic_volume_delta =
           {
-            { e_nation::english, -133 }, // volatility...
-            { e_nation::french, -133 },
-            { e_nation::spanish, -133 },
-            { e_nation::dutch, -133 },
+            { e_player::english, -133 }, // volatility...
+            { e_player::french, -133 },
+            { e_player::spanish, -133 },
+            { e_player::dutch, -133 },
           },
       .global_intrinsic_volume_deltas = {},
       .price_change =
@@ -1308,7 +1308,7 @@ TEST_CASE( "[market] transaction_invoice buy" ) {
     REQUIRE( f() == expected );
   }
   SECTION( "AI, conquistador, non-dutch" ) {
-    W.set_default_player( e_nation::french );
+    W.set_default_player_type( e_player::french );
     Player& player = W.default_player();
     W.settings().game_setup_options.difficulty =
         e_difficulty::conquistador;
@@ -1329,10 +1329,10 @@ TEST_CASE( "[market] transaction_invoice buy" ) {
       .player_volume_delta      = -50,
       .intrinsic_volume_delta =
           {
-            { e_nation::english, -33 },
-            { e_nation::french, -33 },
-            { e_nation::spanish, -33 },
-            { e_nation::dutch, -33 },
+            { e_player::english, -33 },
+            { e_player::french, -33 },
+            { e_player::spanish, -33 },
+            { e_player::dutch, -33 },
           },
       .global_intrinsic_volume_deltas = {},
       .price_change =
@@ -1362,7 +1362,7 @@ TEST_CASE( "[market] transaction_invoice buy" ) {
     REQUIRE( f() == expected );
   }
   SECTION( "AI, conquistador, dutch" ) {
-    W.set_default_player( e_nation::dutch );
+    W.set_default_player_type( e_player::dutch );
     Player& player = W.default_player();
     W.settings().game_setup_options.difficulty =
         e_difficulty::conquistador;
@@ -1383,10 +1383,10 @@ TEST_CASE( "[market] transaction_invoice buy" ) {
       .player_volume_delta      = -50,
       .intrinsic_volume_delta =
           {
-            { e_nation::english, -33 },
-            { e_nation::french, -33 },
-            { e_nation::spanish, -33 },
-            { e_nation::dutch, -33 },
+            { e_player::english, -33 },
+            { e_player::french, -33 },
+            { e_player::spanish, -33 },
+            { e_player::dutch, -33 },
           },
       .global_intrinsic_volume_deltas = {},
       .price_change =
@@ -1416,7 +1416,7 @@ TEST_CASE( "[market] transaction_invoice buy" ) {
     REQUIRE( f() == expected );
   }
   SECTION( "AI, discoverer, non-dutch" ) {
-    W.set_default_player( e_nation::french );
+    W.set_default_player_type( e_player::french );
     Player& player = W.default_player();
     W.settings().game_setup_options.difficulty =
         e_difficulty::conquistador;
@@ -1437,10 +1437,10 @@ TEST_CASE( "[market] transaction_invoice buy" ) {
       .player_volume_delta      = -50,
       .intrinsic_volume_delta =
           {
-            { e_nation::english, -33 },
-            { e_nation::french, -33 },
-            { e_nation::spanish, -33 },
-            { e_nation::dutch, -33 },
+            { e_player::english, -33 },
+            { e_player::french, -33 },
+            { e_player::spanish, -33 },
+            { e_player::dutch, -33 },
           },
       .global_intrinsic_volume_deltas = {},
       .price_change =
@@ -1470,7 +1470,7 @@ TEST_CASE( "[market] transaction_invoice buy" ) {
     REQUIRE( f() == expected );
   }
   SECTION( "AI, discoverer, dutch" ) {
-    W.set_default_player( e_nation::dutch );
+    W.set_default_player_type( e_player::dutch );
     Player& player = W.default_player();
     W.settings().game_setup_options.difficulty =
         e_difficulty::conquistador;
@@ -1491,10 +1491,10 @@ TEST_CASE( "[market] transaction_invoice buy" ) {
       .player_volume_delta      = -50,
       .intrinsic_volume_delta =
           {
-            { e_nation::english, -33 },
-            { e_nation::french, -33 },
-            { e_nation::spanish, -33 },
-            { e_nation::dutch, -33 },
+            { e_player::english, -33 },
+            { e_player::french, -33 },
+            { e_player::spanish, -33 },
+            { e_player::dutch, -33 },
           },
       .global_intrinsic_volume_deltas = {},
       .price_change =
@@ -1525,7 +1525,7 @@ TEST_CASE( "[market] transaction_invoice buy" ) {
   }
 
   SECTION( "price change suppression" ) {
-    W.set_default_player( e_nation::french );
+    W.set_default_player_type( e_player::french );
     Player& player = W.default_player();
     W.set_default_player_as_human();
     W.settings().game_setup_options.difficulty =
@@ -1547,10 +1547,10 @@ TEST_CASE( "[market] transaction_invoice buy" ) {
       .player_volume_delta      = -50,
       .intrinsic_volume_delta =
           {
-            { e_nation::english, -200 }, // volatility...
-            { e_nation::french, -200 },
-            { e_nation::spanish, -200 },
-            { e_nation::dutch, -200 },
+            { e_player::english, -200 }, // volatility...
+            { e_player::french, -200 },
+            { e_player::spanish, -200 },
+            { e_player::dutch, -200 },
           },
       .global_intrinsic_volume_deltas = {},
       .price_change =
@@ -1624,7 +1624,7 @@ TEST_CASE( "[market] transaction_invoice sell" ) {
       .intrinsic_volume = 1000;
 
   SECTION( "human, conquistador, non-dutch, tax=50" ) {
-    W.set_default_player( e_nation::french );
+    W.set_default_player_type( e_player::french );
     Player& player = W.default_player();
     W.set_default_player_as_human();
     W.settings().game_setup_options.difficulty =
@@ -1646,10 +1646,10 @@ TEST_CASE( "[market] transaction_invoice sell" ) {
       .player_volume_delta      = 50,
       .intrinsic_volume_delta =
           {
-            { e_nation::english, 200 }, // volatility...
-            { e_nation::french, 100 },  // price fell...
-            { e_nation::spanish, 200 },
-            { e_nation::dutch, 133 },
+            { e_player::english, 200 }, // volatility...
+            { e_player::french, 100 },  // price fell...
+            { e_player::spanish, 200 },
+            { e_player::dutch, 133 },
           },
       .global_intrinsic_volume_deltas = {},
       .price_change =
@@ -1679,7 +1679,7 @@ TEST_CASE( "[market] transaction_invoice sell" ) {
     REQUIRE( f() == expected );
   }
   SECTION( "human, conquistador, dutch, tax=50" ) {
-    W.set_default_player( e_nation::dutch );
+    W.set_default_player_type( e_player::dutch );
     Player& player = W.default_player();
     W.set_default_player_as_human();
     W.settings().game_setup_options.difficulty =
@@ -1701,10 +1701,10 @@ TEST_CASE( "[market] transaction_invoice sell" ) {
       .player_volume_delta      = 50,
       .intrinsic_volume_delta =
           {
-            { e_nation::english, 200 }, // volatility...
-            { e_nation::french, 200 },  // price fell...
-            { e_nation::spanish, 200 },
-            { e_nation::dutch, 33 },
+            { e_player::english, 200 }, // volatility...
+            { e_player::french, 200 },  // price fell...
+            { e_player::spanish, 200 },
+            { e_player::dutch, 33 },
           },
       .global_intrinsic_volume_deltas = {},
       .price_change =
@@ -1734,7 +1734,7 @@ TEST_CASE( "[market] transaction_invoice sell" ) {
     REQUIRE( f() == expected );
   }
   SECTION( "human, discoverer, non-dutch, tax=50" ) {
-    W.set_default_player( e_nation::french );
+    W.set_default_player_type( e_player::french );
     Player& player = W.default_player();
     W.set_default_player_as_human();
     W.settings().game_setup_options.difficulty =
@@ -1756,10 +1756,10 @@ TEST_CASE( "[market] transaction_invoice sell" ) {
       .player_volume_delta      = 50,
       .intrinsic_volume_delta =
           {
-            { e_nation::english, 133 }, // volatility...
-            { e_nation::french, 33 },   // price fell...
-            { e_nation::spanish, 133 },
-            { e_nation::dutch, 88 },
+            { e_player::english, 133 }, // volatility...
+            { e_player::french, 33 },   // price fell...
+            { e_player::spanish, 133 },
+            { e_player::dutch, 88 },
           },
       .global_intrinsic_volume_deltas = {},
       .price_change =
@@ -1789,7 +1789,7 @@ TEST_CASE( "[market] transaction_invoice sell" ) {
     REQUIRE( f() == expected );
   }
   SECTION( "human, discoverer, dutch, tax=50" ) {
-    W.set_default_player( e_nation::dutch );
+    W.set_default_player_type( e_player::dutch );
     Player& player = W.default_player();
     W.set_default_player_as_human();
     W.settings().game_setup_options.difficulty =
@@ -1811,10 +1811,10 @@ TEST_CASE( "[market] transaction_invoice sell" ) {
       .player_volume_delta      = 50,
       .intrinsic_volume_delta =
           {
-            { e_nation::english, 133 }, // volatility...
-            { e_nation::french, 133 },  // price fell...
-            { e_nation::spanish, 133 },
-            { e_nation::dutch, 88 },
+            { e_player::english, 133 }, // volatility...
+            { e_player::french, 133 },  // price fell...
+            { e_player::spanish, 133 },
+            { e_player::dutch, 88 },
           },
       .global_intrinsic_volume_deltas = {},
       .price_change =
@@ -1844,7 +1844,7 @@ TEST_CASE( "[market] transaction_invoice sell" ) {
     REQUIRE( f() == expected );
   }
   SECTION( "AI, conquistador, non-dutch, tax=50" ) {
-    W.set_default_player( e_nation::french );
+    W.set_default_player_type( e_player::french );
     Player& player = W.default_player();
     W.settings().game_setup_options.difficulty =
         e_difficulty::conquistador;
@@ -1865,10 +1865,10 @@ TEST_CASE( "[market] transaction_invoice sell" ) {
       .player_volume_delta      = 50,
       .intrinsic_volume_delta =
           {
-            { e_nation::english, 33 }, // volatility...
-            { e_nation::french, 33 },  // price fell...
-            { e_nation::spanish, 33 },
-            { e_nation::dutch, 22 },
+            { e_player::english, 33 }, // volatility...
+            { e_player::french, 33 },  // price fell...
+            { e_player::spanish, 33 },
+            { e_player::dutch, 22 },
           },
       .global_intrinsic_volume_deltas = {},
       .price_change =
@@ -1898,7 +1898,7 @@ TEST_CASE( "[market] transaction_invoice sell" ) {
     REQUIRE( f() == expected );
   }
   SECTION( "AI, conquistador, dutch, tax=50" ) {
-    W.set_default_player( e_nation::dutch );
+    W.set_default_player_type( e_player::dutch );
     Player& player = W.default_player();
     W.settings().game_setup_options.difficulty =
         e_difficulty::conquistador;
@@ -1919,10 +1919,10 @@ TEST_CASE( "[market] transaction_invoice sell" ) {
       .player_volume_delta      = 50,
       .intrinsic_volume_delta =
           {
-            { e_nation::english, 133 }, // volatility...
-            { e_nation::french, 133 },  // price fell...
-            { e_nation::spanish, 133 },
-            { e_nation::dutch, 88 },
+            { e_player::english, 133 }, // volatility...
+            { e_player::french, 133 },  // price fell...
+            { e_player::spanish, 133 },
+            { e_player::dutch, 88 },
           },
       .global_intrinsic_volume_deltas = {},
       .price_change =
@@ -1952,7 +1952,7 @@ TEST_CASE( "[market] transaction_invoice sell" ) {
     REQUIRE( f() == expected );
   }
   SECTION( "AI, discoverer, non-dutch, tax=50" ) {
-    W.set_default_player( e_nation::french );
+    W.set_default_player_type( e_player::french );
     Player& player = W.default_player();
     W.settings().game_setup_options.difficulty =
         e_difficulty::conquistador;
@@ -1973,10 +1973,10 @@ TEST_CASE( "[market] transaction_invoice sell" ) {
       .player_volume_delta      = 50,
       .intrinsic_volume_delta =
           {
-            { e_nation::english, 133 }, // volatility...
-            { e_nation::french, 33 },   // price fell...
-            { e_nation::spanish, 133 },
-            { e_nation::dutch, 88 },
+            { e_player::english, 133 }, // volatility...
+            { e_player::french, 33 },   // price fell...
+            { e_player::spanish, 133 },
+            { e_player::dutch, 88 },
           },
       .global_intrinsic_volume_deltas = {},
       .price_change =
@@ -2006,7 +2006,7 @@ TEST_CASE( "[market] transaction_invoice sell" ) {
     REQUIRE( f() == expected );
   }
   SECTION( "AI, discoverer, dutch, tax=50" ) {
-    W.set_default_player( e_nation::dutch );
+    W.set_default_player_type( e_player::dutch );
     Player& player = W.default_player();
     W.settings().game_setup_options.difficulty =
         e_difficulty::conquistador;
@@ -2027,10 +2027,10 @@ TEST_CASE( "[market] transaction_invoice sell" ) {
       .player_volume_delta      = 50,
       .intrinsic_volume_delta =
           {
-            { e_nation::english, 133 }, // volatility...
-            { e_nation::french, 133 },  // price fell...
-            { e_nation::spanish, 133 },
-            { e_nation::dutch, 88 },
+            { e_player::english, 133 }, // volatility...
+            { e_player::french, 133 },  // price fell...
+            { e_player::spanish, 133 },
+            { e_player::dutch, 88 },
           },
       .global_intrinsic_volume_deltas = {},
       .price_change =
@@ -2061,7 +2061,7 @@ TEST_CASE( "[market] transaction_invoice sell" ) {
   }
 
   SECTION( "price change suppression" ) {
-    W.set_default_player( e_nation::french );
+    W.set_default_player_type( e_player::french );
     Player& player = W.default_player();
     W.set_default_player_as_human();
     W.settings().game_setup_options.difficulty =
@@ -2083,10 +2083,10 @@ TEST_CASE( "[market] transaction_invoice sell" ) {
       .player_volume_delta      = 50,
       .intrinsic_volume_delta =
           {
-            { e_nation::english, 200 }, // volatility...
-            { e_nation::french, 100 },  // price fell...
-            { e_nation::spanish, 200 },
-            { e_nation::dutch, 133 },
+            { e_player::english, 200 }, // volatility...
+            { e_player::french, 100 },  // price fell...
+            { e_player::spanish, 200 },
+            { e_player::dutch, 133 },
           },
       .global_intrinsic_volume_deltas = {},
       .price_change =
@@ -2099,7 +2099,7 @@ TEST_CASE( "[market] transaction_invoice sell" ) {
         create_price_change( player, e_commodity::silver, 0 );
     // Since the price was not adjusted, the intrinsic volume of
     // the french won't have been adjusted either.
-    expected.intrinsic_volume_delta[e_nation::french] = 200;
+    expected.intrinsic_volume_delta[e_player::french] = 200;
     REQUIRE( f() == expected );
     immediate_price_change_allowed =
         e_immediate_price_change_allowed::allowed;
@@ -2153,7 +2153,7 @@ TEST_CASE( "[market] price_limits_for_commodity" ) {
 
 TEST_CASE( "[market] attrition bonus" ) {
   World W;
-  W.set_default_player( e_nation::french );
+  W.set_default_player_type( e_player::french );
   Player& player = W.default_player();
   W.init_prices_to_average();
   for( e_commodity c : refl::enum_values<e_commodity> ) {

@@ -54,9 +54,9 @@ using ::mock::matchers::_;
 struct world : testing::World {
   using Base = testing::World;
   world() : Base() {
-    add_player( e_nation::dutch );
-    add_player( e_nation::spanish );
-    set_default_player( e_nation::dutch );
+    add_player( e_player::dutch );
+    add_player( e_player::spanish );
+    set_default_player_type( e_player::dutch );
     create_default_map();
   }
 
@@ -228,7 +228,8 @@ TEST_CASE( "[unit-mgr] coord_for_unit_multi_ownership" ) {
 
 TEST_CASE( "[unit-mgr] change_unit_type" ) {
   world w;
-  VisibilityForNation const viz( w.ss(), w.default_nation() );
+  VisibilityForNation const viz( w.ss(),
+                                 w.default_player_type() );
   Unit& unit = w.add_unit_on_map( e_unit_type::free_colonist,
                                   { .x = 3, .y = 3 } );
 
@@ -268,14 +269,14 @@ TEST_CASE( "[unit-mgr] change_unit_type" ) {
            e_tile_visibility::clear );
 }
 
-TEST_CASE( "[unit-mgr] change_unit_nation" ) {
+TEST_CASE( "[unit-mgr] change_unit_player" ) {
   world w;
-  VisibilityForNation const dutch_viz( w.ss(), e_nation::dutch );
+  VisibilityForNation const dutch_viz( w.ss(), e_player::dutch );
   VisibilityForNation const spanish_viz( w.ss(),
-                                         e_nation::spanish );
+                                         e_player::spanish );
   Unit& unit =
       w.add_unit_on_map( e_unit_type::free_colonist,
-                         { .x = 3, .y = 3 }, e_nation::dutch );
+                         { .x = 3, .y = 3 }, e_player::dutch );
 
   REQUIRE( unit.type() == e_unit_type::free_colonist );
   REQUIRE( dutch_viz.visible( { .x = 0, .y = 0 } ) ==
@@ -295,7 +296,7 @@ TEST_CASE( "[unit-mgr] change_unit_nation" ) {
   REQUIRE( spanish_viz.visible( { .x = 3, .y = 3 } ) ==
            e_tile_visibility::hidden );
 
-  change_unit_nation( w.ss(), w.ts(), unit, e_nation::spanish );
+  change_unit_player( w.ss(), w.ts(), unit, e_player::spanish );
 
   REQUIRE( unit.type() == e_unit_type::free_colonist );
   REQUIRE( dutch_viz.visible( { .x = 0, .y = 0 } ) ==
@@ -316,11 +317,11 @@ TEST_CASE( "[unit-mgr] change_unit_nation" ) {
            e_tile_visibility::clear );
 
   // No changes with expanded sighting radius because we are
-  // changing to the units current nation, in which the function
+  // changing to the units current player, in which the function
   // should be a no-op.
   w.spanish().fathers.has[e_founding_father::hernando_de_soto] =
       true;
-  change_unit_nation( w.ss(), w.ts(), unit, e_nation::spanish );
+  change_unit_player( w.ss(), w.ts(), unit, e_player::spanish );
 
   REQUIRE( unit.type() == e_unit_type::free_colonist );
   REQUIRE( dutch_viz.visible( { .x = 0, .y = 0 } ) ==
@@ -361,7 +362,7 @@ TEST_CASE( "[unit-mgr] change_unit_nation" ) {
            e_tile_visibility::clear );
 }
 
-TEST_CASE( "[unit-mgr] change_unit_nation_and_move" ) {
+TEST_CASE( "[unit-mgr] change_unit_player_and_move" ) {
   world w;
 
   Coord const viz_check1{ .x = 0, .y = 0 };
@@ -370,15 +371,15 @@ TEST_CASE( "[unit-mgr] change_unit_nation_and_move" ) {
   Coord const viz_check2{ .x = 3, .y = 3 };
 
   Unit& unit = w.add_unit_on_map( e_unit_type::free_colonist,
-                                  src, e_nation::dutch );
+                                  src, e_player::dutch );
 
-  VisibilityForNation const dutch_viz( w.ss(), e_nation::dutch );
+  VisibilityForNation const dutch_viz( w.ss(), e_player::dutch );
   VisibilityForNation const spanish_viz( w.ss(),
-                                         e_nation::spanish );
+                                         e_player::spanish );
 
   auto f = [&] {
-    change_unit_nation_and_move( w.ss(), w.ts(), unit,
-                                 e_nation::spanish, dst );
+    change_unit_player_and_move( w.ss(), w.ts(), unit,
+                                 e_player::spanish, dst );
   };
 
   REQUIRE( w.units().coord_for( unit.id() ) == src );
@@ -414,7 +415,7 @@ TEST_CASE( "[unit-mgr] change_unit_nation_and_move" ) {
            e_tile_visibility::clear );
 
   // These are the real test... if we were not moving and
-  // changing nation atomically then one of these would fail.
+  // changing player atomically then one of these would fail.
   REQUIRE( spanish_viz.visible( viz_check1 ) ==
            e_tile_visibility::hidden );
   REQUIRE( spanish_viz.visible( viz_check2 ) ==
@@ -851,11 +852,11 @@ TEST_CASE(
   world w;
 
   point tile;
-  e_nation nation = e_nation::dutch;
+  e_player player = e_player::dutch;
   vector<UnitId> expected;
 
   auto f = [&] {
-    return euro_units_from_coord_recursive( w.units(), nation,
+    return euro_units_from_coord_recursive( w.units(), player,
                                             tile );
   };
 
@@ -865,26 +866,26 @@ TEST_CASE(
 
   UnitId const free_colonist =
       w.add_unit_on_map( e_unit_type::free_colonist,
-                         ( 1_x, 0_y ), e_nation::spanish )
+                         ( 1_x, 0_y ), e_player::spanish )
           .id();
 
   tile     = ( 1_x, 1_y );
-  nation   = e_nation::dutch;
+  player   = e_player::dutch;
   expected = {};
   REQUIRE( f() == expected );
 
   tile     = ( 1_x, 1_y );
-  nation   = e_nation::spanish;
+  player   = e_player::spanish;
   expected = {};
   REQUIRE( f() == expected );
 
   tile     = ( 1_x, 0_y );
-  nation   = e_nation::dutch;
+  player   = e_player::dutch;
   expected = {};
   REQUIRE( f() == expected );
 
   tile     = ( 1_x, 0_y );
-  nation   = e_nation::spanish;
+  player   = e_player::spanish;
   expected = { free_colonist };
   REQUIRE( f() == expected );
 }

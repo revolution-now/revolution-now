@@ -50,9 +50,9 @@ using ::gfx::point;
 struct World : testing::World {
   using Base = testing::World;
   World() : Base() {
-    add_player( e_nation::dutch );
-    add_player( e_nation::english );
-    set_default_player( e_nation::dutch );
+    add_player( e_player::dutch );
+    add_player( e_player::english );
+    set_default_player_type( e_player::dutch );
     set_default_player_as_human();
     MapSquare const L = make_grassland();
     vector<MapSquare> tiles{
@@ -221,7 +221,7 @@ TEST_CASE( "[map-search] find_any_close_colony" ) {
 
   // One colony, max distance 0.
   Colony& colony_1 =
-      W.add_colony( { .x = 0, .y = 0 }, e_nation::dutch );
+      W.add_colony( { .x = 0, .y = 0 }, e_player::dutch );
   max_distance = 0;
   expected     = nothing;
   REQUIRE( f() == expected );
@@ -241,25 +241,25 @@ TEST_CASE( "[map-search] find_any_close_colony" ) {
   expected     = colony_1.id;
   REQUIRE( f() == expected );
 
-  // One colony, max distance 3, with pred, wrong nation.
+  // One colony, max distance 3, with pred, wrong player.
   max_distance = 3;
   pred         = +[]( Colony const& colony ) {
-    return colony.nation == e_nation::english;
+    return colony.player == e_player::english;
   };
   expected = nothing;
   REQUIRE( f() == expected );
 
-  // One colony, max distance 4, with pred, right nation.
+  // One colony, max distance 4, with pred, right player.
   max_distance = 4;
   pred         = +[]( Colony const& colony ) {
-    return colony.nation == e_nation::dutch;
+    return colony.player == e_player::dutch;
   };
   expected = colony_1.id;
   REQUIRE( f() == expected );
 
   // Two colonies, max distance 5.
   Colony& colony_2 =
-      W.add_colony( { .x = 2, .y = 4 }, e_nation::english );
+      W.add_colony( { .x = 2, .y = 4 }, e_player::english );
   max_distance = 5;
   pred         = pred_default;
   expected     = colony_2.id;
@@ -268,14 +268,14 @@ TEST_CASE( "[map-search] find_any_close_colony" ) {
   // Two colonies, max distance 5, with pred dutch.
   max_distance = 5;
   pred         = +[]( Colony const& colony ) {
-    return colony.nation == e_nation::dutch;
+    return colony.player == e_player::dutch;
   };
   expected = colony_1.id;
   REQUIRE( f() == expected );
 
   // Three colonies, max distance 0.
   Colony& colony_3 =
-      W.add_colony( { .x = 2, .y = 2 }, e_nation::dutch );
+      W.add_colony( { .x = 2, .y = 2 }, e_player::dutch );
   max_distance = 0;
   pred         = pred_default;
   expected     = colony_3.id;
@@ -290,7 +290,7 @@ TEST_CASE( "[map-search] find_any_close_colony" ) {
   // Three colonies, max distance 1, with pred english.
   max_distance = 1;
   pred         = +[]( Colony const& colony ) {
-    return colony.nation == e_nation::english;
+    return colony.player == e_player::english;
   };
   expected = nothing;
   REQUIRE( f() == expected );
@@ -298,7 +298,7 @@ TEST_CASE( "[map-search] find_any_close_colony" ) {
   // Three colonies, max distance 2, with pred english.
   max_distance = 2;
   pred         = +[]( Colony const& colony ) {
-    return colony.nation == e_nation::english;
+    return colony.player == e_player::english;
   };
   expected = colony_2.id;
   REQUIRE( f() == expected );
@@ -309,8 +309,9 @@ TEST_CASE( "[map-search] find_close_explored_colony" ) {
   maybe<Colony> expected;
 
   auto f = [&] {
-    return find_close_explored_colony(
-        W.ss(), W.default_nation(), { .x = 3, .y = 3 }, 3.0 );
+    return find_close_explored_colony( W.ss(),
+                                       W.default_player_type(),
+                                       { .x = 3, .y = 3 }, 3.0 );
   };
 
   //     0 1 2 3 4
@@ -321,27 +322,27 @@ TEST_CASE( "[map-search] find_close_explored_colony" ) {
   // 3 | 9 5 _ 1 _
   // 4 | 8 _ _ _ 4
 
-  e_nation nation1 = e_nation::dutch;
-  e_nation nation2 = e_nation::english;
+  e_player player1 = e_player::dutch;
+  e_player player2 = e_player::english;
 
   auto add = [&]( Coord coord ) {
-    Colony& colony = W.add_colony( coord, nation1 );
+    Colony& colony = W.add_colony( coord, player1 );
     BASE_CHECK( !colony.frozen.has_value() );
     // This makes matching easier in this test.
     colony.buildings = {};
-    swap( nation1, nation2 );
+    swap( player1, player2 );
     colony.name = std::to_string( colony.id );
   };
 
   auto make_clear = [&]( Coord coord ) {
-    W.map_updater().make_squares_visible( e_nation::dutch,
+    W.map_updater().make_squares_visible( e_player::dutch,
                                           { coord } );
   };
 
   auto make_fogged = [&]( Coord coord, bool remove ) {
-    W.map_updater().make_squares_visible( e_nation::dutch,
+    W.map_updater().make_squares_visible( e_player::dutch,
                                           { coord } );
-    W.map_updater().make_squares_fogged( e_nation::dutch,
+    W.map_updater().make_squares_fogged( e_player::dutch,
                                          { coord } );
     if( remove ) {
       ColonyId const colony_id =
@@ -353,7 +354,7 @@ TEST_CASE( "[map-search] find_close_explored_colony" ) {
   };
 
   // Visible square with no colony on it, either real or fogged.
-  W.map_updater().make_squares_visible( e_nation::dutch,
+  W.map_updater().make_squares_visible( e_player::dutch,
                                         { { .x = 2, .y = 3 } } );
 
   add( { .x = 4, .y = 0 } ); // "1", dutch
@@ -379,7 +380,7 @@ TEST_CASE( "[map-search] find_close_explored_colony" ) {
 
   make_fogged( { .x = 3, .y = 0 }, /*remove=*/false );
   expected = Colony{ .id       = 0, // frozen
-                     .nation   = e_nation::english,
+                     .player   = e_player::english,
                      .name     = "2",
                      .location = { .x = 3, .y = 0 },
                      .frozen   = FrozenColony{} };
@@ -387,7 +388,7 @@ TEST_CASE( "[map-search] find_close_explored_colony" ) {
 
   make_clear( { .x = 2, .y = 0 } );
   expected = Colony{ .id       = 0, // frozen
-                     .nation   = e_nation::english,
+                     .player   = e_player::english,
                      .name     = "2",
                      .location = { .x = 3, .y = 0 },
                      .frozen   = FrozenColony{} };
@@ -395,7 +396,7 @@ TEST_CASE( "[map-search] find_close_explored_colony" ) {
 
   make_fogged( { .x = 0, .y = 0 }, /*remove=*/true );
   expected = Colony{ .id       = 0, // frozen
-                     .nation   = e_nation::english,
+                     .player   = e_player::english,
                      .name     = "2",
                      .location = { .x = 3, .y = 0 },
                      .frozen   = FrozenColony{} };
@@ -403,7 +404,7 @@ TEST_CASE( "[map-search] find_close_explored_colony" ) {
 
   make_clear( { .x = 0, .y = 3 } );
   expected = Colony{ .id       = 0, // frozen
-                     .nation   = e_nation::english,
+                     .player   = e_player::english,
                      .name     = "2",
                      .location = { .x = 3, .y = 0 },
                      .frozen   = FrozenColony{} };
@@ -411,7 +412,7 @@ TEST_CASE( "[map-search] find_close_explored_colony" ) {
 
   make_fogged( { .x = 0, .y = 4 }, /*remove=*/false );
   expected = Colony{ .id       = 0, // frozen
-                     .nation   = e_nation::english,
+                     .player   = e_player::english,
                      .name     = "2",
                      .location = { .x = 3, .y = 0 },
                      .frozen   = FrozenColony{} };
@@ -419,7 +420,7 @@ TEST_CASE( "[map-search] find_close_explored_colony" ) {
 
   make_clear( { .x = 3, .y = 1 } );
   expected = Colony{ .id       = 7,
-                     .nation   = e_nation::dutch,
+                     .player   = e_player::dutch,
                      .name     = "7",
                      .location = { .x = 3, .y = 1 } };
   REQUIRE( f() == expected );
@@ -428,14 +429,14 @@ TEST_CASE( "[map-search] find_close_explored_colony" ) {
   W.player_square( { .x = 1, .y = 1 } ) = {};
 
   expected = Colony{ .id       = 7,
-                     .nation   = e_nation::dutch,
+                     .player   = e_player::dutch,
                      .name     = "7",
                      .location = { .x = 3, .y = 1 } };
   REQUIRE( f() == expected );
 
   make_fogged( { .x = 1, .y = 1 }, /*remove=*/false );
   expected = Colony{ .id       = 7,
-                     .nation   = e_nation::dutch,
+                     .player   = e_player::dutch,
                      .name     = "7",
                      .location = { .x = 3, .y = 1 } };
   REQUIRE( f() == expected );
@@ -443,7 +444,7 @@ TEST_CASE( "[map-search] find_close_explored_colony" ) {
   add( { .x = 1, .y = 1 } ); // english
   make_fogged( { .x = 1, .y = 1 }, /*remove=*/false );
   expected = Colony{ .id       = 0, // frozen
-                     .nation   = e_nation::english,
+                     .player   = e_player::english,
                      .name     = "14",
                      .location = { .x = 1, .y = 1 },
                      .frozen   = FrozenColony{} };
@@ -451,7 +452,7 @@ TEST_CASE( "[map-search] find_close_explored_colony" ) {
 
   make_clear( { .x = 1, .y = 3 } );
   expected = Colony{ .id       = 0, // frozen
-                     .nation   = e_nation::english,
+                     .player   = e_player::english,
                      .name     = "14",
                      .location = { .x = 1, .y = 1 },
                      .frozen   = FrozenColony{} };
@@ -459,7 +460,7 @@ TEST_CASE( "[map-search] find_close_explored_colony" ) {
 
   make_fogged( { .x = 4, .y = 4 }, /*remove=*/false );
   expected = Colony{ .id       = 0, // frozen
-                     .nation   = e_nation::english,
+                     .player   = e_player::english,
                      .name     = "10",
                      .location = { .x = 4, .y = 4 },
                      .frozen   = FrozenColony{} };
@@ -467,14 +468,14 @@ TEST_CASE( "[map-search] find_close_explored_colony" ) {
 
   make_clear( { .x = 4, .y = 2 } );
   expected = Colony{ .id       = 11,
-                     .nation   = e_nation::dutch,
+                     .player   = e_player::dutch,
                      .name     = "11",
                      .location = { .x = 4, .y = 2 } };
   REQUIRE( f() == expected );
 
   make_fogged( { .x = 2, .y = 2 }, /*remove=*/true );
   expected = Colony{ .id       = 0, // frozen
-                     .nation   = e_nation::english,
+                     .player   = e_player::english,
                      .name     = "12",
                      .location = { .x = 2, .y = 2 },
                      .frozen   = FrozenColony{} };
@@ -482,7 +483,7 @@ TEST_CASE( "[map-search] find_close_explored_colony" ) {
 
   make_clear( { .x = 3, .y = 3 } );
   expected = Colony{ .id       = 13,
-                     .nation   = e_nation::dutch,
+                     .player   = e_player::dutch,
                      .name     = "13",
                      .location = { .x = 3, .y = 3 } };
   REQUIRE( f() == expected );
@@ -493,7 +494,8 @@ TEST_CASE( "[map-search] close_friendly_colonies" ) {
   vector<ColonyId> expected;
 
   auto f = [&] {
-    return close_friendly_colonies( W.ss(), W.default_nation(),
+    return close_friendly_colonies( W.ss(),
+                                    W.default_player_type(),
                                     { .x = 3, .y = 3 }, 3.0 );
   };
 
@@ -505,8 +507,8 @@ TEST_CASE( "[map-search] close_friendly_colonies" ) {
   // 3 | 9 5 _ 1 _
   // 4 | 8 _ _ _ 4
 
-  constexpr auto D = e_nation::dutch;
-  constexpr auto E = e_nation::english;
+  constexpr auto D = e_player::dutch;
+  constexpr auto E = e_player::english;
 
   auto id1 = W.add_colony( { .x = 3, .y = 3 }, D ).id;
   /*------*/ W.add_colony( { .x = 2, .y = 2 }, E );
@@ -531,16 +533,16 @@ TEST_CASE( "[map-search] find_close_encountered_tribe" ) {
   gfx::point const start = { .x = 3, .y = 3 };
   double distance        = 0;
   maybe<e_tribe> expected;
-  e_nation const nation = w.default_nation();
+  e_player const player = w.default_player_type();
 
   w.add_tribe( e_tribe::inca );
   w.add_tribe( e_tribe::aztec );
   w.add_tribe( e_tribe::tupi );
 
-  // These should be irrelevant as they are for another nation.
-  w.inca().relationship[e_nation::english].encountered  = true;
-  w.aztec().relationship[e_nation::english].encountered = true;
-  w.tupi().relationship[e_nation::english].encountered  = true;
+  // These should be irrelevant as they are for another player.
+  w.inca().relationship[e_player::english].encountered  = true;
+  w.aztec().relationship[e_player::english].encountered = true;
+  w.tupi().relationship[e_player::english].encountered  = true;
 
   // _ D _ _ _
   // _ _ _ _ _
@@ -550,13 +552,13 @@ TEST_CASE( "[map-search] find_close_encountered_tribe" ) {
 
   auto f = [&] {
     return find_close_encountered_tribe(
-        w.ss(), w.default_nation(), start, distance );
+        w.ss(), w.default_player_type(), start, distance );
   };
 
   expected = nothing;
   REQUIRE( f() == expected );
 
-  w.tupi().relationship[nation].encountered = true;
+  w.tupi().relationship[player].encountered = true;
   w.add_dwelling( { .x = 1, .y = 0 }, e_tribe::tupi );
   distance = 4;
   expected = e_tribe::tupi;
@@ -566,29 +568,29 @@ TEST_CASE( "[map-search] find_close_encountered_tribe" ) {
   expected = nothing;
   REQUIRE( f() == expected );
 
-  w.tupi().relationship[nation].encountered = false;
+  w.tupi().relationship[player].encountered = false;
   distance                                  = 100;
   expected                                  = nothing;
   REQUIRE( f() == expected );
 
-  w.tupi().relationship[nation].encountered = true;
+  w.tupi().relationship[player].encountered = true;
   distance                                  = 100;
   expected                                  = e_tribe::tupi;
   REQUIRE( f() == expected );
 
-  w.tupi().relationship[nation].encountered = true;
+  w.tupi().relationship[player].encountered = true;
   w.add_dwelling( { .x = 1, .y = 3 }, e_tribe::aztec );
   distance = 100;
   expected = e_tribe::tupi;
   REQUIRE( f() == expected );
 
-  w.inca().relationship[nation].encountered  = true;
-  w.aztec().relationship[nation].encountered = true;
+  w.inca().relationship[player].encountered  = true;
+  w.aztec().relationship[player].encountered = true;
   distance                                   = 100;
   expected                                   = e_tribe::aztec;
   REQUIRE( f() == expected );
 
-  w.inca().relationship[nation].encountered = false;
+  w.inca().relationship[player].encountered = false;
   w.add_dwelling( { .x = 4, .y = 2 }, e_tribe::inca );
   distance = 1;
   expected = nothing;
@@ -598,7 +600,7 @@ TEST_CASE( "[map-search] find_close_encountered_tribe" ) {
   expected = e_tribe::aztec;
   REQUIRE( f() == expected );
 
-  w.inca().relationship[nation].encountered = true;
+  w.inca().relationship[player].encountered = true;
   distance                                  = 100;
   expected                                  = e_tribe::inca;
   REQUIRE( f() == expected );

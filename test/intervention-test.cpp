@@ -45,9 +45,9 @@ using ::mock::matchers::_;
 *****************************************************************/
 struct world : testing::World {
   world() {
-    add_player( e_nation::english );
-    add_player( e_nation::spanish );
-    add_player( e_nation::dutch );
+    add_player( e_player::english );
+    add_player( e_player::spanish );
+    add_player( e_player::dutch );
     create_default_map();
 
     // Make sure to leave the french non-existent so that
@@ -56,7 +56,7 @@ struct world : testing::World {
     // This is important because in a game where not all players
     // exist, we that might be the case.
     BASE_CHECK(
-        !players().players[e_nation::french].has_value() );
+        !players().players[e_player::french].has_value() );
   }
 
   void create_default_map() {
@@ -112,14 +112,14 @@ TEST_CASE( "[intervention] bells_required_for_intervention" ) {
   REQUIRE( f() == 8000 );
 }
 
-TEST_CASE( "[intervention] select_nation_for_intervention" ) {
+TEST_CASE( "[intervention] select_player_for_intervention" ) {
   world w;
 
-  auto const f = [&]( e_nation const for_nation ) {
-    return select_nation_for_intervention( for_nation );
+  auto const f = [&]( e_player const for_player ) {
+    return select_player_for_intervention( for_player );
   };
 
-  using enum e_nation;
+  using enum e_player;
 
   REQUIRE( f( english ) == french );
   REQUIRE( f( french ) == spanish );
@@ -466,15 +466,15 @@ TEST_CASE( "[intervention] find_intervention_deploy_tile" ) {
     static vector<int> const colonies_idxs{ 0, 1, 2, 3 };
     expect_shuffle( w.rand(), colonies_idxs );
     // has sea lane, foreign.
-    w.add_colony( { .x = 5, .y = 7 }, e_nation::spanish );
+    w.add_colony( { .x = 5, .y = 7 }, e_player::spanish );
     // Land Locked.
-    w.add_colony( { .x = 6, .y = 4 }, player.nation );
+    w.add_colony( { .x = 6, .y = 4 }, player.type );
     // no sea lane.
-    w.add_colony( { .x = 2, .y = 7 }, player.nation );
+    w.add_colony( { .x = 2, .y = 7 }, player.type );
     // has sea lane.
-    w.add_colony( { .x = 7, .y = 6 }, player.nation );
+    w.add_colony( { .x = 7, .y = 6 }, player.type );
     // has sea lane, map edge.
-    w.add_colony( { .x = 8, .y = 10 }, player.nation );
+    w.add_colony( { .x = 8, .y = 10 }, player.type );
 
     expected = {
       .tile      = { .x = 6, .y = 7 },
@@ -488,15 +488,15 @@ TEST_CASE( "[intervention] find_intervention_deploy_tile" ) {
     static vector<int> const colonies_idxs{ 0, 1, 3, 2 };
     expect_shuffle( w.rand(), colonies_idxs );
     // has sea lane, foreign.
-    w.add_colony( { .x = 5, .y = 7 }, e_nation::spanish );
+    w.add_colony( { .x = 5, .y = 7 }, e_player::spanish );
     // Land Locked.
-    w.add_colony( { .x = 6, .y = 4 }, player.nation );
+    w.add_colony( { .x = 6, .y = 4 }, player.type );
     // no sea lane.
-    w.add_colony( { .x = 2, .y = 7 }, player.nation );
+    w.add_colony( { .x = 2, .y = 7 }, player.type );
     // has sea lane.
-    w.add_colony( { .x = 7, .y = 6 }, player.nation );
+    w.add_colony( { .x = 7, .y = 6 }, player.type );
     // has sea lane, map edge.
-    w.add_colony( { .x = 8, .y = 10 }, player.nation );
+    w.add_colony( { .x = 8, .y = 10 }, player.type );
 
     expected = {
       .tile      = { .x = 9, .y = 9 },
@@ -510,19 +510,19 @@ TEST_CASE( "[intervention] find_intervention_deploy_tile" ) {
     static vector<int> const colonies_idxs{ 0, 1, 3, 2 };
     expect_shuffle( w.rand(), colonies_idxs );
     // has sea lane, foreign.
-    w.add_colony( { .x = 5, .y = 7 }, e_nation::spanish );
+    w.add_colony( { .x = 5, .y = 7 }, e_player::spanish );
     // Land Locked.
-    w.add_colony( { .x = 6, .y = 4 }, player.nation );
+    w.add_colony( { .x = 6, .y = 4 }, player.type );
     // no sea lane.
-    w.add_colony( { .x = 2, .y = 7 }, player.nation );
+    w.add_colony( { .x = 2, .y = 7 }, player.type );
     // has sea lane.
-    w.add_colony( { .x = 7, .y = 6 }, player.nation );
+    w.add_colony( { .x = 7, .y = 6 }, player.type );
     // has sea lane, map edge.
-    w.add_colony( { .x = 8, .y = 10 }, player.nation );
+    w.add_colony( { .x = 8, .y = 10 }, player.type );
 
     // Friendly unit should not interfere.
     w.add_unit_on_map( e_unit_type::caravel, { .x = 9, .y = 9 },
-                       e_nation::english );
+                       e_player::english );
 
     expected = {
       .tile      = { .x = 9, .y = 9 },
@@ -536,19 +536,19 @@ TEST_CASE( "[intervention] find_intervention_deploy_tile" ) {
     static vector<int> const colonies_idxs{ 0, 1, 3, 2 };
     expect_shuffle( w.rand(), colonies_idxs );
     // has sea lane, foreign.
-    w.add_colony( { .x = 5, .y = 7 }, e_nation::spanish );
+    w.add_colony( { .x = 5, .y = 7 }, e_player::spanish );
     // Land Locked.
-    w.add_colony( { .x = 6, .y = 4 }, player.nation );
+    w.add_colony( { .x = 6, .y = 4 }, player.type );
     // no sea lane.
-    w.add_colony( { .x = 2, .y = 7 }, player.nation );
+    w.add_colony( { .x = 2, .y = 7 }, player.type );
     // has sea lane.
-    w.add_colony( { .x = 7, .y = 6 }, player.nation );
+    w.add_colony( { .x = 7, .y = 6 }, player.type );
     // has sea lane, map edge.
-    w.add_colony( { .x = 8, .y = 10 }, player.nation );
+    w.add_colony( { .x = 8, .y = 10 }, player.type );
 
     // Normally it would have chosen this square.
     w.add_unit_on_map( e_unit_type::caravel, { .x = 9, .y = 9 },
-                       e_nation::spanish );
+                       e_player::spanish );
 
     expected = {
       .tile      = { .x = 9, .y = 10 },
@@ -562,21 +562,21 @@ TEST_CASE( "[intervention] find_intervention_deploy_tile" ) {
     static vector<int> const colonies_idxs{ 0, 1, 3, 2 };
     expect_shuffle( w.rand(), colonies_idxs );
     // has sea lane, foreign.
-    w.add_colony( { .x = 5, .y = 7 }, e_nation::spanish );
+    w.add_colony( { .x = 5, .y = 7 }, e_player::spanish );
     // Land Locked.
-    w.add_colony( { .x = 6, .y = 4 }, player.nation );
+    w.add_colony( { .x = 6, .y = 4 }, player.type );
     // no sea lane.
-    w.add_colony( { .x = 2, .y = 7 }, player.nation );
+    w.add_colony( { .x = 2, .y = 7 }, player.type );
     // has sea lane.
-    w.add_colony( { .x = 7, .y = 6 }, player.nation );
+    w.add_colony( { .x = 7, .y = 6 }, player.type );
     // has sea lane, map edge.
-    w.add_colony( { .x = 8, .y = 10 }, player.nation );
+    w.add_colony( { .x = 8, .y = 10 }, player.type );
 
     // Normally it would have chosen one of these squares.
     w.add_unit_on_map( e_unit_type::caravel, { .x = 9, .y = 9 },
-                       e_nation::spanish );
+                       e_player::spanish );
     w.add_unit_on_map( e_unit_type::caravel, { .x = 9, .y = 10 },
-                       e_nation::spanish );
+                       e_player::spanish );
 
     expected = {
       .tile      = { .x = 6, .y = 7 },
@@ -592,7 +592,7 @@ TEST_CASE( "[intervention] deploy_intervention_forces" ) {
 
   Player& player = w.english();
 
-  w.add_colony( { .x = 1, .y = 5 }, player.nation );
+  w.add_colony( { .x = 1, .y = 5 }, player.type );
   InterventionDeployTile const location{
     .tile = { .x = 0, .y = 5 }, .colony_id = 1 };
 
@@ -690,15 +690,15 @@ TEST_CASE( "[intervention] deploy_intervention_forces" ) {
 TEST_CASE( "[intervention] intervention_forces_intro_ui_seq" ) {
   world w;
 
-  e_nation receiving   = {};
-  e_nation intervening = {};
+  e_player receiving   = {};
+  e_player intervening = {};
 
   auto const f = [&] {
     co_await_test( intervention_forces_intro_ui_seq(
         w.ss(), w.gui(), receiving, intervening ) );
   };
 
-  using enum e_nation;
+  using enum e_player;
   using enum e_difficulty;
 
   receiving                                  = spanish;
@@ -726,15 +726,15 @@ TEST_CASE(
     "[intervention] intervention_forces_triggered_ui_seq" ) {
   world w;
 
-  e_nation receiving   = {};
-  e_nation intervening = {};
+  e_player receiving   = {};
+  e_player intervening = {};
 
   auto const f = [&] {
     co_await_test( intervention_forces_triggered_ui_seq(
         w.ss(), w.gui(), receiving, intervening ) );
   };
 
-  using enum e_nation;
+  using enum e_player;
   using enum e_difficulty;
 
   // No colonies.
@@ -789,9 +789,9 @@ TEST_CASE(
   MockLandViewPlane mock_land_view;
   w.planes().get().set_bottom<ILandViewPlane>( mock_land_view );
 
-  using enum e_nation;
+  using enum e_player;
 
-  e_nation intervening = {};
+  e_player intervening = {};
 
   Colony& colony = w.add_colony( { .x = 1, .y = 5 }, english );
   colony.name    = "abc";
@@ -817,7 +817,7 @@ TEST_CASE(
   MockLandViewPlane mock_land_view;
   w.planes().get().set_bottom<ILandViewPlane>( mock_land_view );
 
-  using enum e_nation;
+  using enum e_player;
 
   Colony& colony = w.add_colony( { .x = 1, .y = 5 }, english );
   UnitId const ship_id =
@@ -838,7 +838,7 @@ TEST_CASE(
     "[intervention] move_intervention_units_into_colony" ) {
   world w;
 
-  using enum e_nation;
+  using enum e_player;
   using enum e_unit_type;
 
   Colony& colony = w.add_colony( { .x = 1, .y = 5 }, english );
