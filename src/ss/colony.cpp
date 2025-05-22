@@ -257,7 +257,7 @@ LUA_STARTUP( lua::state& st ) {
 
   // Getters.
   u["id"]              = &U::id;
-  u["nation"]          = &U::nation;
+  u["nation"]          = &U::player;
   u["name"]            = &U::name;
   u["location"]        = &U::location;
   u["sons_of_liberty"] = &U::sons_of_liberty;

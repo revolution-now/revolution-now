@@ -31,7 +31,7 @@ struct.DwellingTradingState {
   seeking_secondary_2 'e_commodity',
 }
 
-# Describes the relationship of a single dwelling with a nation.
+# Describes the relationship of a single dwelling with a player.
 struct.DwellingRelationship {
   # According to the manual there is both tribe-level anger and
   # dwelling-level anger (alarm). According to the manual:
@@ -89,7 +89,7 @@ struct.DwellingRelationship {
 }
 
 struct.FrozenMission {
-  nation 'e_nation',
+  player 'e_player',
   level 'e_missionary_type',
 }
 
@@ -135,8 +135,8 @@ struct.Dwelling {
 
   trading 'DwellingTradingState',
 
-  # These are only relevant once the tribe encounters the nation.
-  relationship 'refl::enum_map<e_nation, DwellingRelationship>',
+  # These are only relevant once the tribe encounters the player.
+  relationship 'refl::enum_map<e_player, DwellingRelationship>',
 
   teaches 'e_native_skill',
   # For non-capital dwellings this is relevant since they can

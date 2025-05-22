@@ -41,7 +41,7 @@ function M.default_options()
     -- This determines which nations are enabled and some proper-
     -- ties. If initial ship position is null then the randomly
     -- generated one will be used.
-    ordered_nations={
+    ordered_players={
       { nation='english', ship_pos=nil, human=false },
       { nation='french', ship_pos=nil, human=false },
       { nation='spanish', ship_pos=nil, human=false },
@@ -93,24 +93,25 @@ end
 -- map. So the initial ship position should simply be used to
 -- initialize the player.last_high_seas field so that the ships
 -- will be placed where we want them.
-local function create_initial_units_for_nation(options, nation,
-                                               root )
-  local player = root.players.players:get( nation )
-  local coord = assert( options.nations[nation].ship_pos )
+local function create_initial_units_for_player(options,
+                                               player_type, root )
+  local player = root.players.players:get( player_type )
+  local coord = assert( options.players[player_type].ship_pos )
 
   -- Ship.
   local ship_type
-  if nation == 'dutch' then
+  if player_type == 'dutch' then
     ship_type = build_unit_type( 'merchantman' )
   else
     ship_type = build_unit_type( 'caravel' )
   end
-  local ship_unit = unit_mgr.create_unit_on_map( nation,
+  local ship_unit = unit_mgr.create_unit_on_map( player_type,
                                                  ship_type, coord )
 
   -- Soldier.
   local soldier_type
-  if nation == 'spanish' or options.difficulty == 'discoverer' then
+  if player_type == 'spanish' or options.difficulty ==
+      'discoverer' then
     soldier_type = build_unit_type( 'veteran_soldier' )
   else
     soldier_type = build_unit_type( 'soldier' )
@@ -118,29 +119,29 @@ local function create_initial_units_for_nation(options, nation,
 
   -- Pioneer.
   local pioneer_type
-  if nation == 'french' then
+  if player_type == 'french' then
     pioneer_type = build_unit_type( 'hardy_pioneer' )
   else
     pioneer_type = build_unit_type( 'pioneer' )
   end
 
-  unit_mgr.create_unit_in_cargo( nation, soldier_type,
+  unit_mgr.create_unit_in_cargo( player_type, soldier_type,
                                  ship_unit:id() )
-  unit_mgr.create_unit_in_cargo( nation, pioneer_type,
+  unit_mgr.create_unit_in_cargo( player_type, pioneer_type,
                                  ship_unit:id() )
   player.starting_position = coord
 end
 
 local function create_initial_units( options, root )
-  for _, o in ipairs( options.ordered_nations ) do
-    create_initial_units_for_nation( options, o.nation, root )
+  for _, o in ipairs( options.ordered_players ) do
+    create_initial_units_for_player( options, o.nation, root )
   end
 end
 
 local function create_battlefield_units( options, root )
   local nation1
   local nation2
-  for _, o in ipairs( options.ordered_nations ) do
+  for _, o in ipairs( options.ordered_players ) do
     nation1 = nation2
     nation2 = o.nation
     if nation1 then break end
@@ -167,7 +168,7 @@ end
 -- FIXME: temporary
 local function create_all_units( options, root )
   local nation1
-  for _, o in ipairs( options.ordered_nations ) do
+  for _, o in ipairs( options.ordered_players ) do
     nation1 = o.nation
     if nation1 then break end
   end
@@ -262,7 +263,7 @@ local function init_non_processed_goods_prices( options, players )
     local max = assert( limits.bid_price_start_max )
     assert( min <= max )
     local bid_price = math.random( min, max )
-    for _, o in ipairs( options.ordered_nations ) do
+    for _, o in ipairs( options.ordered_players ) do
       local player = players:get( o.nation )
       player.old_world.market.commodities[comm].bid_price =
           bid_price
@@ -293,7 +294,7 @@ local function init_processed_goods_prices(options, players, root )
                     .new_with_random_volumes()
   local eq_ask_prices = group:equilibrium_prices()
   for _, comm in ipairs{ 'rum', 'cigars', 'cloth', 'coats' } do
-    for _, o in ipairs( options.ordered_nations ) do
+    for _, o in ipairs( options.ordered_players ) do
       local player = players:get( o.nation )
       local c = player.old_world.market.commodities[comm]
       local spread = market.bid_ask_spread( comm )
@@ -321,9 +322,9 @@ local STARTING_GOLD = {
   viceroy=0,
 }
 
-local function create_player_state( settings, nation, player )
-  player.nation = nation
-  player.european_nation = nation
+local function create_player_state( settings, player_type, player )
+  player.type = player_type
+  player.european_nation = player_type
   player.money = assert(
                      STARTING_GOLD[settings.game_setup_options
                          .difficulty] )
@@ -331,10 +332,10 @@ local function create_player_state( settings, nation, player )
   create_revolution_state( settings, player )
 end
 
-local function create_nations( options, root )
+local function create_players( options, root )
   local players = root.players.players
   local settings = root.settings
-  for _, o in ipairs( options.ordered_nations ) do
+  for _, o in ipairs( options.ordered_players ) do
     local player = players:reset_player( o.nation )
     create_player_state( settings, o.nation, player )
     player.human = o.human
@@ -344,7 +345,7 @@ end
 
 local function create_player_maps( options, root )
   local terrain = root.terrain
-  for _, o in ipairs( options.ordered_nations ) do
+  for _, o in ipairs( options.ordered_players ) do
     terrain:initialize_player_terrain( o.nation, --[[visible=]]
                                        false )
   end
@@ -362,7 +363,7 @@ end
 -- Testing
 -----------------------------------------------------------------
 local function add_testing_options( options )
-  options.ordered_nations = {
+  options.ordered_players = {
     { nation='english', ship_pos=nil, human=true },
     -- { nation='french', ship_pos=nil, human=true },
     -- { nation='spanish', ship_pos=nil, human=true }
@@ -390,16 +391,16 @@ function M.create( root, options )
   add_testing_options( options )
 
   -- Add nations table for quick access.
-  options.nations = {}
-  for _, o in ipairs( options.ordered_nations ) do
-    options.nations[o.nation] = o
+  options.players = {}
+  for _, o in ipairs( options.ordered_players ) do
+    options.players[o.nation] = o
   end
 
   set_default_settings( options, root.settings )
 
   create_turn_state( root.turn )
 
-  create_nations( options, root )
+  create_players( options, root )
 
   -- Do this as late as possible because it's slow and we want to
   -- catch errors in the other parts of the process as quickly as
@@ -413,7 +414,7 @@ function M.create( root, options )
     -- rectly hereafter; we should use the ones in the options,
     -- just in case the user overrided it.
     local random_ship_positions = map_gen.initial_ships_pos()
-    for _, o in ipairs( options.ordered_nations ) do
+    for _, o in ipairs( options.ordered_players ) do
       if o.ship_pos == nil then
         o.ship_pos = random_ship_positions[o.nation]
       end
@@ -435,8 +436,8 @@ function M.create( root, options )
   root.land_view.viewport.zoom = 1.0
 
   -- Temporary.
-  for _, o in ipairs( options.ordered_nations ) do
-    if options.nations[o.nation] then
+  for _, o in ipairs( options.ordered_players ) do
+    if options.players[o.nation] then
       if o.human then
         local coord = assert( o.ship_pos )
         root.land_view.viewport.center_x = coord.x * 32 + 16

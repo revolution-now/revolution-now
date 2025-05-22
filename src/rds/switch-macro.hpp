@@ -32,7 +32,7 @@
 //       break;
 //     }
 //     CASE( another_alt ) {
-//       return (another_alt.some_member == e_nation::english);
+//       return (another_alt.some_member == e_player::english);
 //     }
 //   }
 //
@@ -48,7 +48,7 @@
 //     case C::e::another_alt:
 //       if( auto& another_alt [[maybe_unused]] =
 //             __o.get<C::another_alt>(); true ) {
-//         return (another_alt.some_member == e_nation::english);
+//         return (another_alt.some_member == e_player::english);
 //       }
 //     }
 //   }

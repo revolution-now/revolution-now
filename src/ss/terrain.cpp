@@ -114,13 +114,13 @@ base::maybe<MapSquare&> TerrainState::mutable_maybe_square_at(
 }
 
 base::maybe<PlayerTerrain const&> TerrainState::player_terrain(
-    e_nation nation ) const {
-  return o_.player_terrain[nation];
+    e_player player ) const {
+  return o_.player_terrain[player];
 }
 
 PlayerTerrain& TerrainState::mutable_player_terrain(
-    e_nation nation ) {
-  UNWRAP_CHECK( res, o_.player_terrain[nation] );
+    e_player player ) {
+  UNWRAP_CHECK( res, o_.player_terrain[player] );
   return res;
 }
 
@@ -204,11 +204,11 @@ bool TerrainState::is_land( Coord coord ) const {
   return square_at( coord ).surface == e_surface::land;
 }
 
-void TerrainState::initialize_player_terrain( e_nation nation,
+void TerrainState::initialize_player_terrain( e_player player,
                                               bool visible ) {
-  if( !o_.player_terrain[nation].has_value() )
-    o_.player_terrain[nation].emplace();
-  auto& map = o_.player_terrain[nation]->map;
+  if( !o_.player_terrain[player].has_value() )
+    o_.player_terrain[player].emplace();
+  auto& map = o_.player_terrain[player]->map;
   map.reset( o_.real_terrain.map.size() );
   if( !visible ) return;
   auto const& world_map = o_.real_terrain.map;
@@ -263,11 +263,11 @@ LUA_STARTUP( lua::state& st ) {
     using U = ::rn::PlayerTerrainMap;
     auto u  = st.usertype.create<U>();
 
-    u["for_nation"] = [&]( U& obj, e_nation c )
+    u["for_player"] = [&]( U& obj, e_player c )
         -> base::maybe<PlayerTerrain&> { return obj[c]; };
 
-    u["add_nation"] = [&]( U& obj,
-                           e_nation c ) -> PlayerTerrain& {
+    u["add_player"] = [&]( U& obj,
+                           e_player c ) -> PlayerTerrain& {
       if( !obj[c].has_value() ) obj[c].emplace();
       return *obj[c];
     };

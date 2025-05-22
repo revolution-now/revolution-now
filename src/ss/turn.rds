@@ -64,7 +64,7 @@ sumtype.TurnCycle {
   not_started {}, # should be first.
   natives {},
   nation {
-    nation 'e_nation',
+    european_nation 'e_european_nation',
     st 'NationTurnState',
   },
   ref {},

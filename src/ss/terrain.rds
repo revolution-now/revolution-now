@@ -40,7 +40,7 @@ namespace "rn.wrapped"
 struct.TerrainState {
   placement_seed 'int',
 
-  player_terrain 'refl::enum_map<e_nation, base::maybe<PlayerTerrain>>',
+  player_terrain 'refl::enum_map<e_player, base::maybe<PlayerTerrain>>',
 
   real_terrain 'RealTerrain',
 

@@ -41,12 +41,12 @@ namespace {
 valid_or<string> validate_interaction(
     ColoniesState const& colonies,
     PlayersState const& players ) {
-  // All colonies have a nation that has a Player object.
+  // All colonies have a player that has a Player object.
   for( auto const& [colony_id, colony] : colonies.all() ) {
-    REFL_VALIDATE( players.players[colony.nation].has_value(),
-                   "Colony {} has nation {} but there is no "
+    REFL_VALIDATE( players.players[colony.player].has_value(),
+                   "Colony {} has player {} but there is no "
                    "Player object for it.",
-                   colony.name, colony.nation );
+                   colony.name, colony.player );
   }
   return base::valid;
 }
@@ -54,15 +54,16 @@ valid_or<string> validate_interaction(
 // UnitsState & PlayersState
 valid_or<string> validate_interaction(
     UnitsState const& units, PlayersState const& players ) {
-  // All European units have a nation that has a Player object.
+  // All European units have a player that has a Player object.
   for( auto const& [generic_id, state] : units.all() ) {
     if( units.unit_kind( generic_id ) != e_unit_kind::euro )
       continue;
     Unit const& unit = units.euro_unit_for( generic_id );
-    REFL_VALIDATE( players.players[unit.nation()].has_value(),
-                   "Unit {} has nation {} but there is no "
-                   "Player object for it.",
-                   unit.id(), unit.nation() );
+    REFL_VALIDATE(
+        players.players[unit.player_type()].has_value(),
+        "Unit {} has player {} but there is no "
+        "Player object for it.",
+        unit.id(), unit.player_type() );
   }
   return base::valid;
 }
@@ -83,13 +84,13 @@ valid_or<string> validate_interaction(
           colony.name );
     }
 
-    // All colony's units are of same nation.
+    // All colony's units are of same player.
     for( UnitId unit_id : colony_units ) {
-      auto unit_nation = units.unit_for( unit_id ).nation();
-      REFL_VALIDATE( colony.nation == unit_nation,
-                     "Colony {} has nation {} but contains a "
-                     "unit that has nation {}.",
-                     colony.id, colony.nation, unit_nation );
+      auto unit_player = units.unit_for( unit_id ).player_type();
+      REFL_VALIDATE( colony.player == unit_player,
+                     "Colony {} has player {} but contains a "
+                     "unit that has player {}.",
+                     colony.id, colony.player, unit_player );
     }
 
     // All colony's units owned by colony.

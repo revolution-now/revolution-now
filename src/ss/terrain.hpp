@@ -56,13 +56,13 @@ struct TerrainState {
   }
 
   base::maybe<PlayerTerrain const&> player_terrain(
-      e_nation nation ) const;
+      e_player player ) const;
 
   // This add (or overwrite) the nation's terrain object and, if
   // visible=true, will copy all the terrain squares over to it,
   // making them visible (otherwise all squares will be
   // non-visible).
-  void initialize_player_terrain( e_nation nation,
+  void initialize_player_terrain( e_player player,
                                   bool visible );
 
   // This essentially returns what square_at does, except it also
@@ -118,7 +118,7 @@ struct TerrainState {
   MapSquare& mutable_square_at( gfx::point tile );
   base::maybe<MapSquare&> mutable_maybe_square_at(
       gfx::point tile );
-  PlayerTerrain& mutable_player_terrain( e_nation nation );
+  PlayerTerrain& mutable_player_terrain( e_player player );
 
   // Whenever the map matrix is modified as a whole (which could
   // involve changing its dimensions) it must always be done via
@@ -145,7 +145,7 @@ struct TerrainState {
 using ProtoSquaresMap =
     refl::enum_map<e_cardinal_direction, MapSquare>;
 using PlayerTerrainMap =
-    refl::enum_map<e_nation, base::maybe<PlayerTerrain>>;
+    refl::enum_map<e_player, base::maybe<PlayerTerrain>>;
 using PlayerTerrainMatrix = gfx::Matrix<PlayerSquare>;
 
 } // namespace rn

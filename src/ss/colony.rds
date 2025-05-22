@@ -60,7 +60,7 @@ struct.Colony {
   # TODO: get rid of this from here.
   id 'ColonyId',
 
-  nation 'e_nation',
+  player 'e_player',
 
   name 'std::string',
 

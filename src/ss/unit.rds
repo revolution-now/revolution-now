@@ -51,7 +51,7 @@ struct.Unit {
 
   cargo 'rn::CargoHold',
 
-  nation 'e_nation',
+  player_type 'e_player',
 
   mv_pts 'MovementPoints',
 

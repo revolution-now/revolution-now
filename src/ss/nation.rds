@@ -10,7 +10,7 @@
 # ===============================================================
 namespace "rn"
 
-enum.e_nation {
+enum.e_player {
   english,
   french,
   spanish,

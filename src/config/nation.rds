@@ -51,7 +51,7 @@ struct.SpecialAbility {
 }
 
 struct.Nationality {
-  enum_val 'e_nation',
+  enum_val 'e_player',
 
   # The ____ have captured the colony of...
   display_name_pre_declaration 'std::string',
@@ -76,10 +76,10 @@ struct.Nationality {
 }
 
 struct.config_nation_t {
-  nations 'refl::enum_map<e_nation, Nationality>',
+  players 'refl::enum_map<e_player, Nationality>',
 
   # Describes the special abilities that each nation has.
-  abilities 'refl::enum_map<e_nation, SpecialAbility>',
+  abilities 'refl::enum_map<e_european_nation, SpecialAbility>',
 }
 
 config.nation {}

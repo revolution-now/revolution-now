@@ -31,12 +31,12 @@ struct state;
 // This is used to do a deep conversion of a CDR data structure
 // into a native Lua data structure.  This is not intended to
 // be used normally to expose C++ types (even CDR-convertible
-// ones) to Lua; for that, Lua should just take a userdata reference to
-// a value owned by C++, or it should take a copy of the C++
-// object held via Lua userdata reference. It is not normally
-// intended to be given a Lua-native replica of the object as
-// this converter does, since that would be too slow are memory
-// intensive.
+// ones) to Lua; for that, Lua should just take a userdata
+// reference to a value owned by C++, or it should take a copy of
+// the C++ object held via Lua userdata reference. It is not
+// normally intended to be given a Lua-native replica of the
+// object as this converter does, since that would be too slow
+// are memory intensive.
 //
 // So what is this used for? At the time of writing it is used to
 // replicate the global config_* objects into Lua. This seems

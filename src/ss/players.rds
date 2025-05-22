@@ -19,7 +19,7 @@ include "refl/enum-map.hpp"
 namespace "rn"
 
 struct.PlayersState {
-  players 'refl::enum_map<e_nation, maybe<Player>>',
+  players 'refl::enum_map<e_player, maybe<Player>>',
 
   # Market state that is shared by all nations.
   global_market_state 'GlobalMarketState',

@@ -51,8 +51,8 @@ LUA_STARTUP( lua::state& st ) {
     auto u  = st.usertype.create<U>();
 
     u[lua::metatable_key]["__index"] =
-        [&]( U& obj, e_nation nation ) -> TribeRelationship& {
-      return obj[nation];
+        [&]( U& obj, e_player player ) -> TribeRelationship& {
+      return obj[player];
     };
   }();
 

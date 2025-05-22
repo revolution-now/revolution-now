@@ -119,15 +119,15 @@ void Unit::fortify() {
   o_.orders = unit_orders::fortified{};
 }
 
-void Unit::change_nation( UnitsState& units_state,
-                          e_nation nation ) {
+void Unit::change_player( UnitsState& units_state,
+                          e_player player_type ) {
   // This could happen if we capture a colony containing a ship
   // that itself has units in its cargo.
   for( Cargo::unit u : o_.cargo.items_of_type<Cargo::unit>() )
-    units_state.unit_for( u.id ).change_nation( units_state,
-                                                nation );
+    units_state.unit_for( u.id ).change_player( units_state,
+                                                player_type );
 
-  o_.nation = nation;
+  o_.player_type = player_type;
 }
 
 void Unit::change_type( Player const& player,
@@ -167,8 +167,9 @@ void Unit::change_type( Player const& player,
 
 string debug_string( Unit const& unit ) {
   return fmt::format(
-      "unit{{id={},nation={},type={},points={}}}", unit.id(),
-      unit.nation(), unit.desc().name, unit.movement_points() );
+      "unit{{id={},player_type={},type={},points={}}}",
+      unit.id(), unit.player_type(), unit.desc().name,
+      unit.movement_points() );
 }
 
 maybe<e_unit_type> Unit::demoted_type() const {
@@ -194,7 +195,7 @@ LUA_STARTUP( lua::state& st ) {
   u["composition"] = []( Unit& unit ) {
     return unit.composition();
   };
-  u["nation"]          = &U::nation;
+  u["player_type"]     = &U::player_type;
   u["movement_points"] = &U::movement_points;
 
   // Actions.
@@ -206,7 +207,7 @@ LUA_STARTUP( lua::state& st ) {
   u[lua::metatable_key]["__tostring"] = []( U const& u ) {
     return fmt::format(
         "{} {} (id={})",
-        nation_obj( u.nation() ).possessive_pre_declaration,
+        player_obj( u.player_type() ).possessive_pre_declaration,
         u.desc().name, u.id() );
   };
 };

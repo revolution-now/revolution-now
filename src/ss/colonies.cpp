@@ -164,12 +164,12 @@ Coord ColoniesState::coord_for( ColonyId id ) const {
   return colony_for( id ).location;
 }
 
-vector<ColonyId> ColoniesState::for_nation(
-    e_nation nation ) const {
+vector<ColonyId> ColoniesState::for_player(
+    e_player player ) const {
   vector<ColonyId> res;
   res.reserve( o_.colonies.size() );
   for( auto const& [id, colony] : o_.colonies )
-    if( colony.nation == nation ) res.push_back( id );
+    if( colony.player == player ) res.push_back( id );
   return res;
 }
 

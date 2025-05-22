@@ -1,4 +1,4 @@
-nations {
+players {
 
   dutch {
     enum_val:                     dutch

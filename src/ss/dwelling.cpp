@@ -86,8 +86,8 @@ LUA_STARTUP( lua::state& st ) {
     auto u  = st.usertype.create<U>();
 
     u[lua::metatable_key]["__index"] =
-        [&]( U& obj, e_nation nation ) -> DwellingRelationship& {
-      return obj[nation];
+        [&]( U& obj, e_player player ) -> DwellingRelationship& {
+      return obj[player];
     };
   }();
 
@@ -115,8 +115,8 @@ LUA_STARTUP( lua::state& st ) {
     u["has_taught"] = &U::has_taught;
 
     u["relationship"] =
-        []( U& o, e_nation nation ) -> DwellingRelationship& {
-      return o.relationship[nation];
+        []( U& o, e_player player ) -> DwellingRelationship& {
+      return o.relationship[player];
     };
   }();
 };

@@ -18,7 +18,7 @@ include "refl/enum-map.hpp"
 
 namespace "rn"
 
-# Describes a tribe's relationship with a European nation.
+# Describes a tribe's relationship with a European player.
 # TODO: Having this alone implies that the relationship is sym-
 # metrical; the OG appears to have relationship data going in
 # both directions. We need to see if those values are kept sym-
@@ -61,7 +61,7 @@ struct.TribeRelationship {
   # present a confirmation box but only the first time; subse-
   # quent attacks will just be made with prompting. This flag
   # keeps track of that.
-  nation_has_attacked_tribe 'bool',
+  player_has_attacked_tribe 'bool',
 
   _features { equality, validation }
 }
@@ -83,8 +83,8 @@ struct.Tribe {
   # creases by a certain amount per turn.
   stock 'refl::enum_map<e_commodity, int>',
 
-  # Describes a tribe's relationship with a European nation. If a
+  # Describes a tribe's relationship with a European player. If a
   # the initial encounter has not yet happened then it will as-
   # sume its default value.
-  relationship 'refl::enum_map<e_nation, TribeRelationship>',
+  relationship 'refl::enum_map<e_player, TribeRelationship>',
 }

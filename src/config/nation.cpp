@@ -45,8 +45,8 @@ bool valid_ship( e_unit_type u ) {
 
 } // namespace
 
-Nationality const& nation_obj( e_nation nation ) {
-  return config_nation.nations[nation];
+Nationality const& player_obj( e_player player ) {
+  return config_nation.players[player];
 }
 
 base::valid_or<string> SpecialAbility::validate() const {

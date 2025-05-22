@@ -51,7 +51,7 @@ struct ND Unit {
   // itself should enforce all invariants and interacting with it
   // doesn't really depend on any private Unit data.
   CargoHold& cargo() { return o_.cargo; }
-  e_nation nation() const { return o_.nation; }
+  e_player player_type() const { return o_.player_type; }
   MovementPoints movement_points() const { return o_.mv_pts; }
   e_unit_type base_type() const {
     return o_.composition.base_type();
@@ -139,13 +139,13 @@ struct ND Unit {
 
   // This would be used when e.g. a colonist is captured and
   // changes nations.
-  void change_nation( UnitsState& units_state, e_nation nation );
+  void change_player( UnitsState& units_state, e_player player );
 
-  friend void change_unit_nation( SS& ss, TS& ts, Unit& unit,
-                                  e_nation new_nation );
-  friend void change_unit_nation_and_move( SS& ss, TS& ts,
+  friend void change_unit_player( SS& ss, TS& ts, Unit& unit,
+                                  e_player new_player );
+  friend void change_unit_player_and_move( SS& ss, TS& ts,
                                            Unit& unit,
-                                           e_nation new_nation,
+                                           e_player new_player,
                                            Coord target );
 
  public:
@@ -160,7 +160,7 @@ struct ND Unit {
  private:
   friend struct UnitsState;
 
-  Unit( e_nation nation, UnitComposition type );
+  Unit( e_player player, UnitComposition type );
 
  private:
   wrapped::Unit o_;

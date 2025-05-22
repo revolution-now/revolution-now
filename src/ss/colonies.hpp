@@ -42,7 +42,7 @@ struct ColoniesState {
   std::unordered_map<ColonyId, Colony> const& all() const;
 
   // NOTE: the ordering of the IDs are not specified.
-  std::vector<ColonyId> for_nation( e_nation nation ) const;
+  std::vector<ColonyId> for_player( e_player player ) const;
 
   Colony const& colony_for( ColonyId id ) const;
   Colony& colony_for( ColonyId id );

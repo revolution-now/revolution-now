@@ -19,7 +19,7 @@
 namespace rn {
 
 using DwellingRelationshipMap =
-    refl::enum_map<e_nation, DwellingRelationship>;
+    refl::enum_map<e_player, DwellingRelationship>;
 
 } // namespace rn
 

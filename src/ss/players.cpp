@@ -32,16 +32,16 @@ using namespace std;
 namespace rn {
 
 base::valid_or<string> PlayersState::validate() const {
-  // Check that players have the correct nation relative to their
+  // Check that players have the correct player relative to their
   // key in the map.
-  for( auto const& [nation, player] : players )
+  for( auto const& [type, player] : players )
     if( player.has_value() )
-      REFL_VALIDATE( player->nation == nation,
+      REFL_VALIDATE( player->type == type,
                      "mismatch in player nations for the {}.",
-                     nation );
+                     type );
 
   // Ensure that at most one human player has declared.
-  for( int count = 0; auto const& [nation, player] : players ) {
+  for( int count = 0; auto const& [type, player] : players ) {
     if( !player.has_value() ) continue;
     if( !player->human ) continue;
     if( player->revolution.status >=
@@ -56,40 +56,40 @@ base::valid_or<string> PlayersState::validate() const {
 }
 
 void reset_players( PlayersState& players_state,
-                    vector<e_nation> const& nations,
-                    base::maybe<e_nation> human ) {
+                    vector<e_player> const& nations,
+                    base::maybe<e_player> human ) {
   auto& players = players_state.players;
-  for( e_nation nation : refl::enum_values<e_nation> )
-    players[nation].reset();
-  for( e_nation nation : nations )
-    players[nation] = Player{
-      .nation = nation,
-      .money  = 0,
+  for( e_player type : refl::enum_values<e_player> )
+    players[type].reset();
+  for( e_player type : nations )
+    players[type] = Player{
+      .type  = type,
+      .money = 0,
     };
   set_unique_human_player( players_state, human );
 }
 
-void set_unique_human_player( PlayersState& players,
-                              base::maybe<e_nation> nation ) {
-  for( e_nation const n : refl::enum_values<e_nation> )
+void set_unique_human_player(
+    PlayersState& players, base::maybe<e_player> player_type ) {
+  for( e_player const n : refl::enum_values<e_player> )
     if( players.players[n].has_value() )
-      players.players[n]->human = ( n == nation );
+      players.players[n]->human = ( n == player_type );
   CHECK_HAS_VALUE( players.validate() );
 }
 
-Player& player_for_nation_or_die( PlayersState& players,
-                                  e_nation nation ) {
-  UNWRAP_CHECK_MSG( player, players.players[nation],
-                    "player for nation {} does not exist.",
-                    nation );
+Player& player_for_player_or_die( PlayersState& players,
+                                  e_player player_type ) {
+  UNWRAP_CHECK_MSG( player, players.players[player_type],
+                    "player for player {} does not exist.",
+                    player_type );
   return player;
 }
 
-Player const& player_for_nation_or_die(
-    PlayersState const& players, e_nation nation ) {
-  UNWRAP_CHECK_MSG( player, players.players[nation],
-                    "player for nation {} does not exist.",
-                    nation );
+Player const& player_for_player_or_die(
+    PlayersState const& players, e_player player_type ) {
+  UNWRAP_CHECK_MSG( player, players.players[player_type],
+                    "player for player {} does not exist.",
+                    player_type );
   return player;
 }
 
@@ -117,14 +117,14 @@ LUA_STARTUP( lua::state& st ) {
     // We could instead do this by overriding the __index
     // metamethod, but then we would not be able to register any
     // further (non-metamethod) members of this userdata.
-    u["get"] = [&]( U& obj, e_nation nation ) -> maybe<Player&> {
-      return obj[nation];
+    u["get"] = [&]( U& obj, e_player player ) -> maybe<Player&> {
+      return obj[player];
     };
 
     u["reset_player"] = []( U& obj,
-                            e_nation nation ) -> Player& {
-      obj[nation] = Player{};
-      return *obj[nation];
+                            e_player player ) -> Player& {
+      obj[player] = Player{};
+      return *obj[player];
     };
   }();
 };

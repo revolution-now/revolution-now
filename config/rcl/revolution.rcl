@@ -12,7 +12,7 @@ war_of_succession {
   # manner, the game makes a clever move and references the (true
   # historical) event of the War of the Spanish Succession,
   # which, in the game, grants ownership of all property of one
-  # AI nation (typically the smallest) to another AI nation (typ-
+  # AI player (typically the smallest) to another AI player (typ-
   # ically the second smallest), thus freeing a slot.
   #
   # In the new game we don't have this limitation on "slots",
