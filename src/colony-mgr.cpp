@@ -168,10 +168,10 @@ void clear_abandoned_colony_road( SSConst const& ss,
 ** Public API
 *****************************************************************/
 ColonyId create_empty_colony( ColoniesState& colonies_state,
-                              e_nation nation, Coord where,
+                              e_player player, Coord where,
                               string_view name ) {
   return colonies_state.add_colony( Colony{
-    .nation   = nation,
+    .player   = player,
     .name     = string( name ),
     .location = where,
   } );
@@ -271,13 +271,13 @@ ColonyId found_colony( SS& ss, TS& ts, Player const& player,
     FATAL( "Cannot found colony, error code: {}.",
            refl::enum_value_name( res.error() ) );
 
-  Unit& unit      = ss.units.unit_for( founder );
-  e_nation nation = unit.nation();
-  Coord where     = ss.units.coord_for( founder );
+  Unit& unit                 = ss.units.unit_for( founder );
+  e_player const player_type = unit.player_type();
+  Coord where                = ss.units.coord_for( founder );
 
   // Create colony object.
-  ColonyId col_id =
-      create_empty_colony( ss.colonies, nation, where, name );
+  ColonyId col_id = create_empty_colony(
+      ss.colonies, player_type, where, name );
   Colony& col = ss.colonies.colony_for( col_id );
 
   // Populate the colony with the initial set of buildings that
@@ -310,22 +310,22 @@ ColonyId found_colony( SS& ss, TS& ts, Player const& player,
       !is_land_native_owned( ss, player, where ).has_value() );
 
   // Done.
-  auto& desc = nation_obj( nation );
+  auto& desc = player_obj( player_type );
   lg.info( "created {} {} colony at {}.", desc.article,
-           nation_possessive( player ), where );
+           player_possessive( player ), where );
 
   return col_id;
 }
 
-void change_colony_nation( SS& ss, TS& ts, Colony& colony,
-                           e_nation new_nation ) {
+void change_colony_player( SS& ss, TS& ts, Colony& colony,
+                           e_player new_player ) {
   unordered_set<UnitId> units =
       units_at_or_in_colony( colony, ss.units );
   for( UnitId unit_id : units )
-    change_unit_nation( ss, ts, ss.units.unit_for( unit_id ),
-                        new_nation );
-  CHECK( colony.nation != new_nation );
-  colony.nation = new_nation;
+    change_unit_player( ss, ts, ss.units.unit_for( unit_id ),
+                        new_player );
+  CHECK( colony.player != new_player );
+  colony.player = new_player;
 }
 
 void strip_unit_to_base_type( SS& ss, TS& ts, Unit& unit,
@@ -345,7 +345,7 @@ void add_unit_to_colony_obj_low_level( SS& ss, TS& ts,
                                        Colony& colony,
                                        Unit& unit,
                                        ColonyJob const& job ) {
-  CHECK( unit.nation() == colony.nation );
+  CHECK( unit.player_type() == colony.player );
   UnitId const unit_id = unit.id();
   strip_unit_to_base_type( ss, ts, unit, colony );
   // Now add the unit to the colony object.
@@ -372,8 +372,8 @@ void add_unit_to_colony_obj_low_level( SS& ss, TS& ts,
 void remove_unit_from_colony_obj_low_level( SS& ss,
                                             Colony& colony,
                                             UnitId unit_id ) {
-  CHECK( ss.units.unit_for( unit_id ).nation() ==
-         colony.nation );
+  CHECK( ss.units.unit_for( unit_id ).player_type() ==
+         colony.player );
   CHECK( as_const( ss.units )
              .ownership_of( unit_id )
              .holds<UnitOwnership::colony>(),
@@ -417,7 +417,7 @@ ColonyDestructionOutcome destroy_colony( SS& ss, TS& ts,
   // Before the colony is destroyed.
   string const colony_name     = colony.name;
   Coord const colony_location  = colony.location;
-  e_nation const colony_nation = colony.nation;
+  e_player const colony_player = colony.player;
   // These are the units working in the colony, not those at the
   // gate or in cargo.
   vector<UnitId> units = colony_units_all( colony );
@@ -448,7 +448,7 @@ ColonyDestructionOutcome destroy_colony( SS& ss, TS& ts,
   // dealing with a ship on land, we will just take the position
   // that, when a colony goes away for any reason, any ships left
   // in port will be marked as damaged and returned for repair.
-  outcome.port = find_repair_port_for_ship( ss, colony_nation,
+  outcome.port = find_repair_port_for_ship( ss, colony_player,
                                             colony_location );
 
   // We need to make a copy of this set because we cannot iterate
@@ -489,8 +489,8 @@ wait<> run_colony_destruction( SS& ss, TS& ts, Colony& colony,
                                maybe<string> msg ) {
   // Must extract this info before destroying the colony.
   string const colony_name     = colony.name;
-  e_nation const colony_nation = colony.nation;
-  IEuroMind& mind              = ts.euro_minds()[colony.nation];
+  e_player const colony_player = colony.player;
+  IEuroMind& mind              = ts.euro_minds()[colony.player];
   // In case it hasn't already been done...
   ColonyDestructionOutcome const outcome =
       destroy_colony( ss, ts, colony );
@@ -511,7 +511,7 @@ wait<> run_colony_destruction( SS& ss, TS& ts, Colony& colony,
           "and {} sent to [{}] for repairs.",
           colony_name, count_str, unit_type_name, verb,
           ship_damaged_reason( reason ), verb,
-          ship_repair_port_name( ss, colony_nation,
+          ship_repair_port_name( ss, colony_player,
                                  *outcome.port ) );
       co_await mind.message_box( msg );
     } else {

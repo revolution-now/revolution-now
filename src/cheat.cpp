@@ -167,9 +167,9 @@ maybe<point> cheat_target_square( SSConst const& ss, TS& ts ) {
 wait<> cheat_reveal_map( SS& ss, TS& ts ) {
   // All enabled by default.
   refl::enum_map<e_cheat_reveal_map, bool> disabled;
-  for( e_nation nation : refl::enum_values<e_nation> ) {
-    if( !ss.players.players[nation].has_value() ) {
-      string_view const name = refl::enum_value_name( nation );
+  for( e_player player : refl::enum_values<e_player> ) {
+    if( !ss.players.players[player].has_value() ) {
+      string_view const name = refl::enum_value_name( player );
       UNWRAP_CHECK(
           menu_item,
           refl::enum_from_string<e_cheat_reveal_map>( name ) );
@@ -186,19 +186,17 @@ wait<> cheat_reveal_map( SS& ss, TS& ts ) {
   switch( *selected ) {
     case e_cheat_reveal_map::english:
       revealed =
-          MapRevealed::nation{ .nation = e_nation::english };
+          MapRevealed::player{ .type = e_player::english };
       break;
     case e_cheat_reveal_map::french:
-      revealed =
-          MapRevealed::nation{ .nation = e_nation::french };
+      revealed = MapRevealed::player{ .type = e_player::french };
       break;
     case e_cheat_reveal_map::spanish:
       revealed =
-          MapRevealed::nation{ .nation = e_nation::spanish };
+          MapRevealed::player{ .type = e_player::spanish };
       break;
     case e_cheat_reveal_map::dutch:
-      revealed =
-          MapRevealed::nation{ .nation = e_nation::dutch };
+      revealed = MapRevealed::player{ .type = e_player::dutch };
       break;
     case e_cheat_reveal_map::entire_map:
       reveal_map_qol( ss, ts );
@@ -217,37 +215,37 @@ wait<> cheat_reveal_map( SS& ss, TS& ts ) {
 
 wait<> cheat_set_human_players( SS& ss, TS& ts ) {
   // All enabled by default.
-  refl::enum_map<e_nation, CheckBoxInfo> info_map;
-  for( e_nation nation : refl::enum_values<e_nation> ) {
-    info_map[nation] =
-        CheckBoxInfo{ .name = config_nation.nations[nation]
+  refl::enum_map<e_player, CheckBoxInfo> info_map;
+  for( e_player player : refl::enum_values<e_player> ) {
+    info_map[player] =
+        CheckBoxInfo{ .name = config_nation.players[player]
                                   .display_name_pre_declaration,
                       .on       = false,
                       .disabled = true };
-    if( !ss.players.players[nation].has_value() ) {
-      info_map[nation].disabled = true;
-      info_map[nation].on       = false;
+    if( !ss.players.players[player].has_value() ) {
+      info_map[player].disabled = true;
+      info_map[player].on       = false;
       continue;
     }
-    info_map[nation].disabled = false;
-    info_map[nation].on = ss.players.players[nation]->human;
+    info_map[player].disabled = false;
+    info_map[player].on = ss.players.players[player]->human;
   }
 
   while( true ) {
-    co_await ts.gui.enum_check_boxes<e_nation>(
+    co_await ts.gui.enum_check_boxes<e_player>(
         "Select Human Nations:", info_map );
     bool found_human = false;
-    for( e_nation nation : refl::enum_values<e_nation> )
-      if( info_map[nation].on ) found_human = true;
+    for( e_player player : refl::enum_values<e_player> )
+      if( info_map[player].on ) found_human = true;
     if( found_human ) break;
     co_await ts.gui.message_box(
         "There must be at least one human player." );
   }
 
   // Set new human statuses.
-  for( e_nation nation : refl::enum_values<e_nation> )
-    if( ss.players.players[nation].has_value() )
-      ss.players.players[nation]->human = info_map[nation].on;
+  for( e_player player : refl::enum_values<e_player> )
+    if( ss.players.players[player].has_value() )
+      ss.players.players[player]->human = info_map[player].on;
 
   ts.euro_minds() = create_euro_minds( ss, ts.gui );
 
@@ -262,9 +260,9 @@ wait<> cheat_set_human_players( SS& ss, TS& ts ) {
 
 void cheat_explore_entire_map( SS& ss, TS& ts ) {
   Rect const world_rect = ss.terrain.world_rect_tiles();
-  maybe<e_nation> const nation =
+  maybe<e_player> const player =
       player_for_role( ss, e_player_role::viewer );
-  if( !nation.has_value() )
+  if( !player.has_value() )
     // Entire map is already visible, no need to do anything.
     return;
   base::ScopedTimer timer( "explore entire map" );
@@ -281,7 +279,7 @@ void cheat_explore_entire_map( SS& ss, TS& ts ) {
   // as effecient as can be since it will leave the fog buffer
   // completely untouched and will redraw the map only once.
   auto& m = ss.mutable_terrain_use_with_care
-                .mutable_player_terrain( *nation )
+                .mutable_player_terrain( *player )
                 .map;
   for( point const p : gfx::rect_iterator( world_rect ) ) {
     Coord const coord = Coord::from_gfx( p ); // FIXME
@@ -314,7 +312,7 @@ void cheat_explore_entire_map( SS& ss, TS& ts ) {
 void cheat_toggle_reveal_full_map( SS& ss, TS& ts ) {
   MapRevealed& revealed = ss.land_view.map_revealed;
   if( revealed.holds<MapRevealed::no_special_view>() ||
-      revealed.holds<MapRevealed::nation>() ) {
+      revealed.holds<MapRevealed::player>() ) {
     reveal_map_qol( ss, ts );
     revealed = MapRevealed::entire{};
   } else {
@@ -478,20 +476,20 @@ wait<> kill_natives( SS& ss, TS& ts ) {
   // have to do this for dwellings that were fully visible and
   // clear, since in the latter case those fog squares will even-
   // tually get updated if/when the square flips to fogged.
-  for( e_nation const nation : refl::enum_values<e_nation> ) {
-    if( !ss.players.players[nation].has_value() ) continue;
+  for( e_player const player : refl::enum_values<e_player> ) {
+    if( !ss.players.players[player].has_value() ) continue;
     vector<Coord> const affected_fogged = [&] {
       vector<Coord> res;
       res.reserve( affected_coords.size() );
-      VisibilityForNation const viz( ss, nation );
+      VisibilityForNation const viz( ss, player );
       for( Coord const tile : affected_coords )
         if( viz.visible( tile ) == e_tile_visibility::fogged )
           res.push_back( tile );
       return res;
     }();
-    ts.map_updater().make_squares_visible( nation,
+    ts.map_updater().make_squares_visible( player,
                                            affected_fogged );
-    ts.map_updater().make_squares_fogged( nation,
+    ts.map_updater().make_squares_fogged( player,
                                           affected_fogged );
     // This is actually not necessary since the tile will get re-
     // drawn anyway (either when we destroy the dwelling or when
@@ -504,7 +502,7 @@ wait<> kill_natives( SS& ss, TS& ts ) {
     // So, just out of principle so that we're not relying on the
     // presence of a road under the dwelling to render a prime
     // resource, we will anyway force a redraw of the tile.
-    if( ts.map_updater().options().nation == nation )
+    if( ts.map_updater().options().player == player )
       ts.map_updater().force_redraw_tiles( affected_fogged );
   }
 
@@ -536,11 +534,11 @@ wait<> cheat_advance_revolution_status( SS& ss, TS& ts,
       .nova = required_sentiment };
     player.revolution.rebel_sentiment = required_sentiment;
     co_await show_rebel_sentiment_change_report(
-        player, ts.euro_minds()[player.nation], change_report );
+        player, ts.euro_minds()[player.type], change_report );
     if( should_do_war_of_succession( as_const( ss ),
                                      as_const( player ) ) ) {
       WarOfSuccessionNations const nations =
-          select_nations_for_war_of_succession( ss.as_const );
+          select_players_for_war_of_succession( ss.as_const );
       WarOfSuccessionPlan const plan =
           war_of_succession_plan( ss.as_const, nations );
       do_war_of_succession( ss, ts, player, plan );
@@ -573,10 +571,10 @@ wait<> cheat_advance_revolution_status( SS& ss, TS& ts,
     if( should_trigger_intervention( ss.as_const,
                                      as_const( player ) ) ) {
       trigger_intervention( player );
-      auto const intervention_nation =
-          select_nation_for_intervention( player.nation );
+      auto const intervention_player =
+          select_player_for_intervention( player.type );
       co_await intervention_forces_triggered_ui_seq(
-          ss, ts.gui, player.nation, intervention_nation );
+          ss, ts.gui, player.type, intervention_player );
     }
     co_return;
   }
@@ -857,7 +855,7 @@ void cheat_advance_colony_one_turn(
 }
 
 wait<> cheat_create_unit_on_map( SS& ss, TS& ts,
-                                 e_nation const nation,
+                                 e_player const player_type,
                                  point const tile ) {
   static refl::enum_map<e_cheat_unit_creation_categories,
                         vector<e_unit_type>> const categories{
@@ -938,7 +936,7 @@ wait<> cheat_create_unit_on_map( SS& ss, TS& ts,
       co_await ts.gui.partial_optional_enum_choice<e_unit_type>(
           categories[*category] );
   if( !type.has_value() ) co_return;
-  UNWRAP_CHECK( player, ss.players.players[nation] );
+  UNWRAP_CHECK( player, ss.players.players[player_type] );
   // TODO:
   //   * If we are trying to add a land unit onto an ocean tile
   //     then we should prevent it unless there is a ship on that

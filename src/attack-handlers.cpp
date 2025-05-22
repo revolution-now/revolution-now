@@ -182,9 +182,9 @@ AttackHandlerBase::AttackHandlerBase( SS& ss, TS& ts,
         ss, player_for_role( ss, e_player_role::viewer ) ) ),
     attacker_id_( attacker_id ),
     attacker_( ss.units.unit_for( attacker_id ) ),
-    attacking_player_( player_for_nation_or_die(
-        ss.players, attacker_.nation() ) ),
-    attacker_mind_( ts.euro_minds()[attacker_.nation()] ),
+    attacking_player_( player_for_player_or_die(
+        ss.players, attacker_.player_type() ) ),
+    attacker_mind_( ts.euro_minds()[attacker_.player_type()] ),
     attacker_human_( attacking_player_.human ),
     direction_( direction ) {
   CHECK( viz_ != nullptr );
@@ -281,9 +281,9 @@ EuroAttackHandlerBase::EuroAttackHandlerBase(
         direction_of_attack( ss, attacker_id, defender_id ) ),
     defender_id_( defender_id ),
     defender_( ss.units.unit_for( defender_id ) ),
-    defending_player_( player_for_nation_or_die(
-        ss.players, defender_.nation() ) ),
-    defender_mind_( ts.euro_minds()[defender_.nation()] ) {
+    defending_player_( player_for_player_or_die(
+        ss.players, defender_.player_type() ) ),
+    defender_mind_( ts.euro_minds()[defender_.player_type()] ) {
   CHECK( defender_id_ != attacker_id_ );
 }
 
@@ -425,15 +425,16 @@ wait<> AttackColonyUndefendedHandler::perform() {
   //
   //      plundered = G*(CP/TP)
   //
-  //    where G is the total gold of the nation whose colony was
+  //    where G is the total gold of the player whose colony was
   //    captured, CP is the colony population, and TP is the
-  //    total population of all colonies in that nation.
+  //    total population of all colonies in that player.
   // TODO
 
   // 6. The colony changes ownership, as well as all of the units
   // that are working in it and who are on the map at the colony
   // location.
-  change_colony_nation( ss_, ts_, colony_, attacker_.nation() );
+  change_colony_player( ss_, ts_, colony_,
+                        attacker_.player_type() );
 
   // 7. Make adjustments to SoL of colony.
 
@@ -444,7 +445,7 @@ wait<> AttackColonyUndefendedHandler::perform() {
   //     conductor::e_request_probability::always );
   string const capture_msg = fmt::format(
       "The [{}] have captured the colony of [{}]!",
-      nation_display_name( attacking_player_ ), colony_.name );
+      player_display_name( attacking_player_ ), colony_.name );
   co_await attacker_mind_.message_box( capture_msg );
   co_await defender_mind_.message_box( capture_msg );
 
@@ -541,7 +542,7 @@ wait<> NavalBattleHandler::perform() {
   // perform that movement don't do it interactively (see com-
   // ments in that function for why), so here we will rerun it
   // interactively just in case e.g. the ship discovers the pa-
-  // cific ocean or another nation upon moving.
+  // cific ocean or another player upon moving.
   if( auto o = combat.attacker.outcome
                    .get_if<EuroNavalUnitCombatOutcome::moved>();
       o.has_value() )
@@ -683,8 +684,8 @@ wait<bool> AttackNativeUnitHandler::confirm() {
   if( !co_await Base::confirm() ) co_return false;
 
   TribeRelationship& relationship =
-      defender_tribe_.relationship[attacker_.nation()];
-  if( !relationship.nation_has_attacked_tribe ) {
+      defender_tribe_.relationship[attacker_.player_type()];
+  if( !relationship.player_has_attacked_tribe ) {
     if( attacker_human_ ) {
       YesNoConfig const config{
         .msg = fmt::format(
@@ -698,7 +699,7 @@ wait<bool> AttackNativeUnitHandler::confirm() {
           co_await ts_.gui.optional_yes_no( config );
       if( proceed != ui::e_confirm::yes ) co_return false;
     }
-    relationship.nation_has_attacked_tribe = true;
+    relationship.player_has_attacked_tribe = true;
   }
 
   co_return true;
@@ -718,7 +719,7 @@ wait<> AttackNativeUnitHandler::perform() {
 
   // The tribal alarm goes up regardless of the battle outcome.
   TribeRelationship& relationship =
-      defender_tribe_.relationship[attacker_.nation()];
+      defender_tribe_.relationship[attacker_.player_type()];
   increase_tribal_alarm_from_attacking_brave(
       attacking_player_,
       ss_.natives.dwelling_for(
@@ -787,7 +788,7 @@ AttackDwellingHandler::AttackDwellingHandler(
     tribe_( ss.natives.tribe_for( dwelling_.id ) ),
     defender_mind_( ts.native_minds()[tribe_.type] ),
     relationship_(
-        tribe_.relationship[attacking_player_.nation] ) {}
+        tribe_.relationship[attacking_player_.type] ) {}
 
 // Returns true if the move is allowed.
 wait<bool> AttackDwellingHandler::confirm() {
@@ -819,12 +820,12 @@ wait<> AttackDwellingHandler::produce_convert() {
       ss_.units.coord_for( attacker_id_ );
   string_view const tribe_name_possessive =
       config_natives.tribes[tribe_.type].name_possessive;
-  string_view const nation_name_possessive =
-      nation_possessive( attacking_player_ );
+  string_view const player_name_possessive =
+      player_possessive( attacking_player_ );
   co_await attacker_mind_.message_box(
       "[{}] citizens frightened in combat rush to the [{} "
       "mission] as [converts]!",
-      tribe_name_possessive, nation_name_possessive );
+      tribe_name_possessive, player_name_possessive );
 
   // Produce the convert on the dwelling tile, then we will ani-
   // mate it enpixelating and then sliding over to the attacker's
@@ -879,12 +880,12 @@ wait<> AttackDwellingHandler::perform() {
           : config_natives.dwelling_types[tribe_conf.level]
                 .name_singular;
   string_view const tribe_name = tribe_conf.name_singular;
-  string_view const nation_name =
-      nation_display_name( attacking_player_ );
-  string_view const nation_name_possessive =
-      nation_possessive( attacking_player_ );
-  string_view const nation_harbor_name =
-      nation_obj( attacking_player_.nation ).harbor_city_name;
+  string_view const player_name =
+      player_display_name( attacking_player_ );
+  string_view const player_name_possessive =
+      player_possessive( attacking_player_ );
+  string_view const player_harbor_name =
+      player_obj( attacking_player_.type ).harbor_city_name;
 
   // Set new tribal alarm.
   // ------------------------------------------------------------
@@ -912,8 +913,8 @@ wait<> AttackDwellingHandler::perform() {
         player_missionaries_in_tribe( ss_, attacking_player_,
                                       tribe_.type );
     for( UnitId const missionary : missionaries ) {
-      CHECK( ss_.units.unit_for( missionary ).nation() ==
-             attacking_player_.nation );
+      CHECK( ss_.units.unit_for( missionary ).player_type() ==
+             attacking_player_.type );
       UnitOwnershipChanger( ss_, missionary ).destroy();
     }
     // TODO: decide whether to update player fog squares to re-
@@ -925,8 +926,8 @@ wait<> AttackDwellingHandler::perform() {
     co_await attacker_mind_.message_box(
         "The [{}] revolt against [{}] missions! "
         "All {} missionaries eliminated!",
-        tribe_name, nation_name_possessive,
-        nation_name_possessive );
+        tribe_name, player_name_possessive,
+        player_name_possessive );
   }
 
   FilteredMixedCombatEffectsMessages const effects_msg =
@@ -1004,8 +1005,8 @@ wait<> AttackDwellingHandler::perform() {
   if( destruction.missionary_to_release.has_value() ) {
     CHECK_EQ(
         ss_.units.unit_for( *destruction.missionary_to_release )
-            .nation(),
-        attacking_player_.nation );
+            .player_type(),
+        attacking_player_.type );
     // We need to use the non-interactive version here because,
     // at this point, the player is not aware that the missionary
     // has been released (no visual indication or messages), and
@@ -1056,7 +1057,7 @@ wait<> AttackDwellingHandler::perform() {
   // include the amount.
   string msg =
       fmt::format( "[{}] {} burned by the [{}]!", tribe_name,
-                   dwelling_label, nation_name );
+                   dwelling_label, player_name );
   if( destruction.missionary_to_release.has_value() )
     msg += " [Missionary] flees in panic!";
   else if( missionary_in_dwelling.has_value() )
@@ -1068,7 +1069,7 @@ wait<> AttackDwellingHandler::perform() {
         "take a [Galleon] to transport this treasure back to "
         "[{}].",
         *destruction.treasure_amount,
-        config_text.special_chars.currency, nation_harbor_name );
+        config_text.special_chars.currency, player_harbor_name );
   co_await attacker_mind_.message_box( msg );
 
   if( destruction.treasure_amount.has_value() ) {
@@ -1105,7 +1106,7 @@ wait<> AttackDwellingHandler::perform() {
   if( was_capital && !destruction.tribe_destroyed.has_value() )
     co_await attacker_mind_.message_box(
         "The [{}] bow before the might of the [{}]!", tribe_name,
-        nation_name );
+        player_name );
 
   // Check if the tribe is now destroyed.
   if( destruction.tribe_destroyed.has_value() )

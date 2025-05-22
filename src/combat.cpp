@@ -75,7 +75,7 @@ maybe<UnitType> should_promote_euro_unit( SSConst const& ss,
       promoted_from_activity( unit.composition(),
                               e_unit_activity::fighting );
   if( !promoted.has_value() ) return nothing;
-  UNWRAP_CHECK( player, ss.players.players[unit.nation()] );
+  UNWRAP_CHECK( player, ss.players.players[unit.player_type()] );
   bool should_promote = true;
   // During the war of independence, veteran units (only) can be
   // promoted to continental units as a result of winning in com-
@@ -133,7 +133,7 @@ EuroUnitCombatOutcome euro_unit_combat_outcome(
           euro_society,
           society_of_opponent.get_if<Society::european>() );
       return EuroUnitCombatOutcome::captured{
-        .new_nation = euro_society.nation,
+        .new_player = euro_society.player,
         .new_coord  = opponent_coord };
     }
     case e::capture_and_demote: {
@@ -147,7 +147,7 @@ EuroUnitCombatOutcome euro_unit_combat_outcome(
                     on_capture_demoted_type( unit.type_obj() ) );
       return EuroUnitCombatOutcome::captured_and_demoted{
         .to         = capture_demoted,
-        .new_nation = euro_society.nation,
+        .new_player = euro_society.player,
         .new_coord  = opponent_coord };
     }
     case e::destroy:
@@ -265,7 +265,7 @@ DwellingCombatOutcome::destruction compute_dwelling_destruction(
     if( missionary_id.has_value() ) {
       Unit const& missionary =
           ss.units.unit_for( *missionary_id );
-      if( missionary.nation() == player.nation )
+      if( missionary.player_type() == player.type )
         res.missionary_to_release =
             ss.units.missionary_from_dwelling( dwelling.id );
     }
@@ -331,12 +331,12 @@ CombatEuroAttackEuro RealCombat::euro_attack_euro(
   EuroUnitCombatOutcome const attacker_outcome =
       euro_unit_combat_outcome(
           ss_, rand_, attacker,
-          Society::european{ .nation = defender.nation() },
+          Society::european{ .player = defender.player_type() },
           defender_coord, winner == e_combat_winner::attacker );
   EuroUnitCombatOutcome const defender_outcome =
       euro_unit_combat_outcome(
           ss_, rand_, defender,
-          Society::european{ .nation = attacker.nation() },
+          Society::european{ .player = attacker.player_type() },
           attacker_coord, winner == e_combat_winner::defender );
   return CombatEuroAttackEuro{
     .winner   = winner,
@@ -361,7 +361,7 @@ void RealCombat::set_sunk_or_damaged(
   }
   // Damaged. Try to find a port to repair the ship.
   maybe<ShipRepairPort> const port = find_repair_port_for_ship(
-      ss_, unit.nation(), unit_coord );
+      ss_, unit.player_type(), unit_coord );
   if( port.has_value() )
     outcome =
         EuroNavalUnitCombatOutcome::damaged{ .port = *port };
@@ -420,10 +420,10 @@ CombatShipAttackShip RealCombat::ship_attack_ship(
     Unit const& attacker, Unit const& defender ) {
   CHECK( attacker.desc().ship );
   CHECK( defender.desc().ship );
-  Player const& attacking_player =
-      player_for_nation_or_die( ss_.players, attacker.nation() );
-  Player const& defending_player =
-      player_for_nation_or_die( ss_.players, attacker.nation() );
+  Player const& attacking_player = player_for_player_or_die(
+      ss_.players, attacker.player_type() );
+  Player const& defending_player = player_for_player_or_die(
+      ss_.players, attacker.player_type() );
   Coord const attacker_coord =
       ss_.units.coord_for( attacker.id() );
   Coord const defender_coord =
@@ -590,7 +590,7 @@ RealCombat::euro_attack_undefended_colony(
   EuroUnitCombatOutcome const attacker_outcome =
       euro_unit_combat_outcome(
           ss_, rand_, attacker,
-          Society::european{ .nation = defender.nation() },
+          Society::european{ .player = defender.player_type() },
           defender_coord, winner == e_combat_winner::attacker );
   auto const defender_outcome =
       [&]() -> EuroColonyWorkerCombatOutcome {
@@ -701,7 +701,7 @@ CombatBraveAttackEuro RealCombat::brave_attack_euro(
 CombatBraveAttackColony RealCombat::brave_attack_colony(
     NativeUnit const& attacker, Unit const& defender,
     Colony const& colony ) {
-  if( ss_.colonies.for_nation( colony.nation ).size() > 1 ) {
+  if( ss_.colonies.for_player( colony.player ).size() > 1 ) {
     // When the player has more than one colony then the battle
     // between the units proceeds normally for the most part.
     // That is, the brave can win and demote a soldier, destroy a
@@ -775,9 +775,9 @@ CombatEuroAttackDwelling RealCombat::euro_attack_dwelling(
     Unit const& attacker, Dwelling const& dwelling ) {
   Tribe const& tribe = ss_.natives.tribe_for( dwelling.id );
   TribeRelationship const& relationship =
-      tribe.relationship[attacker.nation()];
-  Player const& player =
-      player_for_nation_or_die( ss_.players, attacker.nation() );
+      tribe.relationship[attacker.player_type()];
+  Player const& player = player_for_player_or_die(
+      ss_.players, attacker.player_type() );
   double const attack_points = attacker.desc().combat;
   // When attacking a dwelling we always run the numbers as if we
   // are attacking a brave. Stength among tribes is varied both

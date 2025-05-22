@@ -82,10 +82,10 @@ int turns_needed_for_high_seas(
 }
 
 vector<UnitId> units_in_harbor_view(
-    UnitsState const& units_state, e_nation nation ) {
+    UnitsState const& units_state, e_player player ) {
   vector<UnitId> res;
   for( auto const& [id, st] : units_state.euro_all() ) {
-    if( st->unit.nation() == nation &&
+    if( st->unit.player_type() == player &&
         st->ownership.holds<UnitOwnership::harbor>() )
       res.push_back( id );
   }
@@ -105,10 +105,10 @@ void sort_by_ordering( UnitsState const& units,
 
 template<typename Func>
 vector<UnitId> units_in_harbor_filtered(
-    UnitsState const& units_state, e_nation nation,
+    UnitsState const& units_state, e_player player,
     Func&& func ) {
   vector<UnitId> res =
-      units_in_harbor_view( units_state, nation );
+      units_in_harbor_view( units_state, player );
   erase_if( res, not_fn( [&]( UnitId id ) {
               return func( units_state, id );
             } ) );
@@ -190,7 +190,7 @@ void update_harbor_selected_unit( UnitsState const& units,
     selected_unit.reset();
   }
   vector<UnitId> const ships =
-      harbor_units_in_port( units, player.nation );
+      harbor_units_in_port( units, player.type );
   if( !ships.empty() ) selected_unit = ships[0];
 }
 
@@ -205,7 +205,7 @@ void try_select_in_port_ship( UnitsState const& units,
       is_unit_in_port( units, *selected_unit ) )
     return;
   vector<UnitId> const ships =
-      harbor_units_in_port( units, player.nation );
+      harbor_units_in_port( units, player.type );
   if( !ships.empty() ) selected_unit = ships[0];
 }
 
@@ -239,7 +239,7 @@ maybe<Coord> find_new_world_arrival_square(
     maybe<Society> society = society_on_square( ss, c );
     if( !society.has_value() ||
         society == Society{ Society::european{
-                     .nation = player.nation } } )
+                     .player = player.type } } )
       return c;
   }
 
@@ -282,37 +282,37 @@ bool is_unit_in_port( UnitsState const& units_state,
 }
 
 vector<UnitId> harbor_units_on_dock(
-    UnitsState const& units_state, e_nation nation ) {
+    UnitsState const& units_state, e_player player ) {
   vector<UnitId> res = units_in_harbor_filtered(
-      units_state, nation, is_unit_on_dock );
+      units_state, player, is_unit_on_dock );
   return res;
 }
 
 vector<UnitId> harbor_units_in_port(
-    UnitsState const& units_state, e_nation nation ) {
+    UnitsState const& units_state, e_player player ) {
   vector<UnitId> res = units_in_harbor_filtered(
-      units_state, nation, is_unit_in_port );
+      units_state, player, is_unit_in_port );
   return res;
 }
 
 // To old world.
 vector<UnitId> harbor_units_inbound(
-    UnitsState const& units_state, e_nation nation ) {
-  return units_in_harbor_filtered( units_state, nation,
+    UnitsState const& units_state, e_player player ) {
+  return units_in_harbor_filtered( units_state, player,
                                    is_unit_inbound );
 }
 
 // To new world.
 vector<UnitId> harbor_units_outbound(
-    UnitsState const& units_state, e_nation nation ) {
-  return units_in_harbor_filtered( units_state, nation,
+    UnitsState const& units_state, e_player player ) {
+  return units_in_harbor_filtered( units_state, player,
                                    is_unit_outbound );
 }
 
 void unit_move_to_port( SS& ss, UnitId id ) {
   Unit& unit = ss.units.unit_for( id );
   Player& player =
-      player_for_nation_or_die( ss.players, unit.nation() );
+      player_for_player_or_die( ss.players, unit.player_type() );
   UnitOwnership::harbor new_state;
   if( maybe<UnitOwnership::harbor const&> existing_state =
           ss.units.maybe_harbor_view_state_of( id );
@@ -350,7 +350,7 @@ void unit_sail_to_harbor( SS& ss, UnitId id ) {
   CHECK( unit.desc().ship );
   CHECK( unit.orders().holds<unit_orders::none>() );
   Player& player =
-      player_for_nation_or_die( ss.players, unit.nation() );
+      player_for_player_or_die( ss.players, unit.player_type() );
 
   if( maybe<UnitOwnership::harbor const&> previous_harbor_state =
           ss.units.maybe_harbor_view_state_of( id );
@@ -405,7 +405,7 @@ void unit_sail_to_new_world( SS& ss, UnitId id ) {
   CHECK( unit.desc().ship );
   CHECK( unit.orders().holds<unit_orders::none>() );
   Player const& player =
-      player_for_nation_or_die( ss.players, unit.nation() );
+      player_for_player_or_die( ss.players, unit.player_type() );
   CHECK( unit.desc().ship );
 
   UNWRAP_CHECK( previous_harbor_state,

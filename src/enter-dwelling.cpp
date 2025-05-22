@@ -138,7 +138,7 @@ vector<e_enter_dwelling_option> const& options_for_unit(
   static vector<e_enter_dwelling_option> const options_cancel{
     e_enter_dwelling_option::cancel,
   };
-  if( !tribe.relationship[player.nation].encountered ) {
+  if( !tribe.relationship[player.type].encountered ) {
     // The tribe has not yet made contact with us. This should
     // really only happen if we place a unit next to the dwelling
     // artificially.
@@ -147,7 +147,7 @@ vector<e_enter_dwelling_option> const& options_for_unit(
   e_dwelling_interaction_category const category =
       dwelling_interaction_category( unit_type );
   TribeRelationship const& relationship =
-      tribe.relationship[player.nation];
+      tribe.relationship[player.type];
   bool const at_war = relationship.at_war;
   auto switch_war =
       [&]( auto const& options,
@@ -212,8 +212,8 @@ vector<e_enter_dwelling_option> const& options_for_unit(
           ss.units.missionary_from_dwelling( dwelling.id );
       auto const& options =
           !missionary.has_value() ? options_no_mission
-          : ( ss.units.unit_for( *missionary ).nation() ==
-              player.nation )
+          : ( ss.units.unit_for( *missionary ).player_type() ==
+              player.type )
               ? options_has_friendly_mission
               : options_has_foreign_mission;
       return switch_war( options, options_cancel );
@@ -323,14 +323,14 @@ wait<e_enter_dwelling_option> present_dwelling_entry_options(
   // Don't do anything at all if we haven't formally encountered
   // this tribe ("encounter" means that they introduce themselves
   // and offer to smoke the peace pipe, etc.).
-  if( !tribe.relationship[player.nation].encountered ) {
+  if( !tribe.relationship[player.type].encountered ) {
     co_await ts.gui.message_box(
         "We must meet this native tribe on land first before we "
         "trade with them." );
     co_return e_enter_dwelling_option::cancel;
   }
   co_await show_woodcut_if_needed(
-      player, ts.euro_minds()[player.nation],
+      player, ts.euro_minds()[player.type],
       e_woodcut::entering_native_village );
   Dwelling const& dwelling =
       ss.natives.dwelling_for( options.dwelling_id );
@@ -358,7 +358,7 @@ LiveAmongTheNatives compute_live_among_the_natives(
     Unit const& unit ) {
   TribeRelationship const& relationship =
       ss.natives.tribe_for( dwelling.id )
-          .relationship[unit.nation()];
+          .relationship[unit.player_type()];
   e_unit_type const base_type = unit.base_type();
   auto const& attr            = unit_attr( base_type );
   if( !is_unit_a_colonist( unit.type_obj() ) )
@@ -375,8 +375,8 @@ LiveAmongTheNatives compute_live_among_the_natives(
     return LiveAmongTheNatives::native_convert{};
   if( !dwelling.is_capital && dwelling.has_taught )
     return LiveAmongTheNatives::already_taught{};
-  int const alarm =
-      effective_dwelling_alarm( ss, dwelling, unit.nation() );
+  int const alarm = effective_dwelling_alarm(
+      ss, dwelling, unit.player_type() );
   if( alarm >
           config_natives.alarm.max_dwelling_alarm_for_teaching ||
       relationship.at_war )
@@ -502,7 +502,7 @@ static vector<Coord> compute_tales_of_nearby_lands_tiles(
   Rect const rect =
       Rect::from( location, Delta{ .w = 1, .h = 1 } )
           .with_border_added( radius / 2 );
-  VisibilityForNation const viz( ss, unit.nation() );
+  VisibilityForNation const viz( ss, unit.player_type() );
   for( auto r : gfx::subrects( rect ) ) {
     Coord const coord = r.upper_left();
     maybe<MapSquare const&> square =
@@ -532,22 +532,22 @@ static ChiefAction compute_speak_with_chief_action(
   // First determine if we should eliminate the scout ("target
   // practice"); note that this can happen even if the scout has
   // already spoken to the chief.
-  config::IntRange const& elimination_range =
+  config::IntRange const& elimiplayer_range =
       conf.alarm_range_for_target_practice;
-  int const alarm =
-      effective_dwelling_alarm( ss, dwelling, unit.nation() );
+  int const alarm = effective_dwelling_alarm(
+      ss, dwelling, unit.player_type() );
   // Should have been validated during config loading.
-  CHECK_GE( elimination_range.max, elimination_range.min );
+  CHECK_GE( elimiplayer_range.max, elimiplayer_range.min );
   // Note that if max and min are equal, which they can be, then
   // we should never enter the third brance where we divide by
   // their difference (which would be zero).
   double const eliminate_probability =
-      ( alarm >= elimination_range.max ) ? 1.0
-      : ( alarm < elimination_range.min )
+      ( alarm >= elimiplayer_range.max ) ? 1.0
+      : ( alarm < elimiplayer_range.min )
           ? 0.0
-          : double( alarm - elimination_range.min ) /
-                ( elimination_range.max -
-                  elimination_range.min );
+          : double( alarm - elimiplayer_range.min ) /
+                ( elimiplayer_range.max -
+                  elimiplayer_range.min );
   lg.debug( "scout elimination probability: {}",
             eliminate_probability );
   bool const should_eliminate =
@@ -558,7 +558,7 @@ static ChiefAction compute_speak_with_chief_action(
   // and thus will get some kind of non-negative action from the
   // chief. However, that is only the first time that the scout
   // meets with the chief.
-  if( dwelling.relationship[unit.nation()]
+  if( dwelling.relationship[unit.player_type()]
           .has_spoken_with_chief )
     return ChiefAction::none{};
 
@@ -619,8 +619,8 @@ SpeakWithChiefResult compute_speak_with_chief(
 wait<> do_speak_with_chief(
     SS& ss, TS& ts, Dwelling& dwelling, Player& player,
     Unit& unit, SpeakWithChiefResult const& outcome ) {
-  dwelling.relationship[unit.nation()].has_spoken_with_chief =
-      true;
+  dwelling.relationship[unit.player_type()]
+      .has_spoken_with_chief = true;
   e_tribe const tribe = ss.natives.tribe_for( dwelling.id ).type;
   if( !outcome.action.holds<ChiefAction::target_practice>() )
     co_await ts.gui.message_box(
@@ -644,7 +644,7 @@ wait<> do_speak_with_chief(
     case ChiefAction::e::none: {
       co_await ts.gui.message_box(
           "We always welcome [{}] travelors.",
-          nation_display_name( player ) );
+          player_display_name( player ) );
       co_return;
     }
     case ChiefAction::e::gift_money: {
@@ -671,8 +671,8 @@ wait<> do_speak_with_chief(
           .get_bottom<ILandViewPlane>()
           .center_on_tile( ss.natives.coord_for( dwelling.id ) );
       for( Coord tile : tiles ) {
-        ts.map_updater().make_squares_visible( unit.nation(),
-                                               { tile } );
+        ts.map_updater().make_squares_visible(
+            unit.player_type(), { tile } );
         co_await ts.gui.wait_for( 20ms );
       }
       co_await ts.gui.wait_for( 600ms );
@@ -746,7 +746,7 @@ wait<> do_establish_mission(
   string msg = fmt::format(
       "[{}] mission established in [{}] {} in the year {}. The "
       "{} {}.",
-      nation_possessive( player ), tribe_conf.name_possessive,
+      player_possessive( player ), tribe_conf.name_possessive,
       config_natives.dwelling_types[tribe_conf.level]
           .name_singular,
       ss.turn.time_point.year, tribe_conf.name_possessive,

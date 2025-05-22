@@ -74,6 +74,7 @@
 // ss
 #include "ss/colonies.hpp"
 #include "ss/land-view.rds.hpp"
+#include "ss/nation.hpp"
 #include "ss/players.hpp"
 #include "ss/ref.hpp"
 #include "ss/settings.rds.hpp"
@@ -275,11 +276,12 @@ bool should_remove_unit_from_queue( Unit const& unit ) {
 }
 
 vector<UnitId> euro_units_all( UnitsState const& units_state,
-                               e_nation n ) {
+                               e_player n ) {
   vector<UnitId> res;
   res.reserve( units_state.all().size() );
   for( auto const& p : units_state.euro_all() )
-    if( n == p.second->unit.nation() ) res.push_back( p.first );
+    if( n == p.second->unit.player_type() )
+      res.push_back( p.first );
   return res;
 }
 
@@ -311,7 +313,7 @@ vector<UnitId> units_on_tile_to_activate( SSConst const& ss,
                                           Player const& player,
                                           point const tile ) {
   vector<UnitId> res = euro_units_from_coord_recursive(
-      ss.units, player.nation, tile );
+      ss.units, player.type, tile );
   erase_if( res, [&]( UnitId id ) {
     return finished_turn( ss.units.unit_for( id ) );
   } );
@@ -399,10 +401,10 @@ void autosave_if_needed( SS& ss, TS& ts ) {
 // This is a bit costly, and so it is unfortunate that, for vi-
 // sual consistency, we have to call it at the start of each na-
 // tion's turn (and the start of the natives' turn). Actually, it
-// doesn't even work perfectly, because e.g. if nation A de-
-// stroy's nation B's unit during nation A's turn, nation B will
+// doesn't even work perfectly, because e.g. if player A de-
+// stroy's player B's unit during player A's turn, player B will
 // continue to have visibility in the unit's surroundings for the
-// remainder of nation A's turn. Maybe in the future we can im-
+// remainder of player A's turn. Maybe in the future we can im-
 // prove this mechanism by using a more incremental approach,
 // e.g. adding fog whenever a unit leaves the map, which we
 // should be able to hook into via the change_to_free method in
@@ -412,10 +414,10 @@ void autosave_if_needed( SS& ss, TS& ts ) {
 // costly. Actually, the cost of it may need to be reassessed;
 // for normal game map sizes with normal numbers of units on the
 // map, it actually may not be that bad at all.
-void recompute_fog_for_all_nations( SS& ss, TS& ts ) {
-  for( e_nation const nation : refl::enum_values<e_nation> )
-    if( ss.players.players[nation].has_value() )
-      recompute_fog_for_nation( ss, ts, nation );
+void recompute_fog_for_all_players( SS& ss, TS& ts ) {
+  for( e_player const player : refl::enum_values<e_player> )
+    if( ss.players.players[player].has_value() )
+      recompute_fog_for_player( ss, ts, player );
 }
 
 /****************************************************************
@@ -1010,7 +1012,7 @@ wait<bool> advance_unit( IEngine& engine, SS& ss, TS& ts,
         co_await ts.gui.message_box(
             "Our [{}] has finished its repairs in [{}].",
             unit.desc().name,
-            nation_obj( player.nation ).harbor_city_name );
+            player_obj( player.type ).harbor_city_name );
         HarborViewer harbor_viewer( engine, ss, ts, player );
         harbor_viewer.set_selected_unit( unit.id() );
         co_await harbor_viewer.show();
@@ -1261,7 +1263,7 @@ wait<> move_high_seas_units( IEngine& engine, SS& ss, TS& ts,
            UnitId{} );
     if( status_union.arrived_in_harbor_with_cargo )
       co_await show_woodcut_if_needed(
-          player, ts.euro_minds()[player.nation],
+          player, ts.euro_minds()[player.type],
           e_woodcut::cargo_from_the_new_world );
     HarborViewer harbor_viewer( engine, ss, ts, player );
     harbor_viewer.set_selected_unit(
@@ -1353,7 +1355,7 @@ wait<> units_turn( IEngine& engine, SS& ss, TS& ts,
     CHECK( q.empty() );
     // Refill the queue.
     vector<UnitId> units =
-        euro_units_all( ss.units, player.nation );
+        euro_units_all( ss.units, player.type );
     util::sort_by_key( units, []( auto id ) { return id; } );
     erase_if( units, [&]( UnitId id ) {
       return should_remove_unit_from_queue(
@@ -1411,7 +1413,7 @@ wait<> post_colonies( SS& ss, TS& ts, Player& player ) {
     if( should_show_rebel_sentiment_report(
             ss.as_const, as_const( player ), report.nova ) )
       co_await show_rebel_sentiment_change_report(
-          player, ts.euro_minds()[player.nation], report );
+          player, ts.euro_minds()[player.type], report );
   }
 
   // Check if we need to do the war of succession. This must be
@@ -1424,7 +1426,7 @@ wait<> post_colonies( SS& ss, TS& ts, Player& player ) {
   if( should_do_war_of_succession( as_const( ss ),
                                    as_const( player ) ) ) {
     WarOfSuccessionNations const nations =
-        select_nations_for_war_of_succession( ss.as_const );
+        select_players_for_war_of_succession( ss.as_const );
     WarOfSuccessionPlan const plan =
         war_of_succession_plan( ss.as_const, nations );
     do_war_of_succession( ss, ts, player, plan );
@@ -1438,8 +1440,8 @@ wait<> post_colonies( SS& ss, TS& ts, Player& player ) {
 // Here we do things that must be done once at the start of each
 // nation's turn but where the player can't save the game until
 // they are complete.
-wait<> nation_start_of_turn( SS& ss, TS& ts, Player& player ) {
-  recompute_fog_for_all_nations( ss, ts );
+wait<> player_start_of_turn( SS& ss, TS& ts, Player& player ) {
+  recompute_fog_for_all_players( ss, ts );
 
   // Unsentry any units that are directly on the map and which
   // are sentry'd but have foreign units in an adjacent square.
@@ -1452,7 +1454,7 @@ wait<> nation_start_of_turn( SS& ss, TS& ts, Player& player ) {
   // unit, but 1) that's not what the OG does, and that might
   // have other side effects, e.g. you could not sentry a unit in
   // a colony to board a ship if there were foreign units nearby.
-  unsentry_units_next_to_foreign_units( ss, player.nation );
+  unsentry_units_next_to_foreign_units( ss, player.type );
 
   // Evolve market prices.
   if( ss.turn.time_point.turns >
@@ -1481,7 +1483,7 @@ wait<> nation_start_of_turn( SS& ss, TS& ts, Player& player ) {
 // This is for things that should be done after a nation's turn
 // ends. This means even after the "end of turn" is clicked, if
 // that happens to flash on a given turn.
-wait<> post_nation( SS& ss, TS& ts, Player& player ) {
+wait<> post_player( SS& ss, TS& ts, Player& player ) {
   // Evolve royal money and check if we need to add a new REF
   // unit.
   RoyalMoneyChange const change = evolved_royal_money(
@@ -1492,22 +1494,23 @@ wait<> post_nation( SS& ss, TS& ts, Player& player ) {
     e_expeditionary_force_type const type = select_next_ref_type(
         player.revolution.expeditionary_force );
     add_ref_unit( player.revolution.expeditionary_force, type );
-    co_await add_ref_unit_ui_seq( ts.euro_minds()[player.nation],
+    co_await add_ref_unit_ui_seq( ts.euro_minds()[player.type],
                                   type );
   }
 }
 
 // Processes the current state and returns the next state.
-wait<NationTurnState> nation_turn_iter( IEngine& engine, SS& ss,
-                                        TS& ts, e_nation nation,
-                                        NationTurnState& st ) {
+wait<NationTurnState> player_turn_iter(
+    IEngine& engine, SS& ss, TS& ts, e_player const player_type,
+    NationTurnState& st ) {
   Player& player =
-      player_for_nation_or_die( ss.players, nation );
+      player_for_player_or_die( ss.players, player_type );
 
   SWITCH( st ) {
     CASE( not_started ) {
-      base::print_bar( '-', fmt::format( "[ {} ]", nation ) );
-      co_await nation_start_of_turn( ss, ts, player );
+      base::print_bar( '-',
+                       fmt::format( "[ {} ]", player_type ) );
+      co_await player_start_of_turn( ss, ts, player );
       co_return NationTurnState::colonies{};
     }
     CASE( colonies ) {
@@ -1542,7 +1545,7 @@ wait<NationTurnState> nation_turn_iter( IEngine& engine, SS& ss,
       SHOULD_NOT_BE_HERE; // for gcc.
     }
     CASE( post ) {
-      co_await post_nation( ss, ts, player );
+      co_await post_player( ss, ts, player );
       co_return NationTurnState::finished{};
     }
     CASE( finished ) { SHOULD_NOT_BE_HERE; }
@@ -1550,31 +1553,31 @@ wait<NationTurnState> nation_turn_iter( IEngine& engine, SS& ss,
 }
 
 wait<> nation_turn( IEngine& engine, SS& ss, TS& ts,
-                    e_nation nation, NationTurnState& st ) {
-  CHECK( ss.players.players[nation].has_value(),
-         "nation {} does not exist.", nation );
-  if( !ss.players.players[nation]->human )
+                    e_player player, NationTurnState& st ) {
+  CHECK( ss.players.players[player].has_value(),
+         "nation {} does not exist.", player );
+  if( !ss.players.players[player]->human )
     // TODO: Until we have AI.
     st = NationTurnState::finished{};
   while( !st.holds<NationTurnState::finished>() )
-    st = co_await nation_turn_iter( engine, ss, ts, nation, st );
+    st = co_await player_turn_iter( engine, ss, ts, player, st );
 }
 
 /****************************************************************
 ** Intervention Force.
 *****************************************************************/
 wait<> do_intervention_force_turn(
-    IEngine&, SS& ss, TS& ts, e_nation const nation,
+    IEngine&, SS& ss, TS& ts, e_player const player_type,
     TurnCycle::intervention const& ) {
-  UNWRAP_CHECK( player, ss.players.players[nation] );
+  UNWRAP_CHECK( player, ss.players.players[player_type] );
   if( !player.revolution.intervention_force_deployed ) {
     if( should_trigger_intervention( ss.as_const,
                                      as_const( player ) ) ) {
       trigger_intervention( player );
-      auto const intervention_nation =
-          select_nation_for_intervention( player.nation );
+      auto const intervention_player =
+          select_player_for_intervention( player.type );
       co_await intervention_forces_triggered_ui_seq(
-          ss, ts.gui, player.nation, intervention_nation );
+          ss, ts.gui, player.type, intervention_player );
     }
     // !! No return here since we want to deploy on the same turn
     // as the OG does.
@@ -1591,10 +1594,10 @@ wait<> do_intervention_force_turn(
             ss, ts, *target, *forces );
         Colony const& colony =
             ss.colonies.colony_for( target->colony_id );
-        auto const intervention_nation =
-            select_nation_for_intervention( player.nation );
+        auto const intervention_player =
+            select_player_for_intervention( player.type );
         co_await intervention_forces_deployed_ui_seq(
-            ts, colony, intervention_nation );
+            ts, colony, intervention_player );
         co_await animate_move_intervention_units_into_colony(
             ss, ts, ship_id, colony );
         move_intervention_units_into_colony( ss, ts, ship_id,
@@ -1627,7 +1630,8 @@ void start_of_turn_cycle( SS& ss ) {
   // be done in the "natives" section because we know that the
   // game will never be saved during the natives' turn.
   map_all_euro_units( ss.units, [&]( Unit& unit ) {
-    UNWRAP_CHECK( player, ss.players.players[unit.nation()] );
+    UNWRAP_CHECK( player,
+                  ss.players.players[unit.player_type()] );
     unit.new_turn( player );
   } );
 }
@@ -1640,7 +1644,7 @@ wait<TurnCycle> next_turn_iter( IEngine& engine, SS& ss,
   // The "visibility" here determines from whose point of view
   // the map is drawn with respect to which tiles are hidden.
   // This will potentially redraw the map (if necessary) to align
-  // with the nation from whose perspective we are currently
+  // with the player from whose perspective we are currently
   // viewing the map (if any) as specified in the land view
   // state. This is a function of the player whose turn it cur-
   // rently is (or the human status of the players if it is no
@@ -1654,34 +1658,37 @@ wait<TurnCycle> next_turn_iter( IEngine& engine, SS& ss,
       co_return TurnCycle::natives{};
     }
     CASE( natives ) {
-      recompute_fog_for_all_nations( ss, ts );
+      recompute_fog_for_all_players( ss, ts );
       co_await natives_turn( ss, ts, RealRaid( ss, ts ),
                              RealTribeEvolve( ss, ts ) );
-      if( auto const nation = find_first_nation_to_move( ss );
-          nation.has_value() )
-        co_return TurnCycle::nation{ .nation = *nation };
+      if( auto const player = find_first_nation_to_move( ss );
+          player.has_value() )
+        co_return TurnCycle::nation{ .european_nation =
+                                         *player };
       co_return TurnCycle::end_cycle{};
     }
     CASE( nation ) {
-      co_await nation_turn( engine, ss, ts, nation.nation,
-                            nation.st );
-      if( auto const next =
-              find_next_nation_to_move( ss, nation.nation );
+      co_await nation_turn(
+          engine, ss, ts,
+          colonist_player_for( nation.european_nation ),
+          nation.st );
+      if( auto const next = find_next_nation_to_move(
+              ss, nation.european_nation );
           next.has_value() )
-        co_return TurnCycle::nation{ .nation = *next };
+        co_return TurnCycle::nation{ .european_nation = *next };
       co_return TurnCycle::ref{};
     }
     CASE( ref ) {
-      auto const nation = human_player_that_declared( ss );
-      if( !nation.has_value() ) co_return TurnCycle::end_cycle{};
+      auto const player = human_player_that_declared( ss );
+      if( !player.has_value() ) co_return TurnCycle::end_cycle{};
       // TODO
       co_return TurnCycle::intervention{};
     }
     CASE( intervention ) {
-      UNWRAP_CHECK_T( e_nation const nation,
+      UNWRAP_CHECK_T( e_player const player,
                       human_player_that_declared( ss ) );
       co_await do_intervention_force_turn(
-          engine, ss, ts, nation, intervention );
+          engine, ss, ts, player, intervention );
       co_return TurnCycle::end_cycle{};
     }
     CASE( end_cycle ) {

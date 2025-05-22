@@ -147,9 +147,9 @@ Unit create_unregistered_unit( Player const& player,
     .id          = UnitId{ 0 }, // will be set later.
     .composition = std::move( comp ),
     .orders      = unit_orders::none{},
-    .cargo  = CargoHold( unit_attr( comp.type() ).cargo_slots ),
-    .nation = player.nation,
-    .mv_pts = movement_points( player, comp.type() ),
+    .cargo = CargoHold( unit_attr( comp.type() ).cargo_slots ),
+    .player_type = player.type,
+    .mv_pts      = movement_points( player, comp.type() ),
   };
   return Unit( std::move( refl_unit ) );
 }
@@ -203,7 +203,7 @@ wait<maybe<UnitId>> create_unit_on_map(
 void change_unit_type( SS& ss, TS& ts, Unit& unit,
                        UnitComposition const& new_comp ) {
   Player const& player =
-      player_for_nation_or_die( ss.players, unit.nation() );
+      player_for_player_or_die( ss.players, unit.player_type() );
   unit.change_type( player, new_comp );
   // In order to make sure that fog of war is updated to reflect
   // the new type (i.e. maybe its sighting radius is different),
@@ -212,10 +212,10 @@ void change_unit_type( SS& ss, TS& ts, Unit& unit,
       .reinstate_on_map_if_on_map( ts );
 }
 
-void change_unit_nation( SS& ss, TS& ts, Unit& unit,
-                         e_nation new_nation ) {
-  if( unit.nation() == new_nation ) return;
-  unit.change_nation( ss.units, new_nation );
+void change_unit_player( SS& ss, TS& ts, Unit& unit,
+                         e_player new_player ) {
+  if( unit.player_type() == new_player ) return;
+  unit.change_player( ss.units, new_player );
   // In order to make sure that fog of war is updated to reflect
   // the new type (i.e. maybe its sighting radius is different),
   // we will replace it on the map.
@@ -223,10 +223,10 @@ void change_unit_nation( SS& ss, TS& ts, Unit& unit,
       .reinstate_on_map_if_on_map( ts );
 }
 
-void change_unit_nation_and_move( SS& ss, TS& ts, Unit& unit,
-                                  e_nation new_nation,
+void change_unit_player_and_move( SS& ss, TS& ts, Unit& unit,
+                                  e_player new_player,
                                   Coord target ) {
-  unit.change_nation( ss.units, new_nation );
+  unit.change_player( ss.units, new_player );
   UnitOwnershipChanger( ss, unit.id() )
       .change_to_map_non_interactive( ts, target );
 }
@@ -252,12 +252,13 @@ vector<UnitId> euro_units_from_coord_recursive(
 }
 
 vector<UnitId> euro_units_from_coord_recursive(
-    UnitsState const& units_state, e_nation const nation,
+    UnitsState const& units_state, e_player const player_type,
     point const tile ) {
   auto res =
       euro_units_from_coord_recursive( units_state, tile );
   erase_if( res, [&]( UnitId const id ) {
-    return units_state.unit_for( id ).nation() != nation;
+    return units_state.unit_for( id ).player_type() !=
+           player_type;
   } );
   return res;
 }
@@ -351,7 +352,7 @@ vector<UnitId> offboard_units_on_ship( SS& ss, TS& ts,
   UNWRAP_CHECK( cargo_units, ship.units_in_cargo() );
   for( UnitId const held_id : cargo_units ) {
     // We can use the non-interactive version here because there
-    // is already a unit of the same nation on the same square
+    // is already a unit of the same player on the same square
     // (i.e. the ship).
     UnitOwnershipChanger( ss, held_id )
         .change_to_map_non_interactive( ts, tile );
@@ -474,13 +475,13 @@ Coord coord_for_unit_multi_ownership_or_die( SSConst const& ss,
 *****************************************************************/
 namespace {
 
-LUA_FN( create_unit_on_map, Unit&, e_nation nation,
+LUA_FN( create_unit_on_map, Unit&, e_player const player_type,
         UnitComposition& comp, Coord const& coord ) {
   SS& ss                      = st["SS"].as<SS&>();
   TS& ts                      = st["TS"].as<TS&>();
-  maybe<Player const&> player = ss.players.players[nation];
+  maybe<Player const&> player = ss.players.players[player_type];
   LUA_CHECK( st, player.has_value(),
-             "player for nation {} does not exist.", nation );
+             "player for player {} does not exist.", player );
   UnitId id = create_unit_on_map_non_interactive(
       ss, ts, *player, comp, coord );
   lg.trace( "created a {} on square {}.",
@@ -508,12 +509,12 @@ LUA_FN( add_unit_to_cargo, void, UnitId held, UnitId holder ) {
       .change_to_cargo( holder, /*starting_slot=*/0 );
 }
 
-LUA_FN( create_unit_in_cargo, Unit&, e_nation nation,
+LUA_FN( create_unit_in_cargo, Unit&, e_player const player_type,
         UnitComposition& comp, UnitId holder ) {
   SS& ss                      = st["SS"].as<SS&>();
-  maybe<Player const&> player = ss.players.players[nation];
+  maybe<Player const&> player = ss.players.players[player_type];
   LUA_CHECK( st, player.has_value(),
-             "player for nation {} does not exist.", nation );
+             "player for player {} does not exist.", player );
   UnitId unit_id = create_free_unit( ss.units, *player, comp );
   lg.trace( "created unit {}.",
             debug_string( ss.units, unit_id ),

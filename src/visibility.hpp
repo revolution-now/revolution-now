@@ -59,8 +59,8 @@ struct IVisibility {
 
   virtual ~IVisibility() = default;
 
-  // Are we viewing from the perspective of a nation or not.
-  virtual base::maybe<e_nation> nation() const = 0;
+  // Are we viewing from the perspective of a player or not.
+  virtual base::maybe<e_player> player() const = 0;
 
   // Returns if the tile is visible in this rendering. If the
   // tile if off-map then they are always hidden (proto square).
@@ -125,7 +125,7 @@ struct VisibilityEntire : IVisibility {
   VisibilityEntire( SSConst const& ss );
 
  public: // Implement IVisibility.
-  base::maybe<e_nation> nation() const override {
+  base::maybe<e_player> player() const override {
     return base::nothing;
   };
 
@@ -148,11 +148,11 @@ struct VisibilityEntire : IVisibility {
 *****************************************************************/
 // For when we are viewing the map from a player's perspective.
 struct VisibilityForNation : IVisibility {
-  VisibilityForNation( SSConst const& ss, e_nation nation );
+  VisibilityForNation( SSConst const& ss, e_player player );
 
  public: // Implement IVisibility.
-  base::maybe<e_nation> nation() const override {
-    return nation_;
+  base::maybe<e_player> player() const override {
+    return player_;
   };
 
   e_tile_visibility visible( gfx::point tile ) const override;
@@ -171,7 +171,7 @@ struct VisibilityForNation : IVisibility {
 
   SSConst const& ss_;
   VisibilityEntire entire_;
-  e_nation const nation_                     = {};
+  e_player const player_                     = {};
   PlayerTerrain const* const player_terrain_ = nullptr;
 };
 
@@ -186,8 +186,8 @@ struct VisibilityWithOverrides : IVisibility {
       VisibilityOverrides const& overrides ATTR_LIFETIMEBOUND );
 
  public: // Implement IVisibility.
-  base::maybe<e_nation> nation() const override {
-    return underlying_.nation();
+  base::maybe<e_player> player() const override {
+    return underlying_.player();
   };
 
   e_tile_visibility visible( gfx::point tile ) const override;
@@ -208,17 +208,17 @@ struct VisibilityWithOverrides : IVisibility {
 /****************************************************************
 ** Public API
 *****************************************************************/
-// Selects the standard instance usable given the nation status.
+// Selects the standard instance usable given the player status.
 std::unique_ptr<IVisibility const> create_visibility_for(
-    SSConst const& ss, maybe<e_nation> nation );
+    SSConst const& ss, maybe<e_player> player );
 
 // Returns true if, were that nation's view to be currently ren-
 // dered, the square would be visible and clear. This could mean
 // that it is actively visible by some unit now, or it could mean
 // that it was explored earlier in the turn and is still consid-
 // ered visible and clear.
-bool does_nation_have_fog_removed_on_square( SSConst const& ss,
-                                             e_nation nation,
+bool does_player_have_fog_removed_on_square( SSConst const& ss,
+                                             e_player player,
                                              gfx::point tile );
 
 // This will look up the unit type's sighting radius, and then
@@ -233,7 +233,7 @@ bool does_nation_have_fog_removed_on_square( SSConst const& ss,
 // cent islands (which would be easily possible after getting De
 // Soto, in which case it would have 7x7 site).
 std::vector<Coord> unit_visible_squares( SSConst const& ss,
-                                         e_nation nation,
+                                         e_player player,
                                          e_unit_type type,
                                          gfx::point tile );
 
@@ -253,13 +253,13 @@ std::vector<Coord> unit_visible_squares( SSConst const& ss,
 // change on a tile that is not adjacent to a unit, but that can
 // only happen after the player's turn ends and other players
 // start moving.
-void recompute_fog_for_nation( SS& ss, TS& ts, e_nation nation );
+void recompute_fog_for_player( SS& ss, TS& ts, e_player player );
 
 // This will update map visibility to be front the perspective of
-// the given nation (or the entire map visible if the `nation`
+// the given player (or the entire map visible if the `nation`
 // parameter is nothing), This process may include redrawing the
 // map if necessary.
-void update_map_visibility( TS& ts, maybe<e_nation> nation );
+void update_map_visibility( TS& ts, maybe<e_player> player );
 
 // Used to determine if a unit move should be animated, which
 // happens if either the source or destination tiles of the move
@@ -286,7 +286,7 @@ bool should_animate_move( IVisibility const& viz, gfx::point src,
 // back to whatever it was. Note that if the entire map is vis-
 // ible from the start, then no change will be done.
 struct [[nodiscard]] ScopedMapViewer {
-  ScopedMapViewer( SS& ss, TS& ts, e_nation const nation );
+  ScopedMapViewer( SS& ss, TS& ts, e_player const player );
   ~ScopedMapViewer();
 
   ScopedMapViewer( ScopedMapViewer&& ) = delete;
@@ -296,10 +296,10 @@ struct [[nodiscard]] ScopedMapViewer {
 
   SS& ss_;
   TS& ts_;
-  maybe<e_nation> const old_nation_;
+  maybe<e_player> const old_player_;
   // unique_ptr so that we can fwd declare.
   std::unique_ptr<MapRevealed const> const old_map_revealed_;
-  e_nation const new_nation_;
+  e_player const new_player_;
 };
 
 } // namespace rn

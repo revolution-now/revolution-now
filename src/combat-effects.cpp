@@ -74,7 +74,7 @@ UnitCombatEffectsMessages euro_unit_combat_effects_msg(
     EuroUnitCombatOutcome const& outcome ) {
   UnitCombatEffectsMessages res;
 
-  auto capture_unit = [&]( e_nation new_nation ) {
+  auto capture_unit = [&]( e_player new_player ) {
     string qualifier;
     switch( unit.type() ) {
       case e_unit_type::treasure: {
@@ -91,9 +91,9 @@ UnitCombatEffectsMessages euro_unit_combat_effects_msg(
     }
     res.for_both.push_back( fmt::format(
         "[{}] [{}]{} captured by the [{}]!",
-        nation_possessive( player ), unit.desc().name, qualifier,
-        nation_display_name( player_for_nation_or_die(
-            ss.players, new_nation ) ) ) );
+        player_possessive( player ), unit.desc().name, qualifier,
+        player_display_name( player_for_player_or_die(
+            ss.players, new_player ) ) ) );
   };
 
   SWITCH( outcome ) {
@@ -103,24 +103,24 @@ UnitCombatEffectsMessages euro_unit_combat_effects_msg(
         case e_unit_type::damaged_artillery:
           res.for_both.push_back( fmt::format(
               "Damaged [{}] Artillery has been [destroyed].",
-              nation_possessive( player ) ) );
+              player_possessive( player ) ) );
           break;
         default:
           // This will be scouts, pioneers, missionaries, and ar-
           // tillery.
           res.for_owner.push_back( fmt::format(
               "[{}] [{}] lost in battle.",
-              nation_possessive( player ), unit.desc().name ) );
+              player_possessive( player ), unit.desc().name ) );
           break;
       }
       break;
     }
     CASE( captured ) {
-      capture_unit( captured.new_nation );
+      capture_unit( captured.new_player );
       break;
     }
     CASE( captured_and_demoted ) {
-      capture_unit( captured_and_demoted.new_nation );
+      capture_unit( captured_and_demoted.new_player );
       string msg = "Unit demoted upon capture.";
       if( unit.type() == e_unit_type::veteran_colonist )
         msg = "Veteran status lost upon capture.";
@@ -136,7 +136,7 @@ UnitCombatEffectsMessages euro_unit_combat_effects_msg(
           res.for_both.push_back( fmt::format(
               "[{}] Artillery [damaged]. Further damage will "
               "destroy it.",
-              nation_possessive( player ) ) );
+              player_possessive( player ) ) );
           break;
         default:
           string demoted_to;
@@ -147,7 +147,7 @@ UnitCombatEffectsMessages euro_unit_combat_effects_msg(
             demoted_to = fmt::format( "[{}]", to_desc.name );
           res.for_both.push_back( fmt::format(
               "[{}] [{}] routed! Unit demoted to {}.",
-              nation_possessive( player ), unit.desc().name,
+              player_possessive( player ), unit.desc().name,
               demoted_to ) );
           break;
       }
@@ -159,13 +159,13 @@ UnitCombatEffectsMessages euro_unit_combat_effects_msg(
         res.for_owner.push_back( fmt::format(
             "[{}] {}, acting as {}, has been promoted to [{}] "
             "for victory in combat!",
-            nation_possessive( player ),
+            player_possessive( player ),
             unit_attr( unit.base_type() ).name, unit.desc().name,
             unit_attr( promoted.to.base_type() ).name ) );
       } else {
         res.for_owner.push_back( fmt::format(
             "[{}] {} promoted to [{}] for victory in combat!",
-            nation_possessive( player ), unit.desc().name,
+            player_possessive( player ), unit.desc().name,
             unit_attr( promoted.to ).name ) );
       }
       break;
@@ -221,7 +221,7 @@ UnitCombatEffectsMessages native_unit_combat_effects_msg(
 
 std::string naval_battle_opponent_clause(
     SSConst const& ss, NavalBattleOpponent const& opponent ) {
-  e_nation nation = {};
+  e_player player = {};
   string unit_part;
   SWITCH( opponent ) {
     CASE( colony ) {
@@ -241,22 +241,22 @@ std::string naval_battle_opponent_clause(
           opposing_colony.buildings[e_colony_building::fort] ||
           opposing_colony
               .buildings[e_colony_building::fortress] );
-      nation = opposing_colony.nation;
+      player = opposing_colony.player;
       unit_part =
           config_colony.building_display_names[*fortification];
       break;
     }
     CASE( unit ) {
       Unit const& opponent_unit = ss.units.unit_for( unit.id );
-      nation                    = opponent_unit.nation();
+      player                    = opponent_unit.player_type();
       unit_part                 = opponent_unit.desc().name;
       break;
     }
   }
   return fmt::format(
       "[{}] [{}]",
-      nation_possessive(
-          player_for_nation_or_die( ss.players, nation ) ),
+      player_possessive(
+          player_for_player_or_die( ss.players, player ) ),
       unit_part );
 }
 
@@ -277,7 +277,7 @@ UnitCombatEffectsMessages naval_unit_combat_effects_msg(
     CASE( moved ) { break; }
     CASE( damaged ) {
       res.for_both.push_back( ship_damaged_message(
-          ss, unit.nation(), unit.type(),
+          ss, unit.player_type(), unit.type(),
           e_ship_damaged_reason::battle, damaged.port ) );
       add_units_lost();
       break;
@@ -285,8 +285,8 @@ UnitCombatEffectsMessages naval_unit_combat_effects_msg(
     CASE( sunk ) {
       res.for_both.push_back( fmt::format(
           "[{}] [{}] sunk by {}.",
-          nation_possessive( player_for_nation_or_die(
-              ss.players, unit.nation() ) ),
+          player_possessive( player_for_player_or_die(
+              ss.players, unit.player_type() ) ),
           unit.desc().name,
           naval_battle_opponent_clause( ss, opponent ) ) );
       add_units_lost();
@@ -299,27 +299,27 @@ UnitCombatEffectsMessages naval_unit_combat_effects_msg(
 /****************************************************************
 ** Producing combat summaries.
 *****************************************************************/
-// The "unit" is the one whose nation we are summarizing for.
+// The "unit" is the one whose player we are summarizing for.
 string summarize_for_entity(
-    SSConst const& ss, bool won, e_nation unit_nation,
+    SSConst const& ss, bool won, e_player const unit_player_type,
     Coord unit_coord, string_view unit_name,
-    e_nation opponent_nation, Coord opponent_coord,
+    e_player const opponent_player_type, Coord opponent_coord,
     string_view opponent_name, string_view near_default ) {
   Player const& unit_player =
-      player_for_nation_or_die( ss.players, unit_nation );
-  Player const& opponent_player =
-      player_for_nation_or_die( ss.players, opponent_nation );
-  string_view const nation_adj =
-      nation_possessive( unit_player );
-  string_view const nation_name =
-      nation_display_name( unit_player );
-  string_view const opponent_nation_adj =
-      nation_possessive( opponent_player );
-  string_view const opponent_nation_name =
-      nation_display_name( opponent_player );
+      player_for_player_or_die( ss.players, unit_player_type );
+  Player const& opponent_player = player_for_player_or_die(
+      ss.players, opponent_player_type );
+  string_view const player_adj =
+      player_possessive( unit_player );
+  string_view const player_name =
+      player_display_name( unit_player );
+  string_view const opponent_player_adj =
+      player_possessive( opponent_player );
+  string_view const opponent_player_name =
+      player_display_name( opponent_player );
   maybe<Colony const&> const closest_colony =
       find_close_explored_colony(
-          ss, unit_nation, unit_coord,
+          ss, unit_player_type, unit_coord,
           /*max_distance=*/
           config_colony.search_dist_for_nearby_colony );
   string const colony_str =
@@ -331,11 +331,11 @@ string summarize_for_entity(
           : string( near_default );
   // E.g. "[English] Artillery defeats [French] near Roanoke!".
   return won ? fmt::format( "[{}] {} defeats [{}]{}!",
-                            nation_adj, unit_name,
-                            opponent_nation_name, colony_str )
+                            player_adj, unit_name,
+                            opponent_player_name, colony_str )
              : fmt::format( "[{}] {} defeats [{}]{}!",
-                            opponent_nation_adj, opponent_name,
-                            nation_name, colony_str );
+                            opponent_player_adj, opponent_name,
+                            player_name, colony_str );
 }
 
 string summarize_for_euro_unit( SSConst const& ss, bool won,
@@ -345,9 +345,9 @@ string summarize_for_euro_unit( SSConst const& ss, bool won,
   Unit const& unit     = ss.units.unit_for( unit_stats.id );
   Unit const& opponent = ss.units.unit_for( opponent_stats.id );
   return summarize_for_entity(
-      ss, won, unit.nation(),
+      ss, won, unit.player_type(),
       coord_for_unit_multi_ownership_or_die( ss, unit.id() ),
-      unit.desc().name, opponent.nation(),
+      unit.desc().name, opponent.player_type(),
       coord_for_unit_multi_ownership_or_die( ss, opponent.id() ),
       opponent.desc().name, near_default );
 }
@@ -369,15 +369,15 @@ CombatEffectsSummaries summarize_combat_outcome(
 CombatEffectsSummaries summarize_combat_outcome(
     SSConst const& ss, CombatBraveAttackEuro const& combat ) {
   Unit const& defender = ss.units.unit_for( combat.defender.id );
-  Player const& defending_player =
-      player_for_nation_or_die( ss.players, defender.nation() );
+  Player const& defending_player = player_for_player_or_die(
+      ss.players, defender.player_type() );
   NativeUnit const& attacker =
       ss.units.unit_for( combat.attacker.id );
   e_tribe const tribe_type = tribe_type_for_unit( ss, attacker );
   string_view const tribe_name =
       config_natives.tribes[tribe_type].name_singular;
-  string_view const nation_adj =
-      nation_possessive( defending_player );
+  string_view const player_adj =
+      player_possessive( defending_player );
   string_view const euro_unit_name = defender.desc().name;
   string_view const native_unit_name =
       unit_attr( attacker.type ).name;
@@ -385,7 +385,7 @@ CombatEffectsSummaries summarize_combat_outcome(
       coord_for_unit_multi_ownership_or_die( ss, defender.id() );
   maybe<Colony const&> const closest_colony =
       find_close_explored_colony(
-          ss, defender.nation(), defender_coord,
+          ss, defender.player_type(), defender_coord,
           /*max_distance=*/
           config_colony.search_dist_for_nearby_colony );
   CHECK( !closest_colony.has_value() ||
@@ -402,13 +402,13 @@ CombatEffectsSummaries summarize_combat_outcome(
       // singular and plural unit names.
       return { .defender = fmt::format(
                    "[{}] ambush [{}] [{}]{}!", tribe_name,
-                   nation_adj, euro_unit_name, colony_str ) };
+                   player_adj, euro_unit_name, colony_str ) };
     }
     case e_combat_winner::defender: {
       // European wins.
       // "[English] Artillery defeats [Sioux] near Roanoke!".
       return { .defender = fmt::format(
-                   "[{}] {} defeats [{}] {}{}!", nation_adj,
+                   "[{}] {} defeats [{}] {}{}!", player_adj,
                    euro_unit_name, tribe_name, native_unit_name,
                    colony_str ) };
     }
@@ -418,15 +418,15 @@ CombatEffectsSummaries summarize_combat_outcome(
 CombatEffectsSummaries summarize_combat_outcome(
     SSConst const& ss, CombatEuroAttackBrave const& combat ) {
   Unit const& attacker = ss.units.unit_for( combat.attacker.id );
-  Player const& attacking_player =
-      player_for_nation_or_die( ss.players, attacker.nation() );
+  Player const& attacking_player = player_for_player_or_die(
+      ss.players, attacker.player_type() );
   NativeUnit const& defender =
       ss.units.unit_for( combat.defender.id );
   e_tribe const tribe_type = tribe_type_for_unit( ss, defender );
   string_view const tribe_name =
       config_natives.tribes[tribe_type].name_singular;
-  string_view const nation_adj =
-      nation_possessive( attacking_player );
+  string_view const player_adj =
+      player_possessive( attacking_player );
   string_view const euro_unit_name = attacker.desc().name;
   string_view const native_unit_name =
       unit_attr( defender.type ).name;
@@ -434,7 +434,7 @@ CombatEffectsSummaries summarize_combat_outcome(
       coord_for_unit_multi_ownership_or_die( ss, attacker.id() );
   maybe<Colony const&> const closest_colony =
       find_close_explored_colony(
-          ss, attacker.nation(), attacker_coord,
+          ss, attacker.player_type(), attacker_coord,
           /*max_distance=*/
           config_colony.search_dist_for_nearby_colony );
   string const proximity_str =
@@ -444,14 +444,14 @@ CombatEffectsSummaries summarize_combat_outcome(
   switch( combat.winner ) {
     case e_combat_winner::attacker: {
       return { .attacker = fmt::format(
-                   "[{}] {} defeats [{}] {}{}!", nation_adj,
+                   "[{}] {} defeats [{}] {}{}!", player_adj,
                    euro_unit_name, tribe_name, native_unit_name,
                    proximity_str ) };
     }
     case e_combat_winner::defender: {
       return { .attacker = fmt::format(
                    "[{}] defeat [{}] [{}]{}!", tribe_name,
-                   nation_adj, euro_unit_name, proximity_str ) };
+                   player_adj, euro_unit_name, proximity_str ) };
     }
   }
 }
@@ -463,15 +463,15 @@ summarize_non_destroying_combat_outcome_in_colony(
     SSConst const& ss, CombatBraveAttackColony const& combat,
     Colony const& colony ) {
   Unit const& defender = ss.units.unit_for( combat.defender.id );
-  Player const& defending_player =
-      player_for_nation_or_die( ss.players, defender.nation() );
+  Player const& defending_player = player_for_player_or_die(
+      ss.players, defender.player_type() );
   NativeUnit const& attacker =
       ss.units.unit_for( combat.attacker.id );
   e_tribe const tribe_type = tribe_type_for_unit( ss, attacker );
   string_view const tribe_name =
       config_natives.tribes[tribe_type].name_singular;
-  string_view const nation_adj =
-      nation_possessive( defending_player );
+  string_view const player_adj =
+      player_possessive( defending_player );
   string_view const euro_unit_name = defender.desc().name;
   switch( combat.winner ) {
     case e_combat_winner::attacker: {
@@ -479,7 +479,7 @@ summarize_non_destroying_combat_outcome_in_colony(
       // singular and plural unit names.
       return { .defender = fmt::format(
                    "[{}] ambush [{}] [{}] in [{}]!", tribe_name,
-                   nation_adj, euro_unit_name, colony.name ) };
+                   player_adj, euro_unit_name, colony.name ) };
     }
     case e_combat_winner::defender: {
       // European wins.
@@ -509,11 +509,11 @@ CombatEffectsSummaries summarize_colony_burn_combat_outcome(
   Colony const& colony =
       ss.colonies.colony_for( combat.colony_id );
   Player const& colony_player =
-      player_for_nation_or_die( ss.players, colony.nation );
-  string_view const nation_adj =
-      nation_possessive( colony_player );
+      player_for_player_or_die( ss.players, colony.player );
+  string_view const player_adj =
+      player_possessive( colony_player );
   Player const& player =
-      player_for_nation_or_die( ss.players, colony.nation );
+      player_for_player_or_die( ss.players, colony.player );
   string const king_part =
       ( player.revolution.status <
         e_revolution_status::declared )
@@ -524,7 +524,7 @@ CombatEffectsSummaries summarize_colony_burn_combat_outcome(
   return { .defender = fmt::format(
                "[{}] massacre [{}] population in [{}]! Colony "
                "set ablaze and decimated!{}",
-               tribe_name, nation_adj, colony.name,
+               tribe_name, player_adj, colony.name,
                king_part ) };
 }
 
@@ -559,21 +559,21 @@ CombatEffectsSummaries summarize_combat_outcome(
       "coastal fortification";
   return { .attacker = summarize_for_entity(
                ss, combat.winner == e_combat_winner::attacker,
-               colony.nation, colony.location, kAttackerName,
-               defender.nation(), defender_coord,
+               colony.player, colony.location, kAttackerName,
+               defender.player_type(), defender_coord,
                defender.desc().name, kNearDefault ),
            .defender = summarize_for_entity(
                ss, combat.winner == e_combat_winner::defender,
-               defender.nation(), defender_coord,
-               defender.desc().name, colony.nation,
+               defender.player_type(), defender_coord,
+               defender.desc().name, colony.player,
                colony.location, kAttackerName, kNearDefault ) };
 }
 
 CombatEffectsSummaries summarize_combat_outcome(
     SSConst const& ss, CombatEuroAttackDwelling const& combat ) {
   Unit const& attacker = ss.units.unit_for( combat.attacker.id );
-  Player const& attacking_player =
-      player_for_nation_or_die( ss.players, attacker.nation() );
+  Player const& attacking_player = player_for_player_or_die(
+      ss.players, attacker.player_type() );
   DwellingId const dwelling_id = combat.defender.id;
   e_tribe const tribe_type =
       ss.natives.tribe_for( dwelling_id ).type;
@@ -585,14 +585,14 @@ CombatEffectsSummaries summarize_combat_outcome(
       config_natives.tribes[tribe_type].name_singular;
   string_view const tribe_adj =
       config_natives.tribes[tribe_type].name_possessive;
-  string_view const nation_adj =
-      nation_possessive( attacking_player );
+  string_view const player_adj =
+      player_possessive( attacking_player );
   string_view const euro_unit_name = attacker.desc().name;
   Coord const attacker_coord =
       coord_for_unit_multi_ownership_or_die( ss, attacker.id() );
   maybe<Colony const&> const closest_colony =
       find_close_explored_colony(
-          ss, attacker.nation(), attacker_coord,
+          ss, attacker.player_type(), attacker_coord,
           /*max_distance=*/
           config_colony.search_dist_for_nearby_colony );
   string const proximity_str =
@@ -603,13 +603,13 @@ CombatEffectsSummaries summarize_combat_outcome(
   switch( combat.winner ) {
     case e_combat_winner::attacker: {
       return { .attacker = fmt::format(
-                   "[{}] {} defeats [{}] Brave{}!", nation_adj,
+                   "[{}] {} defeats [{}] Brave{}!", player_adj,
                    euro_unit_name, tribe_name, proximity_str ) };
     }
     case e_combat_winner::defender: {
       return { .attacker = fmt::format(
                    "[{}] defeat [{}] [{}]{}!", tribe_name,
-                   nation_adj, euro_unit_name, proximity_str ) };
+                   player_adj, euro_unit_name, proximity_str ) };
     }
   }
 }
@@ -646,10 +646,10 @@ CombatEffectsMessages combat_effects_msg(
     SSConst const& ss, CombatEuroAttackEuro const& combat ) {
   auto& attacker = ss.units.unit_for( combat.attacker.id );
   auto& defender = ss.units.unit_for( combat.defender.id );
-  Player const& attacking_player =
-      player_for_nation_or_die( ss.players, attacker.nation() );
-  Player const& defending_player =
-      player_for_nation_or_die( ss.players, defender.nation() );
+  Player const& attacking_player = player_for_player_or_die(
+      ss.players, attacker.player_type() );
+  Player const& defending_player = player_for_player_or_die(
+      ss.players, defender.player_type() );
   return { .summaries = summarize_combat_outcome( ss, combat ),
            .attacker  = euro_unit_combat_effects_msg(
                ss, attacking_player, attacker,
@@ -663,18 +663,18 @@ CombatEffectsMessages combat_effects_msg(
     SSConst const& ss, CombatShipAttackShip const& combat ) {
   auto& attacker = ss.units.unit_for( combat.attacker.id );
   auto& defender = ss.units.unit_for( combat.defender.id );
-  Player const& attacking_player =
-      player_for_nation_or_die( ss.players, attacker.nation() );
-  Player const& defending_player =
-      player_for_nation_or_die( ss.players, defender.nation() );
+  Player const& attacking_player = player_for_player_or_die(
+      ss.players, attacker.player_type() );
+  Player const& defending_player = player_for_player_or_die(
+      ss.players, defender.player_type() );
   CombatEffectsMessages res;
   if( !combat.winner.has_value() ) {
     // Defender evaded.
     string const evade_msg =
         fmt::format( "[{}] [{}] evades [{}] [{}].",
-                     nation_possessive( defending_player ),
+                     player_possessive( defending_player ),
                      defender.desc().name,
-                     nation_possessive( attacking_player ),
+                     player_possessive( attacking_player ),
                      attacker.desc().name );
     res = { .summaries = summarize_combat_outcome( ss, combat ),
             .defender  = { .for_both = { evade_msg } } };
@@ -723,8 +723,8 @@ CombatEffectsMessages combat_effects_msg(
     SSConst const& ss, CombatEuroAttackBrave const& combat ) {
   auto& attacker = ss.units.unit_for( combat.attacker.id );
   auto& defender = ss.units.unit_for( combat.defender.id );
-  Player const& attacking_player =
-      player_for_nation_or_die( ss.players, attacker.nation() );
+  Player const& attacking_player = player_for_player_or_die(
+      ss.players, attacker.player_type() );
   return { .summaries = summarize_combat_outcome( ss, combat ),
            .attacker  = euro_unit_combat_effects_msg(
                ss, attacking_player, attacker,
@@ -737,8 +737,8 @@ CombatEffectsMessages combat_effects_msg(
     SSConst const& ss, CombatBraveAttackEuro const& combat ) {
   auto& attacker = ss.units.unit_for( combat.attacker.id );
   auto& defender = ss.units.unit_for( combat.defender.id );
-  Player const& defending_player =
-      player_for_nation_or_die( ss.players, defender.nation() );
+  Player const& defending_player = player_for_player_or_die(
+      ss.players, defender.player_type() );
   return { .summaries = summarize_combat_outcome( ss, combat ),
            .attacker  = native_unit_combat_effects_msg(
                ss, attacker, combat.attacker.outcome ),
@@ -757,8 +757,8 @@ CombatEffectsMessages combat_effects_msg(
 CombatEffectsMessages combat_effects_msg(
     SSConst const& ss, CombatEuroAttackDwelling const& combat ) {
   auto& attacker = ss.units.unit_for( combat.attacker.id );
-  Player const& attacking_player =
-      player_for_nation_or_die( ss.players, attacker.nation() );
+  Player const& attacking_player = player_for_player_or_die(
+      ss.players, attacker.player_type() );
   return { .summaries = summarize_combat_outcome( ss, combat ),
            .attacker  = euro_unit_combat_effects_msg(
                ss, attacking_player, attacker,
@@ -768,8 +768,8 @@ CombatEffectsMessages combat_effects_msg(
 CombatEffectsMessages combat_effects_msg(
     SSConst const& ss, CombatBraveAttackColony const& combat ) {
   auto& defender = ss.units.unit_for( combat.defender.id );
-  Player const& defending_player =
-      player_for_nation_or_die( ss.players, defender.nation() );
+  Player const& defending_player = player_for_player_or_die(
+      ss.players, defender.player_type() );
   if( !combat.colony_destroyed )
     return {
       .summaries =
@@ -797,8 +797,8 @@ CombatEffectsMessages combat_effects_msg(
     SSConst const& ss,
     CombatEuroAttackUndefendedColony const& combat ) {
   auto& attacker = ss.units.unit_for( combat.attacker.id );
-  Player const& attacking_player =
-      player_for_nation_or_die( ss.players, attacker.nation() );
+  Player const& attacking_player = player_for_player_or_die(
+      ss.players, attacker.player_type() );
   return { .summaries = summarize_combat_outcome( ss, combat ),
            .attacker  = euro_unit_combat_effects_msg(
                ss, attacking_player, attacker,
@@ -894,19 +894,19 @@ wait<> show_combat_effects_msg(
 void perform_euro_unit_combat_effects(
     SS& ss, TS& ts, Unit& unit,
     EuroUnitCombatOutcome const& outcome ) {
-  auto capture_unit = [&]( e_nation new_nation,
+  auto capture_unit = [&]( e_player new_player,
                            Coord new_coord ) {
     // We need to use this special function to do the nation
     // change and the move at the same time. If we did the move
     // first then there would be an intermediate state where we'd
     // have multiple units of different nations on the same
     // square, which we don't want. On the other hand, if we were
-    // to do the the nation change first then it would cause the
+    // to do the the player change first then it would cause the
     // map squares around the captured unit to be revealed to the
-    // capturing nation (since the captured unit is still on the
-    // original square when the nation change happens) which ends
+    // capturing player (since the captured unit is still on the
+    // original square when the player change happens) which ends
     // up looking visually surprising and confusing.
-    change_unit_nation_and_move( ss, ts, unit, new_nation,
+    change_unit_player_and_move( ss, ts, unit, new_player,
                                  new_coord );
     // This is so that the captured unit won't ask for orders
     // in the same turn that it is captured.
@@ -921,11 +921,11 @@ void perform_euro_unit_combat_effects(
       break;
     }
     CASE( captured ) {
-      capture_unit( captured.new_nation, captured.new_coord );
+      capture_unit( captured.new_player, captured.new_coord );
       break;
     }
     CASE( captured_and_demoted ) {
-      capture_unit( captured_and_demoted.new_nation,
+      capture_unit( captured_and_demoted.new_player,
                     captured_and_demoted.new_coord );
       change_unit_type( ss, ts, unit, captured_and_demoted.to );
       break;

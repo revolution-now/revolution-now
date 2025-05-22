@@ -63,10 +63,10 @@ wait<> notify_captured_cargo_human( IGui& gui,
                                     Commodity const& stolen ) {
   string const text = fmt::format(
       "[{} {}] has captured [{} {}] from [{}] cargo!",
-      nation_possessive( dst_player ), dst_unit.desc().name,
+      player_possessive( dst_player ), dst_unit.desc().name,
       stolen.quantity,
       lowercase_commodity_display_name( stolen.type ),
-      nation_possessive( src_player ) );
+      player_possessive( src_player ) );
   co_await gui.message_box( "{}", text );
 }
 
@@ -74,14 +74,14 @@ wait<CapturableCargoItems> select_items_to_capture_ui(
     SSConst const& ss, IGui& gui, UnitId const src,
     UnitId const dst, CapturableCargo const& capturable ) {
   CapturableCargoItems res;
-  auto const& src_unit      = ss.units.unit_for( src );
-  auto const& dst_unit      = ss.units.unit_for( dst );
-  e_nation const src_nation = src_unit.nation();
-  e_nation const dst_nation = dst_unit.nation();
+  auto const& src_unit           = ss.units.unit_for( src );
+  auto const& dst_unit           = ss.units.unit_for( dst );
+  e_player const src_player_type = src_unit.player_type();
+  e_player const dst_player_type = dst_unit.player_type();
   Player const& src_player =
-      player_for_nation_or_die( ss.players, src_nation );
+      player_for_player_or_die( ss.players, src_player_type );
   Player const& dst_player =
-      player_for_nation_or_die( ss.players, dst_nation );
+      player_for_player_or_die( ss.players, dst_player_type );
   if( capturable.items.commodities.empty() ) co_return res;
   if( capturable.max_take >=
       ssize( capturable.items.commodities ) ) {
@@ -99,7 +99,7 @@ wait<CapturableCargoItems> select_items_to_capture_ui(
     ChoiceConfig config{
       .msg = fmt::format(
           "Select a cargo item to capture from [{} {}]:",
-          nation_possessive( src_player ),
+          player_possessive( src_player ),
           src_unit.desc().name ),
       .options = {},
     };

@@ -23,6 +23,7 @@
 #include "config/unit-type.hpp"
 
 // ss
+#include "ss/nation.hpp"
 #include "ss/old-world-state.rds.hpp"
 #include "ss/player.hpp"
 #include "ss/ref.hpp"
@@ -68,11 +69,11 @@ struct UnitCounts {
 };
 
 UnitCounts unit_counts( UnitsState const& units_state,
-                        e_nation nation ) {
+                        e_player player ) {
   UnitCounts counts;
   for( auto const& [id, state] : units_state.euro_all() ) {
     Unit const& unit = state->unit;
-    if( unit.nation() != nation ) continue;
+    if( unit.player_type() != player ) continue;
     ++counts.total_units;
     if( auto harbor =
             state->ownership.get_if<UnitOwnership::harbor>();
@@ -152,7 +153,7 @@ e_unit_type pick_next_unit_for_pool(
 }
 
 CrossesCalculation compute_crosses(
-    UnitsState const& units_state, e_nation nation ) {
+    UnitsState const& units_state, e_player const player_type ) {
   // First compute the crosses bonus from the dock.
   //
   // The original game gives an extra two crosses per turn when
@@ -172,7 +173,7 @@ CrossesCalculation compute_crosses(
   // and just moving units onto it each time one appears on dock
   // to immediately regain the dock bonus.
   auto const [total_units, units_on_dock, harbor_cargo_units] =
-      unit_counts( units_state, nation );
+      unit_counts( units_state, player_type );
   int const effective_units_on_dock =
       units_on_dock + harbor_cargo_units;
   int const dock_crosses_bonus =
@@ -213,8 +214,9 @@ CrossesCalculation compute_crosses(
   // This is what will incorporate the English's special ability
   // to more quickly attract immigrants.
   int const crosses_needed = std::lround(
-      default_crosses_needed * config_nation.abilities[nation]
-                                   .crosses_needed_multiplier );
+      default_crosses_needed *
+      config_nation.abilities[european_nation_for( player_type )]
+          .crosses_needed_multiplier );
 
   return CrossesCalculation{
     .dock_crosses_bonus = dock_crosses_bonus,
@@ -233,8 +235,7 @@ void add_player_crosses( Player& player,
   int const delta =
       total_colonies_cross_production + dock_crosses_bonus;
   if( delta < 0 ) return;
-  lg.debug( "{} crosses increased by {}.", player.nation,
-            delta );
+  lg.debug( "{} crosses increased by {}.", player.type, delta );
   player.crosses += delta;
 }
 
@@ -318,7 +319,7 @@ void rush_recruit_next_immigrant( SS& ss, TS& ts, Player& player,
              player.old_world.immigration, slot_selected,
              replacement ) == selected_type );
   CrossesCalculation const crosses =
-      compute_crosses( ss.units, player.nation );
+      compute_crosses( ss.units, player.type );
   player.money -= cost_of_recruit(
       player, crosses.crosses_needed,
       ss.settings.game_setup_options.difficulty );

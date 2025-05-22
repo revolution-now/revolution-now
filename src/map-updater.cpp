@@ -67,16 +67,16 @@ BuffersUpdated NonRenderingMapUpdater::modify_map_square(
   return BuffersUpdated{
     .tile      = tile,
     .landscape = ( new_square != old_square ) &&
-                 ( !options().nation.has_value() ||
-                   does_nation_have_fog_removed_on_square(
-                       ss_, *options().nation, tile ) ) };
+                 ( !options().player.has_value() ||
+                   does_player_have_fog_removed_on_square(
+                       ss_, *options().player, tile ) ) };
 }
 
 vector<BuffersUpdated>
 NonRenderingMapUpdater::make_squares_visible(
-    e_nation nation, vector<Coord> const& tiles ) {
+    e_player player, vector<Coord> const& tiles ) {
   auto& map = ss_.mutable_terrain_use_with_care
-                  .mutable_player_terrain( nation )
+                  .mutable_player_terrain( player )
                   .map;
 
   unordered_set<Coord> hit;
@@ -133,9 +133,9 @@ NonRenderingMapUpdater::make_squares_visible(
 // Implement IMapUpdater.
 vector<BuffersUpdated>
 NonRenderingMapUpdater::make_squares_fogged(
-    e_nation nation, vector<Coord> const& tiles ) {
+    e_player player, vector<Coord> const& tiles ) {
   auto& map = ss_.mutable_terrain_use_with_care
-                  .mutable_player_terrain( nation )
+                  .mutable_player_terrain( player )
                   .map;
 
   vector<BuffersUpdated> res;
@@ -277,7 +277,7 @@ void RenderingMapUpdater::redraw_buffers_for_tiles_where_needed(
   TerrainRenderOptions const terrain_options =
       make_terrain_options( options() );
   unique_ptr<IVisibility const> const viz =
-      create_visibility_for( ss_, options().nation );
+      create_visibility_for( ss_, options().player );
 
   // Note: in the below, we need to draw the surrounding squares
   // because a visibility change in one square can reveal part of
@@ -347,27 +347,27 @@ BuffersUpdated RenderingMapUpdater::modify_map_square(
 }
 
 vector<BuffersUpdated> RenderingMapUpdater::make_squares_visible(
-    e_nation nation, vector<Coord> const& tiles ) {
+    e_player player, vector<Coord> const& tiles ) {
   vector<BuffersUpdated> buffers_updated =
-      this->Base::make_squares_visible( nation, tiles );
+      this->Base::make_squares_visible( player, tiles );
   // If entire map is visible then there is no need to render.
-  if( !options().nation.has_value() ) return buffers_updated;
-  // If it's another nation then not relevant for rendering.
-  if( nation != *options().nation ) return buffers_updated;
+  if( !options().player.has_value() ) return buffers_updated;
+  // If it's another player then not relevant for rendering.
+  if( player != *options().player ) return buffers_updated;
   redraw_buffers_for_tiles_where_needed( buffers_updated );
   return buffers_updated;
 }
 
 vector<BuffersUpdated> RenderingMapUpdater::make_squares_fogged(
-    e_nation nation, vector<Coord> const& tiles ) {
+    e_player player, vector<Coord> const& tiles ) {
   vector<BuffersUpdated> buffers_updated =
-      this->Base::make_squares_fogged( nation, tiles );
+      this->Base::make_squares_fogged( player, tiles );
   vector<BuffersUpdated> empty( tiles.size() );
   // If the entire map is visible then there is also no fog ren-
   // dered anywhere, so no need to re-render.
-  if( !options().nation.has_value() ) return buffers_updated;
-  // If it's another nation then not relevant for rendering.
-  if( nation != *options().nation ) return buffers_updated;
+  if( !options().player.has_value() ) return buffers_updated;
+  // If it's another player then not relevant for rendering.
+  if( player != *options().player ) return buffers_updated;
   redraw_buffers_for_tiles_where_needed( buffers_updated );
   return buffers_updated;
 }
@@ -395,7 +395,7 @@ void RenderingMapUpdater::redraw_landscape_buffer() {
   TerrainRenderOptions const terrain_options =
       make_terrain_options( options() );
   unique_ptr<IVisibility const> const viz =
-      create_visibility_for( ss_, options().nation );
+      create_visibility_for( ss_, options().player );
   render_landscape_buffer( renderer_, *viz, terrain_options,
                            landscape_tracking_.tile_bounds );
   // Reset this since we just redrew the map.
@@ -409,7 +409,7 @@ void RenderingMapUpdater::redraw_obfuscation_buffer() {
   TerrainRenderOptions const terrain_options =
       make_terrain_options( options() );
   unique_ptr<IVisibility const> const viz =
-      create_visibility_for( ss_, options().nation );
+      create_visibility_for( ss_, options().player );
   render_obfuscation_buffer( renderer_, *viz, terrain_options,
                              obfuscation_tracking_.tile_bounds );
   // Reset this since we just redrew the map.
