@@ -58,8 +58,8 @@ struct World : testing::World {
     create_default_map();
   }
 
-  inline static e_player const kAttackerNation = e_player::dutch;
-  inline static e_player const kDefenderNation =
+  inline static e_player const kAttackerPlayer = e_player::dutch;
+  inline static e_player const kDefenderPlayer =
       e_player::french;
 
   inline static e_tribe const kNativeTribe = e_tribe::sioux;
@@ -124,46 +124,46 @@ TEST_CASE(
     e_colony defender_colony = {};
   } params;
 
-  Player& attacking_player = W.player( W.kAttackerNation );
-  Player& defending_player = W.player( W.kDefenderNation );
+  Player& attacking_player = W.player( W.kAttackerPlayer );
+  Player& defending_player = W.player( W.kDefenderPlayer );
 
   auto run = [&] {
     if( params.attacker_colony > e_colony::no ) {
       Colony& colony = W.add_colony( W.kAttackerColonyCoord,
-                                     W.kAttackerNation );
+                                     W.kAttackerPlayer );
       colony.name    = "attacker colony";
       if( params.attacker_colony >=
           e_colony::yes_and_visible_to_owner ) {
         W.map_updater().make_squares_visible(
-            W.kAttackerNation, { colony.location } );
+            W.kAttackerPlayer, { colony.location } );
         if( params.attacker_colony >
             e_colony::yes_and_visible_to_owner ) {
           W.map_updater().make_squares_visible(
-              W.kDefenderNation, { colony.location } );
+              W.kDefenderPlayer, { colony.location } );
         }
       }
     }
     if( params.defender_colony > e_colony::no ) {
       Colony& colony = W.add_colony( W.kDefenderColonyCoord,
-                                     W.kDefenderNation );
+                                     W.kDefenderPlayer );
       colony.name    = "defender colony";
       if( params.defender_colony >=
           e_colony::yes_and_visible_to_owner ) {
         W.map_updater().make_squares_visible(
-            W.kDefenderNation, { colony.location } );
+            W.kDefenderPlayer, { colony.location } );
         if( params.defender_colony >
             e_colony::yes_and_visible_to_owner ) {
           W.map_updater().make_squares_visible(
-              W.kAttackerNation, { colony.location } );
+              W.kAttackerPlayer, { colony.location } );
         }
       }
     }
     Unit const& attacker =
         W.add_unit_on_map( params.attacker, W.kLandAttackerCoord,
-                           W.kAttackerNation );
+                           W.kAttackerPlayer );
     Unit const& defender =
         W.add_unit_on_map( params.defender, W.kLandDefenderCoord,
-                           W.kDefenderNation );
+                           W.kDefenderPlayer );
     CombatEuroAttackEuro const combat{
       .winner   = params.winner,
       .attacker = { .id      = attacker.id(),
@@ -253,7 +253,7 @@ TEST_CASE(
       .defender_outcome =
           EuroUnitCombatOutcome::captured_and_demoted{
             .to         = e_unit_type::free_colonist,
-            .new_player = W.kAttackerNation,
+            .new_player = W.kAttackerPlayer,
             .new_coord  = W.kLandAttackerCoord } };
     expected = {
       .summaries = { .attacker = "[Dutch] Soldier defeats "
@@ -276,7 +276,7 @@ TEST_CASE(
       .winner           = e_combat_winner::attacker,
       .attacker_outcome = EuroUnitCombatOutcome::no_change{},
       .defender_outcome = EuroUnitCombatOutcome::captured{
-        .new_player = W.kAttackerNation,
+        .new_player = W.kAttackerPlayer,
         .new_coord  = W.kLandAttackerCoord } };
     expected = {
       .summaries = { .attacker = "[Dutch] Soldier defeats "
@@ -482,7 +482,7 @@ TEST_CASE(
       .defender_outcome =
           EuroUnitCombatOutcome::captured_and_demoted{
             .to         = e_unit_type::free_colonist,
-            .new_player = W.kAttackerNation,
+            .new_player = W.kAttackerPlayer,
             .new_coord  = W.kLandAttackerCoord } };
     expected = {
       .summaries = { .attacker = "[Dutch] Soldier defeats "
@@ -504,7 +504,7 @@ TEST_CASE(
       .winner           = e_combat_winner::attacker,
       .attacker_outcome = EuroUnitCombatOutcome::no_change{},
       .defender_outcome = EuroUnitCombatOutcome::captured{
-        .new_player = W.kAttackerNation,
+        .new_player = W.kAttackerPlayer,
         .new_coord  = W.kLandAttackerCoord } };
     expected = {
       .summaries = { .attacker = "[Dutch] Soldier defeats "
@@ -580,7 +580,7 @@ TEST_CASE(
       .winner           = e_combat_winner::attacker,
       .attacker_outcome = EuroUnitCombatOutcome::no_change{},
       .defender_outcome = EuroUnitCombatOutcome::captured{
-        .new_player = W.kAttackerNation,
+        .new_player = W.kAttackerPlayer,
         .new_coord  = W.kLandAttackerCoord } };
     expected = {
       .summaries = { .attacker = "[Dutch] Regular defeats "
@@ -605,7 +605,7 @@ TEST_CASE(
       .winner           = e_combat_winner::attacker,
       .attacker_outcome = EuroUnitCombatOutcome::no_change{},
       .defender_outcome = EuroUnitCombatOutcome::captured{
-        .new_player = W.kAttackerNation,
+        .new_player = W.kAttackerPlayer,
         .new_coord  = W.kLandAttackerCoord } };
     expected = {
       .summaries = { .attacker = "[Dutch] Regular defeats "
@@ -627,7 +627,7 @@ TEST_CASE(
       .winner           = e_combat_winner::attacker,
       .attacker_outcome = EuroUnitCombatOutcome::no_change{},
       .defender_outcome = EuroUnitCombatOutcome::captured{
-        .new_player = W.kAttackerNation,
+        .new_player = W.kAttackerPlayer,
         .new_coord  = W.kLandAttackerCoord } };
     expected = {
       .summaries = { .attacker = "[Dutch] Dragoon defeats "
@@ -745,7 +745,7 @@ TEST_CASE(
       .attacker_outcome = EuroUnitCombatOutcome::no_change{},
       .defender_outcome =
           EuroUnitCombatOutcome::captured{
-            .new_player = W.kAttackerNation,
+            .new_player = W.kAttackerPlayer,
             .new_coord  = W.kLandAttackerCoord },
       .attacker_colony = e_colony::yes_and_visible_to_owner };
     expected = {
@@ -771,7 +771,7 @@ TEST_CASE(
       .attacker_outcome = EuroUnitCombatOutcome::no_change{},
       .defender_outcome =
           EuroUnitCombatOutcome::captured{
-            .new_player = W.kAttackerNation,
+            .new_player = W.kAttackerPlayer,
             .new_coord  = W.kLandAttackerCoord },
       .attacker_colony = e_colony::yes_and_visible_to_both };
     expected = {
@@ -820,7 +820,7 @@ TEST_CASE(
           EuroUnitCombatOutcome::promoted{
             .to = e_unit_type::veteran_dragoon },
       .defender_outcome = EuroUnitCombatOutcome::captured{
-        .new_player = W.kAttackerNation,
+        .new_player = W.kAttackerPlayer,
         .new_coord  = W.kLandAttackerCoord } };
     expected = {
       .summaries = { .attacker = "[Dutch] Dragoon defeats "
@@ -967,20 +967,20 @@ TEST_CASE(
     e_colony defender_colony = {};
   } params;
 
-  Player& defending_player = W.player( W.kDefenderNation );
+  Player& defending_player = W.player( W.kDefenderPlayer );
 
   auto run = [&] {
     if( params.defender_colony > e_colony::no ) {
       Colony& colony = W.add_colony( W.kDefenderColonyCoord,
-                                     W.kDefenderNation );
+                                     W.kDefenderPlayer );
       colony.name    = "defender colony";
       if( params.defender_colony >= e_colony::yes_and_visible ) {
         W.map_updater().make_squares_visible(
-            W.kDefenderNation, { colony.location } );
+            W.kDefenderPlayer, { colony.location } );
         if( params.defender_colony >
             e_colony::yes_and_visible ) {
           W.map_updater().make_squares_visible(
-              W.kAttackerNation, { colony.location } );
+              W.kAttackerPlayer, { colony.location } );
         }
       }
     }
@@ -990,7 +990,7 @@ TEST_CASE(
         params.attacker, W.kLandAttackerCoord, dwelling.id );
     Unit const& defender =
         W.add_unit_on_map( params.defender, W.kLandDefenderCoord,
-                           W.kDefenderNation );
+                           W.kDefenderPlayer );
     CombatBraveAttackEuro const combat{
       .winner   = params.winner,
       .attacker = { .id      = attacker.id,
@@ -1313,48 +1313,48 @@ TEST_CASE(
   auto run = [&] {
     if( params.attacker_colony > e_colony::no ) {
       Colony& colony = W.add_colony( W.kAttackerColonyCoord,
-                                     W.kAttackerNation );
+                                     W.kAttackerPlayer );
       colony.name    = "attacker colony";
       if( params.attacker_colony >=
           e_colony::yes_and_visible_to_owner ) {
         W.map_updater().make_squares_visible(
-            W.kAttackerNation, { colony.location } );
+            W.kAttackerPlayer, { colony.location } );
         if( params.attacker_colony >
             e_colony::yes_and_visible_to_owner ) {
           W.map_updater().make_squares_visible(
-              W.kDefenderNation, { colony.location } );
+              W.kDefenderPlayer, { colony.location } );
         }
       }
     }
     if( params.defender_colony > e_colony::no ) {
       Colony& colony = W.add_colony( W.kDefenderColonyCoord,
-                                     W.kDefenderNation );
+                                     W.kDefenderPlayer );
       colony.name    = "defender colony";
       if( params.defender_colony >=
           e_colony::yes_and_visible_to_owner ) {
         W.map_updater().make_squares_visible(
-            W.kDefenderNation, { colony.location } );
+            W.kDefenderPlayer, { colony.location } );
         if( params.defender_colony >
             e_colony::yes_and_visible_to_owner ) {
           W.map_updater().make_squares_visible(
-              W.kAttackerNation, { colony.location } );
+              W.kAttackerPlayer, { colony.location } );
         }
       }
     }
     Unit const& attacker =
         W.add_unit_on_map( params.attacker, W.kSeaAttackerCoord,
-                           W.kAttackerNation );
+                           W.kAttackerPlayer );
     for( int i = 0; i < params.units_on_attacker; ++i )
       W.add_unit_in_cargo( e_unit_type::free_colonist,
                            attacker.id() );
     Unit const& defender =
         W.add_unit_on_map( params.defender, W.kSeaDefenderCoord,
-                           W.kDefenderNation );
+                           W.kDefenderPlayer );
     map<UnitId, AffectedNavalDefender> affected;
     for( auto const& [unit_type, outcome] :
          params.affected_defenders ) {
       Unit const& affected_unit = W.add_unit_on_map(
-          unit_type, W.kSeaDefenderCoord, W.kDefenderNation );
+          unit_type, W.kSeaDefenderCoord, W.kDefenderPlayer );
       affected[affected_unit.id()] = { .id = affected_unit.id(),
                                        .sink_weights = {},
                                        .outcome      = outcome };
@@ -1638,20 +1638,20 @@ TEST_CASE(
           .has_value() );
 
   Colony& colony =
-      W.add_colony( W.kAttackerColonyCoord, W.kAttackerNation );
+      W.add_colony( W.kAttackerColonyCoord, W.kAttackerPlayer );
   colony.name = "colony-with-guns";
   // In a real situation the colony will always be visible and
-  // unfogged to both nations, since they are adjacent.
-  W.map_updater().make_squares_visible( W.kAttackerNation,
+  // unfogged to both players, since they are adjacent.
+  W.map_updater().make_squares_visible( W.kAttackerPlayer,
                                         { colony.location } );
-  W.map_updater().make_squares_visible( W.kDefenderNation,
+  W.map_updater().make_squares_visible( W.kDefenderPlayer,
                                         { colony.location } );
 
   auto run = [&] {
     colony.buildings[params.building] = true;
     Unit const& defender =
         W.add_unit_on_map( params.defender, W.kSeaDefenderCoord,
-                           W.kDefenderNation );
+                           W.kDefenderPlayer );
     for( int i = 0; i < params.units_on_defender; ++i )
       W.add_unit_in_cargo( e_unit_type::free_colonist,
                            defender.id() );
@@ -1812,10 +1812,10 @@ TEST_CASE(
       W.kNativeRaiderCoord.direction_to( W.kDefenderColonyCoord )
           .has_value() );
   auto [colony, founder] = W.found_colony_with_new_unit(
-      W.kDefenderColonyCoord, W.kDefenderNation );
+      W.kDefenderColonyCoord, W.kDefenderPlayer );
   colony.name = "raided-colony";
 
-  Player& defending_player = W.player( W.kDefenderNation );
+  Player& defending_player = W.player( W.kDefenderPlayer );
 
   auto run = [&] {
     Dwelling const& dwelling = W.add_dwelling(
@@ -1826,7 +1826,7 @@ TEST_CASE(
         params.defender_at_gate.has_value()
             ? W.add_unit_on_map( *params.defender_at_gate,
                                  W.kLandDefenderCoord,
-                                 W.kDefenderNation )
+                                 W.kDefenderPlayer )
             : founder;
     CombatBraveAttackColony const combat{
       .winner           = params.winner,
@@ -2045,15 +2045,15 @@ TEST_CASE(
   auto run = [&] {
     if( params.attacker_colony > e_colony::no ) {
       Colony& colony = W.add_colony( W.kAttackerColonyCoord,
-                                     W.kAttackerNation );
+                                     W.kAttackerPlayer );
       colony.name    = "attacker colony";
       if( params.attacker_colony >= e_colony::yes_and_visible ) {
         W.map_updater().make_squares_visible(
-            W.kAttackerNation, { colony.location } );
+            W.kAttackerPlayer, { colony.location } );
         if( params.attacker_colony >
             e_colony::yes_and_visible ) {
           W.map_updater().make_squares_visible(
-              W.kAttackerNation, { colony.location } );
+              W.kAttackerPlayer, { colony.location } );
         }
       }
     }
@@ -2063,7 +2063,7 @@ TEST_CASE(
         params.defender, W.kLandDefenderCoord, dwelling.id );
     Unit const& attacker =
         W.add_unit_on_map( params.attacker, W.kLandAttackerCoord,
-                           W.kAttackerNation );
+                           W.kAttackerPlayer );
     CombatEuroAttackBrave const combat{
       .winner   = params.winner,
       .attacker = { .id      = attacker.id(),
@@ -2211,15 +2211,15 @@ TEST_CASE(
   auto run = [&] {
     if( params.attacker_colony > e_colony::no ) {
       Colony& colony = W.add_colony( W.kAttackerColonyCoord,
-                                     W.kAttackerNation );
+                                     W.kAttackerPlayer );
       colony.name    = "attacker colony";
       if( params.attacker_colony >= e_colony::yes_and_visible ) {
         W.map_updater().make_squares_visible(
-            W.kAttackerNation, { colony.location } );
+            W.kAttackerPlayer, { colony.location } );
         if( params.attacker_colony >
             e_colony::yes_and_visible ) {
           W.map_updater().make_squares_visible(
-              W.kAttackerNation, { colony.location } );
+              W.kAttackerPlayer, { colony.location } );
         }
       }
     }
@@ -2227,7 +2227,7 @@ TEST_CASE(
         W.kDefenderDwellingCoord, W.kNativeTribe );
     Unit const& attacker =
         W.add_unit_on_map( params.attacker, W.kLandAttackerCoord,
-                           W.kAttackerNation );
+                           W.kAttackerPlayer );
     CombatEuroAttackDwelling const combat{
       // Here we ignore the other fields because messages asso-
       // ciated with those are generated in another module.
@@ -2331,32 +2331,32 @@ TEST_CASE(
   auto run = [&] {
     if( params.attacker_colony > e_colony::no ) {
       Colony& colony = W.add_colony( W.kAttackerColonyCoord,
-                                     W.kAttackerNation );
+                                     W.kAttackerPlayer );
       colony.name    = "attacker colony";
       if( params.attacker_colony >=
           e_colony::yes_and_visible_to_owner ) {
         W.map_updater().make_squares_visible(
-            W.kAttackerNation, { colony.location } );
+            W.kAttackerPlayer, { colony.location } );
         if( params.attacker_colony >
             e_colony::yes_and_visible_to_owner ) {
           W.map_updater().make_squares_visible(
-              W.kDefenderNation, { colony.location } );
+              W.kDefenderPlayer, { colony.location } );
         }
       }
     }
     Colony& defender_colony = W.add_colony(
-        W.kDefenderColonyCoord, W.kDefenderNation );
+        W.kDefenderColonyCoord, W.kDefenderPlayer );
     defender_colony.name = "defender colony";
     Unit const& defender = W.add_unit_indoors(
         defender_colony.id, e_indoor_job::bells,
         params.defender );
     W.map_updater().make_squares_visible(
-        W.kDefenderNation, { defender_colony.location } );
+        W.kDefenderPlayer, { defender_colony.location } );
     W.map_updater().make_squares_visible(
-        W.kAttackerNation, { defender_colony.location } );
+        W.kAttackerPlayer, { defender_colony.location } );
     Unit const& attacker = W.add_unit_on_map(
         params.attacker, W.kEuroColonyAttackerCoord,
-        W.kAttackerNation );
+        W.kAttackerPlayer );
     CombatEuroAttackUndefendedColony const combat{
       .winner    = params.winner,
       .colony_id = defender_colony.id,

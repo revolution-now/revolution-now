@@ -27,6 +27,7 @@
 // ss
 #include "ss/colonies.hpp"
 #include "ss/events.rds.hpp"
+#include "ss/nation.hpp"
 #include "ss/natives.hpp"
 #include "ss/player.rds.hpp"
 #include "ss/players.rds.hpp"
@@ -108,14 +109,16 @@ bool should_do_war_of_succession( SSConst const& ss,
 
 WarOfSuccessionNations select_players_for_war_of_succession(
     SSConst const& ss ) {
-  vector<e_player> ai_players;
-  ai_players.reserve( enum_count<e_player> );
-  enum_map<e_player, int> size_metric;
-  for( e_player const player_type : enum_values<e_player> ) {
-    auto const& player = ss.players.players[player_type];
+  vector<e_european_nation> ai_nations;
+  ai_nations.reserve( enum_count<e_player> );
+  enum_map<e_european_nation, int> size_metric;
+  for( e_european_nation const nation :
+       enum_values<e_european_nation> ) {
+    e_player const player_type = colonist_player_for( nation );
+    auto const& player         = ss.players.players[player_type];
     if( !player.has_value() ) continue;
     if( player->human ) continue;
-    ai_players.push_back( player_type );
+    ai_nations.push_back( nation );
     int const population =
         unit_count_for_rebel_sentiment( ss, player_type );
     int const colony_count =
@@ -124,18 +127,19 @@ WarOfSuccessionNations select_players_for_war_of_succession(
     // be further checks or other slight differences, but it
     // doesn't seem important to get it exactly the same, and
     // it's a bit tricky to determine empirically.
-    size_metric[player_type] = population + colony_count;
+    size_metric[nation] = population + colony_count;
   }
-  stable_sort( ai_players.begin(), ai_players.end(),
-               [&]( e_player const l, e_player const r ) {
+  stable_sort( ai_nations.begin(), ai_nations.end(),
+               [&]( e_european_nation const l,
+                    e_european_nation const r ) {
                  return size_metric[l] < size_metric[r];
                } );
   // The call to should_do_war_of_succession that we should have
   // done before calling this method should have ensured that
   // this won't happen.
-  CHECK_GE( ssize( ai_players ), 2 );
-  e_player const smallest        = ai_players[0];
-  e_player const second_smallest = ai_players[1];
+  CHECK_GE( ssize( ai_nations ), 2 );
+  e_european_nation const smallest        = ai_nations[0];
+  e_european_nation const second_smallest = ai_nations[1];
   return WarOfSuccessionNations{ .withdraws = smallest,
                                  .receives  = second_smallest };
 }
@@ -149,7 +153,9 @@ WarOfSuccessionPlan war_of_succession_plan(
       ss.units.euro_all();
   for( auto const& [unit_id, p_state] : euros ) {
     Unit const& unit = p_state->unit;
-    if( unit.player_type() != nations.withdraws ) continue;
+    if( unit.player_type() !=
+        colonist_player_for( nations.withdraws ) )
+      continue;
     SWITCH( p_state->ownership ) {
       CASE( free ) { SHOULD_NOT_BE_HERE; }
       CASE( cargo ) {
@@ -198,7 +204,9 @@ WarOfSuccessionPlan war_of_succession_plan(
   }
 
   for( auto const& [colony_id, colony] : ss.colonies.all() ) {
-    if( colony.player != nations.withdraws ) continue;
+    if( colony.player !=
+        colonist_player_for( nations.withdraws ) )
+      continue;
     plan.reassign_colonies.push_back( colony_id );
     plan.update_fog_squares.push_back( colony.location );
   }
@@ -220,8 +228,10 @@ WarOfSuccessionPlan war_of_succession_plan(
 
 void do_war_of_succession( SS& ss, TS& ts, Player const& player,
                            WarOfSuccessionPlan const& plan ) {
-  CHECK_NEQ( player.type, plan.nations.withdraws );
-  CHECK_NEQ( player.type, plan.nations.receives );
+  CHECK_NEQ( player.type,
+             colonist_player_for( plan.nations.withdraws ) );
+  CHECK_NEQ( player.type,
+             colonist_player_for( plan.nations.receives ) );
   for( UnitId const unit_id : plan.remove_units )
     // The unit could already have been deleted if e.g. it was in
     // the cargo of a ship and we deleted the ship first.
@@ -233,13 +243,16 @@ void do_war_of_succession( SS& ss, TS& ts, Player const& player,
     // the cargo of a ship in the harbor.
     if( !ss.units.exists( unit_id ) ) continue;
     Unit& unit = ss.units.unit_for( unit_id );
-    change_unit_player( ss, ts, unit, plan.nations.receives );
+    change_unit_player(
+        ss, ts, unit,
+        colonist_player_for( plan.nations.receives ) );
   }
 
   for( ColonyId const colony_id : plan.reassign_colonies ) {
     Colony& colony = ss.colonies.colony_for( colony_id );
-    change_colony_player( ss, ts, colony,
-                          plan.nations.receives );
+    change_colony_player(
+        ss, ts, colony,
+        colonist_player_for( plan.nations.receives ) );
     // The OG appears to reduce SoL to zero for the acquired
     // player. This is likely because then the merger would risk
     // causing a large bump to the total number of rebels in the
@@ -258,7 +271,7 @@ void do_war_of_succession( SS& ss, TS& ts, Player const& player,
   vector<Coord> const refresh_fogged = [&] {
     vector<Coord> res;
     res.reserve( plan.update_fog_squares.size() );
-    VisibilityForNation const viz( ss, player.type );
+    VisibilityForPlayer const viz( ss, player.type );
     for( Coord const tile : plan.update_fog_squares )
       if( viz.visible( tile ) == e_tile_visibility::fogged )
         res.push_back( tile );
@@ -275,7 +288,9 @@ void do_war_of_succession( SS& ss, TS& ts, Player const& player,
   ts.map_updater().make_squares_fogged( player.type,
                                         refresh_fogged );
 
-  ss.players.players[plan.nations.withdraws].reset();
+  ss.players
+      .players[colonist_player_for( plan.nations.withdraws )]
+      .reset();
 
   ss.events.war_of_succession_done = true;
 }
@@ -288,11 +303,14 @@ wait<> do_war_of_succession_ui_seq(
       "Europe! All property and territory owned by the [{}] has "
       "been ceded to the [{}].  As a result, the [{}] have "
       "withdrawn from the New World.",
-      config_nation.players[plan.nations.withdraws]
+      config_nation
+          .players[colonist_player_for( plan.nations.withdraws )]
           .possessive_pre_declaration,
-      config_nation.players[plan.nations.receives]
+      config_nation
+          .players[colonist_player_for( plan.nations.receives )]
           .possessive_pre_declaration,
-      config_nation.players[plan.nations.withdraws]
+      config_nation
+          .players[colonist_player_for( plan.nations.withdraws )]
           .possessive_pre_declaration );
   co_await ts.gui.message_box( msg );
 }

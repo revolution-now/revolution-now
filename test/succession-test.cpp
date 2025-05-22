@@ -167,78 +167,78 @@ TEST_CASE(
     w.player( player ).human = false;
 
   // No humans.
-  expected = { .withdraws = e_player::english,
-               .receives  = e_player::french };
+  expected = { .withdraws = e_european_nation::english,
+               .receives  = e_european_nation::french };
   REQUIRE( f() == expected );
 
   w.english().human = true;
-  expected          = { .withdraws = e_player::french,
-                        .receives  = e_player::spanish };
+  expected          = { .withdraws = e_european_nation::french,
+                        .receives  = e_european_nation::spanish };
   REQUIRE( f() == expected );
 
   w.english().human = false;
   w.french().human  = true;
-  expected          = { .withdraws = e_player::english,
-                        .receives  = e_player::spanish };
+  expected          = { .withdraws = e_european_nation::english,
+                        .receives  = e_european_nation::spanish };
   REQUIRE( f() == expected );
 
   w.spanish().human = true;
-  expected          = { .withdraws = e_player::english,
-                        .receives  = e_player::dutch };
+  expected          = { .withdraws = e_european_nation::english,
+                        .receives  = e_european_nation::dutch };
   REQUIRE( f() == expected );
 
   w.spanish().human = false;
-  expected          = { .withdraws = e_player::english,
-                        .receives  = e_player::spanish };
+  expected          = { .withdraws = e_european_nation::english,
+                        .receives  = e_european_nation::spanish };
   REQUIRE( f() == expected );
 
   w.add_unit_on_map( e_unit_type::artillery, { .x = 0, .y = 0 },
                      e_player::english );
-  expected = { .withdraws = e_player::english,
-               .receives  = e_player::spanish };
+  expected = { .withdraws = e_european_nation::english,
+               .receives  = e_european_nation::spanish };
   REQUIRE( f() == expected );
 
   w.add_unit_on_map( e_unit_type::dragoon, { .x = 0, .y = 0 },
                      e_player::english );
-  expected = { .withdraws = e_player::spanish,
-               .receives  = e_player::dutch };
+  expected = { .withdraws = e_european_nation::spanish,
+               .receives  = e_european_nation::dutch };
   REQUIRE( f() == expected );
 
   w.add_unit_on_map( e_unit_type::soldier, { .x = 1, .y = 0 },
                      e_player::spanish );
-  expected = { .withdraws = e_player::dutch,
-               .receives  = e_player::english };
+  expected = { .withdraws = e_european_nation::dutch,
+               .receives  = e_european_nation::english };
   REQUIRE( f() == expected );
 
   w.add_unit_on_map( e_unit_type::native_convert,
                      { .x = 1, .y = 0 }, e_player::english );
-  expected = { .withdraws = e_player::dutch,
-               .receives  = e_player::spanish };
+  expected = { .withdraws = e_european_nation::dutch,
+               .receives  = e_european_nation::spanish };
   REQUIRE( f() == expected );
 
   w.french().human = false;
-  expected         = { .withdraws = e_player::french,
-                       .receives  = e_player::dutch };
+  expected         = { .withdraws = e_european_nation::french,
+                       .receives  = e_european_nation::dutch };
   REQUIRE( f() == expected );
 
   w.english().human = true;
-  expected          = { .withdraws = e_player::french,
-                        .receives  = e_player::dutch };
+  expected          = { .withdraws = e_european_nation::french,
+                        .receives  = e_european_nation::dutch };
   REQUIRE( f() == expected );
 
   w.add_colony( { .x = 0, .y = 0 }, e_player::french );
-  expected = { .withdraws = e_player::dutch,
-               .receives  = e_player::french };
+  expected = { .withdraws = e_european_nation::dutch,
+               .receives  = e_european_nation::french };
   REQUIRE( f() == expected );
 
   w.add_colony( { .x = 2, .y = 0 }, e_player::french );
-  expected = { .withdraws = e_player::dutch,
-               .receives  = e_player::spanish };
+  expected = { .withdraws = e_european_nation::dutch,
+               .receives  = e_european_nation::spanish };
   REQUIRE( f() == expected );
 
   w.players().players[e_player::french].reset();
-  expected = { .withdraws = e_player::dutch,
-               .receives  = e_player::spanish };
+  expected = { .withdraws = e_european_nation::dutch,
+               .receives  = e_european_nation::spanish };
   REQUIRE( f() == expected );
 }
 
@@ -256,8 +256,8 @@ TEST_CASE( "[rebel-sentiment] war_of_succession_plan" ) {
   expected = {};
   REQUIRE( f() == expected );
 
-  nations.receives  = e_player::french;
-  nations.withdraws = e_player::spanish;
+  nations.receives  = e_european_nation::french;
+  nations.withdraws = e_european_nation::spanish;
 
   expected = { .nations = nations };
   REQUIRE( f() == expected );
@@ -409,7 +409,7 @@ TEST_CASE( "[rebel-sentiment] do_war_of_succession" ) {
 
   w.map_updater().make_squares_fogged(
       observer.type, { point{ .x = 1, .y = 0 } } );
-  VisibilityForNation const viz( w.ss(), observer.type );
+  VisibilityForPlayer const viz( w.ss(), observer.type );
   BASE_CHECK( viz.visible( { .x = 1, .y = 0 } ) ==
               e_tile_visibility::fogged );
 
@@ -473,12 +473,12 @@ TEST_CASE( "[rebel-sentiment] do_war_of_succession" ) {
   REQUIRE_FALSE( w.events().war_of_succession_done );
 
   plan = {
-    .nations            = { .withdraws = e_player::spanish,
-                            .receives  = e_player::french },
-    .remove_units       = { removed_1 },
-    .reassign_units     = { reassign_unit_1, reassign_unit_2,
-                            reassign_unit_3, reassign_unit_4,
-                            reassign_unit_5 },
+    .nations        = { .withdraws = e_european_nation::spanish,
+                        .receives  = e_european_nation::french },
+    .remove_units   = { removed_1 },
+    .reassign_units = { reassign_unit_1, reassign_unit_2,
+                        reassign_unit_3, reassign_unit_4,
+                        reassign_unit_5 },
     .reassign_colonies  = { reassign_colony_1, reassign_colony_2,
                             reassign_colony_3 },
     .update_fog_squares = { { .x = 0, .y = 0 },
@@ -557,8 +557,9 @@ TEST_CASE( "[rebel-sentiment] do_war_of_succession_ui_seq" ) {
     co_await_test( do_war_of_succession_ui_seq( w.ts(), plan ) );
   };
 
-  plan = { .nations = { .withdraws = e_player::spanish,
-                        .receives  = e_player::french } };
+  plan = {
+    .nations = { .withdraws = e_european_nation::spanish,
+                 .receives  = e_european_nation::french } };
 
   w.gui().EXPECT__message_box( StrContains(
       "All property and territory owned by the [Spanish] has "
