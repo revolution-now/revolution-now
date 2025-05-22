@@ -25,14 +25,25 @@ using namespace std;
 ** Test Cases
 *****************************************************************/
 TEST_CASE( "[ss/nation] european_nation_for" ) {
-  REQUIRE( european_nation_for( e_nation::english ) ==
+  REQUIRE( european_nation_for( e_player::english ) ==
            e_european_nation::english );
-  REQUIRE( european_nation_for( e_nation::french ) ==
+  REQUIRE( european_nation_for( e_player::french ) ==
            e_european_nation::french );
-  REQUIRE( european_nation_for( e_nation::spanish ) ==
+  REQUIRE( european_nation_for( e_player::spanish ) ==
            e_european_nation::spanish );
-  REQUIRE( european_nation_for( e_nation::dutch ) ==
+  REQUIRE( european_nation_for( e_player::dutch ) ==
            e_european_nation::dutch );
+}
+
+TEST_CASE( "[ss/nation] colonist_player_for" ) {
+  REQUIRE( colonist_player_for( e_european_nation::english ) ==
+           e_player::english );
+  REQUIRE( colonist_player_for( e_european_nation::french ) ==
+           e_player::french );
+  REQUIRE( colonist_player_for( e_european_nation::spanish ) ==
+           e_player::spanish );
+  REQUIRE( colonist_player_for( e_european_nation::dutch ) ==
+           e_player::dutch );
 }
 
 } // namespace

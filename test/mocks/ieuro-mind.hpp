@@ -33,7 +33,7 @@ namespace rn {
 ** MockIRand
 *****************************************************************/
 struct MockIEuroMind : IEuroMind {
-  MockIEuroMind( e_nation nation ) : IEuroMind( nation ) {}
+  MockIEuroMind( e_player player ) : IEuroMind( player ) {}
 
   MOCK_METHOD( Player const&, player, (), () );
 

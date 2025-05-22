@@ -24,7 +24,7 @@ namespace rn {
 struct MockIVisibility : IVisibility {
   MockIVisibility( SSConst const& ss ) : IVisibility( ss ) {}
 
-  MOCK_METHOD( base::maybe<e_nation>, nation, (), ( const ) );
+  MOCK_METHOD( base::maybe<e_player>, player, (), ( const ) );
   MOCK_METHOD( e_tile_visibility, visible, ( gfx::point ),
                ( const ) );
   using MaybeColonyRef   = maybe<Colony const&>;

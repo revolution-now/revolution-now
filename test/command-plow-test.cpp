@@ -76,7 +76,7 @@ TEST_CASE( "[command-plow] native-owned land" ) {
   Unit const& pioneer =
       W.add_unit_on_map( e_unit_type::pioneer, tile );
   TribeRelationship& relationship =
-      tribe.relationship[W.default_nation()];
+      tribe.relationship[W.default_player_type()];
   relationship.encountered = true;
   for( int y = 0; y < 3; ++y )
     for( int x = 0; x < 3; ++x )

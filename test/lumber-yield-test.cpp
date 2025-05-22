@@ -40,9 +40,9 @@ struct World : testing::World {
 
   void initialize( e_unit_type pioneer_type, e_terrain terrain,
                    Coord plow_loc ) {
-    add_player( e_nation::dutch );
-    add_player( e_nation::french );
-    set_default_player( e_nation::dutch );
+    add_player( e_player::dutch );
+    add_player( e_player::french );
+    set_default_player_type( e_player::dutch );
     MapSquare const L = make_terrain( terrain );
     vector<MapSquare> tiles{
       // clang-format off
@@ -91,7 +91,7 @@ TEST_CASE( "[lumber-yield] pioneer" ) {
 
   SECTION( "one colony, wrong nation" ) {
     W.found_colony_with_new_unit( { .x = 2, .y = 2 },
-                                  e_nation::french );
+                                  e_player::french );
     expected = {};
     REQUIRE( f() == expected );
   }
@@ -256,7 +256,7 @@ TEST_CASE( "[lumber-yield] hardy_pioneer" ) {
 
   SECTION( "one colony, wrong nation" ) {
     W.found_colony_with_new_unit( { .x = 2, .y = 2 },
-                                  e_nation::french );
+                                  e_player::french );
     expected = {};
     REQUIRE( f() == expected );
   }

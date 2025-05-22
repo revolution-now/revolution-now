@@ -106,7 +106,7 @@ TEST_CASE( "[tribe-mgr] destroy_dwelling" ) {
   UnitId const missionary_id =
       w.add_missionary_in_dwelling( e_unit_type::missionary,
                                     dwelling1_id,
-                                    w.default_nation() )
+                                    w.default_player_type() )
           .id();
   w.square( { .x = 1, .y = 1 } ).road = true;
   w.square( { .x = 2, .y = 1 } ).road = true;
@@ -275,7 +275,7 @@ TEST_CASE( "[tribe-mgr] destroy_tribe" ) {
   UnitId const missionary_id =
       w.add_missionary_in_dwelling( e_unit_type::missionary,
                                     dwelling1_id,
-                                    w.default_nation() )
+                                    w.default_player_type() )
           .id();
   w.square( { .x = 1, .y = 1 } ).road = true;
   w.square( { .x = 2, .y = 1 } ).road = true;

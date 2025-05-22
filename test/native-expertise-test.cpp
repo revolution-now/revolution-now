@@ -41,8 +41,8 @@ using namespace std;
 struct World : testing::World {
   using Base = testing::World;
   World() : Base() {
-    add_player( e_nation::english );
-    set_default_player( e_nation::english );
+    add_player( e_player::english );
+    set_default_player_type( e_player::english );
     create_default_map();
   }
 

@@ -38,11 +38,11 @@ using namespace std;
 struct World : testing::World {
   using Base = testing::World;
   World() : Base() {
-    add_player( e_nation::english );
-    add_player( e_nation::french );
-    add_player( e_nation::spanish );
-    add_player( e_nation::dutch );
-    set_default_player( e_nation::english );
+    add_player( e_player::english );
+    add_player( e_player::french );
+    add_player( e_player::spanish );
+    add_player( e_player::dutch );
+    set_default_player_type( e_player::english );
     create_default_map();
   }
 
@@ -67,7 +67,7 @@ TEST_CASE( "[society] flag_color_for_society" ) {
   Society society;
 
   // European.
-  society = Society::european{ .nation = e_nation::spanish };
+  society = Society::european{ .player = e_player::spanish };
   REQUIRE(
       flag_color_for_society( society ) ==
       gfx::pixel{ .r = 0xff, .g = 0xfe, .b = 0x54, .a = 0xff } );
@@ -112,15 +112,15 @@ TEST_CASE( "[society] society_on_square" ) {
   SECTION( "european unit" ) {
     where = { .x = 1, .y = 1 };
     W.add_unit_on_map( e_unit_type::free_colonist, where,
-                       e_nation::spanish );
-    expected = Society::european{ .nation = e_nation::spanish };
+                       e_player::spanish );
+    expected = Society::european{ .player = e_player::spanish };
     REQUIRE( f() == expected );
   }
 
   SECTION( "colony" ) {
     where = { .x = 1, .y = 1 };
-    W.found_colony_with_new_unit( where, e_nation::french );
-    expected = Society::european{ .nation = e_nation::french };
+    W.found_colony_with_new_unit( where, e_player::french );
+    expected = Society::european{ .player = e_player::french };
     REQUIRE( f() == expected );
   }
 }

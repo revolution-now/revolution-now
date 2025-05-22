@@ -45,7 +45,7 @@ using namespace std;
 *****************************************************************/
 struct World : testing::World {
   using Base = testing::World;
-  World() : Base() { add_player( e_nation::dutch ); }
+  World() : Base() { add_player( e_player::dutch ); }
 
   static inline Coord kGrasslandTile{ .x = 1, .y = 1 };
   static inline Coord kPrairieTile{ .x = 4, .y = 1 };

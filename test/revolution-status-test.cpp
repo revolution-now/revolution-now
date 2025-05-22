@@ -51,12 +51,12 @@ struct World : testing::World {
 /****************************************************************
 ** Test Cases
 *****************************************************************/
-TEST_CASE( "[revolution-status] nation_possessive" ) {
+TEST_CASE( "[revolution-status] player_possessive" ) {
   World w;
 
   Player& player = w.default_player();
 
-  auto f = [&] { return nation_possessive( player ); };
+  auto f = [&] { return player_possessive( player ); };
 
   REQUIRE( f() == "Dutch" );
 
@@ -70,12 +70,12 @@ TEST_CASE( "[revolution-status] nation_possessive" ) {
   REQUIRE( f() == "Rebel" );
 }
 
-TEST_CASE( "[revolution-status] nation_display_name" ) {
+TEST_CASE( "[revolution-status] player_display_name" ) {
   World w;
 
   Player& player = w.default_player();
 
-  auto f = [&] { return nation_display_name( player ); };
+  auto f = [&] { return player_display_name( player ); };
 
   REQUIRE( f() == "Dutch" );
 

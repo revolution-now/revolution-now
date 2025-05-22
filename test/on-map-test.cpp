@@ -66,9 +66,9 @@ using clear      = FogStatus::clear;
 struct World : testing::World {
   using Base = testing::World;
   World() : Base() {
-    add_player( e_nation::dutch );
-    add_player( e_nation::spanish );
-    set_default_player( e_nation::dutch );
+    add_player( e_player::dutch );
+    add_player( e_player::spanish );
+    set_default_player_type( e_player::dutch );
   }
 
   Coord const kColonySquare = Coord{ .x = 1, .y = 1 };
@@ -322,7 +322,7 @@ TEST_CASE( "[on-map] non-interactive: updates visibility" ) {
   World W;
   W.create_default_map();
   UNWRAP_CHECK( player_terrain, W.terrain().player_terrain(
-                                    W.default_nation() ) );
+                                    W.default_player_type() ) );
   auto const& map = player_terrain.map;
 
   REQUIRE( map[{ .x = 0, .y = 1 }] == unexplored{} );
@@ -359,12 +359,12 @@ TEST_CASE(
   W.create_default_map();
   Unit& unit1 =
       W.add_unit_on_map( e_unit_type::free_colonist,
-                         { .x = 1, .y = 1 }, e_nation::dutch );
+                         { .x = 1, .y = 1 }, e_player::dutch );
   unit1.sentry();
   REQUIRE( unit1.orders().holds<unit_orders::sentry>() );
   Unit& unit2 =
       W.add_unit_on_map( e_unit_type::free_colonist,
-                         { .x = 2, .y = 1 }, e_nation::spanish );
+                         { .x = 2, .y = 1 }, e_player::spanish );
   REQUIRE( unit1.orders().holds<unit_orders::none>() );
   REQUIRE( unit2.orders().holds<unit_orders::none>() );
 }
@@ -377,7 +377,7 @@ TEST_CASE(
   W.create_default_map();
   Unit& unit1 =
       W.add_unit_on_map( e_unit_type::free_colonist,
-                         { .x = 1, .y = 1 }, e_nation::dutch );
+                         { .x = 1, .y = 1 }, e_player::dutch );
   unit1.sentry();
   REQUIRE( unit1.orders().holds<unit_orders::sentry>() );
   Dwelling const& dwelling =
@@ -403,16 +403,16 @@ TEST_CASE(
   SECTION( "spanish" ) {
     // In this case the visibility will not need to change be-
     // cause we haven't set any active nations, so therefore the
-    // first human nation in the order list of nations (spanish)
+    // first human player in the order list of nations (spanish)
     // will be considered as the viewer, and since the spanish
-    // are being visited, there is no nation change.
+    // are being visited, there is no player change.
     W.spanish().human = true;
     W.dutch().human   = true;
     W.add_unit_on_map( e_unit_type::free_colonist,
-                       { .x = 1, .y = 1 }, e_nation::spanish );
-    W.euro_mind( e_nation::spanish )
+                       { .x = 1, .y = 1 }, e_player::spanish );
+    W.euro_mind( e_player::spanish )
         .EXPECT__meet_tribe_ui_sequence(
-            MeetTribe{ .nation        = e_nation::spanish,
+            MeetTribe{ .player        = e_player::spanish,
                        .tribe         = e_tribe::cherokee,
                        .num_dwellings = 1 } )
         .returns<wait<e_declare_war_on_natives>>(
@@ -426,16 +426,16 @@ TEST_CASE(
     W.spanish().human = true;
     W.dutch().human   = true;
     W.add_unit_on_map( e_unit_type::free_colonist,
-                       { .x = 1, .y = 1 }, e_nation::dutch );
-    W.euro_mind( e_nation::dutch )
+                       { .x = 1, .y = 1 }, e_player::dutch );
+    W.euro_mind( e_player::dutch )
         .EXPECT__meet_tribe_ui_sequence(
-            MeetTribe{ .nation        = e_nation::dutch,
+            MeetTribe{ .player        = e_player::dutch,
                        .tribe         = e_tribe::cherokee,
                        .num_dwellings = 1 } )
         .returns<wait<e_declare_war_on_natives>>(
             e_declare_war_on_natives::no );
-    mock_land_view.EXPECT__set_visibility( e_nation::dutch );
-    mock_land_view.EXPECT__set_visibility( e_nation::spanish );
+    mock_land_view.EXPECT__set_visibility( e_player::dutch );
+    mock_land_view.EXPECT__set_visibility( e_player::spanish );
   }
 
   mock_land_view.EXPECT__ensure_visible(

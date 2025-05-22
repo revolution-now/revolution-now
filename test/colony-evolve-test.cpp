@@ -703,7 +703,7 @@ TEST_CASE( "[colony-evolve] gives stockade if needed" ) {
   // L, L, L,
   // _, L, L,
   auto [colony, founder] = W.found_colony_with_new_unit(
-      { .x = 1, .y = 1 }, e_nation::dutch );
+      { .x = 1, .y = 1 }, e_player::dutch );
   W.add_unit_indoors( colony.id, e_indoor_job::bells );
   // So that the colony doesn't starve when we evolve it.
   colony.commodities[e_commodity::food]                   = 100;

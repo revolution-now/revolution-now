@@ -44,9 +44,9 @@ using ::gfx::point;
 *****************************************************************/
 struct world : testing::World {
   world() {
-    add_player( e_nation::english );
-    add_player( e_nation::french );
-    set_default_player( e_nation::english );
+    add_player( e_player::english );
+    add_player( e_player::french );
+    set_default_player_type( e_player::english );
     create_default_map();
   }
 
@@ -383,10 +383,10 @@ TEST_CASE( "[capture-cargo] select_items_to_capture_ui" ) {
 
   Unit& frigate = w.add_unit_on_map( e_unit_type::frigate,
                                      point{ .x = 0, .y = 0 },
-                                     e_nation::english );
+                                     e_player::english );
   Unit& galleon = w.add_unit_on_map( e_unit_type::galleon,
                                      point{ .x = 1, .y = 1 },
-                                     e_nation::french );
+                                     e_player::french );
 
   auto f = [&] {
     return co_await_test( select_items_to_capture_ui(
@@ -528,7 +528,7 @@ TEST_CASE( "[capture-cargo] notify_captured_cargo_human" ) {
 
   Unit& frigate = w.add_unit_on_map( e_unit_type::frigate,
                                      point{ .x = 0, .y = 0 },
-                                     e_nation::english );
+                                     e_player::english );
 
   auto f = [&] {
     return co_await_test( notify_captured_cargo_human(

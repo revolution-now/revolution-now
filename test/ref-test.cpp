@@ -363,7 +363,8 @@ TEST_CASE( "[ref] ref_unit_to_unit_type" ) {
 TEST_CASE( "[ref] add_ref_unit_ui_seq" ) {
   world w;
 
-  MockIEuroMind& mock_mind = w.euro_mind( w.default_nation() );
+  MockIEuroMind& mock_mind =
+      w.euro_mind( w.default_player_type() );
 
   auto const f = [&]( e_expeditionary_force_type const type ) {
     co_await_test( add_ref_unit_ui_seq( mock_mind, type ) );

@@ -35,9 +35,9 @@ using namespace std;
 struct World : testing::World {
   using Base = testing::World;
   World() : Base() {
-    add_player( e_nation::english );
-    add_player( e_nation::french );
-    set_default_player( e_nation::english );
+    add_player( e_player::english );
+    add_player( e_player::french );
+    set_default_player_type( e_player::english );
     create_default_map();
   }
 
@@ -70,34 +70,34 @@ struct World : testing::World {
     // will be unsentried.
     Unit& unit1 =
         add_unit_on_map( e_unit_type::free_colonist,
-                         { .x = 0, .y = 5 }, e_nation::english );
+                         { .x = 0, .y = 5 }, e_player::english );
     Unit& unit2 =
         add_unit_on_map( e_unit_type::free_colonist,
-                         { .x = 0, .y = 2 }, e_nation::english );
+                         { .x = 0, .y = 2 }, e_player::english );
     Unit& unit3 =
         add_unit_on_map( e_unit_type::free_colonist,
-                         { .x = 1, .y = 1 }, e_nation::english );
+                         { .x = 1, .y = 1 }, e_player::english );
     Unit& unit4 =
         add_unit_on_map( e_unit_type::free_colonist,
-                         { .x = 2, .y = 1 }, e_nation::english );
+                         { .x = 2, .y = 1 }, e_player::english );
     Unit& unit5 =
         add_unit_on_map( e_unit_type::free_colonist,
-                         { .x = 3, .y = 1 }, e_nation::english );
+                         { .x = 3, .y = 1 }, e_player::english );
     Unit& unit6 =
         add_unit_on_map( e_unit_type::free_colonist,
-                         { .x = 2, .y = 2 }, e_nation::french );
+                         { .x = 2, .y = 2 }, e_player::french );
     Unit& unit7 =
         add_unit_on_map( e_unit_type::free_colonist,
-                         { .x = 2, .y = 3 }, e_nation::french );
+                         { .x = 2, .y = 3 }, e_player::french );
     Unit& unit8 =
         add_unit_on_map( e_unit_type::free_colonist,
-                         { .x = 3, .y = 2 }, e_nation::french );
+                         { .x = 3, .y = 2 }, e_player::french );
     Unit& unit9 =
         add_unit_on_map( e_unit_type::free_colonist,
-                         { .x = 4, .y = 2 }, e_nation::french );
+                         { .x = 4, .y = 2 }, e_player::french );
     Unit& unit10 =
         add_unit_on_map( e_unit_type::free_colonist,
-                         { .x = 4, .y = 4 }, e_nation::french );
+                         { .x = 4, .y = 4 }, e_player::french );
 
     unit1.sentry();
     unit2.sentry();
@@ -125,10 +125,10 @@ struct World : testing::World {
 TEST_CASE( "[unsentry] unsentry_units_next_to_foreign_units" ) {
   World W;
   W.create_units();
-  e_nation nation = {};
+  e_player player = {};
 
   auto f = [&] {
-    unsentry_units_next_to_foreign_units( W.ss(), nation );
+    unsentry_units_next_to_foreign_units( W.ss(), player );
   };
 
   REQUIRE( W.sentried( UnitId{ 1 } ) );
@@ -142,7 +142,7 @@ TEST_CASE( "[unsentry] unsentry_units_next_to_foreign_units" ) {
   REQUIRE( !W.sentried( UnitId{ 9 } ) );
   REQUIRE( W.sentried( UnitId{ 10 } ) );
 
-  nation = e_nation::english;
+  player = e_player::english;
   f();
   REQUIRE( W.sentried( UnitId{ 1 } ) );
   REQUIRE( W.sentried( UnitId{ 2 } ) );
@@ -155,7 +155,7 @@ TEST_CASE( "[unsentry] unsentry_units_next_to_foreign_units" ) {
   REQUIRE( !W.sentried( UnitId{ 9 } ) );
   REQUIRE( W.sentried( UnitId{ 10 } ) );
 
-  nation = e_nation::english;
+  player = e_player::english;
   f();
   REQUIRE( W.sentried( UnitId{ 1 } ) );
   REQUIRE( W.sentried( UnitId{ 2 } ) );
@@ -168,7 +168,7 @@ TEST_CASE( "[unsentry] unsentry_units_next_to_foreign_units" ) {
   REQUIRE( !W.sentried( UnitId{ 9 } ) );
   REQUIRE( W.sentried( UnitId{ 10 } ) );
 
-  nation = e_nation::french;
+  player = e_player::french;
   f();
   REQUIRE( W.sentried( UnitId{ 1 } ) );
   REQUIRE( W.sentried( UnitId{ 2 } ) );
@@ -186,7 +186,7 @@ TEST_CASE(
     "[unsentry] unsentry_units_next_to_foreign_units "
     "(native)" ) {
   World W;
-  e_nation nation = {};
+  e_player player = {};
 
   Dwelling const& dwelling =
       W.add_dwelling( { .x = 0, .y = 1 }, e_tribe::sioux );
@@ -195,7 +195,7 @@ TEST_CASE(
   W.create_units();
 
   auto f = [&] {
-    unsentry_units_next_to_foreign_units( W.ss(), nation );
+    unsentry_units_next_to_foreign_units( W.ss(), player );
   };
 
   // Note that unit_id=1 is the brave, so in this test case we
@@ -213,7 +213,7 @@ TEST_CASE(
   REQUIRE( !W.sentried( UnitId{ 9 + 1 } ) );
   REQUIRE( W.sentried( UnitId{ 10 + 1 } ) );
 
-  nation = e_nation::english;
+  player = e_player::english;
   f();
   REQUIRE( W.sentried( UnitId{ 1 + 1 } ) );
   REQUIRE( !W.sentried( UnitId{ 2 + 1 } ) );

@@ -268,7 +268,7 @@ TEST_CASE( "[sav/bridge] NG to OG [scenario 1]" ) {
   REQUIRE( converted.other == expected.other );
   REQUIRE( converted.colony == expected.colony );
   REQUIRE( converted.unit == expected.unit );
-  REQUIRE( converted.nation == expected.nation );
+  REQUIRE( converted.player == expected.player );
   REQUIRE( converted.dwelling == expected.dwelling );
   REQUIRE( converted.tribe == expected.tribe );
   REQUIRE( converted.stuff == expected.stuff );

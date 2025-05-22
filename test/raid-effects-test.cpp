@@ -444,7 +444,7 @@ TEST_CASE( "[raid] select_brave_attack_colony_effect" ) {
   SECTION( "ship in port damaged" ) {
     auto add_ship = [&]( e_unit_type type ) -> Unit& {
       return W.add_unit_on_map( type, colony.location,
-                                W.default_nation() );
+                                W.default_player_type() );
     };
 
     SECTION( "no ships" ) {
@@ -998,7 +998,7 @@ TEST_CASE(
 TEST_CASE( "[raid] display_brave_attack_colony_effect_msg" ) {
   World W;
 
-  MockIEuroMind& mind = W.euro_mind( W.default_nation() );
+  MockIEuroMind& mind = W.euro_mind( W.default_player_type() );
   Colony& colony      = W.add_colony( { .x = 1, .y = 1 } );
   colony.name         = "my colony";
   Unit const& ship =

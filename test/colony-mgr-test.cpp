@@ -54,9 +54,9 @@ using ::mock::matchers::_;
 struct World : testing::World {
   using Base = testing::World;
   World() : Base() {
-    add_player( e_nation::dutch );
-    set_default_player( e_nation::dutch );
-    add_player( e_nation::english );
+    add_player( e_player::dutch );
+    set_default_player_type( e_player::dutch );
+    add_player( e_player::english );
     create_default_map();
   }
 
@@ -276,11 +276,11 @@ TEST_CASE( "[colony-mgr] found_colony by non-colonist fails" ) {
 TEST_CASE( "[colony-mgr] create, query, destroy" ) {
   World W;
   Colony& colony =
-      W.add_colony( Coord{ .x = 1, .y = 2 }, e_nation::english );
+      W.add_colony( Coord{ .x = 1, .y = 2 }, e_player::english );
   REQUIRE( colony.id == ColonyId{ 1 } );
 
   REQUIRE( colony.id == ColonyId{ 1 } );
-  REQUIRE( colony.nation == e_nation::english );
+  REQUIRE( colony.player == e_player::english );
   REQUIRE( colony.name == "1" );
   REQUIRE( colony.location == Coord{ .x = 1, .y = 2 } );
 
@@ -288,7 +288,7 @@ TEST_CASE( "[colony-mgr] create, query, destroy" ) {
   W.colonies().colony_for( ColonyId{ 1 } );
 
   Colony& colony2 =
-      W.add_colony( Coord{ .x = 1, .y = 3 }, e_nation::dutch );
+      W.add_colony( Coord{ .x = 1, .y = 3 }, e_player::dutch );
   REQUIRE( colony2.id == 2 );
   W.colonies().colony_for( ColonyId{ 1 } );
   W.colonies().colony_for( ColonyId{ 2 } );
@@ -296,12 +296,12 @@ TEST_CASE( "[colony-mgr] create, query, destroy" ) {
   REQUIRE( W.colonies().all().contains( 1 ) );
   REQUIRE( W.colonies().all().contains( 2 ) );
   REQUIRE_THAT(
-      W.colonies().for_nation( e_nation::dutch ),
+      W.colonies().for_player( e_player::dutch ),
       UnorderedEquals( vector<ColonyId>{ ColonyId{ 2 } } ) );
   REQUIRE_THAT(
-      W.colonies().for_nation( e_nation::english ),
+      W.colonies().for_player( e_player::english ),
       UnorderedEquals( vector<ColonyId>{ ColonyId{ 1 } } ) );
-  REQUIRE_THAT( W.colonies().for_nation( e_nation::french ),
+  REQUIRE_THAT( W.colonies().for_player( e_player::french ),
                 UnorderedEquals( vector<ColonyId>{} ) );
 
   REQUIRE( W.colonies().maybe_from_name( "1" ) ==
@@ -703,12 +703,12 @@ TEST_CASE( "[colony-mgr] give_stockade_if_needed" ) {
   // _, L, L, L, L, L,
   // L, L, L, L, L, L,
   auto [dutch1, dutch1_founder] = W.found_colony_with_new_unit(
-      { .x = 1, .y = 1 }, e_nation::dutch );
+      { .x = 1, .y = 1 }, e_player::dutch );
   auto [dutch2, dutch2_founder] = W.found_colony_with_new_unit(
-      { .x = 1, .y = 3 }, e_nation::dutch );
+      { .x = 1, .y = 3 }, e_player::dutch );
   auto [english1, english1_founder] =
       W.found_colony_with_new_unit( { .x = 3, .y = 1 },
-                                    e_nation::english );
+                                    e_player::english );
   W.add_unit_indoors( english1.id, e_indoor_job::bells );
   W.add_unit_indoors( english1.id, e_indoor_job::bells );
   W.add_unit_indoors( english1.id, e_indoor_job::bells );
@@ -780,7 +780,7 @@ TEST_CASE( "[colony-mgr] give_stockade_if_needed" ) {
 TEST_CASE( "[colony-mgr] colony_workers" ) {
   World W;
   Colony& colony =
-      W.add_colony( { .x = 1, .y = 1 }, e_nation::dutch );
+      W.add_colony( { .x = 1, .y = 1 }, e_player::dutch );
   vector<UnitId> expected;
 
   auto f = [&] { return colony_workers( colony ); };

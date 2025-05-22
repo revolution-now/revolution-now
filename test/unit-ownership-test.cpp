@@ -42,9 +42,9 @@ using ::mock::matchers::_;
 struct World : testing::World {
   using Base = testing::World;
   World() : Base() {
-    add_player( e_nation::dutch );
-    add_player( e_nation::english );
-    set_default_player( e_nation::dutch );
+    add_player( e_player::dutch );
+    add_player( e_player::english );
+    set_default_player_type( e_player::dutch );
     create_default_map();
   }
 
@@ -543,7 +543,7 @@ TEST_CASE( "[unit-ownership] reinstate_on_map_if_on_map" ) {
           .id();
   UnitId const other_id =
       W.add_unit_on_map( e_unit_type::free_colonist, other_coord,
-                         e_nation::english )
+                         e_player::english )
           .id();
   W.units().unit_for( other_id ).sentry();
 

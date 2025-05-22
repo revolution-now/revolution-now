@@ -43,10 +43,10 @@ using namespace std;
 struct World : testing::World {
   using Base = testing::World;
   World() : Base() {
-    add_player( e_nation::dutch );
-    add_player( e_nation::spanish );
-    add_player( e_nation::french );
-    set_default_player( e_nation::dutch );
+    add_player( e_player::dutch );
+    add_player( e_player::spanish );
+    add_player( e_player::french );
+    set_default_player_type( e_player::dutch );
     create_default_map();
   }
 
@@ -70,7 +70,7 @@ TEST_CASE( "[fog-conv] colony_to_frozen_colony" ) {
   FrozenColony expected = {};
 
   Colony& colony =
-      W.add_colony( { .x = 1, .y = 1 }, e_nation::spanish );
+      W.add_colony( { .x = 1, .y = 1 }, e_player::spanish );
 
   auto f = [&] {
     return colony_to_frozen_colony( W.ss(), colony );
@@ -119,11 +119,11 @@ TEST_CASE( "[fog-conv] dwelling_to_frozen_dwelling" ) {
 
   Unit& missionary = W.add_missionary_in_dwelling(
       e_unit_type::jesuit_missionary, dwelling.id,
-      e_nation::spanish );
+      e_player::spanish );
   expected = { .tribe    = e_tribe::cherokee,
                .location = { .x = 1, .y = 0 },
                .mission  = FrozenMission{
-                  .nation = e_nation::spanish,
+                  .player = e_player::spanish,
                   .level  = e_missionary_type::jesuit } };
   REQUIRE( f() == expected );
 
@@ -132,16 +132,16 @@ TEST_CASE( "[fog-conv] dwelling_to_frozen_dwelling" ) {
   expected = { .tribe    = e_tribe::cherokee,
                .location = { .x = 1, .y = 0 },
                .mission  = FrozenMission{
-                  .nation = e_nation::spanish,
+                  .player = e_player::spanish,
                   .level  = e_missionary_type::normal } };
   REQUIRE( f() == expected );
 
-  change_unit_nation( W.ss(), W.ts(), missionary,
-                      e_nation::french );
+  change_unit_player( W.ss(), W.ts(), missionary,
+                      e_player::french );
   expected = { .tribe    = e_tribe::cherokee,
                .location = { .x = 1, .y = 0 },
                .mission  = FrozenMission{
-                  .nation = e_nation::french,
+                  .player = e_player::french,
                   .level  = e_missionary_type::normal } };
   REQUIRE( f() == expected );
 }
@@ -206,14 +206,14 @@ TEST_CASE( "[visibility] copy_real_square_to_frozen_square" ) {
   REQUIRE( output == expected );
 
   Colony& colony =
-      W.add_colony( { .x = 0, .y = 1 }, e_nation::spanish );
+      W.add_colony( { .x = 0, .y = 1 }, e_player::spanish );
   coord    = { .x = 0, .y = 1 };
   expected = {
     .square = MapSquare{ .surface = e_surface::land,
                          .ground  = e_ground_terrain::grassland,
                          .road    = true },
     .colony = Colony{ .id        = 0,
-                      .nation    = e_nation::spanish,
+                      .player    = e_player::spanish,
                       .name      = "1",
                       .location  = { .x = 0, .y = 1 },
                       .buildings = colony.buildings,
@@ -228,7 +228,7 @@ TEST_CASE( "[visibility] copy_real_square_to_frozen_square" ) {
                             .ground  = e_ground_terrain::grassland,
                             .road    = true },
        .colony = Colony{ .id        = 0,
-                         .nation    = e_nation::spanish,
+                         .player    = e_player::spanish,
                          .name      = "hello",
                          .location  = { .x = 0, .y = 1 },
                          .buildings = colony.buildings,

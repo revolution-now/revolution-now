@@ -37,7 +37,7 @@ using Catch::Equals;
 struct World : testing::World {
   using Base = testing::World;
   World() : Base() {
-    add_player( e_nation::dutch );
+    add_player( e_player::dutch );
     create_default_map();
   }
 
@@ -146,7 +146,7 @@ TEST_CASE( "[terminal] autocomplete" ) {
   out = { "map_gen.classic." };
   REQUIRE_THAT( autocomplete( in ), Equals( out ) );
 
-  in  = "map_gen.nation_xxx";
+  in  = "map_gen.player_xxx";
   out = {};
   REQUIRE_THAT( autocomplete( in ), Equals( out ) );
 

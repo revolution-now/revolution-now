@@ -63,9 +63,9 @@ using ::mock::matchers::Approx;
 struct World : testing::World {
   using Base = testing::World;
   World() : Base() {
-    add_player( e_nation::spanish );
-    add_player( e_nation::english );
-    set_default_player( e_nation::spanish );
+    add_player( e_player::spanish );
+    add_player( e_player::english );
+    set_default_player_type( e_player::spanish );
     // Need at least one human player otherwise the map will be
     // fully visible during the natives' turns and we won't be
     // able to test whether animations get suppressed or not due

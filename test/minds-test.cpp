@@ -44,11 +44,11 @@ using namespace std;
 struct World : testing::World {
   using Base = testing::World;
   World() : Base() {
-    add_player( e_nation::english );
-    add_player( e_nation::french );
-    add_player( e_nation::spanish );
-    add_player( e_nation::dutch );
-    set_default_player( e_nation::english );
+    add_player( e_player::english );
+    add_player( e_player::french );
+    add_player( e_player::spanish );
+    add_player( e_player::dutch );
+    set_default_player_type( e_player::english );
     create_default_map();
   }
 
@@ -91,15 +91,15 @@ TEST_CASE( "[minds] create_euro_minds" ) {
 
   EuroMinds const minds = f();
 
-  auto& english_mind = minds[e_nation::english];
-  auto& french_mind  = minds[e_nation::french];
-  auto& spanish_mind = minds[e_nation::spanish];
-  auto& dutch_mind   = minds[e_nation::dutch];
+  auto& english_mind = minds[e_player::english];
+  auto& french_mind  = minds[e_player::french];
+  auto& spanish_mind = minds[e_player::spanish];
+  auto& dutch_mind   = minds[e_player::dutch];
 
-  REQUIRE( english_mind.nation() == e_nation::english );
-  REQUIRE( french_mind.nation() == e_nation::french );
-  REQUIRE( spanish_mind.nation() == e_nation::spanish );
-  REQUIRE( dutch_mind.nation() == e_nation::dutch );
+  REQUIRE( english_mind.player_type() == e_player::english );
+  REQUIRE( french_mind.player_type() == e_player::french );
+  REQUIRE( spanish_mind.player_type() == e_player::spanish );
+  REQUIRE( dutch_mind.player_type() == e_player::dutch );
 
   REQUIRE( dynamic_cast<HumanEuroMind*>( &english_mind ) !=
            nullptr );

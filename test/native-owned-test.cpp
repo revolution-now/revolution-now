@@ -91,7 +91,7 @@ TEST_CASE(
   REQUIRE( f() == nothing );
   W.natives().mark_land_owned( dwelling.id, loc );
   REQUIRE( f() == dwelling.id );
-  tribe.relationship[player.nation].encountered = true;
+  tribe.relationship[player.type].encountered = true;
   REQUIRE( f() == dwelling.id );
   player.fathers.has[e_founding_father::peter_minuit] = true;
   REQUIRE( f() == nothing );
@@ -120,7 +120,7 @@ TEST_CASE(
   REQUIRE( f() == nothing );
   W.natives().mark_land_owned( dwelling.id, loc );
   REQUIRE( f() == dwelling.id );
-  tribe.relationship[player.nation].encountered = true;
+  tribe.relationship[player.type].encountered = true;
   REQUIRE( f() == dwelling.id );
   player.fathers.has[e_founding_father::peter_minuit] = true;
   REQUIRE( f() == nothing );
@@ -147,7 +147,7 @@ TEST_CASE( "[native-owned] is_land_native_owned" ) {
   REQUIRE( f() == nothing );
   W.natives().mark_land_owned( dwelling.id, loc );
   REQUIRE( f() == nothing );
-  tribe.relationship[player.nation].encountered = true;
+  tribe.relationship[player.type].encountered = true;
   REQUIRE( f() == dwelling.id );
   player.fathers.has[e_founding_father::peter_minuit] = true;
   REQUIRE( f() == nothing );
@@ -185,8 +185,8 @@ TEST_CASE( "[native-owned] native_owned_land_around_square" ) {
   expected = {};
   REQUIRE( f() == expected );
 
-  tribe.relationship[player.nation].encountered = true;
-  expected                                      = {
+  tribe.relationship[player.type].encountered = true;
+  expected                                    = {
     { e_direction::nw, dwelling.id },
     { e_direction::n, dwelling.id },
     { e_direction::w, dwelling.id },
@@ -226,7 +226,7 @@ TEST_CASE( "[native-owned] price_for_native_owned_land" ) {
         e_difficulty::discoverer;
     Tribe& tribe = W.natives().tribe_for( dwelling.id );
     TribeRelationship& relationship =
-        tribe.relationship[player.nation];
+        tribe.relationship[player.type];
 
     // No relationship.
     tile     = { .x = 2, .y = 2 };
@@ -406,7 +406,7 @@ TEST_CASE( "[native-owned] price_for_native_owned_land" ) {
         e_difficulty::discoverer;
     Tribe& tribe = W.natives().tribe_for( dwelling.id );
     TribeRelationship& relationship =
-        tribe.relationship[player.nation];
+        tribe.relationship[player.type];
 
     // No relationship.
     tile     = { .x = 2, .y = 2 };
@@ -586,7 +586,7 @@ TEST_CASE( "[native-owned] price_for_native_owned_land" ) {
         e_difficulty::discoverer;
     Tribe& tribe = W.natives().tribe_for( dwelling.id );
     TribeRelationship& relationship =
-        tribe.relationship[player.nation];
+        tribe.relationship[player.type];
 
     // No relationship.
     tile                     = { .x = 2, .y = 2 };
@@ -769,7 +769,7 @@ TEST_CASE( "[native-owned] price_for_native_owned_land" ) {
         e_difficulty::discoverer;
     Tribe& tribe = W.natives().tribe_for( dwelling.id );
     TribeRelationship& relationship =
-        tribe.relationship[player.nation];
+        tribe.relationship[player.type];
 
     // No relationship.
     tile     = { .x = 2, .y = 2 };
@@ -946,7 +946,7 @@ TEST_CASE(
       e_difficulty::conquistador;
   Tribe& tribe = W.natives().tribe_for( dwelling.id );
   TribeRelationship& relationship =
-      tribe.relationship[player.nation];
+      tribe.relationship[player.type];
   relationship.encountered = true;
   player.money             = 1000;
 

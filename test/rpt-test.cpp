@@ -48,7 +48,7 @@ using ::mock::matchers::Matches;
 *****************************************************************/
 struct World : testing::World {
   using Base = testing::World;
-  World() : Base() { add_player( e_nation::dutch ); }
+  World() : Base() { add_player( e_player::dutch ); }
 };
 
 /****************************************************************
@@ -124,8 +124,8 @@ TEST_CASE( "[rpt] click_purchase" ) {
   REQUIRE( units.all().size() == 1 );
   REQUIRE( units.unit_for( UnitId{ 1 } ).type() ==
            e_unit_type::artillery );
-  REQUIRE( units.unit_for( UnitId{ 1 } ).nation() ==
-           player.nation );
+  REQUIRE( units.unit_for( UnitId{ 1 } ).player_type() ==
+           player.type );
   REQUIRE( units.ownership_of( UnitId{ 1 } )
                .holds<UnitOwnership::harbor>() );
 }
@@ -214,8 +214,8 @@ TEST_CASE( "[rpt] click_train" ) {
   REQUIRE( units.all().size() == 1 );
   REQUIRE( units.unit_for( UnitId{ 1 } ).type() ==
            e_unit_type::expert_fisherman );
-  REQUIRE( units.unit_for( UnitId{ 1 } ).nation() ==
-           player.nation );
+  REQUIRE( units.unit_for( UnitId{ 1 } ).player_type() ==
+           player.type );
   REQUIRE( units.ownership_of( UnitId{ 1 } )
                .holds<UnitOwnership::harbor>() );
 }
@@ -291,8 +291,8 @@ TEST_CASE( "[rpt] click_recruit" ) {
   REQUIRE( units.all().size() == 1 );
   REQUIRE( units.unit_for( UnitId{ 1 } ).type() ==
            e_unit_type::pioneer );
-  REQUIRE( units.unit_for( UnitId{ 1 } ).nation() ==
-           player.nation );
+  REQUIRE( units.unit_for( UnitId{ 1 } ).player_type() ==
+           player.type );
   UnitOwnership const expected_ownership{ UnitOwnership::harbor{
     .port_status = PortStatus::in_port{} } };
   REQUIRE( units.ownership_of( UnitId{ 1 } ) ==

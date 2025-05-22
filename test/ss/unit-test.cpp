@@ -27,8 +27,8 @@ using namespace std;
 
 TEST_CASE( "[unit] has_full_mv_points" ) {
   Player player;
-  player.nation = e_nation::english;
-  Unit unit     = create_unregistered_unit(
+  player.type = e_player::english;
+  Unit unit   = create_unregistered_unit(
       player, e_unit_type::missionary );
 
   REQUIRE( unit.has_full_mv_points() );

@@ -677,9 +677,9 @@ TEST_CASE(
   REQUIRE( player.money == 150 );
   REQUIRE( W.units().exists( unit_id ) );
   REQUIRE( W.units().all().size() == 1 );
-  REQUIRE(
-      W.aztec().relationship[W.default_nation()].tribal_alarm ==
-      99 );
+  REQUIRE( W.aztec()
+               .relationship[W.default_player_type()]
+               .tribal_alarm == 99 );
 }
 
 TEST_CASE( "[lcr] run_lcr, holy shrines" ) {
@@ -691,7 +691,8 @@ TEST_CASE( "[lcr] run_lcr, holy shrines" ) {
   square.lost_city_rumor = true;
 
   W.add_tribe( e_tribe::aztec );
-  W.aztec().relationship[W.default_nation()].tribal_alarm = 10;
+  W.aztec().relationship[W.default_player_type()].tribal_alarm =
+      10;
 
   // Create unit on map.
   UnitId unit_id =
@@ -726,9 +727,9 @@ TEST_CASE( "[lcr] run_lcr, holy shrines" ) {
   REQUIRE( W.units().exists( unit_id ) );
   REQUIRE( W.units().all().size() == 1 );
   // FIXME: improve these changes, make them more precise.
-  REQUIRE(
-      W.aztec().relationship[W.default_nation()].tribal_alarm ==
-      15 );
+  REQUIRE( W.aztec()
+               .relationship[W.default_player_type()]
+               .tribal_alarm == 15 );
 }
 
 TEST_CASE( "[lcr] compute_lcr, type=none" ) {
@@ -798,7 +799,7 @@ TEST_CASE( "[lcr] compute_lcr, type=none" ) {
     W.rand().EXPECT__between_ints( 2500, 4000 ).returns( 3333 );
     mock_map_search
         .EXPECT__find_close_encountered_tribe(
-            player.nation, gfx::point{ .x = 0, .y = 0 }, 15 )
+            player.type, gfx::point{ .x = 0, .y = 0 }, 15 )
         .returns( e_tribe::sioux );
     // Burial grounds?
     W.rand().EXPECT__bernoulli( .05 ).returns( false );
@@ -816,7 +817,7 @@ TEST_CASE( "[lcr] compute_lcr, type=none" ) {
     W.rand().EXPECT__between_ints( 70, 200 ).returns( 111 );
     mock_map_search
         .EXPECT__find_close_encountered_tribe(
-            player.nation, gfx::point{ .x = 0, .y = 0 }, 15 )
+            player.type, gfx::point{ .x = 0, .y = 0 }, 15 )
         .returns( e_tribe::sioux );
     // Burial grounds?
     W.rand().EXPECT__bernoulli( .05 ).returns( false );
@@ -832,7 +833,7 @@ TEST_CASE( "[lcr] compute_lcr, type=none" ) {
     W.rand().EXPECT__between_ints( 0, 99 ).returns( 95 );
     mock_map_search
         .EXPECT__find_close_encountered_tribe(
-            player.nation, gfx::point{ .x = 0, .y = 0 }, 15 )
+            player.type, gfx::point{ .x = 0, .y = 0 }, 15 )
         .returns( e_tribe::sioux );
     // Burial grounds?
     W.rand().EXPECT__bernoulli( .05 ).returns( false );
@@ -848,7 +849,7 @@ TEST_CASE( "[lcr] compute_lcr, type=none" ) {
     W.rand().EXPECT__between_ints( 0, 99 ).returns( 95 );
     mock_map_search
         .EXPECT__find_close_encountered_tribe(
-            player.nation, gfx::point{ .x = 0, .y = 0 }, 15 )
+            player.type, gfx::point{ .x = 0, .y = 0 }, 15 )
         .returns( e_tribe::sioux );
     // Burial grounds?
     W.rand().EXPECT__bernoulli( .05 ).returns( true );
@@ -899,7 +900,7 @@ TEST_CASE( "[lcr] compute_lcr, type=none" ) {
     W.rand().EXPECT__between_ints( 0, 99 ).returns( 99 );
     mock_map_search
         .EXPECT__find_close_encountered_tribe(
-            player.nation, gfx::point{ .x = 0, .y = 0 }, 15 )
+            player.type, gfx::point{ .x = 0, .y = 0 }, 15 )
         .returns( nothing );
     REQUIRE( f() == expected );
     W.rand().queue__between_ints.ensure_expectations();
@@ -911,7 +912,7 @@ TEST_CASE( "[lcr] compute_lcr, type=none" ) {
     W.rand().EXPECT__between_ints( 0, 99 ).returns( 99 );
     mock_map_search
         .EXPECT__find_close_encountered_tribe(
-            player.nation, gfx::point{ .x = 0, .y = 0 }, 15 )
+            player.type, gfx::point{ .x = 0, .y = 0 }, 15 )
         .returns( e_tribe::sioux );
     // Alarm increase.
     W.rand().EXPECT__between_ints( 14, 18 ).returns( 16 );

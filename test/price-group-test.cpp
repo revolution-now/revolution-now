@@ -41,7 +41,7 @@ struct World : testing::World {
   using Base = testing::World;
   World() : Base() {
     create_default_map();
-    add_player( e_nation::french );
+    add_player( e_player::french );
   }
 
   void create_default_map() {

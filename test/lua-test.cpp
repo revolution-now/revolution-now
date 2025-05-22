@@ -51,7 +51,7 @@ using Catch::Equals;
 struct World : testing::World {
   using Base = testing::World;
   World() : Base() {
-    add_player( e_nation::dutch );
+    add_player( e_player::dutch );
     MapSquare const L = make_grassland();
     vector<MapSquare> tiles{ L };
     build_map( std::move( tiles ), 1 );
@@ -173,7 +173,7 @@ TEST_CASE( "[lua] after initialization" ) {
   {
     auto script = R"lua(
       assert( config.nation
-                .nations
+                .players
                 .spanish
                 .flag_color
                  == "#FFFE54FF" )
@@ -196,12 +196,12 @@ TEST_CASE( "[lua] after initialization" ) {
   {
     auto script = R"lua(
       local bad_get = function()
-        return config.nation.nations.spanishx
+        return config.player.types.spanishx
       end
       assert( not pcall( bad_get ),
              'no error thrown on invalid field get.' )
       bad_get = function()
-        config.nation.nations.spanish = 5
+        config.player.types.spanish = 5
       end
       assert( not pcall( bad_get ),
              'no error thrown on field set.' )

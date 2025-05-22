@@ -38,7 +38,7 @@ using namespace std;
 *****************************************************************/
 struct World : testing::World {
   using Base = testing::World;
-  World() : Base() { add_player( e_nation::dutch ); }
+  World() : Base() { add_player( e_player::dutch ); }
 
   void create_default_map() {
     MapSquare const _ = make_ocean();
