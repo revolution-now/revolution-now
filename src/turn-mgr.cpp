@@ -11,7 +11,7 @@
 #include "turn-mgr.hpp"
 
 // ss
-#include "ss/nation.rds.hpp"
+#include "ss/nation.hpp"
 #include "ss/players.rds.hpp"
 #include "ss/ref.hpp"
 
@@ -27,18 +27,21 @@ namespace rn {
 ** Public API.
 *****************************************************************/
 // NOTE: should allow that no nations exist here.
-maybe<e_nation> find_first_nation_to_move( SSConst const& ss ) {
-  auto const& ns = refl::enum_values<e_nation>;
-  for( e_nation const nation : ns )
-    if( ss.players.players[nation].has_value() ) //
-      return nation;
+maybe<e_european_nation> find_first_nation_to_move(
+    SSConst const& ss ) {
+  auto const& ns = refl::enum_values<e_european_nation>;
+  for( e_european_nation const european_nation : ns )
+    if( ss.players
+            .players[colonist_player_for( european_nation )]
+            .has_value() ) //
+      return european_nation;
   return nothing;
 }
 
 // NOTE: should allow that no nations exist here.
-maybe<e_nation> find_next_nation_to_move(
-    SSConst const& ss, e_nation const curr_nation ) {
-  auto const& ns = refl::enum_values<e_nation>;
+maybe<e_european_nation> find_next_nation_to_move(
+    SSConst const& ss, e_european_nation const curr_nation ) {
+  auto const& ns = refl::enum_values<e_european_nation>;
 
   // Find the current nation.
   auto it = ns.begin();
@@ -49,9 +52,11 @@ maybe<e_nation> find_next_nation_to_move(
   // Find the next one that exits.
   ++it;
   for( ; it != ns.end(); ++it ) {
-    e_nation const nation = *it;
-    if( ss.players.players[nation].has_value() ) //
-      return nation;
+    e_european_nation const european_nation = *it;
+    if( ss.players
+            .players[colonist_player_for( european_nation )]
+            .has_value() ) //
+      return european_nation;
   }
 
   return nothing;

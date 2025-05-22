@@ -1031,7 +1031,7 @@ maybe<int> production_for_slot( ColonyProduction const& pr,
 ColonyProduction production_for_colony( SSConst const& ss,
                                         Colony const& colony ) {
   ColonyProduction res;
-  UNWRAP_CHECK( player, ss.players.players[colony.nation] );
+  UNWRAP_CHECK( player, ss.players.players[colony.player] );
 
   // These are computed based on the state of things last turn.
   BellsModifiers const bells_modifiers = compute_bells_modifiers(

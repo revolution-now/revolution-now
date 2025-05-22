@@ -58,10 +58,10 @@ wait<> surprise_raid_msg( SSConst const& ss,
                           IEuroMind& euro_mind,
                           Coord defender_loc,
                           e_tribe tribe_type ) {
-  e_nation const friendly_nation = euro_mind.nation();
+  e_player const friendly_player = euro_mind.player_type();
   string where;
   maybe<Colony const&> closest = find_close_explored_colony(
-      ss, friendly_nation, defender_loc,
+      ss, friendly_player, defender_loc,
       /*max_distance=*/
       config_colony.search_dist_for_nearby_colony );
   if( closest.has_value() ) {
@@ -96,7 +96,7 @@ wait<> raid_unit( SS& ss, TS& ts, NativeUnit& attacker,
       ts.combat.brave_attack_euro( as_const( attacker ),
                                    as_const( defender ) );
   Coord const src      = ss.units.coord_for( attacker.id );
-  IEuroMind& euro_mind = ts.euro_minds()[defender.nation()];
+  IEuroMind& euro_mind = ts.euro_minds()[defender.player_type()];
 
   // Note that for attacks the "show indian moves" game flag is
   // not relevant, since there is really no natural way to show
@@ -107,7 +107,7 @@ wait<> raid_unit( SS& ss, TS& ts, NativeUnit& attacker,
   bool const viewable = should_animate_move( *viz, src, dst );
 
   if( viewable ) {
-    // NOTE: the viewing nation will be changed further up the
+    // NOTE: the viewing player will be changed further up the
     // call stack if needed (i.e. when there are multiple human
     // players).
     co_await ts.planes.get()
@@ -147,7 +147,7 @@ static wait<> raid_colony_battle(
     SS& ss, TS& ts, NativeUnit& attacker, Colony& colony,
     Tribe& tribe, CombatBraveAttackColony const& combat ) {
   CHECK( !combat.colony_destroyed );
-  IEuroMind& euro_mind = ts.euro_minds()[colony.nation];
+  IEuroMind& euro_mind = ts.euro_minds()[colony.player];
   Unit& defender       = ss.units.unit_for( combat.defender.id );
   // Note: there are there still side effects if the brave
   // loses. We only suppress the side effect if the colony is
@@ -184,9 +184,9 @@ static wait<> raid_colony_battle(
 static wait<> raid_colony_burn(
     SS& ss, TS& ts, NativeUnit& attacker, Colony& colony,
     e_tribe tribe_type, CombatBraveAttackColony const& combat ) {
-  IEuroMind& euro_mind = ts.euro_minds()[colony.nation];
+  IEuroMind& euro_mind = ts.euro_minds()[colony.player];
   Player& player =
-      player_for_nation_or_die( ss.players, colony.nation );
+      player_for_player_or_die( ss.players, colony.player );
   Unit& defender = ss.units.unit_for( combat.defender.id );
   UnitId const defender_id = defender.id();
   CombatEffectsMessages const effects_msg =
@@ -254,7 +254,7 @@ wait<> raid_colony( SS& ss, TS& ts, NativeUnit& attacker,
   CombatBraveAttackColony const combat =
       ts.combat.brave_attack_colony( attacker, defender,
                                      colony );
-  IEuroMind& euro_mind     = ts.euro_minds()[colony.nation];
+  IEuroMind& euro_mind     = ts.euro_minds()[colony.player];
   e_tribe const tribe_type = tribe_type_for_unit( ss, attacker );
   Tribe& tribe             = ss.natives.tribe_for( tribe_type );
   unique_ptr<IVisibility const> const viz =
@@ -270,7 +270,7 @@ wait<> raid_colony( SS& ss, TS& ts, NativeUnit& attacker,
   bool const viewable = should_animate_move( *viz, src, dst );
 
   if( viewable ) {
-    // NOTE: the viewing nation will be changed further up the
+    // NOTE: the viewing player will be changed further up the
     // call stack if needed (i.e. when there are multiple human
     // players).
     co_await ts.planes.get()

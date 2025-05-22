@@ -98,8 +98,8 @@ ColonySonsOfLiberty compute_colony_sons_of_liberty(
     Player const& player, Colony const& colony );
 
 // This is done to a colony when it gets reassigned to another
-// nation as a result of the War of Succession. This is done so
-// that the AI nation that acquires the colonies doesn't get a
+// player as a result of the War of Succession. This is done so
+// that the AI player that acquires the colonies doesn't get a
 // large bump in number of rebels which could then cause it to be
 // immediately granted independence, which would not be fun for
 // the player, especially given that this game mechanic is not

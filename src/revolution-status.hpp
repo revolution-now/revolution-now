@@ -20,9 +20,9 @@ struct Player;
 // In the OG, after independence is declared, the game no longer
 // refers to units as e.g. "Dutch Soldier" but instead "Rebel
 // Soldier".
-std::string_view nation_possessive( Player const& player );
+std::string_view player_possessive( Player const& player );
 
 // Same as above but yields "Rebels" after declaration.
-std::string_view nation_display_name( Player const& player );
+std::string_view player_display_name( Player const& player );
 
 } // namespace rn

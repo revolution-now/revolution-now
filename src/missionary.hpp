@@ -79,12 +79,12 @@ bool is_missionary( e_unit_type type );
 // In the OG, if the dwelling has a mission and you attack it
 // then you can increase the chances that a new convert will join
 // your colonies (strange, but that's how it works). When a
-// dwelling contains a missionary from the player's nation then
-// this function will return the probability ([0,1]) that a con-
-// vert should be produced. If the dwelling does not contain a
-// mission from this player then it returns nothing. Note that
-// the OG seems to never produce converts when the player loses
-// the battle, so this should only be called after a player win.
+// dwelling contains one of the player's missionaries then this
+// function will return the probability ([0,1]) that a convert
+// should be produced. If the dwelling does not contain a mission
+// from this player then it returns nothing. Note that the OG
+// seems to never produce converts when the player loses the bat-
+// tle, so this should only be called after a player win.
 maybe<double> probability_dwelling_produces_convert_on_attack(
     SSConst const& ss, Player const& player_attacking,
     DwellingId dwelling_id );

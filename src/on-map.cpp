@@ -62,7 +62,7 @@ namespace rn {
 namespace {
 
 string new_world_name_for( Player const& player ) {
-  return config_nation.nations[player.nation].new_world_name;
+  return config_nation.players[player.type].new_world_name;
 }
 
 wait<> try_discover_new_world( SSConst const& ss, TS& ts,
@@ -149,7 +149,7 @@ wait<bool> try_king_transport_treasure( SS& ss, TS& ts,
       ss.colonies.maybe_from_coord( world_square );
   if( !colony_id.has_value() ) co_return false;
   Colony const& colony = ss.colonies.colony_for( *colony_id );
-  CHECK_EQ( colony.nation, player.nation );
+  CHECK_EQ( colony.player, player.type );
   maybe<TreasureReceipt> const receipt =
       co_await treasure_enter_colony( ss, ts, player, unit );
   if( !receipt.has_value() ) co_return false;
@@ -175,14 +175,14 @@ wait<> try_meet_europeans( SS& ss, TS& ts, e_tribe tribe_type,
   vector<MeetTribe> const meet_tribes = check_meet_europeans(
       as_const( ss ), tribe_type, native_tile );
   for( MeetTribe const& meet_tribe : meet_tribes ) {
-    Player& player = player_for_nation_or_die(
-        ss.players, meet_tribe.nation );
-    ScopedMapViewer const _( ss, ts, player.nation );
+    Player& player = player_for_player_or_die(
+        ss.players, meet_tribe.player );
+    ScopedMapViewer const _( ss, ts, player.type );
     co_await ts.planes.get()
         .get_bottom<ILandViewPlane>()
         .ensure_visible( native_tile );
     e_declare_war_on_natives const declare_war =
-        co_await ts.euro_minds()[meet_tribe.nation]
+        co_await ts.euro_minds()[meet_tribe.player]
             .meet_tribe_ui_sequence( meet_tribe );
     perform_meet_tribe( ss, player, meet_tribe, declare_war );
   }
@@ -259,8 +259,8 @@ void UnitOnMapMover::to_map_non_interactive(
   // to the destination square and (potentially) leaving a source
   // square. Should be done before unit is moved.
   vector<Coord> const visible = unit_visible_squares(
-      ss, unit.nation(), unit.type(), world_square );
-  ts.map_updater().make_squares_visible( unit.nation(),
+      ss, unit.player_type(), unit.type(), world_square );
+  ts.map_updater().make_squares_visible( unit.player_type(),
                                          visible );
 
   // 2. Move the unit. This is the only place where this function
@@ -300,8 +300,8 @@ wait<maybe<UnitDeleted>> UnitOnMapMover::to_map_interactive(
   to_map_non_interactive( ss, ts, id, dst );
 
   Unit& unit = ss.units.unit_for( id );
-  UNWRAP_CHECK( player, ss.players.players[unit.nation()] );
-  IEuroMind& euro_mind = ts.euro_minds()[player.nation];
+  UNWRAP_CHECK( player, ss.players.players[unit.player_type()] );
+  IEuroMind& euro_mind = ts.euro_minds()[player.type];
 
   if( !player.new_world_name.has_value() )
     co_await try_discover_new_world( ss, ts, player, euro_mind,

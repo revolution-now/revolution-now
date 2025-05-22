@@ -44,11 +44,11 @@ struct NonRenderingMapUpdater : IMapUpdater {
                                     SquareUpdateFunc ) override;
 
   std::vector<BuffersUpdated> make_squares_visible(
-      e_nation nation,
+      e_player player,
       std::vector<Coord> const& tiles ) override;
 
   std::vector<BuffersUpdated> make_squares_fogged(
-      e_nation nation,
+      e_player player,
       std::vector<Coord> const& tiles ) override;
 
   std::vector<BuffersUpdated> force_redraw_tiles(
@@ -83,11 +83,11 @@ struct RenderingMapUpdater : NonRenderingMapUpdater {
       Coord tile, SquareUpdateFunc mutator ) override;
 
   std::vector<BuffersUpdated> make_squares_visible(
-      e_nation nation,
+      e_player player,
       std::vector<Coord> const& tiles ) override;
 
   std::vector<BuffersUpdated> make_squares_fogged(
-      e_nation nation,
+      e_player player,
       std::vector<Coord> const& tiles ) override;
 
   std::vector<BuffersUpdated> force_redraw_tiles(

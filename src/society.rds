@@ -17,7 +17,7 @@ namespace "rn"
 sumtype.Society {
   # Europeans.
   european {
-    nation 'e_nation',
+    player 'e_player',
   },
   native {
     tribe 'e_tribe',

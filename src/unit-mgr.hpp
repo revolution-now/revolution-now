@@ -72,11 +72,11 @@ maybe<e_unit_activity> current_activity_for_unit(
 std::vector<UnitId> euro_units_from_coord_recursive(
     UnitsState const& units_state, gfx::point tile );
 
-// Same as above but will limit to a single nation. Thus, we will
-// either return all units of a single nation, or nothing, at
+// Same as above but will limit to a single player. Thus, we will
+// either return all units of a single player, or nothing, at
 // least under normal gamie operation.
 std::vector<UnitId> euro_units_from_coord_recursive(
-    UnitsState const& units_state, e_nation nation,
+    UnitsState const& units_state, e_player player,
     gfx::point tile );
 
 // Same as above but also includes any native units.
@@ -170,15 +170,15 @@ NativeUnitId create_unit_on_map_non_interactive(
 void change_unit_type( SS& ss, TS& ts, Unit& unit,
                        UnitComposition const& new_comp );
 
-void change_unit_nation( SS& ss, TS& ts, Unit& unit,
-                         e_nation new_nation );
+void change_unit_player( SS& ss, TS& ts, Unit& unit,
+                         e_player new_player );
 
-// This is for when we want to change the unit's nation and move
+// This is for when we want to change the unit's player and move
 // them in one go. This is useful for a unit capture in order to
-// avoid changing the unit's nation first and inadvertantly re-
+// avoid changing the unit's player first and inadvertantly re-
 // vealing map square around it before moving it.
-void change_unit_nation_and_move( SS& ss, TS& ts, Unit& unit,
-                                  e_nation new_nation,
+void change_unit_player_and_move( SS& ss, TS& ts, Unit& unit,
+                                  e_player new_player,
                                   Coord target );
 
 /****************************************************************

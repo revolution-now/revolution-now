@@ -66,7 +66,7 @@ maybe<double> probability_dwelling_produces_convert_on_attack(
   if( !missionary_id.has_value() ) return nothing;
   Unit const& missionary_unit =
       ss.units.unit_for( *missionary_id );
-  if( missionary_unit.nation() != player_attacking.nation )
+  if( missionary_unit.player_type() != player_attacking.type )
     return nothing;
   UNWRAP_CHECK( missionary_type,
                 missionary_type( missionary_unit.type_obj() ) );
@@ -95,8 +95,8 @@ vector<UnitId> player_missionaries_in_tribe(
     maybe<UnitId> const missionary =
         ss.units.missionary_from_dwelling( dwelling_id );
     if( !missionary.has_value() ) continue;
-    if( ss.units.unit_for( *missionary ).nation() !=
-        player.nation )
+    if( ss.units.unit_for( *missionary ).player_type() !=
+        player.type )
       continue;
     res.push_back( *missionary );
   }
@@ -110,7 +110,7 @@ vector<UnitId> player_missionaries_in_tribe(
 e_missionary_reaction tribe_reaction_to_missionary(
     Player const& player, Tribe const& tribe ) {
   TribeRelationship const& relationship =
-      tribe.relationship[player.nation];
+      tribe.relationship[player.type];
   int const alarm = relationship.tribal_alarm;
   if( alarm < 25 ) return e_missionary_reaction::curiosity;
   if( alarm < 50 ) return e_missionary_reaction::cautious;

@@ -204,23 +204,23 @@ void render_unit_depixelate_to_impl(
 
 // We really don't want to compute the dulled colors everytime we
 // render a dwelling, so we will cache it.
-gfx::pixel missionary_cross_color( e_nation nation,
+gfx::pixel missionary_cross_color( e_player player,
                                    bool is_jesuit ) {
   static auto dulled = [] {
-    refl::enum_map<e_nation, gfx::pixel> m;
-    for( e_nation nation : refl::enum_values<e_nation> ) {
+    refl::enum_map<e_player, gfx::pixel> m;
+    for( e_player player : refl::enum_values<e_player> ) {
       gfx::pixel const bright_color =
-          config_nation.nations[nation].flag_color;
+          config_nation.players[player].flag_color;
       gfx::pixel_hsl hsl = to_HSL( bright_color );
       hsl.s *= config_missionary
                    .saturation_reduction_for_non_jesuit_cross;
-      m[nation] = to_RGB( hsl );
+      m[player] = to_RGB( hsl );
     }
     return m;
   }();
   if( is_jesuit )
-    return config_nation.nations[nation].flag_color;
-  return dulled[nation];
+    return config_nation.players[player].flag_color;
+  return dulled[player];
 }
 
 } // namespace
@@ -335,10 +335,10 @@ void render_colony( rr::Renderer& renderer, Coord where,
   int const population = colony_population( colony );
   rr::Painter painter  = renderer.painter();
   render_sprite( renderer, where, tile );
-  auto const& nation = nation_obj( colony.nation );
+  auto const& player = player_obj( colony.player );
   if( options.render_flag )
     render_colony_flag( painter, where + Delta{ .w = 8, .h = 8 },
-                        nation.flag_color );
+                        player.flag_color );
   if( options.render_population ) {
     Coord const population_coord =
         where + Delta{ .w = 44 / 2 - 3, .h = 44 / 2 - 4 };
@@ -423,7 +423,7 @@ void render_dwelling( rr::Renderer& renderer, Coord where,
     bool const is_jesuit =
         ( frozen_mission->level == e_missionary_type::jesuit );
     gfx::pixel const cross_color = missionary_cross_color(
-        frozen_mission->nation, is_jesuit );
+        frozen_mission->player, is_jesuit );
     // This is the inner part that is colored according to the
     // nation's flag color.
     render_sprite_silhouette( renderer, where + offset_32x32,

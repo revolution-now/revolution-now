@@ -59,18 +59,18 @@ string construct_rcl_title( SSConst const& ss ) {
       base::capitalize_initials( refl::enum_value_name(
           ss.root.settings.game_setup_options.difficulty ) );
   string const name = "SomeName"; // FIXME: temporary
-  maybe<e_nation> human;
-  // Use the first human nation.
-  for( e_nation nation : refl::enum_values<e_nation> ) {
-    if( ss.players.players[nation].has_value() ) {
-      if( ss.players.players[nation]->human ) {
-        human = nation;
+  maybe<e_player> human;
+  // Use the first human player.
+  for( e_player const player : refl::enum_values<e_player> ) {
+    if( ss.players.players[player].has_value() ) {
+      if( ss.players.players[player]->human ) {
+        human = player;
         break;
       }
     }
   }
-  string const nation_name =
-      human.has_value() ? config_nation.nations[*human]
+  string const player_name =
+      human.has_value() ? config_nation.players[*human]
                               .possessive_pre_declaration
                         : "(AI only)";
   TurnState const& turn_state = ss.root.turn;
@@ -81,7 +81,7 @@ string construct_rcl_title( SSConst const& ss ) {
       turn_state.time_point.year );
   Delta const map_size = ss.root.zzz_terrain.world_size_tiles();
   return fmt::format( "{} {} of the {}, {}, {}x{}", difficulty,
-                      name, nation_name, time_point, map_size.w,
+                      name, player_name, time_point, map_size.w,
                       map_size.h );
 }
 

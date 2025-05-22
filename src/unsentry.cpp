@@ -23,7 +23,7 @@ namespace {
 
 // Get all units in the eight squares that surround coord.
 bool has_surrounding_foreign_unit( SSConst const& ss,
-                                   e_nation nation,
+                                   e_player player,
                                    Coord coord ) {
   for( e_direction d : refl::enum_values<e_direction> ) {
     Coord const moved = coord.moved( d );
@@ -31,7 +31,7 @@ bool has_surrounding_foreign_unit( SSConst const& ss,
       if( ss.units.unit_kind( id ) != e_unit_kind::euro )
         return true;
       Unit const& euro_unit = ss.units.euro_unit_for( id );
-      if( euro_unit.nation() != nation ) return true;
+      if( euro_unit.player_type() != player ) return true;
     }
   }
   return false;
@@ -45,7 +45,8 @@ void unsentry_unit_if_needed( SS& ss, Unit& unit ) {
   // to e.g. wake up units that are sentry'd on ships.
   maybe<Coord> loc = ss.units.maybe_coord_for( unit.id() );
   if( !loc.has_value() ) return;
-  if( has_surrounding_foreign_unit( ss, unit.nation(), *loc ) ) {
+  if( has_surrounding_foreign_unit( ss, unit.player_type(),
+                                    *loc ) ) {
     unit.clear_orders();
     return;
   }
@@ -54,7 +55,7 @@ void unsentry_unit_if_needed( SS& ss, Unit& unit ) {
 // Get all euro units in the eight squares that surround coord.
 vector<Unit*> surrounding_sentried_euro_units(
     SS& ss, Coord const& coord,
-    maybe<e_nation> exclude = nothing ) {
+    maybe<e_player> exclude = nothing ) {
   vector<Unit*> res;
   for( e_direction const d : refl::enum_values<e_direction> ) {
     Coord const moved = coord.moved( d );
@@ -64,7 +65,7 @@ vector<Unit*> surrounding_sentried_euro_units(
         continue;
       Unit& unit = ss.units.euro_unit_for( generic_id );
       if( !unit.orders().holds<unit_orders::sentry>() ) continue;
-      if( unit.nation() == exclude ) continue;
+      if( unit.player_type() == exclude ) continue;
       res.push_back( &unit );
     }
   }
@@ -77,10 +78,10 @@ vector<Unit*> surrounding_sentried_euro_units(
 ** Public API
 *****************************************************************/
 void unsentry_units_next_to_foreign_units(
-    SS& ss, e_nation nation_to_unsentry ) {
+    SS& ss, e_player player_to_unsentry ) {
   for( auto& p : ss.units.euro_all() ) {
     Unit& unit = ss.units.unit_for( p.first );
-    if( unit.nation() != nation_to_unsentry ) continue;
+    if( unit.player_type() != player_to_unsentry ) continue;
     unsentry_unit_if_needed( ss, unit );
   }
 }
@@ -91,7 +92,7 @@ void unsentry_foreign_units_next_to_euro_unit(
     SS& ss, Unit const& src_unit ) {
   Coord const src_loc = ss.units.coord_for( src_unit.id() );
   vector<Unit*> const units = surrounding_sentried_euro_units(
-      ss, src_loc, /*exclude=*/src_unit.nation() );
+      ss, src_loc, /*exclude=*/src_unit.player_type() );
   for( Unit* p_unit : units ) p_unit->clear_orders();
 }
 

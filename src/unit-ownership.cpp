@@ -45,8 +45,8 @@ UnitOwnershipChanger::UnitOwnershipChanger( SS& ss,
                                             UnitId unit_id )
   : ss_( ss ),
     unit_( ss.units.unit_for( unit_id ) ),
-    player_( player_for_nation_or_die( ss_.players,
-                                       unit_.nation() ) ),
+    player_( player_for_player_or_die( ss_.players,
+                                       unit_.player_type() ) ),
     unit_id_( unit_id ) {}
 
 void UnitOwnershipChanger::change_to_free() const {

@@ -114,12 +114,12 @@ void on_horses_gifted_to_tribe( SSConst const& ss, Tribe& tribe,
                                 int amount );
 
 // This is called when a brave demands muskets via reparations
-// and the european nation concedes.
+// and the european player concedes.
 void on_receive_muskets_via_reparations( Tribe& tribe,
                                          NativeUnit& demander );
 
 // This is called when a brave demands horses via reparations and
-// the european nation concedes.
+// the european player concedes.
 void on_receive_horses_via_reparations( SSConst const& ss,
                                         Tribe& tribe,
                                         NativeUnit& demander );

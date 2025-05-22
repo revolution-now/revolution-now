@@ -700,7 +700,7 @@ wait<> run_map_editor( IEngine& engine, SS& ss, TS& ts ) {
           []( MapUpdaterOptions& options ) {
             // Will cause the entire map to be revealed and
             // redrawn during the map editor session.
-            options.nation = nothing;
+            options.player = nothing;
           } );
 
   co_await map_edit_plane.run_map_editor();

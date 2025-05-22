@@ -87,7 +87,7 @@ BraveAttackColonyEffect calculate_money_stolen(
                                  e_colony_building::stockade ) )
     return none;
   Player const& player =
-      player_for_nation_or_die( ss.players, colony.nation );
+      player_for_player_or_die( ss.players, colony.player );
   int const money = player.money;
   if( money == 0 ) return none;
   auto const& conf = config_natives.combat.colony_attack;
@@ -134,7 +134,7 @@ BraveAttackColonyEffect choose_ship_to_damage(
   UnitId const ship = rand.pick_one( ships );
 
   maybe<ShipRepairPort> const port = find_repair_port_for_ship(
-      ss, colony.nation, colony.location );
+      ss, colony.player, colony.location );
   return BraveAttackColonyEffect::ship_in_port_damaged{
     .which = ship, .sent_to = port };
 }
@@ -224,7 +224,7 @@ void perform_brave_attack_colony_effect(
     }
     CASE( money_stolen ) {
       Player& player =
-          player_for_nation_or_die( ss.players, colony.nation );
+          player_for_player_or_die( ss.players, colony.player );
       CHECK_GE( player.money, money_stolen.quantity );
       player.money -= money_stolen.quantity;
       return;
@@ -300,12 +300,12 @@ wait<> display_brave_attack_colony_effect_msg(
       string msg;
       if( !ship_in_port_damaged.sent_to.has_value() )
         msg = ship_damaged_no_port_message(
-            player_for_nation_or_die( ss.players,
-                                      ship.nation() ),
+            player_for_player_or_die( ss.players,
+                                      ship.player_type() ),
             ship.type(), reason );
       else
         msg = ship_damaged_message(
-            ss, ship.nation(), ship.type(), reason,
+            ss, ship.player_type(), ship.type(), reason,
             *ship_in_port_damaged.sent_to );
       int const num_units_onboard =
           ship.cargo().count_items_of_type<Cargo::unit>();

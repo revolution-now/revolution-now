@@ -49,12 +49,12 @@ int constexpr kMinColonistsForSentimentMsgs = 4;
 ** Public API.
 *****************************************************************/
 int unit_count_for_rebel_sentiment( SSConst const& ss,
-                                    e_nation const nation ) {
+                                    e_player const player ) {
   auto const& units = ss.units.euro_all();
   int n             = 0;
   for( auto const& [_, p_state] : units ) {
     Unit const& unit = p_state->unit;
-    if( unit.nation() != nation ) continue;
+    if( unit.player_type() != player ) continue;
     if( !is_unit_a_colonist( unit.type() ) ) continue;
     ++n;
   }
@@ -66,7 +66,7 @@ int updated_rebel_sentiment( SSConst const& ss,
   double fractional_rebels      = 0.0;
   int total_colonies_population = 0;
   for( auto const& [_, colony] : ss.colonies.all() ) {
-    if( colony.nation != player.nation ) continue;
+    if( colony.player != player.type ) continue;
     ColonySonsOfLiberty const sol =
         compute_colony_sons_of_liberty( player, colony );
     int const population = colony_population( colony );
@@ -95,7 +95,7 @@ RebelSentimentReport rebel_sentiment_report_for_cc_report(
     SSConst const& ss, Player const& player ) {
   int const rebel_sentiment = player.revolution.rebel_sentiment;
   int const total_units =
-      unit_count_for_rebel_sentiment( ss, player.nation );
+      unit_count_for_rebel_sentiment( ss, player.type );
   int const rebels =
       int( double( rebel_sentiment ) * total_units / 100.0 );
   int const tories = total_units - rebels;
@@ -114,7 +114,7 @@ bool should_show_rebel_sentiment_report(
   // pensive so that we do the expensive stuff less often.
   if( player.revolution.status >= e_revolution_status::declared )
     return false;
-  if( unit_count_for_rebel_sentiment( ss, player.nation ) <
+  if( unit_count_for_rebel_sentiment( ss, player.type ) <
       kMinColonistsForSentimentMsgs )
     return false;
   int const report_from =
@@ -139,7 +139,7 @@ wait<> show_rebel_sentiment_change_report(
     Player& player, IEuroMind& mind,
     RebelSentimentChangeReport const& report ) {
   auto const& country =
-      config_nation.nations[mind.nation()].country_name;
+      config_nation.players[mind.player_type()].country_name;
   if( report.nova > report.prev )
     co_await mind.message_box(
         "[Rebel] sentiment is on the rise, Your Excellency!  "

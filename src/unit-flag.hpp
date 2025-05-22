@@ -21,7 +21,7 @@
 
 namespace rn {
 
-enum class e_nation;
+enum class e_player;
 enum class e_native_unit_type;
 enum class e_tribe;
 enum class e_unit_type;
@@ -67,7 +67,7 @@ struct UnitFlagOptions {
 // Given a euro unit, return the info describing how to render
 // its flag, assuming it will have one.
 UnitFlagRenderInfo euro_unit_flag_render_info(
-    Unit const& unit, maybe<e_nation> viewer,
+    Unit const& unit, maybe<e_player> viewer,
     UnitFlagOptions const& options );
 
 // Given a native unit, return the info describing how to render
@@ -81,7 +81,7 @@ UnitFlagRenderInfo native_unit_flag_render_info(
 // other info.
 UnitFlagRenderInfo euro_unit_type_flag_info(
     e_unit_type unit_type, unit_orders const& orders,
-    e_nation nation );
+    e_player player );
 
 // This is for when we are rendering a unit with a flag but it is
 // not a real unit, so all that we have is the unit type and some

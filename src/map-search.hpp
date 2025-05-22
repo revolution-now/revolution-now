@@ -55,21 +55,21 @@ maybe<Colony const&> find_any_close_colony(
 // visible or fogged) that is the shortest pythagorean distance
 // away, among those whose distance is less than `max_distance`.
 maybe<Colony const&> find_close_explored_colony(
-    SSConst const& ss, e_nation nation, gfx::point location,
+    SSConst const& ss, e_player player, gfx::point location,
     double max_distance );
 
 // Returns a list of friendly colonies spiraling outward from the
 // starting point that are within a radius of `max_distance` to
 // the start.
 std::vector<ColonyId> close_friendly_colonies(
-    SSConst const& ss, e_nation nation, gfx::point const start,
+    SSConst const& ss, e_player player, gfx::point const start,
     double max_distance );
 
 // Find the closest dwelling within the given pythagorean dis-
 // tance (either explored or not) of a tribe that has been en-
 // countered, and return its tribe.
 maybe<e_tribe> find_close_encountered_tribe(
-    SSConst const& ss, e_nation nation, gfx::point location,
+    SSConst const& ss, e_player player, gfx::point location,
     double max_distance );
 
 } // namespace rn

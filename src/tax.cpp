@@ -77,7 +77,7 @@ maybe<CommodityInColony> find_what_to_boycott(
   for( auto& [comm, bid] : prices )
     bid = market_price( player, comm ).bid;
   vector<ColonyId> const player_colonies =
-      ss.colonies.for_nation( player.nation );
+      ss.colonies.for_player( player.type );
   maybe<CommodityInColony> res;
   int largest_value = 0;
   for( ColonyId const colony_id : player_colonies ) {
@@ -122,13 +122,13 @@ wait<> boycott_msg( SSConst const& ss, TS& ts,
   string const upper_commodity_name =
       uppercase_commodity_display_name(
           party.how.commodity.type_and_quantity.type );
-  // Here we don't need to use nation_possessive since boycotting
+  // Here we don't need to use player_possessive since boycotting
   // won't ever be done after declaration.
   string_view const country_possessive =
-      config_nation.nations[player.nation]
+      config_nation.players[player.type]
           .possessive_pre_declaration;
   string_view const harbor_city_name =
-      config_nation.nations[player.nation].harbor_city_name;
+      config_nation.players[player.type].harbor_city_name;
   int const quantity =
       party.how.commodity.type_and_quantity.quantity;
 
@@ -189,7 +189,7 @@ TaxUpdateComputation compute_tax_change( SSConst const& ss,
   // Check for remaining blockers, year and #colonies.
   if( turn < tax_config.min_turn_for_tax_change_events )
     return update;
-  if( ss.colonies.for_nation( player.nation ).size() == 0 )
+  if( ss.colonies.for_player( player.type ).size() == 0 )
     // This is basically to prevent tax increases too early in
     // the game, although if the player finds themselves with no
     // colonies later in the game, the OG also pauses tax in-

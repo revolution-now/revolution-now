@@ -150,9 +150,9 @@ maybe<Colony const&> find_any_close_colony(
 }
 
 maybe<Colony const&> find_close_explored_colony(
-    SSConst const& ss, e_nation nation, point location,
+    SSConst const& ss, e_player player, point location,
     double max_distance ) {
-  VisibilityForNation const viz( ss, nation );
+  VisibilityForNation const viz( ss, player );
   base::generator<point> const search =
       outward_spiral_pythdist_search_existing_gen(
           ss, location, max_distance );
@@ -168,7 +168,7 @@ maybe<Colony const&> find_close_explored_colony(
 // from the starting point that are within a radius of
 // `max_distance` to the start.
 vector<ColonyId> close_friendly_colonies( SSConst const& ss,
-                                          e_nation nation,
+                                          e_player player,
                                           gfx::point const start,
                                           double max_distance ) {
   vector<ColonyId> res;
@@ -181,7 +181,7 @@ vector<ColonyId> close_friendly_colonies( SSConst const& ss,
     maybe<ColonyId> const colony_id =
         ss.colonies.maybe_from_coord( square );
     if( !colony_id.has_value() ) continue;
-    if( ss.colonies.colony_for( *colony_id ).nation != nation )
+    if( ss.colonies.colony_for( *colony_id ).player != player )
       continue;
     res.push_back( *colony_id );
   }
@@ -189,7 +189,7 @@ vector<ColonyId> close_friendly_colonies( SSConst const& ss,
 }
 
 maybe<e_tribe> find_close_encountered_tribe(
-    SSConst const& ss, e_nation nation, gfx::point location,
+    SSConst const& ss, e_player player, gfx::point location,
     double max_distance ) {
   generator<gfx::point> const points =
       outward_spiral_pythdist_search_existing_gen(
@@ -201,7 +201,7 @@ maybe<e_tribe> find_close_encountered_tribe(
         ss.natives.maybe_dwelling_from_coord( square );
     if( !dwelling_id.has_value() ) continue;
     Tribe const& tribe = ss.natives.tribe_for( *dwelling_id );
-    if( !tribe.relationship[nation].encountered ) continue;
+    if( !tribe.relationship[player].encountered ) continue;
     return tribe.type;
   }
   return nothing;

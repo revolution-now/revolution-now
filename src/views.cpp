@@ -1351,9 +1351,9 @@ maybe<int> OptionSelectView::get_selected() const {
 /****************************************************************
 ** FakeUnitView
 *****************************************************************/
-FakeUnitView::FakeUnitView( e_unit_type type, e_nation nation,
+FakeUnitView::FakeUnitView( e_unit_type type, e_player player,
                             unit_orders const& orders )
-  : type_( type ), nation_( nation ), orders_( orders ) {}
+  : type_( type ), player_( player ), orders_( orders ) {}
 
 Delta FakeUnitView::delta() const {
   return { .w = 32, .h = 32 };
@@ -1362,7 +1362,7 @@ Delta FakeUnitView::delta() const {
 void FakeUnitView::draw( rr::Renderer& renderer,
                          Coord coord ) const {
   UnitFlagRenderInfo const flag_info =
-      euro_unit_type_flag_info( type_, orders_, nation_ );
+      euro_unit_type_flag_info( type_, orders_, player_ );
   render_unit_type( renderer, coord, type_,
                     UnitRenderOptions{ .flag = flag_info } );
 }

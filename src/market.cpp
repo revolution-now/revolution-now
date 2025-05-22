@@ -53,7 +53,7 @@ int with_volatility( int what, int volatility ) {
 int total_traded_volume_for_commodity( SSConst const& ss,
                                        e_commodity c ) {
   int sum = 0;
-  for( auto const& [nation, player] : ss.players.players )
+  for( auto const& [type, player] : ss.players.players )
     if( player.has_value() )
       sum += player->old_world.market.commodities[c]
                  .player_traded_volume;
@@ -213,24 +213,24 @@ Invoice transaction_invoice_default_model(
           ? difficulty_modifiers.human_traffic_volume_scale
           : difficulty_modifiers.non_human_traffic_volume_scale;
 
-  for( e_nation nation : refl::enum_values<e_nation> ) {
-    invoice.intrinsic_volume_delta[nation] = 0;
+  for( e_player player : refl::enum_values<e_player> ) {
+    invoice.intrinsic_volume_delta[player] = 0;
     maybe<Player const&> some_player =
-        ss.players.players[nation];
+        ss.players.players[player];
     if( !some_player.has_value() ) continue;
     double const scale =
         ( transaction_type == e_transaction::sell )
             ? config_market
                   .nation_advantage[european_nation_for(
-                      nation )]
+                      player )]
                   .sell_volume_scale
             : config_market
                   .nation_advantage[european_nation_for(
-                      nation )]
+                      player )]
                   .buy_volume_scale;
     double const volume_change = base_volume_change * scale;
     // Here we want to round toward zero.
-    invoice.intrinsic_volume_delta[nation] =
+    invoice.intrinsic_volume_delta[player] =
         int( volume_change );
   }
 
@@ -246,7 +246,7 @@ Invoice transaction_invoice_default_model(
       e_immediate_price_change_allowed::allowed )
     try_price_change_default_model(
         player, comm_type,
-        invoice.intrinsic_volume_delta[player.nation],
+        invoice.intrinsic_volume_delta[player.type],
         price_change );
   invoice.price_change =
       create_price_change( player, comm_type, price_change );
@@ -298,7 +298,7 @@ Invoice transaction_invoice_processed_group_model(
           : transacted.quantity;
 
   // 2. Evolve the global intrinsic volumes.
-  bool const is_dutch = ( player.nation == e_nation::dutch );
+  bool const is_dutch = ( player.type == e_player::dutch );
   ProcessedGoodsPriceGroup group =
       create_price_group( ss, is_dutch );
 
@@ -493,12 +493,12 @@ void apply_invoice( SS& ss, Player& player,
   player.royal_money += invoice.tax_amount;
   player.old_world.market.commodities[invoice.what.type]
       .player_traded_volume += invoice.player_volume_delta;
-  for( e_nation nation : refl::enum_values<e_nation> ) {
-    maybe<Player&> some_player = ss.players.players[nation];
+  for( e_player player : refl::enum_values<e_player> ) {
+    maybe<Player&> some_player = ss.players.players[player];
     if( !some_player.has_value() ) continue;
     some_player->old_world.market.commodities[invoice.what.type]
         .intrinsic_volume +=
-        invoice.intrinsic_volume_delta[nation];
+        invoice.intrinsic_volume_delta[player];
   }
   for( auto const& [comm, delta] :
        invoice.global_intrinsic_volume_deltas )
@@ -512,7 +512,7 @@ wait<> display_price_change_notification(
     TS& ts, Player const& player, PriceChange const& change ) {
   if( change.from == change.to ) co_return;
   string const harbor_name =
-      nation_obj( player.nation ).harbor_city_name;
+      player_obj( player.type ).harbor_city_name;
   CHECK( change.to.bid - change.from.bid ==
          change.to.ask - change.from.ask );
   int const price_change = change.to.bid - change.from.bid;

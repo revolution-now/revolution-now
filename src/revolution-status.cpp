@@ -25,23 +25,23 @@ namespace {} // namespace
 /****************************************************************
 ** Public API.
 *****************************************************************/
-string_view nation_possessive( Player const& player ) {
+string_view player_possessive( Player const& player ) {
   if( player.revolution.status >=
       e_revolution_status::declared ) {
     static std::string const rebel = "Rebel";
     return rebel;
   }
-  return config_nation.nations[player.nation]
+  return config_nation.players[player.type]
       .possessive_pre_declaration;
 }
 
-string_view nation_display_name( Player const& player ) {
+string_view player_display_name( Player const& player ) {
   if( player.revolution.status >=
       e_revolution_status::declared ) {
     static std::string const rebel = "Rebels";
     return rebel;
   }
-  return config_nation.nations[player.nation]
+  return config_nation.players[player.type]
       .display_name_pre_declaration;
 }
 

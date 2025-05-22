@@ -293,7 +293,8 @@ MenuBarRenderedLayout build_menu_bar_rendered_layout(
     header.text_nw_absolute =
         gfx::centered_in( text_size, header.bounds_absolute );
     res.headers.push_back( header );
-    p.x += (x_pre ? -1 : 1)*config_ui.menus.menu_bar_x_spacing;
+    p.x +=
+        ( x_pre ? -1 : 1 ) * config_ui.menus.menu_bar_x_spacing;
   };
 
   p = res.bounds.nw();

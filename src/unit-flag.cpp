@@ -38,8 +38,8 @@ constexpr gfx::size kFlagIconSize{ .w = 14, .h = 14 };
 
 constexpr int kStackedFlagSeparation = 2;
 
-gfx::pixel background_color_for_nation( e_nation nation ) {
-  return nation_obj( nation ).flag_color;
+gfx::pixel background_color_for_player( e_player player ) {
+  return player_obj( player ).flag_color;
 }
 
 gfx::pixel char_color_for_orders( unit_orders const& orders ) {
@@ -188,9 +188,9 @@ UnitFlagOptions&& UnitFlagOptions::with_flag_count(
 
 UnitFlagRenderInfo euro_unit_type_flag_info(
     e_unit_type unit_type, unit_orders const& orders,
-    e_nation nation ) {
+    e_player player ) {
   gfx::pixel const background_color =
-      background_color_for_nation( nation );
+      background_color_for_player( player );
   UnitFlagContents const flag_contents =
       flag_char_info_from_orders( orders );
   gfx::pixel const outline_color =
@@ -210,10 +210,10 @@ UnitFlagRenderInfo euro_unit_type_flag_info(
 }
 
 UnitFlagRenderInfo euro_unit_flag_render_info(
-    Unit const& unit, maybe<e_nation> const viewer,
+    Unit const& unit, maybe<e_player> const viewer,
     UnitFlagOptions const& options ) {
   bool const foreign_for_viewer =
-      viewer.has_value() && *viewer != unit.nation();
+      viewer.has_value() && *viewer != unit.player_type();
   bool const privateer_X =
       unit.type() == e_unit_type::privateer &&
       foreign_for_viewer;
@@ -222,7 +222,7 @@ UnitFlagRenderInfo euro_unit_flag_render_info(
   gfx::pixel const background_color =
       privateer_X
           ? config_gfx.unit_flag_colors.privateer_flag_color
-          : background_color_for_nation( unit.nation() );
+          : background_color_for_player( unit.player_type() );
   UnitFlagContents const flag_contents = [&] {
     switch( options.type ) {
       case e_flag_char_type::normal:

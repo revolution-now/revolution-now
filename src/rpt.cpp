@@ -53,7 +53,7 @@ int artillery_price( Player const& player ) {
 *****************************************************************/
 wait<> click_recruit( SS& ss, TS& ts, Player& player ) {
   CrossesCalculation const crosses =
-      compute_crosses( ss.units, player.nation );
+      compute_crosses( ss.units, player.type );
   int const price = cost_of_recruit(
       player, crosses.crosses_needed,
       ss.settings.game_setup_options.difficulty );

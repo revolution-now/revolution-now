@@ -28,7 +28,7 @@ struct Unit;
 // map, it will unsentry them if they are sentried and if they
 // are adjacent to a foreign unit.
 void unsentry_units_next_to_foreign_units(
-    SS& ss, e_nation nation_to_unsentry );
+    SS& ss, e_player player_to_unsentry );
 
 // Given a euro unit that is on the map, this will unsenty any
 // foreign sentried units immediately adjacent to it.

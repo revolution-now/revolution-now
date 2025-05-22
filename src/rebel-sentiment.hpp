@@ -25,7 +25,7 @@ struct IEuroMind;
 struct Player;
 struct SSConst;
 
-enum class e_nation;
+enum class e_player;
 
 /****************************************************************
 ** Evolution of Rebel Sentiment.
@@ -48,7 +48,7 @@ int required_rebel_sentiment_for_declaration(
     SSConst const& ss );
 
 int unit_count_for_rebel_sentiment( SSConst const& ss,
-                                    e_nation const nation );
+                                    e_player const player );
 
 /****************************************************************
 ** Rebel Sentiment in Continental Congress Report.

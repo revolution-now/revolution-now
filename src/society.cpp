@@ -40,8 +40,8 @@ maybe<Society> society_on_square( SSConst const& ss,
                                   Coord coord ) {
   // Check for European colony.
   if( auto id = ss.colonies.maybe_from_coord( coord ); id ) {
-    e_nation const nation = ss.colonies.colony_for( *id ).nation;
-    return Society::european{ .nation = nation };
+    e_player const player = ss.colonies.colony_for( *id ).player;
+    return Society::european{ .player = player };
   }
 
   // Check for native dwelling.
@@ -62,9 +62,10 @@ maybe<Society> society_on_square( SSConst const& ss,
 
   switch( units.unit_kind( id ) ) {
     case e_unit_kind::euro: {
-      e_nation const nation =
-          units.unit_for( units.check_euro_unit( id ) ).nation();
-      return Society::european{ .nation = nation };
+      e_player const player =
+          units.unit_for( units.check_euro_unit( id ) )
+              .player_type();
+      return Society::european{ .player = player };
     }
     case e_unit_kind::native: {
       e_tribe const tribe = tribe_type_for_unit(
@@ -78,7 +79,7 @@ gfx::pixel flag_color_for_society( Society const& society ) {
   switch( society.to_enum() ) {
     case Society::e::european: {
       auto const& o = society.get<Society::european>();
-      return config_nation.nations[o.nation].flag_color;
+      return config_nation.players[o.player].flag_color;
     }
     case Society::e::native: {
       auto const& o = society.get<Society::native>();

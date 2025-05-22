@@ -57,7 +57,7 @@ MeetTribe check_meet_tribe_single( SSConst const& ss,
   // those colonies.
   unordered_set<Coord> land_occupied;
   vector<ColonyId> const colonies =
-      ss.colonies.for_nation( player.nation );
+      ss.colonies.for_player( player.type );
   for( ColonyId colony_id : colonies ) {
     Colony const& colony = ss.colonies.colony_for( colony_id );
     Coord const home     = colony.location;
@@ -93,7 +93,7 @@ MeetTribe check_meet_tribe_single( SSConst const& ss,
 
   int const num_dwellings = dwellings.size();
   return MeetTribe{
-    .nation        = player.nation,
+    .player        = player.type,
     .tribe         = tribe,
     .num_dwellings = num_dwellings,
     .land_awarded  = std::move( sorted_land_awarded ) };
@@ -109,7 +109,7 @@ vector<MeetTribe> check_meet_europeans( SSConst const& ss,
                                         Coord native_square ) {
   Tribe const& tribe = ss.natives.tribe_for( tribe_type );
   vector<MeetTribe> res;
-  unordered_set<e_nation> met;
+  unordered_set<e_player> met;
   for( e_direction d : refl::enum_values<e_direction> ) {
     Coord const moved = native_square.moved( d );
     if( !ss.terrain.square_exists( moved ) ) continue;
@@ -121,13 +121,13 @@ vector<MeetTribe> check_meet_europeans( SSConst const& ss,
     maybe<Society::european const&> european =
         society->get_if<Society::european>();
     if( !european.has_value() ) continue;
-    e_nation const nation = european->nation;
-    if( met.contains( nation ) ) continue;
-    if( tribe.relationship[nation].encountered ) continue;
+    e_player const player = european->player;
+    if( met.contains( player ) ) continue;
+    if( tribe.relationship[player].encountered ) continue;
     // We're meeting a new tribe.
-    met.insert( nation );
+    met.insert( player );
     res.push_back( check_meet_tribe_single(
-        ss, player_for_nation_or_die( ss.players, nation ),
+        ss, player_for_player_or_die( ss.players, player ),
         tribe_type ) );
   }
 
@@ -155,7 +155,7 @@ vector<MeetTribe> check_meet_tribes( SSConst const& ss,
     if( !native.has_value() ) continue;
     if( met.contains( native->tribe ) ) continue;
     if( ss.natives.tribe_for( native->tribe )
-            .relationship[player.nation]
+            .relationship[player.type]
             .encountered )
       continue;
     // We're meeting a new tribe.
@@ -171,7 +171,7 @@ wait<e_declare_war_on_natives> perform_meet_tribe_ui_sequence(
     SS& ss, IEuroMind& euro_mind, IGui& gui,
     MeetTribe const& meet_tribe ) {
   Player& player =
-      player_for_nation_or_die( ss.players, meet_tribe.nation );
+      player_for_player_or_die( ss.players, meet_tribe.player );
   co_await show_woodcut_if_needed(
       player, euro_mind, e_woodcut::meeting_the_natives );
   if( meet_tribe.tribe == e_tribe::inca )
@@ -216,7 +216,7 @@ wait<e_declare_war_on_natives> perform_meet_tribe_ui_sequence(
   co_await gui.message_box(
       "Let us smoke a peace pipe to celebrate our purpetual "
       "friendship with the [{}].",
-      nation_display_name( player ) );
+      player_display_name( player ) );
 
   co_await gui.message_box(
       "We hope that you will send us your colonists and "
@@ -231,8 +231,8 @@ void perform_meet_tribe( SS& ss, Player const& player,
   Tribe& tribe = ss.natives.tribe_for( meet_tribe.tribe );
 
   // Create the relationship object.
-  CHECK( !tribe.relationship[player.nation].encountered );
-  tribe.relationship[player.nation] = TribeRelationship{
+  CHECK( !tribe.relationship[player.type].encountered );
+  tribe.relationship[player.type] = TribeRelationship{
     .encountered = true,
     .at_war = ( declare_war == e_declare_war_on_natives::yes ),
     .tribal_alarm =

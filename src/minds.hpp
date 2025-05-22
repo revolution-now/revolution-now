@@ -25,7 +25,7 @@ struct IRand;
 struct SS;
 
 enum class e_tribe;
-enum class e_nation;
+enum class e_player;
 
 /****************************************************************
 ** NativeMinds
@@ -61,7 +61,7 @@ struct EuroMinds {
   // Use unordered_map instead of enum_map so that we can use a
   // forward-declared enum key.
   using MindsMap =
-      std::unordered_map<e_nation, std::unique_ptr<IEuroMind>>;
+      std::unordered_map<e_player, std::unique_ptr<IEuroMind>>;
 
   EuroMinds() = default;
 
@@ -73,7 +73,7 @@ struct EuroMinds {
 
   EuroMinds( MindsMap minds );
 
-  IEuroMind& operator[]( e_nation nation ) const;
+  IEuroMind& operator[]( e_player player ) const;
 
  private:
   // We don't use enum map here because it has some constraints

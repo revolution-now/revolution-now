@@ -20,20 +20,21 @@ namespace rn {
 *****************************************************************/
 struct SSConst;
 
-enum class e_nation;
+enum class e_european_nation;
 
 /****************************************************************
 ** Public API.
 *****************************************************************/
-// Finds the first nation to move each turn. The result will only
+// Finds the first player to move each turn. The result will only
 // be `nothing` if there are no players in the game.
-maybe<e_nation> find_first_nation_to_move( SSConst const& ss );
+maybe<e_european_nation> find_first_nation_to_move(
+    SSConst const& ss );
 
-// Given the current nation that just moved, finds the next one
+// Given the current player that just moved, finds the next one
 // to move this turn. The result will be `nothing` if either
-// we've reached the end of the nation list or there are no na-
+// we've reached the end of the player list or there are no na-
 // tions present.
-maybe<e_nation> find_next_nation_to_move(
-    SSConst const& ss, e_nation const curr_nation );
+maybe<e_european_nation> find_next_nation_to_move(
+    SSConst const& ss, e_european_nation const curr_nation );
 
 } // namespace rn

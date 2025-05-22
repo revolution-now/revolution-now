@@ -829,7 +829,7 @@ class OptionSelectView : public VectorView {
 
 class FakeUnitView : public View {
  public:
-  FakeUnitView( e_unit_type type, e_nation nation,
+  FakeUnitView( e_unit_type type, e_player player,
                 unit_orders const& orders );
 
   // Implement Object
@@ -849,7 +849,7 @@ class FakeUnitView : public View {
 
  private:
   e_unit_type const type_;
-  e_nation const nation_;
+  e_player const player_;
   unit_orders orders_;
 };
 

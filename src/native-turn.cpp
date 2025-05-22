@@ -92,9 +92,9 @@ wait<> handle_native_unit_attack( SS& ss, TS& ts,
                                   IRaid const& raid,
                                   NativeUnit& native_unit,
                                   e_direction direction,
-                                  e_nation nation ) {
+                                  e_player const player_type ) {
   // In case there are multiple human players.
-  ScopedMapViewer const _( ss, ts, nation );
+  ScopedMapViewer const _( ss, ts, player_type );
 
   Coord const src      = ss.units.coord_for( native_unit.id );
   Coord const dst      = src.moved( direction );
@@ -102,8 +102,8 @@ wait<> handle_native_unit_attack( SS& ss, TS& ts,
   NativeUnitId const attacker_id = attacker.id;
 
   Player& player =
-      player_for_nation_or_die( ss.players, nation );
-  IEuroMind& euro_mind = ts.euro_minds()[nation];
+      player_for_player_or_die( ss.players, player_type );
+  IEuroMind& euro_mind = ts.euro_minds()[player_type];
   co_await show_woodcut_if_needed( player, euro_mind,
                                    e_woodcut::indian_raid );
 
@@ -125,13 +125,13 @@ wait<> handle_native_unit_attack( SS& ss, TS& ts,
 wait<> handle_native_unit_talk( SS& ss, TS& ts,
                                 NativeUnit& native_unit,
                                 e_direction direction,
-                                e_nation nation ) {
+                                e_player const player_type ) {
   // In case there are multiple human players.
-  ScopedMapViewer const _( ss, ts, nation );
+  ScopedMapViewer const _( ss, ts, player_type );
 
   Player& player =
-      player_for_nation_or_die( ss.players, nation );
-  IEuroMind& euro_mind = ts.euro_minds()[nation];
+      player_for_player_or_die( ss.players, player_type );
+  IEuroMind& euro_mind = ts.euro_minds()[player_type];
 
   co_await ts.planes.get().get_bottom<ILandViewPlane>().animate(
       anim_seq_for_unit_talk( ss, native_unit.id, direction ) );
@@ -233,7 +233,7 @@ wait<> handle_native_unit_command(
           CASE( european ) {
             co_await handle_native_unit_attack(
                 ss, ts, raid, native_unit, move.direction,
-                european.nation );
+                european.player );
             break;
           }
         }
@@ -250,7 +250,7 @@ wait<> handle_native_unit_command(
         CASE( european ) {
           co_await handle_native_unit_talk( ss, ts, native_unit,
                                             talk.direction,
-                                            european.nation );
+                                            european.player );
           break;
         }
       }

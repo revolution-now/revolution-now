@@ -27,7 +27,7 @@ namespace rn {
 
 struct SSConst;
 
-maybe<e_nation> player_for_role( SSConst const& ss,
+maybe<e_player> player_for_role( SSConst const& ss,
                                  e_player_role role );
 
 } // namespace rn

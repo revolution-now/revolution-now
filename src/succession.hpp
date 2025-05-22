@@ -29,7 +29,7 @@ struct SSConst;
 bool should_do_war_of_succession( SSConst const& ss,
                                   Player const& player );
 
-WarOfSuccessionNations select_nations_for_war_of_succession(
+WarOfSuccessionNations select_players_for_war_of_succession(
     SSConst const& ss );
 
 WarOfSuccessionPlan war_of_succession_plan(

@@ -62,13 +62,13 @@ EuroMinds::~EuroMinds() = default;
 EuroMinds& EuroMinds::operator=( EuroMinds&& ) noexcept =
     default;
 
-IEuroMind& EuroMinds::operator[]( e_nation nation ) const {
-  auto iter = minds_.find( nation );
+IEuroMind& EuroMinds::operator[]( e_player player ) const {
+  auto iter = minds_.find( player );
   CHECK( iter != minds_.end(),
-         "no IEuroMind object for nation {}.", nation );
+         "no IEuroMind object for player {}.", player );
   unique_ptr<IEuroMind> const& p_mind = iter->second;
   CHECK( p_mind != nullptr,
-         "null IEuroMind object for nation {}.", nation );
+         "null IEuroMind object for player {}.", player );
   return *p_mind;
 }
 
@@ -76,15 +76,15 @@ IEuroMind& EuroMinds::operator[]( e_nation nation ) const {
 ** Public API.
 *****************************************************************/
 EuroMinds create_euro_minds( SS& ss, IGui& gui ) {
-  unordered_map<e_nation, unique_ptr<IEuroMind>> holder;
-  for( e_nation const nation : refl::enum_values<e_nation> ) {
-    if( !ss.players.players[nation].has_value() ) continue;
-    if( ss.players.players[nation]->human )
-      holder[nation] =
-          make_unique<HumanEuroMind>( nation, ss, gui );
+  unordered_map<e_player, unique_ptr<IEuroMind>> holder;
+  for( e_player const player : refl::enum_values<e_player> ) {
+    if( !ss.players.players[player].has_value() ) continue;
+    if( ss.players.players[player]->human )
+      holder[player] =
+          make_unique<HumanEuroMind>( player, ss, gui );
     else
-      holder[nation] =
-          make_unique<NoopEuroMind>( ss.as_const, nation );
+      holder[player] =
+          make_unique<NoopEuroMind>( ss.as_const, player );
   }
   return EuroMinds( std::move( holder ) );
 }

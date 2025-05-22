@@ -72,9 +72,10 @@ int largest_possible_sighting_radius() {
 // units. In the OG ships don't get the De Soto bonus, but in
 // this game we do give it to ships. A radius of 1 means 3x3
 // visibility, while a radius of 2 means 5x5 visibility, etc.
-int unit_sight_radius( SSConst const& ss, e_nation nation,
+int unit_sight_radius( SSConst const& ss,
+                       e_player const player_type,
                        e_unit_type type ) {
-  UNWRAP_CHECK( player, ss.players.players[nation] );
+  UNWRAP_CHECK( player, ss.players.players[player_type] );
   bool const has_de_soto =
       player.fathers.has[e_founding_father::hernando_de_soto];
   int visibility = unit_attr( type ).visibility;
@@ -173,13 +174,13 @@ maybe<Dwelling const&> VisibilityEntire::dwelling_at(
 ** VisibilityForNation
 *****************************************************************/
 VisibilityForNation::VisibilityForNation( SSConst const& ss,
-                                          e_nation nation )
+                                          e_player player )
   : IVisibility( ss ),
     ss_( ss ),
     entire_( ss ),
-    nation_( nation ),
+    player_( player ),
     player_terrain_( addressof(
-        ss.terrain.player_terrain( nation ).value() ) ) {}
+        ss.terrain.player_terrain( player ).value() ) ) {}
 
 e_tile_visibility VisibilityForNation::visible(
     point const tile ) const {
@@ -311,19 +312,19 @@ MapSquare const& VisibilityWithOverrides::square_at(
 ** Public API
 *****************************************************************/
 std::unique_ptr<IVisibility const> create_visibility_for(
-    SSConst const& ss, maybe<e_nation> nation ) {
-  if( nation.has_value() )
-    return make_unique<VisibilityForNation const>( ss, *nation );
+    SSConst const& ss, maybe<e_player> player ) {
+  if( player.has_value() )
+    return make_unique<VisibilityForNation const>( ss, *player );
   else
     return make_unique<VisibilityEntire const>( ss );
 }
 
 vector<Coord> unit_visible_squares( SSConst const& ss,
-                                    e_nation nation,
+                                    e_player player,
                                     e_unit_type type,
                                     point const tile ) {
   TerrainState const& terrain = ss.terrain;
-  int const radius = unit_sight_radius( ss, nation, type );
+  int const radius = unit_sight_radius( ss, player, type );
   Rect const possible =
       Rect::from( tile, Delta{ .w = 1, .h = 1 } )
           .with_border_added( radius );
@@ -353,26 +354,26 @@ vector<Coord> unit_visible_squares( SSConst const& ss,
   return res;
 }
 
-bool does_nation_have_fog_removed_on_square( SSConst const& ss,
-                                             e_nation nation,
+bool does_player_have_fog_removed_on_square( SSConst const& ss,
+                                             e_player player,
                                              point const tile ) {
-  if( !ss.players.players[nation].has_value() ) return false;
+  if( !ss.players.players[player].has_value() ) return false;
   UNWRAP_CHECK( player_terrain,
-                ss.terrain.player_terrain( nation ) );
+                ss.terrain.player_terrain( player ) );
   PlayerSquare const& player_square = player_terrain.map[tile];
   return player_square.inner_if<explored>()
       .get_if<clear>()
       .has_value();
 }
 
-void recompute_fog_for_nation( SS& ss, TS& ts,
-                               e_nation nation ) {
+void recompute_fog_for_player( SS& ss, TS& ts,
+                               e_player player ) {
   base::ScopedTimer timer(
-      fmt::format( "regenerating fog-of-war ({})", nation ) );
+      fmt::format( "regenerating fog-of-war ({})", player ) );
   timer.options().no_checkpoints_logging = true;
 
   UNWRAP_CHECK( player_terrain,
-                ss.terrain.player_terrain( nation ) );
+                ss.terrain.player_terrain( player ) );
   auto const& m = player_terrain.map;
 
   timer.checkpoint( "generate fogged set" );
@@ -410,10 +411,10 @@ void recompute_fog_for_nation( SS& ss, TS& ts,
         p_state->ownership.get_if<UnitOwnership::world>();
     if( !world.has_value() ) continue;
     Unit const& unit = p_state->unit;
-    if( unit.nation() != nation ) continue;
+    if( unit.player_type() != player ) continue;
     // This should not yield and squares that don't exist.
     vector<Coord> const visible = unit_visible_squares(
-        ss, nation, unit.type(), world->coord );
+        ss, player, unit.type(), world->coord );
     for( point const coord : visible ) { fogged.erase( coord ); }
   }
 
@@ -432,7 +433,7 @@ void recompute_fog_for_nation( SS& ss, TS& ts,
   // and the right thing will have been done.
   timer.checkpoint( "de-fog colony surroundings" );
   vector<ColonyId> const colonies =
-      ss.colonies.for_nation( nation );
+      ss.colonies.for_player( player );
   for( ColonyId const colony_id : colonies ) {
     Colony const& colony = ss.colonies.colony_for( colony_id );
     Coord const coord    = colony.location;
@@ -446,19 +447,19 @@ void recompute_fog_for_nation( SS& ss, TS& ts,
   // Now affect the changes in batch.
   timer.checkpoint( "make_squares_fogged" );
   ts.map_updater().make_squares_fogged(
-      nation, vector<Coord>( fogged.begin(), fogged.end() ) );
+      player, vector<Coord>( fogged.begin(), fogged.end() ) );
 }
 
 void update_map_visibility( TS& ts,
-                            maybe<e_nation> const nation ) {
+                            maybe<e_player> const player ) {
   ts.map_updater().mutate_options_and_redraw(
       [&]( MapUpdaterOptions& options ) {
         // This should trigger a redraw but only if we're
-        // changing the nation.
-        options.nation = nation;
+        // changing the player.
+        options.player = player;
       } );
   ts.planes.get().get_bottom<ILandViewPlane>().set_visibility(
-      nation );
+      player );
 }
 
 bool should_animate_move( IVisibility const& viz,
@@ -471,23 +472,23 @@ bool should_animate_move( IVisibility const& viz,
 ** ScopedMapViewer
 *****************************************************************/
 ScopedMapViewer::ScopedMapViewer( SS& ss, TS& ts,
-                                  e_nation const nation )
+                                  e_player const player )
   : ss_( ss ),
     ts_( ts ),
-    old_nation_( player_for_role( ss, e_player_role::viewer ) ),
+    old_player_( player_for_role( ss, e_player_role::viewer ) ),
     old_map_revealed_(
         make_unique<MapRevealed>( ss.land_view.map_revealed ) ),
-    new_nation_( nation ) {
+    new_player_( player ) {
   if( needs_change() ) {
-    update_map_visibility( ts, new_nation_ );
+    update_map_visibility( ts, new_player_ );
     ss_.land_view.map_revealed =
-        MapRevealed::nation{ .nation = new_nation_ };
+        MapRevealed::player{ .type = new_player_ };
   }
 }
 
 ScopedMapViewer::~ScopedMapViewer() {
   if( needs_change() ) {
-    update_map_visibility( ts_, old_nation_ );
+    update_map_visibility( ts_, old_player_ );
     CHECK( old_map_revealed_ );
     ss_.land_view.map_revealed = *old_map_revealed_;
   }
@@ -495,10 +496,10 @@ ScopedMapViewer::~ScopedMapViewer() {
 
 bool ScopedMapViewer::needs_change() const {
   auto const& players = ss_.as_const.players.players;
-  CHECK( players[new_nation_].has_value() );
-  Player const& new_player = *players[new_nation_];
-  return new_player.human && old_nation_.has_value() &&
-         *old_nation_ != new_nation_;
+  CHECK( players[new_player_].has_value() );
+  Player const& new_player = *players[new_player_];
+  return new_player.human && old_player_.has_value() &&
+         *old_player_ != new_player_;
 }
 
 } // namespace rn

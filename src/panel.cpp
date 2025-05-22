@@ -180,14 +180,14 @@ struct PanelPlane::Impl : public IPlane {
                          turn_state.time_point.season ) ),
                  turn_state.time_point.year );
 
-    maybe<e_nation> const curr_nation =
+    maybe<e_player> const curr_player =
         player_for_role( ss_, e_player_role::active );
-    if( !curr_nation ) return;
+    if( !curr_player ) return;
 
     // We have an active player, so print some info about it.
-    e_nation nation                   = *curr_nation;
+    e_player const player_type        = *curr_player;
     PlayersState const& players_state = ss_.players;
-    UNWRAP_CHECK( player, players_state.players[nation] );
+    UNWRAP_CHECK( player, players_state.players[player_type] );
 
     if( player.new_world_name )
       typer.write( "{}\n", *player.new_world_name );
@@ -261,7 +261,7 @@ struct PanelPlane::Impl : public IPlane {
       write_terrain( *box );
       // TODO
 
-      // TODO: when the white box is over a foreign nation (or
+      // TODO: when the white box is over a foreign player (or
       // REF), it looks like the game does not give full info on
       // how many units are on the tile. We may want to replicate
       // this assuming it is true, though maybe the suppression

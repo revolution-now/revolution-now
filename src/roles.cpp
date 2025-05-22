@@ -14,6 +14,7 @@
 
 // ss
 #include "ss/land-view.rds.hpp"
+#include "ss/nation.hpp"
 #include "ss/players.rds.hpp"
 #include "ss/ref.hpp"
 #include "ss/turn.rds.hpp"
@@ -31,13 +32,13 @@ namespace rn {
 /****************************************************************
 ** Public API
 *****************************************************************/
-maybe<e_nation> player_for_role( SSConst const& ss,
+maybe<e_player> player_for_role( SSConst const& ss,
                                  e_player_role role ) {
   switch( role ) {
     case e_player_role::viewer: {
       SWITCH( ss.land_view.map_revealed ) {
         CASE( no_special_view ) {
-          maybe<e_nation> const active =
+          maybe<e_player> const active =
               player_for_role( ss, e_player_role::active );
           if( active.has_value() ) {
             UNWRAP_CHECK_MSG(
@@ -51,16 +52,16 @@ maybe<e_nation> player_for_role( SSConst const& ss,
           // players then we are just picking the first one. This
           // is a bit arbitrary, but there doesn't seem to be
           // anything better to do here.
-          for( e_nation nation : refl::enum_values<e_nation> )
-            if( ss.players.players[nation].has_value() )
-              if( ss.players.players[nation]->human )
-                return nation;
+          for( e_player player : refl::enum_values<e_player> )
+            if( ss.players.players[player].has_value() )
+              if( ss.players.players[player]->human )
+                return player;
           return active;
         }
         CASE( entire ) { //
           return nothing;
         }
-        CASE( nation ) { return nation.nation; }
+        CASE( player ) { return player.type; }
       }
       SHOULD_NOT_BE_HERE; // for gcc.
     }
@@ -68,7 +69,9 @@ maybe<e_nation> player_for_role( SSConst const& ss,
       SWITCH( ss.turn.cycle ) {
         CASE( not_started ) { return nothing; }
         CASE( natives ) { return nothing; }
-        CASE( nation ) { return nation.nation; }
+        CASE( nation ) {
+          return colonist_player_for( nation.european_nation );
+        }
         CASE( ref ) { return nothing; }
         CASE( intervention ) { return nothing; }
         CASE( end_cycle ) { return nothing; }

@@ -194,11 +194,11 @@ Layout layout_auto( SSConst const& ss, Player const& player,
       cur.y += spread_tile_height;
       cur.y += kBufferAfterSection;
     };
-    e_nation const intervening_nation =
-        select_nation_for_intervention( player.nation );
+    e_player const intervening_player =
+        select_player_for_intervention( player.type );
     l.intervention_force_bells_title =
         fmt::format( "{} Intervention:",
-                     config_nation.nations[intervening_nation]
+                     config_nation.players[intervening_player]
                          .possessive_pre_declaration );
     l.intervention_force_bells_text_nw = cur;
     cur.y += kBufferAfterTitle;
@@ -295,7 +295,7 @@ Layout layout_auto( SSConst const& ss, Player const& player,
     // refers to the King's army.
     l.expeditionary_force_title =
         fmt::format( "{} Expeditionary Force",
-                     config_nation.nations[player.nation]
+                     config_nation.players[player.type]
                          .possessive_pre_declaration );
     l.expeditionary_force_text_nw = cur;
     cur.y += kBufferAfterTitle;
@@ -353,13 +353,13 @@ Layout layout_auto( SSConst const& ss, Player const& player,
       cur.y += spread_tile_height;
       cur.y += kBufferAfterSection;
     };
-    e_nation const intervening_nation =
-        select_nation_for_intervention( player.nation );
+    e_player const intervening_player =
+        select_player_for_intervention( player.type );
     // Always use the "pre declaration" form here because this
     // refers to that country's King's army.
     l.intervention_force_title =
         fmt::format( "{} Intervention Force",
-                     config_nation.nations[intervening_nation]
+                     config_nation.players[intervening_player]
                          .possessive_pre_declaration );
     l.intervention_force_text_nw = cur;
     cur.y += kBufferAfterTitle;

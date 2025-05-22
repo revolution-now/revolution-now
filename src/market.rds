@@ -67,7 +67,7 @@ struct.Invoice {
 
   # This includes any change the player's intrinsic volume that
   # introduced by a price change (default model).
-  intrinsic_volume_delta 'refl::enum_map<e_nation, int>',
+  intrinsic_volume_delta 'refl::enum_map<e_player, int>',
 
   # This is used by the price group model, which uses only the
   # global intrinsic volumes (shared by all players).
