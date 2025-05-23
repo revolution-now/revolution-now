@@ -1,10 +1,16 @@
 Todo:
 
+  * REF transport algo:
+
+      TODO
+
   * REF Forfeight algo:
 
-      If there are REF units on the map, no matter what type or
-      what continent, the war goes on, and new ships get created
-      if needed.
+      Forfeight happens at the end of the REF's turn.
+
+      If there are REF land units on the map, no matter what type
+      or what continent, the war goes on, and new ships get cre-
+      ated if needed.
 
       Else if regulars in stock <= 1 and ships in stock == 0
       then forfeight.
