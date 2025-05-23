@@ -79,7 +79,7 @@ struct.config_nation_t {
   players 'refl::enum_map<e_player, Nationality>',
 
   # Describes the special abilities that each nation has.
-  abilities 'refl::enum_map<e_european_nation, SpecialAbility>',
+  abilities 'refl::enum_map<e_nation, SpecialAbility>',
 }
 
 config.nation {}

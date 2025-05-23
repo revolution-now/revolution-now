@@ -70,7 +70,7 @@ maybe<e_player> player_for_role( SSConst const& ss,
         CASE( not_started ) { return nothing; }
         CASE( natives ) { return nothing; }
         CASE( nation ) {
-          return colonist_player_for( nation.european_nation );
+          return colonist_player_for( nation.nation );
         }
         CASE( ref ) { return nothing; }
         CASE( intervention ) { return nothing; }

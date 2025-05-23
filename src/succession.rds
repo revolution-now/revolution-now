@@ -22,8 +22,8 @@ include "<vector>"
 namespace "rn"
 
 struct.WarOfSuccessionNations {
-  withdraws 'e_european_nation',
-  receives 'e_european_nation',
+  withdraws 'e_nation',
+  receives 'e_nation',
 }
 
 struct.WarOfSuccessionPlan {

@@ -216,9 +216,8 @@ wait<> cheat_reveal_map( SS& ss, TS& ts ) {
 
 wait<> cheat_set_human_players( SS& ss, TS& ts ) {
   // All enabled by default.
-  refl::enum_map<e_european_nation, CheckBoxInfo> info_map;
-  for( auto const nation :
-       refl::enum_values<e_european_nation> ) {
+  refl::enum_map<e_nation, CheckBoxInfo> info_map;
+  for( auto const nation : refl::enum_values<e_nation> ) {
     e_player const player_type = colonist_player_for( nation );
     info_map[nation] =
         CheckBoxInfo{ .name = config_nation.players[player_type]
@@ -235,11 +234,10 @@ wait<> cheat_set_human_players( SS& ss, TS& ts ) {
   }
 
   while( true ) {
-    co_await ts.gui.enum_check_boxes<e_european_nation>(
+    co_await ts.gui.enum_check_boxes<e_nation>(
         "Select Human Nations:", info_map );
     bool found_human = false;
-    for( auto const nation :
-         refl::enum_values<e_european_nation> )
+    for( auto const nation : refl::enum_values<e_nation> )
       if( info_map[nation].on ) //
         found_human = true;
     if( found_human ) break;
@@ -248,8 +246,7 @@ wait<> cheat_set_human_players( SS& ss, TS& ts ) {
   }
 
   // Set new human statuses.
-  for( auto const nation :
-       refl::enum_values<e_european_nation> ) {
+  for( auto const nation : refl::enum_values<e_nation> ) {
     e_player const player_type = colonist_player_for( nation );
     if( ss.players.players[player_type].has_value() )
       ss.players.players[player_type]->human =

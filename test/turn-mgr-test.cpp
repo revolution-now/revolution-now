@@ -60,7 +60,7 @@ TEST_CASE( "[turn-mgr] find_first_player_to_move" ) {
     return find_first_nation_to_move( w.ss().as_const );
   };
 
-  using enum e_european_nation;
+  using enum e_nation;
 
   // Default.
   REQUIRE( f() == nothing );
@@ -110,11 +110,11 @@ TEST_CASE( "[turn-mgr] find_first_player_to_move" ) {
 TEST_CASE( "[turn-mgr] find_next_player_to_move" ) {
   world w;
 
-  auto const f = [&]( e_european_nation const nation ) {
+  auto const f = [&]( e_nation const nation ) {
     return find_next_nation_to_move( w.ss().as_const, nation );
   };
 
-  using enum e_european_nation;
+  using enum e_nation;
 
   SECTION( "no nations" ) {
     REQUIRE( f( english ) == nothing );

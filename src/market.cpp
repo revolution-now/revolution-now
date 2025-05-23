@@ -221,12 +221,10 @@ Invoice transaction_invoice_default_model(
     double const scale =
         ( transaction_type == e_transaction::sell )
             ? config_market
-                  .nation_advantage[european_nation_for(
-                      player )]
+                  .nation_advantage[nation_for( player )]
                   .sell_volume_scale
             : config_market
-                  .nation_advantage[european_nation_for(
-                      player )]
+                  .nation_advantage[nation_for( player )]
                   .buy_volume_scale;
     double const volume_change = base_volume_change * scale;
     // Here we want to round toward zero.
@@ -372,10 +370,10 @@ PriceChange evolve_default_model_commodity(
 
   // 1. Apply attrition. The attrition is applied before any po-
   // tential price changes are evaluated.
-  intrinsic_volume_delta += lround(
-      effective_attrition *
-      config_market.nation_advantage[player.european_nation]
-          .attrition_scale );
+  intrinsic_volume_delta +=
+      lround( effective_attrition *
+              config_market.nation_advantage[player.nation]
+                  .attrition_scale );
 
   // 2. See if we should move the price. This will potentially
   // mutate the volume and price change variables.

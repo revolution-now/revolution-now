@@ -17,7 +17,7 @@ enum.e_player {
   dutch,
 }
 
-enum.e_european_nation {
+enum.e_nation {
   english,
   french,
   spanish,

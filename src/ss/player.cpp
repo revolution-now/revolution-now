@@ -42,10 +42,10 @@ void linker_dont_discard_module_player() {}
 ** Player
 *****************************************************************/
 valid_or<string> Player::validate() const {
-  REFL_VALIDATE( european_nation_for( type ) == european_nation,
+  REFL_VALIDATE( nation_for( type ) == nation,
                  "Player {} has inconsistent type (={}) and "
-                 "european_nation (={}).",
-                 type, type, european_nation );
+                 "nation (={}).",
+                 type, type, nation );
 
   return valid;
 }
@@ -79,7 +79,7 @@ LUA_STARTUP( lua::state& st ) {
     auto u  = st.usertype.create<U>();
 
     u["type"]                = &U::type;
-    u["european_nation"]     = &U::european_nation;
+    u["nation"]              = &U::nation;
     u["human"]               = &U::human;
     u["money"]               = &U::money;
     u["crosses"]             = &U::crosses;

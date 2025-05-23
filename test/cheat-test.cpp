@@ -725,9 +725,8 @@ TEST_CASE( "[cheat] cheat_toggle_reveal_full_map" ) {
           [e_game_menu_option::show_foreign_moves];
   auto const& map_revealed = w.land_view().map_revealed;
 
-  w.turn().cycle =
-      TurnCycle::nation{ .european_nation = european_nation_for(
-                             w.default_player_type() ) };
+  w.turn().cycle = TurnCycle::nation{
+    .nation = nation_for( w.default_player_type() ) };
 
   // Starting state sanity check.
   REQUIRE_FALSE( show_indian_moves );

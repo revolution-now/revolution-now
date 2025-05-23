@@ -109,11 +109,10 @@ bool should_do_war_of_succession( SSConst const& ss,
 
 WarOfSuccessionNations select_players_for_war_of_succession(
     SSConst const& ss ) {
-  vector<e_european_nation> ai_nations;
+  vector<e_nation> ai_nations;
   ai_nations.reserve( enum_count<e_player> );
-  enum_map<e_european_nation, int> size_metric;
-  for( e_european_nation const nation :
-       enum_values<e_european_nation> ) {
+  enum_map<e_nation, int> size_metric;
+  for( e_nation const nation : enum_values<e_nation> ) {
     e_player const player_type = colonist_player_for( nation );
     auto const& player         = ss.players.players[player_type];
     if( !player.has_value() ) continue;
@@ -130,16 +129,15 @@ WarOfSuccessionNations select_players_for_war_of_succession(
     size_metric[nation] = population + colony_count;
   }
   stable_sort( ai_nations.begin(), ai_nations.end(),
-               [&]( e_european_nation const l,
-                    e_european_nation const r ) {
+               [&]( e_nation const l, e_nation const r ) {
                  return size_metric[l] < size_metric[r];
                } );
   // The call to should_do_war_of_succession that we should have
   // done before calling this method should have ensured that
   // this won't happen.
   CHECK_GE( ssize( ai_nations ), 2 );
-  e_european_nation const smallest        = ai_nations[0];
-  e_european_nation const second_smallest = ai_nations[1];
+  e_nation const smallest        = ai_nations[0];
+  e_nation const second_smallest = ai_nations[1];
   return WarOfSuccessionNations{ .withdraws = smallest,
                                  .receives  = second_smallest };
 }

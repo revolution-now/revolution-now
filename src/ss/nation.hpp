@@ -17,8 +17,8 @@ namespace rn {
 /****************************************************************
 ** Public API.
 *****************************************************************/
-e_european_nation european_nation_for( e_player player );
+e_nation nation_for( e_player player );
 
-e_player colonist_player_for( e_european_nation nation );
+e_player colonist_player_for( e_nation nation );
 
 } // namespace rn

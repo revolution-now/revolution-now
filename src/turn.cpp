@@ -1663,19 +1663,17 @@ wait<TurnCycle> next_turn_iter( IEngine& engine, SS& ss,
                              RealTribeEvolve( ss, ts ) );
       if( auto const player = find_first_nation_to_move( ss );
           player.has_value() )
-        co_return TurnCycle::nation{ .european_nation =
-                                         *player };
+        co_return TurnCycle::nation{ .nation = *player };
       co_return TurnCycle::end_cycle{};
     }
     CASE( nation ) {
-      co_await nation_turn(
-          engine, ss, ts,
-          colonist_player_for( nation.european_nation ),
-          nation.st );
-      if( auto const next = find_next_nation_to_move(
-              ss, nation.european_nation );
+      co_await nation_turn( engine, ss, ts,
+                            colonist_player_for( nation.nation ),
+                            nation.st );
+      if( auto const next =
+              find_next_nation_to_move( ss, nation.nation );
           next.has_value() )
-        co_return TurnCycle::nation{ .european_nation = *next };
+        co_return TurnCycle::nation{ .nation = *next };
       co_return TurnCycle::ref{};
     }
     CASE( ref ) {

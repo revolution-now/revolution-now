@@ -96,7 +96,7 @@ struct.config_market_t {
 
   processed_goods_model 'config::market::PriceGroup',
 
-  nation_advantage 'refl::enum_map<e_european_nation, config::market::NationAdvantage>',
+  nation_advantage 'refl::enum_map<e_nation, config::market::NationAdvantage>',
 
   difficulty_modifiers 'refl::enum_map<e_difficulty, config::market::DifficultyModifiers>',
 }

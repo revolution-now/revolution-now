@@ -215,7 +215,7 @@ CrossesCalculation compute_crosses(
   // to more quickly attract immigrants.
   int const crosses_needed = std::lround(
       default_crosses_needed *
-      config_nation.abilities[european_nation_for( player_type )]
+      config_nation.abilities[nation_for( player_type )]
           .crosses_needed_multiplier );
 
   return CrossesCalculation{

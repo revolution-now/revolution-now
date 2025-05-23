@@ -460,8 +460,8 @@ void World::add_player( e_player player_type ) {
   root().players.players[player_type] = Player{};
   // This is the minimal amount that we need to set for a player.
   root().players.players[player_type]->type = player_type;
-  root().players.players[player_type]->european_nation =
-      european_nation_for( player_type );
+  root().players.players[player_type]->nation =
+      nation_for( player_type );
   root().zzz_terrain.initialize_player_terrain(
       player_type, /*visible=*/false );
 }
