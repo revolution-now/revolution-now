@@ -713,6 +713,14 @@ Player& World::player( maybe<e_player> player ) {
       return french();
     case e_player::spanish:
       return spanish();
+    case e_player::ref_dutch:
+      SHOULD_NOT_BE_HERE;
+    case e_player::ref_english:
+      SHOULD_NOT_BE_HERE;
+    case e_player::ref_french:
+      SHOULD_NOT_BE_HERE;
+    case e_player::ref_spanish:
+      SHOULD_NOT_BE_HERE;
   }
 }
 
@@ -726,6 +734,14 @@ Player const& World::player( maybe<e_player> player ) const {
       return french();
     case e_player::spanish:
       return spanish();
+    case e_player::ref_dutch:
+      SHOULD_NOT_BE_HERE;
+    case e_player::ref_english:
+      SHOULD_NOT_BE_HERE;
+    case e_player::ref_french:
+      SHOULD_NOT_BE_HERE;
+    case e_player::ref_spanish:
+      SHOULD_NOT_BE_HERE;
   }
 }
 

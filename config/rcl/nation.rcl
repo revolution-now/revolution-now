@@ -44,6 +44,50 @@ players {
     flag_color:                  "#FFFE54"
   }
 
+  ref_dutch {
+    enum_val:                     ref_dutch
+    display_name_pre_declaration: Tory
+    country_name:                 The Netherlands
+    harbor_city_name:             Amsterdam
+    possessive_pre_declaration:   Tory
+    new_world_name:               New Netherlands
+    article:                      a
+    flag_color:                  "#FFFFFF"
+  }
+
+  ref_french {
+    enum_val:                     ref_french
+    display_name_pre_declaration: Tory
+    country_name:                 France
+    harbor_city_name:             La Rochelle
+    possessive_pre_declaration:   Tory
+    new_world_name:               New France
+    article:                      a
+    flag_color:                  "#FFFFFF"
+  }
+
+  ref_english {
+    enum_val:                     ref_english
+    display_name_pre_declaration: Tory
+    country_name:                 England
+    harbor_city_name:             London
+    possessive_pre_declaration:   Tory
+    new_world_name:               New England
+    article:                      a
+    flag_color:                  "#FFFFFF"
+  }
+
+  ref_spanish {
+    enum_val:                     ref_spanish
+    display_name_pre_declaration: Tory
+    country_name:                 Spain
+    harbor_city_name:             Seville
+    possessive_pre_declaration:   Tory
+    new_world_name:               New Spain
+    article:                      a
+    flag_color:                  "#FFFFFF"
+  }
+
 }
 
 # NOTE: The multipliers below have not been measured, though the

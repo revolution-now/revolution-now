@@ -34,7 +34,7 @@ struct SSConst;
 struct TerrainConnectivity;
 struct TS;
 
-enum class e_player;
+enum class e_nation;
 
 /****************************************************************
 ** Intervention Force.
@@ -44,10 +44,10 @@ int bells_required_for_intervention(
 
 wait<> intervention_forces_intro_ui_seq( SSConst const& ss,
                                          IGui& gui,
-                                         e_player receiving,
-                                         e_player intervening );
+                                         e_nation receiving,
+                                         e_nation intervening );
 
-e_player select_player_for_intervention( e_player for_player );
+e_nation select_nation_for_intervention( e_nation for_nation );
 
 bool should_trigger_intervention( SSConst const& ss,
                                   Player const& for_player );
@@ -57,8 +57,8 @@ void trigger_intervention( Player& player );
 // Called once when the necessary bells have been accumulated for
 // dispatching the intervention force.
 wait<> intervention_forces_triggered_ui_seq(
-    SSConst const& ss, IGui& gui, e_player receiving,
-    e_player intervening );
+    SSConst const& ss, IGui& gui, e_nation receiving,
+    e_nation intervening );
 
 // This will return nothing if there is no ship available, other-
 // wise will return a value, which could have all zeroes, in
@@ -85,7 +85,7 @@ UnitId deploy_intervention_forces(
 // Called on each turn where some intervention units arrive in
 // the new world.
 wait<> intervention_forces_deployed_ui_seq(
-    TS& ts, Colony const& colony, e_player intervening );
+    TS& ts, Colony const& colony, e_nation intervening );
 
 // This doesn't move them, just animates them moving.
 wait<> animate_move_intervention_units_into_colony(

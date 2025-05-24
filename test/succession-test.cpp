@@ -29,6 +29,7 @@
 #include "src/ss/colonies.hpp"
 #include "src/ss/dwelling.rds.hpp"
 #include "src/ss/events.rds.hpp"
+#include "src/ss/nation.hpp"
 #include "src/ss/player.rds.hpp"
 #include "src/ss/players.rds.hpp"
 #include "src/ss/ref.hpp"
@@ -164,7 +165,8 @@ TEST_CASE(
 
   // Start off with no human players.
   for( e_player const player : enum_values<e_player> )
-    w.player( player ).human = false;
+    if( !is_ref( player ) ) //
+      w.player( player ).human = false;
 
   // No humans.
   expected = { .withdraws = e_nation::english,

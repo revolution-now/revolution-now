@@ -112,14 +112,14 @@ TEST_CASE( "[intervention] bells_required_for_intervention" ) {
   REQUIRE( f() == 8000 );
 }
 
-TEST_CASE( "[intervention] select_player_for_intervention" ) {
+TEST_CASE( "[intervention] select_nation_for_intervention" ) {
   world w;
 
-  auto const f = [&]( e_player const for_player ) {
-    return select_player_for_intervention( for_player );
+  auto const f = [&]( e_nation const for_nation ) {
+    return select_nation_for_intervention( for_nation );
   };
 
-  using enum e_player;
+  using enum e_nation;
 
   REQUIRE( f( english ) == french );
   REQUIRE( f( french ) == spanish );
@@ -690,15 +690,15 @@ TEST_CASE( "[intervention] deploy_intervention_forces" ) {
 TEST_CASE( "[intervention] intervention_forces_intro_ui_seq" ) {
   world w;
 
-  e_player receiving   = {};
-  e_player intervening = {};
+  e_nation receiving   = {};
+  e_nation intervening = {};
 
   auto const f = [&] {
     co_await_test( intervention_forces_intro_ui_seq(
         w.ss(), w.gui(), receiving, intervening ) );
   };
 
-  using enum e_player;
+  using enum e_nation;
   using enum e_difficulty;
 
   receiving                                  = spanish;
@@ -726,25 +726,26 @@ TEST_CASE(
     "[intervention] intervention_forces_triggered_ui_seq" ) {
   world w;
 
-  e_player receiving   = {};
-  e_player intervening = {};
+  e_nation receiving   = {};
+  e_nation intervening = {};
 
   auto const f = [&] {
     co_await_test( intervention_forces_triggered_ui_seq(
         w.ss(), w.gui(), receiving, intervening ) );
   };
 
-  using enum e_player;
+  using enum e_nation;
   using enum e_difficulty;
 
   // No colonies.
   f();
 
   // One empty colony.
-  Colony& colony_1 = w.add_colony( { .x = 0, .y = 0 }, spanish );
-  colony_1.name    = "abc";
-  receiving        = spanish;
-  intervening      = french;
+  Colony& colony_1 =
+      w.add_colony( { .x = 0, .y = 0 }, e_player::spanish );
+  colony_1.name                              = "abc";
+  receiving                                  = spanish;
+  intervening                                = french;
   w.settings().game_setup_options.difficulty = conquistador;
   w.gui().EXPECT__message_box(
       "[France] declares war on Spain and joins the War of "
@@ -754,8 +755,9 @@ TEST_CASE(
   f();
 
   // Two colonies.
-  Colony& colony_2 = w.add_colony( { .x = 2, .y = 0 }, spanish );
-  colony_2.name    = "def";
+  Colony& colony_2 =
+      w.add_colony( { .x = 2, .y = 0 }, e_player::spanish );
+  colony_2.name = "def";
   w.add_unit_indoors( colony_2.id, e_indoor_job::bells );
   w.add_unit_indoors( colony_2.id, e_indoor_job::bells );
   receiving                                  = spanish;
@@ -769,8 +771,9 @@ TEST_CASE(
   f();
 
   // Three colonies.
-  Colony& colony_3 = w.add_colony( { .x = 0, .y = 2 }, spanish );
-  colony_3.name    = "ghi";
+  Colony& colony_3 =
+      w.add_colony( { .x = 0, .y = 2 }, e_player::spanish );
+  colony_3.name = "ghi";
   w.add_unit_indoors( colony_3.id, e_indoor_job::bells );
   receiving                                  = spanish;
   intervening                                = french;
@@ -789,12 +792,13 @@ TEST_CASE(
   MockLandViewPlane mock_land_view;
   w.planes().get().set_bottom<ILandViewPlane>( mock_land_view );
 
-  using enum e_player;
+  using enum e_nation;
 
-  e_player intervening = {};
+  e_nation intervening = {};
 
-  Colony& colony = w.add_colony( { .x = 1, .y = 5 }, english );
-  colony.name    = "abc";
+  Colony& colony =
+      w.add_colony( { .x = 1, .y = 5 }, e_player::english );
+  colony.name = "abc";
 
   auto const f = [&] {
     co_await_test( intervention_forces_deployed_ui_seq(

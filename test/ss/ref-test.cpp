@@ -100,6 +100,10 @@ value cdr_game_state_default = table{
               "english"_key = null,
               "french"_key  = null,
               "spanish"_key = null,
+              "ref_dutch"_key   = null,
+              "ref_english"_key = null,
+              "ref_french"_key  = null,
+              "ref_spanish"_key = null,
             },
         "global_market_state"_key =
             table{
@@ -221,6 +225,10 @@ value cdr_game_state_default = table{
               "english"_key = null,
               "french"_key  = null,
               "spanish"_key = null,
+              "ref_dutch"_key   = null,
+              "ref_english"_key = null,
+              "ref_french"_key  = null,
+              "ref_spanish"_key = null,
             },
         "real_terrain"_key =
             table{

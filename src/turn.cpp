@@ -1575,9 +1575,9 @@ wait<> do_intervention_force_turn(
                                      as_const( player ) ) ) {
       trigger_intervention( player );
       auto const intervention_player =
-          select_player_for_intervention( player.type );
+          select_nation_for_intervention( player.nation );
       co_await intervention_forces_triggered_ui_seq(
-          ss, ts.gui, player.type, intervention_player );
+          ss, ts.gui, player.nation, intervention_player );
     }
     // !! No return here since we want to deploy on the same turn
     // as the OG does.
@@ -1594,10 +1594,10 @@ wait<> do_intervention_force_turn(
             ss, ts, *target, *forces );
         Colony const& colony =
             ss.colonies.colony_for( target->colony_id );
-        auto const intervention_player =
-            select_player_for_intervention( player.type );
+        e_nation const intervention_nation =
+            select_nation_for_intervention( player.nation );
         co_await intervention_forces_deployed_ui_seq(
-            ts, colony, intervention_player );
+            ts, colony, intervention_nation );
         co_await animate_move_intervention_units_into_colony(
             ss, ts, ship_id, colony );
         move_intervention_units_into_colony( ss, ts, ship_id,

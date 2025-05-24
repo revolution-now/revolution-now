@@ -577,10 +577,10 @@ wait<> cheat_advance_revolution_status( SS& ss, TS& ts,
     if( should_trigger_intervention( ss.as_const,
                                      as_const( player ) ) ) {
       trigger_intervention( player );
-      auto const intervention_player =
-          select_player_for_intervention( player.type );
+      e_nation const intervention_nation =
+          select_nation_for_intervention( player.nation );
       co_await intervention_forces_triggered_ui_seq(
-          ss, ts.gui, player.type, intervention_player );
+          ss, ts.gui, player.nation, intervention_nation );
     }
     co_return;
   }

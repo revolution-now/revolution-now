@@ -31,6 +31,7 @@
 #include "revolution.rds.hpp"
 #include "ss/colonies.hpp"
 #include "ss/colony.rds.hpp"
+#include "ss/nation.hpp"
 #include "ss/player.rds.hpp"
 #include "ss/players.rds.hpp"
 #include "ss/ref.hpp"
@@ -74,9 +75,9 @@ int bells_required_for_intervention(
 // state or randomness... it must be deterministic because it is
 // called multiple times (without storing the result) expecting
 // that it will always yield the same output for the same input.
-e_player select_player_for_intervention(
-    e_player const for_player ) {
-  using enum e_player;
+e_nation select_nation_for_intervention(
+    e_nation const for_nation ) {
+  using enum e_nation;
   // Always give preference to the French if they are available
   // since it reflects history.
   //
@@ -86,7 +87,7 @@ e_player select_player_for_intervention(
   // we do want there to be an intervention force when there is
   // only one player in the game. It also doesn't matter whether
   // the intervening player is human or AI, for similar reasons.
-  switch( for_player ) {
+  switch( for_nation ) {
     case english:
       return french;
     case french:
@@ -263,13 +264,13 @@ UnitId deploy_intervention_forces(
 }
 
 wait<> intervention_forces_intro_ui_seq(
-    SSConst const& ss, IGui& gui, e_player const receiving,
-    e_player const intervening ) {
+    SSConst const& ss, IGui& gui, e_nation const receiving,
+    e_nation const intervening ) {
   string const& receiver_name_possessive =
-      config_nation.players[receiving]
+      config_nation.players[colonist_player_for( receiving )]
           .possessive_pre_declaration;
   string const& intervener_name_possessive =
-      config_nation.players[intervening]
+      config_nation.players[colonist_player_for( intervening )]
           .possessive_pre_declaration;
   co_await gui.message_box(
       "The [{}] are considering intervening in the war against "
@@ -281,11 +282,11 @@ wait<> intervention_forces_intro_ui_seq(
 }
 
 wait<> intervention_forces_triggered_ui_seq(
-    SSConst const& ss, IGui& gui, e_player const receiving,
-    e_player const intervening ) {
+    SSConst const& ss, IGui& gui, e_nation const receiving,
+    e_nation const intervening ) {
   auto const largest_colony = [&]() -> maybe<Colony const&> {
-    vector<ColonyId> colonies =
-        ss.colonies.for_player( receiving );
+    vector<ColonyId> colonies = ss.colonies.for_player(
+        colonist_player_for( receiving ) );
     rg::sort(
         colonies, [&]( ColonyId const l, ColonyId const r ) {
           Colony const& l_colony = ss.colonies.colony_for( l );
@@ -306,11 +307,13 @@ wait<> intervention_forces_triggered_ui_seq(
     co_return;
   Colony const& colony = *largest_colony;
   string const& intervener_name =
-      config_nation.players[intervening].country_name;
+      config_nation.players[colonist_player_for( intervening )]
+          .country_name;
   string const& receiver_name =
-      config_nation.players[receiving].country_name;
+      config_nation.players[colonist_player_for( receiving )]
+          .country_name;
   string const& intervener_name_possessive =
-      config_nation.players[intervening]
+      config_nation.players[colonist_player_for( intervening )]
           .possessive_pre_declaration;
   co_await gui.message_box(
       "[{}] declares war on {} and joins the War of "
@@ -322,12 +325,12 @@ wait<> intervention_forces_triggered_ui_seq(
 }
 
 wait<> intervention_forces_deployed_ui_seq(
-    TS& ts, Colony const& colony, e_player const intervening ) {
+    TS& ts, Colony const& colony, e_nation const intervening ) {
   co_await ts.planes.get()
       .get_bottom<ILandViewPlane>()
       .ensure_visible( colony.location );
   string const& intervener_name =
-      config_nation.players[intervening]
+      config_nation.players[colonist_player_for( intervening )]
           .possessive_pre_declaration;
   co_await ts.gui.message_box(
       "{} intervention forces arrive in [{}].  {} General joins "

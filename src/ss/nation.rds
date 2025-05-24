@@ -15,6 +15,10 @@ enum.e_player {
   french,
   spanish,
   dutch,
+  ref_english,
+  ref_french,
+  ref_spanish,
+  ref_dutch,
 }
 
 enum.e_nation {

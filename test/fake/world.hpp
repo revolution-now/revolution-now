@@ -75,6 +75,7 @@ struct Planes;
 struct Player;
 struct PlayerSquare;
 struct PlayersState;
+struct RefPlayer;
 struct SS;
 struct SSConst;
 struct SettingsState;
@@ -329,6 +330,14 @@ struct World {
   Player const& english() const;
   Player const& spanish() const;
   Player const& french() const;
+  RefPlayer& ref_dutch();
+  RefPlayer& ref_english();
+  RefPlayer& ref_spanish();
+  RefPlayer& ref_french();
+  RefPlayer const& ref_dutch() const;
+  RefPlayer const& ref_english() const;
+  RefPlayer const& ref_spanish() const;
+  RefPlayer const& ref_french() const;
 
   Player& default_player();
   Player const& default_player() const;
