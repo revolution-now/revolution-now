@@ -25,4 +25,6 @@ e_player ref_player_for( e_nation nation );
 
 bool is_ref( e_player player );
 
+bool is_colonist( e_player player );
+
 } // namespace rn

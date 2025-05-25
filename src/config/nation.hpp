@@ -15,6 +15,8 @@
 
 namespace rn {
 
-Nationality const& player_obj( e_player player );
+config::nation::Player const& player_obj( e_player player );
+
+config::nation::Nation const& nation_obj( e_nation nation );
 
 } // namespace rn

@@ -62,7 +62,7 @@ namespace rn {
 namespace {
 
 string new_world_name_for( Player const& player ) {
-  return config_nation.players[player.type].new_world_name;
+  return config_nation.nations[player.nation].new_world_name;
 }
 
 wait<> try_discover_new_world( SSConst const& ss, TS& ts,

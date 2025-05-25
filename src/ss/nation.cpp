@@ -83,4 +83,25 @@ bool is_ref( e_player const player ) {
   }
 }
 
+bool is_colonist( e_player const player ) {
+  switch( player ) {
+    case e_player::english:
+      return true;
+    case e_player::french:
+      return true;
+    case e_player::spanish:
+      return true;
+    case e_player::dutch:
+      return true;
+    case e_player::ref_english:
+      return false;
+    case e_player::ref_french:
+      return false;
+    case e_player::ref_spanish:
+      return false;
+    case e_player::ref_dutch:
+      return false;
+  }
+}
+
 } // namespace rn

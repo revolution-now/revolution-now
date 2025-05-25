@@ -74,5 +74,16 @@ TEST_CASE( "[ss/nation] is_ref" ) {
   REQUIRE( is_ref( e_player::ref_dutch ) == true );
 }
 
+TEST_CASE( "[ss/nation] is_colonist" ) {
+  REQUIRE( is_colonist( e_player::english ) == true );
+  REQUIRE( is_colonist( e_player::french ) == true );
+  REQUIRE( is_colonist( e_player::spanish ) == true );
+  REQUIRE( is_colonist( e_player::dutch ) == true );
+  REQUIRE( is_colonist( e_player::ref_english ) == false );
+  REQUIRE( is_colonist( e_player::ref_french ) == false );
+  REQUIRE( is_colonist( e_player::ref_spanish ) == false );
+  REQUIRE( is_colonist( e_player::ref_dutch ) == false );
+}
+
 } // namespace
 } // namespace rn

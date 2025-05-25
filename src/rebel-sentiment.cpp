@@ -22,6 +22,7 @@
 
 // ss
 #include "ss/colonies.hpp"
+#include "ss/nation.hpp"
 #include "ss/player.rds.hpp"
 #include "ss/ref.hpp"
 #include "ss/settings.rds.hpp"
@@ -139,7 +140,8 @@ wait<> show_rebel_sentiment_change_report(
     Player& player, IEuroMind& mind,
     RebelSentimentChangeReport const& report ) {
   auto const& country =
-      config_nation.players[mind.player_type()].country_name;
+      config_nation.nations[nation_for( mind.player_type() )]
+          .country_name;
   if( report.nova > report.prev )
     co_await mind.message_box(
         "[Rebel] sentiment is on the rise, Your Excellency!  "

@@ -114,7 +114,7 @@ wait<ui::e_confirm> ask_declare( IGui& gui,
         "Shall we declare independence from [{}], Your "
         "Excellency?  Doing so will end this turn and "
         "immediately put us at war with the crown.",
-        config_nation.players[player.type].country_name ),
+        config_nation.nations[player.nation].country_name ),
     .yes_label =
         "Yes! Give me liberty or give me death! ([Leave])",
     .no_label =

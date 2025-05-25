@@ -128,7 +128,7 @@ wait<> boycott_msg( SSConst const& ss, TS& ts,
       config_nation.players[player.type]
           .possessive_pre_declaration;
   string_view const harbor_city_name =
-      config_nation.players[player.type].harbor_city_name;
+      config_nation.nations[player.nation].harbor_city_name;
   int const quantity =
       party.how.commodity.type_and_quantity.quantity;
 

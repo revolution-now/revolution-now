@@ -1012,7 +1012,7 @@ wait<bool> advance_unit( IEngine& engine, SS& ss, TS& ts,
         co_await ts.gui.message_box(
             "Our [{}] has finished its repairs in [{}].",
             unit.desc().name,
-            player_obj( player.type ).harbor_city_name );
+            nation_obj( player.nation ).harbor_city_name );
         HarborViewer harbor_viewer( engine, ss, ts, player );
         harbor_viewer.set_selected_unit( unit.id() );
         co_await harbor_viewer.show();

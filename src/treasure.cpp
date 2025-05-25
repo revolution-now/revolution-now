@@ -146,7 +146,7 @@ wait<maybe<TreasureReceipt>> treasure_enter_colony(
   msg += fmt::format(
       "to transport this treasure to {} we will happily "
       "transport it for you, ",
-      config_nation.players[player.type].harbor_city_name );
+      config_nation.nations[player.nation].harbor_city_name );
   switch( receipt.transport_mode ) {
     case e_treasure_transport_mode::player:
       SHOULD_NOT_BE_HERE;
@@ -190,7 +190,7 @@ void apply_treasure_reimbursement(
 wait<> show_treasure_receipt( TS& ts, Player const& player,
                               TreasureReceipt const& receipt ) {
   string const harbor_name =
-      config_nation.players[player.type].harbor_city_name;
+      config_nation.nations[player.nation].harbor_city_name;
   string msg;
   switch( receipt.transport_mode ) {
     case e_treasure_transport_mode::player:

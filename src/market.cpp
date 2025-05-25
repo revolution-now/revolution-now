@@ -510,7 +510,7 @@ wait<> display_price_change_notification(
     TS& ts, Player const& player, PriceChange const& change ) {
   if( change.from == change.to ) co_return;
   string const harbor_name =
-      player_obj( player.type ).harbor_city_name;
+      nation_obj( player.nation ).harbor_city_name;
   CHECK( change.to.bid - change.from.bid ==
          change.to.ask - change.from.ask );
   int const price_change = change.to.bid - change.from.bid;

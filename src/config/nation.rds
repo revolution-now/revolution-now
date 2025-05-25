@@ -18,7 +18,7 @@ include "gfx/pixel.hpp"
 # refl
 include "refl/enum-map.hpp"
 
-namespace "rn"
+namespace "rn.config.nation"
 
 struct.SpecialAbility {
   # This is a number that will be multiplied by the total number
@@ -50,12 +50,7 @@ struct.SpecialAbility {
   _features { validation, equality }
 }
 
-struct.Nationality {
-  enum_val 'e_player',
-
-  # The ____ have captured the colony of...
-  display_name_pre_declaration 'std::string',
-
+struct.Nation {
   # The king of ____ has declared...
   country_name 'std::string',
 
@@ -64,6 +59,12 @@ struct.Nationality {
 
   # The default suggested name for the new world.
   new_world_name 'std::string',
+
+}
+
+struct.Player {
+  # The ____ have captured the colony of...
+  display_name_pre_declaration 'std::string',
 
   # ____ forces have captured...
   possessive_pre_declaration 'std::string',
@@ -75,11 +76,15 @@ struct.Nationality {
   flag_color 'gfx::pixel',
 }
 
+namespace "rn"
+
 struct.config_nation_t {
-  players 'refl::enum_map<e_player, Nationality>',
+  nations 'refl::enum_map<e_nation, config::nation::Nation>',
+
+  players 'refl::enum_map<e_player, config::nation::Player>',
 
   # Describes the special abilities that each nation has.
-  abilities 'refl::enum_map<e_nation, SpecialAbility>',
+  abilities 'refl::enum_map<e_nation, config::nation::SpecialAbility>',
 }
 
 config.nation {}

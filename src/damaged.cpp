@@ -22,6 +22,7 @@
 
 // ss
 #include "ss/colonies.hpp"
+#include "ss/nation.hpp"
 #include "ss/players.hpp"
 #include "ss/ref.hpp"
 #include "ss/terrain.hpp"
@@ -191,7 +192,7 @@ string ship_repair_port_name( SSConst const& ss, e_player player,
       return ss.colonies.colony_for( colony.id ).name;
     }
     CASE( european_harbor ) {
-      return player_obj( player ).harbor_city_name;
+      return nation_obj( nation_for( player ) ).harbor_city_name;
     }
   }
 }

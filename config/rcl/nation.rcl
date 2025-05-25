@@ -1,90 +1,86 @@
-players {
+nations {
+
+  english {
+    country_name:     England
+    harbor_city_name: London
+    new_world_name:   New England
+  }
+
+  french {
+    country_name:     France
+    harbor_city_name: La Rochelle
+    new_world_name:   New France
+  }
+
+  spanish {
+    country_name:     Spain
+    harbor_city_name: Seville
+    new_world_name:   New Spain
+  }
 
   dutch {
-    enum_val:                     dutch
+    country_name:     The Netherlands
+    harbor_city_name: Amsterdam
+    new_world_name:   New Netherlands
+  }
+
+}
+
+players {
+
+  english {
+    display_name_pre_declaration: English
+    article:                      an
+    possessive_pre_declaration:   English
+    flag_color:                  "#FF0000"
+  }
+
+  french {
+    display_name_pre_declaration: French
+    article:                      a
+    possessive_pre_declaration:   French
+    flag_color:                  "#5555FF"
+  }
+
+  spanish {
+    display_name_pre_declaration: Spanish
+    article:                      a
+    possessive_pre_declaration:   Spanish
+    flag_color:                  "#FFFE54"
+  }
+
+  dutch {
     display_name_pre_declaration: Dutch
-    country_name:                 The Netherlands
-    harbor_city_name:             Amsterdam
     possessive_pre_declaration:   Dutch
-    new_world_name:               New Netherlands
     article:                      a
     flag_color:                  "#FF7100"
   }
 
-  french {
-    enum_val:                     french
-    display_name_pre_declaration: French
-    country_name:                 France
-    harbor_city_name:             La Rochelle
-    possessive_pre_declaration:   French
-    new_world_name:               New France
-    article:                      a
-    flag_color:                  "#5555FF"
-  }
-
-  english {
-    enum_val:                     english
-    display_name_pre_declaration: English
-    country_name:                 England
-    harbor_city_name:             London
-    possessive_pre_declaration:   English
-    new_world_name:               New England
-    article:                      an
-    flag_color:                  "#FF0000"
-  }
-
-  spanish {
-    enum_val:                     spanish
-    display_name_pre_declaration: Spanish
-    country_name:                 Spain
-    harbor_city_name:             Seville
-    possessive_pre_declaration:   Spanish
-    new_world_name:               New Spain
-    article:                      a
-    flag_color:                  "#FFFE54"
-  }
-
   ref_dutch {
-    enum_val:                     ref_dutch
     display_name_pre_declaration: Tory
-    country_name:                 The Netherlands
-    harbor_city_name:             Amsterdam
-    possessive_pre_declaration:   Tory
-    new_world_name:               New Netherlands
     article:                      a
+    possessive_pre_declaration:   Tory
     flag_color:                  "#FFFFFF"
   }
 
   ref_french {
-    enum_val:                     ref_french
     display_name_pre_declaration: Tory
-    country_name:                 France
-    harbor_city_name:             La Rochelle
-    possessive_pre_declaration:   Tory
-    new_world_name:               New France
     article:                      a
+    possessive_pre_declaration:   Tory
     flag_color:                  "#FFFFFF"
   }
 
   ref_english {
-    enum_val:                     ref_english
     display_name_pre_declaration: Tory
-    country_name:                 England
-    harbor_city_name:             London
-    possessive_pre_declaration:   Tory
-    new_world_name:               New England
     article:                      a
+    possessive_pre_declaration:   Tory
     flag_color:                  "#FFFFFF"
   }
 
   ref_spanish {
-    enum_val:                     ref_spanish
     display_name_pre_declaration: Tory
-    country_name:                 Spain
-    harbor_city_name:             Seville
-    possessive_pre_declaration:   Tory
-    new_world_name:               New Spain
     article:                      a
+    possessive_pre_declaration:   Tory
     flag_color:                  "#FFFFFF"
   }
 

@@ -275,7 +275,7 @@ wait<> rush_construction_prompt(
         "because tools are currently boycotted in {}.",
         construction_name( invoice.project ),
         invoice.needed_tools,
-        config_nation.players[player.type].harbor_city_name );
+        config_nation.nations[player.nation].harbor_city_name );
     co_return;
   }
 

@@ -307,11 +307,9 @@ wait<> intervention_forces_triggered_ui_seq(
     co_return;
   Colony const& colony = *largest_colony;
   string const& intervener_name =
-      config_nation.players[colonist_player_for( intervening )]
-          .country_name;
+      config_nation.nations[intervening].country_name;
   string const& receiver_name =
-      config_nation.players[colonist_player_for( receiving )]
-          .country_name;
+      config_nation.nations[receiving].country_name;
   string const& intervener_name_possessive =
       config_nation.players[colonist_player_for( intervening )]
           .possessive_pre_declaration;

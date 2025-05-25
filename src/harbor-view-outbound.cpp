@@ -281,7 +281,8 @@ void HarborOutboundShips::draw( rr::Renderer& renderer,
     string const new_world_name =
         player_.new_world_name.has_value()
             ? *player_.new_world_name
-            : config_nation.players[player_.type].new_world_name;
+            : config_nation.nations[player_.nation]
+                  .new_world_name;
     label_line_2 = new_world_name;
   } else {
     // Just use "new world" here because we're in compact mode

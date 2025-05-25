@@ -45,15 +45,22 @@ bool valid_ship( e_unit_type u ) {
 
 } // namespace
 
-Nationality const& player_obj( e_player player ) {
+config::nation::Player const& player_obj(
+    e_player const player ) {
   return config_nation.players[player];
 }
 
-base::valid_or<string> SpecialAbility::validate() const {
+config::nation::Nation const& nation_obj(
+    e_nation const nation ) {
+  return config_nation.nations[nation];
+}
+
+base::valid_or<string> config::nation::SpecialAbility::validate()
+    const {
   // NOTE: unfortunately we cannot validate the properties of the
   // unit type fields because that would require config data from
-  // another config module which is necessarily available while
-  // this config is being loaded.
+  // another config module which isn't necessarily available
+  // while this config is being loaded.
 
   REFL_VALIDATE( crosses_needed_multiplier > 0.0,
                  "crosses multiplier must be > 0." );

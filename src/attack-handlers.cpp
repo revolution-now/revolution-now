@@ -885,7 +885,7 @@ wait<> AttackDwellingHandler::perform() {
   string_view const player_name_possessive =
       player_possessive( attacking_player_ );
   string_view const player_harbor_name =
-      player_obj( attacking_player_.type ).harbor_city_name;
+      nation_obj( attacking_player_.nation ).harbor_city_name;
 
   // Set new tribal alarm.
   // ------------------------------------------------------------
