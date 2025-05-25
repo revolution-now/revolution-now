@@ -32,6 +32,13 @@ war_of_succession {
   #
   # This is merely the default value of the corresponding setting
   # that can be chosen when creating a new game.
+  #
+  # WARNING: In a game where all four nations are present, dis-
+  # abling the war of succession may prevent saving your game in
+  # the OG's SAV format after the war of independence begins,
+  # since there will not be an available slot for the REF. But if
+  # you don't care about saving the game in that legacy format
+  # then you can freely disable the war of succession.
   enable_war_of_succession_default: true
 }
 
