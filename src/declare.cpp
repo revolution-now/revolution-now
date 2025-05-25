@@ -149,6 +149,7 @@ DeclarationResult declare_independence( SS& ss, TS&,
 
   // TODO:
   //
+  // * Add the REF player.
   // * Make sure that there is at least one Man-o-War if there
   //   are any ref units to bring. The OG appears to increase
   //   this from zero to one if it is zero.

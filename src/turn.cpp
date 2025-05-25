@@ -439,7 +439,7 @@ wait<> show_hidden_terrain( TS& ts ) {
 }
 
 wait<> prioritize_units_during_turn(
-    SSConst const& ss, TS& ts, NationTurnState::units& nat_units,
+    SSConst const& ss, TS& ts, PlayerTurnState::units& nat_units,
     LandViewPlayerInput::prioritize const& prioritize ) {
   vector<UnitId> const units =
       co_await process_unit_prioritization_request( ss, ts,
@@ -707,7 +707,7 @@ wait<EndOfTurnResult> end_of_turn( IEngine& engine, SS& ss,
 *****************************************************************/
 wait<> process_player_input_normal_mode(
     IEngine& engine, UnitId, e_menu_item item, SS& ss, TS& ts,
-    Player& player, NationTurnState::units& ) {
+    Player& player, PlayerTurnState::units& ) {
   // In the future we might need to put logic here that is spe-
   // cific to the mid-turn scenario, but for now this is suffi-
   // cient.
@@ -717,7 +717,7 @@ wait<> process_player_input_normal_mode(
 wait<> process_player_input_normal_mode(
     IEngine& engine, UnitId id, LandViewPlayerInput const& input,
     SS& ss, TS& ts, Player& player,
-    NationTurnState::units& nat_units ) {
+    PlayerTurnState::units& nat_units ) {
   auto& st = nat_units;
   auto& q  = st.q;
   SWITCH( input ) {
@@ -813,7 +813,7 @@ wait<> process_player_input_normal_mode(
 }
 
 wait<LandViewPlayerInput> landview_player_input(
-    SS& ss, TS& ts, NationTurnState::units& nat_units,
+    SS& ss, TS& ts, PlayerTurnState::units& nat_units,
     UnitId id ) {
   LandViewPlayerInput response;
   if( auto maybe_command = pop_unit_command( id ) ) {
@@ -845,7 +845,7 @@ wait<LandViewPlayerInput> landview_player_input(
 
 wait<> query_unit_input( IEngine& engine, UnitId id, SS& ss,
                          TS& ts, Player& player,
-                         NationTurnState::units& nat_units ) {
+                         PlayerTurnState::units& nat_units ) {
   auto command = co_await co::first(
       wait_for_menu_selection( ts.planes.get().menu ),
       landview_player_input( ss, ts, nat_units, id ) );
@@ -864,7 +864,7 @@ wait<> query_unit_input( IEngine& engine, UnitId id, SS& ss,
 *****************************************************************/
 wait<> process_player_input_view_mode( IEngine& engine, SS& ss,
                                        TS& ts, Player& player,
-                                       NationTurnState::units&,
+                                       PlayerTurnState::units&,
                                        e_menu_item const item ) {
   // In the future we might need to put logic here that is spe-
   // cific to view mode, but for now this is sufficient.
@@ -873,7 +873,7 @@ wait<> process_player_input_view_mode( IEngine& engine, SS& ss,
 
 wait<> process_player_input_view_mode(
     IEngine& engine, SS& ss, TS& ts, Player& player,
-    NationTurnState::units& nat_units,
+    PlayerTurnState::units& nat_units,
     LandViewPlayerInput const& input ) {
   SWITCH( input ) {
     CASE( toggle_view_mode ) { break; }
@@ -930,7 +930,7 @@ wait<> process_player_input_view_mode(
 
 wait<> show_view_mode( IEngine& engine, SS& ss, TS& ts,
                        Player& player,
-                       NationTurnState::units& nat_units,
+                       PlayerTurnState::units& nat_units,
                        ViewModeOptions options ) {
   lg.info( "entering view mode." );
   SCOPE_EXIT { lg.info( "leaving view mode." ); };
@@ -1165,7 +1165,7 @@ wait<HighSeasStatus> advance_high_seas_unit(
 
 wait<> move_remaining_units( IEngine& engine, SS& ss, TS& ts,
                              Player& player,
-                             NationTurnState::units& nat_units,
+                             PlayerTurnState::units& nat_units,
                              deque<UnitId>& q ) {
   while( !q.empty() ) {
     UnitId const id = q.front();
@@ -1274,7 +1274,7 @@ wait<> move_high_seas_units( IEngine& engine, SS& ss, TS& ts,
 
 wait<> units_turn_one_pass( IEngine& engine, SS& ss, TS& ts,
                             Player& player,
-                            NationTurnState::units& nat_units,
+                            PlayerTurnState::units& nat_units,
                             deque<UnitId>& q ) {
   // There may be some units in the queue that e.g. we disbanded
   // while in view mode just before having called this method.
@@ -1304,7 +1304,7 @@ wait<> units_turn_one_pass( IEngine& engine, SS& ss, TS& ts,
 
 wait<> units_turn( IEngine& engine, SS& ss, TS& ts,
                    Player& player,
-                   NationTurnState::units& nat_units ) {
+                   PlayerTurnState::units& nat_units ) {
   auto& st = nat_units;
   auto& q  = st.q;
 
@@ -1500,9 +1500,9 @@ wait<> post_player( SS& ss, TS& ts, Player& player ) {
 }
 
 // Processes the current state and returns the next state.
-wait<NationTurnState> player_turn_iter(
+wait<PlayerTurnState> player_turn_iter(
     IEngine& engine, SS& ss, TS& ts, e_player const player_type,
-    NationTurnState& st ) {
+    PlayerTurnState& st ) {
   Player& player =
       player_for_player_or_die( ss.players, player_type );
 
@@ -1511,32 +1511,32 @@ wait<NationTurnState> player_turn_iter(
       base::print_bar( '-',
                        fmt::format( "[ {} ]", player_type ) );
       co_await player_start_of_turn( ss, ts, player );
-      co_return NationTurnState::colonies{};
+      co_return PlayerTurnState::colonies{};
     }
     CASE( colonies ) {
       co_await colonies_turn( engine, ss, ts, player );
       co_await post_colonies( ss, ts, player );
-      co_return NationTurnState::units{};
+      co_return PlayerTurnState::units{};
     }
     CASE( units ) {
       co_await units_turn( engine, ss, ts, player, units );
       CHECK( units.q.empty() );
-      if( !units.skip_eot ) co_return NationTurnState::eot{};
+      if( !units.skip_eot ) co_return PlayerTurnState::eot{};
       if( ss.settings.in_game_options.game_menu_options
               [e_game_menu_option::end_of_turn] )
         // As in the OG, this setting means "always stop on end
         // of turn," even we otherwise wouldn't have.
-        co_return NationTurnState::eot{};
-      co_return NationTurnState::post{};
+        co_return PlayerTurnState::eot{};
+      co_return PlayerTurnState::post{};
     }
     CASE( eot ) {
       SWITCH( co_await end_of_turn( engine, ss, ts, player ) ) {
         CASE( not_done_yet ) {
-          co_return NationTurnState::eot{};
+          co_return PlayerTurnState::eot{};
         }
-        CASE( proceed ) { co_return NationTurnState::post{}; }
+        CASE( proceed ) { co_return PlayerTurnState::post{}; }
         CASE( return_to_units ) {
-          NationTurnState::units units;
+          PlayerTurnState::units units;
           if( return_to_units.first_to_ask.has_value() )
             units.q.push_back( *return_to_units.first_to_ask );
           co_return units;
@@ -1546,20 +1546,20 @@ wait<NationTurnState> player_turn_iter(
     }
     CASE( post ) {
       co_await post_player( ss, ts, player );
-      co_return NationTurnState::finished{};
+      co_return PlayerTurnState::finished{};
     }
     CASE( finished ) { SHOULD_NOT_BE_HERE; }
   }
 }
 
 wait<> nation_turn( IEngine& engine, SS& ss, TS& ts,
-                    e_player player, NationTurnState& st ) {
+                    e_player player, PlayerTurnState& st ) {
   CHECK( ss.players.players[player].has_value(),
          "nation {} does not exist.", player );
   if( !ss.players.players[player]->human )
     // TODO: Until we have AI.
-    st = NationTurnState::finished{};
-  while( !st.holds<NationTurnState::finished>() )
+    st = PlayerTurnState::finished{};
+  while( !st.holds<PlayerTurnState::finished>() )
     st = co_await player_turn_iter( engine, ss, ts, player, st );
 }
 
@@ -1661,32 +1661,25 @@ wait<TurnCycle> next_turn_iter( IEngine& engine, SS& ss,
       recompute_fog_for_all_players( ss, ts );
       co_await natives_turn( ss, ts, RealRaid( ss, ts ),
                              RealTribeEvolve( ss, ts ) );
-      if( auto const player = find_first_nation_to_move( ss );
+      if( auto const player = find_first_player_to_move( ss );
           player.has_value() )
-        co_return TurnCycle::nation{ .nation = *player };
+        co_return TurnCycle::player{ .type = *player };
       co_return TurnCycle::end_cycle{};
     }
-    CASE( nation ) {
-      co_await nation_turn( engine, ss, ts,
-                            colonist_player_for( nation.nation ),
-                            nation.st );
+    CASE( player ) {
+      co_await nation_turn( engine, ss, ts, player.type,
+                            player.st );
       if( auto const next =
-              find_next_nation_to_move( ss, nation.nation );
+              find_next_player_to_move( ss, player.type );
           next.has_value() )
-        co_return TurnCycle::nation{ .nation = *next };
-      co_return TurnCycle::ref{};
-    }
-    CASE( ref ) {
-      auto const player = human_player_that_declared( ss );
-      if( !player.has_value() ) co_return TurnCycle::end_cycle{};
-      // TODO
+        co_return TurnCycle::player{ .type = *next };
       co_return TurnCycle::intervention{};
     }
     CASE( intervention ) {
-      UNWRAP_CHECK_T( e_player const player,
-                      human_player_that_declared( ss ) );
-      co_await do_intervention_force_turn(
-          engine, ss, ts, player, intervention );
+      auto const player = human_player_that_declared( ss );
+      if( player.has_value() )
+        co_await do_intervention_force_turn(
+            engine, ss, ts, *player, intervention );
       co_return TurnCycle::end_cycle{};
     }
     CASE( end_cycle ) {

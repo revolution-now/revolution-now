@@ -20,12 +20,11 @@
 // Revolution Now
 #include "maybe.hpp"
 
-// ss
-#include "ss/nation.rds.hpp"
-
 namespace rn {
 
 struct SSConst;
+
+enum class e_player;
 
 maybe<e_player> player_for_role( SSConst const& ss,
                                  e_player_role role );

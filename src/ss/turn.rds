@@ -47,7 +47,7 @@ struct.Autosave {
   last_save 'base::maybe<int>',
 }
 
-sumtype.NationTurnState {
+sumtype.PlayerTurnState {
   not_started {},
   colonies {},
   units {
@@ -63,11 +63,10 @@ sumtype.NationTurnState {
 sumtype.TurnCycle {
   not_started {}, # should be first.
   natives {},
-  nation {
-    nation 'e_nation',
-    st 'NationTurnState',
+  player {
+    type 'e_player',
+    st 'PlayerTurnState',
   },
-  ref {},
   intervention {},
   end_cycle {},
   finished {},

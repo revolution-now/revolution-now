@@ -14,7 +14,6 @@
 
 // ss
 #include "ss/land-view.rds.hpp"
-#include "ss/nation.hpp"
 #include "ss/players.rds.hpp"
 #include "ss/ref.hpp"
 #include "ss/turn.rds.hpp"
@@ -69,10 +68,7 @@ maybe<e_player> player_for_role( SSConst const& ss,
       SWITCH( ss.turn.cycle ) {
         CASE( not_started ) { return nothing; }
         CASE( natives ) { return nothing; }
-        CASE( nation ) {
-          return colonist_player_for( nation.nation );
-        }
-        CASE( ref ) { return nothing; }
+        CASE( player ) { return player.type; }
         CASE( intervention ) { return nothing; }
         CASE( end_cycle ) { return nothing; }
         CASE( finished ) { return nothing; }

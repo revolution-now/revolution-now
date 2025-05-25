@@ -1315,8 +1315,7 @@ TEST_CASE( "[visibility] ScopedMapViewer" ) {
   auto& map_revealed = w.land_view().map_revealed;
 
   // This will cause the french to be the default viewer.
-  w.turn().cycle.emplace<TurnCycle::nation>().nation =
-      e_nation::french;
+  w.turn().cycle.emplace<TurnCycle::player>().type = french;
 
   SECTION( "english human" ) {
     w.english().human = true;

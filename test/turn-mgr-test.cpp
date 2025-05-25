@@ -57,10 +57,10 @@ TEST_CASE( "[turn-mgr] find_first_player_to_move" ) {
   world w;
 
   auto const f = [&] {
-    return find_first_nation_to_move( w.ss().as_const );
+    return find_first_player_to_move( w.ss().as_const );
   };
 
-  using enum e_nation;
+  using enum e_player;
 
   // Default.
   REQUIRE( f() == nothing );
@@ -80,25 +80,31 @@ TEST_CASE( "[turn-mgr] find_first_player_to_move" ) {
     REQUIRE( f() == dutch );
   }
 
-  SECTION( "two nations, first" ) {
+  SECTION( "two players, first" ) {
     w.add_player( e_player::english );
     w.add_player( e_player::french );
     REQUIRE( f() == english );
   }
 
-  SECTION( "two nations, not first" ) {
+  SECTION( "two players, not first" ) {
     w.add_player( e_player::french );
     w.add_player( e_player::dutch );
     REQUIRE( f() == french );
   }
 
-  SECTION( "two nations, last" ) {
+  SECTION( "two players, last" ) {
     w.add_player( e_player::spanish );
     w.add_player( e_player::dutch );
     REQUIRE( f() == spanish );
   }
 
-  SECTION( "all nations" ) {
+  SECTION( "two players, some ref" ) {
+    w.add_player( e_player::ref_french );
+    w.add_player( e_player::ref_dutch );
+    REQUIRE( f() == ref_french );
+  }
+
+  SECTION( "all players" ) {
     w.add_player( e_player::english );
     w.add_player( e_player::french );
     w.add_player( e_player::spanish );
@@ -110,17 +116,21 @@ TEST_CASE( "[turn-mgr] find_first_player_to_move" ) {
 TEST_CASE( "[turn-mgr] find_next_player_to_move" ) {
   world w;
 
-  auto const f = [&]( e_nation const nation ) {
-    return find_next_nation_to_move( w.ss().as_const, nation );
+  auto const f = [&]( e_player const player ) {
+    return find_next_player_to_move( w.ss().as_const, player );
   };
 
-  using enum e_nation;
+  using enum e_player;
 
-  SECTION( "no nations" ) {
+  SECTION( "no players" ) {
     REQUIRE( f( english ) == nothing );
     REQUIRE( f( french ) == nothing );
     REQUIRE( f( spanish ) == nothing );
     REQUIRE( f( dutch ) == nothing );
+    REQUIRE( f( ref_english ) == nothing );
+    REQUIRE( f( ref_french ) == nothing );
+    REQUIRE( f( ref_spanish ) == nothing );
+    REQUIRE( f( ref_dutch ) == nothing );
   }
 
   SECTION( "one player, first" ) {
@@ -129,6 +139,10 @@ TEST_CASE( "[turn-mgr] find_next_player_to_move" ) {
     REQUIRE( f( french ) == nothing );
     REQUIRE( f( spanish ) == nothing );
     REQUIRE( f( dutch ) == nothing );
+    REQUIRE( f( ref_english ) == nothing );
+    REQUIRE( f( ref_french ) == nothing );
+    REQUIRE( f( ref_spanish ) == nothing );
+    REQUIRE( f( ref_dutch ) == nothing );
   }
 
   SECTION( "one player, not first" ) {
@@ -137,6 +151,10 @@ TEST_CASE( "[turn-mgr] find_next_player_to_move" ) {
     REQUIRE( f( french ) == nothing );
     REQUIRE( f( spanish ) == nothing );
     REQUIRE( f( dutch ) == nothing );
+    REQUIRE( f( ref_english ) == nothing );
+    REQUIRE( f( ref_french ) == nothing );
+    REQUIRE( f( ref_spanish ) == nothing );
+    REQUIRE( f( ref_dutch ) == nothing );
   }
 
   SECTION( "one player, last" ) {
@@ -145,36 +163,66 @@ TEST_CASE( "[turn-mgr] find_next_player_to_move" ) {
     REQUIRE( f( french ) == dutch );
     REQUIRE( f( spanish ) == dutch );
     REQUIRE( f( dutch ) == nothing );
+    REQUIRE( f( ref_english ) == nothing );
+    REQUIRE( f( ref_french ) == nothing );
+    REQUIRE( f( ref_spanish ) == nothing );
+    REQUIRE( f( ref_dutch ) == nothing );
   }
 
-  SECTION( "two nations, first" ) {
+  SECTION( "two players, first" ) {
     w.add_player( e_player::english );
     w.add_player( e_player::french );
     REQUIRE( f( english ) == french );
     REQUIRE( f( french ) == nothing );
     REQUIRE( f( spanish ) == nothing );
     REQUIRE( f( dutch ) == nothing );
+    REQUIRE( f( ref_english ) == nothing );
+    REQUIRE( f( ref_french ) == nothing );
+    REQUIRE( f( ref_spanish ) == nothing );
+    REQUIRE( f( ref_dutch ) == nothing );
   }
 
-  SECTION( "two nations, not first" ) {
+  SECTION( "two players, not first" ) {
     w.add_player( e_player::french );
     w.add_player( e_player::dutch );
     REQUIRE( f( english ) == french );
     REQUIRE( f( french ) == dutch );
     REQUIRE( f( spanish ) == dutch );
     REQUIRE( f( dutch ) == nothing );
+    REQUIRE( f( ref_english ) == nothing );
+    REQUIRE( f( ref_french ) == nothing );
+    REQUIRE( f( ref_spanish ) == nothing );
+    REQUIRE( f( ref_dutch ) == nothing );
   }
 
-  SECTION( "two nations, last" ) {
+  SECTION( "two players with ref, not first" ) {
+    w.add_player( e_player::french );
+    w.add_player( e_player::dutch );
+    w.add_player( e_player::ref_spanish );
+    REQUIRE( f( english ) == french );
+    REQUIRE( f( french ) == dutch );
+    REQUIRE( f( spanish ) == dutch );
+    REQUIRE( f( dutch ) == ref_spanish );
+    REQUIRE( f( ref_english ) == ref_spanish );
+    REQUIRE( f( ref_french ) == ref_spanish );
+    REQUIRE( f( ref_spanish ) == nothing );
+    REQUIRE( f( ref_dutch ) == nothing );
+  }
+
+  SECTION( "two players, last" ) {
     w.add_player( e_player::spanish );
     w.add_player( e_player::dutch );
     REQUIRE( f( english ) == spanish );
     REQUIRE( f( french ) == spanish );
     REQUIRE( f( spanish ) == dutch );
     REQUIRE( f( dutch ) == nothing );
+    REQUIRE( f( ref_english ) == nothing );
+    REQUIRE( f( ref_french ) == nothing );
+    REQUIRE( f( ref_spanish ) == nothing );
+    REQUIRE( f( ref_dutch ) == nothing );
   }
 
-  SECTION( "three nations" ) {
+  SECTION( "three players" ) {
     w.add_player( e_player::english );
     w.add_player( e_player::spanish );
     w.add_player( e_player::dutch );
@@ -182,17 +230,29 @@ TEST_CASE( "[turn-mgr] find_next_player_to_move" ) {
     REQUIRE( f( french ) == spanish );
     REQUIRE( f( spanish ) == dutch );
     REQUIRE( f( dutch ) == nothing );
+    REQUIRE( f( ref_english ) == nothing );
+    REQUIRE( f( ref_french ) == nothing );
+    REQUIRE( f( ref_spanish ) == nothing );
+    REQUIRE( f( ref_dutch ) == nothing );
   }
 
-  SECTION( "all nations" ) {
+  SECTION( "all players" ) {
     w.add_player( e_player::english );
     w.add_player( e_player::french );
     w.add_player( e_player::spanish );
     w.add_player( e_player::dutch );
+    w.add_player( e_player::ref_english );
+    w.add_player( e_player::ref_french );
+    w.add_player( e_player::ref_spanish );
+    w.add_player( e_player::ref_dutch );
     REQUIRE( f( english ) == french );
     REQUIRE( f( french ) == spanish );
     REQUIRE( f( spanish ) == dutch );
-    REQUIRE( f( dutch ) == nothing );
+    REQUIRE( f( dutch ) == ref_english );
+    REQUIRE( f( ref_english ) == ref_french );
+    REQUIRE( f( ref_french ) == ref_spanish );
+    REQUIRE( f( ref_spanish ) == ref_dutch );
+    REQUIRE( f( ref_dutch ) == nothing );
   }
 }
 
