@@ -695,6 +695,54 @@ Player const& World::french() const {
   return player;
 }
 
+Player& World::ref_dutch() {
+  UNWRAP_CHECK( player,
+                root().players.players[e_player::ref_dutch] );
+  return player;
+}
+
+Player& World::ref_english() {
+  UNWRAP_CHECK( player,
+                root().players.players[e_player::ref_english] );
+  return player;
+}
+
+Player& World::ref_spanish() {
+  UNWRAP_CHECK( player,
+                root().players.players[e_player::ref_spanish] );
+  return player;
+}
+
+Player& World::ref_french() {
+  UNWRAP_CHECK( player,
+                root().players.players[e_player::ref_french] );
+  return player;
+}
+
+Player const& World::ref_dutch() const {
+  UNWRAP_CHECK( player,
+                root().players.players[e_player::ref_dutch] );
+  return player;
+}
+
+Player const& World::ref_english() const {
+  UNWRAP_CHECK( player,
+                root().players.players[e_player::ref_english] );
+  return player;
+}
+
+Player const& World::ref_spanish() const {
+  UNWRAP_CHECK( player,
+                root().players.players[e_player::spanish] );
+  return player;
+}
+
+Player const& World::ref_french() const {
+  UNWRAP_CHECK( player,
+                root().players.players[e_player::ref_french] );
+  return player;
+}
+
 Player& World::default_player() {
   return player( default_player_type_ );
 }
@@ -703,46 +751,19 @@ Player const& World::default_player() const {
   return player( default_player_type_ );
 }
 
-Player& World::player( maybe<e_player> player ) {
-  switch( player.value_or( default_player_type_ ) ) {
-    case e_player::dutch:
-      return dutch();
-    case e_player::english:
-      return english();
-    case e_player::french:
-      return french();
-    case e_player::spanish:
-      return spanish();
-    case e_player::ref_dutch:
-      SHOULD_NOT_BE_HERE;
-    case e_player::ref_english:
-      SHOULD_NOT_BE_HERE;
-    case e_player::ref_french:
-      SHOULD_NOT_BE_HERE;
-    case e_player::ref_spanish:
-      SHOULD_NOT_BE_HERE;
-  }
+Player& World::player( maybe<e_player> player_type ) {
+  UNWRAP_CHECK( player,
+                root().players.players[player_type.value_or(
+                    default_player_type_ )] );
+  return player;
 }
 
-Player const& World::player( maybe<e_player> player ) const {
-  switch( player.value_or( default_player_type_ ) ) {
-    case e_player::dutch:
-      return dutch();
-    case e_player::english:
-      return english();
-    case e_player::french:
-      return french();
-    case e_player::spanish:
-      return spanish();
-    case e_player::ref_dutch:
-      SHOULD_NOT_BE_HERE;
-    case e_player::ref_english:
-      SHOULD_NOT_BE_HERE;
-    case e_player::ref_french:
-      SHOULD_NOT_BE_HERE;
-    case e_player::ref_spanish:
-      SHOULD_NOT_BE_HERE;
-  }
+Player const& World::player(
+    maybe<e_player> player_type ) const {
+  UNWRAP_CHECK( player,
+                root().players.players[player_type.value_or(
+                    default_player_type_ )] );
+  return player;
 }
 
 // --------------------------------------------------------------
