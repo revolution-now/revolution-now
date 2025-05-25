@@ -39,11 +39,19 @@ enum.e_euro_unit_combat_modifiers {
   terrain,
   ambush,
   artillery_in_colony, # defending against braves.
+  # The bombardment bonus is given to the REF when attacking a
+  # colony.
+  #
   # From the SG (TODO: still to be verified): The intervention
   # force [means] that all future attacks by your side against a
-  # colony receive a +50 percent bombardment bonus, heretofore
-  # enjoyed by the REF only.
+  # colony receive a +50 percent bombardment bonus when attacking
+  # a colony held by royal troops, heretofore enjoyed by the REF
+  # only.
   bombardment,
+  # From the SG: Artillery attacking a square other than a colony
+  # or Indian dwelling receives a -75 percent modifier. Artillery
+  # outside a colony receives a -75 percent modifier when not
+  # fortified or not inside a colony.
   artillery_out_in_the_open,
   cargo,
   # TODO: according to the OG's manual, when a colony is occupied
