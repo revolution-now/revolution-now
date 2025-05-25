@@ -75,7 +75,6 @@ struct Planes;
 struct Player;
 struct PlayerSquare;
 struct PlayersState;
-struct RefPlayer;
 struct SS;
 struct SSConst;
 struct SettingsState;
