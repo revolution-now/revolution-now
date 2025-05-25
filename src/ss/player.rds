@@ -31,6 +31,13 @@ struct.PlayerScoreStats {
   dwellings_burned 'int',
 }
 
+# TODO: placeholder.
+enum.e_euro_relationship {
+  not_met,
+  peace,
+  war,
+}
+
 struct.Player {
   # Somewhat just for convenience.
   type 'e_player',
@@ -142,6 +149,11 @@ struct.Player {
 
   # Stats collected for the purpose of calculating a final score.
   score_stats 'PlayerScoreStats',
+
+  # NOTE: this map must be kept symmetric with the counterparty's
+  # map. Thus it should only be updated via the designated API
+  # methods.
+  relationship_with 'refl::enum_map<e_player, e_euro_relationship>',
 
   _features { equality, validation }
 }

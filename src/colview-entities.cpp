@@ -33,6 +33,7 @@
 #include "render.hpp"
 #include "road.hpp"
 #include "screen.hpp" // FIXME: remove
+#include "siege.hpp"
 #include "text.hpp"
 #include "tiles.hpp"
 #include "ts.hpp"
@@ -161,11 +162,28 @@ wait<bool> check_abandon( Colony const& colony, IGui& gui ) {
   co_return ( res != ui::e_confirm::yes );
 }
 
-maybe<string> check_seige() {
-  // TODO: check if the colony is under seige; in that case
-  // colonists are not allowed to move from the fields to the
-  // gates.
-  return nothing;
+// FIXME: The player is actually allowed to create soldiers and
+// dragoons from the colonists during a siege, which effectively
+// moves them out of the colony. In fact, one can even abandon
+// the colony using this method while it is under seige. Using
+// this method, the player need only have e.g. 50 muskets in the
+// colony and they can move each colonist to the gates by making
+// him a soldier, then unloading the muskets to do the next
+// colonist. Although this does not seem right, the game explic-
+// itly states that it is allowed in its message to the player,
+// so we should need to replicate it. It is probably needed so
+// that the player can use stockpiled muskets to defend against a
+// sudden invasion. To address this we probably need to change
+// the method by which units are reassigned jobs and/or moved out
+// of the colony.
+maybe<string> check_siege( SSConst const& ss,
+                           Colony const& colony ) {
+  if( !is_colony_under_siege( ss, colony ) ) return nothing;
+  return "This colony is under [siege].  This happens when the "
+         "number of hostile enemy units in the vicinity of the "
+         "colony outnumber the friendly military units in the "
+         "same area. Until the siege is removed, we may only "
+         "create [Soldiers] and [Dragoons] here.";
 }
 
 // This function is called when we are dragging a unit who is
@@ -815,7 +833,8 @@ class CargoView : public ui::View,
           // has opted not to abandon the colony, so there is no
           // need to display a reason message.
           co_return DragRejection{ .reason = nothing };
-        if( auto msg = check_seige(); msg.has_value() )
+        if( auto msg = check_siege( ss_, colony_ );
+            msg.has_value() )
           co_return DragRejection{ .reason = *msg };
         co_return base::valid;
       case e_colview_entity::population:
@@ -1224,7 +1243,8 @@ class UnitsAtGateColonyView
           // has opted not to abandon the colony, so there is no
           // need to display a reason message.
           co_return DragRejection{ .reason = nothing };
-        if( auto msg = check_seige(); msg.has_value() )
+        if( auto msg = check_siege( ss_, colony_ );
+            msg.has_value() )
           co_return DragRejection{ .reason = *msg };
         co_return base::valid;
       case e_colview_entity::population:
