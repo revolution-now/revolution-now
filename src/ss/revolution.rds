@@ -61,8 +61,12 @@ struct.RevolutionState {
 
   # When this is set, the REF will forfeight at the end of its
   # next turn (in this same turn cycle). This flag exists in the
-  # OG and does what it says when set, but it hasn't ever been
-  # observed to be set by the OG.
+  # OG and does what it says when set, but it has only ever been
+  # observed to be set by the OG in response to the cheat func-
+  # tion "advance revolution status". Even when the war is won
+  # normally and the REF forfeights, this flag does not appear to
+  # get set. So it is possible it exists only to facilitate cheat
+  # mode. For that purpose it is also useful for us.
   ref_will_forfeit 'bool',
 
   # TODO: need to represent other state such as "Tory Uprising".
