@@ -29,15 +29,13 @@
 #include "base/to-str-ext-std.hpp"
 #include "base/variant-util.hpp"
 
-// TODO: This is temporary while we migrate any existing save
-// files to adhere to the new ordering map constraints.
-#define WRITE_ORDERING_MAP 0
-
 using namespace std;
 
 namespace rn {
 
 namespace {
+
+using ::gfx::point;
 
 constexpr GenericUnitId kFirstUnitId{ 1 };
 
@@ -143,7 +141,80 @@ valid_or<string> wrapped::UnitsState::validate() const {
     }
   }
 
-#if !WRITE_ORDERING_MAP
+  // Check that for each map square containing units, all units
+  // on the square are of the same kind.
+  for( unordered_map<point, e_unit_kind> kinds;
+       auto const& [id, unit_state] : units ) {
+    SWITCH( unit_state ) {
+      CASE( euro ) {
+        SWITCH( euro.ownership ) {
+          CASE( cargo ) { break; }
+          CASE( colony ) { break; }
+          CASE( dwelling ) { break; }
+          CASE( free ) { break; }
+          CASE( harbor ) { break; }
+          CASE( world ) {
+            point const p = world.coord;
+            if( !kinds.contains( p ) ) {
+              kinds[p] = e_unit_kind::euro;
+              continue;
+            }
+            REFL_VALIDATE( kinds[p] == e_unit_kind::euro,
+                           "tile {} mixes units of different "
+                           "kinds: {} vs {}.",
+                           p, kinds[p], e_unit_kind::euro );
+            break;
+          }
+        }
+        break;
+      }
+      CASE( native ) {
+        point const p = native.ownership.coord;
+        if( !kinds.contains( p ) ) {
+          kinds[p] = e_unit_kind::native;
+          continue;
+        }
+        REFL_VALIDATE(
+            kinds[p] == e_unit_kind::native,
+            "tile {} mixes units of different kinds: {} vs {}.",
+            p, kinds[p], e_unit_kind::native );
+        break;
+      }
+    }
+  }
+
+  // Check that for each map square containing euro units, all
+  // units on the square are of the same player.
+  for( unordered_map<point, e_player> players;
+       auto const& [id, unit_state] : units ) {
+    SWITCH( unit_state ) {
+      CASE( euro ) {
+        SWITCH( euro.ownership ) {
+          CASE( cargo ) { break; }
+          CASE( colony ) { break; }
+          CASE( dwelling ) { break; }
+          CASE( free ) { break; }
+          CASE( harbor ) { break; }
+          CASE( world ) {
+            point const p = world.coord;
+            if( !players.contains( p ) ) {
+              players[p] = euro.unit.player_type();
+              continue;
+            }
+            REFL_VALIDATE( players[p] == euro.unit.player_type(),
+                           "tile {} mixes european units with "
+                           "different players: {} vs {}.",
+                           p, players[p],
+                           euro.unit.player_type() );
+            break;
+          }
+        }
+        break;
+      }
+      CASE( native ) { break; }
+    }
+  }
+
   // Check that all units owned by the map or the harbor are
   // present in the ordering map.
   for( auto const& [id, unit_state] : units ) {
@@ -177,7 +248,6 @@ valid_or<string> wrapped::UnitsState::validate() const {
       CASE( native ) { break; }
     }
   }
-#endif
 
   return base::valid;
 }
@@ -307,30 +377,6 @@ UnitsState::UnitsState( wrapped::UnitsState&& o )
       }
     }
   }
-
-#if WRITE_ORDERING_MAP
-  // TODO: temporary. Add any missing map/harbor units into the
-  // ordering map so that we can load existing saves. Remove this
-  // once all existing saves have been migrated.
-  for( auto& [id, unit_state] : o_.units ) {
-    switch( unit_state.to_enum() ) {
-      case UnitState::e::euro: {
-        auto const& o = unit_state.get<UnitState::euro>();
-        auto const& ownership = o.ownership;
-        bool const needs_ordering =
-            ownership.holds<UnitOwnership::world>() ||
-            ownership.holds<UnitOwnership::harbor>();
-        UnitId const unit_id{ to_underlying( id ) };
-        if( needs_ordering &&
-            !o_.unit_ordering.contains( unit_id ) )
-          add_or_bump_unit_ordering_index( unit_id );
-        break;
-      }
-      case UnitState::e::native:
-        break;
-    }
-  }
-#endif
 }
 
 UnitsState::UnitsState()

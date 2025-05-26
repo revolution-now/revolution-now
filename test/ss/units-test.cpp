@@ -51,10 +51,12 @@ using ::gfx::point;
 /****************************************************************
 ** Fake World Setup
 *****************************************************************/
-struct World : testing::World {
+struct world : testing::World {
   using Base = testing::World;
-  World() : Base() {
-    add_default_player();
+  world() : Base() {
+    add_player( e_player::english );
+    add_player( e_player::french );
+    set_default_player_type( e_player::french );
     create_default_map();
   }
 
@@ -74,7 +76,7 @@ struct World : testing::World {
 ** Test Cases
 *****************************************************************/
 TEST_CASE( "[units] dwelling_for" ) {
-  World W;
+  world W;
 
   Dwelling const& dwelling1 =
       W.add_dwelling( { .x = 1, .y = 1 }, e_tribe::apache );
@@ -94,7 +96,7 @@ TEST_CASE( "[units] dwelling_for" ) {
 }
 
 TEST_CASE( "[units] braves_for_dwelling" ) {
-  World W;
+  world W;
   unordered_set<NativeUnitId> expected;
 
   Dwelling const& dwelling1 =
@@ -124,8 +126,9 @@ TEST_CASE( "[units] braves_for_dwelling" ) {
            expected );
 }
 
-TEST_CASE( "[units] validation" ) {
-  World W;
+TEST_CASE(
+    "[units] validation: ship in port has cleared orders" ) {
+  world W;
   base::valid_or<string> v = valid;
 
   REQUIRE( W.units().validate() == valid );
@@ -149,8 +152,41 @@ TEST_CASE( "[units] validation" ) {
                           "does not have cleared orders." ) );
 }
 
+TEST_CASE(
+    "[units] validation: units on map don't mix kinds or "
+    "nations on the same tile" ) {
+  world w;
+  base::valid_or<string> v = valid;
+
+  REQUIRE( w.units().validate() == valid );
+
+  w.add_unit_on_map( e_unit_type::free_colonist,
+                     { .x = 0, .y = 0 }, e_player::french );
+  REQUIRE( w.units().validate() == valid );
+
+  SECTION( "mixes kind" ) {
+    w.add_dwelling_and_brave( { .x = 0, .y = 0 },
+                              e_tribe::iroquois );
+    v = w.units().validate();
+    REQUIRE( v != valid );
+    REQUIRE_THAT( v.error(),
+                  Contains( "mixes units of different kinds" ) );
+  }
+
+  SECTION( "mixes nations" ) {
+    w.add_unit_on_map( e_unit_type::free_colonist,
+                       { .x = 0, .y = 0 }, e_player::english );
+    v = w.units().validate();
+    REQUIRE( v != valid );
+    REQUIRE_THAT(
+        v.error(),
+        Contains(
+            "mixes european units with different players" ) );
+  }
+}
+
 TEST_CASE( "[units] units added/removed from ordering map" ) {
-  World W;
+  world W;
 
   map<UnitId, int64_t> expected;
 
