@@ -33,6 +33,9 @@
 #include "ss/colony.hpp"
 #include "ss/dwelling.rds.hpp"
 #include "ss/natives.hpp"
+#include "ss/players.rds.hpp"
+#include "ss/ref.hpp"
+#include "ss/revolution.rds.hpp"
 #include "ss/units.hpp"
 
 // rds
@@ -44,6 +47,9 @@ namespace rn {
 
 namespace {
 
+using ::gfx::pixel;
+using ::gfx::point;
+using ::gfx::rect;
 using ::gfx::size;
 
 // Unit only, no flag.
@@ -66,8 +72,36 @@ void render_colony_flag( rr::Painter& painter, Coord coord,
                          gfx::pixel color ) {
   auto cloth_rect = Rect::from( coord, Delta{ .w = 8, .h = 6 } );
   painter.draw_solid_rect( cloth_rect, color );
-  painter.draw_vertical_line( cloth_rect.upper_right(), 12,
+  painter.draw_vertical_line( cloth_rect.upper_left(), 12,
                               gfx::pixel::wood().shaded( 4 ) );
+}
+
+void render_colony_america_flag( rr::Painter& painter,
+                                 point const coord ) {
+  rect const cloth_rect =
+      rect{ .origin = coord, .size = { .w = 9, .h = 7 } };
+  for( int y = cloth_rect.top(); y < cloth_rect.bottom(); ++y ) {
+    if( y % 2 == 0 )
+      painter.draw_horizontal_line(
+          { .x = cloth_rect.left(), .y = y }, cloth_rect.size.w,
+          pixel::red() );
+    else
+      painter.draw_horizontal_line(
+          { .x = cloth_rect.left(), .y = y }, cloth_rect.size.w,
+          pixel::white() );
+  }
+  for( int y = cloth_rect.top(); y < cloth_rect.center().y;
+       ++y ) {
+    for( int x = cloth_rect.left(); x < cloth_rect.center().x;
+         ++x ) {
+      if( ( y + x ) % 2 == 0 )
+        painter.draw_point( { .x = x, .y = y }, pixel::blue() );
+      else
+        painter.draw_point( { .x = x, .y = y }, pixel::white() );
+    }
+  }
+  painter.draw_vertical_line( cloth_rect.nw(), 12,
+                              pixel::wood().shaded( 4 ) );
 }
 
 // Renders one flag in the stack.
@@ -335,10 +369,19 @@ void render_colony( rr::Renderer& renderer, Coord where,
   int const population = colony_population( colony );
   rr::Painter painter  = renderer.painter();
   render_sprite( renderer, where, tile );
-  auto const& player = player_obj( colony.player );
-  if( options.render_flag )
-    render_colony_flag( painter, where + Delta{ .w = 8, .h = 8 },
-                        player.flag_color );
+  auto const& player_conf = player_obj( colony.player );
+  if( options.render_flag ) {
+    UNWRAP_CHECK_T( Player const& player,
+                    ss.players.players[colony.player] );
+    if( player.revolution.status >=
+        e_revolution_status::declared )
+      render_colony_america_flag(
+          painter, where + Delta{ .w = 8, .h = 8 } );
+    else
+      render_colony_flag( painter,
+                          where + Delta{ .w = 8, .h = 8 },
+                          player_conf.flag_color );
+  }
   if( options.render_population ) {
     Coord const population_coord =
         where + Delta{ .w = 44 / 2 - 3, .h = 44 / 2 - 4 };
