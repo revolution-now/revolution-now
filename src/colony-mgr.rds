@@ -30,6 +30,7 @@ enum.e_found_colony_err {
   native_convert_cannot_found,
   unit_cannot_found,
   no_mountain_colony,
+  war_of_independence,
 }
 
 enum.e_new_colony_name_err {

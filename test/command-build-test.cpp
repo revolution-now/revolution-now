@@ -20,6 +20,7 @@
 #include "test/mocks/iengine.hpp"
 #include "test/mocks/ieuro-mind.hpp"
 #include "test/mocks/igui.hpp"
+#include "test/util/coro.hpp"
 
 // ss
 #include "src/ss/colonies.hpp"
@@ -173,6 +174,35 @@ TEST_CASE( "[command-build] build colony by ship" ) {
   auto msg_matcher = StrContains( "cannot be built by ships" );
   W.gui().EXPECT__message_box( msg_matcher );
   REQUIRE( confirm() == false );
+  REQUIRE_FALSE( unit.mv_pts_exhausted() );
+  REQUIRE( unit.orders().to_enum() == unit_orders::e::none );
+  REQUIRE( W.colonies().last_colony_id() == nothing );
+}
+
+TEST_CASE( "[command-build] can't build during war" ) {
+  World W;
+
+  W.default_player().revolution.status =
+      e_revolution_status::declared;
+
+  Coord const tile{ .x = 0, .y = 0 };
+  Unit const& unit =
+      W.add_unit_on_map( e_unit_type::free_colonist, tile );
+  unique_ptr<CommandHandler> handler = handle_command(
+      W.engine(), W.ss(), W.ts(), W.default_player(), unit.id(),
+      command::build{} );
+
+  auto const f = [&] {
+    return co_await_test( handler->confirm() );
+  };
+
+  REQUIRE_FALSE( unit.mv_pts_exhausted() );
+
+  REQUIRE( W.colonies().last_colony_id() == nothing );
+
+  auto msg_matcher = StrContains( "during the War" );
+  W.gui().EXPECT__message_box( msg_matcher );
+  REQUIRE_FALSE( f() );
   REQUIRE_FALSE( unit.mv_pts_exhausted() );
   REQUIRE( unit.orders().to_enum() == unit_orders::e::none );
   REQUIRE( W.colonies().last_colony_id() == nothing );

@@ -46,7 +46,7 @@
 // ss
 #include "ss/colonies.hpp"
 #include "ss/natives.hpp"
-#include "ss/player.rds.hpp"
+#include "ss/players.rds.hpp"
 #include "ss/ref.hpp"
 #include "ss/terrain.hpp"
 #include "ss/units.hpp"
@@ -217,6 +217,13 @@ valid_or<e_found_colony_err> unit_can_found_colony(
     SSConst const& ss, UnitId founder ) {
   using Res_t      = e_found_colony_err;
   Unit const& unit = ss.units.unit_for( founder );
+
+  UNWRAP_CHECK_T( Player const& player,
+                  ss.players.players[unit.player_type()] );
+  if( player.revolution.status >=
+          e_revolution_status::declared &&
+      player.revolution.status < e_revolution_status::won )
+    return invalid( Res_t::war_of_independence );
 
   if( unit.desc().ship )
     return invalid( Res_t::ship_cannot_found_colony );

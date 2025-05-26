@@ -94,6 +94,17 @@ TEST_CASE( "[colony-mgr] found_colony on land successful" ) {
   }
 }
 
+TEST_CASE( "[colony-mgr] found_colony during war fails" ) {
+  World W;
+  W.default_player().revolution.status =
+      e_revolution_status::declared;
+  Coord const coord = { .x = 1, .y = 1 };
+  Unit& unit =
+      W.add_unit_on_map( e_unit_type::free_colonist, coord );
+  REQUIRE( unit_can_found_colony( W.ss(), unit.id() ) ==
+           e_found_colony_err::war_of_independence );
+}
+
 TEST_CASE( "[colony-mgr] native convert cannot found" ) {
   World W;
 
