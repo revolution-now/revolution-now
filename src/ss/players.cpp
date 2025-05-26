@@ -31,6 +31,12 @@ using namespace std;
 
 namespace rn {
 
+namespace {
+
+using ::refl::enum_values;
+
+}
+
 base::valid_or<string> PlayersState::validate() const {
   // Check that players have the correct player relative to their
   // key in the map.
@@ -52,6 +58,31 @@ base::valid_or<string> PlayersState::validate() const {
         "There are multiple human players that have declared "
         "independence, but at most one is allowed to do so." );
   }
+
+  // Check that the players have symmetric relationships.
+  for( auto const& [l_type, l_player] : players ) {
+    if( !l_player.has_value() ) continue;
+    for( e_player const r_type : enum_values<e_player> ) {
+      if( r_type == l_type ) continue;
+      auto const& r_player = players[r_type];
+      if( !r_player.has_value() ) {
+        REFL_VALIDATE(
+            l_player->relationship_with[r_type] ==
+                e_euro_relationship::none,
+            "player {} has a relationship status with player {} "
+            "but player {} does not exist.",
+            l_type, r_type, r_type );
+        continue;
+      }
+      CHECK( r_player.has_value() );
+      REFL_VALIDATE( l_player->relationship_with[r_type] ==
+                         r_player->relationship_with[l_type],
+                     "player {} has assymetric relationship "
+                     "status with player {}.",
+                     l_type, r_type );
+    }
+  }
+
   return base::valid;
 }
 

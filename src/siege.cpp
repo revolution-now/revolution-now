@@ -82,7 +82,7 @@ bool is_colony_under_siege( SSConst const& ss,
           e_euro_relationship const relationship =
               player.relationship_with[unit.player_type()];
           switch( relationship ) {
-            case e_euro_relationship::not_met: {
+            case e_euro_relationship::none: {
               // The OG appears to count this case.
               ++hostile_military_units;
               break;

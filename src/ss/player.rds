@@ -33,7 +33,7 @@ struct.PlayerScoreStats {
 
 # TODO: placeholder.
 enum.e_euro_relationship {
-  not_met,
+  none,
   peace,
   war,
 }
