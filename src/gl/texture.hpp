@@ -14,6 +14,9 @@
 #include "bindable.hpp"
 #include "types.hpp"
 
+// gfx
+#include "gfx/cartesian.hpp"
+
 // base
 #include "base/zero.hpp"
 
@@ -32,6 +35,8 @@ struct Texture : base::zero<Texture, ObjId>, bindable<Texture> {
   Texture( gfx::image const& img );
 
   void set_image( gfx::image const& img );
+
+  void set_empty( gfx::size sz );
 
  private:
   Texture( ObjId tx_id );

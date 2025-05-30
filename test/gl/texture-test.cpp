@@ -77,6 +77,16 @@ TEST_CASE( "[texture] construct then set image" ) {
                                 img.data() );
     tx.set_image( img );
   }
+
+  SECTION( "set_empty" ) {
+    expect_bind();
+    gfx::size const sz{ .w = 640, .h = 360 };
+
+    mock.EXPECT__gl_TexImage2D(
+        GL_TEXTURE_2D, 0, GL_RGBA, 640, 360, 0, GL_RGBA,
+        GL_UNSIGNED_BYTE, (unsigned char*)NULL );
+    tx.set_empty( sz );
+  }
 }
 
 TEST_CASE( "[texture] construct with image" ) {

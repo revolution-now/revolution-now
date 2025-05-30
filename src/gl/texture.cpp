@@ -58,6 +58,13 @@ void Texture::set_image( gfx::image const& img ) {
                      GL_RGBA, GL_UNSIGNED_BYTE, img.data() ) );
 }
 
+void Texture::set_empty( gfx::size sz ) {
+  auto binder = bind();
+  GL_CHECK( CALL_GL( gl_TexImage2D, GL_TEXTURE_2D, 0, GL_RGBA,
+                     sz.w, sz.h, 0, GL_RGBA, GL_UNSIGNED_BYTE,
+                     NULL ) );
+}
+
 void Texture::free_resource() {
   ObjId tx_id = resource();
   DCHECK( tx_id != 0 );
