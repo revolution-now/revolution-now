@@ -158,6 +158,8 @@ struct OpenGLGlad : IOpenGL {
                                 GLint level ) override;
 
   GLenum gl_CheckFramebufferStatus( GLenum target ) override;
+
+  void gl_ActiveTexture( GLenum texture ) override;
 };
 
 static_assert( !std::is_abstract_v<OpenGLGlad> );

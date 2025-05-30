@@ -93,7 +93,7 @@ InitResult init_opengl( InitOptions opts ) {
 
   // Texture 0 should be the default, but let's just set it
   // anyway to be sure.
-  GL_CHECK( glActiveTexture( GL_TEXTURE0 ) );
+  set_active_texture( e_gl_texture::tx_0 );
 
   set_viewport( opts.initial_window_physical_pixel_size );
 

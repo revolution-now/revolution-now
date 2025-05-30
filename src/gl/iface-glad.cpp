@@ -201,4 +201,6 @@ GLAD_GL_METHOD( FramebufferTexture2D, void,
 GLAD_GL_METHOD( CheckFramebufferStatus, GLenum,
                 ( ( GLenum, target ) ) );
 
+GLAD_GL_METHOD( ActiveTexture, void, ( ( GLenum, texture ) ) );
+
 } // namespace gl

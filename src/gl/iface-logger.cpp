@@ -296,4 +296,7 @@ LOG_AND_CALL_GL_METHOD( gl_FramebufferTexture2D, void,
 LOG_AND_CALL_GL_METHOD( gl_CheckFramebufferStatus, GLenum,
                         ( ( GLenum, target ) ) );
 
+LOG_AND_CALL_GL_METHOD( gl_ActiveTexture, void,
+                        ( ( GLenum, texture ) ) );
+
 } // namespace gl

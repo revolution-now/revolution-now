@@ -133,6 +133,8 @@ struct MockOpenGL : IOpenGL {
 
   MOCK_GL_METHOD( GLenum, gl_CheckFramebufferStatus,
                   ( GLenum ) );
+
+  MOCK_GL_METHOD( void, gl_ActiveTexture, ( GLenum ) );
 };
 
 static_assert( !std::is_abstract_v<MockOpenGL> );

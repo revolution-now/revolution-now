@@ -190,6 +190,8 @@ struct IOpenGL {
                                         GLint level ) = 0;
 
   virtual GLenum gl_CheckFramebufferStatus( GLenum target ) = 0;
+
+  virtual void gl_ActiveTexture( GLenum texture ) = 0;
 };
 
 /****************************************************************
