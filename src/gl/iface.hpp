@@ -173,6 +173,23 @@ struct IOpenGL {
                               GLfloat blue, GLfloat alpha ) = 0;
 
   virtual void gl_Clear( GLbitfield mask ) = 0;
+
+  virtual void gl_GenFramebuffers( GLsizei n,
+                                   GLuint* framebuffers ) = 0;
+
+  virtual void gl_DeleteFramebuffers(
+      GLsizei n, GLuint const* framebuffers ) = 0;
+
+  virtual void gl_BindFramebuffer( GLenum target,
+                                   GLuint framebuffer ) = 0;
+
+  virtual void gl_FramebufferTexture2D( GLenum target,
+                                        GLenum attachment,
+                                        GLenum textarget,
+                                        GLuint texture,
+                                        GLint level ) = 0;
+
+  virtual GLenum gl_CheckFramebufferStatus( GLenum target ) = 0;
 };
 
 /****************************************************************

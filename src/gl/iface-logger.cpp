@@ -274,4 +274,26 @@ LOG_AND_CALL_GL_METHOD( gl_ClearColor, void,
 LOG_AND_CALL_GL_METHOD( gl_Clear, void,
                         ( ( GLbitfield, mask ) ) );
 
+LOG_AND_CALL_GL_METHOD( gl_GenFramebuffers, void,
+                        ( ( GLsizei, n ),
+                          ( GLuint*, framebuffers ) ) );
+
+LOG_AND_CALL_GL_METHOD( gl_DeleteFramebuffers, void,
+                        ( ( GLsizei, n ),
+                          ( GLuint const*, framebuffers ) ) );
+
+LOG_AND_CALL_GL_METHOD( gl_BindFramebuffer, void,
+                        ( ( GLenum, target ),
+                          ( GLuint, framebuffer ) ) );
+
+LOG_AND_CALL_GL_METHOD( gl_FramebufferTexture2D, void,
+                        ( ( GLenum, target ),
+                          ( GLenum, attachment ),
+                          ( GLenum, textarget ),
+                          ( GLuint, texture ),
+                          ( GLint, level ) ) );
+
+LOG_AND_CALL_GL_METHOD( gl_CheckFramebufferStatus, GLenum,
+                        ( ( GLenum, target ) ) );
+
 } // namespace gl

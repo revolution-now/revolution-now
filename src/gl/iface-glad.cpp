@@ -182,4 +182,23 @@ GLAD_GL_METHOD( ClearColor, void,
 
 GLAD_GL_METHOD( Clear, void, ( ( GLbitfield, mask ) ) );
 
+GLAD_GL_METHOD( GenFramebuffers, void,
+                ( ( GLsizei, n ), ( GLuint*, framebuffers ) ) );
+
+GLAD_GL_METHOD( DeleteFramebuffers, void,
+                ( ( GLsizei, n ),
+                  ( GLuint const*, framebuffers ) ) );
+
+GLAD_GL_METHOD( BindFramebuffer, void,
+                ( ( GLenum, target ),
+                  ( GLuint, framebuffer ) ) );
+
+GLAD_GL_METHOD( FramebufferTexture2D, void,
+                ( ( GLenum, target ), ( GLenum, attachment ),
+                  ( GLenum, textarget ), ( GLuint, texture ),
+                  ( GLint, level ) ) );
+
+GLAD_GL_METHOD( CheckFramebufferStatus, GLenum,
+                ( ( GLenum, target ) ) );
+
 } // namespace gl

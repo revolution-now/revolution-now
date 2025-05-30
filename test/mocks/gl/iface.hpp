@@ -120,6 +120,19 @@ struct MockOpenGL : IOpenGL {
                   ( GLfloat, GLfloat, GLfloat, GLfloat ) );
 
   MOCK_GL_METHOD( void, gl_Clear, ( GLbitfield ) );
+
+  MOCK_GL_METHOD( void, gl_GenFramebuffers, (GLsizei, GLuint*));
+
+  MOCK_GL_METHOD( void, gl_DeleteFramebuffers,
+                  (GLsizei, GLuint const*));
+
+  MOCK_GL_METHOD( void, gl_BindFramebuffer, ( GLenum, GLuint ) );
+
+  MOCK_GL_METHOD( void, gl_FramebufferTexture2D,
+                  ( GLenum, GLenum, GLenum, GLuint, GLint ) );
+
+  MOCK_GL_METHOD( GLenum, gl_CheckFramebufferStatus,
+                  ( GLenum ) );
 };
 
 static_assert( !std::is_abstract_v<MockOpenGL> );

@@ -153,6 +153,21 @@ struct OpenGLWithLogger : IOpenGL {
                       GLfloat alpha ) override;
 
   void gl_Clear( GLbitfield mask ) override;
+
+  void gl_GenFramebuffers( GLsizei n,
+                           GLuint* framebuffers ) override;
+
+  void gl_DeleteFramebuffers(
+      GLsizei n, GLuint const* framebuffers ) override;
+
+  void gl_BindFramebuffer( GLenum target,
+                           GLuint framebuffer ) override;
+
+  void gl_FramebufferTexture2D( GLenum target, GLenum attachment,
+                                GLenum textarget, GLuint texture,
+                                GLint level ) override;
+
+  GLenum gl_CheckFramebufferStatus( GLenum target ) override;
 };
 
 static_assert( !std::is_abstract_v<OpenGLWithLogger> );
