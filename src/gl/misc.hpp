@@ -33,4 +33,16 @@ void set_viewport( gfx::rect dimensions );
 // This one assumes the origin is at (0, 0).
 void set_viewport( gfx::size dimensions );
 
+enum class e_gl_texture {
+  tx_0,
+  tx_1,
+};
+
+// This sets the texture that is implied when doing operations
+// that imply a texture. We actually only need one since dif-
+// ferent textures can be bound/unbound to it. I think you only
+// need to care about multiple active textures if you don't want
+// to bind/unbind.
+void set_active_texture( e_gl_texture idx );
+
 } // namespace gl

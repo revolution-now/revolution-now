@@ -47,4 +47,17 @@ void set_viewport( gfx::size const dimensions ) {
   set_viewport( gfx::rect{ .origin = {}, .size = dimensions } );
 }
 
+void set_active_texture( e_gl_texture const idx ) {
+  auto gl_idx = GL_TEXTURE0; // get the right type.
+  switch( idx ) {
+    case e_gl_texture::tx_0:
+      gl_idx = GL_TEXTURE0;
+      break;
+    case e_gl_texture::tx_1:
+      gl_idx = GL_TEXTURE1;
+      break;
+  }
+  GL_CHECK( glActiveTexture( gl_idx ) );
+}
+
 } // namespace gl

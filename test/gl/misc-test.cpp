@@ -96,5 +96,23 @@ TEST_CASE( "[gl/misc] clear( pixel )" ) {
   f();
 }
 
+TEST_CASE( "[gl/misc] set_active_texture" ) {
+  gl::MockOpenGL mock;
+
+  mock.EXPECT__gl_GetError().by_default().returns( GL_NO_ERROR );
+
+  e_gl_texture in = {};
+
+  auto const f = [&] { set_active_texture( in ); };
+
+  in = e_gl_texture::tx_0;
+  mock.EXPECT__gl_ActiveTexture( 0 );
+  f();
+
+  in = e_gl_texture::tx_1;
+  mock.EXPECT__gl_ActiveTexture( 1 );
+  f();
+}
+
 } // namespace
 } // namespace gl
