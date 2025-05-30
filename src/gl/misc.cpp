@@ -57,7 +57,7 @@ void set_active_texture( e_gl_texture const idx ) {
       gl_idx = GL_TEXTURE1;
       break;
   }
-  GL_CHECK( glActiveTexture( gl_idx ) );
+  GL_CHECK( CALL_GL( gl_ActiveTexture, gl_idx ) );
 }
 
 } // namespace gl

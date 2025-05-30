@@ -106,11 +106,11 @@ TEST_CASE( "[gl/misc] set_active_texture" ) {
   auto const f = [&] { set_active_texture( in ); };
 
   in = e_gl_texture::tx_0;
-  mock.EXPECT__gl_ActiveTexture( 0 );
+  mock.EXPECT__gl_ActiveTexture( GL_TEXTURE0 );
   f();
 
   in = e_gl_texture::tx_1;
-  mock.EXPECT__gl_ActiveTexture( 1 );
+  mock.EXPECT__gl_ActiveTexture( GL_TEXTURE1 );
   f();
 }
 
