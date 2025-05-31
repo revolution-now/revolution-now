@@ -319,14 +319,13 @@ struct DifficultyScreen : public IPlane {
     };
     write_text();
     if( this_selected ) {
-      rr::Painter painter = renderer.painter();
       static size const kPlateSize =
           sprite_size( e_tile::wood_plate );
       rect const selected_rect{
         .origin = cell.plate_origin - l.selected_buffer,
         .size   = kPlateSize + l.selected_buffer * 2 };
-      rr::draw_empty_rect_no_corners(
-          painter, selected_rect.with_dec_size(),
+      rr::draw_empty_rect_faded_corners(
+          renderer, selected_rect.with_dec_size(),
           cell.selected_color );
     }
   }
