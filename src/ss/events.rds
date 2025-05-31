@@ -10,8 +10,29 @@
 # ===============================================================
 namespace "rn"
 
+# These are tutorial hints that are only enabled by default on
+# the Discoverer level.
+struct.TutorialHints {
+  # TODO
+}
+
+# These are hints/help that are enabled on all levels just as a
+# reminder to the player, but are only shown once per game. They
+# all begin with a value of `false` and then are set to `true`
+# after they are displayed for the first time, in order to pre-
+# vent displaying them multiple times.
+struct.OneTimeHelp {
+  # Shown when the player attempts to sail the high seas after
+  # declaring, which is not allowed.
+  showed_no_sail_high_seas_during_war 'bool',
+}
+
 # This state is intended to be for overall global game state
 # changes that don't need per-player representations.
 struct.EventsState {
   war_of_succession_done 'bool',
+
+  tutorial_hints 'TutorialHints',
+
+  one_time_help 'OneTimeHelp',
 }

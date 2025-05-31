@@ -33,11 +33,14 @@
 #include "unit-stack.hpp"
 
 // config
+#include "config/nation.rds.hpp"
 #include "config/unit-type.rds.hpp"
 
 // ss
 #include "ss/colonies.hpp"
+#include "ss/events.rds.hpp"
 #include "ss/natives.hpp"
+#include "ss/player.rds.hpp"
 #include "ss/ref.hpp"
 #include "ss/terrain.hpp"
 #include "ss/units.hpp"
@@ -225,9 +228,9 @@ struct TravelHandler : public CommandHandler {
   };
 
   wait<bool> confirm() override {
-    verdict = co_await confirm_travel_impl();
+    verdict_ = co_await confirm_travel_impl();
 
-    switch( verdict ) {
+    switch( verdict_ ) {
       // Cancelled by user
       case e_travel_verdict::cancelled: //
         co_return false;
@@ -294,7 +297,7 @@ struct TravelHandler : public CommandHandler {
 
   // This is called by the `perform` method.
   wait<> animate() const {
-    switch( verdict ) {
+    switch( verdict_ ) {
       case e_travel_verdict::cancelled:
       case e_travel_verdict::map_edge:
       case e_travel_verdict::land_forbidden:
@@ -347,6 +350,8 @@ struct TravelHandler : public CommandHandler {
   wait<e_travel_verdict> analyze_unload() const;
 
   wait<maybe<ui::e_confirm>> ask_sail_high_seas() const;
+  bool sail_high_seas_forbidden() const;
+  wait<> show_sail_high_seas_forbidden_msg() const;
   wait<e_travel_verdict> confirm_sail_high_seas() const;
   wait<e_travel_verdict> confirm_sail_high_seas_map_edge() const;
 
@@ -380,7 +385,7 @@ struct TravelHandler : public CommandHandler {
   // out. This can also serve as a binary indicator of whether
   // the move is possible by checking the type held, as the can_-
   // move() function does as a convenience.
-  e_travel_verdict verdict;
+  e_travel_verdict verdict_;
 
   // Unit that is the target of an action, e.g., ship to be
   // boarded, etc. Not relevant in all contexts.
@@ -447,6 +452,20 @@ wait<maybe<ui::e_confirm>> TravelHandler::ask_sail_high_seas()
         .no_label  = "No, let us remain in these waters." } );
 }
 
+bool TravelHandler::sail_high_seas_forbidden() const {
+  return ( player_.revolution.status >=
+           e_revolution_status::declared );
+}
+
+wait<> TravelHandler::show_sail_high_seas_forbidden_msg() const {
+  co_await ts_.gui.message_box(
+      "Sailing the High Seas to the harbor in {} is no longer "
+      "permitted after the War of Independence begins.  Trading "
+      "with Europe can be done through the use of the [Custom "
+      "House].",
+      config_nation.nations[player_.nation].harbor_city_name );
+}
+
 // This is for the case where the destination square is on the
 // map. The function below is for when the ship attempts to sail
 // off of the map.
@@ -489,6 +508,23 @@ TravelHandler::confirm_sail_high_seas() const {
                                    ( d == e_direction::sw ) );
   bool ask = correct_src && correct_dst && correct_direction;
   if( !ask ) co_return e_travel_verdict::map_to_map;
+
+  // After all is said and done, if we were going to ask the
+  // player whether they want to sail the high seas, check if we
+  // are in the war of independence because it is not allowed
+  // during that time. Don't show the message every time so that
+  // the ships can move smoothly through the sea lane after the
+  // message is shown once.
+  if( sail_high_seas_forbidden() ) {
+    auto& shown = ss_.events.one_time_help
+                      .showed_no_sail_high_seas_during_war;
+    if( !shown ) {
+      shown = true;
+      co_await show_sail_high_seas_forbidden_msg();
+    }
+    co_return e_travel_verdict::map_to_map;
+  }
+
   maybe<ui::e_confirm> const confirmed =
       co_await ask_sail_high_seas();
   co_return confirmed == ui::e_confirm::yes
@@ -506,6 +542,18 @@ TravelHandler::confirm_sail_high_seas_map_edge() const {
   bool ask = ( move_dst.x == -1 ||
                move_dst.x == ss_.terrain.world_size_tiles().w );
   if( !ask ) co_return e_travel_verdict::cancelled;
+
+  // After all is said and done, if we were going to ask the
+  // player whether they want to sail the high seas, check if we
+  // are in the war of independence because it is not allowed
+  // during that time. Show the message every time they attempt
+  // this, since trying to move off the edge of the map is always
+  // a deliberate attempt to go to the harbor.
+  if( sail_high_seas_forbidden() ) {
+    co_await show_sail_high_seas_forbidden_msg();
+    co_return e_travel_verdict::cancelled;
+  }
+
   maybe<ui::e_confirm> const confirmed =
       co_await ask_sail_high_seas();
   co_return confirmed == ui::e_confirm::yes
@@ -891,7 +939,7 @@ wait<> TravelHandler::perform() {
   auto old_coord =
       coord_for_unit_indirect_or_die( ss_.units, id );
 
-  switch( verdict ) {
+  switch( verdict_ ) {
     case e_travel_verdict::cancelled:
     case e_travel_verdict::map_edge:
     case e_travel_verdict::land_forbidden:
