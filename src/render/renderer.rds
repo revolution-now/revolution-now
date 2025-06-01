@@ -10,8 +10,25 @@
 # ===============================================================
 namespace "rr"
 
+enum.e_render_buffer_phase {
+  # This is the first phase of rendering that is always done. It
+  # renders all of the actual contents.
+  normal,
+
+  # This is the second phase where the output of the first phase
+  # is read from a texture and moved onto the screen, potentially
+  # with some postprocessing effects. If the texture written to
+  # by phase 1 has a size equal to the logical resolution then
+  # this will also implicitly have the effect of enforcing strict
+  # pixelation.
+  postprocessing,
+}
+
 # These should be in order of rendering.
 enum.e_render_buffer {
+  # -------------------------------------------------------------
+  # Phase 1 buffers.
+  # -------------------------------------------------------------
   # The backdrop buffer can be used if something needs to be ren-
   # dered behind the landscape buffer. We can't put it in the
   # normal buffer since that will be rendered on top of the land-
@@ -45,6 +62,11 @@ enum.e_render_buffer {
   obfuscation,
   obfuscation_annex,
   normal,
+
+  # -------------------------------------------------------------
+  # Post-Processing buffers.
+  # -------------------------------------------------------------
+  postprocessing,
 }
 
 # Describes a range of vertices and the buffer the are in. This

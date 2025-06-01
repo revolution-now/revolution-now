@@ -25,6 +25,7 @@ struct ISfx;
 
 namespace rr {
 struct Renderer;
+struct IRendererSettings;
 struct ITextometer;
 }
 
@@ -47,6 +48,10 @@ struct IEngine {
   virtual vid::WindowHandle const& window() = 0;
 
   virtual rr::Renderer& renderer_use_only_when_needed() = 0;
+
+  // This one, unlike the direct general access to the renderer
+  // from the method above, is safe to use freely from anywhere.
+  virtual rr::IRendererSettings& renderer_settings() = 0;
 
   virtual gfx::Resolutions& resolutions() = 0;
 

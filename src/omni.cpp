@@ -52,6 +52,9 @@
 #include "refl/enum-map.hpp"
 #include "refl/to-str.hpp"
 
+// base
+#include "base/logger.hpp"
+
 using namespace std;
 
 namespace rn {
@@ -528,6 +531,24 @@ struct OmniPlane::Impl : public IPlane {
             this->toggle_fullscreen();
             handled = e_input_handled::yes;
             break;
+          case ::SDLK_F10: {
+            auto& settings = engine_.renderer_settings();
+            switch( settings.render_framebuffer_mode() ) {
+              using enum rr::e_render_framebuffer_mode;
+              case direct_to_screen:
+                settings.set_render_framebuffer_mode(
+                    offscreen_with_logical_resolution );
+                break;
+              case offscreen_with_logical_resolution:
+                settings.set_render_framebuffer_mode(
+                    direct_to_screen );
+                break;
+            }
+            lg.info( "framebuffer render mode: {}",
+                     settings.render_framebuffer_mode() );
+            handled = e_input_handled::yes;
+            break;
+          }
           case ::SDLK_F3:
             // TODO: temporary until the menu system supports
             // shortcuts keys for menu items.

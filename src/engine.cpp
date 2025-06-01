@@ -211,7 +211,10 @@ struct Engine::Impl {
       .sprite_sheets  = config_tile_sheet.sheets.sprite_sheets,
       .font_sheets    = config_tile_sheet.sheets.font_sheets,
       .dump_atlas_png = config_debug.dump.dump_texture_atlas_to,
-    };
+      // TODO: this should be settable/overridable in the per in-
+      // stallation config.
+      .framebuffer_mode = config_gfx.post_processing
+                              .default_render_framebuffer_mode };
 
     // This renderer needs to be released before the SDL context
     // is cleaned up.
@@ -447,6 +450,10 @@ vid::WindowHandle const& Engine::window() {
 }
 
 rr::Renderer& Engine::renderer_use_only_when_needed() {
+  return impl().renderer();
+}
+
+rr::IRendererSettings& Engine::renderer_settings() {
   return impl().renderer();
 }
 

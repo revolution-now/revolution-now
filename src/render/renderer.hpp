@@ -107,7 +107,8 @@ struct RendererConfig {
   gfx::size max_atlas_size      = {};
   std::vector<SpriteSheetConfig> const& sprite_sheets;
   std::vector<AsciiFontSheetConfig> const& font_sheets;
-  base::maybe<std::string> dump_atlas_png = {};
+  base::maybe<std::string> dump_atlas_png    = {};
+  e_render_framebuffer_mode framebuffer_mode = {};
 };
 
 /****************************************************************
@@ -131,7 +132,7 @@ concept ModEditFunc =
 *****************************************************************/
 // The video driver must have been fully initialized before using
 // this.
-struct Renderer : IRenderer {
+struct Renderer : IRenderer, IRendererSettings {
   // The renderer must take ownership of this function.
   using PresentFn = std::function<void()>;
 
@@ -183,7 +184,13 @@ struct Renderer : IRenderer {
   //
   // It takes the function that does the drawing.
   void render_pass(
-      base::function_ref<void( Renderer& )> drawer );
+      base::function_ref<void( Renderer& ) const> drawer );
+
+  e_render_framebuffer_mode render_framebuffer_mode()
+      const override;
+
+  void set_render_framebuffer_mode(
+      e_render_framebuffer_mode mode ) override;
 
   void clear_buffer( e_render_buffer buffer );
 
@@ -281,14 +288,6 @@ struct Renderer : IRenderer {
   }
 
  private:
-  // This must be called before any other rendering methods that
-  // might generate vertices.
-  void begin_pass();
-
-  // This will end the rendering pass and upload the vertex data
-  // to the GPU.  Returns the number of vertices uploaded.
-  int end_pass();
-
   NO_COPY_NO_MOVE( Renderer );
   struct Impl;
 

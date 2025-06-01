@@ -8,6 +8,10 @@
 # Description: General graphics-related config info.
 #
 # ===============================================================
+#
+# render
+include "render/irenderer.rds.hpp"
+
 # gfx
 include "gfx/pixel.hpp"
 include "gfx/resolution-enum.rds.hpp"
@@ -88,6 +92,10 @@ struct.LogicalResolution {
   force_if_available 'base::maybe<gfx::e_resolution>',
 }
 
+struct.PostProcessing {
+  default_render_framebuffer_mode 'rr::e_render_framebuffer_mode',
+}
+
 namespace "rn"
 
 struct.config_gfx_t {
@@ -113,6 +121,8 @@ struct.config_gfx_t {
   color_cycle_plans 'config::graphics::ColorCycling',
 
   logical_resolution 'config::graphics::LogicalResolution',
+
+  post_processing 'config::graphics::PostProcessing',
 }
 
 config.gfx {}

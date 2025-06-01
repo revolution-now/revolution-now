@@ -255,10 +255,11 @@ void frame_loop_body( IEngine& engine, Planes& planes,
 
   // ----------------------------------------------------------
   // Step: Draw.
-  renderer.render_pass( [&]( rr::Renderer& renderer ) {
+  auto const drawer = [&]( rr::Renderer& renderer ) {
     renderer.clear_screen( gfx::pixel::black() );
     planes.get().draw( renderer );
-  } );
+  };
+  renderer.render_pass( drawer );
 };
 
 void deinit_frame() {

@@ -1,0 +1,18 @@
+# ===============================================================
+# irenderer.rds
+#
+# Project: Revolution Now
+#
+# Created by David P. Sicilia on 2025-05-29.
+#
+# Description: Rds definitions for the render/irenderer module.
+#
+# ===============================================================
+namespace "rr"
+
+# Controsl the way that framebuffers are used (or not used)
+# during the rendering process.
+enum.e_render_framebuffer_mode {
+  direct_to_screen,
+  offscreen_with_logical_resolution,
+}

@@ -64,8 +64,6 @@ vector<tuple<int, string, bool>> const kExpectedAttributes{
 };
 
 void expect_bind_vertex_array( gl::MockOpenGL& mock ) {
-  mock.EXPECT__gl_GetError().times( 2 ).returns( GL_NO_ERROR );
-
   // Bind.
   mock.EXPECT__gl_GetIntegerv( GL_VERTEX_ARRAY_BINDING,
                                Not( Null() ) )
@@ -74,8 +72,6 @@ void expect_bind_vertex_array( gl::MockOpenGL& mock ) {
 }
 
 void expect_unbind_vertex_array( gl::MockOpenGL& mock ) {
-  mock.EXPECT__gl_GetError().times( 3 ).returns( GL_NO_ERROR );
-
   // Unbind.
   mock.EXPECT__gl_GetIntegerv( GL_VERTEX_ARRAY_BINDING,
                                Not( Null() ) )
@@ -87,14 +83,6 @@ void expect_unbind_vertex_array( gl::MockOpenGL& mock ) {
 }
 
 void expect_create_vertex_array( gl::MockOpenGL& mock ) {
-  int const num_get_errors = //
-      9                      //
-      + kExpectedAttributes.size();
-
-  mock.EXPECT__gl_GetError()
-      .times( num_get_errors )
-      .returns( GL_NO_ERROR );
-
   // Construct VertexArrayNonTyped.
   mock.EXPECT__gl_GenVertexArrays( 1, Not( Null() ) )
       .sets_arg<1>( 21 );
@@ -119,7 +107,6 @@ void expect_create_vertex_array( gl::MockOpenGL& mock ) {
 
   int i = 0;
   for( auto& [type, name, is_int] : kExpectedAttributes ) {
-    mock.EXPECT__gl_GetError().times( 2 ).returns( GL_NO_ERROR );
     // Register attribute i.
     if( is_int ) {
       mock.EXPECT__gl_VertexAttribIPointer(
@@ -162,13 +149,9 @@ void expect_create_vertex_array( gl::MockOpenGL& mock ) {
 TEST_CASE( "[render/renderer] workflows" ) {
   gl::MockOpenGL mock;
 
-  int const num_get_errors = 64;
+  mock.EXPECT__gl_GetError().by_default().returns( GL_NO_ERROR );
 
-  mock.EXPECT__gl_GetError()
-      .times( num_get_errors )
-      .returns( GL_NO_ERROR );
-
-  // Create vertex shader.
+  // Create vertex shader (normal).
   mock.EXPECT__gl_CreateShader( GL_VERTEX_SHADER ).returns( 5 );
   mock.EXPECT__gl_ShaderSource(
       5, 1, Pointee( StrContains( "gl_Position" ) ), nullptr );
@@ -177,7 +160,7 @@ TEST_CASE( "[render/renderer] workflows" ) {
                                Not( Null() ) )
       .sets_arg<2>( 1 );
 
-  // Create fragment shader.
+  // Create fragment shader (normal).
   mock.EXPECT__gl_CreateShader( GL_FRAGMENT_SHADER )
       .returns( 6 );
   mock.EXPECT__gl_ShaderSource(
@@ -187,7 +170,28 @@ TEST_CASE( "[render/renderer] workflows" ) {
                                Not( Null() ) )
       .sets_arg<2>( 1 );
 
+  // Create vertex shader (postprocessing).
+  mock.EXPECT__gl_CreateShader( GL_VERTEX_SHADER ).returns( 7 );
+  mock.EXPECT__gl_ShaderSource(
+      7, 1, Pointee( StrContains( "gl_Position" ) ), nullptr );
+  mock.EXPECT__gl_CompileShader( 7 );
+  mock.EXPECT__gl_GetShaderiv( 7, GL_COMPILE_STATUS,
+                               Not( Null() ) )
+      .sets_arg<2>( 1 );
+
+  // Create fragment shader (postprocessing).
+  mock.EXPECT__gl_CreateShader( GL_FRAGMENT_SHADER )
+      .returns( 8 );
+  mock.EXPECT__gl_ShaderSource(
+      8, 1, Pointee( StrContains( "final_color" ) ), nullptr );
+  mock.EXPECT__gl_CompileShader( 8 );
+  mock.EXPECT__gl_GetShaderiv( 8, GL_COMPILE_STATUS,
+                               Not( Null() ) )
+      .sets_arg<2>( 1 );
+
   // Delete the shaders.
+  mock.EXPECT__gl_DeleteShader( 8 );
+  mock.EXPECT__gl_DeleteShader( 7 );
   mock.EXPECT__gl_DeleteShader( 6 );
   mock.EXPECT__gl_DeleteShader( 5 );
 
@@ -195,12 +199,12 @@ TEST_CASE( "[render/renderer] workflows" ) {
   for( int i = 0; i < refl::enum_count<e_render_buffer>; ++i )
     expect_create_vertex_array( mock );
 
+  // Create shader programs.
+
   // Bind dummy vertex array.
   expect_bind_vertex_array( mock );
 
-  // Create shader program.
-
-  // Create ProgramNonTyped.
+  // Create ProgramNonTyped (Normal).
   mock.EXPECT__gl_CreateProgram().returns( 9 );
 
   mock.EXPECT__gl_AttachShader( 9, 5 );
@@ -220,7 +224,7 @@ TEST_CASE( "[render/renderer] workflows" ) {
   mock.EXPECT__gl_DetachShader( 9, 6 );
   mock.EXPECT__gl_DetachShader( 9, 5 );
 
-  // Create uniforms.
+  // Create uniforms (Normal).
 
   mock.EXPECT__gl_GetUniformLocation( 9,
                                       Eq<string>( "u_atlas" ) )
@@ -250,13 +254,12 @@ TEST_CASE( "[render/renderer] workflows" ) {
           9, Eq<string>( "u_color_cycle_keys" ) )
       .returns( 96 );
 
-  // Validate the program.
+  // Validate the program (Normal).
   mock.EXPECT__gl_GetProgramiv( 9, GL_ACTIVE_ATTRIBUTES,
                                 Not( Null() ) )
       .sets_arg<2>( kExpectedAttributes.size() );
   int idx = 0;
   for( auto& [type, name, is_int] : kExpectedAttributes ) {
-    mock.EXPECT__gl_GetError().times( 2 ).returns( GL_NO_ERROR );
     string name_w_zero = name;
     name_w_zero.push_back( '\0' );
 
@@ -274,10 +277,7 @@ TEST_CASE( "[render/renderer] workflows" ) {
     ++idx;
   }
 
-  // Release the program.
-  mock.EXPECT__gl_DeleteProgram( 9 );
-
-  // Try setting the uniforms to check their type.
+  // Try setting the uniforms to check their type (Normal).
   mock.EXPECT__gl_UseProgram( 9 );
   mock.EXPECT__gl_Uniform1i( 88, 0 ); // u_atlas
   mock.EXPECT__gl_UseProgram( 9 );
@@ -287,7 +287,6 @@ TEST_CASE( "[render/renderer] workflows" ) {
   mock.EXPECT__gl_UseProgram( 9 );
   mock.EXPECT__gl_Uniform1i( 91, 0 ); // u_color_cycle_stage
   mock.EXPECT__gl_UseProgram( 9 );
-
   mock.EXPECT__gl_Uniform2f( 92, 0.0,
                              0.0 ); // u_camera_translation
   mock.EXPECT__gl_UseProgram( 9 );
@@ -301,7 +300,7 @@ TEST_CASE( "[render/renderer] workflows" ) {
   mock.EXPECT__gl_Uniform3iv(
       96, 0, /*values=*/_ ); // u_color_cycle_keys
 
-  // Unbind dummy vertex array.
+  // Unbind dummy vertex array (Normal).
   expect_unbind_vertex_array( mock );
 
   // Set the u_atlas texture to zero.
@@ -310,6 +309,75 @@ TEST_CASE( "[render/renderer] workflows" ) {
   // above and so the cached value is used.
   //  mock.EXPECT__gl_UseProgram( 9 );
   //  mock.EXPECT__gl_Uniform1i( 88, 0 );
+
+  // Bind dummy vertex array.
+  expect_bind_vertex_array( mock );
+
+  // Create ProgramNonTyped (Postprocessing).
+  mock.EXPECT__gl_CreateProgram().returns( 10 );
+
+  mock.EXPECT__gl_AttachShader( 10, 7 );
+  mock.EXPECT__gl_AttachShader( 10, 8 );
+  mock.EXPECT__gl_LinkProgram( 10 );
+
+  mock.EXPECT__gl_GetProgramiv( 10, GL_LINK_STATUS,
+                                Not( Null() ) )
+      .sets_arg<2>( 1 );
+  mock.EXPECT__gl_ValidateProgram( 10 );
+  mock.EXPECT__gl_GetProgramiv( 10, GL_VALIDATE_STATUS,
+                                Not( Null() ) )
+      .sets_arg<2>( GL_TRUE );
+  mock.EXPECT__gl_GetProgramInfoLog( 10, 512, Not( Null() ),
+                                     Not( Null() ) )
+      .sets_arg<2>( 0 );
+  mock.EXPECT__gl_DetachShader( 10, 8 );
+  mock.EXPECT__gl_DetachShader( 10, 7 );
+
+  // Create uniforms (Postprocessing).
+
+  mock.EXPECT__gl_GetUniformLocation( 10,
+                                      Eq<string>( "u_source" ) )
+      .returns( 88 );
+  mock.EXPECT__gl_GetUniformLocation(
+          10, Eq<string>( "u_screen_size" ) )
+      .returns( 90 );
+
+  // Validate the program (Postprocessing).
+  mock.EXPECT__gl_GetProgramiv( 10, GL_ACTIVE_ATTRIBUTES,
+                                Not( Null() ) )
+      .sets_arg<2>( kExpectedAttributes.size() );
+  idx = 0;
+  for( auto& [type, name, is_int] : kExpectedAttributes ) {
+    string name_w_zero = name;
+    name_w_zero.push_back( '\0' );
+
+    mock.EXPECT__gl_GetActiveAttrib( 10, idx, 256, Not( Null() ),
+                                     Not( Null() ),
+                                     Not( Null() ),
+                                     Not( Null() ) )
+        .sets_arg<3>( name.size() + 1 )
+        .sets_arg<4>( 0 ) // size, unused
+        .sets_arg<5>( type )
+        .sets_arg_array<6>( name_w_zero );
+    mock.EXPECT__gl_GetAttribLocation(
+            10, Eq<string>( string( name ) ) )
+        .returns( idx );
+    ++idx;
+  }
+
+  // Try setting the uniforms to check their type
+  // (Postprocessing).
+  mock.EXPECT__gl_UseProgram( 10 );
+  mock.EXPECT__gl_Uniform1i( 88, 0 ); // u_source
+  mock.EXPECT__gl_UseProgram( 10 );
+  mock.EXPECT__gl_Uniform2f( 90, 0.0, 0.0 ); // u_screen_size
+
+  // Unbind dummy vertex array (Postprocessing).
+  expect_unbind_vertex_array( mock );
+
+  // Release the programs.
+  mock.EXPECT__gl_DeleteProgram( 10 );
+  mock.EXPECT__gl_DeleteProgram( 9 );
 
   // Set the u_color_cycle_targets uniform.
   mock.EXPECT__gl_UseProgram( 9 );
@@ -322,45 +390,62 @@ TEST_CASE( "[render/renderer] workflows" ) {
   // Set the u_screen_size texture.
   mock.EXPECT__gl_UseProgram( 9 );
   mock.EXPECT__gl_Uniform2f( 90, 500.0, 400.0 );
+  mock.EXPECT__gl_UseProgram( 10 );
+  mock.EXPECT__gl_Uniform2f( 90, 500.0, 400.0 );
 
   // Create the atlas texture.
-  auto expect_bind_tx = [&] {
-    mock.EXPECT__gl_GetError().times( 2 ).returns( GL_NO_ERROR );
+  auto expect_bind_tx = [&]( int const last, int const new_ ) {
     mock.EXPECT__gl_GetIntegerv( GL_TEXTURE_BINDING_2D,
                                  Not( Null() ) )
-        .sets_arg<1>( 41 );
-    mock.EXPECT__gl_BindTexture( GL_TEXTURE_2D, 42 );
+        .sets_arg<1>( last );
+    mock.EXPECT__gl_BindTexture( GL_TEXTURE_2D, new_ );
   };
-  auto expect_unbind_tx = [&] {
-    mock.EXPECT__gl_GetError().times( 3 ).returns( GL_NO_ERROR );
+  auto expect_unbind_tx = [&]( int const new_, int const last ) {
     mock.EXPECT__gl_GetIntegerv( GL_TEXTURE_BINDING_2D,
                                  Not( Null() ) )
-        .sets_arg<1>( 42 );
-    mock.EXPECT__gl_BindTexture( GL_TEXTURE_2D, 41 );
+        .sets_arg<1>( new_ );
+    mock.EXPECT__gl_BindTexture( GL_TEXTURE_2D, last );
     mock.EXPECT__gl_GetIntegerv( GL_TEXTURE_BINDING_2D,
                                  Not( Null() ) )
-        .sets_arg<1>( 41 );
+        .sets_arg<1>( last );
   };
 
-  mock.EXPECT__gl_GenTextures( 1, Not( Null() ) )
-      .sets_arg<1>( 42 );
-  expect_bind_tx();
-  expect_unbind_tx();
-  mock.EXPECT__gl_TexParameteri(
-      GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
-  mock.EXPECT__gl_TexParameteri(
-      GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
+  auto expect_bind_fb = [&]( int const last, int const new_ ) {
+    mock.EXPECT__gl_GetIntegerv( GL_FRAMEBUFFER_BINDING,
+                                 Not( Null() ) )
+        .sets_arg<1>( last );
+    mock.EXPECT__gl_BindFramebuffer( GL_FRAMEBUFFER, new_ );
+  };
+  auto expect_unbind_fb = [&]( int const new_, int const last ) {
+    mock.EXPECT__gl_GetIntegerv( GL_FRAMEBUFFER_BINDING,
+                                 Not( Null() ) )
+        .sets_arg<1>( new_ );
+    mock.EXPECT__gl_BindFramebuffer( GL_FRAMEBUFFER, last );
+    mock.EXPECT__gl_GetIntegerv( GL_FRAMEBUFFER_BINDING,
+                                 Not( Null() ) )
+        .sets_arg<1>( last );
+  };
 
-  mock.EXPECT__gl_TexParameteri(
-      GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
+  auto const gen_tx = [&]( int const last, int const new_ ) {
+    mock.EXPECT__gl_GenTextures( 1, Not( Null() ) )
+        .sets_arg<1>( new_ );
+    expect_bind_tx( last, new_ );
+    expect_unbind_tx( new_, last );
+    mock.EXPECT__gl_TexParameteri(
+        GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
+    mock.EXPECT__gl_TexParameteri(
+        GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
+    mock.EXPECT__gl_TexParameteri(
+        GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
+    mock.EXPECT__gl_TexParameteri(
+        GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
+  };
 
-  mock.EXPECT__gl_TexParameteri(
-      GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
-  mock.EXPECT__gl_DeleteTextures( 1, Pointee( 42 ) );
+  gen_tx( 41, 42 );
 
   // Set texture image.
-  expect_bind_tx();
-  expect_unbind_tx();
+  expect_bind_tx( 41, 42 );
+  expect_unbind_tx( 42, 41 );
 
   mock.EXPECT__gl_TexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, 64, 32,
                               0, GL_RGBA, GL_UNSIGNED_BYTE,
@@ -374,7 +459,42 @@ TEST_CASE( "[render/renderer] workflows" ) {
   // one final time. The corresponding unbind must come at the
   // end of this test case otherwise it interferes with other ex-
   // pect calls that we need to make in the mean time.
-  expect_bind_tx();
+  expect_bind_tx( 41, 42 );
+
+  // Create the offscreen texture (empty in initializer list).
+  gen_tx( 42, 75 );
+
+  // Create a new framebuffer.
+  mock.EXPECT__gl_GenFramebuffers( 1, Not( Null() ) )
+      .sets_arg<1>( 65 );
+  mock.EXPECT__gl_DeleteFramebuffers( 1, Pointee( 65 ) );
+
+  // Generate a new texture for the framebuffer.
+  gen_tx( 42, 76 );
+
+  mock.EXPECT__gl_DeleteTextures( 1, Pointee( 75 ) );
+  mock.EXPECT__gl_DeleteTextures( 1, Pointee( 76 ) );
+  mock.EXPECT__gl_DeleteTextures( 1, Pointee( 42 ) );
+
+  // Set empty texture image.
+  expect_bind_tx( 42, 76 );
+  expect_unbind_tx( 76, 42 );
+  mock.EXPECT__gl_TexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, 500,
+                              400, 0, GL_RGBA, GL_UNSIGNED_BYTE,
+                              Null() );
+
+  // Call set_color_attachment on the framebuffer.
+  expect_bind_fb( 65, 65 );
+  expect_unbind_fb( 65, 65 );
+  mock.EXPECT__gl_FramebufferTexture2D( GL_FRAMEBUFFER,
+                                        GL_COLOR_ATTACHMENT0,
+                                        GL_TEXTURE_2D, 76, 0 );
+
+  // Call is_framebuffer_complete on the framebuffer.
+  expect_bind_fb( 65, 65 );
+  expect_unbind_fb( 65, 65 );
+  mock.EXPECT__gl_CheckFramebufferStatus( GL_FRAMEBUFFER )
+      .returns( GL_FRAMEBUFFER_COMPLETE );
 
   // *** The test.
 
@@ -417,8 +537,6 @@ TEST_CASE( "[render/renderer] workflows" ) {
 
     // Now lets remove the dirty status by rendering.
     {
-      mock.EXPECT__gl_GetError().times( 13 ).returns(
-          GL_NO_ERROR );
       // Bind/unbind vertex buffer.
       mock.EXPECT__gl_GetIntegerv( GL_ARRAY_BUFFER_BINDING,
                                    Not( Null() ) )
@@ -462,8 +580,6 @@ TEST_CASE( "[render/renderer] workflows" ) {
     {
       // Now zap again that the buffer is not dirty and verify
       // that the sub data is re-uploaded.
-      mock.EXPECT__gl_GetError().times( 6 ).returns(
-          GL_NO_ERROR );
       // Bind/unbind vertex buffer.
       mock.EXPECT__gl_GetIntegerv( GL_ARRAY_BUFFER_BINDING,
                                    Not( Null() ) )
@@ -485,7 +601,7 @@ TEST_CASE( "[render/renderer] workflows" ) {
     }
   }
 
-  expect_unbind_tx();
+  expect_unbind_tx( 42, 41 );
 }
 
 } // namespace

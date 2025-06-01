@@ -23,6 +23,7 @@
 #include "vertex.hpp"
 
 // gl
+#include "gl/framebuffer.hpp"
 #include "gl/iface.hpp"
 #include "gl/shader.hpp"
 #include "gl/texture.hpp"
@@ -46,6 +47,7 @@
 #include "base/fs.hpp"
 #include "base/io.hpp"
 #include "base/keyval.hpp"
+#include "base/scope-exit.hpp"
 
 // C++ standard library
 #include <array>
@@ -58,6 +60,7 @@ namespace rr {
 
 namespace {
 
+using ::base::function_ref;
 using ::gfx::pixel;
 using ::gfx::point;
 using ::gfx::rect;
@@ -74,7 +77,7 @@ string_view constexpr kDefaultFontName = "simple";
 using ProgramAttributes =
     refl::member_type_list_t<GenericVertex>;
 
-struct ProgramUniforms {
+struct NormalProgramUniforms {
   static constexpr tuple uniforms{
     gl::UniformSpec<int>( "u_atlas" ),
     gl::UniformSpec<gl::vec2>( "u_atlas_size" ),
@@ -90,14 +93,46 @@ struct ProgramUniforms {
   };
 };
 
-using ProgramType =
-    gl::Program<ProgramAttributes, ProgramUniforms>;
+struct PostProgramUniforms {
+  static constexpr tuple uniforms{
+    gl::UniformSpec<int>( "u_source" ),
+    gl::UniformSpec<gl::vec2>( "u_screen_size" ),
+  };
+};
+
+using NormalProgramType =
+    gl::Program<ProgramAttributes, NormalProgramUniforms>;
+
+using PostProgramType =
+    gl::Program<ProgramAttributes, PostProgramUniforms>;
 
 /****************************************************************
 ** Vertex Array Spec.
 *****************************************************************/
 using VertexArray_t =
     gl::VertexArray<gl::VertexBuffer<GenericVertex>>;
+
+/****************************************************************
+** Buffer info.
+*****************************************************************/
+e_render_buffer_phase buffer_phase(
+    e_render_buffer const buffer ) {
+  switch( buffer ) {
+    case e_render_buffer::backdrop:
+    case e_render_buffer::entities:
+    case e_render_buffer::landscape:
+    case e_render_buffer::landscape_anim_enpixelate:
+    case e_render_buffer::landscape_anim_replace:
+    case e_render_buffer::landscape_annex:
+    case e_render_buffer::normal:
+    case e_render_buffer::obfuscation:
+    case e_render_buffer::obfuscation_annex:
+      return e_render_buffer_phase::normal;
+
+    case e_render_buffer::postprocessing:
+      return e_render_buffer_phase::postprocessing;
+  }
+}
 
 } // namespace
 
@@ -130,7 +165,8 @@ struct Renderer::Impl {
   using RenderBufferMap =
       refl::enum_map<e_render_buffer, base::maybe<RenderBuffer>>;
 
-  Impl( PresentFn present_fn_arg, ProgramType program_arg,
+  Impl( PresentFn present_fn_arg, NormalProgramType program_arg,
+        PostProgramType postprocessing_program_arg,
         RenderBufferMap buffers_arg, AtlasMap atlas_map_arg,
         size atlas_size_arg, gl::Texture atlas_tx_arg,
         unordered_map<string, int> atlas_ids_arg,
@@ -139,11 +175,8 @@ struct Renderer::Impl {
         unordered_map<string, AsciiFont> ascii_fonts_arg,
         unordered_map<string_view, AsciiFont*>
             ascii_fonts_fast_arg,
-        gfx::size logical_screen_size_arg )
-    : mod_stack{},
-      present_fn( std::move( present_fn_arg ) ),
-      program( std::move( program_arg ) ),
-      buffers( std::move( buffers_arg ) ),
+        gfx::size const logical_screen_size_arg )
+    : present_fn( std::move( present_fn_arg ) ),
       atlas_map( std::move( atlas_map_arg ) ),
       atlas_size( std::move( atlas_size_arg ) ),
       atlas_tx( std::move( atlas_tx_arg ) ),
@@ -154,14 +187,36 @@ struct Renderer::Impl {
           std::move( atlas_trimmed_rects_arg ) ),
       ascii_fonts( std::move( ascii_fonts_arg ) ),
       ascii_fonts_fast( std::move( ascii_fonts_fast_arg ) ),
-      logical_screen_size( logical_screen_size_arg ) {
+      mod_stack{},
+      normal_program( std::move( program_arg ) ),
+      postprocessing_program(
+          std::move( postprocessing_program_arg ) ),
+      buffers( std::move( buffers_arg ) ) {
     mod_stack.push( RendererMods{} );
+
+    logical_screen_size = logical_screen_size_arg;
+    recreate_postprocessing_framebuffer();
   };
+
+  void recreate_postprocessing_framebuffer() {
+    CHECK( logical_screen_size.area() > 0 );
+    // Ordering here is chosen carefully to destroy the frame-
+    // buffer first (which refers to the texture) and to have
+    // this work both on the initial creation and on re-creating.
+    // render_framebuffer              = {};
+    postprocessing_render_target_tx = {};
+    postprocessing_render_target_tx.set_empty(
+        logical_screen_size );
+    render_framebuffer.set_color_attachment(
+        postprocessing_render_target_tx );
+    CHECK( render_framebuffer.is_framebuffer_complete() );
+  }
 
   static Impl* create( RendererConfig const& config,
                        PresentFn present_fn ) {
     fs::path shaders = "src/render";
 
+    // Main program.
     UNWRAP_CHECK( vertex_shader_source,
                   base::read_text_file_as_string(
                       shaders / "generic.vert" ) );
@@ -174,6 +229,22 @@ struct Renderer::Impl {
     UNWRAP_CHECK( frag_shader, gl::Shader::create(
                                    gl::e_shader_type::fragment,
                                    fragment_shader_source ) );
+
+    // Post processing program.
+    UNWRAP_CHECK( postprocessing_vertex_shader_source,
+                  base::read_text_file_as_string(
+                      shaders / "post.vert" ) );
+    UNWRAP_CHECK( postprocessing_fragment_shader_source,
+                  base::read_text_file_as_string(
+                      shaders / "post.frag" ) );
+    UNWRAP_CHECK( postprocessing_vert_shader,
+                  gl::Shader::create(
+                      gl::e_shader_type::vertex,
+                      postprocessing_vertex_shader_source ) );
+    UNWRAP_CHECK( postprocessing_frag_shader,
+                  gl::Shader::create(
+                      gl::e_shader_type::fragment,
+                      postprocessing_fragment_shader_source ) );
 
     RenderBufferMap buffers;
     for( e_render_buffer const buffer :
@@ -202,12 +273,26 @@ struct Renderer::Impl {
       // the validation process.
       auto va_binder =
           buffers[e_render_buffer{}]->vertex_array.bind();
-      UNWRAP_CHECK( pgrm, ProgramType::create( vert_shader,
-                                               frag_shader ) );
+      UNWRAP_CHECK( pgrm, NormalProgramType::create(
+                              vert_shader, frag_shader ) );
       return std::move( pgrm );
     }();
 
     pgrm["u_atlas"_t] = 0; // GL_TEXTURE0
+
+    auto postprocessing_pgrm = [&] {
+      // Some OpenGL drivers, during shader program validation,
+      // seem to require a vertex array to be bound to include in
+      // the validation process.
+      auto va_binder =
+          buffers[e_render_buffer{}]->vertex_array.bind();
+      UNWRAP_CHECK( pgrm, PostProgramType::create(
+                              postprocessing_vert_shader,
+                              postprocessing_frag_shader ) );
+      return std::move( pgrm );
+    }();
+
+    postprocessing_pgrm["u_source"_t] = 0; // GL_TEXTURE0
 
     // Color cycling. These are just no-op settings to make sure
     // that they have well-defined values, and also just to
@@ -216,9 +301,12 @@ struct Renderer::Impl {
     set_color_cycle_plans( pgrm, vector<pixel>{} );
     set_color_cycle_keys( pgrm, vector<pixel>{} );
 
-    gfx::size logical_screen_size = config.logical_screen_size;
-    pgrm["u_screen_size"_t] =
+    gfx::size const logical_screen_size =
+        config.logical_screen_size;
+    auto const u_screen_size =
         gl::vec2::from_size( logical_screen_size );
+    pgrm["u_screen_size"_t]                = u_screen_size;
+    postprocessing_pgrm["u_screen_size"_t] = u_screen_size;
 
     AtlasBuilder atlas_builder;
     unordered_map<string, int> atlas_ids;
@@ -280,6 +368,8 @@ struct Renderer::Impl {
     return new Impl(
         /*present_fn=*/std::move( present_fn ),
         /*program=*/std::move( pgrm ),
+        /*postprocessing_program=*/
+        std::move( postprocessing_pgrm ),
         /*buffers=*/std::move( buffers ),
         /*atlas_map=*/std::move( atlas.dict ),
         /*atlas_size=*/atlas_size,
@@ -303,16 +393,32 @@ struct Renderer::Impl {
       [[maybe_unused]] size_t capacity_before_clear =
           vertices.capacity();
       vertices.clear();
-      DCHECK( vertices.capacity() == capacity_before_clear );
-      DCHECK( vertices.empty() );
+      CHECK( vertices.capacity() == capacity_before_clear );
+      CHECK( vertices.empty() );
       emitter.set_position( 0 );
     }
   }
 
-  int end_pass() {
+  int end_pass_normal() {
     int vertex_count = 0;
     for( auto& [buffer, data] : buffers ) {
-      render_buffer( buffer );
+      if( buffer_phase( buffer ) !=
+          e_render_buffer_phase::normal )
+        continue;
+      render_buffer_normal( buffer );
+      auto& vertices = *buffers[buffer]->vertices;
+      vertex_count += vertices.size();
+    }
+    return vertex_count;
+  }
+
+  int end_pass_postprocessing() {
+    int vertex_count = 0;
+    for( auto& [buffer, data] : buffers ) {
+      if( buffer_phase( buffer ) !=
+          e_render_buffer_phase::postprocessing )
+        continue;
+      render_buffer_postprocessing( buffer );
       auto& vertices = *buffers[buffer]->vertices;
       vertex_count += vertices.size();
     }
@@ -355,12 +461,21 @@ struct Renderer::Impl {
   void clear_screen( gfx::pixel color ) { gl::clear( color ); }
 
   void set_logical_screen_size( size new_size ) {
-    program["u_screen_size"_t] = gl::vec2::from_size( new_size );
-    logical_screen_size        = new_size;
+    normal_program["u_screen_size"_t] =
+        gl::vec2::from_size( new_size );
+    postprocessing_program["u_screen_size"_t] =
+        gl::vec2::from_size( new_size );
+    logical_screen_size = new_size;
+    recreate_postprocessing_framebuffer();
+  }
+
+  void set_viewport_no_cache( rect const viewport ) {
+    gl::set_viewport( viewport );
   }
 
   void set_viewport( rect const viewport ) {
-    gl::set_viewport( viewport );
+    physical_viewport_ = viewport;
+    set_viewport_no_cache( viewport );
   }
 
   unordered_map<string_view, int> const& atlas_ids_fn() const {
@@ -405,7 +520,7 @@ struct Renderer::Impl {
         .position();
   }
 
-  VertexRange range_for( base::function_ref<void()> f ) {
+  VertexRange range_for( function_ref<void()> const f ) {
     VertexRange rng;
     rng.buffer = mods().buffer_mods.buffer;
     rng.start  = buffer_vertex_cur_pos();
@@ -432,7 +547,7 @@ struct Renderer::Impl {
   }
 
   static void set_color_cycle_plans(
-      ProgramType& pgrm, vector<pixel> const& plans ) {
+      NormalProgramType& pgrm, vector<pixel> const& plans ) {
     vector<gl::ivec4> gl_plans;
     gl_plans.resize( plans.size() );
     transform( plans.begin(), plans.end(), gl_plans.begin(),
@@ -442,7 +557,7 @@ struct Renderer::Impl {
   }
 
   static void set_color_cycle_keys(
-      ProgramType& pgrm, span<pixel const> const plans ) {
+      NormalProgramType& pgrm, span<pixel const> const plans ) {
     vector<gl::ivec3> gl_plans;
     gl_plans.resize( plans.size() );
     transform( plans.begin(), plans.end(), gl_plans.begin(),
@@ -479,7 +594,8 @@ struct Renderer::Impl {
     }
   }
 
-  void render_buffer( e_render_buffer buffer ) {
+  void render_buffer_impl( auto& pgrm,
+                           e_render_buffer const buffer ) {
     auto const& vertex_array = buffers[buffer]->vertex_array;
     auto& vertices           = *buffers[buffer]->vertices;
     bool& dirty              = buffers[buffer]->dirty;
@@ -489,27 +605,99 @@ struct Renderer::Impl {
     dirty = false;
     // Still need to run even if it wasn't dirty because uniforms
     // may have changed.
-    program.run( vertex_array, vertices.size() );
+    pgrm.run( vertex_array, vertices.size() );
   }
+
+  void render_buffer_normal( e_render_buffer const buffer ) {
+    render_buffer_impl( normal_program, buffer );
+  }
+
+  void render_buffer_postprocessing(
+      e_render_buffer const buffer ) {
+    render_buffer_impl( postprocessing_program, buffer );
+  }
+
+  void render_pass_direct_to_screen(
+      function_ref<void()> const drawer ) {
+    begin_pass();
+    drawer();
+    end_pass_normal();
+  }
+
+  void render_pass_postprocessing_with_logical_resolution(
+      function_ref<void()> const drawer ) {
+    {
+      auto const _ = render_framebuffer.bind();
+      begin_pass();
+      drawer();
+      rect const logical_screen_rect = {
+        .origin = {}, .size = logical_screen_size };
+      set_viewport_no_cache( logical_screen_rect );
+      SCOPE_EXIT {
+        set_viewport_no_cache( physical_viewport_ );
+      };
+      end_pass_normal();
+    }
+    {
+      auto const _ = postprocessing_render_target_tx.bind();
+      begin_pass();
+      gl::clear();
+      {
+        mod_stack.push( mod_stack.top() );
+        SCOPE_EXIT { mod_stack.pop(); };
+        mod_stack.top().buffer_mods.buffer =
+            e_render_buffer::postprocessing;
+        Painter painter = this->painter();
+        painter.draw_solid_rect(
+            { .origin = {}, .size = physical_viewport_.size },
+            pixel::black() );
+      }
+      set_viewport_no_cache( physical_viewport_ );
+      end_pass_postprocessing();
+    }
+  }
+
+  void render_pass( function_ref<void()> const drawer ) {
+    switch( framebuffer_mode_ ) {
+      case e_render_framebuffer_mode::direct_to_screen: {
+        render_pass_direct_to_screen( drawer );
+        break;
+      }
+      case e_render_framebuffer_mode::
+          offscreen_with_logical_resolution: {
+        render_pass_postprocessing_with_logical_resolution(
+            drawer );
+        break;
+      }
+    }
+    present_fn();
+  }
+
+  // Const members.
+  PresentFn const present_fn;
+  AtlasMap const atlas_map;
+  size const atlas_size;
+  gl::Texture const atlas_tx;
+  TextureBinder const atlas_tx_binder;
+  unordered_map<string, int> const atlas_ids;
+  unordered_map<string_view, int> const atlas_ids_fast;
+  unordered_map<string, gfx::rect> const atlas_trimmed_rects;
+  unordered_map<string, AsciiFont> const ascii_fonts;
+  unordered_map<string_view, AsciiFont*> const ascii_fonts_fast;
 
   // TODO: we probably don't need to keep the mods in a std::s-
   // tack, instead we can keep them in the popper object since
   // those will be stored on the stack and popped in reverse
   // order as they were applied, which should do the same job.
   stack<RendererMods> mod_stack;
-  PresentFn present_fn;
-  ProgramType program;
+  rect physical_viewport_ = {};
+  NormalProgramType normal_program;
+  PostProgramType postprocessing_program;
   RenderBufferMap buffers;
-  AtlasMap const atlas_map;
-  size const atlas_size;
-  gl::Texture const atlas_tx;
-  TextureBinder atlas_tx_binder;
-  unordered_map<string, int> const atlas_ids;
-  unordered_map<string_view, int> const atlas_ids_fast;
-  unordered_map<string, gfx::rect> atlas_trimmed_rects;
-  unordered_map<string, AsciiFont> const ascii_fonts;
-  unordered_map<string_view, AsciiFont*> const ascii_fonts_fast;
   gfx::size logical_screen_size;
+  gl::Texture postprocessing_render_target_tx;
+  gl::Framebuffer render_framebuffer;
+  e_render_framebuffer_mode framebuffer_mode_ = {};
 };
 
 /****************************************************************
@@ -523,10 +711,6 @@ Renderer::~Renderer() noexcept {
   CHECK( impl_ );
   delete impl_;
 }
-
-void Renderer::begin_pass() { impl_->begin_pass(); }
-
-int Renderer::end_pass() { return impl_->end_pass(); }
 
 Painter Renderer::painter() { return impl_->painter(); }
 
@@ -628,36 +812,43 @@ gfx::size Renderer::atlas_img_size() const {
 }
 
 void Renderer::render_pass(
-    base::function_ref<void( Renderer& )> drawer ) {
-  begin_pass();
-  drawer( *this );
-  end_pass();
-  present();
+    function_ref<void( Renderer& ) const> drawer ) {
+  impl_->render_pass( [&] { drawer( *this ); } );
+}
+
+e_render_framebuffer_mode Renderer::render_framebuffer_mode()
+    const {
+  return impl_->framebuffer_mode_;
+}
+
+void Renderer::set_render_framebuffer_mode(
+    e_render_framebuffer_mode const mode ) {
+  impl_->framebuffer_mode_ = mode;
 }
 
 void Renderer::set_color_cycle_stage( int stage ) {
-  impl_->program["u_color_cycle_stage"_t] = stage;
+  impl_->normal_program["u_color_cycle_stage"_t] = stage;
 }
 
 void Renderer::set_color_cycle_plans(
     vector<pixel> const& plans ) {
-  impl_->set_color_cycle_plans( impl_->program, plans );
+  impl_->set_color_cycle_plans( impl_->normal_program, plans );
 }
 
 void Renderer::set_color_cycle_keys(
     span<pixel const> const plans ) {
-  impl_->set_color_cycle_keys( impl_->program, plans );
+  impl_->set_color_cycle_keys( impl_->normal_program, plans );
 }
 
 void Renderer::set_uniform_depixelation_stage( double stage ) {
-  impl_->program["u_depixelation_stage"_t] = stage;
+  impl_->normal_program["u_depixelation_stage"_t] = stage;
 }
 
 void Renderer::set_camera( gfx::dsize translation,
                            double zoom ) {
-  impl_->program["u_camera_translation"_t] =
+  impl_->normal_program["u_camera_translation"_t] =
       gl::vec2::from_dsize( translation );
-  impl_->program["u_camera_zoom"_t] = zoom;
+  impl_->normal_program["u_camera_zoom"_t] = zoom;
 }
 
 void Renderer::clear_buffer( e_render_buffer buffer ) {
@@ -666,7 +857,7 @@ void Renderer::clear_buffer( e_render_buffer buffer ) {
 
 void Renderer::testing_only_render_buffer(
     e_render_buffer buffer ) {
-  impl_->render_buffer( buffer );
+  impl_->render_buffer_normal( buffer );
 }
 
 long Renderer::buffer_vertex_cur_pos(
@@ -687,8 +878,7 @@ void Renderer::zap( VertexRange const& rng ) {
   impl_->zap( rng );
 }
 
-VertexRange Renderer::range_for(
-    base::function_ref<void()> f ) const {
+VertexRange Renderer::range_for( function_ref<void()> f ) const {
   return impl_->range_for( f );
 }
 

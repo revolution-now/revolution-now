@@ -41,6 +41,8 @@ struct Engine : IEngine {
 
   rr::Renderer& renderer_use_only_when_needed() override;
 
+  rr::IRendererSettings& renderer_settings() override;
+
   gfx::Resolutions& resolutions() override;
 
   rr::ITextometer& textometer() override;

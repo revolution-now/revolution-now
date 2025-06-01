@@ -5,7 +5,7 @@
 *
 * Created by dsicilia on 2024-10-04.
 *
-* Description: Mock implementation of IRenderer.
+* Description: Mock implementation of renderer interfaces.
 *
 *****************************************************************/
 #pragma once
@@ -18,6 +18,9 @@
 
 namespace rr {
 
+/****************************************************************
+** MockRenderer
+*****************************************************************/
 struct MockRenderer : IRenderer {
   MOCK_METHOD( void, set_color_cycle_stage, (int), () );
   MOCK_METHOD( void, set_color_cycle_plans,
@@ -27,5 +30,17 @@ struct MockRenderer : IRenderer {
 };
 
 static_assert( !std::is_abstract_v<MockRenderer> );
+
+/****************************************************************
+** MockRendererSettings
+*****************************************************************/
+struct MockRendererSettings : IRendererSettings {
+  MOCK_METHOD( e_render_framebuffer_mode,
+               render_framebuffer_mode, (), ( const ) );
+  MOCK_METHOD( void, set_render_framebuffer_mode,
+               ( e_render_framebuffer_mode ), () );
+};
+
+static_assert( !std::is_abstract_v<MockRendererSettings> );
 
 } // namespace rr
