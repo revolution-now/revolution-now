@@ -175,7 +175,8 @@ struct Renderer::Impl {
         unordered_map<string, AsciiFont> ascii_fonts_arg,
         unordered_map<string_view, AsciiFont*>
             ascii_fonts_fast_arg,
-        gfx::size const logical_screen_size_arg )
+        gfx::size const logical_screen_size_arg,
+        e_render_framebuffer_mode const framebuffer_mode_arg )
     : present_fn( std::move( present_fn_arg ) ),
       atlas_map( std::move( atlas_map_arg ) ),
       atlas_size( std::move( atlas_size_arg ) ),
@@ -193,6 +194,8 @@ struct Renderer::Impl {
           std::move( postprocessing_program_arg ) ),
       buffers( std::move( buffers_arg ) ) {
     mod_stack.push( RendererMods{} );
+
+    framebuffer_mode_ = framebuffer_mode_arg;
 
     logical_screen_size = logical_screen_size_arg;
     recreate_postprocessing_framebuffer();
@@ -379,7 +382,8 @@ struct Renderer::Impl {
         /*atlas_trimmed_rects=*/std::move( atlas_trimmed_rects ),
         /*ascii_fonts=*/std::move( ascii_fonts ),
         /*ascii_fonts_fast=*/std::move( ascii_fonts_fast ),
-        /*logical_screen_size=*/logical_screen_size );
+        /*logical_screen_size=*/logical_screen_size,
+        /*framebuffer_mode=*/config.framebuffer_mode );
   }
 
   void begin_pass() {
