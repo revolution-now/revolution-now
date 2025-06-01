@@ -1,13 +1,28 @@
-Here are some links of detailed analyses of the Col1 combat sta-
-tistics mechanism as well as a list of some of the bonuses and
-penalties that are applied (very non-trivial):
+Combat bonuses and calculations in the OG are /highly/ non-trivial.
+It is recommended to read this links:
 
   https://sourceforge.net/p/freecol/pending-features-for-freecol/65/
-
+  https://sourceforge.net/p/freecol/pending-features-for-freecol/63/
   https://forums.civfanatics.com/threads/combats.97381/
 
-Observations
-============
+Key Notes
+=========
+
+  * The fortification bonus (when it is applied, which is not in
+    all the cases that you might think) gets added to the other
+    fortification bonuses, not multiplied on its own, despite
+    what the combat analysis makes it seem like. So if defending
+    a colony, which comes with a 50% bonus (no stockade/fort/-
+    fortress) then the a unit fortification bonus of a defending
+    unit (+50%) actually gets added to the colony fortification
+    bonus, so it is +100%, not 1.5*1.5. This fortification bonus
+    seems to be the only one that acts like this.
+  * There are hidden bonuses and penalties -- need to read the
+    above pages.
+  * Many more points. Read the above pages.
+
+Ambush
+======
 
   * If an ambush bonus is applied, it uses the terrain bonus of
     the square of the defender (counterintuitively) and the de-

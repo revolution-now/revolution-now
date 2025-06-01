@@ -84,6 +84,11 @@ value cdr_game_state_default = table{
   "events"_key =
       table{
         "war_of_succession_done"_key = false,
+        "tutorial_hints"_key         = table{},
+        "one_time_help"_key =
+            table{
+              "showed_no_sail_high_seas_during_war"_key = false,
+            },
       },
   "units"_key =
       table{
@@ -96,10 +101,10 @@ value cdr_game_state_default = table{
       table{
         "players"_key =
             table{
-              "dutch"_key   = null,
-              "english"_key = null,
-              "french"_key  = null,
-              "spanish"_key = null,
+              "dutch"_key       = null,
+              "english"_key     = null,
+              "french"_key      = null,
+              "spanish"_key     = null,
               "ref_dutch"_key   = null,
               "ref_english"_key = null,
               "ref_french"_key  = null,
@@ -221,10 +226,10 @@ value cdr_game_state_default = table{
         "placement_seed"_key = 0,
         "player_terrain"_key =
             table{
-              "dutch"_key   = null,
-              "english"_key = null,
-              "french"_key  = null,
-              "spanish"_key = null,
+              "dutch"_key       = null,
+              "english"_key     = null,
+              "french"_key      = null,
+              "spanish"_key     = null,
               "ref_dutch"_key   = null,
               "ref_english"_key = null,
               "ref_french"_key  = null,

@@ -25,6 +25,7 @@
 #include "test/util/coro.hpp"
 
 // Revolution Now
+#include "src/harbor-units.hpp"
 #include "src/map-square.hpp"
 #include "src/plane-stack.hpp"
 
@@ -33,8 +34,10 @@
 
 // ss
 #include "ss/dwelling.rds.hpp"
+#include "ss/events.rds.hpp"
 #include "ss/player.hpp"
 #include "ss/settings.hpp"
+#include "ss/terrain.hpp"
 #include "ss/unit.hpp"
 #include "ss/units.hpp"
 
@@ -46,6 +49,7 @@ namespace {
 
 using namespace std;
 
+using ::gfx::point;
 using ::mock::matchers::_;
 using ::mock::matchers::Field;
 using ::mock::matchers::StrContains;
@@ -53,22 +57,23 @@ using ::mock::matchers::StrContains;
 /****************************************************************
 ** Fake World Setup
 *****************************************************************/
-struct World : testing::World {
+struct world : testing::World {
   using Base = testing::World;
-  World() : Base() {
+  world() : Base() {
     MapSquare const _ = make_ocean();
     MapSquare const L = make_grassland();
+    MapSquare const S = make_sea_lane();
     // clang-format off
     vector<MapSquare> tiles{
-      _, L, _, L, L, L,
-      L, L, L, L, L, L,
-      _, L, L, L, L, L,
-      _, L, L, L, _, L,
-      _, L, L, L, L, L,
-      _, L, L, L, L, L,
+      _, L, _, L, L, L, S, S, S,
+      L, L, L, L, L, L, S, S, S,
+      _, L, L, L, L, L, S, S, S,
+      _, L, L, L, _, L, S, S, S,
+      _, L, L, L, L, L, S, S, S,
+      _, L, L, L, L, L, S, S, S,
     };
     // clang-format on
-    build_map( std::move( tiles ), 6 );
+    build_map( std::move( tiles ), 9 );
     add_player( e_player::dutch );
     add_player( e_player::french );
     set_default_player_type( e_player::dutch );
@@ -90,7 +95,7 @@ TEST_CASE( "[command-move] ship can move from land to ocean" ) {
 #ifdef COMPILER_GCC
   return;
 #endif
-  World W;
+  world W;
   MockLandViewPlane mock_land_view;
   W.planes().get().set_bottom<ILandViewPlane>( mock_land_view );
   W.update_terrain_connectivity();
@@ -140,10 +145,7 @@ TEST_CASE( "[command-move] ship can move from land to ocean" ) {
 }
 
 TEST_CASE( "[command-move] ship can't move into inland lake" ) {
-#ifdef COMPILER_GCC
-  return;
-#endif
-  World W;
+  world W;
   W.update_terrain_connectivity();
   Player& player = W.default_player();
   UnitId id      = W.add_unit_on_map( e_unit_type::galleon,
@@ -171,7 +173,7 @@ TEST_CASE( "[command-move] ship can't move into inland lake" ) {
 TEST_CASE(
     "[command-move] consumption of movement points when moving "
     "into a colony" ) {
-  World W;
+  world W;
   MockLandViewPlane land_view_plane;
   W.planes().get().set_bottom<ILandViewPlane>( land_view_plane );
   Player& player         = W.default_player();
@@ -255,7 +257,7 @@ TEST_CASE(
 TEST_CASE(
     "[command-move] ship unloads units when moving into "
     "colony" ) {
-  World W;
+  world W;
   MockLandViewPlane land_view_plane;
   W.planes().get().set_bottom<ILandViewPlane>( land_view_plane );
   Player& player       = W.default_player();
@@ -308,7 +310,7 @@ TEST_CASE(
 #ifdef COMPILER_GCC
   return;
 #endif
-  World W;
+  world W;
   W.settings().game_setup_options.difficulty =
       e_difficulty::conquistador;
   MockLandViewPlane land_view_plane;
@@ -364,7 +366,7 @@ TEST_CASE(
 #ifdef COMPILER_GCC
   return;
 #endif
-  World W;
+  world W;
   MockLandViewPlane land_view_plane;
   W.planes().get().set_bottom<ILandViewPlane>( land_view_plane );
   Player& player = W.default_player();
@@ -407,7 +409,7 @@ TEST_CASE(
 
 TEST_CASE(
     "[command-move] unit on ship attempting to attack brave" ) {
-  World W;
+  world W;
   Unit& caravel  = W.add_unit_on_map( e_unit_type::caravel,
                                       { .x = 0, .y = 0 } );
   Unit& colonist = W.add_unit_in_cargo(
@@ -432,7 +434,7 @@ TEST_CASE(
 TEST_CASE(
     "[command-move] unit attempting to board/attack foreign "
     "ship" ) {
-  World W;
+  world W;
   Unit const& caravel =
       W.add_unit_on_map( e_unit_type::caravel,
                          { .x = 0, .y = 0 }, e_player::dutch );
@@ -460,7 +462,7 @@ TEST_CASE(
 TEST_CASE(
     "[command-move] land unit attempting to attack ship on "
     "land" ) {
-  World W;
+  world W;
   Unit const& caravel =
       W.add_unit_on_map( e_unit_type::caravel,
                          { .x = 1, .y = 0 }, e_player::dutch );
@@ -484,7 +486,7 @@ TEST_CASE(
 TEST_CASE(
     "[command-move] units on ships in colony offboarded to help "
     "defend" ) {
-  World W;
+  world W;
   MockLandViewPlane mock_land_view;
   W.planes().get().set_bottom<ILandViewPlane>( mock_land_view );
   Colony const& colony =
@@ -599,6 +601,154 @@ TEST_CASE(
         .EXPECT__message_box(
             "[Dutch] Soldier defeats [French] in 1!" );
     co_await_test( handler->perform() );
+  }
+}
+
+TEST_CASE(
+    "[command-move] sailing the high seas after declaring" ) {
+  world w;
+  w.update_terrain_connectivity();
+  MockLandViewPlane mock_land_view;
+  w.planes().get().set_bottom<ILandViewPlane>( mock_land_view );
+  Player& player      = w.default_player();
+  Unit const& caravel = w.add_unit_on_map(
+      e_unit_type::caravel, { .x = 6, .y = 1 }, player.type );
+
+  // Make sure we're testing what we think we're testing.
+  BASE_CHECK( w.units().coord_for( caravel.id() ).x ==
+              w.terrain().world_size_tiles().w - 3 );
+
+  auto const sail_high_seas = Field(
+      &ChoiceConfig::msg, StrContains( "sail the high seas?" ) );
+  auto const not_permitted =
+      StrContains( "no longer permitted" );
+
+  SECTION( "before declaration" ) {
+    player.revolution.status = e_revolution_status::not_declared;
+
+    {
+      unique_ptr<CommandHandler> const handler = handle_command(
+          w.engine(), w.ss(), w.ts(), player, caravel.id(),
+          command::move{ .d = e_direction::e } );
+      w.gui()
+          .EXPECT__choice( sail_high_seas )
+          .returns<maybe<string>>( nothing );
+      bool const confirmed = co_await_test( handler->confirm() );
+      REQUIRE( confirmed );
+      mock_land_view.EXPECT__animate( _ );
+      co_await_test( handler->perform() );
+      REQUIRE( w.units().coord_for( caravel.id() ).to_gfx() ==
+               point{ .x = 7, .y = 1 } );
+    }
+
+    {
+      unique_ptr<CommandHandler> const handler = handle_command(
+          w.engine(), w.ss(), w.ts(), player, caravel.id(),
+          command::move{ .d = e_direction::e } );
+      w.gui()
+          .EXPECT__choice( sail_high_seas )
+          .returns<maybe<string>>( "no" );
+      bool const confirmed = co_await_test( handler->confirm() );
+      REQUIRE( confirmed );
+      mock_land_view.EXPECT__animate( _ );
+      co_await_test( handler->perform() );
+      REQUIRE( w.units().coord_for( caravel.id() ).to_gfx() ==
+               point{ .x = 8, .y = 1 } );
+      REQUIRE_FALSE( w.events()
+                         .one_time_help
+                         .showed_no_sail_high_seas_during_war );
+    }
+
+    // Map edge.
+    {
+      unique_ptr<CommandHandler> const handler = handle_command(
+          w.engine(), w.ss(), w.ts(), player, caravel.id(),
+          command::move{ .d = e_direction::e } );
+      w.gui()
+          .EXPECT__choice( sail_high_seas )
+          .returns<maybe<string>>( "no" );
+      bool const confirmed = co_await_test( handler->confirm() );
+      REQUIRE_FALSE( confirmed );
+      REQUIRE( w.units().coord_for( caravel.id() ).to_gfx() ==
+               point{ .x = 8, .y = 1 } );
+      REQUIRE_FALSE( w.events()
+                         .one_time_help
+                         .showed_no_sail_high_seas_during_war );
+    }
+
+    // Map edge.
+    {
+      unique_ptr<CommandHandler> const handler = handle_command(
+          w.engine(), w.ss(), w.ts(), player, caravel.id(),
+          command::move{ .d = e_direction::e } );
+      w.gui()
+          .EXPECT__choice( sail_high_seas )
+          .returns<maybe<string>>( "yes" );
+      bool const confirmed = co_await_test( handler->confirm() );
+      REQUIRE( confirmed );
+      mock_land_view.EXPECT__animate( _ );
+      co_await_test( handler->perform() );
+      REQUIRE( is_unit_inbound( w.units(), caravel.id() ) );
+      REQUIRE_FALSE( w.events()
+                         .one_time_help
+                         .showed_no_sail_high_seas_during_war );
+    }
+  }
+
+  SECTION( "after declaration" ) {
+    player.revolution.status = e_revolution_status::declared;
+    REQUIRE_FALSE(
+        w.events()
+            .one_time_help.showed_no_sail_high_seas_during_war );
+
+    {
+      BASE_CHECK(
+          w.player( caravel.player_type() ).revolution.status ==
+          e_revolution_status::declared );
+      unique_ptr<CommandHandler> const handler = handle_command(
+          w.engine(), w.ss(), w.ts(), player, caravel.id(),
+          command::move{ .d = e_direction::e } );
+      w.gui().EXPECT__message_box( not_permitted );
+      bool const confirmed = co_await_test( handler->confirm() );
+      REQUIRE( confirmed );
+      mock_land_view.EXPECT__animate( _ );
+      co_await_test( handler->perform() );
+      REQUIRE( w.units().coord_for( caravel.id() ).to_gfx() ==
+               point{ .x = 7, .y = 1 } );
+      REQUIRE( w.events()
+                   .one_time_help
+                   .showed_no_sail_high_seas_during_war );
+    }
+
+    {
+      unique_ptr<CommandHandler> const handler = handle_command(
+          w.engine(), w.ss(), w.ts(), player, caravel.id(),
+          command::move{ .d = e_direction::e } );
+      // NOTE: no msg box here.
+      bool const confirmed = co_await_test( handler->confirm() );
+      REQUIRE( confirmed );
+      mock_land_view.EXPECT__animate( _ );
+      co_await_test( handler->perform() );
+      REQUIRE( w.units().coord_for( caravel.id() ).to_gfx() ==
+               point{ .x = 8, .y = 1 } );
+      REQUIRE( w.events()
+                   .one_time_help
+                   .showed_no_sail_high_seas_during_war );
+    }
+
+    {
+      unique_ptr<CommandHandler> const handler = handle_command(
+          w.engine(), w.ss(), w.ts(), player, caravel.id(),
+          command::move{ .d = e_direction::e } );
+      w.gui().EXPECT__message_box( not_permitted );
+      bool const confirmed = co_await_test( handler->confirm() );
+      REQUIRE_FALSE( confirmed );
+      REQUIRE( w.units().coord_for( caravel.id() ).to_gfx() ==
+               point{ .x = 8, .y = 1 } );
+      REQUIRE( w.events()
+                   .one_time_help
+                   .showed_no_sail_high_seas_during_war );
+    }
   }
 }
 
