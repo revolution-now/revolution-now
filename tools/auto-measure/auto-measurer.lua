@@ -3,17 +3,17 @@
 -----------------------------------------------------------------
 -- Imports.
 -----------------------------------------------------------------
-local cmd = require'moon.cmd'
 local file = require'moon.file'
 local logger = require'moon.logger'
 local moon_tbl = require'moon.tbl'
 local printer = require'moon.printer'
-local sav_reader = require'sav.conversion.sav-reader'
-local sav_writer = require'sav.conversion.sav-writer'
 local setters = require'setters'
 local str = require'moon.str'
-local time = require'moon.time'
 local posix = require'posix'
+local coldo = require'lib.coldo'
+local readwrite = require'lib.readwrite-sav'
+local xdotool = require'lib.xdotool'
+local dosbox = require'lib.dosbox'
 
 -----------------------------------------------------------------
 -- Aliases
@@ -26,7 +26,6 @@ local insert = table.insert
 
 local append_string_to_file = file.append_string_to_file
 local bar = printer.bar
-local command = cmd.command
 local dbg = logger.dbg
 local deep_copy = moon_tbl.deep_copy
 local exists = file.exists
@@ -35,151 +34,28 @@ local on_ordered_kv = moon_tbl.on_ordered_kv
 local format_data_table = printer.format_data_table
 local printfln = printer.printfln
 local read_file_lines = file.read_file_lines
-local sleep = time.sleep
 local trim = str.trim
+local remove_sav = readwrite.remove_sav
+local read_sav = readwrite.read_sav
+local write_sav = readwrite.write_sav
+local path_for_sav = readwrite.path_for_sav
+local save_game = coldo.save_game
+local load_game = coldo.load_game
+local exit_game = coldo.exit_game
+local action_api = xdotool.action_api
 
 local mkdir = posix.mkdir
-
-assert( sav_reader.load )
-assert( sav_writer.save )
 
 -----------------------------------------------------------------
 -- Constants.
 -----------------------------------------------------------------
-local KEY_DELAY = 50
+local INPUT_SAV_NUM = 6 -- COLONY06.SAV
+local OUTPUT_SAV_NUM = 7 -- COLONY07.SAV
 
+-----------------------------------------------------------------
+-- Global Init.
+-----------------------------------------------------------------
 logger.level = logger.levels.INFO
-
------------------------------------------------------------------
--- Folders.
------------------------------------------------------------------
-local HOME = assert( getenv( 'HOME' ) )
-local COLONIZE = format(
-                     '%s/games/colonization/data/MPS/COLONIZE',
-                     HOME )
-local RN = format( '%s/dev/revolution-now', HOME )
-local SAV = format( '%s/tools/sav', RN )
-
-info( 'HOME:' .. HOME )
-info( 'COLONIZE:' .. COLONIZE )
-info( 'RN:' .. RN )
-
------------------------------------------------------------------
--- xdotool
------------------------------------------------------------------
-local function xdotool( ... )
-  return trim( command( 'xdotool', ... ) )
-end
-
-local function find_window_named( regex )
-  info( 'searching for window with name ' .. regex )
-  return xdotool( 'search', '--name', regex )
-end
-
-local __dosbox = nil
-
-local function find_dosbox()
-  local success, res = pcall( find_window_named,
-                              'DOSBox.*VICEROY' )
-  if success then return res end
-end
-
-local function dosbox()
-  if not __dosbox then __dosbox = assert( find_dosbox() ) end
-  return __dosbox
-end
-
------------------------------------------------------------------
--- General X commands.
------------------------------------------------------------------
-local function press_keys( ... )
-  xdotool( 'key', '--delay=' .. KEY_DELAY, '--window', dosbox(),
-           ... )
-end
-
------------------------------------------------------------------
--- Individual keys.
------------------------------------------------------------------
-local function down() press_keys'Down' end
-local function up() press_keys'Up' end
-local function left() press_keys'Left' end
-local function right() press_keys'Right' end
-local function enter() press_keys'Return' end
-
-local function seq( tbl )
-  for _, action in ipairs( tbl ) do action() end
-end
-
-local action_api = {
-  press_keys=press_keys,
-  down=down,
-  up=up,
-  left=left,
-  right=right,
-  enter=enter,
-  seq=seq,
-}
-
------------------------------------------------------------------
--- Game specific composite commands.
------------------------------------------------------------------
-local function game_menu() press_keys( 'alt+g' ) end
-
--- Loads the game from COLONY07.SAV.
-local function load_game()
-  info( 'loading COLONY07.SAV...' )
-  press_keys( 'slash' ) -- requires configuration in MENU.TXT
-  seq{ up, up, up, enter } -- Select COLONY07.SAV.
-  sleep( .5 ) -- Wait for game to load.
-  enter() -- Close popup.
-end
-
--- Saves the game to COLONY06.SAV.
-local function save_game()
-  info( 'saving COLONY06.SAV...' )
-  press_keys( 'apostrophe' ) -- requires configuration in MENU.TXT
-  seq{ up, up, enter } -- Select COLONY06.SAV.
-  sleep( 1 ) -- Wait for game to save.
-  enter() -- Close popup.
-end
-
-local function exit_game()
-  -- Do nothing if the DOSBox window is not open.
-  if not find_dosbox() then return end
-  info( 'exiting game.' )
-  game_menu()
-  seq{ up, enter } -- Select "Exit to DOS".
-  down() -- Highlight 'Yes'.
-  -- Somehow, even though this succeeds in ending the program,
-  -- the xdotool returns an error.
-  pcall( xdotool, 'key', '--window', dosbox(), 'Return', '2>&1' )
-end
-
------------------------------------------------------------------
--- Read/Write SAV.
------------------------------------------------------------------
-local function read_sav( name )
-  return sav_reader.load{
-    structure_json=format( '%s/schema/sav-structure.json', SAV ),
-    colony_sav=format( '%s/%s', COLONIZE, name ),
-  }
-end
-
-local function write_sav( name, json )
-  sav_writer.save{
-    structure_json=format( '%s/schema/sav-structure.json', SAV ),
-    colony_json=json,
-    colony_sav=format( '%s/%s', COLONIZE, name ),
-  }
-end
-
-local function remove_sav_target()
-  local sav_file = format( '%s/%s', COLONIZE, 'COLONY06.SAV' )
-  if exists( sav_file ) then
-    os.remove( sav_file )
-    assert( not exists( sav_file ) )
-  end
-end
 
 -----------------------------------------------------------------
 -- Result detection.
@@ -188,7 +64,7 @@ local function record_outcome( args )
   local outfile = assert( args.outfile )
   local config = assert( args.config )
   local analyzer = assert( args.analyzer )
-  local sav = read_sav( 'COLONY06.SAV' )
+  local sav = read_sav( OUTPUT_SAV_NUM )
   assert( sav.HEADER )
 
   -- This invokes test-case-specific logic.
@@ -242,20 +118,20 @@ local function loop( args )
   local analyzer = assert( args.analyzer )
   local exp_name = assert( args.exp_name )
   info( 'running for %s...', exp_name )
-  local target_sav = format( '%s/%s', COLONIZE, 'COLONY06.SAV' )
+  local target_sav = path_for_sav( OUTPUT_SAV_NUM )
   for _ = 1, num_trials do
     info( 'starting trial %d...', stats.__count )
-    load_game()
-    analyzer.action( action_api )
+    load_game( INPUT_SAV_NUM )
+    analyzer.action( action_api( dosbox.window() ) )
     -- First remove the file to which we will be saving as a
     -- simple way to verify that the file was actually saved. It
     -- is difficult to otherwise verify that directly because we
     -- have to trust that we successfully opened the game menu to
     -- save it, which can't know directly because we can't "see"
     -- the contents of the game window.
-    remove_sav_target()
+    remove_sav( OUTPUT_SAV_NUM )
     assert( not exists( target_sav ) )
-    save_game()
+    save_game( OUTPUT_SAV_NUM )
     assert( exists( target_sav ), 'failed to save file' )
     record_outcome{
       analyzer=analyzer,
@@ -283,11 +159,10 @@ local function set_config( config, analyzer )
       insert( setter_funcs, wrapper )
     end
   end
-  local sav_file_name = 'COLONY07.SAV'
-  local json = read_sav( sav_file_name )
+  local json = read_sav( INPUT_SAV_NUM )
   for _, func in ipairs( setter_funcs ) do func( json ) end
   analyzer.post_config_setup( config, json )
-  write_sav( sav_file_name, json )
+  write_sav( INPUT_SAV_NUM, json )
 end
 
 -----------------------------------------------------------------
@@ -425,4 +300,4 @@ end
 -----------------------------------------------------------------
 -- Loader.
 -----------------------------------------------------------------
-exit( assert( main( { ... } ) ) )
+exit( assert( main{ ... } ) )
