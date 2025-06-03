@@ -5,8 +5,7 @@
 -----------------------------------------------------------------
 local file = require'moon.file'
 local logger = require'moon.logger'
-local moontbl = require'moon.tbl'
-local str = require'moon.str'
+local printer = require'moon.printer'
 local coldo = require'lib.coldo'
 local readwrite = require'lib.readwrite-sav'
 local xdotool = require'lib.xdotool'
@@ -26,9 +25,7 @@ local dbg = logger.dbg
 local flatten_configs = libconfig.flatten_configs
 local exists = file.exists
 local info = logger.info
-local on_ordered_kv = moontbl.on_ordered_kv
 local read_file_lines = file.read_file_lines
-local trim = str.trim
 local remove_sav = readwrite.remove_sav
 local read_sav = readwrite.read_sav
 local modify_sav = readwrite.modify_sav
@@ -37,6 +34,7 @@ local save_game = coldo.save_game
 local load_game = coldo.load_game
 local exit_game = coldo.exit_game
 local action_api = xdotool.action_api
+local format_kv_table = printer.format_kv_table
 
 -----------------------------------------------------------------
 -- Constants.
@@ -52,21 +50,6 @@ logger.level = logger.levels.INFO
 -----------------------------------------------------------------
 -- Result detection.
 -----------------------------------------------------------------
-local function format_kv_table( tbl, args )
-  local start = args.start or ''
-  local ending = args.ending or ''
-  local kv_sep = args.kv_sep or '='
-  local pair_sep = args.pair_sep or ','
-  pair_sep = ''
-  local line = ''
-  on_ordered_kv( tbl, function( k, v )
-    line = format( '%s%s%s%s%s', line, pair_sep, k, kv_sep,
-                   tostring( v ) )
-    pair_sep = args.pair_sep or ','
-  end )
-  return format( '%s%s%s', start, line, ending )
-end
-
 local function record_outcome( args )
   local outfile = assert( args.outfile )
   local _ = assert( args.config )
@@ -205,7 +188,9 @@ local function main( args )
   assert( main_config.type == 'deterministic' ) -- sanity check.
   local configs = flatten_configs( main_config.combinatorial )
   run_configs{ dir=dir, processor=processor, configs=configs }
-  -- exit_game()
+  if false then
+    exit_game() --
+  end
   return 0
 end
 
