@@ -68,12 +68,21 @@ local function remove_sav( sav )
   end
 end
 
+local function modify_sav( sav, mutator )
+  assert( sav )
+  assert( mutator )
+  local json = read_sav( sav )
+  mutator( json )
+  write_sav( sav, json )
+end
+
 -----------------------------------------------------------------
 -- Finished.
 -----------------------------------------------------------------
 return {
   read_sav=read_sav,
   write_sav=write_sav,
+  modify_sav=modify_sav,
   remove_sav=remove_sav,
   path_for_sav=path_for_sav,
   sav_file_for_slot=sav_file_for_slot,

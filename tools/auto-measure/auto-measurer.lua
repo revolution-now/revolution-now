@@ -14,6 +14,7 @@ local coldo = require'lib.coldo'
 local readwrite = require'lib.readwrite-sav'
 local xdotool = require'lib.xdotool'
 local dosbox = require'lib.dosbox'
+local libconfig = require'lib.config'
 
 -----------------------------------------------------------------
 -- Aliases
@@ -27,7 +28,7 @@ local insert = table.insert
 local append_string_to_file = file.append_string_to_file
 local bar = printer.bar
 local dbg = logger.dbg
-local deep_copy = moon_tbl.deep_copy
+local flatten_configs = libconfig.flatten_configs
 local exists = file.exists
 local info = logger.info
 local on_ordered_kv = moon_tbl.on_ordered_kv
@@ -212,26 +213,6 @@ local function run_single( args )
   }
   info( 'finished.' )
   return stats
-end
-
------------------------------------------------------------------
--- Config flattener.
------------------------------------------------------------------
-local function flatten_configs( master )
-  local res = { {} }
-  for k, v in pairs( master ) do
-    if type( v ) ~= 'table' then v = { v } end
-    local new_res = {}
-    for _, elem in ipairs( v ) do
-      local copy = deep_copy( res )
-      for _, config in ipairs( copy ) do
-        config[k] = elem
-        insert( new_res, config )
-      end
-    end
-    res = new_res
-  end
-  return res
 end
 
 -----------------------------------------------------------------
