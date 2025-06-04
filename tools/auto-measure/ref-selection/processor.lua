@@ -66,6 +66,8 @@ end
 
 local function set_config( config, json )
   -- TODO
+  --   * Put the white box over the colony so that as we're
+  --     watching it we can roughly see what units are in there.
 end
 
 local function action( config, api )
@@ -83,6 +85,9 @@ local function action( config, api )
 
   -- End the turn to cause the REF to land.
   api.space()
+
+  -- Allow a bit of time for the REF turn to start.
+  sleep( 0.3 )
 
   -- Close the box that tells us the REF are landing.
   close_box()
@@ -120,18 +125,18 @@ end
 
 local function collect_results( json )
   local force = assert( json.HEADER.expeditionary_force )
-  local regulars = force.regulars
-  local cavalry = force.cavalry
-  local artillery = force.artillery
+  local regulars = assert( force.regulars )
+  local cavalry = assert( force.dragoons )
+  local artillery = assert( force.artillery )
   regulars = INITIAL_UNIT_STORE_COUNT - regulars
   cavalry = INITIAL_UNIT_STORE_COUNT - cavalry
   artillery = INITIAL_UNIT_STORE_COUNT - artillery
-  assert( regulars > 0 )
-  assert( cavalry > 0 )
-  assert( artillery > 0 )
+  assert( regulars >= 0 )
+  assert( cavalry >= 0 )
+  assert( artillery >= 0 )
   return {
-    ref_selection=format( '%d/%d/%d', regulars,
-                          cavalry / artillery ),
+    ref_selection=format( '%d/%d/%d', regulars, cavalry,
+                          artillery ),
   }
 end
 

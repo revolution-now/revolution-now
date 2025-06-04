@@ -4,6 +4,7 @@
 local cmd = require'moon.cmd'
 local logger = require'moon.logger'
 local str = require'moon.str'
+local time = require'moon.time'
 
 -----------------------------------------------------------------
 -- Aliases
@@ -11,6 +12,7 @@ local str = require'moon.str'
 local command = cmd.command
 local info = logger.info
 local trim = str.trim
+local sleep = time.sleep
 
 -----------------------------------------------------------------
 -- Constants.
@@ -37,6 +39,9 @@ local function press_keys( window, ... )
   assert( #{ ... } > 0 )
   xdotool( 'key', '--delay=' .. KEY_DELAY, '--window', window,
            ... )
+  -- Need this additional delay because often we call press_keys
+  -- multiple times to press multiple keys.
+  sleep( KEY_DELAY / 1000 )
 end
 
 local function press_return_to_exit( window )
