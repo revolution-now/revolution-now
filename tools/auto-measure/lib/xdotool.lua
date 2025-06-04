@@ -57,7 +57,7 @@ local function action_api( window )
     left=function() press_keys( window, 'Left' ) end,
     right=function() press_keys( window, 'Right' ) end,
     enter=function() press_keys( window, 'Return' ) end,
-    space=function() press_keys( window, 'Space' ) end,
+    space=function() press_keys( window, 'space' ) end,
     seq=function( tbl )
       for _, action in ipairs( tbl ) do action() end
     end,
