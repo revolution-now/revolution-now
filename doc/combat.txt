@@ -8,6 +8,14 @@ It is recommended to read this links:
 Key Notes
 =========
 
+  * The strength of veteran units is not really as documented.
+    For example, a Veteran Dragoon is listed as having a combat
+    strength of 4, but in reality it is 3+50%=3*1.5 = 4.5. The OG
+    does not use floating point arithmetic in the calculations
+    most likely, but it does multiply the base strength by 8 so
+    that it is then easier to e.g. add 50%. So for a dragoon it
+    would be a base strength of 3 multiplied by 8 (=24) multi-
+    plied by 1.5 (+50%) for veteran status, =36.
   * The fortification bonus (when it is applied, which is not in
     all the cases that you might think) gets added to the other
     fortification bonuses, not multiplied on its own, despite
