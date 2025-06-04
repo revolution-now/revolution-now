@@ -1,16 +1,87 @@
 Todo:
 
+  * The initial colony seems to be chosen deterministically.
+
+  * It appears to re-evaluate the strength of the colonies on
+    each turn to find the target one (weakest?). Since if you let
+    it choose an initial colony and send units there, it will
+    continue sending units there if you don't add more units into
+    it. But if you then add a strong defense into that colony
+    then it will choose a difference (weaker) colony on the next
+    turn.
+
+  * When given the choice between two initial colonies, neither
+    of which have any defensive units in them, but one has a
+    fortress, it has been observed to choose the fortress. What
+    that likely means is that it only considers the fortress as
+    part of the unit defense calculation, and if there are no de-
+    fensive units then it is not taken into account.
+
+  * It appears that the REF changes the units it sends depending
+    on whether the squares that it would unload on have a
+    visitor_nation equal to the REF nation or not. It may do this
+    in order to know whether it landed there already. Because if
+    it has landed there already and the colony still hasn't been
+    taken, then it probably just sends reinforcements.
+
+  * The first wave of units can have these distributions:
+
+      6: 2/2/2 - yes
+      6: 4/1/1 - yes
+      5: 3/1/1 - yes
+      4: 2/1/1 - yes
+      --------------
+      3: 2/1/0 - yes
+
+    The second wave has been observed to have:
+
+      6: 2/2/2 - yes
+      6: 4/1/1 - yes
+      5: 3/1/1 - yes
+      4: 2/1/1 - yes
+      --------------
+      3: 1/1/1 - yes
+
+    The game seems to prefer weak colonies to attack. So the
+    2/1/0 in the first wave could be so that if it is a super
+    weak colony and it is the first time we are landing, then it
+    is likely we will take the colony, so we don't want to waste
+    artillery, especially if it is e.g. a remote mining colony.
+    It will still get a second wave which will be 1/1/1 and thus
+    will use an artillery, but this way way we only waste 1 in-
+    stead of two.
+
+  * When a colony gets REF units for the first time, unless the
+    player quickly stocks the colony with defenses before those
+    units attack, it seems that that same colony will always get
+    a second round (before the first attack) even if it is a
+    super weak colony.
+
+  * The REF tries to avoid landing on squares that don't have
+    visitor_nation=REF if possible.
+
+  * The colony that it chooses on a given turn does not seem to
+    be influenced by the vistor_nation status of the surrounding
+    tiles of the colonies. It seems to just pick a colony using
+    some deterministic algorithm, then look at the land sur-
+    rounding it for visitor_nation together with the colony de-
+    fenses, then it decides the units to bring.
+
+  * The REF seems to choose which tile adjacent to a colony to
+    land on using some deterministic algorithm that doesn't seem
+    to change (unless maybe it has to due to a ship blockade).
+
   * REF transport algo:
 
       * Buckets:
 
         The first delivery always seems to be one of these:
 
-          - 2/1/0: [0,   5]
-          - 2/1/1: [6    7]
-          - 3/1/1: [8    9]
-          - 4/1/1: [10  29]
-          - 2/2/2: [30   -]
+          - 2/2/2: [480   -]
+          - 4/1/1: [240 480]
+          - 3/1/1: [120 240]
+          - 2/1/1: [90  120]
+          - 2/1/0: [0,   90]
 
           Single      Double       Ratio
           ==============================

@@ -30,6 +30,7 @@ local remove_sav = readwrite.remove_sav
 local read_sav = readwrite.read_sav
 local modify_sav = readwrite.modify_sav
 local path_for_sav = readwrite.path_for_sav
+local names_txt_path = readwrite.names_txt_path
 local save_game = coldo.save_game
 local load_game = coldo.load_game
 local exit_game = coldo.exit_game
@@ -39,13 +40,22 @@ local format_kv_table = printer.format_kv_table
 -----------------------------------------------------------------
 -- Constants.
 -----------------------------------------------------------------
-local INPUT_SAV_NUM = 6 -- COLONY06.SAV
-local OUTPUT_SAV_NUM = 7 -- COLONY07.SAV
+local INPUT_SAV_NUM = 0 -- COLONY00.SAV
+local OUTPUT_SAV_NUM = 1 -- COLONY01.SAV
 
 -----------------------------------------------------------------
 -- Global Init.
 -----------------------------------------------------------------
 logger.level = logger.levels.INFO
+
+-----------------------------------------------------------------
+-- Validation.
+-----------------------------------------------------------------
+local function validate_sav( processor )
+  local json = read_sav( INPUT_SAV_NUM )
+  assert( json.HEADER )
+  assert( processor.validate_sav( json ) )
+end
 
 -----------------------------------------------------------------
 -- Result detection.
@@ -90,7 +100,7 @@ local function run_config( args )
   end )
 
   load_game( INPUT_SAV_NUM )
-  processor.action( action_api( dosbox.window() ) )
+  processor.action( config, action_api( dosbox.window() ) )
   -- First remove the file to which we will be saving as a simple
   -- way to verify that the file was actually saved. It is diffi-
   -- cult to otherwise verify that directly because we have to
@@ -178,6 +188,8 @@ local function main( args )
 
   local processor = require( format( '%s.processor', dir ) )
   assert( processor.experiment_name )
+  assert( processor.validate_sav )
+  assert( processor.validate_names_txt )
   assert( processor.set_config )
   assert( processor.action )
   assert( processor.collect_results )
@@ -187,6 +199,11 @@ local function main( args )
   assert( main_config.combinatorial ) -- sanity check.
   assert( main_config.type == 'deterministic' ) -- sanity check.
   local configs = flatten_configs( main_config.combinatorial )
+
+  assert( processor.validate_names_txt( names_txt_path() ) )
+
+  validate_sav( processor )
+
   run_configs{ dir=dir, processor=processor, configs=configs }
   if false then
     exit_game() --

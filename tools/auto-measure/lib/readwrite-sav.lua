@@ -27,6 +27,10 @@ local COLONIZE = format(
 local RN = format( '%s/dev/revolution-now', HOME )
 local SAV = format( '%s/tools/sav', RN )
 
+local NAMES_TXT = format( '%s/NAMES.TXT', COLONIZE )
+
+assert( exists( NAMES_TXT ), 'NAMES.TXT not found.' )
+
 info( 'HOME:' .. HOME )
 info( 'COLONIZE:' .. COLONIZE )
 info( 'RN:' .. RN )
@@ -34,6 +38,8 @@ info( 'RN:' .. RN )
 -----------------------------------------------------------------
 -- Read/Write SAV.
 -----------------------------------------------------------------
+local function names_txt_path() return NAMES_TXT end
+
 -- Zero based.
 local function sav_file_for_slot( n )
   return format( 'COLONY0%d.SAV', n )
@@ -86,4 +92,5 @@ return {
   remove_sav=remove_sav,
   path_for_sav=path_for_sav,
   sav_file_for_slot=sav_file_for_slot,
+  names_txt_path=names_txt_path,
 }

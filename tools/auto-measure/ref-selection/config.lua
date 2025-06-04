@@ -1,6 +1,18 @@
 -- The purpose of this is to test how the OG decides how many REF
 -- units (and which types) to send to a colony given the strength
 -- of the colony's defenses.
+--
+-- NOTE: there are some requirements on NAMES.TXT that are
+-- required to run this.  The tool will check these.
+--
+--   * man-o-war movement must be set to zero so that we don't
+--     have to worry about waiting for the man-o-war to move
+--     around after it lands (which could lead to it getting
+--     fired on multiple times if there is a fort).
+--
+--   * man-or-war attack/combat set to 0 so that it always loses
+--     when fired upon.
+--
 return {
   type='deterministic',
 
@@ -16,6 +28,11 @@ return {
       -- 'stockade', --
       -- 'fort', --
       -- 'fortress', --
+    },
+
+    already_landed={
+      false,
+      -- true,
     },
 
     horses={
