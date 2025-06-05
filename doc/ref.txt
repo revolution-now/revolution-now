@@ -24,6 +24,10 @@ Todo:
     it has landed there already and the colony still hasn't been
     taken, then it probably just sends reinforcements.
 
+       * visitor_nation is empty  --> 1/1/1  (visited)
+       * visitor_nation is player --> 2/1/0  (not visited)
+       * visitor_nation is REF    --> 1/1/1  (visited)
+
   * The first wave of units can have these distributions:
 
       6: 2/2/2 - yes

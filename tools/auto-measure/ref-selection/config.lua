@@ -51,7 +51,7 @@ return {
       -- 200, --
     },
 
-    unit_sets={
+    unit_set={
       -- soldier
       'soldier', --
       'soldier-soldier', --

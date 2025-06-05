@@ -4,17 +4,20 @@
 local time = require'moon.time'
 local logger = require'moon.logger'
 local printer = require'moon.printer'
+local designer = require'lib.designer'
 
 -----------------------------------------------------------------
 -- Aliases.
 -----------------------------------------------------------------
 local format = string.format
-local insert = table.insert
-local floor = math.floor
+-- local insert = table.insert
+-- local floor = math.floor
 
 local sleep = time.sleep
 local info = logger.info
 local format_kv_table = printer.format_kv_table
+
+local D = designer
 
 -----------------------------------------------------------------
 -- Constants.
@@ -39,6 +42,7 @@ local function experiment_name( config )
 end
 
 local function validate_names_txt( lines )
+  assert( lines )
   -- TODO:
   --   * Man-o-war has movement 0.
   --   * Man-o-war has zero attack/combat.
@@ -61,13 +65,48 @@ local function validate_sav( json )
   --     (=INITIAL_UNIT_STORE_COUNT).
   --   * One colony.
   --   * One AI (REF) player, one human player.
+
+  D.assert_single_colony( json )
+  assert( D.find_REF( json ) )
   return true
 end
 
 local function set_config( config, json )
+  D.assert_single_colony( json )
+  local colony = assert( json.COLONY[1] )
+  local ref_idx = assert( D.find_REF( json ) )
+  local ref_nation = assert( json.NATION[ref_idx] )
+  local human_idx = assert( D.find_human( json ) )
+  local human_nation = assert( json.NATION[human_idx] )
+
+  -- difficulty.
+  local difficulty = assert( config.difficulty )
+  info( 'setting difficulty to "%s".', difficulty )
+  D.set_difficulty( json, difficulty )
+
+  -- fortifications.
+  local fortification = assert( config.fortification )
+  D.set_colony_fortification( colony, fortification )
+
+  -- already_landed
+  local already_landed = assert( config.already_landed )
+  local visitor_nation = already_landed and ref_nation or
+                             human_nation
+  D.on_tiles_around_colony( colony, function( tile )
+    D.set_visitor_nation( json, tile, visitor_nation )
+  end )
+
+  -- horses/muskets.
+  local horses = assert( config.horses )
+  local muskets = assert( config.muskets )
+  D.set_colony_stock( colony, 'horses', horses )
+  D.set_colony_stock( colony, 'muskets', muskets )
+
   -- TODO
   --   * Put the white box over the colony so that as we're
   --     watching it we can roughly see what units are in there.
+
+  -- TODO: unit_set
 end
 
 local function action( config, api )
