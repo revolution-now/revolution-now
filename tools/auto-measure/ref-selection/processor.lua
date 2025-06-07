@@ -81,6 +81,7 @@ local function validate_sav( json )
   assert( json.HEADER.game_flags_1.fast_piece_slide )
   assert( json.HEADER.game_flags_1.end_of_turn )
   assert( json.HEADER.game_flags_1.independence_declared )
+  assert( not json.HEADER.game_flags_1.combat_analysis )
   -- This must be false otherwise some additional popups will ap-
   -- pear that will throw things off.
   assert( not json.HEADER.game_flags_1.independence_war_intro )

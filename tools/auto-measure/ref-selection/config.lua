@@ -27,7 +27,7 @@ return {
 
     fortification={
       'none', --
-      -- 'stockade', --
+      'stockade', --
       -- 'fort', --
       -- 'fortress', --
     },

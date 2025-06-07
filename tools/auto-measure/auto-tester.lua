@@ -152,7 +152,10 @@ local function run_configs( args )
       local exp_name = assert( iter() )
       local result = assert( iter() )
       assert( not iter() ) -- no more items.
-      assert( not already_run[exp_name] ) -- no duplicate keys.
+      assert( not already_run[exp_name],
+              format(
+                  'run %s appears multiple times in the results file.',
+                  exp_name ) )
       already_run[exp_name] = true
       insert( results, { exp_name=exp_name, result=result } )
     end
