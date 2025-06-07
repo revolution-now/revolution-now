@@ -1,0 +1,2146 @@
+{
+  "ACTIONS": [
+    [
+      "Trade With Village"
+    ],
+    [
+      "Enter Hostile Village"
+    ],
+    [
+      "Establish Mission"
+    ],
+    [
+      "Denounce Heresy of %Fs Mission"
+    ],
+    [
+      "Live Among The Natives"
+    ],
+    [
+      "Ask to Speak With Chief"
+    ],
+    [
+      "Incite Indians"
+    ],
+    [
+      "Demand Tribute"
+    ],
+    [
+      "Attack Village"
+    ],
+    [
+      "Cancel Action"
+    ]
+  ],
+  "ATTITUDE": [
+    [
+      "Content"
+    ],
+    [
+      "Uneasy"
+    ],
+    [
+      "Restless"
+    ],
+    [
+      "Angry"
+    ],
+    [
+      "War"
+    ]
+  ],
+  "ATTITUDINAL": [
+    [
+      "Extremely"
+    ],
+    [
+      "Very"
+    ],
+    [
+      "Rather"
+    ],
+    [
+      "Somewhat"
+    ],
+    [
+      "Slightly"
+    ]
+  ],
+  "BUILDING": [
+    [
+      "Stockade",
+      "64",
+      "0",
+      "3",
+      "3",
+      "0"
+    ],
+    [
+      "Fort",
+      "120",
+      "10",
+      "3",
+      "3",
+      "10"
+    ],
+    [
+      "Fortress",
+      "320",
+      "20",
+      "3",
+      "8",
+      "15"
+    ],
+    [
+      "Armory",
+      "52",
+      "0",
+      "1",
+      "1",
+      "5"
+    ],
+    [
+      "Magazine",
+      "120",
+      "5",
+      "1",
+      "8",
+      "10"
+    ],
+    [
+      "Arsenal",
+      "240",
+      "10",
+      "1",
+      "8",
+      "15"
+    ],
+    [
+      "Docks",
+      "52",
+      "0",
+      "4",
+      "1",
+      "5"
+    ],
+    [
+      "Drydock",
+      "80",
+      "5",
+      "4",
+      "4",
+      "10"
+    ],
+    [
+      "Shipyard",
+      "240",
+      "10",
+      "4",
+      "8",
+      "15"
+    ],
+    [
+      "Town Hall",
+      "64",
+      "0",
+      "2",
+      "1",
+      "0"
+    ],
+    [
+      "Town Hall",
+      "64",
+      "5",
+      "2",
+      "4",
+      "10"
+    ],
+    [
+      "Town Hall",
+      "120",
+      "10",
+      "2",
+      "8",
+      "15"
+    ],
+    [
+      "Schoolhouse",
+      "64",
+      "0",
+      "1",
+      "4",
+      "5"
+    ],
+    [
+      "College",
+      "160",
+      "5",
+      "1",
+      "8",
+      "10"
+    ],
+    [
+      "University",
+      "200",
+      "10",
+      "1",
+      "10",
+      "15"
+    ],
+    [
+      "Warehouse",
+      "80",
+      "0",
+      "1",
+      "1",
+      "5"
+    ],
+    [
+      "Warehouse Expansion",
+      "80",
+      "2",
+      "1",
+      "1",
+      "5"
+    ],
+    [
+      "Stable",
+      "64",
+      "0",
+      "0",
+      "1",
+      "5"
+    ],
+    [
+      "Custom House",
+      "160",
+      "5",
+      "0",
+      "1",
+      "15"
+    ],
+    [
+      "Printing Press",
+      "52",
+      "2",
+      "0",
+      "1",
+      "5"
+    ],
+    [
+      "Newspaper",
+      "120",
+      "5",
+      "0",
+      "4",
+      "10"
+    ],
+    [
+      "Weaver's House",
+      "64",
+      "0",
+      "0",
+      "1",
+      "0"
+    ],
+    [
+      "Weaver's Shop",
+      "64",
+      "2",
+      "0",
+      "1",
+      "5"
+    ],
+    [
+      "Textile Mill",
+      "160",
+      "10",
+      "0",
+      "8",
+      "15"
+    ],
+    [
+      "Tobacconist's House",
+      "64",
+      "0",
+      "0",
+      "1",
+      "0"
+    ],
+    [
+      "Tobacconist's Shop",
+      "64",
+      "2",
+      "0",
+      "1",
+      "5"
+    ],
+    [
+      "Cigar Factory",
+      "160",
+      "10",
+      "0",
+      "8",
+      "15"
+    ],
+    [
+      "Rum Distiller's House",
+      "64",
+      "0",
+      "0",
+      "1",
+      "0"
+    ],
+    [
+      "Rum Distillery",
+      "64",
+      "2",
+      "0",
+      "1",
+      "5"
+    ],
+    [
+      "Rum Factory",
+      "160",
+      "10",
+      "0",
+      "8",
+      "15"
+    ],
+    [
+      "Capitol",
+      "400",
+      "10",
+      "2",
+      "16",
+      "20"
+    ],
+    [
+      "Capitol Expansion",
+      "400",
+      "10",
+      "2",
+      "16",
+      "10"
+    ],
+    [
+      "Fur Trader's House",
+      "56",
+      "0",
+      "0",
+      "1",
+      "0"
+    ],
+    [
+      "Fur Trading Post",
+      "56",
+      "2",
+      "0",
+      "1",
+      "5"
+    ],
+    [
+      "Fur Factory",
+      "160",
+      "10",
+      "0",
+      "6",
+      "15"
+    ],
+    [
+      "Carpenter's Shop",
+      "39",
+      "0",
+      "1",
+      "1",
+      "0"
+    ],
+    [
+      "Lumber Mill",
+      "52",
+      "0",
+      "1",
+      "3",
+      "10"
+    ],
+    [
+      "Church",
+      "64",
+      "0",
+      "2",
+      "3",
+      "5"
+    ],
+    [
+      "Cathedral",
+      "176",
+      "10",
+      "2",
+      "8",
+      "15"
+    ],
+    [
+      "Blacksmith's House",
+      "64",
+      "0",
+      "0",
+      "1",
+      "0"
+    ],
+    [
+      "Blacksmith's Shop",
+      "64",
+      "2",
+      "0",
+      "1",
+      "5"
+    ],
+    [
+      "Iron Works",
+      "240",
+      "10",
+      "0",
+      "8",
+      "15"
+    ]
+  ],
+  "CARGO": [
+    [
+      "Food",
+      "1",
+      "3",
+      "1",
+      "6",
+      "7",
+      "3",
+      "2",
+      "-1",
+      "0"
+    ],
+    [
+      "Sugar",
+      "4",
+      "7",
+      "3",
+      "7",
+      "1",
+      "4",
+      "6",
+      "-8",
+      "1"
+    ],
+    [
+      "Tobacco",
+      "3",
+      "5",
+      "2",
+      "5",
+      "1",
+      "4",
+      "8",
+      "-10",
+      "1"
+    ],
+    [
+      "Cotton",
+      "2",
+      "5",
+      "2",
+      "5",
+      "1",
+      "4",
+      "6",
+      "-11",
+      "1"
+    ],
+    [
+      "Furs",
+      "4",
+      "6",
+      "2",
+      "6",
+      "1",
+      "4",
+      "20",
+      "-13",
+      "1"
+    ],
+    [
+      "Lumber",
+      "2",
+      "2",
+      "2",
+      "2",
+      "4",
+      "3",
+      "2",
+      "0",
+      "0"
+    ],
+    [
+      "Ore",
+      "3",
+      "6",
+      "2",
+      "6",
+      "2",
+      "2",
+      "4",
+      "-7",
+      "0"
+    ],
+    [
+      "Silver",
+      "20",
+      "20",
+      "2",
+      "20",
+      "0",
+      "8",
+      "1",
+      "-8",
+      "2"
+    ],
+    [
+      "Horses",
+      "2",
+      "3",
+      "2",
+      "11",
+      "0",
+      "3",
+      "2",
+      "-3",
+      "0"
+    ],
+    [
+      "Rum",
+      "11",
+      "13",
+      "1",
+      "20",
+      "0",
+      "4",
+      "4",
+      "-12",
+      "1"
+    ],
+    [
+      "Cigars",
+      "11",
+      "13",
+      "1",
+      "20",
+      "0",
+      "4",
+      "4",
+      "-11",
+      "1"
+    ],
+    [
+      "Cloth",
+      "11",
+      "13",
+      "1",
+      "20",
+      "0",
+      "4",
+      "4",
+      "-13",
+      "1"
+    ],
+    [
+      "Coats",
+      "11",
+      "13",
+      "1",
+      "20",
+      "0",
+      "4",
+      "4",
+      "-11",
+      "1"
+    ],
+    [
+      "Trade Goods",
+      "2",
+      "3",
+      "2",
+      "12",
+      "0",
+      "2",
+      "3",
+      "4",
+      "0"
+    ],
+    [
+      "Tools",
+      "2",
+      "2",
+      "2",
+      "9",
+      "0",
+      "2",
+      "2",
+      "5",
+      "0"
+    ],
+    [
+      "Muskets",
+      "3",
+      "3",
+      "2",
+      "20",
+      "0",
+      "2",
+      "2",
+      "6",
+      "0"
+    ],
+    [
+      "Hammers"
+    ],
+    [
+      "Crosses"
+    ],
+    [
+      "Liberty Bells"
+    ],
+    [
+      "Flags"
+    ]
+  ],
+  "CLASS": [
+    [
+      "Petty Criminals",
+      "300"
+    ],
+    [
+      "Indentured Servants",
+      "400"
+    ],
+    [
+      "Peasant Farmers",
+      "600"
+    ],
+    [
+      "Skilled Craftsmen",
+      "800"
+    ],
+    [
+      "Hardy Pioneers",
+      "1450"
+    ],
+    [
+      "Town Merchants",
+      "1500"
+    ],
+    [
+      "Trained Mercenaries",
+      "1900"
+    ],
+    [
+      "Educated Elite",
+      "2000"
+    ]
+  ],
+  "COLONYNAME": [
+    [
+      "New England"
+    ],
+    [
+      "New France"
+    ],
+    [
+      "New Spain"
+    ],
+    [
+      "New Netherlands"
+    ]
+  ],
+  "COLORS": [
+    [
+      "68",
+      "149",
+      "8",
+      "128",
+      "47",
+      "138",
+      "134",
+      "128",
+      "138"
+    ]
+  ],
+  "COUNTRY": [
+    [
+      "England",
+      "12"
+    ],
+    [
+      "France",
+      "9"
+    ],
+    [
+      "Spain",
+      "14"
+    ],
+    [
+      "Netherlands",
+      "13"
+    ]
+  ],
+  "DIFFICULTY": [
+    [
+      "Discoverer"
+    ],
+    [
+      "Explorer"
+    ],
+    [
+      "Conquistador"
+    ],
+    [
+      "Governor"
+    ],
+    [
+      "Viceroy"
+    ]
+  ],
+  "FATHERS": [
+    [
+      "Adam Smith",
+      "0",
+      "2",
+      "8",
+      "6"
+    ],
+    [
+      "Jakob Fugger",
+      "0",
+      "0",
+      "5",
+      "8"
+    ],
+    [
+      "Peter Minuit",
+      "0",
+      "9",
+      "1",
+      "0"
+    ],
+    [
+      "Peter Stuyvesant",
+      "0",
+      "2",
+      "4",
+      "8"
+    ],
+    [
+      "Jan de Witt",
+      "0",
+      "2",
+      "6",
+      "10"
+    ],
+    [
+      "Ferdinand Magellan",
+      "1",
+      "2",
+      "10",
+      "10"
+    ],
+    [
+      "Francisco Coronado",
+      "1",
+      "3",
+      "5",
+      "7"
+    ],
+    [
+      "Hernando de Soto",
+      "1",
+      "5",
+      "10",
+      "5"
+    ],
+    [
+      "Henry Hudson",
+      "1",
+      "10",
+      "1",
+      "0"
+    ],
+    [
+      "Sieur De La Salle",
+      "1",
+      "7",
+      "5",
+      "3"
+    ],
+    [
+      "Hernan Cortes",
+      "2",
+      "6",
+      "5",
+      "1"
+    ],
+    [
+      "George Washington",
+      "2",
+      "0",
+      "4",
+      "10"
+    ],
+    [
+      "Paul Revere",
+      "2",
+      "10",
+      "2",
+      "1"
+    ],
+    [
+      "Francis Drake",
+      "2",
+      "4",
+      "8",
+      "6"
+    ],
+    [
+      "John Paul Jones",
+      "2",
+      "0",
+      "6",
+      "7"
+    ],
+    [
+      "Thomas Jefferson",
+      "3",
+      "4",
+      "5",
+      "6"
+    ],
+    [
+      "Pocahontas",
+      "3",
+      "7",
+      "5",
+      "3"
+    ],
+    [
+      "Thomas Paine",
+      "3",
+      "1",
+      "2",
+      "8"
+    ],
+    [
+      "Simon Bolivar",
+      "3",
+      "0",
+      "4",
+      "6"
+    ],
+    [
+      "Benjamin Franklin",
+      "3",
+      "5",
+      "5",
+      "5"
+    ],
+    [
+      "William Brewster",
+      "4",
+      "7",
+      "4",
+      "1"
+    ],
+    [
+      "William Penn",
+      "4",
+      "8",
+      "5",
+      "2"
+    ],
+    [
+      "Jean de Brebeuf",
+      "4",
+      "6",
+      "6",
+      "1"
+    ],
+    [
+      "Juan de Sepulveda",
+      "4",
+      "3",
+      "8",
+      "3"
+    ],
+    [
+      "Bartolome de las Casas",
+      "4",
+      "0",
+      "5",
+      "10"
+    ]
+  ],
+  "FORESTED": [
+    [
+      "Boreal",
+      "2",
+      "2",
+      "4",
+      "3",
+      "1",
+      "0",
+      "0",
+      "0",
+      "3",
+      "2",
+      "1",
+      "0",
+      "0"
+    ],
+    [
+      "Scrub",
+      "1",
+      "2",
+      "4",
+      "1",
+      "1",
+      "0",
+      "0",
+      "1",
+      "2",
+      "1",
+      "1",
+      "0",
+      "0"
+    ],
+    [
+      "Mixed",
+      "2",
+      "2",
+      "4",
+      "3",
+      "2",
+      "0",
+      "0",
+      "1",
+      "3",
+      "3",
+      "0",
+      "0",
+      "0"
+    ],
+    [
+      "Broadleaf",
+      "2",
+      "2",
+      "4",
+      "3",
+      "1",
+      "0",
+      "0",
+      "1",
+      "2",
+      "2",
+      "0",
+      "0",
+      "0"
+    ],
+    [
+      "Conifer",
+      "2",
+      "2",
+      "4",
+      "3",
+      "1",
+      "0",
+      "1",
+      "0",
+      "2",
+      "3",
+      "0",
+      "0",
+      "0"
+    ],
+    [
+      "Tropical",
+      "2",
+      "2",
+      "6",
+      "3",
+      "2",
+      "1",
+      "0",
+      "0",
+      "2",
+      "2",
+      "0",
+      "0",
+      "0"
+    ],
+    [
+      "Wetland",
+      "3",
+      "2",
+      "6",
+      "1",
+      "1",
+      "0",
+      "1",
+      "0",
+      "2",
+      "2",
+      "1",
+      "0",
+      "0"
+    ],
+    [
+      "Rain",
+      "3",
+      "3",
+      "7",
+      "1",
+      "1",
+      "1",
+      "0",
+      "0",
+      "1",
+      "2",
+      "1",
+      "0",
+      "0"
+    ]
+  ],
+  "FOUNDING": [
+    [
+      "Trade"
+    ],
+    [
+      "Exploration"
+    ],
+    [
+      "Military"
+    ],
+    [
+      "Political"
+    ],
+    [
+      "Religious"
+    ],
+    [
+      "Independence"
+    ]
+  ],
+  "HOMEPORT": [
+    [
+      "London"
+    ],
+    [
+      "La Rochelle"
+    ],
+    [
+      "Seville"
+    ],
+    [
+      "Amsterdam"
+    ]
+  ],
+  "INDEPENDENT": [
+    [
+      "United States of America"
+    ],
+    [
+      "Republic of Quebec"
+    ],
+    [
+      "Republic of Mexico"
+    ],
+    [
+      "Republic of Surinam"
+    ]
+  ],
+  "JOB": [
+    [
+      "Farmer",
+      "Expert Farmers",
+      "1",
+      "1100"
+    ],
+    [
+      "Sugar Planter",
+      "Master Sugar Planters",
+      "2",
+      "-1"
+    ],
+    [
+      "Tobacco Planter",
+      "Master Tobacco Planters",
+      "2",
+      "-1"
+    ],
+    [
+      "Cotton Planter",
+      "Master Cotton Planters",
+      "2",
+      "-1"
+    ],
+    [
+      "Fur Trapper",
+      "Expert Fur Trappers",
+      "1",
+      "-1"
+    ],
+    [
+      "Lumberjack",
+      "Expert Lumberjacks",
+      "1",
+      "700"
+    ],
+    [
+      "Ore Miner",
+      "Expert Ore Miners",
+      "1",
+      "600"
+    ],
+    [
+      "Silver Miner",
+      "Expert Silver Miners",
+      "1",
+      "900"
+    ],
+    [
+      "Fisherman",
+      "Expert Fishermen",
+      "1",
+      "1000"
+    ],
+    [
+      "Distiller",
+      "Master Distiller",
+      "2",
+      "1100"
+    ],
+    [
+      "Tobacconist",
+      "Master Tobacconists",
+      "2",
+      "1200"
+    ],
+    [
+      "Weaver",
+      "Master Weavers",
+      "2",
+      "1300"
+    ],
+    [
+      "Fur Trader",
+      "Master Fur Traders",
+      "2",
+      "950"
+    ],
+    [
+      "Carpenter",
+      "Master Carpenters",
+      "1",
+      "1000"
+    ],
+    [
+      "Blacksmith",
+      "Master Blacksmiths",
+      "2",
+      "1050"
+    ],
+    [
+      "Gunsmith",
+      "Master Gunsmiths",
+      "2",
+      "850"
+    ],
+    [
+      "Preacher",
+      "Firebrand Preachers",
+      "3",
+      "1500"
+    ],
+    [
+      "Statesman",
+      "Elder Statesmen",
+      "3",
+      "1900"
+    ],
+    [
+      "Teacher",
+      "Expert Teachers",
+      "4",
+      "-1"
+    ],
+    [
+      "Colonist",
+      "Free Colonists",
+      "4",
+      "-1"
+    ],
+    [
+      "Pioneer",
+      "Hardy Pioneers",
+      "1",
+      "1200"
+    ],
+    [
+      "Soldier",
+      "Veteran Soldiers",
+      "2",
+      "2000"
+    ],
+    [
+      "Scout",
+      "Seasoned Scouts",
+      "1",
+      "-1"
+    ],
+    [
+      "Dragoon",
+      "Veteran Dragoons",
+      "2",
+      "-1"
+    ],
+    [
+      "Missionary",
+      "Jesuit Missionaries",
+      "3",
+      "1400"
+    ],
+    [
+      "Ind. Servant",
+      "Indentured Servants",
+      "4",
+      "-1"
+    ],
+    [
+      "Criminal",
+      "Petty Criminals",
+      "4",
+      "-1"
+    ],
+    [
+      "Convert",
+      "Indian Converts",
+      "4",
+      "-1"
+    ]
+  ],
+  "LEADERNAME": [
+    [
+      "Walter Raleigh",
+      "1",
+      "-1",
+      "0"
+    ],
+    [
+      "Jacques Cartier",
+      "0",
+      "1",
+      "0"
+    ],
+    [
+      "Christopher Columbus",
+      "1",
+      "0",
+      "-1"
+    ],
+    [
+      "Michiel De Ruyter",
+      "-1",
+      "0",
+      "1"
+    ]
+  ],
+  "LEVELS": [
+    [
+      "Semi-Nomadic",
+      "Camp",
+      "Camps"
+    ],
+    [
+      "Agrarian",
+      "Village",
+      "Villages"
+    ],
+    [
+      "Advanced",
+      "City",
+      "Cities"
+    ],
+    [
+      "Civilized",
+      "City",
+      "Cities"
+    ],
+    [
+      "<Any>",
+      "Capital",
+      "Capitals"
+    ]
+  ],
+  "MISSION": [
+    [
+      "Church of"
+    ],
+    [
+      "Sainte Marie de"
+    ],
+    [
+      "Santa Maria del"
+    ],
+    [
+      "Church of"
+    ]
+  ],
+  "NATIONABBREV": [
+    [
+      "Eng."
+    ],
+    [
+      "Fr."
+    ],
+    [
+      "Span."
+    ],
+    [
+      "Dutch"
+    ]
+  ],
+  "NATIONALITY": [
+    [
+      "English"
+    ],
+    [
+      "French"
+    ],
+    [
+      "Spanish"
+    ],
+    [
+      "Dutch"
+    ]
+  ],
+  "ORDERS": [
+    [
+      "No Orders",
+      "-"
+    ],
+    [
+      "Sentry",
+      "S"
+    ],
+    [
+      "Trade Route",
+      "T"
+    ],
+    [
+      "Go To",
+      "G"
+    ],
+    [
+      "Live In Village",
+      "L"
+    ],
+    [
+      "Fortify",
+      "F"
+    ],
+    [
+      "Fortified",
+      "F"
+    ],
+    [
+      "Build Colony",
+      "B"
+    ],
+    [
+      "Clear/Plow",
+      "P"
+    ],
+    [
+      "Build Road",
+      "R"
+    ],
+    [
+      "No Orders",
+      "-"
+    ],
+    [
+      "No Orders",
+      "-"
+    ],
+    [
+      "No Orders",
+      "-"
+    ]
+  ],
+  "OTHER": [
+    [
+      "Arctic",
+      "2",
+      "0",
+      "4",
+      "0",
+      "0",
+      "0",
+      "0",
+      "0",
+      "0",
+      "0",
+      "0",
+      "0",
+      "0"
+    ],
+    [
+      "Ocean",
+      "1",
+      "0",
+      "2",
+      "3",
+      "0",
+      "0",
+      "0",
+      "0",
+      "0",
+      "0",
+      "0",
+      "0",
+      "3"
+    ],
+    [
+      "Sea Lane",
+      "1",
+      "0",
+      "2",
+      "0",
+      "0",
+      "0",
+      "0",
+      "0",
+      "0",
+      "0",
+      "0",
+      "0",
+      "3"
+    ],
+    [
+      "Mountains",
+      "3",
+      "6",
+      "7",
+      "2",
+      "0",
+      "0",
+      "0",
+      "0",
+      "0",
+      "0",
+      "4",
+      "1",
+      "0"
+    ],
+    [
+      "Hills",
+      "2",
+      "4",
+      "4",
+      "2",
+      "1",
+      "0",
+      "0",
+      "0",
+      "0",
+      "0",
+      "4",
+      "0",
+      "0"
+    ]
+  ],
+  "OTHER_NAMES": [
+    [
+      "Forest"
+    ],
+    [
+      "River"
+    ],
+    [
+      "Major River"
+    ],
+    [
+      "Minor River"
+    ],
+    [
+      "Unexplored"
+    ]
+  ],
+  "RESOURCE": [
+    [
+      "Depleted Mine",
+      "6"
+    ],
+    [
+      "Oasis",
+      "3"
+    ],
+    [
+      "Wheat",
+      "4"
+    ],
+    [
+      "Prime Cotton",
+      "6"
+    ],
+    [
+      "Prime Tobacco",
+      "6"
+    ],
+    [
+      "Prime Sugar",
+      "7"
+    ],
+    [
+      "Minerals",
+      "4"
+    ],
+    [
+      "Fishery",
+      "5"
+    ],
+    [
+      "Beaver",
+      "6"
+    ],
+    [
+      "Game",
+      "6"
+    ],
+    [
+      "Prime Timber",
+      "6"
+    ],
+    [
+      "Prime Timber",
+      "6"
+    ],
+    [
+      "Silver Deposit",
+      "12"
+    ],
+    [
+      "Ore Deposit",
+      "6"
+    ]
+  ],
+  "SCENARIO": [
+    [
+      "AMER2",
+      "34",
+      "20",
+      "39",
+      "10",
+      "47",
+      "61",
+      "50",
+      "33"
+    ],
+    [
+      "AMERICA",
+      "56",
+      "27",
+      "67",
+      "12",
+      "66",
+      "42",
+      "84",
+      "65"
+    ]
+  ],
+  "SEASONS": [
+    [
+      "Spring"
+    ],
+    [
+      "Autumn"
+    ]
+  ],
+  "TRIBES": [
+    [
+      "Incas",
+      "Inca",
+      "Jewelled Relics",
+      "3",
+      "97"
+    ],
+    [
+      "Aztecs",
+      "Aztec",
+      "Gold Bars",
+      "2",
+      "149"
+    ],
+    [
+      "Arawaks",
+      "Arawak",
+      "Bone Jewelry",
+      "1",
+      "54"
+    ],
+    [
+      "Iroquois",
+      "Iroquois",
+      "Wood Carvings",
+      "1",
+      "87"
+    ],
+    [
+      "Cherokee",
+      "Cherokee",
+      "Turquoise",
+      "1",
+      "67"
+    ],
+    [
+      "Apache",
+      "Apache",
+      "Beads",
+      "0",
+      "111"
+    ],
+    [
+      "Sioux",
+      "Sioux",
+      "Beads",
+      "0",
+      "118"
+    ],
+    [
+      "Tupi",
+      "Tupi",
+      "Gems",
+      "0",
+      "71"
+    ],
+    [
+      "Maya",
+      "Maya"
+    ],
+    [
+      "Toltecs",
+      "Toltec"
+    ],
+    [
+      "Kiowa",
+      "Kiowa"
+    ],
+    [
+      "Hurons",
+      "Huron"
+    ],
+    [
+      "Hopi",
+      "Hopi"
+    ],
+    [
+      "Navajo",
+      "Navajo"
+    ],
+    [
+      "Cheyenne",
+      "Cheyenne"
+    ],
+    [
+      "Cree",
+      "Cree"
+    ],
+    [
+      "Algonquin",
+      "Algonquin"
+    ],
+    [
+      "Powhatan",
+      "Powhatan"
+    ],
+    [
+      "Delaware",
+      "Delaware"
+    ],
+    [
+      "Shawnee",
+      "Shawnee"
+    ],
+    [
+      "Illinois",
+      "Illinois"
+    ],
+    [
+      "Chickasaw",
+      "Chickasaw"
+    ],
+    [
+      "Choctaw",
+      "Choctaw"
+    ],
+    [
+      "Seminole",
+      "Seminole"
+    ],
+    [
+      "Mohicans",
+      "Mohican"
+    ],
+    [
+      "Zapotec",
+      "Zapotec"
+    ]
+  ],
+  "UNFORESTED": [
+    [
+      "Tundra",
+      "1",
+      "0",
+      "4",
+      "2",
+      "2",
+      "0",
+      "0",
+      "0",
+      "0",
+      "0",
+      "2",
+      "0",
+      "0"
+    ],
+    [
+      "Desert",
+      "1",
+      "0",
+      "3",
+      "2",
+      "1",
+      "0",
+      "0",
+      "1",
+      "0",
+      "0",
+      "2",
+      "0",
+      "0"
+    ],
+    [
+      "Plains",
+      "1",
+      "0",
+      "3",
+      "4",
+      "4",
+      "0",
+      "0",
+      "2",
+      "0",
+      "0",
+      "1",
+      "0",
+      "0"
+    ],
+    [
+      "Prairie",
+      "1",
+      "0",
+      "3",
+      "4",
+      "2",
+      "0",
+      "0",
+      "3",
+      "0",
+      "0",
+      "0",
+      "0",
+      "0"
+    ],
+    [
+      "Grassland",
+      "1",
+      "0",
+      "3",
+      "4",
+      "2",
+      "0",
+      "3",
+      "0",
+      "0",
+      "0",
+      "0",
+      "0",
+      "0"
+    ],
+    [
+      "Savannah",
+      "1",
+      "0",
+      "3",
+      "4",
+      "3",
+      "3",
+      "0",
+      "0",
+      "0",
+      "0",
+      "0",
+      "0",
+      "0"
+    ],
+    [
+      "Marsh",
+      "2",
+      "1",
+      "5",
+      "2",
+      "2",
+      "0",
+      "2",
+      "0",
+      "0",
+      "0",
+      "2",
+      "0",
+      "0"
+    ],
+    [
+      "Swamp",
+      "2",
+      "1",
+      "7",
+      "2",
+      "2",
+      "2",
+      "0",
+      "0",
+      "0",
+      "0",
+      "2",
+      "0",
+      "0"
+    ]
+  ],
+  "UNIT": {
+    "Armed Braves": {
+      "attack": 2,
+      "cargo": 0,
+      "combat": 2,
+      "cost": 2,
+      "guns": 0,
+      "hull": 0,
+      "icon": 111,
+      "movement": 1,
+      "role": "00111000",
+      "size": 0,
+      "tools": 0
+    },
+    "Artillery": {
+      "attack": 7,
+      "cargo": 0,
+      "combat": 5,
+      "cost": 6,
+      "guns": 0,
+      "hull": 0,
+      "icon": 10,
+      "movement": 1,
+      "role": "00011000",
+      "size": 1,
+      "tools": 4
+    },
+    "Braves": {
+      "attack": 1,
+      "cargo": 0,
+      "combat": 1,
+      "cost": 1,
+      "guns": 0,
+      "hull": 0,
+      "icon": 110,
+      "movement": 1,
+      "role": "00111000",
+      "size": 0,
+      "tools": 0
+    },
+    "Caravel": {
+      "attack": 0,
+      "cargo": 2,
+      "combat": 2,
+      "cost": 4,
+      "guns": 0,
+      "hull": 4,
+      "icon": 6,
+      "movement": 4,
+      "role": "10100010",
+      "size": 99,
+      "tools": 4
+    },
+    "Cavalry": {
+      "attack": 6,
+      "cargo": 0,
+      "combat": 6,
+      "cost": 4,
+      "guns": 0,
+      "hull": 0,
+      "icon": 127,
+      "movement": 4,
+      "role": "00011100",
+      "size": 1,
+      "tools": 0
+    },
+    "Colonists": {
+      "attack": 0,
+      "cargo": 0,
+      "combat": 1,
+      "cost": 1,
+      "guns": 0,
+      "hull": 0,
+      "icon": 101,
+      "movement": 1,
+      "role": "01000000",
+      "size": 1,
+      "tools": 0
+    },
+    "Cont. Army": {
+      "attack": 4,
+      "cargo": 0,
+      "combat": 4,
+      "cost": 3,
+      "guns": 0,
+      "hull": 0,
+      "icon": 129,
+      "movement": 1,
+      "role": "00011100",
+      "size": 1,
+      "tools": 0
+    },
+    "Cont. Cav.": {
+      "attack": 5,
+      "cargo": 0,
+      "combat": 5,
+      "cost": 3,
+      "guns": 0,
+      "hull": 0,
+      "icon": 130,
+      "movement": 4,
+      "role": "00011100",
+      "size": 1,
+      "tools": 0
+    },
+    "Dragoons": {
+      "attack": 3,
+      "cargo": 0,
+      "combat": 3,
+      "cost": 3,
+      "guns": 0,
+      "hull": 0,
+      "icon": 105,
+      "movement": 4,
+      "role": "00111100",
+      "size": 1,
+      "tools": 0
+    },
+    "Frigate": {
+      "attack": 16,
+      "cargo": 4,
+      "combat": 16,
+      "cost": 16,
+      "guns": 12,
+      "hull": 32,
+      "icon": 16,
+      "movement": 6,
+      "role": "10000001",
+      "size": 99,
+      "tools": 20
+    },
+    "Galleon": {
+      "attack": 0,
+      "cargo": 6,
+      "combat": 10,
+      "cost": 10,
+      "guns": 4,
+      "hull": 20,
+      "icon": 8,
+      "movement": 6,
+      "role": "10000010",
+      "size": 99,
+      "tools": 10
+    },
+    "Man-O-War": {
+      "attack": 24,
+      "cargo": 6,
+      "combat": 24,
+      "cost": 32,
+      "guns": 32,
+      "hull": 64,
+      "icon": 128,
+      "movement": 5,
+      "role": "10000001",
+      "size": 99,
+      "tools": 90
+    },
+    "Merchantman": {
+      "attack": 0,
+      "cargo": 4,
+      "combat": 6,
+      "cost": 6,
+      "guns": 1,
+      "hull": 8,
+      "icon": 7,
+      "movement": 5,
+      "role": "10000010",
+      "size": 99,
+      "tools": 8
+    },
+    "Missionaries": {
+      "attack": 0,
+      "cargo": 0,
+      "combat": 1,
+      "cost": 1,
+      "guns": 0,
+      "hull": 0,
+      "icon": 106,
+      "movement": 2,
+      "role": "00100000",
+      "size": 1,
+      "tools": 0
+    },
+    "Mtd. Braves": {
+      "attack": 2,
+      "cargo": 0,
+      "combat": 2,
+      "cost": 2,
+      "guns": 0,
+      "hull": 0,
+      "icon": 112,
+      "movement": 4,
+      "role": "00111000",
+      "size": 0,
+      "tools": 0
+    },
+    "Mtd. Warriors": {
+      "attack": 3,
+      "cargo": 0,
+      "combat": 3,
+      "cost": 3,
+      "guns": 0,
+      "hull": 0,
+      "icon": 113,
+      "movement": 4,
+      "role": "00111000",
+      "size": 0,
+      "tools": 0
+    },
+    "Pioneers": {
+      "attack": 0,
+      "cargo": 0,
+      "combat": 1,
+      "cost": 2,
+      "guns": 0,
+      "hull": 0,
+      "icon": 102,
+      "movement": 1,
+      "role": "01000000",
+      "size": 1,
+      "tools": 0
+    },
+    "Privateer": {
+      "attack": 8,
+      "cargo": 2,
+      "combat": 8,
+      "cost": 8,
+      "guns": 4,
+      "hull": 12,
+      "icon": 15,
+      "movement": 8,
+      "role": "00000001",
+      "size": 99,
+      "tools": 12
+    },
+    "Regulars": {
+      "attack": 5,
+      "cargo": 0,
+      "combat": 5,
+      "cost": 3,
+      "guns": 0,
+      "hull": 0,
+      "icon": 126,
+      "movement": 1,
+      "role": "00011100",
+      "size": 1,
+      "tools": 0
+    },
+    "Scouts": {
+      "attack": 1,
+      "cargo": 0,
+      "combat": 1,
+      "cost": 2,
+      "guns": 0,
+      "hull": 0,
+      "icon": 104,
+      "movement": 4,
+      "role": "01100100",
+      "size": 1,
+      "tools": 0
+    },
+    "Soldiers": {
+      "attack": 2,
+      "cargo": 0,
+      "combat": 2,
+      "cost": 2,
+      "guns": 0,
+      "hull": 0,
+      "icon": 103,
+      "movement": 1,
+      "role": "00011100",
+      "size": 1,
+      "tools": 0
+    },
+    "Treasure": {
+      "attack": 0,
+      "cargo": 0,
+      "combat": 0,
+      "cost": 4,
+      "guns": 0,
+      "hull": 0,
+      "icon": 17,
+      "movement": 1,
+      "role": "00000000",
+      "size": 6,
+      "tools": 0
+    },
+    "Wagon Train": {
+      "attack": 0,
+      "cargo": 2,
+      "combat": 1,
+      "cost": 1,
+      "guns": 0,
+      "hull": 0,
+      "icon": 9,
+      "movement": 2,
+      "role": "00000000",
+      "size": 99,
+      "tools": 0
+    }
+  },
+  "VALUES": [
+    [
+      "low quality"
+    ],
+    [
+      "good"
+    ],
+    [
+      "fine"
+    ],
+    [
+      "excellent"
+    ]
+  ]
+}
