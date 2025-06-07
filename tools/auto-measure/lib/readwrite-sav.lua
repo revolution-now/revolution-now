@@ -15,6 +15,7 @@ assert( sav_writer.save )
 local format = string.format
 local getenv = os.getenv
 local exists = file.exists
+local copy_file = file.copy_file
 local info = logger.info
 
 -----------------------------------------------------------------
@@ -74,6 +75,13 @@ local function remove_sav( sav )
   end
 end
 
+local function copy_sav( from, to )
+  remove_sav( to )
+  local src = path_for_sav( from )
+  local dst = path_for_sav( to )
+  copy_file( src, dst )
+end
+
 local function modify_sav( sav, mutator )
   assert( sav )
   assert( mutator )
@@ -90,6 +98,7 @@ return {
   write_sav=write_sav,
   modify_sav=modify_sav,
   remove_sav=remove_sav,
+  copy_sav=copy_sav,
   path_for_sav=path_for_sav,
   sav_file_for_slot=sav_file_for_slot,
   names_txt_path=names_txt_path,

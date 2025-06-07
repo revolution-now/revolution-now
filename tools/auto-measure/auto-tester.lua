@@ -11,6 +11,7 @@ local readwrite = require'lib.readwrite-sav'
 local xdotool = require'lib.xdotool'
 local dosbox = require'lib.dosbox'
 local libconfig = require'lib.config'
+local names = require'lib.names'
 
 -----------------------------------------------------------------
 -- Aliases
@@ -28,20 +29,26 @@ local info = logger.info
 local read_file_lines = file.read_file_lines
 local remove_sav = readwrite.remove_sav
 local read_sav = readwrite.read_sav
+local copy_sav = readwrite.copy_sav
 local modify_sav = readwrite.modify_sav
 local path_for_sav = readwrite.path_for_sav
 local names_txt_path = readwrite.names_txt_path
 local save_game = coldo.save_game
 local load_game = coldo.load_game
-local exit_game = coldo.exit_game
 local action_api = xdotool.action_api
 local format_kv_table = printer.format_kv_table
+local pause_dosbox = dosbox.pause
 
 -----------------------------------------------------------------
 -- Constants.
 -----------------------------------------------------------------
-local INPUT_SAV_NUM = 0 -- COLONY00.SAV
-local OUTPUT_SAV_NUM = 1 -- COLONY01.SAV
+-- The way it works is that we read in the template, modify it
+-- with the config, then save that as the "start" file. Then the
+-- experiment's actions are performed and the result is saved as
+-- the "finish" file.
+local FINISH_SAV_NUM = 0 -- COLONY00.SAV
+local START_SAV_NUM = 1 -- COLONY01.SAV
+local TEMPLATE_SAV_NUM = 2 -- COLONY02.SAV
 
 -----------------------------------------------------------------
 -- Global Init.
@@ -51,8 +58,8 @@ logger.level = logger.levels.INFO
 -----------------------------------------------------------------
 -- Validation.
 -----------------------------------------------------------------
-local function validate_sav( processor )
-  local json = read_sav( INPUT_SAV_NUM )
+local function validate_template_sav( processor )
+  local json = read_sav( TEMPLATE_SAV_NUM )
   assert( json.HEADER )
   assert( processor.validate_sav( json ) )
 end
@@ -66,7 +73,7 @@ local function record_outcome( args )
   local processor = assert( args.processor )
   local exp_name = assert( args.exp_name )
 
-  local json = read_sav( OUTPUT_SAV_NUM )
+  local json = read_sav( FINISH_SAV_NUM )
   assert( json.HEADER )
 
   -- This invokes test-case-specific logic.
@@ -78,7 +85,8 @@ local function record_outcome( args )
     pair_sep='|',
   } )
 
-  info( 'result: %s --> %s', exp_name, value )
+  info( 'case: %s', exp_name )
+  info( 'result: %s', value )
   local line = format( '%s\t%s', exp_name, value )
   append_string_to_file( outfile, line .. '\n' )
 end
@@ -92,14 +100,17 @@ local function run_config( args )
   local processor = assert( args.processor )
   local exp_name = assert( args.exp_name )
 
-  info( 'running for %s...', exp_name )
+  processor.validate_config( config )
+
+  remove_sav( START_SAV_NUM )
+  copy_sav( TEMPLATE_SAV_NUM, START_SAV_NUM )
 
   -- Set the current config in the input SAV file.
-  modify_sav( INPUT_SAV_NUM, function( json )
+  modify_sav( START_SAV_NUM, function( json )
     processor.set_config( config, json )
   end )
 
-  load_game( INPUT_SAV_NUM )
+  load_game( START_SAV_NUM )
   processor.action( config, action_api( dosbox.window() ) )
   -- First remove the file to which we will be saving as a simple
   -- way to verify that the file was actually saved. It is diffi-
@@ -107,10 +118,10 @@ local function run_config( args )
   -- trust that we successfully opened the game menu to save it,
   -- which can't know directly because we can't "see" the con-
   -- tents of the game window.
-  remove_sav( OUTPUT_SAV_NUM )
-  local target_sav = path_for_sav( OUTPUT_SAV_NUM )
+  remove_sav( FINISH_SAV_NUM )
+  local target_sav = path_for_sav( FINISH_SAV_NUM )
   assert( not exists( target_sav ) )
-  save_game( OUTPUT_SAV_NUM )
+  save_game( FINISH_SAV_NUM )
   assert( exists( target_sav ),
           'failed to save file ' .. target_sav )
   record_outcome{
@@ -162,9 +173,11 @@ local function run_configs( args )
   info( 'Partial results found. Running %d more configs.',
         #need_to_run )
 
-  for _, elem in ipairs( need_to_run ) do
+  for i, elem in ipairs( need_to_run ) do
     local exp_name = assert( elem.exp_name )
     local config = assert( elem.config )
+    info( 'running config [%d/%d]: %s...', i, #need_to_run,
+          exp_name )
     local result = run_config{
       config=config,
       outfile=outfile,
@@ -200,14 +213,13 @@ local function main( args )
   assert( main_config.type == 'deterministic' ) -- sanity check.
   local configs = flatten_configs( main_config.combinatorial )
 
-  assert( processor.validate_names_txt( names_txt_path() ) )
+  processor.validate_names_txt( names.parse( names_txt_path() ) )
 
-  validate_sav( processor )
+  validate_template_sav( processor )
 
   run_configs{ dir=dir, processor=processor, configs=configs }
-  if false then
-    exit_game() --
-  end
+
+  pause_dosbox()
   return 0
 end
 

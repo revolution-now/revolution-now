@@ -24,20 +24,20 @@ return {
     },
 
     fortification={
-      'none', --
+      -- 'none', --
       -- 'stockade', --
-      -- 'fort', --
+      'fort', --
       -- 'fortress', --
     },
 
     already_landed={
-      false,
-      -- true,
+      false, --
+      -- true, --
     },
 
     horses={
       0, --
-      50, --
+      -- 50, --
       -- 100, --
       -- 150, --
       -- 200, --
@@ -45,61 +45,96 @@ return {
 
     muskets={
       0, --
-      50, --
+      -- 50, --
       -- 100, --
       -- 150, --
       -- 200, --
     },
 
-    unit_set={
-      -- soldier
-      'soldier', --
-      'soldier-soldier', --
-      'soldier-soldier-soldier', --
-      -- 'soldier-soldier-soldier-soldier', --
-      -- 'soldier-soldier-soldier-soldier-soldier', --
-      -- -- veteran_soldier
-      -- 'veteran_soldier', --
-      -- 'veteran_soldier-veteran_soldier', --
-      -- 'veteran_soldier-veteran_soldier-veteran_soldier', --
-      -- 'veteran_soldier-veteran_soldier-veteran_soldier-veteran_soldier', --
-      -- 'veteran_soldier-veteran_soldier-veteran_soldier-veteran_soldier-veteran_soldier', --
-      -- -- dragoon
-      -- 'dragoon', --
-      -- 'dragoon-dragoon', --
-      -- 'dragoon-dragoon-dragoon', --
-      -- 'dragoon-dragoon-dragoon-dragoon', --
-      -- 'dragoon-dragoon-dragoon-dragoon-dragoon', --
-      -- -- veteran_dragoon
-      -- 'veteran_dragoon', --
-      -- 'veteran_dragoon-veteran_dragoon', --
-      -- 'veteran_dragoon-veteran_dragoon-veteran_dragoon', --
-      -- 'veteran_dragoon-veteran_dragoon-veteran_dragoon-veteran_dragoon', --
-      -- 'veteran_dragoon-veteran_dragoon-veteran_dragoon-veteran_dragoon-veteran_dragoon', --
-      -- -- 'artillery', --
-      -- 'artillery', --
-      -- 'artillery-artillery', --
-      -- 'artillery-artillery-artillery', --
-      -- 'artillery-artillery-artillery-artillery', --
-      -- 'artillery-artillery-artillery-artillery-artillery', --
-      -- -- 'damaged_artillery', --
-      -- 'damaged_artillery', --
-      -- 'damaged_artillery-damaged_artillery', --
-      -- 'damaged_artillery-damaged_artillery-damaged_artillery', --
-      -- 'damaged_artillery-damaged_artillery-damaged_artillery-damaged_artillery', --
-      -- 'damaged_artillery-damaged_artillery-damaged_artillery-damaged_artillery-damaged_artillery', --
-      -- -- 'continental_army', --
-      -- 'continental_army', --
-      -- 'continental_army-continental_army', --
-      -- 'continental_army-continental_army-continental_army', --
-      -- 'continental_army-continental_army-continental_army-continental_army', --
-      -- 'continental_army-continental_army-continental_army-continental_army-continental_army', --
-      -- -- 'continental_cavalry', --
-      -- 'continental_cavalry', --
-      -- 'continental_cavalry-continental_cavalry', --
-      -- 'continental_cavalry-continental_cavalry-continental_cavalry', --
-      -- 'continental_cavalry-continental_cavalry-continental_cavalry-continental_cavalry', --
-      -- 'continental_cavalry-continental_cavalry-continental_cavalry-continental_cavalry-continental_cavalry', --
+    -- Doesn't seem to depend on fortified status.
+    orders={
+      'fortified', --
     },
+
+    -- LuaFormatter off
+    unit_set={
+    -----------------------------------------------------------
+    -- soldier
+    -----------------------------------------------------------
+    { 'soldier' },
+    { 'soldier', 'soldier' },
+    { 'soldier', 'soldier', 'soldier' },
+    { 'soldier', 'soldier', 'soldier', 'soldier' },
+    { 'soldier', 'soldier', 'soldier', 'soldier', 'soldier' },
+    --   -----------------------------------------------------------
+    --   -- veteran_soldier
+    --   -----------------------------------------------------------
+    --   { 'veteran_soldier' },
+    --   { 'veteran_soldier', 'veteran_soldier' },
+    --   { 'veteran_soldier', 'veteran_soldier', 'veteran_soldier' },
+    --   { 'veteran_soldier', 'veteran_soldier', 'veteran_soldier', 'veteran_soldier' },
+    --   { 'veteran_soldier', 'veteran_soldier', 'veteran_soldier', 'veteran_soldier', 'veteran_soldier' },
+    --   -----------------------------------------------------------
+    --   -- dragoon
+    --   -----------------------------------------------------------
+    --   { 'dragoon' },
+    --   { 'dragoon', 'dragoon' },
+    --   { 'dragoon', 'dragoon', 'dragoon' },
+    --   { 'dragoon', 'dragoon', 'dragoon', 'dragoon' },
+    --   { 'dragoon', 'dragoon', 'dragoon', 'dragoon', 'dragoon' },
+    --   -----------------------------------------------------------
+    --   -- veteran_dragoon
+    --   -----------------------------------------------------------
+    --   { 'veteran_dragoon' },
+    --   { 'veteran_dragoon', 'veteran_dragoon' },
+    --   { 'veteran_dragoon', 'veteran_dragoon', 'veteran_dragoon' },
+    --   { 'veteran_dragoon', 'veteran_dragoon', 'veteran_dragoon', 'veteran_dragoon' },
+    --   { 'veteran_dragoon', 'veteran_dragoon', 'veteran_dragoon', 'veteran_dragoon', 'veteran_dragoon' },
+    -----------------------------------------------------------
+    -- artillery
+    -----------------------------------------------------------
+    -- { 'artillery' },
+    -- { 'artillery', 'artillery' },
+    -- { 'artillery', 'artillery', 'artillery' },
+    -- { 'artillery', 'artillery', 'artillery', 'artillery' },
+    -- { 'artillery', 'artillery', 'artillery', 'artillery', 'artillery' },
+    -----------------------------------------------------------
+    -- damaged_artillery
+    -----------------------------------------------------------
+    -- { 'damaged_artillery' },
+    -- { 'damaged_artillery', 'damaged_artillery' },
+    -- { 'damaged_artillery', 'damaged_artillery', 'damaged_artillery' },
+    -- { 'damaged_artillery', 'damaged_artillery', 'damaged_artillery', 'damaged_artillery' },
+    -- { 'damaged_artillery', 'damaged_artillery', 'damaged_artillery', 'damaged_artillery', 'damaged_artillery' },
+    -----------------------------------------------------------
+    -- continental_army
+    -----------------------------------------------------------
+    -- { 'continental_army' },
+    -- { 'continental_army', 'continental_army' },
+    -- { 'continental_army', 'continental_army', 'continental_army' },
+    -- { 'continental_army', 'continental_army', 'continental_army', 'continental_army' },
+    -- { 'continental_army', 'continental_army', 'continental_army', 'continental_army', 'continental_army' },
+    -----------------------------------------------------------
+    -- continental_cavalry
+    -----------------------------------------------------------
+    -- { 'continental_cavalry' },
+    -- { 'continental_cavalry', 'continental_cavalry' },
+    -- { 'continental_cavalry', 'continental_cavalry', 'continental_cavalry' },
+    -- { 'continental_cavalry', 'continental_cavalry', 'continental_cavalry', 'continental_cavalry' },
+    -- { 'continental_cavalry', 'continental_cavalry', 'continental_cavalry', 'continental_cavalry', 'continental_cavalry' }
+    -----------------------------------------------------------
+    -- mixed
+    -----------------------------------------------------------
+    -- { 'soldier','soldier','veteran_dragoon','veteran_dragoon' },
+    -- { 'soldier','dragoon','dragoon','veteran_dragoon' },
+    -- { 'dragoon','dragoon','dragoon','dragoon' },
+    -- { 'dragoon','dragoon','dragoon','veteran_soldier' },
+    -- { 'dragoon','dragoon','veteran_soldier','veteran_soldier' },
+    -- { 'dragoon','veteran_soldier','veteran_soldier','veteran_soldier' },
+    -- { 'veteran_soldier','veteran_soldier','veteran_soldier','veteran_soldier' },
+    -- { 'soldier','veteran_soldier','veteran_soldier','veteran_dragoon' },
+    -- { 'soldier','soldier','veteran_soldier','veteran_dragoon' },
+    },
+    -- LuaFormatter on
   },
 }

@@ -7,6 +7,7 @@ local xdotool = require'lib.xdotool'
 -- Aliases.
 -----------------------------------------------------------------
 local find_window_named = xdotool.find_window_named
+local action_api = xdotool.action_api
 
 -----------------------------------------------------------------
 -- DOSBox
@@ -29,7 +30,9 @@ local function window()
   return __dosbox
 end
 
+local function pause() action_api( window() ).alt_pause() end
+
 -----------------------------------------------------------------
 -- Finished.
 -----------------------------------------------------------------
-return { find_dosbox=find_dosbox, window=window }
+return { find_dosbox=find_dosbox, window=window, pause=pause }
