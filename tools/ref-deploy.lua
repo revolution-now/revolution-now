@@ -13,6 +13,7 @@ local rep = string.rep
 local insert = table.insert
 local concat = table.concat
 local floor = math.floor
+local format = string.format
 
 local NORMAL = colors.ANSI_NORMAL
 local GREEN = colors.ANSI_GREEN
@@ -47,53 +48,61 @@ local BUCKET_COUNTS = {
 -----------------------------------------------------------------
 -- Units
 -----------------------------------------------------------------
-local units = {
+local UNITS = {
   soldier={
     name='soldier',
     combat=2, --
     veteran=false,
+    uses_muskets=true,
   },
 
   dragoon={
     name='dragoon',
-    combat=3, --
+    combat=3 - 1, --
     veteran=false,
+    uses_muskets=true,
   },
 
   veteran_soldier={
     name='veteran_soldier',
     combat=2, --
     veteran=false,
+    uses_muskets=true,
   },
 
   veteran_dragoon={
     name='veteran_dragoon',
-    combat=3, --
+    combat=3 - 1, --
     veteran=false,
+    uses_muskets=true,
   },
 
   continental_army={
     name='continental_army',
-    combat=4, --
+    combat=4 + 2, --
     veteran=false,
+    uses_muskets=true,
   },
 
   continental_cavalry={
     name='continental_cavalry',
-    combat=5, --
+    combat=5 + 1, --
     veteran=false,
-  },
-
-  artillery={
-    name='artillery',
-    combat=5, --
-    veteran=false,
+    uses_muskets=true,
   },
 
   damaged_artillery={
     name='damaged_artillery',
-    combat=3, --
+    combat=3 + 3, --
     veteran=false,
+    uses_muskets=false,
+  },
+
+  artillery={
+    name='artillery',
+    combat=5 + 3, --
+    veteran=false,
+    uses_muskets=false,
   },
 }
 
@@ -139,6 +148,14 @@ local function unit_strength( unit, case )
   return strength
 end
 
+local function has_unit_using_muskets( case )
+  for _, unit in ipairs( case.unit_set ) do
+    assert( UNITS[unit].uses_muskets ~= nil )
+    if UNITS[unit].uses_muskets then return true end
+  end
+  return false
+end
+
 local function units_strength( case )
   local strength = 0
   local add = function( term ) strength = strength + term end
@@ -146,11 +163,19 @@ local function units_strength( case )
     strength = strength * factor
   end
   for _, unit in ipairs( case.unit_set ) do
-    add( unit_strength( units[unit], case ) )
+    add( unit_strength( UNITS[unit], case ) )
   end
-  -- assert( type( case.muskets ) == 'number', format(
-  --             'case.muskets has type %s', type( case.muskets ) ) )
-  add( 10 * (case.muskets / 50) )
+  assert( type( case.muskets ) == 'number', format(
+              'case.muskets has type %s', type( case.muskets ) ) )
+  -- add( 39 * (case.muskets / 50) )
+  -- multiply( 3.50 * (case.muskets/100) )
+  -- add( 2 * (case.muskets // 50) )
+  if has_unit_using_muskets( case ) then
+    add( 50 * (case.muskets // 50) )
+    -- for _ = 1, (case.muskets // 50) do
+    --   add( unit_strength( UNITS['soldier'], case ) )
+    -- end
+  end
   -- multiply( .7 )
   return strength
 end
@@ -257,11 +282,10 @@ local function create_test_cases()
   for _, line in ipairs( lines ) do
     local test = parse_test_case( line )
     -- FIXME: skips
-    if test.info.muskets > 0 or test.info.horses > 0 then
-      goto continue
-    end
+    -- if test.info.muskets > 0 then goto continue end
+    -- if test.info.horses > 0 then goto continue end
     if test.info.fortification ~= 'none' then goto continue end
-    if test.info.orders == 'none' then goto continue end
+    -- if test.info.orders == 'none' then goto continue end
     insert( tests, parse_test_case( line ) )
     ::continue::
   end
