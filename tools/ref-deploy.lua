@@ -2,111 +2,127 @@
 -- Imports.
 -----------------------------------------------------------------
 local colors = require'moon.colors'
+local file = require'moon.file'
+local printer = require'moon.printer'
+local list = require'moon.list'
 
 -----------------------------------------------------------------
 -- Aliases.
 -----------------------------------------------------------------
-local format = string.format
+local rep = string.rep
+local insert = table.insert
+local concat = table.concat
+local floor = math.floor
 
 local NORMAL = colors.ANSI_NORMAL
 local GREEN = colors.ANSI_GREEN
--- local BLUE = colors.ANSI_BLUE
 local RED = colors.ANSI_RED
--- local YELLOW = colors.ANSI_YELLOW
--- local MAGENTA = colors.ANSI_MAGENTA
 
------------------------------------------------------------------
--- Helpers.
------------------------------------------------------------------
-local function printfln( fmt, ... ) print( format( fmt, ... ) ) end
+local read_file_lines = file.read_file_lines
+local tsplit = list.tsplit
+local split = list.split
+local printfln = printer.printfln
 
 -----------------------------------------------------------------
 -- Buckets.
 -----------------------------------------------------------------
--- For adding 10.
+local BUCKET_MULT = 1.0
+
 local BUCKETS = {
-  { start=351, name='_2_2_2' }, --
-  { start=141, name='_4_1_1' }, --
-  { start=106, name='_3_1_1' }, --
-  { start=82, name='_2_1_1' }, --
-  { start=0, name='_2_1_0' }, --
+  { start=489 * BUCKET_MULT, name='2/2/2' }, --
+  { start=212 * BUCKET_MULT, name='4/1/1' }, --
+  { start=130 * BUCKET_MULT, name='3/1/1' }, --
+  { start=95 * BUCKET_MULT, name='2/1/1' }, --
+  { start=0 * BUCKET_MULT, name='2/1/0' }, --
 }
 
--- local BUCKETS = {
---   { start=360, name='_2_2_2' }, --
---   { start=144, name='_4_1_1' }, --
---   { start=96, name='_3_1_1' }, --
---   { start=72, name='_2_1_1' }, --
---   { start=0, name='_2_1_0' }, --
--- }
+local BUCKET_COUNTS = {
+  { name='2/2/2', max=1000 }, --
+  { name='4/1/1', max=14 }, --
+  { name='3/1/1', max=4 }, --
+  { name='2/1/1', max=4 }, --
+  { name='2/1/0', max=3 }, --
+}
 
 -----------------------------------------------------------------
 -- Units
 -----------------------------------------------------------------
-local soldier = {
-  name='sl',
-  combat=2, --
-  veteran=false,
-}
+local units = {
+  soldier={
+    name='soldier',
+    combat=2, --
+    veteran=false,
+  },
 
-local dragoon = {
-  name='dragoon',
-  combat=3, --
-  veteran=false,
-}
+  dragoon={
+    name='dragoon',
+    combat=3, --
+    veteran=false,
+  },
 
-local v_soldier = {
-  name='v_soldier',
-  combat=2, --
-  veteran=true,
-}
+  veteran_soldier={
+    name='veteran_soldier',
+    combat=2, --
+    veteran=false,
+  },
 
-local v_dragoon = {
-  name='v_dragoon',
-  combat=3, --
-  veteran=true,
-}
+  veteran_dragoon={
+    name='veteran_dragoon',
+    combat=3, --
+    veteran=false,
+  },
 
-local c_army = {
-  name='c_army',
-  combat=4, --
-  veteran=false,
-}
+  continental_army={
+    name='continental_army',
+    combat=4, --
+    veteran=false,
+  },
 
-local c_cavalry = {
-  name='c_cavalry',
-  combat=5, --
-  veteran=false,
-}
+  continental_cavalry={
+    name='continental_cavalry',
+    combat=5, --
+    veteran=false,
+  },
 
-local regular = {
-  name='regular',
-  combat=5, --
-  veteran=false,
-}
+  artillery={
+    name='artillery',
+    combat=5, --
+    veteran=false,
+  },
 
-local cavalry = {
-  name='cavalry',
-  combat=6, --
-  veteran=false,
-}
-
-local artillery = {
-  name='artillery',
-  combat=6, --
-  veteran=false,
-}
-
-local d_artillery = {
-  name='d_art',
-  combat=4, --
-  veteran=false,
+  damaged_artillery={
+    name='damaged_artillery',
+    combat=3, --
+    veteran=false,
+  },
 }
 
 -----------------------------------------------------------------
 -- Strength computation.
 -----------------------------------------------------------------
-local function unit_strength( unit, bonuses )
+local function bonus_for_fortification( _, fortification )
+  assert( fortification )
+  local from_colony = {
+    none=0.5,
+    stockade=1.0,
+    fort=1.5,
+    fortress=2.0,
+  }
+  local res = assert( from_colony[fortification] )
+  -- if orders == 'fortified' then res = res + .5 end
+  res = 1 + res
+  return res
+end
+
+local function additive_fudge_per_unit( case )
+  local res = {
+    conquistador=10, --
+    viceroy=0, --
+  }
+  return assert( res[case.difficulty] )
+end
+
+local function unit_strength( unit, case )
   local strength = unit.combat
   local multiply = function( factor )
     strength = strength * factor
@@ -114,150 +130,167 @@ local function unit_strength( unit, bonuses )
   local add = function( term ) strength = strength + term end
   multiply( 8 )
   if unit.veteran then multiply( 1.5 ) end
-  local fortification_bonus = (bonuses.colony and .5 or 0) + 0
-  multiply( 1 + fortification_bonus )
-  add( 10 )
+  local fortification_bonus = bonus_for_fortification(
+                                  case.orders, case.fortification )
+  multiply( fortification_bonus )
+  -- multiply( .5 ) -- tory penalty
+  add( additive_fudge_per_unit( case ) )
   -- printfln( 'unit %s strength=%d', unit.name, strength )
   return strength
 end
 
-local function units_strength( units, bonuses )
+local function units_strength( case )
   local strength = 0
   local add = function( term ) strength = strength + term end
-  for _, unit in ipairs( units ) do
-    add( unit_strength( unit, bonuses ) )
+  local multiply = function( factor )
+    strength = strength * factor
   end
-  -- add( 10 )
+  for _, unit in ipairs( case.unit_set ) do
+    add( unit_strength( units[unit], case ) )
+  end
+  -- assert( type( case.muskets ) == 'number', format(
+  --             'case.muskets has type %s', type( case.muskets ) ) )
+  add( 10 * (case.muskets / 50) )
+  -- multiply( .7 )
   return strength
 end
 
+-----------------------------------------------------------------
+-- Test runner.
+-----------------------------------------------------------------
 local function bucket_for( strength )
-  for _, bucket in ipairs( BUCKETS ) do
-    if strength >= bucket.start then return bucket.name end
+  for idx, bucket in ipairs( BUCKETS ) do
+    if strength >= bucket.start then return idx end
   end
   error( 'bucket not found for strength=' .. strength )
 end
 
 local function compute_bucket( case )
-  local strength = units_strength( case.units, case.bonuses )
+  local strength = units_strength( case )
   local bucket = bucket_for( strength )
-  return strength, bucket
+  if #case.unit_set > BUCKET_COUNTS[bucket].max then
+    for i, _ in ipairs( BUCKET_COUNTS ) do
+      bucket = i
+      if not BUCKET_COUNTS[i + 1] then break end
+      if #case.unit_set > BUCKET_COUNTS[i + 1].max then
+        break
+      end
+    end
+  end
+  assert( #case.unit_set <= BUCKET_COUNTS[bucket].max )
+  return strength, assert( BUCKETS[bucket].name )
 end
 
-local function make_case( units )
-  return { units=units, bonuses={ colony=true } }
+local LABEL_LEN = 220
+
+local function print_range( name, rg )
+  printfln( 'range for %s:', name )
+  for _, bucket in ipairs( BUCKETS ) do
+    if rg[bucket.name] then
+      printfln( '  %s: (%d, %d)', bucket.name,
+                floor( rg[bucket.name].min ),
+                floor( rg[bucket.name].max ) )
+    end
+  end
 end
 
-local function count_of( unit, n )
-  assert( unit )
-  local units = {}
-  for _ = 1, n do table.insert( units, unit ) end
-  return make_case( units )
-end
+local ranges_passed = {}
+local ranges_failed = {}
+local ranges_all = {}
+local num_passed = 0
 
 local function run_test( test )
-  local strength, bucket = compute_bucket( test.input )
-  local sep = '|'
-  local label = sep
-  for _, unit in ipairs( test.input.units ) do
-    label = label .. unit.name .. sep
-  end
+  local strength, bucket = compute_bucket( test.info )
   local matches = (bucket == test.expected)
+  num_passed = num_passed + (matches and 1 or 0);
+  local function add_range( tbl )
+    local b = test.expected
+    tbl[b] = tbl[b] or { min=10 ^ 6, max=-10 ^ 6 }
+    tbl[b].min = math.min( tbl[b].min, strength )
+    tbl[b].max = math.max( tbl[b].max, strength )
+  end
+  if matches then
+    add_range( ranges_passed )
+  else
+    add_range( ranges_failed )
+  end
+  add_range( ranges_all )
+  -- if matches then return end
   local color = matches and GREEN or RED
-  printfln( '%-55s : %-5s : %s : %s : %s%s%s', label,
+  local label = { test.label }
+  insert( label, rep( ' ', LABEL_LEN - #test.label ) )
+  printfln( '%s : %-5s : %s : %s : %s%s%s', concat( label ),
             tostring( strength ), bucket, test.expected, color,
             matches, NORMAL )
 end
 
-local tests = {
-  -- cavalry
-  { input=count_of( cavalry, 5 ), expected='_2_2_2' },
-  { input=count_of( cavalry, 4 ), expected='_4_1_1' },
-  { input=count_of( cavalry, 3 ), expected='_4_1_1' },
-  { input=count_of( cavalry, 2 ), expected='_4_1_1' },
-  { input=count_of( cavalry, 1 ), expected='_2_1_1' },
+-- The line is of the form: 'xxx=yyy|aaa=bbb|ccc=ddd\thello=2/1/0'.
+local function parse_test_case( line )
+  local label, result = tsplit( line, '\t' )
+  local keyval_pairs = split( label, '|' )
+  local keyvals = {}
+  for _, pair in ipairs( keyval_pairs ) do
+    local k, v = tsplit( pair, '=' )
+    keyvals[k] = v
+  end
+  local ref_selection, delivery = tsplit( result, '=' )
+  assert( ref_selection == 'ref_selection' )
+  assert( keyvals.unit_set )
+  if keyvals.unit_set:match( '%*' ) then
+    local unit, count = tsplit( keyvals.unit_set, '*' )
+    count = assert( tonumber( count ) )
+    keyvals.unit_set = {}
+    for _ = 1, count do insert( keyvals.unit_set, unit ) end
+    assert( #keyvals.unit_set == count )
+  else
+    keyvals.unit_set = split( keyvals.unit_set, '-' )
+  end
+  keyvals.muskets = tonumber( keyvals.muskets )
+  keyvals.horses = tonumber( keyvals.horses )
+  return { info=keyvals, label=label, expected=delivery }
+end
 
-  -- artillery
-  { input=count_of( artillery, 5 ), expected='_2_2_2' },
-  { input=count_of( artillery, 4 ), expected='_4_1_1' },
-  { input=count_of( artillery, 3 ), expected='_4_1_1' },
-  { input=count_of( artillery, 2 ), expected='_4_1_1' },
-  { input=count_of( artillery, 1 ), expected='_2_1_1' },
+local function create_test_cases()
+  local lines = read_file_lines(
+                    'auto-measure/ref-selection/results.txt' )
+  local tests = {}
+  for _, line in ipairs( lines ) do
+    local test = parse_test_case( line )
+    -- FIXME: skips
+    if test.info.muskets > 0 or test.info.horses > 0 then
+      goto continue
+    end
+    if test.info.fortification ~= 'none' then goto continue end
+    if test.info.orders == 'none' then goto continue end
+    insert( tests, parse_test_case( line ) )
+    ::continue::
+  end
+  return tests
+end
 
-  -- regular
-  { input=count_of( regular, 5 ), expected='_4_1_1' },
-  { input=count_of( regular, 4 ), expected='_4_1_1' },
-  { input=count_of( regular, 3 ), expected='_4_1_1' },
-  { input=count_of( regular, 2 ), expected='_3_1_1' },
-  { input=count_of( regular, 1 ), expected='_2_1_0' },
+local tests = create_test_cases()
 
-  -- c_cavalry
-  { input=count_of( c_cavalry, 5 ), expected='_4_1_1' },
-  { input=count_of( c_cavalry, 4 ), expected='_4_1_1' },
-  { input=count_of( c_cavalry, 3 ), expected='_4_1_1' },
-  { input=count_of( c_cavalry, 2 ), expected='_3_1_1' },
-  { input=count_of( c_cavalry, 1 ), expected='_2_1_0' },
+-- print( to_json_oneline( tests ) )
 
-  -- c_army
-  { input=count_of( c_army, 5 ), expected='_4_1_1' },
-  { input=count_of( c_army, 4 ), expected='_4_1_1' },
-  { input=count_of( c_army, 3 ), expected='_4_1_1' },
-  { input=count_of( c_army, 2 ), expected='_3_1_1' },
-  { input=count_of( c_army, 1 ), expected='_2_1_0' },
+local buf = rep( ' ', LABEL_LEN - 4 )
+local bar = rep( '-', LABEL_LEN + 32 )
 
-  -- d_artillery
-  { input=count_of( d_artillery, 5 ), expected='_4_1_1' },
-  { input=count_of( d_artillery, 4 ), expected='_4_1_1' },
-  { input=count_of( d_artillery, 3 ), expected='_4_1_1' },
-  { input=count_of( d_artillery, 2 ), expected='_3_1_1' },
-  { input=count_of( d_artillery, 1 ), expected='_2_1_0' },
+local function print_header()
+  printfln( 'Test%s : %-5s : %s  : %s  : %s', buf, 'S', 'Have',
+            'Need', 'OK' )
+end
 
-  -- v_dragoon
-  { input=count_of( v_dragoon, 5 ), expected='_4_1_1' },
-  { input=count_of( v_dragoon, 4 ), expected='_4_1_1' },
-  { input=count_of( v_dragoon, 3 ), expected='_4_1_1' },
-  { input=count_of( v_dragoon, 2 ), expected='_3_1_1' },
-  { input=count_of( v_dragoon, 1 ), expected='_2_1_0' },
-
-  -- v_soldier
-  { input=count_of( v_soldier, 5 ), expected='_4_1_1' },
-  { input=count_of( v_soldier, 4 ), expected='_3_1_1' },
-  { input=count_of( v_soldier, 3 ), expected='_2_1_1' },
-  { input=count_of( v_soldier, 2 ), expected='_2_1_0' },
-  { input=count_of( v_soldier, 1 ), expected='_2_1_0' },
-
-  -- dragoon
-  { input=count_of( dragoon, 5 ), expected='_4_1_1' },
-  { input=count_of( dragoon, 4 ), expected='_3_1_1' },
-  { input=count_of( dragoon, 3 ), expected='_2_1_1' },
-  { input=count_of( dragoon, 2 ), expected='_2_1_0' },
-  { input=count_of( dragoon, 1 ), expected='_2_1_0' },
-
-  -- soldier
-  { input=count_of( soldier, 15 ), expected='_2_2_2' },
-  { input=count_of( soldier, 14 ), expected='_4_1_1' },
-  { input=count_of( soldier, 13 ), expected='_4_1_1' },
-  { input=count_of( soldier, 5 ), expected='_4_1_1' },
-  { input=count_of( soldier, 4 ), expected='_3_1_1' },
-  { input=count_of( soldier, 3 ), expected='_2_1_1' },
-  { input=count_of( soldier, 2 ), expected='_2_1_0' },
-  { input=count_of( soldier, 1 ), expected='_2_1_0' }, --
-  --
-  -- mix
-  -- LuaFormatter off
-  { input=make_case{ soldier,soldier,v_dragoon,v_dragoon }, expected='_4_1_1' },
-  { input=make_case{ soldier,dragoon,dragoon,v_dragoon }, expected='_4_1_1' },
-  { input=make_case{ dragoon,dragoon,dragoon,dragoon }, expected='_3_1_1' },
-  { input=make_case{ dragoon,dragoon,dragoon,v_soldier }, expected='_3_1_1' },
-  { input=make_case{ dragoon,dragoon,v_soldier,v_soldier }, expected='_3_1_1' },
-  { input=make_case{ dragoon,v_soldier,v_soldier,v_soldier }, expected='_3_1_1' },
-  { input=make_case{ soldier,v_soldier,v_soldier,v_dragoon }, expected='_4_1_1' },
-  { input=make_case{ v_soldier,v_soldier,v_soldier,v_soldier }, expected='_3_1_1' },
-  { input=make_case{ soldier,soldier,v_soldier,v_dragoon }, expected='_4_1_1' },
-  -- LuaFormatter on
-}
-
-printfln( '%-55s : %-5s : %s    : %s    : %s', 'Units', 'S',
-          'Res', 'Exp', 'OK' )
+print_header()
+print( bar )
 
 for _, test in ipairs( tests ) do run_test( test ) end
+
+print( bar )
+print_header()
+
+print_range( 'passed', ranges_passed )
+print_range( 'failed', ranges_failed )
+print_range( 'all', ranges_all )
+
+print()
+printfln( '%d%% passed.', floor( 100.0 * num_passed / #tests ) )
