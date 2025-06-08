@@ -30,19 +30,19 @@ local printfln = printer.printfln
 local BUCKET_MULT = 1.0
 
 local BUCKETS = {
-  { start=489 * BUCKET_MULT, name='2/2/2' }, --
+  { start=531 * BUCKET_MULT, name='2/2/2' }, --
   { start=212 * BUCKET_MULT, name='4/1/1' }, --
   { start=130 * BUCKET_MULT, name='3/1/1' }, --
-  { start=95 * BUCKET_MULT, name='2/1/1' }, --
+  { start=90 * BUCKET_MULT, name='2/1/1' }, --
   { start=0 * BUCKET_MULT, name='2/1/0' }, --
 }
 
 local BUCKET_COUNTS = {
-  { name='2/2/2', max=1000 }, --
-  { name='4/1/1', max=14 }, --
-  { name='3/1/1', max=4 }, --
-  { name='2/1/1', max=4 }, --
-  { name='2/1/0', max=3 }, --
+  { name='2/2/2', min=4, max=1000 }, --
+  { name='4/1/1', min=4, max=14 }, --
+  { name='3/1/1', min=3, max=4 }, --
+  { name='2/1/1', min=1, max=4 }, --
+  { name='2/1/0', min=1, max=3 }, --
 }
 
 -----------------------------------------------------------------
@@ -58,7 +58,7 @@ local UNITS = {
 
   dragoon={
     name='dragoon',
-    combat=3 - 1, --
+    combat=2,
     veteran=false,
     uses_muskets=true,
   },
@@ -72,35 +72,35 @@ local UNITS = {
 
   veteran_dragoon={
     name='veteran_dragoon',
-    combat=3 - 1, --
+    combat=2,
     veteran=false,
     uses_muskets=true,
   },
 
   continental_army={
     name='continental_army',
-    combat=4 + 2, --
+    combat=6,
     veteran=false,
     uses_muskets=true,
   },
 
   continental_cavalry={
     name='continental_cavalry',
-    combat=5 + 1, --
+    combat=6,
     veteran=false,
     uses_muskets=true,
   },
 
   damaged_artillery={
     name='damaged_artillery',
-    combat=3 + 3, --
+    combat=6,
     veteran=false,
     uses_muskets=false,
   },
 
   artillery={
     name='artillery',
-    combat=5 + 3, --
+    combat=9,
     veteran=false,
     uses_muskets=false,
   },
@@ -113,8 +113,8 @@ local function bonus_for_fortification( _, fortification )
   assert( fortification )
   local from_colony = {
     none=0.5,
-    stockade=1.0,
-    fort=1.5,
+    stockade=1.0 - .5,
+    fort=1.5 + 1.5,
     fortress=2.0,
   }
   local res = assert( from_colony[fortification] )
@@ -171,8 +171,8 @@ local function units_strength( case )
   -- multiply( 3.50 * (case.muskets/100) )
   -- add( 2 * (case.muskets // 50) )
   if has_unit_using_muskets( case ) then
-    add( 50 * (case.muskets // 50) )
-    -- for _ = 1, (case.muskets // 50) do
+    add( 40 * (case.muskets // 50) )
+    -- for _ = 1, floor( case.muskets // 50 ) do
     --   add( unit_strength( UNITS['soldier'], case ) )
     -- end
   end
@@ -203,6 +203,19 @@ local function compute_bucket( case )
     end
   end
   assert( #case.unit_set <= BUCKET_COUNTS[bucket].max )
+  -- if #case.unit_set < BUCKET_COUNTS[bucket].min then
+  --   for i, _ in ipairs( BUCKET_COUNTS ) do
+  --     bucket = i
+  --     if #case.unit_set >= BUCKET_COUNTS[i].min then
+  --       break
+  --     end
+  --   end
+  -- end
+  -- assert( #case.unit_set >= BUCKET_COUNTS[bucket].min )
+
+  -- if #case.unit_set < BUCKET_COUNTS[bucket].min and
+  --     BUCKET_COUNTS[bucket - 1] then bucket = bucket - 1 end
+
   return strength, assert( BUCKETS[bucket].name )
 end
 
@@ -282,7 +295,7 @@ local function create_test_cases()
   for _, line in ipairs( lines ) do
     local test = parse_test_case( line )
     -- FIXME: skips
-    -- if test.info.muskets > 0 then goto continue end
+    if test.info.muskets > 0 then goto continue end
     -- if test.info.horses > 0 then goto continue end
     if test.info.fortification ~= 'none' then goto continue end
     -- if test.info.orders == 'none' then goto continue end
@@ -317,4 +330,6 @@ print_range( 'failed', ranges_failed )
 print_range( 'all', ranges_all )
 
 print()
-printfln( '%d%% passed.', floor( 100.0 * num_passed / #tests ) )
+printfln( '%d%% passed [%d/%d].',
+          floor( 100.0 * num_passed / #tests ), num_passed,
+          #tests )
