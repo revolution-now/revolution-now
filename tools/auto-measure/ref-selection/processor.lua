@@ -103,7 +103,7 @@ local function validate_sav( json )
   -- then we might get a popup saying that some quantity has
   -- spoiled, which will mess things up.
   assert( colony.buildings.warehouse )
-  assert( colony.warehouse_level >= 4 )
+  assert( colony.warehouse_level == 255 )
 
   assert( D.find_REF( json ) )
 

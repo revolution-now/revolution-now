@@ -28,18 +28,30 @@ return {
     fortification={
       'none', --
       'stockade', --
-      -- 'fort', --
-      -- 'fortress', --
+      'fort', --
+      'fortress', --
     },
 
     already_landed={
       false,
-      -- true, --
+      -- true,
     },
 
-    horses={ 0, 50, 100, 150, 200 },
+    -- Doesn't seem to depend on horses count.
+    horses=0,
 
-    muskets={ 0, 50, 100, 150, 200 },
+    -- 2000 muskets appears to be enough to raise a single sol-
+    -- dier to 2/2/2, so no need to go higher.
+    muskets={
+      0, --
+      50, --
+      100, --
+      150, --
+      200, --
+      500, --
+      1000, --
+      2000, --
+    },
 
     -- Doesn't seem to depend on fortified status.
     orders='fortified',
