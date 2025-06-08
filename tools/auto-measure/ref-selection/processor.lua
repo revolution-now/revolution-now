@@ -5,8 +5,9 @@ local time = require'moon.time'
 local logger = require'moon.logger'
 local printer = require'moon.printer'
 local designer = require'lib.designer'
-local moontbl = require'moon.tbl'
+local mtbl = require'moon.tbl'
 local list = require'moon.list'
+local set = require'moon.set'
 
 -----------------------------------------------------------------
 -- Aliases.
@@ -18,8 +19,9 @@ local format = string.format
 local sleep = time.sleep
 local info = logger.info
 local format_kv_table = printer.format_kv_table
-local deep_copy = moontbl.deep_copy
+local deep_copy = mtbl.deep_copy
 local join = list.join
+local set_size = set.set_size
 
 local D = designer
 
@@ -27,11 +29,6 @@ local D = designer
 -- Constants.
 -----------------------------------------------------------------
 local INITIAL_UNIT_STORE_COUNT = 10
-
------------------------------------------------------------------
--- Helpers.
------------------------------------------------------------------
--- TODO
 
 -----------------------------------------------------------------
 -- Functions.
@@ -48,7 +45,13 @@ end
 
 local function experiment_name( config )
   local copy = deep_copy( config )
-  copy.unit_set = join( config.unit_set, '-' )
+  local unique_units = set_size( set( config.unit_set ) )
+  if #config.unit_set > 5 and unique_units == 1 then
+    copy.unit_set = format( '%s*%d', config.unit_set[1],
+                            #config.unit_set )
+  else
+    copy.unit_set = join( config.unit_set, '-' )
+  end
   return format_kv_table( copy, {
     start='',
     ending='',

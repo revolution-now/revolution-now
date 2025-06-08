@@ -2723,3 +2723,13 @@ already_landed=false|difficulty=conquistador|fortification=stockade|horses=50|mu
 already_landed=false|difficulty=conquistador|fortification=stockade|horses=100|muskets=200|orders=fortified|unit_set=soldier-soldier-veteran_soldier-veteran_dragoon	ref_selection=4/1/1
 already_landed=false|difficulty=conquistador|fortification=stockade|horses=150|muskets=200|orders=fortified|unit_set=soldier-soldier-veteran_soldier-veteran_dragoon	ref_selection=4/1/1
 already_landed=false|difficulty=conquistador|fortification=stockade|horses=200|muskets=200|orders=fortified|unit_set=soldier-soldier-veteran_soldier-veteran_dragoon	ref_selection=4/1/1
+already_landed=false|difficulty=conquistador|fortification=none|horses=0|muskets=0|orders=fortified|unit_set=soldier*6	ref_selection=4/1/1
+already_landed=false|difficulty=conquistador|fortification=none|horses=0|muskets=0|orders=fortified|unit_set=soldier*7	ref_selection=4/1/1
+already_landed=false|difficulty=conquistador|fortification=none|horses=0|muskets=0|orders=fortified|unit_set=soldier*8	ref_selection=4/1/1
+already_landed=false|difficulty=conquistador|fortification=none|horses=0|muskets=0|orders=fortified|unit_set=soldier*9	ref_selection=4/1/1
+already_landed=false|difficulty=conquistador|fortification=none|horses=0|muskets=0|orders=fortified|unit_set=soldier*10	ref_selection=4/1/1
+already_landed=false|difficulty=conquistador|fortification=none|horses=0|muskets=0|orders=fortified|unit_set=soldier*11	ref_selection=4/1/1
+already_landed=false|difficulty=conquistador|fortification=none|horses=0|muskets=0|orders=fortified|unit_set=soldier*12	ref_selection=4/1/1
+already_landed=false|difficulty=conquistador|fortification=none|horses=0|muskets=0|orders=fortified|unit_set=soldier*13	ref_selection=4/1/1
+already_landed=false|difficulty=conquistador|fortification=none|horses=0|muskets=0|orders=fortified|unit_set=soldier*14	ref_selection=4/1/1
+already_landed=false|difficulty=conquistador|fortification=none|horses=0|muskets=0|orders=fortified|unit_set=soldier*15	ref_selection=2/2/2
