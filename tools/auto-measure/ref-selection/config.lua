@@ -18,11 +18,11 @@ return {
 
   combinatorial={
     difficulty={
-      -- 'discoverer', --
-      -- 'explorer', --
+      'discoverer', --
+      'explorer', --
       'conquistador', --
-      -- 'governor', --
-      -- 'viceroy', --
+      'governor', --
+      'viceroy', --
     },
 
     fortification={
@@ -42,16 +42,7 @@ return {
 
     -- 2000 muskets appears to be enough to raise a single sol-
     -- dier to 2/2/2, so no need to go higher.
-    muskets={
-      0, --
-      50, --
-      100, --
-      150, --
-      200, --
-      500, --
-      1000, --
-      2000, --
-    },
+    muskets={ 0, 50, 100, 150, 200, 500, 1000, 2000 },
 
     -- Doesn't seem to depend on fortified status.
     orders='fortified',
@@ -66,31 +57,6 @@ return {
       { 'soldier', 'soldier', 'soldier' },
       { 'soldier', 'soldier', 'soldier', 'soldier' },
       { 'soldier', 'soldier', 'soldier', 'soldier', 'soldier' },
-      { 'soldier', 'soldier', 'soldier', 'soldier', 'soldier',
-        'soldier' },
-      { 'soldier', 'soldier', 'soldier', 'soldier', 'soldier',
-        'soldier', 'soldier' },
-      { 'soldier', 'soldier', 'soldier', 'soldier', 'soldier',
-        'soldier', 'soldier', 'soldier' },
-      { 'soldier', 'soldier', 'soldier', 'soldier', 'soldier',
-        'soldier', 'soldier', 'soldier', 'soldier' },
-      { 'soldier', 'soldier', 'soldier', 'soldier', 'soldier',
-        'soldier', 'soldier', 'soldier', 'soldier', 'soldier' },
-      { 'soldier', 'soldier', 'soldier', 'soldier', 'soldier',
-        'soldier', 'soldier', 'soldier', 'soldier', 'soldier',
-        'soldier' },
-      { 'soldier', 'soldier', 'soldier', 'soldier', 'soldier',
-        'soldier', 'soldier', 'soldier', 'soldier', 'soldier',
-        'soldier', 'soldier' },
-      { 'soldier', 'soldier', 'soldier', 'soldier', 'soldier',
-        'soldier', 'soldier', 'soldier', 'soldier', 'soldier',
-        'soldier', 'soldier', 'soldier' },
-      { 'soldier', 'soldier', 'soldier', 'soldier', 'soldier',
-        'soldier', 'soldier', 'soldier', 'soldier', 'soldier',
-        'soldier', 'soldier', 'soldier', 'soldier' },
-      { 'soldier', 'soldier', 'soldier', 'soldier', 'soldier',
-        'soldier', 'soldier', 'soldier', 'soldier', 'soldier',
-        'soldier', 'soldier', 'soldier', 'soldier', 'soldier' },
       -----------------------------------------------------------
       -- veteran_soldier
       -----------------------------------------------------------
@@ -157,6 +123,34 @@ return {
       { 'dragoon','veteran_soldier','veteran_soldier','veteran_soldier' },
       { 'soldier','veteran_soldier','veteran_soldier','veteran_dragoon' },
       { 'soldier','soldier','veteran_soldier','veteran_dragoon' },
+      -----------------------------------------------------------
+      -- soldier ramp up
+      -----------------------------------------------------------
+      { 'soldier', 'soldier', 'soldier', 'soldier', 'soldier',
+        'soldier' },
+      { 'soldier', 'soldier', 'soldier', 'soldier', 'soldier',
+        'soldier', 'soldier' },
+      { 'soldier', 'soldier', 'soldier', 'soldier', 'soldier',
+        'soldier', 'soldier', 'soldier' },
+      { 'soldier', 'soldier', 'soldier', 'soldier', 'soldier',
+        'soldier', 'soldier', 'soldier', 'soldier' },
+      { 'soldier', 'soldier', 'soldier', 'soldier', 'soldier',
+        'soldier', 'soldier', 'soldier', 'soldier', 'soldier' },
+      { 'soldier', 'soldier', 'soldier', 'soldier', 'soldier',
+        'soldier', 'soldier', 'soldier', 'soldier', 'soldier',
+        'soldier' },
+      { 'soldier', 'soldier', 'soldier', 'soldier', 'soldier',
+        'soldier', 'soldier', 'soldier', 'soldier', 'soldier',
+        'soldier', 'soldier' },
+      { 'soldier', 'soldier', 'soldier', 'soldier', 'soldier',
+        'soldier', 'soldier', 'soldier', 'soldier', 'soldier',
+        'soldier', 'soldier', 'soldier' },
+      { 'soldier', 'soldier', 'soldier', 'soldier', 'soldier',
+        'soldier', 'soldier', 'soldier', 'soldier', 'soldier',
+        'soldier', 'soldier', 'soldier', 'soldier' },
+      { 'soldier', 'soldier', 'soldier', 'soldier', 'soldier',
+        'soldier', 'soldier', 'soldier', 'soldier', 'soldier',
+        'soldier', 'soldier', 'soldier', 'soldier', 'soldier' },
     },
     -- LuaFormatter on
   },
