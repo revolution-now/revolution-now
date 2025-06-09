@@ -26,6 +26,7 @@ local split = list.split
 local printfln = printer.printfln
 local dbg = logger.dbg
 local bar = printer.bar
+local min, max = math.min, math.max
 
 -----------------------------------------------------------------
 -- Global Init.
@@ -37,31 +38,27 @@ logger.level = logger.levels.INFO
 -----------------------------------------------------------------
 local COMPACT_VIEW = not console.is_wide_terminal()
 local LABEL_LEN = COMPACT_VIEW and 120 or 220
-local SHOW_PASSED = true
+local SHOW_PASSED = false
 
 -----------------------------------------------------------------
 -- Parameters.
 -----------------------------------------------------------------
-local BUCKET_MULT = 1.0
-
 local BUCKETS = {
-  { start=560 * BUCKET_MULT, name='2/2/2' }, --
-  { start=155 * BUCKET_MULT, name='4/1/1' }, --
-  { start=120 * BUCKET_MULT, name='3/1/1' }, --
-  { start=80 * BUCKET_MULT, name='2/1/1' }, --
-  { start=0 * BUCKET_MULT, name='2/1/0' }, --
+  { start=550, name='2/2/2' }, --
+  { start=164, name='4/1/1' }, --
+  { start=130, name='3/1/1' }, --
+  { start=70, name='2/1/1' }, --
+  { start=0, name='2/1/0' }, --
 }
 
-local BUCKET_MAX_THRESHOLD = 15
+local BUCKET_2_2_2_THRESHOLD = 15
 
 local COLONY_FORTIFICATION_BONUS = {
-  none=0.5, --
-  stockade=0.5, --
-  fort=2.0, --
-  fortress=2.0, --
+  none=0.5,
+  stockade=0.5,
+  fort=2.0,
+  fortress=3.5,
 }
-
-local BONUS_PER_50_MUSKETS = 20
 
 local UNIT_INFO = {
   soldier={ combat=2 },
@@ -69,12 +66,14 @@ local UNIT_INFO = {
   veteran_soldier={ combat=2 },
   veteran_dragoon={ combat=2 },
 
-  continental_army={ combat=5 },
-  continental_cavalry={ combat=5 },
-  damaged_artillery={ combat=5 },
+  continental_army={ combat=4.8 },
+  continental_cavalry={ combat=4.8 },
+  damaged_artillery={ combat=4.8 },
 
-  artillery={ combat=8.5 },
+  artillery={ combat=8.5 }, -- [8.5, 8.8]
 }
+
+local CONST_UNIT_BONUS = 10
 
 -----------------------------------------------------------------
 -- Helpers.
@@ -97,26 +96,37 @@ local function bonus_for_fortification( fortification )
   return res
 end
 
-local function additive_fudge_per_unit( case )
-  local res = {
-    conquistador=10, --
-    viceroy=0, --
-  }
-  return assert( res[case.difficulty] )
+local function muskets_bonus( case )
+  local bonus = 20 * (case.muskets // 50)
+  if case.muskets > 0 then
+    bonus = bonus + 10 --
+  end
+  return bonus
 end
 
-local function unit_strength( unit_name, unit, case )
+local function at_least_fort( case )
+  return case.fortification == 'fort' or case.fortification ==
+             'fortress'
+end
+
+local function unit_strength( unit_name, case )
+  local unit = UNIT_INFO[unit_name]
   local strength = unit.combat
   local multiply = function( factor )
     strength = strength * factor
   end
   local add = function( term ) strength = strength + term end
   multiply( 8 )
-  -- if unit.veteran then multiply( 1.5 ) end
   local fortification_bonus = bonus_for_fortification(
                                   case.fortification )
+  -- fortification_bonus = fortification_bonus + .5
   multiply( fortification_bonus )
-  add( additive_fudge_per_unit( case ) )
+  if at_least_fort( case ) then
+    if unit_name == 'artillery' then
+      add( -50 ) --
+    end
+  end
+  add( assert( CONST_UNIT_BONUS ) )
   dbg( 'unit %s strength=%d', unit_name, strength )
   return strength
 end
@@ -125,9 +135,9 @@ local function units_strength( case )
   local strength = 0
   local add = function( term ) strength = strength + term end
   for _, unit in ipairs( case.unit_set ) do
-    add( unit_strength( unit, UNIT_INFO[unit], case ) )
+    add( unit_strength( unit, case ) )
   end
-  add( BONUS_PER_50_MUSKETS * (case.muskets // 50) )
+  add( muskets_bonus( case ) )
   return strength
 end
 
@@ -144,18 +154,21 @@ end
 local function compute_bucket( case )
   local strength = units_strength( case )
   local bucket = bucket_for( strength )
-  if #case.unit_set >= BUCKET_MAX_THRESHOLD then bucket = 1 end
+  if #case.unit_set >= BUCKET_2_2_2_THRESHOLD then bucket = 1 end
   return strength, assert( BUCKETS[bucket].name )
 end
 
 local num_passed = 0
 
-local function run_test( test )
+local function run_test( test, ranges_out )
   local strength, bucket = compute_bucket( test.info )
   local matches = (bucket == test.expected)
   local got_bucket_idx = assert( idx_for_bucket( bucket ) )
   local need_bucket_idx =
       assert( idx_for_bucket( test.expected ) )
+  local rg = ranges_out[need_bucket_idx]
+  rg.min = min( rg.min, strength )
+  rg.max = max( rg.max, strength )
   num_passed = num_passed + (matches and 1 or 0);
   if matches and not SHOW_PASSED then return end
   local color = matches and GREEN or RED
@@ -212,13 +225,22 @@ local function parse_test_case( line )
   return { info=keyvals, label=label, expected=delivery }
 end
 
+local function skip_test_if( case )
+  if case.horses > 0 then return true end
+  -- if case.muskets > 0 then return true end
+  if case.orders == 'none' then return true end
+  if case.fortification ~= 'none' then return true end
+end
+
 local function create_test_cases()
   local lines = read_file_lines(
                     'auto-measure/ref-selection/results.txt' )
   local tests = {}
   for _, line in ipairs( lines ) do
     local test = parse_test_case( line )
-    insert( tests, test )
+    if not skip_test_if( test.info ) then
+      insert( tests, test )
+    end
   end
   return tests
 end
@@ -233,16 +255,28 @@ end
 
 local function main( _ )
   local tests = create_test_cases()
+  local ranges = {}
+  for _, _ in ipairs( BUCKETS ) do
+    insert( ranges, { min=10 ^ 6, max=-10 ^ 6 } )
+  end
   print_header()
-  for _, test in ipairs( tests ) do run_test( test ) end
-  print_header()
-  print()
+  for _, test in ipairs( tests ) do run_test( test, ranges ) end
   local perfect = num_passed == #tests
   local pc_color = perfect and GREEN or RED
   local passed_color = perfect and GREEN or NORMAL
+  if not perfect then print_header() end
+  print()
   printfln( '%s%d%%%s %spassed%s [%d/%d].', pc_color,
             floor( 100.0 * num_passed / #tests ), NORMAL,
             passed_color, NORMAL, num_passed, #tests )
+  print()
+  print( 'Bucket Ranges:' )
+  for i, bucket in ipairs( BUCKETS ) do
+    if ranges[i] then
+      printfln( '  %s: (%f, %f)', bucket.name, ranges[i].min,
+                ranges[i].max )
+    end
+  end
 end
 
 os.exit( main{ ... } )
