@@ -44,10 +44,10 @@ local SHOW_PASSED = false
 -- Parameters.
 -----------------------------------------------------------------
 local BUCKETS = {
-  { start=550, name='2/2/2' }, --
-  { start=164, name='4/1/1' }, --
-  { start=130, name='3/1/1' }, --
-  { start=70, name='2/1/1' }, --
+  { start=530, name='2/2/2' }, --
+  { start=155, name='4/1/1' }, --
+  { start=122, name='3/1/1' }, --
+  { start=76, name='2/1/1' }, --
   { start=0, name='2/1/0' }, --
 }
 
@@ -66,11 +66,11 @@ local UNIT_INFO = {
   veteran_soldier={ combat=2 },
   veteran_dragoon={ combat=2 },
 
-  continental_army={ combat=4.8 },
-  continental_cavalry={ combat=4.8 },
-  damaged_artillery={ combat=4.8 },
+  continental_army={ combat=4.5 },
+  continental_cavalry={ combat=4.5 },
+  damaged_artillery={ combat=4.5 },
 
-  artillery={ combat=8.5 }, -- [8.5, 8.8]
+  artillery={ combat=8.0 }, -- [8.5, 8.8]
 }
 
 local CONST_UNIT_BONUS = 10
@@ -97,10 +97,8 @@ local function bonus_for_fortification( fortification )
 end
 
 local function muskets_bonus( case )
-  local bonus = 20 * (case.muskets // 50)
-  if case.muskets > 0 then
-    bonus = bonus + 10 --
-  end
+  local muskets = case.muskets
+  local bonus = 20 * (muskets // 50)
   return bonus
 end
 
@@ -122,9 +120,9 @@ local function unit_strength( unit_name, case )
   -- fortification_bonus = fortification_bonus + .5
   multiply( fortification_bonus )
   if at_least_fort( case ) then
-    if unit_name == 'artillery' then
-      add( -50 ) --
-    end
+    -- if unit_name == 'artillery' then
+    --   add( -50 ) --
+    -- end
   end
   add( assert( CONST_UNIT_BONUS ) )
   dbg( 'unit %s strength=%d', unit_name, strength )
@@ -226,10 +224,11 @@ local function parse_test_case( line )
 end
 
 local function skip_test_if( case )
-  if case.horses > 0 then return true end
-  -- if case.muskets > 0 then return true end
-  if case.orders == 'none' then return true end
-  if case.fortification ~= 'none' then return true end
+  -- if case.horses > 0 then return true end
+  if case.muskets > 0 then return true end
+  -- if case.orders == 'none' then return true end
+  -- if case.fortification ~= 'none' then return true end
+  if case.difficulty ~= 'conquistador' then return true end
 end
 
 local function create_test_cases()
