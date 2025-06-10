@@ -7,6 +7,8 @@ local printer = require'moon.printer'
 local list = require'moon.list'
 local logger = require'moon.logger'
 local console = require'moon.console'
+local set = require'moon.set'
+local mtbl = require'moon.tbl'
 
 -----------------------------------------------------------------
 -- Aliases.
@@ -44,10 +46,10 @@ local SHOW_PASSED = false
 -- Parameters.
 -----------------------------------------------------------------
 local BUCKETS = {
-  { start=530, name='2/2/2' }, --
-  { start=155, name='4/1/1' }, --
-  { start=122, name='3/1/1' }, --
-  { start=76, name='2/1/1' }, --
+  { start=493, name='2/2/2' }, --
+  { start=141, name='4/1/1' }, --
+  { start=110, name='3/1/1' }, --
+  { start=80, name='2/1/1' }, --
   { start=0, name='2/1/0' }, --
 }
 
@@ -56,24 +58,26 @@ local BUCKET_2_2_2_THRESHOLD = 15
 local COLONY_FORTIFICATION_BONUS = {
   none=0.5,
   stockade=0.5,
-  fort=2.0,
+  fort=1.8,
   fortress=3.5,
 }
 
 local UNIT_INFO = {
   soldier={ combat=2 },
-  dragoon={ combat=2 },
   veteran_soldier={ combat=2 },
+  dragoon={ combat=2 },
   veteran_dragoon={ combat=2 },
 
-  continental_army={ combat=4.5 },
-  continental_cavalry={ combat=4.5 },
-  damaged_artillery={ combat=4.5 },
+  continental_army={ combat=5.0 },
+  continental_cavalry={ combat=5.0 },
+  damaged_artillery={ combat=5.0 },
 
   artillery={ combat=8.0 }, -- [8.5, 8.8]
 }
 
 local CONST_UNIT_BONUS = 10
+
+local MUSKETS_MULTIPLIER = 17
 
 -----------------------------------------------------------------
 -- Helpers.
@@ -98,7 +102,7 @@ end
 
 local function muskets_bonus( case )
   local muskets = case.muskets
-  local bonus = 20 * (muskets // 50)
+  local bonus = MUSKETS_MULTIPLIER * (muskets // 50)
   return bonus
 end
 
@@ -117,13 +121,13 @@ local function unit_strength( unit_name, case )
   multiply( 8 )
   local fortification_bonus = bonus_for_fortification(
                                   case.fortification )
-  -- fortification_bonus = fortification_bonus + .5
-  multiply( fortification_bonus )
   if at_least_fort( case ) then
-    -- if unit_name == 'artillery' then
-    --   add( -50 ) --
-    -- end
+    if unit_name == 'artillery' then
+      -- add( -50 ) --
+      -- fortification_bonus = fortification_bonus - .5
+    end
   end
+  multiply( fortification_bonus )
   add( assert( CONST_UNIT_BONUS ) )
   dbg( 'unit %s strength=%d', unit_name, strength )
   return strength
@@ -225,10 +229,21 @@ end
 
 local function skip_test_if( case )
   -- if case.horses > 0 then return true end
-  if case.muskets > 0 then return true end
+  -- if case.difficulty ~= 'conquistador' then return true end
   -- if case.orders == 'none' then return true end
+
   -- if case.fortification ~= 'none' then return true end
-  if case.difficulty ~= 'conquistador' then return true end
+  -- if case.fortification ~= 'stockade' then return true end
+  if case.fortification ~= 'fort' then return true end
+  -- if case.fortification ~= 'fortress' then return true end
+
+  -- if case.muskets > 0 then return true end
+
+  local unique_units = set( case.unit_set )
+  if not mtbl.tables_equal( unique_units, { soldier=true } ) then
+    return true
+  end
+  if #case.unit_set > 1 then return true end
 end
 
 local function create_test_cases()
