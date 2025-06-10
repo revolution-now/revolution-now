@@ -47,7 +47,7 @@ local SHOW_PASSED = false
 -----------------------------------------------------------------
 local BUCKETS = {
   { start=493, name='2/2/2' }, --
-  { start=141, name='4/1/1' }, --
+  { start=145, name='4/1/1' }, --
   { start=110, name='3/1/1' }, --
   { start=80, name='2/1/1' }, --
   { start=0, name='2/1/0' }, --
@@ -58,8 +58,8 @@ local BUCKET_2_2_2_THRESHOLD = 15
 local COLONY_FORTIFICATION_BONUS = {
   none=0.5,
   stockade=0.5,
-  fort=1.8,
-  fortress=3.5,
+  fort=3.0,
+  fortress=5.0,
 }
 
 local UNIT_INFO = {
@@ -72,7 +72,7 @@ local UNIT_INFO = {
   continental_cavalry={ combat=5.0 },
   damaged_artillery={ combat=5.0 },
 
-  artillery={ combat=8.0 }, -- [8.5, 8.8]
+  artillery={ combat=8.0 },
 }
 
 local CONST_UNIT_BONUS = 10
@@ -122,10 +122,8 @@ local function unit_strength( unit_name, case )
   local fortification_bonus = bonus_for_fortification(
                                   case.fortification )
   if at_least_fort( case ) then
-    if unit_name == 'artillery' then
-      -- add( -50 ) --
-      -- fortification_bonus = fortification_bonus - .5
-    end
+    -- add( -50 ) --
+    -- fortification_bonus = fortification_bonus - .5
   end
   multiply( fortification_bonus )
   add( assert( CONST_UNIT_BONUS ) )
@@ -234,16 +232,18 @@ local function skip_test_if( case )
 
   -- if case.fortification ~= 'none' then return true end
   -- if case.fortification ~= 'stockade' then return true end
-  if case.fortification ~= 'fort' then return true end
+  -- if case.fortification ~= 'fort' then return true end
   -- if case.fortification ~= 'fortress' then return true end
+
+  if at_least_fort( case ) then return true end
 
   -- if case.muskets > 0 then return true end
 
-  local unique_units = set( case.unit_set )
-  if not mtbl.tables_equal( unique_units, { soldier=true } ) then
-    return true
-  end
-  if #case.unit_set > 1 then return true end
+  -- local unique_units = set( case.unit_set )
+  -- if not mtbl.tables_equal( unique_units, { soldier=true } ) then
+  --   return true
+  -- end
+  -- if #case.unit_set > 1 then return true end
 end
 
 local function create_test_cases()
