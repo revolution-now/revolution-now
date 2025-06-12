@@ -16,6 +16,8 @@ local mtbl = require'moon.tbl'
 local rep = string.rep
 local insert = table.insert
 local floor = math.floor
+local huge = math.huge
+local ceil = math.ceil
 local format = string.format
 
 local NORMAL = colors.ANSI_NORMAL
@@ -46,36 +48,34 @@ local SHOW_PASSED = false
 -- Parameters.
 -----------------------------------------------------------------
 local BUCKETS = {
-  { start=493, name='2/2/2' }, --
-  { start=145, name='4/1/1' }, --
-  { start=110, name='3/1/1' }, --
-  { start=80, name='2/1/1' }, --
-  { start=0, name='2/1/0' }, --
-}
-
-local BUCKETS_STOCKADE = BUCKETS
-
-local BUCKETS_FORT = {
-  { start=320, name='2/2/2' }, --
-  { start=80, name='4/1/1' }, --
-  { start=75, name='3/1/1' }, --
-  { start=40, name='2/1/1' }, --
-  { start=0, name='2/1/0' }, --
-}
-
-local BUCKETS_FORTRESS = {
-  { start=220, name='2/2/2' }, --
-  { start=50, name='4/1/1' }, --
-  { start=40, name='3/1/1' }, --
-  { start=30, name='2/1/1' }, --
-  { start=0, name='2/1/0' }, --
-}
-
-local COLONY_FORTIFICATION_BONUS = {
-  none=0.5,
-  stockade=0.5,
-  fort=0.5,
-  fortress=0.5,
+  none={
+    { start=493, name='2/2/2' }, --
+    { start=145, name='4/1/1' }, --
+    { start=110, name='3/1/1' }, --
+    { start=80, name='2/1/1' }, --
+    { start=0, name='2/1/0' }, --
+  },
+  stockade={
+    { start=493, name='2/2/2' }, --
+    { start=145, name='4/1/1' }, --
+    { start=110, name='3/1/1' }, --
+    { start=80, name='2/1/1' }, --
+    { start=0, name='2/1/0' }, --
+  },
+  fort={
+    { start=320, name='2/2/2' }, --
+    { start=80, name='4/1/1' }, --
+    { start=75, name='3/1/1' }, --
+    { start=40, name='2/1/1' }, --
+    { start=0, name='2/1/0' }, --
+  },
+  fortress={
+    { start=220, name='2/2/2' }, --
+    { start=50, name='4/1/1' }, --
+    { start=40, name='3/1/1' }, --
+    { start=30, name='2/1/1' }, --
+    { start=0, name='2/1/0' }, --
+  },
 }
 
 local UNIT_INFO = {
@@ -98,8 +98,12 @@ local MUSKETS_MULTIPLIER = 17
 -----------------------------------------------------------------
 -- Helpers.
 -----------------------------------------------------------------
-local function idx_for_bucket( target )
-  for i, bucket in ipairs( BUCKETS ) do
+local FORTIFICATION_ORDER = {
+  'none', 'stockade', 'fort', 'fortress',
+}
+
+local function idx_for_bucket( case, target )
+  for i, bucket in ipairs( BUCKETS[case.fortification] ) do
     if bucket.name == target then return i end
   end
   error( format( 'cannot find bucket index for bucket %s',
@@ -109,22 +113,10 @@ end
 -----------------------------------------------------------------
 -- Strength computation.
 -----------------------------------------------------------------
-local function bonus_for_fortification( fortification )
-  assert( fortification )
-  local res = assert( COLONY_FORTIFICATION_BONUS[fortification] )
-  res = 1 + res
-  return res
-end
-
 local function muskets_bonus( case )
   local muskets = case.muskets
   local bonus = MUSKETS_MULTIPLIER * (muskets // 50)
   return bonus
-end
-
-local function at_least_fort( case )
-  return case.fortification == 'fort' or case.fortification ==
-             'fortress'
 end
 
 local function unit_strength( unit_name, case )
@@ -137,13 +129,7 @@ local function unit_strength( unit_name, case )
     strength = max( strength + term, 0 )
   end
   multiply( 8 )
-  local fortification_bonus = bonus_for_fortification(
-                                  case.fortification )
-  if at_least_fort( case ) then
-    -- add( -2 ) --
-    -- fortification_bonus = fortification_bonus - .5
-  end
-  multiply( fortification_bonus )
+  multiply( 1.5 )
   add( assert( CONST_UNIT_BONUS ) )
   dbg( 'unit %s strength=%d', unit_name, strength )
   return strength
@@ -163,24 +149,17 @@ end
 -- Test runner.
 -----------------------------------------------------------------
 local function bucket_for( case, strength )
-  local buckets = BUCKETS
-  if case.fortification == 'stockade' then
-    buckets = BUCKETS_STOCKADE
-  elseif case.fortification == 'fort' then
-    buckets = BUCKETS_FORT
-  elseif case.fortification == 'fortress' then
-    buckets = BUCKETS_FORTRESS
-  end
+  local buckets = assert( BUCKETS[case.fortification] )
   for idx, bucket in ipairs( buckets ) do
-    if strength >= bucket.start then return idx end
+    if strength >= bucket.start then return idx, bucket end
   end
   error( 'bucket not found for strength=' .. strength )
 end
 
 local function compute_bucket( case )
   local strength = units_strength( case )
-  local bucket = bucket_for( case, strength )
-  return strength, assert( BUCKETS[bucket].name )
+  local idx, bucket = bucket_for( case, strength )
+  return strength, assert( bucket.name )
 end
 
 local num_passed = 0
@@ -188,10 +167,12 @@ local num_passed = 0
 local function run_test( test, ranges_out )
   local strength, bucket = compute_bucket( test.info )
   local matches = (bucket == test.expected)
-  local got_bucket_idx = assert( idx_for_bucket( bucket ) )
-  local need_bucket_idx =
-      assert( idx_for_bucket( test.expected ) )
-  local rg = ranges_out[need_bucket_idx]
+  local got_bucket_idx = assert(
+                             idx_for_bucket( test.info, bucket ) )
+  local need_bucket_idx = assert(
+                              idx_for_bucket( test.info,
+                                              test.expected ) )
+  local rg = ranges_out[test.info.fortification][need_bucket_idx]
   rg.min = min( rg.min, strength )
   rg.max = max( rg.max, strength )
   num_passed = num_passed + (matches and 1 or 0);
@@ -260,9 +241,6 @@ local function skip_test_if( case )
   -- if case.fortification ~= 'fort' then return true end
   -- if case.fortification ~= 'fortress' then return true end
 
-  -- if at_least_fort( case ) then return true end
-  -- if not at_least_fort( case ) then return true end
-
   -- if case.muskets > 0 then return true end
 
   -- local unique_units = set( case.unit_set )
@@ -296,8 +274,11 @@ end
 local function main( _ )
   local tests = create_test_cases()
   local ranges = {}
-  for _, _ in ipairs( BUCKETS ) do
-    insert( ranges, { min=10 ^ 6, max=-10 ^ 6 } )
+  for k, _ in pairs( BUCKETS ) do
+    ranges[k] = ranges[k] or {}
+    for _, _ in ipairs( BUCKETS.none ) do
+      insert( ranges[k], { min=huge, max=-huge } )
+    end
   end
   print_header()
   for _, test in ipairs( tests ) do run_test( test, ranges ) end
@@ -311,10 +292,15 @@ local function main( _ )
             passed_color, NORMAL, num_passed, #tests )
   print()
   print( 'Bucket Ranges:' )
-  for i, bucket in ipairs( BUCKETS ) do
-    if ranges[i] then
-      printfln( '  %s: (%f, %f)', bucket.name, ranges[i].min,
-                ranges[i].max )
+  for _, ftn in ipairs( FORTIFICATION_ORDER ) do
+    printfln( '  %s:', ftn )
+    for i, bucket in ipairs( BUCKETS[ftn] ) do
+      if ranges[ftn][i] then
+        local v = ranges[ftn][i]
+        local l = (v.min == huge) and '-' or floor( v.min )
+        local r = (v.max == -huge) and '-' or ceil( v.max )
+        printfln( '    %s: [%3s, %4s]', bucket.name, l, r )
+      end
     end
   end
 end
