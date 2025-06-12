@@ -76,20 +76,21 @@ local BUCKETS = {
   },
 }
 
-local UNIT_INFO = {
-  soldier={ combat=2 },
-  veteran_soldier={ combat=2 },
-  dragoon={ combat=2 },
-  veteran_dragoon={ combat=2 },
+local UNIT_WEIGHT = {
+  soldier=2,
+  veteran_soldier=2,
+  dragoon=2,
+  veteran_dragoon=2,
 
-  continental_army={ combat=5.0 },
-  continental_cavalry={ combat=5.0 },
-  damaged_artillery={ combat=5.0 },
+  continental_army=5.0,
+  continental_cavalry=5.0,
+  damaged_artillery=5.0,
 
-  artillery={ combat=8.0 },
+  artillery=8.0,
 }
 
-local CONST_UNIT_BONUS = 10
+local UNIT_MULTIPLIER = 12
+local UNIT_CONSTANT = 10
 
 local MUSKETS_MULTIPLIER = 17
 
@@ -111,25 +112,17 @@ end
 -----------------------------------------------------------------
 -- Strength computation.
 -----------------------------------------------------------------
+local function unit_strength( unit_name )
+  local strength = UNIT_WEIGHT[unit_name]
+  strength = strength * UNIT_MULTIPLIER + UNIT_CONSTANT
+  dbg( 'unit %s strength=%d', unit_name, strength )
+  return strength
+end
+
 local function muskets_bonus( case )
   local muskets = case.muskets
   local bonus = MUSKETS_MULTIPLIER * (muskets // 50)
   return bonus
-end
-
-local function unit_strength( unit_name )
-  local unit = UNIT_INFO[unit_name]
-  local strength = unit.combat
-  local multiply = function( factor )
-    strength = strength * factor
-  end
-  local add = function( term )
-    strength = max( strength + term, 0 )
-  end
-  multiply( 12 )
-  add( assert( CONST_UNIT_BONUS ) )
-  dbg( 'unit %s strength=%d', unit_name, strength )
-  return strength
 end
 
 local function units_strength( case )
