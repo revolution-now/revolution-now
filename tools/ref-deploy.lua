@@ -53,13 +53,29 @@ local BUCKETS = {
   { start=0, name='2/1/0' }, --
 }
 
-local BUCKET_2_2_2_THRESHOLD = 15
+local BUCKETS_STOCKADE = BUCKETS
+
+local BUCKETS_FORT = {
+  { start=320, name='2/2/2' }, --
+  { start=80, name='4/1/1' }, --
+  { start=75, name='3/1/1' }, --
+  { start=40, name='2/1/1' }, --
+  { start=0, name='2/1/0' }, --
+}
+
+local BUCKETS_FORTRESS = {
+  { start=220, name='2/2/2' }, --
+  { start=50, name='4/1/1' }, --
+  { start=40, name='3/1/1' }, --
+  { start=30, name='2/1/1' }, --
+  { start=0, name='2/1/0' }, --
+}
 
 local COLONY_FORTIFICATION_BONUS = {
   none=0.5,
   stockade=0.5,
-  fort=3.0,
-  fortress=5.0,
+  fort=0.5,
+  fortress=0.5,
 }
 
 local UNIT_INFO = {
@@ -117,12 +133,14 @@ local function unit_strength( unit_name, case )
   local multiply = function( factor )
     strength = strength * factor
   end
-  local add = function( term ) strength = strength + term end
+  local add = function( term )
+    strength = max( strength + term, 0 )
+  end
   multiply( 8 )
   local fortification_bonus = bonus_for_fortification(
                                   case.fortification )
   if at_least_fort( case ) then
-    -- add( -50 ) --
+    -- add( -2 ) --
     -- fortification_bonus = fortification_bonus - .5
   end
   multiply( fortification_bonus )
@@ -144,8 +162,16 @@ end
 -----------------------------------------------------------------
 -- Test runner.
 -----------------------------------------------------------------
-local function bucket_for( strength )
-  for idx, bucket in ipairs( BUCKETS ) do
+local function bucket_for( case, strength )
+  local buckets = BUCKETS
+  if case.fortification == 'stockade' then
+    buckets = BUCKETS_STOCKADE
+  elseif case.fortification == 'fort' then
+    buckets = BUCKETS_FORT
+  elseif case.fortification == 'fortress' then
+    buckets = BUCKETS_FORTRESS
+  end
+  for idx, bucket in ipairs( buckets ) do
     if strength >= bucket.start then return idx end
   end
   error( 'bucket not found for strength=' .. strength )
@@ -153,8 +179,7 @@ end
 
 local function compute_bucket( case )
   local strength = units_strength( case )
-  local bucket = bucket_for( strength )
-  if #case.unit_set >= BUCKET_2_2_2_THRESHOLD then bucket = 1 end
+  local bucket = bucket_for( case, strength )
   return strength, assert( BUCKETS[bucket].name )
 end
 
@@ -235,7 +260,8 @@ local function skip_test_if( case )
   -- if case.fortification ~= 'fort' then return true end
   -- if case.fortification ~= 'fortress' then return true end
 
-  if at_least_fort( case ) then return true end
+  -- if at_least_fort( case ) then return true end
+  -- if not at_least_fort( case ) then return true end
 
   -- if case.muskets > 0 then return true end
 
