@@ -7,8 +7,6 @@ local printer = require'moon.printer'
 local list = require'moon.list'
 local logger = require'moon.logger'
 local console = require'moon.console'
-local set = require'moon.set'
-local mtbl = require'moon.tbl'
 
 -----------------------------------------------------------------
 -- Aliases.
@@ -119,7 +117,7 @@ local function muskets_bonus( case )
   return bonus
 end
 
-local function unit_strength( unit_name, case )
+local function unit_strength( unit_name )
   local unit = UNIT_INFO[unit_name]
   local strength = unit.combat
   local multiply = function( factor )
@@ -128,8 +126,7 @@ local function unit_strength( unit_name, case )
   local add = function( term )
     strength = max( strength + term, 0 )
   end
-  multiply( 8 )
-  multiply( 1.5 )
+  multiply( 12 )
   add( assert( CONST_UNIT_BONUS ) )
   dbg( 'unit %s strength=%d', unit_name, strength )
   return strength
@@ -139,7 +136,7 @@ local function units_strength( case )
   local strength = 0
   local add = function( term ) strength = strength + term end
   for _, unit in ipairs( case.unit_set ) do
-    add( unit_strength( unit, case ) )
+    add( unit_strength( unit ) )
   end
   add( muskets_bonus( case ) )
   return strength
@@ -158,7 +155,7 @@ end
 
 local function compute_bucket( case )
   local strength = units_strength( case )
-  local idx, bucket = bucket_for( case, strength )
+  local _, bucket = bucket_for( case, strength )
   return strength, assert( bucket.name )
 end
 
@@ -231,7 +228,7 @@ local function parse_test_case( line )
   return { info=keyvals, label=label, expected=delivery }
 end
 
-local function skip_test_if( case )
+local function skip_test_if( _ )
   -- if case.horses > 0 then return true end
   -- if case.difficulty ~= 'conquistador' then return true end
   -- if case.orders == 'none' then return true end
@@ -243,10 +240,6 @@ local function skip_test_if( case )
 
   -- if case.muskets > 0 then return true end
 
-  -- local unique_units = set( case.unit_set )
-  -- if not mtbl.tables_equal( unique_units, { soldier=true } ) then
-  --   return true
-  -- end
   -- if #case.unit_set > 1 then return true end
 end
 
