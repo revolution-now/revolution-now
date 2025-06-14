@@ -51,28 +51,25 @@ local BUCKETS = {
     { start=   9, finish=  28, name='4/1/1' },
     { start=   7, finish=   8, name='3/1/1' },
     { start=   5, finish=   6, name='2/1/1' },
-    { start=   2, finish=   4, name='2/1/0' },
+    { start=   0, finish=   4, name='2/1/0' },
   },
   stockade={
     { start=  29, finish=  70, name='2/2/2' },
     { start=   9, finish=  28, name='4/1/1' },
     { start=   7, finish=   8, name='3/1/1' },
     { start=   5, finish=   6, name='2/1/1' },
-    { start=   2, finish=   4, name='2/1/0' },
+    { start=   0, finish=   4, name='2/1/0' },
   },
   fort={
     { start=  19, finish=  70, name='2/2/2' },
     { start=   5, finish=  18, name='4/1/1' },
-    { start=huge, finish=huge, name='3/1/1' },
     { start=   3, finish=   4, name='2/1/1' },
-    { start=   2, finish=   2, name='2/1/0' },
+    { start=   0, finish=   2, name='2/1/0' },
   },
   fortress={
     { start=  13, finish=  70, name='2/2/2' },
     { start=   3, finish=  12, name='4/1/1' },
-    { start=huge, finish=huge, name='3/1/1' },
-    { start=   2, finish=   2, name='2/1/1' },
-    { start=huge, finish=huge, name='2/1/0' },
+    { start=   0, finish=   2, name='2/1/1' },
   },
   -- LuaFormatter on
 }
@@ -249,8 +246,11 @@ local function main( _ )
     for i, bucket in ipairs( BUCKETS[ftn] ) do
       if ranges[ftn][i] then
         local v = ranges[ftn][i]
-        local l = (v.min == huge) and 'huge' or v.min
-        local r = (v.max == -huge) and 'huge' or v.max
+        local l = v.min
+        local r = v.max
+        if i == #BUCKETS[ftn] then l = 0 end
+        l = (v.min == huge) and 'huge' or l
+        r = (v.max == -huge) and 'huge' or r
         printfln( '    { start=%4s, finish=%4s, name=\'%s\' },',
                   l, r, bucket.name )
       end
