@@ -15,7 +15,6 @@ local rep = string.rep
 local insert = table.insert
 local floor = math.floor
 local huge = math.huge
-local ceil = math.ceil
 local format = string.format
 
 local NORMAL = colors.ANSI_NORMAL
@@ -146,7 +145,7 @@ local function compute_bucket( case )
   local metric = compute_metric( case )
   local bucket = bucket_for( case, metric )
   assert( bucket )
-  if assert( bucket.name ) == '2/1/0' and case.already_landed then
+  if assert( bucket['name'] ) == '2/1/0' and case.already_landed then
     return metric, '1/1/1'
   end
   return metric, assert( bucket.name )
