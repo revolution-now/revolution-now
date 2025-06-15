@@ -473,12 +473,11 @@ void ColonyLandView::draw_spread(
             SpreadLabelPlacement::left_middle_adjusted{},
       } } };
   if( quantity == 0 ) {
+    if( is_colony_tile ) return;
     auto const draw = [&]( e_tile const tile ) {
       size const sz = sprite_size( tile );
       point const origin =
-          is_colony_tile
-              ? gfx::centered_in( sz, inner_box )
-              : gfx::centered_at_left( sz, inner_box );
+          gfx::centered_at_left( sz, inner_box );
       render_sprite( renderer, origin, tile );
     };
     draw( tile );
