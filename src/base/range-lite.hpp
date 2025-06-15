@@ -1568,7 +1568,7 @@ class ChainView {
     struct ChunkCursor : public CursorStorage,
                          public CursorBase<ChunkCursor> {
       struct Data {
-        Data( int n ) : n( n ) {}
+        Data( int n ) : n( n ) { assert_bt( n > 0 ); }
         int n = 0;
       };
       using Base = CursorBase<ChunkCursor>;

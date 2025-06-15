@@ -34,9 +34,9 @@ using ::base::maybe;
 
 namespace base {
 [[noreturn]] void abort_with_backtrace_here(
-    source_location /*loc*/ );
+    int skip_frames, source_location /*loc*/ );
 [[noreturn]] void abort_with_backtrace_here(
-    source_location /*loc*/ ) {
+    int const /*skip_frames*/, source_location /*loc*/ ) {
   abort();
 }
 } // namespace base

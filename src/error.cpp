@@ -52,12 +52,13 @@ namespace base {
 //
 // FIXME: we should probably be using the source location passed
 // into this function in case a stack trace is not available.
-void abort_with_backtrace_here( source_location /*loc*/ ) {
+void abort_with_backtrace_here( int const skip_frames,
+                                source_location /*loc*/ ) {
   auto here = ::rn::stack_trace_here();
   rn::print_SDL_error();
   if( rn::g_cleanup_fn.has_value() ) ( *rn::g_cleanup_fn )();
-  print_stack_trace(
-      here, ::rn::StackTraceOptions{ .skip_frames = 5 } );
+  print_stack_trace( here, ::rn::StackTraceOptions{
+                             .skip_frames = skip_frames } );
   std::abort();
 }
 

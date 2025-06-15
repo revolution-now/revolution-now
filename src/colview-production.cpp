@@ -197,10 +197,11 @@ void ProductionView::create_production_spreads(
             []( TileSpread const& o ) { return o.count == 0; } );
 
   int const num_spreads = ssize( spreads );
+  // Should be at least one otherwise `chunks` will crash.
   int const num_per_row =
-      num_spreads % layout_.kNumRows > 0
-          ? ( num_spreads / layout_.kNumRows + 1 )
-          : num_spreads / layout_.kNumRows;
+      std::max( 1, num_spreads % layout_.kNumRows > 0
+                       ? ( num_spreads / layout_.kNumRows + 1 )
+                       : num_spreads / layout_.kNumRows );
   CHECK_LE( num_spreads, num_per_row * layout_.kNumRows; );
   auto const chunks = rl::all( spreads ).chunk( num_per_row );
   for( int idx = 0; auto const chunk : chunks ) {

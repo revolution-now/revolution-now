@@ -19,7 +19,8 @@
 // the base library.
 #ifdef USE_BACKWARD
 #  define assert_bt( ... ) \
-    if( !( __VA_ARGS__ ) ) ::base::abort_with_backtrace_here();
+    if( !( __VA_ARGS__ ) ) \
+      ::base::abort_with_backtrace_here( /*skip_frames=*/4 );
 #else
 // This is in case there are any variables in there that would
 // otherwise be unused in a release build and trigger warnings.
@@ -37,6 +38,7 @@ namespace base {
 // it should either call std::abort, or throw an exception, what-
 // ever is most appropriate for the binary.
 [[noreturn]] void abort_with_backtrace_here(
+    int skip_frames,
     std::source_location loc = std::source_location::current() );
 
 } // namespace base

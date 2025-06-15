@@ -34,7 +34,7 @@ string check_msg( char const* expr, string const& msg ) {
 void abort_with_msg( string_view msg, source_location loc ) {
   fprintf( stderr, "%s:%u: error: %s\n", loc.file_name(),
            loc.line(), string( msg ).c_str() );
-  abort_with_backtrace_here( loc );
+  abort_with_backtrace_here( /*skip_frames=*/5, loc );
 }
 
 void to_str( generic_err const& ge, std::string& out,
