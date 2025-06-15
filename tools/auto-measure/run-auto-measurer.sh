@@ -1,4 +1,5 @@
 #!/bin/bash
+# This one is for testing random effects.
 set -e
 # set -x
 
