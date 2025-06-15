@@ -39,7 +39,7 @@ war_of_succession {
   # since there will not be an available slot for the REF. But if
   # you don't care about saving the game in that legacy format
   # then you can freely disable the war of succession.
-  enable_war_of_succession_default: true
+  disable_war_of_succession_default: false
 }
 
 declaration {

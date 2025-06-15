@@ -46,7 +46,7 @@ struct.GameSetupOptions {
   # possible to convert to the OG's SAV format, which only has
   # four slots, after the war of independence. We may want to
   # warn the player about that.
-  enable_war_of_succession 'bool',
+  disable_war_of_succession 'bool',
 }
 
 struct.CheatOptions {

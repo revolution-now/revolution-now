@@ -51,7 +51,7 @@ function M.harden( tbl )
   return setmetatable( {}, {
     __index=function( _, k )
       local v = frozen[k]
-      if not v then
+      if v == nil then
         error( 'attempt to read non-existent key: ' ..
                    tostring( k ), 2 )
       end

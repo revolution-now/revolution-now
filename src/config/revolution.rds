@@ -33,7 +33,7 @@ struct.Declaration {
 }
 
 struct.WarOfSuccession {
-  enable_war_of_succession_default 'bool',
+  disable_war_of_succession_default 'bool',
 }
 
 struct.RefTargetRatios {

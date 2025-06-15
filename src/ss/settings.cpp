@@ -63,8 +63,9 @@ LUA_STARTUP( lua::state& st ) {
     using U = ::rn::GameSetupOptions;
     auto u  = st.usertype.create<U>();
 
-    u["difficulty"]               = &U::difficulty;
-    u["enable_war_of_succession"] = &U::enable_war_of_succession;
+    u["difficulty"] = &U::difficulty;
+    u["disable_war_of_succession"] =
+        &U::disable_war_of_succession;
   }
 };
 
