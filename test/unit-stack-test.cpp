@@ -82,9 +82,9 @@ TEST_CASE( "[unit-stack] sort_euro_unit_stack" ) {
     add( e_unit_type::caravel );           // 8
     add( e_unit_type::privateer );         // 9
     add( e_unit_type::artillery );         // 10
-    expected = { UnitId{ 9 }, UnitId{ 10 }, UnitId{ 4 },
-                 UnitId{ 7 }, UnitId{ 5 },  UnitId{ 6 },
-                 UnitId{ 3 }, UnitId{ 8 },  UnitId{ 1 },
+    expected = { UnitId{ 9 }, UnitId{ 10 }, UnitId{ 7 },
+                 UnitId{ 4 }, UnitId{ 6 },  UnitId{ 3 },
+                 UnitId{ 5 }, UnitId{ 8 },  UnitId{ 1 },
                  UnitId{ 2 } };
     sort_euro_unit_stack( W.ss(), units );
     REQUIRE( units == expected );
@@ -161,8 +161,8 @@ TEST_CASE( "[unit-stack] sort_unit_stack" ) {
     add( e_unit_type::caravel );                // 5
     add( e_native_unit_type::armed_brave );     // 6
     add( e_native_unit_type::brave );           // 7
-    expected = { GenericUnitId{ 2 }, GenericUnitId{ 4 },
-                 GenericUnitId{ 1 }, GenericUnitId{ 5 },
+    expected = { GenericUnitId{ 2 }, GenericUnitId{ 1 },
+                 GenericUnitId{ 4 }, GenericUnitId{ 5 },
                  GenericUnitId{ 6 }, GenericUnitId{ 3 },
                  GenericUnitId{ 7 } };
     sort_unit_stack( W.ss(), units );

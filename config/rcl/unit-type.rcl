@@ -86,6 +86,7 @@ composition {
       base_movement_points:  1
       can_attack:            false
       combat:                1
+      veteran_bonus:         false
       ship_combat_extra:     null
       on_death               capture{}
       turns_to_repair:       null
@@ -123,6 +124,7 @@ composition {
       base_movement_points:  1
       can_attack:            false
       combat:                1
+      veteran_bonus:         false
       ship_combat_extra:     null
       on_death               capture{}
       turns_to_repair:       null
@@ -160,6 +162,7 @@ composition {
       base_movement_points:  1
       can_attack:            false
       combat:                1
+      veteran_bonus:         false
       ship_combat_extra:     null
       on_death               capture{}
       turns_to_repair:       null
@@ -199,6 +202,7 @@ composition {
       base_movement_points:  1
       can_attack:            false
       combat:                1
+      veteran_bonus:         false
       ship_combat_extra:     null
       on_death               capture{}
       turns_to_repair:       null
@@ -233,6 +237,7 @@ composition {
       base_movement_points:  1
       can_attack:            false
       combat:                1
+      veteran_bonus:         false
       ship_combat_extra:     null
       # Don't recall reading about this, but experiements in the
       # OG seem to indicate that pioneers are destroyed when they
@@ -267,6 +272,7 @@ composition {
       base_movement_points:  2
       can_attack:            false
       combat:                1
+      veteran_bonus:         false
       ship_combat_extra:     null
       # Don't recall reading about this, but experiements in the
       # OG seem to indicate that pioneers are destroyed when they
@@ -301,6 +307,7 @@ composition {
       base_movement_points:  4
       can_attack:            true
       combat:                1
+      veteran_bonus:         false
       ship_combat_extra:     null
       # Does not simply lose horses; the game rules say that scout
       # units are completely destroyed upon defeat.
@@ -334,6 +341,7 @@ composition {
       base_movement_points:  1
       can_attack:            true
       combat:                2
+      veteran_bonus:         false
       ship_combat_extra:     null
       on_death               demote{ lose=[muskets] }
       turns_to_repair:       null
@@ -365,6 +373,7 @@ composition {
       base_movement_points:  4
       can_attack:            true
       combat:                3
+      veteran_bonus:         false
       ship_combat_extra:     null
       on_death               demote{ lose=[horses] }
       turns_to_repair:       null
@@ -399,6 +408,7 @@ composition {
       base_movement_points:  1
       can_attack:            false
       combat:                1
+      veteran_bonus:         false
       ship_combat_extra:     null
       on_death               capture{}
       turns_to_repair:       null
@@ -436,6 +446,7 @@ composition {
       base_movement_points:  1
       can_attack:            false
       combat:                1
+      veteran_bonus:         false
       ship_combat_extra:     null
       on_death               capture{}
       turns_to_repair:       null
@@ -473,6 +484,7 @@ composition {
       base_movement_points:  1
       can_attack:            false
       combat:                1
+      veteran_bonus:         false
       ship_combat_extra:     null
       on_death               capture{}
       turns_to_repair:       null
@@ -510,6 +522,7 @@ composition {
       base_movement_points:  1
       can_attack:            false
       combat:                1
+      veteran_bonus:         false
       ship_combat_extra:     null
       on_death               capture{}
       turns_to_repair:       null
@@ -547,6 +560,7 @@ composition {
       base_movement_points:  1
       can_attack:            false
       combat:                1
+      veteran_bonus:         false
       ship_combat_extra:     null
       on_death               capture{}
       turns_to_repair:       null
@@ -584,6 +598,7 @@ composition {
       base_movement_points:  1
       can_attack:            false
       combat:                1
+      veteran_bonus:         false
       ship_combat_extra:     null
       on_death               capture{}
       turns_to_repair:       null
@@ -621,6 +636,7 @@ composition {
       base_movement_points:  1
       can_attack:            false
       combat:                1
+      veteran_bonus:         false
       ship_combat_extra:     null
       on_death               capture{}
       turns_to_repair:       null
@@ -658,6 +674,7 @@ composition {
       base_movement_points:  1
       can_attack:            false
       combat:                1
+      veteran_bonus:         false
       ship_combat_extra:     null
       on_death               capture{}
       turns_to_repair:       null
@@ -695,6 +712,7 @@ composition {
       base_movement_points:  1
       can_attack:            false
       combat:                1
+      veteran_bonus:         false
       ship_combat_extra:     null
       on_death               capture{}
       turns_to_repair:       null
@@ -732,6 +750,7 @@ composition {
       base_movement_points:  1
       can_attack:            false
       combat:                1
+      veteran_bonus:         false
       ship_combat_extra:     null
       on_death               capture{}
       turns_to_repair:       null
@@ -769,6 +788,7 @@ composition {
       base_movement_points:  1
       can_attack:            false
       combat:                1
+      veteran_bonus:         false
       ship_combat_extra:     null
       on_death               capture{}
       turns_to_repair:       null
@@ -806,6 +826,7 @@ composition {
       base_movement_points:  1
       can_attack:            false
       combat:                1
+      veteran_bonus:         false
       ship_combat_extra:     null
       on_death               capture{}
       turns_to_repair:       null
@@ -843,6 +864,7 @@ composition {
       base_movement_points:  1
       can_attack:            false
       combat:                1
+      veteran_bonus:         false
       ship_combat_extra:     null
       on_death               capture{}
       turns_to_repair:       null
@@ -880,6 +902,7 @@ composition {
       base_movement_points:  1
       can_attack:            false
       combat:                1
+      veteran_bonus:         false
       ship_combat_extra:     null
       on_death               capture{}
       turns_to_repair:       null
@@ -917,6 +940,7 @@ composition {
       base_movement_points:  1
       can_attack:            false
       combat:                1
+      veteran_bonus:         false
       ship_combat_extra:     null
       on_death               capture{}
       turns_to_repair:       null
@@ -954,6 +978,7 @@ composition {
       base_movement_points:  1
       can_attack:            false
       combat:                1
+      veteran_bonus:         false
       ship_combat_extra:     null
       on_death               capture{}
       turns_to_repair:       null
@@ -991,6 +1016,7 @@ composition {
       base_movement_points:  1
       can_attack:            false
       combat:                1
+      veteran_bonus:         false
       ship_combat_extra:     null
       on_death               capture{}
       turns_to_repair:       null
@@ -1028,6 +1054,7 @@ composition {
       base_movement_points:  1
       can_attack:            false
       combat:                1
+      veteran_bonus:         false
       ship_combat_extra:     null
       on_death               capture{}
       turns_to_repair:       null
@@ -1065,6 +1092,7 @@ composition {
       base_movement_points:  1
       can_attack:            false
       combat:                1
+      veteran_bonus:         false
       ship_combat_extra:     null
       on_death               capture{}
       turns_to_repair:       null
@@ -1102,6 +1130,7 @@ composition {
       base_movement_points:  1
       can_attack:            false
       combat:                1
+      veteran_bonus:         false
       ship_combat_extra:     null
       on_death               capture{}
       turns_to_repair:       null
@@ -1139,6 +1168,7 @@ composition {
       base_movement_points:  1
       can_attack:            false
       combat:                1
+      veteran_bonus:         false
       ship_combat_extra:     null
       on_death               capture{}
       turns_to_repair:       null
@@ -1176,6 +1206,7 @@ composition {
       base_movement_points:  1
       can_attack:            false
       combat:                1
+      veteran_bonus:         false
       ship_combat_extra:     null
       on_death               capture_and_demote{type=free_colonist}
       turns_to_repair:       null
@@ -1217,7 +1248,8 @@ composition {
       visibility:            1
       base_movement_points:  1
       can_attack:            true
-      combat:                3
+      combat:                2
+      veteran_bonus:         true
       ship_combat_extra:     null
       on_death               demote{ lose=[muskets] }
       turns_to_repair:       null
@@ -1248,7 +1280,8 @@ composition {
       visibility:            1
       base_movement_points:  4
       can_attack:            true
-      combat:                4
+      combat:                3
+      veteran_bonus:         true
       ship_combat_extra:     null
       on_death               demote{ lose=[horses] }
       turns_to_repair:       null
@@ -1280,6 +1313,7 @@ composition {
       base_movement_points:  1
       can_attack:            true
       combat:                4
+      veteran_bonus:         false
       ship_combat_extra:     null
       on_death               demote{ lose=[muskets, independence] }
       turns_to_repair:       null
@@ -1311,6 +1345,7 @@ composition {
       base_movement_points:  4
       can_attack:            true
       combat:                5
+      veteran_bonus:         false
       ship_combat_extra:     null
       on_death               demote{ lose=[horses] }
       turns_to_repair:       null
@@ -1342,6 +1377,7 @@ composition {
       base_movement_points:  1
       can_attack:            true
       combat:                5
+      veteran_bonus:         false
       ship_combat_extra:     null
       on_death               destroy{}
       turns_to_repair:       null
@@ -1375,6 +1411,7 @@ composition {
       base_movement_points:  4
       can_attack:            true
       combat:                6
+      veteran_bonus:         false
       ship_combat_extra:     null
       on_death               demote{ lose=[horses] }
       turns_to_repair:       null
@@ -1406,6 +1443,7 @@ composition {
       base_movement_points:  1
       can_attack:            false
       combat:                1
+      veteran_bonus:         false
       ship_combat_extra:     null
       # Don't recall reading about this, but experiements in the
       # OG seem to indicate that pioneers are destroyed when they
@@ -1440,6 +1478,7 @@ composition {
       base_movement_points:  2
       can_attack:            false
       combat:                1
+      veteran_bonus:         false
       ship_combat_extra:     null
       # Don't recall reading about this, but experiements in the
       # OG seem to indicate that pioneers are destroyed when they
@@ -1474,6 +1513,7 @@ composition {
       base_movement_points:  4
       can_attack:            true
       combat:                1
+      veteran_bonus:         false
       ship_combat_extra:     null
       # Does not simply lose horses; the game rules say that scout
       # units are completely destroyed upon defeat.
@@ -1510,6 +1550,7 @@ composition {
       base_movement_points:  1
       can_attack:            true
       combat:                3
+      veteran_bonus:         false
       ship_combat_extra:     null
       on_death               destroy{}
       turns_to_repair:       null
@@ -1543,6 +1584,7 @@ composition {
       base_movement_points:  1
       can_attack:            true
       combat:                5
+      veteran_bonus:         false
       ship_combat_extra:     null
       on_death               demote{ lose=[strength] }
       turns_to_repair:       null
@@ -1577,6 +1619,7 @@ composition {
       base_movement_points:  4
       can_attack:            false
       combat:                2
+      veteran_bonus:         false
       ship_combat_extra:     { guns=0, hull=4, evasion_bonus=false }
       on_death               naval{}
       turns_to_repair:       { harbor=2, colony=0 }
@@ -1608,6 +1651,7 @@ composition {
       base_movement_points:  5
       can_attack:            false
       combat:                6
+      veteran_bonus:         false
       ship_combat_extra:     { guns=1, hull=8, evasion_bonus=false }
       on_death               naval{}
       turns_to_repair:       { harbor=6, colony=2 }
@@ -1639,6 +1683,7 @@ composition {
       base_movement_points:  6
       can_attack:            false
       combat:                10
+      veteran_bonus:         false
       ship_combat_extra:     { guns=4, hull=20, evasion_bonus=false }
       on_death               naval{}
       turns_to_repair:       { harbor=10, colony=4 }
@@ -1670,6 +1715,7 @@ composition {
       base_movement_points:  8
       can_attack:            true
       combat:                8
+      veteran_bonus:         false
       ship_combat_extra:     { guns=4, hull=12, evasion_bonus=true }
       on_death               naval{}
       turns_to_repair:       { harbor=8, colony=3 }
@@ -1701,6 +1747,7 @@ composition {
       base_movement_points:  6
       can_attack:            true
       combat:                16
+      veteran_bonus:         false
       ship_combat_extra:     { guns=12, hull=32, evasion_bonus=false }
       on_death               naval{}
       turns_to_repair:       { harbor=12, colony=5 }
@@ -1732,6 +1779,7 @@ composition {
       base_movement_points:  5
       can_attack:            true
       combat:                24
+      veteran_bonus:         false
       ship_combat_extra:     { guns=32, hull=64, evasion_bonus=false }
       on_death               naval{}
       turns_to_repair:       { harbor=14, colony=7 }
@@ -1766,6 +1814,7 @@ composition {
       base_movement_points:  2
       can_attack:            false
       combat:                1
+      veteran_bonus:         false
       ship_combat_extra:     null
       on_death               capture{}
       turns_to_repair:       null
@@ -1800,6 +1849,7 @@ composition {
       base_movement_points:  1
       can_attack:            false
       combat:                0  # always loses.
+      veteran_bonus:         false
       ship_combat_extra:     null
       on_death               capture{}
       turns_to_repair:       null

@@ -120,6 +120,7 @@ TEST_CASE( "[unit-type] unit type attributes deserialization" ) {
     REQUIRE( desc.base_movement_points == 1 );
     REQUIRE( desc.can_attack == false );
     REQUIRE( desc.combat == 1 );
+    REQUIRE( desc.veteran_bonus == false );
     REQUIRE( desc.cargo_slots == 0 );
     REQUIRE( desc.cargo_slots_occupies == 1 );
     REQUIRE( desc.on_death.holds<UnitDeathAction::capture>() );
@@ -166,6 +167,7 @@ TEST_CASE( "[unit-type] unit type attributes deserialization" ) {
     REQUIRE( desc.base_movement_points == 1 );
     REQUIRE( desc.can_attack == false );
     REQUIRE( desc.combat == 1 );
+    REQUIRE( desc.veteran_bonus == false );
     REQUIRE( desc.cargo_slots == 0 );
     REQUIRE( desc.cargo_slots_occupies == 1 );
     REQUIRE( desc.on_death.holds<UnitDeathAction::capture>() );
@@ -213,6 +215,7 @@ TEST_CASE( "[unit-type] unit type attributes deserialization" ) {
     REQUIRE( desc.base_movement_points == 1 );
     REQUIRE( desc.can_attack == false );
     REQUIRE( desc.combat == 1 );
+    REQUIRE( desc.veteran_bonus == false );
     REQUIRE( desc.cargo_slots == 0 );
     REQUIRE( desc.cargo_slots_occupies == 1 );
     REQUIRE( desc.on_death.holds<UnitDeathAction::capture>() );
@@ -258,7 +261,8 @@ TEST_CASE( "[unit-type] unit type attributes deserialization" ) {
     REQUIRE( desc.visibility == 1 );
     REQUIRE( desc.base_movement_points == 4 );
     REQUIRE( desc.can_attack == true );
-    REQUIRE( desc.combat == 4 );
+    REQUIRE( desc.combat == 3 );
+    REQUIRE( desc.veteran_bonus == true );
     REQUIRE( desc.cargo_slots == 0 );
     REQUIRE( desc.cargo_slots_occupies == 1 );
     REQUIRE( desc.on_death ==
@@ -282,6 +286,46 @@ TEST_CASE( "[unit-type] unit type attributes deserialization" ) {
     REQUIRE( can_attack( desc.type ) == true );
     REQUIRE( is_military_unit( desc.type ) == true );
   }
+  SECTION( "veteran_soldier" ) {
+    UnitTypeAttributes const& desc =
+        unit_attr( e_unit_type::veteran_soldier );
+    REQUIRE( desc.name == "Veteran Soldier" );
+    REQUIRE( desc.name_plural == "Veteran Soldiers" );
+    REQUIRE( desc.tile == e_tile::veteran_soldier );
+    REQUIRE( desc.nat_icon_front == false );
+    REQUIRE( desc.nat_icon_position == e_direction::se );
+    REQUIRE( desc.ship == false );
+    REQUIRE( desc.colonist == e_unit_colonist::from_base );
+    REQUIRE( desc.can_found ==
+             e_unit_can_found_colony::from_base );
+    REQUIRE( desc.visibility == 1 );
+    REQUIRE( desc.base_movement_points == 1 );
+    REQUIRE( desc.can_attack == true );
+    REQUIRE( desc.combat == 2 );
+    REQUIRE( desc.veteran_bonus == true );
+    REQUIRE( desc.cargo_slots == 0 );
+    REQUIRE( desc.cargo_slots_occupies == 1 );
+    REQUIRE( desc.on_death ==
+             UnitDeathAction::demote{
+               .lose = { e_unit_type_modifier::muskets } } );
+    REQUIRE( desc.canonical_base ==
+             e_unit_type::veteran_colonist );
+    REQUIRE( desc.expertise == nothing );
+    REQUIRE( desc.promotion ==
+             UnitPromotion::modifier{
+               .kind = e_unit_type_modifier::independence } );
+    unordered_map<e_unit_type,
+                  unordered_set<e_unit_type_modifier>>
+        expected_modifiers{};
+    REQUIRE( desc.modifiers == expected_modifiers );
+    REQUIRE( desc.inventory_types ==
+             unordered_set<e_unit_inventory>{} );
+    // Derived fields.
+    REQUIRE( desc.type == e_unit_type::veteran_soldier );
+    REQUIRE( desc.is_derived == true );
+    REQUIRE( can_attack( desc.type ) == true );
+    REQUIRE( is_military_unit( desc.type ) == true );
+  }
   SECTION( "scout" ) {
     UnitTypeAttributes const& desc =
         unit_attr( e_unit_type::scout );
@@ -298,6 +342,7 @@ TEST_CASE( "[unit-type] unit type attributes deserialization" ) {
     REQUIRE( desc.base_movement_points == 4 );
     REQUIRE( desc.can_attack == true );
     REQUIRE( desc.combat == 1 );
+    REQUIRE( desc.veteran_bonus == false );
     REQUIRE( desc.cargo_slots == 0 );
     REQUIRE( desc.cargo_slots_occupies == 1 );
     REQUIRE( desc.on_death == UnitDeathAction::destroy{} );
@@ -334,6 +379,7 @@ TEST_CASE( "[unit-type] unit type attributes deserialization" ) {
     REQUIRE( desc.base_movement_points == 1 );
     REQUIRE( desc.can_attack == false );
     REQUIRE( desc.combat == 1 );
+    REQUIRE( desc.veteran_bonus == false );
     REQUIRE( desc.cargo_slots == 0 );
     REQUIRE( desc.cargo_slots_occupies == 1 );
     REQUIRE( desc.on_death == UnitDeathAction::destroy{} );
@@ -371,6 +417,7 @@ TEST_CASE( "[unit-type] unit type attributes deserialization" ) {
     REQUIRE( desc.base_movement_points == 2 );
     REQUIRE( desc.can_attack == false );
     REQUIRE( desc.combat == 1 );
+    REQUIRE( desc.veteran_bonus == false );
     REQUIRE( desc.cargo_slots == 0 );
     REQUIRE( desc.cargo_slots_occupies == 1 );
     REQUIRE( desc.on_death == UnitDeathAction::destroy{} );
@@ -406,6 +453,7 @@ TEST_CASE( "[unit-type] unit type attributes deserialization" ) {
     REQUIRE( desc.base_movement_points == 1 );
     REQUIRE( desc.can_attack == false );
     REQUIRE( desc.combat == 0 );
+    REQUIRE( desc.veteran_bonus == false );
     REQUIRE( desc.cargo_slots == 0 );
     REQUIRE( desc.cargo_slots_occupies == 6 );
     REQUIRE( desc.on_death == UnitDeathAction::capture{} );

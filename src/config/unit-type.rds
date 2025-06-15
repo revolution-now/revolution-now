@@ -190,6 +190,7 @@ struct.UnitTypeAttributes {
   # Combat
   can_attack 'bool',
   combat 'int',
+  veteran_bonus 'bool',
   ship_combat_extra 'base::maybe<ShipCombat>',
   on_death 'UnitDeathAction',
 

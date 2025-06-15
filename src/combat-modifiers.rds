@@ -10,13 +10,10 @@
 # ===============================================================
 namespace "rn"
 
-# Note that there is no "veteran" bonus here, unlike in the OG.
-# That is because in this game we bake that (+50%) bonus into the
-# unit's baseline combat value instead of treating it like a
-# bonus. This is to make the combat calculation info more intu-
-# itive throughout the game.
+# TODO: there is a penalty for a ship carrying cargo.
 enum.e_euro_unit_combat_modifiers {
   movement,
+  veteran,
   attack,
   attack_bonus_artillery,
   spanish_attack_village,

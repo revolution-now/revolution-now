@@ -298,12 +298,12 @@ TEST_CASE( "[combat] euro_attack_euro" ) {
     defender = &W.add_unit_on_map( e_unit_type::soldier,
                                    { .x = 1, .y = 1 },
                                    e_player::french );
-    W.expect_attacker_wins( .666666 );
+    W.expect_attacker_wins( .6 );
     expected = {
       .winner   = e_combat_winner::attacker,
       .attacker = { .id              = attacker->id(),
-                    .base_weight     = 4.0,
-                    .modified_weight = 4.0,
+                    .base_weight     = 3.0,
+                    .modified_weight = 3.0,
                     .outcome =
                         EuroUnitCombatOutcome::no_change{} },
       .defender = { .id              = defender->id(),
@@ -323,7 +323,7 @@ TEST_CASE( "[combat] euro_attack_euro" ) {
     defender = &W.add_unit_on_map( e_unit_type::free_colonist,
                                    { .x = 1, .y = 1 },
                                    e_player::french );
-    W.expect_attacker_wins( .8 );
+    W.expect_attacker_wins( .75 );
     W.expect_promotion( true );
     english.revolution.status = e_revolution_status::declared;
 
@@ -331,8 +331,8 @@ TEST_CASE( "[combat] euro_attack_euro" ) {
       .winner = e_combat_winner::attacker,
       .attacker =
           { .id              = attacker->id(),
-            .base_weight     = 4.0,
-            .modified_weight = 4.0,
+            .base_weight     = 3.0,
+            .modified_weight = 3.0,
             .outcome =
                 EuroUnitCombatOutcome::promoted{
                   .to = e_unit_type::continental_cavalry } },
@@ -381,12 +381,12 @@ TEST_CASE( "[combat] euro_attack_euro" ) {
     defender = &W.add_unit_on_map( e_unit_type::free_colonist,
                                    { .x = 1, .y = 1 },
                                    e_player::french );
-    W.expect_defender_wins( .2 );
+    W.expect_defender_wins( .25 );
     expected = {
       .winner   = e_combat_winner::defender,
       .attacker = { .id              = attacker->id(),
-                    .base_weight     = 4.0,
-                    .modified_weight = 4.0,
+                    .base_weight     = 3.0,
+                    .modified_weight = 3.0,
                     .outcome =
                         EuroUnitCombatOutcome::demoted{
                           .to = e_unit_type::veteran_soldier } },
@@ -1501,7 +1501,7 @@ TEST_CASE( "[combat] brave_attack_colony" ) {
         dwelling.id );
     defender = &W.add_unit_on_map( e_unit_type::veteran_soldier,
                                    colony.location );
-    W.expect_defender_wins( .75 );
+    W.expect_defender_wins( .666666 );
     expected = {
       .winner           = e_combat_winner::defender,
       .colony_id        = colony.id,
@@ -1515,8 +1515,8 @@ TEST_CASE( "[combat] brave_attack_colony" ) {
       .defender         = {
                 .id              = defender->id(),
                 .modifiers       = {},
-                .base_weight     = 3.0,
-                .modified_weight = 3.0,
+                .base_weight     = 2.0,
+                .modified_weight = 2.0,
                 .outcome = EuroUnitCombatOutcome::no_change{} } };
     REQUIRE( f() == expected );
   }
@@ -1528,7 +1528,7 @@ TEST_CASE( "[combat] brave_attack_colony" ) {
         dwelling.id );
     defender = &W.add_unit_on_map( e_unit_type::veteran_soldier,
                                    colony.location );
-    W.expect_defender_wins( .5 );
+    W.expect_defender_wins( .4 );
     W.expect_retains_horses( true );
     W.expect_retains_muskets( true );
     W.expect_retains_horses( true );  // called twice due to
@@ -1548,8 +1548,8 @@ TEST_CASE( "[combat] brave_attack_colony" ) {
       .defender         = {
                 .id              = defender->id(),
                 .modifiers       = {},
-                .base_weight     = 3.0,
-                .modified_weight = 3.0,
+                .base_weight     = 2.0,
+                .modified_weight = 2.0,
                 .outcome = EuroUnitCombatOutcome::no_change{} } };
     REQUIRE( f() == expected );
   }
@@ -1561,7 +1561,7 @@ TEST_CASE( "[combat] brave_attack_colony" ) {
         dwelling.id );
     defender = &W.add_unit_on_map( e_unit_type::veteran_soldier,
                                    colony.location );
-    W.expect_attacker_wins( .5 );
+    W.expect_attacker_wins( .6 );
     W.expect_retains_horses( false ); // called due to forced
     W.expect_retains_muskets( true ); // loss for brave.
     expected = {
@@ -1578,8 +1578,8 @@ TEST_CASE( "[combat] brave_attack_colony" ) {
                                   .tribe_retains_muskets = true } },
       .defender         = { .id              = defender->id(),
                             .modifiers       = {},
-                            .base_weight     = 3.0,
-                            .modified_weight = 3.0,
+                            .base_weight     = 2.0,
+                            .modified_weight = 2.0,
                             .outcome = EuroUnitCombatOutcome::demoted{
                               .to = e_unit_type::veteran_colonist } } };
     REQUIRE( f() == expected );
