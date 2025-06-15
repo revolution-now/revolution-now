@@ -145,8 +145,8 @@ local function set_config( config, json )
   -- unit_set.
   local unit_opts = { orders=config.orders, finished_turn=true }
   for _, unit in ipairs( config.unit_set ) do
-    D.add_unit_map( json, unit, human_idx, colony_coord,
-                    unit_opts )
+    D.add_unit_to_map( json, unit, human_idx, colony_coord,
+                       unit_opts )
   end
 
   -- already_landed. NOTE: need to do this after placing the

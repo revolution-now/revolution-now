@@ -425,7 +425,7 @@ local function recalc_unit_chain( json, coord )
   end
 end
 
-function M.add_unit_map( json, unit, nation, coord, options )
+function M.add_unit_to_map( json, unit, nation, coord, options )
   options = options or {}
   options.orders = options.orders or 'none'
   options.finished_turn = options.finished_turn or false
