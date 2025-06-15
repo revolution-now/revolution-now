@@ -15,7 +15,6 @@ local rep = string.rep
 local insert = table.insert
 local floor = math.floor
 local huge = math.huge
-local ceil = math.ceil
 local format = string.format
 
 local NORMAL = colors.ANSI_NORMAL
@@ -47,32 +46,47 @@ local SHOW_PASSED = false
 local BUCKETS = {
   -- LuaFormatter off
   none={
-    { start=  29, finish=  70, name='2/2/2' },
-    { start=   9, finish=  28, name='4/1/1' },
-    { start=   7, finish=   8, name='3/1/1' },
-    { start=   5, finish=   6, name='2/1/1' },
-    { start=   0, finish=   4, name='2/1/0' },
+    { start=  30, name='2/2/2' },
+    { start=  10, name='4/1/1' },
+    { start=   8, name='3/1/1' },
+    { start=   6, name='2/1/1' },
+    { start=   4, name='2/1/0' },
+    { start=   2, name='2/1/0' },
+    { start=   0, name='2/1/0' },
   },
   stockade={
-    { start=  29, finish=  70, name='2/2/2' },
-    { start=   9, finish=  28, name='4/1/1' },
-    { start=   7, finish=   8, name='3/1/1' },
-    { start=   5, finish=   6, name='2/1/1' },
-    { start=   0, finish=   4, name='2/1/0' },
+    { start=  30, name='2/2/2' },
+    { start=  10, name='4/1/1' },
+    { start=   8, name='3/1/1' },
+    { start=   6, name='2/1/1' },
+    { start=   4, name='2/1/0' },
+    { start=   2, name='2/1/0' },
+    { start=   0, name='2/1/0' },
   },
   fort={
-    { start=  19, finish=  70, name='2/2/2' },
-    { start=   5, finish=  18, name='4/1/1' },
-    { start=   3, finish=   4, name='2/1/1' },
-    { start=   0, finish=   2, name='2/1/0' },
+    { start=  20, name='2/2/2' },
+    { start=  10, name='4/1/1' },
+    { start=   8, name='4/1/1' },
+    { start=   6, name='4/1/1' },
+    { start=   4, name='2/1/1' },
+    { start=   2, name='2/1/0' },
+    { start=   0, name='2/1/0' },
   },
   fortress={
-    { start=  13, finish=  70, name='2/2/2' },
-    { start=   3, finish=  12, name='4/1/1' },
-    { start=   0, finish=   2, name='2/1/1' },
+    { start=  14, name='2/2/2' },
+    { start=  10, name='4/1/1' },
+    { start=   8, name='4/1/1' },
+    { start=   6, name='4/1/1' },
+    { start=   4, name='4/1/1' },
+    { start=   2, name='2/1/1' },
+    { start=   0, name='2/1/0' },
   },
   -- LuaFormatter on
 }
+
+for _, bucket in pairs( BUCKETS ) do
+  insert( bucket, { start=0, name='1/1/1' } )
+end
 
 local UNIT_WEIGHT = {
   soldier=2,
@@ -108,6 +122,7 @@ end
 local function compute_metric( case )
   local metric = 0
   local add = function( term ) metric = metric + term end
+  add( 1 )
   for _, unit in ipairs( case.unit_set ) do
     add( UNIT_WEIGHT[unit] )
   end
@@ -129,6 +144,10 @@ end
 local function compute_bucket( case )
   local metric = compute_metric( case )
   local bucket = bucket_for( case, metric )
+  assert( bucket )
+  if assert( bucket['name'] ) == '2/1/0' and case.already_landed then
+    return metric, '1/1/1'
+  end
   return metric, assert( bucket.name )
 end
 
@@ -198,7 +217,14 @@ local function parse_test_case( line )
   end
   keyvals.muskets = tonumber( keyvals.muskets )
   keyvals.horses = tonumber( keyvals.horses )
+  assert(
+      ({ ['true']=true, ['false']=true })[keyvals.already_landed] )
+  keyvals.already_landed = keyvals.already_landed == 'true'
   return { info=keyvals, label=label, expected=delivery }
+end
+
+local function skip( _ )
+  return false --
 end
 
 local function create_test_cases()
@@ -206,7 +232,10 @@ local function create_test_cases()
                     'auto-measure/ref-selection/results.txt' )
   local tests = {}
   for _, line in ipairs( lines ) do
-    insert( tests, parse_test_case( line ) )
+    local test = parse_test_case( line )
+    if skip( test.info ) then goto continue end
+    insert( tests, test )
+    ::continue::
   end
   return tests
 end
@@ -248,7 +277,7 @@ local function main( _ )
         local v = ranges[ftn][i]
         local l = v.min
         local r = v.max
-        if i == #BUCKETS[ftn] then l = 0 end
+        -- if i == #BUCKETS[ftn] then l = 0 end
         l = (v.min == huge) and 'huge' or l
         r = (v.max == -huge) and 'huge' or r
         printfln( '    { start=%4s, finish=%4s, name=\'%s\' },',
