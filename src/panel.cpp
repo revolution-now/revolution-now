@@ -227,6 +227,11 @@ struct PanelPlane::Impl : public IPlane {
           coord_for_unit_indirect_or_die( ss_.units, *unit_id );
       Unit const& unit = ss_.units.unit_for( *unit_id );
       typer.write( "Unit: {}\n", unit.desc().name );
+      if( unit.type() == e_unit_type::treasure )
+        typer.write( "Treasure: {}{}\n",
+                     unit.composition()
+                         .inventory()[e_unit_inventory::gold],
+                     config_text.special_chars.currency );
       typer.write( "Moves: {}\n", unit.movement_points() );
       write_tile( p );
       write_terrain( p );
