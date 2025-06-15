@@ -150,6 +150,16 @@ void check_create_or_starve_colonist(
       // tiles, such as arctic). The original game will starve
       // (delete) the colonist and delete the colony.
       colony_disappeared = true;
+      // NOTE: the SG states that it is not possible to starve a
+      // colony away when it has a stockade or above (i.e. to
+      // avoid that being used to get around the rule that such
+      // colonies cannot be abandoned). But this does not actu-
+      // ally seem to prevent that; colonies with stockades/fort-
+      // s/fortresses can be done away with by starving the
+      // colonists. So we will replicate that here. It is a bit
+      // inconsistent, but the rule of not being able to abandon
+      // such colonies is generally not liked, and so a loophole
+      // such as this should not be unwelcome.
     } else {
       UnitId unit_id   = ts.rand.pick_one( units_in_colony );
       e_unit_type type = ss.units.unit_for( unit_id ).type();
