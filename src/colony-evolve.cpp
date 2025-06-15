@@ -156,6 +156,13 @@ void check_create_or_starve_colonist(
       UnitOwnershipChanger( ss, unit_id ).destroy();
       notifications.emplace_back(
           ColonyNotification::colonist_starved{ .type = type } );
+      // NOTE: When a colonist starves the right thing to do
+      // would probably be to reduce num_rebels_from_bells_only
+      // by the relevant fractional decrease in colonists. How-
+      // ever, the OG does not do this; it actually increases the
+      // SoL as it would if that colonist were removed from the
+      // colony. So we'll replicate that here; i.e., we'll do
+      // nothing to SoL.
     }
     // At this point we may as well return because we can't have
     // a new colonist created in the same turn as one starved.
