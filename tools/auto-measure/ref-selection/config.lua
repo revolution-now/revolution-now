@@ -32,10 +32,7 @@ return {
       'fortress', --
     },
 
-    already_landed={
-      false,
-      -- true,
-    },
+    already_landed={ false, true },
 
     -- Doesn't seem to depend on horses count.
     horses=0,

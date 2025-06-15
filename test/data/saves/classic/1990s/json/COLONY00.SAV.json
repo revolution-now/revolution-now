@@ -17667,7 +17667,7 @@
       "nation_flags": {
         "unknown19a": "00",
         "granted_independence": false,
-        "declared_independence": false,
+        "post_declared_independence": false,
         "unknown19b": "00",
         "immigration_started": true,
         "unknown19c": "0"
@@ -17910,7 +17910,7 @@
       "nation_flags": {
         "unknown19a": "00",
         "granted_independence": false,
-        "declared_independence": false,
+        "post_declared_independence": false,
         "unknown19b": "00",
         "immigration_started": true,
         "unknown19c": "0"
@@ -18153,7 +18153,7 @@
       "nation_flags": {
         "unknown19a": "00",
         "granted_independence": false,
-        "declared_independence": false,
+        "post_declared_independence": false,
         "unknown19b": "00",
         "immigration_started": true,
         "unknown19c": "0"
@@ -18396,7 +18396,7 @@
       "nation_flags": {
         "unknown19a": "00",
         "granted_independence": false,
-        "declared_independence": true,
+        "post_declared_independence": true,
         "unknown19b": "00",
         "immigration_started": true,
         "unknown19c": "0"
@@ -20897,8 +20897,8 @@
       "tupi": "00"
     },
     "unknown36b": "00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 20 00 00 00 00 00 00 00 00 00 18 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 28 00 00 00 00 00 00 00 00 00 00 00 50 10 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 20 10 00 00 00 00 00 00 00 00 00 00 00 00 18 00 00 00 00 00 00 00 00 00 00",
-    "x": 36,
-    "y": 45,
+    "white_box_x": 36,
+    "white_box_y": 45,
     "zoom_level": 0,
     "unknown37": "00",
     "viewport_x": 37,

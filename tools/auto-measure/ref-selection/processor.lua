@@ -13,8 +13,6 @@ local set = require'moon.set'
 -- Aliases.
 -----------------------------------------------------------------
 local format = string.format
--- local insert = table.insert
--- local floor = math.floor
 
 local sleep = time.sleep
 local info = logger.info
@@ -212,14 +210,9 @@ local function action( config, api )
     sleep( 1.5 )
   end
 
-  -- "Your Excellency, the King's armies have little experience..."
-  -- close_box()
-
-  -- "Spain is considering intervention..."
-  -- close_box()
-
-  -- This should leave us at our end of turn and the white box
-  -- visible.
+  -- This should leave us either at our end of turn and the white
+  -- box visible, or with some units asking for orders if we did
+  -- not fortify them in this run.
 
   -- Now when the file is saved, we just check the number of REF
   -- units in store that have been subtracted.

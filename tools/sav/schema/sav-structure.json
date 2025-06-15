@@ -1086,8 +1086,8 @@
             {
                 "__hint01": "Defines an ordering of units, seems to be recomputed when one or a stack of units enters a square containing other",
                 "__hint02": "units. E.g. applies for units at the gate of a colony, or units on a ship, or multiple ships with units on a square.",
-                "__hint03": "It is possible that this is supposed to define which units are on a ship so that when two ships are on the same",
-                "__hint04": "square there is no ambiguity.  Though if that is the case, it apparently does not work correctly. This should be",
+                "__hint03": "It is possible that this is supposed to be used to track which units are on a ship so that when two ships are on the",
+                "__hint04": "same square there is no ambiguity.  Though if that is the case it apparently does not work correctly. This should be",
                 "__hint05": "investigated.",
                 "no_indent": true,
                 "struct":
@@ -1143,14 +1143,14 @@
                     "__key_order": [
                         "unknown19a",
                         "granted_independence",
-                        "declared_independence",
+                        "post_declared_independence",
                         "unknown19b",
                         "immigration_started",
                         "unknown19c"
                     ],
                     "unknown19a": {"size": 2},
                     "granted_independence": {"size": 1, "type": "bit_bool", "__hint": "for AI players when they are granted independence."},
-                    "declared_independence": {"size": 1, "type": "bit_bool", "__hint": "this gets set for the human player on the turn following the one where independence is declared; unclear what the use is."},
+                    "post_declared_independence": {"size": 1, "type": "bit_bool", "__hint": "this gets set for the human player on the turn following the one where independence is declared; unclear what the use is. Need more investigation here."},
                     "unknown19b": {"size": 2},
                     "immigration_started": {"size": 1, "type": "bit_bool", "__hint": "set to true when the first immigrant appears on the dock from cross production. Not clear what the use is."},
                     "unknown19c": {"size": 1}
@@ -1556,8 +1556,8 @@
                 "unknown_tribe_data_5",
                 "unknown_tribe_data_6",
                 "unknown36b",
-                "x",
-                "y",
+                "white_box_x",
+                "white_box_y",
                 "zoom_level",
                 "unknown37",
                 "viewport_x",
@@ -1725,8 +1725,8 @@
                 }
             },
             "unknown36b": {"size": 104},
-            "x": {"size": 2, "type": "uint", "__hint": "white selector square x"},
-            "y": {"size": 2, "type": "uint", "__hint": "white selector square y"},
+            "white_box_x": {"size": 2, "type": "uint", "__hint": "white selector square x (though it is not always visible)."},
+            "white_box_y": {"size": 2, "type": "uint", "__hint": "white selector square y (though it is not always visible)."},
             "zoom_level": {"size": 1, "type": "uint"},
             "unknown37": {"size": 1},
             "viewport_x": {"size": 2, "type": "uint"},
@@ -1798,7 +1798,7 @@
         "bit_struct":
         {
             "__key_order": ["score", "vis2en", "vis2fr", "vis2sp", "vis2du"],
-            "score": {"size": 4, "type": "region_id_4bit_type"},
+            "score": {"size": 4, "type": "region_id_4bit_type", "__hint": "after declaration many of these get edited, not yet sure why."},
             "vis2en": {"size": 1, "type": "visible_to_english_1bit_type"},
             "vis2fr": {"size": 1, "type": "visible_to_french_1bit_type"},
             "vis2sp": {"size": 1, "type": "visible_to_spanish_1bit_type"},

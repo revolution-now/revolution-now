@@ -1405,7 +1405,7 @@ cdr::result<CargoItems> from_canonical(
 struct NationFlags {
   uint8_t unknown19a : 2 = {};
   bool granted_independence : 1 = {};
-  bool declared_independence : 1 = {};
+  bool post_declared_independence : 1 = {};
   uint8_t unknown19b : 2 = {};
   bool immigration_started : 1 = {};
   uint8_t unknown19c : 1 = {};
@@ -3376,8 +3376,8 @@ struct STUFF {
   UnknownTribeData5 unknown_tribe_data_5 = {};
   UnknownTribeData6 unknown_tribe_data_6 = {};
   bytes<104> unknown36b = {};
-  uint16_t x = {};
-  uint16_t y = {};
+  uint16_t white_box_x = {};
+  uint16_t white_box_y = {};
   uint8_t zoom_level = {};
   bytes<1> unknown37 = {};
   uint16_t viewport_x = {};

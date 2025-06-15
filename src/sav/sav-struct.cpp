@@ -3099,7 +3099,7 @@ void to_str( NationFlags const& o, std::string& out, base::tag<NationFlags> ) {
   out += "NationFlags{";
   out += "unknown19a="; base::to_str( bits<2>{ o.unknown19a }, out ); out += ',';
   out += "granted_independence="; base::to_str( o.granted_independence, out ); out += ',';
-  out += "declared_independence="; base::to_str( o.declared_independence, out ); out += ',';
+  out += "post_declared_independence="; base::to_str( o.post_declared_independence, out ); out += ',';
   out += "unknown19b="; base::to_str( bits<2>{ o.unknown19b }, out ); out += ',';
   out += "immigration_started="; base::to_str( o.immigration_started, out ); out += ',';
   out += "unknown19c="; base::to_str( bits<1>{ o.unknown19c }, out );
@@ -3112,7 +3112,7 @@ bool read_binary( base::IBinaryIO& b, NationFlags& o ) {
   if( !b.read_bytes<1>( bits ) ) return false;
   o.unknown19a = (bits & 0b11); bits >>= 2;
   o.granted_independence = (bits & 0b1); bits >>= 1;
-  o.declared_independence = (bits & 0b1); bits >>= 1;
+  o.post_declared_independence = (bits & 0b1); bits >>= 1;
   o.unknown19b = (bits & 0b11); bits >>= 2;
   o.immigration_started = (bits & 0b1); bits >>= 1;
   o.unknown19c = (bits & 0b1); bits >>= 1;
@@ -3124,7 +3124,7 @@ bool write_binary( base::IBinaryIO& b, NationFlags const& o ) {
   bits |= (o.unknown19c & 0b1); bits <<= 1;
   bits |= (o.immigration_started & 0b1); bits <<= 2;
   bits |= (o.unknown19b & 0b11); bits <<= 1;
-  bits |= (o.declared_independence & 0b1); bits <<= 1;
+  bits |= (o.post_declared_independence & 0b1); bits <<= 1;
   bits |= (o.granted_independence & 0b1); bits <<= 2;
   bits |= (o.unknown19a & 0b11); bits <<= 0;
   return b.write_bytes<1>( bits );
@@ -3136,14 +3136,14 @@ cdr::value to_canonical( cdr::converter& conv,
   cdr::table tbl;
   conv.to_field( tbl, "unknown19a", bits<2>{ o.unknown19a } );
   conv.to_field( tbl, "granted_independence", o.granted_independence );
-  conv.to_field( tbl, "declared_independence", o.declared_independence );
+  conv.to_field( tbl, "post_declared_independence", o.post_declared_independence );
   conv.to_field( tbl, "unknown19b", bits<2>{ o.unknown19b } );
   conv.to_field( tbl, "immigration_started", o.immigration_started );
   conv.to_field( tbl, "unknown19c", bits<1>{ o.unknown19c } );
   tbl["__key_order"] = cdr::list{
     "unknown19a",
     "granted_independence",
-    "declared_independence",
+    "post_declared_independence",
     "unknown19b",
     "immigration_started",
     "unknown19c",
@@ -3160,7 +3160,7 @@ cdr::result<NationFlags> from_canonical(
   std::set<std::string> used_keys;
   CONV_FROM_BITSTRING_FIELD( "unknown19a", unknown19a, 2 );
   CONV_FROM_FIELD( "granted_independence", granted_independence );
-  CONV_FROM_FIELD( "declared_independence", declared_independence );
+  CONV_FROM_FIELD( "post_declared_independence", post_declared_independence );
   CONV_FROM_BITSTRING_FIELD( "unknown19b", unknown19b, 2 );
   CONV_FROM_FIELD( "immigration_started", immigration_started );
   CONV_FROM_BITSTRING_FIELD( "unknown19c", unknown19c, 1 );
@@ -8096,8 +8096,8 @@ void to_str( STUFF const& o, std::string& out, base::tag<STUFF> ) {
   out += "unknown_tribe_data_5="; base::to_str( o.unknown_tribe_data_5, out ); out += ',';
   out += "unknown_tribe_data_6="; base::to_str( o.unknown_tribe_data_6, out ); out += ',';
   out += "unknown36b="; base::to_str( o.unknown36b, out ); out += ',';
-  out += "x="; base::to_str( o.x, out ); out += ',';
-  out += "y="; base::to_str( o.y, out ); out += ',';
+  out += "white_box_x="; base::to_str( o.white_box_x, out ); out += ',';
+  out += "white_box_y="; base::to_str( o.white_box_y, out ); out += ',';
   out += "zoom_level="; base::to_str( o.zoom_level, out ); out += ',';
   out += "unknown37="; base::to_str( o.unknown37, out ); out += ',';
   out += "viewport_x="; base::to_str( o.viewport_x, out ); out += ',';
@@ -8124,8 +8124,8 @@ bool read_binary( base::IBinaryIO& b, STUFF& o ) {
     && read_binary( b, o.unknown_tribe_data_5 )
     && read_binary( b, o.unknown_tribe_data_6 )
     && read_binary( b, o.unknown36b )
-    && read_binary( b, o.x )
-    && read_binary( b, o.y )
+    && read_binary( b, o.white_box_x )
+    && read_binary( b, o.white_box_y )
     && read_binary( b, o.zoom_level )
     && read_binary( b, o.unknown37 )
     && read_binary( b, o.viewport_x )
@@ -8151,8 +8151,8 @@ bool write_binary( base::IBinaryIO& b, STUFF const& o ) {
     && write_binary( b, o.unknown_tribe_data_5 )
     && write_binary( b, o.unknown_tribe_data_6 )
     && write_binary( b, o.unknown36b )
-    && write_binary( b, o.x )
-    && write_binary( b, o.y )
+    && write_binary( b, o.white_box_x )
+    && write_binary( b, o.white_box_y )
     && write_binary( b, o.zoom_level )
     && write_binary( b, o.unknown37 )
     && write_binary( b, o.viewport_x )
@@ -8180,8 +8180,8 @@ cdr::value to_canonical( cdr::converter& conv,
   conv.to_field( tbl, "unknown_tribe_data_5", o.unknown_tribe_data_5 );
   conv.to_field( tbl, "unknown_tribe_data_6", o.unknown_tribe_data_6 );
   conv.to_field( tbl, "unknown36b", o.unknown36b );
-  conv.to_field( tbl, "x", o.x );
-  conv.to_field( tbl, "y", o.y );
+  conv.to_field( tbl, "white_box_x", o.white_box_x );
+  conv.to_field( tbl, "white_box_y", o.white_box_y );
   conv.to_field( tbl, "zoom_level", o.zoom_level );
   conv.to_field( tbl, "unknown37", o.unknown37 );
   conv.to_field( tbl, "viewport_x", o.viewport_x );
@@ -8203,8 +8203,8 @@ cdr::value to_canonical( cdr::converter& conv,
     "unknown_tribe_data_5",
     "unknown_tribe_data_6",
     "unknown36b",
-    "x",
-    "y",
+    "white_box_x",
+    "white_box_y",
     "zoom_level",
     "unknown37",
     "viewport_x",
@@ -8236,8 +8236,8 @@ cdr::result<STUFF> from_canonical(
   CONV_FROM_FIELD( "unknown_tribe_data_5", unknown_tribe_data_5 );
   CONV_FROM_FIELD( "unknown_tribe_data_6", unknown_tribe_data_6 );
   CONV_FROM_FIELD( "unknown36b", unknown36b );
-  CONV_FROM_FIELD( "x", x );
-  CONV_FROM_FIELD( "y", y );
+  CONV_FROM_FIELD( "white_box_x", white_box_x );
+  CONV_FROM_FIELD( "white_box_y", white_box_y );
   CONV_FROM_FIELD( "zoom_level", zoom_level );
   CONV_FROM_FIELD( "unknown37", unknown37 );
   CONV_FROM_FIELD( "viewport_x", viewport_x );
