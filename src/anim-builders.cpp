@@ -650,7 +650,8 @@ AnimationSequence anim_seq_for_dwelling_burn(
 
   // Phase 2: attacker unit, phantom defender unit, dwelling, and
   // any owned braves depixelate. If the attacker unit is pro-
-  // moted then it will pixelate.
+  // moted then it will pixelate. If there is a missionary being
+  // freed then it will enpixelate behind the dwelling.
   builder.new_phase();
   add_attack_outcome_for_euro_unit( ss, builder, attacker_id,
                                     attacker_outcome );
@@ -664,6 +665,9 @@ AnimationSequence anim_seq_for_dwelling_burn(
     CHECK( brave_id != defender_id );
     builder.depixelate_native_unit( brave_id );
   }
+  if( dwelling_destruction.missionary_to_release.has_value() )
+    builder.enpixelate_unit(
+        *dwelling_destruction.missionary_to_release );
   // Poor-man's volume increase.
   builder.play_sound( e_sfx::city_destroyed );
   builder.play_sound( e_sfx::city_destroyed );

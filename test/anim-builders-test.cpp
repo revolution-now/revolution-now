@@ -1110,6 +1110,10 @@ TEST_CASE( "[anim-builders] anim_seq_for_dwelling_burn" ) {
                                             { .x = 1, .y = 0 } );
   Dwelling const& dwelling =
       W.add_dwelling( { .x = 1, .y = 1 }, e_tribe::apache );
+  UnitId const missionary_id =
+      W.add_missionary_in_dwelling(
+           e_unit_type::jesuit_missionary, dwelling.id )
+          .id();
   // Create phantom brave that defends the dwelling.
   NativeUnitId const defender_id =
       W.add_native_unit_on_map( e_native_unit_type::brave,
@@ -1122,7 +1126,8 @@ TEST_CASE( "[anim-builders] anim_seq_for_dwelling_burn" ) {
   EuroUnitCombatOutcome::promoted const attacker_outcome{
     .to = e_unit_type::veteran_soldier };
   DwellingCombatOutcome::destruction const dwelling_destruction{
-    .braves_to_kill = { other_brave_id } };
+    .braves_to_kill        = { other_brave_id },
+    .missionary_to_release = missionary_id };
 
   VisibilityEntire const viz( W.ss() );
 
@@ -1172,6 +1177,8 @@ TEST_CASE( "[anim-builders] anim_seq_for_dwelling_burn" ) {
         { .primitive =
               P::depixelate_native_unit{ .unit_id =
                                              other_brave_id } },
+        { .primitive =
+              P::enpixelate_unit{ .unit_id = missionary_id } },
         { .primitive =
               P::play_sound{ .what = e_sfx::city_destroyed } },
         { .primitive =
