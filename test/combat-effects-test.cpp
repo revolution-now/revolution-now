@@ -2521,6 +2521,30 @@ TEST_CASE(
   }
 
   SECTION( "demoted" ) {
+    // Add a colony to create a scenario where the unit would be
+    // unfortified if it had been demoted to a non-military unit.
+    // In otherwords, this helps us to test that being demoted to
+    // a military unit will not unfortify the unit.
+    W.add_colony( { .x = 1, .y = 1 } );
+    Unit& unit = W.add_unit_on_map( e_unit_type::veteran_dragoon,
+                                    { .x = 1, .y = 1 } );
+    unit.fortify();
+    unit.new_turn( W.default_player() );
+    unit_id = unit.id();
+    outcome = EuroUnitCombatOutcome::demoted{
+      .to = e_unit_type::veteran_soldier };
+    f();
+    REQUIRE( W.units().exists( unit_id ) );
+    REQUIRE( unit.type() == e_unit_type::veteran_soldier );
+    REQUIRE( unit.player_type() == e_player::dutch );
+    REQUIRE( W.units().coord_for( unit_id ) ==
+             Coord{ .x = 1, .y = 1 } );
+    REQUIRE( unit.movement_points() == 1 );
+    REQUIRE( unit.orders() == unit_orders::fortified{} );
+  }
+
+  SECTION(
+      "demoted to non-military, orders not cleared/no colony" ) {
     Unit& unit = W.add_unit_on_map( e_unit_type::veteran_soldier,
                                     { .x = 1, .y = 1 } );
     unit.fortify();
@@ -2536,6 +2560,65 @@ TEST_CASE(
              Coord{ .x = 1, .y = 1 } );
     REQUIRE( unit.movement_points() == 1 );
     REQUIRE( unit.orders() == unit_orders::fortified{} );
+  }
+
+  SECTION(
+      "demoted to non-military, orders not cleared/no "
+      "fortify" ) {
+    W.add_colony( { .x = 1, .y = 1 } );
+    Unit& unit = W.add_unit_on_map( e_unit_type::veteran_soldier,
+                                    { .x = 1, .y = 1 } );
+    unit.sentry();
+    unit.new_turn( W.default_player() );
+    unit_id = unit.id();
+    outcome = EuroUnitCombatOutcome::demoted{
+      .to = e_unit_type::veteran_colonist };
+    f();
+    REQUIRE( W.units().exists( unit_id ) );
+    REQUIRE( unit.type() == e_unit_type::veteran_colonist );
+    REQUIRE( unit.player_type() == e_player::dutch );
+    REQUIRE( W.units().coord_for( unit_id ) ==
+             Coord{ .x = 1, .y = 1 } );
+    REQUIRE( unit.movement_points() == 1 );
+    REQUIRE( unit.orders() == unit_orders::sentry{} );
+  }
+
+  SECTION( "demoted, orders cleared/fortified" ) {
+    W.add_colony( { .x = 1, .y = 1 } );
+    Unit& unit = W.add_unit_on_map( e_unit_type::veteran_soldier,
+                                    { .x = 1, .y = 1 } );
+    unit.fortify();
+    unit.new_turn( W.default_player() );
+    unit_id = unit.id();
+    outcome = EuroUnitCombatOutcome::demoted{
+      .to = e_unit_type::veteran_colonist };
+    f();
+    REQUIRE( W.units().exists( unit_id ) );
+    REQUIRE( unit.type() == e_unit_type::veteran_colonist );
+    REQUIRE( unit.player_type() == e_player::dutch );
+    REQUIRE( W.units().coord_for( unit_id ) ==
+             Coord{ .x = 1, .y = 1 } );
+    REQUIRE( unit.movement_points() == 1 );
+    REQUIRE( unit.orders() == unit_orders::none{} );
+  }
+
+  SECTION( "demoted, orders cleared/fortifying" ) {
+    W.add_colony( { .x = 1, .y = 1 } );
+    Unit& unit = W.add_unit_on_map( e_unit_type::veteran_soldier,
+                                    { .x = 1, .y = 1 } );
+    unit.start_fortify();
+    unit.new_turn( W.default_player() );
+    unit_id = unit.id();
+    outcome = EuroUnitCombatOutcome::demoted{
+      .to = e_unit_type::veteran_colonist };
+    f();
+    REQUIRE( W.units().exists( unit_id ) );
+    REQUIRE( unit.type() == e_unit_type::veteran_colonist );
+    REQUIRE( unit.player_type() == e_player::dutch );
+    REQUIRE( W.units().coord_for( unit_id ) ==
+             Coord{ .x = 1, .y = 1 } );
+    REQUIRE( unit.movement_points() == 1 );
+    REQUIRE( unit.orders() == unit_orders::none{} );
   }
 
   SECTION( "promoted" ) {

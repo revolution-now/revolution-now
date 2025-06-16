@@ -947,7 +947,35 @@ void perform_euro_unit_combat_effects(
       break;
     }
     CASE( demoted ) {
+      // If the unit is being demoted to a non military unit and
+      // they are fortified and they are in a colony then for a
+      // good UX we should unfortify them.
+      //
+      // This is because a fortified non-military unit is never
+      // chosen as a defender of a colony, so unfortifying the
+      // unit will have it ask for orders because the player will
+      // likely want to assign that unit to have another job (or
+      // they e.g. give it muskets/horses again, which will also
+      // unfortify it).
+      //
+      // However, if the unit is not in a colony then we should
+      // not unfortify it, because non-military units in the open
+      // do get a fortification bonus when defending. At least
+      // that is what the combat analysis states; it is a bit
+      // more complicated than this because there are other
+      // penalties assigned to the unit when it is not armed, but
+      // that is a separate matter.
       change_unit_type( ss, ts, unit, demoted.to );
+      if( auto const p = ss.units.maybe_coord_for( unit.id() );
+          p.has_value() &&
+          ss.colonies.maybe_from_coord( *p ).has_value() ) {
+        // The defending unit is at the gate of a colony.
+        bool const fortified =
+            unit.orders().holds<unit_orders::fortified>() ||
+            unit.orders().holds<unit_orders::fortifying>();
+        if( fortified && !is_military_unit( unit.type() ) )
+          unit.clear_orders();
+      }
       break;
     }
     CASE( promoted ) {
