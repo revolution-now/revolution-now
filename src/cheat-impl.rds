@@ -15,6 +15,10 @@ enum.e_cheat_reveal_map {
   french,
   spanish,
   dutch,
+  ref_english,
+  ref_french,
+  ref_spanish,
+  ref_dutch,
   entire_map,
   no_special_view,
 }

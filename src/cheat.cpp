@@ -33,6 +33,7 @@
 #include "minds.hpp"
 #include "plane-stack.hpp"
 #include "promotion.hpp"
+#include "query-enum.hpp"
 #include "rebel-sentiment.hpp"
 #include "roles.hpp"
 #include "settings.rds.hpp"
@@ -90,6 +91,9 @@ namespace rn {
 namespace {
 
 using ::gfx::point;
+using ::refl::enum_derives_from;
+using ::refl::enum_from_string;
+using ::refl::enum_values;
 
 bool can_remove_building( Colony const& colony,
                           e_colony_building building ) {
@@ -166,14 +170,18 @@ maybe<point> cheat_target_square( SSConst const& ss, TS& ts ) {
 }
 
 wait<> cheat_reveal_map( SS& ss, TS& ts ) {
+  // This must be true otherwise the below will crash as it will
+  // fail to map values from one enum to another.
+  static_assert(
+      enum_derives_from<e_player, e_cheat_reveal_map>() );
   // All enabled by default.
   refl::enum_map<e_cheat_reveal_map, bool> disabled;
-  for( e_player player : refl::enum_values<e_player> ) {
+  for( e_player player : enum_values<e_player> ) {
     if( !ss.players.players[player].has_value() ) {
       string_view const name = refl::enum_value_name( player );
       UNWRAP_CHECK(
           menu_item,
-          refl::enum_from_string<e_cheat_reveal_map>( name ) );
+          enum_from_string<e_cheat_reveal_map>( name ) );
       disabled[menu_item] = true;
     }
   }
@@ -199,6 +207,22 @@ wait<> cheat_reveal_map( SS& ss, TS& ts ) {
     case e_cheat_reveal_map::dutch:
       revealed = MapRevealed::player{ .type = e_player::dutch };
       break;
+    case e_cheat_reveal_map::ref_english:
+      revealed =
+          MapRevealed::player{ .type = e_player::ref_english };
+      break;
+    case e_cheat_reveal_map::ref_french:
+      revealed =
+          MapRevealed::player{ .type = e_player::ref_french };
+      break;
+    case e_cheat_reveal_map::ref_spanish:
+      revealed =
+          MapRevealed::player{ .type = e_player::ref_spanish };
+      break;
+    case e_cheat_reveal_map::ref_dutch:
+      revealed =
+          MapRevealed::player{ .type = e_player::ref_dutch };
+      break;
     case e_cheat_reveal_map::entire_map:
       reveal_map_qol( ss, ts );
       revealed = MapRevealed::entire{};
@@ -217,7 +241,7 @@ wait<> cheat_reveal_map( SS& ss, TS& ts ) {
 wait<> cheat_set_human_players( SS& ss, TS& ts ) {
   // All enabled by default.
   refl::enum_map<e_nation, CheckBoxInfo> info_map;
-  for( auto const nation : refl::enum_values<e_nation> ) {
+  for( auto const nation : enum_values<e_nation> ) {
     e_player const player_type = colonist_player_for( nation );
     info_map[nation] =
         CheckBoxInfo{ .name = config_nation.players[player_type]
@@ -237,7 +261,7 @@ wait<> cheat_set_human_players( SS& ss, TS& ts ) {
     co_await ts.gui.enum_check_boxes<e_nation>(
         "Select Human Nations:", info_map );
     bool found_human = false;
-    for( auto const nation : refl::enum_values<e_nation> )
+    for( auto const nation : enum_values<e_nation> )
       if( info_map[nation].on ) //
         found_human = true;
     if( found_human ) break;
@@ -246,7 +270,7 @@ wait<> cheat_set_human_players( SS& ss, TS& ts ) {
   }
 
   // Set new human statuses.
-  for( auto const nation : refl::enum_values<e_nation> ) {
+  for( auto const nation : enum_values<e_nation> ) {
     e_player const player_type = colonist_player_for( nation );
     if( ss.players.players[player_type].has_value() )
       ss.players.players[player_type]->human =
@@ -359,7 +383,7 @@ wait<> cheat_edit_fathers( IEngine& engine, SS& ss, TS& ts,
   refl::enum_map<e_founding_father, LabeledCheckBoxView const*>
       boxes;
   for( e_founding_father father :
-       refl::enum_values<e_founding_father> ) {
+       enum_values<e_founding_father> ) {
     auto labeled_box = make_unique<TextLabeledCheckBoxView>(
         textometer, string( founding_father_name( father ) ),
         player.fathers.has[father] );
@@ -410,7 +434,7 @@ wait<> cheat_edit_fathers( IEngine& engine, SS& ss, TS& ts,
 }
 
 wait<> kill_natives( SS& ss, TS& ts ) {
-  constexpr auto& tribes = refl::enum_values<e_tribe>;
+  constexpr auto& tribes = enum_values<e_tribe>;
 
   // Is there anything to do?
   bool const at_least_one = any_of(
@@ -482,7 +506,7 @@ wait<> kill_natives( SS& ss, TS& ts ) {
   // have to do this for dwellings that were fully visible and
   // clear, since in the latter case those fog squares will even-
   // tually get updated if/when the square flips to fogged.
-  for( e_player const player : refl::enum_values<e_player> ) {
+  for( e_player const player : enum_values<e_player> ) {
     if( !ss.players.players[player].has_value() ) continue;
     vector<Coord> const affected_fogged = [&] {
       vector<Coord> res;
@@ -628,7 +652,7 @@ wait<> cheat_evolve_market_prices( SS& ss, TS& ts,
   refl::enum_map<e_commodity, PriceChange> const changes =
       evolve_player_prices( static_cast<SSConst const&>( ss ),
                             player );
-  for( e_commodity comm : refl::enum_values<e_commodity> )
+  for( e_commodity comm : enum_values<e_commodity> )
     if( changes[comm].delta != 0 )
       co_await display_price_change_notification(
           ts, player, changes[comm] );
@@ -651,13 +675,13 @@ wait<> cheat_colony_buildings( Colony& colony, IGui& gui ) {
   switch( *mode ) {
     case e_cheat_colony_buildings_option::give_all_buildings:
       for( e_colony_building building :
-           refl::enum_values<e_colony_building> )
+           enum_values<e_colony_building> )
         add_colony_building( colony, building );
       break;
     case e_cheat_colony_buildings_option::remove_all_buildings: {
       bool can_not_remove_all = false;
       for( e_colony_building building :
-           refl::enum_values<e_colony_building> ) {
+           enum_values<e_colony_building> ) {
         if( can_remove_building( colony, building ) )
           colony.buildings[building] = false;
         else
