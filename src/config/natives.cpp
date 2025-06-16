@@ -149,6 +149,30 @@ base::valid_or<string> config::natives::Arms::validate() const {
     }
   }
 
+  // We're not allowed to change these otherwise the logic that
+  // tries to promote braves in combat will fail.
+  {
+    using enum e_native_unit_type;
+    using enum e_brave_equipment;
+    string const no_change_equipment =
+        "changing brave equipment config values is not allowed.";
+    REFL_VALIDATE( equipment[brave][muskets] == false, "{}",
+                   no_change_equipment );
+    REFL_VALIDATE( equipment[brave][horses] == false, "{}",
+                   no_change_equipment );
+    REFL_VALIDATE( equipment[armed_brave][muskets] == true, "{}",
+                   no_change_equipment );
+    REFL_VALIDATE( equipment[armed_brave][horses] == false, "{}",
+                   no_change_equipment );
+    REFL_VALIDATE( equipment[mounted_brave][muskets] == false,
+                   "{}", no_change_equipment );
+    REFL_VALIDATE( equipment[mounted_brave][horses] == true,
+                   "{}", no_change_equipment );
+    REFL_VALIDATE( equipment[mounted_warrior][muskets] == true,
+                   "{}", no_change_equipment );
+    REFL_VALIDATE( equipment[mounted_warrior][horses] == true,
+                   "{}", no_change_equipment );
+  }
   return base::valid;
 }
 

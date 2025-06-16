@@ -176,13 +176,14 @@ UnitCombatEffectsMessages euro_unit_combat_effects_msg(
 }
 
 static maybe<std::string> brave_promotion_message(
-    e_tribe tribe, e_native_unit_type from,
-    e_native_unit_type to ) {
+    e_tribe const tribe, e_native_unit_type const from,
+    e_native_unit_type const to ) {
+  CHECK_GT( to, from );
   string_view const tribe_name =
       config_natives.tribes[tribe].name_singular;
   string_view const from_name_plural =
       config_natives.unit_types[from].name_plural;
-  auto const acquisition = [&]() -> maybe<e_brave_equipment> {
+  auto const acquisition = [&]() -> e_brave_equipment {
     auto const& from_equip = config_natives.arms.equipment[from];
     auto const& to_equip   = config_natives.arms.equipment[to];
     // In the OG's rules only one of these can be obtained at a
@@ -192,9 +193,10 @@ static maybe<std::string> brave_promotion_message(
     for( auto const eq : refl::enum_values<e_brave_equipment> )
       if( to_equip[eq] && !from_equip[eq] ) //
         return eq;
-    return nothing;
+    // Config validation should ensure that this never happens
+    // together with the check above that `to` > `from`.
+    SHOULD_NOT_BE_HERE;
   }();
-  if( !acquisition.has_value() ) return nothing;
   return fmt::format(
       "[{}] {} have acquired [{}] upon victory in combat!",
       tribe_name, from_name_plural, acquisition );

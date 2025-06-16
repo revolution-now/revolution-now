@@ -28,6 +28,8 @@ enum.e_tribe {
   tupi,
 }
 
+# Order matters here since a promoted type must come after the
+# types from which it can be promoted.
 enum.e_native_unit_type {
   brave,
   armed_brave,

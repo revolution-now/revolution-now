@@ -9,12 +9,25 @@
 *
 *****************************************************************/
 #include "native-enums.hpp"
+#include "native-enums.rds.hpp"
 
 using namespace std;
 
 namespace rn {
 
 namespace {} // namespace
+
+/****************************************************************
+** Static checks.
+*****************************************************************/
+static_assert( e_native_unit_type::mounted_warrior >
+               e_native_unit_type::mounted_brave );
+static_assert( e_native_unit_type::mounted_warrior >
+               e_native_unit_type::armed_brave );
+static_assert( e_native_unit_type::mounted_brave >
+               e_native_unit_type::brave );
+static_assert( e_native_unit_type::armed_brave >
+               e_native_unit_type::brave );
 
 /****************************************************************
 ** Public API

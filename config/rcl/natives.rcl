@@ -751,8 +751,8 @@ arms {
 
   # How many units of horses/muskets need to be added/removed
   # from the unit to transition from one type to another. It is
-  # NOT recommended to change any of these otherwise the game may
-  # malfunction.
+  # NOT recommended to change any of these otherwise the game
+  # WILL malfunction.
   equipment {
     brave:           { muskets=false, horses=false }
     armed_brave:     { muskets=true,  horses=false }
