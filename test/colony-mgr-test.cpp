@@ -811,7 +811,7 @@ TEST_CASE( "[colony-mgr] colony_workers" ) {
       W.add_unit_indoors( colony.id, e_indoor_job::hammers,
                           e_unit_type::free_colonist )
           .id();
-  expected = { id2, id1 };
+  expected = { id1, id2 };
   REQUIRE( f() == expected );
 
   UnitId const id3 =
@@ -819,14 +819,14 @@ TEST_CASE( "[colony-mgr] colony_workers" ) {
                            e_outdoor_job::cotton,
                            e_unit_type::expert_cotton_planter )
           .id();
-  expected = { id2, id3, id1 };
+  expected = { id1, id2, id3 };
   REQUIRE( f() == expected );
 
   UnitId const id4 =
       W.add_unit_indoors( colony.id, e_indoor_job::bells,
                           e_unit_type::free_colonist )
           .id();
-  expected = { id4, id2, id3, id1 };
+  expected = { id1, id2, id3, id4 };
   REQUIRE( f() == expected );
 }
 

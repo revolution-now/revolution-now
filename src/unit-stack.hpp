@@ -25,6 +25,7 @@
 namespace rn {
 
 struct Colony;
+struct IRand;
 struct SSConst;
 
 // These are the functions that contains the logic that deter-
@@ -58,7 +59,7 @@ UnitId select_euro_unit_defender( SSConst const& ss,
 NativeUnitId select_native_unit_defender( SSConst const& ss,
                                           Coord tile );
 
-UnitId select_colony_defender( SSConst const& ss,
+UnitId select_colony_defender( SSConst const& ss, IRand& rand,
                                Colony const& colony );
 
 } // namespace rn

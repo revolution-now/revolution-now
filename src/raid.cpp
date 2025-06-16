@@ -249,8 +249,8 @@ wait<> raid_colony( SS& ss, TS& ts, NativeUnit& attacker,
   // and thus would participate in defending the colony.
   vector<UnitId> const offboarded =
       offboard_units_on_ships( ss, ts, colony.location );
-  Unit& defender =
-      ss.units.unit_for( select_colony_defender( ss, colony ) );
+  Unit& defender = ss.units.unit_for(
+      select_colony_defender( ss, ts.rand, colony ) );
   CombatBraveAttackColony const combat =
       ts.combat.brave_attack_colony( attacker, defender,
                                      colony );

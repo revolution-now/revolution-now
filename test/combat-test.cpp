@@ -1428,6 +1428,34 @@ TEST_CASE( "[combat] brave_attack_colony" ) {
                             .base_weight     = 1.0,
                             .modified_weight = 1.0,
                             .outcome =
+                                NativeUnitCombatOutcome::no_change{} },
+      .defender         = {
+                .id              = defender->id(),
+                .modifiers       = {},
+                .base_weight     = 1.0,
+                .modified_weight = 1.0,
+                .outcome = EuroUnitCombatOutcome::destroyed{} } };
+    REQUIRE( f() == expected );
+  }
+
+  SECTION( "cols=2|att=brave|def=free_col|pop=2|att=wins" ) {
+    W.add_colony( { .x = 1, .y = 2 }, W.default_player_type() );
+    attacker = &W.add_native_unit_on_map(
+        e_native_unit_type::brave, { .x = 0, .y = 1 },
+        dwelling.id );
+    W.add_unit_indoors( colony.id, e_indoor_job::bells,
+                        e_unit_type::elder_statesman );
+    defender = &indoor_unit;
+    W.expect_attacker_wins( .5 );
+    expected = {
+      .winner           = e_combat_winner::attacker,
+      .colony_id        = colony.id,
+      .colony_destroyed = false,
+      .attacker         = { .id              = attacker->id,
+                            .modifiers       = {},
+                            .base_weight     = 1.0,
+                            .modified_weight = 1.0,
+                            .outcome =
                                 NativeUnitCombatOutcome::destroyed{} },
       .defender         = {
                 .id              = defender->id(),

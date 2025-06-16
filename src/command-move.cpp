@@ -1344,7 +1344,7 @@ unique_ptr<CommandHandler> dispatch( SS& ss, TS& ts,
           "to help defend the colony.",
           colony.name );
     UnitId const defender_id =
-        select_colony_defender( ss, colony );
+        select_colony_defender( ss, ts.rand, colony );
     Unit const& defender = ss.units.unit_for( defender_id );
     if( is_military_unit( defender.desc().type ) )
       return attack_euro_land_handler( ss, ts, attacker_id,

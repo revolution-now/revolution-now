@@ -83,7 +83,7 @@ void change_unit_outdoor_job( Colony& colony, UnitId id,
 int colony_population( Colony const& colony );
 
 // All indoor+outdoor units. Does not include units at the colony
-// gate.
+// gate. Will be sorted by ID.
 std::vector<UnitId> colony_workers( Colony const& colony );
 
 bool colony_has_unit( Colony const& colony, UnitId id );

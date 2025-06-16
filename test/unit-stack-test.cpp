@@ -15,6 +15,7 @@
 
 // Testing
 #include "test/fake/world.hpp"
+#include "test/mocks/irand.hpp"
 
 // ss
 #include "ss/dwelling.rds.hpp"
@@ -32,9 +33,9 @@ using namespace std;
 /****************************************************************
 ** Fake World Setup
 *****************************************************************/
-struct World : testing::World {
+struct world : testing::World {
   using Base = testing::World;
-  World() : Base() {
+  world() : Base() {
     add_default_player();
     create_default_map();
   }
@@ -55,16 +56,16 @@ struct World : testing::World {
 ** Test Cases
 *****************************************************************/
 TEST_CASE( "[unit-stack] sort_euro_unit_stack" ) {
-  World W;
+  world w;
   vector<UnitId> units, expected;
 
   auto add = [&]( e_unit_type type ) {
-    units.push_back( W.add_free_unit( type ).id() );
+    units.push_back( w.add_free_unit( type ).id() );
   };
 
   SECTION( "single" ) {
     add( e_unit_type::privateer ); // 1
-    sort_euro_unit_stack( W.ss(), units );
+    sort_euro_unit_stack( w.ss(), units );
     expected = {
       UnitId{ 1 },
     };
@@ -86,27 +87,27 @@ TEST_CASE( "[unit-stack] sort_euro_unit_stack" ) {
                  UnitId{ 4 }, UnitId{ 6 },  UnitId{ 3 },
                  UnitId{ 5 }, UnitId{ 8 },  UnitId{ 1 },
                  UnitId{ 2 } };
-    sort_euro_unit_stack( W.ss(), units );
+    sort_euro_unit_stack( w.ss(), units );
     REQUIRE( units == expected );
   }
 }
 
 TEST_CASE( "[unit-stack] sort_native_unit_stack" ) {
-  World W;
+  world w;
   vector<NativeUnitId> units, expected;
 
   DwellingId const dwelling_id =
-      W.add_dwelling( { .x = 1, .y = 0 }, e_tribe::iroquois ).id;
+      w.add_dwelling( { .x = 1, .y = 0 }, e_tribe::iroquois ).id;
 
   auto add = [&]( e_native_unit_type type ) {
-    units.push_back( W.add_native_unit_on_map(
+    units.push_back( w.add_native_unit_on_map(
                           type, { .x = 1, .y = 1 }, dwelling_id )
                          .id );
   };
 
   SECTION( "single" ) {
     add( e_native_unit_type::brave ); // 1
-    sort_native_unit_stack( W.ss(), units );
+    sort_native_unit_stack( w.ss(), units );
     expected = {
       NativeUnitId{ 1 },
     };
@@ -122,31 +123,31 @@ TEST_CASE( "[unit-stack] sort_native_unit_stack" ) {
     expected = { NativeUnitId{ 2 }, NativeUnitId{ 1 },
                  NativeUnitId{ 4 }, NativeUnitId{ 3 },
                  NativeUnitId{ 5 } };
-    sort_native_unit_stack( W.ss(), units );
+    sort_native_unit_stack( w.ss(), units );
     REQUIRE( units == expected );
   }
 }
 
 TEST_CASE( "[unit-stack] sort_unit_stack" ) {
-  World W;
+  world w;
   vector<GenericUnitId> units, expected;
 
   DwellingId const dwelling_id =
-      W.add_dwelling( { .x = 1, .y = 0 }, e_tribe::iroquois ).id;
+      w.add_dwelling( { .x = 1, .y = 0 }, e_tribe::iroquois ).id;
 
   auto add = [&]<typename T>( T type ) {
     if constexpr( is_same_v<T, e_unit_type> )
-      units.push_back( W.add_free_unit( type ).id() );
+      units.push_back( w.add_free_unit( type ).id() );
     else
       units.push_back(
-          W.add_native_unit_on_map( type, { .x = 1, .y = 1 },
+          w.add_native_unit_on_map( type, { .x = 1, .y = 1 },
                                     dwelling_id )
               .id );
   };
 
   SECTION( "single" ) {
     add( e_native_unit_type::brave ); // 1
-    sort_unit_stack( W.ss(), units );
+    sort_unit_stack( w.ss(), units );
     expected = {
       GenericUnitId{ 1 },
     };
@@ -165,21 +166,21 @@ TEST_CASE( "[unit-stack] sort_unit_stack" ) {
                  GenericUnitId{ 4 }, GenericUnitId{ 5 },
                  GenericUnitId{ 6 }, GenericUnitId{ 3 },
                  GenericUnitId{ 7 } };
-    sort_unit_stack( W.ss(), units );
+    sort_unit_stack( w.ss(), units );
     REQUIRE( units == expected );
   }
 }
 
 TEST_CASE( "[unit-stack] select_euro_unit_defender" ) {
-  World W;
+  world w;
   Coord const coord{ .x = 1, .y = 1 };
 
   auto f = [&] {
-    return select_euro_unit_defender( W.ss(), coord );
+    return select_euro_unit_defender( w.ss(), coord );
   };
 
   auto add = [&]( e_unit_type type ) {
-    return W.add_unit_on_map( type, coord ).id();
+    return w.add_unit_on_map( type, coord ).id();
   };
 
   UnitId const petty_criminal_id1 =
@@ -210,17 +211,17 @@ TEST_CASE( "[unit-stack] select_euro_unit_defender" ) {
 }
 
 TEST_CASE( "[unit-stack] select_native_unit_defender" ) {
-  World W;
+  world w;
   Coord const coord{ .x = 1, .y = 1 };
   DwellingId const dwelling_id =
-      W.add_dwelling( coord, e_tribe::inca ).id;
+      w.add_dwelling( coord, e_tribe::inca ).id;
 
   auto f = [&] {
-    return select_native_unit_defender( W.ss(), coord );
+    return select_native_unit_defender( w.ss(), coord );
   };
 
   auto add = [&]( e_native_unit_type type ) {
-    return W.add_native_unit_on_map( type, coord, dwelling_id )
+    return w.add_native_unit_on_map( type, coord, dwelling_id )
         .id;
   };
 
@@ -240,44 +241,53 @@ TEST_CASE( "[unit-stack] select_native_unit_defender" ) {
 }
 
 TEST_CASE( "[unit-stack] select_colony_defender" ) {
-  World W;
+  world w;
   Coord const coord{ .x = 1, .y = 1 };
-  Colony& colony = W.add_colony( coord );
+  Colony& colony = w.add_colony( coord );
 
   auto f = [&] {
-    return select_colony_defender( W.ss(), colony );
+    return select_colony_defender( w.ss(), w.rand(), colony );
   };
 
   UnitId const fisherman_id =
-      W.add_unit_outdoors( colony.id, e_direction::s,
+      w.add_unit_outdoors( colony.id, e_direction::s,
                            e_outdoor_job::fish )
           .id();
+  w.rand().EXPECT__between_ints( 0, 0 ).returns( 0 );
   REQUIRE( f() == fisherman_id );
 
   UnitId const cotton_planter_id =
-      W.add_unit_outdoors( colony.id, e_direction::sw,
+      w.add_unit_outdoors( colony.id, e_direction::sw,
                            e_outdoor_job::cotton )
           .id();
+  w.rand().EXPECT__between_ints( 0, 1 ).returns( 1 );
   REQUIRE( f() == cotton_planter_id );
 
-  W.add_unit_outdoors( colony.id, e_direction::se,
-                       e_outdoor_job::tobacco );
-  REQUIRE( f() == cotton_planter_id );
-
-  UnitId const free_colonist_id =
-      W.add_unit_on_map( e_unit_type::free_colonist, coord )
+  UnitId const tobacco_planter_id =
+      w.add_unit_outdoors( colony.id, e_direction::se,
+                           e_outdoor_job::tobacco )
           .id();
-  REQUIRE( f() == free_colonist_id );
+  w.rand().EXPECT__between_ints( 0, 2 ).returns( 1 );
+  REQUIRE( f() == cotton_planter_id );
 
-  W.add_unit_on_map( e_unit_type::frigate, coord );
-  REQUIRE( f() == free_colonist_id );
+  w.add_unit_on_map( e_unit_type::free_colonist, coord );
+  w.rand().EXPECT__between_ints( 0, 2 ).returns( 2 );
+  REQUIRE( f() == tobacco_planter_id );
+
+  w.add_unit_on_map( e_unit_type::wagon_train, coord );
+  w.rand().EXPECT__between_ints( 0, 2 ).returns( 2 );
+  REQUIRE( f() == tobacco_planter_id );
+
+  w.add_unit_on_map( e_unit_type::frigate, coord );
+  w.rand().EXPECT__between_ints( 0, 2 ).returns( 0 );
+  REQUIRE( f() == fisherman_id );
 
   UnitId const veteran_dragoon_id =
-      W.add_unit_on_map( e_unit_type::veteran_dragoon, coord )
+      w.add_unit_on_map( e_unit_type::veteran_dragoon, coord )
           .id();
   REQUIRE( f() == veteran_dragoon_id );
 
-  W.add_unit_on_map( e_unit_type::dragoon, coord );
+  w.add_unit_on_map( e_unit_type::dragoon, coord );
   REQUIRE( f() == veteran_dragoon_id );
 }
 

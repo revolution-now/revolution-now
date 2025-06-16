@@ -381,7 +381,8 @@ TEST_CASE( "[raid] raid_colony" ) {
     UnitId const frigate_id        = frigate.id();
 
     // Note that, in the OG, the brave attacking a colony is al-
-    // ways destroyed after an attack on a colony.
+    // ways destroyed after an attack on a colony, provided the
+    // colony is not destroyed in the process.
     CombatBraveAttackColony const combat{
       .winner           = e_combat_winner::attacker,
       .colony_id        = colony.id,
@@ -477,7 +478,8 @@ TEST_CASE( "[raid] raid_colony" ) {
     UnitId const caravel_id        = caravel.id();
 
     // Note that, in the OG, the brave attacking a colony is al-
-    // ways destroyed after an attack on a colony.
+    // ways destroyed after an attack on a colony, provided the
+    // colony is not destroyed in the process.
     CombatBraveAttackColony const combat{
       .winner           = e_combat_winner::defender,
       .colony_id        = colony.id,
@@ -562,7 +564,8 @@ TEST_CASE( "[raid] raid_colony" ) {
     UnitId const defender_id       = defender.id();
 
     // Note that, in the OG, the brave attacking a colony is al-
-    // ways destroyed after an attack on a colony.
+    // ways destroyed after an attack on a colony, provided the
+    // colony is not destroyed in the process.
     CombatBraveAttackColony const combat{
       .winner           = e_combat_winner::defender,
       .colony_id        = colony.id,
@@ -573,6 +576,10 @@ TEST_CASE( "[raid] raid_colony" ) {
       .defender         = {
                 .id      = defender_id,
                 .outcome = EuroUnitCombatOutcome::no_change{} } };
+    // Select which colony worker to be the defender. In this
+    // case there is only one. This is done because there are not
+    // military units.
+    W.rand().EXPECT__between_ints( 0, 0 ).returns( 0 );
     W.combat()
         .EXPECT__brave_attack_colony( attacker, defender,
                                       colony )
@@ -628,17 +635,23 @@ TEST_CASE( "[raid] raid_colony" ) {
     UnitId const defender_id       = defender.id();
 
     // Note that, in the OG, the brave attacking a colony is al-
-    // ways destroyed after an attack on a colony.
+    // ways destroyed after an attack on a colony, provided the
+    // colony is not destroyed in the process. If it is destroyed
+    // then the brave survives.
     CombatBraveAttackColony const combat{
       .winner           = e_combat_winner::attacker,
       .colony_id        = colony.id,
       .colony_destroyed = true,
       .attacker         = { .id = attacker.id,
                             .outcome =
-                                NativeUnitCombatOutcome::destroyed{} },
+                                NativeUnitCombatOutcome::no_change{} },
       .defender         = {
                 .id      = defender_id,
                 .outcome = EuroUnitCombatOutcome::destroyed{} } };
+    // Select which colony worker to be the defender. In this
+    // case there is only one. This is done because there are not
+    // military units.
+    W.rand().EXPECT__between_ints( 0, 0 ).returns( 0 );
     W.combat()
         .EXPECT__brave_attack_colony( attacker, defender,
                                       colony )
@@ -662,7 +675,7 @@ TEST_CASE( "[raid] raid_colony" ) {
 
     REQUIRE( player.money == 1000 );
     REQUIRE( W.natives().dwelling_exists( dwelling_id ) );
-    REQUIRE_FALSE( W.units().exists( attacker_id ) );
+    REQUIRE( W.units().exists( attacker_id ) );
     REQUIRE_FALSE( W.colonies().exists( colony_id ) );
     REQUIRE_FALSE( W.units().exists( defender_id ) );
     REQUIRE_FALSE( W.units().exists( worker_id ) );
@@ -682,8 +695,10 @@ TEST_CASE( "[raid] raid_colony" ) {
     Unit const& onboard = W.add_unit_in_cargo(
         e_unit_type::free_colonist, caravel.id() );
 
-    // The wagon train will be chosen as the defender.
-    Unit const& defender = wagon_train;
+    // Non-combatant units at the gate will never be chosen to
+    // defende, as in the OG. Only colony workers (assuming there
+    // are no military units at the gate).
+    Unit const& defender = worker;
     wagon_train.fortify();
     Unit& pioneer = W.add_unit_on_map(
         e_unit_type::pioneer, colony.location, colony.player );
@@ -701,17 +716,23 @@ TEST_CASE( "[raid] raid_colony" ) {
     UnitId const onboard_id        = onboard.id();
 
     // Note that, in the OG, the brave attacking a colony is al-
-    // ways destroyed after an attack on a colony.
+    // ways destroyed after an attack on a colony, provided the
+    // colony is not destroyed in the process. If it is destroyed
+    // then the brave survives.
     CombatBraveAttackColony const combat{
       .winner           = e_combat_winner::attacker,
       .colony_id        = colony.id,
       .colony_destroyed = true,
       .attacker         = { .id = attacker.id,
                             .outcome =
-                                NativeUnitCombatOutcome::destroyed{} },
+                                NativeUnitCombatOutcome::no_change{} },
       .defender         = {
                 .id      = defender_id,
                 .outcome = EuroUnitCombatOutcome::destroyed{} } };
+    // Select which colony worker to be the defender. In this
+    // case there is only one. This is done because there are not
+    // military units.
+    W.rand().EXPECT__between_ints( 0, 0 ).returns( 0 );
     W.combat()
         .EXPECT__brave_attack_colony( attacker, defender,
                                       colony )
@@ -744,7 +765,7 @@ TEST_CASE( "[raid] raid_colony" ) {
 
     REQUIRE( player.money == 1000 );
     REQUIRE( W.natives().dwelling_exists( dwelling_id ) );
-    REQUIRE_FALSE( W.units().exists( attacker_id ) );
+    REQUIRE( W.units().exists( attacker_id ) );
     REQUIRE_FALSE( W.colonies().exists( colony_id ) );
     REQUIRE_FALSE( W.units().exists( defender_id ) );
     REQUIRE_FALSE( W.units().exists( worker_id ) );

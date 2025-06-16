@@ -70,8 +70,11 @@
 
 // C++ standard library
 #include <numeric>
+#include <ranges>
 
 using namespace std;
+
+namespace rg = std::ranges;
 
 namespace rn {
 
@@ -198,6 +201,7 @@ vector<UnitId> colony_workers( Colony const& colony ) {
   for( e_direction d : refl::enum_values<e_direction> )
     if( colony.outdoor_jobs[d].has_value() )
       res.push_back( colony.outdoor_jobs[d]->unit_id );
+  rg::sort( res );
   return res;
 }
 
@@ -386,7 +390,13 @@ void remove_unit_from_colony_obj_low_level( SS& ss,
              .holds<UnitOwnership::colony>(),
          "Unit {} is not working in a colony.", unit_id );
   // Now remove the unit from the colony.
-  SCOPE_EXIT { CHECK( colony.validate() ); };
+  SCOPE_EXIT {
+    // If the colony is being abandoned then it will be in an in-
+    // valid state transiently.
+    if( !colony_workers( colony ).empty() ) {
+      CHECK( colony.validate() );
+    }
+  };
 
   for( auto& [job, units] : colony.indoor_jobs ) {
     if( find( units.begin(), units.end(), unit_id ) !=

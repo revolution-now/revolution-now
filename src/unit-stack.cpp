@@ -13,6 +13,7 @@
 
 // Revolution Now
 #include "colony-mgr.hpp"
+#include "irand.hpp"
 
 // config
 #include "config/natives.hpp"
@@ -72,15 +73,16 @@ bool unit_stack_ordering_cmp( SSConst const& ss,
 
 maybe<UnitId> highest_defense_euro_unit_on_square(
     SSConst const& ss, Coord coord,
-    base::function_ref<bool( UnitId )> remove ) {
+    base::function_ref<bool( Unit const& ) const> remove ) {
   unordered_set<GenericUnitId> const& units_at_dst_set =
       ss.units.from_coord( coord );
   vector<UnitId> defenders;
   defenders.reserve( units_at_dst_set.size() );
-  for( GenericUnitId generic_id : units_at_dst_set ) {
+  for( GenericUnitId const generic_id : units_at_dst_set ) {
     UnitId const unit_id =
         ss.units.check_euro_unit( generic_id );
-    if( remove( unit_id ) ) continue;
+    Unit const& unit = ss.units.unit_for( unit_id );
+    if( remove( unit ) ) continue;
     defenders.push_back(
         ss.units.check_euro_unit( generic_id ) );
   }
@@ -101,7 +103,7 @@ maybe<UnitId> highest_defense_euro_unit_on_square(
 maybe<UnitId> highest_defense_euro_unit_on_square(
     SSConst const& ss, Coord coord ) {
   return highest_defense_euro_unit_on_square(
-      ss, coord, []( UnitId ) { return false; } );
+      ss, coord, []( Unit const& ) { return false; } );
 }
 
 maybe<NativeUnitId> highest_defense_native_unit_on_square(
@@ -165,29 +167,54 @@ NativeUnitId select_native_unit_defender( SSConst const& ss,
   return defender_id;
 }
 
-UnitId select_colony_defender( SSConst const& ss,
+UnitId select_colony_defender( SSConst const& ss, IRand& rand,
                                Colony const& colony ) {
-  // Attacking a colony first attacks all military units, then
-  // once those are gone, the next attack will attack either a
-  // non-military unit at the gate (if there is one) or a
-  // colonist working in the colony otherwise. In either case, if
-  // attacking a non-military unit, then the colony will be cap-
-  // tured if the attack succeeds.
+  // Attacking a colony first attacks all military units at the
+  // gate (including scouts), then once those are gone, the next
+  // attack will select a random colony worker.
+  //
+  // NOTE: Non-military units at the gate are never chosen. When
+  // the colony is attacked by another european it actually
+  // doesn't matter which non-combatant is chosen (whether colony
+  // worker or at the gate) because they all have the same combat
+  // value (=1), and if the attacker wins they will take the
+  // colony without destroying the defending unit (thus it is of
+  // no consequence which unit defends). However, it matters for
+  // brave attacks. When a brave attacks an undefended colony it
+  // destoys the units that it attacks (when it wins and the
+  // player has more than one colony) since it can never capture
+  // the colony. Thus it matters which non-combatant defends,
+  // since it may get destroyed.
+  //
+  // In the OG the non-combatant defenders are always colony
+  // workers as opposed to units at the gate. This is probably
+  // good otherwise the player would be able to defend their
+  // colony against brave attacks and prevent valuable colony
+  // workers from being destroyed by e.g. just putting a bunch of
+  // petty criminals in each colony and leaving them at the gate
+  // to be sacrified on each brave attack.
+  //
+  // NOTE: Military units that are in the cargo of ships in the
+  // port of the colony being attacked will have been offboarded
+  // first in order to help defend.
+  auto const ignore_at_gate = [&]( Unit const& unit ) {
+    if( !is_military_unit( unit.type() ) ) return true;
+    if( unit.desc().ship ) return true;
+    return false;
+  };
   maybe<UnitId> const at_gate =
-      highest_defense_euro_unit_on_square(
-          ss, colony.location, /*remove=*/[&]( UnitId unit_id ) {
-            Unit const& unit = ss.units.unit_for( unit_id );
-            // TODO: Figure out how to deal with military units
-            // that are in the cargo of ships in the port of the
-            // colony being attacked. This issue doesn't come up
-            // in the original game. Maybe Paul Revere could
-            // enable them to fight?
-            return unit.desc().ship;
-          } );
+      highest_defense_euro_unit_on_square( ss, colony.location,
+                                           ignore_at_gate );
   if( at_gate.has_value() ) return *at_gate;
   vector<UnitId> const workers = colony_workers( colony );
+  // The save state validator should ensure that there is at
+  // least one worker per colony.
   CHECK( !workers.empty() );
-  return workers[0];
+  // As discussed above, it is not inconsequential which colony
+  // worker we choose (otherwise we'd just choose the first),
+  // since said colonist might get destroyed if this is a brave
+  // attack. The OG selects a random worker, so we do that.
+  return rand.pick_one( workers );
 }
 
 } // namespace rn

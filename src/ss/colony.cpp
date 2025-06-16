@@ -122,12 +122,24 @@ valid_or<string> Colony::validate() const {
       "Colony at {} has a name that is empty (when stripped).",
       location );
 
-  // Colony has at least one colonist.
-  // NOTE: we don't validate this because a colony can be in this
-  // state transitively while moving units. Also, there isn't
-  // anything actually inconsistent with a colony not having any
-  // colonists -- it's just not allowed by the game as a matter
-  // of policy.  A modded game might allow it.
+  // Colony has at least one colonist. NOTE: A colony might have
+  // zero colonists transitively while moving units, but other-
+  // wise should not be in this state.
+  auto const num_indoor = [&] {
+    int total = 0;
+    for( auto const& [job, units] : indoor_jobs )
+      total += units.size();
+    return total;
+  }();
+  auto const num_outdoor = [&] {
+    int total = 0;
+    for( auto const& [d, unit] : outdoor_jobs )
+      if( unit.has_value() ) ++total;
+    return total;
+  }();
+  REFL_VALIDATE( num_indoor + num_outdoor > 0,
+                 "Colony '{}' does not have any workers.",
+                 name );
 
   // Colony's commodity quantites are in correct range.
   for( auto comm : refl::enum_values<e_commodity> ) {

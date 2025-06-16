@@ -475,11 +475,19 @@ summarize_non_destroying_combat_outcome_in_colony(
   string_view const euro_unit_name = defender.desc().name;
   switch( combat.winner ) {
     case e_combat_winner::attacker: {
-      // Brave wins. Note that the below works with both
-      // singular and plural unit names.
-      return { .defender = fmt::format(
-                   "[{}] ambush [{}] [{}] in [{}]!", tribe_name,
-                   player_adj, euro_unit_name, colony.name ) };
+      // Brave wins. Note that `ambush` works with both singular
+      // and plural unit names.
+      if( is_military_unit( defender.type() ) )
+        return { .defender = fmt::format(
+                     "[{}] ambush [{}] [{}] in [{}]!",
+                     tribe_name, player_adj, euro_unit_name,
+                     colony.name ) };
+      else
+        return { .defender = fmt::format(
+                     "[{}] ambush [{}] colonists in [{}]! [{}] "
+                     "lost while defending against the attack.",
+                     tribe_name, player_adj, colony.name,
+                     euro_unit_name ) };
     }
     case e_combat_winner::defender: {
       // European wins.
@@ -770,8 +778,8 @@ CombatEffectsMessages combat_effects_msg(
   auto& defender = ss.units.unit_for( combat.defender.id );
   Player const& defending_player = player_for_player_or_die(
       ss.players, defender.player_type() );
-  if( !combat.colony_destroyed )
-    return {
+  if( !combat.colony_destroyed ) {
+    CombatEffectsMessages res{
       .summaries =
           summarize_non_destroying_combat_outcome_in_colony(
               ss, combat,
@@ -783,6 +791,12 @@ CombatEffectsMessages combat_effects_msg(
       .defender = euro_unit_combat_effects_msg(
           ss, defending_player, defender,
           combat.defender.outcome ) };
+    if( !is_military_unit( defender.type() ) )
+      // Kill all defender specific messages here because we want
+      // the summary to be shown.
+      res.defender = {};
+    return res;
+  }
 
   // Colony burned. In this case there is no attacker message for
   // the same reason as above, but also no defender message since

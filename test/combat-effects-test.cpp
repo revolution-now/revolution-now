@@ -1800,9 +1800,9 @@ TEST_CASE(
   CombatEffectsMessages expected;
 
   struct Params {
-    e_native_unit_type attacker         = {};
-    maybe<e_unit_type> defender_at_gate = {};
-    e_combat_winner winner              = {};
+    e_native_unit_type attacker = {};
+    maybe<e_unit_type> defender = {};
+    e_combat_winner winner      = {};
     NativeUnitCombatOutcome attacker_outcome;
     EuroUnitCombatOutcome defender_outcome;
     bool burned = false;
@@ -1823,11 +1823,13 @@ TEST_CASE(
     NativeUnit const& attacker = W.add_native_unit_on_map(
         params.attacker, W.kNativeRaiderCoord, dwelling.id );
     Unit const& defender =
-        params.defender_at_gate.has_value()
-            ? W.add_unit_on_map( *params.defender_at_gate,
-                                 W.kLandDefenderCoord,
+        !params.defender.has_value() ? founder
+        : is_military_unit( *params.defender )
+            ? W.add_unit_on_map( *params.defender,
+                                 colony.location,
                                  W.kDefenderPlayer )
-            : founder;
+            : W.add_unit_indoors( colony.id, e_indoor_job::bells,
+                                  *params.defender );
     CombatBraveAttackColony const combat{
       .winner           = params.winner,
       .colony_id        = colony.id,
@@ -1840,10 +1842,10 @@ TEST_CASE(
     return combat_effects_msg( W.ss(), combat );
   };
 
-  SECTION( "no units at gate, not burned" ) {
+  SECTION( "defender is sole colonist, not burned" ) {
     params = {
       .attacker         = e_native_unit_type::brave,
-      .defender_at_gate = nothing,
+      .defender         = nothing,
       .winner           = e_combat_winner::defender,
       .attacker_outcome = NativeUnitCombatOutcome::destroyed{},
       .defender_outcome = EuroUnitCombatOutcome::no_change{},
@@ -1855,10 +1857,10 @@ TEST_CASE(
     REQUIRE( run() == expected );
   }
 
-  SECTION( "non-military unit at gate, not burned" ) {
+  SECTION( "defender is extra colony worker, defender wins" ) {
     params = {
       .attacker         = e_native_unit_type::brave,
-      .defender_at_gate = e_unit_type::expert_farmer,
+      .defender         = e_unit_type::expert_farmer,
       .winner           = e_combat_winner::defender,
       .attacker_outcome = NativeUnitCombatOutcome::destroyed{},
       .defender_outcome = EuroUnitCombatOutcome::no_change{},
@@ -1873,7 +1875,7 @@ TEST_CASE(
   SECTION( "military unit at gate, defender wins" ) {
     params = {
       .attacker         = e_native_unit_type::brave,
-      .defender_at_gate = e_unit_type::soldier,
+      .defender         = e_unit_type::soldier,
       .winner           = e_combat_winner::defender,
       .attacker_outcome = NativeUnitCombatOutcome::destroyed{},
       .defender_outcome = EuroUnitCombatOutcome::no_change{},
@@ -1889,7 +1891,7 @@ TEST_CASE(
       "military unit at gate, defender wins w/ promotion" ) {
     params = {
       .attacker         = e_native_unit_type::brave,
-      .defender_at_gate = e_unit_type::soldier,
+      .defender         = e_unit_type::soldier,
       .winner           = e_combat_winner::defender,
       .attacker_outcome = NativeUnitCombatOutcome::destroyed{},
       .defender_outcome =
@@ -1911,7 +1913,7 @@ TEST_CASE(
   SECTION( "military unit at gate, defender loses" ) {
     params = {
       .attacker         = e_native_unit_type::brave,
-      .defender_at_gate = e_unit_type::soldier,
+      .defender         = e_unit_type::soldier,
       .winner           = e_combat_winner::attacker,
       .attacker_outcome = NativeUnitCombatOutcome::destroyed{},
       .defender_outcome =
@@ -1931,7 +1933,7 @@ TEST_CASE(
   SECTION( "military unit (scout) at gate, defender loses" ) {
     params = {
       .attacker         = e_native_unit_type::brave,
-      .defender_at_gate = e_unit_type::scout,
+      .defender         = e_unit_type::scout,
       .winner           = e_combat_winner::attacker,
       .attacker_outcome = NativeUnitCombatOutcome::destroyed{},
       .defender_outcome = EuroUnitCombatOutcome::destroyed{},
@@ -1952,7 +1954,7 @@ TEST_CASE(
         e_revolution_status::declared;
     params = {
       .attacker         = e_native_unit_type::brave,
-      .defender_at_gate = e_unit_type::scout,
+      .defender         = e_unit_type::scout,
       .winner           = e_combat_winner::attacker,
       .attacker_outcome = NativeUnitCombatOutcome::destroyed{},
       .defender_outcome = EuroUnitCombatOutcome::destroyed{},
@@ -1966,10 +1968,10 @@ TEST_CASE(
     REQUIRE( run() == expected );
   }
 
-  SECTION( "no units at gate, burned" ) {
+  SECTION( "defender is sole colonist, burned" ) {
     params = {
       .attacker         = e_native_unit_type::brave,
-      .defender_at_gate = nothing,
+      .defender         = nothing,
       .winner           = e_combat_winner::attacker,
       .attacker_outcome = NativeUnitCombatOutcome::destroyed{},
       .defender_outcome = EuroUnitCombatOutcome::destroyed{},
@@ -1983,29 +1985,29 @@ TEST_CASE(
     REQUIRE( run() == expected );
   }
 
-  SECTION( "non-military unit at gate, burned" ) {
+  SECTION( "defender is second colonist, defender loses" ) {
     params = {
       .attacker         = e_native_unit_type::brave,
-      .defender_at_gate = e_unit_type::expert_farmer,
+      .defender         = e_unit_type::expert_farmer,
       .winner           = e_combat_winner::attacker,
       .attacker_outcome = NativeUnitCombatOutcome::destroyed{},
       .defender_outcome = EuroUnitCombatOutcome::destroyed{},
-      .burned           = true };
+      .burned           = false };
     expected = {
-      .summaries = { .defender =
-                         "[Sioux] massacre [French] population "
-                         "in [raided-colony]! Colony set ablaze "
-                         "and decimated! The King demands "
-                         "accountability!" } };
+      .summaries = {
+        .defender = "[Sioux] ambush [French] colonists "
+                    "in [raided-colony]! [Expert Farmer] lost "
+                    "while defending against the attack." } };
     REQUIRE( run() == expected );
   }
 
-  SECTION( "no units at gate, burned, after revolution" ) {
+  SECTION(
+      "defender is sole colonist, burned, after revolution" ) {
     W.french().revolution.status = e_revolution_status::declared;
 
     params = {
       .attacker         = e_native_unit_type::brave,
-      .defender_at_gate = nothing,
+      .defender         = nothing,
       .winner           = e_combat_winner::attacker,
       .attacker_outcome = NativeUnitCombatOutcome::destroyed{},
       .defender_outcome = EuroUnitCombatOutcome::destroyed{},

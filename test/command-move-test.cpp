@@ -21,6 +21,7 @@
 #include "test/mocks/iengine.hpp"
 #include "test/mocks/ieuro-mind.hpp"
 #include "test/mocks/igui.hpp"
+#include "test/mocks/irand.hpp"
 #include "test/mocks/land-view-plane.hpp"
 #include "test/util/coro.hpp"
 
@@ -529,6 +530,10 @@ TEST_CASE(
   };
 
   SECTION( "no units on ship" ) {
+    // Select which colony worker to be the defender. In this
+    // case there is only one. This is done because there are not
+    // military units.
+    W.rand().EXPECT__between_ints( 0, 0 ).returns( 0 );
     unique_ptr<CommandHandler> handler = handle_command(
         W.engine(), W.ss(), W.ts(), W.french(), soldier.id(),
         command::move{ .d = e_direction::n } );
