@@ -26,6 +26,7 @@
 #include "icombat.hpp"
 #include "ieuro-mind.hpp"
 #include "igui.hpp"
+#include "imap-updater.hpp"
 #include "inative-mind.hpp"
 #include "land-view.hpp"
 #include "map-square.hpp"
@@ -70,6 +71,8 @@ using namespace std;
 namespace rn {
 
 namespace {
+
+using ::gfx::point;
 
 // These are possible results of an attack that are common to the
 // two cases of attacking a euro unit and a native unit. Because
@@ -912,17 +915,52 @@ wait<> AttackDwellingHandler::perform() {
     vector<UnitId> const missionaries =
         player_missionaries_in_tribe( ss_, attacking_player_,
                                       tribe_.type );
+
+    // Update player squares to remove missionary status. We
+    // don't have to worry about the ones that are currently vis-
+    // ible, but the fogged ones would continue to show a cross.
+    // It seems reasonable to remove the crosses from the fogged
+    // ones because we are giving the player that information.
+    // Currently our visibility framework doesn't easily allow
+    // surgically editing the contents of the player square to
+    // e.g. remove only the fogged missionary. So the simplest
+    // way to do this is to just make all the fogged squares with
+    // missions visible.
+    //
+    // Note that we don't use the member viz_ here because that
+    // value is constructed from the current viewer, which is not
+    // exactly what we want; we want to update the player squares
+    // for the player doing the attacking, since they are the
+    // ones that become aware of the destruction of the missions.
+    vector<Coord> const fogged_dwelling_locations = [&] {
+      vector<Coord> res;
+      VisibilityForPlayer const viz_player(
+          ss_, attacking_player_.type );
+      res.reserve( missionaries.size() );
+      for( UnitId const missionary : missionaries ) {
+        CHECK( ss_.units.unit_for( missionary ).player_type() ==
+               attacking_player_.type );
+        UNWRAP_CHECK_T( auto const dwelling_id,
+                        ss_.units.maybe_dwelling_for_missionary(
+                            missionary ) );
+        point const location =
+            ss_.natives.coord_for( dwelling_id );
+        if( viz_player.visible( location ) ==
+            e_tile_visibility::fogged )
+          res.push_back( location );
+      }
+      return res;
+    }();
+    ts_.map_updater().make_squares_visible(
+        attacking_player_.type, fogged_dwelling_locations );
+
+    // Destroy the missionaries.
     for( UnitId const missionary : missionaries ) {
       CHECK( ss_.units.unit_for( missionary ).player_type() ==
              attacking_player_.type );
       UnitOwnershipChanger( ss_, missionary ).destroy();
     }
-    // TODO: decide whether to update player fog squares to re-
-    // move missionary status. We don't have to worry about the
-    // ones that are currently visible, but the fogged ones would
-    // continue to show a cross. It seems reasonable to remove
-    // the crosses from the fogged ones because we are giving the
-    // player that information.
+
     co_await attacker_mind_.message_box(
         "The [{}] revolt against [{}] missions! "
         "All {} missionaries eliminated!",

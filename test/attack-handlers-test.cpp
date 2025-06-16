@@ -25,7 +25,9 @@
 // Revolution Now
 #include "src/command.hpp"
 #include "src/commodity.hpp"
+#include "src/imap-updater.hpp"
 #include "src/plane-stack.hpp"
+#include "src/visibility.hpp"
 
 // config
 #include "config/unit-type.hpp"
@@ -35,6 +37,7 @@
 #include "src/ss/native-unit.rds.hpp"
 #include "src/ss/natives.hpp"
 #include "src/ss/player.rds.hpp"
+#include "src/ss/ref.hpp"
 #include "src/ss/tribe.rds.hpp"
 #include "src/ss/unit.hpp"
 #include "src/ss/units.hpp"
@@ -47,6 +50,7 @@ namespace {
 
 using namespace std;
 
+using ::gfx::point;
 using ::mock::matchers::_;
 using ::mock::matchers::AllOf;
 using ::mock::matchers::Field;
@@ -73,7 +77,6 @@ struct World : testing::World {
     common_player_init( player( kAttackingPlayer ) );
     common_player_init( player( kDefendingPlayer ) );
     set_default_player_type( kAttackingPlayer );
-    create_default_map();
     planes().get().set_bottom<ILandViewPlane>(
         mock_land_view_plane_ );
     Tribe& tribe = add_tribe( kNativeTribe );
@@ -147,6 +150,25 @@ struct World : testing::World {
       L, L, L, //
     };
     build_map( std::move( tiles ), 3 );
+  }
+
+  void create_land_9x9() {
+    MapSquare const L = make_grassland();
+    // clang-format off
+    vector<MapSquare> tiles{
+    // 0  1  2  3  4  5  6  7  8
+       L, L, L, L, L, L, L, L, L, // 0
+       L, L, L, L, L, L, L, L, L, // 1
+       L, L, L, L, L, L, L, L, L, // 2
+       L, L, L, L, L, L, L, L, L, // 3
+       L, L, L, L, L, L, L, L, L, // 4
+       L, L, L, L, L, L, L, L, L, // 5
+       L, L, L, L, L, L, L, L, L, // 6
+       L, L, L, L, L, L, L, L, L, // 7
+       L, L, L, L, L, L, L, L, L, // 8
+    };
+    // clang-format on
+    build_map( std::move( tiles ), 9 );
   }
 
   CommandHandlerRunResult run_handler(
@@ -254,6 +276,7 @@ struct World : testing::World {
 TEST_CASE(
     "[attack-handlers] common failure checks (land attacker)" ) {
   World W;
+  W.create_default_map();
   CommandHandlerRunResult expected = { .order_was_run = false };
   CombatEuroAttackEuro combat;
 
@@ -343,6 +366,7 @@ TEST_CASE(
 TEST_CASE(
     "[attack-handlers] common failure checks (ship attacker)" ) {
   World W;
+  W.create_default_map();
   CommandHandlerRunResult expected = { .order_was_run = false };
   CombatEuroAttackEuro combat;
 
@@ -363,6 +387,7 @@ TEST_CASE(
 
 TEST_CASE( "[attack-handlers] attack_euro_land_handler" ) {
   World W;
+  W.create_default_map();
   CommandHandlerRunResult expected = { .order_was_run = true };
   CombatEuroAttackEuro combat;
 
@@ -605,6 +630,7 @@ TEST_CASE( "[attack-handlers] attack_euro_land_handler" ) {
 
 TEST_CASE( "[attack-handlers] attack_native_unit_handler" ) {
   World W;
+  W.create_default_map();
   CommandHandlerRunResult expected = { .order_was_run = true };
   CombatEuroAttackBrave combat;
   Tribe& tribe = W.tribe( W.kNativeTribe );
@@ -781,6 +807,7 @@ TEST_CASE( "[attack-handlers] attack_native_unit_handler" ) {
 
 TEST_CASE( "[attack-handlers] attack_dwelling_handler" ) {
   World W;
+  W.create_land_9x9();
   CommandHandlerRunResult expected = { .order_was_run = true };
   CombatEuroAttackDwelling combat;
   Player& player = W.player( W.kAttackingPlayer );
@@ -909,6 +936,215 @@ TEST_CASE( "[attack-handlers] attack_dwelling_handler" ) {
     REQUIRE( W.units().coord_for( brave_id ) ==
              Coord{ .x = 2, .y = 2 } );
     REQUIRE( W.natives().tribe_exists( W.kNativeTribe ) );
+  }
+
+  SECTION(
+      "attacker loses, missions burned, missionary "
+      "eliminated, multiple dwellings with missionaries" ) {
+    point const kDwellingCoord1     = W.kLandDefend;
+    point constexpr kDwellingCoord2 = { .x = 1, .y = 5 };
+    point constexpr kDwellingCoord3 = { .x = 5, .y = 8 };
+    point constexpr kDwellingCoord4 = { .x = 4, .y = 3 };
+    point constexpr kDwellingCoord5 = { .x = 8, .y = 2 };
+    point constexpr kDwellingCoord6 = { .x = 7, .y = 8 };
+    Dwelling& dwelling2 =
+        W.add_dwelling( kDwellingCoord2, W.kNativeTribe );
+    Dwelling& dwelling3 =
+        W.add_dwelling( kDwellingCoord3, W.kNativeTribe );
+    Dwelling& dwelling4 =
+        W.add_dwelling( kDwellingCoord4, W.kNativeTribe );
+    Dwelling& dwelling5 =
+        W.add_dwelling( kDwellingCoord5, W.kNativeTribe );
+    Dwelling& dwelling6 =
+        W.add_dwelling( kDwellingCoord6, e_tribe::cherokee );
+    UnitId const missionary_id_1 =
+        W.add_missionary_in_dwelling( e_unit_type::missionary,
+                                      dwelling_id )
+            .id();
+    UnitId const missionary_id_2 =
+        W.add_missionary_in_dwelling( e_unit_type::missionary,
+                                      dwelling2.id )
+            .id();
+    UnitId const missionary_id_3 =
+        W.add_missionary_in_dwelling( e_unit_type::missionary,
+                                      dwelling3.id )
+            .id();
+    UnitId const missionary_id_4 =
+        W.add_missionary_in_dwelling( e_unit_type::missionary,
+                                      dwelling4.id )
+            .id();
+    /* omit 5 */
+    UnitId const missionary_id_6 =
+        W.add_missionary_in_dwelling( e_unit_type::missionary,
+                                      dwelling6.id )
+            .id();
+    BASE_CHECK( W.kNativeTribe != e_tribe::cherokee );
+
+    VisibilityForPlayer const viz( W.ss(), player.type );
+
+    W.map_updater().make_squares_visible(
+        W.kAttackingPlayer,
+        { kDwellingCoord1, kDwellingCoord2, kDwellingCoord3,
+          kDwellingCoord4, kDwellingCoord5, kDwellingCoord6 } );
+    W.map_updater().make_squares_fogged(
+        W.kAttackingPlayer,
+        { kDwellingCoord1, kDwellingCoord2, kDwellingCoord3,
+          kDwellingCoord4, kDwellingCoord5, kDwellingCoord6 } );
+    // This guy will keep dwelling 3 in the clear.
+    W.add_unit_on_map( e_unit_type::free_colonist,
+                       { .x = 4, .y = 8 }, player.type );
+
+    REQUIRE( viz.visible( kDwellingCoord1 ) ==
+             e_tile_visibility::fogged );
+    REQUIRE( viz.visible( kDwellingCoord2 ) ==
+             e_tile_visibility::fogged );
+    REQUIRE( viz.visible( kDwellingCoord3 ) ==
+             e_tile_visibility::clear );
+    REQUIRE( viz.visible( kDwellingCoord4 ) ==
+             e_tile_visibility::fogged );
+    REQUIRE( viz.visible( kDwellingCoord5 ) ==
+             e_tile_visibility::fogged );
+    REQUIRE( viz.visible( kDwellingCoord6 ) ==
+             e_tile_visibility::fogged );
+
+    REQUIRE( viz.dwelling_at( kDwellingCoord1 )
+                 .maybe_member( &Dwelling::frozen )
+                 .maybe_member( &FrozenDwelling::mission )
+                 .has_value() );
+    REQUIRE( viz.dwelling_at( kDwellingCoord2 )
+                 .maybe_member( &Dwelling::frozen )
+                 .maybe_member( &FrozenDwelling::mission )
+                 .has_value() );
+    REQUIRE( !viz.dwelling_at( kDwellingCoord3 )
+                  .maybe_member( &Dwelling::frozen )
+                  .maybe_member( &FrozenDwelling::mission )
+                  .has_value() );
+    REQUIRE( viz.dwelling_at( kDwellingCoord4 )
+                 .maybe_member( &Dwelling::frozen )
+                 .maybe_member( &FrozenDwelling::mission )
+                 .has_value() );
+    REQUIRE( !viz.dwelling_at( kDwellingCoord5 )
+                  .maybe_member( &Dwelling::frozen )
+                  .maybe_member( &FrozenDwelling::mission )
+                  .has_value() );
+    REQUIRE( viz.dwelling_at( kDwellingCoord6 )
+                 .maybe_member( &Dwelling::frozen )
+                 .maybe_member( &FrozenDwelling::mission )
+                 .has_value() );
+
+    combat = {
+      .winner          = e_combat_winner::defender,
+      .missions_burned = true,
+
+      .attacker = { .outcome =
+                        EuroUnitCombatOutcome::demoted{
+                          .to = e_unit_type::free_colonist } },
+
+      .defender = {
+        .id      = dwelling.id,
+        .outcome = DwellingCombatOutcome::no_change{} } };
+    combat.attacker.id = W.add_attacker( e_unit_type::soldier );
+    expect_combat();
+    W.expect_some_animation();
+    W.expect_msg_equals(
+        W.kAttackingPlayer,
+        "The [Apache] revolt against [English] missions! All "
+        "English missionaries eliminated!" );
+    W.expect_msg_contains( W.kAttackingPlayer, "routed" );
+    W.expect_msg_contains( W.kNativeTribe, "routed" );
+    expected = { .order_was_run = true };
+    REQUIRE( f() == expected );
+    Unit const& attacker =
+        W.units().unit_for( combat.attacker.id );
+    REQUIRE( W.natives().dwelling_exists( dwelling_id ) );
+    REQUIRE( W.natives().dwelling_exists( dwelling2.id ) );
+    REQUIRE( W.natives().dwelling_exists( dwelling3.id ) );
+    REQUIRE( W.natives().dwelling_exists( dwelling4.id ) );
+    REQUIRE( W.natives().dwelling_exists( dwelling5.id ) );
+    REQUIRE( W.natives().dwelling_exists( dwelling6.id ) );
+    REQUIRE( attacker.type() == e_unit_type::free_colonist );
+    REQUIRE( dwelling.population == 5 );
+    REQUIRE( W.units().coord_for( attacker.id() ) ==
+             W.kLandAttack );
+    REQUIRE( W.natives().coord_for( dwelling.id ) ==
+             W.kLandDefend );
+    REQUIRE( attacker.player_type() == W.kAttackingPlayer );
+    REQUIRE( relationship.tribal_alarm == 10 );
+    REQUIRE( attacker.movement_points() == 0 );
+    REQUIRE( !W.units().exists( missionary_id_1 ) );
+    REQUIRE( !W.units().exists( missionary_id_2 ) );
+    REQUIRE( !W.units().exists( missionary_id_3 ) );
+    REQUIRE( !W.units().exists( missionary_id_4 ) );
+    REQUIRE( W.units().exists( missionary_id_6 ) );
+    REQUIRE( player.score_stats.dwellings_burned == 0 );
+    REQUIRE( W.square( W.kLandDefend ).road == true );
+    REQUIRE( W.units().exists( brave_id ) );
+    REQUIRE( W.units().coord_for( brave_id ) ==
+             Coord{ .x = 2, .y = 2 } );
+    REQUIRE( W.natives().tribe_exists( W.kNativeTribe ) );
+
+    // Clear because of attacker next to it.
+    REQUIRE( viz.visible( kDwellingCoord1 ) ==
+             e_tile_visibility::clear );
+    // Clear because of removed mission.
+    REQUIRE( viz.visible( kDwellingCoord2 ) ==
+             e_tile_visibility::clear );
+    // Clear because of free colonist next to it.
+    REQUIRE( viz.visible( kDwellingCoord3 ) ==
+             e_tile_visibility::clear );
+    // Clear because of removed mission.
+    REQUIRE( viz.visible( kDwellingCoord4 ) ==
+             e_tile_visibility::clear );
+    // No mission here.
+    REQUIRE( viz.visible( kDwellingCoord5 ) ==
+             e_tile_visibility::fogged );
+    // Mission here, but different tribe.
+    REQUIRE( viz.visible( kDwellingCoord6 ) ==
+             e_tile_visibility::fogged );
+
+    REQUIRE( !viz.dwelling_at( kDwellingCoord1 )
+                  .maybe_member( &Dwelling::frozen )
+                  .has_value() );
+    REQUIRE( !viz.dwelling_at( kDwellingCoord2 )
+                  .maybe_member( &Dwelling::frozen )
+                  .has_value() );
+    REQUIRE( !viz.dwelling_at( kDwellingCoord3 )
+                  .maybe_member( &Dwelling::frozen )
+                  .has_value() );
+    REQUIRE( !viz.dwelling_at( kDwellingCoord4 )
+                  .maybe_member( &Dwelling::frozen )
+                  .has_value() );
+    REQUIRE( viz.dwelling_at( kDwellingCoord5 )
+                 .maybe_member( &Dwelling::frozen )
+                 .has_value() );
+    REQUIRE( viz.dwelling_at( kDwellingCoord6 )
+                 .maybe_member( &Dwelling::frozen )
+                 .has_value() );
+
+    REQUIRE( !viz.dwelling_at( kDwellingCoord1 )
+                  .maybe_member( &Dwelling::frozen )
+                  .maybe_member( &FrozenDwelling::mission )
+                  .has_value() );
+    REQUIRE( !viz.dwelling_at( kDwellingCoord2 )
+                  .maybe_member( &Dwelling::frozen )
+                  .maybe_member( &FrozenDwelling::mission )
+                  .has_value() );
+    REQUIRE( !viz.dwelling_at( kDwellingCoord3 )
+                  .maybe_member( &Dwelling::frozen )
+                  .maybe_member( &FrozenDwelling::mission )
+                  .has_value() );
+    REQUIRE( !viz.dwelling_at( kDwellingCoord4 )
+                  .maybe_member( &Dwelling::frozen )
+                  .maybe_member( &FrozenDwelling::mission )
+                  .has_value() );
+    REQUIRE( !viz.dwelling_at( kDwellingCoord5 )
+                  .maybe_member( &Dwelling::frozen )
+                  .maybe_member( &FrozenDwelling::mission )
+                  .has_value() );
+    REQUIRE( viz.dwelling_at( kDwellingCoord6 )
+                 .maybe_member( &Dwelling::frozen )
+                 .maybe_member( &FrozenDwelling::mission )
+                 .has_value() );
   }
 
   SECTION(
@@ -1496,6 +1732,7 @@ TEST_CASE( "[attack-handlers] attack_dwelling_handler" ) {
 
 TEST_CASE( "[attack-handlers] naval_battle_handler" ) {
   World W;
+  W.create_default_map();
   CombatShipAttackShip combat;
   CommandHandlerRunResult expected = { .order_was_run = true };
 
@@ -2032,6 +2269,7 @@ TEST_CASE( "[attack-handlers] naval_battle_handler" ) {
 TEST_CASE(
     "[attack-handlers] attack_colony_undefended_handler" ) {
   World W;
+  W.create_default_map();
   CombatEuroAttackUndefendedColony combat;
   // TODO
 }
