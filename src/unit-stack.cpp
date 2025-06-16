@@ -13,6 +13,7 @@
 
 // Revolution Now
 #include "colony-mgr.hpp"
+#include "combat-modifiers.rds.hpp"
 #include "irand.hpp"
 
 // config
@@ -95,6 +96,8 @@ maybe<UnitId> highest_defense_euro_unit_on_square(
   // sorting the units based on modifiers just for rendering unit
   // stacks on the map normally, since that would slow down ren-
   // dering.
+  static_assert( sizeof( e_euro_unit_combat_modifiers::
+                             remove_me_for_some_todos ) == 4 );
   sort_euro_unit_stack( ss, defenders );
   CHECK( !defenders.empty() );
   return defenders[0];

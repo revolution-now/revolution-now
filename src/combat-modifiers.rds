@@ -12,6 +12,7 @@ namespace "rn"
 
 # TODO: there is a penalty for a ship carrying cargo.
 enum.e_euro_unit_combat_modifiers {
+  remove_me_for_some_todos,
   movement,
   veteran,
   attack,
