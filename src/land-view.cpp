@@ -407,7 +407,9 @@ struct LandViewPlane::Impl : public IPlane {
     auto const selected_item = co_await menu_server.open_menu(
         e_menu::land_view, positions );
     if( !selected_item.has_value() ) co_return;
-    menu_server.click_item( *selected_item );
+    bool const handled =
+        menu_server.click_item( *selected_item );
+    (void)handled;
   }
 
   /****************************************************************

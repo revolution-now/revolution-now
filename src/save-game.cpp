@@ -129,12 +129,17 @@ wait<maybe<int>> select_save_slot(
     slot = co_await select_save_slot_impl( ts, query );
     if( !slot.has_value() ) co_return nothing;
     if( !query_slot_exists( query, *slot ) ) break;
-    YesNoConfig const config{ .msg =
-                                  "A saved game already exists "
-                                  "in this slot.  Overwite?",
-                              .yes_label      = "Overwrite",
-                              .no_label       = "Cancel",
-                              .no_comes_first = true };
+    // ==========================================================
+    // FIXME: replace with user-level config when available.
+    if constexpr( true ) { break; }
+    // FIXME: replace with user-level config when available.
+    // ==========================================================
+    YesNoConfig const config{
+      .msg =
+          "A saved game already exists in this slot.  Overwite?",
+      .yes_label      = "Overwrite",
+      .no_label       = "Cancel",
+      .no_comes_first = true };
 
     maybe<ui::e_confirm> const answer =
         co_await ts.gui.optional_yes_no( config );

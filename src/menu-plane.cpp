@@ -172,6 +172,20 @@ struct MenuPlane::Impl : IPlane, IMenuServer {
       return e_input_handled::yes;
     }
 
+    // FIXME: this is a temporary hack, need to move these into a
+    // proper menu shortcut key mechanism when that is imple-
+    // mented.
+    if( event.holds<input::key_event_t>() ) {
+      switch( event.as<input::key_event_t>().keycode ) {
+        case '\'':
+          click_item( e_menu_item::save );
+          break;
+        case '/':
+          click_item( e_menu_item::load );
+          break;
+      }
+    }
+
     return e_input_handled::no;
   }
 

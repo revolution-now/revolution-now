@@ -188,6 +188,11 @@ wait<base::NoDiscard<bool>> check_if_not_dirty_or_can_proceed(
     } );
   };
   if( is_game_saved() ) co_return true;
+  // ============================================================
+  // FIXME: replace with user-level config when available.
+  if constexpr( true ) { co_return true; }
+  // FIXME: replace with user-level config when available.
+  // ============================================================
   YesNoConfig const config{ .msg =
                                 "This game has unsaved changes. "
                                 "Would you like to save?",

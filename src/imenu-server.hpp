@@ -32,7 +32,7 @@ struct IMenuServer {
   // one plane registered to handle this item and the most recent
   // one to register needs to agree to handle it at the time that
   // this method is called.
-  virtual bool can_handle_menu_click(
+  [[nodiscard]] virtual bool can_handle_menu_click(
       e_menu_item item ) const = 0;
 
   // This will send the menu click event to be handled through
@@ -46,7 +46,7 @@ struct IMenuServer {
   // ning, something changes in another plane that causes the
   // item to not have a handler anymore. Returns true if the
   // click was actually made.
-  virtual bool click_item( e_menu_item item ) = 0;
+  [[nodiscard]] virtual bool click_item( e_menu_item item ) = 0;
 
   virtual wait<maybe<e_menu_item>> open_menu(
       e_menu menu, MenuAllowedPositions const& positions

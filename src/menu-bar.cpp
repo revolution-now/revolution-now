@@ -327,7 +327,8 @@ wait<> MenuBar::translate_input_thread( BarState& st ) {
 
 void MenuBar::send_click( e_menu_item item ) const {
   if( !menu_server_.can_handle_menu_click( item ) ) return;
-  menu_server_.click_item( item );
+  bool const handled = menu_server_.click_item( item );
+  (void)handled;
 }
 
 wait<> MenuBar::run_thread( rect const logical_screen_rect,

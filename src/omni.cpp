@@ -554,9 +554,9 @@ struct OmniPlane::Impl : public IPlane {
             // shortcuts keys for menu items.
             if( menu_server_.can_handle_menu_click(
                     e_menu_item::continental_congress ) ) {
-              menu_server_.click_item(
-                  e_menu_item::continental_congress );
-              handled = e_input_handled::yes;
+              if( menu_server_.click_item(
+                      e_menu_item::continental_congress ) )
+                handled = e_input_handled::yes;
             }
             break;
           case ::SDLK_o:
