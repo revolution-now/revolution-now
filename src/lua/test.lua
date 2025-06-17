@@ -104,8 +104,7 @@ function M.some_ui_routine( arg )
       -- Run message box concurrently. Again, no wrapped version.
       local _<close> = message_box_format(
                            'Inner Background: %d', count )
-      n = str_input_box( 'User Input',
-                         'Please enter an even number', '2' )
+      n = str_input_box( 'Please enter an even number', '2' )
       if n == nil then
         message_box( 'Press enter to cancel.' )
         return
@@ -123,7 +122,7 @@ function M.some_ui_routine( arg )
 
   log.info( 'almost done...' )
 
-  local s = str_input_box( '?', 'Ok, you selected ' .. n ..
+  local s = str_input_box( 'Ok, you selected ' .. n ..
                                '.  Enter a string', '' )
   if s == nil then
     message_box( 'Press enter to cancel.' )

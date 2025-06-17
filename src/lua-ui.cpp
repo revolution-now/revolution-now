@@ -13,12 +13,19 @@
 // Revolution Now
 #include "co-lua.hpp"
 #include "co-wait.hpp"
+#include "gui.hpp"
+#include "iengine.hpp"
 #include "lua-wait.hpp"
 #include "lua.hpp"
+#include "menu-plane.hpp"
+#include "omni.hpp"
 #include "plane-stack.hpp"
+#include "ui-enums.rds.hpp"
 #include "window.hpp"
 
 // luapp
+#include "luapp/enum.hpp"
+#include "luapp/ext-monostate.hpp"
 #include "luapp/register.hpp"
 #include "luapp/state.hpp"
 
@@ -37,14 +44,6 @@ void linker_dont_discard_module_lua_ui() {}
 
 namespace {
 
-// LUA_AUTO_FN_NAMED( "message_box", ui::message_box_basic );
-// LUA_AUTO_FN_NAMED( "str_input_box", ui::str_input_box );
-
-// LUA_FN( ok_cancel, wait<string>, string_view msg ) {
-//   ui::e_ok_cancel res = co_await ui::ok_cancel( msg );
-//   co_return fmt::to_string( res );
-// }
-
 // This is to ensure the module gets registered; TODO: remove
 // once some other methods are registered again above.
 LUA_FN( dummy, void ) {}
@@ -54,16 +53,46 @@ LUA_FN( dummy, void ) {}
 wait<> lua_ui_test( IEngine& engine, Planes& planes ) {
   auto owner            = planes.push();
   PlaneGroup& new_group = owner.group;
+  MenuPlane menu_plane( engine );
+  OmniPlane omni( engine, menu_plane );
   WindowPlane window_plane( engine );
+  new_group.omni   = omni;
   new_group.window = window_plane;
+
+  RealGui gui( planes, engine.textometer() );
 
   lua::state st;
   lua_init( st ); // expensive.
 
-  auto n = co_await lua_wait<maybe<int>>(
-      st["test"]["some_ui_routine"], 42 );
+  lua::table M = st["lua_ui"].as<lua::table>();
 
-  lg.info( "received {} from some_ui_routine.", n );
+  M["message_box"] = [&]( string_view const msg ) -> wait<> {
+    co_await window_plane.message_box( msg );
+  };
+
+  M["str_input_box"] = [&]( string_view const msg,
+                            string_view const initial_text )
+      -> wait<maybe<string>> {
+    co_return co_await window_plane.str_input_box(
+        msg, WindowCancelActions{}, initial_text );
+  };
+
+  M["ok_cancel"] =
+      [&]( string_view const msg ) -> wait<ui::e_ok_cancel> {
+    EnumChoiceConfig const config{ .msg = string( msg ) };
+    co_return co_await gui.required_enum_choice<ui::e_ok_cancel>(
+        config );
+  };
+
+  auto const test = st["require"]( "test" );
+
+  try {
+    auto const n = co_await lua_wait<maybe<int>>(
+        test["some_ui_routine"], 42 );
+    lg.info( "received {} from some_ui_routine.", n );
+  } catch( lua_error_exception const& e ) {
+    lg.error( "lua_error_exception caught: {}", e.what() );
+  }
 }
 
 } // namespace rn
