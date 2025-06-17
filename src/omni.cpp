@@ -21,6 +21,7 @@
 #include "iengine.hpp"
 #include "imenu-server.hpp"
 #include "input.hpp"
+#include "interrupts.hpp"
 #include "plane.hpp"
 #include "query-enum.hpp"
 #include "screen.hpp"
@@ -497,7 +498,7 @@ struct OmniPlane::Impl : public IPlane {
     auto handled = e_input_handled::no;
     update_system_cursor();
     SWITCH( event ) {
-      CASE( quit_event ) { throw exception_exit{}; }
+      CASE( quit_event ) { throw exception_hard_exit{}; }
       CASE( win_event ) {
         if( win_event.type ==
             input::e_win_event_type::resized ) {
@@ -523,6 +524,12 @@ struct OmniPlane::Impl : public IPlane {
           break;
         }
         switch( key_event.keycode ) {
+          case ::SDLK_DELETE:
+            if( !key_event.mod.ctrl_down ||
+                !key_event.mod.shf_down )
+              break;
+            throw exception_restart(
+                "user-initiated restart via Ctrl-Shift-Del" );
           case ::SDLK_F12:
             // if( !screenshot() )
             //   lg.warn( "failed to take screenshot." );
@@ -580,7 +587,8 @@ struct OmniPlane::Impl : public IPlane {
             }
             break;
           case ::SDLK_q:
-            if( key_event.mod.ctrl_down ) throw exception_exit{};
+            if( key_event.mod.ctrl_down )
+              throw exception_hard_exit{};
             break;
           default:
             break;

@@ -511,6 +511,8 @@ std::queue<event_t> g_event_queue;
 
 } // namespace
 
+void clear_event_queue() { g_event_queue = {}; }
+
 void pump_event_queue( IEngine& engine ) {
   while( auto event = input::next_event( engine ) )
     if( g_event_queue.size() < kMaxEventQueueSize )

@@ -277,6 +277,10 @@ NOTHROW_MOVE( event_t );
 /****************************************************************
 ** Event queue.
 *****************************************************************/
+// TODO: temporary until we get a proper interface in the IEngine
+// for inputs.
+void clear_event_queue();
+
 // Grab all new events and put them into the queue.
 void pump_event_queue( IEngine& engine );
 

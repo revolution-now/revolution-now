@@ -14,6 +14,7 @@
 #include "error.hpp"
 #include "frame.hpp"
 #include "init.hpp"
+#include "interrupts.hpp"
 #include "linking.hpp"
 #include "lua-ui.hpp"
 #include "map-edit.hpp"
@@ -110,8 +111,17 @@ int main( int argc, char** argv ) {
   }
 
   linker_dont_discard_me();
-  try {
-    run( mode );
-  } catch( exception_exit const& ) {}
+  while( true ) {
+    try {
+      run( mode );
+      break;
+    } catch( exception_restart const& e ) {
+      lg.info( "restarting game: {}", e.what() );
+      continue;
+    } catch( exception_hard_exit const& ) {
+      lg.info( "received hard exit interrupt." );
+      break;
+    }
+  }
   return 0;
 }

@@ -11,7 +11,7 @@
 #include "terminal.hpp"
 
 // Revolution Now
-#include "error.hpp"
+#include "interrupts.hpp"
 
 // luapp
 #include "luapp/iter.hpp"
@@ -54,8 +54,9 @@ unordered_map<string,
       { "abort",
         []( Terminal& ) {
           FATAL( "aborting in response to terminal command." );
-        } },                                                  //
-      { "quit", []( Terminal& ) { throw exception_exit{}; } } //
+        } }, //
+      { "quit",
+        []( Terminal& ) { throw exception_hard_exit{}; } } //
     };
 
 bool is_statement( string const& cmd ) {

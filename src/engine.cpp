@@ -13,6 +13,7 @@
 // Revolution Now
 #include "color-cycle.hpp"
 #include "conductor.hpp"
+#include "input.hpp"
 #include "logger.hpp"
 #include "midiplayer.hpp"
 #include "midiseq.hpp"
@@ -103,6 +104,21 @@ struct Engine::Impl {
   void init_sdl_base() { sdl::init_sdl_base(); }
 
   void deinit_sdl_base() { sdl::deinit_sdl_base(); }
+
+  // ============================================================
+  // Input
+  // ============================================================
+  void init_input() {
+    // TODO: temporary until we get a proper interface for key-
+    // board and mouse input.
+    input::clear_event_queue();
+  }
+
+  void deinit_input() {
+    // TODO: temporary until we get a proper interface for key-
+    // board and mouse input.
+    input::clear_event_queue();
+  }
 
   // ============================================================
   // Video
@@ -373,6 +389,7 @@ void Engine::init( e_engine_mode const mode ) {
     case e_engine_mode::game: {
       impl().init_configs();
       impl().init_sdl_base();
+      impl().init_input();
       impl().init_video();
       impl().init_window();
       impl().init_resolutions();
@@ -397,6 +414,7 @@ void Engine::init( e_engine_mode const mode ) {
     case e_engine_mode::map_editor: {
       impl().init_configs();
       impl().init_sdl_base();
+      impl().init_input();
       impl().init_video();
       impl().init_window();
       impl().init_resolutions();
@@ -408,6 +426,7 @@ void Engine::init( e_engine_mode const mode ) {
     case e_engine_mode::ui_test: {
       impl().init_configs();
       impl().init_sdl_base();
+      impl().init_input();
       impl().init_video();
       impl().init_window();
       impl().init_resolutions();
@@ -437,6 +456,7 @@ void Engine::deinit() {
   impl().deinit_resolutions();
   impl().deinit_window();
   impl().deinit_video();
+  impl().deinit_input();
   impl().deinit_sdl_base();
   impl().deinit_configs();
 }

@@ -25,10 +25,6 @@ namespace rn {
 /****************************************************************
 **Death
 *****************************************************************/
-// An exception to throw when you just want to exit. Mainly just
-// for use during development.
-struct exception_exit : public std::exception {};
-
 // This should be be used to register a callback to be called to
 // cleanup the engine just before aborting the process, since
 // otherwise the usual cleanup routines won't get run. This can

@@ -339,6 +339,7 @@ void cleanup_conductor() {
   g_mplayer_infos.clear();
   g_mplayer_descs.clear();
   g_mplayers.clear();
+  dimensions_for_request().clear();
 }
 
 void play_request( IRand& rand, e_request request,
