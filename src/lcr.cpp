@@ -112,7 +112,9 @@ wait<LostCityRumorUnitChange> run_burial_mounds_result(
     }
     CASE( treasure ) {
       co_await ts.gui.message_box(
-          "You've recovered a treasure worth [{}{}]!",
+          "You've recovered a treasure worth [{}{}]! It will "
+          "take a [Galleon] to transport this treasure back to "
+          "Europe.",
           treasure.gold, config_text.special_chars.currency );
       UnitId const unit_id = create_treasure_train(
           ss, ts, player, world_square, treasure.gold );
@@ -231,7 +233,9 @@ wait<LostCityRumorUnitChange> run_rumor_result(
     CASE( cibola ) {
       co_await ts.gui.message_box(
           "You've discovered one of the [Seven Cities of "
-          "Cibola] and have recovered a treasure worth [{}{}]!",
+          "Cibola] and have recovered a treasure worth [{}{}]! "
+          "It will take a [Galleon] to transport this treasure "
+          "back to Europe.",
           cibola.gold, config_text.special_chars.currency );
       UnitId unit_id = create_treasure_train(
           ss, ts, player, tile, cibola.gold );
