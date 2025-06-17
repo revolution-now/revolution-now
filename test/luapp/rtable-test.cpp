@@ -253,5 +253,23 @@ LUA_TEST_CASE( "[table] table create_or_get" ) {
            lua_unexpected<table>( err ) );
 }
 
+LUA_TEST_CASE( "[table] table array_length" ) {
+  table t = table::create_or_get( st["t1"] );
+
+  REQUIRE( t.array_length() == 0 );
+
+  t[1] = 42;
+  REQUIRE( t.array_length() == 1 );
+
+  t[3] = "hello";
+  REQUIRE( t.array_length() == 1 );
+
+  t[2] = 9.9;
+  REQUIRE( t.array_length() == 3 );
+
+  t[4] = true;
+  REQUIRE( t.array_length() == 4 );
+}
+
 } // namespace
 } // namespace lua

@@ -47,6 +47,16 @@ table table::pop_or_create_table( cthread L ) {
   }
 }
 
+int table::array_length() const {
+  lua::c_api C( L_ );
+  int const initial = C.stack_size();
+  push( L_, *this );
+  int const res = C.len_pop( -1 );
+  CHECK( C.stack_size() == initial + 1 );
+  C.pop(); // pop this table.
+  return res;
+}
+
 void to_str( table const& o, std::string& out,
              base::tag<table> ) {
   to_str( o, out, base::tag<any>{} );

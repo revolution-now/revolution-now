@@ -55,6 +55,12 @@ struct table : public any {
     return res;
   }
 
+  // This will do the # operator in lua, namely it will return
+  // the length of the array component of this table, if any.
+  // This should be much faster than iterating through all of the
+  // numerical keys of the table.
+  int array_length() const;
+
   friend void to_str( table const& o, std::string& out,
                       base::tag<table> );
 
