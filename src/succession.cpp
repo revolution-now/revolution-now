@@ -214,7 +214,9 @@ WarOfSuccessionPlan war_of_succession_plan(
               if( l.y != r.y ) return l.y < r.y;
               return l.x < r.x;
             } );
-  rg::unique( plan.update_fog_squares );
+  auto const rg_erase = rg::unique( plan.update_fog_squares );
+  plan.update_fog_squares.erase( rg_erase.begin(),
+                                 rg_erase.end() );
 
   // Need determinism for unit tests.
   rg::sort( plan.remove_units );
