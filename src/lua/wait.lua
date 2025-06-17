@@ -14,6 +14,16 @@ local M = {}
 
 assert( coroutine, 'The coroutine library must be available.' )
 
+-----------------------------------------------------------------
+-- Globals.
+-----------------------------------------------------------------
+local function global( name ) return assert( _G[name] ) end
+
+local co_lua = global( 'co_lua' )
+
+-----------------------------------------------------------------
+-- Methods.
+-----------------------------------------------------------------
 function M.await( wait )
   assert( wait )
   assert( type( wait.set_resume ) == 'function',
@@ -107,4 +117,7 @@ function M.auto_assert( w )
   } )
 end
 
+-----------------------------------------------------------------
+-- Finished.
+-----------------------------------------------------------------
 return M
