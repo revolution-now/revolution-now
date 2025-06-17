@@ -62,34 +62,6 @@ bool player_has_galleons( SSConst const& ss,
   return false;
 }
 
-TreasureReceipt treasure_king_transport_receipt(
-    SSConst const& ss, Player const& player,
-    Unit const& treasure ) {
-  bool const no_extra_charge =
-      player.fathers.has[e_founding_father::hernan_cortes];
-  e_treasure_transport_mode const transport_mode =
-      no_extra_charge
-          ? e_treasure_transport_mode::king_no_extra_charge
-          : e_treasure_transport_mode::king_with_charge;
-  int const worth =
-      treasure.composition().inventory()[e_unit_inventory::gold];
-  int const tax_rate = player.old_world.taxes.tax_rate;
-  int const cut_percent =
-      no_extra_charge
-          ? tax_rate
-          : king_transport_cost_percent(
-                tax_rate,
-                ss.settings.game_setup_options.difficulty );
-  int const cut =
-      static_cast<int>( worth * ( cut_percent / 100.0 ) );
-  int const net = std::max( worth - cut, 0 );
-  return TreasureReceipt{ .treasure_id       = treasure.id(),
-                          .transport_mode    = transport_mode,
-                          .original_worth    = worth,
-                          .kings_cut_percent = cut_percent,
-                          .net_received      = net };
-}
-
 } // namespace
 
 TreasureReceipt treasure_in_harbor_receipt(
@@ -132,12 +104,54 @@ wait<maybe<TreasureReceipt>> treasure_enter_colony(
                           .inventory()[e_unit_inventory::gold],
     };
   }
-  TreasureReceipt const receipt =
-      treasure_king_transport_receipt( ss, player, treasure );
+  bool const has_galleons = player_has_galleons( ss, player );
+  bool const has_cortes =
+      player.fathers.has[e_founding_father::hernan_cortes];
+  // When the player has no galleons the game always offers to
+  // transport the treasure for the player when moving it into a
+  // colony. Likewise when the player has Cortes. However, if the
+  // player does have galleons but does not have cortes then the
+  // game does not ask, and nothing happens when a treasure is
+  // moved into a colony.
+  //
+  // NOTE: it seems like the way the galleon logic actually works
+  // in the OG is that at the start of each turn the game records
+  // whether the player has a galleon on or not, then will use
+  // that recorded status for the remainder of the turn. The
+  // galleon status though does not seem to be recorded in the
+  // sav file. In any case, we're not going to replicate that nu-
+  // ance here; we'll always use the current galleon status.
+  if( has_galleons && !has_cortes ) co_return nothing;
+
+  TreasureReceipt const receipt = [&] {
+    bool const no_extra_charge = has_cortes;
+    e_treasure_transport_mode const transport_mode =
+        no_extra_charge
+            ? e_treasure_transport_mode::king_no_extra_charge
+            : e_treasure_transport_mode::king_with_charge;
+    int const worth = treasure.composition()
+                          .inventory()[e_unit_inventory::gold];
+    int const tax_rate = player.old_world.taxes.tax_rate;
+    int const cut_percent =
+        no_extra_charge
+            ? tax_rate
+            : king_transport_cost_percent(
+                  tax_rate,
+                  ss.settings.game_setup_options.difficulty );
+    int const cut =
+        static_cast<int>( worth * ( cut_percent / 100.0 ) );
+    int const net = std::max( worth - cut, 0 );
+    return TreasureReceipt{ .treasure_id       = treasure.id(),
+                            .transport_mode    = transport_mode,
+                            .original_worth    = worth,
+                            .kings_cut_percent = cut_percent,
+                            .net_received      = net };
+  }();
+
   string msg =
       "The crown is happy to see the bounty that you've "
       "acquired. ";
-  if( !player_has_galleons( ss, player ) )
+  if( !has_galleons )
     msg +=
         "Seeing that you don't have a fleet of Galleons with "
         "which ";

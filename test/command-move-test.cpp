@@ -37,6 +37,7 @@
 #include "ss/dwelling.rds.hpp"
 #include "ss/events.rds.hpp"
 #include "ss/player.hpp"
+#include "ss/revolution.rds.hpp"
 #include "ss/settings.hpp"
 #include "ss/terrain.hpp"
 #include "ss/unit.hpp"
@@ -305,30 +306,102 @@ TEST_CASE(
            Coord{ .x = 1, .y = 1 } );
 }
 
+// Because the only ship that can carry a treasure is a galleon,
+// that means when a ship unloads a treasure into a colony the
+// player already has a galleon and thus the game will not offer
+// to transport it, unless the player has Cortes. The exception
+// is post-declaration; see a later test case for that.
 TEST_CASE(
-    "[command-move] ship unloads treasure, treasure is "
-    "transported, treasure is deleted" ) {
-#ifdef COMPILER_GCC
-  return;
-#endif
-  world W;
-  W.settings().game_setup_options.difficulty =
+    "[command-move] galleon carrying treasure unloads into "
+    "colony" ) {
+  world w;
+  w.settings().game_setup_options.difficulty =
       e_difficulty::conquistador;
   MockLandViewPlane land_view_plane;
-  W.planes().get().set_bottom<ILandViewPlane>( land_view_plane );
-  Player& player       = W.default_player();
-  Colony const& colony = W.add_colony( { .x = 1, .y = 1 } );
-  Unit const& galleon  = W.add_unit_on_map( e_unit_type::galleon,
+  w.planes().get().set_bottom<ILandViewPlane>( land_view_plane );
+  Player& player       = w.default_player();
+  Colony const& colony = w.add_colony( { .x = 1, .y = 1 } );
+  Unit const& galleon  = w.add_unit_on_map( e_unit_type::galleon,
                                             { .x = 0, .y = 0 } );
-  // This unit will be deleted.
   UnitId const treasure_id =
-      W.add_unit_in_cargo( e_unit_type::treasure, galleon.id() )
+      w.add_unit_in_cargo( e_unit_type::treasure, galleon.id() )
           .id();
 
   auto move_unit = [&]( UnitId unit_id, e_direction d ) {
     land_view_plane.EXPECT__animate( _ );
     unique_ptr<CommandHandler> handler =
-        handle_command( W.engine(), W.ss(), W.ts(), player,
+        handle_command( w.engine(), w.ss(), w.ts(), player,
+                        unit_id, command::move{ .d = d } );
+    wait<CommandHandlerRunResult> const w = handler->run();
+    REQUIRE( !w.exception() );
+    REQUIRE( w.ready() );
+    return *w;
+  };
+
+  w.colony_viewer()
+      .EXPECT__show( _, colony.id )
+      .returns( e_colony_abandoned::no );
+
+  SECTION( "no cortes" ) {
+    CommandHandlerRunResult const expected_res{
+      .order_was_run       = true,
+      .units_to_prioritize = { treasure_id } };
+    CommandHandlerRunResult const res =
+        move_unit( galleon.id(), e_direction::se );
+    REQUIRE( res == expected_res );
+
+    REQUIRE( player.money == 0 );
+    REQUIRE( w.units().exists( treasure_id ) );
+    REQUIRE( galleon.movement_points() == 0 );
+    REQUIRE( w.units().coord_for( galleon.id() ) ==
+             Coord{ .x = 1, .y = 1 } );
+  }
+
+  SECTION( "with cortes" ) {
+    player.fathers.has[e_founding_father::hernan_cortes] = true;
+    player.old_world.taxes.tax_rate                      = 7;
+
+    auto choice_matcher =
+        Field( &ChoiceConfig::msg, StrContains( "bounty" ) );
+    w.gui()
+        .EXPECT__choice( choice_matcher )
+        .returns<maybe<string>>( "yes" );
+    w.gui().EXPECT__message_box(
+        StrContains( "Treasure worth 1000" ) );
+    CommandHandlerRunResult const expected_res{
+      .order_was_run = true, .units_to_prioritize = {} };
+    CommandHandlerRunResult const res =
+        move_unit( galleon.id(), e_direction::se );
+    REQUIRE( res == expected_res );
+
+    // The king takes 7% of the 1000 treasure.
+    REQUIRE( player.money == 1000 - 70 );
+    REQUIRE( !w.units().exists( treasure_id ) );
+  }
+}
+
+TEST_CASE(
+    "[command-move] ship unloads treasure post declaration, "
+    "treasure is transported, treasure is deleted" ) {
+  world w;
+  w.settings().game_setup_options.difficulty =
+      e_difficulty::conquistador;
+  MockLandViewPlane land_view_plane;
+  w.planes().get().set_bottom<ILandViewPlane>( land_view_plane );
+  Player& player           = w.default_player();
+  player.revolution.status = e_revolution_status::declared;
+  Colony const& colony     = w.add_colony( { .x = 1, .y = 1 } );
+  Unit const& galleon = w.add_unit_on_map( e_unit_type::galleon,
+                                           { .x = 0, .y = 0 } );
+  // This unit will be deleted.
+  UnitId const treasure_id =
+      w.add_unit_in_cargo( e_unit_type::treasure, galleon.id() )
+          .id();
+
+  auto move_unit = [&]( UnitId unit_id, e_direction d ) {
+    land_view_plane.EXPECT__animate( _ );
+    unique_ptr<CommandHandler> handler =
+        handle_command( w.engine(), w.ss(), w.ts(), player,
                         unit_id, command::move{ .d = d } );
     wait<CommandHandlerRunResult> const w = handler->run();
     REQUIRE( !w.exception() );
@@ -337,14 +410,9 @@ TEST_CASE(
   };
 
   // Sanity check.
-  auto choice_matcher =
-      Field( &ChoiceConfig::msg, StrContains( "bounty" ) );
-  W.gui()
-      .EXPECT__choice( choice_matcher )
-      .returns<maybe<string>>( "yes" );
-  W.gui().EXPECT__message_box(
-      StrContains( "Treasure worth 1000" ) );
-  W.colony_viewer()
+  w.gui().EXPECT__message_box(
+      StrContains( "traveling merchants" ) );
+  w.colony_viewer()
       .EXPECT__show( _, colony.id )
       .returns( e_colony_abandoned::no );
   CommandHandlerRunResult const expected_res{
@@ -353,20 +421,17 @@ TEST_CASE(
       move_unit( galleon.id(), e_direction::se );
   REQUIRE( res == expected_res );
 
-  // The king takes 60% of the 1000 treasure.
-  REQUIRE( player.money == 400 );
-  REQUIRE( !W.units().exists( treasure_id ) );
+  // We keep all 1000 of the treasure.
+  REQUIRE( player.money == 1000 );
+  REQUIRE( !w.units().exists( treasure_id ) );
   REQUIRE( galleon.movement_points() == 0 );
-  REQUIRE( W.units().coord_for( galleon.id() ) ==
+  REQUIRE( w.units().coord_for( galleon.id() ) ==
            Coord{ .x = 1, .y = 1 } );
 }
 
 TEST_CASE(
     "[command-move] treasure moves into colony, treasure is "
     "transported, treasure is deleted" ) {
-#ifdef COMPILER_GCC
-  return;
-#endif
   world W;
   MockLandViewPlane land_view_plane;
   W.planes().get().set_bottom<ILandViewPlane>( land_view_plane );

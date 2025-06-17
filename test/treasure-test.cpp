@@ -315,20 +315,26 @@ TEST_CASE( "[treasure] treasure_enter_colony" ) {
       e_difficulty::viceroy;
   W.add_unit_on_map( e_unit_type::galleon, { .x = 0, .y = 0 } );
   player.fathers.has[e_founding_father::hernan_cortes] = false;
+
+  // With Galleons, without Cortes.
+  REQUIRE( f() == nothing );
+
+  // With Galleons, with Cortes.
+  player.fathers.has[e_founding_father::hernan_cortes] = true;
   expected = TreasureReceipt{
     .treasure_id = UnitId{ 1 },
     .transport_mode =
-        e_treasure_transport_mode::king_with_charge,
+        e_treasure_transport_mode::king_no_extra_charge,
     .original_worth    = 100,
-    .kings_cut_percent = 70,
-    .net_received      = 30 };
+    .kings_cut_percent = 7,
+    .net_received      = 93 };
   msg =
       "The crown is happy to see the bounty that you've "
       "acquired. Because we don't want you to be burdened by "
       "having to transport this treasure to Amsterdam we will "
-      "happily transport it for you, after which we will make "
-      "an assessment of the appropriate percentage to withhold "
-      "as compensation.";
+      "happily transport it for you, and we will do so for [no "
+      "extra charge], only withholding an amount determined by "
+      "the current tax rate.";
   config = ChoiceConfig{
     .msg     = msg,
     .options = { ChoiceConfigOption{ .key          = "yes",
