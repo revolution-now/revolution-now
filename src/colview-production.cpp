@@ -16,6 +16,7 @@
 #include "colview-entities.hpp"
 #include "construction.hpp"
 #include "iengine.hpp"
+#include "input.hpp"
 #include "production.rds.hpp"
 #include "spread-builder.hpp"
 #include "spread-render.hpp"
@@ -299,7 +300,6 @@ void ProductionView::draw( rr::Renderer& renderer,
       layout_.size.h, pixel::black() );
 }
 
-// Implement AwaitView.
 wait<NoDiscard<bool>> ProductionView::perform_click(
     input::mouse_button_event_t const& event ) {
   CHECK( event.pos.is_inside( bounds( {} ) ) );
@@ -341,6 +341,27 @@ wait<NoDiscard<bool>> ProductionView::perform_click(
     }
   }
   co_return true;
+}
+
+wait<NoDiscard<bool>> ProductionView::perform_key(
+    input::key_event_t const& event ) {
+  if( event.change != input::e_key_change::down )
+    co_return false;
+  switch( event.keycode ) {
+    case '1':
+    case ::SDLK_KP_1:
+      mode_ = e_colview_production_mode::production;
+      co_return true;
+    case '2':
+    case ::SDLK_KP_2:
+      mode_ = e_colview_production_mode::units;
+      co_return true;
+    case '3':
+    case ::SDLK_KP_3:
+      mode_ = e_colview_production_mode::construction;
+      co_return true;
+  }
+  co_return false;
 }
 
 void ProductionView::update_this_and_children() {

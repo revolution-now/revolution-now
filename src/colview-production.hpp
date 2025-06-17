@@ -100,6 +100,9 @@ class ProductionView : public ui::View, public ColonySubView {
   wait<base::NoDiscard<bool>> perform_click(
       input::mouse_button_event_t const& event ) override;
 
+  wait<base::NoDiscard<bool>> perform_key(
+      input::key_event_t const& event ) override;
+
  public: // IDraggableObjectsView.
   maybe<int> entity() const override {
     return static_cast<int>( e_colview_entity::production );
