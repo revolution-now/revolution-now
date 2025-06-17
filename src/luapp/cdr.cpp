@@ -39,6 +39,11 @@ table LuaToCdrConverter::convert( cdr::table const& o ) const {
 table LuaToCdrConverter::convert( cdr::list const& o ) const {
   table tbl = st_.table.create();
   for( int i = 1; auto const& v : o ) tbl[i++] = convert( v );
+  table mt         = st_.table.create();
+  mt["__tostring"] = []( table const tbl ) {
+    return format( "list[#{}]", tbl.array_length() );
+  };
+  tbl[lua::metatable_key] = mt;
   return tbl;
 }
 

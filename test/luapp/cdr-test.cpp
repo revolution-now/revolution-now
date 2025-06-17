@@ -109,5 +109,18 @@ LUA_TEST_CASE( "[luapp/cdr] cdr to lua" ) {
   }
 }
 
+LUA_TEST_CASE( "[luapp/cdr] cdr list stringify" ) {
+  LuaToCdrConverter c( st );
+
+  cdr::value const v = cdr::list{ 6, "hello", 9.7 };
+
+  table tbl = c.convert( v ).as<lua::table>();
+
+  REQUIRE( format( "{}", tbl ) == "list[#3]" );
+
+  tbl[4] = true;
+  REQUIRE( format( "{}", tbl ) == "list[#4]" );
+}
+
 } // namespace
 } // namespace lua

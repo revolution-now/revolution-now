@@ -48,22 +48,25 @@ function M.harden( tbl )
       frozen[k] = v
     end
   end
-  return setmetatable( {}, {
-    __index=function( _, k )
-      local v = frozen[k]
-      if v == nil then
-        error( 'attempt to read non-existent key: ' ..
-                   tostring( k ), 2 )
-      end
-      return v
-    end,
-    __pairs=function( _ ) return pairs( frozen ) end,
-    __ipairs=function( _ ) return ipairs( frozen ) end,
-    __newindex=function( _, _, _ )
-      error( 'attempt to modify a read-only table.' )
-    end,
-    __metatable=false,
-  } )
+  -- Try to preserve any existing metamethods (e.g. __tostring)
+  -- that we won't be overriding.
+  local mt = getmetatable( tbl ) or {}
+  mt.__index = function( _, k )
+    local v = frozen[k]
+    if v == nil then
+      error(
+          'attempt to read non-existent key: ' .. tostring( k ),
+          2 )
+    end
+    return v
+  end
+  mt.__pairs = function( _ ) return pairs( frozen ) end
+  mt.__ipairs = function( _ ) return ipairs( frozen ) end
+  mt.__newindex = function( _, _, _ )
+    error( 'attempt to modify a read-only table.' )
+  end
+  mt.__metatable = false
+  return setmetatable( {}, mt )
 end
 
 return M
