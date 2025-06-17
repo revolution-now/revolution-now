@@ -117,7 +117,8 @@ void add_some_members( lua::state& st ) {
 
 void load_lua_modules( lua::state& st ) {
   for( auto const& path : util::wildcard( "src/lua/*.lua" ) )
-    require( st, path.stem() );
+    if( path.string().find( "test" ) == string::npos )
+      require( st, path.stem() );
 }
 
 } // namespace
