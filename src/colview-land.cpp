@@ -57,6 +57,7 @@ namespace rn {
 
 namespace {
 
+using ::base::NoDiscard;
 using ::gfx::pixel;
 using ::gfx::point;
 using ::gfx::rect;
@@ -187,20 +188,21 @@ ui::View const& ColonyLandView::view() const noexcept {
   return *this;
 }
 
-wait<> ColonyLandView::perform_click(
+wait<NoDiscard<bool>> ColonyLandView::perform_click(
     input::mouse_button_event_t const& event ) {
   CHECK( event.pos.is_inside( bounds( {} ) ) );
   maybe<UnitId> unit_id = unit_under_cursor( event.pos );
-  if( !unit_id.has_value() ) co_return;
+  if( !unit_id.has_value() ) co_return true;
 
   EnumChoiceConfig const config{ .msg = "Select Occupation" };
   maybe<e_outdoor_job> const new_job =
       co_await ts_.gui.optional_enum_choice(
           config, config_colony.outdoors.job_names );
-  if( !new_job.has_value() ) co_return;
+  if( !new_job.has_value() ) co_return true;
   Colony& colony = ss_.colonies.colony_for( colony_.id );
   change_unit_outdoor_job( colony, *unit_id, *new_job );
   update_production( ss_, colony_ );
+  co_return true;
 }
 
 maybe<CanReceiveDraggable<ColViewObject>>

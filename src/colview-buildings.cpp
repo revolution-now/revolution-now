@@ -47,6 +47,7 @@ namespace rn {
 
 namespace {
 
+using ::base::NoDiscard;
 using ::gfx::pixel;
 using ::gfx::point;
 using ::gfx::rect;
@@ -374,24 +375,24 @@ wait<> ColViewBuildings::disown_dragged_object() {
 }
 
 // Implement AwaitView.
-wait<> ColViewBuildings::perform_click(
+wait<NoDiscard<bool>> ColViewBuildings::perform_click(
     input::mouse_button_event_t const& event ) {
   if( event.buttons != input::e_mouse_button_event::left_up )
-    co_return;
+    co_return true;
   maybe<e_colony_building_slot> const slot =
       slot_for_coord( event.pos );
-  if( !slot.has_value() ) co_return;
+  if( !slot.has_value() ) co_return true;
   maybe<e_colony_building> const building =
       building_for_slot( colony_, *slot );
-  if( !building.has_value() ) co_return;
+  if( !building.has_value() ) co_return true;
   switch( *building ) {
     case e_colony_building::custom_house:
       co_await open_custom_house_menu( engine_, ts_, colony_ );
-      break;
+      co_return true;
     default:
       break;
   }
-  co_return;
+  co_return true;
 }
 
 ColViewBuildings::Layout ColViewBuildings::create_layout(

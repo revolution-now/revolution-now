@@ -233,6 +233,7 @@ struct ColonyPlane : public IPlane {
         default: //
           break;
       }
+      co_return false;
     }
     switch( event.keycode ) {
       case ::SDLK_ESCAPE: //
@@ -241,9 +242,13 @@ struct ColonyPlane : public IPlane {
         ss_.settings.colony_options.numbers =
             !ss_.settings.colony_options.numbers;
         update_colony_view( ss_, colony_ );
-        break;
+        co_return false;
       default: //
         break;
+    }
+    if( co_await colview_top_level().perform_key( event ) ) {
+      update_colony_view( ss_, colony_ );
+      co_return false;
     }
     co_return false;
   }
@@ -275,8 +280,10 @@ struct ColonyPlane : public IPlane {
       }
       co_return false;
     }
-    co_await colview_top_level().perform_click( event );
-    update_colony_view( ss_, colony_ );
+    if( co_await colview_top_level().perform_click( event ) ) {
+      update_colony_view( ss_, colony_ );
+      co_return false;
+    }
     co_return false;
   }
 

@@ -47,6 +47,7 @@ namespace rn {
 
 namespace {
 
+using ::base::NoDiscard;
 using ::gfx::centered_in;
 using ::gfx::pixel;
 using ::gfx::point;
@@ -299,14 +300,16 @@ void ProductionView::draw( rr::Renderer& renderer,
 }
 
 // Implement AwaitView.
-wait<> ProductionView::perform_click(
+wait<NoDiscard<bool>> ProductionView::perform_click(
     input::mouse_button_event_t const& event ) {
   CHECK( event.pos.is_inside( bounds( {} ) ) );
   if( event.pos.is_inside( layout_.buttons_area_rect ) ) {
-    for( auto const& [mode, button] : layout_.buttons )
-      if( event.pos.is_inside( button.bounds ) ) //
+    for( auto const& [mode, button] : layout_.buttons ) {
+      if( event.pos.is_inside( button.bounds ) ) {
         mode_ = mode;
-    co_return;
+        co_return true;
+      }
+    }
   }
   switch( mode_ ) {
     case e_mode::production: {
@@ -328,15 +331,16 @@ wait<> ProductionView::perform_click(
           // This can happen if either the colony is not building
           // anything or if it is building something that it al-
           // ready has.
-          co_return;
+          break;
         co_await rush_construction_prompt( player_, colony_,
                                            ts_.gui, *invoice );
-        co_return;
+        break;
       }
       co_await select_colony_construction( ss_, ts_, colony_ );
       break;
     }
   }
+  co_return true;
 }
 
 void ProductionView::update_this_and_children() {

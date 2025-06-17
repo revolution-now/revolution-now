@@ -97,7 +97,7 @@ class ProductionView : public ui::View, public ColonySubView {
   void update_this_and_children() override;
 
  public: // AwaitView
-  wait<> perform_click(
+  wait<base::NoDiscard<bool>> perform_click(
       input::mouse_button_event_t const& event ) override;
 
  public: // IDraggableObjectsView.

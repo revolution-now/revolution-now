@@ -80,6 +80,7 @@ void ColonySubView::update_this_and_children() {}
 
 namespace {
 
+using ::base::NoDiscard;
 using ::gfx::pixel;
 using ::gfx::point;
 using ::gfx::rect;
@@ -1104,17 +1105,19 @@ class UnitsAtGateColonyView
   }
 
   // Implement AwaitView.
-  wait<> perform_click(
+  wait<NoDiscard<bool>> perform_click(
       input::mouse_button_event_t const& event ) override {
     if( event.buttons != input::e_mouse_button_event::left_up )
-      co_return;
+      co_return false;
     CHECK( event.pos.is_inside( bounds( {} ) ) );
     for( auto [unit_id, unit_pos] : positioned_units_ ) {
       if( event.pos.is_inside(
               Rect::from( unit_pos, g_tile_delta ) ) ) {
         co_await click_on_unit( unit_id );
+        co_return true;
       }
     }
+    co_return false;
   }
 
   maybe<UnitId> contains_unit( Coord const& where ) const {
@@ -1639,7 +1642,7 @@ struct CompositeColSubView : public ui::InvisibleView,
   }
 
   // Implement AwaitView.
-  wait<> perform_click(
+  wait<NoDiscard<bool>> perform_click(
       input::mouse_button_event_t const& event ) override {
     for( int i = 0; i < count(); ++i ) {
       ui::PositionedView pos_view = at( i );
@@ -1651,10 +1654,22 @@ struct CompositeColSubView : public ui::InvisibleView,
           shifted_mouse_button_event,
           shifted_event.get_if<input::mouse_button_event_t>() );
       // Need to co_await so that shifted_event stays alive.
-      co_await ptrs_[i]->perform_click(
-          shifted_mouse_button_event );
-      break;
+      if( co_await ptrs_[i]->perform_click(
+              shifted_mouse_button_event ) )
+        co_return true;
     }
+    co_return false;
+  }
+
+  // Implement AwaitView.
+  wait<NoDiscard<bool>> perform_key(
+      input::key_event_t const& event ) override {
+    for( int i = 0; i < count(); ++i ) {
+      // Need to co_await so that shifted_event stays alive.
+      if( co_await ptrs_[i]->perform_key( event ) )
+        co_return true;
+    }
+    co_return false;
   }
 
   maybe<PositionedDraggableSubView<ColViewObject>> view_here(

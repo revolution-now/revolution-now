@@ -110,7 +110,7 @@ class ColViewBuildings : public ui::View,
       Coord const& /*where*/ ) const override;
 
   // Implement AwaitView.
-  wait<> perform_click(
+  wait<base::NoDiscard<bool>> perform_click(
       input::mouse_button_event_t const& event ) override;
 
   void update_this_and_children() override;

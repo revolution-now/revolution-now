@@ -27,6 +27,9 @@
 // gfx
 #include "gfx/coord.hpp"
 
+// base
+#include "base/vocab.hpp"
+
 namespace rn {
 
 struct SS;
@@ -58,9 +61,14 @@ struct UnitsState;
 struct AwaitView {
   virtual ~AwaitView() = default;
 
-  virtual wait<> perform_click(
+  virtual wait<base::NoDiscard<bool>> perform_key(
+      input::key_event_t const& ) {
+    co_return false; // not handled.
+  }
+
+  virtual wait<base::NoDiscard<bool>> perform_click(
       input::mouse_button_event_t const& ) {
-    return make_wait<>();
+    co_return false; // not handled.
   }
 };
 
