@@ -130,7 +130,7 @@ void Golden<T>::save_to_golden( fs::path const& p ) const {
   // Open file last.
   std::ofstream out( p );
   BASE_CHECK( out.good(), "failed to open {} for writing.", p );
-  out << rcl::emit( rcl_doc );
+  out << body;
 }
 
 } // namespace rcl
