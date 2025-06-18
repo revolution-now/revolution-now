@@ -24,6 +24,7 @@
 // config
 #include "config/debug.rds.hpp"
 #include "config/gfx.rds.hpp"
+#include "config/rn.rds.hpp"
 #include "config/tile-sheet.rds.hpp"
 
 // video
@@ -34,6 +35,7 @@
 #include "sfx/sfx-sdl.hpp"
 
 // render
+#include "render/extra.hpp"
 #include "render/renderer.hpp"
 #include "render/textometer.hpp"
 
@@ -54,6 +56,9 @@
 // refl
 #include "refl/to-str.hpp"
 
+// base
+#include "base/scope-exit.hpp"
+
 using namespace std;
 
 namespace rn {
@@ -61,6 +66,10 @@ namespace rn {
 namespace {
 
 using ::base::maybe;
+using ::gfx::e_cdirection;
+using ::gfx::oriented_point;
+using ::gfx::pixel;
+using ::gfx::point;
 
 string config_file_for_name( string const& name ) {
   return "config/rcl/" + name + ".rcl";
@@ -309,7 +318,8 @@ struct Engine::Impl {
     vid::WindowOptions options{
       .size = display_mode.size,
       .start_fullscreen =
-          config_gfx.program_window.start_in_fullscreen };
+          config_gfx.program_window.start_in_fullscreen,
+      .title = config_rn.main_window.title };
     UNWRAP_CHECK_T( vid::WindowHandle const handle,
                     video().create_window( options ) );
     window_ = handle;
@@ -358,6 +368,58 @@ struct Engine::Impl {
   void init_conductor() { conductor::init_conductor(); }
 
   void deinit_conductor() { conductor::cleanup_conductor(); }
+
+  // ============================================================
+  // Miscellaneous Stuff.
+  // ============================================================
+
+ public:
+  void draw_pause( rr::Renderer& renderer ) const {
+    renderer.clear_screen( pixel::black() );
+    SCOPED_RENDERER_MOD_SET( buffer_mods.buffer,
+                             rr::e_render_buffer::normal );
+    point const center = renderer.logical_screen_rect().center();
+    rr::render_text_line_with_background(
+        renderer, rr::TextLayout{},
+        "Game PAUSED - Press the Pause key to resume.",
+        oriented_point{ .anchor    = center,
+                        .placement = e_cdirection::c },
+        pixel::banana(), pixel::black(),
+        /*padding=*/4,
+        /*draw_corners=*/false );
+  }
+
+  void pause() const {
+    if( !video_ || !window_ || !renderer_ ) {
+      lg.error(
+          "cannot pause since engine is not fully "
+          "initialized." );
+      return;
+    }
+    auto const old_title = video_->window_title( *window_ );
+    SCOPE_EXIT {
+      video_->set_window_title( *window_, old_title );
+    };
+    video_->set_window_title(
+        *window_, format( "{} - PAUSED", old_title ) );
+    // Don't clear buffers so that everything that is currently
+    // on the screen continues to be, that way it looks like our
+    // message is just floating on whatever the player was al-
+    // ready looking at. WARNING: normal code should never set
+    // clear_buffers to false; this is special code.
+    renderer_->render_pass(
+        [&]( rr::Renderer& renderer ) {
+          draw_pause( renderer );
+        },
+        rr::RenderPassOpts{ .clear_buffers = false } );
+    // After the pause is finished the cursor state should be re-
+    // stored to whatever it needs to be by the `omni` plane once
+    // the player starts moving the mouse again.
+    input::set_show_system_cursor( true );
+    lg.warn( "entering blocking wait for pause key..." );
+    input::blocking_wait_for_key( ::SDLK_PAUSE );
+    lg.info( "unpaused." );
+  }
 
  private:
   unique_ptr<vid::IVideo> video_;
@@ -484,5 +546,7 @@ gfx::Resolutions& Engine::resolutions() {
 rr::ITextometer& Engine::textometer() {
   return impl().textometer();
 }
+
+void Engine::pause() { impl().pause(); }
 
 } // namespace rn
