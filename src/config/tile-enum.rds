@@ -582,6 +582,7 @@ enum.e_tile {
   expert_lumberjack,
   expert_ore_miner,
   expert_silver_miner,
+  expert_teacher,
   master_carpenter,
   master_distiller,
   master_tobacconist,

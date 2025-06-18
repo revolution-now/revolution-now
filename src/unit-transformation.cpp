@@ -174,8 +174,11 @@ vector<UnitTransformation> possible_unit_transformations(
   // 2. Iterate through list of derived types and record com-
   // modity delta and modifier delta and add item to result.
   auto const& old_mods = comp.type_obj().unit_type_modifiers();
-  unordered_map<e_unit_type, unordered_set<e_unit_type_modifier>>
-      mods_map = unit_attr( comp.base_type() ).modifiers;
+  // Needs to have a deterministic order for unit testing, so
+  // switch to a map.
+  map<e_unit_type, unordered_set<e_unit_type_modifier>> mods_map(
+      unit_attr( comp.base_type() ).modifiers.begin(),
+      unit_attr( comp.base_type() ).modifiers.end() );
   // Add in base type because we want that to be among the
   // choices. E.g., if the unit starts out as a soldier, then the
   // free_colonist should be among the results.

@@ -41,6 +41,7 @@ train {
     expert_lumberjack:       700
     expert_ore_miner:        600
     expert_silver_miner:     900
+    expert_teacher:          null
     master_carpenter:        1000
     master_distiller:        1100
     master_tobacconist:      1200

@@ -99,6 +99,7 @@ e_dwelling_interaction_category dwelling_interaction_category(
     case e_unit_type::expert_cotton_planter:
     case e_unit_type::expert_fur_trapper:
     case e_unit_type::expert_lumberjack:
+    case e_unit_type::expert_teacher:
     case e_unit_type::expert_ore_miner:
     case e_unit_type::expert_silver_miner:
     case e_unit_type::master_carpenter:

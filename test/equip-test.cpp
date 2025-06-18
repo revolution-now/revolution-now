@@ -79,12 +79,14 @@ TEST_CASE( "[equip] harbor_equip_options" ) {
   SECTION( "money=0" ) {
     // free_colonist
     expected = {
-      { .modifier        = e_unit_type_modifier::blessing,
-        .modifier_delta  = e_unit_type_modifier_delta::add,
-        .money_delta     = 0,
-        .can_afford      = true,
-        .commodity_delta = nothing,
-        .new_comp        = e_unit_type::missionary },
+      { .modifier       = e_unit_type_modifier::muskets,
+        .modifier_delta = e_unit_type_modifier_delta::add,
+        .money_delta    = -550,
+        .can_afford     = false,
+        .commodity_delta =
+            Commodity{ .type     = e_commodity::muskets,
+                       .quantity = 50 },
+        .new_comp = e_unit_type::soldier },
       { .modifier        = e_unit_type_modifier::tools,
         .modifier_delta  = e_unit_type_modifier_delta::add,
         .money_delta     = -500,
@@ -92,6 +94,12 @@ TEST_CASE( "[equip] harbor_equip_options" ) {
         .commodity_delta = Commodity{ .type = e_commodity::tools,
                                       .quantity = 100 },
         .new_comp        = e_unit_type::pioneer },
+      { .modifier        = e_unit_type_modifier::blessing,
+        .modifier_delta  = e_unit_type_modifier_delta::add,
+        .money_delta     = 0,
+        .can_afford      = true,
+        .commodity_delta = nothing,
+        .new_comp        = e_unit_type::missionary },
       { .modifier       = e_unit_type_modifier::horses,
         .modifier_delta = e_unit_type_modifier_delta::add,
         .money_delta    = -300,
@@ -100,14 +108,7 @@ TEST_CASE( "[equip] harbor_equip_options" ) {
             Commodity{ .type     = e_commodity::horses,
                        .quantity = 50 },
         .new_comp = e_unit_type::scout },
-      { .modifier       = e_unit_type_modifier::muskets,
-        .modifier_delta = e_unit_type_modifier_delta::add,
-        .money_delta    = -550,
-        .can_afford     = false,
-        .commodity_delta =
-            Commodity{ .type     = e_commodity::muskets,
-                       .quantity = 50 },
-        .new_comp = e_unit_type::soldier } };
+    };
     REQUIRE( f( e_unit_type::free_colonist ) == expected );
 
     // veteran_soldier
@@ -207,12 +208,14 @@ TEST_CASE( "[equip] harbor_equip_options" ) {
 
     // free_colonist
     expected = {
-      { .modifier        = e_unit_type_modifier::blessing,
-        .modifier_delta  = e_unit_type_modifier_delta::add,
-        .money_delta     = 0,
-        .can_afford      = true,
-        .commodity_delta = nothing,
-        .new_comp        = e_unit_type::missionary },
+      { .modifier       = e_unit_type_modifier::muskets,
+        .modifier_delta = e_unit_type_modifier_delta::add,
+        .money_delta    = -550,
+        .can_afford     = true,
+        .commodity_delta =
+            Commodity{ .type     = e_commodity::muskets,
+                       .quantity = 50 },
+        .new_comp = e_unit_type::soldier },
       { .modifier        = e_unit_type_modifier::tools,
         .modifier_delta  = e_unit_type_modifier_delta::add,
         .money_delta     = -500,
@@ -220,6 +223,12 @@ TEST_CASE( "[equip] harbor_equip_options" ) {
         .commodity_delta = Commodity{ .type = e_commodity::tools,
                                       .quantity = 100 },
         .new_comp        = e_unit_type::pioneer },
+      { .modifier        = e_unit_type_modifier::blessing,
+        .modifier_delta  = e_unit_type_modifier_delta::add,
+        .money_delta     = 0,
+        .can_afford      = true,
+        .commodity_delta = nothing,
+        .new_comp        = e_unit_type::missionary },
       { .modifier       = e_unit_type_modifier::horses,
         .modifier_delta = e_unit_type_modifier_delta::add,
         .money_delta    = -300,
@@ -228,14 +237,7 @@ TEST_CASE( "[equip] harbor_equip_options" ) {
             Commodity{ .type     = e_commodity::horses,
                        .quantity = 50 },
         .new_comp = e_unit_type::scout },
-      { .modifier       = e_unit_type_modifier::muskets,
-        .modifier_delta = e_unit_type_modifier_delta::add,
-        .money_delta    = -550,
-        .can_afford     = true,
-        .commodity_delta =
-            Commodity{ .type     = e_commodity::muskets,
-                       .quantity = 50 },
-        .new_comp = e_unit_type::soldier } };
+    };
     REQUIRE( f( e_unit_type::free_colonist ) == expected );
 
     // veteran_soldier
@@ -348,12 +350,14 @@ TEST_CASE( "[equip] harbor_equip_options" ) {
 
     // free_colonist
     expected = {
-      { .modifier        = e_unit_type_modifier::blessing,
-        .modifier_delta  = e_unit_type_modifier_delta::add,
-        .money_delta     = 0,
-        .can_afford      = true,
-        .commodity_delta = nothing,
-        .new_comp        = e_unit_type::missionary },
+      { .modifier       = e_unit_type_modifier::muskets,
+        .modifier_delta = e_unit_type_modifier_delta::add,
+        .money_delta    = -550,
+        .can_afford     = false,
+        .commodity_delta =
+            Commodity{ .type     = e_commodity::muskets,
+                       .quantity = 50 },
+        .new_comp = e_unit_type::soldier },
       { .modifier        = e_unit_type_modifier::tools,
         .modifier_delta  = e_unit_type_modifier_delta::add,
         .money_delta     = -500,
@@ -361,6 +365,12 @@ TEST_CASE( "[equip] harbor_equip_options" ) {
         .commodity_delta = Commodity{ .type = e_commodity::tools,
                                       .quantity = 100 },
         .new_comp        = e_unit_type::pioneer },
+      { .modifier        = e_unit_type_modifier::blessing,
+        .modifier_delta  = e_unit_type_modifier_delta::add,
+        .money_delta     = 0,
+        .can_afford      = true,
+        .commodity_delta = nothing,
+        .new_comp        = e_unit_type::missionary },
       { .modifier       = e_unit_type_modifier::horses,
         .modifier_delta = e_unit_type_modifier_delta::add,
         .money_delta    = -300,
@@ -369,14 +379,7 @@ TEST_CASE( "[equip] harbor_equip_options" ) {
             Commodity{ .type     = e_commodity::horses,
                        .quantity = 50 },
         .new_comp = e_unit_type::scout },
-      { .modifier       = e_unit_type_modifier::muskets,
-        .modifier_delta = e_unit_type_modifier_delta::add,
-        .money_delta    = -550,
-        .can_afford     = false,
-        .commodity_delta =
-            Commodity{ .type     = e_commodity::muskets,
-                       .quantity = 50 },
-        .new_comp = e_unit_type::soldier } };
+    };
     REQUIRE( f( e_unit_type::free_colonist ) == expected );
   }
   SECTION( "money=1000, muskets/horses boycotted" ) {
@@ -389,19 +392,20 @@ TEST_CASE( "[equip] harbor_equip_options" ) {
 
     // free_colonist
     expected = {
-      { .modifier        = e_unit_type_modifier::blessing,
-        .modifier_delta  = e_unit_type_modifier_delta::add,
-        .money_delta     = 0,
-        .can_afford      = true,
-        .commodity_delta = nothing,
-        .new_comp        = e_unit_type::missionary },
       { .modifier        = e_unit_type_modifier::tools,
         .modifier_delta  = e_unit_type_modifier_delta::add,
         .money_delta     = -500,
         .can_afford      = true,
         .commodity_delta = Commodity{ .type = e_commodity::tools,
                                       .quantity = 100 },
-        .new_comp        = e_unit_type::pioneer } };
+        .new_comp        = e_unit_type::pioneer },
+      { .modifier        = e_unit_type_modifier::blessing,
+        .modifier_delta  = e_unit_type_modifier_delta::add,
+        .money_delta     = 0,
+        .can_afford      = true,
+        .commodity_delta = nothing,
+        .new_comp        = e_unit_type::missionary },
+    };
     REQUIRE( f( e_unit_type::free_colonist ) == expected );
   }
 }
@@ -667,6 +671,12 @@ TEST_CASE( "[equip] colony_equip_options" ) {
 
     vector<ColonyEquipOption> expected{
       ColonyEquipOption{
+        .commodity_deltas = { { e_commodity::muskets, -50 } },
+        .new_comp =
+            UnitType::create( e_unit_type::soldier,
+                              e_unit_type::seasoned_colonist )
+                .value() },
+      ColonyEquipOption{
         .commodity_deltas = { { e_commodity::muskets, -50 },
                               { e_commodity::horses, -50 } },
         .new_comp         = UnitComposition(
@@ -675,22 +685,16 @@ TEST_CASE( "[equip] colony_equip_options" ) {
                 .value() ) },
       ColonyEquipOption{
         .commodity_deltas = {},
-        .new_comp         = e_unit_type::seasoned_colonist },
-      ColonyEquipOption{
-        .commodity_deltas = {},
         .new_comp =
             UnitType::create( e_unit_type::missionary,
                               e_unit_type::seasoned_colonist )
                 .value() },
       ColonyEquipOption{
+        .commodity_deltas = {},
+        .new_comp         = e_unit_type::seasoned_colonist },
+      ColonyEquipOption{
         .commodity_deltas = { { e_commodity::horses, -50 } },
         .new_comp         = e_unit_type::seasoned_scout },
-      ColonyEquipOption{
-        .commodity_deltas = { { e_commodity::muskets, -50 } },
-        .new_comp =
-            UnitType::create( e_unit_type::soldier,
-                              e_unit_type::seasoned_colonist )
-                .value() },
     };
     REQUIRE( f() == expected );
   }
@@ -708,9 +712,6 @@ TEST_CASE( "[equip] colony_equip_options" ) {
     vector<ColonyEquipOption> expected{
       ColonyEquipOption{
         .commodity_deltas = {},
-        .new_comp         = e_unit_type::veteran_colonist },
-      ColonyEquipOption{
-        .commodity_deltas = {},
         .new_comp =
             UnitType::create( e_unit_type::missionary,
                               e_unit_type::veteran_colonist )
@@ -722,12 +723,15 @@ TEST_CASE( "[equip] colony_equip_options" ) {
                               e_unit_type::veteran_colonist )
                 .value() },
       ColonyEquipOption{
-        .commodity_deltas = { { e_commodity::muskets, -50 },
-                              { e_commodity::horses, -50 } },
-        .new_comp         = e_unit_type::veteran_dragoon },
+        .commodity_deltas = {},
+        .new_comp         = e_unit_type::veteran_colonist },
       ColonyEquipOption{
         .commodity_deltas = { { e_commodity::muskets, -50 } },
         .new_comp         = e_unit_type::veteran_soldier },
+      ColonyEquipOption{
+        .commodity_deltas = { { e_commodity::muskets, -50 },
+                              { e_commodity::horses, -50 } },
+        .new_comp         = e_unit_type::veteran_dragoon },
     };
     REQUIRE( f() == expected );
   }
@@ -748,15 +752,15 @@ TEST_CASE( "[equip] colony_equip_options" ) {
         .commodity_deltas = {},
         .new_comp         = e_unit_type::free_colonist },
       ColonyEquipOption{
+        .commodity_deltas = { { e_commodity::muskets, -50 } },
+        .new_comp         = e_unit_type::soldier },
+      ColonyEquipOption{
         .commodity_deltas = { { e_commodity::muskets, -50 },
                               { e_commodity::horses, -50 } },
         .new_comp         = e_unit_type::dragoon },
       ColonyEquipOption{
         .commodity_deltas = { { e_commodity::horses, -50 } },
         .new_comp         = e_unit_type::scout },
-      ColonyEquipOption{
-        .commodity_deltas = { { e_commodity::muskets, -50 } },
-        .new_comp         = e_unit_type::soldier },
     };
     REQUIRE( f() == expected );
   }

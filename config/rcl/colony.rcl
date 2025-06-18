@@ -566,6 +566,7 @@ requirements_for_unit  {
   expert_lumberjack:      null
   expert_ore_miner:       null
   expert_silver_miner:    null
+  expert_teacher:         null
   master_carpenter:       null
   master_distiller:       null
   master_tobacconist:     null
@@ -831,7 +832,6 @@ teaching {
     carpentry:        schoolhouse
     pioneering:       schoolhouse
     scouting:         schoolhouse
-    teaching:         schoolhouse # unused
 
     # College.
     sugar_planting:   college
@@ -849,6 +849,7 @@ teaching {
     missioning:       university
     bell_ringing:     university
     preaching:        university
+    teaching:         university
   }
 }
 

@@ -152,6 +152,52 @@ TEST_CASE( "[unit-type] unit type attributes deserialization" ) {
     REQUIRE( can_attack( desc.type ) == false );
     REQUIRE( is_military_unit( desc.type ) == false );
   }
+  SECTION( "expert_teacher" ) {
+    UnitTypeAttributes const& desc =
+        unit_attr( e_unit_type::expert_teacher );
+    REQUIRE( desc.name == "Expert Teacher" );
+    REQUIRE( desc.name_plural == "Expert Teachers" );
+    REQUIRE( desc.tile == e_tile::expert_teacher );
+    REQUIRE( desc.nat_icon_front == false );
+    REQUIRE( desc.nat_icon_position == e_direction::se );
+    REQUIRE( desc.ship == false );
+    REQUIRE( desc.colonist == e_unit_colonist::yes );
+    REQUIRE( desc.can_found == e_unit_can_found_colony::yes );
+    REQUIRE( desc.visibility == 1 );
+    REQUIRE( desc.base_movement_points == 1 );
+    REQUIRE( desc.can_attack == false );
+    REQUIRE( desc.combat == 1 );
+    REQUIRE( desc.veteran_bonus == false );
+    REQUIRE( desc.cargo_slots == 0 );
+    REQUIRE( desc.cargo_slots_occupies == 1 );
+    REQUIRE( desc.on_death.holds<UnitDeathAction::capture>() );
+    REQUIRE( desc.canonical_base == nothing );
+    REQUIRE( desc.expertise == e_unit_activity::teaching );
+    REQUIRE( desc.promotion == nothing );
+    unordered_map<e_unit_type,
+                  unordered_set<e_unit_type_modifier>>
+        expected_modifiers{
+          { e_unit_type::missionary,
+            { e_unit_type_modifier::blessing } },
+          { e_unit_type::scout,
+            { e_unit_type_modifier::horses } },
+          { e_unit_type::pioneer,
+            { e_unit_type_modifier::tools } },
+          { e_unit_type::soldier,
+            { e_unit_type_modifier::muskets } },
+          { e_unit_type::dragoon,
+            { e_unit_type_modifier::horses,
+              e_unit_type_modifier::muskets } },
+        };
+    REQUIRE( desc.modifiers == expected_modifiers );
+    REQUIRE( desc.inventory_types ==
+             unordered_set<e_unit_inventory>{} );
+    // Derived fields.
+    REQUIRE( desc.type == e_unit_type::expert_teacher );
+    REQUIRE( desc.is_derived == false );
+    REQUIRE( can_attack( desc.type ) == false );
+    REQUIRE( is_military_unit( desc.type ) == false );
+  }
   SECTION( "petty_criminal" ) {
     UnitTypeAttributes const& desc =
         unit_attr( e_unit_type::petty_criminal );

@@ -533,7 +533,7 @@ enum class profession_type : uint8_t {
   master_gunsmith        = 0x0F,
   firebrand_preacher     = 0x10,
   elder_statesman        = 0x11,
-  a_student              = 0x12,  // original: "*(Student)"
+  expert_teacher         = 0x12,
   a_free_colonist        = 0x13,  // original: "*(Free colonist)"
   hardy_pioneer          = 0x14,
   veteran_soldier        = 0x15,

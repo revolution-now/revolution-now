@@ -49,6 +49,7 @@ base_weights {
   expert_tobacco_planter:     0.0
   expert_cotton_planter:      0.0
   expert_fur_trapper:         0.0
+  expert_teacher:             0.0
 
   # TODO: These theoretically could make sense to appear on the
   # docs, but in the original game they don't seem to. Need to
@@ -122,6 +123,7 @@ difficulty_factor_per_level {
   expert_tobacco_planter:  1.0
   expert_cotton_planter:   1.0
   expert_fur_trapper:      1.0
+  expert_teacher:          1.0
 
   # TODO: These theoretically could make sense to appear on the
   # docs, but in the original game they don't seem to. Need to

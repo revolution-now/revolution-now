@@ -184,7 +184,7 @@ local function create_all_units( options, root )
     'missionary', 'scout', 'expert_farmer', 'expert_fisherman',
     'expert_sugar_planter', 'expert_tobacco_planter',
     'expert_cotton_planter', 'expert_fur_trapper',
-    'expert_lumberjack', 'expert_ore_miner',
+    'expert_lumberjack', 'expert_ore_miner', 'expert_teacher',
     'expert_silver_miner', 'master_carpenter',
     'master_distiller', 'master_tobacconist', 'master_weaver',
     'master_fur_trader', 'master_blacksmith', 'master_gunsmith',

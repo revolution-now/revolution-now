@@ -733,6 +733,44 @@ composition {
       }
     }
 
+    expert_teacher {
+      type:                  expert_teacher
+      name:                  Expert Teacher
+      name_plural:           Expert Teachers
+      tile:                  expert_teacher
+      expertise:             teaching
+      type_activity:         null
+      cleared_expertise:     free_colonist
+      ship:                  false
+      colonist:              yes
+      can_found:             yes
+      nat_icon_front:        false
+      nat_icon_position:     se
+      visibility:            1
+      base_movement_points:  1
+      can_attack:            false
+      combat:                1
+      veteran_bonus:         false
+      ship_combat_extra:     null
+      on_death               capture{}
+      turns_to_repair:       null
+      canonical_base:        null
+      canonical_modified:    null
+      cargo_slots:           0
+      cargo_slots_occupies:  1
+      can_hold_unit_cargo:   false
+      inventory_types:       []
+      promotion:             null
+      is_derived:            false
+      modifiers {
+        missionary: [blessing]
+        scout:      [horses]
+        pioneer:    [tools]
+        soldier:    [muskets]
+        dragoon:    [horses, muskets]
+      }
+    }
+
     master_carpenter {
       type:                  master_carpenter
       name:                  Master Carpenter

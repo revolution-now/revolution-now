@@ -1008,7 +1008,7 @@ void to_str( profession_type const& o, std::string& out, base::tag<profession_ty
     case profession_type::master_gunsmith: out += "Master gunsmith"; return;
     case profession_type::firebrand_preacher: out += "Firebrand preacher"; return;
     case profession_type::elder_statesman: out += "Elder statesman"; return;
-    case profession_type::a_student: out += "*(Student)"; return;
+    case profession_type::expert_teacher: out += "Expert teacher"; return;
     case profession_type::a_free_colonist: out += "*(Free colonist)"; return;
     case profession_type::hardy_pioneer: out += "Hardy pioneer"; return;
     case profession_type::veteran_soldier: out += "Veteran soldier"; return;
@@ -1045,7 +1045,7 @@ cdr::value to_canonical( cdr::converter&,
     case profession_type::master_gunsmith: return "Master gunsmith";
     case profession_type::firebrand_preacher: return "Firebrand preacher";
     case profession_type::elder_statesman: return "Elder statesman";
-    case profession_type::a_student: return "*(Student)";
+    case profession_type::expert_teacher: return "Expert teacher";
     case profession_type::a_free_colonist: return "*(Free colonist)";
     case profession_type::hardy_pioneer: return "Hardy pioneer";
     case profession_type::veteran_soldier: return "Veteran soldier";
@@ -1084,7 +1084,7 @@ cdr::result<profession_type> from_canonical(
     { "Master gunsmith", profession_type::master_gunsmith },
     { "Firebrand preacher", profession_type::firebrand_preacher },
     { "Elder statesman", profession_type::elder_statesman },
-    { "*(Student)", profession_type::a_student },
+    { "Expert teacher", profession_type::expert_teacher },
     { "*(Free colonist)", profession_type::a_free_colonist },
     { "Hardy pioneer", profession_type::hardy_pioneer },
     { "Veteran soldier", profession_type::veteran_soldier },
