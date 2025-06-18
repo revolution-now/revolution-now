@@ -60,6 +60,11 @@ struct IVideo {
   virtual void set_fullscreen( WindowHandle const& wh,
                                bool fullscreen ) = 0;
 
+  virtual std::string window_title( WindowHandle const& wh ) = 0;
+
+  virtual void set_window_title( WindowHandle const& wh,
+                                 std::string const& title ) = 0;
+
   virtual gfx::size window_size( WindowHandle const& wh ) = 0;
 
   virtual void set_window_size( WindowHandle const& wh,

@@ -36,6 +36,18 @@ enum class e_resolution;
 
 namespace rr {
 
+struct RenderPassOpts {
+  // Clear the buffers before rendering (except for those that
+  // use dirty-tracking, such as the landscape buffer).
+  //
+  // WARNING: This should only ever be changed by very special-
+  // ized code that needs to render something over whatever is
+  // currently rendered, e.g. a diagnostic message. Normal ren-
+  // dering code should not touch this, otherwise buffers run
+  // away with memory and the game would OOM.
+  bool clear_buffers = true;
+};
+
 /****************************************************************
 ** Macros
 *****************************************************************/
@@ -177,14 +189,15 @@ struct Renderer : IRenderer, IRendererSettings {
   // This is the one to call to do a full render pass; it
   //
   //   1. Calls begin_pass.
-  //   2. Clears the buffer to black.
+  //   2. Clears the buffer to black (by default).
   //   3. Calls your function with *this.
   //   4. Calls end_pass.
   //   5. Presents.
   //
   // It takes the function that does the drawing.
   void render_pass(
-      base::function_ref<void( Renderer& ) const> drawer );
+      base::function_ref<void( Renderer& ) const> drawer,
+      RenderPassOpts const& opts = {} );
 
   e_render_framebuffer_mode render_framebuffer_mode()
       const override;

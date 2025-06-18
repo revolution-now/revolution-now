@@ -41,6 +41,12 @@ struct MockIVideo : IVideo {
   MOCK_METHOD( void, set_fullscreen, (WindowHandle const&, bool),
                () );
 
+  MOCK_METHOD( std::string, window_title, (WindowHandle const&),
+               () );
+
+  MOCK_METHOD( void, set_window_title,
+               (WindowHandle const&, std::string const&), () );
+
   MOCK_METHOD( gfx::size, window_size, (WindowHandle const&),
                () );
 

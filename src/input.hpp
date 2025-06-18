@@ -290,6 +290,14 @@ std::queue<event_t>& event_queue();
 void inject_resolution_event(
     gfx::Resolutions const& resolutions );
 
+// Waits for the key on the keyboard to be pressed and blocks the
+// thread until it does. Although it will run in a loop for each
+// input event it receives while waiting for the key, on each
+// loop iteration it does block the thread while waiting for the
+// next event. So it won't use any CPU while waiting for events,
+// and in that sense it is blocking.
+void blocking_wait_for_key( int keysym );
+
 /****************************************************************
 ** Utilities
 *****************************************************************/

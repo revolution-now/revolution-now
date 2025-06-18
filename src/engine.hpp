@@ -47,6 +47,8 @@ struct Engine : IEngine {
 
   rr::ITextometer& textometer() override;
 
+  void pause() override;
+
  private:
   // This object is self-referential.
   Engine( Engine&& )      = delete;

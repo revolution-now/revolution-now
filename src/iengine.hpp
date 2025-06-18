@@ -56,6 +56,12 @@ struct IEngine {
   virtual gfx::Resolutions& resolutions() = 0;
 
   virtual rr::ITextometer& textometer() = 0;
+
+  // Will pause the entire engine and block until the pause key
+  // is pressed. In the meantime, the window title bar will say
+  // "PAUSED" and a message will be printed on screen so that the
+  // user knows the game is paused.
+  virtual void pause() = 0;
 };
 
 } // namespace rn

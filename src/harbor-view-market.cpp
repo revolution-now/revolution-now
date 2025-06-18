@@ -23,7 +23,6 @@
 #include "market.hpp"
 #include "renderer.hpp"
 #include "tax.hpp"
-#include "text.hpp"
 #include "tiles.hpp"
 #include "ts.hpp"
 
@@ -38,6 +37,7 @@
 #include "ss/units.hpp"
 
 // render
+#include "render/extra.hpp"
 #include "render/typer.hpp"
 
 // gfx
@@ -543,7 +543,7 @@ void HarborMarketCommodities::draw( rr::Renderer& renderer,
         anchor.x  = renderer.logical_screen_size().w;
         placement = e_cdirection::se;
       }
-      render_text_line_with_background(
+      rr::render_text_line_with_background(
           renderer, rr::TextLayout{}, tooltip,
           gfx::oriented_point{ .anchor    = anchor,
                                .placement = placement },

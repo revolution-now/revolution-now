@@ -18,6 +18,7 @@ namespace rr {
 
 struct Painter;
 struct Renderer;
+struct TextLayout;
 
 void draw_empty_rect_no_corners( rr::Painter& painter,
                                  gfx::rect box,
@@ -57,5 +58,14 @@ void draw_rect_noisy_filled(
     rr::Renderer& renderer, gfx::rect area,
     gfx::pixel center_color,
     NoisyFillOptions const& options = {} );
+
+// One line of non-markup text rendered with a solid background
+// color behind the text in a rect that bounds the text with the
+// given amount of padding.
+void render_text_line_with_background(
+    rr::Renderer& renderer, rr::TextLayout const& text_layout,
+    std::string_view line, gfx::oriented_point op,
+    gfx::pixel fg_color, gfx::pixel bg_color, int padding,
+    bool draw_corners );
 
 } // namespace rr

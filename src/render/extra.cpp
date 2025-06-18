@@ -20,6 +20,7 @@ namespace rr {
 
 namespace {
 
+using ::gfx::oriented_point;
 using ::gfx::pixel;
 using ::gfx::point;
 using ::gfx::rect;
@@ -30,7 +31,7 @@ using ::gfx::size;
 /****************************************************************
 ** Public API.
 *****************************************************************/
-void draw_empty_rect_no_corners( rr::Painter& painter,
+void draw_empty_rect_no_corners( Painter& painter,
                                  rect const box,
                                  pixel const color ) {
   // Left.
@@ -67,7 +68,7 @@ void draw_empty_rect_no_corners( rr::Painter& painter,
   }
 }
 
-void draw_empty_rect_faded_corners( rr::Renderer& renderer,
+void draw_empty_rect_faded_corners( Renderer& renderer,
                                     gfx::rect box,
                                     gfx::pixel color ) {
   {
@@ -82,9 +83,9 @@ void draw_empty_rect_faded_corners( rr::Renderer& renderer,
 }
 
 void render_shadow_hightlight_border(
-    rr::Renderer& renderer, rect const rect,
+    Renderer& renderer, rect const rect,
     pixel const left_and_bottom, pixel const top_and_right ) {
-  rr::Painter painter = renderer.painter();
+  Painter painter = renderer.painter();
   painter.draw_horizontal_line( rect.nw().moved_up(),
                                 rect.size.w + 1, top_and_right );
   painter.draw_horizontal_line( rect.sw(), rect.size.w,
@@ -98,10 +99,10 @@ void render_shadow_hightlight_border(
   painter.draw_point( rect.se(), mixed );
 }
 
-void write_centered( rr::Renderer& renderer,
-                     pixel const color_fg, point const center,
+void write_centered( Renderer& renderer, pixel const color_fg,
+                     point const center,
                      string_view const text ) {
-  rr::Typer typer = renderer.typer();
+  Typer typer = renderer.typer();
   typer.set_color( color_fg );
   size const text_size = typer.dimensions_for_line( text );
   rect const text_rect = gfx::centered_on( text_size, center );
@@ -109,11 +110,10 @@ void write_centered( rr::Renderer& renderer,
   typer.write( text );
 }
 
-void write_centered( rr::Renderer& renderer,
-                     pixel const color_fg, pixel const color_bg,
-                     point const center,
+void write_centered( Renderer& renderer, pixel const color_fg,
+                     pixel const color_bg, point const center,
                      string_view const text ) {
-  rr::Typer typer = renderer.typer();
+  Typer typer = renderer.typer();
   typer.set_color( color_bg );
   size const text_size = typer.dimensions_for_line( text );
   rect const text_rect = gfx::centered_on( text_size, center );
@@ -125,8 +125,7 @@ void write_centered( rr::Renderer& renderer,
   renderer.typer( text_rect.nw(), color_fg ).write( text );
 }
 
-void draw_rect_noisy_filled( rr::Renderer& renderer,
-                             rect const area,
+void draw_rect_noisy_filled( Renderer& renderer, rect const area,
                              pixel const center_color,
                              NoisyFillOptions const& options ) {
   renderer.painter().draw_solid_rect(
@@ -149,6 +148,34 @@ void draw_rect_noisy_filled( rr::Renderer& renderer,
                              true );
     renderer.painter().draw_solid_rect( area, noise_color );
   }
+}
+
+void render_text_line_with_background(
+    Renderer& renderer, TextLayout const& text_layout,
+    std::string_view const line, oriented_point const op,
+    pixel const color_fg, pixel const color_bg,
+    int const padding, bool draw_corners ) {
+  size const text_dims =
+      renderer.typer( text_layout ).dimensions_for_line( line );
+  size const padded_dims = [&] {
+    size sz = text_dims;
+    sz.w += padding * 2;
+    sz.h += padding * 2;
+    return sz;
+  }();
+  point const padded_p = gfx::find_placement( op, padded_dims );
+  rect const bg{ .origin = padded_p, .size = padded_dims };
+  Painter painter = renderer.painter();
+  if( draw_corners ) {
+    painter.draw_solid_rect( bg, color_bg );
+  } else {
+    painter.draw_solid_rect( bg.with_edges_removed(), color_bg );
+    draw_empty_rect_no_corners( painter, bg.with_dec_size(),
+                                color_bg );
+  }
+  point const text_p = gfx::centered_in( text_dims, bg );
+  Typer typer        = renderer.typer( text_p, color_fg );
+  typer.write( line );
 }
 
 } // namespace rr

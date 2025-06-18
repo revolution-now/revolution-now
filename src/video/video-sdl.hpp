@@ -37,6 +37,11 @@ struct VideoSDL : IVideo {
   void set_fullscreen( WindowHandle const& wh,
                        bool fullscreen ) override;
 
+  std::string window_title( WindowHandle const& wh ) override;
+
+  void set_window_title( WindowHandle const& wh,
+                         std::string const& title ) override;
+
   gfx::size window_size( WindowHandle const& wh ) override;
 
   void set_window_size( WindowHandle const& wh,

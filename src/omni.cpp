@@ -524,6 +524,14 @@ struct OmniPlane::Impl : public IPlane {
           break;
         }
         switch( key_event.keycode ) {
+          case ::SDLK_PAUSE: {
+            // This will essentially block the thread until the
+            // user hit's the pause key again. Though it will
+            // show a message on screen instructing the player
+            // about this.
+            engine_.pause();
+            break;
+          }
           case ::SDLK_DELETE:
             if( !key_event.mod.ctrl_down ||
                 !key_event.mod.shf_down )

@@ -675,6 +675,18 @@ mouse_move_event_t mouse_move_event_from_curr_pos() {
   return mouse_move_event_t{ mouse_event_base_t( curr ), curr };
 }
 
+void blocking_wait_for_key( int const keysym ) {
+  while( true ) {
+    // Now wait for an event. SDL_WaitEvent will pump events and
+    // remove them from SDL's queue.
+    ::SDL_Event event = {};
+    ::SDL_WaitEvent( &event );
+    if( event.type == ::SDL_KEYDOWN &&
+        event.key.keysym.sym == keysym )
+      break;
+  }
+}
+
 /****************************************************************
 ** resolution_event_t
 *****************************************************************/

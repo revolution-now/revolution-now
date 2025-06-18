@@ -11,13 +11,13 @@
 #include "spread-render.hpp"
 
 // Revolution Now
-#include "text.hpp"
 #include "tiles.hpp"
 
 // config
 #include "config/ui.rds.hpp"
 
 // render
+#include "render/extra.hpp"
 #include "render/itextometer.hpp"
 #include "render/renderer.hpp"
 
@@ -411,7 +411,7 @@ void draw_rendered_icon_spread(
                           greyed );
   }
   for( auto const& label : plan.labels )
-    render_text_line_with_background(
+    rr::render_text_line_with_background(
         renderer, kLabelTextLayout, label.text,
         oriented_point{
           .anchor =

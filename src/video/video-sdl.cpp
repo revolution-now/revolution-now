@@ -243,6 +243,17 @@ void VideoSDL::set_fullscreen( WindowHandle const& wh,
   }
 }
 
+string VideoSDL::window_title( WindowHandle const& wh ) {
+  auto const* const title =
+      ::SDL_GetWindowTitle( handle_for( wh ) );
+  return title ? title : "";
+}
+
+void VideoSDL::set_window_title( WindowHandle const& wh,
+                                 string const& title ) {
+  ::SDL_SetWindowTitle( handle_for( wh ), title.c_str() );
+}
+
 size VideoSDL::window_size( WindowHandle const& wh ) {
   size res;
   ::SDL_GetWindowSize( handle_for( wh ), &res.w, &res.h );

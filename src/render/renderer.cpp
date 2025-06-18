@@ -386,9 +386,12 @@ struct Renderer::Impl {
         /*framebuffer_mode=*/config.framebuffer_mode );
   }
 
-  void begin_pass() {
+  void begin_pass_impl( e_render_buffer_phase const phase,
+                        RenderPassOpts const& opts ) {
+    if( !opts.clear_buffers ) return;
     // This should not affect the capacity.
     for( auto& [buffer, data] : buffers ) {
+      if( buffer_phase( buffer ) != phase ) continue;
       // This will prevent resetting the buffers that don't get
       // redrawn each frame.
       if( data->track_dirty ) continue;
@@ -401,6 +404,16 @@ struct Renderer::Impl {
       CHECK( vertices.empty() );
       emitter.set_position( 0 );
     }
+  }
+
+  void begin_pass_normal( RenderPassOpts const& opts ) {
+    return begin_pass_impl( e_render_buffer_phase::normal,
+                            opts );
+  }
+
+  void begin_pass_postprocessing( RenderPassOpts const& opts ) {
+    return begin_pass_impl(
+        e_render_buffer_phase::postprocessing, opts );
   }
 
   int end_pass_normal() {
@@ -622,17 +635,19 @@ struct Renderer::Impl {
   }
 
   void render_pass_direct_to_screen(
-      function_ref<void()> const drawer ) {
-    begin_pass();
+      function_ref<void()> const drawer,
+      RenderPassOpts const& opts ) {
+    begin_pass_normal( opts );
     drawer();
     end_pass_normal();
   }
 
   void render_pass_postprocessing_with_logical_resolution(
-      function_ref<void()> const drawer ) {
+      function_ref<void()> const drawer,
+      RenderPassOpts const& opts ) {
     {
       auto const _ = render_framebuffer.bind();
-      begin_pass();
+      begin_pass_normal( opts );
       drawer();
       rect const logical_screen_rect = {
         .origin = {}, .size = logical_screen_size };
@@ -644,7 +659,7 @@ struct Renderer::Impl {
     }
     {
       auto const _ = postprocessing_render_target_tx.bind();
-      begin_pass();
+      begin_pass_postprocessing( RenderPassOpts{} );
       gl::clear();
       {
         mod_stack.push( mod_stack.top() );
@@ -661,16 +676,17 @@ struct Renderer::Impl {
     }
   }
 
-  void render_pass( function_ref<void()> const drawer ) {
+  void render_pass( function_ref<void()> const drawer,
+                    RenderPassOpts const& opts ) {
     switch( framebuffer_mode_ ) {
       case e_render_framebuffer_mode::direct_to_screen: {
-        render_pass_direct_to_screen( drawer );
+        render_pass_direct_to_screen( drawer, opts );
         break;
       }
       case e_render_framebuffer_mode::
           offscreen_with_logical_resolution: {
         render_pass_postprocessing_with_logical_resolution(
-            drawer );
+            drawer, opts );
         break;
       }
     }
@@ -816,8 +832,9 @@ gfx::size Renderer::atlas_img_size() const {
 }
 
 void Renderer::render_pass(
-    function_ref<void( Renderer& ) const> drawer ) {
-  impl_->render_pass( [&] { drawer( *this ); } );
+    function_ref<void( Renderer& ) const> drawer,
+    RenderPassOpts const& opts ) {
+  impl_->render_pass( [&] { drawer( *this ); }, opts );
 }
 
 e_render_framebuffer_mode Renderer::render_framebuffer_mode()
