@@ -108,4 +108,16 @@ constexpr bool enum_derives_from() {
   return true;
 }
 
+template<ReflectedEnum E>
+requires( enum_count<E> > 0 )
+constexpr E cycle_enum( E const val ) {
+  auto const& values = enum_values<E>;
+  auto iter = std::find( begin( values ), end( values ), val );
+  CHECK( iter != end( values ), "invalid value {} for enum {}",
+         std::to_underlying( val ), traits<E>::name );
+  ++iter;
+  if( iter == end( values ) ) iter = begin( values );
+  return *iter;
+}
+
 } // namespace refl

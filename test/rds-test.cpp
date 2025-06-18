@@ -365,6 +365,8 @@ TEST_CASE( "[rds] enums" ) {
                  e_single::hello );
   static_assert( refl::enum_from_string<e_single>( "hellox" ) ==
                  nothing );
+  static_assert( refl::cycle_enum( e_single::hello ) ==
+                 e_single::hello );
 
   // e_two
   static_assert( refl::enum_count<e_two> == 2 );
@@ -390,6 +392,10 @@ TEST_CASE( "[rds] enums" ) {
                  nothing );
   static_assert( refl::enum_from_string<e_two>( "world" ) ==
                  e_two::world );
+  static_assert( refl::cycle_enum( e_two::hello ) ==
+                 e_two::world );
+  static_assert( refl::cycle_enum( e_two::world ) ==
+                 e_two::hello );
 
   // e_color
   static_assert( refl::enum_count<e_color> == 3 );
@@ -415,6 +421,12 @@ TEST_CASE( "[rds] enums" ) {
                  nothing );
   static_assert( refl::enum_from_string<e_color>( "green" ) ==
                  e_color::green );
+  static_assert( refl::cycle_enum( e_color::red ) ==
+                 e_color::green );
+  static_assert( refl::cycle_enum( e_color::green ) ==
+                 e_color::blue );
+  static_assert( refl::cycle_enum( e_color::blue ) ==
+                 e_color::red );
 
   // base/derived.
   static_assert( refl::enum_value_as<e_count_short>(
