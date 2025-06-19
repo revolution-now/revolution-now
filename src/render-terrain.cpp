@@ -2429,6 +2429,25 @@ void render_obfuscation_overlay(
     rr::Renderer& renderer, Coord where,
     Coord const world_square, IVisibility const& viz,
     TerrainRenderOptions const& options ) {
+  // Fog of war.
+  if( options.render_fog_of_war ) {
+    SurroundingsInfo const fogged = surroundings_test(
+        world_square, [&]( Coord const tile ) {
+          e_tile_visibility const visibility =
+              viz.visible( tile );
+          return visibility == e_tile_visibility::fogged;
+        } );
+    SCOPED_RENDERER_MOD_MUL( painter_mods.alpha,
+                             config_gfx.fog_of_war_alpha );
+    if( fogged.fully_surrounded ) {
+      render_sprite( renderer, where, e_tile::terrain_fogged );
+    } else {
+      render_pixelated_overlay_transitions(
+          renderer, where, world_square, viz,
+          fogged.surroundings, e_tile::terrain_fogged );
+    }
+  }
+
   { // Unexplored.
     SurroundingsInfo const hidden = surroundings_test(
         world_square, [&]( Coord const tile ) {
@@ -2442,26 +2461,6 @@ void render_obfuscation_overlay(
       render_pixelated_overlay_transitions(
           renderer, where, world_square, viz,
           hidden.surroundings, e_tile::terrain_hidden );
-    }
-  }
-
-  // Fog of war.
-  if( options.render_fog_of_war ) {
-    SurroundingsInfo const fogged = surroundings_test(
-        world_square, [&]( Coord const tile ) {
-          e_tile_visibility const visibility =
-              viz.visible( tile );
-          return visibility == e_tile_visibility::fogged ||
-                 visibility == e_tile_visibility::hidden;
-        } );
-    SCOPED_RENDERER_MOD_MUL( painter_mods.alpha,
-                             config_gfx.fog_of_war_alpha );
-    if( fogged.fully_surrounded ) {
-      render_sprite( renderer, where, e_tile::terrain_fogged );
-    } else {
-      render_pixelated_overlay_transitions(
-          renderer, where, world_square, viz,
-          fogged.surroundings, e_tile::terrain_fogged );
     }
   }
 }
