@@ -79,8 +79,8 @@ TEST_CASE( "[cdr] value" ) {
   REQUIRE( v.is<table>() );
   REQUIRE( v.as<table>().size() == 2 );
   REQUIRE( v.as<table>().ssize() == 2 );
-  REQUIRE( v.as<table>()["one"] == 1_val );
-  REQUIRE( v.as<table>()["two"] == 2_val );
+  REQUIRE( v["one"] == 1_val );
+  REQUIRE( v["two"] == 2_val );
   REQUIRE( v.as<table>().contains( "one" ) );
   REQUIRE( v.as<table>().contains( "two" ) );
   REQUIRE( !v.as<table>().contains( "three" ) );
@@ -171,12 +171,9 @@ TEST_CASE( "[cdr] complex" ) {
 
   REQUIRE( doc["three"].is<list>() );
   REQUIRE( doc["three"].as<list>()[0].is<table>() );
-  REQUIRE( doc["three"]
-               .as<list>()[0]
-               .as<table>()["yes"]
-               .is<integer_type>() );
-  REQUIRE( doc["three"].as<list>()[0].as<table>()["yes"] ==
-           333 );
+  REQUIRE(
+      doc["three"].as<list>()[0]["yes"].is<integer_type>() );
+  REQUIRE( doc["three"].as<list>()[0]["yes"] == 333 );
 
   REQUIRE( doc["one"].is<list>() );
   REQUIRE( doc["one"].as<list>()[1] == 3 );
@@ -184,8 +181,8 @@ TEST_CASE( "[cdr] complex" ) {
   REQUIRE( doc["one"].as<list>()[2].as<string>() == "hello" );
 
   REQUIRE( doc["two"].is<table>() );
-  REQUIRE( doc["two"].as<table>()["four"].is<bool>() );
-  REQUIRE( doc["two"].as<table>()["four"] == true );
+  REQUIRE( doc["two"]["four"].is<bool>() );
+  REQUIRE( doc["two"]["four"] == true );
 
   table t2 = doc;
 
@@ -193,20 +190,18 @@ TEST_CASE( "[cdr] complex" ) {
   REQUIRE( t2["one"].as<list>()[1] == 3 );
 
   REQUIRE( t2["two"].is<table>() );
-  REQUIRE( t2["two"].as<table>()["four"] == true );
+  REQUIRE( t2["two"]["four"] == true );
 
   // Make sure that the deep copy happened.
-  REQUIRE( &doc["two"].as<table>()["four"] ==
-           &doc["two"].as<table>()["four"] );
+  REQUIRE( &doc["two"]["four"] == &doc["two"]["four"] );
 
-  REQUIRE( &doc["two"].as<table>()["four"] !=
-           &t2["two"].as<table>()["four"] );
+  REQUIRE( &doc["two"]["four"] != &t2["two"]["four"] );
 
-  value* address = &t2["two"].as<table>()["four"];
+  value* address = &t2["two"]["four"];
 
   table t3 = std::move( t2 );
   // Ensure that a move happened.
-  REQUIRE( &t3["two"].as<table>()["four"] == address );
+  REQUIRE( &t3["two"]["four"] == address );
 }
 
 TEST_CASE( "[cdr] k=v syntax" ) {
@@ -232,12 +227,9 @@ TEST_CASE( "[cdr] k=v syntax" ) {
 
   REQUIRE( doc["three"].is<list>() );
   REQUIRE( doc["three"].as<list>()[0].is<table>() );
-  REQUIRE( doc["three"]
-               .as<list>()[0]
-               .as<table>()["yes"]
-               .is<integer_type>() );
-  REQUIRE( doc["three"].as<list>()[0].as<table>()["yes"] ==
-           333 );
+  REQUIRE(
+      doc["three"].as<list>()[0]["yes"].is<integer_type>() );
+  REQUIRE( doc["three"].as<list>()[0]["yes"] == 333 );
 
   REQUIRE( doc["one"].is<list>() );
   REQUIRE( doc["one"].as<list>()[1] == 3 );
@@ -245,8 +237,8 @@ TEST_CASE( "[cdr] k=v syntax" ) {
   REQUIRE( doc["one"].as<list>()[2].as<string>() == "hello" );
 
   REQUIRE( doc["two"].is<table>() );
-  REQUIRE( doc["two"].as<table>()["four"].is<bool>() );
-  REQUIRE( doc["two"].as<table>()["four"] == true );
+  REQUIRE( doc["two"]["four"].is<bool>() );
+  REQUIRE( doc["two"]["four"] == true );
 
   table t2 = doc;
 
@@ -254,7 +246,7 @@ TEST_CASE( "[cdr] k=v syntax" ) {
   REQUIRE( t2["one"].as<list>()[1] == 3 );
 
   REQUIRE( t2["two"].is<table>() );
-  REQUIRE( t2["two"].as<table>()["four"] == true );
+  REQUIRE( t2["two"]["four"] == true );
 }
 
 TEST_CASE( "[cdr] to_str" ) {
@@ -322,6 +314,29 @@ TEST_CASE( "[cdr] to_str" ) {
   REQUIRE( base::to_str( doc ) ==
            "{one=[2,3,hello],three=[{hello=world,yes=333},{},3],"
            "two={four=true,three=3.3}}" );
+}
+
+TEST_CASE( "[cdr] automatic operator[]" ) {
+  using namespace ::cdr::literals;
+  value ex;
+  value v = table{};
+
+  // Normally this wouldn't compile because we don't know if v is
+  // a table or if v["one"] is a list.
+  v["hello"] = table{
+    "world"_key = 5,
+  };
+  v["one"]    = list{ 1, 2, 3, 4 };
+  v["one"][2] = 5;
+
+  ex = table{
+    "hello"_key =
+        table{
+          "world"_key = 5,
+        },
+    "one"_key = list{ 1, 2, 5, 4 },
+  };
+  REQUIRE( v == ex );
 }
 
 } // namespace

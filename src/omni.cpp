@@ -22,6 +22,7 @@
 #include "imenu-server.hpp"
 #include "input.hpp"
 #include "interrupts.hpp"
+#include "iuser-config.hpp"
 #include "plane.hpp"
 #include "query-enum.hpp"
 #include "screen.hpp"
@@ -32,6 +33,7 @@
 #include "config/menu-items.rds.hpp"
 #include "config/tile-enum.rds.hpp"
 #include "config/ui.rds.hpp"
+#include "config/user.rds.hpp"
 
 // video
 #include "video/window.hpp"
@@ -51,6 +53,7 @@
 
 // refl
 #include "refl/enum-map.hpp"
+#include "refl/query-enum.hpp"
 #include "refl/to-str.hpp"
 
 // base
@@ -63,6 +66,7 @@ namespace rn {
 namespace {
 
 using ::gfx::oriented_point;
+using ::refl::cycle_enum;
 using ::refl::enum_count;
 using ::refl::enum_from_integral;
 using ::refl::enum_value_name;
@@ -547,20 +551,18 @@ struct OmniPlane::Impl : public IPlane {
             handled = e_input_handled::yes;
             break;
           case ::SDLK_F10: {
-            auto& settings = engine_.renderer_settings();
-            switch( settings.render_framebuffer_mode() ) {
-              using enum rr::e_render_framebuffer_mode;
-              case direct_to_screen:
-                settings.set_render_framebuffer_mode(
-                    offscreen_with_logical_resolution );
-                break;
-              case offscreen_with_logical_resolution:
-                settings.set_render_framebuffer_mode(
-                    direct_to_screen );
-                break;
-            }
-            lg.info( "framebuffer render mode: {}",
-                     settings.render_framebuffer_mode() );
+            auto const next_mode = cycle_enum(
+                engine_.user_config()
+                    .read()
+                    .graphics.render_framebuffer_mode );
+            CHECK( engine_.user_config().modify(
+                [&]( config_user_t& conf ) {
+                  conf.graphics.render_framebuffer_mode =
+                      next_mode;
+                } ) );
+            engine_.renderer_settings()
+                .set_render_framebuffer_mode( next_mode );
+            lg.info( "framebuffer render mode: {}", next_mode );
             handled = e_input_handled::yes;
             break;
           }

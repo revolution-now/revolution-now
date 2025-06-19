@@ -22,13 +22,13 @@ include "refl/enum-map.hpp"
 include "<chrono>"
 include "<string>"
 
-namespace "rn"
+namespace "rn.config.rn"
 
-struct.config_rn_main_window {
+struct.main_window {
   title 'std::string',
 }
 
-struct.config_rn_viewport {
+struct.viewport {
   pan_speed 'double',
   # This is not the min zoom exactly, it is the factor that the
   # "optimal" zoom will be divided by to get the minimum allowed
@@ -57,19 +57,26 @@ struct.config_rn_viewport {
   smooth_scroll_threshold 'double',
 }
 
-struct.config_rn_console {
+struct.console {
   font 'e_font',
 }
 
-struct.config_rn_power {
+struct.power {
   time_till_slow_fps 'std::chrono::seconds',
 }
 
+struct.user_settings {
+  filename 'std::string',
+}
+
+namespace "rn"
+
 struct.config_rn_t {
-  main_window 'config_rn_main_window',
-  viewport    'config_rn_viewport',
-  console     'config_rn_console',
-  power       'config_rn_power',
+  main_window   'config::rn::main_window',
+  viewport      'config::rn::viewport',
+  console       'config::rn::console',
+  power         'config::rn::power',
+  user_settings 'config::rn::user_settings',
 
   game_menu_options_defaults 'refl::enum_map<e_game_menu_option, bool>',
 }

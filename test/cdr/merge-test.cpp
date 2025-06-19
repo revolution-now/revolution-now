@@ -63,11 +63,11 @@ TEST_CASE( "[cdr/merge] right_join" ) {
   REQUIRE( f() == 0 );
   REQUIRE( l == ex );
 
-  r["j"]                  = 3;
-  r["d"].as<table>()["k"] = 4;
-  r["d"].as<table>()["f"].as<list>().push_back( 3.4 );
-  r["d"].as<table>()["f"].as<list>()[2].as<table>()["h"] = 9;
-  r["d"].as<table>()["f"].as<list>()[2].as<table>()["l"] = false;
+  r["j"]      = 3;
+  r["d"]["k"] = 4;
+  r["d"]["f"].as<list>().push_back( 3.4 );
+  r["d"]["f"][2]["h"] = 9;
+  r["d"]["f"][2]["l"] = false;
 
   ex = {
     "n"_key = null,
@@ -97,7 +97,7 @@ TEST_CASE( "[cdr/merge] right_join" ) {
   REQUIRE( f() == 4 );
   REQUIRE( l == ex );
 
-  l["d"].as<table>()["f"].as<list>().push_back( "abc" );
+  l["d"]["f"].as<list>().push_back( "abc" );
   ex = l;
   REQUIRE( f() == 0 );
   REQUIRE( l == ex );

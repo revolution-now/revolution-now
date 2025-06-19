@@ -46,6 +46,8 @@
 #include "config/turn.rds.hpp"
 #include "config/ui.rds.hpp"
 #include "config/unit-type.rds.hpp"
+#include "config/user-engine-only.rds.hpp"
+#include "config/user.rds.hpp"
 
 // Other config files.
 #include "config/registrar-helper.hpp"
@@ -93,6 +95,7 @@ INSTANTIATE_RN_CONFIG( tile_sheet );
 INSTANTIATE_RN_CONFIG( turn );
 INSTANTIATE_RN_CONFIG( ui );
 INSTANTIATE_RN_CONFIG( unit_type );
+INSTANTIATE_RN_CONFIG( user );
 // NOTE: Don't forget to add to the config-lua module.
 
 } // namespace rds

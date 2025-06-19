@@ -101,6 +101,8 @@ void inject_configs( lua::state& st ) {
 #define INJECT( name ) \
   inject_config( st, #name, cdr_opts, config_##name )
 
+#define INJECT_SKIP( name, ... )
+
   INJECT( cheat );
   INJECT( colony );
   INJECT( combat );
@@ -132,6 +134,7 @@ void inject_configs( lua::state& st ) {
   INJECT( turn );
   INJECT( ui );
   INJECT( unit_type );
+  INJECT_SKIP( user ); // Not for lua; for use by engine only.
 
   // Dump full lua configs, may come in handy for debugging.
   if( config_debug.dump.dump_lua_config_to.has_value() ) {

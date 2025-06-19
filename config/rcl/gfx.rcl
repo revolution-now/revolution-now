@@ -132,33 +132,3 @@ color_cycle_plans {
     "#FA0000"
   ]
 }
-
-# Controls the pipeline used by the renderer to get the final
-# image on the screen with respect to what post processing is
-# done (if any), and how.
-#
-# NOTE: these are just default values used in a new installation
-# of the game and can be changed via the in-game settings on a
-# per-installation basis, which will then override the values
-# here. So, in practice, you should not really need to change
-# these values in this config file. And if you do, the values may
-# not be used if they have already been overridden in the
-# per-installation config.
-post_processing {
-  # This controls the specific framebuffer workflow that the ren-
-  # derer uses to produce the final image on the screen. Possible
-  # values:
-  #
-  #  direct_to_screen:
-  #
-  #    No post processing.
-  #
-  #  offscreen_with_logical_resolution:
-  #
-  #    Renders first to an offscreen texture whose size is equal
-  #    to that current logical resolution. This has the effects
-  #    of 1) enabling post processing, and 2) enforcing strict
-  #    pixel sizes over the entire screen.
-  #
-  default_render_framebuffer_mode: offscreen_with_logical_resolution
-}

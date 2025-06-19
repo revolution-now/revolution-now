@@ -33,6 +33,8 @@ struct Engine : IEngine {
   void deinit();
 
  public: // IEngine
+  IUserConfig& user_config() override;
+
   vid::IVideo& video() override;
 
   sfx::ISfx& sfx() override;

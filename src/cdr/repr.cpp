@@ -20,6 +20,13 @@ using namespace std;
 
 namespace cdr {
 
+namespace {
+
+using ::base::maybe;
+using ::base::nothing;
+
+}
+
 /****************************************************************
 ** null_t
 *****************************************************************/
@@ -41,16 +48,13 @@ value& table::operator[]( string const& key ) {
   return o_.get()[key];
 }
 
-base::maybe<value const&> table::operator[](
+maybe<value const&> table::operator[](
     string const& key ) const {
   auto& impl = o_.get();
   auto it    = impl.find( key );
-  if( it == impl.end() ) return base::nothing;
+  if( it == impl.end() ) return nothing;
   return it->second;
 }
-
-table::table( initializer_list<pair<string const, value>> il )
-  : o_( il.begin(), il.end() ) {}
 
 bool table::operator==( table const& rhs ) const {
   return o_ == rhs.o_;
@@ -91,9 +95,13 @@ list::list( vector<value> const& v ) : o_( v ) {}
 
 list::list( vector<value>&& v ) : o_( std::move( v ) ) {}
 
-value& list::operator[]( size_t idx ) { return o_[idx]; }
+value& list::operator[]( size_t const idx ) {
+  CHECK_LT( idx, o_.size() );
+  return o_[idx];
+}
 
-value const& list::operator[]( size_t idx ) const {
+value const& list::operator[]( size_t const idx ) const {
+  CHECK_LT( idx, o_.size() );
   return o_[idx];
 }
 
@@ -143,6 +151,23 @@ void to_str( value const& o, std::string& out,
              base::tag<value> ) {
   visit( [&]( auto const& alt ) { base::to_str( alt, out ); },
          o.as_base() );
+}
+
+value& value::operator[]( std::string const& key ) {
+  return this->as<table>()[key];
+}
+
+maybe<value const&> value::operator[](
+    std::string const& key ) const {
+  return this->as<table>()[key];
+}
+
+value& value::operator[]( size_t const idx ) {
+  return this->as<list>()[idx];
+}
+
+value const& value::operator[]( size_t const idx ) const {
+  return this->as<list>()[idx];
 }
 
 } // namespace cdr

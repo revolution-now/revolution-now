@@ -12,8 +12,10 @@
 
 // Revolution Now
 #include "error.hpp"
+#include "iengine.hpp"
 #include "igame-storage.hpp"
 #include "igui.hpp"
+#include "iuser-config.hpp"
 #include "macros.hpp"
 #include "ts.hpp"
 
@@ -24,6 +26,7 @@
 
 // config
 #include "config/savegame.rds.hpp"
+#include "config/user.rds.hpp"
 
 // base
 #include "base/conv.hpp"
@@ -123,17 +126,16 @@ static wait<maybe<int>> select_save_slot_impl(
 }
 
 wait<maybe<int>> select_save_slot(
-    TS& ts, IGameStorageQuery const& query ) {
+    IEngine& engine, TS& ts, IGameStorageQuery const& query ) {
   maybe<int> slot;
   while( true ) {
     slot = co_await select_save_slot_impl( ts, query );
     if( !slot.has_value() ) co_return nothing;
     if( !query_slot_exists( query, *slot ) ) break;
-    // ==========================================================
-    // FIXME: replace with user-level config when available.
-    if constexpr( true ) { break; }
-    // FIXME: replace with user-level config when available.
-    // ==========================================================
+    if( !engine.user_config()
+             .read()
+             .game_saving.ask_before_overwrite )
+      break;
     YesNoConfig const config{
       .msg =
           "A saved game already exists in this slot.  Overwite?",

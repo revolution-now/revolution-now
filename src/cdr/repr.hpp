@@ -13,6 +13,7 @@
 
 // base
 #include "base/heap-value.hpp"
+#include "base/maybe.hpp"
 #include "base/to-str.hpp"
 #include "base/variant.hpp"
 
@@ -125,17 +126,14 @@ struct table {
   // The parameter of the initializer list must be the value type
   // of MapTo<value>, but we can't say that explicitly because we
   // can't write MapTo<value> at this point because `value` is
-  // incomplete.
-  //
-  // Apparently std::pair is ok with having value be an incom-
-  // plete type at least in this context. Not sure if this is
-  // guaranteed by the standard. Luckily this works because, if
-  // we make this a template like we've done for the above con-
-  // structors, then the compiler can't seem to infer the tem-
-  // plate parameter.
+  // incomplete. For that same reason we need use a template here
+  // in order to avoid instantiating std::pair with an incomplete
+  // type (such an instantiation may work in practice, but it is
+  // likely UB).
+  template<typename V = value>
   table(
-      std::initializer_list<std::pair<std::string const, value>>
-          il );
+      std::initializer_list<std::pair<std::string const, V>> il )
+    : o_( il.begin(), il.end() ) {}
 
   // Will create the value if it doesn't exist, and it will have
   // an initial value of null.
@@ -203,6 +201,9 @@ struct list {
 
   list() = default;
 
+  // Initially it was not allowed to put an incomplete type in an
+  // initializer list, but indications are that that was recti-
+  // fied in c++17.
   list( std::initializer_list<value> il );
 
   list( std::vector<value> const& v );
@@ -261,6 +262,23 @@ struct value : public value_base {
   using base::base;
 
   bool operator==( value const& ) const = default;
+
+  // Will attempt to call "as<table>()" (check-failing if this
+  // does not hold a table) and then to call operator[] on the
+  // result. Although this method will create the key if it
+  // doesn't exist (with initial value null), it will not change
+  // the value to a table if it isn't already a table.
+  value& operator[]( std::string const& key );
+  // Same as above but will not create the key if it doesn't ex-
+  // ist.
+  ::base::maybe<value const&> operator[](
+      std::string const& key ) const;
+
+  // Same as above but for list indexing. Will check-fail if this
+  // is not a list. NOTE: this will not resize the list; the idx
+  // mustin in bounds.
+  value& operator[]( size_t idx );
+  value const& operator[]( size_t idx ) const;
 
   value( std::vector<value> const& v ) : value( list( v ) ) {}
   value( std::vector<value>&& v )

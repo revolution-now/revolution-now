@@ -1,0 +1,51 @@
+# ---------------------------------------------------------------
+# Template of Defaults for User Settings File.
+# ---------------------------------------------------------------
+# These are the default values for the per-user game configs.
+# When the game is played for the first time it will create a
+# user settings file in the game's folder using the values in
+# this file as a template. From then on, this file is no longer
+# consulted or changed; only the user settings file is read from
+# and written to (when the user changes the settings).
+#
+# If one deletes the user settings file then it will be regener-
+# ated on the next run of the game, again using the values in
+# this file as defaults.
+#
+# NOTE: Changing the values in this file is generally not what
+# you want to do; you should either change the settings in-game
+# or you should locate the user settings file and change them
+# there; this file just provides defaults and documentation.
+# ---------------------------------------------------------------
+
+game_saving {
+  # Ask if the player wants to save a game before abandoning it
+  # if the game has changed since it was last saved.
+  ask_need_save_when_leaving: true
+
+  # When saving a game, ask to confirm before overwriting an ex-
+  # isting file.
+  ask_before_overwrite: true
+}
+
+# Controls the pipeline used by the renderer to get the final
+# image on the screen with respect to what post processing is
+# done (if any), and how.
+graphics {
+  # This controls the specific framebuffer workflow that the ren-
+  # derer uses to produce the final image on the screen. Possible
+  # values:
+  #
+  #  direct_to_screen:
+  #
+  #    No post processing.
+  #
+  #  offscreen_with_logical_resolution:
+  #
+  #    Renders first to an offscreen texture whose size is equal
+  #    to that current logical resolution. This has the effects
+  #    of 1) enabling post processing, and 2) enforcing strict
+  #    pixel sizes over the entire screen.
+  #
+  render_framebuffer_mode: offscreen_with_logical_resolution
+}

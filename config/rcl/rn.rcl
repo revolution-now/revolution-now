@@ -1,3 +1,7 @@
+user_settings {
+  filename: ".settings.rcl"
+}
+
 main_window {
   title: "Revolution | Now"
 }

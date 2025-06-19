@@ -35,11 +35,15 @@ struct Resolutions;
 
 namespace rn {
 
+struct IUserConfig;
+
 /****************************************************************
 ** IEngine
 *****************************************************************/
 struct IEngine {
   virtual ~IEngine() = default;
+
+  virtual IUserConfig& user_config() = 0;
 
   virtual vid::IVideo& video() = 0;
 

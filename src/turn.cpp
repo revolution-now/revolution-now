@@ -37,6 +37,7 @@
 #include "iraid.rds.hpp"
 #include "isave-game.rds.hpp"
 #include "itribe-evolve.rds.hpp"
+#include "iuser-config.hpp"
 #include "land-view.hpp"
 #include "map-edit.hpp"
 #include "market.hpp"
@@ -70,6 +71,7 @@
 #include "config/nation.hpp"
 #include "config/turn.rds.hpp"
 #include "config/unit-type.rds.hpp"
+#include "config/user.rds.hpp"
 
 // ss
 #include "ss/colonies.hpp"
@@ -178,7 +180,7 @@ wait<> advance_time( IGui& gui, TurnTimePoint& time_point ) {
 //
 // Will return whether it is safe to proceed.
 wait<base::NoDiscard<bool>> check_if_not_dirty_or_can_proceed(
-    SSConst const& ss, TS& ts,
+    IEngine& engine, SSConst const& ss, TS& ts,
     IGameStorageSave const& storage_save ) {
   auto is_game_saved = [&] {
     // Checks if the serializable game state has been modified in
@@ -188,11 +190,10 @@ wait<base::NoDiscard<bool>> check_if_not_dirty_or_can_proceed(
     } );
   };
   if( is_game_saved() ) co_return true;
-  // ============================================================
-  // FIXME: replace with user-level config when available.
-  if constexpr( true ) { co_return true; }
-  // FIXME: replace with user-level config when available.
-  // ============================================================
+  if( !engine.user_config()
+           .read()
+           .game_saving.ask_need_save_when_leaving )
+    co_return true;
   YesNoConfig const config{ .msg =
                                 "This game has unsaved changes. "
                                 "Would you like to save?",
@@ -205,7 +206,7 @@ wait<base::NoDiscard<bool>> check_if_not_dirty_or_can_proceed(
   if( !answer.has_value() ) co_return false;
   if( answer == ui::e_confirm::no ) co_return true;
   maybe<int> const slot =
-      co_await select_save_slot( ts, storage_save );
+      co_await select_save_slot( engine, ts, storage_save );
   if( !slot.has_value() ) co_return false;
   RealGameSaver const game_saver( ss, ts, storage_save );
   bool const saved =
@@ -213,7 +214,8 @@ wait<base::NoDiscard<bool>> check_if_not_dirty_or_can_proceed(
   co_return saved;
 }
 
-wait<> proceed_to_exit( SSConst const& ss, TS& ts ) {
+wait<> proceed_to_exit( IEngine& engine, SSConst const& ss,
+                        TS& ts ) {
   YesNoConfig const config{ .msg            = "Exit to DOS?",
                             .yes_label      = "Yes",
                             .no_label       = "No",
@@ -224,7 +226,7 @@ wait<> proceed_to_exit( SSConst const& ss, TS& ts ) {
   // TODO: we may want to inject these somewhere higher up.
   RclGameStorageSave const storage_save( ss );
   bool const can_proceed =
-      co_await check_if_not_dirty_or_can_proceed( ss, ts,
+      co_await check_if_not_dirty_or_can_proceed( engine, ss, ts,
                                                   storage_save );
   if( can_proceed ) throw game_quit_interrupt{};
 }
@@ -484,7 +486,7 @@ wait<> menu_handler( IEngine& engine, SS& ss, TS& ts,
                      Player& player, e_menu_item item ) {
   switch( item ) {
     case e_menu_item::exit: {
-      co_await proceed_to_exit( ss, ts );
+      co_await proceed_to_exit( engine, ss, ts );
       break;
     }
     case e_menu_item::save: {
@@ -492,7 +494,7 @@ wait<> menu_handler( IEngine& engine, SS& ss, TS& ts,
       RclGameStorageSave const storage_save( ss );
       RealGameSaver const game_saver( ss, ts, storage_save );
       maybe<int> const slot =
-          co_await select_save_slot( ts, storage_save );
+          co_await select_save_slot( engine, ts, storage_save );
       if( slot.has_value() ) {
         bool const saved =
             co_await game_saver.save_to_slot_interactive(
@@ -506,7 +508,7 @@ wait<> menu_handler( IEngine& engine, SS& ss, TS& ts,
       RclGameStorageSave const storage_save( ss );
       bool const can_proceed =
           co_await check_if_not_dirty_or_can_proceed(
-              ss, ts, storage_save );
+              engine, ss, ts, storage_save );
       if( !can_proceed ) break;
       game_load_interrupt load;
       load.slot = co_await select_load_slot( ts, storage_save );
@@ -615,7 +617,7 @@ wait<EndOfTurnResult> process_player_input_eot(
     }
     CASE( next_turn ) { co_return EndOfTurnResult::proceed{}; }
     CASE( exit ) {
-      co_await proceed_to_exit( ss, ts );
+      co_await proceed_to_exit( engine, ss, ts );
       break;
     }
     CASE( give_command ) {
@@ -736,7 +738,7 @@ wait<> process_player_input_normal_mode(
       SHOULD_NOT_BE_HERE;
     }
     CASE( exit ) {
-      co_await proceed_to_exit( ss, ts );
+      co_await proceed_to_exit( engine, ss, ts );
       break;
     }
     CASE( colony ) {
@@ -896,7 +898,7 @@ wait<> process_player_input_view_mode(
       break;
     }
     CASE( exit ) {
-      co_await proceed_to_exit( ss, ts );
+      co_await proceed_to_exit( engine, ss, ts );
       break;
     }
     CASE( hidden_terrain ) {

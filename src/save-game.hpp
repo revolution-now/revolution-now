@@ -26,6 +26,7 @@ namespace rn {
 struct IGameStorageLoad;
 struct IGameStorageQuery;
 struct IGameStorageSave;
+struct IEngine;
 struct SS;
 struct SSConst;
 struct TS;
@@ -36,7 +37,7 @@ struct TS;
 // This will open the save-game dialog box and will allow the
 // player to choose a slot, but will not actually do the saving.
 wait<maybe<int>> select_save_slot(
-    TS& ts, IGameStorageQuery const& query );
+    IEngine& engine, TS& ts, IGameStorageQuery const& query );
 
 // This will open the load-game dialog box and will allow the
 // player to choose a slot, but will not actually do the loading.

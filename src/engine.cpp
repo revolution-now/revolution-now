@@ -20,6 +20,7 @@
 #include "oggplayer.hpp"
 #include "screen.hpp"
 #include "tiles.hpp"
+#include "user-config.hpp"
 
 // config
 #include "config/debug.rds.hpp"
@@ -103,8 +104,48 @@ struct Engine::Impl {
     }
   }
 
-  void deinit_configs() {
+  void deinit_configs() {}
+
+  // ============================================================
+  // User Config.
+  // ============================================================
+  void init_user_config() {
+    CHECK( !user_config_ );
+    auto const& filename = config_rn.user_settings.filename;
     // TODO
+    string const path = filename;
+    user_config_      = make_unique<UserConfig>();
+    if( auto const ok = user_config_->try_bind_to_file( path );
+        !ok )
+      lg.error(
+          "{} Using default values for user settings with no "
+          "persistence.",
+          ok.error() );
+  }
+
+  void deinit_user_config() {
+    if( !user_config_ ) return;
+    // Currently this is the only place where we flush the user
+    // configs to file. Not yet sure if this is a good idea, but
+    // at least we can say that this won't run (and config
+    // changes won't be saved) if the program check-fails, which
+    // might be good if the cause of the check-fail was related
+    // to the config change.
+    flush_user_config();
+    user_config_.reset();
+  }
+
+  void flush_user_config() {
+    CHECK( user_config_ );
+    auto const ok = user_config_->flush();
+    if( !ok )
+      lg.error( "failed to save user settings file: {}",
+                ok.error() );
+  }
+
+  IUserConfig& user_config() const {
+    CHECK( user_config_ );
+    return *user_config_;
   }
 
   // ============================================================
@@ -236,10 +277,10 @@ struct Engine::Impl {
       .sprite_sheets  = config_tile_sheet.sheets.sprite_sheets,
       .font_sheets    = config_tile_sheet.sheets.font_sheets,
       .dump_atlas_png = config_debug.dump.dump_texture_atlas_to,
-      // TODO: this should be settable/overridable in the per in-
-      // stallation config.
-      .framebuffer_mode = config_gfx.post_processing
-                              .default_render_framebuffer_mode };
+      .framebuffer_mode =
+          user_config()
+              .read()
+              .graphics.render_framebuffer_mode };
 
     // This renderer needs to be released before the SDL context
     // is cleaned up.
@@ -422,6 +463,7 @@ struct Engine::Impl {
   }
 
  private:
+  unique_ptr<UserConfig> user_config_;
   unique_ptr<vid::IVideo> video_;
   maybe<gfx::Resolutions> resolutions_;
   unique_ptr<rr::Renderer> renderer_;
@@ -450,6 +492,7 @@ void Engine::init( e_engine_mode const mode ) {
   switch( mode ) {
     case e_engine_mode::game: {
       impl().init_configs();
+      impl().init_user_config();
       impl().init_sdl_base();
       impl().init_input();
       impl().init_video();
@@ -475,6 +518,7 @@ void Engine::init( e_engine_mode const mode ) {
     }
     case e_engine_mode::map_editor: {
       impl().init_configs();
+      impl().init_user_config();
       impl().init_sdl_base();
       impl().init_input();
       impl().init_video();
@@ -487,6 +531,7 @@ void Engine::init( e_engine_mode const mode ) {
     }
     case e_engine_mode::ui_test: {
       impl().init_configs();
+      impl().init_user_config();
       impl().init_sdl_base();
       impl().init_input();
       impl().init_video();
@@ -520,7 +565,12 @@ void Engine::deinit() {
   impl().deinit_video();
   impl().deinit_input();
   impl().deinit_sdl_base();
+  impl().deinit_user_config();
   impl().deinit_configs();
+}
+
+IUserConfig& Engine::user_config() {
+  return impl().user_config();
 }
 
 vid::IVideo& Engine::video() { return impl().video(); }

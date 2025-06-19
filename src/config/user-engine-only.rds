@@ -1,0 +1,22 @@
+# ===============================================================
+# user-engine-only.rds
+#
+# Project: Revolution Now
+#
+# Created by David P. Sicilia on 2025-06-17.
+#
+# Description: Instantiates the user level config.
+#
+# ===============================================================
+# config
+include "user.rds.hpp"
+
+namespace "rn"
+
+# NOTE: the instantiation of this config object is in this module
+# because, for normal usage by game code, this config structure
+# should not be read directly but should be read via the engine
+# interface because its values need to be read in from a file. It
+# is hoped that putting it here will prevent normal game code
+# from accidentally accessing it directly.
+config.user {}
