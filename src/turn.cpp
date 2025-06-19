@@ -425,6 +425,15 @@ void recompute_fog_for_all_players( SS& ss, TS& ts ) {
       recompute_fog_for_player( ss, ts, player );
 }
 
+wait<> declare( SS& ss, TS& ts, Player& player ) {
+  co_await declare_independence_ui_sequence_pre(
+      ss.as_const, ts, as_const( player ) );
+  DeclarationResult const decl_res =
+      declare_independence( ss, ts, player );
+  co_await declare_independence_ui_sequence_post(
+      ss.as_const, ts, as_const( player ), decl_res );
+}
+
 /****************************************************************
 ** Common Player Input Handling.
 *****************************************************************/
@@ -515,12 +524,7 @@ wait<> menu_handler( IEngine& engine, SS& ss, TS& ts,
       ui::e_confirm const answer =
           co_await ask_declare( ts.gui, player );
       if( answer != ui::e_confirm::yes ) break;
-      co_await declare_independence_ui_sequence_pre(
-          ss.as_const, ts, as_const( player ) );
-      DeclarationResult const decl_res =
-          declare_independence( ss, ts, player );
-      co_await declare_independence_ui_sequence_post(
-          ss.as_const, ts, as_const( player ), decl_res );
+      co_await declare( ss, ts, player );
       break;
     }
     case e_menu_item::harbor_view: {
@@ -854,8 +858,8 @@ wait<> query_unit_input( IEngine& engine, UnitId id, SS& ss,
   auto command = co_await co::first(
       wait_for_menu_selection( ts.planes.get().menu ),
       landview_player_input( ss, ts, nat_units, id ) );
-  co_await visit( command, [&]( auto const& action ) {
-    return process_player_input_normal_mode(
+  co_await visit( command, [&]( auto const& action ) -> wait<> {
+    co_await process_player_input_normal_mode(
         engine, id, action, ss, ts, player, nat_units );
   } );
   // A this point we should return because we want to in general
