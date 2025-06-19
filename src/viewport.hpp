@@ -27,6 +27,7 @@
 
 namespace rn {
 
+struct IEngine;
 struct Viewport;
 struct TerrainState;
 
@@ -34,7 +35,8 @@ struct TerrainState;
 struct ViewportController {
   bool operator==( ViewportController const& ) const;
 
-  ViewportController( TerrainState const& terrain,
+  ViewportController( IEngine& engine,
+                      TerrainState const& terrain,
                       Viewport& viewport,
                       gfx::rect viewport_rect_pixels );
 
@@ -209,6 +211,7 @@ struct ViewportController {
 
   // ==================== Serialized Fields =====================
 
+  IEngine& engine_;
   TerrainState const& terrain_;
   Viewport& o_;
 

@@ -15,6 +15,8 @@
 
 // Testing
 #include "test/fake/world.hpp"
+#include "test/mocks/iengine.hpp"
+#include "test/mocks/render/irenderer.hpp"
 
 // ss
 #include "ss/land-view.rds.hpp"
@@ -38,7 +40,16 @@ using ::gfx::size;
 *****************************************************************/
 struct World : testing::World {
   using Base = testing::World;
-  World() : Base() { add_default_player(); }
+  World() : Base() {
+    add_default_player();
+
+    engine().EXPECT__renderer_settings().by_default().returns(
+        renderer_settings_ );
+    renderer_settings_.EXPECT__render_framebuffer_mode()
+        .by_default()
+        .returns(
+            rr::e_render_framebuffer_mode::direct_to_screen );
+  }
 
   void create_map( Delta size ) {
     MapSquare const L = make_grassland();
@@ -47,6 +58,8 @@ struct World : testing::World {
       tiles.push_back( L );
     build_map( std::move( tiles ), size.w );
   }
+
+  rr::MockRendererSettings renderer_settings_;
 };
 
 /****************************************************************
@@ -59,7 +72,7 @@ TEST_CASE( "[mini-map] 7x7 map, 5x5 mini-map, 3x3 viewport" ) {
   rect const viewport_rect_pixels{
     .size = size{ .w = 3, .h = 3 } * 32 };
   W.create_map( world_size_tiles );
-  ViewportController viewport( W.terrain(),
+  ViewportController viewport( W.engine(), W.terrain(),
                                W.land_view().viewport,
                                viewport_rect_pixels );
   MiniMap mm( W.ss(), viewport,
@@ -185,7 +198,7 @@ TEST_CASE( "[mini-map] drag_box" ) {
   rect const viewport_rect_pixels{
     .size = size{ .w = 3, .h = 3 } * 32 };
   W.create_map( world_size_tiles );
-  ViewportController viewport( W.terrain(),
+  ViewportController viewport( W.engine(), W.terrain(),
                                W.land_view().viewport,
                                viewport_rect_pixels );
   MiniMap mm( W.ss(), viewport,
@@ -322,7 +335,7 @@ TEST_CASE( "[mini-map] drag_box viewport larger than map" ) {
   rect const viewport_rect_pixels{
     .size = size{ .w = 6, .h = 6 } * 32 };
   W.create_map( world_size_tiles );
-  ViewportController viewport( W.terrain(),
+  ViewportController viewport( W.engine(), W.terrain(),
                                W.land_view().viewport,
                                viewport_rect_pixels );
   MiniMap mm( W.ss(), viewport,
@@ -421,7 +434,7 @@ TEST_CASE( "[mini-map] drag_map" ) {
   rect const viewport_rect_pixels{
     .size = size{ .w = 3, .h = 3 } * 32 };
   W.create_map( world_size_tiles );
-  ViewportController viewport( W.terrain(),
+  ViewportController viewport( W.engine(), W.terrain(),
                                W.land_view().viewport,
                                viewport_rect_pixels );
   MiniMap mm( W.ss(), viewport,
@@ -566,7 +579,7 @@ TEST_CASE( "[mini-map] drag_map large viewport" ) {
   rect const viewport_rect_pixels{
     .size = size{ .w = 9, .h = 9 } * 32 };
   W.create_map( world_size_tiles );
-  ViewportController viewport( W.terrain(),
+  ViewportController viewport( W.engine(), W.terrain(),
                                W.land_view().viewport,
                                viewport_rect_pixels );
   MiniMap mm( W.ss(), viewport,
@@ -641,7 +654,7 @@ TEST_CASE( "[mini-map] auto pan with small viewport" ) {
   rect const viewport_rect_pixels{
     .size = size{ .w = 3, .h = 3 } * 32 };
   W.create_map( world_size_tiles );
-  ViewportController viewport( W.terrain(),
+  ViewportController viewport( W.engine(), W.terrain(),
                                W.land_view().viewport,
                                viewport_rect_pixels );
   MiniMap mm( W.ss(), viewport,

@@ -213,7 +213,7 @@ struct LandViewPlane::Impl : public IPlane {
       ss_( ss ),
       ts_( ts ),
       viz_( create_visibility_for( ss, nothing ) ),
-      viewport_( ss.terrain, ss.land_view.viewport,
+      viewport_( engine_, ss.terrain, ss.land_view.viewport,
                  viewport_rect_pixels() ),
       animator_( engine_.sfx(), ss, viewport_, viz_ ) {
     set_visibility( player );

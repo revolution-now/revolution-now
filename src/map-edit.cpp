@@ -160,7 +160,7 @@ struct MapEditPlane::Impl : public IPlane {
     : engine_( engine ),
       ss_( ss ),
       ts_( ts ),
-      viewport_( ss.terrain, ss.land_view.viewport,
+      viewport_( engine_, ss.terrain, ss.land_view.viewport,
                  viewport_rect_pixels() ),
       input_{},
       selected_tool_{} {
