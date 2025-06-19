@@ -47,5 +47,17 @@ graphics {
   #    of 1) enabling post processing, and 2) enforcing strict
   #    pixel sizes over the entire screen.
   #
+  # The value offscreen_with_logical_resolution is chosen as the
+  # default value because of two reasons: 1) it improves ren-
+  # dering performance by reducing load on the fragment shader,
+  # and 2) it helps to maintain a consistent pixelated aesthetic.
   render_framebuffer_mode: offscreen_with_logical_resolution
+}
+
+# This refers to the camera that views the map.
+camera {
+  # By default the maximum zoom (in) is 1.0, i.e. the standard
+  # zoom. But if this is true then the player is allowed to zoom
+  # in further, up to the value indicated by zoom_log2_max.
+  can_zoom_positive: false
 }

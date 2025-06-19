@@ -31,6 +31,10 @@ struct IEngine;
 struct Viewport;
 struct TerrainState;
 
+// FIXME: Since this module has become a mess, we should plan to
+// migrate/rewrite its functionality gradually into the camera
+// module with unit tests, progress on which has already begun.
+
 // This viewport also knows where it is located on screen.
 struct ViewportController {
   bool operator==( ViewportController const& ) const;

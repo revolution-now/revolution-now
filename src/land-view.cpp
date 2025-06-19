@@ -15,6 +15,7 @@
 
 // Revolution Now
 #include "anim-builders.hpp"
+#include "camera.hpp"
 #include "cheat.hpp"
 #include "co-combinator.hpp"
 #include "co-time.hpp"
@@ -140,6 +141,7 @@ struct LandViewPlane::Impl : public IPlane {
   TS& ts_;
   unique_ptr<IVisibility const> viz_;
   ViewportController viewport_;
+  Camera camera_;
   LandViewAnimator animator_;
 
   vector<IMenuServer::Deregistrar> dereg;
@@ -215,6 +217,7 @@ struct LandViewPlane::Impl : public IPlane {
       viz_( create_visibility_for( ss, nothing ) ),
       viewport_( engine_, ss.terrain, ss.land_view.viewport,
                  viewport_rect_pixels() ),
+      camera_( engine_.user_config(), ss.land_view.viewport ),
       animator_( engine_.sfx(), ss, viewport_, viz_ ) {
     set_visibility( player );
     CHECK( viz_ != nullptr );
@@ -1013,28 +1016,21 @@ struct LandViewPlane::Impl : public IPlane {
           break;
         }
         switch( key_event.keycode ) {
-          case ::SDLK_z: {
-            if( key_event.mod.shf_down )
-              viewport().smooth_zoom_target(
-                  viewport().optimal_min_zoom() );
-            else {
-              // If the map surroundings are visible then that
-              // means that we are significantly zoomed out, so
-              // it is likely that, when zooming in, the user
-              // will want to zoom in on the current blinking
-              // unit.
-              bool const center_on_tile =
-                  viewport().are_surroundings_visible();
-              viewport().smooth_zoom_target( 1.0 );
-              if( center_on_tile ) {
-                auto const tile = find_tile_to_center_on();
-                if( tile.has_value() )
-                  viewport().set_point_seek(
-                      viewport()
-                          .world_tile_to_world_pixel_center(
-                              Coord::from_gfx( *tile ) ) );
-              }
+          case ::SDLK_x: {
+            {
+              camera_.zoom_out();
             }
+            viewport().fix_invariants();
+            break;
+          }
+          case ::SDLK_z: {
+            {
+              camera_.zoom_in();
+              auto const tile = find_tile_to_center_on();
+              if( tile.has_value() )
+                camera_.center_on_tile( *tile );
+            }
+            viewport().fix_invariants();
             break;
           }
           case ::SDLK_F1:

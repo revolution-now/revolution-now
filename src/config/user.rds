@@ -22,12 +22,18 @@ struct.Graphics {
   render_framebuffer_mode 'rr::e_render_framebuffer_mode',
 }
 
+struct.Camera {
+  can_zoom_positive 'bool',
+}
+
 namespace "rn"
 
 struct.config_user_t {
   game_saving 'config::user::GameSaving',
 
   graphics 'config::user::Graphics',
+
+  camera 'config::user::Camera',
 
   _features { equality, validation }
 }

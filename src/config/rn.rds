@@ -28,6 +28,8 @@ struct.main_window {
   title 'std::string',
 }
 
+# TODO: get rid of this after it is fully migrated to
+# config/land-view.
 struct.viewport {
   pan_speed 'double',
   # This is not the min zoom exactly, it is the factor that the

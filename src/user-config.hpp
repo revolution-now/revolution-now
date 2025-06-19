@@ -54,9 +54,13 @@ struct UserConfig : IUserConfig {
   void load_from_defaults();
 
   struct SettingsFile {
+    int const gaps_filled = {};
     std::string path;
     config_user_t last_snapshot;
   };
+
+  static base::expect<SettingsFile> load_from_file(
+      std::string const& path );
 
   std::optional<SettingsFile> settings_file_;
   // This class enforces an invariant where config_.validate()

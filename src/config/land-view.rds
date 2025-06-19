@@ -35,6 +35,13 @@ struct.MiniMap {
   show_sea_lane 'bool',
 }
 
+struct.Camera {
+  zoom_log2_min 'double',
+  zoom_log2_max 'double',
+
+  _features { equality, validation }
+}
+
 namespace "rn"
 
 struct.config_land_view_t {
@@ -44,6 +51,8 @@ struct.config_land_view_t {
   input_overrun_detection 'config::land_view::InputOverrunDetection',
 
   mini_map 'config::land_view::MiniMap',
+
+  camera 'config::land_view::Camera',
 }
 
 config.land_view {}

@@ -104,51 +104,6 @@ valid_or<string> flush_impl( config_user_t const& conf,
   return valid;
 }
 
-expect<config_user_t> load_from_file( string const& path ) {
-  lg.info( "loading user settings from file {}.", path );
-  auto const rcl_str = base::read_text_file_as_string( path );
-  if( !rcl_str )
-    return error_read_text_file_msg( path, rcl_str.error() );
-  UNWRAP_RETURN( rcl_doc, rcl::parse( path, *rcl_str ) );
-  auto user_tbl = rcl_doc.top_tbl();
-  {
-    cdr::value const static_val =
-        cdr::run_conversion_to_canonical(
-            config_user,
-            cdr::converter::options{
-              .write_fields_with_default_value = true } );
-    UNWRAP_CHECK_T( cdr::table const& static_tbl,
-                    static_val.get_if<cdr::table>() );
-    if( int const num_missing =
-            cdr::right_join( user_tbl, static_tbl );
-        num_missing > 0 )
-      lg.warn(
-          "filled in {} fields which were not present in user "
-          "settings file with their default values.",
-          num_missing );
-  }
-  cdr::value val( std::move( user_tbl ) );
-
-  cdr::converter::options const options{
-    .allow_unrecognized_fields = true,
-    // It's important that this be false because the default con-
-    // structed values of the fields are not necessarily the cor-
-    // rect default values. This will cause a failure if we are
-    // missing a field. However, we should not be missing a field
-    // because we should have filled in missing fields with their
-    // default values with the table merge above. So this we will
-    // find any problems with that process.
-    .default_construct_missing_fields = false,
-  };
-  // Once again just because it is important.
-  CHECK( options.default_construct_missing_fields == false );
-  UNWRAP_RETURN(
-      config, cdr::run_conversion_from_canonical<config_user_t>(
-                  val, options ) );
-  HAS_VALUE_OR_RET( config.validate() );
-  return std::move( config );
-}
-
 } // namespace
 
 /****************************************************************
@@ -173,7 +128,9 @@ bool UserConfig::modify( function_ref<WriteFn> const fn ) {
 
 valid_or<string> UserConfig::flush() {
   if( !settings_file_.has_value() ) return valid;
-  if( config_ == settings_file_->last_snapshot ) return valid;
+  if( config_ == settings_file_->last_snapshot &&
+      settings_file_->gaps_filled == 0 )
+    return valid;
   if( auto const ok =
           flush_impl( config_, settings_file_->path );
       !ok )
@@ -181,6 +138,57 @@ valid_or<string> UserConfig::flush() {
                    settings_file_->path, ok.error() );
   settings_file_->last_snapshot = config_;
   return valid;
+}
+
+auto UserConfig::load_from_file( string const& path )
+    -> expect<SettingsFile> {
+  lg.info( "loading user settings from file {}.", path );
+  auto const rcl_str = base::read_text_file_as_string( path );
+  if( !rcl_str )
+    return error_read_text_file_msg( path, rcl_str.error() );
+  UNWRAP_RETURN( rcl_doc, rcl::parse( path, *rcl_str ) );
+  auto user_tbl = rcl_doc.top_tbl();
+
+  int const num_missing = [&] {
+    cdr::value const static_val =
+        cdr::run_conversion_to_canonical(
+            config_user,
+            cdr::converter::options{
+              .write_fields_with_default_value = true } );
+    UNWRAP_CHECK_T( cdr::table const& static_tbl,
+                    static_val.get_if<cdr::table>() );
+    int const num_missing =
+        cdr::right_join( user_tbl, static_tbl );
+    return num_missing;
+  }();
+  if( num_missing > 0 )
+    lg.warn(
+        "filled in {} fields which were not present in user "
+        "settings file with their default values.",
+        num_missing );
+
+  cdr::value val( std::move( user_tbl ) );
+
+  cdr::converter::options const options{
+    .allow_unrecognized_fields = true,
+    // It's important that this be false because the default con-
+    // structed values of the fields are not necessarily the cor-
+    // rect default values. This will cause a failure if we are
+    // missing a field. However, we should not be missing a field
+    // because we should have filled in missing fields with their
+    // default values with the table merge above. So this we will
+    // find any problems with that process.
+    .default_construct_missing_fields = false,
+  };
+  // Once again just because it is important.
+  CHECK( options.default_construct_missing_fields == false );
+  UNWRAP_RETURN(
+      config, cdr::run_conversion_from_canonical<config_user_t>(
+                  val, options ) );
+  HAS_VALUE_OR_RET( config.validate() );
+  return SettingsFile{ .gaps_filled   = num_missing,
+                       .path          = path,
+                       .last_snapshot = std::move( config ) };
 }
 
 valid_or<string> UserConfig::try_bind_to_file(
@@ -194,10 +202,14 @@ valid_or<string> UserConfig::try_bind_to_file(
       return format(
           "failed to bind to user settings file {}: {}", path,
           ok.error() );
+    settings_file_.emplace(
+        SettingsFile{ .gaps_filled   = 0,
+                      .path          = path,
+                      .last_snapshot = config_ } );
   } else {
     // The user settings file already exists.
-    auto const conf = load_from_file( path );
-    if( !conf )
+    auto const settings_file = load_from_file( path );
+    if( !settings_file )
       // We could rewrite the defaults here, but there's probably
       // no point because if we do that then we'll just be using
       // the defaults for this game session, which we are now
@@ -206,18 +218,11 @@ valid_or<string> UserConfig::try_bind_to_file(
       return format(
           "failed to load from existing user settings file {}: "
           "{}",
-          path, conf.error() );
-    config_ = std::move( *conf );
+          path, settings_file.error() );
+    settings_file_.emplace( std::move( *settings_file ) );
   }
-  // Even though we may have supplied some default values to plug
-  // some missing fields (which might happen either because the
-  // user commented them out, or they are using an older version
-  // of the user settings file relative to the version of the
-  // game) it is still ok to set the last snapshot to config_ be-
-  // cause what is in the file is still compatible with what we
-  // now have in memory.
-  settings_file_ =
-      SettingsFile{ .path = path, .last_snapshot = config_ };
+  CHECK( settings_file_.has_value() );
+  config_ = settings_file_->last_snapshot;
   return valid;
 }
 

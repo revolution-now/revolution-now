@@ -44,7 +44,7 @@ struct.Viewport {
 }
 
 struct.LandViewState {
-  viewport 'Viewport',
+  viewport 'Viewport', # TODO: migrate to Camera.
 
   minimap 'MiniMapState',
 

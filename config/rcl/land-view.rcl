@@ -45,3 +45,9 @@ mini_map {
   # to turn it on.
   show_sea_lane: false
 }
+
+camera {
+  # Min/max zoom levels expressed in log base 2.
+  zoom_log2_min: -8
+  zoom_log2_max:  4
+}

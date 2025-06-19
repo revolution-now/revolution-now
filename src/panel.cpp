@@ -277,6 +277,7 @@ struct PanelPlane::Impl : public IPlane {
     typer.newline();
     typer.write( "Royal Money: {}{}\n", player.royal_money,
                  config_text.special_chars.currency );
+    typer.write( "Zoom: {}\n", ss_.land_view.viewport.zoom );
   }
 
   void draw( rr::Renderer& renderer ) const override {
