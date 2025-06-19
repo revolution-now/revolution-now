@@ -425,7 +425,7 @@ struct Engine::Impl {
         "Game PAUSED - Press the Pause key to resume.",
         oriented_point{ .anchor    = center,
                         .placement = e_cdirection::c },
-        pixel::banana(), pixel::black(),
+        pixel::banana(), pixel::wood().shaded( 8 ),
         /*padding=*/4,
         /*draw_corners=*/false );
   }
