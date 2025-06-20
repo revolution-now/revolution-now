@@ -1181,18 +1181,21 @@ struct LandViewPlane::Impl : public IPlane {
                 RawInput( LandViewRawInput::center{} ) );
             break;
           case ::SDLK_d:
-            if( !key_event.mod.shf_down ) break;
-            // Note: shift key down.
-            if( mode_.holds<LandViewMode::view_mode>() ||
-                mode_.holds<LandViewMode::end_of_turn>() )
-              raw_input_stream_.send(
-                  RawInput( LandViewRawInput::cmd{
-                    .what = command::disband{
-                      .tile = white_box_tile( ss_ ) } } ) );
-            else if( mode_.holds<LandViewMode::unit_input>() )
-              raw_input_stream_.send(
-                  RawInput( LandViewRawInput::cmd{
-                    .what = command::disband{} } ) );
+            if( !key_event.mod.shf_down ) {
+              // No shift.
+              if( mode_.holds<LandViewMode::unit_input>() )
+                raw_input_stream_.send(
+                    RawInput( LandViewRawInput::cmd{
+                      .what = command::disband{} } ) );
+            } else {
+              // shift key down.
+              if( mode_.holds<LandViewMode::view_mode>() ||
+                  mode_.holds<LandViewMode::end_of_turn>() )
+                raw_input_stream_.send(
+                    RawInput( LandViewRawInput::cmd{
+                      .what = command::disband{
+                        .tile = white_box_tile( ss_ ) } } ) );
+            }
             break;
           case ::SDLK_h:
             if( !key_event.mod.shf_down ) break;
