@@ -16,21 +16,15 @@
 // Testing.
 #include "test/fake/world.hpp"
 
-// Revolution Now
-#include "src/unit-ownership.hpp"
-
 // ss
 #include "src/ss/land-view.rds.hpp"
 #include "src/ss/ref.hpp"
-#include "src/ss/unit-composition.hpp"
-#include "src/ss/unit.hpp"
 
 // refl
 #include "src/refl/to-str.hpp"
 
 // Must be last.
 #include "test/catch-common.hpp" // IWYU pragma: keep
-#include "unit-ownership.hpp"
 
 namespace rn {
 namespace {
@@ -93,60 +87,65 @@ TEST_CASE( "[white-box] set_white_box_tile" ) {
 TEST_CASE( "[white-box] find_a_good_white_box_location" ) {
   world w;
   rect covered_tiles;
-  maybe<UnitId> last_unit_input;
   point expected;
 
   auto f = [&] {
-    return find_a_good_white_box_location(
-        w.ss(), last_unit_input, covered_tiles );
+    return find_a_good_white_box_location( w.ss(),
+                                           covered_tiles );
   };
+
+  set_white_box_tile( w.ss(), point{ .x = 0, .y = 0 } );
 
   // default.
   expected = {};
   REQUIRE( f() == expected );
 
-  // No visible white box and no unit.
-  covered_tiles = rect{ .origin = { .x = 3, .y = 4 },
-                        .size   = { .w = 4, .h = 6 } };
-  expected      = { .x = 5, .y = 7 };
+  // No visible white box.
+  covered_tiles = { .origin = { .x = 3, .y = 4 },
+                    .size   = { .w = 6, .h = 8 } };
+  expected      = { .x = 6, .y = 8 };
   REQUIRE( f() == expected );
 
-  // With unit, not visible.
-  UnitId const unit_id =
-      w.add_unit_on_map( e_unit_type::free_colonist,
-                         point{ .x = 1, .y = 2 } )
-          .id();
-  last_unit_input = unit_id;
-  expected        = { .x = 5, .y = 7 };
+  // On the edge, not visible.
+  set_white_box_tile( w.ss(), point{ .x = 2, .y = 3 } );
+  covered_tiles = { .origin = { .x = 3, .y = 4 },
+                    .size   = { .w = 6, .h = 8 } };
+  expected      = { .x = 6, .y = 8 };
   REQUIRE( f() == expected );
 
-  // With unit, visible.
-  covered_tiles = rect{ .origin = { .x = 1, .y = 1 },
-                        .size   = { .w = 4, .h = 6 } };
-  expected      = { .x = 1, .y = 2 };
+  // Getting closer.
+  set_white_box_tile( w.ss(), point{ .x = 3, .y = 4 } );
+  covered_tiles = { .origin = { .x = 3, .y = 4 },
+                    .size   = { .w = 6, .h = 8 } };
+  expected      = { .x = 6, .y = 8 };
   REQUIRE( f() == expected );
 
-  // With unit, visible, and visible white box.
-  set_white_box_tile( w.ss(), { .x = 2, .y = 4 } );
-  covered_tiles = rect{ .origin = { .x = 1, .y = 1 },
-                        .size   = { .w = 4, .h = 6 } };
-  expected      = { .x = 2, .y = 4 };
+  // Inside.
+  set_white_box_tile( w.ss(), point{ .x = 4, .y = 5 } );
+  covered_tiles = { .origin = { .x = 3, .y = 4 },
+                    .size   = { .w = 6, .h = 8 } };
+  expected      = { .x = 4, .y = 5 };
   REQUIRE( f() == expected );
 
-  // Omit unit.
-  last_unit_input = nothing;
-  expected        = { .x = 2, .y = 4 };
+  // Inside.
+  set_white_box_tile( w.ss(), point{ .x = 5, .y = 6 } );
+  covered_tiles = { .origin = { .x = 3, .y = 4 },
+                    .size   = { .w = 6, .h = 8 } };
+  expected      = { .x = 5, .y = 6 };
   REQUIRE( f() == expected );
 
-  // With unit that doesn't exist.
-  last_unit_input = unit_id;
-  UnitOwnershipChanger( w.ss(), unit_id ).destroy();
-  expected = { .x = 2, .y = 4 };
+  // Inside.
+  set_white_box_tile( w.ss(), point{ .x = 6, .y = 7 } );
+  covered_tiles = { .origin = { .x = 3, .y = 4 },
+                    .size   = { .w = 6, .h = 8 } };
+  expected      = { .x = 6, .y = 7 };
   REQUIRE( f() == expected );
 
-  // Move white box out of visibility.
-  set_white_box_tile( w.ss(), point{} );
-  expected = { .x = 3, .y = 4 };
+  // Not inside.
+  set_white_box_tile( w.ss(), point{ .x = 7, .y = 8 } );
+  covered_tiles = { .origin = { .x = 3, .y = 4 },
+                    .size   = { .w = 6, .h = 8 } };
+  expected      = { .x = 6, .y = 8 };
   REQUIRE( f() == expected );
 }
 

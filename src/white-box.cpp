@@ -12,13 +12,9 @@
 *****************************************************************/
 #include "white-box.hpp"
 
-// Revolution Now
-#include "unit-mgr.hpp"
-
 // ss
 #include "ss/land-view.rds.hpp"
 #include "ss/ref.hpp"
-#include "ss/units.hpp"
 
 using namespace std;
 
@@ -49,30 +45,25 @@ void set_white_box_tile( SS& ss, point const tile ) {
 }
 
 point find_a_good_white_box_location(
-    SSConst const& ss, base::maybe<UnitId> const last_unit_input,
-    rect const covered_tiles ) {
+    SSConst const& ss, rect const covered_tiles ) {
   point res;
 
-  auto tile_visible = [&]( point const p ) {
+  auto tile_visible = [&] {
     // The dec-size is needed otherwise the tiles just to the
     // right and under the viewport will be considered visible.
-    return p.is_inside( covered_tiles.with_dec_size() );
+    // Then remove one extra layer of border all around to get
+    // rid of any partial tiles on the top or left.
+    return res.is_inside(
+        covered_tiles.with_dec_size().with_edges_removed() );
   };
 
   // Try #1
   res = white_box_tile( ss );
-  if( tile_visible( res ) ) return res;
+  if( tile_visible() ) return res;
 
-  // Try #2
-  if( last_unit_input.has_value() ) {
-    UnitId const last_unit_id = *last_unit_input;
-    if( ss.units.exists( last_unit_id ) ) {
-      auto const unit_tile =
-          coord_for_unit_multi_ownership( ss, last_unit_id );
-      if( unit_tile.has_value() ) { res = *unit_tile; }
-    }
-  }
-  if( tile_visible( res ) ) return res;
+  // Try others...
+  // res = ...
+  // if( tile_visible( res ) ) return res;
 
   // Last resort.
   res = covered_tiles.center();

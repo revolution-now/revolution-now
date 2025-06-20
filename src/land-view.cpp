@@ -1442,7 +1442,7 @@ struct LandViewPlane::Impl : public IPlane {
         anim_seq_for_hidden_terrain( ss_, *viz_, ts_.rand );
 
     auto const tile = find_a_good_white_box_location(
-        ss_, last_unit_input_id(), viewport_.covered_tiles() );
+        ss_, viewport_.covered_tiles() );
 
     co_await co::first(
         animator_.animate_sequence( seq.hide ),
@@ -1515,8 +1515,7 @@ struct LandViewPlane::Impl : public IPlane {
         options.initial_tile.has_value()
             ? *options.initial_tile
             : find_a_good_white_box_location(
-                  ss_, last_unit_input_id(),
-                  viewport_.covered_tiles() );
+                  ss_, viewport_.covered_tiles() );
     // Now that we've extracted potential info from this, reset
     // it since the fact that we're changing modes means that we
     // don't want the continuity behavior when we exit this mode
@@ -1638,6 +1637,18 @@ struct LandViewPlane::Impl : public IPlane {
     last_unit_input_->window_count =
         ts_.gui.total_windows_created();
 
+    // The reason we are setting it here is so that if the player
+    // enters view mode while the unit is blinking it will select
+    // that square when it runs though the logic to find a suit-
+    // able square for the white box (assuming that the unit is
+    // visible). NOTE: We use this method directly to set the
+    // white box position (which is not normally how we set it
+    // when it is visible; to do that we feed the position into
+    // the stream so that the coro can update the animation
+    // state) because we are setting it when it is not visible.
+    set_white_box_tile(
+        ss_, coord_for_unit_indirect_or_die( ss_.units, id ) );
+
     // Run the blinker while waiting for user input. The question
     // is, do we want the blinking to start "on" or "off"? The
     // idea is that we want to start it off in the opposite vi-
@@ -1667,8 +1678,7 @@ struct LandViewPlane::Impl : public IPlane {
     last_unit_input_ = nothing;
     SCOPED_SET_AND_RESTORE( mode_, LandViewMode::end_of_turn{} );
     point const initial_tile = find_a_good_white_box_location(
-        ss_, /*last_unit_input=*/nothing,
-        viewport_.covered_tiles() );
+        ss_, viewport_.covered_tiles() );
     co_return co_await white_box_input_loop( initial_tile );
   }
 
