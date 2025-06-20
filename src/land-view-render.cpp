@@ -246,9 +246,19 @@ void LandViewRenderer::render_single_unit_depixelate_to(
   UnitFlagRenderInfo const flag_info =
       euro_unit_flag_render_info( unit, viz_->player(),
                                   flag_options );
-  UnitFlagRenderInfo const target_flag_info =
-      euro_unit_type_flag_info( target_type, unit.orders(),
-                                unit.player_type() );
+  auto const target_flag_info =
+      [&]() -> maybe<UnitFlagRenderInfo> {
+    UnitFlagRenderInfo info = euro_unit_type_flag_info(
+        target_type, unit.orders(), unit.player_type() );
+    // If the source/target units have their flags in different
+    // places then the depixelation looks strange because one
+    // flag depixelates and another enpixelates. This will tem-
+    // porarily make the target unit's flag the same as the
+    // source unit's for the duration of the animation.
+    if( info.offsets != flag_info.offsets )
+      info.offsets = flag_info.offsets;
+    return info;
+  }();
 
   render_unit_depixelate_to(
       renderer_, where, unit, target_type, stage,

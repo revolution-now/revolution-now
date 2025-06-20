@@ -183,11 +183,18 @@ void render_unit_with_tile( rr::Renderer& renderer, Coord where,
     // opacity so that both the flag contents can be seen as well
     // as the part of the sprite that would have been hidden. At
     // the time of writing this is only used for the Man-o-War,
-    // but seems to make it look a bit better.
-    render_unit_flag( renderer, where, *options.flag );
-    render_unit_no_flag( renderer, where, tile, options );
-    {
-      SCOPED_RENDERER_MOD_MUL( painter_mods.alpha, .5 );
+    // but seems to make it look a bit better. That said, this
+    // effect only looks good when there is a single flag, i.e.
+    // not a stack of units.
+    if( !options.flag->stacked ) {
+      render_unit_flag( renderer, where, *options.flag );
+      render_unit_no_flag( renderer, where, tile, options );
+      {
+        SCOPED_RENDERER_MOD_MUL( painter_mods.alpha, .5 );
+        render_unit_flag( renderer, where, *options.flag );
+      }
+    } else {
+      render_unit_no_flag( renderer, where, tile, options );
       render_unit_flag( renderer, where, *options.flag );
     }
   }
