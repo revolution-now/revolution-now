@@ -133,6 +133,36 @@ v: [
   {
     resolution {
       logical {
+        h: 300
+        w: 480
+      }
+      named: _480x300
+      physical_window {
+        h: 2160
+        w: 3840
+      }
+      pixel_size: 0.9260416666666665
+      scale: 7
+      viewport {
+        origin {
+          x: 240
+          y: 30
+        }
+        size {
+          h: 2100
+          w: 3360
+        }
+      }
+    }
+    scores {
+      fitting: 0.96
+      overall: 0.8
+      pixel_size: 0.83
+    }
+  },
+  {
+    resolution {
+      logical {
         h: 450
         w: 720
       }

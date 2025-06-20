@@ -41,6 +41,8 @@ unordered_map<size, e_resolution> const
 *****************************************************************/
 size resolution_size( e_resolution const r ) {
   switch( r ) {
+    case e_resolution::_480x300:
+      return { .w = 480, .h = 300 };
     case e_resolution::_640x360:
       return { .w = 640, .h = 360 };
     case e_resolution::_640x400:

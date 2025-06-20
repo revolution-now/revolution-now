@@ -52,6 +52,36 @@ scored: [
   {
     resolution {
       logical {
+        h: 300
+        w: 480
+      }
+      named: _480x300
+      physical_window {
+        h: 1080
+        w: 1920
+      }
+      pixel_size: 0.7937499999999998
+      scale: 3
+      viewport {
+        origin {
+          x: 240
+          y: 90
+        }
+        size {
+          h: 900
+          w: 1440
+        }
+      }
+    }
+    scores {
+      fitting: 0.88
+      overall: 0.88
+      pixel_size: 1
+    }
+  },
+  {
+    resolution {
+      logical {
         h: 400
         w: 960
       }
