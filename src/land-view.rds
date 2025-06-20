@@ -48,7 +48,7 @@ sumtype.LandViewPlayerInput {
   # When in mid-turn, this allows entering "view mode", which is
   # the mode where you can move a white selection square around
   # the map to inspect tiles.
-  toggle_view_mode {
+  view_mode {
     options 'ViewModeOptions',
   },
 
@@ -59,11 +59,14 @@ sumtype.LandViewPlayerInput {
 
   # This would be sent from either eot mode or view mode, and
   # tells the turn processor to go back to asking units for or-
-  # ders, prioritizing any of the player's units that are on the
-  # given tile if there are any (if not, then ask any unit that
-  # is still available).
+  # ders, if there are any that are still able.
+  move_mode {},
+
+  # This would be sent from either eot mode or view mode, and
+  # tells the turn processor to go back to asking units for or-
+  # ders, prioritizing the given unit.
   activate {
-    tile 'gfx::point',
+    unit 'UnitId',
   },
 
   # Prioritize these units and make them ask for commands now,

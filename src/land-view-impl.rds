@@ -54,7 +54,7 @@ sumtype.LandViewRawInput {
   center {}, # Center on blinking unit, if any.
   next_turn {},
   hidden_terrain {},
-  toggle_view_mode {
+  view_mode {
     options 'ViewModeOptions',
   },
   european_status {},
@@ -65,6 +65,7 @@ sumtype.LandViewRawInput {
   activate {
     tile 'gfx::point',
   },
+  move_mode {},
   context_menu {
     where 'gfx::point',
     tile 'gfx::point',

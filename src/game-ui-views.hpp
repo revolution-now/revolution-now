@@ -44,9 +44,10 @@ class UnitActivationView final : public ui::CompositeSingleView {
   // Preferred way to create.
   static std::unique_ptr<UnitActivationView> Create(
       rr::ITextometer const& textometer, SSConst const& ss,
-      std::vector<UnitId> const& ids_ );
+      std::vector<UnitId> const& ids_,
+      UnitActivationOptions const& opts = {} );
 
-  UnitActivationView();
+  UnitActivationView( UnitActivationOptions const& opts );
 
   // Implement CompositeView
   void notify_children_updated() override {}
@@ -56,6 +57,7 @@ class UnitActivationView final : public ui::CompositeSingleView {
  private:
   void on_click_unit( UnitId id );
 
+  UnitActivationOptions const opts_;
   map_t info_map_;
 };
 

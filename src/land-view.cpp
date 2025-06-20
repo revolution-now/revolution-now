@@ -207,7 +207,9 @@ struct LandViewPlane::Impl : public IPlane {
     dereg.push_back( menu_server.register_handler(
         e_menu_item::hidden_terrain, *this ) );
     dereg.push_back( menu_server.register_handler(
-        e_menu_item::toggle_view_mode, *this ) );
+        e_menu_item::view_mode, *this ) );
+    dereg.push_back( menu_server.register_handler(
+        e_menu_item::move, *this ) );
   }
 
   Impl( IEngine& engine, SS& ss, TS& ts, maybe<e_player> player )
@@ -342,7 +344,9 @@ struct LandViewPlane::Impl : public IPlane {
       } else {
         selections = co_await unit_selection_box(
             engine_.textometer(), ss_, ts_.planes.get().window,
-            units );
+            units,
+            UnitActivationOptions{ .allow_prioritizing_multiple =
+                                       true } );
       }
 
       vector<UnitId> prioritize;
@@ -391,7 +395,7 @@ struct LandViewPlane::Impl : public IPlane {
     };
 
     if( mode_.holds<LandViewMode::unit_input>() ) {
-      add( LandViewPlayerInput::toggle_view_mode{
+      add( LandViewPlayerInput::view_mode{
         .options = ViewModeOptions{ .initial_tile = tile } } );
       co_return res;
     }
@@ -442,14 +446,70 @@ struct LandViewPlane::Impl : public IPlane {
     co_return res;
   }
 
-  static vector<LandViewPlayerInput> activate_tile(
+  wait<maybe<LandViewPlayerInput>> activate_tile(
       point const tile ) {
-    vector<LandViewPlayerInput> res;
-    auto& activate =
-        res.emplace_back()
-            .emplace<LandViewPlayerInput::activate>();
-    activate.tile = tile;
-    return res;
+    maybe<LandViewPlayerInput> res;
+
+    maybe<e_player> const player =
+        player_for_role( ss_, e_player_role::active );
+    if( !player ) co_return res;
+
+    auto const units = [&] {
+      auto res =
+          euro_units_from_coord_recursive( ss_.units, tile );
+      erase_if( res, [&]( UnitId const id ) {
+        return ss_.units.unit_for( id ).player_type() != *player;
+      } );
+      return res;
+    }();
+
+    if( units.empty() ) co_return res;
+
+    // Decide which units are selected and for what actions.
+    vector<UnitSelection> selections;
+    if( units.size() == 1 ) {
+      auto id = *units.begin();
+      UnitSelection selection{ id,
+                               e_unit_selection::clear_orders };
+      if( !ss_.units.unit_for( id ).has_orders() )
+        selection.what = e_unit_selection::activate;
+      selections = vector{ selection };
+    } else {
+      selections = co_await unit_selection_box(
+          engine_.textometer(), ss_, ts_.planes.get().window,
+          units,
+          UnitActivationOptions{ .allow_prioritizing_multiple =
+                                     false } );
+    }
+
+    for( auto const& selection : selections ) {
+      switch( selection.what ) {
+        case e_unit_selection::clear_orders:
+          ss_.units.unit_for( selection.id ).clear_orders();
+          break;
+        case e_unit_selection::activate:
+          // Activation implies also to clear orders if they're
+          // not already cleared. We do this here because, even
+          // if the prioritization is later denied (because the
+          // unit has already moved this turn) the clearing of
+          // the orders should still be upheld, because that
+          // can always be done, hence they are done sepa-
+          // rately.
+          ss_.units.unit_for( selection.id ).clear_orders();
+          // We specified in the options that the unit selection
+          // box should only allow one unit to be prioritized,
+          // thus there is no ambiguity in result here.
+          res = LandViewPlayerInput::activate{
+            .unit = selection.id };
+          break;
+      }
+    }
+
+    // NOTE: there will only be an item added to the result if
+    // the player prioritized any units. But either way, some
+    // units may have had their orders cleared.
+
+    co_return res;
   }
 
   /****************************************************************
@@ -523,28 +583,33 @@ struct LandViewPlane::Impl : public IPlane {
                          raw_input.when ) );
         break;
       }
-      case e::toggle_view_mode: {
-        auto& o = raw_input.input
-                      .get<LandViewRawInput::toggle_view_mode>();
+      case e::view_mode: {
+        auto& o =
+            raw_input.input.get<LandViewRawInput::view_mode>();
         translated_input_stream_.push( PlayerInput(
-            LandViewPlayerInput::toggle_view_mode{
-              .options = o.options },
+            LandViewPlayerInput::view_mode{ .options =
+                                                o.options },
             raw_input.when ) );
         break;
       }
       case e::activate: {
         auto& o =
             raw_input.input.get<LandViewRawInput::activate>();
-        vector<LandViewPlayerInput> const inputs =
-            activate_tile( o.tile );
+        maybe<LandViewPlayerInput> const input =
+            co_await activate_tile( o.tile );
         // Since we may have just popped open a box to ask the
         // user to select units, just use the "now" time so
         // that these events don't get disgarded. Also, mouse
         // clicks are not likely to get buffered for too long
         // anyway.
-        for( auto const& input : inputs )
+        if( input.has_value() )
           translated_input_stream_.push(
-              PlayerInput( input, Clock_t::now() ) );
+              PlayerInput( *input, Clock_t::now() ) );
+        break; //
+      }
+      case e::move_mode: {
+        translated_input_stream_.push( PlayerInput(
+            LandViewPlayerInput::move_mode{}, Clock_t::now() ) );
         break; //
       }
       case e::tile_click: {
@@ -758,13 +823,11 @@ struct LandViewPlane::Impl : public IPlane {
         };
         return handler;
       }
-      case e_menu_item::toggle_view_mode: {
-        if( !mode_.holds<LandViewMode::unit_input>() &&
-            !mode_.holds<LandViewMode::view_mode>() )
-          break;
+      case e_menu_item::view_mode: {
+        if( !mode_.holds<LandViewMode::unit_input>() ) break;
         auto handler = [this] {
           raw_input_stream_.send(
-              RawInput( LandViewRawInput::toggle_view_mode{} ) );
+              RawInput( LandViewRawInput::view_mode{} ) );
         };
         return handler;
       }
@@ -779,6 +842,19 @@ struct LandViewPlane::Impl : public IPlane {
           raw_input_stream_.send(
               RawInput( LandViewRawInput::activate{
                 .tile = white_box_tile( ss_ ) } ) );
+        };
+        return handler;
+      }
+      case e_menu_item::move: {
+        if( !mode_.holds<LandViewMode::end_of_turn>() &&
+            !mode_.holds<LandViewMode::view_mode>() )
+          break;
+        // This menu item is only expected to be clicked when the
+        // white box tile is visible.
+        CHECK( white_box_stream_.has_value() );
+        auto handler = [this] {
+          raw_input_stream_.send(
+              RawInput( LandViewRawInput::move_mode{} ) );
         };
         return handler;
       }
@@ -1047,11 +1123,9 @@ struct LandViewPlane::Impl : public IPlane {
             break;
           case ::SDLK_v:
             if( key_event.mod.shf_down ) break;
-            if( !mode_.holds<LandViewMode::unit_input>() &&
-                !mode_.holds<LandViewMode::view_mode>() )
-              break;
-            raw_input_stream_.send( RawInput(
-                LandViewRawInput::toggle_view_mode{} ) );
+            if( !mode_.holds<LandViewMode::unit_input>() ) break;
+            raw_input_stream_.send(
+                RawInput( LandViewRawInput::view_mode{} ) );
             break;
           case ::SDLK_w:
             if( key_event.mod.shf_down ) break;
@@ -1073,6 +1147,14 @@ struct LandViewPlane::Impl : public IPlane {
             raw_input_stream_.send(
                 RawInput( LandViewRawInput::activate{
                   .tile = white_box_tile( ss_ ) } ) );
+            break;
+          case ::SDLK_m:
+            if( key_event.mod.shf_down ) break;
+            if( !mode_.holds<LandViewMode::end_of_turn>() &&
+                !mode_.holds<LandViewMode::view_mode>() )
+              break;
+            raw_input_stream_.send(
+                RawInput( LandViewRawInput::move_mode{} ) );
             break;
           case ::SDLK_f:
             if( key_event.mod.shf_down ) break;
@@ -1158,8 +1240,8 @@ struct LandViewPlane::Impl : public IPlane {
               raw_input_stream_.send(
                   RawInput( LandViewRawInput::next_turn{} ) );
             } else if( mode_.holds<LandViewMode::view_mode>() ) {
-              raw_input_stream_.send( RawInput(
-                  LandViewRawInput::toggle_view_mode{} ) );
+              raw_input_stream_.send(
+                  RawInput( LandViewRawInput::view_mode{} ) );
             }
             break;
           default:

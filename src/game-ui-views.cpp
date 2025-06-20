@@ -35,7 +35,9 @@ namespace rn {
 /****************************************************************
 ** UnitActivationView
 *****************************************************************/
-UnitActivationView::UnitActivationView() : info_map_{} {}
+UnitActivationView::UnitActivationView(
+    UnitActivationOptions const& opts )
+  : opts_( opts ), info_map_{} {}
 
 void UnitActivationView::on_click_unit( UnitId id ) {
   auto& infos = info_map();
@@ -53,6 +55,9 @@ void UnitActivationView::on_click_unit( UnitId id ) {
       info.is_activated   = false;
     } else {
       CHECK( !info.is_activated );
+      if( !opts_.allow_prioritizing_multiple )
+        for( auto& [_, other] : infos )
+          other.is_activated = false;
       info.is_activated = true;
     }
   } else {
@@ -61,7 +66,10 @@ void UnitActivationView::on_click_unit( UnitId id ) {
            unit_orders::e::none );
     CHECK( info.current_orders.to_enum() ==
            unit_orders::e::none );
-    info.is_activated = !info.is_activated;
+    bool const will_activate = !info.is_activated;
+    if( will_activate && !opts_.allow_prioritizing_multiple )
+      for( auto& [_, other] : infos ) other.is_activated = false;
+    info.is_activated = will_activate;
   }
 }
 
@@ -82,9 +90,10 @@ void UnitActivationView::on_click_unit( UnitId id ) {
  */
 unique_ptr<UnitActivationView> UnitActivationView::Create(
     rr::ITextometer const& textometer, SSConst const& ss,
-    vector<UnitId> const& ids_ ) {
+    vector<UnitId> const& ids_,
+    UnitActivationOptions const& opts ) {
   auto unit_activation_view =
-      std::make_unique<UnitActivationView>();
+      std::make_unique<UnitActivationView>( opts );
   auto* p_unit_activation_view = unit_activation_view.get();
 
   auto ids = ids_;
@@ -118,6 +127,15 @@ unique_ptr<UnitActivationView> UnitActivationView::Create(
    *   End-of-turn:
    *     No Orders --> ...
    */
+
+  // FIXME: this shared_ptr is a hack because this code was
+  // written before coroutines, which would have kept this vari-
+  // able in scope so that it could have just been referenced
+  // normally below.
+  auto const update_border_fns =
+      make_shared<vector<function<void()>>>();
+  update_border_fns->reserve( ids.size() );
+
   for( auto id : ids ) {
     auto const& unit = ss.units.unit_for( id );
 
@@ -134,13 +152,22 @@ unique_ptr<UnitActivationView> UnitActivationView::Create(
     auto clickable = make_unique<ui::ClickableView>(
         // Capture local variables by value.
         std::move( border_view ),
-        [p_unit_activation_view, id, p_fake_unit_view,
-         p_border_view] {
+        [update_border_fns, p_unit_activation_view, id,
+         p_fake_unit_view] {
           auto& infos = p_unit_activation_view->info_map();
           p_unit_activation_view->on_click_unit( id );
           CHECK( infos.contains( id ) );
           auto& info = infos[id];
           p_fake_unit_view->set_orders( info.current_orders );
+          // Need to update all of the borders in case we are in
+          // the mode (set in the options) where we only allow
+          // one unit to be prioritized at a time; in that case,
+          // prioritizing one unit will deselect any others.
+          for( auto const& fn : *update_border_fns ) fn();
+        } );
+
+    update_border_fns->push_back(
+        [p_border_view, &info = infos[id]] {
           p_border_view->on( info.is_activated );
         } );
 

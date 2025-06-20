@@ -62,25 +62,42 @@ menus {
 
 items {
   about.name: About this Game
+  activate.name: Activate Units
+  build_colony.name: Build Colony
+  center_view.name: Center View
+  cheat_advance_revolution_status.name: Advance Revolution Status
   cheat_create_unit_on_map.name: Create Unit
   cheat_edit_fathers.name: Edit Founding Fathers
   cheat_explore_entire_map.name: Explore Entire Map
+  cheat_kill_natives.name: Kill Natives
   cheat_map_editor.name: Enter Map Editor
   cheat_reveal_map.name: Reveal Map
   cheat_set_human_players.name: Set Human Players
-  cheat_kill_natives.name: Kill Natives
-  cheat_advance_revolution_status.name: Advance Revolution Status
+  colony_advisor.name: Colony Advisor
   colony_report_options.name: Colony Report Options
+  continental_congress.name: Continental Congress
+  create_trade_route.name: Create Trade Route
+  delete_trade_route.name: Delete Trade Route
+  disband.name: Disband Unit
   dump.name: Dump Cargo Overboard
+  economic_advisor.name: Economic Advisor
+  edit_trade_route.name: Edit Trade Route
   exit.name: Exit to DOS
   find_blinking_unit.name: Find Blinking Unit
+  find_colony.name: Find Colony
   fit_window.name: Shrink Window to Fit
+  foreign_affairs_advisor.name: Foreign Affairs Advisor
   fortify.name: Fortify
   founding_father_help.name: Founding Fathers
   game_options.name: Game Options
+  go_to.name: Go To
   harbor_view.name: European Status
   hidden_terrain.name: Show Hidden Terrain
+  indian_advisor.name: Indian Advisor
+  labor_advisor.name: Labor Advisor
+  load_cargo.name: Load Cargo
   load.name: Load Game
+  move.name: Move Units
   music_next.name: Next Tune
   music_pause.name: Pause
   music_play.name: Play
@@ -90,46 +107,32 @@ items {
   music_stop.name: Stop
   music_vol_down.name: Volume Down
   music_vol_up.name: Volume Up
+  naval_advisor.name: Naval Advisor
   next_turn.name: Next Turn
+  no_orders.name: No Orders This Turn
   plow.name: Clear Forest/Plow
+  religious_advisor.name: Religious Advisor
   restore_zoom.name: Zoom Default
   retire.name: Retire
+  return_to_europe.name: Return to Europe
   revolution.name: DECLARE INDEPENDENCE
   road.name: Build Road
   save.name: Save Game
   scale_down.name: Cycle Resolution v
   scale_optimal.name: Set Optimal Resolution
   scale_up.name: Cycle Resolution ^
+  score.name: Game Score
   sentry.name: Sentry
   terrain_help.name: Terrain
+  terrain_information.name: Terrain Information
   toggle_fullscreen.name: Toggle Fullscreen
+  view_mode.name: View Mode
+  trade_route.name: Begin Trade Route
   units_help.name: Units
+  unload_cargo.name: Unload Cargo
+  wait.name: Wait
   zoom_in.name: Zoom In
   zoom_out.name: Zoom Out
-  toggle_view_mode.name: Toggle View Mode
-  activate.name: Activate Units
-  wait.name: Wait
-  build_colony.name: Build Colony
-  load_cargo.name: Load Cargo
-  unload_cargo.name: Unload Cargo
-  go_to.name: Go To
-  trade_route.name: Begin Trade Route
-  return_to_europe.name: Return to Europe
-  no_orders.name: No Orders This Turn
-  disband.name: Disband Unit
-  terrain_information.name: Terrain Information
-  religious_advisor.name: Religious Advisor
-  continental_congress.name: Continental Congress
-  labor_advisor.name: Labor Advisor
-  economic_advisor.name: Economic Advisor
-  colony_advisor.name: Colony Advisor
-  naval_advisor.name: Naval Advisor
-  foreign_affairs_advisor.name: Foreign Affairs Advisor
-  indian_advisor.name: Indian Advisor
-  score.name: Game Score
-  edit_trade_route.name: Edit Trade Route
-  create_trade_route.name: Create Trade Route
-  delete_trade_route.name: Delete Trade Route
 }
 
 layout {
@@ -151,16 +154,20 @@ layout {
   ]
 
   view.contents: [
+    .leaf.item: move,
+    .leaf.item: view_mode,
+    .leaf.item: harbor_view,
+    null,
+    .leaf.item: find_colony,
+    null,
     .leaf.item: zoom_in,
     .leaf.item: zoom_out,
     .leaf.item: restore_zoom,
     null,
     .leaf.item: find_blinking_unit,
     null,
-    .leaf.item: harbor_view,
-    null,
     .leaf.item: hidden_terrain,
-    .leaf.item: toggle_view_mode,
+    .leaf.item: center_view,
     null,
     .node.menu: window
   ]

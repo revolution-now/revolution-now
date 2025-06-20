@@ -34,6 +34,10 @@ enum.e_menu {
 enum.e_menu_item {
   about,
   activate,
+  view_mode,
+  move,
+  find_colony,
+  center_view,
   build_colony,
   cheat_create_unit_on_map,
   cheat_edit_fathers,
@@ -81,7 +85,6 @@ enum.e_menu_item {
   sentry,
   terrain_help,
   toggle_fullscreen,
-  toggle_view_mode,
   trade_route,
   units_help,
   unload_cargo,

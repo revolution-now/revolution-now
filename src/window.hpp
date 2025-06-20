@@ -16,6 +16,7 @@
 #include "enum.hpp"
 #include "error.hpp"
 #include "expect.hpp"
+#include "game-ui-views.rds.hpp"
 #include "igui.rds.hpp"
 #include "ui-enums.hpp"
 #include "unit-id.hpp"
@@ -189,7 +190,8 @@ NOTHROW_MOVE( UnitSelection );
 
 wait<std::vector<UnitSelection>> unit_selection_box(
     rr::ITextometer const& textometer, SSConst const& ss,
-    WindowPlane& window_plane, std::vector<UnitId> const& ids_ );
+    WindowPlane& window_plane, std::vector<UnitId> const& ids_,
+    UnitActivationOptions const& opts = {} );
 
 } // namespace rn
 

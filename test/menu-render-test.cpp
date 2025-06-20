@@ -53,10 +53,17 @@ TEST_CASE( "[menu-render] build_menu_rendered_layout" ) {
   textometer.EXPECT__font_height().by_default().returns( 8 );
 
   string const item_names[] = {
-    "Zoom In",          "Zoom Out",
-    "Zoom Default",     "Find Blinking Unit",
-    "European Status",  "Show Hidden Terrain",
-    "Toggle View Mode", "Window  ",
+    "Move Units",          //
+    "View Mode",           //
+    "European Status",     //
+    "Find Colony",         //
+    "Zoom In",             //
+    "Zoom Out",            //
+    "Zoom Default",        //
+    "Find Blinking Unit",  //
+    "Show Hidden Terrain", //
+    "Center View",         //
+    "Window  ",            //
   };
   for( string const& item_name : item_names )
     textometer
@@ -87,109 +94,134 @@ TEST_CASE( "[menu-render] build_menu_rendered_layout" ) {
                   },
                 } };
   expected  = MenuRenderLayout{
-     .position =
-        MenuPosition{ .where       = { .x = 32, .y = 16 },
-                       .orientation = e_diagonal_direction::nw,
-                       .parent_side = nothing },
-     .bounds = { .origin = { .x = 32, .y = 16 },
-                 .size   = { .w = 134, .h = 124 } },
-     .items  = { MenuItemRenderLayout{
-                   .item = e_menu_item::zoom_in,
-                   .text = "Zoom In",
-                   .bounds_relative =
-                       { .origin = { .x = 4, .y = 4 },
-                         .size   = { .w = 126, .h = 12 } },
-                   .bounds_absolute =
-                       { .origin = { .x = 36, .y = 20 },
-                         .size   = { .w = 126, .h = 12 } },
-                   .text_nw_relative = { .x = 6, .y = 2 },
-                   .has_arrow        = false },
-                 MenuItemRenderLayout{
-                   .item = e_menu_item::zoom_out,
-                   .text = "Zoom Out",
-                   .bounds_relative =
-                       { .origin = { .x = 4, .y = 16 },
-                         .size   = { .w = 126, .h = 12 } },
-                   .bounds_absolute  = { .origin = { .x = 36,
-                                                     .y = 32 },
-                                         .size   = { .w = 126,
-                                                     .h = 12 } },
-                   .text_nw_relative = { .x = 6, .y = 2 },
-                   .has_arrow        = false },
-                 MenuItemRenderLayout{
-                   .item = e_menu_item::restore_zoom,
-                   .text = "Zoom Default",
-                   .bounds_relative =
-                       { .origin = { .x = 4, .y = 28 },
-                         .size   = { .w = 126, .h = 12 } },
-                   .bounds_absolute =
-                       { .origin = { .x = 36, .y = 44 },
-                         .size   = { .w = 126, .h = 12 } },
-                   .text_nw_relative = { .x = 6, .y = 2 },
-                   .has_arrow        = false },
-                 MenuItemRenderLayout{
-                   .item = e_menu_item::find_blinking_unit,
-                   .text = "Find Blinking Unit",
-                   .bounds_relative =
-                       { .origin = { .x = 4, .y = 45 },
-                         .size   = { .w = 126, .h = 12 } },
-                   .bounds_absolute =
-                       { .origin = { .x = 36, .y = 61 },
-                         .size   = { .w = 126, .h = 12 } },
-                   .text_nw_relative = { .x = 6, .y = 2 },
-                   .has_arrow        = false },
-                 MenuItemRenderLayout{
-                   .item = e_menu_item::harbor_view,
-                   .text = "European Status",
-                   .bounds_relative =
-                       { .origin = { .x = 4, .y = 62 },
-                         .size   = { .w = 126, .h = 12 } },
-                   .bounds_absolute =
-                       { .origin = { .x = 36, .y = 78 },
-                         .size   = { .w = 126, .h = 12 } },
-                   .text_nw_relative = { .x = 6, .y = 2 },
-                   .has_arrow        = false },
-                 MenuItemRenderLayout{
-                   .item = e_menu_item::hidden_terrain,
-                   .text = "Show Hidden Terrain",
-                   .bounds_relative =
-                       { .origin = { .x = 4, .y = 79 },
-                         .size   = { .w = 126, .h = 12 } },
-                   .bounds_absolute =
-                       { .origin = { .x = 36, .y = 95 },
-                         .size   = { .w = 126, .h = 12 } },
-                   .text_nw_relative = { .x = 6, .y = 2 },
-                   .has_arrow        = false },
-                 MenuItemRenderLayout{
-                   .item = e_menu_item::toggle_view_mode,
-                   .text = "Toggle View Mode",
-                   .bounds_relative =
-                       { .origin = { .x = 4, .y = 91 },
-                         .size   = { .w = 126, .h = 12 } },
-                   .bounds_absolute =
-                       { .origin = { .x = 36, .y = 107 },
-                         .size   = { .w = 126, .h = 12 } },
-                   .text_nw_relative = { .x = 6, .y = 2 },
-                   .has_arrow        = false },
-                 MenuItemRenderLayout{
-                   .item = nothing,
-                   .text = "Window  ",
-                   .bounds_relative =
-                       { .origin = { .x = 4, .y = 108 },
-                         .size   = { .w = 126, .h = 12 } },
-                   .bounds_absolute =
-                       { .origin = { .x = 36, .y = 124 },
-                         .size   = { .w = 126, .h = 12 } },
-                   .text_nw_relative = { .x = 6, .y = 2 },
-                   .has_arrow        = true } },
-     .bars   = { { .origin = { .x = 32, .y = 56 },
-                   .size   = { .w = 134, .h = 5 } },
-                 { .origin = { .x = 32, .y = 73 },
-                   .size   = { .w = 134, .h = 5 } },
-                 { .origin = { .x = 32, .y = 90 },
-                   .size   = { .w = 134, .h = 5 } },
-                 { .origin = { .x = 32, .y = 119 },
-                   .size   = { .w = 134, .h = 5 } } } };
+     .text_layout = { .monospace    = false,
+                      .spacing      = nothing,
+                      .line_spacing = nothing },
+     .position    = { .where       = { .x = 32, .y = 16 },
+                      .orientation = e_diagonal_direction::nw,
+                      .parent_side = nothing },
+     .bounds      = { .origin = { .x = 32, .y = 16 },
+                      .size   = { .w = 134, .h = 165 } },
+     .items       = { { .item = e_menu_item::move,
+                        .text = "Move Units",
+                        .bounds_relative =
+                            { .origin = { .x = 4, .y = 4 },
+                              .size   = { .w = 126, .h = 12 } },
+                        .bounds_absolute =
+                            { .origin = { .x = 36, .y = 20 },
+                              .size   = { .w = 126, .h = 12 } },
+                        .text_nw_relative = { .x = 6, .y = 2 },
+                        .has_arrow        = false },
+                      { .item = e_menu_item::view_mode,
+                        .text = "View Mode",
+                        .bounds_relative =
+                            { .origin = { .x = 4, .y = 16 },
+                              .size   = { .w = 126, .h = 12 } },
+                        .bounds_absolute =
+                            { .origin = { .x = 36, .y = 32 },
+                              .size   = { .w = 126, .h = 12 } },
+                        .text_nw_relative = { .x = 6, .y = 2 },
+                        .has_arrow        = false },
+                      { .item = e_menu_item::harbor_view,
+                        .text = "European Status",
+                        .bounds_relative =
+                            { .origin = { .x = 4, .y = 28 },
+                              .size   = { .w = 126, .h = 12 } },
+                        .bounds_absolute =
+                            { .origin = { .x = 36, .y = 44 },
+                              .size   = { .w = 126, .h = 12 } },
+                        .text_nw_relative = { .x = 6, .y = 2 },
+                        .has_arrow        = false },
+                      { .item = e_menu_item::find_colony,
+                        .text = "Find Colony",
+                        .bounds_relative =
+                            { .origin = { .x = 4, .y = 45 },
+                              .size   = { .w = 126, .h = 12 } },
+                        .bounds_absolute =
+                            { .origin = { .x = 36, .y = 61 },
+                              .size   = { .w = 126, .h = 12 } },
+                        .text_nw_relative = { .x = 6, .y = 2 },
+                        .has_arrow        = false },
+                      { .item = e_menu_item::zoom_in,
+                        .text = "Zoom In",
+                        .bounds_relative =
+                            { .origin = { .x = 4, .y = 62 },
+                              .size   = { .w = 126, .h = 12 } },
+                        .bounds_absolute =
+                            { .origin = { .x = 36, .y = 78 },
+                              .size   = { .w = 126, .h = 12 } },
+                        .text_nw_relative = { .x = 6, .y = 2 },
+                        .has_arrow        = false },
+                      { .item = e_menu_item::zoom_out,
+                        .text = "Zoom Out",
+                        .bounds_relative =
+                            { .origin = { .x = 4, .y = 74 },
+                              .size   = { .w = 126, .h = 12 } },
+                        .bounds_absolute =
+                            { .origin = { .x = 36, .y = 90 },
+                              .size   = { .w = 126, .h = 12 } },
+                        .text_nw_relative = { .x = 6, .y = 2 },
+                        .has_arrow        = false },
+                      { .item = e_menu_item::restore_zoom,
+                        .text = "Zoom Default",
+                        .bounds_relative =
+                            { .origin = { .x = 4, .y = 86 },
+                              .size   = { .w = 126, .h = 12 } },
+                        .bounds_absolute =
+                            { .origin = { .x = 36, .y = 102 },
+                              .size   = { .w = 126, .h = 12 } },
+                        .text_nw_relative = { .x = 6, .y = 2 },
+                        .has_arrow        = false },
+                      { .item = e_menu_item::find_blinking_unit,
+                        .text = "Find Blinking Unit",
+                        .bounds_relative =
+                            { .origin = { .x = 4, .y = 103 },
+                              .size   = { .w = 126, .h = 12 } },
+                        .bounds_absolute =
+                            { .origin = { .x = 36, .y = 119 },
+                              .size   = { .w = 126, .h = 12 } },
+                        .text_nw_relative = { .x = 6, .y = 2 },
+                        .has_arrow        = false },
+                      { .item = e_menu_item::hidden_terrain,
+                        .text = "Show Hidden Terrain",
+                        .bounds_relative =
+                            { .origin = { .x = 4, .y = 120 },
+                              .size   = { .w = 126, .h = 12 } },
+                        .bounds_absolute =
+                            { .origin = { .x = 36, .y = 136 },
+                              .size   = { .w = 126, .h = 12 } },
+                        .text_nw_relative = { .x = 6, .y = 2 },
+                        .has_arrow        = false },
+                      { .item = e_menu_item::center_view,
+                        .text = "Center View",
+                        .bounds_relative =
+                            { .origin = { .x = 4, .y = 132 },
+                              .size   = { .w = 126, .h = 12 } },
+                        .bounds_absolute =
+                            { .origin = { .x = 36, .y = 148 },
+                              .size   = { .w = 126, .h = 12 } },
+                        .text_nw_relative = { .x = 6, .y = 2 },
+                        .has_arrow        = false },
+                      { .item = nothing,
+                        .text = "Window  ",
+                        .bounds_relative =
+                            { .origin = { .x = 4, .y = 149 },
+                              .size   = { .w = 126, .h = 12 } },
+                        .bounds_absolute =
+                            { .origin = { .x = 36, .y = 165 },
+                              .size   = { .w = 126, .h = 12 } },
+                        .text_nw_relative = { .x = 6, .y = 2 },
+                        .has_arrow        = true } },
+     .bars        = { { .origin = { .x = 32, .y = 56 },
+                        .size   = { .w = 134, .h = 5 } },
+                      { .origin = { .x = 32, .y = 73 },
+                        .size   = { .w = 134, .h = 5 } },
+                      { .origin = { .x = 32, .y = 114 },
+                        .size   = { .w = 134, .h = 5 } },
+                      { .origin = { .x = 32, .y = 131 },
+                        .size   = { .w = 134, .h = 5 } },
+                      { .origin = { .x = 32, .y = 160 },
+                        .size   = { .w = 134, .h = 5 } } } };
   REQUIRE( f() == expected );
 }
 

@@ -113,6 +113,7 @@ namespace rn {
 
 namespace {
 
+using ::base::NoDiscard;
 using ::gfx::point;
 
 /****************************************************************
@@ -179,7 +180,7 @@ wait<> advance_time( IGui& gui, TurnTimePoint& time_point ) {
 // prompted the save-game box to appear in the first place.
 //
 // Will return whether it is safe to proceed.
-wait<base::NoDiscard<bool>> check_if_not_dirty_or_can_proceed(
+wait<NoDiscard<bool>> check_if_not_dirty_or_can_proceed(
     IEngine& engine, SSConst const& ss, TS& ts,
     IGameStorageSave const& storage_save ) {
   auto is_game_saved = [&] {
@@ -316,17 +317,6 @@ void remove_deleted_units( SSConst const& ss,
            q.end() );
 }
 
-vector<UnitId> units_on_tile_to_activate( SSConst const& ss,
-                                          Player const& player,
-                                          point const tile ) {
-  vector<UnitId> res = euro_units_from_coord_recursive(
-      ss.units, player.type, tile );
-  erase_if( res, [&]( UnitId id ) {
-    return finished_turn( ss.units.unit_for( id ) );
-  } );
-  return res;
-}
-
 // This won't actually prioritize the units, it will just check
 // the request and return the units that can be prioritized.
 wait<vector<UnitId>> process_unit_prioritization_request(
@@ -352,6 +342,18 @@ wait<vector<UnitId>> process_unit_prioritization_request(
         "Some of the selected units have already moved this "
         "turn." );
   co_return prioritize;
+}
+
+wait<NoDiscard<bool>> process_unit_prioritization_request(
+    SSConst const& ss, TS& ts, UnitId const unit_id ) {
+  LandViewPlayerInput::prioritize const request{
+    .units = { unit_id } };
+  vector<UnitId> const res =
+      co_await process_unit_prioritization_request( ss, ts,
+                                                    request );
+  if( res.empty() ) co_return false;
+  CHECK( res.size() == 1 );
+  co_return true;
 }
 
 // It might seem to make sense to just autosave the game at the
@@ -610,10 +612,13 @@ wait<EndOfTurnResult> process_player_input_eot(
       co_await show_hidden_terrain( ts );
       break;
     }
-    CASE( toggle_view_mode ) {
+    CASE( view_mode ) {
       // End-of-turn mode is already a view mode, so we should
       // not be getting this command here.
       SHOULD_NOT_BE_HERE;
+    }
+    CASE( move_mode ) {
+      co_return EndOfTurnResult::return_to_units{};
     }
     CASE( next_turn ) { co_return EndOfTurnResult::proceed{}; }
     CASE( exit ) {
@@ -634,11 +639,14 @@ wait<EndOfTurnResult> process_player_input_eot(
       break;
     }
     CASE( activate ) {
-      vector<UnitId> const units =
-          units_on_tile_to_activate( ss, player, activate.tile );
-      EndOfTurnResult::return_to_units ret;
-      if( !units.empty() ) ret.first_to_ask = units.back();
-      co_return ret;
+      bool const can_prioritize =
+          co_await process_unit_prioritization_request(
+              ss, ts, activate.unit );
+      if( can_prioritize )
+        co_return EndOfTurnResult::return_to_units{
+          .first_to_ask = activate.unit };
+      else
+        co_return EndOfTurnResult::not_done_yet{};
     }
     CASE( prioritize ) {
       CHECK( !prioritize.units.empty() );
@@ -754,11 +762,12 @@ wait<> process_player_input_normal_mode(
       co_await show_hidden_terrain( ts );
       break;
     }
-    CASE( toggle_view_mode ) {
+    CASE( view_mode ) {
       view_mode_interrupt e;
-      e.options = toggle_view_mode.options;
+      e.options = view_mode.options;
       throw e;
     }
+    CASE( move_mode ) { break; }
     // We have some orders for the current unit.
     CASE( give_command ) {
       auto& cmd = give_command.cmd;
@@ -887,7 +896,8 @@ wait<> process_player_input_view_mode(
     PlayerTurnState::units& nat_units,
     LandViewPlayerInput const& input ) {
   SWITCH( input ) {
-    CASE( toggle_view_mode ) { break; }
+    CASE( view_mode ) { break; }
+    CASE( move_mode ) { break; }
     CASE( colony ) {
       co_await open_colony( ts, colony );
       break;
@@ -924,10 +934,11 @@ wait<> process_player_input_view_mode(
       break;
     }
     CASE( activate ) {
-      vector<UnitId> const units =
-          units_on_tile_to_activate( ss, player, activate.tile );
-      for( UnitId const id_to_add : units )
-        prioritize_unit( nat_units.q, id_to_add );
+      bool const can_prioritize =
+          co_await process_unit_prioritization_request(
+              ss, ts, activate.unit );
+      if( !can_prioritize ) break;
+      prioritize_unit( nat_units.q, activate.unit );
       break;
     }
     CASE( prioritize ) {
@@ -959,7 +970,7 @@ wait<> show_view_mode( IEngine& engine, SS& ss, TS& ts,
     } );
     using I = LandViewPlayerInput;
     bool const leave =
-        command.get_if<I>().holds<I::toggle_view_mode>() ||
+        command.get_if<I>().holds<I::move_mode>() ||
         command.get_if<I>().holds<I::prioritize>() ||
         command.get_if<I>().holds<I::activate>() || //
         false;

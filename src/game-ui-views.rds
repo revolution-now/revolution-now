@@ -20,3 +20,7 @@ struct.UnitActivationInfo {
   current_orders 'unit_orders',
   is_activated 'bool',
 }
+
+struct.UnitActivationOptions {
+  allow_prioritizing_multiple 'bool',
+}
