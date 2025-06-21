@@ -23,6 +23,9 @@
 // ss
 #include "src/ss/land-view.rds.hpp"
 
+// refl
+#include "src/refl/to-str.hpp"
+
 // Must be last.
 #include "test/catch-common.hpp" // IWYU pragma: keep
 
@@ -64,95 +67,110 @@ struct world : testing::World {
 *****************************************************************/
 TEST_CASE( "[camera] zoom_in/zoom_out" ) {
   world w;
+  ZoomChanged ex;
 
   auto& zoom = w.land_view().viewport.zoom;
   zoom       = 1.0;
 
   REQUIRE( zoom == 1.0 );
 
-  w.camera.zoom_in();
+  ex = { .value_changed = false, .bucket_changed = false };
+  REQUIRE( w.camera.zoom_in() == ex );
   REQUIRE( zoom == 1.0 );
 
   w.config_user.camera.can_zoom_positive = true;
 
-  w.camera.zoom_in();
+  ex = { .value_changed = true, .bucket_changed = true };
+  REQUIRE( w.camera.zoom_in() == ex );
   REQUIRE( zoom == 2.0 );
 
-  w.camera.zoom_in();
-  REQUIRE( zoom == 4.0 );
-
-  w.camera.zoom_in();
-  REQUIRE( zoom == 8.0 );
-
-  w.camera.zoom_in();
-  REQUIRE( zoom == 16.0 );
-
-  w.camera.zoom_in();
-  REQUIRE( zoom == 16.0 );
-
-  zoom = 15.5;
-  w.camera.zoom_in();
-  REQUIRE( zoom == 16.0 );
-
-  zoom = 1.2;
-  w.camera.zoom_in();
+  ex = { .value_changed = false, .bucket_changed = false };
+  REQUIRE( w.camera.zoom_in() == ex );
   REQUIRE( zoom == 2.0 );
 
-  zoom = 16.9;
-  w.camera.zoom_out();
-  REQUIRE( zoom == 8.0 );
-
-  zoom = 17;
-  w.camera.zoom_out();
-  REQUIRE( zoom == 8.0 );
-
-  zoom = 19;
-  w.camera.zoom_out();
-  REQUIRE( zoom == 16.0 );
-
-  w.camera.zoom_out();
-  REQUIRE( zoom == 8.0 );
-
-  w.camera.zoom_out();
-  REQUIRE( zoom == 4.0 );
-
-  zoom = 3.5;
-  w.camera.zoom_out();
-  REQUIRE( zoom == 2.0 );
-
-  w.camera.zoom_out();
+  zoom = 0.8;
+  ex   = { .value_changed = true, .bucket_changed = true };
+  REQUIRE( w.camera.zoom_in() == ex );
   REQUIRE( zoom == 1.0 );
 
-  w.camera.zoom_out();
+  zoom = 0.9;
+  ex   = { .value_changed = true, .bucket_changed = true };
+  REQUIRE( w.camera.zoom_in() == ex );
+  REQUIRE( zoom == 2.0 );
+
+  zoom = 1.2;
+  ex   = { .value_changed = true, .bucket_changed = true };
+  REQUIRE( w.camera.zoom_in() == ex );
+  REQUIRE( zoom == 2.0 );
+
+  ex = { .value_changed = false, .bucket_changed = false };
+  REQUIRE( w.camera.zoom_in() == ex );
+  REQUIRE( zoom == 2.0 );
+
+  zoom = 19;
+  ex   = { .value_changed = true, .bucket_changed = true };
+  REQUIRE( w.camera.zoom_out() == ex );
+  REQUIRE( zoom == 2.0 );
+
+  ex = { .value_changed = true, .bucket_changed = true };
+  REQUIRE( w.camera.zoom_out() == ex );
+  REQUIRE( zoom == 1.0 );
+
+  zoom = 3.5;
+  ex   = { .value_changed = true, .bucket_changed = true };
+  REQUIRE( w.camera.zoom_out() == ex );
+  REQUIRE( zoom == 2.0 );
+
+  zoom = 1.2;
+  ex   = { .value_changed = true, .bucket_changed = true };
+  REQUIRE( w.camera.zoom_out() == ex );
+  REQUIRE( zoom == 1.0 );
+
+  zoom = 1.05;
+  ex   = { .value_changed = true, .bucket_changed = true };
+  REQUIRE( w.camera.zoom_out() == ex );
   REQUIRE( zoom == 0.5 );
 
-  zoom = 0.4;
-  w.camera.zoom_out();
+  ex = { .value_changed = true, .bucket_changed = true };
+  REQUIRE( w.camera.zoom_out() == ex );
   REQUIRE( zoom == 0.25 );
 
-  w.camera.zoom_out();
+  zoom = 0.4;
+  ex   = { .value_changed = true, .bucket_changed = true };
+  REQUIRE( w.camera.zoom_out() == ex );
+  REQUIRE( zoom == 0.25 );
+
+  ex = { .value_changed = true, .bucket_changed = true };
+  REQUIRE( w.camera.zoom_out() == ex );
   REQUIRE( zoom == 0.125 );
 
-  w.camera.zoom_out();
+  ex = { .value_changed = true, .bucket_changed = true };
+  REQUIRE( w.camera.zoom_out() == ex );
   REQUIRE( zoom == 0.0625 );
 
   zoom = 0.0800;
-  w.camera.zoom_out();
+  ex   = { .value_changed = true, .bucket_changed = true };
+  REQUIRE( w.camera.zoom_out() == ex );
   REQUIRE( zoom == 0.0625 );
 
-  w.camera.zoom_out();
+  ex = { .value_changed = true, .bucket_changed = true };
+  REQUIRE( w.camera.zoom_out() == ex );
   REQUIRE( zoom == 0.03125 );
 
-  w.camera.zoom_out();
+  ex = { .value_changed = true, .bucket_changed = true };
+  REQUIRE( w.camera.zoom_out() == ex );
   REQUIRE( zoom == 0.015625 );
 
-  w.camera.zoom_out();
+  ex = { .value_changed = true, .bucket_changed = true };
+  REQUIRE( w.camera.zoom_out() == ex );
   REQUIRE( zoom == 0.0078125 );
 
-  w.camera.zoom_out();
+  ex = { .value_changed = true, .bucket_changed = true };
+  REQUIRE( w.camera.zoom_out() == ex );
   REQUIRE( zoom == 0.00390625 );
 
-  w.camera.zoom_out();
+  ex = { .value_changed = false, .bucket_changed = false };
+  REQUIRE( w.camera.zoom_out() == ex );
   REQUIRE( zoom == 0.00390625 );
 }
 

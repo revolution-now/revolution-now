@@ -1093,20 +1093,47 @@ struct LandViewPlane::Impl : public IPlane {
         }
         switch( key_event.keycode ) {
           case ::SDLK_x: {
-            {
-              camera_.zoom_out();
-            }
+            // FIXME: these are only needed because of the fact
+            // that the viewport doesn't really work properly in
+            // that sometimes it hangs onto panning targets. We
+            // will be able to remove this after we migrate fully
+            // to the Camera.
+            viewport().stop_auto_panning();
+            viewport().stop_auto_zoom();
+
+            camera_.zoom_out();
             viewport().fix_invariants();
             break;
           }
           case ::SDLK_z: {
             {
-              camera_.zoom_in();
+              // FIXME: these are only needed because of the fact
+              // that the viewport doesn't really work properly
+              // in that sometimes it hangs onto panning targets.
+              // We will be able to remove this after we migrate
+              // fully to the Camera.
+              viewport().stop_auto_panning();
+              viewport().stop_auto_zoom();
+
               auto const tile = find_tile_to_center_on();
-              if( tile.has_value() )
+              // The idea here is that if we are zoomed out and
+              // we can see the special tile then it is ok to
+              // center on it as we zoom, since that is what the
+              // player probably wants. But if the tile is not
+              // visible then hitting zoom would pan to a totally
+              // different part of the map, which would look
+              // strange. Need to do this before zooming in oth-
+              // erwise we may lose sight of the tile.
+              bool const tile_visible =
+                  tile->is_inside( viewport_.covered_tiles() );
+              ZoomChanged const changed = camera_.zoom_in();
+              viewport().fix_invariants();
+              if( tile_visible && changed.bucket_changed ) {
+                CHECK( tile.has_value() );
                 camera_.center_on_tile( *tile );
+                viewport().fix_invariants();
+              }
             }
-            viewport().fix_invariants();
             break;
           }
           case ::SDLK_F1:

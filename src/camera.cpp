@@ -32,11 +32,20 @@ namespace {
 using ::gfx::point;
 
 /****************************************************************
+** Constants.
+*****************************************************************/
+double constexpr kLogZoomTolerance = .2;
+
+/****************************************************************
 ** Helpers.
 *****************************************************************/
 bool eq( double const l, double const r,
          double const tolerance = .0001 ) {
-  return ( abs( l - r ) <= tolerance );
+  return abs( l - r ) <= tolerance;
+}
+
+bool zoom_equiv( double const l, double const r ) {
+  return eq( log2( l ), log2( r ), kLogZoomTolerance );
 }
 
 double zoom_min() {
@@ -75,30 +84,38 @@ void Camera::fix_broken_invariants() {
     camera_.zoom = std::min( camera_.zoom, 1.0 );
 }
 
-void Camera::zoom_out() {
-  SCOPE_EXIT { fix_broken_invariants(); };
+ZoomChanged Camera::zoom_out() {
+  double const before = camera_.zoom;
 
   double const closest = exp2( floor( log2( camera_.zoom ) ) );
-  if( !eq( log2( camera_.zoom ), log2( closest ), .2 ) ) {
-    // Just moving it to the nearest factor of two has moved
-    // it enough.
+  if( !zoom_equiv( camera_.zoom, closest ) )
+    // Just moving it to the nearest factor of two has moved it
+    // enough.
     camera_.zoom = closest;
-    return;
-  }
-  camera_.zoom = exp2( log2( closest ) - 1 );
+  else
+    camera_.zoom = closest / 2;
+
+  fix_broken_invariants();
+  return ZoomChanged{
+    .value_changed  = ( camera_.zoom != before ),
+    .bucket_changed = !zoom_equiv( camera_.zoom, before ) };
 }
 
-void Camera::zoom_in() {
-  SCOPE_EXIT { fix_broken_invariants(); };
+ZoomChanged Camera::zoom_in() {
+  double const before = camera_.zoom;
 
   double const closest = exp2( ceil( log2( camera_.zoom ) ) );
-  if( !eq( log2( camera_.zoom ), log2( closest ), .2 ) ) {
+  if( !zoom_equiv( camera_.zoom, closest ) )
     // Just moving it to the nearest factor of two has moved
     // it enough.
     camera_.zoom = closest;
-    return;
-  }
-  camera_.zoom = exp2( log2( closest ) + 1 );
+  else
+    camera_.zoom = closest * 2;
+
+  fix_broken_invariants();
+  return ZoomChanged{
+    .value_changed  = ( camera_.zoom != before ),
+    .bucket_changed = !zoom_equiv( camera_.zoom, before ) };
 }
 
 void Camera::center_on_tile( point const tile ) {

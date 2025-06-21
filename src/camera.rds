@@ -1,0 +1,16 @@
+# ===============================================================
+# camera.rds
+#
+# Project: Revolution Now
+#
+# Created by David P. Sicilia on 2025-06-21.
+#
+# Description: Rds definitions for the camera module.
+#
+# ===============================================================
+namespace "rn"
+
+struct.ZoomChanged {
+  value_changed 'bool',
+  bucket_changed 'bool',
+}

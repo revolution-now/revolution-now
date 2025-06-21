@@ -49,5 +49,5 @@ mini_map {
 camera {
   # Min/max zoom levels expressed in log base 2.
   zoom_log2_min: -8
-  zoom_log2_max:  4
+  zoom_log2_max:  1
 }

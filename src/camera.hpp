@@ -10,6 +10,9 @@
 *****************************************************************/
 #pragma once
 
+// rds
+#include "camera.rds.hpp"
+
 // gfx
 #include "gfx/cartesian.hpp"
 
@@ -35,8 +38,8 @@ struct Camera {
   Camera( IUserConfig const& user_config, Viewport& camera );
 
  public: // zoom control.
-  void zoom_out();
-  void zoom_in();
+  ZoomChanged zoom_out();
+  ZoomChanged zoom_in();
 
   void center_on_tile( gfx::point tile );
 
