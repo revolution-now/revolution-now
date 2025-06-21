@@ -79,12 +79,24 @@ EuroMinds create_euro_minds( SS& ss, IGui& gui ) {
   unordered_map<e_player, unique_ptr<IEuroMind>> holder;
   for( e_player const player : refl::enum_values<e_player> ) {
     if( !ss.players.players[player].has_value() ) continue;
-    if( ss.players.players[player]->human )
-      holder[player] =
-          make_unique<HumanEuroMind>( player, ss, gui );
-    else
-      holder[player] =
-          make_unique<NoopEuroMind>( ss.as_const, player );
+    switch( ss.players.players[player]->control ) {
+      case e_player_control::ai: {
+        // TODO
+        holder[player] =
+            make_unique<NoopEuroMind>( ss.as_const, player );
+        break;
+      }
+      case e_player_control::human: {
+        holder[player] =
+            make_unique<HumanEuroMind>( player, ss, gui );
+        break;
+      }
+      case e_player_control::withdrawn: {
+        holder[player] =
+            make_unique<NoopEuroMind>( ss.as_const, player );
+        break;
+      }
+    }
   }
   return EuroMinds( std::move( holder ) );
 }

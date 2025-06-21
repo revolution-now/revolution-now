@@ -74,7 +74,7 @@ bool should_do_war_of_succession( SSConst const& ss,
   // player sentiment, but also because if this is an AI player
   // then we risk eliminating the player when it is their turn,
   // which is probably not a good thing.
-  if( !player.human ) return false;
+  if( player.control != e_player_control::human ) return false;
   if( ss.events.war_of_succession_done ) return false;
   auto const [player_count, human_count] = [&] {
     int player_count = 0;
@@ -82,13 +82,14 @@ bool should_do_war_of_succession( SSConst const& ss,
     for( auto const& [player, other_player] :
          ss.players.players ) {
       if( !other_player.has_value() ) continue;
-      if( !other_player->human &&
+      if( other_player->control != e_player_control::human &&
           other_player->revolution.status ==
               e_revolution_status::won )
         // AI player has been granted independence.
         continue;
       ++player_count;
-      if( other_player->human ) ++human_count;
+      if( other_player->control == e_player_control::human )
+        ++human_count;
     }
     return pair{ player_count, human_count };
   }();
@@ -116,7 +117,7 @@ WarOfSuccessionNations select_players_for_war_of_succession(
     e_player const player_type = colonist_player_for( nation );
     auto const& player         = ss.players.players[player_type];
     if( !player.has_value() ) continue;
-    if( player->human ) continue;
+    if( player->control == e_player_control::human ) continue;
     ai_nations.push_back( nation );
     int const population =
         unit_count_for_rebel_sentiment( ss, player_type );

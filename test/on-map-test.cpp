@@ -406,8 +406,8 @@ TEST_CASE(
     // first human player in the order list of players (spanish)
     // will be considered as the viewer, and since the spanish
     // are being visited, there is no player change.
-    W.spanish().human = true;
-    W.dutch().human   = true;
+    W.spanish().control = e_player_control::human;
+    W.dutch().control   = e_player_control::human;
     W.add_unit_on_map( e_unit_type::free_colonist,
                        { .x = 1, .y = 1 }, e_player::spanish );
     W.euro_mind( e_player::spanish )
@@ -423,8 +423,8 @@ TEST_CASE(
     // This one, unlike the one above, will need a visibility
     // change because the default viewer is again the spanish but
     // the dutch are being visited and they are humans.
-    W.spanish().human = true;
-    W.dutch().human   = true;
+    W.spanish().control = e_player_control::human;
+    W.dutch().control   = e_player_control::human;
     W.add_unit_on_map( e_unit_type::free_colonist,
                        { .x = 1, .y = 1 }, e_player::dutch );
     W.euro_mind( e_player::dutch )

@@ -1578,11 +1578,20 @@ wait<> nation_turn( IEngine& engine, SS& ss, TS& ts,
                     e_player player, PlayerTurnState& st ) {
   CHECK( ss.players.players[player].has_value(),
          "nation {} does not exist.", player );
-  if( !ss.players.players[player]->human )
-    // TODO: Until we have AI.
-    st = PlayerTurnState::finished{};
-  while( !st.holds<PlayerTurnState::finished>() )
-    st = co_await player_turn_iter( engine, ss, ts, player, st );
+  switch( ss.players.players[player]->control ) {
+    case e_player_control::withdrawn:
+      st = PlayerTurnState::finished{};
+      break;
+    case e_player_control::human:
+      while( !st.holds<PlayerTurnState::finished>() )
+        st = co_await player_turn_iter( engine, ss, ts, player,
+                                        st );
+      break;
+    case e_player_control::ai:
+      // TODO: Until we have AI.
+      st = PlayerTurnState::finished{};
+      break;
+  }
 }
 
 /****************************************************************

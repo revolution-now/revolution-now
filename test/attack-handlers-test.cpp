@@ -73,7 +73,7 @@ struct World : testing::World {
   World() : Base() {
     add_player( kAttackingPlayer );
     add_player( kDefendingPlayer );
-    set_human_player( kAttackingPlayer );
+    set_human_player_and_rest_ai( kAttackingPlayer );
     common_player_init( player( kAttackingPlayer ) );
     common_player_init( player( kDefendingPlayer ) );
     set_default_player_type( kAttackingPlayer );

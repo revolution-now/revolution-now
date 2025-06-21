@@ -1310,7 +1310,7 @@ TEST_CASE( "[visibility] ScopedMapViewer" ) {
 
   using enum e_player;
 
-  w.french().human = true;
+  w.french().control = e_player_control::human;
 
   auto& map_revealed = w.land_view().map_revealed;
 
@@ -1318,7 +1318,7 @@ TEST_CASE( "[visibility] ScopedMapViewer" ) {
   w.turn().cycle.emplace<TurnCycle::player>().type = french;
 
   SECTION( "english human" ) {
-    w.english().human = true;
+    w.english().control = e_player_control::human;
     SECTION( "no_special_view/french -> french" ) {
       map_revealed = MapRevealed::no_special_view{};
       {
@@ -1385,7 +1385,7 @@ TEST_CASE( "[visibility] ScopedMapViewer" ) {
   }
 
   SECTION( "english not human" ) {
-    w.english().human = false;
+    w.english().control = e_player_control::ai;
     SECTION( "no_special_view/french -> french" ) {
       map_revealed = MapRevealed::no_special_view{};
       {

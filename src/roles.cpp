@@ -43,7 +43,9 @@ maybe<e_player> player_for_role( SSConst const& ss,
             UNWRAP_CHECK_MSG(
                 active_player, ss.players.players[*active],
                 "player {} does not exist.", *active );
-            if( active_player.human ) return *active;
+            if( active_player.control ==
+                e_player_control::human )
+              return *active;
           }
           // Find the first human that we can find. In a normal
           // game, where there is only one human player, this
@@ -53,7 +55,8 @@ maybe<e_player> player_for_role( SSConst const& ss,
           // anything better to do here.
           for( e_player player : refl::enum_values<e_player> )
             if( ss.players.players[player].has_value() )
-              if( ss.players.players[player]->human )
+              if( ss.players.players[player]->control ==
+                  e_player_control::human )
                 return player;
           return active;
         }

@@ -469,7 +469,7 @@ void World::add_player( e_player player_type ) {
 void World::add_all_players( maybe<e_player> const human ) {
   for( e_player const player_type : refl::enum_values<e_player> )
     add_player( player_type );
-  set_human_player( human );
+  set_human_player_and_rest_ai( human );
   if( human.has_value() )
     set_default_player_type( *human );
   else
@@ -480,12 +480,21 @@ void World::add_default_player() {
   add_player( default_player_type() );
 }
 
-void World::set_human_player( maybe<e_player> player_type ) {
-  set_unique_human_player( players(), player_type );
+void World::set_human_player_and_rest_ai(
+    maybe<e_player> player_type ) {
+  for( e_player const p : refl::enum_values<e_player> ) {
+    if( players().players[p].has_value() ) {
+      if( p == player_type )
+        players().players[p]->control = e_player_control::human;
+      else
+        players().players[p]->control = e_player_control::ai;
+    }
+  }
+  CHECK_HAS_VALUE( players().validate() );
 }
 
 void World::set_default_player_as_human() {
-  set_human_player( default_player_type() );
+  default_player().control = e_player_control::human;
 }
 
 Colony& World::found_colony( UnitId founder ) {

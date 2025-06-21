@@ -90,7 +90,7 @@ TEST_CASE( "[rebel-sentiment] should_do_war_of_succession" ) {
         w.ss().as_const, as_const( human_player ) );
   };
 
-  BASE_CHECK( human_player.human );
+  BASE_CHECK( human_player.control == e_player_control::human );
 
   // Default.
   REQUIRE_FALSE( f() );
@@ -109,19 +109,19 @@ TEST_CASE( "[rebel-sentiment] should_do_war_of_succession" ) {
 
   SECTION( "multiple humans" ) {
     REQUIRE( f() );
-    w.spanish().human = true;
+    w.spanish().control = e_player_control::human;
     REQUIRE_FALSE( f() );
   }
 
   SECTION( "no humans" ) {
     REQUIRE( f() );
-    human_player.human = false;
+    human_player.control = e_player_control::ai;
     REQUIRE_FALSE( f() );
   }
 
   SECTION( "AI granted independence" ) {
-    human_player.human = true;
-    other_player.human = false;
+    human_player.control = e_player_control::human;
+    other_player.control = e_player_control::ai;
     REQUIRE( f() );
     other_player.revolution.status = e_revolution_status::won;
     REQUIRE_FALSE( f() );
@@ -129,8 +129,8 @@ TEST_CASE( "[rebel-sentiment] should_do_war_of_succession" ) {
 
   SECTION( "one human but not the caller's player" ) {
     REQUIRE( f() );
-    human_player.human = false;
-    w.spanish().human  = true;
+    human_player.control = e_player_control::ai;
+    w.spanish().control  = e_player_control::human;
     REQUIRE_FALSE( f() );
   }
 
@@ -166,32 +166,32 @@ TEST_CASE(
   // Start off with no human players.
   for( e_player const player : enum_values<e_player> )
     if( !is_ref( player ) ) //
-      w.player( player ).human = false;
+      w.player( player ).control = e_player_control::ai;
 
   // No humans.
   expected = { .withdraws = e_nation::english,
                .receives  = e_nation::french };
   REQUIRE( f() == expected );
 
-  w.english().human = true;
-  expected          = { .withdraws = e_nation::french,
-                        .receives  = e_nation::spanish };
+  w.english().control = e_player_control::human;
+  expected            = { .withdraws = e_nation::french,
+                          .receives  = e_nation::spanish };
   REQUIRE( f() == expected );
 
-  w.english().human = false;
-  w.french().human  = true;
-  expected          = { .withdraws = e_nation::english,
-                        .receives  = e_nation::spanish };
+  w.english().control = e_player_control::ai;
+  w.french().control  = e_player_control::human;
+  expected            = { .withdraws = e_nation::english,
+                          .receives  = e_nation::spanish };
   REQUIRE( f() == expected );
 
-  w.spanish().human = true;
-  expected          = { .withdraws = e_nation::english,
-                        .receives  = e_nation::dutch };
+  w.spanish().control = e_player_control::human;
+  expected            = { .withdraws = e_nation::english,
+                          .receives  = e_nation::dutch };
   REQUIRE( f() == expected );
 
-  w.spanish().human = false;
-  expected          = { .withdraws = e_nation::english,
-                        .receives  = e_nation::spanish };
+  w.spanish().control = e_player_control::ai;
+  expected            = { .withdraws = e_nation::english,
+                          .receives  = e_nation::spanish };
   REQUIRE( f() == expected );
 
   w.add_unit_on_map( e_unit_type::artillery, { .x = 0, .y = 0 },
@@ -218,14 +218,14 @@ TEST_CASE(
                .receives  = e_nation::spanish };
   REQUIRE( f() == expected );
 
-  w.french().human = false;
-  expected         = { .withdraws = e_nation::french,
-                       .receives  = e_nation::dutch };
+  w.french().control = e_player_control::ai;
+  expected           = { .withdraws = e_nation::french,
+                         .receives  = e_nation::dutch };
   REQUIRE( f() == expected );
 
-  w.english().human = true;
-  expected          = { .withdraws = e_nation::french,
-                        .receives  = e_nation::dutch };
+  w.english().control = e_player_control::human;
+  expected            = { .withdraws = e_nation::french,
+                          .receives  = e_nation::dutch };
   REQUIRE( f() == expected );
 
   w.add_colony( { .x = 0, .y = 0 }, e_player::french );

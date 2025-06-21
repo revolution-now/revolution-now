@@ -32,6 +32,7 @@
 #include "market.hpp"
 #include "minds.hpp"
 #include "plane-stack.hpp"
+#include "player.rds.hpp"
 #include "promotion.hpp"
 #include "query-enum.hpp"
 #include "rebel-sentiment.hpp"
@@ -254,7 +255,9 @@ wait<> cheat_set_human_players( SS& ss, TS& ts ) {
       continue;
     }
     info_map[nation].disabled = false;
-    info_map[nation].on = ss.players.players[player_type]->human;
+    info_map[nation].on =
+        ss.players.players[player_type]->control ==
+        e_player_control::human;
   }
 
   while( true ) {
@@ -273,8 +276,9 @@ wait<> cheat_set_human_players( SS& ss, TS& ts ) {
   for( auto const nation : enum_values<e_nation> ) {
     e_player const player_type = colonist_player_for( nation );
     if( ss.players.players[player_type].has_value() )
-      ss.players.players[player_type]->human =
-          info_map[nation].on;
+      ss.players.players[player_type]->control =
+          info_map[nation].on ? e_player_control::human
+                              : e_player_control::ai;
   }
 
   ts.euro_minds() = create_euro_minds( ss, ts.gui );
@@ -551,7 +555,13 @@ wait<> kill_natives( SS& ss, TS& ts ) {
 //
 wait<> cheat_advance_revolution_status( SS& ss, TS& ts,
                                         Player& player ) {
-  CHECK( player.human );
+  if( player.control != e_player_control::human ) {
+    co_await ts.gui.message_box(
+        "Cannot perform this operation for player {} because "
+        "they are not human-controlled.",
+        player.type );
+    co_return;
+  }
 
   // Bump rebel sentiment to 50% and do the war of succession if
   // needed.

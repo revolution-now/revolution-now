@@ -56,7 +56,8 @@ maybe<e_player> human_player_that_declared( SSConst const& ss ) {
   // The players state validation should have ensured that there
   // is at most one human player that has declared.
   for( auto const& [type, player] : ss.players.players )
-    if( player.has_value() && player->human &&
+    if( player.has_value() &&
+        player->control == e_player_control::human &&
         player->revolution.status >= declared )
       return type;
   return nothing;

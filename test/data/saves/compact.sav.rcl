@@ -441,7 +441,7 @@ players {
     rum.intrinsic_volume: 512
   }
   players.english {
-    human: true
+    control: human
     old_world.market.commodities {
       cigars.bid_price: 11
       cloth.bid_price: 11
@@ -478,7 +478,6 @@ settings {
   in_game_options.game_menu_options {
     autosave: true
     combat_analysis: true
-    show_fog_of_war: true
     show_foreign_moves: true
     show_indian_moves: true
     water_color_cycling: true

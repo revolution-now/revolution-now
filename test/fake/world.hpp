@@ -313,7 +313,7 @@ struct World {
   // usual in this module. When `player` is nothing it means that
   // there is no human player, as opposed to the usual meaning
   // which would be that the "default" player is selected.
-  void set_human_player( maybe<e_player> player );
+  void set_human_player_and_rest_ai( maybe<e_player> player );
 
   void set_default_player_as_human();
 

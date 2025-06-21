@@ -49,7 +49,7 @@ base::valid_or<string> PlayersState::validate() const {
   // Ensure that at most one human player has declared.
   for( int count = 0; auto const& [type, player] : players ) {
     if( !player.has_value() ) continue;
-    if( !player->human ) continue;
+    if( player->control != e_player_control::human ) continue;
     if( player->revolution.status >=
         e_revolution_status::declared )
       ++count;
@@ -84,28 +84,6 @@ base::valid_or<string> PlayersState::validate() const {
   }
 
   return base::valid;
-}
-
-void reset_players( PlayersState& players_state,
-                    vector<e_player> const& nations,
-                    base::maybe<e_player> human ) {
-  auto& players = players_state.players;
-  for( e_player type : refl::enum_values<e_player> )
-    players[type].reset();
-  for( e_player type : nations )
-    players[type] = Player{
-      .type  = type,
-      .money = 0,
-    };
-  set_unique_human_player( players_state, human );
-}
-
-void set_unique_human_player(
-    PlayersState& players, base::maybe<e_player> player_type ) {
-  for( e_player const n : refl::enum_values<e_player> )
-    if( players.players[n].has_value() )
-      players.players[n]->human = ( n == player_type );
-  CHECK_HAS_VALUE( players.validate() );
 }
 
 Player& player_for_player_or_die( PlayersState& players,

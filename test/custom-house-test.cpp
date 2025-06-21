@@ -230,7 +230,7 @@ TEST_CASE( "[custom-house] compute_custom_house_sales" ) {
     colony.custom_house[e_commodity::cloth]   = true;
     colony.custom_house[e_commodity::muskets] = true;
     dutch.revolution.status = e_revolution_status::not_declared;
-    W.set_human_player( e_player::dutch );
+    W.set_human_player_and_rest_ai( e_player::dutch );
     CustomHouseSales const res =
         compute_custom_house_sales( W.ss(), dutch, colony );
     expected =
@@ -297,7 +297,7 @@ TEST_CASE( "[custom-house] compute_custom_house_sales" ) {
     dutch.revolution.status = e_revolution_status::declared;
     // One should be enough here.
     colony.custom_house[e_commodity::furs] = true;
-    W.set_human_player( e_player::dutch );
+    W.set_human_player_and_rest_ai( e_player::dutch );
     CustomHouseSales const res =
         compute_custom_house_sales( W.ss(), dutch, colony );
     expected = {
@@ -334,7 +334,7 @@ TEST_CASE( "[custom-house] compute_custom_house_sales" ) {
     colony.custom_house[e_commodity::cloth]   = true;
     colony.custom_house[e_commodity::muskets] = true;
     dutch.revolution.status = e_revolution_status::not_declared;
-    W.set_human_player( e_player::dutch );
+    W.set_human_player_and_rest_ai( e_player::dutch );
     CustomHouseSales const res =
         compute_custom_house_sales( W.ss(), dutch, colony );
     expected =
@@ -395,7 +395,7 @@ TEST_CASE(
       e_difficulty::conquistador;
   // Init player.
   Player& french = W.french();
-  W.set_human_player( e_player::french );
+  W.set_human_player_and_rest_ai( e_player::french );
   french.revolution.status = e_revolution_status::not_declared;
   // Init colony.
   auto [colony, founder] =
@@ -480,7 +480,7 @@ TEST_CASE(
       e_difficulty::conquistador;
   // Init player.
   Player& dutch = W.dutch();
-  W.set_human_player( e_player::dutch );
+  W.set_human_player_and_rest_ai( e_player::dutch );
   dutch.revolution.status = e_revolution_status::not_declared;
   // Init colony.
   auto [colony, founder] =

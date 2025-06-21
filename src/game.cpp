@@ -72,7 +72,8 @@ enum class e_game_module_tune_points {
 e_player ensure_human_player( PlayersState const& players ) {
   for( auto& [player_type, player] : players.players )
     if( player.has_value() )
-      if( player->human ) return player_type;
+      if( player->control == e_player_control::human )
+        return player_type;
   FATAL(
       "there must be at least one human player and the "
       "default_human must refer to one of them." );

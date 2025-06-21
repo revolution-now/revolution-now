@@ -498,8 +498,8 @@ bool ScopedMapViewer::needs_change() const {
   auto const& players = ss_.as_const.players.players;
   CHECK( players[new_player_].has_value() );
   Player const& new_player = *players[new_player_];
-  return new_player.human && old_player_.has_value() &&
-         *old_player_ != new_player_;
+  return new_player.control == e_player_control::human &&
+         old_player_.has_value() && *old_player_ != new_player_;
 }
 
 } // namespace rn

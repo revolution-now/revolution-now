@@ -63,7 +63,8 @@ string construct_rcl_title( SSConst const& ss ) {
   // Use the first human player.
   for( e_player const player : refl::enum_values<e_player> ) {
     if( ss.players.players[player].has_value() ) {
-      if( ss.players.players[player]->human ) {
+      if( ss.players.players[player]->control ==
+          e_player_control::human ) {
         human = player;
         break;
       }

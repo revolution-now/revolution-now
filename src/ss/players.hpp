@@ -22,14 +22,6 @@ namespace rn {
 
 using PlayersMap = refl::enum_map<e_player, maybe<Player>>;
 
-// FIXME: remove
-void reset_players( PlayersState& players_state,
-                    std::vector<e_player> const& nations,
-                    base::maybe<e_player> human );
-
-void set_unique_human_player( PlayersState& players,
-                              base::maybe<e_player> player );
-
 Player& player_for_player_or_die( PlayersState& players,
                                   e_player player );
 

@@ -69,7 +69,7 @@ TEST_CASE( "[roles] player_for_role" ) {
   REQUIRE( f( e_player_role::active ) == nothing );
 
   // Make dutch human.
-  W.dutch().human = true;
+  W.dutch().control = e_player_control::human;
   REQUIRE( f( e_player_role::viewer ) == e_player::dutch );
   REQUIRE( f( e_player_role::active ) == nothing );
 
@@ -85,17 +85,17 @@ TEST_CASE( "[roles] player_for_role" ) {
   REQUIRE( f( e_player_role::active ) == e_player::spanish );
 
   // Make spanish human.
-  W.spanish().human = true;
+  W.spanish().control = e_player_control::human;
   REQUIRE( f( e_player_role::viewer ) == e_player::spanish );
   REQUIRE( f( e_player_role::active ) == e_player::spanish );
 
   // Remove human status from spanish.
-  W.spanish().human = false;
+  W.spanish().control = e_player_control::ai;
   REQUIRE( f( e_player_role::viewer ) == e_player::dutch );
   REQUIRE( f( e_player_role::active ) == e_player::spanish );
 
   // Remove human status from dutch.
-  W.dutch().human = false;
+  W.dutch().control = e_player_control::ai;
   REQUIRE( f( e_player_role::viewer ) == e_player::spanish );
   REQUIRE( f( e_player_role::active ) == e_player::spanish );
 
@@ -116,7 +116,7 @@ TEST_CASE( "[roles] player_for_role" ) {
   REQUIRE( f( e_player_role::active ) == e_player::spanish );
 
   // Make french human.
-  W.french().human = true;
+  W.french().control = e_player_control::human;
   REQUIRE( f( e_player_role::viewer ) == e_player::english );
   REQUIRE( f( e_player_role::active ) == e_player::spanish );
 

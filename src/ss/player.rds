@@ -38,12 +38,21 @@ enum.e_euro_relationship {
   war,
 }
 
+enum.e_player_control {
+  # We need the "withdrawn" value for dealing with foreign euro-
+  # pean powers after declaration: they completely stop evolving,
+  # but their colonies are still present on the map.
+  withdrawn,
+  human,
+  ai,
+}
+
 struct.Player {
   # Somewhat just for convenience.
   type 'e_player',
   nation 'e_nation',
 
-  human 'bool',
+  control 'e_player_control',
 
   money 'int',
 

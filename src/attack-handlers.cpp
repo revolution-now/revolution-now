@@ -164,7 +164,6 @@ struct AttackHandlerBase : public CommandHandler {
   Unit& attacker_;
   Player& attacking_player_;
   IEuroMind& attacker_mind_;
-  bool attacker_human_ = {};
 
   e_direction direction_;
 
@@ -188,7 +187,6 @@ AttackHandlerBase::AttackHandlerBase( SS& ss, TS& ts,
     attacking_player_( player_for_player_or_die(
         ss.players, attacker_.player_type() ) ),
     attacker_mind_( ts.euro_minds()[attacker_.player_type()] ),
-    attacker_human_( attacking_player_.human ),
     direction_( direction ) {
   CHECK( viz_ != nullptr );
   attack_src_ =
@@ -223,7 +221,7 @@ AttackHandlerBase::check_attack_verdict_base() const {
       !attacker_.desc().ship )
     co_return e_attack_verdict_base::land_unit_attack_ship;
 
-  if( attacker_.movement_points() < 1 && attacker_human_ ) {
+  if( attacker_.movement_points() < 1 ) {
     if( co_await ts_.gui.optional_yes_no(
             { .msg = fmt::format(
                   "This unit only has [{}] movement points "
@@ -689,19 +687,17 @@ wait<bool> AttackNativeUnitHandler::confirm() {
   TribeRelationship& relationship =
       defender_tribe_.relationship[attacker_.player_type()];
   if( !relationship.player_has_attacked_tribe ) {
-    if( attacker_human_ ) {
-      YesNoConfig const config{
-        .msg = fmt::format(
-            "Shall we attack the [{}]?",
-            ts_.gui.identifier_to_display_name(
-                base::to_str( defender_tribe_.type ) ) ),
-        .yes_label      = "Attack",
-        .no_label       = "Cancel",
-        .no_comes_first = true };
-      maybe<ui::e_confirm> const proceed =
-          co_await ts_.gui.optional_yes_no( config );
-      if( proceed != ui::e_confirm::yes ) co_return false;
-    }
+    YesNoConfig const config{
+      .msg = fmt::format(
+          "Shall we attack the [{}]?",
+          ts_.gui.identifier_to_display_name(
+              base::to_str( defender_tribe_.type ) ) ),
+      .yes_label      = "Attack",
+      .no_label       = "Cancel",
+      .no_comes_first = true };
+    maybe<ui::e_confirm> const proceed =
+        co_await ts_.gui.optional_yes_no( config );
+    if( proceed != ui::e_confirm::yes ) co_return false;
     relationship.player_has_attacked_tribe = true;
   }
 

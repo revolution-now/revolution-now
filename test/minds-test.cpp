@@ -82,10 +82,10 @@ TEST_CASE( "[minds] create_euro_minds" ) {
   World W;
 
   W.add_all_players();
-  W.english().human = true;
-  W.french().human  = true;
-  W.spanish().human = false;
-  W.dutch().human   = false;
+  W.english().control = e_player_control::human;
+  W.french().control  = e_player_control::human;
+  W.spanish().control = e_player_control::ai;
+  W.dutch().control   = e_player_control::ai;
 
   auto f = [&] { return create_euro_minds( W.ss(), W.gui() ); };
 

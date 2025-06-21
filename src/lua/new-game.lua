@@ -339,7 +339,11 @@ local function create_players( options, root )
   for _, o in ipairs( options.ordered_players ) do
     local player = players:reset_player( o.nation )
     create_player_state( settings, o.nation, player )
-    player.human = o.human
+    if o.human then
+      player.control = 'human'
+    else
+      player.control = 'ai'
+    end
   end
   init_prices( options, root )
 end
