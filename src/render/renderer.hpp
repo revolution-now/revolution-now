@@ -120,6 +120,7 @@ struct RendererConfig {
   std::vector<SpriteSheetConfig> const& sprite_sheets;
   std::vector<AsciiFontSheetConfig> const& font_sheets;
   base::maybe<std::string> dump_atlas_png    = {};
+  base::maybe<std::string> dump_noise_png    = {};
   e_render_framebuffer_mode framebuffer_mode = {};
 };
 

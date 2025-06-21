@@ -16,6 +16,7 @@
 #include "atlas.hpp"
 #include "emitter.hpp"
 #include "misc.hpp"
+#include "noise.hpp"
 #include "painter.hpp"
 #include "sprite-sheet.hpp"
 #include "text-layout.rds.hpp"
@@ -47,6 +48,7 @@
 #include "base/fs.hpp"
 #include "base/io.hpp"
 #include "base/keyval.hpp"
+#include "base/logger.hpp"
 #include "base/scope-exit.hpp"
 
 // C++ standard library
@@ -61,6 +63,7 @@ namespace rr {
 namespace {
 
 using ::base::function_ref;
+using ::base::lg;
 using ::gfx::pixel;
 using ::gfx::point;
 using ::gfx::rect;
@@ -80,7 +83,9 @@ using ProgramAttributes =
 struct NormalProgramUniforms {
   static constexpr tuple uniforms{
     gl::UniformSpec<int>( "u_atlas" ),
+    gl::UniformSpec<int>( "u_noise" ),
     gl::UniformSpec<gl::vec2>( "u_atlas_size" ),
+    gl::UniformSpec<gl::vec2>( "u_noise_size" ),
     gl::UniformSpec<gl::vec2>( "u_screen_size" ),
     gl::UniformSpec<int32_t>( "u_color_cycle_stage" ),
     gl::UniformSpec<gl::vec2>( "u_camera_translation" ),
@@ -169,6 +174,7 @@ struct Renderer::Impl {
         PostProgramType postprocessing_program_arg,
         RenderBufferMap buffers_arg, AtlasMap atlas_map_arg,
         size atlas_size_arg, gl::Texture atlas_tx_arg,
+        gl::Texture noise_tx_arg,
         unordered_map<string, int> atlas_ids_arg,
         unordered_map<string_view, int> atlas_ids_fast_arg,
         unordered_map<string, gfx::rect> atlas_trimmed_rects_arg,
@@ -182,6 +188,7 @@ struct Renderer::Impl {
       atlas_size( std::move( atlas_size_arg ) ),
       atlas_tx( std::move( atlas_tx_arg ) ),
       atlas_tx_binder( atlas_tx.bind() ),
+      noise_tx( std::move( noise_tx_arg ) ),
       atlas_ids( std::move( atlas_ids_arg ) ),
       atlas_ids_fast( std::move( atlas_ids_fast_arg ) ),
       atlas_trimmed_rects(
@@ -199,6 +206,18 @@ struct Renderer::Impl {
 
     logical_screen_size = logical_screen_size_arg;
     recreate_postprocessing_framebuffer();
+
+    // Bind the noise texture to texture 1. The reason we do a
+    // permanent bind is because 1) we don't really need to ever
+    // unbind this (or change the binding), at least at the mo-
+    // ment, and 2) it would be a slight pain because we would
+    // have to set the active texture again before unbinding
+    // (restoring), which would require enhancing the binder API.
+    {
+      set_active_texture( gl::e_gl_texture::tx_1 );
+      noise_tx.bind_permanent();
+      set_active_texture( gl::e_gl_texture::tx_0 );
+    }
   };
 
   void recreate_postprocessing_framebuffer() {
@@ -282,6 +301,7 @@ struct Renderer::Impl {
     }();
 
     pgrm["u_atlas"_t] = 0; // GL_TEXTURE0
+    pgrm["u_noise"_t] = 1; // GL_TEXTURE1
 
     auto postprocessing_pgrm = [&] {
       // Some OpenGL drivers, during shader program validation,
@@ -357,14 +377,27 @@ struct Renderer::Impl {
     CHECK( atlas_trimmed_rects.size() == atlas_ids_fast.size() );
 
     if( config.dump_atlas_png.has_value() ) {
+      lg.info( "writing atlas png to {}.",
+               *config.dump_atlas_png );
       CHECK_HAS_VALUE(
           stb::save_image( *config.dump_atlas_png, atlas.img ) );
     }
 
     size atlas_size = atlas.img.size_pixels();
     gl::Texture atlas_tx( std::move( atlas.img ) );
-
     pgrm["u_atlas_size"_t] = gl::vec2::from_size( atlas_size );
+
+    size const noise_size = { .w = 640, .h = 640 };
+    gfx::image noise_img  = create_noise_image( noise_size );
+    // Do this before img gets moved from.
+    if( config.dump_noise_png.has_value() ) {
+      lg.info( "writing noise png to {}.",
+               *config.dump_noise_png );
+      CHECK_HAS_VALUE(
+          stb::save_image( *config.dump_noise_png, noise_img ) );
+    }
+    gl::Texture noise_tx( std::move( noise_img ) );
+    pgrm["u_noise_size"_t] = gl::vec2::from_size( noise_size );
 
     // Note some fields are not explicitly initialized here
     // (there are initialized in the constructor above).
@@ -377,6 +410,7 @@ struct Renderer::Impl {
         /*atlas_map=*/std::move( atlas.dict ),
         /*atlas_size=*/atlas_size,
         /*atlas_tx=*/std::move( atlas_tx ),
+        /*noise_tx=*/std::move( noise_tx ),
         /*atlas_ids=*/std::move( atlas_ids ),
         /*atlas_ids_fast=*/std::move( atlas_ids_fast ),
         /*atlas_trimmed_rects=*/std::move( atlas_trimmed_rects ),
@@ -699,6 +733,7 @@ struct Renderer::Impl {
   size const atlas_size;
   gl::Texture const atlas_tx;
   TextureBinder const atlas_tx_binder;
+  gl::Texture const noise_tx;
   unordered_map<string, int> const atlas_ids;
   unordered_map<string_view, int> const atlas_ids_fast;
   unordered_map<string, gfx::rect> const atlas_trimmed_rects;

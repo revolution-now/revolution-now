@@ -34,7 +34,9 @@ flat in float frag_scaling;
 flat in vec2  frag_default_hash_anchor;
 
 uniform sampler2D u_atlas;
+uniform sampler2D u_noise;
 uniform vec2 u_atlas_size;
+uniform vec2 u_noise_size;
 // Screen dimensions in the game's logical pixel units.
 uniform vec2 u_screen_size;
 
@@ -215,24 +217,12 @@ vec4 type_stencil() {
 /****************************************************************
 ** Depixelation.
 *****************************************************************/
-// Here we will produce a hash of the correct pixel coordinates
-// (in game space, so they will be integers) and use that as a
-// deterministic pseudo-random number for each pixel. Comparing
-// that with the `frag_depixelation` animation state, we can ran-
-// domly hide pixels with increasing probability, effectively
-// creating the "depixelation" animation that happens when a unit
-// or colony is destroyed or defeated in battle.
-//
-// To test this go here: https://www.shadertoy.com/view/NsBBzd.
-
-// Produces a hash of the vec2 in the interval [0, 1). This seems
-// to produce best results when the input vector is in the in-
-// terval ~ [0, 1] approximately.
 float hash_vec2( in vec2 vec ) {
-  // Taken from https://stackoverflow.com/a/4275343.
-  vec2 magic_vec2 = vec2( 12.9898, 78.233 );
-  float magic_float = 43758.5453;
-  return fract( sin( dot( vec, magic_vec2 ) )*magic_float );
+  vec4 noise = texture( u_noise, mod( vec, u_noise_size ) );
+  // There are three independent "channels" of noise here, one in
+  // each of the r/g/b components. But we only need one, so just
+  // pick r arbitrarily.
+  return noise.r;
 }
 
 float hash_position( in vec2 anchor ) {

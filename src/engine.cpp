@@ -277,6 +277,7 @@ struct Engine::Impl {
       .sprite_sheets  = config_tile_sheet.sheets.sprite_sheets,
       .font_sheets    = config_tile_sheet.sheets.font_sheets,
       .dump_atlas_png = config_debug.dump.dump_texture_atlas_to,
+      .dump_noise_png = config_debug.dump.dump_texture_noise_to,
       .framebuffer_mode =
           user_config()
               .read()

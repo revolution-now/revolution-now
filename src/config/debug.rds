@@ -18,6 +18,7 @@ namespace "rn.config.debug"
 
 struct.Dump {
   dump_texture_atlas_to 'base::maybe<std::string>',
+  dump_texture_noise_to 'base::maybe<std::string>',
   dump_lua_config_to 'base::maybe<std::string>',
 }
 

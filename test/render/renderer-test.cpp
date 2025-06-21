@@ -229,30 +229,36 @@ TEST_CASE( "[render/renderer] workflows" ) {
   mock.EXPECT__gl_GetUniformLocation( 9,
                                       Eq<string>( "u_atlas" ) )
       .returns( 88 );
-  mock.EXPECT__gl_GetUniformLocation(
-          9, Eq<string>( "u_atlas_size" ) )
+  mock.EXPECT__gl_GetUniformLocation( 9,
+                                      Eq<string>( "u_noise" ) )
       .returns( 89 );
   mock.EXPECT__gl_GetUniformLocation(
-          9, Eq<string>( "u_screen_size" ) )
+          9, Eq<string>( "u_atlas_size" ) )
       .returns( 90 );
   mock.EXPECT__gl_GetUniformLocation(
-          9, Eq<string>( "u_color_cycle_stage" ) )
+          9, Eq<string>( "u_noise_size" ) )
       .returns( 91 );
   mock.EXPECT__gl_GetUniformLocation(
-          9, Eq<string>( "u_camera_translation" ) )
+          9, Eq<string>( "u_screen_size" ) )
       .returns( 92 );
   mock.EXPECT__gl_GetUniformLocation(
-          9, Eq<string>( "u_camera_zoom" ) )
+          9, Eq<string>( "u_color_cycle_stage" ) )
       .returns( 93 );
   mock.EXPECT__gl_GetUniformLocation(
-          9, Eq<string>( "u_depixelation_stage" ) )
+          9, Eq<string>( "u_camera_translation" ) )
       .returns( 94 );
   mock.EXPECT__gl_GetUniformLocation(
-          9, Eq<string>( "u_color_cycle_targets" ) )
+          9, Eq<string>( "u_camera_zoom" ) )
       .returns( 95 );
   mock.EXPECT__gl_GetUniformLocation(
-          9, Eq<string>( "u_color_cycle_keys" ) )
+          9, Eq<string>( "u_depixelation_stage" ) )
       .returns( 96 );
+  mock.EXPECT__gl_GetUniformLocation(
+          9, Eq<string>( "u_color_cycle_targets" ) )
+      .returns( 97 );
+  mock.EXPECT__gl_GetUniformLocation(
+          9, Eq<string>( "u_color_cycle_keys" ) )
+      .returns( 98 );
 
   // Validate the program (Normal).
   mock.EXPECT__gl_GetProgramiv( 9, GL_ACTIVE_ATTRIBUTES,
@@ -281,34 +287,40 @@ TEST_CASE( "[render/renderer] workflows" ) {
   mock.EXPECT__gl_UseProgram( 9 );
   mock.EXPECT__gl_Uniform1i( 88, 0 ); // u_atlas
   mock.EXPECT__gl_UseProgram( 9 );
-  mock.EXPECT__gl_Uniform2f( 89, 0.0, 0.0 ); // u_atlas_size
+  mock.EXPECT__gl_Uniform1i( 89, 0 ); // u_noise
   mock.EXPECT__gl_UseProgram( 9 );
-  mock.EXPECT__gl_Uniform2f( 90, 0.0, 0.0 ); // u_screen_size
+  mock.EXPECT__gl_Uniform2f( 90, 0.0, 0.0 ); // u_atlas_size
   mock.EXPECT__gl_UseProgram( 9 );
-  mock.EXPECT__gl_Uniform1i( 91, 0 ); // u_color_cycle_stage
+  mock.EXPECT__gl_Uniform2f( 91, 0.0, 0.0 ); // u_noise_size
   mock.EXPECT__gl_UseProgram( 9 );
-  mock.EXPECT__gl_Uniform2f( 92, 0.0,
+  mock.EXPECT__gl_Uniform2f( 92, 0.0, 0.0 ); // u_screen_size
+  mock.EXPECT__gl_UseProgram( 9 );
+  mock.EXPECT__gl_Uniform1i( 93, 0 ); // u_color_cycle_stage
+  mock.EXPECT__gl_UseProgram( 9 );
+  mock.EXPECT__gl_Uniform2f( 94, 0.0,
                              0.0 ); // u_camera_translation
   mock.EXPECT__gl_UseProgram( 9 );
-  mock.EXPECT__gl_Uniform1f( 93, 0.0 ); // u_camera_zoom
+  mock.EXPECT__gl_Uniform1f( 95, 0.0 ); // u_camera_zoom
   mock.EXPECT__gl_UseProgram( 9 );
-  mock.EXPECT__gl_Uniform1f( 94, 0.0 ); // u_depixelation_stage
+  mock.EXPECT__gl_Uniform1f( 96, 0.0 ); // u_depixelation_stage
   mock.EXPECT__gl_UseProgram( 9 );
   mock.EXPECT__gl_Uniform4iv(
-      95, 0, /*values=*/_ ); // u_color_cycle_targets
+      97, 0, /*values=*/_ ); // u_color_cycle_targets
   mock.EXPECT__gl_UseProgram( 9 );
   mock.EXPECT__gl_Uniform3iv(
-      96, 0, /*values=*/_ ); // u_color_cycle_keys
+      98, 0, /*values=*/_ ); // u_color_cycle_keys
 
   // Unbind dummy vertex array (Normal).
   expect_unbind_vertex_array( mock );
 
-  // Set the u_atlas texture to zero.
-  // NOTE: this is omitted even though the renderer does it be-
-  // cause we are setting the same value that was already set
-  // above and so the cached value is used.
+  // Set the u_atlas/u_noise textures to zero.
+  // NOTE: the atlas one is omitted even though the renderer does
+  // it because we are setting the same value that was already
+  // set above and so the cached value is used.
   //  mock.EXPECT__gl_UseProgram( 9 );
-  //  mock.EXPECT__gl_Uniform1i( 88, 0 );
+  //  mock.EXPECT__gl_Uniform1i( 88, 0 ); // u_atlas
+  mock.EXPECT__gl_UseProgram( 9 );
+  mock.EXPECT__gl_Uniform1i( 89, 1 ); // u_noise
 
   // Bind dummy vertex array.
   expect_bind_vertex_array( mock );
@@ -381,15 +393,15 @@ TEST_CASE( "[render/renderer] workflows" ) {
 
   // Set the u_color_cycle_targets uniform.
   mock.EXPECT__gl_UseProgram( 9 );
-  mock.EXPECT__gl_Uniform4iv( 95, 0, /*values=*/_ );
+  mock.EXPECT__gl_Uniform4iv( 97, 0, /*values=*/_ );
 
   // Set the u_color_cycle_keys uniform.
   mock.EXPECT__gl_UseProgram( 9 );
-  mock.EXPECT__gl_Uniform3iv( 96, 0, /*values=*/_ );
+  mock.EXPECT__gl_Uniform3iv( 98, 0, /*values=*/_ );
 
   // Set the u_screen_size texture.
   mock.EXPECT__gl_UseProgram( 9 );
-  mock.EXPECT__gl_Uniform2f( 90, 500.0, 400.0 );
+  mock.EXPECT__gl_Uniform2f( 92, 500.0, 400.0 );
   mock.EXPECT__gl_UseProgram( 10 );
   mock.EXPECT__gl_Uniform2f( 90, 500.0, 400.0 );
 
@@ -398,6 +410,9 @@ TEST_CASE( "[render/renderer] workflows" ) {
     mock.EXPECT__gl_GetIntegerv( GL_TEXTURE_BINDING_2D,
                                  Not( Null() ) )
         .sets_arg<1>( last );
+    mock.EXPECT__gl_BindTexture( GL_TEXTURE_2D, new_ );
+  };
+  auto expect_bind_tx_permanent = [&]( int const new_ ) {
     mock.EXPECT__gl_BindTexture( GL_TEXTURE_2D, new_ );
   };
   auto expect_unbind_tx = [&]( int const new_, int const last ) {
@@ -453,12 +468,27 @@ TEST_CASE( "[render/renderer] workflows" ) {
 
   // Set the u_atlas_size texture.
   mock.EXPECT__gl_UseProgram( 9 );
-  mock.EXPECT__gl_Uniform2f( 89, 64, 32 );
+  mock.EXPECT__gl_Uniform2f( 90, 64, 32 );
 
-  // We bind the atlas texture on construction of the renderer
-  // one final time. The corresponding unbind must come at the
-  // end of this test case otherwise it interferes with other ex-
-  // pect calls that we need to make in the mean time.
+  // Generate the noise texture.
+  gen_tx( 41, 43 );
+
+  // Set texture image.
+  expect_bind_tx( 41, 43 );
+  expect_unbind_tx( 43, 41 );
+
+  mock.EXPECT__gl_TexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, 640,
+                              640, 0, GL_RGBA, GL_UNSIGNED_BYTE,
+                              Not( Null() ) );
+
+  // Set the u_noise_size texture.
+  mock.EXPECT__gl_UseProgram( 9 );
+  mock.EXPECT__gl_Uniform2f( 91, 640, 640 );
+
+  // We bind the atlas/noise textures on construction of the ren-
+  // derer one final time. The corresponding unbind must come at
+  // the end of this test case otherwise it interferes with other
+  // expect calls that we need to make in the mean time.
   expect_bind_tx( 41, 42 );
 
   // Create the offscreen texture (empty in initializer list).
@@ -474,6 +504,7 @@ TEST_CASE( "[render/renderer] workflows" ) {
 
   mock.EXPECT__gl_DeleteTextures( 1, Pointee( 75 ) );
   mock.EXPECT__gl_DeleteTextures( 1, Pointee( 76 ) );
+  mock.EXPECT__gl_DeleteTextures( 1, Pointee( 43 ) );
   mock.EXPECT__gl_DeleteTextures( 1, Pointee( 42 ) );
 
   // Set empty texture image.
@@ -495,6 +526,11 @@ TEST_CASE( "[render/renderer] workflows" ) {
   expect_unbind_fb( 65, 65 );
   mock.EXPECT__gl_CheckFramebufferStatus( GL_FRAMEBUFFER )
       .returns( GL_FRAMEBUFFER_COMPLETE );
+
+  // Set noise texture as active on GL_TEXTURE1
+  mock.EXPECT__gl_ActiveTexture( GL_TEXTURE1 );
+  expect_bind_tx_permanent( 43 );
+  mock.EXPECT__gl_ActiveTexture( GL_TEXTURE0 );
 
   // *** The test.
 

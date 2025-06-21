@@ -49,6 +49,12 @@ struct bindable {
  public:
   binder bind() const { return binder( derived() ); }
 
+  // Only call this when you know that you won't need to restore
+  // the binding to the previous value.
+  void bind_permanent() const {
+    Derived::bind_obj_id( derived().bindable_obj_id() );
+  }
+
  protected:
   bindable() = default;
 
