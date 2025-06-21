@@ -1553,13 +1553,12 @@ struct LandViewPlane::Impl : public IPlane {
     HiddenTerrainAnimationSequence const seq =
         anim_seq_for_hidden_terrain( ss_, *viz_, ts_.rand );
 
-    auto const tile = find_a_good_white_box_location(
-        ss_, viewport_.covered_tiles() );
-
     co_await co::first(
         animator_.animate_sequence( seq.hide ),
         hidden_terrain_interact_during_animation() );
 
+    auto const tile = find_a_good_white_box_location(
+        ss_, viewport_.covered_tiles() );
     co_await co::first(
         animator_.animate_sequence_and_hold( seq.hold ),
         hidden_terrain_white_box_loop( tile ) );
