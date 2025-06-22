@@ -27,6 +27,7 @@ local config = global( 'config' )
 local game_options = global( 'game_options' )
 local immigration = global( 'immigration' )
 local market = global( 'market' )
+local player_mgr = global( 'player_mgr' )
 local price_group = global( 'price_group' )
 local unit_composition = global( 'unit_composition' )
 local unit_mgr = global( 'unit_mgr' )
@@ -333,11 +334,19 @@ local function create_player_state( settings, player_type, player )
   create_revolution_state( settings, player )
 end
 
+local function assert_map_created( root )
+  local terrain = root.terrain
+  local size = terrain:size()
+  return size.w * size.h > 0
+end
+
 local function create_players( options, root )
-  local players = root.players.players
+  -- Sanity check.
+  assert( assert_map_created( root ),
+          'map must be generated before players are created' )
   local settings = root.settings
   for _, o in ipairs( options.ordered_players ) do
-    local player = players:reset_player( o.nation )
+    local player = player_mgr.add_new_player( o.nation )
     create_player_state( settings, o.nation, player )
     if o.human then
       player.control = 'human'
@@ -346,14 +355,6 @@ local function create_players( options, root )
     end
   end
   init_prices( options, root )
-end
-
-local function create_player_maps( options, root )
-  local terrain = root.terrain
-  for _, o in ipairs( options.ordered_players ) do
-    terrain:initialize_player_terrain( o.nation, --[[visible=]]
-                                       false )
-  end
 end
 
 -----------------------------------------------------------------
@@ -405,12 +406,14 @@ function M.create( root, options )
 
   create_turn_state( root.turn )
 
-  create_players( options, root )
-
   -- Do this as late as possible because it's slow and we want to
   -- catch errors in the other parts of the process as quickly as
   -- possible.
   map_gen.generate( options.map )
+
+  -- Need to create the players after creating the map state so
+  -- that the map size is known.
+  create_players( options, root )
 
   -- Needs to be done after the map is generated because we need
   -- to know the dimensions.
@@ -425,9 +428,6 @@ function M.create( root, options )
       end
     end
   end
-
-  -- Initializes the maps that track what each player can see.
-  create_player_maps( options, root )
 
   if options.map.type == 'battlefield' then
     create_battlefield_units( options, root )

@@ -12,9 +12,21 @@
 
 // ss
 #include "ss/nation.hpp"
+#include "ss/player.hpp"
 #include "ss/players.hpp"
 #include "ss/ref.hpp"
 #include "ss/terrain.hpp"
+
+// luapp
+#include "luapp/enum.hpp"
+#include "luapp/register.hpp"
+#include "luapp/state.hpp"
+
+// refl
+#include "refl/to-str.hpp"
+
+// base
+#include "base/to-str-ext-std.hpp"
 
 using namespace std;
 
@@ -46,5 +58,17 @@ Player& get_or_add_player( SS& ss, e_player const type ) {
     return add_new_player( ss, type );
   return *ss.players.players[type];
 }
+
+/****************************************************************
+** Lua Bindings
+*****************************************************************/
+namespace {
+
+LUA_FN( add_new_player, Player&, e_player const player_type ) {
+  SS& ss = st["SS"].as<SS&>();
+  return add_new_player( ss, player_type );
+}
+
+} // namespace
 
 } // namespace rn
