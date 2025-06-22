@@ -219,7 +219,8 @@ TEST_CASE(
 
   point const kPoint{ .x = 1, .y = 1 };
   Colony& colony = w.add_colony( kPoint );
-  ColonyEvolution const evolution{ .production.crosses = 5 };
+  ColonyEvolution const evolution{
+    .production = { .crosses = 5 } };
   mock_colony_evolver
       .EXPECT__evolve_colony_one_turn( Eq( ref( colony ) ) )
       .returns( evolution );
