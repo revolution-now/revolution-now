@@ -127,7 +127,6 @@ TEST_CASE(
 
 TEST_CASE( "[immigration] compute_crosses (dutch)" ) {
   World world;
-  world.add_player( e_player::dutch );
   world.set_default_player_type( e_player::dutch );
   world.create_default_map();
 
