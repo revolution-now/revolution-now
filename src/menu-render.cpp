@@ -346,11 +346,11 @@ void render_menu_body(
   rect const body = layout.bounds;
 
   tile_sprite( renderer, e_tile::wood_middle, body );
-  render_shadow_hightlight_border(
+  render_shadow_highlight_border(
       renderer, body.with_edges_removed( 2 ),
       config_ui.window.border_dark,
       config_ui.window.border_lighter );
-  render_shadow_hightlight_border(
+  render_shadow_highlight_border(
       renderer, body.with_edges_removed( 1 ),
       config_ui.window.border_darker,
       config_ui.window.border_light );

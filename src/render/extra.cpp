@@ -82,7 +82,7 @@ void draw_empty_rect_faded_corners( Renderer& renderer,
   }
 }
 
-void render_shadow_hightlight_border(
+void render_shadow_highlight_border(
     Renderer& renderer, rect const rect,
     pixel const left_and_bottom, pixel const top_and_right ) {
   Painter painter = renderer.painter();

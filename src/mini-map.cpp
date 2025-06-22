@@ -417,11 +417,11 @@ void MiniMapView::draw_impl( rr::Renderer& renderer,
   // Draw border.
   {
     SCOPED_RENDERER_MOD_MUL( painter_mods.alpha, .75 );
-    render_shadow_hightlight_border(
+    render_shadow_highlight_border(
         renderer, actual.with_border_added( 1 ),
         config_ui.window.border_light,
         config_ui.window.border_dark );
-    render_shadow_hightlight_border(
+    render_shadow_highlight_border(
         renderer, actual, config_ui.window.border_dark,
         config_ui.window.border_darker );
   }
