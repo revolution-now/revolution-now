@@ -1143,6 +1143,16 @@ sheets {
       }
     }
     {
+      img_path: assets/art/tiles/ui-11x11.png
+      sprite_size: { w: 11, h: 11 }
+      sprites {
+        checkbox_back:  { y: 0, x: 0 }
+        checkbox_check: { y: 0, x: 1 }
+        radio_back:     { y: 1, x: 0 }
+        radio_check:    { y: 1, x: 1 }
+      }
+    }
+    {
       img_path: assets/art/difficulty/plate.png
       sprite_size: { w: 121, h: 161 }
       sprites {

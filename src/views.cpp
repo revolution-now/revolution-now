@@ -1027,42 +1027,10 @@ Delta CheckBoxView::delta() const {
 }
 
 void CheckBoxView::draw( rr::Renderer& renderer,
-                         Coord coord ) const {
-  rr::Painter painter = renderer.painter();
-  static gfx::pixel const background_color =
-      config_ui.window.border_dark.with_alpha( 128 );
-  static gfx::pixel const x_color =
-      config_ui.dialog_text.highlighted;
-  static gfx::pixel const x_color_shaded =
-      config_ui.dialog_text.highlighted.shaded( 1 );
-  painter.draw_solid_rect( bounds( coord ), background_color );
-  render_shadow_hightlight_border(
-      renderer, bounds( coord ).edges_removed(),
-      config_ui.window.border_lighter.highlighted(),
-      config_ui.window.border_darker.shaded() );
-
-  coord = coord + Delta{ .w = 3, .h = 1 };
-
-  if( on_ ) {
-    // This creates a fat x.
-    renderer
-        .typer( coord + Delta{ .w = -1, .h = 0 },
-                x_color_shaded )
-        .write( 'x' );
-    renderer
-        .typer( coord + Delta{ .w = 1, .h = 0 }, x_color_shaded )
-        .write( 'x' );
-    renderer
-        .typer( coord + Delta{ .w = 0, .h = -1 },
-                x_color_shaded )
-        .write( 'x' );
-    renderer
-        .typer( coord + Delta{ .w = 0, .h = 1 }, x_color_shaded )
-        .write( 'x' );
-    // Main x.
-    renderer.typer( coord + Delta{ .w = 0, .h = 0 }, x_color )
-        .write( 'x' );
-  }
+                         Coord const coord ) const {
+  render_sprite(renderer, coord, e_tile::checkbox_back);
+  if( on_ )
+    render_sprite(renderer, coord, e_tile::checkbox_check);
 }
 
 bool CheckBoxView::on_mouse_button(

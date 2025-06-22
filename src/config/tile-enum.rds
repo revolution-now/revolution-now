@@ -649,7 +649,7 @@ enum.e_tile {
   submenu_arrow,
 
   # =============================================================
-  # Buttons
+  # UI Widgets.
   # =============================================================
   button_up_ul,
   button_up_um,
@@ -669,6 +669,11 @@ enum.e_tile {
   button_down_ll,
   button_down_lm,
   button_down_lr,
+
+  checkbox_back,
+  checkbox_check,
+  radio_back,
+  radio_check,
 
   # =============================================================
   # Commodities
