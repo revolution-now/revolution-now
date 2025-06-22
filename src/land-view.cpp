@@ -1271,7 +1271,7 @@ struct LandViewPlane::Impl : public IPlane {
                   RawInput( LandViewRawInput::next_turn{} ) );
             } else if( mode_.holds<LandViewMode::view_mode>() ) {
               raw_input_stream_.send(
-                  RawInput( LandViewRawInput::view_mode{} ) );
+                  RawInput( LandViewRawInput::move_mode{} ) );
             }
             break;
           default:
