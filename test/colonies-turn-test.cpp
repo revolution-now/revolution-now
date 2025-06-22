@@ -40,6 +40,7 @@ namespace {
 
 using namespace std;
 
+using ::gfx::point;
 using ::mock::matchers::_;
 using ::mock::matchers::Eq;
 using ::mock::matchers::Field;
@@ -203,17 +204,36 @@ TEST_CASE(
   MockIColonyNotificationGenerator
       mock_colony_notification_generator;
 
+  Player const& player = w.default_player();
+
   MockLandViewPlane land_view_plane;
   w.planes().get().set_bottom<ILandViewPlane>( land_view_plane );
 
   MockIHarborViewer harbor_viewer;
 
-  auto evolve_colonies = [&] {
+  auto const evolve_colonies = [&] {
     co_await_test( evolve_colonies_for_player(
         w.ss(), w.ts(), w.default_player(), mock_colony_evolver,
         harbor_viewer, mock_colony_notification_generator ) );
   };
-  (void)evolve_colonies;
+
+  point const kPoint{ .x = 1, .y = 1 };
+  Colony& colony = w.add_colony( kPoint );
+  ColonyEvolution const evolution{ .production.crosses = 5 };
+  mock_colony_evolver
+      .EXPECT__evolve_colony_one_turn( Eq( ref( colony ) ) )
+      .returns( evolution );
+
+  SECTION( "before declaration" ) {
+    evolve_colonies();
+    REQUIRE( player.crosses == 5 + 2 );
+  }
+
+  SECTION( "before declaration" ) {
+    w.declare_independence();
+    evolve_colonies();
+    REQUIRE( player.crosses == 0 );
+  }
 }
 
 } // namespace
