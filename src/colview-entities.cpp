@@ -50,6 +50,7 @@
 
 // ss
 #include "ss/colonies.hpp"
+#include "ss/player.rds.hpp"
 #include "ss/players.rds.hpp"
 #include "ss/ref.hpp"
 #include "ss/terrain.hpp"
@@ -1292,15 +1293,16 @@ class UnitsAtGateColonyView
           ColViewObject::commodity{ .comm = new_comm } };
   }
 
-  static maybe<UnitTransformationFromCommodity>
+  maybe<UnitTransformationFromCommodity>
   transformed_unit_composition_from_commodity(
-      Unit const& unit, Commodity const& comm ) {
+      Unit const& unit, Commodity const& comm ) const {
     vector<UnitTransformationFromCommodity> possibilities =
         with_commodity_added( unit, comm );
-    adjust_for_independence_status(
-        possibilities,
-        // FIXME
-        /*independence_declared=*/false );
+    bool const independence_declared =
+        player_.revolution.status >=
+        e_revolution_status::declared;
+    adjust_for_independence_status( possibilities,
+                                    independence_declared );
 
     erase_if( possibilities, []( auto const& xform_res ) {
       for( auto [mod, delta] : xform_res.modifier_deltas ) {
