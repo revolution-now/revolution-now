@@ -294,7 +294,7 @@ TEST_CASE( "[custom-house] compute_custom_house_sales" ) {
 
   SECTION( "declared independence" ) {
     // Charge (in place of tax rate) is 50%.
-    dutch.revolution.status = e_revolution_status::declared;
+    W.declare_independence( dutch.type );
     // One should be enough here.
     colony.custom_house[e_commodity::furs] = true;
     W.set_human_player_and_rest_ai( e_player::dutch );
@@ -312,8 +312,11 @@ TEST_CASE( "[custom-house] compute_custom_house_sales" ) {
               .money_delta_final        = 150 * 5 - 375,
               .player_volume_delta      = 150,
               .intrinsic_volume_delta =
-                  { { e_player::dutch, 199 },
-                    { e_player::french, 300 } },
+                  {
+                    { e_player::dutch, 199 },
+                    { e_player::french, 300 },
+                    { e_player::ref_dutch, 199 },
+                  },
               .global_intrinsic_volume_deltas = {
                 /*only processed goods*/ },
               .price_change =

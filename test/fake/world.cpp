@@ -466,9 +466,13 @@ void World::add_player( e_player player_type ) {
       player_type, /*visible=*/false );
 }
 
-void World::add_all_players( maybe<e_player> const human ) {
-  for( e_player const player_type : refl::enum_values<e_player> )
+void World::add_all_non_ref_players(
+    maybe<e_player> const human ) {
+  for( e_player const player_type :
+       refl::enum_values<e_player> ) {
+    if( is_ref( player_type ) ) continue;
     add_player( player_type );
+  }
   set_human_player_and_rest_ai( human );
   if( human.has_value() )
     set_default_player_type( *human );
@@ -779,8 +783,20 @@ Player const& World::player(
 // Revolution Status.
 // --------------------------------------------------------------
 void World::declare_independence( maybe<e_player> player_type ) {
-  player( player_type ).revolution.status =
-      e_revolution_status::declared;
+  // The approach we take here is to just try to do as little as
+  // possible to satisfy the validation methods, as opposed to
+  // running through the real declaration process.
+  Player& player = this->player( player_type );
+  CHECK( !is_ref( player.type ) );
+  player.revolution.status = e_revolution_status::declared;
+  e_player const ref_player_type =
+      ref_player_for( player.nation );
+  if( !players().players[ref_player_type].has_value() ) {
+    Player& ref_player =
+        players().players[ref_player_type].emplace();
+    ref_player.type   = ref_player_type;
+    ref_player.nation = player.nation;
+  }
 }
 
 base::valid_or<string> World::validate_colonies() const {

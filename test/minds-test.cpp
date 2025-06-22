@@ -81,7 +81,7 @@ static_assert( is_nothrow_move_assignable_v<NativeMinds> );
 TEST_CASE( "[minds] create_euro_minds" ) {
   World W;
 
-  W.add_all_players();
+  W.add_all_non_ref_players();
   W.english().control = e_player_control::human;
   W.french().control  = e_player_control::human;
   W.spanish().control = e_player_control::ai;
