@@ -218,20 +218,24 @@ wait<> evolve_colonies_for_player(
   present_transient_updates( ts, transient_messages );
 
   // Crosses/immigration.
-  CrossesCalculation const crosses_calc =
-      compute_crosses( ss.units, player.type );
-  give_new_crosses_to_player( player, crosses_calc, evolutions );
-  maybe<UnitId> immigrant = co_await check_for_new_immigrant(
-      ss, ts, player, crosses_calc.crosses_needed );
-  if( immigrant.has_value() ) {
-    lg.info( "a new immigrant ({}) has arrived.",
-             ss.units.unit_for( *immigrant ).desc().name );
-    // When a new colonist arrives on the dock, the OG shows the
-    // harbor view just after displaying the message but only
-    // when there is a ship in the harbor.
-    int const num_ships_in_port =
-        harbor_units_in_port( ss.units, player.type ).size();
-    if( num_ships_in_port > 0 ) co_await harbor_viewer.show();
+  if( player.revolution.status <
+      e_revolution_status::declared ) {
+    CrossesCalculation const crosses_calc =
+        compute_crosses( ss.units, player.type );
+    give_new_crosses_to_player( player, crosses_calc,
+                                evolutions );
+    maybe<UnitId> immigrant = co_await check_for_new_immigrant(
+        ss, ts, player, crosses_calc.crosses_needed );
+    if( immigrant.has_value() ) {
+      lg.info( "a new immigrant ({}) has arrived.",
+               ss.units.unit_for( *immigrant ).desc().name );
+      // When a new colonist arrives on the dock, the OG shows
+      // the harbor view just after displaying the message but
+      // only when there is a ship in the harbor.
+      int const num_ships_in_port =
+          harbor_units_in_port( ss.units, player.type ).size();
+      if( num_ships_in_port > 0 ) co_await harbor_viewer.show();
+    }
   }
 }
 

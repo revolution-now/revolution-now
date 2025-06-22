@@ -48,9 +48,9 @@ using ::mock::matchers::StrContains;
 /****************************************************************
 ** Fake World Setup
 *****************************************************************/
-struct World : testing::World {
+struct world : testing::World {
   using Base = testing::World;
-  World() : Base() {
+  world() : Base() {
     add_default_player();
     create_default_map();
   }
@@ -77,19 +77,19 @@ struct World : testing::World {
 // dencies and so it probably should be replaced with more thor-
 // ough unit tests.
 TEST_CASE( "[colonies-turn] presents transient updates." ) {
-  World W;
+  world w;
   MockIColonyEvolver mock_colony_evolver;
   MockIColonyNotificationGenerator
       mock_colony_notification_generator;
 
   MockLandViewPlane land_view_plane;
-  W.planes().get().set_bottom<ILandViewPlane>( land_view_plane );
+  w.planes().get().set_bottom<ILandViewPlane>( land_view_plane );
 
   MockIHarborViewer harbor_viewer;
 
   auto evolve_colonies = [&] {
     co_await_test( evolve_colonies_for_player(
-        W.ss(), W.ts(), W.default_player(), mock_colony_evolver,
+        w.ss(), w.ts(), w.default_player(), mock_colony_evolver,
         harbor_viewer, mock_colony_notification_generator ) );
   };
 
@@ -98,7 +98,7 @@ TEST_CASE( "[colonies-turn] presents transient updates." ) {
     // colony.
     for( Coord const coord : vector{
            Coord{ .x = 1, .y = 1 }, Coord{ .x = 3, .y = 3 } } ) {
-      Colony& colony = W.add_colony( coord );
+      Colony& colony = w.add_colony( coord );
       // Doesn't matter what this holds, only the count.
       ColonyEvolution const evolution{ .notifications = { {} } };
       mock_colony_evolver
@@ -112,15 +112,15 @@ TEST_CASE( "[colonies-turn] presents transient updates." ) {
             .transient = true } );
     }
 
-    W.gui().EXPECT__transient_message_box( "xxx1" );
-    W.gui().EXPECT__transient_message_box( "xxx2" );
+    w.gui().EXPECT__transient_message_box( "xxx1" );
+    w.gui().EXPECT__transient_message_box( "xxx2" );
     evolve_colonies();
   }
 
   SECTION( "with blocking updates" ) {
     for( Coord const coord : vector{
            Coord{ .x = 1, .y = 1 }, Coord{ .x = 3, .y = 3 } } ) {
-      Colony& colony = W.add_colony( coord );
+      Colony& colony = w.add_colony( coord );
       // Doesn't matter what this holds, only the count.
       ColonyEvolution const evolution{
         .notifications = { {}, {} } };
@@ -140,7 +140,7 @@ TEST_CASE( "[colonies-turn] presents transient updates." ) {
             .msg       = "xxx"s + to_string( colony.id ),
             .transient = true } );
       land_view_plane.EXPECT__ensure_visible( coord );
-      W.gui()
+      w.gui()
           .EXPECT__choice(
               Field( &ChoiceConfig::msg,
                      "xxx"s + to_string( colony.id ) ) )
@@ -153,47 +153,67 @@ TEST_CASE( "[colonies-turn] presents transient updates." ) {
     // ally verify that they are grouped together at the end. Not
     // sure how to easily do that with the current mocking frame-
     // work.
-    W.gui().EXPECT__transient_message_box( "xxx1" );
-    W.gui().EXPECT__transient_message_box( "xxx2" );
+    w.gui().EXPECT__transient_message_box( "xxx1" );
+    w.gui().EXPECT__transient_message_box( "xxx2" );
     evolve_colonies();
   }
 
   SECTION(
       "does not show harbor on new immigrant with no ships in "
       "port" ) {
-    Player& player = W.default_player();
+    Player& player = w.default_player();
     player.fathers.has[e_founding_father::william_brewster] =
         false;
     // Trigger a new immigrant.  It will be chosen automatically
     // for the player due to lack of Brewster.
     player.crosses = 1000;
     // Select the immigratn.
-    W.rand().EXPECT__between_ints( 0, 2 ).returns( 1 );
+    w.rand().EXPECT__between_ints( 0, 2 ).returns( 1 );
     // Notify player.
-    W.gui().EXPECT__message_box( StrContains( "immigrant" ) );
+    w.gui().EXPECT__message_box( StrContains( "immigrant" ) );
     // Select pool replacement.
-    W.rand().EXPECT__between_doubles( 0, _ ).returns( 0.0 );
+    w.rand().EXPECT__between_doubles( 0, _ ).returns( 0.0 );
     evolve_colonies();
   }
 
   SECTION( "shows harbor on new immigrant with ship in port" ) {
-    Player& player = W.default_player();
-    W.add_unit_in_port( e_unit_type::caravel );
+    Player& player = w.default_player();
+    w.add_unit_in_port( e_unit_type::caravel );
     player.fathers.has[e_founding_father::william_brewster] =
         false;
     // Trigger a new immigrant.  It will be chosen automatically
     // for the player due to lack of Brewster.
     player.crosses = 1000;
     // Select the immigratn.
-    W.rand().EXPECT__between_ints( 0, 2 ).returns( 1 );
+    w.rand().EXPECT__between_ints( 0, 2 ).returns( 1 );
     // Notify player.
-    W.gui().EXPECT__message_box( StrContains( "immigrant" ) );
+    w.gui().EXPECT__message_box( StrContains( "immigrant" ) );
     // Select pool replacement.
-    W.rand().EXPECT__between_doubles( 0, _ ).returns( 0.0 );
+    w.rand().EXPECT__between_doubles( 0, _ ).returns( 0.0 );
     // Show the harbor view since the player has a ship in port.
     harbor_viewer.EXPECT__show();
     evolve_colonies();
   }
+}
+
+TEST_CASE(
+    "[colonies-turn] only evolves crosses pre-declaration." ) {
+  world w;
+  MockIColonyEvolver mock_colony_evolver;
+  MockIColonyNotificationGenerator
+      mock_colony_notification_generator;
+
+  MockLandViewPlane land_view_plane;
+  w.planes().get().set_bottom<ILandViewPlane>( land_view_plane );
+
+  MockIHarborViewer harbor_viewer;
+
+  auto evolve_colonies = [&] {
+    co_await_test( evolve_colonies_for_player(
+        w.ss(), w.ts(), w.default_player(), mock_colony_evolver,
+        harbor_viewer, mock_colony_notification_generator ) );
+  };
+  (void)evolve_colonies;
 }
 
 } // namespace
