@@ -18,7 +18,7 @@
 #include "rebel-sentiment.hpp"
 #include "sons-of-liberty.hpp"
 #include "ts.hpp"
-#include "unit-ownership.hpp"
+#include "unit-mgr.hpp"
 #include "visibility.hpp"
 
 // config
@@ -233,11 +233,7 @@ void do_war_of_succession( SS& ss, TS& ts, Player const& player,
              colonist_player_for( plan.nations.withdraws ) );
   CHECK_NEQ( player.type,
              colonist_player_for( plan.nations.receives ) );
-  for( UnitId const unit_id : plan.remove_units )
-    // The unit could already have been deleted if e.g. it was in
-    // the cargo of a ship and we deleted the ship first.
-    if( ss.units.exists( unit_id ) )
-      UnitOwnershipChanger( ss, unit_id ).destroy();
+  destroy_units( ss, plan.remove_units );
 
   for( UnitId const unit_id : plan.reassign_units ) {
     // The unit could have been deleted if e.g. it was a unit in
