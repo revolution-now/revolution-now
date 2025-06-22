@@ -97,6 +97,33 @@ valid_or<string> wrapped::UnitsState::validate() const {
     }
   }
 
+  // Check that units that are inbound/outbound are ships.
+  for( auto const& [id, unit_state] : units ) {
+    SWITCH( unit_state ) {
+      CASE( euro ) {
+        rn::Unit const& unit = euro.unit;
+        if( euro.unit.desc().ship ) break;
+        // We have a non-ship unit, so it should not be inbound
+        // or outbound to/from the harbor.
+        auto const harbor =
+            euro.ownership.get_if<UnitOwnership::harbor>();
+        if( !harbor.has_value() ) break;
+        REFL_VALIDATE(
+            !harbor->port_status.holds<PortStatus::inbound>(),
+            "non-ship unit {} of type {} is in the `inbound` "
+            "state, but that state is reserved only for ships.",
+            id, unit.desc().type );
+        REFL_VALIDATE(
+            !harbor->port_status.holds<PortStatus::outbound>(),
+            "non-ship unit {} of type {} is in the `inbound` "
+            "state, but that state is reserved only for ships.",
+            id, unit.desc().type );
+        break;
+      }
+      CASE( native ) { break; }
+    }
+  }
+
   // Check that the indices in the ordering map are valid.
   unordered_set<int64_t> used_ordering_indices;
   for( auto const& [unit_id, index] : unit_ordering ) {

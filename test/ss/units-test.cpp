@@ -185,6 +185,14 @@ TEST_CASE(
   }
 }
 
+TEST_CASE(
+    "[units] validation: only ships can be inbound/outboubnd" ) {
+  world w;
+  base::valid_or<string> v = valid;
+
+  REQUIRE( w.units().validate() == valid );
+}
+
 TEST_CASE( "[units] units added/removed from ordering map" ) {
   world W;
 
