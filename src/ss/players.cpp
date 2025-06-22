@@ -13,6 +13,7 @@
 // ss
 #include "revolution.rds.hpp"
 #include "ss/market.hpp"
+#include "ss/nation.hpp"
 #include "ss/player.hpp"
 
 // luapp
@@ -81,6 +82,31 @@ base::valid_or<string> PlayersState::validate() const {
                      "status with player {}.",
                      l_type, r_type );
     }
+  }
+
+  // Check that only players who have declared have ref players
+  // alive.
+  for( auto const& [type, player] : players ) {
+    if( !player.has_value() ) continue;
+    if( is_ref( type ) ) continue;
+    bool const ref_should_exist =
+        player.has_value() &&
+        player->control == e_player_control::human &&
+        player->revolution.status >=
+            e_revolution_status::declared;
+    e_player const ref_player = ref_player_for( player->nation );
+    if( ref_should_exist )
+      REFL_VALIDATE(
+          players[ref_player].has_value(),
+          "human player {} has declared independence, but has "
+          "no REF player object.",
+          type );
+    else
+      REFL_VALIDATE( !players[ref_player].has_value(),
+                     "player {} has an REF player object but "
+                     "should not since player {} is either not "
+                     "human or has not declared independence.",
+                     type, type );
   }
 
   return base::valid;
