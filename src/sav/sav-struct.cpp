@@ -3099,7 +3099,7 @@ void to_str( NationFlags const& o, std::string& out, base::tag<NationFlags> ) {
   out += "NationFlags{";
   out += "unknown19a="; base::to_str( bits<2>{ o.unknown19a }, out ); out += ',';
   out += "granted_independence="; base::to_str( o.granted_independence, out ); out += ',';
-  out += "post_declared_independence="; base::to_str( o.post_declared_independence, out ); out += ',';
+  out += "promoted_continental_units="; base::to_str( o.promoted_continental_units, out ); out += ',';
   out += "unknown19b="; base::to_str( bits<2>{ o.unknown19b }, out ); out += ',';
   out += "immigration_started="; base::to_str( o.immigration_started, out ); out += ',';
   out += "unknown19c="; base::to_str( bits<1>{ o.unknown19c }, out );
@@ -3112,7 +3112,7 @@ bool read_binary( base::IBinaryIO& b, NationFlags& o ) {
   if( !b.read_bytes<1>( bits ) ) return false;
   o.unknown19a = (bits & 0b11); bits >>= 2;
   o.granted_independence = (bits & 0b1); bits >>= 1;
-  o.post_declared_independence = (bits & 0b1); bits >>= 1;
+  o.promoted_continental_units = (bits & 0b1); bits >>= 1;
   o.unknown19b = (bits & 0b11); bits >>= 2;
   o.immigration_started = (bits & 0b1); bits >>= 1;
   o.unknown19c = (bits & 0b1); bits >>= 1;
@@ -3124,7 +3124,7 @@ bool write_binary( base::IBinaryIO& b, NationFlags const& o ) {
   bits |= (o.unknown19c & 0b1); bits <<= 1;
   bits |= (o.immigration_started & 0b1); bits <<= 2;
   bits |= (o.unknown19b & 0b11); bits <<= 1;
-  bits |= (o.post_declared_independence & 0b1); bits <<= 1;
+  bits |= (o.promoted_continental_units & 0b1); bits <<= 1;
   bits |= (o.granted_independence & 0b1); bits <<= 2;
   bits |= (o.unknown19a & 0b11); bits <<= 0;
   return b.write_bytes<1>( bits );
@@ -3136,14 +3136,14 @@ cdr::value to_canonical( cdr::converter& conv,
   cdr::table tbl;
   conv.to_field( tbl, "unknown19a", bits<2>{ o.unknown19a } );
   conv.to_field( tbl, "granted_independence", o.granted_independence );
-  conv.to_field( tbl, "post_declared_independence", o.post_declared_independence );
+  conv.to_field( tbl, "promoted_continental_units", o.promoted_continental_units );
   conv.to_field( tbl, "unknown19b", bits<2>{ o.unknown19b } );
   conv.to_field( tbl, "immigration_started", o.immigration_started );
   conv.to_field( tbl, "unknown19c", bits<1>{ o.unknown19c } );
   tbl["__key_order"] = cdr::list{
     "unknown19a",
     "granted_independence",
-    "post_declared_independence",
+    "promoted_continental_units",
     "unknown19b",
     "immigration_started",
     "unknown19c",
@@ -3160,7 +3160,7 @@ cdr::result<NationFlags> from_canonical(
   std::set<std::string> used_keys;
   CONV_FROM_BITSTRING_FIELD( "unknown19a", unknown19a, 2 );
   CONV_FROM_FIELD( "granted_independence", granted_independence );
-  CONV_FROM_FIELD( "post_declared_independence", post_declared_independence );
+  CONV_FROM_FIELD( "promoted_continental_units", promoted_continental_units );
   CONV_FROM_BITSTRING_FIELD( "unknown19b", unknown19b, 2 );
   CONV_FROM_FIELD( "immigration_started", immigration_started );
   CONV_FROM_BITSTRING_FIELD( "unknown19c", unknown19c, 1 );

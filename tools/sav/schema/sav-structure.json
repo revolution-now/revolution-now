@@ -505,7 +505,7 @@
                     ],
                     "independence_declared": {"size": 1, "type": "bit_bool"},
                     "deploy_intervention_force": {"size": 1, "type": "bit_bool", "__hint": "When true, a segment of the intervention force will be deployed each turn until it has all arrived."},
-                    "independence_war_intro": {"size": 1, "type": "bit_bool", "__hint": "Gave the player some hint messages regarding the war of independence."},
+                    "independence_war_intro": {"size": 1, "type": "bit_bool", "__hint": "Gave the player some hint messages regarding the war of independence.  Happens on the second turn after declaration."},
                     "won_independence": {"size": 1, "type": "bit_bool"},
                     "score_sequence_done": {"size": 1, "type": "bit_bool", "__hint": "Gets set to true after the final score is computed, recorded, and the player is shown their rankings."},
                     "ref_will_forfeight": {"size": 1, "type": "bit_bool", "__hint": "When true, the REF forces are considered to have been defeated, even if there are some remaining."},
@@ -1143,14 +1143,14 @@
                     "__key_order": [
                         "unknown19a",
                         "granted_independence",
-                        "post_declared_independence",
+                        "promoted_continental_units",
                         "unknown19b",
                         "immigration_started",
                         "unknown19c"
                     ],
                     "unknown19a": {"size": 2},
                     "granted_independence": {"size": 1, "type": "bit_bool", "__hint": "for AI players when they are granted independence."},
-                    "post_declared_independence": {"size": 1, "type": "bit_bool", "__hint": "this gets set for the human player on the turn following the one where independence is declared; unclear what the use is. Need more investigation here."},
+                    "promoted_continental_units": {"size": 1, "type": "bit_bool", "__hint": "This gets set when units are promoted to continental status, which happens on the turn after declaration. If it is set manually before that time then the promotion will be skipped."},
                     "unknown19b": {"size": 2},
                     "immigration_started": {"size": 1, "type": "bit_bool", "__hint": "set to true when the first immigrant appears on the dock from cross production. Not clear what the use is."},
                     "unknown19c": {"size": 1}

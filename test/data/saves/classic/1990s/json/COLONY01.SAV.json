@@ -19239,7 +19239,7 @@
       "nation_flags": {
         "unknown19a": "00",
         "granted_independence": false,
-        "post_declared_independence": false,
+        "promoted_continental_units": false,
         "unknown19b": "00",
         "immigration_started": true,
         "unknown19c": "0"
@@ -19482,7 +19482,7 @@
       "nation_flags": {
         "unknown19a": "00",
         "granted_independence": false,
-        "post_declared_independence": false,
+        "promoted_continental_units": false,
         "unknown19b": "00",
         "immigration_started": true,
         "unknown19c": "0"
@@ -19725,7 +19725,7 @@
       "nation_flags": {
         "unknown19a": "00",
         "granted_independence": false,
-        "post_declared_independence": false,
+        "promoted_continental_units": false,
         "unknown19b": "00",
         "immigration_started": true,
         "unknown19c": "0"
@@ -19968,7 +19968,7 @@
       "nation_flags": {
         "unknown19a": "00",
         "granted_independence": false,
-        "post_declared_independence": true,
+        "promoted_continental_units": true,
         "unknown19b": "00",
         "immigration_started": true,
         "unknown19c": "0"
