@@ -77,12 +77,12 @@
 #define CHECK_NEQ( ... ) BASE_CHECK_NEQ( __VA_ARGS__ )
 // It is important that we only evaluate a once here!
 #define BASE_CHECK( a, ... )                             \
-  {                                                      \
+  do {                                                   \
     if( !( a ) ) {                                       \
       ::base::abort_with_msg( ::base::detail::check_msg( \
           #a, fmt::format( "" __VA_ARGS__ ) ) );         \
     }                                                    \
-  }
+  } while( false )
 
 // We use a lambda for these so that we can reference the input
 // expressions twice (once to evaluate them and once to print
@@ -134,7 +134,7 @@
 
 // Less or equal
 #define CHECK_LE( a, b )                          \
-  {                                               \
+  do {                                            \
     auto const& STRING_JOIN( __a, __LINE__ ) = a; \
     auto const& STRING_JOIN( __b, __LINE__ ) = b; \
     CHECK( STRING_JOIN( __a, __LINE__ ) <=        \
@@ -142,24 +142,24 @@
            "{} is not <= than {}",                \
            STRING_JOIN( __a, __LINE__ ),          \
            STRING_JOIN( __b, __LINE__ ) );        \
-  }
+  } while( false )
 
 // Less than
 #define CHECK_LT( ... ) \
   PP_N_OR_MORE_ARGS_2( CHECK_LT, __VA_ARGS__ )
 
 #define CHECK_LT_SINGLE( a, b )                                 \
-  {                                                             \
+  do {                                                          \
     auto const& STRING_JOIN( __a, __LINE__ ) = a;               \
     auto const& STRING_JOIN( __b, __LINE__ ) = b;               \
     CHECK( STRING_JOIN( __a, __LINE__ ) <                       \
                STRING_JOIN( __b, __LINE__ ),                    \
            "{} is not < than {}", STRING_JOIN( __a, __LINE__ ), \
            STRING_JOIN( __b, __LINE__ ) );                      \
-  }
+  } while( false )
 
 #define CHECK_LT_MULTI( a, b, ... )               \
-  {                                               \
+  do {                                            \
     auto const& STRING_JOIN( __a, __LINE__ ) = a; \
     auto const& STRING_JOIN( __b, __LINE__ ) = b; \
     CHECK( STRING_JOIN( __a, __LINE__ ) <         \
@@ -168,24 +168,24 @@
            STRING_JOIN( __a, __LINE__ ),          \
            STRING_JOIN( __b, __LINE__ ),          \
            fmt::format( __VA_ARGS__ ) );          \
-  }
+  } while( false )
 
 // Greater than
 #define CHECK_GT( ... ) \
   PP_N_OR_MORE_ARGS_2( CHECK_GT, __VA_ARGS__ )
 
 #define CHECK_GT_SINGLE( a, b )                                 \
-  {                                                             \
+  do {                                                          \
     auto const& STRING_JOIN( __a, __LINE__ ) = a;               \
     auto const& STRING_JOIN( __b, __LINE__ ) = b;               \
     CHECK( STRING_JOIN( __a, __LINE__ ) >                       \
                STRING_JOIN( __b, __LINE__ ),                    \
            "{} is not > than {}", STRING_JOIN( __a, __LINE__ ), \
            STRING_JOIN( __b, __LINE__ ) );                      \
-  }
+  } while( false )
 
 #define CHECK_GT_MULTI( a, b, ... )               \
-  {                                               \
+  do {                                            \
     auto const& STRING_JOIN( __a, __LINE__ ) = a; \
     auto const& STRING_JOIN( __b, __LINE__ ) = b; \
     CHECK( STRING_JOIN( __a, __LINE__ ) >         \
@@ -194,7 +194,7 @@
            STRING_JOIN( __a, __LINE__ ),          \
            STRING_JOIN( __b, __LINE__ ),          \
            fmt::format( __VA_ARGS__ ) );          \
-  }
+  } while( false )
 
 /****************************************************************
 ** Check that a wrapped type has a value.
@@ -203,29 +203,29 @@
   PP_ONE_OR_MORE_ARGS( CHECK_HAS_VALUE, __VA_ARGS__ )
 
 #define CHECK_HAS_VALUE_SINGLE( e )                 \
-  {                                                 \
+  do {                                              \
     auto const& STRING_JOIN( __e, __LINE__ ) = e;   \
     if( !bool( STRING_JOIN( __e, __LINE__ ) ) ) {   \
       ::base::abort_with_msg( ::base::to_str(       \
           STRING_JOIN( __e, __LINE__ ).error() ) ); \
     }                                               \
-  }
+  } while( false )
 
 #define CHECK_HAS_VALUE_MULTI( e, ... )             \
-  {                                                 \
+  do {                                              \
     auto const& STRING_JOIN( __e, __LINE__ ) = e;   \
     if( !bool( STRING_JOIN( __e, __LINE__ ) ) ) {   \
       ::base::abort_with_msg( fmt::format(          \
           "{}: {}", fmt::format( __VA_ARGS__ ),     \
           STRING_JOIN( __e, __LINE__ ).error() ) ); \
     }                                               \
-  }
+  } while( false )
 
 #define HAS_VALUE_OR_RET( ... )                  \
-  {                                              \
+  do {                                           \
     if( auto xp__ = __VA_ARGS__; !bool( xp__ ) ) \
       return std::move( xp__.error() );          \
-  }
+  } while( false )
 
 /****************************************************************
 ** Try to unwrap a wrapped type.
