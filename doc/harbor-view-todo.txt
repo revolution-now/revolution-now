@@ -36,20 +36,18 @@ Harbor View TODO
       checking if there are any remaining ships in port (to know
       whether we should close the harbor view screen) we should
       exclude ships in port that are damaged.
-  13. After independence is declared, suppress drawing of various
-      elements and put a regular at the base of the dock.
-  14. Add a menu item when clicking on a unit on the dock to load
+  13. Add a menu item when clicking on a unit on the dock to load
       them into the currently selected ship. This might make the
       new unit loading mechanism more discoverable for existing
       users.
-  15. Need to help the player understand that units on the dock
+  14. Need to help the player understand that units on the dock
       don't automatically board ships (more for existing play-
       ers). The first time a ship sails to the new world with
       cargo space available for a unit and there is a unit on the
       dock, and the player has never put a unit in the cargo of a
       ship in the harbor, give the player a hint to ask if they
       really want to sail to the new world.
-  16. Make sure that the country names are correct in the title
+  15. Make sure that the country names are correct in the title
       bar. For example, in the OG for the dutch it just says "Am-
       sterdam, Netherlands" whereas we are saying "Amsterdam, The
       Netherlands" which sounds wrong.
