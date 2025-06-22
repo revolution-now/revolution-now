@@ -1456,6 +1456,11 @@ wait<> post_colonies( SS& ss, TS& ts, Player& player ) {
     co_await do_war_of_succession_ui_seq( ts, plan );
   }
 
+  // TODO:
+  //
+  //   Message: "The King's forces control all but 1 of our
+  //   colonies..."
+
   // Try to determine which turn we're on relative to the one
   // where we declared independence. This would be made easier if
   // we were to just record the turn where independence was de-
@@ -1489,6 +1494,12 @@ wait<> post_colonies( SS& ss, TS& ts, Player& player ) {
       break;
     }
     case second:
+      // TODO:
+      //
+      //   Message: "The King's armies have little experience..."
+      //
+      //   Message: "France is considering intervention..."
+      //
       player.revolution.gave_independence_war_hints = true;
       break;
     case done:
