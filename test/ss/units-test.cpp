@@ -185,12 +185,53 @@ TEST_CASE(
   }
 }
 
+// It's seems that it's tricky to get things into the invalid
+// state that we need to test by way of standard APIs, so we have
+// to build the underlying wrapped state directly.
 TEST_CASE(
     "[units] validation: only ships can be inbound/outboubnd" ) {
   world w;
   base::valid_or<string> v = valid;
 
-  REQUIRE( w.units().validate() == valid );
+  SECTION( "default" ) {
+    wrapped::UnitsState o;
+    UnitsState const units_state( std::move( o ) );
+    REQUIRE( units_state.validate() == valid );
+  }
+
+  SECTION( "inbound" ) {
+    wrapped::UnitsState o;
+    wrapped::Unit o_unit;
+    o_unit.id                   = UnitId{ 1 };
+    o_unit.composition          = e_unit_type::free_colonist;
+    o.units[GenericUnitId{ 1 }] = UnitState::euro{
+      .unit      = Unit( std::move( o_unit ) ),
+      .ownership = UnitOwnership::harbor{
+        .port_status = PortStatus::inbound{ .turns = 1 } } };
+    UnitsState const units_state( std::move( o ) );
+    v = units_state.validate();
+    REQUIRE( v != valid );
+    REQUIRE_THAT( v.error(),
+                  Contains( "`inbound` state, but that state is "
+                            "reserved only for ships" ) );
+  }
+
+  SECTION( "outbound" ) {
+    wrapped::UnitsState o;
+    wrapped::Unit o_unit;
+    o_unit.id                   = UnitId{ 1 };
+    o_unit.composition          = e_unit_type::free_colonist;
+    o.units[GenericUnitId{ 1 }] = UnitState::euro{
+      .unit      = Unit( std::move( o_unit ) ),
+      .ownership = UnitOwnership::harbor{
+        .port_status = PortStatus::outbound{ .turns = 1 } } };
+    UnitsState const units_state( std::move( o ) );
+    v = units_state.validate();
+    REQUIRE( v != valid );
+    REQUIRE_THAT( v.error(),
+                  Contains( "`outbound` state, but that state "
+                            "is reserved only for ships" ) );
+  }
 }
 
 TEST_CASE( "[units] units added/removed from ordering map" ) {

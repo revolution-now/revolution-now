@@ -115,7 +115,7 @@ valid_or<string> wrapped::UnitsState::validate() const {
             id, unit.desc().type );
         REFL_VALIDATE(
             !harbor->port_status.holds<PortStatus::outbound>(),
-            "non-ship unit {} of type {} is in the `inbound` "
+            "non-ship unit {} of type {} is in the `outbound` "
             "state, but that state is reserved only for ships.",
             id, unit.desc().type );
         break;
