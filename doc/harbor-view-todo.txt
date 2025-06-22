@@ -10,7 +10,9 @@ Harbor View TODO
   3.  Units on the dock might need a shadow behind them to help
       distinguish them, especiall those toward the edge that have
       the water behind them. Or if not a shadow then at least an
-      outline.
+      outline. Don't forget the ref units that are rendered
+      post-declaration. This needs to be tested when the unit
+      spacing is dense.
   4.  There is a written-out summary of the last transaction that
       lingers under the top bar... should decide if/how we want
       to do this. Seems like it might be useful.
