@@ -78,6 +78,9 @@ TEST_CASE( "[render] tile_for_unit_type" ) {
   REQUIRE( f() == expected );
 }
 
+TEST_CASE( "[render] trimmed_area_for_unit_type" ) {
+}
+
 TEST_CASE( "[render] tile_for_colony" ) {
   Colony colony;
   e_tile expected = {};

@@ -21,7 +21,11 @@
 #include "harbor-view-outbound.hpp"
 #include "harbor-view-rpt.hpp"
 #include "harbor-view-status.hpp"
+#include "revolution.rds.hpp"
 #include "views.hpp"
+
+// ss
+#include "ss/player.rds.hpp"
 
 // render
 #include "render/painter.hpp"
@@ -45,6 +49,24 @@ namespace {
 using ::gfx::e_resolution;
 using ::gfx::rect;
 using ::gfx::size;
+
+bool shown_after_declaration(
+    e_harbor_view_entity const entity ) {
+  switch( entity ) {
+    case e_harbor_view_entity::backdrop:
+    case e_harbor_view_entity::dock:
+    case e_harbor_view_entity::market:
+    case e_harbor_view_entity::status_bar:
+      return true;
+
+    case e_harbor_view_entity::cargo:
+    case e_harbor_view_entity::in_port:
+    case e_harbor_view_entity::inbound:
+    case e_harbor_view_entity::outbound:
+    case e_harbor_view_entity::rpt:
+      return false;
+  }
+}
 
 } // namespace
 
@@ -185,28 +207,22 @@ HarborViewComposited recomposite_harbor_view(
 
   vector<ui::OwningPositionedView> views;
 
+  bool const declared =
+      player.revolution.status >= e_revolution_status::declared;
+  using E = e_harbor_view_entity;
+
   // [HarborStatusBar] ------------------------------------------
   auto status_bar =
       HarborStatusBar::create( ss, ts, player, canvas_rect );
-  auto& status_bar_ref = *status_bar.actual;
-  composition.entities[e_harbor_view_entity::status_bar] =
-      status_bar.harbor;
+  auto& status_bar_ref                = *status_bar.actual;
+  composition.entities[E::status_bar] = status_bar.harbor;
   views.push_back( std::move( status_bar.owned ) );
-
-  // [HarborCargo] ----------------------------------------------
-  PositionedHarborSubView<HarborCargo> cargo =
-      HarborCargo::create( ss, ts, player, canvas_rect,
-                           status_bar_ref );
-  composition.entities[e_harbor_view_entity::cargo] =
-      cargo.harbor;
-  views.push_back( std::move( cargo.owned ) );
 
   // [HarborBackdrop] -------------------------------------------
   PositionedHarborSubView<HarborBackdrop> backdrop =
       HarborBackdrop::create( ss, ts, player, canvas_rect );
-  auto const& backdrop_ref = *backdrop.actual;
-  composition.entities[e_harbor_view_entity::backdrop] =
-      backdrop.harbor;
+  auto const& backdrop_ref          = *backdrop.actual;
+  composition.entities[E::backdrop] = backdrop.harbor;
   // NOTE: this one needs to be inserted at the beginning because
   // it needs to be drawn first.
   views.insert( views.begin(), std::move( backdrop.owned ) );
@@ -218,8 +234,8 @@ HarborViewComposited recomposite_harbor_view(
   PositionedHarborSubView<HarborDockUnits> dock =
       HarborDockUnits::create( ss, ts, player, canvas_rect,
                                backdrop_ref );
-  auto& dock_ref = *dock.actual;
-  composition.entities[e_harbor_view_entity::dock] = dock.harbor;
+  auto& dock_ref                = *dock.actual;
+  composition.entities[E::dock] = dock.harbor;
   views.push_back( std::move( dock.owned ) );
 
   // [HarborMarketCommodities] ----------------------------------
@@ -228,48 +244,51 @@ HarborViewComposited recomposite_harbor_view(
   PositionedHarborSubView<HarborMarketCommodities>
       market_commodities = HarborMarketCommodities::create(
           ss, ts, player, canvas_rect, status_bar_ref );
-  auto& market_commodities_ref = *market_commodities.actual;
-  composition.entities[e_harbor_view_entity::market] =
-      market_commodities.harbor;
+  auto& market_commodities_ref    = *market_commodities.actual;
+  composition.entities[E::market] = market_commodities.harbor;
   views.push_back( std::move( market_commodities.owned ) );
 
-  // [HarborInPortShips] ----------------------------------------
-  PositionedHarborSubView<HarborInPortShips> in_port =
-      HarborInPortShips::create( ss, ts, player, canvas_rect,
-                                 backdrop_ref,
-                                 market_commodities_ref );
-  auto& in_port_ships_ref = *in_port.actual;
-  composition.entities[e_harbor_view_entity::in_port] =
-      in_port.harbor;
-  views.push_back( std::move( in_port.owned ) );
+  if( !declared ) {
+    // [HarborCargo] --------------------------------------------
+    if( !declared ) {
+      PositionedHarborSubView<HarborCargo> cargo =
+          HarborCargo::create( ss, ts, player, canvas_rect,
+                               status_bar_ref );
+      composition.entities[E::cargo] = cargo.harbor;
+      views.push_back( std::move( cargo.owned ) );
+    }
 
-  // [HarborOutboundShips]
-  // ----------------------------------------
-  PositionedHarborSubView<HarborOutboundShips> outbound =
-      HarborOutboundShips::create( ss, ts, player, canvas_rect,
-                                   in_port_ships_ref );
-  auto& outbound_ships_ref = *outbound.actual;
-  composition.entities[e_harbor_view_entity::outbound] =
-      outbound.harbor;
-  views.push_back( std::move( outbound.owned ) );
+    // [HarborInPortShips] --------------------------------------
+    PositionedHarborSubView<HarborInPortShips> in_port =
+        HarborInPortShips::create( ss, ts, player, canvas_rect,
+                                   backdrop_ref,
+                                   market_commodities_ref );
+    auto& in_port_ships_ref          = *in_port.actual;
+    composition.entities[E::in_port] = in_port.harbor;
+    views.push_back( std::move( in_port.owned ) );
 
-  // [HarborInboundShips]
-  // ----------------------------------------
-  PositionedHarborSubView<HarborInboundShips> inbound =
-      HarborInboundShips::create( ss, ts, player, canvas_rect,
-                                  outbound_ships_ref );
-  composition.entities[e_harbor_view_entity::inbound] =
-      inbound.harbor;
-  views.push_back( std::move( inbound.owned ) );
+    // [HarborOutboundShips] ------------------------------------
+    PositionedHarborSubView<HarborOutboundShips> outbound =
+        HarborOutboundShips::create( ss, ts, player, canvas_rect,
+                                     in_port_ships_ref );
+    auto& outbound_ships_ref          = *outbound.actual;
+    composition.entities[E::outbound] = outbound.harbor;
+    views.push_back( std::move( outbound.owned ) );
 
-  // [HarborRptButtons]
-  // ----------------------------------------
-  PositionedHarborSubView<HarborRptButtons> buttons =
-      HarborRptButtons::create( ss, ts, player, canvas_rect,
-                                backdrop_ref, dock_ref );
-  composition.entities[e_harbor_view_entity::rpt] =
-      buttons.harbor;
-  views.push_back( std::move( buttons.owned ) );
+    // [HarborInboundShips] ------------------------------------
+    PositionedHarborSubView<HarborInboundShips> inbound =
+        HarborInboundShips::create( ss, ts, player, canvas_rect,
+                                    outbound_ships_ref );
+    composition.entities[E::inbound] = inbound.harbor;
+    views.push_back( std::move( inbound.owned ) );
+
+    // [HarborRptButtons] --------------------------------------
+    PositionedHarborSubView<HarborRptButtons> buttons =
+        HarborRptButtons::create( ss, ts, player, canvas_rect,
+                                  backdrop_ref, dock_ref );
+    composition.entities[E::rpt] = buttons.harbor;
+    views.push_back( std::move( buttons.owned ) );
+  }
 
   // [Finish] ---------------------------------------------------
   auto invisible_view = std::make_unique<CompositeHarborSubView>(
@@ -277,9 +296,16 @@ HarborViewComposited recomposite_harbor_view(
   invisible_view->set_delta( canvas_size );
   composition.top_level = std::move( invisible_view );
 
-  for( auto e : refl::enum_values<e_harbor_view_entity> ) {
-    CHECK( composition.entities[e] != nullptr,
-           "harbor view entity {} is missing.", e );
+  // Sanity check.
+  for( auto e : refl::enum_values<E> ) {
+    if( !declared || shown_after_declaration( e ) )
+      CHECK( composition.entities[e] != nullptr,
+             "harbor view entity {} is missing.", e );
+    else if( declared && !shown_after_declaration( e ) )
+      CHECK( composition.entities[e] == nullptr,
+             "harbor view entity {} should not appear "
+             "post-declaration.",
+             e );
   }
   return composition;
 }

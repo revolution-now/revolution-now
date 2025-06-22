@@ -18,6 +18,7 @@
 #include "igui.hpp"
 #include "market.hpp"
 #include "render.hpp"
+#include "revolution.rds.hpp"
 #include "tiles.hpp"
 #include "treasure.hpp"
 #include "ts.hpp"
@@ -328,6 +329,26 @@ void HarborDockUnits::draw( rr::Renderer& renderer,
     render_sprite( renderer, unit_with_bounds.sprite_bounds.nw(),
                    tile );
   }
+
+  // After independence is declared, draw a single REF unit at
+  // the base of the dock.
+  if( player_.revolution.status >=
+      e_revolution_status::declared ) {
+    auto const& dock_layout = backdrop_.dock_units_layout();
+    point p{ .x = dock_layout.right_edge - 32,
+             .y = dock_layout.dock_row_start.y - 32 };
+    e_unit_type const guard = e_unit_type::regular;
+    int const spacing       = trimmed_area_for_unit_type( guard )
+                            .horizontal_slice()
+                            .len +
+                        2;
+    for( int i = 0; i < 2; ++i ) {
+      render_unit_type( renderer, p, guard,
+                        UnitRenderOptions{} );
+      p.x -= spacing;
+    }
+  }
+
   // Must be done after units since they are supposed to appear
   // behind it.
   backdrop_.draw_dock_overlay( renderer, coord );

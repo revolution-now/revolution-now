@@ -44,6 +44,8 @@ enum class e_tribe;
 *****************************************************************/
 e_tile tile_for_unit_type( e_unit_type unit_type );
 
+gfx::rect trimmed_area_for_unit_type( e_unit_type unit_type );
+
 struct UnitShadow {
   gfx::pixel color = default_color();
   W offset         = default_offset();

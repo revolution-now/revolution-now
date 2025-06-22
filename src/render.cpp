@@ -282,6 +282,10 @@ e_tile tile_for_unit_type( e_unit_type const unit_type ) {
   return unit_attr( unit_type ).tile;
 }
 
+rect trimmed_area_for_unit_type( e_unit_type const unit_type ) {
+  return trimmed_area_for( tile_for_unit_type( unit_type ) );
+}
+
 void render_unit( rr::Renderer& renderer, Coord where,
                   Unit const& unit,
                   UnitRenderOptions const& options ) {
