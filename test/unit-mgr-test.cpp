@@ -785,6 +785,73 @@ TEST_CASE( "[unit-mgr] units_from_coord_recursive" ) {
   REQUIRE( f() == expected );
 }
 
+TEST_CASE( "[unit-mgr] euro_units_from_coord" ) {
+  world w;
+
+  point tile;
+  vector<UnitId> expected;
+
+  auto f = [&] {
+    return euro_units_from_coord( w.units(), tile );
+  };
+
+  tile     = ( 1_x, 1_y );
+  expected = {};
+  REQUIRE( f() == expected );
+
+  UnitId const free_colonist =
+      w.add_unit_on_map( e_unit_type::free_colonist,
+                         ( 1_x, 0_y ) )
+          .id();
+
+  tile     = ( 1_x, 1_y );
+  expected = {};
+  REQUIRE( f() == expected );
+
+  tile     = ( 1_x, 0_y );
+  expected = { free_colonist };
+  REQUIRE( f() == expected );
+
+  UnitId const privateer =
+      w.add_unit_on_map( e_unit_type::privateer, ( 0_x, 0_y ) )
+          .id();
+
+  tile     = ( 1_x, 1_y );
+  expected = {};
+  REQUIRE( f() == expected );
+
+  tile     = ( 1_x, 0_y );
+  expected = { free_colonist };
+  REQUIRE( f() == expected );
+
+  tile     = ( 0_x, 0_y );
+  expected = { privateer };
+  REQUIRE( f() == expected );
+
+  w.add_unit_in_cargo( e_unit_type::artillery, privateer );
+
+  tile     = ( 0_x, 0_y );
+  expected = { privateer };
+  REQUIRE( f() == expected );
+
+  UnitId const caravel =
+      w.add_unit_on_map( e_unit_type::caravel, ( 1_x, 0_y ) )
+          .id();
+  w.add_unit_in_cargo( e_unit_type::scout, caravel );
+
+  tile     = ( 1_x, 0_y );
+  expected = { free_colonist, caravel };
+  REQUIRE( f() == expected );
+
+  UnitId const petty_criminal =
+      w.add_unit_on_map( e_unit_type::petty_criminal,
+                         ( 1_x, 0_y ) )
+          .id();
+  tile     = ( 1_x, 0_y );
+  expected = { free_colonist, caravel, petty_criminal };
+  REQUIRE( f() == expected );
+}
+
 TEST_CASE( "[unit-mgr] euro_units_from_coord_recursive" ) {
   world w;
 
@@ -888,6 +955,10 @@ TEST_CASE(
   player   = e_player::spanish;
   expected = { free_colonist };
   REQUIRE( f() == expected );
+}
+
+TEST_CASE( "[unit-mgr] destroy_units" ) {
+  world w;
 }
 
 } // namespace

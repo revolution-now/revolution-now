@@ -234,6 +234,20 @@ void change_unit_player_and_move( SS& ss, TS& ts, Unit& unit,
 /****************************************************************
 ** Map Ownership
 *****************************************************************/
+vector<UnitId> euro_units_from_coord(
+    UnitsState const& units_state, point const tile ) {
+  vector<UnitId> res;
+  for( GenericUnitId const id :
+       units_state.from_coord( tile ) ) {
+    if( units_state.unit_kind( id ) != e_unit_kind::euro )
+      continue;
+    UnitId const unit_id = units_state.check_euro_unit( id );
+    res.push_back( unit_id );
+  }
+  sort( res.begin(), res.end() ); // make it deterministic.
+  return res;
+}
+
 vector<UnitId> euro_units_from_coord_recursive(
     UnitsState const& units_state, point const tile ) {
   vector<UnitId> res;
@@ -384,6 +398,18 @@ vector<UnitId> offboard_units_on_ships( SS& ss, TS& ts,
     res.insert( res.end(), removed.begin(), removed.end() );
   }
   return res;
+}
+
+/****************************************************************
+** Destruction.
+*****************************************************************/
+// This will safely destroy multiple units, accounting for e.g.
+// the fact that one unit may be in the cargo of another unit in
+// the list.
+void destroy_units( SS& ss, std::vector<UnitId> const& units ) {
+  for( UnitId const unit_id : units )
+    if( ss.units.exists( unit_id ) )
+      UnitOwnershipChanger( ss, unit_id ).destroy();
 }
 
 /****************************************************************

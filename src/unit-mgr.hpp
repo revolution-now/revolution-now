@@ -64,6 +64,10 @@ maybe<e_unit_activity> current_activity_for_unit(
 /****************************************************************
 ** Map Ownership
 *****************************************************************/
+// Only units that are directly on the map.
+std::vector<UnitId> euro_units_from_coord(
+    UnitsState const& units_state, gfx::point tile );
+
 // This will give all units that are on a square or are cargo of
 // units on that square. This should not recurse more than one
 // level deep (beyond the first) because it is a game rule that a
@@ -163,6 +167,14 @@ UnitId create_unit_on_map_non_interactive(
 NativeUnitId create_unit_on_map_non_interactive(
     SS& ss, e_native_unit_type type, gfx::point coord,
     DwellingId dwelling_id );
+
+/****************************************************************
+** Destruction.
+*****************************************************************/
+// This will safely destroy multiple units, accounting for e.g.
+// the fact that one unit may be in the cargo of another unit in
+// the list.
+void destroy_units( SS& ss, std::vector<UnitId> const& units );
 
 /****************************************************************
 ** Type/Player Change.
