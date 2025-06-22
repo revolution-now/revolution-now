@@ -13,20 +13,35 @@
 // Revolution Now
 #include "co-wait.hpp"
 #include "igui.hpp"
+#include "player-mgr.hpp"
 #include "rebel-sentiment.hpp"
 #include "revolution-status.hpp"
 #include "ts.hpp"
+#include "unit-mgr.hpp"
 
 // config
 #include "config/nation.rds.hpp"
 #include "config/revolution.rds.hpp"
+#include "config/unit-type.rds.hpp"
 
 // ss
 #include "revolution.rds.hpp"
+#include "ss/colonies.hpp"
+#include "ss/nation.hpp"
 #include "ss/player.rds.hpp"
 #include "ss/players.rds.hpp"
 #include "ss/ref.hpp"
 #include "ss/settings.rds.hpp"
+#include "ss/units.hpp"
+
+// rds
+#include "rds/switch-macro.hpp"
+
+// refl
+#include "refl/to-str.hpp"
+
+// base
+#include "base/conv.hpp"
 
 using namespace std;
 
@@ -65,9 +80,10 @@ maybe<e_player> human_player_that_declared( SSConst const& ss ) {
 
 valid_or<e_declare_rejection> can_declare_independence(
     SSConst const& ss, Player const& player ) {
+  using enum e_declare_rejection;
+  if( is_ref( player.type ) ) return ref_cannot_declare;
   switch( player.revolution.status ) {
     using enum e_revolution_status;
-    using enum e_declare_rejection;
     case not_declared: {
       for( auto const& [type, other] : ss.players.players )
         if( other.has_value() && type != player.type )
@@ -105,6 +121,10 @@ wait<> show_declare_rejection_msg(
       co_await gui.message_box(
           "We have already won our independence." );
       break;
+    case ref_cannot_declare:
+      co_await gui.message_box(
+          "An REF player cannot declare independence." );
+      break;
   }
 }
 
@@ -134,9 +154,10 @@ wait<> declare_independence_ui_sequence_pre( SSConst const&,
       "(signing of signature on declaration)" );
 }
 
-DeclarationResult declare_independence( SS& ss, TS&,
+DeclarationResult declare_independence( SS& ss, TS& ts,
                                         Player& player ) {
   DeclarationResult res;
+  CHECK( !is_ref( player.type ) );
   e_difficulty const difficulty =
       ss.as_const.settings.game_setup_options.difficulty;
 
@@ -148,40 +169,156 @@ DeclarationResult declare_independence( SS& ss, TS&,
       config_revolution.intervention_forces
           .unit_counts[difficulty];
 
-  // TODO:
-  //
-  // * Add the REF player.
-  // * Make sure that there is at least one Man-o-War if there
-  //   are any ref units to bring. The OG appears to increase
-  //   this from zero to one if it is zero.
-  // * Eliminate all foreign units.
-  // * Mark foreign players as "withdrawn"; they no longer get
-  //   evolved, probably at the colony level either. The players
-  //   can't be deleted because their colonies persist.
-  // * Seize all ships on the high seas and in europe and ensure
-  //   that the europe screen changes.
-  // * Ensure that cross accumulation stops as well as immigra-
-  //   tion.
-  // * Reset bell count to zero.
-  // * Promote continental armies in colonies. This actually ap-
-  //   pears to happen at the start of the new turn.
-  // * Reset founding fathers state.
-  // * End the turn of the player. Ensure that they get an
-  //   end-of-turn if needed.
-  // * On the next turn, show the intervention forces intro along
-  //   with the other intro messages about the REF combat strate-
-  //   gies.
+  // Step: Add the REF player.
+  e_player const ref_player_type =
+      ref_player_for( player.nation );
+  CHECK( ref_player_type != player.type );
+  CHECK( !ss.players.players[ref_player_type].has_value() );
+  add_new_player( ss, ref_player_type );
+
+  // Step: Make sure that there is at least one Man-o-War if
+  // there are any ref units to bring. The OG appears to increase
+  // this from zero to one if it is zero.
+  auto& force = player.revolution.expeditionary_force;
+  if( force.regular > 0 || force.cavalry > 0 ||
+      force.artillery > 0 )
+    if( force.man_o_war == 0 ) force.man_o_war = 1;
+
+  // Step: Eliminate all foreign units outside of colonies.
+  vector<UnitId> destroy;
+  for( auto const& [unit_id, p_state] : ss.units.euro_all() ) {
+    Unit const& unit = p_state->unit;
+    if( unit.player_type() == player.type ) continue;
+    CHECK( !is_ref( unit.player_type() ),
+           "found unexpected REF units for player {} when "
+           "player {} declared independence.",
+           unit.player_type(), player.type );
+    SWITCH( p_state->ownership ) {
+      CASE( colony ) {
+        // Leave the units in colonies because we need to leave
+        // the colonies intact.
+        break;
+      }
+      default:
+        destroy.push_back( unit.id() );
+        break;
+    }
+  }
+  destroy_units( ss, destroy );
+
+  // Step: Mark foreign players as "withdrawn"; they no longer
+  // get evolved, probably at the colony level either. The
+  // players can't be deleted because their colonies persist.
+  for( auto& [type, other_player] : ss.players.players ) {
+    if( !other_player.has_value() ) continue;
+    // Make sure we're not hitting either this human player or
+    // their new ref player that we just created.
+    if( other_player->nation == player.nation ) continue;
+    other_player->control = e_player_control::withdrawn;
+  }
+
+  // Step: Destroy all units on the dock and seize all ships in
+  // port and on the high seas.
+  destroy.clear();
+  for( auto const& [unit_id, p_state] : ss.units.euro_all() ) {
+    Unit const& unit = p_state->unit;
+    if( unit.player_type() != player.type ) continue;
+    SWITCH( p_state->ownership ) {
+      CASE( harbor ) {
+        SWITCH( harbor.port_status ) {
+          CASE( in_port ) {
+            if( unit.desc().ship )
+              ++res.seized_ships[unit.type()];
+            break;
+          }
+          CASE( inbound ) {
+            CHECK( unit.desc().ship );
+            ++res.seized_ships[unit.type()];
+            break;
+          }
+          CASE( outbound ) {
+            CHECK( unit.desc().ship );
+            ++res.seized_ships[unit.type()];
+            break;
+          }
+        }
+        destroy.push_back( unit_id );
+        break;
+      }
+      default:
+        break;
+    }
+  }
+  destroy_units( ss, destroy );
+
+  // Step: zero out crosses and bells.
+  player.crosses = 0;
+  player.bells   = 0;
+
+  // Step: Reset founding fathers acquisition state.
+  player.fathers.in_progress.reset();
+  player.fathers.pool = {};
+
+  // Step: Offboard any units on ships in colonies. This is not
+  // only convenient for the player, but also makes it more
+  // straightforward to deal with the promotion of units to con-
+  // tinental units simpler on the next turn.
+  vector<ColonyId> const colonies =
+      ss.colonies.for_player( player.type );
+  for( ColonyId const colony_id : colonies ) {
+    Colony const& colony = ss.colonies.colony_for( colony_id );
+    vector<UnitId> const offboarded =
+        offboard_units_on_ships( ss, ts, colony.location );
+    if( !offboarded.empty() ) res.offboarded_units = true;
+  }
+
+  // Step: End the turn of the player.
+  for( auto& [unit_id, p_state] : ss.units.euro_all() ) {
+    Unit& unit = ss.units.unit_for( unit_id );
+    if( unit.player_type() != player.type ) continue;
+    unit.forfeight_mv_points();
+  }
 
   return res;
 }
 
 wait<> declare_independence_ui_sequence_post(
     SSConst const&, TS& ts, Player const&,
-    DeclarationResult const& ) {
+    DeclarationResult const& decl ) {
   co_await ts.gui.message_box(
       "Continental Congress signs [Declaration of "
       "Independence]! (more description of things that "
       "happen)" );
+
+  for( auto const& [type, count] : decl.seized_ships ) {
+    auto const& conf =
+        config_unit_type.composition.unit_types[type];
+    co_await ts.gui.message_box(
+        "The King has seized [{} {}] on the High Seas!",
+        base::int_to_string_literary( count ),
+        ( count > 1 ) ? conf.name_plural : conf.name );
+  }
+
+  if( decl.offboarded_units )
+    co_await ts.gui.message_box(
+        "Units in the cargo of ships in our colonies have "
+        "offboarded in order to help defend the colonies." );
+}
+
+e_turn_after_declaration post_declaration_turn(
+    Player const& player ) {
+  using enum e_turn_after_declaration;
+  using enum e_revolution_status;
+  e_turn_after_declaration res = zero;
+  if( player.revolution.status == declared ) {
+    if( player.revolution.gave_independence_war_hints )
+      res = done;
+    else if( player.revolution.continental_army_mobilized )
+      res = second;
+    else
+      res = first;
+  }
+  return res;
 }
 
 } // namespace rn

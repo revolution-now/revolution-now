@@ -33,6 +33,7 @@
 #include "src/minds.hpp"
 #include "src/missionary.hpp"
 #include "src/plane-stack.hpp"
+#include "src/player-mgr.hpp"
 #include "src/road.hpp"
 #include "src/ts.hpp"
 #include "src/unit-mgr.hpp"
@@ -457,13 +458,7 @@ void World::add_commodity_in_cargo( e_commodity type,
 }
 
 void World::add_player( e_player player_type ) {
-  root().players.players[player_type] = Player{};
-  // This is the minimal amount that we need to set for a player.
-  root().players.players[player_type]->type = player_type;
-  root().players.players[player_type]->nation =
-      nation_for( player_type );
-  root().zzz_terrain.initialize_player_terrain(
-      player_type, /*visible=*/false );
+  add_new_player( ss(), player_type );
 }
 
 void World::add_all_non_ref_players(

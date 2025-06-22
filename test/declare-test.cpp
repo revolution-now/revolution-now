@@ -135,6 +135,9 @@ TEST_CASE( "[declare] can_declare_independence" ) {
   SECTION( "Other Human Already Declared" ) {
   }
 
+  SECTION( "REF cannot declare" ) {
+  }
+
   SECTION( "Already Won" ) {
   }
 }
@@ -160,6 +163,10 @@ TEST_CASE( "[declare] declare_independence" ) {
 }
 
 TEST_CASE( "[declare] declare_independence_ui_sequence_post" ) {
+  world w;
+}
+
+TEST_CASE( "[declare] post_declaration_turn" ) {
   world w;
 }
 

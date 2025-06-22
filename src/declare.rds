@@ -8,6 +8,12 @@
 # Description: Rds definitions for the declare module.
 #
 # ===============================================================
+# ss
+include "ss/unit-type.rds.hpp"
+
+# C++ standard library
+include "<map>"
+
 namespace "rn"
 
 # Reasons that the player's attempt to declare independence might
@@ -16,9 +22,18 @@ enum.e_declare_rejection {
   rebel_sentiment_too_low,
   already_declared,
   other_human_already_declared,
+  ref_cannot_declare,
   already_won,
 }
 
 struct.DeclarationResult {
-  # TODO: number of each type of ship seized on the high seas.
+  seized_ships 'std::map<e_unit_type, int>',
+  offboarded_units 'bool',
+}
+
+enum.e_turn_after_declaration {
+  zero,   # == T + 0
+  first,  # == T + 1
+  second, # == T + 2
+  done,   # >= T + 3
 }

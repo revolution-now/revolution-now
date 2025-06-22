@@ -58,4 +58,24 @@ wait<> declare_independence_ui_sequence_post(
     SSConst const& ss, TS& ts, Player const& player,
     DeclarationResult const& decl_res );
 
+// The OG schedules a few different events to happen on the turns
+// following the one where declaration happened. If T is the turn
+// where the declaration happened:
+//
+//   T + 0: First REF troops arrive.
+//   T + 1: Continental armies promoted.
+//   T + 2: Hint messages messages given to player regarding
+//          battle tactics and the intervention force.
+//
+// This function tries to determine which turn we're on relative
+// to the one where we declared independence. This would be made
+// easier if we were to just record the turn where independence
+// was declared, but the OG does not record that, so would lose
+// interconvertibility of sav files. The OG appears to track this
+// by having separate flags for the events that happen on each of
+// the above turns. So we just replicate those same flags and use
+// them to piece together where we are.
+e_turn_after_declaration post_declaration_turn(
+    Player const& player );
+
 } // namespace rn
