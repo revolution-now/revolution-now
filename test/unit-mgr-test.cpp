@@ -959,6 +959,28 @@ TEST_CASE(
 
 TEST_CASE( "[unit-mgr] destroy_units" ) {
   world w;
+
+  UnitId const ship = w.add_unit_on_map( e_unit_type::caravel,
+                                         { .x = 0, .y = 0 } )
+                          .id();
+  UnitId const free_colonist_1 =
+      w.add_unit_in_cargo( e_unit_type::free_colonist, ship )
+          .id();
+  UnitId const free_colonist_2 =
+      w.add_unit_on_map( e_unit_type::free_colonist,
+                         { .x = 1, .y = 1 } )
+          .id();
+
+  REQUIRE( w.units().exists( ship ) );
+  REQUIRE( w.units().exists( free_colonist_1 ) );
+  REQUIRE( w.units().exists( free_colonist_2 ) );
+
+  destroy_units( w.ss(),
+                 { ship, free_colonist_1, free_colonist_2 } );
+
+  REQUIRE( !w.units().exists( ship ) );
+  REQUIRE( !w.units().exists( free_colonist_1 ) );
+  REQUIRE( !w.units().exists( free_colonist_2 ) );
 }
 
 } // namespace
