@@ -22,6 +22,7 @@
 #include "colony-mgr.hpp"
 #include "colony-view.hpp"
 #include "command.hpp"
+#include "continental.hpp"
 #include "declare.hpp"
 #include "disband.hpp"
 #include "fathers.hpp"
@@ -1453,6 +1454,45 @@ wait<> post_colonies( SS& ss, TS& ts, Player& player ) {
         war_of_succession_plan( ss.as_const, nations );
     do_war_of_succession( ss, ts, player, plan );
     co_await do_war_of_succession_ui_seq( ts, plan );
+  }
+
+  // Try to determine which turn we're on relative to the one
+  // where we declared independence. This would be made easier if
+  // we were to just record the turn where independence was de-
+  // clared, but the OG does not record that, so would lose in-
+  // terconvtibility of sav files. So we have these two flags
+  // that the OG does have, and we piece together where we are
+  // from that.
+  switch( post_declaration_turn( player ) ) {
+    using enum e_turn_after_declaration;
+    case zero:
+      // Do nothing here.
+      break;
+    case first: {
+      // Mobilize continental army.
+      player.revolution.continental_army_mobilized = true;
+      vector<ColonyId> const colonies =
+          ss.colonies.for_player( player.type );
+      for( ColonyId const colony_id : colonies ) {
+        Colony const& colony =
+            ss.colonies.colony_for( colony_id );
+        ContinentalPromotion const promotion =
+            compute_continental_promotion( ss.as_const, player,
+                                           colony_id );
+        do_continental_promotion( ss, ts, promotion );
+        co_await ts.planes.get()
+            .get_bottom<ILandViewPlane>()
+            .ensure_visible( colony.location );
+        co_await continental_promotion_ui_seq(
+            ss.as_const, ts.gui, promotion, colony_id );
+      }
+      break;
+    }
+    case second:
+      player.revolution.gave_independence_war_hints = true;
+      break;
+    case done:
+      break;
   }
 }
 
