@@ -130,6 +130,10 @@ void Unit::change_player( UnitsState& units_state,
   o_.player_type = player_type;
 }
 
+// TODO: see if we need to block changing the type for a unit
+// that can be in cargo but is changing to a unit with a dif-
+// ferent occupation number (e.g. changing a colonist to a trea-
+// sure), if it is being held as cargo.
 void Unit::change_type( Player const& player,
                         UnitComposition new_comp ) {
   UnitType const& new_type = new_comp.type_obj();
