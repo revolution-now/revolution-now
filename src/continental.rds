@@ -1,0 +1,21 @@
+# ===============================================================
+# continental.rds
+#
+# Project: Revolution Now
+#
+# Created by David P. Sicilia on 2025-06-21.
+#
+# Description: Rds definitions for the continental module.
+#
+# ===============================================================
+# ss
+include "ss/unit-id.hpp"
+
+namespace "rn"
+
+# Pertains to a single colony.
+struct.ContinentalPromotion {
+  # These the veteran units that have been selected for promotion
+  # to continental units.
+  units 'std::vector<UnitId>',
+}
