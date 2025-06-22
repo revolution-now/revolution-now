@@ -38,8 +38,8 @@ bool is_char_allowed( char c ) {
 } // namespace
 
 #define LE_ASSERT_INVARIANTS \
-  CHECK( pos_ >= 0 )         \
-  CHECK( pos_ <= (int)buffer_.length() )
+  CHECK( pos_ >= 0 );        \
+  CHECK( pos_ <= (int)buffer_.length() );
 
 LineEditor::LineEditor( string buffer, int pos )
   : buffer_( std::move( buffer ) ), pos_( pos ) {

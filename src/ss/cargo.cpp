@@ -404,7 +404,7 @@ bool CargoHold::try_add_somewhere( UnitsState const& units_state,
                               idx ),
                      "failed to add commodity of type {} and "
                      "quantity {} to slot {}",
-                     commodity.type, quantity_to_add, idx )
+                     commodity.type, quantity_to_add, idx );
               break;
             }
             case CargoSlot::e::overflow:
@@ -429,7 +429,7 @@ bool CargoHold::try_add_somewhere( UnitsState const& units_state,
                             idx ),
                         "failed to add commodity of type {} and "
                         "quantity {} to slot {}",
-                        commodity.type, quantity_to_add, idx )
+                        commodity.type, quantity_to_add, idx );
                   }
                 }
               }

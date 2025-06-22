@@ -118,7 +118,7 @@ valid_or<string> UnitTypeAttributes::validate() const {
         can_found == e_unit_can_found_colony::from_base,
         "derived type {} must have `from_base` for its "
         "`can_found` field.",
-        type )
+        type );
   else
     // Not derived type.
     REFL_VALIDATE(
@@ -140,7 +140,7 @@ valid_or<string> UnitTypeAttributes::validate() const {
     REFL_VALIDATE( colonist == e_unit_colonist::from_base,
                    "derived type {} must have `from_base` for "
                    "its `colonist` field.",
-                   type )
+                   type );
   else
     // Not derived type.
     REFL_VALIDATE( colonist != e_unit_colonist::from_base,

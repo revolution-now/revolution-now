@@ -30,7 +30,7 @@ wait<> eat_remaining_drag_events(
     input::event_t event = co_await input.next();
     auto drag = event.get_if<input::mouse_drag_event_t>();
     if( !drag ) continue;
-    CHECK( drag->state.phase != input::e_drag_phase::begin )
+    CHECK( drag->state.phase != input::e_drag_phase::begin );
     if( drag->state.phase != input::e_drag_phase::end ) continue;
     break;
   }

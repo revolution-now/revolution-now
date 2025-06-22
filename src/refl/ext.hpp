@@ -127,7 +127,7 @@ concept ReflectedStruct = Reflected<T> && requires {
 };
 
 #define REFL_VALIDATE( a, ... )                            \
-  {                                                        \
+  do {                                                     \
     if( !( a ) ) {                                         \
       auto loc = ::std::source_location::current();        \
       return base::invalid( fmt::format(                   \
@@ -135,7 +135,7 @@ concept ReflectedStruct = Reflected<T> && requires {
           fs::path{ loc.file_name() }.filename().string(), \
           loc.line(), fmt::format( "" __VA_ARGS__ ) ) );   \
     }                                                      \
-  }
+  } while( false )
 
 // This is specifically for structs that are reflected so that
 // they can be validated after construction, since often they
