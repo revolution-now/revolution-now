@@ -220,6 +220,11 @@ void TerrainState::initialize_player_terrain( e_player player,
                           world_map[tile.upper_left()] } } };
 }
 
+void TerrainState::testing_reset_player_terrain(
+    e_player const player ) {
+  o_.player_terrain[player].reset();
+}
+
 bool TerrainState::is_pacific_ocean( Coord coord ) const {
   CHECK_GE( coord.y, 0 );
   CHECK_LT( coord.y, o_.real_terrain.map.size().h );

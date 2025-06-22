@@ -41,11 +41,6 @@ Player& add_new_player( SS& ss, e_player const type ) {
   return p;
 }
 
-Player& reset_and_add_player( SS& ss, e_player const type ) {
-  ss.players.players[type].reset();
-  return add_new_player( ss, type );
-}
-
 Player& get_or_add_player( SS& ss, e_player const type ) {
   if( !ss.players.players[type].has_value() )
     return add_new_player( ss, type );

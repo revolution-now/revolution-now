@@ -16,6 +16,9 @@
 // Testing.
 #include "test/fake/world.hpp"
 
+// Revolution Now
+#include "src/tiles.hpp"
+
 // config
 #include "src/config/tile-enum.rds.hpp"
 
@@ -30,6 +33,8 @@ namespace rn {
 namespace {
 
 using namespace std;
+
+using ::gfx::rect;
 
 /****************************************************************
 ** Fake World Setup
@@ -79,6 +84,28 @@ TEST_CASE( "[render] tile_for_unit_type" ) {
 }
 
 TEST_CASE( "[render] trimmed_area_for_unit_type" ) {
+  e_unit_type type = {};
+  rect expected    = {};
+
+  auto f = [&] { return trimmed_area_for_unit_type( type ); };
+
+  testing_set_trimmed_cache(
+      e_tile::regular, rect{ .origin = { .x = 1, .y = 2 },
+                             .size   = { .w = 3, .h = 4 } } );
+  testing_set_trimmed_cache(
+      e_tile::veteran_dragoon,
+      rect{ .origin = { .x = 5, .y = 6 },
+            .size   = { .w = 7, .h = 8 } } );
+
+  type     = e_unit_type::regular;
+  expected = { .origin = { .x = 1, .y = 2 },
+               .size   = { .w = 3, .h = 4 } };
+  REQUIRE( f() == expected );
+
+  type     = e_unit_type::veteran_dragoon;
+  expected = { .origin = { .x = 5, .y = 6 },
+               .size   = { .w = 7, .h = 8 } };
+  REQUIRE( f() == expected );
 }
 
 TEST_CASE( "[render] tile_for_colony" ) {

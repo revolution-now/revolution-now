@@ -65,6 +65,8 @@ struct TerrainState {
   void initialize_player_terrain( e_player player,
                                   bool visible );
 
+  void testing_reset_player_terrain( e_player player );
+
   // This essentially returns what square_at does, except it also
   // returns valid values for any squares outside of the map, in
   // which case it will return the "proto" squares specified in

@@ -25,8 +25,6 @@ enum class e_player;
 *****************************************************************/
 Player& add_new_player( SS& ss, e_player type );
 
-Player& reset_and_add_player( SS& ss, e_player type );
-
 Player& get_or_add_player( SS& ss, e_player type );
 
 } // namespace rn

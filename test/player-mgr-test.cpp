@@ -11,10 +11,14 @@
 #include "test/testing.hpp"
 
 // Under test.
-// #include "src/player-mgr.hpp"
+#include "src/player-mgr.hpp"
 
 // Testing.
 #include "test/fake/world.hpp"
+
+// ss
+#include "src/ss/players.hpp"
+#include "src/ss/terrain.hpp"
 
 // Must be last.
 #include "test/catch-common.hpp" // IWYU pragma: keep
@@ -28,10 +32,7 @@ using namespace std;
 ** Fake World Setup
 *****************************************************************/
 struct world : testing::World {
-  world() {
-    add_default_player();
-    create_default_map();
-  }
+  world() { create_default_map(); }
 
   void create_default_map() {
     MapSquare const _ = make_ocean();
@@ -50,14 +51,156 @@ struct world : testing::World {
 *****************************************************************/
 TEST_CASE( "[player-mgr] add_new_player" ) {
   world w;
-}
 
-TEST_CASE( "[player-mgr] reset_and_add_player" ) {
-  world w;
+  using enum e_player;
+
+  REQUIRE( !w.players().players[english] );
+  REQUIRE( !w.players().players[french] );
+  REQUIRE( !w.players().players[spanish] );
+  REQUIRE( !w.players().players[dutch] );
+  REQUIRE( !w.players().players[ref_english] );
+  REQUIRE( !w.players().players[ref_french] );
+  REQUIRE( !w.players().players[ref_spanish] );
+  REQUIRE( !w.players().players[ref_dutch] );
+
+  REQUIRE( !w.terrain().player_terrain( english ) );
+  REQUIRE( !w.terrain().player_terrain( french ) );
+  REQUIRE( !w.terrain().player_terrain( spanish ) );
+  REQUIRE( !w.terrain().player_terrain( dutch ) );
+  REQUIRE( !w.terrain().player_terrain( ref_english ) );
+  REQUIRE( !w.terrain().player_terrain( ref_french ) );
+  REQUIRE( !w.terrain().player_terrain( ref_spanish ) );
+  REQUIRE( !w.terrain().player_terrain( ref_dutch ) );
+
+  add_new_player( w.ss(), spanish );
+
+  REQUIRE( !w.players().players[english] );
+  REQUIRE( !w.players().players[french] );
+  REQUIRE( w.players().players[spanish] );
+  REQUIRE( !w.players().players[dutch] );
+  REQUIRE( !w.players().players[ref_english] );
+  REQUIRE( !w.players().players[ref_french] );
+  REQUIRE( !w.players().players[ref_spanish] );
+  REQUIRE( !w.players().players[ref_dutch] );
+
+  REQUIRE( !w.terrain().player_terrain( english ) );
+  REQUIRE( !w.terrain().player_terrain( french ) );
+  REQUIRE( w.terrain().player_terrain( spanish ) );
+  REQUIRE( !w.terrain().player_terrain( dutch ) );
+  REQUIRE( !w.terrain().player_terrain( ref_english ) );
+  REQUIRE( !w.terrain().player_terrain( ref_french ) );
+  REQUIRE( !w.terrain().player_terrain( ref_spanish ) );
+  REQUIRE( !w.terrain().player_terrain( ref_dutch ) );
+
+  REQUIRE( w.players().players[spanish]->type == spanish );
+  REQUIRE( w.players().players[spanish]->nation ==
+           e_nation::spanish );
+
+  add_new_player( w.ss(), ref_english );
+
+  REQUIRE( !w.players().players[english] );
+  REQUIRE( !w.players().players[french] );
+  REQUIRE( w.players().players[spanish] );
+  REQUIRE( !w.players().players[dutch] );
+  REQUIRE( w.players().players[ref_english] );
+  REQUIRE( !w.players().players[ref_french] );
+  REQUIRE( !w.players().players[ref_spanish] );
+  REQUIRE( !w.players().players[ref_dutch] );
+
+  REQUIRE( !w.terrain().player_terrain( english ) );
+  REQUIRE( !w.terrain().player_terrain( french ) );
+  REQUIRE( w.terrain().player_terrain( spanish ) );
+  REQUIRE( !w.terrain().player_terrain( dutch ) );
+  REQUIRE( w.terrain().player_terrain( ref_english ) );
+  REQUIRE( !w.terrain().player_terrain( ref_french ) );
+  REQUIRE( !w.terrain().player_terrain( ref_spanish ) );
+  REQUIRE( !w.terrain().player_terrain( ref_dutch ) );
+
+  REQUIRE( w.players().players[spanish]->type == spanish );
+  REQUIRE( w.players().players[spanish]->nation ==
+           e_nation::spanish );
+  REQUIRE( w.players().players[ref_english]->type ==
+           ref_english );
+  REQUIRE( w.players().players[ref_english]->nation ==
+           e_nation::english );
 }
 
 TEST_CASE( "[player-mgr] get_or_add_player" ) {
   world w;
+
+  using enum e_player;
+
+  REQUIRE( !w.players().players[english] );
+  REQUIRE( !w.players().players[french] );
+  REQUIRE( !w.players().players[spanish] );
+  REQUIRE( !w.players().players[dutch] );
+  REQUIRE( !w.players().players[ref_english] );
+  REQUIRE( !w.players().players[ref_french] );
+  REQUIRE( !w.players().players[ref_spanish] );
+  REQUIRE( !w.players().players[ref_dutch] );
+
+  REQUIRE( !w.terrain().player_terrain( english ) );
+  REQUIRE( !w.terrain().player_terrain( french ) );
+  REQUIRE( !w.terrain().player_terrain( spanish ) );
+  REQUIRE( !w.terrain().player_terrain( dutch ) );
+  REQUIRE( !w.terrain().player_terrain( ref_english ) );
+  REQUIRE( !w.terrain().player_terrain( ref_french ) );
+  REQUIRE( !w.terrain().player_terrain( ref_spanish ) );
+  REQUIRE( !w.terrain().player_terrain( ref_dutch ) );
+
+  get_or_add_player( w.ss(), spanish );
+
+  REQUIRE( !w.players().players[english] );
+  REQUIRE( !w.players().players[french] );
+  REQUIRE( w.players().players[spanish] );
+  REQUIRE( !w.players().players[dutch] );
+  REQUIRE( !w.players().players[ref_english] );
+  REQUIRE( !w.players().players[ref_french] );
+  REQUIRE( !w.players().players[ref_spanish] );
+  REQUIRE( !w.players().players[ref_dutch] );
+
+  REQUIRE( !w.terrain().player_terrain( english ) );
+  REQUIRE( !w.terrain().player_terrain( french ) );
+  REQUIRE( w.terrain().player_terrain( spanish ) );
+  REQUIRE( !w.terrain().player_terrain( dutch ) );
+  REQUIRE( !w.terrain().player_terrain( ref_english ) );
+  REQUIRE( !w.terrain().player_terrain( ref_french ) );
+  REQUIRE( !w.terrain().player_terrain( ref_spanish ) );
+  REQUIRE( !w.terrain().player_terrain( ref_dutch ) );
+
+  REQUIRE( w.players().players[spanish]->type == spanish );
+  REQUIRE( w.players().players[spanish]->nation ==
+           e_nation::spanish );
+  REQUIRE( w.players().players[spanish]->money == 0 );
+
+  w.players().players[spanish]->money = 1;
+
+  get_or_add_player( w.ss(), spanish );
+
+  REQUIRE( !w.players().players[english] );
+  REQUIRE( !w.players().players[french] );
+  REQUIRE( w.players().players[spanish] );
+  REQUIRE( !w.players().players[dutch] );
+  REQUIRE( !w.players().players[ref_english] );
+  REQUIRE( !w.players().players[ref_french] );
+  REQUIRE( !w.players().players[ref_spanish] );
+  REQUIRE( !w.players().players[ref_dutch] );
+
+  REQUIRE( !w.terrain().player_terrain( english ) );
+  REQUIRE( !w.terrain().player_terrain( french ) );
+  REQUIRE( w.terrain().player_terrain( spanish ) );
+  REQUIRE( !w.terrain().player_terrain( dutch ) );
+  REQUIRE( !w.terrain().player_terrain( ref_english ) );
+  REQUIRE( !w.terrain().player_terrain( ref_french ) );
+  REQUIRE( !w.terrain().player_terrain( ref_spanish ) );
+  REQUIRE( !w.terrain().player_terrain( ref_dutch ) );
+
+  REQUIRE( w.players().players[spanish]->type == spanish );
+  REQUIRE( w.players().players[spanish]->nation ==
+           e_nation::spanish );
+
+  // Thest that we haven't reset the old object.
+  REQUIRE( w.players().players[spanish]->money == 1 );
 }
 
 } // namespace
