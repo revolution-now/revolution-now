@@ -51,18 +51,12 @@ struct.RevolutionState {
 
   status 'e_revolution_status',
 
-  # Allows us to schedule one-off events to happen on the turn
-  # following the one where independence is declared, and to do
-  # so in a way that is compatible with the OG's data model. E.g.
-  # another way to do this would be to record the turn where we
-  # declared independence, but that would not be convertible to
-  # the OG's model because the OG does not appear to record that,
-  # and it is important that we get this right because it con-
-  # trols when such things happen as the promotion of units to
-  # continental armies after declaration.
-  turn_after_declaration_has_been_done 'bool',
+  # Happens on the turn after declaration. OG has this flag.
+  continental_army_mobilized 'bool',
 
-  armies_promoted 'bool',
+  # Happens on the second turn after declaration. A few messages
+  # pop up giving the player some hints.
+  gave_independence_war_hints 'bool',
 
   # This will be set to true once the player has earned (through
   # sufficient liberty bells) the help of the intervention force.
