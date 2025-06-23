@@ -372,8 +372,8 @@ local function add_testing_options( options )
   options.ordered_players = {
     { nation='english', ship_pos=nil, human=true },
     -- { nation='french', ship_pos=nil, human=true },
-    -- { nation='spanish', ship_pos=nil, human=true }
-    -- { nation='dutch', ship_pos=nil, human=true }
+    -- { nation='spanish', ship_pos=nil, human=true },
+    -- { nation='dutch', ship_pos=nil, human=true },
   }
   -- options.map.type = 'america'
   -- options.map.world_size = { w=4, h=4 }
