@@ -82,14 +82,13 @@ class Object {
   ND virtual bool input( input::event_t const& e );
 
   // As a rule of thumb, this should only be overridden to be
-  // true for nodes that satisfy the following:
+  // false for nodes that satisfy the following:
   //
-  //   1. They are "leaf" nodes in the view graph, meaning that
-  //      they don't themselves have child views.
-  //   2. They actually have contents (i.e., EmptyView is a leaf
-  //      but does not need padding).
+  //   1. They are "composite" nodes in the view graph, meaning
+  //      that they have children.
+  //   2. They don't themselves draw anything.
   //
-  virtual bool needs_padding() const { return false; }
+  virtual bool needs_padding() const { return true; }
 
   bool disabled() const { return disabled_; }
   void set_disabled( bool disabled ) { disabled_ = disabled; }

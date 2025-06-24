@@ -108,6 +108,10 @@ class CompositeView : public View {
     return true;
   }
 
+  // Composite views generally don't draw anything themselves,
+  // thus they don't need padding.
+  bool needs_padding() const override { return false; }
+
   virtual PositionedViewConst at( int idx ) const;
   virtual PositionedView at( int idx );
 
@@ -311,6 +315,9 @@ class EmptyView : public View {
 
   void set_delta( Delta const& delta ) { delta_ = delta; }
 
+  // No padding because this view does not draw anything.
+  bool needs_padding() const override { return false; }
+
  protected:
   Delta delta_;
 };
@@ -353,8 +360,6 @@ class OneLineStringView : public View {
 
   std::string const& msg() const { return msg_; }
 
-  bool needs_padding() const override { return true; }
-
  protected:
   std::string msg_;
   Delta view_size_;
@@ -376,8 +381,6 @@ class TextView : public View {
 
   // Implement Object
   Delta delta() const override;
-
-  bool needs_padding() const override { return true; }
 
  private:
   std::string msg_;
@@ -408,8 +411,6 @@ class ButtonBaseView : public View {
              Coord coord ) const override final;
   // Implement Object
   Delta delta() const override final;
-
-  bool needs_padding() const override { return true; }
 
  protected:
   enum class button_state {
@@ -481,8 +482,6 @@ class LineEditorView : public View {
              Coord coord ) const override;
   // Implement Object
   Delta delta() const override;
-
-  bool needs_padding() const override { return true; }
 
   // Implement UI.
   bool on_key( input::key_event_t const& event ) override;
@@ -556,8 +555,6 @@ class PaddingView : public CompositeSingleView {
 
   // Implement Object
   Delta delta() const override { return delta_; }
-
-  bool needs_padding() const override { return false; }
 
   // Implement CompositeView
   void notify_children_updated() override;
@@ -782,8 +779,6 @@ struct RadioButtonView : public View, IRadioButton {
   bool on_mouse_button(
       input::mouse_button_event_t const& event ) override;
 
-  bool needs_padding() const override { return true; }
-
  public: // IRadioButton
   bool on() const override { return on_; }
   void turn_off() override { on_ = false; }
@@ -834,8 +829,6 @@ struct CheckBoxView : public View {
   // Override ui::Object.
   bool on_mouse_button(
       input::mouse_button_event_t const& event ) override;
-
-  bool needs_padding() const override { return true; }
 
  private:
   bool on_ = false;
@@ -945,7 +938,6 @@ class OptionSelectView : public VectorView {
   bool can_pad_immediate_children() const override {
     return false;
   }
-  bool needs_padding() const override { return true; }
 
   bool enabled_option_at_point( Coord coord ) const;
 
@@ -977,8 +969,6 @@ class FakeUnitView : public View {
     orders_ = orders;
   }
 
-  bool needs_padding() const override { return true; }
-
  private:
   e_unit_type const type_;
   e_player const player_;
@@ -995,8 +985,6 @@ class FakeNativeUnitView : public View {
   // Implement Object
   void draw( rr::Renderer& renderer,
              Coord coord ) const override;
-
-  bool needs_padding() const override { return true; }
 
  private:
   e_native_unit_type const type_;
@@ -1015,8 +1003,6 @@ class RenderedColonyView : public View {
   // Implement Object
   void draw( rr::Renderer& renderer,
              Coord coord ) const override;
-
-  bool needs_padding() const override { return true; }
 
  private:
   SSConst const& ss_;
@@ -1037,8 +1023,6 @@ class RenderedDwellingView : public View {
   // Implement Object
   void draw( rr::Renderer& renderer,
              Coord coord ) const override;
-
-  bool needs_padding() const override { return true; }
 
  private:
   SSConst const& ss_;
@@ -1098,7 +1082,8 @@ class BorderView : public CompositeSingleView {
     return false;
   }
 
-  // Padding outside of border.
+  // Needs padding despite being a composite view because this
+  // view actually draws something on its own.
   bool needs_padding() const override { return true; }
 
   void toggle() { on_ = !on_; }
