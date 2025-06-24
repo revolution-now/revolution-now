@@ -66,7 +66,8 @@ wait<> cheat_reveal_map( SS& ss, TS& ts );
 void cheat_explore_entire_map( SS& ss, TS& ts );
 
 // Set which players are human.
-wait<> cheat_set_human_players( SS& ss, TS& ts );
+wait<> cheat_set_human_players( IEngine& engine, SS& ss,
+                                TS& ts );
 
 // No dialog box, just toggle the map view between the entire map
 // and "no special view."

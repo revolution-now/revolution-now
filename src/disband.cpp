@@ -189,29 +189,26 @@ wait<maybe<EntitiesOnTile>> disband_selection_dialog(
   }
   boxes_array->recompute_child_positions();
 
-  auto on_ok = [&] {
-    EntitiesOnTile selected;
-    selected.units.reserve( entities.units.size() );
-    int checkbox_idx = 0;
-    // Must go in order of the checkboxes here so that the idx
-    // matches what we think it represents.
-    for( auto const id : entities.units )
-      if( boxes[checkbox_idx++]->on() ) //
-        selected.units.push_back( id );
-    if( entities.colony.has_value() )
-      if( boxes[checkbox_idx++]->on() ) //
-        selected.colony = entities.colony;
-    if( entities.dwelling.has_value() )
-      if( boxes[checkbox_idx++]->on() ) //
-        selected.dwelling = entities.dwelling;
-    return selected;
-  };
+  ui::e_ok_cancel const ok =
+      co_await gui.ok_cancel_box( title, *boxes_array );
 
-  co_return co_await gui
-      .interactive_ok_cancel_box<EntitiesOnTile>(
-          title, std::move( boxes_array ), on_ok );
-  // !! At this point the view and all pointers into it above
-  // have been destroyed.
+  if( ok == ui::e_ok_cancel::cancel ) co_return nothing;
+
+  EntitiesOnTile selected;
+  selected.units.reserve( entities.units.size() );
+  int checkbox_idx = 0;
+  // Must go in order of the checkboxes here so that the idx
+  // matches what we think it represents.
+  for( auto const id : entities.units )
+    if( boxes[checkbox_idx++]->on() ) //
+      selected.units.push_back( id );
+  if( entities.colony.has_value() )
+    if( boxes[checkbox_idx++]->on() ) //
+      selected.colony = entities.colony;
+  if( entities.dwelling.has_value() )
+    if( boxes[checkbox_idx++]->on() ) //
+      selected.dwelling = entities.dwelling;
+  co_return selected;
 }
 
 // NOTE regarding disbanding ships at sea carrying units. As

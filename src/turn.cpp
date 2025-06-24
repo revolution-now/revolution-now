@@ -547,7 +547,7 @@ wait<> menu_handler( IEngine& engine, SS& ss, TS& ts,
       break;
     }
     case e_menu_item::cheat_set_human_players: {
-      co_await cheat_set_human_players( ss, ts );
+      co_await cheat_set_human_players( engine, ss, ts );
       break;
     }
     case e_menu_item::cheat_kill_natives: {

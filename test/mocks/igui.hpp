@@ -12,6 +12,7 @@
 
 // Revolution Now
 #include "src/igui.hpp"
+#include "src/view.hpp"
 
 // mock
 #include "src/mock/mock.hpp"
@@ -52,10 +53,8 @@ struct MockIGui : IGui {
   MOCK_GUI_METHOD( wait<CheckBoxResultMap>, check_box_selector,
                    (std::string const&, CheckBoxInfoMap const&));
 
-  MOCK_GUI_METHOD( wait<>, ok_cancel_box,
-                   (std::string const&,
-                    std::unique_ptr<ui::View>,
-                    base::function_ref<void()>));
+  MOCK_GUI_METHOD( wait<ui::e_ok_cancel>, ok_cancel_box,
+                   (std::string const&, ui::View&));
 
   MOCK_GUI_METHOD( wait<>, display_woodcut, ( e_woodcut ) );
 

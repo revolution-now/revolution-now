@@ -165,6 +165,57 @@ class CompositeView : public View {
   bool dispatch_mouse_event( input::event_t const& event );
 };
 
+// This is a view that holds another view by reference and just
+// forwards everything to it. This is used while transitioning
+// the framework from a heap/unique_ptr based approach to a ref-
+// erence based approach.
+class RefView : public View {
+ public:
+  RefView( View& view ) : view_( view ) {}
+
+  View const& referenced() const { return view_; }
+  View& referenced() { return view_; }
+
+  // Implement Object
+  void draw( rr::Renderer& renderer,
+             Coord coord ) const override;
+  // Implement Object
+  Delta delta() const override;
+
+  // Override ui::Object.
+  void advance_state() override;
+
+  bool on_key( input::key_event_t const& event ) override;
+
+  bool on_wheel(
+      input::mouse_wheel_event_t const& event ) override;
+
+  bool on_mouse_move(
+      input::mouse_move_event_t const& event ) override;
+
+  bool on_mouse_button(
+      input::mouse_button_event_t const& event ) override;
+
+  bool on_mouse_drag(
+      input::mouse_drag_event_t const& event ) override;
+
+  bool on_win_event( input::win_event_t const& event ) override;
+
+  // Implement ui::Object
+  void on_mouse_leave( Coord from ) override;
+  void on_mouse_enter( Coord to ) override;
+  Rect bounds( Coord position ) const override;
+  bool input( input::event_t const& e ) override;
+  bool needs_padding() const override;
+  bool on_resolution_event(
+      input::resolution_event_t const& event ) override;
+  bool on_cheat_event(
+      input::cheat_event_t const& event ) override;
+
+ private:
+  View& view_;
+};
+
 class CompositeSingleView : public CompositeView {
  public:
   CompositeSingleView() = default;
@@ -498,11 +549,15 @@ class PlainMessageBoxView : public CompositeSingleView {
 // automatically by the auto-pad mechanism.
 class PaddingView : public CompositeSingleView {
  public:
+  PaddingView( std::unique_ptr<View> view, int pixels );
+
   PaddingView( std::unique_ptr<View> view, int pixels, bool l,
                bool r, bool u, bool d );
 
   // Implement Object
   Delta delta() const override { return delta_; }
+
+  bool needs_padding() const override { return false; }
 
   // Implement CompositeView
   void notify_children_updated() override;
@@ -687,6 +742,83 @@ class HorizontalArrayView : public VectorView {
   align alignment_;
 };
 
+struct IRadioButton {
+  virtual ~IRadioButton() = default;
+
+  virtual bool on() const = 0;
+  virtual void turn_off() = 0;
+  virtual void turn_on()  = 0;
+};
+
+struct RadioButtonGroup {
+  RadioButtonGroup() = default;
+
+  void add( IRadioButton& button );
+
+  void on_child_clicked( IRadioButton& self );
+
+  void set( int idx );
+
+  maybe<int> get_selected() const;
+
+ private:
+  // Must be immobile.
+  RadioButtonGroup( RadioButtonGroup&& ) = delete;
+
+  std::vector<IRadioButton*> buttons_;
+};
+
+struct RadioButtonView : public View, IRadioButton {
+  RadioButtonView( RadioButtonGroup& group );
+
+  // Implement Object
+  void draw( rr::Renderer& renderer,
+             Coord coord ) const override;
+
+  // Implement Object
+  Delta delta() const override;
+
+  // Override ui::Object.
+  bool on_mouse_button(
+      input::mouse_button_event_t const& event ) override;
+
+  bool needs_padding() const override { return true; }
+
+ public: // IRadioButton
+  bool on() const override { return on_; }
+  void turn_off() override { on_ = false; }
+  void turn_on() override { on_ = true; }
+
+ private:
+  RadioButtonGroup& group_;
+  bool on_ = false;
+};
+
+struct LabeledRadioButtonView : public HorizontalArrayView,
+                                IRadioButton {
+  LabeledRadioButtonView( RadioButtonGroup& group,
+                          std::unique_ptr<View> label );
+
+  // Override ui::Object.
+  bool on_mouse_button(
+      input::mouse_button_event_t const& event ) override;
+
+ public: // IRadioButton
+  bool on() const override { return radio_button_->on(); }
+  void turn_off() override { radio_button_->turn_off(); }
+  void turn_on() override { radio_button_->turn_on(); }
+
+ private:
+  RadioButtonView* radio_button_ = nullptr;
+};
+
+struct TextLabeledRadioButtonView
+  : public LabeledRadioButtonView {
+  TextLabeledRadioButtonView( RadioButtonGroup& group,
+                              rr::ITextometer const& textometer,
+                              std::string label );
+};
+
 struct CheckBoxView : public View {
   CheckBoxView( bool on = false );
 
@@ -703,6 +835,8 @@ struct CheckBoxView : public View {
   bool on_mouse_button(
       input::mouse_button_event_t const& event ) override;
 
+  bool needs_padding() const override { return true; }
+
  private:
   bool on_ = false;
 };
@@ -716,8 +850,6 @@ struct LabeledCheckBoxView : public HorizontalArrayView {
   // Override ui::Object.
   bool on_mouse_button(
       input::mouse_button_event_t const& event ) override;
-
-  bool needs_padding() const override { return true; }
 
  private:
   CheckBoxView* check_box_ = nullptr;

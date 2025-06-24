@@ -235,6 +235,76 @@ PositionedViewConst CompositeView::at( int idx ) const {
 }
 
 /****************************************************************
+** RefView
+*****************************************************************/
+void RefView::advance_state() { return view_.advance_state(); }
+
+void RefView::draw( rr::Renderer& renderer,
+                    Coord const coord ) const {
+  return view_.draw( renderer, coord );
+}
+
+Delta RefView::delta() const { return view_.delta(); }
+
+bool RefView::on_key( input::key_event_t const& event ) {
+  return view_.on_key( event );
+}
+
+bool RefView::on_wheel(
+    input::mouse_wheel_event_t const& event ) {
+  return view_.on_wheel( event );
+}
+
+bool RefView::on_mouse_move(
+    input::mouse_move_event_t const& event ) {
+  return view_.on_mouse_move( event );
+}
+
+bool RefView::on_mouse_button(
+    input::mouse_button_event_t const& event ) {
+  return view_.on_mouse_button( event );
+}
+
+bool RefView::on_mouse_drag(
+    input::mouse_drag_event_t const& event ) {
+  return view_.on_mouse_drag( event );
+}
+
+bool RefView::on_win_event( input::win_event_t const& event ) {
+  return view_.on_win_event( event );
+}
+
+void RefView::on_mouse_leave( Coord const from ) {
+  return view_.on_mouse_leave( from );
+}
+
+void RefView::on_mouse_enter( Coord to ) {
+  return view_.on_mouse_enter( to );
+}
+
+Rect RefView::bounds( Coord position ) const {
+  return view_.bounds( position );
+}
+
+bool RefView::input( input::event_t const& e ) {
+  return view_.input( e );
+}
+
+bool RefView::needs_padding() const {
+  return view_.needs_padding();
+}
+
+bool RefView::on_resolution_event(
+    input::resolution_event_t const& event ) {
+  return view_.on_resolution_event( event );
+}
+
+bool RefView::on_cheat_event(
+    input::cheat_event_t const& event ) {
+  return view_.on_cheat_event( event );
+}
+
+/****************************************************************
 ** CompositeSingleView
 *****************************************************************/
 CompositeSingleView::CompositeSingleView( unique_ptr<View> view,
@@ -675,8 +745,15 @@ bool PlainMessageBoxView::on_key(
 /****************************************************************
 ** PaddingView
 *****************************************************************/
-PaddingView::PaddingView( std::unique_ptr<View> view, int pixels,
-                          bool l, bool r, bool u, bool d )
+PaddingView::PaddingView( std::unique_ptr<View> view,
+                          int const pixels )
+  : PaddingView( std::move( view ), pixels, true, true, true,
+                 true ) {}
+
+PaddingView::PaddingView( std::unique_ptr<View> view,
+                          int const pixels, bool const l,
+                          bool const r, bool const u,
+                          bool const d )
   : CompositeSingleView(
         std::move( view ),
         Coord{} +                                   //
@@ -701,12 +778,8 @@ void PaddingView::notify_children_updated() {
            Delta{ .h = ( d_ ? H{ pixels_ } : 0 ) };
 }
 
-// This prevents more padding from being added (this is already
-// ad padding view).
 bool PaddingView::can_pad_immediate_children() const {
-  // If we're asking whether we can add padding into a
-  // PaddingView then something has gone wrong somewhere.
-  SHOULD_NOT_BE_HERE;
+  return false;
 }
 
 /****************************************************************
@@ -1018,6 +1091,99 @@ void HorizontalArrayView::recompute_child_positions() {
 }
 
 /****************************************************************
+** RadioButtonGroup
+*****************************************************************/
+void RadioButtonGroup::add( IRadioButton& button ) {
+  buttons_.push_back( &button );
+}
+
+void RadioButtonGroup::on_child_clicked(
+    IRadioButton& clicked ) {
+  for( IRadioButton* const button : buttons_ )
+    button->turn_off();
+  clicked.turn_on();
+}
+
+void RadioButtonGroup::set( int const idx ) {
+  CHECK_GE( idx, 0 );
+  CHECK_LT( idx, ssize( buttons_ ) );
+  on_child_clicked( *buttons_[idx] );
+}
+
+maybe<int> RadioButtonGroup::get_selected() const {
+  maybe<int> sel;
+  for( int idx = 0; idx < ssize( buttons_ ); ++idx ) {
+    IRadioButton const& button = *buttons_[idx];
+    if( !button.on() ) continue;
+    CHECK( !sel.has_value(),
+           "cannot have multiple radio buttons selected." );
+    sel = idx;
+  }
+  return sel;
+}
+
+/****************************************************************
+** RadioButtonView
+*****************************************************************/
+RadioButtonView::RadioButtonView( RadioButtonGroup& group )
+  : group_( group ), on_( false ) {}
+
+Delta RadioButtonView::delta() const {
+  return { .w = 11, .h = 11 };
+}
+
+void RadioButtonView::draw( rr::Renderer& renderer,
+                            Coord const coord ) const {
+  render_sprite( renderer, coord, e_tile::radio_back );
+  if( on_ )
+    render_sprite( renderer, coord, e_tile::radio_check );
+}
+
+bool RadioButtonView::on_mouse_button(
+    input::mouse_button_event_t const& event ) {
+  if( event.buttons != input::e_mouse_button_event::left_up )
+    return false;
+  // This callback should turn off all radio buttons in the group
+  // and turn this one on, in accordance to how radio buttons are
+  // supposed to work.
+  group_.on_child_clicked( *this );
+  CHECK( on_ );
+  return true;
+}
+
+/****************************************************************
+** LabeledRadioButtonView
+*****************************************************************/
+LabeledRadioButtonView::LabeledRadioButtonView(
+    RadioButtonGroup& group, unique_ptr<View> label )
+  : HorizontalArrayView( HorizontalArrayView::align::middle ) {
+  auto check_box = make_unique<RadioButtonView>( group );
+  radio_button_  = check_box.get();
+  add_view( std::move( check_box ) );
+  // Add some spacing between the box and text.
+  add_view( make_unique<EmptyView>( Delta{ .w = 1, .h = 1 } ) );
+  add_view( std::move( label ) );
+  recompute_child_positions();
+  CHECK( radio_button_ );
+}
+
+bool LabeledRadioButtonView::on_mouse_button(
+    input::mouse_button_event_t const& event ) {
+  // Clicking on the label is equivalent to clicking in the box.
+  return radio_button_->on_mouse_button( event );
+}
+
+/****************************************************************
+** TextLabeledRadioButtonView
+*****************************************************************/
+TextLabeledRadioButtonView::TextLabeledRadioButtonView(
+    RadioButtonGroup& group, rr::ITextometer const& textometer,
+    string label )
+  : LabeledRadioButtonView(
+        group, make_unique<TextView>( textometer,
+                                      std::move( label ) ) ) {}
+
+/****************************************************************
 ** CheckBoxView
 *****************************************************************/
 CheckBoxView::CheckBoxView( bool on ) : on_( on ) {}
@@ -1028,9 +1194,9 @@ Delta CheckBoxView::delta() const {
 
 void CheckBoxView::draw( rr::Renderer& renderer,
                          Coord const coord ) const {
-  render_sprite(renderer, coord, e_tile::checkbox_back);
+  render_sprite( renderer, coord, e_tile::checkbox_back );
   if( on_ )
-    render_sprite(renderer, coord, e_tile::checkbox_check);
+    render_sprite( renderer, coord, e_tile::checkbox_check );
 }
 
 bool CheckBoxView::on_mouse_button(
@@ -1051,7 +1217,7 @@ LabeledCheckBoxView::LabeledCheckBoxView( unique_ptr<View> label,
   check_box_     = check_box.get();
   add_view( std::move( check_box ) );
   // Add some spacing between the box and text.
-  add_view( make_unique<EmptyView>( Delta{ .w = 2, .h = 1 } ) );
+  add_view( make_unique<EmptyView>( Delta{ .w = 1, .h = 1 } ) );
   add_view( std::move( label ) );
   recompute_child_positions();
 }
@@ -1063,7 +1229,7 @@ bool LabeledCheckBoxView::on_mouse_button(
 }
 
 /****************************************************************
-** LabeledCheckBoxView
+** TextLabeledCheckBoxView
 *****************************************************************/
 TextLabeledCheckBoxView::TextLabeledCheckBoxView(
     rr::ITextometer const& textometer, string label, bool on )

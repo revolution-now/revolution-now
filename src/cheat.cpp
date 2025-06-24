@@ -94,6 +94,7 @@ namespace {
 using ::gfx::point;
 using ::refl::enum_derives_from;
 using ::refl::enum_from_string;
+using ::refl::enum_map;
 using ::refl::enum_values;
 
 bool can_remove_building( Colony const& colony,
@@ -239,47 +240,121 @@ wait<> cheat_reveal_map( SS& ss, TS& ts ) {
       ts, player_for_role( ss, e_player_role::viewer ) );
 }
 
-wait<> cheat_set_human_players( SS& ss, TS& ts ) {
-  // All enabled by default.
-  refl::enum_map<e_nation, CheckBoxInfo> info_map;
-  for( auto const nation : enum_values<e_nation> ) {
-    e_player const player_type = colonist_player_for( nation );
-    info_map[nation] =
-        CheckBoxInfo{ .name = config_nation.players[player_type]
-                                  .display_name_pre_declaration,
-                      .on       = false,
-                      .disabled = true };
-    if( !ss.players.players[player_type].has_value() ) {
-      info_map[nation].disabled = true;
-      info_map[nation].on       = false;
-      continue;
+wait<> cheat_set_human_players( IEngine& engine, SS& ss,
+                                TS& ts ) {
+  struct Mapping {
+    int idx = {};
+    string label;
+  };
+  static vector<pair<e_player_control, Mapping>> const kSpec{
+    { e_player_control::human,
+      Mapping{ .idx = 0, .label = "Human" } },
+    { e_player_control::ai, Mapping{ .idx = 1, .label = "AI" } },
+    { e_player_control::withdrawn,
+      Mapping{ .idx = 2, .label = "Withdrawn" } },
+  };
+  auto const& textometer = engine.textometer();
+  // Use unique_ptr here because the radio button group must be
+  // immobile which enum_map does not support.
+  enum_map<e_player, unique_ptr<ui::RadioButtonGroup>> groups;
+
+  // Right alignment here is necessary because the words in the
+  // left column are variable length whereas the checkboxs in the
+  // right column are all the same.
+  auto top = make_unique<ui::VerticalArrayView>(
+      ui::VerticalArrayView::align::right );
+
+  auto const add_player = [&]( Player const& player ) {
+    CHECK( !groups[player.type] );
+    groups[player.type] = make_unique<ui::RadioButtonGroup>();
+    ui::RadioButtonGroup& group = *groups[player.type];
+    auto player_boxes = make_unique<ui::VerticalArrayView>(
+        ui::VerticalArrayView::align::left );
+    for( auto const& [control, mapping] : kSpec ) {
+      auto button_view =
+          make_unique<ui::TextLabeledRadioButtonView>(
+              group, textometer, mapping.label );
+      auto* p_button_view = button_view.get();
+      player_boxes->add_view( std::move( button_view ) );
+      group.add( *p_button_view );
     }
-    info_map[nation].disabled = false;
-    info_map[nation].on =
-        ss.players.players[player_type]->control ==
-        e_player_control::human;
+    player_boxes->recompute_child_positions();
+    for( auto const& [control, mapping] : kSpec )
+      if( control == player.control ) //
+        group.set( mapping.idx );
+    auto labeled_player_boxes =
+        make_unique<ui::HorizontalArrayView>(
+            ui::HorizontalArrayView::align::middle );
+    string label_txt = config_nation.players[player.type]
+                           .display_name_pre_declaration;
+    auto label = make_unique<ui::TextView>(
+        textometer, std::move( label_txt ) );
+    labeled_player_boxes->add_view( std::move( label ) );
+    labeled_player_boxes->add_view( std::move( player_boxes ) );
+    labeled_player_boxes->recompute_child_positions();
+    top->add_view( std::move( labeled_player_boxes ) );
+    top->add_view(
+        make_unique<ui::EmptyView>( Delta{ .w = 1, .h = 4 } ) );
+  };
+
+  for( auto const& [type, player] : ss.players.players ) {
+    if( !player.has_value() ) continue;
+    add_player( *player );
+  }
+  top->recompute_child_positions();
+
+  using ResultT = enum_map<e_player, e_player_control>;
+
+  auto const get_selected = [&] {
+    ResultT selected;
+    for( auto const& [type, player] : ss.players.players ) {
+      if( !player.has_value() ) continue;
+      auto const& group = groups[type];
+      CHECK( group != nullptr );
+      UNWRAP_CHECK_T( int const idx, group->get_selected() );
+      CHECK_LT( idx, ssize( kSpec ) );
+      auto const& [control, mapping] = kSpec[idx];
+      selected[type]                 = control;
+    }
+    return selected;
+  };
+
+  auto const has_at_least_one_human = [&]( ResultT const& res ) {
+    for( auto const& [type, player] : ss.players.players ) {
+      if( !player.has_value() ) continue;
+      if( res[type] == e_player_control::human ) return true;
+    }
+    return false;
+  };
+
+  auto const loop = [&]() -> wait<ui::e_ok_cancel> {
+    while( true ) {
+      ui::e_ok_cancel const res = co_await ts.gui.ok_cancel_box(
+          "Select Player Control", *top );
+      if( res == ui::e_ok_cancel::cancel ) co_return res;
+      auto const selected = get_selected();
+      if( has_at_least_one_human( selected ) ) break;
+      co_await ts.gui.message_box(
+          "There must be at least one human player." );
+    }
+    co_return ui::e_ok_cancel::ok;
+  };
+
+  auto const ok = co_await loop();
+  if( ok == ui::e_ok_cancel::cancel ) co_return;
+  auto const selected = get_selected();
+
+  bool change_made = false;
+  for( auto& [type, player] : ss.players.players ) {
+    if( !player.has_value() ) continue;
+    e_player_control const new_value = selected[type];
+    e_player_control& value          = player->control;
+    if( new_value == value ) continue;
+    change_made = true;
+    value       = new_value;
   }
 
-  while( true ) {
-    co_await ts.gui.enum_check_boxes<e_nation>(
-        "Select Human Nations:", info_map );
-    bool found_human = false;
-    for( auto const nation : enum_values<e_nation> )
-      if( info_map[nation].on ) //
-        found_human = true;
-    if( found_human ) break;
-    co_await ts.gui.message_box(
-        "There must be at least one human nation." );
-  }
-
-  // Set new human statuses.
-  for( auto const nation : enum_values<e_nation> ) {
-    e_player const player_type = colonist_player_for( nation );
-    if( ss.players.players[player_type].has_value() )
-      ss.players.players[player_type]->control =
-          info_map[nation].on ? e_player_control::human
-                              : e_player_control::ai;
-  }
+  if( !change_made ) co_return;
 
   ts.euro_minds() = create_euro_minds( ss, ts.gui );
 

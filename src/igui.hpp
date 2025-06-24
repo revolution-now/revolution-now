@@ -225,22 +225,8 @@ struct IGui {
       items[item].on = int_res[static_cast<int>( item )];
   }
 
-  // The supplied function will only be called when OK is
-  // pressed, and must return the result type. The reason that we
-  // need to pass an on_ok method here is because said method
-  // typically needs to extract data from the view when ok is
-  // pressed, but the view will be destroyed when this function
-  // returns, since it takes ownership of it.
-  template<typename ResultT, typename Fn>
-  requires std::is_same_v<std::invoke_result_t<Fn>, ResultT>
-  wait<maybe<ResultT>> interactive_ok_cancel_box(
-      std::string const& title, std::unique_ptr<ui::View>&& view,
-      Fn const& fn ) {
-    maybe<ResultT> res;
-    co_await ok_cancel_box( title, std::move( view ),
-                            [&] { res = fn(); } );
-    co_return res;
-  }
+  virtual wait<ui::e_ok_cancel> ok_cancel_box(
+      std::string const& title, ui::View& view ) = 0;
 
  protected:
   // Do not call these directly, instead call the ones in the
@@ -272,18 +258,6 @@ struct IGui {
   virtual wait<std::unordered_map<int, bool>> check_box_selector(
       std::string const& title,
       std::unordered_map<int, CheckBoxInfo> const& items ) = 0;
-
-  // This is for when you want to display an ok/cancel dialog box
-  // which has a view that the user will interact with before
-  // clicking one of the buttons. The on_ok method is called only
-  // if the ok button is clicked. The reason that we need to pass
-  // an on_ok method here is because said method typically needs
-  // to extract data from the view when ok is pressed, but the
-  // view will be destroyed when this function returns, since it
-  // takes ownership of it.
-  virtual wait<> ok_cancel_box(
-      std::string const& title, std::unique_ptr<ui::View> view,
-      base::function_ref<void()> on_ok ) = 0;
 
   /* ============================================================
   ** Woodcuts

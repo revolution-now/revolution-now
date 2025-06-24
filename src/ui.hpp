@@ -81,12 +81,14 @@ class Object {
   // the view will not be sent to this function.
   ND virtual bool input( input::event_t const& e );
 
-  // This one is only used for the "simple" method of autopadding
-  // (as opposed to the "fancy" method). The jury is still out as
-  // to which one is better. If the "simple" method proves best
-  // then the "fancy" method (and all the complicated logic that
-  // goes with it) can be deleted; otherwise this interface
-  // method can be deleted.
+  // As a rule of thumb, this should only be overridden to be
+  // true for nodes that satisfy the following:
+  //
+  //   1. They are "leaf" nodes in the view graph, meaning that
+  //      they don't themselves have child views.
+  //   2. They actually have contents (i.e., EmptyView is a leaf
+  //      but does not need padding).
+  //
   virtual bool needs_padding() const { return false; }
 
   bool disabled() const { return disabled_; }

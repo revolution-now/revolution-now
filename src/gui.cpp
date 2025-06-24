@@ -169,21 +169,16 @@ wait<unordered_map<int, bool>> RealGui::check_box_selector(
   unordered_map<int, bool> res;
   for( auto& [item, info] : items ) res[item] = info.on;
 
-  auto on_ok = [&] {
-    for( auto [item, box] : boxes ) res[item] = box->on();
-  };
+  e_ok_cancel const ok =
+      co_await ok_cancel_box( title, *boxes_array );
 
-  auto const _ = co_await ok_cancel_box(
-      title, std::move( boxes_array ), on_ok );
-  // !! At this point the view and all pointers into it above
-  // have been destroyed.
-
+  if( ok == e_ok_cancel::cancel ) co_return res;
+  for( auto [item, box] : boxes ) res[item] = box->on();
   co_return res;
 }
 
-wait<> RealGui::ok_cancel_box(
-    string const& title, unique_ptr<ui::View> view,
-    base::function_ref<void()> const on_ok ) {
+wait<ui::e_ok_cancel> RealGui::ok_cancel_box(
+    string const& title, ui::View& view ) {
   using namespace ui;
   auto top = make_unique<VerticalArrayView>(
       VerticalArrayView::align::center );
@@ -193,7 +188,7 @@ wait<> RealGui::ok_cancel_box(
   // Add some space between title and main view.
   top->add_view(
       make_unique<EmptyView>( Delta{ .w = 1, .h = 2 } ) );
-  top->add_view( std::move( view ) );
+  top->add_view( make_unique<RefView>( view ) );
   // Add some space between boxes and buttons.
   top->add_view(
       make_unique<EmptyView>( Delta{ .w = 1, .h = 4 } ) );
@@ -214,10 +209,7 @@ wait<> RealGui::ok_cancel_box(
   // Must be done after auto-padding.
   window.center_me();
 
-  // The window (and view that it contains) must be kept alive
-  // while we call the on_ok method, which typically needs to ex-
-  // tract info from the view.
-  if( co_await buttons->next() == e_ok_cancel::ok ) on_ok();
+  co_return co_await buttons->next();
 }
 
 } // namespace rn

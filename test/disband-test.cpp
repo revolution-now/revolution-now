@@ -569,8 +569,9 @@ TEST_CASE( "[disband] disband_tile_ui_interaction" ) {
   perms = {
     .disbandable = { .units = { farmer_id, free_colonist } } };
   expected = { .units = {} };
-  w.gui().EXPECT__ok_cancel_box( "Select unit(s) to disband:", _,
-                                 _ );
+  w.gui()
+      .EXPECT__ok_cancel_box( "Select unit(s) to disband:", _ )
+      .returns( ui::e_ok_cancel::ok );
   REQUIRE( f() == expected );
 
   // Multiple units, one selected.

@@ -279,9 +279,7 @@ void Window::center_me() const {
   window_manager_.center_window( *this );
 }
 
-void Window::autopad_me() {
-  autopad( *view_, /*use_fancy=*/false );
-}
+void Window::autopad_me() { autopad( view_ ); }
 
 bool Window::operator==( Window const& rhs ) const {
   return this == &rhs;
@@ -594,8 +592,8 @@ namespace {
     WindowCancelActions const& cancel_actions, bool auto_pad ) {
   auto win              = make_unique<Window>( window_manager );
   win->cancel_actions() = cancel_actions;
-  if( auto_pad ) autopad( *view, /*use_fancy=*/false );
   win->set_view( std::move( view ) );
+  if( auto_pad ) win->autopad_me();
   window_manager.center_window( *win );
   return win;
 }

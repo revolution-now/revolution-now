@@ -74,9 +74,8 @@ struct RealGui : IGui {
       override;
 
   // Implement IGui.
-  wait<> ok_cancel_box(
-      std::string const& title, std::unique_ptr<ui::View> view,
-      base::function_ref<void()> on_ok ) override;
+  wait<ui::e_ok_cancel> ok_cancel_box( std::string const& title,
+                                       ui::View& view ) override;
 
  private:
   WindowPlane& window_plane() const;
