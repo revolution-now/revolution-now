@@ -267,10 +267,13 @@ wait<> cheat_set_player_control( IEngine& engine, SS& ss,
 
   int constexpr kHorizSpace = 10;
 
-  auto const add_player = [&]( Player const& player ) {
-    CHECK( !groups[player.type] );
-    groups[player.type] = make_unique<ui::RadioButtonGroup>();
-    ui::RadioButtonGroup& group = *groups[player.type];
+  auto const add_player = [&]( e_player const player_type,
+                               e_player_control const
+                                   player_control,
+                               bool const disabled ) {
+    CHECK( !groups[player_type] );
+    groups[player_type] = make_unique<ui::RadioButtonGroup>();
+    ui::RadioButtonGroup& group = *groups[player_type];
     auto player_boxes = make_unique<ui::HorizontalArrayView>(
         ui::HorizontalArrayView::align::middle );
     bool add_space = false;
@@ -287,22 +290,23 @@ wait<> cheat_set_player_control( IEngine& engine, SS& ss,
       group.add( *p_button_view );
     }
     player_boxes->recompute_child_positions();
-    for( auto const& [control, mapping] : kSpec )
-      if( control == player.control ) //
-        group.set( mapping.idx );
+    if( !disabled )
+      for( auto const& [control, mapping] : kSpec )
+        if( control == player_control ) //
+          group.set( mapping.idx );
     auto labeled_player_boxes =
         make_unique<ui::HorizontalArrayView>(
             ui::HorizontalArrayView::align::middle );
     string const qualifier =
-        is_ref( player.type )
+        is_ref( player_type )
             ? format( " ({})",
                       config_nation
                           .players[colonist_player_for(
-                              nation_for( player.type ) )]
+                              nation_for( player_type ) )]
                           .possessive_pre_declaration )
             : "";
     string label_txt = format( "{}{}: ",
-                               config_nation.players[player.type]
+                               config_nation.players[player_type]
                                    .display_name_pre_declaration,
                                qualifier );
     auto label       = make_unique<ui::TextView>(
@@ -312,14 +316,17 @@ wait<> cheat_set_player_control( IEngine& engine, SS& ss,
         size{ .w = kHorizSpace / 2 } ) );
     labeled_player_boxes->add_view( std::move( player_boxes ) );
     labeled_player_boxes->recompute_child_positions();
+    labeled_player_boxes->set_disabled( disabled );
     top->add_view( std::move( labeled_player_boxes ) );
     top->add_view(
         make_unique<ui::EmptyView>( Delta{ .w = 1, .h = 4 } ) );
   };
 
   for( auto const& [type, player] : ss.players.players ) {
-    if( !player.has_value() ) continue;
-    add_player( *player );
+    e_player_control const control =
+        player.has_value() ? player->control
+                           : e_player_control::withdrawn;
+    add_player( type, control, !player.has_value() );
   }
   top->recompute_child_positions();
 
