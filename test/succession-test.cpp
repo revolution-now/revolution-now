@@ -60,7 +60,10 @@ struct world : testing::World {
     add_player( e_player::spanish );
     add_player( e_player::dutch );
     set_default_player_type( e_player::french );
-    set_default_player_as_human();
+    english().control = e_player_control::ai;
+    french().control  = e_player_control::human;
+    spanish().control = e_player_control::ai;
+    dutch().control   = e_player_control::ai;
     create_default_map();
   }
 
@@ -104,6 +107,12 @@ TEST_CASE( "[rebel-sentiment] should_do_war_of_succession" ) {
   SECTION( "lacking rebel sentiment" ) {
     REQUIRE( f() );
     human_player.revolution.rebel_sentiment = 49;
+    REQUIRE_FALSE( f() );
+  }
+
+  SECTION( "one player withdrawn" ) {
+    REQUIRE( f() );
+    w.spanish().control = e_player_control::withdrawn;
     REQUIRE_FALSE( f() );
   }
 
@@ -184,6 +193,14 @@ TEST_CASE(
                           .receives  = e_nation::spanish };
   REQUIRE( f() == expected );
 
+  w.english().control = e_player_control::withdrawn;
+  w.french().control  = e_player_control::human;
+  expected            = { .withdraws = e_nation::spanish,
+                          .receives  = e_nation::dutch };
+  REQUIRE( f() == expected );
+
+  w.english().control = e_player_control::ai;
+  w.french().control  = e_player_control::human;
   w.spanish().control = e_player_control::human;
   expected            = { .withdraws = e_nation::english,
                           .receives  = e_nation::dutch };
@@ -471,7 +488,11 @@ TEST_CASE( "[rebel-sentiment] do_war_of_succession" ) {
       FrozenMission{ .player = e_player::spanish,
                      .level  = e_missionary_type::jesuit } );
   REQUIRE( w.players().players[e_player::spanish].has_value() );
+  REQUIRE( w.players().players[e_player::spanish]->control ==
+           e_player_control::ai );
   REQUIRE( w.players().players[e_player::french].has_value() );
+  REQUIRE( w.players().players[e_player::french]->control ==
+           e_player_control::human );
   REQUIRE_FALSE( w.events().war_of_succession_done );
 
   plan = {
@@ -545,9 +566,12 @@ TEST_CASE( "[rebel-sentiment] do_war_of_succession" ) {
       *viz.dwelling_at( { .x = 1, .y = 0 } )->frozen->mission ==
       FrozenMission{ .player = e_player::french,
                      .level  = e_missionary_type::jesuit } );
-  REQUIRE_FALSE(
-      w.players().players[e_player::spanish].has_value() );
+  REQUIRE( w.players().players[e_player::spanish].has_value() );
+  REQUIRE( w.players().players[e_player::spanish]->control ==
+           e_player_control::withdrawn );
   REQUIRE( w.players().players[e_player::french].has_value() );
+  REQUIRE( w.players().players[e_player::french]->control ==
+           e_player_control::human );
   REQUIRE( w.events().war_of_succession_done );
 }
 
