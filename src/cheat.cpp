@@ -268,8 +268,8 @@ wait<> cheat_set_human_players( IEngine& engine, SS& ss,
     CHECK( !groups[player.type] );
     groups[player.type] = make_unique<ui::RadioButtonGroup>();
     ui::RadioButtonGroup& group = *groups[player.type];
-    auto player_boxes = make_unique<ui::VerticalArrayView>(
-        ui::VerticalArrayView::align::left );
+    auto player_boxes = make_unique<ui::HorizontalArrayView>(
+        ui::HorizontalArrayView::align::middle );
     for( auto const& [control, mapping] : kSpec ) {
       auto button_view =
           make_unique<ui::TextLabeledRadioButtonView>(
@@ -285,9 +285,19 @@ wait<> cheat_set_human_players( IEngine& engine, SS& ss,
     auto labeled_player_boxes =
         make_unique<ui::HorizontalArrayView>(
             ui::HorizontalArrayView::align::middle );
-    string label_txt = config_nation.players[player.type]
-                           .display_name_pre_declaration;
-    auto label = make_unique<ui::TextView>(
+    string const qualifier =
+        is_ref( player.type )
+            ? format( " ({})",
+                      config_nation
+                          .players[colonist_player_for(
+                              nation_for( player.type ) )]
+                          .possessive_pre_declaration )
+            : "";
+    string label_txt = format( "{}{}: ",
+                               config_nation.players[player.type]
+                                   .display_name_pre_declaration,
+                               qualifier );
+    auto label       = make_unique<ui::TextView>(
         textometer, std::move( label_txt ) );
     labeled_player_boxes->add_view( std::move( label ) );
     labeled_player_boxes->add_view( std::move( player_boxes ) );
