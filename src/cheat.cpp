@@ -240,8 +240,8 @@ wait<> cheat_reveal_map( SS& ss, TS& ts ) {
       ts, player_for_role( ss, e_player_role::viewer ) );
 }
 
-wait<> cheat_set_human_players( IEngine& engine, SS& ss,
-                                TS& ts ) {
+wait<> cheat_set_player_control( IEngine& engine, SS& ss,
+                                 TS& ts ) {
   struct Mapping {
     int idx = {};
     string label;

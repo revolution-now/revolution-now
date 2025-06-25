@@ -72,7 +72,7 @@ items {
   cheat_kill_natives.name: Kill Natives
   cheat_map_editor.name: Enter Map Editor
   cheat_reveal_map.name: Reveal Map
-  cheat_set_human_players.name: Set Human Players
+  cheat_set_player_control.name: Set Player Control
   colony_advisor.name: Colony Advisor
   colony_report_options.name: Colony Report Options
   continental_congress.name: Continental Congress
@@ -224,7 +224,7 @@ layout {
     null,
     .leaf.item: cheat_reveal_map,
     .leaf.item: cheat_explore_entire_map,
-    .leaf.item: cheat_set_human_players,
+    .leaf.item: cheat_set_player_control,
     null,
     .leaf.item: cheat_kill_natives,
     .leaf.item: cheat_advance_revolution_status,

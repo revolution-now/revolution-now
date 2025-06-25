@@ -45,7 +45,7 @@ enum.e_menu_item {
   cheat_kill_natives,
   cheat_map_editor,
   cheat_reveal_map,
-  cheat_set_human_players,
+  cheat_set_player_control,
   cheat_advance_revolution_status,
   colony_report_options,
   disband,
