@@ -92,6 +92,7 @@ namespace rn {
 namespace {
 
 using ::gfx::point;
+using ::gfx::size;
 using ::refl::enum_derives_from;
 using ::refl::enum_from_string;
 using ::refl::enum_map;
@@ -264,17 +265,24 @@ wait<> cheat_set_player_control( IEngine& engine, SS& ss,
   auto top = make_unique<ui::VerticalArrayView>(
       ui::VerticalArrayView::align::right );
 
+  int constexpr kHorizSpace = 10;
+
   auto const add_player = [&]( Player const& player ) {
     CHECK( !groups[player.type] );
     groups[player.type] = make_unique<ui::RadioButtonGroup>();
     ui::RadioButtonGroup& group = *groups[player.type];
     auto player_boxes = make_unique<ui::HorizontalArrayView>(
         ui::HorizontalArrayView::align::middle );
+    bool add_space = false;
     for( auto const& [control, mapping] : kSpec ) {
       auto button_view =
           make_unique<ui::TextLabeledRadioButtonView>(
               group, textometer, mapping.label );
       auto* p_button_view = button_view.get();
+      if( add_space )
+        player_boxes->add_view( make_unique<ui::EmptyView>(
+            size{ .w = kHorizSpace } ) );
+      add_space = true;
       player_boxes->add_view( std::move( button_view ) );
       group.add( *p_button_view );
     }
@@ -300,6 +308,8 @@ wait<> cheat_set_player_control( IEngine& engine, SS& ss,
     auto label       = make_unique<ui::TextView>(
         textometer, std::move( label_txt ) );
     labeled_player_boxes->add_view( std::move( label ) );
+    labeled_player_boxes->add_view( make_unique<ui::EmptyView>(
+        size{ .w = kHorizSpace / 2 } ) );
     labeled_player_boxes->add_view( std::move( player_boxes ) );
     labeled_player_boxes->recompute_child_positions();
     top->add_view( std::move( labeled_player_boxes ) );
