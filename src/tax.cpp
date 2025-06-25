@@ -18,6 +18,7 @@
 #include "igui.hpp"
 #include "irand.hpp"
 #include "market.hpp"
+#include "player-mgr.hpp"
 #include "ts.hpp"
 
 // config
@@ -27,6 +28,7 @@
 
 // ss
 #include "ss/colonies.hpp"
+#include "ss/old-world-state.rds.hpp"
 #include "ss/player.hpp"
 #include "ss/ref.hpp"
 #include "ss/settings.rds.hpp"
@@ -75,7 +77,7 @@ maybe<CommodityInColony> find_what_to_boycott(
     SSConst const& ss, TS& ts, Player const& player ) {
   refl::enum_map<e_commodity, /*bid=*/int> prices;
   for( auto& [comm, bid] : prices )
-    bid = market_price( player, comm ).bid;
+    bid = market_price( ss, player, comm ).bid;
   vector<ColonyId> const player_colonies =
       ss.colonies.for_player( player.type );
   maybe<CommodityInColony> res;
@@ -89,7 +91,9 @@ maybe<CommodityInColony> find_what_to_boycott(
       // goods into the sea."
       continue;
     for( auto& [comm, uncapped_quantity] : colony.commodities ) {
-      if( player.old_world.market.commodities[comm].boycott )
+      if( old_world_state( ss, player.type )
+              .market.commodities[comm]
+              .boycott )
         continue;
       int const quantity =
           std::min( uncapped_quantity,
@@ -145,15 +149,16 @@ wait<> boycott_msg( SSConst const& ss, TS& ts,
   co_await ts.gui.message_box( msg );
 }
 
-int remarry( TS& ts, Player& player ) {
-  int const curr_wife =
-      player.old_world.taxes.king_remarriage_count +
-      config_old_world.min_king_wife_number;
+int remarry( SS& ss, TS& ts, Player& player ) {
+  int const curr_wife = old_world_state( ss, player.type )
+                            .taxes.king_remarriage_count +
+                        config_old_world.min_king_wife_number;
   int const remarriages_since_last_tax_event =
       ts.rand.between_ints( 1, 3 );
   int const new_wife =
       curr_wife + remarriages_since_last_tax_event;
-  player.old_world.taxes.king_remarriage_count +=
+  old_world_state( ss, player.type )
+      .taxes.king_remarriage_count +=
       remarriages_since_last_tax_event;
   return new_wife;
 }
@@ -166,8 +171,9 @@ int remarry( TS& ts, Player& player ) {
 TaxUpdateComputation compute_tax_change( SSConst const& ss,
                                          TS& ts,
                                          Player const& player ) {
-  TaxationState const& state = player.old_world.taxes;
-  int const turn             = ss.turn.time_point.turns;
+  TaxationState const& state =
+      old_world_state( ss, player.type ).taxes;
+  int const turn = ss.turn.time_point.turns;
   TaxUpdateComputation update;
   update.next_tax_event_turn = state.next_tax_event_turn;
   if( state.next_tax_event_turn > turn )
@@ -203,7 +209,8 @@ TaxUpdateComputation compute_tax_change( SSConst const& ss,
   // if it's the latter then our job is easy.
   bool const increase =
       ts.rand.bernoulli( tax_config.tax_increase.probability );
-  int const curr_tax = player.old_world.taxes.tax_rate;
+  int const curr_tax =
+      old_world_state( ss, player.type ).taxes.tax_rate;
   if( !increase ) {
     if( curr_tax == 0 ) return update;
     // Make sure the tax rate doesn't go below zero.
@@ -244,7 +251,7 @@ TaxUpdateComputation compute_tax_change( SSConst const& ss,
 }
 
 wait<TaxChangeResult> prompt_for_tax_change_result(
-    SSConst const& ss, TS& ts, Player& player_non_const,
+    SS& ss, TS& ts, Player& player_non_const,
     TaxChangeProposal const& proposal ) {
   Player const& player = player_non_const;
   static string_view const constexpr increase_msg =
@@ -257,10 +264,12 @@ wait<TaxChangeResult> prompt_for_tax_change_result(
       co_return TaxChangeResult::none{};
     case TaxChangeProposal::e::increase: {
       auto& o = proposal.get<TaxChangeProposal::increase>();
-      int const new_wife = remarry( ts, player_non_const );
+      int const new_wife = remarry( ss, ts, player_non_const );
       string const msg   = fmt::format(
           increase_msg, new_wife, ordinal_for( new_wife ),
-          o.amount, player.old_world.taxes.tax_rate + o.amount );
+          o.amount,
+          old_world_state( ss, player.type ).taxes.tax_rate +
+              o.amount );
       co_await ts.gui.message_box( msg );
       co_return TaxChangeResult::tax_change{ .amount =
                                                  o.amount };
@@ -268,10 +277,12 @@ wait<TaxChangeResult> prompt_for_tax_change_result(
     case TaxChangeProposal::e::increase_or_party: {
       auto& o =
           proposal.get<TaxChangeProposal::increase_or_party>();
-      int const new_wife = remarry( ts, player_non_const );
+      int const new_wife = remarry( ss, ts, player_non_const );
       string const msg   = fmt::format(
           increase_msg, new_wife, ordinal_for( new_wife ),
-          o.amount, player.old_world.taxes.tax_rate + o.amount );
+          o.amount,
+          old_world_state( ss, player.type ).taxes.tax_rate +
+              o.amount );
       string const party = fmt::format(
           "Hold '[{} {} party]'!",
           ss.colonies.colony_for( o.party.commodity.colony_id )
@@ -303,7 +314,8 @@ wait<TaxChangeResult> prompt_for_tax_change_result(
           "rate by [{}%].  The tax rate is now [{}%].";
       string const msg = fmt::format(
           decrease_msg, o.amount,
-          player.old_world.taxes.tax_rate - o.amount );
+          old_world_state( ss, player.type ).taxes.tax_rate -
+              o.amount );
       co_await ts.gui.message_box( msg );
       co_return TaxChangeResult::tax_change{ .amount =
                                                  -o.amount };
@@ -315,17 +327,19 @@ void apply_tax_result( SS& ss, Player& player,
                        int next_tax_event_turn,
                        TaxChangeResult const& change ) {
   CHECK_GT( next_tax_event_turn, ss.turn.time_point.turns );
-  player.old_world.taxes.next_tax_event_turn =
+  old_world_state( ss, player.type ).taxes.next_tax_event_turn =
       next_tax_event_turn;
   switch( change.to_enum() ) {
     case TaxChangeResult::e::none:
       return;
     case TaxChangeResult::e::tax_change: {
       auto& o = change.get<TaxChangeResult::tax_change>();
-      player.old_world.taxes.tax_rate += o.amount;
-      CHECK_GE( player.old_world.taxes.tax_rate, 0 );
+      old_world_state( ss, player.type ).taxes.tax_rate +=
+          o.amount;
+      CHECK_GE(
+          old_world_state( ss, player.type ).taxes.tax_rate, 0 );
       CHECK_LE(
-          player.old_world.taxes.tax_rate,
+          old_world_state( ss, player.type ).taxes.tax_rate,
           config_old_world
               .taxes[ss.settings.game_setup_options.difficulty]
               .maximum_tax_rate );
@@ -343,9 +357,11 @@ void apply_tax_result( SS& ss, Player& player,
       int& quantity = colony.commodities[to_throw.type];
       quantity -= to_throw.quantity;
       // Boycott the commodity.
-      CHECK( !player.old_world.market.commodities[to_throw.type]
+      CHECK( !old_world_state( ss, player.type )
+                  .market.commodities[to_throw.type]
                   .boycott );
-      player.old_world.market.commodities[to_throw.type]
+      old_world_state( ss, player.type )
+          .market.commodities[to_throw.type]
           .boycott = true;
       CHECK_GE( quantity, 0 );
       return;
@@ -370,16 +386,19 @@ wait<> start_of_turn_tax_check( SS& ss, TS& ts,
     co_await boycott_msg( ss, ts, player, *party );
 }
 
-int back_tax_for_boycotted_commodity( Player const& player,
+int back_tax_for_boycotted_commodity( SSConst const& ss,
+                                      Player const& player,
                                       e_commodity type ) {
-  return market_price( player, type ).ask *
+  return market_price( ss, player, type ).ask *
          config_old_world.boycotts.back_taxes_ask_multiplier;
 }
 
 wait<NoDiscard<bool>> try_trade_boycotted_commodity(
-    TS& ts, Player& player, e_commodity type, int back_taxes ) {
-  bool& boycott =
-      player.old_world.market.commodities[type].boycott;
+    SS& ss, TS& ts, Player& player, e_commodity type,
+    int back_taxes ) {
+  bool& boycott = old_world_state( ss, player.type )
+                      .market.commodities[type]
+                      .boycott;
   CHECK( boycott );
   string_view const to_be =
       config_commodity.types[type].plural ? "are" : "is";

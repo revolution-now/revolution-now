@@ -283,7 +283,7 @@ wait<> HarborDockUnits::drop( HarborDraggableObject const& o,
       ss_.units.unit_for( draggable_unit.id ).type();
   if( type == e_unit_type::treasure ) {
     TreasureReceipt const receipt = treasure_in_harbor_receipt(
-        player_, ss_.units.unit_for( draggable_unit.id ) );
+        ss_, player_, ss_.units.unit_for( draggable_unit.id ) );
     apply_treasure_reimbursement( ss_, player_, receipt );
     co_await show_treasure_receipt( ts_, player_, receipt );
     // !! Note: the treasure unit is now destroyed!

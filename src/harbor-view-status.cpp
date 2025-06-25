@@ -13,6 +13,7 @@
 // Revolution Now
 #include "co-time.hpp"
 #include "co-wait.hpp"
+#include "player-mgr.hpp"
 #include "text.hpp"
 #include "tiles.hpp"
 
@@ -23,6 +24,7 @@
 #include "config/ui.rds.hpp"
 
 // ss
+#include "ss/old-world-state.hpp"
 #include "ss/player.rds.hpp"
 #include "ss/ref.hpp"
 #include "ss/turn.rds.hpp"
@@ -97,7 +99,8 @@ string HarborStatusBar::build_status_normal() const {
       "{}, {}. {}, {}. Tax: {}%  Treasury: {}{}",
       nation_conf.harbor_city_name, nation_conf.country_name,
       season_name( ss_.turn.time_point.season ),
-      ss_.turn.time_point.year, player_.old_world.taxes.tax_rate,
+      ss_.turn.time_point.year,
+      old_world_state( ss_, player_.type ).taxes.tax_rate,
       player_.money, config_text.special_chars.currency );
   return stats;
 }

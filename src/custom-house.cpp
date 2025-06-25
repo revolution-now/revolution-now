@@ -18,6 +18,7 @@ using namespace std;
 #include "igui.hpp"
 #include "market.hpp"
 #include "plane-stack.hpp"
+#include "player-mgr.hpp"
 #include "ts.hpp"
 #include "views.hpp"
 #include "window.hpp"
@@ -27,6 +28,7 @@ using namespace std;
 
 // ss
 #include "ss/colony.rds.hpp"
+#include "ss/old-world-state.rds.hpp"
 #include "ss/player.rds.hpp"
 
 namespace rn {
@@ -160,7 +162,9 @@ CustomHouseSales compute_custom_house_sales(
           invoice.money_delta_before_taxes - invoice.tax_amount;
     }
     if( config_colony.custom_house.respect_boycotts &&
-        player.old_world.market.commodities[comm].boycott ) {
+        old_world_state( ss, player.type )
+            .market.commodities[comm]
+            .boycott ) {
       // In this game the custom house cannot by default sell
       // goods that are boycotted. The OG seems to ignore boy-
       // cotts when selling via custom house, but this is prob-

@@ -39,11 +39,13 @@ bool is_in_processed_goods_price_group( e_commodity type );
 // Will create a PriceChange object representing a change in
 // price from the current price up by `price_change` (which can
 // be negative for a price drop).
-PriceChange create_price_change( Player const& player,
+PriceChange create_price_change( SSConst const& ss,
+                                 Player const& player,
                                  e_commodity comm,
                                  int price_change );
 
-CommodityPrice market_price( Player const& player,
+CommodityPrice market_price( SSConst const& ss,
+                             Player const& player,
                              e_commodity commodity );
 
 // The prices are in hundreds.
@@ -78,7 +80,7 @@ void evolve_group_model_volumes( SS& ss );
 // will evolve their prices (for all commodities) and will return
 // any price changes that occurred.
 [[nodiscard]] refl::enum_map<e_commodity, PriceChange>
-evolve_player_prices( SSConst const& ss, Player& player );
+evolve_player_prices( SS& ss, Player& player );
 
 // These are determined by static config data.
 PriceLimits price_limits_for_commodity( e_commodity comm );

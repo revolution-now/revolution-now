@@ -36,6 +36,7 @@
 // ss
 #include "ss/dwelling.rds.hpp"
 #include "ss/events.rds.hpp"
+#include "ss/old-world-state.rds.hpp"
 #include "ss/player.hpp"
 #include "ss/revolution.rds.hpp"
 #include "ss/settings.hpp"
@@ -359,7 +360,7 @@ TEST_CASE(
 
   SECTION( "with cortes" ) {
     player.fathers.has[e_founding_father::hernan_cortes] = true;
-    player.old_world.taxes.tax_rate                      = 7;
+    w.old_world( player.type ).taxes.tax_rate            = 7;
 
     auto choice_matcher =
         Field( &ChoiceConfig::msg, StrContains( "bounty" ) );

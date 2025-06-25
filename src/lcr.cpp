@@ -22,6 +22,7 @@
 #include "irand.hpp"
 #include "land-view.hpp"
 #include "plane-stack.hpp"
+#include "player-mgr.hpp"
 #include "ts.hpp"
 #include "unit-mgr.hpp"
 #include "unit-ownership.hpp"
@@ -167,7 +168,7 @@ wait<> take_one_immigrant( SS& ss, TS& ts, Player& player,
   // trast to immigration via crosses which only allows the
   // player to choose when William Brewster has been obtained.
   maybe<int> choice = co_await ask_player_to_choose_immigrant(
-      ts.gui, cplayer.old_world.immigration,
+      ts.gui, old_world_state( ss, cplayer.type ).immigration,
       fmt::format( "Who shall we choose as immigrant number "
                    "[{}] out of {} to join us in the New World?",
                    idx + 1, total ) );
@@ -177,7 +178,8 @@ wait<> take_one_immigrant( SS& ss, TS& ts, Player& player,
   e_unit_type replacement =
       pick_next_unit_for_pool( ts.rand, cplayer, settings );
   e_unit_type taken = take_immigrant_from_pool(
-      player.old_world.immigration, *choice, replacement );
+      old_world_state( ss, player.type ).immigration, *choice,
+      replacement );
   create_unit_in_harbor( ss, player, taken );
 }
 

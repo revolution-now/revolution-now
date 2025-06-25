@@ -26,6 +26,7 @@
 #include "src/harbor-view-status.hpp"
 
 // ss
+#include "src/ss/old-world-state.rds.hpp"
 #include "src/ss/player.rds.hpp"
 
 // refl
@@ -91,7 +92,7 @@ TEST_CASE( "[harbor-view-market] unload_one" ) {
   };
 
   auto& selected_unit_id =
-      w.default_player().old_world.harbor_state.selected_unit;
+      w.old_world().harbor_state.selected_unit;
 
   selected_unit_id = nothing;
   f();
@@ -142,8 +143,8 @@ TEST_CASE( "[harbor-view-market] unload_one" ) {
       /*try_other_slots=*/false );
 
   money = 0;
-  w.default_player()
-      .old_world.market.commodities[e_commodity::muskets]
+  w.old_world()
+      .market.commodities[e_commodity::muskets]
       .boycott = true;
 
   expected = {
@@ -230,7 +231,7 @@ TEST_CASE( "[harbor-view-market] unload_all" ) {
   auto& money = w.default_player().money;
 
   auto& selected_unit_id =
-      w.default_player().old_world.harbor_state.selected_unit;
+      w.old_world().harbor_state.selected_unit;
 
   selected_unit_id = nothing;
 
@@ -278,8 +279,8 @@ TEST_CASE( "[harbor-view-market] unload_all" ) {
       galleon.cargo(), /*slot=*/5,
       /*try_other_slots=*/false );
 
-  w.default_player()
-      .old_world.market.commodities[e_commodity::muskets]
+  w.old_world()
+      .market.commodities[e_commodity::muskets]
       .boycott = true;
 
   expected = {
@@ -300,8 +301,8 @@ TEST_CASE( "[harbor-view-market] unload_all" ) {
   REQUIRE( galleon.cargo().commodities() == expected );
   REQUIRE( money == 569 );
 
-  w.default_player()
-      .old_world.market.commodities[e_commodity::muskets]
+  w.old_world()
+      .market.commodities[e_commodity::muskets]
       .boycott = false;
   expected     = {};
   co_await_test( market_ref.unload_all() );

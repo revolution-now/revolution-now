@@ -15,8 +15,10 @@ namespace rn {
 /****************************************************************
 ** Fwd Decls.
 *****************************************************************/
+struct OldWorldState;
 struct Player;
 struct SS;
+struct SSConst;
 
 enum class e_player;
 
@@ -26,5 +28,10 @@ enum class e_player;
 Player& add_new_player( SS& ss, e_player type );
 
 Player& get_or_add_player( SS& ss, e_player type );
+
+OldWorldState const& old_world_state( SSConst const& ss,
+                                      e_player type );
+
+OldWorldState& old_world_state( SS& ss, e_player type );
 
 } // namespace rn

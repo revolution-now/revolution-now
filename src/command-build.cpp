@@ -104,7 +104,8 @@ struct BuildHandler : public CommandHandler {
           co_return false;
         case e_found_colony_err::war_of_independence:
           co_await ts_.gui.message_box(
-              "Colonies cannot be founded during the War of Independence." );
+              "Colonies cannot be founded during the War of "
+              "Independence." );
           co_return false;
         case e_found_colony_err::colonist_not_on_map:
           SHOULD_NOT_BE_HERE;

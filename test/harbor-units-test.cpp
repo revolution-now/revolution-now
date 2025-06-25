@@ -20,6 +20,7 @@
 #include "src/unit-ownership.hpp"
 
 // ss
+#include "src/ss/old-world-state.rds.hpp"
 #include "src/ss/player.rds.hpp"
 #include "src/ss/ref.hpp"
 #include "src/ss/terrain.hpp"
@@ -81,10 +82,10 @@ TEST_CASE( "[harbor-units] is_unit_?" ) {
   REQUIRE( !is_unit_outbound( w.units(), caravel ) );
   REQUIRE( !is_unit_in_port( w.units(), caravel ) );
 
-  REQUIRE( player.old_world.harbor_state.selected_unit ==
+  REQUIRE( w.old_world( player ).harbor_state.selected_unit ==
            nothing );
   unit_sail_to_harbor( w.ss(), caravel );
-  REQUIRE( player.old_world.harbor_state.selected_unit ==
+  REQUIRE( w.old_world( player ).harbor_state.selected_unit ==
            nothing );
   int tries = 0;
   do {
@@ -94,7 +95,7 @@ TEST_CASE( "[harbor-units] is_unit_?" ) {
     e_high_seas_result res =
         advance_unit_on_high_seas( w.ss(), w.dutch(), caravel );
     if( res == e_high_seas_result::arrived_in_harbor ) break;
-    REQUIRE( player.old_world.harbor_state.selected_unit ==
+    REQUIRE( w.old_world( player ).harbor_state.selected_unit ==
              nothing );
     ++tries;
   } while( tries < 10 );
@@ -105,7 +106,7 @@ TEST_CASE( "[harbor-units] is_unit_?" ) {
   REQUIRE( is_unit_in_port( w.units(), caravel ) );
 
   unit_sail_to_new_world( w.ss(), caravel );
-  REQUIRE( player.old_world.harbor_state.selected_unit ==
+  REQUIRE( w.old_world( player ).harbor_state.selected_unit ==
            caravel );
   tries = 0;
   do {
@@ -115,7 +116,7 @@ TEST_CASE( "[harbor-units] is_unit_?" ) {
     e_high_seas_result res =
         advance_unit_on_high_seas( w.ss(), w.dutch(), caravel );
     if( res == e_high_seas_result::arrived_in_new_world ) break;
-    REQUIRE( player.old_world.harbor_state.selected_unit ==
+    REQUIRE( w.old_world( player ).harbor_state.selected_unit ==
              caravel );
     ++tries;
   } while( tries < 10 );
@@ -127,10 +128,10 @@ TEST_CASE( "[harbor-units] is_unit_?" ) {
   // The unit is still selected because the function that ad-
   // vances it on the high seas will not move it onto the map
   // even when it finishes.
-  REQUIRE( player.old_world.harbor_state.selected_unit ==
+  REQUIRE( w.old_world( player ).harbor_state.selected_unit ==
            caravel );
-  update_harbor_selected_unit( w.units(), player );
-  REQUIRE( player.old_world.harbor_state.selected_unit ==
+  update_harbor_selected_unit( w.ss(), player );
+  REQUIRE( w.old_world( player ).harbor_state.selected_unit ==
            caravel );
 
   REQUIRE( find_new_world_arrival_square(
@@ -143,15 +144,15 @@ TEST_CASE( "[harbor-units] is_unit_?" ) {
 TEST_CASE( "[harbor-units] harbor_units_?" ) {
   World w;
   Player& player = w.default_player();
-  REQUIRE( player.old_world.harbor_state.selected_unit ==
+  REQUIRE( w.old_world( player ).harbor_state.selected_unit ==
            nothing );
   UnitId caravel1 =
       w.add_unit_in_port( e_unit_type::caravel ).id();
-  REQUIRE( player.old_world.harbor_state.selected_unit ==
+  REQUIRE( w.old_world( player ).harbor_state.selected_unit ==
            caravel1 );
   UnitId caravel2 =
       w.add_unit_in_port( e_unit_type::caravel ).id();
-  REQUIRE( player.old_world.harbor_state.selected_unit ==
+  REQUIRE( w.old_world( player ).harbor_state.selected_unit ==
            caravel1 );
   UnitId merchantman1 =
       w.add_unit_in_port( e_unit_type::merchantman ).id();
@@ -198,7 +199,7 @@ TEST_CASE( "[harbor-units] create_unit_in_harbor" ) {
   UnitId id2 =
       create_unit_in_harbor( w.ss(), w.player( e_player::dutch ),
                              e_unit_type::free_colonist );
-  REQUIRE( player.old_world.harbor_state.selected_unit ==
+  REQUIRE( w.old_world( player ).harbor_state.selected_unit ==
            nothing );
   unordered_map<UnitId, UnitOwnership> expected;
   expected[id1] = UnitOwnership::harbor{
@@ -222,11 +223,11 @@ TEST_CASE( "[harbor-units] create_unit_in_harbor" ) {
 TEST_CASE( "[harbor-units] unit_sail_to_new_world" ) {
   World w;
   Player& player = w.default_player();
-  REQUIRE( player.old_world.harbor_state.selected_unit ==
+  REQUIRE( w.old_world( player ).harbor_state.selected_unit ==
            nothing );
   UnitId caravel1 =
       w.add_unit_in_port( e_unit_type::caravel ).id();
-  REQUIRE( player.old_world.harbor_state.selected_unit ==
+  REQUIRE( w.old_world( player ).harbor_state.selected_unit ==
            caravel1 );
   REQUIRE( w.units().harbor_view_state_of( caravel1 ) ==
            UnitOwnership::harbor{ .port_status =
@@ -247,7 +248,7 @@ TEST_CASE( "[harbor-units] unit_sail_to_harbor" ) {
   REQUIRE( w.units().maybe_harbor_view_state_of( caravel1 ) ==
            nothing );
   unit_sail_to_harbor( w.ss(), caravel1 );
-  REQUIRE( player.old_world.harbor_state.selected_unit ==
+  REQUIRE( w.old_world( player ).harbor_state.selected_unit ==
            nothing );
   REQUIRE( w.units().harbor_view_state_of( caravel1 ) ==
            UnitOwnership::harbor{
@@ -260,15 +261,15 @@ TEST_CASE( "[harbor-units] unit_move_to_port" ) {
   Player& player = w.default_player();
 
   // Add units.
-  REQUIRE( player.old_world.harbor_state.selected_unit ==
+  REQUIRE( w.old_world( player ).harbor_state.selected_unit ==
            nothing );
   UnitId caravel1 =
       w.add_unit_in_port( e_unit_type::caravel ).id();
-  REQUIRE( player.old_world.harbor_state.selected_unit ==
+  REQUIRE( w.old_world( player ).harbor_state.selected_unit ==
            caravel1 );
   UnitId caravel2 =
       w.add_unit_in_port( e_unit_type::caravel ).id();
-  REQUIRE( player.old_world.harbor_state.selected_unit ==
+  REQUIRE( w.old_world( player ).harbor_state.selected_unit ==
            caravel1 );
 
   UnitId merchantman1 =
@@ -293,7 +294,7 @@ TEST_CASE( "[harbor-units] unit_move_to_port" ) {
       w.add_unit_on_map( e_unit_type::soldier, coord ).id();
 
   // Sanity checks.
-  REQUIRE( player.old_world.harbor_state.selected_unit ==
+  REQUIRE( w.old_world( player ).harbor_state.selected_unit ==
            caravel1 );
   REQUIRE( w.units().harbor_view_state_of( caravel1 ) ==
            UnitOwnership::harbor{ .port_status =
@@ -338,7 +339,7 @@ TEST_CASE( "[harbor-units] unit_move_to_port" ) {
   unit_move_to_port( w.ss(), free_colonist2 );
   unit_move_to_port( w.ss(), soldier1 );
   unit_move_to_port( w.ss(), soldier2 );
-  REQUIRE( player.old_world.harbor_state.selected_unit ==
+  REQUIRE( w.old_world( player ).harbor_state.selected_unit ==
            caravel1 );
 
   // Verify they are in port.
@@ -397,7 +398,7 @@ TEST_CASE( "[harbor-units] advance_unit_on_high_seas" ) {
   Player& player = w.default_player();
   Coord coord{ .x = 8, .y = 5 };
 
-  REQUIRE( player.old_world.harbor_state.selected_unit ==
+  REQUIRE( w.old_world( player ).harbor_state.selected_unit ==
            nothing );
   UnitId id =
       w.add_unit_on_map( e_unit_type::merchantman, coord ).id();
@@ -405,7 +406,7 @@ TEST_CASE( "[harbor-units] advance_unit_on_high_seas" ) {
            nothing );
 
   unit_sail_to_harbor( w.ss(), id );
-  REQUIRE( player.old_world.harbor_state.selected_unit ==
+  REQUIRE( w.old_world( player ).harbor_state.selected_unit ==
            nothing );
   REQUIRE( w.units().maybe_harbor_view_state_of( id ) ==
            UnitOwnership::harbor{
@@ -416,7 +417,7 @@ TEST_CASE( "[harbor-units] advance_unit_on_high_seas" ) {
   unit_sail_to_new_world( w.ss(), id );
   REQUIRE( advance_unit_on_high_seas( w.ss(), w.dutch(), id ) ==
            e_high_seas_result::arrived_in_new_world );
-  REQUIRE( player.old_world.harbor_state.selected_unit ==
+  REQUIRE( w.old_world( player ).harbor_state.selected_unit ==
            nothing );
   REQUIRE( w.units().maybe_harbor_view_state_of( id ) ==
            UnitOwnership::harbor{
@@ -430,7 +431,7 @@ TEST_CASE( "[harbor-units] advance_unit_on_high_seas" ) {
 
   // Sail once again.
   unit_sail_to_harbor( w.ss(), id );
-  REQUIRE( player.old_world.harbor_state.selected_unit ==
+  REQUIRE( w.old_world( player ).harbor_state.selected_unit ==
            nothing );
   REQUIRE( w.units().maybe_harbor_view_state_of( id ) ==
            UnitOwnership::harbor{
@@ -440,7 +441,7 @@ TEST_CASE( "[harbor-units] advance_unit_on_high_seas" ) {
   // Now advance.
   REQUIRE( advance_unit_on_high_seas( w.ss(), w.dutch(), id ) ==
            e_high_seas_result::still_traveling );
-  REQUIRE( player.old_world.harbor_state.selected_unit ==
+  REQUIRE( w.old_world( player ).harbor_state.selected_unit ==
            nothing );
   REQUIRE( w.units().maybe_harbor_view_state_of( id ) ==
            UnitOwnership::harbor{
@@ -449,7 +450,7 @@ TEST_CASE( "[harbor-units] advance_unit_on_high_seas" ) {
 
   // Turn around.
   unit_sail_to_new_world( w.ss(), id );
-  REQUIRE( player.old_world.harbor_state.selected_unit ==
+  REQUIRE( w.old_world( player ).harbor_state.selected_unit ==
            nothing );
   REQUIRE( w.units().maybe_harbor_view_state_of( id ) ==
            UnitOwnership::harbor{
@@ -460,7 +461,8 @@ TEST_CASE( "[harbor-units] advance_unit_on_high_seas" ) {
   unit_sail_to_harbor( w.ss(), id );
   REQUIRE( advance_unit_on_high_seas( w.ss(), w.dutch(), id ) ==
            e_high_seas_result::arrived_in_harbor );
-  REQUIRE( player.old_world.harbor_state.selected_unit == id );
+  REQUIRE( w.old_world( player ).harbor_state.selected_unit ==
+           id );
   REQUIRE( w.units().maybe_harbor_view_state_of( id ) ==
            UnitOwnership::harbor{
              .port_status = PortStatus::in_port{},
@@ -473,7 +475,8 @@ TEST_CASE( "[harbor-units] advance_unit_on_high_seas" ) {
 
   // Sail back to the new world.
   unit_sail_to_new_world( w.ss(), id );
-  REQUIRE( player.old_world.harbor_state.selected_unit == id );
+  REQUIRE( w.old_world( player ).harbor_state.selected_unit ==
+           id );
   REQUIRE( w.units().maybe_harbor_view_state_of( id ) ==
            UnitOwnership::harbor{
              .port_status = PortStatus::outbound{ .turns = 0 },
@@ -482,7 +485,8 @@ TEST_CASE( "[harbor-units] advance_unit_on_high_seas" ) {
   // Now advance.
   REQUIRE( advance_unit_on_high_seas( w.ss(), w.dutch(), id ) ==
            e_high_seas_result::still_traveling );
-  REQUIRE( player.old_world.harbor_state.selected_unit == id );
+  REQUIRE( w.old_world( player ).harbor_state.selected_unit ==
+           id );
   REQUIRE( w.units().maybe_harbor_view_state_of( id ) ==
            UnitOwnership::harbor{
              .port_status = PortStatus::outbound{ .turns = 1 },
@@ -491,7 +495,8 @@ TEST_CASE( "[harbor-units] advance_unit_on_high_seas" ) {
   // Now advance.
   REQUIRE( advance_unit_on_high_seas( w.ss(), w.dutch(), id ) ==
            e_high_seas_result::arrived_in_new_world );
-  REQUIRE( player.old_world.harbor_state.selected_unit == id );
+  REQUIRE( w.old_world( player ).harbor_state.selected_unit ==
+           id );
   REQUIRE( w.units().maybe_harbor_view_state_of( id ) ==
            UnitOwnership::harbor{
              .port_status = PortStatus::outbound{ .turns = 2 },
@@ -500,7 +505,8 @@ TEST_CASE( "[harbor-units] advance_unit_on_high_seas" ) {
   // Now advance.
   REQUIRE( advance_unit_on_high_seas( w.ss(), w.dutch(), id ) ==
            e_high_seas_result::arrived_in_new_world );
-  REQUIRE( player.old_world.harbor_state.selected_unit == id );
+  REQUIRE( w.old_world( player ).harbor_state.selected_unit ==
+           id );
   REQUIRE( w.units().maybe_harbor_view_state_of( id ) ==
            UnitOwnership::harbor{
              .port_status = PortStatus::outbound{ .turns = 2 },
@@ -856,10 +862,10 @@ TEST_CASE(
   Player& player = w.default_player();
 
   maybe<UnitId>& selected_unit =
-      player.old_world.harbor_state.selected_unit;
+      w.old_world( player ).harbor_state.selected_unit;
 
   auto f = [&] {
-    update_harbor_selected_unit( w.units(), player );
+    update_harbor_selected_unit( w.ss(), player );
   };
 
   UnitId const galleon_id =
@@ -911,24 +917,29 @@ TEST_CASE(
 TEST_CASE(
     "[harbor-units] update_harbor_selected_unit unit "
     "destruction" ) {
-  World W;
-  Player& player = W.default_player();
-  REQUIRE( player.old_world.harbor_state.selected_unit ==
+  World w;
+  Player& player = w.default_player();
+  REQUIRE( w.old_world( player ).harbor_state.selected_unit ==
            nothing );
-  UnitId id1 = create_unit_in_harbor( W.ss(), player,
+  UnitId id1 = create_unit_in_harbor( w.ss(), player,
                                       e_unit_type::galleon );
-  REQUIRE( player.old_world.harbor_state.selected_unit == id1 );
-  UnitId id2 = create_unit_in_harbor( W.ss(), player,
+  REQUIRE( w.old_world( player ).harbor_state.selected_unit ==
+           id1 );
+  UnitId id2 = create_unit_in_harbor( w.ss(), player,
                                       e_unit_type::galleon );
-  REQUIRE( player.old_world.harbor_state.selected_unit == id1 );
-  UnitOwnershipChanger( W.ss(), id1 ).destroy();
-  REQUIRE( player.old_world.harbor_state.selected_unit == id1 );
-  update_harbor_selected_unit( W.units(), player );
-  REQUIRE( player.old_world.harbor_state.selected_unit == id2 );
-  UnitOwnershipChanger( W.ss(), id2 ).destroy();
-  REQUIRE( player.old_world.harbor_state.selected_unit == id2 );
-  update_harbor_selected_unit( W.units(), player );
-  REQUIRE( player.old_world.harbor_state.selected_unit ==
+  REQUIRE( w.old_world( player ).harbor_state.selected_unit ==
+           id1 );
+  UnitOwnershipChanger( w.ss(), id1 ).destroy();
+  REQUIRE( w.old_world( player ).harbor_state.selected_unit ==
+           id1 );
+  update_harbor_selected_unit( w.ss(), player );
+  REQUIRE( w.old_world( player ).harbor_state.selected_unit ==
+           id2 );
+  UnitOwnershipChanger( w.ss(), id2 ).destroy();
+  REQUIRE( w.old_world( player ).harbor_state.selected_unit ==
+           id2 );
+  update_harbor_selected_unit( w.ss(), player );
+  REQUIRE( w.old_world( player ).harbor_state.selected_unit ==
            nothing );
 }
 
@@ -1032,9 +1043,9 @@ TEST_CASE( "[harbor-units] try_select_in_port_ship" ) {
   Player& player = w.default_player();
 
   maybe<UnitId>& selected_unit =
-      player.old_world.harbor_state.selected_unit;
+      w.old_world( player ).harbor_state.selected_unit;
 
-  auto f = [&] { try_select_in_port_ship( w.units(), player ); };
+  auto f = [&] { try_select_in_port_ship( w.ss(), player ); };
 
   UnitId const galleon_id =
       w.add_free_unit( e_unit_type::galleon ).id();

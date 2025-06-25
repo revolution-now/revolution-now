@@ -22,6 +22,7 @@
 #include "src/market.hpp"
 
 // ss
+#include "ss/old-world-state.rds.hpp"
 #include "ss/player.hpp"
 #include "ss/ref.hpp"
 #include "ss/units.hpp"
@@ -385,9 +386,11 @@ TEST_CASE( "[equip] harbor_equip_options" ) {
   SECTION( "money=1000, muskets/horses boycotted" ) {
     player.money = 1000;
 
-    player.old_world.market.commodities[e_commodity::horses]
+    W.old_world( player )
+        .market.commodities[e_commodity::horses]
         .boycott = true;
-    player.old_world.market.commodities[e_commodity::muskets]
+    W.old_world( player )
+        .market.commodities[e_commodity::muskets]
         .boycott = true;
 
     // free_colonist
@@ -537,8 +540,8 @@ TEST_CASE( "[equip] perform_harbor_equip_option" ) {
     .commodity_delta =
         Commodity{ .type = e_commodity::tools, .quantity = 100 },
     .new_comp = e_unit_type::pioneer };
-  expected =
-      create_price_change( player, e_commodity::tools, 0 );
+  expected = create_price_change( W.ss(), player,
+                                  e_commodity::tools, 0 );
   REQUIRE( f() == expected );
   REQUIRE( W.ss().units.unit_for( unit_id ).type() ==
            e_unit_type::pioneer );
@@ -552,8 +555,8 @@ TEST_CASE( "[equip] perform_harbor_equip_option" ) {
     .commodity_delta =
         Commodity{ .type = e_commodity::horses, .quantity = 50 },
     .new_comp = e_unit_type::scout };
-  expected =
-      create_price_change( player, e_commodity::horses, 0 );
+  expected = create_price_change( W.ss(), player,
+                                  e_commodity::horses, 0 );
   REQUIRE( f() == expected );
   REQUIRE( W.ss().units.unit_for( unit_id ).type() ==
            e_unit_type::scout );
@@ -567,8 +570,8 @@ TEST_CASE( "[equip] perform_harbor_equip_option" ) {
     .commodity_delta = Commodity{ .type = e_commodity::muskets,
                                   .quantity = 50 },
     .new_comp        = e_unit_type::soldier };
-  expected =
-      create_price_change( player, e_commodity::muskets, 0 );
+  expected = create_price_change( W.ss(), player,
+                                  e_commodity::muskets, 0 );
   REQUIRE( f() == expected );
   REQUIRE( W.ss().units.unit_for( unit_id ).type() ==
            e_unit_type::soldier );
@@ -583,8 +586,8 @@ TEST_CASE( "[equip] perform_harbor_equip_option" ) {
     .commodity_delta = Commodity{ .type = e_commodity::muskets,
                                   .quantity = 500 },
     .new_comp        = e_unit_type::soldier };
-  expected =
-      create_price_change( player, e_commodity::muskets, 1 );
+  expected = create_price_change( W.ss(), player,
+                                  e_commodity::muskets, 1 );
   REQUIRE( f() == expected );
   REQUIRE( W.ss().units.unit_for( unit_id ).type() ==
            e_unit_type::soldier );

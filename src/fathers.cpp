@@ -19,6 +19,7 @@
 #include "imap-updater.hpp"
 #include "immigration.hpp"
 #include "irand.hpp"
+#include "player-mgr.hpp"
 #include "ts.hpp"
 #include "unit-mgr.hpp"
 #include "unit-ownership.hpp"
@@ -29,6 +30,7 @@
 // ss
 #include "ss/colonies.hpp"
 #include "ss/natives.hpp"
+#include "ss/old-world-state.rds.hpp"
 #include "ss/player.rds.hpp"
 #include "ss/ref.hpp"
 #include "ss/settings.rds.hpp"
@@ -145,9 +147,9 @@ void bartolome_de_las_casas( SS& ss, TS& ts,
 
 // All boycotts currently in effect are forgiven without back-
 // taxes.
-void jakob_fugger( Player& player ) {
+void jakob_fugger( SS& ss, Player& player ) {
   for( auto& [commodity, market_item] :
-       player.old_world.market.commodities )
+       old_world_state( ss, player.type ).market.commodities )
     market_item.boycott = false;
 }
 
@@ -215,10 +217,9 @@ void pocahontas( SS& ss, Player const& player ) {
 // The one-time effect here, as in the OG, is that any criminals
 // or servants that are currently in the recruitment pool will be
 // removed and re-selected.
-void william_brewster( SSConst const& ss, TS& ts,
-                       Player& player ) {
+void william_brewster( SS& ss, TS& ts, Player& player ) {
   ImmigrationState& immigration_state =
-      player.old_world.immigration;
+      old_world_state( ss, player.type ).immigration;
   auto& pool           = immigration_state.immigrants_pool;
   auto needs_replacing = []( e_unit_type type ) {
     return ( type == e_unit_type::petty_criminal ) ||
@@ -451,7 +452,7 @@ void on_father_received( SS& ss, TS& ts, Player& player,
     case e_founding_father::francisco_de_coronado:
       return francisco_de_coronado( ss, ts, player );
     case e_founding_father::jakob_fugger:
-      return jakob_fugger( player );
+      return jakob_fugger( ss, player );
     case e_founding_father::john_paul_jones:
       return john_paul_jones( ss, ts, player );
     case e_founding_father::pocahontas:

@@ -107,17 +107,20 @@ TEST_CASE( "[custom-house] apply_custom_house_sales" ) {
   player.money = 1000;
 
   for( e_commodity comm : refl::enum_values<e_commodity> ) {
-    colony.commodities[comm]                            = 150;
-    player.old_world.market.commodities[comm].bid_price = 10;
+    colony.commodities[comm] = 150;
+    W.old_world( player ).market.commodities[comm].bid_price =
+        10;
   }
 
   // Make sure that it supports selling boycotted goods just in
   // case the relevant config flag (`respect_boycotts`) is off.
-  W.player( e_player::dutch )
-      .old_world.market.commodities[e_commodity::sugar]
+
+  W.old_world( e_player::dutch )
+      .market.commodities[e_commodity::sugar]
       .boycott = true;
-  W.player( e_player::french )
-      .old_world.market.commodities[e_commodity::sugar]
+
+  W.old_world( e_player::french )
+      .market.commodities[e_commodity::sugar]
       .boycott = true;
 
   sales.invoices = {
@@ -134,7 +137,7 @@ TEST_CASE( "[custom-house] apply_custom_house_sales" ) {
       .global_intrinsic_volume_deltas = { { e_commodity::sugar,
                                             2 } },
       .price_change                   = create_price_change(
-          W.default_player(), e_commodity::sugar,
+          W.ss(), W.default_player(), e_commodity::sugar,
           /*price_change=*/0 ) },
     Invoice{
       .what =
@@ -149,7 +152,7 @@ TEST_CASE( "[custom-house] apply_custom_house_sales" ) {
       .global_intrinsic_volume_deltas = { { e_commodity::rum,
                                             4 } },
       .price_change                   = create_price_change(
-          W.default_player(), e_commodity::sugar,
+          W.ss(), W.default_player(), e_commodity::sugar,
           /*price_change=*/0 ) } };
   f();
   REQUIRE( player.money == 1000 + 186 + 93 );
@@ -157,46 +160,46 @@ TEST_CASE( "[custom-house] apply_custom_house_sales" ) {
     INFO( fmt::format( "comm: {}", comm ) );
     if( comm == e_commodity::sugar ) {
       REQUIRE( colony.commodities[comm] == 50 );
-      REQUIRE( W.player( e_player::french )
-                   .old_world.market.commodities[comm]
+      REQUIRE( W.old_world( e_player::french )
+                   .market.commodities[comm]
                    .intrinsic_volume == 1 );
-      REQUIRE( W.player( e_player::dutch )
-                   .old_world.market.commodities[comm]
+      REQUIRE( W.old_world( e_player::dutch )
+                   .market.commodities[comm]
                    .intrinsic_volume == 1 );
       REQUIRE( W.players()
                    .global_market_state.commodities[comm]
                    .intrinsic_volume == 2 );
-      REQUIRE(
-          player.old_world.market.commodities[comm].bid_price ==
-          10 );
+      REQUIRE( W.old_world( player )
+                   .market.commodities[comm]
+                   .bid_price == 10 );
     } else if( comm == e_commodity::rum ) {
       REQUIRE( colony.commodities[comm] == 50 );
-      REQUIRE( W.player( e_player::french )
-                   .old_world.market.commodities[comm]
+      REQUIRE( W.old_world( e_player::french )
+                   .market.commodities[comm]
                    .intrinsic_volume == 2 );
-      REQUIRE( W.player( e_player::dutch )
-                   .old_world.market.commodities[comm]
+      REQUIRE( W.old_world( e_player::dutch )
+                   .market.commodities[comm]
                    .intrinsic_volume == 2 );
       REQUIRE( W.players()
                    .global_market_state.commodities[comm]
                    .intrinsic_volume == 4 );
-      REQUIRE(
-          player.old_world.market.commodities[comm].bid_price ==
-          10 );
+      REQUIRE( W.old_world( player )
+                   .market.commodities[comm]
+                   .bid_price == 10 );
     } else {
       REQUIRE( colony.commodities[comm] == 150 );
-      REQUIRE( W.player( e_player::french )
-                   .old_world.market.commodities[comm]
+      REQUIRE( W.old_world( e_player::french )
+                   .market.commodities[comm]
                    .intrinsic_volume == 0 );
-      REQUIRE( W.player( e_player::dutch )
-                   .old_world.market.commodities[comm]
+      REQUIRE( W.old_world( e_player::dutch )
+                   .market.commodities[comm]
                    .intrinsic_volume == 0 );
       REQUIRE( W.players()
                    .global_market_state.commodities[comm]
                    .intrinsic_volume == 0 );
-      REQUIRE(
-          player.old_world.market.commodities[comm].bid_price ==
-          10 );
+      REQUIRE( W.old_world( player )
+                   .market.commodities[comm]
+                   .bid_price == 10 );
     }
   }
 }
@@ -212,13 +215,14 @@ TEST_CASE( "[custom-house] compute_custom_house_sales" ) {
   colony.buildings[e_colony_building::custom_house] = true;
   for( e_commodity comm : refl::enum_values<e_commodity> ) {
     colony.commodities[comm] = 200;
-    dutch.old_world.market.commodities[comm].bid_price =
-        config_market.price_behavior[comm]
-            .price_limits.bid_price_max;
+    W.old_world( e_player::dutch )
+        .market.commodities[comm]
+        .bid_price = config_market.price_behavior[comm]
+                         .price_limits.bid_price_max;
   }
-  colony.commodities[e_commodity::cloth]   = 100;
-  colony.commodities[e_commodity::muskets] = 99;
-  dutch.old_world.taxes.tax_rate           = 10;
+  colony.commodities[e_commodity::cloth]        = 100;
+  colony.commodities[e_commodity::muskets]      = 99;
+  W.old_world( e_player::dutch ).taxes.tax_rate = 10;
 
   W.players()
       .global_market_state.commodities[e_commodity::cloth]
@@ -252,7 +256,7 @@ TEST_CASE( "[custom-house] compute_custom_house_sales" ) {
                         .global_intrinsic_volume_deltas = {
                             /*only processed goods*/ },
                         .price_change = create_price_change(
-                            dutch, e_commodity::furs,
+                            W.ss(), dutch, e_commodity::furs,
                             /*price_change=*/0 ) },
                     Invoice{
                         .what =
@@ -269,7 +273,7 @@ TEST_CASE( "[custom-house] compute_custom_house_sales" ) {
                         .global_intrinsic_volume_deltas = {
                             /*only processed goods*/ },
                         .price_change = create_price_change(
-                            dutch, e_commodity::ore,
+                            W.ss(), dutch, e_commodity::ore,
                             /*price_change=*/0 ) },
                     Invoice{ .what =
                                  Commodity{
@@ -284,7 +288,7 @@ TEST_CASE( "[custom-house] compute_custom_house_sales" ) {
                                  /*non-processed goods only*/ },
                              .global_intrinsic_volume_deltas = { /*these don't evolve when the dutch make the trade.*/ },
                              .price_change = create_price_change(
-                                 dutch, e_commodity::cloth,
+                                 W.ss(), dutch, e_commodity::cloth,
                                  /*price_change=*/0 ) },
                 },
             .boycotted = {},
@@ -319,9 +323,9 @@ TEST_CASE( "[custom-house] compute_custom_house_sales" ) {
                   },
               .global_intrinsic_volume_deltas = {
                 /*only processed goods*/ },
-              .price_change =
-                  create_price_change( dutch, e_commodity::furs,
-                                       /*price_change=*/0 ) },
+              .price_change = create_price_change(
+                  W.ss(), dutch, e_commodity::furs,
+                  /*price_change=*/0 ) },
           },
       .boycotted = {},
     };
@@ -329,9 +333,8 @@ TEST_CASE( "[custom-house] compute_custom_house_sales" ) {
   }
 
   SECTION( "respects boycotts" ) {
-    W.default_player()
-        .old_world.market.commodities[e_commodity::ore]
-        .boycott                              = true;
+    W.old_world().market.commodities[e_commodity::ore].boycott =
+        true;
     colony.custom_house[e_commodity::furs]    = true;
     colony.custom_house[e_commodity::ore]     = true;
     colony.custom_house[e_commodity::cloth]   = true;
@@ -359,7 +362,7 @@ TEST_CASE( "[custom-house] compute_custom_house_sales" ) {
                         .global_intrinsic_volume_deltas = {
                             /*only processed goods*/ },
                         .price_change = create_price_change(
-                            dutch, e_commodity::furs,
+                            W.ss(), dutch, e_commodity::furs,
                             /*price_change=*/0 ) },
                     /* !! ore omitted due to boycott */
                     Invoice{ .what =
@@ -375,7 +378,7 @@ TEST_CASE( "[custom-house] compute_custom_house_sales" ) {
                                  /*non-processed goods only*/ },
                              .global_intrinsic_volume_deltas = { /*these don't evolve when the dutch make the trade.*/ },
                              .price_change = create_price_change(
-                                 dutch, e_commodity::cloth,
+                                 W.ss(), dutch, e_commodity::cloth,
                                  /*price_change=*/0 ) },
                 },
             .boycotted = { e_commodity::ore },
@@ -408,12 +411,13 @@ TEST_CASE(
   colony.custom_house[e_commodity::silver]          = true;
   // Init market prices.
   for( e_commodity comm : refl::enum_values<e_commodity> )
-    french.old_world.market.commodities[comm].bid_price =
-        config_market.price_behavior[comm]
-            .price_limits.bid_price_max;
-  int& silver_bid =
-      french.old_world.market.commodities[e_commodity::silver]
-          .bid_price;
+    W.old_world( e_player::french )
+        .market.commodities[comm]
+        .bid_price = config_market.price_behavior[comm]
+                         .price_limits.bid_price_max;
+  int& silver_bid = W.old_world( e_player::french )
+                        .market.commodities[e_commodity::silver]
+                        .bid_price;
 
   CustomHouseSales const res =
       compute_custom_house_sales( W.ss(), french, colony );
@@ -431,9 +435,9 @@ TEST_CASE(
                                       { e_player::french, 400 } },
         .global_intrinsic_volume_deltas = {
           /*only processed goods*/ },
-        .price_change =
-            create_price_change( french, e_commodity::silver,
-                                 /*price_change=*/0 ) },
+        .price_change = create_price_change(
+            W.ss(), french, e_commodity::silver,
+            /*price_change=*/0 ) },
     } };
   REQUIRE( res == expected );
 
@@ -447,24 +451,24 @@ TEST_CASE(
 
   REQUIRE( silver_bid == 19 );
 
-  expected_silver_change =
-      create_price_change( french, e_commodity::silver, -1 );
+  expected_silver_change = create_price_change(
+      W.ss(), french, e_commodity::silver, -1 );
   REQUIRE( evolve() == expected_silver_change );
   REQUIRE( silver_bid == 18 );
 
-  expected_silver_change =
-      create_price_change( french, e_commodity::silver, -1 );
+  expected_silver_change = create_price_change(
+      W.ss(), french, e_commodity::silver, -1 );
   REQUIRE( evolve() == expected_silver_change );
   REQUIRE( silver_bid == 17 );
 
-  expected_silver_change =
-      create_price_change( french, e_commodity::silver, -1 );
+  expected_silver_change = create_price_change(
+      W.ss(), french, e_commodity::silver, -1 );
   REQUIRE( evolve() == expected_silver_change );
   REQUIRE( silver_bid == 16 );
 
   // Stops evolving.
-  expected_silver_change =
-      create_price_change( french, e_commodity::silver, 0 );
+  expected_silver_change = create_price_change(
+      W.ss(), french, e_commodity::silver, 0 );
   REQUIRE( evolve() == expected_silver_change );
   REQUIRE( silver_bid == 16 );
 }
@@ -493,12 +497,13 @@ TEST_CASE(
   colony.custom_house[e_commodity::silver]          = true;
   // Init market prices.
   for( e_commodity comm : refl::enum_values<e_commodity> )
-    dutch.old_world.market.commodities[comm].bid_price =
-        config_market.price_behavior[comm]
-            .price_limits.bid_price_max;
-  int& silver_bid =
-      dutch.old_world.market.commodities[e_commodity::silver]
-          .bid_price;
+    W.old_world( e_player::dutch )
+        .market.commodities[comm]
+        .bid_price = config_market.price_behavior[comm]
+                         .price_limits.bid_price_max;
+  int& silver_bid = W.old_world( e_player::dutch )
+                        .market.commodities[e_commodity::silver]
+                        .bid_price;
 
   CustomHouseSales const res =
       compute_custom_house_sales( W.ss(), dutch, colony );
@@ -516,9 +521,9 @@ TEST_CASE(
                                       { e_player::french, 400 } },
         .global_intrinsic_volume_deltas = {
           /*only processed goods*/ },
-        .price_change =
-            create_price_change( dutch, e_commodity::silver,
-                                 /*price_change=*/0 ) },
+        .price_change = create_price_change(
+            W.ss(), dutch, e_commodity::silver,
+            /*price_change=*/0 ) },
     } };
   REQUIRE( res == expected );
 
@@ -532,19 +537,19 @@ TEST_CASE(
 
   REQUIRE( silver_bid == 19 );
 
-  expected_silver_change =
-      create_price_change( dutch, e_commodity::silver, -1 );
+  expected_silver_change = create_price_change(
+      W.ss(), dutch, e_commodity::silver, -1 );
   REQUIRE( evolve() == expected_silver_change );
   REQUIRE( silver_bid == 18 );
 
-  expected_silver_change =
-      create_price_change( dutch, e_commodity::silver, -1 );
+  expected_silver_change = create_price_change(
+      W.ss(), dutch, e_commodity::silver, -1 );
   REQUIRE( evolve() == expected_silver_change );
   REQUIRE( silver_bid == 17 );
 
   // Stops evolving.
-  expected_silver_change =
-      create_price_change( dutch, e_commodity::silver, 0 );
+  expected_silver_change = create_price_change(
+      W.ss(), dutch, e_commodity::silver, 0 );
   REQUIRE( evolve() == expected_silver_change );
   REQUIRE( silver_bid == 17 );
 }

@@ -15,10 +15,12 @@
 #include "colony-mgr.hpp"
 #include "colony.hpp"
 #include "land-production.hpp"
+#include "player-mgr.hpp"
 #include "sons-of-liberty.hpp"
 
 // ss
 #include "ss/colony-enums.hpp"
+#include "ss/old-world-state.rds.hpp"
 #include "ss/player.rds.hpp"
 #include "ss/players.rds.hpp"
 #include "ss/ref.hpp"
@@ -204,8 +206,8 @@ struct BuildingBonusResult {
   int put = 0;
 };
 
-int bells_production( UnitsState const& units_state,
-                      Player const& player, Colony const& colony,
+int bells_production( SSConst const& ss, Player const& player,
+                      Colony const& colony,
                       BellsModifiers const& bells_modifiers ) {
   maybe<e_colony_building> maybe_building = building_for_slot(
       colony, e_colony_building_slot::town_hall );
@@ -261,7 +263,8 @@ int bells_production( UnitsState const& units_state,
     // game, as usual, we mirror the behavior of the OG and let
     // the bonus increase as the tax rate increases.
     apply_int_percent_bonus_rnd_down(
-        buildings_quantity, player.old_world.taxes.tax_rate );
+        buildings_quantity,
+        old_world_state( ss, player.type ).taxes.tax_rate );
 
   // For bells production from colonists, the original game seems
   // to do the following:
@@ -283,8 +286,7 @@ int bells_production( UnitsState const& units_state,
   bool const has_paine =
       player.fathers.has[e_founding_father::thomas_paine];
   for( UnitId id : unit_ids ) {
-    e_unit_type const unit_type =
-        units_state.unit_for( id ).type();
+    e_unit_type const unit_type = ss.units.unit_for( id ).type();
     int unit_quantity =
         base_indoor_production_for_colonist_indoor_job(
             unit_type );
@@ -300,7 +302,8 @@ int bells_production( UnitsState const& units_state,
                              .thomas_jefferson_bells_bonus );
     if( has_paine )
       apply_int_percent_bonus_rnd_down(
-          unit_quantity, player.old_world.taxes.tax_rate );
+          unit_quantity,
+          old_world_state( ss, player.type ).taxes.tax_rate );
 
     units_quantity += unit_quantity;
   }
@@ -1041,8 +1044,8 @@ ColonyProduction production_for_colony( SSConst const& ss,
   res.crosses = crosses_production_for_colony(
       ss.units, player, colony, bells_modifiers );
 
-  res.bells = bells_production( ss.units, player, colony,
-                                bells_modifiers );
+  res.bells =
+      bells_production( ss, player, colony, bells_modifiers );
 
   // Note that this must be done before processing any of the
   // other land squares.

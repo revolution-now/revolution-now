@@ -12,8 +12,10 @@
 
 // Revolution Now
 #include "market.hpp"
+#include "player-mgr.hpp"
 
 // ss
+#include "ss/old-world-state.rds.hpp"
 #include "ss/players.rds.hpp"
 #include "ss/ref.hpp"
 #include "ss/units.hpp"
@@ -31,7 +33,8 @@ HarborUnloadables find_unloadable_slots_in_harbor(
   UNWRAP_CHECK_T( Player const& player,
                   ss.players.players[unit.player_type()] );
 
-  auto const& commodities = player.old_world.market.commodities;
+  auto const& commodities =
+      old_world_state( ss, player.type ).market.commodities;
 
   HarborUnloadables res;
   res.items.reserve( 6 );
@@ -45,7 +48,8 @@ HarborUnloadables find_unloadable_slots_in_harbor(
   }
 
   auto const sale_value_no_tax = [&]( Commodity const& comm ) {
-    return market_price( player, comm.type ).bid * comm.quantity;
+    return market_price( ss, player, comm.type ).bid *
+           comm.quantity;
   };
 
   auto const comparator = [&]( HarborUnloadable const& l,

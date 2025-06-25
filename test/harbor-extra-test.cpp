@@ -163,8 +163,8 @@ TEST_CASE( "[harbor-extra] some test" ) {
                        galleon.id() );
   REQUIRE( f() == expected );
 
-  w.default_player()
-      .old_world.market.commodities[e_commodity::muskets]
+  w.old_world()
+      .market.commodities[e_commodity::muskets]
       .boycott = true;
 
   expected.items[4].boycott = true;

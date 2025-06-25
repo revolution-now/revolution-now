@@ -17,6 +17,7 @@
 #include "harbor-view-inport.hpp"
 #include "harbor-view-ships.hpp"
 #include "igui.hpp"
+#include "player-mgr.hpp"
 #include "render.hpp"
 #include "tiles.hpp"
 #include "ts.hpp"
@@ -28,6 +29,7 @@
 #include "config/unit-type.rds.hpp"
 
 // ss
+#include "ss/old-world-state.rds.hpp"
 #include "ss/player.rds.hpp"
 #include "ss/ref.hpp"
 #include "ss/units.hpp"
@@ -73,14 +75,16 @@ ui::View const& HarborOutboundShips::view() const noexcept {
 }
 
 maybe<UnitId> HarborOutboundShips::get_active_unit() const {
-  return player_.old_world.harbor_state.selected_unit;
+  return old_world_state( ss_, player_.type )
+      .harbor_state.selected_unit;
 }
 
 void HarborOutboundShips::set_active_unit( UnitId unit_id ) {
   CHECK( as_const( ss_.units )
              .ownership_of( unit_id )
              .holds<UnitOwnership::harbor>() );
-  player_.old_world.harbor_state.selected_unit = unit_id;
+  old_world_state( ss_, player_.type )
+      .harbor_state.selected_unit = unit_id;
 }
 
 maybe<HarborOutboundShips::UnitWithPosition>
@@ -222,7 +226,7 @@ wait<> HarborOutboundShips::drop( HarborDraggableObject const& o,
   UNWRAP_CHECK( unit, o.get_if<HarborDraggableObject::unit>() );
   UnitId const dragged_id = unit.id;
   unit_sail_to_new_world( ss_, dragged_id );
-  try_select_in_port_ship( ss_.units, player_ );
+  try_select_in_port_ship( ss_, player_ );
   co_return;
 }
 
@@ -271,7 +275,8 @@ void HarborOutboundShips::draw( rr::Renderer& renderer,
       rr::Painter::e_border_mode::inside,
       pixel::white().with_alpha( 128 ) );
 
-  HarborState const& hb_state = player_.old_world.harbor_state;
+  HarborState const& hb_state =
+      old_world_state( ss_, player_.type ).harbor_state;
 
   string const label_line_1 = "Bound For";
   string label_line_2;

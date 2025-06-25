@@ -21,6 +21,7 @@
 #include "igui.hpp"
 #include "input.hpp"
 #include "market.hpp"
+#include "player-mgr.hpp"
 #include "renderer.hpp"
 #include "tax.hpp"
 #include "tiles.hpp"
@@ -32,6 +33,7 @@
 #include "config/ui.rds.hpp"
 
 // ss
+#include "ss/old-world-state.rds.hpp"
 #include "ss/player.rds.hpp"
 #include "ss/ref.hpp"
 #include "ss/units.hpp"
@@ -86,7 +88,8 @@ ui::View const& HarborMarketCommodities::view() const noexcept {
 }
 
 maybe<UnitId> HarborMarketCommodities::get_active_unit() const {
-  return player_.old_world.harbor_state.selected_unit;
+  return old_world_state( ss_, player_.type )
+      .harbor_state.selected_unit;
 }
 
 wait<> HarborMarketCommodities::perform_click(
@@ -108,7 +111,7 @@ wait<> HarborMarketCommodities::perform_click(
   if( event.mod.shf_down ) {
     // Cheat functions.
     if( cheat_mode_enabled( ss_ ) )
-      cheat_toggle_boycott( player_, type );
+      cheat_toggle_boycott( ss_, player_, type );
     co_return;
   }
 
@@ -150,9 +153,9 @@ wait<> HarborMarketCommodities::unload_one() {
   if( unloadable.boycott ) {
     // Give the player the opportunity to lift the boycott.
     int const back_tax = back_tax_for_boycotted_commodity(
-        player_, unloadable.comm.type );
+        ss_, player_, unloadable.comm.type );
     unloadable.boycott = co_await try_trade_boycotted_commodity(
-        ts_, player_, unloadable.comm.type, back_tax );
+        ss_, ts_, player_, unloadable.comm.type, back_tax );
   }
   if( !unloadable.boycott )
     co_await unload_impl( *unit_id, unloadable.comm,
@@ -230,7 +233,8 @@ void HarborMarketCommodities::clear_status_bar_msg() const {
 
 void HarborMarketCommodities::send_purchase_info_to_status_bar(
     e_commodity const comm ) const {
-  CommodityPrice const price = market_price( player_, comm );
+  CommodityPrice const price =
+      market_price( ss_, player_, comm );
   string const comm_name =
       uppercase_commodity_display_name( comm );
   string const msg = fmt::format(
@@ -343,13 +347,14 @@ HarborMarketCommodities::user_edit_object() const {
 
 wait<base::NoDiscard<bool>>
 HarborMarketCommodities::check_boycott( e_commodity type ) {
-  bool const boycott =
-      player_.old_world.market.commodities[type].boycott;
+  bool const boycott = old_world_state( ss_, player_.type )
+                           .market.commodities[type]
+                           .boycott;
   if( !boycott ) co_return false;
   int const back_tax =
-      back_tax_for_boycotted_commodity( player_, type );
+      back_tax_for_boycotted_commodity( ss_, player_, type );
   co_return co_await try_trade_boycotted_commodity(
-      ts_, player_, type, back_tax );
+      ss_, ts_, player_, type, back_tax );
 }
 
 wait<base::valid_or<DragRejection>>
@@ -482,10 +487,11 @@ void HarborMarketCommodities::draw( rr::Renderer& renderer,
     painter.draw_solid_rect( layout_.bid_ask[comm],
                              gfx::pixel::red() );
 #endif
-    CommodityPrice const price = market_price( player_, comm );
-    string const bid_str       = to_string( price.bid );
-    string const ask_str       = to_string( price.ask );
-    rr::Typer typer            = renderer.typer();
+    CommodityPrice const price =
+        market_price( ss_, player_, comm );
+    string const bid_str = to_string( price.bid );
+    string const ask_str = to_string( price.ask );
+    rr::Typer typer      = renderer.typer();
     typer.set_color( gfx::pixel::black() );
     size const bid_text_size =
         typer.dimensions_for_line( bid_str );
@@ -514,7 +520,9 @@ void HarborMarketCommodities::draw( rr::Renderer& renderer,
     typer.set_position( ask_text_origin );
     typer.write( ask_str );
 
-    if( player_.old_world.market.commodities[comm].boycott )
+    if( old_world_state( ss_, player_.type )
+            .market.commodities[comm]
+            .boycott )
       render_sprite( renderer,
                      layout_.boycott_render_rect[comm].origin,
                      e_tile::red_x_12 );

@@ -13,7 +13,6 @@
 // ss
 #include "ss/fathers.hpp"
 #include "ss/nation.hpp"
-#include "ss/old-world-state.hpp"
 #include "ss/revolution.hpp"
 
 // luapp
@@ -83,7 +82,6 @@ LUA_STARTUP( lua::state& st ) {
     u["control"]             = &U::control;
     u["money"]               = &U::money;
     u["crosses"]             = &U::crosses;
-    u["old_world"]           = &U::old_world;
     u["new_world_name"]      = &U::new_world_name;
     u["woodcuts"]            = &U::woodcuts;
     u["bells"]               = &U::bells;

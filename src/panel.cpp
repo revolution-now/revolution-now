@@ -24,6 +24,7 @@
 #include "mini-map.hpp"
 #include "plane-stack.hpp"
 #include "plane.hpp"
+#include "player-mgr.hpp"
 #include "roles.hpp"
 #include "screen.hpp"
 #include "screen.hpp" // FIXME
@@ -41,17 +42,18 @@
 #include "config/ui.rds.hpp"
 #include "config/unit-type.rds.hpp"
 
-// render
-#include "render/renderer.hpp"
-#include "render/typer.hpp"
-
 // ss
 #include "ss/land-view.rds.hpp"
+#include "ss/old-world-state.rds.hpp"
 #include "ss/players.hpp"
 #include "ss/ref.hpp"
 #include "ss/terrain.hpp"
 #include "ss/turn.hpp"
 #include "ss/units.hpp"
+
+// render
+#include "render/renderer.hpp"
+#include "render/typer.hpp"
 
 // refl
 #include "refl/to-str.hpp"
@@ -191,9 +193,10 @@ struct PanelPlane::Impl : public IPlane {
 
     if( player.new_world_name )
       typer.write( "{}\n", *player.new_world_name );
-    typer.write( "Gold: {}{}  Tax: {}%\n", player.money,
-                 config_text.special_chars.currency,
-                 player.old_world.taxes.tax_rate );
+    typer.write(
+        "Gold: {}{}  Tax: {}%\n", player.money,
+        config_text.special_chars.currency,
+        old_world_state( ss_, player.type ).taxes.tax_rate );
 
     auto const write_tile = [&]( point const p ) {
       typer.write( "Square: ({}, {})\n", p.x + 1, p.y + 1 );

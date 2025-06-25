@@ -13,12 +13,14 @@
 // Revolution Now
 #include "colony-buildings.hpp"
 #include "market.hpp"
+#include "player-mgr.hpp"
 #include "unit-transformation.hpp"
 
 // config
 #include "config/unit-type.rds.hpp"
 
 // ss
+#include "ss/old-world-state.rds.hpp"
 #include "ss/player.rds.hpp"
 #include "ss/players.hpp"
 #include "ss/ref.hpp"
@@ -103,7 +105,8 @@ vector<HarborEquipOption> harbor_equip_options(
                         .quantity = abs( quantity ) };
     }
     if( comm.has_value() ) {
-      if( player.old_world.market.commodities[comm->type]
+      if( old_world_state( ss, player.type )
+              .market.commodities[comm->type]
               .boycott )
         continue;
       // The invoice function expects this.

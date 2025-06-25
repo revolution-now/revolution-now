@@ -18,6 +18,7 @@
 #include "test/mocks/igui.hpp"
 
 // ss
+#include "src/ss/old-world-state.rds.hpp"
 #include "src/ss/player.hpp"
 #include "src/ss/ref.hpp"
 
@@ -678,7 +679,8 @@ TEST_CASE( "[construction] rush_construction_cost" ) {
     colony.commodities[e_commodity::tools] = n;
   };
   auto set_tools_ask = [&]( int ask ) {
-    player.old_world.market.commodities[e_commodity::tools]
+    W.old_world( player )
+        .market.commodities[e_commodity::tools]
         .bid_price = ask - 1;
   };
 

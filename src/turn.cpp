@@ -1168,7 +1168,7 @@ wait<HighSeasStatus> advance_high_seas_unit(
       // select one of them, because ideally if there are ships
       // in port then when the player goes to the harbor view,
       // one of them should always be selected.
-      update_harbor_selected_unit( ss.units, player );
+      update_harbor_selected_unit( ss, player );
       // Don't finish turn; will ask for orders.
       break;
     }
@@ -1282,16 +1282,21 @@ wait<> move_high_seas_units( IEngine& engine, SS& ss, TS& ts,
   }
 
   if( status_union.arrived_in_harbor ) {
-    CHECK( status_union.last_unit_arrived_in_harbor !=
-           UnitId{} );
-    if( status_union.arrived_in_harbor_with_cargo )
-      co_await show_woodcut_if_needed(
-          player, ts.euro_minds()[player.type],
-          e_woodcut::cargo_from_the_new_world );
-    HarborViewer harbor_viewer( engine, ss, ts, player );
-    harbor_viewer.set_selected_unit(
-        status_union.last_unit_arrived_in_harbor );
-    co_await harbor_viewer.show();
+    if( !is_ref( player.type ) ) {
+      CHECK( status_union.last_unit_arrived_in_harbor !=
+             UnitId{} );
+      if( status_union.arrived_in_harbor_with_cargo )
+        co_await show_woodcut_if_needed(
+            player, ts.euro_minds()[player.type],
+            e_woodcut::cargo_from_the_new_world );
+      HarborViewer harbor_viewer( engine, ss, ts, player );
+      harbor_viewer.set_selected_unit(
+          status_union.last_unit_arrived_in_harbor );
+      co_await harbor_viewer.show();
+    } else {
+      // TODO: An REF ship made it to port. move man-o-war units
+      // from port back to the stock.
+    }
   }
 }
 
@@ -1404,8 +1409,26 @@ wait<> colonies_turn( IEngine& engine, SS& ss, TS& ts,
 }
 
 // Here we do things that must be done once per turn but where we
-// want the colonies to be evolved first.
-wait<> post_colonies( SS& ss, TS& ts, Player& player ) {
+// want the colonies to be evolved first. These things are done
+// both for the colonial player and the REF.
+wait<> post_colonies_common( SS&, TS&, Player& ) {
+  // Nothing here yet.
+  co_return;
+}
+
+// Here we do things that must be done once per turn but where we
+// want the colonies to be evolved first. Also, these things are
+// only done for the REF players only (not colonial players).
+wait<> post_colonies_ref_only( SS&, TS&, Player& ) {
+  // Nothing here yet.
+  co_return;
+}
+
+// Here we do things that must be done once per turn but where we
+// want the colonies to be evolved first. Also, these things are
+// only done for the colonial player (not the REF).
+wait<> post_colonies_colonial_only( SS& ss, TS& ts,
+                                    Player& player ) {
   // Founding fathers.
   if( player.revolution.status <
       e_revolution_status::declared ) {
@@ -1529,21 +1552,24 @@ wait<> player_start_of_turn( SS& ss, TS& ts, Player& player ) {
   // a colony to board a ship if there were foreign units nearby.
   unsentry_units_next_to_foreign_units( ss, player.type );
 
-  // Evolve market prices.
-  if( ss.turn.time_point.turns >
-      config_turn.turns_to_wait.market_evolution ) {
-    // This will actually change the prices, then will return
-    // info about which ones it changed.
-    refl::enum_map<e_commodity, PriceChange> changes =
-        evolve_player_prices( ss, player );
-    for( e_commodity comm : refl::enum_values<e_commodity> )
-      if( changes[comm].delta != 0 )
-        co_await display_price_change_notification(
-            ts, player, changes[comm] );
+  if( !is_ref( player.type ) ) {
+    // Evolve market prices.
+    if( ss.turn.time_point.turns >
+        config_turn.turns_to_wait.market_evolution ) {
+      // This will actually change the prices, then will return
+      // info about which ones it changed.
+      refl::enum_map<e_commodity, PriceChange> changes =
+          evolve_player_prices( ss, player );
+      for( e_commodity comm : refl::enum_values<e_commodity> )
+        if( changes[comm].delta != 0 )
+          co_await display_price_change_notification(
+              ts, player, changes[comm] );
+    }
   }
 
-  // Check for tax events (typically increases).
-  co_await start_of_turn_tax_check( ss, ts, player );
+  if( !is_ref( player.type ) )
+    // Check for tax events (typically increases).
+    co_await start_of_turn_tax_check( ss, ts, player );
 
   // TODO:
   //
@@ -1588,7 +1614,11 @@ wait<PlayerTurnState> player_turn_iter(
     }
     CASE( colonies ) {
       co_await colonies_turn( engine, ss, ts, player );
-      co_await post_colonies( ss, ts, player );
+      co_await post_colonies_common( ss, ts, player );
+      if( is_ref( player.type ) )
+        co_await post_colonies_ref_only( ss, ts, player );
+      else
+        co_await post_colonies_colonial_only( ss, ts, player );
       co_return PlayerTurnState::units{};
     }
     CASE( units ) {

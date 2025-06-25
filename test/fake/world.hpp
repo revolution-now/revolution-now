@@ -64,6 +64,7 @@ struct MapState;
 struct MockIColonyViewer;
 struct MockICombat;
 struct MockIEuroMind;
+struct OldWorldState;
 struct MockIGui;
 struct MockINativeMind;
 struct MockIRand;
@@ -298,7 +299,8 @@ struct World {
   // Players.
   // ------------------------------------------------------------
   void add_player( e_player player );
-  void add_all_non_ref_players( maybe<e_player> human = nothing );
+  void add_all_non_ref_players(
+      maybe<e_player> human = nothing );
   void add_default_player();
 
   e_player default_player_type() const {
@@ -343,6 +345,10 @@ struct World {
 
   Player& player( maybe<e_player> player = nothing );
   Player const& player( maybe<e_player> player = nothing ) const;
+
+  OldWorldState& old_world( Player const& player );
+  OldWorldState& old_world(
+      maybe<e_player> player_type = nothing );
 
   // ------------------------------------------------------------
   // Revolution Status.

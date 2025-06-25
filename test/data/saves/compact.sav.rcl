@@ -369,9 +369,8 @@ natives {
   }
 }
 
-players.players.english {
-  control: human
-  old_world.market.commodities {
+players {
+  old_world.english.market.commodities {
     cotton.bid_price: 4
     furs.bid_price: 5
     horses.bid_price: 1
@@ -384,15 +383,18 @@ players.players.english {
     tools.bid_price: 1
     trade_goods.bid_price: 2
   }
-  revolution.expeditionary_force {
-    artillery: 14
-    cavalry: 15
-    man_o_war: 8
-    regular: 31
-  }
-  starting_position {
-    x: 7
-    y: 3
+  players.english {
+    control: human
+    revolution.expeditionary_force {
+      artillery: 14
+      cavalry: 15
+      man_o_war: 8
+      regular: 31
+    }
+    starting_position {
+      x: 7
+      y: 3
+    }
   }
 }
 

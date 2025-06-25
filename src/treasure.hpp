@@ -33,7 +33,8 @@ struct Unit;
 // to the harbor and reimbursing it. The result of this function
 // must then be given to the "apply" function to affect it.
 TreasureReceipt treasure_in_harbor_receipt(
-    Player const& player, Unit const& treasure );
+    SSConst const& ss, Player const& player,
+    Unit const& treasure );
 
 // Runs through the UI sequence that happens when a treasure
 // train enters a colony. Basically the king will ask the player

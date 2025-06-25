@@ -16,6 +16,7 @@
 #include "harbor-view-status.hpp"
 #include "igui.hpp"
 #include "market.hpp"
+#include "player-mgr.hpp"
 #include "render.hpp"
 #include "tiles.hpp"
 #include "ts.hpp"
@@ -27,6 +28,7 @@
 
 // ss
 #include "ss/cargo.hpp"
+#include "ss/old-world-state.rds.hpp"
 #include "ss/player.rds.hpp"
 #include "ss/ref.hpp"
 #include "ss/unit.hpp"
@@ -72,7 +74,8 @@ ui::View const& HarborCargo::view() const noexcept {
 }
 
 maybe<UnitId> HarborCargo::get_active_unit() const {
-  return player_.old_world.harbor_state.selected_unit;
+  return old_world_state( ss_, player_.type )
+      .harbor_state.selected_unit;
 }
 
 maybe<HarborDraggableObject>
@@ -143,7 +146,8 @@ void HarborCargo::clear_status_bar_msg() const {
 
 void HarborCargo::send_sell_info_to_status_bar(
     e_commodity const comm ) {
-  CommodityPrice const price = market_price( player_, comm );
+  CommodityPrice const price =
+      market_price( ss_, player_, comm );
   string const comm_name =
       uppercase_commodity_display_name( comm );
   string const msg = fmt::format(

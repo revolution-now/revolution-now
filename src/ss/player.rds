@@ -14,7 +14,6 @@ include "maybe.hpp"
 # ss
 include "ss/fathers.rds.hpp"
 include "ss/nation.rds.hpp"
-include "ss/old-world-state.rds.hpp"
 include "ss/revolution.rds.hpp"
 include "ss/woodcut.rds.hpp"
 
@@ -91,10 +90,6 @@ struct.Player {
   # crosses needed to produce an immigrant depends on a number of
   # factors, plus some randomness.
   crosses 'int',
-
-  # The state of all things related to the old world, king, euro-
-  # pean market prices, etc.
-  old_world 'OldWorldState',
 
   # When the new world is first discovered this will have a value
   # and will be the name given to the new world by the player.

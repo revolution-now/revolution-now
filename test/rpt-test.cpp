@@ -23,6 +23,7 @@
 #include "src/irand.hpp"
 
 // ss
+#include "ss/old-world-state.rds.hpp"
 #include "ss/player.hpp"
 #include "ss/ref.hpp"
 #include "ss/settings.hpp"
@@ -238,13 +239,13 @@ TEST_CASE( "[rpt] click_recruit" ) {
       .EXPECT__between_doubles( 0, Approx( kUpperLimit, .1 ) )
       .returns( 2229.0 );
 
-  auto& pool     = player.old_world.immigration.immigrants_pool;
-  pool[0]        = e_unit_type::veteran_soldier;
-  pool[1]        = e_unit_type::pioneer;
-  pool[2]        = e_unit_type::petty_criminal;
-  player.money   = 1000;
-  player.crosses = 5;
-  player.old_world.immigration.num_recruits_rushed = 3;
+  auto& pool = W.old_world( player ).immigration.immigrants_pool;
+  pool[0]    = e_unit_type::veteran_soldier;
+  pool[1]    = e_unit_type::pioneer;
+  pool[2]    = e_unit_type::petty_criminal;
+  player.money                                          = 1000;
+  player.crosses                                        = 5;
+  W.old_world( player ).immigration.num_recruits_rushed = 3;
 
   REQUIRE( W.ss().units.all().size() == 0 );
 
@@ -286,8 +287,9 @@ TEST_CASE( "[rpt] click_recruit" ) {
   REQUIRE( player.artillery_purchases == 0 );
   REQUIRE( player.money == 1000 - 153 );
   REQUIRE( player.crosses == 0 );
-  REQUIRE( player.old_world.immigration.num_recruits_rushed ==
-           4 );
+  REQUIRE(
+      W.old_world( player ).immigration.num_recruits_rushed ==
+      4 );
   REQUIRE( units.all().size() == 1 );
   REQUIRE( units.unit_for( UnitId{ 1 } ).type() ==
            e_unit_type::pioneer );

@@ -29,9 +29,9 @@ void draw_empty_rect_faded_corners( rr::Renderer& renderer,
                                     gfx::pixel color );
 
 void render_shadow_highlight_border( rr::Renderer& renderer,
-                                      gfx::rect rect,
-                                      gfx::pixel left_and_bottom,
-                                      gfx::pixel top_and_right );
+                                     gfx::rect rect,
+                                     gfx::pixel left_and_bottom,
+                                     gfx::pixel top_and_right );
 
 void write_centered( rr::Renderer& renderer, gfx::pixel color_fg,
                      gfx::point center, std::string_view text );

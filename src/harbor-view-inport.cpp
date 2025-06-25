@@ -20,6 +20,7 @@
 #include "harbor-view-market.hpp"
 #include "harbor-view-ships.hpp"
 #include "igui.hpp"
+#include "player-mgr.hpp"
 #include "render.hpp"
 #include "tiles.hpp"
 #include "ts.hpp"
@@ -31,6 +32,7 @@
 #include "config/unit-type.rds.hpp"
 
 // ss
+#include "ss/old-world-state.rds.hpp"
 #include "ss/player.rds.hpp"
 #include "ss/ref.hpp"
 #include "ss/units.hpp"
@@ -83,14 +85,16 @@ ui::View const& HarborInPortShips::view() const noexcept {
 }
 
 maybe<UnitId> HarborInPortShips::get_active_unit() const {
-  return player_.old_world.harbor_state.selected_unit;
+  return old_world_state( ss_, player_.type )
+      .harbor_state.selected_unit;
 }
 
 void HarborInPortShips::set_active_unit( UnitId unit_id ) {
   CHECK( as_const( ss_.units )
              .ownership_of( unit_id )
              .holds<UnitOwnership::harbor>() );
-  player_.old_world.harbor_state.selected_unit = unit_id;
+  old_world_state( ss_, player_.type )
+      .harbor_state.selected_unit = unit_id;
 }
 
 maybe<HarborInPortShips::UnitWithPosition>
@@ -180,7 +184,7 @@ wait<> HarborInPortShips::click_on_unit( UnitId const unit_id ) {
         co_await config_harbor.sleep_before_auto_close_ms;
         throw harbor_view_exit_interrupt{};
       }
-      try_select_in_port_ship( ss_.units, player_ );
+      try_select_in_port_ship( ss_, player_ );
       co_return;
     }
   }
@@ -383,7 +387,8 @@ void HarborInPortShips::draw( rr::Renderer& renderer,
       layout_.white_box, rr::Painter::e_border_mode::inside,
       pixel::white().with_alpha( 128 ) );
 
-  HarborState const& hb_state = player_.old_world.harbor_state;
+  HarborState const& hb_state =
+      old_world_state( ss_, player_.type ).harbor_state;
 
   auto const units = this->units();
 

@@ -18,6 +18,7 @@
 #include "connectivity.hpp"
 #include "igui.hpp"
 #include "market.hpp"
+#include "player-mgr.hpp"
 #include "ts.hpp"
 
 // config
@@ -26,6 +27,7 @@
 #include "config/unit-type.hpp"
 
 // ss
+#include "ss/old-world-state.rds.hpp"
 #include "ss/players.hpp"
 #include "ss/ref.hpp"
 #include "ss/terrain.hpp"
@@ -244,7 +246,7 @@ maybe<RushConstruction> rush_construction_cost(
       config_colony.rush_construction.cost_per_hammer *
       needed_requirements.hammers * zero_hammers_multiplier;
   int const tools_ask =
-      market_price( player, e_commodity::tools ).ask;
+      market_price( ss, player, e_commodity::tools ).ask;
   int const tools_cost =
       ( config_colony.rush_construction.base_cost_per_tool +
         tools_ask ) *
@@ -252,7 +254,8 @@ maybe<RushConstruction> rush_construction_cost(
   bool const boycott_block =
       ( !config_colony.rush_construction
              .allow_rushing_tools_during_boycott &&
-        player.old_world.market.commodities[e_commodity::tools]
+        old_world_state( ss, player.type )
+            .market.commodities[e_commodity::tools]
             .boycott &&
         needed_requirements.tools > 0 );
   return RushConstruction{

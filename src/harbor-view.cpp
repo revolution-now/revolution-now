@@ -19,6 +19,7 @@
 #include "iengine.hpp"
 #include "plane-stack.hpp"
 #include "plane.hpp"
+#include "player-mgr.hpp"
 #include "render.hpp"
 #include "screen.hpp" // FIXME: remove
 #include "ts.hpp"
@@ -32,6 +33,7 @@
 #include "render/renderer.hpp"
 
 // ss
+#include "ss/old-world-state.rds.hpp"
 #include "ss/player.rds.hpp"
 #include "ss/ref.hpp"
 #include "ss/turn.rds.hpp"
@@ -62,7 +64,8 @@ using ::gfx::size;
 void check_selected_unit_in_harbor( SSConst const& ss,
                                     Player const& player ) {
   // In case the unit that was selected
-  HarborState const& hb_state = player.old_world.harbor_state;
+  HarborState const& hb_state =
+      old_world_state( ss, player.type ).harbor_state;
   if( !hb_state.selected_unit.has_value() ) return;
   UnitId id = *hb_state.selected_unit;
   CHECK( ss.units.exists( id ) );
@@ -215,10 +218,10 @@ struct HarborPlane : public IPlane {
       if( !cheat_mode_enabled( ss_ ) ) co_return;
       switch( event.keycode ) {
         case ::SDLK_LEFTBRACKET:
-          cheat_decrease_tax_rate( player_ );
+          cheat_decrease_tax_rate( ss_, player_ );
           break;
         case ::SDLK_RIGHTBRACKET:
-          cheat_increase_tax_rate( player_ );
+          cheat_increase_tax_rate( ss_, player_ );
           break;
         case ::SDLK_3: //
           cheat_decrease_gold( player_ );
@@ -352,7 +355,8 @@ void HarborViewer::set_selected_unit( UnitId const id ) {
   // seas, otherwise it doesn't make sense for the unit to be
   // selected on this screen.
   CHECK( units_state.maybe_harbor_view_state_of( id ) );
-  HarborState& hb_state  = player_.old_world.harbor_state;
+  HarborState& hb_state =
+      old_world_state( ss_, player_.type ).harbor_state;
   hb_state.selected_unit = id;
 }
 

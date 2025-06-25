@@ -15,6 +15,7 @@
 #include "harbor-units.hpp"
 #include "igui.hpp"
 #include "irand.hpp"
+#include "player-mgr.hpp"
 #include "ts.hpp"
 
 // config
@@ -253,7 +254,9 @@ wait<maybe<UnitId>> check_for_new_immigrant(
         "following shall we choose?";
     maybe<int> const maybe_immigrant_idx =
         co_await ask_player_to_choose_immigrant(
-            ts.gui, player.old_world.immigration, msg );
+            ts.gui,
+            old_world_state( ss, player.type ).immigration,
+            msg );
     if( !maybe_immigrant_idx.has_value() ) co_return nothing;
     immigrant_idx = *maybe_immigrant_idx;
     CHECK_GE( immigrant_idx, 0 );
@@ -263,19 +266,22 @@ wait<maybe<UnitId>> check_for_new_immigrant(
     string msg    = fmt::format(
         "Word of religious freedom has spread! A new immigrant "
            "([{}]) has arrived on the docks.",
-        unit_attr( player.old_world.immigration
-                          .immigrants_pool[immigrant_idx] )
+        unit_attr(
+            old_world_state( ss, player.type )
+                .immigration.immigrants_pool[immigrant_idx] )
             .name );
     co_await ts.gui.message_box( msg );
   }
   e_unit_type replacement =
       pick_next_unit_for_pool( ts.rand, player, ss.settings );
   e_unit_type type = take_immigrant_from_pool(
-      player.old_world.immigration, immigrant_idx, replacement );
+      old_world_state( ss, player.type ).immigration,
+      immigrant_idx, replacement );
   co_return create_unit_in_harbor( ss, player, type );
 }
 
-int cost_of_recruit( Player const& player, int crosses_needed,
+int cost_of_recruit( SSConst const& ss, Player const& player,
+                     int crosses_needed,
                      e_difficulty difficulty ) {
   // The formula that the OG appears to use to compute the cost
   // of a rushed recruitment is:
@@ -300,7 +306,8 @@ int cost_of_recruit( Player const& player, int crosses_needed,
                     .rush_cost_crosses_multiplier[difficulty];
   int const T = crosses_needed;
   int const X = player.crosses;
-  int const N = player.old_world.immigration.num_recruits_rushed;
+  int const N = old_world_state( ss, player.type )
+                    .immigration.num_recruits_rushed;
   int const I = config_immigration.rush_cost_min;
 
   CHECK_GT( T, 0 );
@@ -311,20 +318,22 @@ int cost_of_recruit( Player const& player, int crosses_needed,
 
 void rush_recruit_next_immigrant( SS& ss, TS& ts, Player& player,
                                   int slot_selected ) {
-  auto& pool = player.old_world.immigration.immigrants_pool;
+  auto& pool = old_world_state( ss, player.type )
+                   .immigration.immigrants_pool;
   e_unit_type const selected_type = pool[slot_selected];
   e_unit_type const replacement =
       pick_next_unit_for_pool( ts.rand, player, ss.settings );
   CHECK( take_immigrant_from_pool(
-             player.old_world.immigration, slot_selected,
-             replacement ) == selected_type );
+             old_world_state( ss, player.type ).immigration,
+             slot_selected, replacement ) == selected_type );
   CrossesCalculation const crosses =
       compute_crosses( ss.units, player.type );
   player.money -= cost_of_recruit(
-      player, crosses.crosses_needed,
+      ss.as_const, player, crosses.crosses_needed,
       ss.settings.game_setup_options.difficulty );
   CHECK_GE( player.money, 0 );
-  ++player.old_world.immigration.num_recruits_rushed;
+  ++old_world_state( ss, player.type )
+        .immigration.num_recruits_rushed;
   player.crosses = 0;
   create_unit_in_harbor( ss, player, selected_type );
 }

@@ -22,6 +22,7 @@
 #include "config/market.rds.hpp"
 
 // ss
+#include "ss/nation.hpp"
 #include "ss/player.hpp"
 #include "ss/players.hpp"
 #include "ss/ref.hpp"
@@ -69,27 +70,31 @@ TEST_CASE( "[market] market_price" ) {
   World W;
   Player& french = W.player( e_player::french );
 
-  french.old_world.market.commodities[e_commodity::ore]
+  W.old_world( french )
+      .market.commodities[e_commodity::ore]
       .bid_price = 5;
-  REQUIRE( market_price( french, e_commodity::ore ) ==
+  REQUIRE( market_price( W.ss(), french, e_commodity::ore ) ==
            CommodityPrice{ .bid = 5, .ask = 8 } );
 
-  french.old_world.market.commodities[e_commodity::food]
+  W.old_world( french )
+      .market.commodities[e_commodity::food]
       .bid_price = 1;
-  REQUIRE( market_price( french, e_commodity::food ) ==
+  REQUIRE( market_price( W.ss(), french, e_commodity::food ) ==
            CommodityPrice{ .bid = 1, .ask = 9 } );
 
-  french.old_world.market.commodities[e_commodity::muskets]
+  W.old_world( french )
+      .market.commodities[e_commodity::muskets]
       .bid_price = 3;
-  REQUIRE( market_price( french, e_commodity::muskets ) ==
-           CommodityPrice{ .bid = 3, .ask = 4 } );
+  REQUIRE(
+      market_price( W.ss(), french, e_commodity::muskets ) ==
+      CommodityPrice{ .bid = 3, .ask = 4 } );
 }
 
 TEST_CASE( "[market] create_price_change" ) {
   World W;
   W.set_current_bid_price( e_commodity::ore, 10 );
   PriceChange const change =
-      create_price_change( W.player(), e_commodity::ore,
+      create_price_change( W.ss(), W.player(), e_commodity::ore,
                            /*price_change=*/3 );
   PriceChange const expected{ .type  = e_commodity::ore,
                               .from  = { .bid = 10, .ask = 13 },
@@ -116,7 +121,7 @@ TEST_CASE( "[market] display_price_change_notification" ) {
   REQUIRE_FALSE( w.exception() );
   REQUIRE( w.ready() );
 
-  change = create_price_change( W.default_player(),
+  change = create_price_change( W.ss(), W.default_player(),
                                 e_commodity::ore, 3 );
   W.gui()
       .EXPECT__message_box(
@@ -127,7 +132,7 @@ TEST_CASE( "[market] display_price_change_notification" ) {
   REQUIRE_FALSE( w.exception() );
   REQUIRE( w.ready() );
 
-  change = create_price_change( W.default_player(),
+  change = create_price_change( W.ss(), W.default_player(),
                                 e_commodity::ore, -1 );
   W.gui()
       .EXPECT__message_box(
@@ -169,20 +174,21 @@ TEST_CASE( "[market] apply_invoice" ) {
           { e_commodity::muskets, 15 },
         },
     .price_change = create_price_change(
-        W.player(), e_commodity::silver, 3 ),
+        W.ss(), W.player(), e_commodity::silver, 3 ),
   };
 
   Player& p = W.default_player();
   REQUIRE( p.money == 0 );
   REQUIRE( p.total_after_tax_revenue == 0 );
   REQUIRE( p.royal_money == 0 );
-  REQUIRE( p.old_world.market.commodities[e_commodity::silver]
+  REQUIRE( W.old_world( p )
+               .market.commodities[e_commodity::silver]
                .player_traded_volume == 0 );
-  REQUIRE( W.player( e_player::english )
-               .old_world.market.commodities[e_commodity::silver]
+  REQUIRE( W.old_world( e_player::english )
+               .market.commodities[e_commodity::silver]
                .intrinsic_volume == 0 );
-  REQUIRE( W.player( e_player::french )
-               .old_world.market.commodities[e_commodity::silver]
+  REQUIRE( W.old_world( e_player::french )
+               .market.commodities[e_commodity::silver]
                .intrinsic_volume == 0 );
   REQUIRE( W.ss()
                .players.global_market_state
@@ -192,7 +198,8 @@ TEST_CASE( "[market] apply_invoice" ) {
                .players.global_market_state
                .commodities[e_commodity::muskets]
                .intrinsic_volume == 0 );
-  REQUIRE( p.old_world.market.commodities[e_commodity::silver]
+  REQUIRE( W.old_world( p )
+               .market.commodities[e_commodity::silver]
                .bid_price == 10 );
 
   apply_invoice( W.ss(), W.default_player(), invoice );
@@ -200,13 +207,14 @@ TEST_CASE( "[market] apply_invoice" ) {
   REQUIRE( p.money == 123 );
   REQUIRE( p.total_after_tax_revenue == 123 );
   REQUIRE( p.royal_money == 42 * 1 );
-  REQUIRE( p.old_world.market.commodities[e_commodity::silver]
+  REQUIRE( W.old_world( p )
+               .market.commodities[e_commodity::silver]
                .player_traded_volume == 345 );
-  REQUIRE( W.player( e_player::english )
-               .old_world.market.commodities[e_commodity::silver]
+  REQUIRE( W.old_world( e_player::english )
+               .market.commodities[e_commodity::silver]
                .intrinsic_volume == 9 );
-  REQUIRE( W.player( e_player::french )
-               .old_world.market.commodities[e_commodity::silver]
+  REQUIRE( W.old_world( e_player::french )
+               .market.commodities[e_commodity::silver]
                .intrinsic_volume == 11 );
   REQUIRE( W.ss()
                .players.global_market_state
@@ -216,7 +224,8 @@ TEST_CASE( "[market] apply_invoice" ) {
                .players.global_market_state
                .commodities[e_commodity::muskets]
                .intrinsic_volume == 15 );
-  REQUIRE( p.old_world.market.commodities[e_commodity::silver]
+  REQUIRE( W.old_world( p )
+               .market.commodities[e_commodity::silver]
                .bid_price == 13 );
 
   p.money = 10;
@@ -225,13 +234,14 @@ TEST_CASE( "[market] apply_invoice" ) {
   REQUIRE( p.money == 10 + 123 );
   REQUIRE( p.total_after_tax_revenue == 123 + 123 );
   REQUIRE( p.royal_money == 42 * 2 );
-  REQUIRE( p.old_world.market.commodities[e_commodity::silver]
+  REQUIRE( W.old_world( p )
+               .market.commodities[e_commodity::silver]
                .player_traded_volume == 345 * 2 );
-  REQUIRE( W.player( e_player::english )
-               .old_world.market.commodities[e_commodity::silver]
+  REQUIRE( W.old_world( e_player::english )
+               .market.commodities[e_commodity::silver]
                .intrinsic_volume == 9 * 2 );
-  REQUIRE( W.player( e_player::french )
-               .old_world.market.commodities[e_commodity::silver]
+  REQUIRE( W.old_world( e_player::french )
+               .market.commodities[e_commodity::silver]
                .intrinsic_volume == 11 * 2 );
   REQUIRE( W.ss()
                .players.global_market_state
@@ -241,7 +251,8 @@ TEST_CASE( "[market] apply_invoice" ) {
                .players.global_market_state
                .commodities[e_commodity::muskets]
                .intrinsic_volume == 15 * 2 );
-  REQUIRE( p.old_world.market.commodities[e_commodity::silver]
+  REQUIRE( W.old_world( p )
+               .market.commodities[e_commodity::silver]
                .bid_price == 16 );
 }
 
@@ -270,30 +281,35 @@ TEST_CASE( "[market] evolve_group_model_volumes" ) {
 
   // These should influence the evolution but they should not
   // change.
-  player.old_world.market.commodities[e_commodity::rum]
+  W.old_world( player.type )
+      .market.commodities[e_commodity::rum]
       .player_traded_volume = 1000;
-  player.old_world.market.commodities[e_commodity::cigars]
+  W.old_world( player.type )
+      .market.commodities[e_commodity::cigars]
       .player_traded_volume = 2000;
-  player.old_world.market.commodities[e_commodity::cloth]
+  W.old_world( player.type )
+      .market.commodities[e_commodity::cloth]
       .player_traded_volume = 3000;
-  player.old_world.market.commodities[e_commodity::coats]
+  W.old_world( player.type )
+      .market.commodities[e_commodity::coats]
       .player_traded_volume = 4000;
 
   // Do the evolution.
   evolve_group_model_volumes( W.ss() );
 
   // Tests.
-  REQUIRE( player.old_world.market.commodities[e_commodity::rum]
+  REQUIRE( W.old_world( player )
+               .market.commodities[e_commodity::rum]
                .player_traded_volume == 1000 );
-  REQUIRE(
-      player.old_world.market.commodities[e_commodity::cigars]
-          .player_traded_volume == 2000 );
-  REQUIRE(
-      player.old_world.market.commodities[e_commodity::cloth]
-          .player_traded_volume == 3000 );
-  REQUIRE(
-      player.old_world.market.commodities[e_commodity::coats]
-          .player_traded_volume == 4000 );
+  REQUIRE( W.old_world( player )
+               .market.commodities[e_commodity::cigars]
+               .player_traded_volume == 2000 );
+  REQUIRE( W.old_world( player )
+               .market.commodities[e_commodity::cloth]
+               .player_traded_volume == 3000 );
+  REQUIRE( W.old_world( player )
+               .market.commodities[e_commodity::coats]
+               .player_traded_volume == 4000 );
 
   int expected = 0;
 
@@ -357,17 +373,17 @@ TEST_CASE( "[market] evolve_player_prices (non-dutch)" ) {
           .players.global_market_state
           .commodities[e_commodity::coats];
 
-  W.player( e_player::dutch )
-      .old_world.market.commodities[e_commodity::rum]
+  W.old_world( e_player::dutch )
+      .market.commodities[e_commodity::rum]
       .player_traded_volume = 100;
-  W.player( e_player::french )
-      .old_world.market.commodities[e_commodity::rum]
+  W.old_world( e_player::french )
+      .market.commodities[e_commodity::rum]
       .player_traded_volume   = 100;
   global_rum.intrinsic_volume = 200;
   // Rum total: 400.
 
-  W.player( e_player::french )
-      .old_world.market.commodities[e_commodity::cigars]
+  W.old_world( e_player::french )
+      .market.commodities[e_commodity::cigars]
       .player_traded_volume      = 100;
   global_cigars.intrinsic_volume = 200;
   // Cigars total: 300.
@@ -375,14 +391,14 @@ TEST_CASE( "[market] evolve_player_prices (non-dutch)" ) {
   global_cloth.intrinsic_volume = 200;
   // Cloth total: 200.
 
-  W.player( e_player::english )
-      .old_world.market.commodities[e_commodity::coats]
+  W.old_world( e_player::english )
+      .market.commodities[e_commodity::coats]
       .player_traded_volume = 100;
-  W.player( e_player::french )
-      .old_world.market.commodities[e_commodity::coats]
+  W.old_world( e_player::french )
+      .market.commodities[e_commodity::coats]
       .player_traded_volume = 100;
-  W.player( e_player::spanish )
-      .old_world.market.commodities[e_commodity::coats]
+  W.old_world( e_player::spanish )
+      .market.commodities[e_commodity::coats]
       .player_traded_volume     = 100;
   global_coats.intrinsic_volume = 100;
   // Coats total: 400.
@@ -401,21 +417,24 @@ TEST_CASE( "[market] evolve_player_prices (non-dutch)" ) {
                            starting_coats_bid );
 
   auto curr_price = [&]( e_commodity c ) {
-    return player.old_world.market.commodities[c].bid_price;
+    return W.old_world( player ).market.commodities[c].bid_price;
   };
   auto intrinsic_vol = [&]( e_commodity c ) {
-    return player.old_world.market.commodities[c]
+    return W.old_world( player )
+        .market.commodities[c]
         .intrinsic_volume;
   };
   auto traded_vol = [&]( e_commodity c ) {
-    return player.old_world.market.commodities[c]
+    return W.old_world( player )
+        .market.commodities[c]
         .player_traded_volume;
   };
   auto total_traded_vol = [&]( e_commodity c ) {
     int sum = 0;
     for( auto const& [type, player] : W.ss().players.players )
       if( player.has_value() )
-        sum += player->old_world.market.commodities[c]
+        sum += W.old_world( *player )
+                   .market.commodities[c]
                    .player_traded_volume;
     return sum;
   };
@@ -504,7 +523,8 @@ TEST_CASE( "[market] evolve_player_prices (non-dutch)" ) {
 
   // Now let's bump some of the volumes.
   auto vol = [&]( e_commodity c ) -> int& {
-    return player.old_world.market.commodities[c]
+    return W.old_world( player )
+        .market.commodities[c]
         .intrinsic_volume;
   };
 
@@ -691,17 +711,17 @@ TEST_CASE( "[market] evolve_player_prices (dutch)" ) {
           .players.global_market_state
           .commodities[e_commodity::coats];
 
-  W.player( e_player::dutch )
-      .old_world.market.commodities[e_commodity::rum]
+  W.old_world( e_player::dutch )
+      .market.commodities[e_commodity::rum]
       .player_traded_volume = 100;
-  W.player( e_player::french )
-      .old_world.market.commodities[e_commodity::rum]
+  W.old_world( e_player::french )
+      .market.commodities[e_commodity::rum]
       .player_traded_volume   = 100;
   global_rum.intrinsic_volume = 200;
   // Rum total: 400.
 
-  W.player( e_player::french )
-      .old_world.market.commodities[e_commodity::cigars]
+  W.old_world( e_player::french )
+      .market.commodities[e_commodity::cigars]
       .player_traded_volume      = 100;
   global_cigars.intrinsic_volume = 200;
   // Cigars total: 300.
@@ -709,14 +729,14 @@ TEST_CASE( "[market] evolve_player_prices (dutch)" ) {
   global_cloth.intrinsic_volume = 200;
   // Cloth total: 200.
 
-  W.player( e_player::english )
-      .old_world.market.commodities[e_commodity::coats]
+  W.old_world( e_player::english )
+      .market.commodities[e_commodity::coats]
       .player_traded_volume = 100;
-  W.player( e_player::french )
-      .old_world.market.commodities[e_commodity::coats]
+  W.old_world( e_player::french )
+      .market.commodities[e_commodity::coats]
       .player_traded_volume = 100;
-  W.player( e_player::spanish )
-      .old_world.market.commodities[e_commodity::coats]
+  W.old_world( e_player::spanish )
+      .market.commodities[e_commodity::coats]
       .player_traded_volume     = 100;
   global_coats.intrinsic_volume = 100;
   // Coats total: 400.
@@ -735,21 +755,24 @@ TEST_CASE( "[market] evolve_player_prices (dutch)" ) {
                            starting_coats_bid );
 
   auto curr_price = [&]( e_commodity c ) {
-    return player.old_world.market.commodities[c].bid_price;
+    return W.old_world( player ).market.commodities[c].bid_price;
   };
   auto intrinsic_vol = [&]( e_commodity c ) {
-    return player.old_world.market.commodities[c]
+    return W.old_world( player )
+        .market.commodities[c]
         .intrinsic_volume;
   };
   auto traded_vol = [&]( e_commodity c ) {
-    return player.old_world.market.commodities[c]
+    return W.old_world( player )
+        .market.commodities[c]
         .player_traded_volume;
   };
   auto total_traded_vol = [&]( e_commodity c ) {
     int sum = 0;
     for( auto const& [type, player] : W.ss().players.players )
       if( player.has_value() )
-        sum += player->old_world.market.commodities[c]
+        sum += W.old_world( *player )
+                   .market.commodities[c]
                    .player_traded_volume;
     return sum;
   };
@@ -838,7 +861,8 @@ TEST_CASE( "[market] evolve_player_prices (dutch)" ) {
 
   // Now let's bump some of the volumes.
   auto vol = [&]( e_commodity c ) -> int& {
-    return player.old_world.market.commodities[c]
+    return W.old_world( player )
+        .market.commodities[c]
         .intrinsic_volume;
   };
 
@@ -1095,9 +1119,11 @@ TEST_CASE( "[market] transaction_invoice buy" ) {
         e_difficulty::conquistador;
     W.set_tax_rate( 50 );
 
-    player.old_world.market.commodities[e_commodity::silver]
+    W.old_world( player )
+        .market.commodities[e_commodity::silver]
         .bid_price = 10;
-    player.old_world.market.commodities[e_commodity::cloth]
+    W.old_world( player )
+        .market.commodities[e_commodity::cloth]
         .bid_price = 10;
 
     to_buy   = { e_commodity::silver, 50 };
@@ -1116,8 +1142,8 @@ TEST_CASE( "[market] transaction_invoice buy" ) {
             { e_player::dutch, -200 },
           },
       .global_intrinsic_volume_deltas = {},
-      .price_change =
-          create_price_change( player, e_commodity::silver, 0 ),
+      .price_change                   = create_price_change(
+          W.ss(), player, e_commodity::silver, 0 ),
     };
     REQUIRE( f() == expected );
 
@@ -1137,8 +1163,8 @@ TEST_CASE( "[market] transaction_invoice buy" ) {
             { e_commodity::cloth, 0 },
             { e_commodity::coats, 0 },
           },
-      .price_change =
-          create_price_change( player, e_commodity::cloth, 1 ),
+      .price_change = create_price_change(
+          W.ss(), player, e_commodity::cloth, 1 ),
     };
     REQUIRE( f() == expected );
   }
@@ -1150,9 +1176,11 @@ TEST_CASE( "[market] transaction_invoice buy" ) {
         e_difficulty::conquistador;
     W.set_tax_rate( 50 );
 
-    player.old_world.market.commodities[e_commodity::silver]
+    W.old_world( player )
+        .market.commodities[e_commodity::silver]
         .bid_price = 10;
-    player.old_world.market.commodities[e_commodity::cloth]
+    W.old_world( player )
+        .market.commodities[e_commodity::cloth]
         .bid_price = 10;
 
     to_buy   = { e_commodity::silver, 50 };
@@ -1171,8 +1199,8 @@ TEST_CASE( "[market] transaction_invoice buy" ) {
             { e_player::dutch, -200 },
           },
       .global_intrinsic_volume_deltas = {},
-      .price_change =
-          create_price_change( player, e_commodity::silver, 0 ),
+      .price_change                   = create_price_change(
+          W.ss(), player, e_commodity::silver, 0 ),
     };
     REQUIRE( f() == expected );
 
@@ -1192,8 +1220,8 @@ TEST_CASE( "[market] transaction_invoice buy" ) {
             { e_commodity::cloth, 0 },
             { e_commodity::coats, 0 },
           },
-      .price_change =
-          create_price_change( player, e_commodity::cloth, 1 ),
+      .price_change = create_price_change(
+          W.ss(), player, e_commodity::cloth, 1 ),
     };
     REQUIRE( f() == expected );
   }
@@ -1205,9 +1233,11 @@ TEST_CASE( "[market] transaction_invoice buy" ) {
         e_difficulty::discoverer;
     W.set_tax_rate( 50 );
 
-    player.old_world.market.commodities[e_commodity::silver]
+    W.old_world( player )
+        .market.commodities[e_commodity::silver]
         .bid_price = 10;
-    player.old_world.market.commodities[e_commodity::cloth]
+    W.old_world( player )
+        .market.commodities[e_commodity::cloth]
         .bid_price = 10;
 
     to_buy   = { e_commodity::silver, 50 };
@@ -1226,8 +1256,8 @@ TEST_CASE( "[market] transaction_invoice buy" ) {
             { e_player::dutch, -133 },
           },
       .global_intrinsic_volume_deltas = {},
-      .price_change =
-          create_price_change( player, e_commodity::silver, 0 ),
+      .price_change                   = create_price_change(
+          W.ss(), player, e_commodity::silver, 0 ),
     };
     REQUIRE( f() == expected );
 
@@ -1247,8 +1277,8 @@ TEST_CASE( "[market] transaction_invoice buy" ) {
             { e_commodity::cloth, 0 },
             { e_commodity::coats, 0 },
           },
-      .price_change =
-          create_price_change( player, e_commodity::cloth, 1 ),
+      .price_change = create_price_change(
+          W.ss(), player, e_commodity::cloth, 1 ),
     };
     REQUIRE( f() == expected );
   }
@@ -1260,9 +1290,11 @@ TEST_CASE( "[market] transaction_invoice buy" ) {
         e_difficulty::discoverer;
     W.set_tax_rate( 50 );
 
-    player.old_world.market.commodities[e_commodity::silver]
+    W.old_world( player )
+        .market.commodities[e_commodity::silver]
         .bid_price = 10;
-    player.old_world.market.commodities[e_commodity::cloth]
+    W.old_world( player )
+        .market.commodities[e_commodity::cloth]
         .bid_price = 10;
 
     to_buy   = { e_commodity::silver, 50 };
@@ -1281,8 +1313,8 @@ TEST_CASE( "[market] transaction_invoice buy" ) {
             { e_player::dutch, -133 },
           },
       .global_intrinsic_volume_deltas = {},
-      .price_change =
-          create_price_change( player, e_commodity::silver, 0 ),
+      .price_change                   = create_price_change(
+          W.ss(), player, e_commodity::silver, 0 ),
     };
     REQUIRE( f() == expected );
 
@@ -1302,8 +1334,8 @@ TEST_CASE( "[market] transaction_invoice buy" ) {
             { e_commodity::cloth, 0 },
             { e_commodity::coats, 0 },
           },
-      .price_change =
-          create_price_change( player, e_commodity::cloth, 1 ),
+      .price_change = create_price_change(
+          W.ss(), player, e_commodity::cloth, 1 ),
     };
     REQUIRE( f() == expected );
   }
@@ -1314,9 +1346,11 @@ TEST_CASE( "[market] transaction_invoice buy" ) {
         e_difficulty::conquistador;
     W.set_tax_rate( 50 );
 
-    player.old_world.market.commodities[e_commodity::ore]
+    W.old_world( player )
+        .market.commodities[e_commodity::ore]
         .bid_price = 3;
-    player.old_world.market.commodities[e_commodity::cigars]
+    W.old_world( player )
+        .market.commodities[e_commodity::cigars]
         .bid_price = 10;
 
     to_buy   = { e_commodity::ore, 50 };
@@ -1335,8 +1369,8 @@ TEST_CASE( "[market] transaction_invoice buy" ) {
             { e_player::dutch, -33 },
           },
       .global_intrinsic_volume_deltas = {},
-      .price_change =
-          create_price_change( player, e_commodity::ore, 0 ),
+      .price_change = create_price_change( W.ss(), player,
+                                           e_commodity::ore, 0 ),
     };
     REQUIRE( f() == expected );
 
@@ -1356,8 +1390,8 @@ TEST_CASE( "[market] transaction_invoice buy" ) {
             { e_commodity::cigars, 0 },
             { e_commodity::coats, 0 },
           },
-      .price_change =
-          create_price_change( player, e_commodity::cigars, 1 ),
+      .price_change = create_price_change(
+          W.ss(), player, e_commodity::cigars, 1 ),
     };
     REQUIRE( f() == expected );
   }
@@ -1368,9 +1402,11 @@ TEST_CASE( "[market] transaction_invoice buy" ) {
         e_difficulty::conquistador;
     W.set_tax_rate( 50 );
 
-    player.old_world.market.commodities[e_commodity::muskets]
+    W.old_world( player )
+        .market.commodities[e_commodity::muskets]
         .bid_price = 10;
-    player.old_world.market.commodities[e_commodity::cigars]
+    W.old_world( player )
+        .market.commodities[e_commodity::cigars]
         .bid_price = 10;
 
     to_buy   = { e_commodity::muskets, 50 };
@@ -1389,8 +1425,8 @@ TEST_CASE( "[market] transaction_invoice buy" ) {
             { e_player::dutch, -33 },
           },
       .global_intrinsic_volume_deltas = {},
-      .price_change =
-          create_price_change( player, e_commodity::muskets, 0 ),
+      .price_change                   = create_price_change(
+          W.ss(), player, e_commodity::muskets, 0 ),
     };
     REQUIRE( f() == expected );
 
@@ -1410,8 +1446,8 @@ TEST_CASE( "[market] transaction_invoice buy" ) {
             { e_commodity::cigars, 0 },
             { e_commodity::coats, 0 },
           },
-      .price_change =
-          create_price_change( player, e_commodity::cigars, 1 ),
+      .price_change = create_price_change(
+          W.ss(), player, e_commodity::cigars, 1 ),
     };
     REQUIRE( f() == expected );
   }
@@ -1422,9 +1458,11 @@ TEST_CASE( "[market] transaction_invoice buy" ) {
         e_difficulty::conquistador;
     W.set_tax_rate( 50 );
 
-    player.old_world.market.commodities[e_commodity::muskets]
+    W.old_world( player )
+        .market.commodities[e_commodity::muskets]
         .bid_price = 10;
-    player.old_world.market.commodities[e_commodity::cigars]
+    W.old_world( player )
+        .market.commodities[e_commodity::cigars]
         .bid_price = 10;
 
     to_buy   = { e_commodity::muskets, 50 };
@@ -1443,8 +1481,8 @@ TEST_CASE( "[market] transaction_invoice buy" ) {
             { e_player::dutch, -33 },
           },
       .global_intrinsic_volume_deltas = {},
-      .price_change =
-          create_price_change( player, e_commodity::muskets, 0 ),
+      .price_change                   = create_price_change(
+          W.ss(), player, e_commodity::muskets, 0 ),
     };
     REQUIRE( f() == expected );
 
@@ -1464,8 +1502,8 @@ TEST_CASE( "[market] transaction_invoice buy" ) {
             { e_commodity::cigars, 0 },
             { e_commodity::coats, 0 },
           },
-      .price_change =
-          create_price_change( player, e_commodity::cigars, 1 ),
+      .price_change = create_price_change(
+          W.ss(), player, e_commodity::cigars, 1 ),
     };
     REQUIRE( f() == expected );
   }
@@ -1476,9 +1514,11 @@ TEST_CASE( "[market] transaction_invoice buy" ) {
         e_difficulty::conquistador;
     W.set_tax_rate( 50 );
 
-    player.old_world.market.commodities[e_commodity::muskets]
+    W.old_world( player )
+        .market.commodities[e_commodity::muskets]
         .bid_price = 10;
-    player.old_world.market.commodities[e_commodity::cigars]
+    W.old_world( player )
+        .market.commodities[e_commodity::cigars]
         .bid_price = 10;
 
     to_buy   = { e_commodity::muskets, 50 };
@@ -1497,8 +1537,8 @@ TEST_CASE( "[market] transaction_invoice buy" ) {
             { e_player::dutch, -33 },
           },
       .global_intrinsic_volume_deltas = {},
-      .price_change =
-          create_price_change( player, e_commodity::muskets, 0 ),
+      .price_change                   = create_price_change(
+          W.ss(), player, e_commodity::muskets, 0 ),
     };
     REQUIRE( f() == expected );
 
@@ -1518,8 +1558,8 @@ TEST_CASE( "[market] transaction_invoice buy" ) {
             { e_commodity::cigars, 0 },
             { e_commodity::coats, 0 },
           },
-      .price_change =
-          create_price_change( player, e_commodity::cigars, 1 ),
+      .price_change = create_price_change(
+          W.ss(), player, e_commodity::cigars, 1 ),
     };
     REQUIRE( f() == expected );
   }
@@ -1532,9 +1572,11 @@ TEST_CASE( "[market] transaction_invoice buy" ) {
         e_difficulty::conquistador;
     W.set_tax_rate( 50 );
 
-    player.old_world.market.commodities[e_commodity::silver]
+    W.old_world( player )
+        .market.commodities[e_commodity::silver]
         .bid_price = 10;
-    player.old_world.market.commodities[e_commodity::cloth]
+    W.old_world( player )
+        .market.commodities[e_commodity::cloth]
         .bid_price = 10;
 
     to_buy   = { e_commodity::silver, 50 };
@@ -1553,8 +1595,8 @@ TEST_CASE( "[market] transaction_invoice buy" ) {
             { e_player::dutch, -200 },
           },
       .global_intrinsic_volume_deltas = {},
-      .price_change =
-          create_price_change( player, e_commodity::silver, 0 ),
+      .price_change                   = create_price_change(
+          W.ss(), player, e_commodity::silver, 0 ),
     };
     REQUIRE( f() == expected );
     immediate_price_change_allowed =
@@ -1579,14 +1621,14 @@ TEST_CASE( "[market] transaction_invoice buy" ) {
             { e_commodity::cloth, 0 },
             { e_commodity::coats, 0 },
           },
-      .price_change =
-          create_price_change( player, e_commodity::cloth, 1 ),
+      .price_change = create_price_change(
+          W.ss(), player, e_commodity::cloth, 1 ),
     };
     REQUIRE( f() == expected );
     immediate_price_change_allowed =
         e_immediate_price_change_allowed::suppressed;
-    expected.price_change =
-        create_price_change( player, e_commodity::cloth, 0 );
+    expected.price_change = create_price_change(
+        W.ss(), player, e_commodity::cloth, 0 );
     REQUIRE( f() == expected );
     immediate_price_change_allowed =
         e_immediate_price_change_allowed::allowed;
@@ -1631,9 +1673,11 @@ TEST_CASE( "[market] transaction_invoice sell" ) {
         e_difficulty::conquistador;
     W.set_tax_rate( 50 );
 
-    player.old_world.market.commodities[e_commodity::silver]
+    W.old_world( player )
+        .market.commodities[e_commodity::silver]
         .bid_price = 10;
-    player.old_world.market.commodities[e_commodity::cloth]
+    W.old_world( player )
+        .market.commodities[e_commodity::cloth]
         .bid_price = 10;
 
     to_sell  = { e_commodity::silver, 50 };
@@ -1652,8 +1696,8 @@ TEST_CASE( "[market] transaction_invoice sell" ) {
             { e_player::dutch, 133 },
           },
       .global_intrinsic_volume_deltas = {},
-      .price_change =
-          create_price_change( player, e_commodity::silver, -1 ),
+      .price_change                   = create_price_change(
+          W.ss(), player, e_commodity::silver, -1 ),
     };
     REQUIRE( f() == expected );
 
@@ -1673,8 +1717,8 @@ TEST_CASE( "[market] transaction_invoice sell" ) {
             { e_commodity::cloth, -8 },
             { e_commodity::coats, -7 },
           },
-      .price_change =
-          create_price_change( player, e_commodity::cloth, -1 ),
+      .price_change = create_price_change(
+          W.ss(), player, e_commodity::cloth, -1 ),
     };
     REQUIRE( f() == expected );
   }
@@ -1686,9 +1730,11 @@ TEST_CASE( "[market] transaction_invoice sell" ) {
         e_difficulty::conquistador;
     W.set_tax_rate( 50 );
 
-    player.old_world.market.commodities[e_commodity::silver]
+    W.old_world( player )
+        .market.commodities[e_commodity::silver]
         .bid_price = 10;
-    player.old_world.market.commodities[e_commodity::cloth]
+    W.old_world( player )
+        .market.commodities[e_commodity::cloth]
         .bid_price = 10;
 
     to_sell  = { e_commodity::silver, 50 };
@@ -1707,8 +1753,8 @@ TEST_CASE( "[market] transaction_invoice sell" ) {
             { e_player::dutch, 33 },
           },
       .global_intrinsic_volume_deltas = {},
-      .price_change =
-          create_price_change( player, e_commodity::silver, -1 ),
+      .price_change                   = create_price_change(
+          W.ss(), player, e_commodity::silver, -1 ),
     };
     REQUIRE( f() == expected );
 
@@ -1728,8 +1774,8 @@ TEST_CASE( "[market] transaction_invoice sell" ) {
             { e_commodity::cloth, 0 },
             { e_commodity::coats, 0 },
           },
-      .price_change =
-          create_price_change( player, e_commodity::cloth, -1 ),
+      .price_change = create_price_change(
+          W.ss(), player, e_commodity::cloth, -1 ),
     };
     REQUIRE( f() == expected );
   }
@@ -1741,9 +1787,11 @@ TEST_CASE( "[market] transaction_invoice sell" ) {
         e_difficulty::discoverer;
     W.set_tax_rate( 50 );
 
-    player.old_world.market.commodities[e_commodity::silver]
+    W.old_world( player )
+        .market.commodities[e_commodity::silver]
         .bid_price = 10;
-    player.old_world.market.commodities[e_commodity::cloth]
+    W.old_world( player )
+        .market.commodities[e_commodity::cloth]
         .bid_price = 10;
 
     to_sell  = { e_commodity::silver, 50 };
@@ -1762,8 +1810,8 @@ TEST_CASE( "[market] transaction_invoice sell" ) {
             { e_player::dutch, 88 },
           },
       .global_intrinsic_volume_deltas = {},
-      .price_change =
-          create_price_change( player, e_commodity::silver, -1 ),
+      .price_change                   = create_price_change(
+          W.ss(), player, e_commodity::silver, -1 ),
     };
     REQUIRE( f() == expected );
 
@@ -1783,8 +1831,8 @@ TEST_CASE( "[market] transaction_invoice sell" ) {
             { e_commodity::cloth, -8 },
             { e_commodity::coats, -7 },
           },
-      .price_change =
-          create_price_change( player, e_commodity::cloth, -1 ),
+      .price_change = create_price_change(
+          W.ss(), player, e_commodity::cloth, -1 ),
     };
     REQUIRE( f() == expected );
   }
@@ -1796,9 +1844,11 @@ TEST_CASE( "[market] transaction_invoice sell" ) {
         e_difficulty::discoverer;
     W.set_tax_rate( 50 );
 
-    player.old_world.market.commodities[e_commodity::silver]
+    W.old_world( player )
+        .market.commodities[e_commodity::silver]
         .bid_price = 10;
-    player.old_world.market.commodities[e_commodity::cloth]
+    W.old_world( player )
+        .market.commodities[e_commodity::cloth]
         .bid_price = 10;
 
     to_sell  = { e_commodity::silver, 50 };
@@ -1817,8 +1867,8 @@ TEST_CASE( "[market] transaction_invoice sell" ) {
             { e_player::dutch, 88 },
           },
       .global_intrinsic_volume_deltas = {},
-      .price_change =
-          create_price_change( player, e_commodity::silver, 0 ),
+      .price_change                   = create_price_change(
+          W.ss(), player, e_commodity::silver, 0 ),
     };
     REQUIRE( f() == expected );
 
@@ -1838,8 +1888,8 @@ TEST_CASE( "[market] transaction_invoice sell" ) {
             { e_commodity::cloth, 0 },
             { e_commodity::coats, 0 },
           },
-      .price_change =
-          create_price_change( player, e_commodity::cloth, -1 ),
+      .price_change = create_price_change(
+          W.ss(), player, e_commodity::cloth, -1 ),
     };
     REQUIRE( f() == expected );
   }
@@ -1850,9 +1900,11 @@ TEST_CASE( "[market] transaction_invoice sell" ) {
         e_difficulty::conquistador;
     W.set_tax_rate( 50 );
 
-    player.old_world.market.commodities[e_commodity::ore]
+    W.old_world( player )
+        .market.commodities[e_commodity::ore]
         .bid_price = 3;
-    player.old_world.market.commodities[e_commodity::cloth]
+    W.old_world( player )
+        .market.commodities[e_commodity::cloth]
         .bid_price = 10;
 
     to_sell  = { e_commodity::ore, 50 };
@@ -1871,8 +1923,8 @@ TEST_CASE( "[market] transaction_invoice sell" ) {
             { e_player::dutch, 22 },
           },
       .global_intrinsic_volume_deltas = {},
-      .price_change =
-          create_price_change( player, e_commodity::ore, 0 ),
+      .price_change = create_price_change( W.ss(), player,
+                                           e_commodity::ore, 0 ),
     };
     REQUIRE( f() == expected );
 
@@ -1892,8 +1944,8 @@ TEST_CASE( "[market] transaction_invoice sell" ) {
             { e_commodity::cloth, -8 },
             { e_commodity::coats, -7 },
           },
-      .price_change =
-          create_price_change( player, e_commodity::cloth, -1 ),
+      .price_change = create_price_change(
+          W.ss(), player, e_commodity::cloth, -1 ),
     };
     REQUIRE( f() == expected );
   }
@@ -1904,9 +1956,11 @@ TEST_CASE( "[market] transaction_invoice sell" ) {
         e_difficulty::conquistador;
     W.set_tax_rate( 50 );
 
-    player.old_world.market.commodities[e_commodity::silver]
+    W.old_world( player )
+        .market.commodities[e_commodity::silver]
         .bid_price = 10;
-    player.old_world.market.commodities[e_commodity::cloth]
+    W.old_world( player )
+        .market.commodities[e_commodity::cloth]
         .bid_price = 10;
 
     to_sell  = { e_commodity::silver, 50 };
@@ -1925,8 +1979,8 @@ TEST_CASE( "[market] transaction_invoice sell" ) {
             { e_player::dutch, 88 },
           },
       .global_intrinsic_volume_deltas = {},
-      .price_change =
-          create_price_change( player, e_commodity::silver, 0 ),
+      .price_change                   = create_price_change(
+          W.ss(), player, e_commodity::silver, 0 ),
     };
     REQUIRE( f() == expected );
 
@@ -1946,8 +2000,8 @@ TEST_CASE( "[market] transaction_invoice sell" ) {
             { e_commodity::cloth, 0 },
             { e_commodity::coats, 0 },
           },
-      .price_change =
-          create_price_change( player, e_commodity::cloth, -1 ),
+      .price_change = create_price_change(
+          W.ss(), player, e_commodity::cloth, -1 ),
     };
     REQUIRE( f() == expected );
   }
@@ -1958,9 +2012,11 @@ TEST_CASE( "[market] transaction_invoice sell" ) {
         e_difficulty::conquistador;
     W.set_tax_rate( 50 );
 
-    player.old_world.market.commodities[e_commodity::silver]
+    W.old_world( player )
+        .market.commodities[e_commodity::silver]
         .bid_price = 10;
-    player.old_world.market.commodities[e_commodity::cloth]
+    W.old_world( player )
+        .market.commodities[e_commodity::cloth]
         .bid_price = 10;
 
     to_sell  = { e_commodity::silver, 50 };
@@ -1979,8 +2035,8 @@ TEST_CASE( "[market] transaction_invoice sell" ) {
             { e_player::dutch, 88 },
           },
       .global_intrinsic_volume_deltas = {},
-      .price_change =
-          create_price_change( player, e_commodity::silver, -1 ),
+      .price_change                   = create_price_change(
+          W.ss(), player, e_commodity::silver, -1 ),
     };
     REQUIRE( f() == expected );
 
@@ -2000,8 +2056,8 @@ TEST_CASE( "[market] transaction_invoice sell" ) {
             { e_commodity::cloth, -8 },
             { e_commodity::coats, -7 },
           },
-      .price_change =
-          create_price_change( player, e_commodity::cloth, -1 ),
+      .price_change = create_price_change(
+          W.ss(), player, e_commodity::cloth, -1 ),
     };
     REQUIRE( f() == expected );
   }
@@ -2012,9 +2068,11 @@ TEST_CASE( "[market] transaction_invoice sell" ) {
         e_difficulty::conquistador;
     W.set_tax_rate( 50 );
 
-    player.old_world.market.commodities[e_commodity::silver]
+    W.old_world( player )
+        .market.commodities[e_commodity::silver]
         .bid_price = 10;
-    player.old_world.market.commodities[e_commodity::cloth]
+    W.old_world( player )
+        .market.commodities[e_commodity::cloth]
         .bid_price = 10;
 
     to_sell  = { e_commodity::silver, 50 };
@@ -2033,8 +2091,8 @@ TEST_CASE( "[market] transaction_invoice sell" ) {
             { e_player::dutch, 88 },
           },
       .global_intrinsic_volume_deltas = {},
-      .price_change =
-          create_price_change( player, e_commodity::silver, 0 ),
+      .price_change                   = create_price_change(
+          W.ss(), player, e_commodity::silver, 0 ),
     };
     REQUIRE( f() == expected );
 
@@ -2054,8 +2112,8 @@ TEST_CASE( "[market] transaction_invoice sell" ) {
             { e_commodity::cloth, 0 },
             { e_commodity::coats, 0 },
           },
-      .price_change =
-          create_price_change( player, e_commodity::cloth, -1 ),
+      .price_change = create_price_change(
+          W.ss(), player, e_commodity::cloth, -1 ),
     };
     REQUIRE( f() == expected );
   }
@@ -2068,9 +2126,11 @@ TEST_CASE( "[market] transaction_invoice sell" ) {
         e_difficulty::conquistador;
     W.set_tax_rate( 50 );
 
-    player.old_world.market.commodities[e_commodity::silver]
+    W.old_world( player )
+        .market.commodities[e_commodity::silver]
         .bid_price = 10;
-    player.old_world.market.commodities[e_commodity::cloth]
+    W.old_world( player )
+        .market.commodities[e_commodity::cloth]
         .bid_price = 10;
 
     to_sell  = { e_commodity::silver, 50 };
@@ -2089,14 +2149,14 @@ TEST_CASE( "[market] transaction_invoice sell" ) {
             { e_player::dutch, 133 },
           },
       .global_intrinsic_volume_deltas = {},
-      .price_change =
-          create_price_change( player, e_commodity::silver, -1 ),
+      .price_change                   = create_price_change(
+          W.ss(), player, e_commodity::silver, -1 ),
     };
     REQUIRE( f() == expected );
     immediate_price_change_allowed =
         e_immediate_price_change_allowed::suppressed;
-    expected.price_change =
-        create_price_change( player, e_commodity::silver, 0 );
+    expected.price_change = create_price_change(
+        W.ss(), player, e_commodity::silver, 0 );
     // Since the price was not adjusted, the intrinsic volume of
     // the french won't have been adjusted either.
     expected.intrinsic_volume_delta[e_player::french] = 200;
@@ -2120,14 +2180,14 @@ TEST_CASE( "[market] transaction_invoice sell" ) {
             { e_commodity::cloth, -8 },
             { e_commodity::coats, -7 },
           },
-      .price_change =
-          create_price_change( player, e_commodity::cloth, -1 ),
+      .price_change = create_price_change(
+          W.ss(), player, e_commodity::cloth, -1 ),
     };
     REQUIRE( f() == expected );
     immediate_price_change_allowed =
         e_immediate_price_change_allowed::suppressed;
-    expected.price_change =
-        create_price_change( player, e_commodity::cloth, 0 );
+    expected.price_change = create_price_change(
+        W.ss(), player, e_commodity::cloth, 0 );
     REQUIRE( f() == expected );
     immediate_price_change_allowed =
         e_immediate_price_change_allowed::allowed;
@@ -2158,14 +2218,16 @@ TEST_CASE( "[market] attrition bonus" ) {
   W.init_prices_to_average();
   for( e_commodity c : refl::enum_values<e_commodity> ) {
     if( is_in_processed_goods_price_group( c ) ) continue;
-    player.old_world.market.commodities[c].intrinsic_volume =
-        1000;
+    W.old_world( player )
+        .market.commodities[c]
+        .intrinsic_volume = 1000;
   }
 
   (void)evolve_player_prices( W.ss(), player );
 
   auto iv = [&]( e_commodity comm ) {
-    return player.old_world.market.commodities[comm]
+    return W.old_world( player )
+        .market.commodities[comm]
         .intrinsic_volume;
   };
 

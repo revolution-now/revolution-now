@@ -25,6 +25,7 @@
 #include "views.hpp"
 
 // ss
+#include "ss/nation.hpp"
 #include "ss/player.rds.hpp"
 
 // render
@@ -207,7 +208,10 @@ HarborViewComposited recomposite_harbor_view(
 
   vector<ui::OwningPositionedView> views;
 
+  // If we are a player that declared or if we are an REF player
+  // then that means we are post declaration.
   bool const declared =
+      is_ref( player.type ) ||
       player.revolution.status >= e_revolution_status::declared;
   using E = e_harbor_view_entity;
 

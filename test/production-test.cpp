@@ -22,6 +22,7 @@
 #include "sons-of-liberty.hpp"
 
 // ss
+#include "src/ss/old-world-state.rds.hpp"
 #include "src/ss/player.rds.hpp"
 #include "src/ss/ref.hpp"
 #include "src/ss/settings.hpp"
@@ -5435,7 +5436,7 @@ TEST_CASE( "[production] bell production [discoverer]" ) {
   SECTION( "no colonists in town hall, newspaper, paine" ) {
     colony.buildings[e_colony_building::newspaper]      = true;
     player.fathers.has[e_founding_father::thomas_paine] = true;
-    player.old_world.taxes.tax_rate                     = 99;
+    W.old_world( player ).taxes.tax_rate                = 99;
     ColonyProduction pr =
         production_for_colony( W.ss(), colony );
     REQUIRE( pr.bells == 2 );
@@ -5446,7 +5447,7 @@ TEST_CASE( "[production] bell production [discoverer]" ) {
       "jefferson" ) {
     colony.buildings[e_colony_building::newspaper]      = true;
     player.fathers.has[e_founding_father::thomas_paine] = true;
-    player.old_world.taxes.tax_rate                     = 99;
+    W.old_world( player ).taxes.tax_rate                = 99;
     player.fathers.has[e_founding_father::thomas_jefferson] =
         true;
     ColonyProduction pr =
@@ -5489,7 +5490,7 @@ TEST_CASE( "[production] bell production [discoverer]" ) {
   SECTION( "elder statesman in town hall, newspaper, paine" ) {
     colony.buildings[e_colony_building::newspaper]      = true;
     player.fathers.has[e_founding_father::thomas_paine] = true;
-    player.old_world.taxes.tax_rate                     = 99;
+    W.old_world( player ).taxes.tax_rate                = 99;
     W.add_unit_indoors( colony.id, e_indoor_job::bells,
                         e_unit_type::elder_statesman );
     ColonyProduction pr =
@@ -5502,7 +5503,7 @@ TEST_CASE( "[production] bell production [discoverer]" ) {
       "newspaper, paine, jefferson" ) {
     colony.buildings[e_colony_building::newspaper]      = true;
     player.fathers.has[e_founding_father::thomas_paine] = true;
-    player.old_world.taxes.tax_rate                     = 50;
+    W.old_world( player ).taxes.tax_rate                = 50;
     player.fathers.has[e_founding_father::thomas_jefferson] =
         true;
     W.add_unit_indoors( colony.id, e_indoor_job::bells,

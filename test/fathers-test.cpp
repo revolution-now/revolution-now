@@ -22,6 +22,7 @@
 #include "src/mock/matchers.hpp"
 
 // ss
+#include "ss/old-world-state.rds.hpp"
 #include "ss/player.hpp"
 #include "ss/ref.hpp"
 #include "ss/settings.rds.hpp"
@@ -579,29 +580,32 @@ TEST_CASE(
 }
 
 TEST_CASE( "[fathers] on_father_received: jakob_fugger" ) {
-  World W;
-  Player& player = W.default_player();
+  World w;
+  Player& player = w.default_player();
   e_founding_father const father =
       e_founding_father::jakob_fugger;
-  player.old_world.market.commodities[e_commodity::food]
+  w.old_world( player )
+      .market.commodities[e_commodity::food]
       .boycott = true;
-  player.old_world.market.commodities[e_commodity::furs]
+  w.old_world( player )
+      .market.commodities[e_commodity::furs]
       .boycott = true;
-  player.old_world.market.commodities[e_commodity::muskets]
+  w.old_world( player )
+      .market.commodities[e_commodity::muskets]
       .boycott = true;
-  W.french()
-      .old_world.market.commodities[e_commodity::food]
+  w.old_world( e_player::french )
+      .market.commodities[e_commodity::food]
       .boycott               = true;
   player.fathers.has[father] = true;
-  on_father_received( W.ss(), W.ts(), player, father );
+  on_father_received( w.ss(), w.ts(), player, father );
   for( auto& [comm, market_item] :
-       player.old_world.market.commodities ) {
+       w.old_world( player ).market.commodities ) {
     INFO( fmt::format( "comm={}, market_item={}", comm,
                        market_item ) );
     REQUIRE_FALSE( market_item.boycott );
   }
-  REQUIRE( W.french()
-               .old_world.market.commodities[e_commodity::food]
+  REQUIRE( w.old_world( e_player::french )
+               .market.commodities[e_commodity::food]
                .boycott );
 }
 
@@ -741,15 +745,15 @@ TEST_CASE( "[fathers] on_father_received: pocahontas" ) {
 }
 
 TEST_CASE( "[fathers] on_father_received: william_brewster" ) {
-  World W;
-  W.settings().game_setup_options.difficulty =
+  World w;
+  w.settings().game_setup_options.difficulty =
       e_difficulty::conquistador;
-  Player& player          = W.default_player();
-  ImmigrationState& state = player.old_world.immigration;
+  Player& player          = w.default_player();
+  ImmigrationState& state = w.old_world( player ).immigration;
   player.fathers.has[e_founding_father::william_brewster] = true;
 
   auto f = [&] {
-    on_father_received( W.ss(), W.ts(), player,
+    on_father_received( w.ss(), w.ts(), player,
                         e_founding_father::william_brewster );
   };
 
@@ -771,8 +775,8 @@ TEST_CASE( "[fathers] on_father_received: william_brewster" ) {
     state.immigrants_pool[2] = e_unit_type::indentured_servant;
     // Note that the upper limit of the random double is tested
     // elsewhere.
-    W.rand().EXPECT__between_doubles( 0, _ ).returns( 0.0 );
-    W.rand().EXPECT__between_doubles( 0, _ ).returns( 2500.0 );
+    w.rand().EXPECT__between_doubles( 0, _ ).returns( 0.0 );
+    w.rand().EXPECT__between_doubles( 0, _ ).returns( 2500.0 );
     f();
     REQUIRE( state.immigrants_pool[0] ==
              e_unit_type::expert_farmer );

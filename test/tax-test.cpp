@@ -25,6 +25,7 @@
 #include "src/config/old-world.rds.hpp"
 
 // ss
+#include "src/ss/old-world-state.rds.hpp"
 #include "src/ss/player.rds.hpp"
 #include "src/ss/ref.hpp"
 #include "src/ss/settings.rds.hpp"
@@ -70,22 +71,19 @@ struct World : testing::World {
 ** Test Cases
 *****************************************************************/
 TEST_CASE( "[tax] try_trade_boycotted_commodity" ) {
-  // FIXME
-#ifdef COMPILER_GCC
-  return;
-#endif
   World W;
   Player& player   = W.default_player();
   e_commodity type = {};
   wait<> w         = make_wait<>();
 
-  player.old_world.taxes.tax_rate = 7;
+  W.old_world( player ).taxes.tax_rate = 7;
 
   auto f = [&] {
-    player.old_world.market.commodities[type].boycott = true;
-    auto const w =
-        try_trade_boycotted_commodity( W.ts(), player, type,
-                                       /*back_taxes=*/33 );
+    W.old_world( player ).market.commodities[type].boycott =
+        true;
+    auto const w = try_trade_boycotted_commodity(
+        W.ss(), W.ts(), player, type,
+        /*back_taxes=*/33 );
     BASE_CHECK( !w.exception() );
     BASE_CHECK( w.ready() );
     return *w;
@@ -106,8 +104,9 @@ TEST_CASE( "[tax] try_trade_boycotted_commodity" ) {
 
     REQUIRE( f() );
     REQUIRE( player.money == 32 );
-    REQUIRE( player.old_world.market.commodities[type].boycott );
-    REQUIRE( player.old_world.taxes.tax_rate == 7 );
+    REQUIRE(
+        W.old_world( player ).market.commodities[type].boycott );
+    REQUIRE( W.old_world( player ).taxes.tax_rate == 7 );
   }
 
   SECTION( "muskets, enough money, selects no" ) {
@@ -136,8 +135,9 @@ TEST_CASE( "[tax] try_trade_boycotted_commodity" ) {
 
     REQUIRE( f() );
     REQUIRE( player.money == 33 );
-    REQUIRE( player.old_world.market.commodities[type].boycott );
-    REQUIRE( player.old_world.taxes.tax_rate == 7 );
+    REQUIRE(
+        W.old_world( player ).market.commodities[type].boycott );
+    REQUIRE( W.old_world( player ).taxes.tax_rate == 7 );
   }
 
   SECTION( "tools, enough money, selects yes" ) {
@@ -166,9 +166,10 @@ TEST_CASE( "[tax] try_trade_boycotted_commodity" ) {
 
     REQUIRE_FALSE( f() );
     REQUIRE( player.money == 1 );
-    REQUIRE(
-        !player.old_world.market.commodities[type].boycott );
-    REQUIRE( player.old_world.taxes.tax_rate == 7 );
+    REQUIRE( !W.old_world( player )
+                  .market.commodities[type]
+                  .boycott );
+    REQUIRE( W.old_world( player ).taxes.tax_rate == 7 );
   }
 }
 
@@ -178,30 +179,30 @@ TEST_CASE( "[tax] back_tax_for_boycotted_commodity" ) {
   e_commodity type = {};
   int expected     = 0;
 
-  player.old_world.taxes.tax_rate = 7;
+  W.old_world( player ).taxes.tax_rate = 7;
 
   auto f = [&] {
-    return back_tax_for_boycotted_commodity( as_const( player ),
-                                             type );
+    return back_tax_for_boycotted_commodity(
+        W.ss().as_const, as_const( player ), type );
   };
 
   type = e_commodity::ore;
-  player.old_world.market.commodities[type].bid_price = 5;
-  expected                                            = 4000;
+  W.old_world( player ).market.commodities[type].bid_price = 5;
+  expected = 4000;
   REQUIRE( f() == expected );
-  REQUIRE( player.old_world.taxes.tax_rate == 7 );
+  REQUIRE( W.old_world( player ).taxes.tax_rate == 7 );
 
   type = e_commodity::silver;
-  player.old_world.market.commodities[type].bid_price = 19;
-  expected                                            = 10000;
+  W.old_world( player ).market.commodities[type].bid_price = 19;
+  expected = 10000;
   REQUIRE( f() == expected );
-  REQUIRE( player.old_world.taxes.tax_rate == 7 );
+  REQUIRE( W.old_world( player ).taxes.tax_rate == 7 );
 
   type = e_commodity::rum;
-  player.old_world.market.commodities[type].bid_price = 2;
-  expected                                            = 1500;
+  W.old_world( player ).market.commodities[type].bid_price = 2;
+  expected = 1500;
   REQUIRE( f() == expected );
-  REQUIRE( player.old_world.taxes.tax_rate == 7 );
+  REQUIRE( W.old_world( player ).taxes.tax_rate == 7 );
 }
 
 TEST_CASE( "[tax] apply_tax_result" ) {
@@ -210,21 +211,22 @@ TEST_CASE( "[tax] apply_tax_result" ) {
   int next_tax_event_turn = 0;
   TaxChangeResult change;
 
-  W.turn().time_point.turns       = 5;
-  player.old_world.taxes.tax_rate = 50;
+  W.turn().time_point.turns            = 5;
+  W.old_world( player ).taxes.tax_rate = 50;
 
   auto [colony, founder] =
       W.found_colony_with_new_unit( Coord{} );
 
   int bid = 1;
   for( e_commodity type : refl::enum_values<e_commodity> ) {
-    player.old_world.market.commodities[type].bid_price = bid++;
+    W.old_world( player ).market.commodities[type].bid_price =
+        bid++;
     colony.commodities[type] = bid * 10;
   }
   colony.sons_of_liberty.num_rebels_from_bells_only = 1.0;
 
   Colony colony_saved            = colony;
-  PlayerMarketState market_saved = player.old_world.market;
+  PlayerMarketState market_saved = W.old_world( player ).market;
 
   auto f = [&] {
     apply_tax_result( W.ss(), player, next_tax_event_turn,
@@ -236,25 +238,25 @@ TEST_CASE( "[tax] apply_tax_result" ) {
   SECTION( "none" ) {
     change = TaxChangeResult::none{};
     f();
-    REQUIRE( player.old_world.taxes.tax_rate == 50 );
+    REQUIRE( W.old_world( player ).taxes.tax_rate == 50 );
     REQUIRE( colony == colony_saved );
-    REQUIRE( player.old_world.market == market_saved );
+    REQUIRE( W.old_world( player ).market == market_saved );
   }
 
   SECTION( "tax increase" ) {
     change = TaxChangeResult::tax_change{ .amount = 5 };
     f();
-    REQUIRE( player.old_world.taxes.tax_rate == 55 );
+    REQUIRE( W.old_world( player ).taxes.tax_rate == 55 );
     REQUIRE( colony == colony_saved );
-    REQUIRE( player.old_world.market == market_saved );
+    REQUIRE( W.old_world( player ).market == market_saved );
   }
 
   SECTION( "tax decrease" ) {
     change = TaxChangeResult::tax_change{ .amount = -5 };
     f();
-    REQUIRE( player.old_world.taxes.tax_rate == 45 );
+    REQUIRE( W.old_world( player ).taxes.tax_rate == 45 );
     REQUIRE( colony == colony_saved );
-    REQUIRE( player.old_world.market == market_saved );
+    REQUIRE( W.old_world( player ).market == market_saved );
   }
 
   SECTION( "party" ) {
@@ -268,13 +270,13 @@ TEST_CASE( "[tax] apply_tax_result" ) {
                              .quantity = 79 } },
         .rebels_bump = .5 } };
     f();
-    REQUIRE( player.old_world.taxes.tax_rate == 50 );
+    REQUIRE( W.old_world( player ).taxes.tax_rate == 50 );
     colony_saved.commodities[e_commodity::ore] = 1;
     colony_saved.sons_of_liberty.num_rebels_from_bells_only =
         1.5;
     REQUIRE( colony == colony_saved );
     market_saved.commodities[e_commodity::ore].boycott = true;
-    REQUIRE( player.old_world.market == market_saved );
+    REQUIRE( W.old_world( player ).market == market_saved );
   }
 }
 
@@ -300,7 +302,7 @@ TEST_CASE( "[tax] prompt_for_tax_change_result" ) {
     return *w;
   };
 
-  player.old_world.taxes.tax_rate = 50;
+  W.old_world( player ).taxes.tax_rate = 50;
 
   SECTION( "decrease" ) {
     proposal = TaxChangeProposal::decrease{ .amount = 13 };
@@ -312,7 +314,7 @@ TEST_CASE( "[tax] prompt_for_tax_change_result" ) {
         .EXPECT__message_box( expected_msg )
         .returns( make_wait<>() );
     REQUIRE( f() == expected );
-    REQUIRE( player.old_world.taxes.tax_rate == 50 );
+    REQUIRE( W.old_world( player ).taxes.tax_rate == 50 );
   }
 
   SECTION( "increase" ) {
@@ -328,7 +330,7 @@ TEST_CASE( "[tax] prompt_for_tax_change_result" ) {
         .EXPECT__message_box( expected_msg )
         .returns( make_wait<>() );
     REQUIRE( f() == expected );
-    REQUIRE( player.old_world.taxes.tax_rate == 50 );
+    REQUIRE( W.old_world( player ).taxes.tax_rate == 50 );
   }
 
   SECTION( "increase_or_party, chooses yes" ) {
@@ -364,7 +366,7 @@ TEST_CASE( "[tax] prompt_for_tax_change_result" ) {
     W.gui().EXPECT__choice( config ).returns(
         make_wait<maybe<string>>( "yes" ) );
     REQUIRE( f() == expected );
-    REQUIRE( player.old_world.taxes.tax_rate == 50 );
+    REQUIRE( W.old_world( player ).taxes.tax_rate == 50 );
   }
 
   SECTION( "increase_or_party, chooses no" ) {
@@ -400,7 +402,7 @@ TEST_CASE( "[tax] prompt_for_tax_change_result" ) {
     W.gui().EXPECT__choice( config ).returns(
         make_wait<maybe<string>>( "no" ) );
     REQUIRE( f() == expected );
-    REQUIRE( player.old_world.taxes.tax_rate == 50 );
+    REQUIRE( W.old_world( player ).taxes.tax_rate == 50 );
   }
 }
 
@@ -418,13 +420,13 @@ TEST_CASE( "[tax] compute_tax_change" ) {
       e_difficulty::conquistador;
 
   SECTION( "not yet" ) {
-    W.turn().time_point.turns                  = 10;
-    player.old_world.taxes.next_tax_event_turn = 15;
+    W.turn().time_point.turns                       = 10;
+    W.old_world( player ).taxes.next_tax_event_turn = 15;
     expected = { .next_tax_event_turn = 15,
                  .proposed_tax_change = {} };
     REQUIRE( f() == expected );
 
-    player.old_world.taxes.next_tax_event_turn = 11;
+    W.old_world( player ).taxes.next_tax_event_turn = 11;
     expected = { .next_tax_event_turn = 11,
                  .proposed_tax_change = {} };
     REQUIRE( f() == expected );
@@ -434,16 +436,16 @@ TEST_CASE( "[tax] compute_tax_change" ) {
     W.rand().EXPECT__between_ints( 14, 18 ).returns( 13 );
 
     SECTION( "next_tax_event_turn=0" ) {
-      W.turn().time_point.turns                  = 10;
-      player.old_world.taxes.next_tax_event_turn = 0;
+      W.turn().time_point.turns                       = 10;
+      W.old_world( player ).taxes.next_tax_event_turn = 0;
       expected = { .next_tax_event_turn = 23,
                    .proposed_tax_change = {} };
       REQUIRE( f() == expected );
     }
 
     SECTION( "after 0" ) {
-      W.turn().time_point.turns                  = 37;
-      player.old_world.taxes.next_tax_event_turn = 37;
+      W.turn().time_point.turns                       = 37;
+      W.old_world( player ).taxes.next_tax_event_turn = 37;
 
       SECTION( "too early" ) {
         // This tests that we don't cause any tax events before a
@@ -455,8 +457,8 @@ TEST_CASE( "[tax] compute_tax_change" ) {
       }
 
       SECTION( "late enough" ) {
-        W.turn().time_point.turns                  = 38;
-        player.old_world.taxes.next_tax_event_turn = 37;
+        W.turn().time_point.turns                       = 38;
+        W.old_world( player ).taxes.next_tax_event_turn = 37;
 
         SECTION( "no colonies" ) {
           expected = { .next_tax_event_turn = 51,
@@ -477,7 +479,7 @@ TEST_CASE( "[tax] compute_tax_change" ) {
             // Tax increase probability.
             W.rand().EXPECT__bernoulli( .98 ).returns( false );
             SECTION( "already zero" ) {
-              player.old_world.taxes.tax_rate = 0;
+              W.old_world( player ).taxes.tax_rate = 0;
               expected = { .next_tax_event_turn = 51,
                            .proposed_tax_change =
                                TaxChangeProposal::none{} };
@@ -485,19 +487,19 @@ TEST_CASE( "[tax] compute_tax_change" ) {
             }
 
             SECTION( "larger than zero" ) {
-              player.old_world.taxes.tax_rate = 5;
-              expected                        = {
-                                       .next_tax_event_turn = 51,
-                                       .proposed_tax_change =
+              W.old_world( player ).taxes.tax_rate = 5;
+              expected                             = {
+                                            .next_tax_event_turn = 51,
+                                            .proposed_tax_change =
                     TaxChangeProposal::decrease{ .amount = 4 } };
               REQUIRE( f() == expected );
             }
 
             SECTION( "capped" ) {
-              player.old_world.taxes.tax_rate = 3;
-              expected                        = {
-                                       .next_tax_event_turn = 51,
-                                       .proposed_tax_change =
+              W.old_world( player ).taxes.tax_rate = 3;
+              expected                             = {
+                                            .next_tax_event_turn = 51,
+                                            .proposed_tax_change =
                     TaxChangeProposal::decrease{ .amount = 3 } };
               REQUIRE( f() == expected );
             }
@@ -508,7 +510,7 @@ TEST_CASE( "[tax] compute_tax_change" ) {
             W.rand().EXPECT__bernoulli( .98 ).returns( true );
 
             SECTION( "already max" ) {
-              player.old_world.taxes.tax_rate = 75;
+              W.old_world( player ).taxes.tax_rate = 75;
               expected = { .next_tax_event_turn = 51,
                            .proposed_tax_change =
                                TaxChangeProposal::none{} };
@@ -516,7 +518,7 @@ TEST_CASE( "[tax] compute_tax_change" ) {
             }
 
             SECTION( "not at max" ) {
-              player.old_world.taxes.tax_rate = 72;
+              W.old_world( player ).taxes.tax_rate = 72;
 
               SECTION( "no boycottable goods" ) {
                 expected = { .next_tax_event_turn = 51,
@@ -530,7 +532,8 @@ TEST_CASE( "[tax] compute_tax_change" ) {
                 int bid = 1;
                 for( e_commodity type :
                      refl::enum_values<e_commodity> )
-                  player.old_world.market.commodities[type]
+                  W.old_world( player )
+                      .market.commodities[type]
                       .bid_price = bid++;
                 // Worth: 100*8 = 800.
                 colony1.commodities[e_commodity::silver] = 100;
@@ -592,8 +595,8 @@ TEST_CASE(
 
   W.rand().EXPECT__between_ints( 14, 18 ).returns( 13 );
 
-  W.turn().time_point.turns                  = 38;
-  player.old_world.taxes.next_tax_event_turn = 37;
+  W.turn().time_point.turns                       = 38;
+  W.old_world( player ).taxes.next_tax_event_turn = 37;
 
   auto [colony1, founder1] =
       W.found_colony_with_new_unit( { .x = 2, .y = 3 } );
@@ -612,11 +615,12 @@ TEST_CASE(
   // Tax increase probability.
   W.rand().EXPECT__bernoulli( .98 ).returns( true );
 
-  player.old_world.taxes.tax_rate = 72;
+  W.old_world( player ).taxes.tax_rate = 72;
 
   int bid = 1;
   for( e_commodity type : refl::enum_values<e_commodity> )
-    player.old_world.market.commodities[type].bid_price = bid++;
+    W.old_world( player ).market.commodities[type].bid_price =
+        bid++;
 
   // Would pick colony 1 (silver, 800) but since it has no
   // ocean access it should pick colony 2.
@@ -666,9 +670,9 @@ TEST_CASE( "[tax] start_of_turn_tax_check" ) {
 
   W.rand().EXPECT__between_ints( 14, 18 ).returns( 13 );
 
-  W.turn().time_point.turns                  = 38;
-  player.old_world.taxes.next_tax_event_turn = 37;
-  player.old_world.taxes.tax_rate            = 72;
+  W.turn().time_point.turns                       = 38;
+  W.old_world( player ).taxes.next_tax_event_turn = 37;
+  W.old_world( player ).taxes.tax_rate            = 72;
 
   auto [colony1, founder1] =
       W.found_colony_with_new_unit( Coord{} );
@@ -687,7 +691,8 @@ TEST_CASE( "[tax] start_of_turn_tax_check" ) {
 
   int bid = 1;
   for( e_commodity type : refl::enum_values<e_commodity> )
-    player.old_world.market.commodities[type].bid_price = bid++;
+    W.old_world( player ).market.commodities[type].bid_price =
+        bid++;
   // Worth: 100*8 = 800.
   colony1.commodities[e_commodity::silver] = 100;
   // Worth: 80*14 = 1120.
@@ -703,7 +708,7 @@ TEST_CASE( "[tax] start_of_turn_tax_check" ) {
 
   Colony colony1_saved           = colony1;
   Colony colony2_saved           = colony2;
-  PlayerMarketState market_saved = player.old_world.market;
+  PlayerMarketState market_saved = W.old_world( player ).market;
 
   // Rebels bump.
   W.rand().EXPECT__between_doubles( 0.0, 1.0 ).returns( .7 );
@@ -728,7 +733,7 @@ TEST_CASE( "[tax] start_of_turn_tax_check" ) {
                  } } };
   W.gui().EXPECT__choice( config ).returns(
       make_wait<maybe<string>>( "no" ) );
-  REQUIRE( player.old_world.taxes.tax_rate == 72 );
+  REQUIRE( W.old_world( player ).taxes.tax_rate == 72 );
 
   string const boycott_msg =
       "Colonists in my colony 2 hold [Trade Goods Party]!  "
@@ -745,14 +750,14 @@ TEST_CASE( "[tax] start_of_turn_tax_check" ) {
   REQUIRE( !w.exception() );
   REQUIRE( w.ready() );
 
-  REQUIRE( player.old_world.taxes.tax_rate == 72 );
+  REQUIRE( W.old_world( player ).taxes.tax_rate == 72 );
   REQUIRE( colony1 == colony1_saved );
   colony2_saved.commodities[e_commodity::trade_goods]      = 0;
   colony2_saved.sons_of_liberty.num_rebels_from_bells_only = 1.1;
   REQUIRE( colony2 == colony2_saved );
   market_saved.commodities[e_commodity::trade_goods].boycott =
       true;
-  REQUIRE( player.old_world.market == market_saved );
+  REQUIRE( W.old_world( player ).market == market_saved );
 }
 
 TEST_CASE( "[tax] compute_tax_change when over max" ) {
@@ -769,11 +774,11 @@ TEST_CASE( "[tax] compute_tax_change when over max" ) {
 
   W.rand().EXPECT__between_ints( 14, 18 ).returns( 13 );
 
-  W.turn().time_point.turns                  = 37;
-  player.old_world.taxes.next_tax_event_turn = 37;
+  W.turn().time_point.turns                       = 37;
+  W.old_world( player ).taxes.next_tax_event_turn = 37;
 
-  W.turn().time_point.turns                  = 38;
-  player.old_world.taxes.next_tax_event_turn = 37;
+  W.turn().time_point.turns                       = 38;
+  W.old_world( player ).taxes.next_tax_event_turn = 37;
 
   W.found_colony_with_new_unit( Coord{} );
   W.found_colony_with_new_unit( Coord{ .x = 2 } );
@@ -784,9 +789,9 @@ TEST_CASE( "[tax] compute_tax_change when over max" ) {
   // Tax increase probability.
   W.rand().EXPECT__bernoulli( .98 ).returns( true );
 
-  player.old_world.taxes.tax_rate = 76;
+  W.old_world( player ).taxes.tax_rate = 76;
   BASE_CHECK(
-      player.old_world.taxes.tax_rate >
+      W.old_world( player ).taxes.tax_rate >
       config_old_world
           .taxes[W.settings().game_setup_options.difficulty]
           .maximum_tax_rate );

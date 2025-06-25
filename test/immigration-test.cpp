@@ -420,7 +420,7 @@ TEST_CASE( "[immigration] check_for_new_immigrant" ) {
                          e_unit_type::veteran_soldier,
                          e_unit_type::seasoned_scout } };
   Player& player = W.default_player();
-  player.old_world.immigration.immigrants_pool =
+  W.old_world( player ).immigration.immigrants_pool =
       initial_state.immigrants_pool;
 
   SECTION( "not enough crosses" ) {
@@ -432,7 +432,7 @@ TEST_CASE( "[immigration] check_for_new_immigrant" ) {
     REQUIRE( *w == nothing );
     REQUIRE( player.crosses == 10 );
     REQUIRE( W.units().all().size() == 0 );
-    REQUIRE( player.old_world.immigration.immigrants_pool ==
+    REQUIRE( W.old_world( player ).immigration.immigrants_pool ==
              initial_state.immigrants_pool );
   }
 
@@ -461,8 +461,9 @@ TEST_CASE( "[immigration] check_for_new_immigrant" ) {
     REQUIRE( *w == UnitId{ 1 } );
     REQUIRE( W.units().unit_for( **w ).type() ==
              e_unit_type::veteran_soldier );
-    REQUIRE( player.old_world.immigration.immigrants_pool[1] ==
-             e_unit_type::scout );
+    REQUIRE(
+        W.old_world( player ).immigration.immigrants_pool[1] ==
+        e_unit_type::scout );
 
     REQUIRE( player.crosses == 0 );
     REQUIRE( W.units().all().size() == 1 );
@@ -506,8 +507,9 @@ TEST_CASE( "[immigration] check_for_new_immigrant" ) {
     REQUIRE( **w == UnitId{ 1 } );
     REQUIRE( W.units().unit_for( **w ).type() ==
              e_unit_type::veteran_soldier );
-    REQUIRE( player.old_world.immigration.immigrants_pool[1] ==
-             e_unit_type::expert_lumberjack );
+    REQUIRE(
+        W.old_world( player ).immigration.immigrants_pool[1] ==
+        e_unit_type::expert_lumberjack );
 
     REQUIRE( player.crosses == 2 );
     REQUIRE( W.units().all().size() == 1 );
@@ -522,86 +524,87 @@ TEST_CASE( "[immigration] check_for_new_immigrant" ) {
 }
 
 TEST_CASE( "[immigration] cost_of_recruit" ) {
-  World W;
-  Player& player          = W.default_player();
+  World w;
+  Player& player          = w.default_player();
   e_difficulty difficulty = {};
   int crosses_needed      = 0;
 
   auto f = [&] {
-    return cost_of_recruit( player, crosses_needed, difficulty );
+    return cost_of_recruit( w.ss().as_const, player,
+                            crosses_needed, difficulty );
   };
 
   difficulty     = e_difficulty::discoverer;
   crosses_needed = 10;
   player.crosses = 0;
-  player.old_world.immigration.num_recruits_rushed = 0;
+  w.old_world( player ).immigration.num_recruits_rushed = 0;
   REQUIRE( f() == 140 );
 
   difficulty     = e_difficulty::discoverer;
   crosses_needed = 10;
   player.crosses = 5;
-  player.old_world.immigration.num_recruits_rushed = 0;
+  w.old_world( player ).immigration.num_recruits_rushed = 0;
   REQUIRE( f() == 120 );
 
   difficulty     = e_difficulty::discoverer;
   crosses_needed = 10;
   player.crosses = 10;
-  player.old_world.immigration.num_recruits_rushed = 0;
+  w.old_world( player ).immigration.num_recruits_rushed = 0;
   REQUIRE( f() == 100 );
 
   difficulty     = e_difficulty::discoverer;
   crosses_needed = 100;
   player.crosses = 50;
-  player.old_world.immigration.num_recruits_rushed = 0;
+  w.old_world( player ).immigration.num_recruits_rushed = 0;
   REQUIRE( f() == 120 );
 
   difficulty     = e_difficulty::explorer;
   crosses_needed = 100;
   player.crosses = 77;
-  player.old_world.immigration.num_recruits_rushed = 4;
+  w.old_world( player ).immigration.num_recruits_rushed = 4;
   REQUIRE( f() == 132 );
 
   difficulty     = e_difficulty::conquistador;
   crosses_needed = 85;
   player.crosses = 33;
-  player.old_world.immigration.num_recruits_rushed = 1;
+  w.old_world( player ).immigration.num_recruits_rushed = 1;
   REQUIRE( f() == 161 );
 
   difficulty     = e_difficulty::viceroy;
   crosses_needed = 1;
   player.crosses = 1;
-  player.old_world.immigration.num_recruits_rushed = 0;
+  w.old_world( player ).immigration.num_recruits_rushed = 0;
   REQUIRE( f() == 100 );
 
   difficulty     = e_difficulty::viceroy;
   crosses_needed = 1;
   player.crosses = 0;
-  player.old_world.immigration.num_recruits_rushed = 0;
+  w.old_world( player ).immigration.num_recruits_rushed = 0;
   REQUIRE( f() == 220 );
 
   difficulty     = e_difficulty::viceroy;
   crosses_needed = 14;
   player.crosses = 10;
-  player.old_world.immigration.num_recruits_rushed = 10;
+  w.old_world( player ).immigration.num_recruits_rushed = 10;
   REQUIRE( f() == 191 );
 
   difficulty     = e_difficulty::governor;
   crosses_needed = 20;
   player.crosses = 30;
-  player.old_world.immigration.num_recruits_rushed = 1;
+  w.old_world( player ).immigration.num_recruits_rushed = 1;
   REQUIRE( f() == 40 );
 
   difficulty     = e_difficulty::discoverer;
   crosses_needed = 200;
   player.crosses = 613;
-  player.old_world.immigration.num_recruits_rushed = 1;
+  w.old_world( player ).immigration.num_recruits_rushed = 1;
   // Would be -24, but it bottoms out at the minimum=10.
   REQUIRE( f() == 10 );
 
   difficulty     = e_difficulty::discoverer;
   crosses_needed = 200;
   player.crosses = 510;
-  player.old_world.immigration.num_recruits_rushed = 1;
+  w.old_world( player ).immigration.num_recruits_rushed = 1;
   // Would be 7, but it bottoms out at the minimum=10.
   REQUIRE( f() == 10 );
 }
@@ -624,16 +627,16 @@ TEST_CASE( "[immigration] rush_recruit_next_immigrant" ) {
       .EXPECT__between_doubles( 0, Approx( kUpperLimit, .1 ) )
       .returns( 2229.0 );
 
-  auto& pool   = player.old_world.immigration.immigrants_pool;
-  pool[0]      = e_unit_type::veteran_soldier;
-  pool[1]      = e_unit_type::pioneer;
-  pool[2]      = e_unit_type::petty_criminal;
+  auto& pool = W.old_world( player ).immigration.immigrants_pool;
+  pool[0]    = e_unit_type::veteran_soldier;
+  pool[1]    = e_unit_type::pioneer;
+  pool[2]    = e_unit_type::petty_criminal;
   player.money = 1000;
   REQUIRE(
       compute_crosses( W.units(), player.type ).crosses_needed ==
       8 ); // sanity check.
-  player.crosses                                   = 5;
-  player.old_world.immigration.num_recruits_rushed = 3;
+  player.crosses                                        = 5;
+  W.old_world( player ).immigration.num_recruits_rushed = 3;
 
   REQUIRE( W.ss().units.all().size() == 0 );
 
@@ -641,8 +644,9 @@ TEST_CASE( "[immigration] rush_recruit_next_immigrant" ) {
                                /*slot_selected=*/1 );
 
   REQUIRE( player.crosses == 0 );
-  REQUIRE( player.old_world.immigration.num_recruits_rushed ==
-           4 );
+  REQUIRE(
+      W.old_world( player ).immigration.num_recruits_rushed ==
+      4 );
   REQUIRE( player.money == 1000 - 153 );
 
   REQUIRE( pool[0] == e_unit_type::veteran_soldier );

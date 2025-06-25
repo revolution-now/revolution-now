@@ -81,7 +81,8 @@ wait<maybe<UnitId>> check_for_new_immigrant(
 // cruit the next immigrant. The "crosses_needed" will be the
 // total crosses needed for this immigrant, including any crosses
 // that the player has already accumulated.
-int cost_of_recruit( Player const& player, int crosses_needed,
+int cost_of_recruit( SSConst const& ss, Player const& player,
+                     int crosses_needed,
                      e_difficulty difficulty );
 
 void rush_recruit_next_immigrant( SS& ss, TS& ts, Player& player,

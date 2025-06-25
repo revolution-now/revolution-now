@@ -14,6 +14,7 @@
 #include "co-wait.hpp"
 #include "igui.hpp"
 #include "irand.hpp"
+#include "player-mgr.hpp"
 #include "ts.hpp"
 #include "unit-ownership.hpp"
 
@@ -26,7 +27,9 @@
 // ss
 #include "ss/dwelling.rds.hpp"
 #include "ss/natives.hpp"
+#include "ss/old-world-state.rds.hpp"
 #include "ss/player.rds.hpp"
+#include "ss/players.rds.hpp"
 #include "ss/ref.hpp"
 #include "ss/revolution.rds.hpp"
 #include "ss/settings.rds.hpp"
@@ -65,12 +68,14 @@ bool player_has_galleons( SSConst const& ss,
 } // namespace
 
 TreasureReceipt treasure_in_harbor_receipt(
-    Player const& player, Unit const& treasure ) {
+    SSConst const& ss, Player const& player,
+    Unit const& treasure ) {
   e_treasure_transport_mode const transport_mode =
       e_treasure_transport_mode::player;
   int const worth =
       treasure.composition().inventory()[e_unit_inventory::gold];
-  int const tax_rate    = player.old_world.taxes.tax_rate;
+  int const tax_rate =
+      old_world_state( ss, player.type ).taxes.tax_rate;
   int const cut_percent = tax_rate;
   int const cut =
       static_cast<int>( worth * ( cut_percent / 100.0 ) );
@@ -131,7 +136,8 @@ wait<maybe<TreasureReceipt>> treasure_enter_colony(
             : e_treasure_transport_mode::king_with_charge;
     int const worth = treasure.composition()
                           .inventory()[e_unit_inventory::gold];
-    int const tax_rate = player.old_world.taxes.tax_rate;
+    int const tax_rate =
+        old_world_state( ss, player.type ).taxes.tax_rate;
     int const cut_percent =
         no_extra_charge
             ? tax_rate

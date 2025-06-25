@@ -110,8 +110,7 @@ maybe<Coord> find_new_world_arrival_square(
 // ensure that at least one of them are selected (for a good
 // player experience, so that they never go to the harbor view
 // and see ships sitting there and none of them are selected).
-void update_harbor_selected_unit( UnitsState const& units_state,
-                                  Player& player );
+void update_harbor_selected_unit( SS& ss, Player& player );
 
 // This is to be called just after a ship that was in port is
 // sent to sail to the new world, and will check if there is an-
@@ -120,8 +119,7 @@ void update_harbor_selected_unit( UnitsState const& units_state,
 // (update_harbor_selected_unit) is that this one will always
 // prefer an in-port unit if there is one, whereas the one above
 // is happy with any unit in the harbor being selected.
-void try_select_in_port_ship( UnitsState const& units,
-                              Player& player );
+void try_select_in_port_ship( SS& ss, Player& player );
 
 UnitId create_unit_in_harbor( SS& ss, Player& player,
                               UnitComposition comp );

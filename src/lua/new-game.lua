@@ -233,8 +233,9 @@ end
 -----------------------------------------------------------------
 -- Players State
 -----------------------------------------------------------------
-local function create_old_world_state( settings, player )
-  local old_world = player.old_world
+local function create_old_world_state( root, player )
+  local old_world = root.players.old_world[player.type]
+  local settings = root.settings
   -- Immigrants state.
   old_world.immigration.immigrants_pool[1] =
       immigration.pick_next_unit_for_pool( player, settings )
@@ -256,7 +257,8 @@ local function create_revolution_state( settings, player )
   for k, v in pairs( forces_conf ) do player_conf[k] = v end
 end
 
-local function init_non_processed_goods_prices( options, players )
+local function init_non_processed_goods_prices(root, options,
+                                               players )
   -- Initializes the same commodity for all players to the same
   -- value.
   local init_commodity = function( comm )
@@ -267,8 +269,8 @@ local function init_non_processed_goods_prices( options, players )
     local bid_price = math.random( min, max )
     for _, o in ipairs( options.ordered_players ) do
       local player = players:get( o.nation )
-      player.old_world.market.commodities[comm].bid_price =
-          bid_price
+      local old_world = root.players.old_world[player.type]
+      old_world.market.commodities[comm].bid_price = bid_price
     end
   end
 
@@ -287,7 +289,7 @@ local function init_non_processed_goods_prices( options, players )
   init_commodity( 'muskets' )
 end
 
-local function init_processed_goods_prices(options, players, root )
+local function init_processed_goods_prices(root, options, players )
   -- This will create a price group object which will randomly
   -- initialize the starting volumes in the correct way and allow
   -- us to get the initial prices. Then we assign those same
@@ -298,7 +300,8 @@ local function init_processed_goods_prices(options, players, root )
   for _, comm in ipairs{ 'rum', 'cigars', 'cloth', 'coats' } do
     for _, o in ipairs( options.ordered_players ) do
       local player = players:get( o.nation )
-      local c = player.old_world.market.commodities[comm]
+      local old_world = root.players.old_world[player.type]
+      local c = old_world.market.commodities[comm]
       local spread = market.bid_ask_spread( comm )
       c.bid_price = eq_ask_prices[comm] - spread
       c.intrinsic_volume = 0 -- not used.
@@ -312,8 +315,8 @@ end
 -- their markets should start out with the same (random) prices.
 local function init_prices( options, root )
   local players = root.players.players
-  init_non_processed_goods_prices( options, players )
-  init_processed_goods_prices( options, players, root )
+  init_non_processed_goods_prices( root, options, players )
+  init_processed_goods_prices( root, options, players )
 end
 
 local STARTING_GOLD = {
@@ -324,14 +327,13 @@ local STARTING_GOLD = {
   viceroy=0,
 }
 
-local function create_player_state( settings, player_type, player )
+local function create_player_state( root, player_type, player )
   player.type = player_type
   player.nation = player_type
-  player.money = assert(
-                     STARTING_GOLD[settings.game_setup_options
-                         .difficulty] )
-  create_old_world_state( settings, player )
-  create_revolution_state( settings, player )
+  player.money = assert( STARTING_GOLD[root.settings
+                             .game_setup_options.difficulty] )
+  create_old_world_state( root, player )
+  create_revolution_state( root.settings, player )
 end
 
 local function assert_map_created( root )
@@ -344,10 +346,9 @@ local function create_players( options, root )
   -- Sanity check.
   assert( assert_map_created( root ),
           'map must be generated before players are created' )
-  local settings = root.settings
   for _, o in ipairs( options.ordered_players ) do
     local player = player_mgr.add_new_player( o.nation )
-    create_player_state( settings, o.nation, player )
+    create_player_state( root, o.nation, player )
     if o.human then
       player.control = 'human'
     else

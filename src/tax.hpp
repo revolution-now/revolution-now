@@ -41,7 +41,7 @@ TaxUpdateComputation compute_tax_change( SSConst const& ss,
 // dicates the changes that actually need to be made, and in gen-
 // eral this requires UI routines and player input.
 wait<TaxChangeResult> prompt_for_tax_change_result(
-    SSConst const& ss, TS& ts, Player& player,
+    SS& ss, TS& ts, Player& player,
     TaxChangeProposal const& proposal );
 
 // Takes the TaxChangeResult object and applies any changes
@@ -57,7 +57,8 @@ wait<> start_of_turn_tax_check( SS& ss, TS& ts, Player& player );
 
 // If this commodity were currently boycotted then how much back-
 // taxes would the player have to pay to remove it?
-int back_tax_for_boycotted_commodity( Player const& player,
+int back_tax_for_boycotted_commodity( SSConst const& ss,
+                                      Player const& player,
                                       e_commodity type );
 
 // This will run through the UI routine that happens when a
@@ -67,6 +68,7 @@ int back_tax_for_boycotted_commodity( Player const& player,
 // check-fail. Returns the new boycott status (for convenience;
 // if the status changed, the state will have been updated).
 wait<base::NoDiscard<bool>> try_trade_boycotted_commodity(
-    TS& ts, Player& player, e_commodity type, int back_taxes );
+    SS& ss, TS& ts, Player& player, e_commodity type,
+    int back_taxes );
 
 } // namespace rn

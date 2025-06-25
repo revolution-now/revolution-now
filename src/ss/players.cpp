@@ -14,6 +14,7 @@
 #include "revolution.rds.hpp"
 #include "ss/market.hpp"
 #include "ss/nation.hpp"
+#include "ss/old-world-state.hpp"
 #include "ss/player.hpp"
 
 // luapp
@@ -140,6 +141,7 @@ LUA_STARTUP( lua::state& st ) {
     auto u  = st.usertype.create<U>();
 
     u["players"]             = &U::players;
+    u["old_world"]           = &U::old_world;
     u["global_market_state"] = &U::global_market_state;
     u[lua::metatable_key]    = st.table.create();
   }();
@@ -152,15 +154,31 @@ LUA_STARTUP( lua::state& st ) {
     // We could instead do this by overriding the __index
     // metamethod, but then we would not be able to register any
     // further (non-metamethod) members of this userdata.
-    u["get"] = [&]( U& obj, e_player player ) -> maybe<Player&> {
-      return obj[player];
+    u["get"] = [&]( U& o, e_player player ) -> maybe<Player&> {
+      return o[player];
     };
 
-    u["reset_player"] = []( U& obj,
-                            e_player player ) -> Player& {
-      obj[player] = Player{};
-      return *obj[player];
+    u["reset_player"] = []( U& o, e_player player ) -> Player& {
+      o[player] = Player{};
+      return *o[player];
     };
+  }();
+
+  // OldWorldMap
+  [&] {
+    using U = ::rn::OldWorldMap;
+    auto u  = st.usertype.create<U>();
+
+    // TODO: make this generic for enum maps.
+    u[lua::metatable_key]["__index"] =
+        []( U& o, e_nation const type ) -> auto& {
+      return o[type];
+    };
+
+    // !! NOTE: because we overwrote the __*index metamethods on
+    // this userdata we cannot add any further (non-metatable)
+    // members on this object, since there will be no way to look
+    // them up by name.
   }();
 };
 

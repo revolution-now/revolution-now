@@ -24,6 +24,7 @@
 // ss
 #include "ss/dwelling.rds.hpp"
 #include "ss/natives.hpp"
+#include "ss/old-world-state.rds.hpp"
 #include "ss/player.rds.hpp"
 #include "ss/ref.hpp"
 #include "ss/settings.hpp"
@@ -78,11 +79,11 @@ TEST_CASE( "[treasure] treasure_in_harbor_receipt" ) {
           .value(),
       { .x = 1, .y = 1 } );
   TreasureReceipt expected;
-  int& tax_rate = player.old_world.taxes.tax_rate;
+  int& tax_rate = W.old_world( player ).taxes.tax_rate;
 
   auto f = [&] {
-    return treasure_in_harbor_receipt( W.default_player(),
-                                       unit );
+    return treasure_in_harbor_receipt(
+        W.ss(), W.default_player(), unit );
   };
 
   tax_rate = 0;
@@ -243,7 +244,7 @@ TEST_CASE( "[treasure] treasure_enter_colony" ) {
           { { e_unit_inventory::gold, 100 } } )
           .value(),
       { .x = 1, .y = 1 } );
-  player.old_world.taxes.tax_rate = 7;
+  W.old_world( player ).taxes.tax_rate = 7;
   maybe<TreasureReceipt> expected;
   ChoiceConfig config;
   string msg;

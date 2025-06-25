@@ -21,12 +21,16 @@
 
 // refl
 #include "refl/cdr.hpp"
+#include "refl/to-str.hpp"
 
 // cdr
 #include "cdr/converter.hpp"
 #include "cdr/ext-base.hpp"
 #include "cdr/ext-builtin.hpp"
 #include "cdr/ext-std.hpp"
+
+// base
+#include "src/base/to-str-ext-std.hpp"
 
 // Must be last.
 #include "test/catch-common.hpp"
@@ -109,6 +113,138 @@ value cdr_game_state_default = table{
               "ref_english"_key = null,
               "ref_french"_key  = null,
               "ref_spanish"_key = null,
+            },
+        "old_world"_key =
+            table{
+              "dutch"_key =
+                  table{
+                    "harbor_state"_key =
+                        table{
+                          "selected_unit"_key = null,
+                        },
+                    "immigration"_key =
+                        table{
+                          "immigrants_pool"_key =
+                              list{
+                                "petty_criminal",
+                                "petty_criminal",
+                                "petty_criminal",
+                              },
+                          "num_recruits_rushed"_key = 0,
+                        },
+                    "taxes"_key =
+                        table{
+                          "tax_rate"_key              = 0,
+                          "next_tax_event_turn"_key   = 0,
+                          "king_remarriage_count"_key = 0,
+                        },
+                    "market"_key =
+                        table{
+                          "commodities"_key =
+                              table{
+                                "food"_key =
+                                    table{
+                                      "bid_price"_key        = 0,
+                                      "intrinsic_volume"_key = 0,
+                                      "player_traded_volume"_key = 0,
+                                      "boycott"_key = false,
+                                    },
+                                "sugar"_key       = table{
+                                      "bid_price"_key        = 0,
+                                      "intrinsic_volume"_key = 0,
+                                      "player_traded_volume"_key = 0,
+                                      "boycott"_key = false,
+                                },
+                                "tobacco"_key     = table{
+                                      "bid_price"_key        = 0,
+                                      "intrinsic_volume"_key = 0,
+                                      "player_traded_volume"_key = 0,
+                                      "boycott"_key = false,
+                                },
+                                "cotton"_key      = table{
+                                      "bid_price"_key        = 0,
+                                      "intrinsic_volume"_key = 0,
+                                      "player_traded_volume"_key = 0,
+                                      "boycott"_key = false,
+                                },
+                                "furs"_key        = table{
+                                      "bid_price"_key        = 0,
+                                      "intrinsic_volume"_key = 0,
+                                      "player_traded_volume"_key = 0,
+                                      "boycott"_key = false,
+                                },
+                                "lumber"_key      = table{
+                                      "bid_price"_key        = 0,
+                                      "intrinsic_volume"_key = 0,
+                                      "player_traded_volume"_key = 0,
+                                      "boycott"_key = false,
+                                },
+                                "ore"_key         = table{
+                                      "bid_price"_key        = 0,
+                                      "intrinsic_volume"_key = 0,
+                                      "player_traded_volume"_key = 0,
+                                      "boycott"_key = false,
+                                },
+                                "silver"_key      = table{
+                                      "bid_price"_key        = 0,
+                                      "intrinsic_volume"_key = 0,
+                                      "player_traded_volume"_key = 0,
+                                      "boycott"_key = false,
+                                },
+                                "horses"_key      = table{
+                                      "bid_price"_key        = 0,
+                                      "intrinsic_volume"_key = 0,
+                                      "player_traded_volume"_key = 0,
+                                      "boycott"_key = false,
+                                },
+                                "rum"_key         = table{
+                                      "bid_price"_key        = 0,
+                                      "intrinsic_volume"_key = 0,
+                                      "player_traded_volume"_key = 0,
+                                      "boycott"_key = false,
+                                },
+                                "cigars"_key      = table{
+                                      "bid_price"_key        = 0,
+                                      "intrinsic_volume"_key = 0,
+                                      "player_traded_volume"_key = 0,
+                                      "boycott"_key = false,
+                                },
+                                "cloth"_key       = table{
+                                      "bid_price"_key        = 0,
+                                      "intrinsic_volume"_key = 0,
+                                      "player_traded_volume"_key = 0,
+                                      "boycott"_key = false,
+                                },
+                                "coats"_key       = table{
+                                      "bid_price"_key        = 0,
+                                      "intrinsic_volume"_key = 0,
+                                      "player_traded_volume"_key = 0,
+                                      "boycott"_key = false,
+                                },
+                                "trade_goods"_key = table{
+                                      "bid_price"_key        = 0,
+                                      "intrinsic_volume"_key = 0,
+                                      "player_traded_volume"_key = 0,
+                                      "boycott"_key = false,
+                                },
+                                "tools"_key       = table{
+                                      "bid_price"_key        = 0,
+                                      "intrinsic_volume"_key = 0,
+                                      "player_traded_volume"_key = 0,
+                                      "boycott"_key = false,
+                                },
+                                "muskets"_key     = table{
+                                      "bid_price"_key        = 0,
+                                      "intrinsic_volume"_key = 0,
+                                      "player_traded_volume"_key = 0,
+                                      "boycott"_key = false,
+                                },
+                              },
+                        },
+                  },
+              "english"_key     = null,
+              "french"_key      = null,
+              "spanish"_key     = null,
             },
         "global_market_state"_key =
             table{
@@ -320,7 +456,20 @@ value cdr_game_state_default = table{
 // static_assert( equality_comparable<TerrainState> );
 // static_assert( equality_comparable<RootState> );
 
+void init_cdr_data() {
+  auto& old_world =
+      cdr_game_state_default["players"]["old_world"];
+  CHECK( old_world["english"] == null );
+  // Save typing above by just keeping one of the players
+  // (dutch), since they are all the same.
+  auto const dutch     = old_world["dutch"];
+  old_world["english"] = dutch;
+  old_world["french"]  = dutch;
+  old_world["spanish"] = dutch;
+}
+
 TEST_CASE( "[game-state] some test" ) {
+  init_cdr_data();
   cdr::converter conv;
   RootState root_def;
   value const v = conv.to( root_def );

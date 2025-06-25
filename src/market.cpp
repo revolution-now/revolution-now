@@ -14,6 +14,7 @@
 #include "co-wait.hpp"
 #include "commodity.hpp"
 #include "igui.hpp"
+#include "player-mgr.hpp"
 #include "price-group.hpp"
 #include "ts.hpp"
 
@@ -55,7 +56,8 @@ int total_traded_volume_for_commodity( SSConst const& ss,
   int sum = 0;
   for( auto const& [type, player] : ss.players.players )
     if( player.has_value() )
-      sum += player->old_world.market.commodities[c]
+      sum += old_world_state( ss, type )
+                 .market.commodities[c]
                  .player_traded_volume;
   return sum;
 }
@@ -80,12 +82,14 @@ ProcessedGoodsPriceGroup create_price_group(
 
 // Note that the intrinsic value passed in will generally already
 // have a value that needs to be taken into account.
-void try_price_change_default_model( Player const& player,
+void try_price_change_default_model( SSConst const& ss,
+                                     Player const& player,
                                      e_commodity type,
                                      int& intrinsic_volume_delta,
                                      int& price_change ) {
   PlayerMarketItem const player_market_item =
-      player.old_world.market.commodities[type];
+      old_world_state( ss, player.type )
+          .market.commodities[type];
   auto const& item_config = config_market.price_behavior[type];
   int const fall_threshold =
       item_config.model_parameters.fall * 100;
@@ -114,11 +118,13 @@ void try_price_change_default_model( Player const& player,
 }
 
 PriceChange try_price_change_group_model(
-    Player const& player, int equilibrium_price,
-    e_commodity type, double volatility_push ) {
-  int const ask_price = ask_from_bid(
-      type,
-      player.old_world.market.commodities[type].bid_price );
+    SSConst const& ss, Player const& player,
+    int equilibrium_price, e_commodity type,
+    double volatility_push ) {
+  int const ask_price =
+      ask_from_bid( type, old_world_state( ss, player.type )
+                              .market.commodities[type]
+                              .bid_price );
   // Need to clamp at both steps, since it is observed in the OG
   // that when the volatility_push becomes unity that it can
   // overtake the eq_push. And then we need to clamp the net_push
@@ -141,7 +147,7 @@ PriceChange try_price_change_group_model(
   int const price_change = net_push;
   CHECK_GE( price_change, -1 );
   CHECK_LE( price_change, 1 );
-  int const current_bid = market_price( player, type ).bid;
+  int const current_bid = market_price( ss, player, type ).bid;
   int const proposed_bid =
       clamp( current_bid + price_change,
              config_market.price_behavior[type]
@@ -149,7 +155,7 @@ PriceChange try_price_change_group_model(
              config_market.price_behavior[type]
                  .price_limits.bid_price_max );
   int const allowed_price_change = proposed_bid - current_bid;
-  return create_price_change( player, type,
+  return create_price_change( ss, player, type,
                               allowed_price_change );
 }
 
@@ -170,7 +176,7 @@ Invoice transaction_invoice_default_model(
 
   CHECK( !is_in_processed_goods_price_group( transacted.type ) );
   CommodityPrice const prices =
-      market_price( player, transacted.type );
+      market_price( ss, player, transacted.type );
   int const quantity          = transacted.quantity;
   e_commodity const comm_type = transacted.type;
   auto const& item_config =
@@ -188,7 +194,8 @@ Invoice transaction_invoice_default_model(
 
   // 1. Player money adjustment.
   invoice.money_delta_before_taxes = price * transacted.quantity;
-  invoice.tax_rate = player.old_world.taxes.tax_rate;
+  invoice.tax_rate =
+      old_world_state( ss, player.type ).taxes.tax_rate;
   if( transaction_type == e_transaction::sell ) {
     CHECK_GE( invoice.money_delta_before_taxes, 0 );
     // Rounding is not an issue here because the amount received
@@ -243,11 +250,11 @@ Invoice transaction_invoice_default_model(
   if( immediate_price_change_allowed ==
       e_immediate_price_change_allowed::allowed )
     try_price_change_default_model(
-        player, comm_type,
+        ss, player, comm_type,
         invoice.intrinsic_volume_delta[player.type],
         price_change );
   invoice.price_change =
-      create_price_change( player, comm_type, price_change );
+      create_price_change( ss, player, comm_type, price_change );
 
   CHECK_GE( invoice.price_change.to.bid,
             config_market.price_behavior[transacted.type]
@@ -265,7 +272,7 @@ Invoice transaction_invoice_processed_group_model(
         immediate_price_change_allowed ) {
   CHECK( is_in_processed_goods_price_group( transacted.type ) );
   CommodityPrice const prices =
-      market_price( player, transacted.type );
+      market_price( ss, player, transacted.type );
 
   Invoice invoice;
   invoice.what = transacted;
@@ -276,7 +283,8 @@ Invoice transaction_invoice_processed_group_model(
                         : prices.bid;
   // FIXME: dedupe this.
   invoice.money_delta_before_taxes = price * transacted.quantity;
-  invoice.tax_rate = player.old_world.taxes.tax_rate;
+  invoice.tax_rate =
+      old_world_state( ss, player.type ).taxes.tax_rate;
   if( transaction_type == e_transaction::sell ) {
     CHECK_GE( invoice.money_delta_before_taxes, 0 );
     invoice.tax_amount =
@@ -334,13 +342,13 @@ Invoice transaction_invoice_processed_group_model(
   if( immediate_price_change_allowed ==
       e_immediate_price_change_allowed::allowed )
     invoice.price_change = try_price_change_group_model(
-        player, equilibrium_prices[processed_type],
+        ss, player, equilibrium_prices[processed_type],
         transacted.type, volatility_push );
   else
     // The custom house needs to suppress immediate price
     // changes.
     invoice.price_change = create_price_change(
-        player, transacted.type, /*price_change=*/0 );
+        ss, player, transacted.type, /*price_change=*/0 );
 
   return invoice;
 }
@@ -354,7 +362,7 @@ Invoice transaction_invoice_processed_group_model(
 // adjusted. Thus the two are coupled. Any price change that re-
 // sults is returned.
 PriceChange evolve_default_model_commodity(
-    Player& player, e_commodity commodity ) {
+    SS& ss, Player& player, e_commodity commodity ) {
   int intrinsic_volume_delta = 0;
   int price_change           = 0;
 
@@ -377,16 +385,17 @@ PriceChange evolve_default_model_commodity(
 
   // 2. See if we should move the price. This will potentially
   // mutate the volume and price change variables.
-  try_price_change_default_model(
-      player, commodity, intrinsic_volume_delta, price_change );
+  try_price_change_default_model( ss, player, commodity,
+                                  intrinsic_volume_delta,
+                                  price_change );
 
   // Create this before affecting the changes.
   PriceChange const change =
-      create_price_change( player, commodity, price_change );
+      create_price_change( ss, player, commodity, price_change );
 
   // Actually change the price.
-  PlayerMarketItem& item =
-      player.old_world.market.commodities[change.type];
+  PlayerMarketItem& item = old_world_state( ss, player.type )
+                               .market.commodities[change.type];
   item.bid_price += price_change;
   item.intrinsic_volume += intrinsic_volume_delta;
 
@@ -395,7 +404,7 @@ PriceChange evolve_default_model_commodity(
 
 // This is done once at the start of each player turn.
 refl::enum_map<e_commodity, PriceChange>
-evolve_group_model_prices( SSConst const& ss, Player& player ) {
+evolve_group_model_prices( SS& ss, Player& player ) {
   refl::enum_map<e_commodity, PriceChange> res;
 
   // Note that there is no designated player in the context of
@@ -411,12 +420,13 @@ evolve_group_model_prices( SSConst const& ss, Player& player ) {
        refl::enum_values<e_processed_good> ) {
     e_commodity const comm   = to_commodity( good );
     PriceChange const change = try_price_change_group_model(
-        player, equilibrium_prices[good], comm,
+        ss, player, equilibrium_prices[good], comm,
         /*volatility_push=*/0 );
     res[comm] = change;
     // Now make the change.
-    player.old_world.market.commodities[comm].bid_price +=
-        change.delta;
+    old_world_state( ss, player.type )
+        .market.commodities[comm]
+        .bid_price += change.delta;
   }
 
   return res;
@@ -434,11 +444,13 @@ CommodityPrice make_commodity_price( e_commodity commodity,
 /****************************************************************
 ** Public API
 *****************************************************************/
-PriceChange create_price_change( Player const& player,
+PriceChange create_price_change( SSConst const& ss,
+                                 Player const& player,
                                  e_commodity comm,
                                  int price_change ) {
-  int const current_bid =
-      player.old_world.market.commodities[comm].bid_price;
+  int const current_bid = old_world_state( ss, player.type )
+                              .market.commodities[comm]
+                              .bid_price;
   int const current_ask = ask_from_bid( comm, current_bid );
   return PriceChange{
     .type = comm,
@@ -449,10 +461,12 @@ PriceChange create_price_change( Player const& player,
     .delta = price_change };
 }
 
-CommodityPrice market_price( Player const& player,
+CommodityPrice market_price( SSConst const& ss,
+                             Player const& player,
                              e_commodity commodity ) {
-  int const bid =
-      player.old_world.market.commodities[commodity].bid_price;
+  int const bid = old_world_state( ss, player.type )
+                      .market.commodities[commodity]
+                      .bid_price;
   return make_commodity_price( commodity, bid );
 }
 
@@ -489,12 +503,14 @@ void apply_invoice( SS& ss, Player& player,
   player.money += invoice.money_delta_final;
   player.total_after_tax_revenue += invoice.money_delta_final;
   player.royal_money += invoice.tax_amount;
-  player.old_world.market.commodities[invoice.what.type]
+  old_world_state( ss, player.type )
+      .market.commodities[invoice.what.type]
       .player_traded_volume += invoice.player_volume_delta;
   for( e_player player : refl::enum_values<e_player> ) {
     maybe<Player&> some_player = ss.players.players[player];
     if( !some_player.has_value() ) continue;
-    some_player->old_world.market.commodities[invoice.what.type]
+    old_world_state( ss, some_player->type )
+        .market.commodities[invoice.what.type]
         .intrinsic_volume +=
         invoice.intrinsic_volume_delta[player];
   }
@@ -502,7 +518,8 @@ void apply_invoice( SS& ss, Player& player,
        invoice.global_intrinsic_volume_deltas )
     ss.players.global_market_state.commodities[comm]
         .intrinsic_volume += delta;
-  player.old_world.market.commodities[invoice.what.type]
+  old_world_state( ss, player.type )
+      .market.commodities[invoice.what.type]
       .bid_price += invoice.price_change.delta;
 }
 
@@ -555,7 +572,7 @@ void evolve_group_model_volumes( SS& ss ) {
 }
 
 refl::enum_map<e_commodity, PriceChange> evolve_player_prices(
-    SSConst const& ss, Player& player ) {
+    SS& ss, Player& player ) {
   refl::enum_map<e_commodity, PriceChange> res;
   refl::enum_map<e_commodity, PriceChange> const
       processed_goods = evolve_group_model_prices( ss, player );
@@ -563,7 +580,7 @@ refl::enum_map<e_commodity, PriceChange> evolve_player_prices(
     if( is_in_processed_goods_price_group( c ) )
       res[c] = processed_goods[c];
     else
-      res[c] = evolve_default_model_commodity( player, c );
+      res[c] = evolve_default_model_commodity( ss, player, c );
     CHECK_GE( res[c].to.bid, config_market.price_behavior[c]
                                  .price_limits.bid_price_min );
     CHECK_LE( res[c].to.bid, config_market.price_behavior[c]

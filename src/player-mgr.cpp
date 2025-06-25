@@ -59,6 +59,15 @@ Player& get_or_add_player( SS& ss, e_player const type ) {
   return *ss.players.players[type];
 }
 
+OldWorldState const& old_world_state( SSConst const& ss,
+                                      e_player const type ) {
+  return ss.players.old_world[nation_for( type )];
+}
+
+OldWorldState& old_world_state( SS& ss, e_player const type ) {
+  return ss.players.old_world[nation_for( type )];
+}
+
 /****************************************************************
 ** Lua Bindings
 *****************************************************************/

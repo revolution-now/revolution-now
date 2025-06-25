@@ -22,6 +22,8 @@ namespace rn {
 
 using PlayersMap = refl::enum_map<e_player, maybe<Player>>;
 
+using OldWorldMap = refl::enum_map<e_nation, OldWorldState>;
+
 Player& player_for_player_or_die( PlayersState& players,
                                   e_player player );
 
@@ -37,5 +39,6 @@ namespace lua {
 
 LUA_USERDATA_TRAITS( ::rn::PlayersState, owned_by_cpp ){};
 LUA_USERDATA_TRAITS( ::rn::PlayersMap, owned_by_cpp ){};
+LUA_USERDATA_TRAITS( ::rn::OldWorldMap, owned_by_cpp ){};
 
 } // namespace lua

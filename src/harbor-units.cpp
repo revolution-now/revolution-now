@@ -14,6 +14,7 @@
 #include "connectivity.hpp"
 #include "error.hpp"
 #include "on-map.hpp"
+#include "player-mgr.hpp"
 #include "society.hpp"
 #include "ts.hpp"
 #include "unit-mgr.hpp"
@@ -23,6 +24,7 @@
 #include "config/unit-type.rds.hpp"
 
 // ss
+#include "ss/old-world-state.rds.hpp"
 #include "ss/player.rds.hpp"
 #include "ss/players.hpp"
 #include "ss/ref.hpp"
@@ -176,13 +178,13 @@ base::generator<Coord> search_from_square( Coord const start,
 /****************************************************************
 ** Public API
 *****************************************************************/
-void update_harbor_selected_unit( UnitsState const& units,
-                                  Player& player ) {
+void update_harbor_selected_unit( SS& ss, Player& player ) {
   maybe<UnitId>& selected_unit =
-      player.old_world.harbor_state.selected_unit;
+      old_world_state( ss, player.type )
+          .harbor_state.selected_unit;
   if( selected_unit.has_value() ) {
-    if( units.exists( *selected_unit ) &&
-        units.ownership_of( *selected_unit )
+    if( ss.units.exists( *selected_unit ) &&
+        ss.as_const.units.ownership_of( *selected_unit )
             .holds<UnitOwnership::harbor>() )
       return;
     // This can happen just after a ship that was selected moves
@@ -190,22 +192,22 @@ void update_harbor_selected_unit( UnitsState const& units,
     selected_unit.reset();
   }
   vector<UnitId> const ships =
-      harbor_units_in_port( units, player.type );
+      harbor_units_in_port( ss.units, player.type );
   if( !ships.empty() ) selected_unit = ships[0];
 }
 
-void try_select_in_port_ship( UnitsState const& units,
-                              Player& player ) {
-  update_harbor_selected_unit( units, player );
+void try_select_in_port_ship( SS& ss, Player& player ) {
+  update_harbor_selected_unit( ss, player );
   maybe<UnitId>& selected_unit =
-      player.old_world.harbor_state.selected_unit;
+      old_world_state( ss, player.type )
+          .harbor_state.selected_unit;
   // The above update function should have ensured that any se-
   // lected unit exists and that it is owned by the harbor.
   if( selected_unit.has_value() &&
-      is_unit_in_port( units, *selected_unit ) )
+      is_unit_in_port( ss.units, *selected_unit ) )
     return;
   vector<UnitId> const ships =
-      harbor_units_in_port( units, player.type );
+      harbor_units_in_port( ss.units, player.type );
   if( !ships.empty() ) selected_unit = ships[0];
 }
 
@@ -340,7 +342,7 @@ void unit_move_to_port( SS& ss, UnitId id ) {
     // then we don't have to do this, since that is a normal game
     // mechanic.
     unit.clear_orders();
-  update_harbor_selected_unit( ss.units, player );
+  update_harbor_selected_unit( ss, player );
 }
 
 void unit_sail_to_harbor( SS& ss, UnitId id ) {

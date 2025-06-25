@@ -31,7 +31,7 @@
 // ss
 #include "ss/colonies.hpp"
 #include "ss/colony.rds.hpp"
-#include "ss/nation.rds.hpp"
+#include "ss/nation.hpp"
 #include "ss/player.rds.hpp"
 #include "ss/ref.hpp"
 #include "ss/units.hpp"
@@ -217,9 +217,12 @@ wait<> evolve_colonies_for_player(
   // messages.
   present_transient_updates( ts, transient_messages );
 
-  // Crosses/immigration.
-  if( player.revolution.status <
-      e_revolution_status::declared ) {
+  // Crosses/immigration. Only for non-REF since the REF shares
+  // this immigration state with the colonial player, and anyway
+  // it wouldn't make sense for the REF.
+  if( !is_ref( player.type ) &&
+      player.revolution.status <
+          e_revolution_status::declared ) {
     CrossesCalculation const crosses_calc =
         compute_crosses( ss.units, player.type );
     give_new_crosses_to_player( player, crosses_calc,

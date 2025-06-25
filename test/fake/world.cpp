@@ -619,8 +619,9 @@ void World::give_all_buildings( Colony& colony ) {
 // ------------------------------------------------------------
 void World::set_current_bid_price( e_commodity type,
                                    int price_in_hundreds ) {
-  Player& player    = default_player();
-  auto& comm_config = player.old_world.market.commodities[type];
+  Player& player = default_player();
+  auto& comm_config =
+      old_world( player ).market.commodities[type];
   comm_config.bid_price = price_in_hundreds;
 }
 
@@ -629,8 +630,9 @@ void World::set_stable_bid_price( e_commodity type,
   CHECK( !is_in_processed_goods_price_group( type ),
          "cannot set the equilibrium price for goods in a price "
          "group." );
-  Player& player    = default_player();
-  auto& comm_config = player.old_world.market.commodities[type];
+  Player& player = default_player();
+  auto& comm_config =
+      old_world( player ).market.commodities[type];
   comm_config.bid_price        = price_in_hundreds;
   comm_config.intrinsic_volume = 0;
 }
@@ -649,7 +651,7 @@ void World::init_prices_to_average() {
 }
 
 void World::set_tax_rate( int rate ) {
-  default_player().old_world.taxes.tax_rate = rate;
+  old_world().taxes.tax_rate = rate;
 }
 
 // --------------------------------------------------------------
@@ -772,6 +774,18 @@ Player const& World::player(
                 root().players.players[player_type.value_or(
                     default_player_type_ )] );
   return player;
+}
+
+OldWorldState& World::old_world( Player const& player ) {
+  return players().old_world[nation_for( player.type )];
+}
+
+OldWorldState& World::old_world(
+    maybe<e_player> const player_type ) {
+  CHECK( ss().players.players[this->player( player_type ).type]
+             .has_value() );
+  return old_world(
+      *ss().players.players[this->player( player_type ).type] );
 }
 
 // --------------------------------------------------------------

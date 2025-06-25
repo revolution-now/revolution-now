@@ -17,6 +17,7 @@
 #include "harbor-units.hpp"
 #include "igui.hpp"
 #include "immigration.hpp"
+#include "player-mgr.hpp"
 #include "ts.hpp"
 
 // config
@@ -25,6 +26,7 @@
 #include "config/unit-type.hpp"
 
 // ss
+#include "ss/old-world-state.rds.hpp"
 #include "ss/player.rds.hpp"
 #include "ss/ref.hpp"
 #include "ss/settings.hpp"
@@ -55,7 +57,7 @@ wait<> click_recruit( SS& ss, TS& ts, Player& player ) {
   CrossesCalculation const crosses =
       compute_crosses( ss.units, player.type );
   int const price = cost_of_recruit(
-      player, crosses.crosses_needed,
+      ss, player, crosses.crosses_needed,
       ss.settings.game_setup_options.difficulty );
   ChoiceConfig config{
     .msg = fmt::format(
@@ -67,7 +69,8 @@ wait<> click_recruit( SS& ss, TS& ts, Player& player ) {
   static string const kNone = "none";
   config.options.push_back(
       { .key = kNone, .display_name = "(None)" } );
-  auto& pool = player.old_world.immigration.immigrants_pool;
+  auto& pool = old_world_state( ss, player.type )
+                   .immigration.immigrants_pool;
   static_assert(
       tuple_size_v<remove_cvref_t<decltype( pool )>> == 3 );
   auto push = [&]( int n ) {

@@ -32,6 +32,7 @@
 #include "market.hpp"
 #include "minds.hpp"
 #include "plane-stack.hpp"
+#include "player-mgr.hpp"
 #include "player.rds.hpp"
 #include "promotion.hpp"
 #include "query-enum.hpp"
@@ -59,6 +60,7 @@
 #include "ss/land-view.rds.hpp"
 #include "ss/nation.hpp"
 #include "ss/natives.hpp"
+#include "ss/old-world-state.rds.hpp"
 #include "ss/players.rds.hpp"
 #include "ss/ref.hpp"
 #include "ss/terrain.hpp"
@@ -738,13 +740,13 @@ wait<> cheat_advance_revolution_status( SS& ss, TS& ts,
 /****************************************************************
 ** In Harbor View
 *****************************************************************/
-void cheat_increase_tax_rate( Player& player ) {
-  int& rate = player.old_world.taxes.tax_rate;
+void cheat_increase_tax_rate( SS& ss, Player& player ) {
+  int& rate = old_world_state( ss, player.type ).taxes.tax_rate;
   rate      = clamp( rate + 1, 0, 100 );
 }
 
-void cheat_decrease_tax_rate( Player& player ) {
-  int& rate = player.old_world.taxes.tax_rate;
+void cheat_decrease_tax_rate( SS& ss, Player& player ) {
+  int& rate = old_world_state( ss, player.type ).taxes.tax_rate;
   rate      = clamp( rate - 1, 0, 100 );
 }
 
@@ -762,17 +764,18 @@ wait<> cheat_evolve_market_prices( SS& ss, TS& ts,
                                    Player& player ) {
   evolve_group_model_volumes( ss );
   refl::enum_map<e_commodity, PriceChange> const changes =
-      evolve_player_prices( static_cast<SSConst const&>( ss ),
-                            player );
+      evolve_player_prices( ss, player );
   for( e_commodity comm : enum_values<e_commodity> )
     if( changes[comm].delta != 0 )
       co_await display_price_change_notification(
           ts, player, changes[comm] );
 }
 
-void cheat_toggle_boycott( Player& player, e_commodity type ) {
-  bool& boycott =
-      player.old_world.market.commodities[type].boycott;
+void cheat_toggle_boycott( SS& ss, Player& player,
+                           e_commodity type ) {
+  bool& boycott = old_world_state( ss, player.type )
+                      .market.commodities[type]
+                      .boycott;
   boycott = !boycott;
 }
 

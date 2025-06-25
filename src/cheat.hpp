@@ -132,9 +132,9 @@ wait<> cheat_create_unit_on_map( SS& ss, TS& ts, e_player player,
 /****************************************************************
 ** In Harbor View
 *****************************************************************/
-void cheat_increase_tax_rate( Player& player );
+void cheat_increase_tax_rate( SS& ss, Player& player );
 
-void cheat_decrease_tax_rate( Player& player );
+void cheat_decrease_tax_rate( SS& ss, Player& player );
 
 void cheat_increase_gold( Player& player );
 
@@ -143,6 +143,7 @@ void cheat_decrease_gold( Player& player );
 wait<> cheat_evolve_market_prices( SS& ss, TS& ts,
                                    Player& player );
 
-void cheat_toggle_boycott( Player& player, e_commodity type );
+void cheat_toggle_boycott( SS& ss, Player& player,
+                           e_commodity type );
 
 } // namespace rn
