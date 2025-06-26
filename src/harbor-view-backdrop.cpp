@@ -201,7 +201,8 @@ void HarborBackdrop::draw( rr::Renderer& renderer,
   auto const render_flag_no_pole = [&]( point const p ) {
     render_sprite_silhouette(
         renderer, p, e_tile::harbor_flag_silhouette,
-        config_nation.players[player_.type].flag_color );
+        config_nation.players[colonial_player_.type]
+            .flag_color );
     {
       SCOPED_RENDERER_MOD_MUL( painter_mods.alpha, 0.3 );
       render_sprite( renderer, p, e_tile::harbor_flag_shades );

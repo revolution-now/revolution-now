@@ -36,7 +36,7 @@ e_nation nation_for( e_player const player ) {
   }
 }
 
-e_player colonist_player_for( e_nation const nation ) {
+e_player colonial_player_for( e_nation const nation ) {
   switch( nation ) {
     case e_nation::english:
       return e_player::english;

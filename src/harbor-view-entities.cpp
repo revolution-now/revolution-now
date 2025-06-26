@@ -27,6 +27,8 @@
 // ss
 #include "ss/nation.hpp"
 #include "ss/player.rds.hpp"
+#include "ss/players.hpp"
+#include "ss/ref.hpp"
 
 // render
 #include "render/painter.hpp"
@@ -71,8 +73,17 @@ bool shown_after_declaration(
 
 } // namespace
 
-// Use this as the vtable key function.
-void HarborSubView::update_this_and_children() {}
+/****************************************************************
+** HarborSubView
+*****************************************************************/
+HarborSubView::HarborSubView( SS& ss, TS& ts, Player& player )
+  : ss_( ss ),
+    ts_( ts ),
+    player_( player ),
+    colonial_player_( player_for_player_or_die(
+        ss.players, colonial_player_for( player.nation ) ) ) {
+  CHECK( player_.nation == colonial_player_.nation );
+}
 
 /****************************************************************
 ** HarborViewComposited

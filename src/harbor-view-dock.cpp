@@ -332,7 +332,7 @@ void HarborDockUnits::draw( rr::Renderer& renderer,
 
   // After independence is declared, draw a single REF unit at
   // the base of the dock.
-  if( player_.revolution.status >=
+  if( colonial_player_.revolution.status >=
       e_revolution_status::declared ) {
     auto const& dock_layout = backdrop_.dock_units_layout();
     point p{ .x = dock_layout.right_edge - 32,

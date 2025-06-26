@@ -19,7 +19,7 @@ namespace rn {
 *****************************************************************/
 e_nation nation_for( e_player player );
 
-e_player colonist_player_for( e_nation nation );
+e_player colonial_player_for( e_nation nation );
 
 e_player ref_player_for( e_nation nation );
 

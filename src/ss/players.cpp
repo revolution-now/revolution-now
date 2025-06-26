@@ -110,6 +110,19 @@ base::valid_or<string> PlayersState::validate() const {
                      type, type );
   }
 
+  // Check that if an REF player exists then its corresponding
+  // colonial player should exist.
+  for( auto const& [type, player] : players ) {
+    if( !player.has_value() ) continue;
+    if( !is_ref( type ) ) continue;
+    e_player const colonial_player =
+        colonial_player_for( player->nation );
+    REFL_VALIDATE(
+        players[colonial_player].has_value(),
+        "REF player {} has no corresponding colonial player.",
+        type );
+  }
+
   return base::valid;
 }
 

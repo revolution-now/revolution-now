@@ -81,8 +81,7 @@ class HarborSubView
   : public IDraggableObjectsView<HarborDraggableObject>,
     public ui::AwaitView {
  public:
-  HarborSubView( SS& ss, TS& ts, Player& player )
-    : ss_( ss ), ts_( ts ), player_( player ) {}
+  HarborSubView( SS& ss, TS& ts, Player& player );
 
   // All HarborSubView's will also be unspecified subclassess of
   // ui::View.
@@ -110,12 +109,13 @@ class HarborSubView
   // then we need to do a full recompositing instead. This is not
   // supposed to be called directly, but should only be called
   // via the HarborViewComposited::update method.
-  virtual void update_this_and_children();
+  virtual void update_this_and_children() {}
 
  protected:
   SS& ss_;
   TS& ts_;
   Player& player_;
+  Player& colonial_player_;
 };
 
 template<typename T>

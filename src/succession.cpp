@@ -116,7 +116,7 @@ WarOfSuccessionNations select_players_for_war_of_succession(
   ai_nations.reserve( enum_count<e_player> );
   enum_map<e_nation, int> size_metric;
   for( e_nation const nation : enum_values<e_nation> ) {
-    e_player const player_type = colonist_player_for( nation );
+    e_player const player_type = colonial_player_for( nation );
     auto const& player         = ss.players.players[player_type];
     if( !player.has_value() ) continue;
     if( player->control == e_player_control::withdrawn )
@@ -157,7 +157,7 @@ WarOfSuccessionPlan war_of_succession_plan(
   for( auto const& [unit_id, p_state] : euros ) {
     Unit const& unit = p_state->unit;
     if( unit.player_type() !=
-        colonist_player_for( nations.withdraws ) )
+        colonial_player_for( nations.withdraws ) )
       continue;
     SWITCH( p_state->ownership ) {
       CASE( free ) { SHOULD_NOT_BE_HERE; }
@@ -208,7 +208,7 @@ WarOfSuccessionPlan war_of_succession_plan(
 
   for( auto const& [colony_id, colony] : ss.colonies.all() ) {
     if( colony.player !=
-        colonist_player_for( nations.withdraws ) )
+        colonial_player_for( nations.withdraws ) )
       continue;
     plan.reassign_colonies.push_back( colony_id );
     plan.update_fog_squares.push_back( colony.location );
@@ -234,9 +234,9 @@ WarOfSuccessionPlan war_of_succession_plan(
 void do_war_of_succession( SS& ss, TS& ts, Player const& player,
                            WarOfSuccessionPlan const& plan ) {
   CHECK_NEQ( player.type,
-             colonist_player_for( plan.nations.withdraws ) );
+             colonial_player_for( plan.nations.withdraws ) );
   CHECK_NEQ( player.type,
-             colonist_player_for( plan.nations.receives ) );
+             colonial_player_for( plan.nations.receives ) );
   destroy_units( ss, plan.remove_units );
 
   for( UnitId const unit_id : plan.reassign_units ) {
@@ -246,14 +246,14 @@ void do_war_of_succession( SS& ss, TS& ts, Player const& player,
     Unit& unit = ss.units.unit_for( unit_id );
     change_unit_player(
         ss, ts, unit,
-        colonist_player_for( plan.nations.receives ) );
+        colonial_player_for( plan.nations.receives ) );
   }
 
   for( ColonyId const colony_id : plan.reassign_colonies ) {
     Colony& colony = ss.colonies.colony_for( colony_id );
     change_colony_player(
         ss, ts, colony,
-        colonist_player_for( plan.nations.receives ) );
+        colonial_player_for( plan.nations.receives ) );
     // The OG appears to reduce SoL to zero for the acquired
     // player. This is likely because then the merger would risk
     // causing a large bump to the total number of rebels in the
@@ -290,7 +290,7 @@ void do_war_of_succession( SS& ss, TS& ts, Player const& player,
                                         refresh_fogged );
 
   ss.players
-      .players[colonist_player_for( plan.nations.withdraws )]
+      .players[colonial_player_for( plan.nations.withdraws )]
       ->control = e_player_control::withdrawn;
 
   ss.events.war_of_succession_done = true;
@@ -305,13 +305,13 @@ wait<> do_war_of_succession_ui_seq(
       "been ceded to the [{}].  As a result, the [{}] have "
       "withdrawn from the New World.",
       config_nation
-          .players[colonist_player_for( plan.nations.withdraws )]
+          .players[colonial_player_for( plan.nations.withdraws )]
           .possessive_pre_declaration,
       config_nation
-          .players[colonist_player_for( plan.nations.receives )]
+          .players[colonial_player_for( plan.nations.receives )]
           .possessive_pre_declaration,
       config_nation
-          .players[colonist_player_for( plan.nations.withdraws )]
+          .players[colonial_player_for( plan.nations.withdraws )]
           .possessive_pre_declaration );
   co_await ts.gui.message_box( msg );
 }

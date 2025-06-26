@@ -267,10 +267,10 @@ wait<> intervention_forces_intro_ui_seq(
     SSConst const& ss, IGui& gui, e_nation const receiving,
     e_nation const intervening ) {
   string const& receiver_name_possessive =
-      config_nation.players[colonist_player_for( receiving )]
+      config_nation.players[colonial_player_for( receiving )]
           .possessive_pre_declaration;
   string const& intervener_name_possessive =
-      config_nation.players[colonist_player_for( intervening )]
+      config_nation.players[colonial_player_for( intervening )]
           .possessive_pre_declaration;
   co_await gui.message_box(
       "The [{}] are considering intervening in the war against "
@@ -286,7 +286,7 @@ wait<> intervention_forces_triggered_ui_seq(
     e_nation const intervening ) {
   auto const largest_colony = [&]() -> maybe<Colony const&> {
     vector<ColonyId> colonies = ss.colonies.for_player(
-        colonist_player_for( receiving ) );
+        colonial_player_for( receiving ) );
     rg::sort(
         colonies, [&]( ColonyId const l, ColonyId const r ) {
           Colony const& l_colony = ss.colonies.colony_for( l );
@@ -311,7 +311,7 @@ wait<> intervention_forces_triggered_ui_seq(
   string const& receiver_name =
       config_nation.nations[receiving].country_name;
   string const& intervener_name_possessive =
-      config_nation.players[colonist_player_for( intervening )]
+      config_nation.players[colonial_player_for( intervening )]
           .possessive_pre_declaration;
   co_await gui.message_box(
       "[{}] declares war on {} and joins the War of "
@@ -328,7 +328,7 @@ wait<> intervention_forces_deployed_ui_seq(
       .get_bottom<ILandViewPlane>()
       .ensure_visible( colony.location );
   string const& intervener_name =
-      config_nation.players[colonist_player_for( intervening )]
+      config_nation.players[colonial_player_for( intervening )]
           .possessive_pre_declaration;
   co_await ts.gui.message_box(
       "{} intervention forces arrive in [{}].  {} General joins "

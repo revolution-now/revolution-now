@@ -41,14 +41,14 @@ TEST_CASE( "[ss/nation] nation_for" ) {
            e_nation::dutch );
 }
 
-TEST_CASE( "[ss/nation] colonist_player_for" ) {
-  REQUIRE( colonist_player_for( e_nation::english ) ==
+TEST_CASE( "[ss/nation] colonial_player_for" ) {
+  REQUIRE( colonial_player_for( e_nation::english ) ==
            e_player::english );
-  REQUIRE( colonist_player_for( e_nation::french ) ==
+  REQUIRE( colonial_player_for( e_nation::french ) ==
            e_player::french );
-  REQUIRE( colonist_player_for( e_nation::spanish ) ==
+  REQUIRE( colonial_player_for( e_nation::spanish ) ==
            e_player::spanish );
-  REQUIRE( colonist_player_for( e_nation::dutch ) ==
+  REQUIRE( colonial_player_for( e_nation::dutch ) ==
            e_player::dutch );
 }
 

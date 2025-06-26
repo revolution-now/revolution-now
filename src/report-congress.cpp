@@ -200,7 +200,7 @@ Layout layout_auto( SSConst const& ss, Player const& player,
     l.intervention_force_bells_title = fmt::format(
         "{} Intervention:",
         config_nation
-            .players[colonist_player_for( intervening_nation )]
+            .players[colonial_player_for( intervening_nation )]
             .possessive_pre_declaration );
     l.intervention_force_bells_text_nw = cur;
     cur.y += kBufferAfterTitle;
@@ -362,7 +362,7 @@ Layout layout_auto( SSConst const& ss, Player const& player,
     l.intervention_force_title = fmt::format(
         "{} Intervention Force",
         config_nation
-            .players[colonist_player_for( intervening_nation )]
+            .players[colonial_player_for( intervening_nation )]
             .possessive_pre_declaration );
     l.intervention_force_text_nw = cur;
     cur.y += kBufferAfterTitle;

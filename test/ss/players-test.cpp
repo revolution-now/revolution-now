@@ -86,5 +86,23 @@ TEST_CASE(
                 Contains( "has assymetric relationship" ) );
 }
 
+TEST_CASE(
+    "[ss/players] REF player means colonial player must "
+    "exist" ) {
+  world w;
+  base::valid_or<string> v = valid;
+
+  REQUIRE( w.players().validate() == valid );
+
+  w.add_player( e_player::ref_french );
+  w.players().players[e_player::french].reset();
+  v = w.players().validate();
+  REQUIRE( v != valid );
+  REQUIRE_THAT(
+      v.error(),
+      Contains(
+          "ref_french has no corresponding colonial player" ) );
+}
+
 } // namespace
 } // namespace rn

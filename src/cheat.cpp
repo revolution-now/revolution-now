@@ -303,7 +303,7 @@ wait<> cheat_set_player_control( IEngine& engine, SS& ss,
         is_ref( player_type )
             ? format( " ({})",
                       config_nation
-                          .players[colonist_player_for(
+                          .players[colonial_player_for(
                               nation_for( player_type ) )]
                           .possessive_pre_declaration )
             : "";
