@@ -33,6 +33,7 @@
 #include "config/text.rds.hpp"
 
 // ss
+#include "ss/nation.hpp"
 #include "ss/natives.hpp"
 #include "ss/old-world-state.rds.hpp"
 #include "ss/player.rds.hpp"
@@ -494,6 +495,7 @@ LostCityRumor compute_lcr( SSConst const& ss,
                            Player const& player, IRand& rand,
                            IMapSearch const& map_search,
                            e_unit_type unit_type, Coord tile ) {
+  if( is_ref( player.type ) ) return LostCityRumor::none{};
   e_lcr_explorer_category const explorer =
       lcr_explorer_category( unit_type );
   e_rumor_type const rumor_type =

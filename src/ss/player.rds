@@ -46,6 +46,7 @@ enum.e_player_control {
   ai,
 }
 
+# NOTE: when adding more fields here, consider the REF players.
 struct.Player {
   # Somewhat just for convenience.
   type 'e_player',
@@ -158,6 +159,8 @@ struct.Player {
   # map. Thus it should only be updated via the designated API
   # methods.
   relationship_with 'refl::enum_map<e_player, e_euro_relationship>',
+
+  # NOTE: when adding more fields here, consider the REF players.
 
   _features { equality, validation }
 }

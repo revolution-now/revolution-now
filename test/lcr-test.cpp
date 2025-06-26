@@ -102,6 +102,22 @@ TEST_CASE( "[lcr] de soto means no negative results" ) {
   REQUIRE( f() == LostCityRumor::none{} );
 }
 
+TEST_CASE( "[lcr] REF player always yields none" ) {
+  World W;
+  W.add_player( e_player::ref_french );
+  Player& player = W.ref_french();
+  MockIMapSearch mock_map_search;
+  e_unit_type unit_type = e_unit_type::scout;
+
+  auto f = [&] {
+    return compute_lcr( W.ss(), player, W.rand(),
+                        mock_map_search, unit_type,
+                        { .x = 0, .y = 0 } );
+  };
+
+  REQUIRE( f() == LostCityRumor::none{} );
+}
+
 TEST_CASE( "[lcr] run_lcr, none" ) {
   World W;
 

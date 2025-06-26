@@ -12,6 +12,7 @@
 
 // ss
 #include "ss/nation.hpp"
+#include "ss/natives.hpp"
 #include "ss/player.hpp"
 #include "ss/players.hpp"
 #include "ss/ref.hpp"
@@ -32,6 +33,30 @@ using namespace std;
 
 namespace rn {
 
+namespace {
+
+using ::refl::enum_values;
+
+/****************************************************************
+** Helpers.
+*****************************************************************/
+void populate_for_REF( SS& ss, Player& player ) {
+  // Prevent the REF player from "discovering the new world."
+  player.new_world_name = "The New World";
+
+  // Prevent woodcuts.
+  for( auto& [woodcut, done] : player.woodcuts ) done = true;
+
+  // Prevent meeting the natives.
+  for( e_tribe const tribe_type : enum_values<e_tribe> )
+    if( ss.natives.tribe_exists( tribe_type ) )
+      ss.natives.tribe_for( tribe_type )
+          .relationship[player.type]
+          .encountered = true;
+}
+
+} // namespace
+
 /****************************************************************
 ** Public API.
 *****************************************************************/
@@ -49,6 +74,8 @@ Player& add_new_player( SS& ss, e_player const type ) {
   ss.mutable_terrain_use_with_care.initialize_player_terrain(
       type,
       /*visible=*/false );
+
+  if( is_ref( type ) ) populate_for_REF( ss, p );
 
   return p;
 }
