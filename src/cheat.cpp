@@ -463,6 +463,12 @@ void cheat_toggle_reveal_full_map( SS& ss, TS& ts ) {
 wait<> cheat_edit_fathers( IEngine& engine, SS& ss, TS& ts,
                            Player& player ) {
   using namespace ui;
+  if( is_ref( player.type ) ) {
+    co_await ts.gui.message_box(
+        "This action cannot be done while acting as an REF "
+        "player." );
+    co_return;
+  }
 
   auto const& textometer = engine.textometer();
 
@@ -659,6 +665,12 @@ wait<> kill_natives( SS& ss, TS& ts ) {
 //
 wait<> cheat_advance_revolution_status( SS& ss, TS& ts,
                                         Player& player ) {
+  if( is_ref( player.type ) ) {
+    co_await ts.gui.message_box(
+        "This action cannot be done while acting as an REF "
+        "player." );
+    co_return;
+  }
   if( player.control != e_player_control::human ) {
     co_await ts.gui.message_box(
         "Cannot perform this operation for player {} because "

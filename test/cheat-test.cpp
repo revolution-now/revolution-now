@@ -16,6 +16,7 @@
 // Testing.
 #include "test/fake/world.hpp"
 #include "test/mocking.hpp"
+#include "test/mocks/iengine.hpp"
 #include "test/mocks/ieuro-mind.hpp"
 #include "test/mocks/igui.hpp"
 #include "test/mocks/imap-updater.hpp"
@@ -890,6 +891,23 @@ TEST_CASE( "[cheat] monitor_magic_key_sequence" ) {
   REQUIRE( w.ready() );
 }
 
+TEST_CASE( "[cheat] cheat_edit_fathers/ref" ) {
+  world w;
+
+  w.add_player( e_player::ref_spanish );
+  Player& player = w.ref_spanish();
+
+  auto const f = [&] {
+    co_await_test( cheat_edit_fathers( w.engine(), w.ss(),
+                                       w.ts(), player ) );
+  };
+
+  w.gui().EXPECT__message_box( StrContains(
+      "cannot be done while acting as an REF player" ) );
+
+  f();
+}
+
 TEST_CASE(
     "[cheat] cheat_advance_revolution_status/non-human" ) {
   world w;
@@ -903,6 +921,23 @@ TEST_CASE(
 
   w.gui().EXPECT__message_box(
       StrContains( "not human-controlled" ) );
+
+  f();
+}
+
+TEST_CASE( "[cheat] cheat_advance_revolution_status/ref" ) {
+  world w;
+
+  w.add_player( e_player::ref_spanish );
+  Player& player = w.ref_spanish();
+
+  auto const f = [&] {
+    co_await_test( cheat_advance_revolution_status(
+        w.ss(), w.ts(), player ) );
+  };
+
+  w.gui().EXPECT__message_box( StrContains(
+      "cannot be done while acting as an REF player" ) );
 
   f();
 }
