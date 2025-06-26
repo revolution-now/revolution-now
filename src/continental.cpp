@@ -37,10 +37,16 @@ namespace rn {
 // The formula the OG appears to use for the number of units to
 // promote in a colony is:
 //
-//   min( floor( P*max( SoL% - 50, 0 )*2/100 ), floor( P/2 ) )
+//   max( min( R, HP ), 1 )
 //
-// It will prioritize promoting veteran dragoons, then if those
-// run out it will go to veteran soldiers.
+// where:
+//
+//   R  = floor( P*max( SoL% - 50, 0 )*2/100 )
+//   HP = floor( P/2 )
+//
+// R is the "rebels" component and HP is the population compo-
+// nent. It will prioritize promoting veteran dragoons, then if
+// those run out it will go to veteran soldiers.
 //
 // There is no randomness in the number of units or the types of
 // units that are promoted.
@@ -52,11 +58,14 @@ ContinentalPromotion compute_continental_promotion(
   ColonySonsOfLiberty const sol =
       compute_colony_sons_of_liberty( player, colony );
   int const population   = colony_population( colony );
-  int const max_promoted = std::min(
-      int( floor( population *
-                  std::max( sol.sol_integral_percent - 50, 0 ) *
-                  2 / 100.0 ) ),
-      int( floor( population / 2.0 ) ) );
+  int const max_promoted = std::max(
+      std::min(
+          int( floor(
+              population *
+              std::max( sol.sol_integral_percent - 50, 0 ) * 2 /
+              100.0 ) ),
+          int( floor( population / 2.0 ) ) ),
+      1 );
   // NOTE: Any units in the cargo of ships should already have
   // been unloaded when the declaration was done. But just in
   // case, we will use the recursive one anyway.
@@ -69,6 +78,9 @@ ContinentalPromotion compute_continental_promotion(
         promotion.get_if<UnitPromotion::modifier>();
     if( !modifier.has_value() ) return false;
     if( modifier->kind != e_unit_type_modifier::independence )
+      // This branch won't be hit with the standard unit set be-
+      // cause the only units that have `modifier` for their pro-
+      // motion mode are the continental units.
       return false;
     return true;
   };
