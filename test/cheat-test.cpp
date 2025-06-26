@@ -16,6 +16,7 @@
 // Testing.
 #include "test/fake/world.hpp"
 #include "test/mocking.hpp"
+#include "test/mocks/ieuro-mind.hpp"
 #include "test/mocks/igui.hpp"
 #include "test/mocks/imap-updater.hpp"
 #include "test/mocks/imenu-server.hpp"
@@ -34,6 +35,8 @@
 #include "src/ss/land-view.rds.hpp"
 #include "src/ss/nation.hpp"
 #include "src/ss/natives.hpp"
+#include "src/ss/player.rds.hpp"
+#include "src/ss/players.rds.hpp"
 #include "src/ss/ref.hpp"
 #include "src/ss/settings.rds.hpp"
 #include "src/ss/turn.rds.hpp"
@@ -58,6 +61,7 @@ using namespace std;
 using ::gfx::point;
 using ::mock::matchers::_;
 using ::mock::matchers::Eq;
+using ::mock::matchers::StrContains;
 
 using unexplored = PlayerSquare::unexplored;
 using explored   = PlayerSquare::explored;
@@ -70,7 +74,11 @@ using clear      = FogStatus::clear;
 struct world : testing::World {
   using Base = testing::World;
   world() : Base() {
-    add_default_player();
+    add_player( e_player::english );
+    add_player( e_player::french );
+    add_player( e_player::spanish );
+    add_player( e_player::dutch );
+    set_default_player_type( e_player::dutch );
     create_default_map();
   }
 
@@ -882,8 +890,286 @@ TEST_CASE( "[cheat] monitor_magic_key_sequence" ) {
   REQUIRE( w.ready() );
 }
 
+TEST_CASE(
+    "[cheat] cheat_advance_revolution_status/non-human" ) {
+  world w;
+
+  Player& player = w.default_player();
+
+  auto const f = [&] {
+    co_await_test( cheat_advance_revolution_status(
+        w.ss(), w.ts(), player ) );
+  };
+
+  w.gui().EXPECT__message_box(
+      StrContains( "not human-controlled" ) );
+
+  f();
+}
+
 TEST_CASE( "[cheat] cheat_advance_revolution_status" ) {
   world w;
+
+  using enum e_player_control;
+  using enum e_player;
+
+  Player& player = w.english();
+  w.set_human_player_and_rest_ai( english );
+
+  Colony& colony =
+      w.add_colony( { .x = 1, .y = 1 }, e_player::english );
+  colony.name = "Jamestown";
+
+  auto const f = [&] {
+    co_await_test( cheat_advance_revolution_status(
+        w.ss(), w.ts(), player ) );
+  };
+
+  w.settings().game_setup_options.difficulty =
+      e_difficulty::conquistador;
+
+  // Initial.
+  REQUIRE( player.revolution.status ==
+           e_revolution_status::not_declared );
+  REQUIRE( player.revolution.rebel_sentiment == 0 );
+  REQUIRE( player.revolution.continental_army_mobilized ==
+           false );
+  REQUIRE( player.revolution.gave_independence_war_hints ==
+           false );
+  REQUIRE( player.revolution.intervention_force_deployed ==
+           false );
+  REQUIRE( player.revolution.ref_will_forfeit == false );
+  REQUIRE( player.revolution.expeditionary_force ==
+           ExpeditionaryForce{
+             .regular   = 0,
+             .cavalry   = 0,
+             .artillery = 0,
+             .man_o_war = 0,
+           } );
+  REQUIRE( player.revolution.intervention_force ==
+           InterventionForce{
+             .continental_army    = 0,
+             .continental_cavalry = 0,
+             .artillery           = 0,
+             .man_o_war           = 0,
+           } );
+  REQUIRE( w.english().control == human );
+  REQUIRE( w.french().control == ai );
+  REQUIRE( w.spanish().control == ai );
+  REQUIRE( w.dutch().control == ai );
+  REQUIRE( !w.players().players[ref_english].has_value() );
+  REQUIRE( !w.players().players[ref_french].has_value() );
+  REQUIRE( !w.players().players[ref_spanish].has_value() );
+  REQUIRE( !w.players().players[ref_dutch].has_value() );
+
+  w.euro_mind( english ).EXPECT__message_box(
+      StrContains( "sentiment is on the rise" ) );
+
+  w.gui().EXPECT__message_box(
+      StrContains( "territory owned by the [French] has been "
+                   "ceded to the [Spanish]" ) );
+
+  // Step:
+  //   * Rebel sentiment --> 50%.
+  //   * War of succession.
+  f();
+
+  REQUIRE( player.revolution.status ==
+           e_revolution_status::not_declared );
+  REQUIRE( player.revolution.rebel_sentiment == 50 );
+  REQUIRE( player.revolution.continental_army_mobilized ==
+           false );
+  REQUIRE( player.revolution.gave_independence_war_hints ==
+           false );
+  REQUIRE( player.revolution.intervention_force_deployed ==
+           false );
+  REQUIRE( player.revolution.ref_will_forfeit == false );
+  REQUIRE( player.revolution.expeditionary_force ==
+           ExpeditionaryForce{
+             .regular   = 0,
+             .cavalry   = 0,
+             .artillery = 0,
+             .man_o_war = 0,
+           } );
+  REQUIRE( player.revolution.intervention_force ==
+           InterventionForce{
+             .continental_army    = 0,
+             .continental_cavalry = 0,
+             .artillery           = 0,
+             .man_o_war           = 0,
+           } );
+  REQUIRE( w.english().control == human );
+  REQUIRE( w.french().control == withdrawn );
+  REQUIRE( w.spanish().control == ai );
+  REQUIRE( w.dutch().control == ai );
+  REQUIRE( !w.players().players[ref_english].has_value() );
+  REQUIRE( !w.players().players[ref_french].has_value() );
+  REQUIRE( !w.players().players[ref_spanish].has_value() );
+  REQUIRE( !w.players().players[ref_dutch].has_value() );
+
+  w.gui().EXPECT__message_box( StrContains( "signing" ) );
+  w.gui().EXPECT__message_box(
+      StrContains( "Declaration of Independence" ) );
+
+  // Step: Declaration.
+  f();
+
+  REQUIRE( player.revolution.status ==
+           e_revolution_status::declared );
+  REQUIRE( player.revolution.rebel_sentiment == 50 );
+  REQUIRE( player.revolution.continental_army_mobilized ==
+           false );
+  REQUIRE( player.revolution.gave_independence_war_hints ==
+           false );
+  REQUIRE( player.revolution.intervention_force_deployed ==
+           false );
+  REQUIRE( player.revolution.ref_will_forfeit == false );
+  REQUIRE( player.revolution.expeditionary_force ==
+           ExpeditionaryForce{
+             .regular   = 0,
+             .cavalry   = 0,
+             .artillery = 0,
+             .man_o_war = 0,
+           } );
+  REQUIRE( player.revolution.intervention_force ==
+           InterventionForce{
+             .continental_army    = 3,
+             .continental_cavalry = 2,
+             .artillery           = 2,
+             .man_o_war           = 2,
+           } );
+  REQUIRE( w.english().control == human );
+  REQUIRE( w.french().control == withdrawn );
+  REQUIRE( w.spanish().control == withdrawn );
+  REQUIRE( w.dutch().control == withdrawn );
+  REQUIRE( w.players().players[ref_english].has_value() );
+  REQUIRE( w.ref_english().control == ai );
+  REQUIRE( !w.players().players[ref_french].has_value() );
+  REQUIRE( !w.players().players[ref_spanish].has_value() );
+  REQUIRE( !w.players().players[ref_dutch].has_value() );
+
+  w.gui().EXPECT__message_box(
+      StrContains( "[France] declares war on England" ) );
+
+  // Step: Intervention force deployed.
+  f();
+
+  REQUIRE( player.revolution.status ==
+           e_revolution_status::declared );
+  REQUIRE( player.revolution.rebel_sentiment == 50 );
+  REQUIRE( player.revolution.continental_army_mobilized ==
+           false );
+  REQUIRE( player.revolution.gave_independence_war_hints ==
+           false );
+  REQUIRE( player.revolution.intervention_force_deployed ==
+           true );
+  REQUIRE( player.revolution.ref_will_forfeit == false );
+  REQUIRE( player.revolution.expeditionary_force ==
+           ExpeditionaryForce{
+             .regular   = 0,
+             .cavalry   = 0,
+             .artillery = 0,
+             .man_o_war = 0,
+           } );
+  REQUIRE( player.revolution.intervention_force ==
+           InterventionForce{
+             .continental_army    = 3,
+             .continental_cavalry = 2,
+             .artillery           = 2,
+             .man_o_war           = 2,
+           } );
+  REQUIRE( w.english().control == human );
+  REQUIRE( w.french().control == withdrawn );
+  REQUIRE( w.spanish().control == withdrawn );
+  REQUIRE( w.dutch().control == withdrawn );
+  REQUIRE( w.players().players[ref_english].has_value() );
+  REQUIRE( w.ref_english().control == ai );
+  REQUIRE( !w.players().players[ref_french].has_value() );
+  REQUIRE( !w.players().players[ref_spanish].has_value() );
+  REQUIRE( !w.players().players[ref_dutch].has_value() );
+
+  w.gui().EXPECT__message_box(
+      StrContains( "The War of Independence will be won" ) );
+
+  // Step: Force win.
+  f();
+
+  REQUIRE( player.revolution.status ==
+           e_revolution_status::declared );
+  REQUIRE( player.revolution.rebel_sentiment == 50 );
+  REQUIRE( player.revolution.continental_army_mobilized ==
+           false );
+  REQUIRE( player.revolution.gave_independence_war_hints ==
+           false );
+  REQUIRE( player.revolution.intervention_force_deployed ==
+           true );
+  REQUIRE( player.revolution.ref_will_forfeit == true );
+  REQUIRE( player.revolution.expeditionary_force ==
+           ExpeditionaryForce{
+             .regular   = 0,
+             .cavalry   = 0,
+             .artillery = 0,
+             .man_o_war = 0,
+           } );
+  REQUIRE( player.revolution.intervention_force ==
+           InterventionForce{
+             .continental_army    = 3,
+             .continental_cavalry = 2,
+             .artillery           = 2,
+             .man_o_war           = 2,
+           } );
+  REQUIRE( w.english().control == human );
+  REQUIRE( w.french().control == withdrawn );
+  REQUIRE( w.spanish().control == withdrawn );
+  REQUIRE( w.dutch().control == withdrawn );
+  REQUIRE( w.players().players[ref_english].has_value() );
+  REQUIRE( w.ref_english().control == ai );
+  REQUIRE( !w.players().players[ref_french].has_value() );
+  REQUIRE( !w.players().players[ref_spanish].has_value() );
+  REQUIRE( !w.players().players[ref_dutch].has_value() );
+
+  player.revolution.status = e_revolution_status::won;
+
+  w.gui().EXPECT__message_box(
+      StrContains( "already been won" ) );
+
+  // Step: Already won.
+  f();
+
+  // No changes from above.
+  REQUIRE( player.revolution.status ==
+           e_revolution_status::won );
+  REQUIRE( player.revolution.rebel_sentiment == 50 );
+  REQUIRE( player.revolution.continental_army_mobilized ==
+           false );
+  REQUIRE( player.revolution.gave_independence_war_hints ==
+           false );
+  REQUIRE( player.revolution.intervention_force_deployed ==
+           true );
+  REQUIRE( player.revolution.ref_will_forfeit == true );
+  REQUIRE( player.revolution.expeditionary_force ==
+           ExpeditionaryForce{
+             .regular   = 0,
+             .cavalry   = 0,
+             .artillery = 0,
+             .man_o_war = 0,
+           } );
+  REQUIRE( player.revolution.intervention_force ==
+           InterventionForce{
+             .continental_army    = 3,
+             .continental_cavalry = 2,
+             .artillery           = 2,
+             .man_o_war           = 2,
+           } );
+  REQUIRE( w.english().control == human );
+  REQUIRE( w.french().control == withdrawn );
+  REQUIRE( w.spanish().control == withdrawn );
+  REQUIRE( w.dutch().control == withdrawn );
+  REQUIRE( w.players().players[ref_english].has_value() );
+  REQUIRE( w.ref_english().control == ai );
+  REQUIRE( !w.players().players[ref_french].has_value() );
+  REQUIRE( !w.players().players[ref_spanish].has_value() );
+  REQUIRE( !w.players().players[ref_dutch].has_value() );
 }
 
 } // namespace
