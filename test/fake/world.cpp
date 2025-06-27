@@ -658,98 +658,114 @@ void World::set_tax_rate( int rate ) {
 // Players.
 // --------------------------------------------------------------
 Player& World::dutch() {
-  UNWRAP_CHECK( player,
-                root().players.players[e_player::dutch] );
+  UNWRAP_CHECK_MSG( player,
+                    root().players.players[e_player::dutch],
+                    "dutch player does not exist." );
   return player;
 }
 
 Player& World::english() {
-  UNWRAP_CHECK( player,
-                root().players.players[e_player::english] );
+  UNWRAP_CHECK_MSG( player,
+                    root().players.players[e_player::english],
+                    "english player does not exist." );
   return player;
 }
 
 Player& World::spanish() {
-  UNWRAP_CHECK( player,
-                root().players.players[e_player::spanish] );
+  UNWRAP_CHECK_MSG( player,
+                    root().players.players[e_player::spanish],
+                    "spanish player does not exist." );
   return player;
 }
 
 Player& World::french() {
-  UNWRAP_CHECK( player,
-                root().players.players[e_player::french] );
+  UNWRAP_CHECK_MSG( player,
+                    root().players.players[e_player::french],
+                    "french player does not exist." );
   return player;
 }
 
 Player const& World::dutch() const {
-  UNWRAP_CHECK( player,
-                root().players.players[e_player::dutch] );
+  UNWRAP_CHECK_MSG( player,
+                    root().players.players[e_player::dutch],
+                    ":: player does not exist." );
   return player;
 }
 
 Player const& World::english() const {
-  UNWRAP_CHECK( player,
-                root().players.players[e_player::english] );
+  UNWRAP_CHECK_MSG( player,
+                    root().players.players[e_player::english],
+                    ":: player does not exist." );
   return player;
 }
 
 Player const& World::spanish() const {
-  UNWRAP_CHECK( player,
-                root().players.players[e_player::spanish] );
+  UNWRAP_CHECK_MSG( player,
+                    root().players.players[e_player::spanish],
+                    ":: player does not exist." );
   return player;
 }
 
 Player const& World::french() const {
-  UNWRAP_CHECK( player,
-                root().players.players[e_player::french] );
+  UNWRAP_CHECK_MSG( player,
+                    root().players.players[e_player::french],
+                    ":: player does not exist." );
   return player;
 }
 
 Player& World::ref_dutch() {
-  UNWRAP_CHECK( player,
-                root().players.players[e_player::ref_dutch] );
+  UNWRAP_CHECK_MSG( player,
+                    root().players.players[e_player::ref_dutch],
+                    "ref_dutch player does not exist." );
   return player;
 }
 
 Player& World::ref_english() {
-  UNWRAP_CHECK( player,
-                root().players.players[e_player::ref_english] );
+  UNWRAP_CHECK_MSG(
+      player, root().players.players[e_player::ref_english],
+      "ref_english player does not exist." );
   return player;
 }
 
 Player& World::ref_spanish() {
-  UNWRAP_CHECK( player,
-                root().players.players[e_player::ref_spanish] );
+  UNWRAP_CHECK_MSG(
+      player, root().players.players[e_player::ref_spanish],
+      "ref_spanish player does not exist." );
   return player;
 }
 
 Player& World::ref_french() {
-  UNWRAP_CHECK( player,
-                root().players.players[e_player::ref_french] );
+  UNWRAP_CHECK_MSG( player,
+                    root().players.players[e_player::ref_french],
+                    "ref_french player does not exist." );
   return player;
 }
 
 Player const& World::ref_dutch() const {
-  UNWRAP_CHECK( player,
-                root().players.players[e_player::ref_dutch] );
+  UNWRAP_CHECK_MSG( player,
+                    root().players.players[e_player::ref_dutch],
+                    ":: player does not exist." );
   return player;
 }
 
 Player const& World::ref_english() const {
-  UNWRAP_CHECK( player,
-                root().players.players[e_player::ref_english] );
+  UNWRAP_CHECK_MSG(
+      player, root().players.players[e_player::ref_english],
+      ":: player does not exist." );
   return player;
 }
 
 Player const& World::ref_spanish() const {
-  UNWRAP_CHECK( player,
-                root().players.players[e_player::spanish] );
+  UNWRAP_CHECK_MSG( player,
+                    root().players.players[e_player::spanish],
+                    ":: player does not exist." );
   return player;
 }
 
 Player const& World::ref_french() const {
-  UNWRAP_CHECK( player,
-                root().players.players[e_player::ref_french] );
+  UNWRAP_CHECK_MSG( player,
+                    root().players.players[e_player::ref_french],
+                    ":: player does not exist." );
   return player;
 }
 

@@ -1496,7 +1496,7 @@ wait<> post_colonies_colonial_only( SS& ss, TS& ts,
     case zero:
       // Do nothing here.
       break;
-    case first: {
+    case one: {
       // Mobilize continental army.
       player.revolution.continental_army_mobilized = true;
       vector<ColonyId> const colonies =
@@ -1516,7 +1516,7 @@ wait<> post_colonies_colonial_only( SS& ss, TS& ts,
       }
       break;
     }
-    case second:
+    case two:
       // TODO:
       //
       //   Message: "The King's armies have little experience..."

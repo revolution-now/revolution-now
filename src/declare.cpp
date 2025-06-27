@@ -307,19 +307,13 @@ wait<> declare_independence_ui_sequence_post(
 }
 
 e_turn_after_declaration post_declaration_turn(
-    Player const& player ) {
+    Player const& p ) {
   using enum e_turn_after_declaration;
   using enum e_revolution_status;
-  e_turn_after_declaration res = zero;
-  if( player.revolution.status == declared ) {
-    if( player.revolution.gave_independence_war_hints )
-      res = done;
-    else if( player.revolution.continental_army_mobilized )
-      res = second;
-    else
-      res = first;
-  }
-  return res;
+  if( !( p.revolution.status == declared ) ) return zero;
+  if( !p.revolution.continental_army_mobilized ) return one;
+  if( !p.revolution.gave_independence_war_hints ) return two;
+  return done;
 }
 
 } // namespace rn

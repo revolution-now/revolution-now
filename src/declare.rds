@@ -32,8 +32,8 @@ struct.DeclarationResult {
 }
 
 enum.e_turn_after_declaration {
-  zero,   # == T + 0
-  first,  # == T + 1
-  second, # == T + 2
-  done,   # >= T + 3
+  zero, # == T + 0
+  one,  # == T + 1
+  two,  # == T + 2
+  done, # >= T + 3
 }
