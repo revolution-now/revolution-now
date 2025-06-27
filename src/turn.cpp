@@ -1419,8 +1419,13 @@ wait<> post_colonies_common( SS&, TS&, Player& ) {
 // Here we do things that must be done once per turn but where we
 // want the colonies to be evolved first. Also, these things are
 // only done for the REF players only (not colonial players).
-wait<> post_colonies_ref_only( SS&, TS&, Player& ) {
-  // Nothing here yet.
+wait<> post_colonies_ref_only( SS&, TS&, Player& player ) {
+  CHECK( is_ref( player.type ) );
+
+  // TODO:
+  //   1. Check forfeight.
+  //   2. Deploy some REF troops (not sure yet about this).
+
   co_return;
 }
 
@@ -1429,6 +1434,8 @@ wait<> post_colonies_ref_only( SS&, TS&, Player& ) {
 // only done for the colonial player (not the REF).
 wait<> post_colonies_colonial_only( SS& ss, TS& ts,
                                     Player& player ) {
+  CHECK( !is_ref( player.type ) );
+
   // Founding fathers.
   if( player.revolution.status <
       e_revolution_status::declared ) {
