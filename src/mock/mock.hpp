@@ -120,13 +120,11 @@ struct RetHolder {
   requires std::is_default_constructible_v<T>
     : o() {}
 
-  RetHolder( T& val )
-  requires std::is_reference_v<T>
-    : o( val ) {}
-
-  RetHolder( T val )
-  requires( !std::is_reference_v<T> )
-    : o( std::move( val ) ) {}
+  template<typename U>
+  RetHolder( U&& val )
+  requires std::is_constructible_v<
+      T, decltype( std::forward<U>( val ) )>
+    : o( std::forward<U>( val ) ) {}
 
   decltype( auto ) get() {
     // If our return type is a non-const l-value ref then we need
