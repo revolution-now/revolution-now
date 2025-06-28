@@ -67,4 +67,14 @@ Player const& HumanEuroAgent::player() {
                                    player_type() );
 }
 
+bool HumanEuroAgent::handle( signal::Foo const& ) {
+  // TODO
+  return false;
+}
+
+wait<int> HumanEuroAgent::handle( signal::Bar const& ) {
+  // TODO
+  co_return 0;
+}
+
 } // namespace rn

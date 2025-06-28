@@ -28,6 +28,14 @@
 #include <type_traits>
 
 /****************************************************************
+** Generic Macros.
+*****************************************************************/
+#define MOCK_CONCAT_IMPL( x, y ) x##y
+#define MOCK_CONCAT( x, y )      MOCK_CONCAT_IMPL( x, y )
+// This helps us to support overloaded functions.
+#define MOCK_IDENT_GEN( base )   MOCK_CONCAT( base##_, __LINE__ )
+
+/****************************************************************
 ** EXPECT* Macros
 *****************************************************************/
 // This one sets a method that will (and must) be called exactly
@@ -60,32 +68,37 @@
   EVAL( MOCK_METHOD_IMPL( ret_type, fn_name, fn_args, \
                           const_modifier ) )
 
-#define MOCK_METHOD_IMPL( ret_type, fn_name, fn_args,          \
-                          const_modifier )                     \
-  using responder__##fn_name = ::mock::detail::Responder<      \
-      ret_type, std::tuple<PP_REMOVE_PARENS fn_args>,          \
-      decltype( std::index_sequence_for<                       \
-                PP_REMOVE_PARENS fn_args>() )>;                \
-                                                               \
-  mutable ::mock::detail::ResponderQueue<responder__##fn_name> \
-      queue__##fn_name = { #fn_name };                         \
-                                                               \
-  template<typename... Args>                                   \
-  requires std::is_constructible_v<                            \
-      std::tuple<PP_MAP_COMMAS( ADD_MATCHER_WRAPPER,           \
-                                PP_REMOVE_PARENS fn_args )>,   \
-      Args...>                                                 \
-  [[maybe_unused]] responder__##fn_name& EXPECT__##fn_name(    \
-      Args&&... args ) {                                       \
-    auto matchers = responder__##fn_name::matchers_t{          \
-      std::forward<Args>( args )... };                         \
-    return queue__##fn_name.add( std::move( matchers ) );      \
-  }                                                            \
-                                                               \
-  ret_type fn_name( MAKE_FN_ARGS( fn_args ) )                  \
-      PP_REMOVE_PARENS const_modifier override {               \
-    return queue__##fn_name(                                   \
-        MAKE_FN_ARGS_FWD_VARS( fn_args ) );                    \
+#define MOCK_METHOD_IMPL( ret_type, fn_name, fn_args,       \
+                          const_modifier )                  \
+  using MOCK_IDENT_GEN( responder__##fn_name ) =            \
+      ::mock::detail::Responder<                            \
+          ret_type, std::tuple<PP_REMOVE_PARENS fn_args>,   \
+          decltype( std::index_sequence_for<                \
+                    PP_REMOVE_PARENS fn_args>() )>;         \
+                                                            \
+  mutable ::mock::detail::ResponderQueue<MOCK_IDENT_GEN(    \
+      responder__##fn_name )>                               \
+      MOCK_IDENT_GEN( queue__##fn_name ) = { #fn_name };    \
+                                                            \
+  template<typename... Args>                                \
+  requires std::is_constructible_v<                         \
+               std::tuple<PP_MAP_COMMAS(                    \
+                   ADD_MATCHER_WRAPPER,                     \
+                   PP_REMOVE_PARENS fn_args )>,             \
+               Args...>                                     \
+  [[maybe_unused]] MOCK_IDENT_GEN( responder__##fn_name ) & \
+      EXPECT__##fn_name( Args&&... args ) {                 \
+    auto matchers =                                         \
+        MOCK_IDENT_GEN( responder__##fn_name )::matchers_t{ \
+          std::forward<Args>( args )... };                  \
+    return MOCK_IDENT_GEN( queue__##fn_name )               \
+        .add( std::move( matchers ) );                      \
+  }                                                         \
+                                                            \
+  ret_type fn_name( MAKE_FN_ARGS( fn_args ) )               \
+      PP_REMOVE_PARENS const_modifier override {            \
+    return MOCK_IDENT_GEN( queue__##fn_name )(              \
+        MAKE_FN_ARGS_FWD_VARS( fn_args ) );                 \
   }
 
 namespace mock {

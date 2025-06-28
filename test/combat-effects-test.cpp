@@ -3287,26 +3287,26 @@ TEST_CASE( "[combat-effects] show_combat_effects_msg" ) {
                                             defender_agent ) );
   };
 
-  msgs = {};
-  f();
-  attacker_agent.queue__message_box.ensure_expectations();
-  defender_agent.queue__message_box.ensure_expectations();
+  SECTION( "default" ) {
+    msgs = {};
+    f();
+  }
 
-  msgs = { .attacker = { "xxx" } };
-  attacker_agent.EXPECT__message_box( "xxx" );
-  f();
-  attacker_agent.queue__message_box.ensure_expectations();
-  defender_agent.queue__message_box.ensure_expectations();
+  SECTION( "just attacker" ) {
+    msgs = { .attacker = { "xxx" } };
+    attacker_agent.EXPECT__message_box( "xxx" );
+    f();
+  }
 
-  msgs = { .attacker = { "xxx", "yyy" },
-           .defender = { "aaa", "bbb" } };
-  attacker_agent.EXPECT__message_box( "xxx" );
-  attacker_agent.EXPECT__message_box( "yyy" );
-  defender_agent.EXPECT__message_box( "aaa" );
-  defender_agent.EXPECT__message_box( "bbb" );
-  f();
-  attacker_agent.queue__message_box.ensure_expectations();
-  defender_agent.queue__message_box.ensure_expectations();
+  SECTION( "both" ) {
+    msgs = { .attacker = { "xxx", "yyy" },
+             .defender = { "aaa", "bbb" } };
+    attacker_agent.EXPECT__message_box( "xxx" );
+    attacker_agent.EXPECT__message_box( "yyy" );
+    defender_agent.EXPECT__message_box( "aaa" );
+    defender_agent.EXPECT__message_box( "bbb" );
+    f();
+  }
 }
 
 } // namespace

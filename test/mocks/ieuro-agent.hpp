@@ -27,10 +27,13 @@
 // base
 #include "base/to-str-ext-std.hpp"
 
+#define MOCK_HANDLER( ret, sig ) \
+  MOCK_METHOD( ret, handle, (signal::sig const&), () )
+
 namespace rn {
 
 /****************************************************************
-** MockIRand
+** MockIEuroAgent
 *****************************************************************/
 struct MockIEuroAgent : IEuroAgent {
   MockIEuroAgent( e_player player ) : IEuroAgent( player ) {}
@@ -52,6 +55,10 @@ struct MockIEuroAgent : IEuroAgent {
                (Player const&, Player const&, Unit const&,
                 Commodity const&),
                () );
+
+ public: // Signals
+  MOCK_HANDLER( bool, Foo );
+  MOCK_HANDLER( wait<int>, Bar );
 };
 
 static_assert( !std::is_abstract_v<MockIEuroAgent> );

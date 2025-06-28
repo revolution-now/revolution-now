@@ -48,6 +48,11 @@ struct HumanEuroAgent final : IEuroAgent {
       Player const& src_player, Player const& dst_player,
       Unit const& dst_unit, Commodity const& stolen ) override;
 
+ public: // Signals.
+  bool handle( signal::Foo const& foo ) override;
+
+  wait<int> handle( signal::Bar const& foo ) override;
+
  private:
   SS& ss_;
   IGui& gui_;

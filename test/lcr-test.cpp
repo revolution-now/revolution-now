@@ -771,14 +771,12 @@ TEST_CASE( "[lcr] compute_lcr, type=none" ) {
     expected = LostCityRumor::none{};
     W.rand().EXPECT__between_ints( 0, 99 ).returns( 0 );
     REQUIRE( f() == expected );
-    W.rand().queue__between_ints.ensure_expectations();
   }
 
   SECTION( "type=fountain_of_youth" ) {
     expected = LostCityRumor::fountain_of_youth{};
     W.rand().EXPECT__between_ints( 0, 99 ).returns( 48 );
     REQUIRE( f() == expected );
-    W.rand().queue__between_ints.ensure_expectations();
   }
 
   SECTION( "no fountain_of_youth allowed" ) {
@@ -786,14 +784,12 @@ TEST_CASE( "[lcr] compute_lcr, type=none" ) {
     expected                 = LostCityRumor::free_colonist{};
     W.rand().EXPECT__between_ints( 0, 94 ).returns( 48 );
     REQUIRE( f() == expected );
-    W.rand().queue__between_ints.ensure_expectations();
   }
 
   SECTION( "type=free_colonist" ) {
     expected = LostCityRumor::free_colonist{};
     W.rand().EXPECT__between_ints( 0, 99 ).returns( 53 );
     REQUIRE( f() == expected );
-    W.rand().queue__between_ints.ensure_expectations();
   }
 
   SECTION( "type=ruins" ) {
@@ -802,7 +798,6 @@ TEST_CASE( "[lcr] compute_lcr, type=none" ) {
     // Will be rounded down to the nearest 10.
     W.rand().EXPECT__between_ints( 120, 300 ).returns( 123 );
     REQUIRE( f() == expected );
-    W.rand().queue__between_ints.ensure_expectations();
   }
 
   SECTION( "type=burial_mounds, treasure, no grounds" ) {
@@ -820,7 +815,6 @@ TEST_CASE( "[lcr] compute_lcr, type=none" ) {
     // Burial grounds?
     W.rand().EXPECT__bernoulli( .05 ).returns( false );
     REQUIRE( f() == expected );
-    W.rand().queue__between_ints.ensure_expectations();
   }
 
   SECTION( "type=burial_mounds, trinkets, no grounds" ) {
@@ -838,7 +832,6 @@ TEST_CASE( "[lcr] compute_lcr, type=none" ) {
     // Burial grounds?
     W.rand().EXPECT__bernoulli( .05 ).returns( false );
     REQUIRE( f() == expected );
-    W.rand().queue__between_ints.ensure_expectations();
   }
 
   SECTION( "type=burial_mounds, cold-and-empty, no grounds" ) {
@@ -854,7 +847,6 @@ TEST_CASE( "[lcr] compute_lcr, type=none" ) {
     // Burial grounds?
     W.rand().EXPECT__bernoulli( .05 ).returns( false );
     REQUIRE( f() == expected );
-    W.rand().queue__between_ints.ensure_expectations();
   }
 
   SECTION( "type=burial_mounds, cold-and-empty, with grounds" ) {
@@ -870,7 +862,6 @@ TEST_CASE( "[lcr] compute_lcr, type=none" ) {
     // Burial grounds?
     W.rand().EXPECT__bernoulli( .05 ).returns( true );
     REQUIRE( f() == expected );
-    W.rand().queue__between_ints.ensure_expectations();
   }
 
   SECTION( "type=chief gift" ) {
@@ -878,14 +869,12 @@ TEST_CASE( "[lcr] compute_lcr, type=none" ) {
     W.rand().EXPECT__between_ints( 0, 99 ).returns( 82 );
     W.rand().EXPECT__between_ints( 15, 70 ).returns( 23 );
     REQUIRE( f() == expected );
-    W.rand().queue__between_ints.ensure_expectations();
   }
 
   SECTION( "type=unit_lost" ) {
     expected = LostCityRumor::unit_lost{};
     W.rand().EXPECT__between_ints( 0, 99 ).returns( 94 );
     REQUIRE( f() == expected );
-    W.rand().queue__between_ints.ensure_expectations();
   }
 
   SECTION( "type=no unit_lost with de soto" ) {
@@ -899,7 +888,6 @@ TEST_CASE( "[lcr] compute_lcr, type=none" ) {
     // Will be rounded down to nearest 100.
     W.rand().EXPECT__between_ints( 2500, 12000 ).returns( 5555 );
     REQUIRE( f() == expected );
-    W.rand().queue__between_ints.ensure_expectations();
   }
 
   SECTION( "type=cibola" ) {
@@ -908,7 +896,6 @@ TEST_CASE( "[lcr] compute_lcr, type=none" ) {
     // Will be rounded down to nearest 100.
     W.rand().EXPECT__between_ints( 2500, 12000 ).returns( 5555 );
     REQUIRE( f() == expected );
-    W.rand().queue__between_ints.ensure_expectations();
   }
 
   SECTION( "type=holy_shrines, no tribes" ) {
@@ -919,7 +906,6 @@ TEST_CASE( "[lcr] compute_lcr, type=none" ) {
             player.type, gfx::point{ .x = 0, .y = 0 }, 15 )
         .returns( nothing );
     REQUIRE( f() == expected );
-    W.rand().queue__between_ints.ensure_expectations();
   }
 
   SECTION( "type=holy_shrines" ) {
@@ -933,7 +919,6 @@ TEST_CASE( "[lcr] compute_lcr, type=none" ) {
     // Alarm increase.
     W.rand().EXPECT__between_ints( 14, 18 ).returns( 16 );
     REQUIRE( f() == expected );
-    W.rand().queue__between_ints.ensure_expectations();
   }
 }
 

@@ -15,6 +15,7 @@
 
 // Revolution Now
 #include "iagent.hpp"
+#include "isignal.hpp"
 #include "meet-natives.rds.hpp"
 #include "wait.hpp"
 
@@ -38,9 +39,25 @@ struct SSConst;
 struct Unit;
 
 /****************************************************************
+** Concepts
+*****************************************************************/
+template<typename Context>
+concept WaitableSignalContext =
+    requires( ISignalHandler& h, Context const& ctx ) {
+      { h.handle( ctx ) } -> IsWait;
+    };
+
+template<typename Context>
+concept NonWaitableSignalContext =
+    !WaitableSignalContext<Context> &&
+    requires( ISignalHandler& h, Context const& ctx ) {
+      h.handle( ctx );
+    };
+
+/****************************************************************
 ** IEuroAgent
 *****************************************************************/
-struct IEuroAgent : IAgent {
+struct IEuroAgent : IAgent, ISignalHandler {
   IEuroAgent( e_player player );
 
   virtual ~IEuroAgent() override = default;
@@ -71,6 +88,27 @@ struct IEuroAgent : IAgent {
   virtual wait<> notify_captured_cargo(
       Player const& src_player, Player const& dst_player,
       Unit const& dst_unit, Commodity const& stolen ) = 0;
+
+ public: // Signals.
+  template<WaitableSignalContext Context>
+  requires requires( ISignalHandler& h, Context const& ctx ) {
+    h.handle( ctx );
+  }
+  auto signal( Context const& ctx, std::string const& msg = "" )
+      -> wait<
+          typename decltype( std::declval<ISignalHandler>()
+                                 .handle( ctx ) )::value_type> {
+    if( !msg.empty() ) co_await this->message_box( "{}", msg );
+    co_return co_await handle( ctx );
+  }
+
+  template<NonWaitableSignalContext Context>
+  requires requires( ISignalHandler& h, Context const& ctx ) {
+    h.handle( ctx );
+  }
+  auto signal( Context const& ctx ) {
+    return handle( ctx );
+  }
 
  private:
   e_player player_type_ = {};
@@ -103,6 +141,11 @@ struct NoopEuroAgent final : IEuroAgent {
   wait<> notify_captured_cargo(
       Player const& src_player, Player const& dst_player,
       Unit const& dst_unit, Commodity const& stolen ) override;
+
+ public: // ISignalHandler
+  bool handle( signal::Foo const& foo ) override;
+
+  wait<int> handle( signal::Bar const& foo ) override;
 
  private:
   SSConst const& ss_;

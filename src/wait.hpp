@@ -354,6 +354,18 @@ class wait_promise {
 };
 
 /****************************************************************
+** Concepts.
+*****************************************************************/
+template<typename T>
+bool constexpr is_wait_v = false;
+
+template<typename U>
+bool constexpr is_wait_v<wait<U>> = true;
+
+template<typename T>
+concept IsWait = is_wait_v<T>;
+
+/****************************************************************
 ** Helpers
 *****************************************************************/
 // Returns a wait immediately containing the given value.

@@ -64,4 +64,12 @@ Player const& NoopEuroAgent::player() {
                                    player_type() );
 }
 
+bool NoopEuroAgent::handle( signal::Foo const& ) {
+  return false;
+}
+
+wait<int> NoopEuroAgent::handle( signal::Bar const& ) {
+  co_return 0;
+}
+
 } // namespace rn
