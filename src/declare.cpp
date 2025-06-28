@@ -193,9 +193,9 @@ DeclarationResult declare_independence( SS& ss, TS& ts,
   // there are any ref units to bring. The OG appears to increase
   // this from zero to one if it is zero.
   auto& force = player.revolution.expeditionary_force;
-  if( force.regular > 0 || force.cavalry > 0 ||
-      force.artillery > 0 )
-    if( force.man_o_war == 0 ) force.man_o_war = 1;
+  if( force.regular + force.cavalry + force.artillery > 0 &&
+      force.man_o_war == 0 )
+    force.man_o_war = 1;
 
   // Step: Eliminate all foreign units outside of colonies.
   vector<UnitId> destroy;
