@@ -41,5 +41,5 @@ format() {
   clang-format -i $(files)
 }
 
-check
-# format
+# check
+format
