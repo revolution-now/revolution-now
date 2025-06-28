@@ -298,7 +298,7 @@ struct World {
   // ------------------------------------------------------------
   // Players.
   // ------------------------------------------------------------
-  void add_player( e_player player );
+  Player& add_player( e_player player );
   void add_all_non_ref_players(
       maybe<e_player> human = nothing );
   void add_default_player();

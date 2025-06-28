@@ -89,10 +89,10 @@ valid_or<e_declare_rejection> can_declare_independence(
         if( other.has_value() && type != player.type )
           if( other->revolution.status >= declared )
             return other_human_already_declared;
-      if( rebellion_large_enough_to_declare( ss.settings,
-                                             player ) )
-        return valid;
-      return rebel_sentiment_too_low;
+      if( !rebellion_large_enough_to_declare( ss.settings,
+                                              player ) )
+        return rebel_sentiment_too_low;
+      return valid;
     }
     case declared:
       return already_declared;
@@ -102,28 +102,39 @@ valid_or<e_declare_rejection> can_declare_independence(
 }
 
 wait<> show_declare_rejection_msg(
-    IGui& gui, e_declare_rejection const reason ) {
+    SSConst const& ss, Player const& player, IGui& gui,
+    e_declare_rejection const reason ) {
   switch( reason ) {
     using enum e_declare_rejection;
     case rebel_sentiment_too_low:
-      co_await gui.message_box( "Rebel sentiment too low." );
+      co_await gui.message_box(
+          "We cannot declare independence because [Rebel "
+          "Sentiment] in {} is too low. We must have at least "
+          "[{}%] confidence in the revolution in order to "
+          "declare it.",
+          player.new_world_name.value_or( "the New World" ),
+          config_revolution.declaration
+              .human_required_rebel_sentiment_percent
+                  [ss.settings.game_setup_options.difficulty]
+              .percent );
       break;
     case already_declared:
       co_await gui.message_box(
-          "We are already fighting the war of independence." );
+          "We are already fighting the War of Independence." );
       break;
     case other_human_already_declared:
       co_await gui.message_box(
-          "We cannot declare independence as another non-AI "
-          "player has already declared." );
+          "We cannot declare independence as another "
+          "human-controlled player has already declared." );
       break;
     case already_won:
       co_await gui.message_box(
-          "We have already won our independence." );
+          "We have already won the War of Independence." );
       break;
     case ref_cannot_declare:
       co_await gui.message_box(
-          "An REF player cannot declare independence." );
+          "The Royal Expeditionary Force cannot declare "
+          "independence." );
       break;
   }
 }

@@ -523,7 +523,7 @@ wait<> menu_handler( IEngine& engine, SS& ss, TS& ts,
           can_declare_independence( ss, player );
       if( !can_declare ) {
         co_await show_declare_rejection_msg(
-            ts.gui, can_declare.error() );
+            ss, player, ts.gui, can_declare.error() );
         break;
       }
       ui::e_confirm const answer =

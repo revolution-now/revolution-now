@@ -458,8 +458,9 @@ void World::add_commodity_in_cargo( e_commodity type,
       starting_slot );
 }
 
-void World::add_player( e_player player_type ) {
+Player& World::add_player( e_player const player_type ) {
   add_new_player( ss(), player_type );
+  return player( player_type );
 }
 
 void World::add_all_non_ref_players(

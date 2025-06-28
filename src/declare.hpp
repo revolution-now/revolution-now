@@ -42,7 +42,9 @@ maybe<e_player> human_player_that_declared( SSConst const& ss );
 base::valid_or<e_declare_rejection> can_declare_independence(
     SSConst const& ss, Player const& player );
 
-wait<> show_declare_rejection_msg( IGui& gui,
+wait<> show_declare_rejection_msg( SSConst const& ss,
+                                   Player const& player,
+                                   IGui& gui,
                                    e_declare_rejection reason );
 
 wait<ui::e_confirm> ask_declare( IGui& gui,

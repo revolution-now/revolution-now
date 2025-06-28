@@ -22,6 +22,7 @@
 // ss
 #include "src/ss/player.rds.hpp"
 #include "src/ss/ref.hpp"
+#include "src/ss/revolution.rds.hpp"
 #include "src/ss/settings.rds.hpp"
 
 // Must be last.
@@ -62,97 +63,166 @@ struct world : testing::World {
 *****************************************************************/
 TEST_CASE( "[declare] human_player_that_declared" ) {
   world w;
+
+  auto const f = [&] {
+    return human_player_that_declared( w.ss() );
+  };
+
+  using enum e_player;
+
+  w.add_player( english );
+  w.add_player( french );
+  w.add_player( spanish );
+
+  REQUIRE( f() == nothing );
+
+  w.spanish().control = e_player_control::human;
+  REQUIRE( f() == nothing );
+
+  w.french().control = e_player_control::human;
+  REQUIRE( f() == nothing );
+
+  w.spanish().revolution.status = e_revolution_status::declared;
+  REQUIRE( f() == spanish );
+
+  w.french().revolution.status = e_revolution_status::declared;
+  w.spanish().revolution.status =
+      e_revolution_status::not_declared;
+  REQUIRE( f() == french );
+
+  w.french().revolution.status = e_revolution_status::won;
+  REQUIRE( f() == french );
+
+  w.french().control = e_player_control::ai;
+  REQUIRE( f() == nothing );
 }
 
 TEST_CASE( "[declare] can_declare_independence" ) {
   world w;
 
-  Player& player = w.default_player();
+  Player& player       = w.add_player( e_player::english );
+  Player& other_player = w.add_player( e_player::french );
+  Player& ref_player   = w.add_player( e_player::ref_english );
 
-  auto const f = [&] {
-    return can_declare_independence( w.ss().as_const,
-                                     as_const( player ) );
+  auto const f = [&]( Player const& player ) {
+    return can_declare_independence( w.ss().as_const, player );
   };
 
   w.settings().game_setup_options.difficulty =
       e_difficulty::discoverer;
 
   using enum e_declare_rejection;
+  using enum e_revolution_status;
 
-  // Default.
-  REQUIRE( f() == rebel_sentiment_too_low );
+  player.revolution.status          = not_declared;
+  player.revolution.rebel_sentiment = 50;
+  other_player.revolution.status    = not_declared;
+  REQUIRE( f( player ) == valid );
 
-  SECTION( "rebel sentiment" ) {
+  SECTION( "default: yes" ) { REQUIRE( f( player ) == valid ); }
+
+  SECTION( "rebel_sentiment_too_low" ) {
     player.revolution.rebel_sentiment = 0;
-    REQUIRE( f() == rebel_sentiment_too_low );
+    REQUIRE( f( player ) == rebel_sentiment_too_low );
 
     player.revolution.rebel_sentiment = 10;
-    REQUIRE( f() == rebel_sentiment_too_low );
+    REQUIRE( f( player ) == rebel_sentiment_too_low );
 
     player.revolution.rebel_sentiment = 30;
-    REQUIRE( f() == rebel_sentiment_too_low );
+    REQUIRE( f( player ) == rebel_sentiment_too_low );
 
     player.revolution.rebel_sentiment = 49;
-    REQUIRE( f() == rebel_sentiment_too_low );
+    REQUIRE( f( player ) == rebel_sentiment_too_low );
 
     player.revolution.rebel_sentiment = 50;
-    REQUIRE( f() == valid );
+    REQUIRE( f( player ) == valid );
 
     player.revolution.rebel_sentiment = 60;
-    REQUIRE( f() == valid );
+    REQUIRE( f( player ) == valid );
 
     player.revolution.rebel_sentiment = 99;
-    REQUIRE( f() == valid );
+    REQUIRE( f( player ) == valid );
 
     player.revolution.rebel_sentiment = 100;
-    REQUIRE( f() == valid );
+    REQUIRE( f( player ) == valid );
 
     w.settings().game_setup_options.difficulty =
         e_difficulty::viceroy;
 
     player.revolution.rebel_sentiment = 0;
-    REQUIRE( f() == rebel_sentiment_too_low );
+    REQUIRE( f( player ) == rebel_sentiment_too_low );
 
     player.revolution.rebel_sentiment = 10;
-    REQUIRE( f() == rebel_sentiment_too_low );
+    REQUIRE( f( player ) == rebel_sentiment_too_low );
 
     player.revolution.rebel_sentiment = 30;
-    REQUIRE( f() == rebel_sentiment_too_low );
+    REQUIRE( f( player ) == rebel_sentiment_too_low );
 
     player.revolution.rebel_sentiment = 49;
-    REQUIRE( f() == rebel_sentiment_too_low );
+    REQUIRE( f( player ) == rebel_sentiment_too_low );
 
     player.revolution.rebel_sentiment = 50;
-    REQUIRE( f() == valid );
+    REQUIRE( f( player ) == valid );
 
     player.revolution.rebel_sentiment = 60;
-    REQUIRE( f() == valid );
+    REQUIRE( f( player ) == valid );
 
     player.revolution.rebel_sentiment = 99;
-    REQUIRE( f() == valid );
+    REQUIRE( f( player ) == valid );
 
     player.revolution.rebel_sentiment = 100;
-    REQUIRE( f() == valid );
+    REQUIRE( f( player ) == valid );
   }
 
-  SECTION( "Foreign Nation" ) {
+  SECTION( "already_declared" ) {
+    player.revolution.status = declared;
+    REQUIRE( f( player ) == already_declared );
   }
 
-  SECTION( "Already Declared" ) {
+  SECTION( "other_human_already_declared" ) {
+    other_player.revolution.status = declared;
+    REQUIRE( f( player ) == other_human_already_declared );
   }
 
-  SECTION( "Other Human Already Declared" ) {
+  SECTION( "ref_cannot_declare" ) {
+    REQUIRE( f( ref_player ) == ref_cannot_declare );
   }
 
-  SECTION( "REF cannot declare" ) {
-  }
-
-  SECTION( "Already Won" ) {
+  SECTION( "already_one" ) {
+    player.revolution.status = won;
+    REQUIRE( f( player ) == already_won );
   }
 }
 
 TEST_CASE( "[declare] show_declare_rejection_msg" ) {
   world w;
+  Player& player = w.default_player();
+
+  using enum e_declare_rejection;
+
+  auto const f = [&]( e_declare_rejection const reason ) {
+    co_await_test( show_declare_rejection_msg(
+        w.ss(), player, w.gui(), reason ) );
+  };
+
+  auto const expect_msg = [&]( string const& msg ) {
+    w.gui().EXPECT__message_box( StrContains( msg ) );
+  };
+
+  expect_msg( "[Rebel Sentiment] in the New World is too low" );
+  f( rebel_sentiment_too_low );
+
+  expect_msg( "already fighting" );
+  f( already_declared );
+
+  expect_msg( "another human-controlled player has already" );
+  f( other_human_already_declared );
+
+  expect_msg( "already won" );
+  f( already_won );
+
+  expect_msg( "Royal Expeditionary Force cannot declare" );
+  f( ref_cannot_declare );
 }
 
 TEST_CASE( "[declare] ask_declare" ) {
@@ -190,10 +260,6 @@ TEST_CASE( "[declare] declare_independence_ui_sequence_pre" ) {
   expect_msg( "(signing of signature on declaration)" );
 
   f();
-}
-
-TEST_CASE( "[declare] declare_independence" ) {
-  world w;
 }
 
 TEST_CASE( "[declare] declare_independence_ui_sequence_post" ) {
@@ -259,6 +325,10 @@ TEST_CASE( "[declare] post_declaration_turn" ) {
   player.revolution.status = not_declared;
   REQUIRE( f() == zero );
   REQUIRE( f() == zero );
+}
+
+TEST_CASE( "[declare] declare_independence" ) {
+  world w;
 }
 
 } // namespace
