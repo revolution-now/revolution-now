@@ -161,6 +161,7 @@ wait<ui::e_confirm> ask_declare( IGui& gui,
 wait<> declare_independence_ui_sequence_pre( SSConst const&,
                                              TS& ts,
                                              Player const& ) {
+  // TODO
   co_await ts.gui.message_box(
       "(signing of signature on declaration)" );
 }
