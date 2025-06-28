@@ -1,5 +1,5 @@
 /****************************************************************
-**inative-mind.hpp
+**inative-agent.hpp
 *
 * Project: Revolution Now
 *

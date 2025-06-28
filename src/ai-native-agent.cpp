@@ -1,5 +1,5 @@
 /****************************************************************
-**ai-native-mind.cpp
+**ai-native-agent.cpp
 *
 * Project: Revolution Now
 *

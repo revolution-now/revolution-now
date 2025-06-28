@@ -1,11 +1,11 @@
 /****************************************************************
-**ai-native-mind.cpp
+**ai-native-agent.cpp
 *
 * Project: Revolution Now
 *
 * Created by dsicilia on 2023-03-25.
 *
-* Description: Unit tests for the src/ai-native-mind.* module.
+* Description: Unit tests for the src/ai-native-agent.* module.
 *
 *****************************************************************/
 #include "test/testing.hpp"

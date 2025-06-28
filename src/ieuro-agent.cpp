@@ -1,5 +1,5 @@
 /****************************************************************
-**ieuro-mind.cpp
+**ieuro-agent.cpp
 *
 * Project: Revolution Now
 *

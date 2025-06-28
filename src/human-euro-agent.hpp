@@ -5,7 +5,7 @@
 *
 * Created by dsicilia on 2023-03-31.
 *
-* Description: Implementation of IEuroMind for human players.
+* Description: Implementation of IEuroAgent for human players.
 *
 *****************************************************************/
 #pragma once

@@ -5,7 +5,7 @@
 *
 * Created by David P. Sicilia on 2023-09-07.
 *
-* Description: Stuff for managing mind implementations.
+* Description: Stuff for managing agent implementations.
 *
 *****************************************************************/
 #pragma once

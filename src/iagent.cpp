@@ -1,11 +1,11 @@
 /****************************************************************
-**imind.cpp
+**iagent.cpp
 *
 * Project: Revolution Now
 *
 * Created by David P. Sicilia on 2023-08-12.
 *
-* Description: Base interface for the I*Mind interfaces.
+* Description: Base interface for the I*Agent interfaces.
 *
 *****************************************************************/
 #include "iagent.hpp"

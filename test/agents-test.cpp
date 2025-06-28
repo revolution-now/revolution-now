@@ -1,11 +1,11 @@
 /****************************************************************
-**minds-test.cpp
+**agents-test.cpp
 *
 * Project: Revolution Now
 *
 * Created by David P. Sicilia on 2023-09-07.
 *
-* Description: Unit tests for the minds module.
+* Description: Unit tests for the agents module.
 *
 *****************************************************************/
 #include "test/testing.hpp"
