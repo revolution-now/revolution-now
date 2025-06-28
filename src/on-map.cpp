@@ -13,15 +13,15 @@
 #include "on-map.hpp"
 
 // Revolution Now
+#include "agents.hpp"
 #include "co-wait.hpp"
-#include "ieuro-mind.hpp"
+#include "ieuro-agent.hpp"
 #include "igui.hpp"
 #include "imap-search.rds.hpp"
 #include "imap-updater.hpp"
 #include "land-view.hpp"
 #include "lcr.hpp"
 #include "meet-natives.hpp"
-#include "minds.hpp"
 #include "plane-stack.hpp"
 #include "society.hpp"
 #include "treasure.hpp"

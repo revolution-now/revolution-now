@@ -8,7 +8,7 @@
 * Description: Base interface for the I*Mind interfaces.
 *
 *****************************************************************/
-#include "imind.hpp"
+#include "iagent.hpp"
 
 // Revolution Now
 #include "co-wait.hpp"

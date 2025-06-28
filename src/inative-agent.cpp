@@ -9,7 +9,7 @@
 *              native units.
 *
 *****************************************************************/
-#include "inative-mind.hpp"
+#include "inative-agent.hpp"
 
 // Revolution Now
 #include "co-wait.hpp"

@@ -12,7 +12,7 @@
 
 // Revolution Now
 #include "src/capture-cargo.rds.hpp"
-#include "src/ieuro-mind.hpp"
+#include "src/ieuro-agent.hpp"
 
 // ss
 #include "src/ss/player.rds.hpp"

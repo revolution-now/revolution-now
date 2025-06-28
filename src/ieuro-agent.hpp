@@ -1,5 +1,5 @@
 /****************************************************************
-**ieuro-mind.hpp
+**ieuro-agent.hpp
 *
 * Project: Revolution Now
 *
@@ -14,7 +14,7 @@
 #include "core-config.hpp"
 
 // Revolution Now
-#include "imind.hpp"
+#include "iagent.hpp"
 #include "meet-natives.rds.hpp"
 #include "wait.hpp"
 

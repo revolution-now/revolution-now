@@ -11,6 +11,7 @@
 #include "game.hpp"
 
 // Revolution Now
+#include "agents.hpp"
 #include "co-combinator.hpp"
 #include "co-wait.hpp"
 #include "colony-view.hpp"
@@ -22,16 +23,15 @@
 #include "difficulty-screen.hpp"
 #include "frame-count.hpp" // FIXME
 #include "iengine.hpp"
-#include "ieuro-mind.hpp"
+#include "ieuro-agent.hpp"
 #include "igui.hpp"
 #include "imenu-server.hpp"
-#include "inative-mind.hpp"
+#include "inative-agent.hpp"
 #include "interrupts.hpp"
 #include "irand.hpp"
 #include "land-view.hpp"
 #include "lua.hpp"
 #include "map-updater.hpp"
-#include "minds.hpp"
 #include "panel.hpp"
 #include "plane-stack.hpp"
 #include "rand.hpp"

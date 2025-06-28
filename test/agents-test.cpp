@@ -11,18 +11,18 @@
 #include "test/testing.hpp"
 
 // Under test.
-#include "src/minds.hpp"
+#include "src/agents.hpp"
 
 // Testing.
 #include "test/fake/world.hpp"
-#include "test/mocks/ieuro-mind.hpp"
+#include "test/mocks/ieuro-agent.hpp"
 #include "test/mocks/igui.hpp"
-#include "test/mocks/inative-mind.hpp"
+#include "test/mocks/inative-agent.hpp"
 #include "test/mocks/irand.hpp"
 
 // Revolution Now
-#include "src/ai-native-mind.hpp"
-#include "src/human-euro-mind.hpp"
+#include "src/ai-native-agent.hpp"
+#include "src/human-euro-agent.hpp"
 
 // ss
 #include "src/ss/players.rds.hpp"

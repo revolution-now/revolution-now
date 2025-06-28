@@ -1,5 +1,5 @@
 /****************************************************************
-**inative-mind.hpp
+**inative-agent.hpp
 *
 * Project: Revolution Now
 *
@@ -14,10 +14,10 @@
 #include "core-config.hpp"
 
 // rds
-#include "inative-mind.rds.hpp"
+#include "inative-agent.rds.hpp"
 
 // Revolution Now
-#include "imind.hpp"
+#include "iagent.hpp"
 
 // ss
 #include "ss/unit-id.hpp"

@@ -11,6 +11,7 @@
 #include "attack-handlers.hpp"
 
 // Revolution Now
+#include "agents.hpp"
 #include "alarm.hpp"
 #include "anim-builders.hpp"
 #include "capture-cargo.hpp"
@@ -24,13 +25,12 @@
 #include "conductor.hpp"
 #include "harbor-units.hpp"
 #include "icombat.hpp"
-#include "ieuro-mind.hpp"
+#include "ieuro-agent.hpp"
 #include "igui.hpp"
 #include "imap-updater.hpp"
-#include "inative-mind.hpp"
+#include "inative-agent.hpp"
 #include "land-view.hpp"
 #include "map-square.hpp"
-#include "minds.hpp"
 #include "missionary.hpp"
 #include "on-map.hpp"
 #include "plane-stack.hpp"

@@ -13,7 +13,7 @@
 // Revolution Now
 #include "co-wait.hpp"
 #include "colony-mgr.hpp"
-#include "ieuro-mind.hpp"
+#include "ieuro-agent.hpp"
 #include "sons-of-liberty.hpp"
 
 // config

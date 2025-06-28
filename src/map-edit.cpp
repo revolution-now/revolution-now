@@ -11,22 +11,22 @@
 #include "map-edit.hpp"
 
 // Revolution Now
+#include "agents.hpp"
 #include "co-combinator.hpp"
 #include "colony-view.hpp"
 #include "connectivity.hpp"
 #include "gui.hpp" // FIXME
 #include "icombat.hpp"
 #include "iengine.hpp"
-#include "ieuro-mind.hpp" // FIXME
+#include "ieuro-agent.hpp" // FIXME
 #include "imenu-server.hpp"
-#include "inative-mind.hpp" // FIXME
+#include "inative-agent.hpp" // FIXME
 #include "input.hpp"
 #include "lua.hpp" // FIXME
 #include "map-gen.hpp"
 #include "map-square.hpp"
 #include "map-updater.hpp"
 #include "menu-plane.hpp"
-#include "minds.hpp"
 #include "plane-stack.hpp"
 #include "plane.hpp"
 #include "plow.hpp"

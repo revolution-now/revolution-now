@@ -12,7 +12,7 @@
 
 // Revolution Now
 #include "src/icombat.rds.hpp"
-#include "src/inative-mind.hpp"
+#include "src/inative-agent.hpp"
 #include "src/raid-effects.rds.hpp"
 
 // mock

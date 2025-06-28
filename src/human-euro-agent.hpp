@@ -1,5 +1,5 @@
 /****************************************************************
-**human-euro-mind.hpp
+**human-euro-agent.hpp
 *
 * Project: Revolution Now
 *
@@ -13,7 +13,7 @@
 #include "core-config.hpp"
 
 // Revolution Now
-#include "ieuro-mind.hpp"
+#include "ieuro-agent.hpp"
 
 namespace rn {
 

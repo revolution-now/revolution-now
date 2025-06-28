@@ -19,7 +19,7 @@
 #include "colony-buildings.hpp"
 #include "damaged.hpp"
 #include "icombat.rds.hpp"
-#include "ieuro-mind.hpp"
+#include "ieuro-agent.hpp"
 #include "map-search.hpp"
 #include "revolution-status.hpp"
 #include "society.hpp"

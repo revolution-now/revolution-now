@@ -14,6 +14,7 @@
 #include "turn-impl.rds.hpp"
 
 // Revolution Now
+#include "agents.hpp"
 #include "auto-save.hpp"
 #include "cheat.hpp"
 #include "co-combinator.hpp"
@@ -42,7 +43,6 @@
 #include "land-view.hpp"
 #include "map-edit.hpp"
 #include "market.hpp"
-#include "minds.hpp"
 #include "native-turn.hpp"
 #include "on-map.hpp"
 #include "panel.hpp"

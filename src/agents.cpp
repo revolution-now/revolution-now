@@ -8,13 +8,13 @@
 * Description: Stuff for managing mind implementations.
 *
 *****************************************************************/
-#include "minds.hpp"
+#include "agents.hpp"
 
 // Revolution Now
-#include "ai-native-mind.hpp"
-#include "human-euro-mind.hpp"
-#include "ieuro-mind.hpp"
-#include "inative-mind.hpp"
+#include "ai-native-agent.hpp"
+#include "human-euro-agent.hpp"
+#include "ieuro-agent.hpp"
+#include "inative-agent.hpp"
 
 // ss
 #include "ss/players.rds.hpp"

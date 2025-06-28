@@ -12,7 +12,7 @@
 
 // Revolution Now
 #include "co-wait.hpp"
-#include "ieuro-mind.hpp"
+#include "ieuro-agent.hpp"
 #include "igui.hpp"
 
 // ss

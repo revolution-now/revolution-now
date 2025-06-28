@@ -11,12 +11,12 @@
 #include "command-build.hpp"
 
 // Revolution Now
+#include "agents.hpp"
 #include "co-wait.hpp"
 #include "colony-mgr.hpp"
 #include "colony-view.hpp"
 #include "connectivity.hpp"
 #include "maybe.hpp"
-#include "minds.hpp"
 #include "ts.hpp"
 #include "woodcut.hpp"
 

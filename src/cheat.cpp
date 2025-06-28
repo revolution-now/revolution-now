@@ -14,6 +14,7 @@
 #include "cheat-impl.rds.hpp"
 
 // Revolution Now
+#include "agents.hpp"
 #include "anim-builders.hpp"
 #include "co-wait.hpp"
 #include "colony-buildings.hpp"
@@ -30,7 +31,6 @@
 #include "intervention.hpp"
 #include "land-view.hpp"
 #include "market.hpp"
-#include "minds.hpp"
 #include "plane-stack.hpp"
 #include "player-mgr.hpp"
 #include "player.rds.hpp"

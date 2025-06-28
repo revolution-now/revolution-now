@@ -8,7 +8,7 @@
 * Description: AI for natives.
 *
 *****************************************************************/
-#include "ai-native-mind.hpp"
+#include "ai-native-agent.hpp"
 
 // Revolution Now
 #include "irand.hpp"

@@ -11,7 +11,7 @@
 #include "test/testing.hpp"
 
 // Under test.
-#include "src/ai-native-mind.hpp"
+#include "src/ai-native-agent.hpp"
 
 // Testing
 #include "test/fake/world.hpp"

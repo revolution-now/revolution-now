@@ -12,6 +12,7 @@
 #include "enter-dwelling.hpp"
 
 // Revolution Now
+#include "agents.hpp"
 #include "alarm.hpp"
 #include "anim-builders.hpp"
 #include "co-wait.hpp"
@@ -20,7 +21,6 @@
 #include "imap-updater.hpp"
 #include "irand.hpp"
 #include "land-view.hpp"
-#include "minds.hpp"
 #include "missionary.hpp"
 #include "plane-stack.hpp"
 #include "promotion.hpp"

@@ -12,17 +12,17 @@
 #include "raid.hpp"
 
 // Revolution Now
+#include "agents.hpp"
 #include "anim-builders.hpp"
 #include "co-wait.hpp" // IWYU pragma: keep
 #include "colony-mgr.hpp"
 #include "combat-effects.hpp"
 #include "damaged.rds.hpp"
 #include "icombat.hpp"
-#include "ieuro-mind.hpp"
-#include "inative-mind.hpp"
+#include "ieuro-agent.hpp"
+#include "inative-agent.hpp"
 #include "land-view.hpp"
 #include "map-search.hpp"
-#include "minds.hpp"
 #include "plane-stack.hpp"
 #include "raid-effects.hpp"
 #include "roles.hpp"

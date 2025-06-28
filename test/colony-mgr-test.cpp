@@ -12,7 +12,7 @@
 
 // Testing
 #include "test/fake/world.hpp"
-#include "test/mocks/ieuro-mind.hpp"
+#include "test/mocks/ieuro-agent.hpp"
 #include "test/mocks/land-view-plane.hpp"
 #include "test/util/coro.hpp"
 

@@ -11,6 +11,7 @@
 #include "colony-mgr.hpp"
 
 // Revolution Now
+#include "agents.hpp"
 #include "anim-builders.hpp"
 #include "co-wait.hpp"
 #include "colony-buildings.hpp"
@@ -21,12 +22,11 @@
 #include "construction.hpp"
 #include "damaged.hpp"
 #include "harbor-units.hpp"
-#include "ieuro-mind.hpp"
+#include "ieuro-agent.hpp"
 #include "igui.hpp"
 #include "immigration.hpp"
 #include "land-view.hpp"
 #include "map-square.hpp"
-#include "minds.hpp"
 #include "native-owned.hpp"
 #include "plane-stack.hpp"
 #include "revolution-status.hpp"

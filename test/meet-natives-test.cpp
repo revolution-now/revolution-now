@@ -15,7 +15,7 @@
 
 // Testing
 #include "test/fake/world.hpp"
-#include "test/mocks/ieuro-mind.hpp"
+#include "test/mocks/ieuro-agent.hpp"
 #include "test/mocks/igui.hpp"
 #include "test/util/coro.hpp"
 

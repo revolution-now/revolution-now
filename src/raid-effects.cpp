@@ -14,7 +14,7 @@
 #include "co-wait.hpp"
 #include "colony-buildings.hpp"
 #include "damaged.hpp"
-#include "ieuro-mind.hpp"
+#include "ieuro-agent.hpp"
 #include "rand-enum.hpp"
 #include "tribe-arms.hpp"
 #include "unit-ownership.hpp"

@@ -15,7 +15,7 @@ using namespace std;
 
 // Revolution Now
 #include "co-wait.hpp"
-#include "ieuro-mind.hpp"
+#include "ieuro-agent.hpp"
 
 // config
 #include "config/revolution.rds.hpp"

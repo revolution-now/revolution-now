@@ -13,16 +13,16 @@
 #include "native-turn.hpp"
 
 // Revolution Now
+#include "agents.hpp"
 #include "anim-builders.hpp"
 #include "co-wait.hpp"
-#include "ieuro-mind.hpp" // FIXME
+#include "ieuro-agent.hpp" // FIXME
 #include "igui.hpp"
-#include "inative-mind.hpp"
+#include "inative-agent.hpp"
 #include "iraid.rds.hpp"
 #include "itribe-evolve.rds.hpp"
 #include "land-view.hpp"
 #include "map-square.hpp"
-#include "minds.hpp"
 #include "mv-calc.hpp"
 #include "on-map.hpp"
 #include "plane-stack.hpp"

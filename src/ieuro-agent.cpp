@@ -9,7 +9,7 @@
 *              european (non-ref) units.
 *
 *****************************************************************/
-#include "ieuro-mind.hpp"
+#include "ieuro-agent.hpp"
 
 // Revolution Now
 #include "capture-cargo.rds.hpp"

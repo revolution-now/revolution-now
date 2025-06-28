@@ -1,5 +1,5 @@
 /****************************************************************
-**ai-native-mind.hpp
+**ai-native-agent.hpp
 *
 * Project: Revolution Now
 *
@@ -13,7 +13,7 @@
 #include "core-config.hpp"
 
 // Revolution Now
-#include "inative-mind.hpp"
+#include "inative-agent.hpp"
 
 namespace rn {
 

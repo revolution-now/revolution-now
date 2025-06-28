@@ -8,7 +8,7 @@
 * Description: Implementation of IEuroMind for human players.
 *
 *****************************************************************/
-#include "human-euro-mind.hpp"
+#include "human-euro-agent.hpp"
 
 // Revolution Now
 #include "capture-cargo.hpp"
