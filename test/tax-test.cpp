@@ -653,10 +653,6 @@ TEST_CASE(
 }
 
 TEST_CASE( "[tax] start_of_turn_tax_check" ) {
-  // FIXME
-#ifdef COMPILER_GCC
-  return;
-#endif
   World W;
   W.update_terrain_connectivity();
   Player& player = W.default_player();

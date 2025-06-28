@@ -11,9 +11,10 @@
 #include "market.hpp"
 
 // Revolution Now
+#include "agents.hpp"
 #include "co-wait.hpp"
 #include "commodity.hpp"
-#include "igui.hpp"
+#include "ieuro-agent.hpp"
 #include "player-mgr.hpp"
 #include "price-group.hpp"
 #include "ts.hpp"
@@ -537,7 +538,7 @@ wait<> display_price_change_notification(
       "The price of [{}] in {} has {} to {}.",
       lowercase_commodity_display_name( change.type ),
       harbor_name, verb, prices.bid );
-  co_await ts.gui.message_box( msg );
+  co_await ts.euro_agents()[player.type].message_box( msg );
 }
 
 bool is_in_processed_goods_price_group( e_commodity type ) {

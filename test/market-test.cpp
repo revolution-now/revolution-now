@@ -16,7 +16,7 @@
 // Testing
 #include "test/fake/world.hpp"
 #include "test/mocking.hpp"
-#include "test/mocks/igui.hpp"
+#include "test/mocks/ieuro-agent.hpp"
 
 // config
 #include "config/market.rds.hpp"
@@ -123,7 +123,7 @@ TEST_CASE( "[market] display_price_change_notification" ) {
 
   change = create_price_change( W.ss(), W.default_player(),
                                 e_commodity::ore, 3 );
-  W.gui()
+  W.euro_agent( player.type )
       .EXPECT__message_box(
           "The price of [ore] in La "
           "Rochelle has risen to 13." )
@@ -134,7 +134,7 @@ TEST_CASE( "[market] display_price_change_notification" ) {
 
   change = create_price_change( W.ss(), W.default_player(),
                                 e_commodity::ore, -1 );
-  W.gui()
+  W.euro_agent( player.type )
       .EXPECT__message_box(
           "The price of [ore] in La "
           "Rochelle has fallen to 9." )
