@@ -57,7 +57,7 @@ struct BuildHandler : public CommandHandler {
     : ss_( ss ),
       ts_( ts ),
       player_( player ),
-      euro_mind_( ts.euro_minds()[player.type] ),
+      euro_agent_( ts.euro_agents()[player.type] ),
       unit_id( unit_id_ ) {}
 
   wait<bool> confirm() override {
@@ -145,7 +145,7 @@ struct BuildHandler : public CommandHandler {
 
   wait<> perform() override {
     co_await show_woodcut_if_needed(
-        player_, euro_mind_, e_woodcut::building_first_colony );
+        player_, euro_agent_, e_woodcut::building_first_colony );
     colony_id =
         found_colony( ss_, ts_, player_, unit_id, *colony_name );
     e_colony_abandoned const abandoned =
@@ -159,7 +159,7 @@ struct BuildHandler : public CommandHandler {
   SS& ss_;
   TS& ts_;
   Player& player_;
-  IEuroMind& euro_mind_;
+  IEuroAgent& euro_agent_;
 
   UnitId unit_id;
 

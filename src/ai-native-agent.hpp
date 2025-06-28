@@ -21,30 +21,27 @@ struct IRand;
 struct SS;
 
 /****************************************************************
-** AiNativeMind
+** AiNativeAgent
 *****************************************************************/
-struct AiNativeMind final : INativeMind {
+struct AiNativeAgent final : INativeAgent {
   // We don't take TS here because would create a circular depen-
   // dency.
-  AiNativeMind( SS& ss, IRand& rand, e_tribe tribe_type );
+  AiNativeAgent( SS& ss, IRand& rand, e_tribe tribe_type );
 
-  // Implement IMind.
+ public: // IAgent.
   wait<> message_box( std::string const& msg ) override;
 
-  // Implement INativeMind.
+ public: // INativeAgent.
   NativeUnitId select_unit(
       std::set<NativeUnitId> const& units ) override;
 
-  // Implement INativeMind.
   NativeUnitCommand command_for(
       NativeUnitId native_unit_id ) override;
 
-  // Override INativeMind.
   void on_attack_colony_finished(
       CombatBraveAttackColony const& combat,
       BraveAttackColonyEffect const& side_effect ) override;
 
-  // Implement INativeMind.
   void on_attack_unit_finished(
       CombatBraveAttackEuro const& ) override;
 

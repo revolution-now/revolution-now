@@ -18,8 +18,8 @@ using namespace std;
 namespace rn {
 
 /****************************************************************
-** NoopMind
+** NoopAgent
 *****************************************************************/
-wait<> NoopMind::message_box( string const& ) { co_return; }
+wait<> NoopAgent::message_box( string const& ) { co_return; }
 
 } // namespace rn

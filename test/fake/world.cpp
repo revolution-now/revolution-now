@@ -125,35 +125,36 @@ TerrainConnectivity& World::connectivity() {
   return *connectivity_;
 }
 
-NativeMinds& World::native_minds() {
-  if( uninitialized_native_minds_ == nullptr )
-    uninitialized_native_minds_ = [] {
-      unordered_map<e_tribe, unique_ptr<INativeMind>> holder;
+NativeAgents& World::native_agents() {
+  if( uninitialized_native_agents_ == nullptr )
+    uninitialized_native_agents_ = [] {
+      unordered_map<e_tribe, unique_ptr<INativeAgent>> holder;
       for( e_tribe const tribe : refl::enum_values<e_tribe> )
-        holder[tribe] = make_unique<MockINativeMind>( tribe );
-      return make_unique<NativeMinds>( std::move( holder ) );
+        holder[tribe] = make_unique<MockINativeAgent>( tribe );
+      return make_unique<NativeAgents>( std::move( holder ) );
     }();
-  return *uninitialized_native_minds_;
+  return *uninitialized_native_agents_;
 }
 
-EuroMinds& World::euro_minds() {
-  if( uninitialized_euro_minds_ == nullptr )
-    uninitialized_euro_minds_ = [] {
-      unordered_map<e_player, unique_ptr<IEuroMind>> holder;
+EuroAgents& World::euro_agents() {
+  if( uninitialized_euro_agents_ == nullptr )
+    uninitialized_euro_agents_ = [] {
+      unordered_map<e_player, unique_ptr<IEuroAgent>> holder;
       for( e_player const player : refl::enum_values<e_player> )
-        holder[player] = make_unique<MockIEuroMind>( player );
-      return make_unique<EuroMinds>( std::move( holder ) );
+        holder[player] = make_unique<MockIEuroAgent>( player );
+      return make_unique<EuroAgents>( std::move( holder ) );
     }();
-  return *uninitialized_euro_minds_;
+  return *uninitialized_euro_agents_;
 }
 
-MockINativeMind& World::native_mind( e_tribe tribe ) {
-  return static_cast<MockINativeMind&>( native_minds()[tribe] );
+MockINativeAgent& World::native_agent( e_tribe tribe ) {
+  return static_cast<MockINativeAgent&>(
+      native_agents()[tribe] );
 }
 
-MockIEuroMind& World::euro_mind( maybe<e_player> player ) {
-  return static_cast<MockIEuroMind&>(
-      euro_minds()[player.value_or( default_player_type_ )] );
+MockIEuroAgent& World::euro_agent( maybe<e_player> player ) {
+  return static_cast<MockIEuroAgent&>(
+      euro_agents()[player.value_or( default_player_type_ )] );
 }
 
 Planes& World::planes() {
@@ -223,8 +224,8 @@ TS* make_ts( World& world ) {
       world.combat(), world.colony_viewer(),
       world.ss_saved().root, world.connectivity() );
   ts->set_map_updater_no_restore( world.map_updater() );
-  ts->set_native_minds_no_restore( world.native_minds() );
-  ts->set_euro_minds_no_restore( world.euro_minds() );
+  ts->set_native_agents_no_restore( world.native_agents() );
+  ts->set_euro_agents_no_restore( world.euro_agents() );
   return ts;
 }
 
@@ -851,7 +852,7 @@ World::World()
     uninitialized_planes_(),
     uninitialized_lua_(),
     uninitialized_gui_(),
-    uninitialized_native_minds_(),
+    uninitialized_native_agents_(),
     uninitialized_ts_() {}
 
 World::~World() noexcept = default;

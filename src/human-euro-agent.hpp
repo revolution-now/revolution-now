@@ -21,17 +21,17 @@ struct IGui;
 struct SS;
 
 /****************************************************************
-** HumanEuroMind
+** HumanEuroAgent
 *****************************************************************/
 // This is an implementation that will consult with a human user
 // via GUI actions or input in order to fulfill the requests.
-struct HumanEuroMind final : IEuroMind {
-  HumanEuroMind( e_player player, SS& ss, IGui& gui );
+struct HumanEuroAgent final : IEuroAgent {
+  HumanEuroAgent( e_player player, SS& ss, IGui& gui );
 
- public: // IMind.
+ public: // IAgent.
   wait<> message_box( std::string const& msg ) override;
 
- public: // IEuroMind.
+ public: // IEuroAgent.
   Player const& player() override;
 
   wait<e_declare_war_on_natives> meet_tribe_ui_sequence(

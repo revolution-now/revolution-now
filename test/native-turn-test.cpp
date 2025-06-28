@@ -103,8 +103,8 @@ TEST_CASE( "[native-turn] unit iteration, travel" ) {
                                  real_tribe_evolver ) );
   };
 
-  MockINativeMind& native_mind =
-      W.native_mind( e_tribe::arawak );
+  MockINativeAgent& native_agent =
+      W.native_agent( e_tribe::arawak );
 
   SECTION( "no units" ) { f(); }
 
@@ -113,9 +113,9 @@ TEST_CASE( "[native-turn] unit iteration, travel" ) {
         { .x = 0, .y = 0 }, e_tribe::arawak );
     REQUIRE( W.units().unit_for( unit_id ).movement_points ==
              1 );
-    native_mind.EXPECT__select_unit( set{ unit_id } )
+    native_agent.EXPECT__select_unit( set{ unit_id } )
         .returns( unit_id );
-    native_mind.EXPECT__command_for( unit_id ).returns(
+    native_agent.EXPECT__command_for( unit_id ).returns(
         NativeUnitCommand::forfeight{} );
     f();
     REQUIRE( W.units().unit_for( unit_id ).movement_points ==
@@ -129,9 +129,9 @@ TEST_CASE( "[native-turn] unit iteration, travel" ) {
         { .x = 0, .y = 0 }, e_tribe::arawak );
     REQUIRE( W.units().unit_for( unit_id ).movement_points ==
              1 );
-    native_mind.EXPECT__select_unit( set{ unit_id } )
+    native_agent.EXPECT__select_unit( set{ unit_id } )
         .returns( unit_id );
-    native_mind.EXPECT__command_for( unit_id ).returns(
+    native_agent.EXPECT__command_for( unit_id ).returns(
         NativeUnitCommand::move{ .direction = e_direction::e } );
     f();
     REQUIRE( W.units().unit_for( unit_id ).movement_points ==
@@ -150,19 +150,19 @@ TEST_CASE( "[native-turn] unit iteration, travel" ) {
     REQUIRE( W.units().unit_for( unit_id ).movement_points ==
              1 );
     // First move.
-    native_mind.EXPECT__select_unit( set{ unit_id } )
+    native_agent.EXPECT__select_unit( set{ unit_id } )
         .returns( unit_id );
-    native_mind.EXPECT__command_for( unit_id ).returns(
+    native_agent.EXPECT__command_for( unit_id ).returns(
         NativeUnitCommand::move{ .direction = e_direction::e } );
     // Second move.
-    native_mind.EXPECT__select_unit( set{ unit_id } )
+    native_agent.EXPECT__select_unit( set{ unit_id } )
         .returns( unit_id );
-    native_mind.EXPECT__command_for( unit_id ).returns(
+    native_agent.EXPECT__command_for( unit_id ).returns(
         NativeUnitCommand::move{ .direction = e_direction::e } );
     // Third move.
-    native_mind.EXPECT__select_unit( set{ unit_id } )
+    native_agent.EXPECT__select_unit( set{ unit_id } )
         .returns( unit_id );
-    native_mind.EXPECT__command_for( unit_id ).returns(
+    native_agent.EXPECT__command_for( unit_id ).returns(
         NativeUnitCommand::move{ .direction = e_direction::e } );
     f();
     REQUIRE( W.units().unit_for( unit_id ).movement_points ==
@@ -181,19 +181,19 @@ TEST_CASE( "[native-turn] unit iteration, travel" ) {
     REQUIRE( W.units().unit_for( unit_id ).movement_points ==
              1 );
     // First move.
-    native_mind.EXPECT__select_unit( set{ unit_id } )
+    native_agent.EXPECT__select_unit( set{ unit_id } )
         .returns( unit_id );
-    native_mind.EXPECT__command_for( unit_id ).returns(
+    native_agent.EXPECT__command_for( unit_id ).returns(
         NativeUnitCommand::move{ .direction = e_direction::e } );
     // Second move.
-    native_mind.EXPECT__select_unit( set{ unit_id } )
+    native_agent.EXPECT__select_unit( set{ unit_id } )
         .returns( unit_id );
-    native_mind.EXPECT__command_for( unit_id ).returns(
+    native_agent.EXPECT__command_for( unit_id ).returns(
         NativeUnitCommand::move{ .direction = e_direction::e } );
     // Third move.
-    native_mind.EXPECT__select_unit( set{ unit_id } )
+    native_agent.EXPECT__select_unit( set{ unit_id } )
         .returns( unit_id );
-    native_mind.EXPECT__command_for( unit_id ).returns(
+    native_agent.EXPECT__command_for( unit_id ).returns(
         NativeUnitCommand::forfeight{} );
     f();
     REQUIRE( W.units().unit_for( unit_id ).movement_points ==
@@ -211,19 +211,19 @@ TEST_CASE( "[native-turn] unit iteration, travel" ) {
     REQUIRE( W.units().unit_for( unit_id ).movement_points ==
              1 );
     // First move.
-    native_mind.EXPECT__select_unit( set{ unit_id } )
+    native_agent.EXPECT__select_unit( set{ unit_id } )
         .returns( unit_id );
-    native_mind.EXPECT__command_for( unit_id ).returns(
+    native_agent.EXPECT__command_for( unit_id ).returns(
         NativeUnitCommand::move{ .direction = e_direction::e } );
     // Second move.
-    native_mind.EXPECT__select_unit( set{ unit_id } )
+    native_agent.EXPECT__select_unit( set{ unit_id } )
         .returns( unit_id );
-    native_mind.EXPECT__command_for( unit_id ).returns(
+    native_agent.EXPECT__command_for( unit_id ).returns(
         NativeUnitCommand::move{ .direction = e_direction::e } );
     // Third move.
-    native_mind.EXPECT__select_unit( set{ unit_id } )
+    native_agent.EXPECT__select_unit( set{ unit_id } )
         .returns( unit_id );
-    native_mind.EXPECT__command_for( unit_id ).returns(
+    native_agent.EXPECT__command_for( unit_id ).returns(
         NativeUnitCommand::move{ .direction = e_direction::e } );
 
     SECTION( "final move allowed" ) {
@@ -256,9 +256,9 @@ TEST_CASE( "[native-turn] unit iteration, travel" ) {
         { .x = 0, .y = 0 }, e_tribe::arawak );
     REQUIRE( W.units().unit_for( unit_id ).movement_points ==
              1 );
-    native_mind.EXPECT__select_unit( set{ unit_id } )
+    native_agent.EXPECT__select_unit( set{ unit_id } )
         .returns( unit_id );
-    native_mind.EXPECT__command_for( unit_id ).returns(
+    native_agent.EXPECT__command_for( unit_id ).returns(
         NativeUnitCommand::move{ .direction = e_direction::e } );
 
     bool& show_indian_moves =
@@ -333,13 +333,13 @@ TEST_CASE( "[native-turn] unit iteration, travel" ) {
              1 );
     REQUIRE( W.units().unit_for( unit_id2 ).movement_points ==
              1 );
-    native_mind.EXPECT__select_unit( set{ unit_id1, unit_id2 } )
+    native_agent.EXPECT__select_unit( set{ unit_id1, unit_id2 } )
         .returns( unit_id2 );
-    native_mind.EXPECT__command_for( unit_id2 )
+    native_agent.EXPECT__command_for( unit_id2 )
         .returns( NativeUnitCommand::forfeight{} );
-    native_mind.EXPECT__select_unit( set{ unit_id1 } )
+    native_agent.EXPECT__select_unit( set{ unit_id1 } )
         .returns( unit_id1 );
-    native_mind.EXPECT__command_for( unit_id1 )
+    native_agent.EXPECT__command_for( unit_id1 )
         .returns( NativeUnitCommand::forfeight{} );
     f();
     REQUIRE( W.units().unit_for( unit_id1 ).movement_points ==
@@ -361,14 +361,14 @@ TEST_CASE( "[native-turn] unit iteration, travel" ) {
              1 );
     REQUIRE( W.units().unit_for( unit_id2 ).movement_points ==
              1 );
-    native_mind.EXPECT__select_unit( set{ unit_id1, unit_id2 } )
+    native_agent.EXPECT__select_unit( set{ unit_id1, unit_id2 } )
         .returns( unit_id2 );
-    native_mind.EXPECT__command_for( unit_id2 )
+    native_agent.EXPECT__command_for( unit_id2 )
         .returns( NativeUnitCommand::move{
           .direction = e_direction::e } );
-    native_mind.EXPECT__select_unit( set{ unit_id1 } )
+    native_agent.EXPECT__select_unit( set{ unit_id1 } )
         .returns( unit_id1 );
-    native_mind.EXPECT__command_for( unit_id1 )
+    native_agent.EXPECT__command_for( unit_id1 )
         .returns( NativeUnitCommand::move{
           .direction = e_direction::e } );
     f();
@@ -404,38 +404,38 @@ TEST_CASE( "[native-turn] unit iteration, travel" ) {
     // moving them partially within the same turn.
 
     // 1. Move unit 1 to the right.
-    native_mind.EXPECT__select_unit( set{ unit_id1, unit_id2 } )
+    native_agent.EXPECT__select_unit( set{ unit_id1, unit_id2 } )
         .returns( unit_id1 );
-    native_mind.EXPECT__command_for( unit_id1 )
+    native_agent.EXPECT__command_for( unit_id1 )
         .returns( NativeUnitCommand::move{
           .direction = e_direction::e } );
     // 2. Move unit 2 to the right.
-    native_mind.EXPECT__select_unit( set{ unit_id1, unit_id2 } )
+    native_agent.EXPECT__select_unit( set{ unit_id1, unit_id2 } )
         .returns( unit_id2 );
-    native_mind.EXPECT__command_for( unit_id2 )
+    native_agent.EXPECT__command_for( unit_id2 )
         .returns( NativeUnitCommand::move{
           .direction = e_direction::e } );
     // 3. Move unit 1 to the right.
-    native_mind.EXPECT__select_unit( set{ unit_id1, unit_id2 } )
+    native_agent.EXPECT__select_unit( set{ unit_id1, unit_id2 } )
         .returns( unit_id1 );
-    native_mind.EXPECT__command_for( unit_id1 )
+    native_agent.EXPECT__command_for( unit_id1 )
         .returns( NativeUnitCommand::move{
           .direction = e_direction::e } );
     // 4. Move unit 2 to the right.
-    native_mind.EXPECT__select_unit( set{ unit_id1, unit_id2 } )
+    native_agent.EXPECT__select_unit( set{ unit_id1, unit_id2 } )
         .returns( unit_id2 );
-    native_mind.EXPECT__command_for( unit_id2 )
+    native_agent.EXPECT__command_for( unit_id2 )
         .returns( NativeUnitCommand::move{
           .direction = e_direction::e } );
     // 5. unit 1 forfeights.
-    native_mind.EXPECT__select_unit( set{ unit_id1, unit_id2 } )
+    native_agent.EXPECT__select_unit( set{ unit_id1, unit_id2 } )
         .returns( unit_id1 );
-    native_mind.EXPECT__command_for( unit_id1 )
+    native_agent.EXPECT__command_for( unit_id1 )
         .returns( NativeUnitCommand::forfeight{} );
     // 6. Move unit 2 to the right.
-    native_mind.EXPECT__select_unit( set{ unit_id2 } )
+    native_agent.EXPECT__select_unit( set{ unit_id2 } )
         .returns( unit_id2 );
-    native_mind.EXPECT__command_for( unit_id2 )
+    native_agent.EXPECT__command_for( unit_id2 )
         .returns( NativeUnitCommand::move{
           .direction = e_direction::e } );
     f();
@@ -469,42 +469,42 @@ TEST_CASE( "[native-turn] unit iteration, travel" ) {
 
     // Since the two units are in different tribes we have to
     // move one fully first, then the next.
-    MockINativeMind& native_mind2 =
-        W.native_mind( e_tribe::inca );
+    MockINativeAgent& native_agent2 =
+        W.native_agent( e_tribe::inca );
 
     // 1. Move unit 1 to the right.
-    native_mind.EXPECT__select_unit( set{ unit_id1 } )
+    native_agent.EXPECT__select_unit( set{ unit_id1 } )
         .returns( unit_id1 );
-    native_mind.EXPECT__command_for( unit_id1 )
+    native_agent.EXPECT__command_for( unit_id1 )
         .returns( NativeUnitCommand::move{
           .direction = e_direction::e } );
     // 2. Move unit 1 to the right.
-    native_mind.EXPECT__select_unit( set{ unit_id1 } )
+    native_agent.EXPECT__select_unit( set{ unit_id1 } )
         .returns( unit_id1 );
-    native_mind.EXPECT__command_for( unit_id1 )
+    native_agent.EXPECT__command_for( unit_id1 )
         .returns( NativeUnitCommand::move{
           .direction = e_direction::e } );
     // 3. unit 1 forfeights.
-    native_mind.EXPECT__select_unit( set{ unit_id1 } )
+    native_agent.EXPECT__select_unit( set{ unit_id1 } )
         .returns( unit_id1 );
-    native_mind.EXPECT__command_for( unit_id1 )
+    native_agent.EXPECT__command_for( unit_id1 )
         .returns( NativeUnitCommand::forfeight{} );
     // 4. Move unit 2 to the right.
-    native_mind2.EXPECT__select_unit( set{ unit_id2 } )
+    native_agent2.EXPECT__select_unit( set{ unit_id2 } )
         .returns( unit_id2 );
-    native_mind2.EXPECT__command_for( unit_id2 )
+    native_agent2.EXPECT__command_for( unit_id2 )
         .returns( NativeUnitCommand::move{
           .direction = e_direction::e } );
     // 5. Move unit 2 to the right.
-    native_mind2.EXPECT__select_unit( set{ unit_id2 } )
+    native_agent2.EXPECT__select_unit( set{ unit_id2 } )
         .returns( unit_id2 );
-    native_mind2.EXPECT__command_for( unit_id2 )
+    native_agent2.EXPECT__command_for( unit_id2 )
         .returns( NativeUnitCommand::move{
           .direction = e_direction::e } );
     // 6. Move unit 2 to the right.
-    native_mind2.EXPECT__select_unit( set{ unit_id2 } )
+    native_agent2.EXPECT__select_unit( set{ unit_id2 } )
         .returns( unit_id2 );
-    native_mind2.EXPECT__command_for( unit_id2 )
+    native_agent2.EXPECT__command_for( unit_id2 )
         .returns( NativeUnitCommand::move{
           .direction = e_direction::e } );
     f();
@@ -531,9 +531,9 @@ TEST_CASE( "[native-turn] attack euro unit" ) {
                                  mock_tribe_evolver ) );
   };
 
-  MockINativeMind& native_mind =
-      W.native_mind( e_tribe::arawak );
-  MockIEuroMind& mock_euro_mind = W.euro_mind();
+  MockINativeAgent& native_agent =
+      W.native_agent( e_tribe::arawak );
+  MockIEuroAgent& mock_euro_agent = W.euro_agent();
 
   auto [dwelling, brave] = W.add_dwelling_and_brave(
       { .x = 0, .y = 0 }, e_tribe::arawak );
@@ -543,11 +543,11 @@ TEST_CASE( "[native-turn] attack euro unit" ) {
       e_tribe::arawak );
   mock_tribe_evolver.EXPECT__evolve_dwellings_for_tribe(
       e_tribe::arawak );
-  native_mind.EXPECT__select_unit( set{ brave.id } )
+  native_agent.EXPECT__select_unit( set{ brave.id } )
       .returns( brave.id );
-  native_mind.EXPECT__command_for( brave.id )
+  native_agent.EXPECT__command_for( brave.id )
       .returns( NativeUnitCommand::move{ e_direction::e } );
-  mock_euro_mind.EXPECT__show_woodcut( e_woodcut::indian_raid );
+  mock_euro_agent.EXPECT__show_woodcut( e_woodcut::indian_raid );
 
   SECTION( "brave, one euro, brave loses, soldier promoted" ) {
     Unit const& soldier =
@@ -596,8 +596,8 @@ TEST_CASE( "[native-turn] brave spawns" ) {
                                  mock_tribe_evolver ) );
   };
 
-  MockINativeMind& native_mind =
-      W.native_mind( e_tribe::arawak );
+  MockINativeAgent& native_agent =
+      W.native_agent( e_tribe::arawak );
   DwellingId const dwelling_id =
       W.add_dwelling( { .x = 0, .y = 0 }, e_tribe::arawak ).id;
   maybe<NativeUnitId> native_unit_id;
@@ -613,9 +613,9 @@ TEST_CASE( "[native-turn] brave spawns" ) {
                              .id;
       } );
 
-  native_mind.EXPECT__select_unit( set{ NativeUnitId{ 1 } } )
+  native_agent.EXPECT__select_unit( set{ NativeUnitId{ 1 } } )
       .returns( NativeUnitId{ 1 } );
-  native_mind.EXPECT__command_for( NativeUnitId{ 1 } )
+  native_agent.EXPECT__command_for( NativeUnitId{ 1 } )
       .returns( NativeUnitCommand::forfeight{} );
   f();
   REQUIRE( native_unit_id == NativeUnitId{ 1 } );
@@ -637,8 +637,8 @@ TEST_CASE( "[native-turn] brave equips" ) {
                                  mock_tribe_evolver ) );
   };
 
-  MockINativeMind& native_mind =
-      W.native_mind( e_tribe::arawak );
+  MockINativeAgent& native_agent =
+      W.native_agent( e_tribe::arawak );
   Tribe& tribe = W.add_tribe( e_tribe::arawak );
   DwellingId const dwelling_id =
       W.add_dwelling( { .x = 0, .y = 0 }, e_tribe::arawak ).id;
@@ -662,9 +662,9 @@ TEST_CASE( "[native-turn] brave equips" ) {
   // more than once, then it is probably because the brave has
   // not had its movement points reset to zero properly and so it
   // keeps asking the brave for orders.
-  native_mind.EXPECT__select_unit( set{ NativeUnitId{ 1 } } )
+  native_agent.EXPECT__select_unit( set{ NativeUnitId{ 1 } } )
       .returns( NativeUnitId{ 1 } );
-  native_mind.EXPECT__command_for( NativeUnitId{ 1 } )
+  native_agent.EXPECT__command_for( NativeUnitId{ 1 } )
       .returns( NativeUnitCommand::equip{
         .how = { .type = e_native_unit_type::mounted_warrior,
                  .muskets_delta        = -1,

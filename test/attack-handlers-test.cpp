@@ -189,20 +189,20 @@ struct World : testing::World {
   // redundant tests and to make these tests less fragile against
   // changes to those messages.
   void expect_msg_equals( e_player player, string_view msg ) {
-    euro_mind( player ).EXPECT__message_box( string( msg ) );
+    euro_agent( player ).EXPECT__message_box( string( msg ) );
   }
 
   template<typename... Args>
   void expect_msg_contains( e_player player,
                             Args&&... fragments ) {
-    euro_mind( player ).EXPECT__message_box(
+    euro_agent( player ).EXPECT__message_box(
         AllOf( StrContains( string( fragments ) )... ) );
   }
 
   template<typename... Args>
   void expect_msg_contains( e_tribe tribe_type,
                             Args&&... fragments ) {
-    native_mind( tribe_type )
+    native_agent( tribe_type )
         .EXPECT__message_box(
             AllOf( StrContains( string( fragments ) )... ) );
   }
@@ -244,8 +244,8 @@ struct World : testing::World {
       CapturableCargo const& capturable ) {
     Unit& dst_unit              = units().unit_for( dst );
     e_player const taker_player = dst_unit.player_type();
-    auto& taker_mind            = euro_mind( taker_player );
-    taker_mind
+    auto& taker_agent           = euro_agent( taker_player );
+    taker_agent
         .EXPECT__select_commodities_to_capture( src, dst,
                                                 capturable )
         .returns<base::heap_value<CapturableCargoItems>>(
@@ -1973,7 +1973,7 @@ TEST_CASE( "[attack-handlers] naval_battle_handler" ) {
                                                e_commodity::silver,
                                            .quantity = 100 } } },
           .max_take = 2 } );
-    W.euro_mind( W.kDefendingPlayer )
+    W.euro_agent( W.kDefendingPlayer )
         .EXPECT__notify_captured_cargo(
             W.expect_defending_player(),
             W.expect_attacking_player(),
@@ -2152,14 +2152,14 @@ TEST_CASE( "[attack-handlers] naval_battle_handler" ) {
                     },
               },
           .max_take = 3 } );
-    W.euro_mind( W.kAttackingPlayer )
+    W.euro_agent( W.kAttackingPlayer )
         .EXPECT__notify_captured_cargo(
             W.expect_attacking_player(),
             W.expect_defending_player(),
             W.expect_unit_of_type( e_unit_type::merchantman ),
             Commodity{ .type     = e_commodity::lumber,
                        .quantity = 20 } );
-    W.euro_mind( W.kAttackingPlayer )
+    W.euro_agent( W.kAttackingPlayer )
         .EXPECT__notify_captured_cargo(
             W.expect_attacking_player(),
             W.expect_defending_player(),

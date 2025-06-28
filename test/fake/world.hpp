@@ -55,7 +55,7 @@ struct RootState;
 struct ColoniesState;
 struct Colony;
 struct Dwelling;
-struct EuroMinds;
+struct EuroAgents;
 struct EventsState;
 struct FormatVersion;
 struct IMapUpdater;
@@ -63,13 +63,13 @@ struct LandViewState;
 struct MapState;
 struct MockIColonyViewer;
 struct MockICombat;
-struct MockIEuroMind;
+struct MockIEuroAgent;
 struct OldWorldState;
 struct MockIGui;
-struct MockINativeMind;
+struct MockINativeAgent;
 struct MockIRand;
 struct MockIEngine;
-struct NativeMinds;
+struct NativeAgents;
 struct NativeUnit;
 struct NativesState;
 struct Planes;
@@ -392,11 +392,11 @@ struct World {
   TerrainConnectivity const& connectivity() const;
   TerrainConnectivity& connectivity();
 
-  MockINativeMind& native_mind( e_tribe tribe );
-  MockIEuroMind& euro_mind( maybe<e_player> player = nothing );
+  MockINativeAgent& native_agent( e_tribe tribe );
+  MockIEuroAgent& euro_agent( maybe<e_player> player = nothing );
 
-  NativeMinds& native_minds();
-  EuroMinds& euro_minds();
+  NativeAgents& native_agents();
+  EuroAgents& euro_agents();
 
   // These will initialize their respective objects the first
   // time they are called, so they should always be used.
@@ -447,8 +447,8 @@ struct World {
       uninitialized_colony_viewer_;
   std::unique_ptr<MockIEngine> uninitialized_engine_;
   std::unique_ptr<vid::MockIVideo> uninitialized_video_;
-  std::unique_ptr<NativeMinds> uninitialized_native_minds_;
-  std::unique_ptr<EuroMinds> uninitialized_euro_minds_;
+  std::unique_ptr<NativeAgents> uninitialized_native_agents_;
+  std::unique_ptr<EuroAgents> uninitialized_euro_agents_;
   std::unique_ptr<TS> uninitialized_ts_;
 
   std::unique_ptr<base::random> uninitialized_random_;

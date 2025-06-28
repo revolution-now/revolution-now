@@ -293,12 +293,12 @@ TEST_CASE(
   world w;
   RebelSentimentChangeReport report;
 
-  auto& mind           = w.euro_mind( e_player::french );
+  auto& agent          = w.euro_agent( e_player::french );
   Player const& player = w.french();
 
   auto const f = [&] {
     co_await_test( show_rebel_sentiment_change_report(
-        w.french(), w.euro_mind( e_player::french ), report ) );
+        w.french(), w.euro_agent( e_player::french ), report ) );
   };
 
   REQUIRE( player.revolution.last_reported_rebel_sentiment ==
@@ -311,7 +311,7 @@ TEST_CASE(
 
   // Default.
   report.nova = 1;
-  mind.EXPECT__message_box(
+  agent.EXPECT__message_box(
       "[Rebel] sentiment is on the rise, Your Excellency!  [1%] "
       "of the population now supports the idea of independence "
       "from France." );
@@ -321,7 +321,7 @@ TEST_CASE(
 
   report.prev = 1;
   report.nova = 2;
-  mind.EXPECT__message_box(
+  agent.EXPECT__message_box(
       "[Rebel] sentiment is on the rise, Your Excellency!  [2%] "
       "of the population now supports the idea of independence "
       "from France." );
@@ -331,7 +331,7 @@ TEST_CASE(
 
   report.prev = 0;
   report.nova = 100;
-  mind.EXPECT__message_box(
+  agent.EXPECT__message_box(
       "[Rebel] sentiment is on the rise, Your Excellency!  "
       "[100%] of the population now supports the idea of "
       "independence from France." );
@@ -341,7 +341,7 @@ TEST_CASE(
 
   report.prev = 100;
   report.nova = 99;
-  mind.EXPECT__message_box(
+  agent.EXPECT__message_box(
       "[Tory] sentiment is on the rise, Your Excellency.  Only "
       "[99%] of the population now supports the idea of "
       "independence from France." );
@@ -351,7 +351,7 @@ TEST_CASE(
 
   report.prev = 20;
   report.nova = 0;
-  mind.EXPECT__message_box(
+  agent.EXPECT__message_box(
       "[Tory] sentiment is on the rise, Your Excellency.  None "
       "of the population supports the idea of independence from "
       "France." );

@@ -88,24 +88,24 @@ enum class e_attack_verdict_base {
 };
 
 wait<> display_base_verdict_msg(
-    IEuroMind& mind, e_attack_verdict_base verdict ) {
+    IEuroAgent& agent, e_attack_verdict_base verdict ) {
   switch( verdict ) {
     case e_attack_verdict_base::cancelled: //
       break;
     // Non-allowed (would break game rules).
     case e_attack_verdict_base::ship_attack_land_unit:
-      co_await mind.message_box(
+      co_await agent.message_box(
           "Ships cannot attack land units." );
       break;
     case e_attack_verdict_base::unit_cannot_attack:
-      co_await mind.message_box( "This unit cannot attack." );
+      co_await agent.message_box( "This unit cannot attack." );
       break;
     case e_attack_verdict_base::attack_from_ship:
-      co_await mind.message_box(
+      co_await agent.message_box(
           "We cannot attack a land unit from a ship." );
       break;
     case e_attack_verdict_base::land_unit_attack_ship:
-      co_await mind.message_box(
+      co_await agent.message_box(
           "Land units cannot attack ships that are at sea." );
       break;
   }
@@ -163,7 +163,7 @@ struct AttackHandlerBase : public CommandHandler {
   UnitId attacker_id_;
   Unit& attacker_;
   Player& attacking_player_;
-  IEuroMind& attacker_mind_;
+  IEuroAgent& attacker_agent_;
 
   e_direction direction_;
 
@@ -186,7 +186,7 @@ AttackHandlerBase::AttackHandlerBase( SS& ss, TS& ts,
     attacker_( ss.units.unit_for( attacker_id ) ),
     attacking_player_( player_for_player_or_die(
         ss.players, attacker_.player_type() ) ),
-    attacker_mind_( ts.euro_minds()[attacker_.player_type()] ),
+    attacker_agent_( ts.euro_agents()[attacker_.player_type()] ),
     direction_( direction ) {
   CHECK( viz_ != nullptr );
   attack_src_ =
@@ -241,7 +241,7 @@ wait<bool> AttackHandlerBase::confirm() {
   if( maybe<e_attack_verdict_base> const verdict =
           co_await check_attack_verdict_base();
       verdict.has_value() ) {
-    co_await display_base_verdict_msg( attacker_mind_,
+    co_await display_base_verdict_msg( attacker_agent_,
                                        *verdict );
     co_return false;
   }
@@ -272,7 +272,7 @@ struct EuroAttackHandlerBase : public AttackHandlerBase {
   UnitId defender_id_;
   Unit& defender_;
   Player& defending_player_;
-  IEuroMind& defender_mind_;
+  IEuroAgent& defender_agent_;
 };
 
 EuroAttackHandlerBase::EuroAttackHandlerBase(
@@ -284,7 +284,8 @@ EuroAttackHandlerBase::EuroAttackHandlerBase(
     defender_( ss.units.unit_for( defender_id ) ),
     defending_player_( player_for_player_or_die(
         ss.players, defender_.player_type() ) ),
-    defender_mind_( ts.euro_minds()[defender_.player_type()] ) {
+    defender_agent_(
+        ts.euro_agents()[defender_.player_type()] ) {
   CHECK( defender_id_ != attacker_id_ );
 }
 
@@ -302,7 +303,7 @@ struct NativeAttackHandlerBase : public AttackHandlerBase {
   NativeUnitId defender_id_;
   NativeUnit& defender_;
   Tribe& defender_tribe_;
-  INativeMind& defender_mind_;
+  INativeAgent& defender_agent_;
 };
 
 NativeAttackHandlerBase::NativeAttackHandlerBase(
@@ -314,7 +315,8 @@ NativeAttackHandlerBase::NativeAttackHandlerBase(
     defender_id_( defender_id ),
     defender_( ss.units.unit_for( defender_id ) ),
     defender_tribe_( tribe_for_unit( ss, defender_ ) ),
-    defender_mind_( ts.native_minds()[defender_tribe_.type] ) {}
+    defender_agent_( ts.native_agents()[defender_tribe_.type] ) {
+}
 
 /****************************************************************
 ** AttackColonyUndefendedHandler
@@ -374,7 +376,7 @@ wait<> AttackColonyUndefendedHandler::perform() {
   co_await show_combat_effects_msg(
       filter_combat_effects_msgs(
           mix_combat_effects_msgs( effects_msg ) ),
-      attacker_mind_, defender_mind_ );
+      attacker_agent_, defender_agent_ );
 
   if( combat.winner == e_combat_winner::defender )
     // return since in this case the attacker lost, so nothing
@@ -447,8 +449,8 @@ wait<> AttackColonyUndefendedHandler::perform() {
   string const capture_msg = fmt::format(
       "The [{}] have captured the colony of [{}]!",
       player_display_name( attacking_player_ ), colony_.name );
-  co_await attacker_mind_.message_box( capture_msg );
-  co_await defender_mind_.message_box( capture_msg );
+  co_await attacker_agent_.message_box( capture_msg );
+  co_await defender_agent_.message_box( capture_msg );
 
   // 8. Open colony view.
   e_colony_abandoned const abandoned =
@@ -480,8 +482,8 @@ struct NavalBattleHandler : public EuroAttackHandlerBase {
       CombatShipAttackShip const& combat );
 
   wait<> perform_loser_cargo_capture(
-      Unit& src, Unit& dst, IEuroMind& src_mind,
-      IEuroMind& dst_mind, Player const& src_player,
+      Unit& src, Unit& dst, IEuroAgent& src_agent,
+      IEuroAgent& dst_agent, Player const& src_player,
       Player const& dst_player,
       EuroNavalUnitCombatOutcome const& src_outcome );
 };
@@ -536,7 +538,7 @@ wait<> NavalBattleHandler::perform() {
   co_await show_combat_effects_msg(
       filter_combat_effects_msgs(
           mix_combat_effects_msgs( effects_msg ) ),
-      attacker_mind_, defender_mind_ );
+      attacker_agent_, defender_agent_ );
 
   // This is slightly hacky, but because the attacker may have
   // moved to the defender's square, but the above functions that
@@ -554,38 +556,38 @@ wait<> NavalBattleHandler::perform() {
 
 wait<> NavalBattleHandler::perform_loser_cargo_captures(
     CombatShipAttackShip const& combat ) {
-  using Capture =
-      tuple<Unit*, Unit*, IEuroMind*, IEuroMind*, Player const*,
-            Player const*, EuroNavalUnitCombatOutcome const*>;
+  using Capture = tuple<Unit*, Unit*, IEuroAgent*, IEuroAgent*,
+                        Player const*, Player const*,
+                        EuroNavalUnitCombatOutcome const*>;
   vector<Capture> v;
 
   v.push_back( { &attacker_, &defender_,                 //
-                 &attacker_mind_, &defender_mind_,       //
+                 &attacker_agent_, &defender_agent_,     //
                  &attacking_player_, &defending_player_, //
                  &combat.attacker.outcome } );
   v.push_back( { &defender_, &attacker_,                 //
-                 &defender_mind_, &attacker_mind_,       //
+                 &defender_agent_, &attacker_agent_,     //
                  &defending_player_, &attacking_player_, //
                  &combat.defender.outcome } );
   for( auto const& [unit_id, affected] :
        combat.affected_defender_units )
     v.push_back( { &ss_.units.unit_for( unit_id ), &attacker_, //
-                   &defender_mind_, &attacker_mind_,           //
+                   &defender_agent_, &attacker_agent_,         //
                    &defending_player_, &attacking_player_,     //
                    &affected.outcome } );
 
   for( auto const& tup : v ) {
-    auto const& [src, dst, src_mind, dst_mind, src_player,
+    auto const& [src, dst, src_agent, dst_agent, src_player,
                  dst_player, outcome] = tup;
     co_await perform_loser_cargo_capture(
-        *src, *dst, *src_mind, *dst_mind, *src_player,
+        *src, *dst, *src_agent, *dst_agent, *src_player,
         *dst_player, *outcome );
   }
 }
 
 wait<> NavalBattleHandler::perform_loser_cargo_capture(
-    Unit& src, Unit& dst, IEuroMind& src_mind,
-    IEuroMind& dst_mind, Player const& src_player,
+    Unit& src, Unit& dst, IEuroAgent& src_agent,
+    IEuroAgent& dst_agent, Player const& src_player,
     Player const& dst_player,
     EuroNavalUnitCombatOutcome const& src_outcome ) {
   // Here we make the assumption that we can infer loser status
@@ -603,10 +605,10 @@ wait<> NavalBattleHandler::perform_loser_cargo_capture(
       capturable_cargo_items( ss_, src.cargo(), dst.cargo() );
   if( capturable.items.commodities.empty() ) co_return;
   CapturableCargoItems const items =
-      co_await dst_mind.select_commodities_to_capture(
+      co_await dst_agent.select_commodities_to_capture(
           src.id(), dst.id(), capturable );
   for( auto const& stolen : items.commodities )
-    co_await src_mind.notify_captured_cargo(
+    co_await src_agent.notify_captured_cargo(
         src_player, dst_player, dst, stolen );
   transfer_capturable_cargo_items( ss_, items, src.cargo(),
                                    dst.cargo() );
@@ -630,7 +632,7 @@ struct EuroAttackHandler : public EuroAttackHandlerBase {
 wait<bool> EuroAttackHandler::confirm() {
   CHECK( !attacker_.desc().ship );
   if( defender_.desc().ship ) {
-    co_await attacker_mind_.message_box(
+    co_await attacker_agent_.message_box(
         "Our land units can neither attack nor board foreign "
         "ships." );
     co_return false;
@@ -662,7 +664,7 @@ wait<> EuroAttackHandler::perform() {
   co_await show_combat_effects_msg(
       filter_combat_effects_msgs(
           mix_combat_effects_msgs( effects_msg ) ),
-      attacker_mind_, defender_mind_ );
+      attacker_agent_, defender_agent_ );
 }
 
 /****************************************************************
@@ -734,7 +736,7 @@ wait<> AttackNativeUnitHandler::perform() {
   co_await show_combat_effects_msg(
       filter_combat_effects_msgs(
           mix_combat_effects_msgs( effects_msg ) ),
-      attacker_mind_, defender_mind_ );
+      attacker_agent_, defender_agent_ );
 }
 
 /****************************************************************
@@ -770,7 +772,7 @@ struct AttackDwellingHandler : public AttackHandlerBase {
   DwellingId dwelling_id_;
   Dwelling& dwelling_;
   Tribe& tribe_;
-  INativeMind& defender_mind_;
+  INativeAgent& defender_agent_;
   TribeRelationship& relationship_;
 
   maybe<UnitId> treasure_;
@@ -785,7 +787,7 @@ AttackDwellingHandler::AttackDwellingHandler(
     dwelling_id_( dwelling_id ),
     dwelling_( ss.natives.dwelling_for( dwelling_id ) ),
     tribe_( ss.natives.tribe_for( dwelling_.id ) ),
-    defender_mind_( ts.native_minds()[tribe_.type] ),
+    defender_agent_( ts.native_agents()[tribe_.type] ),
     relationship_(
         tribe_.relationship[attacking_player_.type] ) {}
 
@@ -821,7 +823,7 @@ wait<> AttackDwellingHandler::produce_convert() {
       config_natives.tribes[tribe_.type].name_possessive;
   string_view const player_name_possessive =
       player_possessive( attacking_player_ );
-  co_await attacker_mind_.message_box(
+  co_await attacker_agent_.message_box(
       "[{}] citizens frightened in combat rush to the [{} "
       "mission] as [converts]!",
       tribe_name_possessive, player_name_possessive );
@@ -957,7 +959,7 @@ wait<> AttackDwellingHandler::perform() {
       UnitOwnershipChanger( ss_, missionary ).destroy();
     }
 
-    co_await attacker_mind_.message_box(
+    co_await attacker_agent_.message_box(
         "The [{}] revolt against [{}] missions! "
         "All {} missionaries eliminated!",
         tribe_name, player_name_possessive,
@@ -984,7 +986,7 @@ wait<> AttackDwellingHandler::perform() {
     perform_euro_unit_combat_effects( ss_, ts_, attacker_,
                                       combat.attacker.outcome );
     co_await show_combat_effects_msg(
-        effects_msg, attacker_mind_, defender_mind_ );
+        effects_msg, attacker_agent_, defender_agent_ );
     co_return;
   }
 
@@ -1007,7 +1009,7 @@ wait<> AttackDwellingHandler::perform() {
     perform_euro_unit_combat_effects( ss_, ts_, attacker_,
                                       combat.attacker.outcome );
     co_await show_combat_effects_msg(
-        effects_msg, attacker_mind_, defender_mind_ );
+        effects_msg, attacker_agent_, defender_agent_ );
     --dwelling_.population;
     CHECK_GT( dwelling_.population, 0 );
     if( population_decrease->convert_produced )
@@ -1080,8 +1082,8 @@ wait<> AttackDwellingHandler::perform() {
   perform_euro_unit_combat_effects( ss_, ts_, attacker_,
                                     combat.attacker.outcome );
 
-  co_await show_combat_effects_msg( effects_msg, attacker_mind_,
-                                    defender_mind_ );
+  co_await show_combat_effects_msg( effects_msg, attacker_agent_,
+                                    defender_agent_ );
 
   // Check if convert produced.
   if( destruction.convert_produced ) co_await produce_convert();
@@ -1104,7 +1106,7 @@ wait<> AttackDwellingHandler::perform() {
         "[{}].",
         *destruction.treasure_amount,
         config_text.special_chars.currency, player_harbor_name );
-  co_await attacker_mind_.message_box( msg );
+  co_await attacker_agent_.message_box( msg );
 
   if( destruction.treasure_amount.has_value() ) {
     UNWRAP_CHECK( treasure_comp,
@@ -1138,7 +1140,7 @@ wait<> AttackDwellingHandler::perform() {
   }
 
   if( was_capital && !destruction.tribe_destroyed.has_value() )
-    co_await attacker_mind_.message_box(
+    co_await attacker_agent_.message_box(
         "The [{}] bow before the might of the [{}]!", tribe_name,
         player_name );
 

@@ -997,7 +997,7 @@ TEST_CASE( "[cheat] cheat_advance_revolution_status" ) {
   REQUIRE( !w.players().players[ref_spanish].has_value() );
   REQUIRE( !w.players().players[ref_dutch].has_value() );
 
-  w.euro_mind( english ).EXPECT__message_box(
+  w.euro_agent( english ).EXPECT__message_box(
       StrContains( "sentiment is on the rise" ) );
 
   w.gui().EXPECT__message_box(

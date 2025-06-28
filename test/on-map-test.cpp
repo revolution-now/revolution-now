@@ -163,7 +163,7 @@ TEST_CASE( "[on-map] interactive: discovers new world" ) {
   }
 
   SECTION( "not yet discovered" ) {
-    W.euro_mind().EXPECT__show_woodcut(
+    W.euro_agent().EXPECT__show_woodcut(
         e_woodcut::discovered_new_world );
     W.gui().EXPECT__string_input( _ ).returns<maybe<string>>(
         "my world 2" );
@@ -196,7 +196,7 @@ TEST_CASE( "[on-map] interactive: discovers pacific ocean" ) {
       player.woodcuts[e_woodcut::discovered_pacific_ocean] ==
       false );
 
-  W.euro_mind().EXPECT__show_woodcut(
+  W.euro_agent().EXPECT__show_woodcut(
       e_woodcut::discovered_pacific_ocean );
   w = TestingOnlyUnitOnMapMover::to_map_interactive(
       W.ss(), W.ts(), unit_id, { .x = 1, .y = 3 } );
@@ -301,7 +301,7 @@ TEST_CASE(
 
   // Selects rumor result = fountain of youth.
   W.rand().EXPECT__between_ints( 0, 100 - 1 ).returns( 58 );
-  W.euro_mind().EXPECT__show_woodcut(
+  W.euro_agent().EXPECT__show_woodcut(
       e_woodcut::discovered_fountain_of_youth );
   W.gui().EXPECT__message_box( StrContains( "Youth" ) );
 
@@ -410,7 +410,7 @@ TEST_CASE(
     W.dutch().control   = e_player_control::human;
     W.add_unit_on_map( e_unit_type::free_colonist,
                        { .x = 1, .y = 1 }, e_player::spanish );
-    W.euro_mind( e_player::spanish )
+    W.euro_agent( e_player::spanish )
         .EXPECT__meet_tribe_ui_sequence(
             MeetTribe{ .player        = e_player::spanish,
                        .tribe         = e_tribe::cherokee,
@@ -427,7 +427,7 @@ TEST_CASE(
     W.dutch().control   = e_player_control::human;
     W.add_unit_on_map( e_unit_type::free_colonist,
                        { .x = 1, .y = 1 }, e_player::dutch );
-    W.euro_mind( e_player::dutch )
+    W.euro_agent( e_player::dutch )
         .EXPECT__meet_tribe_ui_sequence(
             MeetTribe{ .player        = e_player::dutch,
                        .tribe         = e_tribe::cherokee,
@@ -560,7 +560,7 @@ TEST_CASE(
   REQUIRE_FALSE(
       player.woodcuts[e_woodcut::discovered_new_world] );
 
-  W.euro_mind().EXPECT__show_woodcut(
+  W.euro_agent().EXPECT__show_woodcut(
       e_woodcut::discovered_new_world );
   W.gui().EXPECT__string_input( _ ).returns<maybe<string>>(
       "abc" );

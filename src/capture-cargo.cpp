@@ -86,9 +86,9 @@ wait<CapturableCargoItems> select_items_to_capture_ui(
   if( capturable.max_take >=
       ssize( capturable.items.commodities ) ) {
     for( auto const& comm : capturable.items.commodities )
-      // NOTE: we use the human-specific call here and not IEuro-
-      // Mind because this function is only called via IEuroMind
-      // in the case of a human.
+      // NOTE: we use the human-specific call here and not IEu-
+      // roAgent because this function is only called via IEuroA-
+      // gent in the case of a human.
       co_await notify_captured_cargo_human(
           gui, src_player, dst_player, dst_unit, comm );
     co_return capturable.items;

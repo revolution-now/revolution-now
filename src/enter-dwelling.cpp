@@ -331,7 +331,7 @@ wait<e_enter_dwelling_option> present_dwelling_entry_options(
     co_return e_enter_dwelling_option::cancel;
   }
   co_await show_woodcut_if_needed(
-      player, ts.euro_minds()[player.type],
+      player, ts.euro_agents()[player.type],
       e_woodcut::entering_native_village );
   Dwelling const& dwelling =
       ss.natives.dwelling_for( options.dwelling_id );

@@ -103,8 +103,8 @@ wait<> handle_native_unit_attack( SS& ss, TS& ts,
 
   Player& player =
       player_for_player_or_die( ss.players, player_type );
-  IEuroMind& euro_mind = ts.euro_minds()[player_type];
-  co_await show_woodcut_if_needed( player, euro_mind,
+  IEuroAgent& euro_agent = ts.euro_agents()[player_type];
+  co_await show_woodcut_if_needed( player, euro_agent,
                                    e_woodcut::indian_raid );
 
   if( maybe<ColonyId> const colony_id =
@@ -131,7 +131,7 @@ wait<> handle_native_unit_talk( SS& ss, TS& ts,
 
   Player& player =
       player_for_player_or_die( ss.players, player_type );
-  IEuroMind& euro_mind = ts.euro_minds()[player_type];
+  IEuroAgent& euro_agent = ts.euro_agents()[player_type];
 
   co_await ts.planes.get().get_bottom<ILandViewPlane>().animate(
       anim_seq_for_unit_talk( ss, native_unit.id, direction ) );
@@ -144,7 +144,7 @@ wait<> handle_native_unit_talk( SS& ss, TS& ts,
       config_natives
           .tribes[tribe_type_for_unit( ss, native_unit )]
           .name_singular;
-  co_await euro_mind.message_box(
+  co_await euro_agent.message_box(
       "You've received [5{}] from the [{}].",
       config_text.special_chars.currency, tribe_name );
 
@@ -262,16 +262,16 @@ wait<> handle_native_unit_command(
 }
 
 wait<> tribe_turn( SS& ss, TS& ts, IVisibility const& viz,
-                   INativeMind& mind, IRaid const& raid,
+                   INativeAgent& agent, IRaid const& raid,
                    ITribeEvolve const& tribe_evolver ) {
   // Evolve those aspects/properties of the tribe that are common
   // to the entire tribe, i.e. not dwellingor unit-specific.
-  tribe_evolver.evolve_tribe_common( mind.tribe_type() );
+  tribe_evolver.evolve_tribe_common( agent.tribe_type() );
 
   // Evolve non-unit aspects of the tribe. This must be done be-
   // fore moving the units because it may result in a brave get-
   // ting created.
-  tribe_evolver.evolve_dwellings_for_tribe( mind.tribe_type() );
+  tribe_evolver.evolve_dwellings_for_tribe( agent.tribe_type() );
 
   // Gather all units. This must be done after evolving the
   // dwellings so that it includes any new units that are cre-
@@ -282,7 +282,7 @@ wait<> tribe_turn( SS& ss, TS& ts, IVisibility const& viz,
   // ation over the units, and 2) it turned out to be twice as
   // fast on large maps when profiled, surprisingly.
   set<NativeUnitId> units =
-      units_for_tribe_ordered( ss, mind.tribe_type() );
+      units_for_tribe_ordered( ss, agent.tribe_type() );
 
   // Note: unlike for european units, it is ok to do this reset-
   // ting of the movement points here because we know that the
@@ -310,7 +310,7 @@ wait<> tribe_turn( SS& ss, TS& ts, IVisibility const& viz,
   int const kTriesWarn = 12;
   while( !units.empty() ) {
     NativeUnitId const native_unit_id =
-        mind.select_unit( as_const( units ) );
+        agent.select_unit( as_const( units ) );
     CHECK( units.contains( native_unit_id ) );
     NativeUnit& native_unit =
         ss.units.unit_for( native_unit_id );
@@ -327,8 +327,8 @@ wait<> tribe_turn( SS& ss, TS& ts, IVisibility const& viz,
            kMaxTries, native_unit_id );
 
     co_await handle_native_unit_command(
-        ss, ts, raid, viz, mind.tribe_type(), native_unit,
-        mind.command_for( native_unit_id ) );
+        ss, ts, raid, viz, agent.tribe_type(), native_unit,
+        agent.command_for( native_unit_id ) );
 
     // !! Unit may no longer exist at this point.
     if( !ss.units.exists( native_unit_id ) ) {
@@ -357,9 +357,9 @@ wait<> natives_turn( SS& ss, TS& ts, IRaid const& raid,
 
   for( e_tribe const tribe : refl::enum_values<e_tribe> ) {
     if( !ss.natives.tribe_exists( tribe ) ) continue;
-    INativeMind& mind = ts.native_minds()[tribe];
+    INativeAgent& agent = ts.native_agents()[tribe];
     timer.checkpoint( "{}", tribe );
-    co_await tribe_turn( ss, ts, *viz, mind, raid,
+    co_await tribe_turn( ss, ts, *viz, agent, raid,
                          tribe_evolver );
   }
 }

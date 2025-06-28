@@ -34,12 +34,12 @@ struct CombatBraveAttackEuro;
 enum class e_tribe;
 
 /****************************************************************
-** INativeMind
+** INativeAgent
 *****************************************************************/
-struct INativeMind : IMind {
-  INativeMind( e_tribe tribe_type )
+struct INativeAgent : IAgent {
+  INativeAgent( e_tribe tribe_type )
     : tribe_type_( tribe_type ) {}
-  virtual ~INativeMind() override = default;
+  virtual ~INativeAgent() override = default;
 
   e_tribe tribe_type() const { return tribe_type_; }
 
@@ -72,29 +72,26 @@ struct INativeMind : IMind {
 };
 
 /****************************************************************
-** NoopNativeMind
+** NoopNativeAgent
 *****************************************************************/
-struct NoopNativeMind final : INativeMind {
-  NoopNativeMind( e_tribe tribe_type )
-    : INativeMind( tribe_type ) {}
+struct NoopNativeAgent final : INativeAgent {
+  NoopNativeAgent( e_tribe tribe_type )
+    : INativeAgent( tribe_type ) {}
 
-  // Implement IMind.
+ public: // IAgent.
   wait<> message_box( std::string const& msg ) override;
 
-  // Implement INativeMind.
+ public: // INativeAgent.
   NativeUnitId select_unit(
       std::set<NativeUnitId> const& units ) override;
 
-  // Implement INativeMind.
   NativeUnitCommand command_for(
       NativeUnitId native_unit_id ) override;
 
-  // Implement INativeMind.
   void on_attack_colony_finished(
       CombatBraveAttackColony const&,
       BraveAttackColonyEffect const& ) override;
 
-  // Implement INativeMind.
   void on_attack_unit_finished(
       CombatBraveAttackEuro const& ) override;
 };

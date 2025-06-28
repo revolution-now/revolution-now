@@ -153,7 +153,7 @@ e_unit_type ref_unit_to_unit_type(
 }
 
 wait<> add_ref_unit_ui_seq(
-    IEuroMind& mind,
+    IEuroAgent& agent,
     e_expeditionary_force_type const ref_type ) {
   e_unit_type const unit_type =
       ref_unit_to_unit_type( ref_type );
@@ -165,7 +165,7 @@ wait<> add_ref_unit_ui_seq(
       "budget. [{}] have been added to the Royal Expeditionary "
       "Force, causing alarm among colonists.",
       plural_name );
-  co_await mind.message_box( "{}", msg );
+  co_await agent.message_box( "{}", msg );
 }
 
 } // namespace rn

@@ -137,25 +137,25 @@ bool should_show_rebel_sentiment_report(
 }
 
 wait<> show_rebel_sentiment_change_report(
-    Player& player, IEuroMind& mind,
+    Player& player, IEuroAgent& agent,
     RebelSentimentChangeReport const& report ) {
   auto const& country =
-      config_nation.nations[nation_for( mind.player_type() )]
+      config_nation.nations[nation_for( agent.player_type() )]
           .country_name;
   if( report.nova > report.prev )
-    co_await mind.message_box(
+    co_await agent.message_box(
         "[Rebel] sentiment is on the rise, Your Excellency!  "
         "[{}%] of the population now supports the idea of "
         "independence from {}.",
         report.nova, country );
   else if( report.nova < report.prev && report.nova > 0 )
-    co_await mind.message_box(
+    co_await agent.message_box(
         "[Tory] sentiment is on the rise, Your Excellency.  "
         "Only [{}%] of the population now supports the idea of "
         "independence from {}.",
         report.nova, country );
   else if( report.nova < report.prev && report.nova == 0 )
-    co_await mind.message_box(
+    co_await agent.message_box(
         "[Tory] sentiment is on the rise, Your Excellency.  "
         "None of the population supports the idea of "
         "independence from {}.",

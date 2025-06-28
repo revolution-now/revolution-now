@@ -31,81 +31,82 @@ using namespace std;
 namespace rn {
 
 /****************************************************************
-** NativeMinds
+** NativeAgents
 *****************************************************************/
-NativeMinds::NativeMinds( MindsMap minds )
-  : minds_( std::move( minds ) ) {}
+NativeAgents::NativeAgents( AgentsMap agents )
+  : agents_( std::move( agents ) ) {}
 
-NativeMinds::~NativeMinds() = default;
+NativeAgents::~NativeAgents() = default;
 
-NativeMinds& NativeMinds::operator=( NativeMinds&& ) noexcept =
-    default;
+NativeAgents& NativeAgents::operator=(
+    NativeAgents&& ) noexcept = default;
 
-INativeMind& NativeMinds::operator[]( e_tribe tribe ) const {
-  auto iter = minds_.find( tribe );
-  CHECK( iter != minds_.end(),
-         "no INativeMind object for tribe {}.", tribe );
-  unique_ptr<INativeMind> const& p_mind = iter->second;
-  CHECK( p_mind != nullptr,
-         "null INativeMind object for tribe {}.", tribe );
-  return *p_mind;
+INativeAgent& NativeAgents::operator[]( e_tribe tribe ) const {
+  auto iter = agents_.find( tribe );
+  CHECK( iter != agents_.end(),
+         "no INativeAgent object for tribe {}.", tribe );
+  unique_ptr<INativeAgent> const& p_agent = iter->second;
+  CHECK( p_agent != nullptr,
+         "null INativeAgent object for tribe {}.", tribe );
+  return *p_agent;
 }
 
 /****************************************************************
-** EuroMinds
+** EuroAgents
 *****************************************************************/
-EuroMinds::EuroMinds( MindsMap minds )
-  : minds_( std::move( minds ) ) {}
+EuroAgents::EuroAgents( AgentsMap agents )
+  : agents_( std::move( agents ) ) {}
 
-EuroMinds::~EuroMinds() = default;
+EuroAgents::~EuroAgents() = default;
 
-EuroMinds& EuroMinds::operator=( EuroMinds&& ) noexcept =
+EuroAgents& EuroAgents::operator=( EuroAgents&& ) noexcept =
     default;
 
-IEuroMind& EuroMinds::operator[]( e_player player ) const {
-  auto iter = minds_.find( player );
-  CHECK( iter != minds_.end(),
-         "no IEuroMind object for player {}.", player );
-  unique_ptr<IEuroMind> const& p_mind = iter->second;
-  CHECK( p_mind != nullptr,
-         "null IEuroMind object for player {}.", player );
-  return *p_mind;
+IEuroAgent& EuroAgents::operator[]( e_player player ) const {
+  auto iter = agents_.find( player );
+  CHECK( iter != agents_.end(),
+         "no IEuroAgent object for player {}.", player );
+  unique_ptr<IEuroAgent> const& p_agent = iter->second;
+  CHECK( p_agent != nullptr,
+         "null IEuroAgent object for player {}.", player );
+  return *p_agent;
 }
 
 /****************************************************************
 ** Public API.
 *****************************************************************/
-EuroMinds create_euro_minds( SS& ss, IGui& gui ) {
-  unordered_map<e_player, unique_ptr<IEuroMind>> holder;
+EuroAgents create_euro_agents( SS& ss, IGui& gui ) {
+  unordered_map<e_player, unique_ptr<IEuroAgent>> holder;
   for( e_player const player : refl::enum_values<e_player> ) {
     if( !ss.players.players[player].has_value() ) continue;
     switch( ss.players.players[player]->control ) {
       case e_player_control::ai: {
         // TODO
         holder[player] =
-            make_unique<NoopEuroMind>( ss.as_const, player );
+            make_unique<NoopEuroAgent>( ss.as_const, player );
         break;
       }
       case e_player_control::human: {
         holder[player] =
-            make_unique<HumanEuroMind>( player, ss, gui );
+            make_unique<HumanEuroAgent>( player, ss, gui );
         break;
       }
       case e_player_control::withdrawn: {
         holder[player] =
-            make_unique<NoopEuroMind>( ss.as_const, player );
+            make_unique<NoopEuroAgent>( ss.as_const, player );
         break;
       }
     }
   }
-  return EuroMinds( std::move( holder ) );
+  return EuroAgents( std::move( holder ) );
 }
 
-NativeMinds create_native_minds( SS& ss, IRand& rand ) {
-  unordered_map<e_tribe, unique_ptr<INativeMind>> holder;
+NativeAgents create_native_agents( SS& ss, IRand& rand ) {
+  unordered_map<e_tribe, unique_ptr<INativeAgent>> holder;
   for( e_tribe const tribe : refl::enum_values<e_tribe> )
-    holder[tribe] = make_unique<AiNativeMind>( ss, rand, tribe );
-  return NativeMinds( std::move( holder ) );
+    holder[tribe] =
+        make_unique<AiNativeAgent>( ss, rand, tribe );
+  return NativeAgents( std::move( holder ) );
 }
 
 } // namespace rn

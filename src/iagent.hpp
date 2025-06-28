@@ -18,12 +18,12 @@
 namespace rn {
 
 /****************************************************************
-** IMind
+** IAgent
 *****************************************************************/
-struct IMind {
-  IMind() = default;
+struct IAgent {
+  IAgent() = default;
 
-  virtual ~IMind() = default;
+  virtual ~IAgent() = default;
 
   virtual wait<> message_box( std::string const& msg ) = 0;
 
@@ -43,14 +43,14 @@ struct IMind {
 };
 
 /****************************************************************
-** NoopMind
+** NoopAgent
 *****************************************************************/
 // Minimal implementation does not either nothing or the minimum
 // necessary to fulfill the contract of each request.
-struct NoopMind final : IMind {
-  NoopMind() = default;
+struct NoopAgent final : IAgent {
+  NoopAgent() = default;
 
-  // Implement IMind.
+  // Implement IAgent.
   wait<> message_box( std::string const& msg ) override;
 };
 

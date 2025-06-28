@@ -3275,36 +3275,38 @@ TEST_CASE( "[combat-effects] filter_combat_effects_msgs" ) {
 
 TEST_CASE( "[combat-effects] show_combat_effects_msg" ) {
   World W;
-  MockIEuroMind& attacker_mind = W.euro_mind( e_player::dutch );
-  MockIEuroMind& defender_mind = W.euro_mind( e_player::french );
+  MockIEuroAgent& attacker_agent =
+      W.euro_agent( e_player::dutch );
+  MockIEuroAgent& defender_agent =
+      W.euro_agent( e_player::french );
 
   FilteredMixedCombatEffectsMessages msgs;
 
   auto f = [&] {
-    co_await_test( show_combat_effects_msg( msgs, attacker_mind,
-                                            defender_mind ) );
+    co_await_test( show_combat_effects_msg( msgs, attacker_agent,
+                                            defender_agent ) );
   };
 
   msgs = {};
   f();
-  attacker_mind.queue__message_box.ensure_expectations();
-  defender_mind.queue__message_box.ensure_expectations();
+  attacker_agent.queue__message_box.ensure_expectations();
+  defender_agent.queue__message_box.ensure_expectations();
 
   msgs = { .attacker = { "xxx" } };
-  attacker_mind.EXPECT__message_box( "xxx" );
+  attacker_agent.EXPECT__message_box( "xxx" );
   f();
-  attacker_mind.queue__message_box.ensure_expectations();
-  defender_mind.queue__message_box.ensure_expectations();
+  attacker_agent.queue__message_box.ensure_expectations();
+  defender_agent.queue__message_box.ensure_expectations();
 
   msgs = { .attacker = { "xxx", "yyy" },
            .defender = { "aaa", "bbb" } };
-  attacker_mind.EXPECT__message_box( "xxx" );
-  attacker_mind.EXPECT__message_box( "yyy" );
-  defender_mind.EXPECT__message_box( "aaa" );
-  defender_mind.EXPECT__message_box( "bbb" );
+  attacker_agent.EXPECT__message_box( "xxx" );
+  attacker_agent.EXPECT__message_box( "yyy" );
+  defender_agent.EXPECT__message_box( "aaa" );
+  defender_agent.EXPECT__message_box( "bbb" );
   f();
-  attacker_mind.queue__message_box.ensure_expectations();
-  defender_mind.queue__message_box.ensure_expectations();
+  attacker_agent.queue__message_box.ensure_expectations();
+  defender_agent.queue__message_box.ensure_expectations();
 }
 
 } // namespace

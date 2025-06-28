@@ -67,18 +67,18 @@ struct World : testing::World {
 /****************************************************************
 ** Static checks.
 *****************************************************************/
-static_assert( !is_copy_assignable_v<EuroMinds> );
-static_assert( is_move_assignable_v<EuroMinds> );
-static_assert( is_nothrow_move_assignable_v<EuroMinds> );
+static_assert( !is_copy_assignable_v<EuroAgents> );
+static_assert( is_move_assignable_v<EuroAgents> );
+static_assert( is_nothrow_move_assignable_v<EuroAgents> );
 
-static_assert( !is_copy_assignable_v<NativeMinds> );
-static_assert( is_move_assignable_v<NativeMinds> );
-static_assert( is_nothrow_move_assignable_v<NativeMinds> );
+static_assert( !is_copy_assignable_v<NativeAgents> );
+static_assert( is_move_assignable_v<NativeAgents> );
+static_assert( is_nothrow_move_assignable_v<NativeAgents> );
 
 /****************************************************************
 ** Test Cases
 *****************************************************************/
-TEST_CASE( "[minds] create_euro_minds" ) {
+TEST_CASE( "[agents] create_euro_agents" ) {
   World W;
 
   W.english().control = e_player_control::human;
@@ -86,53 +86,53 @@ TEST_CASE( "[minds] create_euro_minds" ) {
   W.spanish().control = e_player_control::ai;
   W.dutch().control   = e_player_control::ai;
 
-  auto f = [&] { return create_euro_minds( W.ss(), W.gui() ); };
+  auto f = [&] { return create_euro_agents( W.ss(), W.gui() ); };
 
-  EuroMinds const minds = f();
+  EuroAgents const agents = f();
 
-  auto& english_mind = minds[e_player::english];
-  auto& french_mind  = minds[e_player::french];
-  auto& spanish_mind = minds[e_player::spanish];
-  auto& dutch_mind   = minds[e_player::dutch];
+  auto& english_agent = agents[e_player::english];
+  auto& french_agent  = agents[e_player::french];
+  auto& spanish_agent = agents[e_player::spanish];
+  auto& dutch_agent   = agents[e_player::dutch];
 
-  REQUIRE( english_mind.player_type() == e_player::english );
-  REQUIRE( french_mind.player_type() == e_player::french );
-  REQUIRE( spanish_mind.player_type() == e_player::spanish );
-  REQUIRE( dutch_mind.player_type() == e_player::dutch );
+  REQUIRE( english_agent.player_type() == e_player::english );
+  REQUIRE( french_agent.player_type() == e_player::french );
+  REQUIRE( spanish_agent.player_type() == e_player::spanish );
+  REQUIRE( dutch_agent.player_type() == e_player::dutch );
 
-  REQUIRE( dynamic_cast<HumanEuroMind*>( &english_mind ) !=
+  REQUIRE( dynamic_cast<HumanEuroAgent*>( &english_agent ) !=
            nullptr );
-  REQUIRE( dynamic_cast<HumanEuroMind*>( &french_mind ) !=
+  REQUIRE( dynamic_cast<HumanEuroAgent*>( &french_agent ) !=
            nullptr );
-  REQUIRE( dynamic_cast<HumanEuroMind*>( &spanish_mind ) ==
+  REQUIRE( dynamic_cast<HumanEuroAgent*>( &spanish_agent ) ==
            nullptr );
-  REQUIRE( dynamic_cast<HumanEuroMind*>( &dutch_mind ) ==
+  REQUIRE( dynamic_cast<HumanEuroAgent*>( &dutch_agent ) ==
            nullptr );
 
-  REQUIRE( dynamic_cast<NoopEuroMind*>( &english_mind ) ==
+  REQUIRE( dynamic_cast<NoopEuroAgent*>( &english_agent ) ==
            nullptr );
-  REQUIRE( dynamic_cast<NoopEuroMind*>( &french_mind ) ==
+  REQUIRE( dynamic_cast<NoopEuroAgent*>( &french_agent ) ==
            nullptr );
-  REQUIRE( dynamic_cast<NoopEuroMind*>( &spanish_mind ) !=
+  REQUIRE( dynamic_cast<NoopEuroAgent*>( &spanish_agent ) !=
            nullptr );
-  REQUIRE( dynamic_cast<NoopEuroMind*>( &dutch_mind ) !=
+  REQUIRE( dynamic_cast<NoopEuroAgent*>( &dutch_agent ) !=
            nullptr );
 }
 
-TEST_CASE( "[minds] create_native_minds" ) {
+TEST_CASE( "[agents] create_native_agents" ) {
   World W;
 
   auto f = [&] {
-    return create_native_minds( W.ss(), W.rand() );
+    return create_native_agents( W.ss(), W.rand() );
   };
 
-  NativeMinds const minds = f();
+  NativeAgents const agents = f();
 
   for( e_tribe const tribe_type : refl::enum_values<e_tribe> ) {
     INFO( fmt::format( "tribe: {}", tribe_type ) );
-    REQUIRE( minds[tribe_type].tribe_type() == tribe_type );
-    REQUIRE( dynamic_cast<AiNativeMind*>( &minds[tribe_type] ) !=
-             nullptr );
+    REQUIRE( agents[tribe_type].tribe_type() == tribe_type );
+    REQUIRE( dynamic_cast<AiNativeAgent*>(
+                 &agents[tribe_type] ) != nullptr );
   }
 }
 

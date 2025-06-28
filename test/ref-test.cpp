@@ -363,22 +363,22 @@ TEST_CASE( "[ref] ref_unit_to_unit_type" ) {
 TEST_CASE( "[ref] add_ref_unit_ui_seq" ) {
   world w;
 
-  MockIEuroMind& mock_mind =
-      w.euro_mind( w.default_player_type() );
+  MockIEuroAgent& mock_agent =
+      w.euro_agent( w.default_player_type() );
 
   auto const f = [&]( e_expeditionary_force_type const type ) {
-    co_await_test( add_ref_unit_ui_seq( mock_mind, type ) );
+    co_await_test( add_ref_unit_ui_seq( mock_agent, type ) );
   };
 
   using enum e_expeditionary_force_type;
 
-  mock_mind.EXPECT__message_box(
+  mock_agent.EXPECT__message_box(
       "The King has announced an increase to the Royal military "
       "budget. [Regulars] have been added to the Royal "
       "Expeditionary Force, causing alarm among colonists." );
   f( regular );
 
-  mock_mind.EXPECT__message_box(
+  mock_agent.EXPECT__message_box(
       "The King has announced an increase to the Royal military "
       "budget. [Men-O-War] have been added to the Royal "
       "Expeditionary Force, causing alarm among colonists." );

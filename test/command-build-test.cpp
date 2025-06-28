@@ -98,7 +98,7 @@ TEST_CASE( "[command-build] build colony" ) {
 
   REQUIRE( W.colonies().last_colony_id() == nothing );
 
-  W.euro_mind().EXPECT__show_woodcut(
+  W.euro_agent().EXPECT__show_woodcut(
       e_woodcut::building_first_colony );
   W.gui().EXPECT__string_input( _ ).returns<maybe<string>>(
       "my colony" );

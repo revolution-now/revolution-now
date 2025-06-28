@@ -258,12 +258,12 @@ void perform_brave_attack_colony_effect(
 }
 
 wait<> display_brave_attack_colony_effect_msg(
-    SSConst const& ss, IEuroMind& mind, Colony const& colony,
+    SSConst const& ss, IEuroAgent& agent, Colony const& colony,
     BraveAttackColonyEffect const& effect, e_tribe tribe ) {
   SWITCH( effect ) {
     CASE( none ) { co_return; }
     CASE( commodity_stolen ) {
-      co_await mind.message_box(
+      co_await agent.message_box(
           "[{}] looting parties have stolen [{}] tons of [{}] "
           "from [{}]!",
           config_natives.tribes[tribe].name_possessive,
@@ -274,7 +274,7 @@ wait<> display_brave_attack_colony_effect_msg(
       co_return;
     }
     CASE( money_stolen ) {
-      co_await mind.message_box(
+      co_await agent.message_box(
           "[{}] looting parties have stolen [{}{}] from the "
           "treasury!",
           config_natives.tribes[tribe].name_possessive,
@@ -283,7 +283,7 @@ wait<> display_brave_attack_colony_effect_msg(
       co_return;
     }
     CASE( building_destroyed ) {
-      co_await mind.message_box(
+      co_await agent.message_box(
           "[{}] raiding parties have destroyed the [{}] in "
           "[{}]!",
           config_natives.tribes[tribe].name_possessive,
@@ -316,7 +316,7 @@ wait<> display_brave_attack_colony_effect_msg(
       CHECK( num_units_onboard == 0,
              "before a colony is destroyed, any units in the "
              "cargo of ships in its port must be removed." );
-      co_await mind.message_box( "{}", msg );
+      co_await agent.message_box( "{}", msg );
       co_return;
     }
   }

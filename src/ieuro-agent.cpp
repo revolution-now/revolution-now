@@ -25,40 +25,41 @@ using namespace std;
 namespace rn {
 
 /****************************************************************
-** IEuroMind
+** IEuroAgent
 *****************************************************************/
-IEuroMind::IEuroMind( e_player player_type )
+IEuroAgent::IEuroAgent( e_player player_type )
   : player_type_( player_type ) {}
 
 /****************************************************************
-** NoopEuroMind
+** NoopEuroAgent
 *****************************************************************/
-NoopEuroMind::NoopEuroMind( SSConst const& ss, e_player player )
-  : IEuroMind( player ), ss_( ss ) {}
+NoopEuroAgent::NoopEuroAgent( SSConst const& ss,
+                              e_player player )
+  : IEuroAgent( player ), ss_( ss ) {}
 
-wait<> NoopEuroMind::message_box( string const& ) { co_return; }
+wait<> NoopEuroAgent::message_box( string const& ) { co_return; }
 
 wait<e_declare_war_on_natives>
-NoopEuroMind::meet_tribe_ui_sequence( MeetTribe const& ) {
+NoopEuroAgent::meet_tribe_ui_sequence( MeetTribe const& ) {
   co_return e_declare_war_on_natives::no;
 }
 
-wait<> NoopEuroMind::show_woodcut( e_woodcut ) { co_return; }
+wait<> NoopEuroAgent::show_woodcut( e_woodcut ) { co_return; }
 
 wait<base::heap_value<CapturableCargoItems>>
-NoopEuroMind::select_commodities_to_capture(
+NoopEuroAgent::select_commodities_to_capture(
     UnitId const, UnitId const, CapturableCargo const& ) {
   co_return {};
 }
 
-wait<> NoopEuroMind::notify_captured_cargo( Player const&,
-                                            Player const&,
-                                            Unit const&,
-                                            Commodity const& ) {
+wait<> NoopEuroAgent::notify_captured_cargo( Player const&,
+                                             Player const&,
+                                             Unit const&,
+                                             Commodity const& ) {
   co_return;
 }
 
-Player const& NoopEuroMind::player() {
+Player const& NoopEuroAgent::player() {
   return player_for_player_or_die( as_const( ss_.players ),
                                    player_type() );
 }

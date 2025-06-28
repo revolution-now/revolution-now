@@ -518,7 +518,7 @@ TEST_CASE( "[unit-ownership] change_to_map" ) {
   // We'll allow these async events to trigger so that we can
   // verify that we're calling the interactive version of the
   // function that moves a unit onto a map square.
-  W.euro_mind().EXPECT__show_woodcut(
+  W.euro_agent().EXPECT__show_woodcut(
       e_woodcut::discovered_new_world );
   // Player asked to name the new world.
   W.gui().EXPECT__string_input( _ ).returns<maybe<string>>(

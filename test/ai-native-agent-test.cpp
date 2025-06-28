@@ -64,12 +64,12 @@ struct World : testing::World {
 /****************************************************************
 ** Test Cases
 *****************************************************************/
-TEST_CASE( "[ai-native-mind] equips brave over dwelling" ) {
+TEST_CASE( "[ai-native-agent] equips brave over dwelling" ) {
   World W;
   NativeUnitCommand expected;
 
   e_tribe const tribe_type = e_tribe::aztec;
-  AiNativeMind mind( W.ss(), W.rand(), tribe_type );
+  AiNativeAgent agent( W.ss(), W.rand(), tribe_type );
 
   DwellingId const dwelling_id =
       W.add_dwelling( { .x = 1, .y = 1 }, tribe_type ).id;
@@ -83,7 +83,7 @@ TEST_CASE( "[ai-native-mind] equips brave over dwelling" ) {
     tribe.horse_herds    = 0;
     tribe.horse_breeding = 0;
     W.expect_random_move();
-    REQUIRE_FALSE( mind.command_for( brave.id )
+    REQUIRE_FALSE( agent.command_for( brave.id )
                        .holds<NativeUnitCommand::equip>() );
   }
 
@@ -95,7 +95,7 @@ TEST_CASE( "[ai-native-mind] equips brave over dwelling" ) {
     tribe.horse_herds    = 0;
     tribe.horse_breeding = 0;
     W.expect_random_move();
-    REQUIRE_FALSE( mind.command_for( brave.id )
+    REQUIRE_FALSE( agent.command_for( brave.id )
                        .holds<NativeUnitCommand::equip>() );
   }
 
@@ -107,7 +107,7 @@ TEST_CASE( "[ai-native-mind] equips brave over dwelling" ) {
     tribe.horse_herds    = 2;
     tribe.horse_breeding = 25;
     W.expect_random_move();
-    REQUIRE_FALSE( mind.command_for( brave.id )
+    REQUIRE_FALSE( agent.command_for( brave.id )
                        .holds<NativeUnitCommand::equip>() );
   }
 
@@ -124,7 +124,7 @@ TEST_CASE( "[ai-native-mind] equips brave over dwelling" ) {
     W.rand().EXPECT__bernoulli( 0.08 ).returns( true );
     W.expect_random_move();
 
-    REQUIRE_FALSE( mind.command_for( brave.id )
+    REQUIRE_FALSE( agent.command_for( brave.id )
                        .holds<NativeUnitCommand::equip>() );
   }
 
@@ -145,17 +145,17 @@ TEST_CASE( "[ai-native-mind] equips brave over dwelling" ) {
         .type          = e_native_unit_type::mounted_warrior,
         .muskets_delta = -1,
         .horse_breeding_delta = -25 } };
-    REQUIRE( mind.command_for( brave.id ) == expected );
+    REQUIRE( agent.command_for( brave.id ) == expected );
   }
 }
 
 TEST_CASE(
-    "[ai-native-mind] does not de-equip brave over dwelling" ) {
+    "[ai-native-agent] does not de-equip brave over dwelling" ) {
   World W;
   NativeUnitCommand expected;
 
   e_tribe const tribe_type = e_tribe::aztec;
-  AiNativeMind mind( W.ss(), W.rand(), tribe_type );
+  AiNativeAgent agent( W.ss(), W.rand(), tribe_type );
 
   DwellingId const dwelling_id =
       W.add_dwelling( { .x = 1, .y = 1 }, tribe_type ).id;
@@ -169,7 +169,7 @@ TEST_CASE(
         e_native_unit_type::mounted_brave, { .x = 1, .y = 1 },
         dwelling_id );
     W.expect_random_move();
-    REQUIRE_FALSE( mind.command_for( brave.id )
+    REQUIRE_FALSE( agent.command_for( brave.id )
                        .holds<NativeUnitCommand::equip>() );
   }
 
@@ -181,7 +181,7 @@ TEST_CASE(
         e_native_unit_type::mounted_brave, { .x = 1, .y = 1 },
         dwelling_id );
     W.expect_random_move();
-    REQUIRE_FALSE( mind.command_for( brave.id )
+    REQUIRE_FALSE( agent.command_for( brave.id )
                        .holds<NativeUnitCommand::equip>() );
   }
 
@@ -202,7 +202,7 @@ TEST_CASE(
         .type          = e_native_unit_type::mounted_warrior,
         .muskets_delta = -1,
         .horse_breeding_delta = 0 } };
-    REQUIRE( mind.command_for( brave.id ) == expected );
+    REQUIRE( agent.command_for( brave.id ) == expected );
   }
 
   SECTION( "armed_brave,horses=0,muskets=0" ) {
@@ -213,7 +213,7 @@ TEST_CASE(
         e_native_unit_type::armed_brave, { .x = 1, .y = 1 },
         dwelling_id );
     W.expect_random_move();
-    REQUIRE_FALSE( mind.command_for( brave.id )
+    REQUIRE_FALSE( agent.command_for( brave.id )
                        .holds<NativeUnitCommand::equip>() );
   }
 
@@ -225,7 +225,7 @@ TEST_CASE(
         e_native_unit_type::armed_brave, { .x = 1, .y = 1 },
         dwelling_id );
     W.expect_random_move();
-    REQUIRE_FALSE( mind.command_for( brave.id )
+    REQUIRE_FALSE( agent.command_for( brave.id )
                        .holds<NativeUnitCommand::equip>() );
   }
 
@@ -244,7 +244,7 @@ TEST_CASE(
         .type          = e_native_unit_type::mounted_warrior,
         .muskets_delta = 0,
         .horse_breeding_delta = -25 } };
-    REQUIRE( mind.command_for( brave.id ) == expected );
+    REQUIRE( agent.command_for( brave.id ) == expected );
   }
 
   SECTION( "mounted_warrior,horses=0,muskets=0" ) {
@@ -255,7 +255,7 @@ TEST_CASE(
         e_native_unit_type::mounted_warrior, { .x = 1, .y = 1 },
         dwelling_id );
     W.expect_random_move();
-    REQUIRE_FALSE( mind.command_for( brave.id )
+    REQUIRE_FALSE( agent.command_for( brave.id )
                        .holds<NativeUnitCommand::equip>() );
   }
 
@@ -267,7 +267,7 @@ TEST_CASE(
         e_native_unit_type::mounted_warrior, { .x = 1, .y = 1 },
         dwelling_id );
     W.expect_random_move();
-    REQUIRE_FALSE( mind.command_for( brave.id )
+    REQUIRE_FALSE( agent.command_for( brave.id )
                        .holds<NativeUnitCommand::equip>() );
   }
 }

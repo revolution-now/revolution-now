@@ -124,13 +124,13 @@ wait<> run_game( IEngine& engine, Planes& planes, IGui& gui,
     // maybe there are no games to load.
     co_return;
 
-  NativeMinds native_minds = create_native_minds( ss, rand );
-  auto _2                  = ts.set_native_minds( native_minds );
+  NativeAgents native_agents = create_native_agents( ss, rand );
+  auto _2 = ts.set_native_agents( native_agents );
 
   // This one needs to run after the loader because it needs to
   // know which nations are human.
-  EuroMinds euro_minds = create_euro_minds( ss, gui );
-  auto _3              = ts.set_euro_minds( euro_minds );
+  EuroAgents euro_agents = create_euro_agents( ss, gui );
+  auto _3                = ts.set_euro_agents( euro_agents );
 
   // After this, any changes to the map that change land to water
   // or vice versa (or change map size) need to be followed up by

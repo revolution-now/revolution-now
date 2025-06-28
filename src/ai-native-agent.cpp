@@ -38,15 +38,15 @@ using ::refl::enum_count;
 /****************************************************************
 ** Public API
 *****************************************************************/
-AiNativeMind::AiNativeMind( SS& ss, IRand& rand,
-                            e_tribe tribe_type )
-  : INativeMind( tribe_type ), ss_( ss ), rand_( rand ) {}
+AiNativeAgent::AiNativeAgent( SS& ss, IRand& rand,
+                              e_tribe tribe_type )
+  : INativeAgent( tribe_type ), ss_( ss ), rand_( rand ) {}
 
-wait<> AiNativeMind::message_box( std::string const& ) {
+wait<> AiNativeAgent::message_box( std::string const& ) {
   return {};
 }
 
-NativeUnitId AiNativeMind::select_unit(
+NativeUnitId AiNativeAgent::select_unit(
     set<NativeUnitId> const& units ) {
   CHECK( !units.empty() );
   return *units.begin();
@@ -71,8 +71,8 @@ NativeUnitId AiNativeMind::select_unit(
 //   braves (who are lacking thoes things) to their dwelling to
 //   pick some up. We need to figure out the mechanics of this.
 
-// Implement INativeMind.
-NativeUnitCommand AiNativeMind::command_for(
+// Implement INativeAgent.
+NativeUnitCommand AiNativeAgent::command_for(
     NativeUnitId native_unit_id ) {
   NativeUnitOwnership const& ownership =
       as_const( ss_.units ).ownership_of( native_unit_id );
@@ -183,7 +183,7 @@ NativeUnitCommand AiNativeMind::command_for(
   return NativeUnitCommand::move{ .direction = rand_d };
 }
 
-void AiNativeMind::on_attack_colony_finished(
+void AiNativeAgent::on_attack_colony_finished(
     CombatBraveAttackColony const&,
     BraveAttackColonyEffect const& ) {
   // TODO: adjust alarm.
@@ -192,7 +192,7 @@ void AiNativeMind::on_attack_colony_finished(
   // is burned tribal alarm goes down by half.
 }
 
-void AiNativeMind::on_attack_unit_finished(
+void AiNativeAgent::on_attack_unit_finished(
     CombatBraveAttackEuro const& ) {
   // TODO: adjust alarm.
 }

@@ -673,13 +673,13 @@ wait<> run_map_editor_standalone( IEngine& engine,
   TrappingCombat combat;
   ColonyViewer colony_viewer( engine, ss );
   TerrainConnectivity connectivity;
-  NativeMinds native_minds;
-  EuroMinds euro_minds;
+  NativeAgents native_agents;
+  EuroAgents euro_agents;
   TS ts( planes, st, gui, rand, combat, colony_viewer, ss.root,
          connectivity );
   auto _1 = ts.set_map_updater( map_updater );
-  auto _2 = ts.set_native_minds( native_minds );
-  auto _3 = ts.set_euro_minds( euro_minds );
+  auto _2 = ts.set_native_agents( native_agents );
+  auto _3 = ts.set_euro_agents( euro_agents );
   co_await run_map_editor( engine, ss, ts );
 }
 

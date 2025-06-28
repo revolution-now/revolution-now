@@ -385,7 +385,7 @@ wait<> cheat_set_player_control( IEngine& engine, SS& ss,
 
   if( !change_made ) co_return;
 
-  ts.euro_minds() = create_euro_minds( ss, ts.gui );
+  ts.euro_agents() = create_euro_agents( ss, ts.gui );
 
   // We do this because we need to back out beyond the individual
   // nation's turn processor in order to handle this configura-
@@ -690,7 +690,7 @@ wait<> cheat_advance_revolution_status( SS& ss, TS& ts,
       .nova = required_sentiment };
     player.revolution.rebel_sentiment = required_sentiment;
     co_await show_rebel_sentiment_change_report(
-        player, ts.euro_minds()[player.type], change_report );
+        player, ts.euro_agents()[player.type], change_report );
     if( should_do_war_of_succession( as_const( ss ),
                                      as_const( player ) ) ) {
       WarOfSuccessionNations const nations =

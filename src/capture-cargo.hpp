@@ -36,14 +36,14 @@ struct Unit;
     CargoHold const& dst );
 
 // This should not be called directly by normal game code; in-
-// stead the corresponding method on IEuroMind should be used,
+// stead the corresponding method on IEuroAgent should be used,
 // which will in turn call this method as implementation.
 wait<CapturableCargoItems> select_items_to_capture_ui(
     SSConst const& ss, IGui& gui, UnitId src, UnitId dst,
     CapturableCargo const& capturable );
 
 // This should not be called directly by normal game code; in-
-// stead the corresponding method on IEuroMind should be used,
+// stead the corresponding method on IEuroAgent should be used,
 // which will in turn call this method as implementation.
 wait<> notify_captured_cargo_human( IGui& gui,
                                     Player const& src_player,

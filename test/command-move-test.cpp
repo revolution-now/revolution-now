@@ -489,7 +489,7 @@ TEST_CASE(
   unique_ptr<CommandHandler> handler = handle_command(
       W.engine(), W.ss(), W.ts(), W.french(), colonist.id(),
       command::move{ .d = e_direction::se } );
-  W.euro_mind( W.default_player_type() )
+  W.euro_agent( W.default_player_type() )
       .EXPECT__message_box(
           "We cannot attack a land unit from a ship." );
   wait<bool> w_confirm = handler->confirm();
@@ -514,7 +514,7 @@ TEST_CASE(
   unique_ptr<CommandHandler> handler = handle_command(
       W.engine(), W.ss(), W.ts(), W.french(), colonist.id(),
       command::move{ .d = e_direction::nw } );
-  W.euro_mind( e_player::french )
+  W.euro_agent( e_player::french )
       .EXPECT__message_box(
           "Our land units can neither attack nor board foreign "
           "ships." );
@@ -542,7 +542,7 @@ TEST_CASE(
   unique_ptr<CommandHandler> handler = handle_command(
       W.engine(), W.ss(), W.ts(), W.french(), soldier.id(),
       command::move{ .d = e_direction::n } );
-  W.euro_mind( e_player::french )
+  W.euro_agent( e_player::french )
       .EXPECT__message_box(
           "Our land units can neither attack nor board foreign "
           "ships." );
@@ -626,7 +626,7 @@ TEST_CASE(
             soldier, master_distiller, colony )
         .returns( combat );
     mock_land_view.EXPECT__animate( _ );
-    W.euro_mind( e_player::dutch )
+    W.euro_agent( e_player::dutch )
         .EXPECT__message_box(
             "[Dutch] Master Distiller defeats [French] in 1!" );
     co_await_test( handler->perform() );
@@ -668,7 +668,7 @@ TEST_CASE(
         .EXPECT__euro_attack_euro( soldier, soldier_onboard )
         .returns( combat );
     mock_land_view.EXPECT__animate( _ );
-    W.euro_mind( e_player::dutch )
+    W.euro_agent( e_player::dutch )
         .EXPECT__message_box(
             "[Dutch] Soldier defeats [French] in 1!" );
     co_await_test( handler->perform() );

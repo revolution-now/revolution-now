@@ -35,7 +35,7 @@ struct CombatEuroAttackUndefendedColony;
 struct CombatShipAttackShip;
 struct EuroNavalUnitCombatOutcome;
 struct EuroUnitCombatOutcome;
-struct IMind;
+struct IAgent;
 struct NativeUnit;
 struct NativeUnitCombatOutcome;
 struct SS;
@@ -86,7 +86,7 @@ FilteredMixedCombatEffectsMessages filter_combat_effects_msgs(
 
 wait<> show_combat_effects_msg(
     FilteredMixedCombatEffectsMessages const& msgs,
-    IMind& attacker_mind, IMind& defender_mind );
+    IAgent& attacker_agent, IAgent& defender_agent );
 
 /****************************************************************
 ** Performing combat effects.

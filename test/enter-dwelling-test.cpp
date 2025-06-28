@@ -388,7 +388,7 @@ TEST_CASE( "[enter-dwelling] present_dwelling_entry_options" ) {
       e_enter_dwelling_option::attack_village,
       e_enter_dwelling_option::live_among_the_natives } };
 
-  W.euro_mind().EXPECT__show_woodcut(
+  W.euro_agent().EXPECT__show_woodcut(
       e_woodcut::entering_native_village );
   W.gui().EXPECT__choice( _ ).returns<maybe<string>>(
       "attack_village" );

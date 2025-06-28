@@ -32,8 +32,8 @@ namespace rn {
 /****************************************************************
 ** MockIRand
 *****************************************************************/
-struct MockIEuroMind : IEuroMind {
-  MockIEuroMind( e_player player ) : IEuroMind( player ) {}
+struct MockIEuroAgent : IEuroAgent {
+  MockIEuroAgent( e_player player ) : IEuroAgent( player ) {}
 
   MOCK_METHOD( Player const&, player, (), () );
 
@@ -54,6 +54,6 @@ struct MockIEuroMind : IEuroMind {
                () );
 };
 
-static_assert( !std::is_abstract_v<MockIEuroMind> );
+static_assert( !std::is_abstract_v<MockIEuroAgent> );
 
 } // namespace rn

@@ -18,9 +18,9 @@
 
 namespace rn {
 
-struct IEuroMind;
+struct IEuroAgent;
 struct IGui;
-struct INativeMind;
+struct INativeAgent;
 struct IRand;
 struct SS;
 
@@ -28,64 +28,64 @@ enum class e_tribe;
 enum class e_player;
 
 /****************************************************************
-** NativeMinds
+** NativeAgents
 *****************************************************************/
-struct NativeMinds {
+struct NativeAgents {
   // Use unordered_map instead of enum_map so that we can use a
   // forward-declared enum key.
-  using MindsMap =
-      std::unordered_map<e_tribe, std::unique_ptr<INativeMind>>;
+  using AgentsMap =
+      std::unordered_map<e_tribe, std::unique_ptr<INativeAgent>>;
 
-  NativeMinds() = default;
+  NativeAgents() = default;
 
-  NativeMinds& operator=( NativeMinds&& ) noexcept;
+  NativeAgents& operator=( NativeAgents&& ) noexcept;
 
   // Have this defined in the cpp allows us to use the
-  // forward-declared INativeMInd in a unique_ptr.
-  ~NativeMinds();
+  // forward-declared INativeAgent in a unique_ptr.
+  ~NativeAgents();
 
-  NativeMinds( MindsMap minds );
+  NativeAgents( AgentsMap agents );
 
-  INativeMind& operator[]( e_tribe tribe ) const;
+  INativeAgent& operator[]( e_tribe tribe ) const;
 
  private:
   // We don't use enum map here because it has some constraints
   // that don't work with forward-declared enums.
-  MindsMap minds_;
+  AgentsMap agents_;
 };
 
 /****************************************************************
-** EuroMinds
+** EuroAgents
 *****************************************************************/
-struct EuroMinds {
+struct EuroAgents {
   // Use unordered_map instead of enum_map so that we can use a
   // forward-declared enum key.
-  using MindsMap =
-      std::unordered_map<e_player, std::unique_ptr<IEuroMind>>;
+  using AgentsMap =
+      std::unordered_map<e_player, std::unique_ptr<IEuroAgent>>;
 
-  EuroMinds() = default;
+  EuroAgents() = default;
 
-  EuroMinds& operator=( EuroMinds&& ) noexcept;
+  EuroAgents& operator=( EuroAgents&& ) noexcept;
 
   // Have this defined in the cpp allows us to use the
-  // forward-declared IEuroMind in a unique_ptr.
-  ~EuroMinds();
+  // forward-declared IEuroAgent in a unique_ptr.
+  ~EuroAgents();
 
-  EuroMinds( MindsMap minds );
+  EuroAgents( AgentsMap agents );
 
-  IEuroMind& operator[]( e_player player ) const;
+  IEuroAgent& operator[]( e_player player ) const;
 
  private:
   // We don't use enum map here because it has some constraints
   // that don't work with forward-declared enums.
-  MindsMap minds_;
+  AgentsMap agents_;
 };
 
 /****************************************************************
 ** Public API.
 *****************************************************************/
-EuroMinds create_euro_minds( SS& ss, IGui& gui );
+EuroAgents create_euro_agents( SS& ss, IGui& gui );
 
-NativeMinds create_native_minds( SS& ss, IRand& rand );
+NativeAgents create_native_agents( SS& ss, IRand& rand );
 
 } // namespace rn

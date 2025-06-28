@@ -21,7 +21,7 @@
 namespace rn {
 
 struct Colony;
-struct IEuroMind;
+struct IEuroAgent;
 struct IRand;
 struct SS;
 struct SSConst;
@@ -41,7 +41,7 @@ void perform_brave_attack_colony_effect(
     BraveAttackColonyEffect const& effect );
 
 wait<> display_brave_attack_colony_effect_msg(
-    SSConst const& ss, IEuroMind& mind, Colony const& colony,
+    SSConst const& ss, IEuroAgent& agent, Colony const& colony,
     BraveAttackColonyEffect const& effect, e_tribe tribe );
 
 } // namespace rn

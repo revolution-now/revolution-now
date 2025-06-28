@@ -61,11 +61,11 @@ string_view msg_for_woodcut( e_woodcut cut ) {
 /****************************************************************
 ** Public API
 *****************************************************************/
-wait<> show_woodcut_if_needed( Player& player, IEuroMind& mind,
+wait<> show_woodcut_if_needed( Player& player, IEuroAgent& agent,
                                e_woodcut cut ) {
   if( player.woodcuts[cut] ) co_return;
   player.woodcuts[cut] = true;
-  co_await mind.show_woodcut( cut );
+  co_await agent.show_woodcut( cut );
 }
 
 namespace internal {

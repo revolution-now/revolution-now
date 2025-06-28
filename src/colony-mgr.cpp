@@ -507,11 +507,11 @@ wait<> run_colony_destruction( SS& ss, TS& ts, Colony& colony,
   // Must extract this info before destroying the colony.
   string const colony_name     = colony.name;
   e_player const colony_player = colony.player;
-  IEuroMind& mind              = ts.euro_minds()[colony.player];
+  IEuroAgent& agent            = ts.euro_agents()[colony.player];
   // In case it hasn't already been done...
   ColonyDestructionOutcome const outcome =
       destroy_colony( ss, ts, colony );
-  if( msg.has_value() ) co_await mind.message_box( *msg );
+  if( msg.has_value() ) co_await agent.message_box( *msg );
   // Check if there are any ships in port.
   for( auto [unit_type, count] :
        outcome.ships_that_were_in_port ) {
@@ -530,7 +530,7 @@ wait<> run_colony_destruction( SS& ss, TS& ts, Colony& colony,
           ship_damaged_reason( reason ), verb,
           ship_repair_port_name( ss, colony_player,
                                  *outcome.port ) );
-      co_await mind.message_box( msg );
+      co_await agent.message_box( msg );
     } else {
       string const msg = fmt::format(
           "Port in [{}] contained {} [{}] that {} damaged {} "
@@ -538,7 +538,7 @@ wait<> run_colony_destruction( SS& ss, TS& ts, Colony& colony,
           "repair.",
           colony_name, count_str, unit_type_name, verb,
           ship_damaged_reason( reason ) );
-      co_await mind.message_box( msg );
+      co_await agent.message_box( msg );
     }
   }
 }

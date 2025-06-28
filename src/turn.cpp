@@ -1287,7 +1287,7 @@ wait<> move_high_seas_units( IEngine& engine, SS& ss, TS& ts,
              UnitId{} );
       if( status_union.arrived_in_harbor_with_cargo )
         co_await show_woodcut_if_needed(
-            player, ts.euro_minds()[player.type],
+            player, ts.euro_agents()[player.type],
             e_woodcut::cargo_from_the_new_world );
       HarborViewer harbor_viewer( engine, ss, ts, player );
       harbor_viewer.set_selected_unit(
@@ -1466,7 +1466,7 @@ wait<> post_colonies_colonial_only( SS& ss, TS& ts,
     if( should_show_rebel_sentiment_report(
             ss.as_const, as_const( player ), report.nova ) )
       co_await show_rebel_sentiment_change_report(
-          player, ts.euro_minds()[player.type], report );
+          player, ts.euro_agents()[player.type], report );
   }
 
   // Check if we need to do the war of succession. This must be
@@ -1600,7 +1600,7 @@ wait<> post_player( SS& ss, TS& ts, Player& player ) {
     e_expeditionary_force_type const type = select_next_ref_type(
         player.revolution.expeditionary_force );
     add_ref_unit( player.revolution.expeditionary_force, type );
-    co_await add_ref_unit_ui_seq( ts.euro_minds()[player.type],
+    co_await add_ref_unit_ui_seq( ts.euro_agents()[player.type],
                                   type );
   }
 }

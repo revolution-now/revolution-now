@@ -25,7 +25,7 @@ namespace rn {
 ** Fwd Decls.
 *****************************************************************/
 struct ExpeditionaryForce;
-struct IEuroMind;
+struct IEuroAgent;
 struct Player;
 
 enum class e_expeditionary_force_type;
@@ -54,7 +54,7 @@ void add_ref_unit( ExpeditionaryForce& force,
 e_unit_type ref_unit_to_unit_type(
     e_expeditionary_force_type type );
 
-wait<> add_ref_unit_ui_seq( IEuroMind& mind,
+wait<> add_ref_unit_ui_seq( IEuroAgent& agent,
                             e_expeditionary_force_type type );
 
 } // namespace rn

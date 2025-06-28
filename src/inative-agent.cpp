@@ -19,24 +19,24 @@ using namespace std;
 namespace rn {
 
 /****************************************************************
-** NoopNativeMind
+** NoopNativeAgent
 *****************************************************************/
-wait<> NoopNativeMind::message_box( string const& ) {
+wait<> NoopNativeAgent::message_box( string const& ) {
   co_return;
 }
 
-NativeUnitCommand NoopNativeMind::command_for( NativeUnitId ) {
+NativeUnitCommand NoopNativeAgent::command_for( NativeUnitId ) {
   return NativeUnitCommand::forfeight{};
 }
 
-void NoopNativeMind::on_attack_colony_finished(
+void NoopNativeAgent::on_attack_colony_finished(
     CombatBraveAttackColony const&,
     BraveAttackColonyEffect const& ) {}
 
-void NoopNativeMind::on_attack_unit_finished(
+void NoopNativeAgent::on_attack_unit_finished(
     CombatBraveAttackEuro const& ) {}
 
-NativeUnitId NoopNativeMind::select_unit(
+NativeUnitId NoopNativeAgent::select_unit(
     set<NativeUnitId> const& units ) {
   CHECK( !units.empty() );
   return *units.begin();

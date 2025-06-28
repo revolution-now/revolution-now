@@ -38,12 +38,12 @@ struct SSConst;
 struct Unit;
 
 /****************************************************************
-** IEuroMind
+** IEuroAgent
 *****************************************************************/
-struct IEuroMind : IMind {
-  IEuroMind( e_player player );
+struct IEuroAgent : IAgent {
+  IEuroAgent( e_player player );
 
-  virtual ~IEuroMind() override = default;
+  virtual ~IEuroAgent() override = default;
 
   // For convenience.
   e_player player_type() const { return player_type_; }
@@ -77,17 +77,17 @@ struct IEuroMind : IMind {
 };
 
 /****************************************************************
-** NoopEuroMind
+** NoopEuroAgent
 *****************************************************************/
 // Minimal implementation does not either nothing or the minimum
 // necessary to fulfill the contract of each request.
-struct NoopEuroMind final : IEuroMind {
-  NoopEuroMind( SSConst const& ss, e_player player );
+struct NoopEuroAgent final : IEuroAgent {
+  NoopEuroAgent( SSConst const& ss, e_player player );
 
- public: // IMind.
+ public: // IAgent.
   wait<> message_box( std::string const& msg ) override;
 
- public: // IEuroMind.
+ public: // IEuroAgent.
   Player const& player() override;
 
   wait<e_declare_war_on_natives> meet_tribe_ui_sequence(

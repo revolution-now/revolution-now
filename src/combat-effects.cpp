@@ -897,11 +897,11 @@ FilteredMixedCombatEffectsMessages filter_combat_effects_msgs(
 
 wait<> show_combat_effects_msg(
     FilteredMixedCombatEffectsMessages const& msgs,
-    IMind& attacker_mind, IMind& defender_mind ) {
+    IAgent& attacker_agent, IAgent& defender_agent ) {
   for( string const& msg : msgs.attacker )
-    co_await attacker_mind.message_box( msg );
+    co_await attacker_agent.message_box( msg );
   for( string const& msg : msgs.defender )
-    co_await defender_mind.message_box( msg );
+    co_await defender_agent.message_box( msg );
 }
 
 /****************************************************************
