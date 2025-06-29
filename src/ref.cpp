@@ -165,7 +165,7 @@ wait<> add_ref_unit_ui_seq(
       "budget. [{}] have been added to the Royal Expeditionary "
       "Force, causing alarm among colonists.",
       plural_name );
-  co_await agent.message_box( "{}", msg );
+  co_await agent.signal( signal::RefUnitAdded{}, msg );
 }
 
 } // namespace rn

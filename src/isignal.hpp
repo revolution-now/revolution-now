@@ -24,18 +24,15 @@ namespace rn {
 struct ISignalHandler {
   virtual ~ISignalHandler() = default;
 
-  virtual bool handle( signal::Foo const& foo ) = 0;
+ public: // Required.
+  virtual bool handle( signal::Foo const& ctx ) = 0;
 
-  virtual wait<int> handle( signal::Bar const& foo ) = 0;
-};
+  virtual wait<int> handle( signal::Bar const& ctx ) = 0;
 
-/****************************************************************
-** NoopSignalHandler
-*****************************************************************/
-struct NoopSignalHandler : ISignalHandler {
-  bool handle( signal::Foo const& foo ) override;
+ public: // Optional.
+  virtual wait<> handle( signal::RefUnitAdded const& );
 
-  wait<int> handle( signal::Bar const& foo ) override;
+  virtual wait<> handle( signal::RebelSentimentChanged const& );
 };
 
 } // namespace rn

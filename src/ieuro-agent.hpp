@@ -54,6 +54,11 @@ concept NonWaitableSignalContext =
       h.handle( ctx );
     };
 
+template<typename Context>
+using signal_context_result_t =
+    decltype( std::declval<ISignalHandler>().handle(
+        std::declval<Context>() ) );
+
 /****************************************************************
 ** IEuroAgent
 *****************************************************************/
@@ -90,24 +95,35 @@ struct IEuroAgent : IAgent, ISignalHandler {
       Unit const& dst_unit, Commodity const& stolen ) = 0;
 
  public: // Signals.
-  template<WaitableSignalContext Context>
-  requires requires( ISignalHandler& h, Context const& ctx ) {
-    h.handle( ctx );
-  }
-  auto signal( Context const& ctx, std::string const& msg = "" )
-      -> wait<
-          typename decltype( std::declval<ISignalHandler>()
-                                 .handle( ctx ) )::value_type> {
-    if( !msg.empty() ) co_await this->message_box( "{}", msg );
-    co_return co_await handle( ctx );
+  // Non-waitable, no message.
+  auto signal( NonWaitableSignalContext auto const& ctx ) {
+    return handle( ctx );
   }
 
-  template<NonWaitableSignalContext Context>
-  requires requires( ISignalHandler& h, Context const& ctx ) {
-    h.handle( ctx );
+  // Waitable, no message.
+  auto signal( WaitableSignalContext auto const& ctx )
+      -> signal_context_result_t<decltype( ctx )> {
+    if constexpr( std::is_same_v<
+                      std::monostate,
+                      typename signal_context_result_t<
+                          decltype( ctx )>::value_type> )
+      co_await handle( ctx );
+    else
+      co_return co_await handle( ctx );
   }
-  auto signal( Context const& ctx ) {
-    return handle( ctx );
+
+  // Waitable, with message.
+  auto signal( WaitableSignalContext auto const& ctx,
+               std::string const& msg )
+      -> signal_context_result_t<decltype( ctx )> {
+    co_await this->message_box( "{}", msg );
+    if constexpr( std::is_same_v<
+                      std::monostate,
+                      typename signal_context_result_t<
+                          decltype( ctx )>::value_type> )
+      co_await signal( ctx );
+    else
+      co_return co_await signal( ctx );
   }
 
  private:

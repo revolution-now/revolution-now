@@ -18,14 +18,15 @@ using namespace std;
 namespace rn {
 
 /****************************************************************
-** NoopSignalHandler
+** ISignalHandler
 *****************************************************************/
-bool NoopSignalHandler::handle( signal::Foo const& ) {
-  return false;
+wait<> ISignalHandler::handle( signal::RefUnitAdded const& ) {
+  co_return;
 }
 
-wait<int> NoopSignalHandler::handle( signal::Bar const& ) {
-  co_return 0;
+wait<> ISignalHandler::handle(
+    signal::RebelSentimentChanged const& ) {
+  co_return;
 }
 
 } // namespace rn

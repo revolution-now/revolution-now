@@ -17,3 +17,10 @@ struct.Foo {
 struct.Bar {
   y 'int',
 }
+
+struct.RefUnitAdded {}
+
+struct.RebelSentimentChanged {
+  old 'int',
+  nu 'int',
+}

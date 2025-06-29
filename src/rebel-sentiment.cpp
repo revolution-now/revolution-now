@@ -14,6 +14,7 @@
 #include "co-wait.hpp"
 #include "colony-mgr.hpp"
 #include "ieuro-agent.hpp"
+#include "isignal.rds.hpp"
 #include "sons-of-liberty.hpp"
 
 // config
@@ -142,24 +143,29 @@ wait<> show_rebel_sentiment_change_report(
   auto const& country =
       config_nation.nations[nation_for( agent.player_type() )]
           .country_name;
+  signal::RebelSentimentChanged const sig{ .old = report.prev,
+                                           .nu  = report.nova };
   if( report.nova > report.prev )
-    co_await agent.message_box(
-        "[Rebel] sentiment is on the rise, Your Excellency!  "
-        "[{}%] of the population now supports the idea of "
-        "independence from {}.",
-        report.nova, country );
+    co_await agent.signal(
+        sig,
+        format( "[Rebel] sentiment is on the rise, Your "
+                "Excellency!  [{}%] of the population now "
+                "supports the idea of independence from {}.",
+                report.nova, country ) );
   else if( report.nova < report.prev && report.nova > 0 )
-    co_await agent.message_box(
-        "[Tory] sentiment is on the rise, Your Excellency.  "
-        "Only [{}%] of the population now supports the idea of "
-        "independence from {}.",
-        report.nova, country );
+    co_await agent.signal(
+        sig,
+        format( "[Tory] sentiment is on the rise, Your "
+                "Excellency.  Only [{}%] of the population now "
+                "supports the idea of independence from {}.",
+                report.nova, country ) );
   else if( report.nova < report.prev && report.nova == 0 )
-    co_await agent.message_box(
-        "[Tory] sentiment is on the rise, Your Excellency.  "
-        "None of the population supports the idea of "
-        "independence from {}.",
-        country );
+    co_await agent.signal(
+        sig,
+        format( "[Tory] sentiment is on the rise, Your "
+                "Excellency.  None of the population supports "
+                "the idea of independence from {}.",
+                country ) );
   player.revolution.last_reported_rebel_sentiment = report.nova;
 }
 
