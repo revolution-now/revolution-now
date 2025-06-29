@@ -1605,12 +1605,55 @@ wait<> post_player( SS& ss, TS& ts, Player& player ) {
   }
 }
 
+// Returns true if the visibility needed to be changed.
+bool ensure_human_visibility( SS& ss, TS& ts,
+                              Player const& player ) {
+  if( player.control != e_player_control::human ) return false;
+  auto const viewer =
+      player_for_role( ss, e_player_role::viewer );
+  if( !viewer.has_value() )
+    // Entire map visible.
+    return false;
+  if( *viewer == player.type )
+    // Already visible from the player's standpoint.
+    return false;
+  // Restore to default.
+  ss.land_view.map_revealed = MapRevealed::no_special_view{};
+  auto const new_viewer =
+      player_for_role( ss, e_player_role::viewer );
+  CHECK( new_viewer == player.type );
+  update_map_visibility( ts, new_viewer );
+  return true;
+}
+
 // Processes the current state and returns the next state.
 wait<PlayerTurnState> player_turn_iter(
     IEngine& engine, SS& ss, TS& ts, e_player const player_type,
     PlayerTurnState& st ) {
   Player& player =
       player_for_player_or_die( ss.players, player_type );
+
+  // If this is a human player then there will be units asking
+  // for orders and/or animations, and so we must have the viewer
+  // able to see that player's entities.
+  //
+  // NOTE: this is not perfect. It is still possible for the game
+  // to be in a state where one human player is moving while the
+  // view is set to that of another player, e.g. if the switch is
+  // made while a unit is asking for orders. Therefore, the game
+  // generally still needs to support that. This is just to try
+  // to avoid a situation where a player who sets the view to
+  // that of another player not fully understanding what to ex-
+  // pect will hopefully not be met with a situation where one of
+  // their units is asking for orders and they can't see it, and
+  // not know what is going on.
+  if( ensure_human_visibility( ss, ts, player ) )
+    co_await ts.gui.message_box(
+        "Note that the map view has been restored to default "
+        "before resuming the [{}] turn as they are "
+        "human-controlled.",
+        config_nation.players[player_type]
+            .possessive_pre_declaration );
 
   SWITCH( st ) {
     CASE( not_started ) {
