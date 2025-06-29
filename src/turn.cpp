@@ -1617,9 +1617,7 @@ wait<PlayerTurnState> player_turn_iter(
       base::print_bar( '-',
                        fmt::format( "[ {} ]", player_type ) );
       co_await player_start_of_turn( ss, ts, player );
-      co_return PlayerTurnState::colonies{};
-    }
-    CASE( colonies ) {
+      // Colonies.
       co_await colonies_turn( engine, ss, ts, player );
       co_await post_colonies_common( ss, ts, player );
       if( is_ref( player.type ) )
@@ -1663,17 +1661,18 @@ wait<PlayerTurnState> player_turn_iter(
 }
 
 wait<> nation_turn( IEngine& engine, SS& ss, TS& ts,
-                    e_player player, PlayerTurnState& st ) {
-  CHECK( ss.players.players[player].has_value(),
-         "nation {} does not exist.", player );
-  switch( ss.players.players[player]->control ) {
+                    e_player const player_type,
+                    PlayerTurnState& st ) {
+  UNWRAP_CHECK_MSG( player, ss.players.players[player_type],
+                    "nation {} does not exist.", player_type );
+  switch( player.control ) {
     case e_player_control::withdrawn:
       st = PlayerTurnState::finished{};
       break;
     case e_player_control::human:
       while( !st.holds<PlayerTurnState::finished>() )
-        st = co_await player_turn_iter( engine, ss, ts, player,
-                                        st );
+        st = co_await player_turn_iter( engine, ss, ts,
+                                        player_type, st );
       break;
     case e_player_control::ai:
       // TODO: Until we have AI.

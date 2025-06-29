@@ -49,7 +49,6 @@ struct.Autosave {
 
 sumtype.PlayerTurnState {
   not_started {},
-  colonies {},
   units {
     q 'std::deque<UnitId>',
     skip_eot 'bool',
