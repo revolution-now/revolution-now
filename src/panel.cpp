@@ -37,6 +37,7 @@
 
 // config
 #include "config/menu-items.rds.hpp"
+#include "config/nation.rds.hpp"
 #include "config/text.rds.hpp"
 #include "config/tile-enum.rds.hpp"
 #include "config/ui.rds.hpp"
@@ -74,6 +75,8 @@ namespace rn {
 // FIXME FIXME FIXME
 
 using ::gfx::point;
+using ::gfx::rect;
+using ::gfx::size;
 
 /****************************************************************
 ** PanelPlane::Impl
@@ -281,6 +284,20 @@ struct PanelPlane::Impl : public IPlane {
     typer.write( "Royal Money: {}{}\n", player.royal_money,
                  config_text.special_chars.currency );
     typer.write( "Zoom: {}\n", ss_.land_view.viewport.zoom );
+
+    // Bottom.
+    if( curr_player.has_value() ) {
+      size const padding = { .w = 8, .h = -4 };
+      int const height   = 4;
+      gfx::rect const curr_player_rect{
+        .origin = rect().to_gfx().sw() + size{ .h = -height } +
+                  padding,
+        .size = { .w = rect().to_gfx().size.w - padding.w * 2,
+                  .h = height } };
+      renderer.painter().draw_solid_rect(
+          curr_player_rect,
+          config_nation.players[*curr_player].flag_color );
+    }
   }
 
   void draw( rr::Renderer& renderer ) const override {
@@ -301,8 +318,8 @@ struct PanelPlane::Impl : public IPlane {
 
     Rect const mini_map_rect = mini_map_available_rect();
 
-    Coord p =
-        mini_map_rect.lower_left() + Delta{ .w = 8, .h = 8 };
+    Coord const p =
+        mini_map_rect.lower_left() + Delta{ .w = 4, .h = 8 };
     draw_some_stats( renderer, p );
   }
 
