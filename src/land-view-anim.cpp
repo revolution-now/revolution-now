@@ -564,9 +564,15 @@ wait<> LandViewAnimator::animate_action_primitive(
       break;
     }
     CASE( depixelate_colony ) {
-      UNWRAP_CHECK( colony,
-                    viz_->colony_at( depixelate_colony.tile ) );
-      co_await colony_depixelation_throttler( hold, colony );
+      auto const colony =
+          viz_->colony_at( depixelate_colony.tile );
+      if( !colony.has_value() )
+        // Can happen if the current viewer is a nation other
+        // than the one owning the colony. This could happen if
+        // e.g. the colony is being destroyed due to starvation
+        // and the view is set to that of another player.
+        co_return;
+      co_await colony_depixelation_throttler( hold, *colony );
       break;
     }
     CASE( depixelate_dwelling ) {
