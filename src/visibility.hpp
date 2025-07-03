@@ -261,6 +261,10 @@ void recompute_fog_for_player( SS& ss, TS& ts, e_player player );
 // map if necessary.
 void update_map_visibility( TS& ts, maybe<e_player> player );
 
+// Used to determine if we should animate something on a tile.
+bool should_animate_on_tile( IVisibility const& viz,
+                             gfx::point tile );
+
 // Used to determine if a unit move should be animated, which
 // happens if either the source or destination tiles of the move
 // (or attack) is visible and clear.
