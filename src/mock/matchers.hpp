@@ -24,32 +24,45 @@
 #include <algorithm>
 #include <regex>
 
-#define GENERIC_SINGLE_ARG_MATCHER( name )             \
-  template<typename T>                                 \
-  auto name( T&& arg ) {                               \
-    return detail::name##Impl<std::remove_cvref_t<T>>( \
-        #name, std::forward<T>( arg ) );               \
+#define GENERIC_SINGLE_ARG_MATCHER( name )                   \
+  template<typename T>                                       \
+  auto name( T&& arg ) {                                     \
+    return detail::name##Impl<std::remove_cvref_t<T>, void>( \
+        #name, std::forward<T>( arg ) );                     \
   }
 
-#define GENERIC_ZERO_ARG_MATCHER( name )                  \
-  inline constexpr auto name() {                          \
-    struct Unused {                                       \
-      bool operator==( Unused const& ) const = default;   \
-    };                                                    \
-    return detail::name##Impl<Unused>( #name, Unused{} ); \
+#define GENERIC_ZERO_ARG_MATCHER( name )                        \
+  inline constexpr auto name() {                                \
+    struct Unused {                                             \
+      bool operator==( Unused const& ) const = default;         \
+    };                                                          \
+    return detail::name##Impl<Unused, void>( #name, Unused{} ); \
   }
 
 #define GENERIC_TUPLE_ARG_MATCHER( name )                      \
   template<typename... M>                                      \
   auto name( M&&... to_match ) {                               \
     using child_t = std::tuple<std::remove_reference_t<M>...>; \
-    return detail::name##Impl<child_t>(                        \
+    return detail::name##Impl<child_t, void>(                  \
         #name, child_t{ std::forward<M>( to_match )... } );    \
   }
 
-#define CONCRETE_SINGLE_ARG_MATCHER( name, type )               \
-  inline auto name( type arg ) {                                \
-    return detail::name##Impl<type>( #name, std::move( arg ) ); \
+#define CONCRETE_SINGLE_ARG_MATCHER( name, type )              \
+  inline auto name( type arg ) {                               \
+    return detail::name##Impl<type, void>( #name,              \
+                                           std::move( arg ) ); \
+  }
+
+// This one is a bit specific in that it makes use of the Must-
+// Match and defaults its parameter to Any(). It is for imple-
+// menting the `Type` matcher; not sure if it will have other
+// uses.
+#define TYPE_SINGLE_ARG_MATCHER_MUSTMATCH( name )              \
+  template<typename MustMatch, typename T = decltype( Any() )> \
+  auto name( T&& arg = Any() ) {                               \
+    return detail::name##Impl<std::remove_cvref_t<T>,          \
+                              MustMatch>(                      \
+        #name, std::forward<T>( arg ) );                       \
   }
 
 namespace mock::matchers {
@@ -64,6 +77,21 @@ MATCHER_DEFINE_NODE( Any, /*held*/, /*actual*/ ) {
 GENERIC_ZERO_ARG_MATCHER( Any );
 
 inline constexpr auto _ = Any();
+
+/****************************************************************
+** Type
+*****************************************************************/
+// This matcher enforces that it must match only a certain type,
+// and therefore is used to disambiguate overloaded functions. It
+// takes an arbitrary matcher as an argument to which it will
+// forward matching, though this argument is optional and de-
+// faults to "Any". Note that the argument can also be a value.
+// See the unit tests for examples on how to use it.
+MATCHER_DEFINE_NODE( Type, held, actual ) {
+  return converting_operator_equal( held, actual );
+};
+
+TYPE_SINGLE_ARG_MATCHER_MUSTMATCH( Type );
 
 /****************************************************************
 ** Pointee
@@ -166,7 +194,7 @@ MATCHER_DEFINE_NODE( Approx, held, actual ) {
 };
 
 inline auto Approx( double target, double plus_minus ) {
-  return detail::ApproxImpl<ApproxData>(
+  return detail::ApproxImpl<ApproxData, /*MustMatch=*/void>(
       "Approx",
       ApproxData{ .target = target, .plus_minus = plus_minus } );
 }
@@ -181,7 +209,7 @@ MATCHER_DEFINE_NODE( Approxf, held, actual ) {
 };
 
 inline auto Approxf( float target, float plus_minus ) {
-  return detail::ApproxImpl<ApproxData>(
+  return detail::ApproxImpl<ApproxData, /*MustMatch=*/void>(
       "Approxf",
       ApproxData{ .target = target, .plus_minus = plus_minus } );
 }
@@ -299,7 +327,7 @@ template<size_t N, typename M>
 auto TupleElement( M&& to_match ) {
   using child_t = std::pair<std::integral_constant<size_t, N>,
                             std::remove_reference_t<M>>;
-  return detail::TupleElementImpl<child_t>(
+  return detail::TupleElementImpl<child_t, /*MustMatch=*/void>(
       "TupleElement",
       child_t{ {}, std::forward<M>( to_match ) } );
 }
@@ -311,7 +339,7 @@ template<typename M>
 auto Key( M&& to_match ) {
   using child_t = std::pair<std::integral_constant<size_t, 0>,
                             std::remove_reference_t<M>>;
-  return detail::TupleElementImpl<child_t>(
+  return detail::TupleElementImpl<child_t, /*MustMatch=*/void>(
       "Key", child_t{ {}, std::forward<M>( to_match ) } );
 }
 
@@ -330,7 +358,7 @@ requires std::is_member_object_pointer_v<MemberVarT>
 auto Field( MemberVarT&& member_ptr, M&& to_match ) {
   using child_t = std::pair<std::remove_reference_t<MemberVarT>,
                             std::remove_reference_t<M>>;
-  return detail::FieldImpl<child_t>(
+  return detail::FieldImpl<child_t, /*MustMatch=*/void>(
       "Field",
       child_t{ member_ptr, std::forward<M>( to_match ) } );
 }
@@ -350,7 +378,7 @@ requires std::is_member_function_pointer_v<MemberFnT>
 auto Property( MemberFnT&& member_ptr, M&& to_match ) {
   using child_t = std::pair<std::remove_reference_t<MemberFnT>,
                             std::remove_reference_t<M>>;
-  return detail::PropertyImpl<child_t>(
+  return detail::PropertyImpl<child_t, /*MustMatch=*/void>(
       "Property",
       child_t{ member_ptr, std::forward<M>( to_match ) } );
 }

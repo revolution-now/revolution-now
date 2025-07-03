@@ -118,6 +118,10 @@ struct IPoint {
 
   virtual void no_copy_arg_1( NoCopy const& nc ) const  = 0;
   virtual void no_copy_arg_2( Trivial const& nc ) const = 0;
+
+  virtual void overloaded( int ) const       = 0;
+  virtual void overloaded( monostate ) const = 0;
+  virtual void overloaded( string ) const    = 0;
 };
 
 /****************************************************************
@@ -183,6 +187,10 @@ struct MockPoint : IPoint {
   MOCK_METHOD( void, no_copy_arg_1, (NoCopy const&), ( const ) );
   MOCK_METHOD( void, no_copy_arg_2, (Trivial const&),
                ( const ) );
+
+  MOCK_METHOD( void, overloaded, (int), ( const ) );
+  MOCK_METHOD( void, overloaded, ( monostate ), ( const ) );
+  MOCK_METHOD( void, overloaded, ( string ), ( const ) );
 };
 
 /****************************************************************
@@ -281,13 +289,18 @@ struct PointUser {
     return tr.n;
   }
 
+  template<typename T>
+  void call_overloaded( T const o ) const {
+    p_->overloaded( o );
+  }
+
   IPoint* p_;
 };
 
 /****************************************************************
 ** Tests
 *****************************************************************/
-TEST_CASE( "[mock] use stuff" ) {
+TEST_CASE( "[mock/matchers] use stuff" ) {
   // For some reason if we don't explicitly use this then clang
   // warns that operator== is unused, even though it is needed by
   // the mocking framework since Foo is a parameter to a mocked
@@ -297,7 +310,7 @@ TEST_CASE( "[mock] use stuff" ) {
   REQUIRE( foo1 == foo2 );
 }
 
-TEST_CASE( "[mock] Pointee" ) {
+TEST_CASE( "[mock/matchers] Pointee" ) {
   MockPoint mp;
   PointUser user( &mp );
 
@@ -346,7 +359,7 @@ TEST_CASE( "[mock] Pointee" ) {
   user.set_x_from_const_uptr_ref( 8 );
 }
 
-TEST_CASE( "[mock] Pointee arg match failure" ) {
+TEST_CASE( "[mock/matchers] Pointee arg match failure" ) {
   MockPoint mp;
   PointUser user( &mp );
 
@@ -357,7 +370,7 @@ TEST_CASE( "[mock] Pointee arg match failure" ) {
   user.set_x_from_const_ptr( 9 );
 }
 
-TEST_CASE( "[mock] IterableElementsAre" ) {
+TEST_CASE( "[mock/matchers] IterableElementsAre" ) {
   MockPoint mp;
   PointUser user( &mp );
 
@@ -391,7 +404,8 @@ TEST_CASE( "[mock] IterableElementsAre" ) {
   REQUIRE( user.sum_ints_nested( v3 ) == 12 );
 }
 
-TEST_CASE( "[mock] IterableElementsAre arg match failure" ) {
+TEST_CASE(
+    "[mock/matchers] IterableElementsAre arg match failure" ) {
   MockPoint mp;
   PointUser user( &mp );
 
@@ -404,7 +418,7 @@ TEST_CASE( "[mock] IterableElementsAre arg match failure" ) {
   user.sum_ints( { 3, 5, 5 } );
 }
 
-TEST_CASE( "[mock] Ge" ) {
+TEST_CASE( "[mock/matchers] Ge" ) {
   MockPoint mp;
   PointUser user( &mp );
 
@@ -416,7 +430,7 @@ TEST_CASE( "[mock] Ge" ) {
   user.set_x( 8 );
 }
 
-TEST_CASE( "[mock] Le" ) {
+TEST_CASE( "[mock/matchers] Le" ) {
   MockPoint mp;
   PointUser user( &mp );
 
@@ -428,7 +442,7 @@ TEST_CASE( "[mock] Le" ) {
   user.set_x( 8 );
 }
 
-TEST_CASE( "[mock] Gt" ) {
+TEST_CASE( "[mock/matchers] Gt" ) {
   MockPoint mp;
   PointUser user( &mp );
 
@@ -439,7 +453,7 @@ TEST_CASE( "[mock] Gt" ) {
   user.set_x( 9 );
 }
 
-TEST_CASE( "[mock] Lt" ) {
+TEST_CASE( "[mock/matchers] Lt" ) {
   MockPoint mp;
   PointUser user( &mp );
 
@@ -450,7 +464,7 @@ TEST_CASE( "[mock] Lt" ) {
   user.set_x( 7 );
 }
 
-TEST_CASE( "[mock] Ne" ) {
+TEST_CASE( "[mock/matchers] Ne" ) {
   MockPoint mp;
   PointUser user( &mp );
 
@@ -461,7 +475,7 @@ TEST_CASE( "[mock] Ne" ) {
   user.set_x( 7 );
 }
 
-TEST_CASE( "[mock] Eq" ) {
+TEST_CASE( "[mock/matchers] Eq" ) {
   MockPoint mp;
   PointUser user( &mp );
 
@@ -472,7 +486,7 @@ TEST_CASE( "[mock] Eq" ) {
   user.set_x( 8 );
 }
 
-TEST_CASE( "[mock] Not" ) {
+TEST_CASE( "[mock/matchers] Not" ) {
   MockPoint mp;
   PointUser user( &mp );
 
@@ -484,7 +498,7 @@ TEST_CASE( "[mock] Not" ) {
   user.set_x( 7 );
 }
 
-TEST_CASE( "[mock] string" ) {
+TEST_CASE( "[mock/matchers] string" ) {
   MockPoint mp;
   PointUser user( &mp );
 
@@ -492,7 +506,7 @@ TEST_CASE( "[mock] string" ) {
   REQUIRE( user.say_hello( "bob" ) == "hello bob" );
 }
 
-TEST_CASE( "[mock] string_view" ) {
+TEST_CASE( "[mock/matchers] string_view" ) {
   MockPoint mp;
   PointUser user( &mp );
 
@@ -515,7 +529,7 @@ TEST_CASE( "[mock] string_view" ) {
   }
 }
 
-TEST_CASE( "[mock] StartsWith" ) {
+TEST_CASE( "[mock/matchers] StartsWith" ) {
   MockPoint mp;
   PointUser user( &mp );
 
@@ -529,7 +543,7 @@ TEST_CASE( "[mock] StartsWith" ) {
   REQUIRE( user.say_hello_ptr( &bobbob ) == "hello bob" );
 }
 
-TEST_CASE( "[mock] StrContains" ) {
+TEST_CASE( "[mock/matchers] StrContains" ) {
   MockPoint mp;
   PointUser user( &mp );
 
@@ -543,7 +557,7 @@ TEST_CASE( "[mock] StrContains" ) {
   REQUIRE( user.say_hello( "bob ccc bob" ) == "hello bob" );
 }
 
-TEST_CASE( "[mock] Matches" ) {
+TEST_CASE( "[mock/matchers] Matches" ) {
   MockPoint mp;
   PointUser user( &mp );
 
@@ -557,7 +571,7 @@ TEST_CASE( "[mock] Matches" ) {
   REQUIRE( user.say_hello( "hob ccc" ) == "hello bob" );
 }
 
-TEST_CASE( "[mock] Empty" ) {
+TEST_CASE( "[mock/matchers] Empty" ) {
   MockPoint mp;
   PointUser user( &mp );
 
@@ -570,7 +584,7 @@ TEST_CASE( "[mock] Empty" ) {
   REQUIRE( user.sum_ints( v ) == 0 );
 }
 
-TEST_CASE( "[mock] True" ) {
+TEST_CASE( "[mock/matchers] True" ) {
   MockPoint mp;
   PointUser user( &mp );
 
@@ -579,7 +593,7 @@ TEST_CASE( "[mock] True" ) {
   user.take_bool( true );
 }
 
-TEST_CASE( "[mock] False" ) {
+TEST_CASE( "[mock/matchers] False" ) {
   MockPoint mp;
   PointUser user( &mp );
 
@@ -590,7 +604,7 @@ TEST_CASE( "[mock] False" ) {
 
 // This tests that we can match an argument that is not
 // equality-comparable so long as we use the Any matcher.
-TEST_CASE( "[mock] non-eq-comparable" ) {
+TEST_CASE( "[mock/matchers] non-eq-comparable" ) {
   MockPoint mp;
   PointUser user( &mp );
 
@@ -602,7 +616,7 @@ TEST_CASE( "[mock] non-eq-comparable" ) {
   user.takes_non_eq_comparable( NonEqualityComparable{} );
 }
 
-TEST_CASE( "[mock] Null" ) {
+TEST_CASE( "[mock/matchers] Null" ) {
   MockPoint mp;
   PointUser user( &mp );
 
@@ -612,7 +626,7 @@ TEST_CASE( "[mock] Null" ) {
   user.set_x_from_ptr( nullptr );
 }
 
-TEST_CASE( "[mock] HasSize" ) {
+TEST_CASE( "[mock/matchers] HasSize" ) {
   MockPoint mp;
   PointUser user( &mp );
 
@@ -640,7 +654,7 @@ TEST_CASE( "[mock] HasSize" ) {
   REQUIRE( user.sum_ints( v ) == 42 ); // 3
 }
 
-TEST_CASE( "[mock] Each" ) {
+TEST_CASE( "[mock/matchers] Each" ) {
   MockPoint mp;
   PointUser user( &mp );
 
@@ -656,7 +670,7 @@ TEST_CASE( "[mock] Each" ) {
   REQUIRE( user.sum_ints( v ) == 12 );
 }
 
-TEST_CASE( "[mock] AllOf" ) {
+TEST_CASE( "[mock/matchers] AllOf" ) {
   MockPoint mp;
   PointUser user( &mp );
 
@@ -682,7 +696,7 @@ TEST_CASE( "[mock] AllOf" ) {
   user.set_x( n );
 }
 
-TEST_CASE( "[mock] AnyOf" ) {
+TEST_CASE( "[mock/matchers] AnyOf" ) {
   MockPoint mp;
   PointUser user( &mp );
 
@@ -704,7 +718,7 @@ TEST_CASE( "[mock] AnyOf" ) {
   responder.clear_expectations();
 }
 
-TEST_CASE( "[mock] TupleElement" ) {
+TEST_CASE( "[mock/matchers] TupleElement" ) {
   MockPoint mp;
   PointUser user( &mp );
 
@@ -715,7 +729,7 @@ TEST_CASE( "[mock] TupleElement" ) {
   user.set_xy_pair( { 5, 3 } );
 }
 
-TEST_CASE( "[mock] Key" ) {
+TEST_CASE( "[mock/matchers] Key" ) {
   MockPoint mp;
   PointUser user( &mp );
 
@@ -726,7 +740,7 @@ TEST_CASE( "[mock] Key" ) {
   user.set_xy_pair( { 5, 3 } );
 }
 
-TEST_CASE( "[mock] Field" ) {
+TEST_CASE( "[mock/matchers] Field" ) {
   MockPoint mp;
   PointUser user( &mp );
 
@@ -747,7 +761,7 @@ TEST_CASE( "[mock] Field" ) {
   user.set_foo( Foo{ 7, 6 } );
 }
 
-TEST_CASE( "[mock] Property" ) {
+TEST_CASE( "[mock/matchers] Property" ) {
   MockPoint mp;
   PointUser user( &mp );
 
@@ -768,21 +782,21 @@ TEST_CASE( "[mock] Property" ) {
   user.set_foo( Foo{ 7, 6 } );
 }
 
-TEST_CASE( "[mock] Approx" ) {
+TEST_CASE( "[mock/matchers] Approx" ) {
   MockPoint mp;
   PointUser user( &mp );
   mp.EXPECT__double_add( Approx( .6, .01 ) ).returns( .7 );
   REQUIRE( user.add_two( .499 ) == 1.199_a );
 }
 
-TEST_CASE( "[mock] Approxf" ) {
+TEST_CASE( "[mock/matchers] Approxf" ) {
   MockPoint mp;
   PointUser user( &mp );
   mp.EXPECT__double_add( Approxf( .6, .01 ) ).returns( .7 );
   REQUIRE( user.add_two( .499 ) == 1.199_a );
 }
 
-TEST_CASE( "[mock] matcher stringification" ) {
+TEST_CASE( "[mock/matchers] matcher stringification" ) {
   MockPoint mp;
   PointUser user( &mp );
 
@@ -805,7 +819,7 @@ TEST_CASE( "[mock] matcher stringification" ) {
 // tion holder from taking a copy of the argument which it would
 // do if we used just x or even std::ref(x). Note that we cannot
 // use Eq(x) since matchers such as Eq require rvalues.
-TEST_CASE( "[mock] Eq-ref trick" ) {
+TEST_CASE( "[mock/matchers] Eq-ref trick" ) {
   MockPoint mp;
   PointUser user( &mp );
 
@@ -853,6 +867,99 @@ TEST_CASE( "[mock] Eq-ref trick" ) {
     // matching the arg.
     ++tr.n;
     REQUIRE( user.calls_no_copy_arg_2( tr ) == 9 );
+  }
+}
+
+TEST_CASE( "[mock/matchers] overloaded" ) {
+  MockPoint mp;
+  PointUser user( &mp );
+
+  SECTION( "int" ) {
+    mp.EXPECT__overloaded( 5 );
+    user.call_overloaded( 5 );
+  }
+
+  SECTION( "monostate" ) {
+    mp.EXPECT__overloaded( monostate{} );
+    user.call_overloaded( monostate{} );
+  }
+
+  SECTION( "string" ) {
+    mp.EXPECT__overloaded( "hello" );
+    user.call_overloaded( "hello" );
+  }
+}
+
+TEST_CASE( "[mock/matchers] overloaded any" ) {
+  MockPoint mp;
+  PointUser user( &mp );
+
+  SECTION( "int" ) {
+    mp.EXPECT__overloaded( Type<int>() );
+    user.call_overloaded( 5 );
+  }
+
+  SECTION( "int/string error" ) {
+    mp.EXPECT__overloaded( Type<string>() );
+    REQUIRE_THROWS_WITH(
+        user.call_overloaded( 5 ),
+        "unexpected mock function call: overloaded( 5 )" );
+    // Satisfy the expectation so that the test doesn't fail.
+    user.call_overloaded( "" );
+  }
+
+  SECTION( "monostate" ) {
+    mp.EXPECT__overloaded( Type<monostate>( Any() ) );
+    user.call_overloaded( monostate{} );
+  }
+
+  SECTION( "string" ) {
+    mp.EXPECT__overloaded( Type<string>() );
+    user.call_overloaded( "hello" );
+  }
+
+  SECTION( "int/Type with value argument" ) {
+    mp.EXPECT__overloaded( Type<int>( 8 ) );
+    user.call_overloaded( 8 );
+  }
+
+  SECTION( "int/Type with value argument/fails" ) {
+    mp.EXPECT__overloaded( Type<int>( 8 ) );
+    REQUIRE_THROWS_WITH(
+        user.call_overloaded( 9 ),
+        "mock function `overloaded` called with unexpected "
+        "arguments:\n"                              //
+        "argument #1 (one-based) does not match.\n" //
+        "actual call: overloaded( 9 )\n"            //
+        "expected arg #1: Type( 8 )"                //
+    );
+    // Satisfy the expectation so that the test doesn't fail.
+    user.call_overloaded( 8 );
+  }
+
+  SECTION( "string/nested" ) {
+    mp.EXPECT__overloaded( Type<string>( StrContains( "el" ) ) );
+    user.call_overloaded( "hello" );
+  }
+
+  SECTION( "string/nested x 2" ) {
+    mp.EXPECT__overloaded(
+        Type<string>( Type<string>( StrContains( "el" ) ) ) );
+    user.call_overloaded( "hello" );
+  }
+
+  SECTION( "string/nested fails" ) {
+    mp.EXPECT__overloaded( Type<string>( StrContains( "x" ) ) );
+    REQUIRE_THROWS_WITH(
+        user.call_overloaded( "hello" ),
+        "mock function `overloaded` called with unexpected "
+        "arguments:\n"                                  //
+        "argument #1 (one-based) does not match.\n"     //
+        "actual call: overloaded( \"hello\" )\n"        //
+        "expected arg #1: Type( StrContains( \"x\" ) )" //
+    );
+    // Satisfy the expectation so that the test doesn't fail.
+    user.call_overloaded( "axa" );
   }
 }
 

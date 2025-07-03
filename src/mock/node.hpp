@@ -14,17 +14,19 @@
 // mock
 #include "matcher.hpp"
 
-#define MATCHER_NODE_PREAMBLE( name )          \
-  using Base = detail::Node<name##Impl<T>, T>; \
-  using typename Base::held_type;              \
-  using Base::Base;                            \
-  using Base::operator==;                      \
-  using Base::converting_operator_equal;       \
+#define MATCHER_NODE_PREAMBLE( name )                       \
+  using Base =                                              \
+      detail::Node<name##Impl<T, MustMatch>, T, MustMatch>; \
+  using typename Base::held_type;                           \
+  using Base::Base;                                         \
+  using Base::operator==;                                   \
+  using Base::converting_operator_equal;                    \
   using Base::converting_operator_greater
 
-#define MATCHER_NODE_STRUCT( name ) \
-  template<typename T>              \
-  struct name##Impl final : detail::Node<name##Impl<T>, T>
+#define MATCHER_NODE_STRUCT( name )        \
+  template<typename T, typename MustMatch> \
+  struct name##Impl final                  \
+    : detail::Node<name##Impl<T, MustMatch>, T, MustMatch>
 
 #define MATCHER_EQUAL_HOOK( lhs, rhs ) \
   template<typename U>                 \
@@ -44,10 +46,10 @@
     static bool equal( held_type const& lhs, U const& rhs );   \
   };                                                           \
   }                                                            \
-  template<typename T>                                         \
+  template<typename T, typename MustMatch>                     \
   template<typename U>                                         \
-  bool detail::name##Impl<T>::equal( held_type const& lhs,     \
-                                     U const& rhs )
+  bool detail::name##Impl<T, MustMatch>::equal(                \
+      held_type const& lhs, U const& rhs )
 
 namespace mock::matchers {
 
@@ -123,9 +125,21 @@ struct NodeBase {
   }
 };
 
+// The purpose of this it to allow us to (conditionally) enforce
+// that we will only convert to a MatcherWrapper of a certain
+// type. Typically we don't want to do this (MustMatch=void), in
+// which case this concept just returns true and doesn't affect
+// anything. But for certain matchers we want to enforce that it
+// can only match a certain type (for the purpose of disam-
+// biguating overloaded functions) in which case this will en-
+// force that.
+template<typename Target, typename MustMatch>
+concept MaybeEnforceType = ( std::is_same_v<MustMatch, void> ||
+                             std::is_same_v<MustMatch, Target> );
+
 // This is the common behavior/interface for a node in the struc-
 // ture that describes a matching operation.
-template<typename Derived, typename T>
+template<typename Derived, typename T, typename MustMatch>
 struct Node : public NodeBase {
   using held_type = T;
 
@@ -135,14 +149,14 @@ struct Node : public NodeBase {
   explicit constexpr Node( std::string_view name, T&& val )
     : NodeBase( name ), children_( std::move( val ) ) {}
 
-  template<typename Target>
+  template<MaybeEnforceType<MustMatch> Target>
   operator MatcherWrapper<Target>() && {
     return MatcherWrapper<Target>(
         NodeMatcher<Target, held_type, Derived>(
             name(), std::move( children_ ) ) );
   }
 
-  template<typename Target>
+  template<MaybeEnforceType<MustMatch> Target>
   requires std::is_copy_assignable_v<held_type>
   operator MatcherWrapper<Target>() const& {
     return MatcherWrapper<Target>(
