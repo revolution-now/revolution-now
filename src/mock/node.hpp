@@ -134,8 +134,10 @@ struct NodeBase {
 // biguating overloaded functions) in which case this will en-
 // force that.
 template<typename Target, typename MustMatch>
-concept MaybeEnforceType = ( std::is_same_v<MustMatch, void> ||
-                             std::is_same_v<MustMatch, Target> );
+concept MaybeEnforceType =
+    ( std::is_same_v<MustMatch, void> ||
+      std::is_same_v<std::remove_cvref_t<MustMatch>,
+                     std::remove_cvref_t<Target>> );
 
 // This is the common behavior/interface for a node in the struc-
 // ture that describes a matching operation.
