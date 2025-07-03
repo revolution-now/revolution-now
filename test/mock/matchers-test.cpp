@@ -937,9 +937,19 @@ TEST_CASE( "[mock/matchers] overloaded any" ) {
     user.call_overloaded( 8 );
   }
 
-  SECTION( "string/nested" ) {
+  SECTION( "string/nested 1" ) {
     mp.EXPECT__overloaded( Type<string>( StrContains( "el" ) ) );
     user.call_overloaded( "hello" );
+  }
+
+  SECTION( "string/nested 2" ) {
+    mp.EXPECT__overloaded( Type<string>( Empty() ) );
+    user.call_overloaded( "" );
+  }
+
+  SECTION( "string/nested 3" ) {
+    mp.EXPECT__overloaded( Type<string>( Not( Empty() ) ) );
+    user.call_overloaded( "x" );
   }
 
   SECTION( "string/nested x 2" ) {
