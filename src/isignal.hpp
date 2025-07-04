@@ -19,6 +19,28 @@
 namespace rn {
 
 /****************************************************************
+** Fwd Decls.
+*****************************************************************/
+struct ColonyNotification;
+
+/****************************************************************
+** Signals.
+*****************************************************************/
+namespace signal {
+
+// TODO: need to add fwd decls to rds to move these out.
+struct ColonySignal {
+  ColonyNotification const* value = {};
+};
+
+struct ColonySignalTransient {
+  std::string msg;
+  ColonyNotification const* value = {};
+};
+
+} // namespace signal
+
+/****************************************************************
 ** ISignalHandler
 *****************************************************************/
 struct ISignalHandler {
@@ -30,9 +52,26 @@ struct ISignalHandler {
   virtual wait<int> handle( signal::Bar const& ctx ) = 0;
 
  public: // Optional.
-  virtual wait<> handle( signal::RefUnitAdded const& );
 
-  virtual wait<> handle( signal::RebelSentimentChanged const& );
+  virtual void handle( signal::RefUnitAdded const& );
+
+  virtual void handle( signal::RebelSentimentChanged const& );
+
+  virtual void handle( signal::ColonyDestroyedByNatives const& );
+
+  virtual void handle(
+      signal::ColonyDestroyedByStarvation const& );
+
+  virtual void handle( signal::ColonySignal const& );
+
+  virtual void handle( signal::ColonySignalTransient const& );
+
+  virtual void handle( signal::ImmigrantArrived const& );
+
+  virtual wait<maybe<int>> handle(
+      signal::ChooseImmigrant const& ) = 0;
+
+  virtual wait<> handle( signal::PanTile const& ) = 0;
 };
 
 } // namespace rn

@@ -11,6 +11,7 @@
 #include "colonies-turn.hpp"
 
 // Revolution Now
+#include "agents.hpp"
 #include "co-wait.hpp"
 #include "colony-mgr.hpp"
 #include "colony-view.hpp"
@@ -19,10 +20,10 @@
 #include "harbor-units.hpp"
 #include "harbor-view.hpp"
 #include "icolony-evolve.rds.hpp"
+#include "ieuro-agent.hpp"
 #include "igui.hpp"
 #include "immigration.hpp"
-#include "land-view.hpp"
-#include "plane-stack.hpp"
+#include "isignal.hpp"
 #include "ts.hpp"
 
 // config
@@ -53,12 +54,17 @@ namespace rn {
 
 namespace {
 
+struct ColonyNotificationWithMessage {
+  ColonyNotification notification;
+  string msg;
+};
+
 // Returns true if the user wants to open the colony view.
 wait<bool> present_blocking_colony_update(
-    IGui& gui, ColonyNotificationMessage const& msg,
-    bool ask_to_zoom ) {
-  CHECK( !msg.transient );
-  if( ask_to_zoom ) {
+    IEuroAgent& agent, IGui& gui,
+    ColonyNotificationWithMessage const& msg,
+    bool const ask_to_zoom ) {
+  if( ask_to_zoom && agent.human() ) {
     vector<ChoiceConfigOption> choices{
       { .key = "no_zoom", .display_name = "Continue turn" },
       { .key = "zoom", .display_name = "Zoom to colony" } };
@@ -67,7 +73,9 @@ wait<bool> present_blocking_colony_update(
     // If the user hits escape then we don't zoom.
     co_return ( res == "zoom" );
   }
-  co_await gui.message_box( msg.msg );
+  co_await agent.signal(
+      signal::ColonySignal{ .value = &msg.notification },
+      msg.msg );
   co_return false;
 }
 
@@ -78,13 +86,13 @@ wait<bool> present_blocking_colony_update(
 // lect yes (if they ever do) then subsequent messages will still
 // be displayed but will not ask them.
 wait<bool> present_blocking_colony_updates(
-    IGui& gui,
-    vector<ColonyNotificationMessage> const& messages ) {
+    IEuroAgent& agent, IGui& gui,
+    vector<ColonyNotificationWithMessage> const& messages ) {
   bool should_zoom = false;
-  for( ColonyNotificationMessage const& message : messages ) {
+  for( auto const& message : messages ) {
     bool const wants_zoom =
-        co_await present_blocking_colony_update( gui, message,
-                                                 !should_zoom );
+        co_await present_blocking_colony_update(
+            agent, gui, message, !should_zoom );
     should_zoom = should_zoom || wants_zoom;
   }
   co_return should_zoom;
@@ -94,11 +102,11 @@ wait<bool> present_blocking_colony_updates(
 // transient pop-up (i.e., the window that is non-blocking, takes
 // no input, and fades away on its own).
 void present_transient_updates(
-    TS& ts, vector<ColonyNotificationMessage> const& messages ) {
-  for( ColonyNotificationMessage const& msg : messages ) {
-    CHECK( msg.transient );
-    ts.gui.transient_message_box( msg.msg );
-  }
+    IEuroAgent& agent,
+    vector<ColonyNotificationWithMessage> const& messages ) {
+  for( auto const& [notification, msg] : messages )
+    agent.signal( signal::ColonySignalTransient{
+      .msg = msg, .value = &notification } );
 }
 
 void give_new_crosses_to_player(
@@ -115,6 +123,9 @@ void give_new_crosses_to_player(
 
 wait<> run_colony_starvation( SS& ss, TS& ts, Colony& colony ) {
   // Must extract this info before destroying the colony.
+  IEuroAgent& agent = ts.euro_agents()[colony.player];
+  agent.signal( signal::ColonyDestroyedByStarvation{
+    .colony_id = colony.id } );
   string const msg = fmt::format(
       "[{}] ran out of food and was not able to support "
       "its last remaining colonists.  As a result, the colony "
@@ -151,6 +162,7 @@ wait<> evolve_colonies_for_player(
     IColonyNotificationGenerator const&
         colony_notification_generator ) {
   e_player const player_type = player.type;
+  IEuroAgent& agent          = ts.euro_agents()[player_type];
   lg.info( "processing colonies for the {}.", player_type );
   unordered_map<ColonyId, Colony> const& colonies_all =
       ss.colonies.all();
@@ -165,7 +177,7 @@ wait<> evolve_colonies_for_player(
   vector<ColonyEvolution> evolutions;
   // These will be accumulated for all colonies and then dis-
   // played at the end.
-  vector<ColonyNotificationMessage> transient_messages;
+  vector<ColonyNotificationWithMessage> transient_messages;
   for( ColonyId const colony_id : colonies ) {
     Colony& colony = ss.colonies.colony_for( colony_id );
     lg.debug( "evolving colony \"{}\".", colony.name );
@@ -185,7 +197,7 @@ wait<> evolve_colonies_for_player(
     if( ev.notifications.empty() ) continue;
     // Separate the transient messages from the blocking mes-
     // sages.
-    vector<ColonyNotificationMessage> blocking_messages;
+    vector<ColonyNotificationWithMessage> blocking_messages;
     blocking_messages.reserve( ev.notifications.size() );
     for( ColonyNotification const& notification :
          ev.notifications ) {
@@ -194,19 +206,25 @@ wait<> evolve_colonies_for_player(
               .generate_colony_notification_message(
                   colony, notification );
       if( msg.transient )
-        transient_messages.push_back( std::move( msg ) );
+        transient_messages.push_back(
+            ColonyNotificationWithMessage{
+              .notification = notification,
+              .msg          = std::move( msg.msg ) } );
       else
-        blocking_messages.push_back( std::move( msg ) );
+        blocking_messages.push_back(
+            ColonyNotificationWithMessage{
+              .notification = notification,
+              .msg          = std::move( msg.msg ) } );
     }
     if( !blocking_messages.empty() )
       // We have some blocking notifications to present.
-      co_await ts.planes.get()
-          .get_bottom<ILandViewPlane>()
-          .ensure_visible( colony.location );
+      co_await agent.signal(
+          signal::PanTile{ .tile = colony.location } );
     bool const zoom_to_colony =
         co_await present_blocking_colony_updates(
-            ts.gui, blocking_messages );
+            agent, ts.gui, blocking_messages );
     if( zoom_to_colony ) {
+      // This should only ever happen for human players.
       e_colony_abandoned abandoned =
           co_await ts.colony_viewer.show( ts, colony.id );
       if( abandoned == e_colony_abandoned::yes ) continue;
@@ -215,7 +233,7 @@ wait<> evolve_colonies_for_player(
 
   // Now that all colonies are done, present all of the transient
   // messages.
-  present_transient_updates( ts, transient_messages );
+  present_transient_updates( agent, transient_messages );
 
   // Crosses/immigration. Only for non-REF since the REF shares
   // this immigration state with the colonial player, and anyway
@@ -230,14 +248,16 @@ wait<> evolve_colonies_for_player(
     maybe<UnitId> immigrant = co_await check_for_new_immigrant(
         ss, ts, player, crosses_calc.crosses_needed );
     if( immigrant.has_value() ) {
-      lg.info( "a new immigrant ({}) has arrived.",
+      lg.info( "a new immigrant ({}) has arrived for player {}.",
+               player_type,
                ss.units.unit_for( *immigrant ).desc().name );
       // When a new colonist arrives on the dock, the OG shows
       // the harbor view just after displaying the message but
       // only when there is a ship in the harbor.
       int const num_ships_in_port =
           harbor_units_in_port( ss.units, player.type ).size();
-      if( num_ships_in_port > 0 ) co_await harbor_viewer.show();
+      if( num_ships_in_port > 0 && agent.human() )
+        co_await harbor_viewer.show();
     }
   }
 }

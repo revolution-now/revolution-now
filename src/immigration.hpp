@@ -26,7 +26,7 @@
 
 namespace rn {
 
-struct IGui;
+struct IEuroAgent;
 struct ImmigrationState;
 struct IRand;
 struct Player;
@@ -42,8 +42,8 @@ struct UnitsState;
 // case no immigrant will be selected. That might be done e.g. in
 // the end game where no further immigrants are wanted.
 wait<maybe<int>> ask_player_to_choose_immigrant(
-    IGui& gui, ImmigrationState const& immigration,
-    std::string msg );
+    IEuroAgent& agent, ImmigrationState const& immigration,
+    std::string const& msg );
 
 // Remove one unit type ("immigrant") from the pool and replace
 // it (in the same slot) with replacement.  n must be [0,3).

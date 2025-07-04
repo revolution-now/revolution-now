@@ -64,12 +64,23 @@ Player const& NoopEuroAgent::player() {
                                    player_type() );
 }
 
+bool NoopEuroAgent::human() const { return false; }
+
 bool NoopEuroAgent::handle( signal::Foo const& ) {
   return false;
 }
 
 wait<int> NoopEuroAgent::handle( signal::Bar const& ) {
   co_return 0;
+}
+
+wait<maybe<int>> NoopEuroAgent::handle(
+    signal::ChooseImmigrant const& ) {
+  co_return nothing;
+}
+
+wait<> NoopEuroAgent::handle( signal::PanTile const& ) {
+  co_return;
 }
 
 } // namespace rn

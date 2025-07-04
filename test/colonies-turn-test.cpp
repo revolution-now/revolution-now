@@ -16,6 +16,7 @@
 // Testing.
 #include "test/fake/world.hpp"
 #include "test/mocking.hpp"
+#include "test/mocks/ieuro-agent.hpp"
 #include "test/mocks/igui.hpp"
 #include "test/mocks/iharbor-viewer.hpp"
 #include "test/mocks/irand.hpp"
@@ -29,6 +30,9 @@
 // ss
 #include "src/ss/player.rds.hpp"
 
+// refl
+#include "src/refl/to-str.hpp"
+
 // Must be last.
 #include "test/catch-common.hpp" // IWYU pragma: keep
 
@@ -39,12 +43,14 @@ namespace rn {
 namespace {
 
 using namespace std;
+using namespace rn::signal;
 
 using ::gfx::point;
 using ::mock::matchers::_;
 using ::mock::matchers::Eq;
 using ::mock::matchers::Field;
 using ::mock::matchers::StrContains;
+using ::mock::matchers::Type;
 
 /****************************************************************
 ** Fake World Setup
@@ -53,6 +59,7 @@ struct world : testing::World {
   using Base = testing::World;
   world() : Base() {
     add_default_player();
+    set_default_player_as_human();
     create_default_map();
   }
 
@@ -94,6 +101,9 @@ TEST_CASE( "[colonies-turn] presents transient updates." ) {
         harbor_viewer, mock_colony_notification_generator ) );
   };
 
+  MockIEuroAgent& agent = w.euro_agent();
+  agent.EXPECT__human().by_default().returns( true );
+
   SECTION( "without updates" ) {
     // This one should not try to center the viewport on the
     // colony.
@@ -113,15 +123,15 @@ TEST_CASE( "[colonies-turn] presents transient updates." ) {
             .transient = true } );
     }
 
-    w.gui().EXPECT__transient_message_box( "xxx1" );
-    w.gui().EXPECT__transient_message_box( "xxx2" );
+    agent.EXPECT__handle( Type<ColonySignalTransient>() );
+    agent.EXPECT__handle( Type<ColonySignalTransient>() );
     evolve_colonies();
   }
 
   SECTION( "with blocking updates" ) {
-    for( Coord const coord : vector{
-           Coord{ .x = 1, .y = 1 }, Coord{ .x = 3, .y = 3 } } ) {
-      Colony& colony = w.add_colony( coord );
+    for( point const p : vector<point>{ { .x = 1, .y = 1 },
+                                        { .x = 3, .y = 3 } } ) {
+      Colony& colony = w.add_colony( p );
       // Doesn't matter what this holds, only the count.
       ColonyEvolution const evolution{
         .notifications = { {}, {} } };
@@ -140,7 +150,7 @@ TEST_CASE( "[colonies-turn] presents transient updates." ) {
           .returns( ColonyNotificationMessage{
             .msg       = "xxx"s + to_string( colony.id ),
             .transient = true } );
-      land_view_plane.EXPECT__ensure_visible( coord );
+      agent.EXPECT__handle( PanTile{ .tile = p } );
       w.gui()
           .EXPECT__choice(
               Field( &ChoiceConfig::msg,
@@ -154,8 +164,8 @@ TEST_CASE( "[colonies-turn] presents transient updates." ) {
     // ally verify that they are grouped together at the end. Not
     // sure how to easily do that with the current mocking frame-
     // work.
-    w.gui().EXPECT__transient_message_box( "xxx1" );
-    w.gui().EXPECT__transient_message_box( "xxx2" );
+    agent.EXPECT__handle( Type<ColonySignalTransient>() );
+    agent.EXPECT__handle( Type<ColonySignalTransient>() );
     evolve_colonies();
   }
 
@@ -171,7 +181,7 @@ TEST_CASE( "[colonies-turn] presents transient updates." ) {
     // Select the immigratn.
     w.rand().EXPECT__between_ints( 0, 2 ).returns( 1 );
     // Notify player.
-    w.gui().EXPECT__message_box( StrContains( "immigrant" ) );
+    agent.EXPECT__message_box( StrContains( "immigrant" ) );
     // Select pool replacement.
     w.rand().EXPECT__between_doubles( 0, _ ).returns( 0.0 );
     evolve_colonies();
@@ -188,7 +198,7 @@ TEST_CASE( "[colonies-turn] presents transient updates." ) {
     // Select the immigratn.
     w.rand().EXPECT__between_ints( 0, 2 ).returns( 1 );
     // Notify player.
-    w.gui().EXPECT__message_box( StrContains( "immigrant" ) );
+    agent.EXPECT__message_box( StrContains( "immigrant" ) );
     // Select pool replacement.
     w.rand().EXPECT__between_doubles( 0, _ ).returns( 0.0 );
     // Show the harbor view since the player has a ship in port.

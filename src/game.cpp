@@ -129,7 +129,7 @@ wait<> run_game( IEngine& engine, Planes& planes, IGui& gui,
 
   // This one needs to run after the loader because it needs to
   // know which nations are human.
-  EuroAgents euro_agents = create_euro_agents( ss, gui );
+  EuroAgents euro_agents = create_euro_agents( ss, planes, gui );
   auto _3                = ts.set_euro_agents( euro_agents );
 
   // After this, any changes to the map that change land to water

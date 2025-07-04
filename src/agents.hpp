@@ -22,6 +22,7 @@ struct IEuroAgent;
 struct IGui;
 struct INativeAgent;
 struct IRand;
+struct Planes;
 struct SS;
 
 enum class e_tribe;
@@ -84,7 +85,8 @@ struct EuroAgents {
 /****************************************************************
 ** Public API.
 *****************************************************************/
-EuroAgents create_euro_agents( SS& ss, IGui& gui );
+EuroAgents create_euro_agents( SS& ss, Planes& planes,
+                               IGui& gui );
 
 NativeAgents create_native_agents( SS& ss, IRand& rand );
 

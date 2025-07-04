@@ -16,10 +16,12 @@
 // Testing
 #include "test/fake/world.hpp"
 #include "test/mocking.hpp"
+#include "test/mocks/ieuro-agent.hpp"
 #include "test/mocks/igui.hpp"
 #include "test/mocks/irand.hpp"
 
 // Revolution Now
+#include "src/agents.hpp"
 #include "src/harbor-units.hpp"
 #include "src/igui.hpp"
 #include "src/map-square.hpp"
@@ -51,12 +53,14 @@ namespace rn {
 namespace {
 
 using namespace std;
+using namespace rn::signal;
 
 using ::mock::matchers::AllOf;
 using ::mock::matchers::Approx;
 using ::mock::matchers::Field;
 using ::mock::matchers::HasSize;
 using ::mock::matchers::StartsWith;
+using ::mock::matchers::Type;
 
 /****************************************************************
 ** Fake World Setup
@@ -76,25 +80,24 @@ struct World : testing::World {
 ** Test Cases
 *****************************************************************/
 TEST_CASE( "[immigration] ask_player_to_choose_immigrant" ) {
+  World W;
   ImmigrationState immigration{
     .immigrants_pool = { e_unit_type::expert_farmer,
                          e_unit_type::veteran_soldier,
                          e_unit_type::seasoned_scout } };
-  MockIGui gui;
+  MockIEuroAgent& agent =
+      W.euro_agent( W.default_player_type() );
 
-  gui
-      .EXPECT__choice( ChoiceConfig{
-        .msg = "please select one",
-        .options =
-            vector<ChoiceConfigOption>{
-              { .key = "0", .display_name = "Expert Farmer" },
-              { .key = "1", .display_name = "Veteran Soldier" },
-              { .key          = "2",
-                .display_name = "Seasoned Scout" } } } )
-      .returns( make_wait<maybe<string>>( "1" ) );
+  agent
+      .EXPECT__handle( signal::ChooseImmigrant{
+        .msg   = "please select one",
+        .types = { e_unit_type::expert_farmer,
+                   e_unit_type::veteran_soldier,
+                   e_unit_type::seasoned_scout } } )
+      .returns( 1 );
 
-  wait<maybe<int>> w = ask_player_to_choose_immigrant(
-      gui, immigration, "please select one" );
+  wait<maybe<int>> const w = ask_player_to_choose_immigrant(
+      agent, immigration, "please select one" );
   REQUIRE( w.ready() );
   REQUIRE( w->has_value() );
   REQUIRE( **w == 1 );
@@ -102,25 +105,24 @@ TEST_CASE( "[immigration] ask_player_to_choose_immigrant" ) {
 
 TEST_CASE(
     "[immigration] ask_player_to_choose_immigrant cancels" ) {
+  World W;
   ImmigrationState immigration{
     .immigrants_pool = { e_unit_type::expert_farmer,
                          e_unit_type::veteran_soldier,
                          e_unit_type::seasoned_scout } };
-  MockIGui gui;
+  MockIEuroAgent& agent =
+      W.euro_agent( W.default_player_type() );
 
-  gui
-      .EXPECT__choice( ChoiceConfig{
-        .msg = "please select one",
-        .options =
-            vector<ChoiceConfigOption>{
-              { .key = "0", .display_name = "Expert Farmer" },
-              { .key = "1", .display_name = "Veteran Soldier" },
-              { .key          = "2",
-                .display_name = "Seasoned Scout" } } } )
-      .returns( make_wait<maybe<string>>( nothing ) );
+  agent
+      .EXPECT__handle( signal::ChooseImmigrant{
+        .msg   = "please select one",
+        .types = { e_unit_type::expert_farmer,
+                   e_unit_type::veteran_soldier,
+                   e_unit_type::seasoned_scout } } )
+      .returns( nothing );
 
   wait<maybe<int>> w = ask_player_to_choose_immigrant(
-      gui, immigration, "please select one" );
+      agent, immigration, "please select one" );
   REQUIRE( w.ready() );
   REQUIRE( *w == nothing );
 }
@@ -423,6 +425,9 @@ TEST_CASE( "[immigration] check_for_new_immigrant" ) {
   W.old_world( player ).immigration.immigrants_pool =
       initial_state.immigrants_pool;
 
+  MockIEuroAgent& agent = W.euro_agent();
+  agent.EXPECT__human().by_default().returns( true );
+
   SECTION( "not enough crosses" ) {
     player.crosses           = 10;
     int const crosses_needed = 11;
@@ -440,7 +445,7 @@ TEST_CASE( "[immigration] check_for_new_immigrant" ) {
     player.crosses           = 11;
     int const crosses_needed = 11;
 
-    W.gui()
+    agent
         .EXPECT__message_box(
             StartsWith( "Word of religious freedom has "
                         "spread! A new immigrant" ) )
@@ -482,16 +487,16 @@ TEST_CASE( "[immigration] check_for_new_immigrant" ) {
         true;
     int const crosses_needed = 11;
 
-    W.gui()
-        .EXPECT__choice( AllOf(
-            Field( &ChoiceConfig::msg,
-                   StartsWith(
-                       "Word of religious freedom has spread! "
-                       "New immigrants are ready to join us in "
-                       "the New World.  Which of the following "
-                       "shall we choose?" ) ),
-            Field( &ChoiceConfig::options, HasSize( 3 ) ) ) )
-        .returns( make_wait<maybe<string>>( "1" ) );
+    agent
+        .EXPECT__handle( signal::ChooseImmigrant{
+          .msg =
+              "Word of religious freedom has spread! New "
+              "immigrants are ready to join us in the New "
+              "World.  Which of the following shall we choose?",
+          .types = { e_unit_type::expert_farmer,
+                     e_unit_type::veteran_soldier,
+                     e_unit_type::seasoned_scout } } )
+        .returns( 1 );
     // This one is to choose that unit's replacement in the pool,
     // which is always done randomly. 8960.0 was found by summing
     // all of the weights for the unit types on the discoverer

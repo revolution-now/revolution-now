@@ -17,16 +17,24 @@ using namespace std;
 
 namespace rn {
 
+using namespace ::rn::signal;
+
 /****************************************************************
 ** ISignalHandler
 *****************************************************************/
-wait<> ISignalHandler::handle( signal::RefUnitAdded const& ) {
-  co_return;
-}
+void ISignalHandler::handle( RefUnitAdded const& ) {}
 
-wait<> ISignalHandler::handle(
-    signal::RebelSentimentChanged const& ) {
-  co_return;
-}
+void ISignalHandler::handle( RebelSentimentChanged const& ) {}
+
+void ISignalHandler::handle( ColonyDestroyedByNatives const& ) {}
+
+void ISignalHandler::handle(
+    ColonyDestroyedByStarvation const& ) {}
+
+void ISignalHandler::handle( ColonySignal const& ) {}
+
+void ISignalHandler::handle( ColonySignalTransient const& ) {}
+
+void ISignalHandler::handle( ImmigrantArrived const& ) {}
 
 } // namespace rn

@@ -11,6 +11,7 @@
 #include "lcr.hpp"
 
 // Revolution Now
+#include "agents.hpp"
 #include "alarm.hpp"
 #include "anim-builders.hpp"
 #include "co-wait.hpp"
@@ -163,13 +164,14 @@ wait<> take_one_immigrant( SS& ss, TS& ts, Player& player,
                            SettingsState const& settings,
                            int total, int idx ) {
   Player const& cplayer = player;
+  IEuroAgent& agent     = ts.euro_agents()[player.type];
   // NOTE: The original game seems to always allow the player to
   // choose from the three immigrants in the pool for each round
   // when they come via the fountain of youth. This is in con-
   // trast to immigration via crosses which only allows the
   // player to choose when William Brewster has been obtained.
   maybe<int> choice = co_await ask_player_to_choose_immigrant(
-      ts.gui, old_world_state( ss, cplayer.type ).immigration,
+      agent, old_world_state( ss, cplayer.type ).immigration,
       fmt::format( "Who shall we choose as immigrant number "
                    "[{}] out of {} to join us in the New World?",
                    idx + 1, total ) );

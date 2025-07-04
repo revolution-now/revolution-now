@@ -73,6 +73,9 @@ struct IEuroAgent : IAgent, ISignalHandler {
   // For convenience.
   virtual Player const& player() = 0;
 
+  // For convenience.  Will only return a value for humans.
+  virtual bool human() const = 0;
+
   // This is the interactive part of the sequence of events that
   // happens when first encountering a given native tribe. In
   // particular, it will ask if you want to accept peace.
@@ -95,12 +98,23 @@ struct IEuroAgent : IAgent, ISignalHandler {
       Unit const& dst_unit, Commodity const& stolen ) = 0;
 
  public: // Signals.
-  // Non-waitable, no message.
+  // Non-waitable signal, no message.
   auto signal( NonWaitableSignalContext auto const& ctx ) {
     return handle( ctx );
   }
 
-  // Waitable, no message.
+  // Non-waitable signal, with message.
+  auto signal( NonWaitableSignalContext auto const& ctx,
+               std::string const& msg )
+      -> wait<std::conditional_t<
+          std::is_same_v<decltype( this->handle( ctx ) ), void>,
+          std::monostate, decltype( this->handle( ctx ) )>> {
+    co_await this->message_box( "{}", msg );
+    // This one is not waitable.
+    co_return handle( ctx );
+  }
+
+  // Waitable signal, no message.
   auto signal( WaitableSignalContext auto const& ctx )
       -> signal_context_result_t<decltype( ctx )> {
     if constexpr( std::is_same_v<
@@ -112,7 +126,7 @@ struct IEuroAgent : IAgent, ISignalHandler {
       co_return co_await handle( ctx );
   }
 
-  // Waitable, with message.
+  // Waitable signal, with message.
   auto signal( WaitableSignalContext auto const& ctx,
                std::string const& msg )
       -> signal_context_result_t<decltype( ctx )> {
@@ -144,6 +158,8 @@ struct NoopEuroAgent final : IEuroAgent {
  public: // IEuroAgent.
   Player const& player() override;
 
+  bool human() const override;
+
   wait<e_declare_war_on_natives> meet_tribe_ui_sequence(
       MeetTribe const& meet_tribe ) override;
 
@@ -162,6 +178,11 @@ struct NoopEuroAgent final : IEuroAgent {
   bool handle( signal::Foo const& foo ) override;
 
   wait<int> handle( signal::Bar const& foo ) override;
+
+  wait<maybe<int>> handle(
+      signal::ChooseImmigrant const& ) override;
+
+  wait<> handle( signal::PanTile const& ) override;
 
  private:
   SSConst const& ss_;

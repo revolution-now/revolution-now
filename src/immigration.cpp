@@ -11,10 +11,13 @@
 #include "immigration.hpp"
 
 // Revolution Now
+#include "agents.hpp"
 #include "co-wait.hpp"
 #include "harbor-units.hpp"
+#include "ieuro-agent.hpp"
 #include "igui.hpp"
 #include "irand.hpp"
+#include "isignal.rds.hpp"
 #include "player-mgr.hpp"
 #include "ts.hpp"
 
@@ -97,30 +100,12 @@ UnitCounts unit_counts( UnitsState const& units_state,
 } // namespace
 
 wait<maybe<int>> ask_player_to_choose_immigrant(
-    IGui& gui, ImmigrationState const& immigration,
-    string msg ) {
+    IEuroAgent& agent, ImmigrationState const& immigration,
+    string const& msg ) {
   array<e_unit_type, 3> const& pool =
       immigration.immigrants_pool;
-  vector<ChoiceConfigOption> options{
-    { .key = "0", .display_name = unit_attr( pool[0] ).name },
-    { .key = "1", .display_name = unit_attr( pool[1] ).name },
-    { .key = "2", .display_name = unit_attr( pool[2] ).name },
-  };
-  ChoiceConfig config{
-    .msg     = std::move( msg ),
-    .options = options,
-  };
-
-  maybe<string> const res =
-      co_await gui.optional_choice( config );
-  if( !res.has_value() ) co_return nothing;
-  if( res == "0" ) co_return 0;
-  if( res == "1" ) co_return 1;
-  if( res == "2" ) co_return 2;
-  FATAL(
-      "unexpected selection result: {} (should be '0', '1', or "
-      "'2')",
-      res );
+  co_return co_await agent.signal(
+      signal::ChooseImmigrant{ .msg = msg, .types = pool } );
 }
 
 e_unit_type take_immigrant_from_pool(
@@ -245,7 +230,8 @@ wait<maybe<UnitId>> check_for_new_immigrant(
   CHECK_GE( crosses_needed, 0 );
   if( player.crosses < crosses_needed ) co_return nothing;
   player.crosses -= crosses_needed;
-  DCHECK( player.crosses >= 0 );
+  IEuroAgent& agent = ts.euro_agents()[player.type];
+  CHECK( player.crosses >= 0 );
   int immigrant_idx = {};
   if( player.fathers.has[e_founding_father::william_brewster] ) {
     string msg =
@@ -254,7 +240,7 @@ wait<maybe<UnitId>> check_for_new_immigrant(
         "following shall we choose?";
     maybe<int> const maybe_immigrant_idx =
         co_await ask_player_to_choose_immigrant(
-            ts.gui,
+            agent,
             old_world_state( ss, player.type ).immigration,
             msg );
     if( !maybe_immigrant_idx.has_value() ) co_return nothing;
@@ -263,14 +249,15 @@ wait<maybe<UnitId>> check_for_new_immigrant(
     CHECK_LE( immigrant_idx, 2 );
   } else {
     immigrant_idx = ts.rand.between_ints( 0, 2 );
-    string msg    = fmt::format(
+    e_unit_type const type =
+        old_world_state( ss, player.type )
+            .immigration.immigrants_pool[immigrant_idx];
+    string const msg = fmt::format(
         "Word of religious freedom has spread! A new immigrant "
-           "([{}]) has arrived on the docks.",
-        unit_attr(
-            old_world_state( ss, player.type )
-                .immigration.immigrants_pool[immigrant_idx] )
-            .name );
-    co_await ts.gui.message_box( msg );
+        "([{}]) has arrived on the docks.",
+        unit_attr( type ).name );
+    co_await agent.signal(
+        signal::ImmigrantArrived{ .type = type }, msg );
   }
   e_unit_type replacement =
       pick_next_unit_for_pool( ts.rand, player, ss.settings );

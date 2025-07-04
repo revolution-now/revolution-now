@@ -50,11 +50,13 @@ struct TestingOnlyUnitOnMapMover : UnitOnMapMover {
 
 namespace {
 
-using namespace std;
+using namespace ::std;
+using namespace ::rn::signal;
 
 using ::gfx::point;
 using ::mock::matchers::_;
 using ::mock::matchers::StrContains;
+using ::mock::matchers::Type;
 
 using unexplored = PlayerSquare::unexplored;
 using explored   = PlayerSquare::explored;
@@ -287,7 +289,9 @@ TEST_CASE(
   MapSquare& square      = W.square( { .x = 1, .y = 1 } );
   square.lost_city_rumor = true;
   Player& player         = W.default_player();
-  player.new_world_name  = "my world";
+  MockIEuroAgent& agent  = W.euro_agent();
+  agent.EXPECT__human().by_default().returns( true );
+  player.new_world_name                            = "my world";
   player.woodcuts[e_woodcut::discovered_new_world] = true;
 
   auto f = [&] {
@@ -307,7 +311,7 @@ TEST_CASE(
 
   for( int i = 0; i < 8; ++i ) {
     // Pick immigrant.
-    W.gui().EXPECT__choice( _ ).returns<maybe<string>>( "0" );
+    agent.EXPECT__handle( Type<ChooseImmigrant>() ).returns( 0 );
     // Replace with next immigrant.
     W.rand().EXPECT__between_doubles( _, _ ).returns( 0 );
     // Wait a bit.

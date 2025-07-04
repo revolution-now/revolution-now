@@ -385,7 +385,7 @@ wait<> cheat_set_player_control( IEngine& engine, SS& ss,
 
   if( !change_made ) co_return;
 
-  ts.euro_agents() = create_euro_agents( ss, ts.gui );
+  ts.euro_agents() = create_euro_agents( ss, ts.planes, ts.gui );
 
   // We do this because we need to back out beyond the individual
   // nation's turn processor in order to handle this configura-

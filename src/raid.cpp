@@ -54,11 +54,10 @@ namespace rn {
 
 namespace {
 
-wait<> surprise_raid_msg( SSConst const& ss,
-                          IEuroAgent& euro_agent,
+wait<> surprise_raid_msg( SSConst const& ss, IEuroAgent& agent,
                           Coord defender_loc,
                           e_tribe tribe_type ) {
-  e_player const friendly_player = euro_agent.player_type();
+  e_player const friendly_player = agent.player_type();
   string where;
   maybe<Colony const&> closest = find_close_explored_colony(
       ss, friendly_player, defender_loc,
@@ -70,7 +69,7 @@ wait<> surprise_raid_msg( SSConst const& ss,
     where =
         fmt::format( " {} [{}]", conjunction, closest->name );
   }
-  co_await euro_agent.message_box(
+  co_await agent.message_box(
       "[{}] make surprise raid{}! Terror descends upon "
       "colonists! {} chief unavailable for comment.",
       config_natives.tribes[tribe_type].name_plural, where,
@@ -95,9 +94,8 @@ wait<> raid_unit( SS& ss, TS& ts, NativeUnit& attacker,
   CombatBraveAttackEuro const combat =
       ts.combat.brave_attack_euro( as_const( attacker ),
                                    as_const( defender ) );
-  Coord const src = ss.units.coord_for( attacker.id );
-  IEuroAgent& euro_agent =
-      ts.euro_agents()[defender.player_type()];
+  Coord const src   = ss.units.coord_for( attacker.id );
+  IEuroAgent& agent = ts.euro_agents()[defender.player_type()];
 
   // Note that for attacks the "show indian moves" game flag is
   // not relevant, since there is really no natural way to show
@@ -119,7 +117,7 @@ wait<> raid_unit( SS& ss, TS& ts, NativeUnit& attacker,
         .ensure_visible( dst );
   }
 
-  co_await surprise_raid_msg( ss, euro_agent, dst, tribe_type );
+  co_await surprise_raid_msg( ss, agent, dst, tribe_type );
 
   if( viewable )
     co_await ts.planes.get()
@@ -135,7 +133,7 @@ wait<> raid_unit( SS& ss, TS& ts, NativeUnit& attacker,
   co_await show_combat_effects_msg(
       filter_combat_effects_msgs(
           mix_combat_effects_msgs( effects_msg ) ),
-      native_agent, euro_agent );
+      native_agent, agent );
   native_agent.on_attack_unit_finished( combat );
 }
 
@@ -148,17 +146,14 @@ static wait<> raid_colony_battle(
     SS& ss, TS& ts, NativeUnit& attacker, Colony& colony,
     Tribe& tribe, CombatBraveAttackColony const& combat ) {
   CHECK( !combat.colony_destroyed );
-  IEuroAgent& euro_agent = ts.euro_agents()[colony.player];
-  Unit& defender = ss.units.unit_for( combat.defender.id );
+  IEuroAgent& agent = ts.euro_agents()[colony.player];
+  Unit& defender    = ss.units.unit_for( combat.defender.id );
   // Note: there are there still side effects if the brave
   // loses. We only suppress the side effect if the colony is
   // destroyed, because many of those effects don't really make
   // sense if the colony is gone.
   BraveAttackColonyEffect const side_effect =
-      combat.colony_destroyed
-          ? BraveAttackColonyEffect::none{}
-          : select_brave_attack_colony_effect( ss, ts.rand,
-                                               colony );
+      select_brave_attack_colony_effect( ss, ts.rand, colony );
   CombatEffectsMessages const effects_msg =
       combat_effects_msg( ss, combat );
 
@@ -176,16 +171,16 @@ static wait<> raid_colony_battle(
   co_await show_combat_effects_msg(
       filter_combat_effects_msgs(
           mix_combat_effects_msgs( effects_msg ) ),
-      native_agent, euro_agent );
+      native_agent, agent );
   co_await display_brave_attack_colony_effect_msg(
-      ss, euro_agent, colony, side_effect, tribe.type );
+      ss, agent, colony, side_effect, tribe.type );
   native_agent.on_attack_colony_finished( combat, side_effect );
 }
 
 static wait<> raid_colony_burn(
     SS& ss, TS& ts, NativeUnit& attacker, Colony& colony,
     e_tribe tribe_type, CombatBraveAttackColony const& combat ) {
-  IEuroAgent& euro_agent = ts.euro_agents()[colony.player];
+  IEuroAgent& agent = ts.euro_agents()[colony.player];
   Player& player =
       player_for_player_or_die( ss.players, colony.player );
   Unit& defender = ss.units.unit_for( combat.defender.id );
@@ -217,6 +212,8 @@ static wait<> raid_colony_burn(
     UnitOwnershipChanger( ss, unit.id() ).destroy();
   }
 
+  agent.signal( signal::ColonyDestroyedByNatives{
+    .colony_id = colony.id } );
   // One of the things this will do is it will move any remaining
   // ships to be repaired. Note that this does not do any anima-
   // tion, since it is assumed to have happened already.
@@ -227,14 +224,14 @@ static wait<> raid_colony_burn(
   // !! NOTE: the colony, attacker, and defender no longer exist
   // at this point.
 
-  co_await show_woodcut_if_needed( player, euro_agent,
+  co_await show_woodcut_if_needed( player, agent,
                                    e_woodcut::colony_burning );
 
   INativeAgent& native_agent = ts.native_agents()[tribe_type];
   co_await show_combat_effects_msg(
       filter_combat_effects_msgs(
           mix_combat_effects_msgs( effects_msg ) ),
-      native_agent, euro_agent );
+      native_agent, agent );
   native_agent.on_attack_colony_finished(
       combat, BraveAttackColonyEffect::none{} );
 }
@@ -255,7 +252,7 @@ wait<> raid_colony( SS& ss, TS& ts, NativeUnit& attacker,
   CombatBraveAttackColony const combat =
       ts.combat.brave_attack_colony( attacker, defender,
                                      colony );
-  IEuroAgent& euro_agent   = ts.euro_agents()[colony.player];
+  IEuroAgent& agent        = ts.euro_agents()[colony.player];
   e_tribe const tribe_type = tribe_type_for_unit( ss, attacker );
   Tribe& tribe             = ss.natives.tribe_for( tribe_type );
   unique_ptr<IVisibility const> const viz =
@@ -282,10 +279,10 @@ wait<> raid_colony( SS& ss, TS& ts, NativeUnit& attacker,
         .ensure_visible( dst );
   }
 
-  co_await surprise_raid_msg( ss, euro_agent, colony.location,
+  co_await surprise_raid_msg( ss, agent, colony.location,
                               tribe_type );
   if( !offboarded.empty() )
-    co_await euro_agent.message_box(
+    co_await agent.message_box(
         "Colonists on ships docked in [{}] have been offboarded "
         "to help defend the colony!",
         colony.name );

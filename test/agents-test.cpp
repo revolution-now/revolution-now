@@ -86,7 +86,9 @@ TEST_CASE( "[agents] create_euro_agents" ) {
   W.spanish().control = e_player_control::ai;
   W.dutch().control   = e_player_control::ai;
 
-  auto f = [&] { return create_euro_agents( W.ss(), W.gui() ); };
+  auto f = [&] {
+    return create_euro_agents( W.ss(), W.planes(), W.gui() );
+  };
 
   EuroAgents const agents = f();
 

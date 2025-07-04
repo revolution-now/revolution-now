@@ -16,6 +16,7 @@
 // Testing
 #include "test/fake/world.hpp"
 #include "test/mocking.hpp"
+#include "test/mocks/ieuro-agent.hpp"
 #include "test/mocks/igui.hpp"
 #include "test/mocks/irand.hpp"
 #include "test/mocks/land-view-plane.hpp"
@@ -51,11 +52,13 @@ namespace rn {
 namespace {
 
 using namespace ::std;
+using namespace ::rn::signal;
 
 using ::mock::matchers::_;
 using ::mock::matchers::AllOf;
 using ::mock::matchers::Field;
 using ::mock::matchers::StrContains;
+using ::mock::matchers::Type;
 
 /****************************************************************
 ** Fake World Setup
@@ -240,7 +243,9 @@ TEST_CASE( "[lcr] run_lcr, ruins" ) {
 
 TEST_CASE( "[lcr] run_lcr, fountain of youth" ) {
   World W;
-  Player& player = W.default_player();
+  Player& player        = W.default_player();
+  MockIEuroAgent& agent = W.euro_agent();
+  agent.EXPECT__human().by_default().returns( true );
   REQUIRE( player.money == 0 );
 
   MapSquare& square      = W.square( Coord{} );
@@ -264,14 +269,14 @@ TEST_CASE( "[lcr] run_lcr, fountain of youth" ) {
   // object for each one (since they are moved).
   for( int i = 0; i < 8; ++i ) {
     INFO( fmt::format( "i: {}", i ) );
-    W.gui()
-        .EXPECT__choice(
-            Field( &ChoiceConfig::msg,
+    agent
+        .EXPECT__handle( Type<ChooseImmigrant>(
+            Field( &ChooseImmigrant::msg,
                    StrContains( fmt::format(
                        "Who shall we choose as immigrant number "
                        "[{}] out of 8",
-                       i + 1 ) ) ) )
-        .returns( make_wait<maybe<string>>( "1" ) );
+                       i + 1 ) ) ) ) )
+        .returns( 1 );
     W.gui()
         .EXPECT__wait_for( chrono::milliseconds( 100 ) )
         .returns( chrono::microseconds{} );

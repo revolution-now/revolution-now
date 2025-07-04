@@ -8,6 +8,16 @@
 # Description: Rds definitions for the signal module.
 #
 # ===============================================================
+# ss
+include "ss/colony-id.hpp"
+include "ss/unit-type.rds.hpp"
+
+# gfx
+include "gfx/cartesian.hpp"
+
+# C++ standard library
+include "<array>"
+
 namespace "rn.signal"
 
 struct.Foo {
@@ -23,4 +33,29 @@ struct.RefUnitAdded {}
 struct.RebelSentimentChanged {
   old 'int',
   nu 'int',
+}
+
+struct.ColonyDestroyedByNatives {
+  # This will be sent just before the destruction, thus the
+  # colony will exist at that point for inspection.
+  colony_id 'ColonyId',
+}
+
+struct.ColonyDestroyedByStarvation {
+  # This will be sent just before the destruction, thus the
+  # colony will exist at that point for inspection.
+  colony_id 'ColonyId',
+}
+
+struct.ImmigrantArrived {
+  type 'e_unit_type',
+}
+
+struct.ChooseImmigrant {
+  msg 'std::string',
+  types 'std::array<e_unit_type, 3>',
+}
+
+struct.PanTile {
+  tile 'gfx::point',
 }

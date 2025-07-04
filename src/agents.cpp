@@ -75,7 +75,8 @@ IEuroAgent& EuroAgents::operator[]( e_player player ) const {
 /****************************************************************
 ** Public API.
 *****************************************************************/
-EuroAgents create_euro_agents( SS& ss, IGui& gui ) {
+EuroAgents create_euro_agents( SS& ss, Planes& planes,
+                               IGui& gui ) {
   unordered_map<e_player, unique_ptr<IEuroAgent>> holder;
   for( e_player const player : refl::enum_values<e_player> ) {
     if( !ss.players.players[player].has_value() ) continue;
@@ -87,8 +88,8 @@ EuroAgents create_euro_agents( SS& ss, IGui& gui ) {
         break;
       }
       case e_player_control::human: {
-        holder[player] =
-            make_unique<HumanEuroAgent>( player, ss, gui );
+        holder[player] = make_unique<HumanEuroAgent>(
+            player, ss, gui, planes );
         break;
       }
       case e_player_control::withdrawn: {

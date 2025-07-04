@@ -80,7 +80,7 @@ TEST_CASE( "[raid] raid_unit" ) {
   Coord const attacker_coord{ .x = 0, .y = 0 };
   MockINativeAgent& native_agent =
       W.native_agent( e_tribe::arawak );
-  MockIEuroAgent& euro_agent =
+  MockIEuroAgent& agent =
       W.euro_agent( W.default_player_type() );
 
   auto [dwelling, brave] = W.add_dwelling_and_brave(
@@ -117,11 +117,11 @@ TEST_CASE( "[raid] raid_unit" ) {
         .returns( combat );
     mock_land_view.EXPECT__ensure_visible( attacker_coord );
     mock_land_view.EXPECT__ensure_visible( defender_coord );
-    euro_agent.EXPECT__message_box(
+    agent.EXPECT__message_box(
         "[Arawaks] make surprise raid! Terror descends upon "
         "colonists! Arawak chief unavailable for comment." );
     mock_land_view.EXPECT__animate( _ );
-    euro_agent.EXPECT__message_box(
+    agent.EXPECT__message_box(
         "[Dutch] Soldier promoted to [Veteran Soldier] for "
         "victory in combat!" );
     native_agent.EXPECT__on_attack_unit_finished( combat );
@@ -162,14 +162,14 @@ TEST_CASE( "[raid] raid_unit" ) {
         .returns( combat );
     mock_land_view.EXPECT__ensure_visible( attacker_coord );
     mock_land_view.EXPECT__ensure_visible( defender_coord );
-    euro_agent.EXPECT__message_box(
+    agent.EXPECT__message_box(
         "[Arawaks] make surprise raid! Terror descends upon "
         "colonists! Arawak chief unavailable for comment." );
     mock_land_view.EXPECT__animate( _ );
-    euro_agent.EXPECT__message_box(
+    agent.EXPECT__message_box(
         "[Dutch] [Soldier] routed! Unit demoted to colonist "
         "status." );
-    euro_agent.EXPECT__message_box(
+    agent.EXPECT__message_box(
         "[Arawak] Braves have acquired [muskets] upon victory "
         "in combat!" );
     native_agent.EXPECT__message_box(
@@ -226,11 +226,11 @@ TEST_CASE( "[raid] raid_unit" ) {
         .returns( combat );
     mock_land_view.EXPECT__ensure_visible( attacker_coord );
     mock_land_view.EXPECT__ensure_visible( defender_coord );
-    euro_agent.EXPECT__message_box(
+    agent.EXPECT__message_box(
         "[Arawaks] make surprise raid! Terror descends upon "
         "colonists! Arawak chief unavailable for comment." );
     mock_land_view.EXPECT__animate( _ );
-    euro_agent.EXPECT__message_box(
+    agent.EXPECT__message_box(
         "[Dutch] Soldier defeats [Arawak] Brave in the "
         "wilderness!" );
     native_agent.EXPECT__on_attack_unit_finished( combat );
