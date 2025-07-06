@@ -168,7 +168,7 @@ struct CargoHold {
   // object will do some validation that does not require that
   // access, and that is called by this method before it starts
   // its own validation.
-  valid_or<generic_err> validate(
+  valid_or<base::generic_err> validate(
       UnitsState const& units_state ) const;
   void validate_or_die( UnitsState const& units_state ) const;
 

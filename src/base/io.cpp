@@ -12,11 +12,14 @@
 
 // base
 #include "fmt.hpp"
+#include "logger.hpp"
 #include "scope-exit.hpp"
+#include "to-str-ext-std.hpp"
 
 // C++ standard library
 #include <cstring>
 #include <exception>
+#include <fstream>
 
 using namespace std;
 
@@ -127,6 +130,17 @@ read_text_file_as_string( fs::path const& p ) {
     res.emplace( std::move( s ) );
   }
   return res;
+}
+
+bool read_file_lines( fs::path const& p, vector<string>& out ) {
+  out.clear();
+  ifstream in( p.string() );
+  if( !in.good() ) {
+    lg.error( "failed to open file {}.", p );
+    return false;
+  }
+  for( string line; getline( in, line ); ) out.push_back( line );
+  return true;
 }
 
 } // namespace base

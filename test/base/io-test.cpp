@@ -306,5 +306,45 @@ TEST_CASE( "[io] read_text_file_as_string empty" ) {
   REQUIRE( s == "" );
 }
 
+TEST_CASE( "[io] read_file_lines" ) {
+  fs::path p = text_path( "large-unix.txt" );
+  vector<string> res;
+  REQUIRE( read_file_lines( p, res ) );
+  REQUIRE( res.size() == 524 );
+
+  REQUIRE( res[0] ==
+           "Lorem ipsum dolor sit amet, consectetur adipiscing "
+           "elit, sed do" );
+  REQUIRE( res[1] ==
+           "eiusmod tempor incididunt ut labore et dolore magna "
+           "aliqua. Ut" );
+  REQUIRE( res[2] ==
+           "enim ad minim veniam, quis nostrud exercitation "
+           "ullamco laboris" );
+  REQUIRE( res[3] ==
+           "nisi ut aliquip ex ea commodo consequat. Duis aute "
+           "irure dolor in" );
+  REQUIRE( res[4] ==
+           "reprehenderit in voluptate velit esse cillum dolore "
+           "eu fugiat" );
+  REQUIRE( res[5] ==
+           "nulla pariatur. Excepteur sint occaecat cupidatat "
+           "non proident," );
+  REQUIRE( res[6] ==
+           "sunt in culpa qui officia deserunt mollit anim id "
+           "est laborum." );
+  REQUIRE( res[7] == "" );
+  REQUIRE( res[8] ==
+           "Lorem ipsum dolor sit amet, consectetur adipiscing "
+           "elit, sed do" );
+  REQUIRE( res[9] ==
+           "eiusmod tempor incididunt ut labore et dolore magna "
+           "aliqua. Ut" );
+
+  REQUIRE( res[523] ==
+           "sunt in culpa qui officia deserunt mollit anim id "
+           "est laborum." );
+}
+
 } // namespace
 } // namespace base

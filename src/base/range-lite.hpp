@@ -13,8 +13,8 @@
 #include "config.hpp"
 
 // base
+#include "error.hpp"
 #include "maybe.hpp"
-#include "stack-trace.hpp"
 
 // C++ standard library
 #include <tuple>
@@ -244,7 +244,7 @@ class ReverseAllView {
 
  public:
   ReverseAllView( InputView* view ) : view_( view ) {
-    assert_bt( view_ != nullptr );
+    CHECK( view_ != nullptr );
   }
 
   using ultimate_view_t = InputView;
@@ -274,7 +274,7 @@ class IntsView {
   IntsView( int start = 0,
             int end   = std::numeric_limits<int>::max() )
     : start_( start ), end_( end ) {
-    assert_bt( start <= end );
+    CHECK( start <= end );
   }
 
   struct iterator {
@@ -295,12 +295,12 @@ class IntsView {
     }
 
     decltype( auto ) operator*() const {
-      assert_bt( cursor_ < view_->end_ );
+      CHECK( cursor_ < view_->end_ );
       return cursor_;
     }
 
     iterator& operator++() {
-      assert_bt( cursor_ < view_->end_ );
+      CHECK( cursor_ < view_->end_ );
       cursor_++;
       clear_if_end();
       return *this;
@@ -371,13 +371,13 @@ class GenerateView {
     }
 
     decltype( auto ) operator*() const {
-      assert_bt( view_ != nullptr );
+      CHECK( view_ != nullptr );
       return cache_;
     }
 
     iterator& operator++() {
-      assert_bt( view_ != nullptr );
-      assert_bt( n_to_go_ > 0 );
+      CHECK( view_ != nullptr );
+      CHECK( n_to_go_ > 0 );
       --n_to_go_;
       clear_if_end();
       if( view_ != nullptr ) populate();
@@ -395,7 +395,7 @@ class GenerateView {
       // range, since it would introduce  too  much  complication
       // into this implementation and  it  probably  is not
       // neces- sary anyway.
-      assert_bt( view_ == nullptr || rhs.view_ == nullptr );
+      CHECK( view_ == nullptr || rhs.view_ == nullptr );
       return view_ == rhs.view_;
     }
 
@@ -440,7 +440,7 @@ struct ChildView {
     }
 
     decltype( auto ) operator*() const {
-      assert_bt( !finished_ );
+      CHECK( !finished_ );
       return cursor_.child_view_get();
     }
 
@@ -449,7 +449,7 @@ struct ChildView {
     }
 
     iterator& operator++() {
-      assert_bt( !finished_ );
+      CHECK( !finished_ );
       cursor_.child_view_advance();
       clear_if_end();
       return *this;
@@ -466,7 +466,7 @@ struct ChildView {
       // range, since it would introduce  too  much  complication
       // into this implementation and  it  probably  is not
       // neces- sary anyway.
-      assert_bt( finished_ == true || rhs.finished_ == true );
+      CHECK( finished_ == true || rhs.finished_ == true );
       return finished_ == rhs.finished_;
     }
 
@@ -868,12 +868,12 @@ class ChainView {
     }
 
     decltype( auto ) get( ChainView const& input ) const {
-      assert_bt( !derived()->end( input ) );
+      CHECK( !derived()->end( input ) );
       return *derived()->it_;
     }
 
     void next( ChainView const& input ) {
-      assert_bt( !derived()->end( input ) );
+      CHECK( !derived()->end( input ) );
       ++derived()->it_;
     }
 
@@ -952,7 +952,7 @@ class ChainView {
       }
 
       void next( ChainView const& input ) {
-        assert_bt( !this->end( input ) );
+        CHECK( !this->end( input ) );
         ++it_;
         find( input );
       }
@@ -1018,7 +1018,7 @@ class ChainView {
     }
 
     decltype( auto ) get( ChainView const& input ) const {
-      assert_bt( !this->end( input ) );
+      CHECK( !this->end( input ) );
       return ( *func_ )( *derived()->it_ );
     }
 
@@ -1067,8 +1067,8 @@ class ChainView {
       }
 
       void next( ChainView const& input ) {
-        assert_bt( !finished_ );
-        assert_bt( it_ != input.end() );
+        CHECK( !finished_ );
+        CHECK( it_ != input.end() );
         ++it_;
         if( it_ == input.end() || !( *func_ )( *it_ ) )
           finished_ = true;
@@ -1153,7 +1153,7 @@ class ChainView {
       }
 
       void next( ChainView const& input ) {
-        assert_bt( !end( input ) );
+        CHECK( !end( input ) );
         if( state_ == e_state::last ) {
           state_ = e_state::finished;
           return;
@@ -1212,13 +1212,13 @@ class ChainView {
       }
 
       decltype( auto ) get( ChainView const& input ) const {
-        assert_bt( !end( input ) );
+        CHECK( !end( input ) );
         return std::pair<decltype( *it_ ), decltype( *it2_ )>{
           *it_, *it2_ };
       }
 
       void next( ChainView const& input ) {
-        assert_bt( !end( input ) );
+        CHECK( !end( input ) );
         ++it_;
         ++it2_;
       }
@@ -1252,10 +1252,10 @@ class ChainView {
       TakeCursor( Data const& data ) : n_( data.n ) {}
 
       void next( ChainView const& input ) {
-        assert_bt( !end( input ) );
+        CHECK( !end( input ) );
         ++it_;
         --n_;
-        assert_bt( n_ >= 0 );
+        CHECK( n_ >= 0 );
       }
 
       bool end( ChainView const& input ) const {
@@ -1320,13 +1320,13 @@ class ChainView {
       // Note: return type of get() should always be decltype-
       // (auto) unless it always returns by value.
       ValueType get( ChainView const& input ) const {
-        assert_bt( !this->end( input ) );
+        CHECK( !this->end( input ) );
         if( should_give_val_ ) return val_;
         return *it_;
       }
 
       void next( ChainView const& input ) {
-        assert_bt( !this->end( input ) );
+        CHECK( !this->end( input ) );
         if( should_give_val_ ) {
           should_give_val_ = false;
           return;
@@ -1369,13 +1369,13 @@ class ChainView {
       }
 
       void next( ChainView const& input ) {
-        assert_bt( !this->end( input ) );
+        CHECK( !this->end( input ) );
         ++it_;
         load( input );
       }
 
       value_type get( ChainView const& input ) const {
-        assert_bt( !this->end( input ) );
+        CHECK( !this->end( input ) );
         return cache_;
       }
 
@@ -1400,7 +1400,7 @@ class ChainView {
       void init( ChainView const& input ) {
         it_ = input.begin();
         // We need to have at least one element!
-        assert_bt( it_ != input.end() );
+        CHECK( it_ != input.end() );
       }
 
       void next( ChainView const& input ) {
@@ -1409,7 +1409,7 @@ class ChainView {
           ++cycles_;
           it_ = input.begin();
         }
-        assert_bt( it_ != input.end() );
+        CHECK( it_ != input.end() );
       }
 
       bool end( ChainView const& ) const { return false; }
@@ -1458,14 +1458,14 @@ class ChainView {
       }
 
       decltype( auto ) get( ChainView const& input ) const {
-        assert_bt( !end( input ) );
+        CHECK( !end( input ) );
         return ChainGroupView(
             ChildView<IncomingValueType, GroupByCursor>( this ),
             typename ChainGroupViewCursor::Data{} );
       }
 
       void next( ChainView const& input ) {
-        assert_bt( !end( input ) );
+        CHECK( !end( input ) );
         do {
           ++it_;
           if( it_ == input.end() ) return;
@@ -1484,12 +1484,12 @@ class ChainView {
       bool child_view_done() const { return finished_group_; }
 
       auto& child_view_get() const {
-        assert_bt( !finished_group_ );
+        CHECK( !finished_group_ );
         return *it_;
       }
 
       void child_view_advance() {
-        assert_bt( !finished_group_ );
+        CHECK( !finished_group_ );
         ++it_;
         if( it_ == input_->end() || !( *func_ )( cache_, *it_ ) )
           finished_group_ = true;
@@ -1568,7 +1568,7 @@ class ChainView {
     struct ChunkCursor : public CursorStorage,
                          public CursorBase<ChunkCursor> {
       struct Data {
-        Data( int n ) : n( n ) { assert_bt( n > 0 ); }
+        Data( int n ) : n( n ) { CHECK( n > 0 ); }
         int n = 0;
       };
       using Base = CursorBase<ChunkCursor>;
@@ -1583,7 +1583,7 @@ class ChainView {
           ChildView<IncomingValueType, ChunkCursor>>;
       ChunkCursor() = default;
       ChunkCursor( Data const data ) : max_( data.n ) {
-        assert_bt( max_ > 0 );
+        CHECK( max_ > 0 );
       }
 
       void init( ChainView const& input ) {
@@ -1594,15 +1594,15 @@ class ChainView {
       }
 
       decltype( auto ) get( ChainView const& input ) const {
-        assert_bt( !end( input ) );
+        CHECK( !end( input ) );
         return ChainGroupView(
             ChildView<IncomingValueType, ChunkCursor>( this ),
             typename ChainGroupViewCursor::Data{} );
       }
 
       void next( ChainView const& input ) {
-        assert_bt( !end( input ) );
-        assert_bt( n_ > 0 );
+        CHECK( !end( input ) );
+        CHECK( n_ > 0 );
         do {
           ++it_;
           if( it_ == input.end() ) return;
@@ -1621,13 +1621,13 @@ class ChainView {
       bool child_view_done() const { return finished_group_; }
 
       auto& child_view_get() const {
-        assert_bt( !finished_group_ );
+        CHECK( !finished_group_ );
         return *it_;
       }
 
       void child_view_advance() {
-        assert_bt( !finished_group_ );
-        assert_bt( n_ > 0 );
+        CHECK( !finished_group_ );
+        CHECK( n_ > 0 );
         ++it_;
         if( it_ == input_->end() || n_-- == 1 ) {
           finished_group_ = true;

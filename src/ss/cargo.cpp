@@ -87,7 +87,7 @@ void CargoHold::validate_or_die(
   CHECK_HAS_VALUE( validate( units_state ) );
 }
 
-valid_or<generic_err> CargoHold::validate(
+valid_or<base::generic_err> CargoHold::validate(
     UnitsState const& units_state ) const {
   // First validate the reflected state. This will do the valida-
   // tion that can be done without needing access to any game

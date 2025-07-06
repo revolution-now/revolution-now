@@ -25,6 +25,10 @@ if( ENABLE_ADDRESS_SANITIZER )
   enable_sanitizers()
 endif()
 
+if( ENABLE_CPP23_STACKTRACE )
+  enable_cpp23_stacktrace()
+endif()
+
 # Just in case we are using Ninja (which will buffer the output of
 # compilers causing them to suppress color output) let's tell the
 # compilers to force color output.
@@ -65,7 +69,6 @@ set( RTMIDI_BUILD_STATIC_LIBS YES )
 set( RTMIDI_BUILD_SHARED_LIBS NO  )
 
 add_subdirectory( extern/base-util/src EXCLUDE_FROM_ALL )
-add_subdirectory( extern/backward-cpp  EXCLUDE_FROM_ALL )
 add_subdirectory( extern/midifile      EXCLUDE_FROM_ALL )
 add_subdirectory( extern/rtmidi        EXCLUDE_FROM_ALL )
 add_subdirectory( extern/rg-2-midi/src EXCLUDE_FROM_ALL )

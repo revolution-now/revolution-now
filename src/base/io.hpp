@@ -77,4 +77,7 @@ read_text_file( fs::path const& p,
 expect<std::string, e_error_read_text_file>
 read_text_file_as_string( fs::path const& p );
 
+[[nodiscard]] bool read_file_lines(
+    fs::path const& p, std::vector<std::string>& out );
+
 } // namespace base

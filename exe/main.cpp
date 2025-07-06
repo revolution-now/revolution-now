@@ -34,9 +34,12 @@
 #include "base/keyval.hpp"
 #include "base/logger.hpp"
 #include "base/scope-exit.hpp"
+#include "base/stack-trace.hpp"
 
 using namespace std;
 using namespace base;
+
+extern "C" char const* SDL_GetError();
 
 namespace rn {
 namespace {
@@ -49,7 +52,13 @@ wait<> test_lua_ui( IEngine& engine, Planes& planes ) {
 void run( e_mode mode ) {
   Planes planes;
   Engine engine;
-  auto const cleanup_engine_on_abort = [&] { engine.deinit(); };
+  auto const cleanup_engine_on_abort = [&] {
+    string const sdl_error = ::SDL_GetError();
+    engine.deinit();
+    if( !sdl_error.empty() )
+      lg.error( "SDL error (may be a false positive): {}",
+                sdl_error );
+  };
   register_cleanup_callback_on_abort( cleanup_engine_on_abort );
   // If we are leaving this scope naturally then the engine will
   // clean up itself; the callback is only for check failing.

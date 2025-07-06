@@ -14,7 +14,6 @@ namespace rn {
 
 void linker_dont_discard_module_map_updater_lua();
 void linker_dont_discard_module_player();
-void linker_dont_discard_module_error();
 void linker_dont_discard_module_conductor();
 void linker_dont_discard_module_co_lua();
 void linker_dont_discard_module_lua_ui();
@@ -31,7 +30,6 @@ void linker_dont_discard_module_classic_sav();
 void linker_dont_discard_me() {
   linker_dont_discard_module_map_updater_lua();
   linker_dont_discard_module_player();
-  linker_dont_discard_module_error();
   linker_dont_discard_module_conductor();
   linker_dont_discard_module_co_lua();
   linker_dont_discard_module_lua_ui();

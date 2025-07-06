@@ -13,8 +13,8 @@
 #include "config.hpp"
 
 // base
+#include "error.hpp"
 #include "maybe.hpp"
-#include "stack-trace.hpp"
 
 // C++ standard library
 #include <coroutine>
@@ -102,7 +102,7 @@ struct promise_type {
   holder get_return_object() noexcept { return holder{ this }; }
 
   void return_value( T const& val ) noexcept {
-    assert_bt( o_ != nullptr );
+    CHECK( o_ != nullptr );
     *o_ = val;
   }
 

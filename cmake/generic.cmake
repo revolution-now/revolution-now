@@ -193,6 +193,14 @@ function( enable_sanitizers )
     "${CMAKE_EXE_LINKER_FLAGS} ${SANITIZER_FLAGS_STRING}" PARENT_SCOPE )
 endfunction()
 
+function( enable_cpp23_stacktrace )
+  message( STATUS "Enabling <stacktrace>" )
+  set( CMAKE_CXX_FLAGS
+    "${CMAKE_CXX_FLAGS} -DENABLE_CPP23_STACKTRACE" PARENT_SCOPE )
+  set( CMAKE_EXE_LINKER_FLAGS
+    "${CMAKE_EXE_LINKER_FLAGS} -lstdc++exp" PARENT_SCOPE )
+endfunction()
+
 # === colors ======================================================
 
 function( force_compiler_color_diagnostics )

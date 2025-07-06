@@ -12,9 +12,6 @@
 
 #include "src/core-config.hpp"
 
-// Revolution Now
-#include "src/error.hpp"
-
 // base
 #include "src/base/fs.hpp" // FIXME
 

@@ -32,15 +32,6 @@ using namespace std;
 
 using ::base::maybe;
 
-namespace base {
-[[noreturn]] void abort_with_backtrace_here(
-    int skip_frames, source_location /*loc*/ );
-[[noreturn]] void abort_with_backtrace_here(
-    int const /*skip_frames*/, source_location /*loc*/ ) {
-  abort();
-}
-} // namespace base
-
 int main( int argc, char** argv ) {
   if( argc != 4 )
     rds::error_msg(
