@@ -49,6 +49,15 @@ maybe<string> extract_fn_name( string const& in ) {
   return nothing;
 }
 
+int constexpr kSurroundLines      = 3;
+int constexpr kMinLineNumberWidth = 3;
+int constexpr kFrameColumnWidth   = 4;
+auto constexpr kFileColor         = base::ansi::cyan;
+auto constexpr kCenterColor       = base::ansi::yellow;
+auto constexpr kLineColor         = base::ansi::green;
+auto constexpr kFnColor           = base::ansi::magenta;
+auto constexpr kErrColor          = base::ansi::red;
+
 void print_stack_trace_impl( StackTrace const& backtrace,
                              StackTraceOptions const& options ) {
   print_bar( '-' );
@@ -64,11 +73,6 @@ void print_stack_trace_impl( StackTrace const& backtrace,
       entries.pop_back();
   int const num_entries = entries.size();
   fmt::println( "Stack trace (most recent call last)" );
-  auto const kFileColor   = base::ansi::cyan;
-  auto const kCenterColor = base::ansi::yellow;
-  auto const kLineColor   = base::ansi::green;
-  auto const kFnColor     = base::ansi::magenta;
-  auto const kErrColor    = base::ansi::red;
   map<string, vector<string>> lines_cache;
   for( int i = 0; stacktrace_entry const& entry : entries ) {
     ++i;
@@ -79,7 +83,8 @@ void print_stack_trace_impl( StackTrace const& backtrace,
     auto const fn_name = extract_fn_name( entry.description() );
     if( entry.source_file().empty() ) {
       if( entry.description().empty() ) continue;
-      fmt::println( "#{:<4} {}{}{}", frame_idx, kFnColor,
+      fmt::println( "#{:<{}} {}{}{}", frame_idx,
+                    kFrameColumnWidth, kFnColor,
                     entry.description(), base::ansi::reset );
       continue;
     }
@@ -90,22 +95,22 @@ void print_stack_trace_impl( StackTrace const& backtrace,
         res = entry.source_file();
       return res;
     }();
-    fmt::println( "#{:<4} {}{}{}, line {}{}{}, in {}{}{}",
-                  frame_idx, kFileColor, path, base::ansi::reset,
-                  kLineColor, entry.source_line(),
-                  base::ansi::reset, kFnColor,
-                  fn_name.value_or( entry.description() ),
-                  base::ansi::reset );
+    fmt::println(
+        "#{:<{}} {}{}{}, line {}{}{}, in {}{}{}", frame_idx,
+        kFrameColumnWidth, kFileColor, path, base::ansi::reset,
+        kLineColor, entry.source_line(), base::ansi::reset,
+        kFnColor, fn_name.value_or( entry.description() ),
+        base::ansi::reset );
     if( !lines_cache.contains( entry.source_file() ) ) {
       vector<string> lines;
       if( !base::read_file_lines( entry.source_file(), lines ) )
         continue;
       lines_cache[entry.source_file()] = std::move( lines );
     }
-    auto const& lines       = lines_cache[entry.source_file()];
-    int constexpr kSurround = 3;
-    for( int one_based = entry.source_line() - kSurround;
-         one_based <= int( entry.source_line() + kSurround );
+    auto const& lines = lines_cache[entry.source_file()];
+    for( int one_based = entry.source_line() - kSurroundLines;
+         one_based <=
+         int( entry.source_line() + kSurroundLines );
          ++one_based ) {
       int const zero_based = one_based - 1;
       if( zero_based < 0 || zero_based >= ssize( lines ) )
@@ -113,7 +118,8 @@ void print_stack_trace_impl( StackTrace const& backtrace,
       bool const center =
           one_based == int( entry.source_line() );
       int const line_num_width = std::max(
-          ssize( to_string( one_based + kSurround ) ), 3l );
+          ssize( to_string( one_based + kSurroundLines ) ),
+          long( kMinLineNumberWidth ) );
       string const num_str =
           format( "      {}{:>{}}", center ? "> " : "  ",
                   one_based, line_num_width );
