@@ -975,9 +975,9 @@ void cheat_create_new_colonist( SS& ss, TS& ts,
                                 Colony const& colony ) {
   // Non-interactive works here because currently we're only
   // using this to create a unit inside the colony view.
-  create_unit_on_map_non_interactive( ss, ts, player,
-                                      e_unit_type::free_colonist,
-                                      colony.location );
+  create_unit_on_map_non_interactive(
+      ss, ts.map_updater(), player, e_unit_type::free_colonist,
+      colony.location );
 }
 
 void cheat_increase_commodity( Colony& colony,

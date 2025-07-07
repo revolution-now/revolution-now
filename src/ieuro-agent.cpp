@@ -83,4 +83,29 @@ wait<> NoopEuroAgent::handle( signal::PanTile const& ) {
   co_return;
 }
 
+wait<std::string> NoopEuroAgent::name_new_world() {
+  co_return "none";
+}
+
+wait<ui::e_confirm>
+NoopEuroAgent::should_king_transport_treasure(
+    std::string const& ) {
+  co_return ui::e_confirm::no;
+}
+
+wait<> NoopEuroAgent::show_animation(
+    AnimationSequence const& ) {
+  co_return;
+}
+
+wait<chrono::microseconds> NoopEuroAgent::wait_for(
+    chrono::milliseconds const us ) {
+  co_return us;
+}
+
+wait<ui::e_confirm>
+NoopEuroAgent::should_explore_ancient_burial_mounds() {
+  co_return ui::e_confirm::no;
+}
+
 } // namespace rn

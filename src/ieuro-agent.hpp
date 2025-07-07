@@ -17,6 +17,7 @@
 #include "iagent.hpp"
 #include "isignal.hpp"
 #include "meet-natives.rds.hpp"
+#include "ui-enums.rds.hpp"
 #include "wait.hpp"
 
 // ss
@@ -30,6 +31,7 @@ namespace rn {
 enum class e_player;
 enum class e_woodcut;
 
+struct AnimationSequence;
 struct CapturableCargo;
 struct CapturableCargoItems;
 struct Commodity;
@@ -96,6 +98,21 @@ struct IEuroAgent : IAgent, ISignalHandler {
   virtual wait<> notify_captured_cargo(
       Player const& src_player, Player const& dst_player,
       Unit const& dst_unit, Commodity const& stolen ) = 0;
+
+  // Upon discovering the new world.
+  virtual wait<std::string> name_new_world() = 0;
+
+  virtual wait<ui::e_confirm> should_king_transport_treasure(
+      std::string const& msg ) = 0;
+
+  virtual wait<ui::e_confirm>
+  should_explore_ancient_burial_mounds() = 0;
+
+  virtual wait<> show_animation(
+      AnimationSequence const& seq ) = 0;
+
+  virtual wait<std::chrono::microseconds> wait_for(
+      std::chrono::milliseconds us ) = 0;
 
  public: // Signals.
   // Non-waitable signal, no message.
@@ -173,6 +190,19 @@ struct NoopEuroAgent final : IEuroAgent {
   wait<> notify_captured_cargo(
       Player const& src_player, Player const& dst_player,
       Unit const& dst_unit, Commodity const& stolen ) override;
+
+  wait<std::string> name_new_world() override;
+
+  wait<ui::e_confirm> should_king_transport_treasure(
+      std::string const& msg ) override;
+
+  wait<ui::e_confirm> should_explore_ancient_burial_mounds()
+      override;
+
+  wait<> show_animation( AnimationSequence const& seq ) override;
+
+  wait<std::chrono::microseconds> wait_for(
+      std::chrono::milliseconds us ) override;
 
  public: // ISignalHandler
   bool handle( signal::Foo const& foo ) override;

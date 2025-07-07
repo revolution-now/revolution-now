@@ -72,6 +72,10 @@ struct ISignalHandler {
       signal::ChooseImmigrant const& ) = 0;
 
   virtual wait<> handle( signal::PanTile const& ) = 0;
+
+  virtual void handle( signal::NoSpotForShip const& );
+
+  virtual void handle( signal::TreasureArrived const& );
 };
 
 } // namespace rn

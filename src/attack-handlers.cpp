@@ -837,8 +837,8 @@ wait<> AttackDwellingHandler::produce_convert() {
   // stuff need be done.
   Coord const dwelling_coord = attack_dst_;
   UnitId const convert_id = create_unit_on_map_non_interactive(
-      ss_, ts_, attacking_player_, e_unit_type::native_convert,
-      dwelling_coord );
+      ss_, ts_.map_updater(), attacking_player_,
+      e_unit_type::native_convert, dwelling_coord );
   native_convert_ = convert_id;
   co_await ts_.planes.get().get_bottom<ILandViewPlane>().animate(
       anim_seq_for_convert_produced(
@@ -846,7 +846,8 @@ wait<> AttackDwellingHandler::produce_convert() {
   // Non-interactive is OK here because the attacker is already
   // on this square.
   UnitOwnershipChanger( ss_, convert_id )
-      .change_to_map_non_interactive( ts_, attacker_coord );
+      .change_to_map_non_interactive( ts_.map_updater(),
+                                      attacker_coord );
 }
 
 wait<> AttackDwellingHandler::with_phantom_brave_combat(
@@ -1056,7 +1057,8 @@ wait<> AttackDwellingHandler::perform() {
     // strange right in the middle of an attack sequence.
     UnitOwnershipChanger( ss_,
                           *destruction.missionary_to_release )
-        .change_to_map_non_interactive( ts_, dwelling_location );
+        .change_to_map_non_interactive( ts_.map_updater(),
+                                        dwelling_location );
   }
 
   // Animate attacker winning w/ burning village and depixelating
@@ -1124,8 +1126,8 @@ wait<> AttackDwellingHandler::perform() {
     // appears.
     UnitId const treasure_id =
         create_unit_on_map_non_interactive(
-            ss_, ts_, attacking_player_, treasure_comp,
-            dwelling_location );
+            ss_, ts_.map_updater(), attacking_player_,
+            treasure_comp, dwelling_location );
     treasure_ = treasure_id;
     AnimationSequence const seq =
         anim_seq_for_treasure_enpixelation( ss_, treasure_id );

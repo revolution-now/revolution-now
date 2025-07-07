@@ -25,6 +25,7 @@
 #include "society.hpp"
 #include "tribe-arms.hpp"
 #include "tribe.rds.hpp"
+#include "ts.hpp"
 #include "unit-mgr.hpp"
 #include "unit-ownership.hpp"
 
@@ -1028,11 +1029,13 @@ void perform_naval_unit_combat_effects(
       // re-place the ship on the square interactively in order
       // to run any interactive routines that are necessary.
       UnitOwnershipChanger( ss, unit.id() )
-          .change_to_map_non_interactive( ts, moved.to );
+          .change_to_map_non_interactive( ts.map_updater(),
+                                          moved.to );
       break;
     }
     CASE( damaged ) {
-      move_damaged_ship_for_repair( ss, ts, unit, damaged.port );
+      move_damaged_ship_for_repair( ss, ts.map_updater(), unit,
+                                    damaged.port );
       break;
     }
     CASE( sunk ) {

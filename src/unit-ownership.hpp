@@ -26,6 +26,7 @@ namespace rn {
 
 struct Colony;
 struct ColonyJob;
+struct IMapUpdater;
 struct Player;
 struct PortStatus;
 struct SS;
@@ -63,7 +64,7 @@ struct UnitOwnershipChanger {
   wait<maybe<UnitDeleted>> change_to_map( TS& ts,
                                           Coord target ) const;
 
-  void change_to_map_non_interactive( TS& ts,
+  void change_to_map_non_interactive( IMapUpdater& map_updater,
                                       Coord target ) const;
 
   // If the unit is on the map it will remove it from the map and
@@ -71,7 +72,8 @@ struct UnitOwnershipChanger {
   // used by code that wants to run through the actions that are
   // normally performed when a unit is placed on a new map
   // square, even though they may not be moving.
-  void reinstate_on_map_if_on_map( TS& ts ) const;
+  void reinstate_on_map_if_on_map(
+      IMapUpdater& map_updater ) const;
 
   // Cargo.
   void change_to_cargo( UnitId new_holder,

@@ -129,7 +129,9 @@ int repair_turn_count_for_unit( ShipRepairPort const& port,
   }
 }
 
-void move_damaged_ship_for_repair( SS& ss, TS& ts, Unit& ship,
+void move_damaged_ship_for_repair( SS& ss,
+                                   IMapUpdater& map_updater,
+                                   Unit& ship,
                                    ShipRepairPort const& port ) {
   int const turns_until_repair =
       repair_turn_count_for_unit( port, ship.type() );
@@ -175,7 +177,8 @@ void move_damaged_ship_for_repair( SS& ss, TS& ts, Unit& ship,
       // move it into the colony.
       UnitOwnershipChanger( ss, ship.id() )
           .change_to_map_non_interactive(
-              ts, ss.colonies.colony_for( colony.id ).location );
+              map_updater,
+              ss.colonies.colony_for( colony.id ).location );
       break;
     }
     CASE( european_harbor ) {

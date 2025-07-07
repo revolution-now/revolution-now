@@ -15,7 +15,7 @@
 
 // Testing
 #include "test/fake/world.hpp"
-#include "test/mocks/igui.hpp"
+#include "test/mocks/ieuro-agent.hpp"
 #include "test/mocks/irand.hpp"
 
 // Revolution Now
@@ -185,12 +185,14 @@ TEST_CASE( "[treasure] apply_treasure_reimbursement" ) {
 
 TEST_CASE( "[treasure] show_treasure_receipt" ) {
   World W;
-  Player const& player = W.default_player();
+  Player const& player  = W.default_player();
+  MockIEuroAgent& agent = W.euro_agent();
   TreasureReceipt receipt;
   string msg;
 
   auto f = [&] {
-    wait<> w = show_treasure_receipt( W.ts(), player, receipt );
+    wait<> w =
+        show_treasure_receipt( player, W.euro_agent(), receipt );
     REQUIRE( !w.exception() );
     REQUIRE( w.ready() );
   };
@@ -204,7 +206,7 @@ TEST_CASE( "[treasure] show_treasure_receipt" ) {
   msg =
       "Treasure worth 100\x7f reimbursed in Amsterdam yielding "
       "[90\x7f] after 10% taxes witheld.";
-  W.gui().EXPECT__message_box( msg ).returns( monostate{} );
+  agent.EXPECT__message_box( msg );
   f();
 
   receipt = { .treasure_id = UnitId{ 1 },
@@ -217,7 +219,7 @@ TEST_CASE( "[treasure] show_treasure_receipt" ) {
       "Treasure worth 100\x7f arrives in Amsterdam!  The crown "
       "has provided a reimbursement of [90\x7f] after a [10%] "
       "witholding.";
-  W.gui().EXPECT__message_box( msg ).returns( monostate{} );
+  agent.EXPECT__message_box( msg );
   f();
 
   receipt = {
@@ -231,14 +233,15 @@ TEST_CASE( "[treasure] show_treasure_receipt" ) {
       "Treasure worth 100\x7f arrives in Amsterdam!  The crown "
       "has provided a reimbursement of [90\x7f] after a [10%] "
       "tax witholding.";
-  W.gui().EXPECT__message_box( msg ).returns( monostate{} );
+  agent.EXPECT__message_box( msg );
   f();
 }
 
 TEST_CASE( "[treasure] treasure_enter_colony" ) {
   World W;
-  Player& player = W.default_player();
-  Unit& unit     = W.add_unit_on_map(
+  Player& player        = W.default_player();
+  MockIEuroAgent& agent = W.euro_agent();
+  Unit& unit            = W.add_unit_on_map(
       UnitComposition::create(
           e_unit_type::treasure,
           { { e_unit_inventory::gold, 100 } } )
@@ -246,12 +249,11 @@ TEST_CASE( "[treasure] treasure_enter_colony" ) {
       { .x = 1, .y = 1 } );
   W.old_world( player ).taxes.tax_rate = 7;
   maybe<TreasureReceipt> expected;
-  ChoiceConfig config;
   string msg;
 
   auto f = [&] {
     wait<maybe<TreasureReceipt>> w = treasure_enter_colony(
-        W.ss(), W.ts(), W.default_player(), unit );
+        W.ss(), W.default_player(), W.euro_agent(), unit );
     REQUIRE( !w.exception() );
     REQUIRE( w.ready() );
     return *w;
@@ -272,14 +274,8 @@ TEST_CASE( "[treasure] treasure_enter_colony" ) {
       "will happily transport it for you, after which we will "
       "make an assessment of the appropriate percentage to "
       "withhold as compensation.";
-  config = ChoiceConfig{
-    .msg     = msg,
-    .options = { ChoiceConfigOption{ .key          = "yes",
-                                     .display_name = "Accept." },
-                 ChoiceConfigOption{
-                   .key = "no", .display_name = "Decline." } } };
-  W.gui().EXPECT__choice( config ).returns<maybe<string>>(
-      "yes" );
+  agent.EXPECT__should_king_transport_treasure( msg ).returns(
+      ui::e_confirm::yes );
   REQUIRE( f() == expected );
 
   // No galleons, with hernan cortes.
@@ -298,18 +294,13 @@ TEST_CASE( "[treasure] treasure_enter_colony" ) {
       "will happily transport it for you, and we will do so for "
       "[no extra charge], only withholding an amount "
       "determined by the current tax rate.";
-  config = ChoiceConfig{
-    .msg     = msg,
-    .options = { ChoiceConfigOption{ .key          = "yes",
-                                     .display_name = "Accept." },
-                 ChoiceConfigOption{
-                   .key = "no", .display_name = "Decline." } } };
-  W.gui().EXPECT__choice( config ).returns<maybe<string>>(
-      "yes" );
+  agent.EXPECT__should_king_transport_treasure( msg ).returns(
+      ui::e_confirm::yes );
   REQUIRE( f() == expected );
 
   // Chooses no.
-  W.gui().EXPECT__choice( _ ).returns<maybe<string>>( "no" );
+  agent.EXPECT__should_king_transport_treasure( msg ).returns(
+      ui::e_confirm::no );
   REQUIRE( f() == nothing );
 
   W.settings().game_setup_options.difficulty =
@@ -336,14 +327,8 @@ TEST_CASE( "[treasure] treasure_enter_colony" ) {
       "happily transport it for you, and we will do so for [no "
       "extra charge], only withholding an amount determined by "
       "the current tax rate.";
-  config = ChoiceConfig{
-    .msg     = msg,
-    .options = { ChoiceConfigOption{ .key          = "yes",
-                                     .display_name = "Accept." },
-                 ChoiceConfigOption{
-                   .key = "no", .display_name = "Decline." } } };
-  W.gui().EXPECT__choice( config ).returns<maybe<string>>(
-      "yes" );
+  agent.EXPECT__should_king_transport_treasure( msg ).returns(
+      ui::e_confirm::yes );
   REQUIRE( f() == expected );
 
   // After declaration.

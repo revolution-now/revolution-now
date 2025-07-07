@@ -21,6 +21,8 @@
 
 namespace rn {
 
+struct IEuroAgent;
+struct IMapUpdater;
 struct IRand;
 struct Player;
 struct SS;
@@ -45,7 +47,8 @@ enum class e_unit_type;
 // type result (it is provided), it will manually generate gift
 // amounts.
 wait<LostCityRumorUnitChange> run_lcr(
-    SS& ss, TS& ts, Player& player, Unit const& unit,
+    SS& ss, IMapUpdater& map_updater, IRand& rand,
+    Player& player, IEuroAgent& agent, Unit const& unit,
     Coord world_square, LostCityRumor const& rumor );
 
 } // namespace rn

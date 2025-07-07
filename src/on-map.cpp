@@ -16,7 +16,6 @@
 #include "agents.hpp"
 #include "co-wait.hpp"
 #include "ieuro-agent.hpp"
-#include "igui.hpp"
 #include "imap-search.rds.hpp"
 #include "imap-updater.hpp"
 #include "land-view.hpp"
@@ -42,9 +41,6 @@
 #include "ss/tribe.rds.hpp"
 #include "ss/units.hpp"
 
-// config
-#include "config/nation.rds.hpp"
-
 // rds
 #include "rds/switch-macro.hpp"
 
@@ -61,13 +57,8 @@ namespace rn {
 
 namespace {
 
-string new_world_name_for( Player const& player ) {
-  return config_nation.nations[player.nation].new_world_name;
-}
-
-wait<> try_discover_new_world( SSConst const& ss, TS& ts,
-                               Player& player,
-                               IEuroAgent& euro_agent,
+wait<> try_discover_new_world( SSConst const& ss, Player& player,
+                               IEuroAgent& agent,
                                Coord world_square ) {
   // This field holds the name of the new world given by the
   // player if it has a value (meaning, if the new world has been
@@ -87,11 +78,8 @@ wait<> try_discover_new_world( SSConst const& ss, TS& ts,
     if( square->surface != e_surface::land ) continue;
     // We've discovered the new world!
     co_await show_woodcut_if_needed(
-        player, euro_agent, e_woodcut::discovered_new_world );
-    string const name = co_await ts.gui.required_string_input(
-        { .msg = "You've discovered the new world!  What shall "
-                 "we call this land, Your Excellency?",
-          .initial_text = new_world_name_for( player ) } );
+        player, agent, e_woodcut::discovered_new_world );
+    string const name     = co_await agent.name_new_world();
     player.new_world_name = name;
     lg.info( "the new world has been discovered: \"{}\".",
              name );
@@ -102,7 +90,7 @@ wait<> try_discover_new_world( SSConst const& ss, TS& ts,
 
 wait<> try_discover_pacific_ocean( SSConst const& ss,
                                    Player& player,
-                                   IEuroAgent& euro_agent,
+                                   IEuroAgent& agent,
                                    Coord world_square ) {
   for( e_direction d : refl::enum_values<e_direction> ) {
     Coord const coord = world_square.moved( d );
@@ -110,8 +98,7 @@ wait<> try_discover_pacific_ocean( SSConst const& ss,
     if( !ss.terrain.is_pacific_ocean( coord ) ) continue;
     // We've discovered the Pacific Ocean!
     co_await show_woodcut_if_needed(
-        player, euro_agent,
-        e_woodcut::discovered_pacific_ocean );
+        player, agent, e_woodcut::discovered_pacific_ocean );
     lg.info( "the pacific ocean been discovered." );
     break;
   }
@@ -119,8 +106,8 @@ wait<> try_discover_pacific_ocean( SSConst const& ss,
 
 // Returns true if the unit was deleted.
 wait<base::NoDiscard<bool>> try_lost_city_rumor(
-    SS& ss, TS& ts, Player& player, IEuroAgent& euro_agent,
-    UnitId id, Coord tile ) {
+    SS& ss, IMapUpdater& map_updater, IRand& rand,
+    Player& player, IEuroAgent& agent, UnitId id, Coord tile ) {
   // Check if the unit actually moved and it landed on a Lost
   // City Rumor.
   bool const has_lost_city_rumor =
@@ -128,21 +115,20 @@ wait<base::NoDiscard<bool>> try_lost_city_rumor(
   if( !has_lost_city_rumor ) co_return false;
   Unit const& unit          = ss.units.unit_for( id );
   LostCityRumor const rumor = compute_lcr(
-      ss.as_const, player, ts.rand, RealMapSearch( ss.as_const ),
+      ss.as_const, player, rand, RealMapSearch( ss.as_const ),
       unit.type(), tile );
   if( rumor.holds<LostCityRumor::fountain_of_youth>() )
     co_await show_woodcut_if_needed(
-        player, euro_agent,
-        e_woodcut::discovered_fountain_of_youth );
-  LostCityRumorUnitChange const lcr_res =
-      co_await run_lcr( ss, ts, player, unit, tile, rumor );
+        player, agent, e_woodcut::discovered_fountain_of_youth );
+  LostCityRumorUnitChange const lcr_res = co_await run_lcr(
+      ss, map_updater, rand, player, agent, unit, tile, rumor );
   co_return lcr_res.holds<LostCityRumorUnitChange::unit_lost>();
 }
 
 // Returns true if the treasure was transported by the king and
 // thus deleted.
-wait<bool> try_king_transport_treasure( SS& ss, TS& ts,
-                                        Player& player,
+wait<bool> try_king_transport_treasure( SS& ss, Player& player,
+                                        IEuroAgent& agent,
                                         Unit const& unit,
                                         Coord world_square ) {
   if( unit.type() != e_unit_type::treasure ) co_return false;
@@ -152,21 +138,21 @@ wait<bool> try_king_transport_treasure( SS& ss, TS& ts,
   Colony const& colony = ss.colonies.colony_for( *colony_id );
   CHECK_EQ( colony.player, player.type );
   maybe<TreasureReceipt> const receipt =
-      co_await treasure_enter_colony( ss, ts, player, unit );
+      co_await treasure_enter_colony( ss, player, agent, unit );
   if( !receipt.has_value() ) co_return false;
   apply_treasure_reimbursement( ss, player, *receipt );
   // !! Treasure unit has been deleted here.
-  co_await show_treasure_receipt( ts, player, *receipt );
+  co_await show_treasure_receipt( player, agent, *receipt );
   co_return true; // treasure unit deleted.
 }
 
 wait<> try_meet_natives( SS& ss, Player& player,
-                         IEuroAgent& euro_agent, Coord square ) {
+                         IEuroAgent& agent, Coord square ) {
   vector<MeetTribe> const meet_tribes =
       check_meet_tribes( as_const( ss ), player, square );
   for( MeetTribe const& meet_tribe : meet_tribes ) {
     e_declare_war_on_natives const declare_war =
-        co_await euro_agent.meet_tribe_ui_sequence( meet_tribe );
+        co_await agent.meet_tribe_ui_sequence( meet_tribe );
     perform_meet_tribe( ss, player, meet_tribe, declare_war );
   }
 }
@@ -253,7 +239,8 @@ void try_perform_inter_tribe_trade(
 ** Public API
 *****************************************************************/
 void UnitOnMapMover::to_map_non_interactive(
-    SS& ss, TS& ts, UnitId id, Coord world_square ) {
+    SS& ss, IMapUpdater& map_updater, UnitId const id,
+    Coord const world_square ) {
   Unit& unit = ss.units.unit_for( id );
 
   // 1. Adjust the visibility/fog in response to the unit moving
@@ -261,8 +248,8 @@ void UnitOnMapMover::to_map_non_interactive(
   // square. Should be done before unit is moved.
   vector<Coord> const visible = unit_visible_squares(
       ss, unit.player_type(), unit.type(), world_square );
-  ts.map_updater().make_squares_visible( unit.player_type(),
-                                         visible );
+  map_updater.make_squares_visible( unit.player_type(),
+                                    visible );
 
   // 2. Move the unit. This is the only place where this function
   //    should be called by normal game code.
@@ -297,33 +284,34 @@ void UnitOnMapMover::native_unit_to_map_non_interactive(
 }
 
 wait<maybe<UnitDeleted>> UnitOnMapMover::to_map_interactive(
-    SS& ss, TS& ts, UnitId id, Coord dst ) {
-  to_map_non_interactive( ss, ts, id, dst );
+    SS& ss, TS& ts, UnitId const id, Coord const dst ) {
+  to_map_non_interactive( ss, ts.map_updater(), id, dst );
 
   Unit& unit = ss.units.unit_for( id );
   UNWRAP_CHECK( player, ss.players.players[unit.player_type()] );
-  IEuroAgent& euro_agent = ts.euro_agents()[player.type];
+  IEuroAgent& agent        = ts.euro_agents()[player.type];
+  IMapUpdater& map_updater = ts.map_updater();
+  IRand& rand              = ts.rand;
 
   if( !player.new_world_name.has_value() )
-    co_await try_discover_new_world( ss, ts, player, euro_agent,
-                                     dst );
+    co_await try_discover_new_world( ss, player, agent, dst );
 
   if( !player.woodcuts[e_woodcut::discovered_pacific_ocean] )
-    co_await try_discover_pacific_ocean( ss, player, euro_agent,
+    co_await try_discover_pacific_ocean( ss, player, agent,
                                          dst );
 
-  if( co_await try_lost_city_rumor( ss, ts, player, euro_agent,
-                                    id, dst ) )
+  if( co_await try_lost_city_rumor( ss, map_updater, rand,
+                                    player, agent, id, dst ) )
     co_return UnitDeleted{};
 
-  if( co_await try_king_transport_treasure( ss, ts, player, unit,
-                                            dst ) )
+  if( co_await try_king_transport_treasure( ss, player, agent,
+                                            unit, dst ) )
     // The unit was a treasure train, it entered a colony square,
     // the king asked to transport it, the player accepted, and
     // the treasure unit was deleted.
     co_return UnitDeleted{};
 
-  co_await try_meet_natives( ss, player, euro_agent, dst );
+  co_await try_meet_natives( ss, player, agent, dst );
 
   // Unit is still alive.
   co_return nothing;

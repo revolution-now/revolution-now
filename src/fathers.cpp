@@ -126,7 +126,7 @@ void john_paul_jones( SS& ss, TS& ts, Player const& player ) {
     return;
   }
   create_unit_on_map_non_interactive(
-      ss, ts, player, e_unit_type::frigate, *loc );
+      ss, ts.map_updater(), player, e_unit_type::frigate, *loc );
 }
 
 // All currently existing indian converts are changed to free
@@ -260,7 +260,7 @@ void hernando_de_soto( SS& ss, TS& ts, Player& player ) {
       if( !unit.has_value() ) break;
       if( unit->player_type() != player.type ) break;
       UnitOwnershipChanger( ss, unit->id() )
-          .reinstate_on_map_if_on_map( ts );
+          .reinstate_on_map_if_on_map( ts.map_updater() );
     }
   }
 }

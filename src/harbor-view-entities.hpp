@@ -43,6 +43,7 @@ enum class e_resolution;
 
 namespace rn {
 
+struct IEuroAgent;
 struct SS;
 struct SSConst;
 struct TS;
@@ -116,6 +117,7 @@ class HarborSubView
   TS& ts_;
   Player& player_;
   Player& colonial_player_;
+  IEuroAgent& agent_;
 };
 
 template<typename T>

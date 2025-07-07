@@ -18,6 +18,7 @@
 namespace rn {
 
 struct IGui;
+struct ILandViewPlane;
 struct Planes;
 struct SS;
 
@@ -52,6 +53,19 @@ struct HumanEuroAgent final : IEuroAgent {
       Player const& src_player, Player const& dst_player,
       Unit const& dst_unit, Commodity const& stolen ) override;
 
+  wait<std::string> name_new_world() override;
+
+  wait<ui::e_confirm> should_king_transport_treasure(
+      std::string const& msg ) override;
+
+  wait<ui::e_confirm> should_explore_ancient_burial_mounds()
+      override;
+
+  wait<> show_animation( AnimationSequence const& seq ) override;
+
+  wait<std::chrono::microseconds> wait_for(
+      std::chrono::milliseconds us ) override;
+
  public: // Signals.
   bool handle( signal::Foo const& foo ) override;
 
@@ -65,6 +79,8 @@ struct HumanEuroAgent final : IEuroAgent {
   wait<> handle( signal::PanTile const& ) override;
 
  private:
+  ILandViewPlane& land_view() const;
+
   SS& ss_;
   IGui& gui_;
   Planes& planes_;

@@ -26,6 +26,7 @@
 
 namespace rn {
 
+struct IMapUpdater;
 struct Player;
 struct SSConst;
 struct SS;
@@ -83,7 +84,9 @@ maybe<std::string> units_lost_on_ship_message(
 
 // Mark the ship as damaged, destroy any units it contains, and
 // move it to where it needs to go for repairs.
-void move_damaged_ship_for_repair( SS& ss, TS& ts, Unit& ship,
+void move_damaged_ship_for_repair( SS& ss,
+                                   IMapUpdater& map_updater,
+                                   Unit& ship,
                                    ShipRepairPort const& port );
 
 // When a ship is damaged this will return the number of turns

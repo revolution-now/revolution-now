@@ -16,6 +16,7 @@
 #include "anim-builders.hpp"
 #include "co-wait.hpp"
 #include "harbor-units.hpp"
+#include "ieuro-agent.hpp"
 #include "igui.hpp"
 #include "imap-search.rds.hpp"
 #include "imap-updater.hpp"
@@ -86,7 +87,7 @@ bool allow_fountain_of_youth( Player const& player ) {
          e_revolution_status::not_declared;
 }
 
-UnitId create_treasure_train( SS& ss, TS& ts,
+UnitId create_treasure_train( SS& ss, IMapUpdater& map_updater,
                               Player const& player,
                               Coord world_square, int amount ) {
   UNWRAP_CHECK( uc_treasure,
@@ -99,38 +100,37 @@ UnitId create_treasure_train( SS& ss, TS& ts,
   // actions needed in response to creating this unit, apart from
   // what we will do here.
   return create_unit_on_map_non_interactive(
-      ss, ts, player, uc_treasure, world_square );
+      ss, map_updater, player, uc_treasure, world_square );
 }
 
 wait<LostCityRumorUnitChange> run_burial_mounds_result(
-    SS& ss, TS& ts, Player& player, Coord world_square,
+    SS& ss, IMapUpdater& map_updater, Player& player,
+    IEuroAgent& agent, Coord world_square,
     BurialMounds const& mounds, maybe<e_tribe> burial_grounds ) {
   LostCityRumorUnitChange result = {};
   SWITCH( mounds ) {
     CASE( cold_and_empty ) {
-      co_await ts.gui.message_box(
+      co_await agent.message_box(
           "The mounds are cold and empty." );
       result = LostCityRumorUnitChange::other{};
       break;
     }
     CASE( treasure ) {
-      co_await ts.gui.message_box(
+      co_await agent.message_box(
           "You've recovered a treasure worth [{}{}]! It will "
           "take a [Galleon] to transport this treasure back to "
           "Europe.",
           treasure.gold, config_text.special_chars.currency );
       UnitId const unit_id = create_treasure_train(
-          ss, ts, player, world_square, treasure.gold );
-      co_await ts.planes.get()
-          .get_bottom<ILandViewPlane>()
-          .animate( anim_seq_for_treasure_enpixelation(
-              ss, unit_id ) );
+          ss, map_updater, player, world_square, treasure.gold );
+      co_await agent.show_animation(
+          anim_seq_for_treasure_enpixelation( ss, unit_id ) );
       result =
           LostCityRumorUnitChange::unit_created{ .id = unit_id };
       break;
     }
     CASE( trinkets ) {
-      co_await ts.gui.message_box(
+      co_await agent.message_box(
           "You've found some trinkets worth [{}{}].",
           trinkets.gold, config_text.special_chars.currency );
       int total = player.money += trinkets.gold;
@@ -147,7 +147,7 @@ wait<LostCityRumorUnitChange> run_burial_mounds_result(
     // 100 on every difficulty level.
     e_tribe const tribe_type = *burial_grounds;
     Tribe& tribe = ss.natives.tribe_for( tribe_type );
-    co_await ts.gui.message_box(
+    co_await agent.message_box(
         "You have treaded on the sacred resting places of the "
         "ancestors of the [{}] tribe. Your irreverence shall be "
         "put to an end... prepare for WAR!",
@@ -160,11 +160,11 @@ wait<LostCityRumorUnitChange> run_burial_mounds_result(
   co_return result;
 }
 
-wait<> take_one_immigrant( SS& ss, TS& ts, Player& player,
+wait<> take_one_immigrant( SS& ss, IRand& rand, Player& player,
+                           IEuroAgent& agent,
                            SettingsState const& settings,
                            int total, int idx ) {
   Player const& cplayer = player;
-  IEuroAgent& agent     = ts.euro_agents()[player.type];
   // NOTE: The original game seems to always allow the player to
   // choose from the three immigrants in the pool for each round
   // when they come via the fountain of youth. This is in con-
@@ -179,56 +179,55 @@ wait<> take_one_immigrant( SS& ss, TS& ts, Player& player,
   // will skip to the next one without adding an immigrant.
   if( !choice.has_value() ) co_return;
   e_unit_type replacement =
-      pick_next_unit_for_pool( ts.rand, cplayer, settings );
+      pick_next_unit_for_pool( rand, cplayer, settings );
   e_unit_type taken = take_immigrant_from_pool(
       old_world_state( ss, player.type ).immigration, *choice,
       replacement );
   create_unit_in_harbor( ss, player, taken );
 }
 
-wait<> run_fountain_of_youth( SS& ss, TS& ts, Player& player,
+wait<> run_fountain_of_youth( SS& ss, IRand& rand,
+                              Player& player, IEuroAgent& agent,
                               SettingsState const& settings ) {
-  co_await ts.gui.message_box(
+  co_await agent.message_box(
       "You've discovered a Fountain of Youth!" );
   int const count = config_lcr.fountain_of_youth_num_immigrants;
   for( int i = 0; i < count; ++i ) {
-    co_await take_one_immigrant( ss, ts, player, settings, count,
-                                 i );
+    co_await take_one_immigrant( ss, rand, player, agent,
+                                 settings, count, i );
     // Give a little visual indicator that there are multiple
     // windows popping up.
-    co_await ts.gui.wait_for( chrono::milliseconds( 100 ) );
+    co_await agent.wait_for( chrono::milliseconds( 100 ) );
   }
 }
 
 wait<LostCityRumorUnitChange> run_rumor_result(
-    SS& ss, TS& ts, Player& player, Unit const& unit, Coord tile,
-    LostCityRumor const& rumor ) {
+    SS& ss, IMapUpdater& map_updater, IRand& rand,
+    Player& player, IEuroAgent& agent, Unit const& unit,
+    Coord tile, LostCityRumor const& rumor ) {
   SWITCH( rumor ) {
     CASE( unit_lost ) {
       // Destroy unit before showing message so that the unit ac-
       // tually appears to disappear.
       UnitOwnershipChanger( ss, unit.id() ).destroy();
-      co_await ts.gui.message_box(
+      co_await agent.message_box(
           "Our colonist has vanished without a trace." );
       co_return LostCityRumorUnitChange::unit_lost{};
     }
     CASE( burial_mounds ) {
-      ui::e_confirm res = co_await ts.gui.required_yes_no(
-          { .msg = "You stumble across some mysterious ancient "
-                   "burial mounds.  Explore them?",
-            .yes_label      = "Let us search for treasure!",
-            .no_label       = "Leave them alone.",
-            .no_comes_first = false } );
+      ui::e_confirm const res =
+          co_await agent.should_explore_ancient_burial_mounds();
       if( res == ui::e_confirm::no )
         co_return LostCityRumorUnitChange::other{};
       LostCityRumorUnitChange const result =
           co_await run_burial_mounds_result(
-              ss, ts, player, tile, burial_mounds.mounds,
+              ss, map_updater, player, agent, tile,
+              burial_mounds.mounds,
               burial_mounds.burial_grounds );
       co_return result;
     }
     CASE( chief_gift ) {
-      co_await ts.gui.message_box(
+      co_await agent.message_box(
           "You happen upon a small village.  The chief offers "
           "you a gift worth [{}{}].",
           chief_gift.gold, config_text.special_chars.currency );
@@ -236,28 +235,26 @@ wait<LostCityRumorUnitChange> run_rumor_result(
       co_return LostCityRumorUnitChange::other{};
     }
     CASE( cibola ) {
-      co_await ts.gui.message_box(
+      co_await agent.message_box(
           "You've discovered one of the [Seven Cities of "
           "Cibola] and have recovered a treasure worth [{}{}]! "
           "It will take a [Galleon] to transport this treasure "
           "back to Europe.",
           cibola.gold, config_text.special_chars.currency );
       UnitId unit_id = create_treasure_train(
-          ss, ts, player, tile, cibola.gold );
-      co_await ts.planes.get()
-          .get_bottom<ILandViewPlane>()
-          .animate( anim_seq_for_treasure_enpixelation(
-              ss, unit_id ) );
+          ss, map_updater, player, tile, cibola.gold );
+      co_await agent.show_animation(
+          anim_seq_for_treasure_enpixelation( ss, unit_id ) );
       co_return LostCityRumorUnitChange::unit_created{
         .id = unit_id };
     }
     CASE( fountain_of_youth ) {
-      co_await run_fountain_of_youth( ss, ts, player,
+      co_await run_fountain_of_youth( ss, rand, player, agent,
                                       ss.settings );
       co_return LostCityRumorUnitChange::other{};
     }
     CASE( free_colonist ) {
-      co_await ts.gui.message_box(
+      co_await agent.message_box(
           "You happen upon the survivors of a lost colony.  In "
           "exchange for badly-needed supplies, they agree to "
           "swear allegiance to you and join your expedition." );
@@ -267,14 +264,15 @@ wait<LostCityRumorUnitChange> run_rumor_result(
       // further UI actions needed in response to creating this
       // unit, apart from what we will do here.
       UnitId const unit_id = create_unit_on_map_non_interactive(
-          ss, ts, player, e_unit_type::free_colonist, tile );
+          ss, map_updater, player, e_unit_type::free_colonist,
+          tile );
       co_return LostCityRumorUnitChange::unit_created{
         .id = unit_id };
     }
     CASE( holy_shrines ) {
       e_tribe const tribe_type = holy_shrines.tribe;
       Tribe& tribe = ss.natives.tribe_for( tribe_type );
-      co_await ts.gui.message_box(
+      co_await agent.message_box(
           "You are wondering dangerously close to the holy "
           "shrines of the [{}] tribe... the [{}] tribe has been "
           "angered.",
@@ -288,12 +286,12 @@ wait<LostCityRumorUnitChange> run_rumor_result(
       co_return LostCityRumorUnitChange::other{};
     }
     CASE( none ) {
-      co_await ts.gui.message_box(
+      co_await agent.message_box(
           "You find nothing but rumors." );
       co_return LostCityRumorUnitChange::other{};
     }
     CASE( ruins ) {
-      co_await ts.gui.message_box(
+      co_await agent.message_box(
           "You've discovered the ruins of a lost colony, among "
           "which there are items worth [{}{}].",
           ruins.gold, config_text.special_chars.currency );
@@ -508,12 +506,14 @@ LostCityRumor compute_lcr( SSConst const& ss,
 }
 
 wait<LostCityRumorUnitChange> run_lcr(
-    SS& ss, TS& ts, Player& player, Unit const& unit,
+    SS& ss, IMapUpdater& map_updater, IRand& rand,
+    Player& player, IEuroAgent& agent, Unit const& unit,
     Coord world_square, LostCityRumor const& rumor ) {
   LostCityRumorUnitChange result = co_await run_rumor_result(
-      ss, ts, player, unit, world_square, rumor );
+      ss, map_updater, rand, player, agent, unit, world_square,
+      rumor );
   // Remove lost city rumor.
-  ts.map_updater().modify_map_square(
+  map_updater.modify_map_square(
       world_square, []( MapSquare& square ) {
         CHECK_EQ( square.lost_city_rumor, true );
         square.lost_city_rumor = false;

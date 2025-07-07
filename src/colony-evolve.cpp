@@ -192,7 +192,8 @@ void check_create_or_starve_colonist(
     UnitId unit_id = create_free_unit(
         ss.units, player, e_unit_type::free_colonist );
     UnitOwnershipChanger( ss, unit_id )
-        .change_to_map_non_interactive( ts, colony.location );
+        .change_to_map_non_interactive( ts.map_updater(),
+                                        colony.location );
     notifications.emplace_back(
         ColonyNotification::new_colonist{ .id = unit_id } );
 
@@ -310,7 +311,8 @@ void check_construction( SS& ss, TS& ts, Player const& player,
       // said, in the original game, no unit that can be con-
       // structed in this manner has a sighting radius of more
       // than one.
-      create_unit_on_map_non_interactive( ss, ts, player, o.type,
+      create_unit_on_map_non_interactive( ss, ts.map_updater(),
+                                          player, o.type,
                                           colony.location );
       break;
     }

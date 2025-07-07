@@ -16,7 +16,6 @@
 // Testing
 #include "test/fake/world.hpp"
 #include "test/mocks/ieuro-agent.hpp"
-#include "test/mocks/igui.hpp"
 #include "test/mocks/irand.hpp"
 #include "test/mocks/land-view-plane.hpp"
 #include "test/util/coro.hpp"
@@ -118,7 +117,7 @@ TEST_CASE( "[on-map] non-interactive: moves the unit" ) {
                            { .x = 1, .y = 0 } )
             .id();
     TestingOnlyUnitOnMapMover::to_map_non_interactive(
-        W.ss(), W.ts(), unit_id, { .x = 0, .y = 1 } );
+        W.ss(), W.map_updater(), unit_id, { .x = 0, .y = 1 } );
     REQUIRE( W.units().coord_for( unit_id ) ==
              Coord{ .x = 0, .y = 1 } );
   }
@@ -138,11 +137,11 @@ TEST_CASE( "[on-map] non-interactive: moves the unit" ) {
   }
 }
 
-#ifndef COMPILER_GCC
 TEST_CASE( "[on-map] interactive: discovers new world" ) {
   World W;
   W.create_default_map();
-  Player& player = W.default_player();
+  Player& player        = W.default_player();
+  MockIEuroAgent& agent = W.euro_agent();
   UnitId const unit_id =
       W.add_unit_on_map( e_unit_type::treasure,
                          { .x = 1, .y = 0 } )
@@ -167,8 +166,7 @@ TEST_CASE( "[on-map] interactive: discovers new world" ) {
   SECTION( "not yet discovered" ) {
     W.euro_agent().EXPECT__show_woodcut(
         e_woodcut::discovered_new_world );
-    W.gui().EXPECT__string_input( _ ).returns<maybe<string>>(
-        "my world 2" );
+    agent.EXPECT__name_new_world().returns( "my world 2" );
     w = TestingOnlyUnitOnMapMover::to_map_interactive(
         W.ss(), W.ts(), unit_id, { .x = 0, .y = 1 } );
     REQUIRE( !w.exception() );
@@ -228,7 +226,8 @@ TEST_CASE( "[on-map] interactive: discovers pacific ocean" ) {
 TEST_CASE( "[on-map] interactive: treasure in colony" ) {
   World W;
   W.create_default_map();
-  Player& player = W.default_player();
+  Player& player        = W.default_player();
+  MockIEuroAgent& agent = W.euro_agent();
   W.found_colony_with_new_unit( W.kColonySquare );
   UnitId const unit_id =
       W.add_unit_on_map( e_unit_type::treasure,
@@ -251,7 +250,8 @@ TEST_CASE( "[on-map] interactive: treasure in colony" ) {
   }
 
   SECTION( "entering colony answer no" ) {
-    W.gui().EXPECT__choice( _ ).returns<maybe<string>>( "no" );
+    agent.EXPECT__should_king_transport_treasure( _ ).returns(
+        ui::e_confirm::no );
     w = TestingOnlyUnitOnMapMover::to_map_interactive(
         W.ss(), W.ts(), unit_id, { .x = 1, .y = 1 } );
     REQUIRE( !w.exception() );
@@ -262,12 +262,13 @@ TEST_CASE( "[on-map] interactive: treasure in colony" ) {
   }
 
   SECTION( "entering colony answer yes" ) {
-    W.gui().EXPECT__choice( _ ).returns<maybe<string>>( "yes" );
+    agent.EXPECT__should_king_transport_treasure( _ ).returns(
+        ui::e_confirm::yes );
     string const msg =
         "Treasure worth 1000\x7f arrives in Amsterdam!  The "
         "crown has provided a reimbursement of [500\x7f] after "
         "a [50%] witholding.";
-    W.gui().EXPECT__message_box( msg ).returns( monostate{} );
+    agent.EXPECT__message_box( msg );
     w = TestingOnlyUnitOnMapMover::to_map_interactive(
         W.ss(), W.ts(), unit_id, { .x = 1, .y = 1 } );
     REQUIRE( !w.exception() );
@@ -276,7 +277,6 @@ TEST_CASE( "[on-map] interactive: treasure in colony" ) {
     REQUIRE( !W.units().exists( unit_id ) );
   }
 }
-#endif
 
 TEST_CASE(
     "[on-map] interactive: [LCR] shows fountain of youth "
@@ -305,9 +305,9 @@ TEST_CASE(
 
   // Selects rumor result = fountain of youth.
   W.rand().EXPECT__between_ints( 0, 100 - 1 ).returns( 58 );
-  W.euro_agent().EXPECT__show_woodcut(
+  agent.EXPECT__show_woodcut(
       e_woodcut::discovered_fountain_of_youth );
-  W.gui().EXPECT__message_box( StrContains( "Youth" ) );
+  agent.EXPECT__message_box( StrContains( "Youth" ) );
 
   for( int i = 0; i < 8; ++i ) {
     // Pick immigrant.
@@ -315,7 +315,7 @@ TEST_CASE(
     // Replace with next immigrant.
     W.rand().EXPECT__between_doubles( _, _ ).returns( 0 );
     // Wait a bit.
-    W.gui().EXPECT__wait_for( _ ).returns(
+    agent.EXPECT__wait_for( _ ).returns(
         chrono::microseconds{} );
   }
 
@@ -344,7 +344,7 @@ TEST_CASE( "[on-map] non-interactive: updates visibility" ) {
   REQUIRE( map[{ .x = 4, .y = 1 }] == unexplored{} );
 
   TestingOnlyUnitOnMapMover::to_map_non_interactive(
-      W.ss(), W.ts(), unit.id(), { .x = 0, .y = 1 } );
+      W.ss(), W.map_updater(), unit.id(), { .x = 0, .y = 1 } );
   REQUIRE( map[{ .x = 0, .y = 1 }]
                .inner_if<explored>()
                .get_if<clear>() );
@@ -548,7 +548,8 @@ TEST_CASE(
     "[on-map] interactive: discovers new world on island" ) {
   World W;
   W.create_island_map();
-  Player& player = W.default_player();
+  Player& player        = W.default_player();
+  MockIEuroAgent& agent = W.euro_agent();
   UnitId const unit_id =
       W.add_unit_on_map( e_unit_type::treasure,
                          { .x = 1, .y = 1 } )
@@ -564,10 +565,8 @@ TEST_CASE(
   REQUIRE_FALSE(
       player.woodcuts[e_woodcut::discovered_new_world] );
 
-  W.euro_agent().EXPECT__show_woodcut(
-      e_woodcut::discovered_new_world );
-  W.gui().EXPECT__string_input( _ ).returns<maybe<string>>(
-      "abc" );
+  agent.EXPECT__show_woodcut( e_woodcut::discovered_new_world );
+  agent.EXPECT__name_new_world().returns( "abc" );
   maybe<UnitDeleted> const unit_deleted = f();
   REQUIRE( unit_deleted == nothing );
   REQUIRE( W.units().coord_for( unit_id ) ==

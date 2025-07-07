@@ -471,7 +471,8 @@ TEST_CASE( "[damaged] move_damaged_ship_for_repair" ) {
   ShipRepairPort port;
 
   auto f = [&]( Unit& ship ) {
-    move_damaged_ship_for_repair( W.ss(), W.ts(), ship, port );
+    move_damaged_ship_for_repair( W.ss(), W.map_updater(), ship,
+                                  port );
   };
 
   Unit& privateer =

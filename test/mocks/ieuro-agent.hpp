@@ -11,6 +11,7 @@
 #pragma once
 
 // Revolution Now
+#include "src/anim-builder.rds.hpp"
 #include "src/capture-cargo.rds.hpp"
 #include "src/ieuro-agent.hpp"
 
@@ -25,6 +26,7 @@
 #include "refl/to-str.hpp"
 
 // base
+#include "base/to-str-ext-chrono.hpp"
 #include "base/to-str-ext-std.hpp"
 
 #define MOCK_SIGNAL_HANDLER( ret, sig ) \
@@ -57,6 +59,21 @@ struct MockIEuroAgent : IEuroAgent {
                (Player const&, Player const&, Unit const&,
                 Commodity const&),
                () );
+
+  MOCK_METHOD( wait<std::string>, name_new_world, (), () );
+
+  MOCK_METHOD( wait<ui::e_confirm>,
+               should_king_transport_treasure,
+               (std::string const&), () );
+
+  MOCK_METHOD( wait<ui::e_confirm>,
+               should_explore_ancient_burial_mounds, (), () );
+
+  MOCK_METHOD( wait<>, show_animation,
+               (AnimationSequence const&), () );
+
+  MOCK_METHOD( wait<std::chrono::microseconds>, wait_for,
+               ( std::chrono::milliseconds ), () );
 
  public: // Signals
   MOCK_SIGNAL_HANDLER( bool, Foo );

@@ -37,4 +37,8 @@ void ISignalHandler::handle( ColonySignalTransient const& ) {}
 
 void ISignalHandler::handle( ImmigrantArrived const& ) {}
 
+void ISignalHandler::handle( signal::NoSpotForShip const& ) {}
+
+void ISignalHandler::handle( signal::TreasureArrived const& ) {}
+
 } // namespace rn

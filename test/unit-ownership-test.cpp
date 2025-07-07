@@ -136,7 +136,7 @@ TEST_CASE( "[unit-ownership] UnitOwnershipChanger" ) {
   expected_caravel =
       UnitOwnership::world{ .coord = { .x = 0, .y = 0 } };
   o( free_colonist_id )
-      .change_to_map_non_interactive( W.ts(),
+      .change_to_map_non_interactive( W.map_updater(),
                                       { .x = 1, .y = 2 } );
   REQUIRE( W.units().all().size() == 3 );
   REQUIRE( W.units().exists( free_colonist_id ) );
@@ -427,7 +427,7 @@ TEST_CASE( "[unit-ownership] UnitOwnershipChanger" ) {
   expected_caravel =
       UnitOwnership::world{ .coord = { .x = 0, .y = 0 } };
   o( caravel_id )
-      .change_to_map_non_interactive( W.ts(),
+      .change_to_map_non_interactive( W.map_updater(),
                                       { .x = 0, .y = 0 } );
   REQUIRE( W.units().all().size() == 1 );
   REQUIRE_FALSE( W.units().exists( free_colonist_id ) );
@@ -501,6 +501,7 @@ TEST_CASE( "[unit-ownership] change_to_map" ) {
       W.add_free_unit( e_unit_type::free_colonist );
   UnitOwnership expected;
   Coord target;
+  MockIEuroAgent& agent = W.euro_agent();
 
   auto ownership = [&] {
     return as_const( W.units() ).ownership_of( unit.id() );
@@ -520,9 +521,7 @@ TEST_CASE( "[unit-ownership] change_to_map" ) {
   // function that moves a unit onto a map square.
   W.euro_agent().EXPECT__show_woodcut(
       e_woodcut::discovered_new_world );
-  // Player asked to name the new world.
-  W.gui().EXPECT__string_input( _ ).returns<maybe<string>>(
-      "my land" );
+  agent.EXPECT__name_new_world().returns( "my land" );
   target = { .x = 0, .y = 1 };
   f();
   REQUIRE( ownership() == expected );
@@ -556,7 +555,7 @@ TEST_CASE( "[unit-ownership] reinstate_on_map_if_on_map" ) {
 
   auto f = [&]( UnitId unit_id ) {
     UnitOwnershipChanger( W.ss(), unit_id )
-        .reinstate_on_map_if_on_map( W.ts() );
+        .reinstate_on_map_if_on_map( W.map_updater() );
   };
 
   expected_free_colonist =

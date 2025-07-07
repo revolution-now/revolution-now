@@ -162,12 +162,12 @@ NativeUnit create_unregistered_unit( e_native_unit_type type ) {
 }
 
 UnitId create_unit_on_map_non_interactive(
-    SS& ss, TS& ts, Player const& player,
+    SS& ss, IMapUpdater& map_updater, Player const& player,
     UnitComposition const& comp, gfx::point const coord ) {
   UnitId const id =
       create_free_unit( ss.units, player, std::move( comp ) );
   UnitOwnershipChanger( ss, id ).change_to_map_non_interactive(
-      ts, Coord::from_gfx( coord ) );
+      map_updater, Coord::from_gfx( coord ) );
   return id;
 }
 
@@ -209,7 +209,7 @@ void change_unit_type( SS& ss, TS& ts, Unit& unit,
   // the new type (i.e. maybe its sighting radius is different),
   // we will replace it on the map.
   UnitOwnershipChanger( ss, unit.id() )
-      .reinstate_on_map_if_on_map( ts );
+      .reinstate_on_map_if_on_map( ts.map_updater() );
 }
 
 void change_unit_player( SS& ss, TS& ts, Unit& unit,
@@ -220,7 +220,7 @@ void change_unit_player( SS& ss, TS& ts, Unit& unit,
   // the new type (i.e. maybe its sighting radius is different),
   // we will replace it on the map.
   UnitOwnershipChanger( ss, unit.id() )
-      .reinstate_on_map_if_on_map( ts );
+      .reinstate_on_map_if_on_map( ts.map_updater() );
 }
 
 void change_unit_player_and_move( SS& ss, TS& ts, Unit& unit,
@@ -228,7 +228,7 @@ void change_unit_player_and_move( SS& ss, TS& ts, Unit& unit,
                                   Coord target ) {
   unit.change_player( ss.units, new_player );
   UnitOwnershipChanger( ss, unit.id() )
-      .change_to_map_non_interactive( ts, target );
+      .change_to_map_non_interactive( ts.map_updater(), target );
 }
 
 /****************************************************************
@@ -369,7 +369,7 @@ vector<UnitId> offboard_units_on_ship( SS& ss, TS& ts,
     // is already a unit of the same player on the same square
     // (i.e. the ship).
     UnitOwnershipChanger( ss, held_id )
-        .change_to_map_non_interactive( ts, tile );
+        .change_to_map_non_interactive( ts.map_updater(), tile );
     // Reproduce the behavior of the OG where "units on ships"
     // are really just sentried on the map.
     ss.units.unit_for( held_id ).sentry();
@@ -509,7 +509,7 @@ LUA_FN( create_unit_on_map, Unit&, e_player const player_type,
   LUA_CHECK( st, player.has_value(),
              "player for player {} does not exist.", player );
   UnitId id = create_unit_on_map_non_interactive(
-      ss, ts, *player, comp, coord );
+      ss, ts.map_updater(), *player, comp, coord );
   lg.trace( "created a {} on square {}.",
             unit_attr( comp.type() ).name, coord );
   return ss.units.unit_for( id );

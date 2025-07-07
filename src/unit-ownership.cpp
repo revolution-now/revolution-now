@@ -101,19 +101,19 @@ wait<maybe<UnitDeleted>> UnitOwnershipChanger::change_to_map(
 }
 
 void UnitOwnershipChanger::change_to_map_non_interactive(
-    TS& ts, Coord target ) const {
+    IMapUpdater& map_updater, Coord const target ) const {
   change_to_free();
-  UnitOnMapMover::to_map_non_interactive( ss_, ts, unit_id_,
-                                          target );
+  UnitOnMapMover::to_map_non_interactive( ss_, map_updater,
+                                          unit_id_, target );
 }
 
 void UnitOwnershipChanger::reinstate_on_map_if_on_map(
-    TS& ts ) const {
+    IMapUpdater& map_updater ) const {
   auto& ownership =
       as_const( ss_.units ).ownership_of( unit_id_ );
   if( auto world = ownership.get_if<UnitOwnership::world>();
       world.has_value() )
-    change_to_map_non_interactive( ts, world->coord );
+    change_to_map_non_interactive( map_updater, world->coord );
 }
 
 void UnitOwnershipChanger::change_to_cargo(

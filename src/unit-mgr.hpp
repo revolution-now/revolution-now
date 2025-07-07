@@ -36,6 +36,7 @@
 namespace rn {
 
 struct ColoniesState;
+struct IMapUpdater;
 struct Player;
 struct SS;
 struct SSConst;
@@ -161,7 +162,7 @@ wait<maybe<UnitId>> create_unit_on_map(
 // Note: when calling from a coroutine, call the coroutine ver-
 // sion above since it will run through any UI actions.
 UnitId create_unit_on_map_non_interactive(
-    SS& ss, TS& ts, Player const& player,
+    SS& ss, IMapUpdater& map_updater, Player const& player,
     UnitComposition const& comp, gfx::point coord );
 
 NativeUnitId create_unit_on_map_non_interactive(

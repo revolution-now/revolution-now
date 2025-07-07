@@ -17,6 +17,7 @@
 #include "ieuro-agent.hpp"
 #include "rand-enum.hpp"
 #include "tribe-arms.hpp"
+#include "ts.hpp"
 #include "unit-ownership.hpp"
 
 // config
@@ -251,7 +252,8 @@ void perform_brave_attack_colony_effect(
         UnitOwnershipChanger( ss, ship_id ).destroy();
       } else {
         move_damaged_ship_for_repair(
-            ss, ts, ship, *ship_in_port_damaged.sent_to );
+            ss, ts.map_updater(), ship,
+            *ship_in_port_damaged.sent_to );
       }
     }
   }

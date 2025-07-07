@@ -233,7 +233,8 @@ UnitId deploy_intervention_forces(
   // out of nowhere (and before the message describing what the
   // ship is). So we will re-place the ship later.
   UnitId const ship_id = create_unit_on_map_non_interactive(
-      ss, ts, player, e_unit_type::man_o_war, location.tile );
+      ss, ts.map_updater(), player, e_unit_type::man_o_war,
+      location.tile );
   auto const add_cargo_unit = [&]( e_unit_type const type ) {
     UnitId const held =
         create_free_unit( ss.units, player, type );
@@ -355,7 +356,8 @@ void move_intervention_units_into_colony(
   auto const cargo_units = ship.cargo().units();
   for( UnitId const unit_id : cargo_units ) {
     UnitOwnershipChanger( ss, unit_id )
-        .change_to_map_non_interactive( ts, colony.location );
+        .change_to_map_non_interactive( ts.map_updater(),
+                                        colony.location );
     ss.units.unit_for( unit_id ).clear_orders();
   }
 }

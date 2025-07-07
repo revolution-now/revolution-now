@@ -12,7 +12,7 @@
 
 // Revolution Now
 #include "co-wait.hpp"
-#include "igui.hpp"
+#include "ieuro-agent.hpp"
 #include "irand.hpp"
 #include "player-mgr.hpp"
 #include "ts.hpp"
@@ -89,7 +89,7 @@ TreasureReceipt treasure_in_harbor_receipt(
 }
 
 wait<maybe<TreasureReceipt>> treasure_enter_colony(
-    SSConst const& ss, TS& ts, Player const& player,
+    SSConst const& ss, Player const& player, IEuroAgent& agent,
     Unit const& treasure ) {
   if( player.revolution.status >=
       e_revolution_status::declared ) {
@@ -184,15 +184,9 @@ wait<maybe<TreasureReceipt>> treasure_enter_colony(
           "rate.";
       break;
   }
-  YesNoConfig const config{
-    .msg            = msg,
-    .yes_label      = "Accept.",
-    .no_label       = "Decline.",
-    .no_comes_first = false,
-  };
-  maybe<ui::e_confirm> const choice =
-      co_await ts.gui.optional_yes_no( config );
-  if( choice != ui::e_confirm::yes ) co_return nothing;
+  ui::e_confirm const choice =
+      co_await agent.should_king_transport_treasure( msg );
+  if( choice == ui::e_confirm::no ) co_return nothing;
   co_return receipt;
 }
 
@@ -207,7 +201,8 @@ void apply_treasure_reimbursement(
   player.royal_money += king_tax_revenue_received;
 }
 
-wait<> show_treasure_receipt( TS& ts, Player const& player,
+wait<> show_treasure_receipt( Player const& player,
+                              IEuroAgent& agent,
                               TreasureReceipt const& receipt ) {
   string const harbor_name =
       config_nation.nations[player.nation].harbor_city_name;
@@ -252,7 +247,7 @@ wait<> show_treasure_receipt( TS& ts, Player const& player,
           config_text.special_chars.currency );
       break;
   }
-  co_await ts.gui.message_box( msg );
+  co_await agent.signal( signal::TreasureArrived{}, msg );
 }
 
 maybe<int> treasure_from_dwelling( SSConst const& ss,

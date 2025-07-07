@@ -357,7 +357,8 @@ Unit& World::add_unit_on_map( UnitComposition const& comp,
                               maybe<e_player> player_type ) {
   if( !player_type ) player_type = default_player_type_;
   UnitId const unit_id = create_unit_on_map_non_interactive(
-      ss(), ts(), player( *player_type ), comp, tile );
+      ss(), ts().map_updater(), player( *player_type ), comp,
+      tile );
   return units().unit_for( unit_id );
 }
 

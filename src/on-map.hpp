@@ -28,6 +28,7 @@
 namespace rn {
 
 struct EuroUnitOwnershipChangeTo;
+struct IMapUpdater;
 struct SS;
 struct TS;
 
@@ -44,7 +45,8 @@ struct UnitOnMapMover {
                                                 Coord dst_tile );
 
  private:
-  static void to_map_non_interactive( SS& ss, TS& ts,
+  static void to_map_non_interactive( SS& ss,
+                                      IMapUpdater& map_updater,
                                       UnitId unit_id,
                                       Coord tile );
 

@@ -320,10 +320,11 @@ TEST_CASE(
       e_difficulty::conquistador;
   MockLandViewPlane land_view_plane;
   w.planes().get().set_bottom<ILandViewPlane>( land_view_plane );
-  Player& player       = w.default_player();
-  Colony const& colony = w.add_colony( { .x = 1, .y = 1 } );
-  Unit const& galleon  = w.add_unit_on_map( e_unit_type::galleon,
-                                            { .x = 0, .y = 0 } );
+  Player& player        = w.default_player();
+  MockIEuroAgent& agent = w.euro_agent();
+  Colony const& colony  = w.add_colony( { .x = 1, .y = 1 } );
+  Unit const& galleon = w.add_unit_on_map( e_unit_type::galleon,
+                                           { .x = 0, .y = 0 } );
   UnitId const treasure_id =
       w.add_unit_in_cargo( e_unit_type::treasure, galleon.id() )
           .id();
@@ -362,12 +363,11 @@ TEST_CASE(
     player.fathers.has[e_founding_father::hernan_cortes] = true;
     w.old_world( player.type ).taxes.tax_rate            = 7;
 
-    auto choice_matcher =
-        Field( &ChoiceConfig::msg, StrContains( "bounty" ) );
-    w.gui()
-        .EXPECT__choice( choice_matcher )
-        .returns<maybe<string>>( "yes" );
-    w.gui().EXPECT__message_box(
+    agent
+        .EXPECT__should_king_transport_treasure(
+            StrContains( "bounty" ) )
+        .returns( ui::e_confirm::yes );
+    agent.EXPECT__message_box(
         StrContains( "Treasure worth 1000" ) );
     CommandHandlerRunResult const expected_res{
       .order_was_run = true, .units_to_prioritize = {} };
@@ -390,6 +390,7 @@ TEST_CASE(
   MockLandViewPlane land_view_plane;
   w.planes().get().set_bottom<ILandViewPlane>( land_view_plane );
   Player& player           = w.default_player();
+  MockIEuroAgent& agent    = w.euro_agent();
   player.revolution.status = e_revolution_status::declared;
   Colony const& colony     = w.add_colony( { .x = 1, .y = 1 } );
   Unit const& galleon = w.add_unit_on_map( e_unit_type::galleon,
@@ -411,7 +412,7 @@ TEST_CASE(
   };
 
   // Sanity check.
-  w.gui().EXPECT__message_box(
+  agent.EXPECT__message_box(
       StrContains( "traveling merchants" ) );
   w.colony_viewer()
       .EXPECT__show( _, colony.id )
@@ -436,7 +437,8 @@ TEST_CASE(
   world W;
   MockLandViewPlane land_view_plane;
   W.planes().get().set_bottom<ILandViewPlane>( land_view_plane );
-  Player& player = W.default_player();
+  Player& player        = W.default_player();
+  MockIEuroAgent& agent = W.euro_agent();
   W.add_colony( { .x = 1, .y = 1 } );
   // This unit will be deleted.
   UnitId const treasure_id =
@@ -455,13 +457,11 @@ TEST_CASE(
     return *w;
   };
 
-  // Sanity check.
-  auto choice_matcher =
-      Field( &ChoiceConfig::msg, StrContains( "bounty" ) );
-  W.gui()
-      .EXPECT__choice( choice_matcher )
-      .returns<maybe<string>>( "yes" );
-  W.gui().EXPECT__message_box(
+  agent
+      .EXPECT__should_king_transport_treasure(
+          StrContains( "bounty" ) )
+      .returns( ui::e_confirm::yes );
+  agent.EXPECT__message_box(
       StrContains( "Treasure worth 1000" ) );
   CommandHandlerRunResult const expected_res{
     .order_was_run = true, .units_to_prioritize = {} };

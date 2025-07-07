@@ -488,7 +488,7 @@ ColonyDestructionOutcome destroy_colony( SS& ss, TS& ts,
            "before a colony is destroyed, any units in the "
            "cargo of ships in its port must be removed." );
     if( outcome.port.has_value() )
-      move_damaged_ship_for_repair( ss, ts, ship,
+      move_damaged_ship_for_repair( ss, ts.map_updater(), ship,
                                     *outcome.port );
     else
       UnitOwnershipChanger( ss, ship.id() ).destroy();

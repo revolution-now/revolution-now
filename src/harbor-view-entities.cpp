@@ -12,6 +12,7 @@
 #include "harbor-view-entities.hpp"
 
 // Revolution Now
+#include "agents.hpp"
 #include "harbor-view-backdrop.hpp"
 #include "harbor-view-cargo.hpp"
 #include "harbor-view-dock.hpp"
@@ -22,6 +23,7 @@
 #include "harbor-view-rpt.hpp"
 #include "harbor-view-status.hpp"
 #include "revolution.rds.hpp"
+#include "ts.hpp"
 #include "views.hpp"
 
 // ss
@@ -81,7 +83,8 @@ HarborSubView::HarborSubView( SS& ss, TS& ts, Player& player )
     ts_( ts ),
     player_( player ),
     colonial_player_( player_for_player_or_die(
-        ss.players, colonial_player_for( player.nation ) ) ) {
+        ss.players, colonial_player_for( player.nation ) ) ),
+    agent_( ts_.euro_agents()[player_.type] ) {
   CHECK( player_.nation == colonial_player_.nation );
 }
 

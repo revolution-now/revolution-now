@@ -19,6 +19,7 @@
 #include "plane-stack.hpp"
 
 // config
+#include "config/nation.rds.hpp"
 #include "config/unit-type.hpp"
 
 // ss
@@ -114,10 +115,55 @@ wait<maybe<int>> HumanEuroAgent::handle(
       res );
 }
 
+ILandViewPlane& HumanEuroAgent::land_view() const {
+  return planes_.get().get_bottom<ILandViewPlane>();
+}
+
 wait<> HumanEuroAgent::handle( signal::PanTile const& ctx ) {
-  co_await planes_.get()
-      .get_bottom<ILandViewPlane>()
-      .ensure_visible( ctx.tile );
+  co_await land_view().ensure_visible( ctx.tile );
+}
+
+wait<string> HumanEuroAgent::name_new_world() {
+  co_return co_await gui_.required_string_input(
+      { .msg = "You've discovered the new world!  What shall "
+               "we call this land, Your Excellency?",
+        .initial_text = config_nation.nations[player().nation]
+                            .new_world_name } );
+}
+
+wait<ui::e_confirm>
+HumanEuroAgent::should_king_transport_treasure(
+    std::string const& msg ) {
+  YesNoConfig const config{
+    .msg            = msg,
+    .yes_label      = "Accept.",
+    .no_label       = "Decline.",
+    .no_comes_first = false,
+  };
+  maybe<ui::e_confirm> const choice =
+      co_await gui_.optional_yes_no( config );
+  co_return choice.value_or( ui::e_confirm::no );
+}
+
+wait<> HumanEuroAgent::show_animation(
+    AnimationSequence const& seq ) {
+  co_await land_view().animate( seq );
+}
+
+wait<chrono::microseconds> HumanEuroAgent::wait_for(
+    chrono::milliseconds const us ) {
+  co_return co_await gui_.wait_for( us );
+}
+
+wait<ui::e_confirm>
+HumanEuroAgent::should_explore_ancient_burial_mounds() {
+  ui::e_confirm const res = co_await gui_.required_yes_no(
+      { .msg = "You stumble across some mysterious ancient "
+               "burial mounds.  Explore them?",
+        .yes_label      = "Let us search for treasure!",
+        .no_label       = "Leave them alone.",
+        .no_comes_first = false } );
+  co_return res;
 }
 
 } // namespace rn

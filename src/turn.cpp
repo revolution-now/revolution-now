@@ -32,12 +32,14 @@
 #include "harbor-view.hpp"
 #include "icolony-evolve.rds.hpp"
 #include "iengine.hpp"
+#include "ieuro-agent.hpp"
 #include "igui.hpp"
 #include "imap-updater.hpp"
 #include "interrupts.hpp"
 #include "intervention.hpp"
 #include "iraid.rds.hpp"
 #include "isave-game.rds.hpp"
+#include "isignal.rds.hpp"
 #include "itribe-evolve.rds.hpp"
 #include "iuser-config.hpp"
 #include "land-view.hpp"
@@ -716,6 +718,8 @@ wait<EndOfTurnResult> process_input_eot( IEngine& engine, SS& ss,
 // turns.
 wait<EndOfTurnResult> end_of_turn( IEngine& engine, SS& ss,
                                    TS& ts, Player& player ) {
+  if( player.control != e_player_control::human )
+    co_return EndOfTurnResult::proceed{};
   // See comments above the autosave_if_needed function for why
   // we are putting this here and how it works.
   autosave_if_needed( ss, ts );
@@ -992,7 +996,8 @@ wait<> show_view_mode( IEngine& engine, SS& ss, TS& ts,
 *****************************************************************/
 // Returns true if the unit needs to ask the user for input.
 wait<bool> advance_unit( IEngine& engine, SS& ss, TS& ts,
-                         Player& player, UnitId id ) {
+                         Player& player, IEuroAgent& agent,
+                         UnitId id ) {
   Unit& unit = ss.units.unit_for( id );
   CHECK( !should_remove_unit_from_queue( unit ) );
   CHECK( !is_unit_on_high_seas( ss, id ),
@@ -1129,7 +1134,8 @@ struct HighSeasStatus {
 };
 
 wait<HighSeasStatus> advance_high_seas_unit(
-    SS& ss, TS& ts, Player& player, UnitId const unit_id ) {
+    SS& ss, TS& ts, Player& player, IEuroAgent& agent,
+    UnitId const unit_id ) {
   HighSeasStatus res;
   CHECK( is_unit_on_high_seas( ss, unit_id ) );
   Unit& unit = ss.units.unit_for( unit_id );
@@ -1148,12 +1154,14 @@ wait<HighSeasStatus> advance_high_seas_unit(
               ss.units.harbor_view_state_of( unit_id )
                   .sailed_from );
       if( !dst_coord.has_value() ) {
-        co_await ts.gui.message_box(
+        string const msg = format(
             "Unfortunately, while our [{}] has arrived in the "
-            "new world, there are no appropriate water "
-            "squares on which to place it.  We will try again "
-            "next turn.",
+            "new world, there are no appropriate water squares "
+            "on which to place it.  We will try again next "
+            "turn.",
             ss.units.unit_for( unit_id ).desc().name );
+        co_await agent.signal(
+            signal::NoSpotForShip{ .unit_id = unit_id }, msg );
         finish_turn( unit );
         break;
       }
@@ -1187,7 +1195,7 @@ wait<HighSeasStatus> advance_high_seas_unit(
 }
 
 wait<> move_remaining_units( IEngine& engine, SS& ss, TS& ts,
-                             Player& player,
+                             Player& player, IEuroAgent& agent,
                              PlayerTurnState::units& nat_units,
                              deque<UnitId>& q ) {
   while( !q.empty() ) {
@@ -1217,8 +1225,8 @@ wait<> move_remaining_units( IEngine& engine, SS& ss, TS& ts,
       continue;
     }
 
-    bool should_ask =
-        co_await advance_unit( engine, ss, ts, player, id );
+    bool should_ask = co_await advance_unit( engine, ss, ts,
+                                             player, agent, id );
     if( !should_ask ) {
       q.pop_front();
       continue;
@@ -1251,7 +1259,8 @@ wait<> move_remaining_units( IEngine& engine, SS& ss, TS& ts,
 // we take the player to the harbor. That way we don't see it re-
 // peatedly for every unit.
 wait<> move_high_seas_units( IEngine& engine, SS& ss, TS& ts,
-                             Player& player, deque<UnitId>& q ) {
+                             Player& player, IEuroAgent& agent,
+                             deque<UnitId>& q ) {
   HighSeasStatus status_union;
   while( !q.empty() ) {
     UnitId const id = q.front();
@@ -1267,7 +1276,8 @@ wait<> move_high_seas_units( IEngine& engine, SS& ss, TS& ts,
         ss.units.unit_for( id ) ) );
 
     HighSeasStatus const status =
-        co_await advance_high_seas_unit( ss, ts, player, id );
+        co_await advance_high_seas_unit( ss, ts, player, agent,
+                                         id );
     status_union = status_union.combined_with( status );
 
     // Should not have inserted any new units.
@@ -1285,14 +1295,14 @@ wait<> move_high_seas_units( IEngine& engine, SS& ss, TS& ts,
     if( !is_ref( player.type ) ) {
       CHECK( status_union.last_unit_arrived_in_harbor !=
              UnitId{} );
+      auto& agent = ts.euro_agents()[player.type];
       if( status_union.arrived_in_harbor_with_cargo )
         co_await show_woodcut_if_needed(
-            player, ts.euro_agents()[player.type],
-            e_woodcut::cargo_from_the_new_world );
+            player, agent, e_woodcut::cargo_from_the_new_world );
       HarborViewer harbor_viewer( engine, ss, ts, player );
       harbor_viewer.set_selected_unit(
           status_union.last_unit_arrived_in_harbor );
-      co_await harbor_viewer.show();
+      if( agent.human() ) co_await harbor_viewer.show();
     } else {
       // TODO: An REF ship made it to port. move man-o-war units
       // from port back to the stock.
@@ -1301,7 +1311,7 @@ wait<> move_high_seas_units( IEngine& engine, SS& ss, TS& ts,
 }
 
 wait<> units_turn_one_pass( IEngine& engine, SS& ss, TS& ts,
-                            Player& player,
+                            Player& player, IEuroAgent& agent,
                             PlayerTurnState::units& nat_units,
                             deque<UnitId>& q ) {
   // There may be some units in the queue that e.g. we disbanded
@@ -1315,7 +1325,8 @@ wait<> units_turn_one_pass( IEngine& engine, SS& ss, TS& ts,
       q.begin(), q.end(),
       bind_front( is_unit_on_high_seas, ref( ss.as_const ) ) );
   if( first_non_high_seas_iter != q.begin() ) {
-    co_await move_high_seas_units( engine, ss, ts, player, q );
+    co_await move_high_seas_units( engine, ss, ts, player, agent,
+                                   q );
     // Empty the queue and return so that the entire unit queue
     // gets remade, that way any ships that have just made it to
     // the new world from the high seas will ask for orders in
@@ -1326,12 +1337,12 @@ wait<> units_turn_one_pass( IEngine& engine, SS& ss, TS& ts,
     q = {};
     co_return;
   }
-  co_await move_remaining_units( engine, ss, ts, player,
+  co_await move_remaining_units( engine, ss, ts, player, agent,
                                  nat_units, q );
 }
 
 wait<> units_turn( IEngine& engine, SS& ss, TS& ts,
-                   Player& player,
+                   Player& player, IEuroAgent& agent,
                    PlayerTurnState::units& nat_units ) {
   auto& st = nat_units;
   auto& q  = st.q;
@@ -1354,7 +1365,7 @@ wait<> units_turn( IEngine& engine, SS& ss, TS& ts,
     while( true ) {
       try {
         co_await units_turn_one_pass( engine, ss, ts, player,
-                                      nat_units, q );
+                                      agent, nat_units, q );
         co_return;
       } catch( view_mode_interrupt const& e ) {
         view_mode_options = e.options;
@@ -1590,18 +1601,22 @@ wait<> player_start_of_turn( SS& ss, TS& ts, Player& player ) {
 // ends. This means even after the "end of turn" is clicked, if
 // that happens to flash on a given turn.
 wait<> post_player( SS& ss, TS& ts, Player& player ) {
-  // Evolve royal money and check if we need to add a new REF
-  // unit.
-  RoyalMoneyChange const change = evolved_royal_money(
-      ss.settings.game_setup_options.difficulty,
-      as_const( player.royal_money ) );
-  apply_royal_money_change( player, change );
-  if( change.new_unit_produced ) {
-    e_expeditionary_force_type const type = select_next_ref_type(
-        player.revolution.expeditionary_force );
-    add_ref_unit( player.revolution.expeditionary_force, type );
-    co_await add_ref_unit_ui_seq( ts.euro_agents()[player.type],
-                                  type );
+  if( !is_ref( player.type ) ) {
+    // Evolve royal money and check if we need to add a new REF
+    // unit.
+    RoyalMoneyChange const change = evolved_royal_money(
+        ss.settings.game_setup_options.difficulty,
+        as_const( player.royal_money ) );
+    apply_royal_money_change( player, change );
+    if( change.new_unit_produced ) {
+      e_expeditionary_force_type const type =
+          select_next_ref_type(
+              player.revolution.expeditionary_force );
+      add_ref_unit( player.revolution.expeditionary_force,
+                    type );
+      co_await add_ref_unit_ui_seq(
+          ts.euro_agents()[player.type], type );
+    }
   }
 }
 
@@ -1632,6 +1647,7 @@ wait<PlayerTurnState> player_turn_iter(
     PlayerTurnState& st ) {
   Player& player =
       player_for_player_or_die( ss.players, player_type );
+  IEuroAgent& agent = ts.euro_agents()[player.type];
 
   // If this is a human player then there will be units asking
   // for orders and/or animations, and so we must have the viewer
@@ -1670,7 +1686,8 @@ wait<PlayerTurnState> player_turn_iter(
       co_return PlayerTurnState::units{};
     }
     CASE( units ) {
-      co_await units_turn( engine, ss, ts, player, units );
+      co_await units_turn( engine, ss, ts, player, agent,
+                           units );
       CHECK( units.q.empty() );
       if( !units.skip_eot ) co_return PlayerTurnState::eot{};
       if( ss.settings.in_game_options.game_menu_options

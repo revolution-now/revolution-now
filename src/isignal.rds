@@ -10,6 +10,7 @@
 # ===============================================================
 # ss
 include "ss/colony-id.hpp"
+include "ss/unit-id.hpp"
 include "ss/unit-type.rds.hpp"
 
 # gfx
@@ -59,3 +60,9 @@ struct.ChooseImmigrant {
 struct.PanTile {
   tile 'gfx::point',
 }
+
+struct.NoSpotForShip {
+  unit_id 'UnitId',
+}
+
+struct.TreasureArrived {}

@@ -1400,7 +1400,7 @@ class UnitsAtGateColonyView
           } else {
             UnitOwnershipChanger( ss_, draggable_unit.id )
                 .change_to_map_non_interactive(
-                    ts_, colony_.location );
+                    ts_.map_updater(), colony_.location );
             // This is not strictly necessary, but as a conve-
             // nience to the user, clear the orders, otherwise it
             // would be sentry'd, which is probably not what the
@@ -1445,7 +1445,7 @@ class UnitsAtGateColonyView
             // along with anything else that needs to be done.
             UnitOwnershipChanger( ss_, target_unit.id() )
                 .change_to_map_non_interactive(
-                    ts_, colony_.location );
+                    ts_.map_updater(), colony_.location );
             // Note that we clear orders and deal with movement
             // points for the target unit at the top of this
             // function.

@@ -22,6 +22,7 @@
 namespace rn {
 
 struct Dwelling;
+struct IEuroAgent;
 struct IRand;
 struct Player;
 struct SS;
@@ -44,7 +45,7 @@ TreasureReceipt treasure_in_harbor_receipt(
 // made; the receipt then has to be given to the "apply" function
 // to take effect.
 wait<maybe<TreasureReceipt>> treasure_enter_colony(
-    SSConst const& ss, TS& ts, Player const& player,
+    SSConst const& ss, Player const& player, IEuroAgent& agent,
     Unit const& treasure );
 
 // This will actually delete the treasure unit and give the
@@ -54,7 +55,8 @@ void apply_treasure_reimbursement(
 
 // After the treasure has been reimbursed (regardless of method)
 // call this to show the user how much they've received.
-wait<> show_treasure_receipt( TS& ts, Player const& player,
+wait<> show_treasure_receipt( Player const& player,
+                              IEuroAgent& agent,
                               TreasureReceipt const& receipt );
 
 // Randomly determines whether a destroyed dwelling should yield
