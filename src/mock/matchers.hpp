@@ -353,6 +353,9 @@ MATCHER_DEFINE_NODE( Field, held, actual ) {
                                     actual.*( held.first ) );
 };
 
+// TODO: extract the class type from the member pointer and put
+// it in MustMatch so that a Field matcher on its own can also
+// disambiguate overloaded functions.
 template<typename MemberVarT, typename M>
 requires std::is_member_object_pointer_v<MemberVarT>
 auto Field( MemberVarT&& member_ptr, M&& to_match ) {
