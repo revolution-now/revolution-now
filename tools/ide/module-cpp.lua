@@ -23,11 +23,11 @@ local insert = table.insert
 -----------------------------------------------------------------
 local function files( dir, stem )
   local F = {}
-  F.cpp = format( '%s/%s.cpp', dir, stem )
-  F.hpp = format( '%s/%s.hpp', dir, stem )
-  F.rds = format( '%s/%s.rds', dir, stem )
-  F.rds_impl = format( '%s/%s-impl.rds', dir, stem )
-  F.rds_iface = format( '%s/i%s.rds', dir, stem )
+  F.cpp = format( '%s%s.cpp', dir, stem )
+  F.hpp = format( '%s%s.hpp', dir, stem )
+  F.rds = format( '%s%s.rds', dir, stem )
+  F.rds_impl = format( '%s%s-impl.rds', dir, stem )
+  F.rds_iface = format( '%si%s.rds', dir, stem )
   F.test = format( 'test/%s-test.cpp', stem )
   return F
 end
@@ -73,8 +73,9 @@ end
 -- Public API.
 -----------------------------------------------------------------
 function M.create( stem )
-  local dir = 'src'
-  if stem == 'main' then dir = 'exe' end
+  local dir = 'src/'
+  if stem:match( '^test/' ) then dir = '' end
+  if stem == 'main' then dir = 'exe/' end
   if util.is_wide() then
     return layout_wide( dir, stem )
   else

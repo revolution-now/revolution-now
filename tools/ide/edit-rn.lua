@@ -58,7 +58,9 @@ local function file_to_module( path )
   if ext == 'cpp' or ext == 'hpp' then
     path = fnamemodify( path, ':s|^src/||' )
     path = fnamemodify( path, ':s|^exe/||' )
-    path = fnamemodify( path, ':s|^test/|../test/|' )
+    -- Need to keep the test/ prefix if there is one so that we
+    -- can know that e.g. test/fake/world is really under the
+    -- test folder and not src/fake/world.
     path = fnamemodify( path, ':r:r' )
     return path
   end
