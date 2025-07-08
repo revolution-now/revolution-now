@@ -894,12 +894,14 @@ wait<> process_ai_player_input_normal_mode(
 
   auto run_result = co_await handler->run();
   if( !run_result.order_was_run ) {
+#if 0
     // TODO: remove this eventually since it is too dangerous to
     // leave in given the complexity of the AI. Replace it with
     // something that logs an error and then ends the AI's turn,
     // maybe also showing a message to the player.
     FATAL( "failed to run AI move: unit={}, cmd={}",
            debug_string( as_const( ss.units ), id ), cmd );
+#endif
     ss.units.unit_for( id ).forfeight_mv_points();
     co_return;
   }
