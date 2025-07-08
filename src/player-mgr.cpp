@@ -10,6 +10,11 @@
 *****************************************************************/
 #include "player-mgr.hpp"
 
+// Revolution Now
+#include "agents.hpp"
+#include "ieuro-agent.hpp"
+#include "ts.hpp"
+
 // ss
 #include "ss/nation.hpp"
 #include "ss/natives.hpp"
@@ -60,7 +65,7 @@ void populate_for_REF( SS& ss, Player& player ) {
 /****************************************************************
 ** Public API.
 *****************************************************************/
-Player& add_new_player( SS& ss, e_player const type ) {
+Player& add_new_player( SS& ss, TS& ts, e_player const type ) {
   CHECK( !ss.players.players[type].has_value() );
   CHECK( !ss.terrain.refl().player_terrain[type].has_value() );
   Player& p = ss.players.players[type].emplace();
@@ -77,12 +82,20 @@ Player& add_new_player( SS& ss, e_player const type ) {
 
   if( is_ref( type ) ) populate_for_REF( ss, p );
 
+  // This is slightly hacky, but should be ok... we only update
+  // the agent for this player if there isn't already an agent
+  // for the player, otherwise this would break unit tests where
+  // the agents are all set to the mock agent up front.
+  if( !ts.euro_agents().map().contains( type ) )
+    ts.euro_agents().update(
+        type, create_euro_agent( ss, ts.planes, ts.gui, type ) );
   return p;
 }
 
-Player& get_or_add_player( SS& ss, e_player const type ) {
+Player& get_or_add_player( SS& ss, TS& ts,
+                           e_player const type ) {
   if( !ss.players.players[type].has_value() )
-    return add_new_player( ss, type );
+    return add_new_player( ss, ts, type );
   return *ss.players.players[type];
 }
 
@@ -101,8 +114,8 @@ OldWorldState& old_world_state( SS& ss, e_player const type ) {
 namespace {
 
 LUA_FN( add_new_player, Player&, e_player const player_type ) {
-  SS& ss = st["SS"].as<SS&>();
-  return add_new_player( ss, player_type );
+  return add_new_player( st["SS"].as<SS&>(), st["TS"].as<TS&>(),
+                         player_type );
 }
 
 } // namespace

@@ -16,12 +16,14 @@
 namespace rn {
 
 struct IEngine;
+struct IGui;
 struct Planes;
 struct SSConst;
 struct Player;
 
 wait<> show_continental_congress_report( IEngine& engine,
                                          SSConst const& ss,
+                                         IGui& gui,
                                          Player const& player,
                                          Planes& planes );
 

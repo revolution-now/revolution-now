@@ -14,6 +14,7 @@
 #include "co-wait.hpp"
 #include "fathers.hpp"
 #include "iengine.hpp"
+#include "igui.hpp"
 #include "input.hpp"
 #include "intervention.hpp"
 #include "plane-stack.hpp"
@@ -527,8 +528,16 @@ struct ContinentalCongressReport : public IPlane {
 *****************************************************************/
 wait<> show_continental_congress_report( IEngine& engine,
                                          SSConst const& ss,
+                                         IGui& gui,
                                          Player const& player,
                                          Planes& planes ) {
+  if( is_ref( player.type ) ) {
+    co_await gui.message_box(
+        "The Continental Congress report is not available for "
+        "REF players." );
+    co_return;
+  }
+
   auto owner        = planes.push();
   PlaneGroup& group = owner.group;
   ContinentalCongressReport ccr( engine, ss, player );

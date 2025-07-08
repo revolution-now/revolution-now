@@ -47,35 +47,36 @@ struct ISignalHandler {
   virtual ~ISignalHandler() = default;
 
  public: // Required.
-  virtual bool handle( signal::Foo const& ctx ) = 0;
-
-  virtual wait<int> handle( signal::Bar const& ctx ) = 0;
-
- public: // Optional.
-
-  virtual void handle( signal::RefUnitAdded const& );
-
-  virtual void handle( signal::RebelSentimentChanged const& );
-
-  virtual void handle( signal::ColonyDestroyedByNatives const& );
-
-  virtual void handle(
-      signal::ColonyDestroyedByStarvation const& );
-
-  virtual void handle( signal::ColonySignal const& );
-
-  virtual void handle( signal::ColonySignalTransient const& );
-
-  virtual void handle( signal::ImmigrantArrived const& );
-
   virtual wait<maybe<int>> handle(
       signal::ChooseImmigrant const& ) = 0;
 
-  virtual wait<> handle( signal::PanTile const& ) = 0;
+ public: // Optional.
+  virtual void handle( signal::RefUnitAdded const& ) {}
 
-  virtual void handle( signal::NoSpotForShip const& );
+  virtual void handle( signal::RebelSentimentChanged const& ) {}
 
-  virtual void handle( signal::TreasureArrived const& );
+  virtual void handle(
+      signal::ColonyDestroyedByNatives const& ) {}
+
+  virtual void handle(
+      signal::ColonyDestroyedByStarvation const& ) {}
+
+  virtual void handle( signal::ColonySignal const& ) {}
+
+  virtual void handle( signal::ColonySignalTransient const& ) {}
+
+  virtual void handle( signal::ImmigrantArrived const& ) {}
+
+  virtual void handle( signal::NoSpotForShip const& ) {}
+
+  virtual void handle( signal::TreasureArrived const& ) {}
+
+  virtual void handle( signal::ShipFinishedRepairs const& ) {}
+
+  virtual void handle( signal::PioneerExhaustedTools const& ) {}
+
+  virtual void handle( signal::ForestClearedNearColony const& ) {
+  }
 };
 
 } // namespace rn

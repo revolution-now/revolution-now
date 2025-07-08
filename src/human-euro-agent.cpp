@@ -31,6 +31,8 @@ using namespace std;
 
 namespace rn {
 
+using ::gfx::point;
+
 /****************************************************************
 ** HumanEuroAgent
 *****************************************************************/
@@ -76,16 +78,6 @@ Player const& HumanEuroAgent::player() {
                                    player_type() );
 }
 
-bool HumanEuroAgent::handle( signal::Foo const& ) {
-  // TODO
-  return false;
-}
-
-wait<int> HumanEuroAgent::handle( signal::Bar const& ) {
-  // TODO
-  co_return 0;
-}
-
 void HumanEuroAgent::handle(
     signal::ColonySignalTransient const& ctx ) {
   gui_.transient_message_box( ctx.msg );
@@ -119,8 +111,12 @@ ILandViewPlane& HumanEuroAgent::land_view() const {
   return planes_.get().get_bottom<ILandViewPlane>();
 }
 
-wait<> HumanEuroAgent::handle( signal::PanTile const& ctx ) {
-  co_await land_view().ensure_visible( ctx.tile );
+wait<> HumanEuroAgent::pan_tile( point const tile ) {
+  co_await land_view().ensure_visible( tile );
+}
+
+wait<> HumanEuroAgent::pan_unit( UnitId const unit_id ) {
+  co_await land_view().ensure_visible_unit( unit_id );
 }
 
 wait<string> HumanEuroAgent::name_new_world() {
@@ -164,6 +160,10 @@ HumanEuroAgent::should_explore_ancient_burial_mounds() {
         .no_label       = "Leave them alone.",
         .no_comes_first = false } );
   co_return res;
+}
+
+wait<command> HumanEuroAgent::ask_orders( UnitId const ) {
+  SHOULD_NOT_BE_HERE;
 }
 
 } // namespace rn

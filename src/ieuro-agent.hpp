@@ -14,6 +14,7 @@
 #include "core-config.hpp"
 
 // Revolution Now
+#include "command.rds.hpp"
 #include "iagent.hpp"
 #include "isignal.hpp"
 #include "meet-natives.rds.hpp"
@@ -114,6 +115,12 @@ struct IEuroAgent : IAgent, ISignalHandler {
   virtual wait<std::chrono::microseconds> wait_for(
       std::chrono::milliseconds us ) = 0;
 
+  virtual wait<> pan_tile( gfx::point tile ) = 0;
+
+  virtual wait<> pan_unit( UnitId unit_id ) = 0;
+
+  virtual wait<command> ask_orders( UnitId unit_id ) = 0;
+
  public: // Signals.
   // Non-waitable signal, no message.
   auto signal( NonWaitableSignalContext auto const& ctx ) {
@@ -204,15 +211,15 @@ struct NoopEuroAgent final : IEuroAgent {
   wait<std::chrono::microseconds> wait_for(
       std::chrono::milliseconds us ) override;
 
+  wait<> pan_tile( gfx::point tile ) override;
+
+  wait<> pan_unit( UnitId unit_id ) override;
+
+  wait<command> ask_orders( UnitId unit_id ) override;
+
  public: // ISignalHandler
-  bool handle( signal::Foo const& foo ) override;
-
-  wait<int> handle( signal::Bar const& foo ) override;
-
   wait<maybe<int>> handle(
       signal::ChooseImmigrant const& ) override;
-
-  wait<> handle( signal::PanTile const& ) override;
 
  private:
   SSConst const& ss_;

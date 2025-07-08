@@ -10,8 +10,6 @@
 *****************************************************************/
 #pragma once
 
-#include "core-config.hpp"
-
 // C++ standard library
 #include <memory>
 #include <unordered_map>
@@ -76,6 +74,11 @@ struct EuroAgents {
 
   IEuroAgent& operator[]( e_player player ) const;
 
+  AgentsMap const& map() const;
+
+  void update( e_player const player,
+               std::unique_ptr<IEuroAgent> agent );
+
  private:
   // We don't use enum map here because it has some constraints
   // that don't work with forward-declared enums.
@@ -85,6 +88,11 @@ struct EuroAgents {
 /****************************************************************
 ** Public API.
 *****************************************************************/
+std::unique_ptr<IEuroAgent> create_euro_agent( SS& ss,
+                                               Planes& planes,
+                                               IGui& gui,
+                                               e_player player );
+
 EuroAgents create_euro_agents( SS& ss, Planes& planes,
                                IGui& gui );
 

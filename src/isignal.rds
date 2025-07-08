@@ -57,12 +57,21 @@ struct.ChooseImmigrant {
   types 'std::array<e_unit_type, 3>',
 }
 
-struct.PanTile {
-  tile 'gfx::point',
-}
-
 struct.NoSpotForShip {
   unit_id 'UnitId',
 }
 
 struct.TreasureArrived {}
+
+struct.ShipFinishedRepairs {
+  unit_id 'UnitId',
+}
+
+struct.PioneerExhaustedTools {
+  unit_id 'UnitId',
+}
+
+struct.ForestClearedNearColony {
+  unit_id 'UnitId',
+  colony_id 'ColonyId',
+}

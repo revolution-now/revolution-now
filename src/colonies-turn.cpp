@@ -218,8 +218,7 @@ wait<> evolve_colonies_for_player(
     }
     if( !blocking_messages.empty() )
       // We have some blocking notifications to present.
-      co_await agent.signal(
-          signal::PanTile{ .tile = colony.location } );
+      co_await agent.pan_tile( colony.location );
     bool const zoom_to_colony =
         co_await present_blocking_colony_updates(
             agent, ts.gui, blocking_messages );

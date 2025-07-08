@@ -186,7 +186,7 @@ DeclarationResult declare_independence( SS& ss, TS& ts,
       ref_player_for( player.nation );
   CHECK( ref_player_type != player.type );
   CHECK( !ss.players.players[ref_player_type].has_value() );
-  Player& ref_player = add_new_player( ss, ref_player_type );
+  Player& ref_player = add_new_player( ss, ts, ref_player_type );
   ref_player.control = e_player_control::ai;
 
   // Step: Make sure that there is at least one Man-o-War if

@@ -36,10 +36,7 @@ using Catch::Equals;
 *****************************************************************/
 struct World : testing::World {
   using Base = testing::World;
-  World() : Base() {
-    add_player( e_player::dutch );
-    create_default_map();
-  }
+  World() : Base() { create_default_map(); }
 
   void create_default_map() {
     MapSquare const _ = make_ocean();

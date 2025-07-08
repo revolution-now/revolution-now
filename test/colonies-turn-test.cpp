@@ -150,7 +150,7 @@ TEST_CASE( "[colonies-turn] presents transient updates." ) {
           .returns( ColonyNotificationMessage{
             .msg       = "xxx"s + to_string( colony.id ),
             .transient = true } );
-      agent.EXPECT__handle( PanTile{ .tile = p } );
+      agent.EXPECT__pan_tile( p );
       w.gui()
           .EXPECT__choice(
               Field( &ChoiceConfig::msg,

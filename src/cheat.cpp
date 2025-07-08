@@ -24,6 +24,7 @@
 #include "game-options.hpp"
 #include "icolony-evolve.rds.hpp"
 #include "iengine.hpp"
+#include "ieuro-agent.hpp"
 #include "igui.hpp"
 #include "imap-updater.hpp"
 #include "imenu-server.hpp"
@@ -373,19 +374,25 @@ wait<> cheat_set_player_control( IEngine& engine, SS& ss,
   if( ok == ui::e_ok_cancel::cancel ) co_return;
   auto const selected = get_selected();
 
-  bool change_made = false;
+  enum_map<e_player, bool> changed;
+  bool at_least_one_change = false;
   for( auto& [type, player] : ss.players.players ) {
     if( !player.has_value() ) continue;
     e_player_control const new_value = selected[type];
     e_player_control& value          = player->control;
     if( new_value == value ) continue;
-    change_made = true;
-    value       = new_value;
+    changed[type]       = true;
+    at_least_one_change = true;
+    value               = new_value;
   }
 
-  if( !change_made ) co_return;
+  if( !at_least_one_change ) co_return;
 
-  ts.euro_agents() = create_euro_agents( ss, ts.planes, ts.gui );
+  for( auto const& [type, needs_update] : changed )
+    if( needs_update )
+      ts.euro_agents().update(
+          type,
+          create_euro_agent( ss, ts.planes, ts.gui, type ) );
 
   // We do this because we need to back out beyond the individual
   // nation's turn processor in order to handle this configura-

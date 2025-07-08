@@ -24,6 +24,12 @@ using namespace std;
 
 namespace rn {
 
+namespace {
+
+using ::gfx::point;
+
+}
+
 /****************************************************************
 ** IEuroAgent
 *****************************************************************/
@@ -66,22 +72,14 @@ Player const& NoopEuroAgent::player() {
 
 bool NoopEuroAgent::human() const { return false; }
 
-bool NoopEuroAgent::handle( signal::Foo const& ) {
-  return false;
-}
-
-wait<int> NoopEuroAgent::handle( signal::Bar const& ) {
-  co_return 0;
-}
-
 wait<maybe<int>> NoopEuroAgent::handle(
     signal::ChooseImmigrant const& ) {
   co_return nothing;
 }
 
-wait<> NoopEuroAgent::handle( signal::PanTile const& ) {
-  co_return;
-}
+wait<> NoopEuroAgent::pan_tile( point const ) { co_return; }
+
+wait<> NoopEuroAgent::pan_unit( UnitId const ) { co_return; }
 
 wait<std::string> NoopEuroAgent::name_new_world() {
   co_return "none";
@@ -106,6 +104,10 @@ wait<chrono::microseconds> NoopEuroAgent::wait_for(
 wait<ui::e_confirm>
 NoopEuroAgent::should_explore_ancient_burial_mounds() {
   co_return ui::e_confirm::no;
+}
+
+wait<command> NoopEuroAgent::ask_orders( UnitId const ) {
+  co_return command::forfeight{};
 }
 
 } // namespace rn

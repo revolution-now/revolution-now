@@ -15,8 +15,10 @@
 #include "human-euro-agent.hpp"
 #include "ieuro-agent.hpp"
 #include "inative-agent.hpp"
+#include "ref-ai-agent.hpp"
 
 // ss
+#include "ss/nation.hpp"
 #include "ss/players.rds.hpp"
 #include "ss/ref.hpp"
 
@@ -72,33 +74,45 @@ IEuroAgent& EuroAgents::operator[]( e_player player ) const {
   return *p_agent;
 }
 
+auto EuroAgents::map() const -> AgentsMap const& {
+  return agents_;
+}
+
+void EuroAgents::update( e_player const player,
+                         unique_ptr<IEuroAgent> agent ) {
+  agents_[player] = std::move( agent );
+}
+
 /****************************************************************
 ** Public API.
 *****************************************************************/
+unique_ptr<IEuroAgent> create_euro_agent(
+    SS& ss, Planes& planes, IGui& gui, e_player const player ) {
+  switch( ss.players.players[player]->control ) {
+    case e_player_control::ai: {
+      if( is_ref( player ) )
+        return make_unique<RefAIEuroAgent>( player, ss );
+      else
+        // TODO
+        return make_unique<NoopEuroAgent>( ss.as_const, player );
+    }
+    case e_player_control::human: {
+      return make_unique<HumanEuroAgent>( player, ss, gui,
+                                          planes );
+    }
+    case e_player_control::withdrawn: {
+      return make_unique<NoopEuroAgent>( ss.as_const, player );
+    }
+  }
+}
+
 EuroAgents create_euro_agents( SS& ss, Planes& planes,
                                IGui& gui ) {
   unordered_map<e_player, unique_ptr<IEuroAgent>> holder;
-  for( e_player const player : refl::enum_values<e_player> ) {
-    if( !ss.players.players[player].has_value() ) continue;
-    switch( ss.players.players[player]->control ) {
-      case e_player_control::ai: {
-        // TODO
-        holder[player] =
-            make_unique<NoopEuroAgent>( ss.as_const, player );
-        break;
-      }
-      case e_player_control::human: {
-        holder[player] = make_unique<HumanEuroAgent>(
-            player, ss, gui, planes );
-        break;
-      }
-      case e_player_control::withdrawn: {
-        holder[player] =
-            make_unique<NoopEuroAgent>( ss.as_const, player );
-        break;
-      }
-    }
-  }
+  for( e_player const player : refl::enum_values<e_player> )
+    if( ss.players.players[player].has_value() )
+      holder[player] =
+          create_euro_agent( ss, planes, gui, player );
   return EuroAgents( std::move( holder ) );
 }
 

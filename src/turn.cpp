@@ -541,7 +541,7 @@ wait<> menu_handler( IEngine& engine, SS& ss, TS& ts,
     }
     case e_menu_item::continental_congress: {
       co_await show_continental_congress_report(
-          engine, ss, player, ts.planes );
+          engine, ss, ts.gui, player, ts.planes );
       break;
     }
     case e_menu_item::cheat_explore_entire_map: {
@@ -729,7 +729,7 @@ wait<EndOfTurnResult> end_of_turn( IEngine& engine, SS& ss,
 /****************************************************************
 ** Processing Player Input (During Turn).
 *****************************************************************/
-wait<> process_player_input_normal_mode(
+wait<> process_human_player_input_normal_mode(
     IEngine& engine, UnitId, e_menu_item item, SS& ss, TS& ts,
     Player& player, PlayerTurnState::units& ) {
   // In the future we might need to put logic here that is spe-
@@ -738,7 +738,7 @@ wait<> process_player_input_normal_mode(
   co_await menu_handler( engine, ss, ts, player, item );
 }
 
-wait<> process_player_input_normal_mode(
+wait<> process_human_player_input_normal_mode(
     IEngine& engine, UnitId id, LandViewPlayerInput const& input,
     SS& ss, TS& ts, Player& player,
     PlayerTurnState::units& nat_units ) {
@@ -809,7 +809,7 @@ wait<> process_player_input_normal_mode(
       co_await ts.planes.get()
           .get_bottom<ILandViewPlane>()
           .ensure_visible_unit( id );
-      unique_ptr<CommandHandler> handler =
+      unique_ptr<CommandHandler> const handler =
           command_handler( engine, ss, ts, player, id, cmd );
       CHECK( handler );
 
@@ -837,7 +837,7 @@ wait<> process_player_input_normal_mode(
   }
 }
 
-wait<LandViewPlayerInput> landview_player_input(
+wait<LandViewPlayerInput> landview_human_player_input(
     SS& ss, TS& ts, PlayerTurnState::units& nat_units,
     UnitId id ) {
   LandViewPlayerInput response;
@@ -868,16 +868,74 @@ wait<LandViewPlayerInput> landview_player_input(
   co_return response;
 }
 
-wait<> query_unit_input( IEngine& engine, UnitId id, SS& ss,
-                         TS& ts, Player& player,
+wait<> process_ai_player_input_normal_mode(
+    IEngine& engine, UnitId const id, command const& cmd, SS& ss,
+    TS& ts, Player& player, PlayerTurnState::units& nat_units ) {
+  auto& st = nat_units;
+  auto& q  = st.q;
+  if( cmd.holds<command::wait>() ) {
+    // FIXME: see comment in corresponding block above.
+    CHECK( q.front() == id );
+    q.pop_front();
+    co_return;
+  }
+  if( cmd.holds<command::forfeight>() ) {
+    ss.units.unit_for( id ).forfeight_mv_points();
+    co_return;
+  }
+
+  // FIXME: Animate?
+  co_await ts.planes.get()
+      .get_bottom<ILandViewPlane>()
+      .ensure_visible_unit( id );
+  unique_ptr<CommandHandler> const handler =
+      command_handler( engine, ss, ts, player, id, cmd );
+  CHECK( handler );
+
+  auto run_result = co_await handler->run();
+  if( !run_result.order_was_run ) {
+    // TODO: remove this eventually since it is too dangerous to
+    // leave in given the complexity of the AI. Replace it with
+    // something that logs an error and then ends the AI's turn,
+    // maybe also showing a message to the player.
+    FATAL( "failed to run AI move: unit={}, cmd={}",
+           debug_string( as_const( ss.units ), id ), cmd );
+    ss.units.unit_for( id ).forfeight_mv_points();
+    co_return;
+  }
+
+  // !! The unit may no longer exist at this point, e.g. if
+  // they were disbanded or if they lost a battle to the na-
+  // tives.
+}
+
+wait<> query_unit_input( IEngine& engine, UnitId const id,
+                         SS& ss, TS& ts, Player& player,
+                         IEuroAgent& agent,
                          PlayerTurnState::units& nat_units ) {
-  auto command = co_await co::first(
-      wait_for_menu_selection( ts.planes.get().menu ),
-      landview_player_input( ss, ts, nat_units, id ) );
-  co_await visit( command, [&]( auto const& action ) -> wait<> {
-    co_await process_player_input_normal_mode(
-        engine, id, action, ss, ts, player, nat_units );
-  } );
+  switch( player.control ) {
+    case e_player_control::ai: {
+      command const cmd = co_await agent.ask_orders( id );
+      co_await process_ai_player_input_normal_mode(
+          engine, id, cmd, ss, ts, player, nat_units );
+      break;
+    }
+    case e_player_control::human: {
+      auto command = co_await co::first(
+          wait_for_menu_selection( ts.planes.get().menu ),
+          landview_human_player_input( ss, ts, nat_units, id ) );
+      co_await visit(
+          command, [&]( auto const& action ) -> wait<> {
+            co_await process_human_player_input_normal_mode(
+                engine, id, action, ss, ts, player, nat_units );
+          } );
+      break;
+    }
+    case e_player_control::withdrawn: {
+      SHOULD_NOT_BE_HERE;
+    }
+  }
+
   // A this point we should return because we want to in general
   // allow for the possibility and any action executed above
   // might affect the status of the unit asking for orders, and
@@ -1037,13 +1095,17 @@ wait<bool> advance_unit( IEngine& engine, SS& ss, TS& ts,
         // Unit is in the harbor. We could make it sail back to
         // the new world, but probably best to just let the
         // player decide.
-        co_await ts.gui.message_box(
-            "Our [{}] has finished its repairs in [{}].",
-            unit.desc().name,
-            nation_obj( player.nation ).harbor_city_name );
-        HarborViewer harbor_viewer( engine, ss, ts, player );
-        harbor_viewer.set_selected_unit( unit.id() );
-        co_await harbor_viewer.show();
+        co_await agent.signal(
+            signal::ShipFinishedRepairs{ .unit_id = unit.id() },
+            format(
+                "Our [{}] has finished its repairs in [{}].",
+                unit.desc().name,
+                nation_obj( player.nation ).harbor_city_name ) );
+        if( agent.human() ) {
+          HarborViewer harbor_viewer( engine, ss, ts, player );
+          harbor_viewer.set_selected_unit( unit.id() );
+          co_await harbor_viewer.show();
+        }
         co_return false;
       }
     }
@@ -1061,10 +1123,9 @@ wait<bool> advance_unit( IEngine& engine, SS& ss, TS& ts,
     perform_road_work( ss, ts, unit );
     if( unit.composition()[e_unit_inventory::tools] == 0 ) {
       CHECK( unit.orders().holds<unit_orders::none>() );
-      co_await ts.planes.get()
-          .get_bottom<ILandViewPlane>()
-          .ensure_visible_unit( id );
-      co_await ts.gui.message_box(
+      co_await agent.pan_unit( id );
+      co_await agent.signal(
+          signal::PioneerExhaustedTools{ .unit_id = id },
           "Our pioneer has exhausted all of its tools." );
     }
     co_return ( !unit.orders().holds<unit_orders::road>() );
@@ -1082,14 +1143,16 @@ wait<bool> advance_unit( IEngine& engine, SS& ss, TS& ts,
                   "added to colony's stockpile.",
           ss.colonies.colony_for( yield.colony_id ).name,
           yield.yield_to_add_to_colony );
-      co_await ts.gui.message_box( msg );
+      co_await agent.signal(
+          signal::ForestClearedNearColony{
+            .unit_id = id, .colony_id = yield.colony_id },
+          msg );
     }
     if( unit.composition()[e_unit_inventory::tools] == 0 ) {
       CHECK( unit.orders().holds<unit_orders::none>() );
-      co_await ts.planes.get()
-          .get_bottom<ILandViewPlane>()
-          .ensure_visible_unit( id );
-      co_await ts.gui.message_box(
+      co_await agent.pan_unit( id );
+      co_await agent.signal(
+          signal::PioneerExhaustedTools{ .unit_id = id },
           "Our pioneer has exhausted all of its tools." );
     }
     co_return ( !unit.orders().holds<unit_orders::plow>() );
@@ -1241,7 +1304,7 @@ wait<> move_remaining_units( IEngine& engine, SS& ss, TS& ts,
     // back to this line a few times in this while loop until we
     // get the order for the unit in question (unless the player
     // activates another unit).
-    co_await query_unit_input( engine, id, ss, ts, player,
+    co_await query_unit_input( engine, id, ss, ts, player, agent,
                                nat_units );
     // !! The unit may no longer exist at this point, e.g. if
     // they were disbanded or if they lost a battle to the na-
@@ -1735,8 +1798,9 @@ wait<> nation_turn( IEngine& engine, SS& ss, TS& ts,
                                         player_type, st );
       break;
     case e_player_control::ai:
-      // TODO: Until we have AI.
-      st = PlayerTurnState::finished{};
+      while( !st.holds<PlayerTurnState::finished>() )
+        st = co_await player_turn_iter( engine, ss, ts,
+                                        player_type, st );
       break;
   }
 }

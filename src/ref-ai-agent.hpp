@@ -1,35 +1,29 @@
 /****************************************************************
-**human-euro-agent.hpp
+**ref-ai-agent.hpp
 *
 * Project: Revolution Now
 *
-* Created by dsicilia on 2023-03-31.
+* Created by David P. Sicilia on 2025-07-07.
 *
-* Description: Implementation of IEuroAgent for human players.
+* Description: Implementation of IEuroAgent for AI REF players.
 *
 *****************************************************************/
 #pragma once
-
-#include "core-config.hpp"
 
 // Revolution Now
 #include "ieuro-agent.hpp"
 
 namespace rn {
 
-struct IGui;
-struct ILandViewPlane;
-struct Planes;
 struct SS;
 
 /****************************************************************
-** HumanEuroAgent
+** RefAIEuroAgent
 *****************************************************************/
 // This is an implementation that will consult with a human user
 // via GUI actions or input in order to fulfill the requests.
-struct HumanEuroAgent final : IEuroAgent {
-  HumanEuroAgent( e_player player, SS& ss, IGui& gui,
-                  Planes& planes );
+struct RefAIEuroAgent final : IEuroAgent {
+  RefAIEuroAgent( e_player player, SS& ss );
 
  public: // IAgent.
   wait<> message_box( std::string const& msg ) override;
@@ -37,7 +31,7 @@ struct HumanEuroAgent final : IEuroAgent {
  public: // IEuroAgent.
   Player const& player() override;
 
-  bool human() const override { return true; }
+  bool human() const override;
 
   wait<e_declare_war_on_natives> meet_tribe_ui_sequence(
       MeetTribe const& meet_tribe ) override;
@@ -72,18 +66,12 @@ struct HumanEuroAgent final : IEuroAgent {
 
   wait<command> ask_orders( UnitId unit_id ) override;
 
- public: // Signals.
-  void handle( signal::ColonySignalTransient const& ) override;
-
+ public: // ISignalHandler
   wait<maybe<int>> handle(
       signal::ChooseImmigrant const& ) override;
 
  private:
-  ILandViewPlane& land_view() const;
-
   SS& ss_;
-  IGui& gui_;
-  Planes& planes_;
 };
 
 } // namespace rn
