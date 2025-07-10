@@ -11,9 +11,10 @@
 #include "stack-trace.hpp"
 
 // base
-#include "base/ansi.hpp"
-#include "base/io.hpp"
+#include "ansi.hpp"
+#include "cc-specific.hpp"
 #include "fs.hpp"
+#include "io.hpp"
 #include "logger.hpp"
 
 // C++ standard library
@@ -39,8 +40,9 @@ maybe<function<void()>> g_cleanup_fn;
 #ifdef STACK_TRACE_ON
 maybe<string> extract_fn_name( string const& in ) {
   // Attempts to extract `ccc` from:
-  //   ::aaa::bbb::ccc( ... )
-  static regex const rgx( R"(([a-zA-Z_][a-zA-Z0-9_]*)\()" );
+  //   ::aaa::bbb::ccc<...>( ... )
+  static regex const rgx(
+      R"(([a-zA-Z_][a-zA-Z0-9_]*)(<.*>)?\()" );
   smatch matches;
   if( regex_search( in, matches, rgx ) )
     for( size_t i = 0; i < matches.size(); ++i )
@@ -80,12 +82,16 @@ void print_stack_trace_impl( StackTrace const& backtrace,
     if( !should_include_filepath_in_stacktrace(
             entry.source_file(), options.frames ) )
       continue;
-    auto const fn_name = extract_fn_name( entry.description() );
+    // For clang/libstdc++, most of the time the names are not
+    // mangled, but they are in a few cases for some reason.
+    string const desc_demangled =
+        demangle( entry.description().c_str() );
+    auto const fn_name = extract_fn_name( desc_demangled );
     if( entry.source_file().empty() ) {
       if( entry.description().empty() ) continue;
       fmt::println( "#{:<{}} {}{}{}", frame_idx,
-                    kFrameColumnWidth, kFnColor,
-                    entry.description(), base::ansi::reset );
+                    kFrameColumnWidth, kFnColor, desc_demangled,
+                    base::ansi::reset );
       continue;
     }
     string const path = [&] {
@@ -95,12 +101,12 @@ void print_stack_trace_impl( StackTrace const& backtrace,
         res = entry.source_file();
       return res;
     }();
-    fmt::println(
-        "#{:<{}} {}{}{}, line {}{}{}, in {}{}{}", frame_idx,
-        kFrameColumnWidth, kFileColor, path, base::ansi::reset,
-        kLineColor, entry.source_line(), base::ansi::reset,
-        kFnColor, fn_name.value_or( entry.description() ),
-        base::ansi::reset );
+    fmt::println( "#{:<{}} {}{}{}, line {}{}{}, in {}{}{}",
+                  frame_idx, kFrameColumnWidth, kFileColor, path,
+                  base::ansi::reset, kLineColor,
+                  entry.source_line(), base::ansi::reset,
+                  kFnColor, fn_name.value_or( desc_demangled ),
+                  base::ansi::reset );
     if( !lines_cache.contains( entry.source_file() ) ) {
       vector<string> lines;
       if( !base::read_file_lines( entry.source_file(), lines ) )
