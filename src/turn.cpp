@@ -1733,7 +1733,7 @@ wait<PlayerTurnState> player_turn_iter(
   if( ensure_human_visibility( ss, ts, player ) )
     co_await ts.gui.message_box(
         "Note that the map view has been restored to default "
-        "before resuming the [{}] turn as they are "
+        "before beginning the [{}] turn as they are "
         "human-controlled.",
         config_nation.players[player_type]
             .possessive_pre_declaration );
