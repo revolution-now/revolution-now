@@ -10,6 +10,7 @@
 # ===============================================================
 # ss
 include "ss/colony-id.hpp"
+include "ss/commodity.rds.hpp"
 include "ss/unit-id.hpp"
 include "ss/unit-type.rds.hpp"
 
@@ -74,4 +75,19 @@ struct.PioneerExhaustedTools {
 struct.ForestClearedNearColony {
   unit_id 'UnitId',
   colony_id 'ColonyId',
+}
+
+struct.PriceChange {
+  what 'e_commodity',
+  from 'int',
+  to 'int',
+}
+
+struct.TeaParty {
+  what 'Commodity',
+  colony_id 'ColonyId',
+}
+
+struct.TaxRateWillChange {
+  delta 'int',
 }

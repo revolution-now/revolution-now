@@ -219,7 +219,7 @@ wait<> HarborDockUnits::click_on_unit( UnitId unit_id ) {
   // repositioned accordingly.
   update_units();
   // Will only display something if there is a price change.
-  co_await display_price_change_notification( ts_, player_,
+  co_await display_price_change_notification( player_, agent_,
                                               price_change );
 }
 

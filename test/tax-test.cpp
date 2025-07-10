@@ -15,6 +15,7 @@
 
 // Testing
 #include "test/fake/world.hpp"
+#include "test/mocks/ieuro-agent.hpp"
 #include "test/mocks/igui.hpp"
 #include "test/mocks/irand.hpp"
 
@@ -82,7 +83,7 @@ TEST_CASE( "[tax] try_trade_boycotted_commodity" ) {
     W.old_world( player ).market.commodities[type].boycott =
         true;
     auto const w = try_trade_boycotted_commodity(
-        W.ss(), W.ts(), player, type,
+        W.ss(), W.gui(), player, type,
         /*back_taxes=*/33 );
     BASE_CHECK( !w.exception() );
     BASE_CHECK( w.ready() );
@@ -286,7 +287,8 @@ TEST_CASE( "[tax] prompt_for_tax_change_result" ) {
   return;
 #endif
   World W;
-  Player& player = W.default_player();
+  Player& player        = W.default_player();
+  MockIEuroAgent& agent = W.euro_agent();
   TaxChangeProposal proposal;
   TaxChangeResult expected;
 
@@ -296,7 +298,7 @@ TEST_CASE( "[tax] prompt_for_tax_change_result" ) {
 
   auto f = [&] {
     wait<TaxChangeResult> w = prompt_for_tax_change_result(
-        W.ss(), W.ts(), player, proposal );
+        W.ss(), W.rand(), player, W.euro_agent(), proposal );
     CHECK( !w.exception() );
     CHECK( w.ready() );
     return *w;
@@ -310,8 +312,7 @@ TEST_CASE( "[tax] prompt_for_tax_change_result" ) {
     string const expected_msg =
         "The crown has graciously decided to LOWER your tax "
         "rate by [13%].  The tax rate is now [37%].";
-    W.gui()
-        .EXPECT__message_box( expected_msg )
+    agent.EXPECT__message_box( expected_msg )
         .returns( make_wait<>() );
     REQUIRE( f() == expected );
     REQUIRE( W.old_world( player ).taxes.tax_rate == 50 );
@@ -326,8 +327,7 @@ TEST_CASE( "[tax] prompt_for_tax_change_result" ) {
         "rate is now [63%]. We will graciously allow you "
         "to kiss our royal pinky ring.";
     W.rand().EXPECT__between_ints( 1, 3 ).returns( 2 );
-    W.gui()
-        .EXPECT__message_box( expected_msg )
+    agent.EXPECT__message_box( expected_msg )
         .returns( make_wait<>() );
     REQUIRE( f() == expected );
     REQUIRE( W.old_world( player ).taxes.tax_rate == 50 );
@@ -363,8 +363,10 @@ TEST_CASE( "[tax] prompt_for_tax_change_result" ) {
           .key          = "no",
           .display_name = "Hold '[my colony Cigars party]'!",
         } } };
-    W.gui().EXPECT__choice( config ).returns(
-        make_wait<maybe<string>>( "yes" ) );
+    agent
+        .EXPECT__kiss_pinky_ring( expected_msg, 1,
+                                  e_commodity::cigars, 13 )
+        .returns( ui::e_confirm::yes );
     REQUIRE( f() == expected );
     REQUIRE( W.old_world( player ).taxes.tax_rate == 50 );
   }
@@ -399,8 +401,10 @@ TEST_CASE( "[tax] prompt_for_tax_change_result" ) {
           .key          = "no",
           .display_name = "Hold '[my colony Cigars party]'!",
         } } };
-    W.gui().EXPECT__choice( config ).returns(
-        make_wait<maybe<string>>( "no" ) );
+    agent
+        .EXPECT__kiss_pinky_ring( expected_msg, 1,
+                                  e_commodity::cigars, 13 )
+        .returns( ui::e_confirm::no );
     REQUIRE( f() == expected );
     REQUIRE( W.old_world( player ).taxes.tax_rate == 50 );
   }
@@ -413,7 +417,8 @@ TEST_CASE( "[tax] compute_tax_change" ) {
   TaxUpdateComputation expected;
 
   auto f = [&] {
-    return compute_tax_change( W.ss(), W.ts(), player );
+    return compute_tax_change( W.ss(), W.connectivity(),
+                               W.rand(), player );
   };
 
   W.settings().game_setup_options.difficulty =
@@ -587,7 +592,8 @@ TEST_CASE(
   TaxUpdateComputation expected;
 
   auto f = [&] {
-    return compute_tax_change( W.ss(), W.ts(), player );
+    return compute_tax_change( W.ss(), W.connectivity(),
+                               W.rand(), player );
   };
 
   W.settings().game_setup_options.difficulty =
@@ -655,10 +661,13 @@ TEST_CASE(
 TEST_CASE( "[tax] start_of_turn_tax_check" ) {
   World W;
   W.update_terrain_connectivity();
-  Player& player = W.default_player();
+  Player& player        = W.default_player();
+  MockIEuroAgent& agent = W.euro_agent();
 
   auto f = [&] {
-    return start_of_turn_tax_check( W.ss(), W.ts(), player );
+    return start_of_turn_tax_check( W.ss(), W.rand(),
+                                    W.connectivity(), player,
+                                    W.euro_agent() );
   };
 
   W.settings().game_setup_options.difficulty =
@@ -727,8 +736,10 @@ TEST_CASE( "[tax] start_of_turn_tax_check" ) {
                    .display_name =
                        "Hold '[my colony 2 Trade Goods party]'!",
                  } } };
-  W.gui().EXPECT__choice( config ).returns(
-      make_wait<maybe<string>>( "no" ) );
+  agent
+      .EXPECT__kiss_pinky_ring( expected_msg, 2,
+                                e_commodity::trade_goods, 3 )
+      .returns( ui::e_confirm::no );
   REQUIRE( W.old_world( player ).taxes.tax_rate == 72 );
 
   string const boycott_msg =
@@ -738,9 +749,7 @@ TEST_CASE( "[tax] start_of_turn_tax_check" ) {
       "Dutch Parliament announces boycott of trade goods.  "
       "Trade Goods cannot be traded in Amsterdam until boycott "
       "is lifted.";
-  W.gui()
-      .EXPECT__message_box( boycott_msg )
-      .returns( make_wait<>() );
+  agent.EXPECT__message_box( boycott_msg );
 
   wait<> w = f();
   REQUIRE( !w.exception() );
@@ -762,7 +771,8 @@ TEST_CASE( "[tax] compute_tax_change when over max" ) {
   TaxUpdateComputation expected;
 
   auto f = [&] {
-    return compute_tax_change( W.ss(), W.ts(), player );
+    return compute_tax_change( W.ss(), W.connectivity(),
+                               W.rand(), player );
   };
 
   W.settings().game_setup_options.difficulty =

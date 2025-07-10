@@ -13,6 +13,7 @@
 // Revolution Now
 #include "capture-cargo.hpp"
 #include "co-wait.hpp"
+#include "commodity.hpp"
 #include "igui.hpp"
 #include "land-view.hpp"
 #include "meet-natives.hpp"
@@ -23,8 +24,9 @@
 #include "config/unit-type.hpp"
 
 // ss
-#include "players.hpp"
+#include "ss/colonies.hpp"
 #include "ss/player.hpp"
+#include "ss/players.hpp"
 #include "ss/ref.hpp"
 
 using namespace std;
@@ -164,6 +166,22 @@ HumanEuroAgent::should_explore_ancient_burial_mounds() {
 
 wait<command> HumanEuroAgent::ask_orders( UnitId const ) {
   SHOULD_NOT_BE_HERE;
+}
+
+wait<ui::e_confirm> HumanEuroAgent::kiss_pinky_ring(
+    string const& msg, ColonyId const colony_id,
+    e_commodity const type, int const /*tax_increase*/ ) {
+  string const party =
+      fmt::format( "Hold '[{} {} party]'!",
+                   ss_.colonies.colony_for( colony_id ).name,
+                   uppercase_commodity_display_name( type ) );
+  YesNoConfig const config{
+    .msg            = msg,
+    .yes_label      = "Kiss pinky ring.",
+    .no_label       = party,
+    .no_comes_first = false,
+  };
+  co_return co_await gui_.required_yes_no( config );
 }
 
 } // namespace rn

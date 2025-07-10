@@ -72,6 +72,10 @@ struct HumanEuroAgent final : IEuroAgent {
 
   wait<command> ask_orders( UnitId unit_id ) override;
 
+  wait<ui::e_confirm> kiss_pinky_ring(
+      std::string const& msg, ColonyId colony_id,
+      e_commodity type, int tax_increase ) override;
+
  public: // Signals.
   void handle( signal::ColonySignalTransient const& ) override;
 

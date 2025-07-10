@@ -155,7 +155,7 @@ wait<> HarborMarketCommodities::unload_one() {
     int const back_tax = back_tax_for_boycotted_commodity(
         ss_, player_, unloadable.comm.type );
     unloadable.boycott = co_await try_trade_boycotted_commodity(
-        ss_, ts_, player_, unloadable.comm.type, back_tax );
+        ss_, ts_.gui, player_, unloadable.comm.type, back_tax );
   }
   if( !unloadable.boycott )
     co_await unload_impl( *unit_id, unloadable.comm,
@@ -298,7 +298,7 @@ wait<> HarborMarketCommodities::sell(
   send_invoice_msg_to_status_bar( invoice );
   if( invoice.price_change.delta != 0 )
     co_await display_price_change_notification(
-        ts_, player_, invoice.price_change );
+        player_, agent_, invoice.price_change );
 }
 
 bool HarborMarketCommodities::try_drag(
@@ -354,7 +354,7 @@ HarborMarketCommodities::check_boycott( e_commodity type ) {
   int const back_tax =
       back_tax_for_boycotted_commodity( ss_, player_, type );
   co_return co_await try_trade_boycotted_commodity(
-      ss_, ts_, player_, type, back_tax );
+      ss_, ts_.gui, player_, type, back_tax );
 }
 
 wait<base::valid_or<DragRejection>>
@@ -412,7 +412,7 @@ wait<> HarborMarketCommodities::post_successful_source(
   send_invoice_msg_to_status_bar( dragging_->invoice );
   if( dragging_->invoice.price_change.delta != 0 )
     co_await display_price_change_notification(
-        ts_, player_, dragging_->invoice.price_change );
+        player_, agent_, dragging_->invoice.price_change );
 }
 
 maybe<CanReceiveDraggable<HarborDraggableObject>>

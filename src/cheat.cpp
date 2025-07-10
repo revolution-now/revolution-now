@@ -787,7 +787,7 @@ wait<> cheat_evolve_market_prices( SS& ss, TS& ts,
   for( e_commodity comm : enum_values<e_commodity> )
     if( changes[comm].delta != 0 )
       co_await display_price_change_notification(
-          ts, player, changes[comm] );
+          player, ts.euro_agents()[player.type], changes[comm] );
 }
 
 void cheat_toggle_boycott( SS& ss, Player& player,

@@ -1619,7 +1619,8 @@ wait<> post_colonies_colonial_only( SS& ss, TS& ts,
 // Here we do things that must be done once at the start of each
 // nation's turn but where the player can't save the game until
 // they are complete.
-wait<> player_start_of_turn( SS& ss, TS& ts, Player& player ) {
+wait<> player_start_of_turn( SS& ss, TS& ts, Player& player,
+                             IEuroAgent& agent ) {
   recompute_fog_for_all_players( ss, ts );
 
   // Unsentry any units that are directly on the map and which
@@ -1646,13 +1647,14 @@ wait<> player_start_of_turn( SS& ss, TS& ts, Player& player ) {
       for( e_commodity comm : refl::enum_values<e_commodity> )
         if( changes[comm].delta != 0 )
           co_await display_price_change_notification(
-              ts, player, changes[comm] );
+              player, agent, changes[comm] );
     }
   }
 
   if( !is_ref( player.type ) )
     // Check for tax events (typically increases).
-    co_await start_of_turn_tax_check( ss, ts, player );
+    co_await start_of_turn_tax_check(
+        ss, ts.rand, ts.connectivity, player, agent );
 
   // TODO:
   //
@@ -1740,7 +1742,7 @@ wait<PlayerTurnState> player_turn_iter(
     CASE( not_started ) {
       base::print_bar( '-',
                        fmt::format( "[ {} ]", player_type ) );
-      co_await player_start_of_turn( ss, ts, player );
+      co_await player_start_of_turn( ss, ts, player, agent );
       // Colonies.
       co_await colonies_turn( engine, ss, ts, player );
       co_await post_colonies_common( ss, ts, player );

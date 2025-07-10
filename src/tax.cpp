@@ -15,11 +15,12 @@
 #include "co-wait.hpp"
 #include "commodity.hpp"
 #include "connectivity.hpp"
+#include "ieuro-agent.hpp"
 #include "igui.hpp"
 #include "irand.hpp"
+#include "isignal.rds.hpp"
 #include "market.hpp"
 #include "player-mgr.hpp"
-#include "ts.hpp"
 
 // config
 #include "config/commodity.rds.hpp"
@@ -42,16 +43,16 @@ namespace {
 
 using ::base::NoDiscard;
 
-int rand_int_range( TS& ts, auto const& int_range ) {
+int rand_int_range( IRand& rand, auto const& int_range ) {
   int const min = int_range.min;
   int const max = int_range.max;
-  return ts.rand.between_ints( min, max );
+  return rand.between_ints( min, max );
 }
 
-double rand_dbl_range( TS& ts, auto const& dbl_range ) {
+double rand_dbl_range( IRand& rand, auto const& dbl_range ) {
   double const min = dbl_range.min;
   double const max = dbl_range.max;
-  return ts.rand.between_doubles( min, max );
+  return rand.between_doubles( min, max );
 }
 
 string ordinal_for( int n ) {
@@ -74,7 +75,8 @@ string ordinal_for( int n ) {
 // that isn't already boycotted, but only from colonies that have
 // ocean access.
 maybe<CommodityInColony> find_what_to_boycott(
-    SSConst const& ss, TS& ts, Player const& player ) {
+    SSConst const& ss, TerrainConnectivity const& connectivity,
+    Player const& player ) {
   refl::enum_map<e_commodity, /*bid=*/int> prices;
   for( auto& [comm, bid] : prices )
     bid = market_price( ss, player, comm ).bid;
@@ -84,7 +86,7 @@ maybe<CommodityInColony> find_what_to_boycott(
   int largest_value = 0;
   for( ColonyId const colony_id : player_colonies ) {
     Colony const& colony = ss.colonies.colony_for( colony_id );
-    if( !colony_has_ocean_access( ss, ts.connectivity,
+    if( !colony_has_ocean_access( ss, connectivity,
                                   colony.location ) )
       // In the OG, only colonies that have ocean (sea lane) ac-
       // cess can boycott, because boycotting entails "throwing
@@ -114,8 +116,8 @@ maybe<CommodityInColony> find_what_to_boycott(
   return res;
 }
 
-wait<> boycott_msg( SSConst const& ss, TS& ts,
-                    Player const& player,
+wait<> boycott_msg( SSConst const& ss, Player const& player,
+                    IEuroAgent& agent,
                     TaxChangeResult::party const& party ) {
   string_view const colony_name =
       ss.colonies.colony_for( party.how.commodity.colony_id )
@@ -146,15 +148,19 @@ wait<> boycott_msg( SSConst const& ss, TS& ts,
       lower_commodity_name, country_possessive,
       lower_commodity_name, upper_commodity_name,
       harbor_city_name );
-  co_await ts.gui.message_box( msg );
+  co_await agent.signal(
+      signal::TeaParty{
+        .what      = party.how.commodity.type_and_quantity,
+        .colony_id = party.how.commodity.colony_id },
+      msg );
 }
 
-int remarry( SS& ss, TS& ts, Player& player ) {
+int remarry( SS& ss, IRand& rand, Player& player ) {
   int const curr_wife = old_world_state( ss, player.type )
                             .taxes.king_remarriage_count +
                         config_old_world.min_king_wife_number;
   int const remarriages_since_last_tax_event =
-      ts.rand.between_ints( 1, 3 );
+      rand.between_ints( 1, 3 );
   int const new_wife =
       curr_wife + remarriages_since_last_tax_event;
   old_world_state( ss, player.type )
@@ -168,9 +174,9 @@ int remarry( SS& ss, TS& ts, Player& player ) {
 /****************************************************************
 ** Public API
 *****************************************************************/
-TaxUpdateComputation compute_tax_change( SSConst const& ss,
-                                         TS& ts,
-                                         Player const& player ) {
+TaxUpdateComputation compute_tax_change(
+    SSConst const& ss, TerrainConnectivity const& connectivity,
+    IRand& rand, Player const& player ) {
   TaxationState const& state =
       old_world_state( ss, player.type ).taxes;
   int const turn = ss.turn.time_point.turns;
@@ -185,7 +191,7 @@ TaxUpdateComputation compute_tax_change( SSConst const& ss,
   int const next =
       turn +
       rand_int_range(
-          ts, tax_config.turns_between_tax_change_events );
+          rand, tax_config.turns_between_tax_change_events );
   // The next tax event turn is at or behind us, and so whatever
   // happens we need to advance it.
   update.next_tax_event_turn = next;
@@ -204,11 +210,11 @@ TaxUpdateComputation compute_tax_change( SSConst const& ss,
   // We have a tax event this turn. Whatever happens, we will
   // need an amount.
   int const amount =
-      rand_int_range( ts, tax_config.tax_rate_change );
+      rand_int_range( rand, tax_config.tax_rate_change );
   // Next determine whether it's an increase or decrease, since
   // if it's the latter then our job is easy.
   bool const increase =
-      ts.rand.bernoulli( tax_config.tax_increase.probability );
+      rand.bernoulli( tax_config.tax_increase.probability );
   int const curr_tax =
       old_world_state( ss, player.type ).taxes.tax_rate;
   if( !increase ) {
@@ -228,7 +234,7 @@ TaxUpdateComputation compute_tax_change( SSConst const& ss,
   int const clamped_amount = new_tax_rate - curr_tax;
   CHECK_GE( clamped_amount, 0 );
   maybe<CommodityInColony> const boycott =
-      find_what_to_boycott( ss, ts, player );
+      find_what_to_boycott( ss, connectivity, player );
   if( !boycott.has_value() ) {
     // It's pretty rare that this happens: a tax increase is hap-
     // pening but there are either no colonies or there are no
@@ -241,7 +247,7 @@ TaxUpdateComputation compute_tax_change( SSConst const& ss,
   }
   CHECK( boycott.has_value() );
   double const rebels_bump = rand_dbl_range(
-      ts, config_old_world.boycotts.rebels_bump_after_party );
+      rand, config_old_world.boycotts.rebels_bump_after_party );
   TeaParty const party = { .commodity   = *boycott,
                            .rebels_bump = rebels_bump };
   update.proposed_tax_change =
@@ -251,8 +257,8 @@ TaxUpdateComputation compute_tax_change( SSConst const& ss,
 }
 
 wait<TaxChangeResult> prompt_for_tax_change_result(
-    SS& ss, TS& ts, Player& player_non_const,
-    TaxChangeProposal const& proposal ) {
+    SS& ss, IRand& rand, Player& player_non_const,
+    IEuroAgent& agent, TaxChangeProposal const& proposal ) {
   Player const& player = player_non_const;
   static string_view const constexpr increase_msg =
       "In honor of our marriage to our {}{} wife, we have "
@@ -264,44 +270,39 @@ wait<TaxChangeResult> prompt_for_tax_change_result(
       co_return TaxChangeResult::none{};
     case TaxChangeProposal::e::increase: {
       auto& o = proposal.get<TaxChangeProposal::increase>();
-      int const new_wife = remarry( ss, ts, player_non_const );
+      int const new_wife = remarry( ss, rand, player_non_const );
       string const msg   = fmt::format(
           increase_msg, new_wife, ordinal_for( new_wife ),
           o.amount,
           old_world_state( ss, player.type ).taxes.tax_rate +
               o.amount );
-      co_await ts.gui.message_box( msg );
+      co_await agent.signal(
+          signal::TaxRateWillChange{ .delta = o.amount }, msg );
       co_return TaxChangeResult::tax_change{ .amount =
                                                  o.amount };
     }
     case TaxChangeProposal::e::increase_or_party: {
       auto& o =
           proposal.get<TaxChangeProposal::increase_or_party>();
-      int const new_wife = remarry( ss, ts, player_non_const );
+      int const new_wife = remarry( ss, rand, player_non_const );
       string const msg   = fmt::format(
           increase_msg, new_wife, ordinal_for( new_wife ),
           o.amount,
           old_world_state( ss, player.type ).taxes.tax_rate +
               o.amount );
-      string const party = fmt::format(
-          "Hold '[{} {} party]'!",
-          ss.colonies.colony_for( o.party.commodity.colony_id )
-              .name,
-          uppercase_commodity_display_name(
-              o.party.commodity.type_and_quantity.type ) );
-      YesNoConfig const config{
-        .msg            = msg,
-        .yes_label      = "Kiss pinky ring.",
-        .no_label       = party,
-        .no_comes_first = false,
-      };
       ui::e_confirm const answer =
-          co_await ts.gui.required_yes_no( config );
+          co_await agent.kiss_pinky_ring(
+              msg, o.party.commodity.colony_id,
+              o.party.commodity.type_and_quantity.type,
+              o.amount );
       switch( answer ) {
         case ui::e_confirm::yes:
+          agent.signal(
+              signal::TaxRateWillChange{ .delta = o.amount } );
           co_return TaxChangeResult::tax_change{ .amount =
                                                      o.amount };
         case ui::e_confirm::no:
+          // A signal is sent for this later.
           co_return TaxChangeResult::party{ .how = o.party };
       }
       FATAL( "unexpected value for e_confirm enum: {}",
@@ -316,7 +317,8 @@ wait<TaxChangeResult> prompt_for_tax_change_result(
           decrease_msg, o.amount,
           old_world_state( ss, player.type ).taxes.tax_rate -
               o.amount );
-      co_await ts.gui.message_box( msg );
+      co_await agent.signal(
+          signal::TaxRateWillChange{ .delta = -o.amount }, msg );
       co_return TaxChangeResult::tax_change{ .amount =
                                                  -o.amount };
     }
@@ -369,21 +371,22 @@ void apply_tax_result( SS& ss, Player& player,
   }
 }
 
-wait<> start_of_turn_tax_check( SS& ss, TS& ts,
-                                Player& player ) {
+wait<> start_of_turn_tax_check(
+    SS& ss, IRand& rand, TerrainConnectivity const& connectivity,
+    Player& player, IEuroAgent& agent ) {
   TaxUpdateComputation const update =
-      compute_tax_change( ss, ts, player );
+      compute_tax_change( ss, connectivity, rand, player );
   CHECK_GT( update.next_tax_event_turn,
             ss.turn.time_point.turns );
   // We have a tax increase or decrease.
   TaxChangeResult const result =
       co_await prompt_for_tax_change_result(
-          ss, ts, player, update.proposed_tax_change );
+          ss, rand, player, agent, update.proposed_tax_change );
   apply_tax_result( ss, player, update.next_tax_event_turn,
                     result );
   if( auto party = result.get_if<TaxChangeResult::party>();
       party.has_value() )
-    co_await boycott_msg( ss, ts, player, *party );
+    co_await boycott_msg( ss, player, agent, *party );
 }
 
 int back_tax_for_boycotted_commodity( SSConst const& ss,
@@ -393,8 +396,10 @@ int back_tax_for_boycotted_commodity( SSConst const& ss,
          config_old_world.boycotts.back_taxes_ask_multiplier;
 }
 
+// This one is only called by human players in the harbor view,
+// so can use the IGui interface.
 wait<NoDiscard<bool>> try_trade_boycotted_commodity(
-    SS& ss, TS& ts, Player& player, e_commodity type,
+    SS& ss, IGui& gui, Player& player, e_commodity type,
     int back_taxes ) {
   bool& boycott = old_world_state( ss, player.type )
                       .market.commodities[type]
@@ -411,7 +416,7 @@ wait<NoDiscard<bool>> try_trade_boycotted_commodity(
       lowercase_commodity_display_name( type ), back_taxes );
   if( player.money < back_taxes ) {
     // Player can't afford it.
-    co_await ts.gui.message_box(
+    co_await gui.message_box(
         msg + fmt::format( " Treasury: {}.", player.money ) );
     co_return boycott;
   }
@@ -422,7 +427,7 @@ wait<NoDiscard<bool>> try_trade_boycotted_commodity(
     .no_comes_first = true,
   };
   ui::e_confirm const answer =
-      co_await ts.gui.required_yes_no( config );
+      co_await gui.required_yes_no( config );
   switch( answer ) {
     case ui::e_confirm::yes:
       // Lift the boycott.

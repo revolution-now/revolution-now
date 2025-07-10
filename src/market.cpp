@@ -17,7 +17,6 @@
 #include "ieuro-agent.hpp"
 #include "player-mgr.hpp"
 #include "price-group.hpp"
-#include "ts.hpp"
 
 // config
 #include "config/market.rds.hpp"
@@ -525,7 +524,8 @@ void apply_invoice( SS& ss, Player& player,
 }
 
 wait<> display_price_change_notification(
-    TS& ts, Player const& player, PriceChange const& change ) {
+    Player const& player, IEuroAgent& agent,
+    PriceChange const& change ) {
   if( change.from == change.to ) co_return;
   string const harbor_name =
       nation_obj( player.nation ).harbor_city_name;
@@ -538,7 +538,11 @@ wait<> display_price_change_notification(
       "The price of [{}] in {} has {} to {}.",
       lowercase_commodity_display_name( change.type ),
       harbor_name, verb, prices.bid );
-  co_await ts.euro_agents()[player.type].message_box( msg );
+  co_await agent.signal(
+      signal::PriceChange{ .what = change.type,
+                           .from = change.from.bid,
+                           .to   = change.to.bid },
+      msg );
 }
 
 bool is_in_processed_goods_price_group( e_commodity type ) {

@@ -112,8 +112,8 @@ TEST_CASE( "[market] display_price_change_notification" ) {
   W.set_current_bid_price( e_commodity::ore, 10 );
 
   auto f = [&] {
-    return display_price_change_notification( W.ts(), player,
-                                              change );
+    return display_price_change_notification(
+        player, W.euro_agent(), change );
   };
 
   change = {};
@@ -125,8 +125,7 @@ TEST_CASE( "[market] display_price_change_notification" ) {
                                 e_commodity::ore, 3 );
   W.euro_agent( player.type )
       .EXPECT__message_box(
-          "The price of [ore] in La "
-          "Rochelle has risen to 13." )
+          "The price of [ore] in La Rochelle has risen to 13." )
       .returns( make_wait<>() );
   w = f();
   REQUIRE_FALSE( w.exception() );
@@ -136,8 +135,7 @@ TEST_CASE( "[market] display_price_change_notification" ) {
                                 e_commodity::ore, -1 );
   W.euro_agent( player.type )
       .EXPECT__message_box(
-          "The price of [ore] in La "
-          "Rochelle has fallen to 9." )
+          "The price of [ore] in La Rochelle has fallen to 9." )
       .returns( make_wait<>() );
   w = f();
   REQUIRE_FALSE( w.exception() );

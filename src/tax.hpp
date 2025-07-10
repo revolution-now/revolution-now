@@ -23,25 +23,28 @@
 
 namespace rn {
 
+struct IEuroAgent;
+struct IGui;
+struct IRand;
 struct Player;
 struct SS;
 struct SSConst;
-struct TS;
+struct TerrainConnectivity;
 
 // Computes any changes that need to be made to the player's tax
 // state and if there is a tax event this turn. If there is a tax
 // event it will provide all of the precomputed results of it for
 // each choice that the player makes.
-TaxUpdateComputation compute_tax_change( SSConst const& ss,
-                                         TS& ts,
-                                         Player const& player );
+TaxUpdateComputation compute_tax_change(
+    SSConst const& ss, TerrainConnectivity const& connectivity,
+    IRand& rand, Player const& player );
 
 // This function will take a tax change proposal (which gives
 // possible outcomes) and translate it to a final result that in-
 // dicates the changes that actually need to be made, and in gen-
 // eral this requires UI routines and player input.
 wait<TaxChangeResult> prompt_for_tax_change_result(
-    SS& ss, TS& ts, Player& player,
+    SS& ss, IRand& rand, Player& player, IEuroAgent& agent,
     TaxChangeProposal const& proposal );
 
 // Takes the TaxChangeResult object and applies any changes
@@ -53,7 +56,9 @@ void apply_tax_result( SS& ss, Player& player,
 // This runs through the entire routine for a human player:
 // checks for tax events, possibly prompts the player, and then
 // makes any changes if necessary.
-wait<> start_of_turn_tax_check( SS& ss, TS& ts, Player& player );
+wait<> start_of_turn_tax_check(
+    SS& ss, IRand& rand, TerrainConnectivity const& connectivity,
+    Player& player, IEuroAgent& agent );
 
 // If this commodity were currently boycotted then how much back-
 // taxes would the player have to pay to remove it?
@@ -68,7 +73,7 @@ int back_tax_for_boycotted_commodity( SSConst const& ss,
 // check-fail. Returns the new boycott status (for convenience;
 // if the status changed, the state will have been updated).
 wait<base::NoDiscard<bool>> try_trade_boycotted_commodity(
-    SS& ss, TS& ts, Player& player, e_commodity type,
+    SS& ss, IGui& gui, Player& player, e_commodity type,
     int back_taxes );
 
 } // namespace rn

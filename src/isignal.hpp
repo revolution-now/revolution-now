@@ -77,6 +77,12 @@ struct ISignalHandler {
 
   virtual void handle( signal::ForestClearedNearColony const& ) {
   }
+
+  virtual void handle( signal::PriceChange const& ) {}
+
+  virtual void handle( signal::TeaParty const& ) {}
+
+  virtual void handle( signal::TaxRateWillChange const& ) {}
 };
 
 } // namespace rn

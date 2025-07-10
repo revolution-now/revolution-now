@@ -26,10 +26,10 @@
 
 namespace rn {
 
+struct IEuroAgent;
 struct Player;
 struct SS;
 struct SSConst;
-struct TS;
 
 /****************************************************************
 ** Public API
@@ -64,7 +64,8 @@ void apply_invoice( SS& ss, Player& player,
 // Just displays a message saying how and in which country the
 // eprice changed.
 wait<> display_price_change_notification(
-    TS& ts, Player const& player, PriceChange const& change );
+    Player const& player, IEuroAgent& agent,
+    PriceChange const& change );
 
 // This will evolve non-price market state for the commodities
 // that are in price gruops. This is done once at the start of

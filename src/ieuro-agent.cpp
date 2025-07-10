@@ -110,4 +110,9 @@ wait<command> NoopEuroAgent::ask_orders( UnitId const ) {
   co_return command::forfeight{};
 }
 
+wait<ui::e_confirm> NoopEuroAgent::kiss_pinky_ring(
+    string const&, ColonyId, e_commodity, int const ) {
+  co_return ui::e_confirm::yes;
+}
+
 } // namespace rn

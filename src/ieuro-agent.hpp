@@ -121,6 +121,10 @@ struct IEuroAgent : IAgent, ISignalHandler {
 
   virtual wait<command> ask_orders( UnitId unit_id ) = 0;
 
+  virtual wait<ui::e_confirm> kiss_pinky_ring(
+      std::string const& msg, ColonyId colony_id,
+      e_commodity type, int tax_increase ) = 0;
+
  public: // Signals.
   // Non-waitable signal, no message.
   auto signal( NonWaitableSignalContext auto const& ctx ) {
@@ -216,6 +220,10 @@ struct NoopEuroAgent final : IEuroAgent {
   wait<> pan_unit( UnitId unit_id ) override;
 
   wait<command> ask_orders( UnitId unit_id ) override;
+
+  wait<ui::e_confirm> kiss_pinky_ring(
+      std::string const& msg, ColonyId colony_id,
+      e_commodity type, int tax_increase ) override;
 
  public: // ISignalHandler
   wait<maybe<int>> handle(
