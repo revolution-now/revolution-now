@@ -460,7 +460,7 @@ void World::add_commodity_in_cargo( e_commodity type,
 }
 
 Player& World::add_player( e_player const player_type ) {
-  add_new_player( ss(), ts(), player_type );
+  add_new_player( ss(), player_type );
   return player( player_type );
 }
 

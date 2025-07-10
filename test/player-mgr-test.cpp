@@ -72,7 +72,7 @@ TEST_CASE( "[player-mgr] add_new_player" ) {
   REQUIRE( !w.terrain().player_terrain( ref_spanish ) );
   REQUIRE( !w.terrain().player_terrain( ref_dutch ) );
 
-  add_new_player( w.ss(), w.ts(), spanish );
+  add_new_player( w.ss(), spanish );
 
   REQUIRE( !w.players().players[english] );
   REQUIRE( !w.players().players[french] );
@@ -96,7 +96,7 @@ TEST_CASE( "[player-mgr] add_new_player" ) {
   REQUIRE( w.players().players[spanish]->nation ==
            e_nation::spanish );
 
-  add_new_player( w.ss(), w.ts(), ref_english );
+  add_new_player( w.ss(), ref_english );
 
   REQUIRE( !w.players().players[english] );
   REQUIRE( !w.players().players[french] );
@@ -148,7 +148,7 @@ TEST_CASE( "[player-mgr] get_or_add_player" ) {
   REQUIRE( !w.terrain().player_terrain( ref_spanish ) );
   REQUIRE( !w.terrain().player_terrain( ref_dutch ) );
 
-  get_or_add_player( w.ss(), w.ts(), spanish );
+  get_or_add_player( w.ss(), spanish );
 
   REQUIRE( !w.players().players[english] );
   REQUIRE( !w.players().players[french] );
@@ -175,7 +175,7 @@ TEST_CASE( "[player-mgr] get_or_add_player" ) {
 
   w.players().players[spanish]->money = 1;
 
-  get_or_add_player( w.ss(), w.ts(), spanish );
+  get_or_add_player( w.ss(), spanish );
 
   REQUIRE( !w.players().players[english] );
   REQUIRE( !w.players().players[french] );

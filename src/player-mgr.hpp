@@ -19,16 +19,15 @@ struct OldWorldState;
 struct Player;
 struct SS;
 struct SSConst;
-struct TS;
 
 enum class e_player;
 
 /****************************************************************
 ** Functions.
 *****************************************************************/
-Player& add_new_player( SS& ss, TS& ts, e_player type );
+Player& add_new_player( SS& ss, e_player type );
 
-Player& get_or_add_player( SS& ss, TS& ts, e_player type );
+Player& get_or_add_player( SS& ss, e_player type );
 
 OldWorldState const& old_world_state( SSConst const& ss,
                                       e_player type );
