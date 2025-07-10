@@ -32,11 +32,13 @@
 #include "revolution-status.hpp"
 #include "road.hpp"
 #include "roles.hpp"
+#include "show-anim.hpp"
 #include "teaching.hpp"
 #include "ts.hpp"
 #include "unit-mgr.hpp"
 #include "unit-ownership.hpp"
 #include "unit-transformation.hpp"
+#include "visibility.hpp"
 
 // config
 #include "config/colony.rds.hpp"
@@ -546,13 +548,17 @@ wait<> run_colony_destruction( SS& ss, TS& ts, Colony& colony,
 wait<> run_animated_colony_destruction(
     SS& ss, TS& ts, Colony& colony, e_ship_damaged_reason reason,
     maybe<string> msg ) {
-  unique_ptr<IVisibility const> const viz =
-      create_visibility_for(
-          ss, player_for_role( ss, e_player_role::viewer ) );
-  AnimationSequence const seq =
-      anim_seq_for_colony_depixelation( ss, *viz, colony.id );
-  co_await ts.planes.get().get_bottom<ILandViewPlane>().animate(
-      seq );
+  if( should_animate_event(
+          ss.as_const,
+          AnimatedOnTile{ .tile = colony.location } ) ) {
+    auto const viz = create_visibility_for(
+        ss, player_for_role( ss, e_player_role::viewer ) );
+    AnimationSequence const seq =
+        anim_seq_for_colony_depixelation( ss, *viz, colony.id );
+    co_await ts.planes.get()
+        .get_bottom<ILandViewPlane>()
+        .animate( seq );
+  }
   co_await run_colony_destruction( ss, ts, colony, reason, msg );
 }
 

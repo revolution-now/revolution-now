@@ -1,0 +1,19 @@
+# ===============================================================
+# show-anim.rds
+#
+# Project: Revolution Now
+#
+# Created by David P. Sicilia on 2025-06-29.
+#
+# Description: Rds definitions for the show-anim module.
+#
+# ===============================================================
+# gfx
+include "gfx/cartesian.hpp"
+
+namespace "rn"
+
+# This is for when all of the action is contained on one tile.
+struct.AnimatedOnTile {
+  tile 'gfx::point',
+}
