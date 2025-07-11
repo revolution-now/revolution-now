@@ -106,8 +106,9 @@ wait<> try_discover_pacific_ocean( SSConst const& ss,
 
 // Returns true if the unit was deleted.
 wait<base::NoDiscard<bool>> try_lost_city_rumor(
-    SS& ss, IMapUpdater& map_updater, IRand& rand,
-    Player& player, IEuroAgent& agent, UnitId id, Coord tile ) {
+    SS& ss, ILandViewPlane& land_view, IMapUpdater& map_updater,
+    IRand& rand, Player& player, IEuroAgent& agent, UnitId id,
+    Coord tile ) {
   // Check if the unit actually moved and it landed on a Lost
   // City Rumor.
   bool const has_lost_city_rumor =
@@ -120,8 +121,9 @@ wait<base::NoDiscard<bool>> try_lost_city_rumor(
   if( rumor.holds<LostCityRumor::fountain_of_youth>() )
     co_await show_woodcut_if_needed(
         player, agent, e_woodcut::discovered_fountain_of_youth );
-  LostCityRumorUnitChange const lcr_res = co_await run_lcr(
-      ss, map_updater, rand, player, agent, unit, tile, rumor );
+  LostCityRumorUnitChange const lcr_res =
+      co_await run_lcr( ss, land_view, map_updater, rand, player,
+                        agent, unit, tile, rumor );
   co_return lcr_res.holds<LostCityRumorUnitChange::unit_lost>();
 }
 
@@ -292,6 +294,8 @@ wait<maybe<UnitDeleted>> UnitOnMapMover::to_map_interactive(
   IEuroAgent& agent        = ts.euro_agents()[player.type];
   IMapUpdater& map_updater = ts.map_updater();
   IRand& rand              = ts.rand;
+  ILandViewPlane& land_view =
+      ts.planes.get().get_bottom<ILandViewPlane>();
 
   if( !player.new_world_name.has_value() )
     co_await try_discover_new_world( ss, player, agent, dst );
@@ -300,8 +304,9 @@ wait<maybe<UnitDeleted>> UnitOnMapMover::to_map_interactive(
     co_await try_discover_pacific_ocean( ss, player, agent,
                                          dst );
 
-  if( co_await try_lost_city_rumor( ss, map_updater, rand,
-                                    player, agent, id, dst ) )
+  if( co_await try_lost_city_rumor( ss, land_view, map_updater,
+                                    rand, player, agent, id,
+                                    dst ) )
     co_return UnitDeleted{};
 
   if( co_await try_king_transport_treasure( ss, player, agent,

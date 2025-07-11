@@ -25,6 +25,7 @@
 #include "land-view.hpp"
 #include "plane-stack.hpp"
 #include "player-mgr.hpp"
+#include "show-anim.hpp"
 #include "ts.hpp"
 #include "unit-mgr.hpp"
 #include "unit-ownership.hpp"
@@ -104,8 +105,8 @@ UnitId create_treasure_train( SS& ss, IMapUpdater& map_updater,
 }
 
 wait<LostCityRumorUnitChange> run_burial_mounds_result(
-    SS& ss, IMapUpdater& map_updater, Player& player,
-    IEuroAgent& agent, Coord world_square,
+    SS& ss, ILandViewPlane& land_view, IMapUpdater& map_updater,
+    Player& player, IEuroAgent& agent, Coord world_square,
     BurialMounds const& mounds, maybe<e_tribe> burial_grounds ) {
   LostCityRumorUnitChange result = {};
   SWITCH( mounds ) {
@@ -123,8 +124,11 @@ wait<LostCityRumorUnitChange> run_burial_mounds_result(
           treasure.gold, config_text.special_chars.currency );
       UnitId const unit_id = create_treasure_train(
           ss, map_updater, player, world_square, treasure.gold );
-      co_await agent.show_animation(
-          anim_seq_for_treasure_enpixelation( ss, unit_id ) );
+      if( should_animate_event(
+              ss.as_const,
+              AnimatedOnTile{ .tile = world_square } ) )
+        co_await land_view.animate(
+            anim_seq_for_treasure_enpixelation( ss, unit_id ) );
       result =
           LostCityRumorUnitChange::unit_created{ .id = unit_id };
       break;
@@ -202,9 +206,9 @@ wait<> run_fountain_of_youth( SS& ss, IRand& rand,
 }
 
 wait<LostCityRumorUnitChange> run_rumor_result(
-    SS& ss, IMapUpdater& map_updater, IRand& rand,
-    Player& player, IEuroAgent& agent, Unit const& unit,
-    Coord tile, LostCityRumor const& rumor ) {
+    SS& ss, ILandViewPlane& land_view, IMapUpdater& map_updater,
+    IRand& rand, Player& player, IEuroAgent& agent,
+    Unit const& unit, Coord tile, LostCityRumor const& rumor ) {
   SWITCH( rumor ) {
     CASE( unit_lost ) {
       // Destroy unit before showing message so that the unit ac-
@@ -221,7 +225,7 @@ wait<LostCityRumorUnitChange> run_rumor_result(
         co_return LostCityRumorUnitChange::other{};
       LostCityRumorUnitChange const result =
           co_await run_burial_mounds_result(
-              ss, map_updater, player, agent, tile,
+              ss, land_view, map_updater, player, agent, tile,
               burial_mounds.mounds,
               burial_mounds.burial_grounds );
       co_return result;
@@ -243,8 +247,10 @@ wait<LostCityRumorUnitChange> run_rumor_result(
           cibola.gold, config_text.special_chars.currency );
       UnitId unit_id = create_treasure_train(
           ss, map_updater, player, tile, cibola.gold );
-      co_await agent.show_animation(
-          anim_seq_for_treasure_enpixelation( ss, unit_id ) );
+      if( should_animate_event(
+              ss.as_const, AnimatedOnTile{ .tile = tile } ) )
+        co_await land_view.animate(
+            anim_seq_for_treasure_enpixelation( ss, unit_id ) );
       co_return LostCityRumorUnitChange::unit_created{
         .id = unit_id };
     }
@@ -506,12 +512,13 @@ LostCityRumor compute_lcr( SSConst const& ss,
 }
 
 wait<LostCityRumorUnitChange> run_lcr(
-    SS& ss, IMapUpdater& map_updater, IRand& rand,
-    Player& player, IEuroAgent& agent, Unit const& unit,
-    Coord world_square, LostCityRumor const& rumor ) {
+    SS& ss, ILandViewPlane& land_view, IMapUpdater& map_updater,
+    IRand& rand, Player& player, IEuroAgent& agent,
+    Unit const& unit, Coord world_square,
+    LostCityRumor const& rumor ) {
   LostCityRumorUnitChange result = co_await run_rumor_result(
-      ss, map_updater, rand, player, agent, unit, world_square,
-      rumor );
+      ss, land_view, map_updater, rand, player, agent, unit,
+      world_square, rumor );
   // Remove lost city rumor.
   map_updater.modify_map_square(
       world_square, []( MapSquare& square ) {

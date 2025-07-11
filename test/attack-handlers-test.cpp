@@ -279,6 +279,8 @@ TEST_CASE(
   W.create_default_map();
   CommandHandlerRunResult expected = { .order_was_run = false };
   CombatEuroAttackEuro combat;
+  MockIEuroAgent& attacker_agent =
+      W.euro_agent( W.kAttackingPlayer );
 
   auto expect_combat = [&] {
     W.combat()
@@ -339,7 +341,10 @@ TEST_CASE(
     W.units()
         .unit_for( combat.attacker.id )
         .consume_mv_points( MovementPoints::_1_3() );
-    W.gui().EXPECT__choice( _ ).returns<maybe<string>>( "no" );
+    attacker_agent
+        .EXPECT__attack_with_partial_movement_points(
+            combat.attacker.id )
+        .returns( ui::e_confirm::no );
     REQUIRE( f() == expected );
   }
 
@@ -349,7 +354,10 @@ TEST_CASE(
     W.units()
         .unit_for( combat.attacker.id )
         .consume_mv_points( MovementPoints::_1_3() );
-    W.gui().EXPECT__choice( _ ).returns<maybe<string>>( "yes" );
+    attacker_agent
+        .EXPECT__attack_with_partial_movement_points(
+            combat.attacker.id )
+        .returns( ui::e_confirm::yes );
     expect_combat();
     W.expect_some_animation();
     W.expect_msg_contains( W.kDefendingPlayer, "French",

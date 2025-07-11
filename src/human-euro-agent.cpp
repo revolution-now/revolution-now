@@ -28,6 +28,7 @@
 #include "ss/player.hpp"
 #include "ss/players.hpp"
 #include "ss/ref.hpp"
+#include "ss/units.hpp"
 
 using namespace std;
 
@@ -143,11 +144,6 @@ HumanEuroAgent::should_king_transport_treasure(
   co_return choice.value_or( ui::e_confirm::no );
 }
 
-wait<> HumanEuroAgent::show_animation(
-    AnimationSequence const& seq ) {
-  co_await land_view().animate( seq );
-}
-
 wait<chrono::microseconds> HumanEuroAgent::wait_for(
     chrono::milliseconds const us ) {
   co_return co_await gui_.wait_for( us );
@@ -182,6 +178,20 @@ wait<ui::e_confirm> HumanEuroAgent::kiss_pinky_ring(
     .no_comes_first = false,
   };
   co_return co_await gui_.required_yes_no( config );
+}
+
+wait<ui::e_confirm>
+HumanEuroAgent::attack_with_partial_movement_points(
+    UnitId const unit_id ) {
+  Unit const& unit = ss_.units.unit_for( unit_id );
+  auto const res   = co_await gui_.optional_yes_no(
+      { .msg = fmt::format(
+            "This unit only has [{}] movement points and so "
+              "will not be fighting at full strength. Continue?",
+            unit.movement_points() ),
+          .yes_label = "Yes, let us proceed with full force!",
+          .no_label  = "No, do not attack." } );
+  co_return res.value_or( ui::e_confirm::no );
 }
 
 } // namespace rn

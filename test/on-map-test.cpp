@@ -70,6 +70,8 @@ struct World : testing::World {
     add_player( e_player::dutch );
     add_player( e_player::spanish );
     set_default_player_type( e_player::dutch );
+
+    planes().get().set_bottom<ILandViewPlane>( mock_land_view );
   }
 
   Coord const kColonySquare = Coord{ .x = 1, .y = 1 };
@@ -102,6 +104,8 @@ struct World : testing::World {
     // clang-format on
     build_map( std::move( tiles ), 3 );
   }
+
+  MockLandViewPlane mock_land_view;
 };
 
 /****************************************************************
@@ -395,8 +399,6 @@ TEST_CASE(
     "[on-map] interactive: native_unit_to_map_interactive meets "
     "europeans" ) {
   World W;
-  MockLandViewPlane mock_land_view;
-  W.planes().get().set_bottom<ILandViewPlane>( mock_land_view );
   W.create_default_map();
   Dwelling const& dwelling =
       W.add_dwelling( { .x = 3, .y = 1 }, e_tribe::cherokee );
@@ -438,11 +440,11 @@ TEST_CASE(
                        .num_dwellings = 1 } )
         .returns<wait<e_declare_war_on_natives>>(
             e_declare_war_on_natives::no );
-    mock_land_view.EXPECT__set_visibility( e_player::dutch );
-    mock_land_view.EXPECT__set_visibility( e_player::spanish );
+    W.mock_land_view.EXPECT__set_visibility( e_player::dutch );
+    W.mock_land_view.EXPECT__set_visibility( e_player::spanish );
   }
 
-  mock_land_view.EXPECT__ensure_visible(
+  W.mock_land_view.EXPECT__ensure_visible(
       point{ .x = 2, .y = 1 } );
   wait<> const w =
       UnitOnMapMover::native_unit_to_map_interactive(

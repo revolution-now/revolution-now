@@ -60,8 +60,6 @@ struct MockIEuroAgent : IEuroAgent {
                (std::string const&), () );
   MOCK_METHOD( wait<ui::e_confirm>,
                should_explore_ancient_burial_mounds, (), () );
-  MOCK_METHOD( wait<>, show_animation,
-               (AnimationSequence const&), () );
   MOCK_METHOD( wait<std::chrono::microseconds>, wait_for,
                ( std::chrono::milliseconds ), () );
   MOCK_METHOD( wait<>, pan_tile, ( gfx::point ), () );
@@ -69,6 +67,9 @@ struct MockIEuroAgent : IEuroAgent {
   MOCK_METHOD( wait<command>, ask_orders, ( UnitId ), () );
   MOCK_METHOD( wait<ui::e_confirm>, kiss_pinky_ring,
                (std::string const&, ColonyId, e_commodity, int),
+               () );
+  MOCK_METHOD( wait<ui::e_confirm>,
+               attack_with_partial_movement_points, ( UnitId ),
                () );
 
  public: // Signals

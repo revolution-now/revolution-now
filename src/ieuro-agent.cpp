@@ -91,11 +91,6 @@ NoopEuroAgent::should_king_transport_treasure(
   co_return ui::e_confirm::no;
 }
 
-wait<> NoopEuroAgent::show_animation(
-    AnimationSequence const& ) {
-  co_return;
-}
-
 wait<chrono::microseconds> NoopEuroAgent::wait_for(
     chrono::milliseconds const us ) {
   co_return us;
@@ -113,6 +108,12 @@ wait<command> NoopEuroAgent::ask_orders( UnitId const ) {
 wait<ui::e_confirm> NoopEuroAgent::kiss_pinky_ring(
     string const&, ColonyId, e_commodity, int const ) {
   co_return ui::e_confirm::yes;
+}
+
+wait<ui::e_confirm>
+NoopEuroAgent::attack_with_partial_movement_points(
+    UnitId const ) {
+  co_return ui::e_confirm::no;
 }
 
 } // namespace rn

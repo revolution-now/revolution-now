@@ -222,16 +222,9 @@ AttackHandlerBase::check_attack_verdict_base() const {
     co_return e_attack_verdict_base::land_unit_attack_ship;
 
   if( attacker_.movement_points() < 1 ) {
-    if( co_await ts_.gui.optional_yes_no(
-            { .msg = fmt::format(
-                  "This unit only has [{}] movement points "
-                  "and so will not be fighting at full "
-                  "strength.  Continue?",
-                  attacker_.movement_points() ),
-              .yes_label =
-                  "Yes, let us proceed with full force!",
-              .no_label = "No, do not attack." } ) !=
-        ui::e_confirm::yes )
+    if( co_await attacker_agent_
+            .attack_with_partial_movement_points(
+                attacker_.id() ) != ui::e_confirm::yes )
       co_return e_attack_verdict_base::cancelled;
   }
   co_return nothing;

@@ -18,7 +18,11 @@
 #include "test/mocking.hpp"
 #include "test/mocks/ieuro-agent.hpp"
 #include "test/mocks/igui.hpp"
+#include "test/mocks/land-view-plane.hpp"
 #include "test/util/coro.hpp"
+
+// Revolution Now
+#include "src/plane-stack.hpp"
 
 // ss
 #include "src/ss/dwelling.rds.hpp"
@@ -46,6 +50,8 @@ struct World : testing::World {
     add_player( e_player::english );
     set_default_player_type( e_player::dutch );
     create_default_map();
+
+    planes().get().set_bottom<ILandViewPlane>( mock_land_view );
   }
 
   void create_default_map() {
@@ -58,6 +64,8 @@ struct World : testing::World {
     };
     build_map( std::move( tiles ), 4 );
   }
+
+  MockLandViewPlane mock_land_view;
 };
 
 /****************************************************************

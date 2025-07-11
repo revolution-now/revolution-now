@@ -61,8 +61,6 @@ struct HumanEuroAgent final : IEuroAgent {
   wait<ui::e_confirm> should_explore_ancient_burial_mounds()
       override;
 
-  wait<> show_animation( AnimationSequence const& seq ) override;
-
   wait<std::chrono::microseconds> wait_for(
       std::chrono::milliseconds us ) override;
 
@@ -75,6 +73,9 @@ struct HumanEuroAgent final : IEuroAgent {
   wait<ui::e_confirm> kiss_pinky_ring(
       std::string const& msg, ColonyId colony_id,
       e_commodity type, int tax_increase ) override;
+
+  wait<ui::e_confirm> attack_with_partial_movement_points(
+      UnitId unit_id ) override;
 
  public: // Signals.
   void handle( signal::ColonySignalTransient const& ) override;

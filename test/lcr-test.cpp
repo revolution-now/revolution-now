@@ -67,6 +67,8 @@ struct World : testing::World {
   World() : Base() {
     create_default_map();
     add_default_player();
+
+    planes().get().set_bottom<ILandViewPlane>( mock_land_view );
   }
 
   void create_default_map() {
@@ -74,6 +76,8 @@ struct World : testing::World {
     vector<MapSquare> tiles{ L };
     build_map( std::move( tiles ), 1 );
   }
+
+  MockLandViewPlane mock_land_view;
 };
 
 /****************************************************************
@@ -146,10 +150,10 @@ TEST_CASE( "[lcr] run_lcr, none" ) {
       StrContains( "nothing but rumors" ) );
 
   // Go
-  wait<LostCityRumorUnitChange> lcr_res =
-      run_lcr( W.ss(), W.map_updater(), W.rand(), player,
-               W.euro_agent(), W.units().unit_for( unit_id ),
-               /*move_dst=*/Coord{}, rumor );
+  wait<LostCityRumorUnitChange> lcr_res = run_lcr(
+      W.ss(), W.mock_land_view, W.map_updater(), W.rand(),
+      player, W.euro_agent(), W.units().unit_for( unit_id ),
+      /*move_dst=*/Coord{}, rumor );
 
   // Make sure that we finished at all.
   REQUIRE( lcr_res.ready() );
@@ -187,10 +191,10 @@ TEST_CASE( "[lcr] run_lcr, chief gift" ) {
       StrContains( "You happen upon a small village" ) );
 
   // Go
-  wait<LostCityRumorUnitChange> lcr_res =
-      run_lcr( W.ss(), W.map_updater(), W.rand(), player,
-               W.euro_agent(), W.units().unit_for( unit_id ),
-               /*move_dst=*/Coord{}, rumor );
+  wait<LostCityRumorUnitChange> lcr_res = run_lcr(
+      W.ss(), W.mock_land_view, W.map_updater(), W.rand(),
+      player, W.euro_agent(), W.units().unit_for( unit_id ),
+      /*move_dst=*/Coord{}, rumor );
 
   // Make sure that we finished at all.
   REQUIRE( lcr_res.ready() );
@@ -226,10 +230,10 @@ TEST_CASE( "[lcr] run_lcr, ruins" ) {
       StrContains( "ruins of a lost colony" ) );
 
   // Go
-  wait<LostCityRumorUnitChange> lcr_res =
-      run_lcr( W.ss(), W.map_updater(), W.rand(), player,
-               W.euro_agent(), W.units().unit_for( unit_id ),
-               /*move_dst=*/Coord{}, rumor );
+  wait<LostCityRumorUnitChange> lcr_res = run_lcr(
+      W.ss(), W.mock_land_view, W.map_updater(), W.rand(),
+      player, W.euro_agent(), W.units().unit_for( unit_id ),
+      /*move_dst=*/Coord{}, rumor );
 
   // Make sure that we finished at all.
   REQUIRE( lcr_res.ready() );
@@ -287,10 +291,10 @@ TEST_CASE( "[lcr] run_lcr, fountain of youth" ) {
   }
 
   // Go
-  wait<LostCityRumorUnitChange> lcr_res =
-      run_lcr( W.ss(), W.map_updater(), W.rand(), player,
-               W.euro_agent(), W.units().unit_for( unit_id ),
-               /*move_dst=*/Coord{}, rumor );
+  wait<LostCityRumorUnitChange> lcr_res = run_lcr(
+      W.ss(), W.mock_land_view, W.map_updater(), W.rand(),
+      player, W.euro_agent(), W.units().unit_for( unit_id ),
+      /*move_dst=*/Coord{}, rumor );
 
   // Make sure that we finished at all.
   REQUIRE( lcr_res.ready() );
@@ -339,10 +343,10 @@ TEST_CASE( "[lcr] run_lcr, free colonist" ) {
       StrContains( "happen upon the survivors" ) );
 
   // Go
-  wait<LostCityRumorUnitChange> lcr_res =
-      run_lcr( W.ss(), W.map_updater(), W.rand(), player,
-               W.euro_agent(), W.units().unit_for( unit_id ),
-               /*move_dst=*/Coord{}, rumor );
+  wait<LostCityRumorUnitChange> lcr_res = run_lcr(
+      W.ss(), W.mock_land_view, W.map_updater(), W.rand(),
+      player, W.euro_agent(), W.units().unit_for( unit_id ),
+      /*move_dst=*/Coord{}, rumor );
 
   // Make sure that we finished at all.
   REQUIRE( lcr_res.ready() );
@@ -382,10 +386,10 @@ TEST_CASE( "[lcr] run_lcr, unit lost" ) {
       StrContains( "vanished without a trace" ) );
 
   // Go
-  wait<LostCityRumorUnitChange> lcr_res =
-      run_lcr( W.ss(), W.map_updater(), W.rand(), player,
-               W.euro_agent(), W.units().unit_for( unit_id ),
-               /*move_dst=*/Coord{}, rumor );
+  wait<LostCityRumorUnitChange> lcr_res = run_lcr(
+      W.ss(), W.mock_land_view, W.map_updater(), W.rand(),
+      player, W.euro_agent(), W.units().unit_for( unit_id ),
+      /*move_dst=*/Coord{}, rumor );
 
   // Make sure that we finished at all.
   REQUIRE( lcr_res.ready() );
@@ -424,13 +428,13 @@ TEST_CASE( "[lcr] run_lcr, cibola" ) {
   agent.EXPECT__message_box(
       StrContains( "Seven Cities of Cibola" ) );
   // Enpixelate the treasure.
-  agent.EXPECT__show_animation( _ );
+  W.mock_land_view.EXPECT__animate( _ );
 
   // Go
-  wait<LostCityRumorUnitChange> lcr_res =
-      run_lcr( W.ss(), W.map_updater(), W.rand(), player,
-               W.euro_agent(), W.units().unit_for( unit_id ),
-               /*move_dst=*/Coord{}, rumor );
+  wait<LostCityRumorUnitChange> lcr_res = run_lcr(
+      W.ss(), W.mock_land_view, W.map_updater(), W.rand(),
+      player, W.euro_agent(), W.units().unit_for( unit_id ),
+      /*move_dst=*/Coord{}, rumor );
 
   // Make sure that we finished at all.
   REQUIRE( lcr_res.ready() );
@@ -484,13 +488,13 @@ TEST_CASE( "[lcr] run_lcr, burial mounds, treasure" ) {
   agent.EXPECT__message_box(
       StrContains( "recovered a treasure worth" ) );
   // Enpixelate the treasure.
-  agent.EXPECT__show_animation( _ );
+  W.mock_land_view.EXPECT__animate( _ );
 
   // Go
-  wait<LostCityRumorUnitChange> lcr_res =
-      run_lcr( W.ss(), W.map_updater(), W.rand(), player,
-               W.euro_agent(), W.units().unit_for( unit_id ),
-               /*move_dst=*/Coord{}, rumor );
+  wait<LostCityRumorUnitChange> lcr_res = run_lcr(
+      W.ss(), W.mock_land_view, W.map_updater(), W.rand(),
+      player, W.euro_agent(), W.units().unit_for( unit_id ),
+      /*move_dst=*/Coord{}, rumor );
 
   // Make sure that we finished at all.
   REQUIRE( lcr_res.ready() );
@@ -542,10 +546,10 @@ TEST_CASE( "[lcr] run_lcr, burial mounds, cold and empty" ) {
   agent.EXPECT__message_box( StrContains( "cold and empty" ) );
 
   // Go
-  wait<LostCityRumorUnitChange> lcr_res =
-      run_lcr( W.ss(), W.map_updater(), W.rand(), player,
-               W.euro_agent(), W.units().unit_for( unit_id ),
-               /*move_dst=*/Coord{}, rumor );
+  wait<LostCityRumorUnitChange> lcr_res = run_lcr(
+      W.ss(), W.mock_land_view, W.map_updater(), W.rand(),
+      player, W.euro_agent(), W.units().unit_for( unit_id ),
+      /*move_dst=*/Coord{}, rumor );
 
   // Make sure that we finished at all.
   REQUIRE( lcr_res.ready() );
@@ -585,10 +589,10 @@ TEST_CASE( "[lcr] run_lcr, burial mounds, trinkets" ) {
       StrContains( "found some trinkets" ) );
 
   // Go
-  wait<LostCityRumorUnitChange> lcr_res =
-      run_lcr( W.ss(), W.map_updater(), W.rand(), player,
-               W.euro_agent(), W.units().unit_for( unit_id ),
-               /*move_dst=*/Coord{}, rumor );
+  wait<LostCityRumorUnitChange> lcr_res = run_lcr(
+      W.ss(), W.mock_land_view, W.map_updater(), W.rand(),
+      player, W.euro_agent(), W.units().unit_for( unit_id ),
+      /*move_dst=*/Coord{}, rumor );
 
   // Make sure that we finished at all.
   REQUIRE( lcr_res.ready() );
@@ -628,10 +632,10 @@ TEST_CASE( "[lcr] run_lcr, burial mounds, no explore" ) {
       ui::e_confirm::no );
 
   // Go
-  wait<LostCityRumorUnitChange> lcr_res =
-      run_lcr( W.ss(), W.map_updater(), W.rand(), player,
-               W.euro_agent(), W.units().unit_for( unit_id ),
-               /*move_dst=*/Coord{}, rumor );
+  wait<LostCityRumorUnitChange> lcr_res = run_lcr(
+      W.ss(), W.mock_land_view, W.map_updater(), W.rand(),
+      player, W.euro_agent(), W.units().unit_for( unit_id ),
+      /*move_dst=*/Coord{}, rumor );
 
   // Make sure that we finished at all.
   REQUIRE( lcr_res.ready() );
@@ -679,10 +683,10 @@ TEST_CASE(
              StrContains( "prepare for WAR" ) ) );
 
   // Go
-  wait<LostCityRumorUnitChange> lcr_res =
-      run_lcr( W.ss(), W.map_updater(), W.rand(), player,
-               W.euro_agent(), W.units().unit_for( unit_id ),
-               /*move_dst=*/Coord{}, rumor );
+  wait<LostCityRumorUnitChange> lcr_res = run_lcr(
+      W.ss(), W.mock_land_view, W.map_updater(), W.rand(),
+      player, W.euro_agent(), W.units().unit_for( unit_id ),
+      /*move_dst=*/Coord{}, rumor );
 
   // Make sure that we finished at all.
   REQUIRE( lcr_res.ready() );
@@ -728,10 +732,10 @@ TEST_CASE( "[lcr] run_lcr, holy shrines" ) {
                                     StrContains( "angered" ) ) );
 
   // Go
-  wait<LostCityRumorUnitChange> lcr_res =
-      run_lcr( W.ss(), W.map_updater(), W.rand(), player,
-               W.euro_agent(), W.units().unit_for( unit_id ),
-               /*move_dst=*/Coord{}, rumor );
+  wait<LostCityRumorUnitChange> lcr_res = run_lcr(
+      W.ss(), W.mock_land_view, W.map_updater(), W.rand(),
+      player, W.euro_agent(), W.units().unit_for( unit_id ),
+      /*move_dst=*/Coord{}, rumor );
 
   // Make sure that we finished at all.
   REQUIRE( lcr_res.ready() );
