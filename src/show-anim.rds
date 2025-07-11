@@ -13,7 +13,4 @@ include "gfx/cartesian.hpp"
 
 namespace "rn"
 
-# This is for when all of the action is contained on one tile.
-struct.AnimatedOnTile {
-  tile 'gfx::point',
-}
+# None

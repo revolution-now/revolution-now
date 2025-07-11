@@ -548,9 +548,7 @@ wait<> run_colony_destruction( SS& ss, TS& ts, Colony& colony,
 wait<> run_animated_colony_destruction(
     SS& ss, TS& ts, Colony& colony, e_ship_damaged_reason reason,
     maybe<string> msg ) {
-  if( should_animate_event(
-          ss.as_const,
-          AnimatedOnTile{ .tile = colony.location } ) ) {
+  if( should_animate_1( ss.as_const, colony.location ) ) {
     auto const viz = create_visibility_for(
         ss, player_for_role( ss, e_player_role::viewer ) );
     AnimationSequence const seq =

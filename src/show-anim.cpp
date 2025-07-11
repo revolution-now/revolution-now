@@ -19,6 +19,7 @@
 #include "ss/players.rds.hpp"
 #include "ss/ref.hpp"
 #include "ss/settings.rds.hpp"
+#include "ss/terrain.hpp"
 
 // rds
 #include "rds/switch-macro.hpp"
@@ -29,6 +30,7 @@ namespace rn {
 
 namespace {
 
+using ::gfx::e_direction;
 using ::gfx::point;
 
 } // namespace
@@ -36,14 +38,14 @@ using ::gfx::point;
 /****************************************************************
 ** Public API.
 *****************************************************************/
-bool should_animate_event( SSConst const& ss,
-                           AnimatedOnTile const& event ) {
+bool should_animate_1( SSConst const& ss, point const tile ) {
+  CHECK( ss.terrain.square_exists( tile ) );
   auto const viz_viewer = create_visibility_for(
       ss, player_for_role( ss, e_player_role::viewer ) );
-  bool const is_clear = viz_viewer->visible( event.tile ) ==
-                        e_tile_visibility::clear;
+  bool const is_clear =
+      viz_viewer->visible( tile ) == e_tile_visibility::clear;
   if( !is_clear ) return false;
-  auto const society = society_on_square( ss, event.tile );
+  auto const society = society_on_square( ss, tile );
   if( !society.has_value() )
     // Not sure what this would be, but at this point the tile is
     // clear so no reason not to show whatever animation this
@@ -90,6 +92,17 @@ bool should_animate_event( SSConst const& ss,
           [e_game_menu_option::show_indian_moves];
     }
   }
+  return true;
+}
+
+bool should_animate_2( SSConst const& ss, point const from,
+                       e_direction const to ) {
+  point const src = from;
+  point const dst = from.moved( to );
+  CHECK( ss.terrain.square_exists( src ) );
+  CHECK( ss.terrain.square_exists( dst ) );
+
+  // TODO
   return true;
 }
 

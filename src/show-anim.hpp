@@ -23,7 +23,11 @@ struct SSConst;
 /****************************************************************
 ** Public API.
 *****************************************************************/
-bool should_animate_event( SSConst const& ss,
-                           AnimatedOnTile const& event );
+// When the entire animation is contained to a single tile.
+bool should_animate_1( SSConst const& ss, gfx::point tile );
+
+// When the animation spans two adjacent tiles.
+bool should_animate_2( SSConst const& ss, gfx::point from,
+                       gfx::e_direction to );
 
 } // namespace rn
