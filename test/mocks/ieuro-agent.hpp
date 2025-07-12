@@ -71,6 +71,8 @@ struct MockIEuroAgent : IEuroAgent {
   MOCK_METHOD( wait<ui::e_confirm>,
                attack_with_partial_movement_points, ( UnitId ),
                () );
+  MOCK_METHOD( wait<ui::e_confirm>, should_attack_natives,
+               ( e_tribe ), () );
 
  public: // Signals
   MOCK_SIGNAL_HANDLER( wait<maybe<int>>, ChooseImmigrant );

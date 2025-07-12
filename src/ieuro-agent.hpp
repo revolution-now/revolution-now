@@ -22,6 +22,7 @@
 #include "wait.hpp"
 
 // ss
+#include "ss/native-enums.rds.hpp"
 #include "ss/unit-id.hpp"
 
 // base
@@ -125,6 +126,9 @@ struct IEuroAgent : IAgent, ISignalHandler {
   virtual wait<ui::e_confirm>
   attack_with_partial_movement_points( UnitId unit_id ) = 0;
 
+  virtual wait<ui::e_confirm> should_attack_natives(
+      e_tribe tribe ) = 0;
+
  public: // Signals.
   // Non-waitable signal, no message.
   auto signal( NonWaitableSignalContext auto const& ctx ) {
@@ -225,6 +229,9 @@ struct NoopEuroAgent final : IEuroAgent {
 
   wait<ui::e_confirm> attack_with_partial_movement_points(
       UnitId unit_id ) override;
+
+  wait<ui::e_confirm> should_attack_natives(
+      e_tribe tribe ) override;
 
  public: // ISignalHandler
   wait<maybe<int>> handle(

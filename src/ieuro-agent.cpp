@@ -116,4 +116,9 @@ NoopEuroAgent::attack_with_partial_movement_points(
   co_return ui::e_confirm::no;
 }
 
+wait<ui::e_confirm> NoopEuroAgent::should_attack_natives(
+    e_tribe const ) {
+  co_return ui::e_confirm::yes;
+}
+
 } // namespace rn

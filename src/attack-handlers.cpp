@@ -387,10 +387,22 @@ wait<> AttackColonyUndefendedHandler::perform() {
   // 1. The attacker moves into the colony square.
   if( auto const seq = anim_seq_for_unit_move(
           ss_, attacker_.id(), direction_ );
-      should_animate_seq( ss_, seq ) )
+      should_animate_seq( ss_, seq ) ) {
     co_await ts_.planes.get()
         .get_bottom<ILandViewPlane>()
         .animate( seq );
+    // Since the colony is being captured and we are animating
+    // it, we should reveal the colony tile to the viewing player
+    // in the case that it is fogged, otherwise they will see the
+    // attacker move into it but won't see the flag change.
+    if( viz_->visible( attack_dst_ ) ==
+        e_tile_visibility::fogged ) {
+      // There must be a player if the viz is fogged.
+      UNWRAP_CHECK( type, viz_->player() );
+      ts_.map_updater().make_squares_visible( type,
+                                              { attack_dst_ } );
+    }
+  }
   maybe<UnitDeleted> const unit_deleted =
       co_await UnitOwnershipChanger( ss_, attacker_.id() )
           .change_to_map( ts_, attack_dst_ );
@@ -698,17 +710,9 @@ wait<bool> AttackNativeUnitHandler::confirm() {
   TribeRelationship& relationship =
       defender_tribe_.relationship[attacker_.player_type()];
   if( !relationship.player_has_attacked_tribe ) {
-    YesNoConfig const config{
-      .msg = fmt::format(
-          "Shall we attack the [{}]?",
-          ts_.gui.identifier_to_display_name(
-              base::to_str( defender_tribe_.type ) ) ),
-      .yes_label      = "Attack",
-      .no_label       = "Cancel",
-      .no_comes_first = true };
-    maybe<ui::e_confirm> const proceed =
-        co_await ts_.gui.optional_yes_no( config );
-    if( proceed != ui::e_confirm::yes ) co_return false;
+    if( co_await attacker_agent_.should_attack_natives(
+            defender_tribe_.type ) != ui::e_confirm::yes )
+      co_return false;
     relationship.player_has_attacked_tribe = true;
   }
 
@@ -1087,10 +1091,23 @@ wait<> AttackDwellingHandler::perform() {
             ss_, *viz_, attacker_id_, combat.attacker.outcome,
             phantom_combat.defender.id, dwelling_id_,
             combat.defender.outcome );
-        if( should_animate_seq( ss_, seq ) )
+        if( should_animate_seq( ss_, seq ) ) {
           co_await ts_.planes.get()
               .get_bottom<ILandViewPlane>()
               .animate( seq );
+          // Since the dwelling is being burned and we are ani-
+          // mating it, we should reveal the dwelling tile to the
+          // viewing player in the case that it is fogged, other-
+          // wise they will see the the dwelling depixelate
+          // during the animation and then it will reappear.
+          if( viz_->visible( attack_dst_ ) ==
+              e_tile_visibility::fogged ) {
+            // There must be a player if the viz is fogged.
+            UNWRAP_CHECK( type, viz_->player() );
+            ts_.map_updater().make_squares_visible(
+                type, { attack_dst_ } );
+          }
+        }
       } );
 
   bool const was_capital = dwelling_.is_capital;

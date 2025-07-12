@@ -77,6 +77,9 @@ struct HumanEuroAgent final : IEuroAgent {
   wait<ui::e_confirm> attack_with_partial_movement_points(
       UnitId unit_id ) override;
 
+  wait<ui::e_confirm> should_attack_natives(
+      e_tribe tribe ) override;
+
  public: // Signals.
   void handle( signal::ColonySignalTransient const& ) override;
 

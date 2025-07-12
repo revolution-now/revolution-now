@@ -34,10 +34,12 @@
 
 // ss
 #include "src/ss/dwelling.rds.hpp"
+#include "src/ss/land-view.rds.hpp"
 #include "src/ss/native-unit.rds.hpp"
 #include "src/ss/natives.hpp"
 #include "src/ss/player.rds.hpp"
 #include "src/ss/ref.hpp"
+#include "src/ss/settings.rds.hpp"
 #include "src/ss/tribe.rds.hpp"
 #include "src/ss/unit.hpp"
 #include "src/ss/units.hpp"
@@ -67,12 +69,14 @@ struct World : testing::World {
       e_player::english;
   static inline e_player const kDefendingPlayer =
       e_player::french;
+  static inline e_player const kThirdPlayer = e_player::spanish;
 
   static inline e_tribe const kNativeTribe = e_tribe::apache;
 
   World() : Base() {
     add_player( kAttackingPlayer );
     add_player( kDefendingPlayer );
+    add_player( kThirdPlayer );
     set_human_player_and_rest_ai( kAttackingPlayer );
     common_player_init( player( kAttackingPlayer ) );
     common_player_init( player( kDefendingPlayer ) );
@@ -94,15 +98,12 @@ struct World : testing::World {
   static inline Coord const kLandAttack  = { .x = 0, .y = 1 };
   static inline Coord const kLandDefend  = { .x = 1, .y = 1 };
 
-  UnitId add_attacker( e_unit_type type ) {
+  UnitId add_attacker( e_unit_type type, e_player const player =
+                                             kAttackingPlayer ) {
     if( unit_attr( type ).ship )
-      return add_unit_on_map( type, kWaterAttack,
-                              kAttackingPlayer )
-          .id();
+      return add_unit_on_map( type, kWaterAttack, player ).id();
     else
-      return add_unit_on_map( type, kLandAttack,
-                              kAttackingPlayer )
-          .id();
+      return add_unit_on_map( type, kLandAttack, player ).id();
   }
 
   UnitId add_defender( e_unit_type type ) {
@@ -234,10 +235,11 @@ struct World : testing::World {
     expect_msg_contains( player, "sunk by" );
   }
 
-  void expect_tribe_wiped_out( string_view tribe_name ) {
-    euro_agent( kAttackingPlayer )
-        .EXPECT__message_box( fmt::format(
-            "The [{}] tribe has been wiped out.", tribe_name ) );
+  void expect_tribe_wiped_out(
+      string_view tribe_name,
+      e_player const player = kAttackingPlayer ) {
+    euro_agent( player ).EXPECT__message_box( fmt::format(
+        "The [{}] tribe has been wiped out.", tribe_name ) );
   }
 
   void expect_unit_captures_cargo(
@@ -673,7 +675,9 @@ TEST_CASE( "[attack-handlers] attack_native_unit_handler" ) {
                         NativeUnitCombatOutcome::destroyed{} } };
     tie( combat.attacker.id, combat.defender.id ) = W.add_pair(
         e_unit_type::soldier, e_native_unit_type::brave );
-    W.gui().EXPECT__choice( _ ).returns<maybe<string>>( "no" );
+    W.euro_agent( W.kAttackingPlayer )
+        .EXPECT__should_attack_natives( W.kNativeTribe )
+        .returns( ui::e_confirm::no );
     expected = { .order_was_run = false };
     REQUIRE( f() == expected );
     Unit const& attacker =
@@ -700,7 +704,9 @@ TEST_CASE( "[attack-handlers] attack_native_unit_handler" ) {
                         NativeUnitCombatOutcome::destroyed{} } };
     tie( combat.attacker.id, combat.defender.id ) = W.add_pair(
         e_unit_type::soldier, e_native_unit_type::brave );
-    W.gui().EXPECT__choice( _ ).returns<maybe<string>>( "yes" );
+    W.euro_agent( W.kAttackingPlayer )
+        .EXPECT__should_attack_natives( W.kNativeTribe )
+        .returns( ui::e_confirm::yes );
     expect_combat();
     W.expect_some_animation();
     REQUIRE( f() == expected );
@@ -1737,6 +1743,112 @@ TEST_CASE( "[attack-handlers] attack_dwelling_handler" ) {
              Coord{ .x = 2, .y = 2 } );
     REQUIRE( W.natives().tribe_exists( W.kNativeTribe ) );
   }
+}
+
+TEST_CASE(
+    "[attack-handlers] attack_dwelling_handler animation "
+    "visibility" ) {
+  World W;
+  W.create_land_9x9();
+  CommandHandlerRunResult expected = { .order_was_run = true };
+  CombatEuroAttackDwelling combat;
+  Tribe& tribe = W.tribe( W.kNativeTribe );
+  TribeRelationship& relationship =
+      tribe.relationship[W.kAttackingPlayer];
+  relationship.player_has_attacked_tribe = true;
+  REQUIRE( relationship.tribal_alarm == 0 );
+  Dwelling& dwelling =
+      W.add_dwelling( W.kLandDefend, W.kNativeTribe );
+  // We need at least one of these for the animation to show.
+  W.settings().in_game_options.game_menu_options
+      [e_game_menu_option::show_foreign_moves] = true;
+  W.settings()
+      .in_game_options
+      .game_menu_options[e_game_menu_option::show_indian_moves] =
+      true;
+  // Make kThirdPlayer the viewer.
+  auto const kViewingPlayer = W.kThirdPlayer;
+  W.land_view().map_revealed =
+      MapRevealed::player{ .type = kViewingPlayer };
+  // This one is needed for the kViewingPlayer to see the anima-
+  // tion at all.
+  W.map_updater().make_squares_visible( kViewingPlayer,
+                                        { W.kLandAttack } );
+  // Make the dwelling square fogged so that we can test that it
+  // becomes visible, which it will because the kViewingPlayer
+  // sees the animation.
+  W.map_updater().make_squares_visible( kViewingPlayer,
+                                        { W.kLandDefend } );
+  W.map_updater().make_squares_fogged( kViewingPlayer,
+                                       { W.kLandDefend } );
+  VisibilityForPlayer const viz( W.ss(), kViewingPlayer );
+  BASE_CHECK( viz.visible( W.kLandDefend ) ==
+              e_tile_visibility::fogged );
+  NativeUnitId const brave_id =
+      W.add_native_unit_on_map( e_native_unit_type::brave,
+                                { .x = 2, .y = 2 }, dwelling.id )
+          .id;
+  W.square( W.kLandDefend ).road = true;
+  dwelling.population            = 5;
+  // Use only the id after the dwelling is destroyed.
+  DwellingId const dwelling_id = dwelling.id;
+
+  auto const expect_combat = [&] {
+    W.combat()
+        .EXPECT__euro_attack_dwelling(
+            W.units().unit_for( combat.attacker.id ), dwelling )
+        .returns( combat );
+  };
+
+  auto f = [&] {
+    return W.run_handler( attack_dwelling_handler(
+        W.ss(), W.ts(), combat.attacker.id,
+        combat.defender.id ) );
+  };
+
+  dwelling.population = 1;
+
+  combat = {
+    .winner          = e_combat_winner::attacker,
+    .missions_burned = false,
+    .attacker        = { .outcome =
+                             EuroUnitCombatOutcome::promoted{
+                               .to = e_unit_type::veteran_soldier } },
+    .defender        = { .id      = dwelling.id,
+                         .outcome = DwellingCombatOutcome::destruction{
+                           .braves_to_kill        = {},
+                           .missionary_to_release = {},
+                           .treasure_amount       = {},
+                           .tribe_destroyed       = e_tribe::apache,
+                           .convert_produced      = false } } };
+  combat.attacker.id = W.add_attacker( e_unit_type::soldier );
+  expect_combat();
+  W.expect_some_animation();
+  W.expect_promotion( W.kAttackingPlayer );
+  W.expect_msg_equals(
+      W.kAttackingPlayer,
+      "[Apache] camp burned by the [English]!" );
+  W.expect_tribe_wiped_out( "Apache" );
+
+  expected = { .order_was_run       = true,
+               .units_to_prioritize = {} };
+  REQUIRE( f() == expected );
+
+  Unit const& attacker =
+      W.units().unit_for( combat.attacker.id );
+  REQUIRE_FALSE( W.natives().dwelling_exists( dwelling_id ) );
+  REQUIRE( attacker.type() == e_unit_type::veteran_soldier );
+  REQUIRE( W.units().coord_for( attacker.id() ) ==
+           W.kLandAttack );
+  REQUIRE( attacker.player_type() == W.kAttackingPlayer );
+  REQUIRE( attacker.movement_points() == 0 );
+  REQUIRE( W.player( W.kAttackingPlayer )
+               .score_stats.dwellings_burned == 1 );
+  REQUIRE( W.square( W.kLandDefend ).road == false );
+  REQUIRE( !W.units().exists( brave_id ) );
+  REQUIRE_FALSE( W.natives().tribe_exists( W.kNativeTribe ) );
+  REQUIRE( viz.visible( W.kLandDefend ) ==
+           e_tile_visibility::clear );
 }
 
 TEST_CASE( "[attack-handlers] naval_battle_handler" ) {

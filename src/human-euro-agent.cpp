@@ -21,6 +21,7 @@
 
 // config
 #include "config/nation.rds.hpp"
+#include "config/natives.rds.hpp"
 #include "config/unit-type.hpp"
 
 // ss
@@ -192,6 +193,20 @@ HumanEuroAgent::attack_with_partial_movement_points(
           .yes_label = "Yes, let us proceed with full force!",
           .no_label  = "No, do not attack." } );
   co_return res.value_or( ui::e_confirm::no );
+}
+
+wait<ui::e_confirm> HumanEuroAgent::should_attack_natives(
+    e_tribe const tribe ) {
+  YesNoConfig const config{
+    .msg = fmt::format(
+        "Shall we attack the [{}]?",
+        config_natives.tribes[tribe].name_singular ),
+    .yes_label      = "Attack",
+    .no_label       = "Cancel",
+    .no_comes_first = true };
+  maybe<ui::e_confirm> const proceed =
+      co_await gui_.optional_yes_no( config );
+  co_return proceed.value_or( ui::e_confirm::no );
 }
 
 } // namespace rn
