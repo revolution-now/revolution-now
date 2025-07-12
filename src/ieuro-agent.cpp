@@ -101,8 +101,8 @@ NoopEuroAgent::should_explore_ancient_burial_mounds() {
   co_return ui::e_confirm::no;
 }
 
-wait<command> NoopEuroAgent::ask_orders( UnitId const ) {
-  co_return command::forfeight{};
+command NoopEuroAgent::ask_orders( UnitId const ) {
+  return command::forfeight{};
 }
 
 wait<ui::e_confirm> NoopEuroAgent::kiss_pinky_ring(

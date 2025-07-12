@@ -98,11 +98,11 @@ RefAIEuroAgent::should_explore_ancient_burial_mounds() {
   co_return ui::e_confirm::no;
 }
 
-wait<command> RefAIEuroAgent::ask_orders( UnitId const ) {
+command RefAIEuroAgent::ask_orders( UnitId const ) {
   static e_direction d = {};
 
   d = cycle_enum( d );
-  co_return command::move{ .d = d };
+  return command::move{ .d = d };
   // co_return command::forfeight{};
 }
 

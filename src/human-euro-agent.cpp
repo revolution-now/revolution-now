@@ -160,7 +160,7 @@ HumanEuroAgent::should_explore_ancient_burial_mounds() {
   co_return res;
 }
 
-wait<command> HumanEuroAgent::ask_orders( UnitId const ) {
+command HumanEuroAgent::ask_orders( UnitId const ) {
   SHOULD_NOT_BE_HERE;
 }
 

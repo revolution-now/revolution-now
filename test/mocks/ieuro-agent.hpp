@@ -64,7 +64,7 @@ struct MockIEuroAgent : IEuroAgent {
                ( std::chrono::milliseconds ), () );
   MOCK_METHOD( wait<>, pan_tile, ( gfx::point ), () );
   MOCK_METHOD( wait<>, pan_unit, ( UnitId ), () );
-  MOCK_METHOD( wait<command>, ask_orders, ( UnitId ), () );
+  MOCK_METHOD( command, ask_orders, ( UnitId ), () );
   MOCK_METHOD( wait<ui::e_confirm>, kiss_pinky_ring,
                (std::string const&, ColonyId, e_commodity, int),
                () );

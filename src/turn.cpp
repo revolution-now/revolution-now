@@ -917,7 +917,7 @@ wait<> query_unit_input( IEngine& engine, UnitId const id,
                          PlayerTurnState::units& nat_units ) {
   switch( player.control ) {
     case e_player_control::ai: {
-      command const cmd = co_await agent.ask_orders( id );
+      command const cmd = agent.ask_orders( id );
       co_await process_ai_player_input_normal_mode(
           engine, id, cmd, ss, ts, player, nat_units );
       break;
