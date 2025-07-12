@@ -104,7 +104,7 @@ bool is_checkbox_enabled( e_game_menu_option option ) {
     case e_game_menu_option::show_indian_moves:
       return true;
     case e_game_menu_option::show_foreign_moves:
-      return false;
+      return true;
     case e_game_menu_option::fast_piece_slide:
       return true;
     case e_game_menu_option::end_of_turn:
