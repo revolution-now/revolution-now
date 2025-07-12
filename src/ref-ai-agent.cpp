@@ -34,10 +34,21 @@ using ::refl::cycle_enum;
 }
 
 /****************************************************************
+** RefAIEuroAgent::State
+*****************************************************************/
+struct RefAIEuroAgent::State {
+  unordered_map<UnitId, int> unit_moves;
+};
+
+/****************************************************************
 ** RefAIEuroAgent
 *****************************************************************/
 RefAIEuroAgent::RefAIEuroAgent( e_player const player, SS& ss )
-  : IEuroAgent( player ), ss_( ss ) {}
+  : IEuroAgent( player ),
+    ss_( ss ),
+    state_( make_unique<State>() ) {}
+
+RefAIEuroAgent::~RefAIEuroAgent() = default;
 
 wait<> RefAIEuroAgent::message_box( string const& ) {
   co_return;

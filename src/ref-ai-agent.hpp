@@ -25,6 +25,8 @@ struct SS;
 struct RefAIEuroAgent final : IEuroAgent {
   RefAIEuroAgent( e_player player, SS& ss );
 
+  ~RefAIEuroAgent() override;
+
  public: // IAgent.
   wait<> message_box( std::string const& msg ) override;
 
@@ -77,6 +79,9 @@ struct RefAIEuroAgent final : IEuroAgent {
 
  private:
   SS& ss_;
+
+  struct State;
+  std::unique_ptr<State> state_;
 };
 
 } // namespace rn
