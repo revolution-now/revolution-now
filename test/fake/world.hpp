@@ -319,6 +319,10 @@ struct World {
 
   void set_default_player_as_human();
 
+  // Sets the player so that they are the ones currently taking
+  // their turn.
+  void set_player_active( maybe<e_player> player = nothing );
+
   // This will call the validate method on each colony in the
   // state and return an error if any of them fail.
   base::valid_or<std::string> validate_colonies() const;

@@ -499,6 +499,11 @@ void World::set_default_player_as_human() {
   default_player().control = e_player_control::human;
 }
 
+void World::set_player_active( maybe<e_player> const player ) {
+  turn().cycle = TurnCycle::player{
+    .type = player.value_or( default_player_type() ) };
+}
+
 Colony& World::found_colony( UnitId founder ) {
   string name = fmt::to_string(
       colonies().last_colony_id().value_or( 0 ) + 1 );
