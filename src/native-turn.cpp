@@ -16,8 +16,7 @@
 #include "agents.hpp"
 #include "anim-builders.hpp"
 #include "co-wait.hpp"
-#include "ieuro-agent.hpp" // FIXME
-#include "igui.hpp"
+#include "ieuro-agent.hpp"
 #include "inative-agent.hpp"
 #include "iraid.rds.hpp"
 #include "itribe-evolve.rds.hpp"
