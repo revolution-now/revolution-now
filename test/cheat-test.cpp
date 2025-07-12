@@ -80,6 +80,7 @@ struct world : testing::World {
     add_player( e_player::spanish );
     add_player( e_player::dutch );
     set_default_player_type( e_player::dutch );
+    set_default_player_as_human();
     create_default_map();
   }
 
@@ -567,6 +568,8 @@ TEST_CASE( "[cheat] kill_natives" ) {
   MockLandViewPlane mock_land_view;
   w.planes().get().set_bottom<ILandViewPlane>( mock_land_view );
 
+  w.set_player_active();
+
   auto f = [&] {
     co_await_test( kill_natives( w.ss(), w.ts() ) );
   };
@@ -603,7 +606,7 @@ TEST_CASE( "[cheat] kill_natives" ) {
         wait( unordered_map<int, bool>{
           { static_cast<int>( e_tribe::tupi ), true } } ) );
     mock_land_view.EXPECT__animate( _ );
-    w.gui().EXPECT__message_box(
+    w.euro_agent().EXPECT__message_box(
         "The [Tupi] tribe has been wiped out." );
     f();
     REQUIRE( !w.natives().tribe_exists( e_tribe::tupi ) );
@@ -642,7 +645,7 @@ TEST_CASE( "[cheat] kill_natives" ) {
         wait( unordered_map<int, bool>{
           { static_cast<int>( e_tribe::tupi ), true } } ) );
     mock_land_view.EXPECT__animate( _ );
-    w.gui().EXPECT__message_box(
+    w.euro_agent().EXPECT__message_box(
         "The [Tupi] tribe has been wiped out." );
     REQUIRE( w.player_square( { .x = 1, .y = 0 } )
                  .inner_if<explored>()
@@ -913,6 +916,7 @@ TEST_CASE(
   world w;
 
   Player& player = w.default_player();
+  player.control = e_player_control::ai;
 
   auto const f = [&] {
     co_await_test( cheat_advance_revolution_status(

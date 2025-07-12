@@ -548,15 +548,14 @@ wait<> run_colony_destruction( SS& ss, TS& ts, Colony& colony,
 wait<> run_animated_colony_destruction(
     SS& ss, TS& ts, Colony& colony, e_ship_damaged_reason reason,
     maybe<string> msg ) {
-  if( should_animate_1( ss.as_const, colony.location ) ) {
-    auto const viz = create_visibility_for(
-        ss, player_for_role( ss, e_player_role::viewer ) );
-    AnimationSequence const seq =
-        anim_seq_for_colony_depixelation( ss, *viz, colony.id );
+  auto const viz = create_visibility_for(
+      ss, player_for_role( ss, e_player_role::viewer ) );
+  AnimationSequence const seq =
+      anim_seq_for_colony_depixelation( ss, *viz, colony.id );
+  if( should_animate_seq( ss.as_const, seq ) )
     co_await ts.planes.get()
         .get_bottom<ILandViewPlane>()
         .animate( seq );
-  }
   co_await run_colony_destruction( ss, ts, colony, reason, msg );
 }
 

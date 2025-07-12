@@ -11,6 +11,7 @@
 # ss
 include "ss/colony-id.hpp"
 include "ss/commodity.rds.hpp"
+include "ss/native-enums.rds.hpp"
 include "ss/unit-id.hpp"
 include "ss/unit-type.rds.hpp"
 
@@ -90,4 +91,8 @@ struct.TeaParty {
 
 struct.TaxRateWillChange {
   delta 'int',
+}
+
+struct.TribeWipedOut {
+  tribe 'e_tribe',
 }

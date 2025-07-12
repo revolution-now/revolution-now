@@ -15,6 +15,7 @@
 
 // Testing.
 #include "test/fake/world.hpp"
+#include "test/mocks/ieuro-agent.hpp"
 #include "test/mocks/igui.hpp"
 #include "test/mocks/render/itextometer.hpp"
 #include "test/util/coro.hpp"
@@ -100,8 +101,8 @@ TEST_CASE( "[disband] disbandable_entities_on_tile" ) {
   point const tile = { .x = 2, .y = 1 };
 
   VisibilityEntire const full_viz( w.ss() );
-  VisibilityForPlayer const player_viz( w.ss(),
-                                        e_player::english );
+  VisibilityForPlayer const player_viz(
+      w.ss(), w.default_player_type() );
 
   IVisibility const* viz = {};
 
@@ -588,15 +589,16 @@ TEST_CASE( "[disband] execute_disband" ) {
   EntitiesOnTile entities;
 
   VisibilityEntire const full_viz( w.ss() );
-  VisibilityForPlayer const player_viz( w.ss(),
-                                        e_player::english );
+  VisibilityForPlayer const player_viz(
+      w.ss(), w.default_player_type() );
 
   IVisibility const* viz = &full_viz;
 
   auto f = [&] {
     BASE_CHECK( viz );
-    return co_await_test( execute_disband( w.ss(), w.ts(), *viz,
-                                           tile, entities ) );
+    return co_await_test(
+        execute_disband( w.ss(), w.ts(), w.default_player(),
+                         *viz, tile, entities ) );
   };
 
   auto add_unit =
@@ -852,8 +854,8 @@ TEST_CASE( "[disband] execute_disband / destroy tribe" ) {
 
   auto f = [&] {
     BASE_CHECK( viz );
-    return co_await_test( execute_disband( w.ss(), w.ts(), *viz,
-                                           tile, entities ) );
+    return co_await_test( execute_disband(
+        w.ss(), w.ts(), w.english(), *viz, tile, entities ) );
   };
 
   auto add_dwelling = [&]() -> auto& {
@@ -864,7 +866,7 @@ TEST_CASE( "[disband] execute_disband / destroy tribe" ) {
   {
     w.mark_all_unexplored();
     entities = { .dwelling = add_dwelling() };
-    w.gui().EXPECT__message_box(
+    w.euro_agent().EXPECT__message_box(
         "The [Sioux] tribe has been wiped out." );
     f();
     REQUIRE( !w.natives().dwelling_exists(
@@ -878,7 +880,7 @@ TEST_CASE( "[disband] execute_disband / destroy tribe" ) {
     SCOPED_SET_AND_RESTORE( viz, &player_viz );
     w.mark_all_unexplored();
     entities = { .dwelling = add_dwelling() };
-    w.gui()
+    w.euro_agent()
         .EXPECT__message_box(
             "The [Sioux] tribe has been wiped out." )
         .invokes( [&] {

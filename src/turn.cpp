@@ -481,7 +481,8 @@ wait<> disband_at_location( IEngine& engine, SS& ss, TS& ts,
   auto const selected = co_await disband_tile_ui_interaction(
       ss.as_const, ts, engine.textometer(), player, *viz,
       entities );
-  co_await execute_disband( ss, ts, *viz, tile, selected );
+  co_await execute_disband( ss, ts, player, *viz, tile,
+                            selected );
 }
 
 /****************************************************************

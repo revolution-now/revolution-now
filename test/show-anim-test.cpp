@@ -48,11 +48,11 @@ struct world : testing::World {
 /****************************************************************
 ** Test Cases
 *****************************************************************/
-TEST_CASE( "[show-anim] should_animate_1" ) {
+TEST_CASE( "[show-anim] should_animate_tile" ) {
   world w;
 }
 
-TEST_CASE( "[show-anim] should_animate_2" ) {
+TEST_CASE( "[show-anim] should_animate_seq" ) {
   world w;
 }
 

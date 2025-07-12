@@ -11,6 +11,7 @@
 #include "disband.hpp"
 
 // Revolution Now
+#include "agents.hpp"
 #include "cheat.hpp"
 #include "co-wait.hpp"
 #include "colony-mgr.hpp"
@@ -34,6 +35,7 @@
 #include "ss/colonies.hpp"
 #include "ss/native-unit.rds.hpp"
 #include "ss/natives.hpp"
+#include "ss/player.rds.hpp"
 #include "ss/ref.hpp"
 #include "ss/settings.rds.hpp"
 #include "ss/terrain.hpp"
@@ -430,7 +432,8 @@ wait<EntitiesOnTile> disband_tile_ui_interaction(
   co_return entities;
 }
 
-wait<> execute_disband( SS& ss, TS& ts, IVisibility const& viz,
+wait<> execute_disband( SS& ss, TS& ts, Player const& player,
+                        IVisibility const& viz,
                         gfx::point const tile,
                         EntitiesOnTile const& entities ) {
   // NOTE: we need to do units first in case we are disbanding
@@ -523,11 +526,14 @@ wait<> execute_disband( SS& ss, TS& ts, IVisibility const& viz,
     // get rendered and the dwelling will continue to appear. If
     // we are disbanding a phantom dwelling, this will simply ex-
     // pose to the player the fact that it is no longer there.
-    if( auto const player = viz.player(); player.has_value() )
-      map_updater.make_squares_visible( *player, { tile } );
+    if( auto const viz_player = viz.player();
+        viz_player.has_value() )
+      map_updater.make_squares_visible( *viz_player, { tile } );
 
   if( destroy_tribe.has_value() )
-    co_await destroy_tribe_interactive( ss, ts, *destroy_tribe );
+    co_await destroy_tribe_interactive(
+        ss, ts.euro_agents()[player.type], ts.map_updater(),
+        *destroy_tribe );
 }
 
 } // namespace rn

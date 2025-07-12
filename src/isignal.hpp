@@ -83,6 +83,8 @@ struct ISignalHandler {
   virtual void handle( signal::TeaParty const& ) {}
 
   virtual void handle( signal::TaxRateWillChange const& ) {}
+
+  virtual void handle( signal::TribeWipedOut const& ) {}
 };
 
 } // namespace rn

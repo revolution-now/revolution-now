@@ -11,8 +11,10 @@
 #include "show-anim.hpp"
 
 // Revolution Now
+#include "anim-builder.rds.hpp"
 #include "roles.hpp"
 #include "society.hpp"
+#include "unit-mgr.hpp"
 #include "visibility.hpp"
 
 // ss
@@ -23,6 +25,9 @@
 
 // rds
 #include "rds/switch-macro.hpp"
+
+// C++ standard library
+#include <unordered_set>
 
 using namespace std;
 
@@ -38,7 +43,7 @@ using ::gfx::point;
 /****************************************************************
 ** Public API.
 *****************************************************************/
-bool should_animate_1( SSConst const& ss, point const tile ) {
+bool should_animate_tile( SSConst const& ss, point const tile ) {
   CHECK( ss.terrain.square_exists( tile ) );
   auto const viz_viewer = create_visibility_for(
       ss, player_for_role( ss, e_player_role::viewer ) );
@@ -95,15 +100,118 @@ bool should_animate_1( SSConst const& ss, point const tile ) {
   return true;
 }
 
-bool should_animate_2( SSConst const& ss, point const from,
-                       e_direction const to ) {
-  point const src = from;
-  point const dst = from.moved( to );
-  CHECK( ss.terrain.square_exists( src ) );
-  CHECK( ss.terrain.square_exists( dst ) );
+bool should_animate_seq( SSConst const& ss,
+                         AnimationSequence const& seq ) {
+  unordered_set<point> tiles;
+  for( auto const& phase : seq.sequence ) {
+    for( auto const& action : phase ) {
+      auto const& primitive = action.primitive;
+      SWITCH( primitive ) {
+        CASE( delay ) { break; }
+        CASE( depixelate_colony ) {
+          tiles.insert( depixelate_colony.tile );
+          break;
+        }
+        CASE( depixelate_dwelling ) {
+          tiles.insert( depixelate_dwelling.tile );
+          break;
+        }
+        CASE( depixelate_euro_unit ) {
+          auto const coord = coord_for_unit_multi_ownership(
+              ss, depixelate_euro_unit.unit_id );
+          if( coord.has_value() ) tiles.insert( *coord );
+          break;
+        }
+        CASE( depixelate_native_unit ) {
+          auto const coord = coord_for_unit_indirect(
+              ss.units, depixelate_native_unit.unit_id );
+          if( coord.has_value() ) tiles.insert( *coord );
+          break;
+        }
+        CASE( enpixelate_unit ) {
+          auto const coord = coord_for_unit_indirect(
+              ss.units, enpixelate_unit.unit_id );
+          if( coord.has_value() ) tiles.insert( *coord );
+          break;
+        }
+        CASE( ensure_tile_visible ) {
+          tiles.insert( ensure_tile_visible.tile );
+          break;
+        }
+        CASE( front_unit ) {
+          auto const coord = coord_for_unit_multi_ownership(
+              ss, front_unit.unit_id );
+          if( coord.has_value() ) tiles.insert( *coord );
+          break;
+        }
+        CASE( hide_colony ) {
+          tiles.insert( hide_colony.tile );
+          break;
+        }
+        CASE( hide_dwelling ) {
+          tiles.insert( hide_dwelling.tile );
+          break;
+        }
+        CASE( hide_unit ) {
+          auto const coord = coord_for_unit_indirect(
+              ss.units, hide_unit.unit_id );
+          if( coord.has_value() ) tiles.insert( *coord );
+          break;
+        }
+        CASE( landscape_anim_enpixelate ) {
+          // TODO: not sure if we should include this.
+          break;
+        }
+        CASE( landscape_anim_replace ) {
+          // TODO: not sure if we should include this.
+          break;
+        }
+        CASE( pixelate_euro_unit_to_target ) {
+          auto const coord = coord_for_unit_indirect(
+              ss.units, pixelate_euro_unit_to_target.unit_id );
+          if( coord.has_value() ) tiles.insert( *coord );
+          break;
+        }
+        CASE( pixelate_native_unit_to_target ) {
+          auto const coord = coord_for_unit_indirect(
+              ss.units, pixelate_native_unit_to_target.unit_id );
+          if( coord.has_value() ) tiles.insert( *coord );
+          break;
+        }
+        CASE( play_sound ) { break; }
+        CASE( slide_unit ) {
+          point const p = coord_for_unit_indirect_or_die(
+              ss.units, slide_unit.unit_id );
+          point const dst = p.moved( slide_unit.direction );
+          // NOTE: dst may potentially not exist here if a unit
+          // is sliding off of the map (not yet sure if that will
+          // be allowed to happen). But either way, the subse-
+          // quent should remove those.
+          tiles.insert( p );
+          tiles.insert( dst );
+          break;
+        }
+        CASE( talk_unit ) {
+          point const p = coord_for_unit_indirect_or_die(
+              ss.units, talk_unit.unit_id );
+          point const dst = p.moved( talk_unit.direction );
+          tiles.insert( p );
+          tiles.insert( dst );
+          break;
+        }
+      }
+    }
+  }
 
-  // TODO
-  return true;
+  erase_if( tiles, [&]( point const p ) {
+    return !ss.terrain.square_exists( p );
+  } );
+
+  for( point const tile : tiles )
+    if( should_animate_tile( ss, tile ) ) //
+      return true;
+
+  return false;
 }
 
 } // namespace rn

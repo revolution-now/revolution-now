@@ -40,7 +40,8 @@ wait<EntitiesOnTile> disband_tile_ui_interaction(
     Player const& player, IVisibility const& viz,
     DisbandingPermissions const& perms );
 
-wait<> execute_disband( SS& ss, TS& ts, IVisibility const& viz,
+wait<> execute_disband( SS& ss, TS& ts, Player const& player,
+                        IVisibility const& viz,
                         gfx::point const tile,
                         EntitiesOnTile const& entities );
 

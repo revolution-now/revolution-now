@@ -18,16 +18,23 @@ namespace rn {
 /****************************************************************
 ** Fwd Decls.
 *****************************************************************/
+struct AnimationSequence;
 struct SSConst;
 
 /****************************************************************
 ** Public API.
 *****************************************************************/
-// When the entire animation is contained to a single tile.
-bool should_animate_1( SSConst const& ss, gfx::point tile );
+// This is the preferred way to check for whether we should be
+// animating an animation sequence.
+bool should_animate_seq( SSConst const& ss,
+                         AnimationSequence const& seq );
 
-// When the animation spans two adjacent tiles.
-bool should_animate_2( SSConst const& ss, gfx::point from,
-                       gfx::e_direction to );
+// This is for when you don't have an AnimationSequence object
+// and the animation is contained on one tile. The tile must
+// exist on the map.
+//
+// Even if this doesn't end up being used, it should still be ex-
+// posed for testing since it contains the core logic.
+bool should_animate_tile( SSConst const& ss, gfx::point tile );
 
 } // namespace rn

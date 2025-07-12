@@ -221,7 +221,7 @@ std::set<NativeUnitId> units_for_tribe_ordered(
 // This will return the coordinate for the unit whenever it is
 // possible to map the unit to a coordinate, e.g., applies to map
 // ownership, cargo ownership (where holder is on map), colony
-// ownership.
+// ownership, or dwelling ownership.
 maybe<Coord> coord_for_unit_multi_ownership( SSConst const& ss,
                                              GenericUnitId id );
 Coord coord_for_unit_multi_ownership_or_die( SSConst const& ss,

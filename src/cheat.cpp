@@ -657,8 +657,12 @@ wait<> kill_natives( SS& ss, TS& ts ) {
       ts.map_updater().force_redraw_tiles( affected_fogged );
   }
 
-  for( e_tribe const tribe : destroyed )
-    co_await tribe_wiped_out_message( ts, tribe );
+  if( auto const active =
+          player_for_role( ss, e_player_role::active );
+      active.has_value() )
+    for( e_tribe const tribe : destroyed )
+      co_await tribe_wiped_out_message(
+          ts.euro_agents()[*active], tribe );
 }
 
 // In the OG there are four stages to the revolution status:

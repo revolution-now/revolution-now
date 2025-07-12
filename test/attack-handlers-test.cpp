@@ -235,8 +235,9 @@ struct World : testing::World {
   }
 
   void expect_tribe_wiped_out( string_view tribe_name ) {
-    gui().EXPECT__message_box( fmt::format(
-        "The [{}] tribe has been wiped out.", tribe_name ) );
+    euro_agent( kAttackingPlayer )
+        .EXPECT__message_box( fmt::format(
+            "The [{}] tribe has been wiped out.", tribe_name ) );
   }
 
   void expect_unit_captures_cargo(

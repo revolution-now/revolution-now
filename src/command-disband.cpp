@@ -56,7 +56,8 @@ struct DisbandHandler : public CommandHandler {
   wait<> perform() override {
     point const tile =
         coord_for_unit_indirect_or_die( ss_.units, unit_id_ );
-    co_await execute_disband( ss_, ts_, *viz_, tile, entities_ );
+    co_await execute_disband( ss_, ts_, player_, *viz_, tile,
+                              entities_ );
     co_return;
   }
 

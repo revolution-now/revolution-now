@@ -566,8 +566,6 @@ wait<> LandViewAnimator::animate_action_primitive(
       break;
     }
     CASE( depixelate_colony ) {
-      if( !should_animate_1( ss_, depixelate_colony.tile ) )
-        break;
       // Since we're only animating when the tile is clear, we
       // can require that there be a colony present and use the
       // real colony.

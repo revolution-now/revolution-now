@@ -16,7 +16,7 @@
 // Testing
 #include "test/fake/world.hpp"
 #include "test/mocking.hpp"
-#include "test/mocks/igui.hpp"
+#include "test/mocks/ieuro-agent.hpp"
 #include "test/mocks/imap-updater.hpp"
 #include "test/util/coro.hpp"
 
@@ -435,20 +435,21 @@ TEST_CASE( "[tribe-mgr] destroy_tribe" ) {
 TEST_CASE( "[tribe-mgr] destroy_tribe_interactive" ) {
   world w;
   w.add_tribe( e_tribe::aztec );
-  w.gui().EXPECT__message_box(
+  w.euro_agent().EXPECT__message_box(
       "The [Aztec] tribe has been wiped out." );
-  co_await_test( destroy_tribe_interactive( w.ss(), w.ts(),
-                                            e_tribe::aztec ) );
+  co_await_test( destroy_tribe_interactive(
+      w.ss(), w.euro_agent(), w.map_updater(),
+      e_tribe::aztec ) );
   REQUIRE( !w.natives().tribe_exists( e_tribe::aztec ) );
 }
 
 TEST_CASE( "[tribe-mgr] tribe_wiped_out_message" ) {
   world w;
   w.add_tribe( e_tribe::aztec );
-  w.gui().EXPECT__message_box(
+  w.euro_agent().EXPECT__message_box(
       "The [Aztec] tribe has been wiped out." );
-  co_await_test(
-      tribe_wiped_out_message( w.ts(), e_tribe::aztec ) );
+  co_await_test( tribe_wiped_out_message( w.euro_agent(),
+                                          e_tribe::aztec ) );
   REQUIRE( w.natives().tribe_exists( e_tribe::aztec ) );
 }
 

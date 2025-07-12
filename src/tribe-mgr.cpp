@@ -11,6 +11,7 @@
 #include "tribe-mgr.hpp"
 
 // Revolution Now
+#include "ieuro-agent.hpp"
 #include "igui.hpp"
 #include "imap-updater.hpp"
 #include "road.hpp"
@@ -116,16 +117,19 @@ void destroy_tribe( SS& ss, IMapUpdater& map_updater,
   ss.natives.destroy_tribe_last_step( tribe );
 }
 
-wait<> tribe_wiped_out_message( TS& ts, e_tribe tribe ) {
-  co_await ts.gui.message_box(
-      "The [{}] tribe has been wiped out.",
-      config_natives.tribes[tribe].name_singular );
+wait<> tribe_wiped_out_message( IEuroAgent& agent,
+                                e_tribe const tribe ) {
+  co_await agent.signal(
+      signal::TribeWipedOut{ .tribe = tribe },
+      format( "The [{}] tribe has been wiped out.",
+              config_natives.tribes[tribe].name_singular ) );
 }
 
-wait<> destroy_tribe_interactive( SS& ss, TS& ts,
+wait<> destroy_tribe_interactive( SS& ss, IEuroAgent& agent,
+                                  IMapUpdater& map_updater,
                                   e_tribe tribe ) {
-  destroy_tribe( ss, ts.map_updater(), tribe );
-  co_await tribe_wiped_out_message( ts, tribe );
+  destroy_tribe( ss, map_updater, tribe );
+  co_await tribe_wiped_out_message( agent, tribe );
 }
 
 e_tribe tribe_type_for_dwelling( SSConst const& ss,

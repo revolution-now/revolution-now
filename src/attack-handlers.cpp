@@ -36,6 +36,7 @@
 #include "plane-stack.hpp"
 #include "revolution-status.hpp"
 #include "roles.hpp"
+#include "show-anim.hpp"
 #include "tribe-mgr.hpp"
 #include "ts.hpp"
 #include "unit-mgr.hpp"
@@ -359,8 +360,12 @@ wait<> AttackColonyUndefendedHandler::perform() {
 
   // Animate the attack part of it. If the colony is captured
   // then the remainder will be done further below.
-  co_await ts_.planes.get().get_bottom<ILandViewPlane>().animate(
-      anim_seq_for_undefended_colony( ss_, combat ) );
+  if( auto const seq =
+          anim_seq_for_undefended_colony( ss_, combat );
+      should_animate_seq( ss_, seq ) )
+    co_await ts_.planes.get()
+        .get_bottom<ILandViewPlane>()
+        .animate( seq );
 
   CombatEffectsMessages const effects_msg =
       combat_effects_msg( ss_, combat );
@@ -380,9 +385,12 @@ wait<> AttackColonyUndefendedHandler::perform() {
   // The colony has been captured.
 
   // 1. The attacker moves into the colony square.
-  co_await ts_.planes.get().get_bottom<ILandViewPlane>().animate(
-      anim_seq_for_unit_move( ss_, attacker_.id(),
-                              direction_ ) );
+  if( auto const seq = anim_seq_for_unit_move(
+          ss_, attacker_.id(), direction_ );
+      should_animate_seq( ss_, seq ) )
+    co_await ts_.planes.get()
+        .get_bottom<ILandViewPlane>()
+        .animate( seq );
   maybe<UnitDeleted> const unit_deleted =
       co_await UnitOwnershipChanger( ss_, attacker_.id() )
           .change_to_map( ts_, attack_dst_ );
@@ -446,11 +454,13 @@ wait<> AttackColonyUndefendedHandler::perform() {
   co_await defender_agent_.message_box( capture_msg );
 
   // 8. Open colony view.
-  e_colony_abandoned const abandoned =
-      co_await ts_.colony_viewer.show( ts_, colony_.id );
-  if( abandoned == e_colony_abandoned::yes )
-    // Nothing really special to do here.
-    co_return;
+  if( attacker_agent_.human() ) {
+    e_colony_abandoned const abandoned =
+        co_await ts_.colony_viewer.show( ts_, colony_.id );
+    if( abandoned == e_colony_abandoned::yes )
+      // Nothing really special to do here.
+      co_return;
+  }
 
   // TODO: what if there are trade routes that involve this
   // colony?
@@ -497,8 +507,10 @@ wait<> NavalBattleHandler::perform() {
       anim_seq_for_naval_battle( ss_, combat );
 
   // Do the initial slide part of the animation first.
-  co_await ts_.planes.get().get_bottom<ILandViewPlane>().animate(
-      anim_seq.part_1 );
+  if( should_animate_seq( ss_, anim_seq.part_1 ) )
+    co_await ts_.planes.get()
+        .get_bottom<ILandViewPlane>()
+        .animate( anim_seq.part_1 );
 
   // For any unit that lost the battle (whether attacker or de-
   // fender/affected units) we need to check if they need to get
@@ -511,8 +523,10 @@ wait<> NavalBattleHandler::perform() {
   // capturing.
   co_await perform_loser_cargo_captures( combat );
 
-  co_await ts_.planes.get().get_bottom<ILandViewPlane>().animate(
-      anim_seq.part_2 );
+  if( should_animate_seq( ss_, anim_seq.part_2 ) )
+    co_await ts_.planes.get()
+        .get_bottom<ILandViewPlane>()
+        .animate( anim_seq.part_2 );
 
   // Must be done before performing effects (although it should
   // be ok that we've already done the cargo capture above).
@@ -643,10 +657,12 @@ wait<> EuroAttackHandler::perform() {
 
   co_await Base::perform();
 
-  AnimationSequence const seq =
-      anim_seq_for_euro_attack_euro( ss_, combat );
-  co_await ts_.planes.get().get_bottom<ILandViewPlane>().animate(
-      seq );
+  if( AnimationSequence const seq =
+          anim_seq_for_euro_attack_euro( ss_, combat );
+      should_animate_seq( ss_, seq ) )
+    co_await ts_.planes.get()
+        .get_bottom<ILandViewPlane>()
+        .animate( seq );
 
   CombatEffectsMessages const effects_msg =
       combat_effects_msg( ss_, combat );
@@ -706,10 +722,12 @@ wait<> AttackNativeUnitHandler::perform() {
 
   co_await Base::perform();
 
-  AnimationSequence const seq =
-      anim_seq_for_euro_attack_brave( ss_, combat );
-  co_await ts_.planes.get().get_bottom<ILandViewPlane>().animate(
-      seq );
+  if( AnimationSequence const seq =
+          anim_seq_for_euro_attack_brave( ss_, combat );
+      should_animate_seq( ss_, seq ) )
+    co_await ts_.planes.get()
+        .get_bottom<ILandViewPlane>()
+        .animate( seq );
 
   // The tribal alarm goes up regardless of the battle outcome.
   TribeRelationship& relationship =
@@ -833,9 +851,12 @@ wait<> AttackDwellingHandler::produce_convert() {
       ss_, ts_.map_updater(), attacking_player_,
       e_unit_type::native_convert, dwelling_coord );
   native_convert_ = convert_id;
-  co_await ts_.planes.get().get_bottom<ILandViewPlane>().animate(
-      anim_seq_for_convert_produced(
-          ss_, convert_id, reverse_direction( direction_ ) ) );
+  if( auto const seq = anim_seq_for_convert_produced(
+          ss_, convert_id, reverse_direction( direction_ ) );
+      should_animate_seq( ss_, seq ) )
+    co_await ts_.planes.get()
+        .get_bottom<ILandViewPlane>()
+        .animate( seq );
   // Non-interactive is OK here because the attacker is already
   // on this square.
   UnitOwnershipChanger( ss_, convert_id )
@@ -973,9 +994,10 @@ wait<> AttackDwellingHandler::perform() {
         [&]( CombatEuroAttackBrave const& combat ) -> wait<> {
           AnimationSequence const seq =
               anim_seq_for_euro_attack_brave( ss_, combat );
-          co_await ts_.planes.get()
-              .get_bottom<ILandViewPlane>()
-              .animate( seq );
+          if( should_animate_seq( ss_, seq ) )
+            co_await ts_.planes.get()
+                .get_bottom<ILandViewPlane>()
+                .animate( seq );
         } );
     perform_euro_unit_combat_effects( ss_, ts_, attacker_,
                                       combat.attacker.outcome );
@@ -996,9 +1018,10 @@ wait<> AttackDwellingHandler::perform() {
         [&]( CombatEuroAttackBrave const& combat ) -> wait<> {
           AnimationSequence const seq =
               anim_seq_for_euro_attack_brave( ss_, combat );
-          co_await ts_.planes.get()
-              .get_bottom<ILandViewPlane>()
-              .animate( seq );
+          if( should_animate_seq( ss_, seq ) )
+            co_await ts_.planes.get()
+                .get_bottom<ILandViewPlane>()
+                .animate( seq );
         } );
     perform_euro_unit_combat_effects( ss_, ts_, attacker_,
                                       combat.attacker.outcome );
@@ -1064,9 +1087,10 @@ wait<> AttackDwellingHandler::perform() {
             ss_, *viz_, attacker_id_, combat.attacker.outcome,
             phantom_combat.defender.id, dwelling_id_,
             combat.defender.outcome );
-        co_await ts_.planes.get()
-            .get_bottom<ILandViewPlane>()
-            .animate( seq );
+        if( should_animate_seq( ss_, seq ) )
+          co_await ts_.planes.get()
+              .get_bottom<ILandViewPlane>()
+              .animate( seq );
       } );
 
   bool const was_capital = dwelling_.is_capital;
@@ -1122,11 +1146,13 @@ wait<> AttackDwellingHandler::perform() {
             ss_, ts_.map_updater(), attacking_player_,
             treasure_comp, dwelling_location );
     treasure_ = treasure_id;
-    AnimationSequence const seq =
-        anim_seq_for_treasure_enpixelation( ss_, treasure_id );
-    co_await ts_.planes.get()
-        .get_bottom<ILandViewPlane>()
-        .animate( seq );
+    if( AnimationSequence const seq =
+            anim_seq_for_treasure_enpixelation( ss_,
+                                                treasure_id );
+        should_animate_seq( ss_, seq ) )
+      co_await ts_.planes.get()
+          .get_bottom<ILandViewPlane>()
+          .animate( seq );
     // Just in case e.g. the treasure appeared next to a brave
     // from unencountered tribe, or the pacific ocean.
     [[maybe_unused]] auto const unit_deleted =
@@ -1142,7 +1168,8 @@ wait<> AttackDwellingHandler::perform() {
   // Check if the tribe is now destroyed.
   if( destruction.tribe_destroyed.has_value() )
     // At this point there should be nothing left
-    co_await destroy_tribe_interactive( ss_, ts_, tribe_.type );
+    co_await destroy_tribe_interactive(
+        ss_, attacker_agent_, ts_.map_updater(), tribe_.type );
 
   if( destruction.missionary_to_release.has_value() ) {
     // Now that the missionary is visible, we will replace it on
