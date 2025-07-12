@@ -26,7 +26,6 @@
 #include "harbor-units.hpp"
 #include "icombat.hpp"
 #include "ieuro-agent.hpp"
-#include "igui.hpp"
 #include "imap-updater.hpp"
 #include "inative-agent.hpp"
 #include "land-view.hpp"
@@ -455,7 +454,7 @@ wait<> AttackColonyUndefendedHandler::perform() {
   // 7. Make adjustments to SoL of colony.
 
   // 8. Announce capture.
-  // TODO: add an interface method to IGui for playing music.
+  // TODO: create an interface for playing music.
   // conductor::play_request(
   //     ts_.rand, conductor::e_request::fife_drum_happy,
   //     conductor::e_request_probability::always );
