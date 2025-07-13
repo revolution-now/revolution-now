@@ -52,22 +52,23 @@ using ::base::valid_or;
 *****************************************************************/
 void write_preamble( ostream& out ) {
   out << R"(# NOTE: This file is AUTO-GENERATED. If you want to edit it,
-# please read the below.
+# please read below.
 #
 # Contents
 # --------
 # This file contains the user preferences that are changeable via
 # in-game menus but that persist across sessions and games. Exam-
-# ples are graphics or sound preferences, as opposed to more
-# static settings such as the combat strength of a unit.
+# ples are graphics or sound preferences, as opposed to static
+# settings such as the combat strength of a unit.
 #
 # Please see the user.rcl file for documentation on these fields.
 #
 # Generating/Changing
 # -------------------
 # These settings are changeable in-game, and when that happens
-# they will be written to this file. Therefore, you generally
-# don't need to edit this file directly.
+# they will be written to this file, overwriting any changes that
+# have been made manually. Therefore, you generally don't need
+# or want to edit this file directly.
 #
 # The first time the game is run this file is auto-generated from
 # the template in the user.rcl config file. Subsequently, the
@@ -75,9 +76,7 @@ void write_preamble( ostream& out ) {
 # the player makes changes to the relevant settings in-game.
 #
 # Thus, if you delete this file it will be regenerated with the
-# default settings on the next game run. If you want to change
-# this file, be sure to reload the game for the settings take ef-
-# fect.
+# default settings on the next game run.
 
 )";
 }
