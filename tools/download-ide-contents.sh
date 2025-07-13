@@ -8,6 +8,5 @@ ip="$(~/dev/utilities/network/choose-host.sh)"
 
 rn_contents=~/dev/revolution-now/tools/ide/contents/rn.lua
 [[ -n "$rn_contents" ]]
-[[ -e "$rn_contents" ]]
 
 scp "$ip:$rn_contents" "$rn_contents"
