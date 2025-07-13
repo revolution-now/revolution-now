@@ -33,7 +33,7 @@
 #define MOCK_CONCAT_IMPL( x, y ) x##y
 #define MOCK_CONCAT( x, y )      MOCK_CONCAT_IMPL( x, y )
 // This helps us to support overloaded functions.
-#define MOCK_IDENT_GEN( base )   MOCK_CONCAT( base##_, __LINE__ )
+#define MOCK_IDENT_GEN( base ) MOCK_CONCAT( base##_, __LINE__ )
 
 /****************************************************************
 ** EXPECT* Macros
