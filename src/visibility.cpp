@@ -462,17 +462,6 @@ void update_map_visibility( TS& ts,
       player );
 }
 
-bool should_animate_on_tile( IVisibility const& viz,
-                             gfx::point const tile ) {
-  return viz.visible( tile ) == e_tile_visibility::clear;
-}
-
-bool should_animate_move( IVisibility const& viz,
-                          point const src, point const dst ) {
-  return should_animate_on_tile( viz, src ) ||
-         should_animate_on_tile( viz, dst );
-}
-
 /****************************************************************
 ** ScopedMapViewer
 *****************************************************************/

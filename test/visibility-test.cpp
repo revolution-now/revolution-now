@@ -126,11 +126,6 @@ struct world : testing::World {
       }
     }
   }
-
-  unique_ptr<IVisibility const> make_viz(
-      maybe<e_player> player ) const {
-    return create_visibility_for( ss(), player );
-  };
 };
 
 /****************************************************************
@@ -795,123 +790,6 @@ TEST_CASE( "[visibility] recompute_fog_for_player" ) {
   REQUIRE( eng_map[{ .x = 8, .y = 10 }]
                .inner_if<explored>()
                .get_if<fogged>() );
-}
-
-TEST_CASE( "[visibility] should_animate_on_tile" ) {
-  world W;
-  W.create_small_map();
-  Coord const src = { .x = 0, .y = 0 };
-  unique_ptr<IVisibility const> viz;
-
-  auto f = [&]() {
-    BASE_CHECK( viz != nullptr );
-    return should_animate_on_tile( *viz, src );
-  };
-
-  viz = W.make_viz( nothing );
-  REQUIRE( f() );
-
-  viz = W.make_viz( W.default_player_type() );
-  REQUIRE_FALSE( f() );
-
-  W.player_square( { .x = 1, .y = 0 } )
-      .emplace<explored>()
-      .fog_status.emplace<fogged>();
-  REQUIRE_FALSE( f() );
-
-  W.player_square( { .x = 1, .y = 0 } )
-      .emplace<explored>()
-      .fog_status.emplace<clear>();
-  REQUIRE_FALSE( f() );
-
-  W.player_square( src )
-      .emplace<explored>()
-      .fog_status.emplace<fogged>();
-  REQUIRE_FALSE( f() );
-
-  W.player_square( src )
-      .emplace<explored>()
-      .fog_status.emplace<clear>();
-  REQUIRE( f() );
-
-  W.player_square( src )
-      .emplace<explored>()
-      .fog_status.emplace<fogged>();
-  REQUIRE_FALSE( f() );
-
-  W.player_square( src ).emplace<unexplored>();
-  REQUIRE_FALSE( f() );
-
-  viz = W.make_viz( nothing );
-  REQUIRE( f() );
-}
-
-TEST_CASE( "[visibility] should_animate_move" ) {
-  world W;
-  W.create_small_map();
-  Coord const src = { .x = 0, .y = 0 };
-  Coord const dst = { .x = 0, .y = 1 };
-  unique_ptr<IVisibility const> viz;
-
-  auto f = [&]() {
-    BASE_CHECK( viz != nullptr );
-    return should_animate_move( *viz, src, dst );
-  };
-
-  viz = W.make_viz( nothing );
-  REQUIRE( f() );
-
-  viz = W.make_viz( W.default_player_type() );
-  REQUIRE_FALSE( f() );
-
-  W.player_square( { .x = 1, .y = 0 } )
-      .emplace<explored>()
-      .fog_status.emplace<fogged>();
-  REQUIRE_FALSE( f() );
-
-  W.player_square( { .x = 1, .y = 0 } )
-      .emplace<explored>()
-      .fog_status.emplace<clear>();
-  REQUIRE_FALSE( f() );
-
-  W.player_square( src )
-      .emplace<explored>()
-      .fog_status.emplace<fogged>();
-  REQUIRE_FALSE( f() );
-
-  W.player_square( dst )
-      .emplace<explored>()
-      .fog_status.emplace<fogged>();
-  REQUIRE_FALSE( f() );
-
-  W.player_square( src )
-      .emplace<explored>()
-      .fog_status.emplace<clear>();
-  REQUIRE( f() );
-
-  W.player_square( dst )
-      .emplace<explored>()
-      .fog_status.emplace<clear>();
-  REQUIRE( f() );
-
-  W.player_square( src )
-      .emplace<explored>()
-      .fog_status.emplace<fogged>();
-  REQUIRE( f() );
-
-  W.player_square( src ).emplace<unexplored>();
-  REQUIRE( f() );
-
-  W.player_square( dst )
-      .emplace<explored>()
-      .fog_status.emplace<fogged>();
-  REQUIRE_FALSE( f() );
-
-  W.player_square( dst ).emplace<unexplored>();
-  REQUIRE_FALSE( f() );
-
-  viz = W.make_viz( nothing );
-  REQUIRE( f() );
 }
 
 TEST_CASE(

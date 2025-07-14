@@ -476,37 +476,11 @@ wait<> LandViewAnimator::animate_action_primitive(
     }
     CASE( slide_unit ) {
       auto& [unit_id, direction] = slide_unit;
-      Coord const src =
-          coord_for_unit_indirect_or_die( ss_.units, unit_id );
-      Coord const dst = src.moved( direction );
-      // The destination square may not exist if it is a ship
-      // sailing the high seas by moving off of the map edge
-      // (which the original game allows).
-      bool const dst_exists = ss_.terrain.square_exists( dst );
-      // Check visibility.
-      bool const should_animate =
-          dst_exists ? should_animate_move( *viz_, src, dst )
-                     : should_animate_move( *viz_, src, src );
-      if( !should_animate ) {
-        hold.count_down();
-        break;
-      }
       co_await slide_throttler_slide( hold, unit_id, direction );
       break;
     }
     CASE( talk_unit ) {
       auto& [unit_id, direction] = talk_unit;
-      Coord const src =
-          coord_for_unit_indirect_or_die( ss_.units, unit_id );
-      Coord const dst = src.moved( direction );
-      CHECK( ss_.terrain.square_exists( dst ) );
-      // Check visibility.
-      bool const should_animate =
-          should_animate_move( *viz_, src, dst );
-      if( !should_animate ) {
-        hold.count_down();
-        break;
-      }
       co_await slide_throttler_talk( hold, unit_id, direction );
       break;
     }
@@ -594,6 +568,7 @@ wait<> LandViewAnimator::animate_action_primitive(
 
 wait<> LandViewAnimator::animate_sequence_impl(
     AnimationSequence const& seq, bool hold_last ) {
+  CHECK( should_animate_seq( ss_, seq ) );
   for( size_t i = 0; i < seq.sequence.size(); ++i ) {
     vector<AnimationAction> const& sub_seq = seq.sequence[i];
     vector<wait<>> ws;

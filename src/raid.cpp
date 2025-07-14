@@ -26,6 +26,7 @@
 #include "plane-stack.hpp"
 #include "raid-effects.hpp"
 #include "roles.hpp"
+#include "show-anim.hpp"
 #include "ts.hpp"
 #include "unit-mgr.hpp"
 #include "unit-ownership.hpp"
@@ -97,15 +98,8 @@ wait<> raid_unit( SS& ss, TS& ts, NativeUnit& attacker,
   Coord const src   = ss.units.coord_for( attacker.id );
   IEuroAgent& agent = ts.euro_agents()[defender.player_type()];
 
-  // Note that for attacks the "show indian moves" game flag is
-  // not relevant, since there is really no natural way to show
-  // an attack without the slide and depixelation animations, es-
-  // pecially if it results in a unit or colony disappearing. So
-  // all that we really care about here is if the viewer can see
-  // either the src or dst square.
-  bool const viewable = should_animate_move( *viz, src, dst );
-
-  if( viewable ) {
+  if( should_animate_tile( ss, src ) ||
+      should_animate_tile( ss, dst ) ) {
     // NOTE: the viewing player will be changed further up the
     // call stack if needed (i.e. when there are multiple human
     // players).
@@ -119,10 +113,12 @@ wait<> raid_unit( SS& ss, TS& ts, NativeUnit& attacker,
 
   co_await surprise_raid_msg( ss, agent, dst, tribe_type );
 
-  if( viewable )
+  if( auto const seq =
+          anim_seq_for_brave_attack_euro( ss, combat );
+      should_animate_seq( ss, seq ) )
     co_await ts.planes.get()
         .get_bottom<ILandViewPlane>()
-        .animate( anim_seq_for_brave_attack_euro( ss, combat ) );
+        .animate( seq );
 
   CombatEffectsMessages const effects_msg =
       combat_effects_msg( ss, combat );
@@ -261,13 +257,8 @@ wait<> raid_colony( SS& ss, TS& ts, NativeUnit& attacker,
   Coord const src = ss.units.coord_for( attacker.id );
   Coord const dst = colony.location;
 
-  // Note that for attacks the "show indian moves" game flag is
-  // not relevant, since there is really no natural way to show
-  // an attack without the slide and depixelation animations, es-
-  // pecially if it results in a unit or colony disappearing.
-  bool const viewable = should_animate_move( *viz, src, dst );
-
-  if( viewable ) {
+  if( should_animate_tile( ss, src ) ||
+      should_animate_tile( ss, dst ) ) {
     // NOTE: the viewing player will be changed further up the
     // call stack if needed (i.e. when there are multiple human
     // players).
@@ -287,11 +278,12 @@ wait<> raid_colony( SS& ss, TS& ts, NativeUnit& attacker,
         "to help defend the colony!",
         colony.name );
 
-  if( viewable )
+  if( auto const seq =
+          anim_seq_for_brave_attack_colony( ss, *viz, combat );
+      should_animate_seq( ss, seq ) )
     co_await ts.planes.get()
         .get_bottom<ILandViewPlane>()
-        .animate( anim_seq_for_brave_attack_colony( ss, *viz,
-                                                    combat ) );
+        .animate( seq );
 
   if( combat.colony_destroyed )
     co_await raid_colony_burn( ss, ts, attacker, colony,

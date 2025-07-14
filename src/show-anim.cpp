@@ -14,6 +14,7 @@
 #include "anim-builder.rds.hpp"
 #include "roles.hpp"
 #include "society.hpp"
+#include "tribe-mgr.hpp"
 #include "unit-mgr.hpp"
 #include "visibility.hpp"
 
@@ -22,12 +23,13 @@
 #include "ss/ref.hpp"
 #include "ss/settings.rds.hpp"
 #include "ss/terrain.hpp"
+#include "ss/units.hpp"
 
 // rds
 #include "rds/switch-macro.hpp"
 
 // C++ standard library
-#include <unordered_set>
+#include <unordered_map>
 
 using namespace std;
 
@@ -38,25 +40,10 @@ namespace {
 using ::gfx::e_direction;
 using ::gfx::point;
 
-} // namespace
-
-/****************************************************************
-** Public API.
-*****************************************************************/
-bool should_animate_tile( SSConst const& ss, point const tile ) {
-  CHECK( ss.terrain.square_exists( tile ) );
-  auto const viz_viewer = create_visibility_for(
-      ss, player_for_role( ss, e_player_role::viewer ) );
-  bool const is_clear =
-      viz_viewer->visible( tile ) == e_tile_visibility::clear;
-  if( !is_clear ) return false;
-  auto const society = society_on_square( ss, tile );
-  if( !society.has_value() )
-    // Not sure what this would be, but at this point the tile is
-    // clear so no reason not to show whatever animation this
-    // would be.
-    return true;
-  SWITCH( *society ) {
+bool should_animate_society( SSConst const& ss,
+                             maybe<e_player> const viewer,
+                             Society const& society ) {
+  SWITCH( society ) {
     CASE( european ) {
       // In the below, our goal is to determine whether the euro-
       // pean player on this square is "foreign" or not, and then
@@ -69,11 +56,10 @@ bool should_animate_tile( SSConst const& ss, point const tile ) {
             [e_game_menu_option::show_foreign_moves];
       };
 
-      if( viz_viewer->player().has_value() ) {
+      if( viewer.has_value() ) {
         // We are viewing from one player's perspective, so a
         // foreign power is any other player.
-        bool const foreign =
-            european.player != *viz_viewer->player();
+        bool const foreign = european.player != *viewer;
         return switch_foreign( foreign );
       } else {
         // We see the entire map. So in that case we need to
@@ -97,65 +83,150 @@ bool should_animate_tile( SSConst const& ss, point const tile ) {
           [e_game_menu_option::show_indian_moves];
     }
   }
-  return true;
+}
+
+} // namespace
+
+/****************************************************************
+** Public API.
+*****************************************************************/
+bool should_animate_tile( SSConst const& ss,
+                          AnimatedTile const& anim_tile ) {
+  point const tile = anim_tile.tile;
+  CHECK( ss.terrain.square_exists( tile ) );
+  auto const viz_viewer = create_visibility_for(
+      ss, player_for_role( ss, e_player_role::viewer ) );
+  bool const is_clear =
+      viz_viewer->visible( tile ) == e_tile_visibility::clear;
+  if( !is_clear ) return false;
+  for( Society const& society : anim_tile.inhabitants )
+    if( should_animate_society( ss, viz_viewer->player(),
+                                society ) )
+      return true;
+  return false;
+}
+
+bool should_animate_tile( SSConst const& ss, gfx::point tile ) {
+  vector<Society> societies;
+  auto const society = society_on_square( ss, tile );
+  if( society.has_value() ) societies.push_back( *society );
+  return should_animate_tile(
+      ss,
+      AnimatedTile{ .tile        = tile,
+                    .inhabitants = std::move( societies ) } );
 }
 
 bool should_animate_seq( SSConst const& ss,
                          AnimationSequence const& seq ) {
-  unordered_set<point> tiles;
+  unordered_map<point, vector<Society>> tiles;
+  auto const p_viz = create_visibility_for(
+      ss, player_for_role( ss, e_player_role::viewer ) );
+  auto const& viz = *p_viz;
+
+  auto const add = mp::overload{
+    [&]( point const tile ) { tiles[tile]; },
+    [&]( point const tile, UnitId const unit_id ) {
+      tiles[tile];
+      tiles[tile].push_back( Society::european{
+        .player = ss.units.unit_for( unit_id ).player_type() } );
+    },
+    [&]( point const tile, NativeUnitId const unit_id ) {
+      tiles[tile];
+      tiles[tile].push_back( Society::native{
+        .tribe = tribe_type_for_unit(
+            ss, ss.units.native_unit_for( unit_id ) ) } );
+    },
+    [&]( this auto&& self, point const tile,
+         GenericUnitId const generic_id ) {
+      e_unit_kind const kind = ss.units.unit_kind( generic_id );
+      switch( kind ) {
+        case e_unit_kind::euro: {
+          self( tile,
+                ss.units.euro_unit_for( generic_id ).id() );
+          break;
+        }
+        case e_unit_kind::native: {
+          self( tile,
+                ss.units.native_unit_for( generic_id ).id );
+          break;
+        }
+      }
+    },
+    [&]( this auto&& self, GenericUnitId const generic_id ) {
+      auto const coord =
+          coord_for_unit_multi_ownership( ss, generic_id );
+      if( coord.has_value() ) self( *coord, generic_id );
+    },
+    [&]( this auto&& self, GenericUnitId const generic_id,
+         e_direction const direction ) {
+      auto const src =
+          coord_for_unit_multi_ownership( ss, generic_id );
+      if( !src.has_value() ) return;
+      point const dst = src->moved( direction );
+      self( *src, generic_id );
+      self( dst, generic_id );
+    },
+  };
+
+  auto const add_colony = [&]( point const tile ) {
+    tiles[tile];
+    auto const colony = viz.colony_at( tile );
+    if( colony.has_value() )
+      tiles[tile].push_back(
+          Society::european{ .player = colony->player } );
+  };
+
+  auto const add_dwelling = [&]( point const tile ) {
+    tiles[tile];
+    auto const dwelling = viz.dwelling_at( tile );
+    if( dwelling.has_value() )
+      tiles[tile].push_back( Society::native{
+        .tribe = tribe_type_for_dwelling( ss, *dwelling ) } );
+  };
+
   for( auto const& phase : seq.sequence ) {
     for( auto const& action : phase ) {
       auto const& primitive = action.primitive;
       SWITCH( primitive ) {
         CASE( delay ) { break; }
         CASE( depixelate_colony ) {
-          tiles.insert( depixelate_colony.tile );
+          add_colony( depixelate_colony.tile );
           break;
         }
         CASE( depixelate_dwelling ) {
-          tiles.insert( depixelate_dwelling.tile );
+          add_dwelling( depixelate_dwelling.tile );
           break;
         }
         CASE( depixelate_euro_unit ) {
-          auto const coord = coord_for_unit_multi_ownership(
-              ss, depixelate_euro_unit.unit_id );
-          if( coord.has_value() ) tiles.insert( *coord );
+          add( depixelate_euro_unit.unit_id );
           break;
         }
         CASE( depixelate_native_unit ) {
-          auto const coord = coord_for_unit_indirect(
-              ss.units, depixelate_native_unit.unit_id );
-          if( coord.has_value() ) tiles.insert( *coord );
+          add( depixelate_native_unit.unit_id );
           break;
         }
         CASE( enpixelate_unit ) {
-          auto const coord = coord_for_unit_indirect(
-              ss.units, enpixelate_unit.unit_id );
-          if( coord.has_value() ) tiles.insert( *coord );
+          add( enpixelate_unit.unit_id );
           break;
         }
         CASE( ensure_tile_visible ) {
-          tiles.insert( ensure_tile_visible.tile );
+          add( ensure_tile_visible.tile );
           break;
         }
         CASE( front_unit ) {
-          auto const coord = coord_for_unit_multi_ownership(
-              ss, front_unit.unit_id );
-          if( coord.has_value() ) tiles.insert( *coord );
+          add( front_unit.unit_id );
           break;
         }
         CASE( hide_colony ) {
-          tiles.insert( hide_colony.tile );
+          add_colony( hide_colony.tile );
           break;
         }
         CASE( hide_dwelling ) {
-          tiles.insert( hide_dwelling.tile );
+          add_dwelling( hide_dwelling.tile );
           break;
         }
         CASE( hide_unit ) {
-          auto const coord = coord_for_unit_indirect(
-              ss.units, hide_unit.unit_id );
-          if( coord.has_value() ) tiles.insert( *coord );
+          add( hide_unit.unit_id );
           break;
         }
         CASE( landscape_anim_enpixelate ) {
@@ -167,49 +238,42 @@ bool should_animate_seq( SSConst const& ss,
           break;
         }
         CASE( pixelate_euro_unit_to_target ) {
-          auto const coord = coord_for_unit_indirect(
-              ss.units, pixelate_euro_unit_to_target.unit_id );
-          if( coord.has_value() ) tiles.insert( *coord );
+          add( pixelate_euro_unit_to_target.unit_id );
           break;
         }
         CASE( pixelate_native_unit_to_target ) {
-          auto const coord = coord_for_unit_indirect(
-              ss.units, pixelate_native_unit_to_target.unit_id );
-          if( coord.has_value() ) tiles.insert( *coord );
+          add( pixelate_native_unit_to_target.unit_id );
           break;
         }
         CASE( play_sound ) { break; }
         CASE( slide_unit ) {
-          point const p = coord_for_unit_indirect_or_die(
-              ss.units, slide_unit.unit_id );
-          point const dst = p.moved( slide_unit.direction );
-          // NOTE: dst may potentially not exist here if a unit
-          // is sliding off of the map (not yet sure if that will
-          // be allowed to happen). But either way, the subse-
-          // quent should remove those.
-          tiles.insert( p );
-          tiles.insert( dst );
+          // NOTE: The destination square may potentially not
+          // exist here if a unit is sliding off of the map
+          // (which can happen when sailing the high seas). But
+          // either way, the subsequent should remove those.
+          add( slide_unit.unit_id, slide_unit.direction );
           break;
         }
         CASE( talk_unit ) {
-          point const p = coord_for_unit_indirect_or_die(
-              ss.units, talk_unit.unit_id );
-          point const dst = p.moved( talk_unit.direction );
-          tiles.insert( p );
-          tiles.insert( dst );
+          add( talk_unit.unit_id, talk_unit.direction );
           break;
         }
       }
     }
   }
 
-  erase_if( tiles, [&]( point const p ) {
-    return !ss.terrain.square_exists( p );
+  // Handles a ship sailing off the map for the high seas.
+  erase_if( tiles, [&]( auto const& p ) {
+    auto const& [tile, societies] = p;
+    return !ss.terrain.square_exists( tile );
   } );
 
-  for( point const tile : tiles )
-    if( should_animate_tile( ss, tile ) ) //
+  for( auto& [tile, societies] : tiles ) {
+    AnimatedTile const anim_tile{
+      .tile = tile, .inhabitants = std::move( societies ) };
+    if( should_animate_tile( ss, anim_tile ) ) //
       return true;
+  }
 
   return false;
 }

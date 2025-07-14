@@ -26,6 +26,7 @@
 #include "on-map.hpp"
 #include "plane-stack.hpp"
 #include "roles.hpp"
+#include "show-anim.hpp"
 #include "society.hpp"
 #include "ts.hpp"
 #include "unit-mgr.hpp"
@@ -67,25 +68,6 @@ using namespace std;
 namespace rn {
 
 namespace {
-
-// This is for non-attack moves. Attack moves are handled else-
-// where, and they just rely on whether the viewing player can
-// see one of the squares in question.
-bool should_animate_native_travel( SSConst const& ss,
-                                   IVisibility const& viz,
-                                   Coord src, Coord dst ) {
-  if( !ss.settings.in_game_options.game_menu_options
-           [e_game_menu_option::show_indian_moves] )
-    return false;
-  // At the time of writing, the land view renderer will suppress
-  // any slide/attack animations where the src and dst tiles are
-  // both not visible, so technically we don't have to do this
-  // here. However, this is an optimization that hopefully makes
-  // a difference for large maps where there are many native
-  // units; it will prevent an animation API from getting called
-  // for each of the braves, most of which are not visible.
-  return should_animate_move( viz, src, dst );
-}
 
 wait<> handle_native_unit_attack( SS& ss, TS& ts,
                                   IRaid const& raid,
@@ -132,8 +114,12 @@ wait<> handle_native_unit_talk( SS& ss, TS& ts,
       player_for_player_or_die( ss.players, player_type );
   IEuroAgent& euro_agent = ts.euro_agents()[player_type];
 
-  co_await ts.planes.get().get_bottom<ILandViewPlane>().animate(
-      anim_seq_for_unit_talk( ss, native_unit.id, direction ) );
+  if( auto const seq = anim_seq_for_unit_talk(
+          ss, native_unit.id, direction );
+      should_animate_seq( ss, seq ) )
+    co_await ts.planes.get()
+        .get_bottom<ILandViewPlane>()
+        .animate( seq );
 
   player.money += 5;
 
@@ -151,7 +137,6 @@ wait<> handle_native_unit_talk( SS& ss, TS& ts,
 }
 
 wait<> handle_native_unit_travel( SS& ss, TS& ts,
-                                  IVisibility const& viz,
                                   NativeUnit& native_unit,
                                   e_direction direction ) {
   Coord const src = ss.units.coord_for( native_unit.id );
@@ -175,19 +160,19 @@ wait<> handle_native_unit_travel( SS& ss, TS& ts,
     CHECK_EQ( native_unit.movement_points, 0 );
     co_return;
   }
-  if( should_animate_native_travel( ss, viz, src, dst ) )
+  if( auto const seq = anim_seq_for_unit_move(
+          ss, native_unit.id, direction );
+      should_animate_seq( ss, seq ) )
     co_await ts.planes.get()
         .get_bottom<ILandViewPlane>()
-        .animate( anim_seq_for_unit_move( ss, native_unit.id,
-                                          direction ) );
+        .animate( seq );
   co_await UnitOnMapMover::native_unit_to_map_interactive(
       ss, ts, native_unit.id, dst );
 }
 
 wait<> handle_native_unit_command(
-    SS& ss, TS& ts, IRaid const& raid, IVisibility const& viz,
-    e_tribe tribe_type, NativeUnit& native_unit,
-    NativeUnitCommand const& command ) {
+    SS& ss, TS& ts, IRaid const& raid, e_tribe tribe_type,
+    NativeUnit& native_unit, NativeUnitCommand const& command ) {
   SWITCH( command ) {
     CASE( forfeight ) {
       native_unit.movement_points = 0;
@@ -219,14 +204,14 @@ wait<> handle_native_unit_command(
       maybe<Society> const society =
           society_on_square( ss, dst );
       if( !society.has_value() ) {
-        co_await handle_native_unit_travel(
-            ss, ts, viz, native_unit, move.direction );
+        co_await handle_native_unit_travel( ss, ts, native_unit,
+                                            move.direction );
       } else {
         SWITCH( *society ) {
           CASE( native ) {
             CHECK( native.tribe == tribe_type );
             co_await handle_native_unit_travel(
-                ss, ts, viz, native_unit, move.direction );
+                ss, ts, native_unit, move.direction );
             break;
           }
           CASE( european ) {
@@ -260,8 +245,8 @@ wait<> handle_native_unit_command(
   // !! Note that the unit may no longer exist here.
 }
 
-wait<> tribe_turn( SS& ss, TS& ts, IVisibility const& viz,
-                   INativeAgent& agent, IRaid const& raid,
+wait<> tribe_turn( SS& ss, TS& ts, INativeAgent& agent,
+                   IRaid const& raid,
                    ITribeEvolve const& tribe_evolver ) {
   // Evolve those aspects/properties of the tribe that are common
   // to the entire tribe, i.e. not dwellingor unit-specific.
@@ -326,7 +311,7 @@ wait<> tribe_turn( SS& ss, TS& ts, IVisibility const& viz,
            kMaxTries, native_unit_id );
 
     co_await handle_native_unit_command(
-        ss, ts, raid, viz, agent.tribe_type(), native_unit,
+        ss, ts, raid, agent.tribe_type(), native_unit,
         agent.command_for( native_unit_id ) );
 
     // !! Unit may no longer exist at this point.
@@ -350,16 +335,11 @@ wait<> natives_turn( SS& ss, TS& ts, IRaid const& raid,
   base::ScopedTimer timer( "native turns" );
   timer.options().no_checkpoints_logging = true;
 
-  unique_ptr<IVisibility const> const viz =
-      create_visibility_for(
-          ss, player_for_role( ss, e_player_role::viewer ) );
-
   for( e_tribe const tribe : refl::enum_values<e_tribe> ) {
     if( !ss.natives.tribe_exists( tribe ) ) continue;
     INativeAgent& agent = ts.native_agents()[tribe];
     timer.checkpoint( "{}", tribe );
-    co_await tribe_turn( ss, ts, *viz, agent, raid,
-                         tribe_evolver );
+    co_await tribe_turn( ss, ts, agent, raid, tribe_evolver );
   }
 }
 

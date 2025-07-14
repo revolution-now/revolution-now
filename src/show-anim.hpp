@@ -10,6 +10,9 @@
 *****************************************************************/
 #pragma once
 
+// rds
+#include "show-anim.rds.hpp"
+
 // gfx
 #include "gfx/cartesian.hpp"
 
@@ -28,6 +31,9 @@ struct SSConst;
 // animating an animation sequence.
 bool should_animate_seq( SSConst const& ss,
                          AnimationSequence const& seq );
+
+bool should_animate_tile( SSConst const& ss,
+                          AnimatedTile const& anim_tile );
 
 // This is for when you don't have an AnimationSequence object
 // and the animation is contained on one tile. The tile must

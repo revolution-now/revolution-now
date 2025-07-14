@@ -96,6 +96,9 @@ TEST_CASE( "[native-turn] unit iteration, travel" ) {
   RealRaid real_raid( W.ss(), W.ts() );
   RealTribeEvolve real_tribe_evolver( W.ss(), W.ts() );
 
+  MockLandViewPlane mock_land_view;
+  W.planes().get().set_bottom<ILandViewPlane>( mock_land_view );
+
   auto f = [&] {
     // In this one we don't inject dependencies because it seems
     // simple enough to test thoroughly.
@@ -249,9 +252,6 @@ TEST_CASE( "[native-turn] unit iteration, travel" ) {
   }
 
   SECTION( "one unit, animation enabled/disabled" ) {
-    MockLandViewPlane mock_land_view;
-    W.planes().get().set_bottom<ILandViewPlane>(
-        mock_land_view );
     auto [dwelling_id, unit_id] = W.add_dwelling_and_brave_ids(
         { .x = 0, .y = 0 }, e_tribe::arawak );
     REQUIRE( W.units().unit_for( unit_id ).movement_points ==
