@@ -98,8 +98,11 @@ wait<> raid_unit( SS& ss, TS& ts, NativeUnit& attacker,
   Coord const src   = ss.units.coord_for( attacker.id );
   IEuroAgent& agent = ts.euro_agents()[defender.player_type()];
 
-  if( should_animate_tile( ss, src ) ||
-      should_animate_tile( ss, dst ) ) {
+  AnimationSequence const seq =
+      anim_seq_for_brave_attack_euro( ss, combat );
+  bool const should_animate = should_animate_seq( ss, seq );
+
+  if( should_animate ) {
     // NOTE: the viewing player will be changed further up the
     // call stack if needed (i.e. when there are multiple human
     // players).
@@ -113,9 +116,7 @@ wait<> raid_unit( SS& ss, TS& ts, NativeUnit& attacker,
 
   co_await surprise_raid_msg( ss, agent, dst, tribe_type );
 
-  if( auto const seq =
-          anim_seq_for_brave_attack_euro( ss, combat );
-      should_animate_seq( ss, seq ) )
+  if( should_animate )
     co_await ts.planes.get()
         .get_bottom<ILandViewPlane>()
         .animate( seq );
@@ -257,8 +258,11 @@ wait<> raid_colony( SS& ss, TS& ts, NativeUnit& attacker,
   Coord const src = ss.units.coord_for( attacker.id );
   Coord const dst = colony.location;
 
-  if( should_animate_tile( ss, src ) ||
-      should_animate_tile( ss, dst ) ) {
+  AnimationSequence const seq =
+      anim_seq_for_brave_attack_colony( ss, *viz, combat );
+  bool const should_animate = should_animate_seq( ss, seq );
+
+  if( should_animate ) {
     // NOTE: the viewing player will be changed further up the
     // call stack if needed (i.e. when there are multiple human
     // players).
@@ -278,9 +282,7 @@ wait<> raid_colony( SS& ss, TS& ts, NativeUnit& attacker,
         "to help defend the colony!",
         colony.name );
 
-  if( auto const seq =
-          anim_seq_for_brave_attack_colony( ss, *viz, combat );
-      should_animate_seq( ss, seq ) )
+  if( should_animate )
     co_await ts.planes.get()
         .get_bottom<ILandViewPlane>()
         .animate( seq );
