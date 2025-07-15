@@ -325,6 +325,8 @@ wait<> intervention_forces_triggered_ui_seq(
 
 wait<> intervention_forces_deployed_ui_seq(
     TS& ts, Colony const& colony, e_nation const intervening ) {
+  // Always animating this should be fine because this should
+  // only happen for human players during their turn.
   co_await ts.planes.get()
       .get_bottom<ILandViewPlane>()
       .ensure_visible( colony.location );
