@@ -36,7 +36,7 @@ struct RefAIEuroAgent final : IEuroAgent {
   bool human() const override;
 
   wait<e_declare_war_on_natives> meet_tribe_ui_sequence(
-      MeetTribe const& meet_tribe ) override;
+      MeetTribe const& meet_tribe, gfx::point tile ) override;
 
   wait<> show_woodcut( e_woodcut woodcut ) override;
 

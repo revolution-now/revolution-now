@@ -45,7 +45,8 @@ struct MockIEuroAgent : IEuroAgent {
   MOCK_METHOD( bool, human, (), ( const ) );
   MOCK_METHOD( wait<>, message_box, (std::string const&), () );
   MOCK_METHOD( wait<e_declare_war_on_natives>,
-               meet_tribe_ui_sequence, (MeetTribe const&), () );
+               meet_tribe_ui_sequence,
+               ( MeetTribe const&, gfx::point ), () );
   MOCK_METHOD( wait<>, show_woodcut, ( e_woodcut ), () );
   MOCK_METHOD( wait<base::heap_value<CapturableCargoItems>>,
                select_commodities_to_capture,

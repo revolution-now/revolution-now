@@ -55,7 +55,8 @@ wait<> RefAIEuroAgent::message_box( string const& ) {
 }
 
 wait<e_declare_war_on_natives>
-RefAIEuroAgent::meet_tribe_ui_sequence( MeetTribe const& ) {
+RefAIEuroAgent::meet_tribe_ui_sequence( MeetTribe const&,
+                                        point const ) {
   co_return e_declare_war_on_natives::no;
 }
 

@@ -53,7 +53,8 @@ wait<> HumanEuroAgent::message_box( string const& msg ) {
 
 wait<e_declare_war_on_natives>
 HumanEuroAgent::meet_tribe_ui_sequence(
-    MeetTribe const& meet_tribe ) {
+    MeetTribe const& meet_tribe, point const tile ) {
+  co_await land_view().ensure_visible( tile );
   co_return co_await perform_meet_tribe_ui_sequence(
       ss_, *this, gui_, meet_tribe );
 }

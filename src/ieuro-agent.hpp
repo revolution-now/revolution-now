@@ -82,9 +82,11 @@ struct IEuroAgent : IAgent, ISignalHandler {
 
   // This is the interactive part of the sequence of events that
   // happens when first encountering a given native tribe. In
-  // particular, it will ask if you want to accept peace.
+  // particular, it will ask if you want to accept peace. The
+  // tile passed in is the tile that triggered the event; it may
+  // be the tile of the native unit or the european unit.
   virtual wait<e_declare_war_on_natives> meet_tribe_ui_sequence(
-      MeetTribe const& meet_tribe ) = 0;
+      MeetTribe const& meet_tribe, gfx::point tile ) = 0;
 
   // Woodcut's are static "cut scenes" consisting of a single
   // image pixelated to mark a (good or bad) milestone in the
@@ -193,7 +195,8 @@ struct NoopEuroAgent final : IEuroAgent {
   bool human() const override;
 
   wait<e_declare_war_on_natives> meet_tribe_ui_sequence(
-      MeetTribe const& meet_tribe ) override;
+      MeetTribe const& meet_tribe,
+      gfx::point tile ) override;
 
   wait<> show_woodcut( e_woodcut woodcut ) override;
 

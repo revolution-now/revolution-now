@@ -46,7 +46,8 @@ NoopEuroAgent::NoopEuroAgent( SSConst const& ss,
 wait<> NoopEuroAgent::message_box( string const& ) { co_return; }
 
 wait<e_declare_war_on_natives>
-NoopEuroAgent::meet_tribe_ui_sequence( MeetTribe const& ) {
+NoopEuroAgent::meet_tribe_ui_sequence( MeetTribe const&,
+                                       point const ) {
   co_return e_declare_war_on_natives::no;
 }
 

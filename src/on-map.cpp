@@ -154,7 +154,8 @@ wait<> try_meet_natives( SS& ss, Player& player,
       check_meet_tribes( as_const( ss ), player, square );
   for( MeetTribe const& meet_tribe : meet_tribes ) {
     e_declare_war_on_natives const declare_war =
-        co_await agent.meet_tribe_ui_sequence( meet_tribe );
+        co_await agent.meet_tribe_ui_sequence( meet_tribe,
+                                               square );
     perform_meet_tribe( ss, player, meet_tribe, declare_war );
   }
 }
@@ -166,13 +167,11 @@ wait<> try_meet_europeans( SS& ss, TS& ts, e_tribe tribe_type,
   for( MeetTribe const& meet_tribe : meet_tribes ) {
     Player& player = player_for_player_or_die(
         ss.players, meet_tribe.player );
+    IEuroAgent& agent = ts.euro_agents()[meet_tribe.player];
     ScopedMapViewer const _( ss, ts, player.type );
-    co_await ts.planes.get()
-        .get_bottom<ILandViewPlane>()
-        .ensure_visible( native_tile );
     e_declare_war_on_natives const declare_war =
-        co_await ts.euro_agents()[meet_tribe.player]
-            .meet_tribe_ui_sequence( meet_tribe );
+        co_await agent.meet_tribe_ui_sequence( meet_tribe,
+                                               native_tile );
     perform_meet_tribe( ss, player, meet_tribe, declare_war );
   }
 }

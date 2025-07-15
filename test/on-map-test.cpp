@@ -420,7 +420,8 @@ TEST_CASE(
         .EXPECT__meet_tribe_ui_sequence(
             MeetTribe{ .player        = e_player::spanish,
                        .tribe         = e_tribe::cherokee,
-                       .num_dwellings = 1 } )
+                       .num_dwellings = 1 },
+            point{ .x = 2, .y = 1 } )
         .returns<wait<e_declare_war_on_natives>>(
             e_declare_war_on_natives::no );
   }
@@ -437,15 +438,14 @@ TEST_CASE(
         .EXPECT__meet_tribe_ui_sequence(
             MeetTribe{ .player        = e_player::dutch,
                        .tribe         = e_tribe::cherokee,
-                       .num_dwellings = 1 } )
+                       .num_dwellings = 1 },
+            point{ .x = 2, .y = 1 } )
         .returns<wait<e_declare_war_on_natives>>(
             e_declare_war_on_natives::no );
     W.mock_land_view.EXPECT__set_visibility( e_player::dutch );
     W.mock_land_view.EXPECT__set_visibility( e_player::spanish );
   }
 
-  W.mock_land_view.EXPECT__ensure_visible(
-      point{ .x = 2, .y = 1 } );
   wait<> const w =
       UnitOnMapMover::native_unit_to_map_interactive(
           W.ss(), W.ts(), native_unit.id, { .x = 2, .y = 1 } );
