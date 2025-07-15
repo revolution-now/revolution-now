@@ -317,7 +317,7 @@ struct TravelHandler : public CommandHandler {
             ss_, unit_id, *target_unit, direction );
         co_await ts_.planes.get()
             .get_bottom<ILandViewPlane>()
-            .animate( seq );
+            .animate_if_visible( seq );
         break;
       }
       case e_travel_verdict::land_fall:
@@ -334,7 +334,7 @@ struct TravelHandler : public CommandHandler {
             anim_seq_for_unit_move( ss_, unit_id, direction );
         co_await ts_.planes.get()
             .get_bottom<ILandViewPlane>()
-            .animate( seq );
+            .animate_if_visible( seq );
         break;
       }
     }

@@ -68,12 +68,22 @@ struct ILandViewPlane {
 
   virtual wait<LandViewPlayerInput> eot_get_next_input() = 0;
 
+  // Run an animation unconditionally, i.e. regardless of whether
+  // the player/viewer should be able to see the animation.
+  //
   // We use the lifetime-bound attribute here because it is not
   // uncommon for this coroutine to be run in the background
   // (i.e., not immediately awaited upon), and so this will help
   // catch lifetime issues. Technically we should do this to all
   // coroutines, but most aren't used in this way.
-  virtual wait<> animate(
+  virtual wait<> animate_always(
+      AnimationSequence const& seq ATTR_LIFETIMEBOUND ) = 0;
+
+  // Run an animation only if the player/viewer should be able to
+  // see the animation.
+  //
+  // Same as above regarding lifetime-bound.
+  virtual wait<> animate_if_visible(
       AnimationSequence const& seq ATTR_LIFETIMEBOUND ) = 0;
 
   // We don't have to do much specifically in the land view when
@@ -124,7 +134,10 @@ struct LandViewPlane : ILandViewPlane {
 
   wait<LandViewPlayerInput> eot_get_next_input() override;
 
-  wait<> animate( AnimationSequence const& seq ) override;
+  wait<> animate_always( AnimationSequence const& seq ) override;
+
+  wait<> animate_if_visible(
+      AnimationSequence const& seq ) override;
 
   void start_new_turn() override;
 

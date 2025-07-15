@@ -32,7 +32,6 @@
 #include "revolution-status.hpp"
 #include "road.hpp"
 #include "roles.hpp"
-#include "show-anim.hpp"
 #include "teaching.hpp"
 #include "ts.hpp"
 #include "unit-mgr.hpp"
@@ -552,10 +551,9 @@ wait<> run_animated_colony_destruction(
       ss, player_for_role( ss, e_player_role::viewer ) );
   AnimationSequence const seq =
       anim_seq_for_colony_depixelation( ss, *viz, colony.id );
-  if( should_animate_seq( ss.as_const, seq ) )
-    co_await ts.planes.get()
-        .get_bottom<ILandViewPlane>()
-        .animate( seq );
+  co_await ts.planes.get()
+      .get_bottom<ILandViewPlane>()
+      .animate_if_visible( seq );
   co_await run_colony_destruction( ss, ts, colony, reason, msg );
 }
 

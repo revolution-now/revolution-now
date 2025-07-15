@@ -834,7 +834,7 @@ TEST_CASE(
         w.ss(), w.ts(), ship_id, colony ) );
   };
 
-  mock_land_view.EXPECT__animate( _ );
+  mock_land_view.EXPECT__animate_if_visible( _ );
   f();
 }
 

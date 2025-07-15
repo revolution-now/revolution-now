@@ -26,7 +26,6 @@
 #include "on-map.hpp"
 #include "plane-stack.hpp"
 #include "roles.hpp"
-#include "show-anim.hpp"
 #include "society.hpp"
 #include "ts.hpp"
 #include "unit-mgr.hpp"
@@ -114,12 +113,10 @@ wait<> handle_native_unit_talk( SS& ss, TS& ts,
       player_for_player_or_die( ss.players, player_type );
   IEuroAgent& euro_agent = ts.euro_agents()[player_type];
 
-  if( auto const seq = anim_seq_for_unit_talk(
-          ss, native_unit.id, direction );
-      should_animate_seq( ss, seq ) )
-    co_await ts.planes.get()
-        .get_bottom<ILandViewPlane>()
-        .animate( seq );
+  co_await ts.planes.get()
+      .get_bottom<ILandViewPlane>()
+      .animate_if_visible( anim_seq_for_unit_talk(
+          ss, native_unit.id, direction ) );
 
   player.money += 5;
 
@@ -160,12 +157,10 @@ wait<> handle_native_unit_travel( SS& ss, TS& ts,
     CHECK_EQ( native_unit.movement_points, 0 );
     co_return;
   }
-  if( auto const seq = anim_seq_for_unit_move(
-          ss, native_unit.id, direction );
-      should_animate_seq( ss, seq ) )
-    co_await ts.planes.get()
-        .get_bottom<ILandViewPlane>()
-        .animate( seq );
+  co_await ts.planes.get()
+      .get_bottom<ILandViewPlane>()
+      .animate_if_visible( anim_seq_for_unit_move(
+          ss, native_unit.id, direction ) );
   co_await UnitOnMapMover::native_unit_to_map_interactive(
       ss, ts, native_unit.id, dst );
 }

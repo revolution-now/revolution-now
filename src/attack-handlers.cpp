@@ -359,12 +359,10 @@ wait<> AttackColonyUndefendedHandler::perform() {
 
   // Animate the attack part of it. If the colony is captured
   // then the remainder will be done further below.
-  if( auto const seq =
-          anim_seq_for_undefended_colony( ss_, combat );
-      should_animate_seq( ss_, seq ) )
-    co_await ts_.planes.get()
-        .get_bottom<ILandViewPlane>()
-        .animate( seq );
+  co_await ts_.planes.get()
+      .get_bottom<ILandViewPlane>()
+      .animate_if_visible(
+          anim_seq_for_undefended_colony( ss_, combat ) );
 
   CombatEffectsMessages const effects_msg =
       combat_effects_msg( ss_, combat );
@@ -384,12 +382,12 @@ wait<> AttackColonyUndefendedHandler::perform() {
   // The colony has been captured.
 
   // 1. The attacker moves into the colony square.
-  if( auto const seq = anim_seq_for_unit_move(
-          ss_, attacker_.id(), direction_ );
-      should_animate_seq( ss_, seq ) ) {
-    co_await ts_.planes.get()
-        .get_bottom<ILandViewPlane>()
-        .animate( seq );
+  AnimationSequence const move_seq =
+      anim_seq_for_unit_move( ss_, attacker_.id(), direction_ );
+  co_await ts_.planes.get()
+      .get_bottom<ILandViewPlane>()
+      .animate_if_visible( move_seq );
+  if( should_animate_seq( ss_, move_seq ) ) {
     // Since the colony is being captured and we are animating
     // it, we should reveal the colony tile to the viewing player
     // in the case that it is fogged, otherwise they will see the
@@ -518,10 +516,9 @@ wait<> NavalBattleHandler::perform() {
       anim_seq_for_naval_battle( ss_, combat );
 
   // Do the initial slide part of the animation first.
-  if( should_animate_seq( ss_, anim_seq.part_1 ) )
-    co_await ts_.planes.get()
-        .get_bottom<ILandViewPlane>()
-        .animate( anim_seq.part_1 );
+  co_await ts_.planes.get()
+      .get_bottom<ILandViewPlane>()
+      .animate_if_visible( anim_seq.part_1 );
 
   // For any unit that lost the battle (whether attacker or de-
   // fender/affected units) we need to check if they need to get
@@ -534,10 +531,9 @@ wait<> NavalBattleHandler::perform() {
   // capturing.
   co_await perform_loser_cargo_captures( combat );
 
-  if( should_animate_seq( ss_, anim_seq.part_2 ) )
-    co_await ts_.planes.get()
-        .get_bottom<ILandViewPlane>()
-        .animate( anim_seq.part_2 );
+  co_await ts_.planes.get()
+      .get_bottom<ILandViewPlane>()
+      .animate_if_visible( anim_seq.part_2 );
 
   // Must be done before performing effects (although it should
   // be ok that we've already done the cargo capture above).
@@ -668,12 +664,10 @@ wait<> EuroAttackHandler::perform() {
 
   co_await Base::perform();
 
-  if( AnimationSequence const seq =
-          anim_seq_for_euro_attack_euro( ss_, combat );
-      should_animate_seq( ss_, seq ) )
-    co_await ts_.planes.get()
-        .get_bottom<ILandViewPlane>()
-        .animate( seq );
+  co_await ts_.planes.get()
+      .get_bottom<ILandViewPlane>()
+      .animate_if_visible(
+          anim_seq_for_euro_attack_euro( ss_, combat ) );
 
   CombatEffectsMessages const effects_msg =
       combat_effects_msg( ss_, combat );
@@ -725,12 +719,10 @@ wait<> AttackNativeUnitHandler::perform() {
 
   co_await Base::perform();
 
-  if( AnimationSequence const seq =
-          anim_seq_for_euro_attack_brave( ss_, combat );
-      should_animate_seq( ss_, seq ) )
-    co_await ts_.planes.get()
-        .get_bottom<ILandViewPlane>()
-        .animate( seq );
+  co_await ts_.planes.get()
+      .get_bottom<ILandViewPlane>()
+      .animate_if_visible(
+          anim_seq_for_euro_attack_brave( ss_, combat ) );
 
   // The tribal alarm goes up regardless of the battle outcome.
   TribeRelationship& relationship =
@@ -854,12 +846,10 @@ wait<> AttackDwellingHandler::produce_convert() {
       ss_, ts_.map_updater(), attacking_player_,
       e_unit_type::native_convert, dwelling_coord );
   native_convert_ = convert_id;
-  if( auto const seq = anim_seq_for_convert_produced(
-          ss_, convert_id, reverse_direction( direction_ ) );
-      should_animate_seq( ss_, seq ) )
-    co_await ts_.planes.get()
-        .get_bottom<ILandViewPlane>()
-        .animate( seq );
+  co_await ts_.planes.get()
+      .get_bottom<ILandViewPlane>()
+      .animate_if_visible( anim_seq_for_convert_produced(
+          ss_, convert_id, reverse_direction( direction_ ) ) );
   // Non-interactive is OK here because the attacker is already
   // on this square.
   UnitOwnershipChanger( ss_, convert_id )
@@ -995,12 +985,11 @@ wait<> AttackDwellingHandler::perform() {
     co_await with_phantom_brave_combat(
         combat,
         [&]( CombatEuroAttackBrave const& combat ) -> wait<> {
-          AnimationSequence const seq =
-              anim_seq_for_euro_attack_brave( ss_, combat );
-          if( should_animate_seq( ss_, seq ) )
-            co_await ts_.planes.get()
-                .get_bottom<ILandViewPlane>()
-                .animate( seq );
+          co_await ts_.planes.get()
+              .get_bottom<ILandViewPlane>()
+              .animate_if_visible(
+                  anim_seq_for_euro_attack_brave( ss_,
+                                                  combat ) );
         } );
     perform_euro_unit_combat_effects( ss_, ts_, attacker_,
                                       combat.attacker.outcome );
@@ -1019,12 +1008,11 @@ wait<> AttackDwellingHandler::perform() {
     co_await with_phantom_brave_combat(
         combat,
         [&]( CombatEuroAttackBrave const& combat ) -> wait<> {
-          AnimationSequence const seq =
-              anim_seq_for_euro_attack_brave( ss_, combat );
-          if( should_animate_seq( ss_, seq ) )
-            co_await ts_.planes.get()
-                .get_bottom<ILandViewPlane>()
-                .animate( seq );
+          co_await ts_.planes.get()
+              .get_bottom<ILandViewPlane>()
+              .animate_if_visible(
+                  anim_seq_for_euro_attack_brave( ss_,
+                                                  combat ) );
         } );
     perform_euro_unit_combat_effects( ss_, ts_, attacker_,
                                       combat.attacker.outcome );
@@ -1090,10 +1078,10 @@ wait<> AttackDwellingHandler::perform() {
             ss_, *viz_, attacker_id_, combat.attacker.outcome,
             phantom_combat.defender.id, dwelling_id_,
             combat.defender.outcome );
+        co_await ts_.planes.get()
+            .get_bottom<ILandViewPlane>()
+            .animate_if_visible( seq );
         if( should_animate_seq( ss_, seq ) ) {
-          co_await ts_.planes.get()
-              .get_bottom<ILandViewPlane>()
-              .animate( seq );
           // Since the dwelling is being burned and we are ani-
           // mating it, we should reveal the dwelling tile to the
           // viewing player in the case that it is fogged, other-
@@ -1162,13 +1150,10 @@ wait<> AttackDwellingHandler::perform() {
             ss_, ts_.map_updater(), attacking_player_,
             treasure_comp, dwelling_location );
     treasure_ = treasure_id;
-    if( AnimationSequence const seq =
-            anim_seq_for_treasure_enpixelation( ss_,
-                                                treasure_id );
-        should_animate_seq( ss_, seq ) )
-      co_await ts_.planes.get()
-          .get_bottom<ILandViewPlane>()
-          .animate( seq );
+    co_await ts_.planes.get()
+        .get_bottom<ILandViewPlane>()
+        .animate_if_visible( anim_seq_for_treasure_enpixelation(
+            ss_, treasure_id ) );
     // Just in case e.g. the treasure appeared next to a brave
     // from unencountered tribe, or the pacific ocean.
     [[maybe_unused]] auto const unit_deleted =

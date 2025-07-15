@@ -18,6 +18,13 @@
 
 namespace rn {
 
+// NOTE: Most normal game code should not include this module di-
+// rectly or call any of its methods, since the decision as to
+// whether to carry out an animation is done in the
+// land-view-anim module. Most code should animate uncondition-
+// ally therefore and let that module decide whether to show it.
+// There are a few exceptions to this though.
+
 /****************************************************************
 ** Fwd Decls.
 *****************************************************************/

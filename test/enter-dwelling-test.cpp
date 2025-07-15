@@ -556,7 +556,7 @@ TEST_CASE( "[enter-dwelling] do_live_among_the_natives" ) {
       .EXPECT__message_box(
           Matches( "Congratulations.*Cotton.*"s ) )
       .returns<wait<>>( make_wait<>() );
-  mock_land_view.EXPECT__animate( _ );
+  mock_land_view.EXPECT__animate_if_visible( _ );
   f();
   REQUIRE( unit.type() == e_unit_type::expert_cotton_planter );
   REQUIRE( dwelling.has_taught == true );
@@ -899,7 +899,7 @@ TEST_CASE( "[enter-dwelling] do_speak_with_chief" ) {
     W.gui().EXPECT__message_box(
         StrContains( "Greetings traveler" ) );
     W.gui().EXPECT__message_box( StrContains( "send guides" ) );
-    mock_land_view.EXPECT__animate( _ );
+    mock_land_view.EXPECT__animate_if_visible( _ );
     W.gui().EXPECT__message_box(
         StrContains( "promoted to [Seasoned Scout]" ) );
     f();
@@ -913,7 +913,7 @@ TEST_CASE( "[enter-dwelling] do_speak_with_chief" ) {
 
     W.gui().EXPECT__message_box(
         StrContains( "violated sacred taboos" ) );
-    mock_land_view.EXPECT__animate( _ );
+    mock_land_view.EXPECT__animate_if_visible( _ );
     REQUIRE( W.units().exists( UnitId{ 1 } ) );
     f();
     REQUIRE_FALSE( W.units().exists( UnitId{ 1 } ) );

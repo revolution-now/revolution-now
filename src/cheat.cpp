@@ -610,8 +610,10 @@ wait<> kill_natives( SS& ss, TS& ts ) {
       create_visibility_for(
           ss, player_for_role( ss, e_player_role::viewer ) );
 
-  co_await ts.planes.get().get_bottom<ILandViewPlane>().animate(
-      anim_seq_for_cheat_kill_natives( ss, *viz, destroyed ) );
+  co_await ts.planes.get()
+      .get_bottom<ILandViewPlane>()
+      .animate_if_visible( anim_seq_for_cheat_kill_natives(
+          ss, *viz, destroyed ) );
 
   for( e_tribe const tribe : destroyed )
     destroy_tribe( ss, ts.map_updater(), tribe );

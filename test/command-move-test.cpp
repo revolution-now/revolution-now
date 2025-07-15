@@ -138,7 +138,7 @@ TEST_CASE( "[command-move] ship can move from land to ocean" ) {
     REQUIRE( W.units().coord_for( id ) ==
              Coord{ .x = 1, .y = 1 } );
 
-    mock_land_view.EXPECT__animate( _ );
+    mock_land_view.EXPECT__animate_if_visible( _ );
     wait<> w_perform = handler->perform();
     REQUIRE( !w_perform.exception() );
     REQUIRE( w_perform.ready() );
@@ -191,7 +191,7 @@ TEST_CASE(
       e_unit_type::privateer, { .x = 0, .y = 0 } );
 
   auto move_unit = [&]( UnitId unit_id, e_direction d ) {
-    land_view_plane.EXPECT__animate( _ );
+    land_view_plane.EXPECT__animate_if_visible( _ );
     unique_ptr<CommandHandler> handler =
         handle_command( W.engine(), W.ss(), W.ts(), player,
                         unit_id, command::move{ .d = d } );
@@ -273,7 +273,7 @@ TEST_CASE(
       e_unit_type::free_colonist, galleon.id() );
 
   auto move_unit = [&]( UnitId unit_id, e_direction d ) {
-    land_view_plane.EXPECT__animate( _ );
+    land_view_plane.EXPECT__animate_if_visible( _ );
     unique_ptr<CommandHandler> handler =
         handle_command( W.engine(), W.ss(), W.ts(), player,
                         unit_id, command::move{ .d = d } );
@@ -330,7 +330,7 @@ TEST_CASE(
           .id();
 
   auto move_unit = [&]( UnitId unit_id, e_direction d ) {
-    land_view_plane.EXPECT__animate( _ );
+    land_view_plane.EXPECT__animate_if_visible( _ );
     unique_ptr<CommandHandler> handler =
         handle_command( w.engine(), w.ss(), w.ts(), player,
                         unit_id, command::move{ .d = d } );
@@ -401,7 +401,7 @@ TEST_CASE(
           .id();
 
   auto move_unit = [&]( UnitId unit_id, e_direction d ) {
-    land_view_plane.EXPECT__animate( _ );
+    land_view_plane.EXPECT__animate_if_visible( _ );
     unique_ptr<CommandHandler> handler =
         handle_command( w.engine(), w.ss(), w.ts(), player,
                         unit_id, command::move{ .d = d } );
@@ -447,7 +447,7 @@ TEST_CASE(
           .id();
 
   auto move_unit = [&]( UnitId unit_id, e_direction d ) {
-    land_view_plane.EXPECT__animate( _ );
+    land_view_plane.EXPECT__animate_if_visible( _ );
     unique_ptr<CommandHandler> handler =
         handle_command( W.engine(), W.ss(), W.ts(), player,
                         unit_id, command::move{ .d = d } );
@@ -625,7 +625,7 @@ TEST_CASE(
         .EXPECT__euro_attack_undefended_colony(
             soldier, master_distiller, colony )
         .returns( combat );
-    mock_land_view.EXPECT__animate( _ );
+    mock_land_view.EXPECT__animate_if_visible( _ );
     W.euro_agent( e_player::dutch )
         .EXPECT__message_box(
             "[Dutch] Master Distiller defeats [French] in 1!" );
@@ -667,7 +667,7 @@ TEST_CASE(
     W.combat()
         .EXPECT__euro_attack_euro( soldier, soldier_onboard )
         .returns( combat );
-    mock_land_view.EXPECT__animate( _ );
+    mock_land_view.EXPECT__animate_if_visible( _ );
     W.euro_agent( e_player::dutch )
         .EXPECT__message_box(
             "[Dutch] Soldier defeats [French] in 1!" );
@@ -706,7 +706,7 @@ TEST_CASE(
           .returns<maybe<string>>( nothing );
       bool const confirmed = co_await_test( handler->confirm() );
       REQUIRE( confirmed );
-      mock_land_view.EXPECT__animate( _ );
+      mock_land_view.EXPECT__animate_if_visible( _ );
       co_await_test( handler->perform() );
       REQUIRE( w.units().coord_for( caravel.id() ).to_gfx() ==
                point{ .x = 7, .y = 1 } );
@@ -721,7 +721,7 @@ TEST_CASE(
           .returns<maybe<string>>( "no" );
       bool const confirmed = co_await_test( handler->confirm() );
       REQUIRE( confirmed );
-      mock_land_view.EXPECT__animate( _ );
+      mock_land_view.EXPECT__animate_if_visible( _ );
       co_await_test( handler->perform() );
       REQUIRE( w.units().coord_for( caravel.id() ).to_gfx() ==
                point{ .x = 8, .y = 1 } );
@@ -757,7 +757,7 @@ TEST_CASE(
           .returns<maybe<string>>( "yes" );
       bool const confirmed = co_await_test( handler->confirm() );
       REQUIRE( confirmed );
-      mock_land_view.EXPECT__animate( _ );
+      mock_land_view.EXPECT__animate_if_visible( _ );
       co_await_test( handler->perform() );
       REQUIRE( is_unit_inbound( w.units(), caravel.id() ) );
       REQUIRE_FALSE( w.events()
@@ -782,7 +782,7 @@ TEST_CASE(
       w.gui().EXPECT__message_box( not_permitted );
       bool const confirmed = co_await_test( handler->confirm() );
       REQUIRE( confirmed );
-      mock_land_view.EXPECT__animate( _ );
+      mock_land_view.EXPECT__animate_if_visible( _ );
       co_await_test( handler->perform() );
       REQUIRE( w.units().coord_for( caravel.id() ).to_gfx() ==
                point{ .x = 7, .y = 1 } );
@@ -798,7 +798,7 @@ TEST_CASE(
       // NOTE: no msg box here.
       bool const confirmed = co_await_test( handler->confirm() );
       REQUIRE( confirmed );
-      mock_land_view.EXPECT__animate( _ );
+      mock_land_view.EXPECT__animate_if_visible( _ );
       co_await_test( handler->perform() );
       REQUIRE( w.units().coord_for( caravel.id() ).to_gfx() ==
                point{ .x = 8, .y = 1 } );

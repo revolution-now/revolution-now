@@ -136,6 +136,7 @@ TEST_CASE( "[native-turn] unit iteration, travel" ) {
         .returns( unit_id );
     native_agent.EXPECT__command_for( unit_id ).returns(
         NativeUnitCommand::move{ .direction = e_direction::e } );
+    mock_land_view.EXPECT__animate_if_visible( _ );
     f();
     REQUIRE( W.units().unit_for( unit_id ).movement_points ==
              0 );
@@ -167,6 +168,9 @@ TEST_CASE( "[native-turn] unit iteration, travel" ) {
         .returns( unit_id );
     native_agent.EXPECT__command_for( unit_id ).returns(
         NativeUnitCommand::move{ .direction = e_direction::e } );
+    mock_land_view.EXPECT__animate_if_visible( _ );
+    mock_land_view.EXPECT__animate_if_visible( _ );
+    mock_land_view.EXPECT__animate_if_visible( _ );
     f();
     REQUIRE( W.units().unit_for( unit_id ).movement_points ==
              0 );
@@ -198,6 +202,8 @@ TEST_CASE( "[native-turn] unit iteration, travel" ) {
         .returns( unit_id );
     native_agent.EXPECT__command_for( unit_id ).returns(
         NativeUnitCommand::forfeight{} );
+    mock_land_view.EXPECT__animate_if_visible( _ );
+    mock_land_view.EXPECT__animate_if_visible( _ );
     f();
     REQUIRE( W.units().unit_for( unit_id ).movement_points ==
              0 );
@@ -229,10 +235,14 @@ TEST_CASE( "[native-turn] unit iteration, travel" ) {
     native_agent.EXPECT__command_for( unit_id ).returns(
         NativeUnitCommand::move{ .direction = e_direction::e } );
 
+    mock_land_view.EXPECT__animate_if_visible( _ );
+    mock_land_view.EXPECT__animate_if_visible( _ );
+
     SECTION( "final move allowed" ) {
       W.rand()
           .EXPECT__bernoulli( Approx( .333333, .000001 ) )
           .returns( true );
+      mock_land_view.EXPECT__animate_if_visible( _ );
       f();
       REQUIRE( W.units().coord_for( unit_id ) ==
                Coord{ .x = 3, .y = 0 } );
@@ -251,7 +261,10 @@ TEST_CASE( "[native-turn] unit iteration, travel" ) {
              0 );
   }
 
-  SECTION( "one unit, animation enabled/disabled" ) {
+  // Tests that we call animate_if_visible even when e.g.
+  // show_indian_moves is false.
+  SECTION(
+      "one unit, unconditionally call animate_if_visible" ) {
     auto [dwelling_id, unit_id] = W.add_dwelling_and_brave_ids(
         { .x = 0, .y = 0 }, e_tribe::arawak );
     REQUIRE( W.units().unit_for( unit_id ).movement_points ==
@@ -260,6 +273,7 @@ TEST_CASE( "[native-turn] unit iteration, travel" ) {
         .returns( unit_id );
     native_agent.EXPECT__command_for( unit_id ).returns(
         NativeUnitCommand::move{ .direction = e_direction::e } );
+    mock_land_view.EXPECT__animate_if_visible( _ );
 
     bool& show_indian_moves =
         W.settings().in_game_options.game_menu_options
@@ -281,39 +295,6 @@ TEST_CASE( "[native-turn] unit iteration, travel" ) {
         W.player_square( { .x = 1, .y = 0 } ) =
             PlayerSquare::explored{ .fog_status =
                                         FogStatus::clear{} };
-        f();
-      }
-    }
-
-    SECTION( "show_indian_moves=true" ) {
-      show_indian_moves = true;
-
-      SECTION( "src fog, dst fog" ) { f(); }
-
-      SECTION( "src fog, dst no fog" ) {
-        W.player_square( { .x = 1, .y = 0 } ) =
-            PlayerSquare::explored{ .fog_status =
-                                        FogStatus::clear{} };
-        mock_land_view.EXPECT__animate( _ );
-        f();
-      }
-
-      SECTION( "src no fog, dst fog" ) {
-        W.player_square( { .x = 0, .y = 0 } ) =
-            PlayerSquare::explored{ .fog_status =
-                                        FogStatus::clear{} };
-        mock_land_view.EXPECT__animate( _ );
-        f();
-      }
-
-      SECTION( "src no fog, dst no fog" ) {
-        W.player_square( { .x = 0, .y = 0 } ) =
-            PlayerSquare::explored{ .fog_status =
-                                        FogStatus::clear{} };
-        W.player_square( { .x = 1, .y = 0 } ) =
-            PlayerSquare::explored{ .fog_status =
-                                        FogStatus::clear{} };
-        mock_land_view.EXPECT__animate( _ );
         f();
       }
     }
@@ -371,6 +352,8 @@ TEST_CASE( "[native-turn] unit iteration, travel" ) {
     native_agent.EXPECT__command_for( unit_id1 )
         .returns( NativeUnitCommand::move{
           .direction = e_direction::e } );
+    mock_land_view.EXPECT__animate_if_visible( _ );
+    mock_land_view.EXPECT__animate_if_visible( _ );
     f();
     REQUIRE( W.units().unit_for( unit_id1 ).movement_points ==
              0 );
@@ -409,24 +392,28 @@ TEST_CASE( "[native-turn] unit iteration, travel" ) {
     native_agent.EXPECT__command_for( unit_id1 )
         .returns( NativeUnitCommand::move{
           .direction = e_direction::e } );
+    mock_land_view.EXPECT__animate_if_visible( _ );
     // 2. Move unit 2 to the right.
     native_agent.EXPECT__select_unit( set{ unit_id1, unit_id2 } )
         .returns( unit_id2 );
     native_agent.EXPECT__command_for( unit_id2 )
         .returns( NativeUnitCommand::move{
           .direction = e_direction::e } );
+    mock_land_view.EXPECT__animate_if_visible( _ );
     // 3. Move unit 1 to the right.
     native_agent.EXPECT__select_unit( set{ unit_id1, unit_id2 } )
         .returns( unit_id1 );
     native_agent.EXPECT__command_for( unit_id1 )
         .returns( NativeUnitCommand::move{
           .direction = e_direction::e } );
+    mock_land_view.EXPECT__animate_if_visible( _ );
     // 4. Move unit 2 to the right.
     native_agent.EXPECT__select_unit( set{ unit_id1, unit_id2 } )
         .returns( unit_id2 );
     native_agent.EXPECT__command_for( unit_id2 )
         .returns( NativeUnitCommand::move{
           .direction = e_direction::e } );
+    mock_land_view.EXPECT__animate_if_visible( _ );
     // 5. unit 1 forfeights.
     native_agent.EXPECT__select_unit( set{ unit_id1, unit_id2 } )
         .returns( unit_id1 );
@@ -438,6 +425,7 @@ TEST_CASE( "[native-turn] unit iteration, travel" ) {
     native_agent.EXPECT__command_for( unit_id2 )
         .returns( NativeUnitCommand::move{
           .direction = e_direction::e } );
+    mock_land_view.EXPECT__animate_if_visible( _ );
     f();
     REQUIRE( W.units().unit_for( unit_id1 ).movement_points ==
              0 );
@@ -478,12 +466,14 @@ TEST_CASE( "[native-turn] unit iteration, travel" ) {
     native_agent.EXPECT__command_for( unit_id1 )
         .returns( NativeUnitCommand::move{
           .direction = e_direction::e } );
+    mock_land_view.EXPECT__animate_if_visible( _ );
     // 2. Move unit 1 to the right.
     native_agent.EXPECT__select_unit( set{ unit_id1 } )
         .returns( unit_id1 );
     native_agent.EXPECT__command_for( unit_id1 )
         .returns( NativeUnitCommand::move{
           .direction = e_direction::e } );
+    mock_land_view.EXPECT__animate_if_visible( _ );
     // 3. unit 1 forfeights.
     native_agent.EXPECT__select_unit( set{ unit_id1 } )
         .returns( unit_id1 );
@@ -495,18 +485,21 @@ TEST_CASE( "[native-turn] unit iteration, travel" ) {
     native_agent2.EXPECT__command_for( unit_id2 )
         .returns( NativeUnitCommand::move{
           .direction = e_direction::e } );
+    mock_land_view.EXPECT__animate_if_visible( _ );
     // 5. Move unit 2 to the right.
     native_agent2.EXPECT__select_unit( set{ unit_id2 } )
         .returns( unit_id2 );
     native_agent2.EXPECT__command_for( unit_id2 )
         .returns( NativeUnitCommand::move{
           .direction = e_direction::e } );
+    mock_land_view.EXPECT__animate_if_visible( _ );
     // 6. Move unit 2 to the right.
     native_agent2.EXPECT__select_unit( set{ unit_id2 } )
         .returns( unit_id2 );
     native_agent2.EXPECT__command_for( unit_id2 )
         .returns( NativeUnitCommand::move{
           .direction = e_direction::e } );
+    mock_land_view.EXPECT__animate_if_visible( _ );
     f();
     REQUIRE( W.units().unit_for( unit_id1 ).movement_points ==
              0 );

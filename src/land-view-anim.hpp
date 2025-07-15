@@ -46,6 +46,17 @@ namespace co {
 struct latch;
 }
 
+struct AnimSeqOptions {
+  // Only show the animation if the viewer (combined with set-
+  // tings) are such that it should be animated.
+  bool check_visibility = true;
+
+  // Will animate the sequence but will hold the end state of
+  // the final subsequence. This will never co_return, thus it
+  // must eventually be cancelled by the caller.
+  bool hold = false;
+};
+
 /****************************************************************
 ** LandViewAnimator
 *****************************************************************/
@@ -112,15 +123,8 @@ struct LandViewAnimator {
   // to being run in the background, thus for safety we include
   // the lifetime attribute.
   wait<> animate_sequence(
-      AnimationSequence const& seq ATTR_LIFETIMEBOUND );
-
-  // Will animate the sequence but will hold the end state of the
-  // final subsequence. This will never co_return, thus it must
-  // eventually be cancelled by the caller. It is not uncommon to
-  // being run in the background, thus for safety we include the
-  // lifetime attribute.
-  wait<> animate_sequence_and_hold(
-      AnimationSequence const& seq ATTR_LIFETIMEBOUND );
+      AnimationSequence const& seq ATTR_LIFETIMEBOUND,
+      AnimSeqOptions const& options ATTR_LIFETIMEBOUND = {} );
 
   wait<> animate_blink( UnitId id, bool visible_initially );
 

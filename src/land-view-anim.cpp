@@ -566,9 +566,16 @@ wait<> LandViewAnimator::animate_action_primitive(
   }
 }
 
-wait<> LandViewAnimator::animate_sequence_impl(
-    AnimationSequence const& seq, bool hold_last ) {
-  CHECK( should_animate_seq( ss_, seq ) );
+wait<> LandViewAnimator::animate_sequence(
+    AnimationSequence const& seq,
+    AnimSeqOptions const& options ) {
+  // This part is critical, otherwise the player will see liter-
+  // ally everything in the game animated, even stuff on hidden
+  // tiles. Moreover, things like "show foreign moves" will be
+  // diregarded.
+  if( options.check_visibility &&
+      !should_animate_seq( ss_, seq ) )
+    co_return;
   for( size_t i = 0; i < seq.sequence.size(); ++i ) {
     vector<AnimationAction> const& sub_seq = seq.sequence[i];
     vector<wait<>> ws;
@@ -589,7 +596,7 @@ wait<> LandViewAnimator::animate_sequence_impl(
     // its final state, never to return. Such animations are in-
     // tended to be cancelled at some point by the caller.
     bool const is_last     = ( i == seq.sequence.size() - 1 );
-    bool const should_hold = ( is_last && hold_last );
+    bool const should_hold = ( is_last && options.hold );
     int const latch_count  = should_hold
                                  ? numeric_limits<int>::max()
                                  : sub_seq.size();
@@ -598,16 +605,6 @@ wait<> LandViewAnimator::animate_sequence_impl(
       ws.push_back( animate_action_primitive( action, hold ) );
     co_await co::all( std::move( ws ) );
   }
-}
-
-wait<> LandViewAnimator::animate_sequence(
-    AnimationSequence const& seq ) {
-  co_await animate_sequence_impl( seq, /*hold_last=*/false );
-}
-
-wait<> LandViewAnimator::animate_sequence_and_hold(
-    AnimationSequence const& seq ) {
-  co_await animate_sequence_impl( seq, /*hold_last=*/true );
 }
 
 } // namespace rn

@@ -345,8 +345,9 @@ wait<> animate_move_intervention_units_into_colony(
                   ship_tile.direction_to( colony.location ) );
   AnimationSequence const seq =
       anim_seq_for_offboard_intervention_force( ss, ship_id, d );
-  co_await ts.planes.get().get_bottom<ILandViewPlane>().animate(
-      seq );
+  co_await ts.planes.get()
+      .get_bottom<ILandViewPlane>()
+      .animate_if_visible( seq );
 }
 
 void move_intervention_units_into_colony(

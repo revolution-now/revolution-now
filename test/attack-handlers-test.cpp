@@ -209,7 +209,7 @@ struct World : testing::World {
   }
 
   void expect_some_animation() {
-    mock_land_view_plane_.EXPECT__animate( _ );
+    mock_land_view_plane_.EXPECT__animate_if_visible( _ );
   }
 
   void expect_convert() {

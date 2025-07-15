@@ -474,7 +474,7 @@ wait<> do_live_among_the_natives(
                                               o.to.type() );
           co_await ts.planes.get()
               .get_bottom<ILandViewPlane>()
-              .animate( seq );
+              .animate_if_visible( seq );
         }
         change_unit_type( ss, ts, unit, o.to );
         dwelling.has_taught = true;
@@ -688,7 +688,7 @@ wait<> do_speak_with_chief(
               ss, unit.id(), e_unit_type::seasoned_scout );
       co_await ts.planes.get()
           .get_bottom<ILandViewPlane>()
-          .animate( seq );
+          .animate_if_visible( seq );
       // Need to change type before awaiting on the promotion
       // message otherwise the unit will change back temporarily
       // after depixelating.
@@ -708,7 +708,7 @@ wait<> do_speak_with_chief(
           anim_seq_for_unit_depixelation( ss, unit.id() );
       co_await ts.planes.get()
           .get_bottom<ILandViewPlane>()
-          .animate( seq );
+          .animate_if_visible( seq );
       UnitOwnershipChanger( ss, unit.id() ).destroy();
       co_return;
     }

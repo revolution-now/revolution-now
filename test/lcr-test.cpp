@@ -428,7 +428,7 @@ TEST_CASE( "[lcr] run_lcr, cibola" ) {
   agent.EXPECT__message_box(
       StrContains( "Seven Cities of Cibola" ) );
   // Enpixelate the treasure.
-  W.mock_land_view.EXPECT__animate( _ );
+  W.mock_land_view.EXPECT__animate_if_visible( _ );
 
   // Go
   wait<LostCityRumorUnitChange> lcr_res = run_lcr(
@@ -488,7 +488,7 @@ TEST_CASE( "[lcr] run_lcr, burial mounds, treasure" ) {
   agent.EXPECT__message_box(
       StrContains( "recovered a treasure worth" ) );
   // Enpixelate the treasure.
-  W.mock_land_view.EXPECT__animate( _ );
+  W.mock_land_view.EXPECT__animate_if_visible( _ );
 
   // Go
   wait<LostCityRumorUnitChange> lcr_res = run_lcr(

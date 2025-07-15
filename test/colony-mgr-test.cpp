@@ -501,7 +501,7 @@ TEST_CASE( "[colony-mgr] colony destruction" ) {
     W.planes().get().set_bottom<ILandViewPlane>(
         mock_land_view );
 
-    mock_land_view.EXPECT__animate( _ ).returns( make_wait<>() );
+    mock_land_view.EXPECT__animate_if_visible( _ );
     W.euro_agent()
         .EXPECT__message_box( "some msg" )
         .returns( make_wait<>() );
@@ -540,7 +540,7 @@ TEST_CASE( "[colony-mgr] colony destruction" ) {
     W.planes().get().set_bottom<ILandViewPlane>(
         mock_land_view );
 
-    mock_land_view.EXPECT__animate( _ ).returns( make_wait<>() );
+    mock_land_view.EXPECT__animate_if_visible( _ );
 
     SECTION( "reason=battle" ) {
       ship_damaged_reason = e_ship_damaged_reason::battle;
@@ -636,7 +636,7 @@ TEST_CASE( "[colony-mgr] colony destruction" ) {
     W.planes().get().set_bottom<ILandViewPlane>(
         mock_land_view );
 
-    mock_land_view.EXPECT__animate( _ );
+    mock_land_view.EXPECT__animate_if_visible( _ );
 
     ship_damaged_reason = e_ship_damaged_reason::battle;
     W.euro_agent()

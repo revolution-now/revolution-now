@@ -605,7 +605,7 @@ TEST_CASE( "[cheat] kill_natives" ) {
     w.gui().EXPECT__check_box_selector( _, _ ).returns(
         wait( unordered_map<int, bool>{
           { static_cast<int>( e_tribe::tupi ), true } } ) );
-    mock_land_view.EXPECT__animate( _ );
+    mock_land_view.EXPECT__animate_if_visible( _ );
     w.euro_agent().EXPECT__message_box(
         "The [Tupi] tribe has been wiped out." );
     f();
@@ -644,7 +644,7 @@ TEST_CASE( "[cheat] kill_natives" ) {
     w.gui().EXPECT__check_box_selector( _, _ ).returns(
         wait( unordered_map<int, bool>{
           { static_cast<int>( e_tribe::tupi ), true } } ) );
-    mock_land_view.EXPECT__animate( _ );
+    mock_land_view.EXPECT__animate_if_visible( _ );
     w.euro_agent().EXPECT__message_box(
         "The [Tupi] tribe has been wiped out." );
     REQUIRE( w.player_square( { .x = 1, .y = 0 } )

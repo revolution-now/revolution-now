@@ -1560,7 +1560,8 @@ struct LandViewPlane::Impl : public IPlane {
     auto const tile = find_a_good_white_box_location(
         ss_, viewport_.covered_tiles() );
     co_await co::first(
-        animator_.animate_sequence_and_hold( seq.hold ),
+        animator_.animate_sequence(
+            seq.hold, AnimSeqOptions{ .hold = true } ),
         hidden_terrain_white_box_loop( tile ) );
 
     co_await co::first(
@@ -1711,10 +1712,11 @@ struct LandViewPlane::Impl : public IPlane {
       // during that time, make sure that the unit who is about
       // to ask for orders is rendered on the front.
       AnimationSequence const seq = anim_seq_unit_to_front( id );
+      AnimSeqOptions const opts{ .hold = true };
       // We need the "hold" version because we need this to keep
       // going until the buffer eating is complete, at which
       // point it will be cancelled.
-      wait<> anim = animator_.animate_sequence_and_hold( seq );
+      wait<> anim = animator_.animate_sequence( seq, opts );
       co_await eat_cross_unit_buffered_input_events( id );
     }
 
@@ -1861,8 +1863,17 @@ maybe<point> LandViewPlane::white_box() const {
   return impl_->white_box();
 }
 
-wait<> LandViewPlane::animate( AnimationSequence const& seq ) {
-  return impl_->animator_.animate_sequence( seq );
+wait<> LandViewPlane::animate_always(
+    AnimationSequence const& seq ) {
+  co_await impl_->animator_.animate_sequence(
+      seq, AnimSeqOptions{ .check_visibility = false } );
+}
+
+wait<> LandViewPlane::animate_if_visible(
+    AnimationSequence const& seq ) {
+  // Visibility should be checked by default within the
+  // animate_sequence method.
+  co_await impl_->animator_.animate_sequence( seq );
 }
 
 ViewportController& LandViewPlane::viewport() const {

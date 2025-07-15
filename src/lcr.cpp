@@ -25,7 +25,6 @@
 #include "land-view.hpp"
 #include "plane-stack.hpp"
 #include "player-mgr.hpp"
-#include "show-anim.hpp"
 #include "ts.hpp"
 #include "unit-mgr.hpp"
 #include "unit-ownership.hpp"
@@ -124,10 +123,8 @@ wait<LostCityRumorUnitChange> run_burial_mounds_result(
           treasure.gold, config_text.special_chars.currency );
       UnitId const unit_id = create_treasure_train(
           ss, map_updater, player, world_square, treasure.gold );
-      if( auto const seq =
-              anim_seq_for_treasure_enpixelation( ss, unit_id );
-          should_animate_seq( ss.as_const, seq ) )
-        co_await land_view.animate( seq );
+      co_await land_view.animate_if_visible(
+          anim_seq_for_treasure_enpixelation( ss, unit_id ) );
       result =
           LostCityRumorUnitChange::unit_created{ .id = unit_id };
       break;
@@ -246,10 +243,8 @@ wait<LostCityRumorUnitChange> run_rumor_result(
           cibola.gold, config_text.special_chars.currency );
       UnitId unit_id = create_treasure_train(
           ss, map_updater, player, tile, cibola.gold );
-      if( auto const seq =
-              anim_seq_for_treasure_enpixelation( ss, unit_id );
-          should_animate_seq( ss.as_const, seq ) )
-        co_await land_view.animate( seq );
+      co_await land_view.animate_if_visible(
+          anim_seq_for_treasure_enpixelation( ss, unit_id ) );
       co_return LostCityRumorUnitChange::unit_created{
         .id = unit_id };
     }
