@@ -19,6 +19,7 @@
 #include "visibility.hpp"
 
 // ss
+#include "ss/colonies.hpp"
 #include "ss/players.rds.hpp"
 #include "ss/ref.hpp"
 #include "ss/settings.rds.hpp"
@@ -106,16 +107,6 @@ bool should_animate_tile( SSConst const& ss,
   return false;
 }
 
-bool should_animate_tile( SSConst const& ss, gfx::point tile ) {
-  vector<Society> societies;
-  auto const society = society_on_square( ss, tile );
-  if( society.has_value() ) societies.push_back( *society );
-  return should_animate_tile(
-      ss,
-      AnimatedTile{ .tile        = tile,
-                    .inhabitants = std::move( societies ) } );
-}
-
 bool should_animate_seq( SSConst const& ss,
                          AnimationSequence const& seq ) {
   unordered_map<point, vector<Society>> tiles;
@@ -124,14 +115,26 @@ bool should_animate_seq( SSConst const& ss,
   auto const& viz = *p_viz;
 
   auto const add = mp::overload{
-    [&]( point const tile ) { tiles[tile]; },
-    [&]( point const tile, UnitId const unit_id ) {
+    [&]( point const tile ) {
       tiles[tile];
+      auto const colony = viz.colony_at( tile );
+      if( colony.has_value() )
+        tiles[tile].push_back(
+            Society::european{ .player = colony->player } );
+      auto const dwelling = viz.dwelling_at( tile );
+      if( dwelling.has_value() )
+        tiles[tile].push_back( Society::native{
+          .tribe = tribe_type_for_dwelling( ss, *dwelling ) } );
+    },
+    [&]( this auto&& self, point const tile,
+         UnitId const unit_id ) {
+      self( tile );
       tiles[tile].push_back( Society::european{
         .player = ss.units.unit_for( unit_id ).player_type() } );
     },
-    [&]( point const tile, NativeUnitId const unit_id ) {
-      tiles[tile];
+    [&]( this auto&& self, point const tile,
+         NativeUnitId const unit_id ) {
+      self( tile );
       tiles[tile].push_back( Society::native{
         .tribe = tribe_type_for_unit(
             ss, ss.units.native_unit_for( unit_id ) ) } );
@@ -168,33 +171,17 @@ bool should_animate_seq( SSConst const& ss,
     },
   };
 
-  auto const add_colony = [&]( point const tile ) {
-    tiles[tile];
-    auto const colony = viz.colony_at( tile );
-    if( colony.has_value() )
-      tiles[tile].push_back(
-          Society::european{ .player = colony->player } );
-  };
-
-  auto const add_dwelling = [&]( point const tile ) {
-    tiles[tile];
-    auto const dwelling = viz.dwelling_at( tile );
-    if( dwelling.has_value() )
-      tiles[tile].push_back( Society::native{
-        .tribe = tribe_type_for_dwelling( ss, *dwelling ) } );
-  };
-
   for( auto const& phase : seq.sequence ) {
     for( auto const& action : phase ) {
       auto const& primitive = action.primitive;
       SWITCH( primitive ) {
         CASE( delay ) { break; }
         CASE( depixelate_colony ) {
-          add_colony( depixelate_colony.tile );
+          add( depixelate_colony.tile );
           break;
         }
         CASE( depixelate_dwelling ) {
-          add_dwelling( depixelate_dwelling.tile );
+          add( depixelate_dwelling.tile );
           break;
         }
         CASE( depixelate_euro_unit ) {
@@ -210,6 +197,8 @@ bool should_animate_seq( SSConst const& ss,
           break;
         }
         CASE( ensure_tile_visible ) {
+          // This one is slightly questionable as to whether we
+          // need to add this here... perhaps time will tell.
           add( ensure_tile_visible.tile );
           break;
         }
@@ -218,11 +207,11 @@ bool should_animate_seq( SSConst const& ss,
           break;
         }
         CASE( hide_colony ) {
-          add_colony( hide_colony.tile );
+          add( hide_colony.tile );
           break;
         }
         CASE( hide_dwelling ) {
-          add_dwelling( hide_dwelling.tile );
+          add( hide_dwelling.tile );
           break;
         }
         CASE( hide_unit ) {
@@ -230,11 +219,11 @@ bool should_animate_seq( SSConst const& ss,
           break;
         }
         CASE( landscape_anim_enpixelate ) {
-          // TODO: not sure if we should include this.
+          // TBD as to whether we need to include this.
           break;
         }
         CASE( landscape_anim_replace ) {
-          // TODO: not sure if we should include this.
+          // TBD as to whether we need to include this.
           break;
         }
         CASE( pixelate_euro_unit_to_target ) {

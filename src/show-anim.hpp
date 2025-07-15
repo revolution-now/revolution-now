@@ -42,12 +42,4 @@ bool should_animate_seq( SSConst const& ss,
 bool should_animate_tile( SSConst const& ss,
                           AnimatedTile const& anim_tile );
 
-// This is for when you don't have an AnimationSequence object
-// and the animation is contained on one tile. The tile must
-// exist on the map.
-//
-// Even if this doesn't end up being used, it should still be ex-
-// posed for testing since it contains the core logic.
-bool should_animate_tile( SSConst const& ss, gfx::point tile );
-
 } // namespace rn
