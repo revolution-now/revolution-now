@@ -160,7 +160,7 @@ struct LandViewAnimator {
                                       GenericUnitId id );
 
   wait<> colony_depixelation_throttler( co::latch& hold,
-                                        Colony const& colony );
+                                        gfx::point tile );
 
   wait<> dwelling_depixelation_throttler( co::latch& hold,
                                           Coord tile );

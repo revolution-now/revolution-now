@@ -222,10 +222,10 @@ wait<> LandViewAnimator::unit_enpixelation_throttler(
 }
 
 wait<> LandViewAnimator::colony_depixelation_throttler(
-    co::latch& hold, Colony const& colony ) {
+    co::latch& hold, point const colony_tile ) {
   auto popper =
       add_colony_animation<ColonyAnimationState::depixelate>(
-          colony.location );
+          colony_tile );
   ColonyAnimationState::depixelate& depixelate = popper.get();
 
   depixelate.stage = 0.0;
@@ -540,12 +540,8 @@ wait<> LandViewAnimator::animate_action_primitive(
       break;
     }
     CASE( depixelate_colony ) {
-      // Since we're only animating when the tile is clear, we
-      // can require that there be a colony present and use the
-      // real colony.
-      Colony const& colony = ss_.colonies.colony_for(
-          ss_.colonies.from_coord( depixelate_colony.tile ) );
-      co_await colony_depixelation_throttler( hold, colony );
+      co_await colony_depixelation_throttler(
+          hold, depixelate_colony.tile );
       break;
     }
     CASE( depixelate_dwelling ) {
