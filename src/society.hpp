@@ -35,6 +35,9 @@ struct SSConst;
 // in a native dwelling the missionary is technically not owned
 // by the map, so in that case this will always return the tribe
 // of the native dwelling.
+//
+// NOTE: this is only to be used on squares that are clear to the
+// current viewer since it does not take into account visibility.
 maybe<Society> society_on_square( SSConst const& ss,
                                   Coord coord );
 
