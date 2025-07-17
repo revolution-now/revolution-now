@@ -885,10 +885,6 @@ wait<> process_ai_player_input_normal_mode(
     co_return;
   }
 
-  // FIXME: Animate?
-  co_await ts.planes.get()
-      .get_bottom<ILandViewPlane>()
-      .ensure_visible_unit( id );
   unique_ptr<CommandHandler> const handler =
       command_handler( engine, ss, ts, player, id, cmd );
   CHECK( handler );
@@ -902,8 +898,10 @@ wait<> process_ai_player_input_normal_mode(
     // maybe also showing a message to the player.
     FATAL( "failed to run AI move: unit={}, cmd={}",
            debug_string( as_const( ss.units ), id ), cmd );
-#endif
+#else
+    CHECK( ss.units.exists( id ) );
     ss.units.unit_for( id ).forfeight_mv_points();
+#endif
     co_return;
   }
 
