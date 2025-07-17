@@ -397,8 +397,7 @@ wait<> LandViewAnimator::ensure_visible(
         "world map does not contain tile {}", tile );
     co_return;
   }
-  co_await viewport_.ensure_tile_visible_smooth(
-      Coord::from_gfx( tile ) );
+  viewport_.ensure_tile_visible( tile );
 }
 
 wait<> LandViewAnimator::ensure_visible_unit(
