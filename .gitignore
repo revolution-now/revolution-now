@@ -43,6 +43,7 @@
 assets/art/*.tm
 /*.mid
 saves/slot*
+saves/archives
 /*.pp.*
 /.settings.rcl
 
