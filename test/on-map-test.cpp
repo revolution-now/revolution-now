@@ -182,6 +182,44 @@ TEST_CASE( "[on-map] interactive: discovers new world" ) {
   }
 }
 
+TEST_CASE( "[on-map] interactive: meets natives" ) {
+  World W;
+  W.create_default_map();
+  Player& player        = W.default_player();
+  MockIEuroAgent& agent = W.euro_agent();
+
+  W.add_dwelling( { .x = 1, .y = 1 }, e_tribe::cherokee );
+
+  UnitId const unit_id =
+      W.add_unit_on_map( e_unit_type::free_colonist,
+                         { .x = 1, .y = 3 } )
+          .id();
+
+  player.new_world_name                            = "my world";
+  player.woodcuts[e_woodcut::discovered_new_world] = true;
+
+  agent.EXPECT__meet_tribe_ui_sequence(
+      MeetTribe{ .player        = e_player::dutch,
+                 .tribe         = e_tribe::cherokee,
+                 .num_dwellings = 1,
+                 .land_awarded  = {} },
+      point{ .x = 1, .y = 0 } );
+
+  REQUIRE( W.cherokee().relationship[player.type].encountered ==
+           false );
+
+  auto const w = TestingOnlyUnitOnMapMover::to_map_interactive(
+      W.ss(), W.ts(), unit_id, { .x = 1, .y = 0 } );
+  REQUIRE( !w.exception() );
+  REQUIRE( w.ready() );
+  REQUIRE( *w == nothing );
+
+  REQUIRE( W.cherokee().relationship[player.type].encountered ==
+           true );
+  REQUIRE( W.units().coord_for( unit_id ) ==
+           Coord{ .x = 1, .y = 0 } );
+}
+
 TEST_CASE( "[on-map] interactive: discovers pacific ocean" ) {
   World W;
   W.create_default_map();
@@ -308,7 +346,7 @@ TEST_CASE(
   };
 
   // Selects rumor result = fountain of youth.
-  W.rand().EXPECT__between_ints( 0, 100 - 1 ).returns( 58 );
+  W.rand().EXPECT__between_ints( 0, 100 - 1 ).returns( 57 );
   agent.EXPECT__show_woodcut(
       e_woodcut::discovered_fountain_of_youth );
   agent.EXPECT__message_box( StrContains( "Youth" ) );
@@ -324,6 +362,36 @@ TEST_CASE(
   }
 
   f();
+}
+
+TEST_CASE( "[on-map] interactive: [LCR] unit lost" ) {
+  World W;
+  W.create_default_map();
+  Coord to = { .x = 1, .y = 1 };
+  UnitId const unit_id =
+      W.add_unit_on_map( e_unit_type::free_colonist,
+                         { .x = 1, .y = 0 } )
+          .id();
+  MapSquare& square      = W.square( { .x = 1, .y = 1 } );
+  square.lost_city_rumor = true;
+  Player& player         = W.default_player();
+  MockIEuroAgent& agent  = W.euro_agent();
+  agent.EXPECT__human().by_default().returns( true );
+  player.new_world_name                            = "my world";
+  player.woodcuts[e_woodcut::discovered_new_world] = true;
+
+  // Selects rumor result = fountain of youth.
+  W.rand().EXPECT__between_ints( 0, 100 - 1 ).returns( 94 );
+  agent.EXPECT__message_box( StrContains( "vanished" ) );
+
+  REQUIRE( W.units().exists( unit_id ) );
+  wait<maybe<UnitDeleted>> const w =
+      TestingOnlyUnitOnMapMover::to_map_interactive(
+          W.ss(), W.ts(), unit_id, to );
+  REQUIRE( !w.exception() );
+  REQUIRE( w.ready() );
+  REQUIRE( w->has_value() );
+  REQUIRE_FALSE( W.units().exists( unit_id ) );
 }
 
 TEST_CASE( "[on-map] non-interactive: updates visibility" ) {

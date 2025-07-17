@@ -296,8 +296,7 @@ wait<maybe<UnitDeleted>> UnitOnMapMover::to_map_interactive(
   ILandViewPlane& land_view =
       ts.planes.get().get_bottom<ILandViewPlane>();
 
-  if( !player.new_world_name.has_value() )
-    co_await try_discover_new_world( ss, player, agent, dst );
+  co_await try_discover_new_world( ss, player, agent, dst );
 
   if( !player.woodcuts[e_woodcut::discovered_pacific_ocean] )
     co_await try_discover_pacific_ocean( ss, player, agent,
