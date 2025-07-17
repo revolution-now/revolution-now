@@ -58,8 +58,11 @@ TEST_CASE( "[land-view-anim] AnimSeqOptions default values" ) {
   REQUIRE( opts.check_visibility == true );
 }
 
-TEST_CASE( "[land-view-anim] animate visibility check" ) {
+// This test should check that the animate_sequence method sup-
+// presses the animation if should_animate_seq returns false.
+TEST_CASE( "[land-view-anim] animate_sequence checks visibility" ) {
   world w;
+  // TODO
 }
 
 } // namespace
