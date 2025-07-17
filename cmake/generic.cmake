@@ -87,6 +87,10 @@ function( set_warning_options target )
             -Wall
             -Wextra
             -Wnrvo
+            # This is so that gcc does not warn about clang at-
+            # tributes, e.g. [[clang::noinline]] which are conve-
+            # nient to leave around.
+            -Wno-attributes
             # For some reason gcc warns us when we reach the end
             # of a function without a return statement even if it
             # the function is guaranteed to return early due to
