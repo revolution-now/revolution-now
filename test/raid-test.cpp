@@ -88,7 +88,7 @@ TEST_CASE( "[raid] raid_unit" ) {
   // This is for use after the brave is destroyed.
   NativeUnitId const brave_id = brave.id;
 
-  auto f = [&] {
+  auto f = [&] [[clang::noinline]] {
     co_await_test(
         raid_unit( W.ss(), W.ts(), brave, defender_coord ) );
   };
@@ -118,6 +118,10 @@ TEST_CASE( "[raid] raid_unit" ) {
     agent.EXPECT__message_box(
         "[Arawaks] make surprise raid! Terror descends upon "
         "colonists! Arawak chief unavailable for comment." );
+    mock_land_view.EXPECT__ensure_visible(
+        point{ .x = 0, .y = 0 } );
+    mock_land_view.EXPECT__ensure_visible(
+        point{ .x = 1, .y = 0 } );
     mock_land_view.EXPECT__animate_if_visible( _ );
     agent.EXPECT__message_box(
         "[Dutch] Soldier promoted to [Veteran Soldier] for "
@@ -161,6 +165,10 @@ TEST_CASE( "[raid] raid_unit" ) {
     agent.EXPECT__message_box(
         "[Arawaks] make surprise raid! Terror descends upon "
         "colonists! Arawak chief unavailable for comment." );
+    mock_land_view.EXPECT__ensure_visible(
+        point{ .x = 0, .y = 0 } );
+    mock_land_view.EXPECT__ensure_visible(
+        point{ .x = 1, .y = 0 } );
     mock_land_view.EXPECT__animate_if_visible( _ );
     agent.EXPECT__message_box(
         "[Dutch] [Soldier] routed! Unit demoted to colonist "
@@ -223,6 +231,10 @@ TEST_CASE( "[raid] raid_unit" ) {
     agent.EXPECT__message_box(
         "[Arawaks] make surprise raid! Terror descends upon "
         "colonists! Arawak chief unavailable for comment." );
+    mock_land_view.EXPECT__ensure_visible(
+        point{ .x = 0, .y = 0 } );
+    mock_land_view.EXPECT__ensure_visible(
+        point{ .x = 1, .y = 0 } );
     mock_land_view.EXPECT__animate_if_visible( _ );
     agent.EXPECT__message_box(
         "[Dutch] Soldier defeats [Arawak] Brave in the "
@@ -254,6 +266,7 @@ TEST_CASE( "[raid] raid_unit" ) {
   // Here we do the same as above but create the units with the
   // non-default (and hence non-human) player, that way the
   // battle will not be viz'able. This test then tests that the
+  // "ensure_visible" calls are /not/ made, but that the
   // animate_if_visible is still called despite that, since the
   // suppression of the animation is done inside that function.
   SECTION( "brave, three euro, brave loses, no anim" ) {
@@ -397,6 +410,10 @@ TEST_CASE( "[raid] raid_colony" ) {
         "[Arawaks] make surprise raid of [1]! Terror "
         "descends upon colonists! Arawak chief unavailable "
         "for comment." );
+    mock_land_view.EXPECT__ensure_visible(
+        point{ .x = 0, .y = 0 } );
+    mock_land_view.EXPECT__ensure_visible(
+        point{ .x = 1, .y = 0 } );
     mock_land_view.EXPECT__animate_if_visible( _ );
     // none:                 12
     // commodity_stolen:     30
@@ -495,6 +512,10 @@ TEST_CASE( "[raid] raid_colony" ) {
     mock_euro_agent.EXPECT__message_box(
         "Colonists on ships docked in [1] have been offboarded "
         "to help defend the colony!" );
+    mock_land_view.EXPECT__ensure_visible(
+        point{ .x = 0, .y = 0 } );
+    mock_land_view.EXPECT__ensure_visible(
+        point{ .x = 1, .y = 0 } );
     mock_land_view.EXPECT__animate_if_visible( _ );
     // none:                 12
     // commodity_stolen:     30
@@ -580,6 +601,10 @@ TEST_CASE( "[raid] raid_colony" ) {
         "[Arawaks] make surprise raid of [1]! Terror "
         "descends upon colonists! Arawak chief unavailable "
         "for comment." );
+    mock_land_view.EXPECT__ensure_visible(
+        point{ .x = 0, .y = 0 } );
+    mock_land_view.EXPECT__ensure_visible(
+        point{ .x = 1, .y = 0 } );
     mock_land_view.EXPECT__animate_if_visible( _ );
     // none:                 12
     // commodity_stolen:     30
@@ -650,6 +675,10 @@ TEST_CASE( "[raid] raid_colony" ) {
         "[Arawaks] make surprise raid of [1]! Terror "
         "descends upon colonists! Arawak chief unavailable "
         "for comment." );
+    mock_land_view.EXPECT__ensure_visible(
+        point{ .x = 0, .y = 0 } );
+    mock_land_view.EXPECT__ensure_visible(
+        point{ .x = 1, .y = 0 } );
     mock_land_view.EXPECT__animate_if_visible( _ );
     mock_euro_agent.EXPECT__show_woodcut(
         e_woodcut::colony_burning );
@@ -732,6 +761,10 @@ TEST_CASE( "[raid] raid_colony" ) {
     mock_euro_agent.EXPECT__message_box(
         "Colonists on ships docked in [1] have been offboarded "
         "to help defend the colony!" );
+    mock_land_view.EXPECT__ensure_visible(
+        point{ .x = 0, .y = 0 } );
+    mock_land_view.EXPECT__ensure_visible(
+        point{ .x = 1, .y = 0 } );
     mock_land_view.EXPECT__animate_if_visible( _ );
     mock_euro_agent.EXPECT__message_box(
         "Port in [1] contained one [Caravel] that was damaged "

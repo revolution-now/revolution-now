@@ -26,6 +26,7 @@
 #include "plane-stack.hpp"
 #include "raid-effects.hpp"
 #include "roles.hpp"
+#include "show-anim.hpp"
 #include "ts.hpp"
 #include "unit-mgr.hpp"
 #include "unit-ownership.hpp"
@@ -94,10 +95,26 @@ wait<> raid_unit( SS& ss, TS& ts, NativeUnit& attacker,
   CombatBraveAttackEuro const combat =
       ts.combat.brave_attack_euro( as_const( attacker ),
                                    as_const( defender ) );
+  Coord const src   = ss.units.coord_for( attacker.id );
   IEuroAgent& agent = ts.euro_agents()[defender.player_type()];
 
   AnimationSequence const seq =
       anim_seq_for_brave_attack_euro( ss, combat );
+
+  // We need to do this because otherwise the sight of the raid
+  // won't always be visible on the map when the raid message
+  // pops up.
+  if( should_animate_seq( ss, seq ) ) {
+    // NOTE: the viewing player will be changed further up the
+    // call stack if needed (i.e. when there are multiple human
+    // players).
+    co_await ts.planes.get()
+        .get_bottom<ILandViewPlane>()
+        .ensure_visible( src );
+    co_await ts.planes.get()
+        .get_bottom<ILandViewPlane>()
+        .ensure_visible( dst );
+  }
 
   co_await surprise_raid_msg( ss, agent, dst, tribe_type );
 
@@ -239,9 +256,26 @@ wait<> raid_colony( SS& ss, TS& ts, NativeUnit& attacker,
   unique_ptr<IVisibility const> const viz =
       create_visibility_for(
           ss, player_for_role( ss, e_player_role::viewer ) );
+  Coord const src = ss.units.coord_for( attacker.id );
+  Coord const dst = colony.location;
 
   AnimationSequence const seq =
       anim_seq_for_brave_attack_colony( ss, *viz, combat );
+
+  // We need to do this because otherwise the sight of the raid
+  // won't always be visible on the map when the raid message
+  // pops up.
+  if( should_animate_seq( ss, seq ) ) {
+    // NOTE: the viewing player will be changed further up the
+    // call stack if needed (i.e. when there are multiple human
+    // players).
+    co_await ts.planes.get()
+        .get_bottom<ILandViewPlane>()
+        .ensure_visible( src );
+    co_await ts.planes.get()
+        .get_bottom<ILandViewPlane>()
+        .ensure_visible( dst );
+  }
 
   co_await surprise_raid_msg( ss, agent, colony.location,
                               tribe_type );
