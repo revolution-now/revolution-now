@@ -131,6 +131,9 @@ struct IEuroAgent : IAgent, ISignalHandler {
   virtual wait<ui::e_confirm> should_attack_natives(
       e_tribe tribe ) = 0;
 
+  virtual wait<maybe<int>> pick_dump_cargo(
+      std::map<int /*slot*/, Commodity> const& options ) = 0;
+
  public: // Signals.
   // Non-waitable signal, no message.
   auto signal( NonWaitableSignalContext auto const& ctx ) {
@@ -195,8 +198,7 @@ struct NoopEuroAgent final : IEuroAgent {
   bool human() const override;
 
   wait<e_declare_war_on_natives> meet_tribe_ui_sequence(
-      MeetTribe const& meet_tribe,
-      gfx::point tile ) override;
+      MeetTribe const& meet_tribe, gfx::point tile ) override;
 
   wait<> show_woodcut( e_woodcut woodcut ) override;
 
@@ -235,6 +237,10 @@ struct NoopEuroAgent final : IEuroAgent {
 
   wait<ui::e_confirm> should_attack_natives(
       e_tribe tribe ) override;
+
+  wait<maybe<int>> pick_dump_cargo(
+      std::map<int /*slot*/, Commodity> const& options )
+      override;
 
  public: // ISignalHandler
   wait<maybe<int>> handle(

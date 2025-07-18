@@ -27,6 +27,7 @@
 namespace rn {
 
 struct IEngine;
+struct IEuroAgent;
 struct Player;
 struct SS;
 struct TS;
@@ -77,7 +78,7 @@ struct CommandHandler {
 };
 
 std::unique_ptr<CommandHandler> command_handler(
-    IEngine& engine, SS& ss, TS& ts, Player& player, UnitId id,
-    command const& command );
+    IEngine& engine, SS& ss, TS& ts, IEuroAgent& agent,
+    Player& player, UnitId id, command const& command );
 
 } // namespace rn

@@ -17,7 +17,7 @@
 // Testing
 #include "test/fake/world.hpp"
 #include "test/mocks/iengine.hpp"
-#include "test/mocks/igui.hpp"
+#include "test/mocks/ieuro-agent.hpp"
 
 // Revolution Now
 #include "src/commodity.hpp"
@@ -55,14 +55,15 @@ struct World : testing::World {
 ** Test Cases
 *****************************************************************/
 TEST_CASE( "[command-dump] galleon" ) {
-  World W;
-  UnitId id = W.add_unit_on_map( e_unit_type::galleon,
+  World w;
+  MockIEuroAgent& agent = w.euro_agent();
+  UnitId id = w.add_unit_on_map( e_unit_type::galleon,
                                  Coord{ .x = 0, .y = 0 } )
                   .id();
   unique_ptr<CommandHandler> handler =
-      handle_command( W.engine(), W.ss(), W.ts(),
-                      W.default_player(), id, command::dump{} );
-  Unit& unit       = W.units().unit_for( id );
+      handle_command( w.engine(), w.ss(), w.ts(), agent,
+                      w.default_player(), id, command::dump{} );
+  Unit& unit       = w.units().unit_for( id );
   CargoHold& cargo = unit.cargo();
   Commodity comm;
   int slot = 0;
@@ -70,25 +71,25 @@ TEST_CASE( "[command-dump] galleon" ) {
   // 23 cotton in slot 0.
   comm = { .type = e_commodity::cotton, .quantity = 23 };
   slot = 0;
-  add_commodity_to_cargo( W.units(), comm, unit.cargo(), slot,
+  add_commodity_to_cargo( w.units(), comm, unit.cargo(), slot,
                           /*try_other_slots=*/false );
 
   // 100 tools in slot 2.
   comm = { .type = e_commodity::tools, .quantity = 100 };
   slot = 2;
-  add_commodity_to_cargo( W.units(), comm, unit.cargo(), slot,
+  add_commodity_to_cargo( w.units(), comm, unit.cargo(), slot,
                           /*try_other_slots=*/false );
 
   // 50 horses in slot 4.
   comm = { .type = e_commodity::horses, .quantity = 50 };
   slot = 4;
-  add_commodity_to_cargo( W.units(), comm, unit.cargo(), slot,
+  add_commodity_to_cargo( w.units(), comm, unit.cargo(), slot,
                           /*try_other_slots=*/false );
 
   // 1 musket in slot 5.
   comm = { .type = e_commodity::muskets, .quantity = 1 };
   slot = 5;
-  add_commodity_to_cargo( W.units(), comm, unit.cargo(), slot,
+  add_commodity_to_cargo( w.units(), comm, unit.cargo(), slot,
                           /*try_other_slots=*/false );
 
   // Sanity check.
@@ -113,30 +114,13 @@ TEST_CASE( "[command-dump] galleon" ) {
 
   // Dump #1, slot 4.
   {
-    ChoiceConfig config{
-      .msg = "What cargo would you like to dump overboard?",
-      .options =
-          {
-            ChoiceConfigOption{
-              .key          = "0",
-              .display_name = "23 cotton",
-            },
-            ChoiceConfigOption{
-              .key          = "2",
-              .display_name = "100 tools",
-            },
-            ChoiceConfigOption{
-              .key          = "4",
-              .display_name = "50 horses",
-            },
-            ChoiceConfigOption{
-              .key          = "5",
-              .display_name = "1 muskets",
-            },
-          },
-    };
-    W.gui().EXPECT__choice( config ).returns(
-        make_wait<maybe<string>>( "2" ) );
+    using enum e_commodity;
+    map<int /*slot*/, Commodity> comms;
+    comms[0] = { .type = cotton, .quantity = 23 };
+    comms[2] = { .type = tools, .quantity = 100 };
+    comms[4] = { .type = horses, .quantity = 50 };
+    comms[5] = { .type = muskets, .quantity = 1 };
+    agent.EXPECT__pick_dump_cargo( comms ).returns( 2 );
     wait<bool> w_confirm = handler->confirm();
     REQUIRE( !w_confirm.exception() );
     REQUIRE( w_confirm.ready() );
@@ -169,26 +153,12 @@ TEST_CASE( "[command-dump] galleon" ) {
 
   // Dump #2, slot 5.
   {
-    ChoiceConfig config{
-      .msg = "What cargo would you like to dump overboard?",
-      .options =
-          {
-            ChoiceConfigOption{
-              .key          = "0",
-              .display_name = "23 cotton",
-            },
-            ChoiceConfigOption{
-              .key          = "4",
-              .display_name = "50 horses",
-            },
-            ChoiceConfigOption{
-              .key          = "5",
-              .display_name = "1 muskets",
-            },
-          },
-    };
-    W.gui().EXPECT__choice( config ).returns(
-        make_wait<maybe<string>>( "5" ) );
+    using enum e_commodity;
+    map<int /*slot*/, Commodity> comms;
+    comms[0] = { .type = cotton, .quantity = 23 };
+    comms[4] = { .type = horses, .quantity = 50 };
+    comms[5] = { .type = muskets, .quantity = 1 };
+    agent.EXPECT__pick_dump_cargo( comms ).returns( 5 );
     wait<bool> w_confirm = handler->confirm();
     REQUIRE( !w_confirm.exception() );
     REQUIRE( w_confirm.ready() );
@@ -218,22 +188,11 @@ TEST_CASE( "[command-dump] galleon" ) {
 
   // Dump #3, escape.
   {
-    ChoiceConfig config{
-      .msg = "What cargo would you like to dump overboard?",
-      .options =
-          {
-            ChoiceConfigOption{
-              .key          = "0",
-              .display_name = "23 cotton",
-            },
-            ChoiceConfigOption{
-              .key          = "4",
-              .display_name = "50 horses",
-            },
-          },
-    };
-    W.gui().EXPECT__choice( config ).returns(
-        make_wait<maybe<string>>( nothing ) );
+    using enum e_commodity;
+    map<int /*slot*/, Commodity> comms;
+    comms[0] = { .type = cotton, .quantity = 23 };
+    comms[4] = { .type = horses, .quantity = 50 };
+    agent.EXPECT__pick_dump_cargo( comms ).returns( nothing );
     wait<bool> w_confirm = handler->confirm();
     REQUIRE( !w_confirm.exception() );
     REQUIRE( w_confirm.ready() );
@@ -256,22 +215,11 @@ TEST_CASE( "[command-dump] galleon" ) {
 
   // Dump #4, slot 0.
   {
-    ChoiceConfig config{
-      .msg = "What cargo would you like to dump overboard?",
-      .options =
-          {
-            ChoiceConfigOption{
-              .key          = "0",
-              .display_name = "23 cotton",
-            },
-            ChoiceConfigOption{
-              .key          = "4",
-              .display_name = "50 horses",
-            },
-          },
-    };
-    W.gui().EXPECT__choice( config ).returns(
-        make_wait<maybe<string>>( "0" ) );
+    using enum e_commodity;
+    map<int /*slot*/, Commodity> comms;
+    comms[0] = { .type = cotton, .quantity = 23 };
+    comms[4] = { .type = horses, .quantity = 50 };
+    agent.EXPECT__pick_dump_cargo( comms ).returns( 0 );
     wait<bool> w_confirm = handler->confirm();
     REQUIRE( !w_confirm.exception() );
     REQUIRE( w_confirm.ready() );
@@ -298,18 +246,10 @@ TEST_CASE( "[command-dump] galleon" ) {
 
   // Dump #5, slot 4.
   {
-    ChoiceConfig config{
-      .msg = "What cargo would you like to dump overboard?",
-      .options =
-          {
-            ChoiceConfigOption{
-              .key          = "4",
-              .display_name = "50 horses",
-            },
-          },
-    };
-    W.gui().EXPECT__choice( config ).returns(
-        make_wait<maybe<string>>( "4" ) );
+    using enum e_commodity;
+    map<int /*slot*/, Commodity> comms;
+    comms[4] = { .type = horses, .quantity = 50 };
+    agent.EXPECT__pick_dump_cargo( comms ).returns( 4 );
     wait<bool> w_confirm = handler->confirm();
     REQUIRE( !w_confirm.exception() );
     REQUIRE( w_confirm.ready() );
@@ -333,11 +273,9 @@ TEST_CASE( "[command-dump] galleon" ) {
 
   // Dump #5, no more cargo.
   {
-    W.gui()
-        .EXPECT__message_box(
-            "This unit is not carrying any cargo that "
-            "can be dumped overboard." )
-        .returns( make_wait<>() );
+    agent.EXPECT__message_box(
+        "This unit is not carrying any cargo that "
+        "can be dumped overboard." );
     wait<bool> w_confirm = handler->confirm();
     REQUIRE( !w_confirm.exception() );
     REQUIRE( w_confirm.ready() );
@@ -352,14 +290,15 @@ TEST_CASE( "[command-dump] galleon" ) {
 }
 
 TEST_CASE( "[command-dump] wagon train" ) {
-  World W;
-  UnitId id = W.add_unit_on_map( e_unit_type::wagon_train,
+  World w;
+  MockIEuroAgent& agent = w.euro_agent();
+  UnitId id = w.add_unit_on_map( e_unit_type::wagon_train,
                                  Coord{ .x = 1, .y = 1 } )
                   .id();
   unique_ptr<CommandHandler> handler =
-      handle_command( W.engine(), W.ss(), W.ts(),
-                      W.default_player(), id, command::dump{} );
-  Unit& unit       = W.units().unit_for( id );
+      handle_command( w.engine(), w.ss(), w.ts(), agent,
+                      w.default_player(), id, command::dump{} );
+  Unit& unit       = w.units().unit_for( id );
   CargoHold& cargo = unit.cargo();
   Commodity comm;
   int slot = 0;
@@ -367,7 +306,7 @@ TEST_CASE( "[command-dump] wagon train" ) {
   // 23 cotton in slot 0.
   comm = { .type = e_commodity::cotton, .quantity = 23 };
   slot = 0;
-  add_commodity_to_cargo( W.units(), comm, unit.cargo(), slot,
+  add_commodity_to_cargo( w.units(), comm, unit.cargo(), slot,
                           /*try_other_slots=*/false );
 
   // Sanity check.
@@ -379,18 +318,10 @@ TEST_CASE( "[command-dump] wagon train" ) {
 
   // Dump #1, slot 0.
   {
-    ChoiceConfig config{
-      .msg = "What cargo would you like to dump overboard?",
-      .options =
-          {
-            ChoiceConfigOption{
-              .key          = "0",
-              .display_name = "23 cotton",
-            },
-          },
-    };
-    W.gui().EXPECT__choice( config ).returns(
-        make_wait<maybe<string>>( "0" ) );
+    using enum e_commodity;
+    map<int /*slot*/, Commodity> comms;
+    comms[0] = { .type = cotton, .quantity = 23 };
+    agent.EXPECT__pick_dump_cargo( comms ).returns( 0 );
     wait<bool> w_confirm = handler->confirm();
     REQUIRE( !w_confirm.exception() );
     REQUIRE( w_confirm.ready() );
@@ -410,11 +341,9 @@ TEST_CASE( "[command-dump] wagon train" ) {
 
   // Dump #2, no more cargo.
   {
-    W.gui()
-        .EXPECT__message_box(
-            "This unit is not carrying any cargo that "
-            "can be dumped overboard." )
-        .returns( make_wait<>() );
+    agent.EXPECT__message_box(
+        "This unit is not carrying any cargo that "
+        "can be dumped overboard." );
     wait<bool> w_confirm = handler->confirm();
     REQUIRE( !w_confirm.exception() );
     REQUIRE( w_confirm.ready() );
@@ -425,19 +354,18 @@ TEST_CASE( "[command-dump] wagon train" ) {
 }
 
 TEST_CASE( "[command-dump] non-cargo unit" ) {
-  World W;
-  UnitId id = W.add_unit_on_map( e_unit_type::free_colonist,
+  World w;
+  MockIEuroAgent& agent = w.euro_agent();
+  UnitId id = w.add_unit_on_map( e_unit_type::free_colonist,
                                  Coord{ .x = 1, .y = 1 } )
                   .id();
   unique_ptr<CommandHandler> handler =
-      handle_command( W.engine(), W.ss(), W.ts(),
-                      W.default_player(), id, command::dump{} );
+      handle_command( w.engine(), w.ss(), w.ts(), agent,
+                      w.default_player(), id, command::dump{} );
 
-  W.gui()
-      .EXPECT__message_box(
-          "Only units with cargo holds can "
-          "dump cargo overboard." )
-      .returns( make_wait<>() );
+  agent.EXPECT__message_box(
+      "Only units with cargo holds can dump cargo "
+      "overboard." );
   wait<bool> w_confirm = handler->confirm();
   REQUIRE( !w_confirm.exception() );
   REQUIRE( w_confirm.ready() );

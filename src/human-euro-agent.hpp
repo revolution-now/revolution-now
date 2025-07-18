@@ -80,6 +80,10 @@ struct HumanEuroAgent final : IEuroAgent {
   wait<ui::e_confirm> should_attack_natives(
       e_tribe tribe ) override;
 
+  wait<maybe<int>> pick_dump_cargo(
+      std::map<int /*slot*/, Commodity> const& options )
+      override;
+
  public: // Signals.
   void handle( signal::ColonySignalTransient const& ) override;
 

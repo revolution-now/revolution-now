@@ -15,6 +15,14 @@
 
 // Testing.
 #include "test/fake/world.hpp"
+#include "test/mocks/igui.hpp"
+#include "test/util/coro.hpp"
+
+// refl
+#include "src/refl/to-str.hpp"
+
+// base
+#include "src/base/to-str-ext-std.hpp"
 
 // Must be last.
 #include "test/catch-common.hpp" // IWYU pragma: keep
@@ -28,7 +36,8 @@ using namespace std;
 ** Fake World Setup
 *****************************************************************/
 struct world : testing::World {
-  world() {
+  world()
+    : agent_( default_player_type(), ss(), gui(), planes() ) {
     add_default_player();
     create_default_map();
   }
@@ -43,11 +52,61 @@ struct world : testing::World {
     };
     build_map( std::move( tiles ), 3 );
   }
+
+  HumanEuroAgent agent_;
 };
 
 /****************************************************************
 ** Test Cases
 *****************************************************************/
+TEST_CASE( "[human-euro-agent] pick_dump_cargo" ) {
+  world w;
+  map<int /*slot*/, Commodity> comms;
+
+  auto const f = [&] [[clang::noinline]] {
+    return co_await_test( w.agent_.pick_dump_cargo( comms ) );
+  };
+
+  using enum e_commodity;
+  comms[0] = { .type = cotton, .quantity = 23 };
+  comms[2] = { .type = tools, .quantity = 100 };
+  comms[4] = { .type = horses, .quantity = 50 };
+  comms[5] = { .type = muskets, .quantity = 1 };
+
+  ChoiceConfig const config{
+    .msg = "What cargo would you like to dump overboard?",
+    .options =
+        {
+          ChoiceConfigOption{
+            .key          = "0",
+            .display_name = "23 cotton",
+          },
+          ChoiceConfigOption{
+            .key          = "2",
+            .display_name = "100 tools",
+          },
+          ChoiceConfigOption{
+            .key          = "4",
+            .display_name = "50 horses",
+          },
+          ChoiceConfigOption{
+            .key          = "5",
+            .display_name = "1 muskets",
+          },
+        },
+  };
+
+  SECTION( "selects nothing" ) {
+    w.gui().EXPECT__choice( config ).returns( nothing );
+    REQUIRE( f() == nothing );
+  }
+
+  SECTION( "selects slot 2" ) {
+    w.gui().EXPECT__choice( config ).returns( "2" );
+    REQUIRE( f() == 2 );
+  }
+}
+
 TEST_CASE( "[human-euro-agent] handle/ChooseImmigrant" ) {
   world w;
   // TODO

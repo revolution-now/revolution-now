@@ -78,8 +78,8 @@ TEST_CASE( "[command-build] build colony" ) {
   Unit const& unit =
       W.add_unit_on_map( e_unit_type::free_colonist, tile );
   unique_ptr<CommandHandler> handler = handle_command(
-      W.engine(), W.ss(), W.ts(), W.default_player(), unit.id(),
-      command::build{} );
+      W.engine(), W.ss(), W.ts(), W.euro_agent(),
+      W.default_player(), unit.id(), command::build{} );
 
   REQUIRE_FALSE( unit.mv_pts_exhausted() );
 
@@ -126,8 +126,8 @@ TEST_CASE( "[command-build] build colony no ocean access" ) {
   Unit const& unit =
       W.add_unit_on_map( e_unit_type::free_colonist, tile );
   unique_ptr<CommandHandler> handler = handle_command(
-      W.engine(), W.ss(), W.ts(), W.default_player(), unit.id(),
-      command::build{} );
+      W.engine(), W.ss(), W.ts(), W.euro_agent(),
+      W.default_player(), unit.id(), command::build{} );
 
   REQUIRE_FALSE( unit.mv_pts_exhausted() );
 
@@ -157,8 +157,8 @@ TEST_CASE( "[command-build] build colony by ship" ) {
   Unit const& unit =
       W.add_unit_on_map( e_unit_type::caravel, tile );
   unique_ptr<CommandHandler> handler = handle_command(
-      W.engine(), W.ss(), W.ts(), W.default_player(), unit.id(),
-      command::build{} );
+      W.engine(), W.ss(), W.ts(), W.euro_agent(),
+      W.default_player(), unit.id(), command::build{} );
 
   REQUIRE_FALSE( unit.mv_pts_exhausted() );
 
@@ -189,8 +189,8 @@ TEST_CASE( "[command-build] can't build during war" ) {
   Unit const& unit =
       W.add_unit_on_map( e_unit_type::free_colonist, tile );
   unique_ptr<CommandHandler> handler = handle_command(
-      W.engine(), W.ss(), W.ts(), W.default_player(), unit.id(),
-      command::build{} );
+      W.engine(), W.ss(), W.ts(), W.euro_agent(),
+      W.default_player(), unit.id(), command::build{} );
 
   auto const f = [&] {
     return co_await_test( handler->confirm() );

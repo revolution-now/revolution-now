@@ -12,7 +12,7 @@
 
 // Revolution Now
 #include "co-wait.hpp"
-#include "ts.hpp"
+#include "ieuro-agent.hpp"
 #include "unit-mgr.hpp"
 
 // ss
@@ -26,12 +26,12 @@ namespace rn {
 namespace {
 
 struct FortifyHandler : public CommandHandler {
-  FortifyHandler( SS& ss, TS& ts, UnitId unit_id )
-    : ss_( ss ), ts_( ts ), unit_id_( unit_id ) {}
+  FortifyHandler( SS& ss, IEuroAgent& agent, UnitId unit_id )
+    : ss_( ss ), agent_( agent ), unit_id_( unit_id ) {}
 
   wait<bool> confirm() override {
     if( is_unit_onboard( ss_.units, unit_id_ ) ) {
-      co_await ts_.gui.message_box(
+      co_await agent_.message_box(
           "Cannot fortify as cargo of another unit." );
       co_return false;
     }
@@ -49,8 +49,8 @@ struct FortifyHandler : public CommandHandler {
   }
 
   SS& ss_;
-  TS& ts_;
-  UnitId unit_id_;
+  IEuroAgent& agent_;
+  UnitId unit_id_ = {};
 };
 
 struct SentryHandler : public CommandHandler {
@@ -65,7 +65,7 @@ struct SentryHandler : public CommandHandler {
   }
 
   SS& ss_;
-  UnitId unit_id_;
+  UnitId unit_id_ = {};
 };
 
 } // namespace
@@ -74,13 +74,13 @@ struct SentryHandler : public CommandHandler {
 ** Public API
 *****************************************************************/
 unique_ptr<CommandHandler> handle_command(
-    IEngine&, SS& ss, TS& ts, Player&, UnitId id,
+    IEngine&, SS& ss, TS&, IEuroAgent& agent, Player&, UnitId id,
     command::fortify const& ) {
-  return make_unique<FortifyHandler>( ss, ts, id );
+  return make_unique<FortifyHandler>( ss, agent, id );
 }
 
 unique_ptr<CommandHandler> handle_command(
-    IEngine&, SS& ss, TS&, Player&, UnitId id,
+    IEngine&, SS& ss, TS&, IEuroAgent&, Player&, UnitId id,
     command::sentry const& ) {
   return make_unique<SentryHandler>( ss, id );
 }

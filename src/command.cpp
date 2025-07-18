@@ -43,12 +43,13 @@ namespace {
 unordered_map<UnitId, queue<command>> g_command_queue;
 
 unique_ptr<CommandHandler> handle_command(
-    IEngine&, SS&, TS&, Player&, UnitId, command::wait const& ) {
+    IEngine&, SS&, TS&, IEuroAgent&, Player&, UnitId,
+    command::wait const& ) {
   SHOULD_NOT_BE_HERE;
 }
 
 unique_ptr<CommandHandler> handle_command(
-    IEngine&, SS&, TS&, Player&, UnitId,
+    IEngine&, SS&, TS&, IEuroAgent&, Player&, UnitId,
     command::forfeight const& ) {
   SHOULD_NOT_BE_HERE;
 }
@@ -72,12 +73,12 @@ maybe<command> pop_unit_command( UnitId id ) {
 }
 
 unique_ptr<CommandHandler> command_handler(
-    IEngine& engine, SS& ss, TS& ts, Player& player, UnitId id,
-    command const& command ) {
+    IEngine& engine, SS& ss, TS& ts, IEuroAgent& agent,
+    Player& player, UnitId id, command const& command ) {
   CHECK( !ss.units.unit_for( id ).mv_pts_exhausted() );
-  return std::visit(
-      LC( handle_command( engine, ss, ts, player, id, _ ) ),
-      command.as_base() );
+  return std::visit( LC( handle_command( engine, ss, ts, agent,
+                                         player, id, _ ) ),
+                     command.as_base() );
 }
 
 wait<CommandHandlerRunResult> CommandHandler::run() {

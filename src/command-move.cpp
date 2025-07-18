@@ -20,6 +20,7 @@
 #include "connectivity.hpp"
 #include "enter-dwelling.hpp"
 #include "harbor-units.hpp"
+#include "ieuro-agent.hpp"
 #include "igui.hpp"
 #include "land-view.hpp"
 #include "map-square.hpp"
@@ -193,12 +194,13 @@ maybe<MovementPoints> check_movement_points(
 *****************************************************************/
 struct TravelHandler : public CommandHandler {
   TravelHandler( SS& ss, TS& ts, UnitId unit_id_, e_direction d,
-                 Player& player )
+                 IEuroAgent& agent, Player& player )
     : ss_( ss ),
       ts_( ts ),
       unit_id( unit_id_ ),
       direction( d ),
-      player_( player ) {}
+      player_( player ),
+      agent_( agent ) {}
 
   enum class e_travel_verdict {
     // Cancelled.
@@ -250,7 +252,7 @@ struct TravelHandler : public CommandHandler {
         CHECK( !checked_mv_points_ );
         co_return false;
       case e_travel_verdict::board_ship_full:
-        co_await ts_.gui.message_box(
+        co_await agent_.message_box(
             "None of the ships on this square have enough free "
             "space to hold this unit!" );
         // We should not have checked movement points in this
@@ -258,7 +260,7 @@ struct TravelHandler : public CommandHandler {
         CHECK( !checked_mv_points_ );
         co_return false;
       case e_travel_verdict::no_ship_into_inland_lake:
-        co_await ts_.gui.message_box(
+        co_await agent_.message_box(
             "Ships cannot move onto inland lake tiles." );
         // We should not have checked movement points in this
         // case since it was an impossible move.
@@ -398,6 +400,7 @@ struct TravelHandler : public CommandHandler {
   bool checked_mv_points_ = false;
 
   Player& player_;
+  IEuroAgent& agent_;
 };
 
 wait<TravelHandler::e_travel_verdict>
@@ -412,7 +415,7 @@ TravelHandler::analyze_unload() const {
   }
   if( !to_offload.empty() ) {
     if( ss_.colonies.maybe_from_coord( move_src ) ) {
-      co_await ts_.gui.message_box(
+      co_await agent_.message_box(
           "A ship containing units cannot make landfall while "
           "in port." );
       co_return e_travel_verdict::land_forbidden;
@@ -446,7 +449,7 @@ bool is_high_seas( TerrainState const& terrain_state, Coord c ) {
 
 wait<maybe<ui::e_confirm>> TravelHandler::ask_sail_high_seas()
     const {
-  return ts_.gui.optional_yes_no(
+  co_return co_await ts_.gui.optional_yes_no(
       { .msg       = "Would you like to sail the high seas?",
         .yes_label = "Yes, steady as she goes!",
         .no_label  = "No, let us remain in these waters." } );
@@ -458,7 +461,7 @@ bool TravelHandler::sail_high_seas_forbidden() const {
 }
 
 wait<> TravelHandler::show_sail_high_seas_forbidden_msg() const {
-  co_await ts_.gui.message_box(
+  co_await agent_.message_box(
       "Sailing the High Seas to the harbor in {} is no longer "
       "permitted after the War of Independence begins.  Trading "
       "with Europe can be done through the use of the [Custom "
@@ -1020,11 +1023,13 @@ wait<> TravelHandler::perform() {
       // a ship moves into port. But it would be convenient to
       // allow the user to specify that they want to open it by
       // holding SHIFT while moving the unit.
-      e_colony_abandoned const abandoned =
-          co_await ts_.colony_viewer.show( ts_, colony_id );
-      if( abandoned == e_colony_abandoned::yes )
-        // Nothing really special to do here.
-        break;
+      if( agent_.human() ) {
+        e_colony_abandoned const abandoned =
+            co_await ts_.colony_viewer.show( ts_, colony_id );
+        if( abandoned == e_colony_abandoned::yes )
+          // Nothing really special to do here.
+          break;
+      }
       break;
     }
     case e_travel_verdict::land_fall:
@@ -1082,12 +1087,13 @@ wait<> TravelHandler::perform() {
 ** NativeDwellingHandler
 *****************************************************************/
 struct NativeDwellingHandler : public CommandHandler {
-  NativeDwellingHandler( SS& ss, TS& ts, Player& player,
-                         UnitId unit_id, e_direction d,
-                         Dwelling& dwelling )
+  NativeDwellingHandler( SS& ss, TS& ts, IEuroAgent& agent,
+                         Player& player, UnitId unit_id,
+                         e_direction d, Dwelling& dwelling )
     : ss_( ss ),
       ts_( ts ),
       player_( player ),
+      agent_( agent ),
       unit_id_( unit_id ),
       unit_( ss_.units.unit_for( unit_id ) ),
       tribe_( ss.natives.tribe_for( dwelling.id ) ),
@@ -1131,7 +1137,7 @@ struct NativeDwellingHandler : public CommandHandler {
     if( !unit_.desc().ship &&
         ss_.terrain.square_at( move_src_ ).surface ==
             e_surface::water ) {
-      co_await ts_.gui.message_box(
+      co_await agent_.message_box(
           "A land unit cannot enter a square occupied by an "
           "enemy power directly from a ship.  We must first "
           "move them onto a land square that is either empty or "
@@ -1248,6 +1254,7 @@ struct NativeDwellingHandler : public CommandHandler {
   SS& ss_;
   TS& ts_;
   Player& player_;
+  IEuroAgent& agent_;
 
   // The unit doing the attacking. We need to record the unit id
   // so that we can test if the unit has been destroyed.
@@ -1269,6 +1276,7 @@ struct NativeDwellingHandler : public CommandHandler {
 ** Dispatch
 *****************************************************************/
 unique_ptr<CommandHandler> dispatch( SS& ss, TS& ts,
+                                     IEuroAgent& agent,
                                      Player& player,
                                      UnitId attacker_id,
                                      e_direction d ) {
@@ -1281,21 +1289,21 @@ unique_ptr<CommandHandler> dispatch( SS& ss, TS& ts,
     // This is an invalid move, but the TravelHandler is the one
     // that knows how to handle it.
     return make_unique<TravelHandler>( ss, ts, attacker_id, d,
-                                       player );
+                                       agent, player );
 
   maybe<Society> const society = society_on_square( ss, dst );
 
   if( !society.has_value() )
     // No entities on target sqaure, so it is just a travel.
     return make_unique<TravelHandler>( ss, ts, attacker_id, d,
-                                       player );
+                                       agent, player );
   CHECK( society.has_value() );
 
   if( *society == Society{ Society::european{
                     .player = attacker.player_type() } } )
     // Friendly unit on target square, so not an attack.
     return make_unique<TravelHandler>( ss, ts, attacker_id, d,
-                                       player );
+                                       agent, player );
 
   if( society->holds<Society::native>() ) {
     maybe<DwellingId> const dwelling_id =
@@ -1306,7 +1314,7 @@ unique_ptr<CommandHandler> dispatch( SS& ss, TS& ts,
     // a brave on the tile or not.
     if( dwelling_id.has_value() )
       return make_unique<NativeDwellingHandler>(
-          ss, ts, player, attacker_id, d,
+          ss, ts, agent, player, attacker_id, d,
           ss.natives.dwelling_for( *dwelling_id ) );
 
     // Must be attacking a brave.
@@ -1387,9 +1395,9 @@ unique_ptr<CommandHandler> dispatch( SS& ss, TS& ts,
 ** Public API
 *****************************************************************/
 unique_ptr<CommandHandler> handle_command(
-    IEngine&, SS& ss, TS& ts, Player& player, UnitId id,
-    command::move const& mv ) {
-  return dispatch( ss, ts, player, id, mv.d );
+    IEngine&, SS& ss, TS& ts, IEuroAgent& agent, Player& player,
+    UnitId id, command::move const& mv ) {
+  return dispatch( ss, ts, agent, player, id, mv.d );
 }
 
 } // namespace rn

@@ -122,4 +122,9 @@ wait<ui::e_confirm> NoopEuroAgent::should_attack_natives(
   co_return ui::e_confirm::yes;
 }
 
+wait<maybe<int>> NoopEuroAgent::pick_dump_cargo(
+    map<int /*slot*/, Commodity> const& ) {
+  co_return nothing;
+}
+
 } // namespace rn

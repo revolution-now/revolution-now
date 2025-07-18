@@ -17,6 +17,7 @@
 #include "test/fake/world.hpp"
 #include "test/mocking.hpp"
 #include "test/mocks/iengine.hpp"
+#include "test/mocks/ieuro-agent.hpp"
 #include "test/mocks/igui.hpp"
 #include "test/mocks/render/itextometer.hpp"
 #include "test/util/coro.hpp"
@@ -72,8 +73,8 @@ TEST_CASE( "[command-disband] confirm+perform" ) {
 
   auto confirm = [&] {
     cmd = handle_command( W.engine(), W.ss(), W.ts(),
-                          W.default_player(), unit_id,
-                          command::disband{} );
+                          W.euro_agent(), W.default_player(),
+                          unit_id, command::disband{} );
     return co_await_test( cmd->confirm() );
   };
 
@@ -278,9 +279,9 @@ TEST_CASE(
                              .id();
 
   auto confirm = [&] {
-    auto handler = handle_command( W.engine(), W.ss(), W.ts(),
-                                   W.default_player(), unit_id,
-                                   command::disband{} );
+    auto handler = handle_command(
+        W.engine(), W.ss(), W.ts(), W.euro_agent(),
+        W.default_player(), unit_id, command::disband{} );
     return co_await_test( handler->confirm() );
   };
 

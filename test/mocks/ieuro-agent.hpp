@@ -74,6 +74,9 @@ struct MockIEuroAgent : IEuroAgent {
                () );
   MOCK_METHOD( wait<ui::e_confirm>, should_attack_natives,
                ( e_tribe ), () );
+  using CommoditySlotMap = std::map<int, Commodity>;
+  MOCK_METHOD( wait<maybe<int>>, pick_dump_cargo,
+               (CommoditySlotMap const&), () );
 
  public: // Signals
   MOCK_SIGNAL_HANDLER( wait<maybe<int>>, ChooseImmigrant );

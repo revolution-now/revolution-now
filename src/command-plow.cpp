@@ -35,10 +35,12 @@ namespace rn {
 namespace {
 
 struct PlowHandler : public CommandHandler {
-  PlowHandler( SS& ss, TS& ts, Player& player, UnitId unit_id )
+  PlowHandler( SS& ss, TS& ts, IEuroAgent& agent, Player& player,
+               UnitId unit_id )
     : ss_( ss ),
       ts_( ts ),
       player_( player ),
+      agent_( agent ),
       unit_id_( unit_id ) {}
 
   wait<bool> confirm() override {
@@ -136,7 +138,8 @@ struct PlowHandler : public CommandHandler {
   SS& ss_;
   TS& ts_;
   Player& player_;
-  UnitId unit_id_;
+  IEuroAgent& agent_;
+  UnitId unit_id_ = {};
 };
 
 } // namespace
@@ -145,9 +148,9 @@ struct PlowHandler : public CommandHandler {
 ** Public API
 *****************************************************************/
 unique_ptr<CommandHandler> handle_command(
-    IEngine&, SS& ss, TS& ts, Player& player, UnitId id,
-    command::plow const& ) {
-  return make_unique<PlowHandler>( ss, ts, player, id );
+    IEngine&, SS& ss, TS& ts, IEuroAgent& agent, Player& player,
+    UnitId id, command::plow const& ) {
+  return make_unique<PlowHandler>( ss, ts, agent, player, id );
 }
 
 } // namespace rn

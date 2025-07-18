@@ -31,6 +31,9 @@
 #include "ss/ref.hpp"
 #include "ss/units.hpp"
 
+// base
+#include "base/conv.hpp"
+
 using namespace std;
 
 namespace rn {
@@ -208,6 +211,33 @@ wait<ui::e_confirm> HumanEuroAgent::should_attack_natives(
   maybe<ui::e_confirm> const proceed =
       co_await gui_.optional_yes_no( config );
   co_return proceed.value_or( ui::e_confirm::no );
+}
+
+wait<maybe<int>> HumanEuroAgent::pick_dump_cargo(
+    map<int /*slot*/, Commodity> const& options ) {
+  ChoiceConfig config{
+    .msg     = "What cargo would you like to dump overboard?",
+    .options = {},
+  };
+
+  for( auto const& [slot, comm] : options ) {
+    // FIXME: need to put these names into a config file with
+    // both singular and plural versions.
+    string const text = fmt::format(
+        "{} {}", comm.quantity,
+        lowercase_commodity_display_name( comm.type ) );
+    ChoiceConfigOption option{
+      .key          = fmt::to_string( slot ),
+      .display_name = text,
+    };
+    config.options.push_back( option );
+  }
+
+  maybe<string> const selection =
+      co_await gui_.optional_choice( config );
+  if( !selection.has_value() ) co_return nothing;
+  UNWRAP_CHECK_T( int const slot, base::stoi( *selection ) );
+  co_return slot;
 }
 
 } // namespace rn

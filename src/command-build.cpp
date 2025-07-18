@@ -11,7 +11,6 @@
 #include "command-build.hpp"
 
 // Revolution Now
-#include "agents.hpp"
 #include "co-wait.hpp"
 #include "colony-mgr.hpp"
 #include "colony-view.hpp"
@@ -53,11 +52,12 @@ valid_or<string> is_valid_colony_name_msg(
 }
 
 struct BuildHandler : public CommandHandler {
-  BuildHandler( SS& ss, TS& ts, Player& player, UnitId unit_id_ )
+  BuildHandler( SS& ss, TS& ts, IEuroAgent& agent,
+                Player& player, UnitId unit_id_ )
     : ss_( ss ),
       ts_( ts ),
       player_( player ),
-      euro_agent_( ts.euro_agents()[player.type] ),
+      agent_( agent ),
       unit_id( unit_id_ ) {}
 
   wait<bool> confirm() override {
@@ -145,7 +145,7 @@ struct BuildHandler : public CommandHandler {
 
   wait<> perform() override {
     co_await show_woodcut_if_needed(
-        player_, euro_agent_, e_woodcut::building_first_colony );
+        player_, agent_, e_woodcut::building_first_colony );
     colony_id =
         found_colony( ss_, ts_, player_, unit_id, *colony_name );
     e_colony_abandoned const abandoned =
@@ -159,7 +159,7 @@ struct BuildHandler : public CommandHandler {
   SS& ss_;
   TS& ts_;
   Player& player_;
-  IEuroAgent& euro_agent_;
+  IEuroAgent& agent_;
 
   UnitId unit_id;
 
@@ -173,9 +173,9 @@ struct BuildHandler : public CommandHandler {
 ** Public API
 *****************************************************************/
 unique_ptr<CommandHandler> handle_command(
-    IEngine&, SS& ss, TS& ts, Player& player, UnitId id,
-    command::build const& ) {
-  return make_unique<BuildHandler>( ss, ts, player, id );
+    IEngine&, SS& ss, TS& ts, IEuroAgent& agent, Player& player,
+    UnitId id, command::build const& ) {
+  return make_unique<BuildHandler>( ss, ts, agent, player, id );
 }
 
 } // namespace rn

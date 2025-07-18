@@ -76,6 +76,10 @@ struct RefAIEuroAgent final : IEuroAgent {
   wait<ui::e_confirm> should_attack_natives(
       e_tribe tribe ) override;
 
+  wait<maybe<int>> pick_dump_cargo(
+      std::map<int /*slot*/, Commodity> const& options )
+      override;
+
  public: // ISignalHandler
   wait<maybe<int>> handle(
       signal::ChooseImmigrant const& ) override;

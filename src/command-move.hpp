@@ -19,12 +19,13 @@
 namespace rn {
 
 struct IEngine;
+struct IEuroAgent;
 struct Player;
 struct SS;
 struct TS;
 
 std::unique_ptr<CommandHandler> handle_command(
-    IEngine& engine, SS& ss, TS& ts, Player& player, UnitId id,
-    command::move const& mv );
+    IEngine& engine, SS& ss, TS& ts, IEuroAgent& agent,
+    Player& player, UnitId id, command::move const& mv );
 
 } // namespace rn

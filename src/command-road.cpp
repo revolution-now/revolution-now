@@ -12,6 +12,7 @@
 
 // Revolution Now
 #include "co-wait.hpp"
+#include "ieuro-agent.hpp"
 #include "native-owned.hpp"
 #include "road.hpp"
 #include "ts.hpp"
@@ -31,10 +32,12 @@ namespace rn {
 namespace {
 
 struct RoadHandler : public CommandHandler {
-  RoadHandler( SS& ss, TS& ts, Player& player, UnitId unit_id )
+  RoadHandler( SS& ss, TS& ts, IEuroAgent& agent, Player& player,
+               UnitId unit_id )
     : ss_( ss ),
       ts_( ts ),
       player_( player ),
+      agent_( agent ),
       unit_id_( unit_id ) {}
 
   wait<bool> confirm() override {
@@ -109,7 +112,8 @@ struct RoadHandler : public CommandHandler {
   SS& ss_;
   TS& ts_;
   Player& player_;
-  UnitId unit_id_;
+  IEuroAgent& agent_;
+  UnitId unit_id_ = {};
 };
 
 } // namespace
@@ -118,9 +122,9 @@ struct RoadHandler : public CommandHandler {
 ** Public API
 *****************************************************************/
 unique_ptr<CommandHandler> handle_command(
-    IEngine&, SS& ss, TS& ts, Player& player, UnitId id,
-    command::road const& ) {
-  return make_unique<RoadHandler>( ss, ts, player, id );
+    IEngine&, SS& ss, TS& ts, IEuroAgent& agent, Player& player,
+    UnitId id, command::road const& ) {
+  return make_unique<RoadHandler>( ss, ts, agent, player, id );
 }
 
 } // namespace rn

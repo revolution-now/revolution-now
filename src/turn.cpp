@@ -732,7 +732,7 @@ wait<EndOfTurnResult> end_of_turn( IEngine& engine, SS& ss,
 *****************************************************************/
 wait<> process_human_player_input_normal_mode(
     IEngine& engine, UnitId, e_menu_item item, SS& ss, TS& ts,
-    Player& player, PlayerTurnState::units& ) {
+    IEuroAgent&, Player& player, PlayerTurnState::units& ) {
   // In the future we might need to put logic here that is spe-
   // cific to the mid-turn scenario, but for now this is suffi-
   // cient.
@@ -741,7 +741,7 @@ wait<> process_human_player_input_normal_mode(
 
 wait<> process_human_player_input_normal_mode(
     IEngine& engine, UnitId id, LandViewPlayerInput const& input,
-    SS& ss, TS& ts, Player& player,
+    SS& ss, TS& ts, IEuroAgent& agent, Player& player,
     PlayerTurnState::units& nat_units ) {
   auto& st = nat_units;
   auto& q  = st.q;
@@ -810,8 +810,8 @@ wait<> process_human_player_input_normal_mode(
       co_await ts.planes.get()
           .get_bottom<ILandViewPlane>()
           .ensure_visible_unit( id );
-      unique_ptr<CommandHandler> const handler =
-          command_handler( engine, ss, ts, player, id, cmd );
+      unique_ptr<CommandHandler> const handler = command_handler(
+          engine, ss, ts, agent, player, id, cmd );
       CHECK( handler );
 
       auto run_result = co_await handler->run();
@@ -871,7 +871,8 @@ wait<LandViewPlayerInput> landview_human_player_input(
 
 wait<> process_ai_player_input_normal_mode(
     IEngine& engine, UnitId const id, command const& cmd, SS& ss,
-    TS& ts, Player& player, PlayerTurnState::units& nat_units ) {
+    TS& ts, IEuroAgent& agent, Player& player,
+    PlayerTurnState::units& nat_units ) {
   auto& st = nat_units;
   auto& q  = st.q;
   if( cmd.holds<command::wait>() ) {
@@ -886,7 +887,7 @@ wait<> process_ai_player_input_normal_mode(
   }
 
   unique_ptr<CommandHandler> const handler =
-      command_handler( engine, ss, ts, player, id, cmd );
+      command_handler( engine, ss, ts, agent, player, id, cmd );
   CHECK( handler );
 
   auto run_result = co_await handler->run();
@@ -918,7 +919,7 @@ wait<> query_unit_input( IEngine& engine, UnitId const id,
     case e_player_control::ai: {
       command const cmd = agent.ask_orders( id );
       co_await process_ai_player_input_normal_mode(
-          engine, id, cmd, ss, ts, player, nat_units );
+          engine, id, cmd, ss, ts, agent, player, nat_units );
       break;
     }
     case e_player_control::human: {
@@ -928,7 +929,8 @@ wait<> query_unit_input( IEngine& engine, UnitId const id,
       co_await visit(
           command, [&]( auto const& action ) -> wait<> {
             co_await process_human_player_input_normal_mode(
-                engine, id, action, ss, ts, player, nat_units );
+                engine, id, action, ss, ts, agent, player,
+                nat_units );
           } );
       break;
     }
