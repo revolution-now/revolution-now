@@ -16,38 +16,42 @@ Harbor View TODO
   4.  There is a written-out summary of the last transaction that
       lingers under the top bar... should decide if/how we want
       to do this. Seems like it might be useful.
-  5.  Make some kind of animation or sound effect for when a
+  5.  Allow dragging tools/muskets/horses to units on the dock to
+      equip them. Not allowing this might end up being
+      non-intuitive to the player given that it is allowed in all
+      other cases.
+  6.  Make some kind of animation or sound effect for when a
       treasure is reimbursed.
-  6.  Consider adjusting the hue of the water/sky to make it more
+  7.  Consider adjusting the hue of the water/sky to make it more
       blue and less red.
-  7.  The smaller market plates need to be made taller.
-  8.  Refactor the backdrop/dock modules so that we can render
+  8.  The smaller market plates need to be made taller.
+  9.  Refactor the backdrop/dock modules so that we can render
       the game intro sequence. Don't forget the different light
       levels and stars.
-  9.  Experiment with giving units in cargo slots a light outline
+  10. Experiment with giving units in cargo slots a light outline
       like we do for commodities.
-  10. The way that items are positioned inside the cargo slots
+  11. The way that items are positioned inside the cargo slots
       might need to be tweaked: units and commodities are not
       aligned, they are all too low, and they don't looks like
       they are inside the box.
-  11. When a ship is purchased, that new ship should be auto se-
+  12. When a ship is purchased, that new ship should be auto se-
       lected (just seems to feel like the right thing to do).
-  12. When a ship is made to sail to the new world and we're
+  13. When a ship is made to sail to the new world and we're
       checking if there are any remaining ships in port (to know
       whether we should close the harbor view screen) we should
       exclude ships in port that are damaged.
-  13. Add a menu item when clicking on a unit on the dock to load
+  14. Add a menu item when clicking on a unit on the dock to load
       them into the currently selected ship. This might make the
       new unit loading mechanism more discoverable for existing
       users.
-  14. Need to help the player understand that units on the dock
+  15. Need to help the player understand that units on the dock
       don't automatically board ships (more for existing play-
       ers). The first time a ship sails to the new world with
       cargo space available for a unit and there is a unit on the
       dock, and the player has never put a unit in the cargo of a
       ship in the harbor, give the player a hint to ask if they
       really want to sail to the new world.
-  15. Make sure that the country names are correct in the title
+  16. Make sure that the country names are correct in the title
       bar. For example, in the OG for the dutch it just says "Am-
       sterdam, Netherlands" whereas we are saying "Amsterdam, The
       Netherlands" which sounds wrong.
