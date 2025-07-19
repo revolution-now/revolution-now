@@ -34,10 +34,10 @@
 
 namespace rn {
 
+struct IEuroAgent;
 struct Player;
 struct SS;
 struct SSConst;
-struct TS;
 
 // This is the only function that should be used to determine
 // whether a square is owned by the natives since it takes into
@@ -81,7 +81,7 @@ maybe<LandPrice> price_for_native_owned_land(
 // owned by a tribe from the perspective of the player otherwise
 // check-fail.
 wait<base::NoDiscard<bool>> prompt_player_for_taking_native_land(
-    SS& ss, TS& ts, Player& player, Coord tile,
+    SS& ss, IEuroAgent& agent, Player& player, Coord tile,
     e_native_land_grab_type context );
 
 } // namespace rn

@@ -11,6 +11,7 @@
 #include "colview-land.hpp"
 
 // Revolution Now
+#include "agents.hpp"
 #include "colony-buildings.hpp"
 #include "colony-mgr.hpp"
 #include "iengine.hpp"
@@ -257,7 +258,8 @@ wait<base::valid_or<DragRejection>> ColonyLandView::sink_check(
   if( native_owned_land_[d] ) {
     bool const has_taken =
         co_await prompt_player_for_taking_native_land(
-            ss_, ts_, player_, tile_under_cursor,
+            ss_, ts_.euro_agents()[player_.type], player_,
+            tile_under_cursor,
             e_native_land_grab_type::in_colony );
     if( !has_taken ) co_return DragRejection{};
     native_owned_land_[d] = nothing;

@@ -139,4 +139,12 @@ wait<maybe<int>> RefAIEuroAgent::pick_dump_cargo(
   co_return nothing;
 }
 
+wait<e_native_land_grab_result>
+RefAIEuroAgent::should_take_native_land(
+    string const&,
+    refl::enum_map<e_native_land_grab_result, string> const&,
+    refl::enum_map<e_native_land_grab_result, bool> const& ) {
+  co_return e_native_land_grab_result::cancel;
+}
+
 } // namespace rn

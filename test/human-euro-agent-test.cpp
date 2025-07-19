@@ -15,6 +15,7 @@
 
 // Testing.
 #include "test/fake/world.hpp"
+#include "test/mocking.hpp"
 #include "test/mocks/igui.hpp"
 #include "test/util/coro.hpp"
 
@@ -31,6 +32,12 @@ namespace rn {
 namespace {
 
 using namespace std;
+
+using ::mock::matchers::AllOf;
+using ::mock::matchers::Field;
+using ::mock::matchers::IterableElementsAre;
+using ::mock::matchers::StrContains;
+using ::refl::enum_map;
 
 /****************************************************************
 ** Fake World Setup
@@ -105,6 +112,49 @@ TEST_CASE( "[human-euro-agent] pick_dump_cargo" ) {
     w.gui().EXPECT__choice( config ).returns( "2" );
     REQUIRE( f() == 2 );
   }
+}
+
+TEST_CASE( "[human-euro-agent] should_take_native_land" ) {
+  world w;
+
+  string msg;
+  enum_map<e_native_land_grab_result, string> names;
+  enum_map<e_native_land_grab_result, bool> disabled;
+
+  auto const f = [&] [[clang::noinline]] {
+    return co_await_test( w.agent_.should_take_native_land(
+        msg, names, disabled ) );
+  };
+
+  msg = "You are trespassing on native land";
+  names[e_native_land_grab_result::cancel]    = "cancel";
+  disabled[e_native_land_grab_result::cancel] = false;
+  names[e_native_land_grab_result::pay]       = "pay";
+  disabled[e_native_land_grab_result::pay]    = true;
+  names[e_native_land_grab_result::take]      = "take";
+  disabled[e_native_land_grab_result::take]   = false;
+
+  auto config_matcher = AllOf(
+      Field( &ChoiceConfig::msg,
+             StrContains( "You are trespassing" ) ),
+      Field(
+          &ChoiceConfig::options,
+          IterableElementsAre(
+              AllOf(
+                  Field( &ChoiceConfigOption::key, "cancel"s ),
+                  Field( &ChoiceConfigOption::disabled,
+                         false ) ),
+              AllOf(
+                  Field( &ChoiceConfigOption::key, "pay"s ),
+                  Field( &ChoiceConfigOption::disabled, true ) ),
+              AllOf( Field( &ChoiceConfigOption::key, "take"s ),
+                     Field( &ChoiceConfigOption::disabled,
+                            false ) ) ) ) );
+  w.gui()
+      .EXPECT__choice( std::move( config_matcher ) )
+      .returns( "take" );
+
+  REQUIRE( f() == e_native_land_grab_result::take );
 }
 
 TEST_CASE( "[human-euro-agent] handle/ChooseImmigrant" ) {

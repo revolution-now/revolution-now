@@ -76,7 +76,7 @@ struct RoadHandler : public CommandHandler {
     if( is_land_native_owned( ss_, player_, tile ) ) {
       bool const land_acquired =
           co_await prompt_player_for_taking_native_land(
-              ss_, ts_, player_, tile,
+              ss_, agent_, player_, tile,
               e_native_land_grab_type::build_road );
       if( !land_acquired ) {
         // In the OG the player loses its movement points if it

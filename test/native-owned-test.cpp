@@ -16,7 +16,7 @@
 // Testing
 #include "test/fake/world.hpp"
 #include "test/mocking.hpp"
-#include "test/mocks/igui.hpp"
+#include "test/mocks/ieuro-agent.hpp"
 
 // ss
 #include "ss/natives.hpp"
@@ -40,6 +40,7 @@ using ::mock::matchers::AllOf;
 using ::mock::matchers::Field;
 using ::mock::matchers::IterableElementsAre;
 using ::mock::matchers::StrContains;
+using ::refl::enum_map;
 
 /****************************************************************
 ** Fake World Setup
@@ -936,7 +937,8 @@ TEST_CASE( "[native-owned] price_for_native_owned_land" ) {
 TEST_CASE(
     "[native-owned] prompt_player_for_taking_native_land" ) {
   World W;
-  Player& player = W.default_player();
+  Player& player        = W.default_player();
+  MockIEuroAgent& agent = W.euro_agent();
   Coord tile;
   e_native_land_grab_type type = {};
   Coord const kDwellingLoc{ .x = 3, .y = 3 };
@@ -959,11 +961,15 @@ TEST_CASE(
   auto f = [&]() -> bool {
     wait<base::NoDiscard<bool>> w =
         prompt_player_for_taking_native_land(
-            W.ss(), W.ts(), W.default_player(), tile, type );
+            W.ss(), W.euro_agent(), W.default_player(), tile,
+            type );
     CHECK( !w.exception() );
     CHECK( w.ready() );
     return *w;
   };
+
+  enum_map<e_native_land_grab_result, string> names;
+  enum_map<e_native_land_grab_result, bool> disabled;
 
   SECTION( "at war" ) {
     type                = e_native_land_grab_type::in_colony;
@@ -981,8 +987,8 @@ TEST_CASE(
   SECTION( "in colony / escape" ) {
     type = e_native_land_grab_type::in_colony;
     tile = { .x = 2, .y = 2 };
-    W.gui().EXPECT__choice( _ ).returns<maybe<string>>(
-        nothing );
+    agent.EXPECT__should_take_native_land( _, _, _ ).returns(
+        e_native_land_grab_result::cancel );
     REQUIRE( f() == false );
     REQUIRE( player.money == 1000 );
     REQUIRE( relationship.land_squares_paid_for == 0 );
@@ -992,28 +998,22 @@ TEST_CASE(
   }
 
   SECTION( "in colony / cancel" ) {
-    type                = e_native_land_grab_type::in_colony;
-    tile                = { .x = 2, .y = 2 };
-    auto config_matcher = AllOf(
-        Field( &ChoiceConfig::msg,
-               StrContains( "You are trespassing" ) ),
-        Field(
-            &ChoiceConfig::options,
-            IterableElementsAre(
-                AllOf(
-                    Field( &ChoiceConfigOption::key, "cancel"s ),
-                    Field( &ChoiceConfigOption::disabled,
-                           false ) ),
-                AllOf( Field( &ChoiceConfigOption::key, "pay"s ),
-                       Field( &ChoiceConfigOption::disabled,
-                              false ) ),
-                AllOf(
-                    Field( &ChoiceConfigOption::key, "take"s ),
-                    Field( &ChoiceConfigOption::disabled,
-                           false ) ) ) ) );
-    W.gui()
-        .EXPECT__choice( std::move( config_matcher ) )
-        .returns<maybe<string>>( "cancel" );
+    type = e_native_land_grab_type::in_colony;
+    tile = { .x = 2, .y = 2 };
+    names[e_native_land_grab_result::cancel] =
+        "Very well, we will respect your wishes.";
+    names[e_native_land_grab_result::pay] =
+        "We offer you [227] in compensation for this land.";
+    names[e_native_land_grab_result::take] =
+        "You are mistaken... this is OUR land now!";
+    disabled[e_native_land_grab_result::cancel] = false;
+    disabled[e_native_land_grab_result::pay]    = false;
+    disabled[e_native_land_grab_result::take]   = false;
+    agent
+        .EXPECT__should_take_native_land(
+            StrContains( "You are trespassing" ), names,
+            disabled )
+        .returns( e_native_land_grab_result::cancel );
     REQUIRE( f() == false );
     REQUIRE( player.money == 1000 );
     REQUIRE( relationship.land_squares_paid_for == 0 );
@@ -1023,29 +1023,23 @@ TEST_CASE(
   }
 
   SECTION( "in colony / take / not enough money" ) {
-    type                = e_native_land_grab_type::in_colony;
-    tile                = { .x = 2, .y = 2 };
-    player.money        = 0;
-    auto config_matcher = AllOf(
-        Field( &ChoiceConfig::msg,
-               StrContains( "You are trespassing" ) ),
-        Field(
-            &ChoiceConfig::options,
-            IterableElementsAre(
-                AllOf(
-                    Field( &ChoiceConfigOption::key, "cancel"s ),
-                    Field( &ChoiceConfigOption::disabled,
-                           false ) ),
-                AllOf( Field( &ChoiceConfigOption::key, "pay"s ),
-                       Field( &ChoiceConfigOption::disabled,
-                              true ) ),
-                AllOf(
-                    Field( &ChoiceConfigOption::key, "take"s ),
-                    Field( &ChoiceConfigOption::disabled,
-                           false ) ) ) ) );
-    W.gui()
-        .EXPECT__choice( std::move( config_matcher ) )
-        .returns<maybe<string>>( "take" );
+    type         = e_native_land_grab_type::in_colony;
+    tile         = { .x = 2, .y = 2 };
+    player.money = 0;
+    names[e_native_land_grab_result::cancel] =
+        "Very well, we will respect your wishes.";
+    names[e_native_land_grab_result::pay] =
+        "We offer you [227] in compensation for this land.";
+    names[e_native_land_grab_result::take] =
+        "You are mistaken... this is OUR land now!";
+    disabled[e_native_land_grab_result::cancel] = false;
+    disabled[e_native_land_grab_result::pay]    = true;
+    disabled[e_native_land_grab_result::take]   = false;
+    agent
+        .EXPECT__should_take_native_land(
+            StrContains( "You are trespassing" ), names,
+            disabled )
+        .returns( e_native_land_grab_result::take );
     REQUIRE( f() == true );
     REQUIRE( player.money == 0 );
     REQUIRE( relationship.land_squares_paid_for == 0 );
@@ -1054,7 +1048,8 @@ TEST_CASE(
     REQUIRE( relationship.tribal_alarm == 10 );
 
     tile = { .x = 1, .y = 2 };
-    W.gui().EXPECT__choice( _ ).returns<maybe<string>>( "take" );
+    agent.EXPECT__should_take_native_land( _, _, _ ).returns(
+        e_native_land_grab_result::take );
     REQUIRE( f() == true );
     REQUIRE( player.money == 0 );
     REQUIRE( relationship.land_squares_paid_for == 0 );
@@ -1068,27 +1063,21 @@ TEST_CASE(
     type = e_native_land_grab_type::in_colony;
     tile = { .x = 2, .y = 2 };
     // The tile will cost 227.
-    player.money        = 228;
-    auto config_matcher = AllOf(
-        Field( &ChoiceConfig::msg,
-               StrContains( "You are trespassing" ) ),
-        Field(
-            &ChoiceConfig::options,
-            IterableElementsAre(
-                AllOf(
-                    Field( &ChoiceConfigOption::key, "cancel"s ),
-                    Field( &ChoiceConfigOption::disabled,
-                           false ) ),
-                AllOf( Field( &ChoiceConfigOption::key, "pay"s ),
-                       Field( &ChoiceConfigOption::disabled,
-                              false ) ),
-                AllOf(
-                    Field( &ChoiceConfigOption::key, "take"s ),
-                    Field( &ChoiceConfigOption::disabled,
-                           false ) ) ) ) );
-    W.gui()
-        .EXPECT__choice( std::move( config_matcher ) )
-        .returns<maybe<string>>( "pay" );
+    player.money = 228;
+    names[e_native_land_grab_result::cancel] =
+        "Very well, we will respect your wishes.";
+    names[e_native_land_grab_result::pay] =
+        "We offer you [227] in compensation for this land.";
+    names[e_native_land_grab_result::take] =
+        "You are mistaken... this is OUR land now!";
+    disabled[e_native_land_grab_result::cancel] = false;
+    disabled[e_native_land_grab_result::pay]    = false;
+    disabled[e_native_land_grab_result::take]   = false;
+    agent
+        .EXPECT__should_take_native_land(
+            StrContains( "You are trespassing" ), names,
+            disabled )
+        .returns( e_native_land_grab_result::pay );
     REQUIRE( f() == true );
     REQUIRE( player.money == 1 );
     REQUIRE( relationship.land_squares_paid_for == 1 );
@@ -1099,7 +1088,8 @@ TEST_CASE(
     tile = { .x = 1, .y = 2 };
     // Tile will cost 234.
     player.money = 235;
-    W.gui().EXPECT__choice( _ ).returns<maybe<string>>( "pay" );
+    agent.EXPECT__should_take_native_land( _, _, _ ).returns(
+        e_native_land_grab_result::pay );
     REQUIRE( f() == true );
     REQUIRE( player.money == 1 );
     REQUIRE( relationship.land_squares_paid_for == 2 );
@@ -1111,8 +1101,8 @@ TEST_CASE(
   SECTION( "build road / cancel" ) {
     type = e_native_land_grab_type::build_road;
     tile = { .x = 2, .y = 2 };
-    W.gui().EXPECT__choice( _ ).returns<maybe<string>>(
-        "cancel" );
+    agent.EXPECT__should_take_native_land( _, _, _ ).returns(
+        e_native_land_grab_result::cancel );
     REQUIRE( f() == false );
     REQUIRE( player.money == 1000 );
     REQUIRE( relationship.land_squares_paid_for == 0 );
@@ -1124,8 +1114,8 @@ TEST_CASE(
   SECTION( "irrigate / cancel" ) {
     type = e_native_land_grab_type::irrigate;
     tile = { .x = 2, .y = 2 };
-    W.gui().EXPECT__choice( _ ).returns<maybe<string>>(
-        "cancel" );
+    agent.EXPECT__should_take_native_land( _, _, _ ).returns(
+        e_native_land_grab_result::cancel );
     REQUIRE( f() == false );
     REQUIRE( player.money == 1000 );
     REQUIRE( relationship.land_squares_paid_for == 0 );
@@ -1137,8 +1127,8 @@ TEST_CASE(
   SECTION( "clear_forest / cancel" ) {
     type = e_native_land_grab_type::clear_forest;
     tile = { .x = 2, .y = 2 };
-    W.gui().EXPECT__choice( _ ).returns<maybe<string>>(
-        "cancel" );
+    agent.EXPECT__should_take_native_land( _, _, _ ).returns(
+        e_native_land_grab_result::cancel );
     REQUIRE( f() == false );
     REQUIRE( player.money == 1000 );
     REQUIRE( relationship.land_squares_paid_for == 0 );

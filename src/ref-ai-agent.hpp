@@ -80,6 +80,13 @@ struct RefAIEuroAgent final : IEuroAgent {
       std::map<int /*slot*/, Commodity> const& options )
       override;
 
+  wait<e_native_land_grab_result> should_take_native_land(
+      std::string const& msg,
+      refl::enum_map<e_native_land_grab_result,
+                     std::string> const& names,
+      refl::enum_map<e_native_land_grab_result, bool> const&
+          disabled ) override;
+
  public: // ISignalHandler
   wait<maybe<int>> handle(
       signal::ChooseImmigrant const& ) override;

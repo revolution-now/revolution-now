@@ -12,6 +12,7 @@
 
 // Revolution Now
 #include "co-wait.hpp"
+#include "ieuro-agent.hpp"
 #include "map-square.hpp"
 #include "native-owned.hpp"
 #include "plow.hpp"
@@ -91,7 +92,7 @@ struct PlowHandler : public CommandHandler {
     // terrain. This would effectively allows transitioning a
     // forest to irrigation in twice the time.
     if( has_pioneer_working( ss_, tile ) ) {
-      co_await ts_.gui.message_box(
+      co_await agent_.message_box(
           "There is already a pioneer working on this tile." );
       co_return false;
     }
@@ -103,7 +104,7 @@ struct PlowHandler : public CommandHandler {
               : e_native_land_grab_type::irrigate;
       bool const land_acquired =
           co_await prompt_player_for_taking_native_land(
-              ss_, ts_, player_, tile, type );
+              ss_, agent_, player_, tile, type );
       if( !land_acquired ) {
         // In the OG the player loses its movement points if it
         // decided to retract the request after being presented

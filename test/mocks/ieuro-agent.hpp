@@ -74,9 +74,20 @@ struct MockIEuroAgent : IEuroAgent {
                () );
   MOCK_METHOD( wait<ui::e_confirm>, should_attack_natives,
                ( e_tribe ), () );
+
   using CommoditySlotMap = std::map<int, Commodity>;
   MOCK_METHOD( wait<maybe<int>>, pick_dump_cargo,
                (CommoditySlotMap const&), () );
+
+  using LandGrabNamesMap =
+      refl::enum_map<e_native_land_grab_result, std::string>;
+  using LandGrabDisabledMap =
+      refl::enum_map<e_native_land_grab_result, bool>;
+  MOCK_METHOD( wait<e_native_land_grab_result>,
+               should_take_native_land,
+               (std::string const&, LandGrabNamesMap const&,
+                LandGrabDisabledMap const&),
+               () );
 
  public: // Signals
   MOCK_SIGNAL_HANDLER( wait<maybe<int>>, ChooseImmigrant );

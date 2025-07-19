@@ -18,7 +18,6 @@
 #include "test/mocking.hpp"
 #include "test/mocks/iengine.hpp"
 #include "test/mocks/ieuro-agent.hpp"
-#include "test/mocks/igui.hpp"
 
 // Revolution Now
 #include "src/native-owned.hpp"
@@ -38,8 +37,9 @@ namespace {
 
 using namespace std;
 
-using ::mock::matchers::Field;
+using ::mock::matchers::_;
 using ::mock::matchers::StrContains;
+using ::refl::enum_map;
 
 /****************************************************************
 ** Fake World Setup
@@ -68,6 +68,7 @@ struct World : testing::World {
 *****************************************************************/
 TEST_CASE( "[command-road] native-owned land" ) {
   World W;
+  MockIEuroAgent& agent = W.euro_agent();
   W.settings().game_setup_options.difficulty =
       e_difficulty::conquistador;
   Dwelling const& dwelling =
@@ -104,11 +105,10 @@ TEST_CASE( "[command-road] native-owned land" ) {
   };
 
   SECTION( "cancel" ) {
-    auto config_matcher = Field(
-        &ChoiceConfig::msg, StrContains( "Carving a [road]" ) );
-    W.gui()
-        .EXPECT__choice( std::move( config_matcher ) )
-        .returns<maybe<string>>( "cancel" );
+    agent
+        .EXPECT__should_take_native_land(
+            StrContains( "Carving a [road]" ), _, _ )
+        .returns( e_native_land_grab_result::cancel );
     REQUIRE( confirm() == false );
     REQUIRE( relationship.tribal_alarm == 0 );
     REQUIRE_FALSE( pioneer.mv_pts_exhausted() );
@@ -119,11 +119,10 @@ TEST_CASE( "[command-road] native-owned land" ) {
   }
 
   SECTION( "take" ) {
-    auto config_matcher = Field(
-        &ChoiceConfig::msg, StrContains( "Carving a [road]" ) );
-    W.gui()
-        .EXPECT__choice( std::move( config_matcher ) )
-        .returns<maybe<string>>( "take" );
+    agent
+        .EXPECT__should_take_native_land(
+            StrContains( "Carving a [road]" ), _, _ )
+        .returns( e_native_land_grab_result::take );
     REQUIRE( confirm() == true );
     REQUIRE( relationship.tribal_alarm == 10 );
     REQUIRE_FALSE( pioneer.mv_pts_exhausted() );

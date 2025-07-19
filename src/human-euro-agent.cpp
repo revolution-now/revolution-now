@@ -39,6 +39,7 @@ using namespace std;
 namespace rn {
 
 using ::gfx::point;
+using ::refl::enum_map;
 
 /****************************************************************
 ** HumanEuroAgent
@@ -238,6 +239,20 @@ wait<maybe<int>> HumanEuroAgent::pick_dump_cargo(
   if( !selection.has_value() ) co_return nothing;
   UNWRAP_CHECK_T( int const slot, base::stoi( *selection ) );
   co_return slot;
+}
+
+wait<e_native_land_grab_result>
+HumanEuroAgent::should_take_native_land(
+    string const& msg,
+    enum_map<e_native_land_grab_result, string> const& names,
+    enum_map<e_native_land_grab_result, bool> const& disabled ) {
+  EnumChoiceConfig config;
+  config.msg = msg;
+  auto const res =
+      co_await gui_
+          .optional_enum_choice<e_native_land_grab_result>(
+              config, names, disabled );
+  co_return res.value_or( e_native_land_grab_result::cancel );
 }
 
 } // namespace rn

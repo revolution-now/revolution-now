@@ -13,9 +13,8 @@
 // Revolution Now
 #include "alarm.hpp"
 #include "co-wait.hpp"
-#include "igui.hpp"
+#include "ieuro-agent.hpp"
 #include "map-square.hpp"
-#include "ts.hpp"
 
 // config
 #include "config/natives.rds.hpp"
@@ -170,7 +169,7 @@ maybe<LandPrice> price_for_native_owned_land(
 }
 
 wait<base::NoDiscard<bool>> prompt_player_for_taking_native_land(
-    SS& ss, TS& ts, Player& player, Coord tile,
+    SS& ss, IEuroAgent& agent, Player& player, Coord tile,
     e_native_land_grab_type context ) {
   UNWRAP_CHECK(
       price, price_for_native_owned_land( ss, player, tile ) );
@@ -187,7 +186,7 @@ wait<base::NoDiscard<bool>> prompt_player_for_taking_native_land(
     co_return true;
   }
 
-  EnumChoiceConfig config;
+  string msg;
   refl::enum_map<e_native_land_grab_result, string> names;
   refl::enum_map<e_native_land_grab_result, bool> disabled;
 
@@ -201,7 +200,7 @@ wait<base::NoDiscard<bool>> prompt_player_for_taking_native_land(
 
   switch( context ) {
     case e_native_land_grab_type::in_colony:
-      config.msg = fmt::format(
+      msg = fmt::format(
           "You are trespassing on [{}] land.  Please leave "
           "promptly.",
           config_natives.tribes[tribe.type].name_possessive );
@@ -209,7 +208,7 @@ wait<base::NoDiscard<bool>> prompt_player_for_taking_native_land(
           "You are mistaken... this is OUR land now!";
       break;
     case e_native_land_grab_type::found_colony:
-      config.msg = fmt::format(
+      msg = fmt::format(
           "You are trespassing on [{}] land.  Please leave "
           "promptly.",
           config_natives.tribes[tribe.type].name_possessive );
@@ -217,7 +216,7 @@ wait<base::NoDiscard<bool>> prompt_player_for_taking_native_land(
           "You are mistaken... this is OUR land now!";
       break;
     case e_native_land_grab_type::clear_forest:
-      config.msg = fmt::format(
+      msg = fmt::format(
           "These [forests] are a vital part of the "
           "[{}] way of life.  Please do not disturb them.",
           config_natives.tribes[tribe.type].name_singular );
@@ -229,7 +228,7 @@ wait<base::NoDiscard<bool>> prompt_player_for_taking_native_land(
           "trees!";
       break;
     case e_native_land_grab_type::irrigate:
-      config.msg = fmt::format(
+      msg = fmt::format(
           "These grounds help to sustain the life and spirit of "
           "the [{}] people. Please do not disturb them.",
           config_natives.tribes[tribe.type].name_singular );
@@ -240,7 +239,7 @@ wait<base::NoDiscard<bool>> prompt_player_for_taking_native_land(
           "You are mistaken... this is OUR land now!";
       break;
     case e_native_land_grab_type::build_road:
-      config.msg = fmt::format(
+      msg = fmt::format(
           "Carving a [road] through this land will do "
           "likewise through the hearts of the [{}] people "
           "who occupy them. Please do not disturb them.",
@@ -251,9 +250,8 @@ wait<base::NoDiscard<bool>> prompt_player_for_taking_native_land(
   }
 
   maybe<e_native_land_grab_result> const response =
-      co_await ts.gui
-          .optional_enum_choice<e_native_land_grab_result>(
-              config, names, disabled );
+      co_await agent.should_take_native_land( msg, names,
+                                              disabled );
   if( !response.has_value() ) co_return false;
 
   switch( *response ) {

@@ -18,7 +18,6 @@
 #include "test/mocking.hpp"
 #include "test/mocks/iengine.hpp"
 #include "test/mocks/ieuro-agent.hpp"
-#include "test/mocks/igui.hpp"
 
 // Revolution Now
 #include "src/native-owned.hpp"
@@ -38,8 +37,9 @@ namespace {
 
 using namespace std;
 
-using ::mock::matchers::Field;
+using ::mock::matchers::_;
 using ::mock::matchers::StrContains;
+using ::refl::enum_map;
 
 /****************************************************************
 ** Fake World Setup
@@ -68,6 +68,7 @@ struct World : testing::World {
 *****************************************************************/
 TEST_CASE( "[command-plow] native-owned land" ) {
   World W;
+  MockIEuroAgent& agent = W.euro_agent();
   W.settings().game_setup_options.difficulty =
       e_difficulty::conquistador;
   Dwelling const& dwelling =
@@ -104,12 +105,10 @@ TEST_CASE( "[command-plow] native-owned land" ) {
   };
 
   SECTION( "irrigate / cancel" ) {
-    auto config_matcher =
-        Field( &ChoiceConfig::msg,
-               StrContains( "These grounds help" ) );
-    W.gui()
-        .EXPECT__choice( std::move( config_matcher ) )
-        .returns<maybe<string>>( "cancel" );
+    agent
+        .EXPECT__should_take_native_land(
+            StrContains( "These grounds help" ), _, _ )
+        .returns( e_native_land_grab_result::cancel );
     REQUIRE( confirm() == false );
     REQUIRE( relationship.tribal_alarm == 0 );
     REQUIRE_FALSE( pioneer.mv_pts_exhausted() );
@@ -120,12 +119,10 @@ TEST_CASE( "[command-plow] native-owned land" ) {
   }
 
   SECTION( "irrigate / take" ) {
-    auto config_matcher =
-        Field( &ChoiceConfig::msg,
-               StrContains( "These grounds help" ) );
-    W.gui()
-        .EXPECT__choice( std::move( config_matcher ) )
-        .returns<maybe<string>>( "take" );
+    agent
+        .EXPECT__should_take_native_land(
+            StrContains( "These grounds help" ), _, _ )
+        .returns( e_native_land_grab_result::take );
     REQUIRE( confirm() == true );
     REQUIRE( relationship.tribal_alarm == 10 );
     REQUIRE_FALSE( pioneer.mv_pts_exhausted() );
@@ -142,11 +139,10 @@ TEST_CASE( "[command-plow] native-owned land" ) {
   SECTION( "clear_forest / take" ) {
     W.terrain().mutable_square_at( tile ).overlay =
         e_land_overlay::forest;
-    auto config_matcher = Field(
-        &ChoiceConfig::msg, StrContains( "These [forests]" ) );
-    W.gui()
-        .EXPECT__choice( std::move( config_matcher ) )
-        .returns<maybe<string>>( "take" );
+    agent
+        .EXPECT__should_take_native_land(
+            StrContains( "These [forests]" ), _, _ )
+        .returns( e_native_land_grab_result::take );
     REQUIRE( confirm() == true );
     REQUIRE( relationship.tribal_alarm == 10 );
     REQUIRE_FALSE( pioneer.mv_pts_exhausted() );
@@ -186,7 +182,7 @@ TEST_CASE( "[command-plow] no double pioneers" ) {
   REQUIRE( pioneer1.orders().holds<unit_orders::plow>() );
   REQUIRE( pioneer1.has_full_mv_points() );
 
-  W.gui().EXPECT__message_box(
+  W.euro_agent().EXPECT__message_box(
       "There is already a pioneer working on this tile." );
   expected = { .order_was_run       = false,
                .units_to_prioritize = {} };

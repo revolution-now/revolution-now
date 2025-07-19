@@ -18,12 +18,16 @@
 #include "iagent.hpp"
 #include "isignal.hpp"
 #include "meet-natives.rds.hpp"
+#include "native-owned.rds.hpp"
 #include "ui-enums.rds.hpp"
 #include "wait.hpp"
 
 // ss
 #include "ss/native-enums.rds.hpp"
 #include "ss/unit-id.hpp"
+
+// refl
+#include "refl/enum-map.hpp"
 
 // base
 #include "base/heap-value.hpp"
@@ -134,6 +138,14 @@ struct IEuroAgent : IAgent, ISignalHandler {
   virtual wait<maybe<int>> pick_dump_cargo(
       std::map<int /*slot*/, Commodity> const& options ) = 0;
 
+  virtual wait<e_native_land_grab_result>
+  should_take_native_land(
+      std::string const& msg,
+      refl::enum_map<e_native_land_grab_result,
+                     std::string> const& names,
+      refl::enum_map<e_native_land_grab_result, bool> const&
+          disabled ) = 0;
+
  public: // Signals.
   // Non-waitable signal, no message.
   auto signal( NonWaitableSignalContext auto const& ctx ) {
@@ -241,6 +253,13 @@ struct NoopEuroAgent final : IEuroAgent {
   wait<maybe<int>> pick_dump_cargo(
       std::map<int /*slot*/, Commodity> const& options )
       override;
+
+  wait<e_native_land_grab_result> should_take_native_land(
+      std::string const& msg,
+      refl::enum_map<e_native_land_grab_result,
+                     std::string> const& names,
+      refl::enum_map<e_native_land_grab_result, bool> const&
+          disabled ) override;
 
  public: // ISignalHandler
   wait<maybe<int>> handle(
