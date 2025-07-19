@@ -51,7 +51,7 @@ maybe<string> extract_fn_name( string const& in ) {
   return nothing;
 }
 
-int constexpr kSurroundLines      = 3;
+int constexpr kSurroundLines      = 2;
 int constexpr kMinLineNumberWidth = 3;
 int constexpr kFrameColumnWidth   = 4;
 auto constexpr kFileColor         = base::ansi::cyan;
