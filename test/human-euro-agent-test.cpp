@@ -159,13 +159,85 @@ TEST_CASE( "[human-euro-agent] should_take_native_land" ) {
   REQUIRE( f() == e_native_land_grab_result::take );
 }
 
-TEST_CASE( "[human-euro-agent] handle/ChooseImmigrant" ) {
+TEST_CASE( "[human-euro-agent] confirm_build_inland_colony" ) {
   world w;
-  // TODO
+
+  auto const f = [&] [[clang::noinline]] {
+    return co_await_test(
+        w.agent_.confirm_build_inland_colony() );
+  };
+
+  w.gui()
+      .EXPECT__choice(
+          Field( &ChoiceConfig::msg,
+                 StrContains( "access it by ship" ) ) )
+      .returns( "no" );
+  REQUIRE( f() == ui::e_confirm::no );
+
+  w.gui()
+      .EXPECT__choice(
+          Field( &ChoiceConfig::msg,
+                 StrContains( "access it by ship" ) ) )
+      .returns( "yes" );
+  REQUIRE( f() == ui::e_confirm::yes );
+
+  w.gui()
+      .EXPECT__choice(
+          Field( &ChoiceConfig::msg,
+                 StrContains( "access it by ship" ) ) )
+      .returns( nothing );
+  REQUIRE( f() == ui::e_confirm::no );
 }
 
 TEST_CASE( "[human-euro-agent] name_colony" ) {
   world w;
+  Colony& colony = w.add_colony( { .x = 1, .y = 1 } );
+  colony.name    = "used";
+
+  auto const f = [&] [[clang::noinline]] {
+    return co_await_test( w.agent_.name_colony() );
+  };
+
+  SECTION( "good" ) {
+    w.gui()
+        .EXPECT__string_input(
+            Field( &StringInputConfig::msg,
+                   StrContains( "colony be named" ) ) )
+        .returns( "good" );
+    REQUIRE( f() == "good" );
+  }
+
+  SECTION( "spaces" ) {
+    w.gui()
+        .EXPECT__string_input(
+            Field( &StringInputConfig::msg,
+                   StrContains( "colony be named" ) ) )
+        .returns( " bad " );
+    w.gui().EXPECT__message_box(
+        StrContains( "start or end with spaces" ) );
+    w.gui()
+        .EXPECT__string_input(
+            Field( &StringInputConfig::msg,
+                   StrContains( "colony be named" ) ) )
+        .returns( "good" );
+    REQUIRE( f() == "good" );
+  }
+
+  SECTION( "already exists" ) {
+    w.gui()
+        .EXPECT__string_input(
+            Field( &StringInputConfig::msg,
+                   StrContains( "colony be named" ) ) )
+        .returns( "used" );
+    w.gui().EXPECT__message_box(
+        StrContains( "already a colony" ) );
+    w.gui()
+        .EXPECT__string_input(
+            Field( &StringInputConfig::msg,
+                   StrContains( "colony be named" ) ) )
+        .returns( "good" );
+    REQUIRE( f() == "good" );
+  }
 }
 
 } // namespace
