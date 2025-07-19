@@ -18,7 +18,6 @@
 #include "test/mocking.hpp"
 #include "test/mocks/iengine.hpp"
 #include "test/mocks/ieuro-agent.hpp"
-#include "test/mocks/igui.hpp"
 #include "test/mocks/render/itextometer.hpp"
 #include "test/util/coro.hpp"
 
@@ -63,6 +62,7 @@ struct World : testing::World {
 *****************************************************************/
 TEST_CASE( "[command-disband] confirm+perform" ) {
   World W;
+  MockIEuroAgent& agent = W.euro_agent();
   rr::MockTextometer textometer;
   W.engine().EXPECT__textometer().by_default().returns(
       textometer );
@@ -97,25 +97,14 @@ TEST_CASE( "[command-disband] confirm+perform" ) {
     REQUIRE( !unit.orders().holds<unit_orders::sentry>() );
   };
 
-  SECTION( "cancelled" ) {
-    UnitId const ship_id =
-        W.add_unit_on_map( e_unit_type::galleon,
-                           { .x = 0, .y = 0 } )
-            .id();
-    unit_id = ship_id;
-    W.gui().EXPECT__choice( _ ).returns<maybe<string>>(
-        nothing );
-    REQUIRE( confirm() == false );
-    REQUIRE( W.units().exists( ship_id ) );
-  }
-
   SECTION( "selected no" ) {
     UnitId const ship_id =
         W.add_unit_on_map( e_unit_type::galleon,
                            { .x = 0, .y = 0 } )
             .id();
     unit_id = ship_id;
-    W.gui().EXPECT__choice( _ ).returns<maybe<string>>( "no" );
+    agent.EXPECT__confirm_disband_unit( ship_id ).returns(
+        ui::e_confirm::no );
     REQUIRE( confirm() == false );
     REQUIRE( W.units().exists( ship_id ) );
   }
@@ -126,7 +115,8 @@ TEST_CASE( "[command-disband] confirm+perform" ) {
                            { .x = 0, .y = 0 } )
             .id();
     unit_id = ship_id;
-    W.gui().EXPECT__choice( _ ).returns<maybe<string>>( "yes" );
+    agent.EXPECT__confirm_disband_unit( ship_id ).returns(
+        ui::e_confirm::yes );
     REQUIRE( confirm() == true );
     perform();
     REQUIRE_FALSE( W.units().exists( ship_id ) );
@@ -142,7 +132,8 @@ TEST_CASE( "[command-disband] confirm+perform" ) {
                            { .x = 1, .y = 1 } )
             .id();
     unit_id = free_colonist_id;
-    W.gui().EXPECT__choice( _ ).returns<maybe<string>>( "yes" );
+    agent.EXPECT__confirm_disband_unit( unit_id ).returns(
+        ui::e_confirm::yes );
     REQUIRE( confirm() == true );
     perform();
     REQUIRE( W.units().exists( ship_id ) );
@@ -159,7 +150,8 @@ TEST_CASE( "[command-disband] confirm+perform" ) {
                              ship_id )
             .id();
     unit_id = cargo_unit_id;
-    W.gui().EXPECT__choice( _ ).returns<maybe<string>>( "yes" );
+    agent.EXPECT__confirm_disband_unit( unit_id ).returns(
+        ui::e_confirm::yes );
     REQUIRE( confirm() == true );
     perform();
     REQUIRE( W.units().exists( ship_id ) );
@@ -177,7 +169,8 @@ TEST_CASE( "[command-disband] confirm+perform" ) {
                              ship_id )
             .id();
     unit_id = ship_id;
-    W.gui().EXPECT__choice( _ ).returns<maybe<string>>( "yes" );
+    agent.EXPECT__confirm_disband_unit( unit_id ).returns(
+        ui::e_confirm::yes );
     REQUIRE( confirm() == true );
     perform();
     REQUIRE_FALSE( W.units().exists( ship_id ) );
@@ -194,7 +187,8 @@ TEST_CASE( "[command-disband] confirm+perform" ) {
                              ship_id )
             .id();
     unit_id = ship_id;
-    W.gui().EXPECT__choice( _ ).returns<maybe<string>>( "yes" );
+    agent.EXPECT__confirm_disband_unit( unit_id ).returns(
+        ui::e_confirm::yes );
     REQUIRE( confirm() == true );
     perform();
     REQUIRE_FALSE( W.units().exists( ship_id ) );
@@ -221,7 +215,8 @@ TEST_CASE( "[command-disband] confirm+perform" ) {
                              ship_id )
             .id();
     unit_id = ship_id;
-    W.gui().EXPECT__choice( _ ).returns<maybe<string>>( "yes" );
+    agent.EXPECT__confirm_disband_unit( unit_id ).returns(
+        ui::e_confirm::yes );
     REQUIRE( confirm() == true );
     perform();
     REQUIRE_FALSE( W.units().exists( ship_id ) );
@@ -248,7 +243,8 @@ TEST_CASE( "[command-disband] confirm+perform" ) {
                              ship_id )
             .id();
     unit_id = ship_id;
-    W.gui().EXPECT__choice( _ ).returns<maybe<string>>( "yes" );
+    agent.EXPECT__confirm_disband_unit( unit_id ).returns(
+        ui::e_confirm::yes );
     REQUIRE( confirm() == true );
     perform();
     REQUIRE_FALSE( W.units().exists( ship_id ) );
@@ -270,6 +266,7 @@ TEST_CASE( "[command-disband] confirm+perform" ) {
 TEST_CASE(
     "[command-disband] confirmation box has 'no' first" ) {
   World W;
+  MockIEuroAgent& agent = W.euro_agent();
   rr::MockTextometer textometer;
   W.engine().EXPECT__textometer().by_default().returns(
       textometer );
@@ -296,9 +293,8 @@ TEST_CASE(
     // by default.
     .initial_selection = nothing };
 
-  W.gui()
-      .EXPECT__choice( expected_config )
-      .returns<maybe<string>>( nothing );
+  agent.EXPECT__confirm_disband_unit( unit_id ).returns(
+      ui::e_confirm::no );
   REQUIRE( confirm() == false );
 }
 

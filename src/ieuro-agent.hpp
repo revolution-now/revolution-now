@@ -146,6 +146,9 @@ struct IEuroAgent : IAgent, ISignalHandler {
       refl::enum_map<e_native_land_grab_result, bool> const&
           disabled ) = 0;
 
+  virtual wait<ui::e_confirm> confirm_disband_unit(
+      UnitId unit_id ) = 0;
+
  public: // Signals.
   // Non-waitable signal, no message.
   auto signal( NonWaitableSignalContext auto const& ctx ) {
@@ -260,6 +263,9 @@ struct NoopEuroAgent final : IEuroAgent {
                      std::string> const& names,
       refl::enum_map<e_native_land_grab_result, bool> const&
           disabled ) override;
+
+  wait<ui::e_confirm> confirm_disband_unit(
+      UnitId unit_id ) override;
 
  public: // ISignalHandler
   wait<maybe<int>> handle(

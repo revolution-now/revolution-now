@@ -87,7 +87,8 @@ void EuroAgents::update( e_player const player,
 ** Public API.
 *****************************************************************/
 unique_ptr<IEuroAgent> create_euro_agent(
-    SS& ss, Planes& planes, IGui& gui, e_player const player ) {
+    IEngine& engine, SS& ss, Planes& planes, IGui& gui,
+    e_player const player ) {
   switch( ss.players.players[player]->control ) {
     case e_player_control::ai: {
       if( is_ref( player ) )
@@ -97,8 +98,8 @@ unique_ptr<IEuroAgent> create_euro_agent(
         return make_unique<NoopEuroAgent>( ss.as_const, player );
     }
     case e_player_control::human: {
-      return make_unique<HumanEuroAgent>( player, ss, gui,
-                                          planes );
+      return make_unique<HumanEuroAgent>( player, engine, ss,
+                                          gui, planes );
     }
     case e_player_control::withdrawn: {
       return make_unique<NoopEuroAgent>( ss.as_const, player );
@@ -106,13 +107,13 @@ unique_ptr<IEuroAgent> create_euro_agent(
   }
 }
 
-EuroAgents create_euro_agents( SS& ss, Planes& planes,
-                               IGui& gui ) {
+EuroAgents create_euro_agents( IEngine& engine, SS& ss,
+                               Planes& planes, IGui& gui ) {
   unordered_map<e_player, unique_ptr<IEuroAgent>> holder;
   for( e_player const player : refl::enum_values<e_player> )
     if( ss.players.players[player].has_value() )
       holder[player] =
-          create_euro_agent( ss, planes, gui, player );
+          create_euro_agent( engine, ss, planes, gui, player );
   return EuroAgents( std::move( holder ) );
 }
 

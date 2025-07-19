@@ -920,7 +920,7 @@ TEST_CASE(
 
   auto const f = [&] {
     co_await_test( cheat_advance_revolution_status(
-        w.ss(), w.ts(), player ) );
+        w.engine(), w.ss(), w.ts(), player ) );
   };
 
   w.gui().EXPECT__message_box(
@@ -937,7 +937,7 @@ TEST_CASE( "[cheat] cheat_advance_revolution_status/ref" ) {
 
   auto const f = [&] {
     co_await_test( cheat_advance_revolution_status(
-        w.ss(), w.ts(), player ) );
+        w.engine(), w.ss(), w.ts(), player ) );
   };
 
   w.gui().EXPECT__message_box( StrContains(
@@ -961,7 +961,7 @@ TEST_CASE( "[cheat] cheat_advance_revolution_status" ) {
 
   auto const f = [&] {
     co_await_test( cheat_advance_revolution_status(
-        w.ss(), w.ts(), player ) );
+        w.engine(), w.ss(), w.ts(), player ) );
   };
 
   w.settings().game_setup_options.difficulty =

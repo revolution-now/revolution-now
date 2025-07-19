@@ -491,8 +491,8 @@ TEST_CASE( "[disband] disband_tile_ui_interaction" ) {
 
   auto f = [&] {
     return co_await_test( disband_tile_ui_interaction(
-        w.ss(), w.ts(), textometer, w.default_player(), full_viz,
-        perms ) );
+        w.ss(), w.gui(), textometer, w.default_player(),
+        full_viz, perms ) );
   };
 
   auto expect_ask_one = [&]( string const& fragment,

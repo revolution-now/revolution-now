@@ -16,6 +16,7 @@
 // Testing.
 #include "test/fake/world.hpp"
 #include "test/mocking.hpp"
+#include "test/mocks/iengine.hpp"
 #include "test/mocks/igui.hpp"
 #include "test/util/coro.hpp"
 
@@ -44,7 +45,8 @@ using ::refl::enum_map;
 *****************************************************************/
 struct world : testing::World {
   world()
-    : agent_( default_player_type(), ss(), gui(), planes() ) {
+    : agent_( default_player_type(), engine(), ss(), gui(),
+              planes() ) {
     add_default_player();
     create_default_map();
   }

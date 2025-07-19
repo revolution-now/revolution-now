@@ -25,6 +25,7 @@ struct ITextometer;
 
 namespace rn {
 
+struct IGui;
 struct IVisibility;
 struct Player;
 struct SS;
@@ -36,9 +37,9 @@ DisbandingPermissions disbandable_entities_on_tile(
     gfx::point const tile );
 
 wait<EntitiesOnTile> disband_tile_ui_interaction(
-    SSConst const& ss, TS& ts, rr::ITextometer const& textometer,
-    Player const& player, IVisibility const& viz,
-    DisbandingPermissions const& perms );
+    SSConst const& ss, IGui& gui,
+    rr::ITextometer const& textometer, Player const& player,
+    IVisibility const& viz, DisbandingPermissions const& perms );
 
 wait<> execute_disband( SS& ss, TS& ts, Player const& player,
                         IVisibility const& viz,

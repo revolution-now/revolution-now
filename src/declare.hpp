@@ -27,6 +27,7 @@ namespace rn {
 ** Fwd Decls.
 *****************************************************************/
 struct IGui;
+struct IEngine;
 struct SS;
 struct SSConst;
 struct TS;
@@ -54,7 +55,7 @@ wait<> declare_independence_ui_sequence_pre(
     SSConst const& ss, TS& ts, Player const& player );
 
 [[nodiscard]] DeclarationResult declare_independence(
-    SS& ss, TS& ts, Player& player );
+    IEngine& engine, SS& ss, TS& ts, Player& player );
 
 wait<> declare_independence_ui_sequence_post(
     SSConst const& ss, TS& ts, Player const& player,

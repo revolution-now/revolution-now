@@ -168,7 +168,8 @@ wait<> declare_independence_ui_sequence_pre( SSConst const&,
       "(signing of signature on declaration)" );
 }
 
-DeclarationResult declare_independence( SS& ss, TS& ts,
+DeclarationResult declare_independence( IEngine& engine, SS& ss,
+                                        TS& ts,
                                         Player& player ) {
   DeclarationResult res;
   CHECK( !is_ref( player.type ) );
@@ -191,8 +192,9 @@ DeclarationResult declare_independence( SS& ss, TS& ts,
   Player& ref_player = add_new_player( ss, ref_player_type );
   ref_player.control = e_player_control::ai;
   ts.euro_agents().update(
-      ref_player_type, create_euro_agent( ss, ts.planes, ts.gui,
-                                          ref_player_type ) );
+      ref_player_type,
+      create_euro_agent( engine, ss, ts.planes, ts.gui,
+                         ref_player_type ) );
 
   // Step: Make sure that there is at least one Man-o-War if
   // there are any ref units to bring. The OG appears to increase

@@ -87,6 +87,9 @@ struct RefAIEuroAgent final : IEuroAgent {
       refl::enum_map<e_native_land_grab_result, bool> const&
           disabled ) override;
 
+  wait<ui::e_confirm> confirm_disband_unit(
+      UnitId unit_id ) override;
+
  public: // ISignalHandler
   wait<maybe<int>> handle(
       signal::ChooseImmigrant const& ) override;

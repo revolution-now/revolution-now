@@ -314,8 +314,9 @@ DisbandingPermissions disbandable_entities_on_tile(
 }
 
 wait<EntitiesOnTile> disband_tile_ui_interaction(
-    SSConst const& ss, TS& ts, rr::ITextometer const& textometer,
-    Player const& player, IVisibility const& viz,
+    SSConst const& ss, IGui& gui,
+    rr::ITextometer const& textometer, Player const& player,
+    IVisibility const& viz,
     DisbandingPermissions const& perms ) {
   EntitiesOnTile entities;
 
@@ -327,7 +328,7 @@ wait<EntitiesOnTile> disband_tile_ui_interaction(
 
   auto ask_one =
       [&]( string_view const q ) -> wait<maybe<ui::e_confirm>> {
-    co_return co_await ts.gui.optional_yes_no(
+    co_return co_await gui.optional_yes_no(
         { .msg            = string( q ),
           .yes_label      = "Yes",
           .no_label       = "No",
@@ -335,7 +336,7 @@ wait<EntitiesOnTile> disband_tile_ui_interaction(
   };
 
   auto show_ships_in_port_error = [&]() -> wait<> {
-    co_await ts.gui.message_box(
+    co_await gui.message_box(
         "We cannot disband a colony that has a ship in its "
         "port unless the ship is simultaneously disbanded or "
         "first moved out of the colony." );
@@ -407,7 +408,7 @@ wait<EntitiesOnTile> disband_tile_ui_interaction(
   // There are multiple entities, thus we must pop open a dialog
   // box and list them.
   entities = ( co_await disband_selection_dialog(
-                   ss, ts.gui, player, viz, textometer,
+                   ss, gui, player, viz, textometer,
                    perms.disbandable ) )
                  .value_or( EntitiesOnTile{} );
 

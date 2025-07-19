@@ -16,6 +16,7 @@
 // Testing.
 #include "test/fake/world.hpp"
 #include "test/mocking.hpp"
+#include "test/mocks/iengine.hpp"
 #include "test/mocks/igui.hpp"
 #include "test/util/coro.hpp"
 
@@ -429,7 +430,8 @@ TEST_CASE( "[declare] declare_independence" ) {
   w.add_tribe( tribe_type );
 
   auto const f = [&] {
-    return declare_independence( w.ss(), w.ts(), player );
+    return declare_independence( w.engine(), w.ss(), w.ts(),
+                                 player );
   };
 
   // BEFORE: sanity check.

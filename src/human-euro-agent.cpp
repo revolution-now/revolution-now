@@ -14,10 +14,14 @@
 #include "capture-cargo.hpp"
 #include "co-wait.hpp"
 #include "commodity.hpp"
+#include "disband.hpp"
+#include "iengine.hpp"
 #include "igui.hpp"
 #include "land-view.hpp"
 #include "meet-natives.hpp"
 #include "plane-stack.hpp"
+#include "roles.hpp"
+#include "visibility.hpp"
 
 // config
 #include "config/nation.rds.hpp"
@@ -44,9 +48,11 @@ using ::refl::enum_map;
 /****************************************************************
 ** HumanEuroAgent
 *****************************************************************/
-HumanEuroAgent::HumanEuroAgent( e_player player, SS& ss,
-                                IGui& gui, Planes& planes )
+HumanEuroAgent::HumanEuroAgent( e_player player, IEngine& engine,
+                                SS& ss, IGui& gui,
+                                Planes& planes )
   : IEuroAgent( player ),
+    engine_( engine ),
     ss_( ss ),
     gui_( gui ),
     planes_( planes ) {}
@@ -253,6 +259,19 @@ HumanEuroAgent::should_take_native_land(
           .optional_enum_choice<e_native_land_grab_result>(
               config, names, disabled );
   co_return res.value_or( e_native_land_grab_result::cancel );
+}
+
+wait<ui::e_confirm> HumanEuroAgent::confirm_disband_unit(
+    UnitId const unit_id ) {
+  auto const viz_ = create_visibility_for(
+      ss_, player_for_role( ss_, e_player_role::viewer ) );
+  DisbandingPermissions const perms{
+    .disbandable = { .units = { unit_id } } };
+  auto const entities = co_await disband_tile_ui_interaction(
+      ss_.as_const, gui_, engine_.textometer(), player(), *viz_,
+      perms );
+  co_return !entities.units.empty() ? ui::e_confirm::yes
+                                    : ui::e_confirm::no;
 }
 
 } // namespace rn

@@ -432,11 +432,12 @@ void recompute_fog_for_all_players( SS& ss, TS& ts ) {
       recompute_fog_for_player( ss, ts, player );
 }
 
-wait<> declare( SS& ss, TS& ts, Player& player ) {
+wait<> declare( IEngine& engine, SS& ss, TS& ts,
+                Player& player ) {
   co_await declare_independence_ui_sequence_pre(
       ss.as_const, ts, as_const( player ) );
   DeclarationResult const decl_res =
-      declare_independence( ss, ts, player );
+      declare_independence( engine, ss, ts, player );
   co_await declare_independence_ui_sequence_post(
       ss.as_const, ts, as_const( player ), decl_res );
 }
@@ -479,7 +480,7 @@ wait<> disband_at_location( IEngine& engine, SS& ss, TS& ts,
   auto const entities =
       disbandable_entities_on_tile( ss.as_const, *viz, tile );
   auto const selected = co_await disband_tile_ui_interaction(
-      ss.as_const, ts, engine.textometer(), player, *viz,
+      ss.as_const, ts.gui, engine.textometer(), player, *viz,
       entities );
   co_await execute_disband( ss, ts, player, *viz, tile,
                             selected );
@@ -532,7 +533,7 @@ wait<> menu_handler( IEngine& engine, SS& ss, TS& ts,
       ui::e_confirm const answer =
           co_await ask_declare( ts.gui, player );
       if( answer != ui::e_confirm::yes ) break;
-      co_await declare( ss, ts, player );
+      co_await declare( engine, ss, ts, player );
       break;
     }
     case e_menu_item::harbor_view: {
@@ -567,7 +568,8 @@ wait<> menu_handler( IEngine& engine, SS& ss, TS& ts,
       break;
     }
     case e_menu_item::cheat_advance_revolution_status: {
-      co_await cheat_advance_revolution_status( ss, ts, player );
+      co_await cheat_advance_revolution_status( engine, ss, ts,
+                                                player );
       break;
     }
     case e_menu_item::game_options: {

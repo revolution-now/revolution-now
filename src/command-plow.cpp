@@ -16,7 +16,6 @@
 #include "map-square.hpp"
 #include "native-owned.hpp"
 #include "plow.hpp"
-#include "ts.hpp"
 
 // ss
 #include "ss/ref.hpp"
@@ -36,10 +35,9 @@ namespace rn {
 namespace {
 
 struct PlowHandler : public CommandHandler {
-  PlowHandler( SS& ss, TS& ts, IEuroAgent& agent, Player& player,
+  PlowHandler( SS& ss, IEuroAgent& agent, Player& player,
                UnitId unit_id )
     : ss_( ss ),
-      ts_( ts ),
       player_( player ),
       agent_( agent ),
       unit_id_( unit_id ) {}
@@ -47,14 +45,14 @@ struct PlowHandler : public CommandHandler {
   wait<bool> confirm() override {
     Unit const& unit = ss_.units.unit_for( unit_id_ );
     if( unit.type() == e_unit_type::hardy_colonist ) {
-      co_await ts_.gui.message_box(
+      co_await agent_.message_box(
           "This [Hardy Pioneer] requires at least 20 tools "
           "to plow." );
       co_return false;
     }
     if( unit.type() != e_unit_type::pioneer &&
         unit.type() != e_unit_type::hardy_pioneer ) {
-      co_await ts_.gui.message_box(
+      co_await agent_.message_box(
           "Only [Pioneers] and [Hardy Pioneers] can "
           "plow." );
       co_return false;
@@ -65,7 +63,7 @@ struct PlowHandler : public CommandHandler {
     if( !ownership.is<UnitOwnership::world>() ) {
       // This can happen if a pioneer is on a ship asking for or-
       // ders and it is given plowing commands.
-      co_await ts_.gui.message_box(
+      co_await agent_.message_box(
           "Plowing can only be done while directly on a land "
           "tile." );
       co_return false;
@@ -73,12 +71,12 @@ struct PlowHandler : public CommandHandler {
     Coord const tile = ss_.units.coord_for( unit_id_ );
     CHECK( ss_.terrain.is_land( tile ) );
     if( has_irrigation( ss_.terrain, tile ) ) {
-      co_await ts_.gui.message_box(
+      co_await agent_.message_box(
           "There is already irrigation on this square." );
       co_return false;
     }
     if( !can_plow( ss_.terrain, tile ) ) {
-      co_await ts_.gui.message_box(
+      co_await agent_.message_box(
           "[{}] tiles cannot be plowed or cleared.",
           effective_terrain( ss_.terrain.square_at( tile ) ) );
       co_return false;
@@ -137,7 +135,6 @@ struct PlowHandler : public CommandHandler {
   }
 
   SS& ss_;
-  TS& ts_;
   Player& player_;
   IEuroAgent& agent_;
   UnitId unit_id_ = {};
@@ -149,9 +146,9 @@ struct PlowHandler : public CommandHandler {
 ** Public API
 *****************************************************************/
 unique_ptr<CommandHandler> handle_command(
-    IEngine&, SS& ss, TS& ts, IEuroAgent& agent, Player& player,
+    IEngine&, SS& ss, TS&, IEuroAgent& agent, Player& player,
     UnitId id, command::plow const& ) {
-  return make_unique<PlowHandler>( ss, ts, agent, player, id );
+  return make_unique<PlowHandler>( ss, agent, player, id );
 }
 
 } // namespace rn

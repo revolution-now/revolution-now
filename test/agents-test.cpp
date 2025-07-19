@@ -15,6 +15,7 @@
 
 // Testing.
 #include "test/fake/world.hpp"
+#include "test/mocks/iengine.hpp"
 #include "test/mocks/ieuro-agent.hpp"
 #include "test/mocks/igui.hpp"
 #include "test/mocks/inative-agent.hpp"
@@ -96,7 +97,8 @@ TEST_CASE( "[agents] create_euro_agent" ) {
   W.ref_dutch().control   = e_player_control::ai;
 
   auto f = [&]( e_player const p ) {
-    return create_euro_agent( W.ss(), W.planes(), W.gui(), p );
+    return create_euro_agent( W.engine(), W.ss(), W.planes(),
+                              W.gui(), p );
   };
 
   auto const english_agent     = f( e_player::english );
@@ -169,7 +171,8 @@ TEST_CASE( "[agents] create_euro_agents" ) {
   W.ref_dutch().control   = e_player_control::ai;
 
   auto f = [&] {
-    return create_euro_agents( W.ss(), W.planes(), W.gui() );
+    return create_euro_agents( W.engine(), W.ss(), W.planes(),
+                               W.gui() );
   };
 
   EuroAgents const agents = f();

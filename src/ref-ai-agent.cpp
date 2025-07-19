@@ -147,4 +147,9 @@ RefAIEuroAgent::should_take_native_land(
   co_return e_native_land_grab_result::cancel;
 }
 
+wait<ui::e_confirm> RefAIEuroAgent::confirm_disband_unit(
+    UnitId const ) {
+  co_return ui::e_confirm::yes;
+}
+
 } // namespace rn

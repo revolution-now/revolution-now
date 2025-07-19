@@ -17,6 +17,7 @@
 
 namespace rn {
 
+struct IEngine;
 struct IGui;
 struct ILandViewPlane;
 struct Planes;
@@ -28,8 +29,8 @@ struct SS;
 // This is an implementation that will consult with a human user
 // via GUI actions or input in order to fulfill the requests.
 struct HumanEuroAgent final : IEuroAgent {
-  HumanEuroAgent( e_player player, SS& ss, IGui& gui,
-                  Planes& planes );
+  HumanEuroAgent( e_player player, IEngine& engine, SS& ss,
+                  IGui& gui, Planes& planes );
 
  public: // IAgent.
   wait<> message_box( std::string const& msg ) override;
@@ -91,6 +92,9 @@ struct HumanEuroAgent final : IEuroAgent {
       refl::enum_map<e_native_land_grab_result, bool> const&
           disabled ) override;
 
+  wait<ui::e_confirm> confirm_disband_unit(
+      UnitId unit_id ) override;
+
  public: // Signals.
   void handle( signal::ColonySignalTransient const& ) override;
 
@@ -100,6 +104,7 @@ struct HumanEuroAgent final : IEuroAgent {
  private:
   ILandViewPlane& land_view() const;
 
+  IEngine& engine_;
   SS& ss_;
   IGui& gui_;
   Planes& planes_;

@@ -135,4 +135,9 @@ NoopEuroAgent::should_take_native_land(
   co_return e_native_land_grab_result::cancel;
 }
 
+wait<ui::e_confirm> NoopEuroAgent::confirm_disband_unit(
+    UnitId const ) {
+  co_return ui::e_confirm::no;
+}
+
 } // namespace rn

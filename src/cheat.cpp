@@ -391,8 +391,8 @@ wait<> cheat_set_player_control( IEngine& engine, SS& ss,
   for( auto const& [type, needs_update] : changed )
     if( needs_update )
       ts.euro_agents().update(
-          type,
-          create_euro_agent( ss, ts.planes, ts.gui, type ) );
+          type, create_euro_agent( engine, ss, ts.planes, ts.gui,
+                                   type ) );
 
   // We do this because we need to back out beyond the individual
   // nation's turn processor in order to handle this configura-
@@ -676,7 +676,8 @@ wait<> kill_natives( SS& ss, TS& ts ) {
 //   4. Foreign intervention force deployed.
 //   5. Independence won.
 //
-wait<> cheat_advance_revolution_status( SS& ss, TS& ts,
+wait<> cheat_advance_revolution_status( IEngine& engine, SS& ss,
+                                        TS& ts,
                                         Player& player ) {
   if( is_ref( player.type ) ) {
     co_await ts.gui.message_box(
@@ -724,7 +725,7 @@ wait<> cheat_advance_revolution_status( SS& ss, TS& ts,
     co_await declare_independence_ui_sequence_pre(
         ss.as_const, ts, as_const( player ) );
     DeclarationResult const decl_res =
-        declare_independence( ss, ts, player );
+        declare_independence( engine, ss, ts, player );
     co_await declare_independence_ui_sequence_post(
         ss.as_const, ts, as_const( player ), decl_res );
     CHECK_GE( player.revolution.status,
