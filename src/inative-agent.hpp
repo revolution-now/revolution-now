@@ -11,13 +11,11 @@
 *****************************************************************/
 #pragma once
 
-#include "core-config.hpp"
-
 // rds
 #include "inative-agent.rds.hpp"
 
 // Revolution Now
-#include "iagent.hpp"
+#include "wait.hpp"
 
 // ss
 #include "ss/unit-id.hpp"
@@ -36,12 +34,28 @@ enum class e_tribe;
 /****************************************************************
 ** INativeAgent
 *****************************************************************/
-struct INativeAgent : IAgent {
+struct INativeAgent {
   INativeAgent( e_tribe tribe_type )
     : tribe_type_( tribe_type ) {}
-  virtual ~INativeAgent() override = default;
+  virtual ~INativeAgent() = default;
 
   e_tribe tribe_type() const { return tribe_type_; }
+
+  virtual wait<> message_box( std::string const& msg ) = 0;
+
+  // For convenience.  Should not be overridden.
+  template<typename Arg, typename... Rest>
+  wait<> message_box(
+      // The type_identity prevents the compiler from using the
+      // first arg to try to infer Arg/Rest (which would fail);
+      // it will defer that, then when it gets to the end it will
+      // have inferred those parameters through other args.
+      fmt::format_string<std::type_identity_t<Arg>, Rest...> fmt,
+      Arg&& arg, Rest&&... rest ) {
+    return message_box(
+        fmt::format( fmt, std::forward<Arg>( arg ),
+                     std::forward<Rest>( rest )... ) );
+  }
 
   // Select which unit is to receive orders next. The set should
   // be non-empty and contain only units that have some movement

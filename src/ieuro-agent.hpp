@@ -15,7 +15,6 @@
 
 // Revolution Now
 #include "command.rds.hpp"
-#include "iagent.hpp"
 #include "isignal.hpp"
 #include "meet-natives.rds.hpp"
 #include "native-owned.rds.hpp"
@@ -70,13 +69,29 @@ using signal_context_result_t =
 /****************************************************************
 ** IEuroAgent
 *****************************************************************/
-struct IEuroAgent : IAgent, ISignalHandler {
+struct IEuroAgent : ISignalHandler {
   IEuroAgent( e_player player );
 
   virtual ~IEuroAgent() override = default;
 
   // For convenience.
   e_player player_type() const { return player_type_; }
+
+  virtual wait<> message_box( std::string const& msg ) = 0;
+
+  // For convenience.  Should not be overridden.
+  template<typename Arg, typename... Rest>
+  wait<> message_box(
+      // The type_identity prevents the compiler from using the
+      // first arg to try to infer Arg/Rest (which would fail);
+      // it will defer that, then when it gets to the end it will
+      // have inferred those parameters through other args.
+      fmt::format_string<std::type_identity_t<Arg>, Rest...> fmt,
+      Arg&& arg, Rest&&... rest ) {
+    return message_box(
+        fmt::format( fmt, std::forward<Arg>( arg ),
+                     std::forward<Rest>( rest )... ) );
+  }
 
   // For convenience.
   virtual Player const& player() = 0;

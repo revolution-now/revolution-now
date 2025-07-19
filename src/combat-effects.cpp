@@ -896,15 +896,6 @@ FilteredMixedCombatEffectsMessages filter_combat_effects_msgs(
   return res;
 }
 
-wait<> show_combat_effects_msg(
-    FilteredMixedCombatEffectsMessages const& msgs,
-    IAgent& attacker_agent, IAgent& defender_agent ) {
-  for( string const& msg : msgs.attacker )
-    co_await attacker_agent.message_box( msg );
-  for( string const& msg : msgs.defender )
-    co_await defender_agent.message_box( msg );
-}
-
 /****************************************************************
 ** Performing combat effects.
 *****************************************************************/

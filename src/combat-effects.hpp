@@ -17,7 +17,7 @@
 #include "combat-effects.rds.hpp"
 
 // Revolution Now
-#include "wait.hpp"
+#include "co-wait.hpp"
 
 // ss
 #include "ss/unit-id.hpp"
@@ -35,7 +35,7 @@ struct CombatEuroAttackUndefendedColony;
 struct CombatShipAttackShip;
 struct EuroNavalUnitCombatOutcome;
 struct EuroUnitCombatOutcome;
-struct IAgent;
+struct IEuroAgent;
 struct NativeUnit;
 struct NativeUnitCombatOutcome;
 struct SS;
@@ -86,7 +86,12 @@ FilteredMixedCombatEffectsMessages filter_combat_effects_msgs(
 
 wait<> show_combat_effects_msg(
     FilteredMixedCombatEffectsMessages const& msgs,
-    IAgent& attacker_agent, IAgent& defender_agent );
+    auto& attacker_agent, auto& defender_agent ) {
+  for( std::string const& msg : msgs.attacker )
+    co_await attacker_agent.message_box( msg );
+  for( std::string const& msg : msgs.defender )
+    co_await defender_agent.message_box( msg );
+}
 
 /****************************************************************
 ** Performing combat effects.

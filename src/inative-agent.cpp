@@ -21,10 +21,6 @@ namespace rn {
 /****************************************************************
 ** NoopNativeAgent
 *****************************************************************/
-wait<> NoopNativeAgent::message_box( string const& ) {
-  co_return;
-}
-
 NativeUnitCommand NoopNativeAgent::command_for( NativeUnitId ) {
   return NativeUnitCommand::forfeight{};
 }
