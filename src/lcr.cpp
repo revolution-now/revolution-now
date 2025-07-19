@@ -16,7 +16,7 @@
 #include "anim-builders.hpp"
 #include "co-wait.hpp"
 #include "harbor-units.hpp"
-#include "ieuro-agent.hpp"
+#include "iagent.hpp"
 #include "igui.hpp"
 #include "imap-search.rds.hpp"
 #include "imap-updater.hpp"
@@ -105,7 +105,7 @@ UnitId create_treasure_train( SS& ss, IMapUpdater& map_updater,
 
 wait<LostCityRumorUnitChange> run_burial_mounds_result(
     SS& ss, ILandViewPlane& land_view, IMapUpdater& map_updater,
-    Player& player, IEuroAgent& agent, Coord world_square,
+    Player& player, IAgent& agent, Coord world_square,
     BurialMounds const& mounds, maybe<e_tribe> burial_grounds ) {
   LostCityRumorUnitChange result = {};
   SWITCH( mounds ) {
@@ -161,7 +161,7 @@ wait<LostCityRumorUnitChange> run_burial_mounds_result(
 }
 
 wait<> take_one_immigrant( SS& ss, IRand& rand, Player& player,
-                           IEuroAgent& agent,
+                           IAgent& agent,
                            SettingsState const& settings,
                            int total, int idx ) {
   Player const& cplayer = player;
@@ -187,7 +187,7 @@ wait<> take_one_immigrant( SS& ss, IRand& rand, Player& player,
 }
 
 wait<> run_fountain_of_youth( SS& ss, IRand& rand,
-                              Player& player, IEuroAgent& agent,
+                              Player& player, IAgent& agent,
                               SettingsState const& settings ) {
   co_await agent.message_box(
       "You've discovered a Fountain of Youth!" );
@@ -203,8 +203,8 @@ wait<> run_fountain_of_youth( SS& ss, IRand& rand,
 
 wait<LostCityRumorUnitChange> run_rumor_result(
     SS& ss, ILandViewPlane& land_view, IMapUpdater& map_updater,
-    IRand& rand, Player& player, IEuroAgent& agent,
-    Unit const& unit, Coord tile, LostCityRumor const& rumor ) {
+    IRand& rand, Player& player, IAgent& agent, Unit const& unit,
+    Coord tile, LostCityRumor const& rumor ) {
   SWITCH( rumor ) {
     CASE( unit_lost ) {
       // Destroy unit before showing message so that the unit ac-
@@ -507,9 +507,8 @@ LostCityRumor compute_lcr( SSConst const& ss,
 
 wait<LostCityRumorUnitChange> run_lcr(
     SS& ss, ILandViewPlane& land_view, IMapUpdater& map_updater,
-    IRand& rand, Player& player, IEuroAgent& agent,
-    Unit const& unit, Coord world_square,
-    LostCityRumor const& rumor ) {
+    IRand& rand, Player& player, IAgent& agent, Unit const& unit,
+    Coord world_square, LostCityRumor const& rumor ) {
   LostCityRumorUnitChange result = co_await run_rumor_result(
       ss, land_view, map_updater, rand, player, agent, unit,
       world_square, rumor );

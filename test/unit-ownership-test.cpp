@@ -16,7 +16,7 @@
 // Testing.
 #include "test/fake/world.hpp"
 #include "test/mocking.hpp"
-#include "test/mocks/ieuro-agent.hpp"
+#include "test/mocks/iagent.hpp"
 #include "test/mocks/igui.hpp"
 #include "test/mocks/land-view-plane.hpp"
 #include "test/util/coro.hpp"
@@ -509,7 +509,7 @@ TEST_CASE( "[unit-ownership] change_to_map" ) {
       W.add_free_unit( e_unit_type::free_colonist );
   UnitOwnership expected;
   Coord target;
-  MockIEuroAgent& agent = W.euro_agent();
+  MockIAgent& agent = W.agent();
 
   auto ownership = [&] {
     return as_const( W.units() ).ownership_of( unit.id() );
@@ -527,7 +527,7 @@ TEST_CASE( "[unit-ownership] change_to_map" ) {
   // We'll allow these async events to trigger so that we can
   // verify that we're calling the interactive version of the
   // function that moves a unit onto a map square.
-  W.euro_agent().EXPECT__show_woodcut(
+  W.agent().EXPECT__show_woodcut(
       e_woodcut::discovered_new_world );
   agent.EXPECT__name_new_world().returns( "my land" );
   target = { .x = 0, .y = 1 };

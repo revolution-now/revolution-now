@@ -13,8 +13,8 @@
 // Revolution Now
 #include "co-wait.hpp"
 #include "disband.hpp"
+#include "iagent.hpp"
 #include "iengine.hpp"
-#include "ieuro-agent.hpp"
 #include "roles.hpp"
 #include "unit-mgr.hpp"
 #include "visibility.hpp"
@@ -34,9 +34,8 @@ using ::gfx::point;
 ** DisbandHandler
 *****************************************************************/
 struct DisbandHandler : public CommandHandler {
-  DisbandHandler( IEngine& engine, SS& ss, TS& ts,
-                  IEuroAgent& agent, Player const& player,
-                  UnitId const unit_id )
+  DisbandHandler( IEngine& engine, SS& ss, TS& ts, IAgent& agent,
+                  Player const& player, UnitId const unit_id )
     : engine_( engine ),
       ss_( ss ),
       ts_( ts ),
@@ -64,7 +63,7 @@ struct DisbandHandler : public CommandHandler {
   SS& ss_;
   TS& ts_;
   Player const& player_;
-  IEuroAgent& agent_;
+  IAgent& agent_;
   UnitId const unit_id_;
 };
 
@@ -74,7 +73,7 @@ struct DisbandHandler : public CommandHandler {
 ** Public API
 *****************************************************************/
 unique_ptr<CommandHandler> handle_command(
-    IEngine& engine, SS& ss, TS& ts, IEuroAgent& agent,
+    IEngine& engine, SS& ss, TS& ts, IAgent& agent,
     Player& player, UnitId const unit_id,
     command::disband const& ) {
   return make_unique<DisbandHandler>( engine, ss, ts, agent,

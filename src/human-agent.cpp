@@ -1,14 +1,14 @@
 /****************************************************************
-**human-euro-agent.cpp
+**human-agent.cpp
 *
 * Project: Revolution Now
 *
 * Created by dsicilia on 2023-03-31.
 *
-* Description: Implementation of IEuroAgent for human players.
+* Description: Implementation of IAgent for human players.
 *
 *****************************************************************/
-#include "human-euro-agent.hpp"
+#include "human-agent.hpp"
 
 // Revolution Now
 #include "capture-cargo.hpp"
@@ -67,59 +67,58 @@ valid_or<string> is_valid_colony_name_msg(
 } // namespace
 
 /****************************************************************
-** HumanEuroAgent
+** HumanAgent
 *****************************************************************/
-HumanEuroAgent::HumanEuroAgent( e_player player, IEngine& engine,
-                                SS& ss, IGui& gui,
-                                Planes& planes )
-  : IEuroAgent( player ),
+HumanAgent::HumanAgent( e_player player, IEngine& engine, SS& ss,
+                        IGui& gui, Planes& planes )
+  : IAgent( player ),
     engine_( engine ),
     ss_( ss ),
     gui_( gui ),
     planes_( planes ) {}
 
-wait<> HumanEuroAgent::message_box( string const& msg ) {
+wait<> HumanAgent::message_box( string const& msg ) {
   co_await gui_.message_box( msg );
 }
 
 wait<e_declare_war_on_natives>
-HumanEuroAgent::meet_tribe_ui_sequence(
-    MeetTribe const& meet_tribe, point const tile ) {
+HumanAgent::meet_tribe_ui_sequence( MeetTribe const& meet_tribe,
+                                    point const tile ) {
   co_await land_view().ensure_visible( tile );
   co_return co_await perform_meet_tribe_ui_sequence(
       ss_, *this, gui_, meet_tribe );
 }
 
-wait<> HumanEuroAgent::show_woodcut( e_woodcut woodcut ) {
+wait<> HumanAgent::show_woodcut( e_woodcut woodcut ) {
   co_await gui_.display_woodcut( woodcut );
 }
 
 wait<base::heap_value<CapturableCargoItems>>
-HumanEuroAgent::select_commodities_to_capture(
+HumanAgent::select_commodities_to_capture(
     UnitId const src, UnitId const dst,
     CapturableCargo const& capturable ) {
   co_return co_await select_items_to_capture_ui(
       ss_.as_const, gui_, src, dst, capturable );
 }
 
-wait<> HumanEuroAgent::notify_captured_cargo(
+wait<> HumanAgent::notify_captured_cargo(
     Player const& src_player, Player const& dst_player,
     Unit const& dst_unit, Commodity const& stolen ) {
   co_await notify_captured_cargo_human(
       gui_, src_player, dst_player, dst_unit, stolen );
 }
 
-Player const& HumanEuroAgent::player() {
+Player const& HumanAgent::player() {
   return player_for_player_or_die( as_const( ss_.players ),
                                    player_type() );
 }
 
-void HumanEuroAgent::handle(
+void HumanAgent::handle(
     signal::ColonySignalTransient const& ctx ) {
   gui_.transient_message_box( ctx.msg );
 }
 
-wait<maybe<int>> HumanEuroAgent::handle(
+wait<maybe<int>> HumanAgent::handle(
     signal::ChooseImmigrant const& ctx ) {
   auto const& pool = ctx.types;
   vector<ChoiceConfigOption> options{
@@ -143,19 +142,19 @@ wait<maybe<int>> HumanEuroAgent::handle(
       res );
 }
 
-ILandViewPlane& HumanEuroAgent::land_view() const {
+ILandViewPlane& HumanAgent::land_view() const {
   return planes_.get().get_bottom<ILandViewPlane>();
 }
 
-wait<> HumanEuroAgent::pan_tile( point const tile ) {
+wait<> HumanAgent::pan_tile( point const tile ) {
   co_await land_view().ensure_visible( tile );
 }
 
-wait<> HumanEuroAgent::pan_unit( UnitId const unit_id ) {
+wait<> HumanAgent::pan_unit( UnitId const unit_id ) {
   co_await land_view().ensure_visible_unit( unit_id );
 }
 
-wait<string> HumanEuroAgent::name_new_world() {
+wait<string> HumanAgent::name_new_world() {
   co_return co_await gui_.required_string_input(
       { .msg = "You've discovered the new world!  What shall "
                "we call this land, Your Excellency?",
@@ -163,8 +162,7 @@ wait<string> HumanEuroAgent::name_new_world() {
                             .new_world_name } );
 }
 
-wait<ui::e_confirm>
-HumanEuroAgent::should_king_transport_treasure(
+wait<ui::e_confirm> HumanAgent::should_king_transport_treasure(
     std::string const& msg ) {
   YesNoConfig const config{
     .msg            = msg,
@@ -177,13 +175,13 @@ HumanEuroAgent::should_king_transport_treasure(
   co_return choice.value_or( ui::e_confirm::no );
 }
 
-wait<chrono::microseconds> HumanEuroAgent::wait_for(
+wait<chrono::microseconds> HumanAgent::wait_for(
     chrono::milliseconds const us ) {
   co_return co_await gui_.wait_for( us );
 }
 
 wait<ui::e_confirm>
-HumanEuroAgent::should_explore_ancient_burial_mounds() {
+HumanAgent::should_explore_ancient_burial_mounds() {
   ui::e_confirm const res = co_await gui_.required_yes_no(
       { .msg = "You stumble across some mysterious ancient "
                "burial mounds.  Explore them?",
@@ -193,11 +191,11 @@ HumanEuroAgent::should_explore_ancient_burial_mounds() {
   co_return res;
 }
 
-command HumanEuroAgent::ask_orders( UnitId const ) {
+command HumanAgent::ask_orders( UnitId const ) {
   SHOULD_NOT_BE_HERE;
 }
 
-wait<ui::e_confirm> HumanEuroAgent::kiss_pinky_ring(
+wait<ui::e_confirm> HumanAgent::kiss_pinky_ring(
     string const& msg, ColonyId const colony_id,
     e_commodity const type, int const /*tax_increase*/ ) {
   string const party =
@@ -214,7 +212,7 @@ wait<ui::e_confirm> HumanEuroAgent::kiss_pinky_ring(
 }
 
 wait<ui::e_confirm>
-HumanEuroAgent::attack_with_partial_movement_points(
+HumanAgent::attack_with_partial_movement_points(
     UnitId const unit_id ) {
   Unit const& unit = ss_.units.unit_for( unit_id );
   auto const res   = co_await gui_.optional_yes_no(
@@ -227,7 +225,7 @@ HumanEuroAgent::attack_with_partial_movement_points(
   co_return res.value_or( ui::e_confirm::no );
 }
 
-wait<ui::e_confirm> HumanEuroAgent::should_attack_natives(
+wait<ui::e_confirm> HumanAgent::should_attack_natives(
     e_tribe const tribe ) {
   YesNoConfig const config{
     .msg = fmt::format(
@@ -241,7 +239,7 @@ wait<ui::e_confirm> HumanEuroAgent::should_attack_natives(
   co_return proceed.value_or( ui::e_confirm::no );
 }
 
-wait<maybe<int>> HumanEuroAgent::pick_dump_cargo(
+wait<maybe<int>> HumanAgent::pick_dump_cargo(
     map<int /*slot*/, Commodity> const& options ) {
   ChoiceConfig config{
     .msg     = "What cargo would you like to dump overboard?",
@@ -269,7 +267,7 @@ wait<maybe<int>> HumanEuroAgent::pick_dump_cargo(
 }
 
 wait<e_native_land_grab_result>
-HumanEuroAgent::should_take_native_land(
+HumanAgent::should_take_native_land(
     string const& msg,
     enum_map<e_native_land_grab_result, string> const& names,
     enum_map<e_native_land_grab_result, bool> const& disabled ) {
@@ -282,7 +280,7 @@ HumanEuroAgent::should_take_native_land(
   co_return res.value_or( e_native_land_grab_result::cancel );
 }
 
-wait<ui::e_confirm> HumanEuroAgent::confirm_disband_unit(
+wait<ui::e_confirm> HumanAgent::confirm_disband_unit(
     UnitId const unit_id ) {
   auto const viz_ = create_visibility_for(
       ss_, player_for_role( ss_, e_player_role::viewer ) );
@@ -295,8 +293,7 @@ wait<ui::e_confirm> HumanEuroAgent::confirm_disband_unit(
                                     : ui::e_confirm::no;
 }
 
-wait<ui::e_confirm>
-HumanEuroAgent::confirm_build_inland_colony() {
+wait<ui::e_confirm> HumanAgent::confirm_build_inland_colony() {
   YesNoConfig const config{
     .msg =
         "Your Excellency, this square does not have [ocean "
@@ -311,7 +308,7 @@ HumanEuroAgent::confirm_build_inland_colony() {
   co_return answer.value_or( ui::e_confirm::no );
 }
 
-wait<maybe<std::string>> HumanEuroAgent::name_colony() {
+wait<maybe<std::string>> HumanAgent::name_colony() {
   maybe<string> colony_name;
   while( true ) {
     colony_name = co_await gui_.optional_string_input(
@@ -326,7 +323,7 @@ wait<maybe<std::string>> HumanEuroAgent::name_colony() {
   }
 }
 
-wait<ui::e_confirm> HumanEuroAgent::should_make_landfall(
+wait<ui::e_confirm> HumanAgent::should_make_landfall(
     bool const some_units_already_moved ) {
   string msg = "Would you like to make landfall?";
   if( some_units_already_moved )
@@ -342,7 +339,7 @@ wait<ui::e_confirm> HumanEuroAgent::should_make_landfall(
   co_return answer.value_or( ui::e_confirm::no );
 }
 
-wait<ui::e_confirm> HumanEuroAgent::should_sail_high_seas() {
+wait<ui::e_confirm> HumanAgent::should_sail_high_seas() {
   auto const res = co_await gui_.optional_yes_no(
       { .msg       = "Would you like to sail the high seas?",
         .yes_label = "Yes, steady as she goes!",

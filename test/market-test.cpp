@@ -16,7 +16,7 @@
 // Testing
 #include "test/fake/world.hpp"
 #include "test/mocking.hpp"
-#include "test/mocks/ieuro-agent.hpp"
+#include "test/mocks/iagent.hpp"
 
 // config
 #include "config/market.rds.hpp"
@@ -112,8 +112,8 @@ TEST_CASE( "[market] display_price_change_notification" ) {
   W.set_current_bid_price( e_commodity::ore, 10 );
 
   auto f = [&] {
-    return display_price_change_notification(
-        player, W.euro_agent(), change );
+    return display_price_change_notification( player, W.agent(),
+                                              change );
   };
 
   change = {};
@@ -123,7 +123,7 @@ TEST_CASE( "[market] display_price_change_notification" ) {
 
   change = create_price_change( W.ss(), W.default_player(),
                                 e_commodity::ore, 3 );
-  W.euro_agent( player.type )
+  W.agent( player.type )
       .EXPECT__message_box(
           "The price of [ore] in La Rochelle has risen to 13." )
       .returns( make_wait<>() );
@@ -133,7 +133,7 @@ TEST_CASE( "[market] display_price_change_notification" ) {
 
   change = create_price_change( W.ss(), W.default_player(),
                                 e_commodity::ore, -1 );
-  W.euro_agent( player.type )
+  W.agent( player.type )
       .EXPECT__message_box(
           "The price of [ore] in La Rochelle has fallen to 9." )
       .returns( make_wait<>() );

@@ -22,7 +22,7 @@
 #include "construction.hpp"
 #include "damaged.hpp"
 #include "harbor-units.hpp"
-#include "ieuro-agent.hpp"
+#include "iagent.hpp"
 #include "immigration.hpp"
 #include "land-view.hpp"
 #include "map-square.hpp"
@@ -510,7 +510,7 @@ wait<> run_colony_destruction( SS& ss, TS& ts, Colony& colony,
   // Must extract this info before destroying the colony.
   string const colony_name     = colony.name;
   e_player const colony_player = colony.player;
-  IEuroAgent& agent            = ts.euro_agents()[colony.player];
+  IAgent& agent                = ts.agents()[colony.player];
   // In case it hasn't already been done...
   ColonyDestructionOutcome const outcome =
       destroy_colony( ss, ts, colony );

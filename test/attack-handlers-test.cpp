@@ -16,8 +16,8 @@
 
 // Testing
 #include "test/fake/world.hpp"
+#include "test/mocks/iagent.hpp"
 #include "test/mocks/icombat.hpp"
-#include "test/mocks/ieuro-agent.hpp"
 #include "test/mocks/igui.hpp"
 #include "test/mocks/inative-agent.hpp"
 #include "test/mocks/land-view-plane.hpp"
@@ -190,13 +190,13 @@ struct World : testing::World {
   // redundant tests and to make these tests less fragile against
   // changes to those messages.
   void expect_msg_equals( e_player player, string_view msg ) {
-    euro_agent( player ).EXPECT__message_box( string( msg ) );
+    agent( player ).EXPECT__message_box( string( msg ) );
   }
 
   template<typename... Args>
   void expect_msg_contains( e_player player,
                             Args&&... fragments ) {
-    euro_agent( player ).EXPECT__message_box(
+    agent( player ).EXPECT__message_box(
         AllOf( StrContains( string( fragments ) )... ) );
   }
 
@@ -238,7 +238,7 @@ struct World : testing::World {
   void expect_tribe_wiped_out(
       string_view tribe_name,
       e_player const player = kAttackingPlayer ) {
-    euro_agent( player ).EXPECT__message_box( fmt::format(
+    agent( player ).EXPECT__message_box( fmt::format(
         "The [{}] tribe has been wiped out.", tribe_name ) );
   }
 
@@ -247,7 +247,7 @@ struct World : testing::World {
       CapturableCargo const& capturable ) {
     Unit& dst_unit              = units().unit_for( dst );
     e_player const taker_player = dst_unit.player_type();
-    auto& taker_agent           = euro_agent( taker_player );
+    auto& taker_agent           = agent( taker_player );
     taker_agent
         .EXPECT__select_commodities_to_capture( src, dst,
                                                 capturable )
@@ -282,8 +282,7 @@ TEST_CASE(
   W.create_default_map();
   CommandHandlerRunResult expected = { .order_was_run = false };
   CombatEuroAttackEuro combat;
-  MockIEuroAgent& attacker_agent =
-      W.euro_agent( W.kAttackingPlayer );
+  MockIAgent& attacker_agent = W.agent( W.kAttackingPlayer );
 
   auto expect_combat = [&] {
     W.combat()
@@ -675,7 +674,7 @@ TEST_CASE( "[attack-handlers] attack_native_unit_handler" ) {
                         NativeUnitCombatOutcome::destroyed{} } };
     tie( combat.attacker.id, combat.defender.id ) = W.add_pair(
         e_unit_type::soldier, e_native_unit_type::brave );
-    W.euro_agent( W.kAttackingPlayer )
+    W.agent( W.kAttackingPlayer )
         .EXPECT__should_attack_natives( W.kNativeTribe )
         .returns( ui::e_confirm::no );
     expected = { .order_was_run = false };
@@ -704,7 +703,7 @@ TEST_CASE( "[attack-handlers] attack_native_unit_handler" ) {
                         NativeUnitCombatOutcome::destroyed{} } };
     tie( combat.attacker.id, combat.defender.id ) = W.add_pair(
         e_unit_type::soldier, e_native_unit_type::brave );
-    W.euro_agent( W.kAttackingPlayer )
+    W.agent( W.kAttackingPlayer )
         .EXPECT__should_attack_natives( W.kNativeTribe )
         .returns( ui::e_confirm::yes );
     expect_combat();
@@ -2094,7 +2093,7 @@ TEST_CASE( "[attack-handlers] naval_battle_handler" ) {
                                                e_commodity::silver,
                                            .quantity = 100 } } },
           .max_take = 2 } );
-    W.euro_agent( W.kDefendingPlayer )
+    W.agent( W.kDefendingPlayer )
         .EXPECT__notify_captured_cargo(
             W.expect_defending_player(),
             W.expect_attacking_player(),
@@ -2273,14 +2272,14 @@ TEST_CASE( "[attack-handlers] naval_battle_handler" ) {
                     },
               },
           .max_take = 3 } );
-    W.euro_agent( W.kAttackingPlayer )
+    W.agent( W.kAttackingPlayer )
         .EXPECT__notify_captured_cargo(
             W.expect_attacking_player(),
             W.expect_defending_player(),
             W.expect_unit_of_type( e_unit_type::merchantman ),
             Commodity{ .type     = e_commodity::lumber,
                        .quantity = 20 } );
-    W.euro_agent( W.kAttackingPlayer )
+    W.agent( W.kAttackingPlayer )
         .EXPECT__notify_captured_cargo(
             W.expect_attacking_player(),
             W.expect_defending_player(),

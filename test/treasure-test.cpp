@@ -15,7 +15,7 @@
 
 // Testing
 #include "test/fake/world.hpp"
-#include "test/mocks/ieuro-agent.hpp"
+#include "test/mocks/iagent.hpp"
 #include "test/mocks/irand.hpp"
 
 // Revolution Now
@@ -185,14 +185,14 @@ TEST_CASE( "[treasure] apply_treasure_reimbursement" ) {
 
 TEST_CASE( "[treasure] show_treasure_receipt" ) {
   World W;
-  Player const& player  = W.default_player();
-  MockIEuroAgent& agent = W.euro_agent();
+  Player const& player = W.default_player();
+  MockIAgent& agent    = W.agent();
   TreasureReceipt receipt;
   string msg;
 
   auto f = [&] {
     wait<> w =
-        show_treasure_receipt( player, W.euro_agent(), receipt );
+        show_treasure_receipt( player, W.agent(), receipt );
     REQUIRE( !w.exception() );
     REQUIRE( w.ready() );
   };
@@ -239,9 +239,9 @@ TEST_CASE( "[treasure] show_treasure_receipt" ) {
 
 TEST_CASE( "[treasure] treasure_enter_colony" ) {
   World W;
-  Player& player        = W.default_player();
-  MockIEuroAgent& agent = W.euro_agent();
-  Unit& unit            = W.add_unit_on_map(
+  Player& player    = W.default_player();
+  MockIAgent& agent = W.agent();
+  Unit& unit        = W.add_unit_on_map(
       UnitComposition::create(
           e_unit_type::treasure,
           { { e_unit_inventory::gold, 100 } } )
@@ -253,7 +253,7 @@ TEST_CASE( "[treasure] treasure_enter_colony" ) {
 
   auto f = [&] {
     wait<maybe<TreasureReceipt>> w = treasure_enter_colony(
-        W.ss(), W.default_player(), W.euro_agent(), unit );
+        W.ss(), W.default_player(), W.agent(), unit );
     REQUIRE( !w.exception() );
     REQUIRE( w.ready() );
     return *w;

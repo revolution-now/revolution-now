@@ -16,8 +16,8 @@
 // Testing.
 #include "test/fake/world.hpp"
 #include "test/mocking.hpp"
+#include "test/mocks/iagent.hpp"
 #include "test/mocks/iengine.hpp"
-#include "test/mocks/ieuro-agent.hpp"
 #include "test/mocks/render/itextometer.hpp"
 #include "test/util/coro.hpp"
 
@@ -62,7 +62,7 @@ struct World : testing::World {
 *****************************************************************/
 TEST_CASE( "[command-disband] confirm+perform" ) {
   World W;
-  MockIEuroAgent& agent = W.euro_agent();
+  MockIAgent& agent = W.agent();
   rr::MockTextometer textometer;
   W.engine().EXPECT__textometer().by_default().returns(
       textometer );
@@ -72,9 +72,9 @@ TEST_CASE( "[command-disband] confirm+perform" ) {
   unique_ptr<CommandHandler> cmd;
 
   auto confirm = [&] {
-    cmd = handle_command( W.engine(), W.ss(), W.ts(),
-                          W.euro_agent(), W.default_player(),
-                          unit_id, command::disband{} );
+    cmd = handle_command( W.engine(), W.ss(), W.ts(), W.agent(),
+                          W.default_player(), unit_id,
+                          command::disband{} );
     return co_await_test( cmd->confirm() );
   };
 
@@ -266,7 +266,7 @@ TEST_CASE( "[command-disband] confirm+perform" ) {
 TEST_CASE(
     "[command-disband] confirmation box has 'no' first" ) {
   World W;
-  MockIEuroAgent& agent = W.euro_agent();
+  MockIAgent& agent = W.agent();
   rr::MockTextometer textometer;
   W.engine().EXPECT__textometer().by_default().returns(
       textometer );
@@ -276,9 +276,9 @@ TEST_CASE(
                              .id();
 
   auto confirm = [&] {
-    auto handler = handle_command(
-        W.engine(), W.ss(), W.ts(), W.euro_agent(),
-        W.default_player(), unit_id, command::disband{} );
+    auto handler = handle_command( W.engine(), W.ss(), W.ts(),
+                                   W.agent(), W.default_player(),
+                                   unit_id, command::disband{} );
     return co_await_test( handler->confirm() );
   };
 

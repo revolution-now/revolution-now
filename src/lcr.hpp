@@ -21,7 +21,7 @@
 
 namespace rn {
 
-struct IEuroAgent;
+struct IAgent;
 struct ILandViewPlane;
 struct IMapUpdater;
 struct IRand;
@@ -49,8 +49,7 @@ enum class e_unit_type;
 // amounts.
 wait<LostCityRumorUnitChange> run_lcr(
     SS& ss, ILandViewPlane& land_view, IMapUpdater& map_updater,
-    IRand& rand, Player& player, IEuroAgent& agent,
-    Unit const& unit, Coord world_square,
-    LostCityRumor const& rumor );
+    IRand& rand, Player& player, IAgent& agent, Unit const& unit,
+    Coord world_square, LostCityRumor const& rumor );
 
 } // namespace rn

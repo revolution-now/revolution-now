@@ -26,7 +26,7 @@
 
 namespace rn {
 
-struct IEuroAgent;
+struct IAgent;
 struct Player;
 struct SS;
 struct SSConst;
@@ -64,7 +64,7 @@ void apply_invoice( SS& ss, Player& player,
 // Just displays a message saying how and in which country the
 // eprice changed.
 wait<> display_price_change_notification(
-    Player const& player, IEuroAgent& agent,
+    Player const& player, IAgent& agent,
     PriceChange const& change );
 
 // This will evolve non-price market state for the commodities

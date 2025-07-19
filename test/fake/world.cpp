@@ -11,10 +11,10 @@
 #include "world.hpp"
 
 // Testing
+#include "test/mocks/iagent.hpp"
 #include "test/mocks/icolony-viewer.hpp"
 #include "test/mocks/icombat.hpp"
 #include "test/mocks/iengine.hpp"
-#include "test/mocks/ieuro-agent.hpp"
 #include "test/mocks/igui.hpp"
 #include "test/mocks/inative-agent.hpp"
 #include "test/mocks/irand.hpp"
@@ -136,15 +136,15 @@ NativeAgents& World::native_agents() {
   return *uninitialized_native_agents_;
 }
 
-EuroAgents& World::euro_agents() {
-  if( uninitialized_euro_agents_ == nullptr )
-    uninitialized_euro_agents_ = [] {
-      unordered_map<e_player, unique_ptr<IEuroAgent>> holder;
+Agents& World::agents() {
+  if( uninitialized_agents_ == nullptr )
+    uninitialized_agents_ = [] {
+      unordered_map<e_player, unique_ptr<IAgent>> holder;
       for( e_player const player : refl::enum_values<e_player> )
-        holder[player] = make_unique<MockIEuroAgent>( player );
-      return make_unique<EuroAgents>( std::move( holder ) );
+        holder[player] = make_unique<MockIAgent>( player );
+      return make_unique<Agents>( std::move( holder ) );
     }();
-  return *uninitialized_euro_agents_;
+  return *uninitialized_agents_;
 }
 
 MockINativeAgent& World::native_agent( e_tribe tribe ) {
@@ -152,9 +152,9 @@ MockINativeAgent& World::native_agent( e_tribe tribe ) {
       native_agents()[tribe] );
 }
 
-MockIEuroAgent& World::euro_agent( maybe<e_player> player ) {
-  return static_cast<MockIEuroAgent&>(
-      euro_agents()[player.value_or( default_player_type_ )] );
+MockIAgent& World::agent( maybe<e_player> player ) {
+  return static_cast<MockIAgent&>(
+      agents()[player.value_or( default_player_type_ )] );
 }
 
 Planes& World::planes() {
@@ -225,7 +225,7 @@ TS* make_ts( World& world ) {
       world.ss_saved().root, world.connectivity() );
   ts->set_map_updater_no_restore( world.map_updater() );
   ts->set_native_agents_no_restore( world.native_agents() );
-  ts->set_euro_agents_no_restore( world.euro_agents() );
+  ts->set_agents_no_restore( world.agents() );
   return ts;
 }
 

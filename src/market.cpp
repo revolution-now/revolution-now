@@ -14,7 +14,7 @@
 #include "agents.hpp"
 #include "co-wait.hpp"
 #include "commodity.hpp"
-#include "ieuro-agent.hpp"
+#include "iagent.hpp"
 #include "player-mgr.hpp"
 #include "price-group.hpp"
 
@@ -524,7 +524,7 @@ void apply_invoice( SS& ss, Player& player,
 }
 
 wait<> display_price_change_notification(
-    Player const& player, IEuroAgent& agent,
+    Player const& player, IAgent& agent,
     PriceChange const& change ) {
   if( change.from == change.to ) co_return;
   string const harbor_name =

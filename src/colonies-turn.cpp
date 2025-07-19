@@ -19,8 +19,8 @@
 #include "damaged.rds.hpp"
 #include "harbor-units.hpp"
 #include "harbor-view.hpp"
+#include "iagent.hpp"
 #include "icolony-evolve.rds.hpp"
-#include "ieuro-agent.hpp"
 #include "igui.hpp"
 #include "immigration.hpp"
 #include "isignal.hpp"
@@ -61,7 +61,7 @@ struct ColonyNotificationWithMessage {
 
 // Returns true if the user wants to open the colony view.
 wait<bool> present_blocking_colony_update(
-    IEuroAgent& agent, IGui& gui,
+    IAgent& agent, IGui& gui,
     ColonyNotificationWithMessage const& msg,
     bool const ask_to_zoom ) {
   if( ask_to_zoom && agent.human() ) {
@@ -86,7 +86,7 @@ wait<bool> present_blocking_colony_update(
 // lect yes (if they ever do) then subsequent messages will still
 // be displayed but will not ask them.
 wait<bool> present_blocking_colony_updates(
-    IEuroAgent& agent, IGui& gui,
+    IAgent& agent, IGui& gui,
     vector<ColonyNotificationWithMessage> const& messages ) {
   bool should_zoom = false;
   for( auto const& message : messages ) {
@@ -102,7 +102,7 @@ wait<bool> present_blocking_colony_updates(
 // transient pop-up (i.e., the window that is non-blocking, takes
 // no input, and fades away on its own).
 void present_transient_updates(
-    IEuroAgent& agent,
+    IAgent& agent,
     vector<ColonyNotificationWithMessage> const& messages ) {
   for( auto const& [notification, msg] : messages )
     agent.signal( signal::ColonySignalTransient{
@@ -123,7 +123,7 @@ void give_new_crosses_to_player(
 
 wait<> run_colony_starvation( SS& ss, TS& ts, Colony& colony ) {
   // Must extract this info before destroying the colony.
-  IEuroAgent& agent = ts.euro_agents()[colony.player];
+  IAgent& agent = ts.agents()[colony.player];
   agent.signal( signal::ColonyDestroyedByStarvation{
     .colony_id = colony.id } );
   string const msg = fmt::format(
@@ -162,7 +162,7 @@ wait<> evolve_colonies_for_player(
     IColonyNotificationGenerator const&
         colony_notification_generator ) {
   e_player const player_type = player.type;
-  IEuroAgent& agent          = ts.euro_agents()[player_type];
+  IAgent& agent              = ts.agents()[player_type];
   lg.info( "processing colonies for the {}.", player_type );
   unordered_map<ColonyId, Colony> const& colonies_all =
       ss.colonies.all();

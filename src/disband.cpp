@@ -533,7 +533,7 @@ wait<> execute_disband( SS& ss, TS& ts, Player const& player,
 
   if( destroy_tribe.has_value() )
     co_await destroy_tribe_interactive(
-        ss, ts.euro_agents()[player.type], ts.map_updater(),
+        ss, ts.agents()[player.type], ts.map_updater(),
         *destroy_tribe );
 }
 

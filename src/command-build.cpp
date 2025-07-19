@@ -15,7 +15,7 @@
 #include "colony-mgr.hpp"
 #include "colony-view.hpp"
 #include "connectivity.hpp"
-#include "ieuro-agent.hpp"
+#include "iagent.hpp"
 #include "maybe.hpp"
 #include "ts.hpp"
 #include "woodcut.hpp"
@@ -36,8 +36,8 @@ namespace rn {
 namespace {
 
 struct BuildHandler : public CommandHandler {
-  BuildHandler( SS& ss, TS& ts, IEuroAgent& agent,
-                Player& player, UnitId unit_id_ )
+  BuildHandler( SS& ss, TS& ts, IAgent& agent, Player& player,
+                UnitId unit_id_ )
     : ss_( ss ),
       ts_( ts ),
       player_( player ),
@@ -129,7 +129,7 @@ struct BuildHandler : public CommandHandler {
   SS& ss_;
   TS& ts_;
   Player& player_;
-  IEuroAgent& agent_;
+  IAgent& agent_;
 
   UnitId unit_id;
 
@@ -143,7 +143,7 @@ struct BuildHandler : public CommandHandler {
 ** Public API
 *****************************************************************/
 unique_ptr<CommandHandler> handle_command(
-    IEngine&, SS& ss, TS& ts, IEuroAgent& agent, Player& player,
+    IEngine&, SS& ss, TS& ts, IAgent& agent, Player& player,
     UnitId id, command::build const& ) {
   return make_unique<BuildHandler>( ss, ts, agent, player, id );
 }

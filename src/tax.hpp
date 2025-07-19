@@ -23,7 +23,7 @@
 
 namespace rn {
 
-struct IEuroAgent;
+struct IAgent;
 struct IGui;
 struct IRand;
 struct Player;
@@ -44,7 +44,7 @@ TaxUpdateComputation compute_tax_change(
 // dicates the changes that actually need to be made, and in gen-
 // eral this requires UI routines and player input.
 wait<TaxChangeResult> prompt_for_tax_change_result(
-    SS& ss, IRand& rand, Player& player, IEuroAgent& agent,
+    SS& ss, IRand& rand, Player& player, IAgent& agent,
     TaxChangeProposal const& proposal );
 
 // Takes the TaxChangeResult object and applies any changes
@@ -58,7 +58,7 @@ void apply_tax_result( SS& ss, Player& player,
 // makes any changes if necessary.
 wait<> start_of_turn_tax_check(
     SS& ss, IRand& rand, TerrainConnectivity const& connectivity,
-    Player& player, IEuroAgent& agent );
+    Player& player, IAgent& agent );
 
 // If this commodity were currently boycotted then how much back-
 // taxes would the player have to pay to remove it?

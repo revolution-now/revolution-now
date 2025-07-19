@@ -15,7 +15,7 @@
 
 // Testing.
 #include "test/fake/world.hpp"
-#include "test/mocks/ieuro-agent.hpp"
+#include "test/mocks/iagent.hpp"
 #include "test/util/coro.hpp"
 
 // ss
@@ -363,8 +363,7 @@ TEST_CASE( "[ref] ref_unit_to_unit_type" ) {
 TEST_CASE( "[ref] add_ref_unit_ui_seq" ) {
   world w;
 
-  MockIEuroAgent& mock_agent =
-      w.euro_agent( w.default_player_type() );
+  MockIAgent& mock_agent = w.agent( w.default_player_type() );
 
   auto const f = [&]( e_expeditionary_force_type const type ) {
     co_await_test( add_ref_unit_ui_seq( mock_agent, type ) );

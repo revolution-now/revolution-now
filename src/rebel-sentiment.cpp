@@ -13,7 +13,7 @@
 // Revolution Now
 #include "co-wait.hpp"
 #include "colony-mgr.hpp"
-#include "ieuro-agent.hpp"
+#include "iagent.hpp"
 #include "isignal.rds.hpp"
 #include "sons-of-liberty.hpp"
 
@@ -138,7 +138,7 @@ bool should_show_rebel_sentiment_report(
 }
 
 wait<> show_rebel_sentiment_change_report(
-    Player& player, IEuroAgent& agent,
+    Player& player, IAgent& agent,
     RebelSentimentChangeReport const& report ) {
   auto const& country =
       config_nation.nations[nation_for( agent.player_type() )]

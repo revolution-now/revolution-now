@@ -14,7 +14,7 @@
 // Revolution Now
 #include "co-wait.hpp"
 #include "commodity.hpp"
-#include "ieuro-agent.hpp"
+#include "iagent.hpp"
 
 // config
 #include "config/unit-type.rds.hpp"
@@ -40,7 +40,7 @@ namespace rn {
 namespace {
 
 struct DumpHandler : public CommandHandler {
-  DumpHandler( SS& ss, IEuroAgent& agent, UnitId unit_id )
+  DumpHandler( SS& ss, IAgent& agent, UnitId unit_id )
     : ss_( ss ), agent_( agent ), unit_id_( unit_id ) {}
 
   wait<bool> confirm() override {
@@ -94,7 +94,7 @@ struct DumpHandler : public CommandHandler {
   }
 
   SS& ss_;
-  IEuroAgent& agent_;
+  IAgent& agent_;
   UnitId unit_id_ = {};
   // These are only relevant if the action is confirmed.
   int slot_            = 0;
@@ -107,7 +107,7 @@ struct DumpHandler : public CommandHandler {
 ** Public API
 *****************************************************************/
 unique_ptr<CommandHandler> handle_command(
-    IEngine&, SS& ss, TS&, IEuroAgent& agent, Player&, UnitId id,
+    IEngine&, SS& ss, TS&, IAgent& agent, Player&, UnitId id,
     command::dump const& ) {
   return make_unique<DumpHandler>( ss, agent, id );
 }

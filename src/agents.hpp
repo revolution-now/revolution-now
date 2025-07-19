@@ -17,7 +17,7 @@
 namespace rn {
 
 struct IEngine;
-struct IEuroAgent;
+struct IAgent;
 struct IGui;
 struct INativeAgent;
 struct IRand;
@@ -55,30 +55,30 @@ struct NativeAgents {
 };
 
 /****************************************************************
-** EuroAgents
+** Agents
 *****************************************************************/
-struct EuroAgents {
+struct Agents {
   // Use unordered_map instead of enum_map so that we can use a
   // forward-declared enum key.
   using AgentsMap =
-      std::unordered_map<e_player, std::unique_ptr<IEuroAgent>>;
+      std::unordered_map<e_player, std::unique_ptr<IAgent>>;
 
-  EuroAgents() = default;
+  Agents() = default;
 
-  EuroAgents& operator=( EuroAgents&& ) noexcept;
+  Agents& operator=( Agents&& ) noexcept;
 
   // Have this defined in the cpp allows us to use the
-  // forward-declared IEuroAgent in a unique_ptr.
-  ~EuroAgents();
+  // forward-declared IAgent in a unique_ptr.
+  ~Agents();
 
-  EuroAgents( AgentsMap agents );
+  Agents( AgentsMap agents );
 
-  IEuroAgent& operator[]( e_player player ) const;
+  IAgent& operator[]( e_player player ) const;
 
   AgentsMap const& map() const;
 
   void update( e_player const player,
-               std::unique_ptr<IEuroAgent> agent );
+               std::unique_ptr<IAgent> agent );
 
  private:
   // We don't use enum map here because it has some constraints
@@ -89,14 +89,12 @@ struct EuroAgents {
 /****************************************************************
 ** Public API.
 *****************************************************************/
-std::unique_ptr<IEuroAgent> create_euro_agent( IEngine& engine,
-                                               SS& ss,
-                                               Planes& planes,
-                                               IGui& gui,
-                                               e_player player );
+std::unique_ptr<IAgent> create_agent( IEngine& engine, SS& ss,
+                                      Planes& planes, IGui& gui,
+                                      e_player player );
 
-EuroAgents create_euro_agents( IEngine& engine, SS& ss,
-                               Planes& planes, IGui& gui );
+Agents create_agents( IEngine& engine, SS& ss, Planes& planes,
+                      IGui& gui );
 
 NativeAgents create_native_agents( SS& ss, IRand& rand );
 

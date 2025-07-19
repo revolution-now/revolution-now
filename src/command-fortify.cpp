@@ -12,7 +12,7 @@
 
 // Revolution Now
 #include "co-wait.hpp"
-#include "ieuro-agent.hpp"
+#include "iagent.hpp"
 #include "unit-mgr.hpp"
 
 // ss
@@ -26,7 +26,7 @@ namespace rn {
 namespace {
 
 struct FortifyHandler : public CommandHandler {
-  FortifyHandler( SS& ss, IEuroAgent& agent, UnitId unit_id )
+  FortifyHandler( SS& ss, IAgent& agent, UnitId unit_id )
     : ss_( ss ), agent_( agent ), unit_id_( unit_id ) {}
 
   wait<bool> confirm() override {
@@ -49,7 +49,7 @@ struct FortifyHandler : public CommandHandler {
   }
 
   SS& ss_;
-  IEuroAgent& agent_;
+  IAgent& agent_;
   UnitId unit_id_ = {};
 };
 
@@ -74,13 +74,13 @@ struct SentryHandler : public CommandHandler {
 ** Public API
 *****************************************************************/
 unique_ptr<CommandHandler> handle_command(
-    IEngine&, SS& ss, TS&, IEuroAgent& agent, Player&, UnitId id,
+    IEngine&, SS& ss, TS&, IAgent& agent, Player&, UnitId id,
     command::fortify const& ) {
   return make_unique<FortifyHandler>( ss, agent, id );
 }
 
 unique_ptr<CommandHandler> handle_command(
-    IEngine&, SS& ss, TS&, IEuroAgent&, Player&, UnitId id,
+    IEngine&, SS& ss, TS&, IAgent&, Player&, UnitId id,
     command::sentry const& ) {
   return make_unique<SentryHandler>( ss, id );
 }

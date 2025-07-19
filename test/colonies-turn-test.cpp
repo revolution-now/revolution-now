@@ -16,7 +16,7 @@
 // Testing.
 #include "test/fake/world.hpp"
 #include "test/mocking.hpp"
-#include "test/mocks/ieuro-agent.hpp"
+#include "test/mocks/iagent.hpp"
 #include "test/mocks/igui.hpp"
 #include "test/mocks/iharbor-viewer.hpp"
 #include "test/mocks/irand.hpp"
@@ -101,7 +101,7 @@ TEST_CASE( "[colonies-turn] presents transient updates." ) {
         harbor_viewer, mock_colony_notification_generator ) );
   };
 
-  MockIEuroAgent& agent = w.euro_agent();
+  MockIAgent& agent = w.agent();
   agent.EXPECT__human().by_default().returns( true );
 
   SECTION( "without updates" ) {

@@ -15,7 +15,7 @@
 
 // Testing.
 #include "test/fake/world.hpp"
-#include "test/mocks/ieuro-agent.hpp"
+#include "test/mocks/iagent.hpp"
 #include "test/util/coro.hpp"
 
 // ss
@@ -293,12 +293,12 @@ TEST_CASE(
   world w;
   RebelSentimentChangeReport report;
 
-  auto& agent          = w.euro_agent( e_player::french );
+  auto& agent          = w.agent( e_player::french );
   Player const& player = w.french();
 
   auto const f = [&] {
     co_await_test( show_rebel_sentiment_change_report(
-        w.french(), w.euro_agent( e_player::french ), report ) );
+        w.french(), w.agent( e_player::french ), report ) );
   };
 
   REQUIRE( player.revolution.last_reported_rebel_sentiment ==

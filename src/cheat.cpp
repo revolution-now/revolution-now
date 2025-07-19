@@ -22,9 +22,9 @@
 #include "fathers.hpp"
 #include "fog-conv.hpp"
 #include "game-options.hpp"
+#include "iagent.hpp"
 #include "icolony-evolve.rds.hpp"
 #include "iengine.hpp"
-#include "ieuro-agent.hpp"
 #include "igui.hpp"
 #include "imap-updater.hpp"
 #include "imenu-server.hpp"
@@ -390,9 +390,9 @@ wait<> cheat_set_player_control( IEngine& engine, SS& ss,
 
   for( auto const& [type, needs_update] : changed )
     if( needs_update )
-      ts.euro_agents().update(
-          type, create_euro_agent( engine, ss, ts.planes, ts.gui,
-                                   type ) );
+      ts.agents().update(
+          type,
+          create_agent( engine, ss, ts.planes, ts.gui, type ) );
 
   // We do this because we need to back out beyond the individual
   // nation's turn processor in order to handle this configura-
@@ -663,8 +663,8 @@ wait<> kill_natives( SS& ss, TS& ts ) {
           player_for_role( ss, e_player_role::active );
       active.has_value() )
     for( e_tribe const tribe : destroyed )
-      co_await tribe_wiped_out_message(
-          ts.euro_agents()[*active], tribe );
+      co_await tribe_wiped_out_message( ts.agents()[*active],
+                                        tribe );
 }
 
 // In the OG there are four stages to the revolution status:
@@ -704,7 +704,7 @@ wait<> cheat_advance_revolution_status( IEngine& engine, SS& ss,
       .nova = required_sentiment };
     player.revolution.rebel_sentiment = required_sentiment;
     co_await show_rebel_sentiment_change_report(
-        player, ts.euro_agents()[player.type], change_report );
+        player, ts.agents()[player.type], change_report );
     if( should_do_war_of_succession( as_const( ss ),
                                      as_const( player ) ) ) {
       WarOfSuccessionNations const nations =
@@ -794,7 +794,7 @@ wait<> cheat_evolve_market_prices( SS& ss, TS& ts,
   for( e_commodity comm : enum_values<e_commodity> )
     if( changes[comm].delta != 0 )
       co_await display_price_change_notification(
-          player, ts.euro_agents()[player.type], changes[comm] );
+          player, ts.agents()[player.type], changes[comm] );
 }
 
 void cheat_toggle_boycott( SS& ss, Player& player,

@@ -22,8 +22,8 @@
 #include "console.hpp"
 #include "difficulty-screen.hpp"
 #include "frame-count.hpp" // FIXME
+#include "iagent.hpp"
 #include "iengine.hpp"
-#include "ieuro-agent.hpp"
 #include "igui.hpp"
 #include "imenu-server.hpp"
 #include "inative-agent.hpp"
@@ -129,9 +129,8 @@ wait<> run_game( IEngine& engine, Planes& planes, IGui& gui,
 
   // This one needs to run after the loader because it needs to
   // know which nations are human.
-  EuroAgents euro_agents =
-      create_euro_agents( engine, ss, planes, gui );
-  auto _3 = ts.set_euro_agents( euro_agents );
+  Agents agents = create_agents( engine, ss, planes, gui );
+  auto _3       = ts.set_agents( agents );
 
   // After this, any changes to the map that change land to water
   // or vice versa (or change map size) need to be followed up by

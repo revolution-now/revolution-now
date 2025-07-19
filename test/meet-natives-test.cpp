@@ -15,7 +15,7 @@
 
 // Testing
 #include "test/fake/world.hpp"
-#include "test/mocks/ieuro-agent.hpp"
+#include "test/mocks/iagent.hpp"
 #include "test/mocks/igui.hpp"
 #include "test/util/coro.hpp"
 
@@ -448,7 +448,7 @@ TEST_CASE( "[meet-natives] perform_meet_tribe_ui_sequence" ) {
 
   auto f = [&] {
     return co_await_test( perform_meet_tribe_ui_sequence(
-        w.ss(), w.euro_agent(), w.gui(), meet_tribe ) );
+        w.ss(), w.agent(), w.gui(), meet_tribe ) );
   };
 
   meet_tribe = {
@@ -460,7 +460,7 @@ TEST_CASE( "[meet-natives] perform_meet_tribe_ui_sequence" ) {
 
   SECTION( "tupi" ) {
     meet_tribe.tribe = e_tribe::tupi;
-    w.euro_agent().EXPECT__show_woodcut(
+    w.agent().EXPECT__show_woodcut(
         e_woodcut::meeting_the_natives );
 
     ChoiceConfig const choice_config{
@@ -490,9 +490,9 @@ TEST_CASE( "[meet-natives] perform_meet_tribe_ui_sequence" ) {
   SECTION( "aztec" ) {
     meet_tribe.tribe = e_tribe::aztec;
 
-    w.euro_agent().EXPECT__show_woodcut(
+    w.agent().EXPECT__show_woodcut(
         e_woodcut::meeting_the_natives );
-    w.euro_agent().EXPECT__show_woodcut(
+    w.agent().EXPECT__show_woodcut(
         e_woodcut::meeting_the_aztec_empire );
 
     ChoiceConfig const choice_config{
@@ -524,9 +524,9 @@ TEST_CASE( "[meet-natives] perform_meet_tribe_ui_sequence" ) {
         e_revolution_status::declared;
     meet_tribe.tribe = e_tribe::inca;
 
-    w.euro_agent().EXPECT__show_woodcut(
+    w.agent().EXPECT__show_woodcut(
         e_woodcut::meeting_the_natives );
-    w.euro_agent().EXPECT__show_woodcut(
+    w.agent().EXPECT__show_woodcut(
         e_woodcut::meeting_the_inca_nation );
 
     ChoiceConfig const choice_config{

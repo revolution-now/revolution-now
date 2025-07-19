@@ -48,13 +48,9 @@ struct world : testing::World {
 /****************************************************************
 ** Test Cases
 *****************************************************************/
-TEST_CASE( "[show-anim] should_animate_tile" ) {
-  world w;
-}
+TEST_CASE( "[show-anim] should_animate_tile" ) { world w; }
 
-TEST_CASE( "[show-anim] should_animate_seq" ) {
-  world w;
-}
+TEST_CASE( "[show-anim] should_animate_seq" ) { world w; }
 
 } // namespace
 } // namespace rn

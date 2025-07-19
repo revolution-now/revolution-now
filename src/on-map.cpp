@@ -15,7 +15,7 @@
 // Revolution Now
 #include "agents.hpp"
 #include "co-wait.hpp"
-#include "ieuro-agent.hpp"
+#include "iagent.hpp"
 #include "imap-search.rds.hpp"
 #include "imap-updater.hpp"
 #include "land-view.hpp"
@@ -58,7 +58,7 @@ namespace rn {
 namespace {
 
 wait<> try_discover_new_world( SSConst const& ss, Player& player,
-                               IEuroAgent& agent,
+                               IAgent& agent,
                                Coord world_square ) {
   // This field holds the name of the new world given by the
   // player if it has a value (meaning, if the new world has been
@@ -89,8 +89,7 @@ wait<> try_discover_new_world( SSConst const& ss, Player& player,
 }
 
 wait<> try_discover_pacific_ocean( SSConst const& ss,
-                                   Player& player,
-                                   IEuroAgent& agent,
+                                   Player& player, IAgent& agent,
                                    Coord world_square ) {
   for( e_direction d : refl::enum_values<e_direction> ) {
     Coord const coord = world_square.moved( d );
@@ -107,7 +106,7 @@ wait<> try_discover_pacific_ocean( SSConst const& ss,
 // Returns true if the unit was deleted.
 wait<base::NoDiscard<bool>> try_lost_city_rumor(
     SS& ss, ILandViewPlane& land_view, IMapUpdater& map_updater,
-    IRand& rand, Player& player, IEuroAgent& agent, UnitId id,
+    IRand& rand, Player& player, IAgent& agent, UnitId id,
     Coord tile ) {
   // Check if the unit actually moved and it landed on a Lost
   // City Rumor.
@@ -130,7 +129,7 @@ wait<base::NoDiscard<bool>> try_lost_city_rumor(
 // Returns true if the treasure was transported by the king and
 // thus deleted.
 wait<bool> try_king_transport_treasure( SS& ss, Player& player,
-                                        IEuroAgent& agent,
+                                        IAgent& agent,
                                         Unit const& unit,
                                         Coord world_square ) {
   if( unit.type() != e_unit_type::treasure ) co_return false;
@@ -148,8 +147,8 @@ wait<bool> try_king_transport_treasure( SS& ss, Player& player,
   co_return true; // treasure unit deleted.
 }
 
-wait<> try_meet_natives( SS& ss, Player& player,
-                         IEuroAgent& agent, Coord square ) {
+wait<> try_meet_natives( SS& ss, Player& player, IAgent& agent,
+                         Coord square ) {
   vector<MeetTribe> const meet_tribes =
       check_meet_tribes( as_const( ss ), player, square );
   for( MeetTribe const& meet_tribe : meet_tribes ) {
@@ -167,7 +166,7 @@ wait<> try_meet_europeans( SS& ss, TS& ts, e_tribe tribe_type,
   for( MeetTribe const& meet_tribe : meet_tribes ) {
     Player& player = player_for_player_or_die(
         ss.players, meet_tribe.player );
-    IEuroAgent& agent = ts.euro_agents()[meet_tribe.player];
+    IAgent& agent = ts.agents()[meet_tribe.player];
     ScopedMapViewer const _( ss, ts, player.type );
     e_declare_war_on_natives const declare_war =
         co_await agent.meet_tribe_ui_sequence( meet_tribe,
@@ -290,7 +289,7 @@ wait<maybe<UnitDeleted>> UnitOnMapMover::to_map_interactive(
 
   Unit& unit = ss.units.unit_for( id );
   UNWRAP_CHECK( player, ss.players.players[unit.player_type()] );
-  IEuroAgent& agent        = ts.euro_agents()[player.type];
+  IAgent& agent            = ts.agents()[player.type];
   IMapUpdater& map_updater = ts.map_updater();
   IRand& rand              = ts.rand;
   ILandViewPlane& land_view =

@@ -12,7 +12,7 @@
 
 // Revolution Now
 #include "co-wait.hpp"
-#include "ieuro-agent.hpp"
+#include "iagent.hpp"
 #include "irand.hpp"
 #include "player-mgr.hpp"
 #include "ts.hpp"
@@ -89,7 +89,7 @@ TreasureReceipt treasure_in_harbor_receipt(
 }
 
 wait<maybe<TreasureReceipt>> treasure_enter_colony(
-    SSConst const& ss, Player const& player, IEuroAgent& agent,
+    SSConst const& ss, Player const& player, IAgent& agent,
     Unit const& treasure ) {
   if( player.revolution.status >=
       e_revolution_status::declared ) {
@@ -202,7 +202,7 @@ void apply_treasure_reimbursement(
 }
 
 wait<> show_treasure_receipt( Player const& player,
-                              IEuroAgent& agent,
+                              IAgent& agent,
                               TreasureReceipt const& receipt ) {
   string const harbor_name =
       config_nation.nations[player.nation].harbor_city_name;

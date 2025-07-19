@@ -15,7 +15,7 @@ using namespace std;
 
 // Revolution Now
 #include "co-wait.hpp"
-#include "ieuro-agent.hpp"
+#include "iagent.hpp"
 
 // config
 #include "config/revolution.rds.hpp"
@@ -153,8 +153,7 @@ e_unit_type ref_unit_to_unit_type(
 }
 
 wait<> add_ref_unit_ui_seq(
-    IEuroAgent& agent,
-    e_expeditionary_force_type const ref_type ) {
+    IAgent& agent, e_expeditionary_force_type const ref_type ) {
   e_unit_type const unit_type =
       ref_unit_to_unit_type( ref_type );
   auto const& plural_name =

@@ -258,7 +258,7 @@ wait<base::valid_or<DragRejection>> ColonyLandView::sink_check(
   if( native_owned_land_[d] ) {
     bool const has_taken =
         co_await prompt_player_for_taking_native_land(
-            ss_, ts_.euro_agents()[player_.type], player_,
+            ss_, ts_.agents()[player_.type], player_,
             tile_under_cursor,
             e_native_land_grab_type::in_colony );
     if( !has_taken ) co_return DragRejection{};

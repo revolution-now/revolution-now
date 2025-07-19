@@ -1,17 +1,17 @@
 /****************************************************************
-**human-euro-agent-test.cpp
+**human-agent-test.cpp
 *
 * Project: Revolution Now
 *
 * Created by David P. Sicilia on 2025-07-02.
 *
-* Description: Unit tests for the human-euro-agent module.
+* Description: Unit tests for the human-agent module.
 *
 *****************************************************************/
 #include "test/testing.hpp"
 
 // Under test.
-#include "src/human-euro-agent.hpp"
+#include "src/human-agent.hpp"
 
 // Testing.
 #include "test/fake/world.hpp"
@@ -62,13 +62,13 @@ struct world : testing::World {
     build_map( std::move( tiles ), 3 );
   }
 
-  HumanEuroAgent agent_;
+  HumanAgent agent_;
 };
 
 /****************************************************************
 ** Test Cases
 *****************************************************************/
-TEST_CASE( "[human-euro-agent] pick_dump_cargo" ) {
+TEST_CASE( "[human-agent] pick_dump_cargo" ) {
   world w;
   map<int /*slot*/, Commodity> comms;
 
@@ -116,7 +116,7 @@ TEST_CASE( "[human-euro-agent] pick_dump_cargo" ) {
   }
 }
 
-TEST_CASE( "[human-euro-agent] should_take_native_land" ) {
+TEST_CASE( "[human-agent] should_take_native_land" ) {
   world w;
 
   string msg;
@@ -159,7 +159,7 @@ TEST_CASE( "[human-euro-agent] should_take_native_land" ) {
   REQUIRE( f() == e_native_land_grab_result::take );
 }
 
-TEST_CASE( "[human-euro-agent] confirm_build_inland_colony" ) {
+TEST_CASE( "[human-agent] confirm_build_inland_colony" ) {
   world w;
 
   auto const f = [&] [[clang::noinline]] {
@@ -189,7 +189,7 @@ TEST_CASE( "[human-euro-agent] confirm_build_inland_colony" ) {
   REQUIRE( f() == ui::e_confirm::no );
 }
 
-TEST_CASE( "[human-euro-agent] name_colony" ) {
+TEST_CASE( "[human-agent] name_colony" ) {
   world w;
   Colony& colony = w.add_colony( { .x = 1, .y = 1 } );
   colony.name    = "used";
@@ -240,7 +240,7 @@ TEST_CASE( "[human-euro-agent] name_colony" ) {
   }
 }
 
-TEST_CASE( "[human-euro-agent] should_make_landfall" ) {
+TEST_CASE( "[human-agent] should_make_landfall" ) {
   world w;
   bool already_moved = false;
 
@@ -290,7 +290,7 @@ TEST_CASE( "[human-euro-agent] should_make_landfall" ) {
   REQUIRE( f() == ui::e_confirm::no );
 }
 
-TEST_CASE( "[human-euro-agent] should_sail_high_seas" ) {
+TEST_CASE( "[human-agent] should_sail_high_seas" ) {
   world w;
 
   auto const f = [&] [[clang::noinline]] {

@@ -60,7 +60,8 @@ TEST_CASE( "[land-view-anim] AnimSeqOptions default values" ) {
 
 // This test should check that the animate_sequence method sup-
 // presses the animation if should_animate_seq returns false.
-TEST_CASE( "[land-view-anim] animate_sequence checks visibility" ) {
+TEST_CASE(
+    "[land-view-anim] animate_sequence checks visibility" ) {
   world w;
   // TODO
 }

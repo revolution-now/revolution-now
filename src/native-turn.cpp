@@ -16,7 +16,7 @@
 #include "agents.hpp"
 #include "anim-builders.hpp"
 #include "co-wait.hpp"
-#include "ieuro-agent.hpp"
+#include "iagent.hpp"
 #include "inative-agent.hpp"
 #include "iraid.rds.hpp"
 #include "itribe-evolve.rds.hpp"
@@ -83,8 +83,8 @@ wait<> handle_native_unit_attack( SS& ss, TS& ts,
 
   Player& player =
       player_for_player_or_die( ss.players, player_type );
-  IEuroAgent& euro_agent = ts.euro_agents()[player_type];
-  co_await show_woodcut_if_needed( player, euro_agent,
+  IAgent& agent = ts.agents()[player_type];
+  co_await show_woodcut_if_needed( player, agent,
                                    e_woodcut::indian_raid );
 
   if( maybe<ColonyId> const colony_id =
@@ -111,7 +111,7 @@ wait<> handle_native_unit_talk( SS& ss, TS& ts,
 
   Player& player =
       player_for_player_or_die( ss.players, player_type );
-  IEuroAgent& euro_agent = ts.euro_agents()[player_type];
+  IAgent& agent = ts.agents()[player_type];
 
   co_await ts.planes.get()
       .get_bottom<ILandViewPlane>()
@@ -126,7 +126,7 @@ wait<> handle_native_unit_talk( SS& ss, TS& ts,
       config_natives
           .tribes[tribe_type_for_unit( ss, native_unit )]
           .name_singular;
-  co_await euro_agent.message_box(
+  co_await agent.message_box(
       "You've received [5{}] from the [{}].",
       config_text.special_chars.currency, tribe_name );
 

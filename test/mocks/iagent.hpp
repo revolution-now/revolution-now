@@ -1,5 +1,5 @@
 /****************************************************************
-**ieuro-agent.hpp
+**iagent.hpp
 *
 * Project: Revolution Now
 *
@@ -13,7 +13,7 @@
 // Revolution Now
 #include "src/anim-builder.rds.hpp"
 #include "src/capture-cargo.rds.hpp"
-#include "src/ieuro-agent.hpp"
+#include "src/iagent.hpp"
 
 // ss
 #include "src/ss/player.rds.hpp"
@@ -35,10 +35,10 @@
 namespace rn {
 
 /****************************************************************
-** MockIEuroAgent
+** MockIAgent
 *****************************************************************/
-struct MockIEuroAgent : IEuroAgent {
-  MockIEuroAgent( e_player player ) : IEuroAgent( player ) {}
+struct MockIAgent : IAgent {
+  MockIAgent( e_player player ) : IAgent( player ) {}
 
  public:
   MOCK_METHOD( Player const&, player, (), () );
@@ -103,6 +103,6 @@ struct MockIEuroAgent : IEuroAgent {
   MOCK_SIGNAL_HANDLER( void, ColonySignalTransient );
 };
 
-static_assert( !std::is_abstract_v<MockIEuroAgent> );
+static_assert( !std::is_abstract_v<MockIAgent> );
 
 } // namespace rn

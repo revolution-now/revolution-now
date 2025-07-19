@@ -16,7 +16,7 @@
 // Testing
 #include "test/fake/world.hpp"
 #include "test/mocking.hpp"
-#include "test/mocks/ieuro-agent.hpp"
+#include "test/mocks/iagent.hpp"
 #include "test/mocks/irand.hpp"
 #include "test/mocks/land-view-plane.hpp"
 
@@ -130,7 +130,7 @@ TEST_CASE( "[lcr] run_lcr, none" ) {
   // Set players.
   Player& player = W.default_player();
   REQUIRE( player.money == 0 );
-  MockIEuroAgent& agent = W.euro_agent();
+  MockIAgent& agent = W.agent();
 
   MapSquare& square      = W.square( Coord{} );
   square.lost_city_rumor = true;
@@ -152,7 +152,7 @@ TEST_CASE( "[lcr] run_lcr, none" ) {
   // Go
   wait<LostCityRumorUnitChange> lcr_res = run_lcr(
       W.ss(), W.mock_land_view, W.map_updater(), W.rand(),
-      player, W.euro_agent(), W.units().unit_for( unit_id ),
+      player, W.agent(), W.units().unit_for( unit_id ),
       /*move_dst=*/Coord{}, rumor );
 
   // Make sure that we finished at all.
@@ -171,7 +171,7 @@ TEST_CASE( "[lcr] run_lcr, chief gift" ) {
   // Set players.
   Player& player = W.default_player();
   REQUIRE( player.money == 0 );
-  MockIEuroAgent& agent = W.euro_agent();
+  MockIAgent& agent = W.agent();
 
   MapSquare& square      = W.square( Coord{} );
   square.lost_city_rumor = true;
@@ -193,7 +193,7 @@ TEST_CASE( "[lcr] run_lcr, chief gift" ) {
   // Go
   wait<LostCityRumorUnitChange> lcr_res = run_lcr(
       W.ss(), W.mock_land_view, W.map_updater(), W.rand(),
-      player, W.euro_agent(), W.units().unit_for( unit_id ),
+      player, W.agent(), W.units().unit_for( unit_id ),
       /*move_dst=*/Coord{}, rumor );
 
   // Make sure that we finished at all.
@@ -210,7 +210,7 @@ TEST_CASE( "[lcr] run_lcr, ruins" ) {
   World W;
   Player& player = W.default_player();
   REQUIRE( player.money == 0 );
-  MockIEuroAgent& agent = W.euro_agent();
+  MockIAgent& agent = W.agent();
 
   MapSquare& square      = W.square( Coord{} );
   square.lost_city_rumor = true;
@@ -232,7 +232,7 @@ TEST_CASE( "[lcr] run_lcr, ruins" ) {
   // Go
   wait<LostCityRumorUnitChange> lcr_res = run_lcr(
       W.ss(), W.mock_land_view, W.map_updater(), W.rand(),
-      player, W.euro_agent(), W.units().unit_for( unit_id ),
+      player, W.agent(), W.units().unit_for( unit_id ),
       /*move_dst=*/Coord{}, rumor );
 
   // Make sure that we finished at all.
@@ -247,8 +247,8 @@ TEST_CASE( "[lcr] run_lcr, ruins" ) {
 
 TEST_CASE( "[lcr] run_lcr, fountain of youth" ) {
   World W;
-  Player& player        = W.default_player();
-  MockIEuroAgent& agent = W.euro_agent();
+  Player& player    = W.default_player();
+  MockIAgent& agent = W.agent();
   agent.EXPECT__human().by_default().returns( true );
   REQUIRE( player.money == 0 );
 
@@ -293,7 +293,7 @@ TEST_CASE( "[lcr] run_lcr, fountain of youth" ) {
   // Go
   wait<LostCityRumorUnitChange> lcr_res = run_lcr(
       W.ss(), W.mock_land_view, W.map_updater(), W.rand(),
-      player, W.euro_agent(), W.units().unit_for( unit_id ),
+      player, W.agent(), W.units().unit_for( unit_id ),
       /*move_dst=*/Coord{}, rumor );
 
   // Make sure that we finished at all.
@@ -323,7 +323,7 @@ TEST_CASE( "[lcr] run_lcr, free colonist" ) {
   World W;
   Player& player = W.default_player();
   REQUIRE( player.money == 0 );
-  MockIEuroAgent& agent = W.euro_agent();
+  MockIAgent& agent = W.agent();
 
   MapSquare& square      = W.square( Coord{} );
   square.lost_city_rumor = true;
@@ -345,7 +345,7 @@ TEST_CASE( "[lcr] run_lcr, free colonist" ) {
   // Go
   wait<LostCityRumorUnitChange> lcr_res = run_lcr(
       W.ss(), W.mock_land_view, W.map_updater(), W.rand(),
-      player, W.euro_agent(), W.units().unit_for( unit_id ),
+      player, W.agent(), W.units().unit_for( unit_id ),
       /*move_dst=*/Coord{}, rumor );
 
   // Make sure that we finished at all.
@@ -366,7 +366,7 @@ TEST_CASE( "[lcr] run_lcr, unit lost" ) {
   World W;
   Player& player = W.default_player();
   REQUIRE( player.money == 0 );
-  MockIEuroAgent& agent = W.euro_agent();
+  MockIAgent& agent = W.agent();
 
   MapSquare& square      = W.square( Coord{} );
   square.lost_city_rumor = true;
@@ -388,7 +388,7 @@ TEST_CASE( "[lcr] run_lcr, unit lost" ) {
   // Go
   wait<LostCityRumorUnitChange> lcr_res = run_lcr(
       W.ss(), W.mock_land_view, W.map_updater(), W.rand(),
-      player, W.euro_agent(), W.units().unit_for( unit_id ),
+      player, W.agent(), W.units().unit_for( unit_id ),
       /*move_dst=*/Coord{}, rumor );
 
   // Make sure that we finished at all.
@@ -408,7 +408,7 @@ TEST_CASE( "[lcr] run_lcr, cibola" ) {
   W.planes().get().set_bottom<ILandViewPlane>( land_view_plane );
   Player& player = W.default_player();
   REQUIRE( player.money == 0 );
-  MockIEuroAgent& agent = W.euro_agent();
+  MockIAgent& agent = W.agent();
 
   MapSquare& square      = W.square( Coord{} );
   square.lost_city_rumor = true;
@@ -433,7 +433,7 @@ TEST_CASE( "[lcr] run_lcr, cibola" ) {
   // Go
   wait<LostCityRumorUnitChange> lcr_res = run_lcr(
       W.ss(), W.mock_land_view, W.map_updater(), W.rand(),
-      player, W.euro_agent(), W.units().unit_for( unit_id ),
+      player, W.agent(), W.units().unit_for( unit_id ),
       /*move_dst=*/Coord{}, rumor );
 
   // Make sure that we finished at all.
@@ -466,7 +466,7 @@ TEST_CASE( "[lcr] run_lcr, burial mounds, treasure" ) {
   W.planes().get().set_bottom<ILandViewPlane>( land_view_plane );
   Player& player = W.default_player();
   REQUIRE( player.money == 0 );
-  MockIEuroAgent& agent = W.euro_agent();
+  MockIAgent& agent = W.agent();
 
   MapSquare& square      = W.square( Coord{} );
   square.lost_city_rumor = true;
@@ -493,7 +493,7 @@ TEST_CASE( "[lcr] run_lcr, burial mounds, treasure" ) {
   // Go
   wait<LostCityRumorUnitChange> lcr_res = run_lcr(
       W.ss(), W.mock_land_view, W.map_updater(), W.rand(),
-      player, W.euro_agent(), W.units().unit_for( unit_id ),
+      player, W.agent(), W.units().unit_for( unit_id ),
       /*move_dst=*/Coord{}, rumor );
 
   // Make sure that we finished at all.
@@ -524,7 +524,7 @@ TEST_CASE( "[lcr] run_lcr, burial mounds, cold and empty" ) {
   World W;
   Player& player = W.default_player();
   REQUIRE( player.money == 0 );
-  MockIEuroAgent& agent = W.euro_agent();
+  MockIAgent& agent = W.agent();
 
   MapSquare& square      = W.square( Coord{} );
   square.lost_city_rumor = true;
@@ -548,7 +548,7 @@ TEST_CASE( "[lcr] run_lcr, burial mounds, cold and empty" ) {
   // Go
   wait<LostCityRumorUnitChange> lcr_res = run_lcr(
       W.ss(), W.mock_land_view, W.map_updater(), W.rand(),
-      player, W.euro_agent(), W.units().unit_for( unit_id ),
+      player, W.agent(), W.units().unit_for( unit_id ),
       /*move_dst=*/Coord{}, rumor );
 
   // Make sure that we finished at all.
@@ -565,7 +565,7 @@ TEST_CASE( "[lcr] run_lcr, burial mounds, trinkets" ) {
   World W;
   Player& player = W.default_player();
   REQUIRE( player.money == 0 );
-  MockIEuroAgent& agent = W.euro_agent();
+  MockIAgent& agent = W.agent();
 
   MapSquare& square      = W.square( Coord{} );
   square.lost_city_rumor = true;
@@ -591,7 +591,7 @@ TEST_CASE( "[lcr] run_lcr, burial mounds, trinkets" ) {
   // Go
   wait<LostCityRumorUnitChange> lcr_res = run_lcr(
       W.ss(), W.mock_land_view, W.map_updater(), W.rand(),
-      player, W.euro_agent(), W.units().unit_for( unit_id ),
+      player, W.agent(), W.units().unit_for( unit_id ),
       /*move_dst=*/Coord{}, rumor );
 
   // Make sure that we finished at all.
@@ -611,7 +611,7 @@ TEST_CASE( "[lcr] run_lcr, burial mounds, no explore" ) {
   World W;
   Player& player = W.default_player();
   REQUIRE( player.money == 0 );
-  MockIEuroAgent& agent = W.euro_agent();
+  MockIAgent& agent = W.agent();
 
   MapSquare& square      = W.square( Coord{} );
   square.lost_city_rumor = true;
@@ -634,7 +634,7 @@ TEST_CASE( "[lcr] run_lcr, burial mounds, no explore" ) {
   // Go
   wait<LostCityRumorUnitChange> lcr_res = run_lcr(
       W.ss(), W.mock_land_view, W.map_updater(), W.rand(),
-      player, W.euro_agent(), W.units().unit_for( unit_id ),
+      player, W.agent(), W.units().unit_for( unit_id ),
       /*move_dst=*/Coord{}, rumor );
 
   // Make sure that we finished at all.
@@ -653,7 +653,7 @@ TEST_CASE(
   World W;
   Player& player = W.default_player();
   REQUIRE( player.money == 0 );
-  MockIEuroAgent& agent = W.euro_agent();
+  MockIAgent& agent = W.agent();
 
   MapSquare& square      = W.square( Coord{} );
   square.lost_city_rumor = true;
@@ -685,7 +685,7 @@ TEST_CASE(
   // Go
   wait<LostCityRumorUnitChange> lcr_res = run_lcr(
       W.ss(), W.mock_land_view, W.map_updater(), W.rand(),
-      player, W.euro_agent(), W.units().unit_for( unit_id ),
+      player, W.agent(), W.units().unit_for( unit_id ),
       /*move_dst=*/Coord{}, rumor );
 
   // Make sure that we finished at all.
@@ -708,7 +708,7 @@ TEST_CASE( "[lcr] run_lcr, holy shrines" ) {
   World W;
   Player& player = W.default_player();
   REQUIRE( player.money == 0 );
-  MockIEuroAgent& agent = W.euro_agent();
+  MockIAgent& agent = W.agent();
 
   MapSquare& square      = W.square( Coord{} );
   square.lost_city_rumor = true;
@@ -734,7 +734,7 @@ TEST_CASE( "[lcr] run_lcr, holy shrines" ) {
   // Go
   wait<LostCityRumorUnitChange> lcr_res = run_lcr(
       W.ss(), W.mock_land_view, W.map_updater(), W.rand(),
-      player, W.euro_agent(), W.units().unit_for( unit_id ),
+      player, W.agent(), W.units().unit_for( unit_id ),
       /*move_dst=*/Coord{}, rumor );
 
   // Make sure that we finished at all.

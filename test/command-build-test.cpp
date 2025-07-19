@@ -16,9 +16,9 @@
 
 // Testing
 #include "test/fake/world.hpp"
+#include "test/mocks/iagent.hpp"
 #include "test/mocks/icolony-viewer.hpp"
 #include "test/mocks/iengine.hpp"
-#include "test/mocks/ieuro-agent.hpp"
 #include "test/util/coro.hpp"
 
 // ss
@@ -72,13 +72,13 @@ TEST_CASE( "[command-build] build colony" ) {
   return;
 #endif
   World W;
-  MockIEuroAgent& agent = W.euro_agent();
+  MockIAgent& agent = W.agent();
   Coord const tile{ .x = 2, .y = 2 };
   Unit const& unit =
       W.add_unit_on_map( e_unit_type::free_colonist, tile );
   unique_ptr<CommandHandler> handler = handle_command(
-      W.engine(), W.ss(), W.ts(), W.euro_agent(),
-      W.default_player(), unit.id(), command::build{} );
+      W.engine(), W.ss(), W.ts(), W.agent(), W.default_player(),
+      unit.id(), command::build{} );
 
   REQUIRE_FALSE( unit.mv_pts_exhausted() );
 
@@ -97,7 +97,7 @@ TEST_CASE( "[command-build] build colony" ) {
 
   REQUIRE( W.colonies().last_colony_id() == nothing );
 
-  W.euro_agent().EXPECT__show_woodcut(
+  W.agent().EXPECT__show_woodcut(
       e_woodcut::building_first_colony );
   agent.EXPECT__name_colony().returns( "my colony" );
   REQUIRE( confirm() == true );
@@ -120,13 +120,13 @@ TEST_CASE( "[command-build] build colony no ocean access" ) {
   return;
 #endif
   World W;
-  MockIEuroAgent& agent = W.euro_agent();
+  MockIAgent& agent = W.agent();
   Coord const tile{ .x = 3, .y = 3 };
   Unit const& unit =
       W.add_unit_on_map( e_unit_type::free_colonist, tile );
   unique_ptr<CommandHandler> handler = handle_command(
-      W.engine(), W.ss(), W.ts(), W.euro_agent(),
-      W.default_player(), unit.id(), command::build{} );
+      W.engine(), W.ss(), W.ts(), W.agent(), W.default_player(),
+      unit.id(), command::build{} );
 
   REQUIRE_FALSE( unit.mv_pts_exhausted() );
 
@@ -153,8 +153,8 @@ TEST_CASE( "[command-build] build colony by ship" ) {
   Unit const& unit =
       W.add_unit_on_map( e_unit_type::caravel, tile );
   unique_ptr<CommandHandler> handler = handle_command(
-      W.engine(), W.ss(), W.ts(), W.euro_agent(),
-      W.default_player(), unit.id(), command::build{} );
+      W.engine(), W.ss(), W.ts(), W.agent(), W.default_player(),
+      unit.id(), command::build{} );
 
   REQUIRE_FALSE( unit.mv_pts_exhausted() );
 
@@ -168,7 +168,7 @@ TEST_CASE( "[command-build] build colony by ship" ) {
   REQUIRE( W.colonies().last_colony_id() == nothing );
 
   auto msg_matcher = StrContains( "cannot be built by ships" );
-  W.euro_agent().EXPECT__message_box( msg_matcher );
+  W.agent().EXPECT__message_box( msg_matcher );
   REQUIRE( confirm() == false );
   REQUIRE_FALSE( unit.mv_pts_exhausted() );
   REQUIRE( unit.orders().to_enum() == unit_orders::e::none );
@@ -185,8 +185,8 @@ TEST_CASE( "[command-build] can't build during war" ) {
   Unit const& unit =
       W.add_unit_on_map( e_unit_type::free_colonist, tile );
   unique_ptr<CommandHandler> handler = handle_command(
-      W.engine(), W.ss(), W.ts(), W.euro_agent(),
-      W.default_player(), unit.id(), command::build{} );
+      W.engine(), W.ss(), W.ts(), W.agent(), W.default_player(),
+      unit.id(), command::build{} );
 
   auto const f = [&] {
     return co_await_test( handler->confirm() );
@@ -197,7 +197,7 @@ TEST_CASE( "[command-build] can't build during war" ) {
   REQUIRE( W.colonies().last_colony_id() == nothing );
 
   auto msg_matcher = StrContains( "during the War" );
-  W.euro_agent().EXPECT__message_box( msg_matcher );
+  W.agent().EXPECT__message_box( msg_matcher );
   REQUIRE_FALSE( f() );
   REQUIRE_FALSE( unit.mv_pts_exhausted() );
   REQUIRE( unit.orders().to_enum() == unit_orders::e::none );

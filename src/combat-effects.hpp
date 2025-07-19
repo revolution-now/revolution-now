@@ -35,7 +35,7 @@ struct CombatEuroAttackUndefendedColony;
 struct CombatShipAttackShip;
 struct EuroNavalUnitCombatOutcome;
 struct EuroUnitCombatOutcome;
-struct IEuroAgent;
+struct IAgent;
 struct NativeUnit;
 struct NativeUnitCombatOutcome;
 struct SS;

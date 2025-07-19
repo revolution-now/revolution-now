@@ -21,7 +21,7 @@ namespace rn {
 /****************************************************************
 ** Fwd Decls.
 *****************************************************************/
-struct IEuroAgent;
+struct IAgent;
 struct Player;
 struct SSConst;
 
@@ -41,7 +41,7 @@ bool should_show_rebel_sentiment_report( SSConst const& ss,
                                          int new_sentiment );
 
 wait<> show_rebel_sentiment_change_report(
-    Player& player, IEuroAgent& agent,
+    Player& player, IAgent& agent,
     RebelSentimentChangeReport const& report );
 
 int required_rebel_sentiment_for_declaration(

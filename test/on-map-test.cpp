@@ -15,7 +15,7 @@
 
 // Testing
 #include "test/fake/world.hpp"
-#include "test/mocks/ieuro-agent.hpp"
+#include "test/mocks/iagent.hpp"
 #include "test/mocks/irand.hpp"
 #include "test/mocks/land-view-plane.hpp"
 #include "test/util/coro.hpp"
@@ -144,8 +144,8 @@ TEST_CASE( "[on-map] non-interactive: moves the unit" ) {
 TEST_CASE( "[on-map] interactive: discovers new world" ) {
   World W;
   W.create_default_map();
-  Player& player        = W.default_player();
-  MockIEuroAgent& agent = W.euro_agent();
+  Player& player    = W.default_player();
+  MockIAgent& agent = W.agent();
   UnitId const unit_id =
       W.add_unit_on_map( e_unit_type::treasure,
                          { .x = 1, .y = 0 } )
@@ -168,7 +168,7 @@ TEST_CASE( "[on-map] interactive: discovers new world" ) {
   }
 
   SECTION( "not yet discovered" ) {
-    W.euro_agent().EXPECT__show_woodcut(
+    W.agent().EXPECT__show_woodcut(
         e_woodcut::discovered_new_world );
     agent.EXPECT__name_new_world().returns( "my world 2" );
     w = TestingOnlyUnitOnMapMover::to_map_interactive(
@@ -185,8 +185,8 @@ TEST_CASE( "[on-map] interactive: discovers new world" ) {
 TEST_CASE( "[on-map] interactive: meets natives" ) {
   World W;
   W.create_default_map();
-  Player& player        = W.default_player();
-  MockIEuroAgent& agent = W.euro_agent();
+  Player& player    = W.default_player();
+  MockIAgent& agent = W.agent();
 
   W.add_dwelling( { .x = 1, .y = 1 }, e_tribe::cherokee );
 
@@ -238,7 +238,7 @@ TEST_CASE( "[on-map] interactive: discovers pacific ocean" ) {
       player.woodcuts[e_woodcut::discovered_pacific_ocean] ==
       false );
 
-  W.euro_agent().EXPECT__show_woodcut(
+  W.agent().EXPECT__show_woodcut(
       e_woodcut::discovered_pacific_ocean );
   w = TestingOnlyUnitOnMapMover::to_map_interactive(
       W.ss(), W.ts(), unit_id, { .x = 1, .y = 3 } );
@@ -268,8 +268,8 @@ TEST_CASE( "[on-map] interactive: discovers pacific ocean" ) {
 TEST_CASE( "[on-map] interactive: treasure in colony" ) {
   World W;
   W.create_default_map();
-  Player& player        = W.default_player();
-  MockIEuroAgent& agent = W.euro_agent();
+  Player& player    = W.default_player();
+  MockIAgent& agent = W.agent();
   W.found_colony_with_new_unit( W.kColonySquare );
   UnitId const unit_id =
       W.add_unit_on_map( e_unit_type::treasure,
@@ -331,7 +331,7 @@ TEST_CASE(
   MapSquare& square      = W.square( { .x = 1, .y = 1 } );
   square.lost_city_rumor = true;
   Player& player         = W.default_player();
-  MockIEuroAgent& agent  = W.euro_agent();
+  MockIAgent& agent      = W.agent();
   agent.EXPECT__human().by_default().returns( true );
   player.new_world_name                            = "my world";
   player.woodcuts[e_woodcut::discovered_new_world] = true;
@@ -375,7 +375,7 @@ TEST_CASE( "[on-map] interactive: [LCR] unit lost" ) {
   MapSquare& square      = W.square( { .x = 1, .y = 1 } );
   square.lost_city_rumor = true;
   Player& player         = W.default_player();
-  MockIEuroAgent& agent  = W.euro_agent();
+  MockIAgent& agent      = W.agent();
   agent.EXPECT__human().by_default().returns( true );
   player.new_world_name                            = "my world";
   player.woodcuts[e_woodcut::discovered_new_world] = true;
@@ -484,7 +484,7 @@ TEST_CASE(
     W.dutch().control   = e_player_control::human;
     W.add_unit_on_map( e_unit_type::free_colonist,
                        { .x = 1, .y = 1 }, e_player::spanish );
-    W.euro_agent( e_player::spanish )
+    W.agent( e_player::spanish )
         .EXPECT__meet_tribe_ui_sequence(
             MeetTribe{ .player        = e_player::spanish,
                        .tribe         = e_tribe::cherokee,
@@ -502,7 +502,7 @@ TEST_CASE(
     W.dutch().control   = e_player_control::human;
     W.add_unit_on_map( e_unit_type::free_colonist,
                        { .x = 1, .y = 1 }, e_player::dutch );
-    W.euro_agent( e_player::dutch )
+    W.agent( e_player::dutch )
         .EXPECT__meet_tribe_ui_sequence(
             MeetTribe{ .player        = e_player::dutch,
                        .tribe         = e_tribe::cherokee,
@@ -618,8 +618,8 @@ TEST_CASE(
     "[on-map] interactive: discovers new world on island" ) {
   World W;
   W.create_island_map();
-  Player& player        = W.default_player();
-  MockIEuroAgent& agent = W.euro_agent();
+  Player& player    = W.default_player();
+  MockIAgent& agent = W.agent();
   UnitId const unit_id =
       W.add_unit_on_map( e_unit_type::treasure,
                          { .x = 1, .y = 1 } )

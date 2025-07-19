@@ -30,9 +30,9 @@
 #include "game-options.hpp"
 #include "harbor-units.hpp"
 #include "harbor-view.hpp"
+#include "iagent.hpp"
 #include "icolony-evolve.rds.hpp"
 #include "iengine.hpp"
-#include "ieuro-agent.hpp"
 #include "igui.hpp"
 #include "imap-updater.hpp"
 #include "interrupts.hpp"
@@ -734,7 +734,7 @@ wait<EndOfTurnResult> end_of_turn( IEngine& engine, SS& ss,
 *****************************************************************/
 wait<> process_human_player_input_normal_mode(
     IEngine& engine, UnitId, e_menu_item item, SS& ss, TS& ts,
-    IEuroAgent&, Player& player, PlayerTurnState::units& ) {
+    IAgent&, Player& player, PlayerTurnState::units& ) {
   // In the future we might need to put logic here that is spe-
   // cific to the mid-turn scenario, but for now this is suffi-
   // cient.
@@ -743,7 +743,7 @@ wait<> process_human_player_input_normal_mode(
 
 wait<> process_human_player_input_normal_mode(
     IEngine& engine, UnitId id, LandViewPlayerInput const& input,
-    SS& ss, TS& ts, IEuroAgent& agent, Player& player,
+    SS& ss, TS& ts, IAgent& agent, Player& player,
     PlayerTurnState::units& nat_units ) {
   auto& st = nat_units;
   auto& q  = st.q;
@@ -873,7 +873,7 @@ wait<LandViewPlayerInput> landview_human_player_input(
 
 wait<> process_ai_player_input_normal_mode(
     IEngine& engine, UnitId const id, command const& cmd, SS& ss,
-    TS& ts, IEuroAgent& agent, Player& player,
+    TS& ts, IAgent& agent, Player& player,
     PlayerTurnState::units& nat_units ) {
   auto& st = nat_units;
   auto& q  = st.q;
@@ -915,7 +915,7 @@ wait<> process_ai_player_input_normal_mode(
 
 wait<> query_unit_input( IEngine& engine, UnitId const id,
                          SS& ss, TS& ts, Player& player,
-                         IEuroAgent& agent,
+                         IAgent& agent,
                          PlayerTurnState::units& nat_units ) {
   switch( player.control ) {
     case e_player_control::ai: {
@@ -1059,7 +1059,7 @@ wait<> show_view_mode( IEngine& engine, SS& ss, TS& ts,
 *****************************************************************/
 // Returns true if the unit needs to ask the user for input.
 wait<bool> advance_unit( IEngine& engine, SS& ss, TS& ts,
-                         Player& player, IEuroAgent& agent,
+                         Player& player, IAgent& agent,
                          UnitId id ) {
   Unit& unit = ss.units.unit_for( id );
   CHECK( !should_remove_unit_from_queue( unit ) );
@@ -1202,7 +1202,7 @@ struct HighSeasStatus {
 };
 
 wait<HighSeasStatus> advance_high_seas_unit(
-    SS& ss, TS& ts, Player& player, IEuroAgent& agent,
+    SS& ss, TS& ts, Player& player, IAgent& agent,
     UnitId const unit_id ) {
   HighSeasStatus res;
   CHECK( is_unit_on_high_seas( ss, unit_id ) );
@@ -1263,7 +1263,7 @@ wait<HighSeasStatus> advance_high_seas_unit(
 }
 
 wait<> move_remaining_units( IEngine& engine, SS& ss, TS& ts,
-                             Player& player, IEuroAgent& agent,
+                             Player& player, IAgent& agent,
                              PlayerTurnState::units& nat_units,
                              deque<UnitId>& q ) {
   while( !q.empty() ) {
@@ -1327,7 +1327,7 @@ wait<> move_remaining_units( IEngine& engine, SS& ss, TS& ts,
 // we take the player to the harbor. That way we don't see it re-
 // peatedly for every unit.
 wait<> move_high_seas_units( IEngine& engine, SS& ss, TS& ts,
-                             Player& player, IEuroAgent& agent,
+                             Player& player, IAgent& agent,
                              deque<UnitId>& q ) {
   HighSeasStatus status_union;
   while( !q.empty() ) {
@@ -1363,7 +1363,7 @@ wait<> move_high_seas_units( IEngine& engine, SS& ss, TS& ts,
     if( !is_ref( player.type ) ) {
       CHECK( status_union.last_unit_arrived_in_harbor !=
              UnitId{} );
-      auto& agent = ts.euro_agents()[player.type];
+      auto& agent = ts.agents()[player.type];
       if( status_union.arrived_in_harbor_with_cargo )
         co_await show_woodcut_if_needed(
             player, agent, e_woodcut::cargo_from_the_new_world );
@@ -1379,7 +1379,7 @@ wait<> move_high_seas_units( IEngine& engine, SS& ss, TS& ts,
 }
 
 wait<> units_turn_one_pass( IEngine& engine, SS& ss, TS& ts,
-                            Player& player, IEuroAgent& agent,
+                            Player& player, IAgent& agent,
                             PlayerTurnState::units& nat_units,
                             deque<UnitId>& q ) {
   // There may be some units in the queue that e.g. we disbanded
@@ -1410,7 +1410,7 @@ wait<> units_turn_one_pass( IEngine& engine, SS& ss, TS& ts,
 }
 
 wait<> units_turn( IEngine& engine, SS& ss, TS& ts,
-                   Player& player, IEuroAgent& agent,
+                   Player& player, IAgent& agent,
                    PlayerTurnState::units& nat_units ) {
   auto& st = nat_units;
   auto& q  = st.q;
@@ -1545,7 +1545,7 @@ wait<> post_colonies_colonial_only( SS& ss, TS& ts,
     if( should_show_rebel_sentiment_report(
             ss.as_const, as_const( player ), report.nova ) )
       co_await show_rebel_sentiment_change_report(
-          player, ts.euro_agents()[player.type], report );
+          player, ts.agents()[player.type], report );
   }
 
   // Check if we need to do the war of succession. This must be
@@ -1623,7 +1623,7 @@ wait<> post_colonies_colonial_only( SS& ss, TS& ts,
 // nation's turn but where the player can't save the game until
 // they are complete.
 wait<> player_start_of_turn( SS& ss, TS& ts, Player& player,
-                             IEuroAgent& agent ) {
+                             IAgent& agent ) {
   recompute_fog_for_all_players( ss, ts );
 
   // Unsentry any units that are directly on the map and which
@@ -1684,8 +1684,8 @@ wait<> post_player( SS& ss, TS& ts, Player& player ) {
               player.revolution.expeditionary_force );
       add_ref_unit( player.revolution.expeditionary_force,
                     type );
-      co_await add_ref_unit_ui_seq(
-          ts.euro_agents()[player.type], type );
+      co_await add_ref_unit_ui_seq( ts.agents()[player.type],
+                                    type );
     }
   }
 }
@@ -1717,7 +1717,7 @@ wait<PlayerTurnState> player_turn_iter(
     PlayerTurnState& st ) {
   Player& player =
       player_for_player_or_die( ss.players, player_type );
-  IEuroAgent& agent = ts.euro_agents()[player.type];
+  IAgent& agent = ts.agents()[player.type];
 
   // If this is a human player then there will be units asking
   // for orders and/or animations, and so we must have the viewer

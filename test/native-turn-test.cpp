@@ -16,7 +16,7 @@
 // Testing
 #include "test/fake/world.hpp"
 #include "test/mocking.hpp"
-#include "test/mocks/ieuro-agent.hpp"
+#include "test/mocks/iagent.hpp"
 #include "test/mocks/inative-agent.hpp"
 #include "test/mocks/irand.hpp"
 #include "test/mocks/land-view-plane.hpp"
@@ -526,7 +526,7 @@ TEST_CASE( "[native-turn] attack euro unit" ) {
 
   MockINativeAgent& native_agent =
       W.native_agent( e_tribe::arawak );
-  MockIEuroAgent& mock_euro_agent = W.euro_agent();
+  MockIAgent& mock_agent = W.agent();
 
   auto [dwelling, brave] = W.add_dwelling_and_brave(
       { .x = 0, .y = 0 }, e_tribe::arawak );
@@ -540,7 +540,7 @@ TEST_CASE( "[native-turn] attack euro unit" ) {
       .returns( brave.id );
   native_agent.EXPECT__command_for( brave.id )
       .returns( NativeUnitCommand::move{ e_direction::e } );
-  mock_euro_agent.EXPECT__show_woodcut( e_woodcut::indian_raid );
+  mock_agent.EXPECT__show_woodcut( e_woodcut::indian_raid );
 
   SECTION( "brave, one euro, brave loses, soldier promoted" ) {
     Unit const& soldier =

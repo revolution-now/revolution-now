@@ -24,8 +24,8 @@
 #include "commodity.hpp"
 #include "conductor.hpp"
 #include "harbor-units.hpp"
+#include "iagent.hpp"
 #include "icombat.hpp"
-#include "ieuro-agent.hpp"
 #include "imap-updater.hpp"
 #include "inative-agent.hpp"
 #include "land-view.hpp"
@@ -88,7 +88,7 @@ enum class e_attack_verdict_base {
 };
 
 wait<> display_base_verdict_msg(
-    IEuroAgent& agent, e_attack_verdict_base verdict ) {
+    IAgent& agent, e_attack_verdict_base verdict ) {
   switch( verdict ) {
     case e_attack_verdict_base::cancelled: //
       break;
@@ -163,7 +163,7 @@ struct AttackHandlerBase : public CommandHandler {
   UnitId attacker_id_;
   Unit& attacker_;
   Player& attacking_player_;
-  IEuroAgent& attacker_agent_;
+  IAgent& attacker_agent_;
 
   e_direction direction_;
 
@@ -186,7 +186,7 @@ AttackHandlerBase::AttackHandlerBase( SS& ss, TS& ts,
     attacker_( ss.units.unit_for( attacker_id ) ),
     attacking_player_( player_for_player_or_die(
         ss.players, attacker_.player_type() ) ),
-    attacker_agent_( ts.euro_agents()[attacker_.player_type()] ),
+    attacker_agent_( ts.agents()[attacker_.player_type()] ),
     direction_( direction ) {
   CHECK( viz_ != nullptr );
   attack_src_ =
@@ -265,7 +265,7 @@ struct EuroAttackHandlerBase : public AttackHandlerBase {
   UnitId defender_id_;
   Unit& defender_;
   Player& defending_player_;
-  IEuroAgent& defender_agent_;
+  IAgent& defender_agent_;
 };
 
 EuroAttackHandlerBase::EuroAttackHandlerBase(
@@ -277,8 +277,7 @@ EuroAttackHandlerBase::EuroAttackHandlerBase(
     defender_( ss.units.unit_for( defender_id ) ),
     defending_player_( player_for_player_or_die(
         ss.players, defender_.player_type() ) ),
-    defender_agent_(
-        ts.euro_agents()[defender_.player_type()] ) {
+    defender_agent_( ts.agents()[defender_.player_type()] ) {
   CHECK( defender_id_ != attacker_id_ );
 }
 
@@ -494,9 +493,8 @@ struct NavalBattleHandler : public EuroAttackHandlerBase {
       CombatShipAttackShip const& combat );
 
   wait<> perform_loser_cargo_capture(
-      Unit& src, Unit& dst, IEuroAgent& src_agent,
-      IEuroAgent& dst_agent, Player const& src_player,
-      Player const& dst_player,
+      Unit& src, Unit& dst, IAgent& src_agent, IAgent& dst_agent,
+      Player const& src_player, Player const& dst_player,
       EuroNavalUnitCombatOutcome const& src_outcome );
 };
 
@@ -570,9 +568,9 @@ wait<> NavalBattleHandler::perform() {
 
 wait<> NavalBattleHandler::perform_loser_cargo_captures(
     CombatShipAttackShip const& combat ) {
-  using Capture = tuple<Unit*, Unit*, IEuroAgent*, IEuroAgent*,
-                        Player const*, Player const*,
-                        EuroNavalUnitCombatOutcome const*>;
+  using Capture =
+      tuple<Unit*, Unit*, IAgent*, IAgent*, Player const*,
+            Player const*, EuroNavalUnitCombatOutcome const*>;
   vector<Capture> v;
 
   v.push_back( { &attacker_, &defender_,                 //
@@ -600,9 +598,8 @@ wait<> NavalBattleHandler::perform_loser_cargo_captures(
 }
 
 wait<> NavalBattleHandler::perform_loser_cargo_capture(
-    Unit& src, Unit& dst, IEuroAgent& src_agent,
-    IEuroAgent& dst_agent, Player const& src_player,
-    Player const& dst_player,
+    Unit& src, Unit& dst, IAgent& src_agent, IAgent& dst_agent,
+    Player const& src_player, Player const& dst_player,
     EuroNavalUnitCombatOutcome const& src_outcome ) {
   // Here we make the assumption that we can infer loser status
   // from outcome, which would seem to be fine.

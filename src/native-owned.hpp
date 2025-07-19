@@ -34,7 +34,7 @@
 
 namespace rn {
 
-struct IEuroAgent;
+struct IAgent;
 struct Player;
 struct SS;
 struct SSConst;
@@ -81,7 +81,7 @@ maybe<LandPrice> price_for_native_owned_land(
 // owned by a tribe from the perspective of the player otherwise
 // check-fail.
 wait<base::NoDiscard<bool>> prompt_player_for_taking_native_land(
-    SS& ss, IEuroAgent& agent, Player& player, Coord tile,
+    SS& ss, IAgent& agent, Player& player, Coord tile,
     e_native_land_grab_type context );
 
 } // namespace rn

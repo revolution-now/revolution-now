@@ -12,7 +12,7 @@
 
 // Revolution Now
 #include "co-wait.hpp"
-#include "ieuro-agent.hpp"
+#include "iagent.hpp"
 #include "native-owned.hpp"
 #include "road.hpp"
 
@@ -31,7 +31,7 @@ namespace rn {
 namespace {
 
 struct RoadHandler : public CommandHandler {
-  RoadHandler( SS& ss, IEuroAgent& agent, Player& player,
+  RoadHandler( SS& ss, IAgent& agent, Player& player,
                UnitId unit_id )
     : ss_( ss ),
       player_( player ),
@@ -109,7 +109,7 @@ struct RoadHandler : public CommandHandler {
 
   SS& ss_;
   Player& player_;
-  IEuroAgent& agent_;
+  IAgent& agent_;
   UnitId unit_id_ = {};
 };
 
@@ -119,7 +119,7 @@ struct RoadHandler : public CommandHandler {
 ** Public API
 *****************************************************************/
 unique_ptr<CommandHandler> handle_command(
-    IEngine&, SS& ss, TS&, IEuroAgent& agent, Player& player,
+    IEngine&, SS& ss, TS&, IAgent& agent, Player& player,
     UnitId id, command::road const& ) {
   return make_unique<RoadHandler>( ss, agent, player, id );
 }

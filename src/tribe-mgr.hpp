@@ -19,7 +19,7 @@
 namespace rn {
 
 struct Dwelling;
-struct IEuroAgent;
+struct IAgent;
 struct IMapUpdater;
 struct SS;
 struct SSConst;
@@ -51,13 +51,12 @@ void destroy_tribe( SS& ss, IMapUpdater& map_updater,
                     e_tribe tribe );
 
 // This will destroy the tribe and pop up a message box.
-wait<> destroy_tribe_interactive( SS& ss, IEuroAgent& agent,
+wait<> destroy_tribe_interactive( SS& ss, IAgent& agent,
                                   IMapUpdater& map_updater,
                                   e_tribe tribe );
 
 // Displays the message that a tribe is gone.
-wait<> tribe_wiped_out_message( IEuroAgent& agent,
-                                e_tribe tribe );
+wait<> tribe_wiped_out_message( IAgent& agent, e_tribe tribe );
 
 // This is the way to get the tribe for a dwelling that will work
 // for both real dwelling and frozen dwellings that may no longer

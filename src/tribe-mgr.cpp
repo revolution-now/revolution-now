@@ -11,7 +11,7 @@
 #include "tribe-mgr.hpp"
 
 // Revolution Now
-#include "ieuro-agent.hpp"
+#include "iagent.hpp"
 #include "igui.hpp"
 #include "imap-updater.hpp"
 #include "road.hpp"
@@ -117,7 +117,7 @@ void destroy_tribe( SS& ss, IMapUpdater& map_updater,
   ss.natives.destroy_tribe_last_step( tribe );
 }
 
-wait<> tribe_wiped_out_message( IEuroAgent& agent,
+wait<> tribe_wiped_out_message( IAgent& agent,
                                 e_tribe const tribe ) {
   co_await agent.signal(
       signal::TribeWipedOut{ .tribe = tribe },
@@ -125,7 +125,7 @@ wait<> tribe_wiped_out_message( IEuroAgent& agent,
               config_natives.tribes[tribe].name_singular ) );
 }
 
-wait<> destroy_tribe_interactive( SS& ss, IEuroAgent& agent,
+wait<> destroy_tribe_interactive( SS& ss, IAgent& agent,
                                   IMapUpdater& map_updater,
                                   e_tribe tribe ) {
   destroy_tribe( ss, map_updater, tribe );

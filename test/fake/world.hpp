@@ -55,7 +55,7 @@ struct RootState;
 struct ColoniesState;
 struct Colony;
 struct Dwelling;
-struct EuroAgents;
+struct Agents;
 struct EventsState;
 struct FormatVersion;
 struct IMapUpdater;
@@ -63,7 +63,7 @@ struct LandViewState;
 struct MapState;
 struct MockIColonyViewer;
 struct MockICombat;
-struct MockIEuroAgent;
+struct MockIAgent;
 struct OldWorldState;
 struct MockIGui;
 struct MockINativeAgent;
@@ -397,10 +397,10 @@ struct World {
   TerrainConnectivity& connectivity();
 
   MockINativeAgent& native_agent( e_tribe tribe );
-  MockIEuroAgent& euro_agent( maybe<e_player> player = nothing );
+  MockIAgent& agent( maybe<e_player> player = nothing );
 
   NativeAgents& native_agents();
-  EuroAgents& euro_agents();
+  Agents& agents();
 
   // These will initialize their respective objects the first
   // time they are called, so they should always be used.
@@ -452,7 +452,7 @@ struct World {
   std::unique_ptr<MockIEngine> uninitialized_engine_;
   std::unique_ptr<vid::MockIVideo> uninitialized_video_;
   std::unique_ptr<NativeAgents> uninitialized_native_agents_;
-  std::unique_ptr<EuroAgents> uninitialized_euro_agents_;
+  std::unique_ptr<Agents> uninitialized_agents_;
   std::unique_ptr<TS> uninitialized_ts_;
 
   std::unique_ptr<base::random> uninitialized_random_;

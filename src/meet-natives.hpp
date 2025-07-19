@@ -32,7 +32,7 @@ namespace rn {
 
 enum class e_tribe;
 
-struct IEuroAgent;
+struct IAgent;
 struct IGui;
 struct Player;
 struct SS;
@@ -59,9 +59,9 @@ std::vector<MeetTribe> check_meet_tribes( SSConst const& ss,
 std::vector<MeetTribe> check_meet_europeans(
     SSConst const& ss, e_tribe tribe_type, Coord native_square );
 
-// This is called by the HumanEuroAgent.
+// This is called by the HumanAgent.
 wait<e_declare_war_on_natives> perform_meet_tribe_ui_sequence(
-    SS& ss, IEuroAgent& euro_agent, IGui& gui,
+    SS& ss, IAgent& agent, IGui& gui,
     MeetTribe const& meet_tribe );
 
 // This will actually perform the actions (non-UI actions) that

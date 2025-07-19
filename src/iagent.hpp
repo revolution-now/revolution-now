@@ -1,5 +1,5 @@
 /****************************************************************
-**ieuro-agent.hpp
+**iagent.hpp
 *
 * Project: Revolution Now
 *
@@ -67,12 +67,12 @@ using signal_context_result_t =
         std::declval<Context>() ) );
 
 /****************************************************************
-** IEuroAgent
+** IAgent
 *****************************************************************/
-struct IEuroAgent : ISignalHandler {
-  IEuroAgent( e_player player );
+struct IAgent : ISignalHandler {
+  IAgent( e_player player );
 
-  virtual ~IEuroAgent() override = default;
+  virtual ~IAgent() override = default;
 
   // For convenience.
   e_player player_type() const { return player_type_; }
@@ -221,17 +221,17 @@ struct IEuroAgent : ISignalHandler {
 };
 
 /****************************************************************
-** NoopEuroAgent
+** NoopAgent
 *****************************************************************/
 // Minimal implementation does not either nothing or the minimum
 // necessary to fulfill the contract of each request.
-struct NoopEuroAgent final : IEuroAgent {
-  NoopEuroAgent( SSConst const& ss, e_player player );
+struct NoopAgent final : IAgent {
+  NoopAgent( SSConst const& ss, e_player player );
 
  public: // IAgent.
   wait<> message_box( std::string const& msg ) override;
 
- public: // IEuroAgent.
+ public: // IAgent.
   Player const& player() override;
 
   bool human() const override;

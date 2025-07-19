@@ -18,8 +18,8 @@
 #include "colony-mgr.hpp"
 #include "combat-effects.hpp"
 #include "damaged.rds.hpp"
+#include "iagent.hpp"
 #include "icombat.hpp"
-#include "ieuro-agent.hpp"
 #include "inative-agent.hpp"
 #include "land-view.hpp"
 #include "map-search.hpp"
@@ -55,7 +55,7 @@ namespace rn {
 
 namespace {
 
-wait<> surprise_raid_msg( SSConst const& ss, IEuroAgent& agent,
+wait<> surprise_raid_msg( SSConst const& ss, IAgent& agent,
                           Coord defender_loc,
                           e_tribe tribe_type ) {
   e_player const friendly_player = agent.player_type();
@@ -95,8 +95,8 @@ wait<> raid_unit( SS& ss, TS& ts, NativeUnit& attacker,
   CombatBraveAttackEuro const combat =
       ts.combat.brave_attack_euro( as_const( attacker ),
                                    as_const( defender ) );
-  Coord const src   = ss.units.coord_for( attacker.id );
-  IEuroAgent& agent = ts.euro_agents()[defender.player_type()];
+  Coord const src = ss.units.coord_for( attacker.id );
+  IAgent& agent   = ts.agents()[defender.player_type()];
 
   AnimationSequence const seq =
       anim_seq_for_brave_attack_euro( ss, combat );
@@ -144,8 +144,8 @@ static wait<> raid_colony_battle(
     SS& ss, TS& ts, NativeUnit& attacker, Colony& colony,
     Tribe& tribe, CombatBraveAttackColony const& combat ) {
   CHECK( !combat.colony_destroyed );
-  IEuroAgent& agent = ts.euro_agents()[colony.player];
-  Unit& defender    = ss.units.unit_for( combat.defender.id );
+  IAgent& agent  = ts.agents()[colony.player];
+  Unit& defender = ss.units.unit_for( combat.defender.id );
   // Note: there are there still side effects if the brave
   // loses. We only suppress the side effect if the colony is
   // destroyed, because many of those effects don't really make
@@ -178,7 +178,7 @@ static wait<> raid_colony_battle(
 static wait<> raid_colony_burn(
     SS& ss, TS& ts, NativeUnit& attacker, Colony& colony,
     e_tribe tribe_type, CombatBraveAttackColony const& combat ) {
-  IEuroAgent& agent = ts.euro_agents()[colony.player];
+  IAgent& agent = ts.agents()[colony.player];
   Player& player =
       player_for_player_or_die( ss.players, colony.player );
   Unit& defender = ss.units.unit_for( combat.defender.id );
@@ -250,7 +250,7 @@ wait<> raid_colony( SS& ss, TS& ts, NativeUnit& attacker,
   CombatBraveAttackColony const combat =
       ts.combat.brave_attack_colony( attacker, defender,
                                      colony );
-  IEuroAgent& agent        = ts.euro_agents()[colony.player];
+  IAgent& agent            = ts.agents()[colony.player];
   e_tribe const tribe_type = tribe_type_for_unit( ss, attacker );
   Tribe& tribe             = ss.natives.tribe_for( tribe_type );
   unique_ptr<IVisibility const> const viz =

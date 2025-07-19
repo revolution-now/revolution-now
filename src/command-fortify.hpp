@@ -18,17 +18,17 @@
 namespace rn {
 
 struct IEngine;
-struct IEuroAgent;
+struct IAgent;
 struct Player;
 struct SS;
 struct TS;
 
 std::unique_ptr<CommandHandler> handle_command(
-    IEngine& engine, SS& ss, TS& ts, IEuroAgent& agent,
+    IEngine& engine, SS& ss, TS& ts, IAgent& agent,
     Player& player, UnitId id, command::fortify const& fortify );
 
 std::unique_ptr<CommandHandler> handle_command(
-    IEngine& engine, SS& ss, TS& ts, IEuroAgent& agent,
+    IEngine& engine, SS& ss, TS& ts, IAgent& agent,
     Player& player, UnitId id, command::sentry const& sentry );
 
 } // namespace rn

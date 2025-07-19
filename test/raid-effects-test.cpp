@@ -15,7 +15,7 @@
 
 // Testing
 #include "test/fake/world.hpp"
-#include "test/mocks/ieuro-agent.hpp"
+#include "test/mocks/iagent.hpp"
 #include "test/mocks/irand.hpp"
 
 // ss
@@ -998,10 +998,9 @@ TEST_CASE(
 TEST_CASE( "[raid] display_brave_attack_colony_effect_msg" ) {
   World W;
 
-  MockIEuroAgent& agent =
-      W.euro_agent( W.default_player_type() );
-  Colony& colony = W.add_colony( { .x = 1, .y = 1 } );
-  colony.name    = "my colony";
+  MockIAgent& agent = W.agent( W.default_player_type() );
+  Colony& colony    = W.add_colony( { .x = 1, .y = 1 } );
+  colony.name       = "my colony";
   Unit const& ship =
       W.add_unit_on_map( e_unit_type::frigate, colony.location );
   BraveAttackColonyEffect effect;

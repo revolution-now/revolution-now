@@ -16,8 +16,8 @@
 
 // Testing
 #include "test/fake/world.hpp"
+#include "test/mocks/iagent.hpp"
 #include "test/mocks/iengine.hpp"
-#include "test/mocks/ieuro-agent.hpp"
 
 // Revolution Now
 #include "src/commodity.hpp"
@@ -56,9 +56,9 @@ struct World : testing::World {
 *****************************************************************/
 TEST_CASE( "[command-dump] galleon" ) {
   World w;
-  MockIEuroAgent& agent = w.euro_agent();
-  UnitId id = w.add_unit_on_map( e_unit_type::galleon,
-                                 Coord{ .x = 0, .y = 0 } )
+  MockIAgent& agent = w.agent();
+  UnitId id         = w.add_unit_on_map( e_unit_type::galleon,
+                                         Coord{ .x = 0, .y = 0 } )
                   .id();
   unique_ptr<CommandHandler> handler =
       handle_command( w.engine(), w.ss(), w.ts(), agent,
@@ -291,7 +291,7 @@ TEST_CASE( "[command-dump] galleon" ) {
 
 TEST_CASE( "[command-dump] wagon train" ) {
   World w;
-  MockIEuroAgent& agent = w.euro_agent();
+  MockIAgent& agent = w.agent();
   UnitId id = w.add_unit_on_map( e_unit_type::wagon_train,
                                  Coord{ .x = 1, .y = 1 } )
                   .id();
@@ -355,7 +355,7 @@ TEST_CASE( "[command-dump] wagon train" ) {
 
 TEST_CASE( "[command-dump] non-cargo unit" ) {
   World w;
-  MockIEuroAgent& agent = w.euro_agent();
+  MockIAgent& agent = w.agent();
   UnitId id = w.add_unit_on_map( e_unit_type::free_colonist,
                                  Coord{ .x = 1, .y = 1 } )
                   .id();

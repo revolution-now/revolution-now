@@ -15,7 +15,7 @@
 
 // Testing.
 #include "test/fake/world.hpp"
-#include "test/mocks/ieuro-agent.hpp"
+#include "test/mocks/iagent.hpp"
 #include "test/util/coro.hpp"
 
 // Revolution Now
@@ -3275,10 +3275,8 @@ TEST_CASE( "[combat-effects] filter_combat_effects_msgs" ) {
 
 TEST_CASE( "[combat-effects] show_combat_effects_msg" ) {
   World W;
-  MockIEuroAgent& attacker_agent =
-      W.euro_agent( e_player::dutch );
-  MockIEuroAgent& defender_agent =
-      W.euro_agent( e_player::french );
+  MockIAgent& attacker_agent = W.agent( e_player::dutch );
+  MockIAgent& defender_agent = W.agent( e_player::french );
 
   FilteredMixedCombatEffectsMessages msgs;
 

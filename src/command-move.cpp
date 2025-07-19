@@ -20,7 +20,7 @@
 #include "connectivity.hpp"
 #include "enter-dwelling.hpp"
 #include "harbor-units.hpp"
-#include "ieuro-agent.hpp"
+#include "iagent.hpp"
 #include "igui.hpp"
 #include "land-view.hpp"
 #include "map-square.hpp"
@@ -194,7 +194,7 @@ maybe<MovementPoints> check_movement_points(
 *****************************************************************/
 struct TravelHandler : public CommandHandler {
   TravelHandler( SS& ss, TS& ts, UnitId unit_id_, e_direction d,
-                 IEuroAgent& agent, Player& player )
+                 IAgent& agent, Player& player )
     : ss_( ss ),
       ts_( ts ),
       unit_id( unit_id_ ),
@@ -400,7 +400,7 @@ struct TravelHandler : public CommandHandler {
   bool checked_mv_points_ = false;
 
   Player& player_;
-  IEuroAgent& agent_;
+  IAgent& agent_;
 };
 
 wait<TravelHandler::e_travel_verdict>
@@ -1078,7 +1078,7 @@ wait<> TravelHandler::perform() {
 ** NativeDwellingHandler
 *****************************************************************/
 struct NativeDwellingHandler : public CommandHandler {
-  NativeDwellingHandler( SS& ss, TS& ts, IEuroAgent& agent,
+  NativeDwellingHandler( SS& ss, TS& ts, IAgent& agent,
                          Player& player, UnitId unit_id,
                          e_direction d, Dwelling& dwelling )
     : ss_( ss ),
@@ -1245,7 +1245,7 @@ struct NativeDwellingHandler : public CommandHandler {
   SS& ss_;
   TS& ts_;
   Player& player_;
-  IEuroAgent& agent_;
+  IAgent& agent_;
 
   // The unit doing the attacking. We need to record the unit id
   // so that we can test if the unit has been destroyed.
@@ -1267,7 +1267,7 @@ struct NativeDwellingHandler : public CommandHandler {
 ** Dispatch
 *****************************************************************/
 unique_ptr<CommandHandler> dispatch( SS& ss, TS& ts,
-                                     IEuroAgent& agent,
+                                     IAgent& agent,
                                      Player& player,
                                      UnitId attacker_id,
                                      e_direction d ) {
@@ -1386,7 +1386,7 @@ unique_ptr<CommandHandler> dispatch( SS& ss, TS& ts,
 ** Public API
 *****************************************************************/
 unique_ptr<CommandHandler> handle_command(
-    IEngine&, SS& ss, TS& ts, IEuroAgent& agent, Player& player,
+    IEngine&, SS& ss, TS& ts, IAgent& agent, Player& player,
     UnitId id, command::move const& mv ) {
   return dispatch( ss, ts, agent, player, id, mv.d );
 }

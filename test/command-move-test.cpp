@@ -16,10 +16,10 @@
 
 // Testing
 #include "test/fake/world.hpp"
+#include "test/mocks/iagent.hpp"
 #include "test/mocks/icolony-viewer.hpp"
 #include "test/mocks/icombat.hpp"
 #include "test/mocks/iengine.hpp"
-#include "test/mocks/ieuro-agent.hpp"
 #include "test/mocks/igui.hpp"
 #include "test/mocks/irand.hpp"
 #include "test/mocks/land-view-plane.hpp"
@@ -116,7 +116,7 @@ TEST_CASE( "[command-move] ship can move from land to ocean" ) {
   {
     // First make sure that it can't move from land to land.
     unique_ptr<CommandHandler> handler = handle_command(
-        W.engine(), W.ss(), W.ts(), W.euro_agent(), player, id,
+        W.engine(), W.ss(), W.ts(), W.agent(), player, id,
         command::move{ .d = e_direction::n } );
     wait<bool> w_confirm = handler->confirm();
     REQUIRE( !w_confirm.exception() );
@@ -129,7 +129,7 @@ TEST_CASE( "[command-move] ship can move from land to ocean" ) {
   {
     // Now make sure that it can move from land to water.
     unique_ptr<CommandHandler> handler = handle_command(
-        W.engine(), W.ss(), W.ts(), W.euro_agent(), player, id,
+        W.engine(), W.ss(), W.ts(), W.agent(), player, id,
         command::move{ .d = e_direction::nw } );
     wait<bool> w_confirm = handler->confirm();
     REQUIRE( !w_confirm.exception() );
@@ -162,10 +162,9 @@ TEST_CASE( "[command-move] ship can't move into inland lake" ) {
   REQUIRE( W.units().unit_for( id ).desc().ship );
 
   unique_ptr<CommandHandler> handler = handle_command(
-      W.engine(), W.ss(), W.ts(), W.euro_agent(), player, id,
+      W.engine(), W.ss(), W.ts(), W.agent(), player, id,
       command::move{ .d = e_direction::s } );
-  W.euro_agent().EXPECT__message_box(
-      StrContains( "inland lake" ) );
+  W.agent().EXPECT__message_box( StrContains( "inland lake" ) );
   wait<bool> w_confirm = handler->confirm();
   REQUIRE( !w_confirm.exception() );
   REQUIRE( w_confirm.ready() );
@@ -194,8 +193,8 @@ TEST_CASE(
   auto move_unit = [&]( UnitId unit_id, e_direction d ) {
     land_view_plane.EXPECT__animate_if_visible( _ );
     unique_ptr<CommandHandler> handler = handle_command(
-        W.engine(), W.ss(), W.ts(), W.euro_agent(), player,
-        unit_id, command::move{ .d = d } );
+        W.engine(), W.ss(), W.ts(), W.agent(), player, unit_id,
+        command::move{ .d = d } );
     wait<CommandHandlerRunResult> const w = handler->run();
     REQUIRE( !w.exception() );
     REQUIRE( w.ready() );
@@ -234,7 +233,7 @@ TEST_CASE(
   W.colony_viewer()
       .EXPECT__show( _, colony.id )
       .returns( e_colony_abandoned::no );
-  W.euro_agent().EXPECT__human().returns( true );
+  W.agent().EXPECT__human().returns( true );
   move_unit( privateer.id(), e_direction::se );
 
   // No road; consumes one movement point.
@@ -277,8 +276,8 @@ TEST_CASE(
   auto move_unit = [&]( UnitId unit_id, e_direction d ) {
     land_view_plane.EXPECT__animate_if_visible( _ );
     unique_ptr<CommandHandler> handler = handle_command(
-        W.engine(), W.ss(), W.ts(), W.euro_agent(), player,
-        unit_id, command::move{ .d = d } );
+        W.engine(), W.ss(), W.ts(), W.agent(), player, unit_id,
+        command::move{ .d = d } );
     wait<CommandHandlerRunResult> const w = handler->run();
     REQUIRE( !w.exception() );
     REQUIRE( w.ready() );
@@ -286,7 +285,7 @@ TEST_CASE(
   };
 
   // Sanity check.
-  W.euro_agent().EXPECT__human().returns( true );
+  W.agent().EXPECT__human().returns( true );
   W.colony_viewer()
       .EXPECT__show( _, colony.id )
       .returns( e_colony_abandoned::no );
@@ -323,11 +322,11 @@ TEST_CASE(
       e_difficulty::conquistador;
   MockLandViewPlane land_view_plane;
   w.planes().get().set_bottom<ILandViewPlane>( land_view_plane );
-  Player& player        = w.default_player();
-  MockIEuroAgent& agent = w.euro_agent();
-  Colony const& colony  = w.add_colony( { .x = 1, .y = 1 } );
-  Unit const& galleon = w.add_unit_on_map( e_unit_type::galleon,
-                                           { .x = 0, .y = 0 } );
+  Player& player       = w.default_player();
+  MockIAgent& agent    = w.agent();
+  Colony const& colony = w.add_colony( { .x = 1, .y = 1 } );
+  Unit const& galleon  = w.add_unit_on_map( e_unit_type::galleon,
+                                            { .x = 0, .y = 0 } );
   UnitId const treasure_id =
       w.add_unit_in_cargo( e_unit_type::treasure, galleon.id() )
           .id();
@@ -335,15 +334,15 @@ TEST_CASE(
   auto move_unit = [&]( UnitId unit_id, e_direction d ) {
     land_view_plane.EXPECT__animate_if_visible( _ );
     unique_ptr<CommandHandler> handler = handle_command(
-        w.engine(), w.ss(), w.ts(), w.euro_agent(), player,
-        unit_id, command::move{ .d = d } );
+        w.engine(), w.ss(), w.ts(), w.agent(), player, unit_id,
+        command::move{ .d = d } );
     wait<CommandHandlerRunResult> const w = handler->run();
     REQUIRE( !w.exception() );
     REQUIRE( w.ready() );
     return *w;
   };
 
-  w.euro_agent().EXPECT__human().returns( true );
+  w.agent().EXPECT__human().returns( true );
   w.colony_viewer()
       .EXPECT__show( _, colony.id )
       .returns( e_colony_abandoned::no );
@@ -394,7 +393,7 @@ TEST_CASE(
   MockLandViewPlane land_view_plane;
   w.planes().get().set_bottom<ILandViewPlane>( land_view_plane );
   Player& player           = w.default_player();
-  MockIEuroAgent& agent    = w.euro_agent();
+  MockIAgent& agent        = w.agent();
   player.revolution.status = e_revolution_status::declared;
   Colony const& colony     = w.add_colony( { .x = 1, .y = 1 } );
   Unit const& galleon = w.add_unit_on_map( e_unit_type::galleon,
@@ -407,8 +406,8 @@ TEST_CASE(
   auto move_unit = [&]( UnitId unit_id, e_direction d ) {
     land_view_plane.EXPECT__animate_if_visible( _ );
     unique_ptr<CommandHandler> handler = handle_command(
-        w.engine(), w.ss(), w.ts(), w.euro_agent(), player,
-        unit_id, command::move{ .d = d } );
+        w.engine(), w.ss(), w.ts(), w.agent(), player, unit_id,
+        command::move{ .d = d } );
     wait<CommandHandlerRunResult> const w = handler->run();
     REQUIRE( !w.exception() );
     REQUIRE( w.ready() );
@@ -418,7 +417,7 @@ TEST_CASE(
   // Sanity check.
   agent.EXPECT__message_box(
       StrContains( "traveling merchants" ) );
-  w.euro_agent().EXPECT__human().returns( true );
+  w.agent().EXPECT__human().returns( true );
   w.colony_viewer()
       .EXPECT__show( _, colony.id )
       .returns( e_colony_abandoned::no );
@@ -442,8 +441,8 @@ TEST_CASE(
   world W;
   MockLandViewPlane land_view_plane;
   W.planes().get().set_bottom<ILandViewPlane>( land_view_plane );
-  Player& player        = W.default_player();
-  MockIEuroAgent& agent = W.euro_agent();
+  Player& player    = W.default_player();
+  MockIAgent& agent = W.agent();
   W.add_colony( { .x = 1, .y = 1 } );
   // This unit will be deleted.
   UnitId const treasure_id =
@@ -454,8 +453,8 @@ TEST_CASE(
   auto move_unit = [&]( UnitId unit_id, e_direction d ) {
     land_view_plane.EXPECT__animate_if_visible( _ );
     unique_ptr<CommandHandler> handler = handle_command(
-        W.engine(), W.ss(), W.ts(), W.euro_agent(), player,
-        unit_id, command::move{ .d = d } );
+        W.engine(), W.ss(), W.ts(), W.agent(), player, unit_id,
+        command::move{ .d = d } );
     wait<CommandHandlerRunResult> const w = handler->run();
     REQUIRE( !w.exception() );
     REQUIRE( w.ready() );
@@ -492,10 +491,10 @@ TEST_CASE(
                             { .x = 1, .y = 1 }, dwelling.id );
 
   unique_ptr<CommandHandler> handler = handle_command(
-      W.engine(), W.ss(), W.ts(),
-      W.euro_agent( e_player::french ), W.french(),
-      colonist.id(), command::move{ .d = e_direction::se } );
-  W.euro_agent( W.default_player_type() )
+      W.engine(), W.ss(), W.ts(), W.agent( e_player::french ),
+      W.french(), colonist.id(),
+      command::move{ .d = e_direction::se } );
+  W.agent( W.default_player_type() )
       .EXPECT__message_box(
           "We cannot attack a land unit from a ship." );
   wait<bool> w_confirm = handler->confirm();
@@ -518,10 +517,10 @@ TEST_CASE(
 
   BASE_CHECK( caravel.player_type() != colonist.player_type() );
   unique_ptr<CommandHandler> handler = handle_command(
-      W.engine(), W.ss(), W.ts(),
-      W.euro_agent( e_player::french ), W.french(),
-      colonist.id(), command::move{ .d = e_direction::nw } );
-  W.euro_agent( e_player::french )
+      W.engine(), W.ss(), W.ts(), W.agent( e_player::french ),
+      W.french(), colonist.id(),
+      command::move{ .d = e_direction::nw } );
+  W.agent( e_player::french )
       .EXPECT__message_box(
           "Our land units can neither attack nor board foreign "
           "ships." );
@@ -547,10 +546,10 @@ TEST_CASE(
 
   BASE_CHECK( caravel.player_type() != soldier.player_type() );
   unique_ptr<CommandHandler> handler = handle_command(
-      W.engine(), W.ss(), W.ts(),
-      W.euro_agent( e_player::french ), W.french(), soldier.id(),
+      W.engine(), W.ss(), W.ts(), W.agent( e_player::french ),
+      W.french(), soldier.id(),
       command::move{ .d = e_direction::n } );
-  W.euro_agent( e_player::french )
+  W.agent( e_player::french )
       .EXPECT__message_box(
           "Our land units can neither attack nor board foreign "
           "ships." );
@@ -609,9 +608,9 @@ TEST_CASE(
     // military units.
     W.rand().EXPECT__between_ints( 0, 0 ).returns( 0 );
     unique_ptr<CommandHandler> handler = handle_command(
-        W.engine(), W.ss(), W.ts(),
-        W.euro_agent( e_player::french ), W.french(),
-        soldier.id(), command::move{ .d = e_direction::n } );
+        W.engine(), W.ss(), W.ts(), W.agent( e_player::french ),
+        W.french(), soldier.id(),
+        command::move{ .d = e_direction::n } );
     require_in_colony( master_distiller );
     require_not_sentried( master_distiller );
     require_on_map( caravel );
@@ -635,7 +634,7 @@ TEST_CASE(
             soldier, master_distiller, colony )
         .returns( combat );
     mock_land_view.EXPECT__animate_if_visible( _ );
-    W.euro_agent( e_player::dutch )
+    W.agent( e_player::dutch )
         .EXPECT__message_box(
             "[Dutch] Master Distiller defeats [French] in 1!" );
     co_await_test( handler->perform() );
@@ -646,9 +645,9 @@ TEST_CASE(
         e_unit_type::soldier, caravel.id() );
     require_in_cargo( soldier_onboard );
     unique_ptr<CommandHandler> handler = handle_command(
-        W.engine(), W.ss(), W.ts(),
-        W.euro_agent( e_player::french ), W.french(),
-        soldier.id(), command::move{ .d = e_direction::n } );
+        W.engine(), W.ss(), W.ts(), W.agent( e_player::french ),
+        W.french(), soldier.id(),
+        command::move{ .d = e_direction::n } );
     require_in_colony( master_distiller );
     require_not_sentried( master_distiller );
     require_on_map( soldier_onboard );
@@ -678,7 +677,7 @@ TEST_CASE(
         .EXPECT__euro_attack_euro( soldier, soldier_onboard )
         .returns( combat );
     mock_land_view.EXPECT__animate_if_visible( _ );
-    W.euro_agent( e_player::dutch )
+    W.agent( e_player::dutch )
         .EXPECT__message_box(
             "[Dutch] Soldier defeats [French] in 1!" );
     co_await_test( handler->perform() );
@@ -690,7 +689,7 @@ TEST_CASE(
   world w;
   w.update_terrain_connectivity();
   MockLandViewPlane mock_land_view;
-  MockIEuroAgent& agent = w.euro_agent();
+  MockIAgent& agent = w.agent();
   w.planes().get().set_bottom<ILandViewPlane>( mock_land_view );
   Player& player      = w.default_player();
   Unit const& caravel = w.add_unit_on_map(
@@ -710,7 +709,7 @@ TEST_CASE(
 
     {
       unique_ptr<CommandHandler> const handler = handle_command(
-          w.engine(), w.ss(), w.ts(), w.euro_agent(), player,
+          w.engine(), w.ss(), w.ts(), w.agent(), player,
           caravel.id(), command::move{ .d = e_direction::e } );
       agent.EXPECT__should_sail_high_seas().returns(
           ui::e_confirm::no );
@@ -724,7 +723,7 @@ TEST_CASE(
 
     {
       unique_ptr<CommandHandler> const handler = handle_command(
-          w.engine(), w.ss(), w.ts(), w.euro_agent(), player,
+          w.engine(), w.ss(), w.ts(), w.agent(), player,
           caravel.id(), command::move{ .d = e_direction::e } );
       agent.EXPECT__should_sail_high_seas().returns(
           ui::e_confirm::no );
@@ -742,7 +741,7 @@ TEST_CASE(
     // Map edge.
     {
       unique_ptr<CommandHandler> const handler = handle_command(
-          w.engine(), w.ss(), w.ts(), w.euro_agent(), player,
+          w.engine(), w.ss(), w.ts(), w.agent(), player,
           caravel.id(), command::move{ .d = e_direction::e } );
       agent.EXPECT__should_sail_high_seas().returns(
           ui::e_confirm::no );
@@ -758,7 +757,7 @@ TEST_CASE(
     // Map edge.
     {
       unique_ptr<CommandHandler> const handler = handle_command(
-          w.engine(), w.ss(), w.ts(), w.euro_agent(), player,
+          w.engine(), w.ss(), w.ts(), w.agent(), player,
           caravel.id(), command::move{ .d = e_direction::e } );
       agent.EXPECT__should_sail_high_seas().returns(
           ui::e_confirm::yes );
@@ -784,9 +783,9 @@ TEST_CASE(
           w.player( caravel.player_type() ).revolution.status ==
           e_revolution_status::declared );
       unique_ptr<CommandHandler> const handler = handle_command(
-          w.engine(), w.ss(), w.ts(), w.euro_agent(), player,
+          w.engine(), w.ss(), w.ts(), w.agent(), player,
           caravel.id(), command::move{ .d = e_direction::e } );
-      w.euro_agent().EXPECT__message_box( not_permitted );
+      w.agent().EXPECT__message_box( not_permitted );
       bool const confirmed = co_await_test( handler->confirm() );
       REQUIRE( confirmed );
       mock_land_view.EXPECT__animate_if_visible( _ );
@@ -800,7 +799,7 @@ TEST_CASE(
 
     {
       unique_ptr<CommandHandler> const handler = handle_command(
-          w.engine(), w.ss(), w.ts(), w.euro_agent(), player,
+          w.engine(), w.ss(), w.ts(), w.agent(), player,
           caravel.id(), command::move{ .d = e_direction::e } );
       // NOTE: no msg box here.
       bool const confirmed = co_await_test( handler->confirm() );
@@ -816,9 +815,9 @@ TEST_CASE(
 
     {
       unique_ptr<CommandHandler> const handler = handle_command(
-          w.engine(), w.ss(), w.ts(), w.euro_agent(), player,
+          w.engine(), w.ss(), w.ts(), w.agent(), player,
           caravel.id(), command::move{ .d = e_direction::e } );
-      w.euro_agent().EXPECT__message_box( not_permitted );
+      w.agent().EXPECT__message_box( not_permitted );
       bool const confirmed = co_await_test( handler->confirm() );
       REQUIRE_FALSE( confirmed );
       REQUIRE( w.units().coord_for( caravel.id() ).to_gfx() ==

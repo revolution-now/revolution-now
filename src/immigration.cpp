@@ -14,7 +14,7 @@
 #include "agents.hpp"
 #include "co-wait.hpp"
 #include "harbor-units.hpp"
-#include "ieuro-agent.hpp"
+#include "iagent.hpp"
 #include "igui.hpp"
 #include "irand.hpp"
 #include "isignal.rds.hpp"
@@ -100,7 +100,7 @@ UnitCounts unit_counts( UnitsState const& units_state,
 } // namespace
 
 wait<maybe<int>> ask_player_to_choose_immigrant(
-    IEuroAgent& agent, ImmigrationState const& immigration,
+    IAgent& agent, ImmigrationState const& immigration,
     string const& msg ) {
   array<e_unit_type, 3> const& pool =
       immigration.immigrants_pool;
@@ -230,7 +230,7 @@ wait<maybe<UnitId>> check_for_new_immigrant(
   CHECK_GE( crosses_needed, 0 );
   if( player.crosses < crosses_needed ) co_return nothing;
   player.crosses -= crosses_needed;
-  IEuroAgent& agent = ts.euro_agents()[player.type];
+  IAgent& agent = ts.agents()[player.type];
   CHECK( player.crosses >= 0 );
   int immigrant_idx = {};
   if( player.fathers.has[e_founding_father::william_brewster] ) {

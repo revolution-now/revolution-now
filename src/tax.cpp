@@ -15,7 +15,7 @@
 #include "co-wait.hpp"
 #include "commodity.hpp"
 #include "connectivity.hpp"
-#include "ieuro-agent.hpp"
+#include "iagent.hpp"
 #include "igui.hpp"
 #include "irand.hpp"
 #include "isignal.rds.hpp"
@@ -117,7 +117,7 @@ maybe<CommodityInColony> find_what_to_boycott(
 }
 
 wait<> boycott_msg( SSConst const& ss, Player const& player,
-                    IEuroAgent& agent,
+                    IAgent& agent,
                     TaxChangeResult::party const& party ) {
   string_view const colony_name =
       ss.colonies.colony_for( party.how.commodity.colony_id )
@@ -257,8 +257,8 @@ TaxUpdateComputation compute_tax_change(
 }
 
 wait<TaxChangeResult> prompt_for_tax_change_result(
-    SS& ss, IRand& rand, Player& player_non_const,
-    IEuroAgent& agent, TaxChangeProposal const& proposal ) {
+    SS& ss, IRand& rand, Player& player_non_const, IAgent& agent,
+    TaxChangeProposal const& proposal ) {
   Player const& player = player_non_const;
   static string_view const constexpr increase_msg =
       "In honor of our marriage to our {}{} wife, we have "
@@ -373,7 +373,7 @@ void apply_tax_result( SS& ss, Player& player,
 
 wait<> start_of_turn_tax_check(
     SS& ss, IRand& rand, TerrainConnectivity const& connectivity,
-    Player& player, IEuroAgent& agent ) {
+    Player& player, IAgent& agent ) {
   TaxUpdateComputation const update =
       compute_tax_change( ss, connectivity, rand, player );
   CHECK_GT( update.next_tax_event_turn,

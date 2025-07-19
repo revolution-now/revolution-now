@@ -56,7 +56,7 @@ struct StackTraceOptions {
   bool skip_stacktrace_module = true;
   // Additional frames to skip after the skip_stacktrace_module
   // flag is applied (if true).
-  int skip_frames             = 0;
+  int skip_frames = 0;
   // Which folders do we care about.
   e_stack_trace_frames frames = e_stack_trace_frames::rn_only;
 };

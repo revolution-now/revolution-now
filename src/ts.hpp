@@ -21,7 +21,7 @@ struct state;
 
 namespace rn {
 
-struct EuroAgents;
+struct Agents;
 struct IColonyViewer;
 struct ICombat;
 struct IGui;
@@ -82,7 +82,7 @@ struct TS {
 
   TS_FIELD( IMapUpdater, map_updater );
   TS_FIELD( NativeAgents, native_agents );
-  TS_FIELD( EuroAgents, euro_agents );
+  TS_FIELD( Agents, agents );
 
  public:
   // This refers to a serialized state data structure that holds

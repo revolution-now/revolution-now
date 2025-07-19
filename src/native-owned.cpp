@@ -13,7 +13,7 @@
 // Revolution Now
 #include "alarm.hpp"
 #include "co-wait.hpp"
-#include "ieuro-agent.hpp"
+#include "iagent.hpp"
 #include "map-square.hpp"
 
 // config
@@ -169,7 +169,7 @@ maybe<LandPrice> price_for_native_owned_land(
 }
 
 wait<base::NoDiscard<bool>> prompt_player_for_taking_native_land(
-    SS& ss, IEuroAgent& agent, Player& player, Coord tile,
+    SS& ss, IAgent& agent, Player& player, Coord tile,
     e_native_land_grab_type context ) {
   UNWRAP_CHECK(
       price, price_for_native_owned_land( ss, player, tile ) );

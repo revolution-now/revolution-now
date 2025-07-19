@@ -16,8 +16,8 @@
 // Testing.
 #include "test/fake/world.hpp"
 #include "test/mocking.hpp"
+#include "test/mocks/iagent.hpp"
 #include "test/mocks/iengine.hpp"
-#include "test/mocks/ieuro-agent.hpp"
 #include "test/mocks/igui.hpp"
 #include "test/mocks/imap-updater.hpp"
 #include "test/mocks/imenu-server.hpp"
@@ -606,7 +606,7 @@ TEST_CASE( "[cheat] kill_natives" ) {
         wait( unordered_map<int, bool>{
           { static_cast<int>( e_tribe::tupi ), true } } ) );
     mock_land_view.EXPECT__animate_if_visible( _ );
-    w.euro_agent().EXPECT__message_box(
+    w.agent().EXPECT__message_box(
         "The [Tupi] tribe has been wiped out." );
     f();
     REQUIRE( !w.natives().tribe_exists( e_tribe::tupi ) );
@@ -645,7 +645,7 @@ TEST_CASE( "[cheat] kill_natives" ) {
         wait( unordered_map<int, bool>{
           { static_cast<int>( e_tribe::tupi ), true } } ) );
     mock_land_view.EXPECT__animate_if_visible( _ );
-    w.euro_agent().EXPECT__message_box(
+    w.agent().EXPECT__message_box(
         "The [Tupi] tribe has been wiped out." );
     REQUIRE( w.player_square( { .x = 1, .y = 0 } )
                  .inner_if<explored>()
@@ -1001,7 +1001,7 @@ TEST_CASE( "[cheat] cheat_advance_revolution_status" ) {
   REQUIRE( !w.players().players[ref_spanish].has_value() );
   REQUIRE( !w.players().players[ref_dutch].has_value() );
 
-  w.euro_agent( english ).EXPECT__message_box(
+  w.agent( english ).EXPECT__message_box(
       StrContains( "sentiment is on the rise" ) );
 
   w.gui().EXPECT__message_box(

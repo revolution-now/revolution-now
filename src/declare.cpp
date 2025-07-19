@@ -13,7 +13,7 @@
 // Revolution Now
 #include "agents.hpp"
 #include "co-wait.hpp"
-#include "ieuro-agent.hpp"
+#include "iagent.hpp"
 #include "igui.hpp"
 #include "player-mgr.hpp"
 #include "rebel-sentiment.hpp"
@@ -191,10 +191,9 @@ DeclarationResult declare_independence( IEngine& engine, SS& ss,
   CHECK( !ss.players.players[ref_player_type].has_value() );
   Player& ref_player = add_new_player( ss, ref_player_type );
   ref_player.control = e_player_control::ai;
-  ts.euro_agents().update(
-      ref_player_type,
-      create_euro_agent( engine, ss, ts.planes, ts.gui,
-                         ref_player_type ) );
+  ts.agents().update( ref_player_type,
+                      create_agent( engine, ss, ts.planes,
+                                    ts.gui, ref_player_type ) );
 
   // Step: Make sure that there is at least one Man-o-War if
   // there are any ref units to bring. The OG appears to increase

@@ -5,32 +5,32 @@
 *
 * Created by David P. Sicilia on 2025-07-07.
 *
-* Description: Implementation of IEuroAgent for AI REF players.
+* Description: Implementation of IAgent for AI REF players.
 *
 *****************************************************************/
 #pragma once
 
 // Revolution Now
-#include "ieuro-agent.hpp"
+#include "iagent.hpp"
 
 namespace rn {
 
 struct SS;
 
 /****************************************************************
-** RefAIEuroAgent
+** RefAIAgent
 *****************************************************************/
 // This is an implementation that will consult with a human user
 // via GUI actions or input in order to fulfill the requests.
-struct RefAIEuroAgent final : IEuroAgent {
-  RefAIEuroAgent( e_player player, SS& ss );
+struct RefAIAgent final : IAgent {
+  RefAIAgent( e_player player, SS& ss );
 
-  ~RefAIEuroAgent() override;
+  ~RefAIAgent() override;
 
  public: // IAgent.
   wait<> message_box( std::string const& msg ) override;
 
- public: // IEuroAgent.
+ public: // IAgent.
   Player const& player() override;
 
   bool human() const override;

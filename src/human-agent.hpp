@@ -1,11 +1,11 @@
 /****************************************************************
-**human-euro-agent.hpp
+**human-agent.hpp
 *
 * Project: Revolution Now
 *
 * Created by dsicilia on 2023-03-31.
 *
-* Description: Implementation of IEuroAgent for human players.
+* Description: Implementation of IAgent for human players.
 *
 *****************************************************************/
 #pragma once
@@ -13,7 +13,7 @@
 #include "core-config.hpp"
 
 // Revolution Now
-#include "ieuro-agent.hpp"
+#include "iagent.hpp"
 
 namespace rn {
 
@@ -24,18 +24,18 @@ struct Planes;
 struct SS;
 
 /****************************************************************
-** HumanEuroAgent
+** HumanAgent
 *****************************************************************/
 // This is an implementation that will consult with a human user
 // via GUI actions or input in order to fulfill the requests.
-struct HumanEuroAgent final : IEuroAgent {
-  HumanEuroAgent( e_player player, IEngine& engine, SS& ss,
-                  IGui& gui, Planes& planes );
+struct HumanAgent final : IAgent {
+  HumanAgent( e_player player, IEngine& engine, SS& ss,
+              IGui& gui, Planes& planes );
 
  public: // IAgent.
   wait<> message_box( std::string const& msg ) override;
 
- public: // IEuroAgent.
+ public: // IAgent.
   Player const& player() override;
 
   bool human() const override { return true; }

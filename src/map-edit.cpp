@@ -15,10 +15,10 @@
 #include "co-combinator.hpp"
 #include "colony-view.hpp"
 #include "connectivity.hpp"
-#include "gui.hpp" // FIXME
+#include "gui.hpp"    // FIXME
+#include "iagent.hpp" // FIXME
 #include "icombat.hpp"
 #include "iengine.hpp"
-#include "ieuro-agent.hpp" // FIXME
 #include "imenu-server.hpp"
 #include "inative-agent.hpp" // FIXME
 #include "input.hpp"
@@ -674,12 +674,12 @@ wait<> run_map_editor_standalone( IEngine& engine,
   ColonyViewer colony_viewer( engine, ss );
   TerrainConnectivity connectivity;
   NativeAgents native_agents;
-  EuroAgents euro_agents;
+  Agents agents;
   TS ts( planes, st, gui, rand, combat, colony_viewer, ss.root,
          connectivity );
   auto _1 = ts.set_map_updater( map_updater );
   auto _2 = ts.set_native_agents( native_agents );
-  auto _3 = ts.set_euro_agents( euro_agents );
+  auto _3 = ts.set_agents( agents );
   co_await run_map_editor( engine, ss, ts );
 }
 

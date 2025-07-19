@@ -12,8 +12,8 @@
 
 // Revolution Now
 #include "ai-native-agent.hpp"
-#include "human-euro-agent.hpp"
-#include "ieuro-agent.hpp"
+#include "human-agent.hpp"
+#include "iagent.hpp"
 #include "inative-agent.hpp"
 #include "ref-ai-agent.hpp"
 
@@ -54,67 +54,64 @@ INativeAgent& NativeAgents::operator[]( e_tribe tribe ) const {
 }
 
 /****************************************************************
-** EuroAgents
+** Agents
 *****************************************************************/
-EuroAgents::EuroAgents( AgentsMap agents )
+Agents::Agents( AgentsMap agents )
   : agents_( std::move( agents ) ) {}
 
-EuroAgents::~EuroAgents() = default;
+Agents::~Agents() = default;
 
-EuroAgents& EuroAgents::operator=( EuroAgents&& ) noexcept =
-    default;
+Agents& Agents::operator=( Agents&& ) noexcept = default;
 
-IEuroAgent& EuroAgents::operator[]( e_player player ) const {
+IAgent& Agents::operator[]( e_player player ) const {
   auto iter = agents_.find( player );
   CHECK( iter != agents_.end(),
-         "no IEuroAgent object for player {}.", player );
-  unique_ptr<IEuroAgent> const& p_agent = iter->second;
-  CHECK( p_agent != nullptr,
-         "null IEuroAgent object for player {}.", player );
+         "no IAgent object for player {}.", player );
+  unique_ptr<IAgent> const& p_agent = iter->second;
+  CHECK( p_agent != nullptr, "null IAgent object for player {}.",
+         player );
   return *p_agent;
 }
 
-auto EuroAgents::map() const -> AgentsMap const& {
-  return agents_;
-}
+auto Agents::map() const -> AgentsMap const& { return agents_; }
 
-void EuroAgents::update( e_player const player,
-                         unique_ptr<IEuroAgent> agent ) {
+void Agents::update( e_player const player,
+                     unique_ptr<IAgent> agent ) {
   agents_[player] = std::move( agent );
 }
 
 /****************************************************************
 ** Public API.
 *****************************************************************/
-unique_ptr<IEuroAgent> create_euro_agent(
-    IEngine& engine, SS& ss, Planes& planes, IGui& gui,
-    e_player const player ) {
+unique_ptr<IAgent> create_agent( IEngine& engine, SS& ss,
+                                 Planes& planes, IGui& gui,
+                                 e_player const player ) {
   switch( ss.players.players[player]->control ) {
     case e_player_control::ai: {
       if( is_ref( player ) )
-        return make_unique<RefAIEuroAgent>( player, ss );
+        return make_unique<RefAIAgent>( player, ss );
       else
         // TODO
-        return make_unique<NoopEuroAgent>( ss.as_const, player );
+        return make_unique<NoopAgent>( ss.as_const, player );
     }
     case e_player_control::human: {
-      return make_unique<HumanEuroAgent>( player, engine, ss,
-                                          gui, planes );
+      return make_unique<HumanAgent>( player, engine, ss, gui,
+                                      planes );
     }
     case e_player_control::withdrawn: {
-      return make_unique<NoopEuroAgent>( ss.as_const, player );
+      return make_unique<NoopAgent>( ss.as_const, player );
     }
   }
 }
 
-EuroAgents create_euro_agents( IEngine& engine, SS& ss,
-                               Planes& planes, IGui& gui ) {
-  unordered_map<e_player, unique_ptr<IEuroAgent>> holder;
+Agents create_agents( IEngine& engine, SS& ss, Planes& planes,
+                      IGui& gui ) {
+  unordered_map<e_player, unique_ptr<IAgent>> holder;
   for( e_player const player : refl::enum_values<e_player> )
     if( ss.players.players[player].has_value() )
       holder[player] =
-          create_euro_agent( engine, ss, planes, gui, player );
-  return EuroAgents( std::move( holder ) );
+          create_agent( engine, ss, planes, gui, player );
+  return Agents( std::move( holder ) );
 }
 
 NativeAgents create_native_agents( SS& ss, IRand& rand ) {

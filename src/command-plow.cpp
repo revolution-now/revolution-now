@@ -12,7 +12,7 @@
 
 // Revolution Now
 #include "co-wait.hpp"
-#include "ieuro-agent.hpp"
+#include "iagent.hpp"
 #include "map-square.hpp"
 #include "native-owned.hpp"
 #include "plow.hpp"
@@ -35,7 +35,7 @@ namespace rn {
 namespace {
 
 struct PlowHandler : public CommandHandler {
-  PlowHandler( SS& ss, IEuroAgent& agent, Player& player,
+  PlowHandler( SS& ss, IAgent& agent, Player& player,
                UnitId unit_id )
     : ss_( ss ),
       player_( player ),
@@ -136,7 +136,7 @@ struct PlowHandler : public CommandHandler {
 
   SS& ss_;
   Player& player_;
-  IEuroAgent& agent_;
+  IAgent& agent_;
   UnitId unit_id_ = {};
 };
 
@@ -146,7 +146,7 @@ struct PlowHandler : public CommandHandler {
 ** Public API
 *****************************************************************/
 unique_ptr<CommandHandler> handle_command(
-    IEngine&, SS& ss, TS&, IEuroAgent& agent, Player& player,
+    IEngine&, SS& ss, TS&, IAgent& agent, Player& player,
     UnitId id, command::plow const& ) {
   return make_unique<PlowHandler>( ss, agent, player, id );
 }

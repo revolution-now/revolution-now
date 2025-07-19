@@ -15,15 +15,15 @@
 
 // Testing.
 #include "test/fake/world.hpp"
+#include "test/mocks/iagent.hpp"
 #include "test/mocks/iengine.hpp"
-#include "test/mocks/ieuro-agent.hpp"
 #include "test/mocks/igui.hpp"
 #include "test/mocks/inative-agent.hpp"
 #include "test/mocks/irand.hpp"
 
 // Revolution Now
 #include "src/ai-native-agent.hpp"
-#include "src/human-euro-agent.hpp"
+#include "src/human-agent.hpp"
 #include "src/ref-ai-agent.hpp"
 
 // ss
@@ -73,9 +73,9 @@ struct World : testing::World {
 /****************************************************************
 ** Static checks.
 *****************************************************************/
-static_assert( !is_copy_assignable_v<EuroAgents> );
-static_assert( is_move_assignable_v<EuroAgents> );
-static_assert( is_nothrow_move_assignable_v<EuroAgents> );
+static_assert( !is_copy_assignable_v<Agents> );
+static_assert( is_move_assignable_v<Agents> );
+static_assert( is_nothrow_move_assignable_v<Agents> );
 
 static_assert( !is_copy_assignable_v<NativeAgents> );
 static_assert( is_move_assignable_v<NativeAgents> );
@@ -84,7 +84,7 @@ static_assert( is_nothrow_move_assignable_v<NativeAgents> );
 /****************************************************************
 ** Test Cases
 *****************************************************************/
-TEST_CASE( "[agents] create_euro_agent" ) {
+TEST_CASE( "[agents] create_agent" ) {
   World W;
 
   W.english().control     = e_player_control::human;
@@ -97,8 +97,8 @@ TEST_CASE( "[agents] create_euro_agent" ) {
   W.ref_dutch().control   = e_player_control::ai;
 
   auto f = [&]( e_player const p ) {
-    return create_euro_agent( W.engine(), W.ss(), W.planes(),
-                              W.gui(), p );
+    return create_agent( W.engine(), W.ss(), W.planes(), W.gui(),
+                         p );
   };
 
   auto const english_agent     = f( e_player::english );
@@ -123,42 +123,42 @@ TEST_CASE( "[agents] create_euro_agent" ) {
   REQUIRE( ref_dutch_agent->player_type() ==
            e_player::ref_dutch );
 
-  REQUIRE( dynamic_cast<HumanEuroAgent*>(
-               english_agent.get() ) != nullptr );
-  REQUIRE( dynamic_cast<HumanEuroAgent*>( french_agent.get() ) !=
+  REQUIRE( dynamic_cast<HumanAgent*>( english_agent.get() ) !=
            nullptr );
-  REQUIRE( dynamic_cast<HumanEuroAgent*>(
-               spanish_agent.get() ) == nullptr );
-  REQUIRE( dynamic_cast<HumanEuroAgent*>( dutch_agent.get() ) ==
+  REQUIRE( dynamic_cast<HumanAgent*>( french_agent.get() ) !=
            nullptr );
-  REQUIRE( dynamic_cast<HumanEuroAgent*>(
+  REQUIRE( dynamic_cast<HumanAgent*>( spanish_agent.get() ) ==
+           nullptr );
+  REQUIRE( dynamic_cast<HumanAgent*>( dutch_agent.get() ) ==
+           nullptr );
+  REQUIRE( dynamic_cast<HumanAgent*>(
                ref_english_agent.get() ) != nullptr );
-  REQUIRE( dynamic_cast<HumanEuroAgent*>(
-               ref_french_agent.get() ) != nullptr );
-  REQUIRE( dynamic_cast<HumanEuroAgent*>(
+  REQUIRE( dynamic_cast<HumanAgent*>( ref_french_agent.get() ) !=
+           nullptr );
+  REQUIRE( dynamic_cast<HumanAgent*>(
                ref_spanish_agent.get() ) == nullptr );
-  REQUIRE( dynamic_cast<HumanEuroAgent*>(
-               ref_dutch_agent.get() ) == nullptr );
+  REQUIRE( dynamic_cast<HumanAgent*>( ref_dutch_agent.get() ) ==
+           nullptr );
 
-  REQUIRE( dynamic_cast<NoopEuroAgent*>( english_agent.get() ) ==
+  REQUIRE( dynamic_cast<NoopAgent*>( english_agent.get() ) ==
            nullptr );
-  REQUIRE( dynamic_cast<NoopEuroAgent*>( french_agent.get() ) ==
+  REQUIRE( dynamic_cast<NoopAgent*>( french_agent.get() ) ==
            nullptr );
-  REQUIRE( dynamic_cast<NoopEuroAgent*>( spanish_agent.get() ) !=
+  REQUIRE( dynamic_cast<NoopAgent*>( spanish_agent.get() ) !=
            nullptr );
-  REQUIRE( dynamic_cast<NoopEuroAgent*>( dutch_agent.get() ) !=
+  REQUIRE( dynamic_cast<NoopAgent*>( dutch_agent.get() ) !=
            nullptr );
-  REQUIRE( dynamic_cast<NoopEuroAgent*>(
-               ref_english_agent.get() ) == nullptr );
-  REQUIRE( dynamic_cast<NoopEuroAgent*>(
-               ref_french_agent.get() ) == nullptr );
-  REQUIRE( dynamic_cast<RefAIEuroAgent*>(
+  REQUIRE( dynamic_cast<NoopAgent*>( ref_english_agent.get() ) ==
+           nullptr );
+  REQUIRE( dynamic_cast<NoopAgent*>( ref_french_agent.get() ) ==
+           nullptr );
+  REQUIRE( dynamic_cast<RefAIAgent*>(
                ref_spanish_agent.get() ) != nullptr );
-  REQUIRE( dynamic_cast<RefAIEuroAgent*>(
-               ref_dutch_agent.get() ) != nullptr );
+  REQUIRE( dynamic_cast<RefAIAgent*>( ref_dutch_agent.get() ) !=
+           nullptr );
 }
 
-TEST_CASE( "[agents] create_euro_agents" ) {
+TEST_CASE( "[agents] create_agents" ) {
   World W;
 
   W.english().control     = e_player_control::human;
@@ -171,11 +171,11 @@ TEST_CASE( "[agents] create_euro_agents" ) {
   W.ref_dutch().control   = e_player_control::ai;
 
   auto f = [&] {
-    return create_euro_agents( W.engine(), W.ss(), W.planes(),
-                               W.gui() );
+    return create_agents( W.engine(), W.ss(), W.planes(),
+                          W.gui() );
   };
 
-  EuroAgents const agents = f();
+  Agents const agents = f();
 
   auto& english_agent     = agents[e_player::english];
   auto& french_agent      = agents[e_player::french];
@@ -199,38 +199,37 @@ TEST_CASE( "[agents] create_euro_agents" ) {
   REQUIRE( ref_dutch_agent.player_type() ==
            e_player::ref_dutch );
 
-  REQUIRE( dynamic_cast<HumanEuroAgent*>( &english_agent ) !=
+  REQUIRE( dynamic_cast<HumanAgent*>( &english_agent ) !=
            nullptr );
-  REQUIRE( dynamic_cast<HumanEuroAgent*>( &french_agent ) !=
+  REQUIRE( dynamic_cast<HumanAgent*>( &french_agent ) !=
            nullptr );
-  REQUIRE( dynamic_cast<HumanEuroAgent*>( &spanish_agent ) ==
+  REQUIRE( dynamic_cast<HumanAgent*>( &spanish_agent ) ==
            nullptr );
-  REQUIRE( dynamic_cast<HumanEuroAgent*>( &dutch_agent ) ==
+  REQUIRE( dynamic_cast<HumanAgent*>( &dutch_agent ) ==
            nullptr );
-  REQUIRE( dynamic_cast<HumanEuroAgent*>( &ref_english_agent ) !=
+  REQUIRE( dynamic_cast<HumanAgent*>( &ref_english_agent ) !=
            nullptr );
-  REQUIRE( dynamic_cast<HumanEuroAgent*>( &ref_french_agent ) !=
+  REQUIRE( dynamic_cast<HumanAgent*>( &ref_french_agent ) !=
            nullptr );
-  REQUIRE( dynamic_cast<HumanEuroAgent*>( &ref_spanish_agent ) ==
+  REQUIRE( dynamic_cast<HumanAgent*>( &ref_spanish_agent ) ==
            nullptr );
-  REQUIRE( dynamic_cast<HumanEuroAgent*>( &ref_dutch_agent ) ==
+  REQUIRE( dynamic_cast<HumanAgent*>( &ref_dutch_agent ) ==
            nullptr );
 
-  REQUIRE( dynamic_cast<NoopEuroAgent*>( &english_agent ) ==
+  REQUIRE( dynamic_cast<NoopAgent*>( &english_agent ) ==
            nullptr );
-  REQUIRE( dynamic_cast<NoopEuroAgent*>( &french_agent ) ==
+  REQUIRE( dynamic_cast<NoopAgent*>( &french_agent ) ==
            nullptr );
-  REQUIRE( dynamic_cast<NoopEuroAgent*>( &spanish_agent ) !=
+  REQUIRE( dynamic_cast<NoopAgent*>( &spanish_agent ) !=
            nullptr );
-  REQUIRE( dynamic_cast<NoopEuroAgent*>( &dutch_agent ) !=
+  REQUIRE( dynamic_cast<NoopAgent*>( &dutch_agent ) != nullptr );
+  REQUIRE( dynamic_cast<NoopAgent*>( &ref_english_agent ) ==
            nullptr );
-  REQUIRE( dynamic_cast<NoopEuroAgent*>( &ref_english_agent ) ==
+  REQUIRE( dynamic_cast<NoopAgent*>( &ref_french_agent ) ==
            nullptr );
-  REQUIRE( dynamic_cast<NoopEuroAgent*>( &ref_french_agent ) ==
+  REQUIRE( dynamic_cast<RefAIAgent*>( &ref_spanish_agent ) !=
            nullptr );
-  REQUIRE( dynamic_cast<RefAIEuroAgent*>( &ref_spanish_agent ) !=
-           nullptr );
-  REQUIRE( dynamic_cast<RefAIEuroAgent*>( &ref_dutch_agent ) !=
+  REQUIRE( dynamic_cast<RefAIAgent*>( &ref_dutch_agent ) !=
            nullptr );
 }
 

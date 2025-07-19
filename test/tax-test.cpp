@@ -15,7 +15,7 @@
 
 // Testing
 #include "test/fake/world.hpp"
-#include "test/mocks/ieuro-agent.hpp"
+#include "test/mocks/iagent.hpp"
 #include "test/mocks/igui.hpp"
 #include "test/mocks/irand.hpp"
 
@@ -287,8 +287,8 @@ TEST_CASE( "[tax] prompt_for_tax_change_result" ) {
   return;
 #endif
   World W;
-  Player& player        = W.default_player();
-  MockIEuroAgent& agent = W.euro_agent();
+  Player& player    = W.default_player();
+  MockIAgent& agent = W.agent();
   TaxChangeProposal proposal;
   TaxChangeResult expected;
 
@@ -298,7 +298,7 @@ TEST_CASE( "[tax] prompt_for_tax_change_result" ) {
 
   auto f = [&] {
     wait<TaxChangeResult> w = prompt_for_tax_change_result(
-        W.ss(), W.rand(), player, W.euro_agent(), proposal );
+        W.ss(), W.rand(), player, W.agent(), proposal );
     CHECK( !w.exception() );
     CHECK( w.ready() );
     return *w;
@@ -661,13 +661,12 @@ TEST_CASE(
 TEST_CASE( "[tax] start_of_turn_tax_check" ) {
   World W;
   W.update_terrain_connectivity();
-  Player& player        = W.default_player();
-  MockIEuroAgent& agent = W.euro_agent();
+  Player& player    = W.default_player();
+  MockIAgent& agent = W.agent();
 
   auto f = [&] {
-    return start_of_turn_tax_check( W.ss(), W.rand(),
-                                    W.connectivity(), player,
-                                    W.euro_agent() );
+    return start_of_turn_tax_check(
+        W.ss(), W.rand(), W.connectivity(), player, W.agent() );
   };
 
   W.settings().game_setup_options.difficulty =

@@ -20,7 +20,7 @@
 
 namespace rn {
 
-struct IEuroAgent;
+struct IAgent;
 struct IGui;
 struct Player;
 
@@ -29,7 +29,7 @@ struct Player;
 // so that it doesn't get displayed again. This will actually
 // display the woodcut not directly, but instead via the corre-
 // sponding IGui interface so that it can be mocked.
-wait<> show_woodcut_if_needed( Player& player, IEuroAgent& agent,
+wait<> show_woodcut_if_needed( Player& player, IAgent& agent,
                                e_woodcut cut );
 
 namespace internal {
@@ -38,7 +38,7 @@ namespace internal {
 // ground of wood textures (hence "woodcut") in response to a
 // one-time event that happens in the game. Note that this method
 // should not be called directly by most game code; instead the
-// method in the IEuroAgent should be called.
+// method in the IAgent should be called.
 wait<> show_woodcut( IGui& gui, e_woodcut cut );
 }
 

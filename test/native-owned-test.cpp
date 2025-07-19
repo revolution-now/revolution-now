@@ -16,7 +16,7 @@
 // Testing
 #include "test/fake/world.hpp"
 #include "test/mocking.hpp"
-#include "test/mocks/ieuro-agent.hpp"
+#include "test/mocks/iagent.hpp"
 
 // ss
 #include "ss/natives.hpp"
@@ -937,8 +937,8 @@ TEST_CASE( "[native-owned] price_for_native_owned_land" ) {
 TEST_CASE(
     "[native-owned] prompt_player_for_taking_native_land" ) {
   World W;
-  Player& player        = W.default_player();
-  MockIEuroAgent& agent = W.euro_agent();
+  Player& player    = W.default_player();
+  MockIAgent& agent = W.agent();
   Coord tile;
   e_native_land_grab_type type = {};
   Coord const kDwellingLoc{ .x = 3, .y = 3 };
@@ -961,8 +961,7 @@ TEST_CASE(
   auto f = [&]() -> bool {
     wait<base::NoDiscard<bool>> w =
         prompt_player_for_taking_native_land(
-            W.ss(), W.euro_agent(), W.default_player(), tile,
-            type );
+            W.ss(), W.agent(), W.default_player(), tile, type );
     CHECK( !w.exception() );
     CHECK( w.ready() );
     return *w;

@@ -84,7 +84,7 @@ HarborSubView::HarborSubView( SS& ss, TS& ts, Player& player )
     player_( player ),
     colonial_player_( player_for_player_or_die(
         ss.players, colonial_player_for( player.nation ) ) ),
-    agent_( ts_.euro_agents()[player_.type] ) {
+    agent_( ts_.agents()[player_.type] ) {
   CHECK( player_.nation == colonial_player_.nation );
 }
 

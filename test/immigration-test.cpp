@@ -16,7 +16,7 @@
 // Testing
 #include "test/fake/world.hpp"
 #include "test/mocking.hpp"
-#include "test/mocks/ieuro-agent.hpp"
+#include "test/mocks/iagent.hpp"
 #include "test/mocks/igui.hpp"
 #include "test/mocks/irand.hpp"
 
@@ -85,8 +85,7 @@ TEST_CASE( "[immigration] ask_player_to_choose_immigrant" ) {
     .immigrants_pool = { e_unit_type::expert_farmer,
                          e_unit_type::veteran_soldier,
                          e_unit_type::seasoned_scout } };
-  MockIEuroAgent& agent =
-      W.euro_agent( W.default_player_type() );
+  MockIAgent& agent = W.agent( W.default_player_type() );
 
   agent
       .EXPECT__handle( signal::ChooseImmigrant{
@@ -110,8 +109,7 @@ TEST_CASE(
     .immigrants_pool = { e_unit_type::expert_farmer,
                          e_unit_type::veteran_soldier,
                          e_unit_type::seasoned_scout } };
-  MockIEuroAgent& agent =
-      W.euro_agent( W.default_player_type() );
+  MockIAgent& agent = W.agent( W.default_player_type() );
 
   agent
       .EXPECT__handle( signal::ChooseImmigrant{
@@ -425,7 +423,7 @@ TEST_CASE( "[immigration] check_for_new_immigrant" ) {
   W.old_world( player ).immigration.immigrants_pool =
       initial_state.immigrants_pool;
 
-  MockIEuroAgent& agent = W.euro_agent();
+  MockIAgent& agent = W.agent();
   agent.EXPECT__human().by_default().returns( true );
 
   SECTION( "not enough crosses" ) {

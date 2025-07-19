@@ -14,7 +14,7 @@
 #include "co-wait.hpp"
 #include "colony-buildings.hpp"
 #include "damaged.hpp"
-#include "ieuro-agent.hpp"
+#include "iagent.hpp"
 #include "rand-enum.hpp"
 #include "tribe-arms.hpp"
 #include "ts.hpp"
@@ -260,7 +260,7 @@ void perform_brave_attack_colony_effect(
 }
 
 wait<> display_brave_attack_colony_effect_msg(
-    SSConst const& ss, IEuroAgent& agent, Colony const& colony,
+    SSConst const& ss, IAgent& agent, Colony const& colony,
     BraveAttackColonyEffect const& effect, e_tribe tribe ) {
   SWITCH( effect ) {
     CASE( none ) { co_return; }

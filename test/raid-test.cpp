@@ -13,8 +13,8 @@
 
 // Testing.
 #include "test/fake/world.hpp"
+#include "test/mocks/iagent.hpp"
 #include "test/mocks/icombat.hpp"
-#include "test/mocks/ieuro-agent.hpp"
 #include "test/mocks/inative-agent.hpp"
 #include "test/mocks/irand.hpp"
 #include "test/mocks/land-view-plane.hpp"
@@ -80,8 +80,7 @@ TEST_CASE( "[raid] raid_unit" ) {
   Coord const attacker_coord{ .x = 0, .y = 0 };
   MockINativeAgent& native_agent =
       W.native_agent( e_tribe::arawak );
-  MockIEuroAgent& agent =
-      W.euro_agent( W.default_player_type() );
+  MockIAgent& agent = W.agent( W.default_player_type() );
 
   auto [dwelling, brave] = W.add_dwelling_and_brave(
       attacker_coord, e_tribe::arawak );
@@ -303,11 +302,11 @@ TEST_CASE( "[raid] raid_unit" ) {
     W.combat()
         .EXPECT__brave_attack_euro( brave, soldier )
         .returns( combat );
-    W.euro_agent( e_player::english )
+    W.agent( e_player::english )
         .EXPECT__message_box(
             "[Arawaks] make surprise raid! Terror descends upon "
             "colonists! Arawak chief unavailable for comment." );
-    W.euro_agent( e_player::english )
+    W.agent( e_player::english )
         .EXPECT__message_box(
             "[English] Soldier defeats [Arawak] Brave in the "
             "wilderness!" );
@@ -351,8 +350,7 @@ TEST_CASE( "[raid] raid_colony" ) {
   Coord const colony_location  = colony.location;
   Unit const& worker =
       W.add_unit_indoors( colony.id, e_indoor_job::bells );
-  MockIEuroAgent& mock_euro_agent =
-      W.euro_agent( W.default_player_type() );
+  MockIAgent& mock_agent = W.agent( W.default_player_type() );
   MockINativeAgent& mock_native_agent =
       W.native_agent( tribe_type );
   Player& player = W.default_player();
@@ -406,7 +404,7 @@ TEST_CASE( "[raid] raid_colony" ) {
         .EXPECT__brave_attack_colony( attacker, defender,
                                       colony )
         .returns( combat );
-    mock_euro_agent.EXPECT__message_box(
+    mock_agent.EXPECT__message_box(
         "[Arawaks] make surprise raid of [1]! Terror "
         "descends upon colonists! Arawak chief unavailable "
         "for comment." );
@@ -426,13 +424,13 @@ TEST_CASE( "[raid] raid_colony" ) {
     W.rand()
         .EXPECT__between_ints( 0, 2 - 1 )
         .returns( 1 ); // frigate damaged.
-    mock_euro_agent.EXPECT__message_box(
+    mock_agent.EXPECT__message_box(
         "[Dutch] [Soldier] routed! Unit demoted to colonist "
         "status." );
     mock_native_agent.EXPECT__message_box(
         "[Dutch] [Soldier] routed! Unit demoted to colonist "
         "status." );
-    mock_euro_agent.EXPECT__message_box(
+    mock_agent.EXPECT__message_box(
         "[Dutch] [Frigate] damaged in battle! Ship sent to "
         "[1] for repairs." );
     mock_native_agent.EXPECT__on_attack_colony_finished(
@@ -505,11 +503,11 @@ TEST_CASE( "[raid] raid_colony" ) {
         .EXPECT__brave_attack_colony( attacker, defender,
                                       colony )
         .returns( combat );
-    mock_euro_agent.EXPECT__message_box(
+    mock_agent.EXPECT__message_box(
         "[Arawaks] make surprise raid of [1]! Terror "
         "descends upon colonists! Arawak chief unavailable "
         "for comment." );
-    mock_euro_agent.EXPECT__message_box(
+    mock_agent.EXPECT__message_box(
         "Colonists on ships docked in [1] have been offboarded "
         "to help defend the colony!" );
     mock_land_view.EXPECT__ensure_visible(
@@ -528,10 +526,10 @@ TEST_CASE( "[raid] raid_colony" ) {
     W.rand()
         .EXPECT__between_ints( 0, 16 - 1 )
         .returns( 8 ); // "newspapers" slot.
-    mock_euro_agent.EXPECT__message_box(
+    mock_agent.EXPECT__message_box(
         "[Dutch] Soldier promoted to [Veteran Soldier] for "
         "victory in combat!" );
-    mock_euro_agent.EXPECT__message_box(
+    mock_agent.EXPECT__message_box(
         "[Arawak] raiding parties have destroyed the "
         "[Newspaper] in [1]!" );
     mock_native_agent.EXPECT__on_attack_colony_finished(
@@ -597,7 +595,7 @@ TEST_CASE( "[raid] raid_colony" ) {
         .EXPECT__brave_attack_colony( attacker, defender,
                                       colony )
         .returns( combat );
-    mock_euro_agent.EXPECT__message_box(
+    mock_agent.EXPECT__message_box(
         "[Arawaks] make surprise raid of [1]! Terror "
         "descends upon colonists! Arawak chief unavailable "
         "for comment." );
@@ -616,10 +614,10 @@ TEST_CASE( "[raid] raid_colony" ) {
         .returns( 42 ); // money stolen.
     W.rand().EXPECT__between_ints( 30, 200 ).returns(
         123 ); // amount stolen.
-    mock_euro_agent.EXPECT__message_box(
+    mock_agent.EXPECT__message_box(
         "[Arawak] raiding party wiped out in [1]! Colonists "
         "celebrate!" );
-    mock_euro_agent.EXPECT__message_box(
+    mock_agent.EXPECT__message_box(
         "[Arawak] looting parties have stolen [123\x7f] from "
         "the treasury!" );
     mock_native_agent.EXPECT__on_attack_colony_finished(
@@ -671,7 +669,7 @@ TEST_CASE( "[raid] raid_colony" ) {
         .EXPECT__brave_attack_colony( attacker, defender,
                                       colony )
         .returns( combat );
-    mock_euro_agent.EXPECT__message_box(
+    mock_agent.EXPECT__message_box(
         "[Arawaks] make surprise raid of [1]! Terror "
         "descends upon colonists! Arawak chief unavailable "
         "for comment." );
@@ -680,9 +678,8 @@ TEST_CASE( "[raid] raid_colony" ) {
     mock_land_view.EXPECT__ensure_visible(
         point{ .x = 1, .y = 0 } );
     mock_land_view.EXPECT__animate_if_visible( _ );
-    mock_euro_agent.EXPECT__show_woodcut(
-        e_woodcut::colony_burning );
-    mock_euro_agent.EXPECT__message_box(
+    mock_agent.EXPECT__show_woodcut( e_woodcut::colony_burning );
+    mock_agent.EXPECT__message_box(
         "[Arawak] massacre [Dutch] population in [1]! "
         "Colony set ablaze and decimated! The King demands "
         "accountability!" );
@@ -754,11 +751,11 @@ TEST_CASE( "[raid] raid_colony" ) {
         .EXPECT__brave_attack_colony( attacker, defender,
                                       colony )
         .returns( combat );
-    mock_euro_agent.EXPECT__message_box(
+    mock_agent.EXPECT__message_box(
         "[Arawaks] make surprise raid of [1]! Terror "
         "descends upon colonists! Arawak chief unavailable "
         "for comment." );
-    mock_euro_agent.EXPECT__message_box(
+    mock_agent.EXPECT__message_box(
         "Colonists on ships docked in [1] have been offboarded "
         "to help defend the colony!" );
     mock_land_view.EXPECT__ensure_visible(
@@ -766,15 +763,14 @@ TEST_CASE( "[raid] raid_colony" ) {
     mock_land_view.EXPECT__ensure_visible(
         point{ .x = 1, .y = 0 } );
     mock_land_view.EXPECT__animate_if_visible( _ );
-    mock_euro_agent.EXPECT__message_box(
+    mock_agent.EXPECT__message_box(
         "Port in [1] contained one [Caravel] that was damaged "
         "in battle and was sent to [Amsterdam] for repairs." );
-    mock_euro_agent.EXPECT__message_box(
+    mock_agent.EXPECT__message_box(
         "Port in [1] contained one [Frigate] that was damaged "
         "in battle and was sent to [Amsterdam] for repairs." );
-    mock_euro_agent.EXPECT__show_woodcut(
-        e_woodcut::colony_burning );
-    mock_euro_agent.EXPECT__message_box(
+    mock_agent.EXPECT__show_woodcut( e_woodcut::colony_burning );
+    mock_agent.EXPECT__message_box(
         "[Arawak] massacre [Dutch] population in [1]! "
         "Colony set ablaze and decimated! The King demands "
         "accountability!" );

@@ -15,7 +15,7 @@
 
 // Testing.
 #include "test/fake/world.hpp"
-#include "test/mocks/ieuro-agent.hpp"
+#include "test/mocks/iagent.hpp"
 #include "test/mocks/igui.hpp"
 #include "test/mocks/render/itextometer.hpp"
 #include "test/util/coro.hpp"
@@ -866,7 +866,7 @@ TEST_CASE( "[disband] execute_disband / destroy tribe" ) {
   {
     w.mark_all_unexplored();
     entities = { .dwelling = add_dwelling() };
-    w.euro_agent().EXPECT__message_box(
+    w.agent().EXPECT__message_box(
         "The [Sioux] tribe has been wiped out." );
     f();
     REQUIRE( !w.natives().dwelling_exists(
@@ -880,7 +880,7 @@ TEST_CASE( "[disband] execute_disband / destroy tribe" ) {
     SCOPED_SET_AND_RESTORE( viz, &player_viz );
     w.mark_all_unexplored();
     entities = { .dwelling = add_dwelling() };
-    w.euro_agent()
+    w.agent()
         .EXPECT__message_box(
             "The [Sioux] tribe has been wiped out." )
         .invokes( [&] {

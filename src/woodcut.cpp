@@ -12,7 +12,7 @@
 
 // Revolution Now
 #include "co-wait.hpp"
-#include "ieuro-agent.hpp"
+#include "iagent.hpp"
 #include "igui.hpp"
 
 // ss
@@ -61,7 +61,7 @@ string_view msg_for_woodcut( e_woodcut cut ) {
 /****************************************************************
 ** Public API
 *****************************************************************/
-wait<> show_woodcut_if_needed( Player& player, IEuroAgent& agent,
+wait<> show_woodcut_if_needed( Player& player, IAgent& agent,
                                e_woodcut cut ) {
   if( player.woodcuts[cut] ) co_return;
   player.woodcuts[cut] = true;

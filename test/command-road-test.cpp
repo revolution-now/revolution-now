@@ -16,8 +16,8 @@
 // Testing
 #include "test/fake/world.hpp"
 #include "test/mocking.hpp"
+#include "test/mocks/iagent.hpp"
 #include "test/mocks/iengine.hpp"
-#include "test/mocks/ieuro-agent.hpp"
 
 // Revolution Now
 #include "src/native-owned.hpp"
@@ -68,7 +68,7 @@ struct World : testing::World {
 *****************************************************************/
 TEST_CASE( "[command-road] native-owned land" ) {
   World W;
-  MockIEuroAgent& agent = W.euro_agent();
+  MockIAgent& agent = W.agent();
   W.settings().game_setup_options.difficulty =
       e_difficulty::conquistador;
   Dwelling const& dwelling =
@@ -85,8 +85,8 @@ TEST_CASE( "[command-road] native-owned land" ) {
       W.natives().mark_land_owned( dwelling.id,
                                    { .x = x, .y = y } );
   unique_ptr<CommandHandler> handler = handle_command(
-      W.engine(), W.ss(), W.ts(), W.euro_agent(),
-      W.default_player(), pioneer.id(), command::road{} );
+      W.engine(), W.ss(), W.ts(), W.agent(), W.default_player(),
+      pioneer.id(), command::road{} );
 
   REQUIRE( relationship.tribal_alarm == 0 );
   REQUIRE_FALSE( pioneer.mv_pts_exhausted() );
