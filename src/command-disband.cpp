@@ -55,10 +55,9 @@ struct DisbandHandler : public CommandHandler {
         coord_for_unit_indirect_or_die( ss_.units, unit_id_ );
     auto const viz = create_visibility_for(
         ss_, player_for_role( ss_, e_player_role::viewer ) );
-    co_await execute_disband(
-        ss_, ts_, player_, *viz, tile,
-        EntitiesOnTile{ .units = { unit_id_ } } );
-    co_return;
+    EntitiesOnTile const entities{ .units = { unit_id_ } };
+    co_await execute_disband( ss_, ts_, player_, *viz, tile,
+                              entities );
   }
 
   IEngine& engine_;
