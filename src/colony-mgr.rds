@@ -34,6 +34,7 @@ enum.e_found_colony_err {
 }
 
 enum.e_new_colony_name_err {
+  spaces,
   already_exists,
 }
 

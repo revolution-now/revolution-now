@@ -51,9 +51,9 @@ using ::mock::matchers::_;
 /****************************************************************
 ** Fake World Setup
 *****************************************************************/
-struct World : testing::World {
+struct world : testing::World {
   using Base = testing::World;
-  World() : Base() {
+  world() : Base() {
     add_player( e_player::dutch );
     set_default_player_type( e_player::dutch );
     add_player( e_player::english );
@@ -78,7 +78,7 @@ struct World : testing::World {
 };
 
 TEST_CASE( "[colony-mgr] found_colony on land successful" ) {
-  World W;
+  world W;
 
   Coord const coord = { .x = 1, .y = 1 };
   Unit& unit =
@@ -95,7 +95,7 @@ TEST_CASE( "[colony-mgr] found_colony on land successful" ) {
 }
 
 TEST_CASE( "[colony-mgr] found_colony during war fails" ) {
-  World W;
+  world W;
   W.default_player().revolution.status =
       e_revolution_status::declared;
   Coord const coord = { .x = 1, .y = 1 };
@@ -106,7 +106,7 @@ TEST_CASE( "[colony-mgr] found_colony during war fails" ) {
 }
 
 TEST_CASE( "[colony-mgr] native convert cannot found" ) {
-  World W;
+  world W;
 
   Coord const coord = { .x = 1, .y = 1 };
   Unit& unit =
@@ -116,7 +116,7 @@ TEST_CASE( "[colony-mgr] native convert cannot found" ) {
 }
 
 TEST_CASE( "[colony-mgr] found_colony strips unit" ) {
-  World W;
+  world W;
 
   SECTION( "dragoon" ) {
     Coord const coord = { .x = 1, .y = 1 };
@@ -181,7 +181,7 @@ TEST_CASE( "[colony-mgr] found_colony strips unit" ) {
 
 TEST_CASE(
     "[colony-mgr] found_colony on existing colony fails" ) {
-  World W;
+  world W;
 
   Coord const coord = { .x = 1, .y = 1 };
   UnitId id =
@@ -205,7 +205,7 @@ TEST_CASE(
 TEST_CASE(
     "[colony-mgr] found_colony too close to another colony "
     "fails" ) {
-  World W;
+  world W;
 
   Coord coord = { .x = 1, .y = 1 };
   UnitId id =
@@ -222,7 +222,7 @@ TEST_CASE(
 }
 
 TEST_CASE( "[colony-mgr] can't build colony in water" ) {
-  World W;
+  world W;
 
   Coord const coord = { .x = 2, .y = 3 };
   CHECK( W.square( coord ).surface == e_surface::water );
@@ -238,7 +238,7 @@ TEST_CASE( "[colony-mgr] can't build colony in water" ) {
 }
 
 TEST_CASE( "[colony-mgr] can't build colony on moutains" ) {
-  World W;
+  world W;
 
   Coord const coord = { .x = 1, .y = 1 };
   CHECK( W.square( coord ).surface == e_surface::land );
@@ -252,7 +252,7 @@ TEST_CASE( "[colony-mgr] can't build colony on moutains" ) {
 
 TEST_CASE(
     "[colony-mgr] found_colony by unit not on map fails" ) {
-  World W;
+  world W;
 
   UnitId id = create_free_unit( W.units(), W.default_player(),
                                 e_unit_type::free_colonist );
@@ -262,7 +262,7 @@ TEST_CASE(
 }
 
 TEST_CASE( "[colony-mgr] found_colony by ship fails" ) {
-  World W;
+  world W;
 
   Coord const coord = { .x = 2, .y = 3 };
   CHECK( W.square( coord ).surface == e_surface::water );
@@ -274,7 +274,7 @@ TEST_CASE( "[colony-mgr] found_colony by ship fails" ) {
 }
 
 TEST_CASE( "[colony-mgr] found_colony by non-colonist fails" ) {
-  World W;
+  world W;
 
   Coord const coord = { .x = 1, .y = 1 };
   UnitId id =
@@ -285,7 +285,7 @@ TEST_CASE( "[colony-mgr] found_colony by non-colonist fails" ) {
 }
 
 TEST_CASE( "[colony-mgr] create, query, destroy" ) {
-  World W;
+  world W;
   Colony& colony =
       W.add_colony( Coord{ .x = 1, .y = 2 }, e_player::english );
   REQUIRE( colony.id == ColonyId{ 1 } );
@@ -326,7 +326,7 @@ TEST_CASE( "[colony-mgr] create, query, destroy" ) {
 }
 
 TEST_CASE( "[colony-mgr] initial colony buildings." ) {
-  World W;
+  world W;
   auto [colony, founder] =
       W.found_colony_with_new_unit( Coord{ .x = 1, .y = 1 } );
   unordered_set<e_colony_building> buildings;
@@ -345,7 +345,7 @@ TEST_CASE( "[colony-mgr] initial colony buildings." ) {
 }
 
 TEST_CASE( "[colony-mgr] found_colony places initial unit." ) {
-  World W;
+  world W;
 
   Unit& founder = W.add_unit_on_map( e_unit_type::free_colonist,
                                      Coord{ .x = 1, .y = 1 } );
@@ -370,7 +370,7 @@ TEST_CASE( "[colony-mgr] found_colony places initial unit." ) {
 }
 
 TEST_CASE( "[colony-mgr] change_unit_outdoor_job." ) {
-  World W;
+  world W;
   Colony& colony = W.add_colony( Coord{ .x = 1, .y = 1 } );
   // Note that the founding colonist will have been placed on the
   // north tile.
@@ -400,7 +400,7 @@ TEST_CASE( "[colony-mgr] change_unit_outdoor_job." ) {
 }
 
 TEST_CASE( "[colony-mgr] colony destruction" ) {
-  World W;
+  world W;
   Coord const loc        = { .x = 1, .y = 1 };
   auto [colony, founder] = W.found_colony_with_new_unit( loc );
   vector<UnitId> const units = colony_units_all( colony );
@@ -673,7 +673,7 @@ TEST_CASE( "[colony-mgr] colony destruction" ) {
 
 TEST_CASE(
     "[colony-mgr] find_occupied_surrounding_colony_squares" ) {
-  World W;
+  world W;
   Colony& colony_nw = W.add_colony( Coord{ .x = 1, .y = 1 } );
   Colony& colony_ne = W.add_colony( Coord{ .x = 5, .y = 1 } );
   Colony& colony    = W.add_colony( Coord{ .x = 3, .y = 3 } );
@@ -704,7 +704,7 @@ TEST_CASE(
 }
 
 TEST_CASE( "[colony-mgr] give_stockade_if_needed" ) {
-  World W;
+  world W;
   Player& dutch   = W.dutch();
   Player& english = W.english();
   // _, L, _, L, L, L,
@@ -789,7 +789,7 @@ TEST_CASE( "[colony-mgr] give_stockade_if_needed" ) {
 }
 
 TEST_CASE( "[colony-mgr] colony_workers" ) {
-  World W;
+  world W;
   Colony& colony =
       W.add_colony( { .x = 1, .y = 1 }, e_player::dutch );
   vector<UnitId> expected;
@@ -828,6 +828,27 @@ TEST_CASE( "[colony-mgr] colony_workers" ) {
           .id();
   expected = { id1, id2, id3, id4 };
   REQUIRE( f() == expected );
+}
+
+TEST_CASE( "[colony-mgr] is_valid_new_colony_name" ) {
+  world w;
+  string name;
+
+  auto const f = [&] [[clang::noinline]] {
+    return is_valid_new_colony_name( w.colonies(), name );
+  };
+
+  Colony& colony = w.add_colony( { .x = 1, .y = 1 } );
+  colony.name    = "used";
+
+  name = " xxx ";
+  REQUIRE( f() == e_new_colony_name_err::spaces );
+
+  name = "used";
+  REQUIRE( f() == e_new_colony_name_err::already_exists );
+
+  name = "new";
+  REQUIRE( f() == valid );
 }
 
 TEST_CASE( "[colony-mgr] found_colony finds job for unit." ) {

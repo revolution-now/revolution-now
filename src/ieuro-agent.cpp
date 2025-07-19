@@ -140,4 +140,13 @@ wait<ui::e_confirm> NoopEuroAgent::confirm_disband_unit(
   co_return ui::e_confirm::no;
 }
 
+wait<ui::e_confirm>
+NoopEuroAgent::confirm_build_inland_colony() {
+  co_return ui::e_confirm::no;
+}
+
+wait<maybe<std::string>> NoopEuroAgent::name_colony() {
+  co_return nothing;
+}
+
 } // namespace rn

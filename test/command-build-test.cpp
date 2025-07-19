@@ -19,7 +19,6 @@
 #include "test/mocks/icolony-viewer.hpp"
 #include "test/mocks/iengine.hpp"
 #include "test/mocks/ieuro-agent.hpp"
-#include "test/mocks/igui.hpp"
 #include "test/util/coro.hpp"
 
 // ss
@@ -38,7 +37,6 @@ namespace {
 using namespace std;
 
 using ::mock::matchers::_;
-using ::mock::matchers::Field;
 using ::mock::matchers::StrContains;
 
 /****************************************************************
@@ -74,6 +72,7 @@ TEST_CASE( "[command-build] build colony" ) {
   return;
 #endif
   World W;
+  MockIEuroAgent& agent = W.euro_agent();
   Coord const tile{ .x = 2, .y = 2 };
   Unit const& unit =
       W.add_unit_on_map( e_unit_type::free_colonist, tile );
@@ -100,8 +99,7 @@ TEST_CASE( "[command-build] build colony" ) {
 
   W.euro_agent().EXPECT__show_woodcut(
       e_woodcut::building_first_colony );
-  W.gui().EXPECT__string_input( _ ).returns<maybe<string>>(
-      "my colony" );
+  agent.EXPECT__name_colony().returns( "my colony" );
   REQUIRE( confirm() == true );
   REQUIRE_FALSE( unit.mv_pts_exhausted() );
 
@@ -122,6 +120,7 @@ TEST_CASE( "[command-build] build colony no ocean access" ) {
   return;
 #endif
   World W;
+  MockIEuroAgent& agent = W.euro_agent();
   Coord const tile{ .x = 3, .y = 3 };
   Unit const& unit =
       W.add_unit_on_map( e_unit_type::free_colonist, tile );
@@ -140,11 +139,8 @@ TEST_CASE( "[command-build] build colony no ocean access" ) {
 
   REQUIRE( W.colonies().last_colony_id() == nothing );
 
-  auto config_matcher =
-      Field( &ChoiceConfig::msg, StrContains( "ocean access" ) );
-  W.gui()
-      .EXPECT__choice( config_matcher )
-      .returns<maybe<string>>( "no" );
+  agent.EXPECT__confirm_build_inland_colony().returns(
+      ui::e_confirm::no );
   REQUIRE( confirm() == false );
   REQUIRE_FALSE( unit.mv_pts_exhausted() );
   REQUIRE( unit.orders().to_enum() == unit_orders::e::none );
@@ -172,7 +168,7 @@ TEST_CASE( "[command-build] build colony by ship" ) {
   REQUIRE( W.colonies().last_colony_id() == nothing );
 
   auto msg_matcher = StrContains( "cannot be built by ships" );
-  W.gui().EXPECT__message_box( msg_matcher );
+  W.euro_agent().EXPECT__message_box( msg_matcher );
   REQUIRE( confirm() == false );
   REQUIRE_FALSE( unit.mv_pts_exhausted() );
   REQUIRE( unit.orders().to_enum() == unit_orders::e::none );
@@ -201,7 +197,7 @@ TEST_CASE( "[command-build] can't build during war" ) {
   REQUIRE( W.colonies().last_colony_id() == nothing );
 
   auto msg_matcher = StrContains( "during the War" );
-  W.gui().EXPECT__message_box( msg_matcher );
+  W.euro_agent().EXPECT__message_box( msg_matcher );
   REQUIRE_FALSE( f() );
   REQUIRE_FALSE( unit.mv_pts_exhausted() );
   REQUIRE( unit.orders().to_enum() == unit_orders::e::none );

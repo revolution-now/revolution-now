@@ -164,5 +164,9 @@ TEST_CASE( "[human-euro-agent] handle/ChooseImmigrant" ) {
   // TODO
 }
 
+TEST_CASE( "[human-euro-agent] name_colony" ) {
+  world w;
+}
+
 } // namespace
 } // namespace rn

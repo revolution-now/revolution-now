@@ -76,6 +76,9 @@ struct MockIEuroAgent : IEuroAgent {
                ( e_tribe ), () );
   MOCK_METHOD( wait<ui::e_confirm>, confirm_disband_unit,
                ( UnitId ), () );
+  MOCK_METHOD( wait<ui::e_confirm>, confirm_build_inland_colony,
+               (), () );
+  MOCK_METHOD( wait<maybe<std::string>>, name_colony, (), () );
 
   using CommoditySlotMap = std::map<int, Commodity>;
   MOCK_METHOD( wait<maybe<int>>, pick_dump_cargo,

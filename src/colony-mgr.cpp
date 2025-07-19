@@ -23,7 +23,6 @@
 #include "damaged.hpp"
 #include "harbor-units.hpp"
 #include "ieuro-agent.hpp"
-#include "igui.hpp"
 #include "immigration.hpp"
 #include "land-view.hpp"
 #include "map-square.hpp"
@@ -66,8 +65,8 @@
 #include "base/conv.hpp"
 #include "base/logger.hpp"
 #include "base/scope-exit.hpp"
+#include "base/string.hpp"
 #include "base/to-str-ext-std.hpp"
-#include "visibility.hpp"
 
 // C++ standard library
 #include <numeric>
@@ -212,7 +211,10 @@ bool colony_has_unit( Colony const& colony, UnitId id ) {
 }
 
 valid_or<e_new_colony_name_err> is_valid_new_colony_name(
-    ColoniesState const& colonies_state, string_view name ) {
+    ColoniesState const& colonies_state,
+    string_view const name ) {
+  if( base::trim( name ) != name )
+    return invalid( e_new_colony_name_err::spaces );
   if( colonies_state.maybe_from_name( name ).has_value() )
     return invalid( e_new_colony_name_err::already_exists );
   return valid;

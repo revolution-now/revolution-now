@@ -13,6 +13,7 @@
 // Revolution Now
 #include "capture-cargo.hpp"
 #include "co-wait.hpp"
+#include "colony-mgr.hpp"
 #include "commodity.hpp"
 #include "disband.hpp"
 #include "iengine.hpp"
@@ -42,8 +43,28 @@ using namespace std;
 
 namespace rn {
 
+namespace {
+
 using ::gfx::point;
 using ::refl::enum_map;
+
+valid_or<string> is_valid_colony_name_msg(
+    ColoniesState const& colonies_state,
+    string_view const name ) {
+  auto const res =
+      is_valid_new_colony_name( colonies_state, name );
+  if( res ) return valid;
+  switch( res.error() ) {
+    case e_new_colony_name_err::spaces:
+      return invalid(
+          "Colony name must not start or end with spaces."s );
+    case e_new_colony_name_err::already_exists:
+      return invalid(
+          "There is already a colony with that name!"s );
+  }
+}
+
+} // namespace
 
 /****************************************************************
 ** HumanEuroAgent
@@ -272,6 +293,37 @@ wait<ui::e_confirm> HumanEuroAgent::confirm_disband_unit(
       perms );
   co_return !entities.units.empty() ? ui::e_confirm::yes
                                     : ui::e_confirm::no;
+}
+
+wait<ui::e_confirm>
+HumanEuroAgent::confirm_build_inland_colony() {
+  YesNoConfig const config{
+    .msg =
+        "Your Excellency, this square does not have [ocean "
+        "access].  This means that we will not be able to "
+        "access it by ship and thus we will have to build a "
+        "wagon train to transport goods to and from it.",
+    .yes_label      = "Yes, that is exactly what I had in mind.",
+    .no_label       = "Nevermind, I forgot about that.",
+    .no_comes_first = true };
+  maybe<ui::e_confirm> const answer =
+      co_await gui_.optional_yes_no( config );
+  co_return answer.value_or( ui::e_confirm::no );
+}
+
+wait<maybe<std::string>> HumanEuroAgent::name_colony() {
+  maybe<string> colony_name;
+  while( true ) {
+    colony_name = co_await gui_.optional_string_input(
+        { .msg =
+              "What shall this colony be named, your majesty?",
+          .initial_text = colony_name.value_or( "" ) } );
+    if( !colony_name.has_value() ) co_return nothing;
+    valid_or<string> is_valid =
+        is_valid_colony_name_msg( ss_.colonies, *colony_name );
+    if( is_valid ) co_return *colony_name;
+    co_await gui_.message_box( is_valid.error() );
+  }
 }
 
 } // namespace rn

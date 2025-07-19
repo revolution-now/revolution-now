@@ -90,6 +90,10 @@ struct RefAIEuroAgent final : IEuroAgent {
   wait<ui::e_confirm> confirm_disband_unit(
       UnitId unit_id ) override;
 
+  wait<ui::e_confirm> confirm_build_inland_colony() override;
+
+  wait<maybe<std::string>> name_colony() override;
+
  public: // ISignalHandler
   wait<maybe<int>> handle(
       signal::ChooseImmigrant const& ) override;

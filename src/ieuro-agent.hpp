@@ -149,6 +149,10 @@ struct IEuroAgent : IAgent, ISignalHandler {
   virtual wait<ui::e_confirm> confirm_disband_unit(
       UnitId unit_id ) = 0;
 
+  virtual wait<ui::e_confirm> confirm_build_inland_colony() = 0;
+
+  virtual wait<maybe<std::string>> name_colony() = 0;
+
  public: // Signals.
   // Non-waitable signal, no message.
   auto signal( NonWaitableSignalContext auto const& ctx ) {
@@ -266,6 +270,10 @@ struct NoopEuroAgent final : IEuroAgent {
 
   wait<ui::e_confirm> confirm_disband_unit(
       UnitId unit_id ) override;
+
+  wait<ui::e_confirm> confirm_build_inland_colony() override;
+
+  wait<maybe<std::string>> name_colony() override;
 
  public: // ISignalHandler
   wait<maybe<int>> handle(

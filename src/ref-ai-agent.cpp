@@ -152,4 +152,13 @@ wait<ui::e_confirm> RefAIEuroAgent::confirm_disband_unit(
   co_return ui::e_confirm::yes;
 }
 
+wait<ui::e_confirm>
+RefAIEuroAgent::confirm_build_inland_colony() {
+  co_return ui::e_confirm::no;
+}
+
+wait<maybe<std::string>> RefAIEuroAgent::name_colony() {
+  co_return nothing;
+}
+
 } // namespace rn
