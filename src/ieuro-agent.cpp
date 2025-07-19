@@ -149,4 +149,13 @@ wait<maybe<std::string>> NoopEuroAgent::name_colony() {
   co_return nothing;
 }
 
+wait<ui::e_confirm> NoopEuroAgent::should_make_landfall(
+    bool const /*some_units_already_moved*/ ) {
+  co_return ui::e_confirm::no;
+}
+
+wait<ui::e_confirm> NoopEuroAgent::should_sail_high_seas() {
+  co_return ui::e_confirm::no;
+}
+
 } // namespace rn

@@ -240,5 +240,84 @@ TEST_CASE( "[human-euro-agent] name_colony" ) {
   }
 }
 
+TEST_CASE( "[human-euro-agent] should_make_landfall" ) {
+  world w;
+  bool already_moved = false;
+
+  auto const f = [&] [[clang::noinline]] {
+    return co_await_test(
+        w.agent_.should_make_landfall( already_moved ) );
+  };
+
+  already_moved = false;
+  w.gui()
+      .EXPECT__choice(
+          Field( &ChoiceConfig::msg,
+                 StrContains( "like to make landfall?" ) ) )
+      .returns( "no" );
+  REQUIRE( f() == ui::e_confirm::no );
+
+  already_moved = true;
+  w.gui()
+      .EXPECT__choice(
+          Field( &ChoiceConfig::msg,
+                 StrContains( "have already moved" ) ) )
+      .returns( "no" );
+  REQUIRE( f() == ui::e_confirm::no );
+
+  already_moved = false;
+  w.gui()
+      .EXPECT__choice(
+          Field( &ChoiceConfig::msg,
+                 StrContains( "like to make landfall?" ) ) )
+      .returns( "yes" );
+  REQUIRE( f() == ui::e_confirm::yes );
+
+  already_moved = true;
+  w.gui()
+      .EXPECT__choice(
+          Field( &ChoiceConfig::msg,
+                 StrContains( "have already moved" ) ) )
+      .returns( "yes" );
+  REQUIRE( f() == ui::e_confirm::yes );
+
+  already_moved = true;
+  w.gui()
+      .EXPECT__choice(
+          Field( &ChoiceConfig::msg,
+                 StrContains( "have already moved" ) ) )
+      .returns( nothing );
+  REQUIRE( f() == ui::e_confirm::no );
+}
+
+TEST_CASE( "[human-euro-agent] should_sail_high_seas" ) {
+  world w;
+
+  auto const f = [&] [[clang::noinline]] {
+    return co_await_test( w.agent_.should_sail_high_seas() );
+  };
+
+  w.gui()
+      .EXPECT__choice(
+          Field( &ChoiceConfig::msg,
+                 StrContains( "sail the high seas" ) ) )
+      .returns( "no" );
+  REQUIRE( f() == ui::e_confirm::no );
+
+  w.gui()
+      .EXPECT__choice(
+          Field( &ChoiceConfig::msg,
+                 StrContains( "sail the high seas" ) ) )
+      .returns( "yes" );
+  REQUIRE( f() == ui::e_confirm::yes );
+
+  w.gui()
+      .EXPECT__choice(
+          Field( &ChoiceConfig::msg,
+                 StrContains( "sail the high seas" ) ) )
+      .returns( nothing );
+  REQUIRE( f() == ui::e_confirm::no );
+}
+
 } // namespace
 } // namespace rn

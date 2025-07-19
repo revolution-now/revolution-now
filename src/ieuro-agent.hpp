@@ -153,6 +153,11 @@ struct IEuroAgent : IAgent, ISignalHandler {
 
   virtual wait<maybe<std::string>> name_colony() = 0;
 
+  virtual wait<ui::e_confirm> should_make_landfall(
+      bool some_units_already_moved ) = 0;
+
+  virtual wait<ui::e_confirm> should_sail_high_seas() = 0;
+
  public: // Signals.
   // Non-waitable signal, no message.
   auto signal( NonWaitableSignalContext auto const& ctx ) {
@@ -274,6 +279,11 @@ struct NoopEuroAgent final : IEuroAgent {
   wait<ui::e_confirm> confirm_build_inland_colony() override;
 
   wait<maybe<std::string>> name_colony() override;
+
+  wait<ui::e_confirm> should_make_landfall(
+      bool some_units_already_moved ) override;
+
+  wait<ui::e_confirm> should_sail_high_seas() override;
 
  public: // ISignalHandler
   wait<maybe<int>> handle(

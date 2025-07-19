@@ -423,18 +423,12 @@ TravelHandler::analyze_unload() const {
     // We have at least one unit in the cargo that is able to
     // make landfall. So we will indicate that the unit is al-
     // lowed to make this move.
-    string msg = "Would you like to make landfall?";
-    if( to_offload.size() <
-        unit.cargo().items_of_type<Cargo::unit>().size() )
-      msg =
-          "Some units have already  moved this turn.  Would you "
-          "like the remaining units to make landfall anyway?";
-    maybe<ui::e_confirm> const answer =
-        co_await ts_.gui.optional_yes_no(
-            { .msg            = msg,
-              .yes_label      = "Make landfall",
-              .no_label       = "Stay with ships",
-              .no_comes_first = true } );
+    bool const some_units_have_already_moved =
+        ( to_offload.size() <
+          unit.cargo().items_of_type<Cargo::unit>().size() );
+    ui::e_confirm const answer =
+        co_await agent_.should_make_landfall(
+            some_units_have_already_moved );
     co_return ( answer == ui::e_confirm::yes )
         ? e_travel_verdict::land_fall
         : e_travel_verdict::cancelled;
@@ -449,10 +443,7 @@ bool is_high_seas( TerrainState const& terrain_state, Coord c ) {
 
 wait<maybe<ui::e_confirm>> TravelHandler::ask_sail_high_seas()
     const {
-  co_return co_await ts_.gui.optional_yes_no(
-      { .msg       = "Would you like to sail the high seas?",
-        .yes_label = "Yes, steady as she goes!",
-        .no_label  = "No, let us remain in these waters." } );
+  co_return co_await agent_.should_sail_high_seas();
 }
 
 bool TravelHandler::sail_high_seas_forbidden() const {

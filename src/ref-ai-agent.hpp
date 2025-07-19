@@ -94,6 +94,11 @@ struct RefAIEuroAgent final : IEuroAgent {
 
   wait<maybe<std::string>> name_colony() override;
 
+  wait<ui::e_confirm> should_make_landfall(
+      bool some_units_already_moved ) override;
+
+  wait<ui::e_confirm> should_sail_high_seas() override;
+
  public: // ISignalHandler
   wait<maybe<int>> handle(
       signal::ChooseImmigrant const& ) override;

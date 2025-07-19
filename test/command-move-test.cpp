@@ -690,6 +690,7 @@ TEST_CASE(
   world w;
   w.update_terrain_connectivity();
   MockLandViewPlane mock_land_view;
+  MockIEuroAgent& agent = w.euro_agent();
   w.planes().get().set_bottom<ILandViewPlane>( mock_land_view );
   Player& player      = w.default_player();
   Unit const& caravel = w.add_unit_on_map(
@@ -711,9 +712,8 @@ TEST_CASE(
       unique_ptr<CommandHandler> const handler = handle_command(
           w.engine(), w.ss(), w.ts(), w.euro_agent(), player,
           caravel.id(), command::move{ .d = e_direction::e } );
-      w.gui()
-          .EXPECT__choice( sail_high_seas )
-          .returns<maybe<string>>( nothing );
+      agent.EXPECT__should_sail_high_seas().returns(
+          ui::e_confirm::no );
       bool const confirmed = co_await_test( handler->confirm() );
       REQUIRE( confirmed );
       mock_land_view.EXPECT__animate_if_visible( _ );
@@ -726,9 +726,8 @@ TEST_CASE(
       unique_ptr<CommandHandler> const handler = handle_command(
           w.engine(), w.ss(), w.ts(), w.euro_agent(), player,
           caravel.id(), command::move{ .d = e_direction::e } );
-      w.gui()
-          .EXPECT__choice( sail_high_seas )
-          .returns<maybe<string>>( "no" );
+      agent.EXPECT__should_sail_high_seas().returns(
+          ui::e_confirm::no );
       bool const confirmed = co_await_test( handler->confirm() );
       REQUIRE( confirmed );
       mock_land_view.EXPECT__animate_if_visible( _ );
@@ -745,9 +744,8 @@ TEST_CASE(
       unique_ptr<CommandHandler> const handler = handle_command(
           w.engine(), w.ss(), w.ts(), w.euro_agent(), player,
           caravel.id(), command::move{ .d = e_direction::e } );
-      w.gui()
-          .EXPECT__choice( sail_high_seas )
-          .returns<maybe<string>>( "no" );
+      agent.EXPECT__should_sail_high_seas().returns(
+          ui::e_confirm::no );
       bool const confirmed = co_await_test( handler->confirm() );
       REQUIRE_FALSE( confirmed );
       REQUIRE( w.units().coord_for( caravel.id() ).to_gfx() ==
@@ -762,9 +760,8 @@ TEST_CASE(
       unique_ptr<CommandHandler> const handler = handle_command(
           w.engine(), w.ss(), w.ts(), w.euro_agent(), player,
           caravel.id(), command::move{ .d = e_direction::e } );
-      w.gui()
-          .EXPECT__choice( sail_high_seas )
-          .returns<maybe<string>>( "yes" );
+      agent.EXPECT__should_sail_high_seas().returns(
+          ui::e_confirm::yes );
       bool const confirmed = co_await_test( handler->confirm() );
       REQUIRE( confirmed );
       mock_land_view.EXPECT__animate_if_visible( _ );

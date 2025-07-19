@@ -326,4 +326,28 @@ wait<maybe<std::string>> HumanEuroAgent::name_colony() {
   }
 }
 
+wait<ui::e_confirm> HumanEuroAgent::should_make_landfall(
+    bool const some_units_already_moved ) {
+  string msg = "Would you like to make landfall?";
+  if( some_units_already_moved )
+    msg =
+        "Some units onboard have already moved this turn. Would "
+        "you like the remaining units to make landfall anyway?";
+  maybe<ui::e_confirm> const answer =
+      co_await gui_.optional_yes_no(
+          { .msg            = msg,
+            .yes_label      = "Make landfall",
+            .no_label       = "Stay with ships",
+            .no_comes_first = true } );
+  co_return answer.value_or( ui::e_confirm::no );
+}
+
+wait<ui::e_confirm> HumanEuroAgent::should_sail_high_seas() {
+  auto const res = co_await gui_.optional_yes_no(
+      { .msg       = "Would you like to sail the high seas?",
+        .yes_label = "Yes, steady as she goes!",
+        .no_label  = "No, let us remain in these waters." } );
+  co_return res.value_or( ui::e_confirm::no );
+}
+
 } // namespace rn
