@@ -894,7 +894,7 @@ wait<> process_ai_player_input_normal_mode(
 
   auto run_result = co_await handler->run();
   if( !run_result.order_was_run ) {
-#if 0
+#if 1
     // TODO: remove this eventually since it is too dangerous to
     // leave in given the complexity of the AI. Replace it with
     // something that logs an error and then ends the AI's turn,
@@ -902,6 +902,8 @@ wait<> process_ai_player_input_normal_mode(
     FATAL( "failed to run AI move: unit={}, cmd={}",
            debug_string( as_const( ss.units ), id ), cmd );
 #else
+    lg.error( "failed to run AI move: unit={}, cmd={}",
+              debug_string( as_const( ss.units ), id ), cmd );
     CHECK( ss.units.exists( id ) );
     ss.units.unit_for( id ).forfeight_mv_points();
 #endif
@@ -918,14 +920,11 @@ wait<> query_unit_input( IEngine& engine, UnitId const id,
                          IAgent& agent,
                          PlayerTurnState::units& nat_units ) {
   switch( player.control ) {
-    case e_player_control::ai: {
-      command const cmd = agent.ask_orders( id );
-      co_await process_ai_player_input_normal_mode(
-          engine, id, cmd, ss, ts, agent, player, nat_units );
-      break;
+    case e_player_control::withdrawn: {
+      SHOULD_NOT_BE_HERE;
     }
     case e_player_control::human: {
-      auto command = co_await co::first(
+      auto const command = co_await co::first(
           wait_for_menu_selection( ts.planes.get().menu ),
           landview_human_player_input( ss, ts, nat_units, id ) );
       co_await visit(
@@ -936,8 +935,11 @@ wait<> query_unit_input( IEngine& engine, UnitId const id,
           } );
       break;
     }
-    case e_player_control::withdrawn: {
-      SHOULD_NOT_BE_HERE;
+    case e_player_control::ai: {
+      command const cmd = agent.ask_orders( id );
+      co_await process_ai_player_input_normal_mode(
+          engine, id, cmd, ss, ts, agent, player, nat_units );
+      break;
     }
   }
 
@@ -1800,10 +1802,6 @@ wait<> nation_turn( IEngine& engine, SS& ss, TS& ts,
       st = PlayerTurnState::finished{};
       break;
     case e_player_control::human:
-      while( !st.holds<PlayerTurnState::finished>() )
-        st = co_await player_turn_iter( engine, ss, ts,
-                                        player_type, st );
-      break;
     case e_player_control::ai:
       while( !st.holds<PlayerTurnState::finished>() )
         st = co_await player_turn_iter( engine, ss, ts,
