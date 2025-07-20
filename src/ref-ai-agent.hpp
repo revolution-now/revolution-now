@@ -105,6 +105,7 @@ struct RefAIAgent final : IAgent {
 
  private:
   SS& ss_;
+  e_player const colonial_player_ = {};
 
   struct State;
   std::unique_ptr<State> state_;

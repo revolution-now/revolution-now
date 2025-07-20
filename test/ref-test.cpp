@@ -412,5 +412,45 @@ TEST_CASE( "[ref] add_ref_unit (loop)" ) {
   REQUIRE( force == expected );
 }
 
+TEST_CASE( "[ref] find_coastal_colonies" ) {
+  world w;
+}
+
+TEST_CASE( "[ref] ref_colony_selection_metrics" ) {
+  world w;
+}
+
+TEST_CASE( "[ref] ref_colony_selection_score" ) {
+  world w;
+}
+
+TEST_CASE( "[ref] select_ref_landing_colony" ) {
+  world w;
+}
+
+TEST_CASE( "[ref] select_ref_landing_tiles" ) {
+  world w;
+}
+
+TEST_CASE( "[ref] select_ref_formation" ) {
+  world w;
+}
+
+TEST_CASE( "[ref] select_landing_units" ) {
+  world w;
+}
+
+TEST_CASE( "[ref] make_ref_landing_plan" ) {
+  world w;
+}
+
+TEST_CASE( "[ref] create_ref_landing_units" ) {
+  world w;
+}
+
+TEST_CASE( "[ref] offboard_ref_units" ) {
+  world w;
+}
+
 } // namespace
 } // namespace rn

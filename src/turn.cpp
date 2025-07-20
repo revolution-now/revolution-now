@@ -1500,14 +1500,57 @@ wait<> post_colonies_common( SS&, TS&, Player& ) {
 // Here we do things that must be done once per turn but where we
 // want the colonies to be evolved first. Also, these things are
 // only done for the REF players only (not colonial players).
-wait<> post_colonies_ref_only( SS&, TS&, Player& player ) {
+wait<> post_colonies_ref_only( SS& ss, TS& ts, Player& player ) {
   CHECK( is_ref( player.type ) );
+
+  e_nation const nation          = nation_for( player.type );
+  e_player const colonial_player = colonial_player_for( nation );
 
   // TODO:
   //   1. Check forfeight.
-  //   2. Deploy some REF troops (not sure yet about this).
 
-  co_return;
+  // Deploy some REF troops.
+  vector<ColonyId> const coastal = find_coastal_colonies(
+      ss.as_const, ts.connectivity, colonial_player );
+  if( coastal.empty() ) {
+    // TODO: REF wins.
+    co_return;
+  }
+  vector<RefColonyMetricsScored> scored;
+  scored.reserve( scored.size() );
+  for( ColonyId const colony_id : coastal ) {
+    RefColonySelectionMetrics metrics =
+        ref_colony_selection_metrics(
+            ss.as_const, ts.connectivity, colony_id );
+    auto const score = ref_colony_selection_score( metrics );
+    if( !score.has_value() ) continue;
+    scored.push_back( RefColonyMetricsScored{
+      .metrics = std::move( metrics ), .score = *score } );
+  }
+  auto const metrics = select_ref_landing_colony( scored );
+  if( !metrics.has_value() ) {
+    // TODO: can't land on any coastal colonies.
+    co_return;
+  }
+  auto const landing_tiles =
+      select_ref_landing_tiles( *metrics );
+  if( !landing_tiles ) {
+    // TODO: can't find landing tiles.  Not expected to happen
+    // if we are here.
+    co_return;
+  }
+  e_ref_landing_formation const formation =
+      select_ref_formation( *metrics );
+  RefLandingForce const force =
+      select_landing_units( ss.as_const, nation, formation );
+  RefLandingPlan const landing_plan =
+      make_ref_landing_plan( *landing_tiles, force );
+  RefLandingUnits const landing_units =
+      create_ref_landing_units( ss, nation, landing_plan );
+  co_await offboard_ref_units(
+      ss, ts.map_updater(),
+      ts.planes.get().get_bottom<ILandViewPlane>(),
+      ts.agents()[colonial_player], landing_units );
 }
 
 // Here we do things that must be done once per turn but where we

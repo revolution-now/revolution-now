@@ -8,6 +8,18 @@
 # Description: Rds definitions for the ref module.
 #
 # ===============================================================
+# ss
+include "ss/colony-enums.rds.hpp"
+include "ss/colony-id.hpp"
+include "ss/unit-id.hpp"
+include "ss/unit-type.rds.hpp"
+
+# gfx
+include "gfx/cartesian.hpp"
+
+# base
+include "base/maybe.hpp"
+
 namespace "rn"
 
 struct.RoyalMoneyChange {
@@ -16,4 +28,64 @@ struct.RoyalMoneyChange {
   new_value 'int',
   new_unit_produced 'bool',
   amount_subtracted 'int',
+}
+
+struct.RefLandingTile {
+  tile 'gfx::point',
+  captured_units 'std::vector<GenericUnitId>',
+}
+
+struct.RefColonyLandingTiles {
+  ship_tile 'RefLandingTile',
+  landings 'std::vector<RefLandingTile>',
+}
+
+struct.RefColonySelectionMetrics {
+  colony_id 'ColonyId',
+
+  # Military
+  defense_strength 'int',
+  barricade 'base::maybe<e_colony_barricade_type>',
+
+  # Geography
+  eligible_landings 'std::vector<RefColonyLandingTiles>',
+
+  # Isolation
+  num_colonies_on_continent 'int',
+  distance_isolation 'int',
+}
+
+struct.RefColonyMetricsScored {
+  metrics 'RefColonySelectionMetrics',
+  score 'int',
+}
+
+enum.e_ref_landing_formation {
+  _2_2_2,
+  _4_1_1,
+  _3_1_1,
+  _2_1_1,
+  _2_1_0,
+  _1_1_1,
+}
+
+struct.RefLandingForce {
+  regular   'int',
+  cavalry   'int',
+  artillery 'int',
+}
+
+struct.RefLandingPlan {
+  ship_tile 'RefLandingTile',
+  landing_units 'std::vector<std::pair<e_unit_type, RefLandingTile>>',
+}
+
+struct.RefLandedUnit {
+  unit_id 'UnitId',
+  landing_tile 'RefLandingTile',
+}
+
+struct.RefLandingUnits {
+  ship 'RefLandedUnit',
+  landed_units 'std::vector<RefLandedUnit>',
 }

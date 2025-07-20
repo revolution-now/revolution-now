@@ -13,11 +13,22 @@
 // Revolution Now
 #include "capture-cargo.rds.hpp"
 #include "co-wait.hpp"
+#include "society.hpp"
+
+// config
+#include "config/unit-type.rds.hpp"
 
 // ss
-#include "players.hpp"
+#include "ss/colonies.hpp"
+#include "ss/nation.hpp"
 #include "ss/player.hpp"
+#include "ss/players.hpp"
 #include "ss/ref.hpp"
+#include "ss/terrain.hpp"
+#include "ss/units.hpp"
+
+// rds
+#include "rds/switch-macro.hpp"
 
 // refl
 #include "refl/query-enum.hpp"
@@ -30,6 +41,7 @@ namespace {
 
 using ::gfx::point;
 using ::refl::cycle_enum;
+using ::refl::enum_values;
 
 }
 
@@ -46,7 +58,11 @@ struct RefAIAgent::State {
 RefAIAgent::RefAIAgent( e_player const player, SS& ss )
   : IAgent( player ),
     ss_( ss ),
-    state_( make_unique<State>() ) {}
+    colonial_player_(
+        colonial_player_for( nation_for( player ) ) ),
+    state_( make_unique<State>() ) {
+  CHECK( player != colonial_player_ );
+}
 
 RefAIAgent::~RefAIAgent() = default;
 
@@ -108,12 +124,49 @@ RefAIAgent::should_explore_ancient_burial_mounds() {
   co_return ui::e_confirm::no;
 }
 
-command RefAIAgent::ask_orders( UnitId const ) {
-  static e_direction d = {};
+command RefAIAgent::ask_orders( UnitId const unit_id ) {
+  Unit const& unit = ss_.units.unit_for( unit_id );
+  if( unit.desc().ship ) return command::forfeight{};
 
-  d = cycle_enum( d );
-  return command::move{ .d = d };
-  // co_return command::forfeight{};
+  auto const coord = ss_.units.maybe_coord_for( unit_id );
+  if( !coord.has_value() ) return command::forfeight{};
+
+  auto const find_surrounding =
+      [&]( auto const& fn ) -> maybe<e_direction> {
+    for( e_direction const d : enum_values<e_direction> ) {
+      point const moved = coord->moved( d );
+      if( !ss_.terrain.square_exists( moved ) ) continue;
+      if( !fn( moved ) ) continue;
+      return d;
+    }
+    return nothing;
+  };
+
+  auto const d_colony =
+      find_surrounding( [&]( point const tile ) {
+        auto const colony_id =
+            ss_.colonies.maybe_from_coord( tile );
+        if( !colony_id.has_value() ) return false;
+        Colony const& colony =
+            ss_.colonies.colony_for( *colony_id );
+        if( colony.player == colonial_player_ ) return true;
+        return false;
+      } );
+
+  auto const d_unit = find_surrounding( [&]( point const tile ) {
+    auto const society = society_on_square( ss_, tile );
+    if( !society.has_value() ) return false;
+    SWITCH( *society ) {
+      CASE( european ) {
+        return european.player == colonial_player_;
+      }
+      CASE( native ) { return false; }
+    }
+  } );
+
+  if( d_colony.has_value() ) return command::move{ *d_colony };
+  if( d_unit.has_value() ) return command::move{ *d_unit };
+  return command::forfeight{};
 }
 
 wait<ui::e_confirm> RefAIAgent::kiss_pinky_ring( string const&,

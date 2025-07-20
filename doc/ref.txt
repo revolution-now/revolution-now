@@ -1,5 +1,13 @@
 Todo:
 
+  * When the King's ships land on a colony they first choose the
+    water tile that they will land on, without regard to which
+    ships are there. If there is a ship there it will be cap-
+    tured. Then they look at the available land squares. Then
+    units will land on all accessible land tiles without foreign
+    units on them. If there are none then the units there will be
+    captured.
+
   * The initial colony seems to be chosen deterministically.
 
   * It appears to re-evaluate the strength of the colonies on

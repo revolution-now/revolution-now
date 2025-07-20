@@ -948,4 +948,25 @@ AnimationSequence anim_seq_for_offboard_intervention_force(
   return builder.result();
 }
 
+AnimationSequence anim_seq_for_offboard_ref_unit(
+    SSConst const& ss, UnitId const ship_id,
+    UnitId const held_id, e_direction const d ) {
+  Unit const& ship      = ss.units.unit_for( ship_id );
+  point const ship_tile = ss.units.coord_for( ship.id() );
+  point const target    = ship_tile.moved( d );
+
+  AnimationBuilder builder;
+
+  // Phase 0: pan to site.
+  ensure_tiles_visible( builder, { ship_tile, target } );
+
+  // Phase N: slide unit onto tile. NOTE: the ship remains where
+  // it is.
+  builder.new_phase();
+  builder.slide_unit( held_id, d );
+  builder.play_sound( e_sfx::move );
+
+  return builder.result();
+}
+
 } // namespace rn

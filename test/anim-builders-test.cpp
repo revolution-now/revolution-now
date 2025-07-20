@@ -1586,5 +1586,10 @@ TEST_CASE(
   REQUIRE( f() == expected );
 }
 
+TEST_CASE( "[anim-builders] anim_seq_for_offboard_ref_unit" ) {
+  World w;
+  AnimationSequence expected;
+}
+
 } // namespace
 } // namespace rn
