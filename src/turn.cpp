@@ -1550,7 +1550,8 @@ wait<> post_colonies_ref_only( SS& ss, TS& ts, Player& player ) {
   co_await offboard_ref_units(
       ss, ts.map_updater(),
       ts.planes.get().get_bottom<ILandViewPlane>(),
-      ts.agents()[colonial_player], landing_units );
+      ts.agents()[colonial_player], landing_units,
+      metrics->colony_id );
 }
 
 // Here we do things that must be done once per turn but where we

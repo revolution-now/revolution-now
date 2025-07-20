@@ -299,7 +299,8 @@ RefColonySelectionMetrics ref_colony_selection_metrics(
     for( e_direction const d : enum_values<e_direction> ) {
       point const moved_again = moved.moved( d );
       if( !ss.terrain.square_exists( moved ) ) continue;
-      MapSquare const& square = ss.terrain.square_at( moved );
+      MapSquare const& square =
+          ss.terrain.square_at( moved_again );
       if( is_water( square ) ) continue;
       if( !moved_again.direction_to( colony.location )
                .has_value() )
@@ -486,10 +487,11 @@ RefLandingUnits create_ref_landing_units(
   return res;
 }
 
-wait<> offboard_ref_units(
-    SS& ss, IMapUpdater& map_updater, ILandViewPlane& land_view,
-    IAgent& colonial_agent,
-    RefLandingUnits const& landing_units ) {
+wait<> offboard_ref_units( SS& ss, IMapUpdater& map_updater,
+                           ILandViewPlane& land_view,
+                           IAgent& colonial_agent,
+                           RefLandingUnits const& landing_units,
+                           ColonyId const colony_id ) {
   auto const euro_unit_capture =
       [&]( Unit const& unit,
            string_view const capturerer ) -> wait<> {
@@ -522,12 +524,22 @@ wait<> offboard_ref_units(
   };
 
   // Ship.
-  point const ship_tile =
-      ss.units.coord_for( landing_units.ship.unit_id );
+  point const ship_tile = landing_units.ship.landing_tile.tile;
   UnitOwnershipChanger( ss, landing_units.ship.unit_id )
       .change_to_map_non_interactive( map_updater, ship_tile );
+  Unit& ship_unit =
+      ss.units.unit_for( landing_units.ship.unit_id );
+  ship_unit.clear_orders();
+  ship_unit.forfeight_mv_points();
   co_await euro_unit_captures(
       landing_units.ship.landing_tile.captured_units, "Navy" );
+
+  // Message.
+  Colony const& colony = ss.colonies.colony_for( colony_id );
+  co_await land_view.ensure_visible( ship_tile );
+  co_await colonial_agent.message_box(
+      "Royal Expeditionary Force lands near [{}]!",
+      colony.name );
 
   // Cargo units.
   for( auto const& [unit_id, landing_tile] :
@@ -538,10 +550,13 @@ wait<> offboard_ref_units(
     AnimationSequence const seq = anim_seq_for_offboard_ref_unit(
         ss.as_const, landing_units.ship.unit_id, unit_id,
         direction );
-    co_await land_view.animate_if_visible( seq );
+    co_await land_view.animate_always( seq );
     UnitOwnershipChanger( ss, unit_id )
         .change_to_map_non_interactive( map_updater,
                                         landing_tile.tile );
+    Unit& unit = ss.units.unit_for( unit_id );
+    unit.clear_orders();
+    unit.forfeight_mv_points();
     // Destroy any units that are captured and give message.
     co_await euro_unit_captures( landing_tile.captured_units,
                                  "Army" );

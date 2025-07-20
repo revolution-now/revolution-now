@@ -109,9 +109,10 @@ RefLandingPlan make_ref_landing_plan(
 [[nodiscard]] RefLandingUnits create_ref_landing_units(
     SS& ss, e_nation nation, RefLandingPlan const& plan );
 
-wait<> offboard_ref_units(
-    SS& ss, IMapUpdater& map_updater, ILandViewPlane& land_view,
-    IAgent& colonial_agent,
-    RefLandingUnits const& landing_units );
+wait<> offboard_ref_units( SS& ss, IMapUpdater& map_updater,
+                           ILandViewPlane& land_view,
+                           IAgent& colonial_agent,
+                           RefLandingUnits const& landing_units,
+                           ColonyId colony_id );
 
 } // namespace rn
