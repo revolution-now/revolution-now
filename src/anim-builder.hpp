@@ -25,6 +25,8 @@
 
 namespace rn {
 
+struct SSConst;
+
 /****************************************************************
 ** AnimationBuilder
 *****************************************************************/
@@ -118,4 +120,14 @@ struct AnimationBuilder {
 
   AnimationSequence seq_;
 };
+
+/****************************************************************
+** Public API
+*****************************************************************/
+// Introspects the series of animation primitives to extract the
+// tiles and types of societies that they contain through the du-
+// ration of the animation.
+AnimationContents animated_contents(
+    SSConst const& ss, AnimationSequence const& seq );
+
 } // namespace rn

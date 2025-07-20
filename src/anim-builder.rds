@@ -11,6 +11,7 @@
 # Revolution Now
 include "sound.rds.hpp" # FIXME: forward declare e_sfx.
 include "visibility.rds.hpp"
+include "society.rds.hpp"
 
 # ss
 include "ss/map-square.rds.hpp"
@@ -183,4 +184,22 @@ struct.AnimationSequence {
   # parallel, and each channel has a series of primitives that
   # run in sequence.
   sequence 'std::vector<std::vector<AnimationAction>>',
+}
+
+struct.AnimatedTile {
+  tile 'gfx::point',
+  # List of societies that are involved in the animation that are
+  # on the tile either before, during, or after the animation.
+  # NOTE: there may be societies on the tile that are present but
+  # not in this list since they were not involved in the anima-
+  # tion. For example, if a native unit gives a gift to a euro-
+  # pean unit or colony then it will slide onto that square con-
+  # taining the european society, but the european society will
+  # not be in this list because there was no animation or change
+  # related to it.
+  inhabitants 'std::vector<Society>',
+}
+
+struct.AnimationContents {
+  tiles 'std::vector<AnimatedTile>',
 }

@@ -13,8 +13,19 @@
 // Under test.
 #include "src/anim-builder.hpp"
 
+// Testing.
+#include "test/fake/world.hpp"
+
 // Must be last.
 #include "test/catch-common.hpp"
+
+// ss
+#include "src/ss/native-unit.rds.hpp"
+#include "src/ss/ref.hpp"
+#include "src/ss/terrain.hpp"
+#include "src/ss/unit-composition.hpp"
+#include "src/ss/unit.hpp"
+#include "src/ss/units.hpp"
 
 // refl
 #include "refl/to-str.hpp"
@@ -27,6 +38,27 @@ namespace rn {
 namespace {
 
 using namespace std;
+
+/****************************************************************
+** Fake World Setup
+*****************************************************************/
+struct world : testing::World {
+  world() {
+    add_default_player();
+    create_default_map();
+  }
+
+  void create_default_map() {
+    MapSquare const _ = make_ocean();
+    MapSquare const L = make_grassland();
+    vector<MapSquare> tiles{
+      L, L, L, //
+      L, L, L, //
+      L, L, L, //
+    };
+    build_map( std::move( tiles ), 3 );
+  }
+};
 
 /****************************************************************
 ** Test Cases
@@ -453,6 +485,382 @@ TEST_CASE(
         { .primitive = AnimationPrimitive::ensure_tile_visible{
             .tile = { .x = 7, .y = 8 } } } } } };
   REQUIRE( builder.result() == expected );
+}
+
+TEST_CASE( "[anim-builder] animated_contents" ) {
+  world w;
+  AnimationSequence seq;
+  AnimationContents expected;
+
+  e_player const player = w.default_player_type();
+
+  auto const f = [&] [[clang::noinline]] {
+    return animated_contents( w.ss(), seq );
+  };
+
+  auto const set_prim = [&]( AnimationPrimitive const& prim ) {
+    seq = {
+      .sequence = { { AnimationAction{ .primitive = prim } } } };
+  };
+
+  UnitId const unit_id = w.add_unit_on_map( e_unit_type::soldier,
+                                            { .x = 1, .y = 1 } )
+                             .id();
+  UnitId const edge_unit_id =
+      w.add_unit_on_map( e_unit_type::soldier,
+                         { .x = 0, .y = 1 } )
+          .id();
+  Colony const& colony = w.add_colony( { .x = 1, .y = 0 } );
+  Dwelling const& dwelling =
+      w.add_dwelling( { .x = 2, .y = 1 }, e_tribe::sioux );
+  NativeUnitId const native_unit_id =
+      w.add_native_unit_on_map( e_native_unit_type::brave,
+                                { .x = 2, .y = 2 }, dwelling.id )
+          .id;
+
+  SECTION( "delay" ) {
+    AnimationPrimitive::delay const prim{ .duration = {} };
+    set_prim( prim );
+    expected = { .tiles = {} };
+    REQUIRE( f() == expected );
+  }
+
+  SECTION( "ensure_tile_visible" ) {
+    AnimationPrimitive::ensure_tile_visible const prim{
+      .tile = { .x = 1, .y = 2 } };
+    set_prim( prim );
+    expected = {
+      .tiles = { AnimatedTile{ .tile        = { .x = 1, .y = 2 },
+                               .inhabitants = {} } } };
+    REQUIRE( f() == expected );
+  }
+
+  SECTION( "play_sound" ) {
+    AnimationPrimitive::play_sound const prim{ .what = {} };
+    set_prim( prim );
+    expected = { .tiles = {} };
+    REQUIRE( f() == expected );
+  }
+
+  SECTION( "hide_unit" ) {
+    SECTION( "european" ) {
+      AnimationPrimitive::hide_unit const prim{ .unit_id =
+                                                    unit_id };
+      set_prim( prim );
+      expected = { .tiles = { AnimatedTile{
+                     .tile        = { .x = 1, .y = 1 },
+                     .inhabitants = { Society::european{
+                       .player = player } } } } };
+      REQUIRE( f() == expected );
+    }
+    SECTION( "native" ) {
+      AnimationPrimitive::hide_unit const prim{
+        .unit_id = native_unit_id };
+      set_prim( prim );
+      expected = { .tiles = { AnimatedTile{
+                     .tile        = { .x = 2, .y = 2 },
+                     .inhabitants = { Society::native{
+                       .tribe = e_tribe::sioux } } } } };
+      REQUIRE( f() == expected );
+    }
+  }
+
+  SECTION( "front_unit" ) {
+    SECTION( "european" ) {
+      AnimationPrimitive::front_unit const prim{ .unit_id =
+                                                     unit_id };
+      set_prim( prim );
+      expected = { .tiles = { AnimatedTile{
+                     .tile        = { .x = 1, .y = 1 },
+                     .inhabitants = { Society::european{
+                       .player = player } } } } };
+      REQUIRE( f() == expected );
+    }
+    SECTION( "native" ) {
+      AnimationPrimitive::front_unit const prim{
+        .unit_id = native_unit_id };
+      set_prim( prim );
+      expected = { .tiles = { AnimatedTile{
+                     .tile        = { .x = 2, .y = 2 },
+                     .inhabitants = { Society::native{
+                       .tribe = e_tribe::sioux } } } } };
+      REQUIRE( f() == expected );
+    }
+  }
+
+  SECTION( "slide_unit" ) {
+    SECTION( "european" ) {
+      AnimationPrimitive::slide_unit const prim{
+        .unit_id = unit_id, .direction = e_direction::se };
+      set_prim( prim );
+      expected = {
+        .tiles = {
+          AnimatedTile{ .tile        = { .x = 1, .y = 1 },
+                        .inhabitants = { Society::european{
+                          .player = player } } },
+          // NOTE: even though we are sliding to a tile con-
+          // taining a native unit, we don't include that native
+          // unit in the dst tile's list of societies because the
+          // native unit is not being animated in this animation
+          // sequence.
+          AnimatedTile{ .tile        = { .x = 2, .y = 2 },
+                        .inhabitants = { Society::european{
+                          .player = player } } } } };
+      REQUIRE( f() == expected );
+    }
+    SECTION( "native" ) {
+      AnimationPrimitive::slide_unit const prim{
+        .unit_id   = native_unit_id,
+        .direction = e_direction::nw };
+      set_prim( prim );
+      expected = {
+        .tiles = {
+          // NOTE: even though we are sliding to a tile con-
+          // taining a european unit, we don't include that euro-
+          // pean unit in the dst tile's list of societies be-
+          // cause the european unit is not being animated in
+          // this animation sequence.
+          AnimatedTile{ .tile        = { .x = 1, .y = 1 },
+                        .inhabitants = { Society::native{
+                          .tribe = e_tribe::sioux } } },
+          AnimatedTile{ .tile        = { .x = 2, .y = 2 },
+                        .inhabitants = { Society::native{
+                          .tribe = e_tribe::sioux } } } } };
+      REQUIRE( f() == expected );
+    }
+  }
+
+  SECTION( "slide_unit/dst off map" ) {
+    e_direction const d = e_direction::w;
+    AnimationPrimitive::slide_unit const prim{
+      .unit_id = edge_unit_id, .direction = d };
+    set_prim( prim );
+    BASE_CHECK( !w.ss().terrain.square_exists(
+        w.ss()
+            .units.coord_for( edge_unit_id )
+            .to_gfx()
+            .moved( d ) ) );
+    expected = { .tiles = { AnimatedTile{
+                   .tile        = { .x = 0, .y = 1 },
+                   .inhabitants = { Society::european{
+                     .player = player } } } } };
+    REQUIRE( f() == expected );
+  }
+
+  SECTION( "talk_unit" ) {
+    SECTION( "european" ) {
+      AnimationPrimitive::talk_unit const prim{
+        .unit_id = unit_id, .direction = e_direction::se };
+      set_prim( prim );
+      expected = {
+        .tiles = {
+          AnimatedTile{ .tile        = { .x = 1, .y = 1 },
+                        .inhabitants = { Society::european{
+                          .player = player } } },
+          // NOTE: even though we are sliding to a tile con-
+          // taining a native unit, we don't include that native
+          // unit in the dst tile's list of societies because the
+          // native unit is not being animated in this animation
+          // sequence.
+          AnimatedTile{ .tile        = { .x = 2, .y = 2 },
+                        .inhabitants = { Society::european{
+                          .player = player } } } } };
+      REQUIRE( f() == expected );
+    }
+    SECTION( "native" ) {
+      AnimationPrimitive::talk_unit const prim{
+        .unit_id   = native_unit_id,
+        .direction = e_direction::nw };
+      set_prim( prim );
+      expected = {
+        .tiles = {
+          // NOTE: even though we are sliding to a tile con-
+          // taining a european unit, we don't include that euro-
+          // pean unit in the dst tile's list of societies be-
+          // cause the european unit is not being animated in
+          // this animation sequence.
+          AnimatedTile{ .tile        = { .x = 1, .y = 1 },
+                        .inhabitants = { Society::native{
+                          .tribe = e_tribe::sioux } } },
+          AnimatedTile{ .tile        = { .x = 2, .y = 2 },
+                        .inhabitants = { Society::native{
+                          .tribe = e_tribe::sioux } } } } };
+      REQUIRE( f() == expected );
+    }
+  }
+
+  SECTION( "depixelate_euro_unit" ) {
+    AnimationPrimitive::depixelate_euro_unit const prim{
+      .unit_id = unit_id };
+    set_prim( prim );
+    expected = { .tiles = { AnimatedTile{
+                   .tile        = { .x = 1, .y = 1 },
+                   .inhabitants = { Society::european{
+                     .player = player } } } } };
+    REQUIRE( f() == expected );
+  }
+
+  SECTION( "depixelate_native_unit" ) {
+    AnimationPrimitive::depixelate_native_unit const prim{
+      .unit_id = native_unit_id };
+    set_prim( prim );
+    expected = { .tiles = { AnimatedTile{
+                   .tile        = { .x = 2, .y = 2 },
+                   .inhabitants = { Society::native{
+                     .tribe = e_tribe::sioux } } } } };
+    REQUIRE( f() == expected );
+  }
+
+  SECTION( "enpixelate_unit" ) {
+    SECTION( "european" ) {
+      AnimationPrimitive::enpixelate_unit const prim{
+        .unit_id = unit_id };
+      set_prim( prim );
+      expected = { .tiles = { AnimatedTile{
+                     .tile        = { .x = 1, .y = 1 },
+                     .inhabitants = { Society::european{
+                       .player = player } } } } };
+      REQUIRE( f() == expected );
+    }
+    SECTION( "native" ) {
+      AnimationPrimitive::enpixelate_unit const prim{
+        .unit_id = native_unit_id };
+      set_prim( prim );
+      expected = { .tiles = { AnimatedTile{
+                     .tile        = { .x = 2, .y = 2 },
+                     .inhabitants = { Society::native{
+                       .tribe = e_tribe::sioux } } } } };
+      REQUIRE( f() == expected );
+    }
+  }
+
+  SECTION( "pixelate_euro_unit_to_target" ) {
+    AnimationPrimitive::pixelate_euro_unit_to_target const prim{
+      .unit_id = unit_id,
+      .target  = e_unit_type::free_colonist,
+    };
+    set_prim( prim );
+    expected = { .tiles = { AnimatedTile{
+                   .tile        = { .x = 1, .y = 1 },
+                   .inhabitants = { Society::european{
+                     .player = player } } } } };
+    REQUIRE( f() == expected );
+  }
+
+  SECTION( "pixelate_native_unit_to_target" ) {
+    AnimationPrimitive::pixelate_native_unit_to_target const
+        prim{ .unit_id = native_unit_id,
+              .target  = e_native_unit_type::brave };
+    set_prim( prim );
+    expected = { .tiles = { AnimatedTile{
+                   .tile        = { .x = 2, .y = 2 },
+                   .inhabitants = { Society::native{
+                     .tribe = e_tribe::sioux } } } } };
+    REQUIRE( f() == expected );
+  }
+
+  SECTION( "depixelate_colony" ) {
+    AnimationPrimitive::depixelate_colony const prim{
+      .tile = colony.location };
+    set_prim( prim );
+    expected = { .tiles = { AnimatedTile{
+                   .tile        = { .x = 1, .y = 0 },
+                   .inhabitants = { Society::european{
+                     .player = player } } } } };
+    REQUIRE( f() == expected );
+  }
+
+  SECTION( "hide_colony (empty)" ) {
+    AnimationPrimitive::hide_colony const prim{
+      .tile = { .x = 0, .y = 0 } };
+    set_prim( prim );
+    expected = {
+      .tiles = { AnimatedTile{ .tile = { .x = 0, .y = 0 } } } };
+    REQUIRE( f() == expected );
+  }
+
+  SECTION( "hide_colony" ) {
+    AnimationPrimitive::hide_colony const prim{
+      .tile = colony.location };
+    set_prim( prim );
+    expected = { .tiles = { AnimatedTile{
+                   .tile        = { .x = 1, .y = 0 },
+                   .inhabitants = { Society::european{
+                     .player = player } } } } };
+    REQUIRE( f() == expected );
+  }
+
+  SECTION( "depixelate_dwelling" ) {
+    AnimationPrimitive::depixelate_dwelling const prim{
+      .tile = { .x = 2, .y = 1 } };
+    set_prim( prim );
+    expected = { .tiles = { AnimatedTile{
+                   .tile        = { .x = 2, .y = 1 },
+                   .inhabitants = { Society::native{
+                     .tribe = e_tribe::sioux } } } } };
+    REQUIRE( f() == expected );
+  }
+
+  SECTION( "hide_dwelling" ) {
+    AnimationPrimitive::hide_dwelling const prim{
+      .tile = { .x = 2, .y = 1 } };
+    set_prim( prim );
+    expected = { .tiles = { AnimatedTile{
+                   .tile        = { .x = 2, .y = 1 },
+                   .inhabitants = { Society::native{
+                     .tribe = e_tribe::sioux } } } } };
+    REQUIRE( f() == expected );
+  }
+
+  SECTION( "hide_dwelling (empty)" ) {
+    AnimationPrimitive::hide_dwelling const prim{
+      .tile = { .x = 0, .y = 0 } };
+    set_prim( prim );
+    expected = {
+      .tiles = { AnimatedTile{ .tile = { .x = 0, .y = 0 } } } };
+    REQUIRE( f() == expected );
+  }
+
+  SECTION( "landscape_anim_enpixelate" ) {
+    AnimationPrimitive::landscape_anim_enpixelate const prim{
+      .overrides = {
+        .squares = { { Coord{ .x = 1, .y = 1 }, {} } } } };
+    set_prim( prim );
+    expected = {};
+    REQUIRE( f() == expected );
+  }
+
+  SECTION( "landscape_anim_replace" ) {
+    AnimationPrimitive::landscape_anim_replace const prim{
+      .overrides = {
+        .squares = { { Coord{ .x = 1, .y = 1 }, {} } } } };
+    set_prim( prim );
+    expected = {};
+    REQUIRE( f() == expected );
+  }
+
+  SECTION( "combined: slide+depixelate" ) {
+    AnimationPrimitive::slide_unit const prim1{
+      .unit_id = unit_id, .direction = e_direction::se };
+    AnimationPrimitive::depixelate_native_unit const prim2{
+      .unit_id = native_unit_id };
+
+    seq = { .sequence = {
+              { AnimationAction{ .primitive = prim1 },
+                AnimationAction{ .primitive = prim2 } } } };
+
+    expected = {
+      .tiles = {
+        AnimatedTile{ .tile        = { .x = 1, .y = 1 },
+                      .inhabitants = { Society::european{
+                        .player = player } } },
+        AnimatedTile{
+          .tile        = { .x = 2, .y = 2 },
+          .inhabitants = {
+            Society::european{ .player = player },
+            Society::native{ .tribe = e_tribe::sioux } } } } };
+    REQUIRE( f() == expected );
+  }
 }
 
 } // namespace

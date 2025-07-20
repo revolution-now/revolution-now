@@ -11,26 +11,18 @@
 #include "show-anim.hpp"
 
 // Revolution Now
-#include "anim-builder.rds.hpp"
+#include "anim-builder.hpp"
 #include "roles.hpp"
-#include "society.hpp"
-#include "tribe-mgr.hpp"
-#include "unit-mgr.hpp"
 #include "visibility.hpp"
 
 // ss
-#include "ss/colonies.hpp"
 #include "ss/players.rds.hpp"
 #include "ss/ref.hpp"
 #include "ss/settings.rds.hpp"
 #include "ss/terrain.hpp"
-#include "ss/units.hpp"
 
 // rds
 #include "rds/switch-macro.hpp"
-
-// C++ standard library
-#include <unordered_map>
 
 using namespace std;
 
@@ -38,7 +30,6 @@ namespace rn {
 
 namespace {
 
-using ::gfx::e_direction;
 using ::gfx::point;
 
 bool should_animate_society( SSConst const& ss,
@@ -109,161 +100,11 @@ bool should_animate_tile( SSConst const& ss,
 
 bool should_animate_seq( SSConst const& ss,
                          AnimationSequence const& seq ) {
-  unordered_map<point, vector<Society>> tiles;
-  auto const p_viz = create_visibility_for(
-      ss, player_for_role( ss, e_player_role::viewer ) );
-  auto const& viz = *p_viz;
-
-  auto const add = mp::overload{
-    [&]( point const tile ) {
-      tiles[tile];
-      auto const colony = viz.colony_at( tile );
-      if( colony.has_value() )
-        tiles[tile].push_back(
-            Society::european{ .player = colony->player } );
-      auto const dwelling = viz.dwelling_at( tile );
-      if( dwelling.has_value() )
-        tiles[tile].push_back( Society::native{
-          .tribe = tribe_type_for_dwelling( ss, *dwelling ) } );
-    },
-    [&]( this auto&& self, point const tile,
-         UnitId const unit_id ) {
-      self( tile );
-      tiles[tile].push_back( Society::european{
-        .player = ss.units.unit_for( unit_id ).player_type() } );
-    },
-    [&]( this auto&& self, point const tile,
-         NativeUnitId const unit_id ) {
-      self( tile );
-      tiles[tile].push_back( Society::native{
-        .tribe = tribe_type_for_unit(
-            ss, ss.units.native_unit_for( unit_id ) ) } );
-    },
-    [&]( this auto&& self, point const tile,
-         GenericUnitId const generic_id ) {
-      e_unit_kind const kind = ss.units.unit_kind( generic_id );
-      switch( kind ) {
-        case e_unit_kind::euro: {
-          self( tile,
-                ss.units.euro_unit_for( generic_id ).id() );
-          break;
-        }
-        case e_unit_kind::native: {
-          self( tile,
-                ss.units.native_unit_for( generic_id ).id );
-          break;
-        }
-      }
-    },
-    [&]( this auto&& self, GenericUnitId const generic_id ) {
-      auto const coord =
-          coord_for_unit_multi_ownership( ss, generic_id );
-      if( coord.has_value() ) self( *coord, generic_id );
-    },
-    [&]( this auto&& self, GenericUnitId const generic_id,
-         e_direction const direction ) {
-      auto const src =
-          coord_for_unit_multi_ownership( ss, generic_id );
-      if( !src.has_value() ) return;
-      point const dst = src->moved( direction );
-      self( *src, generic_id );
-      self( dst, generic_id );
-    },
-  };
-
-  for( auto const& phase : seq.sequence ) {
-    for( auto const& action : phase ) {
-      auto const& primitive = action.primitive;
-      SWITCH( primitive ) {
-        CASE( delay ) { break; }
-        CASE( depixelate_colony ) {
-          add( depixelate_colony.tile );
-          break;
-        }
-        CASE( depixelate_dwelling ) {
-          add( depixelate_dwelling.tile );
-          break;
-        }
-        CASE( depixelate_euro_unit ) {
-          add( depixelate_euro_unit.unit_id );
-          break;
-        }
-        CASE( depixelate_native_unit ) {
-          add( depixelate_native_unit.unit_id );
-          break;
-        }
-        CASE( enpixelate_unit ) {
-          add( enpixelate_unit.unit_id );
-          break;
-        }
-        CASE( ensure_tile_visible ) {
-          // This one is slightly questionable as to whether we
-          // need to add this here... perhaps time will tell.
-          add( ensure_tile_visible.tile );
-          break;
-        }
-        CASE( front_unit ) {
-          add( front_unit.unit_id );
-          break;
-        }
-        CASE( hide_colony ) {
-          add( hide_colony.tile );
-          break;
-        }
-        CASE( hide_dwelling ) {
-          add( hide_dwelling.tile );
-          break;
-        }
-        CASE( hide_unit ) {
-          add( hide_unit.unit_id );
-          break;
-        }
-        CASE( landscape_anim_enpixelate ) {
-          // TBD as to whether we need to include this.
-          break;
-        }
-        CASE( landscape_anim_replace ) {
-          // TBD as to whether we need to include this.
-          break;
-        }
-        CASE( pixelate_euro_unit_to_target ) {
-          add( pixelate_euro_unit_to_target.unit_id );
-          break;
-        }
-        CASE( pixelate_native_unit_to_target ) {
-          add( pixelate_native_unit_to_target.unit_id );
-          break;
-        }
-        CASE( play_sound ) { break; }
-        CASE( slide_unit ) {
-          // NOTE: The destination square may potentially not
-          // exist here if a unit is sliding off of the map
-          // (which can happen when sailing the high seas). But
-          // either way, the subsequent should remove those.
-          add( slide_unit.unit_id, slide_unit.direction );
-          break;
-        }
-        CASE( talk_unit ) {
-          add( talk_unit.unit_id, talk_unit.direction );
-          break;
-        }
-      }
-    }
-  }
-
-  // Handles a ship sailing off the map for the high seas.
-  erase_if( tiles, [&]( auto const& p ) {
-    auto const& [tile, societies] = p;
-    return !ss.terrain.square_exists( tile );
-  } );
-
-  for( auto& [tile, societies] : tiles ) {
-    AnimatedTile const anim_tile{
-      .tile = tile, .inhabitants = std::move( societies ) };
+  AnimationContents const contents =
+      animated_contents( ss, seq );
+  for( AnimatedTile const& anim_tile : contents.tiles )
     if( should_animate_tile( ss, anim_tile ) ) //
       return true;
-  }
-
   return false;
 }
 
