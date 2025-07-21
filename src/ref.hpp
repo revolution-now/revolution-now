@@ -28,6 +28,7 @@ struct ExpeditionaryForce;
 struct IAgent;
 struct ILandViewPlane;
 struct IMapUpdater;
+struct IVisibility;
 struct Player;
 struct SS;
 struct SSConst;
@@ -95,8 +96,13 @@ base::maybe<RefColonyLandingTiles const&>
 select_ref_landing_tiles( RefColonySelectionMetrics const&
                               metrics ATTR_LIFETIMEBOUND );
 
+bool is_initial_visit_to_colony(
+    SSConst const& ss, RefColonySelectionMetrics const& metrics,
+    IVisibility const& ref_viz );
+
 e_ref_landing_formation select_ref_formation(
-    RefColonySelectionMetrics const& metrics );
+    RefColonySelectionMetrics const& metrics,
+    bool initial_visit_to_colony );
 
 maybe<RefLandingForce> select_landing_units(
     SSConst const& ss, e_nation nation,

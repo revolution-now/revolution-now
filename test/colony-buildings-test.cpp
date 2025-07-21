@@ -397,10 +397,11 @@ TEST_CASE( "[colony-buildings] max_workers_for_building" ) {
 
 TEST_CASE(
     "[colony-buildings] barricade_type_to_colony_building" ) {
-  auto f = [&]( e_colony_barricade_type type ) {
+  auto f = [&]( e_colony_barricade_type const type ) {
     return barricade_type_to_colony_building( type );
   };
 
+  REQUIRE( f( e_colony_barricade_type::none ) == nothing );
   REQUIRE( f( e_colony_barricade_type::stockade ) ==
            e_colony_building::stockade );
   REQUIRE( f( e_colony_barricade_type::fort ) ==
@@ -414,7 +415,7 @@ TEST_CASE( "[colony-buildings] barricade_for_colony" ) {
 
   auto f = [&] { return barricade_for_colony( colony ); };
 
-  REQUIRE( f() == nothing );
+  REQUIRE( f() == e_colony_barricade_type::none );
 
   colony.buildings[e_colony_building::stockade] = true;
   REQUIRE( f() == e_colony_barricade_type::stockade );

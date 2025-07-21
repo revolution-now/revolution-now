@@ -358,10 +358,11 @@ void render_native_unit_depixelate_to(
 ** Colony Rendering.
 *****************************************************************/
 e_tile tile_for_colony( Colony const& colony ) {
-  maybe<e_colony_barricade_type> barricade_type =
+  e_colony_barricade_type const barricade_type =
       barricade_for_colony( colony );
-  if( !barricade_type.has_value() ) return e_tile::colony_basic;
-  switch( *barricade_type ) {
+  switch( barricade_type ) {
+    case e_colony_barricade_type::none:
+      return e_tile::colony_basic;
     case e_colony_barricade_type::stockade:
       return e_tile::colony_stockade;
     case e_colony_barricade_type::fort:

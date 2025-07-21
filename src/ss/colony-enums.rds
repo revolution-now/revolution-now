@@ -152,6 +152,7 @@ enum.e_colony_building_slot {
 }
 
 enum.e_colony_barricade_type {
+  none,
   stockade,
   fort,
   fortress,

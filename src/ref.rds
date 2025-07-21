@@ -45,7 +45,7 @@ struct.RefColonySelectionMetrics {
 
   # Military
   defense_strength 'int',
-  barricade 'base::maybe<e_colony_barricade_type>',
+  barricade 'e_colony_barricade_type',
 
   # Geography
   eligible_landings 'std::vector<RefColonyLandingTiles>',

@@ -18,8 +18,10 @@
 #include "iagent.hpp"
 #include "land-view.hpp"
 #include "map-square.hpp"
+#include "ref.rds.hpp"
 #include "unit-mgr.hpp"
 #include "unit-ownership.hpp"
+#include "visibility.hpp"
 
 // config
 #include "config/revolution.rds.hpp"
@@ -53,6 +55,15 @@ using ::gfx::e_direction;
 using ::gfx::point;
 using ::refl::enum_map;
 using ::refl::enum_values;
+
+struct Bucket {
+  int start                    = {};
+  e_ref_landing_formation name = {};
+
+  // For enum_map.
+  [[maybe_unused]] bool operator==( Bucket const& ) const =
+      default;
+};
 
 maybe<e_expeditionary_force_type> from_unit_type(
     e_unit_type const unit_type ) {
@@ -383,10 +394,73 @@ maybe<RefColonyLandingTiles const&> select_ref_landing_tiles(
   return metrics.eligible_landings[0];
 }
 
+// In the OG the game appears to do this by looking at the "last
+// visited" status of the tiles around the colony. But since we
+// don't really do that in this game, this seems sufficient.
+bool is_initial_visit_to_colony(
+    SSConst const& ss, RefColonySelectionMetrics const& metrics,
+    IVisibility const& ref_viz ) {
+  point const tile =
+      ss.colonies.colony_for( metrics.colony_id ).location;
+  return ref_viz.visible( tile ) != e_tile_visibility::hidden;
+}
+
 e_ref_landing_formation select_ref_formation(
-    RefColonySelectionMetrics const& ) {
-  // TODO
-  return e_ref_landing_formation::_1_1_1;
+    RefColonySelectionMetrics const& metrics,
+    bool const initial_visit_to_colony ) {
+  using enum e_colony_barricade_type;
+  using enum e_ref_landing_formation;
+  using BucketsMap =
+      enum_map<e_colony_barricade_type, vector<Bucket>>;
+  static BucketsMap BUCKETS{
+    // clang-format off
+    {none, {
+      { .start=30, .name=_2_2_2 },
+      { .start=10, .name=_4_1_1 },
+      { .start= 8, .name=_3_1_1 },
+      { .start= 6, .name=_2_1_1 },
+      { .start= 4, .name=_2_1_0 },
+      { .start= 2, .name=_2_1_0 },
+      { .start= 0, .name=_2_1_0 },
+    }},
+    {stockade, {
+      { .start=30, .name=_2_2_2 },
+      { .start=10, .name=_4_1_1 },
+      { .start= 8, .name=_3_1_1 },
+      { .start= 6, .name=_2_1_1 },
+      { .start= 4, .name=_2_1_0 },
+      { .start= 2, .name=_2_1_0 },
+      { .start= 0, .name=_2_1_0 },
+    }},
+    {fort, {
+      { .start=20, .name=_2_2_2 },
+      { .start=10, .name=_4_1_1 },
+      { .start= 8, .name=_4_1_1 },
+      { .start= 6, .name=_4_1_1 },
+      { .start= 4, .name=_2_1_1 },
+      { .start= 2, .name=_2_1_0 },
+      { .start= 0, .name=_2_1_0 },
+    }},
+    {fortress, {
+      { .start=14, .name=_2_2_2 },
+      { .start=10, .name=_4_1_1 },
+      { .start= 8, .name=_4_1_1 },
+      { .start= 6, .name=_4_1_1 },
+      { .start= 4, .name=_4_1_1 },
+      { .start= 2, .name=_2_1_1 },
+      { .start= 0, .name=_2_1_0 },
+    }},
+    // clang-format on
+  };
+  e_ref_landing_formation const canonical = [&] {
+    auto const& buckets = BUCKETS[metrics.barricade];
+    for( auto const& [start, name] : buckets )
+      if( metrics.defense_strength >= start ) return name;
+    SHOULD_NOT_BE_HERE;
+  }();
+  if( canonical == _2_1_0 && !initial_visit_to_colony )
+    return e_ref_landing_formation::_1_1_1;
+  return canonical;
 }
 
 maybe<RefLandingForce> select_landing_units(
@@ -606,6 +680,10 @@ wait<> offboard_ref_units( SS& ss, IMapUpdater& map_updater,
     Unit& unit = ss.units.unit_for( unit_id );
     unit.clear_orders();
     unit.forfeight_mv_points();
+    // TODO: bring the unit to the front here and hold it while
+    // the message box pops up otherwise the unit might go behind
+    // e.g. an artillery that it is capturing.
+
     // Destroy any units that are captured and give message.
     co_await euro_unit_captures( landing_tile.captured_units,
                                  "Army" );

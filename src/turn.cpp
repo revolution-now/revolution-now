@@ -1539,8 +1539,14 @@ wait<> post_colonies_ref_only( SS& ss, TS& ts, Player& player ) {
     // if we are here.
     co_return;
   }
+
+  auto const ref_viz = create_visibility_for( ss, player.type );
+  CHECK( ref_viz && ref_viz->player().has_value() &&
+         is_ref( *ref_viz->player() ) );
+  bool const initial_visit_to_colony =
+      is_initial_visit_to_colony( ss, *metrics, *ref_viz );
   e_ref_landing_formation const formation =
-      select_ref_formation( *metrics );
+      select_ref_formation( *metrics, initial_visit_to_colony );
   auto const force =
       select_landing_units( ss.as_const, nation, formation );
   if( !force.has_value() )

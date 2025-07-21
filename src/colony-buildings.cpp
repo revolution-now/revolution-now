@@ -419,9 +419,11 @@ void add_colony_building( Colony& colony,
   }
 }
 
-e_colony_building barricade_type_to_colony_building(
-    e_colony_barricade_type barricade ) {
+maybe<e_colony_building> barricade_type_to_colony_building(
+    e_colony_barricade_type const barricade ) {
   switch( barricade ) {
+    case e_colony_barricade_type::none:
+      return nothing;
     case e_colony_barricade_type::stockade:
       return e_colony_building::stockade;
     case e_colony_barricade_type::fort:
@@ -431,11 +433,12 @@ e_colony_building barricade_type_to_colony_building(
   }
 }
 
-maybe<e_colony_barricade_type> barricade_for_colony(
+e_colony_barricade_type barricade_for_colony(
     Colony const& colony ) {
-  maybe<e_colony_building> const building =
+  auto const building =
       building_for_slot( colony, e_colony_building_slot::wall );
-  if( !building.has_value() ) return nothing;
+  if( !building.has_value() )
+    return e_colony_barricade_type::none;
   switch( *building ) {
     case e_colony_building::stockade:
       return e_colony_barricade_type::stockade;
