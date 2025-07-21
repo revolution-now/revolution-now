@@ -54,6 +54,22 @@ using ::gfx::point;
 using ::refl::enum_map;
 using ::refl::enum_values;
 
+maybe<e_expeditionary_force_type> from_unit_type(
+    e_unit_type const unit_type ) {
+  switch( unit_type ) {
+    case e_unit_type::regular:
+      return e_expeditionary_force_type::regular;
+    case e_unit_type::cavalry:
+      return e_expeditionary_force_type::cavalry;
+    case e_unit_type::artillery:
+      return e_expeditionary_force_type::artillery;
+    case e_unit_type::man_o_war:
+      return e_expeditionary_force_type::man_o_war;
+    default:
+      return nothing;
+  }
+}
+
 RefLandingForce const& formation_unit_counts(
     e_ref_landing_formation const formation ) {
   switch( formation ) {
@@ -373,19 +389,19 @@ e_ref_landing_formation select_ref_formation(
   return e_ref_landing_formation::_1_1_1;
 }
 
-RefLandingForce select_landing_units(
+maybe<RefLandingForce> select_landing_units(
     SSConst const& ss, e_nation const nation,
     e_ref_landing_formation const formation ) {
-  RefLandingForce res;
   e_player const colonial_player_type =
       colonial_player_for( nation );
   UNWRAP_CHECK_T( Player const& colonial_player,
                   ss.players.players[colonial_player_type] );
   auto const& available =
       colonial_player.revolution.expeditionary_force;
+  if( !available.man_o_war ) return nothing;
   RefLandingForce const& target_unit_counts =
       formation_unit_counts( formation );
-  res = target_unit_counts;
+  RefLandingForce res = target_unit_counts;
   RefLandingForce deficits;
   int total_deficit = 0;
   if( int const deficit = res.regular - available.regular;
@@ -469,15 +485,48 @@ RefLandingUnits create_ref_landing_units(
     SS& ss, e_nation const nation, RefLandingPlan const& plan ) {
   RefLandingUnits res;
   e_player const ref_player_type = ref_player_for( nation );
+  e_player const colonist_player_type =
+      colonial_player_for( nation );
+  UNWRAP_CHECK_T( Player & colonial_player,
+                  ss.players.players[colonist_player_type] );
   UNWRAP_CHECK_T( Player const& ref_player,
                   ss.players.players[ref_player_type] );
   res.ship.unit_id      = create_free_unit( ss.units, ref_player,
                                             e_unit_type::man_o_war );
   res.ship.landing_tile = plan.ship_tile;
+  auto const decrement_unit_type =
+      [&]( e_unit_type const unit_type ) {
+        auto const decrement = [&]( int& n ) {
+          --n;
+          CHECK_GE( n, 0 );
+        };
+        auto& force =
+            colonial_player.revolution.expeditionary_force;
+        UNWRAP_CHECK_T(
+            e_expeditionary_force_type const exp_type,
+            from_unit_type( unit_type ) );
+        switch( exp_type ) {
+          using enum e_expeditionary_force_type;
+          case regular:
+            decrement( force.regular );
+            break;
+          case cavalry:
+            decrement( force.cavalry );
+            break;
+          case artillery:
+            decrement( force.artillery );
+            break;
+          case man_o_war:
+            decrement( force.man_o_war );
+            break;
+        }
+      };
+  decrement_unit_type( e_unit_type::man_o_war );
   for( auto const& [unit_type, landing_tile] :
        plan.landing_units ) {
     UnitId const held_id =
         create_free_unit( ss.units, ref_player, unit_type );
+    decrement_unit_type( unit_type );
     UnitOwnershipChanger( ss, held_id )
         .change_to_cargo( res.ship.unit_id,
                           /*starting_slot=*/0 );

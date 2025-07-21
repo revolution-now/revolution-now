@@ -1541,10 +1541,13 @@ wait<> post_colonies_ref_only( SS& ss, TS& ts, Player& player ) {
   }
   e_ref_landing_formation const formation =
       select_ref_formation( *metrics );
-  RefLandingForce const force =
+  auto const force =
       select_landing_units( ss.as_const, nation, formation );
+  if( !force.has_value() )
+    // Can happen if there are no more Man-O-Wars in stock.
+    co_return;
   RefLandingPlan const landing_plan =
-      make_ref_landing_plan( *landing_tiles, force );
+      make_ref_landing_plan( *landing_tiles, *force );
   RefLandingUnits const landing_units =
       create_ref_landing_units( ss, nation, landing_plan );
   co_await offboard_ref_units(

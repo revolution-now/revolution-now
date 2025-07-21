@@ -98,7 +98,7 @@ select_ref_landing_tiles( RefColonySelectionMetrics const&
 e_ref_landing_formation select_ref_formation(
     RefColonySelectionMetrics const& metrics );
 
-RefLandingForce select_landing_units(
+maybe<RefLandingForce> select_landing_units(
     SSConst const& ss, e_nation nation,
     e_ref_landing_formation formation );
 
