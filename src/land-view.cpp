@@ -294,11 +294,10 @@ struct LandViewPlane::Impl : public IPlane {
       Coord coord ) {
     vector<LandViewPlayerInput> res;
 
-    auto scroll_map = [&] {
+    auto const scroll_map = [&] {
       // Nothing to click on, so just scroll the map to center on
       // the clicked tile.
-      viewport().set_point_seek(
-          viewport().world_tile_to_world_pixel_center( coord ) );
+      viewport().center_on_tile( coord );
     };
 
     if( white_box_stream_.has_value() )
