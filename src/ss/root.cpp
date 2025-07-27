@@ -102,6 +102,9 @@ valid_or<string> validate_interaction(
           debug_string( units.unit_for( unit_id ) ),
           colony.name );
     }
+
+    // All units on map on colony tile belong to the colony's
+    // owner.
   }
   return base::valid;
 }
