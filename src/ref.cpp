@@ -535,8 +535,8 @@ maybe<RefColonyLandingTiles const&> select_ref_landing_tiles(
                                RefColonyLandingTiles const& r ) {
     return l.landings.size() > r.landings.size();
   } );
-  CHECK( !metrics.eligible_landings.empty() );
-  return metrics.eligible_landings[0];
+  CHECK( !sorted.empty() );
+  return sorted[0];
 }
 
 void filter_ref_landing_tiles( RefColonyLandingTiles& tiles ) {
