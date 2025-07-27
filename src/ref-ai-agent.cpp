@@ -151,6 +151,7 @@ RefAIAgent::should_explore_ancient_burial_mounds() {
 command RefAIAgent::ask_orders( UnitId const unit_id ) {
   Unit const& unit = ss_.units.unit_for( unit_id );
   if( unit.desc().ship ) return command::forfeight{};
+  if( !unit.desc().can_attack ) return command::forfeight{};
 
   auto const coord = ss_.units.maybe_coord_for( unit_id );
   if( !coord.has_value() ) return command::forfeight{};
