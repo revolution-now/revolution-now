@@ -610,10 +610,17 @@ wait<> kill_natives( SS& ss, TS& ts ) {
       create_visibility_for(
           ss, player_for_role( ss, e_player_role::viewer ) );
 
-  co_await ts.planes.get()
-      .get_bottom<ILandViewPlane>()
-      .animate_if_visible( anim_seq_for_cheat_kill_natives(
-          ss, *viz, destroyed ) );
+  if( config_cheat.animate_kill_natives )
+    // If we do animate this then do it unconditionally because
+    // the animation builder for this animation already takes
+    // into account the visibility of the player. So if we did it
+    // conditionally then the dwellings under fog (which may be
+    // all of them, and which are still visible to the player)
+    // would not cause the animation to happen.
+    co_await ts.planes.get()
+        .get_bottom<ILandViewPlane>()
+        .animate_always( anim_seq_for_cheat_kill_natives(
+            ss, *viz, destroyed ) );
 
   for( e_tribe const tribe : destroyed )
     destroy_tribe( ss, ts.map_updater(), tribe );

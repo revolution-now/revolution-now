@@ -21,6 +21,8 @@ struct.config_cheat_t {
   enable_cheat_mode_by_default 'bool',
 
   magic_sequence 'std::vector<char>',
+
+  animate_kill_natives 'bool',
 }
 
 config.cheat {}

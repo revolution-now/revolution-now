@@ -11,3 +11,8 @@ enable_cheat_mode_by_default: false
 # Type these keys in order while holding Alt to enable cheat
 # mode, assuming that it can be enabled.
 magic_sequence: [w, i, n]
+
+# When the "Kill Natives" cheat function is executed, should we
+# first animate the depixelation of the units and dwellings, or
+# just immediately make them disappear as in the OG.
+animate_kill_natives: true
