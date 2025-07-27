@@ -105,6 +105,28 @@ valid_or<string> validate_interaction(
 
     // All units on map on colony tile belong to the colony's
     // owner.
+    auto const& units_on_tile =
+        units.from_coord( colony.location );
+    for( GenericUnitId const generic_id : units_on_tile ) {
+      e_unit_kind const kind = units.unit_kind( generic_id );
+      switch( kind ) {
+        case e_unit_kind::euro: {
+          Unit const& unit = units.euro_unit_for( generic_id );
+          REFL_VALIDATE( unit.player_type() == colony.player,
+                         "colony on tile {} is owned by the {} "
+                         "but contains a unit owned by the {}.",
+                         colony.location, colony.player,
+                         unit.player_type() );
+          break;
+        }
+        case e_unit_kind::native: {
+          REFL_VALIDATE( false,
+                         "colony tile {} contains native units.",
+                         colony.location );
+          break;
+        }
+      }
+    }
   }
   return base::valid;
 }
