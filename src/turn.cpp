@@ -1726,7 +1726,9 @@ wait<> player_start_of_turn( SS& ss, TS& ts, Player& player,
 // ends. This means even after the "end of turn" is clicked, if
 // that happens to flash on a given turn.
 wait<> post_player( SS& ss, TS& ts, Player& player ) {
-  if( !is_ref( player.type ) ) {
+  if( !is_ref( player.type ) &&
+      player.revolution.status <
+          e_revolution_status::declared ) {
     // Evolve royal money and check if we need to add a new REF
     // unit.
     RoyalMoneyChange const change = evolved_royal_money(
