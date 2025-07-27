@@ -19,6 +19,7 @@
 #include "land-view.hpp"
 #include "map-square.hpp"
 #include "ref.rds.hpp"
+#include "unit-classes.hpp"
 #include "unit-mgr.hpp"
 #include "unit-ownership.hpp"
 #include "visibility.hpp"
@@ -136,6 +137,28 @@ RefLandingForce const& formation_unit_counts(
       return f;
     }
   }
+}
+
+int num_colony_defenders( SSConst const& ss,
+                          Colony const& colony ) {
+  int total = 0;
+  // Pull in the units in the cargo of ships as well.
+  vector<GenericUnitId> const units =
+      units_from_coord_recursive( ss.units, colony.location );
+  for( GenericUnitId const generic_id : units ) {
+    switch( ss.units.unit_kind( generic_id ) ) {
+      case e_unit_kind::euro:
+        break;
+      case e_unit_kind::native:
+        FATAL( "found native unit on colony tile {}",
+               colony.location );
+    }
+    Unit const& unit = ss.units.euro_unit_for( generic_id );
+    if( !unit.desc().can_attack ) continue;
+    if( scout_type( unit.type() ) ) continue;
+    ++total;
+  }
+  return total;
 }
 
 int colony_defense_metric( SSConst const& ss,
@@ -390,6 +413,7 @@ RefColonySelectionMetrics ref_colony_selection_metrics(
   e_player const ref_player      = ref_player_for( nation );
   metrics.colony_id              = colony_id;
   metrics.defense_strength = colony_defense_metric( ss, colony );
+  metrics.num_defenders    = num_colony_defenders( ss, colony );
   metrics.barricade        = barricade_for_colony( colony );
   auto const make_ref_landing_tile = [&]( point const tile ) {
     auto const& units = ss.units.from_coord( tile );
@@ -445,19 +469,21 @@ RefColonySelectionMetrics ref_colony_selection_metrics(
       .ship_tile = make_ref_landing_tile( ship_tile ),
       .landings  = std::move( landings ) } );
   }
-  // TODO
-  metrics.num_colonies_on_continent = 1;
-  // TODO
-  metrics.distance_isolation = 1;
   return metrics;
 }
 
 maybe<int> ref_colony_selection_score(
     RefColonySelectionMetrics const& metrics ) {
   if( metrics.eligible_landings.empty() ) return nothing;
-  // TODO: consider bucketing these so that the player can't just
-  // create a ton of weak colonies to divert all of the REF.
-  return metrics.defense_strength;
+  // The OG appears to select colonies in a very simplistic way:
+  // there are only two buckets, undefended and defended. It
+  // prefers undefended when available. Then within each bucket
+  // it prefers colonies founded earlier. First priority is to
+  // choose colonies that are undefended. Then for the colonies
+  // that are defended, fall back take the one founded earliest
+  // (colonies founded earlier have smaller IDs).
+  if( metrics.num_defenders == 0 ) return 0;
+  return metrics.colony_id; // Always > 0.
 }
 
 maybe<RefColonySelectionMetrics const&>
@@ -468,11 +494,18 @@ select_ref_landing_colony(
   sorted.reserve( choices.size() );
   for( auto const& choice : choices )
     sorted.push_back( &choice );
-  rg::stable_sort( sorted,
-                   []( RefColonyMetricsScored const* const l,
-                       RefColonyMetricsScored const* const r ) {
-                     return l->score < r->score;
-                   } );
+  rg::sort( sorted, []( RefColonyMetricsScored const* const l,
+                        RefColonyMetricsScored const* const r ) {
+    // First priority is to choose colonies with the lowest
+    // score. Then for the colonies of equal score, fall back
+    // take the one founded earliest. This conforms to the OG. It
+    // might seem strange to use colony ID in this way, but this
+    // leads to the behavior that the REF tends to prefer the
+    // colonies founded earlier, which seems like a good strategy
+    // since those are likely to be the most important.
+    if( l->score != r->score ) return l->score < r->score;
+    return l->metrics.colony_id < r->metrics.colony_id;
+  } );
   RefColonyMetricsScored const* const p = sorted[0];
   CHECK( p );
   return p->metrics;

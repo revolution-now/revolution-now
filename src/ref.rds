@@ -46,13 +46,10 @@ struct.RefColonySelectionMetrics {
   # Military
   defense_strength 'int',
   barricade 'e_colony_barricade_type',
+  num_defenders 'bool',
 
   # Geography
   eligible_landings 'std::vector<RefColonyLandingTiles>',
-
-  # Isolation
-  num_colonies_on_continent 'int',
-  distance_isolation 'int',
 }
 
 struct.RefColonyMetricsScored {
