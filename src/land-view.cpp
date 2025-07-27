@@ -1871,14 +1871,31 @@ maybe<point> LandViewPlane::white_box() const {
 wait<> LandViewPlane::animate_always(
     AnimationSequence const& seq ) {
   co_await impl_->animator_.animate_sequence(
-      seq, AnimSeqOptions{ .check_visibility = false } );
+      seq, AnimSeqOptions{ .check_visibility = false,
+                           .hold             = false } );
+}
+
+wait<> LandViewPlane::animate_always_and_hold(
+    AnimationSequence const& seq ) {
+  co_await impl_->animator_.animate_sequence(
+      seq, AnimSeqOptions{ .check_visibility = false,
+                           .hold             = true } );
 }
 
 wait<> LandViewPlane::animate_if_visible(
     AnimationSequence const& seq ) {
   // Visibility should be checked by default within the
   // animate_sequence method.
-  co_await impl_->animator_.animate_sequence( seq );
+  co_await impl_->animator_.animate_sequence(
+      seq, { .check_visibility = true, .hold = false } );
+}
+
+wait<> LandViewPlane::animate_if_visible_and_hold(
+    AnimationSequence const& seq ) {
+  // Visibility should be checked by default within the
+  // animate_sequence method.
+  co_await impl_->animator_.animate_sequence(
+      seq, { .check_visibility = true, .hold = true } );
 }
 
 ViewportController& LandViewPlane::viewport() const {

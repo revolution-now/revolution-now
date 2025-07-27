@@ -48,7 +48,11 @@ struct MockLandViewPlane : ILandViewPlane {
                () );
   MOCK_METHOD( wait<>, animate_always,
                (AnimationSequence const&), () );
+  MOCK_METHOD( wait<>, animate_always_and_hold,
+               (AnimationSequence const&), () );
   MOCK_METHOD( wait<>, animate_if_visible,
+               (AnimationSequence const&), () );
+  MOCK_METHOD( wait<>, animate_if_visible_and_hold,
                (AnimationSequence const&), () );
   MOCK_METHOD( void, start_new_turn, (), () );
   MOCK_METHOD( void, zoom_out_full, (), () );
@@ -61,5 +65,7 @@ struct MockLandViewPlane : ILandViewPlane {
     return plane;
   }
 };
+
+static_assert( !std::is_abstract_v<MockLandViewPlane> );
 
 } // namespace rn

@@ -79,11 +79,19 @@ struct ILandViewPlane {
   virtual wait<> animate_always(
       AnimationSequence const& seq ATTR_LIFETIMEBOUND ) = 0;
 
+  // Same as above but holds.
+  virtual wait<> animate_always_and_hold(
+      AnimationSequence const& seq ATTR_LIFETIMEBOUND ) = 0;
+
   // Run an animation only if the player/viewer should be able to
   // see the animation.
   //
   // Same as above regarding lifetime-bound.
   virtual wait<> animate_if_visible(
+      AnimationSequence const& seq ATTR_LIFETIMEBOUND ) = 0;
+
+  // Same as above but holds.
+  virtual wait<> animate_if_visible_and_hold(
       AnimationSequence const& seq ATTR_LIFETIMEBOUND ) = 0;
 
   // We don't have to do much specifically in the land view when
@@ -136,7 +144,13 @@ struct LandViewPlane : ILandViewPlane {
 
   wait<> animate_always( AnimationSequence const& seq ) override;
 
+  wait<> animate_always_and_hold(
+      AnimationSequence const& seq ) override;
+
   wait<> animate_if_visible(
+      AnimationSequence const& seq ) override;
+
+  wait<> animate_if_visible_and_hold(
       AnimationSequence const& seq ) override;
 
   void start_new_turn() override;
