@@ -478,10 +478,10 @@ select_ref_landing_colony(
   return p->metrics;
 }
 
-maybe<RefColonyLandingTiles const&> select_ref_landing_tiles(
+RefColonyLandingTiles select_ref_landing_tiles(
     RefColonySelectionMetrics const& metrics
         ATTR_LIFETIMEBOUND ) {
-  if( metrics.eligible_landings.empty() ) return nothing;
+  CHECK( !metrics.eligible_landings.empty() );
   auto sorted = metrics.eligible_landings;
   // Here we depart a bit from the OG's behavior. The OG always
   // chooses the tile (adjacent to the colony) with the largest

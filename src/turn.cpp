@@ -1533,15 +1533,10 @@ wait<> post_colonies_ref_only( SS& ss, TS& ts, Player& player ) {
     // TODO: can't land on any coastal colonies.
     co_return;
   }
-  auto const unfiltered_landing_tiles =
-      select_ref_landing_tiles( *metrics );
-  if( !unfiltered_landing_tiles ) {
-    // TODO: can't find landing tiles.  Not expected to happen
-    // if we are here.
-    co_return;
-  }
   auto const landing_tiles = [&] {
-    auto res = *unfiltered_landing_tiles;
+    auto const unfiltered_landing_tiles =
+        select_ref_landing_tiles( *metrics );
+    auto res = unfiltered_landing_tiles;
     filter_ref_landing_tiles( res );
     return res;
   }();

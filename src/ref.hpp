@@ -93,7 +93,9 @@ select_ref_landing_colony(
     std::vector<RefColonyMetricsScored> const& choices
         ATTR_LIFETIMEBOUND );
 
-base::maybe<RefColonyLandingTiles const&>
+// There must be at least one eligible landing site in the sup-
+// plied parameter or check fail.
+RefColonyLandingTiles
 select_ref_landing_tiles( RefColonySelectionMetrics const&
                               metrics ATTR_LIFETIMEBOUND );
 
