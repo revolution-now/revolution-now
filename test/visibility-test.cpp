@@ -1375,9 +1375,5 @@ TEST_CASE( "[visibility] ScopedMapViewer" ) {
   }
 }
 
-TEST_CASE( "[visibility] can_open_colony_on_tile" ) {
-  world w;
-}
-
 } // namespace
 } // namespace rn

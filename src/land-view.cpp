@@ -26,12 +26,12 @@
 #include "imenu-server.hpp"
 #include "land-view-anim.hpp"
 #include "land-view-render.hpp"
+#include "map-view.hpp"
 #include "physics.hpp"
 #include "plane-stack.hpp"
 #include "plane.hpp"
 #include "roles.hpp"
 #include "screen.hpp" // FIXME: remove
-#include "society.hpp"
 #include "time.hpp"
 #include "ts.hpp"
 #include "unit-id.hpp"
@@ -327,7 +327,8 @@ struct LandViewPlane::Impl : public IPlane {
         mode_.holds<LandViewMode::unit_input>() ||
         mode_.holds<LandViewMode::view_mode>() ||
         mode_.holds<LandViewMode::end_of_turn>();
-    auto const units = can_activate_units_on_tile( coord );
+    auto const units =
+        can_activate_units_on_tile( ss_, *viz_, coord );
     if( !units.empty() && mode_allows_activate ) {
       // Decide which units are selected and for what actions.
       vector<UnitSelection> selections;
@@ -442,31 +443,11 @@ struct LandViewPlane::Impl : public IPlane {
     co_return res;
   }
 
-  vector<UnitId> can_activate_units_on_tile(
-      point const tile ) const {
-    vector<UnitId> res;
-    // Can't activate what we can't see.
-    if( viz_->visible( tile ) != e_tile_visibility::clear )
-      return res;
-    // This needs to be "active" and not "viewer" because the
-    // purpose of this is to activate units to move, therefore it
-    // has to be those units' turn.
-    auto const active =
-        player_for_role( ss_, e_player_role::active );
-    if( !active.has_value() ) return res;
-    auto const society = society_on_square( ss_, tile );
-    if( !society.has_value() ) return res;
-    auto const european = society->get_if<Society::european>();
-    if( !european.has_value() ) return res;
-    if( european->player != *active ) return res;
-    res = euro_units_from_coord_recursive( ss_.units, tile );
-    return res;
-  }
-
   wait<maybe<LandViewPlayerInput>> activate_tile(
       point const tile ) {
     maybe<LandViewPlayerInput> res;
-    auto const units = can_activate_units_on_tile( tile );
+    auto const units =
+        can_activate_units_on_tile( ss_, *viz_, tile );
     if( units.empty() ) co_return res;
 
     // Decide which units are selected and for what actions.
