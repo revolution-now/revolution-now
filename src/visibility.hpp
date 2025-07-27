@@ -19,6 +19,7 @@
 #include "maybe.hpp"
 
 // ss
+#include "ss/colony-id.hpp"
 #include "ss/nation.rds.hpp"
 #include "ss/unit-type.rds.hpp"
 
@@ -260,6 +261,9 @@ void recompute_fog_for_player( SS& ss, TS& ts, e_player player );
 // parameter is nothing), This process may include redrawing the
 // map if necessary.
 void update_map_visibility( TS& ts, maybe<e_player> player );
+
+maybe<ColonyId> can_open_colony_on_tile( IVisibility const& viz,
+                                         gfx::point tile );
 
 /****************************************************************
 ** ScopedMapViewer

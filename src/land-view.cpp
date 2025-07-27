@@ -315,23 +315,21 @@ struct LandViewPlane::Impl : public IPlane {
     };
 
     // First check for colonies.
-    // FIXME: limit this using the roles module, and also in the
-    // enter_on_world_tile method below.
-    if( auto maybe_id = ss_.colonies.maybe_from_coord( coord );
-        maybe_id ) {
+    if( auto const colony_id =
+            can_open_colony_on_tile( *viz_, coord );
+        colony_id.has_value() ) {
       auto& colony = add( LandViewPlayerInput::colony{} );
-      colony.id    = *maybe_id;
+      colony.id    = *colony_id;
       co_return res;
     }
 
     // Now check for units.
-    bool const allow_unit_click =
+    bool const mode_allows_activate =
         mode_.holds<LandViewMode::unit_input>() ||
         mode_.holds<LandViewMode::view_mode>() ||
         mode_.holds<LandViewMode::end_of_turn>();
-    auto const units =
-        euro_units_from_coord_recursive( ss_.units, coord );
-    if( allow_unit_click && units.size() != 0 ) {
+    auto const units = can_activate_units_on_tile( coord );
+    if( !units.empty() && mode_allows_activate ) {
       // Decide which units are selected and for what actions.
       vector<UnitSelection> selections;
       if( units.size() == 1 ) {
@@ -434,35 +432,42 @@ struct LandViewPlane::Impl : public IPlane {
     };
 
     // First check for colonies.
-    // FIXME: limit this using the roles module, and also in the
-    // click_on_world_tile method above.
     if( auto const colony_id =
-            ss_.colonies.maybe_from_coord( tile );
+            can_open_colony_on_tile( *viz_, tile );
         colony_id.has_value() ) {
-      add( LandViewPlayerInput::colony{ .id = *colony_id } );
+      auto& colony = add( LandViewPlayerInput::colony{} );
+      colony.id    = *colony_id;
       co_return res;
     }
 
     co_return res;
   }
 
+  vector<UnitId> can_activate_units_on_tile(
+      point const tile ) const {
+    vector<UnitId> res;
+    // Can't activate what we can't see.
+    if( viz_->visible( tile ) != e_tile_visibility::clear )
+      return res;
+    // This needs to be "active" and not "viewer" because the
+    // purpose of this is to activate units to move, therefore it
+    // has to be those units' turn.
+    auto const active =
+        player_for_role( ss_, e_player_role::active );
+    if( !active.has_value() ) return res;
+    auto const society = society_on_square( ss_, tile );
+    if( !society.has_value() ) return res;
+    auto const european = society->get_if<Society::european>();
+    if( !european.has_value() ) return res;
+    if( european->player != *active ) return res;
+    res = euro_units_from_coord_recursive( ss_.units, tile );
+    return res;
+  }
+
   wait<maybe<LandViewPlayerInput>> activate_tile(
       point const tile ) {
     maybe<LandViewPlayerInput> res;
-
-    maybe<e_player> const player =
-        player_for_role( ss_, e_player_role::active );
-    if( !player ) co_return res;
-
-    auto const units = [&] {
-      auto res =
-          euro_units_from_coord_recursive( ss_.units, tile );
-      erase_if( res, [&]( UnitId const id ) {
-        return ss_.units.unit_for( id ).player_type() != *player;
-      } );
-      return res;
-    }();
-
+    auto const units = can_activate_units_on_tile( tile );
     if( units.empty() ) co_return res;
 
     // Decide which units are selected and for what actions.

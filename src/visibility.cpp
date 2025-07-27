@@ -496,4 +496,16 @@ bool ScopedMapViewer::needs_change() const {
          old_player_.has_value() && *old_player_ != new_player_;
 }
 
+maybe<ColonyId> can_open_colony_on_tile( IVisibility const& viz,
+                                         point const tile ) {
+  auto const& viz_colony = viz.colony_at( tile );
+  if( !viz_colony.has_value() ) return nothing;
+  if( viz_colony->id == 0 ) return nothing;
+  bool const compatible_ownership =
+      !viz.player().has_value() ||
+      *viz.player() == viz_colony->player;
+  if( !compatible_ownership ) return nothing;
+  return viz_colony->id;
+}
+
 } // namespace rn
