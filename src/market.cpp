@@ -159,6 +159,35 @@ PriceChange try_price_change_group_model(
                               allowed_price_change );
 }
 
+void populate_tax_related_fields(
+    SSConst const& ss, e_player const player_type,
+    e_transaction const transaction_type,
+    Commodity const& transacted, int const price,
+    Invoice& invoice ) {
+  invoice.money_delta_before_taxes = price * transacted.quantity;
+  // NOTE: After declaration the tax rate no longer applies, how-
+  // ever there is only one case where that is relevant, namely
+  // custom house sales, since that is the only way to sell to
+  // Europe after declaration. The Custom House logic will there-
+  // fore override this tax rate in the invoice on its own, so in
+  // this module we just use the normal tax rate unconditionally.
+  invoice.tax_rate =
+      old_world_state( ss, player_type ).taxes.tax_rate;
+  if( transaction_type == e_transaction::sell ) {
+    CHECK_GE( invoice.money_delta_before_taxes, 0 );
+    // Rounding is not an issue here because the amount received
+    // will always be a multiple of 100, since bid/ask prices in
+    // the game are always so.
+    invoice.tax_amount =
+        int( invoice.tax_rate *
+             ( invoice.money_delta_before_taxes / 100.0 ) );
+  } else {
+    CHECK_LE( invoice.money_delta_before_taxes, 0 );
+  }
+  invoice.money_delta_final =
+      invoice.money_delta_before_taxes - invoice.tax_amount;
+}
+
 Invoice transaction_invoice_default_model(
     SSConst const& ss, Player const& player,
     Commodity const orig_transacted,
@@ -193,20 +222,8 @@ Invoice transaction_invoice_default_model(
   invoice.what = orig_transacted;
 
   // 1. Player money adjustment.
-  invoice.money_delta_before_taxes = price * transacted.quantity;
-  invoice.tax_rate =
-      old_world_state( ss, player.type ).taxes.tax_rate;
-  if( transaction_type == e_transaction::sell ) {
-    CHECK_GE( invoice.money_delta_before_taxes, 0 );
-    // Rounding is not an issue here because the amount received
-    // will always be a multiple of 100, since bid/ask prices in
-    // the game are always so.
-    invoice.tax_amount =
-        int( invoice.tax_rate *
-             ( invoice.money_delta_before_taxes / 100.0 ) );
-  }
-  invoice.money_delta_final =
-      invoice.money_delta_before_taxes - invoice.tax_amount;
+  populate_tax_related_fields( ss, player.type, transaction_type,
+                               transacted, price, invoice );
 
   // 2. Change player-traded volume (recall that this is defined
   // as the volume from the european perspective).
@@ -281,20 +298,8 @@ Invoice transaction_invoice_processed_group_model(
   int const price = ( transaction_type == e_transaction::buy )
                         ? -prices.ask
                         : prices.bid;
-  // FIXME: dedupe this.
-  invoice.money_delta_before_taxes = price * transacted.quantity;
-  invoice.tax_rate =
-      old_world_state( ss, player.type ).taxes.tax_rate;
-  if( transaction_type == e_transaction::sell ) {
-    CHECK_GE( invoice.money_delta_before_taxes, 0 );
-    invoice.tax_amount =
-        int( invoice.tax_rate *
-             ( invoice.money_delta_before_taxes / 100.0 ) );
-  } else {
-    CHECK_LE( invoice.money_delta_before_taxes, 0 );
-  }
-  invoice.money_delta_final =
-      invoice.money_delta_before_taxes - invoice.tax_amount;
+  populate_tax_related_fields( ss, player.type, transaction_type,
+                               transacted, price, invoice );
 
   // 2. Change player-traded volume (recall that this is defined
   // as the volume from the european perspective).
