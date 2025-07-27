@@ -38,6 +38,9 @@
 #include "ss/terrain.hpp"
 #include "ss/units.hpp"
 
+// refl
+#include "refl/to-str.hpp"
+
 // C++ standard library
 #include <ranges>
 
@@ -133,6 +136,97 @@ RefLandingForce const& formation_unit_counts(
       return f;
     }
   }
+}
+
+int colony_defense_metric( SSConst const& ss,
+                           Colony const& colony ) {
+  int metric = 1;
+
+  // Colony musket contents. The OG doesn't seem to weigh in
+  // horses.
+  metric += colony.commodities[e_commodity::muskets] / 50;
+
+  // Pull in the units in the cargo of ships as well.
+  vector<GenericUnitId> const units =
+      units_from_coord_recursive( ss.units, colony.location );
+  for( GenericUnitId const generic_id : units ) {
+    switch( ss.units.unit_kind( generic_id ) ) {
+      case e_unit_kind::euro:
+        break;
+      case e_unit_kind::native:
+        FATAL( "found native unit on colony tile {}",
+               colony.location );
+    }
+    Unit const& unit = ss.units.euro_unit_for( generic_id );
+    switch( unit.type() ) {
+      case e_unit_type::scout:
+      case e_unit_type::seasoned_scout:
+        // These technically are military units but the OG does
+        // not weight them in.
+        break;
+
+      case e_unit_type::soldier:
+      case e_unit_type::veteran_soldier:
+      case e_unit_type::dragoon:
+      case e_unit_type::veteran_dragoon:
+        metric += 2;
+        break;
+
+      case e_unit_type::continental_army:
+      case e_unit_type::continental_cavalry:
+      case e_unit_type::damaged_artillery:
+        metric += 4;
+        break;
+
+      case e_unit_type::artillery:
+      case e_unit_type::regular:
+      case e_unit_type::cavalry:
+        metric += 6;
+        break;
+
+      case e_unit_type::caravel:
+      case e_unit_type::man_o_war:
+      case e_unit_type::frigate:
+      case e_unit_type::galleon:
+      case e_unit_type::privateer:
+      case e_unit_type::merchantman:
+      case e_unit_type::elder_statesman:
+      case e_unit_type::expert_cotton_planter:
+      case e_unit_type::expert_farmer:
+      case e_unit_type::expert_fisherman:
+      case e_unit_type::expert_fur_trapper:
+      case e_unit_type::expert_lumberjack:
+      case e_unit_type::expert_ore_miner:
+      case e_unit_type::expert_silver_miner:
+      case e_unit_type::expert_sugar_planter:
+      case e_unit_type::expert_teacher:
+      case e_unit_type::expert_tobacco_planter:
+      case e_unit_type::firebrand_preacher:
+      case e_unit_type::free_colonist:
+      case e_unit_type::hardy_colonist:
+      case e_unit_type::hardy_pioneer:
+      case e_unit_type::indentured_servant:
+      case e_unit_type::jesuit_colonist:
+      case e_unit_type::jesuit_missionary:
+      case e_unit_type::master_blacksmith:
+      case e_unit_type::master_carpenter:
+      case e_unit_type::master_distiller:
+      case e_unit_type::master_fur_trader:
+      case e_unit_type::master_gunsmith:
+      case e_unit_type::master_tobacconist:
+      case e_unit_type::master_weaver:
+      case e_unit_type::missionary:
+      case e_unit_type::native_convert:
+      case e_unit_type::petty_criminal:
+      case e_unit_type::pioneer:
+      case e_unit_type::seasoned_colonist:
+      case e_unit_type::treasure:
+      case e_unit_type::veteran_colonist:
+      case e_unit_type::wagon_train:
+        break;
+    }
+  }
+  return metric;
 }
 
 } // namespace
@@ -295,8 +389,7 @@ RefColonySelectionMetrics ref_colony_selection_metrics(
   e_nation const nation          = nation_for( colonial_player );
   e_player const ref_player      = ref_player_for( nation );
   metrics.colony_id              = colony_id;
-  // TODO
-  metrics.defense_strength = 1;
+  metrics.defense_strength = colony_defense_metric( ss, colony );
   metrics.barricade        = barricade_for_colony( colony );
   auto const make_ref_landing_tile = [&]( point const tile ) {
     auto const& units = ss.units.from_coord( tile );
@@ -314,36 +407,33 @@ RefColonySelectionMetrics ref_colony_selection_metrics(
       .tile = tile, .captured_units = std::move( captured ) };
   };
   for( e_direction const d : enum_values<e_direction> ) {
-    point const moved = colony.location.to_gfx().moved( d );
-    if( !ss.terrain.square_exists( moved ) ) continue;
-    MapSquare const& square = ss.terrain.square_at( moved );
+    point const ship_tile = colony.location.to_gfx().moved( d );
+    if( !ss.terrain.square_exists( ship_tile ) ) continue;
+    MapSquare const& square = ss.terrain.square_at( ship_tile );
     if( !is_water( square ) ) continue;
-    bool const eligible =
-        water_square_has_ocean_access( connectivity, moved );
-    if( !eligible ) continue;
+    bool const ocean_access =
+        water_square_has_ocean_access( connectivity, ship_tile );
+    if( !ocean_access ) continue;
     vector<point> valid_adjacent;
     valid_adjacent.reserve( 8 );
     for( e_direction const d : enum_values<e_direction> ) {
-      point const moved_again = moved.moved( d );
-      if( !ss.terrain.square_exists( moved ) ) continue;
-      MapSquare const& square =
-          ss.terrain.square_at( moved_again );
+      point const landing = ship_tile.moved( d );
+      if( !ss.terrain.square_exists( landing ) ) continue;
+      MapSquare const& square = ss.terrain.square_at( landing );
       if( is_water( square ) ) continue;
-      if( !moved_again.direction_to( colony.location )
-               .has_value() )
+      if( !landing.direction_to( colony.location ).has_value() )
         continue;
-      if( ss.colonies.maybe_from_coord( moved_again )
-              .has_value() )
+      if( ss.colonies.maybe_from_coord( landing ).has_value() )
         // Should not happen in practice since colonies are not
         // supposed to be founded adjacent to each other. But
         // we'll be defensive here just in case.
         continue;
-      if( ss.natives.maybe_dwelling_from_coord( moved_again )
+      if( ss.natives.maybe_dwelling_from_coord( landing )
               .has_value() )
         // In the OG a dwelling will not be unseated in order to
         // land, unlike units.
         continue;
-      valid_adjacent.push_back( moved_again );
+      valid_adjacent.push_back( landing );
     }
     if( valid_adjacent.empty() ) continue;
     vector<RefLandingTile> landings;
@@ -352,7 +442,7 @@ RefColonySelectionMetrics ref_colony_selection_metrics(
       landings.push_back( make_ref_landing_tile( p ) );
     CHECK( !landings.empty() );
     metrics.eligible_landings.push_back( RefColonyLandingTiles{
-      .ship_tile = make_ref_landing_tile( moved ),
+      .ship_tile = make_ref_landing_tile( ship_tile ),
       .landings  = std::move( landings ) } );
   }
   // TODO
@@ -365,8 +455,9 @@ RefColonySelectionMetrics ref_colony_selection_metrics(
 maybe<int> ref_colony_selection_score(
     RefColonySelectionMetrics const& metrics ) {
   if( metrics.eligible_landings.empty() ) return nothing;
-  // TODO
-  return 1;
+  // TODO: consider bucketing these so that the player can't just
+  // create a ton of weak colonies to divert all of the REF.
+  return metrics.defense_strength;
 }
 
 maybe<RefColonySelectionMetrics const&>
@@ -377,10 +468,11 @@ select_ref_landing_colony(
   sorted.reserve( choices.size() );
   for( auto const& choice : choices )
     sorted.push_back( &choice );
-  rg::sort( sorted, []( RefColonyMetricsScored const* const l,
-                        RefColonyMetricsScored const* const r ) {
-    return l->score > r->score;
-  } );
+  rg::stable_sort( sorted,
+                   []( RefColonyMetricsScored const* const l,
+                       RefColonyMetricsScored const* const r ) {
+                     return l->score < r->score;
+                   } );
   RefColonyMetricsScored const* const p = sorted[0];
   CHECK( p );
   return p->metrics;
@@ -390,8 +482,108 @@ maybe<RefColonyLandingTiles const&> select_ref_landing_tiles(
     RefColonySelectionMetrics const& metrics
         ATTR_LIFETIMEBOUND ) {
   if( metrics.eligible_landings.empty() ) return nothing;
-  // TODO
+  auto sorted = metrics.eligible_landings;
+  // Here we depart a bit from the OG's behavior. The OG always
+  // chooses the tile (adjacent to the colony) with the largest
+  // number of surrounding land tiles, regardless of whether
+  // those surrounding land tiles are themselves adjacent to the
+  // colony. But that is buggy because, depending on land geome-
+  // try, it can lead to selecting ship positions that then have
+  // nowhere to offload units (i.e. if it selects a water tile
+  // where there are no accessible land tiles other than the
+  // colony itself). Here is an example of that:
+  //
+  //                   0 1 2 3 4 5 6 7 8 9
+  //                   --------------------+
+  //                   L L _ L L L L L L L | 0
+  //                   L L _ L L L L L L L | 1
+  //                   _ _ _ _ _ _ L L L L | 2
+  //                   L L L L C _ L L L L | 3
+  //                   L L L L L _ _ _ _ _ | 4
+  //                   L L L L L _ L L L L | 5
+  //                   L L L L L _ L L L L | 6
+  //                   L L L L L _ L L L L | 7
+  //
+  // With the colony at (4,3) there are five possible ship
+  // landing tiles that the OG can choose. For each of those,
+  // here are the number of surrounding land tiles:
+  //
+  //                   0 1 2 3 4 5 6 7 8 9
+  //                   --------------------+
+  //                   L L _ L L L L L L L | 0
+  //                   L L _ L L L L L L L | 1
+  //                   _ _ _ 5 5 6 L L L L | 2
+  //                   L L L L C 4 L L L L | 3
+  //                   L L L L L 5 _ _ _ _ | 4
+  //                   L L L L L _ L L L L | 5
+  //                   L L L L L _ L L L L | 6
+  //                   L L L L L _ L L L L | 7
+  //
+  // The tile with the largest number is (5,2) with six sur-
+  // rounding land tiles. So the OG will land the ship there with
+  // no units onboard because it can't then find any land tiles
+  // that are adjacent to the ship that are also adjacent to the
+  // colony. So the game gets into this bad state where empty
+  // ships keep coming and REF units do not get deployed.
+  //
+  // We of course are not going to reproduce that buggy behavior,
+  // but we will nevertheless try to reproduce the intention of
+  // the OG but in a non-buggy way. Namely, we will select the
+  // ship landing site that has the largest number of eligible
+  // landing tiles.
+  rg::stable_sort( sorted, []( RefColonyLandingTiles const& l,
+                               RefColonyLandingTiles const& r ) {
+    return l.landings.size() > r.landings.size();
+  } );
+  CHECK( !metrics.eligible_landings.empty() );
   return metrics.eligible_landings[0];
+}
+
+void filter_ref_landing_tiles( RefColonyLandingTiles& tiles ) {
+  auto& landings = tiles.landings;
+  CHECK( !landings.empty() );
+  // Here we depart a bit from the OG's behavior. The OG will
+  // look at all available landing tiles and will select the one
+  // with the fewest number of units on it and unload all units
+  // there. However, if the tile with the smallest number of
+  // units is not unique then it will land units on each of those
+  // tiles with that smallest number (which could be zero). To
+  // see the problem with this, consider the following. Let's say
+  // you have:
+  //
+  //   * Tiles 1, 2, 3: Four artillery each.
+  //   * Tile 4:        Three artillery.
+  //
+  // then it will unload all REF on tile 4, capturing the three
+  // artillery, which is ok.  But
+  // then, if you just add one artillery onto tile 4, yielding:
+  //
+  //   * Tiles 1, 2, 3, 4: Four artillery each.
+  //
+  // now the behavior completely changes and it will deploy REF
+  // to all four tiles and capture all 4*4=16 artillery. So just
+  // adding one artillery unit caused the capture count to go
+  // from 3 to 16, and caused the number of landing tiles to go
+  // from 1 to 4. This discontinuity in behavior is kind of
+  // strange, and we won't reproduce it here.
+  //
+  // What we will do is, if there are any tiles with zero units
+  // then we will deploy onto all of them, capturing no units. If
+  // there are no empty tiles then we will pick one tile with the
+  // smallest number of units and deploy all units there.
+  rg::stable_sort( landings, []( RefLandingTile const& l,
+                                 RefLandingTile const& r ) {
+    return l.captured_units.size() < r.captured_units.size();
+  } );
+  if( !landings[0].captured_units.empty() ) {
+    CHECK_GE( landings.size(), 1u );
+    landings.resize( 1 );
+    return;
+  }
+  erase_if( landings, []( RefLandingTile const& tile ) {
+    return !tile.captured_units.empty();
+  } );
+  CHECK( !landings.empty() );
 }
 
 // In the OG the game appears to do this by looking at the "last
@@ -402,7 +594,7 @@ bool is_initial_visit_to_colony(
     IVisibility const& ref_viz ) {
   point const tile =
       ss.colonies.colony_for( metrics.colony_id ).location;
-  return ref_viz.visible( tile ) != e_tile_visibility::hidden;
+  return ref_viz.visible( tile ) == e_tile_visibility::hidden;
 }
 
 e_ref_landing_formation select_ref_formation(
@@ -463,7 +655,7 @@ e_ref_landing_formation select_ref_formation(
   return canonical;
 }
 
-maybe<RefLandingForce> select_landing_units(
+maybe<RefLandingForce> allocate_landing_units(
     SSConst const& ss, e_nation const nation,
     e_ref_landing_formation const formation ) {
   e_player const colonial_player_type =
@@ -616,23 +808,42 @@ wait<> offboard_ref_units( SS& ss, IMapUpdater& map_updater,
                            RefLandingUnits const& landing_units,
                            ColonyId const colony_id ) {
   auto const euro_unit_capture =
-      [&]( Unit const& unit,
-           string_view const capturerer ) -> wait<> {
+      [&]( Unit const& capturer,
+           Unit const& captured ) -> wait<> {
+    // Bring the capturer to the front here and hold it while the
+    // message box pops up otherwise the unit might go behind
+    // e.g. an artillery that it is capturing.
+    AnimationSequence const seq =
+        anim_seq_unit_to_front( capturer.id() );
+    // Need to use the "always" variant here because otherwise
+    // this animation would be subject to the "show foreign
+    // moves" option, which we don't want in this case.
+    wait<> const front =
+        land_view.animate_always_and_hold( seq );
+
+    string_view const army_type =
+        capturer.desc().ship ? "Navy" : "Army";
     string const msg = format( "[{}] captured by the Royal {}!",
-                               unit.desc().name, capturerer );
+                               captured.desc().name, army_type );
     co_await colonial_agent.message_box( "{}", msg );
-    UnitOwnershipChanger( ss, unit.id() ).destroy();
+    UnitOwnershipChanger( ss, captured.id() ).destroy();
   };
   auto const euro_unit_captures =
-      [&]( vector<GenericUnitId> const& units,
-           string_view const capturerer ) -> wait<> {
+      [&]( Unit const& capturerer,
+           vector<GenericUnitId> const& units ) -> wait<> {
     for( GenericUnitId const generic_id : units ) {
+      if( !ss.units.exists( generic_id ) )
+        // This can happen when multiple REF units are unloaded
+        // onto the same tile with captured units. In that case
+        // the units will be captured by the first unloaded REF,
+        // so for subsequent landed units they will not exist.
+        continue;
       e_unit_kind const kind = ss.units.unit_kind( generic_id );
       switch( kind ) {
         case e_unit_kind::euro: {
           Unit const& unit =
               ss.units.euro_unit_for( generic_id );
-          co_await euro_unit_capture( unit, capturerer );
+          co_await euro_unit_capture( capturerer, unit );
           break;
         }
         case e_unit_kind::native: {
@@ -655,7 +866,8 @@ wait<> offboard_ref_units( SS& ss, IMapUpdater& map_updater,
   ship_unit.clear_orders();
   ship_unit.forfeight_mv_points();
   co_await euro_unit_captures(
-      landing_units.ship.landing_tile.captured_units, "Navy" );
+      ship_unit,
+      landing_units.ship.landing_tile.captured_units );
 
   // Message.
   Colony const& colony = ss.colonies.colony_for( colony_id );
@@ -673,6 +885,9 @@ wait<> offboard_ref_units( SS& ss, IMapUpdater& map_updater,
     AnimationSequence const seq = anim_seq_for_offboard_ref_unit(
         ss.as_const, landing_units.ship.unit_id, unit_id,
         direction );
+    // Need to use the "always" variant here because otherwise
+    // this animation would be subject to the "show foreign
+    // moves" option, which we don't want in this case.
     co_await land_view.animate_always( seq );
     UnitOwnershipChanger( ss, unit_id )
         .change_to_map_non_interactive( map_updater,
@@ -680,13 +895,9 @@ wait<> offboard_ref_units( SS& ss, IMapUpdater& map_updater,
     Unit& unit = ss.units.unit_for( unit_id );
     unit.clear_orders();
     unit.forfeight_mv_points();
-    // TODO: bring the unit to the front here and hold it while
-    // the message box pops up otherwise the unit might go behind
-    // e.g. an artillery that it is capturing.
-
     // Destroy any units that are captured and give message.
-    co_await euro_unit_captures( landing_tile.captured_units,
-                                 "Army" );
+    co_await euro_unit_captures( unit,
+                                 landing_tile.captured_units );
   }
 }
 

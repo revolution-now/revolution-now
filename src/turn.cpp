@@ -1533,14 +1533,18 @@ wait<> post_colonies_ref_only( SS& ss, TS& ts, Player& player ) {
     // TODO: can't land on any coastal colonies.
     co_return;
   }
-  auto const landing_tiles =
+  auto const unfiltered_landing_tiles =
       select_ref_landing_tiles( *metrics );
-  if( !landing_tiles ) {
+  if( !unfiltered_landing_tiles ) {
     // TODO: can't find landing tiles.  Not expected to happen
     // if we are here.
     co_return;
   }
-
+  auto const landing_tiles = [&] {
+    auto res = *unfiltered_landing_tiles;
+    filter_ref_landing_tiles( res );
+    return res;
+  }();
   auto const ref_viz = create_visibility_for( ss, player.type );
   CHECK( ref_viz && ref_viz->player().has_value() &&
          is_ref( *ref_viz->player() ) );
@@ -1549,12 +1553,12 @@ wait<> post_colonies_ref_only( SS& ss, TS& ts, Player& player ) {
   e_ref_landing_formation const formation =
       select_ref_formation( *metrics, initial_visit_to_colony );
   auto const force =
-      select_landing_units( ss.as_const, nation, formation );
+      allocate_landing_units( ss.as_const, nation, formation );
   if( !force.has_value() )
     // Can happen if there are no more Man-O-Wars in stock.
     co_return;
   RefLandingPlan const landing_plan =
-      make_ref_landing_plan( *landing_tiles, *force );
+      make_ref_landing_plan( landing_tiles, *force );
   RefLandingUnits const landing_units =
       create_ref_landing_units( ss, nation, landing_plan );
   co_await offboard_ref_units(

@@ -432,6 +432,10 @@ TEST_CASE( "[ref] select_ref_landing_tiles" ) {
   world w;
 }
 
+TEST_CASE( "[ref] filter_ref_landing_tiles" ) {
+  world w;
+}
+
 TEST_CASE( "[ref] is_initial_visit_to_colony" ) {
   world w;
 }
@@ -440,7 +444,7 @@ TEST_CASE( "[ref] select_ref_formation" ) {
   world w;
 }
 
-TEST_CASE( "[ref] select_landing_units" ) {
+TEST_CASE( "[ref] allocate_landing_units" ) {
   world w;
 }
 

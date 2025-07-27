@@ -83,7 +83,8 @@ RefColonySelectionMetrics ref_colony_selection_metrics(
 
 // A score of nothing means that it is ineligible, which can
 // happen for a couple reasons (e.g., no available tiles for
-// landing).
+// landing). A smaller score generally means "weaker" and so
+// therefore more likely to be selected.
 base::maybe<int> ref_colony_selection_score(
     RefColonySelectionMetrics const& metrics );
 
@@ -96,6 +97,8 @@ base::maybe<RefColonyLandingTiles const&>
 select_ref_landing_tiles( RefColonySelectionMetrics const&
                               metrics ATTR_LIFETIMEBOUND );
 
+void filter_ref_landing_tiles( RefColonyLandingTiles& tiles );
+
 bool is_initial_visit_to_colony(
     SSConst const& ss, RefColonySelectionMetrics const& metrics,
     IVisibility const& ref_viz );
@@ -104,7 +107,7 @@ e_ref_landing_formation select_ref_formation(
     RefColonySelectionMetrics const& metrics,
     bool initial_visit_to_colony );
 
-maybe<RefLandingForce> select_landing_units(
+maybe<RefLandingForce> allocate_landing_units(
     SSConst const& ss, e_nation nation,
     e_ref_landing_formation formation );
 
