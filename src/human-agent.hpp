@@ -35,8 +35,9 @@ struct HumanAgent final : IAgent {
  public: // IAgent.
   wait<> message_box( std::string const& msg ) override;
 
- public: // IAgent.
   Player const& player() override;
+
+  void dump_last_message() const override;
 
   bool human() const override { return true; }
 

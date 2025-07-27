@@ -79,6 +79,9 @@ struct IAgent : ISignalHandler {
 
   virtual wait<> message_box( std::string const& msg ) = 0;
 
+  // For AI debugging purposes.
+  virtual void dump_last_message() const = 0;
+
   // For convenience.  Should not be overridden.
   template<typename Arg, typename... Rest>
   wait<> message_box(
@@ -235,6 +238,8 @@ struct NoopAgent final : IAgent {
   Player const& player() override;
 
   bool human() const override;
+
+  void dump_last_message() const override;
 
   wait<e_declare_war_on_natives> meet_tribe_ui_sequence(
       MeetTribe const& meet_tribe, gfx::point tile ) override;

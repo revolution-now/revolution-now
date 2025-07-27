@@ -43,6 +43,7 @@ struct MockIAgent : IAgent {
  public:
   MOCK_METHOD( Player const&, player, (), () );
   MOCK_METHOD( bool, human, (), ( const ) );
+  MOCK_METHOD( void, dump_last_message, (), ( const ) );
   MOCK_METHOD( wait<>, message_box, (std::string const&), () );
   MOCK_METHOD( wait<e_declare_war_on_natives>,
                meet_tribe_ui_sequence,

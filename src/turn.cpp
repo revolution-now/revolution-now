@@ -894,6 +894,7 @@ wait<> process_ai_player_input_normal_mode(
 
   auto run_result = co_await handler->run();
   if( !run_result.order_was_run ) {
+    agent.dump_last_message();
 #if 1
     // TODO: remove this eventually since it is too dangerous to
     // leave in given the complexity of the AI. Replace it with

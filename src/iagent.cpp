@@ -71,6 +71,8 @@ Player const& NoopAgent::player() {
 
 bool NoopAgent::human() const { return false; }
 
+void NoopAgent::dump_last_message() const {}
+
 wait<maybe<int>> NoopAgent::handle(
     signal::ChooseImmigrant const& ) {
   co_return nothing;

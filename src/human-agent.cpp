@@ -81,6 +81,8 @@ wait<> HumanAgent::message_box( string const& msg ) {
   co_await gui_.message_box( msg );
 }
 
+void HumanAgent::dump_last_message() const {}
+
 wait<e_declare_war_on_natives>
 HumanAgent::meet_tribe_ui_sequence( MeetTribe const& meet_tribe,
                                     point const tile ) {

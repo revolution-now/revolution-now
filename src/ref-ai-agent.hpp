@@ -30,8 +30,9 @@ struct RefAIAgent final : IAgent {
  public: // IAgent.
   wait<> message_box( std::string const& msg ) override;
 
- public: // IAgent.
   Player const& player() override;
+
+  void dump_last_message() const override;
 
   bool human() const override;
 
@@ -108,7 +109,13 @@ struct RefAIAgent final : IAgent {
   e_player const colonial_player_ = {};
 
   struct State;
-  std::unique_ptr<State> state_;
+
+  State& state();
+  State const& state() const;
+
+  // Should not reference this directly, instead use the acces-
+  // sors above which maintain const integrity.
+  std::unique_ptr<State> state_not_const_safe_;
 };
 
 } // namespace rn

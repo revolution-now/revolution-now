@@ -33,6 +33,9 @@
 // refl
 #include "refl/query-enum.hpp"
 
+// base
+#include "base/logger.hpp"
+
 using namespace std;
 
 namespace rn {
@@ -49,7 +52,7 @@ using ::refl::enum_values;
 ** RefAIAgent::State
 *****************************************************************/
 struct RefAIAgent::State {
-  unordered_map<UnitId, int> unit_moves;
+  vector<string> messages;
 };
 
 /****************************************************************
@@ -60,13 +63,34 @@ RefAIAgent::RefAIAgent( e_player const player, SS& ss )
     ss_( ss ),
     colonial_player_(
         colonial_player_for( nation_for( player ) ) ),
-    state_( make_unique<State>() ) {
+    state_not_const_safe_( make_unique<State>() ) {
   CHECK( player != colonial_player_ );
 }
 
 RefAIAgent::~RefAIAgent() = default;
 
-wait<> RefAIAgent::message_box( string const& ) { co_return; }
+RefAIAgent::State& RefAIAgent::state() {
+  return *state_not_const_safe_;
+}
+
+RefAIAgent::State const& RefAIAgent::state() const {
+  return *state_not_const_safe_;
+}
+
+void RefAIAgent::dump_last_message() const {
+  if( state().messages.empty() ) return;
+  string_view const class_name = "RefAIAgent";
+  lg.debug( "last agent message ({}): {}", class_name,
+            state().messages.back() );
+}
+
+wait<> RefAIAgent::message_box( string const& msg ) {
+  auto& messages = state().messages;
+  if( messages.size() > 1000 )
+    messages = vector( messages.end() - 5, messages.end() );
+  messages.push_back( msg );
+  co_return;
+}
 
 wait<e_declare_war_on_natives>
 RefAIAgent::meet_tribe_ui_sequence( MeetTribe const&,
