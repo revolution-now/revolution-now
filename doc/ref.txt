@@ -1,5 +1,22 @@
 Todo:
 
+  * To choose which tile to land the ship on, the OG appears to
+    select the tile with the most number of land tiles sur-
+    rounding it, though this mechanism is buggy because it
+    doesn't take into account how many of those land tiles are
+    actually adjacent to the colony, so can end up placing the
+    ship in a location where no units can land. But it seems that
+    the intention was to maximize number of landing sites, so we
+    will try to mirror that.
+
+    Once the ship landing tile is chosen then it chooses where to
+    deploy the troops. It looks at all the available tiles and
+    picks the one with the fewest units on it (it goes by number
+    and not strength). If all tiles have the same number of units
+    on it then it will just deploy as if they are all empty and
+    capture whatever is necessary. If there are tiles available
+    without units on them then it will unload everything there.
+
   * When the King's ships land on a colony they first choose the
     water tile that they will land on, without regard to which
     ships are there. If there is a ship there it will be cap-
