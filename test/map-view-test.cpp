@@ -311,6 +311,47 @@ TEST_CASE( "[map-view] can_activate_units_on_tile" ) {
     REQUIRE( f( kTile2 ) == E{} );
     REQUIRE( f( kTile3 ) == E{} );
   }
+
+  SECTION( "viz_entire, no active player" ) {
+    viz = &viz_entire;
+    w.set_no_player_active();
+
+    REQUIRE( f( kTile1 ) == E{} );
+    REQUIRE( f( kTile2 ) == E{} );
+    REQUIRE( f( kTile3 ) == E{} );
+
+    Colony& colony = w.add_colony( kTile1, e_player::english );
+    w.add_unit_indoors( colony.id, e_indoor_job::bells );
+    w.add_unit_on_map( e_unit_type::soldier, kTile1,
+                       e_player::english );
+    w.add_unit_on_map( e_unit_type::dragoon, kTile1,
+                       e_player::english );
+    w.add_unit_on_map( e_unit_type::soldier, kTile2,
+                       e_player::french );
+    w.add_unit_on_map( e_unit_type::dragoon, kTile2,
+                       e_player::french );
+    w.add_dwelling_and_brave( kTile3, e_tribe::tupi );
+    BASE_CHECK( viz->visible( kTile1 ) ==
+                e_tile_visibility::clear );
+    BASE_CHECK( viz->visible( kTile2 ) ==
+                e_tile_visibility::clear );
+    REQUIRE( f( kTile1 ) == E{} );
+    REQUIRE( f( kTile2 ) == E{} );
+    REQUIRE( f( kTile3 ) == E{} );
+
+    w.make_clear( kTile1, e_player::english );
+    w.make_clear( kTile2, e_player::english );
+    w.make_clear( kTile3, e_player::english );
+    REQUIRE( f( kTile1 ) == E{} );
+    REQUIRE( f( kTile2 ) == E{} );
+    REQUIRE( f( kTile3 ) == E{} );
+
+    w.make_fogged( kTile2, e_player::english );
+    w.make_fogged( kTile3, e_player::english );
+    REQUIRE( f( kTile1 ) == E{} );
+    REQUIRE( f( kTile2 ) == E{} );
+    REQUIRE( f( kTile3 ) == E{} );
+  }
 }
 
 } // namespace

@@ -338,8 +338,11 @@ struct World {
   void set_default_player_as_human();
 
   // Sets the player so that they are the ones currently taking
-  // their turn.
+  // their turn. NOTE: passing `nothing` does not lead to none of
+  // the players being active; it leads to the default player
+  // being active.
   void set_player_active( maybe<e_player> player = nothing );
+  void set_no_player_active();
 
   Player& dutch();
   Player& english();

@@ -504,6 +504,10 @@ void World::set_player_active( maybe<e_player> const player ) {
     .type = player.value_or( default_player_type() ) };
 }
 
+void World::set_no_player_active() {
+  turn().cycle = TurnCycle::not_started{};
+}
+
 void World::make_clear( point const tile,
                         maybe<e_player> const player ) {
   map_updater().make_squares_visible(
