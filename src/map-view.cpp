@@ -38,7 +38,7 @@ using ::gfx::point;
 *****************************************************************/
 maybe<ColonyId> can_open_colony_on_tile( IVisibility const& viz,
                                          point const tile ) {
-  auto const& viz_colony = viz.colony_at( tile );
+  auto const viz_colony = viz.colony_at( tile );
   if( !viz_colony.has_value() ) return nothing;
   if( viz_colony->id == 0 ) return nothing;
   bool const compatible_ownership =
