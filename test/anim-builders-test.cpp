@@ -1589,6 +1589,37 @@ TEST_CASE(
 TEST_CASE( "[anim-builders] anim_seq_for_offboard_ref_unit" ) {
   World w;
   AnimationSequence expected;
+  UnitId ship_id        = {};
+  UnitId held_id        = {};
+  e_direction direction = {};
+
+  auto const f = [&] [[clang::noinline]] {
+    return anim_seq_for_offboard_ref_unit( w.ss(), ship_id,
+                                           held_id, direction );
+  };
+
+  ship_id = w.add_unit_on_map( e_unit_type::man_o_war,
+                               { .x = 0, .y = 0 } )
+                .id();
+  held_id =
+      w.add_unit_in_cargo( e_unit_type::cavalry, ship_id ).id();
+  direction = e_direction::se;
+  expected  = {
+     .sequence = {
+      /*phase 0*/ {
+        { .primitive =
+               P::ensure_tile_visible{
+                 .tile = { .x = 0, .y = 0 } } },
+        { .primitive =
+               P::ensure_tile_visible{
+                 .tile = { .x = 1, .y = 1 } } },
+      },
+      /*phase 1*/ {
+        { .primitive = P::slide_unit{ .unit_id   = held_id,
+                                       .direction = direction } },
+        { .primitive =
+               P::play_sound{ .what = e_sfx::move } } } } };
+  REQUIRE( f() == expected );
 }
 
 } // namespace
