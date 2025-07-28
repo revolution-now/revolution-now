@@ -46,27 +46,14 @@ struct world : testing::World {
   }
 
   void create_default_map() {
-    MapSquare const _ = make_ocean();
-    MapSquare const L = make_grassland();
+    static MapSquare const _ = make_ocean();
+    static MapSquare const L = make_grassland();
     vector<MapSquare> tiles{
       L, L, L, //
       L, _, L, //
       L, L, L, //
     };
     build_map( std::move( tiles ), 3 );
-  }
-
-  void make_clear( point const tile,
-                   maybe<e_player> const player = {} ) {
-    map_updater().make_squares_visible(
-        player.value_or( default_player_type() ), { tile } );
-  }
-
-  void make_fogged( point const tile,
-                    maybe<e_player> const player = {} ) {
-    make_clear( tile, player );
-    map_updater().make_squares_fogged(
-        player.value_or( default_player_type() ), { tile } );
   }
 };
 

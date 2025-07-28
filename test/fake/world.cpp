@@ -504,6 +504,19 @@ void World::set_player_active( maybe<e_player> const player ) {
     .type = player.value_or( default_player_type() ) };
 }
 
+void World::make_clear( point const tile,
+                        maybe<e_player> const player ) {
+  map_updater().make_squares_visible(
+      player.value_or( default_player_type() ), { tile } );
+}
+
+void World::make_fogged( point const tile,
+                         maybe<e_player> const player ) {
+  make_clear( tile, player );
+  map_updater().make_squares_fogged(
+      player.value_or( default_player_type() ), { tile } );
+}
+
 Colony& World::found_colony( UnitId founder ) {
   string name = fmt::to_string(
       colonies().last_colony_id().value_or( 0 ) + 1 );

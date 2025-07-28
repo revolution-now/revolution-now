@@ -296,11 +296,29 @@ struct World {
   void set_tax_rate( int rate );
 
   // ------------------------------------------------------------
+  // Validation.
+  // ------------------------------------------------------------
+  // This will call the validate method on each colony in the
+  // state and return an error if any of them fail.
+  base::valid_or<std::string> validate_colonies() const;
+
+  // ------------------------------------------------------------
+  // Visibility.
+  // ------------------------------------------------------------
+  void make_clear( gfx::point tile,
+                   maybe<e_player> player = {} );
+
+  void make_fogged( gfx::point tile,
+                    maybe<e_player> player = {} );
+
+  // ------------------------------------------------------------
   // Players.
   // ------------------------------------------------------------
   Player& add_player( e_player player );
+
   void add_all_non_ref_players(
       maybe<e_player> human = nothing );
+
   void add_default_player();
 
   e_player default_player_type() const {
@@ -322,10 +340,6 @@ struct World {
   // Sets the player so that they are the ones currently taking
   // their turn.
   void set_player_active( maybe<e_player> player = nothing );
-
-  // This will call the validate method on each colony in the
-  // state and return an error if any of them fail.
-  base::valid_or<std::string> validate_colonies() const;
 
   Player& dutch();
   Player& english();
