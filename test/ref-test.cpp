@@ -34,6 +34,7 @@ namespace rn {
 namespace {
 
 using namespace std;
+using namespace ::rn::signal;
 
 /****************************************************************
 ** Fake World Setup
@@ -365,7 +366,8 @@ TEST_CASE( "[ref] add_ref_unit_ui_seq" ) {
 
   MockIAgent& mock_agent = w.agent( w.default_player_type() );
 
-  auto const f = [&]( e_expeditionary_force_type const type ) {
+  auto const f = [&] [[clang::noinline]] (
+                     e_expeditionary_force_type const type ) {
     co_await_test( add_ref_unit_ui_seq( mock_agent, type ) );
   };
 
@@ -375,12 +377,14 @@ TEST_CASE( "[ref] add_ref_unit_ui_seq" ) {
       "The King has announced an increase to the Royal military "
       "budget. [Regulars] have been added to the Royal "
       "Expeditionary Force, causing alarm among colonists." );
+  mock_agent.EXPECT__handle( RefUnitAdded{} );
   f( regular );
 
   mock_agent.EXPECT__message_box(
       "The King has announced an increase to the Royal military "
       "budget. [Men-O-War] have been added to the Royal "
       "Expeditionary Force, causing alarm among colonists." );
+  mock_agent.EXPECT__handle( RefUnitAdded{} );
   f( man_o_war );
 }
 

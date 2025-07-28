@@ -101,8 +101,23 @@ struct RefAIAgent final : IAgent {
   wait<ui::e_confirm> should_sail_high_seas() override;
 
  public: // ISignalHandler
-  wait<maybe<int>> handle(
-      signal::ChooseImmigrant const& ) override;
+  OVERRIDE_SIGNAL( ChooseImmigrant );
+  OVERRIDE_SIGNAL( ColonyDestroyedByNatives );
+  OVERRIDE_SIGNAL( ColonyDestroyedByStarvation );
+  OVERRIDE_SIGNAL( ColonySignal );
+  OVERRIDE_SIGNAL( ColonySignalTransient );
+  OVERRIDE_SIGNAL( ForestClearedNearColony );
+  OVERRIDE_SIGNAL( ImmigrantArrived );
+  OVERRIDE_SIGNAL( NoSpotForShip );
+  OVERRIDE_SIGNAL( PioneerExhaustedTools );
+  OVERRIDE_SIGNAL( PriceChange );
+  OVERRIDE_SIGNAL( RebelSentimentChanged );
+  OVERRIDE_SIGNAL( RefUnitAdded );
+  OVERRIDE_SIGNAL( ShipFinishedRepairs );
+  OVERRIDE_SIGNAL( TaxRateWillChange );
+  OVERRIDE_SIGNAL( TeaParty );
+  OVERRIDE_SIGNAL( TreasureArrived );
+  OVERRIDE_SIGNAL( TribeWipedOut );
 
  private:
   SS& ss_;

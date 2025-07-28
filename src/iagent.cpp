@@ -42,6 +42,36 @@ IAgent::IAgent( e_player player_type )
 NoopAgent::NoopAgent( SSConst const& ss, e_player player )
   : IAgent( player ), ss_( ss ) {}
 
+/****************************************************************
+** Signals.
+*****************************************************************/
+using SignalHandlerT = NoopAgent;
+
+wait<maybe<int>> NoopAgent::handle(
+    signal::ChooseImmigrant const& ) {
+  co_return nothing;
+}
+
+EMPTY_SIGNAL( ColonyDestroyedByNatives );
+EMPTY_SIGNAL( ColonyDestroyedByStarvation );
+EMPTY_SIGNAL( ColonySignal );
+EMPTY_SIGNAL( ColonySignalTransient );
+EMPTY_SIGNAL( ForestClearedNearColony );
+EMPTY_SIGNAL( ImmigrantArrived );
+EMPTY_SIGNAL( NoSpotForShip );
+EMPTY_SIGNAL( PioneerExhaustedTools );
+EMPTY_SIGNAL( PriceChange );
+EMPTY_SIGNAL( RebelSentimentChanged );
+EMPTY_SIGNAL( RefUnitAdded );
+EMPTY_SIGNAL( ShipFinishedRepairs );
+EMPTY_SIGNAL( TaxRateWillChange );
+EMPTY_SIGNAL( TeaParty );
+EMPTY_SIGNAL( TreasureArrived );
+EMPTY_SIGNAL( TribeWipedOut );
+
+/****************************************************************
+** Named signals.
+*****************************************************************/
 wait<> NoopAgent::message_box( string const& ) { co_return; }
 
 wait<e_declare_war_on_natives> NoopAgent::meet_tribe_ui_sequence(
@@ -72,11 +102,6 @@ Player const& NoopAgent::player() {
 bool NoopAgent::human() const { return false; }
 
 void NoopAgent::dump_last_message() const {}
-
-wait<maybe<int>> NoopAgent::handle(
-    signal::ChooseImmigrant const& ) {
-  co_return nothing;
-}
 
 wait<> NoopAgent::pan_tile( point const ) { co_return; }
 

@@ -29,8 +29,9 @@
 #include "base/to-str-ext-chrono.hpp"
 #include "base/to-str-ext-std.hpp"
 
-#define MOCK_SIGNAL_HANDLER( ret, sig ) \
-  MOCK_METHOD( ret, handle, (signal::sig const&), () )
+#define MOCK_SIGNAL_HANDLER( sig )           \
+  MOCK_METHOD( SIGNAL_RESULT( sig ), handle, \
+               (signal::sig const&), () )
 
 namespace rn {
 
@@ -100,8 +101,23 @@ struct MockIAgent : IAgent {
                () );
 
  public: // Signals
-  MOCK_SIGNAL_HANDLER( wait<maybe<int>>, ChooseImmigrant );
-  MOCK_SIGNAL_HANDLER( void, ColonySignalTransient );
+  MOCK_SIGNAL_HANDLER( ChooseImmigrant );
+  MOCK_SIGNAL_HANDLER( ColonyDestroyedByNatives );
+  MOCK_SIGNAL_HANDLER( ColonyDestroyedByStarvation );
+  MOCK_SIGNAL_HANDLER( ColonySignal );
+  MOCK_SIGNAL_HANDLER( ColonySignalTransient );
+  MOCK_SIGNAL_HANDLER( ForestClearedNearColony );
+  MOCK_SIGNAL_HANDLER( ImmigrantArrived );
+  MOCK_SIGNAL_HANDLER( NoSpotForShip );
+  MOCK_SIGNAL_HANDLER( PioneerExhaustedTools );
+  MOCK_SIGNAL_HANDLER( PriceChange );
+  MOCK_SIGNAL_HANDLER( RebelSentimentChanged );
+  MOCK_SIGNAL_HANDLER( RefUnitAdded );
+  MOCK_SIGNAL_HANDLER( ShipFinishedRepairs );
+  MOCK_SIGNAL_HANDLER( TaxRateWillChange );
+  MOCK_SIGNAL_HANDLER( TeaParty );
+  MOCK_SIGNAL_HANDLER( TreasureArrived );
+  MOCK_SIGNAL_HANDLER( TribeWipedOut );
 };
 
 static_assert( !std::is_abstract_v<MockIAgent> );

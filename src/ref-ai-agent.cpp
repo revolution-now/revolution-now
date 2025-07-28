@@ -84,6 +84,36 @@ void RefAIAgent::dump_last_message() const {
             state().messages.back() );
 }
 
+/****************************************************************
+** Signals.
+*****************************************************************/
+using SignalHandlerT = RefAIAgent;
+
+wait<maybe<int>> RefAIAgent::handle(
+    signal::ChooseImmigrant const& ) {
+  SHOULD_NOT_BE_HERE;
+}
+
+EMPTY_SIGNAL( ColonyDestroyedByNatives );
+EMPTY_SIGNAL( ColonyDestroyedByStarvation );
+EMPTY_SIGNAL( ColonySignal );
+EMPTY_SIGNAL( ColonySignalTransient );
+EMPTY_SIGNAL( ForestClearedNearColony );
+EMPTY_SIGNAL( ImmigrantArrived );
+EMPTY_SIGNAL( NoSpotForShip );
+EMPTY_SIGNAL( PioneerExhaustedTools );
+EMPTY_SIGNAL( PriceChange );
+EMPTY_SIGNAL( RebelSentimentChanged );
+EMPTY_SIGNAL( RefUnitAdded );
+EMPTY_SIGNAL( ShipFinishedRepairs );
+EMPTY_SIGNAL( TaxRateWillChange );
+EMPTY_SIGNAL( TeaParty );
+EMPTY_SIGNAL( TreasureArrived );
+EMPTY_SIGNAL( TribeWipedOut );
+
+/****************************************************************
+** Named signals.
+*****************************************************************/
 wait<> RefAIAgent::message_box( string const& msg ) {
   auto& messages = state().messages;
   if( messages.size() > 1000 )
@@ -119,11 +149,6 @@ Player const& RefAIAgent::player() {
 }
 
 bool RefAIAgent::human() const { return false; }
-
-wait<maybe<int>> RefAIAgent::handle(
-    signal::ChooseImmigrant const& ) {
-  SHOULD_NOT_BE_HERE;
-}
 
 wait<> RefAIAgent::pan_tile( point const ) { co_return; }
 

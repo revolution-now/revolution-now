@@ -443,11 +443,11 @@ TEST_CASE( "[immigration] check_for_new_immigrant" ) {
     player.crosses           = 11;
     int const crosses_needed = 11;
 
-    agent
-        .EXPECT__message_box(
-            StartsWith( "Word of religious freedom has "
-                        "spread! A new immigrant" ) )
-        .returns( make_wait<>() );
+    agent.EXPECT__message_box(
+        StartsWith( "Word of religious freedom has "
+                    "spread! A new immigrant" ) );
+    agent.EXPECT__handle( ImmigrantArrived{
+      .type = e_unit_type::veteran_soldier } );
     // This one is to choose which immigrant we get, which is
     // done randomly because we don't have brewster.
     W.rand().EXPECT__between_ints( 0, 2 ).returns( 1 );

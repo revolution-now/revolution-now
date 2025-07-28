@@ -182,6 +182,8 @@ TEST_CASE( "[colonies-turn] presents transient updates." ) {
     w.rand().EXPECT__between_ints( 0, 2 ).returns( 1 );
     // Notify player.
     agent.EXPECT__message_box( StrContains( "immigrant" ) );
+    agent.EXPECT__handle( ImmigrantArrived{
+      .type = e_unit_type::petty_criminal } );
     // Select pool replacement.
     w.rand().EXPECT__between_doubles( 0, _ ).returns( 0.0 );
     evolve_colonies();
@@ -199,6 +201,8 @@ TEST_CASE( "[colonies-turn] presents transient updates." ) {
     w.rand().EXPECT__between_ints( 0, 2 ).returns( 1 );
     // Notify player.
     agent.EXPECT__message_box( StrContains( "immigrant" ) );
+    agent.EXPECT__handle( ImmigrantArrived{
+      .type = e_unit_type::petty_criminal } );
     // Select pool replacement.
     w.rand().EXPECT__between_doubles( 0, _ ).returns( 0.0 );
     // Show the harbor view since the player has a ship in port.

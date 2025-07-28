@@ -51,6 +51,7 @@ namespace rn {
 namespace {
 
 using namespace std;
+using namespace ::rn::signal;
 
 using ::gfx::point;
 using ::mock::matchers::_;
@@ -292,7 +293,7 @@ TEST_CASE(
         .returns( combat );
   };
 
-  auto f = [&] {
+  auto const f = [&] [[clang::noinline]] {
     return W.run_handler( attack_euro_land_handler(
         W.ss(), W.ts(), combat.attacker.id,
         combat.defender.id ) );
@@ -380,7 +381,7 @@ TEST_CASE(
   CommandHandlerRunResult expected = { .order_was_run = false };
   CombatEuroAttackEuro combat;
 
-  auto f = [&] {
+  auto const f = [&] [[clang::noinline]] {
     return W.run_handler(
         naval_battle_handler( W.ss(), W.ts(), combat.attacker.id,
                               combat.defender.id ) );
@@ -409,7 +410,7 @@ TEST_CASE( "[attack-handlers] attack_euro_land_handler" ) {
         .returns( combat );
   };
 
-  auto f = [&] {
+  auto const f = [&] [[clang::noinline]] {
     return W.run_handler( attack_euro_land_handler(
         W.ss(), W.ts(), combat.attacker.id,
         combat.defender.id ) );
@@ -657,7 +658,7 @@ TEST_CASE( "[attack-handlers] attack_native_unit_handler" ) {
         .returns( combat );
   };
 
-  auto f = [&] {
+  auto const f = [&] [[clang::noinline]] {
     return W.run_handler( attack_native_unit_handler(
         W.ss(), W.ts(), combat.attacker.id,
         combat.defender.id ) );
@@ -849,7 +850,7 @@ TEST_CASE( "[attack-handlers] attack_dwelling_handler" ) {
         .returns( combat );
   };
 
-  auto f = [&] {
+  auto const f = [&] [[clang::noinline]] {
     return W.run_handler( attack_dwelling_handler(
         W.ss(), W.ts(), combat.attacker.id,
         combat.defender.id ) );
@@ -1390,6 +1391,9 @@ TEST_CASE( "[attack-handlers] attack_dwelling_handler" ) {
         W.kAttackingPlayer,
         "[Apache] camp burned by the [English]!" );
     W.expect_tribe_wiped_out( "Apache" );
+    W.agent( W.kAttackingPlayer )
+        .EXPECT__handle(
+            TribeWipedOut{ .tribe = e_tribe::apache } );
 
     expected = { .order_was_run       = true,
                  .units_to_prioritize = {} };
@@ -1435,6 +1439,9 @@ TEST_CASE( "[attack-handlers] attack_dwelling_handler" ) {
         W.kAttackingPlayer,
         "[Apache] camp burned by the [Rebels]!" );
     W.expect_tribe_wiped_out( "Apache" );
+    W.agent( W.kAttackingPlayer )
+        .EXPECT__handle(
+            TribeWipedOut{ .tribe = e_tribe::apache } );
 
     expected = { .order_was_run       = true,
                  .units_to_prioritize = {} };
@@ -1590,6 +1597,9 @@ TEST_CASE( "[attack-handlers] attack_dwelling_handler" ) {
                      "treasure back to [London]." ) );
     W.expect_some_animation(); // treasure enpixelation.
     W.expect_tribe_wiped_out( "Apache" );
+    W.agent( W.kAttackingPlayer )
+        .EXPECT__handle(
+            TribeWipedOut{ .tribe = e_tribe::apache } );
     UnitId const expected_convert_id  = UnitId{ 5 };
     UnitId const expected_treasure_id = UnitId{ 6 };
 
@@ -1664,6 +1674,9 @@ TEST_CASE( "[attack-handlers] attack_dwelling_handler" ) {
         fmt::format( "[Apache] capital burned by the [English]! "
                      "[Foreign missionary] hanged!" ) );
     W.expect_tribe_wiped_out( "Apache" );
+    W.agent( W.kAttackingPlayer )
+        .EXPECT__handle(
+            TribeWipedOut{ .tribe = e_tribe::apache } );
 
     expected = { .order_was_run       = true,
                  .units_to_prioritize = {} };
@@ -1799,7 +1812,7 @@ TEST_CASE(
         .returns( combat );
   };
 
-  auto f = [&] {
+  auto const f = [&] [[clang::noinline]] {
     return W.run_handler( attack_dwelling_handler(
         W.ss(), W.ts(), combat.attacker.id,
         combat.defender.id ) );
@@ -1828,6 +1841,9 @@ TEST_CASE(
       W.kAttackingPlayer,
       "[Apache] camp burned by the [English]!" );
   W.expect_tribe_wiped_out( "Apache" );
+  W.agent( W.kAttackingPlayer )
+      .EXPECT__handle(
+          TribeWipedOut{ .tribe = e_tribe::apache } );
 
   expected = { .order_was_run       = true,
                .units_to_prioritize = {} };
@@ -1864,7 +1880,7 @@ TEST_CASE( "[attack-handlers] naval_battle_handler" ) {
         .returns( combat );
   };
 
-  auto f = [&] {
+  auto const f = [&] [[clang::noinline]] {
     return W.run_handler(
         naval_battle_handler( W.ss(), W.ts(), combat.attacker.id,
                               combat.defender.id ) );

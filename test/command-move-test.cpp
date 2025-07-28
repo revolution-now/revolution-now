@@ -51,6 +51,7 @@ namespace rn {
 namespace {
 
 using namespace std;
+using namespace signal;
 
 using ::gfx::point;
 using ::mock::matchers::_;
@@ -372,6 +373,7 @@ TEST_CASE(
         .returns( ui::e_confirm::yes );
     agent.EXPECT__message_box(
         StrContains( "Treasure worth 1000" ) );
+    agent.EXPECT__handle( TreasureArrived{} );
     CommandHandlerRunResult const expected_res{
       .order_was_run = true, .units_to_prioritize = {} };
     CommandHandlerRunResult const res =
@@ -417,6 +419,7 @@ TEST_CASE(
   // Sanity check.
   agent.EXPECT__message_box(
       StrContains( "traveling merchants" ) );
+  agent.EXPECT__handle( TreasureArrived{} );
   w.agent().EXPECT__human().returns( true );
   w.colony_viewer()
       .EXPECT__show( _, colony.id )
@@ -467,6 +470,7 @@ TEST_CASE(
       .returns( ui::e_confirm::yes );
   agent.EXPECT__message_box(
       StrContains( "Treasure worth 1000" ) );
+  agent.EXPECT__handle( TreasureArrived{} );
   CommandHandlerRunResult const expected_res{
     .order_was_run = true, .units_to_prioritize = {} };
   CommandHandlerRunResult const res =

@@ -55,6 +55,7 @@ namespace rn {
 namespace {
 
 using namespace std;
+using namespace ::rn::signal;
 
 using ::gfx::point;
 using ::gfx::rect_iterator;
@@ -868,6 +869,8 @@ TEST_CASE( "[disband] execute_disband / destroy tribe" ) {
     entities = { .dwelling = add_dwelling() };
     w.agent().EXPECT__message_box(
         "The [Sioux] tribe has been wiped out." );
+    w.agent().EXPECT__handle(
+        TribeWipedOut{ .tribe = e_tribe::sioux } );
     f();
     REQUIRE( !w.natives().dwelling_exists(
         entities.dwelling.value().id ) );
@@ -889,6 +892,8 @@ TEST_CASE( "[disband] execute_disband / destroy tribe" ) {
           REQUIRE( w.player_square( tile )
                        .holds<PlayerSquare::explored>() );
         } );
+    w.agent().EXPECT__handle(
+        TribeWipedOut{ .tribe = e_tribe::sioux } );
     f();
     REQUIRE( !w.natives().dwelling_exists(
         entities.dwelling.value().id ) );

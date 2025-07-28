@@ -58,6 +58,7 @@ namespace rn {
 namespace {
 
 using namespace std;
+using namespace ::rn::signal;
 
 using ::gfx::point;
 using ::mock::matchers::_;
@@ -570,7 +571,7 @@ TEST_CASE( "[cheat] kill_natives" ) {
 
   w.set_player_active();
 
-  auto f = [&] {
+  auto const f = [&] [[clang::noinline]] {
     co_await_test( kill_natives( w.ss(), w.ts() ) );
   };
 
@@ -608,6 +609,8 @@ TEST_CASE( "[cheat] kill_natives" ) {
     mock_land_view.EXPECT__animate_always( _ );
     w.agent().EXPECT__message_box(
         "The [Tupi] tribe has been wiped out." );
+    w.agent().EXPECT__handle(
+        TribeWipedOut{ .tribe = e_tribe::tupi } );
     f();
     REQUIRE( !w.natives().tribe_exists( e_tribe::tupi ) );
   }
@@ -647,6 +650,8 @@ TEST_CASE( "[cheat] kill_natives" ) {
     mock_land_view.EXPECT__animate_always( _ );
     w.agent().EXPECT__message_box(
         "The [Tupi] tribe has been wiped out." );
+    w.agent().EXPECT__handle(
+        TribeWipedOut{ .tribe = e_tribe::tupi } );
     REQUIRE( w.player_square( { .x = 1, .y = 0 } )
                  .inner_if<explored>()
                  .get_if<clear>() );
@@ -725,7 +730,7 @@ TEST_CASE( "[cheat] cheat_toggle_reveal_full_map" ) {
   MockLandViewPlane mock_land_view;
   w.planes().get().set_bottom<ILandViewPlane>( mock_land_view );
 
-  auto f = [&] {
+  auto const f = [&] [[clang::noinline]] {
     cheat_toggle_reveal_full_map( w.ss(), w.ts() );
   };
 
@@ -780,7 +785,7 @@ TEST_CASE( "[cheat] cheat_advance_colony_one_turn" ) {
 
   Colony& colony = w.add_colony( { .x = 1, .y = 1 } );
 
-  auto f = [&] {
+  auto const f = [&] [[clang::noinline]] {
     cheat_advance_colony_one_turn( mock_colony_evolver, colony );
   };
 
@@ -799,7 +804,7 @@ TEST_CASE( "[cheat] cheat_target_square" ) {
   MockLandViewPlane mock_land_view;
   w.planes().get().set_bottom<ILandViewPlane>( mock_land_view );
 
-  auto f = [&] {
+  auto const f = [&] [[clang::noinline]] {
     return cheat_target_square( w.ss().as_const, w.ts() );
   };
 
@@ -829,7 +834,9 @@ TEST_CASE( "[cheat] cheat_target_square" ) {
 TEST_CASE( "[cheat] cheat_mode_enabled" ) {
   world w;
 
-  auto f = [&] { return cheat_mode_enabled( w.ss().as_const ); };
+  auto const f = [&] [[clang::noinline]] {
+    return cheat_mode_enabled( w.ss().as_const );
+  };
 
   REQUIRE_FALSE( f() );
   w.settings().cheat_options.enabled = true;
@@ -843,7 +850,9 @@ TEST_CASE( "[cheat] enable_cheat_mode" ) {
   MockIMenuServer mock_menu_server;
   w.planes().get().menu = mock_menu_server;
 
-  auto f = [&] { enable_cheat_mode( w.ss(), w.ts() ); };
+  auto const f = [&] [[clang::noinline]] {
+    enable_cheat_mode( w.ss(), w.ts() );
+  };
 
   REQUIRE_FALSE( w.settings().cheat_options.enabled );
 
@@ -859,7 +868,9 @@ TEST_CASE( "[cheat] enable_cheat_mode" ) {
 TEST_CASE( "[cheat] monitor_magic_key_sequence" ) {
   co::stream<char> stream;
 
-  auto f = [&] { return monitor_magic_key_sequence( stream ); };
+  auto const f = [&] [[clang::noinline]] {
+    return monitor_magic_key_sequence( stream );
+  };
 
   wait<> const w = f();
   run_all_coroutines();
@@ -1003,6 +1014,8 @@ TEST_CASE( "[cheat] cheat_advance_revolution_status" ) {
 
   w.agent( english ).EXPECT__message_box(
       StrContains( "sentiment is on the rise" ) );
+  w.agent( english ).EXPECT__handle(
+      signal::RebelSentimentChanged{ .old = 0, .nu = 50 } );
 
   w.gui().EXPECT__message_box(
       StrContains( "territory owned by the [French] has been "

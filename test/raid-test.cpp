@@ -359,7 +359,7 @@ TEST_CASE( "[raid] raid_colony" ) {
   // Sanity checks.
   REQUIRE( W.square( colony.location ).road );
 
-  auto f = [&]( NativeUnit& attacker ) {
+  auto f = [&] [[clang::noinline]] ( NativeUnit & attacker ) {
     co_await_test(
         raid_colony( W.ss(), W.ts(), attacker, colony ) );
   };
@@ -683,6 +683,8 @@ TEST_CASE( "[raid] raid_colony" ) {
         "[Arawak] massacre [Dutch] population in [1]! "
         "Colony set ablaze and decimated! The King demands "
         "accountability!" );
+    mock_agent.EXPECT__handle( signal::ColonyDestroyedByNatives{
+      .colony_id = colony.id } );
     mock_native_agent.EXPECT__on_attack_colony_finished(
         combat, BraveAttackColonyEffect::none{} );
     f( attacker );
@@ -774,6 +776,8 @@ TEST_CASE( "[raid] raid_colony" ) {
         "[Arawak] massacre [Dutch] population in [1]! "
         "Colony set ablaze and decimated! The King demands "
         "accountability!" );
+    mock_agent.EXPECT__handle( signal::ColonyDestroyedByNatives{
+      .colony_id = colony.id } );
     mock_native_agent.EXPECT__on_attack_colony_finished(
         combat, BraveAttackColonyEffect::none{} );
     f( attacker );

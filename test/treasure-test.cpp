@@ -37,6 +37,7 @@ namespace rn {
 namespace {
 
 using namespace std;
+using namespace ::rn::signal;
 
 using ::mock::matchers::_;
 
@@ -207,6 +208,7 @@ TEST_CASE( "[treasure] show_treasure_receipt" ) {
       "Treasure worth 100\x7f reimbursed in Amsterdam yielding "
       "[90\x7f] after 10% taxes witheld.";
   agent.EXPECT__message_box( msg );
+  agent.EXPECT__handle( TreasureArrived{} );
   f();
 
   receipt = { .treasure_id = UnitId{ 1 },
@@ -220,6 +222,7 @@ TEST_CASE( "[treasure] show_treasure_receipt" ) {
       "has provided a reimbursement of [90\x7f] after a [10%] "
       "witholding.";
   agent.EXPECT__message_box( msg );
+  agent.EXPECT__handle( TreasureArrived{} );
   f();
 
   receipt = {
@@ -234,6 +237,7 @@ TEST_CASE( "[treasure] show_treasure_receipt" ) {
       "has provided a reimbursement of [90\x7f] after a [10%] "
       "tax witholding.";
   agent.EXPECT__message_box( msg );
+  agent.EXPECT__handle( TreasureArrived{} );
   f();
 }
 

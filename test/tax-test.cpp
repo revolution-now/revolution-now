@@ -79,7 +79,7 @@ TEST_CASE( "[tax] try_trade_boycotted_commodity" ) {
 
   W.old_world( player ).taxes.tax_rate = 7;
 
-  auto f = [&] {
+  auto const f = [&] [[clang::noinline]] {
     W.old_world( player ).market.commodities[type].boycott =
         true;
     auto const w = try_trade_boycotted_commodity(
@@ -182,7 +182,7 @@ TEST_CASE( "[tax] back_tax_for_boycotted_commodity" ) {
 
   W.old_world( player ).taxes.tax_rate = 7;
 
-  auto f = [&] {
+  auto const f = [&] [[clang::noinline]] {
     return back_tax_for_boycotted_commodity(
         W.ss().as_const, as_const( player ), type );
   };
@@ -229,7 +229,7 @@ TEST_CASE( "[tax] apply_tax_result" ) {
   Colony colony_saved            = colony;
   PlayerMarketState market_saved = W.old_world( player ).market;
 
-  auto f = [&] {
+  auto const f = [&] [[clang::noinline]] {
     apply_tax_result( W.ss(), player, next_tax_event_turn,
                       change );
   };
@@ -296,7 +296,7 @@ TEST_CASE( "[tax] prompt_for_tax_change_result" ) {
       W.found_colony_with_new_unit( Coord{} );
   colony.name = "my colony";
 
-  auto f = [&] {
+  auto const f = [&] [[clang::noinline]] {
     wait<TaxChangeResult> w = prompt_for_tax_change_result(
         W.ss(), W.rand(), player, W.agent(), proposal );
     CHECK( !w.exception() );
@@ -314,6 +314,8 @@ TEST_CASE( "[tax] prompt_for_tax_change_result" ) {
         "rate by [13%].  The tax rate is now [37%].";
     agent.EXPECT__message_box( expected_msg )
         .returns( make_wait<>() );
+    agent.EXPECT__handle(
+        signal::TaxRateWillChange{ .delta = -13 } );
     REQUIRE( f() == expected );
     REQUIRE( W.old_world( player ).taxes.tax_rate == 50 );
   }
@@ -327,8 +329,9 @@ TEST_CASE( "[tax] prompt_for_tax_change_result" ) {
         "rate is now [63%]. We will graciously allow you "
         "to kiss our royal pinky ring.";
     W.rand().EXPECT__between_ints( 1, 3 ).returns( 2 );
-    agent.EXPECT__message_box( expected_msg )
-        .returns( make_wait<>() );
+    agent.EXPECT__handle(
+        signal::TaxRateWillChange{ .delta = 13 } );
+    agent.EXPECT__message_box( expected_msg );
     REQUIRE( f() == expected );
     REQUIRE( W.old_world( player ).taxes.tax_rate == 50 );
   }
@@ -367,6 +370,8 @@ TEST_CASE( "[tax] prompt_for_tax_change_result" ) {
         .EXPECT__kiss_pinky_ring( expected_msg, 1,
                                   e_commodity::cigars, 13 )
         .returns( ui::e_confirm::yes );
+    agent.EXPECT__handle(
+        signal::TaxRateWillChange{ .delta = 13 } );
     REQUIRE( f() == expected );
     REQUIRE( W.old_world( player ).taxes.tax_rate == 50 );
   }
@@ -416,7 +421,7 @@ TEST_CASE( "[tax] compute_tax_change" ) {
   Player& player = W.default_player();
   TaxUpdateComputation expected;
 
-  auto f = [&] {
+  auto const f = [&] [[clang::noinline]] {
     return compute_tax_change( W.ss(), W.connectivity(),
                                W.rand(), player );
   };
@@ -591,7 +596,7 @@ TEST_CASE(
   Player& player = W.default_player();
   TaxUpdateComputation expected;
 
-  auto f = [&] {
+  auto const f = [&] [[clang::noinline]] {
     return compute_tax_change( W.ss(), W.connectivity(),
                                W.rand(), player );
   };
@@ -664,7 +669,7 @@ TEST_CASE( "[tax] start_of_turn_tax_check" ) {
   Player& player    = W.default_player();
   MockIAgent& agent = W.agent();
 
-  auto f = [&] {
+  auto const f = [&] [[clang::noinline]] {
     return start_of_turn_tax_check(
         W.ss(), W.rand(), W.connectivity(), player, W.agent() );
   };
@@ -749,6 +754,10 @@ TEST_CASE( "[tax] start_of_turn_tax_check" ) {
       "Trade Goods cannot be traded in Amsterdam until boycott "
       "is lifted.";
   agent.EXPECT__message_box( boycott_msg );
+  agent.EXPECT__handle( signal::TeaParty{
+    .what      = Commodity{ .type     = e_commodity::trade_goods,
+                            .quantity = 80 },
+    .colony_id = colony2.id } );
 
   wait<> w = f();
   REQUIRE( !w.exception() );
@@ -769,7 +778,7 @@ TEST_CASE( "[tax] compute_tax_change when over max" ) {
   Player& player = W.default_player();
   TaxUpdateComputation expected;
 
-  auto f = [&] {
+  auto const f = [&] [[clang::noinline]] {
     return compute_tax_change( W.ss(), W.connectivity(),
                                W.rand(), player );
   };

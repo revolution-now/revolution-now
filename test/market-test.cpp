@@ -111,7 +111,7 @@ TEST_CASE( "[market] display_price_change_notification" ) {
 
   W.set_current_bid_price( e_commodity::ore, 10 );
 
-  auto f = [&] {
+  auto const f = [&] [[clang::noinline]] {
     return display_price_change_notification( player, W.agent(),
                                               change );
   };
@@ -127,6 +127,9 @@ TEST_CASE( "[market] display_price_change_notification" ) {
       .EXPECT__message_box(
           "The price of [ore] in La Rochelle has risen to 13." )
       .returns( make_wait<>() );
+  W.agent( player.type )
+      .EXPECT__handle( signal::PriceChange{
+        .what = e_commodity::ore, .from = 10, .to = 13 } );
   w = f();
   REQUIRE_FALSE( w.exception() );
   REQUIRE( w.ready() );
@@ -137,6 +140,9 @@ TEST_CASE( "[market] display_price_change_notification" ) {
       .EXPECT__message_box(
           "The price of [ore] in La Rochelle has fallen to 9." )
       .returns( make_wait<>() );
+  W.agent( player.type )
+      .EXPECT__handle( signal::PriceChange{
+        .what = e_commodity::ore, .from = 10, .to = 9 } );
   w = f();
   REQUIRE_FALSE( w.exception() );
   REQUIRE( w.ready() );
@@ -1087,7 +1093,7 @@ TEST_CASE( "[market] transaction_invoice buy" ) {
       immediate_price_change_allowed =
           e_immediate_price_change_allowed::allowed;
 
-  auto f = [&] {
+  auto const f = [&] [[clang::noinline]] {
     return transaction_invoice( W.ss(), W.default_player(),
                                 to_buy, e_transaction::buy,
                                 immediate_price_change_allowed );
@@ -1641,7 +1647,7 @@ TEST_CASE( "[market] transaction_invoice sell" ) {
       immediate_price_change_allowed =
           e_immediate_price_change_allowed::allowed;
 
-  auto f = [&] {
+  auto const f = [&] [[clang::noinline]] {
     return transaction_invoice( W.ss(), W.default_player(),
                                 to_sell, e_transaction::sell,
                                 immediate_price_change_allowed );
@@ -2196,7 +2202,9 @@ TEST_CASE( "[market] price_limits_for_commodity" ) {
   e_commodity in       = {};
   PriceLimits expected = {};
 
-  auto f = [&] { return price_limits_for_commodity( in ); };
+  auto const f = [&] [[clang::noinline]] {
+    return price_limits_for_commodity( in );
+  };
 
   in       = e_commodity::silver;
   expected = { .low  = { .bid = 1, .ask = 2 },

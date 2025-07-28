@@ -311,6 +311,7 @@ TEST_CASE( "[on-map] interactive: treasure in colony" ) {
         "crown has provided a reimbursement of [500\x7f] after "
         "a [50%] witholding.";
     agent.EXPECT__message_box( msg );
+    agent.EXPECT__handle( TreasureArrived{} );
     w = TestingOnlyUnitOnMapMover::to_map_interactive(
         W.ss(), W.ts(), unit_id, { .x = 1, .y = 1 } );
     REQUIRE( !w.exception() );

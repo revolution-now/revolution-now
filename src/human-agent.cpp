@@ -77,6 +77,59 @@ HumanAgent::HumanAgent( e_player player, IEngine& engine, SS& ss,
     gui_( gui ),
     planes_( planes ) {}
 
+/****************************************************************
+** Signals.
+*****************************************************************/
+using SignalHandlerT = HumanAgent;
+
+void HumanAgent::handle(
+    signal::ColonySignalTransient const& ctx ) {
+  gui_.transient_message_box( ctx.msg );
+}
+
+wait<maybe<int>> HumanAgent::handle(
+    signal::ChooseImmigrant const& ctx ) {
+  auto const& pool = ctx.types;
+  vector<ChoiceConfigOption> options{
+    { .key = "0", .display_name = unit_attr( pool[0] ).name },
+    { .key = "1", .display_name = unit_attr( pool[1] ).name },
+    { .key = "2", .display_name = unit_attr( pool[2] ).name },
+  };
+  ChoiceConfig const config{
+    .msg     = ctx.msg,
+    .options = options,
+  };
+  maybe<string> const res =
+      co_await gui_.optional_choice( config );
+  if( !res.has_value() ) co_return nothing;
+  if( res == "0" ) co_return 0;
+  if( res == "1" ) co_return 1;
+  if( res == "2" ) co_return 2;
+  FATAL(
+      "unexpected selection result: {} (should be '0', '1', or "
+      "'2')",
+      res );
+}
+
+EMPTY_SIGNAL( ColonyDestroyedByNatives );
+EMPTY_SIGNAL( ColonyDestroyedByStarvation );
+EMPTY_SIGNAL( ColonySignal );
+EMPTY_SIGNAL( ForestClearedNearColony );
+EMPTY_SIGNAL( ImmigrantArrived );
+EMPTY_SIGNAL( NoSpotForShip );
+EMPTY_SIGNAL( PioneerExhaustedTools );
+EMPTY_SIGNAL( PriceChange );
+EMPTY_SIGNAL( RebelSentimentChanged );
+EMPTY_SIGNAL( RefUnitAdded );
+EMPTY_SIGNAL( ShipFinishedRepairs );
+EMPTY_SIGNAL( TaxRateWillChange );
+EMPTY_SIGNAL( TeaParty );
+EMPTY_SIGNAL( TreasureArrived );
+EMPTY_SIGNAL( TribeWipedOut );
+
+/****************************************************************
+** Named signals.
+*****************************************************************/
 wait<> HumanAgent::message_box( string const& msg ) {
   co_await gui_.message_box( msg );
 }
@@ -113,35 +166,6 @@ wait<> HumanAgent::notify_captured_cargo(
 Player const& HumanAgent::player() {
   return player_for_player_or_die( as_const( ss_.players ),
                                    player_type() );
-}
-
-void HumanAgent::handle(
-    signal::ColonySignalTransient const& ctx ) {
-  gui_.transient_message_box( ctx.msg );
-}
-
-wait<maybe<int>> HumanAgent::handle(
-    signal::ChooseImmigrant const& ctx ) {
-  auto const& pool = ctx.types;
-  vector<ChoiceConfigOption> options{
-    { .key = "0", .display_name = unit_attr( pool[0] ).name },
-    { .key = "1", .display_name = unit_attr( pool[1] ).name },
-    { .key = "2", .display_name = unit_attr( pool[2] ).name },
-  };
-  ChoiceConfig const config{
-    .msg     = ctx.msg,
-    .options = options,
-  };
-  maybe<string> const res =
-      co_await gui_.optional_choice( config );
-  if( !res.has_value() ) co_return nothing;
-  if( res == "0" ) co_return 0;
-  if( res == "1" ) co_return 1;
-  if( res == "2" ) co_return 2;
-  FATAL(
-      "unexpected selection result: {} (should be '0', '1', or "
-      "'2')",
-      res );
 }
 
 ILandViewPlane& HumanAgent::land_view() const {

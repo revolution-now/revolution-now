@@ -44,6 +44,7 @@ namespace rn {
 namespace {
 
 using namespace std;
+using namespace ::rn::signal;
 
 using ::mock::matchers::_;
 
@@ -437,6 +438,8 @@ TEST_CASE( "[tribe-mgr] destroy_tribe_interactive" ) {
   w.add_tribe( e_tribe::aztec );
   w.agent().EXPECT__message_box(
       "The [Aztec] tribe has been wiped out." );
+  w.agent().EXPECT__handle(
+      TribeWipedOut{ .tribe = e_tribe::aztec } );
   co_await_test( destroy_tribe_interactive(
       w.ss(), w.agent(), w.map_updater(), e_tribe::aztec ) );
   REQUIRE( !w.natives().tribe_exists( e_tribe::aztec ) );
@@ -447,6 +450,8 @@ TEST_CASE( "[tribe-mgr] tribe_wiped_out_message" ) {
   w.add_tribe( e_tribe::aztec );
   w.agent().EXPECT__message_box(
       "The [Aztec] tribe has been wiped out." );
+  w.agent().EXPECT__handle(
+      TribeWipedOut{ .tribe = e_tribe::aztec } );
   co_await_test(
       tribe_wiped_out_message( w.agent(), e_tribe::aztec ) );
   REQUIRE( w.natives().tribe_exists( e_tribe::aztec ) );

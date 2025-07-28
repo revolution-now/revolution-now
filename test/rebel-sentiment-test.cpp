@@ -296,7 +296,7 @@ TEST_CASE(
   auto& agent          = w.agent( e_player::french );
   Player const& player = w.french();
 
-  auto const f = [&] {
+  auto const f = [&] [[clang::noinline]] {
     co_await_test( show_rebel_sentiment_change_report(
         w.french(), w.agent( e_player::french ), report ) );
   };
@@ -315,6 +315,8 @@ TEST_CASE(
       "[Rebel] sentiment is on the rise, Your Excellency!  [1%] "
       "of the population now supports the idea of independence "
       "from France." );
+  agent.EXPECT__handle(
+      signal::RebelSentimentChanged{ .old = 0, .nu = 1 } );
   f();
   REQUIRE( player.revolution.last_reported_rebel_sentiment ==
            1 );
@@ -325,6 +327,8 @@ TEST_CASE(
       "[Rebel] sentiment is on the rise, Your Excellency!  [2%] "
       "of the population now supports the idea of independence "
       "from France." );
+  agent.EXPECT__handle(
+      signal::RebelSentimentChanged{ .old = 1, .nu = 2 } );
   f();
   REQUIRE( player.revolution.last_reported_rebel_sentiment ==
            2 );
@@ -335,6 +339,8 @@ TEST_CASE(
       "[Rebel] sentiment is on the rise, Your Excellency!  "
       "[100%] of the population now supports the idea of "
       "independence from France." );
+  agent.EXPECT__handle(
+      signal::RebelSentimentChanged{ .old = 0, .nu = 100 } );
   f();
   REQUIRE( player.revolution.last_reported_rebel_sentiment ==
            100 );
@@ -345,6 +351,8 @@ TEST_CASE(
       "[Tory] sentiment is on the rise, Your Excellency.  Only "
       "[99%] of the population now supports the idea of "
       "independence from France." );
+  agent.EXPECT__handle(
+      signal::RebelSentimentChanged{ .old = 100, .nu = 99 } );
   f();
   REQUIRE( player.revolution.last_reported_rebel_sentiment ==
            99 );
@@ -355,6 +363,8 @@ TEST_CASE(
       "[Tory] sentiment is on the rise, Your Excellency.  None "
       "of the population supports the idea of independence from "
       "France." );
+  agent.EXPECT__handle(
+      signal::RebelSentimentChanged{ .old = 20, .nu = 0 } );
   f();
   REQUIRE( player.revolution.last_reported_rebel_sentiment ==
            0 );
