@@ -385,7 +385,7 @@ HarborMarketCommodities::source_check(
           lowercase_commodity_display_name( comm.type ) );
     else
       reason += fmt::format(
-          " Try holding down the [shift] key while draggin to "
+          " Try holding down the [shift] key while dragging to "
           "reduce the quantity of your purchase.",
           comm.quantity,
           lowercase_commodity_display_name( comm.type ) );
