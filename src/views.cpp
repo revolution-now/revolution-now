@@ -46,6 +46,7 @@ namespace rn::ui {
 
 namespace {
 
+using ::gfx::point;
 using ::gfx::size;
 
 template<typename Res, typename... T>
@@ -532,14 +533,12 @@ void ButtonBaseView::render_unpressed( rr::Renderer& renderer,
       e_tile::button_up_lr );
 
   auto markup_info =
-      TextMarkupInfo{ gfx::pixel::wood().shaded( 3 ),
+      TextMarkupInfo{ gfx::pixel::wood().shaded( 5 ),
                       /*highlight=*/{} };
 
-  Coord text_position =
-      centered( text_size_in_pixels_,
-                Rect::from( Coord::from_gfx( where ),
-                            size_in_pixels_ ) ) +
-      Delta{ .w = 1 } - Delta{ .h = 1 };
+  point const text_position = centered(
+      text_size_in_pixels_,
+      Rect::from( Coord::from_gfx( where ), size_in_pixels_ ) );
   render_text_markup( renderer, text_position, font::standard(),
                       rr::TextLayout{}, markup_info, label_ );
 }
@@ -558,11 +557,9 @@ void ButtonBaseView::render_hover( rr::Renderer& renderer,
   auto markup_info =
       TextMarkupInfo{ gfx::pixel::banana(), /*highlight=*/{} };
 
-  Coord text_position =
-      centered( text_size_in_pixels_,
-                Rect::from( Coord::from_gfx( where ),
-                            size_in_pixels_ ) ) +
-      Delta{ .w = 1 } - Delta{ .h = 1 };
+  point const text_position = centered(
+      text_size_in_pixels_,
+      Rect::from( Coord::from_gfx( where ), size_in_pixels_ ) );
   render_text_markup( renderer, text_position, font::standard(),
                       rr::TextLayout{}, markup_info, label_ );
 }
