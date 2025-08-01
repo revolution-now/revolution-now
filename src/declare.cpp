@@ -225,15 +225,16 @@ DeclarationResult declare_independence( IEngine& engine, SS& ss,
   }
   destroy_units( ss, destroy );
 
-  // Step: Mark foreign players as "withdrawn"; they no longer
-  // get evolved, probably at the colony level either. The
-  // players can't be deleted because their colonies persist.
+  // Step: Mark foreign players as "inactive"; they no longer get
+  // evolved, probably at the colony level either. The players
+  // can't be deleted because their colonies persist. NOTE: in
+  // the OG this state is referred to as "withdrawn".
   for( auto& [type, other_player] : ss.players.players ) {
     if( !other_player.has_value() ) continue;
     // Make sure we're not hitting either this human player or
     // their new ref player that we just created.
     if( other_player->nation == player.nation ) continue;
-    other_player->control = e_player_control::withdrawn;
+    other_player->control = e_player_control::inactive;
   }
 
   // Step: Destroy all units on the dock and seize all ships in

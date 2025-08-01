@@ -38,10 +38,14 @@ enum.e_euro_relationship {
 }
 
 enum.e_player_control {
-  # We need the "withdrawn" value for dealing with foreign euro-
+  # We need the "inactive" value for dealing with foreign euro-
   # pean powers after declaration: they completely stop evolving,
-  # but their colonies are still present on the map.
-  withdrawn,
+  # but their colonies are still present on the map. Note that
+  # the OG refers to this state as "withdrawn", but we're using a
+  # different name here because "withdrawn" arguably is not the
+  # ideal word, since such a player still retains their colonies;
+  # it's really just that they no longer move or evolve.
+  inactive,
   human,
   ai,
 }

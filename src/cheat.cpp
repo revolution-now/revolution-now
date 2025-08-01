@@ -254,8 +254,8 @@ wait<> cheat_set_player_control( IEngine& engine, SS& ss,
     { e_player_control::human,
       Mapping{ .idx = 0, .label = "Human" } },
     { e_player_control::ai, Mapping{ .idx = 1, .label = "AI" } },
-    { e_player_control::withdrawn,
-      Mapping{ .idx = 2, .label = "Withdrawn" } },
+    { e_player_control::inactive,
+      Mapping{ .idx = 2, .label = "Inactive" } },
   };
   auto const& textometer = engine.textometer();
   // Use unique_ptr here because the radio button group must be
@@ -328,7 +328,7 @@ wait<> cheat_set_player_control( IEngine& engine, SS& ss,
   for( auto const& [type, player] : ss.players.players ) {
     e_player_control const control =
         player.has_value() ? player->control
-                           : e_player_control::withdrawn;
+                           : e_player_control::inactive;
     add_player( type, control, !player.has_value() );
   }
   top->recompute_child_positions();
@@ -360,7 +360,89 @@ wait<> cheat_set_player_control( IEngine& engine, SS& ss,
 
   auto const check_post_declaration_changes =
       [&]( Result const& res ) -> valid_or<string> {
-    (void)res;
+    for( auto const& [type, player] : ss.players.players ) {
+      using enum e_player_control;
+      if( !player.has_value() ) continue;
+      e_player_control const Old = player->control;
+      e_player_control const New = res[type];
+      if( New == Old ) continue;
+      if( player->revolution.status <
+          e_revolution_status::declared )
+        continue;
+      string const nation_name =
+          config_nation.players[type]
+              .display_name_pre_declaration;
+      // NOTE: there are no restrictions on Tory player changes
+      // (and they can't declare) so we don't have to worry about
+      // correctly representing their name here.
+      string const prefix =
+          format( "The [{}] player ", nation_name );
+      auto const err_player = [&]( string_view const msg ) {
+        return format(
+            "{}{} Since independence is handled differently for "
+            "Human and AI players, that change would put the "
+            "game into an inconsistent state.",
+            prefix, msg );
+      };
+      auto const player_exists = [&]( e_player const type ) {
+        return ss.players
+            .players[ref_player_for( nation_for( type ) )]
+            .has_value();
+      };
+      // This player has declared and is trying to change con-
+      // trol. This needs to be done carefully since human and AI
+      // players are treated differently when it comes to inde-
+      // pendence.
+      if( pair{ Old, New } == pair{ human, ai } )
+        return err_player(
+            "cannot change from Human control to AI control "
+            "because it has already declared independence." );
+      if( pair{ Old, New } == pair{ human, inactive } )
+        // Ok.
+        continue;
+      if( pair{ Old, New } == pair{ ai, human } )
+        return err_player(
+            "cannot change from AI control to Human control "
+            "because it has already declared independence." );
+      if( pair{ Old, New } == pair{ ai, inactive } )
+        // Ok.
+        continue;
+      if( pair{ Old, New } == pair{ inactive, human } ) {
+        if( is_ref( type ) )
+          // OK.
+          continue;
+        // We have a non-REF player that has declared and is
+        // trying to change to human. This is only allowed if the
+        // player declared as a human, which we can check by ver-
+        // ifying that the corresponding REF player exists.
+        if( player_exists(
+                ref_player_for( nation_for( type ) ) ) )
+          // Ok, REF player exists.
+          continue;
+        return err_player(
+            "cannot change from Inactive to Human control "
+            "because it has already declared independence but "
+            "was not Human-controlled when that happened." );
+      }
+      if( pair{ Old, New } == pair{ inactive, ai } ) {
+        if( is_ref( type ) )
+          // OK.
+          continue;
+        // We have a non-REF player that has declared and is
+        // trying to change to AI. This is only allowed if the
+        // player was granted independence as an AI player would,
+        // which we can check by verifying that the corresponding
+        // REF player does not exists.
+        if( !player_exists(
+                ref_player_for( nation_for( type ) ) ) )
+          // Ok, REF player is absent.
+          continue;
+        return err_player(
+            "cannot change from Inactive to AI control because "
+            "it has already declared independence but was not "
+            "AI-controlled when that happened." );
+      }
+    }
     return valid;
   };
 
@@ -384,10 +466,7 @@ wait<> cheat_set_player_control( IEngine& engine, SS& ss,
       if( ok ) break;
       // Put a light border around the window so it is easily
       // visible over the main window.
-      co_await ts.gui.message_box(
-          MessageBoxOptions{
-            .window = WindowOptions{ .light_outline = true } },
-          ok.error() );
+      co_await ts.gui.message_box( ok.error() );
     }
     co_return ui::e_ok_cancel::ok;
   };

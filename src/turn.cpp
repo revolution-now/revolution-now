@@ -921,7 +921,7 @@ wait<> query_unit_input( IEngine& engine, UnitId const id,
                          IAgent& agent,
                          PlayerTurnState::units& nat_units ) {
   switch( player.control ) {
-    case e_player_control::withdrawn: {
+    case e_player_control::inactive: {
       SHOULD_NOT_BE_HERE;
     }
     case e_player_control::human: {
@@ -1853,7 +1853,7 @@ wait<> nation_turn( IEngine& engine, SS& ss, TS& ts,
   UNWRAP_CHECK_MSG( player, ss.players.players[player_type],
                     "nation {} does not exist.", player_type );
   switch( player.control ) {
-    case e_player_control::withdrawn:
+    case e_player_control::inactive:
       st = PlayerTurnState::finished{};
       break;
     case e_player_control::human:

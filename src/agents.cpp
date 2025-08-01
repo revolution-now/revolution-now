@@ -98,7 +98,7 @@ unique_ptr<IAgent> create_agent( IEngine& engine, SS& ss,
       return make_unique<HumanAgent>( player, engine, ss, gui,
                                       planes );
     }
-    case e_player_control::withdrawn: {
+    case e_player_control::inactive: {
       return make_unique<NoopAgent>( ss.as_const, player );
     }
   }

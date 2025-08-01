@@ -110,9 +110,9 @@ TEST_CASE( "[rebel-sentiment] should_do_war_of_succession" ) {
     REQUIRE_FALSE( f() );
   }
 
-  SECTION( "one player withdrawn" ) {
+  SECTION( "one player inactive" ) {
     REQUIRE( f() );
-    w.spanish().control = e_player_control::withdrawn;
+    w.spanish().control = e_player_control::inactive;
     REQUIRE_FALSE( f() );
   }
 
@@ -193,7 +193,7 @@ TEST_CASE(
                           .receives  = e_nation::spanish };
   REQUIRE( f() == expected );
 
-  w.english().control = e_player_control::withdrawn;
+  w.english().control = e_player_control::inactive;
   w.french().control  = e_player_control::human;
   expected            = { .withdraws = e_nation::spanish,
                           .receives  = e_nation::dutch };
@@ -568,7 +568,7 @@ TEST_CASE( "[rebel-sentiment] do_war_of_succession" ) {
                      .level  = e_missionary_type::jesuit } );
   REQUIRE( w.players().players[e_player::spanish].has_value() );
   REQUIRE( w.players().players[e_player::spanish]->control ==
-           e_player_control::withdrawn );
+           e_player_control::inactive );
   REQUIRE( w.players().players[e_player::french].has_value() );
   REQUIRE( w.players().players[e_player::french]->control ==
            e_player_control::human );

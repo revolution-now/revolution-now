@@ -82,7 +82,7 @@ bool should_do_war_of_succession( SSConst const& ss,
     for( auto const& [player, other_player] :
          ss.players.players ) {
       if( !other_player.has_value() ) continue;
-      if( other_player->control == e_player_control::withdrawn )
+      if( other_player->control == e_player_control::inactive )
         continue;
       if( other_player->control != e_player_control::human &&
           other_player->revolution.status ==
@@ -119,8 +119,7 @@ WarOfSuccessionNations select_players_for_war_of_succession(
     e_player const player_type = colonial_player_for( nation );
     auto const& player         = ss.players.players[player_type];
     if( !player.has_value() ) continue;
-    if( player->control == e_player_control::withdrawn )
-      continue;
+    if( player->control == e_player_control::inactive ) continue;
     if( player->control == e_player_control::human ) continue;
     ai_nations.push_back( nation );
     int const population =
@@ -291,7 +290,7 @@ void do_war_of_succession( SS& ss, TS& ts, Player const& player,
 
   ss.players
       .players[colonial_player_for( plan.nations.withdraws )]
-      ->control = e_player_control::withdrawn;
+      ->control = e_player_control::inactive;
 
   ss.events.war_of_succession_done = true;
 }

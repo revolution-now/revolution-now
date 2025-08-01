@@ -552,7 +552,7 @@ TEST_CASE( "[declare] declare_independence" ) {
   REQUIRE( w.colonies().exists( foreign_colony_id ) );
   REQUIRE( player.control == e_player_control::human );
   REQUIRE( ref_player.control == e_player_control::ai );
-  REQUIRE( other_player.control == e_player_control::withdrawn );
+  REQUIRE( other_player.control == e_player_control::inactive );
   REQUIRE( player.bells == 0 );
   REQUIRE( player.crosses == 0 );
   REQUIRE( player.fathers.in_progress == nothing );

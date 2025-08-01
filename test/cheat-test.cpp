@@ -1051,7 +1051,7 @@ TEST_CASE( "[cheat] cheat_advance_revolution_status" ) {
              .man_o_war           = 0,
            } );
   REQUIRE( w.english().control == human );
-  REQUIRE( w.french().control == withdrawn );
+  REQUIRE( w.french().control == inactive );
   REQUIRE( w.spanish().control == ai );
   REQUIRE( w.dutch().control == ai );
   REQUIRE( !w.players().players[ref_english].has_value() );
@@ -1091,9 +1091,9 @@ TEST_CASE( "[cheat] cheat_advance_revolution_status" ) {
              .man_o_war           = 2,
            } );
   REQUIRE( w.english().control == human );
-  REQUIRE( w.french().control == withdrawn );
-  REQUIRE( w.spanish().control == withdrawn );
-  REQUIRE( w.dutch().control == withdrawn );
+  REQUIRE( w.french().control == inactive );
+  REQUIRE( w.spanish().control == inactive );
+  REQUIRE( w.dutch().control == inactive );
   REQUIRE( w.players().players[ref_english].has_value() );
   REQUIRE( w.ref_english().control == ai );
   REQUIRE( !w.players().players[ref_french].has_value() );
@@ -1131,9 +1131,9 @@ TEST_CASE( "[cheat] cheat_advance_revolution_status" ) {
              .man_o_war           = 2,
            } );
   REQUIRE( w.english().control == human );
-  REQUIRE( w.french().control == withdrawn );
-  REQUIRE( w.spanish().control == withdrawn );
-  REQUIRE( w.dutch().control == withdrawn );
+  REQUIRE( w.french().control == inactive );
+  REQUIRE( w.spanish().control == inactive );
+  REQUIRE( w.dutch().control == inactive );
   REQUIRE( w.players().players[ref_english].has_value() );
   REQUIRE( w.ref_english().control == ai );
   REQUIRE( !w.players().players[ref_french].has_value() );
@@ -1171,9 +1171,9 @@ TEST_CASE( "[cheat] cheat_advance_revolution_status" ) {
              .man_o_war           = 2,
            } );
   REQUIRE( w.english().control == human );
-  REQUIRE( w.french().control == withdrawn );
-  REQUIRE( w.spanish().control == withdrawn );
-  REQUIRE( w.dutch().control == withdrawn );
+  REQUIRE( w.french().control == inactive );
+  REQUIRE( w.spanish().control == inactive );
+  REQUIRE( w.dutch().control == inactive );
   REQUIRE( w.players().players[ref_english].has_value() );
   REQUIRE( w.ref_english().control == ai );
   REQUIRE( !w.players().players[ref_french].has_value() );
@@ -1214,9 +1214,9 @@ TEST_CASE( "[cheat] cheat_advance_revolution_status" ) {
              .man_o_war           = 2,
            } );
   REQUIRE( w.english().control == human );
-  REQUIRE( w.french().control == withdrawn );
-  REQUIRE( w.spanish().control == withdrawn );
-  REQUIRE( w.dutch().control == withdrawn );
+  REQUIRE( w.french().control == inactive );
+  REQUIRE( w.spanish().control == inactive );
+  REQUIRE( w.dutch().control == inactive );
   REQUIRE( w.players().players[ref_english].has_value() );
   REQUIRE( w.ref_english().control == ai );
   REQUIRE( !w.players().players[ref_french].has_value() );
