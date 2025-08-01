@@ -37,6 +37,11 @@
 
 namespace rn {
 
+namespace co {
+template<typename T>
+struct stream;
+}
+
 namespace ui {
 struct View;
 }
@@ -227,6 +232,13 @@ struct IGui {
     for( auto& [item, info] : items )
       items[item].on = int_res[static_cast<int>( item )];
   }
+
+  // This one is useful for when you want to keep the box open
+  // after the user clicks one of the buttons, e.g. to display a
+  // message over top of the window.
+  virtual wait<> ok_cancel_box_async(
+      std::string const title, ui::View& view,
+      co::stream<ui::e_ok_cancel>& out ) = 0;
 
   virtual wait<ui::e_ok_cancel> ok_cancel_box(
       std::string const& title, ui::View& view ) = 0;

@@ -11,6 +11,7 @@
 #include "gui.hpp"
 
 // Revolution Now
+#include "co-combinator.hpp"
 #include "co-time.hpp"
 #include "co-wait.hpp"
 #include "plane-stack.hpp"
@@ -182,8 +183,9 @@ wait<unordered_map<int, bool>> RealGui::check_box_selector(
   co_return res;
 }
 
-wait<ui::e_ok_cancel> RealGui::ok_cancel_box(
-    string const& title, ui::View& view ) {
+wait<> RealGui::ok_cancel_box_async(
+    string const title, ui::View& view,
+    co::stream<ui::e_ok_cancel>& out ) {
   using namespace ui;
   auto top = make_unique<VerticalArrayView>(
       VerticalArrayView::align::center );
@@ -214,7 +216,14 @@ wait<ui::e_ok_cancel> RealGui::ok_cancel_box(
   // Must be done after auto-padding.
   window.center_me();
 
-  co_return co_await buttons->next();
+  while( true ) out.send( co_await buttons->next() );
+}
+
+wait<ui::e_ok_cancel> RealGui::ok_cancel_box(
+    std::string const& title, ui::View& view ) {
+  co::stream<ui::e_ok_cancel> buttons;
+  wait<> const w = ok_cancel_box_async( title, view, buttons );
+  co_return co_await buttons.next();
 }
 
 } // namespace rn
