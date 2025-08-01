@@ -445,7 +445,9 @@ e_input_handled WindowManager::input(
 
   // It's a mouse event.
   maybe<Window&> win = window_for_cursor_pos( mouse_event->pos );
-  if( !win ) {
+  // If the click outside of any window or just outside of the
+  // focused window (where there may be another window behind).
+  if( !win || addressof( *win ) != addressof( focused() ) ) {
     auto button_event =
         event.get_if<input::mouse_button_event_t>();
     if( !button_event.has_value() ) return e_input_handled::yes;
