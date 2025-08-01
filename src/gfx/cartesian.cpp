@@ -354,22 +354,6 @@ point point::origin() {
   return p;
 }
 
-point point::moved_left( int by ) const {
-  return point{ .x = x - by, .y = y };
-}
-
-point point::moved_right( int by ) const {
-  return point{ .x = x + by, .y = y };
-}
-
-point point::moved_up( int by ) const {
-  return point{ .x = x, .y = y - by };
-}
-
-point point::moved_down( int by ) const {
-  return point{ .x = x, .y = y + by };
-}
-
 point point::point_becomes_origin( point p ) const {
   return point{ .x = x - p.x, .y = y - p.y };
 }
@@ -441,6 +425,22 @@ point point::operator/( size scale ) const {
   res.x /= scale.w;
   res.y /= scale.h;
   return res;
+}
+
+point point::moved_left( int by ) const {
+  return point{ .x = x - by, .y = y };
+}
+
+point point::moved_right( int by ) const {
+  return point{ .x = x + by, .y = y };
+}
+
+point point::moved_up( int by ) const {
+  return point{ .x = x, .y = y - by };
+}
+
+point point::moved_down( int by ) const {
+  return point{ .x = x, .y = y + by };
 }
 
 point point::moved( e_direction d ) const {
@@ -812,6 +812,39 @@ rect rect::with_edges_removed( int n ) const {
   }
 
   return r;
+}
+
+rect rect::moved_left( int const by ) const {
+  return rect{ .origin = origin.moved_left( by ), .size = size };
+}
+
+rect rect::moved_right( int const by ) const {
+  return rect{ .origin = origin.moved_right( by ),
+               .size   = size };
+}
+
+rect rect::moved_up( int const by ) const {
+  return rect{ .origin = origin.moved_up( by ), .size = size };
+}
+
+rect rect::moved_down( int const by ) const {
+  return rect{ .origin = origin.moved_down( by ), .size = size };
+}
+
+rect rect::moved( e_direction const d ) const {
+  return rect{ .origin = origin.moved( d ), .size = size };
+}
+
+rect rect::moved( e_cardinal_direction const d ) const {
+  return rect{ .origin = origin.moved( d ), .size = size };
+}
+
+rect rect::moved( e_diagonal_direction const d ) const {
+  return rect{ .origin = origin.moved( d ), .size = size };
+}
+
+rect rect::moved( e_cdirection const d ) const {
+  return rect{ .origin = origin.moved( d ), .size = size };
 }
 
 rect rect::operator*( int scale ) const {

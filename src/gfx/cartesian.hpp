@@ -376,6 +376,16 @@ struct rect {
   [[nodiscard]] rect with_inc_size( int n = 1 ) const;
   [[nodiscard]] rect with_dec_size( int n = 1 ) const;
 
+  [[nodiscard]] rect moved_left( int by = 1 ) const;
+  [[nodiscard]] rect moved_right( int by = 1 ) const;
+  [[nodiscard]] rect moved_up( int by = 1 ) const;
+  [[nodiscard]] rect moved_down( int by = 1 ) const;
+
+  [[nodiscard]] rect moved( e_direction d ) const;
+  [[nodiscard]] rect moved( e_cdirection cd ) const;
+  [[nodiscard]] rect moved( e_cardinal_direction d ) const;
+  [[nodiscard]] rect moved( e_diagonal_direction d ) const;
+
   // Result will be the smallest rect that encompasses both
   // this one and the parameter.
   [[nodiscard]] rect uni0n( rect rhs ) const;

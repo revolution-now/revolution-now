@@ -400,21 +400,6 @@ TEST_CASE( "[gfx/cartesian] point::distance_from_origin" ) {
   REQUIRE( p.distance_from_origin() == size{ .w = 4, .h = 2 } );
 }
 
-TEST_CASE( "[gfx/cartesian] point::moved_*" ) {
-  point p{ .x = 4, .y = 2 };
-  REQUIRE( p.moved_left() == point{ .x = 3, .y = 2 } );
-  REQUIRE( p.moved_left( 2 ) == point{ .x = 2, .y = 2 } );
-
-  REQUIRE( p.moved_right() == point{ .x = 5, .y = 2 } );
-  REQUIRE( p.moved_right( 2 ) == point{ .x = 6, .y = 2 } );
-
-  REQUIRE( p.moved_up() == point{ .x = 4, .y = 1 } );
-  REQUIRE( p.moved_up( 2 ) == point{ .x = 4, .y = 0 } );
-
-  REQUIRE( p.moved_down() == point{ .x = 4, .y = 3 } );
-  REQUIRE( p.moved_down( 2 ) == point{ .x = 4, .y = 4 } );
-}
-
 TEST_CASE( "[gfx/cartesian] point::clamped" ) {
   rect const r{ .origin = { .x = 3, .y = 4 },
                 .size   = { .w = 2, .h = 3 } };
@@ -553,7 +538,22 @@ TEST_CASE( "[gfx/cartesian] point::to_double" ) {
   REQUIRE( p.to_double() == dpoint{ .x = 4.0, .y = 2.0 } );
 }
 
-TEST_CASE( "[gfx/cartesian] moved*" ) {
+TEST_CASE( "[gfx/cartesian] point::moved_*" ) {
+  point p{ .x = 4, .y = 2 };
+  REQUIRE( p.moved_left() == point{ .x = 3, .y = 2 } );
+  REQUIRE( p.moved_left( 2 ) == point{ .x = 2, .y = 2 } );
+
+  REQUIRE( p.moved_right() == point{ .x = 5, .y = 2 } );
+  REQUIRE( p.moved_right( 2 ) == point{ .x = 6, .y = 2 } );
+
+  REQUIRE( p.moved_up() == point{ .x = 4, .y = 1 } );
+  REQUIRE( p.moved_up( 2 ) == point{ .x = 4, .y = 0 } );
+
+  REQUIRE( p.moved_down() == point{ .x = 4, .y = 3 } );
+  REQUIRE( p.moved_down( 2 ) == point{ .x = 4, .y = 4 } );
+}
+
+TEST_CASE( "[gfx/cartesian] point::moved*" ) {
   point const p{ .x = 3, .y = 5 };
   {
     using enum e_cdirection;
@@ -801,6 +801,132 @@ TEST_CASE( "[gfx/cartesian] rect::from" ) {
   REQUIRE( rect::from( p4, p3 ) ==
            rect{ .origin = { .x = 2, .y = 2 },
                  .size   = { .w = 2, .h = 2 } } );
+}
+
+TEST_CASE( "[gfx/cartesian] rect::moved_*" ) {
+  rect const r{ .origin = { .x = 4, .y = 2 },
+                .size   = { .w = 2, .h = 3 } };
+  REQUIRE( r.moved_left() ==
+           rect{ .origin = { .x = 3, .y = 2 },
+                 .size   = { .w = 2, .h = 3 } } );
+  REQUIRE( r.moved_left( 2 ) ==
+           rect{ .origin = { .x = 2, .y = 2 },
+                 .size   = { .w = 2, .h = 3 } } );
+
+  REQUIRE( r.moved_right() ==
+           rect{ .origin = { .x = 5, .y = 2 },
+                 .size   = { .w = 2, .h = 3 } } );
+  REQUIRE( r.moved_right( 2 ) ==
+           rect{ .origin = { .x = 6, .y = 2 },
+                 .size   = { .w = 2, .h = 3 } } );
+
+  REQUIRE( r.moved_up() == rect{ .origin = { .x = 4, .y = 1 },
+                                 .size = { .w = 2, .h = 3 } } );
+  REQUIRE( r.moved_up( 2 ) ==
+           rect{ .origin = { .x = 4, .y = 0 },
+                 .size   = { .w = 2, .h = 3 } } );
+
+  REQUIRE( r.moved_down() ==
+           rect{ .origin = { .x = 4, .y = 3 },
+                 .size   = { .w = 2, .h = 3 } } );
+  REQUIRE( r.moved_down( 2 ) ==
+           rect{ .origin = { .x = 4, .y = 4 },
+                 .size   = { .w = 2, .h = 3 } } );
+}
+
+TEST_CASE( "[gfx/cartesian] rect::moved*" ) {
+  rect const r{ .origin = { .x = 3, .y = 5 },
+                .size   = { .w = 2, .h = 3 } };
+  {
+    using enum e_cdirection;
+    REQUIRE( r.moved( nw ) ==
+             rect{ .origin = { .x = 2, .y = 4 },
+                   .size   = { .w = 2, .h = 3 } } );
+    REQUIRE( r.moved( n ) ==
+             rect{ .origin = { .x = 3, .y = 4 },
+                   .size   = { .w = 2, .h = 3 } } );
+    REQUIRE( r.moved( ne ) ==
+             rect{ .origin = { .x = 4, .y = 4 },
+                   .size   = { .w = 2, .h = 3 } } );
+    REQUIRE( r.moved( w ) ==
+             rect{ .origin = { .x = 2, .y = 5 },
+                   .size   = { .w = 2, .h = 3 } } );
+    REQUIRE( r.moved( e ) ==
+             rect{ .origin = { .x = 4, .y = 5 },
+                   .size   = { .w = 2, .h = 3 } } );
+    REQUIRE( r.moved( sw ) ==
+             rect{ .origin = { .x = 2, .y = 6 },
+                   .size   = { .w = 2, .h = 3 } } );
+    REQUIRE( r.moved( s ) ==
+             rect{ .origin = { .x = 3, .y = 6 },
+                   .size   = { .w = 2, .h = 3 } } );
+    REQUIRE( r.moved( se ) ==
+             rect{ .origin = { .x = 4, .y = 6 },
+                   .size   = { .w = 2, .h = 3 } } );
+    REQUIRE( r.moved( c ) ==
+             rect{ .origin = { .x = 3, .y = 5 },
+                   .size   = { .w = 2, .h = 3 } } );
+  }
+
+  {
+    using enum e_direction;
+    REQUIRE( r.moved( nw ) ==
+             rect{ .origin = { .x = 2, .y = 4 },
+                   .size   = { .w = 2, .h = 3 } } );
+    REQUIRE( r.moved( n ) ==
+             rect{ .origin = { .x = 3, .y = 4 },
+                   .size   = { .w = 2, .h = 3 } } );
+    REQUIRE( r.moved( ne ) ==
+             rect{ .origin = { .x = 4, .y = 4 },
+                   .size   = { .w = 2, .h = 3 } } );
+    REQUIRE( r.moved( w ) ==
+             rect{ .origin = { .x = 2, .y = 5 },
+                   .size   = { .w = 2, .h = 3 } } );
+    REQUIRE( r.moved( e ) ==
+             rect{ .origin = { .x = 4, .y = 5 },
+                   .size   = { .w = 2, .h = 3 } } );
+    REQUIRE( r.moved( sw ) ==
+             rect{ .origin = { .x = 2, .y = 6 },
+                   .size   = { .w = 2, .h = 3 } } );
+    REQUIRE( r.moved( s ) ==
+             rect{ .origin = { .x = 3, .y = 6 },
+                   .size   = { .w = 2, .h = 3 } } );
+    REQUIRE( r.moved( se ) ==
+             rect{ .origin = { .x = 4, .y = 6 },
+                   .size   = { .w = 2, .h = 3 } } );
+  }
+
+  {
+    using enum e_cardinal_direction;
+    REQUIRE( r.moved( n ) ==
+             rect{ .origin = { .x = 3, .y = 4 },
+                   .size   = { .w = 2, .h = 3 } } );
+    REQUIRE( r.moved( w ) ==
+             rect{ .origin = { .x = 2, .y = 5 },
+                   .size   = { .w = 2, .h = 3 } } );
+    REQUIRE( r.moved( e ) ==
+             rect{ .origin = { .x = 4, .y = 5 },
+                   .size   = { .w = 2, .h = 3 } } );
+    REQUIRE( r.moved( s ) ==
+             rect{ .origin = { .x = 3, .y = 6 },
+                   .size   = { .w = 2, .h = 3 } } );
+  }
+
+  {
+    using enum e_diagonal_direction;
+    REQUIRE( r.moved( nw ) ==
+             rect{ .origin = { .x = 2, .y = 4 },
+                   .size   = { .w = 2, .h = 3 } } );
+    REQUIRE( r.moved( ne ) ==
+             rect{ .origin = { .x = 4, .y = 4 },
+                   .size   = { .w = 2, .h = 3 } } );
+    REQUIRE( r.moved( sw ) ==
+             rect{ .origin = { .x = 2, .y = 6 },
+                   .size   = { .w = 2, .h = 3 } } );
+    REQUIRE( r.moved( se ) ==
+             rect{ .origin = { .x = 4, .y = 6 },
+                   .size   = { .w = 2, .h = 3 } } );
+  }
 }
 
 TEST_CASE( "[gfx/cartesian] with_border_added" ) {
