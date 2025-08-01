@@ -333,10 +333,10 @@ wait<> cheat_set_player_control( IEngine& engine, SS& ss,
   }
   top->recompute_child_positions();
 
-  using ResultT = enum_map<e_player, e_player_control>;
+  using Result = enum_map<e_player, e_player_control>;
 
   auto const get_selected = [&] {
-    ResultT selected;
+    Result selected;
     for( auto const& [type, player] : ss.players.players ) {
       if( !player.has_value() ) continue;
       auto const& group = groups[type];
@@ -349,23 +349,45 @@ wait<> cheat_set_player_control( IEngine& engine, SS& ss,
     return selected;
   };
 
-  auto const has_at_least_one_human = [&]( ResultT const& res ) {
+  auto const has_at_least_one_human =
+      [&]( Result const& res ) -> valid_or<string> {
     for( auto const& [type, player] : ss.players.players ) {
       if( !player.has_value() ) continue;
-      if( res[type] == e_player_control::human ) return true;
+      if( res[type] == e_player_control::human ) return valid;
     }
-    return false;
+    return "There must be at least one human player.";
+  };
+
+  auto const check_post_declaration_changes =
+      [&]( Result const& res ) -> valid_or<string> {
+    (void)res;
+    return valid;
+  };
+
+  auto const validate =
+      [&]( Result const& res ) -> valid_or<string> {
+    HAS_VALUE_OR_RET( has_at_least_one_human( res ) );
+    HAS_VALUE_OR_RET( check_post_declaration_changes( res ) );
+    return valid;
   };
 
   auto const loop = [&]() -> wait<ui::e_ok_cancel> {
+    static string const title = "Select Player Control";
+    co::stream<ui::e_ok_cancel> clicks;
+    wait<> const w =
+        ts.gui.ok_cancel_box_async( title, *top, clicks );
     while( true ) {
-      ui::e_ok_cancel const res = co_await ts.gui.ok_cancel_box(
-          "Select Player Control", *top );
+      ui::e_ok_cancel const res = co_await clicks.next();
       if( res == ui::e_ok_cancel::cancel ) co_return res;
       auto const selected = get_selected();
-      if( has_at_least_one_human( selected ) ) break;
+      auto const ok       = validate( selected );
+      if( ok ) break;
+      // Put a light border around the window so it is easily
+      // visible over the main window.
       co_await ts.gui.message_box(
-          "There must be at least one human player." );
+          MessageBoxOptions{
+            .window = WindowOptions{ .light_outline = true } },
+          ok.error() );
     }
     co_return ui::e_ok_cancel::ok;
   };
