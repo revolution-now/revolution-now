@@ -17,6 +17,14 @@ include "<vector>"
 
 namespace "rn"
 
+struct.WindowOptions {
+  light_outline 'bool',
+}
+
+struct.MessageBoxOptions {
+  window 'WindowOptions',
+}
+
 struct.ChoiceConfigOption {
   key 'std::string',
   display_name 'std::string',

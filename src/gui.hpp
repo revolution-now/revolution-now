@@ -33,20 +33,19 @@ struct RealGui : IGui {
   RealGui( Planes& planes, rr::ITextometer const& textometer )
     : planes_( planes ), textometer_( textometer ) {}
 
-  // Implement IGui.
+ public: // IGui
   wait<> message_box( std::string const& msg ) override;
 
-  // Implement IGui.
+  wait<> message_box( MessageBoxOptions const& options,
+                      std::string const& msg ) override;
+
   void transient_message_box( std::string const& msg ) override;
 
-  // Implement IGui.
   wait<std::chrono::microseconds> wait_for(
       std::chrono::microseconds time ) override;
 
-  // Implement IGui.
   wait<> display_woodcut( e_woodcut cut ) override;
 
-  // Implement IGui.
   int total_windows_created() const override;
 
  private:

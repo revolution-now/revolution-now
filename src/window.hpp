@@ -59,6 +59,8 @@ struct Window {
 
   void set_view( std::unique_ptr<ui::View> view );
 
+  WindowOptions& options() { return options_; }
+
   bool operator==( Window const& rhs ) const;
 
   // Called once per frame.
@@ -99,6 +101,7 @@ struct Window {
   }
 
  private:
+  WindowOptions options_;
   WindowManager& window_manager_;
   std::unique_ptr<ui::View> view_;
   WindowCancelActions cancel_actions_ = {};
@@ -144,6 +147,9 @@ struct WindowPlane {
   int num_windows_currently_open() const;
 
   wait<> message_box( std::string_view msg );
+
+  wait<> message_box( std::string_view msg,
+                      MessageBoxOptions const& options );
 
   void transient_message_box( std::string_view msg );
 

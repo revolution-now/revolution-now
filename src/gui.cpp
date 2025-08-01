@@ -38,6 +38,11 @@ wait<> RealGui::message_box( string const& msg ) {
   return window_plane().message_box( msg );
 }
 
+wait<> RealGui::message_box( MessageBoxOptions const& options,
+                             string const& msg ) {
+  return window_plane().message_box( msg, options );
+}
+
 void RealGui::transient_message_box( string const& msg ) {
   window_plane().transient_message_box( msg );
 }

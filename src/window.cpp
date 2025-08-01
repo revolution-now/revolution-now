@@ -63,6 +63,8 @@ namespace rn {
 namespace rl = ::base::rl;
 
 using ::base::function_ref;
+using ::gfx::pixel;
+using ::gfx::rect;
 
 namespace {
 
@@ -303,7 +305,7 @@ void Window::draw( rr::Renderer& renderer, Coord where ) const {
         painter_mods.repos.translation2,
         gfx::size( where.distance_from_origin() ).to_double() );
     rr::Painter painter = renderer.painter();
-    Rect r              = rect( Coord{} );
+    gfx::rect const r   = rect( Coord{} );
     // Render shadow behind window.
     painter.draw_solid_rect( r + Delta{ .w = 4, .h = 4 },
                              gfx::pixel{ 0, 0, 0, 64 } );
@@ -313,14 +315,18 @@ void Window::draw( rr::Renderer& renderer, Coord where ) const {
     {
       SCOPED_RENDERER_MOD_MUL( painter_mods.alpha, .75 );
       render_shadow_highlight_border(
-          renderer, r.edges_removed( 2 ),
+          renderer, r.with_edges_removed( 2 ),
           config_ui.window.border_dark,
           config_ui.window.border_lighter );
       render_shadow_highlight_border(
-          renderer, r.edges_removed( 1 ),
+          renderer, r.with_edges_removed( 1 ),
           config_ui.window.border_darker,
           config_ui.window.border_light );
     }
+    if( options_.light_outline )
+      rr::draw_empty_rect_faded_corners(
+          renderer, r.with_inc_size().moved_left().moved_up(),
+          pixel::banana() );
   }
 
   view_->draw( renderer, view_pos( where ) );
@@ -829,6 +835,11 @@ WindowPlane::WindowPlane( IEngine& engine )
 WindowManager& WindowPlane::manager() { return impl_->wm; }
 
 wait<> WindowPlane::message_box( string_view msg ) {
+  co_await message_box( msg, MessageBoxOptions{} );
+}
+
+wait<> WindowPlane::message_box(
+    string_view msg, MessageBoxOptions const& options ) {
   wait_promise<> p;
   unique_ptr<Window> win = async_window_builder(
       impl_->wm,
@@ -836,6 +847,7 @@ wait<> WindowPlane::message_box( string_view msg ) {
           manager().engine().textometer(), string( msg ), p ),
       WindowCancelActions{},
       /*auto_pad=*/true );
+  win->options() = options.window;
   // Need to keep p alive since it is held by refererence by the
   // message box view.
   co_await p.wait();

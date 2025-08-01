@@ -11,6 +11,7 @@
 #pragma once
 
 // Revolution Now
+#include "src/co-combinator.hpp"
 #include "src/igui.hpp"
 #include "src/view.hpp"
 
@@ -32,6 +33,10 @@ struct View;
 
 struct MockIGui : IGui {
   MOCK_GUI_METHOD( wait<>, message_box, (std::string const&));
+
+  MOCK_GUI_METHOD( wait<>, message_box,
+                   (MessageBoxOptions const&,
+                    std::string const&));
 
   MOCK_GUI_METHOD( void, transient_message_box,
                    (std::string const&));
@@ -55,6 +60,10 @@ struct MockIGui : IGui {
 
   MOCK_GUI_METHOD( wait<ui::e_ok_cancel>, ok_cancel_box,
                    (std::string const&, ui::View&));
+
+  MOCK_GUI_METHOD( wait<>, ok_cancel_box_async,
+                   (std::string const, ui::View&,
+                    co::stream<ui::e_ok_cancel>&));
 
   MOCK_GUI_METHOD( wait<>, display_woodcut, ( e_woodcut ) );
 
