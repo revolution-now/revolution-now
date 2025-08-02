@@ -530,8 +530,8 @@ wait<> menu_handler( IEngine& engine, SS& ss, TS& ts,
             ss, player, ts.gui, can_declare.error() );
         break;
       }
-      ui::e_confirm const answer =
-          co_await ask_declare( ts.gui, player );
+      ui::e_confirm const answer = co_await ask_declare(
+          ss, ts.gui, ts.connectivity, player );
       if( answer != ui::e_confirm::yes ) break;
       co_await declare( engine, ss, ts, player );
       break;

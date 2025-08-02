@@ -47,7 +47,9 @@ namespace {
 using namespace std;
 
 using ::base::valid;
+using ::gfx::point;
 using ::mock::matchers::_;
+using ::mock::matchers::Field;
 using ::mock::matchers::StrContains;
 using ::refl::enum_values;
 
@@ -64,11 +66,11 @@ struct world : testing::World {
     MapSquare const _ = make_ocean();
     MapSquare const L = make_grassland();
     vector<MapSquare> tiles{
-      L, L, L, //
-      L, _, L, //
-      L, L, L, //
+      L, L, L, L, L, L, L, //
+      L, _, L, L, L, L, _, //
+      L, L, L, L, L, L, L, //
     };
-    build_map( std::move( tiles ), 3 );
+    build_map( std::move( tiles ), 7 );
   }
 };
 
@@ -241,21 +243,71 @@ TEST_CASE( "[declare] show_declare_rejection_msg" ) {
 
 TEST_CASE( "[declare] ask_declare" ) {
   world w;
+  w.update_terrain_connectivity();
 
   w.add_player( e_player::french );
 
   auto const f = [&] {
-    return co_await_test( ask_declare( w.gui(), w.french() ) );
+    return co_await_test( ask_declare(
+        w.ss(), w.gui(), w.connectivity(), w.french() ) );
   };
 
-  w.gui().EXPECT__choice( _ ).returns( nothing );
-  REQUIRE( f() == ui::e_confirm::no );
+  point const kInland = { .x = 4, .y = 1 };
+  point const kAccess = { .x = 6, .y = 2 };
 
-  w.gui().EXPECT__choice( _ ).returns( "no" );
-  REQUIRE( f() == ui::e_confirm::no );
+  w.add_colony( kInland, e_player::french );
 
-  w.gui().EXPECT__choice( _ ).returns( "yes" );
-  REQUIRE( f() == ui::e_confirm::yes );
+  SECTION( "no port colonies" ) {
+    w.gui()
+        .EXPECT__choice(
+            Field( &ChoiceConfig::msg,
+                   StrContains( "we have no port colonies" ) ) )
+        .returns( nothing );
+    REQUIRE( f() == ui::e_confirm::no );
+
+    w.gui()
+        .EXPECT__choice(
+            Field( &ChoiceConfig::msg,
+                   StrContains( "we have no port colonies" ) ) )
+        .returns( "no" );
+    REQUIRE( f() == ui::e_confirm::no );
+
+    w.gui()
+        .EXPECT__choice(
+            Field( &ChoiceConfig::msg,
+                   StrContains( "we have no port colonies" ) ) )
+        .returns( "yes" );
+    w.gui()
+        .EXPECT__choice( Field(
+            &ChoiceConfig::msg,
+            StrContains( "Shall we declare independence" ) ) )
+        .returns( "yes" );
+    REQUIRE( f() == ui::e_confirm::yes );
+  }
+
+  SECTION( "with port colony" ) {
+    w.add_colony( kAccess, e_player::french );
+    w.gui()
+        .EXPECT__choice( Field(
+            &ChoiceConfig::msg,
+            StrContains( "Shall we declare independence" ) ) )
+        .returns( nothing );
+    REQUIRE( f() == ui::e_confirm::no );
+
+    w.gui()
+        .EXPECT__choice( Field(
+            &ChoiceConfig::msg,
+            StrContains( "Shall we declare independence" ) ) )
+        .returns( "no" );
+    REQUIRE( f() == ui::e_confirm::no );
+
+    w.gui()
+        .EXPECT__choice( Field(
+            &ChoiceConfig::msg,
+            StrContains( "Shall we declare independence" ) ) )
+        .returns( "yes" );
+    REQUIRE( f() == ui::e_confirm::yes );
+  }
 }
 
 TEST_CASE( "[declare] declare_independence_ui_sequence_pre" ) {

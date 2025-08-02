@@ -35,6 +35,7 @@ struct ColonyJob;
 struct Player;
 struct SS;
 struct SSConst;
+struct TerrainConnectivity;
 struct TS;
 struct Unit;
 
@@ -133,5 +134,11 @@ void add_unit_to_colony_obj_low_level( SS& ss, TS& ts,
 void remove_unit_from_colony_obj_low_level( SS& ss,
                                             Colony& colony,
                                             UnitId unit_id );
+
+// These are colonies with sea lane access on either the left or
+// right edge of the map.
+std::vector<ColonyId> find_coastal_colonies(
+    SSConst const& ss, TerrainConnectivity const& connectivity,
+    e_player player );
 
 } // namespace rn

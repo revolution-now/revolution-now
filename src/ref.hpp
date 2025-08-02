@@ -71,10 +71,6 @@ wait<> add_ref_unit_ui_seq( IAgent& agent,
 /****************************************************************
 ** REF Unit Deployment.
 *****************************************************************/
-std::vector<ColonyId> find_coastal_colonies(
-    SSConst const& ss, TerrainConnectivity const& connectivity,
-    e_player player );
-
 // Makes an assessment of all the colonist player's colonies and
 // assigns each one a strength score.
 RefColonySelectionMetrics ref_colony_selection_metrics(

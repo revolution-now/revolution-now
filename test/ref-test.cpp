@@ -416,10 +416,6 @@ TEST_CASE( "[ref] add_ref_unit (loop)" ) {
   REQUIRE( force == expected );
 }
 
-TEST_CASE( "[ref] find_coastal_colonies" ) {
-  world w;
-}
-
 TEST_CASE( "[ref] ref_colony_selection_metrics" ) {
   world w;
 }

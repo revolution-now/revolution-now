@@ -858,5 +858,9 @@ TEST_CASE( "[colony-mgr] found_colony finds job for unit." ) {
   // 2. Avoids indian-owned land.
 }
 
+TEST_CASE( "[colony-mgr] find_coastal_colonies" ) {
+  world w;
+}
+
 } // namespace
 } // namespace rn

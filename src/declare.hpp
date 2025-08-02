@@ -30,6 +30,7 @@ struct IGui;
 struct IEngine;
 struct SS;
 struct SSConst;
+struct TerrainConnectivity;
 struct TS;
 struct Player;
 
@@ -48,8 +49,10 @@ wait<> show_declare_rejection_msg( SSConst const& ss,
                                    IGui& gui,
                                    e_declare_rejection reason );
 
-wait<ui::e_confirm> ask_declare( IGui& gui,
-                                 Player const& player );
+wait<ui::e_confirm> ask_declare(
+    SSConst const& ss, IGui& gui,
+    TerrainConnectivity const& connectivity,
+    Player const& player );
 
 wait<> declare_independence_ui_sequence_pre(
     SSConst const& ss, TS& ts, Player const& player );

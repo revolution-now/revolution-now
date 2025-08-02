@@ -19,6 +19,7 @@
 #include "colony-view.hpp"
 #include "colony.rds.hpp"
 #include "commodity.hpp"
+#include "connectivity.hpp"
 #include "construction.hpp"
 #include "damaged.hpp"
 #include "harbor-units.hpp"
@@ -606,6 +607,20 @@ void give_stockade_if_needed( Player const& player,
   if( !player.fathers.has[e_founding_father::sieur_de_la_salle] )
     return;
   colony.buildings[e_colony_building::stockade] = true;
+}
+
+vector<ColonyId> find_coastal_colonies(
+    SSConst const& ss, TerrainConnectivity const& connectivity,
+    e_player const player ) {
+  vector<ColonyId> colonies = ss.colonies.for_player( player );
+  rg::sort( colonies );
+  erase_if( colonies, [&]( ColonyId const colony_id ) {
+    Colony const& colony = ss.colonies.colony_for( colony_id );
+    bool const coastal   = colony_has_ocean_access(
+        ss, connectivity, colony.location );
+    return !coastal;
+  } );
+  return colonies;
 }
 
 } // namespace rn

@@ -13,6 +13,7 @@
 // Revolution Now
 #include "agents.hpp"
 #include "co-wait.hpp"
+#include "colony-mgr.hpp"
 #include "iagent.hpp"
 #include "igui.hpp"
 #include "player-mgr.hpp"
@@ -141,19 +142,34 @@ wait<> show_declare_rejection_msg(
   }
 }
 
-wait<ui::e_confirm> ask_declare( IGui& gui,
-                                 Player const& player ) {
+wait<ui::e_confirm> ask_declare(
+    SSConst const& ss, IGui& gui,
+    TerrainConnectivity const& connectivity,
+    Player const& player ) {
+  if( find_coastal_colonies( ss, connectivity, player.type )
+          .empty() ) {
+    YesNoConfig const config{
+      .msg = format(
+          "Your Excellency, we have no port colonies.  Since "
+          "the loss of all port colonies triggers the loss of "
+          "the war, we will thus lose the war immediately after "
+          "declaring independence. Proceed?" ),
+      .yes_label      = "Yes",
+      .no_label       = "No",
+      .no_comes_first = true };
+    maybe<ui::e_confirm> const answer =
+        co_await gui.optional_yes_no( config );
+    if( answer != ui::e_confirm::yes )
+      co_return ui::e_confirm::no;
+  }
   YesNoConfig const config{
     .msg = format(
         "Shall we declare independence from [{}], Your "
         "Excellency?  Doing so will end this turn and "
         "immediately put us at war with the crown.",
         config_nation.nations[player.nation].country_name ),
-    .yes_label =
-        "Yes! Give me liberty or give me death! ([Leave])",
-    .no_label =
-        "Never! Eternal Glory to His Majesty the King! "
-        "([Remain])",
+    .yes_label = "Yes! Give me liberty or give me death!",
+    .no_label  = "Never! Eternal Glory to His Majesty the King!",
     .no_comes_first = true };
   maybe<ui::e_confirm> const answer =
       co_await gui.optional_yes_no( config );
