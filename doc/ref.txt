@@ -25,10 +25,13 @@ Todo:
 
     If the war starts with zero regulars (even if there are many
     of all other units). In this case, the initial ship brings no
-    units and the REF just forfeights. This smells like a bug of
-    some kind, so we won't be replicating that here. That said,
-    this might just follow from the algo for selecting units to
-    transport, TBD.
+    units and the REF just forfeights. This could be a bug of
+    some kind, so we won't be replicating that here in the sense
+    that we won't send an empty ship. But we will still have the
+    REF forfeight in that case otherwise it would be inconsistent
+    with the normal forfeight rules, which dictate that if there
+    are no REF units on land and the number of regulars in stock
+    is <= 1 (and num ships == 0) then forfeight.
 
   * When an REF ship sails back it will be put back into the
     stock when it arrives. Then it can be used again. That said,
