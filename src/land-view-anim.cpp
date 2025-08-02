@@ -335,6 +335,8 @@ wait<> LandViewAnimator::slide_throttler_impl(
           ? .1
           : .07;
 
+  // In the OG the slide is 1/3 second, or very slightly above.
+  // This config reproduces that.
   slide = {
     .direction   = d,
     .percent     = 0.0,
