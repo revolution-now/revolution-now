@@ -151,7 +151,7 @@ TEST_CASE( "[rebel-sentiment] should_do_war_of_succession" ) {
 
   SECTION( "war of succession already done" ) {
     REQUIRE( f() );
-    w.events().war_of_succession_done = true;
+    w.events().war_of_succession_done = e_nation::french;
     REQUIRE_FALSE( f() );
   }
 
@@ -493,7 +493,7 @@ TEST_CASE( "[rebel-sentiment] do_war_of_succession" ) {
   REQUIRE( w.players().players[e_player::french].has_value() );
   REQUIRE( w.players().players[e_player::french]->control ==
            e_player_control::human );
-  REQUIRE_FALSE( w.events().war_of_succession_done );
+  REQUIRE( w.events().war_of_succession_done == nothing );
 
   plan = {
     .nations            = { .withdraws = e_nation::spanish,
@@ -572,7 +572,8 @@ TEST_CASE( "[rebel-sentiment] do_war_of_succession" ) {
   REQUIRE( w.players().players[e_player::french].has_value() );
   REQUIRE( w.players().players[e_player::french]->control ==
            e_player_control::human );
-  REQUIRE( w.events().war_of_succession_done );
+  REQUIRE( w.events().war_of_succession_done ==
+           e_nation::spanish );
 }
 
 TEST_CASE( "[rebel-sentiment] do_war_of_succession_ui_seq" ) {

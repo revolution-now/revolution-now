@@ -292,7 +292,7 @@ void do_war_of_succession( SS& ss, TS& ts, Player const& player,
       .players[colonial_player_for( plan.nations.withdraws )]
       ->control = e_player_control::inactive;
 
-  ss.events.war_of_succession_done = true;
+  ss.events.war_of_succession_done = plan.nations.withdraws;
 }
 
 wait<> do_war_of_succession_ui_seq(

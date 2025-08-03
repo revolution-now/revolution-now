@@ -8,6 +8,12 @@
 # Description: RDS definitions for save-game events data.
 #
 # ===============================================================
+# ss
+include "ss/nation.rds.hpp"
+
+# base
+include "base/maybe.hpp"
+
 namespace "rn"
 
 # These are tutorial hints that are only enabled by default on
@@ -30,7 +36,12 @@ struct.OneTimeHelp {
 # This state is intended to be for overall global game state
 # changes that don't need per-player representations.
 struct.EventsState {
-  war_of_succession_done 'bool',
+  # When this has a value it means that the war of succession has
+  # been done and gives the nation that was withdrawn. This can
+  # be recovered from the OS sav files in the following way:
+  #   Pre-declaration:  It is the one withdrawn player.
+  #   Post-declaration: It is the one AI player (REF).
+  war_of_succession_done 'base::maybe<e_nation>',
 
   tutorial_hints 'TutorialHints',
 

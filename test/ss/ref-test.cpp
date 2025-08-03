@@ -87,7 +87,7 @@ value cdr_game_state_default = table{
       },
   "events"_key =
       table{
-        "war_of_succession_done"_key = false,
+        "war_of_succession_done"_key = null,
         "tutorial_hints"_key         = table{},
         "one_time_help"_key =
             table{
