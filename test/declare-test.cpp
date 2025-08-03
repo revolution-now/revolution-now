@@ -195,8 +195,14 @@ TEST_CASE( "[declare] can_declare_independence" ) {
     REQUIRE( f( player ) == already_declared );
   }
 
+  SECTION( "other non-human already won" ) {
+    other_player.revolution.status = declared;
+    REQUIRE( f( player ) == valid );
+  }
+
   SECTION( "other_human_already_declared" ) {
     other_player.revolution.status = declared;
+    other_player.control           = e_player_control::human;
     REQUIRE( f( player ) == other_human_already_declared );
   }
 
