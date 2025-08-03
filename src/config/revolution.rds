@@ -46,6 +46,8 @@ struct.RefForces {
   initial_forces 'refl::enum_map<e_difficulty, ExpeditionaryForce>',
 
   target_ratios 'RefTargetRatios',
+
+  ref_can_spawn_ships 'bool',
 }
 
 struct.InterventionForces {

@@ -99,6 +99,31 @@ ref_forces {
     ratio.artillery.percent: 14
     ratio.man_o_war.percent:  9
   }
+
+  # In the OG, during the War of Independence, the REF is able
+  # spawn new Man-o-wars once they run out. This appears to
+  # happen every two turns. Therefore, it is actually mostly ir-
+  # relevant how many Man-o-Wars are accumulated before the war
+  # begins. By default we replicate that behavior here. If this
+  # flag is turned off then two things change:
+  #
+  #   1. New Man-o-Wars will not be spawned during the war, so
+  #      the REF has to make due with whatever number are in
+  #      stock at the time of declaration. This means that it
+  #      must rely on the AI to move ships back to Europe in
+  #      order to reuse them after they've been deployed.
+  #   2. If there are some REF land units remaining in europe but
+  #      there are none in the new world AND there are no more
+  #      Man-o-Wars in stock, then the REF forfeights, whereas it
+  #      would not have done so otherwise knowing that it could
+  #      just spawn more ships to transport the remaining land
+  #      units. This enables a new strategy for winning the war
+  #      focused on naval battle. If the player can eliminate all
+  #      of the Man-o-Wars and then eliminate all REF land units
+  #      that have been deployed then no more will be able to
+  #      come over and the player will win.
+  #
+  ref_can_spawn_ships: true
 }
 
 intervention_forces {

@@ -26,6 +26,7 @@ namespace rn {
 *****************************************************************/
 struct ExpeditionaryForce;
 struct IAgent;
+struct IGui;
 struct ILandViewPlane;
 struct IMapUpdater;
 struct IVisibility;
@@ -121,5 +122,30 @@ wait<> offboard_ref_units( SS& ss, IMapUpdater& map_updater,
                            IAgent& colonial_agent,
                            RefLandingUnits const& landing_units,
                            ColonyId colony_id );
+
+/****************************************************************
+** REF Winning/Forfeight.
+*****************************************************************/
+maybe<e_forfeight_reason> ref_should_forfeight(
+    SSConst const& ss, Player const& ref_player );
+
+void do_ref_forfeight( SS& ss, Player& ref_player );
+
+wait<> ref_forfeight_ui_routine( SSConst const& ss, IGui& gui,
+                                 Player const& ref_player );
+
+maybe<e_ref_win_reason> ref_should_win(
+    SSConst const& ss, TerrainConnectivity const& connectivity,
+    Player const& ref_player );
+
+void do_ref_win( SS& ss, Player const& ref_player );
+
+wait<> ref_win_ui_routine( SSConst const& ss, IGui& gui,
+                           Player const& ref_player,
+                           e_ref_win_reason reason );
+
+/****************************************************************
+** Tory Uprising.
+*****************************************************************/
 
 } // namespace rn

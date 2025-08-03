@@ -373,7 +373,8 @@ void apply_bells( Player& player, int bells_produced ) {
       }
       break;
     }
-    case e_revolution_status::won: {
+    case e_revolution_status::won:
+    case e_revolution_status::lost: {
       // Bells do nothing here.
       player.bells = 0;
       break;

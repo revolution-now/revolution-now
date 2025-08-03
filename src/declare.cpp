@@ -89,7 +89,9 @@ valid_or<e_declare_rejection> can_declare_independence(
     using enum e_revolution_status;
     case not_declared: {
       for( auto const& [type, other] : ss.players.players )
-        if( other.has_value() && type != player.type )
+        if( other.has_value() &&
+            other->control == e_player_control::human &&
+            type != player.type )
           if( other->revolution.status >= declared )
             return other_human_already_declared;
       if( !rebellion_large_enough_to_declare( ss.settings,
@@ -101,6 +103,8 @@ valid_or<e_declare_rejection> can_declare_independence(
       return already_declared;
     case won:
       return already_won;
+    case lost:
+      return lost_war;
   }
 }
 
@@ -133,6 +137,11 @@ wait<> show_declare_rejection_msg(
     case already_won:
       co_await gui.message_box(
           "We have already won the War of Independence." );
+      break;
+    case lost_war:
+      co_await gui.message_box(
+          "We have already fought and lost the War of "
+          "Independence." );
       break;
     case ref_cannot_declare:
       co_await gui.message_box(

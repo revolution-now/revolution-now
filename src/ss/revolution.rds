@@ -16,7 +16,11 @@ namespace "rn"
 enum.e_revolution_status {
   not_declared,
   declared,
-  won, # For the AI player this means "granted".
+  # For the AI player this means "granted".
+  won,
+  # For human players: can be a lost to the REF or just exceeded
+  # time limit.
+  lost,
 }
 
 enum.e_expeditionary_force_type {

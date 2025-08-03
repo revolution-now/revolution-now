@@ -208,6 +208,11 @@ TEST_CASE( "[declare] can_declare_independence" ) {
     player.revolution.status = won;
     REQUIRE( f( player ) == already_won );
   }
+
+  SECTION( "lost_war" ) {
+    player.revolution.status = lost;
+    REQUIRE( f( player ) == lost_war );
+  }
 }
 
 TEST_CASE( "[declare] show_declare_rejection_msg" ) {
@@ -236,6 +241,9 @@ TEST_CASE( "[declare] show_declare_rejection_msg" ) {
 
   expect_msg( "already won" );
   f( already_won );
+
+  expect_msg( "fought and lost" );
+  f( lost_war );
 
   expect_msg( "Royal Expeditionary Force cannot declare" );
   f( ref_cannot_declare );

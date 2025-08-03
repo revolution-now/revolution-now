@@ -228,9 +228,7 @@ valid_or<e_found_colony_err> unit_can_found_colony(
 
   UNWRAP_CHECK_T( Player const& player,
                   ss.players.players[unit.player_type()] );
-  if( player.revolution.status >=
-          e_revolution_status::declared &&
-      player.revolution.status < e_revolution_status::won )
+  if( player.revolution.status >= e_revolution_status::declared )
     return invalid( Res_t::war_of_independence );
 
   if( unit.desc().ship )

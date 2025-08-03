@@ -460,5 +460,29 @@ TEST_CASE( "[ref] offboard_ref_units" ) {
   world w;
 }
 
+TEST_CASE( "[ref] ref_should_forfeight" ) {
+  world w;
+}
+
+TEST_CASE( "[ref] do_ref_forfeight" ) {
+  world w;
+}
+
+TEST_CASE( "[ref] ref_forfeight_ui_routine" ) {
+  world w;
+}
+
+TEST_CASE( "[ref] ref_should_win" ) {
+  world w;
+}
+
+TEST_CASE( "[ref] do_ref_win" ) {
+  world w;
+}
+
+TEST_CASE( "[ref] ref_win_ui_routine" ) {
+  world w;
+}
+
 } // namespace
 } // namespace rn

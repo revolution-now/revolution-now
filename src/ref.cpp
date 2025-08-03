@@ -14,8 +14,10 @@
 #include "anim-builders.hpp"
 #include "co-wait.hpp"
 #include "colony-buildings.hpp"
+#include "colony-mgr.hpp"
 #include "connectivity.hpp"
 #include "iagent.hpp"
+#include "igui.hpp"
 #include "land-view.hpp"
 #include "map-square.hpp"
 #include "ref.rds.hpp"
@@ -30,6 +32,7 @@
 
 // ss
 #include "ss/colonies.hpp"
+#include "ss/land-view.rds.hpp"
 #include "ss/nation.hpp"
 #include "ss/natives.hpp"
 #include "ss/player.rds.hpp"
@@ -37,6 +40,7 @@
 #include "ss/ref.hpp"
 #include "ss/revolution.rds.hpp"
 #include "ss/terrain.hpp"
+#include "ss/turn.rds.hpp"
 #include "ss/units.hpp"
 
 // refl
@@ -918,6 +922,134 @@ wait<> offboard_ref_units( SS& ss, IMapUpdater& map_updater,
     co_await euro_unit_captures( unit,
                                  landing_tile.captured_units );
   }
+}
+
+maybe<e_forfeight_reason> ref_should_forfeight(
+    SSConst const& ss, Player const& ref_player ) {
+  CHECK( is_ref( ref_player.type ) );
+  vector<ColonyId> const ref_colonies =
+      ss.colonies.for_player( ref_player.type );
+  if( !ref_colonies.empty() )
+    // If the REF has captured any colonies, even if they are in-
+    // land, then they don't forfeight.
+    return nothing;
+  unordered_map<UnitId, UnitState::euro const*> const&
+      units_all = ss.units.euro_all();
+  for( auto const [unit_id, p_euro] : units_all ) {
+    Unit const& unit = p_euro->unit;
+    if( unit.player_type() != ref_player.type ) continue;
+    if( !unit.desc().ship )
+      // We have at least one non-ship REF unit, so don't for-
+      // feight. Note that this does not include REF units who
+      // have not yet been transported to the new world, since
+      // those are not yet real units. This means there is a real
+      // REF land unit somewhere on the map.
+      return nothing;
+  }
+  e_player const colonial_player_type =
+      colonial_player_for( nation_for( ref_player.type ) );
+  UNWRAP_CHECK_T( Player const& colonial_player,
+                  ss.players.players[colonial_player_type] );
+  auto const& stock =
+      colonial_player.revolution.expeditionary_force;
+  int const total_ships_in_stock = stock.man_o_war;
+  int const total_land_units_in_stock =
+      stock.regular + stock.cavalry + stock.artillery;
+  // The REF has no colonies and no REF units on land. Therefore
+  // forfeight depends on how many units there are in stock.
+  if( total_land_units_in_stock == 0 )
+    // If we have no more land units then it is impossible to
+    // continue the war, regardless of the number of ships. NOTE:
+    // In a normal game with default rules, this is the only
+    // reason that the REF will forfeight in the NG.
+    return e_forfeight_reason::no_more_land_units_in_stock;
+  // NOTE: By default (as in the OG) ref_can_spawn_ships=true.
+  if( !config_revolution.ref_forces.ref_can_spawn_ships &&
+      total_ships_in_stock == 0 )
+    // We have no more ships with which to transport the re-
+    // maining REF land units and we are not going to spawn new
+    // ones, so therefore the REF must forfeight.
+    return e_forfeight_reason::no_more_ships;
+  if( total_ships_in_stock > 0 )
+    // We have some land units left, and some ships available to
+    // transport them, so don't forfeight.
+    return nothing;
+  // At this point we have some land units left but no ships to
+  // transport them. Because new ships are created every couple
+  // of turns after they run out, it is not a deal breaker that
+  // there are no ships.
+  //
+  // NOTE: In the OG it appears that when regulars hit zero (or a
+  // low number, and some other conditions are met; it is not
+  // clear what the exact behavior is) then the REF forfeights,
+  // even if there are other REF land units on the map and/or in
+  // europe. We don't reproduce that here because it doesn't seem
+  // to make sense and the OG's behavior doesn't seem consistent
+  // in that regard.
+  return nothing;
+}
+
+void do_ref_forfeight( SS& ss, Player& ref_player ) {
+  CHECK( is_ref( ref_player.type ) );
+  e_player const colonial_player_type =
+      colonial_player_for( nation_for( ref_player.type ) );
+  UNWRAP_CHECK_T( Player & colonial_player,
+                  ss.players.players[colonial_player_type] );
+
+  ref_player.control                = e_player_control::inactive;
+  colonial_player.revolution.status = e_revolution_status::won;
+
+  // Destroy all remaining REF units on the map. Under default NG
+  // rules, this would be expected to consist only of empty REF
+  // Man-o-Wars. However, there could be some land units as well
+  // if the regulars_determine_forfeight config flag is set.
+  vector<UnitId> ref_units;
+  for( auto const& [unit_id, p_state] : ss.units.euro_all() ) {
+    Unit const& unit = p_state->unit;
+    if( unit.player_type() != ref_player.type ) continue;
+    ref_units.push_back( unit_id );
+  }
+  destroy_units( ss, ref_units );
+}
+
+wait<> ref_forfeight_ui_routine( SSConst const&, IGui& gui,
+                                 Player const& /*ref_player*/ ) {
+  co_await gui.message_box(
+      "The REF has forfeighted! (TODO: add more here)" );
+  co_await gui.message_box( "(game end routine, e.g. scoring)" );
+}
+
+maybe<e_ref_win_reason> ref_should_win(
+    SSConst const& ss, TerrainConnectivity const& connectivity,
+    Player const& ref_player ) {
+  CHECK( is_ref( ref_player.type ) );
+  e_player const colonial_player_type =
+      colonial_player_for( nation_for( ref_player.type ) );
+  vector<ColonyId> const coastal = find_coastal_colonies(
+      ss, connectivity, colonial_player_type );
+  if( coastal.empty() )
+    // This condition happens if either the player has never had
+    // any port colonies since declaration (in which case they
+    // lose immediately) or if the REF has captured them.
+    return e_ref_win_reason::port_colonies_captured;
+  return nothing;
+}
+
+void do_ref_win( SS& ss, Player const& ref_player ) {
+  CHECK( is_ref( ref_player.type ) );
+  e_player const colonial_player_type =
+      colonial_player_for( nation_for( ref_player.type ) );
+  UNWRAP_CHECK_T( Player & colonial_player,
+                  ss.players.players[colonial_player_type] );
+
+  colonial_player.revolution.status = e_revolution_status::lost;
+}
+
+wait<> ref_win_ui_routine( SSConst const&, IGui& gui,
+                           Player const& /*ref_player*/,
+                           e_ref_win_reason const /*reason*/ ) {
+  co_await gui.message_box( "The REF has won." );
+  co_await gui.message_box( "(game end routine, e.g. scoring)" );
 }
 
 } // namespace rn

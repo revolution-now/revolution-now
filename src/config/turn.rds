@@ -13,14 +13,20 @@ namespace "rn.config.turn"
 # How many turns to wait from the start of the game until certain
 # things start happening. Specifically, each thing will not be
 # done until the turns elapsed is >= to the specified value.
-struct.turns_to_wait {
+struct.TurnsToWait {
   market_evolution 'int',
+}
+
+struct.GameEnding {
+  deadline_for_winning 'base::maybe<int>',
 }
 
 namespace "rn"
 
 struct.config_turn_t {
-  turns_to_wait 'config::turn::turns_to_wait',
+  turns_to_wait 'config::turn::TurnsToWait',
+
+  game_ending 'config::turn::GameEnding',
 }
 
 config.turn {}

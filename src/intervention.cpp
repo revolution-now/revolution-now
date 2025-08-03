@@ -102,8 +102,7 @@ e_nation select_nation_for_intervention(
 bool should_trigger_intervention( SSConst const& ss,
                                   Player const& player ) {
   using enum e_revolution_status;
-  if( player.revolution.status < declared ) return false;
-  if( player.revolution.status >= won ) return false;
+  if( player.revolution.status != declared ) return false;
   if( player.revolution.intervention_force_deployed )
     return false;
   if( player.bells <

@@ -6,3 +6,12 @@ turns_to_wait {
   # that stage anyway.
   market_evolution: 10
 }
+
+# Things related to winning/losing the game.
+game_ending {
+  # This gives the year at which the player will be forced to
+  # surrender (and lose the game) if independence hasn't been
+  # both declared and won. This can be `null` in which case there
+  # is no time limit.
+  deadline_for_winning: 1850
+}

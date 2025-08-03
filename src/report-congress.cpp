@@ -182,10 +182,9 @@ Layout layout_auto( SSConst const& ss, Player const& player,
   }();
 
   [&] {
-    if( player.revolution.status <
-            e_revolution_status::declared ||
-        player.revolution.status >= e_revolution_status::won )
-      // No more intervention force after this.
+    if( player.revolution.status !=
+        e_revolution_status::declared )
+      // No more intervention force before/after war.
       return;
     if( player.revolution.intervention_force_deployed ) return;
     auto const bells_needed =
