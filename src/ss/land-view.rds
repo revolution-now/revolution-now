@@ -23,6 +23,9 @@ sumtype.MapRevealed {
   # This should be first so that it is the default.
   no_special_view {},
 
+  # NOTE: don't set this directly; use the helper method in the
+  # map-view module since other things need to be done when this
+  # is set.
   entire {},
 
   player {

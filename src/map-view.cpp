@@ -12,6 +12,7 @@
 #include "map-view.hpp"
 
 // Revolution Now
+#include "game-options.hpp"
 #include "roles.hpp"
 #include "society.hpp"
 #include "unit-mgr.hpp"
@@ -19,7 +20,9 @@
 
 // ss
 #include "ss/colonies.rds.hpp"
+#include "ss/land-view.rds.hpp"
 #include "ss/ref.hpp"
+#include "ss/settings.rds.hpp"
 
 using namespace std;
 
@@ -32,6 +35,19 @@ using ::base::nothing;
 using ::gfx::point;
 
 } // namespace
+
+/****************************************************************
+** Map revealed.
+*****************************************************************/
+void reveal_entire_map( SS& ss, TS& ts ) {
+  ss.land_view.map_revealed = MapRevealed::entire{};
+  disable_game_option( ss, ts,
+                       e_game_menu_option::show_indian_moves );
+  disable_game_option( ss, ts,
+                       e_game_menu_option::show_foreign_moves );
+  // Redraw.
+  update_map_visibility( ts, /*player=*/nothing );
+}
 
 /****************************************************************
 ** Colonies.

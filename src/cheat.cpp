@@ -21,7 +21,6 @@
 #include "declare.hpp"
 #include "fathers.hpp"
 #include "fog-conv.hpp"
-#include "game-options.hpp"
 #include "iagent.hpp"
 #include "icolony-evolve.rds.hpp"
 #include "iengine.hpp"
@@ -31,6 +30,7 @@
 #include "interrupts.hpp"
 #include "intervention.hpp"
 #include "land-view.hpp"
+#include "map-view.hpp"
 #include "market.hpp"
 #include "plane-stack.hpp"
 #include "player-mgr.hpp"
@@ -110,16 +110,6 @@ bool can_remove_building( Colony const& colony,
   maybe<e_indoor_job> job = indoor_job_for_slot( slot );
   if( !job.has_value() ) return true;
   return colony.indoor_jobs[*job].empty();
-}
-
-void reveal_map_qol( SS& ss, TS& ts ) {
-  // These technically don't need to be disabled, but it is just
-  // a QoL thing for the player (actually the OG does this as
-  // well).
-  disable_game_option( ss, ts,
-                       e_game_menu_option::show_indian_moves );
-  disable_game_option( ss, ts,
-                       e_game_menu_option::show_foreign_moves );
 }
 
 // This just decides if cheat functions should be enabled by de-
@@ -230,9 +220,9 @@ wait<> cheat_reveal_map( SS& ss, TS& ts ) {
           MapRevealed::player{ .type = e_player::ref_dutch };
       break;
     case e_cheat_reveal_map::entire_map:
-      reveal_map_qol( ss, ts );
-      revealed = MapRevealed::entire{};
-      break;
+      // This method does everything needed, including redrawing.
+      reveal_entire_map( ss, ts );
+      co_return;
     case e_cheat_reveal_map::no_special_view:
       revealed = MapRevealed::no_special_view{};
       break;
@@ -559,13 +549,13 @@ void cheat_toggle_reveal_full_map( SS& ss, TS& ts ) {
   MapRevealed& revealed = ss.land_view.map_revealed;
   if( revealed.holds<MapRevealed::no_special_view>() ||
       revealed.holds<MapRevealed::player>() ) {
-    reveal_map_qol( ss, ts );
-    revealed = MapRevealed::entire{};
+    // This will do the redrawing as well.
+    reveal_entire_map( ss, ts );
   } else {
     revealed = MapRevealed::no_special_view{};
+    update_map_visibility(
+        ts, player_for_role( ss, e_player_role::viewer ) );
   }
-  update_map_visibility(
-      ts, player_for_role( ss, e_player_role::viewer ) );
 }
 
 wait<> cheat_edit_fathers( IEngine& engine, SS& ss, TS& ts,

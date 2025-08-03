@@ -354,5 +354,9 @@ TEST_CASE( "[map-view] can_activate_units_on_tile" ) {
   }
 }
 
+TEST_CASE( "[map-view] reveal_entire_map" ) {
+  world w;
+}
+
 } // namespace
 } // namespace rn
