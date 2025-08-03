@@ -1,42 +1,18 @@
 Todo:
 
-  * The colony is chosen by first checking if there are any
-    colonies that are completely undefended (no non-scout mili-
-    tary units at the gate) and, if there are, choosing the
-    colony among them that was founded first. If there are none,
-    then it will choose among all colonies and pick the one that
-    was founded first. In the NG, "founded first" translates to
-    "the smallest colony ID".
-
-  * REF Forfeight algo:
-
-      Forfeight happens at the end of the REF's turn.
-
-      If there are REF land units on the map, no matter what type
-      or what continent, the war goes on, and new ships get cre-
-      ated if needed.
-
-      Else if regulars in stock <= 1 and ships in stock == 0
-      then forfeight.
-
-    It doesn't seem to mean anything on its own when the REF runs
-    out of ships, it just creates more, at a rate of one every
-    two turns, provided the REF hasn't forfeighted.
-
-    If the war starts with zero regulars (even if there are many
-    of all other units). In this case, the initial ship brings no
-    units and the REF just forfeights. This could be a bug of
-    some kind, so we won't be replicating that here in the sense
-    that we won't send an empty ship. But we will still have the
-    REF forfeight in that case otherwise it would be inconsistent
-    with the normal forfeight rules, which dictate that if there
-    are no REF units on land and the number of regulars in stock
-    is <= 1 (and num ships == 0) then forfeight.
+  * Depending on the SoL in a colony, there can be tory uprisings
+    around a colony. Need to investigate this. In the OG this can
+    happen after the war is one as well (when the player has
+    opted to "keep playing"), but we will not do that here.
 
   * When an REF ship sails back it will be put back into the
     stock when it arrives. Then it can be used again. That said,
     even if there are no ships left, a new one seems to be pro-
     duced every two turns, provided the REF hasn't forfeighted.
+
+  * The SG indicates that, after declaration, the production
+    within a colony gets penalized the higher the tory sentiment.
+    Don't think this has been observed, but should be checked.
 
 Done:
 
@@ -198,3 +174,34 @@ Done:
     some deterministic algorithm, then look at the land sur-
     rounding it for visitor_nation together with the colony de-
     fenses, then it decides the units to bring.
+
+  * The colony is chosen by first checking if there are any
+    colonies that are completely undefended (no non-scout mili-
+    tary units at the gate) and, if there are, choosing the
+    colony among them that was founded first. If there are none,
+    then it will choose among all colonies and pick the one that
+    was founded first. In the NG, "founded first" translates to
+    "the smallest colony ID".
+
+  * REF Forfeight algo:
+
+      Forfeight happens at the end of the REF's turn.
+
+      If there are REF land units on the map, no matter what type
+      or what continent, or if there are any REF owned colonies
+      (even inland) the war goes on, and new ships get created if
+      needed.
+
+      Else if regulars in stock <= 1 and ships in stock == 0
+      then forfeight.
+
+    It doesn't seem to mean anything on its own when the REF runs
+    out of ships, it just creates more, at a rate of one every
+    two turns, provided the REF hasn't forfeighted.
+
+    If the war starts with zero regulars (even if there are many
+    of all other units). In this case, the initial ship brings no
+    units and the REF just forfeights. This could be a bug of
+    some kind, so we won't be replicating that here, since our
+    rules dictate that if there are ships remaining and some land
+    units remaining (of any type) then there is no forfeight.
