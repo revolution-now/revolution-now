@@ -15,13 +15,17 @@
 
 // Testing.
 #include "test/fake/world.hpp"
+#include "test/mocks/land-view-plane.hpp"
 
 // Revolution Now
 #include "src/imap-updater.hpp"
+#include "src/plane-stack.hpp"
 #include "src/visibility.hpp"
 
 // ss
+#include "src/ss/land-view.rds.hpp"
 #include "src/ss/ref.hpp"
+#include "src/ss/settings.rds.hpp"
 #include "src/ss/unit-composition.hpp"
 
 // Must be last.
@@ -356,6 +360,33 @@ TEST_CASE( "[map-view] can_activate_units_on_tile" ) {
 
 TEST_CASE( "[map-view] reveal_entire_map" ) {
   world w;
+  MockLandViewPlane mock_land_view;
+  w.planes().get().set_bottom<ILandViewPlane>( mock_land_view );
+
+  auto const f = [&] [[clang::noinline]] {
+    reveal_entire_map( w.ss(), w.ts() );
+  };
+
+  auto& show_indian_moves =
+      w.settings().in_game_options.game_menu_options
+          [e_game_menu_option::show_indian_moves];
+  auto& show_foreign_moves =
+      w.settings().in_game_options.game_menu_options
+          [e_game_menu_option::show_foreign_moves];
+  auto const& map_revealed = w.land_view().map_revealed;
+
+  // Starting state sanity check.
+  REQUIRE_FALSE( show_indian_moves );
+  REQUIRE_FALSE( show_foreign_moves );
+  REQUIRE( map_revealed.holds<MapRevealed::no_special_view>() );
+
+  show_indian_moves  = true;
+  show_foreign_moves = true;
+  mock_land_view.EXPECT__set_visibility( maybe<e_player>{} );
+  f();
+  REQUIRE_FALSE( show_indian_moves );
+  REQUIRE_FALSE( show_foreign_moves );
+  REQUIRE( map_revealed.holds<MapRevealed::entire>() );
 }
 
 } // namespace
