@@ -790,7 +790,7 @@
                 "bit_struct":
                 {
                     "__key_order": [
-                        "unknown00",
+                        "tory_uprising",
                         "level2_sol_bonus",
                         "level1_sol_bonus",
                         "inefficient_govt_notified",
@@ -799,7 +799,7 @@
                         "port_colony",
                         "construction_complete_blinking"
                     ],
-                    "unknown00": {"size": 1, "type": "bit_bool"},
+                    "tory_uprising": {"size": 1, "type": "bit_bool", "__hint": "set when there is a Tory Uprising in a colony so that it won't happen again in that colony."},
                     "level2_sol_bonus": {"size": 1, "type": "bit_bool", "__hint": "received at 100% SoL membership."},
                     "level1_sol_bonus": {"size": 1, "type": "bit_bool", "__hint": "received at 50% SoL membership."},
                     "inefficient_govt_notified": {"size": 1, "type": "bit_bool", "__hint": "The player has been notified that this colony has an inefficient government."},

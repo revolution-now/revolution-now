@@ -196,7 +196,7 @@
       "nation_id": "France",
       "unknown08a": "50",
       "colony_flags": {
-        "unknown00": false,
+        "tory_uprising": false,
         "level2_sol_bonus": false,
         "level1_sol_bonus": false,
         "inefficient_govt_notified": false,
@@ -440,7 +440,7 @@
       "nation_id": "Netherlands",
       "unknown08a": "00",
       "colony_flags": {
-        "unknown00": false,
+        "tory_uprising": false,
         "level2_sol_bonus": true,
         "level1_sol_bonus": true,
         "inefficient_govt_notified": false,
@@ -684,7 +684,7 @@
       "nation_id": "England",
       "unknown08a": "c4",
       "colony_flags": {
-        "unknown00": false,
+        "tory_uprising": false,
         "level2_sol_bonus": true,
         "level1_sol_bonus": true,
         "inefficient_govt_notified": false,
@@ -928,7 +928,7 @@
       "nation_id": "England",
       "unknown08a": "c0",
       "colony_flags": {
-        "unknown00": false,
+        "tory_uprising": false,
         "level2_sol_bonus": false,
         "level1_sol_bonus": false,
         "inefficient_govt_notified": false,
@@ -1172,7 +1172,7 @@
       "nation_id": "France",
       "unknown08a": "d0",
       "colony_flags": {
-        "unknown00": false,
+        "tory_uprising": false,
         "level2_sol_bonus": false,
         "level1_sol_bonus": true,
         "inefficient_govt_notified": false,
@@ -1416,7 +1416,7 @@
       "nation_id": "England",
       "unknown08a": "d4",
       "colony_flags": {
-        "unknown00": false,
+        "tory_uprising": false,
         "level2_sol_bonus": false,
         "level1_sol_bonus": false,
         "inefficient_govt_notified": false,
@@ -1660,7 +1660,7 @@
       "nation_id": "England",
       "unknown08a": "90",
       "colony_flags": {
-        "unknown00": false,
+        "tory_uprising": false,
         "level2_sol_bonus": true,
         "level1_sol_bonus": true,
         "inefficient_govt_notified": false,
@@ -1904,7 +1904,7 @@
       "nation_id": "Netherlands",
       "unknown08a": "00",
       "colony_flags": {
-        "unknown00": false,
+        "tory_uprising": false,
         "level2_sol_bonus": true,
         "level1_sol_bonus": true,
         "inefficient_govt_notified": false,
@@ -2148,7 +2148,7 @@
       "nation_id": "Netherlands",
       "unknown08a": "d8",
       "colony_flags": {
-        "unknown00": false,
+        "tory_uprising": false,
         "level2_sol_bonus": true,
         "level1_sol_bonus": true,
         "inefficient_govt_notified": false,
@@ -2392,7 +2392,7 @@
       "nation_id": "Netherlands",
       "unknown08a": "00",
       "colony_flags": {
-        "unknown00": false,
+        "tory_uprising": false,
         "level2_sol_bonus": true,
         "level1_sol_bonus": true,
         "inefficient_govt_notified": false,
@@ -2636,7 +2636,7 @@
       "nation_id": "Netherlands",
       "unknown08a": "00",
       "colony_flags": {
-        "unknown00": false,
+        "tory_uprising": false,
         "level2_sol_bonus": true,
         "level1_sol_bonus": true,
         "inefficient_govt_notified": false,
@@ -2880,7 +2880,7 @@
       "nation_id": "France",
       "unknown08a": "84",
       "colony_flags": {
-        "unknown00": false,
+        "tory_uprising": false,
         "level2_sol_bonus": true,
         "level1_sol_bonus": true,
         "inefficient_govt_notified": false,
@@ -3124,7 +3124,7 @@
       "nation_id": "Netherlands",
       "unknown08a": "00",
       "colony_flags": {
-        "unknown00": false,
+        "tory_uprising": false,
         "level2_sol_bonus": true,
         "level1_sol_bonus": true,
         "inefficient_govt_notified": false,
@@ -3368,7 +3368,7 @@
       "nation_id": "England",
       "unknown08a": "c8",
       "colony_flags": {
-        "unknown00": false,
+        "tory_uprising": false,
         "level2_sol_bonus": true,
         "level1_sol_bonus": true,
         "inefficient_govt_notified": false,
@@ -3612,7 +3612,7 @@
       "nation_id": "England",
       "unknown08a": "e4",
       "colony_flags": {
-        "unknown00": false,
+        "tory_uprising": false,
         "level2_sol_bonus": true,
         "level1_sol_bonus": true,
         "inefficient_govt_notified": false,
@@ -3856,7 +3856,7 @@
       "nation_id": "Netherlands",
       "unknown08a": "00",
       "colony_flags": {
-        "unknown00": false,
+        "tory_uprising": false,
         "level2_sol_bonus": true,
         "level1_sol_bonus": true,
         "inefficient_govt_notified": false,
@@ -4100,7 +4100,7 @@
       "nation_id": "Netherlands",
       "unknown08a": "00",
       "colony_flags": {
-        "unknown00": false,
+        "tory_uprising": false,
         "level2_sol_bonus": true,
         "level1_sol_bonus": true,
         "inefficient_govt_notified": false,
@@ -4344,7 +4344,7 @@
       "nation_id": "Netherlands",
       "unknown08a": "00",
       "colony_flags": {
-        "unknown00": false,
+        "tory_uprising": false,
         "level2_sol_bonus": true,
         "level1_sol_bonus": true,
         "inefficient_govt_notified": false,
@@ -4588,7 +4588,7 @@
       "nation_id": "France",
       "unknown08a": "d0",
       "colony_flags": {
-        "unknown00": false,
+        "tory_uprising": false,
         "level2_sol_bonus": false,
         "level1_sol_bonus": false,
         "inefficient_govt_notified": false,
@@ -4832,7 +4832,7 @@
       "nation_id": "England",
       "unknown08a": "d4",
       "colony_flags": {
-        "unknown00": false,
+        "tory_uprising": false,
         "level2_sol_bonus": false,
         "level1_sol_bonus": true,
         "inefficient_govt_notified": false,
@@ -5076,7 +5076,7 @@
       "nation_id": "Netherlands",
       "unknown08a": "00",
       "colony_flags": {
-        "unknown00": false,
+        "tory_uprising": false,
         "level2_sol_bonus": true,
         "level1_sol_bonus": true,
         "inefficient_govt_notified": false,
@@ -5320,7 +5320,7 @@
       "nation_id": "England",
       "unknown08a": "d0",
       "colony_flags": {
-        "unknown00": false,
+        "tory_uprising": false,
         "level2_sol_bonus": false,
         "level1_sol_bonus": true,
         "inefficient_govt_notified": false,
@@ -5564,7 +5564,7 @@
       "nation_id": "France",
       "unknown08a": "d8",
       "colony_flags": {
-        "unknown00": false,
+        "tory_uprising": false,
         "level2_sol_bonus": false,
         "level1_sol_bonus": false,
         "inefficient_govt_notified": false,
@@ -5808,7 +5808,7 @@
       "nation_id": "England",
       "unknown08a": "b0",
       "colony_flags": {
-        "unknown00": false,
+        "tory_uprising": false,
         "level2_sol_bonus": false,
         "level1_sol_bonus": false,
         "inefficient_govt_notified": false,
@@ -6052,7 +6052,7 @@
       "nation_id": "France",
       "unknown08a": "90",
       "colony_flags": {
-        "unknown00": false,
+        "tory_uprising": false,
         "level2_sol_bonus": false,
         "level1_sol_bonus": true,
         "inefficient_govt_notified": false,
@@ -6296,7 +6296,7 @@
       "nation_id": "France",
       "unknown08a": "d8",
       "colony_flags": {
-        "unknown00": false,
+        "tory_uprising": false,
         "level2_sol_bonus": false,
         "level1_sol_bonus": false,
         "inefficient_govt_notified": false,
@@ -6540,7 +6540,7 @@
       "nation_id": "France",
       "unknown08a": "b0",
       "colony_flags": {
-        "unknown00": false,
+        "tory_uprising": false,
         "level2_sol_bonus": false,
         "level1_sol_bonus": false,
         "inefficient_govt_notified": false,

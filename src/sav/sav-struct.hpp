@@ -1167,7 +1167,7 @@ cdr::result<PlayerFlags> from_canonical(
 ** ColonyFlags
 *****************************************************************/
 struct ColonyFlags {
-  bool unknown00 : 1 = {};
+  bool tory_uprising : 1 = {};
   bool level2_sol_bonus : 1 = {};
   bool level1_sol_bonus : 1 = {};
   bool inefficient_govt_notified : 1 = {};

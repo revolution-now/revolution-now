@@ -2493,7 +2493,7 @@ cdr::result<PlayerFlags> from_canonical(
 *****************************************************************/
 void to_str( ColonyFlags const& o, std::string& out, base::tag<ColonyFlags> ) {
   out += "ColonyFlags{";
-  out += "unknown00="; base::to_str( o.unknown00, out ); out += ',';
+  out += "tory_uprising="; base::to_str( o.tory_uprising, out ); out += ',';
   out += "level2_sol_bonus="; base::to_str( o.level2_sol_bonus, out ); out += ',';
   out += "level1_sol_bonus="; base::to_str( o.level1_sol_bonus, out ); out += ',';
   out += "inefficient_govt_notified="; base::to_str( o.inefficient_govt_notified, out ); out += ',';
@@ -2508,7 +2508,7 @@ void to_str( ColonyFlags const& o, std::string& out, base::tag<ColonyFlags> ) {
 bool read_binary( base::IBinaryIO& b, ColonyFlags& o ) {
   uint8_t bits = 0;
   if( !b.read_bytes<1>( bits ) ) return false;
-  o.unknown00 = (bits & 0b1); bits >>= 1;
+  o.tory_uprising = (bits & 0b1); bits >>= 1;
   o.level2_sol_bonus = (bits & 0b1); bits >>= 1;
   o.level1_sol_bonus = (bits & 0b1); bits >>= 1;
   o.inefficient_govt_notified = (bits & 0b1); bits >>= 1;
@@ -2528,7 +2528,7 @@ bool write_binary( base::IBinaryIO& b, ColonyFlags const& o ) {
   bits |= (o.inefficient_govt_notified & 0b1); bits <<= 1;
   bits |= (o.level1_sol_bonus & 0b1); bits <<= 1;
   bits |= (o.level2_sol_bonus & 0b1); bits <<= 1;
-  bits |= (o.unknown00 & 0b1); bits <<= 0;
+  bits |= (o.tory_uprising & 0b1); bits <<= 0;
   return b.write_bytes<1>( bits );
 }
 
@@ -2536,7 +2536,7 @@ cdr::value to_canonical( cdr::converter& conv,
                          ColonyFlags const& o,
                          cdr::tag_t<ColonyFlags> ) {
   cdr::table tbl;
-  conv.to_field( tbl, "unknown00", o.unknown00 );
+  conv.to_field( tbl, "tory_uprising", o.tory_uprising );
   conv.to_field( tbl, "level2_sol_bonus", o.level2_sol_bonus );
   conv.to_field( tbl, "level1_sol_bonus", o.level1_sol_bonus );
   conv.to_field( tbl, "inefficient_govt_notified", o.inefficient_govt_notified );
@@ -2545,7 +2545,7 @@ cdr::value to_canonical( cdr::converter& conv,
   conv.to_field( tbl, "port_colony", o.port_colony );
   conv.to_field( tbl, "construction_complete_blinking", o.construction_complete_blinking );
   tbl["__key_order"] = cdr::list{
-    "unknown00",
+    "tory_uprising",
     "level2_sol_bonus",
     "level1_sol_bonus",
     "inefficient_govt_notified",
@@ -2564,7 +2564,7 @@ cdr::result<ColonyFlags> from_canonical(
   UNWRAP_RETURN( tbl, conv.ensure_type<cdr::table>( v ) );
   ColonyFlags res = {};
   std::set<std::string> used_keys;
-  CONV_FROM_FIELD( "unknown00", unknown00 );
+  CONV_FROM_FIELD( "tory_uprising", tory_uprising );
   CONV_FROM_FIELD( "level2_sol_bonus", level2_sol_bonus );
   CONV_FROM_FIELD( "level1_sol_bonus", level1_sol_bonus );
   CONV_FROM_FIELD( "inefficient_govt_notified", inefficient_govt_notified );
