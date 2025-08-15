@@ -1,5 +1,25 @@
 Todo:
 
+  * There is an additional losing condition which appears to
+    happen when the King controls 90% of the population of the
+    new world, even if there are rebel coastal colonies still un-
+    captured (not 100% sure about this, need to confirm).
+
+  * The OG has a field called ref_captured_colony. Need to figure
+    out how/when this is set.
+
+  * When an REF ship sails back it will be put back into the
+    stock when it arrives. Then it can be used again. That said,
+    even if there are no ships left, a new one seems to be pro-
+    duced every two turns, provided the REF hasn't forfeighted.
+
+  * When the REF own a colony the flag is not white but the color
+    of the pre-declaration colonial nation.
+
+  * The SG indicates that, after declaration, the production
+    within a colony gets penalized the higher the tory sentiment.
+    Don't think this has been observed, but should be checked.
+
   Tory Uprisings:
 
     * Starts happening once the REF units in stock are destroyed,
@@ -101,41 +121,6 @@ Todo:
         - dragoons
         - v. soldiers
         - v. dragoons
-
-  * REF ship resupply:
-
-    * When the REF has no ships in stock or in the new world then
-      it will produce a new one every second turn. The way it
-      does this is that on a turn that it would have deployed, if
-      there are no ships either in stock or in the new world,
-      then it will create one in stock, but not deploy. Then on
-      the next turn it will see that ship and deploy it.
-
-    * This only happens when there would be more units to deploy.
-
-  * There is an additional losing condition which appears to
-    happen when the King controls 90% of the population of the
-    new world, even if there are rebel coastal colonies still un-
-    captured (not 100% sure about this, need to confirm).
-
-  * The OG has a field called ref_captured_colony. Need to figure
-    out how/when this is set.
-
-  * When an REF ship sails back it will be put back into the
-    stock when it arrives. Then it can be used again. That said,
-    even if there are no ships left, a new one seems to be pro-
-    duced every two turns, provided the REF hasn't forfeighted.
-
-  * When the REF own a colony the flag is not white but the color
-    of the pre-declaration colonial nation.
-
-  * The SG indicates that, after declaration, the production
-    within a colony gets penalized the higher the tory sentiment.
-    Don't think this has been observed, but should be checked.
-
-  * NOTE: when colony population is decreased manually, there are
-    some residual production icons on the unoccupied land tiles.
-    These may be stored in an unknown field in the sav file.
 
 Done:
 
@@ -328,3 +313,14 @@ Done:
     some kind, so we won't be replicating that here, since our
     rules dictate that if there are ships remaining and some land
     units remaining (of any type) then there is no forfeight.
+
+  * REF ship resupply:
+
+    * When the REF has no ships in stock or in the new world then
+      it will produce a new one every second turn. The way it
+      does this is that on a turn that it would have deployed, if
+      there are no ships either in stock or in the new world,
+      then it will create one in stock, but not deploy. Then on
+      the next turn it will see that ship and deploy it.
+
+    * This only happens when there would be more units to deploy.
