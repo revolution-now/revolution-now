@@ -78,10 +78,6 @@ struct.RevolutionState {
   # mode. For that purpose it is also useful for us.
   ref_will_forfeit 'bool',
 
-  # TODO: need to represent other state such as "Tory Uprising".
-  # Some say this is caused by loyalty in a single colony. Maybe
-  # this is better stored in the colony state.
-
   # Royal expeditionary force.
   expeditionary_force 'ExpeditionaryForce',
 
