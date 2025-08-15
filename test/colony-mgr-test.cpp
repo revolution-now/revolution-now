@@ -18,6 +18,7 @@
 
 // Revolution Now
 #include "src/colony-mgr.hpp"
+#include "src/connectivity.rds.hpp"
 #include "src/harbor-units.hpp"
 #include "src/imap-updater.hpp"
 #include "src/map-square.hpp"
@@ -46,6 +47,7 @@ using namespace rn;
 
 using ::Catch::UnorderedEquals;
 
+using ::gfx::point;
 using ::mock::matchers::_;
 
 /****************************************************************
@@ -65,15 +67,16 @@ struct world : testing::World {
     MapSquare const L = make_grassland();
     // clang-format off
     vector<MapSquare> tiles{
-      _, L, _, L, L, L,
-      L, L, L, L, L, L,
-      _, L, L, L, L, L,
-      _, L, _, L, L, L,
-      _, L, L, L, L, L,
-      L, L, L, L, L, L,
+    // 0  1  2  3  4  5  6  7  8
+       _, L, _, L, L, L, L, L, _, // 0
+       L, L, L, L, L, L, _, L, _, // 1
+       _, L, L, L, L, L, L, L, _, // 2
+       _, L, _, L, L, L, L, _, _, // 3
+       _, L, L, L, L, L, L, L, _, // 4
+       L, L, L, L, L, L, L, L, _, // 5
     };
     // clang-format on
-    build_map( std::move( tiles ), 6 );
+    build_map( std::move( tiles ), 9 );
   }
 };
 
@@ -851,15 +854,49 @@ TEST_CASE( "[colony-mgr] is_valid_new_colony_name" ) {
   REQUIRE( f() == valid );
 }
 
-TEST_CASE( "[colony-mgr] found_colony finds job for unit." ) {
-  // TODO
-  //
-  // 1. Avoids indian villages.
-  // 2. Avoids indian-owned land.
-}
-
 TEST_CASE( "[colony-mgr] find_coastal_colonies" ) {
   world w;
+  w.update_terrain_connectivity();
+
+  TerrainConnectivity const& connectivity = w.connectivity();
+
+  auto const f = [&] {
+    return find_coastal_colonies( w.ss(), connectivity,
+                                  w.default_player_type() );
+  };
+
+  point const kColony1 = { .x = 5, .y = 1 };
+  point const kColony2 = { .x = 6, .y = 3 };
+  point const kColony3 = { .x = 6, .y = 2 };
+
+  // Sanity check that the water tiles (which are to the right of
+  // each colony site) have the expected access to the right edge
+  // of the map.
+  auto const idx1 =
+      connectivity.indices[kColony1.y *
+                               w.terrain().world_size_tiles().w +
+                           kColony1.x + 1];
+  auto const idx2 =
+      connectivity.indices[kColony2.y *
+                               w.terrain().world_size_tiles().w +
+                           kColony2.x + 1];
+
+  INFO( format( "idx1={}, idx2={}", idx1, idx2 ) );
+  BASE_CHECK( idx1 == 5 );
+  BASE_CHECK( idx2 == 4 );
+
+  BASE_CHECK(
+      !connectivity.indices_with_right_edge_access.contains(
+          idx1 ) );
+  BASE_CHECK(
+      connectivity.indices_with_right_edge_access.contains(
+          idx2 ) );
+
+  w.add_colony( kColony1 );
+  ColonyId const colony_id_2 = w.add_colony( kColony2 ).id;
+  ColonyId const colony_id_3 = w.add_colony( kColony3 ).id;
+
+  REQUIRE( f() == vector<ColonyId>{ colony_id_2, colony_id_3 } );
 }
 
 } // namespace
