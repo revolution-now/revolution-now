@@ -47,6 +47,14 @@ struct.GameSetupOptions {
   # four slots, after the war of independence. We may want to
   # warn the player about that.
   disable_war_of_succession 'bool',
+
+  # TODO: consider adding a game option to not disable foreign
+  # powers after declaration. The SG states that the OG did this
+  # due to the internal limit on the number of units that can be
+  # in existence at at time, a limit that we don't have. Since
+  # this could have a significant effect on gameplay, we should
+  # probably reproduce the OG's behavior by default, but allow
+  # that to be changed in the game customization settings.
 }
 
 struct.CheatOptions {
