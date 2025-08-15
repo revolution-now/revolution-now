@@ -101,11 +101,11 @@ ref_forces {
   }
 
   # In the OG, during the War of Independence, the REF is able
-  # spawn new Man-o-wars once they run out. This appears to
-  # happen every two turns. Therefore, it is actually mostly ir-
-  # relevant how many Man-o-Wars are accumulated before the war
-  # begins. By default we replicate that behavior here. If this
-  # flag is turned off then two things change:
+  # spawn new Man-o-wars once they run out. This happens every
+  # two turns. Therefore, it is actually mostly irrelevant how
+  # many Man-o-Wars are accumulated before the war begins. By de-
+  # fault we replicate that behavior here. If this flag is turned
+  # off then two things change:
   #
   #   1. New Man-o-Wars will not be spawned during the war, so
   #      the REF has to make due with whatever number are in
@@ -123,6 +123,9 @@ ref_forces {
   #      that have been deployed then no more will be able to
   #      come over and the player will win.
   #
+  # Because the value of this flag has a significant effect on
+  # the dynamics of the war, we default it to true which repli-
+  # cates the OG.
   ref_can_spawn_ships: true
 }
 
