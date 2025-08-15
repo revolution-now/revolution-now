@@ -1,0 +1,101 @@
+Tory Uprisings:
+
+  * Starts happening once the REF units in stock are destroyed,
+    and where there is at least one colony eligible for upris-
+    ing. If the REF would have otherwise forfeighted at this
+    point then this will delay forfeight. Essentially, it pro-
+    vides a mechanism for continued pressure on the player even
+    after the REF has been eliminated. That said, each colony
+    can only have one uprising, and must have few defenses, so
+    the likelihood that the player will see this is low.
+  * Conditions for happening:
+      - REF stock units depleted, or sufficiently depleted that
+        no more will be sent.
+      - Colony has `tory_uprising=false`.
+      - Colony is in the hands of the rebels.
+      - Colony has sufficiently low defenses.
+      - Dice roll to determine whether the uprising happens,
+        probability seems related to SoL, but not sure.
+      - Colony does /not/ need to be a port colony.
+  * Happens to at most one colony per turn.
+  * It appears to iterate through the colonies in order,
+    rolling dice for each based on SoL and/or defense strength.
+    As soon as there is one uprising it stops and doesn't do
+    any further colonies. If it gets through the colonies with
+    no uprising then none will happen that turn.
+  * Can delay surrender. Specifically, even when the REF could
+    otherwise surrender (holds no colonies, no REF units in
+    stock) the surrender can be delayed if there is an uprising
+    that turn.
+  * The uprising REF units attack on the same turn (check
+    this).
+  * SoL: Can happen at any SoL.
+  * Requires sufficiently low defenses.
+      - Prefers weaker colonies.
+      - Searches colonies in order of founding and seems to
+        prefer earlier ones, all else being equal.
+      - Will not choose colonies that have sufficient defenses.
+  * Does not require muskets/horses in colony.
+  * Probability that it happens to a colony:
+      * Zero if defenses lead to too few units.
+      * Depends on difficulty level.
+      * Not clear if it depends on SoL.
+      * Since the exact formula is not known, we will use this:
+
+          P_colony = D + T/4
+
+        where D is:
+
+          discoverer:   25%
+          explorer:     38%
+          conquistador: 50%
+          governor:     63%
+          viceroy:      75%
+
+        and T is the tory percent in the colony / 4. So on
+        Viceroy, if the tory percent is 100% then we have
+        75%+100%/4 = 100%. On discoverer, if the Tory percent
+        is 0% then we have 25%+0% = 25%. This is likely not the
+        same formula that the OG uses, but it seems to roughly
+        fit what was observed and should be good enough.
+
+  * Randomness:
+      * Some randomness in whether it happens on a given turn.
+      * No randomness in the colony chosen.
+  * Units chosen:
+      - The unit count is given by:
+          T*2 + 3 - S + D
+        where T is the number of tories in the colony, S is
+        the total strength of the units in the colony (ar-
+        tillery=7, soldier=2, etc), and D is the difficulty
+        term:
+          discoverer:   -2
+          explorer:     -1
+          conquistador:  0
+          governor:     +1
+          viceroy:      +2
+        There is no floor on it; if the above formula yields 1,
+        then only one unit will be deployed.
+      - Units are chosen randomly from this distribution:
+          soldier         : 45%
+          veteran_soldier : 30%
+          dragoon         : 15%
+          veteran_dragoon : 10%
+        Occasionally there are also free colonists chosen it
+        appears, but those are rare and appear to have no pur-
+        pose since they can't attack, so we won't choose them.
+  * The OG has a flag in the colony called `tory_uprising` that
+    marks when it happens to a colony.
+      - Gets set when the uprising happens, not when the colony
+        is captured.
+      - It means that it can only happen at most once to a
+        given colony.
+      - If a colony with tory_uprising=true is recaptured by
+        the rebels, that flag does not get reset to false. So
+        once it happens to a colony, it cannot happen again.
+      - We need one of these.
+  * Units consist of:
+      - soldiers
+      - dragoons
+      - v. soldiers
+      - v. dragoons
