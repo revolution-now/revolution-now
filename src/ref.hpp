@@ -147,8 +147,4 @@ wait<> ref_win_ui_routine( SSConst const& ss, IGui& gui,
                            Player const& ref_player,
                            e_ref_win_reason reason );
 
-/****************************************************************
-** Tory Uprising.
-*****************************************************************/
-
 } // namespace rn
