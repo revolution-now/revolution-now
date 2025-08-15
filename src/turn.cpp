@@ -1578,12 +1578,13 @@ wait<> post_colonies_common( SS&, TS&, Player& ) {
 wait<> post_colonies_ref_only( SS& ss, TS& ts, Player& player ) {
   CHECK( is_ref( player.type ) );
 
-  e_nation const nation          = nation_for( player.type );
-  e_player const colonial_player = colonial_player_for( nation );
+  e_nation const nation = nation_for( player.type );
+  e_player const colonial_player_type =
+      colonial_player_for( nation );
 
   // Deploy some REF troops.
   vector<ColonyId> const coastal = find_coastal_colonies(
-      ss.as_const, ts.connectivity, colonial_player );
+      ss.as_const, ts.connectivity, colonial_player_type );
   if( coastal.empty() ) {
     // TODO: REF wins.
     co_return;
@@ -1611,26 +1612,43 @@ wait<> post_colonies_ref_only( SS& ss, TS& ts, Player& player ) {
     filter_ref_landing_tiles( res );
     return res;
   }();
-  auto const ref_viz = create_visibility_for( ss, player.type );
+  auto const ref_viz =
+      create_visibility_for( ss.as_const, player.type );
   CHECK( ref_viz && ref_viz->player().has_value() &&
          is_ref( *ref_viz->player() ) );
   bool const initial_visit_to_colony =
-      is_initial_visit_to_colony( ss, *metrics, *ref_viz );
+      is_initial_visit_to_colony( ss.as_const, *metrics,
+                                  *ref_viz );
   e_ref_landing_formation const formation =
       select_ref_formation( *metrics, initial_visit_to_colony );
-  auto const force =
+  e_ref_manowar_availability const manowar_availability =
+      ensure_manowar_availability( ss, nation );
+  switch( manowar_availability ) {
+    case e_ref_manowar_availability::none:
+      // No more left, and we are not adding any, so there is
+      // nothing we can do here. Given that the REF hasn't sur-
+      // rendered yet, it means that there are still REF units or
+      // colonies on the map. But no new REF units can be deliv-
+      // ered.
+      co_return;
+    case e_ref_manowar_availability::none_but_added_one:
+      // There were no more men-o-war left, but we've just added
+      // one. Like the OG, when this happens, we wait one turn
+      // before using it.
+      co_return;
+    case e_ref_manowar_availability::available:
+      break;
+  }
+  RefLandingForce const force =
       allocate_landing_units( ss.as_const, nation, formation );
-  if( !force.has_value() )
-    // Can happen if there are no more Man-O-Wars in stock.
-    co_return;
   RefLandingPlan const landing_plan =
-      make_ref_landing_plan( landing_tiles, *force );
+      make_ref_landing_plan( landing_tiles, force );
   RefLandingUnits const landing_units =
       create_ref_landing_units( ss, nation, landing_plan );
   co_await offboard_ref_units(
       ss, ts.map_updater(),
       ts.planes.get().get_bottom<ILandViewPlane>(),
-      ts.agents()[colonial_player], landing_units,
+      ts.agents()[colonial_player_type], landing_units,
       metrics->colony_id );
 }
 

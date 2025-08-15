@@ -66,6 +66,12 @@ enum.e_ref_landing_formation {
   _1_1_1,
 }
 
+enum.e_ref_manowar_availability {
+  none,
+  none_but_added_one,
+  available,
+}
+
 struct.RefLandingForce {
   regular   'int',
   cavalry   'int',

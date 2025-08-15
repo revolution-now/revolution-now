@@ -440,6 +440,10 @@ TEST_CASE( "[ref] is_initial_visit_to_colony" ) {
   world w;
 }
 
+TEST_CASE( "[ref] ensure_manowar_availability" ) {
+  world w;
+}
+
 TEST_CASE( "[ref] select_ref_formation" ) {
   world w;
 }

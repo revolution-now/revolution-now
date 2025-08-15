@@ -102,11 +102,14 @@ bool is_initial_visit_to_colony(
     SSConst const& ss, RefColonySelectionMetrics const& metrics,
     IVisibility const& ref_viz );
 
+[[nodiscard]] e_ref_manowar_availability
+ensure_manowar_availability( SS& ss, e_nation nation );
+
 e_ref_landing_formation select_ref_formation(
     RefColonySelectionMetrics const& metrics,
     bool initial_visit_to_colony );
 
-maybe<RefLandingForce> allocate_landing_units(
+RefLandingForce allocate_landing_units(
     SSConst const& ss, e_nation nation,
     e_ref_landing_formation formation );
 

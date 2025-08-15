@@ -620,6 +620,23 @@ bool is_initial_visit_to_colony(
   return ref_viz.visible( tile ) == e_tile_visibility::hidden;
 }
 
+e_ref_manowar_availability ensure_manowar_availability(
+    SS& ss, e_nation const nation ) {
+  e_player const colonial_player_type =
+      colonial_player_for( nation );
+  UNWRAP_CHECK_T( Player & colonial_player,
+                  ss.players.players[colonial_player_type] );
+  int& man_o_war =
+      colonial_player.revolution.expeditionary_force.man_o_war;
+  if( man_o_war > 0 )
+    return e_ref_manowar_availability::available;
+  if( config_revolution.ref_forces.ref_can_spawn_ships ) {
+    ++man_o_war;
+    return e_ref_manowar_availability::none_but_added_one;
+  }
+  return e_ref_manowar_availability::none;
+}
+
 e_ref_landing_formation select_ref_formation(
     RefColonySelectionMetrics const& metrics,
     bool const initial_visit_to_colony ) {
@@ -678,7 +695,7 @@ e_ref_landing_formation select_ref_formation(
   return canonical;
 }
 
-maybe<RefLandingForce> allocate_landing_units(
+RefLandingForce allocate_landing_units(
     SSConst const& ss, e_nation const nation,
     e_ref_landing_formation const formation ) {
   e_player const colonial_player_type =
@@ -687,7 +704,6 @@ maybe<RefLandingForce> allocate_landing_units(
                   ss.players.players[colonial_player_type] );
   auto const& available =
       colonial_player.revolution.expeditionary_force;
-  if( !available.man_o_war ) return nothing;
   RefLandingForce const& target_unit_counts =
       formation_unit_counts( formation );
   RefLandingForce res = target_unit_counts;
