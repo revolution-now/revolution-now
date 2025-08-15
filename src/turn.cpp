@@ -1621,6 +1621,15 @@ wait<> post_colonies_ref_only( SS& ss, TS& ts, Player& player ) {
                                   *ref_viz );
   e_ref_landing_formation const formation =
       select_ref_formation( *metrics, initial_visit_to_colony );
+  RefLandingForce const force =
+      allocate_landing_units( ss.as_const, nation, formation );
+  if( force.regular + force.cavalry + force.artillery == 0 )
+    // No more units to deploy.
+    co_return;
+  // NOTE: the following function may spawn a new Man-o-War to be
+  // in stock if there are none, but we only want to do that if
+  // there are units to transport, hence we check the total force
+  // first above.
   e_ref_manowar_availability const manowar_availability =
       ensure_manowar_availability( ss, nation );
   switch( manowar_availability ) {
@@ -1639,8 +1648,6 @@ wait<> post_colonies_ref_only( SS& ss, TS& ts, Player& player ) {
     case e_ref_manowar_availability::available:
       break;
   }
-  RefLandingForce const force =
-      allocate_landing_units( ss.as_const, nation, formation );
   RefLandingPlan const landing_plan =
       make_ref_landing_plan( landing_tiles, force );
   RefLandingUnits const landing_units =
