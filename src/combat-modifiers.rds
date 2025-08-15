@@ -11,6 +11,10 @@
 namespace "rn"
 
 # TODO: there is a penalty for a ship carrying cargo.
+#
+# TODO: the REF troops that appear as part of a "tory uprising"
+# also get a "tory unrest" bonus, which may be the same as the
+# "tory sentiment" bonus, but need to check.
 enum.e_euro_unit_combat_modifiers {
   remove_me_for_some_todos,
   movement,
