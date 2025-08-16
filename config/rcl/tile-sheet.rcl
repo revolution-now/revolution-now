@@ -1111,6 +1111,15 @@ sheets {
       }
     }
     {
+      img_path: assets/art/colony/flags.png
+      sprite_size: { w: 10, h: 10 }
+      sprites {
+        colony_rebel_flag:            { y: 0, x: 0 }
+        colony_colonial_flag:         { y: 0, x: 1 }
+        colony_colonial_flag_shading: { y: 0, x: 2 }
+      }
+    }
+    {
       img_path: assets/art/tiles/mouse.png
       sprite_size: { w: 40, h: 32 }
       sprites {

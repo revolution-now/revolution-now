@@ -760,6 +760,10 @@ enum.e_tile {
   colony_fort,
   colony_fortress,
 
+  colony_rebel_flag,
+  colony_colonial_flag,
+  colony_colonial_flag_shading,
+
   # =============================================================
   # Inside Colony View
   # =============================================================
