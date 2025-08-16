@@ -1720,6 +1720,19 @@ wait<> post_colonies_colonial_only( SS& ss, TS& ts,
   //
   //   Message: "The King's forces control all but 1 of our
   //   colonies..."
+  //
+  //     The OG does this every turn, but it's a bit annoying.
+  //     Maybe we will just do it after a colony is captured.
+  //
+  //   Message: "The Kind controls XX% of the population of YYY.
+  //   If he ever controls 90% then the Continental Congress will
+  //   lose control of the war and will have to surrender.
+  //
+  //     This seems to be displayed when it hits 80%, though
+  //     maybe we should start at 70%.
+  //
+  //     The OG seems to show this on every turn once it goes
+  //     above 80%.
 
   // Try to determine which turn we're on relative to the one
   // where we declared independence. This would be made easier if
