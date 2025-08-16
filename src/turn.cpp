@@ -1818,7 +1818,8 @@ wait<> player_start_of_turn( SS& ss, TS& ts, Player& player,
     }
   }
 
-  if( !is_ref( player.type ) )
+  if( !is_ref( player.type ) &&
+      player.revolution.status < e_revolution_status::declared )
     // Check for tax events (typically increases).
     co_await start_of_turn_tax_check(
         ss, ts.rand, ts.connectivity, player, agent );
