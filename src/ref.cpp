@@ -21,7 +21,6 @@
 #include "land-view.hpp"
 #include "map-square.hpp"
 #include "ref.rds.hpp"
-#include "unit-classes.hpp"
 #include "unit-mgr.hpp"
 #include "unit-ownership.hpp"
 #include "visibility.hpp"
@@ -141,28 +140,6 @@ RefLandingForce const& formation_unit_counts(
       return f;
     }
   }
-}
-
-int num_colony_defenders( SSConst const& ss,
-                          Colony const& colony ) {
-  int total = 0;
-  // Pull in the units in the cargo of ships as well.
-  vector<GenericUnitId> const units =
-      units_from_coord_recursive( ss.units, colony.location );
-  for( GenericUnitId const generic_id : units ) {
-    switch( ss.units.unit_kind( generic_id ) ) {
-      case e_unit_kind::euro:
-        break;
-      case e_unit_kind::native:
-        FATAL( "found native unit on colony tile {}",
-               colony.location );
-    }
-    Unit const& unit = ss.units.euro_unit_for( generic_id );
-    if( !unit.desc().can_attack ) continue;
-    if( scout_type( unit.type() ) ) continue;
-    ++total;
-  }
-  return total;
 }
 
 int colony_defense_metric( SSConst const& ss,
@@ -403,8 +380,8 @@ RefColonySelectionMetrics ref_colony_selection_metrics(
   e_player const ref_player      = ref_player_for( nation );
   metrics.colony_id              = colony_id;
   metrics.defense_strength = colony_defense_metric( ss, colony );
-  metrics.num_defenders    = num_colony_defenders( ss, colony );
   metrics.barricade        = barricade_for_colony( colony );
+  metrics.population       = colony_population( colony );
   auto const make_ref_landing_tile = [&]( point const tile ) {
     auto const& units = ss.units.from_coord( tile );
     vector<GenericUnitId> captured;
@@ -462,18 +439,25 @@ RefColonySelectionMetrics ref_colony_selection_metrics(
   return metrics;
 }
 
+// The smaller the score, the more likely to be chosen.
 maybe<int> ref_colony_selection_score(
     RefColonySelectionMetrics const& metrics ) {
+  CHECK( metrics.colony_id != 0 );
   if( metrics.eligible_landings.empty() ) return nothing;
   // The OG appears to select colonies in a very simplistic way:
   // there are only two buckets, undefended and defended. It
   // prefers undefended when available. Then within each bucket
-  // it prefers colonies founded earlier. First priority is to
-  // choose colonies that are undefended. Then for the colonies
-  // that are defended, fall back take the one founded earliest
-  // (colonies founded earlier have smaller IDs).
-  if( metrics.num_defenders == 0 ) return 0;
-  return metrics.colony_id; // Always > 0.
+  // it prefers colonies founded earlier. This seems too simplis-
+  // tic, so we'll do a bit better by more properly computing
+  // colony defense strength and also preferring colonies with
+  // larger populations (all else being equal).
+  int const barricade_multiplier =
+      static_cast<int>( metrics.barricade ) + 1;
+  int const defense_term =
+      metrics.defense_strength * barricade_multiplier;
+  int const population_term = -metrics.population;
+
+  return defense_term + population_term;
 }
 
 maybe<RefColonySelectionMetrics const&>
