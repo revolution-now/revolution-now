@@ -429,6 +429,29 @@ TEST_CASE( "[on-map] non-interactive: updates visibility" ) {
   REQUIRE( map[{ .x = 4, .y = 1 }] == unexplored{} );
 }
 
+TEST_CASE( "[on-map] non-interactive: removes LCR" ) {
+  World W;
+  W.create_default_map();
+  point const kSrc  = { .x = 1, .y = 0 };
+  point const kDst  = { .x = 0, .y = 1 };
+  MapSquare& square = W.square( kDst );
+
+  UnitId const unit_id =
+      W.add_unit_on_map( e_unit_type::free_colonist, kSrc ).id();
+  square.lost_city_rumor = true;
+
+  // Before.
+  REQUIRE( W.units().coord_for( unit_id ).to_gfx() == kSrc );
+  REQUIRE( square.lost_city_rumor );
+
+  TestingOnlyUnitOnMapMover::to_map_non_interactive(
+      W.ss(), W.map_updater(), unit_id, { .x = 0, .y = 1 } );
+
+  // After.
+  REQUIRE( W.units().coord_for( unit_id ).to_gfx() == kDst );
+  REQUIRE_FALSE( square.lost_city_rumor );
+}
+
 TEST_CASE(
     "[on-map] non-interactive: to_map_non_interactive "
     "unsentries surrounding units" ) {

@@ -238,9 +238,25 @@ void try_perform_inter_tribe_trade(
 /****************************************************************
 ** Public API
 *****************************************************************/
-void UnitOnMapMover::to_map_non_interactive(
-    SS& ss, IMapUpdater& map_updater, UnitId const id,
-    Coord const world_square ) {
+void UnitOnMapMover::native_unit_to_map_non_interactive(
+    SS& ss, NativeUnitId id, Coord dst_tile ) {
+  // 1. Move the unit. This is the only place where this function
+  //    should be called by normal game code.
+  ss.units.move_unit_on_map( id, dst_tile );
+
+  // 2. Unsentry surrounding european units.
+  unsentry_units_next_to_tile( ss, dst_tile );
+
+  // 3. Perform inter-tribe trade if adjacent to another tribe.
+  try_perform_inter_tribe_trade( ss, id );
+}
+
+// Do everything here that you need to do in both the
+// non-interactive and interactive case in an identical way.
+void UnitOnMapMover::to_map_common( SS& ss,
+                                    IMapUpdater& map_updater,
+                                    UnitId const id,
+                                    Coord const world_square ) {
   Unit& unit = ss.units.unit_for( id );
 
   // 1. Adjust the visibility/fog in response to the unit moving
@@ -257,35 +273,29 @@ void UnitOnMapMover::to_map_non_interactive(
 
   // 3. Unsentry surrounding foreign units.
   unsentry_foreign_units_next_to_euro_unit( ss, unit );
-
-  // 4. If the unit is at a colony site then append the unit ID
-  //    to the colony's list of unit's at the gate (said list
-  //    must be added to the data model) so that the ordering of
-  //    units is predictable and stable when rendering them at
-  //    the gate. NOTE: this method is called when a unit that is
-  //    already at the gate changes type (e.g. by dragging horses
-  //    onto it to make it a scout), and so in that case the unit
-  //    will already be in that list and should not be moved or
-  //    added again.
-  //    TODO
 }
 
-void UnitOnMapMover::native_unit_to_map_non_interactive(
-    SS& ss, NativeUnitId id, Coord dst_tile ) {
-  // 1. Move the unit. This is the only place where this function
-  //    should be called by normal game code.
-  ss.units.move_unit_on_map( id, dst_tile );
+void UnitOnMapMover::to_map_non_interactive(
+    SS& ss, IMapUpdater& map_updater, UnitId const id,
+    Coord const tile ) {
+  to_map_common( ss, map_updater, id, tile );
 
-  // 2. Unsentry surrounding european units.
-  unsentry_units_next_to_tile( ss, dst_tile );
-
-  // 3. Perform inter-tribe trade if adjacent to another tribe.
-  try_perform_inter_tribe_trade( ss, id );
+  // If there is an LCR, just make it disappear. There are some
+  // cases where we are forced to move a unit non-interactively.
+  // That won't do the whole LCR sequence, but we still need to
+  // remove the LCR otherwise it looks wrong. An example of this
+  // is when an REF unit lands on an LCR. In any normal scenario
+  // with a normal player moves onto a map square where there
+  // could be an LCR, the interactive version will be used to
+  // properly handle the LCR; this is instead for those rare
+  // cases where there may be an LCR on the tile but we don't
+  // want to handle it.
+  remove_lcr( map_updater, tile );
 }
 
 wait<maybe<UnitDeleted>> UnitOnMapMover::to_map_interactive(
     SS& ss, TS& ts, UnitId const id, Coord const dst ) {
-  to_map_non_interactive( ss, ts.map_updater(), id, dst );
+  to_map_common( ss, ts.map_updater(), id, dst );
 
   Unit& unit = ss.units.unit_for( id );
   UNWRAP_CHECK( player, ss.players.players[unit.player_type()] );

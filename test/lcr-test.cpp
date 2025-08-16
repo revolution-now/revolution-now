@@ -53,6 +53,7 @@ namespace {
 using namespace ::std;
 using namespace ::rn::signal;
 
+using ::gfx::point;
 using ::mock::matchers::_;
 using ::mock::matchers::AllOf;
 using ::mock::matchers::Field;
@@ -62,9 +63,9 @@ using ::mock::matchers::Type;
 /****************************************************************
 ** Fake World Setup
 *****************************************************************/
-struct World : testing::World {
+struct world : testing::World {
   using Base = testing::World;
-  World() : Base() {
+  world() : Base() {
     create_default_map();
     add_default_player();
 
@@ -84,7 +85,7 @@ struct World : testing::World {
 ** Test Cases
 *****************************************************************/
 TEST_CASE( "[lcr] de soto means no negative results" ) {
-  World W;
+  world W;
   Player& player = W.default_player();
   MockIMapSearch mock_map_search;
   e_unit_type unit_type = e_unit_type::scout;
@@ -109,7 +110,7 @@ TEST_CASE( "[lcr] de soto means no negative results" ) {
 }
 
 TEST_CASE( "[lcr] REF player always yields none" ) {
-  World W;
+  world W;
   W.add_player( e_player::ref_french );
   Player& player = W.ref_french();
   MockIMapSearch mock_map_search;
@@ -125,21 +126,23 @@ TEST_CASE( "[lcr] REF player always yields none" ) {
 }
 
 TEST_CASE( "[lcr] run_lcr, none" ) {
-  World W;
+  world W;
 
   // Set players.
   Player& player = W.default_player();
   REQUIRE( player.money == 0 );
   MockIAgent& agent = W.agent();
 
-  MapSquare& square      = W.square( Coord{} );
-  square.lost_city_rumor = true;
-
   // Create unit on map.
   UnitId unit_id =
       W.add_unit_on_map( e_unit_type::free_colonist, Coord{} )
           .id();
   REQUIRE( W.units().all().size() == 1 );
+
+  MapSquare& square = W.square( Coord{} );
+  // NOTE: do this after placing the unit so that it doesn't
+  // cause the LCR to disappear.
+  square.lost_city_rumor = true;
 
   // Set outcome types.
   LostCityRumor const rumor = LostCityRumor::none{};
@@ -166,21 +169,23 @@ TEST_CASE( "[lcr] run_lcr, none" ) {
 }
 
 TEST_CASE( "[lcr] run_lcr, chief gift" ) {
-  World W;
+  world W;
 
   // Set players.
   Player& player = W.default_player();
   REQUIRE( player.money == 0 );
   MockIAgent& agent = W.agent();
 
-  MapSquare& square      = W.square( Coord{} );
-  square.lost_city_rumor = true;
-
   // Create unit on map.
   UnitId unit_id =
       W.add_unit_on_map( e_unit_type::free_colonist, Coord{} )
           .id();
   REQUIRE( W.units().all().size() == 1 );
+
+  MapSquare& square = W.square( Coord{} );
+  // NOTE: do this after placing the unit so that it doesn't
+  // cause the LCR to disappear.
+  square.lost_city_rumor = true;
 
   // Set outcome types.
   LostCityRumor const rumor =
@@ -207,19 +212,21 @@ TEST_CASE( "[lcr] run_lcr, chief gift" ) {
 }
 
 TEST_CASE( "[lcr] run_lcr, ruins" ) {
-  World W;
+  world W;
   Player& player = W.default_player();
   REQUIRE( player.money == 0 );
   MockIAgent& agent = W.agent();
-
-  MapSquare& square      = W.square( Coord{} );
-  square.lost_city_rumor = true;
 
   // Create unit on map.
   UnitId unit_id =
       W.add_unit_on_map( e_unit_type::free_colonist, Coord{} )
           .id();
   REQUIRE( W.units().all().size() == 1 );
+
+  MapSquare& square = W.square( Coord{} );
+  // NOTE: do this after placing the unit so that it doesn't
+  // cause the LCR to disappear.
+  square.lost_city_rumor = true;
 
   // Set outcome types.
   LostCityRumor const rumor = LostCityRumor::ruins{ .gold = 90 };
@@ -246,20 +253,22 @@ TEST_CASE( "[lcr] run_lcr, ruins" ) {
 }
 
 TEST_CASE( "[lcr] run_lcr, fountain of youth" ) {
-  World W;
+  world W;
   Player& player    = W.default_player();
   MockIAgent& agent = W.agent();
   agent.EXPECT__human().by_default().returns( true );
   REQUIRE( player.money == 0 );
-
-  MapSquare& square      = W.square( Coord{} );
-  square.lost_city_rumor = true;
 
   // Create unit on map.
   UnitId unit_id =
       W.add_unit_on_map( e_unit_type::free_colonist, Coord{} )
           .id();
   REQUIRE( W.units().all().size() == 1 );
+
+  MapSquare& square = W.square( Coord{} );
+  // NOTE: do this after placing the unit so that it doesn't
+  // cause the LCR to disappear.
+  square.lost_city_rumor = true;
 
   // Set outcome types.
   LostCityRumor const rumor = LostCityRumor::fountain_of_youth{};
@@ -320,19 +329,21 @@ TEST_CASE( "[lcr] run_lcr, fountain of youth" ) {
 }
 
 TEST_CASE( "[lcr] run_lcr, free colonist" ) {
-  World W;
+  world W;
   Player& player = W.default_player();
   REQUIRE( player.money == 0 );
   MockIAgent& agent = W.agent();
-
-  MapSquare& square      = W.square( Coord{} );
-  square.lost_city_rumor = true;
 
   // Create unit on map.
   UnitId unit_id =
       W.add_unit_on_map( e_unit_type::free_colonist, Coord{} )
           .id();
   REQUIRE( W.units().all().size() == 1 );
+
+  MapSquare& square = W.square( Coord{} );
+  // NOTE: do this after placing the unit so that it doesn't
+  // cause the LCR to disappear.
+  square.lost_city_rumor = true;
 
   // Set outcome types.
   LostCityRumor const rumor = LostCityRumor::free_colonist{};
@@ -363,19 +374,21 @@ TEST_CASE( "[lcr] run_lcr, free colonist" ) {
 }
 
 TEST_CASE( "[lcr] run_lcr, unit lost" ) {
-  World W;
+  world W;
   Player& player = W.default_player();
   REQUIRE( player.money == 0 );
   MockIAgent& agent = W.agent();
-
-  MapSquare& square      = W.square( Coord{} );
-  square.lost_city_rumor = true;
 
   // Create unit on map.
   UnitId unit_id =
       W.add_unit_on_map( e_unit_type::free_colonist, Coord{} )
           .id();
   REQUIRE( W.units().all().size() == 1 );
+
+  MapSquare& square = W.square( Coord{} );
+  // NOTE: do this after placing the unit so that it doesn't
+  // cause the LCR to disappear.
+  square.lost_city_rumor = true;
 
   // Set outcome types.
   LostCityRumor const rumor = LostCityRumor::unit_lost{};
@@ -403,21 +416,23 @@ TEST_CASE( "[lcr] run_lcr, unit lost" ) {
 }
 
 TEST_CASE( "[lcr] run_lcr, cibola" ) {
-  World W;
+  world W;
   MockLandViewPlane land_view_plane;
   W.planes().get().set_bottom<ILandViewPlane>( land_view_plane );
   Player& player = W.default_player();
   REQUIRE( player.money == 0 );
   MockIAgent& agent = W.agent();
 
-  MapSquare& square      = W.square( Coord{} );
-  square.lost_city_rumor = true;
-
   // Create unit on map.
   UnitId unit_id =
       W.add_unit_on_map( e_unit_type::free_colonist, Coord{} )
           .id();
   REQUIRE( W.units().all().size() == 1 );
+
+  MapSquare& square = W.square( Coord{} );
+  // NOTE: do this after placing the unit so that it doesn't
+  // cause the LCR to disappear.
+  square.lost_city_rumor = true;
 
   // Set outcome types.
   LostCityRumor const rumor =
@@ -461,21 +476,23 @@ TEST_CASE( "[lcr] run_lcr, cibola" ) {
 }
 
 TEST_CASE( "[lcr] run_lcr, burial mounds, treasure" ) {
-  World W;
+  world W;
   MockLandViewPlane land_view_plane;
   W.planes().get().set_bottom<ILandViewPlane>( land_view_plane );
   Player& player = W.default_player();
   REQUIRE( player.money == 0 );
   MockIAgent& agent = W.agent();
 
-  MapSquare& square      = W.square( Coord{} );
-  square.lost_city_rumor = true;
-
   // Create unit on map.
   UnitId unit_id =
       W.add_unit_on_map( e_unit_type::free_colonist, Coord{} )
           .id();
   REQUIRE( W.units().all().size() == 1 );
+
+  MapSquare& square = W.square( Coord{} );
+  // NOTE: do this after placing the unit so that it doesn't
+  // cause the LCR to disappear.
+  square.lost_city_rumor = true;
 
   // Set outcome types.
   LostCityRumor const rumor = LostCityRumor::burial_mounds{
@@ -521,19 +538,21 @@ TEST_CASE( "[lcr] run_lcr, burial mounds, treasure" ) {
 }
 
 TEST_CASE( "[lcr] run_lcr, burial mounds, cold and empty" ) {
-  World W;
+  world W;
   Player& player = W.default_player();
   REQUIRE( player.money == 0 );
   MockIAgent& agent = W.agent();
-
-  MapSquare& square      = W.square( Coord{} );
-  square.lost_city_rumor = true;
 
   // Create unit on map.
   UnitId unit_id =
       W.add_unit_on_map( e_unit_type::free_colonist, Coord{} )
           .id();
   REQUIRE( W.units().all().size() == 1 );
+
+  MapSquare& square = W.square( Coord{} );
+  // NOTE: do this after placing the unit so that it doesn't
+  // cause the LCR to disappear.
+  square.lost_city_rumor = true;
 
   // Set outcome types.
   LostCityRumor const rumor = LostCityRumor::burial_mounds{
@@ -562,19 +581,21 @@ TEST_CASE( "[lcr] run_lcr, burial mounds, cold and empty" ) {
 }
 
 TEST_CASE( "[lcr] run_lcr, burial mounds, trinkets" ) {
-  World W;
+  world W;
   Player& player = W.default_player();
   REQUIRE( player.money == 0 );
   MockIAgent& agent = W.agent();
-
-  MapSquare& square      = W.square( Coord{} );
-  square.lost_city_rumor = true;
 
   // Create unit on map.
   UnitId unit_id =
       W.add_unit_on_map( e_unit_type::free_colonist, Coord{} )
           .id();
   REQUIRE( W.units().all().size() == 1 );
+
+  MapSquare& square = W.square( Coord{} );
+  // NOTE: do this after placing the unit so that it doesn't
+  // cause the LCR to disappear.
+  square.lost_city_rumor = true;
 
   // Set outcome types.
   LostCityRumor const rumor = LostCityRumor::burial_mounds{
@@ -608,19 +629,21 @@ TEST_CASE( "[lcr] run_lcr, burial mounds, trinkets" ) {
 }
 
 TEST_CASE( "[lcr] run_lcr, burial mounds, no explore" ) {
-  World W;
+  world W;
   Player& player = W.default_player();
   REQUIRE( player.money == 0 );
   MockIAgent& agent = W.agent();
-
-  MapSquare& square      = W.square( Coord{} );
-  square.lost_city_rumor = true;
 
   // Create unit on map.
   UnitId unit_id =
       W.add_unit_on_map( e_unit_type::free_colonist, Coord{} )
           .id();
   REQUIRE( W.units().all().size() == 1 );
+
+  MapSquare& square = W.square( Coord{} );
+  // NOTE: do this after placing the unit so that it doesn't
+  // cause the LCR to disappear.
+  square.lost_city_rumor = true;
 
   // Set outcome types.
   LostCityRumor const rumor = LostCityRumor::burial_mounds{
@@ -650,13 +673,10 @@ TEST_CASE( "[lcr] run_lcr, burial mounds, no explore" ) {
 TEST_CASE(
     "[lcr] run_lcr, burial mounds, trinkets with burial "
     "grounds" ) {
-  World W;
+  world W;
   Player& player = W.default_player();
   REQUIRE( player.money == 0 );
   MockIAgent& agent = W.agent();
-
-  MapSquare& square      = W.square( Coord{} );
-  square.lost_city_rumor = true;
 
   W.add_tribe( e_tribe::aztec );
 
@@ -665,6 +685,11 @@ TEST_CASE(
       W.add_unit_on_map( e_unit_type::free_colonist, Coord{} )
           .id();
   REQUIRE( W.units().all().size() == 1 );
+
+  MapSquare& square = W.square( Coord{} );
+  // NOTE: do this after placing the unit so that it doesn't
+  // cause the LCR to disappear.
+  square.lost_city_rumor = true;
 
   // Set outcome types.
   LostCityRumor const rumor = LostCityRumor::burial_mounds{
@@ -705,13 +730,10 @@ TEST_CASE(
 }
 
 TEST_CASE( "[lcr] run_lcr, holy shrines" ) {
-  World W;
+  world W;
   Player& player = W.default_player();
   REQUIRE( player.money == 0 );
   MockIAgent& agent = W.agent();
-
-  MapSquare& square      = W.square( Coord{} );
-  square.lost_city_rumor = true;
 
   W.add_tribe( e_tribe::aztec );
   W.aztec().relationship[W.default_player_type()].tribal_alarm =
@@ -722,6 +744,11 @@ TEST_CASE( "[lcr] run_lcr, holy shrines" ) {
       W.add_unit_on_map( e_unit_type::free_colonist, Coord{} )
           .id();
   REQUIRE( W.units().all().size() == 1 );
+
+  MapSquare& square = W.square( Coord{} );
+  // NOTE: do this after placing the unit so that it doesn't
+  // cause the LCR to disappear.
+  square.lost_city_rumor = true;
 
   // Set outcome types.
   LostCityRumor const rumor = LostCityRumor::holy_shrines{
@@ -755,7 +782,7 @@ TEST_CASE( "[lcr] run_lcr, holy shrines" ) {
 }
 
 TEST_CASE( "[lcr] compute_lcr, type=none" ) {
-  World W;
+  world W;
   Player& player = W.default_player();
   MockIMapSearch mock_map_search;
   e_unit_type unit_type = e_unit_type::scout;
@@ -926,6 +953,17 @@ TEST_CASE( "[lcr] compute_lcr, type=none" ) {
     W.rand().EXPECT__between_ints( 14, 18 ).returns( 16 );
     REQUIRE( f() == expected );
   }
+}
+
+TEST_CASE( "[lcr] remove_lcr" ) {
+  world w;
+
+  MapSquare& square      = w.square( Coord{} );
+  square.lost_city_rumor = true;
+
+  REQUIRE( square.lost_city_rumor );
+  remove_lcr( w.map_updater(), point{} );
+  REQUIRE_FALSE( square.lost_city_rumor );
 }
 
 } // namespace

@@ -53,6 +53,9 @@ struct UnitOnMapMover {
   static wait<maybe<UnitDeleted>> to_map_interactive(
       SS& ss, TS& ts, UnitId unit_id, Coord tile );
 
+  static void to_map_common( SS& ss, IMapUpdater& map_updater,
+                             UnitId unit_id, Coord tile );
+
   // Friends.
   friend struct UnitOwnershipChanger;
   friend struct TestingOnlyUnitOnMapMover;

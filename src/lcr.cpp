@@ -62,6 +62,8 @@ namespace rn {
 
 namespace {
 
+using ::gfx::point;
+
 struct GiftOptions {
   int min      = base::no_default<>;
   int max      = base::no_default<>;
@@ -512,13 +514,18 @@ wait<LostCityRumorUnitChange> run_lcr(
   LostCityRumorUnitChange result = co_await run_rumor_result(
       ss, land_view, map_updater, rand, player, agent, unit,
       world_square, rumor );
-  // Remove lost city rumor.
-  map_updater.modify_map_square(
-      world_square, []( MapSquare& square ) {
-        CHECK_EQ( square.lost_city_rumor, true );
-        square.lost_city_rumor = false;
-      } );
+  // !! NOTE: the LCR may already have been removed here if
+  // a free colonist was created on the tile.
+  remove_lcr( map_updater, world_square );
+  CHECK( !ss.as_const.terrain.square_at( world_square )
+              .lost_city_rumor );
   co_return result;
+}
+
+void remove_lcr( IMapUpdater& map_updater, point const tile ) {
+  map_updater.modify_map_square( tile, []( MapSquare& square ) {
+    square.lost_city_rumor = false;
+  } );
 }
 
 } // namespace rn

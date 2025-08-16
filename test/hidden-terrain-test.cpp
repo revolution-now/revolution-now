@@ -123,6 +123,11 @@ TEST_CASE(
 
   MapSquare& square = W.square( { .x = 0, .y = 0 } );
 
+  W.add_unit_on_map( e_unit_type::free_colonist,
+                     { .x = 0, .y = 0 } );
+  W.add_colony( { .x = 0, .y = 0 } );
+  W.add_dwelling( { .x = 0, .y = 0 }, e_tribe::apache );
+
   square.road            = true;
   square.river           = e_river::minor;
   square.overlay         = e_land_overlay::forest;
@@ -130,11 +135,6 @@ TEST_CASE(
   square.forest_resource = e_natural_resource::deer;
   square.ground_resource = e_natural_resource::tobacco;
   square.lost_city_rumor = true;
-
-  W.add_unit_on_map( e_unit_type::free_colonist,
-                     { .x = 0, .y = 0 } );
-  W.add_colony( { .x = 0, .y = 0 } );
-  W.add_dwelling( { .x = 0, .y = 0 }, e_tribe::apache );
 
   auto const seq =
       anim_seq_for_hidden_terrain( W.ss(), viz, W.rand() );
@@ -262,13 +262,14 @@ TEST_CASE(
   for( Coord const tile : tiles )
     W.square( tile ).forest_resource = e_natural_resource::deer;
 
-  // LCRs.
+  // Units.
   tiles = {
-    { .x = 0, .y = 3 }, { .x = 0, .y = 2 }, { .x = 0, .y = 3 },
-    { .x = 0, .y = 2 }, { .x = 3, .y = 2 }, { .x = 2, .y = 3 },
+    { .x = 1, .y = 3 }, { .x = 1, .y = 3 }, { .x = 2, .y = 3 },
+    { .x = 1, .y = 3 }, { .x = 1, .y = 1 }, { .x = 3, .y = 3 },
   };
+  W.add_unit_on_map( e_unit_type::caravel, { .x = 0, .y = 0 } );
   for( Coord const tile : tiles )
-    W.square( tile ).lost_city_rumor = true;
+    W.add_unit_on_map( e_unit_type::free_colonist, tile );
 
   // Colonies.
   tiles = {
@@ -285,14 +286,14 @@ TEST_CASE(
   for( Coord const tile : tiles )
     W.add_dwelling( tile, e_tribe::apache );
 
-  // Units.
+  // LCRs. Add these last so that the units/colonies don't cause
+  // them to be squelched.
   tiles = {
-    { .x = 1, .y = 3 }, { .x = 1, .y = 3 }, { .x = 2, .y = 3 },
-    { .x = 1, .y = 3 }, { .x = 1, .y = 1 }, { .x = 3, .y = 3 },
+    { .x = 0, .y = 3 }, { .x = 0, .y = 2 }, { .x = 0, .y = 3 },
+    { .x = 0, .y = 2 }, { .x = 3, .y = 2 }, { .x = 2, .y = 3 },
   };
-  W.add_unit_on_map( e_unit_type::caravel, { .x = 0, .y = 0 } );
   for( Coord const tile : tiles )
-    W.add_unit_on_map( e_unit_type::free_colonist, tile );
+    W.square( tile ).lost_city_rumor = true;
 
   tiles = {
     { .x = 3, .y = 1 }, { .x = 3, .y = 3 }, { .x = 3, .y = 0 },

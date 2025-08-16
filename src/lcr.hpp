@@ -52,4 +52,6 @@ wait<LostCityRumorUnitChange> run_lcr(
     IRand& rand, Player& player, IAgent& agent, Unit const& unit,
     Coord world_square, LostCityRumor const& rumor );
 
+void remove_lcr( IMapUpdater& map_updater, gfx::point tile );
+
 } // namespace rn
