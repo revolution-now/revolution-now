@@ -32,6 +32,7 @@
 #include "ss/colony-enums.rds.hpp"
 #include "ss/colony.hpp"
 #include "ss/dwelling.rds.hpp"
+#include "ss/nation.hpp"
 #include "ss/natives.hpp"
 #include "ss/players.rds.hpp"
 #include "ss/ref.hpp"
@@ -385,14 +386,24 @@ void render_colony( rr::Renderer& renderer, Coord where,
   if( options.render_flag ) {
     UNWRAP_CHECK_T( Player const& player,
                     ss.players.players[colony.player] );
-    if( player.revolution.status >=
-        e_revolution_status::declared )
-      render_colony_america_flag(
-          painter, where + Delta{ .w = 8, .h = 8 } );
-    else
+    if( is_ref( colony.player ) ) {
+      e_player const colonial_player_type =
+          colonial_player_for( nation_for( colony.player ) );
+      auto const& colonial_player_conf =
+          player_obj( colonial_player_type );
       render_colony_flag( painter,
                           where + Delta{ .w = 8, .h = 8 },
-                          player_conf.flag_color );
+                          colonial_player_conf.flag_color );
+    } else {
+      if( player.revolution.status >=
+          e_revolution_status::declared )
+        render_colony_america_flag(
+            painter, where + Delta{ .w = 8, .h = 8 } );
+      else
+        render_colony_flag( painter,
+                            where + Delta{ .w = 8, .h = 8 },
+                            player_conf.flag_color );
+    }
   }
   if( options.render_population ) {
     Coord const population_coord =

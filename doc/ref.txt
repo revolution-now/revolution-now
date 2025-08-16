@@ -15,9 +15,6 @@ Todo:
     even if there are no ships left, a new one seems to be pro-
     duced every two turns, provided the REF hasn't forfeighted.
 
-  * When the REF own a colony the flag is not white but the color
-    of the pre-declaration colonial nation.
-
 Done:
 
   * Can we abandon a colony after declaration?
@@ -225,3 +222,6 @@ Done:
     within a colony gets penalized the higher the tory sentiment.
     However, this does not seem to be the case; the feature may
     have been removed.
+
+  * When the REF own a colony the flag is not white but the color
+    of the pre-declaration colonial nation.
