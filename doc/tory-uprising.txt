@@ -11,6 +11,9 @@ Tory Uprisings:
   * Conditions for happening:
       - REF stock units depleted, or sufficiently depleted that
         no more will be sent.
+      - There needs to be an unoccupied square adjacent to the
+        colony. The uprise will not displace units unlike with
+        REF landings.
       - Colony has `tory_uprising=false`.
       - Colony is in the hands of the rebels.
       - Colony has sufficiently low defenses.
