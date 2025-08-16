@@ -20,6 +20,7 @@
 #include "base/error.hpp"
 
 // C++ standard library
+#include <array>
 #include <vector>
 
 namespace rn {
@@ -51,6 +52,9 @@ struct IRand {
   // element.
   template<typename T>
   void shuffle( std::vector<T>& vec );
+
+  template<typename T, size_t N>
+  void shuffle( std::array<T, N>& arr );
 
   // Vector must be non-empty. Picks a random element.
   template<typename T>
@@ -86,6 +90,23 @@ void IRand::shuffle( std::vector<T>& vec ) {
     int source = between_ints( i, last_idx );
     using std::swap;
     swap( vec[i], vec[source] );
+  }
+}
+
+template<typename T, size_t N>
+void IRand::shuffle( std::array<T, N>& arr ) {
+  if constexpr( N == 0 )
+    return;
+  else {
+    int constexpr kLastIdx = N - 1;
+    // i < last_idx because we don't want to consider swapping
+    // the last element with itself, which would have not pur-
+    // pose.
+    for( int i = 0; i < kLastIdx; ++i ) {
+      int source = between_ints( i, kLastIdx );
+      using std::swap;
+      swap( arr[i], arr[source] );
+    }
   }
 }
 

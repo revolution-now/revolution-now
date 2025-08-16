@@ -85,11 +85,12 @@ void Agents::update( e_player const player,
 *****************************************************************/
 unique_ptr<IAgent> create_agent( IEngine& engine, SS& ss,
                                  Planes& planes, IGui& gui,
+                                 IRand& rand,
                                  e_player const player ) {
   switch( ss.players.players[player]->control ) {
     case e_player_control::ai: {
       if( is_ref( player ) )
-        return make_unique<RefAIAgent>( player, ss );
+        return make_unique<RefAIAgent>( player, ss, rand );
       else
         // TODO
         return make_unique<NoopAgent>( ss.as_const, player );
@@ -105,12 +106,12 @@ unique_ptr<IAgent> create_agent( IEngine& engine, SS& ss,
 }
 
 Agents create_agents( IEngine& engine, SS& ss, Planes& planes,
-                      IGui& gui ) {
+                      IGui& gui, IRand& rand ) {
   unordered_map<e_player, unique_ptr<IAgent>> holder;
   for( e_player const player : refl::enum_values<e_player> )
     if( ss.players.players[player].has_value() )
       holder[player] =
-          create_agent( engine, ss, planes, gui, player );
+          create_agent( engine, ss, planes, gui, rand, player );
   return Agents( std::move( holder ) );
 }
 

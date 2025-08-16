@@ -482,8 +482,8 @@ wait<> cheat_set_player_control( IEngine& engine, SS& ss,
   for( auto const& [type, needs_update] : changed )
     if( needs_update )
       ts.agents().update(
-          type,
-          create_agent( engine, ss, ts.planes, ts.gui, type ) );
+          type, create_agent( engine, ss, ts.planes, ts.gui,
+                              ts.rand, type ) );
 
   // We do this because we need to back out beyond the individual
   // nation's turn processor in order to handle this configura-

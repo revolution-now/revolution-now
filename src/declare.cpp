@@ -216,9 +216,10 @@ DeclarationResult declare_independence( IEngine& engine, SS& ss,
   CHECK( !ss.players.players[ref_player_type].has_value() );
   Player& ref_player = add_new_player( ss, ref_player_type );
   ref_player.control = e_player_control::ai;
-  ts.agents().update( ref_player_type,
-                      create_agent( engine, ss, ts.planes,
-                                    ts.gui, ref_player_type ) );
+  ts.agents().update(
+      ref_player_type,
+      create_agent( engine, ss, ts.planes, ts.gui, ts.rand,
+                    ref_player_type ) );
 
   // Step: Make sure that there is at least one Man-o-War if
   // there are any ref units to bring. The OG appears to increase

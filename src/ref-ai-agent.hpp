@@ -15,6 +15,7 @@
 
 namespace rn {
 
+struct IRand;
 struct SS;
 
 /****************************************************************
@@ -23,7 +24,7 @@ struct SS;
 // This is an implementation that will consult with a human user
 // via GUI actions or input in order to fulfill the requests.
 struct RefAIAgent final : IAgent {
-  RefAIAgent( e_player player, SS& ss );
+  RefAIAgent( e_player player, SS& ss, IRand& rand );
 
   ~RefAIAgent() override;
 
@@ -121,6 +122,7 @@ struct RefAIAgent final : IAgent {
 
  private:
   SS& ss_;
+  IRand& rand_;
   e_player const colonial_player_ = {};
 
   struct State;
