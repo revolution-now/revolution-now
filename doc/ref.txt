@@ -1,19 +1,18 @@
 Todo:
 
-  * There is an additional losing condition that happens when the
-    King controls 90% of the population of the new world, even if
-    there are rebel coastal colonies still uncaptured. There are
-    warning messages that start each turn once the percentage
-    goes over 80%.
+  * REF winning conditions:
+      - Capturing all port colonies.
+      - There is an additional losing condition that happens when
+        the King controls 90% of the population of the new world,
+        even if there are rebel coastal colonies still uncap-
+        tured. There are warning messages that start each turn
+        once the percentage goes over 80%.
+      - TODO: Check if the normal game time limit also applies
+        after declaration.
 
   * The OG has a field called ref_captured_colony that is set
     after the first colony is captured by the REF, and it is
     never unset thereafter. Not sure what it is used for.
-
-  * When an REF ship sails back it will be put back into the
-    stock when it arrives. Then it can be used again. That said,
-    even if there are no ships left, a new one seems to be pro-
-    duced every two turns, provided the REF hasn't forfeighted.
 
 Done:
 
@@ -225,3 +224,8 @@ Done:
 
   * When the REF own a colony the flag is not white but the color
     of the pre-declaration colonial nation.
+
+  * When an REF ship sails back it will be put back into the
+    stock when it arrives. Then it can be used again. That said,
+    even if there are no ships left, a new one seems to be pro-
+    duced every two turns, provided the REF hasn't forfeighted.
