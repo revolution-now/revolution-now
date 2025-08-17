@@ -62,8 +62,9 @@ enum.e_ref_landing_formation {
   _4_1_1,
   _3_1_1,
   _2_1_1,
-  _2_1_0,
   _1_1_1,
+  _2_1_0,
+  _3_0_0,
 }
 
 enum.e_ref_manowar_availability {

@@ -123,6 +123,14 @@ RefLandingForce const& formation_unit_counts(
       };
       return f;
     }
+    case e_ref_landing_formation::_1_1_1: {
+      static RefLandingForce const f{
+        .regular   = 1,
+        .cavalry   = 1,
+        .artillery = 1,
+      };
+      return f;
+    }
     case e_ref_landing_formation::_2_1_0: {
       static RefLandingForce const f{
         .regular   = 2,
@@ -131,11 +139,11 @@ RefLandingForce const& formation_unit_counts(
       };
       return f;
     }
-    case e_ref_landing_formation::_1_1_1: {
+    case e_ref_landing_formation::_3_0_0: {
       static RefLandingForce const f{
-        .regular   = 1,
-        .cavalry   = 1,
-        .artillery = 1,
+        .regular   = 3,
+        .cavalry   = 0,
+        .artillery = 0,
       };
       return f;
     }
@@ -644,7 +652,7 @@ e_ref_landing_formation select_ref_formation(
       { .start= 6, .name=_2_1_1 },
       { .start= 4, .name=_2_1_0 },
       { .start= 2, .name=_2_1_0 },
-      { .start= 0, .name=_2_1_0 },
+      { .start= 0, .name=_3_0_0 },
     }},
     {stockade, {
       { .start=30, .name=_2_2_2 },
@@ -653,7 +661,7 @@ e_ref_landing_formation select_ref_formation(
       { .start= 6, .name=_2_1_1 },
       { .start= 4, .name=_2_1_0 },
       { .start= 2, .name=_2_1_0 },
-      { .start= 0, .name=_2_1_0 },
+      { .start= 0, .name=_3_0_0 },
     }},
     {fort, {
       { .start=20, .name=_2_2_2 },
@@ -662,7 +670,7 @@ e_ref_landing_formation select_ref_formation(
       { .start= 6, .name=_4_1_1 },
       { .start= 4, .name=_2_1_1 },
       { .start= 2, .name=_2_1_0 },
-      { .start= 0, .name=_2_1_0 },
+      { .start= 0, .name=_3_0_0 },
     }},
     {fortress, {
       { .start=14, .name=_2_2_2 },
@@ -671,7 +679,7 @@ e_ref_landing_formation select_ref_formation(
       { .start= 6, .name=_4_1_1 },
       { .start= 4, .name=_4_1_1 },
       { .start= 2, .name=_2_1_1 },
-      { .start= 0, .name=_2_1_0 },
+      { .start= 0, .name=_3_0_0 },
     }},
     // clang-format on
   };
