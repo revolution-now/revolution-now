@@ -33,10 +33,3 @@ sumtype.EndOfTurnResult {
     first_to_ask 'base::maybe<UnitId>',
   },
 }
-
-enum.e_keep_playing {
-  no,
-  yes,
-
-  _features { nodiscard },
-}

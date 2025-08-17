@@ -1,0 +1,18 @@
+# ===============================================================
+# game-end.rds
+#
+# Project: Revolution Now
+#
+# Created by David P. Sicilia on 2025-08-17.
+#
+# Description: Rds definitions for the game-end module.
+#
+# ===============================================================
+namespace "rn"
+
+enum.e_keep_playing {
+  no,
+  yes,
+
+  _features { nodiscard },
+}
