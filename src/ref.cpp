@@ -605,19 +605,26 @@ bool is_initial_visit_to_colony(
 }
 
 e_ref_manowar_availability ensure_manowar_availability(
-    SS& ss, e_nation const nation ) {
+    SSConst const& ss, e_nation const nation ) {
+  e_player const ref_player_type = ref_player_for( nation );
   e_player const colonial_player_type =
       colonial_player_for( nation );
-  UNWRAP_CHECK_T( Player & colonial_player,
+  UNWRAP_CHECK_T( Player const& colonial_player,
                   ss.players.players[colonial_player_type] );
-  int& man_o_war =
+  int const man_o_war =
       colonial_player.revolution.expeditionary_force.man_o_war;
   if( man_o_war > 0 )
-    return e_ref_manowar_availability::available;
-  if( config_revolution.ref_forces.ref_can_spawn_ships ) {
-    ++man_o_war;
-    return e_ref_manowar_availability::none_but_added_one;
+    // When one is available in stock it can/will always be used,
+    // even if there are ships already on the map.
+    return e_ref_manowar_availability::available_in_stock;
+  for( auto const& [unit_id, p_state] : ss.units.euro_all() ) {
+    Unit const& unit = p_state->unit;
+    if( unit.player_type() != ref_player_type ) continue;
+    if( unit.type() == e_unit_type::man_o_war )
+      return e_ref_manowar_availability::available_on_map;
   }
+  if( config_revolution.ref_forces.ref_can_spawn_ships )
+    return e_ref_manowar_availability::none_but_can_add;
   return e_ref_manowar_availability::none;
 }
 

@@ -1581,6 +1581,8 @@ wait<> post_colonies_ref_only( SS& ss, TS& ts, Player& player ) {
   e_nation const nation = nation_for( player.type );
   e_player const colonial_player_type =
       colonial_player_for( nation );
+  UNWRAP_CHECK_T( Player & colonial_player,
+                  ss.players.players[colonial_player_type] );
 
   // Deploy some REF troops.
   vector<ColonyId> const coastal = find_coastal_colonies(
@@ -1640,12 +1642,16 @@ wait<> post_colonies_ref_only( SS& ss, TS& ts, Player& player ) {
       // colonies on the map. But no new REF units can be deliv-
       // ered.
       co_return;
-    case e_ref_manowar_availability::none_but_added_one:
+    case e_ref_manowar_availability::none_but_can_add:
+      ++colonial_player.revolution.expeditionary_force.man_o_war;
       // There were no more men-o-war left, but we've just added
       // one. Like the OG, when this happens, we wait one turn
       // before using it.
       co_return;
-    case e_ref_manowar_availability::available:
+    case e_ref_manowar_availability::available_on_map:
+      // Wait for the ships on the map to return to europe.
+      co_return;
+    case e_ref_manowar_availability::available_in_stock:
       break;
   }
   RefLandingPlan const landing_plan =

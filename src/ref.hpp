@@ -103,7 +103,8 @@ bool is_initial_visit_to_colony(
     IVisibility const& ref_viz );
 
 [[nodiscard]] e_ref_manowar_availability
-ensure_manowar_availability( SS& ss, e_nation nation );
+ensure_manowar_availability( SSConst const& ss,
+                             e_nation nation );
 
 e_ref_landing_formation select_ref_formation(
     RefColonySelectionMetrics const& metrics,

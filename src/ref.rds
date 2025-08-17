@@ -67,9 +67,17 @@ enum.e_ref_landing_formation {
 }
 
 enum.e_ref_manowar_availability {
+  # There are none in stock or on the map, and we are not per-
+  # mitted to regenerate ships, so we are done.
   none,
-  none_but_added_one,
-  available,
+  # There are none in stock or on the map, and we are permitted
+  # to regenerate ships, and we should add one to the stock.
+  none_but_can_add,
+  # There is none in stock but there are ships on the map that
+  # could be returned to europe for re-use.
+  available_on_map,
+  # There is a ship in stock available for immediate use.
+  available_in_stock,
 }
 
 struct.RefLandingForce {
