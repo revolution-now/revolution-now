@@ -1658,6 +1658,7 @@ wait<> post_colonies_ref_only( SS& ss, TS& ts, Player& player ) {
       make_ref_landing_plan( landing_tiles, force );
   RefLandingUnits const landing_units =
       create_ref_landing_units( ss, nation, landing_plan );
+  CHECK( !landing_units.landed_units.empty() );
   co_await offboard_ref_units(
       ss, ts.map_updater(),
       ts.planes.get().get_bottom<ILandViewPlane>(),
