@@ -16,6 +16,7 @@
 #include "colony-buildings.hpp"
 #include "colony-mgr.hpp"
 #include "connectivity.hpp"
+#include "harbor-units.hpp"
 #include "iagent.hpp"
 #include "igui.hpp"
 #include "land-view.hpp"
@@ -1065,6 +1066,32 @@ wait<> ref_win_ui_routine( SSConst const&, IGui& gui,
                            e_ref_win_reason const /*reason*/ ) {
   co_await gui.message_box( "The REF has won." );
   co_await gui.message_box( "(game end routine, e.g. scoring)" );
+}
+
+int move_ref_harbor_ships_to_stock( SS& ss,
+                                    Player& ref_player ) {
+  CHECK( is_ref( ref_player.type ) );
+  vector<UnitId> in_port = harbor_units_in_port(
+      as_const( ss.units ), ref_player.type );
+  erase_if( in_port, [&]( UnitId const unit_id ) {
+    Unit const& unit = ss.units.unit_for( unit_id );
+    CHECK_EQ( unit.player_type(), ref_player.type );
+    return unit.type() != e_unit_type::man_o_war;
+  } );
+  // At this point we have all the man-o-wars in port.
+  e_player const colonial_player_type =
+      colonial_player_for( nation_for( ref_player.type ) );
+  UNWRAP_CHECK_T( Player & colonial_player,
+                  ss.players.players[colonial_player_type] );
+  int const count = in_port.size();
+  colonial_player.revolution.expeditionary_force.man_o_war +=
+      count;
+  destroy_units( ss, in_port );
+  // This is so that the harbor view doesn't crash if we try to
+  // open it as the REF player since one of the ships in port
+  // will have been selected.
+  update_harbor_selected_unit( ss, ref_player );
+  return count;
 }
 
 } // namespace rn

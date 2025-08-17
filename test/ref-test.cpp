@@ -488,5 +488,9 @@ TEST_CASE( "[ref] ref_win_ui_routine" ) {
   world w;
 }
 
+TEST_CASE( "[ref] move_ref_harbor_ships_to_stock" ) {
+  world w;
+}
+
 } // namespace
 } // namespace rn

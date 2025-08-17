@@ -97,10 +97,12 @@
 #include "refl/to-str.hpp"
 
 // base
+#include "base/conv.hpp"
 #include "base/keyval.hpp"
 #include "base/lambda.hpp"
 #include "base/logger.hpp"
 #include "base/scope-exit.hpp"
+#include "base/string.hpp"
 #include "base/timer.hpp"
 #include "base/to-str-ext-std.hpp"
 #include "base/variant-util.hpp"
@@ -1374,13 +1376,36 @@ wait<> move_high_seas_units( IEngine& engine, SS& ss, TS& ts,
       if( status_union.arrived_in_harbor_with_cargo )
         co_await show_woodcut_if_needed(
             player, agent, e_woodcut::cargo_from_the_new_world );
-      HarborViewer harbor_viewer( engine, ss, ts, player );
-      harbor_viewer.set_selected_unit(
-          status_union.last_unit_arrived_in_harbor );
-      if( agent.human() ) co_await harbor_viewer.show();
+      if( agent.human() ) {
+        // NOTE: This is too much of a pain to put into the human
+        // agent because ultimately opening the harbor view re-
+        // quires TS at the moment, and we don't want to put that
+        // into the agents since we're trying to get away from it
+        // in general.
+        HarborViewer harbor_viewer( engine, ss, ts, player );
+        harbor_viewer.set_selected_unit(
+            status_union.last_unit_arrived_in_harbor );
+        co_await harbor_viewer.show();
+      }
     } else {
-      // TODO: An REF ship made it to port. move man-o-war units
-      // from port back to the stock.
+      // An REF ship made it to port. For REF players these ships
+      // automatically get moved back to the REF unit stock in
+      // the colonial player object so that they can be
+      // re-deployed. We'll show a message just in case the REF
+      // player is under human control.
+      int const men_o_war_received =
+          move_ref_harbor_ships_to_stock( ss, player );
+      string_view const name =
+          ( men_o_war_received > 1 ) ? "Men-o-war" : "Man-o-war";
+      string_view const verb =
+          ( men_o_war_received > 1 ) ? "have" : "has";
+      co_await agent.message_box(
+          "[{} {}] {} returned to the King for continued "
+          "deployment of REF troops.",
+          base::capitalize_initials(
+              base::int_to_string_literary(
+                  men_o_war_received ) ),
+          name, verb );
     }
   }
 }

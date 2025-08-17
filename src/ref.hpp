@@ -148,4 +148,8 @@ wait<> ref_win_ui_routine( SSConst const& ss, IGui& gui,
                            Player const& ref_player,
                            e_ref_win_reason reason );
 
+// Returns the number moved.
+[[nodiscard]] int move_ref_harbor_ships_to_stock(
+    SS& ss, Player& ref_player );
+
 } // namespace rn
