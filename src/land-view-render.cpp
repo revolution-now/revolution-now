@@ -394,7 +394,7 @@ void LandViewRenderer::render_units_impl() const {
     if( hit.contains( tile ) ) continue;
     hit.insert( tile );
     if( tiles_to_fade.contains( tile ) ) {
-      SCOPED_RENDERER_MOD_MUL( painter_mods.alpha, .35 );
+      SCOPED_RENDERER_MOD_MUL( painter_mods.alpha, .5 );
       render_units_on_square( tile, /*flags=*/false );
     } else {
       render_units_on_square( tile, /*flags=*/true );
