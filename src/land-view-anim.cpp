@@ -120,13 +120,20 @@ double depixelation_delta_from_stage( double initial_delta,
 
 // TODO: move this into a dedicated pixelation module and unit
 // test it.
-wait<> pixelation_stage_throttler( co::latch& hold,
+wait<> pixelation_stage_throttler( SettingsState const& settings,
+                                   co::latch& hold,
                                    double& stage,
                                    bool negative = false ) {
+  int const speedup_factor =
+      settings.in_game_options.game_menu_options
+              [e_game_menu_option::fast_piece_slide]
+          ? 2
+          : 1;
   double const sign = negative ? -1.0 : 1.0;
-  static double const pixelation_per_frame =
+  double const pixelation_per_frame =
       config_gfx.pixelation_curve.pixelation_per_frame
-          [config_gfx.pixelation_curve.curve_type];
+          [config_gfx.pixelation_curve.curve_type] *
+      speedup_factor;
   auto not_finished = [&] {
     return negative ? ( stage > 0.0 ) : ( stage < 1.0 );
   };
@@ -193,7 +200,8 @@ wait<> LandViewAnimator::unit_depixelation_throttler(
 
   depixelate.stage  = 0.0;
   depixelate.target = target_type;
-  co_await pixelation_stage_throttler( hold, depixelate.stage );
+  co_await pixelation_stage_throttler( ss_.settings, hold,
+                                       depixelate.stage );
 }
 
 wait<> LandViewAnimator::native_unit_depixelation_throttler(
@@ -206,7 +214,8 @@ wait<> LandViewAnimator::native_unit_depixelation_throttler(
 
   depixelate.stage  = 0.0;
   depixelate.target = target_type;
-  co_await pixelation_stage_throttler( hold, depixelate.stage );
+  co_await pixelation_stage_throttler( ss_.settings, hold,
+                                       depixelate.stage );
 }
 
 wait<> LandViewAnimator::unit_enpixelation_throttler(
@@ -217,7 +226,8 @@ wait<> LandViewAnimator::unit_enpixelation_throttler(
   UnitAnimationState::enpixelate_unit& enpixelate = popper.get();
 
   enpixelate.stage = 1.0;
-  co_await pixelation_stage_throttler( hold, enpixelate.stage,
+  co_await pixelation_stage_throttler( ss_.settings, hold,
+                                       enpixelate.stage,
                                        /*negative=*/true );
 }
 
@@ -229,7 +239,8 @@ wait<> LandViewAnimator::colony_depixelation_throttler(
   ColonyAnimationState::depixelate& depixelate = popper.get();
 
   depixelate.stage = 0.0;
-  co_await pixelation_stage_throttler( hold, depixelate.stage );
+  co_await pixelation_stage_throttler( ss_.settings, hold,
+                                       depixelate.stage );
 }
 
 wait<> LandViewAnimator::dwelling_depixelation_throttler(
@@ -240,7 +251,8 @@ wait<> LandViewAnimator::dwelling_depixelation_throttler(
   DwellingAnimationState::depixelate& depixelate = popper.get();
 
   depixelate.stage = 0.0;
-  co_await pixelation_stage_throttler( hold, depixelate.stage );
+  co_await pixelation_stage_throttler( ss_.settings, hold,
+                                       depixelate.stage );
 }
 
 vector<Coord> LandViewAnimator::redrawn_squares_for_overrides(
@@ -274,7 +286,8 @@ wait<> LandViewAnimator::landscape_anim_enpixelation_throttler(
     SCOPED_SET_AND_RESTORE( state.needs_rendering, true );
     co_await 1_frames;
   }
-  co_await pixelation_stage_throttler( hold, state.stage,
+  co_await pixelation_stage_throttler( ss_.settings, hold,
+                                       state.stage,
                                        /*negative=*/true );
 }
 

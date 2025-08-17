@@ -69,40 +69,26 @@ void render_unit_no_flag( rr::Renderer& renderer, Coord where,
                  tile );
 }
 
-void render_colony_flag( rr::Painter& painter, Coord coord,
-                         gfx::pixel color ) {
-  auto cloth_rect = Rect::from( coord, Delta{ .w = 8, .h = 6 } );
-  painter.draw_solid_rect( cloth_rect, color );
-  painter.draw_vertical_line( cloth_rect.upper_left(), 12,
+void render_colony_flag( rr::Renderer& renderer,
+                         point const where, pixel const color ) {
+  rr::Painter painter = renderer.painter();
+  painter.draw_vertical_line( where, 12,
                               gfx::pixel::wood().shaded( 4 ) );
+  render_sprite_silhouette(
+      renderer, where, e_tile::colony_colonial_flag, color );
+  {
+    SCOPED_RENDERER_MOD_MUL( painter_mods.alpha, .2 );
+    render_sprite( renderer, where,
+                   e_tile::colony_colonial_flag_shading );
+  }
 }
 
-void render_colony_america_flag( rr::Painter& painter,
-                                 point const coord ) {
-  rect const cloth_rect =
-      rect{ .origin = coord, .size = { .w = 9, .h = 7 } };
-  for( int y = cloth_rect.top(); y < cloth_rect.bottom(); ++y ) {
-    if( y % 2 == 0 )
-      painter.draw_horizontal_line(
-          { .x = cloth_rect.left(), .y = y }, cloth_rect.size.w,
-          pixel::red() );
-    else
-      painter.draw_horizontal_line(
-          { .x = cloth_rect.left(), .y = y }, cloth_rect.size.w,
-          pixel::white() );
-  }
-  for( int y = cloth_rect.top(); y < cloth_rect.center().y;
-       ++y ) {
-    for( int x = cloth_rect.left(); x < cloth_rect.center().x;
-         ++x ) {
-      if( ( y + x ) % 2 == 0 )
-        painter.draw_point( { .x = x, .y = y }, pixel::blue() );
-      else
-        painter.draw_point( { .x = x, .y = y }, pixel::white() );
-    }
-  }
-  painter.draw_vertical_line( cloth_rect.nw(), 12,
-                              pixel::wood().shaded( 4 ) );
+void render_colony_america_flag( rr::Renderer& renderer,
+                                 point const where ) {
+  rr::Painter painter = renderer.painter();
+  painter.draw_vertical_line( where, 12,
+                              gfx::pixel::wood().shaded( 4 ) );
+  render_sprite( renderer, where, e_tile::colony_rebel_flag );
 }
 
 // Renders one flag in the stack.
@@ -380,7 +366,6 @@ void render_colony( rr::Renderer& renderer, Coord where,
   FrozenColony const frozen_colony =
       colony_to_frozen_colony( ss, colony );
   int const population = colony_population( colony );
-  rr::Painter painter  = renderer.painter();
   render_sprite( renderer, where, tile );
   auto const& player_conf = player_obj( colony.player );
   if( options.render_flag ) {
@@ -391,16 +376,16 @@ void render_colony( rr::Renderer& renderer, Coord where,
           colonial_player_for( nation_for( colony.player ) );
       auto const& colonial_player_conf =
           player_obj( colonial_player_type );
-      render_colony_flag( painter,
+      render_colony_flag( renderer,
                           where + Delta{ .w = 8, .h = 8 },
                           colonial_player_conf.flag_color );
     } else {
       if( player.revolution.status >=
           e_revolution_status::declared )
         render_colony_america_flag(
-            painter, where + Delta{ .w = 8, .h = 8 } );
+            renderer, where + Delta{ .w = 8, .h = 8 } );
       else
-        render_colony_flag( painter,
+        render_colony_flag( renderer,
                             where + Delta{ .w = 8, .h = 8 },
                             player_conf.flag_color );
     }
