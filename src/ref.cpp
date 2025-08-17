@@ -940,6 +940,13 @@ wait<> offboard_ref_units( SS& ss, IMapUpdater& map_updater,
   }
 }
 
+// NOTE: we don't need to check for uprising here, since this
+// function is only called at the end of a turn after which an
+// uprising could have happened. In the OG, the REF can and will
+// forfeight even if an REF is possible, it it didn't do one on a
+// given turn and the other surrender conditions are met. So in
+// other words, we don't need to check if we will be able to do
+// another uprising on the next turn.
 maybe<e_forfeight_reason> ref_should_forfeight(
     SSConst const& ss, Player const& ref_player ) {
   CHECK( is_ref( ref_player.type ) );
