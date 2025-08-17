@@ -1103,6 +1103,45 @@ TEST_CASE( "[anim-builders] anim_seq_for_undefended_colony" ) {
   }
 }
 
+TEST_CASE(
+    "[anim-builders] "
+    "anim_seq_for_undefended_colony_conquered" ) {
+  World W;
+  AnimationSequence expected;
+  UnitId unit_id        = {};
+  e_direction direction = {};
+  Coord coord           = {};
+
+  auto f = [&] {
+    return anim_seq_for_undefended_colony_conquered(
+        W.ss(), unit_id, direction );
+  };
+
+  coord = { .x = 1, .y = 1 };
+  unit_id =
+      W.add_unit_on_map( e_unit_type::free_colonist, coord )
+          .id();
+  direction = e_direction::s;
+  expected  = {
+     .sequence = {
+      /*phase 0*/ {
+        { .primitive = P::ensure_tile_visible{ .tile = coord } },
+      },
+      /*phase 1*/
+      { { .primitive = P::slide_unit{ .unit_id   = unit_id,
+                                       .direction = direction } },
+         { .primitive = P::play_sound{ .what = e_sfx::move } } },
+      /*phase 2*/
+      { { .primitive =
+               P::translocate_unit{ .unit_id   = unit_id,
+                                    .direction = direction } },
+         { .primitive =
+               P::delay{ .duration =
+                            chrono::milliseconds{ 300 } } } },
+    } };
+  REQUIRE( f() == expected );
+}
+
 TEST_CASE( "[anim-builders] anim_seq_for_dwelling_burn" ) {
   World W;
   AnimationSequence expected;

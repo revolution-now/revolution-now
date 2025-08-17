@@ -77,6 +77,12 @@ sumtype.AnimationPrimitive {
     direction 'e_direction',
   },
 
+  # Like `slide_unit` except the unit is just teleported there.
+  translocate_unit {
+    unit_id 'GenericUnitId',
+    direction 'e_direction',
+  },
+
   # This will slide the unit but also keep a sprite of it sta-
   # tionary as it slides. This is used when a brave wants to talk
   # to a player, e.g. making an offering to a colony, perhaps to

@@ -189,12 +189,13 @@ struct LandViewAnimator {
   struct [[nodiscard]] Popper {
     using Id = typename Map::key_type;
 
-    Popper( Map& m, Id id )
+    Popper( Map& m, Id id, Anim&& state = {} )
       : m_( m ),
         id_( id ),
         // Creates a new Anim{} and pushes it to the top of the
         // stack.
-        anim_( m_[id_].emplace().template emplace<Anim>() ) {}
+        anim_( m_[id_].emplace().template emplace<Anim>(
+            std::move( state ) ) ) {}
 
     ~Popper() noexcept {
       CHECK( m_.contains( id_ ) );
@@ -222,9 +223,21 @@ struct LandViewAnimator {
     return Popper<Anim, Map>( m, id );
   }
 
+  template<typename Anim, typename Map>
+  auto make_popper( Map& m, typename Map::key_type id,
+                    Anim&& state ) {
+    return Popper<Anim, Map>( m, id, std::move( state ) );
+  }
+
   template<typename Anim>
   auto add_unit_animation( GenericUnitId id ) {
     return make_popper<Anim>( unit_animations_, id );
+  }
+
+  template<typename Anim>
+  auto add_unit_animation( GenericUnitId id, Anim&& state ) {
+    return make_popper<Anim>( unit_animations_, id,
+                              std::move( state ) );
   }
 
   template<typename Anim>

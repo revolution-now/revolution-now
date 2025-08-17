@@ -98,6 +98,8 @@ TEST_CASE( "[anim-builder] builders" ) {
       []( auto& square ) { square.road = true; } );
   builder.hide_colony( { .x = 111, .y = 222 } );
   builder.hide_dwelling( { .x = 222, .y = 333 } );
+  builder.translocate_unit( GenericUnitId{ 6 },
+                            e_direction::se );
 
   AnimationSequence const& res = builder.result();
 
@@ -164,6 +166,10 @@ TEST_CASE( "[anim-builder] builders" ) {
         { .primitive =
               P::hide_dwelling{
                 .tile = { .x = 222, .y = 333 } } },
+        { .primitive =
+              P::translocate_unit{
+                .unit_id   = GenericUnitId{ 6 },
+                .direction = e_direction::se } },
       } } };
 
   REQUIRE( res == expected );
@@ -633,6 +639,65 @@ TEST_CASE( "[anim-builder] animated_contents" ) {
   SECTION( "slide_unit/dst off map" ) {
     e_direction const d = e_direction::w;
     AnimationPrimitive::slide_unit const prim{
+      .unit_id = edge_unit_id, .direction = d };
+    set_prim( prim );
+    BASE_CHECK( !w.ss().terrain.square_exists(
+        w.ss()
+            .units.coord_for( edge_unit_id )
+            .to_gfx()
+            .moved( d ) ) );
+    expected = { .tiles = { AnimatedTile{
+                   .tile        = { .x = 0, .y = 1 },
+                   .inhabitants = { Society::european{
+                     .player = player } } } } };
+    REQUIRE( f() == expected );
+  }
+
+  SECTION( "translocate_unit" ) {
+    SECTION( "european" ) {
+      AnimationPrimitive::translocate_unit const prim{
+        .unit_id = unit_id, .direction = e_direction::se };
+      set_prim( prim );
+      expected = {
+        .tiles = {
+          AnimatedTile{ .tile        = { .x = 1, .y = 1 },
+                        .inhabitants = { Society::european{
+                          .player = player } } },
+          // NOTE: even though we are moving to a tile containing
+          // a native unit, we don't include that native unit in
+          // the dst tile's list of societies because the native
+          // unit is not being animated in this animation se-
+          // quence.
+          AnimatedTile{ .tile        = { .x = 2, .y = 2 },
+                        .inhabitants = { Society::european{
+                          .player = player } } } } };
+      REQUIRE( f() == expected );
+    }
+    SECTION( "native" ) {
+      AnimationPrimitive::translocate_unit const prim{
+        .unit_id   = native_unit_id,
+        .direction = e_direction::nw };
+      set_prim( prim );
+      expected = {
+        .tiles = {
+          // NOTE: even though we are moving to a tile containing
+          // a european unit, we don't include that european unit
+          // in the dst tile's list of societies because the eu-
+          // ropean unit is not being animated in this animation
+          // sequence.
+          AnimatedTile{ .tile        = { .x = 1, .y = 1 },
+                        .inhabitants = { Society::native{
+                          .tribe = e_tribe::sioux } } },
+          AnimatedTile{ .tile        = { .x = 2, .y = 2 },
+                        .inhabitants = { Society::native{
+                          .tribe = e_tribe::sioux } } } } };
+      REQUIRE( f() == expected );
+    }
+  }
+
+  SECTION( "translocate_unit/dst off map" ) {
+    e_direction const d = e_direction::w;
+    AnimationPrimitive::translocate_unit const prim{
       .unit_id = edge_unit_id, .direction = d };
     set_prim( prim );
     BASE_CHECK( !w.ss().terrain.square_exists(

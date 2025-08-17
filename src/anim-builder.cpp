@@ -89,6 +89,12 @@ AnimationAction& AnimationBuilder::front_unit(
   return push( P::front_unit{ .unit_id = unit_id } );
 }
 
+AnimationAction& AnimationBuilder::translocate_unit(
+    GenericUnitId unit_id, e_direction const direction ) {
+  return push( P::translocate_unit{ .unit_id   = unit_id,
+                                    .direction = direction } );
+}
+
 AnimationAction& AnimationBuilder::slide_unit(
     GenericUnitId unit_id, e_direction direction ) {
   return push( P::slide_unit{ .unit_id   = unit_id,
@@ -320,6 +326,11 @@ AnimationContents animated_contents(
         }
         CASE( front_unit ) {
           add( front_unit.unit_id );
+          break;
+        }
+        CASE( translocate_unit ) {
+          add( translocate_unit.unit_id,
+               translocate_unit.direction );
           break;
         }
         CASE( hide_colony ) {

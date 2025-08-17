@@ -74,6 +74,9 @@ AnimationSequence anim_seq_for_undefended_colony(
     SSConst const& ss,
     CombatEuroAttackUndefendedColony const& combat );
 
+AnimationSequence anim_seq_for_undefended_colony_conquered(
+    SSConst const& ss, UnitId unit_id, e_direction direction );
+
 // For when a dwelling gets burned.
 AnimationSequence anim_seq_for_dwelling_burn(
     SSConst const& ss, IVisibility const& viz,

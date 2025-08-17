@@ -52,6 +52,9 @@ sumtype.UnitAnimationState {
   slide {
     slide 'UnitSlide',
   },
+  translocate {
+    target 'gfx::point',
+  },
   talk {
     slide 'UnitSlide',
   },

@@ -49,6 +49,9 @@ struct AnimationBuilder {
 
   AnimationAction& front_unit( GenericUnitId unit_id );
 
+  AnimationAction& translocate_unit( GenericUnitId unit_id,
+                                     e_direction direction );
+
   AnimationAction& slide_unit( GenericUnitId unit_id,
                                e_direction direction );
 

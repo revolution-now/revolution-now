@@ -64,6 +64,7 @@ namespace rn {
 namespace {
 
 using ::gfx::pixel;
+using ::gfx::point;
 
 bool last_unit_input_is_in_stack_indirect(
     SSConst const& ss, UnitId last_unit_input,
@@ -304,6 +305,9 @@ void LandViewRenderer::render_units_impl() const {
 
   unordered_map<GenericUnitId, UnitAnimationState::front const*>
       front;
+  unordered_map<GenericUnitId,
+                UnitAnimationState::translocate const*>
+      translocate;
   unordered_map<GenericUnitId, UnitAnimationState::blink const*>
       blink;
   unordered_map<GenericUnitId, UnitAnimationState::slide const*>
@@ -339,6 +343,11 @@ void LandViewRenderer::render_units_impl() const {
       case UnitAnimationState::e::front:
         front[id] = &anim.get<UnitAnimationState::front>();
         tiles_to_skip.insert( tile );
+        break;
+      case UnitAnimationState::e::translocate:
+        translocate[id] =
+            &anim.get<UnitAnimationState::translocate>();
+        tiles_to_skip.insert( translocate[id]->target );
         break;
       case UnitAnimationState::e::hide:
         // Nothing to do here. These units with the "hide" anima-
@@ -484,6 +493,27 @@ void LandViewRenderer::render_units_impl() const {
     } );
   };
 
+  auto render_translocate = [&]( GenericUnitId const id,
+                                 point const target ) {
+    rr::e_render_buffer const buffer =
+        rr::e_render_buffer::entities;
+    SCOPED_RENDERER_MOD_SET( buffer_mods.buffer, buffer );
+    point const curr =
+        coord_for_unit_indirect_or_die( ss_.units, id );
+    // This is a bit hacky so that we can re-use render_impl
+    // as-is. Ideally we should just be able to specify that
+    // target tile instead of shifting it. But this will do for
+    // now at least.
+    Delta const pixel_delta = ( target - curr ) * g_tile_delta;
+    render_impl( id, [&]( Coord where,
+                          UnitFlagOptions const flag_options ) {
+      render_single_unit(
+          where + pixel_delta, id,
+          UnitFlagOptions( flag_options )
+              .with_flag_count( e_flag_count::single ) );
+    } );
+  };
+
   auto render_front = [&]( GenericUnitId id ) {
     render_impl( id, [&]( Coord where,
                           UnitFlagOptions const& flag_options ) {
@@ -515,6 +545,10 @@ void LandViewRenderer::render_units_impl() const {
   // #. Render units that are sliding.
   for( auto const& [id, anim] : slide )
     render_slide( id, anim->slide );
+
+  // #. Render units that are translocated.
+  for( auto const& [id, anim] : translocate )
+    render_translocate( id, anim->target );
 
   // #. Render euro units that are depixelating.
   for( auto const& [id, anim] : depixelate_euro_unit ) {

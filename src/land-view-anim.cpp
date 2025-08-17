@@ -493,6 +493,18 @@ wait<> LandViewAnimator::animate_action_primitive(
       co_await slide_throttler_slide( hold, unit_id, direction );
       break;
     }
+    CASE( translocate_unit ) {
+      auto& [unit_id, direction] = translocate_unit;
+      Coord const tile =
+          coord_for_unit_multi_ownership_or_die( ss_, unit_id );
+      point const moved = tile.moved( direction );
+      auto const popper =
+          add_unit_animation<UnitAnimationState::translocate>(
+              unit_id, UnitAnimationState::translocate{
+                         .target = moved } );
+      co_await hold.arrive_and_wait();
+      break;
+    }
     CASE( talk_unit ) {
       auto& [unit_id, direction] = talk_unit;
       co_await slide_throttler_talk( hold, unit_id, direction );

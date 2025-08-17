@@ -614,6 +614,28 @@ AnimationSequence anim_seq_for_undefended_colony(
   return builder.result();
 }
 
+AnimationSequence anim_seq_for_undefended_colony_conquered(
+    SSConst const& ss, UnitId unit_id, e_direction direction ) {
+  Coord const tile =
+      coord_for_unit_multi_ownership_or_die( ss, unit_id );
+  AnimationBuilder builder;
+  // Phase 0: pan to site. On a move, we just ensure the source
+  // tile is visible to reduce unnecessary panning.
+  ensure_tiles_visible( builder, { tile } );
+  // Phase 1: slide.
+  builder.new_phase();
+  builder.slide_unit( unit_id, direction );
+  builder.play_sound( e_sfx::move );
+  // Phase 2: hover. The attacking unit hovers over the colony
+  // for a bit to make it a bit more clear to the player that the
+  // unit is capturing the colony. Otherwise things happen too
+  // quickly and it doesn't look great.
+  builder.new_phase();
+  builder.translocate_unit( unit_id, direction );
+  builder.delay( chrono::milliseconds{ 300 } );
+  return builder.result();
+}
+
 AnimationSequence anim_seq_for_dwelling_burn(
     SSConst const& ss, IVisibility const& viz,
     UnitId attacker_id,

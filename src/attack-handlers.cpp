@@ -382,7 +382,8 @@ wait<> AttackColonyUndefendedHandler::perform() {
 
   // 1. The attacker moves into the colony square.
   AnimationSequence const move_seq =
-      anim_seq_for_unit_move( ss_, attacker_.id(), direction_ );
+      anim_seq_for_undefended_colony_conquered(
+          ss_, attacker_.id(), direction_ );
   co_await ts_.planes.get()
       .get_bottom<ILandViewPlane>()
       .animate_if_visible( move_seq );
