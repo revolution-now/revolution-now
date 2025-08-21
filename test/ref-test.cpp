@@ -476,6 +476,10 @@ TEST_CASE( "[ref] ref_forfeight_ui_routine" ) {
   world w;
 }
 
+TEST_CASE( "[ref] percent_ref_owned_population" ) {
+  world w;
+}
+
 TEST_CASE( "[ref] ref_should_win" ) {
   world w;
 }

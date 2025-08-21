@@ -1694,7 +1694,9 @@ wait<> post_colonies_colonial_only( SS& ss, TS& ts,
   //     maybe we should start at 70%.
   //
   //     The OG seems to show this on every turn once it goes
-  //     above 80%.
+  //     above 80%.  Call this:
+  //
+  //     percent_ref_owned_population( ss, ref_player );
 
   // Try to determine which turn we're on relative to the one
   // where we declared independence. This would be made easier if

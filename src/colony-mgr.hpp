@@ -83,6 +83,11 @@ void change_unit_outdoor_job( Colony& colony, UnitId id,
 
 int colony_population( Colony const& colony );
 
+// Total populate defined as number of citizens working in
+// colonies. Does not include ground units.
+int total_colonies_population( SSConst const& ss,
+                               e_player player );
+
 // All indoor+outdoor units. Does not include units at the colony
 // gate. Will be sorted by ID.
 std::vector<UnitId> colony_workers( Colony const& colony );

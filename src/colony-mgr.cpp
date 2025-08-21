@@ -190,6 +190,17 @@ int colony_population( Colony const& colony ) {
   return size;
 }
 
+int total_colonies_population( SSConst const& ss,
+                               e_player const player ) {
+  vector<ColonyId> const colonies =
+      ss.colonies.for_player( player );
+  int total = 0;
+  for( ColonyId const colony_id : colonies )
+    total +=
+        colony_population( ss.colonies.colony_for( colony_id ) );
+  return total;
+}
+
 // Note: this function should produce the workers in a determin-
 // istic order, i.e. no relying on hash map iteration.
 vector<UnitId> colony_workers( Colony const& colony ) {

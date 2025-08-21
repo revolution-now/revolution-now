@@ -138,6 +138,9 @@ void do_ref_forfeight( SS& ss, Player& ref_player );
 wait<> ref_forfeight_ui_routine( SSConst const& ss, IGui& gui,
                                  Player const& ref_player );
 
+int percent_ref_owned_population( SSConst const& ss,
+                                  Player const& ref_player );
+
 maybe<e_ref_win_reason> ref_should_win(
     SSConst const& ss, TerrainConnectivity const& connectivity,
     Player const& ref_player );

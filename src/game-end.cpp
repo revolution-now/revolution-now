@@ -75,9 +75,11 @@ wait<> check_time_up( SS& ss, TS& ts ) {
       config_turn.game_ending.deadline_for_winning;
   if( !time_limit.has_value() ) co_return;
   // We want "not equal" here so that we stop checking this dead-
-  // line after the year of the deadline, in case the player de-
-  // cides to continue playing.
-  if( ss.turn.time_point.year != *time_limit ) co_return;
+  // line after the year/season of the deadline, in case the
+  // player decides to continue playing.
+  if( ss.turn.time_point.year != *time_limit ||
+      ss.turn.time_point.season != e_season::autumn )
+    co_return;
   auto const declared =
       human_player_that_declared( ss.as_const );
   if( declared.has_value() )

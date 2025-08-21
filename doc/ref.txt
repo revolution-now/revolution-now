@@ -1,18 +1,3 @@
-Todo:
-
-  * REF winning conditions:
-      - Capturing all port colonies.
-      - There is an additional losing condition that happens when
-        the King controls 90% of the population of the new world,
-        even if there are rebel coastal colonies still uncap-
-        tured. There are warning messages that start each turn
-        once the percentage goes over 80%.
-      - TODO: Check if the normal game time limit also applies
-        after declaration.
-
-  * Need to figure out what the ref_captured_colony flag is used
-    for.
-
 Done:
 
   * Can we abandon a colony after declaration?
@@ -232,3 +217,14 @@ Done:
   * The OG has a field called ref_captured_colony that is set
     after the first colony is captured by the REF, and it is
     never unset thereafter.
+
+  * REF winning conditions:
+      - Capturing all port colonies.
+      - There is an additional losing condition that happens when
+        the King controls 90% of the population of the new world,
+        even if there are rebel coastal colonies still uncap-
+        tured. There are warning messages that start each turn
+        once the percentage goes over 80%.
+      - The normal game time limit (year 1850) also applies
+        during the war, namely the player is forced to surrounder
+        after that time.

@@ -899,5 +899,9 @@ TEST_CASE( "[colony-mgr] find_coastal_colonies" ) {
   REQUIRE( f() == vector<ColonyId>{ colony_id_2, colony_id_3 } );
 }
 
+TEST_CASE( "[colony-mgr] total_colonies_population" ) {
+  world w;
+}
+
 } // namespace
 } // namespace rn

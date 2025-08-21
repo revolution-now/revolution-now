@@ -1042,6 +1042,26 @@ wait<> ref_forfeight_ui_routine( SSConst const&, IGui& gui,
   co_await gui.message_box( "(game end routine, e.g. scoring)" );
 }
 
+int percent_ref_owned_population( SSConst const& ss,
+                                  Player const& ref_player ) {
+  CHECK( is_ref( ref_player.type ) );
+  e_player const colonial_player_type =
+      colonial_player_for( nation_for( ref_player.type ) );
+  int const total_ref_population =
+      total_colonies_population( ss, ref_player.type );
+  int const total_colonial_population =
+      total_colonies_population( ss, colonial_player_type );
+  // If this were zero then the player would have zero colonies
+  // which means zero coastal colonies and show we should have
+  // caught it above.
+  CHECK_GT( total_colonial_population, 0 );
+  double const ref_owned_percent =
+      double( total_ref_population ) /
+      ( total_ref_population + total_colonial_population );
+  return clamp( static_cast<int>( ref_owned_percent * 100 ), 0,
+                100 );
+}
+
 maybe<e_ref_win_reason> ref_should_win(
     SSConst const& ss, TerrainConnectivity const& connectivity,
     Player const& ref_player ) {
@@ -1055,6 +1075,8 @@ maybe<e_ref_win_reason> ref_should_win(
     // any port colonies since declaration (in which case they
     // lose immediately) or if the REF has captured them.
     return e_ref_win_reason::port_colonies_captured;
+  if( percent_ref_owned_population( ss, ref_player ) >= 90 )
+    return e_ref_win_reason::ref_controls_90_percent_population;
   return nothing;
 }
 
