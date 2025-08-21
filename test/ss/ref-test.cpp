@@ -93,6 +93,7 @@ value cdr_game_state_default = table{
             table{
               "showed_no_sail_high_seas_during_war"_key = false,
             },
+        "ref_captured_colony"_key = false,
       },
   "units"_key =
       table{

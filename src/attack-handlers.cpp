@@ -49,6 +49,8 @@
 #include "config/unit-type.rds.hpp"
 
 // ss
+#include "ss/events.rds.hpp"
+#include "ss/nation.hpp"
 #include "ss/natives.hpp"
 #include "ss/players.hpp"
 #include "ss/ref.hpp"
@@ -380,7 +382,7 @@ wait<> AttackColonyUndefendedHandler::perform() {
 
   // The colony has been captured.
 
-  // 1. The attacker moves into the colony square.
+  // Step. The attacker moves into the colony square.
   AnimationSequence const move_seq =
       anim_seq_for_undefended_colony_conquered(
           ss_, attacker_.id(), direction_ );
@@ -405,8 +407,8 @@ wait<> AttackColonyUndefendedHandler::perform() {
           .change_to_map( ts_, attack_dst_ );
   CHECK( !unit_deleted.has_value() );
 
-  // 2. All ships in the colony's port are considered damaged and
-  // are sent for repair. In the OG this seems to happen with
+  // Step. All ships in the colony's port are considered damaged
+  // and are sent for repair. In the OG this seems to happen with
   // 100% probability to all ships in the colony's port. Contrary
   // to how it might first seem, this is actually a huge boon to
   // the player whose colony was captured, since it means that
@@ -425,16 +427,16 @@ wait<> AttackColonyUndefendedHandler::perform() {
   // find_repair_port_for_ship function.
   // TODO
 
-  // 3. Any veteran_colonists in the colony must have their vet-
-  // eran status stripped.
+  // Step. Any veteran_colonists in the colony must have their
+  // veteran status stripped.
   // TODO
 
-  // 4. Any non-military units at the gate (including wagon
+  // Step. Any non-military units at the gate (including wagon
   // trains) are captured (not destroyed) and a message pops up
   // informing of that.
   // TODO
 
-  // 5. Compute gold plundered.  The OG using this formula:
+  // Step. Compute gold plundered. The OG using this formula:
   //
   //      plundered = G*(CP/TP)
   //
@@ -443,15 +445,20 @@ wait<> AttackColonyUndefendedHandler::perform() {
   //    total population of all colonies in that player.
   // TODO
 
-  // 6. The colony changes ownership, as well as all of the units
-  // that are working in it and who are on the map at the colony
-  // location.
+  // Step. The colony changes ownership, as well as all of the
+  // units that are working in it and who are on the map at the
+  // colony location.
   change_colony_player( ss_, ts_, colony_,
                         attacker_.player_type() );
 
-  // 7. Make adjustments to SoL of colony.
+  // Step. Make adjustments to SoL of colony.
 
-  // 8. Announce capture.
+  // Step. Misc state changes.
+  if( is_ref( attacker_.player_type() ) )
+    // See field declaration for comments.
+    ss_.events.ref_captured_colony = true;
+
+  // Step. Announce capture.
   // TODO: create an interface for playing music.
   // conductor::play_request(
   //     ts_.rand, conductor::e_request::fife_drum_happy,
