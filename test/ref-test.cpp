@@ -657,6 +657,10 @@ TEST_CASE( "[ref] create_ref_landing_units" ) {
   world w;
 }
 
+TEST_CASE( "[ref] produce_REF_landing_units" ) {
+  world w;
+}
+
 TEST_CASE( "[ref] offboard_ref_units" ) {
   world w;
 }
