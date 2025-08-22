@@ -1536,89 +1536,15 @@ wait<> post_colonies_ref_only( SS& ss, TS& ts, Player& player ) {
   e_nation const nation = nation_for( player.type );
   e_player const colonial_player_type =
       colonial_player_for( nation );
-  UNWRAP_CHECK_T( Player & colonial_player,
-                  ss.players.players[colonial_player_type] );
 
   // Deploy some REF troops.
-  vector<ColonyId> const coastal = find_coastal_colonies(
-      ss.as_const, ts.connectivity, colonial_player_type );
-  if( coastal.empty() ) {
-    // TODO: REF wins.
-    co_return;
-  }
-  vector<RefColonyMetricsScored> scored;
-  scored.reserve( scored.size() );
-  for( ColonyId const colony_id : coastal ) {
-    RefColonySelectionMetrics metrics =
-        ref_colony_selection_metrics(
-            ss.as_const, ts.connectivity, colony_id );
-    auto const score = ref_colony_selection_score( metrics );
-    if( !score.has_value() ) continue;
-    scored.push_back( RefColonyMetricsScored{
-      .metrics = std::move( metrics ), .score = *score } );
-  }
-  auto const metrics = select_ref_landing_colony( scored );
-  if( !metrics.has_value() ) {
-    // TODO: can't land on any coastal colonies.
-    co_return;
-  }
-  auto const landing_tiles = [&] {
-    auto const unfiltered_landing_tiles =
-        select_ref_landing_tiles( *metrics );
-    auto res = unfiltered_landing_tiles;
-    filter_ref_landing_tiles( res );
-    return res;
-  }();
-  auto const ref_viz =
-      create_visibility_for( ss.as_const, player.type );
-  CHECK( ref_viz && ref_viz->player().has_value() &&
-         is_ref( *ref_viz->player() ) );
-  bool const initial_visit_to_colony =
-      is_initial_visit_to_colony( ss.as_const, *metrics,
-                                  *ref_viz );
-  e_ref_landing_formation const formation =
-      select_ref_formation( *metrics, initial_visit_to_colony );
-  RefLandingForce const force =
-      allocate_landing_units( ss.as_const, nation, formation );
-  if( force.regular + force.cavalry + force.artillery == 0 )
-    // No more units to deploy.
-    co_return;
-  // NOTE: the following function may spawn a new Man-o-War to be
-  // in stock if there are none, but we only want to do that if
-  // there are units to transport, hence we check the total force
-  // first above.
-  e_ref_manowar_availability const manowar_availability =
-      ensure_manowar_availability( ss, nation );
-  switch( manowar_availability ) {
-    case e_ref_manowar_availability::none:
-      // No more left, and we are not adding any, so there is
-      // nothing we can do here. Given that the REF hasn't sur-
-      // rendered yet, it means that there are still REF units or
-      // colonies on the map. But no new REF units can be deliv-
-      // ered.
-      co_return;
-    case e_ref_manowar_availability::none_but_can_add:
-      ++colonial_player.revolution.expeditionary_force.man_o_war;
-      // There were no more men-o-war left, but we've just added
-      // one. Like the OG, when this happens, we wait one turn
-      // before using it.
-      co_return;
-    case e_ref_manowar_availability::available_on_map:
-      // Wait for the ships on the map to return to europe.
-      co_return;
-    case e_ref_manowar_availability::available_in_stock:
-      break;
-  }
-  RefLandingPlan const landing_plan =
-      make_ref_landing_plan( landing_tiles, force );
-  RefLandingUnits const landing_units =
-      create_ref_landing_units( ss, nation, landing_plan );
-  CHECK( !landing_units.landed_units.empty() );
-  co_await offboard_ref_units(
-      ss, ts.map_updater(),
-      ts.planes.get().get_bottom<ILandViewPlane>(),
-      ts.agents()[colonial_player_type], landing_units,
-      metrics->colony_id );
+  if( auto const landing_units = produce_REF_landing_units(
+          ss, ts.connectivity, nation );
+      landing_units.has_value() )
+    co_await offboard_ref_units(
+        ss, ts.map_updater(),
+        ts.planes.get().get_bottom<ILandViewPlane>(),
+        ts.agents()[colonial_player_type], *landing_units );
 }
 
 // Here we do things that must be done once per turn but where we

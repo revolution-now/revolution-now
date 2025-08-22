@@ -379,6 +379,8 @@ wait<> add_ref_unit_ui_seq(
 /****************************************************************
 ** REF Unit Deployment.
 *****************************************************************/
+namespace detail {
+
 RefColonySelectionMetrics ref_colony_selection_metrics(
     SSConst const& ss, TerrainConnectivity const& connectivity,
     ColonyId const colony_id ) {
@@ -422,6 +424,8 @@ RefColonySelectionMetrics ref_colony_selection_metrics(
       MapSquare const& square = ss.terrain.square_at( landing );
       if( is_water( square ) ) continue;
       if( !landing.direction_to( colony.location ).has_value() )
+        // This should catch squares that are not adjacent to the
+        // colony, including the colony square itself.
         continue;
       if( ss.colonies.maybe_from_coord( landing ).has_value() )
         // Should not happen in practice since colonies are not
@@ -787,7 +791,8 @@ RefLandingPlan make_ref_landing_plan(
 }
 
 RefLandingUnits create_ref_landing_units(
-    SS& ss, e_nation const nation, RefLandingPlan const& plan ) {
+    SS& ss, e_nation const nation, RefLandingPlan const& plan,
+    ColonyId const colony_id ) {
   RefLandingUnits res;
   e_player const ref_player_type = ref_player_for( nation );
   e_player const colonist_player_type =
@@ -799,6 +804,7 @@ RefLandingUnits create_ref_landing_units(
   res.ship.unit_id      = create_free_unit( ss.units, ref_player,
                                             e_unit_type::man_o_war );
   res.ship.landing_tile = plan.ship_tile;
+  res.colony_id         = colony_id;
   auto const decrement_unit_type =
       [&]( e_unit_type const unit_type ) {
         auto const decrement = [&]( int& n ) {
@@ -841,11 +847,12 @@ RefLandingUnits create_ref_landing_units(
   return res;
 }
 
-wait<> offboard_ref_units( SS& ss, IMapUpdater& map_updater,
-                           ILandViewPlane& land_view,
-                           IAgent& colonial_agent,
-                           RefLandingUnits const& landing_units,
-                           ColonyId const colony_id ) {
+} // namespace detail
+
+wait<> offboard_ref_units(
+    SS& ss, IMapUpdater& map_updater, ILandViewPlane& land_view,
+    IAgent& colonial_agent,
+    RefLandingUnits const& landing_units ) {
   auto const euro_unit_capture =
       [&]( Unit const& capturer,
            Unit const& captured ) -> wait<> {
@@ -909,7 +916,8 @@ wait<> offboard_ref_units( SS& ss, IMapUpdater& map_updater,
       landing_units.ship.landing_tile.captured_units );
 
   // Message.
-  Colony const& colony = ss.colonies.colony_for( colony_id );
+  Colony const& colony =
+      ss.colonies.colony_for( landing_units.colony_id );
   co_await land_view.ensure_visible( ship_tile );
   co_await colonial_agent.message_box(
       "Royal Expeditionary Force lands near [{}]!",
@@ -1121,6 +1129,99 @@ int move_ref_harbor_ships_to_stock( SS& ss,
   // will have been selected.
   update_harbor_selected_unit( ss, ref_player );
   return count;
+}
+
+// This is the full routine that creates the deployed REF troops,
+// using the other functions in this module, which are exposed in
+// the API so that they can be tested.
+maybe<RefLandingUnits> produce_REF_landing_units(
+    SS& ss, TerrainConnectivity const& connectivity,
+    e_nation const nation ) {
+  using namespace ::rn::detail;
+  e_player const ref_player_type = ref_player_for( nation );
+  e_player const colonial_player_type =
+      colonial_player_for( nation );
+  UNWRAP_CHECK_T( Player & colonial_player,
+                  ss.players.players[colonial_player_type] );
+  vector<ColonyId> const colonies =
+      ss.colonies.for_player( colonial_player_type );
+  vector<RefColonyMetricsScored> scored;
+  scored.reserve( scored.size() );
+  for( ColonyId const colony_id : colonies ) {
+    RefColonySelectionMetrics metrics =
+        ref_colony_selection_metrics( ss.as_const, connectivity,
+                                      colony_id );
+    auto const score = ref_colony_selection_score( metrics );
+    if( !score.has_value() ) continue;
+    scored.push_back( RefColonyMetricsScored{
+      .metrics = std::move( metrics ), .score = *score } );
+  }
+  auto const metrics = select_ref_landing_colony( scored );
+  if( !metrics.has_value() ) {
+    // Either no coastal colonies or there are coastal colonies
+    // but no available spots for the REF to land around them.
+    // The former means that the REF has won, and that will be
+    // detected later in the REF's turn. The latter should not
+    // typically happen with the standard map generator, but
+    // could happen with custom maps, e.g. if there is a colony
+    // on a small island. In this case, the game just kind of
+    // stalls since there is no way for the REF to deploy, and
+    // the player can't add/remove colonies. The standard map
+    // generator should prevent these scenarios, but we have to
+    // handle them in case of custom maps.
+    return nothing;
+  }
+  auto const landing_tiles = [&] {
+    auto const unfiltered_landing_tiles =
+        select_ref_landing_tiles( *metrics );
+    auto res = unfiltered_landing_tiles;
+    filter_ref_landing_tiles( res );
+    return res;
+  }();
+  auto const ref_viz =
+      create_visibility_for( ss.as_const, ref_player_type );
+  CHECK( ref_viz && ref_viz->player().has_value() &&
+         is_ref( *ref_viz->player() ) );
+  bool const initial_visit_to_colony =
+      is_initial_visit_to_colony( ss.as_const, *metrics,
+                                  *ref_viz );
+  e_ref_landing_formation const formation =
+      select_ref_formation( *metrics, initial_visit_to_colony );
+  RefLandingForce const force =
+      allocate_landing_units( ss.as_const, nation, formation );
+  if( force.regular + force.cavalry + force.artillery == 0 )
+    // No more units to deploy.
+    return nothing;
+  // NOTE: the following function may spawn a new Man-o-War to be
+  // in stock if there are none, but we only want to do that if
+  // there are units to transport, hence we check the total force
+  // first above.
+  e_ref_manowar_availability const manowar_availability =
+      ensure_manowar_availability( ss, nation );
+  switch( manowar_availability ) {
+    case e_ref_manowar_availability::none:
+      // No more left, and we are not adding any, so there is
+      // nothing we can do here. Given that the REF hasn't sur-
+      // rendered yet, it means that there are still REF units or
+      // colonies on the map. But no new REF units can be deliv-
+      // ered.
+      return nothing;
+    case e_ref_manowar_availability::none_but_can_add:
+      ++colonial_player.revolution.expeditionary_force.man_o_war;
+      // There were no more men-o-war left, but we've just added
+      // one. Like the OG, when this happens, we wait one turn
+      // before using it.
+      return nothing;
+    case e_ref_manowar_availability::available_on_map:
+      // Wait for the ships on the map to return to europe.
+      return nothing;
+    case e_ref_manowar_availability::available_in_stock:
+      break;
+  }
+  RefLandingPlan const landing_plan =
+      make_ref_landing_plan( landing_tiles, force );
+  return create_ref_landing_units( ss, nation, landing_plan,
+                                   metrics->colony_id );
 }
 
 } // namespace rn

@@ -47,13 +47,22 @@ struct world : testing::World {
 
   void create_default_map() {
     MapSquare const _ = make_ocean();
-    MapSquare const L = make_grassland();
-    vector<MapSquare> tiles{
-      L, L, L, //
-      L, _, L, //
-      L, L, L, //
+    MapSquare const X = make_grassland();
+    // clang-format off
+    vector<MapSquare> tiles{ /*
+        0  1  2  3  4  5  6  7
+    0*/ _, X, X, X, X, X, X, _, /* 0
+    1*/ _, X, X, X, X, X, X, _, /* 1
+    2*/ _, X, X, X, X, X, _, _, /* 2
+    3*/ _, X, X, X, X, _, _, _, /* 3
+    4*/ _, X, X, X, X, X, _, _, /* 4
+    5*/ _, X, X, X, X, X, X, _, /* 5
+    6*/ _, _, X, X, X, X, X, _, /* 6
+    7*/ X, _, _, X, X, X, X, _, /* 7
+        0  1  2  3  4  5  6  7   */
     };
-    build_map( std::move( tiles ), 3 );
+    // clang-format on
+    build_map( std::move( tiles ), 8 );
   }
 };
 
@@ -418,6 +427,146 @@ TEST_CASE( "[ref] add_ref_unit (loop)" ) {
 
 TEST_CASE( "[ref] ref_colony_selection_metrics" ) {
   world w;
+  w.update_terrain_connectivity();
+  RefColonySelectionMetrics expected;
+
+  auto const f =
+      [&] [[clang::noinline]] ( Colony const& colony ) {
+        return detail::ref_colony_selection_metrics(
+            w.ss(), w.connectivity(), colony.id );
+      };
+
+  using B = e_colony_barricade_type;
+
+  SECTION( "inland" ) {
+    Colony& colony = w.add_colony( { .x = 2, .y = 1 } );
+
+    expected = { .colony_id         = colony.id,
+                 .defense_strength  = 1,
+                 .barricade         = B::none,
+                 .population        = 0,
+                 .eligible_landings = {} };
+    REQUIRE( f( colony ) == expected );
+  }
+
+  SECTION( "map edge and island" ) {
+    Colony& colony = w.add_colony( { .x = 0, .y = 7 } );
+
+    expected = { .colony_id         = colony.id,
+                 .defense_strength  = 1,
+                 .barricade         = B::none,
+                 .population        = 0,
+                 .eligible_landings = {} };
+    REQUIRE( f( colony ) == expected );
+  }
+
+  SECTION( "coastal with two ship tiles" ) {
+    Colony& colony = w.add_colony( { .x = 5, .y = 4 } );
+
+    expected = {
+      .colony_id        = colony.id,
+      .defense_strength = 1,
+      .barricade        = B::none,
+      .population       = 0,
+      .eligible_landings =
+          {
+            {
+              .ship_tile =
+                  {
+                    .tile           = { .x = 5, .y = 3 },
+                    .captured_units = {},
+                  },
+              .landings =
+                  {
+                    { .tile           = { .x = 4, .y = 3 },
+                      .captured_units = {} },
+                    { .tile           = { .x = 4, .y = 4 },
+                      .captured_units = {} },
+                  },
+            },
+            {
+              .ship_tile =
+                  {
+                    .tile           = { .x = 6, .y = 4 },
+                    .captured_units = {},
+                  },
+              .landings =
+                  {
+                    { .tile           = { .x = 5, .y = 5 },
+                      .captured_units = {} },
+                    { .tile           = { .x = 6, .y = 5 },
+                      .captured_units = {} },
+                  },
+            },
+          },
+    };
+    REQUIRE( f( colony ) == expected );
+  }
+
+  SECTION( "coastal colony with one ship tile" ) {
+    Colony& colony = w.add_colony( { .x = 4, .y = 3 } );
+
+    expected = {
+      .colony_id         = colony.id,
+      .defense_strength  = 1,
+      .barricade         = B::none,
+      .population        = 0,
+      .eligible_landings = {
+        { .ship_tile = { .tile           = { .x = 5, .y = 3 },
+                         .captured_units = {} },
+          .landings  = {
+            { .tile = { .x = 4, .y = 2 }, .captured_units = {} },
+            { .tile = { .x = 5, .y = 2 }, .captured_units = {} },
+            { .tile = { .x = 4, .y = 4 }, .captured_units = {} },
+            { .tile = { .x = 5, .y = 4 }, .captured_units = {} },
+          } } } };
+    REQUIRE( f( colony ) == expected );
+
+    colony.buildings[e_colony_building::fort] = true;
+    w.add_unit_indoors( colony.id, e_indoor_job::bells );
+    w.add_unit_outdoors( colony.id, e_direction::nw,
+                         e_outdoor_job::food );
+
+    expected = {
+      .colony_id         = colony.id,
+      .defense_strength  = 1,
+      .barricade         = B::fort,
+      .population        = 2,
+      .eligible_landings = {
+        { .ship_tile = { .tile           = { .x = 5, .y = 3 },
+                         .captured_units = {} },
+          .landings  = {
+            { .tile = { .x = 4, .y = 2 }, .captured_units = {} },
+            { .tile = { .x = 5, .y = 2 }, .captured_units = {} },
+            { .tile = { .x = 4, .y = 4 }, .captured_units = {} },
+            { .tile = { .x = 5, .y = 4 }, .captured_units = {} },
+          } } } };
+    REQUIRE( f( colony ) == expected );
+
+    w.add_unit_on_map( e_unit_type::free_colonist,
+                       colony.location );
+    w.add_unit_on_map( e_unit_type::soldier, colony.location );
+    w.add_unit_on_map( e_unit_type::artillery, colony.location );
+    w.add_unit_on_map( e_unit_type::dragoon, colony.location );
+    w.add_unit_indoors( colony.id, e_indoor_job::bells );
+    colony.buildings[e_colony_building::fortress] = true;
+
+    expected = {
+      .colony_id         = colony.id,
+      .defense_strength  = 11,
+      .barricade         = B::fortress,
+      .population        = 3,
+      .eligible_landings = {
+        { .ship_tile = { .tile           = { .x = 5, .y = 3 },
+                         .captured_units = {} },
+          .landings  = {
+            { .tile = { .x = 4, .y = 2 }, .captured_units = {} },
+            { .tile = { .x = 5, .y = 2 }, .captured_units = {} },
+            { .tile = { .x = 4, .y = 4 }, .captured_units = {} },
+            { .tile = { .x = 5, .y = 4 }, .captured_units = {} },
+          } } } };
+    REQUIRE( f( colony ) == expected );
+  }
 }
 
 TEST_CASE( "[ref] ref_colony_selection_score" ) {

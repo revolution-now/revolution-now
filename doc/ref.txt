@@ -1,5 +1,9 @@
 Done:
 
+  * When the REF has all coastal colonies (or the player never
+    had any) then the REF will win, and this detection happens at
+    the end of its turn after units have moved.
+
   * Can we abandon a colony after declaration?
 
       - Yes, according to the usual rules. However, note that

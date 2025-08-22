@@ -72,6 +72,9 @@ wait<> add_ref_unit_ui_seq( IAgent& agent,
 /****************************************************************
 ** REF Unit Deployment.
 *****************************************************************/
+// These are exposed for testing.
+namespace detail {
+
 // Makes an assessment of all the colonist player's colonies and
 // assigns each one a strength score.
 RefColonySelectionMetrics ref_colony_selection_metrics(
@@ -119,13 +122,25 @@ RefLandingPlan make_ref_landing_plan(
     RefLandingForce const& force );
 
 [[nodiscard]] RefLandingUnits create_ref_landing_units(
-    SS& ss, e_nation nation, RefLandingPlan const& plan );
+    SS& ss, e_nation nation, RefLandingPlan const& plan,
+    ColonyId colony_id );
 
-wait<> offboard_ref_units( SS& ss, IMapUpdater& map_updater,
-                           ILandViewPlane& land_view,
-                           IAgent& colonial_agent,
-                           RefLandingUnits const& landing_units,
-                           ColonyId colony_id );
+} // namespace detail
+
+/****************************************************************
+** REF Deployment Public Methods.
+*****************************************************************/
+// This is the full routine that creates the deployed REF troops,
+// using the other functions in this module, which are exposed in
+// the API so that they can be tested.
+maybe<RefLandingUnits> produce_REF_landing_units(
+    SS& ss, TerrainConnectivity const& connectivity,
+    e_nation nation );
+
+wait<> offboard_ref_units(
+    SS& ss, IMapUpdater& map_updater, ILandViewPlane& land_view,
+    IAgent& colonial_agent,
+    RefLandingUnits const& landing_units );
 
 /****************************************************************
 ** REF Winning/Forfeight.
