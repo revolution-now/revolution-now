@@ -9,12 +9,21 @@ struct world : testing::World {
 
   void create_default_map() {
     static MapSquare const _ = make_ocean();
-    static MapSquare const L = make_grassland();
-    vector<MapSquare> tiles{
-      L, L, L, //
-      L, _, L, //
-      L, L, L, //
+    static MapSquare const X = make_grassland();
+    // clang-format off
+    vector<MapSquare> tiles{ /*
+        0  1  2  3  4  5  6  7
+    0*/ _, X, X, X, X, X, X, _, /* 0
+    1*/ _, X, X, X, X, X, X, _, /* 1
+    2*/ _, X, X, X, X, X, X, _, /* 2
+    3*/ _, X, X, X, X, X, X, _, /* 3
+    4*/ _, X, X, X, X, X, X, _, /* 4
+    5*/ _, X, X, X, X, X, X, _, /* 5
+    6*/ _, X, X, X, X, X, X, _, /* 6
+    7*/ _, X, X, X, X, X, X, _, /* 7
+        0  1  2  3  4  5  6  7   */
     };
-    build_map( std::move( tiles ), 3 );
+    // clang-format on
+    build_map( std::move( tiles ), 8 );
   }
 };
