@@ -1584,6 +1584,9 @@ local function generate_land( options )
   end
   clear_buffer_area( buffer )
   if options.remove_Xs then remove_Xs( options ) end
+  -- TODO: also need to remove two-tile islands which have a
+  -- dwelling on them because the REF would not be able to land
+  -- there if the player founds a colony.
   remove_islands()
   create_arctic( options )
   assign_dry_ground_types()
