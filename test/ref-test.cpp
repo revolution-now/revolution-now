@@ -571,6 +571,54 @@ TEST_CASE( "[ref] ref_colony_selection_metrics" ) {
 
 TEST_CASE( "[ref] ref_colony_selection_score" ) {
   world w;
+  RefColonySelectionMetrics metrics;
+
+  auto const f = [&] [[clang::noinline]] {
+    return detail::ref_colony_selection_score( metrics );
+  };
+
+  // Default.
+  REQUIRE( f() == nothing );
+
+  metrics = {
+    .defense_strength  = 15,
+    .barricade         = e_colony_barricade_type::fort,
+    .population        = 4,
+    .eligible_landings = {},
+  };
+  REQUIRE( f() == nothing );
+
+  metrics = {
+    .defense_strength  = 15,
+    .barricade         = e_colony_barricade_type::fort,
+    .population        = 4,
+    .eligible_landings = { {} },
+  };
+  REQUIRE( f() == 41 );
+
+  metrics = {
+    .defense_strength  = 1,
+    .barricade         = e_colony_barricade_type::fortress,
+    .population        = 4,
+    .eligible_landings = { {} },
+  };
+  REQUIRE( f() == 0 );
+
+  metrics = {
+    .defense_strength  = 1,
+    .barricade         = e_colony_barricade_type::fortress,
+    .population        = 5,
+    .eligible_landings = { {} },
+  };
+  REQUIRE( f() == -1 );
+
+  metrics = {
+    .defense_strength  = 100,
+    .barricade         = e_colony_barricade_type::none,
+    .population        = 20,
+    .eligible_landings = { {} },
+  };
+  REQUIRE( f() == 80 );
 }
 
 TEST_CASE( "[ref] select_ref_landing_colony" ) {

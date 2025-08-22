@@ -455,7 +455,6 @@ RefColonySelectionMetrics ref_colony_selection_metrics(
 // The smaller the score, the more likely to be chosen.
 maybe<int> ref_colony_selection_score(
     RefColonySelectionMetrics const& metrics ) {
-  CHECK( metrics.colony_id != 0 );
   if( metrics.eligible_landings.empty() ) return nothing;
   // The OG appears to select colonies in a very simplistic way:
   // there are only two buckets, undefended and defended. It
