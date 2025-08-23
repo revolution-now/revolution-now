@@ -49,7 +49,7 @@ struct.RefColonySelectionMetrics {
   population 'int',
 
   # Geography
-  eligible_landings 'std::vector<RefColonyLandingTiles>',
+  valid_landings 'std::vector<RefColonyLandingTiles>',
 }
 
 struct.RefColonyMetricsScored {

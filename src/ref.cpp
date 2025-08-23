@@ -47,6 +47,7 @@
 #include "refl/to-str.hpp"
 
 // C++ standard library
+#include <numeric>
 #include <ranges>
 
 namespace rg = std::ranges;
@@ -445,7 +446,7 @@ RefColonySelectionMetrics ref_colony_selection_metrics(
     for( point const p : valid_adjacent )
       landings.push_back( make_ref_landing_tile( p ) );
     CHECK( !landings.empty() );
-    metrics.eligible_landings.push_back( RefColonyLandingTiles{
+    metrics.valid_landings.push_back( RefColonyLandingTiles{
       .ship_tile = make_ref_landing_tile( ship_tile ),
       .landings  = std::move( landings ) } );
   }
@@ -455,7 +456,7 @@ RefColonySelectionMetrics ref_colony_selection_metrics(
 // The smaller the score, the more likely to be chosen.
 maybe<int> ref_colony_selection_score(
     RefColonySelectionMetrics const& metrics ) {
-  if( metrics.eligible_landings.empty() ) return nothing;
+  if( metrics.valid_landings.empty() ) return nothing;
   // The OG appears to select colonies in a very simplistic way:
   // there are only two buckets, undefended and defended. It
   // prefers undefended when available. Then within each bucket
@@ -497,11 +498,10 @@ select_ref_landing_colony(
   return p->metrics;
 }
 
-RefColonyLandingTiles select_ref_landing_tiles(
-    RefColonySelectionMetrics const& metrics
-        ATTR_LIFETIMEBOUND ) {
-  CHECK( !metrics.eligible_landings.empty() );
-  auto sorted = metrics.eligible_landings;
+maybe<RefColonyLandingTiles> select_ref_landing_tiles(
+    RefColonySelectionMetrics const& metrics ) {
+  if( metrics.valid_landings.empty() ) return nothing;
+  auto sorted = metrics.valid_landings;
   // Here we depart a bit from the OG's behavior. The OG always
   // chooses the tile (adjacent to the colony) with the largest
   // number of surrounding land tiles, regardless of whether
@@ -1156,7 +1156,7 @@ maybe<RefLandingUnits> produce_REF_landing_units(
       .metrics = std::move( metrics ), .score = *score } );
   }
   auto const metrics = select_ref_landing_colony( scored );
-  if( !metrics.has_value() ) {
+  if( !metrics.has_value() || metrics->valid_landings.empty() ) {
     // Either no coastal colonies or there are coastal colonies
     // but no available spots for the REF to land around them.
     // The former means that the REF has won, and that will be
@@ -1171,9 +1171,11 @@ maybe<RefLandingUnits> produce_REF_landing_units(
     return nothing;
   }
   auto const landing_tiles = [&] {
-    auto const unfiltered_landing_tiles =
+    auto unfiltered_landing_tiles =
         select_ref_landing_tiles( *metrics );
-    auto res = unfiltered_landing_tiles;
+    // This should not trigger because we checked that there are
+    // valid_landings above.
+    UNWRAP_CHECK( res, unfiltered_landing_tiles );
     filter_ref_landing_tiles( res );
     return res;
   }();

@@ -95,9 +95,8 @@ select_ref_landing_colony(
 
 // There must be at least one eligible landing site in the sup-
 // plied parameter or check fail.
-RefColonyLandingTiles select_ref_landing_tiles(
-    RefColonySelectionMetrics const& metrics
-        ATTR_LIFETIMEBOUND );
+maybe<RefColonyLandingTiles> select_ref_landing_tiles(
+    RefColonySelectionMetrics const& metrics );
 
 void filter_ref_landing_tiles( RefColonyLandingTiles& tiles );
 

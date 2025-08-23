@@ -35,6 +35,7 @@ namespace {
 
 using namespace std;
 using namespace ::rn::signal;
+using namespace ::rn::detail;
 
 /****************************************************************
 ** Fake World Setup
@@ -42,7 +43,8 @@ using namespace ::rn::signal;
 struct world : testing::World {
   world() {
     add_default_player();
-    create_default_map();
+    // NOTE: map not created by default since many test casess
+    // don't need it.
   }
 
   void create_default_map() {
@@ -50,17 +52,37 @@ struct world : testing::World {
     MapSquare const X = make_grassland();
     // clang-format off
     vector<MapSquare> tiles{ /*
-        0  1  2  3  4  5  6  7
-    0*/ _, X, X, X, X, X, X, _, /* 0
-    1*/ _, X, X, X, X, X, X, _, /* 1
-    2*/ _, X, X, X, X, X, _, _, /* 2
-    3*/ _, X, X, X, X, _, _, _, /* 3
-    4*/ _, X, X, X, X, X, _, _, /* 4
-    5*/ _, X, X, X, X, X, X, _, /* 5
-    6*/ _, _, X, X, X, X, X, _, /* 6
-    7*/ X, _, _, X, X, X, X, _, /* 7
-        0  1  2  3  4  5  6  7   */
-    };
+          0 1 2 3 4 5 6 7
+      0*/ _,X,X,X,X,X,X,_, /*0
+      1*/ _,X,X,X,X,X,X,_, /*1
+      2*/ _,X,X,X,X,X,_,_, /*2
+      3*/ _,X,X,X,X,_,_,_, /*3
+      4*/ _,X,X,X,X,X,_,_, /*4
+      5*/ _,X,X,X,X,X,X,_, /*5
+      6*/ _,_,X,X,X,X,X,_, /*6
+      7*/ X,_,_,X,X,X,X,_, /*7
+          0 1 2 3 4 5 6 7
+    */};
+    // clang-format on
+    build_map( std::move( tiles ), 8 );
+  }
+
+  void create_ref_landing_bug_map() {
+    MapSquare const _ = make_ocean();
+    MapSquare const X = make_grassland();
+    // clang-format off
+    vector<MapSquare> tiles{ /*
+          0 1 2 3 4 5 6 7
+      0*/ X,X,_,X,X,X,X,X, /*0
+      1*/ X,X,_,X,X,X,X,X, /*1
+      2*/ _,_,_,_,_,_,X,X, /*2
+      3*/ X,X,X,X,X,_,X,X, /*3
+      4*/ X,X,X,X,X,_,_,_, /*4
+      5*/ X,X,X,X,X,_,X,X, /*5
+      6*/ X,X,X,X,X,_,X,X, /*6
+      7*/ X,X,X,X,X,_,X,X, /*7
+          0 1 2 3 4 5 6 7
+    */};
     // clang-format on
     build_map( std::move( tiles ), 8 );
   }
@@ -427,12 +449,13 @@ TEST_CASE( "[ref] add_ref_unit (loop)" ) {
 
 TEST_CASE( "[ref] ref_colony_selection_metrics" ) {
   world w;
+  w.create_default_map();
   w.update_terrain_connectivity();
   RefColonySelectionMetrics expected;
 
   auto const f =
       [&] [[clang::noinline]] ( Colony const& colony ) {
-        return detail::ref_colony_selection_metrics(
+        return ref_colony_selection_metrics(
             w.ss(), w.connectivity(), colony.id );
       };
 
@@ -441,22 +464,22 @@ TEST_CASE( "[ref] ref_colony_selection_metrics" ) {
   SECTION( "inland" ) {
     Colony& colony = w.add_colony( { .x = 2, .y = 1 } );
 
-    expected = { .colony_id         = colony.id,
-                 .defense_strength  = 1,
-                 .barricade         = B::none,
-                 .population        = 0,
-                 .eligible_landings = {} };
+    expected = { .colony_id        = colony.id,
+                 .defense_strength = 1,
+                 .barricade        = B::none,
+                 .population       = 0,
+                 .valid_landings   = {} };
     REQUIRE( f( colony ) == expected );
   }
 
   SECTION( "map edge and island" ) {
     Colony& colony = w.add_colony( { .x = 0, .y = 7 } );
 
-    expected = { .colony_id         = colony.id,
-                 .defense_strength  = 1,
-                 .barricade         = B::none,
-                 .population        = 0,
-                 .eligible_landings = {} };
+    expected = { .colony_id        = colony.id,
+                 .defense_strength = 1,
+                 .barricade        = B::none,
+                 .population       = 0,
+                 .valid_landings   = {} };
     REQUIRE( f( colony ) == expected );
   }
 
@@ -468,7 +491,7 @@ TEST_CASE( "[ref] ref_colony_selection_metrics" ) {
       .defense_strength = 1,
       .barricade        = B::none,
       .population       = 0,
-      .eligible_landings =
+      .valid_landings =
           {
             {
               .ship_tile =
@@ -507,14 +530,14 @@ TEST_CASE( "[ref] ref_colony_selection_metrics" ) {
     Colony& colony = w.add_colony( { .x = 4, .y = 3 } );
 
     expected = {
-      .colony_id         = colony.id,
-      .defense_strength  = 1,
-      .barricade         = B::none,
-      .population        = 0,
-      .eligible_landings = {
+      .colony_id        = colony.id,
+      .defense_strength = 1,
+      .barricade        = B::none,
+      .population       = 0,
+      .valid_landings   = {
         { .ship_tile = { .tile           = { .x = 5, .y = 3 },
-                         .captured_units = {} },
-          .landings  = {
+                           .captured_units = {} },
+            .landings  = {
             { .tile = { .x = 4, .y = 2 }, .captured_units = {} },
             { .tile = { .x = 5, .y = 2 }, .captured_units = {} },
             { .tile = { .x = 4, .y = 4 }, .captured_units = {} },
@@ -528,14 +551,14 @@ TEST_CASE( "[ref] ref_colony_selection_metrics" ) {
                          e_outdoor_job::food );
 
     expected = {
-      .colony_id         = colony.id,
-      .defense_strength  = 1,
-      .barricade         = B::fort,
-      .population        = 2,
-      .eligible_landings = {
+      .colony_id        = colony.id,
+      .defense_strength = 1,
+      .barricade        = B::fort,
+      .population       = 2,
+      .valid_landings   = {
         { .ship_tile = { .tile           = { .x = 5, .y = 3 },
-                         .captured_units = {} },
-          .landings  = {
+                           .captured_units = {} },
+            .landings  = {
             { .tile = { .x = 4, .y = 2 }, .captured_units = {} },
             { .tile = { .x = 5, .y = 2 }, .captured_units = {} },
             { .tile = { .x = 4, .y = 4 }, .captured_units = {} },
@@ -552,14 +575,14 @@ TEST_CASE( "[ref] ref_colony_selection_metrics" ) {
     colony.buildings[e_colony_building::fortress] = true;
 
     expected = {
-      .colony_id         = colony.id,
-      .defense_strength  = 11,
-      .barricade         = B::fortress,
-      .population        = 3,
-      .eligible_landings = {
+      .colony_id        = colony.id,
+      .defense_strength = 11,
+      .barricade        = B::fortress,
+      .population       = 3,
+      .valid_landings   = {
         { .ship_tile = { .tile           = { .x = 5, .y = 3 },
-                         .captured_units = {} },
-          .landings  = {
+                           .captured_units = {} },
+            .landings  = {
             { .tile = { .x = 4, .y = 2 }, .captured_units = {} },
             { .tile = { .x = 5, .y = 2 }, .captured_units = {} },
             { .tile = { .x = 4, .y = 4 }, .captured_units = {} },
@@ -569,64 +592,247 @@ TEST_CASE( "[ref] ref_colony_selection_metrics" ) {
   }
 }
 
+// See the comments in the select_ref_landing_tiles function for
+// details on what we are testing here.
+TEST_CASE( "[ref] ref_colony_selection_metrics (buggy spot)" ) {
+  world w;
+  w.create_ref_landing_bug_map();
+  //      0 1 2 3 4 5 6 7
+  //  0*/ X,X,_,X,X,X,X,X, /*0
+  //  1*/ X,X,_,X,X,X,X,X, /*1
+  //  2*/ _,_,_,_,_,_,X,X, /*2
+  //  3*/ X,X,X,X,C,_,X,X, /*3
+  //  4*/ X,X,X,X,X,_,_,_, /*4
+  //  5*/ X,X,X,X,X,_,X,X, /*5
+  //  6*/ X,X,X,X,X,_,X,X, /*6
+  //  7*/ X,X,X,X,X,_,X,X, /*7
+  //      0 1 2 3 4 5 6 7
+  w.update_terrain_connectivity();
+  RefColonySelectionMetrics expected;
+
+  auto const f =
+      [&] [[clang::noinline]] ( Colony const& colony ) {
+        return ref_colony_selection_metrics(
+            w.ss(), w.connectivity(), colony.id );
+      };
+
+  using B = e_colony_barricade_type;
+
+  Colony& colony = w.add_colony( { .x = 4, .y = 3 } );
+
+  expected = {
+    .colony_id        = 1,
+    .defense_strength = 1,
+    .barricade        = B::none,
+    .population       = 0,
+    .valid_landings   = {
+      { .ship_tile = { .tile = { .x = 3, .y = 2 } },
+          .landings  = { { .tile = { .x = 3, .y = 3 } } } },
+      { .ship_tile = { .tile = { .x = 4, .y = 2 } },
+          .landings  = { { .tile = { .x = 3, .y = 3 } } } },
+      { .ship_tile = { .tile = { .x = 5, .y = 3 } },
+          .landings  = { { .tile = { .x = 4, .y = 4 } } } },
+      { .ship_tile = { .tile = { .x = 5, .y = 4 } },
+          .landings  = { { .tile = { .x = 4, .y = 4 } } } } } };
+  REQUIRE( f( colony ) == expected );
+}
+
 TEST_CASE( "[ref] ref_colony_selection_score" ) {
   world w;
   RefColonySelectionMetrics metrics;
 
   auto const f = [&] [[clang::noinline]] {
-    return detail::ref_colony_selection_score( metrics );
+    return ref_colony_selection_score( metrics );
   };
 
   // Default.
   REQUIRE( f() == nothing );
 
   metrics = {
-    .defense_strength  = 15,
-    .barricade         = e_colony_barricade_type::fort,
-    .population        = 4,
-    .eligible_landings = {},
+    .defense_strength = 15,
+    .barricade        = e_colony_barricade_type::fort,
+    .population       = 4,
+    .valid_landings   = {},
   };
   REQUIRE( f() == nothing );
 
   metrics = {
-    .defense_strength  = 15,
-    .barricade         = e_colony_barricade_type::fort,
-    .population        = 4,
-    .eligible_landings = { {} },
+    .defense_strength = 15,
+    .barricade        = e_colony_barricade_type::fort,
+    .population       = 4,
+    .valid_landings   = { {} },
   };
   REQUIRE( f() == 41 );
 
   metrics = {
-    .defense_strength  = 1,
-    .barricade         = e_colony_barricade_type::fortress,
-    .population        = 4,
-    .eligible_landings = { {} },
+    .defense_strength = 1,
+    .barricade        = e_colony_barricade_type::fortress,
+    .population       = 4,
+    .valid_landings   = { {} },
   };
   REQUIRE( f() == 0 );
 
   metrics = {
-    .defense_strength  = 1,
-    .barricade         = e_colony_barricade_type::fortress,
-    .population        = 5,
-    .eligible_landings = { {} },
+    .defense_strength = 1,
+    .barricade        = e_colony_barricade_type::fortress,
+    .population       = 5,
+    .valid_landings   = { {} },
   };
   REQUIRE( f() == -1 );
 
   metrics = {
-    .defense_strength  = 100,
-    .barricade         = e_colony_barricade_type::none,
-    .population        = 20,
-    .eligible_landings = { {} },
+    .defense_strength = 100,
+    .barricade        = e_colony_barricade_type::none,
+    .population       = 20,
+    .valid_landings   = { {} },
   };
   REQUIRE( f() == 80 );
 }
 
 TEST_CASE( "[ref] select_ref_landing_colony" ) {
   world w;
+  vector<RefColonyMetricsScored> choices;
+  maybe<RefColonySelectionMetrics> expected;
+
+  auto const f = [&] [[clang::noinline]] {
+    return select_ref_landing_colony( choices );
+  };
+
+  // Default.
+  choices  = {};
+  expected = {};
+  REQUIRE( f() == expected );
+
+  // Single.
+  choices = {
+    RefColonyMetricsScored{
+      .metrics = { .colony_id = 5 },
+      .score   = 100,
+    },
+  };
+  expected = { .colony_id = 5 };
+  REQUIRE( f() == expected );
+
+  // Multiple.
+  choices = {
+    RefColonyMetricsScored{
+      .metrics = { .colony_id = 1 },
+      .score   = 100,
+    },
+    RefColonyMetricsScored{
+      .metrics = { .colony_id = 2 },
+      .score   = 90,
+    },
+    RefColonyMetricsScored{
+      .metrics = { .colony_id = 3 },
+      .score   = 50,
+    },
+    RefColonyMetricsScored{
+      .metrics = { .colony_id = 4 },
+      .score   = 15,
+    },
+    RefColonyMetricsScored{
+      .metrics = { .colony_id = 5 },
+      .score   = 15,
+    },
+    RefColonyMetricsScored{
+      .metrics = { .colony_id = 6 },
+      .score   = 75,
+    },
+    RefColonyMetricsScored{
+      .metrics = { .colony_id = 7 },
+      .score   = 99,
+    },
+    RefColonyMetricsScored{
+      .metrics = { .colony_id = 8 },
+      .score   = 100,
+    },
+  };
+  expected = { .colony_id = 4 };
+  REQUIRE( f() == expected );
+
+  // With negative.
+  choices = {
+    RefColonyMetricsScored{
+      .metrics = { .colony_id = 1 },
+      .score   = 100,
+    },
+    RefColonyMetricsScored{
+      .metrics = { .colony_id = 2 },
+      .score   = 90,
+    },
+    RefColonyMetricsScored{
+      .metrics = { .colony_id = 3 },
+      .score   = 50,
+    },
+    RefColonyMetricsScored{
+      .metrics = { .colony_id = 4 },
+      .score   = 15,
+    },
+    RefColonyMetricsScored{
+      .metrics = { .colony_id = 5 },
+      .score   = -15,
+    },
+    RefColonyMetricsScored{
+      .metrics = { .colony_id = 6 },
+      .score   = 75,
+    },
+    RefColonyMetricsScored{
+      .metrics = { .colony_id = 7 },
+      .score   = 99,
+    },
+    RefColonyMetricsScored{
+      .metrics = { .colony_id = 8 },
+      .score   = 100,
+    },
+  };
+  expected = { .colony_id = 5 };
+  REQUIRE( f() == expected );
 }
 
 TEST_CASE( "[ref] select_ref_landing_tiles" ) {
   world w;
+  RefColonySelectionMetrics metrics;
+  maybe<RefColonyLandingTiles> expected;
+
+  auto const f = [&] [[clang::noinline]] {
+    return select_ref_landing_tiles( metrics );
+  };
+
+  auto const R  = RefLandingTile{};
+  auto const R1 = RefLandingTile{ .tile = { .x = 1 } };
+
+  // Default.
+  metrics  = {};
+  expected = nothing;
+  REQUIRE( f() == expected );
+
+  // Single.
+  metrics.valid_landings = {
+    { .ship_tile = R, .landings = { R, R, R } },
+  };
+  expected = { .ship_tile = R, .landings = { R, R, R } };
+  REQUIRE( f() == expected );
+
+  // Same size.
+  metrics.valid_landings = {
+    { .ship_tile = R, .landings = { R1, R, R } },
+    { .ship_tile = R1, .landings = { R, R1, R } },
+    { .ship_tile = R, .landings = { R, R, R1 } },
+    { .ship_tile = R1, .landings = { R, R, R } },
+  };
+  expected = { .ship_tile = R, .landings = { R1, R, R } };
+  REQUIRE( f() == expected );
+
+  // Different sizes.
+  metrics.valid_landings = {
+    { .ship_tile = R, .landings = { R, R } },
+    { .ship_tile = R, .landings = { R, R, R } },
+    { .ship_tile = R1, .landings = { R, R, R1, R } },
+    { .ship_tile = R, .landings = { R, R } },
+  };
+  expected = { .ship_tile = R1, .landings = { R, R, R1, R } };
+  REQUIRE( f() == expected );
 }
 
 TEST_CASE( "[ref] filter_ref_landing_tiles" ) {
