@@ -837,6 +837,123 @@ TEST_CASE( "[ref] select_ref_landing_tiles" ) {
 
 TEST_CASE( "[ref] filter_ref_landing_tiles" ) {
   world w;
+  RefColonyLandingTiles tiles;
+  RefColonyLandingTiles expected;
+
+  auto const f = [&] [[clang::noinline]] {
+    filter_ref_landing_tiles( tiles );
+  };
+
+  using G = GenericUnitId;
+
+  // Default.
+  tiles    = {};
+  expected = {};
+  f();
+  REQUIRE( tiles == expected );
+
+  // No landings.
+  tiles = {
+    .ship_tile =
+        {
+          .tile           = {},
+          .captured_units = {},
+        },
+    .landings = {},
+  };
+  expected = {};
+  f();
+  REQUIRE( tiles == expected );
+
+  // Single landing, zero captured.
+  tiles    = { .ship_tile = { .tile = {}, .captured_units = {} },
+               .landings  = {
+              { .tile = { .x = 1 }, .captured_units = {} } } };
+  expected = { .ship_tile = { .tile = {}, .captured_units = {} },
+               .landings  = { { .tile           = { .x = 1 },
+                                .captured_units = {} } } };
+  f();
+  REQUIRE( tiles == expected );
+
+  // Single landing, some captured.
+  tiles    = { .ship_tile = { .tile = {}, .captured_units = {} },
+               .landings  = { { .tile           = { .x = 1 },
+                                .captured_units = { G{ 1 }, G{ 2 },
+                                                    G{ 3 } } } } };
+  expected = { .ship_tile = { .tile = {}, .captured_units = {} },
+               .landings  = { { .tile           = { .x = 1 },
+                                .captured_units = {
+                                 G{ 1 }, G{ 2 }, G{ 3 } } } } };
+  f();
+  REQUIRE( tiles == expected );
+
+  // Multiple landings, all zero.
+  tiles    = { .ship_tile = { .tile = {}, .captured_units = {} },
+               .landings  = {
+              { .tile = { .x = 1 }, .captured_units = {} },
+              { .tile = { .x = 2 }, .captured_units = {} },
+              { .tile = { .x = 3 }, .captured_units = {} },
+              { .tile = { .x = 4 }, .captured_units = {} } } };
+  expected = {
+    .ship_tile = { .tile = {}, .captured_units = {} },
+    .landings  = {
+      { .tile = { .x = 1 }, .captured_units = {} },
+      { .tile = { .x = 2 }, .captured_units = {} },
+      { .tile = { .x = 3 }, .captured_units = {} },
+      { .tile = { .x = 4 }, .captured_units = {} } } };
+  f();
+  REQUIRE( tiles == expected );
+
+  // Multiple landings, some zero.
+  tiles = {
+    .ship_tile = { .tile = {}, .captured_units = {} },
+    .landings  = {
+      { .tile           = { .x = 1 },
+         .captured_units = { G{ 1 }, G{ 2 }, G{ 3 } } },
+      { .tile = { .x = 2 }, .captured_units = {} },
+      { .tile = { .x = 3 }, .captured_units = { G{ 4 } } },
+      { .tile = { .x = 4 }, .captured_units = {} } } };
+  expected = {
+    .ship_tile = { .tile = {}, .captured_units = {} },
+    .landings  = {
+      { .tile = { .x = 2 }, .captured_units = {} },
+      { .tile = { .x = 4 }, .captured_units = {} } } };
+  f();
+  REQUIRE( tiles == expected );
+
+  // Multiple landings, one zero.
+  tiles    = { .ship_tile = { .tile = {}, .captured_units = {} },
+               .landings  = {
+              { .tile           = { .x = 1 },
+                    .captured_units = { G{ 1 }, G{ 2 }, G{ 3 } } },
+              { .tile           = { .x = 2 },
+                    .captured_units = { G{ 6 }, G{ 7 } } },
+              { .tile           = { .x = 3 },
+                    .captured_units = { G{ 4 }, G{ 9 }, G{ 10 } } },
+              { .tile = { .x = 4 }, .captured_units = {} } } };
+  expected = { .ship_tile = { .tile = {}, .captured_units = {} },
+               .landings  = { { .tile           = { .x = 4 },
+                                .captured_units = {} } } };
+  f();
+  REQUIRE( tiles == expected );
+
+  // Multiple landings, no zeroes.
+  tiles = {
+    .ship_tile = { .tile = {}, .captured_units = {} },
+    .landings  = {
+      { .tile           = { .x = 1 },
+         .captured_units = { G{ 1 }, G{ 2 }, G{ 3 } } },
+      { .tile = { .x = 2 }, .captured_units = { G{ 5 } } },
+      { .tile           = { .x = 3 },
+         .captured_units = { G{ 4 }, G{ 9 }, G{ 10 } } },
+      { .tile           = { .x = 4 },
+         .captured_units = { G{ 6 }, G{ 7 } } } } };
+  expected = {
+    .ship_tile = { .tile = {}, .captured_units = {} },
+    .landings  = {
+      { .tile = { .x = 2 }, .captured_units = { G{ 5 } } } } };
+  f();
+  REQUIRE( tiles == expected );
 }
 
 TEST_CASE( "[ref] is_initial_visit_to_colony" ) {

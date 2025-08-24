@@ -560,7 +560,7 @@ maybe<RefColonyLandingTiles> select_ref_landing_tiles(
 
 void filter_ref_landing_tiles( RefColonyLandingTiles& tiles ) {
   auto& landings = tiles.landings;
-  CHECK( !landings.empty() );
+  if( landings.empty() ) return;
   // Here we depart a bit from the OG's behavior. The OG will
   // look at all available landing tiles and will select the one
   // with the fewest number of units on it and unload all units
