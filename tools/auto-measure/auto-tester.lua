@@ -69,7 +69,7 @@ end
 -----------------------------------------------------------------
 local function record_outcome( args )
   local outfile = assert( args.outfile )
-  local _ = assert( args.config )
+  local config = assert( args.config )
   local processor = assert( args.processor )
   local exp_name = assert( args.exp_name )
 
@@ -77,7 +77,7 @@ local function record_outcome( args )
   assert( json.HEADER )
 
   -- This invokes test-case-specific logic.
-  local results = processor.collect_results( json )
+  local results = processor.collect_results( config, json )
   local value = format_kv_table( results, {
     start='',
     ending='',

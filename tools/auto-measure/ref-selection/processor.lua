@@ -20,6 +20,7 @@ local format_kv_table = printer.format_kv_table
 local deep_copy = mtbl.deep_copy
 local join = list.join
 local set_size = set.set_size
+local printfln = printer.printfln
 
 local D = designer
 
@@ -36,9 +37,10 @@ local function validate_config( config )
   assert( type( config.fortification ) == 'string' )
   assert( type( config.muskets ) == 'number' )
   assert( type( config.horses ) == 'number' )
-  assert( type( config.already_landed ) == 'boolean' )
+  assert( type( config.landed ) == 'boolean' )
   assert( type( config.orders ) == 'string' )
   assert( type( config.unit_set ) == 'table' )
+  assert( type( config.n_tiles ) == 'number' )
 end
 
 local function experiment_name( config )
@@ -149,14 +151,28 @@ local function set_config( config, json )
                        unit_opts )
   end
 
-  -- already_landed. NOTE: need to do this after placing the
-  -- units since placing the units can sometimes affect the vis-
-  -- itor nation of surrounding tiles.
-  local already_landed = config.already_landed
-  assert( already_landed ~= nil )
-  local visitor_nation = already_landed and ref_idx or human_idx
+  -- landed. NOTE: need to do this after placing the units since
+  -- placing the units can sometimes affect the visitor nation of
+  -- surrounding tiles.
+  local landed = config.landed
+  assert( landed ~= nil )
+  -- First set all the tile visitors to the human nation, then
+  -- set only the land tiles to the visitor nation, that way we
+  -- leave the water tiles as having the human visitor, that way
+  -- we will later be able to track where the ship landed, which
+  -- we have to do this way because sometimes the ship gets de-
+  -- stroyed by the fortress after landing. We need to know where
+  -- the ship landed so that we can know how many landing tiles
+  -- there were available in order to check the correctness of
+  -- the n_tiles config parameter.
   D.on_tiles_around_colony( colony, function( tile )
-    D.set_visitor_nation( json, tile, visitor_nation )
+    D.set_visitor_nation( json, tile, human_idx )
+  end )
+  local visitor_nation = landed and ref_idx or human_idx
+  D.on_tiles_around_colony( colony, function( tile )
+    if D.is_land( json, tile ) then
+      D.set_visitor_nation( json, tile, visitor_nation )
+    end
   end )
 end
 
@@ -218,7 +234,58 @@ local function action( config, api )
   -- units in store that have been subtracted.
 end
 
-local function collect_results( json )
+-- The ship may not still be alive since it may have been de-
+-- stroyed by a fortress, but we'll know where it landed never-
+-- theless by looking at the last visitor on the water tiles
+-- around the colony.
+local function find_ship_landing( json )
+  local ref_idx = assert( D.find_REF( json ) )
+  assert( type( ref_idx ) == 'number' )
+  local human_idx = assert( D.find_unique_human( json ) )
+  local colony = assert( json.COLONY[1] )
+  local found = nil
+  D.on_tiles_around_colony( colony, function( tile )
+    if found then return end
+    if D.is_water( json, tile ) then
+      local vis = assert( D.visitor_nation( json, tile ) )
+      assert( type( vis ) == 'number' )
+      if vis == ref_idx then
+        found = tile
+      else
+        assert( vis == human_idx )
+      end
+    end
+  end )
+  return found
+end
+
+-- Validate that n_tiles agrees with the sav file.
+local function validate_n_tiles( config, json )
+  local colony = assert( json.COLONY[1] )
+  local colony_coord = D.coord_for_colony( colony )
+  local n_landing_tiles = 0
+  local ship_landing = assert( find_ship_landing( json ),
+                               'cannot find ship landing tile.' )
+  info( 'found ship tile: %s', ship_landing )
+  D.on_surrounding_tiles( ship_landing, function( tile )
+    if not D.coords_are_adjacent( tile, colony_coord ) then
+      return
+    end
+    if D.is_land( json, tile ) then
+      n_landing_tiles = n_landing_tiles + 1
+    end
+  end )
+  assert( config.n_tiles == n_landing_tiles,
+          format( 'config.n_tiles=%d, n_landing_tiles=%d',
+                  config.n_tiles, n_landing_tiles ) )
+end
+
+local function collect_results( config, json )
+  -- We can only do this after the results sav file is generated
+  -- because otherwise we won't know where the ship landed, which
+  -- is necessary to know how many landing tiles there are.
+  validate_n_tiles( config, json )
+
   local force = assert( json.HEADER.expeditionary_force )
   local regulars = assert( force.regulars )
   local cavalry = assert( force.dragoons )

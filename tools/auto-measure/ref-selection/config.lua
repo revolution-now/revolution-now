@@ -32,13 +32,27 @@ return {
       'fortress', --
     },
 
-    already_landed={ false, true },
+    -- This is the number of landing tiles around the ship on
+    -- which REF units can be deployed. This value will actually
+    -- be selected by the game given the land/water configuration
+    -- around the colony. However, we need this here because it
+    -- has to go into the output and we want to validate it
+    -- against what we find in the map/sav file to ensure it is
+    -- correct. It must be correct because the unit deployment
+    -- formula depends on it.
+    n_tiles=3,
+
+    landed={ false, true },
 
     -- Doesn't seem to depend on horses count.
     horses=0,
 
     -- 2000 muskets appears to be enough to raise a single sol-
-    -- dier to 2/2/2, so no need to go higher.
+    -- dier to 2/2/2, so no need to go higher. That said, it is
+    -- probably only necessary to have { 0, 50 }, that way we
+    -- probe the even strength metrics, otherwise they would
+    -- always be odd because all units have an even strength
+    -- factor and the colony itself gets 1.
     muskets={ 0, 50, 100, 150, 200, 500, 1000, 2000 },
 
     -- Doesn't seem to depend on fortified status.
@@ -46,6 +60,10 @@ return {
 
     -- LuaFormatter off
     unit_set={
+      -----------------------------------------------------------
+      -- none
+      -----------------------------------------------------------
+      {},
       -----------------------------------------------------------
       -- soldier
       -----------------------------------------------------------

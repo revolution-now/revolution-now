@@ -5,6 +5,7 @@ local M = {}
 -----------------------------------------------------------------
 local insert = table.insert
 local format = string.format
+local abs = math.abs
 
 -----------------------------------------------------------------
 -- Metadata.
@@ -155,7 +156,22 @@ end
 -----------------------------------------------------------------
 -- Utilities.
 -----------------------------------------------------------------
-local function coord_for( x, y ) return { x=x, y=y } end
+-- Creates a fancy coord object. Should always use this to create
+-- a coord.
+local function coord_for( x, y )
+  -- The __coord can be used to identify a coord as an object.
+  return setmetatable( { x=x, y=y }, {
+    __eq=function( l, r ) return l.x == r.x and l.y == r.y; end,
+    __index=function( tbl, k )
+      if k == '__coord' then return true end
+      return rawget( tbl, k )
+    end,
+    __tostring=function( tbl )
+      return format( '{x=%d,y=%d}', tbl.x, tbl.y )
+    end,
+  } )
+end
+M.coord_for = coord_for
 
 -- Will return ONLY tiles that exist. Will NOT include input tile.
 function M.surrounding_coords( cc )
@@ -177,6 +193,16 @@ function M.surrounding_coords( cc )
     end
   end
   return coords_exist
+end
+
+-- This will return true if the tiles are adjacent but NOT the
+-- same.
+function M.coords_are_adjacent( c1, c2 )
+  assert( c1.__coord )
+  assert( c2.__coord )
+  if c1 == c2 then return false end
+  local ok = { [0]=true, [1]=true }
+  return ok[abs( c1.x - c2.x )] and ok[abs( c1.y - c2.y )]
 end
 
 -----------------------------------------------------------------
@@ -203,6 +229,11 @@ function M.set_white_box( json, coord )
   assert( json.STUFF.white_box_y )
   json.STUFF.white_box_x = assert( coord.x )
   json.STUFF.white_box_y = assert( coord.y )
+end
+
+function M.on_surrounding_tiles( coord, fn )
+  local tiles = M.surrounding_coords( coord )
+  for _, tile in ipairs( tiles ) do fn( tile ) end
 end
 
 -----------------------------------------------------------------
@@ -488,6 +519,19 @@ function M.lookup_grid( grid, coord )
 end
 
 -----------------------------------------------------------------
+-- TILE
+-----------------------------------------------------------------
+function M.is_water( json, coord )
+  local square = M.lookup_grid( json.TILE, coord )
+  local tile = assert( square.tile )
+  return tile == '~~~' or tile == '~:~'
+end
+
+function M.is_land( json, coord )
+  return not M.is_water( json, coord )
+end
+
+-----------------------------------------------------------------
 -- PATH
 -----------------------------------------------------------------
 function M.set_visitor_nation( json, coord, nation )
@@ -496,6 +540,17 @@ function M.set_visitor_nation( json, coord, nation )
   local tile = M.lookup_grid( json.PATH, coord )
   assert( tile.visitor_nation )
   tile.visitor_nation = visitor
+end
+
+-- Returns the 1-based index.
+function M.visitor_nation( json, coord )
+  local tile = M.lookup_grid( json.PATH, coord )
+  assert( tile.visitor_nation )
+  for i, vis in ipairs( NATION_4BIT_SHORT ) do
+    if vis == tile.visitor_nation then return i end
+  end
+  error( format( 'failed to look up index for visitor_nation=%s',
+                 tile.visitor_nation ) )
 end
 
 function M.set_visitor_nation_if_empty( json, coord, nation )

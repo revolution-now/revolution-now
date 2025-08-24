@@ -14,7 +14,6 @@ local console = require'moon.console'
 local rep = string.rep
 local insert = table.insert
 local floor = math.floor
-local huge = math.huge
 local format = string.format
 
 local NORMAL = colors.ANSI_NORMAL
@@ -26,7 +25,6 @@ local tsplit = list.tsplit
 local split = list.split
 local printfln = printer.printfln
 local bar = printer.bar
-local min, max = math.min, math.max
 
 -----------------------------------------------------------------
 -- Global Init.
@@ -41,52 +39,53 @@ local LABEL_LEN = COMPACT_VIEW and 120 or 220
 local SHOW_PASSED = false
 
 -----------------------------------------------------------------
+-- Constants.
+-----------------------------------------------------------------
+local L1 = 0
+local L2 = 1
+
+local REG = 'regulars'
+local CAV = 'cavalry'
+local ART = 'artillery'
+
+-----------------------------------------------------------------
 -- Parameters.
 -----------------------------------------------------------------
+local LEVELS = {
+  [L1]={ CAV, ART, REG, REG, REG, REG },
+  [L2]={ CAV, CAV, ART, ART, REG, REG },
+}
+
 local BUCKETS = {
   -- LuaFormatter off
   none={
-    { start=  30, name='2/2/2' },
-    { start=  10, name='4/1/1' },
-    { start=   8, name='3/1/1' },
-    { start=   6, name='2/1/1' },
-    { start=   4, name='2/1/0' },
-    { start=   2, name='2/1/0' },
-    { start=   0, name='2/1/0' },
+    { start=  30, count=6, level=L2 },
+    { start=  10, count=6, level=L1 },
+    { start=   8, count=5, level=L1 },
+    { start=   6, count=4, level=L1 },
+    { start=   0, count=3, level=L1 },
   },
   stockade={
-    { start=  30, name='2/2/2' },
-    { start=  10, name='4/1/1' },
-    { start=   8, name='3/1/1' },
-    { start=   6, name='2/1/1' },
-    { start=   4, name='2/1/0' },
-    { start=   2, name='2/1/0' },
-    { start=   0, name='2/1/0' },
+    { start=  30, count=6, level=L2 },
+    { start=  10, count=6, level=L1 },
+    { start=   8, count=5, level=L1 },
+    { start=   6, count=4, level=L1 },
+    { start=   0, count=3, level=L1 },
   },
   fort={
-    { start=  20, name='2/2/2' },
-    { start=  10, name='4/1/1' },
-    { start=   8, name='4/1/1' },
-    { start=   6, name='4/1/1' },
-    { start=   4, name='2/1/1' },
-    { start=   2, name='2/1/0' },
-    { start=   0, name='2/1/0' },
+    { start=  20, count=6, level=L2 },
+    { start=   6, count=6, level=L1 },
+    { start=   4, count=4, level=L1 },
+    { start=   0, count=3, level=L1 },
   },
   fortress={
-    { start=  14, name='2/2/2' },
-    { start=  10, name='4/1/1' },
-    { start=   8, name='4/1/1' },
-    { start=   6, name='4/1/1' },
-    { start=   4, name='4/1/1' },
-    { start=   2, name='2/1/1' },
-    { start=   0, name='2/1/0' },
+    { start=  14, count=6, level=L2 },
+    { start=   4, count=6, level=L1 },
+    { start=   2, count=4, level=L1 },
+    { start=   0, count=3, level=L1 },
   },
   -- LuaFormatter on
 }
-
-for _, bucket in pairs( BUCKETS ) do
-  insert( bucket, { start=0, name='1/1/1' } )
-end
 
 local UNIT_WEIGHT = {
   soldier=2,
@@ -102,29 +101,14 @@ local UNIT_WEIGHT = {
 }
 
 -----------------------------------------------------------------
--- Helpers.
------------------------------------------------------------------
-local FORTIFICATION_ORDER = {
-  'none', 'stockade', 'fort', 'fortress',
-}
-
-local function idx_for_bucket( case, target )
-  for i, bucket in ipairs( BUCKETS[case.fortification] ) do
-    if bucket.name == target then return i end
-  end
-  error( format( 'cannot find bucket index for bucket %s',
-                 tostring( target ) ) )
-end
-
------------------------------------------------------------------
--- metric computation.
+-- Metric computation.
 -----------------------------------------------------------------
 local function compute_metric( case )
   local metric = 0
   local add = function( term ) metric = metric + term end
   add( 1 )
   for _, unit in ipairs( case.unit_set ) do
-    add( UNIT_WEIGHT[unit] )
+    add( assert( UNIT_WEIGHT[unit] ) )
   end
   add( case.muskets // 50 )
   return metric
@@ -141,35 +125,58 @@ local function bucket_for( case, metric )
   error( 'bucket not found for metric=' .. metric )
 end
 
+local function name_for_formation( formation )
+  assert( formation.regulars )
+  assert( formation.cavalry )
+  assert( formation.artillery )
+  return format( '%d/%d/%d', formation.regulars,
+                 formation.cavalry, formation.artillery )
+end
+
+local function compute_formation( landed, n_tiles, n_units, level )
+  assert( n_units > 0 )
+  assert( n_tiles > 0 )
+  assert( n_tiles <= 4 )
+  local res = { regulars=0, cavalry=0, artillery=0 }
+  if not landed then
+    for _ = 1, n_tiles do
+      if n_units == 0 then return res end
+      n_units = n_units - 1
+      res.regulars = res.regulars + 1
+    end
+  end
+  local seq = assert( LEVELS[level] )
+  for i = 1, n_units do
+    assert( i <= #seq )
+    res[seq[i]] = res[seq[i]] + 1
+  end
+  return res
+end
+
 local function compute_bucket( case )
   local metric = compute_metric( case )
   local bucket = bucket_for( case, metric )
   assert( bucket )
-  if assert( bucket['name'] ) == '2/1/0' and case.already_landed then
-    return metric, '1/1/1'
-  end
-  return metric, assert( bucket.name )
+  assert( bucket.count )
+  assert( bucket.level )
+  local landed = case.landed
+  assert( landed ~= nil )
+  assert( case.n_tiles )
+  local formation = compute_formation( landed, case.n_tiles,
+                                       bucket.count, bucket.level )
+  return metric, name_for_formation( formation )
 end
 
 local num_passed = 0
 
-local function run_test( test, ranges_out )
+local function run_test( test )
   local metric, bucket = compute_bucket( test.info )
   local matches = (bucket == test.expected)
-  local got_bucket_idx = assert(
-                             idx_for_bucket( test.info, bucket ) )
-  local need_bucket_idx = assert(
-                              idx_for_bucket( test.info,
-                                              test.expected ) )
-  local rg = ranges_out[test.info.fortification][need_bucket_idx]
-  rg.min = min( rg.min, metric )
-  rg.max = max( rg.max, metric )
   num_passed = num_passed + (matches and 1 or 0);
   if matches and not SHOW_PASSED then return end
   local color = matches and GREEN or RED
   local label = test.label
   if COMPACT_VIEW then
-    label = label:gsub( 'already_landed', 'landed' )
     label = label:gsub( 'difficulty', 'diff' )
     label = label:gsub( 'conquistador', 'conq' )
     label = label:gsub( 'fortification', 'fortn' )
@@ -186,12 +193,9 @@ local function run_test( test, ranges_out )
     label = label:gsub( 'soldier', 'sl' )
   end
   label = label .. rep( ' ', LABEL_LEN - #label )
-  local direction = (got_bucket_idx < need_bucket_idx) and '>' or
-                        (got_bucket_idx > need_bucket_idx) and
-                        '<' or ' '
-  printfln( '%s : %-5s : %s : %s : %s : %s%s%s', label,
-            tostring( metric ), bucket, test.expected, direction,
-            color, matches, NORMAL )
+  printfln( '%s : %-5s : %s : %s : %s%s%s', label,
+            tostring( metric ), bucket, test.expected, color,
+            matches, NORMAL )
 end
 
 -- The line is of the form: 'xxx=yyy|aaa=bbb|ccc=ddd\thello=2/1/0'.
@@ -212,14 +216,16 @@ local function parse_test_case( line )
     keyvals.unit_set = {}
     for _ = 1, count do insert( keyvals.unit_set, unit ) end
     assert( #keyvals.unit_set == count )
-  else
+  elseif #keyvals.unit_set > 0 then
     keyvals.unit_set = split( keyvals.unit_set, '-' )
+  else
+    keyvals.unit_set = {}
   end
   keyvals.muskets = tonumber( keyvals.muskets )
   keyvals.horses = tonumber( keyvals.horses )
-  assert(
-      ({ ['true']=true, ['false']=true })[keyvals.already_landed] )
-  keyvals.already_landed = keyvals.already_landed == 'true'
+  keyvals.n_tiles = tonumber( keyvals.n_tiles )
+  assert( ({ ['true']=true, ['false']=true })[keyvals.landed] )
+  keyvals.landed = keyvals.landed == 'true'
   return { info=keyvals, label=label, expected=delivery }
 end
 
@@ -250,15 +256,8 @@ end
 
 local function main( _ )
   local tests = create_test_cases()
-  local ranges = {}
-  for k, _ in pairs( BUCKETS ) do
-    ranges[k] = ranges[k] or {}
-    for _, _ in ipairs( BUCKETS.none ) do
-      insert( ranges[k], { min=huge, max=-huge } )
-    end
-  end
   print_header()
-  for _, test in ipairs( tests ) do run_test( test, ranges ) end
+  for _, test in ipairs( tests ) do run_test( test ) end
   local perfect = num_passed == #tests
   local pc_color = perfect and GREEN or RED
   local passed_color = perfect and GREEN or NORMAL
@@ -267,27 +266,6 @@ local function main( _ )
   printfln( '%s%d%%%s %spassed%s [%d/%d].', pc_color,
             floor( 100.0 * num_passed / #tests ), NORMAL,
             passed_color, NORMAL, num_passed, #tests )
-  print()
-  print( 'local BUCKETS = {' )
-  print( '  -- LuaFormatter off' )
-  for _, ftn in ipairs( FORTIFICATION_ORDER ) do
-    printfln( '  %s={', ftn )
-    for i, bucket in ipairs( BUCKETS[ftn] ) do
-      if ranges[ftn][i] then
-        local v = ranges[ftn][i]
-        local l = v.min
-        local r = v.max
-        -- if i == #BUCKETS[ftn] then l = 0 end
-        l = (v.min == huge) and 'huge' or l
-        r = (v.max == -huge) and 'huge' or r
-        printfln( '    { start=%4s, finish=%4s, name=\'%s\' },',
-                  l, r, bucket.name )
-      end
-    end
-    print( '  },' )
-  end
-  print( '  -- LuaFormatter on' )
-  print( '}' )
 end
 
 os.exit( main{ ... } )

@@ -1,3 +1,40 @@
+TODO:
+
+  * Algo for deploying REF:
+      1. Pick number of units and sequence given strength.
+           Fortifications:
+             none:
+               0   : 3  : weak      <==
+               6   : 4  : weak      <==
+               8   : 5  : weak      <==
+               10  : 6  : weak      <==
+               30  : 6  : strong    <==
+             fort:
+               0   : 3  : weak      <==
+               4   : 4  : weak      <==
+               6   : 6  : weak      <==
+               20  : 6  : strong    <==
+             fortress:
+               0   : 3  : weak      <==
+               2   : 4  : weak      <==
+               4   : 6  : weak      <==
+               14  : 6  : strong    <==
+      2. Pick sequence given strength:
+           Weak colony:   cavalry, artillery, reg, reg, reg, reg
+           Strong colony: cavalry, cavalry, artillery, artillery, reg, reg
+      3. Put regulars on all squares.
+      4. Fill out remainder by following sequence from beginning.
+      5. In all subsequence iterations (defined by the deployment
+         tiles having the REF as visitor nation), follow the seq
+         from the begginning.
+
+  * It appears that the REF changes the units it sends depending
+    on whether the squares that it would unload on have a
+    visitor_nation equal to the REF nation or not. It may do this
+    in order to know whether it landed there already. Because if
+    it has landed there already and the colony still hasn't been
+    taken, then it probably just sends reinforcements.
+
 Done:
 
   * When the REF has all coastal colonies (or the player never
@@ -108,44 +145,6 @@ Done:
 
   * The presence of a stockade/fort/fortress does not seem to af-
     fect the choice of colony.
-
-  * It appears that the REF changes the units it sends depending
-    on whether the squares that it would unload on have a
-    visitor_nation equal to the REF nation or not. It may do this
-    in order to know whether it landed there already. Because if
-    it has landed there already and the colony still hasn't been
-    taken, then it probably just sends reinforcements.
-
-       * visitor_nation is empty  --> 1/1/1  (visited)
-       * visitor_nation is player --> 2/1/0  (not visited)
-       * visitor_nation is REF    --> 1/1/1  (visited)
-
-  * The first wave of units can have these distributions:
-
-      6: 2/2/2
-      6: 4/1/1
-      5: 3/1/1
-      4: 2/1/1
-      --------------
-      3: 2/1/0
-
-    The second wave has been observed to have:
-
-      6: 2/2/2
-      6: 4/1/1
-      5: 3/1/1
-      4: 2/1/1
-      --------------
-      3: 1/1/1
-
-    The game seems to prefer weak colonies to attack. So the
-    2/1/0 in the first wave could be so that if it is a super
-    weak colony and it is the first time we are landing, then it
-    is likely we will take the colony, so we don't want to waste
-    artillery, especially if it is e.g. a remote mining colony.
-    It will still get a second wave which will be 1/1/1 and thus
-    will use an artillery, but this way way we only waste 1 in-
-    stead of two.
 
   * When a colony gets REF units for the first time, unless the
     player quickly stocks the colony with defenses before those
