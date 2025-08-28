@@ -26,6 +26,9 @@ local split = list.split
 local printfln = printer.printfln
 local bar = printer.bar
 
+local min = math.min
+local max = math.max
+
 -----------------------------------------------------------------
 -- Global Init.
 -----------------------------------------------------------------
@@ -56,34 +59,22 @@ local LEVELS = {
   [L2]={ CAV, CAV, ART, ART, REG, REG },
 }
 
-local BUCKETS = {
+local FORTIFICATION_STRENGTH = {
+  none=1.0, --
+  stockade=1.0, --
+  fort=1.5, --
+  fortress=2.0, --
+}
+
+local LEVEL_SHIFT_BASE = 15
+
+-- y = mx+b
+local L1_BUCKETS = {
   -- LuaFormatter off
-  none={
-    { start=  30, count=6, level=L2 },
-    { start=  10, count=6, level=L1 },
-    { start=   8, count=5, level=L1 },
-    { start=   6, count=4, level=L1 },
-    { start=   0, count=3, level=L1 },
-  },
-  stockade={
-    { start=  30, count=6, level=L2 },
-    { start=  10, count=6, level=L1 },
-    { start=   8, count=5, level=L1 },
-    { start=   6, count=4, level=L1 },
-    { start=   0, count=3, level=L1 },
-  },
-  fort={
-    { start=  20, count=6, level=L2 },
-    { start=   6, count=6, level=L1 },
-    { start=   4, count=4, level=L1 },
-    { start=   0, count=3, level=L1 },
-  },
-  fortress={
-    { start=  14, count=6, level=L2 },
-    { start=   4, count=6, level=L1 },
-    { start=   2, count=4, level=L1 },
-    { start=   0, count=3, level=L1 },
-  },
+  none     = { m=1, b=1 }, -- y = clamp( x*1+1, 3, 6 )
+  stockade = { m=1, b=1 }, -- y = clamp( x*1+1, 3, 6 )
+  fort     = { m=2, b=0 }, -- y = clamp( x*2+0, 3, 6 )
+  fortress = { m=2, b=2 }, -- y = clamp( x*2+2, 3, 6 )
   -- LuaFormatter on
 }
 
@@ -101,7 +92,7 @@ local UNIT_WEIGHT = {
 }
 
 -----------------------------------------------------------------
--- Metric computation.
+-- Formation computation.
 -----------------------------------------------------------------
 local function compute_metric( case )
   local metric = 0
@@ -110,27 +101,24 @@ local function compute_metric( case )
   for _, unit in ipairs( case.unit_set ) do
     add( assert( UNIT_WEIGHT[unit] ) )
   end
-  add( case.muskets // 50 )
-  return metric
+  add( case.muskets / 50 )
+  return metric // 2
 end
 
------------------------------------------------------------------
--- Test runner.
------------------------------------------------------------------
-local function bucket_for( case, metric )
-  local buckets = assert( BUCKETS[case.fortification] )
-  for _, bucket in ipairs( buckets ) do
-    if metric >= bucket.start then return bucket end
-  end
-  error( 'bucket not found for metric=' .. metric )
+local function compute_level_shift( case )
+  return LEVEL_SHIFT_BASE //
+             assert( FORTIFICATION_STRENGTH[case.fortification] )
 end
 
-local function name_for_formation( formation )
-  assert( formation.regulars )
-  assert( formation.cavalry )
-  assert( formation.artillery )
-  return format( '%d/%d/%d', formation.regulars,
-                 formation.cavalry, formation.artillery )
+local function clamp( x, l, h ) return max( min( x, h ), l ) end
+
+local function compute_unit_count( case, metric )
+  local level_shift = assert( compute_level_shift( case ) )
+  if metric >= level_shift then return L2, 6 end
+  local linear = assert( L1_BUCKETS[case.fortification] )
+  local m = assert( linear.m )
+  local b = assert( linear.b )
+  return L1, clamp( metric * m + b, 3, 6 )
 end
 
 local function compute_formation( landed, n_tiles, n_units, level )
@@ -153,17 +141,26 @@ local function compute_formation( landed, n_tiles, n_units, level )
   return res
 end
 
+-----------------------------------------------------------------
+-- Test runner.
+-----------------------------------------------------------------
+local function name_for_formation( formation )
+  assert( formation.regulars )
+  assert( formation.cavalry )
+  assert( formation.artillery )
+  return format( '%d/%d/%d', formation.regulars,
+                 formation.cavalry, formation.artillery )
+end
+
 local function compute_bucket( case )
   local metric = compute_metric( case )
-  local bucket = bucket_for( case, metric )
-  assert( bucket )
-  assert( bucket.count )
-  assert( bucket.level )
+  local level, n_units = assert(
+                             compute_unit_count( case, metric ) )
   local landed = case.landed
   assert( landed ~= nil )
   assert( case.n_tiles )
   local formation = compute_formation( landed, case.n_tiles,
-                                       bucket.count, bucket.level )
+                                       n_units, level )
   return metric, name_for_formation( formation )
 end
 
