@@ -40,7 +40,7 @@ return {
     -- against what we find in the map/sav file to ensure it is
     -- correct. It must be correct because the unit deployment
     -- formula depends on it.
-    n_tiles=3,
+    n_tiles=2,
 
     landed={ false, true },
 
