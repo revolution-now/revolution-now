@@ -26,6 +26,8 @@ local split = list.split
 local printfln = printer.printfln
 local bar = printer.bar
 
+local min, max = math.min, math.max
+
 -----------------------------------------------------------------
 -- Global Init.
 -----------------------------------------------------------------
@@ -51,9 +53,17 @@ local ART = 'artillery'
 -----------------------------------------------------------------
 -- Parameters.
 -----------------------------------------------------------------
-local LEVELS = {
-  [L1]={ CAV, ART, REG, REG, REG, REG },
-  [L2]={ CAV, CAV, ART, ART, REG, REG },
+local UNIT_WEIGHT = {
+  soldier=2,
+  veteran_soldier=2,
+  dragoon=2,
+  veteran_dragoon=2,
+
+  continental_army=4,
+  continental_cavalry=4,
+  damaged_artillery=4,
+
+  artillery=6,
 }
 
 local FORTIFICATION_MUL = {
@@ -70,34 +80,25 @@ local FORTIFICATION_ARTILLERY = {
   fortress=2, --
 }
 
-local BUCKETS = {
-  { start=30, count=6, level=L2 }, --
-  { start=10, count=6, level=L1 }, --
-  { start=8, count=4, level=L1 }, --
-  { start=6, count=4, level=L1 }, --
-  { start=0, count=3, level=L1 }, --
+local MIN_UNIT_COUNT = 3
+local MAX_UNIT_COUNT = 6
+
+local LEVELS = {
+  [L1]={ CAV, ART, REG, REG, REG, REG },
+  [L2]={ CAV, CAV, ART, ART, REG, REG },
 }
 
-local UNIT_WEIGHT = {
-  soldier=2,
-  veteran_soldier=2,
-  dragoon=2,
-  veteran_dragoon=2,
-
-  continental_army=4,
-  continental_cavalry=4,
-  damaged_artillery=4,
-
-  artillery=6,
-}
+-- When the metric reaches this value then we always get six
+-- units and also get bumped to the L2 sequence.
+local L2_CUTOFF = 30
 
 -----------------------------------------------------------------
 -- Formation computation.
 -----------------------------------------------------------------
 local function compute_metric( case )
   local metric = 0
-  local add = function( term ) metric = metric + term end
-  local mul = function( term ) metric = metric * term end
+  local add = function( to ) metric = metric + to end
+  local mul = function( by ) metric = floor( metric * by ) end
   add( 1 )
   for _, unit in ipairs( case.unit_set ) do
     add( assert( UNIT_WEIGHT[unit] ) )
@@ -105,24 +106,27 @@ local function compute_metric( case )
   add( case.muskets // 50 )
   mul( FORTIFICATION_MUL[case.fortification] )
   add( FORTIFICATION_ARTILLERY[case.fortification] )
-  return floor( metric )
+  return metric
 end
+
+local function clamp( n, l, h ) return min( max( n, l ), h ) end
 
 local function compute_unit_count( case, metric )
   -- This is a hack; strange that it is needed. Perhaps it is a
   -- bug or something in the OG.
-  if case.fortification == 'none' or case.fortification ==
-      'stockade' then
-    if metric >= 8 and metric < 10 then return L1, 5 end
+  if case.fortification == 'fort' or case.fortification ==
+      'fortress' then
+    if metric == 8 or metric == 9 then return 4 end
   end
-  for _, bucket in ipairs( BUCKETS ) do
-    if metric >= assert( bucket.start ) then
-      return assert( bucket.level ), assert( bucket.count )
-    end
-  end
+  return clamp( metric // 2 + 1, MIN_UNIT_COUNT, MAX_UNIT_COUNT )
 end
 
-local function compute_formation( landed, n_tiles, n_units, level )
+local function compute_sequence( metric )
+  if metric >= L2_CUTOFF then return LEVELS[L2] end
+  return LEVELS[L1]
+end
+
+local function compute_formation( landed, n_tiles, n_units, seq )
   assert( n_units > 0 )
   assert( n_tiles > 0 )
   assert( n_tiles <= 4 )
@@ -134,7 +138,6 @@ local function compute_formation( landed, n_tiles, n_units, level )
       res.regulars = res.regulars + 1
     end
   end
-  local seq = assert( LEVELS[level] )
   for i = 1, n_units do
     assert( i <= #seq )
     res[seq[i]] = res[seq[i]] + 1
@@ -155,13 +158,13 @@ end
 
 local function compute_bucket( case )
   local metric = compute_metric( case )
-  local level, n_units = assert(
-                             compute_unit_count( case, metric ) )
+  local seq = assert( compute_sequence( metric ) )
+  local n_units = assert( compute_unit_count( case, metric ) )
   local landed = case.landed
   assert( landed ~= nil )
   assert( case.n_tiles )
   local formation = compute_formation( landed, case.n_tiles,
-                                       n_units, level )
+                                       n_units, seq )
   return metric, name_for_formation( formation )
 end
 
