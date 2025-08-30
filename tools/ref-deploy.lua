@@ -26,9 +26,6 @@ local split = list.split
 local printfln = printer.printfln
 local bar = printer.bar
 
-local min = math.min
-local max = math.max
-
 -----------------------------------------------------------------
 -- Global Init.
 -----------------------------------------------------------------
@@ -59,23 +56,26 @@ local LEVELS = {
   [L2]={ CAV, CAV, ART, ART, REG, REG },
 }
 
-local FORTIFICATION_STRENGTH = {
+local FORTIFICATION_MUL = {
   none=1.0, --
   stockade=1.0, --
   fort=1.5, --
   fortress=2.0, --
 }
 
-local LEVEL_SHIFT_BASE = 15
+local FORTIFICATION_ARTILLERY = {
+  none=0, --
+  stockade=0, --
+  fort=1, --
+  fortress=2, --
+}
 
--- y = mx+b
-local L1_BUCKETS = {
-  -- LuaFormatter off
-  none     = { m=1, b=1 }, -- y = clamp( x*1+1, 3, 6 )
-  stockade = { m=1, b=1 }, -- y = clamp( x*1+1, 3, 6 )
-  fort     = { m=2, b=0 }, -- y = clamp( x*2+0, 3, 6 )
-  fortress = { m=2, b=2 }, -- y = clamp( x*2+2, 3, 6 )
-  -- LuaFormatter on
+local BUCKETS = {
+  { start=30, count=6, level=L2 }, --
+  { start=10, count=6, level=L1 }, --
+  { start=8, count=4, level=L1 }, --
+  { start=6, count=4, level=L1 }, --
+  { start=0, count=3, level=L1 }, --
 }
 
 local UNIT_WEIGHT = {
@@ -97,28 +97,29 @@ local UNIT_WEIGHT = {
 local function compute_metric( case )
   local metric = 0
   local add = function( term ) metric = metric + term end
+  local mul = function( term ) metric = metric * term end
   add( 1 )
   for _, unit in ipairs( case.unit_set ) do
     add( assert( UNIT_WEIGHT[unit] ) )
   end
-  add( case.muskets / 50 )
-  return metric // 2
+  add( case.muskets // 50 )
+  mul( FORTIFICATION_MUL[case.fortification] )
+  add( FORTIFICATION_ARTILLERY[case.fortification] )
+  return floor( metric )
 end
-
-local function compute_level_shift( case )
-  return LEVEL_SHIFT_BASE //
-             assert( FORTIFICATION_STRENGTH[case.fortification] )
-end
-
-local function clamp( x, l, h ) return max( min( x, h ), l ) end
 
 local function compute_unit_count( case, metric )
-  local level_shift = assert( compute_level_shift( case ) )
-  if metric >= level_shift then return L2, 6 end
-  local linear = assert( L1_BUCKETS[case.fortification] )
-  local m = assert( linear.m )
-  local b = assert( linear.b )
-  return L1, clamp( metric * m + b, 3, 6 )
+  -- This is a hack; strange that it is needed. Perhaps it is a
+  -- bug or something in the OG.
+  if case.fortification == 'none' or case.fortification ==
+      'stockade' then
+    if metric >= 8 and metric < 10 then return L1, 5 end
+  end
+  for _, bucket in ipairs( BUCKETS ) do
+    if metric >= assert( bucket.start ) then
+      return assert( bucket.level ), assert( bucket.count )
+    end
+  end
 end
 
 local function compute_formation( landed, n_tiles, n_units, level )
@@ -259,7 +260,6 @@ local function main( _ )
   local pc_color = perfect and GREEN or RED
   local passed_color = perfect and GREEN or NORMAL
   if not perfect then print_header() end
-  print()
   printfln( '%s%d%%%s %spassed%s [%d/%d].', pc_color,
             floor( 100.0 * num_passed / #tests ), NORMAL,
             passed_color, NORMAL, num_passed, #tests )
