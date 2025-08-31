@@ -46,11 +46,16 @@
 // refl
 #include "refl/to-str.hpp"
 
+// base
+#include "base/generator.hpp"
+#include "base/range-lite.hpp"
+
 // C++ standard library
 #include <numeric>
 #include <ranges>
 
-namespace rg = std::ranges;
+namespace rg = ::std::ranges;
+namespace rl = ::base::rl;
 
 namespace rn {
 
@@ -58,6 +63,7 @@ namespace {
 
 using namespace std;
 
+using ::base::generator;
 using ::base::maybe;
 using ::base::nothing;
 using ::gfx::e_direction;
@@ -65,13 +71,29 @@ using ::gfx::point;
 using ::refl::enum_map;
 using ::refl::enum_values;
 
-struct Bucket {
-  int start                    = {};
-  e_ref_landing_formation name = {};
-
-  // For enum_map.
-  [[maybe_unused]] bool operator==( Bucket const& ) const =
-      default;
+// These sequences are what the OG appears to use.
+enum_map<e_ref_unit_sequence,
+         array<e_unit_type, 6>> const kDeploySeq{
+  // NOTE: each sequence must have at least one entry for each
+  // type of REF land unit.
+  { e_ref_unit_sequence::weak,
+    {
+      e_unit_type::cavalry,   //
+      e_unit_type::artillery, //
+      e_unit_type::regular,   //
+      e_unit_type::regular,   //
+      e_unit_type::regular,   //
+      e_unit_type::regular,   //
+    } },
+  { e_ref_unit_sequence::strong,
+    {
+      e_unit_type::cavalry,   //
+      e_unit_type::cavalry,   //
+      e_unit_type::artillery, //
+      e_unit_type::artillery, //
+      e_unit_type::regular,   //
+      e_unit_type::regular    //
+    } },
 };
 
 maybe<e_expeditionary_force_type> from_unit_type(
@@ -90,70 +112,11 @@ maybe<e_expeditionary_force_type> from_unit_type(
   }
 }
 
-RefLandingForce const& formation_unit_counts(
-    e_ref_landing_formation const formation ) {
-  switch( formation ) {
-    case e_ref_landing_formation::_2_2_2: {
-      static RefLandingForce const f{
-        .regular   = 2,
-        .cavalry   = 2,
-        .artillery = 2,
-      };
-      return f;
-    }
-    case e_ref_landing_formation::_4_1_1: {
-      static RefLandingForce const f{
-        .regular   = 4,
-        .cavalry   = 1,
-        .artillery = 1,
-      };
-      return f;
-    }
-    case e_ref_landing_formation::_3_1_1: {
-      static RefLandingForce const f{
-        .regular   = 3,
-        .cavalry   = 1,
-        .artillery = 1,
-      };
-      return f;
-    }
-    case e_ref_landing_formation::_2_1_1: {
-      static RefLandingForce const f{
-        .regular   = 2,
-        .cavalry   = 1,
-        .artillery = 1,
-      };
-      return f;
-    }
-    case e_ref_landing_formation::_1_1_1: {
-      static RefLandingForce const f{
-        .regular   = 1,
-        .cavalry   = 1,
-        .artillery = 1,
-      };
-      return f;
-    }
-    case e_ref_landing_formation::_2_1_0: {
-      static RefLandingForce const f{
-        .regular   = 2,
-        .cavalry   = 1,
-        .artillery = 0,
-      };
-      return f;
-    }
-    case e_ref_landing_formation::_3_0_0: {
-      static RefLandingForce const f{
-        .regular   = 3,
-        .cavalry   = 0,
-        .artillery = 0,
-      };
-      return f;
-    }
-  }
-}
-
-int colony_defense_metric( SSConst const& ss,
-                           Colony const& colony ) {
+// NOTE: see the ref-deploy.lua script for how these numbers were
+// verified and then see the ref-selection auto-measure module
+// for how the data was collected.
+int colony_strength_metric( SSConst const& ss,
+                            Colony const& colony ) {
   int metric = 1;
 
   // Colony musket contents. The OG doesn't seem to weigh in
@@ -240,7 +203,64 @@ int colony_defense_metric( SSConst const& ss,
         break;
     }
   }
+
+  e_colony_barricade_type const barricade =
+      barricade_for_colony( colony );
+
+  // Fortification multiplier.
+  switch( barricade ) {
+    case e_colony_barricade_type::none:
+      break;
+    case e_colony_barricade_type::stockade:
+      break;
+    case e_colony_barricade_type::fort:
+      metric = int( metric * 1.5 );
+      break;
+    case e_colony_barricade_type::fortress:
+      metric = metric * 2;
+      break;
+  }
+
+  // Fortification artillery.
+  switch( barricade ) {
+    case e_colony_barricade_type::none:
+      metric += 0;
+      break;
+    case e_colony_barricade_type::stockade:
+      metric += 0;
+      break;
+    case e_colony_barricade_type::fort:
+      metric += 1;
+      break;
+    case e_colony_barricade_type::fortress:
+      metric += 2;
+      break;
+  }
+
   return metric;
+}
+
+template<typename Rng>
+auto yield_range( Rng const& rng ATTR_LIFETIMEBOUND )
+    -> generator<typename Rng::value_type> {
+  for( auto const& e : rng ) co_yield e;
+}
+
+template<typename Rng1, typename... Rngs>
+auto yield_ranges( Rng1 const& rng1 ATTR_LIFETIMEBOUND,
+                   Rngs const&... rngs ATTR_LIFETIMEBOUND )
+    -> generator<generator<typename Rng1::value_type>> {
+  co_yield yield_range( rng1 );
+  ( co_yield yield_range( rngs ), ... );
+}
+
+template<typename Rng1, typename... Rngs>
+auto range_concat( Rng1 const& rng1 ATTR_LIFETIMEBOUND,
+                   Rngs const&... rngs ATTR_LIFETIMEBOUND )
+    -> generator<typename Rng1::value_type> {
+  for( auto const& rng : yield_ranges( rng1, rngs... ) )
+    for( auto const e : rng ) //
+      co_yield e;
 }
 
 } // namespace
@@ -391,9 +411,8 @@ RefColonySelectionMetrics ref_colony_selection_metrics(
   e_nation const nation          = nation_for( colonial_player );
   e_player const ref_player      = ref_player_for( nation );
   metrics.colony_id              = colony_id;
-  metrics.defense_strength = colony_defense_metric( ss, colony );
-  metrics.barricade        = barricade_for_colony( colony );
-  metrics.population       = colony_population( colony );
+  metrics.strength_metric = colony_strength_metric( ss, colony );
+  metrics.population      = colony_population( colony );
   auto const make_ref_landing_tile = [&]( point const tile ) {
     auto const& units = ss.units.from_coord( tile );
     vector<GenericUnitId> captured;
@@ -464,10 +483,7 @@ maybe<int> ref_colony_selection_score(
   // tic, so we'll do a bit better by more properly computing
   // colony defense strength and also preferring colonies with
   // larger populations (all else being equal).
-  int const barricade_multiplier =
-      static_cast<int>( metrics.barricade ) + 1;
-  int const defense_term =
-      metrics.defense_strength * barricade_multiplier;
+  int const defense_term    = metrics.strength_metric;
   int const population_term = -metrics.population;
 
   return defense_term + population_term;
@@ -605,15 +621,14 @@ void filter_ref_landing_tiles( RefColonyLandingTiles& tiles ) {
   CHECK( !landings.empty() );
 }
 
-// In the OG the game appears to do this by looking at the "last
-// visited" status of the tiles around the colony. But since we
-// don't really do that in this game, this seems sufficient.
-bool is_initial_visit_to_colony(
-    SSConst const& ss, RefColonySelectionMetrics const& metrics,
-    IVisibility const& ref_viz ) {
-  point const tile =
-      ss.colonies.colony_for( metrics.colony_id ).location;
-  return ref_viz.visible( tile ) == e_tile_visibility::hidden;
+// The OG modifies the set of units deployed based on whether
+// they have landed at the site previously. It appears to do this
+// by looking at the "last visited" status of the tiles around
+// the colony. But since we don't really do that in this game,
+// and it doesn't work perfectly anyway, we have a dedicated
+// field for it.
+bool is_initial_visit_to_colony( Colony const& colony ) {
+  return colony.ref_landings == 0;
 }
 
 e_ref_manowar_availability ensure_manowar_availability(
@@ -640,152 +655,97 @@ e_ref_manowar_availability ensure_manowar_availability(
   return e_ref_manowar_availability::none;
 }
 
-e_ref_landing_formation select_ref_formation(
-    RefColonySelectionMetrics const& metrics,
-    bool const initial_visit_to_colony ) {
-  using enum e_colony_barricade_type;
-  using enum e_ref_landing_formation;
-  using BucketsMap =
-      enum_map<e_colony_barricade_type, vector<Bucket>>;
-  static BucketsMap BUCKETS{
-    // clang-format off
-    {none, {
-      { .start=30, .name=_2_2_2 },
-      { .start=10, .name=_4_1_1 },
-      { .start= 8, .name=_3_1_1 },
-      { .start= 6, .name=_2_1_1 },
-      { .start= 4, .name=_2_1_0 },
-      { .start= 2, .name=_2_1_0 },
-      { .start= 0, .name=_3_0_0 },
-    }},
-    {stockade, {
-      { .start=30, .name=_2_2_2 },
-      { .start=10, .name=_4_1_1 },
-      { .start= 8, .name=_3_1_1 },
-      { .start= 6, .name=_2_1_1 },
-      { .start= 4, .name=_2_1_0 },
-      { .start= 2, .name=_2_1_0 },
-      { .start= 0, .name=_3_0_0 },
-    }},
-    {fort, {
-      { .start=20, .name=_2_2_2 },
-      { .start=10, .name=_4_1_1 },
-      { .start= 8, .name=_4_1_1 },
-      { .start= 6, .name=_4_1_1 },
-      { .start= 4, .name=_2_1_1 },
-      { .start= 2, .name=_2_1_0 },
-      { .start= 0, .name=_3_0_0 },
-    }},
-    {fortress, {
-      { .start=14, .name=_2_2_2 },
-      { .start=10, .name=_4_1_1 },
-      { .start= 8, .name=_4_1_1 },
-      { .start= 6, .name=_4_1_1 },
-      { .start= 4, .name=_4_1_1 },
-      { .start= 2, .name=_2_1_1 },
-      { .start= 0, .name=_3_0_0 },
-    }},
-    // clang-format on
-  };
-  e_ref_landing_formation const canonical = [&] {
-    auto const& buckets = BUCKETS[metrics.barricade];
-    for( auto const& [start, name] : buckets )
-      if( metrics.defense_strength >= start ) return name;
-    SHOULD_NOT_BE_HERE;
-  }();
-  if( canonical == _2_1_0 && !initial_visit_to_colony )
-    return e_ref_landing_formation::_1_1_1;
-  return canonical;
+int select_ref_unit_count(
+    RefColonySelectionMetrics const& metrics ) {
+  return clamp( metrics.strength_metric / 2 + 1, 3, 6 );
 }
 
-RefLandingForce allocate_landing_units(
+e_ref_unit_sequence select_ref_unit_sequence(
     SSConst const& ss, e_nation const nation,
-    e_ref_landing_formation const formation ) {
+    RefColonySelectionMetrics const& metrics ) {
+  using enum e_ref_unit_sequence;
   e_player const colonial_player_type =
       colonial_player_for( nation );
   UNWRAP_CHECK_T( Player const& colonial_player,
                   ss.players.players[colonial_player_type] );
-  auto const& available =
+  auto const& force =
       colonial_player.revolution.expeditionary_force;
-  RefLandingForce const& target_unit_counts =
-      formation_unit_counts( formation );
-  RefLandingForce res = target_unit_counts;
-  RefLandingForce deficits;
-  int total_deficit = 0;
-  if( int const deficit = res.regular - available.regular;
-      deficit > 0 ) {
-    deficits.regular += deficit;
-    total_deficit += deficit;
-    res.regular = available.regular;
-  }
-  if( int const deficit = res.cavalry - available.cavalry;
-      deficit > 0 ) {
-    deficits.cavalry += deficit;
-    total_deficit += deficit;
-    res.cavalry = available.cavalry;
-  }
-  if( int const deficit = res.artillery - available.artillery;
-      deficit > 0 ) {
-    deficits.artillery += deficit;
-    total_deficit += deficit;
-    res.artillery = available.artillery;
-  }
-  if( total_deficit > 0 && deficits.regular == 0 ) {
-    int const remaining = available.regular - res.regular;
-    int const taken     = std::min( total_deficit, remaining );
-    deficits.regular -= taken;
-    total_deficit -= taken;
-    res.regular += taken;
-  }
-  if( total_deficit > 0 && deficits.cavalry == 0 ) {
-    int const remaining = available.cavalry - res.cavalry;
-    int const taken     = std::min( total_deficit, remaining );
-    deficits.cavalry -= taken;
-    total_deficit -= taken;
-    res.cavalry += taken;
-  }
-  if( total_deficit > 0 && deficits.artillery == 0 ) {
-    int const remaining = available.artillery - res.artillery;
-    int const taken     = std::min( total_deficit, remaining );
-    deficits.artillery -= taken;
-    total_deficit -= taken;
-    res.artillery += taken;
-  }
-  return res;
+  if( force.cavalry + force.artillery <= force.regular )
+    // The OG does this, perhaps to conserve cavalry and ar-
+    // tillery when it doesn't have as many as regulars.
+    return weak;
+  return metrics.strength_metric >= 30 ? strong : weak;
 }
 
-RefLandingPlan make_ref_landing_plan(
+RefLandingPlan allocate_landing_units(
+    SSConst const& ss, e_nation nation,
+    bool const is_initial_visit_to_colony,
     RefColonyLandingTiles const& landing_tiles,
-    RefLandingForce const& force ) {
-  RefLandingPlan res;
-  CHECK( !landing_tiles.landings.empty() );
-  res.ship_tile          = landing_tiles.ship_tile;
-  int idx                = 0;
-  auto const advance_idx = [&] {
-    ++idx;
-    idx %= landing_tiles.landings.size();
+    e_ref_unit_sequence const sequence,
+    int const n_units_requested ) {
+  e_player const colonial_player_type =
+      colonial_player_for( nation );
+  UNWRAP_CHECK_T( Player const& colonial_player,
+                  ss.players.players[colonial_player_type] );
+
+  using enum e_unit_type;
+
+  auto const& force =
+      colonial_player.revolution.expeditionary_force;
+  enum_map<e_unit_type, int> available;
+  // The OG appears to cap the number of cavalry and artillery
+  // per deployment to a max of two each, even if it runs out of
+  // regulars and needs more units.
+  available[regular]           = force.regular;
+  available[cavalry]           = std::min( force.cavalry, 2 );
+  available[artillery]         = std::min( force.artillery, 2 );
+  auto const n_units_available = [&] {
+    return available[regular] + available[cavalry] +
+           available[artillery];
   };
-  for( int i = 0; i < force.regular; ++i ) {
-    CHECK( idx >= 0 );
-    CHECK( idx < ssize( landing_tiles.landings ) );
-    res.landing_units.push_back( pair{
-      e_unit_type::regular, landing_tiles.landings[idx] } );
-    advance_idx();
+
+  RefLandingPlan res;
+  res.ship_tile = landing_tiles.ship_tile;
+  if( landing_tiles.landings.empty() ) return res;
+
+  // The idea here is that we produce a sequence of units such
+  // that, if the this is the first deployment to the colony,
+  // then each landing tile will first be populated with one reg-
+  // ular (assuming there are enough) and then, once that is com-
+  // plete, any further units on either this turn or subsequent
+  // ones will follow the predetermined sequences.
+  vector<e_unit_type> const regulars = [&] {
+    int const n_tiles = landing_tiles.landings.size();
+    vector<e_unit_type> res(
+        std::min( n_tiles, available[regular] ),
+        e_unit_type::regular );
+    if( !is_initial_visit_to_colony ) res.clear();
+    return res;
+  }();
+  CHECK( !kDeploySeq[sequence].empty() );
+  auto const unit_seq = rl::all( kDeploySeq[sequence] ).cycle();
+  auto const unit_gen = range_concat( regulars, unit_seq );
+
+  // Should have already been checked above.
+  CHECK( !landing_tiles.landings.empty() );
+  auto const tile_seq =
+      rl::all( landing_tiles.landings ).cycle();
+
+  // Both of these iterators have no end, since they involve at
+  // least one range that is cycled.
+  auto next_unit_it = unit_gen.begin();
+  auto next_tile_it = tile_seq.begin();
+  while( n_units_available() > 0 &&
+         ssize( res.landing_units ) < n_units_requested ) {
+    e_unit_type const type = *next_unit_it;
+    ++next_unit_it;
+    if( available[type] <= 0 ) continue;
+    --available[type];
+    RefLandingTile const& landing_tile = *next_tile_it;
+    ++next_tile_it;
+    res.landing_units.push_back( { type, landing_tile } );
   }
-  for( int i = 0; i < force.cavalry; ++i ) {
-    CHECK( idx >= 0 );
-    CHECK( idx < ssize( landing_tiles.landings ) );
-    res.landing_units.push_back( pair{
-      e_unit_type::cavalry, landing_tiles.landings[idx] } );
-    advance_idx();
-  }
-  for( int i = 0; i < force.artillery; ++i ) {
-    CHECK( idx >= 0 );
-    CHECK( idx < ssize( landing_tiles.landings ) );
-    res.landing_units.push_back( pair{
-      e_unit_type::artillery, landing_tiles.landings[idx] } );
-    advance_idx();
-  }
+
   return res;
 }
 
@@ -848,6 +808,102 @@ RefLandingUnits create_ref_landing_units(
 
 } // namespace detail
 
+// This is the full routine that creates the deployed REF troops,
+// using the other functions in this module, which are exposed in
+// the API so that they can be tested.
+maybe<RefLandingUnits> produce_REF_landing_units(
+    SS& ss, TerrainConnectivity const& connectivity,
+    e_nation const nation ) {
+  using namespace ::rn::detail;
+  e_player const ref_player_type = ref_player_for( nation );
+  e_player const colonial_player_type =
+      colonial_player_for( nation );
+  UNWRAP_CHECK_T( Player & colonial_player,
+                  ss.players.players[colonial_player_type] );
+  vector<ColonyId> const colonies =
+      ss.colonies.for_player( colonial_player_type );
+  vector<RefColonyMetricsScored> scored;
+  scored.reserve( scored.size() );
+  for( ColonyId const colony_id : colonies ) {
+    RefColonySelectionMetrics metrics =
+        ref_colony_selection_metrics( ss.as_const, connectivity,
+                                      colony_id );
+    auto const score = ref_colony_selection_score( metrics );
+    if( !score.has_value() ) continue;
+    scored.push_back( RefColonyMetricsScored{
+      .metrics = std::move( metrics ), .score = *score } );
+  }
+  auto const metrics = select_ref_landing_colony( scored );
+  if( !metrics.has_value() || metrics->valid_landings.empty() ) {
+    // Either no coastal colonies or there are coastal colonies
+    // but no available spots for the REF to land around them.
+    // The former means that the REF has won, and that will be
+    // detected later in the REF's turn. The latter should not
+    // typically happen with the standard map generator, but
+    // could happen with custom maps, e.g. if there is a colony
+    // on a small island. In this case, the game just kind of
+    // stalls since there is no way for the REF to deploy, and
+    // the player can't add/remove colonies. The standard map
+    // generator should prevent these scenarios, but we have to
+    // handle them in case of custom maps.
+    return nothing;
+  }
+  auto const landing_tiles = [&] {
+    auto unfiltered_landing_tiles =
+        select_ref_landing_tiles( *metrics );
+    // This should not trigger because we checked that there are
+    // valid_landings above.
+    UNWRAP_CHECK( res, unfiltered_landing_tiles );
+    filter_ref_landing_tiles( res );
+    return res;
+  }();
+  auto const ref_viz =
+      create_visibility_for( ss.as_const, ref_player_type );
+  CHECK( ref_viz && ref_viz->player().has_value() &&
+         is_ref( *ref_viz->player() ) );
+  Colony const& colony =
+      ss.colonies.colony_for( metrics->colony_id );
+  bool const initial_visit_to_colony =
+      is_initial_visit_to_colony( colony );
+  int const unit_count = select_ref_unit_count( *metrics );
+  e_ref_unit_sequence const unit_seq =
+      select_ref_unit_sequence( ss.as_const, nation, *metrics );
+  RefLandingPlan const landing_plan = allocate_landing_units(
+      ss.as_const, nation, initial_visit_to_colony,
+      landing_tiles, unit_seq, unit_count );
+  if( landing_plan.landing_units.empty() )
+    // No more units to deploy.
+    return nothing;
+  // NOTE: the following function may spawn a new Man-o-War to be
+  // in stock if there are none, but we only want to do that if
+  // there are units to transport, hence we check the total force
+  // first above.
+  e_ref_manowar_availability const manowar_availability =
+      ensure_manowar_availability( ss, nation );
+  switch( manowar_availability ) {
+    case e_ref_manowar_availability::none:
+      // No more left, and we are not adding any, so there is
+      // nothing we can do here. Given that the REF hasn't sur-
+      // rendered yet, it means that there are still REF units or
+      // colonies on the map. But no new REF units can be deliv-
+      // ered.
+      return nothing;
+    case e_ref_manowar_availability::none_but_can_add:
+      ++colonial_player.revolution.expeditionary_force.man_o_war;
+      // There were no more men-o-war left, but we've just added
+      // one. Like the OG, when this happens, we wait one turn
+      // before using it.
+      return nothing;
+    case e_ref_manowar_availability::available_on_map:
+      // Wait for the ships on the map to return to europe.
+      return nothing;
+    case e_ref_manowar_availability::available_in_stock:
+      break;
+  }
+  return create_ref_landing_units( ss, nation, landing_plan,
+                                   metrics->colony_id );
+}
+
 wait<> offboard_ref_units(
     SS& ss, IMapUpdater& map_updater, ILandViewPlane& land_view,
     IAgent& colonial_agent,
@@ -902,6 +958,11 @@ wait<> offboard_ref_units(
     }
   };
 
+  Colony& mutable_colony =
+      ss.colonies.colony_for( landing_units.colony_id );
+  ++mutable_colony.ref_landings;
+  Colony const& colony = mutable_colony;
+
   // Ship.
   point const ship_tile = landing_units.ship.landing_tile.tile;
   UnitOwnershipChanger( ss, landing_units.ship.unit_id )
@@ -915,8 +976,6 @@ wait<> offboard_ref_units(
       landing_units.ship.landing_tile.captured_units );
 
   // Message.
-  Colony const& colony =
-      ss.colonies.colony_for( landing_units.colony_id );
   co_await land_view.ensure_visible( ship_tile );
   co_await colonial_agent.message_box(
       "Royal Expeditionary Force lands near [{}]!",
@@ -1128,101 +1187,6 @@ int move_ref_harbor_ships_to_stock( SS& ss,
   // will have been selected.
   update_harbor_selected_unit( ss, ref_player );
   return count;
-}
-
-// This is the full routine that creates the deployed REF troops,
-// using the other functions in this module, which are exposed in
-// the API so that they can be tested.
-maybe<RefLandingUnits> produce_REF_landing_units(
-    SS& ss, TerrainConnectivity const& connectivity,
-    e_nation const nation ) {
-  using namespace ::rn::detail;
-  e_player const ref_player_type = ref_player_for( nation );
-  e_player const colonial_player_type =
-      colonial_player_for( nation );
-  UNWRAP_CHECK_T( Player & colonial_player,
-                  ss.players.players[colonial_player_type] );
-  vector<ColonyId> const colonies =
-      ss.colonies.for_player( colonial_player_type );
-  vector<RefColonyMetricsScored> scored;
-  scored.reserve( scored.size() );
-  for( ColonyId const colony_id : colonies ) {
-    RefColonySelectionMetrics metrics =
-        ref_colony_selection_metrics( ss.as_const, connectivity,
-                                      colony_id );
-    auto const score = ref_colony_selection_score( metrics );
-    if( !score.has_value() ) continue;
-    scored.push_back( RefColonyMetricsScored{
-      .metrics = std::move( metrics ), .score = *score } );
-  }
-  auto const metrics = select_ref_landing_colony( scored );
-  if( !metrics.has_value() || metrics->valid_landings.empty() ) {
-    // Either no coastal colonies or there are coastal colonies
-    // but no available spots for the REF to land around them.
-    // The former means that the REF has won, and that will be
-    // detected later in the REF's turn. The latter should not
-    // typically happen with the standard map generator, but
-    // could happen with custom maps, e.g. if there is a colony
-    // on a small island. In this case, the game just kind of
-    // stalls since there is no way for the REF to deploy, and
-    // the player can't add/remove colonies. The standard map
-    // generator should prevent these scenarios, but we have to
-    // handle them in case of custom maps.
-    return nothing;
-  }
-  auto const landing_tiles = [&] {
-    auto unfiltered_landing_tiles =
-        select_ref_landing_tiles( *metrics );
-    // This should not trigger because we checked that there are
-    // valid_landings above.
-    UNWRAP_CHECK( res, unfiltered_landing_tiles );
-    filter_ref_landing_tiles( res );
-    return res;
-  }();
-  auto const ref_viz =
-      create_visibility_for( ss.as_const, ref_player_type );
-  CHECK( ref_viz && ref_viz->player().has_value() &&
-         is_ref( *ref_viz->player() ) );
-  bool const initial_visit_to_colony =
-      is_initial_visit_to_colony( ss.as_const, *metrics,
-                                  *ref_viz );
-  e_ref_landing_formation const formation =
-      select_ref_formation( *metrics, initial_visit_to_colony );
-  RefLandingForce const force =
-      allocate_landing_units( ss.as_const, nation, formation );
-  if( force.regular + force.cavalry + force.artillery == 0 )
-    // No more units to deploy.
-    return nothing;
-  // NOTE: the following function may spawn a new Man-o-War to be
-  // in stock if there are none, but we only want to do that if
-  // there are units to transport, hence we check the total force
-  // first above.
-  e_ref_manowar_availability const manowar_availability =
-      ensure_manowar_availability( ss, nation );
-  switch( manowar_availability ) {
-    case e_ref_manowar_availability::none:
-      // No more left, and we are not adding any, so there is
-      // nothing we can do here. Given that the REF hasn't sur-
-      // rendered yet, it means that there are still REF units or
-      // colonies on the map. But no new REF units can be deliv-
-      // ered.
-      return nothing;
-    case e_ref_manowar_availability::none_but_can_add:
-      ++colonial_player.revolution.expeditionary_force.man_o_war;
-      // There were no more men-o-war left, but we've just added
-      // one. Like the OG, when this happens, we wait one turn
-      // before using it.
-      return nothing;
-    case e_ref_manowar_availability::available_on_map:
-      // Wait for the ships on the map to return to europe.
-      return nothing;
-    case e_ref_manowar_availability::available_in_stock:
-      break;
-  }
-  RefLandingPlan const landing_plan =
-      make_ref_landing_plan( landing_tiles, force );
-  return create_ref_landing_units( ss, nation, landing_plan,
-                                   metrics->colony_id );
 }
 
 } // namespace rn

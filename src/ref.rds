@@ -44,8 +44,7 @@ struct.RefColonySelectionMetrics {
   colony_id 'ColonyId',
 
   # Military
-  defense_strength 'int',
-  barricade 'e_colony_barricade_type',
+  strength_metric 'int',
   population 'int',
 
   # Geography
@@ -57,14 +56,9 @@ struct.RefColonyMetricsScored {
   score 'int',
 }
 
-enum.e_ref_landing_formation {
-  _2_2_2,
-  _4_1_1,
-  _3_1_1,
-  _2_1_1,
-  _1_1_1,
-  _2_1_0,
-  _3_0_0,
+enum.e_ref_unit_sequence {
+  weak,
+  strong,
 }
 
 enum.e_ref_manowar_availability {
@@ -79,12 +73,6 @@ enum.e_ref_manowar_availability {
   available_on_map,
   # There is a ship in stock available for immediate use.
   available_in_stock,
-}
-
-struct.RefLandingForce {
-  regular   'int',
-  cavalry   'int',
-  artillery 'int',
 }
 
 struct.RefLandingPlan {

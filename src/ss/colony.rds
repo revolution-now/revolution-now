@@ -8,7 +8,7 @@
 # Description: RDS definitions for the colony module.
 #
 # ===============================================================
-# gs
+# ss
 include "ss/colony-enums.rds.hpp"
 include "ss/colony-id.hpp"
 include "ss/colony-job.rds.hpp"
@@ -93,6 +93,10 @@ struct.Colony {
   # Which goods are being sold by the custom house. Only relevant
   # if there is a custom house.
   custom_house 'refl::enum_map<e_commodity, bool>',
+
+  # Tracks the number of deployments that the REF has made to
+  # this colony. Used to modify REF deployments.
+  ref_landings 'int',
 
   # This goes last. It is only populated on player squares to
   # record the visual state of the colony when its tile was last

@@ -18,7 +18,11 @@
 #include "test/mocks/iagent.hpp"
 #include "test/util/coro.hpp"
 
+// Revolution Now
+#include "src/visibility.hpp"
+
 // ss
+#include "src/ss/nation.hpp"
 #include "src/ss/player.rds.hpp"
 #include "src/ss/ref.hpp"
 #include "src/ss/revolution.rds.hpp"
@@ -42,7 +46,9 @@ using namespace ::rn::detail;
 *****************************************************************/
 struct world : testing::World {
   world() {
-    add_default_player();
+    add_player( e_player::french );
+    set_default_player_type( e_player::french );
+    set_default_player_as_human();
     // NOTE: map not created by default since many test casess
     // don't need it.
   }
@@ -464,22 +470,20 @@ TEST_CASE( "[ref] ref_colony_selection_metrics" ) {
   SECTION( "inland" ) {
     Colony& colony = w.add_colony( { .x = 2, .y = 1 } );
 
-    expected = { .colony_id        = colony.id,
-                 .defense_strength = 1,
-                 .barricade        = B::none,
-                 .population       = 0,
-                 .valid_landings   = {} };
+    expected = { .colony_id       = colony.id,
+                 .strength_metric = 1,
+                 .population      = 0,
+                 .valid_landings  = {} };
     REQUIRE( f( colony ) == expected );
   }
 
   SECTION( "map edge and island" ) {
     Colony& colony = w.add_colony( { .x = 0, .y = 7 } );
 
-    expected = { .colony_id        = colony.id,
-                 .defense_strength = 1,
-                 .barricade        = B::none,
-                 .population       = 0,
-                 .valid_landings   = {} };
+    expected = { .colony_id       = colony.id,
+                 .strength_metric = 1,
+                 .population      = 0,
+                 .valid_landings  = {} };
     REQUIRE( f( colony ) == expected );
   }
 
@@ -487,10 +491,9 @@ TEST_CASE( "[ref] ref_colony_selection_metrics" ) {
     Colony& colony = w.add_colony( { .x = 5, .y = 4 } );
 
     expected = {
-      .colony_id        = colony.id,
-      .defense_strength = 1,
-      .barricade        = B::none,
-      .population       = 0,
+      .colony_id       = colony.id,
+      .strength_metric = 1,
+      .population      = 0,
       .valid_landings =
           {
             {
@@ -530,14 +533,13 @@ TEST_CASE( "[ref] ref_colony_selection_metrics" ) {
     Colony& colony = w.add_colony( { .x = 4, .y = 3 } );
 
     expected = {
-      .colony_id        = colony.id,
-      .defense_strength = 1,
-      .barricade        = B::none,
-      .population       = 0,
-      .valid_landings   = {
+      .colony_id       = colony.id,
+      .strength_metric = 1,
+      .population      = 0,
+      .valid_landings  = {
         { .ship_tile = { .tile           = { .x = 5, .y = 3 },
-                           .captured_units = {} },
-            .landings  = {
+                          .captured_units = {} },
+           .landings  = {
             { .tile = { .x = 4, .y = 2 }, .captured_units = {} },
             { .tile = { .x = 5, .y = 2 }, .captured_units = {} },
             { .tile = { .x = 4, .y = 4 }, .captured_units = {} },
@@ -551,14 +553,13 @@ TEST_CASE( "[ref] ref_colony_selection_metrics" ) {
                          e_outdoor_job::food );
 
     expected = {
-      .colony_id        = colony.id,
-      .defense_strength = 1,
-      .barricade        = B::fort,
-      .population       = 2,
-      .valid_landings   = {
+      .colony_id       = colony.id,
+      .strength_metric = 2,
+      .population      = 2,
+      .valid_landings  = {
         { .ship_tile = { .tile           = { .x = 5, .y = 3 },
-                           .captured_units = {} },
-            .landings  = {
+                          .captured_units = {} },
+           .landings  = {
             { .tile = { .x = 4, .y = 2 }, .captured_units = {} },
             { .tile = { .x = 5, .y = 2 }, .captured_units = {} },
             { .tile = { .x = 4, .y = 4 }, .captured_units = {} },
@@ -575,14 +576,68 @@ TEST_CASE( "[ref] ref_colony_selection_metrics" ) {
     colony.buildings[e_colony_building::fortress] = true;
 
     expected = {
-      .colony_id        = colony.id,
-      .defense_strength = 11,
-      .barricade        = B::fortress,
-      .population       = 3,
-      .valid_landings   = {
+      .colony_id       = colony.id,
+      .strength_metric = 24,
+      .population      = 3,
+      .valid_landings  = {
         { .ship_tile = { .tile           = { .x = 5, .y = 3 },
-                           .captured_units = {} },
-            .landings  = {
+                          .captured_units = {} },
+           .landings  = {
+            { .tile = { .x = 4, .y = 2 }, .captured_units = {} },
+            { .tile = { .x = 5, .y = 2 }, .captured_units = {} },
+            { .tile = { .x = 4, .y = 4 }, .captured_units = {} },
+            { .tile = { .x = 5, .y = 4 }, .captured_units = {} },
+          } } } };
+    REQUIRE( f( colony ) == expected );
+
+    colony.commodities[e_commodity::muskets] = 100;
+    w.add_unit_on_map( e_unit_type::damaged_artillery,
+                       colony.location );
+
+    expected = {
+      .colony_id       = colony.id,
+      .strength_metric = 36,
+      .population      = 3,
+      .valid_landings  = {
+        { .ship_tile = { .tile           = { .x = 5, .y = 3 },
+                          .captured_units = {} },
+           .landings  = {
+            { .tile = { .x = 4, .y = 2 }, .captured_units = {} },
+            { .tile = { .x = 5, .y = 2 }, .captured_units = {} },
+            { .tile = { .x = 4, .y = 4 }, .captured_units = {} },
+            { .tile = { .x = 5, .y = 4 }, .captured_units = {} },
+          } } } };
+    REQUIRE( f( colony ) == expected );
+
+    colony.buildings[e_colony_building::fortress] = false;
+    colony.buildings[e_colony_building::fort]     = true;
+
+    expected = {
+      .colony_id       = colony.id,
+      .strength_metric = 26,
+      .population      = 3,
+      .valid_landings  = {
+        { .ship_tile = { .tile           = { .x = 5, .y = 3 },
+                          .captured_units = {} },
+           .landings  = {
+            { .tile = { .x = 4, .y = 2 }, .captured_units = {} },
+            { .tile = { .x = 5, .y = 2 }, .captured_units = {} },
+            { .tile = { .x = 4, .y = 4 }, .captured_units = {} },
+            { .tile = { .x = 5, .y = 4 }, .captured_units = {} },
+          } } } };
+    REQUIRE( f( colony ) == expected );
+
+    colony.buildings[e_colony_building::fort]     = false;
+    colony.buildings[e_colony_building::stockade] = true;
+
+    expected = {
+      .colony_id       = colony.id,
+      .strength_metric = 17,
+      .population      = 3,
+      .valid_landings  = {
+        { .ship_tile = { .tile           = { .x = 5, .y = 3 },
+                          .captured_units = {} },
+           .landings  = {
             { .tile = { .x = 4, .y = 2 }, .captured_units = {} },
             { .tile = { .x = 5, .y = 2 }, .captured_units = {} },
             { .tile = { .x = 4, .y = 4 }, .captured_units = {} },
@@ -621,19 +676,18 @@ TEST_CASE( "[ref] ref_colony_selection_metrics (buggy spot)" ) {
   Colony& colony = w.add_colony( { .x = 4, .y = 3 } );
 
   expected = {
-    .colony_id        = 1,
-    .defense_strength = 1,
-    .barricade        = B::none,
-    .population       = 0,
-    .valid_landings   = {
+    .colony_id       = 1,
+    .strength_metric = 1,
+    .population      = 0,
+    .valid_landings  = {
       { .ship_tile = { .tile = { .x = 3, .y = 2 } },
-          .landings  = { { .tile = { .x = 3, .y = 3 } } } },
+         .landings  = { { .tile = { .x = 3, .y = 3 } } } },
       { .ship_tile = { .tile = { .x = 4, .y = 2 } },
-          .landings  = { { .tile = { .x = 3, .y = 3 } } } },
+         .landings  = { { .tile = { .x = 3, .y = 3 } } } },
       { .ship_tile = { .tile = { .x = 5, .y = 3 } },
-          .landings  = { { .tile = { .x = 4, .y = 4 } } } },
+         .landings  = { { .tile = { .x = 4, .y = 4 } } } },
       { .ship_tile = { .tile = { .x = 5, .y = 4 } },
-          .landings  = { { .tile = { .x = 4, .y = 4 } } } } } };
+         .landings  = { { .tile = { .x = 4, .y = 4 } } } } } };
   REQUIRE( f( colony ) == expected );
 }
 
@@ -649,42 +703,37 @@ TEST_CASE( "[ref] ref_colony_selection_score" ) {
   REQUIRE( f() == nothing );
 
   metrics = {
-    .defense_strength = 15,
-    .barricade        = e_colony_barricade_type::fort,
-    .population       = 4,
-    .valid_landings   = {},
+    .strength_metric = 15,
+    .population      = 4,
+    .valid_landings  = {},
   };
   REQUIRE( f() == nothing );
 
   metrics = {
-    .defense_strength = 15,
-    .barricade        = e_colony_barricade_type::fort,
-    .population       = 4,
-    .valid_landings   = { {} },
+    .strength_metric = 15,
+    .population      = 4,
+    .valid_landings  = { {} },
   };
-  REQUIRE( f() == 41 );
+  REQUIRE( f() == 11 );
 
   metrics = {
-    .defense_strength = 1,
-    .barricade        = e_colony_barricade_type::fortress,
-    .population       = 4,
-    .valid_landings   = { {} },
+    .strength_metric = 1,
+    .population      = 4,
+    .valid_landings  = { {} },
   };
-  REQUIRE( f() == 0 );
+  REQUIRE( f() == -3 );
 
   metrics = {
-    .defense_strength = 1,
-    .barricade        = e_colony_barricade_type::fortress,
-    .population       = 5,
-    .valid_landings   = { {} },
+    .strength_metric = 1,
+    .population      = 5,
+    .valid_landings  = { {} },
   };
-  REQUIRE( f() == -1 );
+  REQUIRE( f() == -4 );
 
   metrics = {
-    .defense_strength = 100,
-    .barricade        = e_colony_barricade_type::none,
-    .population       = 20,
-    .valid_landings   = { {} },
+    .strength_metric = 100,
+    .population      = 20,
+    .valid_landings  = { {} },
   };
   REQUIRE( f() == 80 );
 }
@@ -957,22 +1006,70 @@ TEST_CASE( "[ref] filter_ref_landing_tiles" ) {
 }
 
 TEST_CASE( "[ref] is_initial_visit_to_colony" ) {
-  world w;
+  Colony colony;
+
+  auto const f = [&] [[clang::noinline]] {
+    return is_initial_visit_to_colony( colony );
+  };
+
+  REQUIRE( f() == true );
+  ++colony.ref_landings;
+  REQUIRE( f() == false );
+  ++colony.ref_landings;
+  REQUIRE( f() == false );
+  ++colony.ref_landings;
+  REQUIRE( f() == false );
+  ++colony.ref_landings;
+  REQUIRE( f() == false );
+  colony.ref_landings = 0;
+  REQUIRE( f() == true );
 }
 
 TEST_CASE( "[ref] ensure_manowar_availability" ) {
   world w;
+  w.create_default_map();
+
+  Player& player                 = w.default_player();
+  e_nation const nation          = player.nation;
+  e_player const ref_player_type = ref_player_for( nation );
+  w.add_player( ref_player_type );
+
+  auto const f = [&] [[clang::noinline]] {
+    return detail::ensure_manowar_availability( w.ss().as_const,
+                                                nation );
+  };
+
+  using E = e_ref_manowar_availability;
+
+  // Default.
+  REQUIRE( f() == E::none_but_can_add );
+
+  w.add_unit_on_map( e_unit_type::frigate, { .x = 0, .y = 0 } );
+  REQUIRE( f() == E::none_but_can_add );
+
+  w.add_unit_on_map( e_unit_type::man_o_war, { .x = 0, .y = 0 },
+                     player.type );
+  REQUIRE( f() == E::none_but_can_add );
+
+  w.add_unit_on_map( e_unit_type::man_o_war, { .x = 0, .y = 1 },
+                     ref_player_type );
+  REQUIRE( f() == E::available_on_map );
+
+  player.revolution.expeditionary_force.man_o_war = 1;
+  w.add_unit_on_map( e_unit_type::man_o_war,
+                     { .x = 0, .y = 0 } );
+  REQUIRE( f() == E::available_in_stock );
 }
 
-TEST_CASE( "[ref] select_ref_formation" ) {
+TEST_CASE( "[ref] select_ref_unit_count" ) {
+  world w;
+}
+
+TEST_CASE( "[ref] select_ref_unit_sequence" ) {
   world w;
 }
 
 TEST_CASE( "[ref] allocate_landing_units" ) {
-  world w;
-}
-
-TEST_CASE( "[ref] make_ref_landing_plan" ) {
   world w;
 }
 

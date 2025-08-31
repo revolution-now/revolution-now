@@ -24,6 +24,7 @@ namespace rn {
 /****************************************************************
 ** Fwd Decls.
 *****************************************************************/
+struct Colony;
 struct ExpeditionaryForce;
 struct IAgent;
 struct IGui;
@@ -100,25 +101,25 @@ maybe<RefColonyLandingTiles> select_ref_landing_tiles(
 
 void filter_ref_landing_tiles( RefColonyLandingTiles& tiles );
 
-bool is_initial_visit_to_colony(
-    SSConst const& ss, RefColonySelectionMetrics const& metrics,
-    IVisibility const& ref_viz );
+[[nodiscard]] bool is_initial_visit_to_colony(
+    Colony const& colony );
 
 [[nodiscard]] e_ref_manowar_availability
 ensure_manowar_availability( SSConst const& ss,
                              e_nation nation );
 
-e_ref_landing_formation select_ref_formation(
-    RefColonySelectionMetrics const& metrics,
-    bool initial_visit_to_colony );
+[[nodiscard]] int select_ref_unit_count(
+    RefColonySelectionMetrics const& metrics );
 
-RefLandingForce allocate_landing_units(
+[[nodiscard]] e_ref_unit_sequence select_ref_unit_sequence(
+    SSConst const& ss, e_nation const nation,
+    RefColonySelectionMetrics const& metrics );
+
+RefLandingPlan allocate_landing_units(
     SSConst const& ss, e_nation nation,
-    e_ref_landing_formation formation );
-
-RefLandingPlan make_ref_landing_plan(
+    bool is_initial_visit_to_colony,
     RefColonyLandingTiles const& landing_tiles,
-    RefLandingForce const& force );
+    e_ref_unit_sequence sequence, int n_units_requested );
 
 [[nodiscard]] RefLandingUnits create_ref_landing_units(
     SS& ss, e_nation nation, RefLandingPlan const& plan,

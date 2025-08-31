@@ -22,11 +22,17 @@ TODO:
       2. Pick sequence given strength:
            Weak colony:   cavalry, artillery, reg, reg, reg, reg
            Strong colony: cavalry, cavalry, artillery, artillery, reg, reg
+      3. If (cavalry+artillery) <= regulars then level=weak in
+         order to conserve units.
       3. Put regulars on all squares.
       4. Fill out remainder by following sequence from beginning.
       5. In all subsequence iterations (defined by the deployment
          tiles having the REF as visitor nation), follow the seq
          from the begginning.
+      6. If a desired unit is missing then just skip it and keep
+         iterating until the target number of units have been deployed.
+         However, there is a max of two cavalry and two artillery
+         per deployment.
 
   * It appears that the REF changes the units it sends depending
     on whether the squares that it would unload on have a
