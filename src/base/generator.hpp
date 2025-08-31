@@ -93,6 +93,8 @@ struct [[nodiscard]] generator {
       std::coroutine_handle<detail::generator_promise<T>> h )
     : coro_( h ) {}
 
+  generator( generator&& ) = default;
+
   struct generator_sentinel {};
 
   struct iterator;

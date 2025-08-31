@@ -54,6 +54,10 @@ generator<int> first_n_fibs( int n ) {
   }
 }
 
+generator<int> gen_from_moved( generator<int> g ) {
+  for( int const e : g ) co_yield e;
+}
+
 TEST_CASE( "[generator] yield nothing" ) {
   generator<int> fibs = yields_nothing();
   REQUIRE( fibs.value() == nothing );
@@ -105,6 +109,16 @@ TEST_CASE( "[generator] nested generator" ) {
   vector<int> fibs;
   fibs.reserve( 10 );
   for( int n : first_n_fibs( 10 ) ) fibs.push_back( n );
+  REQUIRE( fibs ==
+           vector<int>{ 0, 1, 1, 2, 3, 5, 8, 13, 21, 34 } );
+}
+
+TEST_CASE( "[generator] can move generator" ) {
+  vector<int> fibs;
+  fibs.reserve( 10 );
+  generator<int> g1 = first_n_fibs( 10 );
+  generator<int> g2 = gen_from_moved( std::move( g1 ) );
+  for( int n : g2 ) fibs.push_back( n );
   REQUIRE( fibs ==
            vector<int>{ 0, 1, 1, 2, 3, 5, 8, 13, 21, 34 } );
 }
