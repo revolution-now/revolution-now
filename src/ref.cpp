@@ -1010,9 +1010,9 @@ maybe<e_forfeight_reason> ref_should_forfeight(
   for( auto const [unit_id, p_euro] : units_all ) {
     Unit const& unit = p_euro->unit;
     if( unit.player_type() != ref_player.type ) continue;
-    if( !unit.desc().ship )
-      // We have at least one non-ship REF unit, so don't for-
-      // feight. Note that this does not include REF units who
+    if( !unit.desc().ship && unit.desc().can_attack )
+      // We have at least one non-ship REF combatant, so don't
+      // forfeight. Note that this does not include REF units who
       // have not yet been transported to the new world, since
       // those are not yet real units. This means there is a real
       // REF land unit somewhere on the map.
@@ -1051,13 +1051,13 @@ maybe<e_forfeight_reason> ref_should_forfeight(
   // of turns after they run out, it is not a deal breaker that
   // there are no ships.
   //
-  // NOTE: In the OG it appears that when regulars hit zero (or a
-  // low number, and some other conditions are met; it is not
-  // clear what the exact behavior is) then the REF forfeights,
-  // even if there are other REF land units on the map and/or in
-  // europe. We don't reproduce that here because it doesn't seem
-  // to make sense and the OG's behavior doesn't seem consistent
-  // in that regard.
+  // NOTE: In the OG, under certain conditions, when regulars hit
+  // zero (or a low number, and some other conditions are met; it
+  // is not clear what the exact behavior is) then the REF for-
+  // feights, even if there are other REF land units on the map
+  // and/or in europe. We don't reproduce that here because it
+  // doesn't seem to make sense and the OG's behavior doesn't
+  // seem consistent in that regard.
   return nothing;
 }
 

@@ -19,6 +19,7 @@
 #include "test/util/coro.hpp"
 
 // Revolution Now
+#include "src/unit-ownership.hpp"
 #include "src/visibility.hpp"
 
 // ss
@@ -2502,6 +2503,68 @@ TEST_CASE( "[ref] create_ref_landing_units" ) {
 
 TEST_CASE( "[ref] produce_REF_landing_units" ) {
   world w;
+  w.create_default_map();
+
+  Player& colonial_player = w.default_player();
+  Player& ref_player =
+      w.add_player( ref_player_for( w.default_nation() ) );
+
+  auto const f = [&] [[clang::noinline]] {
+    return ref_should_forfeight( w.ss(), ref_player );
+  };
+
+  using E = e_forfeight_reason;
+
+  colonial_player.revolution.expeditionary_force.regular = 1;
+  REQUIRE( f() == nothing );
+
+  colonial_player.revolution.expeditionary_force.man_o_war = 1;
+  REQUIRE( f() == nothing );
+
+  colonial_player.revolution.expeditionary_force.regular = 0;
+  REQUIRE( f() ==
+           e_forfeight_reason::no_more_land_units_in_stock );
+
+  colonial_player.revolution.expeditionary_force.cavalry = 1;
+  REQUIRE( f() == nothing );
+
+  colonial_player.revolution.expeditionary_force.cavalry = 0;
+  REQUIRE( f() ==
+           e_forfeight_reason::no_more_land_units_in_stock );
+
+  colonial_player.revolution.expeditionary_force.artillery = 1;
+  REQUIRE( f() == nothing );
+
+  colonial_player.revolution.expeditionary_force.artillery = 0;
+  REQUIRE( f() ==
+           e_forfeight_reason::no_more_land_units_in_stock );
+
+  w.add_unit_on_map( e_unit_type::free_colonist,
+                     { .x = 1, .y = 0 }, ref_player.type );
+  REQUIRE( f() ==
+           e_forfeight_reason::no_more_land_units_in_stock );
+
+  w.add_unit_on_map( e_unit_type::man_o_war, { .x = 0, .y = 0 },
+                     ref_player.type );
+  REQUIRE( f() ==
+           e_forfeight_reason::no_more_land_units_in_stock );
+
+  UnitId const soldier_id =
+      w.add_unit_on_map( e_unit_type::soldier,
+                         { .x = 1, .y = 0 }, ref_player.type )
+          .id();
+  REQUIRE( f() == nothing );
+
+  UnitOwnershipChanger( w.ss(), soldier_id ).destroy();
+  REQUIRE( f() ==
+           e_forfeight_reason::no_more_land_units_in_stock );
+
+  w.add_colony( { .x = 3, .y = 0 }, colonial_player.type );
+  REQUIRE( f() ==
+           e_forfeight_reason::no_more_land_units_in_stock );
+
+  w.add_colony( { .x = 1, .y = 0 }, ref_player.type );
+  REQUIRE( f() == nothing );
 }
 
 TEST_CASE( "[ref] offboard_ref_units" ) {
