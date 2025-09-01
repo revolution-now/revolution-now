@@ -70,6 +70,16 @@ declaration {
 }
 
 ref_forces {
+  # It is interesting to note that for levels < conquistador the
+  # number of cavalry+artillery is less than the number of regu-
+  # lars, and for levels greater than conquistador it is greater,
+  # while at conquistador it is roughly the same. This is rele-
+  # vant because the REF deployment algorithm says that when cav-
+  # alry+artillery > regulars then a stronger wave of units is
+  # sent, otherwise a weaker wave is sent. That said, it is not
+  # clear that this has much of an effect on the game since the
+  # target ratios below are difficulty independent, and tend to-
+  # ward a state where regulars > cavalry+artillery anyway.
   initial_forces {
     discoverer:   { regular: 15, cavalry:  5, artillery:  2, man_o_war:  2 }
     explorer:     { regular: 23, cavalry: 10, artillery:  8, man_o_war:  5 }
@@ -127,6 +137,22 @@ ref_forces {
   # the dynamics of the war, we default it to true which repli-
   # cates the OG.
   ref_can_spawn_ships: true
+
+  # Each deployment of REF troops in the OG has a minimum of
+  # three units and a maximum of six units. These can be changed,
+  # with the following constraints:
+  #   - The minimum value must be larger than zero.
+  #   - The maximum value cannot be larger than 6 because that is
+  #     the maximum number of units that a man-o-war (or any ship
+  #     in the game) can carry.
+  #   - The minimum value must be less or equal to the max.
+  allowed_unit_counts_per_deployment: { min: 3, max: 6 }
+
+  # When the colony military strength metric hits this value then
+  # the deployments will switch from a weak wave of units (reg
+  # x4, cavalry x1, artillery x1) to a stronger wave (reg x2,
+  # cavalry x2, artillery x2)).
+  strong_unit_wave_threshold: 30
 }
 
 intervention_forces {

@@ -1,46 +1,3 @@
-TODO:
-
-  * Algo for deploying REF:
-      1. Pick number of units and sequence given strength.
-           Fortifications:
-             none:
-               0   : 3  : weak      <==
-               6   : 4  : weak      <==
-               8   : 5  : weak      <==
-               10  : 6  : weak      <==
-               30  : 6  : strong    <==
-             fort:
-               0   : 3  : weak      <==
-               4   : 4  : weak      <==
-               6   : 6  : weak      <==
-               20  : 6  : strong    <==
-             fortress:
-               0   : 3  : weak      <==
-               2   : 4  : weak      <==
-               4   : 6  : weak      <==
-               14  : 6  : strong    <==
-      2. Pick sequence given strength:
-           Weak colony:   cavalry, artillery, reg, reg, reg, reg
-           Strong colony: cavalry, cavalry, artillery, artillery, reg, reg
-      3. If (cavalry+artillery) <= regulars then level=weak in
-         order to conserve units.
-      3. Put regulars on all squares.
-      4. Fill out remainder by following sequence from beginning.
-      5. In all subsequence iterations (defined by the deployment
-         tiles having the REF as visitor nation), follow the seq
-         from the begginning.
-      6. If a desired unit is missing then just skip it and keep
-         iterating until the target number of units have been deployed.
-         However, there is a max of two cavalry and two artillery
-         per deployment.
-
-  * It appears that the REF changes the units it sends depending
-    on whether the squares that it would unload on have a
-    visitor_nation equal to the REF nation or not. It may do this
-    in order to know whether it landed there already. Because if
-    it has landed there already and the colony still hasn't been
-    taken, then it probably just sends reinforcements.
-
 Done:
 
   * When the REF has all coastal colonies (or the player never
@@ -237,3 +194,27 @@ Done:
       - The normal game time limit (year 1850) also applies
         during the war, namely the player is forced to surrounder
         after that time.
+
+  * Algo for deploying REF:
+      1. Pick number of units and sequence given strength.
+      2. Pick sequence given strength:
+           Weak colony:   cavalry, artillery, reg, reg, reg, reg
+           Strong colony: cavalry, cavalry, artillery, artillery, reg, reg
+      3. If (cavalry+artillery) <= regulars then level=weak in
+         order to conserve units.
+      3. Put regulars on all squares.
+      4. Fill out remainder by following sequence from beginning.
+      5. In all subsequence iterations (defined by the deployment
+         tiles having the REF as visitor nation), follow the seq
+         from the begginning.
+      6. If a desired unit is missing then just skip it and keep
+         iterating until the target number of units have been deployed.
+         However, there is a max of two cavalry and two artillery
+         per deployment.
+
+  * It appears that the REF changes the units it sends depending
+    on whether the squares that it would unload on have a
+    visitor_nation equal to the REF nation or not. It may do this
+    in order to know whether it landed there already. Because if
+    it has landed there already and the colony still hasn't been
+    taken, then it probably just sends reinforcements.

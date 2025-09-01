@@ -7,6 +7,7 @@ local printer = require'moon.printer'
 local list = require'moon.list'
 local logger = require'moon.logger'
 local console = require'moon.console'
+local mmath = require'moon.math'
 
 -----------------------------------------------------------------
 -- Aliases.
@@ -25,6 +26,7 @@ local tsplit = list.tsplit
 local split = list.split
 local printfln = printer.printfln
 local bar = printer.bar
+local clamp = mmath.clamp
 
 local min, max = math.min, math.max
 
@@ -109,11 +111,10 @@ local function compute_metric( case )
   return metric
 end
 
-local function clamp( n, l, h ) return min( max( n, l ), h ) end
-
 local function compute_unit_count( case, metric )
   -- This is a hack; strange that it is needed. Perhaps it is a
-  -- bug or something in the OG.
+  -- bug or strange rounding behavior in the OG. We will not
+  -- replicate it.
   if case.fortification == 'fort' or case.fortification ==
       'fortress' then
     if metric == 8 or metric == 9 then return 4 end

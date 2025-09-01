@@ -657,7 +657,11 @@ e_ref_manowar_availability ensure_manowar_availability(
 
 int select_ref_unit_count(
     RefColonySelectionMetrics const& metrics ) {
-  return clamp( metrics.strength_metric / 2 + 1, 3, 6 );
+  return clamp( metrics.strength_metric / 2 + 1,
+                config_revolution.ref_forces
+                    .allowed_unit_counts_per_deployment.min,
+                config_revolution.ref_forces
+                    .allowed_unit_counts_per_deployment.max );
 }
 
 e_ref_unit_sequence select_ref_unit_sequence(
@@ -674,7 +678,9 @@ e_ref_unit_sequence select_ref_unit_sequence(
     // The OG does this, perhaps to conserve cavalry and ar-
     // tillery when it doesn't have as many as regulars.
     return weak;
-  return metrics.strength_metric >= 30 ? strong : weak;
+  int const threshold =
+      config_revolution.ref_forces.strong_unit_wave_threshold;
+  return metrics.strength_metric >= threshold ? strong : weak;
 }
 
 RefLandingPlan allocate_landing_units(

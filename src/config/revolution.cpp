@@ -96,4 +96,19 @@ config::revolution::RefTargetRatios::validate() const {
   return base::valid;
 }
 
+/****************************************************************
+** config::revolution::RefForces
+*****************************************************************/
+base::valid_or<string> config::revolution::RefForces::validate()
+    const {
+  REFL_VALIDATE( allowed_unit_counts_per_deployment.min > 0,
+                 "allowed_unit_counts_per_deployment minimum "
+                 "value must be larger than zero." );
+  REFL_VALIDATE( allowed_unit_counts_per_deployment.max <= 6,
+                 "allowed_unit_counts_per_deployment maximum "
+                 "value must be less than or equal to 6." );
+  // NOTE: the IntRange validator will catch if min > max.
+  return base::valid;
+}
+
 } // namespace rn

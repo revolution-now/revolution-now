@@ -465,8 +465,6 @@ TEST_CASE( "[ref] ref_colony_selection_metrics" ) {
             w.ss(), w.connectivity(), colony.id );
       };
 
-  using B = e_colony_barricade_type;
-
   SECTION( "inland" ) {
     Colony& colony = w.add_colony( { .x = 2, .y = 1 } );
 
@@ -1062,11 +1060,135 @@ TEST_CASE( "[ref] ensure_manowar_availability" ) {
 }
 
 TEST_CASE( "[ref] select_ref_unit_count" ) {
-  world w;
+  RefColonySelectionMetrics metrics;
+
+  auto const f = [&] [[clang::noinline]] {
+    return select_ref_unit_count( metrics );
+  };
+
+  // Default.
+  REQUIRE( f() == 3 );
+
+  metrics.strength_metric = 1;
+  REQUIRE( f() == 3 );
+  metrics.strength_metric = 2;
+  REQUIRE( f() == 3 );
+  metrics.strength_metric = 3;
+  REQUIRE( f() == 3 );
+  metrics.strength_metric = 4;
+  REQUIRE( f() == 3 );
+  metrics.strength_metric = 5;
+  REQUIRE( f() == 3 );
+  metrics.strength_metric = 6;
+  REQUIRE( f() == 4 );
+  metrics.strength_metric = 7;
+  REQUIRE( f() == 4 );
+  metrics.strength_metric = 8;
+  REQUIRE( f() == 5 );
+  metrics.strength_metric = 9;
+  REQUIRE( f() == 5 );
+  metrics.strength_metric = 10;
+  REQUIRE( f() == 6 );
+  metrics.strength_metric = 11;
+  REQUIRE( f() == 6 );
+  metrics.strength_metric = 12;
+  REQUIRE( f() == 6 );
+  metrics.strength_metric = 1000;
+  REQUIRE( f() == 6 );
 }
 
 TEST_CASE( "[ref] select_ref_unit_sequence" ) {
   world w;
+  RefColonySelectionMetrics metrics;
+
+  Player& player = w.default_player();
+  auto& force    = player.revolution.expeditionary_force;
+
+  auto const f = [&] [[clang::noinline]] {
+    return select_ref_unit_sequence( w.ss(), w.default_nation(),
+                                     metrics );
+  };
+
+  using enum e_ref_unit_sequence;
+
+  force.regular = 10;
+  force.cavalry = 10;
+  force.artillery = 10;
+  force.man_o_war = 10;
+
+  // Default.
+  REQUIRE( f() == weak );
+
+  metrics.strength_metric = 1;
+  REQUIRE( f() == weak );
+  metrics.strength_metric = 5;
+  REQUIRE( f() == weak );
+  metrics.strength_metric = 10;
+  REQUIRE( f() == weak );
+  metrics.strength_metric = 15;
+  REQUIRE( f() == weak );
+  metrics.strength_metric = 20;
+  REQUIRE( f() == weak );
+  metrics.strength_metric = 25;
+  REQUIRE( f() == weak );
+  metrics.strength_metric = 26;
+  REQUIRE( f() == weak );
+  metrics.strength_metric = 27;
+  REQUIRE( f() == weak );
+  metrics.strength_metric = 28;
+  REQUIRE( f() == weak );
+  metrics.strength_metric = 29;
+  REQUIRE( f() == weak );
+  metrics.strength_metric = 30;
+  REQUIRE( f() == strong );
+  metrics.strength_metric = 31;
+  REQUIRE( f() == strong );
+  metrics.strength_metric = 35;
+  REQUIRE( f() == strong );
+  metrics.strength_metric = 40;
+  REQUIRE( f() == strong );
+  metrics.strength_metric = 1000;
+  REQUIRE( f() == strong );
+
+  force.regular = 10;
+  force.cavalry = 8;
+  force.artillery = 8;
+  REQUIRE( f() == strong );
+
+  force.regular = 10;
+  force.cavalry = 6;
+  force.artillery = 6;
+  REQUIRE( f() == strong );
+
+  force.regular = 10;
+  force.cavalry = 5;
+  force.artillery = 6;
+  REQUIRE( f() == strong );
+
+  force.regular = 10;
+  force.cavalry = 6;
+  force.artillery = 5;
+  REQUIRE( f() == strong );
+
+  force.regular = 10;
+  force.cavalry = 5;
+  force.artillery = 5;
+  REQUIRE( f() == weak );
+
+  force.regular = 9;
+  force.cavalry = 5;
+  force.artillery = 5;
+  REQUIRE( f() == strong );
+
+  force.regular = 9;
+  force.cavalry = 4;
+  force.artillery = 5;
+  REQUIRE( f() == weak );
+
+  force.regular = 9;
+  force.cavalry = 5;
+  force.artillery = 4;
+  REQUIRE( f() == weak );
 }
 
 TEST_CASE( "[ref] allocate_landing_units" ) {
