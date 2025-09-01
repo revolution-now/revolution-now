@@ -116,7 +116,7 @@ ensure_manowar_availability( SSConst const& ss,
     RefColonySelectionMetrics const& metrics );
 
 RefLandingPlan allocate_landing_units(
-    SSConst const& ss, e_nation nation,
+    Player const& colonial_player,
     bool is_initial_visit_to_colony,
     RefColonyLandingTiles const& landing_tiles,
     e_ref_unit_sequence sequence, int n_units_requested );

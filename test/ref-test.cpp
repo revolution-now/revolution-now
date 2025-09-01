@@ -1111,8 +1111,8 @@ TEST_CASE( "[ref] select_ref_unit_sequence" ) {
 
   using enum e_ref_unit_sequence;
 
-  force.regular = 10;
-  force.cavalry = 10;
+  force.regular   = 10;
+  force.cavalry   = 10;
   force.artillery = 10;
   force.man_o_war = 10;
 
@@ -1150,49 +1150,1231 @@ TEST_CASE( "[ref] select_ref_unit_sequence" ) {
   metrics.strength_metric = 1000;
   REQUIRE( f() == strong );
 
-  force.regular = 10;
-  force.cavalry = 8;
+  force.regular   = 10;
+  force.cavalry   = 8;
   force.artillery = 8;
   REQUIRE( f() == strong );
 
-  force.regular = 10;
-  force.cavalry = 6;
+  force.regular   = 10;
+  force.cavalry   = 6;
   force.artillery = 6;
   REQUIRE( f() == strong );
 
-  force.regular = 10;
-  force.cavalry = 5;
+  force.regular   = 10;
+  force.cavalry   = 5;
   force.artillery = 6;
   REQUIRE( f() == strong );
 
-  force.regular = 10;
-  force.cavalry = 6;
+  force.regular   = 10;
+  force.cavalry   = 6;
   force.artillery = 5;
   REQUIRE( f() == strong );
 
-  force.regular = 10;
-  force.cavalry = 5;
+  force.regular   = 10;
+  force.cavalry   = 5;
   force.artillery = 5;
   REQUIRE( f() == weak );
 
-  force.regular = 9;
-  force.cavalry = 5;
+  force.regular   = 9;
+  force.cavalry   = 5;
   force.artillery = 5;
   REQUIRE( f() == strong );
 
-  force.regular = 9;
-  force.cavalry = 4;
+  force.regular   = 9;
+  force.cavalry   = 4;
   force.artillery = 5;
   REQUIRE( f() == weak );
 
-  force.regular = 9;
-  force.cavalry = 5;
+  force.regular   = 9;
+  force.cavalry   = 5;
   force.artillery = 4;
   REQUIRE( f() == weak );
 }
 
 TEST_CASE( "[ref] allocate_landing_units" ) {
   world w;
+  RefLandingPlan expected;
+
+  Player& colonial_player = w.default_player();
+  auto& force = colonial_player.revolution.expeditionary_force;
+  auto& regulars  = force.regular;
+  auto& cavalry   = force.cavalry;
+  auto& artillery = force.artillery;
+
+  using enum e_ref_unit_sequence;
+  using U = e_unit_type;
+
+  RefColonyLandingTiles landing_tiles;
+  int n_units_requested        = 0;
+  bool initial_visit_to_colony = false;
+  e_ref_unit_sequence sequence = weak;
+
+  auto const f = [&] [[clang::noinline]] {
+    return allocate_landing_units(
+        as_const( colonial_player ), initial_visit_to_colony,
+        landing_tiles, sequence, n_units_requested );
+  };
+
+  // Default.
+  // ------------------------------------------------------------
+  expected = {};
+  REQUIRE( f() == expected );
+
+  // tiles=1, n_units=0, init=true, seq=weak, stock=9/9/9.
+  // ------------------------------------------------------------
+  landing_tiles.ship_tile = {
+    .tile           = { .x = 7, .y = 4 },
+    .captured_units = { GenericUnitId{ 2 },
+                        GenericUnitId{ 5 } } };
+  landing_tiles.landings = {
+    RefLandingTile{
+      .tile           = { .x = 6, .y = 5 },
+      .captured_units = { GenericUnitId{ 7 } },
+    },
+  };
+  n_units_requested                   = 0;
+  initial_visit_to_colony             = true;
+  sequence                            = weak;
+  tie( regulars, cavalry, artillery ) = tuple{ 9, 9, 9 };
+  expected = { .ship_tile = landing_tiles.ship_tile };
+  REQUIRE( f() == expected );
+
+  // tiles=1, n_units=1, init=true, seq=weak, stock=9/9/9.
+  // ------------------------------------------------------------
+  landing_tiles.ship_tile = {
+    .tile           = { .x = 7, .y = 4 },
+    .captured_units = { GenericUnitId{ 2 },
+                        GenericUnitId{ 5 } } };
+  landing_tiles.landings = {
+    RefLandingTile{
+      .tile           = { .x = 6, .y = 5 },
+      .captured_units = { GenericUnitId{ 7 } },
+    },
+  };
+  n_units_requested                   = 1;
+  initial_visit_to_colony             = true;
+  sequence                            = weak;
+  tie( regulars, cavalry, artillery ) = tuple{ 9, 9, 9 };
+
+  expected = {
+    .ship_tile     = landing_tiles.ship_tile,
+    .landing_units = {
+      { U::regular,
+        { .tile           = { .x = 6, .y = 5 },
+          .captured_units = { GenericUnitId{ 7 } } } },
+    } };
+  REQUIRE( f() == expected );
+
+  // tiles=1, n_units=2, init=true, seq=weak, stock=9/9/9.
+  // ------------------------------------------------------------
+  landing_tiles.ship_tile = {
+    .tile           = { .x = 7, .y = 4 },
+    .captured_units = { GenericUnitId{ 2 },
+                        GenericUnitId{ 5 } } };
+  landing_tiles.landings = {
+    RefLandingTile{
+      .tile           = { .x = 6, .y = 5 },
+      .captured_units = { GenericUnitId{ 7 } },
+    },
+  };
+  n_units_requested                   = 2;
+  initial_visit_to_colony             = true;
+  sequence                            = weak;
+  tie( regulars, cavalry, artillery ) = tuple{ 9, 9, 9 };
+
+  expected = {
+    .ship_tile     = landing_tiles.ship_tile,
+    .landing_units = {
+      { U::regular,
+        { .tile           = { .x = 6, .y = 5 },
+          .captured_units = { GenericUnitId{ 7 } } } },
+      { U::cavalry,
+        { .tile           = { .x = 6, .y = 5 },
+          .captured_units = { GenericUnitId{ 7 } } } },
+    } };
+  REQUIRE( f() == expected );
+
+  // tiles=1, n_units=3, init=true, seq=weak, stock=9/9/9.
+  // ------------------------------------------------------------
+  landing_tiles.ship_tile = {
+    .tile           = { .x = 7, .y = 4 },
+    .captured_units = { GenericUnitId{ 2 },
+                        GenericUnitId{ 5 } } };
+  landing_tiles.landings = {
+    RefLandingTile{
+      .tile           = { .x = 6, .y = 5 },
+      .captured_units = { GenericUnitId{ 7 } },
+    },
+  };
+  n_units_requested                   = 3;
+  initial_visit_to_colony             = true;
+  sequence                            = weak;
+  tie( regulars, cavalry, artillery ) = tuple{ 9, 9, 9 };
+
+  expected = {
+    .ship_tile     = landing_tiles.ship_tile,
+    .landing_units = {
+      { U::regular,
+        { .tile           = { .x = 6, .y = 5 },
+          .captured_units = { GenericUnitId{ 7 } } } },
+      { U::cavalry,
+        { .tile           = { .x = 6, .y = 5 },
+          .captured_units = { GenericUnitId{ 7 } } } },
+      { U::artillery,
+        { .tile           = { .x = 6, .y = 5 },
+          .captured_units = { GenericUnitId{ 7 } } } },
+    } };
+  REQUIRE( f() == expected );
+
+  // tiles=1, n_units=6, init=true, seq=weak, stock=9/9/9.
+  // ------------------------------------------------------------
+  landing_tiles.ship_tile = {
+    .tile           = { .x = 7, .y = 4 },
+    .captured_units = { GenericUnitId{ 2 },
+                        GenericUnitId{ 5 } } };
+  landing_tiles.landings = {
+    RefLandingTile{
+      .tile           = { .x = 6, .y = 5 },
+      .captured_units = { GenericUnitId{ 7 } },
+    },
+  };
+  n_units_requested                   = 6;
+  initial_visit_to_colony             = true;
+  sequence                            = weak;
+  tie( regulars, cavalry, artillery ) = tuple{ 9, 9, 9 };
+
+  expected = {
+    .ship_tile     = landing_tiles.ship_tile,
+    .landing_units = {
+      { U::regular,
+        { .tile           = { .x = 6, .y = 5 },
+          .captured_units = { GenericUnitId{ 7 } } } },
+      { U::cavalry,
+        { .tile           = { .x = 6, .y = 5 },
+          .captured_units = { GenericUnitId{ 7 } } } },
+      { U::artillery,
+        { .tile           = { .x = 6, .y = 5 },
+          .captured_units = { GenericUnitId{ 7 } } } },
+      { U::regular,
+        { .tile           = { .x = 6, .y = 5 },
+          .captured_units = { GenericUnitId{ 7 } } } },
+      { U::regular,
+        { .tile           = { .x = 6, .y = 5 },
+          .captured_units = { GenericUnitId{ 7 } } } },
+      { U::regular,
+        { .tile           = { .x = 6, .y = 5 },
+          .captured_units = { GenericUnitId{ 7 } } } },
+    } };
+  REQUIRE( f() == expected );
+
+  // tiles=1, n_units=6, init=false, seq=weak, stock=9/9/9.
+  // ------------------------------------------------------------
+  landing_tiles.ship_tile = {
+    .tile           = { .x = 7, .y = 4 },
+    .captured_units = { GenericUnitId{ 2 },
+                        GenericUnitId{ 5 } } };
+  landing_tiles.landings = {
+    RefLandingTile{
+      .tile           = { .x = 6, .y = 5 },
+      .captured_units = { GenericUnitId{ 7 } },
+    },
+  };
+  n_units_requested                   = 6;
+  initial_visit_to_colony             = false;
+  sequence                            = weak;
+  tie( regulars, cavalry, artillery ) = tuple{ 9, 9, 9 };
+
+  expected = {
+    .ship_tile     = landing_tiles.ship_tile,
+    .landing_units = {
+      { U::cavalry,
+        { .tile           = { .x = 6, .y = 5 },
+          .captured_units = { GenericUnitId{ 7 } } } },
+      { U::artillery,
+        { .tile           = { .x = 6, .y = 5 },
+          .captured_units = { GenericUnitId{ 7 } } } },
+      { U::regular,
+        { .tile           = { .x = 6, .y = 5 },
+          .captured_units = { GenericUnitId{ 7 } } } },
+      { U::regular,
+        { .tile           = { .x = 6, .y = 5 },
+          .captured_units = { GenericUnitId{ 7 } } } },
+      { U::regular,
+        { .tile           = { .x = 6, .y = 5 },
+          .captured_units = { GenericUnitId{ 7 } } } },
+      { U::regular,
+        { .tile           = { .x = 6, .y = 5 },
+          .captured_units = { GenericUnitId{ 7 } } } },
+    } };
+  REQUIRE( f() == expected );
+
+  // tiles=1, n_units=6, init=false, seq=strong, stock=9/9/9.
+  // ------------------------------------------------------------
+  landing_tiles.ship_tile = {
+    .tile           = { .x = 7, .y = 4 },
+    .captured_units = { GenericUnitId{ 2 },
+                        GenericUnitId{ 5 } } };
+  landing_tiles.landings = {
+    RefLandingTile{
+      .tile           = { .x = 6, .y = 5 },
+      .captured_units = { GenericUnitId{ 7 } },
+    },
+  };
+  n_units_requested                   = 6;
+  initial_visit_to_colony             = false;
+  sequence                            = strong;
+  tie( regulars, cavalry, artillery ) = tuple{ 9, 9, 9 };
+
+  expected = {
+    .ship_tile     = landing_tiles.ship_tile,
+    .landing_units = {
+      { U::cavalry,
+        { .tile           = { .x = 6, .y = 5 },
+          .captured_units = { GenericUnitId{ 7 } } } },
+      { U::cavalry,
+        { .tile           = { .x = 6, .y = 5 },
+          .captured_units = { GenericUnitId{ 7 } } } },
+      { U::artillery,
+        { .tile           = { .x = 6, .y = 5 },
+          .captured_units = { GenericUnitId{ 7 } } } },
+      { U::artillery,
+        { .tile           = { .x = 6, .y = 5 },
+          .captured_units = { GenericUnitId{ 7 } } } },
+      { U::regular,
+        { .tile           = { .x = 6, .y = 5 },
+          .captured_units = { GenericUnitId{ 7 } } } },
+      { U::regular,
+        { .tile           = { .x = 6, .y = 5 },
+          .captured_units = { GenericUnitId{ 7 } } } },
+    } };
+  REQUIRE( f() == expected );
+
+  // tiles=1, n_units=6, init=true, seq=strong, stock=9/9/9.
+  // ------------------------------------------------------------
+  landing_tiles.ship_tile = {
+    .tile           = { .x = 7, .y = 4 },
+    .captured_units = { GenericUnitId{ 2 },
+                        GenericUnitId{ 5 } } };
+  landing_tiles.landings = {
+    RefLandingTile{
+      .tile           = { .x = 6, .y = 5 },
+      .captured_units = { GenericUnitId{ 7 } },
+    },
+  };
+  n_units_requested                   = 6;
+  initial_visit_to_colony             = true;
+  sequence                            = strong;
+  tie( regulars, cavalry, artillery ) = tuple{ 9, 9, 9 };
+
+  expected = {
+    .ship_tile     = landing_tiles.ship_tile,
+    .landing_units = {
+      { U::regular,
+        { .tile           = { .x = 6, .y = 5 },
+          .captured_units = { GenericUnitId{ 7 } } } },
+      { U::cavalry,
+        { .tile           = { .x = 6, .y = 5 },
+          .captured_units = { GenericUnitId{ 7 } } } },
+      { U::cavalry,
+        { .tile           = { .x = 6, .y = 5 },
+          .captured_units = { GenericUnitId{ 7 } } } },
+      { U::artillery,
+        { .tile           = { .x = 6, .y = 5 },
+          .captured_units = { GenericUnitId{ 7 } } } },
+      { U::artillery,
+        { .tile           = { .x = 6, .y = 5 },
+          .captured_units = { GenericUnitId{ 7 } } } },
+      { U::regular,
+        { .tile           = { .x = 6, .y = 5 },
+          .captured_units = { GenericUnitId{ 7 } } } },
+    } };
+  REQUIRE( f() == expected );
+
+  // tiles=1, n_units=6, init=true, seq=strong, stock=9/9/9.
+  // ------------------------------------------------------------
+  landing_tiles.ship_tile = {
+    .tile           = { .x = 7, .y = 4 },
+    .captured_units = { GenericUnitId{ 2 },
+                        GenericUnitId{ 5 } } };
+  landing_tiles.landings = {
+    RefLandingTile{
+      .tile           = { .x = 6, .y = 5 },
+      .captured_units = { GenericUnitId{ 7 } },
+    },
+  };
+  n_units_requested                   = 4;
+  initial_visit_to_colony             = true;
+  sequence                            = strong;
+  tie( regulars, cavalry, artillery ) = tuple{ 9, 9, 9 };
+
+  expected = {
+    .ship_tile     = landing_tiles.ship_tile,
+    .landing_units = {
+      { U::regular,
+        { .tile           = { .x = 6, .y = 5 },
+          .captured_units = { GenericUnitId{ 7 } } } },
+      { U::cavalry,
+        { .tile           = { .x = 6, .y = 5 },
+          .captured_units = { GenericUnitId{ 7 } } } },
+      { U::cavalry,
+        { .tile           = { .x = 6, .y = 5 },
+          .captured_units = { GenericUnitId{ 7 } } } },
+      { U::artillery,
+        { .tile           = { .x = 6, .y = 5 },
+          .captured_units = { GenericUnitId{ 7 } } } },
+    } };
+  REQUIRE( f() == expected );
+
+  // tiles=1, n_units=4, init=true, seq=strong, stock=1/9/9.
+  // ------------------------------------------------------------
+  landing_tiles.ship_tile = {
+    .tile           = { .x = 7, .y = 4 },
+    .captured_units = { GenericUnitId{ 2 },
+                        GenericUnitId{ 5 } } };
+  landing_tiles.landings = {
+    RefLandingTile{
+      .tile           = { .x = 6, .y = 5 },
+      .captured_units = { GenericUnitId{ 7 } },
+    },
+  };
+  n_units_requested                   = 4;
+  initial_visit_to_colony             = true;
+  sequence                            = strong;
+  tie( regulars, cavalry, artillery ) = tuple{ 1, 9, 9 };
+
+  expected = {
+    .ship_tile     = landing_tiles.ship_tile,
+    .landing_units = {
+      { U::regular,
+        { .tile           = { .x = 6, .y = 5 },
+          .captured_units = { GenericUnitId{ 7 } } } },
+      { U::cavalry,
+        { .tile           = { .x = 6, .y = 5 },
+          .captured_units = { GenericUnitId{ 7 } } } },
+      { U::cavalry,
+        { .tile           = { .x = 6, .y = 5 },
+          .captured_units = { GenericUnitId{ 7 } } } },
+      { U::artillery,
+        { .tile           = { .x = 6, .y = 5 },
+          .captured_units = { GenericUnitId{ 7 } } } },
+    } };
+  REQUIRE( f() == expected );
+
+  // tiles=1, n_units=5, init=true, seq=strong, stock=1/9/9.
+  // ------------------------------------------------------------
+  landing_tiles.ship_tile = {
+    .tile           = { .x = 7, .y = 4 },
+    .captured_units = { GenericUnitId{ 2 },
+                        GenericUnitId{ 5 } } };
+  landing_tiles.landings = {
+    RefLandingTile{
+      .tile           = { .x = 6, .y = 5 },
+      .captured_units = { GenericUnitId{ 7 } },
+    },
+  };
+  n_units_requested                   = 5;
+  initial_visit_to_colony             = true;
+  sequence                            = strong;
+  tie( regulars, cavalry, artillery ) = tuple{ 1, 9, 9 };
+
+  expected = {
+    .ship_tile     = landing_tiles.ship_tile,
+    .landing_units = {
+      { U::regular,
+        { .tile           = { .x = 6, .y = 5 },
+          .captured_units = { GenericUnitId{ 7 } } } },
+      { U::cavalry,
+        { .tile           = { .x = 6, .y = 5 },
+          .captured_units = { GenericUnitId{ 7 } } } },
+      { U::cavalry,
+        { .tile           = { .x = 6, .y = 5 },
+          .captured_units = { GenericUnitId{ 7 } } } },
+      { U::artillery,
+        { .tile           = { .x = 6, .y = 5 },
+          .captured_units = { GenericUnitId{ 7 } } } },
+      { U::artillery,
+        { .tile           = { .x = 6, .y = 5 },
+          .captured_units = { GenericUnitId{ 7 } } } },
+    } };
+  REQUIRE( f() == expected );
+
+  // tiles=1, n_units=6, init=true, seq=strong, stock=1/9/9.
+  // ------------------------------------------------------------
+  landing_tiles.ship_tile = {
+    .tile           = { .x = 7, .y = 4 },
+    .captured_units = { GenericUnitId{ 2 },
+                        GenericUnitId{ 5 } } };
+  landing_tiles.landings = {
+    RefLandingTile{
+      .tile           = { .x = 6, .y = 5 },
+      .captured_units = { GenericUnitId{ 7 } },
+    },
+  };
+  n_units_requested                   = 6;
+  initial_visit_to_colony             = true;
+  sequence                            = strong;
+  tie( regulars, cavalry, artillery ) = tuple{ 1, 9, 9 };
+
+  expected = {
+    .ship_tile     = landing_tiles.ship_tile,
+    .landing_units = {
+      { U::regular,
+        { .tile           = { .x = 6, .y = 5 },
+          .captured_units = { GenericUnitId{ 7 } } } },
+      { U::cavalry,
+        { .tile           = { .x = 6, .y = 5 },
+          .captured_units = { GenericUnitId{ 7 } } } },
+      { U::cavalry,
+        { .tile           = { .x = 6, .y = 5 },
+          .captured_units = { GenericUnitId{ 7 } } } },
+      { U::artillery,
+        { .tile           = { .x = 6, .y = 5 },
+          .captured_units = { GenericUnitId{ 7 } } } },
+      { U::artillery,
+        { .tile           = { .x = 6, .y = 5 },
+          .captured_units = { GenericUnitId{ 7 } } } },
+      // No more regulars, and we've max'd out cavalry and ar-
+      // tillery.
+    } };
+  REQUIRE( f() == expected );
+
+  // tiles=1, n_units=6, init=true, seq=strong, stock=0/9/9.
+  // ------------------------------------------------------------
+  landing_tiles.ship_tile = {
+    .tile           = { .x = 7, .y = 4 },
+    .captured_units = { GenericUnitId{ 2 },
+                        GenericUnitId{ 5 } } };
+  landing_tiles.landings = {
+    RefLandingTile{
+      .tile           = { .x = 6, .y = 5 },
+      .captured_units = { GenericUnitId{ 7 } },
+    },
+  };
+  n_units_requested                   = 6;
+  initial_visit_to_colony             = true;
+  sequence                            = strong;
+  tie( regulars, cavalry, artillery ) = tuple{ 0, 9, 9 };
+
+  expected = {
+    .ship_tile     = landing_tiles.ship_tile,
+    .landing_units = {
+      { U::cavalry,
+        { .tile           = { .x = 6, .y = 5 },
+          .captured_units = { GenericUnitId{ 7 } } } },
+      { U::cavalry,
+        { .tile           = { .x = 6, .y = 5 },
+          .captured_units = { GenericUnitId{ 7 } } } },
+      { U::artillery,
+        { .tile           = { .x = 6, .y = 5 },
+          .captured_units = { GenericUnitId{ 7 } } } },
+      { U::artillery,
+        { .tile           = { .x = 6, .y = 5 },
+          .captured_units = { GenericUnitId{ 7 } } } },
+      // No more regulars, and we've max'd out cavalry and ar-
+      // tillery.
+    } };
+  REQUIRE( f() == expected );
+
+  // tiles=1, n_units=6, init=true, seq=strong, stock=0/1/9.
+  // ------------------------------------------------------------
+  landing_tiles.ship_tile = {
+    .tile           = { .x = 7, .y = 4 },
+    .captured_units = { GenericUnitId{ 2 },
+                        GenericUnitId{ 5 } } };
+  landing_tiles.landings = {
+    RefLandingTile{
+      .tile           = { .x = 6, .y = 5 },
+      .captured_units = { GenericUnitId{ 7 } },
+    },
+  };
+  n_units_requested                   = 6;
+  initial_visit_to_colony             = true;
+  sequence                            = strong;
+  tie( regulars, cavalry, artillery ) = tuple{ 0, 1, 9 };
+
+  expected = {
+    .ship_tile     = landing_tiles.ship_tile,
+    .landing_units = {
+      { U::cavalry,
+        { .tile           = { .x = 6, .y = 5 },
+          .captured_units = { GenericUnitId{ 7 } } } },
+      { U::artillery,
+        { .tile           = { .x = 6, .y = 5 },
+          .captured_units = { GenericUnitId{ 7 } } } },
+      { U::artillery,
+        { .tile           = { .x = 6, .y = 5 },
+          .captured_units = { GenericUnitId{ 7 } } } },
+    } };
+  REQUIRE( f() == expected );
+
+  // tiles=1, n_units=6, init=true, seq=strong, stock=2/2/2.
+  // ------------------------------------------------------------
+  landing_tiles.ship_tile = {
+    .tile           = { .x = 7, .y = 4 },
+    .captured_units = { GenericUnitId{ 2 },
+                        GenericUnitId{ 5 } } };
+  landing_tiles.landings = {
+    RefLandingTile{
+      .tile           = { .x = 6, .y = 5 },
+      .captured_units = { GenericUnitId{ 7 } },
+    },
+  };
+  n_units_requested                   = 6;
+  initial_visit_to_colony             = true;
+  sequence                            = strong;
+  tie( regulars, cavalry, artillery ) = tuple{ 2, 2, 2 };
+
+  expected = {
+    .ship_tile     = landing_tiles.ship_tile,
+    .landing_units = {
+      { U::regular,
+        { .tile           = { .x = 6, .y = 5 },
+          .captured_units = { GenericUnitId{ 7 } } } },
+      { U::cavalry,
+        { .tile           = { .x = 6, .y = 5 },
+          .captured_units = { GenericUnitId{ 7 } } } },
+      { U::cavalry,
+        { .tile           = { .x = 6, .y = 5 },
+          .captured_units = { GenericUnitId{ 7 } } } },
+      { U::artillery,
+        { .tile           = { .x = 6, .y = 5 },
+          .captured_units = { GenericUnitId{ 7 } } } },
+      { U::artillery,
+        { .tile           = { .x = 6, .y = 5 },
+          .captured_units = { GenericUnitId{ 7 } } } },
+      { U::regular,
+        { .tile           = { .x = 6, .y = 5 },
+          .captured_units = { GenericUnitId{ 7 } } } },
+    } };
+  REQUIRE( f() == expected );
+
+  // tiles=1, n_units=6, init=false, seq=strong, stock=2/2/2.
+  // ------------------------------------------------------------
+  landing_tiles.ship_tile = {
+    .tile           = { .x = 7, .y = 4 },
+    .captured_units = { GenericUnitId{ 2 },
+                        GenericUnitId{ 5 } } };
+  landing_tiles.landings = {
+    RefLandingTile{
+      .tile           = { .x = 6, .y = 5 },
+      .captured_units = { GenericUnitId{ 7 } },
+    },
+  };
+  n_units_requested                   = 6;
+  initial_visit_to_colony             = false;
+  sequence                            = strong;
+  tie( regulars, cavalry, artillery ) = tuple{ 2, 2, 2 };
+
+  expected = {
+    .ship_tile     = landing_tiles.ship_tile,
+    .landing_units = {
+      { U::cavalry,
+        { .tile           = { .x = 6, .y = 5 },
+          .captured_units = { GenericUnitId{ 7 } } } },
+      { U::cavalry,
+        { .tile           = { .x = 6, .y = 5 },
+          .captured_units = { GenericUnitId{ 7 } } } },
+      { U::artillery,
+        { .tile           = { .x = 6, .y = 5 },
+          .captured_units = { GenericUnitId{ 7 } } } },
+      { U::artillery,
+        { .tile           = { .x = 6, .y = 5 },
+          .captured_units = { GenericUnitId{ 7 } } } },
+      { U::regular,
+        { .tile           = { .x = 6, .y = 5 },
+          .captured_units = { GenericUnitId{ 7 } } } },
+      { U::regular,
+        { .tile           = { .x = 6, .y = 5 },
+          .captured_units = { GenericUnitId{ 7 } } } },
+    } };
+  REQUIRE( f() == expected );
+
+  // tiles=1, n_units=6, init=false, seq=strong, stock=2/1/1.
+  // ------------------------------------------------------------
+  landing_tiles.ship_tile = {
+    .tile           = { .x = 7, .y = 4 },
+    .captured_units = { GenericUnitId{ 2 },
+                        GenericUnitId{ 5 } } };
+  landing_tiles.landings = {
+    RefLandingTile{
+      .tile           = { .x = 6, .y = 5 },
+      .captured_units = { GenericUnitId{ 7 } },
+    },
+  };
+  n_units_requested                   = 6;
+  initial_visit_to_colony             = false;
+  sequence                            = strong;
+  tie( regulars, cavalry, artillery ) = tuple{ 2, 1, 1 };
+
+  expected = {
+    .ship_tile     = landing_tiles.ship_tile,
+    .landing_units = {
+      { U::cavalry,
+        { .tile           = { .x = 6, .y = 5 },
+          .captured_units = { GenericUnitId{ 7 } } } },
+      { U::artillery,
+        { .tile           = { .x = 6, .y = 5 },
+          .captured_units = { GenericUnitId{ 7 } } } },
+      { U::regular,
+        { .tile           = { .x = 6, .y = 5 },
+          .captured_units = { GenericUnitId{ 7 } } } },
+      { U::regular,
+        { .tile           = { .x = 6, .y = 5 },
+          .captured_units = { GenericUnitId{ 7 } } } },
+    } };
+  REQUIRE( f() == expected );
+
+  // tiles=1, n_units=5, init=true, seq=weak, stock=10/0/0.
+  // ------------------------------------------------------------
+  landing_tiles.ship_tile = {
+    .tile           = { .x = 7, .y = 4 },
+    .captured_units = { GenericUnitId{ 2 },
+                        GenericUnitId{ 5 } } };
+  landing_tiles.landings = {
+    RefLandingTile{
+      .tile           = { .x = 6, .y = 5 },
+      .captured_units = { GenericUnitId{ 7 } },
+    },
+  };
+  n_units_requested                   = 5;
+  initial_visit_to_colony             = true;
+  sequence                            = weak;
+  tie( regulars, cavalry, artillery ) = tuple{ 10, 0, 0 };
+
+  expected = {
+    .ship_tile     = landing_tiles.ship_tile,
+    .landing_units = {
+      { U::regular,
+        { .tile           = { .x = 6, .y = 5 },
+          .captured_units = { GenericUnitId{ 7 } } } },
+      { U::regular,
+        { .tile           = { .x = 6, .y = 5 },
+          .captured_units = { GenericUnitId{ 7 } } } },
+      { U::regular,
+        { .tile           = { .x = 6, .y = 5 },
+          .captured_units = { GenericUnitId{ 7 } } } },
+      { U::regular,
+        { .tile           = { .x = 6, .y = 5 },
+          .captured_units = { GenericUnitId{ 7 } } } },
+      { U::regular,
+        { .tile           = { .x = 6, .y = 5 },
+          .captured_units = { GenericUnitId{ 7 } } } },
+    } };
+  REQUIRE( f() == expected );
+
+  // tiles=3, n_units=0, init=true, seq=weak, stock=9/9/9.
+  // ------------------------------------------------------------
+  landing_tiles.ship_tile = { .tile = { .x = 6, .y = 4 } };
+  landing_tiles.landings  = {
+    RefLandingTile{
+       .tile           = { .x = 5, .y = 4 },
+       .captured_units = {},
+    },
+    RefLandingTile{
+       .tile           = { .x = 5, .y = 5 },
+       .captured_units = { GenericUnitId{ 7 } },
+    },
+    RefLandingTile{
+       .tile           = { .x = 6, .y = 5 },
+       .captured_units = {},
+    },
+  };
+  n_units_requested                   = 0;
+  initial_visit_to_colony             = true;
+  sequence                            = weak;
+  tie( regulars, cavalry, artillery ) = tuple{ 9, 9, 9 };
+
+  expected = { .ship_tile     = landing_tiles.ship_tile,
+               .landing_units = {
+                 //
+               } };
+  REQUIRE( f() == expected );
+
+  // tiles=3, n_units=1, init=true, seq=weak, stock=9/9/9.
+  // ------------------------------------------------------------
+  landing_tiles.ship_tile = { .tile = { .x = 6, .y = 4 } };
+  landing_tiles.landings  = {
+    RefLandingTile{
+       .tile           = { .x = 5, .y = 4 },
+       .captured_units = {},
+    },
+    RefLandingTile{
+       .tile           = { .x = 5, .y = 5 },
+       .captured_units = { GenericUnitId{ 7 } },
+    },
+    RefLandingTile{
+       .tile           = { .x = 6, .y = 5 },
+       .captured_units = {},
+    },
+  };
+  n_units_requested                   = 1;
+  initial_visit_to_colony             = true;
+  sequence                            = weak;
+  tie( regulars, cavalry, artillery ) = tuple{ 9, 9, 9 };
+
+  expected = {
+    .ship_tile     = landing_tiles.ship_tile,
+    .landing_units = {
+      { U::regular,
+        { .tile = { .x = 5, .y = 4 }, .captured_units = {} } },
+    } };
+  REQUIRE( f() == expected );
+
+  // tiles=3, n_units=3, init=true, seq=weak, stock=9/9/9.
+  // ------------------------------------------------------------
+  landing_tiles.ship_tile = { .tile = { .x = 6, .y = 4 } };
+  landing_tiles.landings  = {
+    RefLandingTile{
+       .tile           = { .x = 5, .y = 4 },
+       .captured_units = {},
+    },
+    RefLandingTile{
+       .tile           = { .x = 5, .y = 5 },
+       .captured_units = { GenericUnitId{ 7 } },
+    },
+    RefLandingTile{
+       .tile           = { .x = 6, .y = 5 },
+       .captured_units = {},
+    },
+  };
+  n_units_requested                   = 3;
+  initial_visit_to_colony             = true;
+  sequence                            = weak;
+  tie( regulars, cavalry, artillery ) = tuple{ 9, 9, 9 };
+
+  expected = {
+    .ship_tile     = landing_tiles.ship_tile,
+    .landing_units = {
+      { U::regular,
+        { .tile = { .x = 5, .y = 4 }, .captured_units = {} } },
+      { U::regular,
+        { .tile           = { .x = 5, .y = 5 },
+          .captured_units = { GenericUnitId{ 7 } } } },
+      { U::regular,
+        { .tile = { .x = 6, .y = 5 }, .captured_units = {} } },
+    } };
+  REQUIRE( f() == expected );
+
+  // tiles=3, n_units=6, init=true, seq=weak, stock=9/9/9.
+  // ------------------------------------------------------------
+  landing_tiles.ship_tile = { .tile = { .x = 6, .y = 4 } };
+  landing_tiles.landings  = {
+    RefLandingTile{
+       .tile           = { .x = 5, .y = 4 },
+       .captured_units = {},
+    },
+    RefLandingTile{
+       .tile           = { .x = 5, .y = 5 },
+       .captured_units = { GenericUnitId{ 7 } },
+    },
+    RefLandingTile{
+       .tile           = { .x = 6, .y = 5 },
+       .captured_units = {},
+    },
+  };
+  n_units_requested                   = 6;
+  initial_visit_to_colony             = true;
+  sequence                            = weak;
+  tie( regulars, cavalry, artillery ) = tuple{ 9, 9, 9 };
+
+  expected = {
+    .ship_tile     = landing_tiles.ship_tile,
+    .landing_units = {
+      { U::regular,
+        { .tile = { .x = 5, .y = 4 }, .captured_units = {} } },
+      { U::regular,
+        { .tile           = { .x = 5, .y = 5 },
+          .captured_units = { GenericUnitId{ 7 } } } },
+      { U::regular,
+        { .tile = { .x = 6, .y = 5 }, .captured_units = {} } },
+      { U::cavalry,
+        { .tile = { .x = 5, .y = 4 }, .captured_units = {} } },
+      { U::artillery,
+        { .tile           = { .x = 5, .y = 5 },
+          .captured_units = { GenericUnitId{ 7 } } } },
+      { U::regular,
+        { .tile = { .x = 6, .y = 5 }, .captured_units = {} } },
+    } };
+  REQUIRE( f() == expected );
+
+  // tiles=3, n_units=6, init=false, seq=weak, stock=9/9/9.
+  // ------------------------------------------------------------
+  landing_tiles.ship_tile = { .tile = { .x = 6, .y = 4 } };
+  landing_tiles.landings  = {
+    RefLandingTile{
+       .tile           = { .x = 5, .y = 4 },
+       .captured_units = {},
+    },
+    RefLandingTile{
+       .tile           = { .x = 5, .y = 5 },
+       .captured_units = { GenericUnitId{ 7 } },
+    },
+    RefLandingTile{
+       .tile           = { .x = 6, .y = 5 },
+       .captured_units = {},
+    },
+  };
+  n_units_requested                   = 6;
+  initial_visit_to_colony             = false;
+  sequence                            = weak;
+  tie( regulars, cavalry, artillery ) = tuple{ 9, 9, 9 };
+
+  expected = {
+    .ship_tile     = landing_tiles.ship_tile,
+    .landing_units = {
+      { U::cavalry,
+        { .tile = { .x = 5, .y = 4 }, .captured_units = {} } },
+      { U::artillery,
+        { .tile           = { .x = 5, .y = 5 },
+          .captured_units = { GenericUnitId{ 7 } } } },
+      { U::regular,
+        { .tile = { .x = 6, .y = 5 }, .captured_units = {} } },
+      { U::regular,
+        { .tile = { .x = 5, .y = 4 }, .captured_units = {} } },
+      { U::regular,
+        { .tile           = { .x = 5, .y = 5 },
+          .captured_units = { GenericUnitId{ 7 } } } },
+      { U::regular,
+        { .tile = { .x = 6, .y = 5 }, .captured_units = {} } },
+    } };
+  REQUIRE( f() == expected );
+
+  // tiles=3, n_units=6, init=false, seq=strong, stock=9/9/9.
+  // ------------------------------------------------------------
+  landing_tiles.ship_tile = { .tile = { .x = 6, .y = 4 } };
+  landing_tiles.landings  = {
+    RefLandingTile{
+       .tile           = { .x = 5, .y = 4 },
+       .captured_units = {},
+    },
+    RefLandingTile{
+       .tile           = { .x = 5, .y = 5 },
+       .captured_units = { GenericUnitId{ 7 } },
+    },
+    RefLandingTile{
+       .tile           = { .x = 6, .y = 5 },
+       .captured_units = {},
+    },
+  };
+  n_units_requested                   = 6;
+  initial_visit_to_colony             = false;
+  sequence                            = strong;
+  tie( regulars, cavalry, artillery ) = tuple{ 9, 9, 9 };
+
+  expected = {
+    .ship_tile     = landing_tiles.ship_tile,
+    .landing_units = {
+      { U::cavalry,
+        { .tile = { .x = 5, .y = 4 }, .captured_units = {} } },
+      { U::cavalry,
+        { .tile           = { .x = 5, .y = 5 },
+          .captured_units = { GenericUnitId{ 7 } } } },
+      { U::artillery,
+        { .tile = { .x = 6, .y = 5 }, .captured_units = {} } },
+      { U::artillery,
+        { .tile = { .x = 5, .y = 4 }, .captured_units = {} } },
+      { U::regular,
+        { .tile           = { .x = 5, .y = 5 },
+          .captured_units = { GenericUnitId{ 7 } } } },
+      { U::regular,
+        { .tile = { .x = 6, .y = 5 }, .captured_units = {} } },
+    } };
+  REQUIRE( f() == expected );
+
+  // tiles=3, n_units=6, init=false, seq=strong, stock=9/1/1.
+  // ------------------------------------------------------------
+  landing_tiles.ship_tile = { .tile = { .x = 6, .y = 4 } };
+  landing_tiles.landings  = {
+    RefLandingTile{
+       .tile           = { .x = 5, .y = 4 },
+       .captured_units = {},
+    },
+    RefLandingTile{
+       .tile           = { .x = 5, .y = 5 },
+       .captured_units = { GenericUnitId{ 7 } },
+    },
+    RefLandingTile{
+       .tile           = { .x = 6, .y = 5 },
+       .captured_units = {},
+    },
+  };
+  n_units_requested                   = 6;
+  initial_visit_to_colony             = false;
+  sequence                            = strong;
+  tie( regulars, cavalry, artillery ) = tuple{ 9, 1, 1 };
+
+  expected = {
+    .ship_tile     = landing_tiles.ship_tile,
+    .landing_units = {
+      { U::cavalry,
+        { .tile = { .x = 5, .y = 4 }, .captured_units = {} } },
+      { U::artillery,
+        { .tile           = { .x = 5, .y = 5 },
+          .captured_units = { GenericUnitId{ 7 } } } },
+      { U::regular,
+        { .tile = { .x = 6, .y = 5 }, .captured_units = {} } },
+      { U::regular,
+        { .tile = { .x = 5, .y = 4 }, .captured_units = {} } },
+      { U::regular,
+        { .tile           = { .x = 5, .y = 5 },
+          .captured_units = { GenericUnitId{ 7 } } } },
+      { U::regular,
+        { .tile = { .x = 6, .y = 5 }, .captured_units = {} } },
+    } };
+  REQUIRE( f() == expected );
+
+  // tiles=3, n_units=5, init=false, seq=strong, stock=9/1/0.
+  // ------------------------------------------------------------
+  landing_tiles.ship_tile = { .tile = { .x = 6, .y = 4 } };
+  landing_tiles.landings  = {
+    RefLandingTile{
+       .tile           = { .x = 5, .y = 4 },
+       .captured_units = {},
+    },
+    RefLandingTile{
+       .tile           = { .x = 5, .y = 5 },
+       .captured_units = { GenericUnitId{ 7 } },
+    },
+    RefLandingTile{
+       .tile           = { .x = 6, .y = 5 },
+       .captured_units = {},
+    },
+  };
+  n_units_requested                   = 5;
+  initial_visit_to_colony             = false;
+  sequence                            = strong;
+  tie( regulars, cavalry, artillery ) = tuple{ 9, 1, 0 };
+
+  expected = {
+    .ship_tile     = landing_tiles.ship_tile,
+    .landing_units = {
+      { U::cavalry,
+        { .tile = { .x = 5, .y = 4 }, .captured_units = {} } },
+      { U::regular,
+        { .tile           = { .x = 5, .y = 5 },
+          .captured_units = { GenericUnitId{ 7 } } } },
+      { U::regular,
+        { .tile = { .x = 6, .y = 5 }, .captured_units = {} } },
+      { U::regular,
+        { .tile = { .x = 5, .y = 4 }, .captured_units = {} } },
+      { U::regular,
+        { .tile           = { .x = 5, .y = 5 },
+          .captured_units = { GenericUnitId{ 7 } } } },
+    } };
+  REQUIRE( f() == expected );
+
+  // tiles=3, n_units=5, init=false, seq=strong, stock=1/5/5.
+  // ------------------------------------------------------------
+  landing_tiles.ship_tile = { .tile = { .x = 6, .y = 4 } };
+  landing_tiles.landings  = {
+    RefLandingTile{
+       .tile           = { .x = 5, .y = 4 },
+       .captured_units = {},
+    },
+    RefLandingTile{
+       .tile           = { .x = 5, .y = 5 },
+       .captured_units = { GenericUnitId{ 7 } },
+    },
+    RefLandingTile{
+       .tile           = { .x = 6, .y = 5 },
+       .captured_units = {},
+    },
+  };
+  n_units_requested                   = 5;
+  initial_visit_to_colony             = false;
+  sequence                            = strong;
+  tie( regulars, cavalry, artillery ) = tuple{ 1, 5, 5 };
+
+  expected = {
+    .ship_tile     = landing_tiles.ship_tile,
+    .landing_units = {
+      { U::cavalry,
+        { .tile = { .x = 5, .y = 4 }, .captured_units = {} } },
+      { U::cavalry,
+        { .tile           = { .x = 5, .y = 5 },
+          .captured_units = { GenericUnitId{ 7 } } } },
+      { U::artillery,
+        { .tile = { .x = 6, .y = 5 }, .captured_units = {} } },
+      { U::artillery,
+        { .tile = { .x = 5, .y = 4 }, .captured_units = {} } },
+      { U::regular,
+        { .tile           = { .x = 5, .y = 5 },
+          .captured_units = { GenericUnitId{ 7 } } } },
+    } };
+  REQUIRE( f() == expected );
+
+  // tiles=3, n_units=6, init=false, seq=strong, stock=1/5/5.
+  // ------------------------------------------------------------
+  landing_tiles.ship_tile = { .tile = { .x = 6, .y = 4 } };
+  landing_tiles.landings  = {
+    RefLandingTile{
+       .tile           = { .x = 5, .y = 4 },
+       .captured_units = {},
+    },
+    RefLandingTile{
+       .tile           = { .x = 5, .y = 5 },
+       .captured_units = { GenericUnitId{ 7 } },
+    },
+    RefLandingTile{
+       .tile           = { .x = 6, .y = 5 },
+       .captured_units = {},
+    },
+  };
+  n_units_requested                   = 6;
+  initial_visit_to_colony             = false;
+  sequence                            = strong;
+  tie( regulars, cavalry, artillery ) = tuple{ 1, 5, 5 };
+
+  expected = {
+    .ship_tile     = landing_tiles.ship_tile,
+    .landing_units = {
+      { U::cavalry,
+        { .tile = { .x = 5, .y = 4 }, .captured_units = {} } },
+      { U::cavalry,
+        { .tile           = { .x = 5, .y = 5 },
+          .captured_units = { GenericUnitId{ 7 } } } },
+      { U::artillery,
+        { .tile = { .x = 6, .y = 5 }, .captured_units = {} } },
+      { U::artillery,
+        { .tile = { .x = 5, .y = 4 }, .captured_units = {} } },
+      { U::regular,
+        { .tile           = { .x = 5, .y = 5 },
+          .captured_units = { GenericUnitId{ 7 } } } },
+    } };
+  REQUIRE( f() == expected );
+
+  // tiles=3, n_units=6, init=false, seq=strong, stock=0/5/5.
+  // ------------------------------------------------------------
+  landing_tiles.ship_tile = { .tile = { .x = 6, .y = 4 } };
+  landing_tiles.landings  = {
+    RefLandingTile{
+       .tile           = { .x = 5, .y = 4 },
+       .captured_units = {},
+    },
+    RefLandingTile{
+       .tile           = { .x = 5, .y = 5 },
+       .captured_units = { GenericUnitId{ 7 } },
+    },
+    RefLandingTile{
+       .tile           = { .x = 6, .y = 5 },
+       .captured_units = {},
+    },
+  };
+  n_units_requested                   = 6;
+  initial_visit_to_colony             = false;
+  sequence                            = strong;
+  tie( regulars, cavalry, artillery ) = tuple{ 0, 5, 5 };
+
+  expected = {
+    .ship_tile     = landing_tiles.ship_tile,
+    .landing_units = {
+      { U::cavalry,
+        { .tile = { .x = 5, .y = 4 }, .captured_units = {} } },
+      { U::cavalry,
+        { .tile           = { .x = 5, .y = 5 },
+          .captured_units = { GenericUnitId{ 7 } } } },
+      { U::artillery,
+        { .tile = { .x = 6, .y = 5 }, .captured_units = {} } },
+      { U::artillery,
+        { .tile = { .x = 5, .y = 4 }, .captured_units = {} } },
+    } };
+  REQUIRE( f() == expected );
+
+  // tiles=3, n_units=6, init=true, seq=strong, stock=0/5/5.
+  // ------------------------------------------------------------
+  landing_tiles.ship_tile = { .tile = { .x = 6, .y = 4 } };
+  landing_tiles.landings  = {
+    RefLandingTile{
+       .tile           = { .x = 5, .y = 4 },
+       .captured_units = {},
+    },
+    RefLandingTile{
+       .tile           = { .x = 5, .y = 5 },
+       .captured_units = { GenericUnitId{ 7 } },
+    },
+    RefLandingTile{
+       .tile           = { .x = 6, .y = 5 },
+       .captured_units = {},
+    },
+  };
+  n_units_requested                   = 6;
+  initial_visit_to_colony             = true;
+  sequence                            = strong;
+  tie( regulars, cavalry, artillery ) = tuple{ 0, 5, 5 };
+
+  expected = {
+    .ship_tile     = landing_tiles.ship_tile,
+    .landing_units = {
+      { U::cavalry,
+        { .tile = { .x = 5, .y = 4 }, .captured_units = {} } },
+      { U::cavalry,
+        { .tile           = { .x = 5, .y = 5 },
+          .captured_units = { GenericUnitId{ 7 } } } },
+      { U::artillery,
+        { .tile = { .x = 6, .y = 5 }, .captured_units = {} } },
+      { U::artillery,
+        { .tile = { .x = 5, .y = 4 }, .captured_units = {} } },
+    } };
+  REQUIRE( f() == expected );
+
+  // tiles=3, n_units=6, init=true, seq=strong, stock=0/0/5.
+  // ------------------------------------------------------------
+  landing_tiles.ship_tile = { .tile = { .x = 6, .y = 4 } };
+  landing_tiles.landings  = {
+    RefLandingTile{
+       .tile           = { .x = 5, .y = 4 },
+       .captured_units = {},
+    },
+    RefLandingTile{
+       .tile           = { .x = 5, .y = 5 },
+       .captured_units = { GenericUnitId{ 7 } },
+    },
+    RefLandingTile{
+       .tile           = { .x = 6, .y = 5 },
+       .captured_units = {},
+    },
+  };
+  n_units_requested                   = 6;
+  initial_visit_to_colony             = true;
+  sequence                            = strong;
+  tie( regulars, cavalry, artillery ) = tuple{ 0, 0, 5 };
+
+  expected = {
+    .ship_tile     = landing_tiles.ship_tile,
+    .landing_units = {
+      { U::artillery,
+        { .tile = { .x = 5, .y = 4 }, .captured_units = {} } },
+      { U::artillery,
+        { .tile           = { .x = 5, .y = 5 },
+          .captured_units = { GenericUnitId{ 7 } } } },
+    } };
+  REQUIRE( f() == expected );
+
+  // tiles=3, n_units=6, init=true, seq=strong, stock=0/0/0.
+  // ------------------------------------------------------------
+  landing_tiles.ship_tile = { .tile = { .x = 6, .y = 4 } };
+  landing_tiles.landings  = {
+    RefLandingTile{
+       .tile           = { .x = 5, .y = 4 },
+       .captured_units = {},
+    },
+    RefLandingTile{
+       .tile           = { .x = 5, .y = 5 },
+       .captured_units = { GenericUnitId{ 7 } },
+    },
+    RefLandingTile{
+       .tile           = { .x = 6, .y = 5 },
+       .captured_units = {},
+    },
+  };
+  n_units_requested                   = 6;
+  initial_visit_to_colony             = true;
+  sequence                            = strong;
+  tie( regulars, cavalry, artillery ) = tuple{ 0, 0, 0 };
+
+  expected = { .ship_tile     = landing_tiles.ship_tile,
+               .landing_units = {} };
+  REQUIRE( f() == expected );
 }
 
 TEST_CASE( "[ref] create_ref_landing_units" ) {

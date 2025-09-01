@@ -457,6 +457,12 @@ RefColonySelectionMetrics ref_colony_selection_metrics(
         // In the OG a dwelling will not be unseated in order to
         // land, unlike units.
         continue;
+      // NOTE:
+      //   - The REF will capture native units with no message.
+      //     This is handled elsewhere.
+      //   - In the event that we end up allowing other europeans
+      //     on the map during the war, they will be captured as
+      //     well.
       valid_adjacent.push_back( landing );
     }
     if( valid_adjacent.empty() ) continue;
@@ -684,18 +690,12 @@ e_ref_unit_sequence select_ref_unit_sequence(
 }
 
 RefLandingPlan allocate_landing_units(
-    SSConst const& ss, e_nation nation,
+    Player const& colonial_player,
     bool const is_initial_visit_to_colony,
     RefColonyLandingTiles const& landing_tiles,
     e_ref_unit_sequence const sequence,
     int const n_units_requested ) {
-  e_player const colonial_player_type =
-      colonial_player_for( nation );
-  UNWRAP_CHECK_T( Player const& colonial_player,
-                  ss.players.players[colonial_player_type] );
-
   using enum e_unit_type;
-
   auto const& force =
       colonial_player.revolution.expeditionary_force;
   enum_map<e_unit_type, int> available;
@@ -875,8 +875,8 @@ maybe<RefLandingUnits> produce_REF_landing_units(
   e_ref_unit_sequence const unit_seq =
       select_ref_unit_sequence( ss.as_const, nation, *metrics );
   RefLandingPlan const landing_plan = allocate_landing_units(
-      ss.as_const, nation, initial_visit_to_colony,
-      landing_tiles, unit_seq, unit_count );
+      colonial_player, initial_visit_to_colony, landing_tiles,
+      unit_seq, unit_count );
   if( landing_plan.landing_units.empty() )
     // No more units to deploy.
     return nothing;
