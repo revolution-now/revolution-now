@@ -325,6 +325,9 @@ struct World {
     return default_player_type_;
   }
 
+  // NOTE: cannot set default nation, only default player.
+  e_nation default_nation() const;
+
   void set_default_player_type( e_player const player_type ) {
     default_player_type_ = player_type;
   }

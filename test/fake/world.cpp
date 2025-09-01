@@ -478,6 +478,10 @@ void World::add_all_non_ref_players(
     set_default_player_type( e_player::english );
 }
 
+e_nation World::default_nation() const {
+  return nation_for( default_player_type() );
+}
+
 void World::add_default_player() {
   add_player( default_player_type() );
 }
