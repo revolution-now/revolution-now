@@ -669,8 +669,6 @@ TEST_CASE( "[ref] ref_colony_selection_metrics (buggy spot)" ) {
             w.ss(), w.connectivity(), colony.id );
       };
 
-  using B = e_colony_barricade_type;
-
   Colony& colony = w.add_colony( { .x = 4, .y = 3 } );
 
   expected = {
