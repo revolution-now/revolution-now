@@ -122,8 +122,7 @@ RefLandingPlan allocate_landing_units(
     e_ref_unit_sequence sequence, int n_units_requested );
 
 [[nodiscard]] RefLandingUnits create_ref_landing_units(
-    SS& ss, e_nation nation, RefLandingPlan const& plan,
-    ColonyId colony_id );
+    SS& ss, e_nation nation, RefLandingPlan const& plan );
 
 } // namespace detail
 
@@ -133,14 +132,14 @@ RefLandingPlan allocate_landing_units(
 // This is the full routine that creates the deployed REF troops,
 // using the other functions in this module, which are exposed in
 // the API so that they can be tested.
-maybe<RefLandingUnits> produce_REF_landing_units(
+maybe<RefLanding> produce_REF_landing_units(
     SS& ss, TerrainConnectivity const& connectivity,
     e_nation nation );
 
-wait<> offboard_ref_units(
-    SS& ss, IMapUpdater& map_updater, ILandViewPlane& land_view,
-    IAgent& colonial_agent,
-    RefLandingUnits const& landing_units );
+wait<> offboard_ref_units( SS& ss, IMapUpdater& map_updater,
+                           ILandViewPlane& land_view,
+                           IAgent& colonial_agent,
+                           RefLanding const& landing );
 
 /****************************************************************
 ** REF Winning/Forfeight.

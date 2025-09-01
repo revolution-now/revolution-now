@@ -27,6 +27,7 @@
 #include "src/ss/ref.hpp"
 #include "src/ss/revolution.rds.hpp"
 #include "src/ss/settings.rds.hpp"
+#include "src/ss/units.hpp"
 
 // refl
 #include "src/refl/to-str.hpp"
@@ -2377,6 +2378,126 @@ TEST_CASE( "[ref] allocate_landing_units" ) {
 
 TEST_CASE( "[ref] create_ref_landing_units" ) {
   world w;
+  RefLandingPlan plan;
+  RefLandingUnits expected;
+
+  Player& player = w.default_player();
+  auto& force    = player.revolution.expeditionary_force;
+
+  w.add_player( ref_player_for( w.default_nation() ) );
+
+  auto const f = [&] [[clang::noinline]] {
+    return create_ref_landing_units( w.ss(), w.default_nation(),
+                                     plan );
+  };
+
+  force.regular   = 2;
+  force.cavalry   = 2;
+  force.artillery = 2;
+  force.man_o_war = 2;
+
+  SECTION( "ship only" ) {
+    plan = {
+      .ship_tile = { .tile           = { .x = 7, .y = 4 },
+                     .captured_units = { GenericUnitId{ 5 } } },
+
+      .landing_units = {} };
+    expected = {
+      .ship = { .unit_id      = UnitId{ 1 },
+                .landing_tile = { .tile = { .x = 7, .y = 4 },
+                                  .captured_units =
+                                      { GenericUnitId{ 5 } } } },
+
+      .landed_units = {} };
+    REQUIRE( f() == expected );
+    REQUIRE( force.regular == 2 );
+    REQUIRE( force.cavalry == 2 );
+    REQUIRE( force.artillery == 2 );
+    REQUIRE( force.man_o_war == 1 );
+
+    REQUIRE( w.units().all().size() == 1 );
+
+    REQUIRE( w.units().exists( UnitId{ 1 } ) );
+    REQUIRE( w.units().unit_for( UnitId{ 1 } ).type() ==
+             e_unit_type::man_o_war );
+    REQUIRE( as_const( w.units() ).ownership_of( UnitId{ 1 } ) ==
+             UnitOwnership::free{} );
+  }
+
+  SECTION( "multiple units" ) {
+    plan = {
+      .ship_tile     = { .tile           = { .x = 7, .y = 4 },
+                         .captured_units = { GenericUnitId{ 5 } } },
+      .landing_units = {
+        { e_unit_type::regular,
+          { .tile = { .x = 6, .y = 5 }, .captured_units = {} } },
+        { e_unit_type::cavalry,
+          { .tile           = { .x = 6, .y = 6 },
+            .captured_units = { GenericUnitId{ 7 } } } },
+        { e_unit_type::cavalry,
+          { .tile = { .x = 7, .y = 5 }, .captured_units = {} } },
+        { e_unit_type::artillery,
+          { .tile = { .x = 7, .y = 6 }, .captured_units = {} } },
+      } };
+    expected = {
+      .ship = { .unit_id      = UnitId{ 1 },
+                .landing_tile = { .tile = { .x = 7, .y = 4 },
+                                  .captured_units =
+                                      { GenericUnitId{ 5 } } } },
+
+      .landed_units = {
+        { .unit_id      = UnitId{ 2 },
+          .landing_tile = { .tile           = { .x = 6, .y = 5 },
+                            .captured_units = {} } },
+        { .unit_id      = UnitId{ 3 },
+          .landing_tile = { .tile           = { .x = 6, .y = 6 },
+                            .captured_units = { GenericUnitId{
+                              7 } } } },
+        { .unit_id      = UnitId{ 4 },
+          .landing_tile = { .tile           = { .x = 7, .y = 5 },
+                            .captured_units = {} } },
+        { .unit_id      = UnitId{ 5 },
+          .landing_tile = { .tile           = { .x = 7, .y = 6 },
+                            .captured_units = {} } },
+      } };
+    REQUIRE( f() == expected );
+    REQUIRE( force.regular == 1 );
+    REQUIRE( force.cavalry == 0 );
+    REQUIRE( force.artillery == 1 );
+    REQUIRE( force.man_o_war == 1 );
+
+    REQUIRE( w.units().all().size() == 5 );
+
+    REQUIRE( w.units().exists( UnitId{ 1 } ) );
+    REQUIRE( w.units().unit_for( UnitId{ 1 } ).type() ==
+             e_unit_type::man_o_war );
+    REQUIRE( as_const( w.units() ).ownership_of( UnitId{ 1 } ) ==
+             UnitOwnership::free{} );
+
+    REQUIRE( w.units().exists( UnitId{ 2 } ) );
+    REQUIRE( w.units().unit_for( UnitId{ 2 } ).type() ==
+             e_unit_type::regular );
+    REQUIRE( as_const( w.units() ).ownership_of( UnitId{ 2 } ) ==
+             UnitOwnership::cargo{ .holder = UnitId{ 1 } } );
+
+    REQUIRE( w.units().exists( UnitId{ 3 } ) );
+    REQUIRE( w.units().unit_for( UnitId{ 3 } ).type() ==
+             e_unit_type::cavalry );
+    REQUIRE( as_const( w.units() ).ownership_of( UnitId{ 3 } ) ==
+             UnitOwnership::cargo{ .holder = UnitId{ 1 } } );
+
+    REQUIRE( w.units().exists( UnitId{ 4 } ) );
+    REQUIRE( w.units().unit_for( UnitId{ 4 } ).type() ==
+             e_unit_type::cavalry );
+    REQUIRE( as_const( w.units() ).ownership_of( UnitId{ 4 } ) ==
+             UnitOwnership::cargo{ .holder = UnitId{ 1 } } );
+
+    REQUIRE( w.units().exists( UnitId{ 5 } ) );
+    REQUIRE( w.units().unit_for( UnitId{ 5 } ).type() ==
+             e_unit_type::artillery );
+    REQUIRE( as_const( w.units() ).ownership_of( UnitId{ 5 } ) ==
+             UnitOwnership::cargo{ .holder = UnitId{ 1 } } );
+  }
 }
 
 TEST_CASE( "[ref] produce_REF_landing_units" ) {

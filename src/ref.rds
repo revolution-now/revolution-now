@@ -86,9 +86,13 @@ struct.RefLandedUnit {
 }
 
 struct.RefLandingUnits {
-  colony_id 'ColonyId',
   ship 'RefLandedUnit',
   landed_units 'std::vector<RefLandedUnit>',
+}
+
+struct.RefLanding {
+  colony_id 'ColonyId',
+  units 'RefLandingUnits',
 }
 
 enum.e_forfeight_reason {

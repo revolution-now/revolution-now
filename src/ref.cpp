@@ -734,8 +734,7 @@ RefLandingPlan allocate_landing_units(
 }
 
 RefLandingUnits create_ref_landing_units(
-    SS& ss, e_nation const nation, RefLandingPlan const& plan,
-    ColonyId const colony_id ) {
+    SS& ss, e_nation const nation, RefLandingPlan const& plan ) {
   RefLandingUnits res;
   e_player const ref_player_type = ref_player_for( nation );
   e_player const colonist_player_type =
@@ -747,7 +746,6 @@ RefLandingUnits create_ref_landing_units(
   res.ship.unit_id      = create_free_unit( ss.units, ref_player,
                                             e_unit_type::man_o_war );
   res.ship.landing_tile = plan.ship_tile;
-  res.colony_id         = colony_id;
   auto const decrement_unit_type =
       [&]( e_unit_type const unit_type ) {
         auto const decrement = [&]( int& n ) {
@@ -795,7 +793,7 @@ RefLandingUnits create_ref_landing_units(
 // This is the full routine that creates the deployed REF troops,
 // using the other functions in this module, which are exposed in
 // the API so that they can be tested.
-maybe<RefLandingUnits> produce_REF_landing_units(
+maybe<RefLanding> produce_REF_landing_units(
     SS& ss, TerrainConnectivity const& connectivity,
     e_nation const nation ) {
   using namespace ::rn::detail;
@@ -884,14 +882,15 @@ maybe<RefLandingUnits> produce_REF_landing_units(
     case e_ref_manowar_availability::available_in_stock:
       break;
   }
-  return create_ref_landing_units( ss, nation, landing_plan,
-                                   metrics->colony_id );
+  return RefLanding{ .colony_id = colony.id,
+                     .units     = create_ref_landing_units(
+                         ss, nation, landing_plan ) };
 }
 
-wait<> offboard_ref_units(
-    SS& ss, IMapUpdater& map_updater, ILandViewPlane& land_view,
-    IAgent& colonial_agent,
-    RefLandingUnits const& landing_units ) {
+wait<> offboard_ref_units( SS& ss, IMapUpdater& map_updater,
+                           ILandViewPlane& land_view,
+                           IAgent& colonial_agent,
+                           RefLanding const& landing ) {
   auto const euro_unit_capture =
       [&]( Unit const& capturer,
            Unit const& captured ) -> wait<> {
@@ -943,21 +942,21 @@ wait<> offboard_ref_units(
   };
 
   Colony& mutable_colony =
-      ss.colonies.colony_for( landing_units.colony_id );
+      ss.colonies.colony_for( landing.colony_id );
   ++mutable_colony.ref_landings;
   Colony const& colony = mutable_colony;
 
   // Ship.
-  point const ship_tile = landing_units.ship.landing_tile.tile;
-  UnitOwnershipChanger( ss, landing_units.ship.unit_id )
+  point const ship_tile = landing.units.ship.landing_tile.tile;
+  UnitOwnershipChanger( ss, landing.units.ship.unit_id )
       .change_to_map_non_interactive( map_updater, ship_tile );
   Unit& ship_unit =
-      ss.units.unit_for( landing_units.ship.unit_id );
+      ss.units.unit_for( landing.units.ship.unit_id );
   ship_unit.clear_orders();
   ship_unit.forfeight_mv_points();
   co_await euro_unit_captures(
       ship_unit,
-      landing_units.ship.landing_tile.captured_units );
+      landing.units.ship.landing_tile.captured_units );
 
   // Message.
   co_await land_view.ensure_visible( ship_tile );
@@ -967,12 +966,12 @@ wait<> offboard_ref_units(
 
   // Cargo units.
   for( auto const& [unit_id, landing_tile] :
-       landing_units.landed_units ) {
+       landing.units.landed_units ) {
     UNWRAP_CHECK_T(
         e_direction const direction,
         ship_tile.direction_to( landing_tile.tile ) );
     AnimationSequence const seq = anim_seq_for_offboard_ref_unit(
-        ss.as_const, landing_units.ship.unit_id, unit_id,
+        ss.as_const, landing.units.ship.unit_id, unit_id,
         direction );
     // Need to use the "always" variant here because otherwise
     // this animation would be subject to the "show foreign
