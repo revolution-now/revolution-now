@@ -47,6 +47,7 @@
 #include "refl/to-str.hpp"
 
 // base
+#include "base/generator-combinators.hpp"
 #include "base/generator.hpp"
 #include "base/range-lite.hpp"
 
@@ -238,29 +239,6 @@ int colony_strength_metric( SSConst const& ss,
   }
 
   return metric;
-}
-
-template<typename Rng>
-auto yield_range( Rng const& rng ATTR_LIFETIMEBOUND )
-    -> generator<typename Rng::value_type> {
-  for( auto const& e : rng ) co_yield e;
-}
-
-template<typename Rng1, typename... Rngs>
-auto yield_ranges( Rng1 const& rng1 ATTR_LIFETIMEBOUND,
-                   Rngs const&... rngs ATTR_LIFETIMEBOUND )
-    -> generator<generator<typename Rng1::value_type>> {
-  co_yield yield_range( rng1 );
-  ( co_yield yield_range( rngs ), ... );
-}
-
-template<typename Rng1, typename... Rngs>
-auto range_concat( Rng1 const& rng1 ATTR_LIFETIMEBOUND,
-                   Rngs const&... rngs ATTR_LIFETIMEBOUND )
-    -> generator<typename Rng1::value_type> {
-  for( auto const& rng : yield_ranges( rng1, rngs... ) )
-    for( auto const e : rng ) //
-      co_yield e;
 }
 
 } // namespace
@@ -730,7 +708,7 @@ RefLandingPlan allocate_landing_units(
   }();
   CHECK( !kDeploySeq[sequence].empty() );
   auto const unit_seq = rl::all( kDeploySeq[sequence] ).cycle();
-  auto const unit_gen = range_concat( regulars, unit_seq );
+  auto const unit_gen = base::range_concat( regulars, unit_seq );
 
   // Should have already been checked above.
   CHECK( !landing_tiles.landings.empty() );
