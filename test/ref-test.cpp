@@ -15,10 +15,13 @@
 
 // Testing.
 #include "test/fake/world.hpp"
+#include "test/mocking.hpp"
 #include "test/mocks/iagent.hpp"
+#include "test/mocks/igui.hpp"
 #include "test/util/coro.hpp"
 
 // Revolution Now
+#include "src/ref.rds.hpp"
 #include "src/unit-ownership.hpp"
 #include "src/visibility.hpp"
 
@@ -42,6 +45,9 @@ namespace {
 using namespace std;
 using namespace ::rn::signal;
 using namespace ::rn::detail;
+
+using ::mock::matchers::_;
+using ::mock::matchers::StrContains;
 
 /****************************************************************
 ** Fake World Setup
@@ -2577,18 +2583,230 @@ TEST_CASE( "[ref] ref_should_forfeight" ) {
 
 TEST_CASE( "[ref] do_ref_forfeight" ) {
   world w;
+  w.create_default_map();
+  Player& colonial_player = w.default_player();
+  Player& ref_player =
+      w.add_player( ref_player_for( w.default_nation() ) );
+
+  auto const f = [&] [[clang::noinline]] {
+    do_ref_forfeight( w.ss(), ref_player );
+  };
+
+  ref_player.control = e_player_control::ai;
+  colonial_player.revolution.status =
+      e_revolution_status::declared;
+
+  using enum e_unit_type;
+  {
+    w.add_unit_on_map( free_colonist, { .x = 1, .y = 0 } );
+    w.add_unit_on_map( soldier, { .x = 1, .y = 0 } );
+    UnitId const ship_id =
+        w.add_unit_on_map( man_o_war, { .x = 0, .y = 0 } ).id();
+    w.add_unit_in_cargo( dragoon, ship_id );
+  }
+  {
+    e_player const type = ref_player.type;
+    w.add_unit_on_map( free_colonist, { .x = 1, .y = 0 }, type );
+    w.add_unit_on_map( soldier, { .x = 1, .y = 0 }, type );
+    UnitId const ship_id =
+        w.add_unit_on_map( man_o_war, { .x = 0, .y = 0 }, type )
+            .id();
+    w.add_unit_in_cargo( dragoon, ship_id );
+  }
+
+  REQUIRE( ref_player.control == e_player_control::ai );
+  REQUIRE( colonial_player.revolution.status ==
+           e_revolution_status::declared );
+  REQUIRE( w.units().all().size() == 8 );
+  REQUIRE( w.units().exists( UnitId{ 1 } ) );
+  REQUIRE( w.units().exists( UnitId{ 2 } ) );
+  REQUIRE( w.units().exists( UnitId{ 3 } ) );
+  REQUIRE( w.units().exists( UnitId{ 4 } ) );
+  REQUIRE( w.units().exists( UnitId{ 5 } ) );
+  REQUIRE( w.units().exists( UnitId{ 6 } ) );
+  REQUIRE( w.units().exists( UnitId{ 7 } ) );
+  REQUIRE( w.units().exists( UnitId{ 8 } ) );
+
+  f();
+
+  REQUIRE( ref_player.control == e_player_control::inactive );
+  REQUIRE( colonial_player.revolution.status ==
+           e_revolution_status::won );
+  REQUIRE( w.units().all().size() == 4 );
+  REQUIRE( w.units().exists( UnitId{ 1 } ) );
+  REQUIRE( w.units().exists( UnitId{ 2 } ) );
+  REQUIRE( w.units().exists( UnitId{ 3 } ) );
+  REQUIRE( w.units().exists( UnitId{ 4 } ) );
+  REQUIRE( !w.units().exists( UnitId{ 5 } ) );
+  REQUIRE( !w.units().exists( UnitId{ 6 } ) );
+  REQUIRE( !w.units().exists( UnitId{ 7 } ) );
+  REQUIRE( !w.units().exists( UnitId{ 8 } ) );
 }
 
 TEST_CASE( "[ref] ref_forfeight_ui_routine" ) {
   world w;
+
+  Player& ref_player =
+      w.add_player( ref_player_for( w.default_nation() ) );
+
+  auto const f = [&] [[clang::noinline]] {
+    co_await_test( ref_forfeight_ui_routine( w.ss(), w.gui(),
+                                             ref_player ) );
+  };
+
+  w.gui().EXPECT__message_box(
+      StrContains( "The REF has forfeighted" ) );
+  w.gui().EXPECT__message_box( _ );
+
+  f();
 }
 
 TEST_CASE( "[ref] percent_ref_owned_population" ) {
   world w;
+  w.create_default_map();
+  Player& ref_player =
+      w.add_player( ref_player_for( w.default_nation() ) );
+
+  w.add_player( e_player::english );
+
+  auto const f = [&] [[clang::noinline]] {
+    return percent_ref_owned_population( w.ss(), ref_player );
+  };
+
+  // Default.
+  REQUIRE( f() == 100 );
+
+  ColonyId const english_colony_id =
+      w.add_colony( { .x = 1, .y = 0 }, e_player::english ).id;
+  ColonyId const french_colony_id =
+      w.add_colony( { .x = 3, .y = 0 }, e_player::french ).id;
+  ColonyId const ref_french_colony_id =
+      w.add_colony( { .x = 5, .y = 0 }, e_player::ref_french )
+          .id;
+
+  w.add_unit_indoors( english_colony_id, e_indoor_job::bells );
+  w.add_unit_indoors( english_colony_id, e_indoor_job::bells );
+  w.add_unit_indoors( french_colony_id, e_indoor_job::bells );
+  w.add_unit_indoors( french_colony_id, e_indoor_job::bells );
+  w.add_unit_indoors( ref_french_colony_id,
+                      e_indoor_job::bells );
+  w.add_unit_indoors( ref_french_colony_id,
+                      e_indoor_job::bells );
+
+  w.add_unit_on_map( e_unit_type::free_colonist,
+                     { .x = 1, .y = 0 }, e_player::english );
+  w.add_unit_on_map( e_unit_type::soldier, { .x = 1, .y = 0 },
+                     e_player::english );
+  w.add_unit_on_map( e_unit_type::free_colonist,
+                     { .x = 3, .y = 0 }, e_player::french );
+  w.add_unit_on_map( e_unit_type::soldier, { .x = 3, .y = 0 },
+                     e_player::french );
+  w.add_unit_on_map( e_unit_type::free_colonist,
+                     { .x = 5, .y = 0 }, e_player::ref_french );
+  w.add_unit_on_map( e_unit_type::soldier, { .x = 5, .y = 0 },
+                     e_player::ref_french );
+
+  REQUIRE( f() == 50 );
+
+  w.add_unit_indoors( english_colony_id, e_indoor_job::bells );
+  REQUIRE( f() == 50 );
+
+  w.add_unit_indoors( french_colony_id, e_indoor_job::bells );
+  REQUIRE( f() == 40 );
 }
 
 TEST_CASE( "[ref] ref_should_win" ) {
   world w;
+  w.create_default_map();
+  w.update_terrain_connectivity();
+  Player& ref_player =
+      w.add_player( ref_player_for( w.default_nation() ) );
+
+  w.add_player( e_player::english );
+
+  auto const f = [&] [[clang::noinline]] {
+    return ref_should_win( w.ss(), w.connectivity(),
+                           ref_player );
+  };
+
+  using enum e_ref_win_reason;
+  using enum e_indoor_job;
+
+  // Default.
+  REQUIRE( f() == port_colonies_captured );
+
+  ColonyId const english_colony_id =
+      w.add_colony( { .x = 6, .y = 0 }, e_player::english ).id;
+  w.add_unit_indoors( english_colony_id, bells );
+  w.add_unit_indoors( english_colony_id, bells );
+  REQUIRE( f() == port_colonies_captured );
+
+  ColonyId const ref_french_colony_id =
+      w.add_colony( { .x = 5, .y = 2 }, e_player::ref_french )
+          .id;
+  w.add_unit_indoors( ref_french_colony_id, bells );
+  w.add_unit_indoors( ref_french_colony_id, bells );
+  REQUIRE( f() == port_colonies_captured );
+
+  ColonyId const ref_french_colony_id_2 =
+      w.add_colony( { .x = 3, .y = 4 }, e_player::ref_french )
+          .id;
+  REQUIRE( f() == port_colonies_captured );
+
+  ColonyId const french_colony_id =
+      w.add_colony( { .x = 3, .y = 0 }, e_player::french ).id;
+  w.add_unit_indoors( french_colony_id, bells );
+  w.add_unit_indoors( french_colony_id, bells );
+  REQUIRE( f() == port_colonies_captured );
+
+  ColonyId const french_colony_id_2 =
+      w.add_colony( { .x = 5, .y = 4 }, e_player::french ).id;
+  w.add_unit_indoors( french_colony_id_2, bells );
+  REQUIRE( f() == nothing );
+
+  w.add_unit_on_map( e_unit_type::free_colonist,
+                     { .x = 1, .y = 0 }, e_player::english );
+  w.add_unit_on_map( e_unit_type::soldier, { .x = 1, .y = 0 },
+                     e_player::english );
+  w.add_unit_on_map( e_unit_type::free_colonist,
+                     { .x = 3, .y = 0 }, e_player::french );
+  w.add_unit_on_map( e_unit_type::soldier, { .x = 3, .y = 0 },
+                     e_player::french );
+  w.add_unit_on_map( e_unit_type::free_colonist,
+                     { .x = 5, .y = 0 }, e_player::ref_french );
+  w.add_unit_on_map( e_unit_type::soldier, { .x = 5, .y = 0 },
+                     e_player::ref_french );
+
+  REQUIRE( f() == nothing );
+
+  w.add_unit_indoors( ref_french_colony_id, bells );
+  w.add_unit_indoors( ref_french_colony_id, cloth );
+  w.add_unit_indoors( ref_french_colony_id, cloth );
+  w.add_unit_indoors( ref_french_colony_id, cloth );
+  w.add_unit_indoors( ref_french_colony_id, cigars );
+  w.add_unit_indoors( ref_french_colony_id, cigars );
+  w.add_unit_indoors( ref_french_colony_id, cigars );
+  w.add_unit_indoors( ref_french_colony_id, tools );
+  w.add_unit_indoors( ref_french_colony_id, tools );
+  w.add_unit_indoors( ref_french_colony_id, tools );
+  w.add_unit_indoors( ref_french_colony_id, muskets );
+  w.add_unit_indoors( ref_french_colony_id, muskets );
+  w.add_unit_indoors( ref_french_colony_id, muskets );
+  w.add_unit_indoors( ref_french_colony_id_2, bells );
+  w.add_unit_indoors( ref_french_colony_id_2, bells );
+  w.add_unit_indoors( ref_french_colony_id_2, bells );
+  w.add_unit_indoors( ref_french_colony_id_2, cloth );
+  w.add_unit_indoors( ref_french_colony_id_2, cloth );
+  w.add_unit_indoors( ref_french_colony_id_2, cloth );
+  w.add_unit_indoors( ref_french_colony_id_2, cigars );
+  w.add_unit_indoors( ref_french_colony_id_2, cigars );
+  w.add_unit_indoors( ref_french_colony_id_2, cigars );
+  w.add_unit_indoors( ref_french_colony_id_2, tools );
+  w.add_unit_indoors( ref_french_colony_id_2, tools );
+  REQUIRE( f() == nothing );
+
+  w.add_unit_indoors( ref_french_colony_id_2, tools );
+  REQUIRE( f() == ref_controls_90_percent_population );
 }
 
 TEST_CASE( "[ref] do_ref_win" ) {

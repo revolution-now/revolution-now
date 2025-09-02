@@ -1071,10 +1071,7 @@ void do_ref_forfeight( SS& ss, Player& ref_player ) {
   ref_player.control                = e_player_control::inactive;
   colonial_player.revolution.status = e_revolution_status::won;
 
-  // Destroy all remaining REF units on the map. Under default NG
-  // rules, this would be expected to consist only of empty REF
-  // Man-o-Wars. However, there could be some land units as well
-  // if the regulars_determine_forfeight config flag is set.
+  // Destroy all remaining REF units on the map.
   vector<UnitId> ref_units;
   for( auto const& [unit_id, p_state] : ss.units.euro_all() ) {
     Unit const& unit = p_state->unit;
@@ -1100,10 +1097,13 @@ int percent_ref_owned_population( SSConst const& ss,
       total_colonies_population( ss, ref_player.type );
   int const total_colonial_population =
       total_colonies_population( ss, colonial_player_type );
-  // If this were zero then the player would have zero colonies
-  // which means zero coastal colonies and show we should have
-  // caught it above.
-  CHECK_GT( total_colonial_population, 0 );
+  // The total colony count of the player should not be zero at
+  // this point because otherwise the REF would have won. But
+  // we'll be defensive and allow it. We'll return 100 because
+  // that will cause the player lose which is correct because if
+  // the player has no colonies then that is equivalent to the
+  // REF owning all of them for the purposes of the war outcome.
+  if( total_colonial_population == 0 ) return 100;
   double const ref_owned_percent =
       double( total_ref_population ) /
       ( total_ref_population + total_colonial_population );
