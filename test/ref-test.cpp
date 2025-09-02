@@ -27,6 +27,7 @@
 
 // ss
 #include "src/ss/nation.hpp"
+#include "src/ss/old-world-state.rds.hpp"
 #include "src/ss/player.rds.hpp"
 #include "src/ss/ref.hpp"
 #include "src/ss/revolution.rds.hpp"
@@ -2811,14 +2812,161 @@ TEST_CASE( "[ref] ref_should_win" ) {
 
 TEST_CASE( "[ref] do_ref_win" ) {
   world w;
+
+  Player& colonial_player = w.default_player();
+  Player& ref_player =
+      w.add_player( ref_player_for( w.default_nation() ) );
+
+  auto const f = [&] [[clang::noinline]] {
+    return do_ref_win( w.ss(), ref_player );
+  };
+
+  using enum e_revolution_status;
+
+  colonial_player.revolution.status = not_declared;
+  f();
+  REQUIRE( colonial_player.revolution.status == lost );
+
+  colonial_player.revolution.status = declared;
+  f();
+  REQUIRE( colonial_player.revolution.status == lost );
 }
 
 TEST_CASE( "[ref] ref_win_ui_routine" ) {
   world w;
+
+  Player& ref_player =
+      w.add_player( ref_player_for( w.default_nation() ) );
+
+  e_ref_win_reason reason = {};
+
+  auto const f = [&] [[clang::noinline]] {
+    co_await_test( ref_win_ui_routine( w.ss().as_const, w.gui(),
+                                       ref_player, reason ) );
+  };
+
+  w.gui().EXPECT__message_box( "The REF has won." );
+  w.gui().EXPECT__message_box( _ );
+  f();
 }
 
 TEST_CASE( "[ref] move_ref_harbor_ships_to_stock" ) {
   world w;
+  w.create_default_map();
+
+  Player& colonial_player = w.default_player();
+  auto& force = colonial_player.revolution.expeditionary_force;
+  Player& ref_player =
+      w.add_player( ref_player_for( w.default_nation() ) );
+
+  auto const f = [&] [[clang::noinline]] {
+    return move_ref_harbor_ships_to_stock( w.ss(), ref_player );
+  };
+
+  using enum e_unit_type;
+
+  // Default.
+  REQUIRE( f() == 0 );
+
+  // With some units.
+  force.regular   = 8;
+  force.cavalry   = 9;
+  force.artillery = 10;
+  force.man_o_war = 11;
+
+  UnitId const unit_id_1 =
+      w.add_unit_in_port( free_colonist, ref_player.type ).id();
+  UnitId const unit_id_2 =
+      w.add_unit_in_port( man_o_war, ref_player.type ).id();
+  UnitId const unit_id_3 =
+      w.add_unit_in_port( soldier, ref_player.type ).id();
+  UnitId const unit_id_4 =
+      w.add_unit_in_port( man_o_war, ref_player.type ).id();
+  UnitId const unit_id_5 =
+      w.add_unit_in_port( artillery, ref_player.type ).id();
+  UnitId const unit_id_6 =
+      w.add_unit_in_port( man_o_war, ref_player.type ).id();
+  UnitId const unit_id_7 =
+      w.add_unit_on_map( man_o_war, { .x = 0, .y = 0 },
+                         ref_player.type )
+          .id();
+  UnitId const unit_id_8 =
+      w.add_unit_on_map( regular, { .x = 1, .y = 0 },
+                         ref_player.type )
+          .id();
+
+  UnitId const unit_id_9 =
+      w.add_unit_in_port( free_colonist, colonial_player.type )
+          .id();
+  UnitId const unit_id_10 =
+      w.add_unit_in_port( man_o_war, colonial_player.type ).id();
+  UnitId const unit_id_11 =
+      w.add_unit_in_port( soldier, colonial_player.type ).id();
+  UnitId const unit_id_12 =
+      w.add_unit_in_port( man_o_war, colonial_player.type ).id();
+  UnitId const unit_id_13 =
+      w.add_unit_in_port( artillery, colonial_player.type ).id();
+  UnitId const unit_id_14 =
+      w.add_unit_in_port( man_o_war, colonial_player.type ).id();
+  UnitId const unit_id_15 =
+      w.add_unit_on_map( man_o_war, { .x = 0, .y = 0 },
+                         colonial_player.type )
+          .id();
+  UnitId const unit_id_16 =
+      w.add_unit_on_map( regular, { .x = 1, .y = 0 },
+                         colonial_player.type )
+          .id();
+
+  w.old_world( ref_player.type ).harbor_state.selected_unit =
+      unit_id_4;
+
+  REQUIRE( w.units().exists( unit_id_1 ) );
+  REQUIRE( w.units().exists( unit_id_2 ) );
+  REQUIRE( w.units().exists( unit_id_3 ) );
+  REQUIRE( w.units().exists( unit_id_4 ) );
+  REQUIRE( w.units().exists( unit_id_5 ) );
+  REQUIRE( w.units().exists( unit_id_6 ) );
+  REQUIRE( w.units().exists( unit_id_7 ) );
+  REQUIRE( w.units().exists( unit_id_8 ) );
+  REQUIRE( w.units().exists( unit_id_9 ) );
+  REQUIRE( w.units().exists( unit_id_10 ) );
+  REQUIRE( w.units().exists( unit_id_11 ) );
+  REQUIRE( w.units().exists( unit_id_12 ) );
+  REQUIRE( w.units().exists( unit_id_13 ) );
+  REQUIRE( w.units().exists( unit_id_14 ) );
+  REQUIRE( w.units().exists( unit_id_15 ) );
+  REQUIRE( w.units().exists( unit_id_16 ) );
+  REQUIRE( force.regular == 8 );
+  REQUIRE( force.cavalry == 9 );
+  REQUIRE( force.artillery == 10 );
+  REQUIRE( force.man_o_war == 11 );
+  REQUIRE( w.old_world( ref_player.type )
+               .harbor_state.selected_unit == unit_id_4 );
+
+  REQUIRE( f() == 3 );
+
+  REQUIRE( w.units().exists( unit_id_1 ) );
+  REQUIRE( !w.units().exists( unit_id_2 ) );
+  REQUIRE( w.units().exists( unit_id_3 ) );
+  REQUIRE( !w.units().exists( unit_id_4 ) );
+  REQUIRE( w.units().exists( unit_id_5 ) );
+  REQUIRE( !w.units().exists( unit_id_6 ) );
+  REQUIRE( w.units().exists( unit_id_7 ) );
+  REQUIRE( w.units().exists( unit_id_8 ) );
+  REQUIRE( w.units().exists( unit_id_9 ) );
+  REQUIRE( w.units().exists( unit_id_10 ) );
+  REQUIRE( w.units().exists( unit_id_11 ) );
+  REQUIRE( w.units().exists( unit_id_12 ) );
+  REQUIRE( w.units().exists( unit_id_13 ) );
+  REQUIRE( w.units().exists( unit_id_14 ) );
+  REQUIRE( w.units().exists( unit_id_15 ) );
+  REQUIRE( w.units().exists( unit_id_16 ) );
+  REQUIRE( force.regular == 8 );
+  REQUIRE( force.cavalry == 9 );
+  REQUIRE( force.artillery == 10 );
+  REQUIRE( force.man_o_war == 14 );
+  REQUIRE( w.old_world( ref_player.type )
+               .harbor_state.selected_unit == nothing );
 }
 
 } // namespace
