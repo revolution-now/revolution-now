@@ -2503,6 +2503,14 @@ TEST_CASE( "[ref] create_ref_landing_units" ) {
 
 TEST_CASE( "[ref] produce_REF_landing_units" ) {
   world w;
+}
+
+TEST_CASE( "[ref] offboard_ref_units" ) {
+  world w;
+}
+
+TEST_CASE( "[ref] ref_should_forfeight" ) {
+  world w;
   w.create_default_map();
 
   Player& colonial_player = w.default_player();
@@ -2565,14 +2573,6 @@ TEST_CASE( "[ref] produce_REF_landing_units" ) {
 
   w.add_colony( { .x = 1, .y = 0 }, ref_player.type );
   REQUIRE( f() == nothing );
-}
-
-TEST_CASE( "[ref] offboard_ref_units" ) {
-  world w;
-}
-
-TEST_CASE( "[ref] ref_should_forfeight" ) {
-  world w;
 }
 
 TEST_CASE( "[ref] do_ref_forfeight" ) {
