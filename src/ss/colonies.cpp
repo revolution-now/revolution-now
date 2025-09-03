@@ -148,14 +148,14 @@ unordered_map<ColonyId, Colony> const& ColoniesState::all()
 
 Colony const& ColoniesState::colony_for( ColonyId id ) const {
   UNWRAP_CHECK_MSG( col, base::lookup( o_.colonies, id ),
-                    "colony {} does not exist.", id );
+                    "colony {} does not exist", id );
   CHECK( !col.frozen.has_value() );
   return col;
 }
 
 Colony& ColoniesState::colony_for( ColonyId id ) {
   UNWRAP_CHECK_MSG( col, base::lookup( o_.colonies, id ),
-                    "colony {} does not exist.", id );
+                    "colony {} does not exist", id );
   CHECK( !col.frozen.has_value() );
   return col;
 }
