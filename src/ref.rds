@@ -75,9 +75,22 @@ enum.e_ref_manowar_availability {
   available_in_stock,
 }
 
+enum.e_ref_land_type {
+  regular,
+  cavalry,
+  artillery,
+}
+
 struct.RefLandingPlan {
   ship_tile 'RefLandingTile',
-  landing_units 'std::vector<std::pair<e_unit_type, RefLandingTile>>',
+  landing_units [[
+    std::vector<
+      std::pair<
+        e_ref_land_type,
+        RefLandingTile
+      >
+    >
+  ]],
 }
 
 struct.RefLandedUnit {

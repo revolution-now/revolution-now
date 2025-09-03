@@ -1365,7 +1365,7 @@ TEST_CASE( "[ref] allocate_landing_units" ) {
   auto& artillery = force.artillery;
 
   using enum e_ref_unit_sequence;
-  using U = e_unit_type;
+  using U = e_ref_land_type;
 
   RefColonyLandingTiles landing_tiles;
   int n_units_requested        = 0;
@@ -2593,14 +2593,14 @@ TEST_CASE( "[ref] create_ref_landing_units" ) {
       .ship_tile     = { .tile           = { .x = 7, .y = 4 },
                          .captured_units = { GenericUnitId{ 5 } } },
       .landing_units = {
-        { e_unit_type::regular,
+        { e_ref_land_type::regular,
           { .tile = { .x = 6, .y = 5 }, .captured_units = {} } },
-        { e_unit_type::cavalry,
+        { e_ref_land_type::cavalry,
           { .tile           = { .x = 6, .y = 6 },
             .captured_units = { GenericUnitId{ 7 } } } },
-        { e_unit_type::cavalry,
+        { e_ref_land_type::cavalry,
           { .tile = { .x = 7, .y = 5 }, .captured_units = {} } },
-        { e_unit_type::artillery,
+        { e_ref_land_type::artillery,
           { .tile = { .x = 7, .y = 6 }, .captured_units = {} } },
       } };
     expected = {

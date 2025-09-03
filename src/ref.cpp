@@ -74,28 +74,39 @@ using ::refl::enum_values;
 
 // These sequences are what the OG appears to use.
 enum_map<e_ref_unit_sequence,
-         array<e_unit_type, 6>> const kDeploySeq{
+         array<e_ref_land_type, 6>> const kDeploySeq{
   // NOTE: each sequence must have at least one entry for each
   // type of REF land unit.
   { e_ref_unit_sequence::weak,
     {
-      e_unit_type::cavalry,   //
-      e_unit_type::artillery, //
-      e_unit_type::regular,   //
-      e_unit_type::regular,   //
-      e_unit_type::regular,   //
-      e_unit_type::regular,   //
+      e_ref_land_type::cavalry,   //
+      e_ref_land_type::artillery, //
+      e_ref_land_type::regular,   //
+      e_ref_land_type::regular,   //
+      e_ref_land_type::regular,   //
+      e_ref_land_type::regular,   //
     } },
   { e_ref_unit_sequence::strong,
     {
-      e_unit_type::cavalry,   //
-      e_unit_type::cavalry,   //
-      e_unit_type::artillery, //
-      e_unit_type::artillery, //
-      e_unit_type::regular,   //
-      e_unit_type::regular    //
+      e_ref_land_type::cavalry,   //
+      e_ref_land_type::cavalry,   //
+      e_ref_land_type::artillery, //
+      e_ref_land_type::artillery, //
+      e_ref_land_type::regular,   //
+      e_ref_land_type::regular    //
     } },
 };
+
+e_unit_type from_ref_land_type( e_ref_land_type const type ) {
+  switch( type ) {
+    case e_ref_land_type::artillery:
+      return e_unit_type::artillery;
+    case e_ref_land_type::cavalry:
+      return e_unit_type::cavalry;
+    case e_ref_land_type::regular:
+      return e_unit_type::regular;
+  }
+}
 
 // NOTE: see the ref-deploy.lua script for how these numbers were
 // verified and then see the ref-selection auto-measure module
@@ -655,10 +666,10 @@ RefLandingPlan allocate_landing_units(
     RefColonyLandingTiles const& landing_tiles,
     e_ref_unit_sequence const sequence,
     int const n_units_requested ) {
-  using enum e_unit_type;
+  using enum e_ref_land_type;
   auto const& force =
       colonial_player.revolution.expeditionary_force;
-  enum_map<e_unit_type, int> available;
+  enum_map<e_ref_land_type, int> available;
   // The OG appears to cap the number of cavalry and artillery
   // per deployment to a max of two each, even if it runs out of
   // regulars and needs more units.
@@ -680,11 +691,11 @@ RefLandingPlan allocate_landing_units(
   // ular (assuming there are enough) and then, once that is com-
   // plete, any further units on either this turn or subsequent
   // ones will follow the predetermined sequences.
-  vector<e_unit_type> const regulars = [&] {
+  vector<e_ref_land_type> const regulars = [&] {
     int const n_tiles = landing_tiles.landings.size();
-    vector<e_unit_type> res(
+    vector<e_ref_land_type> res(
         std::min( n_tiles, available[regular] ),
-        e_unit_type::regular );
+        e_ref_land_type::regular );
     if( !is_initial_visit_to_colony ) res.clear();
     return res;
   }();
@@ -703,7 +714,7 @@ RefLandingPlan allocate_landing_units(
   auto next_tile_it = tile_seq.begin();
   while( n_units_available() > 0 &&
          ssize( res.landing_units ) < n_units_requested ) {
-    e_unit_type const type = *next_unit_it;
+    e_ref_land_type const type = *next_unit_it;
     ++next_unit_it;
     if( available[type] <= 0 ) continue;
     --available[type];
@@ -728,38 +739,31 @@ RefLandingUnits create_ref_landing_units(
   res.ship.unit_id      = create_free_unit( ss.units, ref_player,
                                             e_unit_type::man_o_war );
   res.ship.landing_tile = plan.ship_tile;
+  auto& force = colonial_player.revolution.expeditionary_force;
+  auto const dec_and_check = [&]( int& n ) {
+    --n;
+    CHECK_GE( n, 0 );
+  };
   auto const decrement_unit_type =
-      [&]( e_unit_type const unit_type ) {
-        auto const decrement = [&]( int& n ) {
-          --n;
-          CHECK_GE( n, 0 );
-        };
-        auto& force =
-            colonial_player.revolution.expeditionary_force;
-        using enum e_unit_type;
+      [&]( e_ref_land_type const unit_type ) {
+        using enum e_ref_land_type;
         switch( unit_type ) {
           case regular:
-            decrement( force.regular );
+            dec_and_check( force.regular );
             break;
           case cavalry:
-            decrement( force.cavalry );
+            dec_and_check( force.cavalry );
             break;
           case artillery:
-            decrement( force.artillery );
+            dec_and_check( force.artillery );
             break;
-          case man_o_war:
-            decrement( force.man_o_war );
-            break;
-          default:
-            FATAL( "unit type {} not supported for REF force.",
-                   unit_type );
         }
       };
-  decrement_unit_type( e_unit_type::man_o_war );
+  dec_and_check( force.man_o_war );
   for( auto const& [unit_type, landing_tile] :
        plan.landing_units ) {
-    UnitId const held_id =
-        create_free_unit( ss.units, ref_player, unit_type );
+    UnitId const held_id = create_free_unit(
+        ss.units, ref_player, from_ref_land_type( unit_type ) );
     decrement_unit_type( unit_type );
     UnitOwnershipChanger( ss, held_id )
         .change_to_cargo( res.ship.unit_id,
