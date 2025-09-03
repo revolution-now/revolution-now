@@ -930,6 +930,7 @@ wait<> offboard_ref_units( SS& ss, IMapUpdater& map_updater,
 
   // Ship.
   point const ship_tile = landing.units.ship.landing_tile.tile;
+  co_await land_view.ensure_visible( ship_tile );
   UnitOwnershipChanger( ss, landing.units.ship.unit_id )
       .change_to_map_non_interactive( map_updater, ship_tile );
   Unit& ship_unit =
@@ -941,7 +942,6 @@ wait<> offboard_ref_units( SS& ss, IMapUpdater& map_updater,
       landing.units.ship.landing_tile.captured_units );
 
   // Message.
-  co_await land_view.ensure_visible( ship_tile );
   co_await colonial_agent.message_box(
       "Royal Expeditionary Force lands near [{}]!",
       colony.name );

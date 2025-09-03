@@ -18,9 +18,11 @@
 #include "test/mocking.hpp"
 #include "test/mocks/iagent.hpp"
 #include "test/mocks/igui.hpp"
+#include "test/mocks/land-view-plane.hpp"
 #include "test/util/coro.hpp"
 
 // Revolution Now
+#include "src/plane-stack.hpp"
 #include "src/ref.rds.hpp"
 #include "src/unit-ownership.hpp"
 #include "src/visibility.hpp"
@@ -47,6 +49,7 @@ using namespace std;
 using namespace ::rn::signal;
 using namespace ::rn::detail;
 
+using ::gfx::point;
 using ::mock::matchers::_;
 using ::mock::matchers::StrContains;
 
@@ -2667,6 +2670,191 @@ TEST_CASE( "[ref] produce_REF_landing_units" ) {
 
 TEST_CASE( "[ref] offboard_ref_units" ) {
   world w;
+  w.create_default_map();
+
+  MockIAgent& agent = w.agent();
+  MockLandViewPlane mock_land_view;
+  w.planes().get().set_bottom<ILandViewPlane>( mock_land_view );
+
+  Player const& colonial_player = w.default_player();
+  Player const& ref_player =
+      w.add_player( ref_player_for( w.default_nation() ) );
+
+  Colony& colony = w.add_colony( { .x = 4, .y = 3 } );
+  UnitId const man_o_war_id =
+      w.add_free_unit( e_unit_type::man_o_war, ref_player.type )
+          .id();
+  UnitId const regular_id_1 =
+      w.add_unit_in_cargo( e_unit_type::regular, man_o_war_id )
+          .id();
+  UnitId const regular_id_2 =
+      w.add_unit_in_cargo( e_unit_type::regular, man_o_war_id )
+          .id();
+  UnitId const cavalry_id_1 =
+      w.add_unit_in_cargo( e_unit_type::cavalry, man_o_war_id )
+          .id();
+  UnitId const captured_ship_id =
+      w.add_free_unit( e_unit_type::caravel,
+                       colonial_player.type )
+          .id();
+  UnitId const captured_unit_id_1 =
+      w.add_unit_on_map( e_unit_type::soldier,
+                         { .x = 4, .y = 2 },
+                         colonial_player.type )
+          .id();
+  UnitId const captured_unit_id_2 =
+      w.add_unit_on_map( e_unit_type::dragoon,
+                         { .x = 4, .y = 2 },
+                         colonial_player.type )
+          .id();
+  Unit const& man_o_war = w.units().unit_for( man_o_war_id );
+
+  NativeUnitId const captured_native_unit_id =
+      w.add_native_unit_on_map(
+           e_native_unit_type::brave, { .x = 5, .y = 2 },
+           w.add_dwelling( { .x = 4, .y = 3 }, e_tribe::apache )
+               .id )
+          .id;
+
+  RefLanding landing;
+
+  auto const f = [&] [[clang::noinline]] {
+    co_await_test( offboard_ref_units( w.ss(), w.map_updater(),
+                                       mock_land_view, agent,
+                                       landing ) );
+  };
+
+  // Default.
+  landing.colony_id = colony.id;
+  landing.units     = {
+        .ship = { .unit_id = man_o_war_id,
+                  .landing_tile =
+                      { .tile           = { .x = 5, .y = 3 },
+                        .captured_units = { captured_ship_id } } },
+        .landed_units =
+        {
+          {
+                .unit_id = regular_id_1,
+                .landing_tile =
+                RefLandingTile{
+                      .tile           = { .x = 4, .y = 2 },
+                      .captured_units = { captured_unit_id_1,
+                                          captured_unit_id_2 },
+                },
+          },
+          {
+                .unit_id = regular_id_2,
+                .landing_tile =
+                RefLandingTile{
+                      .tile           = { .x = 5, .y = 2 },
+                      .captured_units = { captured_native_unit_id },
+                },
+          },
+          {
+                .unit_id = cavalry_id_1,
+                .landing_tile =
+                RefLandingTile{
+                      .tile           = { .x = 4, .y = 2 },
+                      .captured_units = { captured_unit_id_1,
+                                          captured_unit_id_2 },
+                },
+          },
+        },
+  };
+
+  // Pre-test.
+  REQUIRE( colony.ref_landings == 0 );
+  REQUIRE( as_const( w.units() )
+               .ownership_of( man_o_war_id )
+               .holds<UnitOwnership::free>() );
+  REQUIRE( as_const( w.units() ).ownership_of( regular_id_1 ) ==
+           UnitOwnership::cargo{ .holder = man_o_war_id } );
+  REQUIRE( as_const( w.units() ).ownership_of( regular_id_2 ) ==
+           UnitOwnership::cargo{ .holder = man_o_war_id } );
+  REQUIRE( as_const( w.units() ).ownership_of( cavalry_id_1 ) ==
+           UnitOwnership::cargo{ .holder = man_o_war_id } );
+  REQUIRE( man_o_war.orders().holds<unit_orders::none>() );
+  REQUIRE( man_o_war.has_full_mv_points() );
+  REQUIRE( w.units().exists( captured_ship_id ) );
+  REQUIRE( w.units()
+               .unit_for( regular_id_1 )
+               .orders()
+               .holds<unit_orders::sentry>() );
+  REQUIRE( w.units()
+               .unit_for( regular_id_2 )
+               .orders()
+               .holds<unit_orders::sentry>() );
+  REQUIRE( w.units()
+               .unit_for( cavalry_id_1 )
+               .orders()
+               .holds<unit_orders::sentry>() );
+  REQUIRE(
+      w.units().unit_for( regular_id_1 ).has_full_mv_points() );
+  REQUIRE(
+      w.units().unit_for( regular_id_2 ).has_full_mv_points() );
+  REQUIRE(
+      w.units().unit_for( cavalry_id_1 ).has_full_mv_points() );
+  REQUIRE( w.units().exists( captured_unit_id_1 ) );
+  REQUIRE( w.units().exists( captured_unit_id_2 ) );
+  REQUIRE( w.units().exists( captured_native_unit_id ) );
+
+  // Animate captured ship.
+  mock_land_view.EXPECT__ensure_visible(
+      point{ .x = 5, .y = 3 } );
+  mock_land_view.EXPECT__animate_always_and_hold( _ );
+  agent.EXPECT__message_box(
+      "[Caravel] captured by the Royal Navy!" );
+  agent.EXPECT__message_box(
+      "Royal Expeditionary Force lands near [1]!" );
+  // Animate first unit offboarding.
+  mock_land_view.EXPECT__animate_always( _ );
+  mock_land_view.EXPECT__animate_always_and_hold( _ );
+  agent.EXPECT__message_box(
+      "[Soldier] captured by the Royal Army!" );
+  mock_land_view.EXPECT__animate_always_and_hold( _ );
+  agent.EXPECT__message_box(
+      "[Dragoon] captured by the Royal Army!" );
+  // Animate second unit offboarding.
+  mock_land_view.EXPECT__animate_always( _ );
+  // Animate third unit offboarding.
+  mock_land_view.EXPECT__animate_always( _ );
+
+  f();
+
+  // Post-test.
+  REQUIRE( colony.ref_landings == 1 );
+  REQUIRE( as_const( w.units() ).ownership_of( man_o_war_id ) ==
+           UnitOwnership::world{ .coord = { .x = 5, .y = 3 } } );
+  REQUIRE( as_const( w.units() ).ownership_of( regular_id_1 ) ==
+           UnitOwnership::world{ .coord = { .x = 4, .y = 2 } } );
+  REQUIRE( as_const( w.units() ).ownership_of( regular_id_2 ) ==
+           UnitOwnership::world{ .coord = { .x = 5, .y = 2 } } );
+  REQUIRE( as_const( w.units() ).ownership_of( cavalry_id_1 ) ==
+           UnitOwnership::world{ .coord = { .x = 4, .y = 2 } } );
+  REQUIRE( man_o_war.orders().holds<unit_orders::none>() );
+  REQUIRE( man_o_war.mv_pts_exhausted() );
+  REQUIRE( !w.units().exists( captured_ship_id ) );
+  REQUIRE( w.units()
+               .unit_for( regular_id_1 )
+               .orders()
+               .holds<unit_orders::none>() );
+  REQUIRE( w.units()
+               .unit_for( regular_id_2 )
+               .orders()
+               .holds<unit_orders::none>() );
+  REQUIRE( w.units()
+               .unit_for( cavalry_id_1 )
+               .orders()
+               .holds<unit_orders::none>() );
+  REQUIRE(
+      w.units().unit_for( regular_id_1 ).mv_pts_exhausted() );
+  REQUIRE(
+      w.units().unit_for( regular_id_2 ).mv_pts_exhausted() );
+  REQUIRE(
+      w.units().unit_for( cavalry_id_1 ).mv_pts_exhausted() );
+  REQUIRE( !w.units().exists( captured_unit_id_1 ) );
+  REQUIRE( !w.units().exists( captured_unit_id_2 ) );
+  REQUIRE( !w.units().exists( captured_native_unit_id ) );
 }
 
 TEST_CASE( "[ref] ref_should_forfeight" ) {
