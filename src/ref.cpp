@@ -97,22 +97,6 @@ enum_map<e_ref_unit_sequence,
     } },
 };
 
-maybe<e_expeditionary_force_type> from_unit_type(
-    e_unit_type const unit_type ) {
-  switch( unit_type ) {
-    case e_unit_type::regular:
-      return e_expeditionary_force_type::regular;
-    case e_unit_type::cavalry:
-      return e_expeditionary_force_type::cavalry;
-    case e_unit_type::artillery:
-      return e_expeditionary_force_type::artillery;
-    case e_unit_type::man_o_war:
-      return e_expeditionary_force_type::man_o_war;
-    default:
-      return nothing;
-  }
-}
-
 // NOTE: see the ref-deploy.lua script for how these numbers were
 // verified and then see the ref-selection auto-measure module
 // for how the data was collected.
@@ -132,8 +116,10 @@ int colony_strength_metric( SSConst const& ss,
       case e_unit_kind::euro:
         break;
       case e_unit_kind::native:
-        FATAL( "found native unit on colony tile {}",
-               colony.location );
+        // This should not happen in a well-formed game, but
+        // let's be defensive here in case the situation acciden-
+        // tally comes up via cheat mode.
+        continue;
     }
     Unit const& unit = ss.units.euro_unit_for( generic_id );
     switch( unit.type() ) {
@@ -326,22 +312,18 @@ void add_ref_unit( ExpeditionaryForce& force,
                    e_expeditionary_force_type const type ) {
   using enum e_expeditionary_force_type;
   switch( type ) {
-    case regular: {
+    case regular:
       ++force.regular;
       break;
-    }
-    case cavalry: {
+    case cavalry:
       ++force.cavalry;
       break;
-    }
-    case artillery: {
+    case artillery:
       ++force.artillery;
       break;
-    }
-    case man_o_war: {
+    case man_o_war:
       ++force.man_o_war;
       break;
-    }
   }
 }
 
@@ -754,11 +736,8 @@ RefLandingUnits create_ref_landing_units(
         };
         auto& force =
             colonial_player.revolution.expeditionary_force;
-        UNWRAP_CHECK_T(
-            e_expeditionary_force_type const exp_type,
-            from_unit_type( unit_type ) );
-        switch( exp_type ) {
-          using enum e_expeditionary_force_type;
+        using enum e_unit_type;
+        switch( unit_type ) {
           case regular:
             decrement( force.regular );
             break;
@@ -771,6 +750,9 @@ RefLandingUnits create_ref_landing_units(
           case man_o_war:
             decrement( force.man_o_war );
             break;
+          default:
+            FATAL( "unit type {} not supported for REF force.",
+                   unit_type );
         }
       };
   decrement_unit_type( e_unit_type::man_o_war );

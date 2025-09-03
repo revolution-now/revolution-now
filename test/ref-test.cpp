@@ -68,7 +68,7 @@ struct world : testing::World {
     // clang-format off
     vector<MapSquare> tiles{ /*
           0 1 2 3 4 5 6 7
-      0*/ _,X,X,X,X,X,X,_, /*0
+      0*/ _,X,_,X,X,X,X,_, /*0
       1*/ _,X,X,X,X,X,X,_, /*1
       2*/ _,X,X,X,X,X,_,_, /*2
       3*/ _,X,X,X,X,_,_,_, /*3
@@ -468,13 +468,16 @@ TEST_CASE( "[ref] ref_colony_selection_metrics" ) {
   w.update_terrain_connectivity();
   RefColonySelectionMetrics expected;
 
+  Player const& ref_player =
+      w.add_player( ref_player_for( w.default_nation() ) );
+
   auto const f =
       [&] [[clang::noinline]] ( Colony const& colony ) {
         return ref_colony_selection_metrics(
             w.ss(), w.connectivity(), colony.id );
       };
 
-  SECTION( "inland" ) {
+  SECTION( "inland next to inland lake" ) {
     Colony& colony = w.add_colony( { .x = 2, .y = 1 } );
 
     expected = { .colony_id       = colony.id,
@@ -536,6 +539,93 @@ TEST_CASE( "[ref] ref_colony_selection_metrics" ) {
     REQUIRE( f( colony ) == expected );
   }
 
+  SECTION( "coastal with two ship tiles | dwelling adjacent" ) {
+    Colony& colony = w.add_colony( { .x = 5, .y = 4 } );
+
+    w.add_dwelling( { .x = 5, .y = 5 }, e_tribe::iroquois );
+
+    expected = {
+      .colony_id       = colony.id,
+      .strength_metric = 1,
+      .population      = 0,
+      .valid_landings =
+          {
+            {
+              .ship_tile =
+                  {
+                    .tile           = { .x = 5, .y = 3 },
+                    .captured_units = {},
+                  },
+              .landings =
+                  {
+                    { .tile           = { .x = 4, .y = 3 },
+                      .captured_units = {} },
+                    { .tile           = { .x = 4, .y = 4 },
+                      .captured_units = {} },
+                  },
+            },
+            {
+              .ship_tile =
+                  {
+                    .tile           = { .x = 6, .y = 4 },
+                    .captured_units = {},
+                  },
+              .landings =
+                  {
+                    { .tile           = { .x = 6, .y = 5 },
+                      .captured_units = {} },
+                  },
+            },
+          },
+    };
+    REQUIRE( f( colony ) == expected );
+  }
+
+  SECTION( "coastal with two ship tiles | colony adjacent" ) {
+    Colony& colony = w.add_colony( { .x = 5, .y = 4 } );
+
+    // Shouldn't happen in a normal game since colonies are not
+    // supposed to be adjacent to each other, but it could happen
+    // with modding and so we want to test that it is handled.
+    w.add_colony( { .x = 5, .y = 5 } );
+
+    expected = {
+      .colony_id       = colony.id,
+      .strength_metric = 1,
+      .population      = 0,
+      .valid_landings =
+          {
+            {
+              .ship_tile =
+                  {
+                    .tile           = { .x = 5, .y = 3 },
+                    .captured_units = {},
+                  },
+              .landings =
+                  {
+                    { .tile           = { .x = 4, .y = 3 },
+                      .captured_units = {} },
+                    { .tile           = { .x = 4, .y = 4 },
+                      .captured_units = {} },
+                  },
+            },
+            {
+              .ship_tile =
+                  {
+                    .tile           = { .x = 6, .y = 4 },
+                    .captured_units = {},
+                  },
+              .landings =
+                  {
+                    { .tile           = { .x = 6, .y = 5 },
+                      .captured_units = {} },
+                  },
+            },
+          },
+    };
+    REQUIRE( f( colony ) == expected );
+  }
+
   SECTION( "coastal colony with one ship tile" ) {
     Colony& colony = w.add_colony( { .x = 4, .y = 3 } );
 
@@ -574,8 +664,16 @@ TEST_CASE( "[ref] ref_colony_selection_metrics" ) {
           } } } };
     REQUIRE( f( colony ) == expected );
 
+    // In a real game we should never have a brave over a colony,
+    // but we want to test that it can be handled just in case.
+    w.add_native_unit_on_map(
+        e_native_unit_type::brave, colony.location,
+        w.add_dwelling( { .x = 2, .y = 4 }, e_tribe::apache )
+            .id );
     w.add_unit_on_map( e_unit_type::free_colonist,
                        colony.location );
+    w.add_unit_on_map( e_unit_type::caravel, colony.location );
+    w.add_unit_on_map( e_unit_type::scout, colony.location );
     w.add_unit_on_map( e_unit_type::soldier, colony.location );
     w.add_unit_on_map( e_unit_type::artillery, colony.location );
     w.add_unit_on_map( e_unit_type::dragoon, colony.location );
@@ -649,6 +747,61 @@ TEST_CASE( "[ref] ref_colony_selection_metrics" ) {
             { .tile = { .x = 5, .y = 2 }, .captured_units = {} },
             { .tile = { .x = 4, .y = 4 }, .captured_units = {} },
             { .tile = { .x = 5, .y = 4 }, .captured_units = {} },
+          } } } };
+    REQUIRE( f( colony ) == expected );
+
+    w.add_unit_on_map( e_unit_type::continental_army,
+                       colony.location );
+
+    expected = {
+      .colony_id       = colony.id,
+      .strength_metric = 21,
+      .population      = 3,
+      .valid_landings  = {
+        { .ship_tile = { .tile           = { .x = 5, .y = 3 },
+                          .captured_units = {} },
+           .landings  = {
+            { .tile = { .x = 4, .y = 2 }, .captured_units = {} },
+            { .tile = { .x = 5, .y = 2 }, .captured_units = {} },
+            { .tile = { .x = 4, .y = 4 }, .captured_units = {} },
+            { .tile = { .x = 5, .y = 4 }, .captured_units = {} },
+          } } } };
+    REQUIRE( f( colony ) == expected );
+  }
+
+  SECTION(
+      "coastal colony with one ship tile + captured units" ) {
+    Colony& colony = w.add_colony( { .x = 4, .y = 3 } );
+
+    using enum e_unit_type;
+
+    w.add_unit_on_map( free_colonist, { .x = 5, .y = 2 } );
+    w.add_unit_on_map( artillery, { .x = 5, .y = 4 } );
+    w.add_unit_on_map( caravel, { .x = 5, .y = 3 } );
+    w.add_unit_on_map( regular, { .x = 4, .y = 2 },
+                       ref_player.type );
+
+    w.add_native_unit_on_map(
+        e_native_unit_type::brave, { .x = 4, .y = 4 },
+        w.add_dwelling( { .x = 3, .y = 4 }, e_tribe::apache )
+            .id );
+
+    expected = {
+      .colony_id       = colony.id,
+      .strength_metric = 1,
+      .population      = 0,
+      .valid_landings  = {
+        { .ship_tile = { .tile           = { .x = 5, .y = 3 },
+                          .captured_units = { GenericUnitId{
+                           3 } } },
+           .landings  = {
+            { .tile = { .x = 4, .y = 2 }, .captured_units = {} },
+            { .tile           = { .x = 5, .y = 2 },
+                .captured_units = { GenericUnitId{ 1 } } },
+            { .tile           = { .x = 4, .y = 4 },
+                .captured_units = { GenericUnitId{ 5 } } },
+            { .tile           = { .x = 5, .y = 4 },
+                .captured_units = { GenericUnitId{ 2 } } },
           } } } };
     REQUIRE( f( colony ) == expected );
   }
@@ -2549,6 +2702,10 @@ TEST_CASE( "[ref] ref_should_forfeight" ) {
   REQUIRE( f() == nothing );
 
   colonial_player.revolution.expeditionary_force.artillery = 0;
+  REQUIRE( f() == no_more_land_units_in_stock );
+
+  w.add_unit_on_map( e_unit_type::free_colonist,
+                     { .x = 3, .y = 0 }, colonial_player.type );
   REQUIRE( f() == no_more_land_units_in_stock );
 
   w.add_unit_on_map( e_unit_type::free_colonist,
