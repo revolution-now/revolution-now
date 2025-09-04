@@ -1202,24 +1202,57 @@ TEST_CASE( "[ref] ensure_manowar_availability" ) {
 
   using E = e_ref_manowar_availability;
 
-  // Default.
-  REQUIRE( f() == E::none_but_can_add );
+  SECTION( "ref_can_spawn_ships=true" ) {
+    w.settings()
+        .game_setup_options.customized_rules
+        .ref_can_spawn_ships = true;
 
-  w.add_unit_on_map( e_unit_type::frigate, { .x = 0, .y = 0 } );
-  REQUIRE( f() == E::none_but_can_add );
+    // Default.
+    REQUIRE( f() == E::none_but_can_add );
 
-  w.add_unit_on_map( e_unit_type::man_o_war, { .x = 0, .y = 0 },
-                     player.type );
-  REQUIRE( f() == E::none_but_can_add );
+    w.add_unit_on_map( e_unit_type::frigate,
+                       { .x = 0, .y = 0 } );
+    REQUIRE( f() == E::none_but_can_add );
 
-  w.add_unit_on_map( e_unit_type::man_o_war, { .x = 0, .y = 1 },
-                     ref_player_type );
-  REQUIRE( f() == E::available_on_map );
+    w.add_unit_on_map( e_unit_type::man_o_war,
+                       { .x = 0, .y = 0 }, player.type );
+    REQUIRE( f() == E::none_but_can_add );
 
-  player.revolution.expeditionary_force.man_o_war = 1;
-  w.add_unit_on_map( e_unit_type::man_o_war,
-                     { .x = 0, .y = 0 } );
-  REQUIRE( f() == E::available_in_stock );
+    w.add_unit_on_map( e_unit_type::man_o_war,
+                       { .x = 0, .y = 1 }, ref_player_type );
+    REQUIRE( f() == E::available_on_map );
+
+    player.revolution.expeditionary_force.man_o_war = 1;
+    w.add_unit_on_map( e_unit_type::man_o_war,
+                       { .x = 0, .y = 0 } );
+    REQUIRE( f() == E::available_in_stock );
+  }
+
+  SECTION( "ref_can_spawn_ships=false" ) {
+    w.settings()
+        .game_setup_options.customized_rules
+        .ref_can_spawn_ships = false;
+
+    // Default.
+    REQUIRE( f() == E::none );
+
+    w.add_unit_on_map( e_unit_type::frigate,
+                       { .x = 0, .y = 0 } );
+    REQUIRE( f() == E::none );
+
+    w.add_unit_on_map( e_unit_type::man_o_war,
+                       { .x = 0, .y = 0 }, player.type );
+    REQUIRE( f() == E::none );
+
+    w.add_unit_on_map( e_unit_type::man_o_war,
+                       { .x = 0, .y = 1 }, ref_player_type );
+    REQUIRE( f() == E::available_on_map );
+
+    player.revolution.expeditionary_force.man_o_war = 1;
+    w.add_unit_on_map( e_unit_type::man_o_war,
+                       { .x = 0, .y = 0 } );
+    REQUIRE( f() == E::available_in_stock );
+  }
 }
 
 TEST_CASE( "[ref] select_ref_unit_count" ) {
@@ -2664,8 +2697,106 @@ TEST_CASE( "[ref] create_ref_landing_units" ) {
   }
 }
 
+// This test tests the top-level function that does all of the
+// computations required to determine if and how to produce an-
+// other round of REF troups. Since it is such a high level func-
+// tion we don't attempt to test it exhaustively; instead, each
+// of the constituent functions are exposed in the header and
+// tested individually, so here the goal is just to get full code
+// coverage on each line.
 TEST_CASE( "[ref] produce_REF_landing_units" ) {
   world w;
+  w.create_default_map();
+  w.update_terrain_connectivity();
+  RefLanding expected;
+
+  Player& colonial_player = w.default_player();
+  Player const& ref_player =
+      w.add_player( ref_player_for( w.default_nation() ) );
+  auto& force = colonial_player.revolution.expeditionary_force;
+
+  auto& ref_can_spawn_ships =
+      w.settings()
+          .game_setup_options.customized_rules
+          .ref_can_spawn_ships;
+
+  auto const f = [&] [[clang::noinline]] {
+    return produce_REF_landing_units( w.ss(), w.connectivity(),
+                                      w.default_nation() );
+  };
+
+  // Default.
+  REQUIRE( f() == nothing );
+
+  // Colony on island with no landing tiles.
+  w.add_colony( { .x = 0, .y = 7 } );
+  REQUIRE( f() == nothing );
+  REQUIRE( w.units().all().empty() );
+
+  // Colony on tile with 4 landing tiles, but we have no units to
+  // deploy.
+  w.add_colony( { .x = 4, .y = 3 } );
+  REQUIRE( f() == nothing );
+  REQUIRE( w.units().all().empty() );
+
+  force.regular   = 10;
+  force.cavalry   = 10;
+  force.artillery = 10;
+  force.man_o_war = 0;
+
+  // We now have a force, but no man-o-war ("none").
+  ref_can_spawn_ships = false;
+  REQUIRE( f() == nothing );
+  REQUIRE( force.man_o_war == 0 );
+  REQUIRE( w.units().all().empty() );
+
+  // We now have a force, but no man-o-war ("none_but_can_add").
+  ref_can_spawn_ships = true;
+  REQUIRE( f() == nothing );
+  REQUIRE( force.man_o_war == 1 );
+  REQUIRE( w.units().all().empty() );
+
+  // available_on_map.
+  force.man_o_war = 0;
+  w.add_unit_on_map( e_unit_type::man_o_war, { .x = 0, .y = 7 },
+                     ref_player.type );
+  REQUIRE( f() == nothing );
+  REQUIRE( w.units().all().size() == 1 );
+
+  // available_in_stock.
+  force.man_o_war = 1;
+
+  expected = RefLanding{
+    .colony_id = 2,
+
+    .units = {
+      .ship = { .unit_id      = UnitId{ 2 },
+                .landing_tile = { .tile = { .x = 5, .y = 3 } } },
+
+      .landed_units = {
+        { .unit_id      = UnitId{ 3 },
+          .landing_tile = { .tile = { .x = 4, .y = 2 } } },
+        { .unit_id      = UnitId{ 4 },
+          .landing_tile = { .tile = { .x = 5, .y = 2 } } },
+        { .unit_id      = UnitId{ 5 },
+          .landing_tile = { .tile = { .x = 4, .y = 4 } } } } } };
+  REQUIRE( f() == expected );
+
+  REQUIRE( w.units().all().size() == 1 + 4 );
+  REQUIRE( w.units().exists( UnitId{ 2 } ) );
+  REQUIRE( w.units().exists( UnitId{ 3 } ) );
+  REQUIRE( w.units().exists( UnitId{ 4 } ) );
+  REQUIRE( w.units().exists( UnitId{ 5 } ) );
+
+  REQUIRE( as_const( w.units() )
+               .ownership_of( UnitId{ 2 } )
+               .holds<UnitOwnership::free>() );
+  REQUIRE( as_const( w.units() ).ownership_of( UnitId{ 3 } ) ==
+           UnitOwnership::cargo{ .holder = UnitId{ 2 } } );
+  REQUIRE( as_const( w.units() ).ownership_of( UnitId{ 4 } ) ==
+           UnitOwnership::cargo{ .holder = UnitId{ 2 } } );
+  REQUIRE( as_const( w.units() ).ownership_of( UnitId{ 5 } ) ==
+           UnitOwnership::cargo{ .holder = UnitId{ 2 } } );
 }
 
 TEST_CASE( "[ref] offboard_ref_units" ) {
@@ -2871,8 +3002,18 @@ TEST_CASE( "[ref] ref_should_forfeight" ) {
 
   using enum e_forfeight_reason;
 
+  auto& ref_can_spawn_ships =
+      w.settings()
+          .game_setup_options.customized_rules
+          .ref_can_spawn_ships;
+  ref_can_spawn_ships = true;
+
   colonial_player.revolution.expeditionary_force.regular = 1;
   REQUIRE( f() == nothing );
+
+  ref_can_spawn_ships = false;
+  REQUIRE( f() == no_more_ships );
+  ref_can_spawn_ships = true;
 
   colonial_player.revolution.expeditionary_force.man_o_war = 1;
   REQUIRE( f() == nothing );
@@ -2900,8 +3041,6 @@ TEST_CASE( "[ref] ref_should_forfeight" ) {
                      { .x = 1, .y = 0 }, ref_player.type );
   REQUIRE( f() == no_more_land_units_in_stock );
 
-  w.add_unit_on_map( e_unit_type::man_o_war, { .x = 0, .y = 0 },
-                     ref_player.type );
   REQUIRE( f() == no_more_land_units_in_stock );
 
   UnitId const soldier_id =

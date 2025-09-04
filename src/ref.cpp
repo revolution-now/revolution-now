@@ -51,6 +51,7 @@
 #include "base/generator-combinators.hpp"
 #include "base/generator.hpp"
 #include "base/range-lite.hpp"
+#include "base/to-str-ext-std.hpp"
 
 // C++ standard library
 #include <numeric>
@@ -284,7 +285,6 @@ e_expeditionary_force_type select_next_ref_type(
   // distribution to look like the target.
   auto const metric = [&]( double& dst, int const n,
                            int const target ) {
-    CHECK_GE( n, 0 );
     // Should have been verified when loading configs.
     CHECK_GE( target, 0 );
     double const ratio = double( n ) / total;
@@ -588,8 +588,8 @@ void filter_ref_landing_tiles( RefColonyLandingTiles& tiles ) {
                                  RefLandingTile const& r ) {
     return l.captured_units.size() < r.captured_units.size();
   } );
+  CHECK( !landings.empty() );
   if( !landings[0].captured_units.empty() ) {
-    CHECK_GE( landings.size(), 1u );
     landings.resize( 1 );
     return;
   }
@@ -793,7 +793,7 @@ maybe<RefLanding> produce_REF_landing_units(
   vector<ColonyId> const colonies =
       ss.colonies.for_player( colonial_player_type );
   vector<RefColonyMetricsScored> scored;
-  scored.reserve( scored.size() );
+  scored.reserve( colonies.size() );
   for( ColonyId const colony_id : colonies ) {
     RefColonySelectionMetrics metrics =
         ref_colony_selection_metrics( ss.as_const, connectivity,
@@ -804,7 +804,7 @@ maybe<RefLanding> produce_REF_landing_units(
       .metrics = std::move( metrics ), .score = *score } );
   }
   auto const metrics = select_ref_landing_colony( scored );
-  if( !metrics.has_value() || metrics->valid_landings.empty() ) {
+  if( !metrics.has_value() ) {
     // Either no coastal colonies or there are coastal colonies
     // but no available spots for the REF to land around them.
     // The former means that the REF has won, and that will be
@@ -818,6 +818,10 @@ maybe<RefLanding> produce_REF_landing_units(
     // handle them in case of custom maps.
     return nothing;
   }
+  // If valid_landings were empty then that means that the score
+  // would have been `nothing` and it wouldn't have been added
+  // into the list in the first place.
+  CHECK( !metrics->valid_landings.empty() );
   auto const landing_tiles = [&] {
     auto unfiltered_landing_tiles =
         select_ref_landing_tiles( *metrics );
