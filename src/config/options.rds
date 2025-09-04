@@ -1,0 +1,49 @@
+# ===============================================================
+# options.rds
+#
+# Project: Revolution Now
+#
+# Created by David P. Sicilia on 2025-09-03.
+#
+# Description: Config data for the options module.
+#
+# ===============================================================
+# C++ standard library
+include "<string>"
+
+namespace "rn.config.options"
+
+enum.e_option_category {
+  war_of_independence,
+}
+
+struct.OptionHelp {
+  category 'e_option_category',
+  title 'std::string',
+  quick 'std::string',
+  detail 'std::string',
+}
+
+struct.Values {
+  enable_war_of_succession 'bool',
+  ref_can_spawn_ships 'bool',
+  withdraw_on_declaration 'bool',
+}
+
+struct.Help {
+  enable_war_of_succession 'OptionHelp',
+  ref_can_spawn_ships 'OptionHelp',
+  withdraw_on_declaration 'OptionHelp',
+}
+
+namespace "rn"
+
+struct.config_options_t {
+  help 'config::options::Help',
+  # The default values are in a separate struct so that they can
+  # be copied into the game settings easily without copying all
+  # of the documentation text.
+  default_values 'config::options::Values',
+}
+
+config.options {}

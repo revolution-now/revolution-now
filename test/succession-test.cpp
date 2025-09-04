@@ -100,8 +100,9 @@ TEST_CASE( "[rebel-sentiment] should_do_war_of_succession" ) {
 
   // Set up the conditions for a war of succession by default,
   // then test for each negative case.
-  w.settings().game_setup_options.disable_war_of_succession =
-      false;
+  w.settings()
+      .game_setup_options.customized_rules
+      .enable_war_of_succession           = true;
   human_player.revolution.rebel_sentiment = 50;
 
   SECTION( "lacking rebel sentiment" ) {
@@ -157,8 +158,9 @@ TEST_CASE( "[rebel-sentiment] should_do_war_of_succession" ) {
 
   SECTION( "war of succession not enabled" ) {
     REQUIRE( f() );
-    w.settings().game_setup_options.disable_war_of_succession =
-        true;
+    w.settings()
+        .game_setup_options.customized_rules
+        .enable_war_of_succession = false;
     REQUIRE_FALSE( f() );
   }
 }

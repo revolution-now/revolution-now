@@ -50,7 +50,14 @@ SS::SS()
     terrain( impl_->top.zzz_terrain ),
     mutable_terrain_use_with_care( impl_->top.zzz_terrain ),
     root( impl_->top ),
-    as_const( *this ) {}
+    as_const( *this ) {
+  // Initialize these with default values. This is very important
+  // to do here since they need to be set even if the game is not
+  // customized because they affect game rules, and some of the
+  // default values are not simply default constructed values.
+  settings.game_setup_options.customized_rules =
+      config_options.default_values;
+}
 
 void to_str( SS const& o, string& out, base::tag<SS> ) {
   out += "SS@";

@@ -67,7 +67,8 @@ bool should_do_war_of_succession( SSConst const& ss,
   // NOTE: there a corresponding config option, but we don't
   // check that directly because that is intended to be a default
   // value for the new-game setting that we actually check.
-  if( ss.settings.game_setup_options.disable_war_of_succession )
+  if( !ss.settings.game_setup_options.customized_rules
+           .enable_war_of_succession )
     return false;
   // This human check is very important not only because the OG
   // does not trigger the war of succession in response to AI

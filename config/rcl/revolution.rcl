@@ -1,47 +1,3 @@
-war_of_succession {
-  # Background: In the OG, when the human player's rebel senti-
-  # ment hits 50% the player is then free to declare independence
-  # at anytime. If they do so then the game must immediately send
-  # REF units. However, the game only has four "slots" for
-  # players in the game (including the REF), thus when rebel sen-
-  # timent hits 50% it must immediately remove one of the AI na-
-  # tions in order to free a slot for the REF which may need to
-  # be deployed at any time.
-  #
-  # In order to affectuate this freeing of a slot in a graceful
-  # manner, the game makes a clever move and references the (true
-  # historical) event of the War of the Spanish Succession,
-  # which, in the game, grants ownership of all property of one
-  # AI player (typically the smallest) to another AI player (typ-
-  # ically the second smallest), thus freeing a slot.
-  #
-  # In the new game we don't have this limitation on "slots",
-  # thus there is no need for the War of Succession. But, since
-  # this mechanic did have an effect on gameplay and since we we
-  # do want to reproduce the original game's mechanics where pos-
-  # sible, we enable it by default, but also allow it to be dis-
-  # abled when creating a new game.
-  #
-  # Note that, even when it is enabled, there are other condi-
-  # tions which will cause it to get disabled, e.g. when there
-  # are fewer than three AI players, or if there are multiple
-  # human players, since there really is no analogue to those
-  # scenarios in the OG and it would be a bit awkward to know
-  # when or how to force the merger of two nations in those cir-
-  # cumstances.
-  #
-  # This is merely the default value of the corresponding setting
-  # that can be chosen when creating a new game.
-  #
-  # WARNING: In a game where all four nations are present, dis-
-  # abling the war of succession may prevent saving your game in
-  # the OG's SAV format after the war of independence begins,
-  # since there will not be an available slot for the REF. But if
-  # you don't care about saving the game in that legacy format
-  # then you can freely disable the war of succession.
-  disable_war_of_succession_default: false
-}
-
 declaration {
 
   # Integral percentage in the range [0, 100] that must be
@@ -109,34 +65,6 @@ ref_forces {
     ratio.artillery.percent: 14
     ratio.man_o_war.percent:  9
   }
-
-  # In the OG, during the War of Independence, the REF is able
-  # spawn new Man-o-wars once they run out. This happens every
-  # two turns. Therefore, it is actually mostly irrelevant how
-  # many Man-o-Wars are accumulated before the war begins. By de-
-  # fault we replicate that behavior here. If this flag is turned
-  # off then two things change:
-  #
-  #   1. New Man-o-Wars will not be spawned during the war, so
-  #      the REF has to make due with whatever number are in
-  #      stock at the time of declaration. This means that it
-  #      must rely on the AI to move ships back to Europe in
-  #      order to reuse them after they've been deployed.
-  #   2. If there are some REF land units remaining in europe but
-  #      there are none in the new world AND there are no more
-  #      Man-o-Wars in stock, then the REF forfeights, whereas it
-  #      would not have done so otherwise knowing that it could
-  #      just spawn more ships to transport the remaining land
-  #      units. This enables a new strategy for winning the war
-  #      focused on naval battle. If the player can eliminate all
-  #      of the Man-o-Wars and then eliminate all REF land units
-  #      that have been deployed then no more will be able to
-  #      come over and the player will win.
-  #
-  # Because the value of this flag has a significant effect on
-  # the dynamics of the war, we default it to true which repli-
-  # cates the OG.
-  ref_can_spawn_ships: true
 
   # Each deployment of REF troops in the OG has a minimum of
   # three units and a maximum of six units. These can be changed,

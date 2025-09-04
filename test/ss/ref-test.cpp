@@ -58,8 +58,12 @@ value cdr_game_state_default = table{
       table{
         "game_setup_options"_key =
             table{
-              "difficulty"_key                = "discoverer",
-              "disable_war_of_succession"_key = false,
+              "difficulty"_key = "discoverer",
+              "customized_rules"_key = table{
+                "enable_war_of_succession"_key = false,
+                "ref_can_spawn_ships"_key = false,
+                "withdraw_on_declaration"_key = false,
+              },
             },
         "in_game_options"_key =
             table{

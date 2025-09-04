@@ -35,6 +35,7 @@
 #include "config/nation.rds.hpp"
 #include "config/natives.rds.hpp"
 #include "config/old-world.rds.hpp"
+#include "config/options.rds.hpp"
 #include "config/production.rds.hpp"
 #include "config/revolution.rds.hpp"
 #include "config/rn.rds.hpp"
@@ -67,6 +68,7 @@ namespace rds {
 INSTANTIATE_RN_CONFIG( cheat );
 INSTANTIATE_RN_CONFIG( colony );
 INSTANTIATE_RN_CONFIG( combat );
+INSTANTIATE_RN_CONFIG( command );
 INSTANTIATE_RN_CONFIG( commodity );
 INSTANTIATE_RN_CONFIG( debug );
 INSTANTIATE_RN_CONFIG( fathers );
@@ -83,7 +85,7 @@ INSTANTIATE_RN_CONFIG( music );
 INSTANTIATE_RN_CONFIG( nation );
 INSTANTIATE_RN_CONFIG( natives );
 INSTANTIATE_RN_CONFIG( old_world );
-INSTANTIATE_RN_CONFIG( command );
+INSTANTIATE_RN_CONFIG( options );
 INSTANTIATE_RN_CONFIG( production );
 INSTANTIATE_RN_CONFIG( revolution );
 INSTANTIATE_RN_CONFIG( rn );

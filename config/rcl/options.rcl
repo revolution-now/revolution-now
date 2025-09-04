@@ -1,0 +1,121 @@
+# These describe and provide default values for the game cus-
+# tomization settings. Generally the default values are chosen
+# to replicate the behavior of the OG.
+
+help {
+  enable_war_of_succession: {
+    title: Enable the War of Succession
+    category: war_of_independence
+    quick: "
+      One AI nation withdraws when Rebel Sentiment reaches 50%.
+    "
+    detail: "
+      Background: In the OG, when the human player's rebel senti-
+      ment hits 50% the player is then free to declare indepen-
+      dence at anytime. If they do so then the game must immedi-
+      ately send REF units. However, the game only has four 's-
+      lots' for players in the game (including the REF), thus
+      when rebel sentiment hits 50% it must immediately remove
+      one of the AI nations in order to free a slot for the REF
+      which may need to be deployed at any time.
+
+      In order to affectuate this freeing of a slot in a graceful
+      manner, the game makes a clever move and references the
+      (true historical) event of the War of the Spanish Succes-
+      sion, which, in the game, grants ownership of all property
+      of one AI player (typically the smallest) to another AI
+      player (typically the second smallest), thus freeing a
+      slot.
+
+      In the new game we don't have this limitation on 'slots',
+      thus there is no need for the War of Succession. But, since
+      this mechanic did have an effect on gameplay and since we
+      we do want to reproduce the original game's mechanics where
+      possible, we enable it by default, but also allow it to be
+      disabled when creating a new game.
+
+      Note that, even when it is enabled, there are other condi-
+      tions which will cause it to get disabled, e.g. when there
+      are fewer than three AI players, or if there are multiple
+      human players, since there really is no analogue to those
+      scenarios in the OG and it would be a bit awkward to know
+      when or how to force the merger of two nations in those
+      circumstances.
+
+      This is merely the default value of the corresponding set-
+      ting that can be chosen when creating a new game.
+
+      WARNING: In a game where all four nations are present, dis-
+      abling the war of succession may prevent saving your game
+      in the OG's SAV format after the war of independence be-
+      gins, since there will not be an available slot for the
+      REF. But if you don't care about saving the game in that
+      legacy format then you can freely disable the war of suc-
+      cession.
+    "
+  }
+
+  ref_can_spawn_ships: {
+    title: REF Can Spawn Ships
+    category: war_of_independence
+    quick: "
+      The REF can spawn new ships during the war when it runs
+      out.
+    "
+    detail: "
+      In the OG, during the War of Independence, the REF is able
+      spawn new Man-o-wars once they run out. This happens every
+      two turns. Therefore, it is actually mostly irrelevant how
+      many Man-o-Wars are accumulated before the war begins. If
+      this flag is turned off then two things change:
+
+      1) New Men-o-War will not be spawned during the war, so the
+      REF has to make due with whatever number are in stock at
+      the time of declaration. This means that it must rely on
+      the AI to move ships back to Europe in order to reuse them
+      after they've been deployed. This puts more of a burden on
+      the AI.
+
+      2) If there are some REF land units remaining in europe but
+      there are none in the new world AND there are no more
+      Men-o-War in stock, then the REF forfeights, whereas it
+      would not have done so otherwise knowing that it could just
+      spawn more ships to transport the remaining land units.
+      This enables a new strategy for winning the war focused on
+      naval battle. If the player can eliminate all of the
+      Man-o-Wars and then eliminate all REF land units that have
+      been deployed then no more will be able to come over and
+      the player will win.
+    "
+  }
+
+  withdraw_on_declaration: {
+    title: Withdraw Foreign Players on Declaration
+    category: war_of_independence
+    quick: "
+      All foreign players withdrawn from the game when the player
+      declares independence.
+    "
+    detail: "
+      When the player declares independence in the OG all other
+      (AI) players are withdrawn from the game before the REF
+      player and its units are created. It has been stated that
+      this was done due to the limit on the number of units that
+      could be in existence at a time in the OG. Since this game
+      does not have such a limit we can allow the other players
+      to remain. However, since this can have a significant ef-
+      fect on gameplay we do the withdrawing by default in order
+      to reproduce the OG's behavior.
+    "
+  }
+}
+
+# NOTE: Changing these values in this file is generally NOT what
+# you want to do. These settings are changed in-game when cre-
+# ating a new game and customizing the rules. The values here
+# simply provide default values.
+default_values {
+  enable_war_of_succession: true
+  ref_can_spawn_ships: true
+  withdraw_on_declaration: true
+}

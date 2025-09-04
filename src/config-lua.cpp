@@ -31,6 +31,7 @@
 #include "config/nation.rds.hpp"
 #include "config/natives.rds.hpp"
 #include "config/old-world.rds.hpp"
+#include "config/options.rds.hpp"
 #include "config/production.rds.hpp"
 #include "config/range-helpers.rds.hpp"
 #include "config/revolution.rds.hpp"
@@ -123,6 +124,7 @@ void inject_configs( lua::state& st ) {
   INJECT( nation );
   INJECT( natives );
   INJECT( old_world );
+  INJECT( options );
   INJECT( production );
   INJECT( revolution );
   INJECT( rn );

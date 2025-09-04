@@ -399,7 +399,14 @@ players {
 }
 
 settings {
-  game_setup_options.difficulty: conquistador
+  game_setup_options {
+    customized_rules {
+      enable_war_of_succession: true
+      ref_can_spawn_ships: true
+      withdraw_on_declaration: true
+    }
+    difficulty: conquistador
+  }
   in_game_options.game_menu_options {
     autosave: true
     combat_analysis: true

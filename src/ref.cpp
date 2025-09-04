@@ -39,6 +39,7 @@
 #include "ss/players.rds.hpp"
 #include "ss/ref.hpp"
 #include "ss/revolution.rds.hpp"
+#include "ss/settings.rds.hpp"
 #include "ss/terrain.hpp"
 #include "ss/turn.rds.hpp"
 #include "ss/units.hpp"
@@ -627,7 +628,8 @@ e_ref_manowar_availability ensure_manowar_availability(
     if( unit.type() == e_unit_type::man_o_war )
       return e_ref_manowar_availability::available_on_map;
   }
-  if( config_revolution.ref_forces.ref_can_spawn_ships )
+  if( ss.settings.game_setup_options.customized_rules
+          .ref_can_spawn_ships )
     return e_ref_manowar_availability::none_but_can_add;
   return e_ref_manowar_availability::none;
 }
@@ -1022,7 +1024,8 @@ maybe<e_forfeight_reason> ref_should_forfeight(
     // reason that the REF will forfeight in the NG.
     return e_forfeight_reason::no_more_land_units_in_stock;
   // NOTE: By default (as in the OG) ref_can_spawn_ships=true.
-  if( !config_revolution.ref_forces.ref_can_spawn_ships &&
+  if( !ss.settings.game_setup_options.customized_rules
+           .ref_can_spawn_ships &&
       total_ships_in_stock == 0 )
     // We have no more ships with which to transport the re-
     // maining REF land units and we are not going to spawn new

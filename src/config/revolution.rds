@@ -32,10 +32,6 @@ struct.Declaration {
   _features { equality, validation }
 }
 
-struct.WarOfSuccession {
-  disable_war_of_succession_default 'bool',
-}
-
 struct.RefTargetRatios {
   ratio 'refl::enum_map<e_expeditionary_force_type, IntPercent>',
   _features { equality, validation }
@@ -44,7 +40,6 @@ struct.RefTargetRatios {
 struct.RefForces {
   initial_forces 'refl::enum_map<e_difficulty, ExpeditionaryForce>',
   target_ratios 'RefTargetRatios',
-  ref_can_spawn_ships 'bool',
   allowed_unit_counts_per_deployment 'IntRange',
   strong_unit_wave_threshold 'int',
   _features { equality, validation }
@@ -64,7 +59,6 @@ struct.RoyalMoney {
 namespace "rn"
 
 struct.config_revolution_t {
-  war_of_succession 'config::revolution::WarOfSuccession',
   declaration 'config::revolution::Declaration',
   ref_forces 'config::revolution::RefForces',
   intervention_forces 'config::revolution::InterventionForces',

@@ -8,6 +8,9 @@
 # Description: Rds definitions for save-game settings data.
 #
 # ===============================================================
+# config
+include "config/options.rds.hpp"
+
 # ss
 include "ss/difficulty.rds.hpp"
 
@@ -42,19 +45,12 @@ struct.InGameOptions {
 struct.GameSetupOptions {
   difficulty 'e_difficulty', # discoverer, explorer, etc.
 
-  # NOTE: if this is disabled for a game then it might not be
-  # possible to convert to the OG's SAV format, which only has
-  # four slots, after the war of independence. We may want to
-  # warn the player about that.
-  disable_war_of_succession 'bool',
-
-  # TODO: consider adding a game option to not disable foreign
-  # powers after declaration. The SG states that the OG did this
-  # due to the internal limit on the number of units that can be
-  # in existence at at time, a limit that we don't have. Since
-  # this could have a significant effect on gameplay, we should
-  # probably reproduce the OG's behavior by default, but allow
-  # that to be changed in the game customization settings.
+  # These are the rules of the game that can be optionally cus-
+  # tomized when creating a new game. Generally their default
+  # values are chosen to mirror the OG's behavior, but they can
+  # be changed when creating a new game. They cannot be changed
+  # in-game, however.
+  customized_rules 'config::options::Values',
 }
 
 struct.CheatOptions {

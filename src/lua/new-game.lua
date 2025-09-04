@@ -57,11 +57,6 @@ end
 -----------------------------------------------------------------
 local function set_default_settings( options, settings )
   settings.game_setup_options.difficulty = options.difficulty
-  local disable_war_of_succession =
-      config.revolution.war_of_succession
-          .disable_war_of_succession_default
-  settings.game_setup_options.disable_war_of_succession =
-      disable_war_of_succession
   settings.cheat_options.enabled =
       cheat.enable_cheat_mode_by_default()
   local menu_opts = config.rn.game_menu_options_defaults

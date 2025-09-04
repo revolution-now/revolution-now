@@ -64,8 +64,6 @@ LUA_STARTUP( lua::state& st ) {
     auto u  = st.usertype.create<U>();
 
     u["difficulty"] = &U::difficulty;
-    u["disable_war_of_succession"] =
-        &U::disable_war_of_succession;
   }
 };
 
