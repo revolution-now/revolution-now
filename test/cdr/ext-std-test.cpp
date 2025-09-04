@@ -371,6 +371,26 @@ TEST_CASE( "[cdr/ext-std] unique_ptr" ) {
   }
 }
 
+TEST_CASE( "[cdr/ext-std] shared_ptr" ) {
+  SECTION( "to_canonical" ) {
+    shared_ptr<string> empty;
+    REQUIRE( conv.to( empty ) == null );
+    auto u  = make_unique<string>( "hello" );
+    value v = conv.to( u );
+    REQUIRE( v == "hello" );
+  }
+  SECTION( "from_canonical" ) {
+    REQUIRE( conv_from_bt<shared_ptr<string>>( conv, null ) ==
+             shared_ptr<string>( nullptr ) );
+    value v = "hello";
+    result<shared_ptr<string>> res =
+        conv_from_bt<shared_ptr<string>>( conv, v );
+    REQUIRE( res.has_value() );
+    REQUIRE( *res != nullptr );
+    REQUIRE( **res == "hello" );
+  }
+}
+
 TEST_CASE( "[cdr/ext-std] std::variant" ) {
   SECTION( "to_canonical" ) {
     static_assert( !ToCanonical<std::variant<int, string>> );

@@ -59,6 +59,10 @@ TEST_CASE( "[to-str-ext-std] vocab types" ) {
 
   // monostate
   REQUIRE( to_str( monostate{} ) == "monostate" );
+
+  // shared_ptr
+  REQUIRE( to_str( make_shared<int>() ) == "null" );
+  REQUIRE( to_str( make_shared<int>( 5 ) ) == "5" );
 }
 
 } // namespace

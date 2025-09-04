@@ -20,6 +20,7 @@
 #include <deque>
 #include <filesystem>
 #include <map>
+#include <memory>
 #include <queue>
 #include <set>
 #include <source_location>
@@ -165,6 +166,15 @@ void to_str( std::integral_constant<T, N> const o, string& out,
              base::tag<std::integral_constant<T, N>> ) {
   // Defer to T.
   to_str( o, out, base::tag<T>{} );
+}
+
+template<base::Show T>
+void to_str( shared_ptr<T> const& o, string& out,
+             base::tag<shared_ptr<T>> ) {
+  if( o )
+    base::to_str( *o, out );
+  else
+    base::to_str( "null", out );
 }
 
 // {fmt} formatter for formatting pairs whose contained types are

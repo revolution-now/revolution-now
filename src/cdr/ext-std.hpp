@@ -518,6 +518,25 @@ result<std::unique_ptr<T>> from_canonical(
 }
 
 /****************************************************************
+** std::shared_ptr
+*****************************************************************/
+template<ToCanonical T>
+value to_canonical( converter& conv, std::shared_ptr<T> const& o,
+                    tag_t<std::shared_ptr<T>> ) {
+  if( o == nullptr ) return null;
+  return conv.to( *o );
+}
+
+template<FromCanonical T>
+result<std::shared_ptr<T>> from_canonical(
+    converter& conv, value const& v,
+    tag_t<std::shared_ptr<T>> ) {
+  if( v == null ) return std::shared_ptr<T>{ nullptr };
+  UNWRAP_RETURN( res, conv.from<T>( v ) );
+  return std::make_shared<T>( std::move( res ) );
+}
+
+/****************************************************************
 ** std::variant
 *****************************************************************/
 // We don't want to attempt to convert a simple variant for which
