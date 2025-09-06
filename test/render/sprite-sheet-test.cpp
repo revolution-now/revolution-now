@@ -40,7 +40,8 @@ using ::gfx::size;
 
 TEST_CASE( "[render/sprite-sheet] load_sprite_sheet" ) {
   AtlasBuilder builder;
-  unordered_map<string, int> atlas_ids;
+  SpriteSheetOptions sheet_options;
+  AtlasLoadOutput output;
   unordered_map<string, point> const names{
     // These are arbitrary names.
     { "_1", point{ .x = 2, .y = 0 } },
@@ -50,23 +51,23 @@ TEST_CASE( "[render/sprite-sheet] load_sprite_sheet" ) {
     { "_4", point{ .x = 2, .y = 1 } },
     { "_5", point{ .x = 0, .y = 2 } },
   };
-  REQUIRE( load_sprite_sheet(
+  REQUIRE( detail::load_sprite_sheet(
                builder,
                new_empty_image( size{ .w = 48, .h = 64 } ),
-               size{ .w = 16, .h = 16 }, names,
-               atlas_ids ) == valid );
+               size{ .w = 16, .h = 16 }, names, sheet_options,
+               output ) == valid );
 
   unordered_map<string, int> expected_atlas_ids{
     { "_0", 0 }, { "_1", 1 }, { "_2", 2 },
     { "_3", 3 }, { "_4", 4 }, { "_5", 5 },
   };
-  REQUIRE( atlas_ids == expected_atlas_ids );
-  maybe<Atlas> atlas =
+  REQUIRE( output.atlas_ids == expected_atlas_ids );
+  maybe<Atlas> const atlas =
       builder.build( size{ .w = 3 * 16, .h = 3 * 16 } );
   REQUIRE( atlas.has_value() );
   REQUIRE( atlas->img.size_pixels() ==
            size{ .w = 3 * 16, .h = 2 * 16 } );
-  AtlasMap& m = atlas->dict;
+  AtlasMap const& m = atlas->dict;
   rect r{ .origin = {}, .size = { .w = 16, .h = 16 } };
 
   r.origin = point{ .x = 0, .y = 0 };
@@ -84,9 +85,76 @@ TEST_CASE( "[render/sprite-sheet] load_sprite_sheet" ) {
 }
 
 TEST_CASE(
+    "[render/sprite-sheet] load_sprite_sheet with burrow" ) {
+  AtlasBuilder builder;
+  SpriteSheetOptions sheet_options;
+  AtlasLoadOutput output;
+  unordered_map<string, point> const names{
+    // These are arbitrary names.
+    { "_1", point{ .x = 2, .y = 0 } },
+    { "_0", point{ .x = 1, .y = 0 } },
+    { "_2", point{ .x = 0, .y = 1 } },
+    { "_3", point{ .x = 1, .y = 1 } },
+    { "_4", point{ .x = 2, .y = 1 } },
+    { "_5", point{ .x = 0, .y = 2 } },
+  };
+  sheet_options.compute_burrow = true;
+  REQUIRE( detail::load_sprite_sheet(
+               builder,
+               new_empty_image( size{ .w = 48, .h = 64 } ),
+               size{ .w = 16, .h = 16 }, names, sheet_options,
+               output ) == valid );
+
+  unordered_map<string, int> const expected_atlas_ids{
+    { "_0", 0 }, { "_1", 1 }, { "_2", 2 },
+    { "_3", 3 }, { "_4", 4 }, { "_5", 5 },
+  };
+  REQUIRE( output.atlas_ids == expected_atlas_ids );
+  unordered_map<int, int> const expected_burrow_ids{
+    { 0, 6 }, { 1, 7 },  { 2, 8 },  //
+    { 3, 9 }, { 4, 10 }, { 5, 11 }, //
+  };
+  REQUIRE( output.atlas_burrow_ids == expected_burrow_ids );
+  maybe<Atlas> const atlas =
+      builder.build( size{ .w = 3 * 16, .h = 4 * 16 } );
+  REQUIRE( atlas.has_value() );
+  REQUIRE( atlas->img.size_pixels() ==
+           size{ .w = 3 * 16, .h = 4 * 16 } );
+  AtlasMap const& m = atlas->dict;
+  rect r{ .origin = {}, .size = { .w = 16, .h = 16 } };
+
+  r.origin = point{ .x = 0, .y = 0 };
+  REQUIRE( m.lookup( 0 ) == r );
+  r.origin = point{ .x = 16, .y = 0 };
+  REQUIRE( m.lookup( 1 ) == r );
+  r.origin = point{ .x = 32, .y = 0 };
+  REQUIRE( m.lookup( 2 ) == r );
+  r.origin = point{ .x = 0, .y = 16 };
+  REQUIRE( m.lookup( 3 ) == r );
+  r.origin = point{ .x = 16, .y = 16 };
+  REQUIRE( m.lookup( 4 ) == r );
+  r.origin = point{ .x = 32, .y = 16 };
+  REQUIRE( m.lookup( 5 ) == r );
+  // Burrowed.
+  r.origin = point{ .x = 0, .y = 32 };
+  REQUIRE( m.lookup( 6 ) == r );
+  r.origin = point{ .x = 16, .y = 32 };
+  REQUIRE( m.lookup( 7 ) == r );
+  r.origin = point{ .x = 32, .y = 32 };
+  REQUIRE( m.lookup( 8 ) == r );
+  r.origin = point{ .x = 0, .y = 48 };
+  REQUIRE( m.lookup( 9 ) == r );
+  r.origin = point{ .x = 16, .y = 48 };
+  REQUIRE( m.lookup( 10 ) == r );
+  r.origin = point{ .x = 32, .y = 48 };
+  REQUIRE( m.lookup( 11 ) == r );
+}
+
+TEST_CASE(
     "[render/sprite-sheet] load_sprite_sheet out of bounds" ) {
   AtlasBuilder builder;
-  unordered_map<string, int> atlas_ids;
+  SpriteSheetOptions sheet_options;
+  AtlasLoadOutput output;
   unordered_map<string, point> const names{
     // These are arbitrary names.
     { "_1", point{ .x = 10, .y = 0 } },
@@ -97,9 +165,10 @@ TEST_CASE(
     { "_5", point{ .x = 0, .y = 2 } },
   };
   REQUIRE(
-      load_sprite_sheet(
+      detail::load_sprite_sheet(
           builder, new_empty_image( size{ .w = 48, .h = 64 } ),
-          size{ .w = 16, .h = 16 }, names, atlas_ids ) ==
+          size{ .w = 16, .h = 16 }, names, sheet_options,
+          output ) ==
       base::invalid<string>(
           "sprite `_1' has rect "
           "gfx::rect{origin=gfx::point{x=160,y=0},size=gfx::"
@@ -111,8 +180,9 @@ TEST_CASE(
 TEST_CASE(
     "[render/sprite-sheet] load_sprite_sheet repeat name" ) {
   AtlasBuilder builder;
-  unordered_map<string, int> atlas_ids;
-  atlas_ids["_0"] = 0;
+  SpriteSheetOptions sheet_options;
+  AtlasLoadOutput output;
+  output.atlas_ids["_0"] = 0;
   unordered_map<string, point> const names{
     // These are arbitrary names.
     { "_1", point{ .x = 0, .y = 0 } },
@@ -123,9 +193,10 @@ TEST_CASE(
     { "_5", point{ .x = 0, .y = 2 } },
   };
   REQUIRE(
-      load_sprite_sheet(
+      detail::load_sprite_sheet(
           builder, new_empty_image( size{ .w = 48, .h = 64 } ),
-          size{ .w = 16, .h = 16 }, names, atlas_ids ) ==
+          size{ .w = 16, .h = 16 }, names, sheet_options,
+          output ) ==
       base::invalid<string>( "atlas ID map already contains a "
                              "sprite named `_0'." ) );
 }
@@ -134,7 +205,7 @@ TEST_CASE( "[render/sprite-sheet] load_font_sheet" ) {
   AtlasBuilder builder;
   image img = new_empty_image( size{ .w = 32, .h = 48 } );
   expect<AsciiFont> res =
-      load_ascii_font_sheet( builder, std::move( img ) );
+      detail::load_ascii_font_sheet( builder, std::move( img ) );
   REQUIRE( builder.rects().size() == 256 );
   rect src_rect{ .origin = {}, .size = { .w = 2, .h = 3 } };
   REQUIRE( builder.rects()[0] ==
@@ -171,7 +242,7 @@ TEST_CASE(
   AtlasBuilder builder;
   image img = new_empty_image( size{ .w = 33, .h = 48 } );
   expect<AsciiFont> res =
-      load_ascii_font_sheet( builder, std::move( img ) );
+      detail::load_ascii_font_sheet( builder, std::move( img ) );
   REQUIRE( !res.has_value() );
   REQUIRE(
       res.error() ==
@@ -183,7 +254,7 @@ TEST_CASE( "[render/sprite-sheet] load_font_sheet too small" ) {
   AtlasBuilder builder;
   image img = new_empty_image( size{ .w = 0, .h = 48 } );
   expect<AsciiFont> res =
-      load_ascii_font_sheet( builder, std::move( img ) );
+      detail::load_ascii_font_sheet( builder, std::move( img ) );
   REQUIRE( !res.has_value() );
   REQUIRE( res.error() ==
            "ascii font sheet must have at least one pixel per "

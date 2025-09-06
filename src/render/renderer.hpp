@@ -17,7 +17,7 @@
 // render
 #include "irenderer.hpp"
 #include "painter.hpp"
-#include "sprite-sheet.hpp"
+#include "sprite-sheet.rds.hpp"
 #include "typer.hpp"
 
 // base
@@ -262,6 +262,12 @@ struct Renderer : IRenderer, IRendererSettings {
   // this will return its id for use when rendering it.
   std::unordered_map<std::string_view, int> const& atlas_ids()
       const;
+
+  // Given the atlas id of a sprite, this will give the sprite id
+  // of the burrow stencil, if it was computed. NOTE: most
+  // sprites will not be in here because burrow computation is
+  // only enabled when needed, which is not for most sprites.
+  std::unordered_map<int, int> const& atlas_burrow_ids() const;
 
   // Given a globally unique name for a texture in the atlas,
   // this will return its trimmed rect.

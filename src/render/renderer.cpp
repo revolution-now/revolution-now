@@ -178,6 +178,7 @@ struct Renderer::Impl {
         unordered_map<string, int> atlas_ids_arg,
         unordered_map<string_view, int> atlas_ids_fast_arg,
         unordered_map<string, gfx::rect> atlas_trimmed_rects_arg,
+        unordered_map<int, int> atlas_burrow_ids_arg,
         unordered_map<string, AsciiFont> ascii_fonts_arg,
         unordered_map<string_view, AsciiFont*>
             ascii_fonts_fast_arg,
@@ -193,6 +194,7 @@ struct Renderer::Impl {
       atlas_ids_fast( std::move( atlas_ids_fast_arg ) ),
       atlas_trimmed_rects(
           std::move( atlas_trimmed_rects_arg ) ),
+      atlas_burrow_ids( std::move( atlas_burrow_ids_arg ) ),
       ascii_fonts( std::move( ascii_fonts_arg ) ),
       ascii_fonts_fast( std::move( ascii_fonts_fast_arg ) ),
       mod_stack{},
@@ -332,12 +334,12 @@ struct Renderer::Impl {
     postprocessing_pgrm["u_screen_size"_t] = u_screen_size;
 
     AtlasBuilder atlas_builder;
-    unordered_map<string, int> atlas_ids;
+    AtlasLoadOutput atlas_output;
 
     for( SpriteSheetConfig const& sheet :
          config.sprite_sheets ) {
-      CHECK_HAS_VALUE(
-          load_sprite_sheet( atlas_builder, sheet, atlas_ids ) );
+      CHECK_HAS_VALUE( load_sprite_sheet( atlas_builder, sheet,
+                                          atlas_output ) );
     }
 
     unordered_map<string, AsciiFont> ascii_fonts;
@@ -357,7 +359,7 @@ struct Renderer::Impl {
     // this fast version.
     unordered_map<string_view, int> atlas_ids_fast;
     unordered_map<string_view, AsciiFont*> ascii_fonts_fast;
-    for( auto const& [name, id] : atlas_ids )
+    for( auto const& [name, id] : atlas_output.atlas_ids )
       atlas_ids_fast[name] = id;
     for( auto& [name, ascii_font] : ascii_fonts )
       ascii_fonts_fast[name] = &ascii_font;
@@ -371,7 +373,7 @@ struct Renderer::Impl {
         config.max_atlas_size );
 
     unordered_map<string, gfx::rect> atlas_trimmed_rects;
-    for( auto const& [name, id] : atlas_ids )
+    for( auto const& [name, id] : atlas_output.atlas_ids )
       atlas_trimmed_rects[name] =
           atlas.dict.trimmed_bounds( id );
     CHECK( atlas_trimmed_rects.size() == atlas_ids_fast.size() );
@@ -411,9 +413,11 @@ struct Renderer::Impl {
         /*atlas_size=*/atlas_size,
         /*atlas_tx=*/std::move( atlas_tx ),
         /*noise_tx=*/std::move( noise_tx ),
-        /*atlas_ids=*/std::move( atlas_ids ),
+        /*atlas_ids=*/std::move( atlas_output.atlas_ids ),
         /*atlas_ids_fast=*/std::move( atlas_ids_fast ),
         /*atlas_trimmed_rects=*/std::move( atlas_trimmed_rects ),
+        /*atlas_burrow_ids=*/
+        std::move( atlas_output.atlas_burrow_ids ),
         /*ascii_fonts=*/std::move( ascii_fonts ),
         /*ascii_fonts_fast=*/std::move( ascii_fonts_fast ),
         /*logical_screen_size=*/logical_screen_size,
@@ -536,6 +540,10 @@ struct Renderer::Impl {
   unordered_map<string, gfx::rect> const&
   atlas_trimmed_rects_fn() const {
     return atlas_trimmed_rects;
+  }
+
+  unordered_map<int, int> const& atlas_burrow_ids_fn() const {
+    return atlas_burrow_ids;
   }
 
   RendererMods const& mods() const {
@@ -737,6 +745,7 @@ struct Renderer::Impl {
   unordered_map<string, int> const atlas_ids;
   unordered_map<string_view, int> const atlas_ids_fast;
   unordered_map<string, gfx::rect> const atlas_trimmed_rects;
+  unordered_map<int, int> const atlas_burrow_ids;
   unordered_map<string, AsciiFont> const ascii_fonts;
   unordered_map<string_view, AsciiFont*> const ascii_fonts_fast;
 
@@ -844,6 +853,11 @@ unordered_map<string_view, int> const& Renderer::atlas_ids()
 unordered_map<string, gfx::rect> const&
 Renderer::atlas_trimmed_rects() const {
   return impl_->atlas_trimmed_rects_fn();
+}
+
+unordered_map<int, int> const& Renderer::atlas_burrow_ids()
+    const {
+  return impl_->atlas_burrow_ids_fn();
 }
 
 unique_ptr<Renderer> Renderer::create(

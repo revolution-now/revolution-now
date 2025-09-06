@@ -35,21 +35,31 @@ struct AtlasBuilder;
 /****************************************************************
 ** Loading from images.
 *****************************************************************/
+struct AtlasLoadOutput {
+  std::unordered_map<std::string, int> atlas_ids;
+  std::unordered_map<int, int> atlas_burrow_ids;
+};
+
+namespace detail {
+
 base::valid_or<std::string> load_sprite_sheet(
     AtlasBuilder& builder, gfx::image&& sheet,
     gfx::size sprite_size,
     std::unordered_map<std::string, gfx::point> const& names,
-    std::unordered_map<std::string, int>& atlas_ids );
+    SpriteSheetOptions const& sheet_options,
+    AtlasLoadOutput& output );
 
 base::expect<AsciiFont> load_ascii_font_sheet(
     AtlasBuilder& builder, gfx::image&& sheet );
+
+}
 
 /****************************************************************
 ** Loading from config info.
 *****************************************************************/
 base::valid_or<std::string> load_sprite_sheet(
     AtlasBuilder& builder, SpriteSheetConfig const& sheet,
-    std::unordered_map<std::string, int>& atlas_ids );
+    AtlasLoadOutput& output );
 
 base::expect<AsciiFont> load_ascii_font_sheet(
     AtlasBuilder& builder, AsciiFontSheetConfig const& sheet );
