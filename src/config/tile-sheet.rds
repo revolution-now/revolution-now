@@ -17,17 +17,21 @@ include "base/maybe.hpp"
 # C++ standard library.
 include "<vector>"
 
-namespace "rn"
+namespace "rn.config.tile_sheet"
 
-struct.TileSheetsConfig {
+struct.sprites {
   font_sheets 'std::vector<rr::AsciiFontSheetConfig>',
   sprite_sheets 'std::vector<rr::SpriteSheetConfig>',
 
   _features { equality, validation }
 }
 
+namespace "rn"
+
 struct.config_tile_sheet_t {
-  sheets 'TileSheetsConfig',
+  sheets 'config::tile_sheet::sprites',
+
+  max_atlas_size 'gfx::size',
 }
 
 config.tile_sheet {}

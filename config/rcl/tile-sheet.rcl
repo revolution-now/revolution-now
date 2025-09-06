@@ -1,3 +1,5 @@
+max_atlas_size: { w=1200, h=1200 }
+
 sheets {
 
   font_sheets [
