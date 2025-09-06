@@ -755,10 +755,16 @@ enum.e_tile {
   # =============================================================
   # Colonies
   # =============================================================
-  colony_basic,
-  colony_stockade,
-  colony_fort,
-  colony_fortress,
+  colony_basic_houses,
+  colony_stockade_houses,
+  colony_fort_houses,
+  colony_fortress_houses,
+  colony_stockade_walls_front,
+  colony_fort_walls_front,
+  colony_fortress_walls_front,
+  colony_stockade_walls_back,
+  colony_fort_walls_back,
+  colony_fortress_walls_back,
 
   colony_rebel_flag,
   colony_colonial_flag,
