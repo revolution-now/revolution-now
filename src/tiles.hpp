@@ -16,7 +16,7 @@
 #include "config/tile-enum-fwd.hpp"
 
 // render
-#include "render/stencil.hpp"
+#include "render/stencil.rds.hpp"
 
 // gfx
 #include "gfx/coord.hpp"

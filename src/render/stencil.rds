@@ -1,0 +1,25 @@
+# ===============================================================
+# stencil.rds
+#
+# Project: Revolution Now
+#
+# Created by David P. Sicilia on 2025-09-06.
+#
+# Description: Rds definitions for the render/stencil module.
+#
+# ===============================================================
+# gfx
+include "gfx/cartesian.hpp"
+include "gfx/pixel.hpp"
+
+namespace "rr"
+
+struct.StencilPlan {
+  replacement_atlas_id 'int',
+  key_color 'gfx::pixel ',
+}
+
+struct.TexturedDepixelatePlan {
+  reference_atlas_id 'int',
+  offset_into_reference 'gfx::size',
+}

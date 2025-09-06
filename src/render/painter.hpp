@@ -11,7 +11,7 @@
 #pragma once
 
 // render
-#include "stencil.hpp"
+#include "stencil.rds.hpp"
 
 // gfx
 #include "gfx/cartesian.hpp"
