@@ -196,6 +196,52 @@ TEST_CASE( "[parse] space-separated nested table syntax" ) {
   REQUIRE( fmt::to_string( doc ) == expected );
 }
 
+TEST_CASE( "[parse] dotted table values" ) {
+  static string const input = R"(
+    one {
+      a: .b { x=1 }
+      c.d   { x=2 }
+      e f   { x=3 }
+      three.four.five {
+        six: 6
+        seven: 7
+      }
+    }
+  )";
+
+  auto doc = parse( "fake-file", input );
+  REQUIRE( doc );
+
+  string expected =
+      "one {\n"
+      "  a {\n"
+      "    b {\n"
+      "      x: 1\n"
+      "    }\n"
+      "  }\n"
+      "  c {\n"
+      "    d {\n"
+      "      x: 2\n"
+      "    }\n"
+      "  }\n"
+      "  e {\n"
+      "    f {\n"
+      "      x: 3\n"
+      "    }\n"
+      "  }\n"
+      "  three {\n"
+      "    four {\n"
+      "      five {\n"
+      "        seven: 7\n"
+      "        six: 6\n"
+      "      }\n"
+      "    }\n"
+      "  }\n"
+      "}\n";
+
+  REQUIRE( fmt::to_string( doc ) == expected );
+}
+
 TEST_CASE( "[parse] table keys with quotes" ) {
   static string const input = R"(
     one ".two'hello world'" {
