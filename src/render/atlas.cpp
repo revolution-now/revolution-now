@@ -14,6 +14,7 @@
 #include "rect-pack.hpp"
 
 // gfx
+#include "gfx/image-analysis.hpp"
 #include "gfx/image.hpp"
 
 // base
@@ -58,7 +59,8 @@ int AtlasBuilder::ImageBuilder::add_sprite(
   ++atlas_img.count;
   int const id = int( atlas_builder_.rects_.size() );
   atlas_builder_.rects_.push_back( r );
-  rect const trimmed = atlas_img.img.find_trimmed_bounds_in( r );
+  rect const trimmed =
+      find_trimmed_bounds_in( atlas_img.img, r );
   CHECK( trimmed.is_inside( r ) );
   // We want to store the trimmed rect relative to the untrimmed
   // one (not relative to the atlas image origin) because it is

@@ -10,9 +10,6 @@
 *****************************************************************/
 #include "image.hpp"
 
-// gfx
-#include "iter.hpp"
-
 // base
 #include "base/to-str-ext-std.hpp"
 
@@ -29,31 +26,33 @@ using ::base::nothing;
 /****************************************************************
 ** image
 *****************************************************************/
-image::image( size size_pixels, unsigned char* data )
+image::image( size const size_pixels, unsigned char* const data )
   : base::zero<image, unsigned char*>( data ),
     size_pixels_( size_pixels ) {}
 
-gfx::pixel const& image::at( point p ) const {
-  DCHECK( rect_pixels().contains( p ) );
+gfx::pixel const& image::at( point const p ) const {
+  CHECK( rect_pixels().contains( p ) );
   // This reinterpret_cast should be ok because data() has type
   // `unsigned char*` which is allowed to alias anything.
   return *reinterpret_cast<pixel const*>(
       data() + ( p.y * size_pixels_.w + p.x ) * kBytesPerPixel );
 }
 
-gfx::pixel& image::at( point p ) {
-  DCHECK( rect_pixels().contains( p ) );
+gfx::pixel& image::at( point const p ) {
+  CHECK( rect_pixels().contains( p ) );
   // This reinterpret_cast should be ok because data() has type
   // `unsigned char*` which is allowed to alias anything.
   return *reinterpret_cast<pixel*>(
       data() + ( p.y * size_pixels_.w + p.x ) * kBytesPerPixel );
 }
 
-gfx::pixel const& image::operator[]( point p ) const {
+gfx::pixel const& image::operator[]( point const p ) const {
   return at( p );
 }
 
-gfx::pixel& image::operator[]( point p ) { return at( p ); }
+gfx::pixel& image::operator[]( point const p ) {
+  return at( p );
+}
 
 size image::size_pixels() const { return size_pixels_; }
 
@@ -116,8 +115,8 @@ void image::free_resource() { ::free( resource() ); }
 unsigned char* image::data_for( point const p ) const {
   unsigned char* ptr =
       data() + kBytesPerPixel * ( p.y * size_pixels_.w + p.x );
-  DCHECK( ptr >= data() );
-  DCHECK( ptr < data() + size_bytes() );
+  CHECK( ptr >= data() );
+  CHECK( ptr < data() + size_bytes() );
   return ptr;
 }
 
@@ -149,35 +148,19 @@ void image::blit_from( image const& other,
   }
 }
 
-rect image::find_trimmed_bounds_in( rect const r ) const {
-  CHECK( r.is_inside( rect_pixels() ) );
-  maybe<point> p_min = nothing;
-  maybe<point> p_max = nothing;
-  for( auto const p : rect_iterator( r ) ) {
-    if( at( p ).a == 0 ) continue;
-    if( !p_min.has_value() ) {
-      CHECK( !p_max.has_value() );
-      p_min = p;
-      p_max = p;
-    }
-    CHECK( p_min.has_value() );
-    CHECK( p_max.has_value() );
-    p_min->x = std::min( p_min->x, p.x );
-    p_min->y = std::min( p_min->y, p.y );
-    p_max->x = std::max( p_max->x, p.x + 1 );
-    p_max->y = std::max( p_max->y, p.y + 1 );
-  }
-  if( !p_min.has_value() ) {
-    CHECK( !p_max.has_value() );
-    return rect{ .origin = r.center() };
-  }
-  return rect::from( *p_min, *p_max );
+bool image::operator==( image const& rhs ) const {
+  if( &rhs == this ) return true;
+  // Need to compare size in pixels because we need the dimen-
+  // sions to be the same in addition to the number of pixel-
+  // s/bytes.
+  if( size_pixels_ != rhs.size_pixels_ ) return false;
+  return ::memcmp( data(), rhs.data(), size_bytes() ) == 0;
 }
 
 /****************************************************************
 ** Helpers
 *****************************************************************/
-image new_empty_image( size size_pixels ) {
+image new_empty_image( size const size_pixels ) {
   CHECK( !size_pixels.negative() );
   int size_bytes = size_pixels.area() * image::kBytesPerPixel;
   unsigned char* data = (unsigned char*)::malloc( size_bytes );
@@ -185,7 +168,8 @@ image new_empty_image( size size_pixels ) {
   return image( size_pixels, data );
 }
 
-image new_filled_image( size size_pixels, pixel color ) {
+image new_filled_image( size const size_pixels,
+                        pixel const color ) {
   image res = new_empty_image( size_pixels );
   for( pixel& p : span<pixel>( res ) ) p = color;
   return res;
@@ -196,8 +180,8 @@ image new_filled_image( size size_pixels, pixel color ) {
 *****************************************************************/
 namespace testing {
 
-bool image_equals( image const& img, span<pixel const> sp,
-                   source_location loc ) {
+bool image_equals( image const& img, span<pixel const> const sp,
+                   source_location const loc ) {
   if( img.size_pixels().area() != int( sp.size() ) ) {
     fmt::print( "{}:error:images have different sizes: {} != {}",
                 loc, img.size_pixels().area(), sp.size() );
@@ -217,8 +201,8 @@ bool image_equals( image const& img, span<pixel const> sp,
   return success;
 }
 
-image new_image_from_pixels( size dimensions,
-                             std::span<pixel const> sp ) {
+image new_image_from_pixels( size const dimensions,
+                             std::span<pixel const> const sp ) {
   CHECK( dimensions.area() == int( sp.size() ) );
   image img = new_empty_image( dimensions );
   int i     = 0;
