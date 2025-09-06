@@ -1236,5 +1236,88 @@ TEST_CASE( "[render/painter] mod use_camera" ) {
   REQUIRE( v == expected );
 }
 
+TEST_CASE( "[render/painter] mod txdpxl draw_sprite" ) {
+  vector<GenericVertex> v, expected;
+
+  auto Vert = [&]( point const p, point const atlas_p ) {
+    TxDpxl const txdpxl{
+      .reference_sprite_offset = { .w = 3, .h = 4 } };
+    rect const atlas_rect = get_atlas_rect( 2 );
+    auto vert = SpriteVertex( p, atlas_p, atlas_rect, txdpxl );
+    vert.set_textured_depixelation( txdpxl );
+    return vert.generic();
+  };
+
+  PainterMods const mods{
+    .depixelate = DepixelateInfo{
+      .textured = TexturedDepixelatePlan{
+        .reference_atlas_id    = 3,
+        .offset_into_reference = { .w = 2, .h = 3 },
+      } } };
+  Emitter emitter( v );
+  Painter unmodded_painter( atlas_map(), emitter );
+  Painter painter = unmodded_painter.with_mods( mods );
+
+  point p      = { .x = 20, .y = 30 };
+  int atlas_id = 2;
+  painter.draw_sprite( atlas_id, p );
+  // atlas: { .origin = { .x = 3, .y = 4 },
+  //          .size   = { .w = 5, .h = 6 } },
+  expected = {
+    Vert( { .x = 20, .y = 30 }, { .x = 3, .y = 4 } ),
+    Vert( { .x = 20, .y = 36 }, { .x = 3, .y = 10 } ),
+    Vert( { .x = 25, .y = 36 }, { .x = 8, .y = 10 } ),
+    Vert( { .x = 20, .y = 30 }, { .x = 3, .y = 4 } ),
+    Vert( { .x = 25, .y = 30 }, { .x = 8, .y = 4 } ),
+    Vert( { .x = 25, .y = 36 }, { .x = 8, .y = 10 } ),
+  };
+  REQUIRE( v == expected );
+}
+
+TEST_CASE( "[render/painter] mod txdpxl draw_sprite_section" ) {
+  vector<GenericVertex> v, expected;
+
+  rect const section{ .origin = { .x = 1, .y = 1 },
+                      .size   = { .w = 1, .h = 2 } };
+
+  auto Vert = [&]( point const p, point const atlas_p ) {
+    TxDpxl const txdpxl{
+      .reference_sprite_offset = { .w = 3, .h = 4 } };
+    rect atlas_rect = get_atlas_rect( 2 );
+    // Adjust for the section.
+    atlas_rect.origin = atlas_rect.origin +
+                        section.origin.distance_from_origin();
+    atlas_rect.size = section.size;
+    auto vert = SpriteVertex( p, atlas_p, atlas_rect, txdpxl );
+    vert.set_textured_depixelation( txdpxl );
+    return vert.generic();
+  };
+
+  PainterMods const mods{
+    .depixelate = DepixelateInfo{
+      .textured = TexturedDepixelatePlan{
+        .reference_atlas_id    = 3,
+        .offset_into_reference = { .w = 2, .h = 3 },
+      } } };
+  Emitter emitter( v );
+  Painter unmodded_painter( atlas_map(), emitter );
+  Painter painter = unmodded_painter.with_mods( mods );
+
+  point p      = { .x = 20, .y = 30 };
+  int atlas_id = 2;
+  painter.draw_sprite_section( atlas_id, p, section );
+  // atlas: { .origin = { .x = 3, .y = 4 },
+  //          .size   = { .w = 5, .h = 6 } },
+  expected = {
+    Vert( { .x = 20, .y = 30 }, { .x = 4, .y = 5 } ),
+    Vert( { .x = 20, .y = 32 }, { .x = 4, .y = 7 } ),
+    Vert( { .x = 21, .y = 32 }, { .x = 5, .y = 7 } ),
+    Vert( { .x = 20, .y = 30 }, { .x = 4, .y = 5 } ),
+    Vert( { .x = 21, .y = 30 }, { .x = 5, .y = 5 } ),
+    Vert( { .x = 21, .y = 32 }, { .x = 5, .y = 7 } ),
+  };
+  REQUIRE( v == expected );
+}
+
 } // namespace
 } // namespace rr

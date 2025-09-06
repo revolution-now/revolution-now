@@ -251,9 +251,26 @@ Painter& Painter::draw_sprite_impl( rect total_src,
                     .value_or( rect{} )
               : total_src;
 
+  // This will be zero unless there is a section.
+  size const section_delta = src.origin - total_src.origin;
+
   rect const dst{ .origin = dst_origin,
                   .size   = dst_size.value_or( src.size ) };
 
+  // Textured depixelation. Should be first because it can be
+  // used with any other type of sprite vertex.
+  maybe<TxDpxl> txdpxl;
+  if( auto const& info = mods().depixelate.textured; info ) {
+    auto const& [reference_atlas_id, offset_into_reference] =
+        *info;
+    gfx::size const reference_atlas_offset =
+        atlas_.lookup( reference_atlas_id ).origin - src.origin +
+        offset_into_reference + section_delta;
+    txdpxl.emplace().reference_sprite_offset =
+        reference_atlas_offset;
+  }
+
+  // Stenciling.
   if( auto const& stencil = mods().stencil; stencil ) {
     auto const& [replacement_atlas_id, key_color] = *stencil;
     gfx::size const replacement_atlas_offset =
