@@ -28,6 +28,7 @@ namespace {
 
 using namespace std;
 
+using ::base::maybe;
 using ::base::nothing;
 using ::gfx::dsize;
 using ::gfx::pixel;
@@ -697,6 +698,7 @@ TEST_CASE( "[render/painter] draw_empty_rect outter" ) {
 TEST_CASE( "[render/painter] draw_sprite" ) {
   vector<GenericVertex> v, expected;
 
+  maybe<TxDpxl> txdpxl;
   Emitter emitter( v );
   Painter painter( atlas_map(), emitter );
 
@@ -705,7 +707,8 @@ TEST_CASE( "[render/painter] draw_sprite" ) {
   rect const atlas_rect = get_atlas_rect( 1 );
 
   auto Vert = [&]( point p, point atlas_p ) {
-    return SpriteVertex( p, atlas_p, atlas_rect ).generic();
+    return SpriteVertex( p, atlas_p, atlas_rect, txdpxl )
+        .generic();
   };
 
   p            = { .x = 20, .y = 30 };
@@ -727,6 +730,7 @@ TEST_CASE( "[render/painter] draw_sprite" ) {
 TEST_CASE( "[render/painter] draw_stencil" ) {
   vector<GenericVertex> v, expected;
 
+  maybe<TxDpxl> txdpxl;
   Emitter emitter( v );
   Painter unmodded_painter( atlas_map(), emitter );
 
@@ -743,7 +747,8 @@ TEST_CASE( "[render/painter] draw_stencil" ) {
   rect const atlas_rect = get_atlas_rect( 2 );
 
   auto Vert = [&]( point p, point atlas_p ) {
-    return StencilVertex( p, atlas_p, atlas_rect, offset, R )
+    return StencilVertex( p, atlas_p, atlas_rect, offset, R,
+                          txdpxl )
         .generic();
   };
 
@@ -769,6 +774,7 @@ TEST_CASE( "[render/painter] draw_stencil" ) {
 TEST_CASE( "[render/painter] draw_sprite_scale" ) {
   vector<GenericVertex> v, expected;
 
+  maybe<TxDpxl> txdpxl;
   Emitter emitter( v );
   Painter painter( atlas_map(), emitter );
 
@@ -777,7 +783,8 @@ TEST_CASE( "[render/painter] draw_sprite_scale" ) {
   rect const atlas_rect = get_atlas_rect( 1 );
 
   auto Vert = [&]( point p, point atlas_p ) {
-    return SpriteVertex( p, atlas_p, atlas_rect ).generic();
+    return SpriteVertex( p, atlas_p, atlas_rect, txdpxl )
+        .generic();
   };
 
   r            = rect{ .origin = { .x = 20, .y = 30 },
@@ -800,6 +807,7 @@ TEST_CASE( "[render/painter] draw_sprite_scale" ) {
 TEST_CASE( "[render/painter] draw_sprite_section" ) {
   vector<GenericVertex> v, expected;
 
+  maybe<TxDpxl> txdpxl;
   Emitter emitter( v );
   Painter painter( atlas_map(), emitter );
 
@@ -807,7 +815,8 @@ TEST_CASE( "[render/painter] draw_sprite_section" ) {
                                 .size   = { .w = 3, .h = 3 } };
 
   auto Vert = [&]( point p, point atlas_p ) {
-    return SpriteVertex( p, atlas_p, atlas_rect ).generic();
+    return SpriteVertex( p, atlas_p, atlas_rect, txdpxl )
+        .generic();
   };
 
   point p{ .x = 20, .y = 30 };
@@ -832,19 +841,21 @@ TEST_CASE( "[render/painter] draw_sprite_section" ) {
 TEST_CASE( "[render/painter] mod depixelate to blank" ) {
   vector<GenericVertex> v, expected;
 
+  maybe<TxDpxl> txdpxl;
   Emitter emitter( v );
   Painter unmodded_painter( atlas_map(), emitter );
 
   PainterMods const mods{
     .depixelate =
-        DepixelateInfo{ .stage       = .7,
-                        .inverted    = {},
+        DepixelateInfo{ .stage                = .7,
+                        .uniform_depixelation = nothing,
+                        .inverted             = {},
                         .hash_anchor = point{ .x = 1, .y = 2 } },
-    .alpha                = nothing,
-    .repos                = {},
-    .desaturate           = nothing,
-    .fixed_color          = nothing,
-    .uniform_depixelation = nothing };
+    .alpha       = nothing,
+    .repos       = {},
+    .desaturate  = nothing,
+    .fixed_color = nothing,
+  };
   Painter painter = unmodded_painter.with_mods( mods );
 
   point p;
@@ -852,7 +863,7 @@ TEST_CASE( "[render/painter] mod depixelate to blank" ) {
   rect const atlas_rect = get_atlas_rect( 2 );
 
   auto Vert = [&]( point p, point atlas_p ) {
-    auto vert = SpriteVertex( p, atlas_p, atlas_rect );
+    auto vert = SpriteVertex( p, atlas_p, atlas_rect, txdpxl );
     vert.set_depixelation_stage( .7 );
     vert.set_depixelation_hash_anchor( { .x = 1, .y = 2 } );
     return vert.generic();
@@ -877,19 +888,21 @@ TEST_CASE( "[render/painter] mod depixelate to blank" ) {
 TEST_CASE( "[render/painter] mod depixelate with inversion" ) {
   vector<GenericVertex> v, expected;
 
+  maybe<TxDpxl> txdpxl;
   Emitter emitter( v );
   Painter unmodded_painter( atlas_map(), emitter );
 
   PainterMods const mods{
     .depixelate =
-        DepixelateInfo{ .stage       = .7,
-                        .inverted    = true,
+        DepixelateInfo{ .stage                = .7,
+                        .uniform_depixelation = nothing,
+                        .inverted             = true,
                         .hash_anchor = point{ .x = 1, .y = 2 } },
-    .alpha                = nothing,
-    .repos                = {},
-    .desaturate           = nothing,
-    .fixed_color          = nothing,
-    .uniform_depixelation = nothing };
+    .alpha       = nothing,
+    .repos       = {},
+    .desaturate  = nothing,
+    .fixed_color = nothing,
+  };
   Painter painter = unmodded_painter.with_mods( mods );
 
   point p;
@@ -897,7 +910,7 @@ TEST_CASE( "[render/painter] mod depixelate with inversion" ) {
   rect const atlas_rect = get_atlas_rect( 2 );
 
   auto Vert = [&]( point p, point atlas_p ) {
-    auto vert = SpriteVertex( p, atlas_p, atlas_rect );
+    auto vert = SpriteVertex( p, atlas_p, atlas_rect, txdpxl );
     vert.set_depixelation_stage( .7 );
     vert.set_depixelation_inversion( true );
     vert.set_depixelation_hash_anchor( { .x = 1, .y = 2 } );
@@ -926,12 +939,13 @@ TEST_CASE( "[render/painter] mod alpha" ) {
   Emitter emitter( v );
   Painter unmodded_painter( atlas_map(), emitter );
 
-  PainterMods const mods{ .depixelate           = {},
-                          .alpha                = .7,
-                          .repos                = {},
-                          .desaturate           = nothing,
-                          .fixed_color          = nothing,
-                          .uniform_depixelation = nothing };
+  PainterMods const mods{
+    .depixelate  = {},
+    .alpha       = .7,
+    .repos       = {},
+    .desaturate  = nothing,
+    .fixed_color = nothing,
+  };
 
   Painter painter = unmodded_painter.with_mods( mods );
 
@@ -1028,12 +1042,13 @@ TEST_CASE( "[render/painter] mod desaturate" ) {
   Emitter emitter( v );
   Painter unmodded_painter( atlas_map(), emitter );
 
-  PainterMods const mods{ .depixelate           = {},
-                          .alpha                = {},
-                          .repos                = {},
-                          .desaturate           = true,
-                          .fixed_color          = nothing,
-                          .uniform_depixelation = nothing };
+  PainterMods const mods{
+    .depixelate  = {},
+    .alpha       = {},
+    .repos       = {},
+    .desaturate  = true,
+    .fixed_color = nothing,
+  };
 
   Painter painter = unmodded_painter.with_mods( mods );
 
@@ -1065,12 +1080,13 @@ TEST_CASE( "[render/painter] mod fixed_color" ) {
   Emitter emitter( v );
   Painter unmodded_painter( atlas_map(), emitter );
 
-  PainterMods const mods{ .depixelate  = {},
-                          .alpha       = {},
-                          .repos       = {},
-                          .desaturate  = {},
-                          .fixed_color = gfx::pixel::red(),
-                          .uniform_depixelation = nothing };
+  PainterMods const mods{
+    .depixelate  = {},
+    .alpha       = {},
+    .repos       = {},
+    .desaturate  = {},
+    .fixed_color = gfx::pixel::red(),
+  };
 
   Painter painter = unmodded_painter.with_mods( mods );
 
@@ -1103,12 +1119,13 @@ TEST_CASE( "[render/painter] mod uniform depixelation" ) {
   Emitter emitter( v );
   Painter unmodded_painter( atlas_map(), emitter );
 
-  PainterMods const mods{ .depixelate           = {},
-                          .alpha                = {},
-                          .repos                = {},
-                          .desaturate           = nothing,
-                          .fixed_color          = nothing,
-                          .uniform_depixelation = true };
+  PainterMods const mods{
+    .depixelate  = { .uniform_depixelation = true },
+    .alpha       = {},
+    .repos       = {},
+    .desaturate  = nothing,
+    .fixed_color = nothing,
+  };
 
   Painter painter = unmodded_painter.with_mods( mods );
 
@@ -1190,9 +1207,9 @@ TEST_CASE( "[render/painter] mod use_camera" ) {
           .translation2 = dsize{ .w = 5.3, .h = 3 },
           .use_camera   = true,
         },
-    .desaturate           = nothing,
-    .fixed_color          = nothing,
-    .uniform_depixelation = nothing };
+    .desaturate  = nothing,
+    .fixed_color = nothing,
+  };
 
   Painter painter = unmodded_painter.with_mods( mods );
 

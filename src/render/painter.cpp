@@ -13,6 +13,7 @@
 // render
 #include "atlas.hpp"
 #include "emitter.hpp"
+#include "vertex.hpp"
 
 using namespace std;
 
@@ -138,8 +139,9 @@ void Painter::add_mods( VertexBase& vert,
     vert.set_desaturate( *mods.desaturate );
   if( mods.fixed_color.has_value() )
     vert.set_fixed_color( *mods.fixed_color );
-  if( mods.uniform_depixelation.has_value() )
-    vert.set_uniform_depixelation( *mods.uniform_depixelation );
+  if( mods.depixelate.uniform_depixelation.has_value() )
+    vert.set_uniform_depixelation(
+        *mods.depixelate.uniform_depixelation );
   vert.set_color_cycle( mods.cycling.plan.has_value() );
   if( mods.cycling.plan.has_value() )
     vert.set_color_cycle_plan( *mods.cycling.plan );
@@ -261,14 +263,15 @@ Painter& Painter::draw_sprite_impl( rect total_src,
         src, dst, [&, this]( point pos, point atlas_pos ) {
           emit( StencilVertex( pos, atlas_pos, src,
                                replacement_atlas_offset,
-                               key_color ) );
+                               key_color, txdpxl ) );
         } );
     return *this;
   }
 
+  // Normal sprite.
   emit_texture_quad(
       src, dst, [&, this]( point pos, point atlas_pos ) {
-        emit( SpriteVertex( pos, atlas_pos, src ) );
+        emit( SpriteVertex( pos, atlas_pos, src, txdpxl ) );
       } );
   return *this;
 }

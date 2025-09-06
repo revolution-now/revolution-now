@@ -32,8 +32,59 @@ struct VertexBase;
 // Only the leaf mod traits should be wrapped in maybe's instead
 // of the structs grouping them because it makes it easier to
 // perform focused updates on individual fields.
+//
+// There are three kinds of depixelation. Each one has a dif-
+// ferent method for computing the stage. But they are all sim-
+// ilar in that once the stage is computed for a given pixel, it
+// is compared against a pixel of the noise texture to determine
+// whether the pixel is visible or not. The three kinds are ap-
+// plied in this order:
+//
+//   1. Geometric depixelation. This is where the stage is com-
+//      puted algorithmically, either a constant value specified
+//      in the vertex, or a linear gradient, also specified in
+//      the vertex.
+//   2. Textured depixelation. This is where the stage of each
+//      pixel is read from a secondary reference sprite. This al-
+//      lowed depixelating a sprite in arbitrary ways.
+//   3. Uniform depixelation. This is where the stage is speci-
+//      fied by a uniform, and thus is the same for all pixels in
+//      all triangles.
+//
 struct DepixelateInfo {
+  // ------------------------------------------------------------
+  // Geometric depixelation.
+  // ------------------------------------------------------------
   base::maybe<double> stage = {};
+  // This allows varying the depixelation stage across the body
+  // of the triangle. If this is set then the anchor point will
+  // have the stage value specified in the `stage` attribute and
+  // it will be varied throughout the body of the triangle using
+  // this gradient by extrapolating linearly in each dimension.
+  // Specifically, each component of this quantity has the dimen-
+  // sions of delta(stage)/delta(logical-pixels).
+  base::maybe<gfx::dsize> stage_gradient = {};
+  // When the depixelation stage is gradiated, this is the loca-
+  // tion in game coordinates that will be assumed to hold the
+  // base stage value and from which the other values across the
+  // triangle will be computed using the stage_gradient slopes to
+  // extrapolate.
+  base::maybe<gfx::dpoint> stage_anchor = {};
+
+  // ------------------------------------------------------------
+  // Textured depixelation.
+  // ------------------------------------------------------------
+  base::maybe<TexturedDepixelatePlan> textured = {};
+
+  // ------------------------------------------------------------
+  // Uniform depixelation.
+  // ------------------------------------------------------------
+  base::maybe<bool> uniform_depixelation = {};
+
+  // ------------------------------------------------------------
+  // Common flags.
+  // ------------------------------------------------------------
+  // These flags apply to any type of depixelation.
 
   // Flip the interpretation of the stage. This is similar to
   // doing stage=1.0-stage, but it is not exactly the same be-
@@ -50,22 +101,6 @@ struct DepixelateInfo {
   // move with the sprite. So using the upper left corner of the
   // sprite seems to be a good idea.
   base::maybe<gfx::point> hash_anchor = {};
-
-  // This allows varying the depixelation stage across the body
-  // of the triangle. If this is set then the anchor point will
-  // have the stage value specified in the `stage` attribute and
-  // it will be varied throughout the body of the triangle using
-  // this gradient by extrapolating linearly in each dimension.
-  // Specifically, each component of this quantity has the dimen-
-  // sions of delta(stage)/delta(logical-pixels).
-  base::maybe<gfx::dsize> stage_gradient = {};
-
-  // When the depixelation stage is gradiated, this is the loca-
-  // tion in game coordinates that will be assumed to hold the
-  // base stage value and from which the other values across the
-  // triangle will be computed using the stage_gradient slopes to
-  // extrapolate.
-  base::maybe<gfx::dpoint> stage_anchor = {};
 };
 
 // These options allow specifying a global rescaling and transla-
@@ -93,15 +128,14 @@ struct SamplingInfo {
 };
 
 struct PainterMods {
-  DepixelateInfo depixelate              = {};
-  base::maybe<double> alpha              = {};
-  RepositionInfo repos                   = {};
-  ColorCyclingInfo cycling               = {};
-  base::maybe<bool> desaturate           = {};
-  base::maybe<gfx::pixel> fixed_color    = {};
-  base::maybe<bool> uniform_depixelation = {};
-  base::maybe<StencilPlan> stencil       = {};
-  SamplingInfo sampling                  = {};
+  DepixelateInfo depixelate           = {};
+  base::maybe<double> alpha           = {};
+  RepositionInfo repos                = {};
+  ColorCyclingInfo cycling            = {};
+  base::maybe<bool> desaturate        = {};
+  base::maybe<gfx::pixel> fixed_color = {};
+  base::maybe<StencilPlan> stencil    = {};
+  SamplingInfo sampling               = {};
 };
 
 /****************************************************************
@@ -183,7 +217,10 @@ struct Painter {
   // This allows drawing a section of a sprite. The `section`
   // rect has its origin relative to the upper left corner of the
   // sprite. Any parts of the section that fall outside of the
-  // sprite will be clipped.
+  // sprite will be clipped. The destination pixel coord is the
+  // location of the clipped section of the sprite (i.e. the vis-
+  // ible part); it is /not/ the origin that the full sprite
+  // would have had were it visible.
   Painter& draw_sprite_section( int atlas_id, gfx::point where,
                                 gfx::rect section );
 
