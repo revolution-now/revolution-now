@@ -780,27 +780,19 @@ local function add_dwelling( coord, tribe )
   local dwelling = natives:new_dwelling( tribe, coord )
   dwelling.teaches =
       native_expertise.select_expertise_for_dwelling( dwelling )
-  -- Get rid of any forest if we're placing one of the city
-  -- dwellings. The OG does not do this, but they don't really
-  -- look good floating above a forest given that they are sup-
-  -- posed to represent advanced cities, so we will remove
-  -- them.
-  if tribe == 'aztec' or tribe == 'inca' then
-    square.overlay = nil
-  end
   square.road = true
-  -- We'll try not to build on LCRs or mountains, but occasion-
-  -- ally we are forced to place a settlement there, so clear
-  -- them anyway.
+  -- We'll try not to build on LCRs, mountains, or hills, but oc-
+  -- casionally we are forced to place a settlement there, so
+  -- clear them anyway.
   square.lost_city_rumor = false
   if square.overlay == 'mountains' then square.overlay = nil end
+  if square.overlay == 'hills' then square.overlay = nil end
   -- Mark the land around the dwelling as owned by this village.
   -- If it's already owned by another dwelling that's ok, we'll
   -- just overwrite it.
-  local owned_squares
-  owned_squares = filter_on_map(
-                      surrounding_squares_tribe_owned( tribe,
-                                                       coord ) )
+  local owned_squares = filter_on_map(
+                            surrounding_squares_tribe_owned(
+                                tribe, coord ) )
   natives:mark_land_owned( dwelling.id, coord )
   for _, where in ipairs( owned_squares ) do
     natives:mark_land_owned( dwelling.id, where )
