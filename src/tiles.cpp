@@ -183,10 +183,11 @@ void render_sprite( rr::Renderer& renderer, Coord where,
   render_sprite( renderer, where.to_gfx(), tile );
 }
 
-void render_sprite_section( rr::Painter& painter, e_tile tile,
-                            Coord where, Rect source ) {
-  painter.draw_sprite_section( atlas_lookup( tile ), where,
-                               source );
+void render_sprite_section( rr::Renderer& renderer,
+                            e_tile const tile, point const where,
+                            rect const source ) {
+  renderer.painter().draw_sprite_section( atlas_lookup( tile ),
+                                          where, source );
 }
 
 void render_sprite_outline( rr::Renderer& renderer,
@@ -273,23 +274,22 @@ void tile_sprite( rr::Renderer& renderer, e_tile tile,
         rect.upper_left() +
             r.upper_left().distance_from_origin() * info,
         tile );
-  rr::Painter painter = renderer.painter();
   for( H h = 0; h < smaller_rect.h / info.h; ++h ) {
     auto where = rect.upper_right() - Delta{ .w = mod.w } +
                  Delta{ .h = h } * info.h;
     render_sprite_section(
-        painter, tile, where,
+        renderer, tile, where,
         Rect::from( Coord{}, mod.with_height( 1 * info.h ) ) );
   }
   for( W w = 0; w < smaller_rect.w / info.w; ++w ) {
     auto where = rect.lower_left() - Delta{ .h = mod.h } +
                  Delta{ .w = w } * info.w;
     render_sprite_section(
-        painter, tile, where,
+        renderer, tile, where,
         Rect::from( Coord{}, mod.with_width( 1 * info.w ) ) );
   }
   auto where = rect.lower_right() - mod;
-  render_sprite_section( painter, tile, where,
+  render_sprite_section( renderer, tile, where,
                          Rect::from( Coord{}, mod ) );
 }
 

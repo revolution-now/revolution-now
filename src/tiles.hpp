@@ -90,12 +90,16 @@ void render_sprite_silhouette( rr::Renderer& renderer,
 void render_sprite_dulled( rr::Renderer& renderer, Coord where,
                            e_tile tile, bool dulled );
 
-// This will render a rectangular subsection of the sprite. The
-// `source` rect has its origin relative to the upper left corner
-// of the sprite in the atlas. Any part of the source rect that
-// lies outside of the sprite will be clipped.
-void render_sprite_section( rr::Painter& painter, e_tile tile,
-                            Coord pixel_coord, Rect source );
+// This allows drawing a section of a sprite. The `section` rect
+// has its origin relative to the upper left corner of the
+// sprite. Any parts of the section that fall outside of the
+// sprite will be clipped. The destination pixel coord is the lo-
+// cation of the clipped section of the sprite (i.e. the visible
+// part); it is /not/ the origin that the full sprite would have
+// had were it visible.
+void render_sprite_section( rr::Renderer& renderer, e_tile tile,
+                            gfx::point pixel_coord,
+                            gfx::rect source );
 
 // Unfortunately this requires rendering the sprite five times.
 void render_sprite_outline( rr::Renderer& renderer,
