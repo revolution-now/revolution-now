@@ -13,6 +13,9 @@ sheets {
     {
       img_path: assets/art/tiles/flags.png
       sprite_size: { w: 12, h: 12 }
+      options {
+        compute_burrow: false
+      }
       sprites {
         privateer_x: { y: 0, x: 0 }
       }
@@ -20,6 +23,9 @@ sheets {
     {
       img_path: assets/art/tiles/ui-32x32.png
       sprite_size: { w: 32, h: 32 }
+      options {
+        compute_burrow: false
+      }
       sprites {
         lift_key: { y: 0, x: 0 }
       }
@@ -27,6 +33,9 @@ sheets {
     {
       img_path: assets/art/tiles/natives.png
       sprite_size: { w: 32, h: 32 }
+      options {
+        compute_burrow: false
+      }
       sprites {
         brave:                   { y: 0, x: 0 }
         armed_brave:             { y: 0, x: 1 }
@@ -42,6 +51,9 @@ sheets {
     {
       img_path: assets/art/harbor2/tiles-16x16.png
       sprite_size: { w: 16, h: 16 }
+      options {
+        compute_burrow: false
+      }
       sprites {
         harbor_flag_silhouette: { y: 0, x: 0 }
         harbor_flag_shades:     { y: 0, x: 1 }
@@ -51,6 +63,9 @@ sheets {
     {
       img_path: assets/art/harbor2/post.png
       sprite_size: { w: 59, h: 145 }
+      options {
+        compute_burrow: false
+      }
       sprites {
         harbor_post: { y: 0, x: 0 }
       }
@@ -58,6 +73,9 @@ sheets {
     {
       img_path: assets/art/harbor2/houses-buildings.png
       sprite_size: { w: 320, h: 102 }
+      options {
+        compute_burrow: false
+      }
       sprites {
         harbor_houses_buildings: { y: 0, x: 0 }
       }
@@ -65,6 +83,9 @@ sheets {
     {
       img_path: assets/art/harbor2/houses-road.png
       sprite_size: { w: 320, h: 102 }
+      options {
+        compute_burrow: false
+      }
       sprites {
         harbor_houses_road: { y: 0, x: 0 }
       }
@@ -72,6 +93,9 @@ sheets {
     {
       img_path: assets/art/harbor2/houses-trees-far.png
       sprite_size: { w: 320, h: 102 }
+      options {
+        compute_burrow: false
+      }
       sprites {
         harbor_houses_trees_far: { y: 0, x: 0 }
       }
@@ -79,6 +103,9 @@ sheets {
     {
       img_path: assets/art/harbor2/houses-docks.png
       sprite_size: { w: 320, h: 102 }
+      options {
+        compute_burrow: false
+      }
       sprites {
         harbor_houses_docks: { y: 0, x: 0 }
       }
@@ -86,6 +113,9 @@ sheets {
     {
       img_path: assets/art/harbor2/houses-smoke.png
       sprite_size: { w: 320, h: 102 }
+      options {
+        compute_burrow: false
+      }
       sprites {
         harbor_houses_smoke: { y: 0, x: 0 }
       }
@@ -93,6 +123,9 @@ sheets {
     {
       img_path: assets/art/harbor2/rpt-buttons.png
       sprite_size: { w: 49, h: 12 }
+      options {
+        compute_burrow: false
+      }
       sprites {
         harbor_rpt_button_normal: { y: 0, x: 0 }
         harbor_rpt_button_hover:  { y: 1, x: 0 }
@@ -106,6 +139,9 @@ sheets {
     {
       img_path: assets/art/harbor2/cargohold.png
       sprite_size: { w: 204, h: 39 }
+      options {
+        compute_burrow: false
+      }
       sprites {
         harbor_cargo_hold: { y: 0, x: 0 }
       }
@@ -113,6 +149,9 @@ sheets {
     {
       img_path: assets/art/harbor2/cargo-walls.png
       sprite_size: { w: 32, h: 32 }
+      options {
+        compute_burrow: false
+      }
       sprites {
         harbor_cargo_overflow: { y: 0, x: 0 }
         harbor_cargo_front:    { y: 0, x: 1 }
@@ -122,6 +161,9 @@ sheets {
     {
       img_path: assets/art/harbor2/ocean.png
       sprite_size: { w: 144, h: 152 }
+      options {
+        compute_burrow: false
+      }
       sprites {
         harbor_ocean: { y: 0, x: 0 }
       }
@@ -129,6 +171,9 @@ sheets {
     {
       img_path: assets/art/harbor2/sun.png
       sprite_size: { w: 16, h: 63 }
+      options {
+        compute_burrow: false
+      }
       sprites {
         harbor_sun: { y: 0, x: 0 }
       }
@@ -136,6 +181,9 @@ sheets {
     {
       img_path: assets/art/harbor2/birds.png
       sprite_size: { w: 67, h: 26 }
+      options {
+        compute_burrow: false
+      }
       sprites {
         harbor_birds_1: { y: 0, x: 0 }
         harbor_birds_2: { y: 1, x: 0 }
@@ -147,6 +195,9 @@ sheets {
     {
       img_path: assets/art/harbor2/land-dirt.png
       sprite_size: { w: 310, h: 158 }
+      options {
+        compute_burrow: false
+      }
       sprites {
         harbor_land_dirt: { y: 0, x: 0 }
       }
@@ -154,6 +205,9 @@ sheets {
     {
       img_path: assets/art/harbor2/land-shadows.png
       sprite_size: { w: 310, h: 158 }
+      options {
+        compute_burrow: false
+      }
       sprites {
         harbor_land_shadows: { y: 0, x: 0 }
       }
@@ -161,6 +215,9 @@ sheets {
     {
       img_path: assets/art/harbor2/dock-dock.png
       sprite_size: { w: 174, h: 46 }
+      options {
+        compute_burrow: false
+      }
       sprites {
         harbor_dock: { y: 0, x: 0 }
       }
@@ -168,6 +225,9 @@ sheets {
     {
       img_path: assets/art/harbor2/dock-shadows.png
       sprite_size: { w: 174, h: 46 }
+      options {
+        compute_burrow: false
+      }
       sprites {
         harbor_dock_shadows: { y: 0, x: 0 }
       }
@@ -175,6 +235,9 @@ sheets {
     {
       img_path: assets/art/harbor2/dock-overlay.png
       sprite_size: { w: 174, h: 46 }
+      options {
+        compute_burrow: false
+      }
       sprites {
         harbor_dock_overlay: { y: 0, x: 0 }
       }
@@ -182,6 +245,9 @@ sheets {
     {
       img_path: assets/art/harbor2/clouds-large.png
       sprite_size: { w: 180, h: 40 }
+      options {
+        compute_burrow: false
+      }
       sprites {
         harbor_cloud_large_1: { y: 0, x: 0 }
         harbor_cloud_large_2: { y: 1, x: 0 }
@@ -195,6 +261,9 @@ sheets {
     {
       img_path: assets/art/harbor2/clouds-medium.png
       sprite_size: { w: 90, h: 20 }
+      options {
+        compute_burrow: false
+      }
       sprites {
         harbor_cloud_medium_1: { y: 0, x: 0 }
         harbor_cloud_medium_2: { y: 1, x: 0 }
@@ -206,6 +275,9 @@ sheets {
     {
       img_path: assets/art/harbor2/clouds-small.png
       sprite_size: { w: 45, h: 10 }
+      options {
+        compute_burrow: false
+      }
       sprites {
         harbor_cloud_small_1: { y: 0, x: 0 }
         harbor_cloud_small_2: { y: 1, x: 0 }
@@ -216,6 +288,9 @@ sheets {
     {
       img_path: assets/art/harbor2/clouds-tiny.png
       sprite_size: { w: 15, h: 5 }
+      options {
+        compute_burrow: false
+      }
       sprites {
         harbor_cloud_tiny_1: { y: 0, x: 0 }
         harbor_cloud_tiny_2: { y: 1, x: 0 }
@@ -224,6 +299,9 @@ sheets {
     {
       img_path: assets/art/harbor2/exit-text.png
       sprite_size: { w: 20, h: 18 }
+      options {
+        compute_burrow: false
+      }
       sprites {
         harbor_exit_text:       { y: 0, x: 0 }
         harbor_exit_text_hover: { y: 0, x: 1 }
@@ -232,6 +310,9 @@ sheets {
     {
       img_path: assets/art/harbor2/slashes.png
       sprite_size: { w: 4, h: 8 }
+      options {
+        compute_burrow: false
+      }
       sprites {
         harbor_market_slash_slim:   { y: 0, x: 0 }
         harbor_market_slash_medium: { y: 0, x: 1 }
@@ -241,6 +322,9 @@ sheets {
     {
       img_path: assets/art/harbor2/plates-slim.png
       sprite_size: { w: 32, h: 36 }
+      options {
+        compute_burrow: false
+      }
       sprites {
         harbor_market_sign_left_slim: { y: 0, x: 0 }
         harbor_market_plate_slim:     { y: 0, x: 1 }
@@ -250,6 +334,9 @@ sheets {
     {
       img_path: assets/art/harbor2/plates-medium.png
       sprite_size: { w: 36, h: 36 }
+      options {
+        compute_burrow: false
+      }
       sprites {
         harbor_market_plate_medium:     { y: 0, x: 1 }
       }
@@ -257,6 +344,9 @@ sheets {
     {
       img_path: assets/art/harbor2/plates-wide.png
       sprite_size: { w: 40, h: 40 }
+      options {
+        compute_burrow: false
+      }
       sprites {
         harbor_market_plate_wide:     { y: 0, x: 0 }
       }
@@ -264,6 +354,9 @@ sheets {
     {
       img_path: assets/art/harbor2/signs-wide.png
       sprite_size: { w: 64, h: 40 }
+      options {
+        compute_burrow: false
+      }
       sprites {
         harbor_market_sign_left_wide: { y: 0, x: 0 }
         harbor_market_sign_exit_wide: { y: 0, x: 1 }
@@ -272,6 +365,9 @@ sheets {
     {
       img_path: assets/art/tiles/dwellings.png
       sprite_size: { w: 44, h: 44 }
+      options {
+        compute_burrow: true
+      }
       sprites {
         camp:               { y: 0, x: 0 }
         village:            { y: 0, x: 1 }
@@ -282,6 +378,9 @@ sheets {
     {
       img_path: assets/art/tiles/resources.png
       sprite_size: { w: 32, h: 32 }
+      options {
+        compute_burrow: false
+      }
       sprites {
         resource_beaver:            { y: 0, x: 0 }
         resource_cotton:            { y: 0, x: 1 }
@@ -305,6 +404,9 @@ sheets {
     {
       img_path: assets/art/colony/colony-view-16.png
       sprite_size: { w: 16, h: 16 }
+      options {
+        compute_burrow: false
+      }
       sprites {
         rebel_flag: { y: 0, x: 0 }
         crown:      { y: 0, x: 1 }
@@ -313,6 +415,9 @@ sheets {
     {
       img_path: assets/art/colony/production-buttons-20.png
       sprite_size: { w: 20, h: 20 }
+      options {
+        compute_burrow: false
+      }
       sprites {
         production_button_house:  { y: 0, x: 0 }
         production_button_gun:    { y: 1, x: 0 }
@@ -322,6 +427,9 @@ sheets {
     {
       img_path: assets/art/tiles/terrain.png
       sprite_size: { w: 32, h: 32 }
+      options {
+        compute_burrow: false
+      }
       sprites {
         terrain_ocean:               { y: 0, x: 4 }
         terrain_ocean_sea_lane:      { y: 0, x: 5 }
@@ -345,6 +453,9 @@ sheets {
     {
       img_path: assets/art/tiles/rivers-water.png
       sprite_size: { w: 32, h: 32 }
+      options {
+        compute_burrow: false
+      }
       sprites {
         terrain_river_minor_left:                { y: 0, x: 0 }
         terrain_river_minor_up:                  { y: 0, x: 1 }
@@ -395,6 +506,9 @@ sheets {
     {
       img_path: assets/art/tiles/rivers-cycle.png
       sprite_size: { w: 32, h: 32 }
+      options {
+        compute_burrow: false
+      }
       sprites {
         terrain_river_cycle_minor_left:                { y: 0, x: 0 }
         terrain_river_cycle_minor_up:                  { y: 0, x: 1 }
@@ -440,6 +554,9 @@ sheets {
     {
       img_path: assets/art/tiles/rivers-bank.png
       sprite_size: { w: 32, h: 32 }
+      options {
+        compute_burrow: false
+      }
       sprites {
         terrain_river_bank_minor_left:                { y: 0, x: 0 }
         terrain_river_bank_minor_up:                  { y: 0, x: 1 }
@@ -490,6 +607,9 @@ sheets {
     {
       img_path: assets/art/tiles/rivers-backdrop.png
       sprite_size: { w: 32, h: 32 }
+      options {
+        compute_burrow: false
+      }
       sprites {
         terrain_river_shading: { y: 0, x: 4 }
       }
@@ -497,6 +617,9 @@ sheets {
     {
       img_path: assets/art/tiles/coast-stencils.png
       sprite_size: { w: 32, h: 32 }
+      options {
+        compute_burrow: false
+      }
       sprites {
         terrain_ocean_island:          { y: 0, x: 0 }
 
@@ -594,6 +717,9 @@ sheets {
     {
       img_path: assets/art/tiles/coast-sand.png
       sprite_size: { w: 32, h: 32 }
+      options {
+        compute_burrow: false
+      }
       sprites {
         terrain_sand_up_right_o_o:   { y: 6, x: 0 }
         terrain_sand_up_right_c_o:   { y: 6, x: 1 }
@@ -619,6 +745,9 @@ sheets {
     {
       img_path: assets/art/tiles/coast-border.png
       sprite_size: { w: 32, h: 32 }
+      options {
+        compute_burrow: false
+      }
       sprites {
         terrain_border_island:          { y: 0, x: 0 }
 
@@ -714,6 +843,9 @@ sheets {
     {
       img_path: assets/art/tiles/coast-surf.png
       sprite_size: { w: 32, h: 32 }
+      options {
+        compute_burrow: false
+      }
       sprites {
         terrain_surf_up_right_o_o:   { y: 6, x: 0 }
         terrain_surf_up_right_c_o:   { y: 6, x: 1 }
@@ -739,6 +871,9 @@ sheets {
     {
       img_path: assets/art/tiles/coast-beach.png
       sprite_size: { w: 32, h: 32 }
+      options {
+        compute_burrow: false
+      }
       sprites {
         terrain_beach_island:          { y: 0, x: 0 }
 
@@ -831,6 +966,9 @@ sheets {
     {
       img_path: assets/art/tiles/forest.png
       sprite_size: { w: 32, h: 32 }
+      options {
+        compute_burrow: false
+      }
       sprites {
         terrain_forest_island:           { y: 0, x: 0 }
         terrain_forest_all:              { y: 0, x: 1 }
@@ -857,6 +995,9 @@ sheets {
     {
       img_path: assets/art/tiles/hills.png
       sprite_size: { w: 32, h: 32 }
+      options {
+        compute_burrow: false
+      }
       sprites {
         terrain_hills_island:           { y: 0, x: 0 }
         terrain_hills_all:              { y: 0, x: 1 }
@@ -883,6 +1024,9 @@ sheets {
     {
       img_path: assets/art/tiles/mountains.png
       sprite_size: { w: 32, h: 32 }
+      options {
+        compute_burrow: false
+      }
       sprites {
         terrain_mountains_island:           { y: 0, x: 0 }
         terrain_mountains_all:              { y: 0, x: 1 }
@@ -909,6 +1053,9 @@ sheets {
     {
       img_path: assets/art/tiles/world.png
       sprite_size: { w: 32, h: 32 }
+      options {
+        compute_burrow: false
+      }
       sprites {
         panel:               { y: 3, x: 0 }
         panel_edge_left:     { y: 3, x: 1 }
@@ -920,6 +1067,9 @@ sheets {
     {
       img_path: assets/art/tiles/road.png
       sprite_size: { w: 32, h: 32 }
+      options {
+        compute_burrow: false
+      }
       sprites {
         road_island_small:   { y: 0, x: 0 }
         road_island:         { y: 0, x: 1 }
@@ -936,6 +1086,9 @@ sheets {
     {
       img_path: assets/art/tiles/irrigation.png
       sprite_size: { w: 32, h: 32 }
+      options {
+        compute_burrow: false
+      }
       sprites {
         irrigation:          { y: 0, x: 0 }
       }
@@ -943,6 +1096,9 @@ sheets {
     {
       img_path: assets/art/tiles/wood-128x64.png
       sprite_size: { w: 128, h: 64 }
+      options {
+        compute_burrow: false
+      }
       sprites {
         wood_middle          { y: 0, x: 0 }
         wood_left_edge       { y: 1, x: 0 }
@@ -951,6 +1107,9 @@ sheets {
     {
       img_path: assets/art/tiles/units.png
       sprite_size: { w: 32, h: 32 }
+      options {
+        compute_burrow: false
+      }
       sprites {
         petty_criminal:         { y: 3, x: 0 }
         indentured_servant:     { y: 3, x: 1 }
@@ -1008,6 +1167,9 @@ sheets {
     {
       img_path: assets/art/tiles/menu.png
       sprite_size: { w: 8, h: 8 }
+      options {
+        compute_burrow: false
+      }
       sprites {
         submenu_arrow:       { y: 0, x: 0 }
       }
@@ -1015,6 +1177,9 @@ sheets {
     {
       img_path: assets/art/tiles/button.png
       sprite_size: { w: 8, h: 8 }
+      options {
+        compute_burrow: false
+      }
       sprites {
         button_up_ul:   { y: 0, x: 0 }
         button_up_um:   { y: 0, x: 1 }
@@ -1039,6 +1204,9 @@ sheets {
     {
       img_path: assets/art/tiles/commodities.png
       sprite_size: { w: 16, h: 16 }
+      options {
+        compute_burrow: false
+      }
       sprites {
         commodity_food_16:        { y: 0, x: 0  }
         commodity_sugar_16:       { y: 0, x: 1  }
@@ -1067,6 +1235,9 @@ sheets {
     {
       img_path: assets/art/tiles/commodities20.png
       sprite_size: { w: 20, h: 20 }
+      options {
+        compute_burrow: false
+      }
       sprites {
         commodity_food_20:        { y: 0, x: 0  }
         commodity_sugar_20:       { y: 0, x: 1  }
@@ -1096,6 +1267,9 @@ sheets {
     {
       img_path: assets/art/tiles/red-xs.png
       sprite_size: { w: 16, h: 16 }
+      options {
+        compute_burrow: false
+      }
       sprites {
         red_x_12: { y: 0, x: 0  }
         red_x_8:  { y: 0, x: 1  }
@@ -1103,18 +1277,39 @@ sheets {
       }
     }
     {
-      img_path: assets/art/tiles/colony.png
+      img_path: assets/art/colony/houses.png
       sprite_size: { w: 44, h: 44 }
+      options {
+        compute_burrow: true
+      }
       sprites {
-        colony_basic:    { y: 0, x: 0  }
-        colony_stockade: { y: 0, x: 1  }
-        colony_fort:     { y: 0, x: 1  } # TODO
-        colony_fortress: { y: 0, x: 1  } # TODO
+        colony_basic_houses:    { y: 0, x: 0  }
+        colony_stockade_houses: { y: 0, x: 1  }
+        colony_fort_houses:     { y: 0, x: 2  }
+        colony_fortress_houses: { y: 0, x: 3  }
+      }
+    }
+    {
+      img_path: assets/art/colony/walls.png
+      sprite_size: { w: 44, h: 44 }
+      options {
+        compute_burrow: true
+      }
+      sprites {
+        colony_stockade_walls_back:  { y: 1, x: 1  }
+        colony_fort_walls_back:      { y: 1, x: 2  }
+        colony_fortress_walls_back:  { y: 1, x: 3  }
+        colony_stockade_walls_front: { y: 2, x: 1  }
+        colony_fort_walls_front:     { y: 2, x: 2  }
+        colony_fortress_walls_front: { y: 2, x: 3  }
       }
     }
     {
       img_path: assets/art/colony/flags.png
       sprite_size: { w: 10, h: 10 }
+      options {
+        compute_burrow: false
+      }
       sprites {
         colony_rebel_flag:            { y: 0, x: 0 }
         colony_colonial_flag:         { y: 0, x: 1 }
@@ -1124,6 +1319,9 @@ sheets {
     {
       img_path: assets/art/tiles/mouse.png
       sprite_size: { w: 40, h: 32 }
+      options {
+        compute_burrow: false
+      }
       sprites {
         mouse_planks: { y: 0, x: 0  }
         mouse_musket: { y: 0, x: 1  }
@@ -1134,6 +1332,9 @@ sheets {
     {
       img_path: assets/art/tiles/testing.png
       sprite_size: { w: 32, h: 32 }
+      options {
+        compute_burrow: false
+      }
       sprites {
         checkers:     { y: 0, x: 0 }
         checkers_inv: { y: 0, x: 1 }
@@ -1142,6 +1343,9 @@ sheets {
     {
       img_path: assets/art/tiles/hazard.png
       sprite_size: { w: 32, h: 32 }
+      options {
+        compute_burrow: false
+      }
       sprites {
         hazard: { y: 0, x: 0 }
       }
@@ -1149,6 +1353,9 @@ sheets {
     {
       img_path: assets/art/tiles/scroll.png
       sprite_size: { w: 121, h: 161 }
+      options {
+        compute_burrow: false
+      }
       sprites {
         scroll: { y: 0, x: 0 }
       }
@@ -1156,6 +1363,9 @@ sheets {
     {
       img_path: assets/art/tiles/ui-11x11.png
       sprite_size: { w: 11, h: 11 }
+      options {
+        compute_burrow: false
+      }
       sprites {
         checkbox_back:  { y: 0, x: 0 }
         checkbox_check: { y: 0, x: 1 }
@@ -1166,6 +1376,9 @@ sheets {
     {
       img_path: assets/art/difficulty/plate.png
       sprite_size: { w: 121, h: 161 }
+      options {
+        compute_burrow: false
+      }
       sprites {
         wood_plate: { y: 0, x: 0 }
       }
@@ -1173,6 +1386,9 @@ sheets {
     {
       img_path: assets/art/difficulty/plate-stencil.png
       sprite_size: { w: 103, h: 117 }
+      options {
+        compute_burrow: false
+      }
       sprites {
         plate_stencil: { y: 0, x: 0 }
       }
@@ -1180,6 +1396,9 @@ sheets {
     {
       img_path: assets/art/difficulty/discoverer.png
       sprite_size: { w: 103, h: 117 }
+      options {
+        compute_burrow: false
+      }
       sprites {
         discoverer:   { y: 0, x: 0 }
         explorer:     { y: 0, x: 0 }  # TODO

@@ -30,6 +30,16 @@ struct.AsciiFontSheetConfig {
   font_name 'std::string',
 }
 
+struct.SpriteSheetOptions {
+  # Precompute that area of the sprite that is used to reveal the
+  # contents of what is beind the sprite, in pixelated fashion,
+  # to simulate the object being "burrowed" into its surround-
+  # ings, e.g. forest. This is not cheap to compute and is not
+  # needed for most sprites, so it should be left off unless it
+  # is explicitly needed.
+  compute_burrow 'bool',
+}
+
 struct.SpriteSheetConfig {
   # Image file.
   img_path 'fs::path',
@@ -37,6 +47,8 @@ struct.SpriteSheetConfig {
   # Size of the individual sprites, which must all be the same
   # size in this sheet.
   sprite_size 'gfx::size',
+
+  options 'SpriteSheetOptions',
 
   # Maps sprite name to tile coordinates in the sprite sheet. The
   # name should be globally unique and the coordinates should be
