@@ -644,7 +644,7 @@ void LandViewRenderer::render_dwelling( Dwelling const& dwelling,
                                         Coord tile ) const {
   rn::render_dwelling( renderer_,
                        dwelling_pixel_coord_from_tile( tile ),
-                       ss_, dwelling );
+                       *viz_, tile, ss_, dwelling );
 }
 
 void LandViewRenderer::render_dwelling_depixelate(
@@ -724,7 +724,8 @@ void LandViewRenderer::render_colony(
     Colony const& colony ) const {
   rn::render_colony(
       renderer_, colony_pixel_coord_from_tile( colony.location ),
-      ss_, colony, kDefaultColonyRenderOptions );
+      *viz_, colony.location, ss_, colony,
+      kDefaultColonyRenderOptions );
 }
 
 void LandViewRenderer::render_colony_depixelate(
@@ -959,8 +960,8 @@ void LandViewRenderer::render_landscape_anim_buffer_impl(
   renderer_.clear_buffer( buffer );
   SCOPED_RENDERER_MOD_SET( buffer_mods.buffer, buffer );
   SCOPED_RENDERER_MOD_SET( painter_mods.repos.use_camera, true );
-  SCOPED_RENDERER_MOD_SET( painter_mods.uniform_depixelation,
-                           true );
+  SCOPED_RENDERER_MOD_SET(
+      painter_mods.depixelate.uniform_depixelation, true );
   VisibilityWithOverrides const viz( ss_, *viz_, overrides );
   for( Coord const tile : redrawn )
     render_landscape_square_if_not_fully_hidden(

@@ -43,6 +43,7 @@ namespace rn {
 
 struct Colony;
 struct Dwelling;
+struct IVisibility;
 struct SSConst;
 
 enum class e_native_unit_type;
@@ -996,6 +997,7 @@ class RenderedColonyView : public View {
  public:
   RenderedColonyView( SSConst const& ss,
                       Colony const& colony ATTR_LIFETIMEBOUND );
+  ~RenderedColonyView() override;
 
   // Implement Object
   Delta delta() const override;
@@ -1008,6 +1010,7 @@ class RenderedColonyView : public View {
   SSConst const& ss_;
   Colony const& colony_;
   gfx::size const size_;
+  std::unique_ptr<IVisibility> viz_;
 };
 
 // Should work for either a real or frozen dwelling.
@@ -1016,6 +1019,7 @@ class RenderedDwellingView : public View {
   RenderedDwellingView( SSConst const& ss,
                         Dwelling const& dwelling
                             ATTR_LIFETIMEBOUND );
+  ~RenderedDwellingView() override;
 
   // Implement Object
   Delta delta() const override;
@@ -1028,6 +1032,7 @@ class RenderedDwellingView : public View {
   SSConst const& ss_;
   Dwelling const& dwelling_;
   gfx::size const size_;
+  std::unique_ptr<IVisibility> viz_;
 };
 
 class ClickableView : public CompositeSingleView {

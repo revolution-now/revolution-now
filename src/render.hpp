@@ -33,6 +33,7 @@ struct Dwelling;
 struct NativeUnit;
 struct SSConst;
 struct Unit;
+struct IVisibility;
 
 enum class e_native_unit_type;
 enum class e_unit_type;
@@ -107,7 +108,7 @@ void render_native_unit_depixelate_to(
 /****************************************************************
 ** Colony Rendering.
 *****************************************************************/
-e_tile tile_for_colony( Colony const& colony );
+e_tile houses_tile_for_colony( Colony const& colony );
 
 struct ColonyRenderOptions {
   bool render_name       = true;
@@ -116,6 +117,7 @@ struct ColonyRenderOptions {
 };
 
 void render_colony( rr::Renderer& renderer, Coord where,
+                    IVisibility const& viz, gfx::point map_tile,
                     SSConst const& ss, Colony const& colony,
                     ColonyRenderOptions const& options );
 
@@ -127,8 +129,9 @@ e_tile dwelling_tile_for_tribe( e_tribe const tribe_type );
 e_tile tile_for_dwelling( SSConst const& ss,
                           Dwelling const& dwelling );
 
-void render_dwelling( rr::Renderer& renderer, Coord where,
-                      SSConst const& ss,
+void render_dwelling( rr::Renderer& renderer, gfx::point where,
+                      IVisibility const& viz,
+                      gfx::point map_tile, SSConst const& ss,
                       Dwelling const& dwelling );
 
 } // namespace rn

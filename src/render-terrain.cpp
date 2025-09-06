@@ -16,6 +16,7 @@
 #include "map-square.hpp"
 #include "plow.hpp"
 #include "road.hpp"
+#include "terrain-enums.rds.hpp"
 #include "tiles.hpp"
 #include "visibility.hpp"
 
@@ -45,6 +46,8 @@ using namespace std;
 namespace rn {
 
 namespace {
+
+using ::gfx::point;
 
 constexpr double g_tile_overlap_width_percent = .2;
 
@@ -374,121 +377,8 @@ void render_hills( IVisibility const& viz,
 void render_forest( IVisibility const& viz,
                     rr::Renderer& renderer, Coord where,
                     Coord world_square ) {
-  MapSquare const& here = viz.square_at( world_square );
-  CHECK( here.surface == e_surface::land );
-  if( here.ground == e_ground_terrain::desert ) {
-    render_sprite( renderer, where,
-                   e_tile::terrain_forest_scrub_island );
-    return;
-  }
-
-  // Returns true if the the tile exists, it is land, it is
-  // non-desert, and it has a forest.
-  auto is_forest = [&]( e_direction d ) {
-    MapSquare const& s =
-        viz.square_at( world_square.moved( d ) );
-    return s.surface == e_surface::land &&
-           s.overlay == e_land_overlay::forest &&
-           s.ground != e_ground_terrain::desert;
-  };
-
-  bool has_left  = is_forest( e_direction::w );
-  bool has_up    = is_forest( e_direction::n );
-  bool has_right = is_forest( e_direction::e );
-  bool has_down  = is_forest( e_direction::s );
-
-  // 0000abcd:
-  // a=forest up, b=forest right, c=forest down, d=forest left.
-  int mask = ( has_up ? ( 1 << 3 ) : 0 ) |
-             ( has_right ? ( 1 << 2 ) : 0 ) |
-             ( has_down ? ( 1 << 1 ) : 0 ) |
-             ( has_left ? ( 1 << 0 ) : 0 );
-
-  e_tile forest_tile = {};
-
-  switch( mask ) {
-    case 0b0001: {
-      // forest on left.
-      forest_tile = e_tile::terrain_forest_left;
-      break;
-    }
-    case 0b1000: {
-      // forest on top.
-      forest_tile = e_tile::terrain_forest_up;
-      break;
-    }
-    case 0b0100: {
-      // forest on right.
-      forest_tile = e_tile::terrain_forest_right;
-      break;
-    }
-    case 0b0010: {
-      // forest on bottom.
-      forest_tile = e_tile::terrain_forest_down;
-      break;
-    }
-    case 0b1001: {
-      // forest on left and top.
-      forest_tile = e_tile::terrain_forest_left_up;
-      break;
-    }
-    case 0b1100: {
-      // forest on top and right.
-      forest_tile = e_tile::terrain_forest_up_right;
-      break;
-    }
-    case 0b0110: {
-      // forest on right and bottom.
-      forest_tile = e_tile::terrain_forest_right_down;
-      break;
-    }
-    case 0b0011: {
-      // forest on bottom and left.
-      forest_tile = e_tile::terrain_forest_down_left;
-      break;
-    }
-    case 0b0101: {
-      // forest on left and right.
-      forest_tile = e_tile::terrain_forest_left_right;
-      break;
-    }
-    case 0b1010: {
-      // forest on top and bottom.
-      forest_tile = e_tile::terrain_forest_up_down;
-      break;
-    }
-    case 0b0111: {
-      // forest on right, bottom, left.
-      forest_tile = e_tile::terrain_forest_right_down_left;
-      break;
-    }
-    case 0b1011: {
-      // forest on bottom, left, top.
-      forest_tile = e_tile::terrain_forest_down_left_up;
-      break;
-    }
-    case 0b1101: {
-      // forest on left, top, right.
-      forest_tile = e_tile::terrain_forest_left_up_right;
-      break;
-    }
-    case 0b1110: {
-      // forest on top, right, bottom.
-      forest_tile = e_tile::terrain_forest_up_right_down;
-      break;
-    }
-    case 0b1111:
-      // forest on all sides.
-      forest_tile = e_tile::terrain_forest_all;
-      break;
-    case 0b0000:
-      // forest on no sides.
-      forest_tile = e_tile::terrain_forest_island;
-      break;
-    default: {
-      FATAL( "invalid forest mask: {}", mask );
-    }
-  }
+  UNWRAP_CHECK_T( e_tile const forest_tile,
+                  forest_tile_for( viz, world_square ) );
   render_sprite( renderer, where, forest_tile );
 }
 
@@ -539,11 +429,10 @@ void render_adjacent_overlap( IVisibility const& viz,
         painter_mods.depixelate.stage_anchor,
         dst.to_gfx().to_double() );
     // Need a new painter since we changed the mods.
-    rr::Painter painter            = renderer.painter();
     maybe<e_ground_terrain> ground = ground_terrain_for_square(
         viz, north, world_square - Delta{ .h = 1 } );
     if( ground )
-      render_sprite_section( painter,
+      render_sprite_section( renderer,
                              tile_for_ground_terrain( *ground ),
                              dst, src );
   }
@@ -566,11 +455,10 @@ void render_adjacent_overlap( IVisibility const& viz,
         painter_mods.depixelate.stage_anchor,
         dst.to_gfx().to_double() );
     // Need a new painter since we changed the mods.
-    rr::Painter painter            = renderer.painter();
     maybe<e_ground_terrain> ground = ground_terrain_for_square(
         viz, south, world_square + Delta{ .h = 1 } );
     if( ground )
-      render_sprite_section( painter,
+      render_sprite_section( renderer,
                              tile_for_ground_terrain( *ground ),
                              dst, src );
   }
@@ -591,11 +479,10 @@ void render_adjacent_overlap( IVisibility const& viz,
         painter_mods.depixelate.stage_anchor,
         dst.to_gfx().to_double() );
     // Need a new painter since we changed the mods.
-    rr::Painter painter            = renderer.painter();
     maybe<e_ground_terrain> ground = ground_terrain_for_square(
         viz, west, world_square - Delta{ .w = 1 } );
     if( ground )
-      render_sprite_section( painter,
+      render_sprite_section( renderer,
                              tile_for_ground_terrain( *ground ),
                              dst, src );
   }
@@ -616,11 +503,10 @@ void render_adjacent_overlap( IVisibility const& viz,
         painter_mods.depixelate.stage_anchor,
         dst.to_gfx().to_double() );
     // Need a new painter since we changed the mods.
-    rr::Painter painter            = renderer.painter();
     maybe<e_ground_terrain> ground = ground_terrain_for_square(
         viz, east, world_square + Delta{ .w = 1 } );
     if( ground )
-      render_sprite_section( painter,
+      render_sprite_section( renderer,
                              tile_for_ground_terrain( *ground ),
                              dst, src );
   }
@@ -2090,7 +1976,6 @@ void render_pixelated_overlay_transitions(
     Coord const world_square, IVisibility const& viz,
     refl::enum_map<e_cdirection, bool> const& has_overlay,
     e_tile overlay_tile ) {
-  rr::Painter painter = renderer.painter();
   // The below will render 9 pieces, and will do so with dif-
   // ferent depixelation stages and alphas depending on the
   // overlay status of the surrounding squares.
@@ -2115,7 +2000,7 @@ void render_pixelated_overlay_transitions(
   bool const self_overlay = has_overlay[e_cdirection::c];
   if( self_overlay )
     render_sprite_section(
-        painter, overlay_tile,
+        renderer, overlay_tile,
         where +
             Delta{ .w = kEdgeThickness, .h = kEdgeThickness },
         tile_rect.edges_removed( kEdgeThickness ) );
@@ -2158,8 +2043,7 @@ void render_pixelated_overlay_transitions(
     SCOPED_RENDERER_MOD_SET(
         painter_mods.depixelate.stage_anchor,
         ( where + delta ).to_gfx().to_double() );
-    rr::Painter painter = renderer.painter();
-    render_sprite_section( painter, overlay_tile, where + delta,
+    render_sprite_section( renderer, overlay_tile, where + delta,
                            part );
   };
 
@@ -2199,8 +2083,7 @@ void render_pixelated_overlay_transitions(
     SCOPED_RENDERER_MOD_SET(
         painter_mods.depixelate.stage_anchor,
         ( where + delta ).to_gfx().to_double() );
-    rr::Painter painter = renderer.painter();
-    render_sprite_section( painter, overlay_tile, where + delta,
+    render_sprite_section( renderer, overlay_tile, where + delta,
                            part );
   };
 
@@ -2309,8 +2192,7 @@ void render_pixelated_overlay_transitions(
     SCOPED_RENDERER_MOD_MUL( painter_mods.alpha, alpha );
     SCOPED_RENDERER_MOD_SET( painter_mods.depixelate.stage,
                              stage );
-    rr::Painter painter = renderer.painter();
-    render_sprite_section( painter, overlay_tile, where + delta,
+    render_sprite_section( renderer, overlay_tile, where + delta,
                            part );
   };
 
@@ -2393,6 +2275,123 @@ void render_visible_terrain_square( rr::Renderer& renderer,
 }
 
 } // namespace
+
+maybe<e_tile> forest_tile_for( IVisibility const& viz,
+                               point const tile ) {
+  MapSquare const& here = viz.square_at( tile );
+  if( here.surface != e_surface::land ) return nothing;
+  if( here.overlay != e_land_overlay::forest ) return nothing;
+  if( here.ground == e_ground_terrain::desert )
+    return e_tile::terrain_forest_scrub_island;
+
+  // Returns true if the the tile exists, it is land, it is
+  // non-desert, and it has a forest.
+  auto is_forest = [&]( e_direction const d ) {
+    MapSquare const& s = viz.square_at( tile.moved( d ) );
+    return s.surface == e_surface::land &&
+           s.overlay == e_land_overlay::forest &&
+           s.ground != e_ground_terrain::desert;
+  };
+
+  bool has_left  = is_forest( e_direction::w );
+  bool has_up    = is_forest( e_direction::n );
+  bool has_right = is_forest( e_direction::e );
+  bool has_down  = is_forest( e_direction::s );
+
+  // 0000abcd:
+  // a=forest up, b=forest right, c=forest down, d=forest left.
+  int mask = ( has_up ? ( 1 << 3 ) : 0 ) |
+             ( has_right ? ( 1 << 2 ) : 0 ) |
+             ( has_down ? ( 1 << 1 ) : 0 ) |
+             ( has_left ? ( 1 << 0 ) : 0 );
+
+  e_tile forest_tile = {};
+
+  switch( mask ) {
+    case 0b0001: {
+      // forest on left.
+      forest_tile = e_tile::terrain_forest_left;
+      break;
+    }
+    case 0b1000: {
+      // forest on top.
+      forest_tile = e_tile::terrain_forest_up;
+      break;
+    }
+    case 0b0100: {
+      // forest on right.
+      forest_tile = e_tile::terrain_forest_right;
+      break;
+    }
+    case 0b0010: {
+      // forest on bottom.
+      forest_tile = e_tile::terrain_forest_down;
+      break;
+    }
+    case 0b1001: {
+      // forest on left and top.
+      forest_tile = e_tile::terrain_forest_left_up;
+      break;
+    }
+    case 0b1100: {
+      // forest on top and right.
+      forest_tile = e_tile::terrain_forest_up_right;
+      break;
+    }
+    case 0b0110: {
+      // forest on right and bottom.
+      forest_tile = e_tile::terrain_forest_right_down;
+      break;
+    }
+    case 0b0011: {
+      // forest on bottom and left.
+      forest_tile = e_tile::terrain_forest_down_left;
+      break;
+    }
+    case 0b0101: {
+      // forest on left and right.
+      forest_tile = e_tile::terrain_forest_left_right;
+      break;
+    }
+    case 0b1010: {
+      // forest on top and bottom.
+      forest_tile = e_tile::terrain_forest_up_down;
+      break;
+    }
+    case 0b0111: {
+      // forest on right, bottom, left.
+      forest_tile = e_tile::terrain_forest_right_down_left;
+      break;
+    }
+    case 0b1011: {
+      // forest on bottom, left, top.
+      forest_tile = e_tile::terrain_forest_down_left_up;
+      break;
+    }
+    case 0b1101: {
+      // forest on left, top, right.
+      forest_tile = e_tile::terrain_forest_left_up_right;
+      break;
+    }
+    case 0b1110: {
+      // forest on top, right, bottom.
+      forest_tile = e_tile::terrain_forest_up_right_down;
+      break;
+    }
+    case 0b1111:
+      // forest on all sides.
+      forest_tile = e_tile::terrain_forest_all;
+      break;
+    case 0b0000:
+      // forest on no sides.
+      forest_tile = e_tile::terrain_forest_island;
+      break;
+    default: {
+      FATAL( "invalid forest mask: {}", mask );
+    }
+  }
+  return forest_tile;
+}
 
 void render_landscape_square_if_not_fully_hidden(
     rr::Renderer& renderer, Coord where,

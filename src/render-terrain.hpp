@@ -13,6 +13,7 @@
 #include "core-config.hpp"
 
 // Revolution Now
+#include "maybe.hpp"
 #include "terrain-render-options.hpp"
 
 // render
@@ -21,6 +22,9 @@
 // gfx
 #include "gfx/coord.hpp"
 
+/****************************************************************
+** Fwd. Decls.
+*****************************************************************/
 namespace rr {
 struct Renderer;
 }
@@ -33,6 +37,8 @@ struct Matrix;
 namespace rn {
 
 struct IVisibility;
+
+enum class e_tile;
 
 /****************************************************************
 ** Rendering
@@ -78,5 +84,8 @@ void render_terrain_square_merged(
     rr::Renderer& renderer, Coord where, Coord world_square,
     IVisibility const& viz,
     TerrainRenderOptions const& options );
+
+maybe<e_tile> forest_tile_for( IVisibility const& viz,
+                               gfx::point tile );
 
 } // namespace rn

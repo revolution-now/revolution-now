@@ -15,6 +15,7 @@
 #include "colony-mgr.hpp"
 #include "error.hpp"
 #include "fog-conv.hpp"
+#include "render-terrain.hpp"
 #include "renderer.hpp"
 #include "text.hpp"
 #include "tiles.hpp"
@@ -69,11 +70,15 @@ void render_unit_no_flag( rr::Renderer& renderer, Coord where,
                  tile );
 }
 
+void render_flag_pole( rr::Renderer& renderer,
+                       point const where ) {
+  renderer.painter().draw_vertical_line(
+      where, 9, gfx::pixel::wood().shaded( 4 ) );
+}
+
 void render_colony_flag( rr::Renderer& renderer,
                          point const where, pixel const color ) {
-  rr::Painter painter = renderer.painter();
-  painter.draw_vertical_line( where, 12,
-                              gfx::pixel::wood().shaded( 4 ) );
+  render_flag_pole( renderer, where );
   render_sprite_silhouette(
       renderer, where, e_tile::colony_colonial_flag, color );
   {
@@ -85,9 +90,7 @@ void render_colony_flag( rr::Renderer& renderer,
 
 void render_colony_america_flag( rr::Renderer& renderer,
                                  point const where ) {
-  rr::Painter painter = renderer.painter();
-  painter.draw_vertical_line( where, 12,
-                              gfx::pixel::wood().shaded( 4 ) );
+  render_flag_pole( renderer, where );
   render_sprite( renderer, where, e_tile::colony_rebel_flag );
 }
 
@@ -251,6 +254,78 @@ gfx::pixel missionary_cross_color( e_player player,
   return dulled[player];
 }
 
+// Burrowing refers to the mechanism that allows e.g. the native
+// dwellings and colonies to appear like they are nested in the
+// forest instead of just appearing to hover over the forest
+// tiles. For each sprite that supports burrowing, a second
+// sprite is precomputed that marks the bottom edge of the opaque
+// region of the sprite with some depixelation stages so that the
+// forest can then be drawn over that depixelation guide to make
+// it appear that the forest grow is encroaching on the bottom
+// each of the dwelling/colony sprite.
+//
+// NOTE: Here "large" means larger than a standard 32x32 tile.
+void render_large_sprite_with_forest_burrowing(
+    IVisibility const& viz, rr::Renderer& renderer,
+    point const pixel_coord, point const center_tile,
+    e_tile const sprite_tile ) {
+  render_sprite( renderer, pixel_coord, sprite_tile );
+
+  static size const kMapTileSz = size{ .w = 32, .h = 32 };
+  size const sprite_sz         = sprite_size( sprite_tile );
+  size const sprite_origin_pixel_delta =
+      ( sprite_sz - kMapTileSz ) / 2;
+  point const center_map_tile_pixel_coord =
+      pixel_coord + sprite_origin_pixel_delta;
+
+  auto const burrow_tile = [&]( e_cdirection const d ) {
+    point const map_tile = center_tile.moved( d );
+    size const tile_delta_from_center =
+        ( map_tile - center_tile );
+    auto const section =
+        rect{ .size = kMapTileSz }.clipped_by( rect{
+          .origin = point{} - sprite_origin_pixel_delta -
+                    size( tile_delta_from_center * kMapTileSz ),
+          .size = sprite_sz } );
+    if( !section.has_value() ) return;
+    auto const forest_tile = forest_tile_for( viz, map_tile );
+    if( !forest_tile.has_value() ) return;
+    point const moved_pixel_coord =
+        center_map_tile_pixel_coord +
+        size( kMapTileSz * tile_delta_from_center );
+    point const hash_anchor = [&] {
+      point const anchor_tile =
+          ( map_tile / size{ .w = 10, .h = 10 } ) *
+          size{ .w = 10, .h = 10 };
+      size const pixel_delta =
+          ( map_tile - anchor_tile ) * kMapTileSz;
+      point const hash_anchor = moved_pixel_coord - pixel_delta;
+      return hash_anchor;
+    }();
+    SCOPED_RENDERER_MOD_SET( painter_mods.depixelate.inverted,
+                             true );
+    SCOPED_RENDERER_MOD_SET( painter_mods.depixelate.hash_anchor,
+                             hash_anchor );
+    SCOPED_RENDERER_MOD_SET(
+        painter_mods.depixelate.textured,
+        burrowed_sprite_plan_for( *forest_tile, sprite_tile,
+                                  tile_delta_from_center ) )
+    render_sprite_section(
+        renderer, *forest_tile,
+        moved_pixel_coord +
+            section->origin.distance_from_origin(),
+        *section );
+  };
+
+  // For burrow only need to cover the middle and bottom portion.
+  burrow_tile( e_cdirection::w );
+  burrow_tile( e_cdirection::c );
+  burrow_tile( e_cdirection::e );
+  burrow_tile( e_cdirection::sw );
+  burrow_tile( e_cdirection::s );
+  burrow_tile( e_cdirection::se );
+}
+
 } // namespace
 
 /****************************************************************
@@ -344,55 +419,100 @@ void render_native_unit_depixelate_to(
 /****************************************************************
 ** Colony Rendering.
 *****************************************************************/
-e_tile tile_for_colony( Colony const& colony ) {
+static maybe<e_tile> back_walls_tile_for_colony(
+    Colony const& colony ) {
   e_colony_barricade_type const barricade_type =
       barricade_for_colony( colony );
   switch( barricade_type ) {
     case e_colony_barricade_type::none:
-      return e_tile::colony_basic;
+      return nothing;
     case e_colony_barricade_type::stockade:
-      return e_tile::colony_stockade;
+      return e_tile::colony_stockade_walls_back;
     case e_colony_barricade_type::fort:
-      return e_tile::colony_fort;
+      return e_tile::colony_fort_walls_back;
     case e_colony_barricade_type::fortress:
-      return e_tile::colony_fortress;
+      return e_tile::colony_fortress_walls_back;
   }
 }
 
-void render_colony( rr::Renderer& renderer, Coord where,
+static maybe<e_tile> front_walls_tile_for_colony(
+    Colony const& colony ) {
+  e_colony_barricade_type const barricade_type =
+      barricade_for_colony( colony );
+  switch( barricade_type ) {
+    case e_colony_barricade_type::none:
+      return nothing;
+    case e_colony_barricade_type::stockade:
+      return e_tile::colony_stockade_walls_front;
+    case e_colony_barricade_type::fort:
+      return e_tile::colony_fort_walls_front;
+    case e_colony_barricade_type::fortress:
+      return e_tile::colony_fortress_walls_front;
+  }
+}
+
+e_tile houses_tile_for_colony( Colony const& colony ) {
+  e_colony_barricade_type const barricade_type =
+      barricade_for_colony( colony );
+  switch( barricade_type ) {
+    case e_colony_barricade_type::none:
+      return e_tile::colony_basic_houses;
+    case e_colony_barricade_type::stockade:
+      return e_tile::colony_stockade_houses;
+    case e_colony_barricade_type::fort:
+      return e_tile::colony_fort_houses;
+    case e_colony_barricade_type::fortress:
+      return e_tile::colony_fortress_houses;
+  }
+}
+
+void render_colony( rr::Renderer& renderer, Coord const where,
+                    IVisibility const& viz, point const map_tile,
                     SSConst const& ss, Colony const& colony,
                     ColonyRenderOptions const& options ) {
-  e_tile const tile = tile_for_colony( colony );
-  FrozenColony const frozen_colony =
-      colony_to_frozen_colony( ss, colony );
-  int const population = colony_population( colony );
-  render_sprite( renderer, where, tile );
+  e_tile const tile      = houses_tile_for_colony( colony );
+  auto const walls_back  = back_walls_tile_for_colony( colony );
+  auto const walls_front = front_walls_tile_for_colony( colony );
+  bool const has_walls =
+      walls_back.has_value() && walls_front.has_value();
+  if( has_walls ) {
+    render_sprite( renderer, where, *walls_back );
+    render_sprite( renderer, where, tile );
+    render_large_sprite_with_forest_burrowing(
+        viz, renderer, where, map_tile, *walls_front );
+  } else {
+    render_large_sprite_with_forest_burrowing(
+        viz, renderer, where, map_tile, tile );
+  }
   auto const& player_conf = player_obj( colony.player );
   if( options.render_flag ) {
     UNWRAP_CHECK_T( Player const& player,
                     ss.players.players[colony.player] );
+    point const flag_pos =
+        where.to_gfx().moved_right( 9 ).moved_down( 1 );
     if( is_ref( colony.player ) ) {
       e_player const colonial_player_type =
           colonial_player_for( nation_for( colony.player ) );
       auto const& colonial_player_conf =
           player_obj( colonial_player_type );
-      render_colony_flag( renderer,
-                          where + Delta{ .w = 8, .h = 8 },
+      render_colony_flag( renderer, flag_pos,
                           colonial_player_conf.flag_color );
     } else {
       if( player.revolution.status >=
           e_revolution_status::declared )
-        render_colony_america_flag(
-            renderer, where + Delta{ .w = 8, .h = 8 } );
+        render_colony_america_flag( renderer, flag_pos );
       else
-        render_colony_flag( renderer,
-                            where + Delta{ .w = 8, .h = 8 },
+        render_colony_flag( renderer, flag_pos,
                             player_conf.flag_color );
     }
   }
   if( options.render_population ) {
+    FrozenColony const frozen_colony =
+        colony_to_frozen_colony( ss, colony );
+    int const population = colony_population( colony );
+    // TODO: needs to be centered.
     Coord const population_coord =
-        where + Delta{ .w = 44 / 2 - 3, .h = 44 / 2 - 4 };
+        where + Delta{ .w = 44 / 2 - 1, .h = 44 / 2 - 4 };
     gfx::pixel const color =
         ( frozen_colony.sons_of_liberty_integral_percent == 100 )
             ? gfx::pixel{ .r = 0, .g = 255, .b = 255, .a = 255 }
@@ -434,8 +554,9 @@ e_tile tile_for_dwelling( SSConst const& ss,
   return dwelling_tile_for_tribe( tribe_type );
 }
 
-void render_dwelling( rr::Renderer& renderer, Coord where,
-                      SSConst const& ss,
+void render_dwelling( rr::Renderer& renderer, point const where,
+                      IVisibility const& viz,
+                      point const map_tile, SSConst const& ss,
                       Dwelling const& dwelling ) {
   rr::Painter painter = renderer.painter();
   FrozenDwelling const frozen_dwelling =
@@ -449,17 +570,20 @@ void render_dwelling( rr::Renderer& renderer, Coord where,
   auto& tribe_conf         = config_natives.tribes[tribe_type];
   e_tile const dwelling_tile =
       dwelling_tile_for_tribe( tribe_type );
-  render_sprite( renderer, where, dwelling_tile );
+  render_large_sprite_with_forest_burrowing(
+      viz, renderer, where, map_tile, dwelling_tile );
   // Flags.
   e_native_level const native_level = tribe_conf.level;
   gfx::pixel const flag_color       = tribe_conf.flag_color;
+  // FIXME: when the dwelling is depixelating, it seems to show
+  // the underlying red for its flag.
   for( gfx::rect flag : config_natives.flag_rects[native_level] )
     painter.draw_solid_rect( flag.origin_becomes_point( where ),
                              flag_color );
   // The offset that we need to go to get to the upper left
   // corner of a 32x32 sprite centered on the (48x48) dwelling
   // tile.
-  Delta const offset_32x32{ .w = 6, .h = 6 };
+  size const offset_32x32{ .w = 6, .h = 6 };
   // Yellow star to mark the capital.
   if( dwelling.is_capital )
     render_sprite( renderer, where + offset_32x32,

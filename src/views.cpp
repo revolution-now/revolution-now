@@ -15,12 +15,14 @@
 #include "text.hpp"
 #include "tiles.hpp"
 #include "unit-flag.hpp"
+#include "visibility.hpp"
 
 // config
 #include "config/tile-enum.rds.hpp"
 #include "config/ui.rds.hpp"
 
 // ss
+#include "ss/colony.rds.hpp"
 #include "ss/natives.hpp"
 
 // render
@@ -1525,13 +1527,17 @@ RenderedColonyView::RenderedColonyView( SSConst const& ss,
                                         Colony const& colony )
   : ss_( ss ),
     colony_( colony ),
-    size_( sprite_size( tile_for_colony( colony ) ) ) {}
+    size_( sprite_size( houses_tile_for_colony( colony ) ) ),
+    viz_( make_unique<VisibilityEntire>( ss ) ) {}
+
+RenderedColonyView::~RenderedColonyView() = default;
 
 Delta RenderedColonyView::delta() const { return size_; }
 
 void RenderedColonyView::draw( rr::Renderer& renderer,
                                Coord const where ) const {
-  render_colony( renderer, where, ss_, colony_,
+  render_colony( renderer, where, *viz_, colony_.location, ss_,
+                 colony_,
                  ColonyRenderOptions{ .render_name       = false,
                                       .render_population = true,
                                       .render_flag = true } );
@@ -1544,13 +1550,17 @@ RenderedDwellingView::RenderedDwellingView(
     SSConst const& ss, Dwelling const& dwelling )
   : ss_( ss ),
     dwelling_( dwelling ),
-    size_( sprite_size( tile_for_dwelling( ss, dwelling ) ) ) {}
+    size_( sprite_size( tile_for_dwelling( ss, dwelling ) ) ),
+    viz_( make_unique<VisibilityEntire>( ss ) ) {}
+
+RenderedDwellingView::~RenderedDwellingView() = default;
 
 Delta RenderedDwellingView::delta() const { return size_; }
 
 void RenderedDwellingView::draw( rr::Renderer& renderer,
                                  Coord const where ) const {
-  render_dwelling( renderer, where, ss_, dwelling_ );
+  render_dwelling( renderer, where, *viz_, /*map_tile=*/point{},
+                   ss_, dwelling_ );
 }
 
 /****************************************************************

@@ -392,7 +392,8 @@ void ColonyLandView::draw_land_3x3( rr::Renderer& renderer,
     render_colony(
         renderer,
         local_coord * g_tile_delta - Delta{ .w = 6, .h = 6 },
-        ss_, ss_.colonies.colony_for( *maybe_col_id ),
+        viz, colony_square.to_gfx(), ss_,
+        ss_.colonies.colony_for( *maybe_col_id ),
         ColonyRenderOptions{ .render_name       = false,
                              .render_population = false,
                              .render_flag       = true } );
@@ -414,7 +415,8 @@ void ColonyLandView::draw_land_3x3( rr::Renderer& renderer,
     render_dwelling(
         renderer,
         local_coord * g_tile_delta - Delta{ .w = 6, .h = 6 },
-        ss_, ss_.natives.dwelling_for( *maybe_dwelling_id ) );
+        viz, world_square, ss_,
+        ss_.natives.dwelling_for( *maybe_dwelling_id ) );
   }
 
   // Render native-owned land markers (totem poles).

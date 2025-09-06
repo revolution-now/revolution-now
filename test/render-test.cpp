@@ -108,25 +108,25 @@ TEST_CASE( "[render] trimmed_area_for_unit_type" ) {
   REQUIRE( f() == expected );
 }
 
-TEST_CASE( "[render] tile_for_colony" ) {
+TEST_CASE( "[render] houses_tile_for_colony" ) {
   Colony colony;
   e_tile expected = {};
 
-  auto f = [&] { return tile_for_colony( colony ); };
+  auto f = [&] { return houses_tile_for_colony( colony ); };
 
-  expected = e_tile::colony_basic;
+  expected = e_tile::colony_basic_houses;
   REQUIRE( f() == expected );
 
   colony.buildings[e_colony_building::stockade] = true;
-  expected = e_tile::colony_stockade;
+  expected = e_tile::colony_stockade_houses;
   REQUIRE( f() == expected );
 
   colony.buildings[e_colony_building::fort] = true;
-  expected = e_tile::colony_fort;
+  expected = e_tile::colony_fort_houses;
   REQUIRE( f() == expected );
 
   colony.buildings[e_colony_building::fortress] = true;
-  expected = e_tile::colony_fortress;
+  expected = e_tile::colony_fortress_houses;
   REQUIRE( f() == expected );
 }
 
