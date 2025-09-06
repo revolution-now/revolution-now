@@ -39,6 +39,9 @@ type {
   #   probability (on each attack) that an additional native con-
   #   vert will be produced.
 
+  # TODO: The convert_on_attack probabilities need to be remea-
+  # sured using the auto-measurer, since they seem too high.
+
   jesuit {
     strength: 2.0
     per_turn_convert.probability:  .10   # TODO: recalibrate.
