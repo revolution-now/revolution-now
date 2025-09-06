@@ -11,6 +11,7 @@
 #pragma once
 
 // gfx
+#include "gfx/cartesian.hpp"
 #include "gfx/pixel.hpp"
 
 namespace rr {
@@ -18,6 +19,11 @@ namespace rr {
 struct StencilPlan {
   int replacement_atlas_id = {};
   gfx::pixel key_color     = {};
+};
+
+struct TexturedDepixelatePlan {
+  int reference_atlas_id          = {};
+  gfx::size offset_into_reference = {};
 };
 
 } // namespace rr
