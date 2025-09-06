@@ -28,6 +28,7 @@ namespace {
 
 using namespace std;
 
+using ::base::maybe;
 using ::base::nothing;
 using ::gfx::pixel;
 using ::gfx::point;
@@ -64,6 +65,7 @@ AtlasMap const& atlas_map() {
 
 TEST_CASE( "[render/typer] write_char/monospace" ) {
   vector<GenericVertex> v, expected;
+  maybe<TxDpxl> txdpxl;
   Emitter emitter( v );
   Painter painter( atlas_map(), emitter );
   Typer typer( painter, ascii_font(), TextLayout{},
@@ -71,7 +73,7 @@ TEST_CASE( "[render/typer] write_char/monospace" ) {
   typer.layout().monospace = true;
 
   auto Vert = [&]( point p, point atlas_p, rect atlas_rect ) {
-    auto vert = SpriteVertex( p, atlas_p, atlas_rect );
+    auto vert = SpriteVertex( p, atlas_p, atlas_rect, txdpxl );
     vert.set_fixed_color( B );
     return vert.generic();
   };
@@ -157,6 +159,7 @@ TEST_CASE( "[render/typer] write_char/monospace" ) {
 
 TEST_CASE( "[render/typer] write_char/non-monospace" ) {
   vector<GenericVertex> v, expected;
+  maybe<TxDpxl> txdpxl;
   Emitter emitter( v );
   Painter painter( atlas_map(), emitter );
   Typer typer( painter, ascii_font(), TextLayout{},
@@ -164,7 +167,7 @@ TEST_CASE( "[render/typer] write_char/non-monospace" ) {
   typer.layout().monospace = false;
 
   auto Vert = [&]( point p, point atlas_p, rect atlas_rect ) {
-    auto vert = SpriteVertex( p, atlas_p, atlas_rect );
+    auto vert = SpriteVertex( p, atlas_p, atlas_rect, txdpxl );
     vert.set_fixed_color( B );
     return vert.generic();
   };

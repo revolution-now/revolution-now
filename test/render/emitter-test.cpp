@@ -24,22 +24,27 @@ namespace {
 
 using namespace std;
 
+using ::base::maybe;
+using ::base::nothing;
 using ::gfx::pixel;
 using ::gfx::point;
 using ::gfx::rect;
 
 TEST_CASE( "[render/emitter] emit" ) {
+  maybe<TxDpxl> txdpxl;
   SpriteVertex vert1( point{ .x = 1, .y = 2 },
                       point{ .x = 3, .y = 4 },
                       rect{ .origin = point{ .x = 5, .y = 6 },
-                            .size   = { .w = 1, .h = 2 } } );
+                            .size   = { .w = 1, .h = 2 } },
+                      txdpxl );
   SolidVertex vert2(
       point{ .x = 1, .y = 2 },
       pixel{ .r = 10, .g = 20, .b = 30, .a = 40 } );
   SpriteVertex vert3( point{ .x = 2, .y = 3 },
                       point{ .x = 4, .y = 5 },
                       rect{ .origin = point{ .x = 5, .y = 6 },
-                            .size   = { .w = 1, .h = 2 } } );
+                            .size   = { .w = 1, .h = 2 } },
+                      txdpxl );
   vector<SpriteVertex> sprites{ vert1, vert3, vert3, vert1 };
 
   vector<GenericVertex> v;
