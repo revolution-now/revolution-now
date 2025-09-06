@@ -34,11 +34,12 @@ namespace rr {
 *****************************************************************/
 // These need to be kept in sync with the corresponding ones in
 // the shader.
-#define VERTEX_FLAG_COLOR_CYCLE          ( uint32_t{ 1 } << 0 )
-#define VERTEX_FLAG_USE_CAMERA           ( uint32_t{ 1 } << 1 )
-#define VERTEX_FLAG_DESATURATE           ( uint32_t{ 1 } << 2 )
-#define VERTEX_FLAG_FIXED_COLOR          ( uint32_t{ 1 } << 3 )
-#define VERTEX_FLAG_UNIFORM_DEPIXELATION ( uint32_t{ 1 } << 4 )
+#define VERTEX_FLAG_COLOR_CYCLE           ( uint32_t{ 1 } << 0 )
+#define VERTEX_FLAG_USE_CAMERA            ( uint32_t{ 1 } << 1 )
+#define VERTEX_FLAG_DESATURATE            ( uint32_t{ 1 } << 2 )
+#define VERTEX_FLAG_FIXED_COLOR           ( uint32_t{ 1 } << 3 )
+#define VERTEX_FLAG_UNIFORM_DEPIXELATION  ( uint32_t{ 1 } << 4 )
+#define VERTEX_FLAG_TEXTURED_DEPIXELATION ( uint32_t{ 1 } << 5 )
 
 /****************************************************************
 ** aux_bits_1 masks.
@@ -47,6 +48,16 @@ namespace rr {
 // the shader.
 #define VERTEX_AUX_BITS_1_COLOR_CYCLE ( uint32_t{ 0xf } << 0 )
 #define VERTEX_AUX_BITS_1_DOWNSAMPLE  ( uint32_t{ 0x7 } << 4 )
+
+/****************************************************************
+** Helper Structs.
+*****************************************************************/
+// Textured Depixelation info.
+struct TxDpxl {
+  gfx::size reference_sprite_offset = {};
+
+  bool operator==( TxDpxl const& ) const = default;
+};
 
 /****************************************************************
 ** Concept
@@ -123,6 +134,10 @@ struct VertexBase : protected GenericVertex {
   bool get_uniform_depixelation() const;
   void set_uniform_depixelation( bool enabled );
 
+  // *** Textured Depixelation.
+  base::maybe<TxDpxl> get_textured_depixelation() const;
+  void set_textured_depixelation( base::maybe<TxDpxl> txdpxl );
+
   bool operator==( VertexBase const& ) const = default;
 };
 
@@ -135,7 +150,8 @@ STATIC_VERTEX_CHECKS( VertexBase );
 // ture atlas as a source.
 struct SpriteVertex : public VertexBase {
   SpriteVertex( gfx::point position, gfx::point atlas_position,
-                gfx::rect atlas_rect );
+                gfx::rect atlas_rect,
+                base::maybe<TxDpxl> txdpxl );
 
   bool operator==( SpriteVertex const& ) const = default;
 };
@@ -166,7 +182,8 @@ struct StencilVertex : public VertexBase {
   StencilVertex( gfx::point position, gfx::point atlas_position,
                  gfx::rect atlas_rect,
                  gfx::size atlas_target_offset,
-                 gfx::pixel key_color );
+                 gfx::pixel key_color,
+                 base::maybe<TxDpxl> txdpxl );
 
   bool operator==( StencilVertex const& ) const = default;
 };

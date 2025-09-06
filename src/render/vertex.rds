@@ -69,6 +69,17 @@ struct.GenericVertex {
   #        depixelation with the stage given by the global
   #        depixelation stage uniform.
   #
+  #   5    Textured depixelation. When rendering a sprite,
+  #        reference_position_2 will contain the offset to the
+  #        textured depixelation sprite. This textured depixela-
+  #        tion sprite is a texture of numbers that will be com-
+  #        pared against the noise texture to determine whether
+  #        each pixel in the sprite should be depixelated. This
+  #        allows non-uniform depixelation of a sprite in an ar-
+  #        bitrary way. For example, we may only want a specific
+  #        part of a sprite to be depixelated, and for the
+  #        strength to vary across the sprite.
+  #
   flags 'uint32_t',
 
   # Bit field:
@@ -168,8 +179,11 @@ struct.GenericVertex {
 
   # Multi-use:
   #
-  #   * For line types this gives the coordinate of the end
-  #     of the line.
+  #   * For line types this gives the coordinate of the end of
+  #     the line.
+  #   * When we are rendering a sprite and textured depixelation
+  #     is on, this gives the offset of the depixelation texture
+  #     from the main sprite.
   #
   reference_position_2 'gl::vec2',
 

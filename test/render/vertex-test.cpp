@@ -24,6 +24,7 @@ namespace {
 
 using namespace std;
 
+using ::base::maybe;
 using ::base::nothing;
 using ::gfx::pixel;
 using ::gfx::point;
@@ -31,10 +32,12 @@ using ::gfx::rect;
 using ::gfx::size;
 
 TEST_CASE( "[render/vertex] SpriteVertex" ) {
+  maybe<TxDpxl> txdpxl;
   SpriteVertex vert( point{ .x = 1, .y = 2 },
                      point{ .x = 3, .y = 4 },
                      rect{ .origin = point{ .x = 5, .y = 6 },
-                           .size   = { .w = 1, .h = 2 } } );
+                           .size   = { .w = 1, .h = 2 } },
+                     txdpxl );
   GenericVertex const& gv = vert.generic();
   REQUIRE( gv.type == 0 );
   REQUIRE( gv.depixelate == gl::vec4{} );
@@ -72,12 +75,13 @@ TEST_CASE( "[render/vertex] SolidVertex" ) {
 }
 
 TEST_CASE( "[render/vertex] StencilVertex" ) {
+  maybe<TxDpxl> txdpxl;
   StencilVertex vert(
       point{ .x = 1, .y = 2 }, point{ .x = 3, .y = 4 },
       rect{ .origin = point{ .x = 5, .y = 6 },
             .size   = { .w = 1, .h = 2 } },
       size{ .w = 2, .h = 3 },
-      pixel{ .r = 10, .g = 20, .b = 30, .a = 40 } );
+      pixel{ .r = 10, .g = 20, .b = 30, .a = 40 }, txdpxl );
   GenericVertex const& gv = vert.generic();
   REQUIRE( gv.type == 2 );
   REQUIRE( gv.depixelate == gl::vec4{} );
@@ -123,10 +127,12 @@ TEST_CASE( "[render/vertex] LineVertex" ) {
 }
 
 TEST_CASE( "[render/vertex] depixelation" ) {
+  maybe<TxDpxl> txdpxl;
   SpriteVertex vert( point{ .x = 1, .y = 2 },
                      point{ .x = 3, .y = 4 },
                      rect{ .origin = point{ .x = 5, .y = 6 },
-                           .size   = { .w = 1, .h = 2 } } );
+                           .size   = { .w = 1, .h = 2 } },
+                     txdpxl );
   REQUIRE( vert.depixelation_stage() == 0.0 );
   REQUIRE( vert.depixelation_hash_anchor() == gl::vec2{} );
   REQUIRE( vert.depixelation_gradient() == gl::vec2{} );
@@ -170,10 +176,12 @@ TEST_CASE( "[render/vertex] depixelation" ) {
 }
 
 TEST_CASE( "[render/vertex] alpha" ) {
+  maybe<TxDpxl> txdpxl;
   SpriteVertex vert( point{ .x = 1, .y = 2 },
                      point{ .x = 3, .y = 4 },
                      rect{ .origin = point{ .x = 5, .y = 6 },
-                           .size   = { .w = 1, .h = 2 } } );
+                           .size   = { .w = 1, .h = 2 } },
+                     txdpxl );
   vert.reset_alpha();
   REQUIRE( vert.alpha() == 1.0 );
   vert.set_alpha( .5 );
@@ -185,10 +193,12 @@ TEST_CASE( "[render/vertex] alpha" ) {
 }
 
 TEST_CASE( "[render/vertex] scaling" ) {
+  maybe<TxDpxl> txdpxl;
   SpriteVertex vert( point{ .x = 6, .y = 12 },
                      point{ .x = 3, .y = 4 },
                      rect{ .origin = point{ .x = 5, .y = 6 },
-                           .size   = { .w = 1, .h = 2 } } );
+                           .size   = { .w = 1, .h = 2 } },
+                     txdpxl );
   REQUIRE( vert.generic().scaling == 1.0 );
   vert.set_scaling( .5 );
   REQUIRE( vert.generic().scaling == .5f );
@@ -197,10 +207,12 @@ TEST_CASE( "[render/vertex] scaling" ) {
 }
 
 TEST_CASE( "[render/vertex] translation1" ) {
+  maybe<TxDpxl> txdpxl;
   SpriteVertex vert( point{ .x = 6, .y = 12 },
                      point{ .x = 3, .y = 4 },
                      rect{ .origin = point{ .x = 5, .y = 6 },
-                           .size   = { .w = 1, .h = 2 } } );
+                           .size   = { .w = 1, .h = 2 } },
+                     txdpxl );
   REQUIRE( vert.generic().translation1 ==
            gl::vec2{ .x = 0, .y = 0 } );
   vert.set_translation1( gfx::dsize{ .w = 2, .h = -4 } );
@@ -209,10 +221,12 @@ TEST_CASE( "[render/vertex] translation1" ) {
 }
 
 TEST_CASE( "[render/vertex] translation2" ) {
+  maybe<TxDpxl> txdpxl;
   SpriteVertex vert( point{ .x = 6, .y = 12 },
                      point{ .x = 3, .y = 4 },
                      rect{ .origin = point{ .x = 5, .y = 6 },
-                           .size   = { .w = 1, .h = 2 } } );
+                           .size   = { .w = 1, .h = 2 } },
+                     txdpxl );
   REQUIRE( vert.generic().translation2 ==
            gl::vec2{ .x = 0, .y = 0 } );
   vert.set_translation2( gfx::dsize{ .w = 2, .h = -4 } );
@@ -221,7 +235,8 @@ TEST_CASE( "[render/vertex] translation2" ) {
 }
 
 TEST_CASE( "[render/vertex] aux_bits_1" ) {
-  SpriteVertex vert( point{}, point{}, rect{} );
+  maybe<TxDpxl> txdpxl;
+  SpriteVertex vert( point{}, point{}, rect{}, txdpxl );
   REQUIRE( vert.generic().aux_bits_1 == 0 );
 
   vert.set_color_cycle_plan( 5 );
@@ -257,10 +272,12 @@ TEST_CASE( "[render/vertex] aux_bits_1" ) {
 
 TEST_CASE( "[render/vertex] color_cycle" ) {
   static_assert( VERTEX_FLAG_COLOR_CYCLE == 1 );
+  maybe<TxDpxl> txdpxl;
   SpriteVertex vert( point{ .x = 6, .y = 12 },
                      point{ .x = 3, .y = 4 },
                      rect{ .origin = point{ .x = 5, .y = 6 },
-                           .size   = { .w = 1, .h = 2 } } );
+                           .size   = { .w = 1, .h = 2 } },
+                     txdpxl );
   REQUIRE( ( vert.generic().flags & VERTEX_FLAG_COLOR_CYCLE ) ==
            0 );
   REQUIRE_FALSE( vert.get_color_cycle() );
@@ -276,10 +293,12 @@ TEST_CASE( "[render/vertex] color_cycle" ) {
 
 TEST_CASE( "[render/vertex] use_camera" ) {
   static_assert( VERTEX_FLAG_USE_CAMERA == 2 );
+  maybe<TxDpxl> txdpxl;
   SpriteVertex vert( point{ .x = 6, .y = 12 },
                      point{ .x = 3, .y = 4 },
                      rect{ .origin = point{ .x = 5, .y = 6 },
-                           .size   = { .w = 1, .h = 2 } } );
+                           .size   = { .w = 1, .h = 2 } },
+                     txdpxl );
   REQUIRE( ( vert.generic().flags & VERTEX_FLAG_USE_CAMERA ) ==
            0 );
   REQUIRE_FALSE( vert.get_use_camera() );
@@ -295,10 +314,12 @@ TEST_CASE( "[render/vertex] use_camera" ) {
 
 TEST_CASE( "[render/vertex] desaturate" ) {
   static_assert( VERTEX_FLAG_DESATURATE == 4 );
+  maybe<TxDpxl> txdpxl;
   SpriteVertex vert( point{ .x = 6, .y = 12 },
                      point{ .x = 3, .y = 4 },
                      rect{ .origin = point{ .x = 5, .y = 6 },
-                           .size   = { .w = 1, .h = 2 } } );
+                           .size   = { .w = 1, .h = 2 } },
+                     txdpxl );
   REQUIRE( ( vert.generic().flags & VERTEX_FLAG_DESATURATE ) ==
            0 );
   REQUIRE_FALSE( vert.get_desaturate() );
@@ -314,10 +335,12 @@ TEST_CASE( "[render/vertex] desaturate" ) {
 
 TEST_CASE( "[render/vertex] fixed_color" ) {
   static_assert( VERTEX_FLAG_FIXED_COLOR == 8 );
+  maybe<TxDpxl> txdpxl;
   SpriteVertex vert( point{ .x = 6, .y = 12 },
                      point{ .x = 3, .y = 4 },
                      rect{ .origin = point{ .x = 5, .y = 6 },
-                           .size   = { .w = 1, .h = 2 } } );
+                           .size   = { .w = 1, .h = 2 } },
+                     txdpxl );
   gfx::pixel const color{ .r = 16, .g = 32, .b = 64, .a = 128 };
   REQUIRE( ( vert.generic().flags & VERTEX_FLAG_FIXED_COLOR ) ==
            0 );
@@ -338,10 +361,12 @@ TEST_CASE( "[render/vertex] fixed_color" ) {
 
 TEST_CASE( "[render/vertex] uniform depixelation" ) {
   static_assert( VERTEX_FLAG_UNIFORM_DEPIXELATION == 16 );
+  maybe<TxDpxl> txdpxl;
   SpriteVertex vert( point{ .x = 6, .y = 12 },
                      point{ .x = 3, .y = 4 },
                      rect{ .origin = point{ .x = 5, .y = 6 },
-                           .size   = { .w = 1, .h = 2 } } );
+                           .size   = { .w = 1, .h = 2 } },
+                     txdpxl );
   REQUIRE( ( vert.generic().flags &
              VERTEX_FLAG_UNIFORM_DEPIXELATION ) == 0 );
   REQUIRE_FALSE( vert.get_uniform_depixelation() );
@@ -354,6 +379,99 @@ TEST_CASE( "[render/vertex] uniform depixelation" ) {
   REQUIRE( ( vert.generic().flags &
              VERTEX_FLAG_UNIFORM_DEPIXELATION ) == 0 );
   REQUIRE_FALSE( vert.get_uniform_depixelation() );
+}
+
+TEST_CASE( "[render/vertex] textured depixelation" ) {
+  static_assert( VERTEX_FLAG_TEXTURED_DEPIXELATION == 32 );
+
+  SECTION( "SpriteVertex/constructed empty" ) {
+    maybe<TxDpxl> txdpxl;
+    SpriteVertex vert( point{ .x = 6, .y = 12 },
+                       point{ .x = 3, .y = 4 },
+                       rect{ .origin = point{ .x = 5, .y = 6 },
+                             .size   = { .w = 1, .h = 2 } },
+                       txdpxl );
+    REQUIRE( ( vert.generic().flags &
+               VERTEX_FLAG_TEXTURED_DEPIXELATION ) == 0 );
+    REQUIRE( vert.get_textured_depixelation() == nothing );
+
+    vert.set_textured_depixelation( TxDpxl{
+      .reference_sprite_offset = { .w = 3, .h = 4 } } );
+    REQUIRE( ( vert.generic().flags &
+               VERTEX_FLAG_TEXTURED_DEPIXELATION ) ==
+             VERTEX_FLAG_TEXTURED_DEPIXELATION );
+    REQUIRE( vert.get_textured_depixelation() ==
+             TxDpxl{
+               .reference_sprite_offset = { .w = 3, .h = 4 } } );
+    vert.set_textured_depixelation( nothing );
+    REQUIRE( ( vert.generic().flags &
+               VERTEX_FLAG_TEXTURED_DEPIXELATION ) == 0 );
+    REQUIRE( vert.get_textured_depixelation() == nothing );
+  }
+
+  SECTION( "SpriteVertex/constructed with" ) {
+    SpriteVertex vert( point{ .x = 6, .y = 12 },
+                       point{ .x = 3, .y = 4 },
+                       rect{ .origin = point{ .x = 5, .y = 6 },
+                             .size   = { .w = 1, .h = 2 } },
+                       TxDpxl{ .reference_sprite_offset = {
+                                 .w = 3, .h = 4 } } );
+    REQUIRE( ( vert.generic().flags &
+               VERTEX_FLAG_TEXTURED_DEPIXELATION ) ==
+             VERTEX_FLAG_TEXTURED_DEPIXELATION );
+    REQUIRE( vert.get_textured_depixelation() ==
+             TxDpxl{
+               .reference_sprite_offset = { .w = 3, .h = 4 } } );
+    vert.set_textured_depixelation( nothing );
+    REQUIRE( ( vert.generic().flags &
+               VERTEX_FLAG_TEXTURED_DEPIXELATION ) == 0 );
+    REQUIRE( vert.get_textured_depixelation() == nothing );
+  }
+
+  SECTION( "StencilVertex/constructed empty" ) {
+    maybe<TxDpxl> txdpxl;
+    StencilVertex vert( point{ .x = 6, .y = 12 },
+                        point{ .x = 3, .y = 4 },
+                        rect{ .origin = point{ .x = 5, .y = 6 },
+                              .size   = { .w = 1, .h = 2 } },
+                        size{}, pixel{}, txdpxl );
+    REQUIRE( ( vert.generic().flags &
+               VERTEX_FLAG_TEXTURED_DEPIXELATION ) == 0 );
+    REQUIRE( vert.get_textured_depixelation() == nothing );
+
+    vert.set_textured_depixelation( TxDpxl{
+      .reference_sprite_offset = { .w = 3, .h = 4 } } );
+    REQUIRE( ( vert.generic().flags &
+               VERTEX_FLAG_TEXTURED_DEPIXELATION ) ==
+             VERTEX_FLAG_TEXTURED_DEPIXELATION );
+    REQUIRE( vert.get_textured_depixelation() ==
+             TxDpxl{
+               .reference_sprite_offset = { .w = 3, .h = 4 } } );
+    vert.set_textured_depixelation( nothing );
+    REQUIRE( ( vert.generic().flags &
+               VERTEX_FLAG_TEXTURED_DEPIXELATION ) == 0 );
+    REQUIRE( vert.get_textured_depixelation() == nothing );
+  }
+
+  SECTION( "StencilVertex/constructed with" ) {
+    StencilVertex vert( point{ .x = 6, .y = 12 },
+                        point{ .x = 3, .y = 4 },
+                        rect{ .origin = point{ .x = 5, .y = 6 },
+                              .size   = { .w = 1, .h = 2 } },
+                        size{}, pixel{},
+                        TxDpxl{ .reference_sprite_offset = {
+                                  .w = 3, .h = 4 } } );
+    REQUIRE( ( vert.generic().flags &
+               VERTEX_FLAG_TEXTURED_DEPIXELATION ) ==
+             VERTEX_FLAG_TEXTURED_DEPIXELATION );
+    REQUIRE( vert.get_textured_depixelation() ==
+             TxDpxl{
+               .reference_sprite_offset = { .w = 3, .h = 4 } } );
+    vert.set_textured_depixelation( nothing );
+    REQUIRE( ( vert.generic().flags &
+               VERTEX_FLAG_TEXTURED_DEPIXELATION ) == 0 );
+    REQUIRE( vert.get_textured_depixelation() == nothing );
+  }
 }
 
 } // namespace

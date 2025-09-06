@@ -226,15 +226,40 @@ bool VertexBase::get_uniform_depixelation() const {
   return ( ( flags & mask ) != 0 ) ? true : false;
 }
 
+void VertexBase::set_textured_depixelation(
+    maybe<TxDpxl> const txdpxl ) {
+  auto constexpr mask = VERTEX_FLAG_TEXTURED_DEPIXELATION;
+  if( txdpxl ) {
+    flags |= mask;
+    reference_position_2.x = txdpxl->reference_sprite_offset.w;
+    reference_position_2.y = txdpxl->reference_sprite_offset.h;
+  } else {
+    flags &= ~mask;
+  }
+}
+
+maybe<TxDpxl> VertexBase::get_textured_depixelation() const {
+  auto constexpr mask = VERTEX_FLAG_TEXTURED_DEPIXELATION;
+  bool const enabled  = ( ( flags & mask ) != 0 ) ? true : false;
+  if( !enabled ) return nothing;
+  return TxDpxl{
+    .reference_sprite_offset = {
+      .w = static_cast<int>( reference_position_2.x ),
+      .h = static_cast<int>( reference_position_2.y ),
+    } };
+}
+
 /****************************************************************
 ** SpriteVertex
 *****************************************************************/
 SpriteVertex::SpriteVertex( gfx::point position,
                             gfx::point atlas_position,
-                            gfx::rect atlas_rect )
+                            gfx::rect atlas_rect,
+                            maybe<TxDpxl> const txdpxl )
   : VertexBase( proto_vertex( vertex_type::sprite, position ) ) {
   this->atlas_position = gl::vec2::from_point( atlas_position );
   this->atlas_rect     = gl::vec4::from_rect( atlas_rect );
+  set_textured_depixelation( txdpxl );
 }
 
 /****************************************************************
@@ -252,7 +277,8 @@ StencilVertex::StencilVertex( gfx::point position,
                               gfx::point atlas_position,
                               gfx::rect atlas_rect,
                               gfx::size atlas_target_offset,
-                              gfx::pixel key_color )
+                              gfx::pixel key_color,
+                              maybe<TxDpxl> const txdpxl )
   : VertexBase(
         proto_vertex( vertex_type::stencil, position ) ) {
   this->atlas_position = gl::vec2::from_point( atlas_position );
@@ -260,6 +286,7 @@ StencilVertex::StencilVertex( gfx::point position,
   this->reference_position_1 =
       gl::vec2::from_size( atlas_target_offset );
   this->stencil_key_color = gl::color::from_pixel( key_color );
+  set_textured_depixelation( txdpxl );
 }
 
 /****************************************************************
