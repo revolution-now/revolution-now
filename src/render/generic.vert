@@ -35,6 +35,7 @@ flat out int   frag_color_cycle;
 flat out int   frag_desaturate;
 flat out int   frag_use_fixed_color;
 flat out int   frag_uniform_depixelation;
+flat out int   frag_textured_depixelation;
 flat out float frag_depixelate_stage;
 flat out float frag_depixelate_inverted;
 flat out vec2  frag_depixelate_anchor;
@@ -61,11 +62,12 @@ uniform float u_camera_zoom;
 *****************************************************************/
 // These need to be kept in sync with the corresponding ones in
 // the C++ code.
-#define VERTEX_FLAG_COLOR_CYCLE          ( uint(1) << 0 )
-#define VERTEX_FLAG_USE_CAMERA           ( uint(1) << 1 )
-#define VERTEX_FLAG_DESATURATE           ( uint(1) << 2 )
-#define VERTEX_FLAG_FIXED_COLOR          ( uint(1) << 3 )
-#define VERTEX_FLAG_UNIFORM_DEPIXELATION ( uint(1) << 4 )
+#define VERTEX_FLAG_COLOR_CYCLE           ( uint(1) << 0 )
+#define VERTEX_FLAG_USE_CAMERA            ( uint(1) << 1 )
+#define VERTEX_FLAG_DESATURATE            ( uint(1) << 2 )
+#define VERTEX_FLAG_FIXED_COLOR           ( uint(1) << 3 )
+#define VERTEX_FLAG_UNIFORM_DEPIXELATION  ( uint(1) << 4 )
+#define VERTEX_FLAG_TEXTURED_DEPIXELATION ( uint(1) << 5 )
 
 int get_flag( in uint mask ) {
   uint res = in_flags & mask;
@@ -124,18 +126,19 @@ vec2 inverse_scale( in vec2 v ) {
 // warded as they are.  But note any input that refers to the
 // screen position of something must be scaled/translated.
 void forwarding() {
-  frag_type                 = in_type;
-  frag_color_cycle_plan     = int( get_color_cycle() );
-  frag_downsample           = int( get_downsample() );
-  frag_color_cycle          = get_flag( VERTEX_FLAG_COLOR_CYCLE );
-  frag_desaturate           = get_flag( VERTEX_FLAG_DESATURATE );
-  frag_use_fixed_color      = get_flag( VERTEX_FLAG_FIXED_COLOR );
-  frag_uniform_depixelation = get_flag( VERTEX_FLAG_UNIFORM_DEPIXELATION );
-  frag_depixelate_stage     = in_depixelate.z;
-  frag_depixelate_inverted  = in_depixelate.w;
-  frag_depixelate_anchor.xy = shift_and_scale( in_depixelate.xy );
-  frag_depixelate_stages.zw = inverse_scale( in_depixelate_stages.zw );
-  frag_depixelate_stages.xy = shift_and_scale( in_depixelate_stages.xy );
+  frag_type                  = in_type;
+  frag_color_cycle_plan      = int( get_color_cycle() );
+  frag_downsample            = int( get_downsample() );
+  frag_color_cycle           = get_flag( VERTEX_FLAG_COLOR_CYCLE );
+  frag_desaturate            = get_flag( VERTEX_FLAG_DESATURATE );
+  frag_use_fixed_color       = get_flag( VERTEX_FLAG_FIXED_COLOR );
+  frag_uniform_depixelation  = get_flag( VERTEX_FLAG_UNIFORM_DEPIXELATION );
+  frag_textured_depixelation = get_flag( VERTEX_FLAG_TEXTURED_DEPIXELATION );
+  frag_depixelate_stage      = in_depixelate.z;
+  frag_depixelate_inverted   = in_depixelate.w;
+  frag_depixelate_anchor.xy  = shift_and_scale( in_depixelate.xy );
+  frag_depixelate_stages.zw  = inverse_scale( in_depixelate_stages.zw );
+  frag_depixelate_stages.xy  = shift_and_scale( in_depixelate_stages.xy );
   // In the fragment shader there is a place where we need to use
   // the unscaled depixelation stage gradient, and so instead of
   // unscaling the scaled one (that we just scaled above) we will

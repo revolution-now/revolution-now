@@ -17,6 +17,7 @@ flat in int   frag_color_cycle;
 flat in int   frag_desaturate;
 flat in int   frag_use_fixed_color;
 flat in int   frag_uniform_depixelation;
+flat in int   frag_textured_depixelation;
 flat in float frag_depixelate_stage;
 flat in float frag_depixelate_inverted;
 flat in vec2  frag_depixelate_anchor;
@@ -270,7 +271,7 @@ float hash_position( in vec2 anchor ) {
 // would vary continuously within the logical pixels and produce
 // differently-sized pixels). #1 is an inconvenience, but #2
 // proved to be a deal breaker; hence we do it the way we do it.
-float depixel_stage() {
+float geometric_depixel_stage() {
   // When depixelation is gradiated, the anchor is required to
   // represent the upper left of the tile (a stronger requirement
   // than it just being fixed relative to the points on the tri-
@@ -306,9 +307,25 @@ float depixel_stage() {
   return stage;
 }
 
-float depixelate() {
+float geometric_depixelate() {
   vec2 anchor = frag_depixelate_anchor;
-  bool on = ( hash_position( anchor ) > depixel_stage() );
+  bool on = ( hash_position( anchor ) > geometric_depixel_stage() );
+  if( frag_depixelate_inverted != 0.0 ) on = !on;
+  return on ? 1.0 : 0.0;
+}
+
+float textured_depixelate() {
+  vec2 atlas_target_offset = frag_reference_position_2;
+
+  vec2 target_atlas_position = frag_atlas_position
+                             + atlas_target_offset;
+  vec4 target_atlas_rect = frag_atlas_rect;
+  target_atlas_rect.xy += atlas_target_offset;
+  vec4 stage_vec = atlas_lookup( target_atlas_position,
+                                 target_atlas_rect );
+  float stage = stage_vec.r;
+  vec2 anchor = frag_depixelate_anchor;
+  bool on = ( hash_position( anchor ) >= stage );
   if( frag_depixelate_inverted != 0.0 ) on = !on;
   return on ? 1.0 : 0.0;
 }
@@ -482,7 +499,7 @@ void main() {
   // Depixelation.
   bool depixel_enabled = frag_depixelate_stage != 0 ||
                          frag_depixelate_stages.zw != vec2( 0, 0 );
-  if( depixel_enabled ) color *= depixelate();
+  if( depixel_enabled ) color *= geometric_depixelate();
 
   // Color cycling.
   if( frag_color_cycle != 0 ) color = color_cycle( color );
@@ -495,6 +512,9 @@ void main() {
 
   // Desaturation.
   if( frag_desaturate != 0 ) color.rgb = desaturate_fast( color.rgb );
+
+  // Textured depixelation.
+  if( frag_textured_depixelation != 0 ) color *= textured_depixelate();
 
   // Uniform depixelation.
   if( frag_uniform_depixelation != 0 ) color *= uniform_depixelate();
