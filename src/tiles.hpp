@@ -68,6 +68,9 @@ gfx::rect trimmed_area_for( e_tile tile );
 // izing video, etc. So easier just to do it this way.
 void testing_set_trimmed_cache( e_tile tile, gfx::rect trimmed );
 
+// Similary for burrow stencil tiles.
+void testing_set_burrow_cache( e_tile tile, int id );
+
 /****************************************************************
 ** Rendering Tiles
 *****************************************************************/
@@ -115,6 +118,31 @@ rr::StencilPlan stencil_plan_for( e_tile replacement_tile,
 void render_sprite_stencil( rr::Renderer& renderer, Coord where,
                             e_tile tile, e_tile replacement_tile,
                             gfx::pixel key_color );
+
+/****************************************************************
+** Burrowing.
+*****************************************************************/
+// Burrowing refers to the mechanism that allows e.g. the native
+// dwellings and colonies to appear like they are nested in the
+// forest instead of just appearing to hover over the forest
+// tiles. For each sprite that supports burrowing, a second
+// sprite is precomputed that marks the bottom edge of the opaque
+// region of the sprite with some depixelation stages so that the
+// forest can then be drawn over that depixelation guide to make
+// it appear that the forest grow is encroaching on the bottom
+// each of the dwelling sprite.
+//
+// In the example of the dwelling nested in the forest, the "ren-
+// dered tile" would be the forest tile and the "reference tile"
+// would be the dwelling tile. But note that the reference tile
+// generally may be larger than the reference tile (as is the
+// case for the dwelling). To handle this we draw multiple bur-
+// rowed forest tiles over the dwelling, and the "offset from
+// center" parameter tells which portion of the dwelling burrowed
+// sprite we want to look at.
+rr::TexturedDepixelatePlan burrowed_sprite_plan_for(
+    e_tile rendered_tile, e_tile reference_tile,
+    gfx::size tile_offset_from_center );
 
 /****************************************************************
 ** Tiling

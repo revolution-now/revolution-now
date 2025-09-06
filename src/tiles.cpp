@@ -44,14 +44,18 @@ namespace rn {
 
 namespace {
 
+using ::base::maybe;
+using ::base::nothing;
 using ::base::valid;
 using ::base::valid_or;
+using ::gfx::point;
 using ::gfx::rect;
 using ::gfx::size;
 using ::refl::enum_count;
 
 vector<int> cache;
 vector<rect> trimmed_cache;
+vector<maybe<int>> burrow_cache;
 
 int atlas_lookup( e_tile const tile ) {
   int const idx = static_cast<int>( tile );
@@ -74,6 +78,19 @@ rect atlas_lookup_trimmed( e_tile const tile ) {
   return res;
 }
 
+maybe<int> atlas_lookup_burrowed( e_tile const tile ) {
+  int const idx = static_cast<int>( tile );
+  // This is only expected to ever fail in unit tests when we
+  // forget to initialize a tile in the burrow cache.
+  CHECK(
+      idx < int( burrow_cache.size() ),
+      "burrow cache not initialized properly. If you are in a "
+      "unit test then you must call testing_set_burrow_cache to "
+      "set a burrowed id for the tile.",
+      tile );
+  return burrow_cache[idx];
+}
+
 } // namespace
 
 void testing_set_trimmed_cache( e_tile const tile,
@@ -92,21 +109,37 @@ void testing_set_trimmed_cache( e_tile const tile,
   trimmed_cache[idx] = trimmed;
 }
 
+void testing_set_burrow_cache( e_tile const tile,
+                               int const id ) {
+  if( burrow_cache.empty() )
+    burrow_cache.resize( enum_count<e_tile> );
+  CHECK( !burrow_cache.empty() );
+  int const idx = static_cast<int>( tile );
+  CHECK_LT( idx, ssize( burrow_cache ) );
+  burrow_cache[idx] = id;
+}
+
 void init_sprites( rr::Renderer& renderer ) {
   cache.resize( refl::enum_count<e_tile> );
   trimmed_cache.resize( refl::enum_count<e_tile> );
+  burrow_cache.resize( refl::enum_count<e_tile> );
   auto const& atlas_ids = renderer.atlas_ids();
   auto const& atlas_trimmed_rects =
       renderer.atlas_trimmed_rects();
-  int i = 0;
+  auto const& burrow_ids = renderer.atlas_burrow_ids();
+
+  static_assert( static_cast<int>( e_tile{} ) == 0 );
   for( e_tile const tile : refl::enum_values<e_tile> ) {
     string const name( refl::enum_value_name( tile ) );
     UNWRAP_CHECK( atlas_id, base::lookup( atlas_ids, name ) );
     UNWRAP_CHECK( atlas_trimmed,
                   base::lookup( atlas_trimmed_rects, name ) );
+    int const i      = static_cast<int>( tile );
     cache[i]         = atlas_id;
     trimmed_cache[i] = atlas_trimmed;
-    ++i;
+    if( auto const iter = burrow_ids.find( atlas_id );
+        iter != burrow_ids.end() )
+      burrow_cache[i] = iter->second;
   }
 }
 
@@ -247,6 +280,40 @@ rr::StencilPlan stencil_plan_for( e_tile replacement_tile,
   return {
     .replacement_atlas_id = atlas_lookup( replacement_tile ),
     .key_color            = key_color };
+}
+
+rr::TexturedDepixelatePlan burrowed_sprite_plan_for(
+    e_tile const rendered_tile, e_tile const reference_tile,
+    size const tile_offset_from_center ) {
+  UNWRAP_CHECK_MSG(
+      reference_atlas_id,
+      atlas_lookup_burrowed( reference_tile ),
+      "Cannot find burrowed sprite stencil for tile `{}`.  You "
+      "must enable this feature for the sprite's sheet in the "
+      "sprite config.",
+      reference_tile );
+
+  size const rendered_sz  = sprite_size( rendered_tile );
+  size const reference_sz = sprite_size( reference_tile );
+  CHECK( rendered_sz.fits_inside( reference_sz ),
+         "the reference tile used for textured depixelation "
+         "must be equal or larger in size to the sprite being "
+         "rendered." );
+
+  size const center_offset_into_reference =
+      ( reference_sz - rendered_sz ) / 2;
+  // For example, if tile_offset_from_center is (-1,1) then this
+  // means that we want to carve the reference tile into a grid
+  // and then select the portion that is southwest from the cen-
+  // ter. Note that the "grid" is such that the rendered tile is
+  // centered; in general, the tile that we select may only be
+  // partially occupied by the reference tile.
+  size const offset_into_reference =
+      center_offset_into_reference +
+      size( tile_offset_from_center * rendered_sz );
+
+  return { .reference_atlas_id    = reference_atlas_id,
+           .offset_into_reference = offset_into_reference };
 }
 
 void render_sprite_stencil( rr::Renderer& renderer, Coord where,
