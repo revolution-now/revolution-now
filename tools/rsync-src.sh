@@ -31,16 +31,30 @@ get_dir() {
   rsync --checksum --recursive "dsicilia@$host:$from" "$to"
 }
 
-local_src='src/'
-remote_src='/home/dsicilia/dev/revolution-now/src/'
-get_dir  "$remote_src" "$local_src" &
+sync_file() {
+  local rel="$1"
+  [[ -n "$rel" ]]
+  local local_file="$rel"
+  local remote_file="/home/dsicilia/dev/revolution-now/$rel"
+  [[ -f "$local_file" ]]
+  [[ -f "$remote_file" ]]
+  get_file  "$remote_file" "$local_file" &
+}
 
-local_conf='config/'
-remote_conf='/home/dsicilia/dev/revolution-now/config/'
-get_dir  "$remote_conf" "$local_conf" &
+sync_dir() {
+  local rel="$1"
+  [[ -n "$rel" ]]
+  local local_dir="$rel/"
+  local remote_dir="/home/dsicilia/dev/revolution-now/$rel/"
+  [[ -d "$local_dir" ]]
+  [[ -d "$remote_dir" ]]
+  get_dir  "$remote_dir" "$local_dir" &
+}
 
-local_contents='tools/ide/contents/rn.lua'
-remote_contents='/home/dsicilia/dev/revolution-now/tools/ide/contents/rn.lua'
-get_file "$remote_contents" "$local_contents" &
+# sync_dir  src
+# sync_dir  test
+# sync_dir  config
+# sync_dir  assets
+# sync_file tools/ide/contents/rn.lua
 
 wait
