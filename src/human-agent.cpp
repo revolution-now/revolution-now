@@ -223,7 +223,7 @@ command HumanAgent::ask_orders( UnitId const ) {
 
 wait<ui::e_confirm> HumanAgent::kiss_pinky_ring(
     string const& msg, ColonyId const colony_id,
-    e_commodity const type, int const /*tax_increase*/ ) {
+    e_commodity const type, int const tax_increase ) {
   string const party =
       fmt::format( "Hold '[{} {} party]'!",
                    ss_.colonies.colony_for( colony_id ).name,
@@ -234,7 +234,39 @@ wait<ui::e_confirm> HumanAgent::kiss_pinky_ring(
     .no_label       = party,
     .no_comes_first = false,
   };
-  co_return co_await gui_.required_yes_no( config );
+  // Instead of just asking once as the OG does, we add a confir-
+  // mation box on the default choise (Kiss Pinky Ring) to avoid
+  // the player accidentally hitting enter on the box without
+  // reading it, as typically happens with the many notifications
+  // that pop up throughout a turn. For this particular one, we
+  // want the player to really think about it each time it hap-
+  // pens, especially because a tax increase (the default choice)
+  // cannot be reversed.
+  while( true ) {
+    ui::e_confirm const answer =
+        co_await gui_.required_yes_no( config );
+    switch( answer ) {
+      case ui::e_confirm::no:
+        co_return answer;
+      case ui::e_confirm::yes: {
+        YesNoConfig const config{
+          .msg =
+              format( "The King applauds your loyalty and has "
+                      "sent a contract containing the terms of "
+                      "this [{}% tax increase].  Once accepted, "
+                      "you may then kiss the Pinky Ring.",
+                      tax_increase ),
+          .yes_label      = "Accept",
+          .no_label       = "Wait! Let us reconsider...",
+          .no_comes_first = true,
+        };
+        if( co_await gui_.required_yes_no( config ) ==
+            ui::e_confirm::yes )
+          co_return ui::e_confirm::yes;
+        break;
+      }
+    }
+  }
 }
 
 wait<ui::e_confirm>
