@@ -974,6 +974,12 @@ wait<> offboard_ref_units( SS& ss, IMapUpdater& map_updater,
                                         landing_tile.tile );
     Unit& unit = ss.units.unit_for( unit_id );
     unit.clear_orders();
+    // This is key: it is what prevents the REF units from at-
+    // tacking on the same turn as they land, which changes the
+    // strategy used for dealing with them. Specifically, it al-
+    // lows the startegy of attacking them first outside the
+    // colony (and even destroying them completely) before they
+    // start attacking on their next turn.
     unit.forfeight_mv_points();
     // Destroy any units that are captured and give message.
     co_await euro_unit_captures( unit,
@@ -981,22 +987,31 @@ wait<> offboard_ref_units( SS& ss, IMapUpdater& map_updater,
   }
 }
 
-// NOTE: we don't need to check for uprising here, since this
-// function is only called at the end of a turn after which an
-// uprising could have happened. In the OG, the REF can and will
-// forfeight even if an REF is possible, it it didn't do one on a
-// given turn and the other surrender conditions are met. So in
-// other words, we don't need to check if we will be able to do
-// another uprising on the next turn.
-maybe<e_forfeight_reason> ref_should_forfeight(
-    SSConst const& ss, Player const& ref_player ) {
+bool can_send_more_ref_units( SSConst const& ss,
+                              Player const& colonial_player ) {
+  auto const& stock =
+      colonial_player.revolution.expeditionary_force;
+  int const total_ships_in_stock = stock.man_o_war;
+  int const total_land_units_in_stock =
+      stock.regular + stock.cavalry + stock.artillery;
+  if( total_land_units_in_stock == 0 ) return false;
+  // NOTE: By default (as in the OG) ref_can_spawn_ships=true.
+  if( !ss.settings.game_setup_options.customized_rules
+           .ref_can_spawn_ships &&
+      total_ships_in_stock == 0 )
+    return false;
+  return true;
+}
+
+bool ref_should_forfeight( SSConst const& ss,
+                           Player const& ref_player ) {
   CHECK( is_ref( ref_player.type ) );
   vector<ColonyId> const ref_colonies =
       ss.colonies.for_player( ref_player.type );
   if( !ref_colonies.empty() )
     // If the REF has captured any colonies, even if they are in-
     // land, then they don't forfeight.
-    return nothing;
+    return false;
   unordered_map<UnitId, UnitState::euro const*> const&
       units_all = ss.units.euro_all();
   for( auto const [unit_id, p_euro] : units_all ) {
@@ -1008,50 +1023,13 @@ maybe<e_forfeight_reason> ref_should_forfeight(
       // have not yet been transported to the new world, since
       // those are not yet real units. This means there is a real
       // REF land unit somewhere on the map.
-      return nothing;
+      return false;
   }
   e_player const colonial_player_type =
       colonial_player_for( nation_for( ref_player.type ) );
   UNWRAP_CHECK_T( Player const& colonial_player,
                   ss.players.players[colonial_player_type] );
-  auto const& stock =
-      colonial_player.revolution.expeditionary_force;
-  int const total_ships_in_stock = stock.man_o_war;
-  int const total_land_units_in_stock =
-      stock.regular + stock.cavalry + stock.artillery;
-  // The REF has no colonies and no REF units on land. Therefore
-  // forfeight depends on how many units there are in stock.
-  if( total_land_units_in_stock == 0 )
-    // If we have no more land units then it is impossible to
-    // continue the war, regardless of the number of ships. NOTE:
-    // In a normal game with default rules, this is the only
-    // reason that the REF will forfeight in the NG.
-    return e_forfeight_reason::no_more_land_units_in_stock;
-  // NOTE: By default (as in the OG) ref_can_spawn_ships=true.
-  if( !ss.settings.game_setup_options.customized_rules
-           .ref_can_spawn_ships &&
-      total_ships_in_stock == 0 )
-    // We have no more ships with which to transport the re-
-    // maining REF land units and we are not going to spawn new
-    // ones, so therefore the REF must forfeight.
-    return e_forfeight_reason::no_more_ships;
-  if( total_ships_in_stock > 0 )
-    // We have some land units left, and some ships available to
-    // transport them, so don't forfeight.
-    return nothing;
-  // At this point we have some land units left but no ships to
-  // transport them. Because new ships are created every couple
-  // of turns after they run out, it is not a deal breaker that
-  // there are no ships.
-  //
-  // NOTE: In the OG, under certain conditions, when regulars hit
-  // zero (or a low number, and some other conditions are met; it
-  // is not clear what the exact behavior is) then the REF for-
-  // feights, even if there are other REF land units on the map
-  // and/or in europe. We don't reproduce that here because it
-  // doesn't seem to make sense and the OG's behavior doesn't
-  // seem consistent in that regard.
-  return nothing;
+  return !can_send_more_ref_units( ss, colonial_player );
 }
 
 void do_ref_forfeight( SS& ss, Player& ref_player ) {

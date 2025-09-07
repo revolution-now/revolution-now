@@ -17,6 +17,8 @@ Tory Uprisings:
       - Colony has `tory_uprising=false`.
       - Colony is in the hands of the rebels.
       - Colony has sufficiently low defenses.
+      - Colony should not still be being attacked by normal REF
+        troops.
       - Dice roll to determine whether the uprising happens,
         probability seems related to SoL, but not sure.
       - Colony does /not/ need to be a port colony.
@@ -61,7 +63,6 @@ Tory Uprisings:
         is 0% then we have 25%+0% = 25%. This is likely not the
         same formula that the OG uses, but it seems to roughly
         fit what was observed and should be good enough.
-
   * Randomness:
       * Some randomness in whether it happens on a given turn.
       * No randomness in the colony chosen.

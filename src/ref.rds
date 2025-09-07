@@ -108,11 +108,6 @@ struct.RefLanding {
   units 'RefLandingUnits',
 }
 
-enum.e_forfeight_reason {
-  no_more_land_units_in_stock,
-  no_more_ships,
-}
-
 enum.e_ref_win_reason {
   port_colonies_captured,
   ref_controls_90_percent_population,

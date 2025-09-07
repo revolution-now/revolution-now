@@ -98,6 +98,9 @@ struct.Colony {
   # this colony. Used to modify REF deployments.
   ref_landings 'int',
 
+  # A "Tory Uprising" can only happen once per colony.
+  had_tory_uprising 'bool',
+
   # This goes last. It is only populated on player squares to
   # record the visual state of the colony when its tile was last
   # visited. I.e., it contains a "frozen" representation of those

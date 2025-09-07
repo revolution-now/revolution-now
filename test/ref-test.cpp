@@ -2988,6 +2988,48 @@ TEST_CASE( "[ref] offboard_ref_units" ) {
   REQUIRE( !w.units().exists( captured_native_unit_id ) );
 }
 
+TEST_CASE( "[ref] can_send_more_ref_units" ) {
+  world w;
+  w.create_default_map();
+
+  Player& colonial_player = w.default_player();
+
+  auto const f = [&] [[clang::noinline]] {
+    return can_send_more_ref_units( w.ss(), colonial_player );
+  };
+
+  auto& ref_can_spawn_ships =
+      w.settings()
+          .game_setup_options.customized_rules
+          .ref_can_spawn_ships;
+  ref_can_spawn_ships = true;
+
+  colonial_player.revolution.expeditionary_force.regular = 1;
+  REQUIRE( f() == true );
+
+  ref_can_spawn_ships = false;
+  REQUIRE( f() == false );
+  ref_can_spawn_ships = true;
+
+  colonial_player.revolution.expeditionary_force.man_o_war = 1;
+  REQUIRE( f() == true );
+
+  colonial_player.revolution.expeditionary_force.regular = 0;
+  REQUIRE( f() == false );
+
+  colonial_player.revolution.expeditionary_force.cavalry = 1;
+  REQUIRE( f() == true );
+
+  colonial_player.revolution.expeditionary_force.cavalry = 0;
+  REQUIRE( f() == false );
+
+  colonial_player.revolution.expeditionary_force.artillery = 1;
+  REQUIRE( f() == true );
+
+  colonial_player.revolution.expeditionary_force.artillery = 0;
+  REQUIRE( f() == false );
+}
+
 TEST_CASE( "[ref] ref_should_forfeight" ) {
   world w;
   w.create_default_map();
@@ -3000,8 +3042,6 @@ TEST_CASE( "[ref] ref_should_forfeight" ) {
     return ref_should_forfeight( w.ss(), ref_player );
   };
 
-  using enum e_forfeight_reason;
-
   auto& ref_can_spawn_ships =
       w.settings()
           .game_setup_options.customized_rules
@@ -3009,54 +3049,54 @@ TEST_CASE( "[ref] ref_should_forfeight" ) {
   ref_can_spawn_ships = true;
 
   colonial_player.revolution.expeditionary_force.regular = 1;
-  REQUIRE( f() == nothing );
+  REQUIRE( f() == false );
 
   ref_can_spawn_ships = false;
-  REQUIRE( f() == no_more_ships );
+  REQUIRE( f() == true );
   ref_can_spawn_ships = true;
 
   colonial_player.revolution.expeditionary_force.man_o_war = 1;
-  REQUIRE( f() == nothing );
+  REQUIRE( f() == false );
 
   colonial_player.revolution.expeditionary_force.regular = 0;
-  REQUIRE( f() == no_more_land_units_in_stock );
+  REQUIRE( f() == true );
 
   colonial_player.revolution.expeditionary_force.cavalry = 1;
-  REQUIRE( f() == nothing );
+  REQUIRE( f() == false );
 
   colonial_player.revolution.expeditionary_force.cavalry = 0;
-  REQUIRE( f() == no_more_land_units_in_stock );
+  REQUIRE( f() == true );
 
   colonial_player.revolution.expeditionary_force.artillery = 1;
-  REQUIRE( f() == nothing );
+  REQUIRE( f() == false );
 
   colonial_player.revolution.expeditionary_force.artillery = 0;
-  REQUIRE( f() == no_more_land_units_in_stock );
+  REQUIRE( f() == true );
 
   w.add_unit_on_map( e_unit_type::free_colonist,
                      { .x = 3, .y = 0 }, colonial_player.type );
-  REQUIRE( f() == no_more_land_units_in_stock );
+  REQUIRE( f() == true );
 
   w.add_unit_on_map( e_unit_type::free_colonist,
                      { .x = 1, .y = 0 }, ref_player.type );
-  REQUIRE( f() == no_more_land_units_in_stock );
+  REQUIRE( f() == true );
 
-  REQUIRE( f() == no_more_land_units_in_stock );
+  REQUIRE( f() == true );
 
   UnitId const soldier_id =
       w.add_unit_on_map( e_unit_type::soldier,
                          { .x = 1, .y = 0 }, ref_player.type )
           .id();
-  REQUIRE( f() == nothing );
+  REQUIRE( f() == false );
 
   UnitOwnershipChanger( w.ss(), soldier_id ).destroy();
-  REQUIRE( f() == no_more_land_units_in_stock );
+  REQUIRE( f() == true );
 
   w.add_colony( { .x = 3, .y = 0 }, colonial_player.type );
-  REQUIRE( f() == no_more_land_units_in_stock );
+  REQUIRE( f() == true );
 
   w.add_colony( { .x = 1, .y = 0 }, ref_player.type );
-  REQUIRE( f() == nothing );
+  REQUIRE( f() == false );
 }
 
 TEST_CASE( "[ref] do_ref_forfeight" ) {

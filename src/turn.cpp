@@ -68,6 +68,7 @@
 #include "unit-mgr.hpp"
 #include "unit-ownership.hpp"
 #include "unsentry.hpp"
+#include "uprising.hpp"
 #include "visibility.hpp"
 #include "woodcut.hpp"
 
@@ -1530,21 +1531,48 @@ wait<> post_colonies_common( SS&, TS&, Player& ) {
 // Here we do things that must be done once per turn but where we
 // want the colonies to be evolved first. Also, these things are
 // only done for the REF players only (not colonial players).
-wait<> post_colonies_ref_only( SS& ss, TS& ts, Player& player ) {
-  CHECK( is_ref( player.type ) );
+wait<> post_colonies_ref_only( SS& ss, TS& ts,
+                               Player& ref_player ) {
+  CHECK( is_ref( ref_player.type ) );
 
-  e_nation const nation = nation_for( player.type );
+  e_nation const nation = nation_for( ref_player.type );
   e_player const colonial_player_type =
       colonial_player_for( nation );
+  UNWRAP_CHECK_T(
+      Player const& colonial_player,
+      ss.players.players[colonial_player_for( nation )] );
 
   // Deploy some REF troops.
-  if( auto const landing_units = produce_REF_landing_units(
-          ss, ts.connectivity, nation );
-      landing_units.has_value() )
+  auto const landing_units =
+      produce_REF_landing_units( ss, ts.connectivity, nation );
+  if( landing_units.has_value() )
     co_await offboard_ref_units(
         ss, ts.map_updater(),
         ts.planes.get().get_bottom<ILandViewPlane>(),
         ts.agents()[colonial_player_type], *landing_units );
+
+  // Try for a "Tory Uprising". This only happens once no further
+  // REF units can be sent, and assuming that none were sent just
+  // now on this turn.
+  bool const should_attempt_uprising =
+      !landing_units.has_value() &&
+      !can_send_more_ref_units( ss.as_const,
+                                as_const( colonial_player ) );
+  if( should_attempt_uprising ) {
+    UprisingColonies const uprising_colonies =
+        find_uprising_colonies( ss.as_const, ts.connectivity,
+                                colonial_player_type );
+    if( !uprising_colonies.colonies.empty() ) {
+      UprisingColony const& uprising_colony =
+          select_uprising_colony( ts.rand, uprising_colonies );
+      vector<e_unit_type> const unit_types =
+          generate_uprising_units( ts.rand,
+                                   uprising_colony.unit_count );
+      deploy_uprising_units( ss, uprising_colony, unit_types );
+      co_await show_uprising_msg( ss.as_const, ts.gui,
+                                  uprising_colony );
+    }
+  }
 }
 
 // Here we do things that must be done once per turn but where we
@@ -1777,12 +1805,9 @@ wait<> post_player( SS& ss, TS& ts, Player& player ) {
       if( colonial_player.revolution.status !=
           e_revolution_status::declared )
         break;
-      auto const forfeight_reason =
-          ref_should_forfeight( ss.as_const, ref_player );
-      if( !forfeight_reason.has_value() ) break;
-      lg.info( "the REF is forfeighting for reason: {}",
-               IGui::identifier_to_display_name(
-                   enum_value_name( *forfeight_reason ) ) );
+      if( !ref_should_forfeight( ss.as_const, ref_player ) )
+        break;
+      lg.info( "the REF is forfeighting." );
       do_ref_forfeight( ss, ref_player );
       co_await ref_forfeight_ui_routine( ss.as_const, ts.gui,
                                          ref_player );
