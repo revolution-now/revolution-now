@@ -489,7 +489,7 @@ void render_colony( rr::Renderer& renderer, Coord const where,
     UNWRAP_CHECK_T( Player const& player,
                     ss.players.players[colony.player] );
     point const flag_pos =
-        where.to_gfx().moved_right( 9 ).moved_down( 1 );
+        where.to_gfx().moved_right( 9 ).moved_down( 2 );
     if( is_ref( colony.player ) ) {
       e_player const colonial_player_type =
           colonial_player_for( nation_for( colony.player ) );
