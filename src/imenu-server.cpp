@@ -21,16 +21,16 @@ namespace rn {
 ** IMenuServer::Deregistrar
 *****************************************************************/
 IMenuServer::Deregistrar::Deregistrar( IMenuServer& menu_server,
-                                       IPlane& plane,
+                                       IMenuHandler& handler,
                                        e_menu_item item )
   : Base( item ),
     menu_server_( &menu_server ),
-    plane_( &plane ) {}
+    handler_( &handler ) {}
 
 void IMenuServer::Deregistrar::free_resource() {
   CHECK( menu_server_ != nullptr );
-  CHECK( plane_ != nullptr );
-  menu_server_->unregister_handler( resource(), *plane_ );
+  CHECK( handler_ != nullptr );
+  menu_server_->unregister_handler( resource(), *handler_ );
 }
 
 } // namespace rn

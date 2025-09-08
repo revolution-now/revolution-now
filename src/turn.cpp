@@ -36,6 +36,8 @@
 #include "iengine.hpp"
 #include "igui.hpp"
 #include "imap-updater.hpp"
+#include "imenu-handler.hpp"
+#include "imenu-server.hpp"
 #include "interrupts.hpp"
 #include "intervention.hpp"
 #include "iraid.rds.hpp"
@@ -64,7 +66,6 @@
 #include "tax.hpp"
 #include "ts.hpp"
 #include "turn-mgr.hpp"
-#include "turn-plane.hpp"
 #include "unit-mgr.hpp"
 #include "unit-ownership.hpp"
 #include "unsentry.hpp"
@@ -590,10 +591,52 @@ wait<> menu_handler( IEngine& engine, SS& ss, TS& ts,
   }
 }
 
+struct TurnMenuHandler : public IMenuHandler {
+  inline static unordered_set<e_menu_item> const
+      kSupportedMenuItems{
+        e_menu_item::exit,
+        e_menu_item::save,
+        e_menu_item::load,
+        e_menu_item::revolution,
+        e_menu_item::harbor_view,
+        e_menu_item::cheat_explore_entire_map,
+        e_menu_item::cheat_set_player_control,
+        e_menu_item::cheat_kill_natives,
+        e_menu_item::cheat_map_editor,
+        e_menu_item::cheat_edit_fathers,
+        e_menu_item::cheat_advance_revolution_status,
+        e_menu_item::game_options,
+        e_menu_item::continental_congress,
+      };
+
+  co::stream<e_menu_item> menu_actions;
+  vector<IMenuServer::Deregistrar> dereg;
+
+ public:
+  TurnMenuHandler( IMenuServer& menu_server ) {
+    for( e_menu_item const item : kSupportedMenuItems )
+      dereg.push_back(
+          menu_server.register_handler( item, *this ) );
+  }
+
+  bool will_handle_menu_click(
+      e_menu_item const item ) override {
+    return kSupportedMenuItems.contains( item );
+  }
+
+  void handle_menu_click( e_menu_item const item ) override {
+    menu_actions.send( item );
+  }
+
+  wait<e_menu_item> next_menu_action() {
+    co_return co_await menu_actions.next();
+  }
+};
+
 wait<e_menu_item> wait_for_menu_selection(
     IMenuServer& menu_server ) {
-  TurnPlane turn_plane( menu_server );
-  co_return co_await turn_plane.next_menu_action();
+  TurnMenuHandler menu_handler( menu_server );
+  co_return co_await menu_handler.next_menu_action();
 }
 
 /****************************************************************

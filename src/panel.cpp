@@ -18,6 +18,7 @@
 #include "fathers.hpp"
 #include "iengine.hpp"
 #include "igui.hpp"
+#include "imenu-handler.hpp"
 #include "imenu-server.hpp"
 #include "land-view.hpp"
 #include "map-square.hpp"
@@ -81,7 +82,7 @@ using ::gfx::size;
 /****************************************************************
 ** PanelPlane::Impl
 *****************************************************************/
-struct PanelPlane::Impl : public IPlane {
+struct PanelPlane::Impl : public IPlane, public IMenuHandler {
   IEngine& engine_;
   SS& ss_;
   TS& ts_;

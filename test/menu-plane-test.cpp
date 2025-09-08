@@ -16,7 +16,7 @@
 // Testing.
 #include "test/fake/world.hpp"
 #include "test/mocks/iengine.hpp"
-#include "test/mocks/iplane.hpp"
+#include "test/mocks/imenu-handler.hpp"
 #include "test/mocks/render/itextometer.hpp"
 #include "test/mocks/video/ivideo.hpp"
 
@@ -25,6 +25,7 @@
 #include "src/frame.hpp"
 #include "src/input.hpp"
 #include "src/mock/matchers.hpp"
+#include "src/plane.hpp"
 
 // config
 #include "src/config/menu-items.rds.hpp"
@@ -91,7 +92,7 @@ TEST_CASE( "[menu-plane] registration/handlers" ) {
       .returns( size{ .w = 6, .h = 8 } );
   engine.EXPECT__textometer().by_default().returns( textometer );
   MenuPlane mp( engine );
-  MockIPlane mock_plane;
+  MockIMenuHandler mock_handler;
 
   REQUIRE_FALSE(
       mp.can_handle_menu_click( e_menu_item::zoom_in ) );
@@ -99,9 +100,9 @@ TEST_CASE( "[menu-plane] registration/handlers" ) {
       mp.can_handle_menu_click( e_menu_item::zoom_out ) );
 
   {
-    auto const deregistrar =
-        mp.register_handler( e_menu_item::zoom_in, mock_plane );
-    mock_plane
+    auto const deregistrar = mp.register_handler(
+        e_menu_item::zoom_in, mock_handler );
+    mock_handler
         .EXPECT__will_handle_menu_click( e_menu_item::zoom_in )
         .returns( false );
     REQUIRE_FALSE(
@@ -109,7 +110,7 @@ TEST_CASE( "[menu-plane] registration/handlers" ) {
     REQUIRE_FALSE(
         mp.can_handle_menu_click( e_menu_item::zoom_out ) );
 
-    mock_plane
+    mock_handler
         .EXPECT__will_handle_menu_click( e_menu_item::zoom_in )
         .returns( true );
     REQUIRE( mp.can_handle_menu_click( e_menu_item::zoom_in ) );
@@ -123,13 +124,13 @@ TEST_CASE( "[menu-plane] registration/handlers" ) {
       mp.can_handle_menu_click( e_menu_item::zoom_out ) );
 
   auto const deregistrar =
-      mp.register_handler( e_menu_item::zoom_in, mock_plane );
+      mp.register_handler( e_menu_item::zoom_in, mock_handler );
 
   int clicked_zoom_in = 0;
-  mock_plane
+  mock_handler
       .EXPECT__will_handle_menu_click( e_menu_item::zoom_in )
       .returns( true );
-  mock_plane.EXPECT__handle_menu_click( e_menu_item::zoom_in )
+  mock_handler.EXPECT__handle_menu_click( e_menu_item::zoom_in )
       .invokes( [&] { ++clicked_zoom_in; } );
   REQUIRE_FALSE( mp.click_item( e_menu_item::zoom_out ) );
   REQUIRE( clicked_zoom_in == 0 );
@@ -161,7 +162,7 @@ TEST_CASE( "[menu-plane] open_menu" ) {
       .returns( size{ .w = 6, .h = 8 } );
   engine.EXPECT__textometer().by_default().returns( textometer );
   MenuPlane mp( engine );
-  MockIPlane mock_plane;
+  MockIMenuHandler mock_handler;
   IPlane& plane_impl = mp.impl();
 
   MenuAllowedPositions const positions{
@@ -199,10 +200,10 @@ TEST_CASE( "[menu-plane] open_menu" ) {
   };
 
   auto const deregistrar =
-      mp.register_handler( e_menu_item::zoom_in, mock_plane );
+      mp.register_handler( e_menu_item::zoom_in, mock_handler );
 
   SECTION( "select item" ) {
-    mock_plane
+    mock_handler
         .EXPECT__will_handle_menu_click( e_menu_item::zoom_in )
         .returns( true );
     REQUIRE( send_key( ::SDLK_DOWN ) == e_input_handled::yes );

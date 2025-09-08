@@ -19,6 +19,7 @@
 #include "co-combinator.hpp"
 #include "frame.hpp"
 #include "iengine.hpp"
+#include "imenu-handler.hpp"
 #include "imenu-server.hpp"
 #include "input.hpp"
 #include "interrupts.hpp"
@@ -219,7 +220,7 @@ void set_resolution_idx_to_optimal(
 //   3) Always on top.
 //   4) Catching any global events (such as special key presses).
 //
-struct OmniPlane::Impl : public IPlane {
+struct OmniPlane::Impl : public IPlane, public IMenuHandler {
   IEngine& engine_;
   IMenuServer& menu_server_;
   bool show_game_cursor_ = true;

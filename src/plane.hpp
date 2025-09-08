@@ -28,7 +28,6 @@ enum class e_resolution;
 
 namespace rn {
 enum class e_input_handled;
-enum class e_menu_item;
 namespace input {
 struct event_t;
 struct unknown_event_t;
@@ -147,21 +146,6 @@ struct IPlane {
   void virtual on_drag_finished( input::mod_keys const& mod,
                                  input::e_mouse_button button,
                                  Coord origin, Coord end );
-
-  // Returns true if and only if the plane can handle this menu
-  // item at this moment. This will only be called if the plane
-  // has registered itself as able to handle this menu item in
-  // the first place. Will be used to control which menu items
-  // are disabled. Note: the reason that this not const is be-
-  // cause it allows implementations to use the same function to
-  // implement this as for implementing handl_menu_click.
-  virtual bool will_handle_menu_click( e_menu_item item );
-
-  // Handle the click. This will only be called if the plane has
-  // registered itself as being able to handle this item and has
-  // returned true for this item in will_handle_menu_click at
-  // least once this frame.
-  virtual void handle_menu_click( e_menu_item item );
 
   // ------------------------------------------------------------
   // Resolutions

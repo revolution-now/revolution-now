@@ -139,12 +139,6 @@ void IPlane::on_drag_finished( input::mod_keys const& /*unused*/,
                                Coord /*unused*/,
                                Coord /*unused*/ ) {}
 
-bool IPlane::will_handle_menu_click( e_menu_item ) {
-  return false;
-}
-
-void IPlane::handle_menu_click( e_menu_item ) {}
-
 void IPlane::on_logical_resolution_selected(
     gfx::e_resolution ) {}
 

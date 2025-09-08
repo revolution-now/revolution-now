@@ -23,6 +23,7 @@
 #include "hidden-terrain.hpp"
 #include "iengine.hpp"
 #include "imap-updater.hpp"
+#include "imenu-handler.hpp"
 #include "imenu-server.hpp"
 #include "land-view-anim.hpp"
 #include "land-view-render.hpp"
@@ -135,7 +136,7 @@ struct LastUnitInput {
 
 } // namespace
 
-struct LandViewPlane::Impl : public IPlane {
+struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
   IEngine& engine_;
   SS& ss_;
   TS& ts_;

@@ -11,6 +11,7 @@
 #pragma once
 
 // Revolution Now
+#include "src/imenu-handler.hpp"
 #include "src/imenu-server.hpp"
 #include "src/plane.hpp"
 
@@ -43,9 +44,9 @@ struct MockIMenuServer : IMenuServer {
   MOCK_METHOD( void, show_menu_bar, (bool), () );
   MOCK_METHOD( void, enable_cheat_menu, (bool), () );
   MOCK_METHOD( IMenuServer::Deregistrar, register_handler,
-               (e_menu_item, IPlane&), () );
-  MOCK_METHOD( void, unregister_handler, (e_menu_item, IPlane&),
-               () );
+               (e_menu_item, IMenuHandler&), () );
+  MOCK_METHOD( void, unregister_handler,
+               (e_menu_item, IMenuHandler&), () );
 
   IPlane& impl() override {
     static NoOpPlane plane;

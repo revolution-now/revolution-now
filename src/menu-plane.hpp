@@ -18,6 +18,9 @@
 
 namespace rn {
 
+/****************************************************************
+** Fwd. Decls.
+*****************************************************************/
 struct IEngine;
 
 /****************************************************************
@@ -44,12 +47,13 @@ struct MenuPlane : IMenuServer {
 
   void enable_cheat_menu( bool show ) override;
 
+ public: // IMenuServer (public)
   Deregistrar register_handler( e_menu_item item,
-                                IPlane& plane ) override;
+                                IMenuHandler& handler ) override;
 
- private:
+ private: // IMenuServer (private)
   void unregister_handler( e_menu_item item,
-                           IPlane& plane ) override;
+                           IMenuHandler& handler ) override;
 
  private:
   struct Impl;

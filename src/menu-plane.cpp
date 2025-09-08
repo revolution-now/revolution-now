@@ -12,6 +12,7 @@
 
 // Revolution Now
 #include "iengine.hpp"
+#include "imenu-handler.hpp"
 #include "menu-bar.hpp"
 #include "menu-body.hpp"
 #include "menu-render.hpp"
@@ -60,7 +61,7 @@ struct MenuPlane::Impl : IPlane, IMenuServer {
   // needs to be kept in sync with whatever the current loaded
   // game is configured to have.
   bool cheat_menu_ = false;
-  enum_map<e_menu_item, stack<IPlane*>> handlers_;
+  enum_map<e_menu_item, stack<IMenuHandler*>> handlers_;
 
   Impl( IEngine& engine )
     : engine_( engine ),
@@ -197,15 +198,15 @@ struct MenuPlane::Impl : IPlane, IMenuServer {
   }
 
   IMenuServer::Deregistrar register_handler(
-      e_menu_item item, IPlane& plane ) override {
-    handlers_[item].push( &plane );
-    return IMenuServer::Deregistrar( *this, plane, item );
+      e_menu_item item, IMenuHandler& handler ) override {
+    handlers_[item].push( &handler );
+    return IMenuServer::Deregistrar( *this, handler, item );
   }
 
   void unregister_handler( e_menu_item item,
-                           IPlane& plane ) override {
+                           IMenuHandler& handler ) override {
     CHECK( !handlers_[item].empty() );
-    CHECK( handlers_[item].top() == &plane );
+    CHECK( handlers_[item].top() == &handler );
     handlers_[item].pop();
   }
 
@@ -214,8 +215,8 @@ struct MenuPlane::Impl : IPlane, IMenuServer {
     auto const& st = handlers_[item];
     if( st.empty() ) return false;
     CHECK( st.top() != nullptr );
-    IPlane& plane = *st.top();
-    return plane.will_handle_menu_click( item );
+    IMenuHandler& handler = *st.top();
+    return handler.will_handle_menu_click( item );
   }
 
   bool click_item( e_menu_item const item ) override {
@@ -262,13 +263,13 @@ void MenuPlane::enable_cheat_menu( bool const show ) {
 }
 
 MenuPlane::Deregistrar MenuPlane::register_handler(
-    e_menu_item const item, IPlane& plane ) {
-  return impl_->register_handler( item, plane );
+    e_menu_item const item, IMenuHandler& handler ) {
+  return impl_->register_handler( item, handler );
 }
 
 void MenuPlane::unregister_handler( e_menu_item const item,
-                                    IPlane& plane ) {
-  impl_->unregister_handler( item, plane );
+                                    IMenuHandler& handler ) {
+  impl_->unregister_handler( item, handler );
 }
 
 bool MenuPlane::can_handle_menu_click(

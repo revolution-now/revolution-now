@@ -19,6 +19,7 @@
 #include "iagent.hpp" // FIXME
 #include "icombat.hpp"
 #include "iengine.hpp"
+#include "imenu-handler.hpp"
 #include "imenu-server.hpp"
 #include "inative-agent.hpp" // FIXME
 #include "input.hpp"
@@ -135,7 +136,7 @@ refl::enum_map<editor::e_toolbar_item, ToolbarItem>
 /****************************************************************
 ** Map Editor IPlane
 *****************************************************************/
-struct MapEditPlane::Impl : public IPlane {
+struct MapEditPlane::Impl : public IPlane, public IMenuHandler {
   IEngine& engine_;
   SS& ss_;
   TS& ts_;
