@@ -229,43 +229,56 @@ DeclarationResult declare_independence( IEngine& engine, SS& ss,
       force.man_o_war == 0 )
     force.man_o_war = 1;
 
+  // NOTE: by default `withdraw_on_declaration` is true.
+  bool const withdraw_opponents =
+      ss.settings.game_setup_options.customized_rules
+          .withdraw_on_declaration;
+
   // Step: Eliminate all foreign units outside of colonies.
-  vector<UnitId> destroy;
-  for( auto const& [unit_id, p_state] : ss.units.euro_all() ) {
-    Unit const& unit = p_state->unit;
-    if( unit.player_type() == player.type ) continue;
-    CHECK( !is_ref( unit.player_type() ),
-           "found unexpected REF units for player {} when "
-           "player {} declared independence.",
-           unit.player_type(), player.type );
-    SWITCH( p_state->ownership ) {
-      CASE( colony ) {
-        // Leave the units in colonies because we need to leave
-        // the colonies intact.
-        break;
+  if( withdraw_opponents ) {
+    vector<UnitId> destroy;
+    for( auto const& [unit_id, p_state] : ss.units.euro_all() ) {
+      Unit const& unit = p_state->unit;
+      if( unit.player_type() == player.type ) continue;
+      CHECK( !is_ref( unit.player_type() ),
+             "found unexpected REF units for player {} when "
+             "player {} declared independence.",
+             unit.player_type(), player.type );
+      SWITCH( p_state->ownership ) {
+        CASE( colony ) {
+          // Leave the units in colonies because we need to leave
+          // the colonies intact.
+          break;
+        }
+        default:
+          destroy.push_back( unit.id() );
+          break;
       }
-      default:
-        destroy.push_back( unit.id() );
-        break;
     }
+    destroy_units( ss, destroy );
   }
-  destroy_units( ss, destroy );
 
   // Step: Mark foreign players as "inactive"; they no longer get
   // evolved, probably at the colony level either. The players
   // can't be deleted because their colonies persist. NOTE: in
-  // the OG this state is referred to as "withdrawn".
-  for( auto& [type, other_player] : ss.players.players ) {
-    if( !other_player.has_value() ) continue;
-    // Make sure we're not hitting either this human player or
-    // their new ref player that we just created.
-    if( other_player->nation == player.nation ) continue;
-    other_player->control = e_player_control::inactive;
+  // the OG this state is referred to as "withdrawn", and it is
+  // needed because of the OG's limit on number of units on the
+  // map, in order to make room for the REF units. Because we
+  // don't have that limit, we have a game option that allows
+  // keeping the AI players around.
+  if( withdraw_opponents ) {
+    for( auto& [type, other_player] : ss.players.players ) {
+      if( !other_player.has_value() ) continue;
+      // Make sure we're not hitting either this human player or
+      // their new ref player that we just created.
+      if( other_player->nation == player.nation ) continue;
+      other_player->control = e_player_control::inactive;
+    }
   }
 
   // Step: Destroy all units on the dock and seize all ships in
   // port and on the high seas.
-  destroy.clear();
+  vector<UnitId> destroy;
   for( auto const& [unit_id, p_state] : ss.units.euro_all() ) {
     Unit const& unit = p_state->unit;
     if( unit.player_type() != player.type ) continue;
