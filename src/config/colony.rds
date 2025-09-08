@@ -205,7 +205,7 @@ struct.config_colony_t {
 
   warehouses 'config::colony::warehouses',
 
-  food_for_creating_new_colonist 'int',
+  food_for_creating_new_colonist 'base::maybe<int>',
 
   # This is the maximum pythagorean distance that we will search
   # in the vicinity of a starting square for a colony that is

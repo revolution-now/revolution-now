@@ -38,6 +38,12 @@ warehouses {
   }
 }
 
+# When a colony's food quantity hits this value then a new Free
+# Colonist will be created at the colony gate and the food store
+# will be set to zero. In the OG this is 200. This value can be
+# made higher or lower, and also can be set to null, in which
+# case no new colonists will be created; food stores will just
+# grow indefinitely.
 food_for_creating_new_colonist: 200
 
 # This is the maximum pythagorean distance that we will search in

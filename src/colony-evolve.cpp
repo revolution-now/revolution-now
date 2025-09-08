@@ -183,12 +183,13 @@ void check_create_or_starve_colonist(
   // the colony will have enough food, then we can potentially
   // produce a new colonist.
   int const current_food = colony.commodities[e_commodity::food];
-  int const food_needed_for_creation =
+  auto const food_needed_for_creation =
       config_colony.food_for_creating_new_colonist;
 
-  if( current_food >= food_needed_for_creation ) {
+  if( food_needed_for_creation.has_value() &&
+      current_food >= *food_needed_for_creation ) {
     int& current_food = colony.commodities[e_commodity::food];
-    current_food -= food_needed_for_creation;
+    current_food -= *food_needed_for_creation;
     UnitId unit_id = create_free_unit(
         ss.units, player, e_unit_type::free_colonist );
     UnitOwnershipChanger( ss, unit_id )
