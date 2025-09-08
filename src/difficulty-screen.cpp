@@ -429,7 +429,7 @@ struct DifficultyScreen : public IPlane {
 
   e_input_handled on_mouse_button(
       input::mouse_button_event_t const& event ) override {
-    if( event.buttons != input::e_mouse_button_event::left_up )
+    if( event.buttons != input::e_mouse_button_event::left_down )
       return e_input_handled::no;
 
     if( !layout_ ) return e_input_handled::no;

@@ -1140,7 +1140,7 @@ void RadioButtonView::draw( rr::Renderer& renderer,
 
 bool RadioButtonView::on_mouse_button(
     input::mouse_button_event_t const& event ) {
-  if( event.buttons != input::e_mouse_button_event::left_up )
+  if( event.buttons != input::e_mouse_button_event::left_down )
     return false;
   // This callback should turn off all radio buttons in the group
   // and turn this one on, in accordance to how radio buttons are
@@ -1200,7 +1200,7 @@ void CheckBoxView::draw( rr::Renderer& renderer,
 
 bool CheckBoxView::on_mouse_button(
     input::mouse_button_event_t const& event ) {
-  if( event.buttons != input::e_mouse_button_event::left_up )
+  if( event.buttons != input::e_mouse_button_event::left_down )
     return false;
   on_ = !on_;
   return true;
@@ -1573,7 +1573,7 @@ ClickableView::ClickableView(
 
 bool ClickableView::on_mouse_button(
     input::mouse_button_event_t const& event ) {
-  if( event.buttons == input::e_mouse_button_event::left_up )
+  if( event.buttons == input::e_mouse_button_event::left_down )
     on_click_();
   return true;
 }
