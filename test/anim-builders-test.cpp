@@ -1131,13 +1131,6 @@ TEST_CASE(
       { { .primitive = P::slide_unit{ .unit_id   = unit_id,
                                        .direction = direction } },
          { .primitive = P::play_sound{ .what = e_sfx::move } } },
-      /*phase 2*/
-      { { .primitive =
-               P::translocate_unit{ .unit_id   = unit_id,
-                                    .direction = direction } },
-         { .primitive =
-               P::delay{ .duration =
-                            chrono::milliseconds{ 300 } } } },
     } };
   REQUIRE( f() == expected );
 }

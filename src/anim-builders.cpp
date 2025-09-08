@@ -626,13 +626,6 @@ AnimationSequence anim_seq_for_undefended_colony_conquered(
   builder.new_phase();
   builder.slide_unit( unit_id, direction );
   builder.play_sound( e_sfx::move );
-  // Phase 2: hover. The attacking unit hovers over the colony
-  // for a bit to make it a bit more clear to the player that the
-  // unit is capturing the colony. Otherwise things happen too
-  // quickly and it doesn't look great.
-  builder.new_phase();
-  builder.translocate_unit( unit_id, direction );
-  builder.delay( chrono::milliseconds{ 300 } );
   return builder.result();
 }
 
