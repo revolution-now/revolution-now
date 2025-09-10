@@ -18,4 +18,4 @@ tools="$(realpath "$this/../")"
 export LUA_PATH="$LUA_PATH;$tools/?.lua;$tools/sav/conversion/?.lua"
 
 [[ -d "$name" ]]
-lua auto-measurer.lua "$name"
+lua auto-statistics.lua "$name"
