@@ -49,7 +49,7 @@ function M.load( args )
   assert( structure.HEADER )
 
   -- Binary SAV file.
-  check( colony_sav:match( '%.SAV$' ),
+  check( colony_sav:match( '%.SAV*' ),
          'colony_sav %s has invalid format.', colony_sav )
 
   -- Parsing.

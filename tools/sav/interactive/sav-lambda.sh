@@ -18,7 +18,7 @@ log "sav_path: $sav_path"
 
 sav_file="$(basename "$sav_path")"
 log "sav_file: $sav_file"
-[[ "$sav_file" =~ .*\.SAV$ ]]
+[[ "$sav_file" =~ .*\.SAV* ]]
 
 lambda_name="$2"
 log "lambda_name: $lambda_name"

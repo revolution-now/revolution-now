@@ -16,12 +16,7 @@ local action_api = xdotool.action_api
 local press_return_to_exit = xdotool.press_return_to_exit
 local find_dosbox = dosbox.find_dosbox
 local sav_file_for_slot = readwrite.sav_file_for_slot
-
-local dosbox_actions = action_api( dosbox.window() )
-local seq = dosbox_actions.seq
-local up = dosbox_actions.up
-local down = dosbox_actions.down
-local enter = dosbox_actions.enter
+local forget_dosbox_window = xdotool.forget_dosbox_window
 
 -----------------------------------------------------------------
 -- Helpers.
@@ -37,6 +32,10 @@ local function game_menu() press_keys( 'alt+g' ) end
 
 -- Loads the game from the given slot from the game menu.
 local function load_game( n )
+  local dosbox_actions = action_api( dosbox.window() )
+  local down = dosbox_actions.down
+  local enter = dosbox_actions.enter
+
   assert( type( n ) == 'number' )
   info( 'loading %s...', sav_file_for_slot( n ) )
   press_keys( 'slash' ) -- requires configuration in MENU.TXT
@@ -48,6 +47,10 @@ end
 
 -- Saves the game to the given slot from the game menu.
 local function save_game( n )
+  local dosbox_actions = action_api( dosbox.window() )
+  local down = dosbox_actions.down
+  local enter = dosbox_actions.enter
+
   assert( type( n ) == 'number' )
   info( 'saving %s...', sav_file_for_slot( n ) )
   press_keys( 'apostrophe' ) -- requires configuration in MENU.TXT
@@ -58,13 +61,21 @@ local function save_game( n )
 end
 
 local function exit_game()
+  local dosbox_actions = action_api( dosbox.window() )
+  local seq = dosbox_actions.seq
+  local up = dosbox_actions.up
+  local down = dosbox_actions.down
+  local enter = dosbox_actions.enter
+
   -- Do nothing if the DOSBox window is not open.
   if not find_dosbox() then return end
+
   info( 'exiting game.' )
   game_menu()
   seq{ up, enter } -- Select "Exit to DOS".
   down() -- Highlight 'Yes'.
   press_return_to_exit( dosbox.window() )
+  forget_dosbox_window()
 end
 
 -----------------------------------------------------------------

@@ -75,6 +75,11 @@ local function remove_sav( sav )
   end
 end
 
+local function exists_sav( sav )
+  local path = path_for_sav( sav )
+  return exists( path )
+end
+
 local function copy_sav( from, to )
   remove_sav( to )
   local src = path_for_sav( from )
@@ -98,6 +103,7 @@ return {
   write_sav=write_sav,
   modify_sav=modify_sav,
   remove_sav=remove_sav,
+  sav_exists=exists_sav,
   copy_sav=copy_sav,
   path_for_sav=path_for_sav,
   sav_file_for_slot=sav_file_for_slot,

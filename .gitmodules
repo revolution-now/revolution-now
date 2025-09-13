@@ -25,3 +25,6 @@
 [submodule "extern/smcol_saves_utility"]
 	path = extern/smcol_saves_utility
 	url = ../../no-more-secrets/smcol_saves_utility
+[submodule "tools/auto-measure/auto-map-gen/gamegen"]
+	path = tools/auto-measure/auto-map-gen/gamegen
+	url = ssh://git@github.com/revolution-now/gamegen

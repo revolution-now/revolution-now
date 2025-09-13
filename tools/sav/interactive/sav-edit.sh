@@ -14,7 +14,7 @@ echo "sav_path: $sav_path"
 
 sav_file="$(basename "$sav_path")"
 echo "sav_file: $sav_file"
-[[ "$sav_file" =~ .*\.SAV$ ]]
+[[ "$sav_file" =~ .*\.SAV* ]]
 
 tmp_file="/tmp/$sav_file.json"
 echo "tmp_file: $tmp_file"

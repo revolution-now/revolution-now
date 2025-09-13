@@ -32,7 +32,14 @@ end
 
 local function pause() action_api( window() ).alt_pause() end
 
+local function forget_dosbox_window() __dosbox = nil end
+
 -----------------------------------------------------------------
 -- Finished.
 -----------------------------------------------------------------
-return { find_dosbox=find_dosbox, window=window, pause=pause }
+return {
+  find_dosbox=find_dosbox,
+  window=window,
+  pause=pause,
+  forget_dosbox_window=forget_dosbox_window,
+}

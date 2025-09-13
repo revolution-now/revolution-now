@@ -20,7 +20,7 @@ log "sav_path: $sav_path"
 
 sav_file="$(basename "$sav_path")"
 log "sav_file: $sav_file"
-[[ "$sav_file" =~ .*\.SAV$ ]]
+[[ "$sav_file" =~ .*\.SAV* ]]
 
 tmp_file="/tmp/$sav_file.json"
 log "tmp_file: $tmp_file"
