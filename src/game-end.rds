@@ -16,3 +16,11 @@ enum.e_keep_playing {
 
   _features { nodiscard },
 }
+
+enum.e_game_end {
+  not_ended,
+  ended_and_player_continues,
+  ended_and_back_to_main_menu,
+
+  _features { nodiscard },
+}

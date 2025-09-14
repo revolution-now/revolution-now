@@ -22,18 +22,21 @@ namespace rn {
 ** Fwd Decls.
 *****************************************************************/
 struct IGui;
+struct Player;
 struct SS;
 struct TS;
 
 /****************************************************************
 ** Public API.
 *****************************************************************/
-void do_keep_playing_after_winning( SS& ss, TS& ts );
-
-void do_keep_playing_after_timeout( SS& ss, TS& ts );
-
-wait<e_keep_playing> ask_keep_playing( IGui& gui );
-
 wait<> check_time_up( SS& ss, TS& ts );
+
+wait<e_game_end> check_for_ref_win( SS& ss, TS& ts,
+                                    Player const& ref_player );
+
+// Returns true if the game has stopped and we should return to
+// the main menu.
+wait<e_game_end> check_for_ref_forfeight( SS& ss, TS& ts,
+                                          Player& ref_player );
 
 } // namespace rn

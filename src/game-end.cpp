@@ -15,6 +15,7 @@
 #include "igui.hpp"
 #include "interrupts.hpp"
 #include "map-view.hpp"
+#include "ref.hpp"
 #include "ts.hpp"
 
 // config
@@ -27,9 +28,14 @@
 #include "ss/ref.hpp"
 #include "ss/turn.rds.hpp"
 
+// base
+#include "base/logger.hpp"
+
 using namespace std;
 
 namespace rn {
+
+namespace {
 
 // The player can also opt to continue playing after having run
 // out of time, but this should not be called in that case. We
@@ -70,6 +76,8 @@ wait<e_keep_playing> ask_keep_playing( IGui& gui ) {
   co_return e_keep_playing::yes;
 }
 
+} // namespace
+
 wait<> check_time_up( SS& ss, TS& ts ) {
   auto const& time_limit =
       config_turn.game_ending.deadline_for_winning;
@@ -101,6 +109,51 @@ wait<> check_time_up( SS& ss, TS& ts ) {
     case e_keep_playing::yes:
       do_keep_playing_after_timeout( ss, ts );
       break;
+  }
+}
+
+wait<e_game_end> check_for_ref_win( SS& ss, TS& ts,
+                                    Player const& ref_player ) {
+  UNWRAP_CHECK_T( Player const& colonial_player,
+                  ss.players.players[colonial_player_for(
+                      nation_for( ref_player.type ) )] );
+  CHECK( colonial_player.revolution.status >=
+         e_revolution_status::declared );
+  if( colonial_player.revolution.status !=
+      e_revolution_status::declared )
+    co_return e_game_end::not_ended;
+  auto const won =
+      ref_should_win( ss, ts.connectivity, ref_player );
+  if( !won.has_value() ) co_return e_game_end::not_ended;
+  do_ref_win( ss, ref_player );
+  co_await ref_win_ui_routine( ss, ts.gui, ref_player, *won );
+  co_return e_game_end::ended_and_back_to_main_menu;
+}
+
+wait<e_game_end> check_for_ref_forfeight( SS& ss, TS& ts,
+                                          Player& ref_player ) {
+  UNWRAP_CHECK_T( Player const& colonial_player,
+                  ss.players.players[colonial_player_for(
+                      nation_for( ref_player.type ) )] );
+  CHECK( colonial_player.revolution.status >=
+         e_revolution_status::declared );
+  if( colonial_player.revolution.status !=
+      e_revolution_status::declared )
+    co_return e_game_end::not_ended;
+  if( !ref_should_forfeight( ss.as_const, ref_player ) )
+    co_return e_game_end::not_ended;
+  lg.info( "the REF is forfeighting." );
+  do_ref_forfeight( ss, ref_player );
+  co_await ref_forfeight_ui_routine( ss.as_const, ts.gui,
+                                     ref_player );
+  e_keep_playing const keep_playing =
+      co_await ask_keep_playing( ts.gui );
+  switch( keep_playing ) {
+    case e_keep_playing::no:
+      co_return e_game_end::ended_and_back_to_main_menu;
+    case e_keep_playing::yes:
+      do_keep_playing_after_winning( ss, ts );
+      co_return e_game_end::ended_and_player_continues;
   }
 }
 

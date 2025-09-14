@@ -1818,52 +1818,29 @@ wait<> post_player( SS& ss, TS& ts, Player& player ) {
   }
 
   // Check for REF win.
-  if( is_ref( player.type ) ) do {
-      auto& ref_player = player;
-      UNWRAP_CHECK_T( Player const& colonial_player,
-                      ss.players.players[colonial_player_for(
-                          nation_for( ref_player.type ) )] );
-      CHECK( colonial_player.revolution.status >=
-             e_revolution_status::declared );
-      if( colonial_player.revolution.status !=
-          e_revolution_status::declared )
+  if( is_ref( player.type ) ) {
+    auto& ref_player = player;
+    switch( co_await check_for_ref_win( ss, ts, ref_player ) ) {
+      case e_game_end::not_ended:
+      case e_game_end::ended_and_player_continues:
         break;
-      auto const won =
-          ref_should_win( ss, ts.connectivity, ref_player );
-      if( !won.has_value() ) break;
-      do_ref_win( ss, ref_player );
-      co_await ref_win_ui_routine( ss, ts.gui, ref_player,
-                                   *won );
-      throw main_menu_interrupt{};
-    } while( false );
+      case e_game_end::ended_and_back_to_main_menu:
+        throw main_menu_interrupt{};
+    }
+  }
 
   // Check for REF forfeight.
-  if( is_ref( player.type ) ) do {
-      auto& ref_player = player;
-      UNWRAP_CHECK_T( Player const& colonial_player,
-                      ss.players.players[colonial_player_for(
-                          nation_for( ref_player.type ) )] );
-      CHECK( colonial_player.revolution.status >=
-             e_revolution_status::declared );
-      if( colonial_player.revolution.status !=
-          e_revolution_status::declared )
+  if( is_ref( player.type ) ) {
+    auto& ref_player = player;
+    switch( co_await check_for_ref_forfeight( ss, ts,
+                                              ref_player ) ) {
+      case e_game_end::not_ended:
+      case e_game_end::ended_and_player_continues:
         break;
-      if( !ref_should_forfeight( ss.as_const, ref_player ) )
-        break;
-      lg.info( "the REF is forfeighting." );
-      do_ref_forfeight( ss, ref_player );
-      co_await ref_forfeight_ui_routine( ss.as_const, ts.gui,
-                                         ref_player );
-      e_keep_playing const keep_playing =
-          co_await ask_keep_playing( ts.gui );
-      switch( keep_playing ) {
-        case e_keep_playing::no:
-          throw main_menu_interrupt{};
-        case e_keep_playing::yes:
-          do_keep_playing_after_winning( ss, ts );
-          break;
-      }
-    } while( false );
+      case e_game_end::ended_and_back_to_main_menu:
+        throw main_menu_interrupt{};
+    }
+  }
 }
 
 // Returns true if the visibility needed to be changed.

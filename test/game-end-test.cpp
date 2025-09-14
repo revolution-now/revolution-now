@@ -64,5 +64,13 @@ TEST_CASE( "[game-end] check_time_up" ) {
   world w;
 }
 
+TEST_CASE( "[game-end] check_for_ref_win" ) {
+  world w;
+}
+
+TEST_CASE( "[game-end] check_for_ref_forfeight" ) {
+  world w;
+}
+
 } // namespace
 } // namespace rn
