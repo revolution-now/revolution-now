@@ -23,6 +23,7 @@ namespace rn {
 *****************************************************************/
 struct IGui;
 struct IRand;
+struct Player;
 struct SS;
 struct SSConst;
 struct TerrainConnectivity;
@@ -33,6 +34,10 @@ enum class e_unit_type;
 /****************************************************************
 ** Public API.
 *****************************************************************/
+[[nodiscard]] bool should_attempt_uprising(
+    SSConst const& ss, Player const& colonial_player,
+    bool const did_deploy_ref_this_turn );
+
 UprisingColonies find_uprising_colonies(
     SSConst const& ss, TerrainConnectivity const& connectivity,
     e_player colonial_player_type );

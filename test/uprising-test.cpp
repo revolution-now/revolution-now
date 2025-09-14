@@ -57,6 +57,10 @@ struct world : testing::World {
 /****************************************************************
 ** Test Cases
 *****************************************************************/
+TEST_CASE( "[uprising] should_attempt_uprising" ) {
+  world w;
+}
+
 TEST_CASE( "[uprising] find_uprising_colony" ) {
   world w;
 }

@@ -13,6 +13,11 @@
 // Revolution Now
 #include "co-wait.hpp"
 #include "igui.hpp"
+#include "ref.hpp"
+
+// ss
+#include "ss/player.rds.hpp"
+#include "ss/ref.hpp"
 
 using namespace std;
 
@@ -23,6 +28,30 @@ namespace {} // namespace
 /****************************************************************
 ** Public API.
 *****************************************************************/
+bool should_attempt_uprising(
+    SSConst const& ss, Player const& colonial_player,
+    bool const did_deploy_ref_this_turn ) {
+  // Try for a "Tory Uprising". This only happens once no further
+  // REF units can be sent, and assuming that none were sent just
+  // now on this turn.
+  return
+      // In the OG an uprising can happen after the war ends and
+      // the player opts to keep playing, but we are not doing
+      // that here as it doesn't really make sense.
+      colonial_player.revolution.status ==
+          e_revolution_status::declared &&
+      // We can't replace this condition with a test of whether
+      // there are REF units on the map, because we really need
+      // to test whether units were deployed this turn.
+      !did_deploy_ref_this_turn &&
+      // It may be that we didn't deploy any units this turn, but
+      // e.g. that may be because some Man-o-Wars are returning
+      // to europe to pick them up. We don't want to do uprisings
+      // in that case.
+      !can_send_more_ref_units( ss,
+                                as_const( colonial_player ) );
+}
+
 UprisingColonies find_uprising_colonies(
     SSConst const& ss, TerrainConnectivity const& connectivity,
     e_player colonial_player_type ) {

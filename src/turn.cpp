@@ -1594,14 +1594,10 @@ wait<> post_colonies_ref_only( SS& ss, TS& ts,
         ts.planes.get().get_bottom<ILandViewPlane>(),
         ts.agents()[colonial_player_type], *landing_units );
 
-  // Try for a "Tory Uprising". This only happens once no further
-  // REF units can be sent, and assuming that none were sent just
-  // now on this turn.
-  bool const should_attempt_uprising =
-      !landing_units.has_value() &&
-      !can_send_more_ref_units( ss.as_const,
-                                as_const( colonial_player ) );
-  if( should_attempt_uprising ) {
+  bool const attempt_uprising = should_attempt_uprising(
+      ss.as_const, colonial_player,
+      /*did_deploy_ref_this_turn=*/landing_units.has_value() );
+  if( attempt_uprising ) {
     UprisingColonies const uprising_colonies =
         find_uprising_colonies( ss.as_const, ts.connectivity,
                                 colonial_player_type );
