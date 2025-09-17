@@ -42,16 +42,24 @@ UprisingColonies find_uprising_colonies(
     SSConst const& ss, TerrainConnectivity const& connectivity,
     e_player colonial_player_type );
 
-UprisingColony const& select_uprising_colony(
-    IRand& rand, UprisingColonies const& uprising_colonies
-                     ATTR_LIFETIMEBOUND );
+// Even if some colonies are provided, it may not end up choosing
+// one since there is randomness involved.
+UprisingColony const* select_uprising_colony(
+    SSConst const& ss, IRand& rand,
+    UprisingColonies const& uprising_colonies
+        ATTR_LIFETIMEBOUND );
 
 std::vector<e_unit_type> generate_uprising_units( IRand& rand,
                                                   int count );
 
+std::vector<std::pair<e_unit_type, gfx::point>>
+distribute_uprising_units(
+    SSConst const& ss, UprisingColony const& uprising_colony,
+    std::vector<e_unit_type> const& unit_types );
+
 void deploy_uprising_units(
     SS& ss, UprisingColony const& uprising_colony,
-    std::vector<e_unit_type> const& unit_types );
+    std::vector<std::pair<e_unit_type, gfx::point>> units );
 
 wait<> show_uprising_msg(
     SSConst const& ss, IGui& gui,

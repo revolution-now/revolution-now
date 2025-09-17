@@ -1602,14 +1602,20 @@ wait<> post_colonies_ref_only( SS& ss, TS& ts,
         find_uprising_colonies( ss.as_const, ts.connectivity,
                                 colonial_player_type );
     if( !uprising_colonies.colonies.empty() ) {
-      UprisingColony const& uprising_colony =
-          select_uprising_colony( ts.rand, uprising_colonies );
-      vector<e_unit_type> const unit_types =
-          generate_uprising_units( ts.rand,
-                                   uprising_colony.unit_count );
-      deploy_uprising_units( ss, uprising_colony, unit_types );
-      co_await show_uprising_msg( ss.as_const, ts.gui,
-                                  uprising_colony );
+      UprisingColony const* uprising_colony =
+          select_uprising_colony( ss.as_const, ts.rand,
+                                  uprising_colonies );
+      if( uprising_colony ) {
+        vector<e_unit_type> const unit_types =
+            generate_uprising_units(
+                ts.rand, uprising_colony->unit_count );
+        auto const distributed = distribute_uprising_units(
+            ss.as_const, *uprising_colony, unit_types );
+        deploy_uprising_units( ss, *uprising_colony,
+                               distributed );
+        co_await show_uprising_msg( ss.as_const, ts.gui,
+                                    *uprising_colony );
+      }
     }
   }
 }

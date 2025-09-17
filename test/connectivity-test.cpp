@@ -30,9 +30,9 @@ using namespace std;
 /****************************************************************
 ** Fake World Setup
 *****************************************************************/
-struct World : testing::World {
+struct world : testing::World {
   using Base = testing::World;
-  World() : Base() { add_default_player(); }
+  world() : Base() { add_default_player(); }
 
   void create_map( vector<MapSquare> m ) {
     CHECK( width_ >= 0 );
@@ -50,7 +50,7 @@ struct World : testing::World {
 ** Test Cases
 *****************************************************************/
 TEST_CASE( "[connectivity] compute_terrain_connectivity" ) {
-  World W;
+  world W;
   TerrainConnectivity expected;
   MapSquare const _ = W.make_ocean();
   MapSquare const L = W.make_grassland();
@@ -432,7 +432,7 @@ TEST_CASE( "[connectivity] water_square_has_ocean_access" ) {
 }
 
 TEST_CASE( "[connectivity] colony_has_ocean_access" ) {
-  World W;
+  world W;
   MapSquare const _ = W.make_ocean();
   MapSquare const L = W.make_grassland();
   W.set_width( 5 );
@@ -475,6 +475,10 @@ TEST_CASE( "[connectivity] colony_has_ocean_access" ) {
   REQUIRE( f( { .x = 2, .y = 4 } ) );
   // water: { .x = 3, .y = 4 }
   // water: { .x = 4, .y = 4 }
+}
+
+TEST_CASE( "[connectivity] tiles_are_connected" ) {
+  world w;
 }
 
 } // namespace

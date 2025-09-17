@@ -23,9 +23,12 @@
 #include "base/to-str-ext-std.hpp"
 
 // C++ standard library
+#include <ranges>
 #include <unordered_map>
 
 using namespace std;
+
+namespace rg = ::std::ranges;
 
 namespace rn {
 
@@ -165,12 +168,19 @@ Coord ColoniesState::coord_for( ColonyId id ) const {
 }
 
 vector<ColonyId> ColoniesState::for_player(
-    e_player player ) const {
+    e_player const player ) const {
   vector<ColonyId> res;
   res.reserve( o_.colonies.size() );
   for( auto const& [id, colony] : o_.colonies )
     if( colony.player == player ) res.push_back( id );
   return res;
+}
+
+vector<ColonyId> ColoniesState::for_player_sorted(
+    e_player const player ) const {
+  vector<ColonyId> colonies = for_player( player );
+  rg::sort( colonies );
+  return colonies;
 }
 
 ColonyId ColoniesState::add_colony( Colony&& colony ) {

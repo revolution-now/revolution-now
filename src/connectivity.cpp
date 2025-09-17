@@ -24,6 +24,8 @@ namespace rn {
 
 namespace {
 
+using ::gfx::point;
+
 TerrainConnectivity compute_terrain_connectivity_impl(
     SSConst const& ss ) {
   TerrainConnectivity res;
@@ -137,14 +139,21 @@ TerrainConnectivity compute_terrain_connectivity_impl(
   return res;
 }
 
-bool contains_segment_index( vector<int> const& indices,
-                             unordered_set<int> const& s,
-                             int x_size, Coord coord ) {
+[[nodiscard]] int compute_segment_index(
+    vector<int> const& indices, int const x_size,
+    point const coord ) {
   CHECK( !indices.empty(),
          "you must compute the terrain connectivity first." );
   int const rastor_coord = coord.y * x_size + coord.x;
   CHECK_LT( rastor_coord, int( indices.size() ) );
-  return s.contains( indices[rastor_coord] );
+  return indices[rastor_coord];
+}
+
+[[nodiscard]] bool contains_segment_index(
+    vector<int> const& indices, unordered_set<int> const& s,
+    int x_size, Coord coord ) {
+  return s.contains(
+      compute_segment_index( indices, x_size, coord ) );
 }
 
 } // namespace
@@ -202,6 +211,15 @@ bool colony_has_ocean_access(
       return true;
   }
   return false;
+}
+
+bool tiles_are_connected(
+    TerrainConnectivity const& connectivity, point const p1,
+    point const p2 ) {
+  return compute_segment_index( connectivity.indices,
+                                connectivity.x_size, p1 ) ==
+         compute_segment_index( connectivity.indices,
+                                connectivity.x_size, p2 );
 }
 
 } // namespace rn

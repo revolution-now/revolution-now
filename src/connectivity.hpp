@@ -57,4 +57,10 @@ bool colony_has_ocean_access(
     SSConst const& ss, TerrainConnectivity const& connectivity,
     Coord tile );
 
+// For this to return true the two tiles need to be either both
+// land or both water and they need to be connected.
+bool tiles_are_connected(
+    TerrainConnectivity const& connectivity, gfx::point p1,
+    gfx::point p2 );
+
 } // namespace rn

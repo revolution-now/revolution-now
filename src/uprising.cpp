@@ -12,18 +12,42 @@
 
 // Revolution Now
 #include "co-wait.hpp"
+#include "colony-mgr.hpp"
+#include "connectivity.hpp"
 #include "igui.hpp"
+#include "irand.hpp"
+#include "map-square.hpp"
 #include "ref.hpp"
+#include "society.hpp"
+#include "sons-of-liberty.hpp"
+#include "unit-mgr.hpp"
+
+// config
+#include "config/unit-type.rds.hpp"
 
 // ss
+#include "ss/colonies.hpp"
+#include "ss/nation.hpp"
 #include "ss/player.rds.hpp"
+#include "ss/players.rds.hpp"
 #include "ss/ref.hpp"
+#include "ss/settings.rds.hpp"
+#include "ss/terrain.hpp"
+#include "ss/units.hpp"
+
+// rds
+#include "rds/switch-macro.hpp"
 
 using namespace std;
 
 namespace rn {
 
-namespace {} // namespace
+namespace {
+
+using ::gfx::point;
+using ::refl::enum_values;
+
+} // namespace
 
 /****************************************************************
 ** Public API.
@@ -54,37 +78,282 @@ bool should_attempt_uprising(
 
 UprisingColonies find_uprising_colonies(
     SSConst const& ss, TerrainConnectivity const& connectivity,
-    e_player colonial_player_type ) {
+    e_player const colonial_player_type ) {
   UprisingColonies res;
-  (void)ss;
-  (void)connectivity;
-  (void)colonial_player_type;
+  UNWRAP_CHECK_T( Player const& colonial_player,
+                  ss.players.players[colonial_player_type] );
+  // Conditions for happening once attempted:
+  //
+  //   - Colony does /not/ need to be a port colony.
+  //   - Colony has `had_tory_uprising=false`.
+  //   - Colony is in the hands of the rebels.
+  //   - Colony should not still be being attacked by normal REF
+  //     troops.
+  //   - There needs to be an unoccupied land square adjacent to
+  //     the colony. The uprise will not displace units unlike
+  //     with REF landings.
+  //   - Colony has sufficiently low defenses. This is effec-
+  //     tively enforced by computing the number of tories that
+  //     will be spawned according to the formula (which factors
+  //     in defenses) and ensuring that it is larger than zero.
+  //
+  // It appears to iterate through the colonies in order, rolling
+  // dice for each based on SoL and/or defense strength. As soon
+  // as there is one uprising it stops and doesn't do any further
+  // colonies. If it gets through the colonies with no uprising
+  // then none will happen that turn.
+  vector<ColonyId> const colonies =
+      ss.colonies.for_player_sorted( colonial_player_type );
+  for( ColonyId const colony_id : colonies ) {
+    Colony const& colony = ss.colonies.colony_for( colony_id );
+    if( colony.had_tory_uprising ) continue;
+    int const population = colony_population( colony );
+    UprisingColony up_colony{ .colony_id = colony_id };
+    // Do the unit count first because it is likely to yield zero
+    // units in most cases, in which we just skip this colony.
+    // This is because it doesn't take many defensive units to
+    // suppress the tories.
+    int const num_tories = [&] {
+      // TODO: check if this works for colony population = 0.
+      double const sons_of_liberty_percent =
+          compute_sons_of_liberty_percent(
+              colony.sons_of_liberty.num_rebels_from_bells_only,
+              population,
+              colonial_player.fathers
+                  .has[e_founding_father::simon_bolivar] );
+      int const sons_of_liberty_integral_percent =
+          compute_sons_of_liberty_integral_percent(
+              sons_of_liberty_percent );
+      int const sons_of_liberty_number =
+          compute_sons_of_liberty_number(
+              sons_of_liberty_integral_percent, population );
+      return compute_tory_number( sons_of_liberty_number,
+                                  population );
+    }();
+    int const defense_strength = [&] {
+      int res = 0;
+      vector<GenericUnitId> const units =
+          units_from_coord_recursive( ss.units,
+                                      colony.location );
+      for( GenericUnitId const generic_id : units ) {
+        switch( ss.units.unit_kind( generic_id ) ) {
+          case e_unit_kind::euro:
+            break;
+          case e_unit_kind::native:
+            // This should not happen in a well-formed game, but
+            // let's be defensive here in case the situation ac-
+            // cidentally comes up via cheat mode.
+            continue;
+        }
+        Unit const& unit = ss.units.euro_unit_for( generic_id );
+        if( !unit.desc().can_attack ) continue;
+        res += unit.desc().combat;
+      }
+      return res;
+    }();
+    int const difficulty_term = [&] {
+      switch( ss.settings.game_setup_options.difficulty ) {
+        case e_difficulty::conquistador:
+          return -2;
+        case e_difficulty::discoverer:
+          return -1;
+        case e_difficulty::explorer:
+          return 0;
+        case e_difficulty::governor:
+          return 1;
+        case e_difficulty::viceroy:
+          return 2;
+      }
+    }();
+
+    // * Units chosen:
+    //     - The unit count is given by:
+    //         T*2 + 3 - S + D
+    //       where T is the number of tories in the colony, S is
+    //       the total strength of the units in the colony (ar-
+    //       tillery=7, soldier=2, etc), and D is the difficulty
+    //       term:
+    //         discoverer:   -2
+    //         explorer:     -1
+    //         conquistador:  0
+    //         governor:     +1
+    //         viceroy:      +2
+    //       There is no floor on it; if the above formula yields
+    //       1, then only one unit will be deployed.
+    up_colony.unit_count = std::max(
+        num_tories * 2 + 3 - defense_strength + difficulty_term,
+        0 );
+    // This is used as a way to filter out colonies that are too
+    // strong, since they will tend to have a more negative unit
+    // count.
+    if( up_colony.unit_count <= 0 ) continue;
+    vector<point> tiles;
+    tiles.reserve( 20 );
+    point const center = colony.location.to_gfx();
+    for( e_direction const d : enum_values<e_direction> )
+      tiles.push_back( center.moved( d ) );
+    // TODO: move this out.
+    {
+      using enum e_direction;
+      // Top row.
+      tiles.push_back( center.moved( n ).moved( n ) );
+      tiles.push_back( center.moved( n ).moved( n ).moved( e ) );
+      tiles.push_back( center.moved( n ).moved( n ).moved( w ) );
+      // West row.
+      tiles.push_back( center.moved( w ).moved( w ) );
+      tiles.push_back( center.moved( w ).moved( w ).moved( n ) );
+      tiles.push_back( center.moved( w ).moved( w ).moved( s ) );
+      // East row.
+      tiles.push_back( center.moved( e ).moved( e ) );
+      tiles.push_back( center.moved( e ).moved( e ).moved( n ) );
+      tiles.push_back( center.moved( e ).moved( e ).moved( s ) );
+      // Bottom row.
+      tiles.push_back( center.moved( s ).moved( s ) );
+      tiles.push_back( center.moved( s ).moved( s ).moved( e ) );
+      tiles.push_back( center.moved( s ).moved( s ).moved( w ) );
+    }
+    auto const not_connected = [&]( point const p ) {
+      return !tiles_are_connected( connectivity, p,
+                                   colony.location );
+    };
+    erase_if( tiles, not_connected );
+    for( point const tile : tiles ) {
+      if( !ss.terrain.square_exists( tile ) ) continue;
+      MapSquare const& square = ss.terrain.square_at( tile );
+      if( is_water( square ) ) continue;
+      if( auto const society = society_on_square( ss, tile );
+          society.has_value() )
+        // If this is an REF unit then the colony is being at-
+        // tacked by the REF already, so skip. Any other type of
+        // unit (native, colonial player) cannot be displaced, so
+        // skip there as well. Basically the tile has to be
+        // empty.
+        continue;
+      if( tile.direction_to( colony.location ).has_value() )
+        up_colony.available_tiles_adjacent.push_back( tile );
+      else
+        up_colony.available_tiles_beyond.push_back( tile );
+    }
+  }
   return res;
 }
 
-UprisingColony const& select_uprising_colony(
-    IRand& rand, UprisingColonies const& uprising_colonies ) {
-  CHECK( !uprising_colonies.colonies.empty() );
-  (void)rand;
-  (void)uprising_colonies;
-  return uprising_colonies.colonies[0];
+UprisingColony const* select_uprising_colony(
+    SSConst const& ss, IRand& rand,
+    UprisingColonies const& uprising_colonies ) {
+  // TODO
+  // - Dice roll to determine whether the uprising happens, prob-
+  //   ability seems related to SoL, but not sure.
+  //
+  // - Probability that it happens to a colony:
+  //     * Zero if defenses lead to too few units.
+  //     * Depends on difficulty level.
+  //     * Not clear if it depends on SoL.
+  //     * Since the exact formula is not known, we will use
+  //       this:
+  //
+  //         P_colony = D + T/4
+  //
+  //       where D is:
+  //
+  //         discoverer:   25%
+  //         explorer:     38%
+  //         conquistador: 50%
+  //         governor:     63%
+  //         viceroy:      75%
+  //
+  //       and T is the tory percent in the colony / 4. So on
+  //       Viceroy, if the tory percent is 100% then we have
+  //       75%+100%/4 = 100%. On discoverer, if the Tory percent
+  //       is 0% then we have 25%+0% = 25%. This is likely not
+  //       the same formula that the OG uses, but it seems to
+  //       roughly fit what was observed and should be good
+  //       enough.
+  //
+  int const difficulty_term = [&] {
+    switch( ss.settings.game_setup_options.difficulty ) {
+      case e_difficulty::conquistador:
+        return 25;
+      case e_difficulty::discoverer:
+        return 38;
+      case e_difficulty::explorer:
+        return 50;
+      case e_difficulty::governor:
+        return 63;
+      case e_difficulty::viceroy:
+        return 75;
+    }
+  }();
+  for( UprisingColony const& up_colony :
+       uprising_colonies.colonies ) {
+    ColonyId const colony_id = up_colony.colony_id;
+    Colony const& colony = ss.colonies.colony_for( colony_id );
+    int const population = colony_population( colony );
+    UNWRAP_CHECK_T( Player const& player,
+                    ss.players.players[colony.player] );
+    double const sons_of_liberty_percent =
+        compute_sons_of_liberty_percent(
+            colony.sons_of_liberty.num_rebels_from_bells_only,
+            population,
+            player.fathers
+                .has[e_founding_father::simon_bolivar] );
+    int const sons_of_liberty_integral_percent =
+        compute_sons_of_liberty_integral_percent(
+            sons_of_liberty_percent );
+    int const tory_integral_percent =
+        100 - sons_of_liberty_integral_percent;
+    CHECK_GE( tory_integral_percent, 0 );
+    CHECK_LE( tory_integral_percent, 100 );
+    double const probability =
+        difficulty_term + double( tory_integral_percent ) / 4.0;
+    if( !rand.bernoulli( probability ) ) continue;
+    return &up_colony;
+  }
+  return nullptr;
 }
 
 vector<e_unit_type> generate_uprising_units( IRand& rand,
                                              int const count ) {
   vector<e_unit_type> res;
   res.reserve( count );
-  (void)rand;
-  (void)count;
+  // TODO:
+  //   Units are chosen randomly from this distribution:
+  //     soldier         : 45%
+  //     veteran_soldier : 30%
+  //     dragoon         : 15%
+  //     veteran_dragoon : 10%
+  //   Occasionally there are also free colonists chosen it ap-
+  //   pears, but those are rare and appear to have no purpose
+  //   since they can't attack, so we won't choose them.
+
+  // TODO: move this to config.
+  static vector<std::pair<e_unit_type, int>> const types{
+    { e_unit_type::soldier, 45 },
+    { e_unit_type::veteran_soldier, 30 },
+    { e_unit_type::dragoon, 15 },
+    { e_unit_type::veteran_dragoon, 10 },
+  };
+  for( int i = 0; i < count; ++i )
+    res.push_back( rand.pick_from_weighted_values( types ) );
+  return res;
+}
+
+vector<pair<e_unit_type, point>> distribute_uprising_units(
+    SSConst const& ss, UprisingColony const& uprising_colony,
+    vector<e_unit_type> const& unit_types ) {
+  vector<pair<e_unit_type, point>> res;
+  (void)ss;
+  (void)uprising_colony;
+  (void)unit_types;
   return res;
 }
 
 void deploy_uprising_units(
     SS& ss, UprisingColony const& uprising_colony,
-    vector<e_unit_type> const& unit_types ) {
+    vector<pair<e_unit_type, point>> units ) {
   (void)ss;
   (void)uprising_colony;
-  (void)unit_types;
+  (void)units;
 }
 
 wait<> show_uprising_msg(

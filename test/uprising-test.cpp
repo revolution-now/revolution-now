@@ -73,6 +73,10 @@ TEST_CASE( "[uprising] generate_uprising_units" ) {
   world w;
 }
 
+TEST_CASE( "[uprising] distribute_uprising_units" ) {
+  world w;
+}
+
 TEST_CASE( "[uprising] deploy_uprising_units" ) {
   world w;
 }
