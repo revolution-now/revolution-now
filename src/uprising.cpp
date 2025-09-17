@@ -234,6 +234,8 @@ UprisingColonies find_uprising_colonies(
       else
         up_colony.available_tiles_beyond.push_back( tile );
     }
+    if( up_colony.available_tiles_adjacent.empty() ) continue;
+    res.colonies.push_back( std::move( up_colony ) );
   }
   return res;
 }
