@@ -48,8 +48,7 @@ struct IRand {
   /**************************************************************
   ** For convenience.
   ***************************************************************/
-  // Shuffles the elements. Vector can be empty. Picks a random
-  // element.
+  // Shuffles the elements. Vector can be empty.
   template<typename T>
   void shuffle( std::vector<T>& vec );
 
