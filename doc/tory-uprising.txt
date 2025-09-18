@@ -32,8 +32,7 @@ Tory Uprisings:
     otherwise surrender (holds no colonies, no REF units in
     stock) the surrender can be delayed if there is an uprising
     that turn.
-  * The uprising REF units attack on the same turn (check
-    this).
+  * The uprising REF units attack on the same turn.
   * SoL: Can happen at any SoL.
   * Requires sufficiently low defenses.
       - Prefers weaker colonies.

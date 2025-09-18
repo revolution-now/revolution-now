@@ -60,6 +60,7 @@ distribute_uprising_units(
 
 void deploy_uprising_units(
     SS& ss, Player const& ref_player, IMapUpdater& map_updater,
+    UprisingColony const& uprising_colony,
     std::vector<std::pair<e_unit_type, gfx::point>> units );
 
 wait<> show_uprising_msg(

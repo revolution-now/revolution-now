@@ -1612,7 +1612,7 @@ wait<> post_colonies_ref_only( SS& ss, TS& ts,
         auto const distributed = distribute_uprising_units(
             ts.rand, *uprising_colony, unit_types );
         deploy_uprising_units( ss, ref_player, ts.map_updater(),
-                               distributed );
+                               *uprising_colony, distributed );
         co_await show_uprising_msg( ss.as_const, ts.gui,
                                     *uprising_colony );
       }

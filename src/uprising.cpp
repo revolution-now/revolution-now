@@ -372,7 +372,11 @@ vector<pair<e_unit_type, point>> distribute_uprising_units(
 
 void deploy_uprising_units(
     SS& ss, Player const& ref_player, IMapUpdater& map_updater,
+    UprisingColony const& uprising_colony,
     vector<pair<e_unit_type, point>> units ) {
+  ColonyId const colony_id = uprising_colony.colony_id;
+  Colony& colony           = ss.colonies.colony_for( colony_id );
+  colony.had_tory_uprising = true;
   for( auto const& [type, tile] : units ) {
     UnitId const unit_id = create_unit_on_map_non_interactive(
         ss, map_updater, ref_player, type, tile );
