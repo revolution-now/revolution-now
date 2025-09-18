@@ -38,7 +38,12 @@
 // rds
 #include "rds/switch-macro.hpp"
 
+// base
+#include "base/range-lite.hpp"
+
 using namespace std;
+
+namespace rl = ::base::rl;
 
 namespace rn {
 
@@ -307,7 +312,10 @@ UprisingColony const* select_uprising_colony(
     CHECK_GE( tory_integral_percent, 0 );
     CHECK_LE( tory_integral_percent, 100 );
     double const probability =
-        difficulty_term + double( tory_integral_percent ) / 4.0;
+        clamp( ( difficulty_term +
+                 double( tory_integral_percent ) / 4.0 ) /
+                   100.0,
+               0.0, 1.0 );
     if( !rand.bernoulli( probability ) ) continue;
     return &up_colony;
   }
@@ -341,30 +349,51 @@ vector<e_unit_type> generate_uprising_units( IRand& rand,
 }
 
 vector<pair<e_unit_type, point>> distribute_uprising_units(
-    SSConst const& ss, UprisingColony const& uprising_colony,
+    IRand& rand, UprisingColony const& uprising_colony,
     vector<e_unit_type> const& unit_types ) {
   vector<pair<e_unit_type, point>> res;
-  (void)ss;
-  (void)uprising_colony;
-  (void)unit_types;
+  res.reserve( unit_types.size() );
+  auto adjacent = uprising_colony.available_tiles_adjacent;
+  auto beyond   = uprising_colony.available_tiles_beyond;
+  rand.shuffle( adjacent );
+  rand.shuffle( beyond );
+  CHECK( !adjacent.empty() );
+  vector<point> tiles;
+  tiles.reserve( adjacent.size() * 2 + beyond.size() );
+  for( point const p : adjacent ) tiles.push_back( p );
+  for( point const p : adjacent ) tiles.push_back( p );
+  for( point const p : beyond ) tiles.push_back( p );
+  auto const cycled = rl::all( tiles ).cycle();
+  for( auto it = cycled.begin();
+       e_unit_type const type : unit_types )
+    res.push_back( pair{ type, *it++ } );
   return res;
 }
 
 void deploy_uprising_units(
-    SS& ss, UprisingColony const& uprising_colony,
+    SS& ss, Player const& ref_player, IMapUpdater& map_updater,
     vector<pair<e_unit_type, point>> units ) {
-  (void)ss;
-  (void)uprising_colony;
-  (void)units;
+  for( auto const& [type, tile] : units ) {
+    UnitId const unit_id = create_unit_on_map_non_interactive(
+        ss, map_updater, ref_player, type, tile );
+    Unit& unit = ss.units.unit_for( unit_id );
+    // Should already be cleared, but just to emphasize, since we
+    // want these units to attack on the same turn that they
+    // land, as in the OG. Note that this is different from when
+    // normal REF troops land, which have to wait until the next
+    // turn to attack.
+    unit.new_turn( ref_player );
+  }
 }
 
 wait<> show_uprising_msg(
     SSConst const& ss, IGui& gui,
     UprisingColony const& uprising_colony ) {
-  (void)ss;
-  (void)gui;
-  (void)uprising_colony;
-  co_return;
+  ColonyId const colony_id = uprising_colony.colony_id;
+  Colony const& colony     = ss.colonies.colony_for( colony_id );
+  string const msg =
+      format( "Tory uprising in [{}]!", colony.name );
+  co_await gui.message_box( "{}", msg );
 }
 
 } // namespace rn

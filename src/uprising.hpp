@@ -22,6 +22,7 @@ namespace rn {
 ** Fwd. Decls.
 *****************************************************************/
 struct IGui;
+struct IMapUpdater;
 struct IRand;
 struct Player;
 struct SS;
@@ -54,11 +55,11 @@ std::vector<e_unit_type> generate_uprising_units( IRand& rand,
 
 std::vector<std::pair<e_unit_type, gfx::point>>
 distribute_uprising_units(
-    SSConst const& ss, UprisingColony const& uprising_colony,
+    IRand& rand, UprisingColony const& uprising_colony,
     std::vector<e_unit_type> const& unit_types );
 
 void deploy_uprising_units(
-    SS& ss, UprisingColony const& uprising_colony,
+    SS& ss, Player const& ref_player, IMapUpdater& map_updater,
     std::vector<std::pair<e_unit_type, gfx::point>> units );
 
 wait<> show_uprising_msg(
