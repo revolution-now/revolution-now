@@ -59,6 +59,7 @@ using ::refl::enum_values;
 *****************************************************************/
 bool should_attempt_uprising(
     SSConst const& ss, Player const& colonial_player,
+    Player const& ref_player,
     bool const did_deploy_ref_this_turn ) {
   // Try for a "Tory Uprising". This only happens once no further
   // REF units can be sent, and assuming that none were sent just
@@ -77,8 +78,8 @@ bool should_attempt_uprising(
       // e.g. that may be because some Man-o-Wars are returning
       // to europe to pick them up. We don't want to do uprisings
       // in that case.
-      !can_send_more_ref_units( ss,
-                                as_const( colonial_player ) );
+      !can_send_more_ref_units( ss, colonial_player,
+                                ref_player );
 }
 
 UprisingColonies find_uprising_colonies(

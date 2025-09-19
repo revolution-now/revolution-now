@@ -2993,9 +2993,12 @@ TEST_CASE( "[ref] can_send_more_ref_units" ) {
   w.create_default_map();
 
   Player& colonial_player = w.default_player();
+  Player& ref_player =
+      w.add_player( ref_player_for( w.default_nation() ) );
 
   auto const f = [&] [[clang::noinline]] {
-    return can_send_more_ref_units( w.ss(), colonial_player );
+    return can_send_more_ref_units( w.ss(), colonial_player,
+                                    ref_player );
   };
 
   auto& ref_can_spawn_ships =
@@ -3009,6 +3012,10 @@ TEST_CASE( "[ref] can_send_more_ref_units" ) {
 
   ref_can_spawn_ships = false;
   REQUIRE( f() == false );
+
+  colonial_player.revolution.expeditionary_force.man_o_war = 1;
+  REQUIRE( f() == true );
+
   ref_can_spawn_ships = true;
 
   colonial_player.revolution.expeditionary_force.man_o_war = 1;
@@ -3028,6 +3035,23 @@ TEST_CASE( "[ref] can_send_more_ref_units" ) {
 
   colonial_player.revolution.expeditionary_force.artillery = 0;
   REQUIRE( f() == false );
+
+  ref_can_spawn_ships = false;
+  colonial_player.revolution.expeditionary_force.man_o_war = 0;
+  colonial_player.revolution.expeditionary_force.regular   = 1;
+  REQUIRE( f() == false );
+
+  w.add_unit_on_map( e_unit_type::free_colonist,
+                     { .x = 1, .y = 0 }, ref_player.type );
+  REQUIRE( f() == false );
+
+  w.add_unit_on_map( e_unit_type::man_o_war, { .x = 0, .y = 1 },
+                     e_player::french );
+  REQUIRE( f() == false );
+
+  w.add_unit_on_map( e_unit_type::man_o_war, { .x = 0, .y = 0 },
+                     e_player::ref_french );
+  REQUIRE( f() == true );
 }
 
 TEST_CASE( "[ref] ref_should_forfeight" ) {
@@ -3053,7 +3077,17 @@ TEST_CASE( "[ref] ref_should_forfeight" ) {
 
   ref_can_spawn_ships = false;
   REQUIRE( f() == true );
+
+  UnitId const ship_id =
+      w.add_unit_on_map( e_unit_type::man_o_war,
+                         { .x = 0, .y = 0 }, ref_player.type )
+          .id();
+  REQUIRE( f() == false );
+  UnitOwnershipChanger( w.ss(), ship_id ).destroy();
+  REQUIRE( f() == true );
+
   ref_can_spawn_ships = true;
+  REQUIRE( f() == false );
 
   colonial_player.revolution.expeditionary_force.man_o_war = 1;
   REQUIRE( f() == false );

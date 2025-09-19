@@ -988,19 +988,31 @@ wait<> offboard_ref_units( SS& ss, IMapUpdater& map_updater,
 }
 
 bool can_send_more_ref_units( SSConst const& ss,
-                              Player const& colonial_player ) {
+                              Player const& colonial_player,
+                              Player const& ref_player ) {
   auto const& stock =
       colonial_player.revolution.expeditionary_force;
   int const total_ships_in_stock = stock.man_o_war;
   int const total_land_units_in_stock =
       stock.regular + stock.cavalry + stock.artillery;
   if( total_land_units_in_stock == 0 ) return false;
+  if( total_ships_in_stock > 0 ) return true;
   // NOTE: By default (as in the OG) ref_can_spawn_ships=true.
-  if( !ss.settings.game_setup_options.customized_rules
-           .ref_can_spawn_ships &&
-      total_ships_in_stock == 0 )
-    return false;
-  return true;
+  if( ss.settings.game_setup_options.customized_rules
+          .ref_can_spawn_ships )
+    return true;
+  // Check if the REF has any ships on the map.
+  unordered_map<UnitId, UnitState::euro const*> const&
+      units_all = ss.units.euro_all();
+  for( auto const [unit_id, p_euro] : units_all ) {
+    Unit const& unit = p_euro->unit;
+    if( unit.player_type() != ref_player.type ) continue;
+    if( unit.desc().ship )
+      // We have an REF ship on the map that can go to fetch
+      // some REF units from the stock.
+      return true;
+  }
+  return false;
 }
 
 bool ref_should_forfeight( SSConst const& ss,
@@ -1029,7 +1041,8 @@ bool ref_should_forfeight( SSConst const& ss,
       colonial_player_for( nation_for( ref_player.type ) );
   UNWRAP_CHECK_T( Player const& colonial_player,
                   ss.players.players[colonial_player_type] );
-  return !can_send_more_ref_units( ss, colonial_player );
+  return !can_send_more_ref_units( ss, colonial_player,
+                                   ref_player );
 }
 
 void do_ref_forfeight( SS& ss, Player& ref_player ) {

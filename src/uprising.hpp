@@ -37,6 +37,7 @@ enum class e_unit_type;
 *****************************************************************/
 [[nodiscard]] bool should_attempt_uprising(
     SSConst const& ss, Player const& colonial_player,
+    Player const& ref_player,
     bool const did_deploy_ref_this_turn );
 
 UprisingColonies find_uprising_colonies(

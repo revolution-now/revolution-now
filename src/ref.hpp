@@ -145,7 +145,8 @@ wait<> offboard_ref_units( SS& ss, IMapUpdater& map_updater,
 ** REF Winning/Forfeight.
 *****************************************************************/
 bool can_send_more_ref_units( SSConst const& ss,
-                              Player const& colonial_player );
+                              Player const& colonial_player,
+                              Player const& ref_player );
 
 [[nodiscard]] bool ref_should_forfeight(
     SSConst const& ss, Player const& ref_player );
