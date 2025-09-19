@@ -1595,7 +1595,7 @@ wait<> post_colonies_ref_only( SS& ss, TS& ts,
         ts.agents()[colonial_player_type], *landing_units );
 
   bool const attempt_uprising = should_attempt_uprising(
-      ss.as_const, colonial_player,
+      ss.as_const, colonial_player, ref_player,
       /*did_deploy_ref_this_turn=*/landing_units.has_value() );
   if( attempt_uprising ) {
     UprisingColonies const uprising_colonies =
