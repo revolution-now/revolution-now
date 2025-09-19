@@ -27,6 +27,8 @@ namespace {
 
 using namespace std;
 
+using ::gfx::point;
+
 /****************************************************************
 ** Fake World Setup
 *****************************************************************/
@@ -50,18 +52,18 @@ struct world : testing::World {
 ** Test Cases
 *****************************************************************/
 TEST_CASE( "[connectivity] compute_terrain_connectivity" ) {
-  world W;
+  world w;
   TerrainConnectivity expected;
-  MapSquare const _ = W.make_ocean();
-  MapSquare const L = W.make_grassland();
+  MapSquare const _ = w.make_ocean();
+  MapSquare const L = w.make_grassland();
 
   auto f = [&] {
-    return compute_terrain_connectivity( W.ss() );
+    return compute_terrain_connectivity( w.ss() );
   };
 
   SECTION( "0x0" ) {
-    W.set_width( 0 );
-    W.create_map( {} );
+    w.set_width( 0 );
+    w.create_map( {} );
     expected.x_size                         = 0;
     expected.indices                        = {};
     expected.indices_with_right_edge_access = {};
@@ -70,8 +72,8 @@ TEST_CASE( "[connectivity] compute_terrain_connectivity" ) {
   }
 
   SECTION( "1x1" ) {
-    W.set_width( 1 );
-    W.create_map( {
+    w.set_width( 1 );
+    w.create_map( {
       _, //
     } );
     expected.x_size  = 1;
@@ -84,8 +86,8 @@ TEST_CASE( "[connectivity] compute_terrain_connectivity" ) {
   }
 
   SECTION( "5x1 all connected" ) {
-    W.set_width( 5 );
-    W.create_map( {
+    w.set_width( 5 );
+    w.create_map( {
       L, L, L, L, L, //
     } );
     expected.x_size  = 5;
@@ -98,8 +100,8 @@ TEST_CASE( "[connectivity] compute_terrain_connectivity" ) {
   }
 
   SECTION( "1x5 all connected" ) {
-    W.set_width( 1 );
-    W.create_map( {
+    w.set_width( 1 );
+    w.create_map( {
       _, //
       _, //
       _, //
@@ -120,8 +122,8 @@ TEST_CASE( "[connectivity] compute_terrain_connectivity" ) {
   }
 
   SECTION( "5x1 alternating" ) {
-    W.set_width( 5 );
-    W.create_map( {
+    w.set_width( 5 );
+    w.create_map( {
       L, _, L, _, L, //
     } );
     expected.x_size  = 5;
@@ -134,8 +136,8 @@ TEST_CASE( "[connectivity] compute_terrain_connectivity" ) {
   }
 
   SECTION( "5x2 checkers" ) {
-    W.set_width( 5 );
-    W.create_map( {
+    w.set_width( 5 );
+    w.create_map( {
       L, _, L, _, L, //
       _, L, _, L, _, //
     } );
@@ -150,8 +152,8 @@ TEST_CASE( "[connectivity] compute_terrain_connectivity" ) {
   }
 
   SECTION( "3x3" ) {
-    W.set_width( 3 );
-    W.create_map( {
+    w.set_width( 3 );
+    w.create_map( {
       _, L, _, //
       L, L, L, //
       _, L, L, //
@@ -168,8 +170,8 @@ TEST_CASE( "[connectivity] compute_terrain_connectivity" ) {
   }
 
   SECTION( "6x3" ) {
-    W.set_width( 6 );
-    W.create_map( {
+    w.set_width( 6 );
+    w.create_map( {
       _, L, _, L, L, L, //
       L, L, L, L, L, L, //
       _, L, L, L, L, L, //
@@ -186,8 +188,8 @@ TEST_CASE( "[connectivity] compute_terrain_connectivity" ) {
   }
 
   SECTION( "5x5 all connected" ) {
-    W.set_width( 5 );
-    W.create_map( {
+    w.set_width( 5 );
+    w.create_map( {
       _, _, _, _, _, //
       _, _, _, _, _, //
       _, _, _, _, _, //
@@ -208,8 +210,8 @@ TEST_CASE( "[connectivity] compute_terrain_connectivity" ) {
   }
 
   SECTION( "5x5 split" ) {
-    W.set_width( 5 );
-    W.create_map( {
+    w.set_width( 5 );
+    w.create_map( {
       _, _, _, _, _, //
       _, _, _, L, _, //
       _, _, L, L, L, //
@@ -230,8 +232,8 @@ TEST_CASE( "[connectivity] compute_terrain_connectivity" ) {
   }
 
   SECTION( "large" ) {
-    W.set_width( 18 );
-    W.create_map( {
+    w.set_width( 18 );
+    w.create_map( {
       L, _, _, _, _, L, _, _, _, _, _, L, _, _, _, _, L, _, //
       _, _, _, _, _, L, _, _, _, _, L, L, L, _, _, _, L, L, //
       _, L, L, _, _, L, _, _, _, _, _, L, _, _, _, _, _, _, //
@@ -432,21 +434,21 @@ TEST_CASE( "[connectivity] water_square_has_ocean_access" ) {
 }
 
 TEST_CASE( "[connectivity] colony_has_ocean_access" ) {
-  world W;
-  MapSquare const _ = W.make_ocean();
-  MapSquare const L = W.make_grassland();
-  W.set_width( 5 );
-  W.create_map( {
+  world w;
+  MapSquare const _ = w.make_ocean();
+  MapSquare const L = w.make_grassland();
+  w.set_width( 5 );
+  w.create_map( {
     _, L, _, L, L, //
     L, L, L, L, L, //
     L, _, _, L, _, //
     L, _, L, L, _, //
     L, _, L, _, _, //
   } );
-  W.update_terrain_connectivity();
+  w.update_terrain_connectivity();
 
   auto f = [&]( Coord coord ) {
-    return colony_has_ocean_access( W.ss(), W.connectivity(),
+    return colony_has_ocean_access( w.ss(), w.connectivity(),
                                     coord );
   };
 
@@ -479,6 +481,57 @@ TEST_CASE( "[connectivity] colony_has_ocean_access" ) {
 
 TEST_CASE( "[connectivity] tiles_are_connected" ) {
   world w;
+  MapSquare const _ = w.make_ocean();
+  MapSquare const L = w.make_grassland();
+
+  w.set_width( 18 );
+  // clang-format off
+  w.create_map( { /*
+    0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f  g  h  */
+    L, _, _, _, _, L, _, _, _, _, _, L, _, _, _, _, L, _, // 0
+    _, _, _, _, _, L, _, _, _, _, L, L, L, _, _, _, L, L, // 1
+    _, L, L, _, _, L, _, _, _, _, _, L, _, _, _, _, _, _, // 2
+    _, L, L, _, L, L, L, L, _, _, _, L, _, _, _, _, _, _, // 3
+    _, _, _, _, L, _, _, L, _, _, L, _, _, _, _, _, L, L, // 4
+    _, _, _, _, L, _, L, L, _, L, _, _, _, _, _, L, L, _, // 5
+    _, _, _, _, L, L, L, L, _, L, _, _, _, _, _, L, _, _, // 6
+    _, _, _, _, L, L, _, _, _, L, L, L, L, _, _, L, _, _, // 7
+    _, _, _, _, _, L, _, _, _, L, L, L, L, L, _, L, L, _, // 8
+    L, L, L, _, _, L, _, _, _, _, _, L, L, _, _, _, L, L, // 9
+    L, _, _, _, _, L, L, _, _, _, _, _, _, _, _, _, _, _, // a
+    _, _, _, _, _, L, L, L, _, _, _, _, L, L, _, _, _, _, // b
+    _, _, _, _, _, L, _, L, L, _, _, L, _, _, L, _, _, _, // c
+    _, _, _, _, L, L, _, _, L, _, _, _, L, L, _, _, _, _, // d
+    _, _, _, _, L, _, _, _, L, _, _, _, _, L, _, _, _, _, // e
+    _, _, _, _, L, L, L, L, L, L, _, _, _, _, _, _, _, _, // f
+    _, L, L, _, _, _, _, _, _, L, L, L, L, _, L, L, L, _, // g
+    _, L, L, L, _, _, _, _, _, _, _, L, L, L, L, _, L, L, // h
+    _, L, _, L, _, _, _, _, _, _, _, _, _, _, L, _, _, _, // i
+    _, L, L, L, _, _, _, _, _, _, _, _, _, _, L, _, _, _, /* j
+    0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f  g  h  */
+  } );
+  // clang-format on
+
+  TerrainConnectivity const connectivity =
+      compute_terrain_connectivity( w.ss() );
+
+  auto const f = [&] [[clang::noinline]] ( point const p1,
+                                           point const p2 ) {
+    return tiles_are_connected( connectivity, p1, p2 );
+  };
+
+  REQUIRE( f( { .x = 0, .y = 0 }, { .x = 0, .y = 0 } ) );
+  REQUIRE( !f( { .x = 1, .y = 0 }, { .x = 0, .y = 0 } ) );
+  REQUIRE( !f( { .x = 0, .y = 0 }, { .x = 1, .y = 2 } ) );
+  REQUIRE( f( { .x = 2, .y = 3 }, { .x = 1, .y = 2 } ) );
+  REQUIRE( f( { .x = 2, .y = 3 }, { .x = 1, .y = 2 } ) );
+  REQUIRE( f( { .x = 5, .y = 1 }, { .x = 14, .y = 16 } ) );
+  REQUIRE( !f( { .x = 5, .y = 1 }, { .x = 14, .y = 13 } ) );
+  REQUIRE( !f( { .x = 5, .y = 1 }, { .x = 14, .y = 12 } ) );
+  REQUIRE( !f( { .x = 11, .y = 0 }, { .x = 14, .y = 12 } ) );
+  REQUIRE( f( { .x = 11, .y = 12 }, { .x = 14, .y = 12 } ) );
+  REQUIRE( f( { .x = 15, .y = 5 }, { .x = 17, .y = 9 } ) );
+  REQUIRE( f( { .x = 2, .y = 9 }, { .x = 0, .y = 10 } ) );
 }
 
 } // namespace
