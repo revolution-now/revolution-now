@@ -23,6 +23,7 @@
 #include "unit-mgr.hpp"
 
 // config
+#include "config/revolution.rds.hpp"
 #include "config/unit-type.rds.hpp"
 
 // ss
@@ -327,25 +328,9 @@ vector<e_unit_type> generate_uprising_units( IRand& rand,
                                              int const count ) {
   vector<e_unit_type> res;
   res.reserve( count );
-  // TODO:
-  //   Units are chosen randomly from this distribution:
-  //     soldier         : 45%
-  //     veteran_soldier : 30%
-  //     dragoon         : 15%
-  //     veteran_dragoon : 10%
-  //   Occasionally there are also free colonists chosen it ap-
-  //   pears, but those are rare and appear to have no purpose
-  //   since they can't attack, so we won't choose them.
-
-  // TODO: move this to config.
-  static vector<std::pair<e_unit_type, int>> const types{
-    { e_unit_type::soldier, 45 },
-    { e_unit_type::veteran_soldier, 30 },
-    { e_unit_type::dragoon, 15 },
-    { e_unit_type::veteran_dragoon, 10 },
-  };
   for( int i = 0; i < count; ++i )
-    res.push_back( rand.pick_from_weighted_values( types ) );
+    res.push_back( rand.pick_from_weighted_values(
+        config_revolution.uprising.unit_type_probabilities ) );
   return res;
 }
 

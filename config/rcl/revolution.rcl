@@ -144,3 +144,27 @@ royal_money {
   # of one REF unit.
   threshold_for_new_ref: 1800
 }
+
+# This section configures the "Tory Uprising" feature. This is a
+# rarely-seen event in the OG that happens towards the end of the
+# War of Independence when the REF is mostly expended but the
+# game has not yet ended. When it happens, a number of "tories"
+# (military units owned by the REF of normal types such as sol-
+# diers, dragoons, etc.) spontaneously appear around a colony and
+# start attacking it.
+uprising {
+  # Each Tory uprising unit that is produced is selected from the
+  # following units and weights. The below numbers mirror what
+  # the OG appears to use, with the exception that sometimes the
+  # OG can produce free_colonist units, which we don't do here
+  # because they can't do much and are rare.
+  #
+  # There must be at least one unit here and the total weights
+  # must sum to 100.
+  unit_type_probabilities: [
+    { key: soldier,         val: 45 }
+    { key: veteran_soldier, val: 30 }
+    { key: dragoon,         val: 15 }
+    { key: veteran_dragoon, val: 10 }
+  ]
+}

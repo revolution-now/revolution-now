@@ -111,4 +111,21 @@ base::valid_or<string> config::revolution::RefForces::validate()
   return base::valid;
 }
 
+/****************************************************************
+** config::revolution::Uprising
+*****************************************************************/
+base::valid_or<string> config::revolution::Uprising::validate()
+    const {
+  REFL_VALIDATE( !unit_type_probabilities.empty(),
+                 "there must be at least one unit available for "
+                 "a Tory Uprising." );
+  int total = 0;
+  for( auto const& [unit, weight] : unit_type_probabilities )
+    total += weight;
+  REFL_VALIDATE(
+      total == 100,
+      "weights for Tory Uprising units must sum to 100." );
+  return base::valid;
+}
+
 } // namespace rn
