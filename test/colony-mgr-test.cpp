@@ -901,6 +901,52 @@ TEST_CASE( "[colony-mgr] find_coastal_colonies" ) {
 
 TEST_CASE( "[colony-mgr] total_colonies_population" ) {
   world w;
+
+  auto const f =
+      [&] [[clang::noinline]] ( e_player const player ) {
+        return total_colonies_population( w.ss(), player );
+      };
+
+  using enum e_player;
+  using enum e_unit_type;
+
+  // Default.
+  REQUIRE( f( dutch ) == 0 );
+  REQUIRE( f( english ) == 0 );
+
+  ColonyId const english1 =
+      w.add_colony( { .x = 1, .y = 1 }, english ).id;
+  ColonyId const english2 =
+      w.add_colony( { .x = 3, .y = 1 }, english ).id;
+  ColonyId const dutch1 =
+      w.add_colony( { .x = 7, .y = 5 }, dutch ).id;
+  ColonyId const dutch2 =
+      w.add_colony( { .x = 4, .y = 4 }, dutch ).id;
+  REQUIRE( f( dutch ) == 0 );
+  REQUIRE( f( english ) == 0 );
+
+  w.add_unit_indoors( english1, e_indoor_job::bells );
+  REQUIRE( f( dutch ) == 0 );
+  REQUIRE( f( english ) == 1 );
+  w.add_unit_indoors( dutch2, e_indoor_job::bells );
+  REQUIRE( f( dutch ) == 1 );
+  REQUIRE( f( english ) == 1 );
+  w.add_unit_outdoors( dutch2, e_direction::nw,
+                       e_outdoor_job::food );
+  REQUIRE( f( dutch ) == 2 );
+  REQUIRE( f( english ) == 1 );
+
+  w.add_unit_on_map( free_colonist, { .x = 1, .y = 1 },
+                     english );
+  REQUIRE( f( dutch ) == 2 );
+  REQUIRE( f( english ) == 1 );
+
+  w.add_unit_indoors( english2, e_indoor_job::bells );
+  REQUIRE( f( dutch ) == 2 );
+  REQUIRE( f( english ) == 2 );
+  w.add_unit_indoors( dutch1, e_indoor_job::bells );
+  REQUIRE( f( dutch ) == 3 );
+  REQUIRE( f( english ) == 2 );
 }
 
 } // namespace
