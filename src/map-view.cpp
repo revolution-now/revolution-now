@@ -15,6 +15,7 @@
 #include "game-options.hpp"
 #include "roles.hpp"
 #include "society.hpp"
+#include "ts.hpp"
 #include "unit-mgr.hpp"
 #include "visibility.hpp"
 
@@ -41,9 +42,9 @@ using ::gfx::point;
 *****************************************************************/
 void reveal_entire_map( SS& ss, TS& ts ) {
   ss.land_view.map_revealed = MapRevealed::entire{};
-  disable_game_option( ss, ts,
+  disable_game_option( ss, ts.map_updater(),
                        e_game_menu_option::show_indian_moves );
-  disable_game_option( ss, ts,
+  disable_game_option( ss, ts.map_updater(),
                        e_game_menu_option::show_foreign_moves );
   // Redraw.
   update_map_visibility( ts, /*player=*/nothing );

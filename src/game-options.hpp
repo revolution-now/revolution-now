@@ -19,6 +19,7 @@ namespace rn {
 
 struct SS;
 struct TS;
+struct IMapUpdater;
 
 enum class e_game_menu_option;
 
@@ -28,7 +29,7 @@ wait<> open_game_options_box( SS& ss, TS& ts );
 // abling a game option as it will ensure that the right side ef-
 // fects get performed. The function returns the old value of the
 // option, which might have been already off (false).
-bool disable_game_option( SS& ss, TS& ts,
+bool disable_game_option( SS& ss, IMapUpdater& map_updater,
                           e_game_menu_option option );
 
 } // namespace rn

@@ -48,18 +48,6 @@ struct world : testing::World {
 /****************************************************************
 ** Test Cases
 *****************************************************************/
-TEST_CASE( "[game-end] do_keep_playing_after_winning" ) {
-  world w;
-}
-
-TEST_CASE( "[game-end] do_keep_playing_after_timeout" ) {
-  world w;
-}
-
-TEST_CASE( "[game-end] ask_keep_playing" ) {
-  world w;
-}
-
 TEST_CASE( "[game-end] check_time_up" ) {
   world w;
 }

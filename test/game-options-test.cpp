@@ -64,7 +64,8 @@ TEST_CASE( "[game-options] disable_game_option" ) {
   using E                   = e_game_menu_option;
 
   auto f = [&] {
-    return disable_game_option( W.ss(), W.ts(), option );
+    return disable_game_option( W.ss(), W.map_updater(),
+                                option );
   };
 
   option = E::autosave;
