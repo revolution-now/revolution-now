@@ -18,6 +18,7 @@
 
 // ss
 #include "src/ss/land-view.rds.hpp"
+#include "src/ss/player.rds.hpp"
 #include "src/ss/players.rds.hpp"
 #include "src/ss/ref.hpp"
 #include "src/ss/turn.rds.hpp"
@@ -135,6 +136,72 @@ TEST_CASE( "[roles] player_for_role (primary_human)" ) {
   };
 
   REQUIRE( f() == nothing );
+
+  using enum e_player;
+  using enum e_player_control;
+
+  w.add_player( spanish );
+  REQUIRE( f() == nothing );
+
+  w.spanish().control = ai;
+  REQUIRE( f() == nothing );
+
+  w.spanish().control = human;
+  REQUIRE( f() == spanish );
+
+  w.add_player( dutch );
+  REQUIRE( f() == spanish );
+
+  w.dutch().control = human;
+  REQUIRE( f() == spanish );
+
+  w.add_player( english );
+  w.add_player( french );
+  REQUIRE( f() == spanish );
+
+  w.english().control = ai;
+  w.french().control  = ai;
+  REQUIRE( f() == spanish );
+
+  w.french().control = human;
+  REQUIRE( f() == french );
+
+  w.english().control = human;
+  REQUIRE( f() == english );
+}
+
+TEST_CASE( "[roles] player_for_role (active turn types)" ) {
+  world w;
+
+  auto const f = [&] {
+    return player_for_role( w.ss(), e_player_role::active );
+  };
+
+  auto& cycle = w.turn().cycle;
+
+  // Default.
+  REQUIRE( f() == nothing );
+
+  cycle = TurnCycle::not_started{};
+  REQUIRE( f() == nothing );
+
+  cycle = TurnCycle::natives{};
+  REQUIRE( f() == nothing );
+
+  cycle = TurnCycle::intervention{};
+  REQUIRE( f() == nothing );
+
+  cycle = TurnCycle::end_cycle{};
+  REQUIRE( f() == nothing );
+
+  cycle = TurnCycle::finished{};
+  REQUIRE( f() == nothing );
+
+  cycle = TurnCycle::player{ .type = e_player::french };
+  REQUIRE( f() == e_player::french );
+
+  cycle = TurnCycle::player{ .type = e_player::dutch };
+  REQUIRE( f() == e_player::dutch );
 }
 
 } // namespace
