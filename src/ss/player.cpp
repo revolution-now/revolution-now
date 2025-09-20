@@ -79,6 +79,7 @@ LUA_STARTUP( lua::state& st ) {
 
     u["type"]                = &U::type;
     u["nation"]              = &U::nation;
+    u["name"]                = &U::name;
     u["control"]             = &U::control;
     u["money"]               = &U::money;
     u["crosses"]             = &U::crosses;

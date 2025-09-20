@@ -108,6 +108,21 @@ help {
       to reproduce the OG's behavior.
     "
   }
+
+  deadline_for_winning: {
+    title: Year of Deadline for Winning
+    category: war_of_independence
+    quick: "
+      If the player has not won the game by Autumn of this year
+      then the game ends.
+    "
+    detail: "
+      This gives the year at which the player will be forced to
+      surrender (and lose the game) if independence hasn't been
+      both declared and won. This can be `null` in which case
+      there is no time limit. This has the value 1850 in the OG.
+    "
+  }
 }
 
 # NOTE: Changing these values in this file is generally NOT what
@@ -118,4 +133,5 @@ default_values {
   enable_war_of_succession: true
   ref_can_spawn_ships: true
   withdraw_on_declaration: true
+  deadline_for_winning: 1850
 }

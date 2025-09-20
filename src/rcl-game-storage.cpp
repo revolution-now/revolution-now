@@ -10,6 +10,9 @@
 *****************************************************************/
 #include "rcl-game-storage.hpp"
 
+// Revolution Now
+#include "roles.hpp"
+
 // config
 #include "config/nation.rds.hpp"
 #include "config/savegame.rds.hpp"
@@ -58,22 +61,28 @@ string construct_rcl_title( SSConst const& ss ) {
   string const difficulty =
       base::capitalize_initials( refl::enum_value_name(
           ss.root.settings.game_setup_options.difficulty ) );
-  string const name = "SomeName"; // FIXME: temporary
-  maybe<e_player> human;
-  // Use the first human player.
-  for( e_player const player : refl::enum_values<e_player> ) {
-    if( ss.players.players[player].has_value() ) {
-      if( ss.players.players[player]->control ==
-          e_player_control::human ) {
-        human = player;
-        break;
-      }
+  maybe<e_player> const player_type = [&] -> maybe<e_player> {
+    auto const human =
+        player_for_role( ss, e_player_role::primary_human );
+    if( human.has_value() ) return *human;
+    auto const active =
+        player_for_role( ss, e_player_role::active );
+    if( active.has_value() ) return *active;
+    return nothing;
+  }();
+  string const name = [&] {
+    if( player_type.has_value() ) {
+      UNWRAP_CHECK_T( Player const& player,
+                      ss.players.players[*player_type] );
+      return player.name;
     }
-  }
+    return "Player"s;
+  }();
   string const player_name =
-      human.has_value() ? config_nation.players[*human]
-                              .possessive_pre_declaration
-                        : "(AI only)";
+      player_type.has_value()
+          ? config_nation.players[*player_type]
+                .possessive_pre_declaration
+          : "(AI only)";
   TurnState const& turn_state = ss.root.turn;
   string const time_point     = fmt::format(
       "{} {}",

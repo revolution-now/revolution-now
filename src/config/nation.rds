@@ -60,6 +60,8 @@ struct.Nation {
   # The default suggested name for the new world.
   new_world_name 'std::string',
 
+  # Default colonial leader name.
+  default_leader_name 'std::string',
 }
 
 struct.Player {

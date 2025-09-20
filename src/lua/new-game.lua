@@ -325,6 +325,8 @@ local STARTING_GOLD = {
 local function create_player_state( root, player_type, player )
   player.type = player_type
   player.nation = player_type
+  player.name = assert( config.nation.nations[player_type]
+                            .default_leader_name )
   player.money = assert( STARTING_GOLD[root.settings
                              .game_setup_options.difficulty] )
   create_old_world_state( root, player )
@@ -357,8 +359,10 @@ end
 -- Turn State
 -----------------------------------------------------------------
 local function create_turn_state( turns_state )
-  turns_state.time_point.year = 1492
-  turns_state.time_point.season = 'spring'
+  turns_state.time_point.year = config.turn.game_start
+                                    .starting_year
+  turns_state.time_point.season =
+      config.turn.game_start.starting_season
 end
 
 -----------------------------------------------------------------

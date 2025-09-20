@@ -16,6 +16,8 @@
 #include "interrupts.hpp"
 #include "map-view.hpp"
 #include "ref.hpp"
+#include "roles.hpp"
+#include "string.hpp"
 #include "ts.hpp"
 
 // config
@@ -26,16 +28,22 @@
 #include "ss/nation.hpp"
 #include "ss/players.rds.hpp"
 #include "ss/ref.hpp"
+#include "ss/revolution.rds.hpp"
+#include "ss/settings.rds.hpp"
 #include "ss/turn.rds.hpp"
 
 // base
 #include "base/logger.hpp"
+#include "base/string.hpp"
 
 using namespace std;
 
 namespace rn {
 
 namespace {
+
+using ::refl::enum_value_name;
+using ::refl::enum_values;
 
 // The player can also opt to continue playing after having run
 // out of time, but this should not be called in that case. We
@@ -51,18 +59,22 @@ void do_keep_playing_after_winning( SS& ss, TS& ts ) {
   // ther way, this should not cause a problem.
   for( auto& [player_type, player] : ss.players.players ) {
     if( !player.has_value() ) continue;
+    if( is_ref( player_type ) ) continue;
     // Don't resurrect the nation that withdrew in the War of
     // Succession, if there was one.
     if( nation_for( player_type ) ==
         ss.events.war_of_succession_done )
       continue;
+    if( player->control == e_player_control::human ) continue;
     if( player->control == e_player_control::inactive )
+      // This will convert any previous human players to AI,
+      // since we don't know whether they started off as human or
+      // not. This would only matter in a non-standard game mode,
+      // and if the player really cares then they can put that
+      // player back to human via the cheat menu. In a normal
+      // game this does what we want.
       player->control = e_player_control::ai;
   }
-}
-
-void do_keep_playing_after_timeout( SS&, TS& ) {
-  // Just keep things the way they are.
 }
 
 wait<e_keep_playing> ask_keep_playing( IGui& gui ) {
@@ -78,37 +90,91 @@ wait<e_keep_playing> ask_keep_playing( IGui& gui ) {
 
 } // namespace
 
-wait<> check_time_up( SS& ss, TS& ts ) {
+bool check_time_up( SSConst const& ss ) {
   auto const& time_limit =
-      config_turn.game_ending.deadline_for_winning;
-  if( !time_limit.has_value() ) co_return;
+      ss.settings.game_setup_options.customized_rules
+          .deadline_for_winning;
+  if( !time_limit.has_value() ) return false;
+
+  // If there are no human players then this doesn't really ap-
+  // ply. A different method will be chosen to end the game
+  // there.
+  auto const primary_human =
+      player_for_role( ss, e_player_role::primary_human );
+  if( !primary_human.has_value() ) return false;
+
   // We want "not equal" here so that we stop checking this dead-
   // line after the year/season of the deadline, in case the
   // player decides to continue playing.
   if( ss.turn.time_point.year != *time_limit ||
       ss.turn.time_point.season != e_season::autumn )
-    co_return;
-  auto const declared =
-      human_player_that_declared( ss.as_const );
-  if( declared.has_value() )
+    return false;
+
+  // We might have just arrived at the time limit, but maybe the
+  // human player has already won and opted to keep playing. Need
+  // to check this before we check declaration status below.
+  for( e_player const player : enum_values<e_player> )
+    if( ss.players.players[player].has_value() )
+      if( ss.players.players[player]->control ==
+          e_player_control::human )
+        if( ss.players.players[player]->revolution.status ==
+            e_revolution_status::won )
+          return false;
+
+  return true;
+}
+
+wait<e_game_end> do_time_up( SS& ss, IGui& gui ) {
+  auto const primary_human =
+      player_for_role( ss, e_player_role::primary_human );
+  if( !primary_human.has_value() )
+    co_return e_game_end::not_ended;
+
+  string const title =
+      base::capitalize_initials( enum_value_name(
+          ss.settings.game_setup_options.difficulty ) );
+
+  if( auto const declared =
+          human_player_that_declared( ss.as_const );
+      declared.has_value() ) {
+    UNWRAP_CHECK_T( Player const& player,
+                    ss.players.players[*declared] );
     // TODO: add more here.
-    co_await ts.gui.message_box(
+    co_await gui.message_box( "{} {} surrenders to the Crown.",
+                              title, player.name );
+  } else {
+    // Should have been checked above.
+    CHECK( primary_human.has_value() );
+    UNWRAP_CHECK_T( Player const& player,
+                    ss.players.players[*primary_human] );
+    int const years_of_service =
+        std::max( ss.turn.time_point.year -
+                      config_turn.game_start.starting_year,
+                  0 );
+    // TODO: add more here.
+    co_await gui.message_box(
         "{} {} resigns after {} years of dedicated service to "
-        "Crown." );
-  else
-    // TODO: add more here.
-    co_await ts.gui.message_box(
-        "{} {} surrenders to the Crown." );
+        "the Crown.",
+        title, player.name, years_of_service );
+  }
+
+  // All human players lose.
+  for( e_player const player : enum_values<e_player> )
+    if( ss.players.players[player].has_value() )
+      if( ss.players.players[player]->control ==
+          e_player_control::human )
+        ss.players.players[player]->revolution.status =
+            e_revolution_status::lost;
+
   // TODO: record loss.
   // TODO: do scoring.
   e_keep_playing const keep_playing =
-      co_await ask_keep_playing( ts.gui );
+      co_await ask_keep_playing( gui );
   switch( keep_playing ) {
     case e_keep_playing::no:
-      throw main_menu_interrupt{};
+      co_return e_game_end::ended_and_back_to_main_menu;
     case e_keep_playing::yes:
-      do_keep_playing_after_timeout( ss, ts );
-      break;
+      co_return e_game_end::ended_and_player_continues;
   }
 }
 

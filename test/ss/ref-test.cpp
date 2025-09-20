@@ -63,6 +63,7 @@ value cdr_game_state_default = table{
                 "enable_war_of_succession"_key = false,
                 "ref_can_spawn_ships"_key = false,
                 "withdraw_on_declaration"_key = false,
+                "deadline_for_winning"_key = null,
               },
             },
         "in_game_options"_key =

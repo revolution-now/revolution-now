@@ -28,12 +28,14 @@ struct.Values {
   enable_war_of_succession 'bool',
   ref_can_spawn_ships 'bool',
   withdraw_on_declaration 'bool',
+  deadline_for_winning 'base::maybe<int>',
 }
 
 struct.Help {
   enable_war_of_succession 'OptionHelp',
   ref_can_spawn_ships 'OptionHelp',
   withdraw_on_declaration 'OptionHelp',
+  deadline_for_winning 'OptionHelp',
 }
 
 namespace "rn"

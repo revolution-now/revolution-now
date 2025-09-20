@@ -2084,7 +2084,15 @@ wait<TurnCycle> next_turn_iter( IEngine& engine, SS& ss,
     }
     CASE( end_cycle ) {
       co_await advance_time( ts.gui, turn.time_point );
-      co_await check_time_up( ss, ts );
+      if( check_time_up( ss ) ) {
+        switch( co_await do_time_up( ss, ts.gui ) ) {
+          case e_game_end::not_ended:
+          case e_game_end::ended_and_player_continues:
+            break;
+          case e_game_end::ended_and_back_to_main_menu:
+            throw main_menu_interrupt{};
+        }
+      }
       co_return TurnCycle::finished{};
     }
     CASE( finished ) { SHOULD_NOT_BE_HERE; }

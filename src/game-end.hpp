@@ -24,12 +24,15 @@ namespace rn {
 struct IGui;
 struct Player;
 struct SS;
+struct SSConst;
 struct TS;
 
 /****************************************************************
 ** Public API.
 *****************************************************************/
-wait<> check_time_up( SS& ss, TS& ts );
+[[nodiscard]] bool check_time_up( SSConst const& ss );
+
+wait<e_game_end> do_time_up( SS& ss, IGui& gui );
 
 wait<e_game_end> check_for_ref_win( SS& ss, TS& ts,
                                     Player const& ref_player );

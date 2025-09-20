@@ -21,4 +21,11 @@ enum.e_player_role {
 
   # This player is currently taking their turn.
   active,
+
+  # In most cases this will give us the one and only human
+  # player, but in the event there are multiple this will give us
+  # the designated "primary" one. In most cases we should not
+  # need to know this (e.g. since we communicate with them
+  # through the IAgent interface) but sometimes it is useful.
+  primary_human,
 }

@@ -98,6 +98,11 @@ maybe<ShipRepairPort> find_repair_port_for_ship(
       e_revolution_status::declared ) {
     // After independence is declared we cannot go back to the
     // european harbor for any reason, including to repair ships.
+    // The reason this is ok to check here is because the finder
+    // function above will only choose the harbor as a last re-
+    // sort if there are not available colonies. So therefore at
+    // this point, if the harbor was chosen, there are no other
+    // available options.
     if( res.holds<ShipRepairPort::european_harbor>() )
       return nothing;
   }

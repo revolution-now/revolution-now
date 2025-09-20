@@ -36,9 +36,9 @@ using namespace std;
 /****************************************************************
 ** Fake World Setup
 *****************************************************************/
-struct World : testing::World {
+struct world : testing::World {
   using Base = testing::World;
-  World() : Base() {
+  world() : Base() {
     // !! Do not create players here.
   }
 };
@@ -46,84 +46,95 @@ struct World : testing::World {
 /****************************************************************
 ** Test Cases
 *****************************************************************/
-TEST_CASE( "[roles] player_for_role" ) {
-  World W;
+TEST_CASE( "[roles] player_for_role (viewer+active)" ) {
+  world w;
 
-  auto f = [&]( e_player_role role ) {
-    return player_for_role( W.ss(), role );
+  auto const f = [&]( e_player_role const role ) {
+    return player_for_role( w.ss(), role );
   };
 
-  W.land_view().map_revealed = MapRevealed::no_special_view{};
+  w.land_view().map_revealed = MapRevealed::no_special_view{};
 
   REQUIRE( f( e_player_role::viewer ) == nothing );
   REQUIRE( f( e_player_role::active ) == nothing );
 
   // Add french player.
-  W.add_player( e_player::french );
+  w.add_player( e_player::french );
   REQUIRE( f( e_player_role::viewer ) == nothing );
   REQUIRE( f( e_player_role::active ) == nothing );
 
   // Add dutch player.
-  W.add_player( e_player::dutch );
+  w.add_player( e_player::dutch );
   REQUIRE( f( e_player_role::viewer ) == nothing );
   REQUIRE( f( e_player_role::active ) == nothing );
 
   // Make dutch human.
-  W.dutch().control = e_player_control::human;
+  w.dutch().control = e_player_control::human;
   REQUIRE( f( e_player_role::viewer ) == e_player::dutch );
   REQUIRE( f( e_player_role::active ) == nothing );
 
   // Add spanish player.
-  W.add_player( e_player::spanish );
+  w.add_player( e_player::spanish );
   REQUIRE( f( e_player_role::viewer ) == e_player::dutch );
   REQUIRE( f( e_player_role::active ) == nothing );
 
   // Make spanish active.
-  W.turn().cycle =
+  w.turn().cycle =
       TurnCycle::player{ .type = e_player::spanish };
   REQUIRE( f( e_player_role::viewer ) == e_player::dutch );
   REQUIRE( f( e_player_role::active ) == e_player::spanish );
 
   // Make spanish human.
-  W.spanish().control = e_player_control::human;
+  w.spanish().control = e_player_control::human;
   REQUIRE( f( e_player_role::viewer ) == e_player::spanish );
   REQUIRE( f( e_player_role::active ) == e_player::spanish );
 
   // Remove human status from spanish.
-  W.spanish().control = e_player_control::ai;
+  w.spanish().control = e_player_control::ai;
   REQUIRE( f( e_player_role::viewer ) == e_player::dutch );
   REQUIRE( f( e_player_role::active ) == e_player::spanish );
 
   // Remove human status from dutch.
-  W.dutch().control = e_player_control::ai;
+  w.dutch().control = e_player_control::ai;
   REQUIRE( f( e_player_role::viewer ) == e_player::spanish );
   REQUIRE( f( e_player_role::active ) == e_player::spanish );
 
   // Add english player.
-  W.add_player( e_player::english );
+  w.add_player( e_player::english );
   REQUIRE( f( e_player_role::viewer ) == e_player::spanish );
   REQUIRE( f( e_player_role::active ) == e_player::spanish );
 
   // Switch to entire-map-view.
-  W.land_view().map_revealed = MapRevealed::entire{};
+  w.land_view().map_revealed = MapRevealed::entire{};
   REQUIRE( f( e_player_role::viewer ) == nothing );
   REQUIRE( f( e_player_role::active ) == e_player::spanish );
 
   // Switch to english player-map-view.
-  W.land_view().map_revealed =
+  w.land_view().map_revealed =
       MapRevealed::player{ .type = e_player::english };
   REQUIRE( f( e_player_role::viewer ) == e_player::english );
   REQUIRE( f( e_player_role::active ) == e_player::spanish );
 
   // Make french human.
-  W.french().control = e_player_control::human;
+  w.french().control = e_player_control::human;
   REQUIRE( f( e_player_role::viewer ) == e_player::english );
   REQUIRE( f( e_player_role::active ) == e_player::spanish );
 
   // Switch to no special view.
-  W.land_view().map_revealed = MapRevealed::no_special_view{};
+  w.land_view().map_revealed = MapRevealed::no_special_view{};
   REQUIRE( f( e_player_role::viewer ) == e_player::french );
   REQUIRE( f( e_player_role::active ) == e_player::spanish );
+}
+
+TEST_CASE( "[roles] player_for_role (primary_human)" ) {
+  world w;
+
+  auto const f = [&] [[clang::noinline]] {
+    return player_for_role( w.ss(),
+                            e_player_role::primary_human );
+  };
+
+  REQUIRE( f() == nothing );
 }
 
 } // namespace

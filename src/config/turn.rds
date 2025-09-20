@@ -8,6 +8,8 @@
 # Description: Rds definitions for the turn module.
 #
 # ===============================================================
+include "ss/turn.rds.hpp"
+
 namespace "rn.config.turn"
 
 # How many turns to wait from the start of the game until certain
@@ -17,16 +19,16 @@ struct.TurnsToWait {
   market_evolution 'int',
 }
 
-struct.GameEnding {
-  deadline_for_winning 'base::maybe<int>',
+struct.GameStart {
+  starting_year 'int',
+  starting_season 'e_season',
 }
 
 namespace "rn"
 
 struct.config_turn_t {
+  game_start 'config::turn::GameStart',
   turns_to_wait 'config::turn::TurnsToWait',
-
-  game_ending 'config::turn::GameEnding',
 }
 
 config.turn {}

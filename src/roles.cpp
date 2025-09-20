@@ -26,13 +26,15 @@
 
 using namespace std;
 
+using ::refl::enum_values;
+
 namespace rn {
 
 /****************************************************************
 ** Public API
 *****************************************************************/
 maybe<e_player> player_for_role( SSConst const& ss,
-                                 e_player_role role ) {
+                                 e_player_role const role ) {
   switch( role ) {
     case e_player_role::viewer: {
       SWITCH( ss.land_view.map_revealed ) {
@@ -53,20 +55,25 @@ maybe<e_player> player_for_role( SSConst const& ss,
           // players then we are just picking the first one. This
           // is a bit arbitrary, but there doesn't seem to be
           // anything better to do here.
-          for( e_player player : refl::enum_values<e_player> )
-            if( ss.players.players[player].has_value() )
-              if( ss.players.players[player]->control ==
-                  e_player_control::human )
-                return player;
+          if( auto const primary_human = player_for_role(
+                  ss, e_player_role::primary_human );
+              primary_human.has_value() )
+            return *primary_human;
           return active;
         }
-        CASE( entire ) { //
-          return nothing;
-        }
+        CASE( entire ) { return nothing; }
         CASE( player ) { return player.type; }
       }
       SHOULD_NOT_BE_HERE; // for gcc.
     }
+    case e_player_role::primary_human:
+      // By convention we just go in order of the enum.
+      for( e_player const player : enum_values<e_player> )
+        if( ss.players.players[player].has_value() )
+          if( ss.players.players[player]->control ==
+              e_player_control::human )
+            return player;
+      return nothing;
     case e_player_role::active: {
       SWITCH( ss.turn.cycle ) {
         CASE( not_started ) { return nothing; }
