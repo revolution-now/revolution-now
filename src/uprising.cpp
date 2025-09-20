@@ -83,32 +83,33 @@ bool should_attempt_uprising(
                                 ref_player );
 }
 
+// Finds colonies that are eligible for consideration for an up-
+// rising. Conditions for happening once attempted:
+//
+//   - Colony does /not/ need to be a port colony.
+//   - Colony has `had_tory_uprising=false`.
+//   - Colony is in the hands of the rebels.
+//   - Colony should not still be being attacked by normal REF
+//     troops.
+//   - There needs to be an unoccupied land square adjacent to
+//     the colony. The uprise will not displace units unlike with
+//     REF landings.
+//   - Colony has sufficiently low defenses. This is effectively
+//     enforced by computing the number of tories that will be
+//     spawned according to the formula (which factors in de-
+//     fenses) and ensuring that it is larger than zero.
+//
+// It appears to iterate through the colonies in order, rolling
+// dice for each based on SoL and/or defense strength. As soon as
+// there is one uprising it stops and doesn't do any further
+// colonies. If it gets through the colonies with no uprising
+// then none will happen that turn.
 UprisingColonies find_uprising_colonies(
     SSConst const& ss, TerrainConnectivity const& connectivity,
     e_player const colonial_player_type ) {
   UprisingColonies res;
   UNWRAP_CHECK_T( Player const& colonial_player,
                   ss.players.players[colonial_player_type] );
-  // Conditions for happening once attempted:
-  //
-  //   - Colony does /not/ need to be a port colony.
-  //   - Colony has `had_tory_uprising=false`.
-  //   - Colony is in the hands of the rebels.
-  //   - Colony should not still be being attacked by normal REF
-  //     troops.
-  //   - There needs to be an unoccupied land square adjacent to
-  //     the colony. The uprise will not displace units unlike
-  //     with REF landings.
-  //   - Colony has sufficiently low defenses. This is effec-
-  //     tively enforced by computing the number of tories that
-  //     will be spawned according to the formula (which factors
-  //     in defenses) and ensuring that it is larger than zero.
-  //
-  // It appears to iterate through the colonies in order, rolling
-  // dice for each based on SoL and/or defense strength. As soon
-  // as there is one uprising it stops and doesn't do any further
-  // colonies. If it gets through the colonies with no uprising
-  // then none will happen that turn.
   vector<ColonyId> const colonies =
       ss.colonies.for_player_sorted( colonial_player_type );
   for( ColonyId const colony_id : colonies ) {
@@ -120,8 +121,24 @@ UprisingColonies find_uprising_colonies(
     // units in most cases, in which we just skip this colony.
     // This is because it doesn't take many defensive units to
     // suppress the tories.
+    //
+    // The unit count is given by:
+    //
+    //   T*2 + 3 - S + D
+    //
+    // where T is the number of tories in the colony, S is the
+    // total strength of the units in the colony (artillery=7,
+    // soldier=2, etc), and D is the difficulty term:
+    //
+    //   discoverer:   -2
+    //   explorer:     -1
+    //   conquistador:  0
+    //   governor:     +1
+    //   viceroy:      +2
+    //
+    // There is no floor on it; if the above formula yields 1,
+    // then only one unit will be deployed.
     int const num_tories = [&] {
-      // TODO: check if this works for colony population = 0.
       double const sons_of_liberty_percent =
           compute_sons_of_liberty_percent(
               colony.sons_of_liberty.num_rebels_from_bells_only,
@@ -160,11 +177,11 @@ UprisingColonies find_uprising_colonies(
     }();
     int const difficulty_term = [&] {
       switch( ss.settings.game_setup_options.difficulty ) {
-        case e_difficulty::conquistador:
-          return -2;
         case e_difficulty::discoverer:
-          return -1;
+          return -2;
         case e_difficulty::explorer:
+          return -1;
+        case e_difficulty::conquistador:
           return 0;
         case e_difficulty::governor:
           return 1;
@@ -173,20 +190,6 @@ UprisingColonies find_uprising_colonies(
       }
     }();
 
-    // * Units chosen:
-    //     - The unit count is given by:
-    //         T*2 + 3 - S + D
-    //       where T is the number of tories in the colony, S is
-    //       the total strength of the units in the colony (ar-
-    //       tillery=7, soldier=2, etc), and D is the difficulty
-    //       term:
-    //         discoverer:   -2
-    //         explorer:     -1
-    //         conquistador:  0
-    //         governor:     +1
-    //         viceroy:      +2
-    //       There is no floor on it; if the above formula yields
-    //       1, then only one unit will be deployed.
     up_colony.unit_count = std::max(
         num_tories * 2 + 3 - defense_strength + difficulty_term,
         0 );
@@ -199,35 +202,53 @@ UprisingColonies find_uprising_colonies(
     point const center = colony.location.to_gfx();
     for( e_direction const d : enum_values<e_direction> )
       tiles.push_back( center.moved( d ) );
-    // TODO: move this out.
+    // This selects the outer circle:
+    //
+    //                           x x x
+    //                         x . . . x
+    //                         x . c . x
+    //                         x . . . x
+    //                           x x x
+    //
     {
       using enum e_direction;
       // Top row.
+      tiles.push_back( center.moved( n ).moved( n ).moved( w ) );
       tiles.push_back( center.moved( n ).moved( n ) );
       tiles.push_back( center.moved( n ).moved( n ).moved( e ) );
-      tiles.push_back( center.moved( n ).moved( n ).moved( w ) );
       // West row.
-      tiles.push_back( center.moved( w ).moved( w ) );
       tiles.push_back( center.moved( w ).moved( w ).moved( n ) );
+      tiles.push_back( center.moved( w ).moved( w ) );
       tiles.push_back( center.moved( w ).moved( w ).moved( s ) );
       // East row.
-      tiles.push_back( center.moved( e ).moved( e ) );
       tiles.push_back( center.moved( e ).moved( e ).moved( n ) );
+      tiles.push_back( center.moved( e ).moved( e ) );
       tiles.push_back( center.moved( e ).moved( e ).moved( s ) );
       // Bottom row.
+      tiles.push_back( center.moved( s ).moved( s ).moved( w ) );
       tiles.push_back( center.moved( s ).moved( s ) );
       tiles.push_back( center.moved( s ).moved( s ).moved( e ) );
-      tiles.push_back( center.moved( s ).moved( s ).moved( w ) );
     }
     auto const not_connected = [&]( point const p ) {
+      if( !ss.terrain.square_exists( p ) )
+        // Non-existent tiles are unconnected to everything.
+        return true;
       return !tiles_are_connected( connectivity, p,
                                    colony.location );
     };
     erase_if( tiles, not_connected );
     for( point const tile : tiles ) {
-      if( !ss.terrain.square_exists( tile ) ) continue;
+      if( !ss.terrain.square_exists( tile ) )
+        // This should never happen because we've already fil-
+        // tered out the tiles that don't exist when we checked
+        // for connectivity, but we'll be defensive.
+        continue;
       MapSquare const& square = ss.terrain.square_at( tile );
-      if( is_water( square ) ) continue;
+      if( is_water( square ) )
+        // This should never happen because we've already fil-
+        // tered out the tiles that are not connected to the
+        // colony location, but we'll be defensive.
+        continue;
       if( auto const society = society_on_square( ss, tile );
           society.has_value() )
         // If this is an REF unit then the colony is being at-
@@ -250,49 +271,28 @@ UprisingColonies find_uprising_colonies(
 UprisingColony const* select_uprising_colony(
     SSConst const& ss, IRand& rand,
     UprisingColonies const& uprising_colonies ) {
-  // TODO
-  // - Dice roll to determine whether the uprising happens, prob-
-  //   ability seems related to SoL, but not sure.
+  // Dice roll on each colony to determine whether the uprising
+  // happens.
   //
-  // - Probability that it happens to a colony:
-  //     * Zero if defenses lead to too few units.
-  //     * Depends on difficulty level.
-  //     * Not clear if it depends on SoL.
-  //     * Since the exact formula is not known, we will use
-  //       this:
+  // If a colony is eligible for an uprising (based on its de-
+  // fenses and surroundings) then it will be considered for an
+  // uprising by applying a probability. The exact formula for
+  // the probability used by the OG is not known, but it appears
+  // to depend on difficulty level and colony Tory percentage, so
+  // we will use the following which should be close enough:
   //
-  //         P_colony = D + T/4
+  //   P_colony = D + T/4
   //
-  //       where D is:
-  //
-  //         discoverer:   25%
-  //         explorer:     38%
-  //         conquistador: 50%
-  //         governor:     63%
-  //         viceroy:      75%
-  //
-  //       and T is the tory percent in the colony / 4. So on
-  //       Viceroy, if the tory percent is 100% then we have
-  //       75%+100%/4 = 100%. On discoverer, if the Tory percent
-  //       is 0% then we have 25%+0% = 25%. This is likely not
-  //       the same formula that the OG uses, but it seems to
-  //       roughly fit what was observed and should be good
-  //       enough.
-  //
-  int const difficulty_term = [&] {
-    switch( ss.settings.game_setup_options.difficulty ) {
-      case e_difficulty::conquistador:
-        return 25;
-      case e_difficulty::discoverer:
-        return 38;
-      case e_difficulty::explorer:
-        return 50;
-      case e_difficulty::governor:
-        return 63;
-      case e_difficulty::viceroy:
-        return 75;
-    }
-  }();
+  // where T is the tory pecent in the colony and D is is a term
+  // based on difficulty given by the numbers below. They can be
+  // adjusted but must be between [0,100]. The result will be
+  // clamped between [0,100]. For example, on Viceroy, if the
+  // tory percent is 100% then we have 75%+100%/4 = 100% proba-
+  // bility of Tory Uprising. On discoverer, if the Tory percent
+  // is 0% then we have 25%+0% = 25%.
+  int const difficulty_term =
+      config_revolution.uprising.probability_difficulty_term
+          [ss.settings.game_setup_options.difficulty];
   for( UprisingColony const& up_colony :
        uprising_colonies.colonies ) {
     ColonyId const colony_id = up_colony.colony_id;

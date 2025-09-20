@@ -60,8 +60,8 @@ struct world : testing::World {
       3*/ _,X,X,X,X,X,X,_, /*3
       4*/ _,X,X,X,X,X,X,_, /*4
       5*/ _,X,X,X,X,X,X,_, /*5
-      6*/ _,X,X,X,X,X,X,_, /*6
-      7*/ _,X,X,X,X,X,X,_, /*7
+      6*/ _,X,X,X,X,_,_,_, /*6
+      7*/ _,X,X,X,X,_,X,_, /*7
           0 1 2 3 4 5 6 7
     */};
     // clang-format on
@@ -143,10 +143,340 @@ TEST_CASE( "[uprising] should_attempt_uprising" ) {
 
 TEST_CASE( "[uprising] find_uprising_colonies" ) {
   world w;
+  UprisingColonies expected;
+  w.update_terrain_connectivity();
+
+  auto const f = [&] [[clang::noinline]] {
+    return find_uprising_colonies( w.ss(), w.connectivity(),
+                                   w.default_player_type() );
+  };
+
+  expected = {};
+  REQUIRE( f() == expected );
+
+  Colony& colony1 = w.add_colony( { .x = 5, .y = 5 } );
+
+  w.settings().game_setup_options.difficulty =
+      e_difficulty::conquistador;
+
+  expected = {
+    .colonies =
+        {
+          UprisingColony{
+            .colony_id  = colony1.id,
+            .unit_count = 3,
+            .available_tiles_adjacent =
+                {
+                  { .x = 4, .y = 4 },
+                  { .x = 5, .y = 4 },
+                  { .x = 6, .y = 4 },
+                  { .x = 4, .y = 5 },
+                  { .x = 6, .y = 5 },
+                  { .x = 4, .y = 6 },
+                },
+            .available_tiles_beyond =
+                {
+                  { .x = 4, .y = 3 },
+                  { .x = 5, .y = 3 },
+                  { .x = 6, .y = 3 },
+                  { .x = 3, .y = 4 },
+                  { .x = 3, .y = 5 },
+                  { .x = 3, .y = 6 },
+                  { .x = 4, .y = 7 },
+                },
+          },
+        },
+  };
+  REQUIRE( f() == expected );
+
+  w.add_unit_outdoors( colony1.id, e_direction::nw,
+                       e_outdoor_job::food );
+  w.add_unit_outdoors( colony1.id, e_direction::n,
+                       e_outdoor_job::food );
+  w.add_unit_outdoors( colony1.id, e_direction::ne,
+                       e_outdoor_job::food );
+  w.add_unit_outdoors( colony1.id, e_direction::w,
+                       e_outdoor_job::food );
+  w.add_unit_outdoors( colony1.id, e_direction::e,
+                       e_outdoor_job::food );
+  w.add_unit_outdoors( colony1.id, e_direction::sw,
+                       e_outdoor_job::food );
+  w.add_unit_outdoors( colony1.id, e_direction::s,
+                       e_outdoor_job::food );
+  w.add_unit_outdoors( colony1.id, e_direction::se,
+                       e_outdoor_job::food );
+  colony1.sons_of_liberty.num_rebels_from_bells_only = 1;
+  w.settings().game_setup_options.difficulty =
+      e_difficulty::viceroy;
+
+  expected = {
+    .colonies =
+        {
+          UprisingColony{
+            .colony_id  = colony1.id,
+            .unit_count = 19,
+            .available_tiles_adjacent =
+                {
+                  { .x = 4, .y = 4 },
+                  { .x = 5, .y = 4 },
+                  { .x = 6, .y = 4 },
+                  { .x = 4, .y = 5 },
+                  { .x = 6, .y = 5 },
+                  { .x = 4, .y = 6 },
+                },
+            .available_tiles_beyond =
+                {
+                  { .x = 4, .y = 3 },
+                  { .x = 5, .y = 3 },
+                  { .x = 6, .y = 3 },
+                  { .x = 3, .y = 4 },
+                  { .x = 3, .y = 5 },
+                  { .x = 3, .y = 6 },
+                  { .x = 4, .y = 7 },
+                },
+          },
+        },
+  };
+  REQUIRE( f() == expected );
+
+  w.add_unit_on_map( e_unit_type::soldier, { .x = 5, .y = 5 } );
+  w.add_unit_on_map( e_unit_type::free_colonist,
+                     { .x = 5, .y = 5 } );
+  w.add_unit_on_map( e_unit_type::artillery,
+                     { .x = 5, .y = 5 } );
+  expected = {
+    .colonies =
+        {
+          UprisingColony{
+            .colony_id  = colony1.id,
+            .unit_count = 12,
+            .available_tiles_adjacent =
+                {
+                  { .x = 4, .y = 4 },
+                  { .x = 5, .y = 4 },
+                  { .x = 6, .y = 4 },
+                  { .x = 4, .y = 5 },
+                  { .x = 6, .y = 5 },
+                  { .x = 4, .y = 6 },
+                },
+            .available_tiles_beyond =
+                {
+                  { .x = 4, .y = 3 },
+                  { .x = 5, .y = 3 },
+                  { .x = 6, .y = 3 },
+                  { .x = 3, .y = 4 },
+                  { .x = 3, .y = 5 },
+                  { .x = 3, .y = 6 },
+                  { .x = 4, .y = 7 },
+                },
+          },
+        },
+  };
+  REQUIRE( f() == expected );
+
+  w.add_unit_on_map( e_unit_type::soldier, { .x = 4, .y = 5 } );
+  expected = {
+    .colonies =
+        {
+          UprisingColony{
+            .colony_id  = colony1.id,
+            .unit_count = 12,
+            .available_tiles_adjacent =
+                {
+                  { .x = 4, .y = 4 },
+                  { .x = 5, .y = 4 },
+                  { .x = 6, .y = 4 },
+                  { .x = 6, .y = 5 },
+                  { .x = 4, .y = 6 },
+                },
+            .available_tiles_beyond =
+                {
+                  { .x = 4, .y = 3 },
+                  { .x = 5, .y = 3 },
+                  { .x = 6, .y = 3 },
+                  { .x = 3, .y = 4 },
+                  { .x = 3, .y = 5 },
+                  { .x = 3, .y = 6 },
+                  { .x = 4, .y = 7 },
+                },
+          },
+        },
+  };
+  REQUIRE( f() == expected );
+
+  colony1.had_tory_uprising = true;
+  expected                  = {};
+  REQUIRE( f() == expected );
+  colony1.had_tory_uprising = false;
+
+  w.add_unit_on_map( e_unit_type::artillery,
+                     { .x = 5, .y = 5 } );
+  w.add_unit_on_map( e_unit_type::artillery,
+                     { .x = 5, .y = 5 } );
+  expected = {
+    .colonies =
+        {
+          UprisingColony{
+            .colony_id  = colony1.id,
+            .unit_count = 2,
+            .available_tiles_adjacent =
+                {
+                  { .x = 4, .y = 4 },
+                  { .x = 5, .y = 4 },
+                  { .x = 6, .y = 4 },
+                  { .x = 6, .y = 5 },
+                  { .x = 4, .y = 6 },
+                },
+            .available_tiles_beyond =
+                {
+                  { .x = 4, .y = 3 },
+                  { .x = 5, .y = 3 },
+                  { .x = 6, .y = 3 },
+                  { .x = 3, .y = 4 },
+                  { .x = 3, .y = 5 },
+                  { .x = 3, .y = 6 },
+                  { .x = 4, .y = 7 },
+                },
+          },
+        },
+  };
+  REQUIRE( f() == expected );
+
+  w.add_colony( { .x = 6, .y = 7 } );
+  w.add_colony( { .x = 3, .y = 7 }, e_player::dutch );
+
+  expected = {
+    .colonies =
+        {
+          UprisingColony{
+            .colony_id  = colony1.id,
+            .unit_count = 2,
+            .available_tiles_adjacent =
+                {
+                  { .x = 4, .y = 4 },
+                  { .x = 5, .y = 4 },
+                  { .x = 6, .y = 4 },
+                  { .x = 6, .y = 5 },
+                  { .x = 4, .y = 6 },
+                },
+            .available_tiles_beyond =
+                {
+                  { .x = 4, .y = 3 },
+                  { .x = 5, .y = 3 },
+                  { .x = 6, .y = 3 },
+                  { .x = 3, .y = 4 },
+                  { .x = 3, .y = 5 },
+                  { .x = 3, .y = 6 },
+                  { .x = 4, .y = 7 },
+                },
+          },
+        },
+  };
+  REQUIRE( f() == expected );
+
+  w.add_unit_on_map( e_unit_type::regular, { .x = 6, .y = 5 },
+                     e_player::ref_english );
+  expected = {
+    .colonies =
+        {
+          UprisingColony{
+            .colony_id  = colony1.id,
+            .unit_count = 2,
+            .available_tiles_adjacent =
+                {
+                  { .x = 4, .y = 4 },
+                  { .x = 5, .y = 4 },
+                  { .x = 6, .y = 4 },
+                  { .x = 4, .y = 6 },
+                },
+            .available_tiles_beyond =
+                {
+                  { .x = 4, .y = 3 },
+                  { .x = 5, .y = 3 },
+                  { .x = 6, .y = 3 },
+                  { .x = 3, .y = 4 },
+                  { .x = 3, .y = 5 },
+                  { .x = 3, .y = 6 },
+                  { .x = 4, .y = 7 },
+                },
+          },
+        },
+  };
+  REQUIRE( f() == expected );
+
+  w.add_unit_on_map( e_unit_type::soldier, { .x = 5, .y = 5 } );
+  expected = {};
+  REQUIRE( f() == expected );
 }
 
 TEST_CASE( "[uprising] select_uprising_colony" ) {
   world w;
+  UprisingColonies up_colonies;
+
+  auto const f = [&] [[clang::noinline]] {
+    return select_uprising_colony( w.ss().as_const, w.rand(),
+                                   as_const( up_colonies ) );
+  };
+
+  // Default.
+  REQUIRE( f() == nullptr );
+
+  Colony& colony1 = w.add_colony( { .x = 1, .y = 0 } );
+  Colony& colony2 = w.add_colony( { .x = 3, .y = 0 } );
+  Colony& colony3 = w.add_colony( { .x = 5, .y = 0 } );
+
+  up_colonies = {
+    .colonies =
+        {
+          UprisingColony{ .colony_id = colony1.id },
+          UprisingColony{ .colony_id = colony2.id },
+          UprisingColony{ .colony_id = colony3.id },
+        },
+  };
+
+  w.settings().game_setup_options.difficulty =
+      e_difficulty::discoverer;
+  w.rand().EXPECT__bernoulli( .5 );
+  w.rand().EXPECT__bernoulli( .5 );
+  w.rand().EXPECT__bernoulli( .5 );
+  REQUIRE( f() == nullptr );
+
+  w.settings().game_setup_options.difficulty =
+      e_difficulty::viceroy;
+  w.rand().EXPECT__bernoulli( 1.0 );
+  w.rand().EXPECT__bernoulli( 1.0 );
+  w.rand().EXPECT__bernoulli( 1.0 ).returns( true );
+  REQUIRE( f() == &up_colonies.colonies[2] );
+
+  w.settings().game_setup_options.difficulty =
+      e_difficulty::conquistador;
+  w.rand().EXPECT__bernoulli( .75 );
+  w.rand().EXPECT__bernoulli( .75 ).returns( true );
+  REQUIRE( f() == &up_colonies.colonies[1] );
+
+  w.add_unit_indoors( colony2.id, e_indoor_job::bells );
+  w.add_unit_indoors( colony2.id, e_indoor_job::bells );
+  w.add_unit_indoors( colony2.id, e_indoor_job::bells );
+  w.rand().EXPECT__bernoulli( .75 );
+  w.rand().EXPECT__bernoulli( .75 );
+  w.rand().EXPECT__bernoulli( .75 );
+  REQUIRE( f() == nullptr );
+
+  colony2.sons_of_liberty.num_rebels_from_bells_only = 1;
+  w.rand().EXPECT__bernoulli( .75 );
+  w.rand().EXPECT__bernoulli( .6675 );
+  w.rand().EXPECT__bernoulli( .75 );
+  REQUIRE( f() == nullptr );
+
+  colony2.sons_of_liberty.num_rebels_from_bells_only = 2;
+  w.rand().EXPECT__bernoulli( .75 );
+  w.rand().EXPECT__bernoulli( .5825 );
+  w.rand().EXPECT__bernoulli( .75 );
+  REQUIRE( f() == nullptr );
+
+  colony2.sons_of_liberty.num_rebels_from_bells_only = 2;
+  w.rand().EXPECT__bernoulli( .75 ).returns( true );
+  REQUIRE( f() == &up_colonies.colonies[0] );
 }
 
 TEST_CASE( "[uprising] generate_uprising_units" ) {

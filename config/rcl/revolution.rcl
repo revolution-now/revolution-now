@@ -167,4 +167,28 @@ uprising {
     { key: dragoon,         val: 15 }
     { key: veteran_dragoon, val: 10 }
   ]
+
+  # If a colony is eligible for an uprising (based on its de-
+  # fenses and surroundings) then it will be considered for an
+  # uprising by applying a probability. The exact formula for the
+  # probability used by the OG is not known, but it appears to
+  # depend on difficulty level and colony Tory percentage, so we
+  # will use the following which should be close enough:
+  #
+  #   P_colony = D + T/4
+  #
+  # where T is the tory pecent in the colony and D is is a term
+  # based on difficulty given by the numbers below. They can be
+  # adjusted but must be between [0,100]. The result will be
+  # clamped between [0,100]. For example, on Viceroy, if the tory
+  # percent is 100% then we have 75%+100%/4 = 100% probability of
+  # Tory Uprising. On discoverer, if the Tory percent is 0% then
+  # we have 25%+0% = 25%.
+  probability_difficulty_term {
+    discoverer:   25
+    explorer:     38
+    conquistador: 50
+    governor:     63
+    viceroy:      75
+  }
 }

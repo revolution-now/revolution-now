@@ -125,6 +125,14 @@ base::valid_or<string> config::revolution::Uprising::validate()
   REFL_VALIDATE(
       total == 100,
       "weights for Tory Uprising units must sum to 100." );
+
+  for( auto const& [difficulty, uprising_difficulty_term] :
+       probability_difficulty_term )
+    REFL_VALIDATE( uprising_difficulty_term >= 0 &&
+                       uprising_difficulty_term <= 100,
+                   "values in the probability_difficulty_term "
+                   "must be between [0, 100] inclusive." );
+
   return base::valid;
 }
 
