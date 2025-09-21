@@ -89,8 +89,6 @@ bool should_attempt_uprising(
 //   - Colony does /not/ need to be a port colony.
 //   - Colony has `had_tory_uprising=false`.
 //   - Colony is in the hands of the rebels.
-//   - Colony should not still be being attacked by normal REF
-//     troops.
 //   - There needs to be an unoccupied land square adjacent to
 //     the colony. The uprise will not displace units unlike with
 //     REF landings.
