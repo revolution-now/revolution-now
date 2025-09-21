@@ -34,6 +34,7 @@ local native_expertise = global( 'native_expertise' )
 -----------------------------------------------------------------
 local min = math.min
 local max = math.max
+local format = string.format
 
 local import_map_file = classic_sav.import_map_file
 
@@ -99,10 +100,12 @@ function M.default_options()
       'inca', 'aztec', 'apache', 'sioux', 'tupi', 'arawak',
       'cherokee', 'iroquois',
     },
-    -- This is in [0,1.0] and gives a probability that a dwelling
+    -- This is in [0,1] and gives a probability that a dwelling
     -- will be placed on a tile assuming that all other condi-
-    -- tions are met.
-    dwelling_frequency=.20,
+    -- tions are met. The OG appears to have ~6% of land tiles
+    -- occupied by dwellings. The number that we choose below is
+    -- what leads to a similar result given our algorithm.
+    dwelling_frequency=.14,
   }
 end
 
@@ -113,7 +116,7 @@ local function eat( ... ) end
 
 local function debug_log( fmt, ... )
   eat( fmt, ... )
-  -- io.write( string.format( fmt .. '\n', ... ) )
+  -- io.write( format( fmt .. '\n', ... ) )
 end
 
 local function append( tbl, elem ) tbl[#tbl + 1] = elem end
@@ -182,9 +185,9 @@ end
 
 -- The square must exist.
 local function square_at( coord )
-  assert( square_exists( coord ),
-          string.format( 'square {x=%d,y=%d} does not exist.',
-                         coord.x, coord.y ) )
+  assert( square_exists( coord ), format(
+              'square {x=%d,y=%d} does not exist.', coord.x,
+              coord.y ) )
   return ROOT.terrain:square_at( coord )
 end
 
@@ -884,6 +887,26 @@ local function create_indian_villages_using_partition(options,
       set_dwelling_population( tribe, dwelling )
     end
   end
+  -- Log dwelling count as a percentage of total land tiles. Get-
+  -- ting this number close to the OG's value is important as the
+  -- frequency of native dwellings has an important effect on
+  -- gameplay.
+  do
+    local num_dwellings = 0
+    for _, tribe in ipairs( tribes ) do
+      local tribe_dwellings = dwellings[tribe]
+      num_dwellings = num_dwellings + #tribe_dwellings
+    end
+    local total_land_tiles = 0
+    on_all( function( _, square )
+      if is_water( square ) then return end
+      total_land_tiles = total_land_tiles + 1
+    end )
+    log.debug( format( 'total land tiles: %d', total_land_tiles ) )
+    log.debug( format( 'number of dwellings: %d', num_dwellings ) )
+    log.debug( format( 'dwelling fraction: %.1f%%',
+                       num_dwellings / total_land_tiles * 100 ) )
+  end
 end
 
 local tribe_level = {
@@ -922,16 +945,16 @@ local function log_dwelling_expertises( level )
   end
   table.sort( sorted_buckets,
               function( l, r ) return l.weight > r.weight end )
-  log.debug( string.format( 'Dwelling expertise weights [%s]:',
-                            level or 'all' ) )
+  log.debug( format( 'Dwelling expertise weights [%s]:',
+                     level or 'all' ) )
   for _, pair in ipairs( sorted_buckets ) do
     local fraction = pair.weight / total_dwellings
     local num_dwellings = math.floor(
                               total_dwellings * fraction + .5 )
-    log.debug( string.format( ' |%18s: %6s, %4d dwellings.',
-                              pair.expertise, string.format(
-                                  '%.1f%%', fraction * 100.0 ),
-                              num_dwellings ) )
+    log.debug( format( ' |%18s: %6s, %4d dwellings.',
+                       pair.expertise,
+                       format( '%.1f%%', fraction * 100.0 ),
+                       num_dwellings ) )
   end
 end
 

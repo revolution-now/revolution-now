@@ -23,7 +23,6 @@ local function printfln( ... ) print( string.format( ... ) ) end
 -- Lambda.
 -----------------------------------------------------------------
 return function( json )
-  print( json.HEADER.colonize )
   local total_tiles = 0
   local land_tiles = 0
   Q.on_all_tiles( function( tile )
@@ -32,6 +31,7 @@ return function( json )
       land_tiles = land_tiles + 1
     end
   end )
+  assert( total_tiles == 3920 )
   local num_dwellings = 0
   local dwelling_locations = {}
   for _, dwelling in ipairs( json.DWELLING ) do
@@ -57,8 +57,8 @@ return function( json )
   for _, _ in pairs( dwellings_close ) do
     num_dwellings_close = num_dwellings_close + 1
   end
-  printfln( 'total_tiles: %d', total_tiles )
-  printfln( 'land fraction: %.1f%%', land_tiles / total_tiles * 100 );
+  printfln( 'land fraction: %.1f%%',
+            land_tiles / total_tiles * 100 );
   printfln( 'num_dwellings: %d', num_dwellings )
   printfln( 'num_dwellings_close: %d', num_dwellings_close )
   printfln( 'dwelling fraction: %.1f%%',
