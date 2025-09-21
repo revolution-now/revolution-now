@@ -12,8 +12,6 @@ local Q = require( 'lib.query' )
 local abs = math.abs
 local insert = table.insert
 
-local coord_for = Q.coord_for
-
 -----------------------------------------------------------------
 -- Helpers.
 -----------------------------------------------------------------
