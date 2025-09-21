@@ -4,7 +4,7 @@
 local time = require'moon.time'
 local logger = require'moon.logger'
 local printer = require'moon.printer'
-local designer = require'lib.designer'
+local query = require'lib.query'
 local mtbl = require'moon.tbl'
 local list = require'moon.list'
 local set = require'moon.set'
@@ -22,7 +22,7 @@ local join = list.join
 local set_size = set.set_size
 local printfln = printer.printfln
 
-local D = designer
+local Q = query
 
 -----------------------------------------------------------------
 -- Constants.
@@ -105,7 +105,7 @@ local function validate_sav( json )
   assert( colony.buildings.warehouse )
   assert( colony.warehouse_level == 255 )
 
-  assert( D.find_REF( json ) )
+  assert( Q.find_REF( json ) )
 
   local SC = INITIAL_UNIT_STORE_COUNT
   assert( json.HEADER.expeditionary_force['regulars'] == SC )
@@ -113,7 +113,7 @@ local function validate_sav( json )
   assert( json.HEADER.expeditionary_force['man-o-wars'] == SC )
   assert( json.HEADER.expeditionary_force['artillery'] == SC )
 
-  local human_idx = assert( D.find_unique_human( json ) )
+  local human_idx = assert( Q.find_unique_human( json ) )
   local human_player = assert( json.PLAYER[human_idx] )
   assert( human_player.player_flags.named_new_world )
   return true
@@ -121,33 +121,33 @@ end
 
 local function set_config( config, json )
   local colony = assert( json.COLONY[1] )
-  local colony_coord = D.coord_for_colony( colony )
-  local ref_idx = assert( D.find_REF( json ) )
-  local human_idx = assert( D.find_unique_human( json ) )
+  local colony_coord = Q.coord_for_colony( colony )
+  local ref_idx = assert( Q.find_REF( json ) )
+  local human_idx = assert( Q.find_unique_human( json ) )
 
   -- Put the white box over the colony so that as we're watching
   -- it we can roughly see what units are in there.
-  D.set_white_box( json, colony_coord )
+  Q.set_white_box( json, colony_coord )
 
   -- difficulty.
   local difficulty = assert( config.difficulty )
   info( 'setting difficulty to "%s".', difficulty )
-  D.set_difficulty( json, difficulty )
+  Q.set_difficulty( json, difficulty )
 
   -- fortifications.
   local fortification = assert( config.fortification )
-  D.set_colony_fortification( colony, fortification )
+  Q.set_colony_fortification( colony, fortification )
 
   -- horses/muskets.
   local horses = assert( config.horses )
   local muskets = assert( config.muskets )
-  D.set_colony_stock( colony, 'horses', horses )
-  D.set_colony_stock( colony, 'muskets', muskets )
+  Q.set_colony_stock( colony, 'horses', horses )
+  Q.set_colony_stock( colony, 'muskets', muskets )
 
   -- unit_set.
   local unit_opts = { orders=config.orders, finished_turn=true }
   for _, unit in ipairs( config.unit_set ) do
-    D.add_unit_to_map( json, unit, human_idx, colony_coord,
+    Q.add_unit_to_map( json, unit, human_idx, colony_coord,
                        unit_opts )
   end
 
@@ -165,13 +165,13 @@ local function set_config( config, json )
   -- the ship landed so that we can know how many landing tiles
   -- there were available in order to check the correctness of
   -- the n_tiles config parameter.
-  D.on_tiles_around_colony( colony, function( tile )
-    D.set_visitor_nation( json, tile, human_idx )
+  Q.on_tiles_around_colony( colony, function( tile )
+    Q.set_visitor_nation( json, tile, human_idx )
   end )
   local visitor_nation = landed and ref_idx or human_idx
-  D.on_tiles_around_colony( colony, function( tile )
-    if D.is_land( json, tile ) then
-      D.set_visitor_nation( json, tile, visitor_nation )
+  Q.on_tiles_around_colony( colony, function( tile )
+    if Q.is_land( json, tile ) then
+      Q.set_visitor_nation( json, tile, visitor_nation )
     end
   end )
 end
@@ -239,15 +239,15 @@ end
 -- theless by looking at the last visitor on the water tiles
 -- around the colony.
 local function find_ship_landing( json )
-  local ref_idx = assert( D.find_REF( json ) )
+  local ref_idx = assert( Q.find_REF( json ) )
   assert( type( ref_idx ) == 'number' )
-  local human_idx = assert( D.find_unique_human( json ) )
+  local human_idx = assert( Q.find_unique_human( json ) )
   local colony = assert( json.COLONY[1] )
   local found = nil
-  D.on_tiles_around_colony( colony, function( tile )
+  Q.on_tiles_around_colony( colony, function( tile )
     if found then return end
-    if D.is_water( json, tile ) then
-      local vis = assert( D.visitor_nation( json, tile ) )
+    if Q.is_water( json, tile ) then
+      local vis = assert( Q.visitor_nation( json, tile ) )
       assert( type( vis ) == 'number' )
       if vis == ref_idx then
         found = tile
@@ -262,16 +262,16 @@ end
 -- Validate that n_tiles agrees with the sav file.
 local function validate_n_tiles( config, json )
   local colony = assert( json.COLONY[1] )
-  local colony_coord = D.coord_for_colony( colony )
+  local colony_coord = Q.coord_for_colony( colony )
   local n_landing_tiles = 0
   local ship_landing = assert( find_ship_landing( json ),
                                'cannot find ship landing tile.' )
   info( 'found ship tile: %s', ship_landing )
-  D.on_surrounding_tiles( ship_landing, function( tile )
-    if not D.coords_are_adjacent( tile, colony_coord ) then
+  Q.on_surrounding_tiles( ship_landing, function( tile )
+    if not Q.coords_are_adjacent( tile, colony_coord ) then
       return
     end
-    if D.is_land( json, tile ) then
+    if Q.is_land( json, tile ) then
       n_landing_tiles = n_landing_tiles + 1
     end
   end )

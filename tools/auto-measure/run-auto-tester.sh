@@ -15,7 +15,7 @@ cd "$this"
 tools="$(realpath "$this/../")"
 [[ -d "$tools" ]]
 
-export LUA_PATH="$LUA_PATH;$tools/?.lua;$tools/sav/conversion/?.lua"
+export LUA_PATH="$LUA_PATH;$tools/?.lua;$tools/sav/conversion/?.lua;$tools/sav/?.lua"
 
 [[ -d "$name" ]]
 lua auto-tester.lua "$name"
