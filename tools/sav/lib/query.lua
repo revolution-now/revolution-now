@@ -239,9 +239,9 @@ end
 -----------------------------------------------------------------
 -- COLONY
 -----------------------------------------------------------------
-function M.coord_for_colony( colony )
-  local x = assert( colony['x, y'][1] )
-  local y = assert( colony['x, y'][2] )
+local function unpack_xy( o )
+  local x = assert( o['x, y'][1] )
+  local y = assert( o['x, y'][2] )
   assert( type( x ) == 'number' )
   assert( type( y ) == 'number' )
   assert( x >= 1 )
@@ -249,6 +249,12 @@ function M.coord_for_colony( colony )
   assert( x <= 56 )
   assert( y <= 70 )
   return coord_for( x, y )
+end
+
+function M.coord_for_colony( colony ) return unpack_xy( colony ) end
+
+function M.coord_for_dwelling( dwelling )
+  return unpack_xy( dwelling )
 end
 
 function M.set_colony_fortification( colony, fortification )
@@ -512,10 +518,32 @@ function M.square_exists( coord )
   return x >= 1 and x <= 56 and y >= 1 and y <= 70
 end
 
+function M.rastorize( coord ) return coord.y * 58 + coord.x end
+
+function M.unrastorize( n )
+  local y = n // 58
+  local x = n % 58
+  return coord_for( x, y )
+end
+
 function M.lookup_grid( grid, coord )
   assert( M.square_exists( coord ) )
   -- +1 for lua 1-based lists.
-  return assert( grid[coord.y * 58 + coord.x + 1] )
+  return assert( grid[M.rastorize( coord ) + 1] )
+end
+
+function M.on_all_tiles( fn )
+  -- NOTE: the 1 starting values here are NOT because of lua,
+  -- they are because the OG has a border of tiles around the
+  -- visible map, so e.g. (0,0) exists but is not visible. The
+  -- visible part of the map is 56x70. In otherwords, the below
+  -- coordinates are actually zero-based. The lookup function
+  -- will adjust for Lua.
+  for y = 1, 70 do
+    for x = 1, 56 do
+      fn( coord_for( x, y ) ) --
+    end
+  end
 end
 
 -----------------------------------------------------------------
