@@ -1084,11 +1084,10 @@
             "profession_or_treasure_amount": {"size": 1, "type": "uint", "__hint": "Can be 'expert farmer' for ships, it's ok. A amount of gold for Treasure units (100's, i.e. 0x32 = 50d = 5000 gold)"},
             "transport_chain":
             {
-                "__hint01": "Defines an ordering of units, seems to be recomputed when one or a stack of units enters a square containing other",
-                "__hint02": "units. E.g. applies for units at the gate of a colony, or units on a ship, or multiple ships with units on a square.",
-                "__hint03": "It is possible that this is supposed to be used to track which units are on a ship so that when two ships are on the",
-                "__hint04": "same square there is no ambiguity.  Though if that is the case it apparently does not work correctly. This should be",
-                "__hint05": "investigated.",
+                "__hint01": "Defines a bidirectional linked list of units that are on the same tile. May also apply to units on the high seas",
+                "__hint02": "or in the harbor, which are also represented as off-board tiles. Not clear if this is supposed to be used to track",
+                "__hint03": "which units are on a ship on an ocean tile so that when two ships are on the same square there is no ambiguity.",
+                "__hint05": "Though if that is the case it apparently does not work correctly.",
                 "no_indent": true,
                 "struct":
                 {
