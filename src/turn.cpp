@@ -972,6 +972,7 @@ wait<> query_unit_input( IEngine& engine, UnitId const id,
                          SS& ss, TS& ts, Player& player,
                          IAgent& agent,
                          PlayerTurnState::units& nat_units ) {
+  CHECK( !finished_turn( ss.units.unit_for( id ) ) );
   switch( player.control ) {
     case e_player_control::inactive: {
       SHOULD_NOT_BE_HERE;
@@ -1112,10 +1113,10 @@ wait<> show_view_mode( IEngine& engine, SS& ss, TS& ts,
 /****************************************************************
 ** Advancing Units.
 *****************************************************************/
-// Returns true if the unit needs to ask the user for input.
-wait<bool> advance_unit( IEngine& engine, SS& ss, TS& ts,
-                         Player& player, IAgent& agent,
-                         UnitId id ) {
+// If the unit still has movement points after this then the unit
+// will ask for orders.
+wait<> advance_unit( IEngine& engine, SS& ss, TS& ts,
+                     Player& player, IAgent& agent, UnitId id ) {
   Unit& unit = ss.units.unit_for( id );
   CHECK( !should_remove_unit_from_queue( unit ) );
   CHECK( !is_unit_on_high_seas( ss, id ),
@@ -1138,8 +1139,8 @@ wait<bool> advance_unit( IEngine& engine, SS& ss, TS& ts,
     // this next step of transitioning it to "fortified" (this is
     // also the behavior of the OG).
     unit.orders() = unit_orders::fortified{};
-    unit.forfeight_mv_points();
-    co_return false;
+    finish_turn( unit );
+    co_return;
   }
 
   if( auto damaged =
@@ -1150,7 +1151,7 @@ wait<bool> advance_unit( IEngine& engine, SS& ss, TS& ts,
       if( ss.units.maybe_coord_for( unit.id() ) )
         // Unit is in a colony being repaired, so we can just let
         // it ask for orders.
-        co_return true;
+        co_return;
       else {
         // Unit is in the harbor. We could make it sail back to
         // the new world, but probably best to just let the
@@ -1166,7 +1167,8 @@ wait<bool> advance_unit( IEngine& engine, SS& ss, TS& ts,
           harbor_viewer.set_selected_unit( unit.id() );
           co_await harbor_viewer.show();
         }
-        co_return false;
+        finish_turn( unit );
+        co_return;
       }
     }
     // Need to forfeign movement points here to mark that we've
@@ -1175,8 +1177,8 @@ wait<bool> advance_unit( IEngine& engine, SS& ss, TS& ts,
     // getting cycled through (e.g. `wait` cycles or after a
     // save-game reload) and would have its count decreased mul-
     // tiple times per turn.
-    unit.forfeight_mv_points();
-    co_return false;
+    finish_turn( unit );
+    co_return;
   }
 
   if( unit.orders().holds<unit_orders::road>() ) {
@@ -1188,7 +1190,7 @@ wait<bool> advance_unit( IEngine& engine, SS& ss, TS& ts,
           signal::PioneerExhaustedTools{ .unit_id = id },
           "Our pioneer has exhausted all of its tools." );
     }
-    co_return ( !unit.orders().holds<unit_orders::road>() );
+    co_return;
   }
 
   if( unit.orders().holds<unit_orders::plow>() ) {
@@ -1215,7 +1217,7 @@ wait<bool> advance_unit( IEngine& engine, SS& ss, TS& ts,
           signal::PioneerExhaustedTools{ .unit_id = id },
           "Our pioneer has exhausted all of its tools." );
     }
-    co_return ( !unit.orders().holds<unit_orders::plow>() );
+    co_return;
   }
 
   if( auto const go_to =
@@ -1231,16 +1233,13 @@ wait<bool> advance_unit( IEngine& engine, SS& ss, TS& ts,
 
   if( is_unit_in_port( ss.units, id ) ) {
     finish_turn( unit );
-    co_return false; // do not ask for orders.
+    co_return;
   }
 
   if( !is_unit_on_map_indirect( ss.units, id ) ) {
     finish_turn( unit );
-    co_return false;
+    co_return;
   }
-
-  // Unit needs to ask for orders.
-  co_return true;
 }
 
 // Accumulates results of advancing units on the high seas so
@@ -1359,9 +1358,8 @@ wait<> move_remaining_units( IEngine& engine, SS& ss, TS& ts,
       continue;
     }
 
-    bool should_ask = co_await advance_unit( engine, ss, ts,
-                                             player, agent, id );
-    if( !should_ask ) {
+    co_await advance_unit( engine, ss, ts, player, agent, id );
+    if( finished_turn( ss.units.unit_for( id ) ) ) {
       q.pop_front();
       continue;
     }
