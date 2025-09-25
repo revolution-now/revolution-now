@@ -75,6 +75,11 @@
 #include <chrono>
 #include <queue>
 
+#define SCOPED_MODE_PUSH_AND_GET( mode, type )       \
+  auto& mode = mode_.emplace( LandViewMode::type{} ) \
+                   .get<LandViewMode::type>();       \
+  SCOPE_EXIT { mode_.pop(); };
+
 using namespace std;
 
 namespace rn {
@@ -88,7 +93,7 @@ struct RawInput {
   RawInput( LandViewRawInput input_ )
     : input( std::move( input_ ) ), when( Clock_t::now() ) {}
   LandViewRawInput input;
-  Time_t when;
+  Time_t when = {};
 };
 
 struct PlayerInput {
@@ -149,7 +154,7 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
 
   co::stream<RawInput> raw_input_stream_;
   queue<PlayerInput> translated_input_stream_;
-  LandViewMode mode_ = LandViewMode::none{};
+  stack<LandViewMode> mode_;
 
   maybe<co::stream<point>> white_box_stream_;
 
@@ -226,7 +231,7 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
     CHECK( viz_ != nullptr );
     register_menu_items( ts.planes.get().menu );
     // Initialize general global data.
-    mode_            = LandViewMode::none{};
+    mode_.push( LandViewMode::none{} );
     last_unit_input_ = nothing;
     raw_input_stream_.reset();
     translated_input_stream_        = {};
@@ -235,7 +240,7 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
 
   maybe<point> white_box_tile_if_visible() const {
     bool visible = false;
-    SWITCH( mode_ ) {
+    SWITCH( mode_.top() ) {
       CASE( none ) { break; }
       CASE( end_of_turn ) {
         visible = true;
@@ -262,7 +267,7 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
       return *p;
 
     // Next try blinking units.
-    SWITCH( mode_ ) {
+    SWITCH( mode_.top() ) {
       CASE( none ) { break; }
       CASE( end_of_turn ) { break; }
       CASE( hidden_terrain ) { break; }
@@ -304,7 +309,7 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
     if( white_box_stream_.has_value() )
       white_box_stream_->send( coord );
 
-    if( mode_.holds<LandViewMode::hidden_terrain>() ) {
+    if( mode_.top().holds<LandViewMode::hidden_terrain>() ) {
       scroll_map();
       co_return res;
     }
@@ -325,9 +330,9 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
 
     // Now check for units.
     bool const mode_allows_activate =
-        mode_.holds<LandViewMode::unit_input>() ||
-        mode_.holds<LandViewMode::view_mode>() ||
-        mode_.holds<LandViewMode::end_of_turn>();
+        mode_.top().holds<LandViewMode::unit_input>() ||
+        mode_.top().holds<LandViewMode::view_mode>() ||
+        mode_.top().holds<LandViewMode::end_of_turn>();
     auto const units =
         can_activate_units_on_tile( ss_, *viz_, coord );
     if( !units.empty() && mode_allows_activate ) {
@@ -393,7 +398,7 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
       return res.back().get<T>();
     };
 
-    if( mode_.holds<LandViewMode::unit_input>() ) {
+    if( mode_.top().holds<LandViewMode::unit_input>() ) {
       add( LandViewPlayerInput::view_mode{
         .options = ViewModeOptions{ .initial_tile = tile } } );
       co_return res;
@@ -537,7 +542,7 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
         break;
       }
       case e::next_turn: {
-        if( !mode_.holds<LandViewMode::end_of_turn>() )
+        if( !mode_.top().holds<LandViewMode::end_of_turn>() )
           // We're not supposed to send these events when we're
           // not in EOT mode. However, because of the fact that
           // input events can be buffered, we will be defensive
@@ -788,9 +793,9 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
     static_assert( zoom_in_factor * zoom_out_factor == 1.0 );
     switch( item ) {
       case e_menu_item::cheat_create_unit_on_map: {
-        if( !mode_.holds<LandViewMode::unit_input>() &&
-            !mode_.holds<LandViewMode::view_mode>() &&
-            !mode_.holds<LandViewMode::end_of_turn>() )
+        if( !mode_.top().holds<LandViewMode::unit_input>() &&
+            !mode_.top().holds<LandViewMode::view_mode>() &&
+            !mode_.top().holds<LandViewMode::end_of_turn>() )
           break;
         auto handler = [this] {
           raw_input_stream_.send( RawInput(
@@ -799,9 +804,9 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
         return handler;
       }
       case e_menu_item::cheat_reveal_map: {
-        if( !mode_.holds<LandViewMode::unit_input>() &&
-            !mode_.holds<LandViewMode::view_mode>() &&
-            !mode_.holds<LandViewMode::end_of_turn>() )
+        if( !mode_.top().holds<LandViewMode::unit_input>() &&
+            !mode_.top().holds<LandViewMode::view_mode>() &&
+            !mode_.top().holds<LandViewMode::end_of_turn>() )
           break;
         auto handler = [this] {
           raw_input_stream_.send(
@@ -810,7 +815,8 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
         return handler;
       }
       case e_menu_item::view_mode: {
-        if( !mode_.holds<LandViewMode::unit_input>() ) break;
+        if( !mode_.top().holds<LandViewMode::unit_input>() )
+          break;
         auto handler = [this] {
           raw_input_stream_.send(
               RawInput( LandViewRawInput::view_mode{} ) );
@@ -818,11 +824,11 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
         return handler;
       }
       case e_menu_item::activate: {
-        if( !mode_.holds<LandViewMode::end_of_turn>() &&
-            !mode_.holds<LandViewMode::view_mode>() )
+        if( !mode_.top().holds<LandViewMode::end_of_turn>() &&
+            !mode_.top().holds<LandViewMode::view_mode>() )
           break;
-        // This menu item is only expected to be clicked when the
-        // white box tile is visible.
+        // This menu item is only expected to be clicked when
+        // the white box tile is visible.
         CHECK( white_box_stream_.has_value() );
         auto handler = [this] {
           raw_input_stream_.send(
@@ -832,8 +838,8 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
         return handler;
       }
       case e_menu_item::move: {
-        if( !mode_.holds<LandViewMode::end_of_turn>() &&
-            !mode_.holds<LandViewMode::view_mode>() )
+        if( !mode_.top().holds<LandViewMode::end_of_turn>() &&
+            !mode_.top().holds<LandViewMode::view_mode>() )
           break;
         // This menu item is only expected to be clicked when the
         // white box tile is visible.
@@ -874,7 +880,8 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
         return handler;
       }
       case e_menu_item::find_blinking_unit: {
-        if( !mode_.holds<LandViewMode::unit_input>() ) break;
+        if( !mode_.top().holds<LandViewMode::unit_input>() )
+          break;
         auto handler = [this] {
           raw_input_stream_.send(
               RawInput( LandViewRawInput::center{} ) );
@@ -882,7 +889,8 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
         return handler;
       }
       case e_menu_item::sentry: {
-        if( !mode_.holds<LandViewMode::unit_input>() ) break;
+        if( !mode_.top().holds<LandViewMode::unit_input>() )
+          break;
         auto handler = [this] {
           raw_input_stream_.send(
               RawInput( LandViewRawInput::cmd{
@@ -891,7 +899,8 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
         return handler;
       }
       case e_menu_item::fortify: {
-        if( !mode_.holds<LandViewMode::unit_input>() ) break;
+        if( !mode_.top().holds<LandViewMode::unit_input>() )
+          break;
         auto handler = [this] {
           raw_input_stream_.send(
               RawInput( LandViewRawInput::cmd{
@@ -900,14 +909,14 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
         return handler;
       }
       case e_menu_item::disband: {
-        if( mode_.holds<LandViewMode::unit_input>() ) {
+        if( mode_.top().holds<LandViewMode::unit_input>() ) {
           return [this] {
             raw_input_stream_.send(
                 RawInput( LandViewRawInput::cmd{
                   .what = command::disband{} } ) );
           };
         }
-        if( mode_.holds<LandViewMode::view_mode>() ) {
+        if( mode_.top().holds<LandViewMode::view_mode>() ) {
           point const tile = white_box_tile( ss_ );
           if( ss_.units.from_coord( Coord::from_gfx( tile ) )
                   .empty() )
@@ -921,7 +930,7 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
         break;
       }
       case e_menu_item::wait: {
-        if( mode_.holds<LandViewMode::unit_input>() ) {
+        if( mode_.top().holds<LandViewMode::unit_input>() ) {
           return [this] {
             raw_input_stream_.send(
                 RawInput( LandViewRawInput::cmd{
@@ -931,7 +940,7 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
         break;
       }
       case e_menu_item::build_colony: {
-        if( mode_.holds<LandViewMode::unit_input>() ) {
+        if( mode_.top().holds<LandViewMode::unit_input>() ) {
           return [this] {
             raw_input_stream_.send(
                 RawInput( LandViewRawInput::cmd{
@@ -942,7 +951,8 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
       }
       case e_menu_item::return_to_europe: {
         if( auto const unit_input =
-                mode_.get_if<LandViewMode::unit_input>() ) {
+                mode_.top()
+                    .get_if<LandViewMode::unit_input>() ) {
           // TODO: to implement this like in the OG we need to
           // verify that the unit is a ship and that it is over a
           // sea lane tile. Then there is the question of how to
@@ -970,11 +980,13 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
         break;
       }
       case e_menu_item::dump: {
-        if( !mode_.holds<LandViewMode::unit_input>() ) break;
+        if( !mode_.top().holds<LandViewMode::unit_input>() )
+          break;
         // Only for things that can carry cargo (ships and wagon
         // trains).
         if( ss_.units
-                .unit_for( mode_.get<LandViewMode::unit_input>()
+                .unit_for( mode_.top()
+                               .get<LandViewMode::unit_input>()
                                .unit_id )
                 .desc()
                 .cargo_slots == 0 )
@@ -987,7 +999,8 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
         return handler;
       }
       case e_menu_item::plow: {
-        if( !mode_.holds<LandViewMode::unit_input>() ) break;
+        if( !mode_.top().holds<LandViewMode::unit_input>() )
+          break;
         auto handler = [this] {
           raw_input_stream_.send(
               RawInput( LandViewRawInput::cmd{
@@ -996,7 +1009,8 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
         return handler;
       }
       case e_menu_item::road: {
-        if( !mode_.holds<LandViewMode::unit_input>() ) break;
+        if( !mode_.top().holds<LandViewMode::unit_input>() )
+          break;
         auto handler = [this] {
           raw_input_stream_.send(
               RawInput( LandViewRawInput::cmd{
@@ -1005,9 +1019,9 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
         return handler;
       }
       case e_menu_item::hidden_terrain: {
-        if( !mode_.holds<LandViewMode::unit_input>() &&
-            !mode_.holds<LandViewMode::view_mode>() &&
-            !mode_.holds<LandViewMode::end_of_turn>() )
+        if( !mode_.top().holds<LandViewMode::unit_input>() &&
+            !mode_.top().holds<LandViewMode::view_mode>() &&
+            !mode_.top().holds<LandViewMode::end_of_turn>() )
           break;
         auto handler = [this] {
           raw_input_stream_.send(
@@ -1053,7 +1067,7 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
         // land view state is "none" so that e.g. the user can
         // buffer motion commands for a unit while it is sliding.
 
-        if( mode_.holds<LandViewMode::hidden_terrain>() ) {
+        if( mode_.top().holds<LandViewMode::hidden_terrain>() ) {
           // Here we want to basically allow the user to navigate
           // around with the white box, but any other key should
           // exit hidden terrain mode, regardless of what it
@@ -1126,9 +1140,11 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
             if( key_event.mod.shf_down ) {
               if( !cheat_mode_enabled( ss_ ) ) break;
               // Cheat mode.
-              if( !mode_.holds<LandViewMode::unit_input>() &&
-                  !mode_.holds<LandViewMode::end_of_turn>() &&
-                  !mode_.holds<LandViewMode::view_mode>() )
+              if( !mode_.top()
+                       .holds<LandViewMode::unit_input>() &&
+                  !mode_.top()
+                       .holds<LandViewMode::end_of_turn>() &&
+                  !mode_.top().holds<LandViewMode::view_mode>() )
                 break;
               raw_input_stream_.send( RawInput(
                   LandViewRawInput::cheat_create_unit{} ) );
@@ -1136,7 +1152,8 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
             break;
           case ::SDLK_v:
             if( key_event.mod.shf_down ) break;
-            if( !mode_.holds<LandViewMode::unit_input>() ) break;
+            if( !mode_.top().holds<LandViewMode::unit_input>() )
+              break;
             raw_input_stream_.send(
                 RawInput( LandViewRawInput::view_mode{} ) );
             break;
@@ -1154,8 +1171,9 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
             break;
           case ::SDLK_a:
             if( key_event.mod.shf_down ) break;
-            if( !mode_.holds<LandViewMode::end_of_turn>() &&
-                !mode_.holds<LandViewMode::view_mode>() )
+            if( !mode_.top()
+                     .holds<LandViewMode::end_of_turn>() &&
+                !mode_.top().holds<LandViewMode::view_mode>() )
               break;
             raw_input_stream_.send(
                 RawInput( LandViewRawInput::activate{
@@ -1163,8 +1181,9 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
             break;
           case ::SDLK_m:
             if( key_event.mod.shf_down ) break;
-            if( !mode_.holds<LandViewMode::end_of_turn>() &&
-                !mode_.holds<LandViewMode::view_mode>() )
+            if( !mode_.top()
+                     .holds<LandViewMode::end_of_turn>() &&
+                !mode_.top().holds<LandViewMode::view_mode>() )
               break;
             raw_input_stream_.send(
                 RawInput( LandViewRawInput::move_mode{} ) );
@@ -1196,14 +1215,15 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
           case ::SDLK_d:
             if( !key_event.mod.shf_down ) {
               // No shift.
-              if( mode_.holds<LandViewMode::unit_input>() )
+              if( mode_.top().holds<LandViewMode::unit_input>() )
                 raw_input_stream_.send(
                     RawInput( LandViewRawInput::cmd{
                       .what = command::disband{} } ) );
             } else {
               // shift key down.
-              if( mode_.holds<LandViewMode::view_mode>() ||
-                  mode_.holds<LandViewMode::end_of_turn>() )
+              if( mode_.top().holds<LandViewMode::view_mode>() ||
+                  mode_.top()
+                      .holds<LandViewMode::end_of_turn>() )
                 raw_input_stream_.send(
                     RawInput( LandViewRawInput::cmd{
                       .what = command::disband{
@@ -1212,7 +1232,8 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
             break;
           case ::SDLK_h:
             if( !key_event.mod.shf_down ) break;
-            if( mode_.holds<LandViewMode::hidden_terrain>() )
+            if( mode_.top()
+                    .holds<LandViewMode::hidden_terrain>() )
               // This can happen when pressing shift-h multiple
               // times before the animator gets to the point
               // where it starts taking keys.
@@ -1236,8 +1257,9 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
             break;
           case ::SDLK_KP_ENTER:
           case ::SDLK_RETURN:
-            if( mode_.holds<LandViewMode::view_mode>() ||
-                mode_.holds<LandViewMode::end_of_turn>() ) {
+            if( mode_.top().holds<LandViewMode::view_mode>() ||
+                mode_.top()
+                    .holds<LandViewMode::end_of_turn>() ) {
               raw_input_stream_.send(
                   RawInput( LandViewRawInput::tile_enter{
                     .tile = white_box_tile( ss_ ),
@@ -1246,16 +1268,18 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
             break;
           case ::SDLK_SPACE:
           case ::SDLK_KP_5:
-            if( mode_.holds<LandViewMode::unit_input>() ) {
+            if( mode_.top().holds<LandViewMode::unit_input>() ) {
               if( key_event.mod.shf_down ) break;
               raw_input_stream_.send(
                   RawInput( LandViewRawInput::cmd{
                     .what = command::forfeight{} } ) );
-            } else if( mode_.holds<
-                           LandViewMode::end_of_turn>() ) {
+            } else if( mode_.top()
+                           .holds<
+                               LandViewMode::end_of_turn>() ) {
               raw_input_stream_.send(
                   RawInput( LandViewRawInput::next_turn{} ) );
-            } else if( mode_.holds<LandViewMode::view_mode>() ) {
+            } else if( mode_.top()
+                           .holds<LandViewMode::view_mode>() ) {
               raw_input_stream_.send(
                   RawInput( LandViewRawInput::move_mode{} ) );
             }
@@ -1304,6 +1328,13 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
         // handled "down" events then that would interfere with
         // dragging.
         switch( val.buttons ) {
+          // FIXME: Try to find a way to make this left_down be-
+          // cause it is more responsive. When it was tried it
+          // messed some things up, for example when clicking on
+          // a unit that already moved a message box would pop
+          // up, then the release of the mouse button (left_up)
+          // would close the window. Not sure if it will be fea-
+          // sible to do this, but should try.
           case input::e_mouse_button_event::left_up: {
             raw_input_stream_.send(
                 RawInput( LandViewRawInput::tile_click{
@@ -1340,9 +1371,8 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
     Coord prev;
     Coord current;
   };
-  // Here, `nothing` is used to indicate that it has ended. NOTE:
-  // this needs to have update() called on it in the plane's
-  // advance_state method.
+  // Here, `nothing` is used to indicate that it has ended
+  // without having been cancelled.
   co::finite_stream<DragUpdate> drag_stream;
   // The waitable will be waiting on the drag_stream, so it must
   // come after so that it gets destroyed first.
@@ -1421,7 +1451,7 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
   }
 
   maybe<UnitId> unit_blinking() const {
-    return mode_.get_if<LandViewMode::unit_input>().member(
+    return mode_.top().get_if<LandViewMode::unit_input>().member(
         &LandViewMode::unit_input::unit_id );
   }
 
@@ -1495,7 +1525,7 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
   // sume further inputs but eat all of them except for the ones
   // we want, returning only when we should interrupt.
   wait<> hidden_terrain_interact_during_animation() {
-    CHECK( mode_.holds<LandViewMode::hidden_terrain>() );
+    CHECK( mode_.top().holds<LandViewMode::hidden_terrain>() );
     for( ;; ) {
       RawInput const raw = co_await raw_input_stream_.next();
       SWITCH( raw.input ) {
@@ -1522,11 +1552,10 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
   }
 
   wait<> show_hidden_terrain() {
-    auto const new_state = LandViewMode::hidden_terrain{};
     // Clear input buffers after changing state to the new state
     // and after switching back to the old state.
     SCOPE_EXIT { reset_input_buffers(); };
-    SCOPED_SET_AND_RESTORE( mode_, new_state );
+    SCOPED_MODE_PUSH_AND_GET( _, hidden_terrain );
     reset_input_buffers();
     // TODO: maybe we could find some way of animating the re-
     // moval of the fog instead of just having it disappear.
@@ -1603,11 +1632,10 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
 
   wait<LandViewPlayerInput> show_view_mode(
       ViewModeOptions const options ) {
-    auto const new_state = LandViewMode::view_mode{};
     // Clear input buffers after changing state to the new state
     // and after switching back to the old state.
     SCOPE_EXIT { reset_input_buffers(); };
-    SCOPED_SET_AND_RESTORE( mode_, new_state );
+    SCOPED_MODE_PUSH_AND_GET( _, view_mode );
     reset_input_buffers();
     point const initial_tile =
         options.initial_tile.has_value()
@@ -1675,8 +1703,8 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
     // "next turn" event as opposed to a "forfeight" event (which
     // can happen because sometimes we take input while eating
     // buffered input events below).
-    SCOPED_SET_AND_RESTORE(
-        mode_, LandViewMode::unit_input{ .unit_id = id } );
+    SCOPED_MODE_PUSH_AND_GET( unit_input, unit_input );
+    unit_input.unit_id = id;
 
     // When we start on a new unit clear the input queue so that
     // commands that were accidentally buffered while controlling
@@ -1775,7 +1803,7 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
 
   wait<LandViewPlayerInput> eot_get_next_input() {
     last_unit_input_ = nothing;
-    SCOPED_SET_AND_RESTORE( mode_, LandViewMode::end_of_turn{} );
+    SCOPED_MODE_PUSH_AND_GET( _, end_of_turn );
     point const initial_tile = find_a_good_white_box_location(
         ss_, viewport_.covered_tiles() );
     co_return co_await white_box_input_loop( initial_tile );
