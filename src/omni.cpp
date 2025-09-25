@@ -224,6 +224,7 @@ struct OmniPlane::Impl : public IPlane, public IMenuHandler {
   IEngine& engine_;
   IMenuServer& menu_server_;
   bool show_game_cursor_ = true;
+  e_mouse_cursor cursor_ = e_mouse_cursor::standard;
   co::stream<char> alt_key_seq;
   wait<> magic_key_seq_thread;
 
@@ -477,11 +478,18 @@ struct OmniPlane::Impl : public IPlane, public IMenuHandler {
 
     render_debug_overlays( renderer );
 
-    if( show_game_cursor_ )
+    if( show_game_cursor_ ) {
+      e_tile const tile = [&] {
+        switch( cursor_ ) {
+          case e_mouse_cursor::standard:
+            return e_tile::mouse_arrow1;
+        }
+      }();
       render_sprite(
           renderer,
           input::current_mouse_position() - Delta{ .w = 16 },
-          e_tile::mouse_arrow1 );
+          tile );
+    }
   }
 
   void update_system_cursor() {
@@ -626,6 +634,14 @@ OmniPlane::~OmniPlane() = default;
 
 OmniPlane::OmniPlane( IEngine& engine, IMenuServer& menu_server )
   : impl_( new Impl( engine, menu_server ) ) {}
+
+void OmniPlane::set_mouse_cursor( e_mouse_cursor const cursor ) {
+  impl_->cursor_ = cursor;
+}
+
+e_mouse_cursor OmniPlane::get_mouse_cursor() const {
+  return impl_->cursor_;
+}
 
 /****************************************************************
 ** Lua

@@ -22,11 +22,21 @@ struct IPlane;
 struct IMenuServer;
 
 /****************************************************************
+** Mouse cursor.
+*****************************************************************/
+enum class e_mouse_cursor {
+  standard,
+};
+
+/****************************************************************
 ** OmniPlane
 *****************************************************************/
 struct OmniPlane {
   OmniPlane( IEngine& engine, IMenuServer& menu_server );
   ~OmniPlane();
+
+  void set_mouse_cursor( e_mouse_cursor cursor );
+  e_mouse_cursor get_mouse_cursor() const;
 
  private:
   struct Impl;
