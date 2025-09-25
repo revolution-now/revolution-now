@@ -10,6 +10,7 @@
 # ===============================================================
 # ss
 include "ss/unit-id.hpp"
+include "ss/goto.rds.hpp"
 
 # gfx
 include "gfx/coord.hpp"
@@ -56,4 +57,5 @@ sumtype.command {
   },
   dump      {},
   move      { d 'e_direction' },
+  go_to     { target 'goto_target' },
 }

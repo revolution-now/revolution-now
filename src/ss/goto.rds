@@ -1,0 +1,20 @@
+# ===============================================================
+# goto.rds
+#
+# Project: Revolution Now
+#
+# Created by David P. Sicilia on 2025-09-21.
+#
+# Description: Save state for units with goto orders.
+#
+# ===============================================================
+# gfx
+include "gfx/cartesian.hpp"
+
+namespace "rn"
+
+sumtype.goto_target {
+  map {
+    tile 'gfx::point',
+  },
+}

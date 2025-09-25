@@ -875,6 +875,7 @@ enum.e_tile {
   mouse_musket,
   mouse_arrow1,
   mouse_arrow2,
+  mouse_goto,
 
   # =============================================================
   # General UX

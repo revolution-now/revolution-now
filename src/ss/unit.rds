@@ -8,8 +8,9 @@
 # Description: RDS definitions for the unit module.
 #
 # ===============================================================
-# gs
+# ss
 include "ss/cargo.hpp"
+include "ss/goto.rds.hpp"
 include "ss/mv-points.hpp"
 include "ss/nation.rds.hpp"
 include "ss/unit-composition.hpp"
@@ -37,6 +38,9 @@ sumtype.unit_orders {
   },
   damaged {
     turns_until_repair 'int',
+  },
+  go_to {
+    target 'goto_target',
   },
 }
 

@@ -291,6 +291,8 @@ bool should_remove_unit_from_queue( Unit const& unit ) {
       return false;
     case e::damaged:
       return false;
+    case e::go_to:
+      return false;
   }
 }
 
@@ -1214,6 +1216,17 @@ wait<bool> advance_unit( IEngine& engine, SS& ss, TS& ts,
           "Our pioneer has exhausted all of its tools." );
     }
     co_return ( !unit.orders().holds<unit_orders::plow>() );
+  }
+
+  if( auto const go_to =
+          unit.orders().get_if<unit_orders::go_to>();
+      go_to.has_value() ) {
+    SWITCH( go_to->target ) {
+      CASE( map ) {
+        finish_turn( unit );
+        co_return;
+      }
+    }
   }
 
   if( is_unit_in_port( ss.units, id ) ) {

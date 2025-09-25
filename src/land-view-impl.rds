@@ -29,6 +29,10 @@ sumtype.LandViewMode {
   unit_input {
     unit_id 'UnitId',
   },
+  goto_mode {
+    start_tile 'gfx::point',
+    curr_tile 'gfx::point',
+  },
   hidden_terrain {},
   # This is a mode that can be entered mid-turn where units pause
   # from asking for orders and where the white box tile is shown.
@@ -70,4 +74,8 @@ sumtype.LandViewRawInput {
     where 'gfx::point',
     tile 'gfx::point',
   },
+  goto_drag_start  { tile 'gfx::point' },
+  goto_drag_update { tile 'gfx::point' },
+  goto_drag_finish {},
+  goto_drag_cancel {},
 }

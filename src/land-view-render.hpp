@@ -70,6 +70,9 @@ struct LandViewRenderer {
   // Landscape, backdrop.
   void render_non_entities() const;
 
+  void render_goto( gfx::point start_tile,
+                    gfx::point end_tile ) const;
+
  private:
   void render_units() const;
 

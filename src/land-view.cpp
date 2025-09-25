@@ -28,6 +28,7 @@
 #include "land-view-anim.hpp"
 #include "land-view-render.hpp"
 #include "map-view.hpp"
+#include "omni.hpp"
 #include "physics.hpp"
 #include "plane-stack.hpp"
 #include "plane.hpp"
@@ -246,6 +247,7 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
         visible = true;
         break;
       }
+      CASE( goto_mode ) { break; }
       CASE( hidden_terrain ) {
         visible = true;
         break;
@@ -270,6 +272,7 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
     SWITCH( mode_.top() ) {
       CASE( none ) { break; }
       CASE( end_of_turn ) { break; }
+      CASE( goto_mode ) { break; }
       CASE( hidden_terrain ) { break; }
       CASE( unit_input ) {
         return coord_for_unit_indirect_or_die(
@@ -503,6 +506,36 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
     co_return res;
   }
 
+  wait<maybe<point>> goto_mode( point const start ) {
+    // Set land view mode.
+    SCOPED_MODE_PUSH_AND_GET( mode, goto_mode );
+    mode.start_tile = start;
+    mode.curr_tile  = start;
+
+    // Set goto mouse cursor.
+    OmniPlane& omni = ts_.planes.get().omni.typed();
+    e_mouse_cursor const old_cursor = omni.get_mouse_cursor();
+    omni.set_mouse_cursor( e_mouse_cursor::go_to );
+    SCOPE_EXIT { omni.set_mouse_cursor( old_cursor ); };
+
+    // Take updates and wait for drag thread to finish.
+    for( ;; ) {
+      RawInput const raw = co_await raw_input_stream_.next();
+      SWITCH( raw.input ) {
+        CASE( goto_drag_update ) {
+          mode.curr_tile = goto_drag_update.tile;
+          break;
+        }
+        CASE( goto_drag_cancel ) { co_return nothing; }
+        CASE( goto_drag_finish ) { co_return mode.curr_tile; }
+        CASE( escape ) { co_return nothing; }
+        default:
+          break;
+      }
+    }
+    co_return nothing;
+  }
+
   /****************************************************************
   ** Input Processor
   *****************************************************************/
@@ -518,6 +551,30 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
 
     switch( raw_input.input.to_enum() ) {
       using e = RI::e;
+      case e::goto_drag_start: {
+        auto& o = raw_input.input.get<RI::goto_drag_start>();
+        auto const end_tile = co_await goto_mode( o.tile );
+        if( !end_tile.has_value() ) break;
+        auto const map   = goto_target::map{ .tile = *end_tile };
+        auto const cmd   = command::go_to{ .target = map };
+        auto const input = PI::give_command{ .cmd = cmd };
+        // NOTE: we use the current time here because the drag
+        // have lasted a while and so if we use raw_input.when
+        // then the event may get discarded as being too old.
+        translated_input_stream_.push(
+            PlayerInput( input, Clock_t::now() ) );
+        break;
+      }
+      case e::goto_drag_update:
+      case e::goto_drag_finish:
+        // These can be sent after a drag is cancelled while the
+        // drag thread is finishing up.
+        break;
+      case e::goto_drag_cancel:
+        // This happens because these messages are sent even
+        // after a normal drag operation finishes, it is harm-
+        // less.
+        break;
       case e::reveal_map: {
         if( !cheat_mode_enabled( ss_ ) ) break;
         co_await cheat_reveal_map( ss_, ts_ );
@@ -772,6 +829,14 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
 
     lv_renderer.render_non_entities();
     lv_renderer.render_entities();
+
+    if( auto const goto_mode =
+            mode_.top().get_if<LandViewMode::goto_mode>();
+        goto_mode.has_value() ) {
+      point const start = goto_mode->start_tile;
+      point const end   = goto_mode->curr_tile;
+      lv_renderer.render_goto( start, end );
+    }
   }
 
   maybe<function<void()>> menu_click_handler(
@@ -1357,7 +1422,64 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
   }
 
   /**************************************************************
-  ** Dragging
+  ** Viewport Dragging
+  ***************************************************************/
+  wait<> viewport_dragging( point const /*origin*/ ) {
+    viewport().stop_auto_panning();
+    while( auto const d = co_await drag_stream.next() )
+      viewport().pan_by_screen_coords( d->prev - d->current );
+  }
+
+  /**************************************************************
+  ** Goto Dragging
+  ***************************************************************/
+  [[nodiscard]] bool is_goto_drag( point const mouse ) {
+    auto const& unit_input =
+        mode_.top().get_if<LandViewMode::unit_input>();
+    if( !unit_input.has_value() ) return false;
+    auto const mouse_tile =
+        viewport().screen_pixel_to_world_tile( mouse );
+    if( !mouse_tile.has_value() ) return false;
+    UNWRAP_CHECK_T( auto const unit_tile,
+                    coord_for_unit_indirect(
+                        ss_.units, unit_input->unit_id ) );
+    return *mouse_tile == unit_tile;
+  }
+
+  wait<> goto_dragging( point const origin ) {
+    using I = LandViewRawInput;
+
+    auto const send = [&]( auto const& o ) {
+      raw_input_stream_.send( I{ o } );
+    };
+
+    // This guarantees that we always send at least one message
+    // to other dragging coro that we're finished, otherwise that
+    // other one could get stuck waiting, which would be cata-
+    // strophic because it is in the main coro. This will also
+    // get sent when the drag finishes naturally, but there
+    // should be no harm in that.
+    SCOPE_EXIT { send( I::goto_drag_cancel{} ); };
+
+    UNWRAP_CHECK(
+        tile, viewport().screen_pixel_to_world_tile( origin ) );
+    send( I::goto_drag_start{ .tile = tile } );
+
+    bool inside_viewport = true;
+    while( auto const d = co_await drag_stream.next() ) {
+      auto const tile =
+          viewport().screen_pixel_to_world_tile( d->current );
+      inside_viewport = tile.has_value();
+      if( !tile.has_value() ) continue;
+      send( I::goto_drag_update{ .tile = *tile } );
+    }
+
+    inside_viewport ? send( I::goto_drag_finish{} )
+                    : send( I::goto_drag_cancel{} );
+  }
+
+  /**************************************************************
+  ** Dragging Driver
   ***************************************************************/
   struct DragUpdate {
     Coord prev;
@@ -1369,25 +1491,37 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
   // The waitable will be waiting on the drag_stream, so it must
   // come after so that it gets destroyed first.
   maybe<wait<>> drag_thread;
-  bool drag_finished = true;
 
-  wait<> dragging( input::e_mouse_button /*button*/,
-                   Coord /*origin*/ ) {
-    SCOPE_EXIT { drag_finished = true; };
-    while( maybe<DragUpdate> d = co_await drag_stream.next() )
-      viewport().pan_by_screen_coords( d->prev - d->current );
+  using DragHandler =
+      wait<> ( Impl::* const )( point const origin );
+
+  wait<> drag_thread_wrapper(
+      DragHandler const handler,
+      input::e_mouse_button const /*button*/,
+      point const origin ) {
+    drag_stream.reset();
+    SCOPE_EXIT { drag_stream.reset(); };
+    co_await ( this->*handler )( origin );
+    // Wait for drag to finish if it hasn't already.
+    while( co_await drag_stream.next() );
   }
 
   IPlane::e_accept_drag can_drag( input::e_mouse_button button,
                                   Coord origin ) override {
-    if( !drag_finished ) return IPlane::e_accept_drag::swallow;
+    drag_thread.reset();
     if( button == input::e_mouse_button::r &&
         viewport().screen_coord_in_viewport( origin ) ) {
-      viewport().stop_auto_panning();
-      drag_stream.reset();
-      drag_finished = false;
-      drag_thread   = dragging( button, origin );
+      drag_thread = drag_thread_wrapper(
+          &Impl::viewport_dragging, button, origin );
       return IPlane::e_accept_drag::yes;
+    }
+    if( button == input::e_mouse_button::l &&
+        viewport().screen_coord_in_viewport( origin ) ) {
+      if( is_goto_drag( origin ) ) {
+        drag_thread = drag_thread_wrapper( &Impl::goto_dragging,
+                                           button, origin );
+        return IPlane::e_accept_drag::yes;
+      }
     }
     // Since this is a bottom plane, there is no one else who
     // could handle drag events, so just give them to us as mo-

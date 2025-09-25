@@ -58,6 +58,7 @@ gfx::pixel char_color_for_orders( unit_orders const& orders ) {
     CASE( road ) { break; }
     CASE( plow ) { break; }
     CASE( damaged ) { break; }
+    CASE( go_to ) { break; }
   }
   return is_greyed
              ? config_gfx.unit_flag_colors
@@ -81,6 +82,7 @@ char char_value_for_orders( unit_orders const& orders ) {
     CASE( fortifying ) { return 'F'; }
     CASE( road ) { return 'R'; }
     CASE( plow ) { return 'P'; }
+    CASE( go_to ) { return 'G'; }
     CASE( damaged ) {
       int const turns_left = damaged.turns_until_repair;
       // The number can be larger than 9, i.e. it can have more

@@ -483,6 +483,8 @@ struct OmniPlane::Impl : public IPlane, public IMenuHandler {
         switch( cursor_ ) {
           case e_mouse_cursor::standard:
             return e_tile::mouse_arrow1;
+          case e_mouse_cursor::go_to:
+            return e_tile::mouse_goto;
         }
       }();
       render_sprite(

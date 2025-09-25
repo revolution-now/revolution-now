@@ -65,6 +65,8 @@ namespace {
 
 using ::gfx::pixel;
 using ::gfx::point;
+using ::gfx::rect;
+using ::gfx::size;
 
 bool last_unit_input_is_in_stack_indirect(
     SSConst const& ss, UnitId last_unit_input,
@@ -1049,6 +1051,29 @@ void LandViewRenderer::render_non_entities() const {
                        zoom );
 
   render_landscape_anim_buffers();
+}
+
+void LandViewRenderer::render_goto(
+    point const /*start_tile*/, point const end_tile ) const {
+#if 0
+  point const mouse = input::current_mouse_position();
+  if( !viewport_.screen_coord_in_viewport( mouse ) ) return;
+  pixel const kColor{ .r = 255, .g = 249, .b = 175, .a = 255 };
+  rect const box = render_rect_for_tile( end_tile );
+  {
+    gfx::dpoint const corner =
+        viewport_.rendering_dest_rect().origin -
+        viewport_.covered_pixels().origin.fmod( 32.0 ) *
+            viewport_.get_zoom();
+    SCOPED_RENDERER_MOD_MUL( painter_mods.repos.scale,
+                             viewport_.get_zoom() );
+    SCOPED_RENDERER_MOD_ADD( painter_mods.repos.translation2,
+                             corner.distance_from_origin() );
+    rr::draw_empty_rect_faded_corners( renderer, box, kColor );
+  }
+#else
+  (void)end_tile;
+#endif
 }
 
 void LandViewRenderer::render_white_box() const {

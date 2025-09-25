@@ -18,6 +18,7 @@
 #include "command-disband.hpp"
 #include "command-dump.hpp"
 #include "command-fortify.hpp"
+#include "command-goto.hpp"
 #include "command-move.hpp"
 #include "command-plow.hpp"
 #include "command-road.hpp"
