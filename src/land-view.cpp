@@ -511,10 +511,13 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
   // created, preserve the time that the corresponding raw input
   // event was received.
   wait<> single_raw_input_translator() {
+    using RI = LandViewRawInput;
+    using PI = LandViewPlayerInput;
+
     RawInput raw_input = co_await raw_input_stream_.next();
 
     switch( raw_input.input.to_enum() ) {
-      using e = LandViewRawInput::e;
+      using e = RI::e;
       case e::reveal_map: {
         if( !cheat_mode_enabled( ss_ ) ) break;
         co_await cheat_reveal_map( ss_, ts_ );
@@ -537,8 +540,8 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
         break;
       }
       case e::escape: {
-        translated_input_stream_.push( PlayerInput(
-            LandViewPlayerInput::exit{}, raw_input.when ) );
+        translated_input_stream_.push(
+            PlayerInput( PI::exit{}, raw_input.when ) );
         break;
       }
       case e::next_turn: {
@@ -550,44 +553,37 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
           // stream while we were in EOT mode but we now no
           // longer are.
           break;
-        translated_input_stream_.push( PlayerInput(
-            LandViewPlayerInput::next_turn{}, raw_input.when ) );
+        translated_input_stream_.push(
+            PlayerInput( PI::next_turn{}, raw_input.when ) );
         break;
       }
       case e::cmd: {
         translated_input_stream_.push( PlayerInput(
-            LandViewPlayerInput::give_command{
-              .cmd = raw_input.input.get<LandViewRawInput::cmd>()
-                         .what },
+            PI::give_command{
+              .cmd = raw_input.input.get<RI::cmd>().what },
             raw_input.when ) );
         break;
       }
       case e::european_status: {
-        translated_input_stream_.push(
-            PlayerInput( LandViewPlayerInput::european_status{},
-                         raw_input.when ) );
+        translated_input_stream_.push( PlayerInput(
+            PI::european_status{}, raw_input.when ) );
         break;
       }
       case e::hidden_terrain: {
-        translated_input_stream_.push(
-            PlayerInput( LandViewPlayerInput::hidden_terrain{},
-                         raw_input.when ) );
+        translated_input_stream_.push( PlayerInput(
+            PI::hidden_terrain{}, raw_input.when ) );
         break;
       }
       case e::view_mode: {
-        auto& o =
-            raw_input.input.get<LandViewRawInput::view_mode>();
-        translated_input_stream_.push( PlayerInput(
-            LandViewPlayerInput::view_mode{ .options =
-                                                o.options },
-            raw_input.when ) );
+        auto& o = raw_input.input.get<RI::view_mode>();
+        translated_input_stream_.push(
+            PlayerInput( PI::view_mode{ .options = o.options },
+                         raw_input.when ) );
         break;
       }
       case e::activate: {
-        auto& o =
-            raw_input.input.get<LandViewRawInput::activate>();
-        maybe<LandViewPlayerInput> const input =
-            co_await activate_tile( o.tile );
+        auto& o = raw_input.input.get<RI::activate>();
+        maybe<PI> const input = co_await activate_tile( o.tile );
         // Since we may have just popped open a box to ask the
         // user to select units, just use the "now" time so
         // that these events don't get disgarded. Also, mouse
@@ -599,13 +595,12 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
         break; //
       }
       case e::move_mode: {
-        translated_input_stream_.push( PlayerInput(
-            LandViewPlayerInput::move_mode{}, Clock_t::now() ) );
+        translated_input_stream_.push(
+            PlayerInput( PI::move_mode{}, Clock_t::now() ) );
         break; //
       }
       case e::tile_click: {
-        auto& o =
-            raw_input.input.get<LandViewRawInput::tile_click>();
+        auto& o = raw_input.input.get<RI::tile_click>();
         if( o.mods.shf_down ) {
           // cheat mode.
           if( !cheat_mode_enabled( ss_ ) ) break;
@@ -616,7 +611,7 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
                                              o.coord );
           break;
         }
-        vector<LandViewPlayerInput> inputs =
+        vector<PI> inputs =
             co_await click_on_world_tile( o.coord );
         // Since we may have just popped open a box to ask the
         // user to select units, just use the "now" time so
@@ -629,9 +624,8 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
         break;
       }
       case e::tile_right_click: {
-        auto& o = raw_input.input
-                      .get<LandViewRawInput::tile_right_click>();
-        vector<LandViewPlayerInput> inputs =
+        auto& o = raw_input.input.get<RI::tile_right_click>();
+        vector<PI> inputs =
             co_await right_click_on_world_tile( o.coord );
         for( auto const& input : inputs )
           translated_input_stream_.push(
@@ -639,9 +633,8 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
         break;
       }
       case e::tile_enter: {
-        auto& o =
-            raw_input.input.get<LandViewRawInput::tile_enter>();
-        vector<LandViewPlayerInput> inputs =
+        auto& o = raw_input.input.get<RI::tile_enter>();
+        vector<PI> inputs =
             co_await enter_on_world_tile( o.tile );
         for( auto const& input : inputs )
           translated_input_stream_.push(
@@ -655,8 +648,7 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
         break;
       }
       case e::context_menu: {
-        auto& o = raw_input.input
-                      .get<LandViewRawInput::context_menu>();
+        auto& o = raw_input.input.get<RI::context_menu>();
         co_await context_menu( o.where, o.tile );
         break;
       }
