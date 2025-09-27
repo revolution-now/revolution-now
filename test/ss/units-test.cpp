@@ -320,5 +320,18 @@ TEST_CASE( "[units] units added/removed from ordering map" ) {
   REQUIRE( W.units().refl().validate() == valid );
 }
 
+TEST_CASE(
+    "[units] validation: units in goto mode must be on the map "
+    "or indirectly on the map" ) {
+  world w;
+  base::valid_or<string> v = valid;
+
+  SECTION( "default" ) {
+    wrapped::UnitsState o;
+    UnitsState const units_state( std::move( o ) );
+    REQUIRE( units_state.validate() == valid );
+  }
+}
+
 } // namespace
 } // namespace rn

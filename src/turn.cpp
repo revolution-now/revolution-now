@@ -29,6 +29,7 @@
 #include "fathers.hpp"
 #include "game-end.hpp"
 #include "game-options.hpp"
+#include "goto.hpp"
 #include "harbor-units.hpp"
 #include "harbor-view.hpp"
 #include "iagent.hpp"
@@ -1269,30 +1270,12 @@ wait<> advance_unit( IEngine& engine, SS& ss, TS& ts,
           unit.clear_orders();
           break;
         }
-        auto const new_unit_tile =
-            coord_for_unit_indirect( ss.units, unit.id() )
-                .fmap( &Coord::to_gfx );
-        // Note that the unit may not be on the map if it has
-        // sailed the high seas.
-        if( new_unit_tile.has_value() ) {
-          // We generally want to clear the unit's orders when it
-          // arrives at the destination, but not if e.g. it was
-          // sentried upon moving into a ship.
-          auto const go_to =
-              unit.orders().get_if<unit_orders::go_to>();
-          if( go_to.has_value() ) {
-            SWITCH( go_to->target ) {
-              CASE( map ) {
-                if( *new_unit_tile == map.tile )
-                  unit.clear_orders();
-                break;
-              }
-            }
-          }
-        }
-        co_return;
+        if( unit_has_reached_goto_target( ss.as_const, unit ) )
+          unit.clear_orders();
+        break;
       }
     }
+    co_return;
   }
 
   if( is_unit_in_port( ss.units, id ) ) {

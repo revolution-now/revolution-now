@@ -12,6 +12,14 @@
 
 // Revolution Now
 #include "igoto-viewer.hpp"
+#include "unit-mgr.hpp"
+
+// ss
+#include "ss/ref.hpp"
+#include "ss/unit.hpp"
+
+// rds
+#include "rds/switch-macro.hpp"
 
 // refl
 #include "refl/query-enum.hpp"
@@ -104,6 +112,22 @@ maybe<GotoPath> compute_goto_path( IGotoMapViewer const& viewer,
                                    point const dst ) {
   if( !viewer.can_enter_tile( dst ) ) return nothing;
   return a_star( viewer, src, dst );
+}
+
+bool unit_has_reached_goto_target( SSConst const& ss,
+                                   Unit const& unit ) {
+  auto const go_to = unit.orders().get_if<unit_orders::go_to>();
+  if( !go_to.has_value() ) return false;
+  SWITCH( go_to->target ) {
+    CASE( map ) {
+      // It should be validated when loading a save that any unit
+      // with goto->map orders should be on the map at least in-
+      // directly, and the game should maintain that.
+      point const unit_tile =
+          coord_for_unit_indirect_or_die( ss.units, unit.id() );
+      return ( unit_tile == map.tile );
+    }
+  }
 }
 
 } // namespace rn
