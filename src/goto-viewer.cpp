@@ -12,6 +12,7 @@
 
 // Revolution Now
 #include "roles.hpp"
+#include "society.hpp"
 #include "visibility.hpp"
 
 // config
@@ -20,6 +21,9 @@
 // ss
 #include "ss/nation.hpp"
 #include "ss/unit.hpp"
+
+// rds
+#include "rds/switch-macro.hpp"
 
 using namespace std;
 
@@ -50,7 +54,9 @@ maybe<e_player> viz_player( SSConst const& ss,
 *****************************************************************/
 GotoMapViewer::GotoMapViewer( SSConst const& ss,
                               Unit const& unit )
-  : viz_( create_visibility_for( ss, viz_player( ss, unit ) ) ),
+  : ss_( ss ),
+    unit_( unit ),
+    viz_( create_visibility_for( ss, viz_player( ss, unit ) ) ),
     is_ship_( unit.desc().ship ) {
   CHECK( viz_ ); // should never fail.
 }
@@ -65,6 +71,17 @@ bool GotoMapViewer::can_enter_tile( point const p ) const {
     case e_tile_visibility::fogged:
     case e_tile_visibility::clear:
       break;
+  }
+  if( auto const society = society_on_square( ss_, p );
+      society.has_value() ) {
+    SWITCH( *society ) {
+      CASE( european ) {
+        if( european.player != unit_.player_type() )
+          return false;
+        break;
+      }
+      CASE( native ) { return false; }
+    }
   }
   MapSquare const& square = viz_->square_at( p );
   switch( square.surface ) {

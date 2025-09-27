@@ -1255,6 +1255,8 @@ wait<> advance_unit( IEngine& engine, SS& ss, TS& ts,
         break;
       }
       CASE( move ) {
+        point const prev_tile = coord_for_unit_indirect_or_die(
+            ss.units, unit.id() );
         auto const handler =
             command_handler( engine, ss, ts, agent, player, id,
                              command::move{ .d = move.to } );
@@ -1272,6 +1274,27 @@ wait<> advance_unit( IEngine& engine, SS& ss, TS& ts,
         }
         if( unit_has_reached_goto_target( ss.as_const, unit ) )
           unit.clear_orders();
+        // Here we test if the unit hasn't moved and clear or-
+        // ders. This can happen e.g. when a unit has its goto
+        // target as a dwelling but then opts not to enter it
+        // when the menu pops up. In that case the order will
+        // have run but the unit wil have ended its turn. In that
+        // case best to clear the orders. Note that this is not
+        // the same as when a unit doesn't move as a result of
+        // encountering an untraversible tile as it explores
+        // hidden tiles; in that case, the logic in the agent
+        // will detect that and attempt to recompute the path
+        // (once). So if we are here and we still haven't moved
+        // then that would have already been attempted if needed.
+        auto const new_tile =
+            coord_for_unit_indirect( ss.units, unit.id() );
+        bool const did_not_move =
+            new_tile.has_value() &&
+            new_tile->to_gfx() == prev_tile;
+        if( did_not_move ) {
+          unit.clear_orders();
+          break;
+        }
         break;
       }
     }
@@ -1407,12 +1430,21 @@ wait<> move_remaining_units( IEngine& engine, SS& ss, TS& ts,
 
     co_await advance_unit( engine, ss, ts, player, agent, q,
                            id );
+    CHECK( !q.empty() );
+    if( q.front() != id )
+      // This will happen if the movement of the previous unit
+      // prioritized some new units. Regardless of the fate of
+      // the original unit, it is safe to move on because we will
+      // come back to the original unit again and deal with it
+      // properly then.
+      continue;
+
     if( !ss.units.exists( id ) ||
         // This should catch units sailing the high seas.
-        finished_turn( ss.units.unit_for( id ) ) ) {
-      q.pop_front();
+        finished_turn( ss.units.unit_for( id ) ) )
+      // No need to pop here since it will happen on the next it-
+      // eration.
       continue;
-    }
 
     if( !can_ask_for_orders( ss.units.unit_for( id ) ) )
       // The idea here is that the unit has not yet finished its

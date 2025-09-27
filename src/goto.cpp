@@ -84,7 +84,17 @@ maybe<GotoPath> a_star( IGotoMapViewer const& viewer,
     if( curr == dst ) break;
     for( e_direction const d : enum_values<e_direction> ) {
       point const moved = curr.moved( d );
-      if( !viewer.can_enter_tile( moved ) ) continue;
+      // This means that, whatever the target tile is, we will
+      // allow the unit to at least attempt to enter it. This al-
+      // lows e.g. a ship to make landfall or a land unit to at-
+      // tack a dwelling which are actions that would normally
+      // not be allowed because those units would not normally be
+      // able to traverse those tiles en-route to their target.
+      // In the event that the unit is not allowed onto the tile
+      // then the goto orders will be cleared, but that is ok be-
+      // cause the user specifically chose the target.
+      if( moved != dst && !viewer.can_enter_tile( moved ) )
+        continue;
       CHECK( explored.contains( curr ) );
       int const proposed_steps = explored[curr].steps + 1;
       if( explored.contains( moved ) ) {
@@ -114,7 +124,6 @@ maybe<GotoPath> a_star( IGotoMapViewer const& viewer,
 maybe<GotoPath> compute_goto_path( IGotoMapViewer const& viewer,
                                    point const src,
                                    point const dst ) {
-  if( !viewer.can_enter_tile( dst ) ) return nothing;
   return a_star( viewer, src, dst );
 }
 

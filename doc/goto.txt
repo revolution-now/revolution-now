@@ -1,7 +1,8 @@
 TODO:
 
-  * Units should not attack when they are en route to a tile
-    that is different than the one they'd attack on.
+  * Ship passing through a colony should not unload its units or
+    open the colony if it is still in goto mode, i.e. the colony
+    is not the target.
   * Goto colony.
   * Goto europe.
   * Omnipotent goto mode as in OG.

@@ -25,13 +25,18 @@ struct Unit;
 /****************************************************************
 ** GotoMapViewer
 *****************************************************************/
+// NOTE: the unit should not be deleted while this object is
+// being used.
 struct GotoMapViewer : IGotoMapViewer {
   GotoMapViewer( SSConst const& ss, Unit const& unit );
   ~GotoMapViewer() override;
 
-  bool can_enter_tile( gfx::point p ) const override;
+  [[nodiscard]] bool can_enter_tile(
+      gfx::point p ) const override;
 
  private:
+  SSConst const& ss_;
+  Unit const& unit_;
   std::unique_ptr<IVisibility const> const viz_;
   bool const is_ship_ = {};
 };

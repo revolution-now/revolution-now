@@ -432,6 +432,7 @@ void HumanAgent::new_goto( UnitId const unit_id,
       auto const paths = compute_goto_path(
           GotoMapViewer( ss_, unit ), src, dst );
       if( !paths.has_value() ) break;
+      if( paths->reverse_path.empty() ) break;
       goto_registry_.paths[unit_id] = std::move( *paths );
       unit.orders() = unit_orders::go_to{ .target = map };
       break;
@@ -468,6 +469,17 @@ EvolveGoto HumanAgent::evolve_goto( UnitId const unit_id ) {
         reverse_path.pop_back();
         auto const d = src.direction_to( dst );
         if( !d.has_value() ) return nothing;
+        // This means that, whatever the target tile is, we will
+        // allow the unit to at least attempt to enter it. This
+        // allows e.g. a ship to make landfall or a land unit to
+        // attack a dwelling which are actions that would nor-
+        // mally not be allowed because those units would not
+        // normally be able to traverse those tiles en-route to
+        // their target. In the event that the unit is not al-
+        // lowed onto the tile then the goto orders will be
+        // cleared, but that is ok because the user specifically
+        // chose the target.
+        if( dst == map.tile ) return *d;
         GotoMapViewer const goto_viewer( ss_, unit );
         if( goto_viewer.can_enter_tile( dst ) ) return *d;
         return nothing;
