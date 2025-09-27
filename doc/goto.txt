@@ -1,0 +1,28 @@
+TODO:
+
+  * Get rid of the command build, don't need it.
+  * Units should not attack when they are en route to a tile
+    that is different than the one they'd attack on.
+  * Goto colony.
+  * Goto europe.
+  * Omnipotent goto mode as in OG.
+  * Goto tile via keyboard.
+
+
+Strategies:
+
+  * Goto europe:
+
+      Expand circle outward, assuming hidden tiles are traversa-
+      ble, and find the first sea lane. Assume that tiles along
+      the right/left edge are sea lane, though even if they are
+      not, that is still ok because once we get there we can move
+      off the map. If there is no sea lane then that needs to be
+      handled.
+
+  * Goto tile:
+
+      Do a-star assuming hidden tiles are traversable.
+
+  * Generally, connectivity checking should not be needed other-
+    wise it might leak info to the player.
