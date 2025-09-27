@@ -100,7 +100,7 @@ struct IVisibility {
   Rect rect_tiles() const;
 
   // For convenience. Is the tile on the map.
-  bool on_map( gfx::point tile ) const;
+  [[nodiscard]] bool on_map( gfx::point tile ) const;
 
  private:
   // There are a couple of situations where we don't want to
