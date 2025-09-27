@@ -326,4 +326,8 @@ wait<ui::e_confirm> RefAIAgent::should_sail_high_seas() {
   co_return ui::e_confirm::no;
 }
 
+EvolveGoto RefAIAgent::evolve_goto( UnitId const ) {
+  return EvolveGoto::abort{};
+}
+
 } // namespace rn

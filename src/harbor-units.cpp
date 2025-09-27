@@ -350,10 +350,11 @@ void unit_sail_to_harbor( SS& ss, UnitId id ) {
   //        ship is not damaged.
   Unit& unit = ss.units.unit_for( id );
   CHECK( unit.desc().ship );
-  CHECK( unit.orders().holds<unit_orders::none>() );
+  CHECK( unit.orders().holds<unit_orders::none>() ||
+         unit.orders().holds<unit_orders::go_to>() );
+  unit.clear_orders();
   Player& player =
       player_for_player_or_die( ss.players, unit.player_type() );
-
   if( maybe<UnitOwnership::harbor const&> previous_harbor_state =
           ss.units.maybe_harbor_view_state_of( id );
       previous_harbor_state.has_value() ) {

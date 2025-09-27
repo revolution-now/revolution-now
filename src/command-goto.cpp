@@ -17,32 +17,30 @@
 #include "ss/ref.hpp"
 #include "ss/units.hpp"
 
-// refl
-#include "refl/to-str.hpp"
-
-// base
-#include "base/logger.hpp"
-
 using namespace std;
 
 namespace rn {
 
 namespace {
 
-struct GotoHandler : public CommandHandler {
-  GotoHandler( SS& ss, IAgent& agent, Player& player,
-               UnitId const unit_id,
-               command::go_to const& go_to )
-    : ss_( ss ),
-      player_( player ),
-      agent_( agent ),
-      unit_( ss.units.unit_for( unit_id ) ),
-      goto_( go_to ) {}
+using ::gfx::point;
 
-  wait<bool> confirm() override { co_return true; }
+struct GotoHandler : public CommandHandler {
+  GotoHandler( SS& ss, UnitId const unit_id,
+               command::go_to const& go_to )
+    : unit_( ss.units.unit_for( unit_id ) ), goto_( go_to ) {}
+
+  wait<bool> confirm() override {
+    // The idea with goto is that we can always attempt it, which
+    // will be done within the same turn immediately after this
+    // on the next pass over the unit by the turn module, and if
+    // it for some reason won't work then the orders will be
+    // cleared and nothing will happen, and the unit will just
+    // ask for orders normally.
+    co_return true;
+  }
 
   wait<> perform() override {
-    lg.info( "goto: {}", goto_ );
     // Note there is no charge of movement points for changing to
     // the goto state; those are only subtracted as the unit
     // moves.
@@ -51,9 +49,7 @@ struct GotoHandler : public CommandHandler {
     co_return;
   }
 
-  SS& ss_;
-  Player const& player_;
-  IAgent& agent_;
+ private:
   Unit& unit_;
   command::go_to const goto_;
 };
@@ -64,10 +60,9 @@ struct GotoHandler : public CommandHandler {
 ** Public API
 *****************************************************************/
 unique_ptr<CommandHandler> handle_command(
-    IEngine&, SS& ss, TS&, IAgent& agent, Player& player,
-    UnitId id, command::go_to const& go_to ) {
-  return make_unique<GotoHandler>( ss, agent, player, id,
-                                   go_to );
+    IEngine&, SS& ss, TS&, IAgent&, Player&, UnitId id,
+    command::go_to const& go_to ) {
+  return make_unique<GotoHandler>( ss, id, go_to );
 }
 
 } // namespace rn

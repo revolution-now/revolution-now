@@ -281,6 +281,18 @@ TEST_CASE( "[harbor-units] unit_move_to_port" ) {
                          Coord{ .x = 8, .y = 5 } )
           .id();
   unit_sail_to_harbor( w.ss(), merchantman2 );
+  UnitId merchantman3 =
+      w.add_unit_on_map( e_unit_type::merchantman,
+                         Coord{ .x = 8, .y = 5 } )
+          .id();
+  // Make sure that we can sail from the goto orders state.
+  w.units().unit_for( merchantman3 ).orders() =
+      unit_orders::go_to{};
+  unit_sail_to_harbor( w.ss(), merchantman3 );
+  REQUIRE( w.units()
+               .unit_for( merchantman3 )
+               .orders()
+               .holds<unit_orders::none>() );
 
   UnitId free_colonist1 =
       w.add_unit_in_port( e_unit_type::free_colonist ).id();

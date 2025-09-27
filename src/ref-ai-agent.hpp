@@ -101,6 +101,8 @@ struct RefAIAgent final : IAgent {
 
   wait<ui::e_confirm> should_sail_high_seas() override;
 
+  EvolveGoto evolve_goto( UnitId unit_id ) override;
+
  public: // ISignalHandler
   OVERRIDE_SIGNAL( ChooseImmigrant );
   OVERRIDE_SIGNAL( ColonyDestroyedByNatives );

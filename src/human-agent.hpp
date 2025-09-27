@@ -13,6 +13,7 @@
 #include "core-config.hpp"
 
 // Revolution Now
+#include "goto-registry.hpp"
 #include "iagent.hpp"
 
 namespace rn {
@@ -105,6 +106,8 @@ struct HumanAgent final : IAgent {
 
   wait<ui::e_confirm> should_sail_high_seas() override;
 
+  EvolveGoto evolve_goto( UnitId unit_id ) override;
+
  public: // Signals.
   OVERRIDE_SIGNAL( ChooseImmigrant );
   OVERRIDE_SIGNAL( ColonyDestroyedByNatives );
@@ -127,10 +130,14 @@ struct HumanAgent final : IAgent {
  private:
   ILandViewPlane& land_view() const;
 
+  void new_goto( UnitId unit_id, goto_target const& target );
+
   IEngine& engine_;
   SS& ss_;
   IGui& gui_;
   Planes& planes_;
+
+  GotoRegistry goto_registry_;
 };
 
 } // namespace rn

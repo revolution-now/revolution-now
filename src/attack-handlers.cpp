@@ -246,7 +246,8 @@ wait<bool> AttackHandlerBase::confirm() {
 
 wait<> AttackHandlerBase::perform() {
   CHECK( !attacker_.mv_pts_exhausted() );
-  CHECK( attacker_.orders().holds<unit_orders::none>() );
+  CHECK( attacker_.orders().holds<unit_orders::none>() ||
+         attacker_.orders().holds<unit_orders::go_to>() );
   // The original game seems to consume all movement points of a
   // unit when attacking.
   attacker_.forfeight_mv_points();

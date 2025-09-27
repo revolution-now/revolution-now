@@ -1,27 +1,20 @@
 /****************************************************************
-**command-goto-test.cpp
+**goto-viewer-test.cpp
 *
 * Project: Revolution Now
 *
-* Created by David P. Sicilia on 2025-09-21.
+* Created by David P. Sicilia on 2025-09-27.
 *
-* Description: Unit tests for the command-goto module.
+* Description: Unit tests for the goto-viewer module.
 *
 *****************************************************************/
 #include "test/testing.hpp"
 
 // Under test.
-#include "src/command-goto.hpp"
+// #include "src/goto-viewer.hpp"
 
 // Testing.
 #include "test/fake/world.hpp"
-#include "test/mocks/iagent.hpp"
-#include "test/mocks/iengine.hpp"
-#include "test/util/coro.hpp"
-
-// ss
-#include "ss/unit-composition.hpp"
-#include "ss/unit.hpp"
 
 // Must be last.
 #include "test/catch-common.hpp" // IWYU pragma: keep
@@ -64,39 +57,8 @@ struct world : testing::World {
 /****************************************************************
 ** Test Cases
 *****************************************************************/
-TEST_CASE( "[command-goto] confirm and go" ) {
+TEST_CASE( "[goto-viewer] can_enter_tile" ) {
   world w;
-  MockIAgent& agent = w.agent();
-
-  Unit& unit = w.add_unit_on_map( e_unit_type::free_colonist,
-                                  { .x = 0, .y = 0 } );
-
-  command::go_to go_to;
-
-  go_to = { .target =
-                goto_target::map{ .tile = { .x = 3, .y = 2 } } };
-  auto const handler =
-      handle_command( w.engine(), w.ss(), w.ts(), agent,
-                      w.default_player(), unit.id(), go_to );
-
-  auto const confirm = [&] [[clang::noinline]] {
-    return co_await_test( handler->confirm() );
-  };
-
-  auto const perform = [&] [[clang::noinline]] {
-    co_await_test( handler->perform() );
-  };
-
-  REQUIRE_FALSE( unit.mv_pts_exhausted() );
-  REQUIRE( unit.orders() == unit_orders::none{} );
-
-  REQUIRE( confirm() == true );
-  perform();
-
-  REQUIRE_FALSE( unit.mv_pts_exhausted() );
-  REQUIRE( unit.orders() == unit_orders::go_to{
-                              .target = goto_target::map{
-                                .tile = { .x = 3, .y = 2 } } } );
 }
 
 } // namespace

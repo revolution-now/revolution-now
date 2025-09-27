@@ -182,4 +182,8 @@ wait<ui::e_confirm> NoopAgent::should_sail_high_seas() {
   co_return ui::e_confirm::no;
 }
 
+EvolveGoto NoopAgent::evolve_goto( UnitId const ) {
+  return EvolveGoto::abort{};
+}
+
 } // namespace rn

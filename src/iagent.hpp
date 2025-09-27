@@ -11,7 +11,8 @@
 *****************************************************************/
 #pragma once
 
-#include "core-config.hpp"
+// rds
+#include "iagent.rds.hpp"
 
 // Revolution Now
 #include "command.rds.hpp"
@@ -176,6 +177,8 @@ struct IAgent : ISignalHandler {
 
   virtual wait<ui::e_confirm> should_sail_high_seas() = 0;
 
+  virtual EvolveGoto evolve_goto( UnitId unit_id ) = 0;
+
  public: // Signals.
   // Non-waitable signal, no message.
   auto signal( NonWaitableSignalContext auto const& ctx ) {
@@ -304,6 +307,8 @@ struct NoopAgent final : IAgent {
       bool some_units_already_moved ) override;
 
   wait<ui::e_confirm> should_sail_high_seas() override;
+
+  EvolveGoto evolve_goto( UnitId unit_id ) override;
 
  public: // ISignalHandler
   OVERRIDE_SIGNAL( ChooseImmigrant );

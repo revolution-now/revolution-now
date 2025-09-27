@@ -296,6 +296,29 @@ bool should_remove_unit_from_queue( Unit const& unit ) {
   }
 }
 
+bool can_ask_for_orders( Unit const& unit ) {
+  if( finished_turn( unit ) ) return false;
+  switch( unit.orders().to_enum() ) {
+    using e = unit_orders::e;
+    case e::fortified:
+      return false;
+    case e::fortifying:
+      return false;
+    case e::sentry:
+      return false;
+    case e::road:
+      return false;
+    case e::plow:
+      return false;
+    case e::none:
+      return true;
+    case e::damaged:
+      return false;
+    case e::go_to:
+      return false;
+  }
+}
+
 vector<UnitId> euro_units_all( UnitsState const& units_state,
                                e_player n ) {
   vector<UnitId> res;
@@ -1116,7 +1139,8 @@ wait<> show_view_mode( IEngine& engine, SS& ss, TS& ts,
 // If the unit still has movement points after this then the unit
 // will ask for orders.
 wait<> advance_unit( IEngine& engine, SS& ss, TS& ts,
-                     Player& player, IAgent& agent, UnitId id ) {
+                     Player& player, IAgent& agent,
+                     deque<UnitId>& q, UnitId const id ) {
   Unit& unit = ss.units.unit_for( id );
   CHECK( !should_remove_unit_from_queue( unit ) );
   CHECK( !is_unit_on_high_seas( ss, id ),
@@ -1223,9 +1247,49 @@ wait<> advance_unit( IEngine& engine, SS& ss, TS& ts,
   if( auto const go_to =
           unit.orders().get_if<unit_orders::go_to>();
       go_to.has_value() ) {
-    SWITCH( go_to->target ) {
-      CASE( map ) {
-        finish_turn( unit );
+    EvolveGoto const evolve_goto = agent.evolve_goto( id );
+    SWITCH( evolve_goto ) {
+      CASE( abort ) {
+        unit.clear_orders();
+        break;
+      }
+      CASE( move ) {
+        auto const handler =
+            command_handler( engine, ss, ts, agent, player, id,
+                             command::move{ .d = move.to } );
+        CHECK( handler );
+        auto const run_result = co_await handler->run();
+        // This always needs to happen.
+        for( UnitId const id : run_result.units_to_prioritize )
+          prioritize_unit( q, id );
+        // NOTE: !! The unit may no longer exist here if e.g. it
+        // steps into an LCR and dies.
+        if( !ss.units.exists( id ) ) co_return;
+        if( !run_result.order_was_run ) {
+          unit.clear_orders();
+          break;
+        }
+        auto const new_unit_tile =
+            coord_for_unit_indirect( ss.units, unit.id() )
+                .fmap( &Coord::to_gfx );
+        // Note that the unit may not be on the map if it has
+        // sailed the high seas.
+        if( new_unit_tile.has_value() ) {
+          // We generally want to clear the unit's orders when it
+          // arrives at the destination, but not if e.g. it was
+          // sentried upon moving into a ship.
+          auto const go_to =
+              unit.orders().get_if<unit_orders::go_to>();
+          if( go_to.has_value() ) {
+            SWITCH( go_to->target ) {
+              CASE( map ) {
+                if( *new_unit_tile == map.tile )
+                  unit.clear_orders();
+                break;
+              }
+            }
+          }
+        }
         co_return;
       }
     }
@@ -1358,11 +1422,21 @@ wait<> move_remaining_units( IEngine& engine, SS& ss, TS& ts,
       continue;
     }
 
-    co_await advance_unit( engine, ss, ts, player, agent, id );
-    if( finished_turn( ss.units.unit_for( id ) ) ) {
+    co_await advance_unit( engine, ss, ts, player, agent, q,
+                           id );
+    if( !ss.units.exists( id ) ||
+        // This should catch units sailing the high seas.
+        finished_turn( ss.units.unit_for( id ) ) ) {
       q.pop_front();
       continue;
     }
+
+    if( !can_ask_for_orders( ss.units.unit_for( id ) ) )
+      // The idea here is that the unit has not yet finished its
+      // turn but it has orders such that it should not blink and
+      // ask for orders, which should mean that it just needs to
+      // be advanced a few more times by the advance_unit method.
+      continue;
 
     // We have a unit that needs to ask the user for orders. This
     // will open things up to player input not only to the unit

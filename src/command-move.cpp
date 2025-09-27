@@ -924,7 +924,8 @@ wait<> TravelHandler::perform() {
   auto& unit = ss_.units.unit_for( id );
 
   CHECK( !unit.mv_pts_exhausted() );
-  CHECK( unit.orders().holds<unit_orders::none>() );
+  CHECK( unit.orders().holds<unit_orders::none>() ||
+         unit.orders().holds<unit_orders::go_to>() );
 
   co_await animate();
 
@@ -983,7 +984,8 @@ wait<> TravelHandler::perform() {
               ts_, move_dst );
       if( unit_deleted.has_value() ) co_return;
       unit.forfeight_mv_points();
-      CHECK( unit.orders().holds<unit_orders::none>() );
+      CHECK( unit.orders().holds<unit_orders::none>() ||
+             unit.orders().holds<unit_orders::go_to>() );
       break;
     }
     case e_travel_verdict::ship_into_port: {
@@ -994,7 +996,8 @@ wait<> TravelHandler::perform() {
       // When a ship moves into port it forfeights its movement
       // points as in the OG.
       unit.forfeight_mv_points();
-      CHECK( unit.orders().holds<unit_orders::none>() );
+      CHECK( unit.orders().holds<unit_orders::none>() ||
+             unit.orders().holds<unit_orders::go_to>() );
       UNWRAP_CHECK( colony_id,
                     ss_.colonies.maybe_from_coord( move_dst ) );
       // Unload units and prioritize them.
@@ -1062,6 +1065,11 @@ wait<> TravelHandler::perform() {
       break;
     case e_travel_verdict::sail_high_seas:
     case e_travel_verdict::map_edge_high_seas: {
+      for( Cargo::unit const u :
+           unit.cargo().items_of_type<Cargo::unit>() ) {
+        auto& cargo_unit = ss_.units.unit_for( u.id );
+        cargo_unit.sentry();
+      }
       unit_sail_to_harbor( ss_, id );
       // Don't process it again this turn.
       unit.forfeight_mv_points();

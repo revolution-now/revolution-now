@@ -10,6 +10,9 @@
 *****************************************************************/
 #include "goto.hpp"
 
+// Revolution Now
+#include "igoto-viewer.hpp"
+
 // refl
 #include "refl/query-enum.hpp"
 #include "refl/to-str.hpp"
@@ -46,33 +49,47 @@ struct TileWithDistance {
   };
 };
 
+struct TileWithSteps {
+  point tile = {};
+  int steps  = {};
+};
+
 maybe<GotoPath> a_star( IGotoMapViewer const& viewer,
                         point const src, point const dst ) {
   maybe<GotoPath> res;
-  unordered_map<point /*to*/, point /*from*/> explored;
+  unordered_map<point /*to*/, TileWithSteps /*from*/> explored;
   priority_queue<TileWithDistance> todo;
-  auto const push = [&]( point const p, point const from ) {
+  auto const push = [&]( point const p, point const from,
+                         int const steps ) {
     todo.push( TileWithDistance{
-      .tile = p, .distance = ( p - dst ).pythagorean() } );
-    explored[p] = from;
+      .tile     = p,
+      .distance = steps + ( p - dst ).pythagorean() } );
+    explored[p] = TileWithSteps{ .tile = from, .steps = steps };
   };
-  push( src, src );
+  push( src, src, 0 );
   while( !todo.empty() ) {
     point const curr = todo.top().tile;
     todo.pop();
     if( curr == dst ) break;
     for( e_direction const d : enum_values<e_direction> ) {
       point const moved = curr.moved( d );
-      if( explored.contains( moved ) ) continue;
       if( !viewer.can_enter_tile( moved ) ) continue;
-      push( moved, curr );
+      CHECK( explored.contains( curr ) );
+      int const proposed_steps = explored[curr].steps + 1;
+      if( explored.contains( moved ) ) {
+        if( proposed_steps < explored[moved].steps )
+          explored[moved] = TileWithSteps{
+            .tile = curr, .steps = proposed_steps };
+        continue;
+      }
+      push( moved, curr, proposed_steps );
     }
   }
   lg.debug( "a-star: {} -> {} finished after touching {} tiles.",
             src, dst, explored.size() );
   if( !explored.contains( dst ) ) return res;
   auto& reverse_path = res.emplace().reverse_path;
-  for( point p = dst; p != src; p = explored[p] )
+  for( point p = dst; p != src; p = explored[p].tile )
     reverse_path.push_back( p );
   return res;
 }

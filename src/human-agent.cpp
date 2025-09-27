@@ -16,12 +16,15 @@
 #include "colony-mgr.hpp"
 #include "commodity.hpp"
 #include "disband.hpp"
+#include "goto-viewer.hpp"
+#include "goto.hpp"
 #include "iengine.hpp"
 #include "igui.hpp"
 #include "land-view.hpp"
 #include "meet-natives.hpp"
 #include "plane-stack.hpp"
 #include "roles.hpp"
+#include "unit-mgr.hpp"
 #include "visibility.hpp"
 
 // config
@@ -36,8 +39,15 @@
 #include "ss/ref.hpp"
 #include "ss/units.hpp"
 
+// rds
+#include "rds/switch-macro.hpp"
+
+// refl
+#include "refl/to-str.hpp"
+
 // base
 #include "base/conv.hpp"
+#include "base/logger.hpp"
 
 using namespace std;
 
@@ -403,6 +413,88 @@ wait<ui::e_confirm> HumanAgent::should_sail_high_seas() {
         .yes_label = "Yes, steady as she goes!",
         .no_label  = "No, let us remain in these waters." } );
   co_return res.value_or( ui::e_confirm::no );
+}
+
+void HumanAgent::new_goto( UnitId const unit_id,
+                           goto_target const& target ) {
+  Unit& unit = ss_.units.unit_for( unit_id );
+  lg.info( "goto: {}", target );
+  goto_registry_.paths.erase( unit_id );
+  unit.clear_orders();
+  // This should be validated when loading the save, namely
+  // that a unit in goto mode must be either directly on the
+  // map or in the cargo of another unit that is on the map.
+  point const src =
+      coord_for_unit_indirect_or_die( ss_.units, unit_id );
+  SWITCH( target ) {
+    CASE( map ) {
+      point const dst  = map.tile;
+      auto const paths = compute_goto_path(
+          GotoMapViewer( ss_, unit ), src, dst );
+      if( !paths.has_value() ) break;
+      goto_registry_.paths[unit_id] = std::move( *paths );
+      unit.orders() = unit_orders::go_to{ .target = map };
+      break;
+    }
+  }
+}
+
+EvolveGoto HumanAgent::evolve_goto( UnitId const unit_id ) {
+  Unit& unit = ss_.units.unit_for( unit_id );
+  CHECK( unit.orders().holds<unit_orders::go_to>() );
+  // Copy this for safety because we may end up changing it.
+  auto const go_to = unit.orders().get<unit_orders::go_to>();
+  lg.info( "goto: {}", go_to );
+  // This should be validated when loading the save, namely
+  // that a unit in goto mode must be either directly on the
+  // map or in the cargo of another unit that is on the map.
+  point const src =
+      coord_for_unit_indirect_or_die( ss_.units, unit_id );
+
+  SWITCH( go_to.target ) {
+    CASE( map ) {
+      auto const abort = [&] {
+        unit.clear_orders();
+        goto_registry_.paths.erase( unit_id );
+        return EvolveGoto::abort{};
+      };
+
+      auto const direction = [&] -> maybe<e_direction> {
+        if( !goto_registry_.paths.contains( unit_id ) )
+          return nothing;
+        auto& reverse_path =
+            goto_registry_.paths[unit_id].reverse_path;
+        if( reverse_path.empty() ) return nothing;
+        point const dst = reverse_path.back();
+        reverse_path.pop_back();
+        auto const d = src.direction_to( dst );
+        if( !d.has_value() ) return nothing;
+        GotoMapViewer const goto_viewer( ss_, unit );
+        if( goto_viewer.can_enter_tile( dst ) ) return *d;
+        return nothing;
+      };
+
+      // Check if we've arrived.
+      if( src == map.tile ) return abort();
+
+      // Here we try twice, and this has two purposes. First, if
+      // the unit's goto orders are new and its path hasn't been
+      // computed yet, then the first attempt will fail and then
+      // we'll compute the path and try again. But it is also
+      // needed for a unit that already has a goto path, since as
+      // a unit explores hidden tiles it may discover that its
+      // current path is no longer viable and may need to recom-
+      // pute a path. But if the second attempt to compute a path
+      // still does not succeed then there is not further viable
+      // path and we cancel.
+      if( auto const d = direction(); d.has_value() )
+        return EvolveGoto::move{ .to = *d };
+      new_goto( unit_id, go_to.target );
+      if( auto const d = direction(); d.has_value() )
+        return EvolveGoto::move{ .to = *d };
+      return abort();
+    }
+  }
 }
 
 } // namespace rn

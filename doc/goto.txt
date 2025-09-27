@@ -1,6 +1,5 @@
 TODO:
 
-  * Get rid of the command build, don't need it.
   * Units should not attack when they are en route to a tile
     that is different than the one they'd attack on.
   * Goto colony.
