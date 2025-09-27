@@ -444,7 +444,6 @@ EvolveGoto HumanAgent::evolve_goto( UnitId const unit_id ) {
   CHECK( unit.orders().holds<unit_orders::go_to>() );
   // Copy this for safety because we may end up changing it.
   auto const go_to = unit.orders().get<unit_orders::go_to>();
-  lg.info( "goto: {}", go_to );
   // This should be validated when loading the save, namely
   // that a unit in goto mode must be either directly on the
   // map or in the cargo of another unit that is on the map.

@@ -27,6 +27,7 @@
 
 // base
 #include "base/logger.hpp"
+#include "base/timer.hpp"
 
 // C++ standard library
 #include <queue>
@@ -75,6 +76,8 @@ maybe<GotoPath> a_star( IGotoMapViewer const& viewer,
     explored[p] = TileWithSteps{ .tile = from, .steps = steps };
   };
   push( src, src, 0 );
+  base::ScopedTimer const timer(
+      format( "a-star from {} -> {}", src, dst ) );
   while( !todo.empty() ) {
     point const curr = todo.top().tile;
     todo.pop();
@@ -93,8 +96,9 @@ maybe<GotoPath> a_star( IGotoMapViewer const& viewer,
       push( moved, curr, proposed_steps );
     }
   }
-  lg.debug( "a-star: {} -> {} finished after touching {} tiles.",
-            src, dst, explored.size() );
+  lg.debug(
+      "a-star from {} -> {} finished after exploring {} tiles.",
+      src, dst, explored.size() );
   if( !explored.contains( dst ) ) return res;
   auto& reverse_path = res.emplace().reverse_path;
   for( point p = dst; p != src; p = explored[p].tile )
