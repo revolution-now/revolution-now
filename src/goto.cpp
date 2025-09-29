@@ -63,11 +63,20 @@ using ::refl::enum_values;
 struct TileWithDistance {
   point tile      = {};
   double distance = {};
+  // Used only by the sea lane search to bias our search to the
+  // same row that we started in. This way, all else being equal,
+  // the search gets biased toward horizontal travel which makes
+  // more sense when searching for sea lane. This won't interfere
+  // with distance optimization because it will only come into
+  // play when two tiles have equal distances.
+  int distance_y = {};
 
   [[maybe_unused]] friend bool operator<(
       TileWithDistance const l, TileWithDistance const r ) {
     if( l.distance != r.distance )
       return l.distance > r.distance;
+    if( l.distance_y != r.distance_y )
+      return l.distance_y > r.distance_y;
     // These are not really needed for the algorithm, but we're
     // just putting them in so that objects that are not equal
     // will have consistent inequalities.
@@ -94,7 +103,7 @@ maybe<GotoPath> a_star( IGotoMapViewer const& viewer,
       .distance = steps + ( p - dst ).pythagorean() } );
     explored[p] = TileWithSteps{ .tile = from, .steps = steps };
   };
-  push( src, src, 0 );
+  push( src, src, /*steps=*/0 );
   base::ScopedTimer const timer(
       format( "a-star from {} -> {}", src, dst ) );
   while( !todo.empty() ) {
@@ -144,10 +153,12 @@ maybe<GotoPath> sea_lane_search( IGotoMapViewer const& viewer,
   auto const push = [&]( point const p, point const from,
                          int const steps ) {
     todo.push( TileWithDistance{
-      .tile = p, .distance = static_cast<double>( steps ) } );
+      .tile       = p,
+      .distance   = static_cast<double>( steps ),
+      .distance_y = abs( p.y - src.y ) } );
     explored[p] = TileWithSteps{ .tile = from, .steps = steps };
   };
-  push( src, src, 0 );
+  push( src, src, /*steps=*/0 );
   base::ScopedTimer const timer(
       format( "sea lane search from {}", src ) );
   maybe<point> dst;
@@ -158,7 +169,6 @@ maybe<GotoPath> sea_lane_search( IGotoMapViewer const& viewer,
       dst = curr;
       break;
     }
-    using enum e_direction;
     for( e_direction const d : enum_values<e_direction> ) {
       point const moved = curr.moved( d );
       if( !viewer.can_enter_tile( moved ) ) continue;
