@@ -1292,7 +1292,7 @@ wait<> advance_unit( IEngine& engine, SS& ss, TS& ts,
         // (once). So if we are here and we still haven't moved
         // then that would have already been attempted if needed.
         //
-        // One additional subtelty is that before clearing orders
+        // One additional subtlety is that before clearing orders
         // we need to test for movement points exhausted here be-
         // cause a valid move consists of a unit attempting to
         // move onto a tile for which it does not have enough

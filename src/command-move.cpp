@@ -1258,7 +1258,12 @@ struct NativeDwellingHandler : public CommandHandler {
     // will do so even when the user then cancels the action. It
     // will even do so when a ship is denied entry into a village
     // on account of not having encountered them on land first.
+    // Similarly for clearing orders (which is also important in
+    // case the ship attempts to enter the village in goto mode,
+    // since we don't want to leave it in goto mode and have it
+    // keep trying to enter the dwelling on subsequent turns).
     unit_.forfeight_mv_points();
+    unit_.clear_orders();
 
     switch( outcome_.to_enum() ) {
       case EnterDwellingOutcome::e::live_among_the_natives: {
