@@ -9,6 +9,8 @@ TODO:
     to e.g. avoid mountains if possible.
   * Omnipotent goto mode as in OG.
   * Goto tile via keyboard.
+  * Do another attempt at finding any additional goto state in
+    the OG's sav files.
 
 Done:
 -----------------------------------------------------------------

@@ -479,6 +479,26 @@ EvolveGoto HumanAgent::evolve_goto( UnitId const unit_id ) {
   point const src =
       coord_for_unit_indirect_or_die( ss_.units, unit_id );
 
+  // Here we try twice, and this has two purposes. First, if the
+  // unit's goto orders are new and its path hasn't been computed
+  // yet, then the first attempt will fail and then we'll compute
+  // the path and try again. But it is also needed for a unit
+  // that already has a goto path, since as a unit explores
+  // hidden tiles it may discover that its current path is no
+  // longer viable and may need to recompute a path. But if the
+  // second attempt to compute a path still does not succeed then
+  // there is not further viable path and we cancel.
+  auto const go_or_reattempt =
+      [&] [[nodiscard]] (
+          auto const& direction_fn ) -> EvolveGoto {
+    if( auto const d = direction_fn(); d.has_value() )
+      return EvolveGoto::move{ .to = *d };
+    new_goto( unit_id, go_to.target );
+    if( auto const d = direction_fn(); d.has_value() )
+      return EvolveGoto::move{ .to = *d };
+    return abort();
+  };
+
   SWITCH( go_to.target ) {
     CASE( map ) {
       auto const direction = [&] -> maybe<e_direction> {
@@ -507,22 +527,7 @@ EvolveGoto HumanAgent::evolve_goto( UnitId const unit_id ) {
         return nothing;
       };
 
-      // Here we try twice, and this has two purposes. First, if
-      // the unit's goto orders are new and its path hasn't been
-      // computed yet, then the first attempt will fail and then
-      // we'll compute the path and try again. But it is also
-      // needed for a unit that already has a goto path, since as
-      // a unit explores hidden tiles it may discover that its
-      // current path is no longer viable and may need to recom-
-      // pute a path. But if the second attempt to compute a path
-      // still does not succeed then there is not further viable
-      // path and we cancel.
-      if( auto const d = direction(); d.has_value() )
-        return EvolveGoto::move{ .to = *d };
-      new_goto( unit_id, go_to.target );
-      if( auto const d = direction(); d.has_value() )
-        return EvolveGoto::move{ .to = *d };
-      return abort();
+      return go_or_reattempt( direction );
     }
     CASE( harbor ) {
       auto const direction = [&] -> maybe<e_direction> {
@@ -571,22 +576,7 @@ EvolveGoto HumanAgent::evolve_goto( UnitId const unit_id ) {
         }
       }
 
-      // Here we try twice, and this has two purposes. First, if
-      // the unit's goto orders are new and its path hasn't been
-      // computed yet, then the first attempt will fail and then
-      // we'll compute the path and try again. But it is also
-      // needed for a unit that already has a goto path, since as
-      // a unit explores hidden tiles it may discover that its
-      // current path is no longer viable and may need to recom-
-      // pute a path. But if the second attempt to compute a path
-      // still does not succeed then there is not further viable
-      // path and we cancel.
-      if( auto const d = direction(); d.has_value() )
-        return EvolveGoto::move{ .to = *d };
-      new_goto( unit_id, go_to.target );
-      if( auto const d = direction(); d.has_value() )
-        return EvolveGoto::move{ .to = *d };
-      return abort();
+      return go_or_reattempt( direction );
     }
   }
 }
