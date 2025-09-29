@@ -544,6 +544,33 @@ EvolveGoto HumanAgent::evolve_goto( UnitId const unit_id ) {
         return nothing;
       };
 
+      // This is an optimization that tries to take advantage of
+      // any new sea lane tiles that the ship reveals as it is
+      // making it way along its previously computed path to the
+      // sea lane. If there are any sea lane tiles within the
+      // ship's visibility at the moment (meaning that they might
+      // have been revealed on its last move) we will drop the
+      // path which will cause it to be recomputed. We could have
+      // computed a new path and then only used it if it were
+      // better than the previous one, but that doesn't get us
+      // anything because either way we're computing a new op-
+      // timal path and ending up with the optimal path.
+      if( goto_registry_.paths.contains( unit_id ) ) {
+        vector<Coord> const visible = unit_visible_squares(
+            ss_.as_const, player().type, unit.type(), src );
+        lg.debug( "re-exploring {} tiles for sea lane.",
+                  visible.size() );
+        GotoMapViewer const goto_viewer( ss_, unit );
+        for( point const p : visible ) {
+          if( goto_viewer.can_enter_tile( p ) &&
+              goto_viewer.is_sea_lane_launch_point( p ) ) {
+            lg.debug( "invalidating sea lane search." );
+            goto_registry_.paths.erase( unit_id );
+            break;
+          }
+        }
+      }
+
       // Here we try twice, and this has two purposes. First, if
       // the unit's goto orders are new and its path hasn't been
       // computed yet, then the first attempt will fail and then

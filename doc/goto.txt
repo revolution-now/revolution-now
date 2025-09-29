@@ -9,15 +9,15 @@ TODO:
     to e.g. avoid mountains if possible.
   * Omnipotent goto mode as in OG.
   * Goto tile via keyboard.
-  * As a ship uncovers tiles while trying to find sea lane, we
-    might want to somehow recompute the path after re-checking
-    the ships surroundings.
 
 Done:
 -----------------------------------------------------------------
 
   * Goto colony.
   * Goto europe.
+  * As a ship uncovers tiles while trying to find sea lane, we
+    might want to somehow recompute the path after re-checking
+    the ships surroundings.
 
   Strategies:
 
