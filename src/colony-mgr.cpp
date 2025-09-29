@@ -81,6 +81,8 @@ namespace rn {
 
 namespace {
 
+using ::refl::enum_values;
+
 // This returns all units that are either working in the colony
 // or who are on the map on the colony square.
 unordered_set<UnitId> units_at_or_in_colony(
@@ -102,7 +104,7 @@ ColonyJob find_job_for_initial_colonist( SSConst const& ss,
   // docks, but it could it settings are changed.
   bool has_docks = colony_has_building_level(
       colony, e_colony_building::docks );
-  for( e_direction d : refl::enum_values<e_direction> ) {
+  for( e_direction const d : enum_values<e_direction> ) {
     if( occupied_squares[d] ) continue;
     Coord const coord = colony.location.moved( d );
     if( !ss.terrain.square_exists( coord ) ) continue;
@@ -183,9 +185,9 @@ ColonyId create_empty_colony( ColoniesState& colonies_state,
 
 int colony_population( Colony const& colony ) {
   int size = 0;
-  for( e_indoor_job job : refl::enum_values<e_indoor_job> )
+  for( e_indoor_job const job : enum_values<e_indoor_job> )
     size += colony.indoor_jobs[job].size();
-  for( e_direction d : refl::enum_values<e_direction> )
+  for( e_direction const d : enum_values<e_direction> )
     size += colony.outdoor_jobs[d].has_value() ? 1 : 0;
   return size;
 }
@@ -207,10 +209,10 @@ vector<UnitId> colony_workers( Colony const& colony ) {
   vector<UnitId> res;
   res.reserve( refl::enum_count<e_indoor_job> * 3 +
                refl::enum_count<e_direction> );
-  for( e_indoor_job job : refl::enum_values<e_indoor_job> )
+  for( e_indoor_job const job : enum_values<e_indoor_job> )
     res.insert( res.end(), colony.indoor_jobs[job].begin(),
                 colony.indoor_jobs[job].end() );
-  for( e_direction d : refl::enum_values<e_direction> )
+  for( e_direction const d : enum_values<e_direction> )
     if( colony.outdoor_jobs[d].has_value() )
       res.push_back( colony.outdoor_jobs[d]->unit_id );
   rg::sort( res );
@@ -263,7 +265,7 @@ valid_or<e_found_colony_err> unit_can_found_colony(
     return invalid( Res_t::colony_exists_here );
 
   // Check if we are too close to another colony.
-  for( e_direction d : refl::enum_values<e_direction> ) {
+  for( e_direction const d : enum_values<e_direction> ) {
     // Note that at this point we already know that there is no
     // colony on the center square.
     Coord new_coord = maybe_coord->moved( d );
@@ -435,7 +437,7 @@ void remove_unit_from_colony_obj_low_level( SS& ss,
 void change_unit_outdoor_job( Colony& colony, UnitId id,
                               e_outdoor_job new_job ) {
   auto& outdoor_jobs = colony.outdoor_jobs;
-  for( e_direction d : refl::enum_values<e_direction> )
+  for( e_direction const d : enum_values<e_direction> )
     if( outdoor_jobs[d].has_value() )
       if( outdoor_jobs[d]->unit_id == id )
         outdoor_jobs[d]->job = new_job;
