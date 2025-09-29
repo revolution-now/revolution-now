@@ -59,11 +59,13 @@ wait<> cheat_reveal_map( SS& ss, TS& ts );
 
 // For whomever the player is that has visibility onto the map
 // (if any), all map squares will be made visible one time, but
-// with fog of war. However, unlike the "reveal full map," this
-// does not cause that state to be persisted; instead, it is
-// simply equivalent to having explored every tile of the map
-// with a unit, in that they will be exposed but then fogged.
+// then will be immediately fogged and remain so thereafter un-
+// less explored.
 void cheat_explore_entire_map( SS& ss, TS& ts );
+
+// Hides all map tiles except those visible to existing units and
+// colonies on the map.
+void cheat_hide_entire_map( SS& ss, TS& ts );
 
 // Set which players are human/ai/withdrawn.
 wait<> cheat_set_player_control( IEngine& engine, SS& ss,

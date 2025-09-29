@@ -584,6 +584,10 @@ wait<> menu_handler( IEngine& engine, SS& ss, TS& ts,
       cheat_explore_entire_map( ss, ts );
       break;
     }
+    case e_menu_item::cheat_hide_entire_map: {
+      cheat_hide_entire_map( ss, ts );
+      break;
+    }
     case e_menu_item::cheat_set_player_control: {
       co_await cheat_set_player_control( engine, ss, ts );
       break;
@@ -626,6 +630,7 @@ struct TurnMenuHandler : public IMenuHandler {
         e_menu_item::revolution,
         e_menu_item::harbor_view,
         e_menu_item::cheat_explore_entire_map,
+        e_menu_item::cheat_hide_entire_map,
         e_menu_item::cheat_set_player_control,
         e_menu_item::cheat_kill_natives,
         e_menu_item::cheat_map_editor,

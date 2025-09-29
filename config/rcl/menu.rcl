@@ -69,6 +69,7 @@ items {
   cheat_create_unit_on_map.name: Create Unit
   cheat_edit_fathers.name: Edit Founding Fathers
   cheat_explore_entire_map.name: Explore Entire Map
+  cheat_hide_entire_map.name: Hide Entire Map
   cheat_kill_natives.name: Kill Natives
   cheat_map_editor.name: Enter Map Editor
   cheat_reveal_map.name: Reveal Map
@@ -224,6 +225,7 @@ layout {
     null,
     .leaf.item: cheat_reveal_map,
     .leaf.item: cheat_explore_entire_map,
+    .leaf.item: cheat_hide_entire_map,
     .leaf.item: cheat_set_player_control,
     null,
     .leaf.item: cheat_kill_natives,

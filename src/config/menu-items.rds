@@ -42,6 +42,7 @@ enum.e_menu_item {
   cheat_create_unit_on_map,
   cheat_edit_fathers,
   cheat_explore_entire_map,
+  cheat_hide_entire_map,
   cheat_kill_natives,
   cheat_map_editor,
   cheat_reveal_map,

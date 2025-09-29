@@ -57,6 +57,7 @@
 #include "config/unit-type.hpp"
 
 // ss
+#include "ss/colonies.hpp"
 #include "ss/colony.rds.hpp"
 #include "ss/land-view.rds.hpp"
 #include "ss/nation.hpp"
@@ -66,6 +67,7 @@
 #include "ss/ref.hpp"
 #include "ss/terrain.hpp"
 #include "ss/unit.hpp"
+#include "ss/units.hpp"
 
 // luapp
 #include "luapp/register.hpp"
@@ -542,6 +544,53 @@ void cheat_explore_entire_map( SS& ss, TS& ts ) {
       copy_real_square_to_frozen_square( ss, coord,
                                          *frozen_square );
   }
+  ts.map_updater().redraw();
+}
+
+void cheat_hide_entire_map( SS& ss, TS& ts ) {
+  maybe<e_player> const player =
+      player_for_role( ss, e_player_role::viewer );
+  if( !player.has_value() )
+    // Entire map is already visible, no need to do anything.
+    return;
+
+  // First hide eveything.
+  ss.mutable_terrain_use_with_care.initialize_player_terrain(
+      *player, /*visible=*/false );
+
+  // Now find all visible tiles.
+  vector<Coord> visible;
+
+  // Units.
+  for( auto const& [unit_id, p_state] : ss.units.euro_all() ) {
+    Unit const& unit = p_state->unit;
+    if( unit.player_type() != *player ) continue;
+    auto const world =
+        p_state->ownership.get_if<UnitOwnership::world>();
+    if( !world.has_value() ) continue;
+    point const tile                 = world->coord;
+    vector<Coord> const unit_visible = unit_visible_squares(
+        ss, unit.player_type(), unit.type(), tile );
+    visible.push_back( tile );
+    for( point const p : unit_visible ) visible.push_back( p );
+  }
+  // Colonies.
+  for( ColonyId const colony_id :
+       ss.colonies.for_player( *player ) ) {
+    Colony const& colony = ss.colonies.colony_for( colony_id );
+    visible.push_back( colony.location );
+    for( e_cdirection const d : enum_values<e_cdirection> ) {
+      point const moved = colony.location.moved( d );
+      if( !ss.terrain.square_exists( moved ) ) continue;
+      visible.push_back( moved );
+    }
+  }
+
+  // Make them visible and redraw.
+  ts.map_updater().make_squares_visible( *player, visible );
+  // Now we need to redraw otherwise tiles that are supposed to
+  // be hidden won't be fully hidden and some visual artifacts
+  // will remain.
   ts.map_updater().redraw();
 }
 
