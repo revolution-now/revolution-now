@@ -20,6 +20,7 @@
 #include "co-combinator.hpp"
 #include "co-time.hpp"
 #include "command.hpp"
+#include "goto.hpp"
 #include "hidden-terrain.hpp"
 #include "iengine.hpp"
 #include "imap-updater.hpp"
@@ -52,6 +53,7 @@
 // ss
 #include "ss/colonies.hpp"
 #include "ss/land-view.rds.hpp"
+#include "ss/players.rds.hpp"
 #include "ss/ref.hpp"
 #include "ss/units.hpp"
 
@@ -217,6 +219,12 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
         e_menu_item::view_mode, *this ) );
     dereg.push_back( menu_server.register_handler(
         e_menu_item::move, *this ) );
+    dereg.push_back( menu_server.register_handler(
+        e_menu_item::go_to, *this ) );
+    dereg.push_back( menu_server.register_handler(
+        e_menu_item::return_to_europe, *this ) );
+    dereg.push_back( menu_server.register_handler(
+        e_menu_item::no_orders, *this ) );
   }
 
   Impl( IEngine& engine, SS& ss, TS& ts, maybe<e_player> player )
@@ -709,6 +717,36 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
         co_await context_menu( o.where, o.tile );
         break;
       }
+      case e::goto_port: {
+        auto const unit_input =
+            mode_.top().get_if<LandViewMode::unit_input>();
+        if( !unit_input.has_value() ) break;
+        Unit const& unit =
+            ss_.units.unit_for( unit_input->unit_id );
+        GotoPort const goto_port =
+            find_goto_port( ss_, ts_.connectivity, unit );
+        UNWRAP_CHECK_T(
+            Player const& player,
+            ss_.players.players[unit.player_type()] );
+        auto const goto_target = co_await ask_goto_port(
+            ss_, ts_.gui, player, goto_port );
+        if( !goto_target.has_value() ) break;
+        // Use current time since a box popped open.
+        translated_input_stream_.push( PlayerInput(
+            PI::give_command{
+              .cmd = command::go_to{ .target = *goto_target } },
+            Clock_t::now() ) );
+        break;
+      }
+      case e::goto_harbor: {
+        translated_input_stream_.push( PlayerInput(
+            PI::give_command{
+              .cmd =
+                  command::go_to{ .target =
+                                      goto_target::harbor{} } },
+            raw_input.when ) );
+        break;
+      }
     }
   }
 
@@ -1010,29 +1048,24 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
         if( auto const unit_input =
                 mode_.top()
                     .get_if<LandViewMode::unit_input>() ) {
-          // TODO: to implement this like in the OG we need to
-          // verify that the unit is a ship and that it is over a
-          // sea lane tile. Then there is the question of how to
-          // actually make the transition; normally a ship must
-          // have an adjacent sea lane square that it can move to
-          // (without foreign ships) to go to the harbor, but in
-          // the OG it can do it without moving. We need to de-
-          // cide if we are going to change this behavior or not.
-          // If we do change it then it will avoid "cheating" by
-          // making the return-to-harbor more consistent between
-          // movement and menu item, but if we don't change it
-          // then that would keep things more consistent with the
-          // OG in that a ship that can reach at least one sea
-          // lane tile won't be blocked from returning to the
-          // harbor.
-          //
-          // Note that in the OG this command does not cause the
-          // ship to navigate to a sea lane tile; that action is
-          // done via the separate "go to" menu item. As an
-          // aside, there is a bug in the OG in that action be-
-          // cause a ship needs one less movement point to go to
-          // the harbor than it would with manual movement; we
-          // will probably fix that.
+          Unit const& unit =
+              ss_.units.unit_for( unit_input->unit_id );
+          if( !unit.desc().ship ) break;
+          // NOTE: this will cause the unit to path-find and/or
+          // search for the nearest sea lane launch point (which
+          // could be the edge of the map). This is different
+          // from what this menu item does in the OG: in the OG
+          // it is only available when the unit is already at a
+          // sea lane launch point and it just causes the unit to
+          // move onto the adjacent tile (or off the map, as the
+          // case may be) to go to the harbor. There doesn't seem
+          // to be anything to gain by keeping that behavior as
+          // opposed to the more generate behavior of just initi-
+          // ating a sea-lane path find.
+          return [this] {
+            raw_input_stream_.send(
+                RawInput( LandViewRawInput::goto_harbor{} ) );
+          };
         }
         break;
       }
@@ -1085,6 +1118,23 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
               RawInput( LandViewRawInput::hidden_terrain{} ) );
         };
         return handler;
+      }
+      case e_menu_item::go_to: {
+        if( mode_.top().holds<LandViewMode::unit_input>() )
+          return [this] {
+            raw_input_stream_.send(
+                RawInput( LandViewRawInput::goto_port{} ) );
+          };
+        break;
+      }
+      case e_menu_item::no_orders: {
+        if( mode_.top().holds<LandViewMode::unit_input>() )
+          return [this] {
+            raw_input_stream_.send(
+                RawInput( LandViewRawInput::cmd{
+                  .what = command::forfeight{} } ) );
+          };
+        break;
       }
       default:
         break;
@@ -1206,6 +1256,13 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
               raw_input_stream_.send( RawInput(
                   LandViewRawInput::cheat_create_unit{} ) );
             }
+            break;
+          case ::SDLK_g:
+            if( key_event.mod.shf_down ) break;
+            if( !mode_.top().holds<LandViewMode::unit_input>() )
+              break;
+            raw_input_stream_.send(
+                RawInput( LandViewRawInput::goto_port{} ) );
             break;
           case ::SDLK_v:
             if( key_event.mod.shf_down ) break;

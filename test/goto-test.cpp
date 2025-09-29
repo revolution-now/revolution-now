@@ -61,7 +61,19 @@ TEST_CASE( "[goto] compute_goto_path" ) {
   world w;
 }
 
+TEST_CASE( "[goto] compute_harbor_goto_path" ) {
+  world w;
+}
+
 TEST_CASE( "[goto] unit_has_reached_goto_target" ) {
+  world w;
+}
+
+TEST_CASE( "[goto] find_goto_port" ) {
+  world w;
+}
+
+TEST_CASE( "[goto] ask_goto_port" ) {
   world w;
 }
 

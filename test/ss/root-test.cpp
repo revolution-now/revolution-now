@@ -55,7 +55,7 @@ struct world : testing::World {
 /****************************************************************
 ** Test Cases
 *****************************************************************/
-TEST_CASE( "[ss/root] some test" ) {
+TEST_CASE( "[ss/root] validation" ) {
   world w;
 
   valid_or<string> v = valid;
@@ -90,6 +90,10 @@ TEST_CASE( "[ss/root] some test" ) {
     REQUIRE_THAT( v.error(),
                   Contains( "contains native units." ) );
   }
+}
+
+TEST_CASE( "[ss/root] missing player_terrain" ) {
+  world w;
 }
 
 } // namespace

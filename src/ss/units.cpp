@@ -98,6 +98,70 @@ valid_or<string> wrapped::UnitsState::validate() const {
     }
   }
 
+  // Check that units in cargo have holders that exist.
+  for( auto const& [id, unit_state] : units ) {
+    SWITCH( unit_state ) {
+      CASE( euro ) {
+        ::rn::Unit const& unit  = euro.unit;
+        UnitOwnership const& st = euro.ownership;
+        auto const is_in_cargo =
+            st.get_if<UnitOwnership::cargo>();
+        if( !is_in_cargo.has_value() ) continue;
+        UnitId const holder_id = is_in_cargo->holder;
+        REFL_VALIDATE(
+            units.contains( holder_id ),
+            "unit {} is being held in the cargo of unit {} but "
+            "the latter unit id does not exist.",
+            unit.id(), holder_id );
+        break;
+      }
+      CASE( native ) { break; }
+    }
+  }
+
+  // Check that units in goto mode are either directly or indi-
+  // rectly on the map.
+  for( auto const& [id, unit_state] : units ) {
+    SWITCH( unit_state ) {
+      CASE( euro ) {
+        ::rn::Unit const& unit = euro.unit;
+        if( !unit.orders().holds<unit_orders::go_to>() )
+          continue;
+        UnitOwnership const& st = euro.ownership;
+        auto const is_on_map = st.get_if<UnitOwnership::world>();
+        if( is_on_map.has_value() ) continue;
+        auto const is_in_cargo =
+            st.get_if<UnitOwnership::cargo>();
+        if( is_in_cargo.has_value() ) {
+          UnitId const holder_id = is_in_cargo->holder;
+          // Should have been validated already.
+          auto const it = units.find( holder_id );
+          CHECK( it != units.end(),
+                 "unit {} is being held in the cargo of unit {} "
+                 "but the latter unit id does not exist.",
+                 unit.id(), holder_id );
+          UnitState const& holder_state = it->second;
+          auto const holder_euro =
+              holder_state.get_if<UnitState::euro>();
+          REFL_VALIDATE(
+              holder_euro.has_value(),
+              "unit {} is being held in the cargo of unit {} "
+              "but the latter unit id is not a european unit.",
+              unit.id(), holder_id );
+          UnitOwnership const& holder_ownership =
+              holder_euro->ownership;
+          REFL_VALIDATE(
+              holder_ownership.holds<UnitOwnership::world>(),
+              "unit {} is in goto mode but is in the cargo of "
+              "unit {} which is not on the map.",
+              unit.id(), holder_id );
+        }
+        break;
+      }
+      CASE( native ) { break; }
+    }
+  }
+
   // Check that units that are inbound/outbound are ships.
   for( auto const& [id, unit_state] : units ) {
     SWITCH( unit_state ) {

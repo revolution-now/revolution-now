@@ -833,5 +833,18 @@ TEST_CASE(
   }
 }
 
+TEST_CASE( "[command-move] goto: high seas via sea lane" ) {
+  world w;
+}
+
+TEST_CASE( "[command-move] goto: high seas via map edge" ) {
+  world w;
+}
+
+TEST_CASE(
+    "[command-move] goto: ship in colony port clears orders" ) {
+  world w;
+}
+
 } // namespace
 } // namespace rn

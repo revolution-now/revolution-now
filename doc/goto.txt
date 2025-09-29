@@ -1,28 +1,38 @@
 TODO:
+-----------------------------------------------------------------
 
-  * Ship passing through a colony should not unload its units or
-    open the colony if it is still in goto mode, i.e. the colony
-    is not the target.
-  * Goto colony.
-  * Goto europe.
+  * Allow dragging off the right/left edge of the map to mean
+    goto harbor.
+  * Add a new method to the IGotoMapViewer to return the movement
+    cost of a tile. That will be added to the `steps` in the
+    a-star algo which should automatically cause the path on land
+    to e.g. avoid mountains if possible.
   * Omnipotent goto mode as in OG.
   * Goto tile via keyboard.
+  * As a ship uncovers tiles while trying to find sea lane, we
+    might want to somehow recompute the path after re-checking
+    the ships surroundings.
 
+Done:
+-----------------------------------------------------------------
 
-Strategies:
+  * Goto colony.
+  * Goto europe.
 
-  * Goto europe:
+  Strategies:
 
-      Expand circle outward, assuming hidden tiles are traversa-
-      ble, and find the first sea lane. Assume that tiles along
-      the right/left edge are sea lane, though even if they are
-      not, that is still ok because once we get there we can move
-      off the map. If there is no sea lane then that needs to be
-      handled.
+    * Goto europe:
 
-  * Goto tile:
+        Expand circle outward, assuming hidden tiles are travers-
+        able, and find the first sea lane. Assume that tiles
+        along the right/left edge are sea lane, though even if
+        they are not, that is still ok because once we get there
+        we can move off the map. If there is no sea lane then
+        that needs to be handled.
 
-      Do a-star assuming hidden tiles are traversable.
+    * Goto tile:
 
-  * Generally, connectivity checking should not be needed other-
-    wise it might leak info to the player.
+        Do a-star assuming hidden tiles are traversable.
+
+    * Generally, connectivity checking should not be needed oth-
+      erwise it might leak info to the player.

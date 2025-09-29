@@ -63,6 +63,8 @@ sumtype.LandViewRawInput {
   },
   european_status {},
   escape {},
+  goto_port {},
+  goto_harbor {},
   reveal_map {},
   toggle_map_reveal {},
   cheat_create_unit {},

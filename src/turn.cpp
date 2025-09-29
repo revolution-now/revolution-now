@@ -1278,20 +1278,39 @@ wait<> advance_unit( IEngine& engine, SS& ss, TS& ts,
         // ders. This can happen e.g. when a unit has its goto
         // target as a dwelling but then opts not to enter it
         // when the menu pops up. In that case the order will
-        // have run but the unit wil have ended its turn. In that
-        // case best to clear the orders. Note that this is not
-        // the same as when a unit doesn't move as a result of
-        // encountering an untraversible tile as it explores
+        // have run but the unit will have ended its turn. In
+        // that case best to clear the orders. Note that this is
+        // not the same as when a unit doesn't move as a result
+        // of encountering an untraversible tile as it explores
         // hidden tiles; in that case, the logic in the agent
         // will detect that and attempt to recompute the path
         // (once). So if we are here and we still haven't moved
         // then that would have already been attempted if needed.
+        //
+        // One additional subtelty is that before clearing orders
+        // we need to test for movement points exhausted here be-
+        // cause a valid move consists of a unit attempting to
+        // move onto a tile for which it does not have enough
+        // movement points, at which point a dice is rolled, and
+        // the unit may not move onto that tile, but its movement
+        // points will have been exhausted. In that case the
+        // order is reported to have been run above, but the unit
+        // will not have moved. In that case we need to keep the
+        // unit in goto mode. That said, if it still has movement
+        // points left but didn't move, then that means that the
+        // path has been genuinely interrupted by some means. In
+        // that case we clear the orders both for a good user ex-
+        // perience and also as a kind of circuit breaker to pre-
+        // vent an infinite loop where the agent thinks the unit
+        // can move, but it doesn't, and somehow doesn't exhaust
+        // movement points in the process, thereby causing the
+        // unit to go into an infinite loop without advancement.
         auto const new_tile =
             coord_for_unit_indirect( ss.units, unit.id() );
         bool const did_not_move =
             new_tile.has_value() &&
             new_tile->to_gfx() == prev_tile;
-        if( did_not_move ) {
+        if( did_not_move && !unit.mv_pts_exhausted() ) {
           unit.clear_orders();
           break;
         }

@@ -31,8 +31,14 @@ struct GotoMapViewer : IGotoMapViewer {
   GotoMapViewer( SSConst const& ss, Unit const& unit );
   ~GotoMapViewer() override;
 
-  [[nodiscard]] bool can_enter_tile(
-      gfx::point p ) const override;
+  bool can_enter_tile( gfx::point tile ) const override;
+
+  e_map_side map_side( gfx::point tile ) const override;
+
+  e_map_side_edge is_on_map_side_edge(
+      gfx::point tile ) const override;
+
+  maybe<bool> is_sea_lane( gfx::point tile ) const override;
 
  private:
   SSConst const& ss_;
@@ -40,5 +46,7 @@ struct GotoMapViewer : IGotoMapViewer {
   std::unique_ptr<IVisibility const> const viz_;
   bool const is_ship_ = {};
 };
+
+static_assert( !std::is_abstract_v<GotoMapViewer> );
 
 } // namespace rn

@@ -193,6 +193,24 @@ valid_or<string> validate_interaction(
   return base::valid;
 }
 
+// Players & TerrainState
+valid_or<string> validate_interaction(
+    PlayersState const& players,
+    TerrainState const& terrain_class ) {
+  auto& terrain = terrain_class.refl();
+
+  // Check that each player has a player_terrain.
+  for( auto const& [type, player] : players.players ) {
+    if( !player.has_value() ) continue;
+    REFL_VALIDATE( terrain.player_terrain[type].has_value(),
+                   "player {} exists but does not have an entry "
+                   "in the player_terrain map.",
+                   type );
+  }
+
+  return base::valid;
+}
+
 } // namespace
 
 valid_or<string> FormatVersion::validate() const {
@@ -214,6 +232,8 @@ valid_or<string> RootState::validate() const {
   HAS_VALUE_OR_RET(
       validate_interaction( natives, zzz_terrain ) );
   HAS_VALUE_OR_RET( validate_interaction( map, zzz_terrain ) );
+  HAS_VALUE_OR_RET(
+      validate_interaction( players, zzz_terrain ) );
   return valid;
 }
 

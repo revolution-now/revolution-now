@@ -29,9 +29,16 @@ struct SSConst;
 TerrainConnectivity compute_terrain_connectivity(
     SSConst const& ss );
 
+// Returns true if at least one tile in l is connected to at
+// least one tile in r.
+[[nodiscard]] bool has_overlapping_connectivity(
+    TerrainConnectivity const& connectivity,
+    std::vector<gfx::point> const& l,
+    std::vector<gfx::point> const& r );
+
 // Returns true if the water tile does not have ocean access.
-bool is_inland_lake( TerrainConnectivity const& conn,
-                     Coord tile );
+[[nodiscard]] bool is_inland_lake(
+    TerrainConnectivity const& conn, Coord tile );
 
 // Should be called with the location of a water tile and this
 // will determine if it has access to one of the edges of the map
@@ -39,27 +46,27 @@ bool is_inland_lake( TerrainConnectivity const& conn,
 // tile is connected to the left or right edge of the map then it
 // is deemed to have "ocean" access, since it will have access to
 // at least one sea lane.
-bool water_square_has_ocean_access(
+[[nodiscard]] bool water_square_has_ocean_access(
     TerrainConnectivity const& conn, Coord tile );
 
 // Ditto but only for the left edge of the map (left sea lane).
-bool water_square_has_left_ocean_access(
+[[nodiscard]] bool water_square_has_left_ocean_access(
     TerrainConnectivity const& conn, Coord tile );
 
 // Ditto but only for the right edge of the map (left sea lane).
-bool water_square_has_right_ocean_access(
+[[nodiscard]] bool water_square_has_right_ocean_access(
     TerrainConnectivity const& conn, Coord tile );
 
 // Is one of the tiles adjacent to `tile` connected to a segment
 // that touches one of the edges of the map? This is used e.g. to
 // tell if a colony square has access to the ocean.
-bool colony_has_ocean_access(
+[[nodiscard]] bool colony_has_ocean_access(
     SSConst const& ss, TerrainConnectivity const& connectivity,
     Coord tile );
 
 // For this to return true the two tiles need to be either both
 // land or both water and they need to be connected.
-bool tiles_are_connected(
+[[nodiscard]] bool tiles_are_connected(
     TerrainConnectivity const& connectivity, gfx::point p1,
     gfx::point p2 );
 

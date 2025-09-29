@@ -17,4 +17,5 @@ sumtype.goto_target {
   map {
     tile 'gfx::point',
   },
+  harbor {},
 }

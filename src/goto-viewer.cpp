@@ -11,6 +11,7 @@
 #include "goto-viewer.hpp"
 
 // Revolution Now
+#include "pacific.hpp"
 #include "roles.hpp"
 #include "society.hpp"
 #include "visibility.hpp"
@@ -20,6 +21,7 @@
 
 // ss
 #include "ss/nation.hpp"
+#include "ss/ref.hpp"
 #include "ss/unit.hpp"
 
 // rds
@@ -33,6 +35,7 @@ namespace {
 
 using ::base::maybe;
 using ::gfx::point;
+using ::gfx::size;
 
 maybe<e_player> viz_player( SSConst const& ss,
                             Unit const& unit ) {
@@ -63,16 +66,26 @@ GotoMapViewer::GotoMapViewer( SSConst const& ss,
 
 GotoMapViewer::~GotoMapViewer() = default;
 
-bool GotoMapViewer::can_enter_tile( point const p ) const {
-  if( !viz_->on_map( p ) ) return false;
-  switch( viz_->visible( p ) ) {
+bool GotoMapViewer::can_enter_tile( point const tile ) const {
+  if( !viz_->on_map( tile ) ) return false;
+  switch( viz_->visible( tile ) ) {
     case e_tile_visibility::hidden:
       return true;
     case e_tile_visibility::fogged:
     case e_tile_visibility::clear:
       break;
   }
-  if( auto const society = society_on_square( ss_, p );
+  // NOTE: we don't check for colonies here, even friendly ones,
+  // because we don't want ships to be able to enter them along
+  // their path; we only want ships to enter them when they are
+  // the destination, which will be allowed because the path
+  // finding algos will always allow the destination tile to be
+  // visited (or at least attempted to be visited), that way the
+  // player can use the goto action to e.g. attack a dwelling,
+  // trade with a foreign colony, etc. That said, land units will
+  // always be able to enter friendly colonies because they are
+  // on land, and we don't exclude them.
+  if( auto const society = society_on_square( ss_, tile );
       society.has_value() ) {
     SWITCH( *society ) {
       CASE( european ) {
@@ -83,12 +96,39 @@ bool GotoMapViewer::can_enter_tile( point const p ) const {
       CASE( native ) { return false; }
     }
   }
-  MapSquare const& square = viz_->square_at( p );
+  MapSquare const& square = viz_->square_at( tile );
   switch( square.surface ) {
     case e_surface::land:
       return !is_ship_;
     case e_surface::water:
       return is_ship_;
+  }
+}
+
+e_map_side GotoMapViewer::map_side( point const tile ) const {
+  using enum e_map_side;
+  return is_atlantic_side_of_map( ss_.terrain, tile ) ? atlantic
+                                                      : pacific;
+}
+
+e_map_side_edge GotoMapViewer::is_on_map_side_edge(
+    point const p ) const {
+  using enum e_map_side_edge;
+  size const map_size = viz_->rect_tiles().delta();
+  if( p.x == 0 ) return pacific;
+  if( p.x == map_size.w - 1 ) return atlantic;
+  return none;
+}
+
+maybe<bool> GotoMapViewer::is_sea_lane(
+    point const tile ) const {
+  switch( viz_->visible( tile ) ) {
+    using enum e_tile_visibility;
+    case e_tile_visibility::hidden:
+      return nothing;
+    case e_tile_visibility::fogged:
+    case e_tile_visibility::clear:
+      return viz_->square_at( tile ).sea_lane;
   }
 }
 

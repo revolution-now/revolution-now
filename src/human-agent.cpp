@@ -56,6 +56,7 @@ namespace rn {
 namespace {
 
 using ::gfx::point;
+using ::gfx::size;
 using ::refl::enum_map;
 
 valid_or<string> is_valid_colony_name_msg(
@@ -437,14 +438,41 @@ void HumanAgent::new_goto( UnitId const unit_id,
       unit.orders() = unit_orders::go_to{ .target = map };
       break;
     }
+    CASE( harbor ) {
+      auto const paths = compute_harbor_goto_path(
+          GotoMapViewer( ss_, unit ), src );
+      if( !paths.has_value() ) break;
+      if( paths->reverse_path.empty() ) break;
+      goto_registry_.paths[unit_id] = std::move( *paths );
+      unit.orders() = unit_orders::go_to{ .target = harbor };
+      break;
+    }
   }
 }
 
 EvolveGoto HumanAgent::evolve_goto( UnitId const unit_id ) {
   Unit& unit = ss_.units.unit_for( unit_id );
   CHECK( unit.orders().holds<unit_orders::go_to>() );
+
+  auto const abort = [&] {
+    unit.clear_orders();
+    goto_registry_.paths.erase( unit_id );
+    return EvolveGoto::abort{};
+  };
+
+  if( unit_has_reached_goto_target( ss_, unit ) ) return abort();
+
   // Copy this for safety because we may end up changing it.
   auto const go_to = unit.orders().get<unit_orders::go_to>();
+  // See if we need to get rid of an old goto target if the
+  // target has changed. This can happen when a unit is given a
+  // new goto order when it didn't complete a previous one. Doing
+  // it this way allows us to not need an IAgent method to clear
+  // the goto path when a new goto order is given.
+  if( goto_registry_.paths.contains( unit_id ) &&
+      goto_registry_.paths[unit_id].target != go_to.target )
+    goto_registry_.paths.erase( unit_id );
+
   // This should be validated when loading the save, namely
   // that a unit in goto mode must be either directly on the
   // map or in the cargo of another unit that is on the map.
@@ -453,12 +481,6 @@ EvolveGoto HumanAgent::evolve_goto( UnitId const unit_id ) {
 
   SWITCH( go_to.target ) {
     CASE( map ) {
-      auto const abort = [&] {
-        unit.clear_orders();
-        goto_registry_.paths.erase( unit_id );
-        return EvolveGoto::abort{};
-      };
-
       auto const direction = [&] -> maybe<e_direction> {
         if( !goto_registry_.paths.contains( unit_id ) )
           return nothing;
@@ -485,8 +507,42 @@ EvolveGoto HumanAgent::evolve_goto( UnitId const unit_id ) {
         return nothing;
       };
 
-      // Check if we've arrived.
-      if( src == map.tile ) return abort();
+      // Here we try twice, and this has two purposes. First, if
+      // the unit's goto orders are new and its path hasn't been
+      // computed yet, then the first attempt will fail and then
+      // we'll compute the path and try again. But it is also
+      // needed for a unit that already has a goto path, since as
+      // a unit explores hidden tiles it may discover that its
+      // current path is no longer viable and may need to recom-
+      // pute a path. But if the second attempt to compute a path
+      // still does not succeed then there is not further viable
+      // path and we cancel.
+      if( auto const d = direction(); d.has_value() )
+        return EvolveGoto::move{ .to = *d };
+      new_goto( unit_id, go_to.target );
+      if( auto const d = direction(); d.has_value() )
+        return EvolveGoto::move{ .to = *d };
+      return abort();
+    }
+    CASE( harbor ) {
+      auto const direction = [&] -> maybe<e_direction> {
+        GotoMapViewer const goto_viewer( ss_, unit );
+        if( auto const d =
+                goto_viewer.is_sea_lane_launch_point( src );
+            d.has_value() )
+          return *d;
+        if( !goto_registry_.paths.contains( unit_id ) )
+          return nothing;
+        auto& reverse_path =
+            goto_registry_.paths[unit_id].reverse_path;
+        if( reverse_path.empty() ) return nothing;
+        point const dst = reverse_path.back();
+        reverse_path.pop_back();
+        auto const d = src.direction_to( dst );
+        if( !d.has_value() ) return nothing;
+        if( goto_viewer.can_enter_tile( dst ) ) return *d;
+        return nothing;
+      };
 
       // Here we try twice, and this has two purposes. First, if
       // the unit's goto orders are new and its path hasn't been

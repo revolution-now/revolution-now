@@ -222,4 +222,19 @@ bool tiles_are_connected(
                                 connectivity.x_size, p2 );
 }
 
+bool has_overlapping_connectivity(
+    TerrainConnectivity const& connectivity,
+    vector<point> const& l, vector<point> const& r ) {
+  unordered_set<int> indexes;
+  auto const index_for = [&]( point const p ) {
+    return compute_segment_index( connectivity.indices,
+                                  connectivity.x_size, p );
+  };
+  for( point const p : l ) indexes.insert( index_for( p ) );
+  for( point const p : r )
+    if( indexes.contains( index_for( p ) ) ) //
+      return true;
+  return false;
+}
+
 } // namespace rn

@@ -1,17 +1,17 @@
 /****************************************************************
-**goto-viewer-test.cpp
+**igoto-viewer-test.cpp
 *
 * Project: Revolution Now
 *
 * Created by David P. Sicilia on 2025-09-27.
 *
-* Description: Unit tests for the goto-viewer module.
+* Description: Unit tests for the igoto-viewer module.
 *
 *****************************************************************/
 #include "test/testing.hpp"
 
 // Under test.
-// #include "src/goto-viewer.hpp"
+// #include "src/igoto-viewer.hpp"
 
 // Testing.
 #include "test/fake/world.hpp"
@@ -57,19 +57,7 @@ struct world : testing::World {
 /****************************************************************
 ** Test Cases
 *****************************************************************/
-TEST_CASE( "[goto-viewer] can_enter_tile" ) {
-  world w;
-}
-
-TEST_CASE( "[goto-viewer] map_side" ) {
-  world w;
-}
-
-TEST_CASE( "[goto-viewer] is_on_map_side_edge" ) {
-  world w;
-}
-
-TEST_CASE( "[goto-viewer] is_sea_lane" ) {
+TEST_CASE( "[igoto-viewer] is_sea_lane_launch_point" ) {
   world w;
 }
 

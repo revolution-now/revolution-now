@@ -534,5 +534,52 @@ TEST_CASE( "[connectivity] tiles_are_connected" ) {
   REQUIRE( f( { .x = 2, .y = 9 }, { .x = 0, .y = 10 } ) );
 }
 
+TEST_CASE( "[connectivity] has_overlapping_connectivity" ) {
+  world w;
+  MapSquare const _ = w.make_ocean();
+  MapSquare const L = w.make_grassland();
+
+  w.set_width( 18 );
+  // clang-format off
+  w.create_map( { /*
+    0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f  g  h  */
+    L, _, _, _, _, L, _, _, _, _, _, L, _, _, _, _, L, _, // 0
+    _, _, _, _, _, L, _, _, _, _, L, L, L, _, _, _, L, L, // 1
+    _, L, L, _, _, L, _, _, _, _, _, L, _, _, _, _, _, _, // 2
+    _, L, L, _, L, L, L, L, _, _, _, L, _, _, _, _, _, _, // 3
+    _, _, _, _, L, _, _, L, _, _, L, _, _, _, _, _, L, L, // 4
+    _, _, _, _, L, _, L, L, _, L, _, _, _, _, _, L, L, _, // 5
+    _, _, _, _, L, L, L, L, _, L, _, _, _, _, _, L, _, _, // 6
+    _, _, _, _, L, L, _, _, _, L, L, L, L, _, _, L, _, _, // 7
+    _, _, _, _, _, L, _, _, _, L, L, L, L, L, _, L, L, _, // 8
+    L, L, L, _, _, L, _, _, _, _, _, L, L, _, _, _, L, L, // 9
+    L, _, _, _, _, L, L, _, _, _, _, _, _, _, _, _, _, _, // a
+    _, _, _, _, _, L, L, L, _, _, _, _, L, L, _, _, _, _, // b
+    _, _, _, _, _, L, _, L, L, _, _, L, _, _, L, _, _, _, // c
+    _, _, _, _, L, L, _, _, L, _, _, _, L, L, _, _, _, _, // d
+    _, _, _, _, L, _, _, _, L, _, _, _, _, L, _, _, _, _, // e
+    _, _, _, _, L, L, L, L, L, L, _, _, _, _, _, _, _, _, // f
+    _, L, L, _, _, _, _, _, _, L, L, L, L, _, L, L, L, _, // g
+    _, L, L, L, _, _, _, _, _, _, _, L, L, L, L, _, L, L, // h
+    _, L, _, L, _, _, _, _, _, _, _, _, _, _, L, _, _, _, // i
+    _, L, L, L, _, _, _, _, _, _, _, _, _, _, L, _, _, _, /* j
+    0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f  g  h  */
+  } );
+  // clang-format on
+
+  TerrainConnectivity const connectivity =
+      compute_terrain_connectivity( w.ss() );
+
+  vector<point> l, r;
+
+  auto const f = [&] [[clang::noinline]] {
+    return has_overlapping_connectivity( connectivity, l, r );
+  };
+
+  l = {};
+  r = {};
+  REQUIRE_FALSE( f() );
+}
+
 } // namespace
 } // namespace rn

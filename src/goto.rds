@@ -8,6 +8,10 @@
 # Description: Rds definitions for the goto module.
 #
 # ===============================================================
+# ss
+include "ss/colony-id.hpp"
+include "ss/goto.rds.hpp"
+
 # gfx
 include "gfx/cartesian.hpp"
 
@@ -17,5 +21,11 @@ include "<vector>"
 namespace "rn"
 
 struct.GotoPath {
+  target 'goto_target',
   reverse_path 'std::vector<gfx::point>',
+}
+
+struct.GotoPort {
+  europe 'bool',
+  colonies 'std::vector<ColonyId>',
 }

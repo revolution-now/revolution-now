@@ -26,6 +26,7 @@
 #include "map-square.hpp"
 #include "mv-calc.hpp"
 #include "on-map.hpp"
+#include "pacific.hpp"
 #include "plane-stack.hpp"
 #include "society.hpp"
 #include "ts.hpp"
@@ -45,6 +46,9 @@
 #include "ss/ref.hpp"
 #include "ss/terrain.hpp"
 #include "ss/units.hpp"
+
+// rds
+#include "rds/switch-macro.hpp"
 
 // refl
 #include "refl/to-str.hpp"
@@ -466,6 +470,7 @@ wait<> TravelHandler::show_sail_high_seas_forbidden_msg() const {
 wait<TravelHandler::e_travel_verdict>
 TravelHandler::confirm_sail_high_seas() const {
   CHECK( is_high_seas( ss_.terrain, move_dst ) );
+  Unit const& unit = ss_.units.unit_for( unit_id );
   // The original game seems to ask to sail the high seas if and
   // only if the following conditions are met:
   //
@@ -475,33 +480,65 @@ TravelHandler::confirm_sail_high_seas() const {
   //   3. You are moving in either the ne, e, or se directions
   //      (that's for atlantic sea lanes; the opposite for pa-
   //      cific sea lanes).
+  //   4. The unit is not in goto mode.
   //
-  // Not sure the reason for #2, but the benefit of #3 is that
-  // you can freely move north/south without getting the prompt
-  // which is useful for traveling around the map generally
-  // (sometimes continents that are above/below each other are
-  // separated by a line of sea lane which would make it perpetu-
-  // ally frustrating to travel between if you were prompted to
-  // sail the high seas when moving north south), and you can
-  // also move west without getting the prompt, which allows
-  // starting the ship in the middle of sea lane at the start of
-  // the game.
-  bool is_atlantic =
-      ( move_src.x >= 0 + ss_.terrain.world_size_tiles().w / 2 );
-  bool is_pacific  = !is_atlantic;
-  bool correct_dst = is_high_seas( ss_.terrain, move_dst );
-  bool correct_src =
+  // The benefit of #3 is that you can freely move north/south
+  // and any western direction (on the atlantic side) without
+  // getting the prompt which is useful for traveling around the
+  // map generally.
+  //
+  // NOTE: in the OG there is what appears to be a bug in the
+  // goto mechanism when the unit is sent to europe. Specifi-
+  // cally, the unit is able to enter the high seas immediately
+  // when entering a sea lane tile; this is in contrast to manu-
+  // ally moving the ship where it is required to move from one
+  // sea lane tile to another westward one in order to enter the
+  // high seas. Given that sea lane tiles are place three tiles
+  // away from land on the Atlantic side, this is critical for
+  // game balancing because it means that Caravel's cannot make
+  // it from a colony to the high seas in one turn, whereas the
+  // merchantman can. It seems fair to say that the mechanics of
+  // manual movement should not be inconsistent with the me-
+  // chanics of goto movement. So therefore we will assume that
+  // the goto mechanics are wrong since they break the aforemen-
+  // tioned advantage that the Merchantman has. So in the NG we
+  // will opt to make the goto mechanics behave like the manual
+  // one, namely that the ship has to make it to a sea lane tile
+  // and then move westward onto another sea lane tile in order
+  // to launch into the high seas.
+  //
+  // NOTE: the logic here regarding east/west sea lane access
+  // should be kept in sync with the logic in IGotoMapViewer.
+  bool const is_atlantic =
+      is_atlantic_side_of_map( ss_.terrain, move_src );
+  bool const is_pacific  = !is_atlantic;
+  bool const correct_dst = is_high_seas( ss_.terrain, move_dst );
+  bool const correct_src =
       is_pacific || is_high_seas( ss_.terrain, move_src );
   UNWRAP_CHECK( d, move_src.direction_to( move_dst ) );
-  bool correct_direction = is_atlantic
-                               ? ( ( d == e_direction::ne ) ||
-                                   ( d == e_direction::e ) ||
-                                   ( d == e_direction::se ) )
-                               : ( ( d == e_direction::nw ) ||
-                                   ( d == e_direction::w ) ||
-                                   ( d == e_direction::sw ) );
-  bool ask = correct_src && correct_dst && correct_direction;
-  if( !ask ) co_return e_travel_verdict::map_to_map;
+  bool const correct_direction =
+      is_atlantic ? ( ( d == e_direction::ne ) ||
+                      ( d == e_direction::e ) ||
+                      ( d == e_direction::se ) )
+                  : ( ( d == e_direction::nw ) ||
+                      ( d == e_direction::w ) ||
+                      ( d == e_direction::sw ) );
+
+  auto const go_to = unit.orders().get_if<unit_orders::go_to>();
+  bool const in_goto_mode    = go_to.has_value();
+  bool const goto_suppresses = in_goto_mode && [&] {
+    SWITCH( go_to->target ) {
+      CASE( map ) { return map.tile != move_dst; }
+      CASE( harbor ) { return false; }
+    }
+  }();
+
+  bool const should_sail_high_seas =
+      correct_src && correct_dst && correct_direction &&
+      !goto_suppresses;
+
+  if( !should_sail_high_seas )
+    co_return e_travel_verdict::map_to_map;
 
   // After all is said and done, if we were going to ask the
   // player whether they want to sail the high seas, check if we
@@ -518,6 +555,11 @@ TravelHandler::confirm_sail_high_seas() const {
     }
     co_return e_travel_verdict::map_to_map;
   }
+
+  bool const needs_confirmation = !in_goto_mode;
+
+  if( !needs_confirmation )
+    co_return TravelHandler::e_travel_verdict::sail_high_seas;
 
   maybe<ui::e_confirm> const confirmed =
       co_await ask_sail_high_seas();
@@ -547,6 +589,16 @@ TravelHandler::confirm_sail_high_seas_map_edge() const {
     co_await show_sail_high_seas_forbidden_msg();
     co_return e_travel_verdict::cancelled;
   }
+
+  Unit const& unit = ss_.units.unit_for( unit_id );
+  auto const go_to = unit.orders().get_if<unit_orders::go_to>();
+  bool const in_goto_mode = go_to.has_value();
+
+  bool const needs_confirmation = !in_goto_mode;
+
+  if( !needs_confirmation )
+    co_return TravelHandler::e_travel_verdict::
+        map_edge_high_seas;
 
   maybe<ui::e_confirm> const confirmed =
       co_await ask_sail_high_seas();
@@ -998,6 +1050,12 @@ wait<> TravelHandler::perform() {
       unit.forfeight_mv_points();
       CHECK( unit.orders().holds<unit_orders::none>() ||
              unit.orders().holds<unit_orders::go_to>() );
+      // Clear any goto orders so that if the ship is in goto
+      // mode then it will not show a 'G' on its flag in the
+      // colony view. We are assuming that a goto path cannot in-
+      // clude a colony as an intermediate stop.
+      if( unit.orders().holds<unit_orders::go_to>() )
+        unit.clear_orders();
       UNWRAP_CHECK( colony_id,
                     ss_.colonies.maybe_from_coord( move_dst ) );
       // Unload units and prioritize them.

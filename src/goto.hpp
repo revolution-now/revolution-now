@@ -13,6 +13,13 @@
 // rds
 #include "goto.rds.hpp"
 
+// Revolution Now
+#include "maybe.hpp"
+#include "wait.hpp"
+
+// ss
+#include "ss/goto.rds.hpp"
+
 // gfx
 #include "gfx/cartesian.hpp"
 
@@ -25,15 +32,21 @@ namespace rn {
 ** Fwd. Decls.
 *****************************************************************/
 struct IGotoMapViewer;
+struct IGui;
+struct Player;
 struct SSConst;
+struct TerrainConnectivity;
 struct Unit;
 
 /****************************************************************
 ** Public API.
 *****************************************************************/
-base::maybe<GotoPath> compute_goto_path(
-    IGotoMapViewer const& viewer, gfx::point src,
-    gfx::point dst );
+maybe<GotoPath> compute_goto_path( IGotoMapViewer const& viewer,
+                                   gfx::point src,
+                                   gfx::point dst );
+
+maybe<GotoPath> compute_harbor_goto_path(
+    IGotoMapViewer const& viewer, gfx::point src );
 
 // This will return false if the unit does not have goto orders.
 // If it does have goto orders then it will return true if the
@@ -41,5 +54,13 @@ base::maybe<GotoPath> compute_goto_path(
 // be a map tile, high seas, etc.
 [[nodiscard]] bool unit_has_reached_goto_target(
     SSConst const& ss, Unit const& unit );
+
+GotoPort find_goto_port( SSConst const& ss,
+                         TerrainConnectivity const& connectivity,
+                         Unit const& unit );
+
+wait<maybe<goto_target>> ask_goto_port(
+    SSConst const& ss, IGui& gui, Player const& player,
+    GotoPort const& goto_port );
 
 } // namespace rn
