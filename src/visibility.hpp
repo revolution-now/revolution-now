@@ -225,14 +225,14 @@ bool does_player_have_fog_removed_on_square( SSConst const& ss,
 // This will look up the unit type's sighting radius, and then
 // compute each (existing) square that the unit could see as-
 // suming it is on the given tile, and will do so according to
-// the OG's rules. This means that a land (sea) unit can see ALL
-// squares in its immediate vicinity, plus all LAND (SEA) squares
-// beyond that (and <= to its sighting radius). This looks a bit
-// odd at first but is probably to prevent the ships with the ex-
-// tended sighting radius from being able to reveal too many land
-// tiles too easily, or a scout from being able to see on adja-
-// cent islands (which would be easily possible after getting De
-// Soto, in which case it would have 7x7 site).
+// the OG's rules. Specifically, the unit can see all tiles adja-
+// cent to it, then beyond that, they have to be connected to the
+// tile the unit is on. The exception is for a ship in a colony
+// in which case it still uses the ocean connectivity segment.
+// This will prevent a scout from being able to see the coast of
+// another island, or a ship with large sighting radius from
+// being able to see too far inland. This mirrors how the OG ap-
+// pears to work.
 std::vector<Coord> unit_visible_squares( SSConst const& ss,
                                          e_player player,
                                          e_unit_type type,
