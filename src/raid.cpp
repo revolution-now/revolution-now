@@ -92,6 +92,8 @@ wait<> raid_unit( SS& ss, TS& ts, NativeUnit& attacker,
   e_tribe const tribe_type = tribe_type_for_unit( ss, attacker );
   INativeAgent& native_agent = ts.native_agents()[tribe_type];
   Unit& defender             = ss.units.unit_for( defender_id );
+  Player& player             = player_for_player_or_die(
+      ss.players, defender.player_type() );
   CombatBraveAttackEuro const combat =
       ts.combat.brave_attack_euro( as_const( attacker ),
                                    as_const( defender ) );
@@ -115,6 +117,9 @@ wait<> raid_unit( SS& ss, TS& ts, NativeUnit& attacker,
         .get_bottom<ILandViewPlane>()
         .ensure_visible( dst );
   }
+
+  co_await show_woodcut_if_needed( player, agent,
+                                   e_woodcut::indian_raid );
 
   co_await surprise_raid_msg( ss, agent, dst, tribe_type );
 
@@ -243,6 +248,8 @@ wait<> raid_colony( SS& ss, TS& ts, NativeUnit& attacker,
   // havior of the OG which doesn't really have a concept of
   // units on ships technically; the units would just be sentried
   // and thus would participate in defending the colony.
+  Player& player =
+      player_for_player_or_die( ss.players, colony.player );
   vector<UnitId> const offboarded =
       offboard_units_on_ships( ss, ts, colony.location );
   Unit& defender = ss.units.unit_for(
@@ -276,6 +283,9 @@ wait<> raid_colony( SS& ss, TS& ts, NativeUnit& attacker,
         .get_bottom<ILandViewPlane>()
         .ensure_visible( dst );
   }
+
+  co_await show_woodcut_if_needed( player, agent,
+                                   e_woodcut::indian_raid );
 
   co_await surprise_raid_msg( ss, agent, colony.location,
                               tribe_type );

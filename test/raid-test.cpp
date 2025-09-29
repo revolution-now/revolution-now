@@ -78,6 +78,7 @@ TEST_CASE( "[raid] raid_unit" ) {
   CombatBraveAttackEuro combat;
   Coord const defender_coord{ .x = 1, .y = 0 };
   Coord const attacker_coord{ .x = 0, .y = 0 };
+  MockIAgent& mock_agent = W.agent();
   MockINativeAgent& native_agent =
       W.native_agent( e_tribe::arawak );
   MockIAgent& agent = W.agent( W.default_player_type() );
@@ -126,6 +127,7 @@ TEST_CASE( "[raid] raid_unit" ) {
         "[Dutch] Soldier promoted to [Veteran Soldier] for "
         "victory in combat!" );
     native_agent.EXPECT__on_attack_unit_finished( combat );
+    mock_agent.EXPECT__show_woodcut( e_woodcut::indian_raid );
     f();
     // Brave.
     REQUIRE( !W.units().exists( brave_id ) );
@@ -182,6 +184,7 @@ TEST_CASE( "[raid] raid_unit" ) {
         "[Dutch] [Soldier] routed! Unit demoted to colonist "
         "status." );
     native_agent.EXPECT__on_attack_unit_finished( combat );
+    mock_agent.EXPECT__show_woodcut( e_woodcut::indian_raid );
     f();
     // Brave.
     REQUIRE( W.units().exists( brave_id ) );
@@ -239,6 +242,10 @@ TEST_CASE( "[raid] raid_unit" ) {
         "[Dutch] Soldier defeats [Arawak] Brave in the "
         "wilderness!" );
     native_agent.EXPECT__on_attack_unit_finished( combat );
+    // Pretend we've already showed the woodcut this time to en-
+    // sure that it doesn't get shown again (if it did then we'd
+    // have to add the relevant mock method expectation).
+    W.default_player().woodcuts[e_woodcut::indian_raid] = true;
     f();
     // Brave.
     REQUIRE( !W.units().exists( brave_id ) );
@@ -312,6 +319,8 @@ TEST_CASE( "[raid] raid_unit" ) {
             "wilderness!" );
     native_agent.EXPECT__on_attack_unit_finished( combat );
     mock_land_view.EXPECT__animate_if_visible( _ );
+    W.agent( e_player::english )
+        .EXPECT__show_woodcut( e_woodcut::indian_raid );
     f();
     // Brave.
     REQUIRE( !W.units().exists( brave_id ) );
@@ -438,6 +447,7 @@ TEST_CASE( "[raid] raid_colony" ) {
                   .which   = frigate_id,
                   .sent_to = ShipRepairPort::colony{
                     .id = colony.id } } );
+    mock_agent.EXPECT__show_woodcut( e_woodcut::indian_raid );
     f( attacker );
 
     REQUIRE( player.money == 1000 );
@@ -535,6 +545,7 @@ TEST_CASE( "[raid] raid_colony" ) {
     mock_native_agent.EXPECT__on_attack_colony_finished(
         combat, BraveAttackColonyEffect::building_destroyed{
                   .which = e_colony_building::newspaper } );
+    mock_agent.EXPECT__show_woodcut( e_woodcut::indian_raid );
     f( attacker );
 
     REQUIRE( player.money == 1000 );
@@ -623,6 +634,7 @@ TEST_CASE( "[raid] raid_colony" ) {
     mock_native_agent.EXPECT__on_attack_colony_finished(
         combat, BraveAttackColonyEffect::money_stolen{
                   .quantity = 123 } );
+    mock_agent.EXPECT__show_woodcut( e_woodcut::indian_raid );
     f( attacker );
 
     REQUIRE( player.money == 877 );
@@ -678,7 +690,6 @@ TEST_CASE( "[raid] raid_colony" ) {
     mock_land_view.EXPECT__ensure_visible(
         point{ .x = 1, .y = 0 } );
     mock_land_view.EXPECT__animate_if_visible( _ );
-    mock_agent.EXPECT__show_woodcut( e_woodcut::colony_burning );
     mock_agent.EXPECT__message_box(
         "[Arawak] massacre [Dutch] population in [1]! "
         "Colony set ablaze and decimated! The King demands "
@@ -687,6 +698,8 @@ TEST_CASE( "[raid] raid_colony" ) {
       .colony_id = colony.id } );
     mock_native_agent.EXPECT__on_attack_colony_finished(
         combat, BraveAttackColonyEffect::none{} );
+    mock_agent.EXPECT__show_woodcut( e_woodcut::indian_raid );
+    mock_agent.EXPECT__show_woodcut( e_woodcut::colony_burning );
     f( attacker );
 
     REQUIRE( player.money == 1000 );
@@ -771,7 +784,6 @@ TEST_CASE( "[raid] raid_colony" ) {
     mock_agent.EXPECT__message_box(
         "Port in [1] contained one [Frigate] that was damaged "
         "in battle and was sent to [Amsterdam] for repairs." );
-    mock_agent.EXPECT__show_woodcut( e_woodcut::colony_burning );
     mock_agent.EXPECT__message_box(
         "[Arawak] massacre [Dutch] population in [1]! "
         "Colony set ablaze and decimated! The King demands "
@@ -780,6 +792,8 @@ TEST_CASE( "[raid] raid_colony" ) {
       .colony_id = colony.id } );
     mock_native_agent.EXPECT__on_attack_colony_finished(
         combat, BraveAttackColonyEffect::none{} );
+    mock_agent.EXPECT__show_woodcut( e_woodcut::indian_raid );
+    mock_agent.EXPECT__show_woodcut( e_woodcut::colony_burning );
     f( attacker );
 
     REQUIRE( player.money == 1000 );

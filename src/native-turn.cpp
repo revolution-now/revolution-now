@@ -30,7 +30,6 @@
 #include "ts.hpp"
 #include "unit-mgr.hpp"
 #include "visibility.hpp"
-#include "woodcut.hpp"
 
 // config
 #include "config/natives.hpp"
@@ -80,12 +79,6 @@ wait<> handle_native_unit_attack( SS& ss, TS& ts,
   Coord const dst      = src.moved( direction );
   NativeUnit& attacker = native_unit;
   NativeUnitId const attacker_id = attacker.id;
-
-  Player& player =
-      player_for_player_or_die( ss.players, player_type );
-  IAgent& agent = ts.agents()[player_type];
-  co_await show_woodcut_if_needed( player, agent,
-                                   e_woodcut::indian_raid );
 
   if( maybe<ColonyId> const colony_id =
           ss.colonies.maybe_from_coord( dst );
