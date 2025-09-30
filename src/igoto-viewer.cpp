@@ -40,12 +40,31 @@ maybe<e_direction> IGotoMapViewer::is_sea_lane_launch_point(
   switch( map_side( tile ) ) {
     using enum e_map_side;
     using enum e_direction;
-    case atlantic:
+    case atlantic: {
       if( !enterable_sea_lane( tile ) ) break;
       for( e_direction const d : { e, ne, se } )
         if( enterable_sea_lane( tile.moved( d ) ) ) //
           return d;
+      // We just return "east" here if the tile to the east is
+      // hidden, because on a standard game map, any atlantic sea
+      // lane tile is a launch point, whether it is on the map
+      // edge or not, since sea lane tiles always have sea lane
+      // to the right of them. This corrects an issue where a
+      // ship that is travelling diagonally detects a sea lane
+      // tile X to its east as it is traveling but doesn't recog-
+      // nize it as a launch point because the sea lane tile to
+      // the east of X is hidden, which leads to strange
+      // non-optimal behavior in the dynamic path adjustment.
+      // Even in the case that the map is modded and there is no
+      // sea lane tile to the east of X, it will be ok because
+      // when the ship goes there then the tile to the east of X
+      // will become visible and it will see that it is not on a
+      // launch point and so it will re-route.
+      point const east       = tile.moved( e );
+      bool const east_hidden = !is_sea_lane( east ).has_value();
+      if( can_enter_tile( east ) && east_hidden ) return e;
       break;
+    }
     case pacific:
       for( e_direction const d : { w, nw, sw } )
         if( enterable_sea_lane( tile.moved( d ) ) ) //
