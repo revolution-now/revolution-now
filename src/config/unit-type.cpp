@@ -26,6 +26,8 @@ namespace rn {
 
 namespace {
 
+using ::base::valid_or;
+
 unordered_map<e_unit_inventory, e_unit_type_modifier>
 create_inventory_to_modifier_map(
     refl::enum_map<e_unit_type_modifier,
