@@ -96,7 +96,8 @@ bool is_forbidden_unquoted_str_char( char c ) {
 }
 
 bool is_forbidden_leading_unquoted_str_char( char c ) {
-  static char const forbidden[] = "\n\r{}\\[],\"=:'-0123456789.";
+  static char const forbidden[] =
+      " \n\r{}\\[],\"=:'-0123456789.";
   for( char forbidden_char : forbidden )
     if( c == forbidden_char ) return true;
   return false;
@@ -120,8 +121,8 @@ string escape_and_quote_table_key( string const& k ) {
 
 string escape_and_quote_string_val( string const& k ) {
   string res;
-  if( k.empty() ) return res;
   bool need_quotes = false;
+  if( k.empty() ) need_quotes = true;
   // We have a stronger requirement for the first character.
   if( is_forbidden_leading_unquoted_str_char( k[0] ) )
     need_quotes = true;

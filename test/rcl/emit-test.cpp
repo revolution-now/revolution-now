@@ -633,5 +633,32 @@ TEST_CASE( "[emit] no elide top-level table" ) {
   REQUIRE( emit( *doc ) == expected );
 }
 
+TEST_CASE( "[emit] table value of empty string" ) {
+  using namespace cdr::literals;
+
+  cdr::table tbl{
+    "some_key"_key =
+        cdr::table{
+          "key_a"_key = "hello",
+          "key_b"_key = "",
+          "key_c"_key = "world",
+          "key_d"_key = "  ",
+        },
+  };
+
+  auto const doc =
+      doc::create( std::move( tbl ), ProcessingOptions{} );
+
+  string const expected = R"(some_key {
+  key_a: hello
+  key_b: ""
+  key_c: world
+  key_d: "  "
+}
+)";
+
+  REQUIRE( emit( *doc ) == expected );
+}
+
 } // namespace
 } // namespace rcl
