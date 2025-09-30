@@ -218,6 +218,15 @@ TEST_CASE( "[gfx/cartesian] size::pythagorean" ) {
   REQUIRE( s.pythagorean() == 13.0 );
 }
 
+TEST_CASE( "[gfx/cartesian] size::chessboard_distance" ) {
+  size s = {};
+
+  s = { .w = 4, .h = -2 };
+  REQUIRE( s.chessboard_distance() == 4 );
+  s = { .w = 5, .h = 12 };
+  REQUIRE( s.chessboard_distance() == 12 );
+}
+
 TEST_CASE( "[gfx/cartesian] size::abs" ) {
   size s = {};
 

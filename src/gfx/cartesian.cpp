@@ -285,6 +285,11 @@ double size::pythagorean() const {
   return sqrt( w * w + h * h );
 }
 
+int size::chessboard_distance() const {
+  size const normalized = abs();
+  return std::max( normalized.w, normalized.h );
+}
+
 size size::operator+( size const term ) const {
   return size{ .w = w + term.w, .h = h + term.h };
 };

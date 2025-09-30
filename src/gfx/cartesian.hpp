@@ -112,6 +112,11 @@ struct size {
 
   [[nodiscard]] double pythagorean() const;
 
+  // The minimum number of steps that a king would need on a
+  // chessboard to get from one tile to another. This is relevant
+  // for computing unit distances.
+  [[nodiscard]] int chessboard_distance() const;
+
   [[nodiscard]] size operator+( size term ) const;
 
   [[nodiscard]] size operator-( size term ) const;
