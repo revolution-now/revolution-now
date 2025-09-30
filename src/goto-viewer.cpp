@@ -17,6 +17,7 @@
 #include "visibility.hpp"
 
 // config
+#include "config/command.rds.hpp"
 #include "config/unit-type.rds.hpp"
 
 // ss
@@ -39,6 +40,9 @@ using ::gfx::size;
 
 maybe<e_player> viz_player( SSConst const& ss,
                             Unit const& unit ) {
+  // In the OG this is true, in the NG it defaults to false.
+  if( config_command.go_to.omniscient_path_finding )
+    return nothing;
   if( auto const viewer =
           player_for_role( ss, e_player_role::viewer );
       !viewer.has_value() )

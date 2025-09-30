@@ -83,3 +83,25 @@ lumber_yield {
   # tiplied by this factor if the pioneer is hardy.
   hardy_multiplier: 2
 }
+
+go_to {
+  # Setting this to true makes the game mirror the behavior of
+  # the OG more closely with respect to unit path finding (i.e.,
+  # the "goto" command). Specifically, in the OG, path finding is
+  # done as if the entire map were visible in order to choose the
+  # optimal path, even if it involves tiles that the player has
+  # not yet explored. By default we do not replicate that behav-
+  # ior; path finding is done without knowledge of any tiles that
+  # the player hasn't yet explored, and it makes a best-effort
+  # attempt at finding an optimal path given that limitation. The
+  # purpose of doing this is so that the player cannot use the
+  # goto command to "cheat", i.e. by allowing it to implicitly
+  # leak information about the map that the player does not yet
+  # have. Thus, this flag is false by default. But it can be set
+  # to 'true' to replicate the OG's path finding.
+  #
+  # NOTE: even with this flag as 'false', this game allows equiv-
+  # alent "omniscient" path finding effectively via the cheat
+  # menu when the entire map is visible.
+  omniscient_path_finding: false
+}

@@ -42,6 +42,10 @@ struct.LumberYield {
   hardy_multiplier 'int',
 }
 
+struct.Goto {
+  omniscient_path_finding 'bool',
+}
+
 namespace "rn"
 
 struct.config_command_t {
@@ -60,6 +64,8 @@ struct.config_command_t {
   plow_turns 'refl::enum_map<e_terrain, base::maybe<int>>',
 
   lumber_yield 'config::command::LumberYield',
+
+  go_to 'config::command::Goto',
 }
 
 config.command {}
