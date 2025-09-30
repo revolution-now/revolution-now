@@ -17,6 +17,9 @@
 // Revolution Now
 #include "maybe.hpp"
 
+// ss
+#include "ss/mv-points.hpp"
+
 // gfx
 #include "gfx/cartesian.hpp"
 
@@ -47,6 +50,16 @@ struct IGotoMapViewer {
   // Otherwise, the sea lane status is returned.
   [[nodiscard]] virtual maybe<bool> is_sea_lane(
       gfx::point tile ) const = 0;
+
+  // Assuming that movement is possible between the two tiles
+  // this will return the estimated cost in movement points by
+  // the unit, accounting for how many total movement points the
+  // unit has at the start of each turn. This won't be perfectly
+  // accurate because in general the movement points consumed by
+  // a unit when it moves onto expensive terrain will have a
+  // random element, but this does a best estimate nevertheless.
+  virtual MovementPoints movement_points_required(
+      gfx::point src, e_direction direction ) const = 0;
 
  public: // for convenience
   // In order to sail to the harbor you have to from a source in

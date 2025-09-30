@@ -73,5 +73,9 @@ TEST_CASE( "[goto-viewer] is_sea_lane" ) {
   world w;
 }
 
+TEST_CASE( "[goto-viewer] movement_points_required" ) {
+  world w;
+}
+
 } // namespace
 } // namespace rn

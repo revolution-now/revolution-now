@@ -96,6 +96,13 @@ struct IVisibility {
   virtual MapSquare const& square_at(
       gfx::point tile ) const = 0;
 
+  // For convenience; this will return the real square if it is
+  // clear, the fogged square if it is fogged, and nothing if it
+  // is hidden. This is in contrast to the square_at method which
+  // will return the real tile when it is hidden.
+  virtual maybe<MapSquare const&> visible_square_at(
+      gfx::point tile ) const final;
+
   // For convenience.
   Rect rect_tiles() const;
 

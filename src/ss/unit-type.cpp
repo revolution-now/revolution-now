@@ -11,8 +11,7 @@
 #include "unit-type.hpp"
 
 // config
-#include "config/tile-enum.rds.hpp"
-#include "config/unit-type.hpp"
+#include "config/unit-type.hpp" // FIXME
 
 // ss
 #include "ss/player.hpp"
@@ -46,7 +45,12 @@ namespace rn {
 /****************************************************************
 ** Unit Inventory
 *****************************************************************/
-namespace {} // namespace
+namespace {
+
+using ::base::valid;
+using ::base::valid_or;
+
+} // namespace
 
 maybe<e_unit_inventory> commodity_to_inventory(
     e_commodity comm ) {

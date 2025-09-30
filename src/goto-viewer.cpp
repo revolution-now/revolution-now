@@ -11,6 +11,7 @@
 #include "goto-viewer.hpp"
 
 // Revolution Now
+#include "map-square.hpp"
 #include "pacific.hpp"
 #include "roles.hpp"
 #include "society.hpp"
@@ -134,6 +135,23 @@ maybe<bool> GotoMapViewer::is_sea_lane(
     case e_tile_visibility::clear:
       return viz_->square_at( tile ).sea_lane;
   }
+}
+
+MovementPoints GotoMapViewer::movement_points_required(
+    point const src, e_direction const direction ) const {
+  auto const src_square = viz_->visible_square_at( src );
+  auto const dst_square =
+      viz_->visible_square_at( src.moved( direction ) );
+  if( !src_square.has_value() || !dst_square.has_value() )
+    // If either src or dst tiles are hidden then just assume a
+    // cost of one to traverse them. It seems likely that in
+    // practice, if either of them are hidden, then at least the
+    // dst tile will be hidden, so there isn't really much better
+    // that we can do here.
+    return MovementPoints( 1 );
+  MovementPoints const uncapped = ::rn::movement_points_required(
+      *src_square, *dst_square, direction );
+  return std::min( unit_.desc().base_movement_points, uncapped );
 }
 
 } // namespace rn

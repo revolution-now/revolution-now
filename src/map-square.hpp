@@ -12,12 +12,14 @@
 
 #include "core-config.hpp"
 
+// rds
+#include "ss/map-square.rds.hpp"
+
 // Revolution Now
-#include "mv-points.hpp"
 #include "terrain.hpp"
 
-// Rds
-#include "ss/map-square.rds.hpp"
+// ss
+#include "ss/mv-points.hpp"
 
 // gfx
 #include "gfx/coord.hpp"

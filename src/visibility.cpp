@@ -138,6 +138,18 @@ bool IVisibility::is_resource_suppressed(
   return false;
 }
 
+maybe<MapSquare const&> IVisibility::visible_square_at(
+    point const tile ) const {
+  using enum e_tile_visibility;
+  switch( visible( tile ) ) {
+    case hidden:
+      return nothing;
+    case fogged:
+    case clear:
+      return square_at( tile );
+  }
+}
+
 /****************************************************************
 ** VisibilityEntire
 *****************************************************************/

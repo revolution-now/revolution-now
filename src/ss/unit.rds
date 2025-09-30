@@ -9,12 +9,12 @@
 #
 # ===============================================================
 # ss
-include "ss/cargo.hpp"
-include "ss/goto.rds.hpp"
-include "ss/mv-points.hpp"
-include "ss/nation.rds.hpp"
-include "ss/unit-composition.hpp"
-include "ss/unit-id.hpp"
+include "cargo.hpp"
+include "goto.rds.hpp"
+include "mv-points.hpp"
+include "nation.rds.hpp"
+include "unit-composition.hpp"
+include "unit-id.hpp"
 
 namespace "rn"
 

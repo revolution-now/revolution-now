@@ -10,22 +10,18 @@
 *****************************************************************/
 #pragma once
 
-#include "core-config.hpp"
-
-// Revolution Now
-#include "expect.hpp"
-#include "maybe.hpp"
-
 // ss
-#include "ss/commodity.rds.hpp"
-#include "ss/mv-points.hpp"
-#include "ss/unit-type.rds.hpp"
+#include "commodity.rds.hpp"
+#include "mv-points.hpp"
+#include "unit-type.rds.hpp"
 
 // luapp
 #include "luapp/ext-userdata.hpp"
 
 // base
 #include "base/adl-tag.hpp"
+#include "base/expect.hpp"
+#include "base/maybe.hpp"
 
 // C++ standard library
 #include <unordered_set>

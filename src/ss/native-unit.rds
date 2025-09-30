@@ -9,9 +9,9 @@
 #
 # ===============================================================
 # ss
-include "ss/mv-points.hpp"
-include "ss/native-enums.rds.hpp"
-include "ss/unit-id.hpp"
+include "mv-points.hpp"
+include "native-enums.rds.hpp"
+include "unit-id.hpp"
 
 # base
 include "base/maybe.hpp"

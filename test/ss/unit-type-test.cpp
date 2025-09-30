@@ -43,7 +43,8 @@ namespace {
 
 using namespace std;
 
-using Catch::Contains;
+using ::base::valid;
+using ::Catch::Contains;
 
 /****************************************************************
 ** Fake World Setup

@@ -61,8 +61,8 @@ using ::refl::enum_count;
 using ::refl::enum_values;
 
 struct TileWithDistance {
-  point tile      = {};
-  double distance = {};
+  point tile   = {};
+  int distance = {};
   // Used only by the sea lane search to bias our search to the
   // same row that we started in. This way, all else being equal,
   // the search gets biased toward horizontal travel which makes
@@ -86,29 +86,47 @@ struct TileWithDistance {
   };
 };
 
-struct TileWithSteps {
-  point tile = {};
-  int steps  = {};
+struct TileWithMvPts {
+  point tile         = {};
+  MovementPoints pts = {};
 };
 
 maybe<GotoPath> a_star( IGotoMapViewer const& viewer,
                         point const src, point const dst ) {
   maybe<GotoPath> res;
-  unordered_map<point /*to*/, TileWithSteps /*from*/> explored;
+  unordered_map<point /*to*/, TileWithMvPts /*from*/> explored;
   priority_queue<TileWithDistance> todo;
-  auto const push = [&]( point const p, point const from,
-                         int const steps ) {
+  auto const push = [&]( point const to, point const from,
+                         MovementPoints const pts ) {
     todo.push( TileWithDistance{
-      .tile     = p,
-      .distance = steps + ( p - dst ).pythagorean() } );
-    explored[p] = TileWithSteps{ .tile = from, .steps = steps };
+      .tile     = to,
+      .distance = pts.atoms() +
+                  ( to - dst ).chessboard_distance() * 3 } );
+    explored[to] = TileWithMvPts{ .tile = from, .pts = pts };
   };
-  push( src, src, /*steps=*/0 );
+  push( src, src, MovementPoints() );
   base::ScopedTimer const timer(
       format( "a-star from {} -> {}", src, dst ) );
   while( !todo.empty() ) {
     point const curr = todo.top().tile;
     todo.pop();
+    // NOTE: The fact that we stop as soon as we find the desti-
+    // nation is not optimal in cases where different terrain
+    // paths would yield slightly better pathing in terms of
+    // movement point cost. But we need to do this for perfor-
+    // mance reasons, otherwise e.g. if the map is mostly hidden
+    // then this will cause basically the entire map to be
+    // searched even for a short journey of a couple of tiles.
+    // For ship travel, though, where movement point cost is uni-
+    // form across tiles, this shouldn't pessimize anything. I
+    // believe it only makes things worse for pathing of land
+    // units in the specific case where two paths need to be dis-
+    // tinguised on the different movement point costs they incur
+    // due to terrain types. But even in that case, this should
+    // be "good enough".
+    //
+    // If this line is removed then the paths become "perfect".
+    // TODO: consider making this a config flag.
     if( curr == dst ) break;
     for( e_direction const d : enum_values<e_direction> ) {
       point const moved = curr.moved( d );
@@ -124,14 +142,17 @@ maybe<GotoPath> a_star( IGotoMapViewer const& viewer,
       if( moved != dst && !viewer.can_enter_tile( moved ) )
         continue;
       CHECK( explored.contains( curr ) );
-      int const proposed_steps = explored[curr].steps + 1;
+      MovementPoints const proposed_pts =
+          explored[curr].pts +
+          viewer.movement_points_required( curr, d );
       if( explored.contains( moved ) ) {
-        if( proposed_steps < explored[moved].steps )
-          explored[moved] = TileWithSteps{
-            .tile = curr, .steps = proposed_steps };
+        if( proposed_pts < explored[moved].pts ) {
+          explored[moved] =
+              TileWithMvPts{ .tile = curr, .pts = proposed_pts };
+        }
         continue;
       }
-      push( moved, curr, proposed_steps );
+      push( moved, curr, proposed_pts );
     }
   }
   lg.debug(
@@ -148,17 +169,17 @@ maybe<GotoPath> a_star( IGotoMapViewer const& viewer,
 maybe<GotoPath> sea_lane_search( IGotoMapViewer const& viewer,
                                  point const src ) {
   maybe<GotoPath> res;
-  unordered_map<point /*to*/, TileWithSteps /*from*/> explored;
+  unordered_map<point /*to*/, TileWithMvPts /*from*/> explored;
   priority_queue<TileWithDistance> todo;
   auto const push = [&]( point const p, point const from,
-                         int const steps ) {
-    todo.push( TileWithDistance{
-      .tile       = p,
-      .distance   = static_cast<double>( steps ),
-      .distance_y = abs( p.y - src.y ) } );
-    explored[p] = TileWithSteps{ .tile = from, .steps = steps };
+                         MovementPoints const pts ) {
+    todo.push(
+        TileWithDistance{ .tile       = p,
+                          .distance   = pts.atoms(),
+                          .distance_y = abs( p.y - src.y ) } );
+    explored[p] = TileWithMvPts{ .tile = from, .pts = pts };
   };
-  push( src, src, /*steps=*/0 );
+  push( src, src, MovementPoints() );
   base::ScopedTimer const timer(
       format( "sea lane search from {}", src ) );
   maybe<point> dst;
@@ -173,14 +194,16 @@ maybe<GotoPath> sea_lane_search( IGotoMapViewer const& viewer,
       point const moved = curr.moved( d );
       if( !viewer.can_enter_tile( moved ) ) continue;
       CHECK( explored.contains( curr ) );
-      int const proposed_steps = explored[curr].steps + 1;
+      MovementPoints const proposed_pts =
+          explored[curr].pts +
+          viewer.movement_points_required( curr, d );
       if( explored.contains( moved ) ) {
-        if( proposed_steps < explored[moved].steps )
-          explored[moved] = TileWithSteps{
-            .tile = curr, .steps = proposed_steps };
+        if( proposed_pts < explored[moved].pts )
+          explored[moved] =
+              TileWithMvPts{ .tile = curr, .pts = proposed_pts };
         continue;
       }
-      push( moved, curr, proposed_steps );
+      push( moved, curr, proposed_pts );
     }
   }
   lg.debug(

@@ -1,15 +1,6 @@
 TODO:
 -----------------------------------------------------------------
 
-  * Add a new method to the IGotoMapViewer to return the movement
-    cost of a tile. That will be added to the `steps` in the
-    a-star algo which should automatically cause the path on land
-    to e.g. avoid mountains if possible. This could be tested in
-    the case where there is an adjacent mountain tile and then
-    another adjacent grassland tile that is connected to the
-    mountain tile via a road; traveling to the mountain tile
-    should go via the road.
-  * Omnipotent goto mode as in OG.
   * Goto tile via keyboard.
   * Do another attempt at finding any additional goto state in
     the OG's sav files.
@@ -25,6 +16,15 @@ Done:
   * As a ship uncovers tiles while trying to find sea lane, we
     might want to somehow recompute the path after re-checking
     the ships surroundings.
+  * Omniscient goto mode as in OG.
+  * Add a new method to the IGotoMapViewer to return the movement
+    cost of a tile. That will be added to the `steps` in the
+    a-star algo which should automatically cause the path on land
+    to e.g. avoid mountains if possible. This could be tested in
+    the case where there is an adjacent mountain tile and then
+    another adjacent grassland tile that is connected to the
+    mountain tile via a road; traveling to the mountain tile
+    should go via the road.
 
   Strategies:
 
