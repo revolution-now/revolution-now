@@ -787,6 +787,10 @@ rect rect::with_dec_size( int n ) const {
   return r;
 }
 
+rect rect::moved( struct size sz ) const {
+  return rect{ .origin = origin + sz, .size = size };
+}
+
 rect rect::uni0n( rect const rhs ) const {
   auto const new_x1 = std::min( origin.x, rhs.origin.x );
   auto const new_y1 = std::min( origin.y, rhs.origin.y );

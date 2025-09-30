@@ -1588,6 +1588,24 @@ TEST_CASE( "[gfx/cartesian] rect::with_dec_size" ) {
   REQUIRE( r.with_dec_size( 10 ) == expected );
 }
 
+TEST_CASE( "[gfx/cartesian] rect::moved( size )" ) {
+  size sz;
+  rect expected;
+
+  rect const r{ .origin = { .x = 4, .y = 2 },
+                .size   = { .w = 3, .h = 5 } };
+
+  sz       = { .w = -3, .h = 2 };
+  expected = { .origin = { .x = 1, .y = 4 },
+               .size   = { .w = 3, .h = 5 } };
+  REQUIRE( r.moved( sz ) == expected );
+
+  sz       = { .w = 3, .h = -2 };
+  expected = { .origin = { .x = 7, .y = 0 },
+               .size   = { .w = 3, .h = 5 } };
+  REQUIRE( r.moved( sz ) == expected );
+}
+
 TEST_CASE( "[gfx/cartesian] rect::uni0n" ) {
   rect const r1{ .origin{ .x = 1, .y = 1 },
                  .size = { .w = 1, .h = 1 } };

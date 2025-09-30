@@ -2,11 +2,10 @@ TODO:
 -----------------------------------------------------------------
 
   * Goto tile via keyboard.
-  * Do another attempt at finding any additional goto state in
-    the OG's sav files.
-  * Consider adding arrows when dragging to adjacent tiles.
   * Consider adding the "go to port" command to the right click
     context menu on land-view.
+  * Do another attempt at finding any additional goto state in
+    the OG's sav files.
 
 Done:
 -----------------------------------------------------------------
@@ -25,6 +24,7 @@ Done:
     another adjacent grassland tile that is connected to the
     mountain tile via a road; traveling to the mountain tile
     should go via the road.
+  * Consider adding arrows when dragging to adjacent tiles.
 
   Strategies:
 

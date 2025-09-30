@@ -882,6 +882,14 @@ enum.e_tile {
   # =============================================================
   lift_key,
   hazard,
+  goto_arrow_nw,
+  goto_arrow_ne,
+  goto_arrow_se,
+  goto_arrow_sw,
+  goto_arrow_n,
+  goto_arrow_s,
+  goto_arrow_e,
+  goto_arrow_w,
 
   # =============================================================
   # Scrolls/Plates

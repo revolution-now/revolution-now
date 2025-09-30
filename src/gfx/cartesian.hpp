@@ -391,6 +391,8 @@ struct rect {
   [[nodiscard]] rect moved( e_cardinal_direction d ) const;
   [[nodiscard]] rect moved( e_diagonal_direction d ) const;
 
+  [[nodiscard]] rect moved( struct size sz ) const;
+
   // Result will be the smallest rect that encompasses both
   // this one and the parameter.
   [[nodiscard]] rect uni0n( rect rhs ) const;
