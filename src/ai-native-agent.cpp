@@ -173,7 +173,7 @@ NativeUnitCommand AiNativeAgent::command_for(
     SWITCH( *society ) {
       CASE( native ) { break; }
       CASE( european ) {
-        if( rand_.bernoulli( .2 ) )
+        if( rand_.bernoulli( 1.0 ) )
           // TODO: temporary.
           return NativeUnitCommand::talk{ .direction = rand_d };
         break;
