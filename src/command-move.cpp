@@ -211,10 +211,10 @@ struct TravelHandler : public CommandHandler {
     cancelled,
 
     // Forfeight. This one happens when the unit doesn't have
-    // enough movement points to move, and is not selected (but
+    // enough movement points to move, and is not selected (by
     // the random mechanism) to proceed anyway, and so it just
     // stops and loses the remainder of its points.
-    consume_remaining_points,
+    insufficient_movement_points,
 
     // Non-allowed moves (errors).
     map_edge,
@@ -243,7 +243,7 @@ struct TravelHandler : public CommandHandler {
 
       // Lost remaining movement points in an attempt to move but
       // without enough points.
-      case e_travel_verdict::consume_remaining_points: //
+      case e_travel_verdict::insufficient_movement_points: //
         CHECK( checked_mv_points_ );
         break;
 
@@ -311,7 +311,7 @@ struct TravelHandler : public CommandHandler {
       case e_travel_verdict::board_ship_full:
       case e_travel_verdict::no_ship_into_inland_lake:
         SHOULD_NOT_BE_HERE;
-      case e_travel_verdict::consume_remaining_points:
+      case e_travel_verdict::insufficient_movement_points:
         break;
       case e_travel_verdict::board_ship: {
         // In the case of board_ship we need a special animation
@@ -352,6 +352,11 @@ struct TravelHandler : public CommandHandler {
     return prioritize;
   }
 
+  bool had_insufficient_movement_points() const override {
+    return verdict_ ==
+           e_travel_verdict::insufficient_movement_points;
+  }
+
   wait<e_travel_verdict> confirm_travel_impl();
   wait<e_travel_verdict> analyze_unload() const;
 
@@ -365,16 +370,10 @@ struct TravelHandler : public CommandHandler {
   TS& ts_;
 
   // The unit that is moving.
-  UnitId unit_id;
-  e_direction direction;
+  UnitId unit_id        = {};
+  e_direction direction = {};
 
   vector<UnitId> prioritize = {};
-
-  // If this move is allowed and executed, will the unit actually
-  // move to the target square as a result? Normally the answer
-  // is yes, however there are cases when the answer is no, such
-  // as when a ship makes landfall.
-  bool unit_would_move = true;
 
   // The square on which the unit resides.
   Coord move_src{};
@@ -391,7 +390,7 @@ struct TravelHandler : public CommandHandler {
   // out. This can also serve as a binary indicator of whether
   // the move is possible by checking the type held, as the can_-
   // move() function does as a convenience.
-  e_travel_verdict verdict_;
+  e_travel_verdict verdict_ = {};
 
   // Unit that is the target of an action, e.g., ship to be
   // boarded, etc. Not relevant in all contexts.
@@ -657,6 +656,7 @@ TravelHandler::confirm_travel_impl() {
   auto check_points =
       [&, this]( maybe<MovementPoints> needed =
                      nothing ) -> base::NoDiscard<bool> {
+    CHECK( !this->checked_mv_points_ );
     this->checked_mv_points_ = true;
     maybe<MovementPoints> const to_subtract =
         needed.has_value() ? check_movement_points(
@@ -664,10 +664,7 @@ TravelHandler::confirm_travel_impl() {
                            : check_movement_points(
                                  ts_, player_, unit, src_square,
                                  dst_square, direction );
-    if( !to_subtract.has_value() ) {
-      unit_would_move = false;
-      return false;
-    }
+    if( !to_subtract.has_value() ) return false;
     mv_points_to_subtract_ = *to_subtract;
     return true;
   };
@@ -746,15 +743,16 @@ TravelHandler::confirm_travel_impl() {
           // assume the unit will always just have the start of
           // turn exemption.
           if( !check_points( /*needed=*/MovementPoints( 1 ) ) )
-            co_return e_travel_verdict::consume_remaining_points;
+            co_return e_travel_verdict::
+                insufficient_movement_points;
           co_return e_travel_verdict::offboard_ship;
         } else {
           if( !check_points() )
-            co_return e_travel_verdict::consume_remaining_points;
+            co_return e_travel_verdict::
+                insufficient_movement_points;
           co_return e_travel_verdict::map_to_map;
         }
       case bh_t::unload: {
-        unit_would_move = false;
         // We don't check movement points here because non are
         // needed for making landfall.
         co_return co_await analyze_unload();
@@ -780,15 +778,16 @@ TravelHandler::confirm_travel_impl() {
           // comment for similar line above for explanation of
           // this.
           if( !check_points( /*needed=*/MovementPoints( 1 ) ) )
-            co_return e_travel_verdict::consume_remaining_points;
+            co_return e_travel_verdict::
+                insufficient_movement_points;
           co_return e_travel_verdict::offboard_ship;
         } else {
           if( !check_points() )
-            co_return e_travel_verdict::consume_remaining_points;
+            co_return e_travel_verdict::
+                insufficient_movement_points;
           co_return e_travel_verdict::map_to_map;
         }
       case bh_t::unload: {
-        unit_would_move = false;
         // We don't check movement points here because non are
         // needed for making landfall.
         co_return co_await analyze_unload();
@@ -815,13 +814,19 @@ TravelHandler::confirm_travel_impl() {
         //
         // First get the movement points as if the colony were
         // not present (but the road under it still is).
+        //
+        // NOTE: in the OG, in the case where it costs one move-
+        // ment point to enter the colony and the unit has less
+        // than that, the usual probability rules apply such that
+        // the unit may not make it into the colony this turn.
         MovementPoints const land_only_pts =
             movement_points_required( src_square, dst_square,
                                       direction );
         MovementPoints const needed_pts =
             std::min( land_only_pts, MovementPoints( 1 ) );
         if( !check_points( needed_pts ) )
-          co_return e_travel_verdict::consume_remaining_points;
+          co_return e_travel_verdict::
+              insufficient_movement_points;
         if( unit.desc().ship )
           co_return e_travel_verdict::ship_into_port;
         if( unit.type() == e_unit_type::wagon_train )
@@ -873,7 +878,8 @@ TravelHandler::confirm_travel_impl() {
           // This shouldn't happen in practice since it will al-
           // ways be a ship and they don't have partial movement
           // points, but we include it for consistency.
-          co_return e_travel_verdict::consume_remaining_points;
+          co_return e_travel_verdict::
+              insufficient_movement_points;
         }
         co_return e_travel_verdict::map_to_map;
       case bh_t::high_seas:
@@ -881,7 +887,8 @@ TravelHandler::confirm_travel_impl() {
           // This shouldn't happen in practice since it will al-
           // ways be a ship and they don't have partial movement
           // points, but we include it for consistency.
-          co_return e_travel_verdict::consume_remaining_points;
+          co_return e_travel_verdict::
+              insufficient_movement_points;
         }
         co_return co_await confirm_sail_high_seas();
     }
@@ -910,7 +917,8 @@ TravelHandler::confirm_travel_impl() {
           // This shouldn't happen in practice since it will al-
           // ways be a ship and they don't have partial movement
           // points, but we include it for consistency.
-          co_return e_travel_verdict::consume_remaining_points;
+          co_return e_travel_verdict::
+              insufficient_movement_points;
         }
         co_return e_travel_verdict::map_to_map;
       case bh_t::move_onto_ship: {
@@ -939,7 +947,7 @@ TravelHandler::confirm_travel_impl() {
             // board a ships.
             if( !check_points( /*needed=*/MovementPoints( 1 ) ) )
               co_return e_travel_verdict::
-                  consume_remaining_points;
+                  insufficient_movement_points;
             co_return e_travel_verdict::board_ship;
           }
         }
@@ -950,7 +958,8 @@ TravelHandler::confirm_travel_impl() {
           // This shouldn't happen in practice since it will al-
           // ways be a ship and they don't have partial movement
           // points, but we include it for consistency.
-          co_return e_travel_verdict::consume_remaining_points;
+          co_return e_travel_verdict::
+              insufficient_movement_points;
         }
         co_return co_await confirm_sail_high_seas();
     }
@@ -997,7 +1006,7 @@ wait<> TravelHandler::perform() {
     case e_travel_verdict::no_ship_into_inland_lake:
     case e_travel_verdict::board_ship_full: //
       SHOULD_NOT_BE_HERE;
-    case e_travel_verdict::consume_remaining_points: {
+    case e_travel_verdict::insufficient_movement_points: {
       unit.forfeight_mv_points();
       break;
     }
@@ -1056,7 +1065,11 @@ wait<> TravelHandler::perform() {
       // Clear any goto orders so that if the ship is in goto
       // mode then it will not show a 'G' on its flag in the
       // colony view. We are assuming that a goto path cannot in-
-      // clude a colony as an intermediate stop.
+      // clude a colony as an intermediate step. This clearing of
+      // orders would be done anyway after the colony view
+      // closes, but is just done here for a good user experience
+      // so that they don't see the ship having goto orders in
+      // the colony view.
       if( unit.orders().holds<unit_orders::go_to>() )
         unit.clear_orders();
       UNWRAP_CHECK( colony_id,

@@ -75,6 +75,11 @@ struct CommandHandler {
   virtual std::vector<UnitId> units_to_prioritize() const {
     return {};
   }
+
+  [[nodiscard]] virtual bool had_insufficient_movement_points()
+      const {
+    return false;
+  }
 };
 
 std::unique_ptr<CommandHandler> command_handler(

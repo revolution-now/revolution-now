@@ -98,6 +98,8 @@ wait<CommandHandlerRunResult> CommandHandler::run() {
   co_await perform();
 
   res.units_to_prioritize = units_to_prioritize();
+  res.insufficient_movement_points =
+      had_insufficient_movement_points();
   co_return res;
 }
 

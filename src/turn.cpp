@@ -1280,42 +1280,48 @@ wait<> advance_unit( IEngine& engine, SS& ss, TS& ts,
         if( unit_has_reached_goto_target( ss.as_const, unit ) )
           unit.clear_orders();
         // Here we test if the unit hasn't moved and clear or-
-        // ders. This can happen e.g. when a unit has its goto
-        // target as a dwelling but then opts not to enter it
-        // when the menu pops up. In that case the order will
-        // have run but the unit will have ended its turn. In
-        // that case best to clear the orders. Note that this is
-        // not the same as when a unit doesn't move as a result
-        // of encountering an untraversible tile as it explores
-        // hidden tiles; in that case, the logic in the agent
-        // will detect that and attempt to recompute the path
-        // (once). So if we are here and we still haven't moved
-        // then that would have already been attempted if needed.
+        // ders. Some examples of this:
         //
-        // One additional subtlety is that before clearing orders
-        // we need to test for movement points exhausted here be-
-        // cause a valid move consists of a unit attempting to
-        // move onto a tile for which it does not have enough
-        // movement points, at which point a dice is rolled, and
-        // the unit may not move onto that tile, but its movement
-        // points will have been exhausted. In that case the
-        // order is reported to have been run above, but the unit
-        // will not have moved. In that case we need to keep the
-        // unit in goto mode. That said, if it still has movement
-        // points left but didn't move, then that means that the
-        // path has been genuinely interrupted by some means. In
-        // that case we clear the orders both for a good user ex-
-        // perience and also as a kind of circuit breaker to pre-
-        // vent an infinite loop where the agent thinks the unit
-        // can move, but it doesn't, and somehow doesn't exhaust
-        // movement points in the process, thereby causing the
-        // unit to go into an infinite loop without advancement.
+        //  * A ship making landfall.
+        //  * A unit attacking a dwelling.
+        //  * A scout entering a dwelling.
+        //
+        // We have to do this because their orders would not oth-
+        // erwise be cleared automatically because technically
+        // they haven't reached their destination tile.
+        //
+        // It also acts as a circuit breaker that shouldn't theo-
+        // retically be required, but is good to have. Specifi-
+        // cally, it will prevent a unit from ever getting stuck
+        // in the goto state at a place where it cannot move, in
+        // which case the player might not be notified of it.
+        //
+        // Note that this is not the same as when a unit doesn't
+        // move as a result of encountering a completely untra-
+        // versible tile as it explores hidden tiles; in that
+        // case, the logic in the agent will detect that and at-
+        // tempt to recompute the path (once). So if we are here
+        // and we still haven't moved then that would have al-
+        // ready been attempted if needed.
+        //
+        // There is one exception here: namely, when a unit
+        // doesn't move as a result of encountering a tile for
+        // which it does not have enough movement points. In that
+        // case, the unit may or may not move according to a dice
+        // roll. But even if it doesn't move, it should remain in
+        // goto mode and continue along the path on the next
+        // turn. hidden tiles; in that case, the logic in the
+        // agent will detect that and attempt to recompute the
+        // path (once). So if we are here and we still haven't
+        // moved then that would have already been attempted if
+        // needed.
         auto const new_tile =
             coord_for_unit_indirect( ss.units, unit.id() );
         bool const did_not_move =
             new_tile.has_value() &&
             new_tile->to_gfx() == prev_tile;
-        if( did_not_move && !unit.mv_pts_exhausted() ) {
+        if( did_not_move &&
+            !run_result.insufficient_movement_points ) {
           unit.clear_orders();
           break;
         }

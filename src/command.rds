@@ -29,6 +29,12 @@ struct.CommandHandlerRunResult {
   # ample of this would be after units make landfall from a ship,
   # it is natural for them to ask for commands right away.
   units_to_prioritize 'std::vector<UnitId>',
+
+  # This is used to flag that this move was one of the scenarios
+  # where the unit could have moved to the tile but was denied
+  # because there were not enough movement points, and it was
+  # not chosen randomly to move anyway.
+  insufficient_movement_points 'bool',
 }
 
 # An `command` is a general term describing what the player
