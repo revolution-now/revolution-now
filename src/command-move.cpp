@@ -575,6 +575,9 @@ TravelHandler::confirm_sail_high_seas_map_edge() const {
   // The original game asks the player if they want to sail the
   // high seas when a ship attempts to sail off of the left or
   // right edge of the map.
+  //
+  // NOTE: We need this check to filter out cases where the
+  // player is trying to move off the top/bottom edge of the map.
   bool ask = ( move_dst.x == -1 ||
                move_dst.x == ss_.terrain.world_size_tiles().w );
   if( !ask ) co_return e_travel_verdict::cancelled;

@@ -835,15 +835,165 @@ TEST_CASE(
 
 TEST_CASE( "[command-move] goto: high seas via sea lane" ) {
   world w;
+  w.update_terrain_connectivity();
+  MockLandViewPlane mock_land_view;
+  MockIAgent& agent = w.agent();
+  w.planes().get().set_bottom<ILandViewPlane>( mock_land_view );
+  Player& player = w.default_player();
+
+  Unit& caravel = w.add_unit_on_map(
+      e_unit_type::caravel, { .x = 6, .y = 1 }, player.type );
+
+  // Make sure we're testing what we think we're testing.
+  BASE_CHECK( w.units().coord_for( caravel.id() ).x ==
+              w.terrain().world_size_tiles().w - 3 );
+
+  SECTION( "Sanity check: No goto, confirmation no" ) {
+    auto const handler = handle_command(
+        w.engine(), w.ss(), w.ts(), w.agent(), player,
+        caravel.id(), command::move{ .d = e_direction::e } );
+    agent.EXPECT__should_sail_high_seas().returns(
+        ui::e_confirm::no );
+    bool const confirmed = co_await_test( handler->confirm() );
+    REQUIRE( confirmed );
+    mock_land_view.EXPECT__animate_if_visible( _ );
+    co_await_test( handler->perform() );
+    REQUIRE( w.units().coord_for( caravel.id() ).to_gfx() ==
+             point{ .x = 7, .y = 1 } );
+    REQUIRE( caravel.orders().holds<unit_orders::none>() );
+  }
+
+  SECTION( "Sanity check: No goto, confirmation yes" ) {
+    auto const handler = handle_command(
+        w.engine(), w.ss(), w.ts(), w.agent(), player,
+        caravel.id(), command::move{ .d = e_direction::e } );
+    agent.EXPECT__should_sail_high_seas().returns(
+        ui::e_confirm::yes );
+    bool const confirmed = co_await_test( handler->confirm() );
+    REQUIRE( confirmed );
+    mock_land_view.EXPECT__animate_if_visible( _ );
+    co_await_test( handler->perform() );
+    REQUIRE( is_unit_inbound( w.units(), caravel.id() ) );
+    REQUIRE( caravel.orders().holds<unit_orders::none>() );
+  }
+
+  SECTION( "goto map, dst tile not target tile" ) {
+    caravel.orders() = unit_orders::go_to{
+      .target = goto_target::map{ .tile = { .x = 8, .y = 1 } } };
+    auto const handler = handle_command(
+        w.engine(), w.ss(), w.ts(), w.agent(), player,
+        caravel.id(), command::move{ .d = e_direction::e } );
+    bool const confirmed = co_await_test( handler->confirm() );
+    REQUIRE( confirmed );
+    mock_land_view.EXPECT__animate_if_visible( _ );
+    co_await_test( handler->perform() );
+    REQUIRE( w.units().coord_for( caravel.id() ).to_gfx() ==
+             point{ .x = 7, .y = 1 } );
+    REQUIRE(
+        caravel.orders() ==
+        unit_orders::go_to{ .target = goto_target::map{
+                              .tile = { .x = 8, .y = 1 } } } );
+  }
+
+  SECTION( "goto map, dst tile is target tile" ) {
+    caravel.orders() = unit_orders::go_to{
+      .target = goto_target::map{ .tile = { .x = 7, .y = 1 } } };
+    auto const handler = handle_command(
+        w.engine(), w.ss(), w.ts(), w.agent(), player,
+        caravel.id(), command::move{ .d = e_direction::e } );
+    bool const confirmed = co_await_test( handler->confirm() );
+    REQUIRE( confirmed );
+    mock_land_view.EXPECT__animate_if_visible( _ );
+    co_await_test( handler->perform() );
+    REQUIRE( is_unit_inbound( w.units(), caravel.id() ) );
+    REQUIRE( caravel.orders().holds<unit_orders::none>() );
+  }
+
+  SECTION( "goto map, harbor" ) {
+    caravel.orders() =
+        unit_orders::go_to{ .target = goto_target::harbor{} };
+    auto const handler = handle_command(
+        w.engine(), w.ss(), w.ts(), w.agent(), player,
+        caravel.id(), command::move{ .d = e_direction::e } );
+    bool const confirmed = co_await_test( handler->confirm() );
+    REQUIRE( confirmed );
+    mock_land_view.EXPECT__animate_if_visible( _ );
+    co_await_test( handler->perform() );
+    REQUIRE( is_unit_inbound( w.units(), caravel.id() ) );
+    REQUIRE( caravel.orders().holds<unit_orders::none>() );
+  }
 }
 
 TEST_CASE( "[command-move] goto: high seas via map edge" ) {
   world w;
+  MockLandViewPlane mock_land_view;
+  w.planes().get().set_bottom<ILandViewPlane>( mock_land_view );
+  Player& player = w.default_player();
+
+  Unit& caravel = w.add_unit_on_map(
+      e_unit_type::caravel, { .x = 8, .y = 1 }, player.type );
+
+  // Make sure we're testing what we think we're testing.
+  BASE_CHECK( w.units().coord_for( caravel.id() ).x ==
+              w.terrain().world_size_tiles().w - 1 );
+
+  caravel.orders() =
+      unit_orders::go_to{ .target = goto_target::harbor{} };
+  auto const handler = handle_command(
+      w.engine(), w.ss(), w.ts(), w.agent(), player,
+      caravel.id(), command::move{ .d = e_direction::e } );
+  bool const confirmed = co_await_test( handler->confirm() );
+  REQUIRE( confirmed );
+  mock_land_view.EXPECT__animate_if_visible( _ );
+  co_await_test( handler->perform() );
+  REQUIRE( is_unit_inbound( w.units(), caravel.id() ) );
+  REQUIRE( caravel.orders().holds<unit_orders::none>() );
 }
 
 TEST_CASE(
     "[command-move] goto: ship in colony port clears orders" ) {
   world w;
+  MockLandViewPlane mock_land_view;
+  w.planes().get().set_bottom<ILandViewPlane>( mock_land_view );
+  Player& player = w.default_player();
+
+  w.add_colony( { .x = 1, .y = 0 } );
+  Unit& caravel = w.add_unit_on_map(
+      e_unit_type::caravel, { .x = 0, .y = 0 }, player.type );
+  caravel.orders() = unit_orders::go_to{
+    .target = goto_target::map{ .tile = { .x = 1, .y = 0 } } };
+
+  auto const handler = handle_command(
+      w.engine(), w.ss(), w.ts(), w.agent(), player,
+      caravel.id(), command::move{ .d = e_direction::e } );
+  bool const confirmed = co_await_test( handler->confirm() );
+  REQUIRE( confirmed );
+  mock_land_view.EXPECT__animate_if_visible( _ );
+  w.agent().EXPECT__human().returns( false );
+  co_await_test( handler->perform() );
+  REQUIRE( w.units().coord_for( caravel.id() ).to_gfx() ==
+           point{ .x = 1, .y = 0 } );
+  REQUIRE( caravel.orders().holds<unit_orders::none>() );
+}
+
+TEST_CASE( "[command-move] move off top edge of map" ) {
+  world w;
+  Player& player = w.default_player();
+
+  Unit& caravel = w.add_unit_on_map(
+      e_unit_type::caravel, { .x = 0, .y = 0 }, player.type );
+
+  auto const sail_high_seas = Field(
+      &ChoiceConfig::msg, StrContains( "sail the high seas?" ) );
+
+  auto const handler = handle_command(
+      w.engine(), w.ss(), w.ts(), w.agent(), player,
+      caravel.id(), command::move{ .d = e_direction::n } );
+  bool const confirmed = co_await_test( handler->confirm() );
+  REQUIRE_FALSE( confirmed );
+  REQUIRE( w.units().coord_for( caravel.id() ).to_gfx() ==
+           point{ .x = 0, .y = 0 } );
+  REQUIRE( caravel.orders().holds<unit_orders::none>() );
 }
 
 } // namespace
