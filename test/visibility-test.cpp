@@ -268,6 +268,19 @@ TEST_CASE( "[visibility] Visibility" ) {
              e_surface::land );
     REQUIRE( viz.square_at( { .x = 1, .y = 1 } ).surface ==
              e_surface::water );
+    // visible_square_at.
+    REQUIRE( viz.visible_square_at( { .x = 0, .y = 0 } )
+                 .value()
+                 .surface == e_surface::water );
+    REQUIRE( viz.visible_square_at( { .x = 1, .y = 0 } )
+                 .value()
+                 .surface == e_surface::land );
+    REQUIRE( viz.visible_square_at( { .x = 0, .y = 1 } )
+                 .value()
+                 .surface == e_surface::land );
+    REQUIRE( viz.visible_square_at( { .x = 1, .y = 1 } )
+                 .value()
+                 .surface == e_surface::water );
     // proto square at.
     REQUIRE( viz.square_at( { .x = -1, .y = 0 } ).surface ==
              e_surface::water );
@@ -311,6 +324,15 @@ TEST_CASE( "[visibility] Visibility" ) {
              e_surface::land );
     REQUIRE( viz.square_at( { .x = 1, .y = 1 } ).surface ==
              e_surface::water );
+    // visible_square_at.
+    REQUIRE( viz.visible_square_at( { .x = 0, .y = 0 } ) ==
+             nothing );
+    REQUIRE( viz.visible_square_at( { .x = 1, .y = 0 } ) ==
+             nothing );
+    REQUIRE( viz.visible_square_at( { .x = 0, .y = 1 } ) ==
+             nothing );
+    REQUIRE( viz.visible_square_at( { .x = 1, .y = 1 } ) ==
+             nothing );
     // proto square at.
     REQUIRE( viz.square_at( { .x = -1, .y = 0 } ).surface ==
              e_surface::water );
@@ -365,6 +387,17 @@ TEST_CASE( "[visibility] Visibility" ) {
              e_surface::land );
     REQUIRE( viz.square_at( { .x = 1, .y = 1 } ).surface ==
              e_surface::water );
+    // visible_square_at.
+    REQUIRE( viz.visible_square_at( { .x = 0, .y = 0 } )
+                 .value()
+                 .surface == e_surface::water );
+    REQUIRE( viz.visible_square_at( { .x = 1, .y = 0 } )
+                 .value()
+                 .surface == e_surface::land );
+    REQUIRE( viz.visible_square_at( { .x = 0, .y = 1 } ) ==
+             nothing );
+    REQUIRE( viz.visible_square_at( { .x = 1, .y = 1 } ) ==
+             nothing );
     // proto square at.
     REQUIRE( viz.square_at( { .x = -1, .y = 0 } ).surface ==
              e_surface::water );
@@ -422,6 +455,18 @@ TEST_CASE( "[visibility] Visibility" ) {
              e_surface::land );
     REQUIRE( viz.square_at( { .x = 1, .y = 1 } ).surface ==
              e_surface::water );
+    // visible_square_at.
+    REQUIRE( viz.visible_square_at( { .x = 0, .y = 0 } )
+                 .value()
+                 .surface == e_surface::water );
+    REQUIRE( viz.visible_square_at( { .x = 1, .y = 0 } )
+                 .value()
+                 .surface == e_surface::land );
+    REQUIRE( viz.visible_square_at( { .x = 0, .y = 1 } )
+                 .value()
+                 .surface == e_surface::land );
+    REQUIRE( viz.visible_square_at( { .x = 1, .y = 1 } ) ==
+             nothing );
     // proto square at.
     REQUIRE( viz.square_at( { .x = -1, .y = 0 } ).surface ==
              e_surface::water );
@@ -881,6 +926,9 @@ TEST_CASE( "[visibility] VisibilityWithOverrides" ) {
   auto colony_at   = [&] { return p_viz->colony_at( coord ); };
   auto dwelling_at = [&] { return p_viz->dwelling_at( coord ); };
   auto square_at   = [&] { return p_viz->square_at( coord ); };
+  auto visible_square_at = [&] {
+    return p_viz->visible_square_at( coord );
+  };
 
   SECTION( "no overrides, entire" ) {
     BASE_CHECK( overrides.squares.empty() );
@@ -890,26 +938,31 @@ TEST_CASE( "[visibility] VisibilityWithOverrides" ) {
     REQUIRE( colony_at() == nothing );
     REQUIRE( dwelling_at() == nothing );
     REQUIRE( square_at() == real_square0 );
+    REQUIRE( visible_square_at() == real_square0 );
     coord = { .x = 1, .y = 0 };
     REQUIRE( visible() == e_tile_visibility::clear );
     REQUIRE( colony_at() == nothing );
     REQUIRE( dwelling_at() == nothing );
     REQUIRE( square_at() == real_square1 );
+    REQUIRE( visible_square_at() == real_square1 );
     coord = { .x = 0, .y = 1 };
     REQUIRE( visible() == e_tile_visibility::clear );
     REQUIRE( colony_at() == nothing );
     REQUIRE( dwelling_at() == nothing );
     REQUIRE( square_at() == real_square2 );
+    REQUIRE( visible_square_at() == real_square2 );
     coord = { .x = 1, .y = 1 };
     REQUIRE( visible() == e_tile_visibility::clear );
     REQUIRE( colony_at() == nothing );
     REQUIRE( dwelling_at() == real_dwelling );
     REQUIRE( square_at() == real_square3 );
+    REQUIRE( visible_square_at() == real_square3 );
     coord = kOutsideCoord;
     REQUIRE( visible() == e_tile_visibility::clear );
     REQUIRE( colony_at() == nothing );
     REQUIRE( dwelling_at() == nothing );
-    REQUIRE( square_at() == MapSquare{} ); // proto.
+    REQUIRE( square_at() == MapSquare{} );         // proto.
+    REQUIRE( visible_square_at() == MapSquare{} ); // proto.
   }
 
   SECTION( "no overrides, player" ) {
@@ -920,26 +973,31 @@ TEST_CASE( "[visibility] VisibilityWithOverrides" ) {
     REQUIRE( colony_at() == nothing );
     REQUIRE( dwelling_at() == nothing );
     REQUIRE( square_at() == real_square0 );
+    REQUIRE( visible_square_at() == real_square0 );
     coord = { .x = 1, .y = 0 };
     REQUIRE( visible() == e_tile_visibility::fogged );
     REQUIRE( colony_at() == Colony{} );
     REQUIRE( dwelling_at() == Dwelling{ .is_capital = true } );
     REQUIRE( square_at() == MapSquare{} );
+    REQUIRE( visible_square_at() == MapSquare{} );
     coord = { .x = 0, .y = 1 };
     REQUIRE( visible() == e_tile_visibility::hidden );
     REQUIRE( colony_at() == nothing );
     REQUIRE( dwelling_at() == nothing );
     REQUIRE( square_at() == real_square2 );
+    REQUIRE( visible_square_at() == nothing );
     coord = { .x = 1, .y = 1 };
     REQUIRE( visible() == e_tile_visibility::hidden );
     REQUIRE( colony_at() == nothing );
     REQUIRE( dwelling_at() == nothing );
     REQUIRE( square_at() == real_square3 );
+    REQUIRE( visible_square_at() == nothing );
     coord = kOutsideCoord;
     REQUIRE( visible() == e_tile_visibility::hidden );
     REQUIRE( colony_at() == nothing );
     REQUIRE( dwelling_at() == nothing );
-    REQUIRE( square_at() == MapSquare{} ); // proto.
+    REQUIRE( square_at() == MapSquare{} );     // proto.
+    REQUIRE( visible_square_at() == nothing ); // proto.
   }
 
   SECTION( "with overrides, entire" ) {
@@ -960,31 +1018,37 @@ TEST_CASE( "[visibility] VisibilityWithOverrides" ) {
     REQUIRE( colony_at() == nothing );
     REQUIRE( dwelling_at() == nothing );
     REQUIRE( square_at() == real_square0 );
+    REQUIRE( visible_square_at() == real_square0 );
     coord = { .x = 1, .y = 0 };
     REQUIRE( visible() == e_tile_visibility::clear );
     REQUIRE( colony_at() == nothing );
     REQUIRE( dwelling_at() == nothing );
     REQUIRE( square_at() == real_square1 );
+    REQUIRE( visible_square_at() == real_square1 );
     coord = { .x = 0, .y = 1 };
     REQUIRE( visible() == e_tile_visibility::clear );
     REQUIRE( colony_at() == nothing );
     REQUIRE( dwelling_at() == Dwelling{ .id = 555 } );
     REQUIRE( square_at() == override_square2 );
+    REQUIRE( visible_square_at() == override_square2 );
     coord = { .x = 1, .y = 1 };
     REQUIRE( visible() == e_tile_visibility::clear );
     REQUIRE( colony_at() == nothing );
     REQUIRE( dwelling_at() == real_dwelling );
     REQUIRE( square_at() == override_square3 );
+    REQUIRE( visible_square_at() == override_square3 );
     overrides.dwellings[{ .x = 1, .y = 1 }] = nothing;
     REQUIRE( visible() == e_tile_visibility::clear );
     REQUIRE( colony_at() == nothing );
     REQUIRE( dwelling_at() == nothing );
     REQUIRE( square_at() == override_square3 );
+    REQUIRE( visible_square_at() == override_square3 );
     coord = kOutsideCoord;
     REQUIRE( visible() == e_tile_visibility::clear );
     REQUIRE( colony_at() == nothing );
     REQUIRE( dwelling_at() == nothing );
-    REQUIRE( square_at() == MapSquare{} ); // proto.
+    REQUIRE( square_at() == MapSquare{} );         // proto.
+    REQUIRE( visible_square_at() == MapSquare{} ); // proto.
   }
 
   SECTION( "with overrides, player" ) {
@@ -1004,31 +1068,37 @@ TEST_CASE( "[visibility] VisibilityWithOverrides" ) {
     REQUIRE( colony_at() == nothing );
     REQUIRE( dwelling_at() == nothing );
     REQUIRE( square_at() == real_square0 );
+    REQUIRE( visible_square_at() == real_square0 );
     coord = { .x = 1, .y = 0 };
     REQUIRE( visible() == e_tile_visibility::fogged );
     REQUIRE( colony_at() == Colony{} );
     REQUIRE( dwelling_at() == Dwelling{ .is_capital = true } );
     REQUIRE( square_at() == MapSquare{} );
+    REQUIRE( visible_square_at() == MapSquare{} );
     overrides.dwellings[{ .x = 1, .y = 0 }] = nothing;
     REQUIRE( visible() == e_tile_visibility::fogged );
     REQUIRE( colony_at() == Colony{} );
     REQUIRE( dwelling_at() == nothing );
     REQUIRE( square_at() == MapSquare{} );
+    REQUIRE( visible_square_at() == MapSquare{} );
     coord = { .x = 0, .y = 1 };
     REQUIRE( visible() == e_tile_visibility::hidden );
     REQUIRE( colony_at() == nothing );
     REQUIRE( dwelling_at() == Dwelling{ .id = 555 } );
     REQUIRE( square_at() == override_square2 );
+    REQUIRE( visible_square_at() == nothing );
     coord = { .x = 1, .y = 1 };
     REQUIRE( visible() == e_tile_visibility::hidden );
     REQUIRE( colony_at() == nothing );
     REQUIRE( dwelling_at() == nothing );
     REQUIRE( square_at() == override_square3 );
+    REQUIRE( visible_square_at() == nothing );
     coord = kOutsideCoord;
     REQUIRE( visible() == e_tile_visibility::hidden );
     REQUIRE( colony_at() == nothing );
     REQUIRE( dwelling_at() == nothing );
-    REQUIRE( square_at() == MapSquare{} ); // proto.
+    REQUIRE( square_at() == MapSquare{} );     // proto.
+    REQUIRE( visible_square_at() == nothing ); // proto.
   }
 }
 
