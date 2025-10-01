@@ -128,8 +128,6 @@ valid_or<string> wrapped::UnitsState::validate() const {
         if( !unit.orders().holds<unit_orders::go_to>() )
           continue;
         UnitOwnership const& st = euro.ownership;
-        auto const is_on_map = st.get_if<UnitOwnership::world>();
-        if( is_on_map.has_value() ) continue;
         auto const is_in_cargo =
             st.get_if<UnitOwnership::cargo>();
         if( is_in_cargo.has_value() ) {
@@ -155,7 +153,19 @@ valid_or<string> wrapped::UnitsState::validate() const {
               "unit {} is in goto mode but is in the cargo of "
               "unit {} which is not on the map.",
               unit.id(), holder_id );
+          // At this point we know the unit is in the cargo of
+          // another unit that is on the map, so we're good.
+          continue;
         }
+        // The unit is not in the cargo of another unit, so it is
+        // required to be on the map given that it is in goto
+        // mode.
+        auto const is_on_map = st.get_if<UnitOwnership::world>();
+        REFL_VALIDATE(
+            is_on_map.has_value(),
+            "unit {} is in goto mode but is not directly or "
+            "indirectly on the map.",
+            unit.id() );
         break;
       }
       CASE( native ) { break; }

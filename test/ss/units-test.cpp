@@ -326,11 +326,25 @@ TEST_CASE(
   world w;
   base::valid_or<string> v = valid;
 
-  SECTION( "default" ) {
-    wrapped::UnitsState o;
-    UnitsState const units_state( std::move( o ) );
-    REQUIRE( units_state.validate() == valid );
-  }
+  REQUIRE( w.units().validate() == valid );
+
+  UnitId const caravel_id =
+      w.add_unit_on_map( e_unit_type::caravel,
+                         { .x = 0, .y = 0 } )
+          .id();
+  REQUIRE( w.units().validate() == valid );
+
+  w.add_unit_in_cargo( e_unit_type::free_colonist, caravel_id );
+  REQUIRE( w.units().validate() == valid );
+
+  testing_friend_destroy_unit( w.units(), caravel_id );
+
+  v = w.units().validate();
+  REQUIRE( v != valid );
+  REQUIRE_THAT(
+      v.error(),
+      Contains( "unit 2 is being held in the cargo of unit 1 "
+                "but the latter unit id does not exist." ) );
 }
 
 TEST_CASE(
@@ -339,11 +353,31 @@ TEST_CASE(
   world w;
   base::valid_or<string> v = valid;
 
-  SECTION( "default" ) {
-    wrapped::UnitsState o;
-    UnitsState const units_state( std::move( o ) );
-    REQUIRE( units_state.validate() == valid );
-  }
+  REQUIRE( w.units().validate() == valid );
+
+  Colony& colony = w.add_colony( { .x = 1, .y = 0 } );
+  Unit& statesman =
+      w.add_unit_indoors( colony.id, e_indoor_job::bells );
+  Unit& caravel  = w.add_unit_on_map( e_unit_type::caravel,
+                                      { .x = 0, .y = 0 } );
+  Unit& colonist = w.add_unit_in_cargo(
+      e_unit_type::free_colonist, caravel.id() );
+
+  REQUIRE( w.units().validate() == valid );
+
+  caravel.orders() = unit_orders::go_to{};
+  REQUIRE( w.units().validate() == valid );
+
+  colonist.orders() = unit_orders::go_to{};
+  REQUIRE( w.units().validate() == valid );
+
+  statesman.orders() = unit_orders::go_to{};
+  v                  = w.units().validate();
+  REQUIRE( v != valid );
+  REQUIRE_THAT(
+      v.error(),
+      Contains( "unit 1 is in goto mode but is not directly or "
+                "indirectly on the map." ) );
 }
 
 } // namespace
