@@ -86,7 +86,7 @@ bool last_unit_input_is_in_stack_indirect(
 
 // Given a tile, compute the screen rect where it should be ren-
 // dered.
-gfx::rect LandViewRenderer::render_rect_for_tile(
+gfx::rect LandViewRenderer::get_render_rect_for_tile(
     gfx::point const tile ) const {
   gfx::size const delta_in_tiles =
       tile - covered_.upper_left().to_gfx();
@@ -96,8 +96,10 @@ gfx::rect LandViewRenderer::render_rect_for_tile(
                     .size   = g_tile_delta };
 }
 
-Rect LandViewRenderer::render_rect_for_tile( Coord tile ) const {
-  return Rect::from_gfx( render_rect_for_tile( tile.to_gfx() ) );
+Rect LandViewRenderer::get_render_rect_for_tile(
+    Coord tile ) const {
+  return Rect::from_gfx(
+      get_render_rect_for_tile( tile.to_gfx() ) );
 }
 
 vector<GenericUnitId> land_view_unit_stack(
@@ -177,7 +179,8 @@ void LandViewRenderer::render_units_on_square(
   if( sorted.empty() ) return;
   GenericUnitId const max_defense = sorted[0];
 
-  Coord const where = render_rect_for_tile( tile ).upper_left();
+  Coord const where =
+      get_render_rect_for_tile( tile ).upper_left();
   bool const multiple_units     = ( sorted.size() > 1 );
   e_flag_count const flag_count = !multiple_units
                                       ? e_flag_count::single
@@ -416,7 +419,7 @@ void LandViewRenderer::render_units_impl() const {
     Coord const tile =
         coord_for_unit_multi_ownership_or_die( ss_, id );
     Coord const where =
-        render_rect_for_tile( tile ).upper_left();
+        get_render_rect_for_tile( tile ).upper_left();
     bool const multiple_units =
         ss_.units.from_coord( tile ).size() > 1;
     e_flag_count const flag_count = multiple_units
@@ -559,7 +562,7 @@ void LandViewRenderer::render_units_impl() const {
       Coord const tile =
           coord_for_unit_multi_ownership_or_die( ss_, id );
       Coord const loc =
-          render_rect_for_tile( tile ).upper_left();
+          get_render_rect_for_tile( tile ).upper_left();
       // Render and depixelate both the unit and the flag.
       SCOPED_RENDERER_MOD_SET(
           painter_mods.depixelate.hash_anchor, loc );
@@ -594,7 +597,7 @@ void LandViewRenderer::render_units_impl() const {
       Coord const tile =
           coord_for_unit_multi_ownership_or_die( ss_, id );
       Coord const loc =
-          render_rect_for_tile( tile ).upper_left();
+          get_render_rect_for_tile( tile ).upper_left();
       // Render and depixelate both the unit and the flag.
       SCOPED_RENDERER_MOD_SET(
           painter_mods.depixelate.hash_anchor, loc );
@@ -637,7 +640,7 @@ void LandViewRenderer::render_units_impl() const {
 Coord LandViewRenderer::dwelling_pixel_coord_from_tile(
     Coord tile ) const {
   Coord const pixel_coord =
-      render_rect_for_tile( tile ).upper_left() -
+      get_render_rect_for_tile( tile ).upper_left() -
       Delta{ .w = 6, .h = 6 };
   return pixel_coord;
 }
@@ -658,7 +661,7 @@ void LandViewRenderer::render_dwelling_depixelate(
   // As usual, the hash anchor coord is arbitrary so long as
   // its position is fixed relative to the sprite.
   Coord const hash_anchor =
-      render_rect_for_tile( tile ).upper_left();
+      get_render_rect_for_tile( tile ).upper_left();
   SCOPED_RENDERER_MOD_SET( painter_mods.depixelate.stage,
                            depixelate.stage );
   SCOPED_RENDERER_MOD_SET( painter_mods.depixelate.hash_anchor,
@@ -690,7 +693,7 @@ void LandViewRenderer::render_input_overrun_indicator() const {
   if( !unit_coord->is_inside( covered_.with_border_added() ) )
     return;
   Rect const indicator_render_rect =
-      render_rect_for_tile( *unit_coord );
+      get_render_rect_for_tile( *unit_coord );
   auto const kHoldTime = config_land_view.input_overrun_detection
                              .hourglass_hold_time;
   auto const kFadeTime = config_land_view.input_overrun_detection
@@ -712,7 +715,7 @@ void LandViewRenderer::render_input_overrun_indicator() const {
 Coord LandViewRenderer::colony_pixel_coord_from_tile(
     Coord tile ) const {
   Coord const pixel_coord =
-      render_rect_for_tile( tile ).upper_left() -
+      get_render_rect_for_tile( tile ).upper_left() -
       Delta{ .w = 6, .h = 6 };
   return pixel_coord;
 }
@@ -739,7 +742,7 @@ void LandViewRenderer::render_colony_depixelate(
   // As usual, the hash anchor coord is arbitrary so long as
   // its position is fixed relative to the sprite.
   Coord const hash_anchor =
-      render_rect_for_tile( colony.location ).upper_left();
+      get_render_rect_for_tile( colony.location ).upper_left();
   SCOPED_RENDERER_MOD_SET( painter_mods.depixelate.stage,
                            animation.stage );
   SCOPED_RENDERER_MOD_SET( painter_mods.depixelate.hash_anchor,
@@ -1055,25 +1058,26 @@ void LandViewRenderer::render_non_entities() const {
 
 void LandViewRenderer::render_goto(
     point const start_tile, point const end_tile ) const {
-#if 0
-  point const mouse = input::current_mouse_position();
-  if( !viewport_.screen_coord_in_viewport( mouse ) ) return;
-  pixel const kColor{ .r = 255, .g = 249, .b = 175, .a = 255 };
-  rect const box = render_rect_for_tile( end_tile );
-  {
-    gfx::dpoint const corner =
-        viewport_.rendering_dest_rect().origin -
-        viewport_.covered_pixels().origin.fmod( 32.0 ) *
-            viewport_.get_zoom();
-    SCOPED_RENDERER_MOD_MUL( painter_mods.repos.scale,
-                             viewport_.get_zoom() );
-    SCOPED_RENDERER_MOD_ADD( painter_mods.repos.translation2,
-                             corner.distance_from_origin() );
-    rr::draw_empty_rect_faded_corners( renderer, box, kColor );
+  if( !start_tile.cdirection_to( end_tile ) ) {
+    // point const mouse = input::current_mouse_position();
+    // if( !viewport_.screen_coord_in_viewport( mouse ) ) return;
+    // pixel const kColor{ .r = 108, .g = 137, .b = 213, .a = 255
+    // };
+    rect const box = get_render_rect_for_tile( end_tile );
+    {
+      gfx::dpoint const corner =
+          viewport_.rendering_dest_rect().origin -
+          viewport_.covered_pixels().origin.fmod( 32.0 ) *
+              viewport_.get_zoom();
+      SCOPED_RENDERER_MOD_MUL( painter_mods.repos.scale,
+                               viewport_.get_zoom() );
+      SCOPED_RENDERER_MOD_ADD( painter_mods.repos.translation2,
+                               corner.distance_from_origin() );
+      // rr::draw_empty_rect_faded_corners( renderer, box, kColor
+      // );
+      render_sprite( renderer_, box.nw(), e_tile::goto_box );
+    }
   }
-#else
-  (void)end_tile;
-#endif
 
   if( auto const d = start_tile.direction_to( end_tile );
       d.has_value() ) {
@@ -1107,7 +1111,7 @@ void LandViewRenderer::render_goto(
       }
     }();
     rect const box =
-        render_rect_for_tile( start_tile ).moved( offset );
+        get_render_rect_for_tile( start_tile ).moved( offset );
     {
       gfx::dpoint const corner =
           viewport_.rendering_dest_rect().origin -
@@ -1127,7 +1131,7 @@ void LandViewRenderer::render_white_box() const {
   if( !state.has_value() ) return;
   if( !state->visible ) return;
   gfx::rect const box =
-      render_rect_for_tile( white_box_tile( ss_ ) )
+      get_render_rect_for_tile( white_box_tile( ss_ ) )
           .with_dec_size();
   // The white box needs to be above the obfuscation layers.
   SCOPED_RENDERER_MOD_SET( buffer_mods.buffer,

@@ -95,9 +95,10 @@ struct LandViewRenderer {
 
   void render_colonies() const;
 
-  Rect render_rect_for_tile( Coord tile ) const;
+  Rect get_render_rect_for_tile( Coord tile ) const;
 
-  gfx::rect render_rect_for_tile( gfx::point const tile ) const;
+  gfx::rect get_render_rect_for_tile(
+      gfx::point const tile ) const;
 
   void render_single_unit(
       Coord where, GenericUnitId id,
