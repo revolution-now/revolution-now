@@ -37,6 +37,7 @@ sheets {
         goto_arrow_s:   { y: 2, x: 1 }
         goto_arrow_e:   { y: 2, x: 2 }
         goto_arrow_w:   { y: 2, x: 3 }
+        goto_box:       { y: 3, x: 0 }
       }
     }
     {
