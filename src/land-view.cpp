@@ -422,10 +422,22 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
                        point const /*tile*/ ) {
     viewport().stop_auto_zoom();
     viewport().stop_auto_panning();
+    rect const r = viewport_rect_pixels();
+    // This will ensure that the menu opens in a direction such
+    // that it doesn't get hidden beyond the bounds of the view-
+    // port, if the mouse is too near to the edge.
+    e_diagonal_direction const orientation = [&] {
+      return where.x < r.center().x
+                 ? where.y < r.center().y
+                       ? e_diagonal_direction::nw
+                       : e_diagonal_direction::sw
+             : where.y < r.center().y ? e_diagonal_direction::ne
+                                      : e_diagonal_direction::se;
+    }();
     MenuAllowedPositions const positions{
-      .positions_allowed = { { .where = where } } };
-
-    auto& menu_server        = ts_.planes.get().menu.typed();
+      .positions_allowed = {
+        { .where = where, .orientation = orientation } } };
+    IMenuServer& menu_server = ts_.planes.get().menu.typed();
     auto const selected_item = co_await menu_server.open_menu(
         e_menu::land_view, positions );
     if( !selected_item.has_value() ) co_return;

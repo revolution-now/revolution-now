@@ -138,139 +138,142 @@ items {
 
 layout {
   game.contents: [
-    .leaf.item: game_options,
-    .leaf.item: colony_report_options,
-    null,
-    .leaf.item: about,
-    null,
-    .leaf.item: save,
-    .leaf.item: load,
-    null,
-    .leaf.item: next_turn,
-    null,
-    .leaf.item: revolution,
-    null,
-    .leaf.item: retire,
-    .leaf.item: exit,
+    .leaf.item: game_options
+    .leaf.item: colony_report_options
+    null
+    .leaf.item: about
+    null
+    .leaf.item: save
+    .leaf.item: load
+    null
+    .leaf.item: next_turn
+    null
+    .leaf.item: revolution
+    null
+    .leaf.item: retire
+    .leaf.item: exit
   ]
 
   view.contents: [
-    .leaf.item: move,
-    .leaf.item: view_mode,
-    .leaf.item: harbor_view,
-    null,
-    .leaf.item: find_colony,
-    null,
-    .leaf.item: zoom_in,
-    .leaf.item: zoom_out,
-    .leaf.item: restore_zoom,
-    null,
-    .leaf.item: find_blinking_unit,
-    null,
-    .leaf.item: hidden_terrain,
-    .leaf.item: center_view,
-    null,
+    .leaf.item: move
+    .leaf.item: view_mode
+    .leaf.item: harbor_view
+    null
+    .leaf.item: find_colony
+    null
+    .leaf.item: zoom_in
+    .leaf.item: zoom_out
+    .leaf.item: restore_zoom
+    null
+    .leaf.item: find_blinking_unit
+    null
+    .leaf.item: hidden_terrain
+    .leaf.item: center_view
+    null
     .node.menu: window
   ]
 
   orders.contents: [
-    .leaf.item: activate,
-    .leaf.item: wait,
-    .leaf.item: fortify,
-    .leaf.item: sentry,
-    null,
-    .leaf.item: build_colony,
-    .leaf.item: plow,
-    .leaf.item: road,
-    .leaf.item: load_cargo,
-    .leaf.item: unload_cargo,
-    null,
-    .leaf.item: go_to,
-    .leaf.item: trade_route,
-    .leaf.item: return_to_europe,
-    null,
-    .leaf.item: no_orders,
-    null,
-    .leaf.item: dump,
-    .leaf.item: disband,
+    .leaf.item: activate
+    .leaf.item: wait
+    .leaf.item: fortify
+    .leaf.item: sentry
+    null
+    .leaf.item: build_colony
+    .leaf.item: plow
+    .leaf.item: road
+    .leaf.item: load_cargo
+    .leaf.item: unload_cargo
+    null
+    .leaf.item: go_to
+    .leaf.item: trade_route
+    .leaf.item: return_to_europe
+    null
+    .leaf.item: no_orders
+    null
+    .leaf.item: dump
+    .leaf.item: disband
   ]
 
   music.contents: [
-    .leaf.item: music_play,
-    .leaf.item: music_stop,
-    .leaf.item: music_pause,
-    .leaf.item: music_resume,
-    null,
-    .leaf.item: music_next,
-    .leaf.item: music_prev,
-    null,
-    .leaf.item: music_vol_up,
-    .leaf.item: music_vol_down,
-    null,
-    .leaf.item: music_set_player,
+    .leaf.item: music_play
+    .leaf.item: music_stop
+    .leaf.item: music_pause
+    .leaf.item: music_resume
+    null
+    .leaf.item: music_next
+    .leaf.item: music_prev
+    null
+    .leaf.item: music_vol_up
+    .leaf.item: music_vol_down
+    null
+    .leaf.item: music_set_player
   ]
 
   window.contents: [
-    .leaf.item: toggle_fullscreen,
-    null,
-    .leaf.item: scale_up,
-    .leaf.item: scale_down,
-    .leaf.item: scale_optimal,
-    null,
-    .leaf.item: fit_window,
+    .leaf.item: toggle_fullscreen
+    null
+    .leaf.item: scale_up
+    .leaf.item: scale_down
+    .leaf.item: scale_optimal
+    null
+    .leaf.item: fit_window
   ]
 
   cheat.contents: [
-    .leaf.item: cheat_create_unit_on_map,
-    null,
-    .leaf.item: cheat_reveal_map,
-    .leaf.item: cheat_explore_entire_map,
-    .leaf.item: cheat_hide_entire_map,
-    .leaf.item: cheat_set_player_control,
-    null,
-    .leaf.item: cheat_kill_natives,
-    .leaf.item: cheat_advance_revolution_status,
-    null,
-    .leaf.item: cheat_edit_fathers,
-    .leaf.item: cheat_map_editor,
+    .leaf.item: cheat_create_unit_on_map
+    null
+    .leaf.item: cheat_reveal_map
+    .leaf.item: cheat_explore_entire_map
+    .leaf.item: cheat_hide_entire_map
+    .leaf.item: cheat_set_player_control
+    null
+    .leaf.item: cheat_kill_natives
+    .leaf.item: cheat_advance_revolution_status
+    null
+    .leaf.item: cheat_edit_fathers
+    .leaf.item: cheat_map_editor
   ]
 
   pedia.contents: [
-    .leaf.item: units_help,
-    .leaf.item: terrain_help,
-    .leaf.item: founding_father_help,
+    .leaf.item: units_help
+    .leaf.item: terrain_help
+    .leaf.item: founding_father_help
   ]
 
   land_view.contents: [
-    .leaf.item: zoom_in,
-    .leaf.item: zoom_out,
-    .leaf.item: restore_zoom,
-    null,
-    .leaf.item: find_blinking_unit,
-    .leaf.item: hidden_terrain,
-    .leaf.item: terrain_help,
+    .leaf.item: zoom_in
+    .leaf.item: zoom_out
+    .leaf.item: restore_zoom
+    null
+    .leaf.item: find_blinking_unit
+    .leaf.item: hidden_terrain
+    .leaf.item: terrain_help
+    null
+    .leaf.item: go_to
+    .leaf.item: return_to_europe
   ]
 
   reports.contents: [
-    .leaf.item: terrain_information,
-    null,
-    .leaf.item: religious_advisor,
-    .leaf.item: continental_congress,
-    .leaf.item: labor_advisor,
-    .leaf.item: economic_advisor,
-    null,
-    .leaf.item: colony_advisor,
-    .leaf.item: naval_advisor,
-    .leaf.item: foreign_affairs_advisor,
-    .leaf.item: indian_advisor,
-    null,
-    .leaf.item: score,
+    .leaf.item: terrain_information
+    null
+    .leaf.item: religious_advisor
+    .leaf.item: continental_congress
+    .leaf.item: labor_advisor
+    .leaf.item: economic_advisor
+    null
+    .leaf.item: colony_advisor
+    .leaf.item: naval_advisor
+    .leaf.item: foreign_affairs_advisor
+    .leaf.item: indian_advisor
+    null
+    .leaf.item: score
   ]
 
   trade.contents: [
-    .leaf.item: edit_trade_route,
-    .leaf.item: create_trade_route,
-    .leaf.item: delete_trade_route,
+    .leaf.item: edit_trade_route
+    .leaf.item: create_trade_route
+    .leaf.item: delete_trade_route
   ]
 }
 
