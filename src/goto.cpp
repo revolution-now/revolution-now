@@ -378,6 +378,7 @@ wait<maybe<goto_target>> ask_goto_port(
   }
   ChoiceConfig config;
   config.msg = "Select Destination Port:";
+  static string constexpr kEuropeKey = " <europe> ";
   if( goto_port.europe ) {
     string const harbor_str = format(
         "{} ({})",
@@ -385,7 +386,7 @@ wait<maybe<goto_target>> ask_goto_port(
         config_nation.nations[player.nation].country_name );
     // A key of zero will never be used by the colonies below.
     config.options.push_back( ChoiceConfigOption{
-      .key = "0", .display_name = harbor_str } );
+      .key = kEuropeKey, .display_name = harbor_str } );
   }
   unordered_map<string, Colony const*> colonies;
   for( ColonyId const colony_id : goto_port.colonies ) {
@@ -398,7 +399,7 @@ wait<maybe<goto_target>> ask_goto_port(
   }
   auto const choice = co_await gui.optional_choice( config );
   if( choice.has_value() ) {
-    if( *choice == "0" ) {
+    if( *choice == kEuropeKey ) {
       res = goto_target::harbor{};
     } else {
       CHECK( colonies.contains( *choice ) );
