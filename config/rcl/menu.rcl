@@ -249,6 +249,9 @@ layout {
     .leaf.item: find_blinking_unit,
     .leaf.item: hidden_terrain,
     .leaf.item: terrain_help,
+    null,
+    .leaf.item: go_to,
+    .leaf.item: return_to_europe,
   ]
 
   reports.contents: [
