@@ -1,6 +1,14 @@
 TODO:
 -----------------------------------------------------------------
 
+  * Goto needs to be cleared after an attack.
+  * Any unit in goto mode travelling such that it doesn't actu-
+    ally move tiles in the process (landfall, enter dwelling, at-
+    tack dwelling, enter foreign colony, needs to be animated
+    moving into it so that:
+      1. so that the viewport pans there, and
+      2. so that the player is reminded of which unit it is and
+         what the unit is doing.
   * Goto tile via keyboard.
   * Consider adding the "go to port" command to the right click
     context menu on land-view.
