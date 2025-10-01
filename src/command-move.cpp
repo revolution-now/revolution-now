@@ -66,6 +66,8 @@ struct Dwelling;
 
 namespace {
 
+using ::gfx::point;
+
 /****************************************************************
 **Unit Movement Behaviors / Capabilities
 *****************************************************************/
@@ -295,7 +297,7 @@ struct TravelHandler : public CommandHandler {
                  unit_id ) == prioritize.end() );
     CHECK( move_src == coord_for_unit_indirect_or_die(
                            ss_.units, unit_id ) );
-    CHECK( move_src.is_adjacent_to( move_dst ) );
+    CHECK( move_src.direction_to( move_dst ).has_value() );
     CHECK( target_unit != unit_id );
 
     co_return true;
@@ -376,7 +378,7 @@ struct TravelHandler : public CommandHandler {
   vector<UnitId> prioritize = {};
 
   // The square on which the unit resides.
-  Coord move_src{};
+  point move_src{};
 
   // The square toward which the move is aimed; note that if/when
   // this move is executed the unit will not necessarily move to
@@ -384,7 +386,7 @@ struct TravelHandler : public CommandHandler {
   // That said, this field will always contain a valid and mean-
   // ingful value since there must always be a move order in
   // order for this data structure to even be populated.
-  Coord move_dst{};
+  point move_dst{};
 
   // Description of what would happen if the move were carried
   // out. This can also serve as a binary indicator of whether
@@ -440,7 +442,7 @@ TravelHandler::analyze_unload() const {
   }
 }
 
-bool is_high_seas( TerrainState const& terrain_state, Coord c ) {
+bool is_high_seas( TerrainState const& terrain_state, point c ) {
   return terrain_state.square_at( c ).sea_lane;
 }
 
@@ -1343,8 +1345,8 @@ struct NativeDwellingHandler : public CommandHandler {
 
   // Source and destination squares of the move.
   e_direction direction_;
-  Coord move_src_;
-  Coord move_dst_;
+  point move_src_;
+  point move_dst_;
 
   // In case we are attacking the village.
   EnterDwellingOutcome outcome_;
@@ -1358,9 +1360,9 @@ unique_ptr<CommandHandler> dispatch( SS& ss, TS& ts,
                                      Player& player,
                                      UnitId attacker_id,
                                      e_direction d ) {
-  Coord const src =
+  point const src =
       coord_for_unit_indirect_or_die( ss.units, attacker_id );
-  Coord const dst = src.moved( d );
+  point const dst = src.moved( d );
   Unit& attacker  = ss.units.unit_for( attacker_id );
 
   if( !dst.is_inside( ss.terrain.world_rect_tiles() ) )

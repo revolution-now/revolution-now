@@ -301,14 +301,14 @@ std::vector<GenericUnitId> units_from_coord_recursive(
   return res;
 }
 
-ND Coord coord_for_unit_indirect_or_die(
+point coord_for_unit_indirect_or_die(
     UnitsState const& units_state, GenericUnitId id ) {
   UNWRAP_CHECK( res,
                 coord_for_unit_indirect( units_state, id ) );
   return res;
 }
 
-maybe<Coord> coord_for_unit_indirect( UnitsState const& units,
+maybe<point> coord_for_unit_indirect( UnitsState const& units,
                                       GenericUnitId id ) {
   switch( units.unit_kind( id ) ) {
     case e_unit_kind::euro: {

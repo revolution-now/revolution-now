@@ -38,6 +38,8 @@ namespace rn {
 
 namespace {
 
+using ::gfx::point;
+
 double pan_accel_init() {
   return config_rn.viewport.pan_accel_init_coeff *
          config_rn.viewport.pan_speed;
@@ -97,7 +99,8 @@ void ViewportController::update_logical_rect_cache(
   fix_invariants();
 }
 
-void ViewportController::set_point_seek( Coord world_pixel ) {
+void ViewportController::set_point_seek(
+    point const world_pixel ) {
   // Need to do this to stop any coro-based smooth panning.
   stop_auto_panning();
   point_seek_      = world_pixel;
@@ -105,8 +108,8 @@ void ViewportController::set_point_seek( Coord world_pixel ) {
 }
 
 void ViewportController::set_point_seek_from_screen_pixel(
-    Coord screen_pixel ) {
-  maybe<Coord> world_pixel =
+    point const screen_pixel ) {
+  maybe<point> world_pixel =
       screen_pixel_to_world_pixel( screen_pixel );
   if( !world_pixel ) return;
   set_point_seek( *world_pixel );
@@ -114,7 +117,7 @@ void ViewportController::set_point_seek_from_screen_pixel(
 
 void ViewportController::advance_zoom_point_seek(
     DissipativeVelocity const& actual_zoom_vel ) {
-  maybe<Coord> point_to_seek;
+  maybe<point> point_to_seek;
   DissipativeVelocity vel_to_use = actual_zoom_vel;
   if( point_seek_.has_value() ) {
     // We want to let the actual zoom velocity dictate the pan-
@@ -298,7 +301,7 @@ void ViewportController::set_y_push( e_push_direction push ) {
 
 void ViewportController::set_zoom_push(
     e_push_direction push,
-    maybe<Coord> maybe_seek_screen_coord ) {
+    maybe<point> maybe_seek_screen_coord ) {
   zoom_push_ = push;
 
   zoom_point_seek_ = nothing;
@@ -317,7 +320,7 @@ void ViewportController::set_zoom( double new_zoom ) {
 }
 
 void ViewportController::smooth_zoom_target(
-    double target, maybe<Coord> maybe_seek_screen_coord ) {
+    double target, maybe<point> maybe_seek_screen_coord ) {
   smooth_zoom_target_ = target;
 
   if( maybe_seek_screen_coord )
@@ -391,8 +394,8 @@ Rect ViewportController::get_bounds_rounded() const {
                .h = int( dres.size.h ) };
 }
 
-Coord ViewportController::center_rounded() const {
-  return Coord{ X{ int( long( o_.center_x ) ) },
+point ViewportController::center_rounded() const {
+  return point{ X{ int( long( o_.center_x ) ) },
                 Y{ int( long( o_.center_y ) ) } };
 }
 
@@ -403,7 +406,7 @@ Delta ViewportController::world_size_pixels() const {
 }
 
 Rect ViewportController::world_rect_pixels() const {
-  return Rect::from( Coord{}, world_size_pixels() );
+  return Rect::from( point{}, world_size_pixels() );
 }
 
 Rect ViewportController::world_rect_tiles() const {
@@ -507,11 +510,11 @@ Rect ViewportController::fully_covered_tiles() const {
   // First round to the nearest pixel, then move the rectangle
   // inward to the nearest tile boundary (if we are not already
   // on one.
-  Coord upper_left{ .x = base::round_up_to_nearest_int_multiple(
+  point upper_left{ .x = base::round_up_to_nearest_int_multiple(
                         long( start_x() ), g_tile_width ),
                     .y = base::round_up_to_nearest_int_multiple(
                         long( start_y() ), g_tile_height ) };
-  Coord lower_right{
+  point lower_right{
     .x = base::round_down_to_nearest_int_multiple(
         long( end_x() ), g_tile_width ),
     .y = base::round_down_to_nearest_int_multiple(
@@ -585,11 +588,11 @@ ViewportController::landscape_buffer_render_upper_left() const {
   return res;
 }
 
-maybe<Coord> ViewportController::screen_pixel_to_world_pixel(
-    Coord pixel_coord ) const {
+maybe<point> ViewportController::screen_pixel_to_world_pixel(
+    point pixel_coord ) const {
   Rect visible_on_screen = rendering_dest_rect_rounded();
   auto from_visible_start =
-      pixel_coord - visible_on_screen.upper_left();
+      pixel_coord - visible_on_screen.to_gfx().nw();
   if( from_visible_start.w < 0 || from_visible_start.h < 0 ) {
     return nothing;
   }
@@ -609,7 +612,7 @@ maybe<Coord> ViewportController::screen_pixel_to_world_pixel(
   auto viewport_or_world =
       get_bounds_rounded().clamp( this->world_rect_pixels() );
 
-  auto res = Coord{
+  auto res = point{
     X{ int( long( viewport_or_world.x +
                   percent_x * viewport_or_world.w ) ) },
     Y{ int( long( viewport_or_world.y +
@@ -632,19 +635,20 @@ double ViewportController::optimal_min_zoom() const {
   return res * .93;
 }
 
-Coord ViewportController::world_tile_to_world_pixel_center(
-    Coord world_tile ) const {
-  return world_tile * g_tile_delta + g_tile_delta / 2;
+point ViewportController::world_tile_to_world_pixel_center(
+    point const world_tile ) const {
+  return world_tile * g_tile_delta.to_gfx() +
+         g_tile_delta.to_gfx() / 2;
 }
 
-maybe<Coord> ViewportController::world_tile_to_screen_pixel(
-    Coord world_tile ) const {
+maybe<point> ViewportController::world_tile_to_screen_pixel(
+    point world_tile ) const {
   return world_pixel_to_screen_pixel(
       world_tile_to_world_pixel_center( world_tile ) );
 }
 
-maybe<Coord> ViewportController::world_pixel_to_screen_pixel(
-    Coord world_pixel ) const {
+maybe<point> ViewportController::world_pixel_to_screen_pixel(
+    point world_pixel ) const {
   Rect covered_pixels = this->covered_pixels_rounded();
   if( !world_pixel.is_inside( covered_pixels ) ) return nothing;
   double x_percent =
@@ -659,15 +663,15 @@ maybe<Coord> ViewportController::world_pixel_to_screen_pixel(
   return dst.lower_right();
 }
 
-maybe<Coord> ViewportController::screen_pixel_to_world_tile(
-    Coord pixel_coord ) const {
+maybe<point> ViewportController::screen_pixel_to_world_tile(
+    point pixel_coord ) const {
   auto maybe_pixel = screen_pixel_to_world_pixel( pixel_coord );
   if( !maybe_pixel.has_value() ) return {};
-  return maybe_pixel.value() / g_tile_delta;
+  return maybe_pixel.value() / g_tile_delta.to_gfx();
 }
 
 bool ViewportController::screen_coord_in_viewport(
-    Coord pixel_coord ) const {
+    point pixel_coord ) const {
   return screen_pixel_to_world_pixel( pixel_coord ).has_value();
 }
 
@@ -699,26 +703,26 @@ void ViewportController::pan_by_world_coords( gfx::dsize size ) {
 }
 
 void ViewportController::center_on_tile_x(
-    Coord const& coords ) {
+    point const& coords ) {
   o_.center_x =
       double( coords.x * g_tile_width + g_tile_width / 2 );
   fix_invariants();
 }
 
 void ViewportController::center_on_tile_y(
-    Coord const& coords ) {
+    point const& coords ) {
   o_.center_y =
       double( coords.y * g_tile_height + g_tile_height / 2 );
   fix_invariants();
 }
 
-void ViewportController::center_on_tile( Coord const& coords ) {
+void ViewportController::center_on_tile( point const& coords ) {
   center_on_tile_x( coords );
   center_on_tile_y( coords );
   fix_invariants();
 }
 
-wait<> ViewportController::center_on_tile_smooth( Coord coord ) {
+wait<> ViewportController::center_on_tile_smooth( point coord ) {
   stop_auto_panning();
   if( is_tile_too_far( coord ) ) {
     // If it's too far from the current view then we'll forgo
@@ -761,8 +765,9 @@ wait<> ViewportController::center_on_tile_smooth( Coord coord ) {
 }
 
 bool ViewportController::is_tile_fully_visible(
-    Coord const& coord ) const {
-  Rect box = Rect::from( coord * g_tile_delta, g_tile_delta );
+    point const& coord ) const {
+  Rect box =
+      Rect::from( coord * g_tile_delta.to_gfx(), g_tile_delta );
   return box.is_inside( get_bounds_rounded() );
 }
 
@@ -770,7 +775,7 @@ bool ViewportController::is_tile_fully_visible(
 // respect to the coordinate in the C-dimension.
 template<typename C>
 bool is_tile_fully_visible( ViewportController const& vp,
-                            Coord const& coords ) {
+                            point const& coords ) {
   auto tile_rect = Rect::from( coords, Delta{ .w = 1, .h = 1 } );
   auto tile_pixel_rect = tile_rect * g_tile_delta;
   auto covered         = vp.covered_pixels_rounded();
@@ -821,7 +826,7 @@ bool are_tile_surroundings_as_fully_visible_as_can_be(
 }
 
 bool ViewportController::need_to_scroll_to_reveal_tile(
-    Coord const& coord ) const {
+    point const& coord ) const {
   // Our approach here is to say the following: if the location
   // of the coord in a given dimension (either X or Y) is such
   // that its position (plus some surrounding squares) could be
@@ -837,7 +842,7 @@ bool ViewportController::need_to_scroll_to_reveal_tile(
 }
 
 void ViewportController::ensure_tile_visible(
-    Coord const& coord ) {
+    point const& coord ) {
   stop_auto_panning();
   if( !need_to_scroll_to_reveal_tile( coord ) ) return;
   // FIXME: we should not be centering here, we should only be
@@ -850,11 +855,11 @@ void ViewportController::ensure_tile_visible(
   center_on_tile_y( coord );
 }
 
-bool ViewportController::is_tile_too_far( Coord tile ) const {
+bool ViewportController::is_tile_too_far( point tile ) const {
   gfx::rect const covered = covered_tiles();
   if( tile.is_inside( covered.with_edges_removed() ) )
     return false;
-  double const dist = ( tile - covered.center() ).diagonal();
+  double const dist = ( tile - covered.center() ).pythagorean();
   double const threshold =
       covered.size.pythagorean() / 2.0 *
       config_rn.viewport.smooth_scroll_threshold;
@@ -862,7 +867,7 @@ bool ViewportController::is_tile_too_far( Coord tile ) const {
 }
 
 wait<> ViewportController::ensure_tile_visible_smooth(
-    Coord const& coord ) {
+    point const& coord ) {
   if( !need_to_scroll_to_reveal_tile( coord ) ) co_return;
   // FIXME: we should not be centering here, we should only be
   // scrolling enough to make the unit visible, otherwise two

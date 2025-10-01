@@ -65,14 +65,14 @@ struct ViewportController {
   // This function will shift the viewport to make the tile coor-
   // dinate visible plus some surrounding squares, but will avoid
   // shifting if it is already visible in that sense.
-  void ensure_tile_visible( Coord const& coord );
+  void ensure_tile_visible( gfx::point const& coord );
   // Same as above but will animate the motion as opposed to a
   // sudden shift. The wait will be fulfilled when the given tile
   // becomes visible, but the scrolling may continue for a bit
   // after that. If the target area of the map is too far from
   // the current area then it will just jump immediately there to
   // avoid too much scrolling.
-  wait<> ensure_tile_visible_smooth( Coord const& coord );
+  wait<> ensure_tile_visible_smooth( gfx::point const& coord );
 
   // This function computes the rectangle on the screen to which
   // the viewport should be rendered. This would be trivial but
@@ -109,30 +109,30 @@ struct ViewportController {
 
   // Given a screen pixel coordinate this will return the world
   // coordinate.
-  maybe<Coord> screen_pixel_to_world_pixel(
-      Coord pixel_coord ) const;
+  maybe<gfx::point> screen_pixel_to_world_pixel(
+      gfx::point pixel_coord ) const;
 
-  Coord world_tile_to_world_pixel_center(
-      Coord world_tile ) const;
+  gfx::point world_tile_to_world_pixel_center(
+      gfx::point world_tile ) const;
 
-  maybe<Coord> world_tile_to_screen_pixel(
-      Coord world_tile ) const;
+  maybe<gfx::point> world_tile_to_screen_pixel(
+      gfx::point world_tile ) const;
 
-  maybe<Coord> world_pixel_to_screen_pixel(
-      Coord world_pixel ) const;
+  maybe<gfx::point> world_pixel_to_screen_pixel(
+      gfx::point world_pixel ) const;
 
   // Given a screen pixel coordinate this will return the world
   // tile coordinate.
-  maybe<Coord> screen_pixel_to_world_tile(
-      Coord pixel_coord ) const;
+  maybe<gfx::point> screen_pixel_to_world_tile(
+      gfx::point pixel_coord ) const;
 
   // Given a screen pixel coordinate this will determine whether
   // it is in the viewport.
-  bool screen_coord_in_viewport( Coord pixel_coord ) const;
+  bool screen_coord_in_viewport( gfx::point pixel_coord ) const;
 
   // Immediate change.
-  void center_on_tile( Coord const& coords );
-  wait<> center_on_tile_smooth( Coord coord );
+  void center_on_tile( gfx::point const& coords );
+  wait<> center_on_tile_smooth( gfx::point coord );
 
   void set_x_push( e_push_direction );
   void set_y_push( e_push_direction );
@@ -141,18 +141,21 @@ struct ViewportController {
   // the viewport center to should tend as the zoom is done. This
   // allows the user to zoom into a particular point by zooming
   // while the mouse cursor is over that point.
-  void set_zoom_push( e_push_direction,
-                      maybe<Coord> maybe_seek_screen_coord );
+  void set_zoom_push(
+      e_push_direction,
+      maybe<gfx::point> maybe_seek_screen_coord );
 
   void smooth_zoom_target(
-      double target, maybe<Coord> maybe_seek_screen_coord = {} );
+      double target,
+      maybe<gfx::point> maybe_seek_screen_coord = {} );
   void stop_auto_zoom();
   void stop_auto_panning();
 
   // Pixel indicating the point toward which we should scroll to
   // whether zooming or not. This will override zoom_point_seek_.
-  void set_point_seek( Coord world_pixel );
-  void set_point_seek_from_screen_pixel( Coord screen_pixel );
+  void set_point_seek( gfx::point world_pixel );
+  void set_point_seek_from_screen_pixel(
+      gfx::point screen_pixel );
 
   // Return current zoom.
   double get_zoom() const;
@@ -183,13 +186,14 @@ struct ViewportController {
 
   void advance_zoom_point_seek( DissipativeVelocity const& vel );
 
-  bool is_tile_too_far( Coord tile ) const;
+  bool is_tile_too_far( gfx::point tile ) const;
 
   template<typename C>
   friend bool are_tile_surroundings_as_fully_visible_as_can_be(
       ViewportController const& vp, Coord const& coords );
 
-  bool need_to_scroll_to_reveal_tile( Coord const& coord ) const;
+  bool need_to_scroll_to_reveal_tile(
+      gfx::point const& coord ) const;
 
   double x_world_pixels_in_viewport() const;
   double y_world_pixels_in_viewport() const;
@@ -204,14 +208,14 @@ struct ViewportController {
 
   // Returns world coordinates of center in pixels, rounded
   // to the nearest pixel.
-  Coord center_rounded() const;
+  gfx::point center_rounded() const;
 
   void scale_zoom( double factor );
   void pan( double down_up, double left_right, bool scale );
-  void center_on_tile_x( Coord const& coords );
-  void center_on_tile_y( Coord const& coords );
+  void center_on_tile_x( gfx::point const& coords );
+  void center_on_tile_y( gfx::point const& coords );
 
-  bool is_tile_fully_visible( Coord const& coords ) const;
+  bool is_tile_fully_visible( gfx::point const& coords ) const;
 
   // ==================== Serialized Fields =====================
 
@@ -236,7 +240,7 @@ struct ViewportController {
   struct SmoothScroll {
     double x_target{};
     double y_target{};
-    Coord tile_target{};
+    gfx::point tile_target{};
     // This promise will be fulfilled when the above tile becomes
     // visible, even if there is a bit more scrolling left to do;
     // the scrolling will still continue though.
@@ -250,12 +254,12 @@ struct ViewportController {
   // Coord in world pixel coordinates indicating the point toward
   // which we should focus as we zoom (though only while zoom-
   // ing, and only if point_seek_ is not specified).
-  maybe<Coord> zoom_point_seek_{};
+  maybe<gfx::point> zoom_point_seek_{};
 
   // Coord in world pixel coordinates indicating the point toward
   // which we should scroll to whether zooming or not. This will
   // override zoom_point_seek_.
-  maybe<Coord> point_seek_{};
+  maybe<gfx::point> point_seek_{};
 
   Rect viewport_rect_pixels_{};
 };

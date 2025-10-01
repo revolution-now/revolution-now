@@ -1325,8 +1325,7 @@ wait<> advance_unit( IEngine& engine, SS& ss, TS& ts,
         auto const new_tile =
             coord_for_unit_indirect( ss.units, unit.id() );
         bool const did_not_move =
-            new_tile.has_value() &&
-            new_tile->to_gfx() == prev_tile;
+            new_tile.has_value() && new_tile == prev_tile;
         if( did_not_move &&
             !run_result.insufficient_movement_points ) {
           unit.clear_orders();
