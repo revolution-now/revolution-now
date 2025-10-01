@@ -34,10 +34,9 @@ using ::Catch::Matchers::Contains;
 struct world : testing::World {
   using Base = testing::World;
   world() : Base() {
-    add_player( e_player::english );
-    add_player( e_player::french );
-    set_default_player_type( e_player::french );
     create_default_map();
+    // Do not add players here so that the individual test cases
+    // can control it.
   }
 
   void create_default_map() {
@@ -57,6 +56,9 @@ struct world : testing::World {
 *****************************************************************/
 TEST_CASE( "[ss/root] validation" ) {
   world w;
+  w.add_player( e_player::english );
+  w.add_player( e_player::french );
+  w.set_default_player_type( e_player::french );
 
   valid_or<string> v = valid;
 
@@ -94,6 +96,24 @@ TEST_CASE( "[ss/root] validation" ) {
 
 TEST_CASE( "[ss/root] missing player_terrain" ) {
   world w;
+  valid_or<string> v = valid;
+
+  REQUIRE( w.root().validate() == valid );
+
+  w.add_player( e_player::english );
+  REQUIRE( w.root().validate() == valid );
+
+  w.add_player( e_player::french );
+  REQUIRE( w.root().validate() == valid );
+
+  w.terrain().testing_reset_player_terrain( e_player::french );
+
+  v = w.root().validate();
+  REQUIRE( v != valid );
+  REQUIRE_THAT(
+      v.error(),
+      Contains( "french player exists but does not have an "
+                "entry in the player_terrain map." ) );
 }
 
 } // namespace

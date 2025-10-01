@@ -203,7 +203,7 @@ valid_or<string> validate_interaction(
   for( auto const& [type, player] : players.players ) {
     if( !player.has_value() ) continue;
     REFL_VALIDATE( terrain.player_terrain[type].has_value(),
-                   "player {} exists but does not have an entry "
+                   "{} player exists but does not have an entry "
                    "in the player_terrain map.",
                    type );
   }
