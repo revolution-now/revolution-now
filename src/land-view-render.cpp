@@ -1083,31 +1083,32 @@ void LandViewRenderer::render_goto(
       d.has_value() ) {
     auto const [sprite_tile,
                 offset] = [&] -> pair<e_tile, size> {
+      int constexpr kDist = 16;
       switch( *d ) {
         case gfx::e_direction::e:
           return { e_tile::goto_arrow_e,
-                   size{ .w = 20, .h = 0 } };
+                   size{ .w = kDist, .h = 0 } };
         case gfx::e_direction::w:
           return { e_tile::goto_arrow_w,
-                   size{ .w = -20, .h = 0 } };
+                   size{ .w = -kDist, .h = 0 } };
         case gfx::e_direction::n:
           return { e_tile::goto_arrow_n,
-                   size{ .w = 0, .h = -20 } };
+                   size{ .w = 0, .h = -kDist } };
         case gfx::e_direction::s:
           return { e_tile::goto_arrow_s,
-                   size{ .w = 0, .h = 20 } };
+                   size{ .w = 0, .h = kDist } };
         case gfx::e_direction::ne:
           return { e_tile::goto_arrow_ne,
-                   size{ .w = 20, .h = -20 } };
+                   size{ .w = kDist, .h = -kDist } };
         case gfx::e_direction::nw:
           return { e_tile::goto_arrow_nw,
-                   size{ .w = -20, .h = -20 } };
+                   size{ .w = -kDist, .h = -kDist } };
         case gfx::e_direction::se:
           return { e_tile::goto_arrow_se,
-                   size{ .w = 20, .h = 20 } };
+                   size{ .w = kDist, .h = kDist } };
         case gfx::e_direction::sw:
           return { e_tile::goto_arrow_sw,
-                   size{ .w = -20, .h = 20 } };
+                   size{ .w = -kDist, .h = kDist } };
       }
     }();
     rect const box =
