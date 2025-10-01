@@ -231,8 +231,10 @@ struct point {
   [[nodiscard]] point moved( e_diagonal_direction d ) const;
 
   // Find the direction from this point to `dest`. If dest is not
-  // adjacent to this coord then nothing will be returned.
+  // adjacent (or equal, in the second case) to this coord then
+  // nothing will be returned.
   base::maybe<e_direction> direction_to( point dest ) const;
+  base::maybe<e_cdirection> cdirection_to( point dest ) const;
 };
 
 /****************************************************************

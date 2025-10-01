@@ -517,6 +517,14 @@ maybe<e_direction> point::direction_to(
   return nothing;
 }
 
+maybe<e_cdirection> point::cdirection_to(
+    point const dest ) const {
+  for( auto const d : enum_values<e_cdirection> )
+    if( moved( d ) == dest ) //
+      return d;
+  return nothing;
+}
+
 /****************************************************************
 ** dpoint
 *****************************************************************/

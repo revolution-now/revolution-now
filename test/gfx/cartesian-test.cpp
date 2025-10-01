@@ -609,26 +609,37 @@ TEST_CASE( "[gfx/cartesian] point::moved*" ) {
 TEST_CASE( "[gfx/cartesian] point::direction_to" ) {
   point const p = { .x = 1, .y = 2 };
 
-  REQUIRE( p.direction_to( { .x = 0, .y = 1 } ) ==
-           e_direction::nw );
-  REQUIRE( p.direction_to( { .x = 1, .y = 1 } ) ==
-           e_direction::n );
-  REQUIRE( p.direction_to( { .x = 2, .y = 1 } ) ==
-           e_direction::ne );
-  REQUIRE( p.direction_to( { .x = 0, .y = 2 } ) ==
-           e_direction::w );
-  REQUIRE( p.direction_to( { .x = 2, .y = 2 } ) ==
-           e_direction::e );
-  REQUIRE( p.direction_to( { .x = 0, .y = 3 } ) ==
-           e_direction::sw );
-  REQUIRE( p.direction_to( { .x = 1, .y = 3 } ) ==
-           e_direction::s );
-  REQUIRE( p.direction_to( { .x = 2, .y = 3 } ) ==
-           e_direction::se );
+  using enum e_direction;
+  REQUIRE( p.direction_to( { .x = 0, .y = 1 } ) == nw );
+  REQUIRE( p.direction_to( { .x = 1, .y = 1 } ) == n );
+  REQUIRE( p.direction_to( { .x = 2, .y = 1 } ) == ne );
+  REQUIRE( p.direction_to( { .x = 0, .y = 2 } ) == w );
+  REQUIRE( p.direction_to( { .x = 2, .y = 2 } ) == e );
+  REQUIRE( p.direction_to( { .x = 0, .y = 3 } ) == sw );
+  REQUIRE( p.direction_to( { .x = 1, .y = 3 } ) == s );
+  REQUIRE( p.direction_to( { .x = 2, .y = 3 } ) == se );
 
   REQUIRE( p.direction_to( { .x = 1, .y = 2 } ) == nothing );
   REQUIRE( p.direction_to( { .x = 3, .y = 2 } ) == nothing );
   REQUIRE( p.direction_to( { .x = 1, .y = 4 } ) == nothing );
+}
+
+TEST_CASE( "[gfx/cartesian] point::cdirection_to" ) {
+  point const p = { .x = 1, .y = 2 };
+
+  using enum e_cdirection;
+  REQUIRE( p.cdirection_to( { .x = 0, .y = 1 } ) == nw );
+  REQUIRE( p.cdirection_to( { .x = 1, .y = 1 } ) == n );
+  REQUIRE( p.cdirection_to( { .x = 2, .y = 1 } ) == ne );
+  REQUIRE( p.cdirection_to( { .x = 0, .y = 2 } ) == w );
+  REQUIRE( p.cdirection_to( { .x = 2, .y = 2 } ) == e );
+  REQUIRE( p.cdirection_to( { .x = 0, .y = 3 } ) == sw );
+  REQUIRE( p.cdirection_to( { .x = 1, .y = 3 } ) == s );
+  REQUIRE( p.cdirection_to( { .x = 2, .y = 3 } ) == se );
+  REQUIRE( p.cdirection_to( { .x = 1, .y = 2 } ) == c );
+
+  REQUIRE( p.cdirection_to( { .x = 3, .y = 2 } ) == nothing );
+  REQUIRE( p.cdirection_to( { .x = 1, .y = 4 } ) == nothing );
 }
 
 /****************************************************************
