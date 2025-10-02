@@ -61,8 +61,8 @@ using ::refl::enum_count;
 using ::refl::enum_values;
 
 struct TileWithDistance {
-  point tile   = {};
-  int distance = {};
+  point tile = {};
+  int cost   = {};
   // Used only by the sea lane search to bias our search to the
   // same row that we started in. This way, all else being equal,
   // the search gets biased toward horizontal travel which makes
@@ -73,79 +73,44 @@ struct TileWithDistance {
 
   [[maybe_unused]] friend bool operator<(
       TileWithDistance const l, TileWithDistance const r ) {
-    if( l.distance != r.distance )
-      return l.distance > r.distance;
+    if( l.cost != r.cost ) return l.cost > r.cost;
     if( l.distance_y != r.distance_y )
       return l.distance_y > r.distance_y;
-    // These are not really needed for the algorithm, but we're
-    // just putting them in so that objects that are not equal
-    // will have consistent inequalities.
-    if( l.tile.y != r.tile.y ) return l.tile.y < r.tile.y;
-    if( l.tile.x != r.tile.x ) return l.tile.x < r.tile.x;
     return false;
   };
 };
 
-MovementPoints weight_for_entering_square(
-    IGotoMapViewer const& viewer, point const src,
-    e_direction const d ) {
-  MovementPoints res;
-  res             = viewer.movement_points_required( src, d );
-  point const dst = src.moved( d );
-  if( viewer.has_lcr( dst ).value_or( false ) )
-    // Try to steer away from LCRs if possible.
-    res += MovementPoints( 3 );
-  return res;
-}
-
-struct TileWithMvPts {
-  point tile         = {};
-  MovementPoints pts = {};
+struct ExploredTile {
+  point tile = {};
+  int cost   = {};
 };
 
 maybe<vector<point>> a_star( IGotoMapViewer const& viewer,
                              point const src, point const dst ) {
   maybe<vector<point>> res;
-  unordered_map<point /*to*/, TileWithMvPts /*from*/> explored;
+  unordered_map<point /*to*/, ExploredTile /*from*/> explored;
   priority_queue<TileWithDistance> todo;
 
   base::ScopedTimer const timer(
       format( "a-star from {} -> {}", src, dst ) );
 
-  auto const push = [&]( point const to, point const from,
-                         MovementPoints const pts ) {
-    if( explored.contains( to ) && pts >= explored[to].pts )
+  auto const push = [&]( point const from, point const to,
+                         int const cost ) {
+    if( auto const it = explored.find( to );
+        it != explored.end() && cost >= it->second.cost )
       return;
-    todo.push( TileWithDistance{
-      .tile     = to,
-      .distance = pts.atoms() +
-                  ( to - dst ).chessboard_distance() * 3 } );
-    explored[to] = TileWithMvPts{ .tile = from, .pts = pts };
+    todo.push(
+        { .tile = to,
+          .cost = cost + viewer.heuristic_cost( to, dst ) } );
+    explored[to] = { .tile = from, .cost = cost };
   };
-  push( src, src, MovementPoints() );
+  push( src, src, 0 );
   int iterations = 0;
   while( !todo.empty() ) {
     ++iterations;
     point const curr = todo.top().tile;
     CHECK( explored.contains( curr ) );
     todo.pop();
-    // NOTE: The fact that we stop as soon as we find the desti-
-    // nation is not optimal in cases where different terrain
-    // paths would yield slightly better pathing in terms of
-    // movement point cost. But we need to do this for perfor-
-    // mance reasons, otherwise e.g. if the map is mostly hidden
-    // then this will cause basically the entire map to be
-    // searched even for a short journey of a couple of tiles.
-    // For ship travel, though, where movement point cost is uni-
-    // form across tiles, this shouldn't pessimize anything. I
-    // believe it only makes things worse for pathing of land
-    // units in the specific case where two paths need to be dis-
-    // tinguised on the different movement point costs they incur
-    // due to terrain types. But even in that case, this should
-    // be "good enough".
-    //
-    // If this line is removed then the paths become "perfect".
-    // TODO: consider making this a config flag.
     if( curr == dst ) break;
     for( e_direction const d : enum_values<e_direction> ) {
       point const moved = curr.moved( d );
@@ -162,10 +127,9 @@ maybe<vector<point>> a_star( IGotoMapViewer const& viewer,
       // used to signal "goto harbor".
       if( moved != dst && !viewer.can_enter_tile( moved ) )
         continue;
-      MovementPoints const proposed_pts =
-          explored[curr].pts +
-          weight_for_entering_square( viewer, curr, d );
-      push( moved, curr, proposed_pts );
+      int const proposed_weight =
+          explored[curr].cost + viewer.travel_cost( curr, d );
+      push( curr, moved, proposed_weight );
     }
   }
   lg.debug(
@@ -182,17 +146,16 @@ maybe<vector<point>> a_star( IGotoMapViewer const& viewer,
 maybe<vector<point>> sea_lane_search(
     IGotoMapViewer const& viewer, point const src ) {
   maybe<vector<point>> res;
-  unordered_map<point /*to*/, TileWithMvPts /*from*/> explored;
+  unordered_map<point /*to*/, ExploredTile /*from*/> explored;
   priority_queue<TileWithDistance> todo;
   auto const push = [&]( point const p, point const from,
-                         MovementPoints const pts ) {
-    todo.push(
-        TileWithDistance{ .tile       = p,
-                          .distance   = pts.atoms(),
-                          .distance_y = abs( p.y - src.y ) } );
-    explored[p] = TileWithMvPts{ .tile = from, .pts = pts };
+                         int const cost ) {
+    todo.push( { .tile       = p,
+                 .cost       = cost,
+                 .distance_y = abs( p.y - src.y ) } );
+    explored[p] = ExploredTile{ .tile = from, .cost = cost };
   };
-  push( src, src, MovementPoints() );
+  push( src, src, 0 );
   base::ScopedTimer const timer(
       format( "sea lane search from {}", src ) );
   maybe<point> dst;
@@ -207,16 +170,15 @@ maybe<vector<point>> sea_lane_search(
       point const moved = curr.moved( d );
       if( !viewer.can_enter_tile( moved ) ) continue;
       CHECK( explored.contains( curr ) );
-      MovementPoints const proposed_pts =
-          explored[curr].pts +
-          viewer.movement_points_required( curr, d );
+      int const proposed_weight =
+          explored[curr].cost + viewer.travel_cost( curr, d );
       if( explored.contains( moved ) ) {
-        if( proposed_pts < explored[moved].pts )
-          explored[moved] =
-              TileWithMvPts{ .tile = curr, .pts = proposed_pts };
+        if( proposed_weight < explored[moved].cost )
+          explored[moved] = ExploredTile{
+            .tile = curr, .cost = proposed_weight };
         continue;
       }
-      push( moved, curr, proposed_pts );
+      push( moved, curr, proposed_weight );
     }
   }
   lg.debug(

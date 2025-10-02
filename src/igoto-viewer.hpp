@@ -76,6 +76,18 @@ struct IGotoMapViewer {
   // lane, if that is possible.
   [[nodiscard]] virtual maybe<e_direction>
   is_sea_lane_launch_point( gfx::point tile ) const final;
+
+  // This is the weight used by the goto algorithm to assign the
+  // cost of moving from src to the direction d.
+  [[nodiscard]] virtual int travel_cost(
+      gfx::point src, e_direction d ) const final;
+
+  // This is used as the "heuristic function" for the A* algo,
+  // meaning that it makes a quick estimate of the cost of moving
+  // between two tiles without computing a path between them. It
+  // is used to prioritize the ordering that we search tiles.
+  [[nodiscard]] virtual int heuristic_cost(
+      gfx::point src, gfx::point dst ) const final;
 };
 
 } // namespace rn
