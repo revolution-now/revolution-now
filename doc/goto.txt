@@ -30,6 +30,8 @@ Done:
     moving or any animations and therefore a prompt might come up
     referring to a unit that is not on screen.
   * Goto tile via keyboard.
+  * Land units should try to avoid LCRs when navigating, if pos-
+    sible.
 
   Strategies:
 

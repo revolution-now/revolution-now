@@ -51,6 +51,9 @@ struct IGotoMapViewer {
   [[nodiscard]] virtual maybe<bool> is_sea_lane(
       gfx::point tile ) const = 0;
 
+  [[nodiscard]] virtual maybe<bool> has_lcr(
+      gfx::point tile ) const = 0;
+
   // Assuming that movement is possible between the two tiles
   // this will return the estimated cost in movement points by
   // the unit, accounting for how many total movement points the

@@ -137,6 +137,17 @@ maybe<bool> GotoMapViewer::is_sea_lane(
   }
 }
 
+maybe<bool> GotoMapViewer::has_lcr( point const tile ) const {
+  switch( viz_->visible( tile ) ) {
+    using enum e_tile_visibility;
+    case e_tile_visibility::hidden:
+      return nothing;
+    case e_tile_visibility::fogged:
+    case e_tile_visibility::clear:
+      return viz_->square_at( tile ).lost_city_rumor;
+  }
+}
+
 MovementPoints GotoMapViewer::movement_points_required(
     point const src, e_direction const direction ) const {
   auto const src_square = viz_->visible_square_at( src );

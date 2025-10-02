@@ -40,6 +40,8 @@ struct GotoMapViewer : IGotoMapViewer {
 
   maybe<bool> is_sea_lane( gfx::point tile ) const override;
 
+  maybe<bool> has_lcr( gfx::point tile ) const override;
+
   MovementPoints movement_points_required(
       gfx::point src, e_direction direction ) const override;
 

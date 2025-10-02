@@ -59,7 +59,7 @@ sumtype.LandViewRawInput {
   },
   mouse_over {
     where 'gfx::point',
-    tile 'gfx::point',
+    tile 'maybe<gfx::point>',
   },
   zoom_changed {},
   center {}, # Center on blinking unit, if any.

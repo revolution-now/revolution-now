@@ -86,18 +86,36 @@ struct TileWithDistance {
   };
 };
 
+MovementPoints weight_for_entering_square(
+    IGotoMapViewer const& viewer, point const src,
+    e_direction const d ) {
+  MovementPoints res;
+  res             = viewer.movement_points_required( src, d );
+  point const dst = src.moved( d );
+  if( viewer.has_lcr( dst ).value_or( false ) )
+    // Try to steer away from LCRs if possible.
+    res += MovementPoints( 3 );
+  return res;
+}
+
 struct TileWithMvPts {
   point tile         = {};
   MovementPoints pts = {};
 };
 
-maybe<GotoPath> a_star( IGotoMapViewer const& viewer,
-                        point const src, point const dst ) {
-  maybe<GotoPath> res;
+maybe<vector<point>> a_star( IGotoMapViewer const& viewer,
+                             point const src, point const dst ) {
+  maybe<vector<point>> res;
   unordered_map<point /*to*/, TileWithMvPts /*from*/> explored;
   priority_queue<TileWithDistance> todo;
+
+  base::ScopedTimer const timer(
+      format( "a-star from {} -> {}", src, dst ) );
+
   auto const push = [&]( point const to, point const from,
                          MovementPoints const pts ) {
+    if( explored.contains( to ) && pts >= explored[to].pts )
+      return;
     todo.push( TileWithDistance{
       .tile     = to,
       .distance = pts.atoms() +
@@ -105,9 +123,9 @@ maybe<GotoPath> a_star( IGotoMapViewer const& viewer,
     explored[to] = TileWithMvPts{ .tile = from, .pts = pts };
   };
   push( src, src, MovementPoints() );
-  base::ScopedTimer const timer(
-      format( "a-star from {} -> {}", src, dst ) );
+  int iterations = 0;
   while( !todo.empty() ) {
+    ++iterations;
     point const curr = todo.top().tile;
     CHECK( explored.contains( curr ) );
     todo.pop();
@@ -146,31 +164,24 @@ maybe<GotoPath> a_star( IGotoMapViewer const& viewer,
         continue;
       MovementPoints const proposed_pts =
           explored[curr].pts +
-          viewer.movement_points_required( curr, d );
-      if( explored.contains( moved ) ) {
-        if( proposed_pts < explored[moved].pts ) {
-          explored[moved] =
-              TileWithMvPts{ .tile = curr, .pts = proposed_pts };
-        }
-        continue;
-      }
+          weight_for_entering_square( viewer, curr, d );
       push( moved, curr, proposed_pts );
     }
   }
   lg.debug(
-      "a-star from {} -> {} finished after exploring {} tiles.",
-      src, dst, explored.size() );
+      "a-star from {} -> {} finished after exploring {} tiles "
+      "with {} iterations.",
+      src, dst, explored.size(), iterations );
   if( !explored.contains( dst ) ) return res;
-  auto& goto_path  = res.emplace();
-  goto_path.target = goto_target::map{ .tile = dst };
+  auto& reverse_path = res.emplace();
   for( point p = dst; p != src; p = explored[p].tile )
-    goto_path.reverse_path.push_back( p );
+    reverse_path.push_back( p );
   return res;
 }
 
-maybe<GotoPath> sea_lane_search( IGotoMapViewer const& viewer,
-                                 point const src ) {
-  maybe<GotoPath> res;
+maybe<vector<point>> sea_lane_search(
+    IGotoMapViewer const& viewer, point const src ) {
+  maybe<vector<point>> res;
   unordered_map<point /*to*/, TileWithMvPts /*from*/> explored;
   priority_queue<TileWithDistance> todo;
   auto const push = [&]( point const p, point const from,
@@ -214,10 +225,9 @@ maybe<GotoPath> sea_lane_search( IGotoMapViewer const& viewer,
       src, explored.size() );
   if( !dst.has_value() ) return res;
   CHECK( explored.contains( *dst ) );
-  auto& goto_path  = res.emplace();
-  goto_path.target = goto_target::harbor{};
+  auto& reverse_path = res.emplace();
   for( point p = *dst; p != src; p = explored[p].tile )
-    goto_path.reverse_path.push_back( p );
+    reverse_path.push_back( p );
   return res;
 }
 
@@ -229,12 +239,30 @@ maybe<GotoPath> sea_lane_search( IGotoMapViewer const& viewer,
 maybe<GotoPath> compute_goto_path( IGotoMapViewer const& viewer,
                                    point const src,
                                    point const dst ) {
-  return a_star( viewer, src, dst );
+  maybe<GotoPath> res;
+  auto reverse_path = a_star( viewer, src, dst );
+  // We need to be able to move from this.
+  static_assert( !is_const_v<decltype( reverse_path )> );
+  if( reverse_path.has_value() ) {
+    auto& goto_path        = res.emplace();
+    goto_path.target       = goto_target::map{ .tile = dst };
+    goto_path.reverse_path = std::move( *reverse_path );
+  }
+  return res;
 }
 
 maybe<GotoPath> compute_harbor_goto_path(
     IGotoMapViewer const& viewer, point const src ) {
-  return sea_lane_search( viewer, src );
+  maybe<GotoPath> res;
+  auto reverse_path = sea_lane_search( viewer, src );
+  // We need to be able to move from this.
+  static_assert( !is_const_v<decltype( reverse_path )> );
+  if( reverse_path.has_value() ) {
+    auto& goto_path        = res.emplace();
+    goto_path.target       = goto_target::harbor{};
+    goto_path.reverse_path = std::move( *reverse_path );
+  }
+  return res;
 }
 
 bool unit_has_reached_goto_target( SSConst const& ss,

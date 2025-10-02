@@ -605,7 +605,8 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
         CASE( escape ) { co_return nothing; }
         CASE( tile_right_click ) { co_return nothing; }
         CASE( mouse_over ) {
-          mode.curr_tile = mouse_over.tile;
+          if( !mouse_over.tile.has_value() ) break;
+          mode.curr_tile = *mouse_over.tile;
           break;
         }
         default:
@@ -1547,13 +1548,12 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
       }
       case input::e_input_event::mouse_move_event: {
         auto& val = event.get<input::mouse_move_event_t>();
-        UNWRAP_BREAK(
-            tile,
-            viewport().screen_pixel_to_world_tile( val.pos ) );
-        handled = e_input_handled::yes;
+        auto const tile =
+            viewport().screen_pixel_to_world_tile( val.pos );
         raw_input_stream_.send(
             RawInput( LandViewRawInput::mouse_over{
               .where = val.pos, .tile = tile } ) );
+        handled = e_input_handled::yes;
         break;
       }
       case input::e_input_event::mouse_wheel_event: {
@@ -1561,12 +1561,18 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
         // If the mouse is in the viewport and its a wheel event
         // then we are in business.
         if( val.pos.is_inside( viewport_rect_pixels() ) ) {
-          if( val.wheel_delta < 0 )
+          if( val.wheel_delta < 0 ) {
             viewport().set_zoom_push( e_push_direction::negative,
                                       nothing );
-          if( val.wheel_delta > 0 )
+            raw_input_stream_.send(
+                RawInput( LandViewRawInput::zoom_changed{} ) );
+          }
+          if( val.wheel_delta > 0 ) {
             viewport().set_zoom_push( e_push_direction::positive,
                                       val.pos );
+            raw_input_stream_.send(
+                RawInput( LandViewRawInput::zoom_changed{} ) );
+          }
           // A user zoom request halts any auto zooming that may
           // currently be happening.
           viewport().stop_auto_zoom();
