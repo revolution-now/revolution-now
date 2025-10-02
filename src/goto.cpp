@@ -276,7 +276,7 @@ bool unit_has_reached_goto_target( SSConst const& ss,
       // directly, and the game should maintain that.
       point const unit_tile =
           coord_for_unit_indirect_or_die( ss.units, unit.id() );
-      return ( unit_tile == map.tile );
+      return unit_tile == map.tile;
     }
     CASE( harbor ) {
       return is_unit_inbound( ss.units, unit.id() ) ||
