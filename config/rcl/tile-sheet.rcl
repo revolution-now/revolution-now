@@ -29,15 +29,16 @@ sheets {
       sprites {
         lift_key: { y: 0, x: 0 }
 
-        goto_arrow_nw:  { y: 1, x: 0 }
-        goto_arrow_ne:  { y: 1, x: 1 }
-        goto_arrow_se:  { y: 1, x: 2 }
-        goto_arrow_sw:  { y: 1, x: 3 }
-        goto_arrow_n:   { y: 2, x: 0 }
-        goto_arrow_s:   { y: 2, x: 1 }
-        goto_arrow_e:   { y: 2, x: 2 }
-        goto_arrow_w:   { y: 2, x: 3 }
-        goto_box:       { y: 3, x: 0 }
+        goto_arrow_nw:     { y: 1, x: 0 }
+        goto_arrow_ne:     { y: 1, x: 1 }
+        goto_arrow_se:     { y: 1, x: 2 }
+        goto_arrow_sw:     { y: 1, x: 3 }
+        goto_arrow_n:      { y: 2, x: 0 }
+        goto_arrow_s:      { y: 2, x: 1 }
+        goto_arrow_e:      { y: 2, x: 2 }
+        goto_arrow_w:      { y: 2, x: 3 }
+        goto_tile_outward: { y: 3, x: 0 }
+        goto_tile_inward:  { y: 3, x: 1 }
       }
     }
     {

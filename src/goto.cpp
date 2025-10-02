@@ -109,6 +109,7 @@ maybe<GotoPath> a_star( IGotoMapViewer const& viewer,
       format( "a-star from {} -> {}", src, dst ) );
   while( !todo.empty() ) {
     point const curr = todo.top().tile;
+    CHECK( explored.contains( curr ) );
     todo.pop();
     // NOTE: The fact that we stop as soon as we find the desti-
     // nation is not optimal in cases where different terrain
@@ -138,10 +139,11 @@ maybe<GotoPath> a_star( IGotoMapViewer const& viewer,
       // able to traverse those tiles en-route to their target.
       // In the event that the unit is not allowed onto the tile
       // then the goto orders will be cleared, but that is ok be-
-      // cause the user specifically chose the target.
+      // cause the user specifically chose the target. This also
+      // allows a ship to move one tile off of the map which is
+      // used to signal "goto harbor".
       if( moved != dst && !viewer.can_enter_tile( moved ) )
         continue;
-      CHECK( explored.contains( curr ) );
       MovementPoints const proposed_pts =
           explored[curr].pts +
           viewer.movement_points_required( curr, d );

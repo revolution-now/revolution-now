@@ -556,6 +556,79 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
     co_return nothing;
   }
 
+  // NOTE: this is not for the goto selection where the mouse
+  // drags to the target; this is mainly for keyboard driven in-
+  // put.
+  wait<maybe<point>> select_goto_tile( Unit const& unit ) {
+    point const start =
+        coord_for_unit_indirect_or_die( ss_.units, unit.id() );
+
+    // Set land view mode.
+    SCOPED_MODE_PUSH_AND_GET( mode, goto_mode );
+    mode.start_tile = start;
+    mode.curr_tile  = start;
+
+    // Set goto mouse cursor.
+    OmniPlane& omni = ts_.planes.get().omni.typed();
+    e_mouse_cursor const old_cursor = omni.get_mouse_cursor();
+    omni.set_mouse_cursor( e_mouse_cursor::go_to );
+    SCOPE_EXIT { omni.set_mouse_cursor( old_cursor ); };
+
+    rect const map_rect = viewport().world_rect_tiles();
+
+    // Take updates and wait for a tile to be selected either
+    // with the keyboard or mouse click. Likely it'll be the key-
+    // board here since this is mostly for keyboard driven goto
+    // input.
+    for( ;; ) {
+      co_await animator_.ensure_visible( mode.curr_tile );
+      RawInput const raw = co_await raw_input_stream_.next();
+      SWITCH( raw.input ) {
+        CASE( tile_enter ) { co_return mode.curr_tile; }
+        CASE( tile_click ) { co_return tile_click.coord; }
+        CASE( cmd ) {
+          SWITCH( cmd.what ) {
+            CASE( move ) {
+              mode.curr_tile = mode.curr_tile.moved( move.d );
+              break;
+            }
+            CASE( forfeight ) {
+              // This is the space bar, which we will interpret
+              // as "accept tile and go".
+              co_return mode.curr_tile;
+            }
+            default:
+              break;
+          }
+          break;
+        }
+        CASE( escape ) { co_return nothing; }
+        CASE( tile_right_click ) { co_return nothing; }
+        CASE( mouse_over ) {
+          mode.curr_tile = mouse_over.tile;
+          break;
+        }
+        default:
+          break;
+      }
+      // The the player can see beyond the left/right edges of
+      // the map (due to zoom level) then allow one extra tile on
+      // the left/right so that the player can indicate that they
+      // want to go to the harbor. We need to check this in each
+      // loop because the player may change the zoom level as
+      // they are selecting tiles.
+      rect const bounds =
+          viewport().is_fully_visible_x()
+              ? map_rect //
+                    .with_new_left_edge( map_rect.left() - 1 )
+                    .with_new_right_edge( map_rect.right() + 1 )
+                    .with_dec_size()
+              : map_rect.with_dec_size();
+      mode.curr_tile = mode.curr_tile.clamped( bounds );
+    }
+    co_return nothing;
+  }
+
   /****************************************************************
   ** Input Processor
   *****************************************************************/
@@ -729,6 +802,24 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
         co_await context_menu( o.where, o.tile );
         break;
       }
+      case e::goto_tile: {
+        auto const unit_input =
+            mode_.top().get_if<LandViewMode::unit_input>();
+        if( !unit_input.has_value() ) break;
+        Unit const& unit =
+            ss_.units.unit_for( unit_input->unit_id );
+        auto const tile = co_await select_goto_tile( unit );
+        if( !tile.has_value() ) break;
+        // Use current time since there was some user interac-
+        // tion.
+        translated_input_stream_.push( PlayerInput(
+            PI::give_command{
+              .cmd = command::go_to{ .target =
+                                         goto_target::map{
+                                           .tile = *tile } } },
+            Clock_t::now() ) );
+        break;
+      }
       case e::goto_port: {
         auto const unit_input =
             mode_.top().get_if<LandViewMode::unit_input>();
@@ -757,6 +848,14 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
                   command::go_to{ .target =
                                       goto_target::harbor{} } },
             raw_input.when ) );
+        break;
+      }
+      case e::mouse_over: {
+        // TBD.
+        break;
+      }
+      case e::zoom_changed: {
+        // TBD.
         break;
       }
     }
@@ -1222,6 +1321,8 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
 
             camera_.zoom_out();
             viewport().fix_invariants();
+            raw_input_stream_.send(
+                RawInput( LandViewRawInput::zoom_changed{} ) );
             break;
           }
           case ::SDLK_z: {
@@ -1247,6 +1348,8 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
                   tile->is_inside( viewport_.covered_tiles() );
               ZoomChanged const changed = camera_.zoom_in();
               viewport().fix_invariants();
+              raw_input_stream_.send(
+                  RawInput( LandViewRawInput::zoom_changed{} ) );
               if( tile_visible && changed.bucket_changed ) {
                 CHECK( tile.has_value() );
                 camera_.center_on_tile( *tile );
@@ -1270,11 +1373,14 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
             }
             break;
           case ::SDLK_g:
-            if( key_event.mod.shf_down ) break;
             if( !mode_.top().holds<LandViewMode::unit_input>() )
               break;
-            raw_input_stream_.send(
-                RawInput( LandViewRawInput::goto_port{} ) );
+            if( key_event.mod.shf_down )
+              raw_input_stream_.send(
+                  RawInput( LandViewRawInput::goto_tile{} ) );
+            else
+              raw_input_stream_.send(
+                  RawInput( LandViewRawInput::goto_port{} ) );
             break;
           case ::SDLK_v:
             if( key_event.mod.shf_down ) break;
@@ -1383,6 +1489,13 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
             break;
           case ::SDLK_KP_ENTER:
           case ::SDLK_RETURN:
+            if( mode_.top().holds<LandViewMode::goto_mode>() ) {
+              // The goto mode state keeps track of the desired
+              // tile that is selected.
+              raw_input_stream_.send(
+                  RawInput( LandViewRawInput::tile_enter{} ) );
+              break;
+            }
             if( mode_.top().holds<LandViewMode::view_mode>() ||
                 mode_.top()
                     .holds<LandViewMode::end_of_turn>() ) {
@@ -1390,6 +1503,7 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
                   RawInput( LandViewRawInput::tile_enter{
                     .tile = white_box_tile( ss_ ),
                     .mods = key_event.mod } ) );
+              break;
             }
             break;
           case ::SDLK_SPACE:
@@ -1404,6 +1518,13 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
                                LandViewMode::end_of_turn>() ) {
               raw_input_stream_.send(
                   RawInput( LandViewRawInput::next_turn{} ) );
+            } else if( mode_.top()
+                           .holds<LandViewMode::goto_mode>() ) {
+              // This will be interpreted as "accept tile" and
+              // will start the goto.
+              raw_input_stream_.send(
+                  RawInput( LandViewRawInput::cmd{
+                    .what = command::forfeight{} } ) );
             } else if( mode_.top()
                            .holds<LandViewMode::view_mode>() ) {
               raw_input_stream_.send(
@@ -1422,6 +1543,17 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
             }
             break;
         }
+        break;
+      }
+      case input::e_input_event::mouse_move_event: {
+        auto& val = event.get<input::mouse_move_event_t>();
+        UNWRAP_BREAK(
+            tile,
+            viewport().screen_pixel_to_world_tile( val.pos ) );
+        handled = e_input_handled::yes;
+        raw_input_stream_.send(
+            RawInput( LandViewRawInput::mouse_over{
+              .where = val.pos, .tile = tile } ) );
         break;
       }
       case input::e_input_event::mouse_wheel_event: {

@@ -1056,74 +1056,59 @@ void LandViewRenderer::render_non_entities() const {
   render_landscape_anim_buffers();
 }
 
+int constexpr kGotoArrowDist = 16;
+
+#define DIRECTION( d, ww, hh )                   \
+  case gfx::e_direction::d:                      \
+    return pair{ e_tile::goto_arrow_##d,         \
+                 size{ .w = ww * kGotoArrowDist, \
+                       .h = hh * kGotoArrowDist } };
+
 void LandViewRenderer::render_goto(
     point const start_tile, point const end_tile ) const {
-  if( !start_tile.cdirection_to( end_tile ) ) {
-    // point const mouse = input::current_mouse_position();
-    // if( !viewport_.screen_coord_in_viewport( mouse ) ) return;
-    // pixel const kColor{ .r = 108, .g = 137, .b = 213, .a = 255
-    // };
+  if( !start_tile.direction_to( end_tile ) ) {
     rect const box = get_render_rect_for_tile( end_tile );
-    {
-      gfx::dpoint const corner =
-          viewport_.rendering_dest_rect().origin -
-          viewport_.covered_pixels().origin.fmod( 32.0 ) *
-              viewport_.get_zoom();
-      SCOPED_RENDERER_MOD_MUL( painter_mods.repos.scale,
-                               viewport_.get_zoom() );
-      SCOPED_RENDERER_MOD_ADD( painter_mods.repos.translation2,
-                               corner.distance_from_origin() );
-      // rr::draw_empty_rect_faded_corners( renderer, box, kColor
-      // );
-      render_sprite( renderer_, box.nw(), e_tile::goto_box );
-    }
+    gfx::dpoint const corner =
+        viewport_.rendering_dest_rect().origin -
+        viewport_.covered_pixels().origin.fmod( 32.0 ) *
+            viewport_.get_zoom();
+    SCOPED_RENDERER_MOD_MUL( painter_mods.repos.scale,
+                             viewport_.get_zoom() );
+    SCOPED_RENDERER_MOD_ADD( painter_mods.repos.translation2,
+                             corner.distance_from_origin() );
+    e_tile const sprite = end_tile == start_tile
+                              ? e_tile::goto_tile_inward
+                              : e_tile::goto_tile_outward;
+    render_sprite( renderer_, box.nw(), sprite );
   }
 
   if( auto const d = start_tile.direction_to( end_tile );
       d.has_value() ) {
-    auto const [sprite_tile,
-                offset] = [&] -> pair<e_tile, size> {
-      int constexpr kDist = 16;
+    auto const [sprite_tile, offset] = [&] {
       switch( *d ) {
-        case gfx::e_direction::e:
-          return { e_tile::goto_arrow_e,
-                   size{ .w = kDist, .h = 0 } };
-        case gfx::e_direction::w:
-          return { e_tile::goto_arrow_w,
-                   size{ .w = -kDist, .h = 0 } };
-        case gfx::e_direction::n:
-          return { e_tile::goto_arrow_n,
-                   size{ .w = 0, .h = -kDist } };
-        case gfx::e_direction::s:
-          return { e_tile::goto_arrow_s,
-                   size{ .w = 0, .h = kDist } };
-        case gfx::e_direction::ne:
-          return { e_tile::goto_arrow_ne,
-                   size{ .w = kDist, .h = -kDist } };
-        case gfx::e_direction::nw:
-          return { e_tile::goto_arrow_nw,
-                   size{ .w = -kDist, .h = -kDist } };
-        case gfx::e_direction::se:
-          return { e_tile::goto_arrow_se,
-                   size{ .w = kDist, .h = kDist } };
-        case gfx::e_direction::sw:
-          return { e_tile::goto_arrow_sw,
-                   size{ .w = -kDist, .h = kDist } };
+        // clang-format off
+        DIRECTION( e,   1,  0 );
+        DIRECTION( w,  -1,  0 );
+        DIRECTION( n,   0, -1 );
+        DIRECTION( s,   0,  1 );
+        DIRECTION( ne,  1, -1 );
+        DIRECTION( nw, -1, -1 );
+        DIRECTION( se,  1,  1 );
+        DIRECTION( sw, -1,  1 );
+        // clang-format on
       }
     }();
     rect const box =
         get_render_rect_for_tile( start_tile ).moved( offset );
-    {
-      gfx::dpoint const corner =
-          viewport_.rendering_dest_rect().origin -
-          viewport_.covered_pixels().origin.fmod( 32.0 ) *
-              viewport_.get_zoom();
-      SCOPED_RENDERER_MOD_MUL( painter_mods.repos.scale,
-                               viewport_.get_zoom() );
-      SCOPED_RENDERER_MOD_ADD( painter_mods.repos.translation2,
-                               corner.distance_from_origin() );
-      render_sprite( renderer, box.origin, sprite_tile );
-    }
+    gfx::dpoint const corner =
+        viewport_.rendering_dest_rect().origin -
+        viewport_.covered_pixels().origin.fmod( 32.0 ) *
+            viewport_.get_zoom();
+    SCOPED_RENDERER_MOD_MUL( painter_mods.repos.scale,
+                             viewport_.get_zoom() );
+    SCOPED_RENDERER_MOD_ADD( painter_mods.repos.translation2,
+                             corner.distance_from_origin() );
+    render_sprite( renderer, box.origin, sprite_tile );
   }
 }
 

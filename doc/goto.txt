@@ -1,7 +1,6 @@
 TODO:
 -----------------------------------------------------------------
 
-  * Goto tile via keyboard.
   * Do another attempt at finding any additional goto state in
     the OG's sav files.
 
@@ -30,6 +29,7 @@ Done:
     since they may engage in an interaction that doesn't involve
     moving or any animations and therefore a prompt might come up
     referring to a unit that is not on screen.
+  * Goto tile via keyboard.
 
   Strategies:
 

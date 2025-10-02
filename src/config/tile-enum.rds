@@ -890,7 +890,8 @@ enum.e_tile {
   goto_arrow_s,
   goto_arrow_e,
   goto_arrow_w,
-  goto_box,
+  goto_tile_outward,
+  goto_tile_inward,
 
   # =============================================================
   # Scrolls/Plates

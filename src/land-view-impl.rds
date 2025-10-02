@@ -29,6 +29,8 @@ sumtype.LandViewMode {
   unit_input {
     unit_id 'UnitId',
   },
+  # This mode is for either mouse (drag) or keyboard goto selec-
+  # tion mode.
   goto_mode {
     start_tile 'gfx::point',
     curr_tile 'gfx::point',
@@ -55,6 +57,11 @@ sumtype.LandViewRawInput {
     tile 'gfx::point',
     mods 'input::mod_keys',
   },
+  mouse_over {
+    where 'gfx::point',
+    tile 'gfx::point',
+  },
+  zoom_changed {},
   center {}, # Center on blinking unit, if any.
   next_turn {},
   hidden_terrain {},
@@ -65,6 +72,7 @@ sumtype.LandViewRawInput {
   escape {},
   goto_port {},
   goto_harbor {},
+  goto_tile {},
   reveal_map {},
   toggle_map_reveal {},
   cheat_create_unit {},
