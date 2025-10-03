@@ -60,23 +60,13 @@ using ::gfx::point;
 using ::refl::enum_count;
 using ::refl::enum_values;
 
-struct TileWithDistance {
+struct TileWithCost {
   point tile = {};
   int cost   = {};
-  // Used only by the sea lane search to bias our search to the
-  // same row that we started in. This way, all else being equal,
-  // the search gets biased toward horizontal travel which makes
-  // more sense when searching for sea lane. This won't interfere
-  // with distance optimization because it will only come into
-  // play when two tiles have equal distances.
-  int distance_y = {};
 
   [[maybe_unused]] friend bool operator<(
-      TileWithDistance const l, TileWithDistance const r ) {
-    if( l.cost != r.cost ) return l.cost > r.cost;
-    if( l.distance_y != r.distance_y )
-      return l.distance_y > r.distance_y;
-    return false;
+      TileWithCost const l, TileWithCost const r ) {
+    return l.cost > r.cost;
   };
 };
 
@@ -89,16 +79,13 @@ maybe<vector<point>> a_star( IGotoMapViewer const& viewer,
                              point const src, point const dst ) {
   maybe<vector<point>> res;
   unordered_map<point /*to*/, ExploredTile /*from*/> explored;
-  priority_queue<TileWithDistance> todo;
+  priority_queue<TileWithCost> todo;
 
   base::ScopedTimer const timer(
       format( "a-star from {} -> {}", src, dst ) );
 
   auto const push = [&]( point const from, point const to,
                          int const cost ) {
-    if( auto const it = explored.find( to );
-        it != explored.end() && cost >= it->second.cost )
-      return;
     todo.push(
         { .tile = to,
           .cost = cost + viewer.heuristic_cost( to, dst ) } );
@@ -127,9 +114,13 @@ maybe<vector<point>> a_star( IGotoMapViewer const& viewer,
       // used to signal "goto harbor".
       if( moved != dst && !viewer.can_enter_tile( moved ) )
         continue;
-      int const proposed_weight =
+      int const proposed_cost =
           explored[curr].cost + viewer.travel_cost( curr, d );
-      push( curr, moved, proposed_weight );
+      if( auto const it = explored.find( moved );
+          it != explored.end() &&
+          proposed_cost >= it->second.cost )
+        continue;
+      push( curr, moved, proposed_cost );
     }
   }
   lg.debug(
@@ -138,16 +129,39 @@ maybe<vector<point>> a_star( IGotoMapViewer const& viewer,
       src, dst, explored.size(), iterations );
   if( !explored.contains( dst ) ) return res;
   auto& reverse_path = res.emplace();
+  reverse_path.reserve( ( src - dst ).chessboard_distance() *
+                        9 );
   for( point p = dst; p != src; p = explored[p].tile )
     reverse_path.push_back( p );
   return res;
 }
 
+struct TileWithCostSeaLane {
+  point tile = {};
+  int cost   = {};
+  // Used only by the sea lane search to bias our search to the
+  // same row that we started in. This way, all else being equal,
+  // the search gets biased toward horizontal travel which makes
+  // more sense when searching for sea lane. This won't interfere
+  // with distance optimization because it will only come into
+  // play when two tiles have equal distances.
+  int distance_y = {};
+
+  [[maybe_unused]] friend bool operator<(
+      TileWithCostSeaLane const l,
+      TileWithCostSeaLane const r ) {
+    if( l.cost != r.cost ) return l.cost > r.cost;
+    if( l.distance_y != r.distance_y )
+      return l.distance_y > r.distance_y;
+    return false;
+  };
+};
+
 maybe<vector<point>> sea_lane_search(
     IGotoMapViewer const& viewer, point const src ) {
   maybe<vector<point>> res;
   unordered_map<point /*to*/, ExploredTile /*from*/> explored;
-  priority_queue<TileWithDistance> todo;
+  priority_queue<TileWithCostSeaLane> todo;
   auto const push = [&]( point const p, point const from,
                          int const cost ) {
     todo.push( { .tile       = p,
