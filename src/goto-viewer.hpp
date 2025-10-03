@@ -42,8 +42,10 @@ struct GotoMapViewer : IGotoMapViewer {
 
   maybe<bool> has_lcr( gfx::point tile ) const override;
 
-  MovementPoints movement_points_required(
+  maybe<MovementPoints> movement_points_required(
       gfx::point src, e_direction direction ) const override;
+
+  MovementPoints minimum_heuristic_tile_cost() const override;
 
  private:
   SSConst const& ss_;

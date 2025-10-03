@@ -1,6 +1,15 @@
 TODO:
 -----------------------------------------------------------------
 
+  * In mouse mode, we cannot drag off the right/left edge of the
+    map like we can in keyboard mode.
+  * When in keyboard mode, need to be able to center on the fo-
+    cused tile.
+  * In keyboard mode, need to fix the fact that moving the cursor
+    near the edge of the screen causing things to scroll too
+    fast.
+  * In mouse mode, it would be nice to have a way to gently
+    scroll when the mouse moves to the edge.
   * Do another attempt at finding any additional goto state in
     the OG's sav files.
 

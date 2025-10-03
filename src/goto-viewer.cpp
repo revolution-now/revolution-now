@@ -148,21 +148,42 @@ maybe<bool> GotoMapViewer::has_lcr( point const tile ) const {
   }
 }
 
-MovementPoints GotoMapViewer::movement_points_required(
+maybe<MovementPoints> GotoMapViewer::movement_points_required(
     point const src, e_direction const direction ) const {
   auto const src_square = viz_->visible_square_at( src );
   auto const dst_square =
       viz_->visible_square_at( src.moved( direction ) );
   if( !src_square.has_value() || !dst_square.has_value() )
-    // If either src or dst tiles are hidden then just assume a
-    // cost of one to traverse them. It seems likely that in
-    // practice, if either of them are hidden, then at least the
-    // dst tile will be hidden, so there isn't really much better
-    // that we can do here.
-    return MovementPoints( 1 );
+    // Can't compute it.
+    return nothing;
   MovementPoints const uncapped = ::rn::movement_points_required(
       *src_square, *dst_square, direction );
   return std::min( unit_.desc().base_movement_points, uncapped );
+}
+
+MovementPoints GotoMapViewer::minimum_heuristic_tile_cost()
+    const {
+  // This is used to compute the heuristic cost of moving between
+  // two adjacent tiles in the heuristic function for the A*
+  // algo. In order for the heuristic function to satisfy the
+  // property of Admissibility (required in order for optimal
+  // path discovery to work properly given that different tiles
+  // have different weights), this value should never overesti-
+  // mate the true optimal cost of traveling between two tiles,
+  // meaning that it must always return the best case scenario.
+  // For a land unit, that means assuming that the tiles are tra-
+  // versible and are joined by a road. For a ship, it is just
+  // one movement point always.
+  //
+  // Even though statistically it might be more accurate to as-
+  // sume a cost of 1 or 2 movement points (3 and 6 atoms, re-
+  // spectively) to move between tiles we are ignorant of the
+  // terrain type, that would break the Admissibility property
+  // which would then break guarantees of the A* algo in finding
+  // the optimal path given that the costs of tiles are
+  // non-uniform (due to differing terrain types, roads, etc.).
+  return unit_.desc().ship ? MovementPoints( 1 )
+                           : MovementPoints::_1_3();
 }
 
 } // namespace rn

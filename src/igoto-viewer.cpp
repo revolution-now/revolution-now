@@ -77,34 +77,24 @@ maybe<e_direction> IGotoMapViewer::is_sea_lane_launch_point(
 int IGotoMapViewer::travel_cost( point const src,
                                  e_direction const d ) const {
   MovementPoints res;
-  res             = movement_points_required( src, d );
+  static MovementPoints const kHiddenTilePoints( 1 );
+  res = movement_points_required( src, d ).value_or(
+      kHiddenTilePoints );
   point const dst = src.moved( d );
-  if( has_lcr( dst ).value_or( false ) )
-    // Try to steer away from LCRs if possible.
-    res += MovementPoints( 3 );
+  if( has_lcr( dst ).value_or( false ) ) {
+    // Try to steer away from LCRs if possible by making it a
+    // heavy tile. Here we make it 4 movement points which is
+    // just more than a mountain tile.
+    static MovementPoints const kLcrPoints( 4 );
+    res += kLcrPoints;
+  }
   return res.atoms();
 }
 
 int IGotoMapViewer::heuristic_cost( point const src,
                                     point const dst ) const {
-  // Even though we generally measure movement cost in atoms
-  // (three per movement point) we don't assign 1 movement point
-  // to compute distance in the heuristic function, instead we
-  // assume the cost of a road (1 atom). This is so that our
-  // heuristic function satisfies the property of "admissibility"
-  // which means that it will never overestimate the cost of
-  // moving between two tiles. In this game, the lowest possible
-  // cost in moving between two tiles would be the "chessboard
-  // distance" where every tile has a road on it. Even though
-  // statistically it might be more accurate to assume a cost of
-  // 1 or 2 movement points (3 and 6 atoms, respectively) to move
-  // between tiles, that would break the admissibility property
-  // which would then break guarantees of the A* algo in finding
-  // the optimal path given that the costs of tiles are
-  // non-uniform (due to differing terrain types, roads, etc.).
-  static constexpr int kCostOfRoadInAtoms = 1;
   return ( dst - src ).chessboard_distance() *
-         kCostOfRoadInAtoms;
+         minimum_heuristic_tile_cost().atoms();
 }
 
 } // namespace rn
