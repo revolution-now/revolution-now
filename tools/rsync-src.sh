@@ -40,7 +40,7 @@ sync_file() {
   local remote_file="/home/dsicilia/dev/revolution-now/$rel"
   [[ -f "$local_file" ]]
   [[ -f "$remote_file" ]]
-  get_file  "$remote_file" "$local_file" &
+  get_file  "$remote_file" "$local_file"
 }
 
 sync_dir() {
@@ -52,7 +52,7 @@ sync_dir() {
   local remote_dir="/home/dsicilia/dev/revolution-now/$rel/"
   [[ -d "$local_dir" ]]
   [[ -d "$remote_dir" ]]
-  get_dir  "$remote_dir" "$local_dir" &
+  get_dir  "$remote_dir" "$local_dir"
 }
 
 # sync_dir  src
@@ -61,5 +61,3 @@ sync_dir() {
 # sync_dir  assets
 # sync_dir  saves
 # sync_file tools/ide/contents/rn.lua
-
-wait
