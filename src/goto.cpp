@@ -75,9 +75,9 @@ struct ExploredTile {
   int cost   = {};
 };
 
-maybe<vector<point>> a_star( IGotoMapViewer const& viewer,
-                             point const src, point const dst ) {
-  maybe<vector<point>> res;
+maybe<GotoPath> a_star( IGotoMapViewer const& viewer,
+                        point const src, point const dst ) {
+  maybe<GotoPath> res;
   unordered_map<point /*to*/, ExploredTile /*from*/> explored;
   priority_queue<TileWithCost> todo;
 
@@ -128,7 +128,8 @@ maybe<vector<point>> a_star( IGotoMapViewer const& viewer,
       "with {} iterations.",
       src, dst, explored.size(), iterations );
   if( !explored.contains( dst ) ) return res;
-  auto& reverse_path = res.emplace();
+  auto& goto_path    = res.emplace();
+  auto& reverse_path = goto_path.reverse_path;
   reverse_path.reserve( ( src - dst ).chessboard_distance() *
                         9 );
   for( point p = dst; p != src; p = explored[p].tile )
@@ -157,9 +158,9 @@ struct TileWithCostSeaLane {
   };
 };
 
-maybe<vector<point>> sea_lane_search(
-    IGotoMapViewer const& viewer, point const src ) {
-  maybe<vector<point>> res;
+maybe<GotoPath> sea_lane_search( IGotoMapViewer const& viewer,
+                                 point const src ) {
+  maybe<GotoPath> res;
   unordered_map<point /*to*/, ExploredTile /*from*/> explored;
   priority_queue<TileWithCostSeaLane> todo;
   auto const push = [&]( point const p, point const from,
@@ -201,7 +202,8 @@ maybe<vector<point>> sea_lane_search(
       src, explored.size() );
   if( !dst.has_value() ) return res;
   CHECK( explored.contains( *dst ) );
-  auto& reverse_path = res.emplace();
+  auto& goto_path    = res.emplace();
+  auto& reverse_path = goto_path.reverse_path;
   for( point p = *dst; p != src; p = explored[p].tile )
     reverse_path.push_back( p );
   return res;
@@ -215,30 +217,12 @@ maybe<vector<point>> sea_lane_search(
 maybe<GotoPath> compute_goto_path( IGotoMapViewer const& viewer,
                                    point const src,
                                    point const dst ) {
-  maybe<GotoPath> res;
-  auto reverse_path = a_star( viewer, src, dst );
-  // We need to be able to move from this.
-  static_assert( !is_const_v<decltype( reverse_path )> );
-  if( reverse_path.has_value() ) {
-    auto& goto_path        = res.emplace();
-    goto_path.target       = goto_target::map{ .tile = dst };
-    goto_path.reverse_path = std::move( *reverse_path );
-  }
-  return res;
+  return a_star( viewer, src, dst );
 }
 
 maybe<GotoPath> compute_harbor_goto_path(
     IGotoMapViewer const& viewer, point const src ) {
-  maybe<GotoPath> res;
-  auto reverse_path = sea_lane_search( viewer, src );
-  // We need to be able to move from this.
-  static_assert( !is_const_v<decltype( reverse_path )> );
-  if( reverse_path.has_value() ) {
-    auto& goto_path        = res.emplace();
-    goto_path.target       = goto_target::harbor{};
-    goto_path.reverse_path = std::move( *reverse_path );
-  }
-  return res;
+  return sea_lane_search( viewer, src );
 }
 
 bool unit_has_reached_goto_target( SSConst const& ss,

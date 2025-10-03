@@ -14,12 +14,18 @@
 #include "goto.rds.hpp"
 
 // ss
+#include "ss/goto.rds.hpp"
 #include "ss/unit-id.hpp"
 
 namespace rn {
 
+struct GotoExecution {
+  goto_target target;
+  GotoPath path;
+};
+
 struct GotoRegistry {
-  std::unordered_map<UnitId, GotoPath> paths;
+  std::unordered_map<UnitId, GotoExecution> paths;
 };
 
 } // namespace rn

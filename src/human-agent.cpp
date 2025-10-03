@@ -429,21 +429,23 @@ void HumanAgent::new_goto( UnitId const unit_id,
       coord_for_unit_indirect_or_die( ss_.units, unit_id );
   SWITCH( target ) {
     CASE( map ) {
-      point const dst  = map.tile;
-      auto const paths = compute_goto_path(
+      point const dst      = map.tile;
+      auto const goto_path = compute_goto_path(
           GotoMapViewer( ss_, unit ), src, dst );
-      if( !paths.has_value() ) break;
-      if( paths->reverse_path.empty() ) break;
-      goto_registry_.paths[unit_id] = std::move( *paths );
+      if( !goto_path.has_value() ) break;
+      if( goto_path->reverse_path.empty() ) break;
+      goto_registry_.paths[unit_id] = GotoExecution{
+        .target = target, .path = std::move( *goto_path ) };
       unit.orders() = unit_orders::go_to{ .target = map };
       break;
     }
     CASE( harbor ) {
-      auto const paths = compute_harbor_goto_path(
+      auto const goto_path = compute_harbor_goto_path(
           GotoMapViewer( ss_, unit ), src );
-      if( !paths.has_value() ) break;
-      if( paths->reverse_path.empty() ) break;
-      goto_registry_.paths[unit_id] = std::move( *paths );
+      if( !goto_path.has_value() ) break;
+      if( goto_path->reverse_path.empty() ) break;
+      goto_registry_.paths[unit_id] = GotoExecution{
+        .target = target, .path = std::move( *goto_path ) };
       unit.orders() = unit_orders::go_to{ .target = harbor };
       break;
     }
@@ -505,7 +507,7 @@ EvolveGoto HumanAgent::evolve_goto( UnitId const unit_id ) {
         if( !goto_registry_.paths.contains( unit_id ) )
           return nothing;
         auto& reverse_path =
-            goto_registry_.paths[unit_id].reverse_path;
+            goto_registry_.paths[unit_id].path.reverse_path;
         if( reverse_path.empty() ) return nothing;
         point const dst = reverse_path.back();
         reverse_path.pop_back();
@@ -539,7 +541,7 @@ EvolveGoto HumanAgent::evolve_goto( UnitId const unit_id ) {
         if( !goto_registry_.paths.contains( unit_id ) )
           return nothing;
         auto& reverse_path =
-            goto_registry_.paths[unit_id].reverse_path;
+            goto_registry_.paths[unit_id].path.reverse_path;
         if( reverse_path.empty() ) return nothing;
         point const dst = reverse_path.back();
         reverse_path.pop_back();

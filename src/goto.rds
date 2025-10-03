@@ -10,7 +10,6 @@
 # ===============================================================
 # ss
 include "ss/colony-id.hpp"
-include "ss/goto.rds.hpp"
 
 # gfx
 include "gfx/cartesian.hpp"
@@ -20,8 +19,12 @@ include "<vector>"
 
 namespace "rn"
 
+# Holds info about the path computation.
+struct.GotoMeta {
+}
+
 struct.GotoPath {
-  target 'goto_target',
+  meta 'GotoMeta',
   reverse_path 'std::vector<gfx::point>',
 }
 
