@@ -65,7 +65,7 @@ struct ConsolePlane::Impl : public IPlane {
   bool show_{ false };
   double show_percent_{ 0.0 };
   deferred<ui::LineEditorView> le_view_{};
-  int history_index_{ 0 };
+  int history_index_{ -1 };
 
   Impl( IEngine& engine, Terminal& terminal )
     : engine_( engine ), terminal_( terminal ) {
