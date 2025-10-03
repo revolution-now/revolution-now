@@ -33,6 +33,8 @@ get_dir() {
 
 sync_file() {
   local rel="$1"
+  echo "Are you sure you want to rsync the file $rel? <Ctrl-c> to cancel."
+  read
   [[ -n "$rel" ]]
   local local_file="$rel"
   local remote_file="/home/dsicilia/dev/revolution-now/$rel"
@@ -43,6 +45,8 @@ sync_file() {
 
 sync_dir() {
   local rel="$1"
+  echo "Are you sure you want to the folder $rel? <Ctrl-c> to cancel."
+  read
   [[ -n "$rel" ]]
   local local_dir="$rel/"
   local remote_dir="/home/dsicilia/dev/revolution-now/$rel/"
@@ -55,6 +59,7 @@ sync_dir() {
 # sync_dir  test
 # sync_dir  config
 # sync_dir  assets
+# sync_dir  saves
 # sync_file tools/ide/contents/rn.lua
 
 wait
