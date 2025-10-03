@@ -21,6 +21,9 @@ namespace "rn"
 
 # Holds info about the path computation.
 struct.GotoMeta {
+  tiles_touched 'int',
+  iterations 'int',
+  queue_size_at_end 'int',
 }
 
 struct.GotoPath {

@@ -128,8 +128,12 @@ maybe<GotoPath> a_star( IGotoMapViewer const& viewer,
       "with {} iterations.",
       src, dst, explored.size(), iterations );
   if( !explored.contains( dst ) ) return res;
-  auto& goto_path    = res.emplace();
-  auto& reverse_path = goto_path.reverse_path;
+  auto& goto_path        = res.emplace();
+  auto& meta             = goto_path.meta;
+  meta.iterations        = iterations;
+  meta.queue_size_at_end = todo.size();
+  meta.tiles_touched     = explored.size();
+  auto& reverse_path     = goto_path.reverse_path;
   reverse_path.reserve( ( src - dst ).chessboard_distance() *
                         9 );
   for( point p = dst; p != src; p = explored[p].tile )
@@ -174,7 +178,9 @@ maybe<GotoPath> sea_lane_search( IGotoMapViewer const& viewer,
   base::ScopedTimer const timer(
       format( "sea lane search from {}", src ) );
   maybe<point> dst;
+  int iterations = 0;
   while( !todo.empty() ) {
+    ++iterations;
     point const curr = todo.top().tile;
     todo.pop();
     if( viewer.is_sea_lane_launch_point( curr ) ) {
@@ -202,8 +208,12 @@ maybe<GotoPath> sea_lane_search( IGotoMapViewer const& viewer,
       src, explored.size() );
   if( !dst.has_value() ) return res;
   CHECK( explored.contains( *dst ) );
-  auto& goto_path    = res.emplace();
-  auto& reverse_path = goto_path.reverse_path;
+  auto& goto_path        = res.emplace();
+  auto& meta             = goto_path.meta;
+  meta.iterations        = iterations;
+  meta.queue_size_at_end = todo.size();
+  meta.tiles_touched     = explored.size();
+  auto& reverse_path     = goto_path.reverse_path;
   for( point p = *dst; p != src; p = explored[p].tile )
     reverse_path.push_back( p );
   return res;
