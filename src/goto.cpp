@@ -75,9 +75,9 @@ struct ExploredTile {
   int cost   = {};
 };
 
-maybe<GotoPath> a_star( IGotoMapViewer const& viewer,
-                        point const src, point const dst ) {
-  maybe<GotoPath> res;
+GotoPath a_star( IGotoMapViewer const& viewer, point const src,
+                 point const dst ) {
+  GotoPath goto_path;
   unordered_map<point /*to*/, ExploredTile /*from*/> explored;
   priority_queue<TileWithCost> todo;
 
@@ -127,18 +127,17 @@ maybe<GotoPath> a_star( IGotoMapViewer const& viewer,
       "a-star from {} -> {} finished after exploring {} tiles "
       "with {} iterations.",
       src, dst, explored.size(), iterations );
-  if( !explored.contains( dst ) ) return res;
-  auto& goto_path        = res.emplace();
   auto& meta             = goto_path.meta;
   meta.iterations        = iterations;
   meta.queue_size_at_end = todo.size();
   meta.tiles_touched     = explored.size();
-  auto& reverse_path     = goto_path.reverse_path;
+  if( !explored.contains( dst ) ) return goto_path;
+  auto& reverse_path = goto_path.reverse_path;
   reverse_path.reserve( ( src - dst ).chessboard_distance() *
                         9 );
   for( point p = dst; p != src; p = explored[p].tile )
     reverse_path.push_back( p );
-  return res;
+  return goto_path;
 }
 
 struct TileWithCostSeaLane {
@@ -162,9 +161,9 @@ struct TileWithCostSeaLane {
   };
 };
 
-maybe<GotoPath> sea_lane_search( IGotoMapViewer const& viewer,
-                                 point const src ) {
-  maybe<GotoPath> res;
+GotoPath sea_lane_search( IGotoMapViewer const& viewer,
+                          point const src ) {
+  GotoPath goto_path;
   unordered_map<point /*to*/, ExploredTile /*from*/> explored;
   priority_queue<TileWithCostSeaLane> todo;
   auto const push = [&]( point const p, point const from,
@@ -206,17 +205,16 @@ maybe<GotoPath> sea_lane_search( IGotoMapViewer const& viewer,
       "sea lane search from {} finished after exploring {} "
       "tiles.",
       src, explored.size() );
-  if( !dst.has_value() ) return res;
-  CHECK( explored.contains( *dst ) );
-  auto& goto_path        = res.emplace();
   auto& meta             = goto_path.meta;
   meta.iterations        = iterations;
   meta.queue_size_at_end = todo.size();
   meta.tiles_touched     = explored.size();
-  auto& reverse_path     = goto_path.reverse_path;
+  if( !dst.has_value() ) return goto_path;
+  CHECK( explored.contains( *dst ) );
+  auto& reverse_path = goto_path.reverse_path;
   for( point p = *dst; p != src; p = explored[p].tile )
     reverse_path.push_back( p );
-  return res;
+  return goto_path;
 }
 
 } // namespace
@@ -224,14 +222,13 @@ maybe<GotoPath> sea_lane_search( IGotoMapViewer const& viewer,
 /****************************************************************
 ** Public API.
 *****************************************************************/
-maybe<GotoPath> compute_goto_path( IGotoMapViewer const& viewer,
-                                   point const src,
-                                   point const dst ) {
+GotoPath compute_goto_path( IGotoMapViewer const& viewer,
+                            point const src, point const dst ) {
   return a_star( viewer, src, dst );
 }
 
-maybe<GotoPath> compute_harbor_goto_path(
-    IGotoMapViewer const& viewer, point const src ) {
+GotoPath compute_harbor_goto_path( IGotoMapViewer const& viewer,
+                                   point const src ) {
   return sea_lane_search( viewer, src );
 }
 

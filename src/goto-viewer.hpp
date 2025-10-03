@@ -18,6 +18,9 @@ namespace rn {
 /****************************************************************
 ** Fwd. Decls.
 *****************************************************************/
+enum class e_player;
+enum class e_unit_type;
+
 struct IVisibility;
 struct SSConst;
 struct Unit;
@@ -28,8 +31,9 @@ struct Unit;
 // NOTE: the unit should not be deleted while this object is
 // being used.
 struct GotoMapViewer : IGotoMapViewer {
-  GotoMapViewer( SSConst const& ss, Unit const& unit );
-  ~GotoMapViewer() override;
+  GotoMapViewer( SSConst const& ss, IVisibility const& viz,
+                 e_player player_type, e_unit_type unit_type );
+  ~GotoMapViewer() override = default;
 
   bool can_enter_tile( gfx::point tile ) const override;
 
@@ -49,9 +53,13 @@ struct GotoMapViewer : IGotoMapViewer {
 
  private:
   SSConst const& ss_;
-  Unit const& unit_;
-  std::unique_ptr<IVisibility const> const viz_;
-  bool const is_ship_ = {};
+  IVisibility const& viz_;
+  // Note that this player is the player associated with the unit
+  // that is moving, it does not determine the visibility, which
+  // is instead determined by the viz_ member.
+  e_player const player_type_  = {};
+  e_unit_type const unit_type_ = {};
+  bool const is_ship_          = {};
 };
 
 static_assert( !std::is_abstract_v<GotoMapViewer> );

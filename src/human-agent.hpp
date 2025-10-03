@@ -19,6 +19,7 @@
 namespace rn {
 
 struct IEngine;
+struct IGotoMapViewer;
 struct IGui;
 struct ILandViewPlane;
 struct Planes;
@@ -130,7 +131,8 @@ struct HumanAgent final : IAgent {
  private:
   ILandViewPlane& land_view() const;
 
-  void new_goto( UnitId unit_id, goto_target const& target );
+  void new_goto( IGotoMapViewer const& viewer, UnitId unit_id,
+                 goto_target const& target );
 
   IEngine& engine_;
   SS& ss_;

@@ -28,6 +28,7 @@
 #include "visibility.hpp"
 
 // config
+#include "config/command.rds.hpp"
 #include "config/nation.rds.hpp"
 #include "config/natives.rds.hpp"
 #include "config/unit-type.hpp"
@@ -416,7 +417,8 @@ wait<ui::e_confirm> HumanAgent::should_sail_high_seas() {
   co_return res.value_or( ui::e_confirm::no );
 }
 
-void HumanAgent::new_goto( UnitId const unit_id,
+void HumanAgent::new_goto( IGotoMapViewer const& viewer,
+                           UnitId const unit_id,
                            goto_target const& target ) {
   Unit& unit = ss_.units.unit_for( unit_id );
   lg.info( "goto: {}", target );
@@ -429,23 +431,21 @@ void HumanAgent::new_goto( UnitId const unit_id,
       coord_for_unit_indirect_or_die( ss_.units, unit_id );
   SWITCH( target ) {
     CASE( map ) {
-      point const dst      = map.tile;
-      auto const goto_path = compute_goto_path(
-          GotoMapViewer( ss_, unit ), src, dst );
-      if( !goto_path.has_value() ) break;
-      if( goto_path->reverse_path.empty() ) break;
+      point const dst = map.tile;
+      auto const goto_path =
+          compute_goto_path( viewer, src, dst );
+      if( goto_path.reverse_path.empty() ) break;
       goto_registry_.paths[unit_id] = GotoExecution{
-        .target = target, .path = std::move( *goto_path ) };
+        .target = target, .path = std::move( goto_path ) };
       unit.orders() = unit_orders::go_to{ .target = map };
       break;
     }
     CASE( harbor ) {
-      auto const goto_path = compute_harbor_goto_path(
-          GotoMapViewer( ss_, unit ), src );
-      if( !goto_path.has_value() ) break;
-      if( goto_path->reverse_path.empty() ) break;
+      auto const goto_path =
+          compute_harbor_goto_path( viewer, src );
+      if( goto_path.reverse_path.empty() ) break;
       goto_registry_.paths[unit_id] = GotoExecution{
-        .target = target, .path = std::move( *goto_path ) };
+        .target = target, .path = std::move( goto_path ) };
       unit.orders() = unit_orders::go_to{ .target = harbor };
       break;
     }
@@ -481,6 +481,25 @@ EvolveGoto HumanAgent::evolve_goto( UnitId const unit_id ) {
   point const src =
       coord_for_unit_indirect_or_die( ss_.units, unit_id );
 
+  auto const goto_viz_player = [&] -> maybe<e_player> {
+    // In the OG this is true, in the NG it defaults to false.
+    if( config_command.go_to.omniscient_path_finding )
+      return nothing;
+    if( !player_for_role( ss_, e_player_role::viewer )
+             .has_value() )
+      // If the entire map is currently visible then we allow the
+      // unit to use that, regardless of player.
+      return nothing;
+    // The entire map is not visible, so use the one of the unit
+    // that is actually moving.
+    return this->player_type();
+  }();
+
+  auto const viz = create_visibility_for( ss_, goto_viz_player );
+  CHECK( viz );
+  GotoMapViewer const goto_viewer( ss_, *viz, player_type(),
+                                   unit.type() );
+
   // Here we try twice, and this has two purposes. First, if the
   // unit's goto orders are new and its path hasn't been computed
   // yet, then the first attempt will fail and then we'll compute
@@ -495,7 +514,7 @@ EvolveGoto HumanAgent::evolve_goto( UnitId const unit_id ) {
           auto const& direction_fn ) -> EvolveGoto {
     if( auto const d = direction_fn(); d.has_value() )
       return EvolveGoto::move{ .to = *d };
-    new_goto( unit_id, go_to.target );
+    new_goto( goto_viewer, unit_id, go_to.target );
     if( auto const d = direction_fn(); d.has_value() )
       return EvolveGoto::move{ .to = *d };
     return abort();
@@ -524,7 +543,6 @@ EvolveGoto HumanAgent::evolve_goto( UnitId const unit_id ) {
         // cleared, but that is ok because the user specifically
         // chose the target.
         if( dst == map.tile ) return *d;
-        GotoMapViewer const goto_viewer( ss_, unit );
         if( goto_viewer.can_enter_tile( dst ) ) return *d;
         return nothing;
       };
@@ -533,7 +551,6 @@ EvolveGoto HumanAgent::evolve_goto( UnitId const unit_id ) {
     }
     CASE( harbor ) {
       auto const direction = [&] -> maybe<e_direction> {
-        GotoMapViewer const goto_viewer( ss_, unit );
         if( auto const d =
                 goto_viewer.is_sea_lane_launch_point( src );
             d.has_value() )
@@ -567,7 +584,6 @@ EvolveGoto HumanAgent::evolve_goto( UnitId const unit_id ) {
             ss_.as_const, player().type, unit.type(), src );
         lg.debug( "re-exploring {} tiles for sea lane.",
                   visible.size() );
-        GotoMapViewer const goto_viewer( ss_, unit );
         for( point const p : visible ) {
           if( goto_viewer.can_enter_tile( p ) &&
               goto_viewer.is_sea_lane_launch_point( p ) ) {

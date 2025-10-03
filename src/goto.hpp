@@ -41,12 +41,14 @@ struct Unit;
 /****************************************************************
 ** Public API.
 *****************************************************************/
-maybe<GotoPath> compute_goto_path( IGotoMapViewer const& viewer,
-                                   gfx::point src,
-                                   gfx::point dst );
+// The path contained therein will be empty if no path was found
+// to the destination. Likewise if src == dst.
+GotoPath compute_goto_path( IGotoMapViewer const& viewer,
+                            gfx::point src, gfx::point dst );
 
-maybe<GotoPath> compute_harbor_goto_path(
-    IGotoMapViewer const& viewer, gfx::point src );
+// The path contained therein will be empty if no path was found.
+GotoPath compute_harbor_goto_path( IGotoMapViewer const& viewer,
+                                   gfx::point src );
 
 // This will return false if the unit does not have goto orders.
 // If it does have goto orders then it will return true if the

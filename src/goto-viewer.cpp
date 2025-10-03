@@ -13,18 +13,14 @@
 // Revolution Now
 #include "map-square.hpp"
 #include "pacific.hpp"
-#include "roles.hpp"
 #include "society.hpp"
 #include "visibility.hpp"
 
 // config
-#include "config/command.rds.hpp"
-#include "config/unit-type.rds.hpp"
+#include "config/unit-type.hpp"
 
 // ss
-#include "ss/nation.hpp"
 #include "ss/ref.hpp"
-#include "ss/unit.hpp"
 
 // rds
 #include "rds/switch-macro.hpp"
@@ -39,41 +35,24 @@ using ::base::maybe;
 using ::gfx::point;
 using ::gfx::size;
 
-maybe<e_player> viz_player( SSConst const& ss,
-                            Unit const& unit ) {
-  // In the OG this is true, in the NG it defaults to false.
-  if( config_command.go_to.omniscient_path_finding )
-    return nothing;
-  if( auto const viewer =
-          player_for_role( ss, e_player_role::viewer );
-      !viewer.has_value() )
-    // If the entire map is currently visible then we allow the
-    // unit to use that, regardless of player.
-    return viewer;
-  // The entire map is not visible, so use the one of the unit
-  // that is actually moving.
-  return unit.player_type();
-}
-
 } // namespace
 
 /****************************************************************
 ** GotoMapViewer
 *****************************************************************/
 GotoMapViewer::GotoMapViewer( SSConst const& ss,
-                              Unit const& unit )
+                              IVisibility const& viz,
+                              e_player const player_type,
+                              e_unit_type const unit_type )
   : ss_( ss ),
-    unit_( unit ),
-    viz_( create_visibility_for( ss, viz_player( ss, unit ) ) ),
-    is_ship_( unit.desc().ship ) {
-  CHECK( viz_ ); // should never fail.
-}
-
-GotoMapViewer::~GotoMapViewer() = default;
+    viz_( viz ),
+    player_type_( player_type ),
+    unit_type_( unit_type ),
+    is_ship_( unit_attr( unit_type ).ship ) {}
 
 bool GotoMapViewer::can_enter_tile( point const tile ) const {
-  if( !viz_->on_map( tile ) ) return false;
-  switch( viz_->visible( tile ) ) {
+  if( !viz_.on_map( tile ) ) return false;
+  switch( viz_.visible( tile ) ) {
     case e_tile_visibility::hidden:
       return true;
     case e_tile_visibility::fogged:
@@ -94,14 +73,13 @@ bool GotoMapViewer::can_enter_tile( point const tile ) const {
       society.has_value() ) {
     SWITCH( *society ) {
       CASE( european ) {
-        if( european.player != unit_.player_type() )
-          return false;
+        if( european.player != player_type_ ) return false;
         break;
       }
       CASE( native ) { return false; }
     }
   }
-  MapSquare const& square = viz_->square_at( tile );
+  MapSquare const& square = viz_.square_at( tile );
   switch( square.surface ) {
     case e_surface::land:
       return !is_ship_;
@@ -119,7 +97,7 @@ e_map_side GotoMapViewer::map_side( point const tile ) const {
 e_map_side_edge GotoMapViewer::is_on_map_side_edge(
     point const p ) const {
   using enum e_map_side_edge;
-  size const map_size = viz_->rect_tiles().delta();
+  size const map_size = viz_.rect_tiles().delta();
   if( p.x == 0 ) return pacific;
   if( p.x == map_size.w - 1 ) return atlantic;
   return none;
@@ -127,38 +105,39 @@ e_map_side_edge GotoMapViewer::is_on_map_side_edge(
 
 maybe<bool> GotoMapViewer::is_sea_lane(
     point const tile ) const {
-  switch( viz_->visible( tile ) ) {
+  switch( viz_.visible( tile ) ) {
     using enum e_tile_visibility;
     case e_tile_visibility::hidden:
       return nothing;
     case e_tile_visibility::fogged:
     case e_tile_visibility::clear:
-      return viz_->square_at( tile ).sea_lane;
+      return viz_.square_at( tile ).sea_lane;
   }
 }
 
 maybe<bool> GotoMapViewer::has_lcr( point const tile ) const {
-  switch( viz_->visible( tile ) ) {
+  switch( viz_.visible( tile ) ) {
     using enum e_tile_visibility;
     case e_tile_visibility::hidden:
       return nothing;
     case e_tile_visibility::fogged:
     case e_tile_visibility::clear:
-      return viz_->square_at( tile ).lost_city_rumor;
+      return viz_.square_at( tile ).lost_city_rumor;
   }
 }
 
 maybe<MovementPoints> GotoMapViewer::movement_points_required(
     point const src, e_direction const direction ) const {
-  auto const src_square = viz_->visible_square_at( src );
+  auto const src_square = viz_.visible_square_at( src );
   auto const dst_square =
-      viz_->visible_square_at( src.moved( direction ) );
+      viz_.visible_square_at( src.moved( direction ) );
   if( !src_square.has_value() || !dst_square.has_value() )
     // Can't compute it.
     return nothing;
   MovementPoints const uncapped = ::rn::movement_points_required(
       *src_square, *dst_square, direction );
-  return std::min( unit_.desc().base_movement_points, uncapped );
+  return std::min( unit_attr( unit_type_ ).base_movement_points,
+                   uncapped );
 }
 
 MovementPoints GotoMapViewer::minimum_heuristic_tile_cost()
@@ -182,8 +161,7 @@ MovementPoints GotoMapViewer::minimum_heuristic_tile_cost()
   // which would then break guarantees of the A* algo in finding
   // the optimal path given that the costs of tiles are
   // non-uniform (due to differing terrain types, roads, etc.).
-  return unit_.desc().ship ? MovementPoints( 1 )
-                           : MovementPoints::_1_3();
+  return is_ship_ ? MovementPoints( 1 ) : MovementPoints::_1_3();
 }
 
 } // namespace rn
