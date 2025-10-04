@@ -22,6 +22,36 @@ include "<unordered_map>"
 
 namespace "rdstest"
 
+struct.ValidatableLevel4 {
+  b 'bool',
+  m 'base::maybe<int>',
+
+  _features { equality, validation }
+}
+
+struct.ValidatableLevel3 {
+  x 'int',
+  y 'int',
+  v 'std::vector<ValidatableLevel4>',
+
+  _features { equality, validation }
+}
+
+struct.ValidatableLevel2 {
+  x 'int',
+  y 'ValidatableLevel3',
+  z 'int',
+
+  # NOTE: this one is not validable, but has a field that is.
+}
+
+struct.ValidatableLevel1 {
+  o 'ValidatableLevel2',
+  n 'int',
+
+  _features { equality, validation }
+}
+
 # Descriptive comment.
 sumtype.Maybe {
   _template{ T },

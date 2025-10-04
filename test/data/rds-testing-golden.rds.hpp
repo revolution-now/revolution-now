@@ -31,6 +31,10 @@
 *****************************************************************/
 namespace rdstest {
 
+    struct ValidatableLevel4;
+    struct ValidatableLevel3;
+    struct ValidatableLevel2;
+    struct ValidatableLevel1;
     template<typename T>
     struct Maybe;
     struct MyVariant1;
@@ -69,6 +73,166 @@ namespace rn::test {
     struct config_testing_t;
 
 } // namespace rn::test
+
+/****************************************************************
+*                   Struct: ValidatableLevel4
+*****************************************************************/
+namespace rdstest {
+
+  struct ValidatableLevel4 {
+    bool             b = {};
+    base::maybe<int> m = {};
+
+    bool operator==( ValidatableLevel4 const& ) const = default;
+
+    // Validates invariants among members.
+    // defined in some translation unit.
+    base::valid_or<std::string> validate() const;
+  };
+
+} // namespace rdstest
+
+namespace refl {
+
+  // Reflection info for struct ValidatableLevel4.
+  template<>
+  struct traits<rdstest::ValidatableLevel4> {
+    using type = rdstest::ValidatableLevel4;
+
+    static constexpr type_kind kind        = type_kind::struct_kind;
+    static constexpr std::string_view ns   = "rdstest";
+    static constexpr std::string_view name = "ValidatableLevel4";
+    static constexpr bool is_sumtype_alternative = false;
+
+    using template_types = std::tuple<>;
+
+    static constexpr std::tuple fields{
+      refl::StructField{ "b", &rdstest::ValidatableLevel4::b, /*offset=*/base::nothing },
+      refl::StructField{ "m", &rdstest::ValidatableLevel4::m, /*offset=*/base::nothing },
+    };
+  };
+
+} // namespace refl
+
+/****************************************************************
+*                   Struct: ValidatableLevel3
+*****************************************************************/
+namespace rdstest {
+
+  struct ValidatableLevel3 {
+    int                            x = {};
+    int                            y = {};
+    std::vector<ValidatableLevel4> v = {};
+
+    bool operator==( ValidatableLevel3 const& ) const = default;
+
+    // Validates invariants among members.
+    // defined in some translation unit.
+    base::valid_or<std::string> validate() const;
+  };
+
+} // namespace rdstest
+
+namespace refl {
+
+  // Reflection info for struct ValidatableLevel3.
+  template<>
+  struct traits<rdstest::ValidatableLevel3> {
+    using type = rdstest::ValidatableLevel3;
+
+    static constexpr type_kind kind        = type_kind::struct_kind;
+    static constexpr std::string_view ns   = "rdstest";
+    static constexpr std::string_view name = "ValidatableLevel3";
+    static constexpr bool is_sumtype_alternative = false;
+
+    using template_types = std::tuple<>;
+
+    static constexpr std::tuple fields{
+      refl::StructField{ "x", &rdstest::ValidatableLevel3::x, /*offset=*/base::nothing },
+      refl::StructField{ "y", &rdstest::ValidatableLevel3::y, /*offset=*/base::nothing },
+      refl::StructField{ "v", &rdstest::ValidatableLevel3::v, /*offset=*/base::nothing },
+    };
+  };
+
+} // namespace refl
+
+/****************************************************************
+*                   Struct: ValidatableLevel2
+*****************************************************************/
+namespace rdstest {
+
+  struct ValidatableLevel2 {
+    int               x = {};
+    ValidatableLevel3 y = {};
+    int               z = {};
+
+    bool operator==( ValidatableLevel2 const& ) const = default;
+  };
+
+} // namespace rdstest
+
+namespace refl {
+
+  // Reflection info for struct ValidatableLevel2.
+  template<>
+  struct traits<rdstest::ValidatableLevel2> {
+    using type = rdstest::ValidatableLevel2;
+
+    static constexpr type_kind kind        = type_kind::struct_kind;
+    static constexpr std::string_view ns   = "rdstest";
+    static constexpr std::string_view name = "ValidatableLevel2";
+    static constexpr bool is_sumtype_alternative = false;
+
+    using template_types = std::tuple<>;
+
+    static constexpr std::tuple fields{
+      refl::StructField{ "x", &rdstest::ValidatableLevel2::x, /*offset=*/base::nothing },
+      refl::StructField{ "y", &rdstest::ValidatableLevel2::y, /*offset=*/base::nothing },
+      refl::StructField{ "z", &rdstest::ValidatableLevel2::z, /*offset=*/base::nothing },
+    };
+  };
+
+} // namespace refl
+
+/****************************************************************
+*                   Struct: ValidatableLevel1
+*****************************************************************/
+namespace rdstest {
+
+  struct ValidatableLevel1 {
+    ValidatableLevel2 o = {};
+    int               n = {};
+
+    bool operator==( ValidatableLevel1 const& ) const = default;
+
+    // Validates invariants among members.
+    // defined in some translation unit.
+    base::valid_or<std::string> validate() const;
+  };
+
+} // namespace rdstest
+
+namespace refl {
+
+  // Reflection info for struct ValidatableLevel1.
+  template<>
+  struct traits<rdstest::ValidatableLevel1> {
+    using type = rdstest::ValidatableLevel1;
+
+    static constexpr type_kind kind        = type_kind::struct_kind;
+    static constexpr std::string_view ns   = "rdstest";
+    static constexpr std::string_view name = "ValidatableLevel1";
+    static constexpr bool is_sumtype_alternative = false;
+
+    using template_types = std::tuple<>;
+
+    static constexpr std::tuple fields{
+      refl::StructField{ "o", &rdstest::ValidatableLevel1::o, /*offset=*/base::nothing },
+      refl::StructField{ "n", &rdstest::ValidatableLevel1::n, /*offset=*/base::nothing },
+    };
+  };
+
+} // namespace refl
 
 /****************************************************************
 *                        Sum Type: Maybe

@@ -34,15 +34,41 @@
 using namespace ::std;
 using namespace ::cdr::literals;
 
+namespace {
+
+using ::base::valid;
+using ::base::valid_or;
+
+}
+
 namespace rn {
 
-base::valid_or<std::string> StructWithValidation::validate()
-    const {
-  if( yyy == double( xxx ) + 1.0 ) return base::valid;
+valid_or<string> StructWithValidation::validate() const {
+  if( yyy == double( xxx ) + 1.0 ) return valid;
   return "failed validation";
 }
 
-} // namespace rn
+}
+
+namespace rdstest {
+
+valid_or<string> ValidatableLevel1::validate() const {
+  if( n == 2 ) return valid;
+  return "failed validation";
+}
+
+valid_or<string> ValidatableLevel3::validate() const {
+  if( x == 5 && y == 7 ) return valid;
+  return "failed validation";
+}
+
+valid_or<string> ValidatableLevel4::validate() const {
+  if( m.has_value() && *m > 5 ) return "failed m validation";
+  if( b ) return valid;
+  return "failed validation";
+}
+
+} // namespace rdstest
 
 namespace refl {
 
