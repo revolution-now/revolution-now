@@ -62,6 +62,7 @@ namespace rn {
     struct EmptyStruct2;
     struct MyStructWithOffsets;
     struct MyStruct;
+    struct MyStruct2;
     struct StructWithValidation;
 
 } // namespace rn
@@ -1899,6 +1900,44 @@ namespace refl {
       refl::StructField{ "xxx", &rn::MyStruct::xxx, /*offset=*/base::nothing },
       refl::StructField{ "yyy", &rn::MyStruct::yyy, /*offset=*/base::nothing },
       refl::StructField{ "zzz_map", &rn::MyStruct::zzz_map, /*offset=*/base::nothing },
+    };
+  };
+
+} // namespace refl
+
+/****************************************************************
+*                       Struct: MyStruct2
+*****************************************************************/
+namespace rn {
+
+  struct [[nodiscard]] MyStruct2 {
+    int                                xxx     = {};
+    double                             yyy     = {};
+    std::map<std::string, std::string> zzz_map = {};
+
+    bool operator==( MyStruct2 const& ) const = default;
+  };
+
+} // namespace rn
+
+namespace refl {
+
+  // Reflection info for struct MyStruct2.
+  template<>
+  struct traits<rn::MyStruct2> {
+    using type = rn::MyStruct2;
+
+    static constexpr type_kind kind        = type_kind::struct_kind;
+    static constexpr std::string_view ns   = "rn";
+    static constexpr std::string_view name = "MyStruct2";
+    static constexpr bool is_sumtype_alternative = false;
+
+    using template_types = std::tuple<>;
+
+    static constexpr std::tuple fields{
+      refl::StructField{ "xxx", &rn::MyStruct2::xxx, /*offset=*/base::nothing },
+      refl::StructField{ "yyy", &rn::MyStruct2::yyy, /*offset=*/base::nothing },
+      refl::StructField{ "zzz_map", &rn::MyStruct2::zzz_map, /*offset=*/base::nothing },
     };
   };
 
