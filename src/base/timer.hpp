@@ -78,9 +78,14 @@ struct ScopedTimer {
   using clock      = std::chrono::system_clock;
   using time_point = clock::time_point;
 
+  using LabelFn = std::function<std::string()>;
+
  public:
   ScopedTimer() = default;
   ScopedTimer( std::string total_label,
+               std::source_location const& loc =
+                   std::source_location::current() );
+  ScopedTimer( LabelFn label_gen,
                std::source_location const& loc =
                    std::source_location::current() );
   ~ScopedTimer() noexcept;
@@ -109,12 +114,18 @@ struct ScopedTimer {
  private:
   struct Segment {
     std::string label               = {};
+    // If there is a label function then it will be used instead
+    // of the label (called to obtain label).
+    maybe<LabelFn> label_fn         = {};
     std::source_location source_loc = {};
     time_point start                = {};
     time_point end                  = {};
   };
 
   static void add_segment( Segment& segment, std::string label,
+                           std::source_location const& loc );
+
+  static void add_segment( Segment& segment, LabelFn label_fn,
                            std::source_location const& loc );
 
   void flush_latest_segment();

@@ -56,55 +56,45 @@ namespace {
 
 using ::base::maybe;
 using ::base::nothing;
+using ::base::ScopedTimer;
 using ::gfx::point;
 using ::refl::enum_count;
 using ::refl::enum_values;
 
 struct TileWithCost {
+  int cost   = {}; // must be first for comparison.
   point tile = {};
-  int cost   = {};
 
-  [[maybe_unused]] friend bool operator<(
-      TileWithCost const l, TileWithCost const r ) {
-    if( l.cost != r.cost ) return l.cost > r.cost;
-    // These only affect the path in trivial ways (i.e. switching
-    // among equally optimal paths) but we include it because it
-    // makes things more deterministic for unit tests across dif-
-    // ferent std libs.
-    if( l.tile.y != r.tile.y ) return l.tile.y > r.tile.y;
-    if( l.tile.x != r.tile.x ) return l.tile.x > r.tile.x;
-    return false;
-  };
+  [[maybe_unused]] auto operator<=>(
+      TileWithCost const& ) const = default;
 };
 
-struct ExploredTile {
-  point tile = {};
-  int cost   = {};
-};
+template<typename T>
+using PriorityQueue =
+    priority_queue<T, std::vector<T>, std::greater<T>>;
 
+// NOTE: here we are using a slightly different version of A*
+// relative to what is on the wikipedia article. Since our pri-
+// ority queue doesn't support updating priorities of nodes in
+// the queue (which happens when we find a shorter path to a pre-
+// vious tile) we will just re-insert that tile.
 GotoPath a_star( IGotoMapViewer const& viewer, point const src,
                  point const dst ) {
   GotoPath goto_path;
-  unordered_map<point /*to*/, ExploredTile /*from*/> explored;
-  priority_queue<TileWithCost> todo;
-
-  base::ScopedTimer const timer(
-      format( "a-star from {} -> {}", src, dst ) );
-
+  unordered_map<point /*to*/, TileWithCost /*from*/> explored;
+  PriorityQueue<TileWithCost> todo;
   auto const push = [&]( point const from, point const to,
                          int const cost ) {
-    todo.push(
-        { .tile = to,
-          .cost = cost + viewer.heuristic_cost( to, dst ) } );
-    explored[to] = { .tile = from, .cost = cost };
+    todo.push( { .cost = cost + viewer.heuristic_cost( to, dst ),
+                 .tile = to } );
+    explored[to] = { .cost = cost, .tile = from };
   };
   push( src, src, 0 );
-  int iterations = 0;
   while( !todo.empty() ) {
-    ++iterations;
+    ++goto_path.meta.iterations;
     point const curr = todo.top().tile;
-    CHECK( explored.contains( curr ) );
     todo.pop();
+    CHECK( explored.contains( curr ) );
     if( curr == dst ) break;
     for( e_direction const d : enum_values<e_direction> ) {
       point const moved = curr.moved( d );
@@ -113,12 +103,15 @@ GotoPath a_star( IGotoMapViewer const& viewer, point const src,
       // lows e.g. a ship to make landfall or a land unit to at-
       // tack a dwelling which are actions that would normally
       // not be allowed because those units would not normally be
-      // able to traverse those tiles en-route to their target.
-      // In the event that the unit is not allowed onto the tile
-      // then the goto orders will be cleared, but that is ok be-
-      // cause the user specifically chose the target. This also
-      // allows a ship to move one tile off of the map which is
-      // used to signal "goto harbor".
+      // able to traverse those tiles (when en-route to their
+      // target). In the event that the unit is not allowed onto
+      // the tile then that will be detected downstream and the
+      // goto orders will be cleared; that is ok because the user
+      // specifically chose the target, so it is appropriate e.g.
+      // for them to receive a message saying that they cannot
+      // enter the tile, which would not be appropriate for tiles
+      // en-route. This also allows a ship to move one tile off
+      // of the map which means "goto harbor".
       if( moved != dst && !viewer.can_enter_tile( moved ) )
         continue;
       int const proposed_cost =
@@ -127,72 +120,62 @@ GotoPath a_star( IGotoMapViewer const& viewer, point const src,
           it != explored.end() &&
           proposed_cost >= it->second.cost )
         continue;
+      // Either we haven't seen this node before or we've found a
+      // shorter path to it (see the NOTE above this function re-
+      // garding the latter case).
       push( curr, moved, proposed_cost );
     }
   }
-  lg.debug(
-      "a-star from {} -> {} finished after exploring {} tiles "
-      "with {} iterations.",
-      src, dst, explored.size(), iterations );
-  auto& meta             = goto_path.meta;
-  meta.iterations        = iterations;
-  meta.queue_size_at_end = todo.size();
-  meta.tiles_touched     = explored.size();
+  // Record meta info even if we failed.
+  // Note: iterations if filled in above.
+  goto_path.meta.queue_size_at_end = todo.size();
+  goto_path.meta.tiles_touched     = explored.size();
   if( !explored.contains( dst ) ) return goto_path;
   auto& reverse_path = goto_path.reverse_path;
-  reverse_path.reserve( ( src - dst ).chessboard_distance() *
-                        9 );
+  reverse_path.reserve( viewer.heuristic_cost( src, dst ) * 9 );
   for( point p = dst; p != src; p = explored[p].tile )
     reverse_path.push_back( p );
   return goto_path;
 }
 
 struct TileWithCostSeaLane {
+  // Must go in this order for comparison purposes.
+  int cost = {};
+  // This is to bias our search to the same row that we started
+  // in. This way, all else being equal, the search gets biased
+  // toward horizontal travel which makes more sense when
+  // searching for sea lane. This won't interfere with distance
+  // optimization because it will only come into play when two
+  // tiles have equal distances.
+  int distance_y = {};
+  point tile     = {};
+
+  [[maybe_unused]] auto operator<=>(
+      TileWithCostSeaLane const& ) const = default;
+};
+
+struct ExploredSeaLaneTile {
   point tile = {};
   int cost   = {};
-  // Used only by the sea lane search to bias our search to the
-  // same row that we started in. This way, all else being equal,
-  // the search gets biased toward horizontal travel which makes
-  // more sense when searching for sea lane. This won't interfere
-  // with distance optimization because it will only come into
-  // play when two tiles have equal distances.
-  int distance_y = {};
-
-  [[maybe_unused]] friend bool operator<(
-      TileWithCostSeaLane const l,
-      TileWithCostSeaLane const r ) {
-    if( l.cost != r.cost ) return l.cost > r.cost;
-    if( l.distance_y != r.distance_y )
-      return l.distance_y > r.distance_y;
-    // These only affect the path in trivial ways (i.e. switching
-    // among equally optimal paths) but we include it because it
-    // makes things more deterministic for unit tests across dif-
-    // ferent std libs.
-    if( l.tile.y != r.tile.y ) return l.tile.y > r.tile.y;
-    if( l.tile.x != r.tile.x ) return l.tile.x > r.tile.x;
-    return false;
-  };
 };
 
 GotoPath sea_lane_search( IGotoMapViewer const& viewer,
                           point const src ) {
   GotoPath goto_path;
-  unordered_map<point /*to*/, ExploredTile /*from*/> explored;
-  priority_queue<TileWithCostSeaLane> todo;
+  unordered_map<point /*to*/, ExploredSeaLaneTile /*from*/>
+      explored;
+  PriorityQueue<TileWithCostSeaLane> todo;
   auto const push = [&]( point const p, point const from,
                          int const cost ) {
-    todo.push( { .tile       = p,
-                 .cost       = cost,
-                 .distance_y = abs( p.y - src.y ) } );
-    explored[p] = ExploredTile{ .tile = from, .cost = cost };
+    todo.push( { .cost       = cost,
+                 .distance_y = abs( p.y - src.y ),
+                 .tile       = p } );
+    explored[p] = { .tile = from, .cost = cost };
   };
   push( src, src, 0 );
-  base::ScopedTimer const timer(
-      format( "sea lane search from {}", src ) );
   maybe<point> dst;
-  int iterations = 0;
   while( !todo.empty() ) {
-    ++iterations;
+    ++goto_path.meta.iterations;
     point const curr = todo.top().tile;
     todo.pop();
     if( viewer.is_sea_lane_launch_point( curr ) ) {
@@ -207,21 +190,17 @@ GotoPath sea_lane_search( IGotoMapViewer const& viewer,
           explored[curr].cost + viewer.travel_cost( curr, d );
       if( explored.contains( moved ) ) {
         if( proposed_weight < explored[moved].cost )
-          explored[moved] = ExploredTile{
-            .tile = curr, .cost = proposed_weight };
+          explored[moved] = { .tile = curr,
+                              .cost = proposed_weight };
         continue;
       }
       push( moved, curr, proposed_weight );
     }
   }
-  lg.debug(
-      "sea lane search from {} finished after exploring {} "
-      "tiles.",
-      src, explored.size() );
-  auto& meta             = goto_path.meta;
-  meta.iterations        = iterations;
-  meta.queue_size_at_end = todo.size();
-  meta.tiles_touched     = explored.size();
+  // Record meta info even if we failed.
+  // NOTE: iterations is set above.
+  goto_path.meta.queue_size_at_end = todo.size();
+  goto_path.meta.tiles_touched     = explored.size();
   if( !dst.has_value() ) return goto_path;
   CHECK( explored.contains( *dst ) );
   auto& reverse_path = goto_path.reverse_path;
@@ -237,12 +216,28 @@ GotoPath sea_lane_search( IGotoMapViewer const& viewer,
 *****************************************************************/
 GotoPath compute_goto_path( IGotoMapViewer const& viewer,
                             point const src, point const dst ) {
-  return a_star( viewer, src, dst );
+  GotoPath res;
+  ScopedTimer const timer( [&] {
+    return format(
+        "a-star from {} -> {} finished after exploring {} tiles "
+        "with {} iterations",
+        src, dst, res.meta.tiles_touched, res.meta.iterations );
+  } );
+  res = a_star( viewer, src, dst );
+  return res;
 }
 
 GotoPath compute_harbor_goto_path( IGotoMapViewer const& viewer,
                                    point const src ) {
-  return sea_lane_search( viewer, src );
+  GotoPath res;
+  ScopedTimer const timer( [&] {
+    return format(
+        "sea lane search from {} finished after exploring {} "
+        "tiles with {} iterations",
+        src, res.meta.tiles_touched, res.meta.iterations );
+  } );
+  res = sea_lane_search( viewer, src );
+  return res;
 }
 
 bool unit_has_reached_goto_target( SSConst const& ss,

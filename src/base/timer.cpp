@@ -35,13 +35,22 @@ ScopedTimer::ScopedTimer( string total_label,
   add_segment( *total_, std::move( total_label ), loc );
 }
 
+ScopedTimer::ScopedTimer( LabelFn label_fn,
+                          source_location const& loc ) {
+  if( options_.disable ) return;
+  total_.emplace();
+  add_segment( *total_, std::move( label_fn ), loc );
+}
+
 void ScopedTimer::log_segment_result( Segment const& segment,
                                       string_view prefix ) {
   nanoseconds const d =
       std::max( 0ns, duration_cast<nanoseconds>(
                          segment.end - segment.start ) );
-  lg.debug( "{}{}: {}", prefix, segment.label,
-            format_duration( d ) );
+  string const label = segment.label_fn.has_value()
+                           ? segment.label_fn->operator()()
+                           : segment.label;
+  lg.debug( "{}{}: {}", prefix, label, format_duration( d ) );
 }
 
 ScopedTimer::~ScopedTimer() noexcept {
@@ -79,6 +88,16 @@ void ScopedTimer::add_segment( Segment& segment, string label,
                                source_location const& loc ) {
   segment = Segment{
     .label      = std::move( label ),
+    .source_loc = loc,
+    .start      = clock::now(),
+  };
+}
+
+void ScopedTimer::add_segment( Segment& segment,
+                               LabelFn label_fn,
+                               source_location const& loc ) {
+  segment = Segment{
+    .label_fn   = std::move( label_fn ),
     .source_loc = loc,
     .start      = clock::now(),
   };

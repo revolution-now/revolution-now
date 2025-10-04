@@ -448,6 +448,146 @@ TEST_CASE( "[goto] compute_goto_path" ) {
       REQUIRE( f( viewer ) == expected );
     }
   }
+
+  SECTION( "map 1 with hidden tiles" ) {
+    // NOTE: the below was generated using lua/capture/map.lua
+    // clang-format off
+    MS const A{.surface=land,.ground=arctic,.road=true};
+    MS const H{.surface=land,.ground=grassland,.overlay=hills,.road=true};
+    MS const M{.surface=land,.ground=grassland,.overlay=mountains,.road=true};
+    MS const _{.surface=water,.ground=arctic};
+    MS const a{.surface=land,.ground=arctic};
+    MS const b{.surface=land,.ground=prairie,.overlay=forest};
+    MS const c{.surface=land,.ground=plains};
+    MS const d{.surface=land,.ground=desert,.overlay=forest,.road=true};
+    MS const e{.surface=land,.ground=marsh,.overlay=forest,.road=true};
+    MS const i{.surface=land,.ground=prairie,.overlay=forest,.road=true};
+    MS const j{.surface=land,.ground=marsh,.overlay=forest};
+    MS const k{.surface=land,.ground=plains,.overlay=forest};
+    MS const l{.surface=land,.ground=plains,.overlay=forest,.road=true};
+    MS const m{.surface=land,.ground=grassland,.overlay=mountains};
+    MS const s{.surface=land,.ground=savannah};
+    MS const x{.surface=water,.ground=arctic,.sea_lane=true};
+    // clang-format on
+
+    // clang-format off
+    vector<MapSquare> tiles{ /*
+          0 1 2 3 4 5 6 7 8 9
+      0*/ x,a,a,_,_,a,_,_,_,x, /*0
+      1*/ x,_,_,_,_,_,_,_,_,x, /*1
+      2*/ x,_,_,_,b,b,c,_,_,x, /*2
+      3*/ x,_,_,_,H,d,_,_,_,x, /*3
+      4*/ x,_,e,i,j,i,_,s,_,x, /*4
+      5*/ x,_,i,m,j,s,s,s,s,x, /*5
+      6*/ x,_,M,s,s,s,s,s,s,x, /*6
+      7*/ x,k,M,s,s,s,s,s,s,x, /*7
+      8*/ x,_,l,_,_,_,_,_,_,x, /*8
+      9*/ x,_,A,a,a,_,_,_,a,x, /*9
+          0 1 2 3 4 5 6 7 8 9
+    */};
+    // clang-format on
+
+    w.build_map( std::move( tiles ), 10 );
+    // NOTE: end generated code.
+
+    GotoMapViewer const viewer( w.ss(), viz_player,
+                                w.default_player_type(),
+                                e_unit_type::free_colonist );
+
+    // path: island
+    src      = { .x = 8, .y = 9 };
+    dst      = { .x = 4, .y = 9 };
+    expected = { .meta = { .tiles_touched     = 29,
+                           .iterations        = 19,
+                           .queue_size_at_end = 10 },
+
+                 .reverse_path = {
+                   { .x = 4, .y = 9 },
+                   { .x = 5, .y = 8 },
+                   { .x = 6, .y = 7 },
+                   { .x = 7, .y = 8 },
+                 } };
+    REQUIRE( f( viewer ) == expected );
+
+    // With some visibility.
+    w.make_clear( { .x = 7, .y = 8 } );
+    w.make_clear( { .x = 8, .y = 8 } );
+    src      = { .x = 8, .y = 9 };
+    dst      = { .x = 4, .y = 9 };
+    expected = { .meta = { .tiles_touched     = 25,
+                           .iterations        = 15,
+                           .queue_size_at_end = 10 },
+
+                 .reverse_path = {
+                   { .x = 4, .y = 9 },
+                   { .x = 5, .y = 8 },
+                   { .x = 6, .y = 8 },
+                   { .x = 7, .y = 9 },
+                 } };
+    REQUIRE( f( viewer ) == expected );
+
+    // path: top to bottom
+    src      = { .x = 5, .y = 3 };
+    dst      = { .x = 4, .y = 9 };
+    expected = { .meta = { .tiles_touched     = 94,
+                           .iterations        = 73,
+                           .queue_size_at_end = 21 },
+
+                 .reverse_path = {
+                   { .x = 4, .y = 9 },
+                   { .x = 3, .y = 8 },
+                   { .x = 2, .y = 7 },
+                   { .x = 2, .y = 6 },
+                   { .x = 3, .y = 5 },
+                   { .x = 4, .y = 4 },
+                 } };
+    REQUIRE( f( viewer ) == expected );
+
+    // With a bit of visibility but not enough to change to the
+    // optimal path, though the path does improve a bit.
+    w.make_clear( { .x = 5, .y = 3 } );
+    w.make_clear( { .x = 5, .y = 4 } );
+    w.make_clear( { .x = 4, .y = 3 } );
+    w.make_clear( { .x = 4, .y = 4 } );
+    w.make_clear( { .x = 2, .y = 4 } );
+    w.make_clear( { .x = 2, .y = 5 } );
+    w.make_clear( { .x = 2, .y = 6 } );
+    src      = { .x = 5, .y = 3 };
+    dst      = { .x = 4, .y = 9 };
+    expected = { .meta = { .tiles_touched     = 93,
+                           .iterations        = 61,
+                           .queue_size_at_end = 33 },
+
+                 .reverse_path = {
+                   { .x = 4, .y = 9 },
+                   { .x = 3, .y = 8 },
+                   { .x = 2, .y = 7 },
+                   { .x = 3, .y = 6 },
+                   { .x = 4, .y = 5 },
+                   { .x = 5, .y = 4 },
+                 } };
+    REQUIRE( f( viewer ) == expected );
+
+    // One more tile of visibilty, now the path is mostly opti-
+    // mal.
+    w.make_clear( { .x = 2, .y = 7 } );
+    src      = { .x = 5, .y = 3 };
+    dst      = { .x = 4, .y = 9 };
+    expected = { .meta = { .tiles_touched     = 91,
+                           .iterations        = 60,
+                           .queue_size_at_end = 33 },
+
+                 .reverse_path = {
+                   { .x = 4, .y = 9 },
+                   { .x = 3, .y = 8 },
+                   { .x = 2, .y = 7 },
+                   { .x = 2, .y = 6 },
+                   { .x = 2, .y = 5 },
+                   { .x = 3, .y = 4 },
+                   { .x = 4, .y = 3 },
+                 } };
+    REQUIRE( f( viewer ) == expected );
+  }
 }
 
 TEST_CASE( "[goto] compute_harbor_goto_path" ) {
