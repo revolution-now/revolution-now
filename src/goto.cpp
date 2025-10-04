@@ -66,7 +66,14 @@ struct TileWithCost {
 
   [[maybe_unused]] friend bool operator<(
       TileWithCost const l, TileWithCost const r ) {
-    return l.cost > r.cost;
+    if( l.cost != r.cost ) return l.cost > r.cost;
+    // These only affect the path in trivial ways (i.e. switching
+    // among equally optimal paths) but we include it because it
+    // makes things more deterministic for unit tests across dif-
+    // ferent std libs.
+    if( l.tile.y != r.tile.y ) return l.tile.y > r.tile.y;
+    if( l.tile.x != r.tile.x ) return l.tile.x > r.tile.x;
+    return false;
   };
 };
 
@@ -157,6 +164,12 @@ struct TileWithCostSeaLane {
     if( l.cost != r.cost ) return l.cost > r.cost;
     if( l.distance_y != r.distance_y )
       return l.distance_y > r.distance_y;
+    // These only affect the path in trivial ways (i.e. switching
+    // among equally optimal paths) but we include it because it
+    // makes things more deterministic for unit tests across dif-
+    // ferent std libs.
+    if( l.tile.y != r.tile.y ) return l.tile.y > r.tile.y;
+    if( l.tile.x != r.tile.x ) return l.tile.x > r.tile.x;
     return false;
   };
 };
