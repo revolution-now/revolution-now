@@ -90,4 +90,6 @@ struct.MapSquare {
   # square that you could enter to risk either getting some kind
   # of reward or making the natives unhappy.
   lost_city_rumor 'bool',
+
+  _features { equality, validation }
 }

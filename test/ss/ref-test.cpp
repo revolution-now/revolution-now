@@ -15,6 +15,7 @@
 
 // ss
 #include "src/ss/root.hpp"
+#include "src/ss/terrain-enums.rds.hpp"
 
 // gfx
 #include "gfx/cdr-matrix.hpp"
@@ -41,11 +42,15 @@ namespace {
 using namespace ::std;
 using namespace ::cdr::literals;
 
+using ::Catch::Contains;
 using ::cdr::list;
 using ::cdr::null;
 using ::cdr::table;
 using ::cdr::value;
 using ::cdr::testing::conv_from_bt;
+using ::gfx::Matrix;
+using ::gfx::point;
+using ::gfx::size;
 
 value cdr_game_state_default = table{
   "version"_key =
@@ -500,9 +505,71 @@ TEST_CASE( "[ss/ref] RootState convenience methods" ) {
 }
 
 TEST_CASE( "[ss/ref] validate_full_game_state" ) {
+  SS ss;
+  RootState& root = ss.root;
+
+  auto const f = [&] [[clang::noinline]] {
+    return ss.as_const.validate_full_game_state();
+  };
+
+  REQUIRE( f() == valid );
+
+  root.zzz_terrain.modify_entire_map( []( RealTerrain& trn ) {
+    trn.map = Matrix<MapSquare>( size{ .w = 2, .h = 2 } );
+  } );
+  REQUIRE( f() == valid );
+
+  root.zzz_terrain.mutable_square_at( point{ .x = 0, .y = 1 } ) =
+      MapSquare{ .surface = e_surface::water, .road = false };
+  REQUIRE( f() == valid );
+
+  root.zzz_terrain.mutable_square_at( point{ .x = 0, .y = 1 } ) =
+      MapSquare{ .surface = e_surface::water, .road = true };
+  REQUIRE_THAT( f().error(),
+                Contains( "water tiles cannot have a road" ) );
+
+  root.turn.time_point.year = -1;
+  REQUIRE_THAT( f().error(),
+                Contains( "game year must be >= 0" ) );
+
+  root.version.major = -1;
+  REQUIRE_THAT(
+      f().error(),
+      Contains( "major version number must be >= 0" ) );
 }
 
 TEST_CASE( "[ss/ref] validate_non_terrain_game_state" ) {
+  SS ss;
+  RootState& root = ss.root;
+
+  auto const f = [&] [[clang::noinline]] {
+    return ss.as_const.validate_non_terrain_game_state();
+  };
+
+  REQUIRE( f() == valid );
+
+  root.zzz_terrain.modify_entire_map( []( RealTerrain& trn ) {
+    trn.map = Matrix<MapSquare>( size{ .w = 2, .h = 2 } );
+  } );
+  REQUIRE( f() == valid );
+
+  root.zzz_terrain.mutable_square_at( point{ .x = 0, .y = 1 } ) =
+      MapSquare{ .surface = e_surface::water, .road = false };
+  REQUIRE( f() == valid );
+
+  root.zzz_terrain.mutable_square_at( point{ .x = 0, .y = 1 } ) =
+      MapSquare{ .surface = e_surface::water, .road = true };
+  // NOTE: terrain validation is not run.
+  REQUIRE( f() == valid );
+
+  root.turn.time_point.year = -1;
+  REQUIRE_THAT( f().error(),
+                Contains( "game year must be >= 0" ) );
+
+  root.version.major = -1;
+  REQUIRE_THAT(
+      f().error(),
+      Contains( "major version number must be >= 0" ) );
 }
 
 } // namespace
