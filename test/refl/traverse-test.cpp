@@ -1,22 +1,22 @@
 /****************************************************************
-**matrix.cpp
+**traverse-test.cpp
 *
 * Project: Revolution Now
 *
-* Created by dsicilia on 2023-03-22.
+* Created by David P. Sicilia on 2025-10-04.
 *
-* Description: Unit tests for the src/gfx/matrix.* module.
+* Description: Unit tests for the refl/traverse module.
 *
 *****************************************************************/
 #include "test/testing.hpp"
 
 // Under test.
-#include "src/gfx/matrix.hpp"
+#include "src/refl/traverse.hpp"
 
 // Must be last.
-#include "test/catch-common.hpp"
+#include "test/catch-common.hpp" // IWYU pragma: keep
 
-namespace gfx {
+namespace refl {
 namespace {
 
 using namespace std;
@@ -24,14 +24,14 @@ using namespace std;
 /****************************************************************
 ** Test Cases
 *****************************************************************/
-TEST_CASE( "[gfx/matrix] construction" ) {
-  Matrix<int> m( rn::Delta{ .w = 2, .h = 3 } );
-  // TODO
-  (void)m;
+TEST_CASE( "[refl/traverse] struct" ) {
 }
 
-TEST_CASE( "[gfx/matrix] traverse" ) {
+TEST_CASE( "[refl/traverse] wrapped" ) {
+}
+
+TEST_CASE( "[refl/traverse] reflected variants" ) {
 }
 
 } // namespace
-} // namespace gfx
+} // namespace refl

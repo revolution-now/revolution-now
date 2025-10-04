@@ -73,8 +73,14 @@ struct SSConst {
   RootState const& root;
 
   // This will run validation routines recursively over the en-
-  // tire save-game state. It is probably expensive to run.
-  base::valid_or<std::string> validate_game_state() const;
+  // tire save-game state. It is expensive to run.
+  base::valid_or<std::string> validate_full_game_state() const;
+
+  // This will run validation routines recursively over the en-
+  // tire save-game state but without zzz_terrain, thus it is
+  // less expensive (though not free).
+  base::valid_or<std::string> validate_non_terrain_game_state()
+      const;
 };
 
 struct SS {

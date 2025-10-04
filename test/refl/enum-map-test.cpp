@@ -282,5 +282,8 @@ TEST_CASE( "[enum-map] count_non_default_values" ) {
   REQUIRE( m.count_non_default_values() == 0 );
 }
 
+TEST_CASE( "[enum-map] traverse" ) {
+}
+
 } // namespace
 } // namespace refl

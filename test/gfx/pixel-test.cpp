@@ -149,5 +149,8 @@ TEST_CASE( "[gfx/pixel] to_uint32" ) {
   REQUIRE( p.to_uint32() == 0x213f5664 );
 }
 
+TEST_CASE( "[gfx/pixel] traverse" ) {
+}
+
 } // namespace
 } // namespace gfx

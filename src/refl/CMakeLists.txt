@@ -3,4 +3,5 @@ add_rn_library(
   # Link dependencies.
   rn-base
   rn-cdr
+  rn-traverse
 )

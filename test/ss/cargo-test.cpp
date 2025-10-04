@@ -102,12 +102,12 @@ struct CargoHoldTester : public CargoHold {
 *****************************************************************/
 TEST_CASE( "CargoHold slot bounds zero" ) {
   CargoHoldTester ch0( 0 );
-  REQUIRE( ch0.begin() == ch0.end() );
+  REQUIRE( ch0.slots_total() == 0 );
 
   CargoHoldTester ch6( 6 );
   REQUIRE_NOTHROW( ch6[0] );
   REQUIRE_NOTHROW( ch6[5] );
-  REQUIRE( distance( ch0.begin(), ch0.end() ) == 0 );
+  REQUIRE( ch6.slots_total() == 6 );
 
   ch0.clear();
   ch6.clear();
@@ -115,7 +115,7 @@ TEST_CASE( "CargoHold slot bounds zero" ) {
 
 TEST_CASE( "CargoHold slot bounds six" ) {
   CargoHoldTester ch( 6 );
-  REQUIRE( distance( ch.begin(), ch.end() ) == 6 );
+  REQUIRE( ch.slots_total() == 6 );
 
   REQUIRE( ch[5] == CargoSlot::empty{} );
   REQUIRE( ch[0] == CargoSlot::empty{} );
@@ -727,8 +727,8 @@ TEST_CASE( "CargoHold clear" ) {
   REQUIRE( ch.slots_total() == 14 );
   REQUIRE( ch.slots_remaining() == 14 );
 
-  for( auto const& slot : ch ) {
-    REQUIRE( slot == CargoSlot::empty{} );
+  for( int i = 0; i < ch.slots_total(); ++i ) {
+    REQUIRE( ch[i] == CargoSlot::empty{} );
   }
 
   ch.clear();

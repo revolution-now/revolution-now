@@ -75,9 +75,6 @@ struct CargoHold {
 
   int max_commodity_per_cargo_slot() const;
 
-  auto begin() const { return o_.slots.begin(); }
-  auto end() const { return o_.slots.end(); }
-
   base::maybe<CargoSlot const&> at( int slot ) const;
 
   CargoSlot const& operator[]( int idx ) const;

@@ -19,6 +19,9 @@
 #include "cdr/converter.hpp"
 #include "cdr/ext.hpp"
 
+// traverse
+#include "traverse/ext.hpp"
+
 // base
 #include "base/adl-tag.hpp"
 #include "base/cc-specific.hpp"
@@ -180,6 +183,16 @@ struct enum_map : public std::vector<std::pair<Enum, ValT>> {
     HAS_VALUE_OR_RET(
         conv.end_field_tracking( tbl, used_keys ) );
     return res;
+  }
+
+  // Implement this (as opposed to allowing the std::range ver-
+  // sion to handle it) so that we can give the enum value as the
+  // key. Otherwise it would end up going to the std::pair ele-
+  // ment overload which would give the key as a string field
+  // named "first".
+  friend void traverse( enum_map const& o, auto& fn,
+                        trv::tag_t<enum_map> ) {
+    for( auto const& [k, v] : o ) fn( v, k );
   }
 };
 

@@ -15,6 +15,9 @@
 // gfx
 #include "coord.hpp"
 
+// traverse
+#include "traverse/ext.hpp"
+
 // base
 #include "base/attributes.hpp"
 #include "base/error.hpp"
@@ -105,6 +108,17 @@ struct Matrix {
   friend void to_str( Matrix const& o, std::string& out,
                       base::tag<Matrix> ) {
     out += fmt::format( "Matrix{{size={}}}", o.size() );
+  }
+
+  // Implement trv::Traversable.
+  friend void traverse( Matrix const& o, auto& fn,
+                        trv::tag_t<Matrix> ) {
+    using namespace std::literals;
+    auto const y_size = o.size().h;
+    point p;
+    for( p.y = 0; p.y < y_size; ++p.y )
+      for( p.x = 0; p.x < o.w_; ++p.x ) //
+        fn( o[p], p );
   }
 };
 

@@ -4,4 +4,5 @@ add_rn_library(
   rn-base
   rn-luapp
   rn-rcl
+  rn-traverse
 )

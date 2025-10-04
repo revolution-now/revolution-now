@@ -2247,6 +2247,9 @@ wait<> next_turn( IEngine& engine, SS& ss, TS& ts ) {
   // so that we don't destroy the turn state after having loaded
   // a saved game.
   cycle = {};
+  // This should be relatively quick.
+  CHECK_HAS_VALUE(
+      ss.as_const.validate_non_terrain_game_state() );
 }
 
 } // namespace

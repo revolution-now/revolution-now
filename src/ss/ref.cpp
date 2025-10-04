@@ -18,10 +18,30 @@
 
 // refl
 #include "refl/to-str.hpp"
+#include "refl/traverse.hpp"
+#include "refl/validate.hpp"
+
+// traverse
+#include "traverse/ext-base.hpp"
+#include "traverse/ext-std.hpp"
+#include "traverse/ext.hpp"
+
+// base
+#include "base/logger.hpp"
+#include "base/timer.hpp"
 
 using namespace std;
 
 namespace rn {
+
+namespace {
+
+using ::base::ScopedTimer;
+using ::base::valid;
+using ::base::valid_or;
+using ::trv::traverse;
+
+}
 
 /****************************************************************
 ** SS::Impl
@@ -97,11 +117,23 @@ SSConst::SSConst( SS const& ss )
     terrain( ss_.terrain ),
     root( ss_.root ) {}
 
-base::valid_or<std::string> SSConst::validate_game_state()
+valid_or<string> SSConst::validate_full_game_state() const {
+  ScopedTimer const timer( "full game state validation" );
+  return refl::validate_recursive( root, "root" );
+}
+
+valid_or<string> SSConst::validate_non_terrain_game_state()
     const {
-  // TODO: just do a quick-and-dirty recursive approach within
-  // this file.
-  NOT_IMPLEMENTED;
+  valid_or<string> res = valid;
+  ScopedTimer const timer( "quick game state validation" );
+  traverse( root, [&]( auto const& o, string_view const name ) {
+    if( !res.valid() ) return;
+    if( name.find( "terrain" ) != string_view::npos ) return;
+    string const key = format( "root.{}", name );
+
+    res = refl::validate_recursive( o, key );
+  } );
+  return res;
 }
 
 /****************************************************************

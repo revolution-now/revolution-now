@@ -5,4 +5,5 @@ add_rn_library(
   rn-cdr
   rn-gfx
   rn-refl
+  rn-traverse
 )

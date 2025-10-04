@@ -231,6 +231,9 @@ wait<> handle_mode( IEngine& engine, Planes& planes, IGui& gui,
         gui, "Generating game... please wait." );
     co_await 1_frames;
     ts.lua["new_game"]["create"]( ss.root, options );
+    // NOTE: this takes ~100-200ms for a normal map size on a
+    // fast machine.
+    CHECK_HAS_VALUE( ss.as_const.validate_full_game_state() );
     co_return true;
   };
   co_await run_game( engine, planes, gui, factory );

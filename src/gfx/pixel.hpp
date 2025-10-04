@@ -13,6 +13,9 @@
 // Cdr
 #include "cdr/ext.hpp"
 
+// traverse
+#include "traverse/ext.hpp"
+
 // base
 #include "base/adl-tag.hpp"
 #include "base/maybe.hpp"
@@ -87,6 +90,16 @@ struct pixel {
   friend cdr::result<pixel> from_canonical( cdr::converter& conv,
                                             cdr::value const& v,
                                             cdr::tag_t<pixel> );
+
+  // Implement trv::Traversable.
+  friend void traverse( pixel const& o, auto& fn,
+                        trv::tag_t<pixel> ) {
+    using namespace std::literals;
+    fn( o.r, "r"sv );
+    fn( o.g, "g"sv );
+    fn( o.b, "b"sv );
+    fn( o.a, "a"sv );
+  }
 
   static pixel red() {
     return { .r = 255, .g = 0, .b = 0, .a = 255 };

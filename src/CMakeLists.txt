@@ -20,6 +20,7 @@ add_subdirectory( sav )
 add_subdirectory( video )
 add_subdirectory( sfx )
 add_subdirectory( sdl )
+add_subdirectory( traverse )
 
 # === this directory ==============================================
 
@@ -49,6 +50,7 @@ add_rn_library(
   rn-sdl
   rn-sfx
   rn-stb
+  rn-traverse
   rn-video
   rtmidi
   Threads::Threads

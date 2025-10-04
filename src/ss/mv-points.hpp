@@ -16,8 +16,11 @@
 // Revolution Now
 #include "maybe.hpp"
 
-// Cdr
+// cdr
 #include "cdr/ext.hpp"
+
+// traverse
+#include "traverse/ext.hpp"
 
 // luapp
 #include "luapp/ext.hpp"
@@ -155,6 +158,11 @@ class ND MovementPoints {
   friend cdr::result<MovementPoints> from_canonical(
       cdr::converter& conv, cdr::value const& v,
       cdr::tag_t<MovementPoints> );
+
+  friend void traverse( MovementPoints const& o, auto& fn,
+                        trv::tag_t<MovementPoints> ) {
+    fn( o.atoms_, "atoms" );
+  }
 
  private:
   // 2 points would be represented by 2*factor.

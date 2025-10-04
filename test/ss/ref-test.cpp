@@ -474,7 +474,7 @@ void init_cdr_data() {
   old_world["spanish"] = dutch;
 }
 
-TEST_CASE( "[game-state] some test" ) {
+TEST_CASE( "[ss/ref] some test" ) {
   init_cdr_data();
   cdr::converter conv;
   RootState root_def;
@@ -487,7 +487,7 @@ TEST_CASE( "[game-state] some test" ) {
                conv, cdr_game_state_default ) == root_def );
 }
 
-TEST_CASE( "[game-state] RootState convenience methods" ) {
+TEST_CASE( "[ss/ref] RootState convenience methods" ) {
   RootState l;
   RootState r;
   REQUIRE( root_states_equal( l, r ) );
@@ -497,6 +497,12 @@ TEST_CASE( "[game-state] RootState convenience methods" ) {
   assign_src_to_dst( as_const( l ), r );
   REQUIRE( root_states_equal( l, r ) );
   REQUIRE_FALSE( root_states_equal( r, old_r ) );
+}
+
+TEST_CASE( "[ss/ref] validate_full_game_state" ) {
+}
+
+TEST_CASE( "[ss/ref] validate_non_terrain_game_state" ) {
 }
 
 } // namespace

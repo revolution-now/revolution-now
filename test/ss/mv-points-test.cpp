@@ -97,5 +97,8 @@ TEST_CASE( "[mv-points] operator*" ) {
   REQUIRE( mp2 * 3 == MovementPoints( 2 ) );
 }
 
+TEST_CASE( "[mv-points] traverse" ) {
+}
+
 } // namespace
 } // namespace rn

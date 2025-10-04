@@ -16,6 +16,9 @@
 // cdr
 #include "cdr/ext.hpp"
 
+// traverse
+#include "traverse/ext.hpp"
+
 // base
 #include "base/to-str.hpp"
 
@@ -50,6 +53,9 @@ cdr::result<UnitId> from_canonical( cdr::converter& conv,
                                     cdr::value const& v,
                                     cdr::tag_t<UnitId> );
 
+// traverse: Handled by virtue of being a scalar.
+static_assert( std::is_scalar_v<UnitId> );
+
 // lua
 void lua_push( lua::cthread L, UnitId o );
 
@@ -74,6 +80,9 @@ cdr::value to_canonical( cdr::converter& conv, NativeUnitId o,
 cdr::result<NativeUnitId> from_canonical(
     cdr::converter& conv, cdr::value const& v,
     cdr::tag_t<NativeUnitId> );
+
+// traverse: Handled by virtue of being a scalar.
+static_assert( std::is_scalar_v<NativeUnitId> );
 
 // lua
 void lua_push( lua::cthread L, NativeUnitId o );
@@ -115,6 +124,10 @@ struct GenericUnitId {
   friend cdr::result<GenericUnitId> from_canonical(
       cdr::converter& conv, cdr::value const& v,
       cdr::tag_t<GenericUnitId> );
+
+  // traverse
+  friend void traverse( GenericUnitId, auto&,
+                        trv::tag_t<GenericUnitId> ) {}
 
   // lua
   friend void lua_push( lua::cthread L, GenericUnitId o );

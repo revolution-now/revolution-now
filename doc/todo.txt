@@ -47,16 +47,10 @@
 # Reflection
 # ===============================================================
 
-  1. Figure out a more general way to handle the validation that
-     is done on the game state. Find a way (and place) to run
-     validation methods recursively over a reflected struct so
-     that the game state can be validated each turn. Run the com-
-     plete validation at the start of each turn. Idea: create a
-     new Foldable concept that can traverse a data structure and
-     produce an accumulated value, possible with early termina-
-     tion.
-  2. Consider adding a generic mechanism for exposing reflected
-     C++ types as Lua userdata (C++-owned).
+  1. Consider adding a generic mechanism for exposing reflected
+     C++ types as Lua userdata (C++-owned). This might be pos-
+     sible using the Traversable concept which is currently used
+     for validating game state.
 
 # ===============================================================
 # Lua
