@@ -510,48 +510,44 @@ inline constexpr bool has_reserve_method<
 // bool will be checked and the iteration will stop when true is
 // returned or the iterations are finished.
 //
+namespace detail {
+
+template<size_t Index, typename Func>
+constexpr auto for_index_seq_impl( Func& func ) {
+  static_assert( Index > 0 );
+  using ret_t =
+      std::invoke_result_t<Func,
+                           std::integral_constant<size_t, 0>>;
+  constexpr bool returns_bool = std::is_same_v<bool, ret_t>;
+  static_assert(
+      returns_bool || std::is_same_v<ret_t, void>,
+      "Either the callback should return bool (indicating "
+      "when to stop iterating) or return nothing at all." );
+  [[maybe_unused]] bool finished_early = false;
+
+  auto const call = [&]( auto const i ) {
+    if constexpr( returns_bool )
+      finished_early = finished_early || func( i );
+    else
+      func( i );
+  };
+  [&]<size_t... Idxs>( std::index_sequence<Idxs...> ) {
+    ( call( std::integral_constant<size_t, Idxs>{} ), ... );
+  }( std::make_index_sequence<Index>() );
+}
+
+} // namespace detail
+
 template<size_t Index, typename Func>
 constexpr auto for_index_seq( Func&& func ) {
-  if constexpr( Index == 0 ) {
-    // Zero iterations. We have to bail early here because other-
-    // wise we'd try to determine the return type of the function
-    // by calling it with an integral constant of 0 which it
-    // might not be expecting, since an Index == 0 implies to the
-    // caller that the Func will never get called (or instanti-
-    // ated if it is a template lambda).
-    return;
-  } else {
-    bool finished_early = false;
-    using ret_t =
-        decltype( std::declval<decltype( std::forward<Func>(
-                      func ) )>()(
-            std::integral_constant<size_t, 0>{} ) );
-    constexpr bool returns_bool = std::is_same_v<bool, ret_t>;
-    if constexpr( !returns_bool ) {
-      static_assert(
-          std::is_same_v<ret_t, void>,
-          "Either the callback should return bool (indicating "
-          "when to stop iterating) or return nothing at all." );
-    }
-    auto done_checker =
-        [&]<size_t Idx>(
-            std::integral_constant<size_t, Idx> i ) {
-          if constexpr( returns_bool ) {
-            if( !finished_early )
-              finished_early = std::forward<Func>( func )( i );
-          } else {
-            (void)finished_early;
-            std::forward<Func>( func )( i );
-          }
-        };
-    auto for_index_seq_impl =
-        [&]<size_t... Idxs>( std::index_sequence<Idxs...> ) {
-          ( done_checker(
-                std::integral_constant<size_t, Idxs>{} ),
-            ... );
-        };
-    for_index_seq_impl( std::make_index_sequence<Index>() );
-  }
+  // If Index == 0 then we can't proceed because otherwise we'd
+  // try to determine the return type of the function by calling
+  // it with an integral constant of 0 which it might not be ex-
+  // pecting, since an Index == 0 implies to the caller that the
+  // Func will never get called (or instantiated if it is a tem-
+  // plate lambda).
+  if constexpr( Index > 0 )
+    return detail::for_index_seq_impl<Index, Func>( func );
 }
 
 namespace detail {
