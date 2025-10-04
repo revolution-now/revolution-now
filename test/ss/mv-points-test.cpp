@@ -98,6 +98,40 @@ TEST_CASE( "[mv-points] operator*" ) {
 }
 
 TEST_CASE( "[mv-points] traverse" ) {
+  using T          = MovementPoints;
+  using K_expected = string_view;
+  T o;
+
+  vector<string> v;
+  auto const traversing_fn = [&]<typename V, typename K>(
+                                 V const& val, K const key ) {
+    static_assert( is_same_v<K, K_expected> );
+    v.push_back( format( "{}", key ) );
+    if constexpr( is_same_v<V, int> ) v.push_back( "int" );
+    v.push_back( format( "{}", val ) );
+  };
+
+  auto const f = [&] [[clang::noinline]] {
+    trv::traverse( o, traversing_fn );
+  };
+
+  v.clear();
+  o = MovementPoints::_2_3();
+  f();
+  REQUIRE( v == vector<string>{
+                  "atoms",
+                  "int",
+                  "2",
+                } );
+
+  v.clear();
+  o = MovementPoints( 2 );
+  f();
+  REQUIRE( v == vector<string>{
+                  "atoms",
+                  "int",
+                  "6",
+                } );
 }
 
 } // namespace

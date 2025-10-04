@@ -161,7 +161,8 @@ class ND MovementPoints {
 
   friend void traverse( MovementPoints const& o, auto& fn,
                         trv::tag_t<MovementPoints> ) {
-    fn( o.atoms_, "atoms" );
+    using namespace std::literals;
+    fn( o.atoms_, "atoms"sv );
   }
 
  private:

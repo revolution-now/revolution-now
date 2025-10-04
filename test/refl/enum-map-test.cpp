@@ -283,6 +283,40 @@ TEST_CASE( "[enum-map] count_non_default_values" ) {
 }
 
 TEST_CASE( "[enum-map] traverse" ) {
+  using T          = enum_map<e_color, string>;
+  using K_expected = e_color;
+  T o;
+
+  vector<string> v;
+  auto const traversing_fn = [&]<typename V, typename K>(
+                                 V const& val, K const key ) {
+    static_assert( is_same_v<K, K_expected> );
+    v.push_back( format( "{}", key ) );
+    if constexpr( is_same_v<K, e_color> )
+      v.push_back( "e_color" );
+    v.push_back( format( "{}", val ) );
+  };
+
+  auto const f = [&] [[clang::noinline]] {
+    trv::traverse( o, traversing_fn );
+  };
+
+  o[e_color::red]   = "hello";
+  o[e_color::green] = "world";
+  o[e_color::blue]  = "again";
+  f();
+
+  REQUIRE( v == vector<string>{
+                  "red",
+                  "e_color",
+                  "hello",
+                  "green",
+                  "e_color",
+                  "world",
+                  "blue",
+                  "e_color",
+                  "again",
+                } );
 }
 
 } // namespace

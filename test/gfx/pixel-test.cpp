@@ -150,6 +150,41 @@ TEST_CASE( "[gfx/pixel] to_uint32" ) {
 }
 
 TEST_CASE( "[gfx/pixel] traverse" ) {
+  using T          = pixel;
+  using K_expected = string_view;
+  T o;
+
+  vector<string> v;
+  auto const traversing_fn = [&]<typename V, typename K>(
+                                 V const& val, K const key ) {
+    static_assert( is_same_v<K, K_expected> );
+    v.push_back( format( "{}", key ) );
+    if constexpr( is_same_v<V, uint8_t> )
+      v.push_back( "uint8_t" );
+    v.push_back( format( "{}", val ) );
+  };
+
+  auto const f = [&] [[clang::noinline]] {
+    trv::traverse( o, traversing_fn );
+  };
+
+  o = { .r = 25, .g = 77, .b = 200, .a = 255 };
+  f();
+
+  REQUIRE( v == vector<string>{
+                  "r",
+                  "uint8_t",
+                  "25",
+                  "g",
+                  "uint8_t",
+                  "77",
+                  "b",
+                  "uint8_t",
+                  "200",
+                  "a",
+                  "uint8_t",
+                  "255",
+                } );
 }
 
 } // namespace
