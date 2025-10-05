@@ -11,7 +11,7 @@
 #include "test/testing.hpp"
 
 // Under test.
-// #include "src/pacific.hpp"
+#include "src/pacific.hpp"
 
 // Testing.
 #include "test/fake/world.hpp"
@@ -23,6 +23,8 @@ namespace rn {
 namespace {
 
 using namespace std;
+
+using ::gfx::point;
 
 /****************************************************************
 ** Fake World Setup
@@ -61,6 +63,50 @@ TEST_CASE(
     "[pacific] is_atlantic_side_of_map / "
     "is_pacific_side_of_map" ) {
   world w;
+
+  auto const atlantic =
+      [&] [[clang::noinline]] ( point const p ) {
+        return is_atlantic_side_of_map( w.terrain(), p );
+      };
+
+  auto const pacific =
+      [&] [[clang::noinline]] ( point const p ) {
+        return is_pacific_side_of_map( w.terrain(), p );
+      };
+
+  REQUIRE( !atlantic( { .x = 0, .y = 2 } ) );
+  REQUIRE( !atlantic( { .x = 1, .y = 2 } ) );
+  REQUIRE( !atlantic( { .x = 2, .y = 2 } ) );
+  REQUIRE( !atlantic( { .x = 3, .y = 2 } ) );
+  REQUIRE( atlantic( { .x = 4, .y = 2 } ) );
+  REQUIRE( atlantic( { .x = 5, .y = 2 } ) );
+  REQUIRE( atlantic( { .x = 6, .y = 2 } ) );
+  REQUIRE( atlantic( { .x = 7, .y = 2 } ) );
+  REQUIRE( pacific( { .x = 0, .y = 2 } ) );
+  REQUIRE( pacific( { .x = 1, .y = 2 } ) );
+  REQUIRE( pacific( { .x = 2, .y = 2 } ) );
+  REQUIRE( pacific( { .x = 3, .y = 2 } ) );
+  REQUIRE( !pacific( { .x = 4, .y = 2 } ) );
+  REQUIRE( !pacific( { .x = 5, .y = 2 } ) );
+  REQUIRE( !pacific( { .x = 6, .y = 2 } ) );
+  REQUIRE( !pacific( { .x = 7, .y = 2 } ) );
+
+  REQUIRE( !atlantic( { .x = 0, .y = 7 } ) );
+  REQUIRE( !atlantic( { .x = 1, .y = 7 } ) );
+  REQUIRE( !atlantic( { .x = 2, .y = 7 } ) );
+  REQUIRE( !atlantic( { .x = 3, .y = 7 } ) );
+  REQUIRE( atlantic( { .x = 4, .y = 7 } ) );
+  REQUIRE( atlantic( { .x = 5, .y = 7 } ) );
+  REQUIRE( atlantic( { .x = 6, .y = 7 } ) );
+  REQUIRE( atlantic( { .x = 7, .y = 7 } ) );
+  REQUIRE( pacific( { .x = 0, .y = 7 } ) );
+  REQUIRE( pacific( { .x = 1, .y = 7 } ) );
+  REQUIRE( pacific( { .x = 2, .y = 7 } ) );
+  REQUIRE( pacific( { .x = 3, .y = 7 } ) );
+  REQUIRE( !pacific( { .x = 4, .y = 7 } ) );
+  REQUIRE( !pacific( { .x = 5, .y = 7 } ) );
+  REQUIRE( !pacific( { .x = 6, .y = 7 } ) );
+  REQUIRE( !pacific( { .x = 7, .y = 7 } ) );
 }
 
 } // namespace
