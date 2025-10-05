@@ -1,6 +1,14 @@
 TODO:
 -----------------------------------------------------------------
 
+  * If there is a different (foreign) society on the destination
+    square when a land unit arrives as was there when the move
+    was issued then the goto should stop short of going to the
+    destination tile, otherwise e.g. if the player moves a unit
+    onto an empty square and then there is a native unit on that
+    tile by the time it gets there then it could automatically
+    attack that native unit without asking the player (if the
+    player is already at war with them).
   * In mouse mode, we cannot drag off the right/left edge of the
     map like we can in keyboard mode.
   * When in keyboard mode, need to be able to center on the fo-

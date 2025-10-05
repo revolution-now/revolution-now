@@ -173,19 +173,15 @@ GotoPath sea_lane_search( IGotoMapViewer const& viewer,
     explored[p] = { .tile = from, .cost = cost };
   };
   push( src, src, 0 );
-  maybe<point> dst;
   while( !todo.empty() ) {
     ++goto_path.meta.iterations;
     point const curr = todo.top().tile;
+    CHECK( explored.contains( curr ) );
+    if( viewer.is_sea_lane_launch_point( curr ) ) break;
     todo.pop();
-    if( viewer.is_sea_lane_launch_point( curr ) ) {
-      dst = curr;
-      break;
-    }
     for( e_direction const d : enum_values<e_direction> ) {
       point const moved = curr.moved( d );
       if( !viewer.can_enter_tile( moved ) ) continue;
-      CHECK( explored.contains( curr ) );
       int const proposed_weight =
           explored[curr].cost + viewer.travel_cost( curr, d );
       if( explored.contains( moved ) ) {
@@ -201,10 +197,12 @@ GotoPath sea_lane_search( IGotoMapViewer const& viewer,
   // NOTE: iterations is set above.
   goto_path.meta.queue_size_at_end = todo.size();
   goto_path.meta.tiles_touched     = explored.size();
-  if( !dst.has_value() ) return goto_path;
-  CHECK( explored.contains( *dst ) );
+  if( todo.empty() ) return goto_path;
+  point const dst = todo.top().tile;
+  todo.pop();
+  CHECK( explored.contains( dst ) );
   auto& reverse_path = goto_path.reverse_path;
-  for( point p = *dst; p != src; p = explored[p].tile )
+  for( point p = dst; p != src; p = explored[p].tile )
     reverse_path.push_back( p );
   return goto_path;
 }
