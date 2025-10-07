@@ -53,7 +53,7 @@ struct TemplatedOdrUsedTester {
   }();
 
   // This is the key.
-  ODR_USE_MEMBER_METHOD( registration );
+  ODR_USE_MEMBER( registration );
 };
 
 /****************************************************************

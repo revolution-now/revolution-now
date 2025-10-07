@@ -54,7 +54,7 @@ namespace base {
 // So we will take approach #1, but will modify it slightly to
 // avoid explicitly comparing two identical things in order to
 // suppress gcc's -Wautological-compare warning.
-#define ODR_USE_MEMBER_METHOD( method ) \
+#define ODR_USE_MEMBER( method ) \
   static_assert( &method == &method + 1 - 1 )
 
 } // namespace base

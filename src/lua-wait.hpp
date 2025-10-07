@@ -75,7 +75,7 @@ struct type_traits<::rn::wait<T>>
   // tion` to be ODR-used, otherwise it will not be instantiated
   // (since this is a template class) and then the usertype won't
   // be registered.
-  ODR_USE_MEMBER_METHOD( registration );
+  ODR_USE_MEMBER( registration );
 };
 
 } // namespace lua
