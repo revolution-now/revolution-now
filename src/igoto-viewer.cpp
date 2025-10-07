@@ -62,7 +62,7 @@ maybe<e_direction> IGotoMapViewer::is_sea_lane_launch_point(
       // launch point and so it will re-route.
       point const east       = tile.moved( e );
       bool const east_hidden = !is_sea_lane( east ).has_value();
-      if( can_enter_tile( east ) && east_hidden ) return e;
+      if( east_hidden && can_enter_tile( east ) ) return e;
       break;
     }
     case pacific:
@@ -77,6 +77,16 @@ maybe<e_direction> IGotoMapViewer::is_sea_lane_launch_point(
 int IGotoMapViewer::travel_cost( point const src,
                                  e_direction const d ) const {
   MovementPoints res;
+  // Normally we are not supposed to ever overestimate the cost
+  // of travel in our heuristic function in order to maintain the
+  // property of Admissibility which the A* algo requires for op-
+  // timal behavior. However, technically this method
+  // (travel_cost) is not the heuristic function, instead it is
+  // the method that is used to get the actual cost when moving
+  // along the path by single tile. If it is wrong then it won't
+  // make the A* algo any worse per se, it just means that we are
+  // working with limited information given that some tiles are
+  // hidden, and so that is the best that we can do.
   static MovementPoints const kHiddenTilePoints( 1 );
   res = movement_points_required( src, d ).value_or(
       kHiddenTilePoints );
