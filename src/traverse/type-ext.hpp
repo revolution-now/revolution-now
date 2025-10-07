@@ -33,16 +33,16 @@ namespace trv {
 //   // std::string: Non-template type.
 //   template<template<typename> typename O>
 //   struct TypeTraverse<O, std::string>
-//     : O<std::string>
+//     : virtual private O<std::string>
 //     {};
 //
 //   // std::map: Template type with two template parameters.
-//   template<template<typename> typename O,
-//            typename U, typename V>
+//   template<template<typename> typename O, typename U,
+//                                           typename V>
 //   struct TypeTraverse<O, std::map<U, V>>
-//     : TypeTraverse<O, U>
-//     , TypeTraverse<O, V>
-//     , O<std::map<U, V>>
+//     : virtual private TypeTraverse<O, U>
+//     , virtual private TypeTraverse<O, V>
+//     , virtual private O<std::map<U, V>>
 //     {};
 //
 // The below macros produce the above when used like so:
