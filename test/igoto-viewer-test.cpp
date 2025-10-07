@@ -153,7 +153,6 @@ TEST_CASE( "[igoto-viewer] is_sea_lane_launch_point" ) {
       .returns( none );
 
   SECTION( "pacific succeeds" ) {
-    // In this section it is always pacific.
     viewer.EXPECT__map_side( tile ).by_default().returns(
         e_map_side::pacific );
     viewer.EXPECT__can_enter_tile( point{ .x = 2, .y = 5 } )
@@ -168,7 +167,6 @@ TEST_CASE( "[igoto-viewer] is_sea_lane_launch_point" ) {
   }
 
   SECTION( "pacific fails" ) {
-    // In this section it is always pacific.
     viewer.EXPECT__map_side( tile ).by_default().returns(
         e_map_side::pacific );
     viewer.EXPECT__can_enter_tile( point{ .x = 2, .y = 5 } )
@@ -181,7 +179,6 @@ TEST_CASE( "[igoto-viewer] is_sea_lane_launch_point" ) {
   }
 
   SECTION( "atlantic succeeds" ) {
-    // In this section it is always atlantic.
     viewer.EXPECT__map_side( tile ).by_default().returns(
         e_map_side::atlantic );
     viewer.EXPECT__can_enter_tile( point{ .x = 3, .y = 5 } )
@@ -198,7 +195,6 @@ TEST_CASE( "[igoto-viewer] is_sea_lane_launch_point" ) {
   }
 
   SECTION( "atlantic fails here" ) {
-    // In this section it is always atlantic.
     viewer.EXPECT__map_side( tile ).by_default().returns(
         e_map_side::atlantic );
     viewer.EXPECT__can_enter_tile( point{ .x = 3, .y = 5 } )
