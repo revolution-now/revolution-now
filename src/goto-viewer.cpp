@@ -56,6 +56,7 @@ bool GotoMapViewer::can_enter_tile( point const tile ) const {
     case e_tile_visibility::hidden:
       return true;
     case e_tile_visibility::fogged:
+      break;
     case e_tile_visibility::clear:
       break;
   }

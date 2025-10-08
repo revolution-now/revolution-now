@@ -19,6 +19,7 @@
 
 // ss
 #include "ss/ref.hpp"
+#include "ss/unit-composition.hpp"
 
 // Must be last.
 #include "test/catch-common.hpp" // IWYU pragma: keep
@@ -35,7 +36,10 @@ using ::gfx::point;
 *****************************************************************/
 struct world : testing::World {
   world() {
-    add_default_player();
+    add_player( e_player::english );
+    add_player( e_player::french );
+    set_default_player_type( e_player::english );
+    set_default_player_as_human();
     create_default_map();
   }
 
@@ -65,6 +69,105 @@ struct world : testing::World {
 *****************************************************************/
 TEST_CASE( "[goto-viewer] can_enter_tile" ) {
   world w;
+  MockIVisibility viz( w.ss().as_const );
+  e_unit_type unit_type = {};
+  point tile;
+
+  MapSquare square;
+
+  auto const f = [&] [[clang::noinline]] {
+    GotoMapViewer const viewer(
+        w.ss(), viz, w.default_player_type(), unit_type );
+    return viewer.can_enter_tile( tile );
+  };
+
+  using enum e_player;
+  using enum e_surface;
+  using enum e_tile_visibility;
+  using enum e_tribe;
+  using enum e_unit_type;
+
+  // Outside the map.
+  tile = { .x = -1, .y = -1 };
+  REQUIRE( f() == false );
+
+  unit_type = caravel;
+  tile      = { .x = 0, .y = 0 };
+  viz.EXPECT__visible( tile ).returns( hidden );
+  REQUIRE( f() == true );
+
+  unit_type = caravel;
+  tile      = { .x = 1, .y = 0 };
+  viz.EXPECT__visible( tile ).returns( hidden );
+  REQUIRE( f() == true );
+
+  unit_type = caravel;
+  tile      = { .x = 0, .y = 0 };
+  viz.EXPECT__visible( tile ).returns( clear );
+  w.add_unit_on_map( frigate, tile );
+  square.surface = land;
+  viz.EXPECT__square_at( tile ).returns( square );
+  REQUIRE( f() == false );
+
+  unit_type = caravel;
+  tile      = { .x = 0, .y = 0 };
+  viz.EXPECT__visible( tile ).returns( clear );
+  w.add_unit_on_map( frigate, tile );
+  square.surface = water;
+  viz.EXPECT__square_at( tile ).returns( square );
+  REQUIRE( f() == true );
+
+  unit_type = caravel;
+  tile      = { .x = 0, .y = 1 };
+  viz.EXPECT__visible( tile ).returns( clear );
+  w.add_unit_on_map( frigate, tile, french );
+  REQUIRE( f() == false );
+
+  unit_type = free_colonist;
+  tile      = { .x = 0, .y = 0 };
+  viz.EXPECT__visible( tile ).returns( hidden );
+  REQUIRE( f() == true );
+
+  unit_type = free_colonist;
+  tile      = { .x = 1, .y = 0 };
+  viz.EXPECT__visible( tile ).returns( hidden );
+  REQUIRE( f() == true );
+
+  unit_type = free_colonist;
+  tile      = { .x = 1, .y = 0 };
+  viz.EXPECT__visible( tile ).returns( clear );
+  w.add_unit_on_map( soldier, tile );
+  square.surface = water;
+  viz.EXPECT__square_at( tile ).returns( square );
+  REQUIRE( f() == false );
+
+  unit_type = free_colonist;
+  tile      = { .x = 1, .y = 0 };
+  viz.EXPECT__visible( tile ).returns( clear );
+  w.add_unit_on_map( soldier, tile );
+  square.surface = land;
+  viz.EXPECT__square_at( tile ).returns( square );
+  REQUIRE( f() == true );
+
+  unit_type = free_colonist;
+  tile      = { .x = 1, .y = 1 };
+  viz.EXPECT__visible( tile ).returns( clear );
+  w.add_unit_on_map( soldier, tile, french );
+  REQUIRE( f() == false );
+
+  unit_type = free_colonist;
+  tile      = { .x = 1, .y = 0 };
+  viz.EXPECT__visible( tile ).returns( fogged );
+  w.add_unit_on_map( soldier, tile );
+  square.surface = land;
+  viz.EXPECT__square_at( tile ).returns( square );
+  REQUIRE( f() == true );
+
+  unit_type = free_colonist;
+  tile      = { .x = 2, .y = 0 };
+  viz.EXPECT__visible( tile ).returns( clear );
+  w.add_dwelling_and_brave( tile, apache );
+  REQUIRE( f() == false );
 }
 
 TEST_CASE( "[goto-viewer] map_side" ) {
