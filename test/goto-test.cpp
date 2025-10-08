@@ -18,11 +18,13 @@
 
 // Revolution Now
 #include "src/goto-viewer.hpp"
+#include "src/harbor-units.hpp"
 #include "src/visibility.hpp"
 
 // ss
 #include "src/ss/ref.hpp"
 #include "src/ss/unit-composition.hpp"
+#include "src/ss/units.hpp"
 
 // gfx
 #include "src/gfx/iter.hpp"
@@ -1264,6 +1266,82 @@ TEST_CASE( "[goto] compute_harbor_goto_path" ) {
 
 TEST_CASE( "[goto] unit_has_reached_goto_target" ) {
   world w;
+  using enum e_surface;
+  using enum e_ground_terrain;
+  using enum e_land_overlay;
+  using enum e_river;
+  using enum e_unit_type;
+
+  using MS = MapSquare;
+
+  MS const _{ .surface = water };
+  MS const X{ .surface = land, .ground = grassland };
+  MS const s{ .surface = water, .sea_lane = true };
+
+  // clang-format off
+  vector<MapSquare> tiles{ /*
+        0 1 2 3 4 5 6 7 8 9
+    0*/ s,_,_,_,_,_,_,_,_,s, /*0
+    1*/ s,_,_,_,_,_,_,_,_,s, /*1
+    2*/ s,_,X,X,X,X,X,X,_,s, /*2
+    3*/ s,_,X,X,X,X,X,X,_,s, /*3
+    4*/ s,_,X,X,X,X,X,X,_,s, /*4
+    5*/ s,_,X,X,X,X,X,X,_,s, /*5
+    6*/ s,_,X,X,X,X,X,X,_,s, /*6
+    7*/ s,_,X,X,X,X,X,X,_,s, /*7
+    8*/ s,_,_,_,_,_,_,_,_,s, /*8
+    9*/ s,_,_,_,_,_,_,_,_,s, /*9
+        0 1 2 3 4 5 6 7 8 9
+  */};
+  // clang-format on
+
+  w.build_map( std::move( tiles ), 10 );
+  // NOTE: end generated code.
+
+  auto const f =
+      [&] [[clang::noinline]] ( UnitId const unit_id ) {
+        Unit const& unit = w.units().unit_for( unit_id );
+        return unit_has_reached_goto_target( w.ss(), unit );
+      };
+
+  Unit& unit1 =
+      w.add_unit_on_map( free_colonist, { .x = 2, .y = 2 } );
+
+  REQUIRE( f( unit1.id() ) == false );
+  unit1.orders() = unit_orders::go_to{
+    .target = goto_target::map{ .tile = { .x = 3, .y = 4 } } };
+  REQUIRE( f( unit1.id() ) == false );
+  unit1.orders() = unit_orders::go_to{
+    .target = goto_target::map{ .tile = { .x = 2, .y = 2 } } };
+  REQUIRE( f( unit1.id() ) == true );
+
+  Unit& unit2 = w.add_unit_on_map( frigate, { .x = 1, .y = 2 } );
+  REQUIRE( f( unit2.id() ) == false );
+  unit2.orders() = unit_orders::go_to{
+    .target = goto_target::map{ .tile = { .x = 1, .y = 1 } } };
+  REQUIRE( f( unit2.id() ) == false );
+  unit2.orders() = unit_orders::go_to{
+    .target = goto_target::map{ .tile = { .x = 1, .y = 2 } } };
+  REQUIRE( f( unit2.id() ) == true );
+
+  unit2.clear_orders();
+  unit_sail_to_harbor( w.ss(), unit2.id() );
+  REQUIRE( f( unit2.id() ) == false );
+  unit2.orders() =
+      unit_orders::go_to{ .target = goto_target::harbor{} };
+  REQUIRE( f( unit2.id() ) == false );
+
+  Unit& unit3 = w.add_unit_in_port( frigate );
+  REQUIRE( f( unit3.id() ) == false );
+  unit3.orders() =
+      unit_orders::go_to{ .target = goto_target::harbor{} };
+  REQUIRE( f( unit3.id() ) == false );
+  unit3.clear_orders();
+  unit_sail_to_new_world( w.ss(), unit3.id() );
+  REQUIRE( f( unit3.id() ) == false );
+  unit3.orders() =
+      unit_orders::go_to{ .target = goto_target::harbor{} };
+  REQUIRE( f( unit3.id() ) == false );
 }
 
 TEST_CASE( "[goto] find_goto_port" ) {
