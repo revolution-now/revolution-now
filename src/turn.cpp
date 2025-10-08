@@ -2239,7 +2239,11 @@ wait<TurnCycle> next_turn_iter( IEngine& engine, SS& ss,
 wait<> next_turn( IEngine& engine, SS& ss, TS& ts ) {
   TurnCycle& cycle = ss.turn.cycle;
   ts.planes.get().get_bottom<ILandViewPlane>().start_new_turn();
-  base::print_bar( '=', "[ Starting Turn ]" );
+  auto const& time_point = ss.turn.time_point;
+  string const bar_label =
+      format( "[ starting turn {}: {} {} ]", time_point.turns,
+              time_point.season, time_point.year );
+  base::print_bar( '=', bar_label );
   while( !cycle.holds<TurnCycle::finished>() )
     cycle = co_await next_turn_iter( engine, ss, ts );
   // The default-constructed cycle represents a new turn where
