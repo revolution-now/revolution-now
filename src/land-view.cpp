@@ -827,8 +827,11 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
         if( !unit_input.has_value() ) break;
         Unit const& unit =
             ss_.units.unit_for( unit_input->unit_id );
-        GotoPort const goto_port =
-            find_goto_port( ss_, ts_.connectivity, unit );
+        point const tile = coord_for_unit_indirect_or_die(
+            ss_.units, unit.id() );
+        GotoPort const goto_port = find_goto_port(
+            ss_, ts_.connectivity, unit.player_type(),
+            unit.type(), tile );
         UNWRAP_CHECK_T(
             Player const& player,
             ss_.players.players[unit.player_type()] );

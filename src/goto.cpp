@@ -21,7 +21,7 @@
 
 // config
 #include "config/nation.rds.hpp"
-#include "config/unit-type.rds.hpp"
+#include "config/unit-type.hpp"
 
 // ss
 #include "ss/colonies.hpp"
@@ -263,14 +263,15 @@ bool unit_has_reached_goto_target( SSConst const& ss,
 
 GotoPort find_goto_port( SSConst const& ss,
                          TerrainConnectivity const& connectivity,
-                         Unit const& unit ) {
+                         e_player const player_type,
+                         e_unit_type const unit_type,
+                         point const src ) {
   GotoPort res;
-  point const tile =
-      coord_for_unit_indirect_or_die( ss.units, unit.id() );
+  bool const is_ship = unit_attr( unit_type ).ship;
   UNWRAP_CHECK_T( Player const& player,
-                  ss.players.players[unit.player_type()] );
-  if( unit.desc().ship && player.revolution.status <
-                              e_revolution_status::declared ) {
+                  ss.players.players[player_type] );
+  if( is_ship && player.revolution.status <
+                     e_revolution_status::declared ) {
     // We need to test all tiles around the ship to see if any
     // have sea lane access (as opposed to just testing the tile
     // that the unit is on) because we may have a ship sitting in
@@ -285,9 +286,14 @@ GotoPort find_goto_port( SSConst const& ss,
     //                      _ _ _ _ X X
     //                      _ _ _ _ _ _
     //
-    // Where the colony might want to send a ship to the right.
+    // where the ship is on the tile to the right of the colony.
     for( e_cdirection const d : enum_values<e_cdirection> ) {
-      point const moved = tile.moved( d );
+      point const moved = src.moved( d );
+      if( !ss.terrain.square_exists( moved ) ) continue;
+      if( !is_water( ss.terrain.square_at( moved ) ) ) continue;
+      // The following function must only be called with water
+      // tiles, since land tiles can have access to the map-edge,
+      // but that is not what we want.
       if( water_square_has_ocean_access( connectivity,
                                          moved ) ) {
         res.europe = true;
@@ -296,21 +302,21 @@ GotoPort find_goto_port( SSConst const& ss,
     }
   }
 
-  res.colonies = ss.colonies.for_player( unit.player_type() );
   auto const is_compatible_surface = [&]( point const p ) {
-    if( unit.desc().ship )
+    if( is_ship )
       return is_water( ss.terrain.square_at( p ) );
     else
       return is_land( ss.terrain.square_at( p ) );
   };
   static auto const [DONT_ERASE, ERASE] = pair{ false, true };
+  res.colonies = ss.colonies.for_player( player_type );
   erase_if( res.colonies, [&]( ColonyId const colony_id ) {
     Colony const& colony = ss.colonies.colony_for( colony_id );
-    if( colony.location.to_gfx() == tile )
+    if( colony.location.to_gfx() == src )
       // By convention don't display the colony we're sitting on
       // top of.
       return ERASE;
-    if( colony.location.direction_to( tile ).has_value() )
+    if( colony.location.direction_to( src ).has_value() )
       // If we either in the colony or adjacent to it then we can
       // always move into it, regardless of unit types or terrain
       // types.
@@ -343,7 +349,7 @@ GotoPort find_goto_port( SSConst const& ss,
     src_tiles.reserve( enum_count<D> );
     dst_tiles.reserve( enum_count<D> );
     for( D const d : enum_values<D> ) {
-      point const moved = tile.moved( d );
+      point const moved = src.moved( d );
       if( !ss.terrain.square_exists( moved ) ) continue;
       if( !is_compatible_surface( moved ) )
         // If a land unit is on a ship or a ship is in a colony

@@ -38,6 +38,9 @@ struct SSConst;
 struct TerrainConnectivity;
 struct Unit;
 
+enum class e_player;
+enum class e_unit_type;
+
 /****************************************************************
 ** Public API.
 *****************************************************************/
@@ -59,7 +62,8 @@ GotoPath compute_harbor_goto_path( IGotoMapViewer const& viewer,
 
 GotoPort find_goto_port( SSConst const& ss,
                          TerrainConnectivity const& connectivity,
-                         Unit const& unit );
+                         e_player player_type,
+                         e_unit_type unit_type, gfx::point src );
 
 wait<maybe<goto_target>> ask_goto_port(
     SSConst const& ss, IGui& gui, Player const& player,

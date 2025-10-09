@@ -22,6 +22,7 @@
 #include "src/visibility.hpp"
 
 // ss
+#include "src/ss/player.rds.hpp"
 #include "src/ss/ref.hpp"
 #include "src/ss/unit-composition.hpp"
 #include "src/ss/units.hpp"
@@ -1274,9 +1275,9 @@ TEST_CASE( "[goto] unit_has_reached_goto_target" ) {
 
   using MS = MapSquare;
 
-  MS const _{ .surface = water };
-  MS const X{ .surface = land, .ground = grassland };
-  MS const s{ .surface = water, .sea_lane = true };
+  static MS const _{ .surface = water };
+  static MS const X{ .surface = land, .ground = grassland };
+  static MS const s{ .surface = water, .sea_lane = true };
 
   // clang-format off
   vector<MapSquare> tiles{ /*
@@ -1296,7 +1297,6 @@ TEST_CASE( "[goto] unit_has_reached_goto_target" ) {
   // clang-format on
 
   w.build_map( std::move( tiles ), 10 );
-  // NOTE: end generated code.
 
   auto const f =
       [&] [[clang::noinline]] ( UnitId const unit_id ) {
@@ -1346,6 +1346,650 @@ TEST_CASE( "[goto] unit_has_reached_goto_target" ) {
 
 TEST_CASE( "[goto] find_goto_port" ) {
   world w;
+  point src;
+  e_unit_type unit_type = {};
+  GotoPort expected;
+  Player& player = w.default_player();
+
+  auto const f = [&] [[clang::noinline]] {
+    return find_goto_port( w.ss().as_const, w.connectivity(),
+                           w.default_player_type(), unit_type,
+                           src );
+  };
+
+  using enum e_ground_terrain;
+  using enum e_land_overlay;
+  using enum e_player;
+  using enum e_revolution_status;
+  using enum e_river;
+  using enum e_surface;
+  using enum e_unit_type;
+
+  using MS = MapSquare;
+
+  static MS const _{ .surface = water };
+  static MS const X{ .surface = land, .ground = grassland };
+  static MS const s{ .surface = water, .sea_lane = true };
+
+  // clang-format off
+  vector<MapSquare> tiles{ /*
+        0 1 2 3 4 5 6 7 8 9
+    0*/ s,_,_,_,X,_,_,_,_,s, /*0
+    1*/ s,_,_,_,X,_,_,_,_,s, /*1
+    2*/ s,_,X,X,X,_,X,X,_,s, /*2
+    3*/ s,_,X,_,X,_,X,X,_,s, /*3
+    4*/ X,X,X,X,X,_,X,X,_,s, /*4
+    5*/ s,_,_,_,_,_,_,_,_,s, /*5
+    6*/ X,X,X,X,X,X,X,X,X,X, /*6
+    7*/ X,_,X,X,X,_,X,X,_,X, /*7
+    8*/ X,_,_,_,_,_,_,_,_,X, /*8
+    9*/ X,_,_,_,_,X,_,_,_,X, /*9
+        0 1 2 3 4 5 6 7 8 9
+  */};
+  // clang-format on
+
+  w.build_map( std::move( tiles ), 10 );
+  w.update_terrain_connectivity();
+
+  unit_type = caravel;
+  src       = { .x = 0, .y = 0 };
+  expected  = { .europe = true, .colonies = {} };
+  REQUIRE( f() == expected );
+
+  player.revolution.status = declared;
+  unit_type                = caravel;
+  src                      = { .x = 0, .y = 0 };
+  expected                 = { .europe = false, .colonies = {} };
+  REQUIRE( f() == expected );
+  player.revolution.status = not_declared;
+
+  unit_type = caravel;
+  src       = { .x = 3, .y = 3 };
+  expected  = { .europe = false, .colonies = {} };
+  REQUIRE( f() == expected );
+
+  unit_type = caravel;
+  src       = { .x = 7, .y = 0 };
+  expected  = { .europe = true, .colonies = {} };
+  REQUIRE( f() == expected );
+
+  unit_type = caravel;
+  src       = { .x = 5, .y = 7 };
+  expected  = { .europe = false, .colonies = {} };
+  REQUIRE( f() == expected );
+
+  unit_type = caravel;
+  src       = { .x = 2, .y = 2 }; // as if in colony
+  expected  = { .europe = true, .colonies = {} };
+  REQUIRE( f() == expected );
+
+  unit_type = caravel;
+  src       = { .x = 6, .y = 2 }; // as if in colony
+  expected  = { .europe = true, .colonies = {} };
+  REQUIRE( f() == expected );
+
+  unit_type = caravel;
+  src       = { .x = 3, .y = 6 }; // as if in colony
+  expected  = { .europe = true, .colonies = {} };
+  REQUIRE( f() == expected );
+
+  unit_type = caravel;
+  src       = { .x = 3, .y = 7 }; // as if in colony
+  expected  = { .europe = false, .colonies = {} };
+  REQUIRE( f() == expected );
+
+  unit_type = free_colonist; // as if on ship
+  src       = { .x = 0, .y = 0 };
+  expected  = { .europe = false, .colonies = {} };
+  REQUIRE( f() == expected );
+
+  player.revolution.status = declared;
+  unit_type                = free_colonist;
+  src                      = { .x = 0, .y = 0 }; // as if on ship
+  expected                 = { .europe = false, .colonies = {} };
+  REQUIRE( f() == expected );
+  player.revolution.status = not_declared;
+
+  unit_type = free_colonist;
+  src       = { .x = 3, .y = 3 }; // as if on ship
+  expected  = { .europe = false, .colonies = {} };
+  REQUIRE( f() == expected );
+
+  unit_type = free_colonist;
+  src       = { .x = 7, .y = 0 }; // as if on ship
+  expected  = { .europe = false, .colonies = {} };
+  REQUIRE( f() == expected );
+
+  unit_type = free_colonist;
+  src       = { .x = 5, .y = 7 }; // as if on ship
+  expected  = { .europe = false, .colonies = {} };
+  REQUIRE( f() == expected );
+
+  unit_type = free_colonist;
+  src       = { .x = 2, .y = 2 };
+  expected  = { .europe = false, .colonies = {} };
+  REQUIRE( f() == expected );
+
+  unit_type = free_colonist;
+  src       = { .x = 6, .y = 2 };
+  expected  = { .europe = false, .colonies = {} };
+  REQUIRE( f() == expected );
+
+  unit_type = free_colonist;
+  src       = { .x = 3, .y = 6 };
+  expected  = { .europe = false, .colonies = {} };
+  REQUIRE( f() == expected );
+
+  unit_type = free_colonist;
+  src       = { .x = 3, .y = 7 };
+  expected  = { .europe = false, .colonies = {} };
+  REQUIRE( f() == expected );
+
+  w.add_colony( { .x = 2, .y = 2 } );
+
+  unit_type = caravel;
+  src       = { .x = 0, .y = 0 };
+  expected  = { .europe = true, .colonies = { 1 } };
+  REQUIRE( f() == expected );
+
+  player.revolution.status = declared;
+  unit_type                = caravel;
+  src                      = { .x = 0, .y = 0 };
+  expected = { .europe = false, .colonies = { 1 } };
+  REQUIRE( f() == expected );
+  player.revolution.status = not_declared;
+
+  unit_type = caravel;
+  src       = { .x = 3, .y = 3 };
+  expected  = { .europe = false, .colonies = { 1 } };
+  REQUIRE( f() == expected );
+
+  unit_type = caravel;
+  src       = { .x = 7, .y = 0 };
+  expected  = { .europe = true, .colonies = {} };
+  REQUIRE( f() == expected );
+
+  unit_type = caravel;
+  src       = { .x = 5, .y = 7 };
+  expected  = { .europe = false, .colonies = {} };
+  REQUIRE( f() == expected );
+
+  unit_type = caravel;
+  src       = { .x = 2, .y = 2 }; // as if in colony
+  expected  = { .europe = true, .colonies = {} };
+  REQUIRE( f() == expected );
+
+  unit_type = caravel;
+  src       = { .x = 6, .y = 2 }; // as if in colony
+  expected  = { .europe = true, .colonies = {} };
+  REQUIRE( f() == expected );
+
+  unit_type = caravel;
+  src       = { .x = 3, .y = 6 }; // as if in colony
+  expected  = { .europe = true, .colonies = {} };
+  REQUIRE( f() == expected );
+
+  unit_type = caravel;
+  src       = { .x = 3, .y = 7 }; // as if in colony
+  expected  = { .europe = false, .colonies = {} };
+  REQUIRE( f() == expected );
+
+  unit_type = free_colonist; // as if on ship
+  src       = { .x = 0, .y = 0 };
+  expected  = { .europe = false, .colonies = {} };
+  REQUIRE( f() == expected );
+
+  player.revolution.status = declared;
+  unit_type                = free_colonist;
+  src                      = { .x = 0, .y = 0 }; // as if on ship
+  expected                 = { .europe = false, .colonies = {} };
+  REQUIRE( f() == expected );
+  player.revolution.status = not_declared;
+
+  unit_type = free_colonist;
+  src       = { .x = 3, .y = 3 }; // as if on ship
+  expected  = { .europe = false, .colonies = { 1 } };
+  REQUIRE( f() == expected );
+
+  unit_type = free_colonist;
+  src       = { .x = 7, .y = 0 }; // as if on ship
+  expected  = { .europe = false, .colonies = {} };
+  REQUIRE( f() == expected );
+
+  unit_type = free_colonist;
+  src       = { .x = 5, .y = 7 }; // as if on ship
+  expected  = { .europe = false, .colonies = {} };
+  REQUIRE( f() == expected );
+
+  unit_type = free_colonist;
+  src       = { .x = 2, .y = 2 };
+  expected  = { .europe = false, .colonies = {} };
+  REQUIRE( f() == expected );
+
+  unit_type = free_colonist;
+  src       = { .x = 4, .y = 2 };
+  expected  = { .europe = false, .colonies = { 1 } };
+  REQUIRE( f() == expected );
+
+  unit_type = free_colonist;
+  src       = { .x = 6, .y = 2 };
+  expected  = { .europe = false, .colonies = {} };
+  REQUIRE( f() == expected );
+
+  unit_type = free_colonist;
+  src       = { .x = 3, .y = 6 };
+  expected  = { .europe = false, .colonies = {} };
+  REQUIRE( f() == expected );
+
+  unit_type = free_colonist;
+  src       = { .x = 3, .y = 7 };
+  expected  = { .europe = false, .colonies = {} };
+  REQUIRE( f() == expected );
+
+  w.add_colony( { .x = 7, .y = 4 } );
+
+  unit_type = caravel;
+  src       = { .x = 0, .y = 0 };
+  expected  = { .europe = true, .colonies = { 1 } };
+  REQUIRE( f() == expected );
+
+  player.revolution.status = declared;
+  unit_type                = caravel;
+  src                      = { .x = 0, .y = 0 };
+  expected = { .europe = false, .colonies = { 1 } };
+  REQUIRE( f() == expected );
+  player.revolution.status = not_declared;
+
+  unit_type = caravel;
+  src       = { .x = 3, .y = 3 };
+  expected  = { .europe = false, .colonies = { 1 } };
+  REQUIRE( f() == expected );
+
+  unit_type = caravel;
+  src       = { .x = 7, .y = 0 };
+  expected  = { .europe = true, .colonies = { 2 } };
+  REQUIRE( f() == expected );
+
+  unit_type = caravel;
+  src       = { .x = 5, .y = 7 };
+  expected  = { .europe = false, .colonies = {} };
+  REQUIRE( f() == expected );
+
+  unit_type = caravel;
+  src       = { .x = 2, .y = 2 }; // as if in colony
+  expected  = { .europe = true, .colonies = {} };
+  REQUIRE( f() == expected );
+
+  unit_type = caravel;
+  src       = { .x = 6, .y = 2 }; // as if in colony
+  expected  = { .europe = true, .colonies = { 2 } };
+  REQUIRE( f() == expected );
+
+  unit_type = caravel;
+  src       = { .x = 3, .y = 6 }; // as if in colony
+  expected  = { .europe = true, .colonies = { 2 } };
+  REQUIRE( f() == expected );
+
+  unit_type = caravel;
+  src       = { .x = 3, .y = 7 }; // as if in colony
+  expected  = { .europe = false, .colonies = {} };
+  REQUIRE( f() == expected );
+
+  unit_type = free_colonist; // as if on ship
+  src       = { .x = 0, .y = 0 };
+  expected  = { .europe = false, .colonies = {} };
+  REQUIRE( f() == expected );
+
+  player.revolution.status = declared;
+  unit_type                = free_colonist;
+  src                      = { .x = 0, .y = 0 }; // as if on ship
+  expected                 = { .europe = false, .colonies = {} };
+  REQUIRE( f() == expected );
+  player.revolution.status = not_declared;
+
+  unit_type = free_colonist;
+  src       = { .x = 3, .y = 3 }; // as if on ship
+  expected  = { .europe = false, .colonies = { 1 } };
+  REQUIRE( f() == expected );
+
+  unit_type = free_colonist;
+  src       = { .x = 7, .y = 0 }; // as if on ship
+  expected  = { .europe = false, .colonies = {} };
+  REQUIRE( f() == expected );
+
+  unit_type = free_colonist;
+  src       = { .x = 5, .y = 7 }; // as if on ship
+  expected  = { .europe = false, .colonies = {} };
+  REQUIRE( f() == expected );
+
+  unit_type = free_colonist;
+  src       = { .x = 2, .y = 2 };
+  expected  = { .europe = false, .colonies = {} };
+  REQUIRE( f() == expected );
+
+  unit_type = free_colonist;
+  src       = { .x = 4, .y = 2 };
+  expected  = { .europe = false, .colonies = { 1 } };
+  REQUIRE( f() == expected );
+
+  unit_type = free_colonist;
+  src       = { .x = 6, .y = 2 };
+  expected  = { .europe = false, .colonies = { 2 } };
+  REQUIRE( f() == expected );
+
+  unit_type = free_colonist;
+  src       = { .x = 3, .y = 6 };
+  expected  = { .europe = false, .colonies = {} };
+  REQUIRE( f() == expected );
+
+  unit_type = free_colonist;
+  src       = { .x = 3, .y = 7 };
+  expected  = { .europe = false, .colonies = {} };
+  REQUIRE( f() == expected );
+
+  w.add_colony( { .x = 7, .y = 7 } );
+
+  unit_type = caravel;
+  src       = { .x = 0, .y = 0 };
+  expected  = { .europe = true, .colonies = { 1 } };
+  REQUIRE( f() == expected );
+
+  player.revolution.status = declared;
+  unit_type                = caravel;
+  src                      = { .x = 0, .y = 0 };
+  expected = { .europe = false, .colonies = { 1 } };
+  REQUIRE( f() == expected );
+  player.revolution.status = not_declared;
+
+  unit_type = caravel;
+  src       = { .x = 3, .y = 3 };
+  expected  = { .europe = false, .colonies = { 1 } };
+  REQUIRE( f() == expected );
+
+  unit_type = caravel;
+  src       = { .x = 7, .y = 0 };
+  expected  = { .europe = true, .colonies = { 2 } };
+  REQUIRE( f() == expected );
+
+  unit_type = caravel;
+  src       = { .x = 5, .y = 7 };
+  expected  = { .europe = false, .colonies = { 3 } };
+  REQUIRE( f() == expected );
+
+  unit_type = caravel;
+  src       = { .x = 2, .y = 2 }; // as if in colony
+  expected  = { .europe = true, .colonies = {} };
+  REQUIRE( f() == expected );
+
+  unit_type = caravel;
+  src       = { .x = 6, .y = 2 }; // as if in colony
+  expected  = { .europe = true, .colonies = { 2 } };
+  REQUIRE( f() == expected );
+
+  unit_type = caravel;
+  src       = { .x = 3, .y = 6 }; // as if in colony
+  expected  = { .europe = true, .colonies = { 2 } };
+  REQUIRE( f() == expected );
+
+  unit_type = caravel;
+  src       = { .x = 3, .y = 7 }; // as if in colony
+  expected  = { .europe = false, .colonies = { 3 } };
+  REQUIRE( f() == expected );
+
+  unit_type = free_colonist; // as if on ship
+  src       = { .x = 0, .y = 0 };
+  expected  = { .europe = false, .colonies = {} };
+  REQUIRE( f() == expected );
+
+  player.revolution.status = declared;
+  unit_type                = free_colonist;
+  src                      = { .x = 0, .y = 0 }; // as if on ship
+  expected                 = { .europe = false, .colonies = {} };
+  REQUIRE( f() == expected );
+  player.revolution.status = not_declared;
+
+  unit_type = free_colonist;
+  src       = { .x = 3, .y = 3 }; // as if on ship
+  expected  = { .europe = false, .colonies = { 1 } };
+  REQUIRE( f() == expected );
+
+  unit_type = free_colonist;
+  src       = { .x = 7, .y = 0 }; // as if on ship
+  expected  = { .europe = false, .colonies = {} };
+  REQUIRE( f() == expected );
+
+  unit_type = free_colonist;
+  src       = { .x = 5, .y = 7 }; // as if on ship
+  expected  = { .europe = false, .colonies = { 3 } };
+  REQUIRE( f() == expected );
+
+  unit_type = free_colonist;
+  src       = { .x = 2, .y = 2 };
+  expected  = { .europe = false, .colonies = {} };
+  REQUIRE( f() == expected );
+
+  unit_type = free_colonist;
+  src       = { .x = 4, .y = 2 };
+  expected  = { .europe = false, .colonies = { 1 } };
+  REQUIRE( f() == expected );
+
+  unit_type = free_colonist;
+  src       = { .x = 6, .y = 2 };
+  expected  = { .europe = false, .colonies = { 2 } };
+  REQUIRE( f() == expected );
+
+  unit_type = free_colonist;
+  src       = { .x = 3, .y = 6 };
+  expected  = { .europe = false, .colonies = { 3 } };
+  REQUIRE( f() == expected );
+
+  unit_type = free_colonist;
+  src       = { .x = 3, .y = 7 };
+  expected  = { .europe = false, .colonies = { 3 } };
+  REQUIRE( f() == expected );
+
+  w.add_colony( { .x = 1, .y = 4 } );
+
+  unit_type = caravel;
+  src       = { .x = 0, .y = 0 };
+  expected  = { .europe = true, .colonies = { 1, 4 } };
+  REQUIRE( f() == expected );
+
+  player.revolution.status = declared;
+  unit_type                = caravel;
+  src                      = { .x = 0, .y = 0 };
+  expected = { .europe = false, .colonies = { 1, 4 } };
+  REQUIRE( f() == expected );
+  player.revolution.status = not_declared;
+
+  unit_type = caravel;
+  src       = { .x = 3, .y = 3 };
+  expected  = { .europe = false, .colonies = { 1 } };
+  REQUIRE( f() == expected );
+
+  unit_type = caravel;
+  src       = { .x = 7, .y = 0 };
+  expected  = { .europe = true, .colonies = { 2, 4 } };
+  REQUIRE( f() == expected );
+
+  unit_type = caravel;
+  src       = { .x = 5, .y = 7 };
+  expected  = { .europe = false, .colonies = { 3 } };
+  REQUIRE( f() == expected );
+
+  unit_type = caravel;
+  src       = { .x = 2, .y = 2 }; // as if in colony
+  expected  = { .europe = true, .colonies = { 4 } };
+  REQUIRE( f() == expected );
+
+  unit_type = caravel;
+  src       = { .x = 6, .y = 2 }; // as if in colony
+  expected  = { .europe = true, .colonies = { 2, 4 } };
+  REQUIRE( f() == expected );
+
+  unit_type = caravel;
+  src       = { .x = 3, .y = 6 }; // as if in colony
+  expected  = { .europe = true, .colonies = { 2, 4 } };
+  REQUIRE( f() == expected );
+
+  unit_type = caravel;
+  src       = { .x = 3, .y = 7 }; // as if in colony
+  expected  = { .europe = false, .colonies = { 3 } };
+  REQUIRE( f() == expected );
+
+  unit_type = free_colonist; // as if on ship
+  src       = { .x = 0, .y = 0 };
+  expected  = { .europe = false, .colonies = {} };
+  REQUIRE( f() == expected );
+
+  player.revolution.status = declared;
+  unit_type                = free_colonist;
+  src                      = { .x = 0, .y = 0 }; // as if on ship
+  expected                 = { .europe = false, .colonies = {} };
+  REQUIRE( f() == expected );
+  player.revolution.status = not_declared;
+
+  unit_type = free_colonist;
+  src       = { .x = 3, .y = 3 }; // as if on ship
+  expected  = { .europe = false, .colonies = { 1, 4 } };
+  REQUIRE( f() == expected );
+
+  unit_type = free_colonist;
+  src       = { .x = 7, .y = 0 }; // as if on ship
+  expected  = { .europe = false, .colonies = {} };
+  REQUIRE( f() == expected );
+
+  unit_type = free_colonist;
+  src       = { .x = 5, .y = 7 }; // as if on ship
+  expected  = { .europe = false, .colonies = { 3 } };
+  REQUIRE( f() == expected );
+
+  unit_type = free_colonist;
+  src       = { .x = 2, .y = 2 };
+  expected  = { .europe = false, .colonies = { 4 } };
+  REQUIRE( f() == expected );
+
+  unit_type = free_colonist;
+  src       = { .x = 4, .y = 2 };
+  expected  = { .europe = false, .colonies = { 1, 4 } };
+  REQUIRE( f() == expected );
+
+  unit_type = free_colonist;
+  src       = { .x = 6, .y = 2 };
+  expected  = { .europe = false, .colonies = { 2 } };
+  REQUIRE( f() == expected );
+
+  unit_type = free_colonist;
+  src       = { .x = 3, .y = 6 };
+  expected  = { .europe = false, .colonies = { 3 } };
+  REQUIRE( f() == expected );
+
+  unit_type = free_colonist;
+  src       = { .x = 3, .y = 7 };
+  expected  = { .europe = false, .colonies = { 3 } };
+  REQUIRE( f() == expected );
+
+  w.add_colony( { .x = 9, .y = 7 }, french );
+  w.add_colony( { .x = 9, .y = 9 } );
+
+  unit_type = caravel;
+  src       = { .x = 0, .y = 0 };
+  expected  = { .europe = true, .colonies = { 1, 4 } };
+  REQUIRE( f() == expected );
+
+  player.revolution.status = declared;
+  unit_type                = caravel;
+  src                      = { .x = 0, .y = 0 };
+  expected = { .europe = false, .colonies = { 1, 4 } };
+  REQUIRE( f() == expected );
+  player.revolution.status = not_declared;
+
+  unit_type = caravel;
+  src       = { .x = 3, .y = 3 };
+  expected  = { .europe = false, .colonies = { 1 } };
+  REQUIRE( f() == expected );
+
+  unit_type = caravel;
+  src       = { .x = 7, .y = 0 };
+  expected  = { .europe = true, .colonies = { 2, 4 } };
+  REQUIRE( f() == expected );
+
+  unit_type = caravel;
+  src       = { .x = 5, .y = 7 };
+  expected  = { .europe = false, .colonies = { 3, 6 } };
+  REQUIRE( f() == expected );
+
+  unit_type = caravel;
+  src       = { .x = 2, .y = 2 }; // as if in colony
+  expected  = { .europe = true, .colonies = { 4 } };
+  REQUIRE( f() == expected );
+
+  unit_type = caravel;
+  src       = { .x = 6, .y = 2 }; // as if in colony
+  expected  = { .europe = true, .colonies = { 2, 4 } };
+  REQUIRE( f() == expected );
+
+  unit_type = caravel;
+  src       = { .x = 3, .y = 6 }; // as if in colony
+  expected  = { .europe = true, .colonies = { 2, 4 } };
+  REQUIRE( f() == expected );
+
+  unit_type = caravel;
+  src       = { .x = 3, .y = 7 }; // as if in colony
+  expected  = { .europe = false, .colonies = { 3, 6 } };
+  REQUIRE( f() == expected );
+
+  unit_type = free_colonist; // as if on ship
+  src       = { .x = 0, .y = 0 };
+  expected  = { .europe = false, .colonies = {} };
+  REQUIRE( f() == expected );
+
+  player.revolution.status = declared;
+  unit_type                = free_colonist;
+  src                      = { .x = 0, .y = 0 }; // as if on ship
+  expected                 = { .europe = false, .colonies = {} };
+  REQUIRE( f() == expected );
+  player.revolution.status = not_declared;
+
+  unit_type = free_colonist;
+  src       = { .x = 3, .y = 3 }; // as if on ship
+  expected  = { .europe = false, .colonies = { 1, 4 } };
+  REQUIRE( f() == expected );
+
+  unit_type = free_colonist;
+  src       = { .x = 7, .y = 0 }; // as if on ship
+  expected  = { .europe = false, .colonies = {} };
+  REQUIRE( f() == expected );
+
+  unit_type = free_colonist;
+  src       = { .x = 5, .y = 7 }; // as if on ship
+  expected  = { .europe = false, .colonies = { 3, 6 } };
+  REQUIRE( f() == expected );
+
+  unit_type = free_colonist;
+  src       = { .x = 2, .y = 2 };
+  expected  = { .europe = false, .colonies = { 4 } };
+  REQUIRE( f() == expected );
+
+  unit_type = free_colonist;
+  src       = { .x = 4, .y = 2 };
+  expected  = { .europe = false, .colonies = { 1, 4 } };
+  REQUIRE( f() == expected );
+
+  unit_type = free_colonist;
+  src       = { .x = 6, .y = 2 };
+  expected  = { .europe = false, .colonies = { 2 } };
+  REQUIRE( f() == expected );
+
+  unit_type = free_colonist;
+  src       = { .x = 3, .y = 6 };
+  expected  = { .europe = false, .colonies = { 3, 6 } };
+  REQUIRE( f() == expected );
+
+  unit_type = free_colonist;
+  src       = { .x = 3, .y = 7 };
+  expected  = { .europe = false, .colonies = { 3, 6 } };
+  REQUIRE( f() == expected );
 }
 
 TEST_CASE( "[goto] ask_goto_port" ) {
