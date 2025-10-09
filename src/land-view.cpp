@@ -836,7 +836,7 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
             Player const& player,
             ss_.players.players[unit.player_type()] );
         auto const goto_target = co_await ask_goto_port(
-            ss_, ts_.gui, player, goto_port );
+            ss_, ts_.gui, player, goto_port, unit.type() );
         if( !goto_target.has_value() ) break;
         // Use current time since a box popped open.
         translated_input_stream_.push( PlayerInput(

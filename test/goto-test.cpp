@@ -15,6 +15,9 @@
 
 // Testing.
 #include "test/fake/world.hpp"
+#include "test/mocking.hpp"
+#include "test/mocks/igui.hpp"
+#include "test/util/coro.hpp"
 
 // Revolution Now
 #include "src/goto-viewer.hpp"
@@ -46,6 +49,8 @@ using namespace std;
 
 using ::gfx::point;
 using ::gfx::rect_iterator;
+using ::mock::matchers::_;
+using ::mock::matchers::StrContains;
 
 /****************************************************************
 ** Fake World Setup
@@ -1994,6 +1999,136 @@ TEST_CASE( "[goto] find_goto_port" ) {
 
 TEST_CASE( "[goto] ask_goto_port" ) {
   world w;
+  GotoPort goto_port;
+  goto_target expected;
+  e_unit_type unit_type = {};
+
+  auto const f = [&] [[clang::noinline]] {
+    return co_await_test( ask_goto_port(
+        w.ss().as_const, w.gui(), w.default_player(), goto_port,
+        unit_type ) );
+  };
+
+  using enum e_surface;
+  using enum e_ground_terrain;
+  using enum e_land_overlay;
+  using enum e_river;
+  using enum e_unit_type;
+
+  {
+    using MS = MapSquare;
+
+    static MS const _{ .surface = water };
+    static MS const X{ .surface = land, .ground = grassland };
+    static MS const s{ .surface = water, .sea_lane = true };
+
+    // clang-format off
+    vector<MapSquare> tiles{ /*
+          0 1 2 3 4 5 6 7 8 9
+      0*/ s,_,_,_,_,_,_,_,_,s, /*0
+      1*/ s,_,_,_,_,_,_,_,_,s, /*1
+      2*/ s,_,X,X,X,X,X,X,_,s, /*2
+      3*/ s,_,X,X,X,X,X,X,_,s, /*3
+      4*/ s,_,X,X,X,X,X,X,_,s, /*4
+      5*/ s,_,X,X,X,X,X,X,_,s, /*5
+      6*/ s,_,X,X,X,X,X,X,_,s, /*6
+      7*/ s,_,X,X,X,X,X,X,_,s, /*7
+      8*/ s,_,_,_,_,_,_,_,_,s, /*8
+      9*/ s,_,_,_,_,_,_,_,_,s, /*9
+          0 1 2 3 4 5 6 7 8 9
+    */};
+    // clang-format on
+
+    w.build_map( std::move( tiles ), 10 );
+  }
+
+  // No colonies, no harbor.
+  goto_port = {};
+  unit_type = caravel;
+  w.gui().EXPECT__message_box(
+      StrContains( "no available ports" ) );
+  REQUIRE( f() == nothing );
+
+  // No colonies, with harbor, escapes.
+  goto_port = { .europe = true };
+  unit_type = caravel;
+  w.gui().EXPECT__choice( _ ).returns( nothing );
+  REQUIRE( f() == nothing );
+
+  // No colonies, with harbor, chooses harbor.
+  goto_port = { .europe = true };
+  unit_type = caravel;
+  w.gui().EXPECT__choice( _ ).returns( " <europe> " );
+  expected = goto_target::harbor{};
+  REQUIRE( f() == expected );
+
+  w.add_colony( { .x = 2, .y = 2 } ).name = "colony_1";
+
+  // One colony, no harbor.
+  goto_port = { .colonies = { 1 } };
+  unit_type = caravel;
+  ChoiceConfig const config1{
+    .msg     = "Select Destination Port:",
+    .options = { ChoiceConfigOption{
+      .key = "1", .display_name = "colony_1" } } };
+  w.gui().EXPECT__choice( config1 ).returns( "1" );
+  expected = goto_target::map{ .tile = { .x = 2, .y = 2 } };
+  REQUIRE( f() == expected );
+
+  // One colony, with harbor, escapes.
+  goto_port = { .europe = true, .colonies = { 1 } };
+  unit_type = caravel;
+  ChoiceConfig const config2{
+    .msg     = "Select Destination Port:",
+    .options = {
+      ChoiceConfigOption{
+        .key          = " <europe> ",
+        .display_name = "Amsterdam (The Netherlands)" },
+      ChoiceConfigOption{ .key          = "1",
+                          .display_name = "colony_1" } } };
+  w.gui().EXPECT__choice( config2 ).returns( nothing );
+  REQUIRE( f() == nothing );
+
+  // One colony, with harbor, chooses harbor.
+  goto_port = { .europe = true, .colonies = { 1 } };
+  unit_type = caravel;
+  ChoiceConfig const config3{
+    .msg     = "Select Destination Port:",
+    .options = {
+      ChoiceConfigOption{
+        .key          = " <europe> ",
+        .display_name = "Amsterdam (The Netherlands)" },
+      ChoiceConfigOption{ .key          = "1",
+                          .display_name = "colony_1" } } };
+  w.gui().EXPECT__choice( config3 ).returns( " <europe> " );
+  expected = goto_target::harbor{};
+  REQUIRE( f() == expected );
+
+  // One colony, with harbor, chooses colony.
+  goto_port = { .europe = true, .colonies = { 1 } };
+  unit_type = caravel;
+  ChoiceConfig const config4{
+    .msg     = "Select Destination Port:",
+    .options = {
+      ChoiceConfigOption{
+        .key          = " <europe> ",
+        .display_name = "Amsterdam (The Netherlands)" },
+      ChoiceConfigOption{ .key          = "1",
+                          .display_name = "colony_1" } } };
+  w.gui().EXPECT__choice( config4 ).returns( "1" );
+  expected = goto_target::map{ .tile = { .x = 2, .y = 2 } };
+  REQUIRE( f() == expected );
+
+  // One colony, chooses colony.
+  goto_port = { .europe = false, .colonies = { 1 } };
+  unit_type = free_colonist;
+  ChoiceConfig const config5{
+    .msg     = "Select Destination Colony:",
+    .options = { ChoiceConfigOption{
+      .key = "1", .display_name = "colony_1" } } };
+  w.gui().EXPECT__choice( config5 ).returns( "1" );
+  expected = goto_target::map{ .tile = { .x = 2, .y = 2 } };
+  REQUIRE( f() == expected );
 }
 
 } // namespace

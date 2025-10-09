@@ -380,7 +380,7 @@ GotoPort find_goto_port( SSConst const& ss,
 
 wait<maybe<goto_target>> ask_goto_port(
     SSConst const& ss, IGui& gui, Player const& player,
-    GotoPort const& goto_port ) {
+    GotoPort const& goto_port, e_unit_type const unit_type ) {
   maybe<goto_target> res;
   if( goto_port.colonies.empty() && !goto_port.europe ) {
     co_await gui.message_box(
@@ -389,7 +389,9 @@ wait<maybe<goto_target>> ask_goto_port(
     co_return res;
   }
   ChoiceConfig config;
-  config.msg = "Select Destination Port:";
+  config.msg = unit_attr( unit_type ).ship
+                   ? "Select Destination Port:"
+                   : "Select Destination Colony:";
   static string constexpr kEuropeKey = " <europe> ";
   if( goto_port.europe ) {
     string const harbor_str = format(
