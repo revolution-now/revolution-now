@@ -579,6 +579,34 @@ TEST_CASE( "[connectivity] has_overlapping_connectivity" ) {
   l = {};
   r = {};
   REQUIRE_FALSE( f() );
+
+  l = { { .x = 1, .y = 18 }, { .x = 2, .y = 18 } };
+  r = { { .x = 4, .y = 14 }, { .x = 5, .y = 14 } };
+  REQUIRE_FALSE( f() );
+
+  l = { { .x = 1, .y = 18 },
+        { .x = 2, .y = 18 },
+        { .x = 5, .y = 0 } };
+  r = { { .x = 4, .y = 14 }, { .x = 5, .y = 14 } };
+  REQUIRE( f() );
+
+  l = { { .x = 13, .y = 18 },
+        { .x = 14, .y = 18 },
+        { .x = 15, .y = 18 } };
+  r = { { .x = 7, .y = 8 } };
+  REQUIRE_FALSE( f() );
+
+  l = { { .x = 13, .y = 18 },
+        { .x = 14, .y = 18 },
+        { .x = 15, .y = 18 } };
+  r = { { .x = 7, .y = 8 }, { .x = 17, .y = 19 } };
+  REQUIRE( f() );
+
+  l = { { .x = 13, .y = 18 },
+        { .x = 14, .y = 18 },
+        { .x = 15, .y = 18 } };
+  r = { { .x = 7, .y = 8 }, { .x = 8, .y = 12 } };
+  REQUIRE( f() );
 }
 
 } // namespace
