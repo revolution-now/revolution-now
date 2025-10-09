@@ -9,6 +9,10 @@ TODO:
     tile by the time it gets there then it could automatically
     attack that native unit without asking the player (if the
     player is already at war with them).
+  * If the target of a ship's goto was hidden at the time that it
+    was selected by the user then, when the ship arrives there,
+    it should not sail the high seas even if that tile is in sea
+    lane.
   * In mouse mode, we cannot drag off the right/left edge of the
     map like we can in keyboard mode.
   * When in keyboard mode, need to be able to center on the fo-
