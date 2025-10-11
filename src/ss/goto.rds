@@ -8,29 +8,42 @@
 # Description: Save state for units with goto orders.
 #
 # ===============================================================
+# ss
+include "nation.rds.hpp"
+include "native-enums.rds.hpp"
+
 # gfx
 include "gfx/cartesian.hpp"
 
 namespace "rn"
 
-enum.GotoTargetSnapshot {
-  empty_or_friendly,
+sumtype.GotoTargetSnapshot {
+  empty_or_friendly {},
 
   # Colony will override unit if the tile contains both, because
   # that is how interaction goes when you enter that tile.
-  foreign_colony,
-  foreign_unit,
+  foreign_colony {
+    player 'e_player',
+  },
+  foreign_unit {
+    player 'e_player',
+  },
 
   # Dwelling will override brave if the tile contains both, be-
   # cause that is how interaction goes when you enter that tile.
-  dwelling,
-  brave,
+  # NOTE: don't need to track the tribe of a dwelling because
+  # dwelling's can't be moved or created on tiles after the game
+  # starts (outside of cheating).
+  dwelling {},
+  brave {
+    tribe 'e_tribe',
+  },
 
   # These imply that there are no foreign or native units on the
   # tile (though there may be friendly units in the case of sea
   # lane).
-  empty_or_friendly_with_sea_lane,
-  empty_with_lcr,
+  empty_or_friendly_with_sea_lane {},
+  empty_with_lcr {},
 }
 
 sumtype.goto_target {

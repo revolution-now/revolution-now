@@ -883,7 +883,7 @@ TEST_CASE( "[command-move] goto: high seas via sea lane" ) {
       .target = goto_target::map{
         .tile     = { .x = 8, .y = 1 },
         .snapshot = GotoTargetSnapshot::
-            empty_or_friendly_with_sea_lane } };
+            empty_or_friendly_with_sea_lane{} } };
     auto const handler = handle_command(
         w.engine(), w.ss(), w.ts(), w.agent(), player,
         caravel.id(), command::move{ .d = e_direction::e } );
@@ -898,7 +898,7 @@ TEST_CASE( "[command-move] goto: high seas via sea lane" ) {
                .target = goto_target::map{
                  .tile     = { .x = 8, .y = 1 },
                  .snapshot = GotoTargetSnapshot::
-                     empty_or_friendly_with_sea_lane } } );
+                     empty_or_friendly_with_sea_lane{} } } );
   }
 
   SECTION( "goto map, dst tile is target tile" ) {
@@ -906,7 +906,7 @@ TEST_CASE( "[command-move] goto: high seas via sea lane" ) {
       .target = goto_target::map{
         .tile     = { .x = 7, .y = 1 },
         .snapshot = GotoTargetSnapshot::
-            empty_or_friendly_with_sea_lane } };
+            empty_or_friendly_with_sea_lane{} } };
     auto const handler = handle_command(
         w.engine(), w.ss(), w.ts(), w.agent(), player,
         caravel.id(), command::move{ .d = e_direction::e } );
@@ -992,7 +992,7 @@ TEST_CASE(
   caravel.orders() = unit_orders::go_to{
     .target = goto_target::map{
       .tile     = { .x = 1, .y = 0 },
-      .snapshot = GotoTargetSnapshot::empty_or_friendly } };
+      .snapshot = GotoTargetSnapshot::empty_or_friendly{} } };
 
   auto const handler = handle_command(
       w.engine(), w.ss(), w.ts(), w.agent(), player,

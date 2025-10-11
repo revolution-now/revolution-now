@@ -434,7 +434,7 @@ compute_goto_target_snapshot( SSConst const& ss,
                               IVisibility const& viz,
                               e_player const unit_player,
                               point const tile ) {
-  using enum GotoTargetSnapshot;
+  using S = GotoTargetSnapshot;
   using enum e_tile_visibility;
 
   e_tile_visibility const visibility = viz.visible( tile );
@@ -449,11 +449,11 @@ compute_goto_target_snapshot( SSConst const& ss,
       break;
   }
 
-  if( viz.dwelling_at( tile ) ) return dwelling;
+  if( viz.dwelling_at( tile ) ) return S::dwelling{};
 
   if( auto const colony = viz.colony_at( tile );
       colony.has_value() && colony->player != unit_player )
-    return foreign_colony;
+    return S::foreign_colony{};
 
   if( visibility == clear ) {
     auto const& units = ss.units.from_coord( tile );
@@ -461,12 +461,12 @@ compute_goto_target_snapshot( SSConst const& ss,
       GenericUnitId const generic_unit_id = *begin( units );
       switch( ss.units.unit_kind( generic_unit_id ) ) {
         case e_unit_kind::native:
-          return brave;
+          return S::brave{};
         case e_unit_kind::euro: {
           Unit const& unit =
               ss.units.euro_unit_for( generic_unit_id );
           if( unit.player_type() != unit_player )
-            return foreign_unit;
+            return S::foreign_unit{};
           break;
         }
       }
@@ -479,10 +479,11 @@ compute_goto_target_snapshot( SSConst const& ss,
                   viz.visible_square_at( tile ) );
 
   // These two should be mutually exclusive in practice.
-  if( square.lost_city_rumor ) return empty_with_lcr;
-  if( square.sea_lane ) return empty_or_friendly_with_sea_lane;
+  if( square.lost_city_rumor ) return S::empty_with_lcr{};
+  if( square.sea_lane )
+    return S::empty_or_friendly_with_sea_lane{};
 
-  return empty_or_friendly;
+  return S::empty_or_friendly{};
 }
 
 goto_target::map create_goto_map_target(
@@ -505,23 +506,19 @@ goto_target::map create_goto_map_target(
 bool is_new_goto_snapshot_allowed(
     maybe<GotoTargetSnapshot> const old,
     GotoTargetSnapshot const& New ) {
-  using enum GotoTargetSnapshot;
-  switch( New ) {
-    case empty_or_friendly:
-      return true;
-    case foreign_colony:
-      return old == foreign_colony;
-    case foreign_unit:
-      return old == foreign_unit;
-    case dwelling:
-      return old == dwelling;
-    case brave:
-      return old == brave;
-    case empty_with_lcr:
+  using S = GotoTargetSnapshot;
+  SWITCH( New ) {
+    CASE( empty_or_friendly ) { return true; }
+    CASE( foreign_colony ) { return old == foreign_colony; }
+    CASE( foreign_unit ) { return old == foreign_unit; }
+    CASE( dwelling ) { return old == dwelling; }
+    CASE( brave ) { return old == brave; }
+    CASE( empty_with_lcr ) {
       // NOTE: this implies the tile is currently empty or
       // friendly.
       return old == empty_with_lcr;
-    case empty_or_friendly_with_sea_lane:
+    }
+    CASE( empty_or_friendly_with_sea_lane ) {
       // NOTE: this implies the tile is currently empty or
       // friendly. And it is always allowed so long as there were
       // no non-player entities on the tile, though will be
@@ -529,6 +526,7 @@ bool is_new_goto_snapshot_allowed(
       // the move should result in a launch onto the high seas.
       return old == nothing ||
              old == empty_or_friendly_with_sea_lane;
+    }
   }
 }
 

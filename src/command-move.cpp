@@ -536,8 +536,9 @@ TravelHandler::confirm_sail_high_seas() const {
         // Only launch if the tile appeared to the player to have
         // sea lane when the goto command was issued and had no
         // foreign entities on it.
-        if( map.snapshot !=
-            GotoTargetSnapshot::empty_or_friendly_with_sea_lane )
+        if( !map.snapshot
+                 .holds<GotoTargetSnapshot::
+                            empty_or_friendly_with_sea_lane>() )
           return true;
         return false;
       }
