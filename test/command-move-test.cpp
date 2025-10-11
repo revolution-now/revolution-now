@@ -36,6 +36,7 @@
 // ss
 #include "ss/dwelling.rds.hpp"
 #include "ss/events.rds.hpp"
+#include "ss/goto.rds.hpp"
 #include "ss/old-world-state.rds.hpp"
 #include "ss/player.hpp"
 #include "ss/revolution.rds.hpp"
@@ -879,7 +880,10 @@ TEST_CASE( "[command-move] goto: high seas via sea lane" ) {
 
   SECTION( "goto map, dst tile not target tile" ) {
     caravel.orders() = unit_orders::go_to{
-      .target = goto_target::map{ .tile = { .x = 8, .y = 1 } } };
+      .target = goto_target::map{
+        .tile     = { .x = 8, .y = 1 },
+        .snapshot = e_goto_target_snapshot::
+            empty_or_friendly_with_sea_lane } };
     auto const handler = handle_command(
         w.engine(), w.ss(), w.ts(), w.agent(), player,
         caravel.id(), command::move{ .d = e_direction::e } );
@@ -889,15 +893,20 @@ TEST_CASE( "[command-move] goto: high seas via sea lane" ) {
     co_await_test( handler->perform() );
     REQUIRE( w.units().coord_for( caravel.id() ).to_gfx() ==
              point{ .x = 7, .y = 1 } );
-    REQUIRE(
-        caravel.orders() ==
-        unit_orders::go_to{ .target = goto_target::map{
-                              .tile = { .x = 8, .y = 1 } } } );
+    REQUIRE( caravel.orders() ==
+             unit_orders::go_to{
+               .target = goto_target::map{
+                 .tile     = { .x = 8, .y = 1 },
+                 .snapshot = e_goto_target_snapshot::
+                     empty_or_friendly_with_sea_lane } } );
   }
 
   SECTION( "goto map, dst tile is target tile" ) {
     caravel.orders() = unit_orders::go_to{
-      .target = goto_target::map{ .tile = { .x = 7, .y = 1 } } };
+      .target = goto_target::map{
+        .tile     = { .x = 7, .y = 1 },
+        .snapshot = e_goto_target_snapshot::
+            empty_or_friendly_with_sea_lane } };
     auto const handler = handle_command(
         w.engine(), w.ss(), w.ts(), w.agent(), player,
         caravel.id(), command::move{ .d = e_direction::e } );
@@ -907,6 +916,26 @@ TEST_CASE( "[command-move] goto: high seas via sea lane" ) {
     co_await_test( handler->perform() );
     REQUIRE( is_unit_inbound( w.units(), caravel.id() ) );
     REQUIRE( caravel.orders().holds<unit_orders::none>() );
+  }
+
+  SECTION(
+      "goto map, dst tile is target tile but snapshot was "
+      "hidden" ) {
+    caravel.orders() = unit_orders::go_to{
+      .target = goto_target::map{ .tile     = { .x = 7, .y = 1 },
+                                  .snapshot = nothing } };
+    auto const handler = handle_command(
+        w.engine(), w.ss(), w.ts(), w.agent(), player,
+        caravel.id(), command::move{ .d = e_direction::e } );
+    bool const confirmed = co_await_test( handler->confirm() );
+    REQUIRE( confirmed );
+    mock_land_view.EXPECT__animate_if_visible( _ );
+    co_await_test( handler->perform() );
+    REQUIRE_FALSE( is_unit_inbound( w.units(), caravel.id() ) );
+    REQUIRE( caravel.orders() ==
+             unit_orders::go_to{ .target = goto_target::map{
+                                   .tile = { .x = 7, .y = 1 },
+                                   .snapshot = nothing } } );
   }
 
   SECTION( "goto map, harbor" ) {
@@ -961,7 +990,9 @@ TEST_CASE(
   Unit& caravel = w.add_unit_on_map(
       e_unit_type::caravel, { .x = 0, .y = 0 }, player.type );
   caravel.orders() = unit_orders::go_to{
-    .target = goto_target::map{ .tile = { .x = 1, .y = 0 } } };
+    .target = goto_target::map{
+      .tile     = { .x = 1, .y = 0 },
+      .snapshot = e_goto_target_snapshot::empty_or_friendly } };
 
   auto const handler = handle_command(
       w.engine(), w.ss(), w.ts(), w.agent(), player,

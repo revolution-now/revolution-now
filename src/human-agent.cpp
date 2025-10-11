@@ -437,7 +437,7 @@ void HumanAgent::new_goto( IGotoMapViewer const& viewer,
       if( goto_path.reverse_path.empty() ) break;
       goto_registry_.paths[unit_id] = GotoExecution{
         .target = target, .path = std::move( goto_path ) };
-      unit.orders() = unit_orders::go_to{ .target = map };
+      unit.orders() = unit_orders::go_to{ .target = target };
       break;
     }
     CASE( harbor ) {
@@ -446,7 +446,7 @@ void HumanAgent::new_goto( IGotoMapViewer const& viewer,
       if( goto_path.reverse_path.empty() ) break;
       goto_registry_.paths[unit_id] = GotoExecution{
         .target = target, .path = std::move( goto_path ) };
-      unit.orders() = unit_orders::go_to{ .target = harbor };
+      unit.orders() = unit_orders::go_to{ .target = target };
       break;
     }
   }
@@ -481,24 +481,35 @@ EvolveGoto HumanAgent::evolve_goto( UnitId const unit_id ) {
   point const src =
       coord_for_unit_indirect_or_die( ss_.units, unit_id );
 
-  auto const goto_viz_player = [&] -> maybe<e_player> {
-    // In the OG this is true, in the NG it defaults to false.
-    if( config_command.go_to.omniscient_path_finding )
-      return nothing;
-    if( !player_for_role( ss_, e_player_role::viewer )
-             .has_value() )
-      // If the entire map is currently visible then we allow the
-      // unit to use that, regardless of player.
-      return nothing;
-    // The entire map is not visible, so use the one of the unit
-    // that is actually moving.
-    return this->player_type();
-  }();
+  // NOTE: This is the visibility that is used to plot the path,
+  // it is not necessarily what the player sees (because of the
+  // "omniscient" option). This is important because we do not
+  // always want to use this visibility in all cases.
+  auto const goto_path_viz =
+      create_visibility_for( ss_, [&] -> maybe<e_player> {
+        // In the OG this is true, in the NG it defaults to
+        // false.
+        if( config_command.go_to.omniscient_path_finding )
+          return nothing;
+        if( !player_for_role( ss_, e_player_role::viewer )
+                 .has_value() )
+          // If the entire map is currently visible then we allow
+          // the unit to use that, regardless of player.
+          return nothing;
+        // The entire map is not visible, so use the one of the
+        // unit that is actually moving.
+        return this->player_type();
+      }() );
+  CHECK( goto_path_viz );
 
-  auto const viz = create_visibility_for( ss_, goto_viz_player );
-  CHECK( viz );
-  GotoMapViewer const goto_viewer( ss_, *viz, player_type(),
-                                   unit.type() );
+  GotoMapViewer const goto_viewer( ss_, *goto_path_viz,
+                                   player_type(), unit.type() );
+
+  // This is the one we will use when we want to see exactly what
+  // the player is seeing on screen.
+  auto const real_viz = create_visibility_for(
+      ss_, player_for_role( ss_, e_player_role::viewer ) );
+  CHECK( real_viz );
 
   // Here we try twice, and this has two purposes. First, if the
   // unit's goto orders are new and its path hasn't been computed
@@ -546,6 +557,31 @@ EvolveGoto HumanAgent::evolve_goto( UnitId const unit_id ) {
         if( goto_viewer.can_enter_tile( dst ) ) return *d;
         return nothing;
       };
+
+      if( src.direction_to( map.tile ).has_value() ) {
+        // We are adjacent to the destination tile, so let's make
+        // sure that the destination tile contains what we
+        // thought it did when it was initially chosen by the
+        // player. This avoids surprising such as going to an un-
+        // explored tile and then finding there is a brave on
+        // that tile and automatically attacking it. This should
+        // not check-fail because our unit is adjacent to this
+        // tile and so it should be clear.
+        UNWRAP_CHECK_T(
+            e_goto_target_snapshot const new_snapshot,
+            compute_goto_target_snapshot( ss_, *real_viz,
+                                          this->player().type,
+                                          map.tile ) );
+        if( !is_new_goto_snapshot_allowed( map.snapshot,
+                                           new_snapshot ) ) {
+          lg.info(
+              "cancelling goto command for {} because the "
+              "destination tile contents have changed from [{}] "
+              "to [{}] since the command was issued.",
+              unit.type(), map.snapshot, new_snapshot );
+          return abort();
+        }
+      }
 
       return go_or_reattempt( direction );
     }

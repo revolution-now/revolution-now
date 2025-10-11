@@ -33,6 +33,7 @@ namespace rn {
 *****************************************************************/
 struct IGotoMapViewer;
 struct IGui;
+struct IVisibility;
 struct Player;
 struct SSConst;
 struct TerrainConnectivity;
@@ -52,6 +53,24 @@ GotoPath compute_goto_path( IGotoMapViewer const& viewer,
 // The path contained therein will be empty if no path was found.
 GotoPath compute_harbor_goto_path( IGotoMapViewer const& viewer,
                                    gfx::point src );
+
+// Note that the unit_player might not be the same as the player
+// associated with the viz object (i.e. the latter might have
+// full visibility).
+[[nodiscard]] maybe<e_goto_target_snapshot>
+compute_goto_target_snapshot( SSConst const& ss,
+                              IVisibility const& viz,
+                              e_player unit_player,
+                              gfx::point tile );
+
+[[nodiscard]] bool is_new_goto_snapshot_allowed(
+    maybe<e_goto_target_snapshot> old,
+    e_goto_target_snapshot New );
+
+// This should always be called to create such a target as it en-
+// sures that the snapshot gets populated.
+[[nodiscard]] goto_target::map create_goto_map_target(
+    SSConst const& ss, e_player unit_player, gfx::point tile );
 
 // This will return false if the unit does not have goto orders.
 // If it does have goto orders then it will return true if the

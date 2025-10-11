@@ -41,6 +41,7 @@
 // ss
 #include "ss/colonies.hpp"
 #include "ss/events.rds.hpp"
+#include "ss/goto.rds.hpp"
 #include "ss/natives.hpp"
 #include "ss/player.rds.hpp"
 #include "ss/ref.hpp"
@@ -529,7 +530,17 @@ TravelHandler::confirm_sail_high_seas() const {
   bool const in_goto_mode    = go_to.has_value();
   bool const goto_suppresses = in_goto_mode && [&] {
     SWITCH( go_to->target ) {
-      CASE( map ) { return map.tile != move_dst; }
+      CASE( map ) {
+        // Only launch if we are at the dst tile.
+        if( map.tile != move_dst ) return true;
+        // Only launch if the tile appeared to the player to have
+        // sea lane when the goto command was issued and had no
+        // foreign entities on it.
+        if( map.snapshot != e_goto_target_snapshot::
+                                empty_or_friendly_with_sea_lane )
+          return true;
+        return false;
+      }
       CASE( harbor ) { return false; }
     }
   }();

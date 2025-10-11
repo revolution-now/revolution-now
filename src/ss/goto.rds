@@ -13,9 +13,35 @@ include "gfx/cartesian.hpp"
 
 namespace "rn"
 
+enum.e_goto_target_snapshot {
+  empty_or_friendly,
+
+  # Colony will override unit if the tile contains both, because
+  # that is how interaction goes when you enter that tile.
+  foreign_colony,
+  foreign_unit,
+
+  # Dwelling will override brave if the tile contains both, be-
+  # cause that is how interaction goes when you enter that tile.
+  dwelling,
+  brave,
+
+  # These imply that there are no foreign or native units on the
+  # tile (though there may be friendly units in the case of sea
+  # lane).
+  empty_or_friendly_with_sea_lane,
+  empty_with_lcr,
+}
+
 sumtype.goto_target {
   map {
     tile 'gfx::point',
+    # Holds the contents of the target tile as seen at the time
+    # that the goto command was initiated. It is used to check if
+    # the contents on the tile have changed by the time the unit
+    # arrives, in which case the move is aborted in some cases.
+    # If it contains no value then the tile was hidden.
+    snapshot 'base::maybe<e_goto_target_snapshot>',
   },
   harbor {},
 }

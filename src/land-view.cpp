@@ -649,9 +649,14 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
         auto& o = raw_input.input.get<RI::goto_drag_start>();
         auto const end_tile = co_await goto_mode( o.tile );
         if( !end_tile.has_value() ) break;
-        auto const map   = goto_target::map{ .tile = *end_tile };
-        auto const cmd   = command::go_to{ .target = map };
-        auto const input = PI::give_command{ .cmd = cmd };
+        UNWRAP_CHECK_T(
+            UnitId const unit_id,
+            mode_.top().inner_if<LandViewMode::unit_input>() );
+        Unit const& unit = ss_.units.unit_for( unit_id );
+        auto const input = PI::give_command{
+          .cmd = command::go_to{
+            .target = create_goto_map_target(
+                ss_, unit.player_type(), *end_tile ) } };
         // NOTE: we use the current time here because the drag
         // have lasted a while and so if we use raw_input.when
         // then the event may get discarded as being too old.
@@ -815,9 +820,10 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
         // tion.
         translated_input_stream_.push( PlayerInput(
             PI::give_command{
-              .cmd = command::go_to{ .target =
-                                         goto_target::map{
-                                           .tile = *tile } } },
+              .cmd =
+                  command::go_to{
+                    .target = create_goto_map_target(
+                        ss_, unit.player_type(), *tile ) } },
             Clock_t::now() ) );
         break;
       }

@@ -25,6 +25,10 @@
 #include "src/visibility.hpp"
 
 // ss
+#include "src/ss/dwelling.rds.hpp"
+#include "src/ss/goto.rds.hpp"
+#include "src/ss/land-view.rds.hpp"
+#include "src/ss/map-square.rds.hpp"
 #include "src/ss/player.rds.hpp"
 #include "src/ss/ref.hpp"
 #include "src/ss/unit-composition.hpp"
@@ -57,7 +61,9 @@ using ::mock::matchers::StrContains;
 *****************************************************************/
 struct world : testing::World {
   world() {
-    add_default_player();
+    add_player( e_player::dutch );
+    set_default_player_type( e_player::dutch );
+    add_player( e_player::french );
     // No map creation here by default.
   }
 };
@@ -2072,7 +2078,9 @@ TEST_CASE( "[goto] ask_goto_port" ) {
     .options = { ChoiceConfigOption{
       .key = "1", .display_name = "colony_1" } } };
   w.gui().EXPECT__choice( config1 ).returns( "1" );
-  expected = goto_target::map{ .tile = { .x = 2, .y = 2 } };
+  expected = goto_target::map{
+    .tile     = { .x = 2, .y = 2 },
+    .snapshot = e_goto_target_snapshot::empty_or_friendly };
   REQUIRE( f() == expected );
 
   // One colony, with harbor, escapes.
@@ -2116,7 +2124,9 @@ TEST_CASE( "[goto] ask_goto_port" ) {
       ChoiceConfigOption{ .key          = "1",
                           .display_name = "colony_1" } } };
   w.gui().EXPECT__choice( config4 ).returns( "1" );
-  expected = goto_target::map{ .tile = { .x = 2, .y = 2 } };
+  expected = goto_target::map{
+    .tile     = { .x = 2, .y = 2 },
+    .snapshot = e_goto_target_snapshot::empty_or_friendly };
   REQUIRE( f() == expected );
 
   // One colony, chooses colony.
@@ -2127,8 +2137,696 @@ TEST_CASE( "[goto] ask_goto_port" ) {
     .options = { ChoiceConfigOption{
       .key = "1", .display_name = "colony_1" } } };
   w.gui().EXPECT__choice( config5 ).returns( "1" );
-  expected = goto_target::map{ .tile = { .x = 2, .y = 2 } };
+  expected = goto_target::map{
+    .tile     = { .x = 2, .y = 2 },
+    .snapshot = e_goto_target_snapshot::empty_or_friendly };
   REQUIRE( f() == expected );
+}
+
+TEST_CASE( "[goto] compute_goto_target_snapshot" ) {
+  world w;
+  point tile;
+
+  using enum e_goto_target_snapshot;
+
+  IVisibility const* p_viz = {};
+
+  auto const f = [&] [[clang::noinline]] {
+    BASE_CHECK( p_viz );
+    return compute_goto_target_snapshot(
+        w.ss(), *p_viz, w.default_player_type(), tile );
+  };
+
+  {
+    using enum e_surface;
+    using enum e_ground_terrain;
+    using enum e_land_overlay;
+    using enum e_river;
+    using enum e_unit_type;
+
+    using MS = MapSquare;
+
+    static MS const _{ .surface = water };
+    static MS const X{ .surface = land, .ground = grassland };
+    static MS const s{ .surface = water, .sea_lane = true };
+
+    // clang-format off
+    vector<MapSquare> tiles{ /*
+          0 1 2 3 4 5 6 7 8 9
+      0*/ s,_,_,_,_,_,_,_,_,s, /*0
+      1*/ s,_,_,_,_,_,_,_,_,s, /*1
+      2*/ s,_,X,X,X,X,X,X,_,s, /*2
+      3*/ s,_,X,X,X,X,X,X,_,s, /*3
+      4*/ s,_,X,X,X,X,X,X,_,s, /*4
+      5*/ s,_,X,X,X,X,X,X,_,s, /*5
+      6*/ s,_,X,X,X,X,X,X,_,s, /*6
+      7*/ s,_,X,X,X,X,X,X,_,s, /*7
+      8*/ s,_,_,_,_,_,_,_,_,s, /*8
+      9*/ s,_,_,_,_,_,_,_,_,s, /*9
+          0 1 2 3 4 5 6 7 8 9
+    */};
+    // clang-format on
+
+    w.build_map( std::move( tiles ), 10 );
+  }
+
+  SECTION( "player visibility" ) {
+    VisibilityForPlayer const viz( w.ss(),
+                                   w.default_player_type() );
+    p_viz = &viz;
+
+    tile = { .x = 2, .y = 2 };
+    REQUIRE( f() == nothing );
+
+    w.make_fogged( tile );
+    REQUIRE( f() == empty_or_friendly );
+
+    w.square( tile ).lost_city_rumor = true;
+    REQUIRE( f() == empty_or_friendly );
+
+    w.make_fogged( tile );
+    REQUIRE( f() == empty_with_lcr );
+    w.make_clear( tile );
+    REQUIRE( f() == empty_with_lcr );
+
+    tile = { .x = 1, .y = 2 };
+    REQUIRE( f() == nothing );
+
+    w.make_fogged( tile );
+    REQUIRE( f() == empty_or_friendly );
+
+    w.square( tile ).sea_lane = true;
+    REQUIRE( f() == empty_or_friendly );
+
+    w.make_fogged( tile );
+    REQUIRE( f() == empty_or_friendly_with_sea_lane );
+    w.make_clear( tile );
+    REQUIRE( f() == empty_or_friendly_with_sea_lane );
+
+    tile = { .x = 7, .y = 2 };
+    Dwelling const& dwelling1 =
+        w.add_dwelling( tile, e_tribe::iroquois );
+    REQUIRE( f() == nothing );
+
+    w.make_fogged( tile );
+    REQUIRE( f() == dwelling );
+    w.make_clear( tile );
+    REQUIRE( f() == dwelling );
+
+    tile = tile.moved_left();
+    w.add_native_unit_on_map( e_native_unit_type::brave, tile,
+                              dwelling1.id );
+    REQUIRE( f() == nothing );
+
+    w.make_fogged( tile );
+    REQUIRE( f() == empty_or_friendly );
+    w.make_clear( tile );
+    REQUIRE( f() == brave );
+
+    tile = { .x = 7, .y = 3 };
+    Dwelling const& dwelling2 =
+        w.add_dwelling( tile, e_tribe::iroquois );
+    w.add_native_unit_on_map( e_native_unit_type::brave, tile,
+                              dwelling2.id );
+    REQUIRE( f() == nothing );
+
+    w.make_fogged( tile );
+    REQUIRE( f() == dwelling );
+    w.make_clear( tile );
+    REQUIRE( f() == dwelling );
+
+    tile = { .x = 7, .y = 4 };
+    w.add_colony( tile );
+    REQUIRE( f() == nothing );
+
+    w.add_unit_on_map( e_unit_type::free_colonist, tile );
+    REQUIRE( f() == empty_or_friendly );
+
+    w.make_fogged( tile );
+    REQUIRE( f() == empty_or_friendly );
+    w.make_clear( tile );
+    REQUIRE( f() == empty_or_friendly );
+
+    tile = tile.moved_left();
+    w.add_unit_on_map( e_unit_type::free_colonist, tile );
+    REQUIRE( f() == empty_or_friendly );
+
+    w.make_fogged( tile );
+    REQUIRE( f() == empty_or_friendly );
+    w.make_clear( tile );
+    REQUIRE( f() == empty_or_friendly );
+
+    tile = { .x = 7, .y = 7 };
+    w.add_colony( tile, e_player::french );
+    REQUIRE( f() == nothing );
+
+    w.make_fogged( tile );
+    REQUIRE( f() == foreign_colony );
+    w.make_clear( tile );
+    REQUIRE( f() == foreign_colony );
+
+    w.add_unit_on_map( e_unit_type::free_colonist, tile,
+                       e_player::french );
+    REQUIRE( f() == foreign_colony );
+
+    tile = tile.moved_left();
+    w.add_unit_on_map( e_unit_type::free_colonist, tile,
+                       e_player::french );
+    REQUIRE( f() == nothing );
+
+    w.make_fogged( tile );
+    REQUIRE( f() == empty_or_friendly );
+    w.make_clear( tile );
+    REQUIRE( f() == foreign_unit );
+  }
+
+  SECTION( "full visibility" ) {
+    VisibilityEntire const viz( w.ss() );
+    p_viz = &viz;
+
+    tile = { .x = 2, .y = 2 };
+    REQUIRE( f() == empty_or_friendly );
+
+    w.make_fogged( tile );
+    REQUIRE( f() == empty_or_friendly );
+
+    w.square( tile ).lost_city_rumor = true;
+    REQUIRE( f() == empty_with_lcr );
+
+    w.make_fogged( tile );
+    REQUIRE( f() == empty_with_lcr );
+    w.make_clear( tile );
+    REQUIRE( f() == empty_with_lcr );
+
+    tile = { .x = 1, .y = 2 };
+    REQUIRE( f() == empty_or_friendly );
+
+    w.make_fogged( tile );
+    REQUIRE( f() == empty_or_friendly );
+
+    w.square( tile ).sea_lane = true;
+    REQUIRE( f() == empty_or_friendly_with_sea_lane );
+
+    w.make_fogged( tile );
+    REQUIRE( f() == empty_or_friendly_with_sea_lane );
+    w.make_clear( tile );
+    REQUIRE( f() == empty_or_friendly_with_sea_lane );
+
+    tile = { .x = 7, .y = 2 };
+    Dwelling const& dwelling1 =
+        w.add_dwelling( tile, e_tribe::iroquois );
+    REQUIRE( f() == dwelling );
+
+    w.make_fogged( tile );
+    REQUIRE( f() == dwelling );
+    w.make_clear( tile );
+    REQUIRE( f() == dwelling );
+
+    tile = tile.moved_left();
+    w.add_native_unit_on_map( e_native_unit_type::brave, tile,
+                              dwelling1.id );
+    REQUIRE( f() == brave );
+
+    w.make_fogged( tile );
+    REQUIRE( f() == brave );
+    w.make_clear( tile );
+    REQUIRE( f() == brave );
+
+    tile = { .x = 7, .y = 3 };
+    Dwelling const& dwelling2 =
+        w.add_dwelling( tile, e_tribe::iroquois );
+    w.add_native_unit_on_map( e_native_unit_type::brave, tile,
+                              dwelling2.id );
+    REQUIRE( f() == dwelling );
+
+    w.make_fogged( tile );
+    REQUIRE( f() == dwelling );
+    w.make_clear( tile );
+    REQUIRE( f() == dwelling );
+
+    tile = { .x = 7, .y = 4 };
+    w.add_colony( tile );
+    REQUIRE( f() == empty_or_friendly );
+
+    w.add_unit_on_map( e_unit_type::free_colonist, tile );
+    REQUIRE( f() == empty_or_friendly );
+
+    w.make_fogged( tile );
+    REQUIRE( f() == empty_or_friendly );
+    w.make_clear( tile );
+    REQUIRE( f() == empty_or_friendly );
+
+    tile = tile.moved_left();
+    w.add_unit_on_map( e_unit_type::free_colonist, tile );
+    REQUIRE( f() == empty_or_friendly );
+
+    w.make_fogged( tile );
+    REQUIRE( f() == empty_or_friendly );
+    w.make_clear( tile );
+    REQUIRE( f() == empty_or_friendly );
+
+    tile = { .x = 7, .y = 7 };
+    w.add_colony( tile, e_player::french );
+    REQUIRE( f() == foreign_colony );
+
+    w.make_fogged( tile );
+    REQUIRE( f() == foreign_colony );
+    w.make_clear( tile );
+    REQUIRE( f() == foreign_colony );
+
+    w.add_unit_on_map( e_unit_type::free_colonist, tile,
+                       e_player::french );
+    REQUIRE( f() == foreign_colony );
+
+    tile = tile.moved_left();
+    w.add_unit_on_map( e_unit_type::free_colonist, tile,
+                       e_player::french );
+    REQUIRE( f() == foreign_unit );
+
+    w.make_fogged( tile );
+    REQUIRE( f() == foreign_unit );
+    w.make_clear( tile );
+    REQUIRE( f() == foreign_unit );
+  }
+}
+
+TEST_CASE( "[goto] create_goto_map_target" ) {
+  world w;
+  point tile;
+  goto_target::map expected;
+
+  using enum e_goto_target_snapshot;
+
+  auto const f = [&] [[clang::noinline]] {
+    expected.tile = tile;
+    return create_goto_map_target(
+        w.ss(), w.default_player_type(), tile );
+  };
+
+  {
+    using enum e_surface;
+    using enum e_ground_terrain;
+    using enum e_land_overlay;
+    using enum e_river;
+    using enum e_unit_type;
+
+    using MS = MapSquare;
+
+    static MS const _{ .surface = water };
+    static MS const X{ .surface = land, .ground = grassland };
+    static MS const s{ .surface = water, .sea_lane = true };
+
+    // clang-format off
+    vector<MapSquare> tiles{ /*
+          0 1 2 3 4 5 6 7 8 9
+      0*/ s,_,_,_,_,_,_,_,_,s, /*0
+      1*/ s,_,_,_,_,_,_,_,_,s, /*1
+      2*/ s,_,X,X,X,X,X,X,_,s, /*2
+      3*/ s,_,X,X,X,X,X,X,_,s, /*3
+      4*/ s,_,X,X,X,X,X,X,_,s, /*4
+      5*/ s,_,X,X,X,X,X,X,_,s, /*5
+      6*/ s,_,X,X,X,X,X,X,_,s, /*6
+      7*/ s,_,X,X,X,X,X,X,_,s, /*7
+      8*/ s,_,_,_,_,_,_,_,_,s, /*8
+      9*/ s,_,_,_,_,_,_,_,_,s, /*9
+          0 1 2 3 4 5 6 7 8 9
+    */};
+    // clang-format on
+
+    w.build_map( std::move( tiles ), 10 );
+  }
+
+  SECTION( "player visibility" ) {
+    w.land_view().map_revealed =
+        MapRevealed::player{ .type = w.default_player_type() };
+
+    tile              = { .x = 2, .y = 2 };
+    expected.snapshot = nothing;
+    REQUIRE( f() == expected );
+
+    w.make_fogged( tile );
+    expected.snapshot = empty_or_friendly;
+    REQUIRE( f() == expected );
+
+    w.square( tile ).lost_city_rumor = true;
+    expected.snapshot                = empty_or_friendly;
+    REQUIRE( f() == expected );
+
+    w.make_fogged( tile );
+    expected.snapshot = empty_with_lcr;
+    REQUIRE( f() == expected );
+    w.make_clear( tile );
+    expected.snapshot = empty_with_lcr;
+    REQUIRE( f() == expected );
+
+    tile              = { .x = 1, .y = 2 };
+    expected.snapshot = nothing;
+    REQUIRE( f() == expected );
+
+    w.make_fogged( tile );
+    expected.snapshot = empty_or_friendly;
+    REQUIRE( f() == expected );
+
+    w.square( tile ).sea_lane = true;
+    expected.snapshot         = empty_or_friendly;
+    REQUIRE( f() == expected );
+
+    w.make_fogged( tile );
+    expected.snapshot = empty_or_friendly_with_sea_lane;
+    REQUIRE( f() == expected );
+    w.make_clear( tile );
+    expected.snapshot = empty_or_friendly_with_sea_lane;
+    REQUIRE( f() == expected );
+
+    tile = { .x = 7, .y = 2 };
+    Dwelling const& dwelling1 =
+        w.add_dwelling( tile, e_tribe::iroquois );
+    expected.snapshot = nothing;
+    REQUIRE( f() == expected );
+
+    w.make_fogged( tile );
+    expected.snapshot = dwelling;
+    REQUIRE( f() == expected );
+    w.make_clear( tile );
+    expected.snapshot = dwelling;
+    REQUIRE( f() == expected );
+
+    tile = tile.moved_left();
+    w.add_native_unit_on_map( e_native_unit_type::brave, tile,
+                              dwelling1.id );
+    expected.snapshot = nothing;
+    REQUIRE( f() == expected );
+
+    w.make_fogged( tile );
+    expected.snapshot = empty_or_friendly;
+    REQUIRE( f() == expected );
+    w.make_clear( tile );
+    expected.snapshot = brave;
+    REQUIRE( f() == expected );
+
+    tile = { .x = 7, .y = 3 };
+    Dwelling const& dwelling2 =
+        w.add_dwelling( tile, e_tribe::iroquois );
+    w.add_native_unit_on_map( e_native_unit_type::brave, tile,
+                              dwelling2.id );
+    expected.snapshot = nothing;
+    REQUIRE( f() == expected );
+
+    w.make_fogged( tile );
+    expected.snapshot = dwelling;
+    REQUIRE( f() == expected );
+    w.make_clear( tile );
+    expected.snapshot = dwelling;
+    REQUIRE( f() == expected );
+
+    tile = { .x = 7, .y = 4 };
+    w.add_colony( tile );
+    expected.snapshot = nothing;
+    REQUIRE( f() == expected );
+
+    w.add_unit_on_map( e_unit_type::free_colonist, tile );
+    expected.snapshot = empty_or_friendly;
+    REQUIRE( f() == expected );
+
+    w.make_fogged( tile );
+    expected.snapshot = empty_or_friendly;
+    REQUIRE( f() == expected );
+    w.make_clear( tile );
+    expected.snapshot = empty_or_friendly;
+    REQUIRE( f() == expected );
+
+    tile = tile.moved_left();
+    w.add_unit_on_map( e_unit_type::free_colonist, tile );
+    expected.snapshot = empty_or_friendly;
+    REQUIRE( f() == expected );
+
+    w.make_fogged( tile );
+    expected.snapshot = empty_or_friendly;
+    REQUIRE( f() == expected );
+    w.make_clear( tile );
+    expected.snapshot = empty_or_friendly;
+    REQUIRE( f() == expected );
+
+    tile = { .x = 7, .y = 7 };
+    w.add_colony( tile, e_player::french );
+    expected.snapshot = nothing;
+    REQUIRE( f() == expected );
+
+    w.make_fogged( tile );
+    expected.snapshot = foreign_colony;
+    REQUIRE( f() == expected );
+    w.make_clear( tile );
+    expected.snapshot = foreign_colony;
+    REQUIRE( f() == expected );
+
+    w.add_unit_on_map( e_unit_type::free_colonist, tile,
+                       e_player::french );
+    expected.snapshot = foreign_colony;
+    REQUIRE( f() == expected );
+
+    tile = tile.moved_left();
+    w.add_unit_on_map( e_unit_type::free_colonist, tile,
+                       e_player::french );
+    expected.snapshot = nothing;
+    REQUIRE( f() == expected );
+
+    w.make_fogged( tile );
+    expected.snapshot = empty_or_friendly;
+    REQUIRE( f() == expected );
+    w.make_clear( tile );
+    expected.snapshot = foreign_unit;
+    REQUIRE( f() == expected );
+  }
+
+  SECTION( "full visibility" ) {
+    w.land_view().map_revealed = MapRevealed::entire{};
+
+    tile              = { .x = 2, .y = 2 };
+    expected.snapshot = empty_or_friendly;
+    REQUIRE( f() == expected );
+
+    w.make_fogged( tile );
+    expected.snapshot = empty_or_friendly;
+    REQUIRE( f() == expected );
+
+    w.square( tile ).lost_city_rumor = true;
+    expected.snapshot                = empty_with_lcr;
+    REQUIRE( f() == expected );
+
+    w.make_fogged( tile );
+    expected.snapshot = empty_with_lcr;
+    REQUIRE( f() == expected );
+    w.make_clear( tile );
+    expected.snapshot = empty_with_lcr;
+    REQUIRE( f() == expected );
+
+    tile              = { .x = 1, .y = 2 };
+    expected.snapshot = empty_or_friendly;
+    REQUIRE( f() == expected );
+
+    w.make_fogged( tile );
+    expected.snapshot = empty_or_friendly;
+    REQUIRE( f() == expected );
+
+    w.square( tile ).sea_lane = true;
+    expected.snapshot         = empty_or_friendly_with_sea_lane;
+    REQUIRE( f() == expected );
+
+    w.make_fogged( tile );
+    expected.snapshot = empty_or_friendly_with_sea_lane;
+    REQUIRE( f() == expected );
+    w.make_clear( tile );
+    expected.snapshot = empty_or_friendly_with_sea_lane;
+    REQUIRE( f() == expected );
+
+    tile = { .x = 7, .y = 2 };
+    Dwelling const& dwelling1 =
+        w.add_dwelling( tile, e_tribe::iroquois );
+    expected.snapshot = dwelling;
+    REQUIRE( f() == expected );
+
+    w.make_fogged( tile );
+    expected.snapshot = dwelling;
+    REQUIRE( f() == expected );
+    w.make_clear( tile );
+    expected.snapshot = dwelling;
+    REQUIRE( f() == expected );
+
+    tile = tile.moved_left();
+    w.add_native_unit_on_map( e_native_unit_type::brave, tile,
+                              dwelling1.id );
+    expected.snapshot = brave;
+    REQUIRE( f() == expected );
+
+    w.make_fogged( tile );
+    expected.snapshot = brave;
+    REQUIRE( f() == expected );
+    w.make_clear( tile );
+    expected.snapshot = brave;
+    REQUIRE( f() == expected );
+
+    tile = { .x = 7, .y = 3 };
+    Dwelling const& dwelling2 =
+        w.add_dwelling( tile, e_tribe::iroquois );
+    w.add_native_unit_on_map( e_native_unit_type::brave, tile,
+                              dwelling2.id );
+    expected.snapshot = dwelling;
+    REQUIRE( f() == expected );
+
+    w.make_fogged( tile );
+    expected.snapshot = dwelling;
+    REQUIRE( f() == expected );
+    w.make_clear( tile );
+    expected.snapshot = dwelling;
+    REQUIRE( f() == expected );
+
+    tile = { .x = 7, .y = 4 };
+    w.add_colony( tile );
+    expected.snapshot = empty_or_friendly;
+    REQUIRE( f() == expected );
+
+    w.add_unit_on_map( e_unit_type::free_colonist, tile );
+    expected.snapshot = empty_or_friendly;
+    REQUIRE( f() == expected );
+
+    w.make_fogged( tile );
+    expected.snapshot = empty_or_friendly;
+    REQUIRE( f() == expected );
+    w.make_clear( tile );
+    expected.snapshot = empty_or_friendly;
+    REQUIRE( f() == expected );
+
+    tile = tile.moved_left();
+    w.add_unit_on_map( e_unit_type::free_colonist, tile );
+    expected.snapshot = empty_or_friendly;
+    REQUIRE( f() == expected );
+
+    w.make_fogged( tile );
+    expected.snapshot = empty_or_friendly;
+    REQUIRE( f() == expected );
+    w.make_clear( tile );
+    expected.snapshot = empty_or_friendly;
+    REQUIRE( f() == expected );
+
+    tile = { .x = 7, .y = 7 };
+    w.add_colony( tile, e_player::french );
+    expected.snapshot = foreign_colony;
+    REQUIRE( f() == expected );
+
+    w.make_fogged( tile );
+    expected.snapshot = foreign_colony;
+    REQUIRE( f() == expected );
+    w.make_clear( tile );
+    expected.snapshot = foreign_colony;
+    REQUIRE( f() == expected );
+
+    w.add_unit_on_map( e_unit_type::free_colonist, tile,
+                       e_player::french );
+    expected.snapshot = foreign_colony;
+    REQUIRE( f() == expected );
+
+    tile = tile.moved_left();
+    w.add_unit_on_map( e_unit_type::free_colonist, tile,
+                       e_player::french );
+    expected.snapshot = foreign_unit;
+    REQUIRE( f() == expected );
+
+    w.make_fogged( tile );
+    expected.snapshot = foreign_unit;
+    REQUIRE( f() == expected );
+    w.make_clear( tile );
+    expected.snapshot = foreign_unit;
+    REQUIRE( f() == expected );
+  }
+}
+
+TEST_CASE( "[goto] is_new_goto_snapshot_allowed" ) {
+  using enum e_goto_target_snapshot;
+
+  auto const f =
+      [&] [[clang::noinline]]
+      ( maybe<e_goto_target_snapshot> const old,
+        e_goto_target_snapshot const New ) {
+        return is_new_goto_snapshot_allowed( old, New );
+      };
+
+  REQUIRE( f( nothing, empty_or_friendly ) == true );
+  REQUIRE( f( nothing, foreign_colony ) == false );
+  REQUIRE( f( nothing, foreign_unit ) == false );
+  REQUIRE( f( nothing, dwelling ) == false );
+  REQUIRE( f( nothing, brave ) == false );
+  REQUIRE( f( nothing, empty_or_friendly_with_sea_lane ) ==
+           true );
+  REQUIRE( f( nothing, empty_with_lcr ) == false );
+
+  REQUIRE( f( empty_or_friendly, empty_or_friendly ) == true );
+  REQUIRE( f( empty_or_friendly, foreign_colony ) == false );
+  REQUIRE( f( empty_or_friendly, foreign_unit ) == false );
+  REQUIRE( f( empty_or_friendly, dwelling ) == false );
+  REQUIRE( f( empty_or_friendly, brave ) == false );
+  REQUIRE( f( empty_or_friendly,
+              empty_or_friendly_with_sea_lane ) == false );
+  REQUIRE( f( empty_or_friendly, empty_with_lcr ) == false );
+
+  REQUIRE( f( foreign_colony, empty_or_friendly ) == true );
+  REQUIRE( f( foreign_colony, foreign_colony ) == true );
+  REQUIRE( f( foreign_colony, foreign_unit ) == false );
+  REQUIRE( f( foreign_colony, dwelling ) == false );
+  REQUIRE( f( foreign_colony, brave ) == false );
+  REQUIRE( f( foreign_colony,
+              empty_or_friendly_with_sea_lane ) == false );
+  REQUIRE( f( foreign_colony, empty_with_lcr ) == false );
+
+  REQUIRE( f( foreign_unit, empty_or_friendly ) == true );
+  REQUIRE( f( foreign_unit, foreign_colony ) == false );
+  REQUIRE( f( foreign_unit, foreign_unit ) == true );
+  REQUIRE( f( foreign_unit, dwelling ) == false );
+  REQUIRE( f( foreign_unit, brave ) == false );
+  REQUIRE( f( foreign_unit, empty_or_friendly_with_sea_lane ) ==
+           false );
+  REQUIRE( f( foreign_unit, empty_with_lcr ) == false );
+
+  REQUIRE( f( dwelling, empty_or_friendly ) == true );
+  REQUIRE( f( dwelling, foreign_colony ) == false );
+  REQUIRE( f( dwelling, foreign_unit ) == false );
+  REQUIRE( f( dwelling, dwelling ) == true );
+  REQUIRE( f( dwelling, brave ) == false );
+  REQUIRE( f( dwelling, empty_or_friendly_with_sea_lane ) ==
+           false );
+  REQUIRE( f( dwelling, empty_with_lcr ) == false );
+
+  REQUIRE( f( brave, empty_or_friendly ) == true );
+  REQUIRE( f( brave, foreign_colony ) == false );
+  REQUIRE( f( brave, foreign_unit ) == false );
+  REQUIRE( f( brave, dwelling ) == false );
+  REQUIRE( f( brave, brave ) == true );
+  REQUIRE( f( brave, empty_or_friendly_with_sea_lane ) ==
+           false );
+  REQUIRE( f( brave, empty_with_lcr ) == false );
+
+  REQUIRE( f( empty_or_friendly_with_sea_lane,
+              empty_or_friendly ) == true );
+  REQUIRE( f( empty_or_friendly_with_sea_lane,
+              foreign_colony ) == false );
+  REQUIRE( f( empty_or_friendly_with_sea_lane, foreign_unit ) ==
+           false );
+  REQUIRE( f( empty_or_friendly_with_sea_lane, dwelling ) ==
+           false );
+  REQUIRE( f( empty_or_friendly_with_sea_lane, brave ) ==
+           false );
+  REQUIRE( f( empty_or_friendly_with_sea_lane,
+              empty_or_friendly_with_sea_lane ) == true );
+  REQUIRE( f( empty_or_friendly_with_sea_lane,
+              empty_with_lcr ) == false );
+
+  REQUIRE( f( empty_with_lcr, empty_or_friendly ) == true );
+  REQUIRE( f( empty_with_lcr, foreign_colony ) == false );
+  REQUIRE( f( empty_with_lcr, foreign_unit ) == false );
+  REQUIRE( f( empty_with_lcr, dwelling ) == false );
+  REQUIRE( f( empty_with_lcr, brave ) == false );
+  REQUIRE( f( empty_with_lcr,
+              empty_or_friendly_with_sea_lane ) == false );
+  REQUIRE( f( empty_with_lcr, empty_with_lcr ) == true );
 }
 
 } // namespace

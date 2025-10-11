@@ -17,7 +17,9 @@
 #include "igoto-viewer.hpp"
 #include "igui.hpp"
 #include "map-square.hpp"
+#include "roles.hpp"
 #include "unit-mgr.hpp"
+#include "visibility.hpp"
 
 // config
 #include "config/nation.rds.hpp"
@@ -25,10 +27,12 @@
 
 // ss
 #include "ss/colonies.hpp"
+#include "ss/goto.rds.hpp"
 #include "ss/players.rds.hpp"
 #include "ss/ref.hpp"
 #include "ss/terrain.hpp"
 #include "ss/unit.hpp"
+#include "ss/units.hpp"
 
 // rds
 #include "rds/switch-macro.hpp"
@@ -418,11 +422,114 @@ wait<maybe<goto_target>> ask_goto_port(
     } else {
       CHECK( colonies.contains( *choice ) );
       CHECK( colonies[*choice] );
-      res = goto_target::map{ .tile =
-                                  colonies[*choice]->location };
+      res = create_goto_map_target(
+          ss, player.type, colonies[*choice]->location );
     }
   }
   co_return res;
+}
+
+[[nodiscard]] maybe<e_goto_target_snapshot>
+compute_goto_target_snapshot( SSConst const& ss,
+                              IVisibility const& viz,
+                              e_player const unit_player,
+                              point const tile ) {
+  using enum e_goto_target_snapshot;
+  using enum e_tile_visibility;
+
+  e_tile_visibility const visibility = viz.visible( tile );
+
+  // Check if hidden.
+  switch( visibility ) {
+    case e_tile_visibility::hidden:
+      return nothing;
+    case e_tile_visibility::fogged:
+      break;
+    case e_tile_visibility::clear:
+      break;
+  }
+
+  if( viz.dwelling_at( tile ) ) return dwelling;
+
+  if( auto const colony = viz.colony_at( tile );
+      colony.has_value() && colony->player != unit_player )
+    return foreign_colony;
+
+  if( visibility == clear ) {
+    auto const& units = ss.units.from_coord( tile );
+    if( !units.empty() ) {
+      GenericUnitId const generic_unit_id = *begin( units );
+      switch( ss.units.unit_kind( generic_unit_id ) ) {
+        case e_unit_kind::native:
+          return brave;
+        case e_unit_kind::euro: {
+          Unit const& unit =
+              ss.units.euro_unit_for( generic_unit_id );
+          if( unit.player_type() != unit_player )
+            return foreign_unit;
+          break;
+        }
+      }
+    }
+  }
+
+  // This should yield a value because we've already check that
+  // the tile is not hidden.
+  UNWRAP_CHECK_T( MapSquare const& square,
+                  viz.visible_square_at( tile ) );
+
+  // These two should be mutually exclusive in practice.
+  if( square.lost_city_rumor ) return empty_with_lcr;
+  if( square.sea_lane ) return empty_or_friendly_with_sea_lane;
+
+  return empty_or_friendly;
+}
+
+goto_target::map create_goto_map_target(
+    SSConst const& ss, e_player const unit_player,
+    point const tile ) {
+  // NOTE: we do not look at the omniscient_path_finding game
+  // config option here because we want this visibility to really
+  // reflect what the player is actually seeing when the choose
+  // the target square. The omniscient setting is only then
+  // checked when computing the path to that tile.
+  auto const viz = create_visibility_for(
+      ss, player_for_role( ss, e_player_role::viewer ) );
+  CHECK( viz );
+  return goto_target::map{
+    .tile     = tile,
+    .snapshot = compute_goto_target_snapshot(
+        ss, *viz, unit_player, tile ) };
+}
+
+bool is_new_goto_snapshot_allowed(
+    maybe<e_goto_target_snapshot> const old,
+    e_goto_target_snapshot const New ) {
+  using enum e_goto_target_snapshot;
+  switch( New ) {
+    case empty_or_friendly:
+      return true;
+    case foreign_colony:
+      return old == foreign_colony;
+    case foreign_unit:
+      return old == foreign_unit;
+    case dwelling:
+      return old == dwelling;
+    case brave:
+      return old == brave;
+    case empty_with_lcr:
+      // NOTE: this implies the tile is currently empty or
+      // friendly.
+      return old == empty_with_lcr;
+    case empty_or_friendly_with_sea_lane:
+      // NOTE: this implies the tile is currently empty or
+      // friendly. And it is always allowed so long as there were
+      // no non-player entities on the tile, though will be
+      // checked in the move command handler to decide whether
+      // the move should result in a launch onto the high seas.
+      return old == nothing ||
+             old == empty_or_friendly_with_sea_lane;
+  }
 }
 
 } // namespace rn

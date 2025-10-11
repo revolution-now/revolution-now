@@ -1,18 +1,6 @@
 TODO:
 -----------------------------------------------------------------
 
-  * If there is a different (foreign) society on the destination
-    square when a land unit arrives as was there when the move
-    was issued then the goto should stop short of going to the
-    destination tile, otherwise e.g. if the player moves a unit
-    onto an empty square and then there is a native unit on that
-    tile by the time it gets there then it could automatically
-    attack that native unit without asking the player (if the
-    player is already at war with them).
-  * If the target of a ship's goto was hidden at the time that it
-    was selected by the user then, when the ship arrives there,
-    it should not sail the high seas even if that tile is in sea
-    lane.
   * In mouse mode, we cannot drag off the right/left edge of the
     map like we can in keyboard mode.
   * When in keyboard mode, need to be able to center on the fo-
@@ -22,6 +10,8 @@ TODO:
     fast.
   * In mouse mode, it would be nice to have a way to gently
     scroll when the mouse moves to the edge.
+  * e_goto_target_snapshot should be turned into a sumtype to
+    capture tribe and player.
   * Do another attempt at finding any additional goto state in
     the OG's sav files.
 
@@ -53,6 +43,27 @@ Done:
   * Goto tile via keyboard.
   * Land units should try to avoid LCRs when navigating, if pos-
     sible.
+  * There is a potential problem with saving:
+      - If the player initiates a goto, then saves and reloads,
+        the path will be recomputed. This is ok, but then the
+        original saved target contents will be lost. So that
+        means the saved target contents need to go into the save
+        state, either in the unit's commands, or in some other
+        location.
+      - Make sure that things work as well when saving/loading
+        from OG sav files.
+  * If there is a different (foreign) society on the destination
+    square when a land unit arrives as was there when the move
+    was issued then the goto should stop short of going to the
+    destination tile, otherwise e.g. if the player moves a unit
+    onto an empty square and then there is a native unit on that
+    tile by the time it gets there then it could automatically
+    attack that native unit without asking the player (if the
+    player is already at war with them).
+  * If the target of a ship's goto was hidden at the time that it
+    was selected by the user then, when the ship arrives there,
+    it should not sail the high seas even if that tile is in sea
+    lane.
 
   Strategies:
 
