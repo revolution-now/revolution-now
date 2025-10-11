@@ -1,8 +1,6 @@
 TODO:
 -----------------------------------------------------------------
 
-  * In mouse mode, we cannot drag off the right/left edge of the
-    map like we can in keyboard mode.
   * When in keyboard mode, need to be able to center on the fo-
     cused tile.
   * In keyboard mode, need to fix the fact that moving the cursor
@@ -41,15 +39,6 @@ Done:
   * Goto tile via keyboard.
   * Land units should try to avoid LCRs when navigating, if pos-
     sible.
-  * There is a potential problem with saving:
-      - If the player initiates a goto, then saves and reloads,
-        the path will be recomputed. This is ok, but then the
-        original saved target contents will be lost. So that
-        means the saved target contents need to go into the save
-        state, either in the unit's commands, or in some other
-        location.
-      - Make sure that things work as well when saving/loading
-        from OG sav files.
   * If there is a different (foreign) society on the destination
     square when a land unit arrives as was there when the move
     was issued then the goto should stop short of going to the
@@ -62,8 +51,6 @@ Done:
     was selected by the user then, when the ship arrives there,
     it should not sail the high seas even if that tile is in sea
     lane.
-  * e_goto_target_snapshot should be turned into a sumtype to
-    capture tribe and player.
 
   Strategies:
 

@@ -33,6 +33,17 @@ sumtype.LandViewMode {
   # tion mode.
   goto_mode {
     start_tile 'gfx::point',
+    # NOTE: this tile may be off of the map. This is ok since we
+    # do allow it to be one tile off the left or right edge to
+    # allow the player to send ships to the harbor. The reason we
+    # represent such goto commands with a tile and not the dedi-
+    # cated `harbor` mode is because with the latter then you
+    # lose the player's desired path to get to the high seas, so
+    # e.g. if the unit is on the left side of the map and the
+    # player drags a ship off the right edge of the map, we don't
+    # want the ship traveling to the left simply because that is
+    # a shorter path to the high seas, given that the player ex-
+    # plicitly chose the right side.
     curr_tile 'gfx::point',
   },
   hidden_terrain {},
@@ -60,6 +71,13 @@ sumtype.LandViewRawInput {
   mouse_over {
     where 'gfx::point',
     tile 'maybe<gfx::point>',
+    # Could be off the map if the map edge is visible. In that
+    # case the `tile` above will be nothing.
+    hypothetical_tile 'gfx::point',
+  },
+  mouse_click_outside_of_map {
+    buttons 'input::e_mouse_button_event',
+    hypothetical_tile 'gfx::point',
   },
   zoom_changed {},
   center {}, # Center on blinking unit, if any.

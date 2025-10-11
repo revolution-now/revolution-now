@@ -233,7 +233,7 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
       ts_( ts ),
       viz_( create_visibility_for( ss, nothing ) ),
       viewport_( engine_, ss.terrain, ss.land_view.viewport,
-                 viewport_rect_pixels() ),
+                 landview_renderable_rect() ),
       camera_( engine_.user_config(), ss.land_view.viewport ),
       animator_( engine_.sfx(), ss, viewport_, viz_ ) {
     set_visibility( player );
@@ -422,7 +422,7 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
                        point const /*tile*/ ) {
     viewport().stop_auto_zoom();
     viewport().stop_auto_panning();
-    rect const r = viewport_rect_pixels();
+    rect const r = landview_renderable_rect();
     // This will ensure that the menu opens in a direction such
     // that it doesn't get hidden beyond the bounds of the view-
     // port, if the mouse is too near to the edge.
@@ -585,7 +585,11 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
       RawInput const raw = co_await raw_input_stream_.next();
       SWITCH( raw.input ) {
         CASE( tile_enter ) { co_return mode.curr_tile; }
-        CASE( tile_click ) { co_return tile_click.coord; }
+        CASE( tile_click ) {
+          // Before this click, the curr_tile will have been
+          // moved to be where the mouse tile is.
+          co_return mode.curr_tile;
+        }
         CASE( cmd ) {
           SWITCH( cmd.what ) {
             CASE( move ) {
@@ -604,9 +608,13 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
         }
         CASE( escape ) { co_return nothing; }
         CASE( tile_right_click ) { co_return nothing; }
+        CASE( mouse_click_outside_of_map ) {
+          co_return mode.curr_tile;
+        }
         CASE( mouse_over ) {
-          if( !mouse_over.tile.has_value() ) break;
-          mode.curr_tile = *mouse_over.tile;
+          // NOTE: this tile could be off the map, but it will be
+          // clamped appropriately below.
+          mode.curr_tile = mouse_over.hypothetical_tile;
           break;
         }
         default:
@@ -868,6 +876,10 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
         // TBD.
         break;
       }
+      case e::mouse_click_outside_of_map: {
+        // TBD.
+        break;
+      }
     }
   }
 
@@ -887,7 +899,7 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
   /****************************************************************
   ** Land View IPlane
   *****************************************************************/
-  rect viewport_rect_pixels() const {
+  rect landview_renderable_rect() const {
     rect r = main_window_logical_rect( engine_.video(),
                                        engine_.window(),
                                        engine_.resolutions() );
@@ -983,7 +995,7 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
   void draw( rr::Renderer& renderer ) const override {
     LandViewRenderer const lv_renderer(
         ss_, renderer, animator_, viz_, last_unit_input_id(),
-        viewport_rect_pixels(), input_overrun_indicator_,
+        landview_renderable_rect(), input_overrun_indicator_,
         viewport(), ts_.map_updater() );
 
     lv_renderer.render_non_entities();
@@ -1559,9 +1571,14 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
         auto& val = event.get<input::mouse_move_event_t>();
         auto const tile =
             viewport().screen_pixel_to_world_tile( val.pos );
+        auto const hypo_tile =
+            viewport().screen_pixel_to_hypothetical_world_tile(
+                val.pos );
         raw_input_stream_.send(
             RawInput( LandViewRawInput::mouse_over{
-              .where = val.pos, .tile = tile } ) );
+              .where             = val.pos,
+              .tile              = tile,
+              .hypothetical_tile = hypo_tile } ) );
         handled = e_input_handled::yes;
         break;
       }
@@ -1569,7 +1586,7 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
         auto& val = event.get<input::mouse_wheel_event_t>();
         // If the mouse is in the viewport and its a wheel event
         // then we are in business.
-        if( val.pos.is_inside( viewport_rect_pixels() ) ) {
+        if( val.pos.is_inside( landview_renderable_rect() ) ) {
           if( val.wheel_delta < 0 ) {
             viewport().set_zoom_push( e_push_direction::negative,
                                       nothing );
@@ -1592,6 +1609,18 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
       }
       case input::e_input_event::mouse_button_event: {
         auto& val = event.get<input::mouse_button_event_t>();
+        point const hypo_tile =
+            viewport().screen_pixel_to_hypothetical_world_tile(
+                val.pos );
+        if( !hypo_tile.is_inside(
+                viewport().world_rect_tiles() ) ) {
+          raw_input_stream_.send( RawInput(
+              LandViewRawInput::mouse_click_outside_of_map{
+                .buttons           = val.buttons,
+                .hypothetical_tile = hypo_tile } ) );
+          handled = e_input_handled::yes;
+          break;
+        }
         UNWRAP_BREAK(
             tile,
             viewport().screen_pixel_to_world_tile( val.pos ) );
@@ -1681,17 +1710,34 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
         tile, viewport().screen_pixel_to_world_tile( origin ) );
     send( I::goto_drag_start{ .tile = tile } );
 
-    bool inside_viewport = true;
     while( auto const d = co_await drag_stream.next() ) {
-      auto const tile =
-          viewport().screen_pixel_to_world_tile( d->current );
-      inside_viewport = tile.has_value();
-      if( !tile.has_value() ) continue;
-      send( I::goto_drag_update{ .tile = *tile } );
+      // This will allow the mouse to be on the map or in the
+      // area around it (if it is zoomed out enough) but not e.g.
+      // on the panel or menu. This is because we want the user
+      // to be able to drag off the map to signal going to the
+      // harbor, but only if the map surroundings are visible,
+      // i.e. we don't want them doing that when the mouse is
+      // over the panel.
+      if( !d->current.is_inside( landview_renderable_rect() ) )
+        continue;
+      // Allow dragging off the edge of the map.
+      point const hypo_tile =
+          viewport().screen_pixel_to_hypothetical_world_tile(
+              d->current );
+      // Add one column of edge to left and right sides to allow
+      // the player to signal that they want to sail the high
+      // seas.
+      rect const allowed = viewport()
+                               .world_rect_tiles()
+                               .to_gfx()
+                               .moved_right()
+                               .with_new_left_edge( -1 )
+                               .with_dec_size();
+      point const tile = hypo_tile.clamped( allowed );
+      send( I::goto_drag_update{ .tile = tile } );
     }
 
-    inside_viewport ? send( I::goto_drag_finish{} )
-                    : send( I::goto_drag_cancel{} );
+    send( I::goto_drag_finish{} );
   }
 
   /**************************************************************
@@ -2154,7 +2200,7 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
   void on_logical_resolution_selected(
       gfx::e_resolution ) override {
     viewport_.update_logical_rect_cache(
-        viewport_rect_pixels() );
+        landview_renderable_rect() );
   }
 };
 

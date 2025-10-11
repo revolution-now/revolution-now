@@ -126,6 +126,16 @@ struct ViewportController {
   maybe<gfx::point> screen_pixel_to_world_tile(
       gfx::point pixel_coord ) const;
 
+  // These will always return a value, even if it is negative or
+  // otherwise off of the map. In other words, it behaves as if
+  // the map is infinitely large but with the origin tile where
+  // it actually is. So the returned value could have negative
+  // coordinates, or could be beyond the real map area.
+  gfx::point screen_pixel_to_hypothetical_world_pixel(
+      gfx::point pixel_coord ) const;
+  gfx::point screen_pixel_to_hypothetical_world_tile(
+      gfx::point pixel_coord ) const;
+
   // Given a screen pixel coordinate this will determine whether
   // it is in the viewport.
   bool screen_coord_in_viewport( gfx::point pixel_coord ) const;

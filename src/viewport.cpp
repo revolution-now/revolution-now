@@ -29,6 +29,7 @@
 #include "refl/to-str.hpp"
 
 // base
+#include "base/logger.hpp"
 #include "base/math.hpp"
 #include "base/scope-exit.hpp"
 
@@ -39,6 +40,8 @@ namespace rn {
 namespace {
 
 using ::gfx::point;
+using ::gfx::rect;
+using ::gfx::size;
 
 double pan_accel_init() {
   return config_rn.viewport.pan_accel_init_coeff *
@@ -590,35 +593,44 @@ ViewportController::landscape_buffer_render_upper_left() const {
 
 maybe<point> ViewportController::screen_pixel_to_world_pixel(
     point pixel_coord ) const {
-  Rect visible_on_screen = rendering_dest_rect_rounded();
-  auto from_visible_start =
-      pixel_coord - visible_on_screen.to_gfx().nw();
-  if( from_visible_start.w < 0 || from_visible_start.h < 0 ) {
-    return nothing;
+  point const p =
+      screen_pixel_to_hypothetical_world_pixel( pixel_coord );
+  if( !p.is_inside( world_rect_pixels() ) ) return nothing;
+  return p;
+}
+
+point ViewportController::
+    screen_pixel_to_hypothetical_world_pixel(
+        point const pixel_coord ) const {
+  rect const visible_on_screen = rendering_dest_rect_rounded();
+  if( visible_on_screen.area() == 0 ) {
+    // This should never happen, but let's be defensive in case
+    // this somehow happens with the user making the game window
+    // really small, or something else that we can't predict or
+    // control. This is necessary because we will later be di-
+    // viding by these dimensions, so they cannot be zero.
+    lg.warn(
+        "viewport rendering destination rect has zero area!" );
+    return {};
   }
-  if( from_visible_start.w >= visible_on_screen.w ||
-      from_visible_start.h >= visible_on_screen.h ) {
-    return nothing;
-  }
 
-  double percent_x =
-      double( from_visible_start.w + .5 ) / visible_on_screen.w;
-  double percent_y =
-      double( from_visible_start.h + .5 ) / visible_on_screen.h;
+  size const from_visible_start =
+      pixel_coord - visible_on_screen.nw();
 
-  DCHECK( percent_x >= 0 );
-  DCHECK( percent_y >= 0 );
+  double const percent_x = double( from_visible_start.w + .5 ) /
+                           visible_on_screen.size.w;
+  double const percent_y = double( from_visible_start.h + .5 ) /
+                           visible_on_screen.size.h;
 
-  auto viewport_or_world =
+  rect const viewport_or_world =
       get_bounds_rounded().clamp( this->world_rect_pixels() );
 
-  auto res = point{
-    X{ int( long( viewport_or_world.x +
-                  percent_x * viewport_or_world.w ) ) },
-    Y{ int( long( viewport_or_world.y +
-                  percent_y * viewport_or_world.h ) ) } };
+  point const res{
+    .x = int( viewport_or_world.origin.x +
+              percent_x * viewport_or_world.size.w ),
+    .y = int( viewport_or_world.origin.y +
+              percent_y * viewport_or_world.size.h ) };
 
-  DCHECK( res.x >= 0 && res.y >= 0 );
   return res;
 }
 
@@ -668,6 +680,21 @@ maybe<point> ViewportController::screen_pixel_to_world_tile(
   auto maybe_pixel = screen_pixel_to_world_pixel( pixel_coord );
   if( !maybe_pixel.has_value() ) return {};
   return maybe_pixel.value() / g_tile_delta.to_gfx();
+}
+
+point ViewportController::
+    screen_pixel_to_hypothetical_world_tile(
+        point pixel_coord ) const {
+  point const world_pixel =
+      screen_pixel_to_hypothetical_world_pixel( pixel_coord );
+  // This is to handle the case where the coord is negative.
+  auto const round_to_tile = []( int const n ) {
+    int const m = n - base::cyclic_modulus( n, 32 );
+    return m / 32;
+  };
+  int const tile_x = round_to_tile( world_pixel.x );
+  int const tile_y = round_to_tile( world_pixel.y );
+  return { .x = tile_x, .y = tile_y };
 }
 
 bool ViewportController::screen_coord_in_viewport(

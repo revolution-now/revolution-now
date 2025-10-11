@@ -1066,7 +1066,8 @@ int constexpr kGotoArrowDist = 16;
 
 void LandViewRenderer::render_goto(
     point const start_tile, point const end_tile ) const {
-  if( !start_tile.direction_to( end_tile ) ) {
+  auto const draw_sprite = [&]( e_tile const sprite,
+                                size const offset = {} ) {
     rect const box = get_render_rect_for_tile( end_tile );
     gfx::dpoint const corner =
         viewport_.rendering_dest_rect().origin -
@@ -1076,39 +1077,49 @@ void LandViewRenderer::render_goto(
                              viewport_.get_zoom() );
     SCOPED_RENDERER_MOD_ADD( painter_mods.repos.translation2,
                              corner.distance_from_origin() );
+    render_sprite( renderer_, box.nw() + offset, sprite );
+  };
+
+  if( !end_tile.is_inside( viewport_.world_rect_tiles() ) ) {
+    e_tile const sprite =
+        end_tile.x >= viewport_.world_rect_tiles().right_edge()
+            ? e_tile::goto_arrow_e
+            : e_tile::goto_arrow_w;
+    int const kOffset = 10;
+    size const offset =
+        end_tile.x >= viewport_.world_rect_tiles().right_edge()
+            ? size{ .w = -kOffset }
+            : size{ .w = +kOffset };
+    draw_sprite( sprite, offset );
+    return;
+  }
+
+  if( !start_tile.direction_to( end_tile ) ) {
     e_tile const sprite = end_tile == start_tile
                               ? e_tile::goto_tile_inward
                               : e_tile::goto_tile_outward;
-    render_sprite( renderer_, box.nw(), sprite );
+    draw_sprite( sprite );
+    return;
   }
 
   if( auto const d = start_tile.direction_to( end_tile );
       d.has_value() ) {
-    auto const [sprite_tile, offset] = [&] {
+    auto const [sprite, offset] = [&] {
       switch( *d ) {
         // clang-format off
-        DIRECTION( e,   1,  0 );
-        DIRECTION( w,  -1,  0 );
-        DIRECTION( n,   0, -1 );
-        DIRECTION( s,   0,  1 );
-        DIRECTION( ne,  1, -1 );
-        DIRECTION( nw, -1, -1 );
-        DIRECTION( se,  1,  1 );
-        DIRECTION( sw, -1,  1 );
+        DIRECTION( e,  -1,  0 );
+        DIRECTION( w,   1,  0 );
+        DIRECTION( n,   0,  1 );
+        DIRECTION( s,   0, -1 );
+        DIRECTION( ne, -1,  1 );
+        DIRECTION( nw,  1,  1 );
+        DIRECTION( se, -1, -1 );
+        DIRECTION( sw,  1, -1 );
         // clang-format on
       }
     }();
-    rect const box =
-        get_render_rect_for_tile( start_tile ).moved( offset );
-    gfx::dpoint const corner =
-        viewport_.rendering_dest_rect().origin -
-        viewport_.covered_pixels().origin.fmod( 32.0 ) *
-            viewport_.get_zoom();
-    SCOPED_RENDERER_MOD_MUL( painter_mods.repos.scale,
-                             viewport_.get_zoom() );
-    SCOPED_RENDERER_MOD_ADD( painter_mods.repos.translation2,
-                             corner.distance_from_origin() );
-    render_sprite( renderer, box.origin, sprite_tile );
+    draw_sprite( sprite, offset );
+    return;
   }
 }
 

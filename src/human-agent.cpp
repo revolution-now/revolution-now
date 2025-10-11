@@ -38,6 +38,7 @@
 #include "ss/player.hpp"
 #include "ss/players.hpp"
 #include "ss/ref.hpp"
+#include "ss/terrain.hpp"
 #include "ss/units.hpp"
 
 // rds
@@ -558,7 +559,22 @@ EvolveGoto HumanAgent::evolve_goto( UnitId const unit_id ) {
         return nothing;
       };
 
-      if( src.direction_to( map.tile ).has_value() ) {
+      // It is ok if the destination tile is not on the map; we
+      // do allow it to be one tile off the left or right edge to
+      // allow the player to send ships to the harbor. The reason
+      // we represent such goto commands with a tile and not the
+      // dedicated `harbor` mode is because with the latter then
+      // you lose the player's desired path to get to the high
+      // seas, so e.g. if the unit is on the left side of the map
+      // and the player drags a ship off the right edge of the
+      // map, we don't want the ship traveling to the left simply
+      // because that is a shorter path to the high seas, given
+      // that the player explicitly chose the right side.
+      bool const dst_exists =
+          ss_.terrain.square_exists( map.tile );
+
+      if( dst_exists &&
+          src.direction_to( map.tile ).has_value() ) {
         // We are adjacent to the destination tile, so let's make
         // sure that the destination tile contains what we
         // thought it did when it was initially chosen by the
