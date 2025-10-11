@@ -567,11 +567,10 @@ EvolveGoto HumanAgent::evolve_goto( UnitId const unit_id ) {
         // that tile and automatically attacking it. This should
         // not check-fail because our unit is adjacent to this
         // tile and so it should be clear.
-        UNWRAP_CHECK_T(
-            e_goto_target_snapshot const new_snapshot,
-            compute_goto_target_snapshot( ss_, *real_viz,
-                                          this->player().type,
-                                          map.tile ) );
+        UNWRAP_CHECK_T( GotoTargetSnapshot const new_snapshot,
+                        compute_goto_target_snapshot(
+                            ss_, *real_viz, this->player().type,
+                            map.tile ) );
         if( !is_new_goto_snapshot_allowed( map.snapshot,
                                            new_snapshot ) ) {
           lg.info(

@@ -429,12 +429,12 @@ wait<maybe<goto_target>> ask_goto_port(
   co_return res;
 }
 
-[[nodiscard]] maybe<e_goto_target_snapshot>
+[[nodiscard]] maybe<GotoTargetSnapshot>
 compute_goto_target_snapshot( SSConst const& ss,
                               IVisibility const& viz,
                               e_player const unit_player,
                               point const tile ) {
-  using enum e_goto_target_snapshot;
+  using enum GotoTargetSnapshot;
   using enum e_tile_visibility;
 
   e_tile_visibility const visibility = viz.visible( tile );
@@ -503,9 +503,9 @@ goto_target::map create_goto_map_target(
 }
 
 bool is_new_goto_snapshot_allowed(
-    maybe<e_goto_target_snapshot> const old,
-    e_goto_target_snapshot const New ) {
-  using enum e_goto_target_snapshot;
+    maybe<GotoTargetSnapshot> const old,
+    GotoTargetSnapshot const& New ) {
+  using enum GotoTargetSnapshot;
   switch( New ) {
     case empty_or_friendly:
       return true;

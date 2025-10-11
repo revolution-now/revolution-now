@@ -13,7 +13,7 @@ include "gfx/cartesian.hpp"
 
 namespace "rn"
 
-enum.e_goto_target_snapshot {
+enum.GotoTargetSnapshot {
   empty_or_friendly,
 
   # Colony will override unit if the tile contains both, because
@@ -41,7 +41,7 @@ sumtype.goto_target {
     # the contents on the tile have changed by the time the unit
     # arrives, in which case the move is aborted in some cases.
     # If it contains no value then the tile was hidden.
-    snapshot 'base::maybe<e_goto_target_snapshot>',
+    snapshot 'base::maybe<GotoTargetSnapshot>',
   },
   harbor {},
 }

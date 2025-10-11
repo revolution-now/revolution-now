@@ -57,15 +57,15 @@ GotoPath compute_harbor_goto_path( IGotoMapViewer const& viewer,
 // Note that the unit_player might not be the same as the player
 // associated with the viz object (i.e. the latter might have
 // full visibility).
-[[nodiscard]] maybe<e_goto_target_snapshot>
+[[nodiscard]] maybe<GotoTargetSnapshot>
 compute_goto_target_snapshot( SSConst const& ss,
                               IVisibility const& viz,
                               e_player unit_player,
                               gfx::point tile );
 
 [[nodiscard]] bool is_new_goto_snapshot_allowed(
-    maybe<e_goto_target_snapshot> old,
-    e_goto_target_snapshot New );
+    maybe<GotoTargetSnapshot> old,
+    GotoTargetSnapshot const& New );
 
 // This should always be called to create such a target as it en-
 // sures that the snapshot gets populated.

@@ -2080,7 +2080,7 @@ TEST_CASE( "[goto] ask_goto_port" ) {
   w.gui().EXPECT__choice( config1 ).returns( "1" );
   expected = goto_target::map{
     .tile     = { .x = 2, .y = 2 },
-    .snapshot = e_goto_target_snapshot::empty_or_friendly };
+    .snapshot = GotoTargetSnapshot::empty_or_friendly };
   REQUIRE( f() == expected );
 
   // One colony, with harbor, escapes.
@@ -2126,7 +2126,7 @@ TEST_CASE( "[goto] ask_goto_port" ) {
   w.gui().EXPECT__choice( config4 ).returns( "1" );
   expected = goto_target::map{
     .tile     = { .x = 2, .y = 2 },
-    .snapshot = e_goto_target_snapshot::empty_or_friendly };
+    .snapshot = GotoTargetSnapshot::empty_or_friendly };
   REQUIRE( f() == expected );
 
   // One colony, chooses colony.
@@ -2139,7 +2139,7 @@ TEST_CASE( "[goto] ask_goto_port" ) {
   w.gui().EXPECT__choice( config5 ).returns( "1" );
   expected = goto_target::map{
     .tile     = { .x = 2, .y = 2 },
-    .snapshot = e_goto_target_snapshot::empty_or_friendly };
+    .snapshot = GotoTargetSnapshot::empty_or_friendly };
   REQUIRE( f() == expected );
 }
 
@@ -2147,7 +2147,7 @@ TEST_CASE( "[goto] compute_goto_target_snapshot" ) {
   world w;
   point tile;
 
-  using enum e_goto_target_snapshot;
+  using enum GotoTargetSnapshot;
 
   IVisibility const* p_viz = {};
 
@@ -2415,7 +2415,7 @@ TEST_CASE( "[goto] create_goto_map_target" ) {
   point tile;
   goto_target::map expected;
 
-  using enum e_goto_target_snapshot;
+  using enum GotoTargetSnapshot;
 
   auto const f = [&] [[clang::noinline]] {
     expected.tile = tile;
@@ -2741,12 +2741,12 @@ TEST_CASE( "[goto] create_goto_map_target" ) {
 }
 
 TEST_CASE( "[goto] is_new_goto_snapshot_allowed" ) {
-  using enum e_goto_target_snapshot;
+  using enum GotoTargetSnapshot;
 
   auto const f =
       [&] [[clang::noinline]]
-      ( maybe<e_goto_target_snapshot> const old,
-        e_goto_target_snapshot const New ) {
+      ( maybe<GotoTargetSnapshot> const old,
+        GotoTargetSnapshot const& New ) {
         return is_new_goto_snapshot_allowed( old, New );
       };
 
