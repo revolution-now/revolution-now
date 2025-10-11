@@ -1,8 +1,6 @@
 TODO:
 -----------------------------------------------------------------
 
-  * When in keyboard mode, need to be able to center on the fo-
-    cused tile.
   * In keyboard mode, need to fix the fact that moving the cursor
     near the edge of the screen causing things to scroll too
     fast.
@@ -10,6 +8,12 @@ TODO:
     scroll when the mouse moves to the edge.
   * Do another attempt at finding any additional goto state in
     the OG's sav files.
+
+For the future:
+-----------------------------------------------------------------
+
+  * Consider allowing to drag a unit onto the mini-map. This may
+    be difficult because they are on different planes.
 
 Done:
 -----------------------------------------------------------------
@@ -51,6 +55,8 @@ Done:
     was selected by the user then, when the ship arrives there,
     it should not sail the high seas even if that tile is in sea
     lane.
+  * When in keyboard mode, need to be able to center on the fo-
+    cused tile.
 
   Strategies:
 

@@ -280,7 +280,7 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
     SWITCH( mode_.top() ) {
       CASE( none ) { break; }
       CASE( end_of_turn ) { break; }
-      CASE( goto_mode ) { break; }
+      CASE( goto_mode ) { return goto_mode.curr_tile; }
       CASE( hidden_terrain ) { break; }
       CASE( unit_input ) {
         return coord_for_unit_indirect_or_die(
@@ -558,7 +558,8 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
 
   // NOTE: this is not for the goto selection where the mouse
   // drags to the target; this is mainly for keyboard driven in-
-  // put.
+  // put, though it supports the mouse as well. Point is, it is
+  // NOT a mouse drag.
   wait<maybe<point>> select_goto_tile( Unit const& unit ) {
     point const start =
         coord_for_unit_indirect_or_die( ss_.units, unit.id() );
@@ -604,6 +605,10 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
             default:
               break;
           }
+          break;
+        }
+        CASE( center ) {
+          co_await center_on_tile( mode.curr_tile );
           break;
         }
         CASE( escape ) { co_return nothing; }

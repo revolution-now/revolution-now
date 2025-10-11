@@ -870,8 +870,8 @@ bool ViewportController::need_to_scroll_to_reveal_tile(
 
 void ViewportController::ensure_tile_visible(
     point const& coord ) {
-  stop_auto_panning();
   if( !need_to_scroll_to_reveal_tile( coord ) ) return;
+  stop_auto_panning();
   // FIXME: we should not be centering here, we should only be
   // scrolling enough to make the unit visible, otherwise two
   // units that are currently moving that could fit within one
