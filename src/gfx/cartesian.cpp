@@ -777,19 +777,32 @@ rect rect::with_border_added( int n ) const {
 
 rect rect::with_inc_size( int n ) const {
   auto r = *this;
-  for( int i = 0; i < n; ++i ) {
-    ++r.size.w;
-    ++r.size.h;
-  }
+  r.size.w += n;
+  r.size.h += n;
   return r;
 }
 
 rect rect::with_dec_size( int n ) const {
   auto r = *this;
-  for( int i = 0; i < n; ++i ) {
-    --r.size.w;
-    --r.size.h;
-  }
+  r.size.w -= n;
+  r.size.h -= n;
+  if( r.size.w < 0 ) r.size.w = 0;
+  if( r.size.h < 0 ) r.size.h = 0;
+  return r;
+}
+
+rect rect::with_inc_size( struct size const sz ) const {
+  auto r = *this;
+  r.size += sz;
+  // The sz could have been negative.
+  if( r.size.w < 0 ) r.size.w = 0;
+  if( r.size.h < 0 ) r.size.h = 0;
+  return r;
+}
+
+rect rect::with_dec_size( struct size const sz ) const {
+  auto r = *this;
+  r.size += -sz;
   if( r.size.w < 0 ) r.size.w = 0;
   if( r.size.h < 0 ) r.size.h = 0;
   return r;

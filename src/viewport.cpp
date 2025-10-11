@@ -156,22 +156,28 @@ void ViewportController::advance_zoom_point_seek(
 void ViewportController::advance( e_push_direction x_push,
                                   e_push_direction y_push,
                                   e_push_direction zoom_push ) {
-  double zoom_factor07  = pow( get_zoom(), 0.7 );
-  double zoom_factor15  = pow( get_zoom(), 1.5 );
-  double pan_accel      = pan_accel_init();
-  double pan_accel_drag = pan_accel_drag_init();
-  pan_accel_drag = pan_accel_drag / pow( get_zoom(), .75 );
-  pan_accel =
+  double const zoom_factor70 = pow( get_zoom(), 0.70 );
+  double const zoom_factor75 = pow( get_zoom(), 0.75 );
+  double const zoom_factor15 = pow( get_zoom(), 1.50 );
+
+  double const pan_accel_drag =
+      pan_accel_drag_init() / zoom_factor75;
+  double const pan_accel =
       pan_accel_drag +
-      ( pan_accel - pan_accel_drag_init() ) / zoom_factor15;
+      // This is the net acceleration that will actually be in
+      // effect when we push, because the drag acceleration will
+      // be subtracted.
+      ( pan_accel_init() - pan_accel_drag_init() ) /
+          zoom_factor15;
+
   x_vel_.set_accelerations( pan_accel, pan_accel_drag );
   y_vel_.set_accelerations( pan_accel, pan_accel_drag );
   x_vel_.set_bounds(
-      -config_rn.viewport.pan_speed / zoom_factor07,
-      config_rn.viewport.pan_speed / zoom_factor07 );
+      -config_rn.viewport.pan_speed / zoom_factor70,
+      config_rn.viewport.pan_speed / zoom_factor70 );
   y_vel_.set_bounds(
-      -config_rn.viewport.pan_speed / zoom_factor07,
-      config_rn.viewport.pan_speed / zoom_factor07 );
+      -config_rn.viewport.pan_speed / zoom_factor70,
+      config_rn.viewport.pan_speed / zoom_factor70 );
 
   x_vel_.advance( x_push );
   y_vel_.advance( y_push );

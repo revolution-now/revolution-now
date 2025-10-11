@@ -35,6 +35,12 @@ struct.MiniMap {
   show_sea_lane 'bool',
 }
 
+struct.Scrolling {
+  edge_thickness_percent 'double',
+
+  _features { equality, validation }
+}
+
 struct.Camera {
   zoom_log2_min 'double',
   zoom_log2_max 'double',
@@ -53,6 +59,8 @@ struct.config_land_view_t {
   mini_map 'config::land_view::MiniMap',
 
   camera 'config::land_view::Camera',
+
+  scrolling 'config::land_view::Scrolling',
 }
 
 config.land_view {}

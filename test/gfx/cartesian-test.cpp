@@ -1599,6 +1599,30 @@ TEST_CASE( "[gfx/cartesian] rect::with_dec_size" ) {
   REQUIRE( r.with_dec_size( 10 ) == expected );
 }
 
+TEST_CASE( "[gfx/cartesian] rect::with_inc_size (size)" ) {
+  rect expected;
+  rect r{ .origin = { .x = 4, .y = 2 },
+          .size   = { .w = 2, .h = 4 } };
+  expected = { .origin = { .x = 4, .y = 2 },
+               .size   = { .w = 0, .h = 14 } };
+  REQUIRE( r.with_inc_size( { .w = -5, .h = 10 } ) == expected );
+  expected = { .origin = { .x = 4, .y = 2 },
+               .size   = { .w = 4, .h = 4 } };
+  REQUIRE( r.with_inc_size( { .w = 2, .h = 0 } ) == expected );
+}
+
+TEST_CASE( "[gfx/cartesian] rect::with_dec_size (size)" ) {
+  rect expected;
+  rect r{ .origin = { .x = 4, .y = 2 },
+          .size   = { .w = 2, .h = 4 } };
+  expected = { .origin = { .x = 4, .y = 2 },
+               .size   = { .w = 0, .h = 0 } };
+  REQUIRE( r.with_dec_size( { .w = 5, .h = 10 } ) == expected );
+  expected = { .origin = { .x = 4, .y = 2 },
+               .size   = { .w = 1, .h = 2 } };
+  REQUIRE( r.with_dec_size( { .w = 1, .h = 2 } ) == expected );
+}
+
 TEST_CASE( "[gfx/cartesian] rect::moved( size )" ) {
   size sz;
   rect expected;

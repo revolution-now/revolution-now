@@ -382,6 +382,8 @@ struct rect {
 
   [[nodiscard]] rect with_inc_size( int n = 1 ) const;
   [[nodiscard]] rect with_dec_size( int n = 1 ) const;
+  [[nodiscard]] rect with_inc_size( struct size sz ) const;
+  [[nodiscard]] rect with_dec_size( struct size sz ) const;
 
   [[nodiscard]] rect moved_left( int by = 1 ) const;
   [[nodiscard]] rect moved_right( int by = 1 ) const;

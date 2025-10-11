@@ -26,7 +26,19 @@ using ::base::valid_or;
 }
 
 /****************************************************************
-** config::revolution::Declaration
+** config::land_view::Scrolling
+*****************************************************************/
+valid_or<string> config::land_view::Scrolling::validate() const {
+  REFL_VALIDATE(
+      edge_thickness_percent >= 0.0 &&
+          edge_thickness_percent <= 0.3,
+      "edge_thickness_percent must be in the range [0, 0.3]" );
+
+  return base::valid;
+}
+
+/****************************************************************
+** config::land_view::Declaration
 *****************************************************************/
 valid_or<string> config::land_view::Camera::validate() const {
   REFL_VALIDATE( zoom_log2_min <= zoom_log2_max,

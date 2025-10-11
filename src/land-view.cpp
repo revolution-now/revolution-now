@@ -91,6 +91,7 @@ namespace {
 
 using ::gfx::point;
 using ::gfx::rect;
+using ::gfx::size;
 
 struct RawInput {
   RawInput( LandViewRawInput input_ )
@@ -577,12 +578,16 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
 
     rect const map_rect = viewport().world_rect_tiles();
 
+    // Center up front, and then only center below on certain
+    // events. In particular, we don't want to center each time
+    // the mouse moves, otherwise the screen scrolls too fast.
+    co_await animator_.ensure_visible( mode.curr_tile );
+
     // Take updates and wait for a tile to be selected either
     // with the keyboard or mouse click. Likely it'll be the key-
     // board here since this is mostly for keyboard driven goto
     // input.
     for( ;; ) {
-      co_await animator_.ensure_visible( mode.curr_tile );
       RawInput const raw = co_await raw_input_stream_.next();
       SWITCH( raw.input ) {
         CASE( tile_enter ) { co_return mode.curr_tile; }
@@ -595,6 +600,12 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
           SWITCH( cmd.what ) {
             CASE( move ) {
               mode.curr_tile = mode.curr_tile.moved( move.d );
+              // Here it is ok to scroll because this is in re-
+              // sponse to the keyboard, so the scrolling won't
+              // get out of hand as it would for when the target
+              // is moved by the mouse.
+              co_await animator_.ensure_visible(
+                  mode.curr_tile );
               break;
             }
             CASE( forfeight ) {
@@ -901,6 +912,53 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
     }
   }
 
+  void scroll_when_mouse_pos_at_edge() {
+    point const mouse_pos = input::current_mouse_position();
+    rect const outter     = landview_renderable_rect();
+    size const n_trim =
+        ( outter.size.to_double() *
+          config_land_view.scrolling.edge_thickness_percent )
+            .truncated();
+    if( n_trim == size{} )
+      // This allows us to configure edge_thickness_percent to be
+      // 0.0 to effectively disable this scrolling.
+      return;
+    auto const trim = [&]( rect const r ) {
+      return r.moved( n_trim )
+          .with_dec_size( n_trim )
+          .with_dec_size( n_trim );
+    };
+
+    rect const inner = trim( outter );
+    if( mouse_pos.is_inside( inner ) ) return;
+
+    // The idea here is that if at least one of the mouse dimen-
+    // sions is on the outter most border then we will do the
+    // panning, but we'll use inner2 which has even larger mar-
+    // gins. This provides for a more natural experience because
+    // it effectively provides larger regions at the corners
+    // where both x and y will scroll which makes it easier for
+    // the user to scroll diagonally. Without this, the scrolling
+    // tends to flip between pure horizontal or pure vertical
+    // (unless the mouse is really in the corner) which makes it
+    // feel a bit weird. We didn't want to solve this by lowering
+    // the above trimming percent because then that would make
+    // all scrolling too sensitive.
+    rect const inner2 = trim( trim( inner ) );
+    // Use e.g. > and not >= so that when the edge thickness is
+    // configured to be zero then we don't scroll.
+    bool const push_x_positive = mouse_pos.x > inner2.right();
+    bool const push_x_negative = mouse_pos.x < inner2.left();
+    bool const push_y_positive = mouse_pos.y > inner2.bottom();
+    bool const push_y_negative = mouse_pos.y < inner2.top();
+
+    using enum e_push_direction;
+    if( push_x_positive ) viewport().set_x_push( positive );
+    if( push_y_positive ) viewport().set_y_push( positive );
+    if( push_x_negative ) viewport().set_x_push( negative );
+    if( push_y_negative ) viewport().set_y_push( negative );
+  }
+
   /****************************************************************
   ** Land View IPlane
   *****************************************************************/
@@ -944,6 +1002,11 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
           state( ::SDL_SCANCODE_S ) )
         viewport().stop_auto_panning();
     }
+
+    // Let the mouse push when it is near the edge of the visible
+    // map to help scroll to the goto target.
+    if( mode_.top().holds<LandViewMode::goto_mode>() )
+      scroll_when_mouse_pos_at_edge();
   }
 
   maybe<command> try_orders_from_lua( int keycode,

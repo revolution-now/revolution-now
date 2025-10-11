@@ -1,11 +1,6 @@
 TODO:
 -----------------------------------------------------------------
 
-  * In keyboard mode, need to fix the fact that moving the cursor
-    near the edge of the screen causing things to scroll too
-    fast.
-  * In mouse mode, it would be nice to have a way to gently
-    scroll when the mouse moves to the edge.
   * Do another attempt at finding any additional goto state in
     the OG's sav files.
 
@@ -57,6 +52,14 @@ Done:
     lane.
   * When in keyboard mode, need to be able to center on the fo-
     cused tile.
+  * In keyboard mode, need to fix the fact that moving the cursor
+    near the edge of the screen causing things to scroll too
+    fast. We don't need to scroll the map for the mouse because
+    in this mode the player can scroll by right-click-dragging,
+    moving the target with the keyboard, or using zoom.
+  * When moving the target with the mouse, whether in mouse mode
+    or keyboard mode, it would be nice to have a way to gently
+    scroll when the mouse moves to the edge.
 
   Strategies:
 
