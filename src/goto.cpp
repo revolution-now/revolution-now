@@ -453,20 +453,26 @@ compute_goto_target_snapshot( SSConst const& ss,
 
   if( auto const colony = viz.colony_at( tile );
       colony.has_value() && colony->player != unit_player )
-    return S::foreign_colony{};
+    return S::foreign_colony{ .player = colony->player };
 
   if( visibility == clear ) {
     auto const& units = ss.units.from_coord( tile );
     if( !units.empty() ) {
       GenericUnitId const generic_unit_id = *begin( units );
       switch( ss.units.unit_kind( generic_unit_id ) ) {
-        case e_unit_kind::native:
-          return S::brave{};
+        case e_unit_kind::native: {
+          NativeUnit const& native_unit =
+              ss.units.native_unit_for( generic_unit_id );
+          e_tribe const tribe_type =
+              tribe_type_for_unit( ss, native_unit );
+          return S::brave{ .tribe = tribe_type };
+        }
         case e_unit_kind::euro: {
           Unit const& unit =
               ss.units.euro_unit_for( generic_unit_id );
           if( unit.player_type() != unit_player )
-            return S::foreign_unit{};
+            return S::foreign_unit{ .player =
+                                        unit.player_type() };
           break;
         }
       }
@@ -509,6 +515,8 @@ bool is_new_goto_snapshot_allowed(
   using S = GotoTargetSnapshot;
   SWITCH( New ) {
     CASE( empty_or_friendly ) { return true; }
+    // NOTE: these four below, when compared, will test both the
+    // type and that the tribe/player is consistent.
     CASE( foreign_colony ) { return old == foreign_colony; }
     CASE( foreign_unit ) { return old == foreign_unit; }
     CASE( dwelling ) { return old == dwelling; }

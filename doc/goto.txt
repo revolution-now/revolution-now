@@ -10,8 +10,6 @@ TODO:
     fast.
   * In mouse mode, it would be nice to have a way to gently
     scroll when the mouse moves to the edge.
-  * e_goto_target_snapshot should be turned into a sumtype to
-    capture tribe and player.
   * Do another attempt at finding any additional goto state in
     the OG's sav files.
 
@@ -64,6 +62,8 @@ Done:
     was selected by the user then, when the ship arrives there,
     it should not sail the high seas even if that tile is in sea
     lane.
+  * e_goto_target_snapshot should be turned into a sumtype to
+    capture tribe and player.
 
   Strategies:
 

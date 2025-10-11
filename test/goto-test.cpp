@@ -2147,6 +2147,9 @@ TEST_CASE( "[goto] compute_goto_target_snapshot" ) {
   world w;
   point tile;
 
+  using enum e_player;
+  using enum e_tribe;
+
   using S = GotoTargetSnapshot;
 
   using empty_or_friendly = S::empty_or_friendly;
@@ -2250,7 +2253,7 @@ TEST_CASE( "[goto] compute_goto_target_snapshot" ) {
     w.make_fogged( tile );
     REQUIRE( f() == empty_or_friendly{} );
     w.make_clear( tile );
-    REQUIRE( f() == brave{} );
+    REQUIRE( f() == brave{ .tribe = iroquois } );
 
     tile = { .x = 7, .y = 3 };
     Dwelling const& dwelling2 =
@@ -2290,13 +2293,13 @@ TEST_CASE( "[goto] compute_goto_target_snapshot" ) {
     REQUIRE( f() == nothing );
 
     w.make_fogged( tile );
-    REQUIRE( f() == foreign_colony{} );
+    REQUIRE( f() == foreign_colony{ .player = french } );
     w.make_clear( tile );
-    REQUIRE( f() == foreign_colony{} );
+    REQUIRE( f() == foreign_colony{ .player = french } );
 
     w.add_unit_on_map( e_unit_type::free_colonist, tile,
                        e_player::french );
-    REQUIRE( f() == foreign_colony{} );
+    REQUIRE( f() == foreign_colony{ .player = french } );
 
     tile = tile.moved_left();
     w.add_unit_on_map( e_unit_type::free_colonist, tile,
@@ -2306,7 +2309,7 @@ TEST_CASE( "[goto] compute_goto_target_snapshot" ) {
     w.make_fogged( tile );
     REQUIRE( f() == empty_or_friendly{} );
     w.make_clear( tile );
-    REQUIRE( f() == foreign_unit{} );
+    REQUIRE( f() == foreign_unit{ .player = french } );
   }
 
   SECTION( "full visibility" ) {
@@ -2354,12 +2357,12 @@ TEST_CASE( "[goto] compute_goto_target_snapshot" ) {
     tile = tile.moved_left();
     w.add_native_unit_on_map( e_native_unit_type::brave, tile,
                               dwelling1.id );
-    REQUIRE( f() == brave{} );
+    REQUIRE( f() == brave{ .tribe = iroquois } );
 
     w.make_fogged( tile );
-    REQUIRE( f() == brave{} );
+    REQUIRE( f() == brave{ .tribe = iroquois } );
     w.make_clear( tile );
-    REQUIRE( f() == brave{} );
+    REQUIRE( f() == brave{ .tribe = iroquois } );
 
     tile = { .x = 7, .y = 3 };
     Dwelling const& dwelling2 =
@@ -2396,26 +2399,26 @@ TEST_CASE( "[goto] compute_goto_target_snapshot" ) {
 
     tile = { .x = 7, .y = 7 };
     w.add_colony( tile, e_player::french );
-    REQUIRE( f() == foreign_colony{} );
+    REQUIRE( f() == foreign_colony{ .player = french } );
 
     w.make_fogged( tile );
-    REQUIRE( f() == foreign_colony{} );
+    REQUIRE( f() == foreign_colony{ .player = french } );
     w.make_clear( tile );
-    REQUIRE( f() == foreign_colony{} );
+    REQUIRE( f() == foreign_colony{ .player = french } );
 
     w.add_unit_on_map( e_unit_type::free_colonist, tile,
                        e_player::french );
-    REQUIRE( f() == foreign_colony{} );
+    REQUIRE( f() == foreign_colony{ .player = french } );
 
     tile = tile.moved_left();
     w.add_unit_on_map( e_unit_type::free_colonist, tile,
                        e_player::french );
-    REQUIRE( f() == foreign_unit{} );
+    REQUIRE( f() == foreign_unit{ .player = french } );
 
     w.make_fogged( tile );
-    REQUIRE( f() == foreign_unit{} );
+    REQUIRE( f() == foreign_unit{ .player = french } );
     w.make_clear( tile );
-    REQUIRE( f() == foreign_unit{} );
+    REQUIRE( f() == foreign_unit{ .player = french } );
   }
 }
 
@@ -2423,6 +2426,9 @@ TEST_CASE( "[goto] create_goto_map_target" ) {
   world w;
   point tile;
   goto_target::map expected;
+
+  using enum e_player;
+  using enum e_tribe;
 
   using S = GotoTargetSnapshot;
 
@@ -2539,7 +2545,7 @@ TEST_CASE( "[goto] create_goto_map_target" ) {
     expected.snapshot = empty_or_friendly{};
     REQUIRE( f() == expected );
     w.make_clear( tile );
-    expected.snapshot = brave{};
+    expected.snapshot = brave{ .tribe = iroquois };
     REQUIRE( f() == expected );
 
     tile = { .x = 7, .y = 3 };
@@ -2591,15 +2597,15 @@ TEST_CASE( "[goto] create_goto_map_target" ) {
     REQUIRE( f() == expected );
 
     w.make_fogged( tile );
-    expected.snapshot = foreign_colony{};
+    expected.snapshot = foreign_colony{ .player = french };
     REQUIRE( f() == expected );
     w.make_clear( tile );
-    expected.snapshot = foreign_colony{};
+    expected.snapshot = foreign_colony{ .player = french };
     REQUIRE( f() == expected );
 
     w.add_unit_on_map( e_unit_type::free_colonist, tile,
                        e_player::french );
-    expected.snapshot = foreign_colony{};
+    expected.snapshot = foreign_colony{ .player = french };
     REQUIRE( f() == expected );
 
     tile = tile.moved_left();
@@ -2612,7 +2618,7 @@ TEST_CASE( "[goto] create_goto_map_target" ) {
     expected.snapshot = empty_or_friendly{};
     REQUIRE( f() == expected );
     w.make_clear( tile );
-    expected.snapshot = foreign_unit{};
+    expected.snapshot = foreign_unit{ .player = french };
     REQUIRE( f() == expected );
   }
 
@@ -2673,14 +2679,14 @@ TEST_CASE( "[goto] create_goto_map_target" ) {
     tile = tile.moved_left();
     w.add_native_unit_on_map( e_native_unit_type::brave, tile,
                               dwelling1.id );
-    expected.snapshot = brave{};
+    expected.snapshot = brave{ .tribe = iroquois };
     REQUIRE( f() == expected );
 
     w.make_fogged( tile );
-    expected.snapshot = brave{};
+    expected.snapshot = brave{ .tribe = iroquois };
     REQUIRE( f() == expected );
     w.make_clear( tile );
-    expected.snapshot = brave{};
+    expected.snapshot = brave{ .tribe = iroquois };
     REQUIRE( f() == expected );
 
     tile = { .x = 7, .y = 3 };
@@ -2728,37 +2734,38 @@ TEST_CASE( "[goto] create_goto_map_target" ) {
 
     tile = { .x = 7, .y = 7 };
     w.add_colony( tile, e_player::french );
-    expected.snapshot = foreign_colony{};
+    expected.snapshot = foreign_colony{ .player = french };
     REQUIRE( f() == expected );
 
     w.make_fogged( tile );
-    expected.snapshot = foreign_colony{};
+    expected.snapshot = foreign_colony{ .player = french };
     REQUIRE( f() == expected );
     w.make_clear( tile );
-    expected.snapshot = foreign_colony{};
+    expected.snapshot = foreign_colony{ .player = french };
     REQUIRE( f() == expected );
 
     w.add_unit_on_map( e_unit_type::free_colonist, tile,
                        e_player::french );
-    expected.snapshot = foreign_colony{};
+    expected.snapshot = foreign_colony{ .player = french };
     REQUIRE( f() == expected );
 
     tile = tile.moved_left();
     w.add_unit_on_map( e_unit_type::free_colonist, tile,
                        e_player::french );
-    expected.snapshot = foreign_unit{};
+    expected.snapshot = foreign_unit{ .player = french };
     REQUIRE( f() == expected );
 
     w.make_fogged( tile );
-    expected.snapshot = foreign_unit{};
+    expected.snapshot = foreign_unit{ .player = french };
     REQUIRE( f() == expected );
     w.make_clear( tile );
-    expected.snapshot = foreign_unit{};
+    expected.snapshot = foreign_unit{ .player = french };
     REQUIRE( f() == expected );
   }
 }
 
 TEST_CASE( "[goto] is_new_goto_snapshot_allowed" ) {
+  using enum e_player;
   using S = GotoTargetSnapshot;
 
   using empty_or_friendly = S::empty_or_friendly;
@@ -2796,8 +2803,13 @@ TEST_CASE( "[goto] is_new_goto_snapshot_allowed" ) {
               empty_or_friendly_with_sea_lane{} ) == false );
   REQUIRE( f( empty_or_friendly{}, empty_with_lcr{} ) == false );
 
-  REQUIRE( f( foreign_colony{}, empty_or_friendly{} ) == true );
+  REQUIRE( f( foreign_colony{ .player = french },
+              empty_or_friendly{} ) == true );
   REQUIRE( f( foreign_colony{}, foreign_colony{} ) == true );
+  REQUIRE( f( foreign_colony{ .player = french },
+              foreign_colony{ .player = french } ) == true );
+  REQUIRE( f( foreign_colony{ .player = french },
+              foreign_colony{ .player = spanish } ) == false );
   REQUIRE( f( foreign_colony{}, foreign_unit{} ) == false );
   REQUIRE( f( foreign_colony{}, dwelling{} ) == false );
   REQUIRE( f( foreign_colony{}, brave{} ) == false );
@@ -2805,9 +2817,13 @@ TEST_CASE( "[goto] is_new_goto_snapshot_allowed" ) {
               empty_or_friendly_with_sea_lane{} ) == false );
   REQUIRE( f( foreign_colony{}, empty_with_lcr{} ) == false );
 
-  REQUIRE( f( foreign_unit{}, empty_or_friendly{} ) == true );
+  REQUIRE( f( foreign_unit{ .player = french },
+              empty_or_friendly{} ) == true );
   REQUIRE( f( foreign_unit{}, foreign_colony{} ) == false );
-  REQUIRE( f( foreign_unit{}, foreign_unit{} ) == true );
+  REQUIRE( f( foreign_unit{ .player = french },
+              foreign_unit{ .player = french } ) == true );
+  REQUIRE( f( foreign_unit{ .player = french },
+              foreign_unit{ .player = spanish } ) == false );
   REQUIRE( f( foreign_unit{}, dwelling{} ) == false );
   REQUIRE( f( foreign_unit{}, brave{} ) == false );
   REQUIRE( f( foreign_unit{},
@@ -2823,11 +2839,15 @@ TEST_CASE( "[goto] is_new_goto_snapshot_allowed" ) {
            false );
   REQUIRE( f( dwelling{}, empty_with_lcr{} ) == false );
 
-  REQUIRE( f( brave{}, empty_or_friendly{} ) == true );
+  REQUIRE( f( brave{ .tribe = e_tribe::cherokee },
+              empty_or_friendly{} ) == true );
   REQUIRE( f( brave{}, foreign_colony{} ) == false );
   REQUIRE( f( brave{}, foreign_unit{} ) == false );
   REQUIRE( f( brave{}, dwelling{} ) == false );
-  REQUIRE( f( brave{}, brave{} ) == true );
+  REQUIRE( f( brave{ .tribe = e_tribe::cherokee },
+              brave{ .tribe = e_tribe::cherokee } ) == true );
+  REQUIRE( f( brave{ .tribe = e_tribe::cherokee },
+              brave{ .tribe = e_tribe::inca } ) == false );
   REQUIRE( f( brave{}, empty_or_friendly_with_sea_lane{} ) ==
            false );
   REQUIRE( f( brave{}, empty_with_lcr{} ) == false );
