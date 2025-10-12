@@ -13,6 +13,7 @@
 // Revolution Now
 #include "co-wait.hpp"
 #include "connectivity.hpp"
+#include "goto-registry.hpp"
 #include "harbor-units.hpp"
 #include "igoto-viewer.hpp"
 #include "igui.hpp"
@@ -209,6 +210,40 @@ GotoPath sea_lane_search( IGotoMapViewer const& viewer,
   for( point p = dst; p != src; p = explored[p].tile )
     reverse_path.push_back( p );
   return goto_path;
+}
+
+void new_goto( SSConst const& ss, IGotoMapViewer const& viewer,
+               GotoRegistry& registry, Unit& unit,
+               goto_target const& target ) {
+  lg.info( "goto: {}", target );
+  registry.paths.erase( unit.id() );
+  unit.clear_orders();
+  // This should be validated when loading the save, namely
+  // that a unit in goto mode must be either directly on the
+  // map or in the cargo of another unit that is on the map.
+  point const src =
+      coord_for_unit_indirect_or_die( ss.units, unit.id() );
+  SWITCH( target ) {
+    CASE( map ) {
+      point const dst = map.tile;
+      auto const goto_path =
+          compute_goto_path( viewer, src, dst );
+      if( goto_path.reverse_path.empty() ) break;
+      registry.paths[unit.id()] = GotoExecution{
+        .target = target, .path = std::move( goto_path ) };
+      unit.orders() = unit_orders::go_to{ .target = target };
+      break;
+    }
+    CASE( harbor ) {
+      auto const goto_path =
+          compute_harbor_goto_path( viewer, src );
+      if( goto_path.reverse_path.empty() ) break;
+      registry.paths[unit.id()] = GotoExecution{
+        .target = target, .path = std::move( goto_path ) };
+      unit.orders() = unit_orders::go_to{ .target = target };
+      break;
+    }
+  }
 }
 
 } // namespace
@@ -534,6 +569,182 @@ bool is_new_goto_snapshot_allowed(
       // the move should result in a launch onto the high seas.
       return old == nothing ||
              old == empty_or_friendly_with_sea_lane;
+    }
+  }
+}
+
+EvolveGoto evolve_goto_for_human(
+    SSConst const& ss, GotoRegistry& registry,
+    IGotoMapViewer const& goto_viewer, Unit& unit ) {
+  CHECK( unit.orders().holds<unit_orders::go_to>() );
+  e_player const player_type = unit.player_type();
+
+  auto const abort = [&] {
+    unit.clear_orders();
+    registry.paths.erase( unit.id() );
+    return EvolveGoto::abort{};
+  };
+
+  if( unit_has_reached_goto_target( ss, unit ) ) return abort();
+
+  // Copy this for safety because we may end up changing it.
+  auto const go_to = unit.orders().get<unit_orders::go_to>();
+  // See if we need to get rid of an old goto target if the
+  // target has changed. This can happen when a unit is given a
+  // new goto order when it didn't complete a previous one. Doing
+  // it this way allows us to not need an IAgent method to clear
+  // the goto path when a new goto order is given.
+  if( registry.paths.contains( unit.id() ) &&
+      registry.paths[unit.id()].target != go_to.target )
+    registry.paths.erase( unit.id() );
+
+  // This should be validated when loading the save, namely
+  // that a unit in goto mode must be either directly on the
+  // map or in the cargo of another unit that is on the map.
+  point const src =
+      coord_for_unit_indirect_or_die( ss.units, unit.id() );
+
+  // This is the one we will use when we want to see exactly what
+  // the player is seeing on screen, and is not necessarily the
+  // one being used in the IGotoMapViewer.
+  auto const real_viz = create_visibility_for(
+      ss, player_for_role( ss, e_player_role::viewer ) );
+  CHECK( real_viz );
+
+  // Here we try twice, and this has two purposes. First, if the
+  // unit's goto orders are new and its path hasn't been computed
+  // yet, then the first attempt will fail and then we'll compute
+  // the path and try again. But it is also needed for a unit
+  // that already has a goto path, since as a unit explores
+  // hidden tiles it may discover that its current path is no
+  // longer viable and may need to recompute a path. But if the
+  // second attempt to compute a path still does not succeed then
+  // there is not further viable path and we cancel.
+  auto const go_or_reattempt =
+      [&] [[nodiscard]] (
+          auto const& direction_fn ) -> EvolveGoto {
+    if( auto const d = direction_fn(); d.has_value() )
+      return EvolveGoto::move{ .to = *d };
+    new_goto( ss, goto_viewer, registry, unit, go_to.target );
+    if( auto const d = direction_fn(); d.has_value() )
+      return EvolveGoto::move{ .to = *d };
+    return abort();
+  };
+
+  SWITCH( go_to.target ) {
+    CASE( map ) {
+      auto const direction = [&] -> maybe<e_direction> {
+        if( !registry.paths.contains( unit.id() ) )
+          return nothing;
+        auto& reverse_path =
+            registry.paths[unit.id()].path.reverse_path;
+        if( reverse_path.empty() ) return nothing;
+        point const dst = reverse_path.back();
+        reverse_path.pop_back();
+        auto const d = src.direction_to( dst );
+        if( !d.has_value() ) return nothing;
+        // This means that, whatever the target tile is, we will
+        // allow the unit to at least attempt to enter it. This
+        // allows e.g. a ship to make landfall or a land unit to
+        // attack a dwelling which are actions that would nor-
+        // mally not be allowed because those units would not
+        // normally be able to traverse those tiles en-route to
+        // their target. In the event that the unit is not al-
+        // lowed onto the tile then the goto orders will be
+        // cleared, but that is ok because the user specifically
+        // chose the target.
+        if( dst == map.tile ) return *d;
+        if( goto_viewer.can_enter_tile( dst ) ) return *d;
+        return nothing;
+      };
+
+      // It is ok if the destination tile is not on the map; we
+      // do allow it to be one tile off the left or right edge to
+      // allow the player to send ships to the harbor. The reason
+      // we represent such goto commands with a tile and not the
+      // dedicated `harbor` mode is because with the latter then
+      // you lose the player's desired path to get to the high
+      // seas, so e.g. if the unit is on the left side of the map
+      // and the player drags a ship off the right edge of the
+      // map, we don't want the ship traveling to the left simply
+      // because that is a shorter path to the high seas, given
+      // that the player explicitly chose the right side.
+      bool const dst_exists =
+          ss.terrain.square_exists( map.tile );
+
+      if( dst_exists &&
+          src.direction_to( map.tile ).has_value() ) {
+        // We are adjacent to the destination tile, so let's make
+        // sure that the destination tile contains what we
+        // thought it did when it was initially chosen by the
+        // player. This avoids surprising such as going to an un-
+        // explored tile and then finding there is a brave on
+        // that tile and automatically attacking it. This should
+        // not check-fail because our unit is adjacent to this
+        // tile and so it should be clear.
+        UNWRAP_CHECK_T(
+            GotoTargetSnapshot const new_snapshot,
+            compute_goto_target_snapshot(
+                ss, *real_viz, player_type, map.tile ) );
+        if( !is_new_goto_snapshot_allowed( map.snapshot,
+                                           new_snapshot ) ) {
+          lg.info(
+              "cancelling goto command for {} because the "
+              "destination tile contents have changed from [{}] "
+              "to [{}] since the command was issued.",
+              unit.type(), map.snapshot, new_snapshot );
+          return abort();
+        }
+      }
+
+      return go_or_reattempt( direction );
+    }
+    CASE( harbor ) {
+      auto const direction = [&] -> maybe<e_direction> {
+        if( auto const d =
+                goto_viewer.is_sea_lane_launch_point( src );
+            d.has_value() )
+          return *d;
+        if( !registry.paths.contains( unit.id() ) )
+          return nothing;
+        auto& reverse_path =
+            registry.paths[unit.id()].path.reverse_path;
+        if( reverse_path.empty() ) return nothing;
+        point const dst = reverse_path.back();
+        reverse_path.pop_back();
+        auto const d = src.direction_to( dst );
+        if( !d.has_value() ) return nothing;
+        if( goto_viewer.can_enter_tile( dst ) ) return *d;
+        return nothing;
+      };
+
+      // This is an optimization that tries to take advantage of
+      // any new sea lane tiles that the ship reveals as it is
+      // making it way along its previously computed path to the
+      // sea lane. If there are any sea lane tiles within the
+      // ship's visibility at the moment (meaning that they might
+      // have been revealed on its last move) we will drop the
+      // path which will cause it to be recomputed. We could have
+      // computed a new path and then only used it if it were
+      // better than the previous one, but that doesn't get us
+      // anything because either way we're computing a new op-
+      // timal path and ending up with the optimal path.
+      if( registry.paths.contains( unit.id() ) ) {
+        vector<Coord> const visible = unit_visible_squares(
+            ss, player_type, unit.type(), src );
+        lg.debug( "re-exploring {} tiles for sea lane.",
+                  visible.size() );
+        for( point const p : visible ) {
+          if( goto_viewer.can_enter_tile( p ) &&
+              goto_viewer.is_sea_lane_launch_point( p ) ) {
+            lg.debug( "invalidating sea lane search." );
+            registry.paths.erase( unit.id() );
+            break;
+          }
+        }
+      }
+
+      return go_or_reattempt( direction );
     }
   }
 }

@@ -319,9 +319,5 @@ TEST_CASE( "[human-agent] should_sail_high_seas" ) {
   REQUIRE( f() == ui::e_confirm::no );
 }
 
-TEST_CASE( "[human-agent] evolve_goto" ) {
-  world w;
-}
-
 } // namespace
 } // namespace rn

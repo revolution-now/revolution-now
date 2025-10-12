@@ -34,6 +34,7 @@ namespace rn {
 struct IGotoMapViewer;
 struct IGui;
 struct IVisibility;
+struct GotoRegistry;
 struct Player;
 struct SSConst;
 struct TerrainConnectivity;
@@ -87,5 +88,9 @@ GotoPort find_goto_port( SSConst const& ss,
 wait<maybe<goto_target>> ask_goto_port(
     SSConst const& ss, IGui& gui, Player const& player,
     GotoPort const& goto_port, e_unit_type unit_type );
+
+EvolveGoto evolve_goto_for_human(
+    SSConst const& ss, GotoRegistry& registry,
+    IGotoMapViewer const& goto_viewer, Unit& unit );
 
 } // namespace rn

@@ -35,3 +35,13 @@ struct.GotoPort {
   europe 'bool',
   colonies 'std::vector<ColonyId>',
 }
+
+# Each turn a unit with goto orders either moves or clears their
+# orders. There are multiple causes ways that both can happen,
+# but those are the only options.
+sumtype.EvolveGoto {
+  abort {},
+  move {
+    to 'e_direction',
+  },
+}

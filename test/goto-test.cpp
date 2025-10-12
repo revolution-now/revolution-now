@@ -2877,5 +2877,9 @@ TEST_CASE( "[goto] is_new_goto_snapshot_allowed" ) {
   REQUIRE( f( empty_with_lcr{}, empty_with_lcr{} ) == true );
 }
 
+TEST_CASE( "[goto] evolve_goto_for_human" ) {
+  world w;
+}
+
 } // namespace
 } // namespace rn

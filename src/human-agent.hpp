@@ -131,9 +131,6 @@ struct HumanAgent final : IAgent {
  private:
   ILandViewPlane& land_view() const;
 
-  void new_goto( IGotoMapViewer const& viewer, UnitId unit_id,
-                 goto_target const& target );
-
   IEngine& engine_;
   SS& ss_;
   IGui& gui_;
