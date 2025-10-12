@@ -547,7 +547,6 @@ goto_target::map create_goto_map_target(
 bool is_new_goto_snapshot_allowed(
     maybe<GotoTargetSnapshot> const old,
     GotoTargetSnapshot const& New ) {
-  using S = GotoTargetSnapshot;
   SWITCH( New ) {
     CASE( empty_or_friendly ) { return true; }
     // NOTE: these four below, when compared, will test both the
