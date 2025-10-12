@@ -527,7 +527,7 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
     co_return res;
   }
 
-  wait<maybe<point>> goto_mode( point const start ) {
+  wait<maybe<point>> mouse_drag_goto_mode( point const start ) {
     // Set land view mode.
     SCOPED_MODE_PUSH_AND_GET( mode, goto_mode );
     mode.start_tile = start;
@@ -557,11 +557,11 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
     co_return nothing;
   }
 
-  // NOTE: this is not for the goto selection where the mouse
-  // drags to the target; this is mainly for keyboard driven in-
-  // put, though it supports the mouse as well. Point is, it is
-  // NOT a mouse drag.
-  wait<maybe<point>> select_goto_tile( Unit const& unit ) {
+  // NOTE: this is mainly for keyboard driven input, though it
+  // supports the mouse as well, but not in the sense of drag-
+  // ging, just move/click. But it is mainly intended for use
+  // with the keyboard.
+  wait<maybe<point>> keyboard_goto_mode( Unit const& unit ) {
     point const start =
         coord_for_unit_indirect_or_die( ss_.units, unit.id() );
 
@@ -671,7 +671,7 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
       using e = RI::e;
       case e::goto_drag_start: {
         auto& o = raw_input.input.get<RI::goto_drag_start>();
-        auto const end_tile = co_await goto_mode( o.tile );
+        auto const end_tile = co_await mouse_drag_goto_mode( o.tile );
         if( !end_tile.has_value() ) break;
         UNWRAP_CHECK_T(
             UnitId const unit_id,
@@ -838,7 +838,7 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
         if( !unit_input.has_value() ) break;
         Unit const& unit =
             ss_.units.unit_for( unit_input->unit_id );
-        auto const tile = co_await select_goto_tile( unit );
+        auto const tile = co_await keyboard_goto_mode( unit );
         if( !tile.has_value() ) break;
         // Use current time since there was some user interac-
         // tion.
@@ -912,6 +912,10 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
     }
   }
 
+  // TODO: this needs to be polished so that the degree of
+  // scrolling in a given direction is proportional to the dis-
+  // tance to that map edge. Otherwise the scrolling directions
+  // are too rigid.
   void scroll_when_mouse_pos_at_edge() {
     point const mouse_pos = input::current_mouse_position();
     rect const outter     = landview_renderable_rect();
