@@ -20,6 +20,7 @@
 #include "test/util/coro.hpp"
 
 // Revolution Now
+#include "src/goto-registry.hpp"
 #include "src/goto-viewer.hpp"
 #include "src/harbor-units.hpp"
 #include "src/visibility.hpp"
@@ -2879,6 +2880,95 @@ TEST_CASE( "[goto] is_new_goto_snapshot_allowed" ) {
 
 TEST_CASE( "[goto] evolve_goto_for_human" ) {
   world w;
+  EvolveGoto expected;
+
+  using enum e_player;
+  using enum e_tribe;
+  using enum e_unit_type;
+
+  using S = GotoTargetSnapshot;
+
+  using empty_or_friendly = S::empty_or_friendly;
+  // using foreign_colony    = S::foreign_colony;
+  // using foreign_unit      = S::foreign_unit;
+  // using dwelling          = S::dwelling;
+  // using brave             = S::brave;
+  // using empty_or_friendly_with_sea_lane =
+  //     S::empty_or_friendly_with_sea_lane;
+  // using empty_with_lcr = S::empty_with_lcr;
+
+  GotoRegistry registry;
+  IVisibility const* p_viz = {};
+  Unit* p_unit             = {};
+
+  auto const f = [&] [[clang::noinline]] {
+    BASE_CHECK( p_unit );
+    BASE_CHECK( p_viz );
+    GotoMapViewer const viewer(
+        w.ss(), *p_viz, p_unit->player_type(), p_unit->type() );
+    return evolve_goto_for_human( w.ss().as_const, registry,
+                                  viewer, *p_unit );
+  };
+
+  {
+    using enum e_surface;
+    using enum e_ground_terrain;
+    using enum e_land_overlay;
+    using enum e_river;
+    using enum e_unit_type;
+
+    using MS = MapSquare;
+
+    static MS const _{ .surface = water };
+    static MS const X{ .surface = land, .ground = grassland };
+    static MS const s{ .surface = water, .sea_lane = true };
+
+    // clang-format off
+    vector<MapSquare> tiles{ /*
+          0 1 2 3 4 5 6 7 8 9
+      0*/ s,_,_,_,_,_,_,_,_,s, /*0
+      1*/ s,_,_,_,_,_,_,_,_,s, /*1
+      2*/ s,_,X,X,X,X,X,X,_,s, /*2
+      3*/ s,_,X,X,X,X,X,X,_,s, /*3
+      4*/ s,_,X,X,X,X,X,X,_,s, /*4
+      5*/ s,_,X,X,X,X,X,X,_,s, /*5
+      6*/ s,_,X,X,X,X,X,X,_,s, /*6
+      7*/ s,_,X,X,X,X,X,X,_,s, /*7
+      8*/ s,_,_,_,_,_,_,_,_,s, /*8
+      9*/ s,_,_,_,_,_,_,_,_,s, /*9
+          0 1 2 3 4 5 6 7 8 9
+    */};
+    // clang-format on
+
+    w.build_map( std::move( tiles ), 10 );
+  }
+
+  VisibilityEntire const viz_entire( w.ss() );
+  VisibilityForPlayer const viz_player(
+      w.ss(), w.default_player_type() );
+
+  Unit& land_unit =
+      w.add_unit_on_map( free_colonist, { .x = 2, .y = 2 } );
+  Unit& ship_unit =
+      w.add_unit_on_map( caravel, { .x = 1, .y = 1 } );
+
+  p_viz  = &viz_entire;
+  p_unit = &land_unit;
+  p_unit->orders() =
+      unit_orders::go_to{ .target = goto_target::map{
+                            .tile     = { .x = 7, .y = 7 },
+                            .snapshot = empty_or_friendly{} } };
+  expected = EvolveGoto::move{ .to = e_direction::se };
+  REQUIRE( f() == expected );
+
+  p_viz  = &viz_entire;
+  p_unit = &ship_unit;
+  p_unit->orders() =
+      unit_orders::go_to{ .target = goto_target::map{
+                            .tile     = { .x = 8, .y = 8 },
+                            .snapshot = empty_or_friendly{} } };
+  expected = EvolveGoto::move{ .to = e_direction::e };
+  REQUIRE( f() == expected );
 }
 
 } // namespace

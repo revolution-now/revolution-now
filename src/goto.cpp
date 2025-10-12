@@ -572,10 +572,10 @@ bool is_new_goto_snapshot_allowed(
   }
 }
 
-EvolveGoto evolve_goto_for_human(
-    SSConst const& ss, GotoRegistry& registry,
-    IGotoMapViewer const& goto_viewer, Unit& unit ) {
-  CHECK( unit.orders().holds<unit_orders::go_to>() );
+EvolveGoto evolve_goto_for_human( SSConst const& ss,
+                                  GotoRegistry& registry,
+                                  IGotoMapViewer const& viewer,
+                                  Unit& unit ) {
   e_player const player_type = unit.player_type();
 
   auto const abort = [&] {
@@ -586,6 +586,7 @@ EvolveGoto evolve_goto_for_human(
 
   if( unit_has_reached_goto_target( ss, unit ) ) return abort();
 
+  CHECK( unit.orders().holds<unit_orders::go_to>() );
   // Copy this for safety because we may end up changing it.
   auto const go_to = unit.orders().get<unit_orders::go_to>();
   // See if we need to get rid of an old goto target if the
@@ -605,7 +606,8 @@ EvolveGoto evolve_goto_for_human(
 
   // This is the one we will use when we want to see exactly what
   // the player is seeing on screen, and is not necessarily the
-  // one being used in the IGotoMapViewer.
+  // one being used in the IGotoMapViewer because of the "omni-
+  // scient goto" config option.
   auto const real_viz = create_visibility_for(
       ss, player_for_role( ss, e_player_role::viewer ) );
   CHECK( real_viz );
@@ -624,7 +626,7 @@ EvolveGoto evolve_goto_for_human(
           auto const& direction_fn ) -> EvolveGoto {
     if( auto const d = direction_fn(); d.has_value() )
       return EvolveGoto::move{ .to = *d };
-    new_goto( ss, goto_viewer, registry, unit, go_to.target );
+    new_goto( ss, viewer, registry, unit, go_to.target );
     if( auto const d = direction_fn(); d.has_value() )
       return EvolveGoto::move{ .to = *d };
     return abort();
@@ -653,7 +655,7 @@ EvolveGoto evolve_goto_for_human(
         // cleared, but that is ok because the user specifically
         // chose the target.
         if( dst == map.tile ) return *d;
-        if( goto_viewer.can_enter_tile( dst ) ) return *d;
+        if( viewer.can_enter_tile( dst ) ) return *d;
         return nothing;
       };
 
@@ -701,7 +703,7 @@ EvolveGoto evolve_goto_for_human(
     CASE( harbor ) {
       auto const direction = [&] -> maybe<e_direction> {
         if( auto const d =
-                goto_viewer.is_sea_lane_launch_point( src );
+                viewer.is_sea_lane_launch_point( src );
             d.has_value() )
           return *d;
         if( !registry.paths.contains( unit.id() ) )
@@ -713,7 +715,7 @@ EvolveGoto evolve_goto_for_human(
         reverse_path.pop_back();
         auto const d = src.direction_to( dst );
         if( !d.has_value() ) return nothing;
-        if( goto_viewer.can_enter_tile( dst ) ) return *d;
+        if( viewer.can_enter_tile( dst ) ) return *d;
         return nothing;
       };
 
@@ -734,8 +736,8 @@ EvolveGoto evolve_goto_for_human(
         lg.debug( "re-exploring {} tiles for sea lane.",
                   visible.size() );
         for( point const p : visible ) {
-          if( goto_viewer.can_enter_tile( p ) &&
-              goto_viewer.is_sea_lane_launch_point( p ) ) {
+          if( viewer.can_enter_tile( p ) &&
+              viewer.is_sea_lane_launch_point( p ) ) {
             lg.debug( "invalidating sea lane search." );
             registry.paths.erase( unit.id() );
             break;
