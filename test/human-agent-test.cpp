@@ -319,5 +319,11 @@ TEST_CASE( "[human-agent] should_sail_high_seas" ) {
   REQUIRE( f() == ui::e_confirm::no );
 }
 
+// Just do something basic here since the bulk of it is already
+// tested in other modules.
+TEST_CASE( "[human-agent] evolve_goto" ) {
+  world w;
+}
+
 } // namespace
 } // namespace rn
