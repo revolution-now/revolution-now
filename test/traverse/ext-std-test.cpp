@@ -63,6 +63,44 @@ TEST_CASE( "[traverse/ext-std] pair" ) {
                 } );
 }
 
+TEST_CASE( "[traverse/ext-std] tuple" ) {
+  using T          = tuple<string, int, double>;
+  using K_expected = string_view;
+  T o;
+
+  vector<string> v;
+  auto const traversing_fn = [&]<typename V, typename K>(
+                                 V const& val, K const key ) {
+    static_assert( is_same_v<K, K_expected> );
+    v.push_back( format( "{}", key ) );
+    if constexpr( is_same_v<V, int> ) v.push_back( "int" );
+    if constexpr( is_same_v<V, double> ) v.push_back( "double" );
+    if constexpr( is_same_v<V, string> ) v.push_back( "string" );
+    v.push_back( format( "{}", val ) );
+  };
+
+  auto const f = [&] [[clang::noinline]] {
+    trv::traverse( o, traversing_fn );
+  };
+
+  get<0>( o ) = "hello";
+  get<1>( o ) = 3;
+  get<2>( o ) = 3.3;
+  f();
+
+  REQUIRE( v == vector<string>{
+                  "<0>",
+                  "string",
+                  "hello",
+                  "<1>",
+                  "int",
+                  "3",
+                  "<2>",
+                  "double",
+                  "3.3",
+                } );
+}
+
 TEST_CASE( "[traverse/ext-std] vector (range)" ) {
   using T          = vector<string>;
   using K_expected = int;

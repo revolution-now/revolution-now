@@ -26,8 +26,10 @@
 #include <set>
 #include <string>
 #include <string_view>
+#include <tuple>
 #include <unordered_map>
 #include <unordered_set>
+#include <utility>
 #include <variant>
 
 namespace trv {
@@ -81,6 +83,21 @@ void traverse( std::pair<Fst, Snd> const& o, Fn& fn,
   using namespace std::literals;
   fn( o.first, "first"sv );
   fn( o.second, "second"sv );
+}
+
+/****************************************************************
+** std::tuple
+*****************************************************************/
+template<typename Fn, typename... T>
+void traverse( std::tuple<T...> const& o, Fn& fn,
+               tag_t<std::tuple<T...>> ) {
+  using namespace std::literals;
+  [&]<size_t... I>( std::index_sequence<I...> ) {
+    ( fn( std::get<I>( o ),
+          std::string_view( "<"s + std::to_string( I ) +
+                            ">"s ) ),
+      ... );
+  }( std::make_index_sequence<sizeof...( T )>() );
 }
 
 /****************************************************************
