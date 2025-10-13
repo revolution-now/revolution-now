@@ -59,12 +59,11 @@ struct usertype {
   }
 
   template<base::MemberFunctionPointer F>
-  requires //
-      std::is_same_v<
-          std::remove_const_t<
-              typename mp::callable_traits<F>::object_type>,
-          T>
-      void set_member( std::string_view name, F func ) {
+  requires std::is_same_v<
+      std::remove_const_t<
+          typename mp::callable_traits<F>::object_type>,
+      T>
+  void set_member( std::string_view const name, F const func ) {
     using traits = mp::callable_traits<F>;
     using R      = typename traits::ret_type;
     using O = std::remove_const_t<typename traits::object_type>;
@@ -82,12 +81,12 @@ struct usertype {
   // This is for "flattened" member functions, i.e. regular func-
   // tions that take a reference to the object type as a first
   // parameter.
-  // clang-format off
   template<base::NonOverloadedCallable F>
   requires std::is_same_v<
-      mp::head_t<typename mp::callable_traits<F>::arg_types>, T&>
-  void set_member( std::string_view name, F&& func ) {
-    // clang-format on
+      mp::head_t<typename mp::callable_traits<
+          std::remove_cvref_t<F>>::arg_types>,
+      T&>
+  void set_member( std::string_view const name, F&& func ) {
     push_existing_userdata_metatable<Usertype>( L );
     push_cpp_function( L, FWD( func ) );
     detail::usertype_set_member_getter(
@@ -98,11 +97,11 @@ struct usertype {
   template<base::MemberPointer F>
   requires //
       std::is_same_v<
-          std::remove_const_t<
-              typename mp::callable_traits<F>::object_type>,
+          std::remove_const_t<typename mp::callable_traits<
+              std::remove_cvref_t<F>>::object_type>,
           T>
-      void set_member( std::string_view name, F&& func ) {
-    using traits = mp::callable_traits<F>;
+      void set_member( std::string_view const name, F&& func ) {
+    using traits = mp::callable_traits<std::remove_cvref_t<F>>;
     using R      = typename traits::ret_type;
     using O = std::remove_const_t<typename traits::object_type>;
     using ref_t = decltype( make_member_var_getter_lambda<O>(
@@ -128,10 +127,7 @@ struct usertype {
     }
   }
 
-  // clang-format off
-private:
-  // clang-format on
-
+ private:
   struct proxy {
     proxy( usertype& ut, std::string_view name )
       : ut_( ut ), name_( name ) {}
