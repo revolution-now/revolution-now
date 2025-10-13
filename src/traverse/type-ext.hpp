@@ -33,16 +33,20 @@ namespace trv {
 //   // std::string: Non-template type.
 //   template<template<typename> typename O>
 //   struct TypeTraverse<O, std::string>
-//     : virtual private O<std::string>
+//     : traverse_base<
+//         O<std::string>
+//       >
 //     {};
 //
 //   // std::map: Template type with two template parameters.
 //   template<template<typename> typename O, typename U,
 //                                           typename V>
 //   struct TypeTraverse<O, std::map<U, V>>
-//     : virtual private TypeTraverse<O, U>
-//     , virtual private TypeTraverse<O, V>
-//     , virtual private O<std::map<U, V>>
+//     : traverse_base<
+//         TypeTraverse<O, U>,
+//         TypeTraverse<O, V>,
+//         O<std::map<U, V>>
+//       >
 //     {};
 //
 // The below macros produce the above when used like so:
@@ -53,6 +57,14 @@ namespace trv {
 template<template<typename> typename O, typename T>
 struct TypeTraverse;
 
+template<typename... T>
+struct list {};
+
+template<typename... T>
+struct traverse_base {
+  using type = list<typename T::type...>;
+};
+
 /****************************************************************
 ** TRV_TYPE_TRAVERSE
 *****************************************************************/
@@ -60,27 +72,24 @@ struct TypeTraverse;
 // plate parameters that need to be traversed.
 #define TRV_TYPENAME( a ) typename a
 
-#define TRV_TRAVERSE_RECURSE( T ) \
-  virtual private TypeTraverse<O, T>
+#define TRV_TRAVERSE_RECURSE( T ) TypeTraverse<O, T>
 
-#define TRV_TYPE_TRAVERSE( C, ... )                                   \
-  EVAL(                                                               \
-      template<template<typename> typename O __VA_OPT__(, )           \
-                   PP_MAP_COMMAS( TRV_TYPENAME, __VA_ARGS__ )>        \
-      struct TypeTraverse<                                            \
-          O,                                                          \
-          C __VA_OPT__(                                               \
-              <__VA_ARGS__> )> : PP_MAP_COMMAS( TRV_TRAVERSE_RECURSE, \
-                                                __VA_ARGS__ )         \
-          __VA_OPT__(, ) virtual private O<C __VA_OPT__(              \
-              <__VA_ARGS__> )>{} )
+#define TRV_TYPE_TRAVERSE( C, ... )                             \
+  EVAL( template<template<typename> typename O __VA_OPT__(      \
+            , ) PP_MAP_COMMAS( TRV_TYPENAME, __VA_ARGS__ )>     \
+        struct TypeTraverse<O,                                  \
+                            C __VA_OPT__( <__VA_ARGS__> )> : :: \
+            trv::traverse_base<                                 \
+                PP_MAP_COMMAS( TRV_TRAVERSE_RECURSE,            \
+                               __VA_ARGS__ ) __VA_OPT__(, )     \
+                    O<C __VA_OPT__( <__VA_ARGS__> )>>{} )
 
 /****************************************************************
 ** Scalars.
 *****************************************************************/
 template<template<typename> typename O, typename T>
 requires std::is_scalar_v<T>
-struct TypeTraverse<O, T> : private O<T> {};
+struct TypeTraverse<O, T> : O<T> {};
 
 /****************************************************************
 ** Runner.
@@ -93,8 +102,8 @@ struct RunTypeTraverse {
 };
 }
 
-#define TRV_RUN_TYPE_TRAVERSE( O, T )              \
-  [[maybe_unused]] static auto const _##__LINE__ = \
-      internal::RunTypeTraverse<C, Foo>{};
+#define TRV_RUN_TYPE_TRAVERSE( O, T )             \
+  [[maybe_unused]] static auto const STRING_JOIN( \
+      _, __LINE__ ) = ::trv::internal::RunTypeTraverse<O, T>{};
 
 } // namespace trv
