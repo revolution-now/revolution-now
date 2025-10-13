@@ -190,10 +190,19 @@ GotoPath sea_lane_search( IGotoMapViewer const& viewer,
       int const proposed_weight =
           explored[curr].cost + viewer.travel_cost( curr, d );
       if( explored.contains( moved ) ) {
-        if( proposed_weight < explored[moved].cost )
-          explored[moved] = { .tile = curr,
-                              .cost = proposed_weight };
-        continue;
+        if( proposed_weight >= explored[moved].cost ) continue;
+        // NOTE: this branch never seems to happen in practice
+        // for the sea lane search (unlike for land searches),
+        // and that is (very likely) because all ocean tiles have
+        // the same cost, so this algorithm will be able to find
+        // the optimal path without ever processing a given node
+        // twice, i.e. it won't every find a better path to a
+        // node that was already processed. The A* wiki page men-
+        // tions this when discussing heuristic functions being
+        // "monotone" or "consistent".
+        explored[moved] = { .tile = curr,
+                            .cost = proposed_weight };
+        // Need to fall through here to reprocess node.
       }
       push( moved, curr, proposed_weight );
     }
