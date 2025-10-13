@@ -23,12 +23,12 @@ namespace lua {
 
 // We support a canned ownership model, with two choices.
 enum class e_userdata_ownership_model {
-  // Objects of that type are stored as C++ objects by value and
-  // are always owned by Lua. They are always non-const.
-  owned_by_cpp,
   // Objects of that type are stored as C++ objects owned by C++,
   // and Lua always just holds references to them. They are al-
   // ways non-const.
+  owned_by_cpp,
+  // Objects of that type are stored as C++ objects by value and
+  // are always owned by Lua. They are always non-const.
   owned_by_lua,
 };
 
