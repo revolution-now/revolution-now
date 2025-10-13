@@ -73,12 +73,12 @@ compute_goto_target_snapshot( SSConst const& ss,
 [[nodiscard]] goto_target::map create_goto_map_target(
     SSConst const& ss, e_player unit_player, gfx::point tile );
 
-// This will return false if the unit does not have goto orders.
-// If it does have goto orders then it will return true if the
-// unit is in the place where it is supposed to go, which could
-// be a map tile, high seas, etc.
+// Will return true if the unit is in the place where it is sup-
+// posed to go, which could be a map tile, high seas, etc. The
+// unit does not need to have goto orders necessarily.
 [[nodiscard]] bool unit_has_reached_goto_target(
-    SSConst const& ss, Unit const& unit );
+    SSConst const& ss, Unit const& unit,
+    goto_target const& target );
 
 GotoPort find_goto_port( SSConst const& ss,
                          TerrainConnectivity const& connectivity,
@@ -89,8 +89,13 @@ wait<maybe<goto_target>> ask_goto_port(
     SSConst const& ss, IGui& gui, Player const& player,
     GotoPort const& goto_port, e_unit_type unit_type );
 
-EvolveGoto evolve_goto_for_human(
+// Note that the unit does not have to have goto orders per se to
+// use this, since it is intended to be used for both human
+// players and AI, the latter of which don't use explicit goto
+// orders.
+EvolveGoto find_next_move_for_unit_with_goto_target(
     SSConst const& ss, GotoRegistry& registry,
-    IGotoMapViewer const& goto_viewer, Unit& unit );
+    IGotoMapViewer const& goto_viewer, Unit const& unit,
+    goto_target const& target );
 
 } // namespace rn

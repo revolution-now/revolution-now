@@ -1284,7 +1284,14 @@ wait<> advance_unit( IEngine& engine, SS& ss, TS& ts,
           unit.clear_orders();
           break;
         }
-        if( unit_has_reached_goto_target( ss.as_const, unit ) )
+        auto const still_goto =
+            unit.orders().get_if<unit_orders::go_to>();
+        if( !still_goto.has_value() ) break;
+        if( unit_has_reached_goto_target( ss.as_const, unit,
+                                          still_goto->target ) )
+          // Needed so that a unit that ends its turn on its goto
+          // target will have its orders cleared right away,
+          // which looks better to the player.
           unit.clear_orders();
         // Here we test if the unit hasn't moved and clear or-
         // ders. Some examples of this:

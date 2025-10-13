@@ -418,8 +418,9 @@ wait<ui::e_confirm> HumanAgent::should_sail_high_seas() {
 }
 
 EvolveGoto HumanAgent::evolve_goto( UnitId const unit_id ) {
-  Unit& unit = ss_.units.unit_for( unit_id );
-  CHECK( unit.orders().holds<unit_orders::go_to>() );
+  Unit const& unit = ss_.units.unit_for( unit_id );
+  UNWRAP_CHECK_T( goto_target const& target,
+                  unit.orders().inner_if<unit_orders::go_to>() );
   // In the OG this is true, but in the NG it defaults to false.
   bool const omniscient =
       config_command.go_to.omniscient_path_finding;
@@ -432,8 +433,8 @@ EvolveGoto HumanAgent::evolve_goto( UnitId const unit_id ) {
                : player_for_role( ss_, e_player_role::viewer ) );
   GotoMapViewer const goto_viewer( ss_, *goto_path_viz,
                                    player_type(), unit.type() );
-  return evolve_goto_for_human( ss_.as_const, goto_registry_,
-                                goto_viewer, unit );
+  return find_next_move_for_unit_with_goto_target(
+      ss_.as_const, goto_registry_, goto_viewer, unit, target );
 }
 
 } // namespace rn

@@ -221,35 +221,30 @@ GotoPath sea_lane_search( IGotoMapViewer const& viewer,
   return goto_path;
 }
 
-void new_goto( SSConst const& ss, IGotoMapViewer const& viewer,
-               GotoRegistry& registry, Unit& unit,
-               goto_target const& target ) {
+// If no new path is found then the unit will be removed from the
+// registry.
+void try_new_goto( IGotoMapViewer const& viewer,
+                   GotoRegistry& registry, UnitId const unit_id,
+                   goto_target const& target,
+                   point const unit_tile ) {
   lg.info( "goto: {}", target );
-  registry.paths.erase( unit.id() );
-  unit.clear_orders();
-  // This should be validated when loading the save, namely
-  // that a unit in goto mode must be either directly on the
-  // map or in the cargo of another unit that is on the map.
-  point const src =
-      coord_for_unit_indirect_or_die( ss.units, unit.id() );
+  registry.paths.erase( unit_id );
   SWITCH( target ) {
     CASE( map ) {
       point const dst = map.tile;
       auto const goto_path =
-          compute_goto_path( viewer, src, dst );
+          compute_goto_path( viewer, unit_tile, dst );
       if( goto_path.reverse_path.empty() ) break;
-      registry.paths[unit.id()] = GotoExecution{
+      registry.paths[unit_id] = GotoExecution{
         .target = target, .path = std::move( goto_path ) };
-      unit.orders() = unit_orders::go_to{ .target = target };
       break;
     }
     CASE( harbor ) {
       auto const goto_path =
-          compute_harbor_goto_path( viewer, src );
+          compute_harbor_goto_path( viewer, unit_tile );
       if( goto_path.reverse_path.empty() ) break;
-      registry.paths[unit.id()] = GotoExecution{
+      registry.paths[unit_id] = GotoExecution{
         .target = target, .path = std::move( goto_path ) };
-      unit.orders() = unit_orders::go_to{ .target = target };
       break;
     }
   }
@@ -287,16 +282,12 @@ GotoPath compute_harbor_goto_path( IGotoMapViewer const& viewer,
 }
 
 bool unit_has_reached_goto_target( SSConst const& ss,
-                                   Unit const& unit ) {
-  auto const go_to = unit.orders().get_if<unit_orders::go_to>();
-  if( !go_to.has_value() ) return false;
-  SWITCH( go_to->target ) {
+                                   Unit const& unit,
+                                   goto_target const& target ) {
+  SWITCH( target ) {
     CASE( map ) {
-      // It should be validated when loading a save that any unit
-      // with goto->map orders should be on the map at least in-
-      // directly, and the game should maintain that.
-      point const unit_tile =
-          coord_for_unit_indirect_or_die( ss.units, unit.id() );
+      auto const unit_tile =
+          coord_for_unit_indirect( ss.units, unit.id() );
       return unit_tile == map.tile;
     }
     CASE( harbor ) {
@@ -581,37 +572,39 @@ bool is_new_goto_snapshot_allowed(
   }
 }
 
-EvolveGoto evolve_goto_for_human( SSConst const& ss,
-                                  GotoRegistry& registry,
-                                  IGotoMapViewer const& viewer,
-                                  Unit& unit ) {
+// NOTE: Here we make it a point not to assume that the unit
+// needs to have goto orders per se, because AI units that are
+// following paths may not have them. The unit may just have a
+// goto_target stored elsewhere in e.g. AI strategy state.
+EvolveGoto find_next_move_for_unit_with_goto_target(
+    SSConst const& ss, GotoRegistry& registry,
+    IGotoMapViewer const& viewer, Unit const& unit,
+    goto_target const& target ) {
+  UnitId const unit_id       = unit.id();
   e_player const player_type = unit.player_type();
 
   auto const abort = [&] {
-    unit.clear_orders();
-    registry.paths.erase( unit.id() );
+    registry.paths.erase( unit_id );
     return EvolveGoto::abort{};
   };
 
-  if( unit_has_reached_goto_target( ss, unit ) ) return abort();
+  if( unit_has_reached_goto_target( ss, unit, target ) )
+    return abort();
 
-  CHECK( unit.orders().holds<unit_orders::go_to>() );
-  // Copy this for safety because we may end up changing it.
-  auto const go_to = unit.orders().get<unit_orders::go_to>();
   // See if we need to get rid of an old goto target if the
   // target has changed. This can happen when a unit is given a
   // new goto order when it didn't complete a previous one. Doing
   // it this way allows us to not need an IAgent method to clear
   // the goto path when a new goto order is given.
-  if( registry.paths.contains( unit.id() ) &&
-      registry.paths[unit.id()].target != go_to.target )
-    registry.paths.erase( unit.id() );
+  if( registry.paths.contains( unit_id ) &&
+      registry.paths[unit_id].target != target )
+    registry.paths.erase( unit_id );
 
   // This should be validated when loading the save, namely
   // that a unit in goto mode must be either directly on the
   // map or in the cargo of another unit that is on the map.
   point const src =
-      coord_for_unit_indirect_or_die( ss.units, unit.id() );
+      coord_for_unit_indirect_or_die( ss.units, unit_id );
 
   // This is the one we will use when we want to see exactly what
   // the player is seeing on screen, and is not necessarily the
@@ -635,19 +628,18 @@ EvolveGoto evolve_goto_for_human( SSConst const& ss,
           auto const& direction_fn ) -> EvolveGoto {
     if( auto const d = direction_fn(); d.has_value() )
       return EvolveGoto::move{ .to = *d };
-    new_goto( ss, viewer, registry, unit, go_to.target );
+    try_new_goto( viewer, registry, unit_id, target, src );
     if( auto const d = direction_fn(); d.has_value() )
       return EvolveGoto::move{ .to = *d };
     return abort();
   };
 
-  SWITCH( go_to.target ) {
+  SWITCH( target ) {
     CASE( map ) {
       auto const direction = [&] -> maybe<e_direction> {
-        if( !registry.paths.contains( unit.id() ) )
-          return nothing;
+        if( !registry.paths.contains( unit_id ) ) return nothing;
         auto& reverse_path =
-            registry.paths[unit.id()].path.reverse_path;
+            registry.paths[unit_id].path.reverse_path;
         if( reverse_path.empty() ) return nothing;
         point const dst = reverse_path.back();
         reverse_path.pop_back();
@@ -715,10 +707,9 @@ EvolveGoto evolve_goto_for_human( SSConst const& ss,
                 viewer.is_sea_lane_launch_point( src );
             d.has_value() )
           return *d;
-        if( !registry.paths.contains( unit.id() ) )
-          return nothing;
+        if( !registry.paths.contains( unit_id ) ) return nothing;
         auto& reverse_path =
-            registry.paths[unit.id()].path.reverse_path;
+            registry.paths[unit_id].path.reverse_path;
         if( reverse_path.empty() ) return nothing;
         point const dst = reverse_path.back();
         reverse_path.pop_back();
@@ -739,7 +730,7 @@ EvolveGoto evolve_goto_for_human( SSConst const& ss,
       // better than the previous one, but that doesn't get us
       // anything because either way we're computing a new op-
       // timal path and ending up with the optimal path.
-      if( registry.paths.contains( unit.id() ) ) {
+      if( registry.paths.contains( unit_id ) ) {
         vector<Coord> const visible = unit_visible_squares(
             ss, player_type, unit.type(), src );
         lg.debug( "re-exploring {} tiles for sea lane.",
@@ -748,7 +739,7 @@ EvolveGoto evolve_goto_for_human( SSConst const& ss,
           if( viewer.can_enter_tile( p ) &&
               viewer.is_sea_lane_launch_point( p ) ) {
             lg.debug( "invalidating sea lane search." );
-            registry.paths.erase( unit.id() );
+            registry.paths.erase( unit_id );
             break;
           }
         }

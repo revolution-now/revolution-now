@@ -1279,6 +1279,8 @@ TEST_CASE( "[goto] compute_harbor_goto_path" ) {
 
 TEST_CASE( "[goto] unit_has_reached_goto_target" ) {
   world w;
+  goto_target target;
+
   using enum e_surface;
   using enum e_ground_terrain;
   using enum e_land_overlay;
@@ -1310,49 +1312,40 @@ TEST_CASE( "[goto] unit_has_reached_goto_target" ) {
 
   w.build_map( std::move( tiles ), 10 );
 
-  auto const f =
-      [&] [[clang::noinline]] ( UnitId const unit_id ) {
-        Unit const& unit = w.units().unit_for( unit_id );
-        return unit_has_reached_goto_target( w.ss(), unit );
-      };
+  auto const f = [&] [[clang::noinline]] (
+                     UnitId const unit_id ) {
+    Unit const& unit = w.units().unit_for( unit_id );
+    return unit_has_reached_goto_target( w.ss(), unit, target );
+  };
 
   Unit& unit1 =
       w.add_unit_on_map( free_colonist, { .x = 2, .y = 2 } );
 
   REQUIRE( f( unit1.id() ) == false );
-  unit1.orders() = unit_orders::go_to{
-    .target = goto_target::map{ .tile = { .x = 3, .y = 4 } } };
+  target = goto_target::map{ .tile = { .x = 3, .y = 4 } };
   REQUIRE( f( unit1.id() ) == false );
-  unit1.orders() = unit_orders::go_to{
-    .target = goto_target::map{ .tile = { .x = 2, .y = 2 } } };
+  target = goto_target::map{ .tile = { .x = 2, .y = 2 } };
   REQUIRE( f( unit1.id() ) == true );
 
   Unit& unit2 = w.add_unit_on_map( frigate, { .x = 1, .y = 2 } );
   REQUIRE( f( unit2.id() ) == false );
-  unit2.orders() = unit_orders::go_to{
-    .target = goto_target::map{ .tile = { .x = 1, .y = 1 } } };
+  target = goto_target::map{ .tile = { .x = 1, .y = 1 } };
   REQUIRE( f( unit2.id() ) == false );
-  unit2.orders() = unit_orders::go_to{
-    .target = goto_target::map{ .tile = { .x = 1, .y = 2 } } };
+  target = goto_target::map{ .tile = { .x = 1, .y = 2 } };
   REQUIRE( f( unit2.id() ) == true );
 
-  unit2.clear_orders();
   unit_sail_to_harbor( w.ss(), unit2.id() );
   REQUIRE( f( unit2.id() ) == false );
-  unit2.orders() =
-      unit_orders::go_to{ .target = goto_target::harbor{} };
+  target = goto_target::harbor{};
   REQUIRE( f( unit2.id() ) == false );
 
   Unit& unit3 = w.add_unit_in_port( frigate );
   REQUIRE( f( unit3.id() ) == false );
-  unit3.orders() =
-      unit_orders::go_to{ .target = goto_target::harbor{} };
+  target = goto_target::harbor{};
   REQUIRE( f( unit3.id() ) == false );
-  unit3.clear_orders();
   unit_sail_to_new_world( w.ss(), unit3.id() );
   REQUIRE( f( unit3.id() ) == false );
-  unit3.orders() =
-      unit_orders::go_to{ .target = goto_target::harbor{} };
+  target = goto_target::harbor{};
   REQUIRE( f( unit3.id() ) == false );
 }
 
@@ -2878,9 +2871,10 @@ TEST_CASE( "[goto] is_new_goto_snapshot_allowed" ) {
   REQUIRE( f( empty_with_lcr{}, empty_with_lcr{} ) == true );
 }
 
-TEST_CASE( "[goto] evolve_goto_for_human" ) {
+TEST_CASE( "[goto] find_next_move_for_unit_with_goto_target" ) {
   world w;
   EvolveGoto expected;
+  goto_target target;
 
   using enum e_player;
   using enum e_tribe;
@@ -2899,15 +2893,15 @@ TEST_CASE( "[goto] evolve_goto_for_human" ) {
 
   GotoRegistry registry;
   IVisibility const* p_viz = {};
-  Unit* p_unit             = {};
+  Unit const* p_unit       = {};
 
   auto const f = [&] [[clang::noinline]] {
     BASE_CHECK( p_unit );
     BASE_CHECK( p_viz );
     GotoMapViewer const viewer(
         w.ss(), *p_viz, p_unit->player_type(), p_unit->type() );
-    return evolve_goto_for_human( w.ss().as_const, registry,
-                                  viewer, *p_unit );
+    return find_next_move_for_unit_with_goto_target(
+        w.ss().as_const, registry, viewer, *p_unit, target );
   };
 
   {
@@ -2952,21 +2946,17 @@ TEST_CASE( "[goto] evolve_goto_for_human" ) {
   Unit& ship_unit =
       w.add_unit_on_map( caravel, { .x = 1, .y = 1 } );
 
-  p_viz  = &viz_entire;
-  p_unit = &land_unit;
-  p_unit->orders() =
-      unit_orders::go_to{ .target = goto_target::map{
-                            .tile     = { .x = 7, .y = 7 },
-                            .snapshot = empty_or_friendly{} } };
+  p_viz    = &viz_entire;
+  p_unit   = &land_unit;
+  target   = goto_target::map{ .tile     = { .x = 7, .y = 7 },
+                               .snapshot = empty_or_friendly{} };
   expected = EvolveGoto::move{ .to = e_direction::se };
   REQUIRE( f() == expected );
 
-  p_viz  = &viz_entire;
-  p_unit = &ship_unit;
-  p_unit->orders() =
-      unit_orders::go_to{ .target = goto_target::map{
-                            .tile     = { .x = 8, .y = 8 },
-                            .snapshot = empty_or_friendly{} } };
+  p_viz    = &viz_entire;
+  p_unit   = &ship_unit;
+  target   = goto_target::map{ .tile     = { .x = 8, .y = 8 },
+                               .snapshot = empty_or_friendly{} };
   expected = EvolveGoto::move{ .to = e_direction::e };
   REQUIRE( f() == expected );
 }
