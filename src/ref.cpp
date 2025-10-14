@@ -987,6 +987,18 @@ wait<> offboard_ref_units( SS& ss, IMapUpdater& map_updater,
   }
 }
 
+bool need_ref_ship_return( Player const& colonial_player ) {
+  auto const& force =
+      colonial_player.revolution.expeditionary_force;
+  int const total_land_units =
+      force.regular + force.cavalry + force.artillery;
+  int const ships_in_stock = force.man_o_war;
+  int const units_per_ship = 6;
+  int const required_ships =
+      ( total_land_units + units_per_ship - 1 ) / units_per_ship;
+  return ships_in_stock < required_ships;
+}
+
 bool can_send_more_ref_units( SSConst const& ss,
                               Player const& colonial_player,
                               Player const& ref_player ) {

@@ -141,6 +141,14 @@ wait<> offboard_ref_units( SS& ss, IMapUpdater& map_updater,
                            IAgent& colonial_agent,
                            RefLanding const& landing );
 
+// This will return true there are currently not enough ships in
+// stock to bring the land units in stock. It is used to decide
+// whether an REF Man-o-War needs to return to the harbor as op-
+// posed to remaining on the map and causing trouble which is
+// preferable if there are no more units to transport.
+[[nodiscard]] bool need_ref_ship_return(
+    Player const& colonial_player );
+
 /****************************************************************
 ** REF Winning/Forfeight.
 *****************************************************************/

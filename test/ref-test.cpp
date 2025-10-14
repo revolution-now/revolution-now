@@ -2988,6 +2988,82 @@ TEST_CASE( "[ref] offboard_ref_units" ) {
   REQUIRE( !w.units().exists( captured_native_unit_id ) );
 }
 
+TEST_CASE( "[ref] need_ref_ship_return" ) {
+  world w;
+
+  auto& force =
+      w.default_player().revolution.expeditionary_force;
+
+  auto const f = [&] [[clang::noinline]] {
+    return need_ref_ship_return( w.default_player() );
+  };
+
+  REQUIRE( f() == false );
+
+  force.regular = 1;
+  REQUIRE( f() == true );
+
+  force.man_o_war = 1;
+  REQUIRE( f() == false );
+
+  force.cavalry = 4;
+  REQUIRE( f() == false );
+
+  force.cavalry = 5;
+  REQUIRE( f() == false );
+
+  force.cavalry = 6;
+  REQUIRE( f() == true );
+
+  force.man_o_war = 2;
+  REQUIRE( f() == false );
+
+  force.artillery = 1;
+  REQUIRE( f() == false );
+
+  force.artillery = 4;
+  REQUIRE( f() == false );
+
+  force.artillery = 5;
+  REQUIRE( f() == false );
+
+  force.artillery = 6;
+  REQUIRE( f() == true );
+
+  force.man_o_war = 3;
+  REQUIRE( f() == false );
+
+  force.artillery = 8;
+  REQUIRE( f() == false );
+
+  force.artillery = 10;
+  REQUIRE( f() == false );
+
+  force.artillery = 11;
+  REQUIRE( f() == false );
+
+  force.artillery = 12;
+  REQUIRE( f() == true );
+
+  force.man_o_war = 4;
+  REQUIRE( f() == false );
+
+  force.man_o_war = 5;
+  REQUIRE( f() == false );
+
+  force.regular   = 60;
+  force.cavalry   = 120;
+  force.artillery = 180;
+  force.man_o_war = 59;
+  REQUIRE( f() == true );
+
+  force.man_o_war = 60;
+  REQUIRE( f() == false );
+
+  force.man_o_war = 61;
+  REQUIRE( f() == false );
+}
+
 TEST_CASE( "[ref] can_send_more_ref_units" ) {
   world w;
   w.create_default_map();
