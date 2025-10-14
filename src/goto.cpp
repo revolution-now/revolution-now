@@ -228,14 +228,14 @@ void try_new_goto( IGotoMapViewer const& viewer,
                    goto_target const& target,
                    point const unit_tile ) {
   lg.info( "goto: {}", target );
-  registry.paths.erase( unit_id );
+  registry.units.erase( unit_id );
   SWITCH( target ) {
     CASE( map ) {
       point const dst = map.tile;
       auto const goto_path =
           compute_goto_path( viewer, unit_tile, dst );
       if( goto_path.reverse_path.empty() ) break;
-      registry.paths[unit_id] = GotoExecution{
+      registry.units[unit_id] = GotoExecution{
         .target = target, .path = std::move( goto_path ) };
       break;
     }
@@ -243,7 +243,7 @@ void try_new_goto( IGotoMapViewer const& viewer,
       auto const goto_path =
           compute_harbor_goto_path( viewer, unit_tile );
       if( goto_path.reverse_path.empty() ) break;
-      registry.paths[unit_id] = GotoExecution{
+      registry.units[unit_id] = GotoExecution{
         .target = target, .path = std::move( goto_path ) };
       break;
     }
@@ -584,7 +584,7 @@ EvolveGoto find_next_move_for_unit_with_goto_target(
   e_player const player_type = unit.player_type();
 
   auto const abort = [&] {
-    registry.paths.erase( unit_id );
+    registry.units.erase( unit_id );
     return EvolveGoto::abort{};
   };
 
@@ -596,9 +596,9 @@ EvolveGoto find_next_move_for_unit_with_goto_target(
   // new goto order when it didn't complete a previous one. Doing
   // it this way allows us to not need an IAgent method to clear
   // the goto path when a new goto order is given.
-  if( registry.paths.contains( unit_id ) &&
-      registry.paths[unit_id].target != target )
-    registry.paths.erase( unit_id );
+  if( registry.units.contains( unit_id ) &&
+      registry.units[unit_id].target != target )
+    registry.units.erase( unit_id );
 
   // This should be validated when loading the save, namely
   // that a unit in goto mode must be either directly on the
@@ -637,9 +637,9 @@ EvolveGoto find_next_move_for_unit_with_goto_target(
   SWITCH( target ) {
     CASE( map ) {
       auto const direction = [&] -> maybe<e_direction> {
-        if( !registry.paths.contains( unit_id ) ) return nothing;
+        if( !registry.units.contains( unit_id ) ) return nothing;
         auto& reverse_path =
-            registry.paths[unit_id].path.reverse_path;
+            registry.units[unit_id].path.reverse_path;
         if( reverse_path.empty() ) return nothing;
         point const dst = reverse_path.back();
         reverse_path.pop_back();
@@ -707,9 +707,9 @@ EvolveGoto find_next_move_for_unit_with_goto_target(
                 viewer.is_sea_lane_launch_point( src );
             d.has_value() )
           return *d;
-        if( !registry.paths.contains( unit_id ) ) return nothing;
+        if( !registry.units.contains( unit_id ) ) return nothing;
         auto& reverse_path =
-            registry.paths[unit_id].path.reverse_path;
+            registry.units[unit_id].path.reverse_path;
         if( reverse_path.empty() ) return nothing;
         point const dst = reverse_path.back();
         reverse_path.pop_back();
@@ -730,7 +730,7 @@ EvolveGoto find_next_move_for_unit_with_goto_target(
       // better than the previous one, but that doesn't get us
       // anything because either way we're computing a new op-
       // timal path and ending up with the optimal path.
-      if( registry.paths.contains( unit_id ) ) {
+      if( registry.units.contains( unit_id ) ) {
         vector<Coord> const visible = unit_visible_squares(
             ss, player_type, unit.type(), src );
         lg.debug( "re-exploring {} tiles for sea lane.",
@@ -739,7 +739,7 @@ EvolveGoto find_next_move_for_unit_with_goto_target(
           if( viewer.can_enter_tile( p ) &&
               viewer.is_sea_lane_launch_point( p ) ) {
             lg.debug( "invalidating sea lane search." );
-            registry.paths.erase( unit_id );
+            registry.units.erase( unit_id );
             break;
           }
         }

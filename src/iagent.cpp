@@ -178,7 +178,8 @@ wait<ui::e_confirm> NoopAgent::should_make_landfall(
   co_return ui::e_confirm::no;
 }
 
-wait<ui::e_confirm> NoopAgent::should_sail_high_seas() {
+wait<ui::e_confirm> NoopAgent::should_sail_high_seas(
+    UnitId const ) {
   co_return ui::e_confirm::no;
 }
 

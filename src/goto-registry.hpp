@@ -25,7 +25,7 @@ struct GotoExecution {
 };
 
 struct GotoRegistry {
-  std::unordered_map<UnitId, GotoExecution> paths;
+  std::unordered_map<UnitId, GotoExecution> units;
 };
 
 } // namespace rn

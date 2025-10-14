@@ -105,7 +105,8 @@ struct HumanAgent final : IAgent {
   wait<ui::e_confirm> should_make_landfall(
       bool some_units_already_moved ) override;
 
-  wait<ui::e_confirm> should_sail_high_seas() override;
+  wait<ui::e_confirm> should_sail_high_seas(
+      UnitId unit_id ) override;
 
   EvolveGoto evolve_goto( UnitId unit_id ) override;
 

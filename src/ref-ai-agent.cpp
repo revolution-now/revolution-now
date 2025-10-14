@@ -13,8 +13,13 @@
 // Revolution Now
 #include "capture-cargo.rds.hpp"
 #include "co-wait.hpp"
+#include "goto-registry.hpp"
+#include "goto-viewer.hpp"
+#include "goto.hpp"
 #include "irand.hpp"
+#include "ref.hpp"
 #include "society.hpp"
+#include "visibility.hpp"
 
 // config
 #include "config/unit-type.rds.hpp"
@@ -48,13 +53,26 @@ using ::refl::cycle_enum;
 using ::refl::enum_count;
 using ::refl::enum_values;
 
+Player const& get_colonial_player( SSConst const& ss,
+                                   e_nation const nation ) {
+  e_player const colonial_player_type =
+      colonial_player_for( nation );
+  UNWRAP_CHECK_T( Player const& colonial_player,
+                  ss.players.players[colonial_player_type] );
+  return colonial_player;
 }
+
+} // namespace
 
 /****************************************************************
 ** RefAIAgent::State
 *****************************************************************/
 struct RefAIAgent::State {
   vector<string> messages;
+  GotoRegistry goto_registry;
+  // FIXME: temporary hack to test the goto mechanism with AI
+  // players. Should rework this later into a better AI.
+  set<UnitId> send_back_to_harbor;
 };
 
 /****************************************************************
@@ -65,10 +83,10 @@ RefAIAgent::RefAIAgent( e_player const player, SS& ss,
   : IAgent( player ),
     ss_( ss ),
     rand_( rand ),
-    colonial_player_(
-        colonial_player_for( nation_for( player ) ) ),
+    colonial_player_( get_colonial_player(
+        ss.as_const, nation_for( player ) ) ),
     state_not_const_safe_( make_unique<State>() ) {
-  CHECK( player != colonial_player_ );
+  CHECK( player != colonial_player_.type );
 }
 
 RefAIAgent::~RefAIAgent() = default;
@@ -182,6 +200,30 @@ command RefAIAgent::ask_orders( UnitId const unit_id ) {
   auto const coord = ss_.units.maybe_coord_for( unit_id );
   if( !coord.has_value() ) return command::forfeight{};
 
+  auto const try_send_to_harbor = [&] -> maybe<command::move> {
+    state().send_back_to_harbor.erase( unit.id() );
+    VisibilityEntire const viz( ss_ );
+    GotoMapViewer const goto_viewer( ss_, viz, player_type(),
+                                     unit.type() );
+    EvolveGoto const evolved =
+        find_next_move_for_unit_with_goto_target(
+            ss_, state().goto_registry, goto_viewer,
+            as_const( unit ), goto_target::harbor{} );
+    SWITCH( evolved ) {
+      CASE( abort ) { return nothing; }
+      CASE( move ) {
+        state().send_back_to_harbor.insert( unit.id() );
+        return command::move{ .d = move.to };
+      }
+    }
+  };
+
+  if( state().send_back_to_harbor.contains( unit_id ) ) {
+    if( auto const move = try_send_to_harbor();
+        move.has_value() )
+      return *move;
+  }
+
   auto const find_random_surrounding =
       [&]( auto const& fn ) -> maybe<e_direction> {
     auto arr = enum_values<e_direction>;
@@ -244,7 +286,7 @@ command RefAIAgent::ask_orders( UnitId const unit_id ) {
         if( !colony_id.has_value() ) return false;
         Colony const& colony =
             ss_.colonies.colony_for( *colony_id );
-        if( colony.player == colonial_player_ ) return true;
+        if( colony.player == colonial_player_.type ) return true;
         return false;
       } );
 
@@ -260,11 +302,27 @@ command RefAIAgent::ask_orders( UnitId const unit_id ) {
         if( !society.has_value() ) return false;
         SWITCH( *society ) {
           CASE( european ) {
-            return european.player == colonial_player_;
+            return european.player == colonial_player_.type;
           }
           CASE( native ) { return false; }
         }
       } );
+
+  if( unit.type() == e_unit_type::man_o_war ) {
+    if( d_attack_unit.has_value() )
+      return command::move{ *d_attack_unit };
+    // If we can't attack anyone then go back to Europe, but only
+    // if there are more units to bring and there aren't enough
+    // ships in europe. TODO: this is not ideal because it may
+    // cause more ships to return than are needed if they all go
+    // on the same turn; then they won't come back.
+    if( need_ref_ship_return( colonial_player_ ) ) {
+      lg.info( "sending REF ship back to get more units." );
+      if( auto const move = try_send_to_harbor();
+          move.has_value() )
+        return *move;
+    }
+  }
 
   if( d_attack_colony.has_value() )
     return command::move{ *d_attack_colony };
@@ -322,7 +380,12 @@ wait<ui::e_confirm> RefAIAgent::should_make_landfall(
   co_return ui::e_confirm::yes;
 }
 
-wait<ui::e_confirm> RefAIAgent::should_sail_high_seas() {
+wait<ui::e_confirm> RefAIAgent::should_sail_high_seas(
+    UnitId const unit_id ) {
+  if( state().send_back_to_harbor.contains( unit_id ) ) {
+    state().send_back_to_harbor.erase( unit_id );
+    co_return ui::e_confirm::yes;
+  }
   co_return ui::e_confirm::no;
 }
 

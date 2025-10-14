@@ -48,12 +48,13 @@ enum class e_unit_type;
 *****************************************************************/
 // The path contained therein will be empty if no path was found
 // to the destination. Likewise if src == dst.
-GotoPath compute_goto_path( IGotoMapViewer const& viewer,
-                            gfx::point src, gfx::point dst );
+[[nodiscard]] GotoPath compute_goto_path(
+    IGotoMapViewer const& viewer, gfx::point src,
+    gfx::point dst );
 
 // The path contained therein will be empty if no path was found.
-GotoPath compute_harbor_goto_path( IGotoMapViewer const& viewer,
-                                   gfx::point src );
+[[nodiscard]] GotoPath compute_harbor_goto_path(
+    IGotoMapViewer const& viewer, gfx::point src );
 
 // Note that the unit_player might not be the same as the player
 // associated with the viz object (i.e. the latter might have
@@ -80,10 +81,10 @@ compute_goto_target_snapshot( SSConst const& ss,
     SSConst const& ss, Unit const& unit,
     goto_target const& target );
 
-GotoPort find_goto_port( SSConst const& ss,
-                         TerrainConnectivity const& connectivity,
-                         e_player player_type,
-                         e_unit_type unit_type, gfx::point src );
+[[nodiscard]] GotoPort find_goto_port(
+    SSConst const& ss, TerrainConnectivity const& connectivity,
+    e_player player_type, e_unit_type unit_type,
+    gfx::point src );
 
 wait<maybe<goto_target>> ask_goto_port(
     SSConst const& ss, IGui& gui, Player const& player,
@@ -93,7 +94,8 @@ wait<maybe<goto_target>> ask_goto_port(
 // use this, since it is intended to be used for both human
 // players and AI, the latter of which don't use explicit goto
 // orders.
-EvolveGoto find_next_move_for_unit_with_goto_target(
+[[nodiscard]] EvolveGoto
+find_next_move_for_unit_with_goto_target(
     SSConst const& ss, GotoRegistry& registry,
     IGotoMapViewer const& goto_viewer, Unit const& unit,
     goto_target const& target );

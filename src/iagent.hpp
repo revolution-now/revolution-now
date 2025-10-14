@@ -173,7 +173,8 @@ struct IAgent : ISignalHandler {
   virtual wait<ui::e_confirm> should_make_landfall(
       bool some_units_already_moved ) = 0;
 
-  virtual wait<ui::e_confirm> should_sail_high_seas() = 0;
+  virtual wait<ui::e_confirm> should_sail_high_seas(
+      UnitId unit_id ) = 0;
 
   virtual EvolveGoto evolve_goto( UnitId unit_id ) = 0;
 
@@ -304,7 +305,8 @@ struct NoopAgent final : IAgent {
   wait<ui::e_confirm> should_make_landfall(
       bool some_units_already_moved ) override;
 
-  wait<ui::e_confirm> should_sail_high_seas() override;
+  wait<ui::e_confirm> should_sail_high_seas(
+      UnitId unit_id ) override;
 
   EvolveGoto evolve_goto( UnitId unit_id ) override;
 

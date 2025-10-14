@@ -293,8 +293,11 @@ TEST_CASE( "[human-agent] should_make_landfall" ) {
 TEST_CASE( "[human-agent] should_sail_high_seas" ) {
   world w;
 
+  UnitId const dummy_unit_id{ 1 };
+
   auto const f = [&] [[clang::noinline]] {
-    return co_await_test( w.agent_.should_sail_high_seas() );
+    return co_await_test(
+        w.agent_.should_sail_high_seas( dummy_unit_id ) );
   };
 
   w.gui()

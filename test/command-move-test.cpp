@@ -716,8 +716,8 @@ TEST_CASE(
       unique_ptr<CommandHandler> const handler = handle_command(
           w.engine(), w.ss(), w.ts(), w.agent(), player,
           caravel.id(), command::move{ .d = e_direction::e } );
-      agent.EXPECT__should_sail_high_seas().returns(
-          ui::e_confirm::no );
+      agent.EXPECT__should_sail_high_seas( caravel.id() )
+          .returns( ui::e_confirm::no );
       bool const confirmed = co_await_test( handler->confirm() );
       REQUIRE( confirmed );
       mock_land_view.EXPECT__animate_if_visible( _ );
@@ -730,8 +730,8 @@ TEST_CASE(
       unique_ptr<CommandHandler> const handler = handle_command(
           w.engine(), w.ss(), w.ts(), w.agent(), player,
           caravel.id(), command::move{ .d = e_direction::e } );
-      agent.EXPECT__should_sail_high_seas().returns(
-          ui::e_confirm::no );
+      agent.EXPECT__should_sail_high_seas( caravel.id() )
+          .returns( ui::e_confirm::no );
       bool const confirmed = co_await_test( handler->confirm() );
       REQUIRE( confirmed );
       mock_land_view.EXPECT__animate_if_visible( _ );
@@ -748,8 +748,8 @@ TEST_CASE(
       unique_ptr<CommandHandler> const handler = handle_command(
           w.engine(), w.ss(), w.ts(), w.agent(), player,
           caravel.id(), command::move{ .d = e_direction::e } );
-      agent.EXPECT__should_sail_high_seas().returns(
-          ui::e_confirm::no );
+      agent.EXPECT__should_sail_high_seas( caravel.id() )
+          .returns( ui::e_confirm::no );
       bool const confirmed = co_await_test( handler->confirm() );
       REQUIRE_FALSE( confirmed );
       REQUIRE( w.units().coord_for( caravel.id() ).to_gfx() ==
@@ -764,8 +764,8 @@ TEST_CASE(
       unique_ptr<CommandHandler> const handler = handle_command(
           w.engine(), w.ss(), w.ts(), w.agent(), player,
           caravel.id(), command::move{ .d = e_direction::e } );
-      agent.EXPECT__should_sail_high_seas().returns(
-          ui::e_confirm::yes );
+      agent.EXPECT__should_sail_high_seas( caravel.id() )
+          .returns( ui::e_confirm::yes );
       bool const confirmed = co_await_test( handler->confirm() );
       REQUIRE( confirmed );
       mock_land_view.EXPECT__animate_if_visible( _ );
@@ -853,8 +853,8 @@ TEST_CASE( "[command-move] goto: high seas via sea lane" ) {
     auto const handler = handle_command(
         w.engine(), w.ss(), w.ts(), w.agent(), player,
         caravel.id(), command::move{ .d = e_direction::e } );
-    agent.EXPECT__should_sail_high_seas().returns(
-        ui::e_confirm::no );
+    agent.EXPECT__should_sail_high_seas( caravel.id() )
+        .returns( ui::e_confirm::no );
     bool const confirmed = co_await_test( handler->confirm() );
     REQUIRE( confirmed );
     mock_land_view.EXPECT__animate_if_visible( _ );
@@ -868,8 +868,8 @@ TEST_CASE( "[command-move] goto: high seas via sea lane" ) {
     auto const handler = handle_command(
         w.engine(), w.ss(), w.ts(), w.agent(), player,
         caravel.id(), command::move{ .d = e_direction::e } );
-    agent.EXPECT__should_sail_high_seas().returns(
-        ui::e_confirm::yes );
+    agent.EXPECT__should_sail_high_seas( caravel.id() )
+        .returns( ui::e_confirm::yes );
     bool const confirmed = co_await_test( handler->confirm() );
     REQUIRE( confirmed );
     mock_land_view.EXPECT__animate_if_visible( _ );

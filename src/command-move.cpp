@@ -449,7 +449,7 @@ bool is_high_seas( TerrainState const& terrain_state, point c ) {
 
 wait<maybe<ui::e_confirm>> TravelHandler::ask_sail_high_seas()
     const {
-  co_return co_await agent_.should_sail_high_seas();
+  co_return co_await agent_.should_sail_high_seas( unit_id );
 }
 
 bool TravelHandler::sail_high_seas_forbidden() const {

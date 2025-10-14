@@ -409,7 +409,8 @@ wait<ui::e_confirm> HumanAgent::should_make_landfall(
   co_return answer.value_or( ui::e_confirm::no );
 }
 
-wait<ui::e_confirm> HumanAgent::should_sail_high_seas() {
+wait<ui::e_confirm> HumanAgent::should_sail_high_seas(
+    UnitId const ) {
   auto const res = co_await gui_.optional_yes_no(
       { .msg       = "Would you like to sail the high seas?",
         .yes_label = "Yes, steady as she goes!",
