@@ -98,9 +98,7 @@ vector<UnitId> can_activate_units_on_tile(
 rect valid_goto_target_tiles( Camera const& camera ) {
   rect const map_rect{ .origin = {},
                        .size   = camera.map_dimensions_tiles() };
-  return map_rect.moved_right()
-      .with_new_left_edge( -1 )
-      .with_dec_size();
+  return map_rect.moved_right().with_new_left_edge( -1 );
 }
 
 } // namespace rn

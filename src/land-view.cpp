@@ -610,8 +610,10 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
         default:
           break;
       }
-      rect const bounds = valid_goto_target_tiles( camera_ );
-      mode.curr_tile    = mode.curr_tile.clamped( bounds );
+      // Need with_dec_size because `clamped` is inclusive.
+      rect const bounds =
+          valid_goto_target_tiles( camera_ ).with_dec_size();
+      mode.curr_tile = mode.curr_tile.clamped( bounds );
     }
     co_return nothing;
   }

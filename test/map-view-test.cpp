@@ -15,17 +15,23 @@
 
 // Testing.
 #include "test/fake/world.hpp"
+#include "test/mocks/iuser-config.hpp"
 #include "test/mocks/land-view-plane.hpp"
 
 // Revolution Now
+#include "src/camera.hpp"
 #include "src/imap-updater.hpp"
 #include "src/plane-stack.hpp"
 #include "src/visibility.hpp"
+
+// config
+#include "src/config/user.rds.hpp"
 
 // ss
 #include "src/ss/land-view.rds.hpp"
 #include "src/ss/ref.hpp"
 #include "src/ss/settings.rds.hpp"
+#include "src/ss/terrain.hpp"
 #include "src/ss/unit-composition.hpp"
 
 // Must be last.
@@ -37,6 +43,7 @@ namespace {
 using namespace std;
 
 using ::gfx::point;
+using ::gfx::rect;
 
 /****************************************************************
 ** Fake World Setup
@@ -47,6 +54,9 @@ struct world : testing::World {
     add_player( e_player::french );
     set_default_player_type( e_player::english );
     create_default_map();
+
+    mock_user_config.EXPECT__read().by_default().returns(
+        config_user );
   }
 
   void create_default_map() {
@@ -59,6 +69,9 @@ struct world : testing::World {
     };
     build_map( std::move( tiles ), 3 );
   }
+
+  config_user_t config_user;
+  MockIUserConfig mock_user_config;
 };
 
 /****************************************************************
@@ -391,6 +404,17 @@ TEST_CASE( "[map-view] reveal_entire_map" ) {
 
 TEST_CASE( "[map-view] valid_goto_target_tiles" ) {
   world w;
+  rect expected;
+  Camera camera( w.mock_user_config, w.land_view().viewport,
+                 w.terrain().world_size_tiles() );
+
+  auto const f = [&] [[clang::noinline]] {
+    return valid_goto_target_tiles( camera );
+  };
+
+  expected = { .origin = { .x = -1, .y = 0 },
+               .size   = { .w = 5, .h = 3 } };
+  REQUIRE( f() == expected );
 }
 
 } // namespace
