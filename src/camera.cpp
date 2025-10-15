@@ -30,6 +30,7 @@ namespace rn {
 namespace {
 
 using ::gfx::point;
+using ::gfx::size;
 
 /****************************************************************
 ** Constants.
@@ -65,9 +66,13 @@ double zoom_max() {
 /****************************************************************
 ** Camera.
 *****************************************************************/
-Camera::Camera( IUserConfig const& user_config,
-                Viewport& camera )
-  : user_config_( user_config ), camera_( camera ) {}
+Camera::Camera( IUserConfig const& user_config, Viewport& camera,
+                size const map_size_tiles )
+  : map_size_tiles_( map_size_tiles ),
+    user_config_( user_config ),
+    camera_( camera ) {
+  CHECK( map_size_tiles.area() > 0 );
+}
 
 auto const& Camera::static_config() {
   return config_land_view.camera;
@@ -123,6 +128,10 @@ void Camera::center_on_tile( point const tile ) {
 
   camera_.center_x = tile.x * 32 + 16;
   camera_.center_y = tile.y * 32 + 16;
+}
+
+size Camera::map_dimensions_tiles() const {
+  return map_size_tiles_;
 }
 
 } // namespace rn

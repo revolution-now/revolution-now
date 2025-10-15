@@ -55,6 +55,7 @@
 #include "ss/land-view.rds.hpp"
 #include "ss/players.rds.hpp"
 #include "ss/ref.hpp"
+#include "ss/terrain.hpp"
 #include "ss/units.hpp"
 
 // gfx
@@ -235,7 +236,8 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
       viz_( create_visibility_for( ss, nothing ) ),
       viewport_( engine_, ss.terrain, ss.land_view.viewport,
                  landview_renderable_rect() ),
-      camera_( engine_.user_config(), ss.land_view.viewport ),
+      camera_( engine_.user_config(), ss.land_view.viewport,
+               ss_.terrain.world_size_tiles() ),
       animator_( engine_.sfx(), ss, viewport_, viz_ ) {
     set_visibility( player );
     CHECK( viz_ != nullptr );
@@ -576,8 +578,6 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
     omni.set_mouse_cursor( e_mouse_cursor::go_to );
     SCOPE_EXIT { omni.set_mouse_cursor( old_cursor ); };
 
-    rect const map_rect = viewport().world_rect_tiles();
-
     // Center up front, and then only center below on certain
     // events. In particular, we don't want to center each time
     // the mouse moves, otherwise the screen scrolls too fast.
@@ -636,20 +636,8 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
         default:
           break;
       }
-      // The the player can see beyond the left/right edges of
-      // the map (due to zoom level) then allow one extra tile on
-      // the left/right so that the player can indicate that they
-      // want to go to the harbor. We need to check this in each
-      // loop because the player may change the zoom level as
-      // they are selecting tiles.
-      rect const bounds =
-          viewport().is_fully_visible_x()
-              ? map_rect //
-                    .with_new_left_edge( map_rect.left() - 1 )
-                    .with_new_right_edge( map_rect.right() + 1 )
-                    .with_dec_size()
-              : map_rect.with_dec_size();
-      mode.curr_tile = mode.curr_tile.clamped( bounds );
+      rect const bounds = valid_goto_target_tiles( camera_ );
+      mode.curr_tile    = mode.curr_tile.clamped( bounds );
     }
     co_return nothing;
   }
@@ -671,7 +659,8 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
       using e = RI::e;
       case e::goto_drag_start: {
         auto& o = raw_input.input.get<RI::goto_drag_start>();
-        auto const end_tile = co_await mouse_drag_goto_mode( o.tile );
+        auto const end_tile =
+            co_await mouse_drag_goto_mode( o.tile );
         if( !end_tile.has_value() ) break;
         UNWRAP_CHECK_T(
             UnitId const unit_id,
@@ -916,9 +905,8 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
   // scrolling in a given direction is proportional to the dis-
   // tance to that map edge. Otherwise the scrolling directions
   // are too rigid.
-  void scroll_when_mouse_pos_at_edge() {
-    point const mouse_pos = input::current_mouse_position();
-    rect const outter     = landview_renderable_rect();
+  bool scroll_when_mouse_pos_at_edge( point const mouse_pos ) {
+    rect const outter = landview_renderable_rect();
     size const n_trim =
         ( outter.size.to_double() *
           config_land_view.scrolling.edge_thickness_percent )
@@ -926,7 +914,7 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
     if( n_trim == size{} )
       // This allows us to configure edge_thickness_percent to be
       // 0.0 to effectively disable this scrolling.
-      return;
+      return false;
     auto const trim = [&]( rect const r ) {
       return r.moved( n_trim )
           .with_dec_size( n_trim )
@@ -934,7 +922,7 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
     };
 
     rect const inner = trim( outter );
-    if( mouse_pos.is_inside( inner ) ) return;
+    if( mouse_pos.is_inside( inner ) ) return false;
 
     // The idea here is that if at least one of the mouse dimen-
     // sions is on the outter most border then we will do the
@@ -961,6 +949,8 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
     if( push_y_positive ) viewport().set_y_push( positive );
     if( push_x_negative ) viewport().set_x_push( negative );
     if( push_y_negative ) viewport().set_y_push( negative );
+
+    return true;
   }
 
   /****************************************************************
@@ -1009,8 +999,25 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
 
     // Let the mouse push when it is near the edge of the visible
     // map to help scroll to the goto target.
-    if( mode_.top().holds<LandViewMode::goto_mode>() )
-      scroll_when_mouse_pos_at_edge();
+    if( mode_.top().holds<LandViewMode::goto_mode>() ) {
+      point const mouse_pos = input::current_mouse_position();
+      if( scroll_when_mouse_pos_at_edge( mouse_pos ) ) {
+        // We've scrolled, so send an event that will trigger an
+        // update of the selected tile given the mouse position,
+        // otherwise the the tile selection won't know that the
+        // mouse is over a different tile than it.
+        raw_input_stream_.send(
+            RawInput( produce_mouse_over_event( mouse_pos ) ) );
+        point const hypo_tile =
+            viewport().screen_pixel_to_hypothetical_world_tile(
+                mouse_pos );
+        rect const allowed = valid_goto_target_tiles( camera_ );
+        point const tile   = hypo_tile.clamped( allowed );
+        raw_input_stream_.send(
+            RawInput( LandViewRawInput::goto_drag_update{
+              .tile = tile } ) );
+      }
+    }
   }
 
   maybe<command> try_orders_from_lua( int keycode,
@@ -1357,6 +1364,19 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
     ( *func )();
   }
 
+  LandViewRawInput::mouse_over produce_mouse_over_event(
+      point const mouse_pos ) const {
+    auto const tile =
+        viewport().screen_pixel_to_world_tile( mouse_pos );
+    auto const hypo_tile =
+        viewport().screen_pixel_to_hypothetical_world_tile(
+            mouse_pos );
+    return LandViewRawInput::mouse_over{
+      .where             = mouse_pos,
+      .tile              = tile,
+      .hypothetical_tile = hypo_tile };
+  }
+
   e_input_handled input( input::event_t const& event ) override {
     auto handled = e_input_handled::no;
     switch( event.to_enum() ) {
@@ -1641,16 +1661,8 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
       }
       case input::e_input_event::mouse_move_event: {
         auto& val = event.get<input::mouse_move_event_t>();
-        auto const tile =
-            viewport().screen_pixel_to_world_tile( val.pos );
-        auto const hypo_tile =
-            viewport().screen_pixel_to_hypothetical_world_tile(
-                val.pos );
         raw_input_stream_.send(
-            RawInput( LandViewRawInput::mouse_over{
-              .where             = val.pos,
-              .tile              = tile,
-              .hypothetical_tile = hypo_tile } ) );
+            RawInput( produce_mouse_over_event( val.pos ) ) );
         handled = e_input_handled::yes;
         break;
       }
@@ -1799,13 +1811,8 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
       // Add one column of edge to left and right sides to allow
       // the player to signal that they want to sail the high
       // seas.
-      rect const allowed = viewport()
-                               .world_rect_tiles()
-                               .to_gfx()
-                               .moved_right()
-                               .with_new_left_edge( -1 )
-                               .with_dec_size();
-      point const tile = hypo_tile.clamped( allowed );
+      rect const allowed = valid_goto_target_tiles( camera_ );
+      point const tile   = hypo_tile.clamped( allowed );
       send( I::goto_drag_update{ .tile = tile } );
     }
 

@@ -389,5 +389,9 @@ TEST_CASE( "[map-view] reveal_entire_map" ) {
   REQUIRE( map_revealed.holds<MapRevealed::entire>() );
 }
 
+TEST_CASE( "[map-view] valid_goto_target_tiles" ) {
+  world w;
+}
+
 } // namespace
 } // namespace rn

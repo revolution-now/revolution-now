@@ -12,6 +12,7 @@
 #include "map-view.hpp"
 
 // Revolution Now
+#include "camera.hpp"
 #include "game-options.hpp"
 #include "roles.hpp"
 #include "society.hpp"
@@ -34,6 +35,7 @@ namespace {
 using ::base::maybe;
 using ::base::nothing;
 using ::gfx::point;
+using ::gfx::rect;
 
 } // namespace
 
@@ -88,6 +90,17 @@ vector<UnitId> can_activate_units_on_tile(
   if( european->player != *active ) return res;
   res = euro_units_from_coord_recursive( ss.units, tile );
   return res;
+}
+
+/****************************************************************
+** Viewport related.
+*****************************************************************/
+rect valid_goto_target_tiles( Camera const& camera ) {
+  rect const map_rect{ .origin = {},
+                       .size   = camera.map_dimensions_tiles() };
+  return map_rect.moved_right()
+      .with_new_left_edge( -1 )
+      .with_dec_size();
 }
 
 } // namespace rn

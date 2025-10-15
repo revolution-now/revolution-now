@@ -35,7 +35,8 @@ struct Viewport; // TODO: rename.
 ** Camera.
 *****************************************************************/
 struct Camera {
-  Camera( IUserConfig const& user_config, Viewport& camera );
+  Camera( IUserConfig const& user_config, Viewport& camera,
+          gfx::size map_size_tiles );
 
  public: // zoom control.
   ZoomChanged zoom_out();
@@ -43,12 +44,16 @@ struct Camera {
 
   void center_on_tile( gfx::point tile );
 
+  // For convenience.
+  gfx::size map_dimensions_tiles() const;
+
  private:
   static auto const& static_config();
   auto const& user_config();
 
   void fix_broken_invariants();
 
+  gfx::size const map_size_tiles_;
   IUserConfig const& user_config_;
   Viewport& camera_;
 };

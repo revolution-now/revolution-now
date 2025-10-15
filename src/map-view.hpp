@@ -26,6 +26,7 @@ namespace rn {
 /****************************************************************
 ** Fwd Decls.
 *****************************************************************/
+struct Camera;
 struct IVisibility;
 struct SS;
 struct SSConst;
@@ -47,5 +48,10 @@ base::maybe<ColonyId> can_open_colony_on_tile(
 *****************************************************************/
 std::vector<UnitId> can_activate_units_on_tile(
     SSConst const& ss, IVisibility const& viz, gfx::point tile );
+
+/****************************************************************
+** Viewport related.
+*****************************************************************/
+gfx::rect valid_goto_target_tiles( Camera const& camera );
 
 } // namespace rn
