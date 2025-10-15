@@ -876,6 +876,8 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
   // scrolling in a given direction is proportional to the dis-
   // tance to that map edge. Otherwise the scrolling directions
   // are too rigid.
+  //
+  // TODO: once done, move this to map-view and unit test it.
   bool scroll_when_mouse_pos_at_edge( point const mouse_pos ) {
     rect const outter = landview_renderable_rect();
     size const n_trim =
