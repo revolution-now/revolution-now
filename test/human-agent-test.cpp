@@ -20,6 +20,12 @@
 #include "test/mocks/igui.hpp"
 #include "test/util/coro.hpp"
 
+// ss
+#include "src/ss/land-view.rds.hpp"
+#include "src/ss/turn.rds.hpp"
+#include "src/ss/unit-composition.hpp"
+#include "src/ss/unit.hpp"
+
 // refl
 #include "src/refl/to-str.hpp"
 
@@ -34,6 +40,7 @@ namespace {
 
 using namespace std;
 
+using ::gfx::point;
 using ::mock::matchers::AllOf;
 using ::mock::matchers::Field;
 using ::mock::matchers::IterableElementsAre;
@@ -60,6 +67,20 @@ struct world : testing::World {
       L, L, L, //
     };
     build_map( std::move( tiles ), 3 );
+  }
+
+  void create_isolation_map() {
+    MapSquare const _ = make_ocean();
+    MapSquare const L = make_grassland();
+    vector<MapSquare> tiles{
+      L, L, _, L, L, L, //
+      L, L, _, L, L, L, //
+      _, _, _, L, L, L, //
+      L, L, L, L, L, L, //
+      L, L, L, L, L, L, //
+      L, L, L, L, L, L, //
+    };
+    build_map( std::move( tiles ), 6 );
   }
 
   HumanAgent agent_;
@@ -323,9 +344,47 @@ TEST_CASE( "[human-agent] should_sail_high_seas" ) {
 }
 
 // Just do something basic here since the bulk of it is already
-// tested in other modules.
+// tested in other modules. One thing that this provides is that
+// it will break if omniscient path finding is enabled.
 TEST_CASE( "[human-agent] evolve_goto" ) {
   world w;
+  w.create_isolation_map();
+  EvolveGoto expected;
+
+  using enum e_surface;
+  using enum e_unit_type;
+
+  point const kStartingTile{ .x = 0, .y = 0 };
+  point const kTargetTile{ .x = 4, .y = 4 };
+
+  Unit& unit = w.add_unit_on_map( free_colonist, kStartingTile );
+
+  auto const f = [&] [[clang::noinline]] {
+    return w.agent_.evolve_goto( unit.id() );
+  };
+
+  BASE_CHECK( w.square( kStartingTile ).surface == land );
+  BASE_CHECK( w.square( kTargetTile ).surface == land );
+
+  // This will cause the viz to be from the player's standpoint,
+  // wherein all tiles are hidden, so the path should succeed. On
+  // the other hand, if omniscient path finding is enabled then
+  // the path should fail here.
+  w.turn().cycle =
+      TurnCycle::player{ .type = w.default_player_type() };
+  w.land_view().map_revealed = MapRevealed::no_special_view{};
+  unit.orders()              = unit_orders::go_to{
+                 .target = goto_target::map{ .tile = kTargetTile } };
+  expected = EvolveGoto::move{ .to = e_direction::se };
+  REQUIRE( f() == expected );
+
+  // This viz will see the full map regardless of the omniscient
+  // path finding config, thus the path should always fail.
+  w.land_view().map_revealed = MapRevealed::entire{};
+  unit.orders()              = unit_orders::go_to{
+                 .target = goto_target::map{ .tile = kTargetTile } };
+  expected = EvolveGoto::abort{};
+  REQUIRE( f() == expected );
 }
 
 } // namespace
