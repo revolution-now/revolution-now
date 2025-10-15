@@ -23,6 +23,8 @@
 #include "src/goto-registry.hpp"
 #include "src/goto-viewer.hpp"
 #include "src/harbor-units.hpp"
+#include "src/tribe-mgr.hpp"
+#include "src/unit-ownership.hpp"
 #include "src/visibility.hpp"
 
 // ss
@@ -2879,6 +2881,7 @@ TEST_CASE( "[goto] find_next_move_for_unit_with_goto_target" ) {
   using enum e_player;
   using enum e_tribe;
   using enum e_unit_type;
+  using enum e_surface;
 
   using S = GotoTargetSnapshot;
 
@@ -2904,6 +2907,12 @@ TEST_CASE( "[goto] find_next_move_for_unit_with_goto_target" ) {
         w.ss().as_const, registry, viewer, *p_unit, target );
   };
 
+  auto const set_unit_pos = [&]( point const p ) {
+    BASE_CHECK( p_unit );
+    UnitOwnershipChanger( w.ss(), p_unit->id() )
+        .change_to_map_non_interactive( w.map_updater(), p );
+  };
+
   {
     using enum e_surface;
     using enum e_ground_terrain;
@@ -2921,7 +2930,7 @@ TEST_CASE( "[goto] find_next_move_for_unit_with_goto_target" ) {
     vector<MapSquare> tiles{ /*
           0 1 2 3 4 5 6 7 8 9
       0*/ s,_,_,_,_,_,_,_,_,s, /*0
-      1*/ s,_,_,_,_,_,_,_,_,s, /*1
+      1*/ s,_,_,_,_,_,_,s,s,s, /*1
       2*/ s,_,X,X,X,X,X,X,_,s, /*2
       3*/ s,_,X,X,X,X,X,X,_,s, /*3
       4*/ s,_,X,X,X,X,X,X,_,s, /*4
@@ -2943,21 +2952,240 @@ TEST_CASE( "[goto] find_next_move_for_unit_with_goto_target" ) {
 
   Unit& land_unit =
       w.add_unit_on_map( free_colonist, { .x = 2, .y = 2 } );
-  Unit& ship_unit =
-      w.add_unit_on_map( caravel, { .x = 1, .y = 1 } );
 
-  p_viz    = &viz_entire;
-  p_unit   = &land_unit;
+  // ------------------------------------------------------------
+  // goto tile
+  // ------------------------------------------------------------
+  p_viz  = &viz_entire;
+  p_unit = &land_unit;
+
+  // Simple path.
+  registry.units.clear();
+  set_unit_pos( { .x = 2, .y = 2 } );
+  target   = goto_target::map{ .tile     = { .x = 4, .y = 4 },
+                               .snapshot = empty_or_friendly{} };
+  expected = EvolveGoto::move{ .to = e_direction::se };
+  REQUIRE( f() == expected );
+  set_unit_pos( { .x = 3, .y = 3 } );
+  expected = EvolveGoto::move{ .to = e_direction::se };
+  REQUIRE( f() == expected );
+  set_unit_pos( { .x = 4, .y = 4 } );
+  expected = EvolveGoto::abort{};
+  REQUIRE( f() == expected );
+
+  // Change location mid-path.
+  registry.units.clear();
   target   = goto_target::map{ .tile     = { .x = 7, .y = 7 },
                                .snapshot = empty_or_friendly{} };
   expected = EvolveGoto::move{ .to = e_direction::se };
   REQUIRE( f() == expected );
+  set_unit_pos( { .x = 5, .y = 6 } );
+  expected = EvolveGoto::move{ .to = e_direction::e };
+  REQUIRE( f() == expected );
+  set_unit_pos( { .x = 6, .y = 6 } );
+  expected = EvolveGoto::move{ .to = e_direction::se };
+  REQUIRE( f() == expected );
+  set_unit_pos( { .x = 7, .y = 7 } );
+  expected = EvolveGoto::abort{};
+  REQUIRE( f() == expected );
 
-  p_viz    = &viz_entire;
-  p_unit   = &ship_unit;
-  target   = goto_target::map{ .tile     = { .x = 8, .y = 8 },
+  // Change target mid-path.
+  registry.units.clear();
+  set_unit_pos( { .x = 2, .y = 2 } );
+  target   = goto_target::map{ .tile     = { .x = 7, .y = 7 },
+                               .snapshot = empty_or_friendly{} };
+  expected = EvolveGoto::move{ .to = e_direction::se };
+  REQUIRE( f() == expected );
+  target   = goto_target::map{ .tile     = { .x = 7, .y = 2 },
                                .snapshot = empty_or_friendly{} };
   expected = EvolveGoto::move{ .to = e_direction::e };
+  REQUIRE( f() == expected );
+
+  // Finds a path to water adjacent to land.
+  registry.units.clear();
+  set_unit_pos( { .x = 2, .y = 2 } );
+  target   = goto_target::map{ .tile     = { .x = 8, .y = 8 },
+                               .snapshot = empty_or_friendly{} };
+  expected = EvolveGoto::move{ .to = e_direction::se };
+  REQUIRE( f() == expected );
+
+  // Cannot find a path.
+  set_unit_pos( { .x = 2, .y = 2 } );
+  target   = goto_target::map{ .tile     = { .x = 9, .y = 9 },
+                               .snapshot = empty_or_friendly{} };
+  expected = EvolveGoto::abort{};
+  REQUIRE( f() == expected );
+
+  // Goto current location.
+  registry.units.clear();
+  set_unit_pos( { .x = 2, .y = 2 } );
+  target   = goto_target::map{ .tile     = { .x = 2, .y = 2 },
+                               .snapshot = empty_or_friendly{} };
+  expected = EvolveGoto::abort{};
+  REQUIRE( f() == expected );
+
+  // Changes location just before destination, empty goto path
+  // detected.
+  registry.units.clear();
+  set_unit_pos( { .x = 2, .y = 2 } );
+  target   = goto_target::map{ .tile     = { .x = 3, .y = 3 },
+                               .snapshot = empty_or_friendly{} };
+  expected = EvolveGoto::move{ .to = e_direction::se };
+  REQUIRE( f() == expected );
+  set_unit_pos( { .x = 4, .y = 3 } );
+  expected = EvolveGoto::move{ .to = e_direction::w };
+  REQUIRE( f() == expected );
+
+  // Changes location mid-path.
+  registry.units.clear();
+  set_unit_pos( { .x = 2, .y = 2 } );
+  target   = goto_target::map{ .tile     = { .x = 5, .y = 5 },
+                               .snapshot = empty_or_friendly{} };
+  expected = EvolveGoto::move{ .to = e_direction::se };
+  REQUIRE( f() == expected );
+  set_unit_pos( { .x = 3, .y = 3 } );
+  expected = EvolveGoto::move{ .to = e_direction::se };
+  REQUIRE( f() == expected );
+  set_unit_pos( { .x = 7, .y = 7 } );
+  expected = EvolveGoto::move{ .to = e_direction::nw };
+  REQUIRE( f() == expected );
+
+  // Dwelling appears on tile on path.
+  registry.units.clear();
+  set_unit_pos( { .x = 2, .y = 2 } );
+  target   = goto_target::map{ .tile     = { .x = 5, .y = 5 },
+                               .snapshot = empty_or_friendly{} };
+  expected = EvolveGoto::move{ .to = e_direction::se };
+  REQUIRE( f() == expected );
+  set_unit_pos( { .x = 3, .y = 3 } );
+  DwellingId const dwelling_id_1 =
+      w.add_dwelling( { .x = 4, .y = 4 }, arawak ).id;
+  expected = EvolveGoto::move{ .to = e_direction::e };
+  REQUIRE( f() == expected );
+  destroy_dwelling( w.ss(), w.map_updater(), dwelling_id_1 );
+
+  // Destination changes contents.
+  registry.units.clear();
+  set_unit_pos( { .x = 2, .y = 2 } );
+  target   = goto_target::map{ .tile     = { .x = 4, .y = 4 },
+                               .snapshot = empty_or_friendly{} };
+  expected = EvolveGoto::move{ .to = e_direction::se };
+  REQUIRE( f() == expected );
+  set_unit_pos( { .x = 3, .y = 3 } );
+  w.square( { .x = 4, .y = 4 } ).lost_city_rumor = true;
+  expected = EvolveGoto::abort{};
+  REQUIRE( f() == expected );
+  w.square( { .x = 4, .y = 4 } ).lost_city_rumor = false;
+
+  // ------------------------------------------------------------
+  // goto harbor
+  // ------------------------------------------------------------
+  Unit& ship_unit =
+      w.add_unit_on_map( caravel, { .x = 1, .y = 1 } );
+
+  p_viz  = &viz_entire;
+  p_unit = &ship_unit;
+  target = goto_target::harbor{};
+
+  // Goto east sea lane.
+  set_unit_pos( { .x = 5, .y = 1 } );
+  expected = EvolveGoto::move{ .to = e_direction::e };
+  REQUIRE( f() == expected );
+  set_unit_pos( { .x = 6, .y = 1 } );
+  expected = EvolveGoto::move{ .to = e_direction::e };
+  REQUIRE( f() == expected );
+  set_unit_pos( { .x = 7, .y = 1 } );
+  expected = EvolveGoto::move{ .to = e_direction::e };
+  REQUIRE( f() == expected );
+
+  // Changes location just before destination, empty goto path
+  // detected.
+  registry.units.clear();
+  set_unit_pos( { .x = 6, .y = 1 } );
+  expected = EvolveGoto::move{ .to = e_direction::e };
+  REQUIRE( f() == expected );
+  REQUIRE(
+      registry.units[p_unit->id()].path.reverse_path.empty() );
+  set_unit_pos( { .x = 3, .y = 1 } );
+  expected = EvolveGoto::move{ .to = e_direction::w };
+  REQUIRE( f() == expected );
+
+  // Changes location mid-path.
+  registry.units.clear();
+  set_unit_pos( { .x = 4, .y = 1 } );
+  expected = EvolveGoto::move{ .to = e_direction::w };
+  REQUIRE( f() == expected );
+  set_unit_pos( { .x = 4, .y = 1 } );
+  expected = EvolveGoto::move{ .to = e_direction::w };
+  REQUIRE( f() == expected );
+
+  // Foreign ship appears on tile on path.
+  registry.units.clear();
+  set_unit_pos( { .x = 5, .y = 1 } );
+  expected = EvolveGoto::move{ .to = e_direction::e };
+  REQUIRE( f() == expected );
+  set_unit_pos( { .x = 6, .y = 1 } );
+  UnitId const foreign_unit_id_1 =
+      w.add_unit_on_map( caravel, { .x = 7, .y = 1 }, french )
+          .id();
+  expected = EvolveGoto::move{ .to = e_direction::ne };
+  REQUIRE( f() == expected );
+  UnitOwnershipChanger( w.ss(), foreign_unit_id_1 ).destroy();
+
+  // Destination changes contents twice.
+  registry.units.clear();
+  set_unit_pos( { .x = 5, .y = 1 } );
+  expected = EvolveGoto::move{ .to = e_direction::e };
+  REQUIRE( f() == expected );
+  set_unit_pos( { .x = 6, .y = 1 } );
+  w.square( { .x = 7, .y = 1 } ).surface = land;
+  expected = EvolveGoto::move{ .to = e_direction::ne };
+  REQUIRE( f() == expected );
+  set_unit_pos( { .x = 7, .y = 0 } );
+  w.square( { .x = 7, .y = 1 } ).surface = water;
+  expected = EvolveGoto::move{ .to = e_direction::s };
+  REQUIRE( f() == expected );
+  set_unit_pos( { .x = 7, .y = 1 } );
+  expected = EvolveGoto::move{ .to = e_direction::e };
+  REQUIRE( f() == expected );
+
+  {
+    using enum e_surface;
+    using enum e_ground_terrain;
+    using enum e_land_overlay;
+    using enum e_river;
+    using enum e_unit_type;
+
+    using MS = MapSquare;
+
+    static MS const _{ .surface = water };
+    static MS const X{ .surface = land, .ground = grassland };
+    static MS const s{ .surface = water, .sea_lane = true };
+
+    // clang-format off
+    vector<MapSquare> tiles{ /*
+          0 1 2 3 4 5 6 7 8 9
+      0*/ X,_,_,_,_,_,_,_,_,X, /*0
+      1*/ X,_,_,_,_,_,_,s,_,X, /*1
+      2*/ X,_,X,X,X,X,X,X,_,X, /*2
+      3*/ X,_,X,X,X,X,X,X,_,X, /*3
+      4*/ X,_,X,X,X,X,X,X,_,X, /*4
+      5*/ X,_,X,X,X,X,X,X,_,X, /*5
+      6*/ X,_,X,X,X,X,X,X,_,X, /*6
+      7*/ X,_,X,X,X,X,X,X,_,X, /*7
+      8*/ X,_,_,_,_,_,_,_,_,X, /*8
+      9*/ X,_,_,_,_,_,_,_,_,X, /*9
+          0 1 2 3 4 5 6 7 8 9
+    */};
+    // clang-format on
+
+    w.build_map( std::move( tiles ), 10 );
+  }
+
+  // No launch points available.
+  registry.units.clear();
+  set_unit_pos( { .x = 5, .y = 1 } );
+  expected = EvolveGoto::abort{};
   REQUIRE( f() == expected );
 }
 
