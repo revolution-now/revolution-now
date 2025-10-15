@@ -102,8 +102,7 @@ sumtype.LandViewRawInput {
     where 'gfx::point',
     tile 'gfx::point',
   },
-  goto_drag_start  { tile 'gfx::point' },
-  goto_drag_update { tile 'gfx::point' },
+  goto_drag_start  {},
   goto_drag_finish {},
   goto_drag_cancel {},
 }

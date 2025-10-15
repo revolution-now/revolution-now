@@ -529,41 +529,11 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
     co_return res;
   }
 
-  wait<maybe<point>> mouse_drag_goto_mode( point const start ) {
-    // Set land view mode.
-    SCOPED_MODE_PUSH_AND_GET( mode, goto_mode );
-    mode.start_tile = start;
-    mode.curr_tile  = start;
-
-    // Set goto mouse cursor.
-    OmniPlane& omni = ts_.planes.get().omni.typed();
-    e_mouse_cursor const old_cursor = omni.get_mouse_cursor();
-    omni.set_mouse_cursor( e_mouse_cursor::go_to );
-    SCOPE_EXIT { omni.set_mouse_cursor( old_cursor ); };
-
-    // Take updates and wait for drag thread to finish.
-    for( ;; ) {
-      RawInput const raw = co_await raw_input_stream_.next();
-      SWITCH( raw.input ) {
-        CASE( goto_drag_update ) {
-          mode.curr_tile = goto_drag_update.tile;
-          break;
-        }
-        CASE( goto_drag_cancel ) { co_return nothing; }
-        CASE( goto_drag_finish ) { co_return mode.curr_tile; }
-        CASE( escape ) { co_return nothing; }
-        default:
-          break;
-      }
-    }
-    co_return nothing;
-  }
-
-  // NOTE: this is mainly for keyboard driven input, though it
-  // supports the mouse as well, but not in the sense of drag-
-  // ging, just move/click. But it is mainly intended for use
-  // with the keyboard.
-  wait<maybe<point>> keyboard_goto_mode( Unit const& unit ) {
+  // This is used for both keyboard mode and dragging mode. But
+  // note that for the mouse drag goto mode there is one addi-
+  // tional small coro that runs that receives the drag events
+  // and feeds them to this coro.
+  wait<maybe<point>> run_goto_mode( Unit const& unit ) {
     point const start =
         coord_for_unit_indirect_or_die( ss_.units, unit.id() );
 
@@ -590,11 +560,25 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
     for( ;; ) {
       RawInput const raw = co_await raw_input_stream_.next();
       SWITCH( raw.input ) {
+        // Cancelling.
+        CASE( goto_drag_cancel ) { co_return nothing; }
+        CASE( escape ) { co_return nothing; }
+        CASE( tile_right_click ) { co_return nothing; }
+
+        // Accept current.
+        CASE( goto_drag_finish ) { co_return mode.curr_tile; }
         CASE( tile_enter ) { co_return mode.curr_tile; }
-        CASE( tile_click ) {
-          // Before this click, the curr_tile will have been
-          // moved to be where the mouse tile is.
+        CASE( tile_click ) { co_return mode.curr_tile; }
+        CASE( mouse_click_outside_of_map ) {
           co_return mode.curr_tile;
+        }
+
+        // Move the target.
+        CASE( mouse_over ) {
+          // NOTE: this tile could be off the map, but it will be
+          // clamped appropriately below.
+          mode.curr_tile = mouse_over.hypothetical_tile;
+          break;
         }
         CASE( cmd ) {
           SWITCH( cmd.what ) {
@@ -618,19 +602,9 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
           }
           break;
         }
+
         CASE( center ) {
           co_await center_on_tile( mode.curr_tile );
-          break;
-        }
-        CASE( escape ) { co_return nothing; }
-        CASE( tile_right_click ) { co_return nothing; }
-        CASE( mouse_click_outside_of_map ) {
-          co_return mode.curr_tile;
-        }
-        CASE( mouse_over ) {
-          // NOTE: this tile could be off the map, but it will be
-          // clamped appropriately below.
-          mode.curr_tile = mouse_over.hypothetical_tile;
           break;
         }
         default:
@@ -658,14 +632,12 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
     switch( raw_input.input.to_enum() ) {
       using e = RI::e;
       case e::goto_drag_start: {
-        auto& o = raw_input.input.get<RI::goto_drag_start>();
-        auto const end_tile =
-            co_await mouse_drag_goto_mode( o.tile );
-        if( !end_tile.has_value() ) break;
         UNWRAP_CHECK_T(
             UnitId const unit_id,
             mode_.top().inner_if<LandViewMode::unit_input>() );
-        Unit const& unit = ss_.units.unit_for( unit_id );
+        Unit const& unit    = ss_.units.unit_for( unit_id );
+        auto const end_tile = co_await run_goto_mode( unit );
+        if( !end_tile.has_value() ) break;
         auto const input = PI::give_command{
           .cmd = command::go_to{
             .target = create_goto_map_target(
@@ -677,7 +649,6 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
             PlayerInput( input, Clock_t::now() ) );
         break;
       }
-      case e::goto_drag_update:
       case e::goto_drag_finish:
         // These can be sent after a drag is cancelled while the
         // drag thread is finishing up.
@@ -827,7 +798,7 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
         if( !unit_input.has_value() ) break;
         Unit const& unit =
             ss_.units.unit_for( unit_input->unit_id );
-        auto const tile = co_await keyboard_goto_mode( unit );
+        auto const tile = co_await run_goto_mode( unit );
         if( !tile.has_value() ) break;
         // Use current time since there was some user interac-
         // tion.
@@ -1001,22 +972,13 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
     // map to help scroll to the goto target.
     if( mode_.top().holds<LandViewMode::goto_mode>() ) {
       point const mouse_pos = input::current_mouse_position();
-      if( scroll_when_mouse_pos_at_edge( mouse_pos ) ) {
+      if( scroll_when_mouse_pos_at_edge( mouse_pos ) )
         // We've scrolled, so send an event that will trigger an
         // update of the selected tile given the mouse position,
         // otherwise the the tile selection won't know that the
         // mouse is over a different tile than it.
         raw_input_stream_.send(
             RawInput( produce_mouse_over_event( mouse_pos ) ) );
-        point const hypo_tile =
-            viewport().screen_pixel_to_hypothetical_world_tile(
-                mouse_pos );
-        rect const allowed = valid_goto_target_tiles( camera_ );
-        point const tile   = hypo_tile.clamped( allowed );
-        raw_input_stream_.send(
-            RawInput( LandViewRawInput::goto_drag_update{
-              .tile = tile } ) );
-      }
     }
   }
 
@@ -1775,47 +1737,18 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
     return *mouse_tile == unit_tile;
   }
 
-  wait<> goto_dragging( point const origin ) {
+  wait<> goto_dragging( point const /*origin*/ ) {
     using I = LandViewRawInput;
 
     auto const send = [&]( auto const& o ) {
       raw_input_stream_.send( I{ o } );
     };
 
-    // This guarantees that we always send at least one message
-    // to other dragging coro that we're finished, otherwise that
-    // other one could get stuck waiting, which would be cata-
-    // strophic because it is in the main coro. This will also
-    // get sent when the drag finishes naturally, but there
-    // should be no harm in that.
+    // Just in case.
     SCOPE_EXIT { send( I::goto_drag_cancel{} ); };
-
-    UNWRAP_CHECK(
-        tile, viewport().screen_pixel_to_world_tile( origin ) );
-    send( I::goto_drag_start{ .tile = tile } );
-
-    while( auto const d = co_await drag_stream.next() ) {
-      // This will allow the mouse to be on the map or in the
-      // area around it (if it is zoomed out enough) but not e.g.
-      // on the panel or menu. This is because we want the user
-      // to be able to drag off the map to signal going to the
-      // harbor, but only if the map surroundings are visible,
-      // i.e. we don't want them doing that when the mouse is
-      // over the panel.
-      if( !d->current.is_inside( landview_renderable_rect() ) )
-        continue;
-      // Allow dragging off the edge of the map.
-      point const hypo_tile =
-          viewport().screen_pixel_to_hypothetical_world_tile(
-              d->current );
-      // Add one column of edge to left and right sides to allow
-      // the player to signal that they want to sail the high
-      // seas.
-      rect const allowed = valid_goto_target_tiles( camera_ );
-      point const tile   = hypo_tile.clamped( allowed );
-      send( I::goto_drag_update{ .tile = tile } );
-    }
-
+    send( I::goto_drag_start{} );
+    while( auto const d = co_await drag_stream.next() )
+      send( produce_mouse_over_event( d->current ) );
     send( I::goto_drag_finish{} );
   }
 
