@@ -191,13 +191,6 @@ int food_production_on_center_square( MapSquare const& square,
       center_conf.viceroy_base_food[terrain] +
       center_conf.food_bonus_by_difficulty[difficulty];
 
-  // If the base production is zero then that is taken to mean
-  // that the square should never produce any food regardless of
-  // the terrain bonuses, and so we short circuit here. This will
-  // prevent e.g. producing food on arctic squares that are
-  // plowed (assuming a scenario where plowing is allowed there).
-  if( base == 0 ) return 0;
-
   bool const is_expert = center_conf.is_expert;
 
   // In general the order in which these are applied matters be-

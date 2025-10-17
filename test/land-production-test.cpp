@@ -18,6 +18,7 @@
 
 // ss
 #include "ss/player.hpp"
+#include "ss/settings.rds.hpp"
 
 // refl
 #include "refl/to-str.hpp"
@@ -32,6 +33,8 @@ namespace rn {
 namespace {
 
 using namespace std;
+
+using ::gfx::point;
 
 /****************************************************************
 ** Fake World Setup
@@ -2540,6 +2543,106 @@ TEST_CASE( "[production] fur trappers with hudson" ) {
 
   unit_type = e_unit_type::expert_fur_trapper;
   REQUIRE( f() == 8 );
+}
+
+TEST_CASE( "[production] arctic food production" ) {
+  World w;
+  w.create_default_map();
+  point const P{ .x = 0, .y = 1 };
+
+  auto& difficulty = w.settings().game_setup_options.difficulty;
+
+  auto S = [&]() -> decltype( auto ) { return w.square( P ); };
+
+  using enum e_difficulty;
+  using enum e_surface;
+  using enum e_ground_terrain;
+  using enum e_outdoor_job;
+  using enum e_unit_type;
+
+  SECTION( "outside colony, not plowed" ) {
+    auto f = [&] {
+      return production_on_square(
+          food, w.terrain(), w.default_player().fathers.has,
+          expert_farmer, P );
+    };
+
+    S() = {
+      .surface = land, .ground = arctic, .irrigation = false };
+
+    difficulty = discoverer;
+    REQUIRE( f() == 0 );
+    difficulty = explorer;
+    REQUIRE( f() == 0 );
+    difficulty = conquistador;
+    REQUIRE( f() == 0 );
+    difficulty = governor;
+    REQUIRE( f() == 0 );
+    difficulty = viceroy;
+    REQUIRE( f() == 0 );
+  }
+
+  SECTION( "outside colony, plowed" ) {
+    auto f = [&] {
+      return production_on_square(
+          food, w.terrain(), w.default_player().fathers.has,
+          expert_farmer, P );
+    };
+
+    S() = {
+      .surface = land, .ground = arctic, .irrigation = true };
+
+    difficulty = discoverer;
+    REQUIRE( f() == 0 );
+    difficulty = explorer;
+    REQUIRE( f() == 0 );
+    difficulty = conquistador;
+    REQUIRE( f() == 0 );
+    difficulty = governor;
+    REQUIRE( f() == 0 );
+    difficulty = viceroy;
+    REQUIRE( f() == 0 );
+  }
+
+  SECTION( "colony square, not plowed" ) {
+    auto f = [&] {
+      return food_production_on_center_square( S(), difficulty );
+    };
+
+    S() = {
+      .surface = land, .ground = arctic, .irrigation = false };
+
+    difficulty = discoverer;
+    REQUIRE( f() == 2 );
+    difficulty = explorer;
+    REQUIRE( f() == 1 );
+    difficulty = conquistador;
+    REQUIRE( f() == 0 );
+    difficulty = governor;
+    REQUIRE( f() == 0 );
+    difficulty = viceroy;
+    REQUIRE( f() == 0 );
+  }
+
+  SECTION( "colony square, plowed" ) {
+    auto f = [&] {
+      return food_production_on_center_square( S(), difficulty );
+    };
+
+    S() = {
+      .surface = land, .ground = arctic, .irrigation = true };
+
+    difficulty = discoverer;
+    REQUIRE( f() == 3 );
+    difficulty = explorer;
+    REQUIRE( f() == 2 );
+    difficulty = conquistador;
+    REQUIRE( f() == 1 );
+    difficulty = governor;
+    REQUIRE( f() == 1 );
+    difficulty = viceroy;
+    REQUIRE( f() == 1 );
+  }
 }
 
 } // namespace
