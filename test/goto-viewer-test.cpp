@@ -197,6 +197,106 @@ TEST_CASE( "[goto-viewer] can_enter_tile" ) {
   viz.queue__square_at_37.ensure_expectations();
 }
 
+TEST_CASE( "[goto-viewer] can_enter_tile / colony / dwelling" ) {
+  world w;
+  MockIVisibility viz( w.ss().as_const );
+  e_unit_type unit_type = {};
+  point tile;
+  MapSquare square;
+
+  auto const f = [&] [[clang::noinline]] {
+    GotoMapViewer const viewer(
+        w.ss(), viz, w.default_player_type(), unit_type );
+    return viewer.can_enter_tile( tile );
+  };
+
+  using enum e_tile_visibility;
+  using enum e_unit_type;
+  using enum e_tribe;
+  using enum e_surface;
+
+  SECTION( "colony" ) {
+    Colony const colony = w.add_colony( { .x = 1, .y = 0 } );
+
+    unit_type = caravel;
+    tile      = { .x = 1, .y = 0 };
+    viz.EXPECT__visible( tile ).returns( clear );
+    viz.EXPECT__visible( tile ).returns( clear );
+    square.surface = land;
+    viz.EXPECT__square_at( tile ).returns( square );
+    viz.EXPECT__colony_at( tile ).returns( nothing );
+    viz.EXPECT__dwelling_at( tile ).returns( nothing );
+    REQUIRE( f() == false );
+
+    unit_type = free_colonist;
+    tile      = { .x = 1, .y = 0 };
+    viz.EXPECT__visible( tile ).returns( clear );
+    viz.EXPECT__visible( tile ).returns( clear );
+    square.surface = land;
+    viz.EXPECT__square_at( tile ).returns( square );
+    viz.EXPECT__colony_at( tile ).returns( nothing );
+    viz.EXPECT__dwelling_at( tile ).returns( nothing );
+    REQUIRE( f() == true );
+
+    unit_type = caravel;
+    tile      = { .x = 1, .y = 0 };
+    viz.EXPECT__visible( tile ).returns( clear );
+    square.surface = land;
+    viz.EXPECT__square_at( tile ).returns( square );
+    viz.EXPECT__colony_at( tile ).returns( colony );
+    REQUIRE( f() == false );
+
+    unit_type = free_colonist;
+    tile      = { .x = 1, .y = 0 };
+    viz.EXPECT__visible( tile ).returns( clear );
+    square.surface = land;
+    viz.EXPECT__square_at( tile ).returns( square );
+    viz.EXPECT__colony_at( tile ).returns( colony );
+    REQUIRE( f() == true );
+  }
+
+  SECTION( "dwelling" ) {
+    Dwelling const dwelling =
+        w.add_dwelling( { .x = 1, .y = 0 }, apache );
+
+    unit_type = caravel;
+    tile      = { .x = 1, .y = 0 };
+    viz.EXPECT__visible( tile ).returns( clear );
+    viz.EXPECT__visible( tile ).returns( clear );
+    square.surface = land;
+    viz.EXPECT__square_at( tile ).returns( square );
+    viz.EXPECT__colony_at( tile ).returns( nothing );
+    viz.EXPECT__dwelling_at( tile ).returns( nothing );
+    REQUIRE( f() == false );
+
+    unit_type = free_colonist;
+    tile      = { .x = 1, .y = 0 };
+    viz.EXPECT__visible( tile ).returns( clear );
+    viz.EXPECT__visible( tile ).returns( clear );
+    square.surface = land;
+    viz.EXPECT__square_at( tile ).returns( square );
+    viz.EXPECT__colony_at( tile ).returns( nothing );
+    viz.EXPECT__dwelling_at( tile ).returns( nothing );
+    REQUIRE( f() == true );
+
+    unit_type = caravel;
+    tile      = { .x = 1, .y = 0 };
+    viz.EXPECT__visible( tile ).returns( clear );
+    square.surface = land;
+    viz.EXPECT__colony_at( tile ).returns( nothing );
+    viz.EXPECT__dwelling_at( tile ).returns( dwelling );
+    REQUIRE( f() == false );
+
+    unit_type = free_colonist;
+    tile      = { .x = 1, .y = 0 };
+    viz.EXPECT__visible( tile ).returns( clear );
+    square.surface = land;
+    viz.EXPECT__colony_at( tile ).returns( nothing );
+    viz.EXPECT__dwelling_at( tile ).returns( dwelling );
+    REQUIRE( f() == false );
+  }
+}
+
 TEST_CASE( "[goto-viewer] map_side" ) {
   world w;
   MockIVisibility viz( w.ss().as_const );
