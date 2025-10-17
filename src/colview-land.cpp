@@ -379,27 +379,12 @@ void ColonyLandView::draw_land_3x3( rr::Renderer& renderer,
           rr::Painter::e_border_mode::inside, pixel::red() );
   }
 
-  // Render colonies.
-  for( Rect const local_rect : gfx::subrects(
-           Rect{ .x = 0, .y = 0, .w = 3, .h = 3 } ) ) {
-    Coord const local_coord = local_rect.upper_left();
-    auto world_square       = colony_square +
-                        local_coord.distance_from_origin() -
-                        Delta{ .w = 1, .h = 1 };
-    auto maybe_col_id =
-        ss_.colonies.maybe_from_coord( world_square );
-    if( !maybe_col_id ) continue;
-    render_colony(
-        renderer,
-        local_coord * g_tile_delta - Delta{ .w = 6, .h = 6 },
-        viz, colony_square.to_gfx(), ss_,
-        ss_.colonies.colony_for( *maybe_col_id ),
-        ColonyRenderOptions{ .render_name       = false,
-                             .render_population = false,
-                             .render_flag       = true } );
-  }
+  // NOTE: the rendering order of dwellings vs. colonies must be
+  // kept consistent with the rendering in the colony view.
 
   // Render native dwellings.
+  // FIXME: large dwellings (Inca) can spill over outside of the
+  // land box; they need to somehow be clipped.
   for( Rect const local_rect : gfx::subrects(
            Rect{ .x = 0, .y = 0, .w = 3, .h = 3 } ) ) {
     Coord const local_coord = local_rect.upper_left();
@@ -443,6 +428,26 @@ void ColonyLandView::draw_land_3x3( rr::Renderer& renderer,
     if( !native_owned_land_[d].has_value() ) continue;
     render_sprite( renderer, local_coord * g_tile_delta,
                    e_tile::totem_pole );
+  }
+
+  // Render colonies.
+  for( Rect const local_rect : gfx::subrects(
+           Rect{ .x = 0, .y = 0, .w = 3, .h = 3 } ) ) {
+    Coord const local_coord = local_rect.upper_left();
+    auto world_square       = colony_square +
+                        local_coord.distance_from_origin() -
+                        Delta{ .w = 1, .h = 1 };
+    auto maybe_col_id =
+        ss_.colonies.maybe_from_coord( world_square );
+    if( !maybe_col_id ) continue;
+    render_colony(
+        renderer,
+        local_coord * g_tile_delta - Delta{ .w = 6, .h = 6 },
+        viz, colony_square.to_gfx(), ss_,
+        ss_.colonies.colony_for( *maybe_col_id ),
+        ColonyRenderOptions{ .render_name       = false,
+                             .render_population = false,
+                             .render_flag       = true } );
   }
 
   // This must be drawn after the terrain square instead of the

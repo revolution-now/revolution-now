@@ -949,6 +949,8 @@ void LandViewRenderer::render_entities() const {
   SCOPED_RENDERER_MOD_ADD( painter_mods.repos.translation2,
                            corner.distance_from_origin() );
   render_units_underneath();
+  // NOTE: the rendering order of dwellings vs. colonies must be
+  // kept consistent with the rendering in the colony view.
   render_dwellings();
   render_colonies();
   render_units();
