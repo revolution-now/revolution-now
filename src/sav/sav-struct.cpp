@@ -203,6 +203,66 @@ cdr::result<difficulty_type> from_canonical(
 }
 
 /****************************************************************
+** direction_type
+*****************************************************************/
+void to_str( direction_type const& o, std::string& out, base::tag<direction_type> ) {
+  switch( o ) {
+    case direction_type::north: out += "north"; return;
+    case direction_type::northeast: out += "northeast"; return;
+    case direction_type::east: out += "east"; return;
+    case direction_type::southeast: out += "southeast"; return;
+    case direction_type::south: out += "south"; return;
+    case direction_type::southwest: out += "southwest"; return;
+    case direction_type::west: out += "west"; return;
+    case direction_type::northwest: out += "northwest"; return;
+    case direction_type::center: out += "center"; return;
+    case direction_type::null: out += "null"; return;
+  }
+  out += "<unrecognized>";
+}
+
+cdr::value to_canonical( cdr::converter&,
+                         direction_type const& o,
+                         cdr::tag_t<direction_type> ) {
+  switch( o ) {
+    case direction_type::north: return "north";
+    case direction_type::northeast: return "northeast";
+    case direction_type::east: return "east";
+    case direction_type::southeast: return "southeast";
+    case direction_type::south: return "south";
+    case direction_type::southwest: return "southwest";
+    case direction_type::west: return "west";
+    case direction_type::northwest: return "northwest";
+    case direction_type::center: return "center";
+    case direction_type::null: return "null";
+  }
+  return cdr::null;
+}
+
+cdr::result<direction_type> from_canonical(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<direction_type> ) {
+  UNWRAP_RETURN( str, conv.ensure_type<std::string>( v ) );
+  static std::map<std::string, direction_type> const m{
+    { "north", direction_type::north },
+    { "northeast", direction_type::northeast },
+    { "east", direction_type::east },
+    { "southeast", direction_type::southeast },
+    { "south", direction_type::south },
+    { "southwest", direction_type::southwest },
+    { "west", direction_type::west },
+    { "northwest", direction_type::northwest },
+    { "center", direction_type::center },
+    { "null", direction_type::null },
+  };
+  if( auto it = m.find( str ); it != m.end() )
+    return it->second;
+  else
+    return BAD_ENUM_STR_VALUE( "direction_type", str );
+}
+
+/****************************************************************
 ** end_of_turn_sign_type
 *****************************************************************/
 void to_str( end_of_turn_sign_type const& o, std::string& out, base::tag<end_of_turn_sign_type> ) {
@@ -6353,7 +6413,7 @@ void to_str( UNIT const& o, std::string& out, base::tag<UNIT> ) {
   out += "orders="; base::to_str( o.orders, out ); out += ',';
   out += "goto_x="; base::to_str( o.goto_x, out ); out += ',';
   out += "goto_y="; base::to_str( o.goto_y, out ); out += ',';
-  out += "unknown18="; base::to_str( o.unknown18, out ); out += ',';
+  out += "goto_last_moved_attempted="; base::to_str( o.goto_last_moved_attempted, out ); out += ',';
   out += "holds_occupied="; base::to_str( o.holds_occupied, out ); out += ',';
   out += "cargo_items="; base::to_str( o.cargo_items, out ); out += ',';
   out += "cargo_hold="; base::to_str( o.cargo_hold, out ); out += ',';
@@ -6376,7 +6436,7 @@ bool read_binary( base::IBinaryIO& b, UNIT& o ) {
     && read_binary( b, o.orders )
     && read_binary( b, o.goto_x )
     && read_binary( b, o.goto_y )
-    && read_binary( b, o.unknown18 )
+    && read_binary( b, o.goto_last_moved_attempted )
     && read_binary( b, o.holds_occupied )
     && read_binary( b, o.cargo_items )
     && read_binary( b, o.cargo_hold )
@@ -6398,7 +6458,7 @@ bool write_binary( base::IBinaryIO& b, UNIT const& o ) {
     && write_binary( b, o.orders )
     && write_binary( b, o.goto_x )
     && write_binary( b, o.goto_y )
-    && write_binary( b, o.unknown18 )
+    && write_binary( b, o.goto_last_moved_attempted )
     && write_binary( b, o.holds_occupied )
     && write_binary( b, o.cargo_items )
     && write_binary( b, o.cargo_hold )
@@ -6422,7 +6482,7 @@ cdr::value to_canonical( cdr::converter& conv,
   conv.to_field( tbl, "orders", o.orders );
   conv.to_field( tbl, "goto_x", o.goto_x );
   conv.to_field( tbl, "goto_y", o.goto_y );
-  conv.to_field( tbl, "unknown18", o.unknown18 );
+  conv.to_field( tbl, "goto_last_moved_attempted", o.goto_last_moved_attempted );
   conv.to_field( tbl, "holds_occupied", o.holds_occupied );
   conv.to_field( tbl, "cargo_items", o.cargo_items );
   conv.to_field( tbl, "cargo_hold", o.cargo_hold );
@@ -6440,7 +6500,7 @@ cdr::value to_canonical( cdr::converter& conv,
     "orders",
     "goto_x",
     "goto_y",
-    "unknown18",
+    "goto_last_moved_attempted",
     "holds_occupied",
     "cargo_items",
     "cargo_hold",
@@ -6468,7 +6528,7 @@ cdr::result<UNIT> from_canonical(
   CONV_FROM_FIELD( "orders", orders );
   CONV_FROM_FIELD( "goto_x", goto_x );
   CONV_FROM_FIELD( "goto_y", goto_y );
-  CONV_FROM_FIELD( "unknown18", unknown18 );
+  CONV_FROM_FIELD( "goto_last_moved_attempted", goto_last_moved_attempted );
   CONV_FROM_FIELD( "holds_occupied", holds_occupied );
   CONV_FROM_FIELD( "cargo_items", cargo_items );
   CONV_FROM_FIELD( "cargo_hold", cargo_hold );

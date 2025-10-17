@@ -1920,7 +1920,7 @@
       "orders": "fortified",
       "goto_x": 52,
       "goto_y": 26,
-      "unknown18": "03",
+      "goto_last_moved_attempted": "southeast",
       "holds_occupied": 0,
       "cargo_items": [
         {
@@ -1974,7 +1974,7 @@
       "orders": "fortified",
       "goto_x": 0,
       "goto_y": 0,
-      "unknown18": "00",
+      "goto_last_moved_attempted": "north",
       "holds_occupied": 0,
       "cargo_items": [
         {
@@ -2028,7 +2028,7 @@
       "orders": "fortified",
       "goto_x": 0,
       "goto_y": 0,
-      "unknown18": "00",
+      "goto_last_moved_attempted": "north",
       "holds_occupied": 0,
       "cargo_items": [
         {
@@ -2082,7 +2082,7 @@
       "orders": "fortified",
       "goto_x": 0,
       "goto_y": 0,
-      "unknown18": "00",
+      "goto_last_moved_attempted": "north",
       "holds_occupied": 0,
       "cargo_items": [
         {
@@ -2136,7 +2136,7 @@
       "orders": "fortified",
       "goto_x": 0,
       "goto_y": 0,
-      "unknown18": "04",
+      "goto_last_moved_attempted": "south",
       "holds_occupied": 0,
       "cargo_items": [
         {
@@ -2190,7 +2190,7 @@
       "orders": "fortified",
       "goto_x": 0,
       "goto_y": 0,
-      "unknown18": "00",
+      "goto_last_moved_attempted": "north",
       "holds_occupied": 0,
       "cargo_items": [
         {
@@ -2244,7 +2244,7 @@
       "orders": "fortified",
       "goto_x": 0,
       "goto_y": 0,
-      "unknown18": "00",
+      "goto_last_moved_attempted": "north",
       "holds_occupied": 0,
       "cargo_items": [
         {
@@ -2298,7 +2298,7 @@
       "orders": "fortified",
       "goto_x": 0,
       "goto_y": 0,
-      "unknown18": "02",
+      "goto_last_moved_attempted": "east",
       "holds_occupied": 0,
       "cargo_items": [
         {
@@ -2352,7 +2352,7 @@
       "orders": "fortified",
       "goto_x": 0,
       "goto_y": 0,
-      "unknown18": "00",
+      "goto_last_moved_attempted": "north",
       "holds_occupied": 0,
       "cargo_items": [
         {
@@ -2406,7 +2406,7 @@
       "orders": "fortified",
       "goto_x": 0,
       "goto_y": 0,
-      "unknown18": "00",
+      "goto_last_moved_attempted": "north",
       "holds_occupied": 0,
       "cargo_items": [
         {
@@ -2460,7 +2460,7 @@
       "orders": "fortified",
       "goto_x": 0,
       "goto_y": 0,
-      "unknown18": "00",
+      "goto_last_moved_attempted": "north",
       "holds_occupied": 0,
       "cargo_items": [
         {
@@ -2514,7 +2514,7 @@
       "orders": "fortified",
       "goto_x": 0,
       "goto_y": 0,
-      "unknown18": "00",
+      "goto_last_moved_attempted": "north",
       "holds_occupied": 0,
       "cargo_items": [
         {
@@ -2568,7 +2568,7 @@
       "orders": "fortified",
       "goto_x": 0,
       "goto_y": 0,
-      "unknown18": "00",
+      "goto_last_moved_attempted": "north",
       "holds_occupied": 0,
       "cargo_items": [
         {
@@ -2622,7 +2622,7 @@
       "orders": "fortified",
       "goto_x": 0,
       "goto_y": 0,
-      "unknown18": "03",
+      "goto_last_moved_attempted": "southeast",
       "holds_occupied": 0,
       "cargo_items": [
         {
@@ -2676,7 +2676,7 @@
       "orders": "fortified",
       "goto_x": 0,
       "goto_y": 0,
-      "unknown18": "00",
+      "goto_last_moved_attempted": "north",
       "holds_occupied": 0,
       "cargo_items": [
         {
@@ -2730,7 +2730,7 @@
       "orders": "fortified",
       "goto_x": 0,
       "goto_y": 0,
-      "unknown18": "00",
+      "goto_last_moved_attempted": "north",
       "holds_occupied": 0,
       "cargo_items": [
         {
@@ -2784,7 +2784,7 @@
       "orders": "fortified",
       "goto_x": 0,
       "goto_y": 0,
-      "unknown18": "00",
+      "goto_last_moved_attempted": "north",
       "holds_occupied": 0,
       "cargo_items": [
         {
@@ -2838,7 +2838,7 @@
       "orders": "fortified",
       "goto_x": 0,
       "goto_y": 0,
-      "unknown18": "00",
+      "goto_last_moved_attempted": "north",
       "holds_occupied": 0,
       "cargo_items": [
         {
@@ -2892,7 +2892,7 @@
       "orders": "fortified",
       "goto_x": 0,
       "goto_y": 0,
-      "unknown18": "00",
+      "goto_last_moved_attempted": "north",
       "holds_occupied": 0,
       "cargo_items": [
         {
@@ -2946,7 +2946,7 @@
       "orders": "fortified",
       "goto_x": 0,
       "goto_y": 0,
-      "unknown18": "00",
+      "goto_last_moved_attempted": "north",
       "holds_occupied": 0,
       "cargo_items": [
         {
@@ -3000,7 +3000,7 @@
       "orders": "fortified",
       "goto_x": 0,
       "goto_y": 0,
-      "unknown18": "00",
+      "goto_last_moved_attempted": "north",
       "holds_occupied": 0,
       "cargo_items": [
         {
@@ -3054,7 +3054,7 @@
       "orders": "fortified",
       "goto_x": 0,
       "goto_y": 0,
-      "unknown18": "00",
+      "goto_last_moved_attempted": "north",
       "holds_occupied": 0,
       "cargo_items": [
         {
@@ -3108,7 +3108,7 @@
       "orders": "fortified",
       "goto_x": 0,
       "goto_y": 0,
-      "unknown18": "00",
+      "goto_last_moved_attempted": "north",
       "holds_occupied": 0,
       "cargo_items": [
         {
@@ -3162,7 +3162,7 @@
       "orders": "fortified",
       "goto_x": 0,
       "goto_y": 0,
-      "unknown18": "00",
+      "goto_last_moved_attempted": "north",
       "holds_occupied": 0,
       "cargo_items": [
         {
@@ -3216,7 +3216,7 @@
       "orders": "fortified",
       "goto_x": 0,
       "goto_y": 0,
-      "unknown18": "05",
+      "goto_last_moved_attempted": "southwest",
       "holds_occupied": 0,
       "cargo_items": [
         {
@@ -3270,7 +3270,7 @@
       "orders": "fortified",
       "goto_x": 0,
       "goto_y": 0,
-      "unknown18": "00",
+      "goto_last_moved_attempted": "north",
       "holds_occupied": 0,
       "cargo_items": [
         {
@@ -3324,7 +3324,7 @@
       "orders": "fortified",
       "goto_x": 0,
       "goto_y": 0,
-      "unknown18": "00",
+      "goto_last_moved_attempted": "north",
       "holds_occupied": 0,
       "cargo_items": [
         {
@@ -3378,7 +3378,7 @@
       "orders": "fortified",
       "goto_x": 0,
       "goto_y": 0,
-      "unknown18": "00",
+      "goto_last_moved_attempted": "north",
       "holds_occupied": 0,
       "cargo_items": [
         {
@@ -3432,7 +3432,7 @@
       "orders": "fortified",
       "goto_x": 0,
       "goto_y": 0,
-      "unknown18": "00",
+      "goto_last_moved_attempted": "north",
       "holds_occupied": 0,
       "cargo_items": [
         {
@@ -3486,7 +3486,7 @@
       "orders": "fortified",
       "goto_x": 0,
       "goto_y": 0,
-      "unknown18": "00",
+      "goto_last_moved_attempted": "north",
       "holds_occupied": 0,
       "cargo_items": [
         {
@@ -3540,7 +3540,7 @@
       "orders": "fortified",
       "goto_x": 0,
       "goto_y": 0,
-      "unknown18": "00",
+      "goto_last_moved_attempted": "north",
       "holds_occupied": 0,
       "cargo_items": [
         {
@@ -3594,7 +3594,7 @@
       "orders": "fortified",
       "goto_x": 0,
       "goto_y": 0,
-      "unknown18": "00",
+      "goto_last_moved_attempted": "north",
       "holds_occupied": 0,
       "cargo_items": [
         {
@@ -3648,7 +3648,7 @@
       "orders": "fortified",
       "goto_x": 0,
       "goto_y": 0,
-      "unknown18": "00",
+      "goto_last_moved_attempted": "north",
       "holds_occupied": 0,
       "cargo_items": [
         {
@@ -3702,7 +3702,7 @@
       "orders": "fortified",
       "goto_x": 0,
       "goto_y": 0,
-      "unknown18": "00",
+      "goto_last_moved_attempted": "north",
       "holds_occupied": 0,
       "cargo_items": [
         {
@@ -3756,7 +3756,7 @@
       "orders": "fortified",
       "goto_x": 0,
       "goto_y": 0,
-      "unknown18": "00",
+      "goto_last_moved_attempted": "north",
       "holds_occupied": 0,
       "cargo_items": [
         {
@@ -3810,7 +3810,7 @@
       "orders": "fortified",
       "goto_x": 0,
       "goto_y": 0,
-      "unknown18": "00",
+      "goto_last_moved_attempted": "north",
       "holds_occupied": 0,
       "cargo_items": [
         {
@@ -3864,7 +3864,7 @@
       "orders": "fortified",
       "goto_x": 0,
       "goto_y": 0,
-      "unknown18": "00",
+      "goto_last_moved_attempted": "north",
       "holds_occupied": 0,
       "cargo_items": [
         {
@@ -3918,7 +3918,7 @@
       "orders": "fortified",
       "goto_x": 0,
       "goto_y": 0,
-      "unknown18": "00",
+      "goto_last_moved_attempted": "north",
       "holds_occupied": 0,
       "cargo_items": [
         {
@@ -3972,7 +3972,7 @@
       "orders": "fortified",
       "goto_x": 0,
       "goto_y": 0,
-      "unknown18": "00",
+      "goto_last_moved_attempted": "north",
       "holds_occupied": 0,
       "cargo_items": [
         {
@@ -4026,7 +4026,7 @@
       "orders": "fortified",
       "goto_x": 0,
       "goto_y": 0,
-      "unknown18": "00",
+      "goto_last_moved_attempted": "north",
       "holds_occupied": 0,
       "cargo_items": [
         {
@@ -4080,7 +4080,7 @@
       "orders": "fortified",
       "goto_x": 0,
       "goto_y": 0,
-      "unknown18": "00",
+      "goto_last_moved_attempted": "north",
       "holds_occupied": 0,
       "cargo_items": [
         {
@@ -4134,7 +4134,7 @@
       "orders": "fortified",
       "goto_x": 0,
       "goto_y": 0,
-      "unknown18": "00",
+      "goto_last_moved_attempted": "north",
       "holds_occupied": 0,
       "cargo_items": [
         {
@@ -4188,7 +4188,7 @@
       "orders": "fortified",
       "goto_x": 0,
       "goto_y": 0,
-      "unknown18": "00",
+      "goto_last_moved_attempted": "north",
       "holds_occupied": 0,
       "cargo_items": [
         {
@@ -4242,7 +4242,7 @@
       "orders": "fortified",
       "goto_x": 0,
       "goto_y": 0,
-      "unknown18": "00",
+      "goto_last_moved_attempted": "north",
       "holds_occupied": 0,
       "cargo_items": [
         {
@@ -4296,7 +4296,7 @@
       "orders": "fortified",
       "goto_x": 0,
       "goto_y": 0,
-      "unknown18": "00",
+      "goto_last_moved_attempted": "north",
       "holds_occupied": 0,
       "cargo_items": [
         {
@@ -4350,7 +4350,7 @@
       "orders": "fortified",
       "goto_x": 0,
       "goto_y": 0,
-      "unknown18": "00",
+      "goto_last_moved_attempted": "north",
       "holds_occupied": 0,
       "cargo_items": [
         {
@@ -4404,7 +4404,7 @@
       "orders": "fortified",
       "goto_x": 0,
       "goto_y": 0,
-      "unknown18": "05",
+      "goto_last_moved_attempted": "southwest",
       "holds_occupied": 0,
       "cargo_items": [
         {
@@ -4458,7 +4458,7 @@
       "orders": "fortified",
       "goto_x": 0,
       "goto_y": 0,
-      "unknown18": "05",
+      "goto_last_moved_attempted": "southwest",
       "holds_occupied": 0,
       "cargo_items": [
         {
@@ -4512,7 +4512,7 @@
       "orders": "fortified",
       "goto_x": 0,
       "goto_y": 0,
-      "unknown18": "00",
+      "goto_last_moved_attempted": "north",
       "holds_occupied": 0,
       "cargo_items": [
         {
@@ -4566,7 +4566,7 @@
       "orders": "fortified",
       "goto_x": 0,
       "goto_y": 0,
-      "unknown18": "00",
+      "goto_last_moved_attempted": "north",
       "holds_occupied": 0,
       "cargo_items": [
         {
@@ -4620,7 +4620,7 @@
       "orders": "fortified",
       "goto_x": 0,
       "goto_y": 0,
-      "unknown18": "05",
+      "goto_last_moved_attempted": "southwest",
       "holds_occupied": 0,
       "cargo_items": [
         {
@@ -4674,7 +4674,7 @@
       "orders": "unknownc",
       "goto_x": 45,
       "goto_y": 32,
-      "unknown18": "01",
+      "goto_last_moved_attempted": "northeast",
       "holds_occupied": 0,
       "cargo_items": [
         {
@@ -4728,7 +4728,7 @@
       "orders": "none",
       "goto_x": 40,
       "goto_y": 33,
-      "unknown18": "02",
+      "goto_last_moved_attempted": "east",
       "holds_occupied": 0,
       "cargo_items": [
         {
@@ -4782,7 +4782,7 @@
       "orders": "none",
       "goto_x": 40,
       "goto_y": 33,
-      "unknown18": "02",
+      "goto_last_moved_attempted": "east",
       "holds_occupied": 0,
       "cargo_items": [
         {
@@ -4836,7 +4836,7 @@
       "orders": "unknowna",
       "goto_x": 0,
       "goto_y": 0,
-      "unknown18": "05",
+      "goto_last_moved_attempted": "southwest",
       "holds_occupied": 0,
       "cargo_items": [
         {
@@ -4890,7 +4890,7 @@
       "orders": "unknowna",
       "goto_x": 0,
       "goto_y": 0,
-      "unknown18": "05",
+      "goto_last_moved_attempted": "southwest",
       "holds_occupied": 0,
       "cargo_items": [
         {

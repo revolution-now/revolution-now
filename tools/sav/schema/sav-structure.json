@@ -347,6 +347,19 @@
             "unknownb": "0B",
             "unknownc": "0C"
         },
+        "direction_type":
+        {
+            "north": "00",
+            "northeast": "01",
+            "east": "02",
+            "southeast": "03",
+            "south": "04",
+            "southwest": "05",
+            "west": "06",
+            "northwest": "07",
+            "center": "08",
+            "null": "ff"
+        },
         "season_type":
         {
             "autumn": "01 00",
@@ -1027,7 +1040,7 @@
                 "orders",
                 "goto_x",
                 "goto_y",
-                "unknown18",
+                "goto_last_moved_attempted",
                 "holds_occupied",
                 "cargo_items",
                 "cargo_hold",
@@ -1061,11 +1074,11 @@
             },
             "moves": {"size": 1, "type": "uint", "__hint": "'moves' count already made. One 'move' is one move by road"},
             "origin_settlement": {"size": 1, "type": "uint", "__hint": "index of COLONY (for colonist) or DWELLING (for brave) where unit is from"},
-            "ai_plan_mode": {"size": 1, "type": "str", "__hint": "Foreign AI planning modes flag character (ASCII), only for foreign powers"},
+            "ai_plan_mode": {"size": 1, "type": "str", "__hint": "Unit planning modes flag character (ASCII). Holds 'E' when unit is in goto mode to Europe."},
             "orders": {"size": 1, "type": "orders_type"},
             "goto_x": {"size": 1, "type": "uint"},
             "goto_y": {"size": 1, "type": "uint"},
-            "unknown18": {"size": 1},
+            "goto_last_moved_attempted": {"size": 1, "type": "direction_type", "__hint": "For a human unit int goto mode OR for AI units, this gives the direction that the unit last moved OR at least attempted to move (e.g. maybe it ran out of movement points so not actually moved). When it didn't even attempt to move, it will be 'center'."},
             "holds_occupied": {"size": 1, "type": "uint"},
             "cargo_items":
             {

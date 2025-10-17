@@ -116,6 +116,35 @@ cdr::result<difficulty_type> from_canonical(
                          cdr::tag_t<difficulty_type> );
 
 /****************************************************************
+** direction_type
+*****************************************************************/
+enum class direction_type : uint8_t {
+  north     = 0x00,
+  northeast = 0x01,
+  east      = 0x02,
+  southeast = 0x03,
+  south     = 0x04,
+  southwest = 0x05,
+  west      = 0x06,
+  northwest = 0x07,
+  center    = 0x08,
+  null      = 0xff,
+};
+
+// String conversion.
+void to_str( direction_type const& o, std::string& out, base::tag<direction_type> );
+
+// Cdr conversions.
+cdr::value to_canonical( cdr::converter& conv,
+                         direction_type const& o,
+                         cdr::tag_t<direction_type> );
+
+cdr::result<direction_type> from_canonical(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<direction_type> );
+
+/****************************************************************
 ** end_of_turn_sign_type
 *****************************************************************/
 enum class end_of_turn_sign_type : uint16_t {
@@ -2710,7 +2739,7 @@ struct UNIT {
   orders_type orders = {};
   uint8_t goto_x = {};
   uint8_t goto_y = {};
-  bytes<1> unknown18 = {};
+  direction_type goto_last_moved_attempted = {};
   uint8_t holds_occupied = {};
   std::array<CargoItems, 3> cargo_items = {};
   std::array<uint8_t, 6> cargo_hold = {};
