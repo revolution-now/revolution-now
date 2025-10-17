@@ -618,6 +618,12 @@ void c_api::pushvalue( int idx ) noexcept {
   lua_pushvalue( L_, idx );
 }
 
+bool c_api::rawequal( int const idx1, int const idx2 ) {
+  validate_index( idx1 );
+  validate_index( idx2 );
+  return ( lua_rawequal( L_, idx1, idx2 ) == 1 );
+}
+
 bool c_api::compare_eq( int idx1, int idx2 ) {
   validate_index( idx1 );
   validate_index( idx2 );

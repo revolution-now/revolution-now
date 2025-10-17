@@ -1362,6 +1362,85 @@ LUA_TEST_CASE( "[lua-c-api] compare" ) {
   }
 }
 
+LUA_TEST_CASE( "[lua-c-api] rawequal vs compare_eq" ) {
+  // First test scalar values.
+  C.push( 5 );
+  C.push( 5 );
+  REQUIRE( C.rawequal( -2, -1 ) );
+  REQUIRE( C.rawequal( -1, -2 ) );
+  C.push( 6 );
+  REQUIRE_FALSE( C.rawequal( -2, -1 ) );
+  REQUIRE_FALSE( C.rawequal( -1, -2 ) );
+  C.pop( 3 );
+  REQUIRE( C.stack_size() == 0 );
+
+  C.openlibs();
+
+  // Now test that we have the correct behavior with respect to
+  // invoking the __eq metamethods.
+
+  st.script.run( R"lua(
+    f1 = setmetatable( {}, {
+        __eq = function()
+          return true
+        end
+      } )
+    f2 = setmetatable( {}, {
+        __eq = function()
+          return false
+        end
+      } )
+  )lua" );
+
+  {
+    C.getglobal( "f1" );
+    C.getglobal( "f1" );
+    REQUIRE( C.stack_size() == 2 );
+
+    REQUIRE( C.compare_eq( -2, -1 ) );
+    REQUIRE( C.rawequal( -2, -1 ) );
+
+    C.pop( 2 );
+    REQUIRE( C.stack_size() == 0 );
+  }
+
+  {
+    C.getglobal( "f2" );
+    C.getglobal( "f2" );
+    REQUIRE( C.stack_size() == 2 );
+
+    REQUIRE( C.compare_eq( -2, -1 ) );
+    REQUIRE( C.rawequal( -2, -1 ) );
+
+    C.pop( 2 );
+    REQUIRE( C.stack_size() == 0 );
+  }
+
+  {
+    C.getglobal( "f1" );
+    C.getglobal( "f2" );
+    REQUIRE( C.stack_size() == 2 );
+
+    REQUIRE( C.compare_eq( -2, -1 ) );
+    REQUIRE( !C.rawequal( -2, -1 ) );
+
+    C.pop( 2 );
+    REQUIRE( C.stack_size() == 0 );
+  }
+
+  {
+    C.getglobal( "f2" );
+    C.getglobal( "f1" );
+    REQUIRE( C.stack_size() == 2 );
+
+    REQUIRE( !C.compare_eq( -2, -1 ) );
+    REQUIRE( !C.rawequal( -2, -1 ) );
+
+    C.pop( 2 );
+    REQUIRE( C.stack_size() == 0 );
+  }
+}
+
 LUA_TEST_CASE( "[lua-c-api] concat" ) {
   SECTION( "empty" ) {
     C.concat( 0 );

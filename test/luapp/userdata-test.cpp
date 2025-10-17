@@ -559,6 +559,7 @@ LUA_TEST_CASE( "[userdata] __eq by reference" ) {
       REQUIRE( push_userdata_by_ref( L, e ) );
       REQUIRE( C.stack_size() == 1 );
 
+      REQUIRE( C.rawequal( -1, -1 ) );
       REQUIRE( C.compare_eq( -1, -1 ) );
 
       REQUIRE( C.stack_size() == 1 );
@@ -574,6 +575,7 @@ LUA_TEST_CASE( "[userdata] __eq by reference" ) {
       REQUIRE( !push_userdata_by_ref( L, e ) );
       REQUIRE( C.stack_size() == 2 );
 
+      REQUIRE( !C.rawequal( -2, -1 ) );
       REQUIRE( !C.compare_eq( -2, -1 ) );
 
       REQUIRE( C.stack_size() == 2 );
@@ -588,6 +590,7 @@ LUA_TEST_CASE( "[userdata] __eq by reference" ) {
       REQUIRE( !push_userdata_by_ref( L, e2 ) );
       REQUIRE( C.stack_size() == 2 );
 
+      REQUIRE( !C.rawequal( -2, -1 ) );
       REQUIRE( !C.compare_eq( -2, -1 ) );
 
       REQUIRE( C.stack_size() == 2 );
@@ -602,6 +605,7 @@ LUA_TEST_CASE( "[userdata] __eq by reference" ) {
       REQUIRE( push_userdata_by_ref( L, e ) );
       REQUIRE( C.stack_size() == 1 );
 
+      REQUIRE( C.rawequal( -1, -1 ) );
       REQUIRE( C.compare_eq( -1, -1 ) );
 
       REQUIRE( e.eq_count() == 0 );
@@ -618,6 +622,7 @@ LUA_TEST_CASE( "[userdata] __eq by reference" ) {
       REQUIRE( !push_userdata_by_ref( L, e ) );
       REQUIRE( C.stack_size() == 2 );
 
+      REQUIRE( !C.rawequal( -2, -1 ) );
       REQUIRE( C.compare_eq( -2, -1 ) );
 
       // Eq's operator== will be bypassed by our C++ metamethod
@@ -637,6 +642,7 @@ LUA_TEST_CASE( "[userdata] __eq by reference" ) {
       REQUIRE( !push_userdata_by_ref( L, e2 ) );
       REQUIRE( C.stack_size() == 2 );
 
+      REQUIRE( !C.rawequal( -2, -1 ) );
       REQUIRE( C.compare_eq( -2, -1 ) );
 
       REQUIRE( e1.eq_count() == 1 );
@@ -654,6 +660,7 @@ LUA_TEST_CASE( "[userdata] __eq by reference" ) {
       REQUIRE( !push_userdata_by_ref( L, e2 ) );
       REQUIRE( C.stack_size() == 2 );
 
+      REQUIRE( !C.rawequal( -2, -1 ) );
       REQUIRE( !C.compare_eq( -2, -1 ) );
 
       REQUIRE( e1.eq_count() == 1 );
@@ -671,6 +678,7 @@ LUA_TEST_CASE( "[userdata] __eq by reference" ) {
       REQUIRE( !push_userdata_by_ref( L, e2 ) );
       REQUIRE( C.stack_size() == 2 );
 
+      REQUIRE( !C.rawequal( -2, -1 ) );
       REQUIRE( C.compare_eq( -2, -1 ) );
 
       REQUIRE( e1.eq_count() == 1 );

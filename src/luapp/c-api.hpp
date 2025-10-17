@@ -387,6 +387,9 @@ struct c_api {
   [[nodiscard]] bool compare_lt( int idx1, int idx2 );
   [[nodiscard]] bool compare_le( int idx1, int idx2 );
 
+  // Does an equality comparison ignoring any __eq metamethods.
+  [[nodiscard]] bool rawequal( int idx1, int idx2 );
+
   /**************************************************************
   ** string conversion
   ***************************************************************/
