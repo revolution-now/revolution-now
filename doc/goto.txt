@@ -1,12 +1,11 @@
 TODO:
 -----------------------------------------------------------------
 
-  * Do another attempt at finding any additional goto state in
-    the OG's sav files.
-
-For the future:
------------------------------------------------------------------
-
+  * Auto-scrolling in response to mouse movement needs to be im-
+    proved. Currently it doesn't feel great.
+  * Using the mouse to select the goto tile (whether dragging or
+    not) causes issues when hovering over the panel and/or min-
+    imap.
   * Consider allowing to drag a unit onto the mini-map. This may
     be difficult because they are on different planes.
 
@@ -60,6 +59,12 @@ Done:
   * When moving the target with the mouse, whether in mouse mode
     or keyboard mode, it would be nice to have a way to gently
     scroll when the mouse moves to the edge.
+  * There is a field goto_last_move_attempted in the SAV schema
+    that is used for units in goto mode and AI-controlled units
+    in general. Probably not necessary for us to replicate this
+    since it is likely non-essential for interconversion of save
+    files.
+
 
   Strategies:
 
