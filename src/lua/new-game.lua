@@ -43,10 +43,10 @@ function M.default_options()
     -- ties. If initial ship position is null then the randomly
     -- generated one will be used.
     ordered_players={
-      { nation='english', ship_pos=nil, human=false },
-      { nation='french', ship_pos=nil, human=false },
-      { nation='spanish', ship_pos=nil, human=false },
-      { nation='dutch', ship_pos=nil, human=false },
+      { nation='english', ship_pos=nil, control='inactive' },
+      { nation='french', ship_pos=nil, control='inactive' },
+      { nation='spanish', ship_pos=nil, control='inactive' },
+      { nation='dutch', ship_pos=nil, control='inactive' },
     },
     map={}, -- use default map options.
   }
@@ -346,11 +346,7 @@ local function create_players( options, root )
   for _, o in ipairs( options.ordered_players ) do
     local player = player_mgr.add_new_player( o.nation )
     create_player_state( root, o.nation, player )
-    if o.human then
-      player.control = 'human'
-    else
-      player.control = 'ai'
-    end
+    player.control = o.control
   end
   init_prices( options, root )
 end
@@ -370,10 +366,10 @@ end
 -----------------------------------------------------------------
 local function add_testing_options( options )
   options.ordered_players = {
-    { nation='english', ship_pos=nil, human=true },
-    -- { nation='french', ship_pos=nil, human=true },
-    -- { nation='spanish', ship_pos=nil, human=true },
-    -- { nation='dutch', ship_pos=nil, human=true },
+    { nation='english', ship_pos=nil, control='human' },
+    { nation='french', ship_pos=nil, control='inactive' },
+    { nation='spanish', ship_pos=nil, control='inactive' },
+    { nation='dutch', ship_pos=nil, control='inactive' },
   }
   -- options.map.type = 'america'
   -- options.map.world_size = { w=4, h=4 }
