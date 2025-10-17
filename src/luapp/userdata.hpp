@@ -64,7 +64,9 @@ std::string const& userdata_typename() {
 
 namespace detail {
 
-void push_string( cthread L, std::string const& s );
+void userdata_push_string( cthread L, std::string const& s );
+
+void userdata_push_bool( cthread L, bool b );
 
 void push_userdata_impl(
     cthread L, int object_size,
@@ -74,7 +76,7 @@ void push_userdata_impl(
 bool register_userdata_metatable_if_needed_impl(
     cthread L, e_userdata_ownership_model semantics,
     LuaCFunction* fmt, LuaCFunction* call_destructor,
-    std::string const& type_name );
+    LuaCFunction* equality, std::string const& type_name );
 
 void push_existing_userdata_metatable_impl(
     cthread L, std::string const& type_name );
@@ -94,6 +96,9 @@ bool register_userdata_metatable_by_val_if_needed( cthread L ) {
           base::NonOverloadedCallable<std::remove_cvref_t<T>>,
       "see comment above." ); // workaround
 
+  bool constexpr eq_comparable =
+      std::equality_comparable<std::remove_const_t<T>>;
+
   static std::string const type_name = userdata_typename<T>();
 
   static auto call_destructor = []( lua_State* L ) -> int {
@@ -103,11 +108,11 @@ bool register_userdata_metatable_by_val_if_needed( cthread L ) {
     return 0;
   };
 
-  static auto tostring = []( lua_State* L ) -> int {
+  static auto tostring_fn = []( lua_State* L ) -> int {
     if constexpr( showable ) {
       void* ud  = check_udata( L, 1, type_name.c_str() );
       T* object = reinterpret_cast<T*>( ud );
-      detail::push_string(
+      detail::userdata_push_string(
           L,
           fmt::format( "{}@{}: {}", type_name, ud, *object ) );
       return 1;
@@ -115,12 +120,50 @@ bool register_userdata_metatable_by_val_if_needed( cthread L ) {
     return 0;
   };
 
-  static constexpr LuaCFunction* fmt_func =
-      showable ? +tostring : nullptr;
+  static auto equality_fn = []( lua_State* L ) -> int {
+    if constexpr( eq_comparable ) {
+      // FIXME: this requires that both values have the exact
+      // same const/ref category, so i.e. will check fail if one
+      // attempts to compare a `T&` with a T const&`, or a `T`
+      // with a `T&`. At some point we should probably fix this
+      // out of principle, which we would have to do by trying
+      // all of the possible const/ref name combinations for each
+      // argument and allowing any combination of them.
+      //
+      // NOTE: That said, this is probably not urgent because
+      // even though our Lua framework allows any type of con-
+      // st/ref/value combination to be stored, our ownership
+      // policy that we use in practice requires that each type
+      // can only be pushed with one particular const/ref cate-
+      // gory, so this probably wouldn't arise in practice.
+      //
+      // TODO: Even if we don't end up fixing this then we should
+      // at least change the below so that it doesn't check-fail
+      // on an unexpected type and instead throws a lua error.
+      void* const ud_l = check_udata( L, 1, type_name.c_str() );
+      void* const ud_r = check_udata( L, 2, type_name.c_str() );
+      T const* const ptr_l = reinterpret_cast<T const*>( ud_l );
+      T const* const ptr_r = reinterpret_cast<T const*>( ud_r );
+      T const& ref_l       = *ptr_l;
+      T const& ref_r       = *ptr_r;
+      bool const eq = ( ptr_l == ptr_r ) || ( ref_l == ref_r );
+      detail::userdata_push_bool( L, eq );
+      return 1;
+    }
+    return 0;
+  };
+
+  // Need these because we don't want to pass in a no-op func-
+  // tion, otherwise it'll be used (since it's non-null) and will
+  // suppress any default Lua behavior for that metamethod.
+  LuaCFunction* const tostring =
+      showable ? +tostring_fn : nullptr;
+  LuaCFunction* const equality =
+      eq_comparable ? +equality_fn : nullptr;
 
   return detail::register_userdata_metatable_if_needed_impl(
-      L, e_userdata_ownership_model::owned_by_lua, fmt_func,
-      call_destructor, type_name );
+      L, e_userdata_ownership_model::owned_by_lua, tostring,
+      call_destructor, equality, type_name );
 }
 
 template<typename T>
@@ -139,10 +182,12 @@ bool register_userdata_metatable_owned_by_cpp_if_needed(
   static constexpr bool showable =
       base::Show<std::remove_const_t<T_noref>>;
   static_assert( showable, "see comment above." ); // workaround
+  bool constexpr eq_comparable =
+      std::equality_comparable<std::remove_const_t<T_noref>>;
 
   static std::string const type_name = userdata_typename<T>();
 
-  static auto tostring = []( lua_State* L ) -> int {
+  static auto tostring_fn = []( lua_State* L ) -> int {
     if constexpr( showable ) {
       void* ud      = check_udata( L, 1, type_name.c_str() );
       auto** object = reinterpret_cast<T_noref**>( ud );
@@ -152,18 +197,60 @@ bool register_userdata_metatable_owned_by_cpp_if_needed(
         res += fmt::format( "{}", **object );
       else
         res += "nullptr";
-      detail::push_string( L, res );
+      detail::userdata_push_string( L, res );
       return 1;
     }
     return 0;
   };
 
-  static constexpr LuaCFunction* fmt_func =
-      showable ? +tostring : nullptr;
+  static auto equality_fn = []( lua_State* L ) -> int {
+    if constexpr( eq_comparable ) {
+      // FIXME: this requires that both values have the exact
+      // same const/ref category, so i.e. will check fail if one
+      // attempts to compare a `T&` with a T const&`, or a `T`
+      // with a `T&`. At some point we should probably fix this
+      // out of principle, which we would have to do by trying
+      // all of the possible const/ref name combinations for each
+      // argument and allowing any combination of them.
+      //
+      // NOTE: That said, this is probably not urgent because
+      // even though our Lua framework allows any type of con-
+      // st/ref/value combination to be stored, our ownership
+      // policy that we use in practice requires that each type
+      // can only be pushed with one particular const/ref cate-
+      // gory, so this probably wouldn't arise in practice.
+      //
+      // TODO: Even if we don't end up fixing this then we should
+      // at least change the below so that it doesn't check-fail
+      // on an unexpected type and instead throws a lua error.
+      void* const ud_l = check_udata( L, 1, type_name.c_str() );
+      void* const ud_r = check_udata( L, 2, type_name.c_str() );
+      T_noref const* const* const object_l =
+          reinterpret_cast<T_noref const* const*>( ud_l );
+      T_noref const* const* const object_r =
+          reinterpret_cast<T_noref const* const*>( ud_r );
+      T_noref const* const ptr_l = *object_l;
+      T_noref const* const ptr_r = *object_r;
+      T_noref const& ref_l       = *ptr_l;
+      T_noref const& ref_r       = *ptr_r;
+      bool const eq = ( ptr_l == ptr_r ) || ( ref_l == ref_r );
+      detail::userdata_push_bool( L, eq );
+      return 1;
+    }
+    return 0;
+  };
+
+  // Need these because we don't want to pass in a no-op func-
+  // tion, otherwise it'll be used (since it's non-null) and will
+  // suppress any default Lua behavior for that metamethod.
+  LuaCFunction* const tostring =
+      showable ? +tostring_fn : nullptr;
+  LuaCFunction* const equality =
+      eq_comparable ? +equality_fn : nullptr;
 
   return detail::register_userdata_metatable_if_needed_impl(
-      L, e_userdata_ownership_model::owned_by_cpp, fmt_func,
-      /*call_destructor=*/nullptr, type_name );
+      L, e_userdata_ownership_model::owned_by_cpp, tostring,
+      /*call_destructor=*/nullptr, equality, type_name );
 }
 
 } // namespace detail

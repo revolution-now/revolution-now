@@ -384,10 +384,10 @@ void setup_special_members(
 }
 
 // Expects metatable to be at the top of the stack.
-void setup_new_metatable( cthread L,
-                          e_userdata_ownership_model semantics,
-                          LuaCFunction* fmt,
-                          LuaCFunction* call_destructor ) {
+void setup_new_metatable(
+    cthread const L, e_userdata_ownership_model const semantics,
+    LuaCFunction* const fmt, LuaCFunction* const call_destructor,
+    LuaCFunction* const equality ) {
   c_api C( L );
   // Check metatable.
   CHECK( C.type_of( -1 ) == type::table );
@@ -397,6 +397,7 @@ void setup_new_metatable( cthread L,
   initializer_list<pair<string, LuaCFunction*>> metatable{
     { "__gc", call_destructor },
     { "__tostring", fmt },
+    { "__eq", equality },
   };
 
   for( auto& [name, func] : metatable ) {
@@ -466,9 +467,14 @@ void setup_new_metatable( cthread L,
 
 namespace detail {
 
-void push_string( cthread L, std::string const& s ) {
+void userdata_push_string( cthread L, std::string const& s ) {
   c_api C( L );
   C.push( s );
+}
+
+void userdata_push_bool( cthread L, bool const b ) {
+  c_api C( L );
+  C.push( b );
 }
 
 void push_existing_userdata_metatable_impl(
@@ -518,7 +524,7 @@ void push_userdata_impl(
 bool register_userdata_metatable_if_needed_impl(
     cthread L, e_userdata_ownership_model semantics,
     LuaCFunction* fmt, LuaCFunction* call_destructor,
-    string const& type_name ) {
+    LuaCFunction* equality, string const& type_name ) {
   c_api C( L );
   // Get or create metatable for userdata type.
   bool metatable_created =
@@ -527,7 +533,8 @@ bool register_userdata_metatable_if_needed_impl(
   //   metatable
   if( metatable_created )
     // This is a newly-created metatable.
-    setup_new_metatable( L, semantics, fmt, call_destructor );
+    setup_new_metatable( L, semantics, fmt, call_destructor,
+                         equality );
   C.pop();
   return metatable_created;
 }
@@ -539,9 +546,9 @@ void* check_udata( cthread L, int idx, char const* name ) {
   // Use `testudata` instead of `checkudata` so that we throw a
   // C++ error instead of a Lua error.
   void* ud = C.testudata( idx, name );
-  DCHECK( ud != nullptr,
-          "__gc method expected type {} but did not find it.",
-          name );
+  CHECK( ud != nullptr,
+         "__gc method expected type {} but did not find it.",
+         name );
   return ud;
 }
 

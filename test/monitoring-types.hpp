@@ -113,11 +113,64 @@ struct Constexpr {
 /****************************************************************
 ** Empty
 *****************************************************************/
-struct Empty {};
+struct Empty {
+  bool operator==( Empty const& ) const = default;
+};
 
 inline void to_str( Empty const&, std::string& out,
                     base::tag<Empty> ) {
   out += "Empty{}";
+}
+
+/****************************************************************
+** Eq
+*****************************************************************/
+// Type that is equality comparable and tracks how many times
+// its equality operator is called.
+struct Eq {
+  Eq() = default;
+
+  Eq( int const n ) : some_var( n ) {}
+
+  [[nodiscard]] bool operator==( Eq const& rhs ) const {
+    ++__equality_count__;
+    ++rhs.__equality_count__;
+    return ( this == &rhs ) || ( some_var == rhs.some_var );
+  }
+
+  // This is a normal member variable that can be set and will
+  // participate in equality.
+  int some_var = 0;
+
+ public:
+  [[nodiscard]] int eq_count() const {
+    return __equality_count__;
+  }
+
+ private:
+  // This variable is not considered a normal member variable and
+  // is not included in equality.
+  mutable int __equality_count__ = 0;
+};
+
+inline void to_str( Eq const& o, std::string& out,
+                    base::tag<Eq> ) {
+  out += fmt::format( "Eq{{some_var={}}}", o.some_var );
+}
+
+/****************************************************************
+** NonEq
+*****************************************************************/
+// Type that is not equality comparable.
+struct NonEq {
+  [[nodiscard]] bool operator==( NonEq const& ) const = delete;
+
+  int n = 0;
+};
+
+inline void to_str( NonEq const& o, std::string& out,
+                    base::tag<NonEq> ) {
+  out += fmt::format( "NonEq{{n={}}}", o.n );
 }
 
 /****************************************************************

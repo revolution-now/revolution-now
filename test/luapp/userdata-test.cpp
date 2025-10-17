@@ -34,7 +34,9 @@ using ::base::maybe;
 using ::base::valid;
 using ::Catch::Matches;
 using ::testing::monitoring_types::Empty;
+using ::testing::monitoring_types::Eq;
 using ::testing::monitoring_types::Formattable;
+using ::testing::monitoring_types::NonEq;
 using ::testing::monitoring_types::Tracker;
 
 LUA_TEST_CASE( "[userdata] userdata type name" ) {
@@ -74,11 +76,19 @@ LUA_TEST_CASE( "[userdata] userdata create by value" ) {
   // Stack:
   //   userdata1
 
-  // Metatable should have: __gc, __tostring, __index,
-  // __newindex, __name, member_types, member_getters,
-  // member_setters, is_owned_by_lua.
+  // Metatable should have:
+  //   __gc
+  //   __tostring
+  //   __eq
+  //   __index
+  //   __newindex
+  //   __name
+  //   member_types
+  //   member_getters
+  //   member_setters
+  //   is_owned_by_lua
   REQUIRE( distance( begin( metatable1 ), end( metatable1 ) ) ==
-           9 );
+           10 );
   REQUIRE( metatable1["is_owned_by_lua"].type() ==
            type::boolean );
   REQUIRE( metatable1["is_owned_by_lua"] == true );
@@ -100,6 +110,9 @@ LUA_TEST_CASE( "[userdata] userdata create by value" ) {
   // check __tostring.
   rfunction m__tostring =
       as<rfunction>( metatable1["__tostring"] );
+
+  // check __eq.
+  rfunction m__eq = as<rfunction>( metatable1["__eq"] );
 
   // check __name.
   string m__name = as<string>( metatable1["__name"] );
@@ -183,12 +196,20 @@ LUA_TEST_CASE( "[userdata] userdata created by ref" ) {
   // Stack:
   //   userdata1
 
-  // Metatable should have: __tostring, __index, __newindex,
-  // __name, member_types, member_getters, member_setters,
-  // is_owned_by_lua. __gc is not in the list because this is by
-  // ref.
+  // Metatable should have:
+  //   __tostring
+  //   __eq
+  //   __index
+  //   __newindex
+  //   __name
+  //   member_types
+  //   member_getters
+  //   member_setters
+  //   is_owned_by_lua
+  //
+  // __gc is not in the list because this is by ref.
   REQUIRE( distance( begin( metatable1 ), end( metatable1 ) ) ==
-           8 );
+           9 );
   REQUIRE( metatable1["is_owned_by_lua"].type() ==
            type::boolean );
   REQUIRE( metatable1["is_owned_by_lua"] == false );
@@ -205,6 +226,9 @@ LUA_TEST_CASE( "[userdata] userdata created by ref" ) {
   // check __tostring.
   rfunction m__tostring =
       as<rfunction>( metatable1["__tostring"] );
+
+  // check __eq.
+  rfunction m__eq = as<rfunction>( metatable1["__eq"] );
 
   // check __name.
   string m__name = as<string>( metatable1["__name"] );
@@ -521,6 +545,202 @@ LUA_TEST_CASE( "[userdata] userdata with tracker" ) {
     REQUIRE( Tracker::copied == 0 );
     REQUIRE( Tracker::move_constructed == 0 );
     REQUIRE( Tracker::move_assigned == 0 );
+  }
+}
+
+LUA_TEST_CASE( "[userdata] __eq by reference" ) {
+  static_assert( equality_comparable<Eq> );
+  static_assert( !equality_comparable<NonEq> );
+
+  SECTION( "NonEq" ) {
+    SECTION( "one NonEq compared with same lua value" ) {
+      NonEq const e;
+
+      REQUIRE( push_userdata_by_ref( L, e ) );
+      REQUIRE( C.stack_size() == 1 );
+
+      REQUIRE( C.compare_eq( -1, -1 ) );
+
+      REQUIRE( C.stack_size() == 1 );
+      C.pop( 1 );
+    }
+
+    SECTION(
+        "one NonEq compared with self, but different "
+        "userdata" ) {
+      NonEq const e;
+
+      REQUIRE( push_userdata_by_ref( L, e ) );
+      REQUIRE( !push_userdata_by_ref( L, e ) );
+      REQUIRE( C.stack_size() == 2 );
+
+      REQUIRE( !C.compare_eq( -2, -1 ) );
+
+      REQUIRE( C.stack_size() == 2 );
+      C.pop( 2 );
+    }
+
+    SECTION( "two NonEq" ) {
+      NonEq const e1;
+      NonEq const e2;
+
+      REQUIRE( push_userdata_by_ref( L, e1 ) );
+      REQUIRE( !push_userdata_by_ref( L, e2 ) );
+      REQUIRE( C.stack_size() == 2 );
+
+      REQUIRE( !C.compare_eq( -2, -1 ) );
+
+      REQUIRE( C.stack_size() == 2 );
+      C.pop( 2 );
+    }
+  }
+
+  SECTION( "Eq" ) {
+    SECTION( "one Eq compared with same lua value" ) {
+      Eq const e;
+
+      REQUIRE( push_userdata_by_ref( L, e ) );
+      REQUIRE( C.stack_size() == 1 );
+
+      REQUIRE( C.compare_eq( -1, -1 ) );
+
+      REQUIRE( e.eq_count() == 0 );
+
+      REQUIRE( C.stack_size() == 1 );
+      C.pop( 1 );
+    }
+
+    SECTION(
+        "one Eq compared with self, but different userdata" ) {
+      Eq const e;
+
+      REQUIRE( push_userdata_by_ref( L, e ) );
+      REQUIRE( !push_userdata_by_ref( L, e ) );
+      REQUIRE( C.stack_size() == 2 );
+
+      REQUIRE( C.compare_eq( -2, -1 ) );
+
+      // Eq's operator== will be bypassed by our C++ metamethod
+      // wrappers test for pointer equality which will short cir-
+      // cuit a real operator== call.
+      REQUIRE( e.eq_count() == 0 );
+
+      REQUIRE( C.stack_size() == 2 );
+      C.pop( 2 );
+    }
+
+    SECTION( "two Eq" ) {
+      Eq const e1;
+      Eq const e2;
+
+      REQUIRE( push_userdata_by_ref( L, e1 ) );
+      REQUIRE( !push_userdata_by_ref( L, e2 ) );
+      REQUIRE( C.stack_size() == 2 );
+
+      REQUIRE( C.compare_eq( -2, -1 ) );
+
+      REQUIRE( e1.eq_count() == 1 );
+      REQUIRE( e2.eq_count() == 1 );
+
+      REQUIRE( C.stack_size() == 2 );
+      C.pop( 2 );
+    }
+
+    SECTION( "two Eq, different contents" ) {
+      Eq const e1( 1 );
+      Eq const e2( 2 );
+
+      REQUIRE( push_userdata_by_ref( L, e1 ) );
+      REQUIRE( !push_userdata_by_ref( L, e2 ) );
+      REQUIRE( C.stack_size() == 2 );
+
+      REQUIRE( !C.compare_eq( -2, -1 ) );
+
+      REQUIRE( e1.eq_count() == 1 );
+      REQUIRE( e2.eq_count() == 1 );
+
+      REQUIRE( C.stack_size() == 2 );
+      C.pop( 2 );
+    }
+
+    SECTION( "two Eq, non-const" ) {
+      Eq e1;
+      Eq e2;
+
+      REQUIRE( push_userdata_by_ref( L, e1 ) );
+      REQUIRE( !push_userdata_by_ref( L, e2 ) );
+      REQUIRE( C.stack_size() == 2 );
+
+      REQUIRE( C.compare_eq( -2, -1 ) );
+
+      REQUIRE( e1.eq_count() == 1 );
+      REQUIRE( e2.eq_count() == 1 );
+
+      REQUIRE( C.stack_size() == 2 );
+      C.pop( 2 );
+    }
+  }
+}
+
+LUA_TEST_CASE( "[userdata] __eq by value" ) {
+  static_assert( equality_comparable<Eq> );
+  static_assert( !equality_comparable<NonEq> );
+
+  SECTION( "NonEq" ) {
+    SECTION( "one NonEq compared with same lua value" ) {
+      REQUIRE( push_userdata_by_value( L, NonEq{} ) );
+      REQUIRE( C.stack_size() == 1 );
+
+      REQUIRE( C.compare_eq( -1, -1 ) );
+
+      REQUIRE( C.stack_size() == 1 );
+      C.pop( 1 );
+    }
+
+    SECTION( "two NonEq" ) {
+      REQUIRE( push_userdata_by_value( L, NonEq{} ) );
+      REQUIRE( !push_userdata_by_value( L, NonEq{} ) );
+      REQUIRE( C.stack_size() == 2 );
+
+      REQUIRE( !C.compare_eq( -2, -1 ) );
+
+      REQUIRE( C.stack_size() == 2 );
+      C.pop( 2 );
+    }
+  }
+
+  SECTION( "Eq" ) {
+    SECTION( "one Eq compared with same lua value" ) {
+      REQUIRE( push_userdata_by_value( L, Eq{} ) );
+      REQUIRE( C.stack_size() == 1 );
+
+      REQUIRE( C.compare_eq( -1, -1 ) );
+
+      REQUIRE( C.stack_size() == 1 );
+      C.pop( 1 );
+    }
+
+    SECTION( "two Eq" ) {
+      REQUIRE( push_userdata_by_value( L, Eq{} ) );
+      REQUIRE( !push_userdata_by_value( L, Eq{} ) );
+      REQUIRE( C.stack_size() == 2 );
+
+      REQUIRE( C.compare_eq( -2, -1 ) );
+
+      REQUIRE( C.stack_size() == 2 );
+      C.pop( 2 );
+    }
+
+    SECTION( "two Eq, different contents" ) {
+      REQUIRE( push_userdata_by_value( L, Eq( 1 ) ) );
+      REQUIRE( !push_userdata_by_value( L, Eq( 2 ) ) );
+      REQUIRE( C.stack_size() == 2 );
+
+      REQUIRE( !C.compare_eq( -2, -1 ) );
+
+      REQUIRE( C.stack_size() == 2 );
+      C.pop( 2 );
+    }
   }
 }
 
