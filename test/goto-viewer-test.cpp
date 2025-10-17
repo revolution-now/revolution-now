@@ -193,8 +193,6 @@ TEST_CASE( "[goto-viewer] can_enter_tile" ) {
   square.surface = land;
   viz.EXPECT__square_at( tile ).returns( square );
   REQUIRE( f() == true );
-  viz.queue__visible_29.ensure_expectations();
-  viz.queue__square_at_37.ensure_expectations();
 }
 
 TEST_CASE( "[goto-viewer] can_enter_tile / colony / dwelling" ) {
