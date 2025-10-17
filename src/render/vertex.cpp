@@ -271,14 +271,12 @@ SolidVertex::SolidVertex( gfx::point position, gfx::pixel color )
 }
 
 /****************************************************************
-** StencilVertex
+** SpriteStencilVertex
 *****************************************************************/
-StencilVertex::StencilVertex( gfx::point position,
-                              gfx::point atlas_position,
-                              gfx::rect atlas_rect,
-                              gfx::size atlas_target_offset,
-                              gfx::pixel key_color,
-                              maybe<TxDpxl> const txdpxl )
+SpriteStencilVertex::SpriteStencilVertex(
+    gfx::point position, gfx::point atlas_position,
+    gfx::rect atlas_rect, gfx::size atlas_target_offset,
+    gfx::pixel key_color, maybe<TxDpxl> const txdpxl )
   : VertexBase(
         proto_vertex( vertex_type::stencil, position ) ) {
   this->atlas_position = gl::vec2::from_point( atlas_position );

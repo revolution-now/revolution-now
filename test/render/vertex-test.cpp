@@ -74,9 +74,9 @@ TEST_CASE( "[render/vertex] SolidVertex" ) {
   REQUIRE( gv.alpha_multiplier == 1.0f );
 }
 
-TEST_CASE( "[render/vertex] StencilVertex" ) {
+TEST_CASE( "[render/vertex] SpriteStencilVertex" ) {
   maybe<TxDpxl> txdpxl;
-  StencilVertex vert(
+  SpriteStencilVertex vert(
       point{ .x = 1, .y = 2 }, point{ .x = 3, .y = 4 },
       rect{ .origin = point{ .x = 5, .y = 6 },
             .size   = { .w = 1, .h = 2 } },
@@ -428,13 +428,13 @@ TEST_CASE( "[render/vertex] textured depixelation" ) {
     REQUIRE( vert.get_textured_depixelation() == nothing );
   }
 
-  SECTION( "StencilVertex/constructed empty" ) {
+  SECTION( "SpriteStencilVertex/constructed empty" ) {
     maybe<TxDpxl> txdpxl;
-    StencilVertex vert( point{ .x = 6, .y = 12 },
-                        point{ .x = 3, .y = 4 },
-                        rect{ .origin = point{ .x = 5, .y = 6 },
-                              .size   = { .w = 1, .h = 2 } },
-                        size{}, pixel{}, txdpxl );
+    SpriteStencilVertex vert(
+        point{ .x = 6, .y = 12 }, point{ .x = 3, .y = 4 },
+        rect{ .origin = point{ .x = 5, .y = 6 },
+              .size   = { .w = 1, .h = 2 } },
+        size{}, pixel{}, txdpxl );
     REQUIRE( ( vert.generic().flags &
                VERTEX_FLAG_TEXTURED_DEPIXELATION ) == 0 );
     REQUIRE( vert.get_textured_depixelation() == nothing );
@@ -453,14 +453,14 @@ TEST_CASE( "[render/vertex] textured depixelation" ) {
     REQUIRE( vert.get_textured_depixelation() == nothing );
   }
 
-  SECTION( "StencilVertex/constructed with" ) {
-    StencilVertex vert( point{ .x = 6, .y = 12 },
-                        point{ .x = 3, .y = 4 },
-                        rect{ .origin = point{ .x = 5, .y = 6 },
-                              .size   = { .w = 1, .h = 2 } },
-                        size{}, pixel{},
-                        TxDpxl{ .reference_sprite_offset = {
-                                  .w = 3, .h = 4 } } );
+  SECTION( "SpriteStencilVertex/constructed with" ) {
+    SpriteStencilVertex vert(
+        point{ .x = 6, .y = 12 }, point{ .x = 3, .y = 4 },
+        rect{ .origin = point{ .x = 5, .y = 6 },
+              .size   = { .w = 1, .h = 2 } },
+        size{}, pixel{},
+        TxDpxl{
+          .reference_sprite_offset = { .w = 3, .h = 4 } } );
     REQUIRE( ( vert.generic().flags &
                VERTEX_FLAG_TEXTURED_DEPIXELATION ) ==
              VERTEX_FLAG_TEXTURED_DEPIXELATION );

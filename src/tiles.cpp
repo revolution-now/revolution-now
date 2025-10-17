@@ -275,11 +275,11 @@ void render_sprite_dulled( rr::Renderer& renderer,
   }
 }
 
-rr::StencilPlan stencil_plan_for( e_tile replacement_tile,
-                                  gfx::pixel key_color ) {
+rr::StencilPlan::sprite stencil_plan_for(
+    e_tile replacement_tile, gfx::pixel key_color ) {
   return {
-    .replacement_atlas_id = atlas_lookup( replacement_tile ),
-    .key_color            = key_color };
+    .key_color            = key_color,
+    .replacement_atlas_id = atlas_lookup( replacement_tile ) };
 }
 
 rr::TexturedDepixelatePlan burrowed_sprite_plan_for(

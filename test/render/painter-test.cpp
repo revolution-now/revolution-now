@@ -735,8 +735,8 @@ TEST_CASE( "[render/painter] draw_stencil" ) {
   Painter unmodded_painter( atlas_map(), emitter );
 
   PainterMods const mods{
-    .stencil = StencilPlan{ .replacement_atlas_id = 3,
-                            .key_color            = R } };
+    .stencil = StencilPlan::sprite{
+      .key_color = R, .replacement_atlas_id = 3 } };
   Painter painter = unmodded_painter.with_mods( mods );
 
   point p;
@@ -747,8 +747,8 @@ TEST_CASE( "[render/painter] draw_stencil" ) {
   rect const atlas_rect = get_atlas_rect( 2 );
 
   auto Vert = [&]( point p, point atlas_p ) {
-    return StencilVertex( p, atlas_p, atlas_rect, offset, R,
-                          txdpxl )
+    return SpriteStencilVertex( p, atlas_p, atlas_rect, offset,
+                                R, txdpxl )
         .generic();
   };
 

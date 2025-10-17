@@ -1062,7 +1062,8 @@ struct WaterRendererWithSeaLane {
  private:
   using enum e_tile;
 
-  static rr::StencilPlan stenciled_to( e_tile const tile ) {
+  static rr::StencilPlan::sprite stenciled_to(
+      e_tile const tile ) {
     return stencil_plan_for( tile, gfx::pixel::black() );
   };
 

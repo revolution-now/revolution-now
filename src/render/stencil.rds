@@ -14,9 +14,12 @@ include "gfx/pixel.hpp"
 
 namespace "rr"
 
-struct.StencilPlan {
-  replacement_atlas_id 'int',
-  key_color 'gfx::pixel ',
+sumtype.StencilPlan {
+  # Key color gets replaced by the pixels of another sprite.
+  sprite {
+    key_color 'gfx::pixel ',
+    replacement_atlas_id 'int',
+  },
 }
 
 struct.TexturedDepixelatePlan {
