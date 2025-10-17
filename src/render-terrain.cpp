@@ -47,6 +47,7 @@ namespace rn {
 
 namespace {
 
+using ::gfx::pixel;
 using ::gfx::point;
 
 constexpr double g_tile_overlap_width_percent = .2;
@@ -541,8 +542,7 @@ void render_terrain_ground( IVisibility const& viz,
     render_sprite_stencil(
         renderer, where,
         e_tile::terrain_ocean_canal_corner_up_right,
-        e_tile::terrain_ocean_canal_background,
-        gfx::pixel::black() );
+        e_tile::terrain_ocean_canal_background, pixel::black() );
     render_sprite(
         renderer, where,
         e_tile::terrain_border_canal_corner_up_right );
@@ -553,8 +553,7 @@ void render_terrain_ground( IVisibility const& viz,
     render_sprite_stencil(
         renderer, where,
         e_tile::terrain_ocean_canal_corner_up_left,
-        e_tile::terrain_ocean_canal_background,
-        gfx::pixel::black() );
+        e_tile::terrain_ocean_canal_background, pixel::black() );
     render_sprite( renderer, where,
                    e_tile::terrain_border_canal_corner_up_left );
   }
@@ -605,13 +604,12 @@ void render_river_water_tile( rr::Renderer& renderer,
   double alpha =
       ( square.surface == e_surface::water ) ? .05 : .1;
   render_sprite_stencil( renderer, where, tile,
-                         e_tile::terrain_ocean,
-                         gfx::pixel::black() );
+                         e_tile::terrain_ocean, pixel::black() );
   {
     SCOPED_RENDERER_MOD_MUL( painter_mods.alpha, alpha );
     render_sprite_stencil( renderer, where, tile,
                            e_tile::terrain_river_shading,
-                           gfx::pixel::black() );
+                           pixel::black() );
   }
 }
 
@@ -1064,7 +1062,7 @@ struct WaterRendererWithSeaLane {
 
   static rr::StencilPlan::sprite stenciled_to(
       e_tile const tile ) {
-    return stencil_plan_for( tile, gfx::pixel::black() );
+    return stencil_plan_for( pixel::black(), tile );
   };
 
   void render_ocean( e_tile const water_tile ) const {
@@ -1834,8 +1832,7 @@ void render_terrain_ocean_square( rr::Renderer& renderer,
       up.surface == e_surface::land ) {
     render_sprite_stencil(
         renderer, where, e_tile::terrain_ocean_canal_up_left,
-        e_tile::terrain_ocean_canal_background,
-        gfx::pixel::black() );
+        e_tile::terrain_ocean_canal_background, pixel::black() );
     render_sprite( renderer, where,
                    e_tile::terrain_border_canal_up_left );
   }
@@ -1844,8 +1841,7 @@ void render_terrain_ocean_square( rr::Renderer& renderer,
       right.surface == e_surface::land ) {
     render_sprite_stencil(
         renderer, where, e_tile::terrain_ocean_canal_up_right,
-        e_tile::terrain_ocean_canal_background,
-        gfx::pixel::black() );
+        e_tile::terrain_ocean_canal_background, pixel::black() );
     render_sprite( renderer, where,
                    e_tile::terrain_border_canal_up_right );
   }
@@ -1854,8 +1850,7 @@ void render_terrain_ocean_square( rr::Renderer& renderer,
       right.surface == e_surface::land ) {
     render_sprite_stencil(
         renderer, where, e_tile::terrain_ocean_canal_down_right,
-        e_tile::terrain_ocean_canal_background,
-        gfx::pixel::black() );
+        e_tile::terrain_ocean_canal_background, pixel::black() );
     render_sprite( renderer, where,
                    e_tile::terrain_border_canal_down_right );
   }
@@ -1864,8 +1859,7 @@ void render_terrain_ocean_square( rr::Renderer& renderer,
       left.surface == e_surface::land ) {
     render_sprite_stencil(
         renderer, where, e_tile::terrain_ocean_canal_down_left,
-        e_tile::terrain_ocean_canal_background,
-        gfx::pixel::black() );
+        e_tile::terrain_ocean_canal_background, pixel::black() );
     render_sprite( renderer, where,
                    e_tile::terrain_border_canal_down_left );
   }
@@ -1909,7 +1903,7 @@ void render_fish( IVisibility const& viz, rr::Renderer& renderer,
       small_splash ? e_tile::resource_fish_splash_fin_small
                    : e_tile::resource_fish_splash_fin_large;
 
-  gfx::pixel const outline_color = {
+  pixel const outline_color = {
     .r = 32, .g = 85, .b = 78, .a = 255 };
 
   if( should_outline_up || should_outline_left ) {
@@ -2410,7 +2404,7 @@ void render_landscape_square_if_not_fully_hidden(
   // Always last.
   if( options.grid ) {
     rr::Painter painter     = renderer.painter();
-    static auto const color = gfx::pixel{ 0, 0, 0, 30 };
+    static auto const color = pixel{ 0, 0, 0, 30 };
     // Only draw half the square so that when we redraw only one
     // square it doesn't cause some adjacent squares' grid lines
     // to get drawn twice, which would make the color uneven

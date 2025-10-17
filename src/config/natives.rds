@@ -409,13 +409,6 @@ struct.config_natives_t {
 
   tribes 'refl::enum_map<e_tribe, config::natives::Tribe>',
 
-  # Each camp/village has a couple pixels of color (matching the
-  # flag color of the tribe) to indicate their tribe. They can be
-  # single pixels, lines, or rects. These give the rects that
-  # should be filled in relative to the upper left corner of the
-  # camp/village sprite.
-  flag_rects 'refl::enum_map<e_native_level, std::vector<gfx::rect>>',
-
   # Describes behaviors having to do with native alarm level.
   # Note that there is dwelling-level alarm and tribal alarm, and
   # the names will specify which one is being referred to.

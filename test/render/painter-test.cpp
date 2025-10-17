@@ -727,7 +727,7 @@ TEST_CASE( "[render/painter] draw_sprite" ) {
   REQUIRE( v == expected );
 }
 
-TEST_CASE( "[render/painter] draw_stencil" ) {
+TEST_CASE( "[render/painter] sprite stencil" ) {
   vector<GenericVertex> v, expected;
 
   maybe<TxDpxl> txdpxl;
@@ -749,6 +749,47 @@ TEST_CASE( "[render/painter] draw_stencil" ) {
   auto Vert = [&]( point p, point atlas_p ) {
     return SpriteStencilVertex( p, atlas_p, atlas_rect, offset,
                                 R, txdpxl )
+        .generic();
+  };
+
+  p                  = { .x = 20, .y = 30 };
+  int const atlas_id = 2;
+  painter.draw_sprite( atlas_id, p );
+  // atlas: { .origin = { .x = 3, .y = 4 },
+  //          .size   = { .w = 5, .h = 6 } },
+  // replacement:
+  //        { .origin = { .x = 4, .y = 5 },
+  //          .size   = { .w = 6, .h = 7 } },
+  expected = {
+    Vert( { .x = 20, .y = 30 }, { .x = 3, .y = 4 } ),
+    Vert( { .x = 20, .y = 36 }, { .x = 3, .y = 10 } ),
+    Vert( { .x = 25, .y = 36 }, { .x = 8, .y = 10 } ),
+    Vert( { .x = 20, .y = 30 }, { .x = 3, .y = 4 } ),
+    Vert( { .x = 25, .y = 30 }, { .x = 8, .y = 4 } ),
+    Vert( { .x = 25, .y = 36 }, { .x = 8, .y = 10 } ),
+  };
+  REQUIRE( v == expected );
+}
+
+TEST_CASE( "[render/painter] fixed stencil" ) {
+  vector<GenericVertex> v, expected;
+
+  maybe<TxDpxl> txdpxl;
+  Emitter emitter( v );
+  Painter unmodded_painter( atlas_map(), emitter );
+
+  PainterMods const mods{
+    .stencil = StencilPlan::fixed{ .key_color         = R,
+                                   .replacement_color = B } };
+  Painter painter = unmodded_painter.with_mods( mods );
+
+  point p;
+
+  rect const atlas_rect = get_atlas_rect( 2 );
+
+  auto Vert = [&]( point p, point atlas_p ) {
+    return FixedStencilVertex( p, atlas_p, atlas_rect, B, R,
+                               txdpxl )
         .generic();
   };
 

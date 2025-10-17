@@ -192,6 +192,26 @@ struct SpriteStencilVertex : public VertexBase {
 STATIC_VERTEX_CHECKS( SpriteStencilVertex );
 
 /****************************************************************
+** FixedStencilVertex
+*****************************************************************/
+// This is a vertex used for shapes that are filled with a sprite
+// copied from the texture atlas but where any colors in the
+// sprite matching a key color are replaced by another color with
+// alpha multiplication.
+struct FixedStencilVertex : public VertexBase {
+  FixedStencilVertex( gfx::point position,
+                      gfx::point atlas_position,
+                      gfx::rect atlas_rect,
+                      gfx::pixel replacement_color,
+                      gfx::pixel key_color,
+                      base::maybe<TxDpxl> txdpxl );
+
+  bool operator==( FixedStencilVertex const& ) const = default;
+};
+
+STATIC_VERTEX_CHECKS( FixedStencilVertex );
+
+/****************************************************************
 ** LineVertex
 *****************************************************************/
 // This is a vertex used for lines that are not decidedly hori-

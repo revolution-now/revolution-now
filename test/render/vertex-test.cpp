@@ -83,7 +83,7 @@ TEST_CASE( "[render/vertex] SpriteStencilVertex" ) {
       size{ .w = 2, .h = 3 },
       pixel{ .r = 10, .g = 20, .b = 30, .a = 40 }, txdpxl );
   GenericVertex const& gv = vert.generic();
-  REQUIRE( gv.type == 2 );
+  REQUIRE( gv.type == 3 );
   REQUIRE( gv.depixelate == gl::vec4{} );
   REQUIRE( gv.depixelate_stages == gl::vec4{} );
   REQUIRE( gv.position == gl::vec2{ .x = 1, .y = 2 } );
@@ -102,13 +102,43 @@ TEST_CASE( "[render/vertex] SpriteStencilVertex" ) {
   REQUIRE( gv.alpha_multiplier == 1.0f );
 }
 
+TEST_CASE( "[render/vertex] FixedStencilVertex" ) {
+  maybe<TxDpxl> txdpxl;
+  FixedStencilVertex vert(
+      point{ .x = 1, .y = 2 }, point{ .x = 3, .y = 4 },
+      rect{ .origin = point{ .x = 5, .y = 6 },
+            .size   = { .w = 1, .h = 2 } },
+      pixel{ .r = 20, .g = 30, .b = 40, .a = 50 },
+      pixel{ .r = 10, .g = 20, .b = 30, .a = 40 }, txdpxl );
+  GenericVertex const& gv = vert.generic();
+  REQUIRE( gv.type == 2 );
+  REQUIRE( gv.depixelate == gl::vec4{} );
+  REQUIRE( gv.depixelate_stages == gl::vec4{} );
+  REQUIRE( gv.position == gl::vec2{ .x = 1, .y = 2 } );
+  REQUIRE( gv.atlas_position == gl::vec2{ .x = 3, .y = 4 } );
+  REQUIRE( gv.atlas_rect ==
+           gl::vec4{ .x = 5, .y = 6, .z = 1, .w = 2 } );
+  REQUIRE( gv.reference_position_1 == gl::vec2{} );
+  REQUIRE( gv.reference_position_2 == gl::vec2{} );
+  REQUIRE( gv.stencil_key_color ==
+           gl::color{ .r = 10.0f / 255.0f,
+                      .g = 20.0f / 255.0f,
+                      .b = 30.0f / 255.0f,
+                      .a = 40.0f / 255.0f } );
+  REQUIRE( gv.fixed_color == gl::color{ .r = 20.0f / 255.0f,
+                                        .g = 30.0f / 255.0f,
+                                        .b = 40.0f / 255.0f,
+                                        .a = 50.0f / 255.0f } );
+  REQUIRE( gv.alpha_multiplier == 1.0f );
+}
+
 TEST_CASE( "[render/vertex] LineVertex" ) {
   LineVertex vert( point{ .x = 1, .y = 2 },
                    point{ .x = 2, .y = 3 },
                    point{ .x = 4, .y = 5 },
                    pixel{ .r = 10, .g = 20, .b = 30, .a = 40 } );
   GenericVertex const& gv = vert.generic();
-  REQUIRE( gv.type == 3 );
+  REQUIRE( gv.type == 4 );
   REQUIRE( gv.depixelate == gl::vec4{} );
   REQUIRE( gv.depixelate_stages == gl::vec4{} );
   REQUIRE( gv.position == gl::vec2{ .x = 1, .y = 2 } );
@@ -459,6 +489,51 @@ TEST_CASE( "[render/vertex] textured depixelation" ) {
         rect{ .origin = point{ .x = 5, .y = 6 },
               .size   = { .w = 1, .h = 2 } },
         size{}, pixel{},
+        TxDpxl{
+          .reference_sprite_offset = { .w = 3, .h = 4 } } );
+    REQUIRE( ( vert.generic().flags &
+               VERTEX_FLAG_TEXTURED_DEPIXELATION ) ==
+             VERTEX_FLAG_TEXTURED_DEPIXELATION );
+    REQUIRE( vert.get_textured_depixelation() ==
+             TxDpxl{
+               .reference_sprite_offset = { .w = 3, .h = 4 } } );
+    vert.set_textured_depixelation( nothing );
+    REQUIRE( ( vert.generic().flags &
+               VERTEX_FLAG_TEXTURED_DEPIXELATION ) == 0 );
+    REQUIRE( vert.get_textured_depixelation() == nothing );
+  }
+
+  SECTION( "FixedStencilVertex/constructed empty" ) {
+    maybe<TxDpxl> txdpxl;
+    FixedStencilVertex vert(
+        point{ .x = 6, .y = 12 }, point{ .x = 3, .y = 4 },
+        rect{ .origin = point{ .x = 5, .y = 6 },
+              .size   = { .w = 1, .h = 2 } },
+        pixel{}, pixel{}, txdpxl );
+    REQUIRE( ( vert.generic().flags &
+               VERTEX_FLAG_TEXTURED_DEPIXELATION ) == 0 );
+    REQUIRE( vert.get_textured_depixelation() == nothing );
+
+    vert.set_textured_depixelation( TxDpxl{
+      .reference_sprite_offset = { .w = 3, .h = 4 } } );
+    REQUIRE( ( vert.generic().flags &
+               VERTEX_FLAG_TEXTURED_DEPIXELATION ) ==
+             VERTEX_FLAG_TEXTURED_DEPIXELATION );
+    REQUIRE( vert.get_textured_depixelation() ==
+             TxDpxl{
+               .reference_sprite_offset = { .w = 3, .h = 4 } } );
+    vert.set_textured_depixelation( nothing );
+    REQUIRE( ( vert.generic().flags &
+               VERTEX_FLAG_TEXTURED_DEPIXELATION ) == 0 );
+    REQUIRE( vert.get_textured_depixelation() == nothing );
+  }
+
+  SECTION( "FixedStencilVertex/constructed with" ) {
+    FixedStencilVertex vert(
+        point{ .x = 6, .y = 12 }, point{ .x = 3, .y = 4 },
+        rect{ .origin = point{ .x = 5, .y = 6 },
+              .size   = { .w = 1, .h = 2 } },
+        pixel{}, pixel{},
         TxDpxl{
           .reference_sprite_offset = { .w = 3, .h = 4 } } );
     REQUIRE( ( vert.generic().flags &

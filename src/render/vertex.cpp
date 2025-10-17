@@ -25,10 +25,11 @@ using ::gfx::pixel;
 using ::gfx::point;
 
 enum class vertex_type {
-  sprite  = 0,
-  solid   = 1,
-  stencil = 2,
-  line    = 3,
+  sprite         = 0,
+  solid          = 1,
+  stencil_fixed  = 2,
+  stencil_sprite = 3,
+  line           = 4,
 };
 
 GenericVertex proto_vertex( vertex_type type,
@@ -278,11 +279,27 @@ SpriteStencilVertex::SpriteStencilVertex(
     gfx::rect atlas_rect, gfx::size atlas_target_offset,
     gfx::pixel key_color, maybe<TxDpxl> const txdpxl )
   : VertexBase(
-        proto_vertex( vertex_type::stencil, position ) ) {
+        proto_vertex( vertex_type::stencil_sprite, position ) ) {
   this->atlas_position = gl::vec2::from_point( atlas_position );
   this->atlas_rect     = gl::vec4::from_rect( atlas_rect );
   this->reference_position_1 =
       gl::vec2::from_size( atlas_target_offset );
+  this->stencil_key_color = gl::color::from_pixel( key_color );
+  set_textured_depixelation( txdpxl );
+}
+
+/****************************************************************
+** FixedStencilVertex
+*****************************************************************/
+FixedStencilVertex::FixedStencilVertex(
+    gfx::point position, gfx::point atlas_position,
+    gfx::rect atlas_rect, gfx::pixel replacement_color,
+    gfx::pixel key_color, maybe<TxDpxl> const txdpxl )
+  : VertexBase(
+        proto_vertex( vertex_type::stencil_fixed, position ) ) {
+  this->atlas_position = gl::vec2::from_point( atlas_position );
+  this->atlas_rect     = gl::vec4::from_rect( atlas_rect );
+  this->fixed_color = gl::color::from_pixel( replacement_color );
   this->stencil_key_color = gl::color::from_pixel( key_color );
   set_textured_depixelation( txdpxl );
 }

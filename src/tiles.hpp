@@ -113,7 +113,10 @@ void render_sprite_outline( rr::Renderer& renderer,
 ** Stencils
 *****************************************************************/
 rr::StencilPlan::sprite stencil_plan_for(
-    e_tile replacement_tile, gfx::pixel key_color );
+    gfx::pixel key_color, e_tile replacement_tile );
+
+rr::StencilPlan::fixed stencil_plan_for(
+    gfx::pixel key_color, gfx::pixel replacement_color );
 
 void render_sprite_stencil( rr::Renderer& renderer, Coord where,
                             e_tile tile, e_tile replacement_tile,

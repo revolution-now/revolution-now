@@ -199,7 +199,17 @@ vec4 type_line() {
 /****************************************************************
 ** Stencils.
 *****************************************************************/
-vec4 type_stencil() {
+vec4 type_stencil_fixed() {
+  vec4 candidate = atlas_lookup( frag_atlas_position,
+                                 frag_atlas_rect );
+  if( candidate.rgb != frag_stencil_key_color.rgb )
+    return candidate;
+  // We have the key color, so replace it with the fixed color.
+  vec4 target_color = frag_fixed_color;
+  return vec4( target_color.rgb, target_color.a*candidate.a );
+}
+
+vec4 type_stencil_sprite() {
   vec4 candidate = atlas_lookup( frag_atlas_position,
                                  frag_atlas_rect );
   if( candidate.rgb != frag_stencil_key_color.rgb )
@@ -490,10 +500,11 @@ void main() {
 
   // Basic type stage.
   switch( frag_type ) {
-    case 0: color = type_sprite();   break;
-    case 1: color = type_solid();    break;
-    case 2: color = type_stencil();  break;
-    case 3: color = type_line();     break;
+    case 0: color = type_sprite();         break;
+    case 1: color = type_solid();          break;
+    case 2: color = type_stencil_fixed();  break;
+    case 3: color = type_stencil_sprite(); break;
+    case 4: color = type_line();           break;
   }
 
   // Depixelation.

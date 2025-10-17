@@ -20,6 +20,11 @@ sumtype.StencilPlan {
     key_color 'gfx::pixel ',
     replacement_atlas_id 'int',
   },
+  # Key color gets replaced by another (fixed) color.
+  fixed {
+    key_color 'gfx::pixel ',
+    replacement_color 'gfx::pixel ',
+  },
 }
 
 struct.TexturedDepixelatePlan {

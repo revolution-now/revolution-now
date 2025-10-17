@@ -48,6 +48,7 @@ using ::base::maybe;
 using ::base::nothing;
 using ::base::valid;
 using ::base::valid_or;
+using ::gfx::pixel;
 using ::gfx::point;
 using ::gfx::rect;
 using ::gfx::size;
@@ -276,10 +277,16 @@ void render_sprite_dulled( rr::Renderer& renderer,
 }
 
 rr::StencilPlan::sprite stencil_plan_for(
-    e_tile replacement_tile, gfx::pixel key_color ) {
+    pixel const key_color, e_tile const replacement_tile ) {
   return {
     .key_color            = key_color,
     .replacement_atlas_id = atlas_lookup( replacement_tile ) };
+}
+
+rr::StencilPlan::fixed stencil_plan_for(
+    pixel const key_color, pixel const replacement_color ) {
+  return { .key_color         = key_color,
+           .replacement_color = replacement_color };
 }
 
 rr::TexturedDepixelatePlan burrowed_sprite_plan_for(
@@ -321,7 +328,7 @@ void render_sprite_stencil( rr::Renderer& renderer, Coord where,
                             gfx::pixel key_color ) {
   SCOPED_RENDERER_MOD_SET(
       painter_mods.stencil,
-      stencil_plan_for( replacement_tile, key_color ) );
+      stencil_plan_for( key_color, replacement_tile ) );
   renderer.painter().draw_sprite( atlas_lookup( tile ), where );
 }
 

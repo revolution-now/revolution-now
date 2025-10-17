@@ -558,7 +558,6 @@ void render_dwelling( rr::Renderer& renderer, point const where,
                       IVisibility const& viz,
                       point const map_tile, SSConst const& ss,
                       Dwelling const& dwelling ) {
-  rr::Painter painter = renderer.painter();
   FrozenDwelling const frozen_dwelling =
       dwelling_to_frozen_dwelling( ss, dwelling );
   // NOTE: !! From here on we must not use ss to look up anything
@@ -570,16 +569,14 @@ void render_dwelling( rr::Renderer& renderer, point const where,
   auto& tribe_conf         = config_natives.tribes[tribe_type];
   e_tile const dwelling_tile =
       dwelling_tile_for_tribe( tribe_type );
-  render_large_sprite_with_forest_burrowing(
-      viz, renderer, where, map_tile, dwelling_tile );
-  // Flags.
-  e_native_level const native_level = tribe_conf.level;
-  gfx::pixel const flag_color       = tribe_conf.flag_color;
-  // FIXME: when the dwelling is depixelating, it seems to show
-  // the underlying red for its flag.
-  for( gfx::rect flag : config_natives.flag_rects[native_level] )
-    painter.draw_solid_rect( flag.origin_becomes_point( where ),
-                             flag_color );
+  gfx::pixel const flag_color = tribe_conf.flag_color;
+  {
+    SCOPED_RENDERER_MOD_SET(
+        painter_mods.stencil,
+        stencil_plan_for( pixel::red(), flag_color ) )
+    render_large_sprite_with_forest_burrowing(
+        viz, renderer, where, map_tile, dwelling_tile );
+  }
   // The offset that we need to go to get to the upper left
   // corner of a 32x32 sprite centered on the (48x48) dwelling
   // tile.

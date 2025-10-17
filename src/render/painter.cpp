@@ -15,6 +15,9 @@
 #include "emitter.hpp"
 #include "vertex.hpp"
 
+// rds
+#include "rds/switch-macro.hpp"
+
 using namespace std;
 
 namespace rr {
@@ -272,16 +275,29 @@ Painter& Painter::draw_sprite_impl( rect total_src,
 
   // Stenciling.
   if( auto const& stencil = mods().stencil; stencil ) {
-    auto const& [replacement_atlas_id, key_color] = *stencil;
-    gfx::size const replacement_atlas_offset =
-        atlas_.lookup( replacement_atlas_id ).origin -
-        total_src.origin;
-    emit_texture_quad(
-        src, dst, [&, this]( point pos, point atlas_pos ) {
-          emit( StencilVertex( pos, atlas_pos, src,
-                               replacement_atlas_offset,
-                               key_color, txdpxl ) );
-        } );
+    SWITCH( *stencil ) {
+      CASE( sprite ) {
+        gfx::size const replacement_atlas_offset =
+            atlas_.lookup( sprite.replacement_atlas_id ).origin -
+            total_src.origin;
+        emit_texture_quad(
+            src, dst, [&, this]( point pos, point atlas_pos ) {
+              emit( SpriteStencilVertex(
+                  pos, atlas_pos, src, replacement_atlas_offset,
+                  sprite.key_color, txdpxl ) );
+            } );
+        break;
+      }
+      CASE( fixed ) {
+        emit_texture_quad(
+            src, dst, [&, this]( point pos, point atlas_pos ) {
+              emit( FixedStencilVertex(
+                  pos, atlas_pos, src, fixed.replacement_color,
+                  fixed.key_color, txdpxl ) );
+            } );
+        break;
+      }
+    }
     return *this;
   }
 
