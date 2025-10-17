@@ -24,6 +24,7 @@
 
 namespace rn {
 
+struct IVisibility;
 struct SSConst;
 
 // Checks the map square in question to see if there are any
@@ -38,8 +39,15 @@ struct SSConst;
 //
 // NOTE: this is only to be used on squares that are clear to the
 // current viewer since it does not take into account visibility.
-maybe<Society> society_on_square( SSConst const& ss,
-                                  Coord coord );
+maybe<Society> society_on_real_square( SSConst const& ss,
+                                       gfx::point tile );
+
+// As seen from a given visibility. This one should be preferred
+// unless there is a reason that full visibility always needs to
+// be used.
+VisibleSociety society_on_visible_square( SSConst const& ss,
+                                          IVisibility const& viz,
+                                          gfx::point tile );
 
 // Gets the color associated with the society. E.g. this is the
 // one that will be used to paint the flag color of a unit and

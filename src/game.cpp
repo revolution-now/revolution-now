@@ -74,9 +74,7 @@ e_player ensure_human_player( PlayersState const& players ) {
     if( player.has_value() )
       if( player->control == e_player_control::human )
         return player_type;
-  FATAL(
-      "there must be at least one human player and the "
-      "default_human must refer to one of them." );
+  FATAL( "there must be at least player under human control" );
 }
 
 void play( IRand& rand, e_game_module_tune_points tune ) {

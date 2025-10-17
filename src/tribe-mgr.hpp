@@ -64,7 +64,7 @@ wait<> tribe_wiped_out_message( IAgent& agent, e_tribe tribe );
 // the map that may not be directly adjacent to the player's
 // units, we need to make sure that what we're doing works for
 // both real dwellings and phantom ones.
-e_tribe tribe_type_for_dwelling( SSConst const& ss,
-                                 Dwelling const& dwelling );
+[[nodiscard]] e_tribe tribe_type_for_dwelling(
+    SSConst const& ss, Dwelling const& dwelling );
 
 } // namespace rn

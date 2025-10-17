@@ -150,7 +150,7 @@ NativeUnitCommand AiNativeAgent::command_for(
     MapSquare const& square = ss_.terrain.square_at( moved );
     if( square.surface != e_surface::land ) continue;
     if( maybe<Society> const society =
-            society_on_square( ss_, moved );
+            society_on_real_square( ss_, moved );
         society.has_value() ) {
       SWITCH( *society ) {
         CASE( native ) {
@@ -168,7 +168,7 @@ NativeUnitCommand AiNativeAgent::command_for(
   e_direction const rand_d = rand_.pick_one( available_d );
   Coord const moved        = ownership.coord.moved( rand_d );
   if( maybe<Society> const society =
-          society_on_square( ss_, moved );
+          society_on_real_square( ss_, moved );
       society.has_value() ) {
     SWITCH( *society ) {
       CASE( native ) { break; }

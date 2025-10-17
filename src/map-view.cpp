@@ -83,7 +83,9 @@ vector<UnitId> can_activate_units_on_tile(
   auto const active =
       player_for_role( ss, e_player_role::active );
   if( !active.has_value() ) return res;
-  auto const society = society_on_square( ss, tile );
+  // We've already made sure the tile is clear, so can use the
+  // real tile contents.
+  auto const society = society_on_real_square( ss, tile );
   if( !society.has_value() ) return res;
   auto const european = society->get_if<Society::european>();
   if( !european.has_value() ) return res;

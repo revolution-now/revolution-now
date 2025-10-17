@@ -247,7 +247,10 @@ UprisingColonies find_uprising_colonies(
         // tered out the tiles that are not connected to the
         // colony location, but we'll be defensive.
         continue;
-      if( auto const society = society_on_square( ss, tile );
+      // Has to be real square here because we are dealing with
+      // the placement of REF units.
+      if( auto const society =
+              society_on_real_square( ss, tile );
           society.has_value() )
         // If this is an REF unit then the colony is being at-
         // tacked by the REF already, so skip. Any other type of

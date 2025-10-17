@@ -1,9 +1,5 @@
 # Conquistador Walter Raleigh of the English, Spring 1492, 8x8
-land_view.viewport {
-  center_x: 240
-  center_y: 112
-  zoom: 1
-}
+land_view.viewport.zoom: 1
 
 natives {
   dwellings: [
@@ -12,20 +8,6 @@ natives {
       val {
         dwelling {
           id: 1
-          is_capital: true
-          population: 9
-        }
-        ownership.location {
-          x: 1
-          y: 6
-        }
-      }
-    },
-    {
-      key: 2
-      val {
-        dwelling {
-          id: 2
           is_capital: true
           population: 5
           teaches: ore_mining
@@ -40,19 +22,37 @@ natives {
       }
     },
     {
-      key: 3
+      key: 2
       val {
         dwelling {
-          id: 3
+          id: 2
           is_capital: true
           population: 7
         }
         ownership {
           location {
-            x: 1
-            y: 3
+            x: 3
+            y: 4
           }
           tribe: aztec
+        }
+      }
+    },
+    {
+      key: 3
+      val {
+        dwelling {
+          id: 3
+          is_capital: true
+          population: 3
+          teaches: scouting
+        }
+        ownership {
+          location {
+            x: 4
+            y: 3
+          }
+          tribe: tupi
         }
       }
     },
@@ -62,15 +62,11 @@ natives {
         dwelling {
           id: 4
           is_capital: true
-          population: 3
-          teaches: scouting
+          population: 9
         }
-        ownership {
-          location {
-            x: 4
-            y: 4
-          }
-          tribe: tupi
+        ownership.location {
+          x: 2
+          y: 5
         }
       }
     },
@@ -84,7 +80,7 @@ natives {
         }
         ownership {
           location {
-            x: 3
+            x: 4
             y: 5
           }
           tribe: sioux
@@ -111,89 +107,86 @@ natives {
   ]
   next_dwelling_id: 7
   owned_land_without_minuit: [
-    .val: 3,
-    {
-      key.x: 1
-      val: 3
-    },
-    {
-      key.x: 2
-      val: 3
-    },
-    {
-      key.y: 1
-      val: 3
-    },
     {
       key {
         x: 1
         y: 1
       }
-      val: 3
+      val: 1
     },
     {
       key {
         x: 2
         y: 1
       }
-      val: 3
+      val: 2
     },
     {
       key {
         x: 3
         y: 1
       }
-      val: 3
-    },
-    {
-      key.y: 2
-      val: 3
-    },
-    {
-      key {
-        x: 1
-        y: 2
-      }
-      val: 3
-    },
-    {
-      key {
-        x: 2
-        y: 2
-      }
-      val: 3
-    },
-    {
-      key {
-        x: 3
-        y: 2
-      }
-      val: 3
+      val: 2
     },
     {
       key {
         x: 4
+        y: 1
+      }
+      val: 2
+    },
+    {
+      key {
+        x: 1
+        y: 2
+      }
+      val: 4
+    },
+    {
+      key {
+        x: 2
+        y: 2
+      }
+      val: 4
+    },
+    {
+      key {
+        x: 3
+        y: 2
+      }
+      val: 4
+    },
+    {
+      key {
+        x: 4
+        y: 2
+      }
+      val: 3
+    },
+    {
+      key {
+        x: 5
         y: 2
       }
       val: 3
     },
     {
       key.y: 3
-      val: 3
+      val: 4
     },
     {
       key {
         x: 1
         y: 3
       }
-      val: 3
+      val: 4
     },
     {
       key {
         x: 2
         y: 3
       }
-      val: 3
+      val: 4
     },
     {
       key {
@@ -214,25 +207,32 @@ natives {
         x: 5
         y: 3
       }
-      val: 4
+      val: 3
+    },
+    {
+      key {
+        x: 6
+        y: 3
+      }
+      val: 2
     },
     {
       key.y: 4
-      val: 3
+      val: 4
     },
     {
       key {
         x: 1
         y: 4
       }
-      val: 3
+      val: 4
     },
     {
       key {
         x: 2
         y: 4
       }
-      val: 5
+      val: 4
     },
     {
       key {
@@ -253,18 +253,25 @@ natives {
         x: 5
         y: 4
       }
-      val: 4
+      val: 5
+    },
+    {
+      key {
+        x: 6
+        y: 4
+      }
+      val: 2
     },
     {
       key.y: 5
-      val: 3
+      val: 4
     },
     {
       key {
         x: 1
         y: 5
       }
-      val: 3
+      val: 4
     },
     {
       key {
@@ -292,18 +299,25 @@ natives {
         x: 5
         y: 5
       }
-      val: 4
+      val: 5
+    },
+    {
+      key {
+        x: 6
+        y: 5
+      }
+      val: 2
     },
     {
       key.y: 6
-      val: 3
+      val: 4
     },
     {
       key {
         x: 1
         y: 6
       }
-      val: 3
+      val: 4
     },
     {
       key {
@@ -327,15 +341,22 @@ natives {
       val: 6
     },
     {
+      key {
+        x: 5
+        y: 6
+      }
+      val: 5
+    },
+    {
       key.y: 7
-      val: 1
+      val: 4
     },
     {
       key {
         x: 1
         y: 7
       }
-      val: 1
+      val: 4
     },
     {
       key {
@@ -370,31 +391,119 @@ natives {
 }
 
 players {
-  old_world.english.market.commodities {
-    cotton.bid_price: 4
-    furs.bid_price: 5
-    horses.bid_price: 1
-    lumber.bid_price: 1
-    muskets.bid_price: 2
-    ore.bid_price: 5
-    silver.bid_price: 19
-    sugar.bid_price: 3
-    tobacco.bid_price: 3
-    tools.bid_price: 1
-    trade_goods.bid_price: 2
-  }
-  players.english {
-    control: human
-    name: Walter Raleigh
-    revolution.expeditionary_force {
-      artillery: 14
-      cavalry: 15
-      man_o_war: 8
-      regular: 31
+  old_world {
+    dutch.market.commodities {
+      cotton.bid_price: 4
+      furs.bid_price: 4
+      horses.bid_price: 1
+      lumber.bid_price: 1
+      muskets.bid_price: 2
+      ore.bid_price: 3
+      silver.bid_price: 19
+      sugar.bid_price: 4
+      tobacco.bid_price: 4
+      tools.bid_price: 1
+      trade_goods.bid_price: 1
     }
-    starting_position {
-      x: 7
-      y: 3
+    english.market.commodities {
+      cotton.bid_price: 4
+      furs.bid_price: 4
+      horses.bid_price: 1
+      lumber.bid_price: 1
+      muskets.bid_price: 2
+      ore.bid_price: 3
+      silver.bid_price: 19
+      sugar.bid_price: 4
+      tobacco.bid_price: 4
+      tools.bid_price: 1
+      trade_goods.bid_price: 1
+    }
+    french.market.commodities {
+      cotton.bid_price: 4
+      furs.bid_price: 4
+      horses.bid_price: 1
+      lumber.bid_price: 1
+      muskets.bid_price: 2
+      ore.bid_price: 3
+      silver.bid_price: 19
+      sugar.bid_price: 4
+      tobacco.bid_price: 4
+      tools.bid_price: 1
+      trade_goods.bid_price: 1
+    }
+    spanish.market.commodities {
+      cotton.bid_price: 4
+      furs.bid_price: 4
+      horses.bid_price: 1
+      lumber.bid_price: 1
+      muskets.bid_price: 2
+      ore.bid_price: 3
+      silver.bid_price: 19
+      sugar.bid_price: 4
+      tobacco.bid_price: 4
+      tools.bid_price: 1
+      trade_goods.bid_price: 1
+    }
+  }
+  players {
+    dutch {
+      name: Michiel De Ruyter
+      nation: dutch
+      revolution.expeditionary_force {
+        artillery: 14
+        cavalry: 15
+        man_o_war: 8
+        regular: 31
+      }
+      starting_position {
+        x: 7
+        y: 3
+      }
+      type: dutch
+    }
+    english {
+      control: human
+      name: Walter Raleigh
+      revolution.expeditionary_force {
+        artillery: 14
+        cavalry: 15
+        man_o_war: 8
+        regular: 31
+      }
+      starting_position {
+        x: 7
+        y: 1
+      }
+    }
+    french {
+      name: Jacques Cartier
+      nation: french
+      revolution.expeditionary_force {
+        artillery: 14
+        cavalry: 15
+        man_o_war: 8
+        regular: 31
+      }
+      starting_position {
+        x: 7
+        y: 4
+      }
+      type: french
+    }
+    spanish {
+      name: Christopher Columbus
+      nation: spanish
+      revolution.expeditionary_force {
+        artillery: 14
+        cavalry: 15
+        man_o_war: 8
+        regular: 31
+      }
+      starting_position {
+        x: 7
+        y: 2
+      }
+      type: spanish
     }
   }
 }
@@ -424,12 +533,24 @@ turn.time_point {
 }
 
 units {
-  curr_unit_ordering_index: 1
-  next_unit_id: 10
+  curr_unit_ordering_index: 4
+  next_unit_id: 19
   unit_ordering: [
     {
       key: 7
       val: 1
+    },
+    {
+      key: 10
+      val: 2
+    },
+    {
+      key: 13
+      val: 3
+    },
+    {
+      key: 16
+      val: 4
     },
   ]
   units: [
@@ -438,8 +559,8 @@ units {
       val.native {
         ownership {
           coord {
-            x: 1
-            y: 6
+            x: 2
+            y: 2
           }
           dwelling_id: 1
         }
@@ -454,8 +575,8 @@ units {
       val.native {
         ownership {
           coord {
-            x: 2
-            y: 2
+            x: 3
+            y: 4
           }
           dwelling_id: 2
         }
@@ -470,7 +591,7 @@ units {
       val.native {
         ownership {
           coord {
-            x: 1
+            x: 4
             y: 3
           }
           dwelling_id: 3
@@ -486,8 +607,8 @@ units {
       val.native {
         ownership {
           coord {
-            x: 4
-            y: 4
+            x: 2
+            y: 5
           }
           dwelling_id: 4
         }
@@ -502,7 +623,7 @@ units {
       val.native {
         ownership {
           coord {
-            x: 3
+            x: 4
             y: 5
           }
           dwelling_id: 5
@@ -534,7 +655,7 @@ units {
       val.euro {
         ownership.world.coord {
           x: 7
-          y: 3
+          y: 1
         }
         unit {
           cargo.slots: [
@@ -583,6 +704,179 @@ units {
         }
       }
     },
+    {
+      key: 10
+      val.euro {
+        ownership.world.coord {
+          x: 7
+          y: 4
+        }
+        unit {
+          cargo.slots: [
+            .cargo.contents.unit.id: 11,
+            .cargo.contents.unit.id: 12,
+          ]
+          composition.type {
+            base_type: caravel
+            type: caravel
+          }
+          id: 10
+          mv_pts.atoms: 12
+          player_type: french
+        }
+      }
+    },
+    {
+      key: 11
+      val.euro {
+        ownership.cargo.holder: 10
+        unit {
+          composition.type {
+            base_type: free_colonist
+            type: soldier
+          }
+          id: 11
+          mv_pts.atoms: 3
+          orders.sentry {}
+          player_type: french
+        }
+      }
+    },
+    {
+      key: 12
+      val.euro {
+        ownership.cargo.holder: 10
+        unit {
+          composition {
+            inventory.tools: 100
+            type {
+              base_type: hardy_colonist
+              type: hardy_pioneer
+            }
+          }
+          id: 12
+          mv_pts.atoms: 3
+          orders.sentry {}
+          player_type: french
+        }
+      }
+    },
+    {
+      key: 13
+      val.euro {
+        ownership.world.coord {
+          x: 7
+          y: 2
+        }
+        unit {
+          cargo.slots: [
+            .cargo.contents.unit.id: 14,
+            .cargo.contents.unit.id: 15,
+          ]
+          composition.type {
+            base_type: caravel
+            type: caravel
+          }
+          id: 13
+          mv_pts.atoms: 12
+          player_type: spanish
+        }
+      }
+    },
+    {
+      key: 14
+      val.euro {
+        ownership.cargo.holder: 13
+        unit {
+          composition.type {
+            base_type: veteran_colonist
+            type: veteran_soldier
+          }
+          id: 14
+          mv_pts.atoms: 3
+          orders.sentry {}
+          player_type: spanish
+        }
+      }
+    },
+    {
+      key: 15
+      val.euro {
+        ownership.cargo.holder: 13
+        unit {
+          composition {
+            inventory.tools: 100
+            type {
+              base_type: free_colonist
+              type: pioneer
+            }
+          }
+          id: 15
+          mv_pts.atoms: 3
+          orders.sentry {}
+          player_type: spanish
+        }
+      }
+    },
+    {
+      key: 16
+      val.euro {
+        ownership.world.coord {
+          x: 7
+          y: 3
+        }
+        unit {
+          cargo.slots: [
+            .cargo.contents.unit.id: 17,
+            .cargo.contents.unit.id: 18,
+            {},
+            {},
+          ]
+          composition.type {
+            base_type: merchantman
+            type: merchantman
+          }
+          id: 16
+          mv_pts.atoms: 15
+          player_type: dutch
+        }
+      }
+    },
+    {
+      key: 17
+      val.euro {
+        ownership.cargo.holder: 16
+        unit {
+          composition.type {
+            base_type: free_colonist
+            type: soldier
+          }
+          id: 17
+          mv_pts.atoms: 3
+          orders.sentry {}
+          player_type: dutch
+        }
+      }
+    },
+    {
+      key: 18
+      val.euro {
+        ownership.cargo.holder: 16
+        unit {
+          composition {
+            inventory.tools: 100
+            type {
+              base_type: free_colonist
+              type: pioneer
+            }
+          }
+          id: 18
+          mv_pts.atoms: 3
+          orders.sentry {}
+          player_type: dutch
+        }
+      }
+    },
   ]
 }
 
@@ -598,55 +892,204 @@ zzz_terrain {
     4,
   ]
   placement_seed: 24
-  player_terrain.english.map {
-    data: [
-      {
-        key {
-          x: 6
-          y: 2
-        }
-        val.explored.fog_status.clear {}
-      },
-      {
-        key {
-          x: 7
-          y: 2
-        }
-        val.explored.fog_status.clear {}
-      },
-      {
-        key {
-          x: 6
-          y: 3
-        }
-        val.explored.fog_status.clear {}
-      },
-      {
-        key {
-          x: 7
-          y: 3
-        }
-        val.explored.fog_status.clear {}
-      },
-      {
-        key {
-          x: 6
-          y: 4
-        }
-        val.explored.fog_status.clear {}
-      },
-      {
-        key {
-          x: 7
-          y: 4
-        }
-        val.explored.fog_status.clear {}
-      },
-    ]
-    has_coords: true
-    size {
-      h: 8
-      w: 8
+  player_terrain {
+    dutch.map {
+      data: [
+        {
+          key {
+            x: 6
+            y: 2
+          }
+          val.explored.fog_status.clear {}
+        },
+        {
+          key {
+            x: 7
+            y: 2
+          }
+          val.explored.fog_status.clear {}
+        },
+        {
+          key {
+            x: 6
+            y: 3
+          }
+          val.explored.fog_status.clear {}
+        },
+        {
+          key {
+            x: 7
+            y: 3
+          }
+          val.explored.fog_status.clear {}
+        },
+        {
+          key {
+            x: 6
+            y: 4
+          }
+          val.explored.fog_status.clear {}
+        },
+        {
+          key {
+            x: 7
+            y: 4
+          }
+          val.explored.fog_status.clear {}
+        },
+      ]
+      has_coords: true
+      size {
+        h: 8
+        w: 8
+      }
+    }
+    english.map {
+      data: [
+        {
+          key.x: 6
+          val.explored.fog_status.clear {}
+        },
+        {
+          key.x: 7
+          val.explored.fog_status.clear {}
+        },
+        {
+          key {
+            x: 6
+            y: 1
+          }
+          val.explored.fog_status.clear {}
+        },
+        {
+          key {
+            x: 7
+            y: 1
+          }
+          val.explored.fog_status.clear {}
+        },
+        {
+          key {
+            x: 6
+            y: 2
+          }
+          val.explored.fog_status.clear {}
+        },
+        {
+          key {
+            x: 7
+            y: 2
+          }
+          val.explored.fog_status.clear {}
+        },
+      ]
+      has_coords: true
+      size {
+        h: 8
+        w: 8
+      }
+    }
+    french.map {
+      data: [
+        {
+          key {
+            x: 6
+            y: 3
+          }
+          val.explored.fog_status.clear {}
+        },
+        {
+          key {
+            x: 7
+            y: 3
+          }
+          val.explored.fog_status.clear {}
+        },
+        {
+          key {
+            x: 6
+            y: 4
+          }
+          val.explored.fog_status.clear {}
+        },
+        {
+          key {
+            x: 7
+            y: 4
+          }
+          val.explored.fog_status.clear {}
+        },
+        {
+          key {
+            x: 6
+            y: 5
+          }
+          val.explored.fog_status.clear {}
+        },
+        {
+          key {
+            x: 7
+            y: 5
+          }
+          val.explored.fog_status.clear {}
+        },
+      ]
+      has_coords: true
+      size {
+        h: 8
+        w: 8
+      }
+    }
+    spanish.map {
+      data: [
+        {
+          key {
+            x: 6
+            y: 1
+          }
+          val.explored.fog_status.clear {}
+        },
+        {
+          key {
+            x: 7
+            y: 1
+          }
+          val.explored.fog_status.clear {}
+        },
+        {
+          key {
+            x: 6
+            y: 2
+          }
+          val.explored.fog_status.clear {}
+        },
+        {
+          key {
+            x: 7
+            y: 2
+          }
+          val.explored.fog_status.clear {}
+        },
+        {
+          key {
+            x: 6
+            y: 3
+          }
+          val.explored.fog_status.clear {}
+        },
+        {
+          key {
+            x: 7
+            y: 3
+          }
+          val.explored.fog_status.clear {}
+        },
+      ]
+      has_coords: true
+      size {
+        h: 8
+        w: 8
+      }
     }
   }
   proto_squares {
@@ -731,7 +1174,6 @@ zzz_terrain {
           ground: savannah
           overlay: forest
           river: minor
-          road: true
           surface: land
         }
       },
@@ -764,9 +1206,9 @@ zzz_terrain {
         }
         val {
           ground: grassland
-          lost_city_rumor: true
           overlay: forest
           river: minor
+          road: true
           surface: land
         }
       },
@@ -825,6 +1267,7 @@ zzz_terrain {
         }
         val {
           ground: grassland
+          road: true
           surface: land
         }
       },
@@ -836,7 +1279,6 @@ zzz_terrain {
         val {
           ground: swamp
           overlay: forest
-          road: true
           surface: land
         }
       },
@@ -869,7 +1311,7 @@ zzz_terrain {
         }
         val {
           ground: plains
-          overlay: mountains
+          road: true
           surface: land
         }
       },
@@ -881,7 +1323,6 @@ zzz_terrain {
         val {
           ground: desert
           overlay: forest
-          road: true
           surface: land
         }
       },
@@ -894,6 +1335,7 @@ zzz_terrain {
           ground: prairie
           ground_resource: cotton
           overlay: forest
+          road: true
           surface: land
         }
       },
@@ -917,7 +1359,6 @@ zzz_terrain {
           ground: plains
           ground_resource: wheat
           overlay: forest
-          road: true
           surface: land
         }
       },

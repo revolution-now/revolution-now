@@ -40,6 +40,9 @@
 // gfx
 #include "gfx/iter.hpp"
 
+// rds
+#include "rds/switch-macro.hpp"
+
 // base
 #include "base/scope-exit.hpp"
 
@@ -455,17 +458,15 @@ void MiniMapView::draw_impl( rr::Renderer& renderer,
       continue;
     gfx::pixel color =
         color_for_square( viz.square_at( land_coord ) );
-    if( viz.visible( land_coord ) == e_tile_visibility::clear ) {
-      // We have full visibility, so consider overriding the
-      // normal land pixel with the colors of any units or
-      // colonies that are on the square.
-      if( maybe<Society> const society =
-              society_on_square( ss_, land_coord );
-          society.has_value() ) {
+    SWITCH( society_on_visible_square( ss_, viz, land_coord ) ) {
+      CASE( hidden ) { break; }
+      CASE( empty ) { break; }
+      CASE( society ) {
         bool const blinking_but_off =
             ( land_coord == blinker_coord && !blink_on );
         if( !blinking_but_off )
-          color = flag_color_for_society( *society );
+          color = flag_color_for_society( society.value );
+        break;
       }
     }
     gfx::rect const pixel{

@@ -72,8 +72,10 @@ void reset_seeds( lua::state& st ) {
 
 void expect_rands( World& W ) {
   // These are for choosing the immigrant pool.
-  W.rand().EXPECT__between_doubles( _, _ ).times( 3 ).returns(
-      0.0 );
+  W.rand()
+      .EXPECT__between_doubles( _, _ )
+      .times( 3 * 4 /*players*/ )
+      .returns( 0.0 );
 
   // These are for choosing the initial processed goods volumes.
   W.rand().EXPECT__between_ints( _, _ ).times( 4 ).returns(

@@ -184,7 +184,12 @@ maybe<InterventionDeployTile> find_intervention_deploy_tile(
       if( ss.terrain.square_at( moved ).surface !=
           e_surface::water )
         continue;
-      if( auto const society = society_on_square( ss, moved );
+      // Can use real square here because this is a tile that is
+      // adjacent to the player's colony and so will always be
+      // clear. And anyway we need to be sure there are no for-
+      // eign units there.
+      if( auto const society =
+              society_on_real_square( ss, moved );
           society.has_value() ) {
         SWITCH( *society ) {
           CASE( european ) {

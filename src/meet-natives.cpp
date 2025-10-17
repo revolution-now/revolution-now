@@ -115,8 +115,7 @@ vector<MeetTribe> check_meet_europeans( SSConst const& ss,
     if( !ss.terrain.square_exists( moved ) ) continue;
     MapSquare const& square = ss.terrain.square_at( moved );
     if( square.surface != e_surface::land ) continue;
-    maybe<Society> const society =
-        society_on_square( ss, moved );
+    auto const society = society_on_real_square( ss, moved );
     if( !society.has_value() ) continue;
     maybe<Society::european const&> european =
         society->get_if<Society::european>();
@@ -144,11 +143,13 @@ vector<MeetTribe> check_meet_tribes( SSConst const& ss,
     // water square.
     return res;
   unordered_set<e_tribe> met;
-  for( e_direction d : refl::enum_values<e_direction> ) {
+  for( e_direction const d : refl::enum_values<e_direction> ) {
     Coord const moved = coord.moved( d );
     if( !ss.terrain.square_exists( moved ) ) continue;
-    maybe<Society> const society =
-        society_on_square( ss, moved );
+    // The assumption here is that there is a friendly entity on
+    // the center tile and so all of the squares that we are
+    // searching are clear, thus we look at the real square.
+    auto const society = society_on_real_square( ss, moved );
     if( !society.has_value() ) continue;
     maybe<Society::native const&> native =
         society->get_if<Society::native>();

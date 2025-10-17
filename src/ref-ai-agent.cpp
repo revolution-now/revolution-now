@@ -258,7 +258,7 @@ command RefAIAgent::ask_orders( UnitId const unit_id ) {
         if( !unit.desc().ship &&
             square.surface == e_surface::water )
           return false;
-        auto const society = society_on_square( ss_, tile );
+        auto const society = society_on_real_square( ss_, tile );
         if( !society.has_value() ) return true;
         SWITCH( *society ) {
           CASE( european ) {
@@ -298,7 +298,7 @@ command RefAIAgent::ask_orders( UnitId const unit_id ) {
         if( !unit.desc().ship &&
             square.surface == e_surface::water )
           return false;
-        auto const society = society_on_square( ss_, tile );
+        auto const society = society_on_real_square( ss_, tile );
         if( !society.has_value() ) return false;
         SWITCH( *society ) {
           CASE( european ) {

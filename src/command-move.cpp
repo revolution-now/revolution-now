@@ -715,8 +715,10 @@ TravelHandler::confirm_travel_impl() {
 
   e_unit_relationship relationship =
       e_unit_relationship::neutral;
-  if( maybe<Society> const society =
-          society_on_square( ss_, move_dst );
+  // Can reference the real square here because we know it is
+  // clear since the unit is adjacent to it.
+  if( auto const society =
+          society_on_real_square( ss_, move_dst );
       society.has_value() ) {
     CHECK( *society == Society{ Society::european{
                          .player = unit.player_type() } } );
@@ -1383,7 +1385,9 @@ unique_ptr<CommandHandler> dispatch( SS& ss, TS& ts,
     return make_unique<TravelHandler>( ss, ts, attacker_id, d,
                                        agent, player );
 
-  maybe<Society> const society = society_on_square( ss, dst );
+  // Can reference the real square here because we know it is
+  // clear since the unit is adjacent to it.
+  auto const society = society_on_real_square( ss, dst );
 
   if( !society.has_value() )
     // No entities on target sqaure, so it is just a travel.

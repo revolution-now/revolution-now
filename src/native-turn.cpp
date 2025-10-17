@@ -187,10 +187,9 @@ wait<> handle_native_unit_command(
       break;
     }
     CASE( move ) {
-      Coord const src = ss.units.coord_for( native_unit.id );
-      Coord const dst = src.moved( move.direction );
-      maybe<Society> const society =
-          society_on_square( ss, dst );
+      Coord const src    = ss.units.coord_for( native_unit.id );
+      Coord const dst    = src.moved( move.direction );
+      auto const society = society_on_real_square( ss, dst );
       if( !society.has_value() ) {
         co_await handle_native_unit_travel( ss, ts, native_unit,
                                             move.direction );
@@ -216,7 +215,7 @@ wait<> handle_native_unit_command(
       //  TODO: this is just temporary.
       Coord const src = ss.units.coord_for( native_unit.id );
       Coord const dst = src.moved( talk.direction );
-      UNWRAP_CHECK( society, society_on_square( ss, dst ) );
+      UNWRAP_CHECK( society, society_on_real_square( ss, dst ) );
       SWITCH( society ) {
         CASE( native ) { SHOULD_NOT_BE_HERE; }
         CASE( european ) {

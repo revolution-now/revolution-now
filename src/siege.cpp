@@ -64,7 +64,9 @@ bool is_colony_under_siege( SSConst const& ss,
         e_surface::water )
       // Ships don't count for siege.
       continue;
-    auto const society = society_on_square( ss, moved );
+    // These are all tiles around the colony, thus they are
+    // clear, so we can use the real square.
+    auto const society = society_on_real_square( ss, moved );
     if( !society.has_value() ) continue;
     SWITCH( *society ) {
       CASE( native ) { break; }

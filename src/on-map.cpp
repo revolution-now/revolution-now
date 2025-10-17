@@ -184,8 +184,8 @@ wait<> try_meet_europeans( SS& ss, TS& ts, e_tribe tribe_type,
     maybe<MapSquare const&> square =
         ss.terrain.maybe_square_at( surrounding_tile );
     if( !square.has_value() ) continue;
-    maybe<Society> const society =
-        society_on_square( ss, surrounding_tile );
+    auto const society =
+        society_on_real_square( ss, surrounding_tile );
     if( !society.has_value() ) continue;
     SWITCH( *society ) {
       CASE( european ) { break; }

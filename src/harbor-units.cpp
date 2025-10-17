@@ -228,8 +228,7 @@ maybe<Coord> find_new_world_arrival_square(
   int max_radius = std::max( world_size.w, world_size.h );
 
   for( Coord c : search_from_square( candidate, max_radius ) ) {
-    maybe<MapSquare const&> square =
-        ss.terrain.maybe_square_at( c );
+    auto const square = ss.terrain.maybe_square_at( c );
     if( !square.has_value() ) continue;
     if( square->surface != e_surface::water ) continue;
     // We've found a square that is water Now just make sure that
@@ -238,7 +237,11 @@ maybe<Coord> find_new_world_arrival_square(
     // ably be frustrating to the player because they may not
     // then be able to get the ship out.
     if( is_inland_lake( ts.connectivity, c ) ) continue;
-    maybe<Society> society = society_on_square( ss, c );
+    // Need to use the real square here to avoid putting the ship
+    // on a tile that has a foreign unit on it that is not cur-
+    // rently visible to the player which can happen if either
+    // the tile is hidden or if it is just fogged.
+    auto const society = society_on_real_square( ss, c );
     if( !society.has_value() ||
         society == Society{ Society::european{
                      .player = player.type } } )
