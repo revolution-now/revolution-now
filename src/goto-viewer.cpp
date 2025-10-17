@@ -70,14 +70,19 @@ bool GotoMapViewer::can_enter_tile( point const tile ) const {
   // trade with a foreign colony, etc. That said, land units will
   // always be able to enter friendly colonies because they are
   // on land, and we don't exclude them.
-  if( auto const society = society_on_real_square( ss_, tile );
-      society.has_value() ) {
-    SWITCH( *society ) {
-      CASE( european ) {
-        if( european.player != player_type_ ) return false;
-        break;
+  VisibleSociety const society =
+      society_on_visible_square( ss_, viz_, tile );
+  SWITCH( society ) {
+    CASE( hidden ) { return true; }
+    CASE( empty ) { break; }
+    CASE( society ) {
+      SWITCH( society.value ) {
+        CASE( european ) {
+          if( european.player != player_type_ ) return false;
+          break;
+        }
+        CASE( native ) { return false; }
       }
-      CASE( native ) { return false; }
     }
   }
   MapSquare const& square = viz_.square_at( tile );

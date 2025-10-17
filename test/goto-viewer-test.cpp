@@ -15,6 +15,7 @@
 
 // Testing.
 #include "test/fake/world.hpp"
+#include "test/mocking.hpp"
 #include "test/mocks/ivisibility.hpp"
 
 // ss
@@ -30,6 +31,7 @@ namespace {
 using namespace std;
 
 using ::gfx::point;
+using ::mock::matchers::_;
 
 /****************************************************************
 ** Fake World Setup
@@ -87,6 +89,9 @@ TEST_CASE( "[goto-viewer] can_enter_tile" ) {
   using enum e_tribe;
   using enum e_unit_type;
 
+  viz.EXPECT__colony_at( _ ).by_default().returns( nothing );
+  viz.EXPECT__dwelling_at( _ ).by_default().returns( nothing );
+
   // Outside the map.
   tile = { .x = -1, .y = -1 };
   REQUIRE( f() == false );
@@ -104,6 +109,7 @@ TEST_CASE( "[goto-viewer] can_enter_tile" ) {
   unit_type = caravel;
   tile      = { .x = 0, .y = 0 };
   viz.EXPECT__visible( tile ).returns( clear );
+  viz.EXPECT__visible( tile ).returns( clear );
   w.add_unit_on_map( frigate, tile );
   square.surface = land;
   viz.EXPECT__square_at( tile ).returns( square );
@@ -112,6 +118,7 @@ TEST_CASE( "[goto-viewer] can_enter_tile" ) {
   unit_type = caravel;
   tile      = { .x = 0, .y = 0 };
   viz.EXPECT__visible( tile ).returns( clear );
+  viz.EXPECT__visible( tile ).returns( clear );
   w.add_unit_on_map( frigate, tile );
   square.surface = water;
   viz.EXPECT__square_at( tile ).returns( square );
@@ -119,6 +126,7 @@ TEST_CASE( "[goto-viewer] can_enter_tile" ) {
 
   unit_type = caravel;
   tile      = { .x = 0, .y = 1 };
+  viz.EXPECT__visible( tile ).returns( clear );
   viz.EXPECT__visible( tile ).returns( clear );
   w.add_unit_on_map( frigate, tile, french );
   REQUIRE( f() == false );
@@ -136,6 +144,7 @@ TEST_CASE( "[goto-viewer] can_enter_tile" ) {
   unit_type = free_colonist;
   tile      = { .x = 1, .y = 0 };
   viz.EXPECT__visible( tile ).returns( clear );
+  viz.EXPECT__visible( tile ).returns( clear );
   w.add_unit_on_map( soldier, tile );
   square.surface = water;
   viz.EXPECT__square_at( tile ).returns( square );
@@ -143,6 +152,7 @@ TEST_CASE( "[goto-viewer] can_enter_tile" ) {
 
   unit_type = free_colonist;
   tile      = { .x = 1, .y = 0 };
+  viz.EXPECT__visible( tile ).returns( clear );
   viz.EXPECT__visible( tile ).returns( clear );
   w.add_unit_on_map( soldier, tile );
   square.surface = land;
@@ -152,11 +162,13 @@ TEST_CASE( "[goto-viewer] can_enter_tile" ) {
   unit_type = free_colonist;
   tile      = { .x = 1, .y = 1 };
   viz.EXPECT__visible( tile ).returns( clear );
+  viz.EXPECT__visible( tile ).returns( clear );
   w.add_unit_on_map( soldier, tile, french );
   REQUIRE( f() == false );
 
   unit_type = free_colonist;
   tile      = { .x = 1, .y = 0 };
+  viz.EXPECT__visible( tile ).returns( fogged );
   viz.EXPECT__visible( tile ).returns( fogged );
   w.add_unit_on_map( soldier, tile );
   square.surface = land;
@@ -166,8 +178,23 @@ TEST_CASE( "[goto-viewer] can_enter_tile" ) {
   unit_type = free_colonist;
   tile      = { .x = 2, .y = 0 };
   viz.EXPECT__visible( tile ).returns( clear );
+  viz.EXPECT__visible( tile ).returns( clear );
   w.add_dwelling_and_brave( tile, apache );
   REQUIRE( f() == false );
+
+  // This one tests that foreign units on fogged tiles don't
+  // block the path, which in effect tests that we are minding
+  // the visibility when looking at the society on the tile.
+  unit_type = free_colonist;
+  tile      = { .x = 1, .y = 0 };
+  viz.EXPECT__visible( tile ).returns( fogged );
+  viz.EXPECT__visible( tile ).returns( fogged );
+  w.add_unit_on_map( soldier, tile, e_player::french );
+  square.surface = land;
+  viz.EXPECT__square_at( tile ).returns( square );
+  REQUIRE( f() == true );
+  viz.queue__visible_29.ensure_expectations();
+  viz.queue__square_at_37.ensure_expectations();
 }
 
 TEST_CASE( "[goto-viewer] map_side" ) {
