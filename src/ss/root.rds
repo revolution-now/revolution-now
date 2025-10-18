@@ -53,3 +53,18 @@ struct.RootState {
 
   _features { equality, validation }
 }
+
+# FIXME: temporary
+struct.RootState2 {
+  version 'rn::FormatVersion',
+  settings 'rn::SettingsState',
+  events 'rn::EventsState',
+  # units 'rn::UnitsState',
+  # players 'rn::PlayersState',
+  # turn 'rn::TurnState',
+  # colonies 'rn::ColoniesState',
+  # natives 'rn::NativesState',
+  # land_view 'rn::LandViewState',
+  map 'rn::MapState',
+  # zzz_terrain 'rn::TerrainState',
+}

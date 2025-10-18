@@ -27,5 +27,6 @@ namespace rn {} // namespace rn
 namespace lua {
 
 LUA_USERDATA_TRAITS( ::rn::RootState, owned_by_cpp ){};
+LUA_USERDATA_TRAITS( ::rn::RootState2, owned_by_cpp ){};
 
 } // namespace lua
