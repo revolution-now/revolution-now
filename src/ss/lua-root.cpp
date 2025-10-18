@@ -62,46 +62,49 @@ TRV_TYPE_TRAVERSE( ::std::vector, T );
 
 // std::tuple of refl::StructFields
 template<template<typename> typename O, typename... Ts>
-struct TypeTraverse<O, std::tuple<::refl::StructField<Ts>...>>
-  : traverse_base<TypeTraverse<
-        O, typename ::refl::StructField<Ts>::type>...> {};
+struct TypeTraverse<O, std::tuple<::refl::StructField<Ts>...>> {
+  using type = trv::list<typename O<
+      typename ::refl::StructField<Ts>::type>::type...>;
+};
 
 // std::array
 template<template<typename> typename O, typename T, size_t N>
-struct TypeTraverse<O, std::array<T, N>>
-  : traverse_base<TypeTraverse<O, T>, O<std::array<T, N>>> {};
+struct TypeTraverse<O, std::array<T, N>> {
+  using type = trv::list<typename O<T>::type>;
+};
 
 // ReflectedStruct
 template<template<typename> typename O,
          ::refl::ReflectedStruct S>
-struct TypeTraverse<O, S>
-  : traverse_base<
-        TypeTraverse<O,
-                     std::remove_const_t<
-                         decltype( ::refl::traits<S>::fields )>>,
-        O<S>> {};
+struct TypeTraverse<O, S> {
+  // NOTE: this is non-standard because we don't want to actually
+  // traverse the tuple<StructField...>, instead we want to skip
+  // straight to the underlying field types.
+  using type = TypeTraverse<
+      O, std::remove_const_t<
+             decltype( ::refl::traits<S>::fields )>>::type;
+};
 
 // Variant of ReflectedStructs
 template<template<typename> typename O,
          ::refl::ReflectedStruct... Ts>
-struct TypeTraverse<O, ::base::variant<Ts...>>
-  : traverse_base<TypeTraverse<O, Ts>...,
-                  O<::base::variant<Ts...>>> {};
+struct TypeTraverse<O, ::base::variant<Ts...>> {
+  using type = trv::list<typename O<Ts>::type...>;
+};
 
 // Rds variant
 template<template<typename> typename O, typename S>
 requires requires { typename S::i_am_rds_variant; }
-struct TypeTraverse<O, S>
-  : traverse_base<TypeTraverse<O, typename S::Base>, O<S>> {};
+struct TypeTraverse<O, S> {
+  using type = trv::list<typename O<typename S::Base>::type>;
+};
 
 // WrapsReflected
 template<template<typename> typename O, ::refl::WrapsReflected T>
-struct TypeTraverse<O, T>
-  : traverse_base<
-        TypeTraverse<O,
-                     std::remove_cvref_t<
-                         decltype( std::declval<T>().refl() )>>,
-        O<T>> {};
+struct TypeTraverse<O, T> {
+  using type = trv::list<typename O<std::remove_cvref_t<
+      decltype( std::declval<T>().refl() )>>::type>;
+};
 
 } // namespace trv
 
@@ -129,6 +132,11 @@ LUA_USERDATA_TRAITS_KV( std::map, owned_by_cpp ){};
 LUA_USERDATA_TRAITS_KV( std::unordered_map, owned_by_cpp ){};
 LUA_USERDATA_TRAITS_KV( refl::enum_map, owned_by_cpp ){};
 
+// Ensure this one doesn't get type traits from the reflected
+// struct version above, since Coord uses ADL for push/get.
+template<>
+struct type_traits<::rn::Coord> {};
+
 template<refl::ReflectedStruct S>
 struct type_traits<S>
   : TraitsForModel<S, e_userdata_ownership_model::owned_by_cpp> {
@@ -150,14 +158,6 @@ requires requires { typename S::i_am_rds_variant; }
 struct type_traits<S>
   : TraitsForModel<S, e_userdata_ownership_model::owned_by_cpp> {
 };
-
-// Ensure this one doesn't get type traits from the reflected
-// struct version above, since Coord uses ADL for push/get.
-template<>
-struct type_traits<::rn::Coord> {};
-
-template<>
-struct type_traits<std::string> {};
 
 template<typename T, size_t N>
 struct type_traits<std::array<T, N>>
@@ -225,13 +225,16 @@ void define_usertype_for( lua::state&, tag<T> ) {}
 
 void define_usertype_for( lua::state&, tag<std::string> ) {}
 
-template<typename T>
-void define_usertype_for( lua::state&, tag<::base::maybe<T>> ) {}
-
 void define_usertype_for( lua::state&, tag<::rn::Coord> ) {}
 
 void define_usertype_for( lua::state&,
                           tag<::rn::GenericUnitId> ) {}
+
+void define_usertype_for( lua::state&,
+                          tag<rn::MovementPoints> ) {}
+
+template<typename T>
+void define_usertype_for( lua::state&, tag<::base::maybe<T>> ) {}
 
 template<template<typename K, typename V> typename M, typename K,
          typename V>
@@ -347,11 +350,13 @@ void define_usertype_rds_variant_impl(
 
   u[metatable_key]["__index"] =
       [__index]( U& o, any const key ) -> base::maybe<any> {
-    if( auto const member = __index( o, key ); member != nil )
-      return member.template as<any>();
-    auto const maybe_key = safe_as<string>( key );
-    if( !maybe_key.has_value() ) return base::nothing;
     base::maybe<any> res;
+    if( auto const member = __index( o, key ); member != nil ) {
+      res = member.template as<any>();
+      return res;
+    }
+    auto const maybe_key = safe_as<string>( key );
+    if( !maybe_key.has_value() ) return res;
     auto const L = __index.this_cthread();
     [&]<size_t... I>( index_sequence<I...> ) {
       auto const fn =
@@ -436,20 +441,17 @@ void define_usertype_for( lua::state& st,
   u["size"] = []( U& ) -> int { return N; };
 }
 
-void define_usertype_for( lua::state&,
-                          tag<rn::MovementPoints> ) {}
-
 } // namespace
 } // namespace lua
 
 /****************************************************************
-** RegisterLuaCppType
+** RegisterLuaType
 *****************************************************************/
 namespace rn {
 
 template<typename T>
 struct RegisterLuaType {
-  using type = T;
+  using type = ::trv::TypeTraverse<RegisterLuaType, T>::type;
 
   // Ensure that we're never Gettable in two different ways.
   static_assert( lua::Gettable<T&> != lua::Gettable<T> );
@@ -463,19 +465,15 @@ struct RegisterLuaType {
   };
 #endif
 
-  inline static string const kTypeName = base::str_replace_all(
-      base::demangled_typename<T>(), { { " >", ">" } } );
+  inline static auto constexpr register_fn =
+      +[]( lua::state& st ) {
+        ::lua::define_usertype_for( st, ::lua::tag<T>{} );
+      };
 
-  inline static auto const register_fn = +[]( lua::state& st ) {
-    // fmt::println( "define_usertype_for: {}", kTypeName );
-    ::lua::define_usertype_for( st, ::lua::tag<T>{} );
-  };
-
-  inline static auto const p_register_fn     = +register_fn;
+  inline static auto constexpr p_register_fn = +register_fn;
   inline static auto* const* p_p_register_fn = &p_register_fn;
 
   inline static int _ = [] {
-    // fmt::println( "registering lua typename: {}", kTypeName );
     ::lua::detail::register_lua_fn( p_p_register_fn );
     return 0;
   }();
@@ -484,9 +482,12 @@ struct RegisterLuaType {
 
 TRV_RUN_TYPE_TRAVERSE( RegisterLuaType, RootState );
 
+} // namespace rn
+
 /****************************************************************
 ** Linker.
 *****************************************************************/
+namespace rn {
 void linker_dont_discard_module_ss_lua_root();
 void linker_dont_discard_module_ss_lua_root() {}
 

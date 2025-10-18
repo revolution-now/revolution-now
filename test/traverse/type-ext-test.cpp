@@ -71,7 +71,7 @@ vector<string> registrations;
 
 template<typename T>
 struct C {
-  using type = T;
+  using type = trv::TypeTraverse<C, T>::type;
 
   inline static string const kTypeName = base::str_replace_all(
       base::demangled_typename<T>(),
