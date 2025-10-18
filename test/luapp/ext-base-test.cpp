@@ -22,8 +22,9 @@
 namespace lua {
 
 struct MyLuaOwned {};
-static void to_str( MyLuaOwned const&, std::string&,
-                    base::tag<MyLuaOwned> ) {}
+[[maybe_unused]] static void to_str( MyLuaOwned const&,
+                                     std::string&,
+                                     base::tag<MyLuaOwned> ) {}
 LUA_USERDATA_TRAITS( MyLuaOwned, owned_by_lua ){};
 
 namespace {
@@ -38,7 +39,8 @@ using ::base::nothing;
 struct Reffable {
   int x = 9;
 
-  friend void lua_push( lua::cthread L, Reffable const& r ) {
+  [[maybe_unused]] friend void lua_push( lua::cthread L,
+                                         Reffable const& r ) {
     lua::c_api C( L );
     push( L, (void*)&r );
   }

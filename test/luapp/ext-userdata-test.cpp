@@ -57,8 +57,9 @@ struct CppOwnedNonCopyable {
   CppOwnedNonCopyable& operator=( CppOwnedNonCopyable&& ) =
       default;
 };
-static void to_str( CppOwnedNonCopyable const&, string& out,
-                    base::tag<CppOwnedNonCopyable> ) {
+[[maybe_unused]] static void to_str(
+    CppOwnedNonCopyable const&, string& out,
+    base::tag<CppOwnedNonCopyable> ) {
   out += "zzz";
 }
 
@@ -96,8 +97,9 @@ struct LuaOwnedNonCopyable {
   LuaOwnedNonCopyable& operator=( LuaOwnedNonCopyable&& ) =
       default;
 };
-static void to_str( LuaOwnedNonCopyable const&, string& out,
-                    base::tag<LuaOwnedNonCopyable> ) {
+[[maybe_unused]] static void to_str(
+    LuaOwnedNonCopyable const&, string& out,
+    base::tag<LuaOwnedNonCopyable> ) {
   out += "zzz";
 }
 

@@ -95,7 +95,7 @@ struct HasMemberFunctionsWithCppTypesAsArgs {
     return o;
   }
 };
-static void to_str(
+[[maybe_unused]] static void to_str(
     HasMemberFunctionsWithCppTypesAsArgs const&, string&,
     base::tag<HasMemberFunctionsWithCppTypesAsArgs> ) {}
 
