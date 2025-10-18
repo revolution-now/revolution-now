@@ -41,7 +41,7 @@ void build_index_table( cthread L ) {
   //   metatable
   auto index = []( lua_State* st ) -> int {
     c_api C( st );
-    DCHECK( C.stack_size() == 2 );
+    CHECK( C.stack_size() == 2 );
     if( C.type_of( -1 ) != type::string ) return 0;
     // The key is a string.
 
@@ -61,15 +61,15 @@ void build_index_table( cthread L ) {
     //   userdata
 
     C.getfield( -1, "member_types" );
-    DCHECK( C.stack_size() == 4 );
-    DCHECK( C.type_of( -1 ) == type::table );
+    CHECK( C.stack_size() == 4 );
+    CHECK( C.type_of( -1 ) == type::table );
     // Stack:
     //   member types table
     //   metatable
     //   key
     //   userdata
     C.pushvalue( -3 );
-    DCHECK( C.stack_size() == 5 );
+    CHECK( C.stack_size() == 5 );
     // Stack:
     //   key
     //   member types table
@@ -83,7 +83,7 @@ void build_index_table( cthread L ) {
     //   metatable
     //   key
     //   userdata
-    DCHECK( C.stack_size() == 5 );
+    CHECK( C.stack_size() == 5 );
     // If this is nil, then the field just doesn't exist.
     if( C.type_of( -1 ) == type::nil ) return 0;
     // The key exists.
@@ -100,8 +100,8 @@ void build_index_table( cthread L ) {
     //   userdata
     bool is_member_function = get_or_luaerr<bool>( st, -1 );
     C.pop( 2 );
-    DCHECK( C.stack_size() == 3 );
-    DCHECK( C.type_of( -1 ) == type::table );
+    CHECK( C.stack_size() == 3 );
+    CHECK( C.type_of( -1 ) == type::table );
 
     /************************************************************
     ** Get the associated function from the member_getters table.
@@ -116,15 +116,15 @@ void build_index_table( cthread L ) {
     //   key
     //   userdata
     C.getfield( -1, "member_getters" );
-    DCHECK( C.stack_size() == 4 );
-    DCHECK( C.type_of( -1 ) == type::table );
+    CHECK( C.stack_size() == 4 );
+    CHECK( C.type_of( -1 ) == type::table );
     // Stack:
     //   member_getters table
     //   metatable
     //   key
     //   userdata
     C.pushvalue( -3 );
-    DCHECK( C.stack_size() == 5 );
+    CHECK( C.stack_size() == 5 );
     // Stack:
     //   key
     //   member_getters table
@@ -138,7 +138,7 @@ void build_index_table( cthread L ) {
     //   metatable
     //   key
     //   userdata
-    DCHECK( C.stack_size() == 5 );
+    CHECK( C.stack_size() == 5 );
     CHECK( C.type_of( -1 ) == type::function );
     // Stack:
     //   function
@@ -153,7 +153,7 @@ void build_index_table( cthread L ) {
     if( !is_member_function ) {
       // We have a member variable.
       C.pushvalue( 1 );
-      DCHECK( C.stack_size() == 6 );
+      CHECK( C.stack_size() == 6 );
       // Stack:
       //   userdata
       //   function
@@ -162,7 +162,7 @@ void build_index_table( cthread L ) {
       //   key
       //   userdata
       C.call( /*nargs=*/1, /*nresults=*/1 );
-      DCHECK( C.stack_size() == 5 );
+      CHECK( C.stack_size() == 5 );
       // Stack:
       //   member variable value
       //   member_getters table
@@ -172,8 +172,8 @@ void build_index_table( cthread L ) {
       return 1;
     } else {
       // We have a member function.
-      DCHECK( C.stack_size() == 5 );
-      DCHECK( C.type_of( -1 ) == type::function );
+      CHECK( C.stack_size() == 5 );
+      CHECK( C.type_of( -1 ) == type::function );
       // Stack:
       //   function
       //   member_getters table
@@ -201,7 +201,7 @@ void build_newindex_table( cthread L ) {
   //   metatable
   auto newindex = []( lua_State* st ) -> int {
     c_api C( st );
-    DCHECK( C.stack_size() == 3 );
+    CHECK( C.stack_size() == 3 );
     // Stack:
     //   newval
     //   key
@@ -218,8 +218,8 @@ void build_newindex_table( cthread L ) {
     // key from a const one.
 
     C.pushvalue( upvalue_index( 1 ) ); // userdata metatable.
-    DCHECK( C.stack_size() == 4 );
-    DCHECK( C.type_of( -1 ) == type::table );
+    CHECK( C.stack_size() == 4 );
+    CHECK( C.type_of( -1 ) == type::table );
     // Stack:
     //   metatable
     //   newval
@@ -227,8 +227,8 @@ void build_newindex_table( cthread L ) {
     //   userdata
 
     C.getfield( -1, "member_types" );
-    DCHECK( C.stack_size() == 5 );
-    DCHECK( C.type_of( -1 ) == type::table );
+    CHECK( C.stack_size() == 5 );
+    CHECK( C.type_of( -1 ) == type::table );
     // Stack:
     //   member types table
     //   metatable
@@ -236,7 +236,7 @@ void build_newindex_table( cthread L ) {
     //   key
     //   userdata
     C.pushvalue( -4 );
-    DCHECK( C.stack_size() == 6 );
+    CHECK( C.stack_size() == 6 );
     // Stack:
     //   key
     //   member types table
@@ -245,7 +245,7 @@ void build_newindex_table( cthread L ) {
     //   key
     //   userdata
     C.gettable( -2 );
-    DCHECK( C.stack_size() == 6 );
+    CHECK( C.stack_size() == 6 );
     // Stack:
     //   member type
     //   member types table
@@ -266,7 +266,7 @@ void build_newindex_table( cthread L ) {
                        key );
     // We are setting an existent member variable.
     C.pop( 2 );
-    DCHECK( C.stack_size() == 4 );
+    CHECK( C.stack_size() == 4 );
     // Stack:
     //   metatable
     //   newval
@@ -277,8 +277,8 @@ void build_newindex_table( cthread L ) {
     ** Check member_setters.
     *************************************************************/
     C.getfield( -1, "member_setters" );
-    DCHECK( C.stack_size() == 5 );
-    DCHECK( C.type_of( -1 ) == type::table );
+    CHECK( C.stack_size() == 5 );
+    CHECK( C.type_of( -1 ) == type::table );
     // Stack:
     //   member setters table
     //   metatable
@@ -286,7 +286,7 @@ void build_newindex_table( cthread L ) {
     //   key
     //   userdata
     C.pushvalue( -4 ); // key
-    DCHECK( C.stack_size() == 6 );
+    CHECK( C.stack_size() == 6 );
     // Stack:
     //   key
     //   member setters table
@@ -302,7 +302,7 @@ void build_newindex_table( cthread L ) {
     //   newval
     //   key
     //   userdata
-    DCHECK( C.stack_size() == 6 );
+    CHECK( C.stack_size() == 6 );
     // Given that we already tested that the field exists by
     // finding it in the member_types table, that means that If
     // this is nil, then the field is const.
@@ -323,7 +323,7 @@ void build_newindex_table( cthread L ) {
     //   userdata
 
     C.rotate( -6, 1 );
-    DCHECK( C.stack_size() == 6 );
+    CHECK( C.stack_size() == 6 );
     // Stack:
     //   member setters table
     //   metatable
@@ -333,7 +333,7 @@ void build_newindex_table( cthread L ) {
     //   member setter
 
     C.pop( 2 );
-    DCHECK( C.stack_size() == 4 );
+    CHECK( C.stack_size() == 4 );
     // Stack:
     //   newval
     //   key
@@ -342,14 +342,14 @@ void build_newindex_table( cthread L ) {
 
     C.swap_top();
     C.pop();
-    DCHECK( C.stack_size() == 3 );
+    CHECK( C.stack_size() == 3 );
     // Stack:
     //   newval
     //   userdata
     //   member setter
 
     C.call( /*nargs=*/2, /*nresults=*/0 );
-    DCHECK( C.stack_size() == 0 );
+    CHECK( C.stack_size() == 0 );
     // Stack:
 
     return 0;
@@ -501,7 +501,7 @@ void push_userdata_impl(
   void* ud = C.newuserdata( object_size );
   // Stack:
   //   userdata
-  DCHECK( C.stack_size() == initial_stack_size + 1 );
+  CHECK( C.stack_size() == initial_stack_size + 1 );
 
   // The ud pointer, since it is allocated by malloc, will appar-
   // ently have the correct alignment to store any type. This
@@ -513,7 +513,7 @@ void push_userdata_impl(
   // Stack:
   //   metatable
   //   userdata
-  DCHECK( C.stack_size() == initial_stack_size + 2 );
+  CHECK( C.stack_size() == initial_stack_size + 2 );
 
   C.setmetatable( -2 );
   // Stack:
