@@ -152,6 +152,7 @@ struct type_traits<std::string_view> {
 *****************************************************************/
 base::maybe<bool> lua_get( cthread L, int idx, tag<bool> );
 base::maybe<int> lua_get( cthread L, int idx, tag<int> );
+base::maybe<int64_t> lua_get( cthread L, int idx, tag<int64_t> );
 base::maybe<double> lua_get( cthread L, int idx, tag<double> );
 base::maybe<void*> lua_get( cthread L, int idx, tag<void*> );
 base::maybe<boolean> lua_get( cthread L, int idx, tag<boolean> );

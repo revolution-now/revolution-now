@@ -148,6 +148,11 @@ base::maybe<integer> lua_get( cthread L, int idx,
   return c_api( L ).get<integer>( idx );
 }
 
+base::maybe<int64_t> lua_get( cthread L, int idx,
+                              tag<int64_t> ) {
+  return c_api( L ).get<integer>( idx );
+}
+
 base::maybe<floating> lua_get( cthread L, int idx,
                                tag<floating> ) {
   return c_api( L ).get<floating>( idx );
