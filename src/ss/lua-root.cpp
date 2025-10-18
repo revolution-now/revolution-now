@@ -26,6 +26,7 @@
 
 // refl
 #include "refl/ext.hpp"
+#include "refl/query-struct.hpp"
 #include "refl/to-str.hpp"
 
 // traverse
@@ -70,8 +71,20 @@ struct TypeTraverse<O, S>
                          decltype( ::refl::traits<S>::fields )>>,
         O<S>> {};
 
+template<template<typename> typename O,
+         refl::ReflectedStruct... Ts>
+struct TypeTraverse<O, ::base::variant<Ts...>>
+  : traverse_base<TypeTraverse<O, Ts>...,
+                  O<::base::variant<Ts...>>> {};
+
+template<template<typename> typename O, typename S>
+requires requires { typename S::i_am_rds_variant; }
+struct TypeTraverse<O, S>
+  : traverse_base<TypeTraverse<O, typename S::Base>, O<S>> {};
+
 TRV_TYPE_TRAVERSE( std::map, K, V );
 TRV_TYPE_TRAVERSE( ::refl::enum_map, K, V );
+TRV_TYPE_TRAVERSE( std::deque, T );
 
 } // namespace trv
 
@@ -81,6 +94,17 @@ TRV_TYPE_TRAVERSE( ::refl::enum_map, K, V );
 namespace lua {
 
 template<refl::ReflectedStruct S>
+struct type_traits<S>
+  : TraitsForModel<S, e_userdata_ownership_model::owned_by_cpp> {
+};
+
+template<refl::ReflectedStruct... Ts>
+struct type_traits<base::variant<Ts...>>
+  : TraitsForModel<base::variant<Ts...>,
+                   e_userdata_ownership_model::owned_by_cpp> {};
+
+template<typename S>
+requires requires { typename S::i_am_rds_variant; }
 struct type_traits<S>
   : TraitsForModel<S, e_userdata_ownership_model::owned_by_cpp> {
 };
@@ -98,6 +122,11 @@ struct type_traits<std::map<K, V>>
 template<Stackable K, Stackable V>
 struct type_traits<::refl::enum_map<K, V>>
   : TraitsForModel<::refl::enum_map<K, V>,
+                   e_userdata_ownership_model::owned_by_cpp> {};
+
+template<typename T>
+struct type_traits<std::deque<T>>
+  : TraitsForModel<std::deque<T>,
                    e_userdata_ownership_model::owned_by_cpp> {};
 
 } // namespace lua
@@ -127,6 +156,8 @@ void define_usertype_for( lua::state& st, tag<map<K, V>> ) {
   table mt           = u[metatable_key];
   auto const __index = mt["__index"].template as<rfunction>();
 
+  // Add some members here.
+
   u[metatable_key]["__index"] =
       [__index]( U& o, any const key ) -> base::maybe<any> {
     if( auto const member = __index( o, key ); member != nil )
@@ -153,6 +184,8 @@ void define_usertype_for( lua::state& st,
 
   table mt           = u[metatable_key];
   auto const __index = mt["__index"].template as<rfunction>();
+
+  // Add some members here.
 
   u[metatable_key]["__index"] =
       [__index]( U& o, any const key ) -> base::maybe<any> {
@@ -184,6 +217,77 @@ void define_usertype_for( lua::state& st, tag<S> ) {
                  } );
 }
 
+template<typename U, refl::ReflectedStruct... Ts>
+void define_usertype_rds_variant_impl(
+    base::variant<Ts...> const*, auto& u ) {
+  using V                   = base::variant<Ts...>;
+  static auto const& kNames = refl::alternative_names<V>();
+
+  table mt           = u[metatable_key];
+  auto const __index = mt["__index"].template as<rfunction>();
+
+  // Add some members here.
+
+  u[metatable_key]["__index"] =
+      [__index]( U& o, any const key ) -> base::maybe<any> {
+    if( auto const member = __index( o, key ); member != nil )
+      return member.template as<any>();
+    auto const maybe_key = safe_as<string>( key );
+    if( !maybe_key.has_value() ) return base::nothing;
+    base::maybe<any> res;
+    auto const L = __index.this_cthread();
+    [&]<size_t... I>( index_sequence<I...> ) {
+      auto const fn =
+          [&]<size_t Idx>( integral_constant<size_t, Idx> ) {
+            static_assert( Idx < variant_size_v<V> );
+            if( o.index() == Idx ) {
+              if( *maybe_key == kNames[Idx] )
+                res = as<any>( L, std::get<Idx>( o ) );
+            }
+          };
+      ( fn( integral_constant<size_t, I>{} ), ... );
+    }( make_index_sequence<sizeof...( Ts )>() );
+    return res;
+  };
+
+  u[metatable_key]["__newindex"] =
+      [__index]( U& o, string const& key, any const ) {
+        [&]<size_t... I>( index_sequence<I...> ) {
+          auto const fn =
+              [&]<size_t Idx>( integral_constant<size_t, Idx> ) {
+                static_assert( Idx < variant_size_v<V> );
+                if( kNames[Idx] == key )
+                  o.template emplace<Idx>();
+              };
+          ( fn( integral_constant<size_t, I>{} ), ... );
+        }( make_index_sequence<sizeof...( Ts )>() );
+      };
+}
+
+template<refl::ReflectedStruct... Ts>
+void define_usertype_for( lua::state& st,
+                          tag<base::variant<Ts...>> ) {
+  using U = base::variant<Ts...>;
+  auto u  = st.usertype.create<U>();
+  define_usertype_rds_variant_impl<U>( (U*){}, u );
+}
+
+template<typename S>
+requires requires { typename S::i_am_rds_variant; }
+void define_usertype_for( lua::state& st, tag<S> ) {
+  auto u = st.usertype.create<S>();
+  define_usertype_rds_variant_impl<S>( (typename S::Base*){},
+                                       u );
+}
+
+template<typename T>
+void define_usertype_for( lua::state& st, tag<std::deque<T>> ) {
+  using U = std::deque<T>;
+  auto u  = st.usertype.create<U>();
+
+  u["size"] = []( U& o ) -> int { return o.size(); };
+}
+
 } // namespace
 } // namespace lua
 
@@ -204,7 +308,7 @@ struct RegisterLuaType {
       base::demangled_typename<T>(), { { " >", ">" } } );
 
   inline static auto const register_fn = +[]( lua::state& st ) {
-    fmt::println( "define_usertype_for: {}", kTypeName );
+    // fmt::println( "define_usertype_for: {}", kTypeName );
     ::lua::define_usertype_for( st, ::lua::tag<T>{} );
   };
 

@@ -61,10 +61,10 @@ struct.RootState2 {
   events 'rn::EventsState',
   # units 'rn::UnitsState',
   # players 'rn::PlayersState',
-  # turn 'rn::TurnState',
+  turn 'rn::TurnState',
   # colonies 'rn::ColoniesState',
   # natives 'rn::NativesState',
-  # land_view 'rn::LandViewState',
+  land_view 'rn::LandViewState',
   map 'rn::MapState',
   # zzz_terrain 'rn::TerrainState',
 }

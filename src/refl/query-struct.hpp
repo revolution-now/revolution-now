@@ -16,6 +16,9 @@
 // base
 #include "base/meta.hpp"
 
+// C++ standard library
+#include <array>
+
 namespace refl {
 
 /****************************************************************
@@ -40,6 +43,20 @@ using member_type_list_impl_t =
 template<ReflectedStruct S>
 using member_type_list_t = detail::member_type_list_impl_t<
     std::remove_cvref_t<decltype( traits<S>::fields )>>;
+
+/****************************************************************
+** Reflected Variants
+*****************************************************************/
+template<typename V>
+constexpr auto const& alternative_names() {
+  return [&]<ReflectedStruct... Ts>(
+             base::variant<Ts...>* ) -> auto const& {
+    static constexpr std::array<std::string_view,
+                                sizeof...( Ts )>
+        kNames{ traits<Ts>::name... };
+    return kNames;
+  }( (V*){} );
+}
 
 /****************************************************************
 ** Field iteration.
