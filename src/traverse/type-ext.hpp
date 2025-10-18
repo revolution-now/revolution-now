@@ -10,9 +10,6 @@
 *****************************************************************/
 #pragma once
 
-// base
-#include "base/odr.hpp"
-
 // base-util
 #include "base-util/pp.hpp"
 
@@ -94,16 +91,8 @@ struct TypeTraverse<O, T> : O<T> {};
 /****************************************************************
 ** Runner.
 *****************************************************************/
-namespace internal {
-template<template<typename> typename O, typename T>
-struct RunTypeTraverse {
-  inline static TypeTraverse<O, T> _;
-  ODR_USE_MEMBER( _ );
-};
-}
-
 #define TRV_RUN_TYPE_TRAVERSE( O, T )             \
   [[maybe_unused]] static auto const STRING_JOIN( \
-      _, __LINE__ ) = ::trv::internal::RunTypeTraverse<O, T>{};
+      _, __LINE__ ) = ::trv::TypeTraverse<O, T>::type{};
 
 } // namespace trv

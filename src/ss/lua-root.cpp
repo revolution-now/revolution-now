@@ -35,6 +35,7 @@
 
 // base
 #include "base/cc-specific.hpp"
+#include "base/odr.hpp"
 #include "base/scope-exit.hpp"
 #include "base/string.hpp"
 #include "base/to-str-ext-std.hpp"
