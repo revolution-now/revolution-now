@@ -35,6 +35,7 @@
 
 // base
 #include "base/cc-specific.hpp"
+#include "base/error.hpp"
 #include "base/odr.hpp"
 #include "base/scope-exit.hpp"
 #include "base/string.hpp"
@@ -234,7 +235,45 @@ void define_usertype_for( lua::state&,
                           tag<rn::MovementPoints> ) {}
 
 template<typename T>
-void define_usertype_for( lua::state&, tag<::base::maybe<T>> ) {}
+requires lua::Stackable<T>
+void define_usertype_for( lua::state&, tag<::base::maybe<T>> ) {
+  // TBD
+}
+
+template<typename T>
+requires lua::Stackable<T&>
+void define_usertype_for( lua::state& st,
+                          tag<::base::maybe<T>> ) {
+  using U      = ::base::maybe<T>;
+  auto const L = st.resource();
+  auto u       = st.usertype.create<U>();
+
+  u["has_value"] = []( U& o ) { return o.has_value(); };
+  u["reset"]     = []( U& o ) { o.reset(); };
+  u["emplace"]   = []( U& o ) -> T& { return o.emplace(); };
+
+  table mt           = u[metatable_key];
+  auto const __index = mt["__index"].template as<rfunction>();
+
+  mt["__index"] = [L, __index](
+                      U& o, any const key ) -> base::maybe<any> {
+    if( auto const member = __index( o, key ); member != nil )
+      return member.template as<any>();
+    if( !o.has_value() )
+      lua::throw_lua_error(
+          L, "cannot get field '{}' on an empty value.", key );
+    any const underlying = as<any>( L, *o );
+    return underlying[key];
+  };
+
+  mt["__newindex"] = [L]( U& o, any const key, any const val ) {
+    if( !o.has_value() )
+      lua::throw_lua_error(
+          L, "cannot set field '{}' on an empty value.", key );
+    any const underlying = as<any>( L, *o );
+    underlying[key]      = val;
+  };
+}
 
 template<template<typename K, typename V> typename M, typename K,
          typename V>

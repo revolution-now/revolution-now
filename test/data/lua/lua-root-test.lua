@@ -111,8 +111,29 @@ assert( root.turn.cycle.player.st.units.skip_eot == true )
 print( 'root.turn.cycle.player.st.units.q:size(): ' .. tostring( root.turn.cycle.player.st.units.q:size() ) )
 assert( root.turn.cycle.player.st.units.q:size() == 0 )
 
+print( 'root.players.players: ' .. tostring( root.players.players ) )
+print( 'root.players.players.french: ' .. tostring( root.players.players.french ) )
+assert( not root.players.players.french:has_value() )
+root.players.players.french:reset()
+assert( not root.players.players.french:has_value() )
+local french = root.players.players.french:emplace()
+print( 'root.players.players.french.type: ' .. tostring( root.players.players.french.type ) )
+print( 'root.players.players.french.nation: ' .. tostring( root.players.players.french.nation ) )
+assert( root.players.players.french.type == 'english' )
+assert( root.players.players.french.nation == 'english' )
+french.type = 'french'
+french.nation = 'french'
+print( 'root.players.players.french.has_value(): ' .. tostring( root.players.players.french:has_value() ) )
+assert( root.players.players.french:has_value() )
+assert( root.players.players.french.type == 'french' )
+assert( root.players.players.french.nation == 'french' )
+assert( not pcall( function()
+  root.players.players.spanish.nation = 'spanish'
+end ) )
+assert( not pcall( function()
+  local _ = root.players.players.spanish.nation == 'spanish'
+end ) )
+
 -----------------------------------------------------------------
 -- LuaFormatter on
 -----------------------------------------------------------------
-
-print( 'success.' )
