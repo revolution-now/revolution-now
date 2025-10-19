@@ -40,7 +40,12 @@ using namespace std;
 
 namespace rn {
 
-namespace {} // namespace
+namespace {
+
+using ::base::maybe;
+using ::base::nothing;
+
+} // namespace
 
 base::valid_or<string> wrapped::Unit::validate() const {
   REFL_VALIDATE( cargo.slots_total() ==

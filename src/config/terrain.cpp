@@ -27,6 +27,13 @@ using namespace std;
 
 namespace rn {
 
+namespace {
+
+using ::base::maybe;
+using ::base::nothing;
+
+}
+
 base::valid_or<string> TerrainTypeInfo::validate() const {
   // If surface type is water than irrigation/forest related
   // fields must be false/null.

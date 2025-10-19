@@ -64,7 +64,7 @@ bool compare_top_two_and_pop( cthread L ) {
 
 } // namespace internal
 
-base::maybe<any> lua_get( cthread L, int idx, tag<any> ) {
+lua_expect<any> lua_get( cthread L, int idx, tag<any> ) {
   lua::c_api C( L );
   // Copy the requested value to the top of the stack.
   C.pushvalue( idx );

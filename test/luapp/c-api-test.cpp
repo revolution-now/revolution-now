@@ -27,8 +27,6 @@ namespace {
 
 using namespace std;
 
-using ::base::maybe;
-using ::base::nothing;
 using ::base::valid;
 using ::Catch::Matches;
 using ::testing::data_dir;
@@ -102,9 +100,10 @@ LUA_TEST_CASE( "[lua-c-api] dofile" ) {
   C.openlibs();
 
   SECTION( "non-existent" ) {
-    REQUIRE( C.dofile( lua_testing_file( "xxx.lua" ) ) ==
-             lua_invalid( "cannot open test/data/lua/xxx.lua: "
-                          "No such file or directory" ) );
+    REQUIRE(
+        C.dofile( lua_testing_file( "xxx.lua" ) ) ==
+        unexpected{ .msg = "cannot open test/data/lua/xxx.lua: "
+                           "No such file or directory" } );
     REQUIRE( C.stack_size() == 0 );
   }
 
@@ -241,11 +240,11 @@ LUA_TEST_CASE( "[lua-c-api] push, pop, get, and type_of" ) {
     REQUIRE( C.type_of( -1 ) == type::nil );
     REQUIRE( C.get<bool>( -1 ) == false );
     REQUIRE( C.get<boolean>( -1 ) == false );
-    REQUIRE( C.get<int>( -1 ) == nothing );
-    REQUIRE( C.get<integer>( -1 ) == nothing );
-    REQUIRE( C.get<double>( -1 ) == nothing );
-    REQUIRE( C.get<floating>( -1 ) == nothing );
-    REQUIRE( C.get<string>( -1 ) == nothing );
+    REQUIRE( C.get<int>( -1 ) == unexpected{} );
+    REQUIRE( C.get<integer>( -1 ) == unexpected{} );
+    REQUIRE( C.get<double>( -1 ) == unexpected{} );
+    REQUIRE( C.get<floating>( -1 ) == unexpected{} );
+    REQUIRE( C.get<string>( -1 ) == unexpected{} );
     C.pop();
   }
   SECTION( "bool" ) {
@@ -260,11 +259,11 @@ LUA_TEST_CASE( "[lua-c-api] push, pop, get, and type_of" ) {
     REQUIRE( C.get<bool>( -2 ) == false );
     REQUIRE( C.get<boolean>( -1 ) == true );
     REQUIRE( C.get<boolean>( -2 ) == false );
-    REQUIRE( C.get<int>( -1 ) == nothing );
-    REQUIRE( C.get<integer>( -1 ) == nothing );
-    REQUIRE( C.get<double>( -1 ) == nothing );
-    REQUIRE( C.get<floating>( -1 ) == nothing );
-    REQUIRE( C.get<string>( -1 ) == nothing );
+    REQUIRE( C.get<int>( -1 ) == unexpected{} );
+    REQUIRE( C.get<integer>( -1 ) == unexpected{} );
+    REQUIRE( C.get<double>( -1 ) == unexpected{} );
+    REQUIRE( C.get<floating>( -1 ) == unexpected{} );
+    REQUIRE( C.get<string>( -1 ) == unexpected{} );
     C.pop();
     C.pop();
   }
@@ -326,8 +325,8 @@ LUA_TEST_CASE( "[lua-c-api] push, pop, get, and type_of" ) {
     REQUIRE( C.get<int>( -1 ) == 5 );
     REQUIRE( C.get<integer>( -1 ) == 5 );
     // No rounding.
-    REQUIRE( C.get<int>( -2 ) == nothing );
-    REQUIRE( C.get<integer>( -2 ) == nothing );
+    REQUIRE( C.get<int>( -2 ) == unexpected{} );
+    REQUIRE( C.get<integer>( -2 ) == unexpected{} );
     REQUIRE( C.get<double>( -1 ) == 5.0 );
     REQUIRE( C.get<double>( -2 ) == 7.1 );
     REQUIRE( C.get<floating>( -1 ) == 5.0 );
@@ -349,13 +348,13 @@ LUA_TEST_CASE( "[lua-c-api] push, pop, get, and type_of" ) {
     REQUIRE( C.get<bool>( -2 ) == true );
     REQUIRE( C.get<boolean>( -1 ) == true );
     REQUIRE( C.get<boolean>( -2 ) == true );
-    REQUIRE( C.get<int>( -1 ) == nothing );
-    REQUIRE( C.get<integer>( -1 ) == nothing );
+    REQUIRE( C.get<int>( -1 ) == unexpected{} );
+    REQUIRE( C.get<integer>( -1 ) == unexpected{} );
     REQUIRE( C.get<int>( -2 ) == 5 );
     REQUIRE( C.get<integer>( -2 ) == 5 );
-    REQUIRE( C.get<double>( -1 ) == nothing );
+    REQUIRE( C.get<double>( -1 ) == unexpected{} );
     REQUIRE( C.get<double>( -2 ) == 5.0 );
-    REQUIRE( C.get<floating>( -1 ) == nothing );
+    REQUIRE( C.get<floating>( -1 ) == unexpected{} );
     REQUIRE( C.get<floating>( -2 ) == 5.0 );
     REQUIRE( C.get<string>( -1 ) == "hello" );
     REQUIRE( C.get<string>( -2 ) == "5" );
@@ -618,7 +617,7 @@ LUA_TEST_CASE( "[lua-c-api] pcall" ) {
       "\t[string \"...\"]:3: in function 'foo'";
     // clang-format on
     REQUIRE( C.pcall( /*nargs=*/1, /*nresults=*/0 ) ==
-             lua_invalid( err ) );
+             unexpected{ .msg = err } );
     REQUIRE( C.stack_size() == 0 );
   }
 
@@ -1225,7 +1224,7 @@ LUA_TEST_CASE( "[lua-c-api] setmetatable/getmetatable" ) {
 
   REQUIRE( C.dostring( R"lua(
     x.assert( x.print ~= nil )
-  )lua" ) == lua_invalid( err ) );
+  )lua" ) == unexpected{ .msg = err } );
 }
 
 LUA_TEST_CASE( "[lua-c-api] newuserdata" ) {
@@ -1282,7 +1281,7 @@ LUA_TEST_CASE( "[lua-c-api] error" ) {
       "stack traceback:\n"
       "\t[C]: in ?";
     // clang-format on
-    REQUIRE( C.pcall( 0, 0 ) == lua_invalid( err ) );
+    REQUIRE( C.pcall( 0, 0 ) == unexpected{ .msg = err } );
   }
 
   SECTION( "error arg" ) {
@@ -1296,7 +1295,7 @@ LUA_TEST_CASE( "[lua-c-api] error" ) {
       "stack traceback:\n"
       "\t[C]: in ?";
     // clang-format on
-    REQUIRE( C.pcall( 0, 0 ) == lua_invalid( err ) );
+    REQUIRE( C.pcall( 0, 0 ) == unexpected{ .msg = err } );
   }
 }
 
@@ -1797,7 +1796,7 @@ LUA_TEST_CASE( "[lua-c-api] checkinteger" ) {
         "\t[C]: in ?";
 
     REQUIRE( C.pcall( /*nargs=*/1, /*nresults=*/1 ) ==
-             lua_invalid( err ) );
+             unexpected{ .msg = err } );
   }
 }
 
@@ -1921,8 +1920,9 @@ LUA_TEST_CASE(
     REQUIRE( c_api( cth ).status() == thread_status::err );
     REQUIRE( c_api( cth ).coro_status() ==
              coroutine_status::dead );
-    REQUIRE( c_api( cth ).thread_ok() ==
-             lua_invalid( "[string \"...\"]:8: some error" ) );
+    REQUIRE(
+        c_api( cth ).thread_ok() ==
+        unexpected{ .msg = "[string \"...\"]:8: some error" } );
     REQUIRE( C.stack_size() == 0 );
   }
 }
@@ -2008,8 +2008,9 @@ LUA_TEST_CASE( "[lua-c-api] resetthread" ) {
     REQUIRE( c_api( cth ).coro_status() ==
              coroutine_status::dead );
     REQUIRE( st["f3_closed"] == nil );
-    REQUIRE( c_api( cth ).resetthread() ==
-             lua_invalid( "[string \"...\"]:26: some error" ) );
+    REQUIRE(
+        c_api( cth ).resetthread() ==
+        unexpected{ .msg = "[string \"...\"]:26: some error" } );
     REQUIRE( st["f3_closed"] == true );
   }
 
@@ -2024,7 +2025,8 @@ LUA_TEST_CASE( "[lua-c-api] resetthread" ) {
              coroutine_status::suspended );
     REQUIRE(
         c_api( cth ).resetthread() ==
-        lua_invalid( "[string \"...\"]:31: error in closing" ) );
+        unexpected{
+          .msg = "[string \"...\"]:31: error in closing" } );
   }
 }
 
@@ -2096,9 +2098,9 @@ LUA_TEST_CASE( "[lua-c-api] resume_or_leak" ) {
     c_api( cth ).push( 42 );
     REQUIRE( c_api( cth ).stack_size() == 1 );
     REQUIRE( c_api( cth ).type_of( -1 ) == type::number );
-    REQUIRE( C.resume_or_leak( cth, /*nargs=*/1 ) ==
-             lua_unexpected<resume_result>(
-                 "[string \"...\"]:19: some error" ) );
+    REQUIRE(
+        C.resume_or_leak( cth, /*nargs=*/1 ) ==
+        unexpected{ .msg = "[string \"...\"]:19: some error" } );
     REQUIRE( c_api( cth ).status() == thread_status::err );
     // Error object on top of stack. Not sure why the stack size
     // is 3 here (though it probably has something to do with the
@@ -2111,8 +2113,9 @@ LUA_TEST_CASE( "[lua-c-api] resume_or_leak" ) {
     REQUIRE( c_api( cth ).get<string>( -1 ) ==
              "[string \"...\"]:19: some error" );
     REQUIRE( st["f2_closed"] == nil );
-    REQUIRE( c_api( cth ).resetthread() ==
-             lua_invalid( "[string \"...\"]:19: some error" ) );
+    REQUIRE(
+        c_api( cth ).resetthread() ==
+        unexpected{ .msg = "[string \"...\"]:19: some error" } );
     // This verifies the parameter that we passed to resume.
     REQUIRE( st["f2_closed"] == 42 );
     REQUIRE( c_api( cth ).status() == thread_status::err );
@@ -2132,9 +2135,10 @@ LUA_TEST_CASE( "[lua-c-api] resume_or_leak" ) {
     REQUIRE( c_api( cth ).status() == thread_status::yield );
     REQUIRE( c_api( cth ).coro_status() ==
              coroutine_status::suspended );
-    REQUIRE( C.resume_or_leak( cth, /*nargs=*/0 ) ==
-             lua_unexpected<resume_result>(
-                 "[string \"...\"]:25: error in closing" ) );
+    REQUIRE(
+        C.resume_or_leak( cth, /*nargs=*/0 ) ==
+        unexpected{
+          .msg = "[string \"...\"]:25: error in closing" } );
     REQUIRE( c_api( cth ).status() == thread_status::err );
     REQUIRE( c_api( cth ).coro_status() ==
              coroutine_status::dead );
@@ -2150,7 +2154,8 @@ LUA_TEST_CASE( "[lua-c-api] resume_or_leak" ) {
              "[string \"...\"]:25: error in closing" );
     REQUIRE(
         c_api( cth ).resetthread() ==
-        lua_invalid( "[string \"...\"]:25: error in closing" ) );
+        unexpected{
+          .msg = "[string \"...\"]:25: error in closing" } );
     REQUIRE( c_api( cth ).status() == thread_status::err );
     REQUIRE( c_api( cth ).coro_status() ==
              coroutine_status::dead );
@@ -2226,9 +2231,9 @@ LUA_TEST_CASE( "[lua-c-api] resume_or_reset" ) {
     c_api( cth ).push( 42 );
     REQUIRE( c_api( cth ).stack_size() == 1 );
     REQUIRE( c_api( cth ).type_of( -1 ) == type::number );
-    REQUIRE( C.resume_or_reset( cth, /*nargs=*/1 ) ==
-             lua_unexpected<resume_result>(
-                 "[string \"...\"]:19: some error" ) );
+    REQUIRE(
+        C.resume_or_reset( cth, /*nargs=*/1 ) ==
+        unexpected{ .msg = "[string \"...\"]:19: some error" } );
     REQUIRE( c_api( cth ).status() == thread_status::err );
     REQUIRE( c_api( cth ).coro_status() ==
              coroutine_status::dead );
@@ -2240,8 +2245,9 @@ LUA_TEST_CASE( "[lua-c-api] resume_or_reset" ) {
     // This verifies the parameter that we passed to resume AND
     // that the thread was reset by resume_or_reset.
     REQUIRE( st["f2_closed"] == 42 );
-    REQUIRE( c_api( cth ).resetthread() ==
-             lua_invalid( "[string \"...\"]:19: some error" ) );
+    REQUIRE(
+        c_api( cth ).resetthread() ==
+        unexpected{ .msg = "[string \"...\"]:19: some error" } );
     REQUIRE( c_api( cth ).status() == thread_status::err );
     REQUIRE( c_api( cth ).coro_status() ==
              coroutine_status::dead );
@@ -2258,9 +2264,10 @@ LUA_TEST_CASE( "[lua-c-api] resume_or_reset" ) {
     REQUIRE( c_api( cth ).status() == thread_status::yield );
     REQUIRE( c_api( cth ).coro_status() ==
              coroutine_status::suspended );
-    REQUIRE( C.resume_or_reset( cth, /*nargs=*/0 ) ==
-             lua_unexpected<resume_result>(
-                 "[string \"...\"]:25: error in closing" ) );
+    REQUIRE(
+        C.resume_or_reset( cth, /*nargs=*/0 ) ==
+        unexpected{
+          .msg = "[string \"...\"]:25: error in closing" } );
     REQUIRE( c_api( cth ).status() == thread_status::err );
     REQUIRE( c_api( cth ).coro_status() ==
              coroutine_status::dead );
@@ -2271,7 +2278,8 @@ LUA_TEST_CASE( "[lua-c-api] resume_or_reset" ) {
              "[string \"...\"]:25: error in closing" );
     REQUIRE(
         c_api( cth ).resetthread() ==
-        lua_invalid( "[string \"...\"]:25: error in closing" ) );
+        unexpected{
+          .msg = "[string \"...\"]:25: error in closing" } );
     REQUIRE( c_api( cth ).status() == thread_status::err );
     REQUIRE( c_api( cth ).coro_status() ==
              coroutine_status::dead );

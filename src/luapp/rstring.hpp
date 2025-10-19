@@ -33,8 +33,8 @@ struct rstring : public any {
   bool operator==( std::string_view s ) const;
   bool operator==( std::string const& s ) const;
 
-  friend base::maybe<rstring> lua_get( cthread L, int idx,
-                                       tag<rstring> );
+  friend lua_expect<rstring> lua_get( cthread L, int idx,
+                                      tag<rstring> );
 
   friend void to_str( rstring const& o, std::string& out,
                       base::tag<rstring> );

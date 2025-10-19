@@ -59,8 +59,8 @@ static_assert( std::is_scalar_v<UnitId> );
 // lua
 void lua_push( lua::cthread L, UnitId o );
 
-base::maybe<UnitId> lua_get( lua::cthread L, int idx,
-                             lua::tag<UnitId> );
+lua::lua_expect<UnitId> lua_get( lua::cthread L, int idx,
+                                 lua::tag<UnitId> );
 
 /****************************************************************
 ** NativeUnitId
@@ -87,8 +87,8 @@ static_assert( std::is_scalar_v<NativeUnitId> );
 // lua
 void lua_push( lua::cthread L, NativeUnitId o );
 
-base::maybe<NativeUnitId> lua_get( lua::cthread L, int idx,
-                                   lua::tag<NativeUnitId> );
+lua::lua_expect<NativeUnitId> lua_get( lua::cthread L, int idx,
+                                       lua::tag<NativeUnitId> );
 
 /****************************************************************
 ** GenericUnitId
@@ -132,7 +132,7 @@ struct GenericUnitId {
   // lua
   friend void lua_push( lua::cthread L, GenericUnitId o );
 
-  friend base::maybe<GenericUnitId> lua_get(
+  friend lua::lua_expect<GenericUnitId> lua_get(
       lua::cthread L, int idx, lua::tag<GenericUnitId> );
 
   int id = 0;

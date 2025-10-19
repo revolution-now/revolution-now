@@ -28,8 +28,6 @@ namespace {
 
 using namespace std;
 
-using ::base::maybe;
-
 LUA_TEST_CASE( "[metatable] metatable" ) {
   st["x"] = st.table.create();
   REQUIRE( st["x"]["y"] == nil );
@@ -42,7 +40,7 @@ LUA_TEST_CASE( "[metatable] metatable" ) {
   setmetatable( as<table>( st["x"] ), metatable );
   REQUIRE( st["x"]["y"] == 5 );
 
-  maybe<table> metatable2 = metatable_for( st["x"] );
+  auto const metatable2 = metatable_for( st["x"] );
   REQUIRE( metatable2.has_value() );
   REQUIRE( *metatable2 == metatable );
 

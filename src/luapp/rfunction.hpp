@@ -28,8 +28,8 @@ struct rfunction : public any {
 
   using Base::Base;
 
-  friend base::maybe<rfunction> lua_get( cthread L, int idx,
-                                         tag<rfunction> );
+  friend lua_expect<rfunction> lua_get( cthread L, int idx,
+                                        tag<rfunction> );
 
   template<Pushable... Args>
   any operator()( Args&&... args ) const;

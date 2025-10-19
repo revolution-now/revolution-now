@@ -50,8 +50,8 @@ void lua_push( lua::cthread L, UnitId o ) {
   lua_push( L, static_cast<int>( o ) );
 }
 
-base::maybe<UnitId> lua_get( lua::cthread L, int idx,
-                             lua::tag<UnitId> ) {
+lua::lua_expect<UnitId> lua_get( lua::cthread L, int idx,
+                                 lua::tag<UnitId> ) {
   UNWRAP_RETURN( int_res, lua::get<int>( L, idx ) );
   return static_cast<UnitId>( int_res );
 }
@@ -81,8 +81,8 @@ void lua_push( lua::cthread L, NativeUnitId o ) {
   lua_push( L, static_cast<int>( o ) );
 }
 
-base::maybe<NativeUnitId> lua_get( lua::cthread L, int idx,
-                                   lua::tag<NativeUnitId> ) {
+lua::lua_expect<NativeUnitId> lua_get( lua::cthread L, int idx,
+                                       lua::tag<NativeUnitId> ) {
   UNWRAP_RETURN( int_res, lua::get<int>( L, idx ) );
   return static_cast<NativeUnitId>( int_res );
 }
@@ -111,8 +111,8 @@ void lua_push( lua::cthread L, GenericUnitId o ) {
   lua_push( L, o.id );
 }
 
-base::maybe<GenericUnitId> lua_get( lua::cthread L, int idx,
-                                    lua::tag<GenericUnitId> ) {
+lua::lua_expect<GenericUnitId> lua_get(
+    lua::cthread L, int idx, lua::tag<GenericUnitId> ) {
   UNWRAP_RETURN( int_res, lua::get<int>( L, idx ) );
   return static_cast<GenericUnitId>( int_res );
 }

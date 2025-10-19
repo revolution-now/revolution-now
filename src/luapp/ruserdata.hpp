@@ -29,8 +29,8 @@ struct userdata : public any {
 
   using Base::Base;
 
-  friend base::maybe<userdata> lua_get( cthread L, int idx,
-                                        tag<userdata> );
+  friend lua_expect<userdata> lua_get( cthread L, int idx,
+                                       tag<userdata> );
 
   template<typename U>
   auto operator[]( U&& idx ) const noexcept {

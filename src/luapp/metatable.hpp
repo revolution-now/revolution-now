@@ -20,13 +20,13 @@ namespace detail {
 
 int get_stack_top( cthread L );
 
-base::maybe<table> try_get_metatable( cthread L,
-                                      int restore_stack_top_to );
+lua_expect<table> try_get_metatable( cthread L,
+                                     int restore_stack_top_to );
 
 } // namespace detail
 
 template<Pushable T>
-base::maybe<table> metatable_for( cthread L, T&& o ) {
+lua_expect<table> metatable_for( cthread L, T&& o ) {
   int top = detail::get_stack_top( L );
   lua::push( L, std::forward<T>( o ) );
   return detail::try_get_metatable( L, top );
@@ -34,7 +34,7 @@ base::maybe<table> metatable_for( cthread L, T&& o ) {
 
 template<typename T>
 requires( Pushable<T> && HasCthread<T> )
-base::maybe<table> metatable_for( T&& o ) {
+lua_expect<table> metatable_for( T&& o ) {
   cthread L = o.this_cthread();
   return metatable_for( L, std::forward<T>( o ) );
 }

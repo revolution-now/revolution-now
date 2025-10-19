@@ -217,7 +217,7 @@ LUA_TEST_CASE( "[rfunction] cpp->lua->cpp round trip" ) {
     "\t[string \"...\"]:4: in function 'foo'";
   // clang-format on
   REQUIRE( foo.pcall<any>( 3, nil, 3.6 ) ==
-           lua_unexpected<any>( err ) );
+           unexpected{ .msg = err } );
 
   // pcall with error coming from C function.
   // clang-format off
@@ -227,7 +227,8 @@ LUA_TEST_CASE( "[rfunction] cpp->lua->cpp round trip" ) {
     "\t[C]: in function 'go'\n"
     "\t[string \"...\"]:6: in function 'foo'";
   // clang-format on
-  REQUIRE( foo.pcall( 4, "hello", 3.6 ) == lua_invalid( err ) );
+  REQUIRE( foo.pcall( 4, "hello", 3.6 ) ==
+           unexpected{ .msg = err } );
 }
 
 } // namespace

@@ -50,8 +50,7 @@ struct any : base::zero<any, int> {
     a.lua_push_impl( L );
   }
 
-  friend base::maybe<any> lua_get( cthread L, int idx,
-                                   tag<any> );
+  friend lua_expect<any> lua_get( cthread L, int idx, tag<any> );
 
   // The body of this has to be defined in the indexer header in
   // order to avoid circular header dependencies.
@@ -81,7 +80,8 @@ struct any : base::zero<any, int> {
   cthread L_; // not owned.
 };
 
-static_assert( Stackable<any> );
+static_assert( Pushable<any> );
+static_assert( Gettable<any> );
 static_assert( LuappInternal<any> );
 
 namespace internal {

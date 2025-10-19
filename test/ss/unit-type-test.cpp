@@ -838,7 +838,7 @@ TEST_CASE( "[unit-type] lua bindings" ) {
   auto xp = st.script.run_safe( script );
   REQUIRE( !xp.valid() );
   REQUIRE_THAT(
-      xp.error(),
+      xp.error().msg,
       Contains(
           "failed to create UnitType with type=hardy_pioneer "
           "and base_type=expert_farmer." ) );

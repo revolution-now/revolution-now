@@ -134,7 +134,7 @@ LUA_TEST_CASE( "[lua-state] script run safe" ) {
       "\t[C]: in function 'assert'\n"
       "\t[string \"...\"]:2: in main chunk";
 
-  REQUIRE( v == lua_invalid( err ) );
+  REQUIRE( v == unexpected{ .msg = err } );
 }
 
 LUA_TEST_CASE( "[lua-state] thread create" ) {

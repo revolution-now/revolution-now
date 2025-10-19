@@ -18,7 +18,6 @@
 // base
 #include "base/cc-specific.hpp"
 #include "base/fs.hpp"
-#include "base/maybe.hpp"
 
 // C++ standard library
 #include <cassert>
@@ -100,7 +99,7 @@ concept PushableViaTraits =
 
 template<typename T>
 concept GettableViaAdl = requires( cthread L ) {
-  { lua_get( L, -1, tag<T>{} ) } -> std::same_as<base::maybe<T>>;
+  { lua_get( L, -1, tag<T>{} ) } -> std::same_as<lua_expect<T>>;
 };
 
 template<typename T>
@@ -108,7 +107,7 @@ concept GettableViaTraits =
     HasTraitsNvalues<T> && requires( cthread L ) {
       // clang-format off
   { traits_for<T>::get( L, -1, tag<T>{} ) } ->
-    std::same_as<base::maybe<T>>;
+    std::same_as<lua_expect<T>>;
       // clang-format on
     };
 
@@ -127,10 +126,6 @@ template<typename T>
 concept Gettable =
     ( GettableViaAdl<T> || GettableViaTraits<T> ) &&
     !( GettableViaAdl<T> && GettableViaTraits<T> );
-
-// Can the type be sent to and from Lua.
-template<typename T>
-concept Stackable = Pushable<T> && Gettable<T>;
 
 // This generally can be used on extension point overloads that
 // are highly unconstrained and that can accept many unknown
@@ -166,6 +161,8 @@ auto storage_type_impl() {
   else
     return tag<unqualified_t>{};
 }
+
+void ext_push_nil( cthread L );
 
 } // namespace internal
 
@@ -260,7 +257,7 @@ template<Gettable T>
     cthread const L, int const idx,
     std::source_location const loc =
         std::source_location::current() ) {
-  base::maybe<T> m = lua::get<T>( L, idx );
+  auto const m = lua::get<T>( L, idx );
   if( m.has_value() ) return *m;
   throw_lua_error(
       L,
@@ -270,5 +267,43 @@ template<Gettable T>
       loc.line(), internal::ext_type_name( L, idx ),
       base::demangled_typename<T>() );
 }
+
+/****************************************************************
+** lua_expect specialization.
+*****************************************************************/
+// This is given a special specialization to allow using it to
+// extract types that may fail conversion using a function that
+// returns the value directly (and thus would throw an lua excep-
+// tion if conversion failed), but without throwing a lua error.
+template<typename T>
+struct type_traits<lua_expect<T>> {
+  using M = lua_expect<T>;
+
+  static constexpr int nvalues = nvalues_for<T>();
+
+  // Need an extra template parameter here so that this will work
+  // with both cpp-owned and lua-owned T.
+  template<typename U>
+  static void push( cthread L, U&& m )
+  requires Pushable<decltype( *std::forward<U>( m ) )> &&
+           is_lua_expect_v<std::remove_cvref_t<U>>
+  {
+    if( m.has_value() )
+      lua::push( L, *std::forward<U>( m ) );
+    else {
+      for( int i = 0; i < nvalues; ++i ) //
+        internal::ext_push_nil( L );
+    }
+  }
+
+  static lua_expect<M> get( cthread L, int const idx, tag<M> )
+  requires Gettable<T>
+  {
+    auto res = lua::get<T>( L, idx );
+    // We always return a value, though it may contain an error.
+    if( !res.has_value() ) return M( res.error() );
+    return M( *res );
+  }
+};
 
 } // namespace lua

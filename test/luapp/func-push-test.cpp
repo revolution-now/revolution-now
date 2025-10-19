@@ -359,7 +359,7 @@ struct AdderTracker {
   ~AdderTracker() {
     if( destroyed_ ) *destroyed_ = true;
   }
-  int operator()( lua_State* L ) const {
+  [[maybe_unused]] int operator()( lua_State* L ) const {
     c_api C( L );
     UNWRAP_CHECK( n, C.get<int>( 1 ) );
     C.push( n + 2 + x_ + y_ );
@@ -367,7 +367,7 @@ struct AdderTracker {
   }
   AdderTracker( AdderTracker const& )            = delete;
   AdderTracker& operator=( AdderTracker const& ) = delete;
-  AdderTracker( AdderTracker&& rhs ) {
+  [[maybe_unused]] AdderTracker( AdderTracker&& rhs ) {
     x_         = rhs.x_;
     y_         = rhs.y_;
     destroyed_ = exchange( rhs.destroyed_, nullptr );
@@ -523,7 +523,7 @@ LUA_TEST_CASE(
 
     REQUIRE( C.dostring( R"lua(
       go( 6, 'hello this is a very long string' )
-    )lua" ) == lua_invalid( err ) );
+    )lua" ) == unexpected{ .msg = err } );
   }
 
   SECTION( "too many args" ) {
@@ -537,7 +537,7 @@ LUA_TEST_CASE(
 
     REQUIRE( C.dostring( R"lua(
       go( 6, 'hello this is a very long string', 3.5, true )
-    )lua" ) == lua_invalid( err ) );
+    )lua" ) == unexpected{ .msg = err } );
   }
 
   SECTION( "wrong arg type" ) {
@@ -552,7 +552,7 @@ LUA_TEST_CASE(
     // clang-format on
     REQUIRE( C.dostring( R"lua(
       go( 6, 'hello this is a very long string', 'world' )
-    )lua" ) == lua_invalid( err ) );
+    )lua" ) == unexpected{ .msg = err } );
   }
 
   SECTION( "convertible arg types" ) {

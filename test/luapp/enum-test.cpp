@@ -16,6 +16,9 @@
 // Testing
 #include "test/luapp/common.hpp"
 
+// refl
+#include "src/refl/to-str.hpp"
+
 // Must be last.
 #include "test/catch-common.hpp"
 
@@ -78,8 +81,10 @@ namespace {
 /****************************************************************
 ** Static Tests
 *****************************************************************/
-static_assert( Stackable<my_ns::my_enum> );
-static_assert( Stackable<my_ns::empty_enum> );
+static_assert( Pushable<my_ns::my_enum> );
+static_assert( Gettable<my_ns::my_enum> );
+static_assert( Pushable<my_ns::empty_enum> );
+static_assert( Gettable<my_ns::empty_enum> );
 static_assert( !Pushable<my_ns::non_reflected_enum> );
 static_assert( !Gettable<my_ns::non_reflected_enum> );
 
@@ -97,7 +102,7 @@ LUA_TEST_CASE( "[luapp/enum] push/get" ) {
   REQUIRE( C.get<string>( -1 ) == "blue" );
   C.pop();
 
-  base::maybe<my_ns::my_enum> e;
+  lua_expect<my_ns::my_enum> e = my_ns::my_enum{};
 
   push( L, "green" );
   e = lua::get<my_ns::my_enum>( L, -1 );
@@ -116,7 +121,9 @@ LUA_TEST_CASE( "[luapp/enum] push/get" ) {
 
   push( L, "xxx" );
   e = lua::get<my_ns::my_enum>( L, -1 );
-  REQUIRE( e == base::nothing );
+  REQUIRE( e ==
+           unexpected{ .msg = "failed to convert string value "
+                              "'xxx' to enum my_enum" } );
   C.pop();
 }
 

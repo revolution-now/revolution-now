@@ -10,10 +10,12 @@
 *****************************************************************/
 #pragma once
 
+// rds
+#include "ss/unit-type.rds.hpp"
+
 // ss
-#include "commodity.rds.hpp"
-#include "mv-points.hpp"
-#include "unit-type.rds.hpp"
+#include "ss/commodity.rds.hpp"
+#include "ss/mv-points.hpp"
 
 // luapp
 #include "luapp/ext-userdata.hpp"
@@ -33,10 +35,10 @@ struct Player;
 /****************************************************************
 ** Unit Inventory
 *****************************************************************/
-maybe<e_unit_inventory> commodity_to_inventory(
+base::maybe<e_unit_inventory> commodity_to_inventory(
     e_commodity comm );
 
-maybe<e_commodity> inventory_to_commodity(
+base::maybe<e_commodity> inventory_to_commodity(
     e_unit_inventory inv_type );
 
 /****************************************************************
@@ -71,8 +73,8 @@ MvPoints movement_points( Player const& player,
 struct UnitType {
   UnitType( e_unit_type type );
 
-  static maybe<UnitType> create( e_unit_type type,
-                                 e_unit_type base_type );
+  static base::maybe<UnitType> create( e_unit_type type,
+                                       e_unit_type base_type );
 
   e_unit_type base_type() const { return o_.base_type; }
 
@@ -121,14 +123,14 @@ bool can_unit_found( UnitType ut );
 
 // Try to add the modifiers to the type and return the resulting
 // type if it works out.
-maybe<UnitType> add_unit_type_modifiers(
+base::maybe<UnitType> add_unit_type_modifiers(
     UnitType ut,
     std::unordered_set<e_unit_type_modifier> const& modifiers );
 
 // Try to remove the modifiers from the type and return the re-
 // sulting type if it works out. The unit must have all of the
 // modifiers in order for this to be successful.
-maybe<UnitType> rm_unit_type_modifiers(
+base::maybe<UnitType> rm_unit_type_modifiers(
     UnitType ut,
     std::unordered_set<e_unit_type_modifier> const& modifiers );
 
@@ -136,7 +138,7 @@ maybe<UnitType> rm_unit_type_modifiers(
 // function will determine if there is a resulting derived type.
 // If there is, it is guaranteed to be unique since config vali-
 // dation should have verified that.
-maybe<UnitType> find_unit_type_modifiers(
+base::maybe<UnitType> find_unit_type_modifiers(
     e_unit_type base_type,
     std::unordered_set<e_unit_type_modifier> const& modifiers );
 

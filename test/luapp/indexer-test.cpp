@@ -30,8 +30,6 @@ namespace {
 
 using namespace std;
 
-using ::base::maybe;
-using ::base::nothing;
 using ::base::valid;
 
 template<typename Derived>
@@ -247,7 +245,7 @@ LUA_TEST_CASE( "[indexer] conversion to any" ) {
   REQUIRE( a == 7.7 );
 }
 
-LUA_TEST_CASE( "[indexer] casting to maybe" ) {
+LUA_TEST_CASE( "[indexer] casting to lua_expect" ) {
   EmptyTable mt( L );
   mt[5]             = EmptyTable( L );
   mt[5][1]          = EmptyTable( L );
@@ -255,60 +253,60 @@ LUA_TEST_CASE( "[indexer] casting to maybe" ) {
   mt[5][1][2]       = 7.7;
 
   SECTION( "from nil" ) {
-    auto mb = as<maybe<bool>>( mt[5][1]["xxx"] );
-    auto mi = as<maybe<int>>( mt[5][1]["xxx"] );
-    auto ms = as<maybe<string>>( mt[5][1]["xxx"] );
-    auto md = as<maybe<double>>( mt[5][1]["xxx"] );
-    auto t  = as<maybe<table>>( mt[5][1]["xxx"] );
+    auto mb = as<lua_expect<bool>>( mt[5][1]["xxx"] );
+    auto mi = as<lua_expect<int>>( mt[5][1]["xxx"] );
+    auto ms = as<lua_expect<string>>( mt[5][1]["xxx"] );
+    auto md = as<lua_expect<double>>( mt[5][1]["xxx"] );
+    auto t  = as<lua_expect<table>>( mt[5][1]["xxx"] );
     REQUIRE( mb == false );
-    REQUIRE( mi == nothing );
-    REQUIRE( ms == nothing );
-    REQUIRE( md == nothing );
-    REQUIRE( t == nothing );
+    REQUIRE( mi == unexpected{} );
+    REQUIRE( ms == unexpected{} );
+    REQUIRE( md == unexpected{} );
+    REQUIRE( t == unexpected{} );
   }
 
   SECTION( "from table" ) {
-    auto mb = as<maybe<bool>>( mt[5][1] );
-    auto mi = as<maybe<int>>( mt[5][1] );
-    auto ms = as<maybe<string>>( mt[5][1] );
-    auto md = as<maybe<double>>( mt[5][1] );
-    auto t  = as<maybe<table>>( mt[5][1] );
+    auto mb = as<lua_expect<bool>>( mt[5][1] );
+    auto mi = as<lua_expect<int>>( mt[5][1] );
+    auto ms = as<lua_expect<string>>( mt[5][1] );
+    auto md = as<lua_expect<double>>( mt[5][1] );
+    auto t  = as<lua_expect<table>>( mt[5][1] );
     auto t2 = as<table>( mt[5][1] );
     REQUIRE( mb == true );
-    REQUIRE( mi == nothing );
-    REQUIRE( ms == nothing );
-    REQUIRE( md == nothing );
+    REQUIRE( mi == unexpected{} );
+    REQUIRE( ms == unexpected{} );
+    REQUIRE( md == unexpected{} );
     REQUIRE( t.has_value() );
     REQUIRE( t == mt[5][1] );
     REQUIRE( t2 == mt[5][1] );
   }
 
   SECTION( "from string" ) {
-    auto mb = as<maybe<bool>>( mt[5][1]["hello"] );
-    auto mi = as<maybe<int>>( mt[5][1]["hello"] );
-    auto ms = as<maybe<string>>( mt[5][1]["hello"] );
-    auto md = as<maybe<double>>( mt[5][1]["hello"] );
-    auto t  = as<maybe<table>>( mt[5][1]["hello"] );
+    auto mb = as<lua_expect<bool>>( mt[5][1]["hello"] );
+    auto mi = as<lua_expect<int>>( mt[5][1]["hello"] );
+    auto ms = as<lua_expect<string>>( mt[5][1]["hello"] );
+    auto md = as<lua_expect<double>>( mt[5][1]["hello"] );
+    auto t  = as<lua_expect<table>>( mt[5][1]["hello"] );
     REQUIRE( mb == true );
-    REQUIRE( mi == nothing );
+    REQUIRE( mi == unexpected{} );
     REQUIRE( ms == "payload" );
-    REQUIRE( md == nothing );
-    REQUIRE( t == nothing );
+    REQUIRE( md == unexpected{} );
+    REQUIRE( t == unexpected{} );
   }
 
   SECTION( "from double" ) {
-    auto mb    = as<maybe<bool>>( mt[5][1][2] );
-    auto mi    = as<maybe<int>>( mt[5][1][2] );
-    auto ms    = as<maybe<string>>( mt[5][1][2] );
-    auto md    = as<maybe<double>>( mt[5][1][2] );
+    auto mb    = as<lua_expect<bool>>( mt[5][1][2] );
+    auto mi    = as<lua_expect<int>>( mt[5][1][2] );
+    auto ms    = as<lua_expect<string>>( mt[5][1][2] );
+    auto md    = as<lua_expect<double>>( mt[5][1][2] );
     double md2 = as<double>( mt[5][1][2] );
-    auto t     = as<maybe<table>>( mt[5][1][2] );
+    auto t     = as<lua_expect<table>>( mt[5][1][2] );
     REQUIRE( mb == true );
-    REQUIRE( mi == nothing );
+    REQUIRE( mi == unexpected{} );
     REQUIRE( ms == "7.7" );
     REQUIRE( md == 7.7 );
     REQUIRE( md2 == 7.7 );
-    REQUIRE( t == nothing );
+    REQUIRE( t == unexpected{} );
   }
 }
 
@@ -376,7 +374,7 @@ LUA_TEST_CASE( "[indexer] cpp->lua->cpp round trip" ) {
     "\t[string \"...\"]:4: in function 'foo'";
   // clang-format on
   REQUIRE( st["foo"].pcall( 3, nil, 3.6 ) ==
-           lua_invalid( err ) );
+           unexpected{ .msg = err } );
 
   // pcall with error coming from C function.
   // clang-format off
@@ -387,7 +385,7 @@ LUA_TEST_CASE( "[indexer] cpp->lua->cpp round trip" ) {
     "\t[string \"...\"]:6: in function 'foo'";
   // clang-format on
   REQUIRE( st["foo"].pcall<any>( 4, "hello", 3.6 ) ==
-           lua_unexpected<any>( err ) );
+           unexpected{ .msg = err } );
 }
 
 // This tests that if we call C++ from Lua using pcall, and if
@@ -419,7 +417,7 @@ LUA_TEST_CASE( "[indexer] error recovery" ) {
       "\t[string \"...\"]:7: in function <[string \"...\"]:6>\n"
       "\t[C]: in function 'go'";
 
-  REQUIRE( go.pcall() == lua_invalid( err ) );
+  REQUIRE( go.pcall() == unexpected{ .msg = err } );
 
   REQUIRE( C.stack_size() == 0 );
 }

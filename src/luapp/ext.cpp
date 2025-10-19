@@ -28,6 +28,10 @@ string ext_type_name( cthread L, int idx ) {
   return fmt::format( "{}", c_api( L ).type_of( idx ) );
 }
 
+void ext_push_nil( cthread const L ) {
+  return c_api( L ).push( nil );
+}
+
 } // namespace internal
 
 } // namespace lua

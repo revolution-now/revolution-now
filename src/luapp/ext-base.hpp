@@ -30,11 +30,11 @@ struct type_traits<base::maybe<T>> {
 
   // Need an extra template parameter here so that this will work
   // with both cpp-owned and lua-owned T.
-  template<typename U> // clang-format off
+  template<typename U>
   static void push( cthread L, U&& m )
-    requires Pushable<decltype(*std::forward<U>( m ))> &&
-             base::is_maybe_v<std::remove_cvref_t<U>> {
-    // clang-format on
+  requires Pushable<decltype( *std::forward<U>( m ) )> &&
+           base::is_maybe_v<std::remove_cvref_t<U>>
+  {
     if( m.has_value() )
       lua::push( L, *std::forward<U>( m ) );
     else {
@@ -43,11 +43,21 @@ struct type_traits<base::maybe<T>> {
     }
   }
 
-  // clang-format off
-  static base::maybe<M> get( cthread L, int idx, tag<M> )
-    requires Gettable<T> {
-    // clang-format on
-    return lua::get<T>( L, idx );
+  static lua_expect<M> get( cthread L, int idx, tag<M> )
+  requires Gettable<T>
+  {
+    if( type_of_idx( L, idx ) == type::nil )
+      // Result will have a value because nil is a valid value
+      // that can be converted to a maybe<T>.
+      return M();
+    // We don't want to just return the result of lua::get here
+    // because then even if it fails, there will be a value in
+    // the result. But we don't want this because if the value on
+    // the stack is not nil, then it /must/ succeed in conversion
+    // in order for the result to have a value.
+    auto res = lua::get<T>( L, idx );
+    if( !res.has_value() ) return res.error();
+    return *res;
   }
 };
 

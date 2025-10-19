@@ -29,8 +29,6 @@ namespace {
 
 using namespace std;
 
-using ::base::maybe;
-using ::base::nothing;
 using ::Catch::Matches;
 
 struct A {};
@@ -41,7 +39,8 @@ struct Point {
 
   bool operator==( Point const& ) const = default;
 
-  friend void lua_push( lua::cthread L, Point const& p ) {
+  [[maybe_unused]] friend void lua_push( lua::cthread L,
+                                         Point const& p ) {
     lua::c_api C( L );
     C.newtable();
     C.push( p.x );
@@ -50,10 +49,11 @@ struct Point {
     C.setfield( -2, "y" );
   }
 
-  friend base::maybe<Point> lua_get( lua::cthread L, int idx,
-                                     lua::tag<Point> ) {
+  [[maybe_unused]] friend lua_expect<Point> lua_get(
+      lua::cthread L, int idx, lua::tag<Point> ) {
     lua::c_api C( L );
-    if( C.type_of( idx ) != lua::type::table ) return nothing;
+    if( C.type_of( idx ) != lua::type::table )
+      return unexpected{};
     C.getfield( idx, "x" );
     UNWRAP_RETURN( x, C.get<int>( -1 ) );
     C.pop();
@@ -74,9 +74,9 @@ LUA_TEST_CASE( "[as] castability test" ) {
   static_assert( !Castable<indexer_t, char const*> );
   static_assert( !Castable<indexer_t, A> );
 
-  static_assert( !Castable<indexer_t, maybe<string_view>> );
-  static_assert( !Castable<indexer_t, maybe<char const*>> );
-  static_assert( !Castable<indexer_t, maybe<A>> );
+  static_assert( !Castable<indexer_t, lua_expect<string_view>> );
+  static_assert( !Castable<indexer_t, lua_expect<char const*>> );
+  static_assert( !Castable<indexer_t, lua_expect<A>> );
 
   // Things that should be castable.
   static_assert( Castable<indexer_t, int> );
@@ -97,16 +97,17 @@ LUA_TEST_CASE( "[as] castability test" ) {
   static_assert( Castable<lightuserdata, any> );
   static_assert( Castable<Point, any> );
 
-  static_assert( Castable<indexer_t, maybe<int>> );
-  static_assert( Castable<indexer_t, maybe<bool>> );
-  static_assert( Castable<indexer_t, maybe<double>> );
-  static_assert( Castable<indexer_t, maybe<lightuserdata>> );
-  static_assert( Castable<indexer_t, maybe<string>> );
-  static_assert( Castable<indexer_t, maybe<table>> );
-  static_assert( Castable<indexer_t, maybe<rfunction>> );
-  static_assert( Castable<indexer_t, maybe<userdata>> );
-  static_assert( Castable<indexer_t, maybe<rthread>> );
-  static_assert( Castable<indexer_t, maybe<Point>> );
+  static_assert( Castable<indexer_t, lua_expect<int>> );
+  static_assert( Castable<indexer_t, lua_expect<bool>> );
+  static_assert( Castable<indexer_t, lua_expect<double>> );
+  static_assert(
+      Castable<indexer_t, lua_expect<lightuserdata>> );
+  static_assert( Castable<indexer_t, lua_expect<string>> );
+  static_assert( Castable<indexer_t, lua_expect<table>> );
+  static_assert( Castable<indexer_t, lua_expect<rfunction>> );
+  static_assert( Castable<indexer_t, lua_expect<userdata>> );
+  static_assert( Castable<indexer_t, lua_expect<rthread>> );
+  static_assert( Castable<indexer_t, lua_expect<Point>> );
 }
 
 LUA_TEST_CASE( "[as] cast to _" ) {
@@ -143,26 +144,26 @@ LUA_TEST_CASE( "[as] cast with L" ) {
   }
 }
 
-LUA_TEST_CASE( "[as] cast to maybe<_>" ) {
+LUA_TEST_CASE( "[as] cast to lua_expect<_>" ) {
   SECTION( "int" ) {
     st["x"] = 5;
-    REQUIRE( as<maybe<int>>( st["x"] ) == 5 );
-    REQUIRE( as<maybe<string>>( st["x"] ) == "5" );
-    REQUIRE( as<maybe<table>>( st["x"] ) == nothing );
+    REQUIRE( as<lua_expect<int>>( st["x"] ) == 5 );
+    REQUIRE( as<lua_expect<string>>( st["x"] ) == "5" );
+    REQUIRE( as<lua_expect<table>>( st["x"] ) == unexpected{} );
   }
   SECTION( "string" ) {
     st["x"] = "hello";
-    REQUIRE( as<maybe<int>>( st["x"] ) == nothing );
-    REQUIRE( as<maybe<string>>( st["x"] ) == "hello" );
-    REQUIRE( as<maybe<table>>( st["x"] ) == nothing );
+    REQUIRE( as<lua_expect<int>>( st["x"] ) == unexpected{} );
+    REQUIRE( as<lua_expect<string>>( st["x"] ) == "hello" );
+    REQUIRE( as<lua_expect<table>>( st["x"] ) == unexpected{} );
   }
   SECTION( "table" ) {
     st["x"] = st.table.create();
     table t = as<table>( st["x"] );
-    REQUIRE( as<maybe<int>>( st["x"] ) == nothing );
-    REQUIRE( as<maybe<string>>( st["x"] ) == nothing );
-    REQUIRE( as<maybe<table>>( st["x"] ) == st["x"] );
-    REQUIRE( as<maybe<table>>( st["x"] ) == t );
+    REQUIRE( as<lua_expect<int>>( st["x"] ) == unexpected{} );
+    REQUIRE( as<lua_expect<string>>( st["x"] ) == unexpected{} );
+    REQUIRE( as<lua_expect<table>>( st["x"] ) == st["x"] );
+    REQUIRE( as<lua_expect<table>>( st["x"] ) == t );
   }
 }
 
@@ -171,19 +172,19 @@ LUA_TEST_CASE( "[as] safe_as" ) {
     st["x"] = 5;
     REQUIRE( safe_as<int>( st["x"] ) == 5 );
     REQUIRE( safe_as<string>( st["x"] ) == "5" );
-    REQUIRE( safe_as<table>( st["x"] ) == nothing );
+    REQUIRE( safe_as<table>( st["x"] ) == unexpected{} );
   }
   SECTION( "string" ) {
     st["x"] = "hello";
-    REQUIRE( safe_as<int>( st["x"] ) == nothing );
+    REQUIRE( safe_as<int>( st["x"] ) == unexpected{} );
     REQUIRE( safe_as<string>( st["x"] ) == "hello" );
-    REQUIRE( safe_as<table>( st["x"] ) == nothing );
+    REQUIRE( safe_as<table>( st["x"] ) == unexpected{} );
   }
   SECTION( "table" ) {
     st["x"] = st.table.create();
     table t = as<table>( st["x"] );
-    REQUIRE( safe_as<int>( st["x"] ) == nothing );
-    REQUIRE( safe_as<string>( st["x"] ) == nothing );
+    REQUIRE( safe_as<int>( st["x"] ) == unexpected{} );
+    REQUIRE( safe_as<string>( st["x"] ) == unexpected{} );
     REQUIRE( safe_as<table>( st["x"] ) == st["x"] );
     REQUIRE( safe_as<table>( st["x"] ) == t );
   }
@@ -192,20 +193,22 @@ LUA_TEST_CASE( "[as] safe_as" ) {
 LUA_TEST_CASE( "[as] Point" ) {
   st["point"] = Point{ .x = 3, .y = 5 };
   table t     = as<table>( st["point"] );
-  REQUIRE( as<maybe<int>>( st["point"] ) == nothing );
-  REQUIRE( as<maybe<string>>( st["point"] ) == nothing );
-  REQUIRE( as<maybe<table>>( st["point"] ) == st["point"] );
-  REQUIRE( as<maybe<table>>( st["point"] ) == t );
+  REQUIRE( as<lua_expect<int>>( st["point"] ) == unexpected{} );
+  REQUIRE( as<lua_expect<string>>( st["point"] ) ==
+           unexpected{} );
+  REQUIRE( as<lua_expect<table>>( st["point"] ) == st["point"] );
+  REQUIRE( as<lua_expect<table>>( st["point"] ) == t );
 
   // The test.
-  REQUIRE( as<maybe<Point>>( st["point"] ) ==
+  REQUIRE( as<lua_expect<Point>>( st["point"] ) ==
            Point{ .x = 3, .y = 5 } );
   Point p = as<Point>( st["point"] );
   REQUIRE( p.x == 3 );
   REQUIRE( p.y == 5 );
 
   st["non-point"] = 5;
-  REQUIRE( as<maybe<Point>>( st["non-point"] ) == nothing );
+  REQUIRE( as<lua_expect<Point>>( st["non-point"] ) ==
+           unexpected{} );
 }
 
 LUA_TEST_CASE( "[as] failed cast" ) {
@@ -220,7 +223,7 @@ LUA_TEST_CASE( "[as] failed cast" ) {
       ".*:error: failed to convert Lua type `string' to native "
       "type `lua::\\(anonymous namespace\\)::Point'.*\n.*\n.*" );
 
-  REQUIRE_THAT( xp.error(), Matches( regex ) );
+  REQUIRE_THAT( xp.error().msg, Matches( regex ) );
 }
 
 } // namespace

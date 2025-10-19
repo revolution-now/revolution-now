@@ -32,8 +32,6 @@ namespace {
 static_assert( is_same_v<LuaKContext, lua_KContext> );
 
 using ::base::lg;
-using ::base::maybe;
-using ::base::nothing;
 
 // Not sure if these are mandatory, but if they fail they will at
 // least alert us that something has changed.
@@ -318,7 +316,7 @@ boolean c_api::get( int idx, boolean* ) noexcept {
   return get<bool>( idx );
 }
 
-maybe<integer> c_api::get( int idx, integer* ) noexcept {
+lua_expect<integer> c_api::get( int idx, integer* ) noexcept {
   validate_index( idx );
   int is_num = 0;
   // Converts the Lua value at the given index to the signed in-
@@ -330,19 +328,19 @@ maybe<integer> c_api::get( int idx, integer* ) noexcept {
   // [-0, +0, –]
   integer i = lua_tointegerx( L_, idx, &is_num );
   if( is_num != 0 ) return i;
-  return nothing;
+  return unexpected{};
 }
 
-base::maybe<int> c_api::get( int idx, int* ) noexcept {
+lua_expect<int> c_api::get( int idx, int* ) noexcept {
   validate_index( idx );
   auto i = get<integer>( idx );
   if( i )
     return static_cast<int>( *i );
   else
-    return nothing;
+    return unexpected{};
 }
 
-maybe<double> c_api::get( int idx, double* ) noexcept {
+lua_expect<double> c_api::get( int idx, double* ) noexcept {
   validate_index( idx );
   int is_num = 0;
   // lua_tonumberx: [-0, +0, –]
@@ -356,14 +354,14 @@ maybe<double> c_api::get( int idx, double* ) noexcept {
   // value that indicates whether the operation succeeded.
   double num = lua_tonumberx( L_, idx, &is_num );
   if( is_num != 0 ) return num;
-  return nothing;
+  return unexpected{};
 }
 
-base::maybe<floating> c_api::get( int idx, floating* ) noexcept {
+lua_expect<floating> c_api::get( int idx, floating* ) noexcept {
   return get<double>( idx );
 }
 
-maybe<string> c_api::get( int idx, string* ) noexcept {
+lua_expect<string> c_api::get( int idx, string* ) noexcept {
   validate_index( idx );
   size_t len = 0;
   // The function we will use below, lua_tolstring, will actually
@@ -379,7 +377,7 @@ maybe<string> c_api::get( int idx, string* ) noexcept {
   // will just call lua_tolstring in place.
   if( status() == thread_status::err ) {
     char const* p = lua_tolstring( L_, idx, &len );
-    if( p == nullptr ) return nothing;
+    if( p == nullptr ) return unexpected{};
     // See below for why we use this constructor.
     return string( p, len );
   }
@@ -405,7 +403,7 @@ maybe<string> c_api::get( int idx, string* ) noexcept {
   // that the pointer returned by lua_tolstring will be valid
   // after the corresponding Lua value is removed from the stack.
   char const* p = lua_tolstring( L_, -1, &len );
-  if( p == nullptr ) return nothing;
+  if( p == nullptr ) return unexpected{};
   // Use the (pointer, size) constructor because we need to
   // specify the length, 1) so that std::string can pre-allocate,
   // and 2) because there may be zeroes inside the string before
@@ -413,20 +411,20 @@ maybe<string> c_api::get( int idx, string* ) noexcept {
   return string( p, len );
 }
 
-base::maybe<void*> c_api::get( int idx, void** ) noexcept {
+lua_expect<void*> c_api::get( int idx, void** ) noexcept {
   validate_index( idx );
   void* p = lua_touserdata( L_, idx );
-  if( !p ) return nothing;
+  if( !p ) return unexpected{};
   return p;
 }
 
-base::maybe<lightuserdata> c_api::get(
-    int idx, lightuserdata* ) noexcept {
+lua_expect<lightuserdata> c_api::get( int idx,
+                                      lightuserdata* ) noexcept {
   return get<void*>( idx );
 }
 
-base::maybe<char const*> c_api::get( int idx,
-                                     char const** ) noexcept {
+lua_expect<char const*> c_api::get( int idx,
+                                    char const** ) noexcept {
   validate_index( idx );
   // We are susceptible to this because of the char const*.
   CHECK( !lua_isstring( L_, idx ) );
@@ -521,16 +519,17 @@ void c_api::enforce_stack_size_ge( int s ) noexcept {
 lua_valid c_api::enforce_type_of( int idx, type type ) noexcept {
   validate_index( idx );
   if( type_of( idx ) == type ) return base::valid;
-  return "type of element at index " + to_string( idx ) +
-         " expected to be " + string( type_name( type ) ) +
-         ", but instead is " +
-         string( type_name( type_of( idx ) ) );
+  return unexpected{
+    .msg = "type of element at index " + to_string( idx ) +
+           " expected to be " + string( type_name( type ) ) +
+           ", but instead is " +
+           string( type_name( type_of( idx ) ) ) };
 }
 
 lua_error_t c_api::pop_and_return_error() noexcept {
   enforce_stack_size_ge( 1 );
   CHECK( type_of( -1 ) == type::string );
-  lua_error_t res( lua_tostring( L_, -1 ) );
+  lua_error_t res{ .msg = lua_tostring( L_, -1 ) };
   pop();
   return res;
 }
@@ -707,18 +706,20 @@ lua_valid c_api::loadfile( const char* filename ) {
       return base::valid;
     case LUA_ERRSYNTAX: {
       string err = pop_tostring();
-      return lua_invalid( fmt::format(
-          "syntax error during precompilation: {}", err ) );
+      return unexpected{
+        .msg = fmt::format(
+            "syntax error during precompilation: {}", err ) };
     }
     case LUA_ERRMEM:
-      return lua_invalid(
-          "memory allocation (out-of-memory) error." );
+      return unexpected{
+        .msg = "memory allocation (out-of-memory error." };
     case LUA_ERRFILE:
-      return lua_invalid(
-          fmt::format( "error opening file {}", filename ) );
+      return unexpected{
+        .msg =
+            fmt::format( "error opening file {}", filename ) };
     default:
-      return lua_invalid(
-          fmt::format( "unknown error: {}", res ) );
+      return unexpected{
+        .msg = fmt::format( "unknown error: {}", res ) };
   }
 }
 
@@ -738,7 +739,7 @@ lua_valid c_api::thread_ok() noexcept {
     case thread_status::err: {
       enforce_stack_size_ge( 1 );
       CHECK( type_of( -1 ) == type::string );
-      res = lua_tostring( L_, -1 );
+      res = unexpected{ .msg = lua_tostring( L_, -1 ) };
       // NOTE: we do not pop the error off of the stack so that
       // we can retrieve it a second time if needed.
       break;
@@ -761,7 +762,7 @@ lua_valid c_api::resetthread() noexcept {
   // stop, which is on the top of the stack.
   enforce_stack_size_ge( 1 );
   CHECK( type_of( -1 ) == type::string );
-  return lua_tostring( L_, -1 );
+  return unexpected{ .msg = lua_tostring( L_, -1 ) };
 }
 
 lua_expect<resume_result> c_api::resume_or_leak(

@@ -24,13 +24,13 @@ int get_stack_top( cthread L ) {
   return C.gettop();
 }
 
-base::maybe<table> try_get_metatable(
-    cthread L, int restore_stack_top_to ) {
+lua_expect<table> try_get_metatable( cthread L,
+                                     int restore_stack_top_to ) {
   c_api C( L );
   C.getmetatable( -1 );
   if( C.type_of( -1 ) == type::nil ) {
     C.settop( restore_stack_top_to );
-    return base::nothing;
+    return unexpected{};
   }
 
   table metatable( L, C.ref_registry() );

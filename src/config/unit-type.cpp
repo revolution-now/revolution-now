@@ -26,6 +26,7 @@ namespace rn {
 
 namespace {
 
+using ::base::maybe;
 using ::base::valid_or;
 
 unordered_map<e_unit_inventory, e_unit_type_modifier>

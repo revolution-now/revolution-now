@@ -5,7 +5,7 @@
 *
 * Created by dsicilia on 2021-07-25.
 *
-* Description: Lua Stackable implementation for std::monostate.
+* Description: Lua get/push implementation for std::monostate.
 *
 *****************************************************************/
 #pragma once
@@ -25,7 +25,7 @@ namespace lua {
 // is a type with just a single value.
 void lua_push( cthread L, std::monostate const& );
 
-base::maybe<std::monostate> lua_get( cthread L, int idx,
-                                     tag<std::monostate> );
+lua_expect<std::monostate> lua_get( cthread L, int idx,
+                                    tag<std::monostate> );
 
 } // namespace lua

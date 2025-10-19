@@ -235,13 +235,20 @@ void define_usertype_for( lua::state&,
                           tag<rn::MovementPoints> ) {}
 
 template<typename T>
-requires lua::Stackable<T>
+requires lua::Pushable<T> && lua::Gettable<T>
 void define_usertype_for( lua::state&, tag<::base::maybe<T>> ) {
-  // TBD
+  // TBD: I think these would only be for lua types, like any.
 }
 
 template<typename T>
-requires lua::Stackable<T&>
+requires lua::Pushable<T> && lua::Gettable<T&>
+[[maybe_unused]] void define_usertype_for(
+    lua::state&, tag<::base::maybe<T>> ) {
+  // TBD: for lua-owned C++ values.
+}
+
+template<typename T>
+requires lua::Pushable<T&> && lua::Gettable<T&>
 void define_usertype_for( lua::state& st,
                           tag<::base::maybe<T>> ) {
   using U      = ::base::maybe<T>;

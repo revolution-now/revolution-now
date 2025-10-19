@@ -45,13 +45,12 @@ bool rstring::operator==( string const& s ) const {
   return as_cpp() == s;
 }
 
-base::maybe<rstring> lua_get( cthread L, int idx,
-                              tag<rstring> ) {
+lua_expect<rstring> lua_get( cthread L, int idx, tag<rstring> ) {
   lua::c_api C( L );
   if( C.type_of( idx ) != type::string ) {
     // We might be able to convert it to a string.
-    base::maybe<string> ms = C.get<string>( idx );
-    if( !ms ) return base::nothing;
+    auto const ms = C.get<string>( idx );
+    if( !ms ) return unexpected{};
     C.push( *ms );
   } else {
     // Copy the requested value to the top of the stack.

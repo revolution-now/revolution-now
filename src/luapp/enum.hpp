@@ -26,19 +26,26 @@ namespace detail {
 
 // These so so that we don't have to include types.hpp here.
 
-base::maybe<std::string> get_str_from_stack( cthread L,
-                                             int idx );
+lua_expect<std::string> get_str_from_stack( cthread L, int idx );
 
 void push_str_to_stack( cthread L, std::string_view name );
 
 }
 
 template<refl::ReflectedEnum Enum>
-base::maybe<Enum> lua_get( cthread L, int idx, tag<Enum> ) {
-  base::maybe<std::string> m =
-      detail::get_str_from_stack( L, idx );
-  if( !m ) return base::nothing;
-  return refl::enum_from_string<Enum>( *m );
+lua_expect<Enum> lua_get( cthread L, int idx, tag<Enum> ) {
+  auto const m = detail::get_str_from_stack( L, idx );
+  if( !m )
+    return unexpected{
+      .msg =
+          "lua string type required for conversion to enum." };
+  auto const e = refl::enum_from_string<Enum>( *m );
+  if( !e )
+    return unexpected{
+      .msg = std::format(
+          "failed to convert string value '{}' to enum {}", *m,
+          refl::traits<Enum>::name ) };
+  return *e;
 }
 
 template<refl::ReflectedEnum Enum>

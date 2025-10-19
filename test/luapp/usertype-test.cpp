@@ -254,7 +254,7 @@ LUA_TEST_CASE( "[usertype] cpp owned" ) {
     -- setting them.
     assert( o.non_existent == nil )
     o.non_existent = 5
-  )lua" ) == lua_invalid( err_non_existent ) );
+  )lua" ) == unexpected{ .msg = err_non_existent } );
 
   char const* err_const =
       "attempt to set const field `n_const'.\n"
@@ -265,7 +265,7 @@ LUA_TEST_CASE( "[usertype] cpp owned" ) {
   REQUIRE( st.script.run_safe( R"lua(
     o.n       = 5 -- ok
     o.n_const = 5 -- boom!
-  )lua" ) == lua_invalid( err_const ) );
+  )lua" ) == unexpected{ .msg = err_const } );
 }
 
 LUA_TEST_CASE( "[usertype] lua owned" ) {
@@ -402,7 +402,7 @@ LUA_TEST_CASE( "[usertype] lua owned" ) {
     -- setting them.
     assert( o.non_existent == nil )
     o.non_existent = 5
-  )lua" ) == lua_invalid( err_non_existent ) );
+  )lua" ) == unexpected{ .msg = err_non_existent } );
 
   char const* err_const =
       "attempt to set const field `n_const'.\n"
@@ -413,7 +413,7 @@ LUA_TEST_CASE( "[usertype] lua owned" ) {
   REQUIRE( st.script.run_safe( R"lua(
     o.n       = 5 -- ok
     o.n_const = 5 -- boom!
-  )lua" ) == lua_invalid( err_const ) );
+  )lua" ) == unexpected{ .msg = err_const } );
 }
 
 LUA_TEST_CASE( "[usertype] lua owned constructor" ) {

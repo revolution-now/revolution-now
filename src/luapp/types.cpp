@@ -138,48 +138,45 @@ void lua_push( cthread L, string_view sv ) {
 /******************************************************************
 ** lua_get
 *******************************************************************/
-base::maybe<boolean> lua_get( cthread L, int idx,
-                              tag<boolean> ) {
+lua_expect<boolean> lua_get( cthread L, int idx, tag<boolean> ) {
   return c_api( L ).get<boolean>( idx );
 }
 
-base::maybe<integer> lua_get( cthread L, int idx,
-                              tag<integer> ) {
+lua_expect<integer> lua_get( cthread L, int idx, tag<integer> ) {
   return c_api( L ).get<integer>( idx );
 }
 
-base::maybe<int64_t> lua_get( cthread L, int idx,
-                              tag<int64_t> ) {
+lua_expect<int64_t> lua_get( cthread L, int idx, tag<int64_t> ) {
   return c_api( L ).get<integer>( idx );
 }
 
-base::maybe<floating> lua_get( cthread L, int idx,
-                               tag<floating> ) {
+lua_expect<floating> lua_get( cthread L, int idx,
+                              tag<floating> ) {
   return c_api( L ).get<floating>( idx );
 }
 
-base::maybe<lightuserdata> lua_get( cthread L, int idx,
-                                    tag<lightuserdata> ) {
+lua_expect<lightuserdata> lua_get( cthread L, int idx,
+                                   tag<lightuserdata> ) {
   return c_api( L ).get<lightuserdata>( idx );
 }
 
-base::maybe<string> lua_get( cthread L, int idx, tag<string> ) {
+lua_expect<string> lua_get( cthread L, int idx, tag<string> ) {
   return c_api( L ).get<string>( idx );
 }
 
-base::maybe<bool> lua_get( cthread L, int idx, tag<bool> ) {
+lua_expect<bool> lua_get( cthread L, int idx, tag<bool> ) {
   return c_api( L ).get<bool>( idx );
 }
 
-base::maybe<int> lua_get( cthread L, int idx, tag<int> ) {
+lua_expect<int> lua_get( cthread L, int idx, tag<int> ) {
   return c_api( L ).get<int>( idx );
 }
 
-base::maybe<double> lua_get( cthread L, int idx, tag<double> ) {
+lua_expect<double> lua_get( cthread L, int idx, tag<double> ) {
   return c_api( L ).get<double>( idx );
 }
 
-base::maybe<void*> lua_get( cthread L, int idx, tag<void*> ) {
+lua_expect<void*> lua_get( cthread L, int idx, tag<void*> ) {
   return c_api( L ).get<void*>( idx );
 }
 

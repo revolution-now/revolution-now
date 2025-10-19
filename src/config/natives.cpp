@@ -19,6 +19,9 @@ namespace rn {
 
 namespace {
 
+using ::base::maybe;
+using ::base::nothing;
+
 // Need to pass in equipment here because this needs to be used
 // by the validation code which cannot access it via the global
 // config_natives object because that hasn't been populated yet.

@@ -16,6 +16,9 @@
 // Rds
 #include "promotion.rds.hpp"
 
+// Revolution Now
+#include "maybe.hpp"
+
 // ss
 #include "ss/native-enums.rds.hpp"
 #include "ss/unit-composition.hpp"

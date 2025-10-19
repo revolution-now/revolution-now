@@ -98,29 +98,29 @@ struct UnitsState {
   NativeUnitOwnership const& ownership_of(
       NativeUnitId id ) const;
 
-  maybe<Coord> maybe_coord_for( UnitId id ) const;
+  base::maybe<Coord> maybe_coord_for( UnitId id ) const;
   Coord coord_for( UnitId id ) const;
-  maybe<Coord> maybe_coord_for( GenericUnitId id ) const;
+  base::maybe<Coord> maybe_coord_for( GenericUnitId id ) const;
   Coord coord_for( GenericUnitId id ) const;
   // Always succeeds.
   Coord coord_for( NativeUnitId id ) const;
 
-  maybe<UnitId> maybe_holder_of( UnitId id ) const;
+  base::maybe<UnitId> maybe_holder_of( UnitId id ) const;
   UnitId holder_of( UnitId id ) const;
 
   DwellingId dwelling_for( NativeUnitId id ) const;
 
   // If the unit is a missionary and it is inside a dwelling then
   // this will return the dwelling id.
-  maybe<DwellingId> maybe_dwelling_for_missionary(
+  base::maybe<DwellingId> maybe_dwelling_for_missionary(
       UnitId id ) const;
 
   // We allow non-const access to the harbor view state because
   // changing it will not affect the invariants of this class.
-  maybe<UnitOwnership::harbor&> maybe_harbor_view_state_of(
+  base::maybe<UnitOwnership::harbor&> maybe_harbor_view_state_of(
       UnitId id );
-  maybe<UnitOwnership::harbor const&> maybe_harbor_view_state_of(
-      UnitId id ) const;
+  base::maybe<UnitOwnership::harbor const&>
+  maybe_harbor_view_state_of( UnitId id ) const;
 
   UnitOwnership::harbor& harbor_view_state_of( UnitId id );
 
@@ -142,7 +142,7 @@ struct UnitsState {
   // the unit id of the missionary that is inside. Note that this
   // missionary is not considered to be on the map; it is owned
   // by the dwelling.
-  maybe<UnitId> missionary_from_dwelling(
+  base::maybe<UnitId> missionary_from_dwelling(
       DwellingId dwelling_id ) const;
 
   // This will return the unit ID of the brave that is on the map
@@ -220,7 +220,7 @@ struct UnitsState {
 
   void change_to_harbor_view( UnitId id,
                               PortStatus const& port_status,
-                              maybe<Coord> sailed_from );
+                              base::maybe<Coord> sailed_from );
 
   void change_to_dwelling( UnitId unit_id,
                            DwellingId dwelling_id );

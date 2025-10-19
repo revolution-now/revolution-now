@@ -17,6 +17,7 @@
 #include "base/error.hpp"
 #include "base/expect.hpp"
 #include "base/fmt.hpp"
+#include "base/to-str.hpp"
 #include "base/valid.hpp"
 
 // C++ standard library
@@ -40,7 +41,19 @@ namespace lua {
 ** expect/valid
 *****************************************************************/
 // The type we use for reporting errors raised by lua.
-using lua_error_t = std::string;
+struct unexpected {
+  std::string msg;
+
+  auto operator<=>( unexpected const& ) const = default;
+
+  friend void to_str( unexpected const& o, std::string& out,
+                      base::tag<unexpected> ) {
+    out += o.msg;
+  }
+};
+
+using lua_error_t = unexpected;
+
 // We can change the error type in the future, but it must at
 // least be constructible from a std::string.
 static_assert(
@@ -53,6 +66,11 @@ lua_valid lua_invalid( lua_error_t err );
 // expect
 template<typename T>
 using lua_expect = base::expect<T, lua_error_t>;
+
+template<typename T>
+constexpr bool is_lua_expect_v = false;
+template<typename T>
+constexpr bool is_lua_expect_v<lua_expect<T>> = true;
 
 template<typename T>
 lua_expect<T> lua_expected( T&& arg ) {

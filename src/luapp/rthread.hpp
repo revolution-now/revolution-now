@@ -29,8 +29,8 @@ struct rthread : public any {
 
   rthread( lua::cthread L, int ref );
 
-  friend base::maybe<rthread> lua_get( lua::cthread L, int idx,
-                                       tag<rthread> );
+  friend lua_expect<rthread> lua_get( lua::cthread L, int idx,
+                                      tag<rthread> );
 
   // In an rthread, the particular `L' held represents the
   // thread. This is unlike other objects where the L is only
@@ -75,7 +75,8 @@ struct rthread : public any {
                       base::tag<rthread> );
 };
 
-static_assert( Stackable<rthread> );
+static_assert( Pushable<rthread> );
+static_assert( Gettable<rthread> );
 
 // For when we want to push onto the stack of another thread.
 template<Pushable T>

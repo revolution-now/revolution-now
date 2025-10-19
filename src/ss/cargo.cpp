@@ -41,6 +41,9 @@ namespace rl = ::base::rl;
 
 namespace {
 
+using ::base::maybe;
+using ::base::nothing;
+
 constexpr int const k_max_commodity_cargo_per_slot = 100;
 
 } // namespace

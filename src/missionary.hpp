@@ -85,7 +85,8 @@ bool is_missionary( e_unit_type type );
 // from this player then it returns nothing. Note that the OG
 // seems to never produce converts when the player loses the bat-
 // tle, so this should only be called after a player win.
-maybe<double> probability_dwelling_produces_convert_on_attack(
+base::maybe<double>
+probability_dwelling_produces_convert_on_attack(
     SSConst const& ss, Player const& player_attacking,
     DwellingId dwelling_id );
 

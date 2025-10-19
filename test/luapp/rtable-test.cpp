@@ -250,7 +250,7 @@ LUA_TEST_CASE( "[table] table create_or_get" ) {
       "\t[C]: in ?";
 
   REQUIRE( st["foo"].pcall<table>() ==
-           lua_unexpected<table>( err ) );
+           unexpected{ .msg = err } );
 }
 
 LUA_TEST_CASE( "[table] table array_length" ) {

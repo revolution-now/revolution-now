@@ -106,7 +106,7 @@ LUA_TEST_CASE( "[lua-call] multiple args, one result" ) {
     // clang-format on
 
     REQUIRE( call_lua_safe( L, 3, nil, 3.5 ) ==
-             lua_unexpected<int>( err ) );
+             unexpected{ .msg = err } );
   }
 }
 
@@ -271,11 +271,12 @@ LUA_TEST_CASE( "[lua-call] call_lua_{un}safe_and_get" ) {
     lua_expect<any> a =
         call_lua_safe_and_get<any>( L, 9, "hello", 3.5 );
     REQUIRE( a ==
-             lua_unexpected<any>(
-                 "[string \"...\"]:3: assertion failed!\n"
-                 "stack traceback:\n"
-                 "\t[C]: in function 'assert'\n"
-                 "\t[string \"...\"]:3: in function 'foo'" ) );
+             unexpected{
+               .msg =
+                   "[string \"...\"]:3: assertion failed!\n"
+                   "stack traceback:\n"
+                   "\t[C]: in function 'assert'\n"
+                   "\t[string \"...\"]:3: in function 'foo'" } );
   }
 
   SECTION( "call with maybe result" ) {
@@ -288,13 +289,14 @@ LUA_TEST_CASE( "[lua-call] call_lua_{un}safe_and_get" ) {
     C.getglobal( "foo" );
     REQUIRE( C.stack_size() == 1 );
 
-    auto n = call_lua_unsafe_and_get<maybe<int>>( L, "hello" );
+    auto n =
+        call_lua_unsafe_and_get<lua_expect<int>>( L, "hello" );
     REQUIRE( C.stack_size() == 0 );
     REQUIRE( !n.has_value() );
 
     C.getglobal( "foo" );
-    auto s =
-        call_lua_unsafe_and_get<maybe<string>>( L, "hello" );
+    auto s = call_lua_unsafe_and_get<lua_expect<string>>(
+        L, "hello" );
     REQUIRE( C.stack_size() == 0 );
     REQUIRE( s == "hellohello" );
   }
@@ -366,11 +368,12 @@ LUA_TEST_CASE(
     lua_valid v =
         call_lua_safe_and_get<void>( L, 9, "hello", 3.5 );
     REQUIRE( v ==
-             lua_invalid(
-                 "[string \"...\"]:3: assertion failed!\n"
-                 "stack traceback:\n"
-                 "\t[C]: in function 'assert'\n"
-                 "\t[string \"...\"]:3: in function 'foo'" ) );
+             unexpected{
+               .msg =
+                   "[string \"...\"]:3: assertion failed!\n"
+                   "stack traceback:\n"
+                   "\t[C]: in function 'assert'\n"
+                   "\t[string \"...\"]:3: in function 'foo'" } );
   }
 }
 
@@ -478,9 +481,9 @@ LUA_TEST_CASE( "[lua-call] call_lua_resume_safe w/ error" ) {
   REQUIRE( C2.get<string>( -1 ) == "hello5" );
   C2.pop();
   REQUIRE( st["f_is_closed"] == nil );
-  REQUIRE( call_lua_resume_safe( L2, 6 ) ==
-           lua_unexpected<resume_result>(
-               "[string \"...\"]:9: some error" ) );
+  REQUIRE(
+      call_lua_resume_safe( L2, 6 ) ==
+      unexpected{ .msg = "[string \"...\"]:9: some error" } );
   REQUIRE( C2.coro_status() == coroutine_status::dead );
   REQUIRE( st["f_is_closed"] == true );
   // Error object is still on the stack.
@@ -586,9 +589,9 @@ LUA_TEST_CASE(
   REQUIRE( C2.coro_status() == coroutine_status::suspended );
   REQUIRE( C2.stack_size() == 0 );
   REQUIRE( st["f_is_closed"] == nil );
-  REQUIRE( call_lua_resume_safe_and_get<string>( L2, 6 ) ==
-           lua_unexpected<resume_result_with_value<string>>(
-               "[string \"...\"]:9: some error" ) );
+  REQUIRE(
+      call_lua_resume_safe_and_get<string>( L2, 6 ) ==
+      unexpected{ .msg = "[string \"...\"]:9: some error" } );
   REQUIRE( C2.coro_status() == coroutine_status::dead );
   REQUIRE( st["f_is_closed"] == true );
   // Error object is still on the stack.
@@ -610,8 +613,7 @@ LUA_TEST_CASE(
   C2.getglobal( "f" );
   REQUIRE( C2.stack_size() == 1 );
   REQUIRE( call_lua_resume_safe_and_get<int>( L2, 5 ) ==
-           lua_unexpected<resume_result_with_value<int>>(
-               "cannot resume dead coroutine" ) );
+           unexpected{ .msg = "cannot resume dead coroutine" } );
   REQUIRE( C2.coro_status() == coroutine_status::dead );
 
   REQUIRE( C.stack_size() == 1 );
@@ -635,13 +637,13 @@ LUA_TEST_CASE(
   C2.getglobal( "f" );
   REQUIRE( C2.coro_status() == coroutine_status::suspended );
   REQUIRE( C2.stack_size() == 1 );
-  REQUIRE(
-      call_lua_resume_safe_and_get<int>( L2 ) ==
-      lua_unexpected<resume_result_with_value<int>>(
-          "native code expected type `int' as a return value "
-          "(which requires 1 Lua value), but the values "
-          "returned by Lua were not convertible to that native "
-          "type.  The Lua values received were: [string]." ) );
+  REQUIRE( call_lua_resume_safe_and_get<int>( L2 ) ==
+           unexpected{
+             .msg = "native code expected type `int' as a "
+                    "return value (which requires 1 Lua value), "
+                    "but the values returned by Lua were not "
+                    "convertible to that native type.  The Lua "
+                    "values received were: [string]." } );
   REQUIRE( C2.coro_status() == coroutine_status::dead );
   // No error object on the stack.
   REQUIRE( C2.stack_size() == 0 );

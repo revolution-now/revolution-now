@@ -113,7 +113,7 @@ lua_valid run_lua_cmd( Terminal& terminal, lua::state& st,
   if( !result ) {
     terminal.log( "lua command failed:" );
     for( auto const& line :
-         format_lua_error_msg( result.error() ) )
+         format_lua_error_msg( result.error().msg ) )
       terminal.log( "  "s + line );
   }
   return result;

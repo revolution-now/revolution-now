@@ -32,6 +32,13 @@ using namespace std;
 
 namespace rn {
 
+namespace {
+
+using ::base::maybe;
+using ::base::nothing;
+
+}
+
 /****************************************************************
 ** Public API
 *****************************************************************/

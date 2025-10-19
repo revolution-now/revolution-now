@@ -16,6 +16,9 @@
 #include "expect.hpp"
 #include "maybe.hpp"
 
+// luapp
+#include "luapp/error.hpp"
+
 // C++ standard library
 #include <mutex>
 #include <string>
@@ -35,7 +38,7 @@ struct Terminal {
   // This function is thread safe.
   void log( std::string_view msg );
 
-  valid_or<std::string> run_cmd( std::string const& cmd );
+  lua::lua_valid run_cmd( std::string const& cmd );
 
   // This function is thread safe.
   void clear();

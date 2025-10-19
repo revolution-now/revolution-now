@@ -68,7 +68,7 @@ struct ND Unit {
   // hold cargo then returns the list of units it holds, which
   // may be empty. To emphasize, nothing will only be returned
   // when this unit is unable to hold cargo.
-  maybe<std::vector<UnitId>> units_in_cargo() const;
+  base::maybe<std::vector<UnitId>> units_in_cargo() const;
 
   /********************* Movement Points ***********************/
 
@@ -149,7 +149,7 @@ struct ND Unit {
                                            Coord target );
 
  public:
-  maybe<e_unit_type> demoted_type() const;
+  base::maybe<e_unit_type> demoted_type() const;
 
   // Implement refl::WrapsReflected.
   Unit( wrapped::Unit&& o ) : o_( std::move( o ) ) {}

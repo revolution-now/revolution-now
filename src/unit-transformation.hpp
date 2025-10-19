@@ -55,7 +55,7 @@ std::vector<UnitTransformation> possible_unit_transformations(
 // Test if one can be converted to another through a valid path
 // using only the commodities available from the source unit. If
 // a valid path is found then return the transformation details.
-maybe<UnitTransformation> query_unit_transformation(
+base::maybe<UnitTransformation> query_unit_transformation(
     UnitComposition const& from_comp,
     UnitComposition const& to_comp );
 

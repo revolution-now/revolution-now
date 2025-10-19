@@ -28,8 +28,8 @@ struct table : public any {
 
   using Base::Base;
 
-  friend base::maybe<table> lua_get( cthread L, int idx,
-                                     tag<table> );
+  friend lua_expect<table> lua_get( cthread L, int idx,
+                                    tag<table> );
 
   template<typename U>
   auto operator[]( U&& idx ) noexcept {

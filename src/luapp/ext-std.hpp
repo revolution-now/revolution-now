@@ -40,7 +40,7 @@ struct type_traits<std::tuple<Ts...>> {
   }
 
   // clang-format off
-  static base::maybe<Tuple> get( cthread L, int idx, tag<Tuple> )
+  static lua_expect<Tuple> get( cthread L, int idx, tag<Tuple> )
     requires ( Gettable<Ts> && ... ) {
     // clang-format on
     return get_impl(
@@ -58,26 +58,26 @@ private:
   }
 
   template<size_t... Idx>
-  static base::maybe<Tuple> get_impl(
+  static lua_expect<Tuple> get_impl(
       cthread L, int idx, std::index_sequence<Idx...> ) {
-    auto tuple_of_maybes =
+    auto tuple_of_expects =
         std::tuple{ lua::get<std::tuple_element_t<Idx, Tuple>>(
             L, idx - sizeof...( Idx ) + 1 + Idx )... };
 
     bool failed = false;
-    auto check_maybes =
+    auto check_expects =
         [&]<size_t I>( std::integral_constant<size_t, I> ) {
-          auto& m = std::get<I>( tuple_of_maybes );
+          auto& m = std::get<I>( tuple_of_expects );
           if( !m.has_value() ) failed = true;
         };
-    ( check_maybes( std::integral_constant<size_t, Idx>{} ),
+    ( check_expects( std::integral_constant<size_t, Idx>{} ),
       ... );
-    if( failed ) return base::nothing;
+    if( failed ) return unexpected{};
 
     auto get_maybe =
         [&]<size_t I>( std::integral_constant<size_t, I> )
         -> decltype( auto ) {
-      return *std::get<I>( tuple_of_maybes );
+      return *std::get<I>( tuple_of_expects );
     };
     return std::tuple<Ts...>{
       get_maybe( std::integral_constant<size_t, Idx>{} )... };
@@ -107,12 +107,12 @@ struct type_traits<std::pair<A, B>> {
   }
 
   // clang-format off
-  static base::maybe<Pair> get( cthread L, int idx, tag<Pair> )
+  static lua_expect<Pair> get( cthread L, int idx, tag<Pair> )
     requires ( Gettable<A> && Gettable<B> ) {
     // clang-format on
-    base::maybe<A> ma = lua::get<A>( L, idx - 1 );
-    base::maybe<B> mb = lua::get<B>( L, idx );
-    if( !ma or !mb ) return base::nothing;
+    lua_expect<A> ma = lua::get<A>( L, idx - 1 );
+    lua_expect<B> mb = lua::get<B>( L, idx );
+    if( !ma or !mb ) return unexpected{};
     return Pair{ *ma, *mb };
   }
 

@@ -24,7 +24,6 @@ namespace {
 
 using namespace std;
 
-using ::base::maybe;
 using ::base::valid;
 
 /****************************************************************
@@ -79,7 +78,7 @@ LUA_TEST_CASE( "[rthread] construction + is_main" ) {
   REQUIRE( th3 != th2 );
 
   lua::push( L, th3 );
-  maybe<rthread> m = lua::get<rthread>( L, -1 );
+  lua_expect<rthread> m = lua::get<rthread>( L, -1 );
   REQUIRE( m.has_value() );
   REQUIRE( m == th3 );
   REQUIRE( m != th1 );
@@ -145,7 +144,7 @@ LUA_TEST_CASE( "[lua-state] thread resume safe w/ error" ) {
   REQUIRE( s == "hello" );
   REQUIRE(
       coro.resume_safe<int>( 6 ) ==
-      lua_unexpected<int>( "[string \"...\"]:6: some error" ) );
+      unexpected{ .msg = "[string \"...\"]:6: some error" } );
   REQUIRE( coro.status() == thread_status::err );
   REQUIRE( coro.coro_status() == coroutine_status::dead );
 }

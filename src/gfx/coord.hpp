@@ -145,8 +145,8 @@ struct Delta {
 
   int area() const { return w * h; }
 
-  friend base::maybe<Delta> lua_get( lua::cthread L, int idx,
-                                     lua::tag<Delta> );
+  friend lua::lua_expect<Delta> lua_get( lua::cthread L, int idx,
+                                         lua::tag<Delta> );
   friend void lua_push( lua::cthread L, Delta const& delta );
 };
 
@@ -242,8 +242,8 @@ struct Coord {
   // True if e.g. x is in [x,x+w).
   bool is_on_border_of( Rect const& rect ) const;
 
-  friend base::maybe<Coord> lua_get( lua::cthread L, int idx,
-                                     lua::tag<Coord> );
+  friend lua::lua_expect<Coord> lua_get( lua::cthread L, int idx,
+                                         lua::tag<Coord> );
   friend void lua_push( lua::cthread L, Coord const& coord );
 };
 

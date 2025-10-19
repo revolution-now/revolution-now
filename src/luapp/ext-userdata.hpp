@@ -35,24 +35,24 @@ struct userdata_type_traits_cpp_owned {
   using storage_type           = T&;
   static constexpr int nvalues = 1;
 
-  static base::maybe<T&> get( cthread L, int idx,
-                              tag<T&> ) noexcept {
+  static lua_expect<T&> get( cthread L, int idx,
+                             tag<T&> ) noexcept {
     static std::string type_name = userdata_typename<T&>();
     base::maybe<void*> ud =
         try_udata( L, idx, type_name.c_str() );
-    if( !ud.has_value() ) return base::nothing;
+    if( !ud.has_value() ) return unexpected{};
     T** object = static_cast<T**>( *ud );
     return **object;
   }
 
-  static base::maybe<T const&> get( cthread L, int idx,
-                                    tag<T const&> ) noexcept {
+  static lua_expect<T const&> get( cthread L, int idx,
+                                   tag<T const&> ) noexcept {
     // userdatas are stored as non-const refs, so we can always
     // get non-const refs from them and const refs.
     static std::string type_name = userdata_typename<T&>();
     base::maybe<void*> ud =
         try_udata( L, idx, type_name.c_str() );
-    if( !ud.has_value() ) return base::nothing;
+    if( !ud.has_value() ) return unexpected{};
     T const** object = static_cast<T const**>( *ud );
     return **object;
   }
@@ -81,22 +81,22 @@ struct userdata_type_traits_lua_owned {
   using storage_type           = T&;
   static constexpr int nvalues = 1;
 
-  static base::maybe<T&> get( cthread L, int idx,
-                              tag<T&> ) noexcept {
+  static lua_expect<T&> get( cthread L, int idx,
+                             tag<T&> ) noexcept {
     static std::string type_name = userdata_typename<T>();
     base::maybe<void*> ud =
         try_udata( L, idx, type_name.c_str() );
-    if( !ud.has_value() ) return base::nothing;
+    if( !ud.has_value() ) return unexpected{};
     T* object = static_cast<T*>( *ud );
     return *object;
   }
 
-  static base::maybe<T const&> get( cthread L, int idx,
-                                    tag<T const&> ) noexcept {
+  static lua_expect<T const&> get( cthread L, int idx,
+                                   tag<T const&> ) noexcept {
     static std::string type_name = userdata_typename<T>();
     base::maybe<void*> ud =
         try_udata( L, idx, type_name.c_str() );
-    if( !ud.has_value() ) return base::nothing;
+    if( !ud.has_value() ) return unexpected{};
     T const* object = static_cast<T const*>( *ud );
     return *object;
   }

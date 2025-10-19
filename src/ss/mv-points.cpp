@@ -50,14 +50,14 @@ base::valid_or<string> MovementPoints::validate() const {
   return base::valid;
 }
 
-maybe<MovementPoints> lua_get( lua::cthread L, int idx,
-                               lua::tag<MovementPoints> ) {
+lua::lua_expect<MovementPoints> lua_get(
+    lua::cthread L, int idx, lua::tag<MovementPoints> ) {
   auto st = lua::state::view( L );
 
-  maybe<lua::table> maybe_t = lua::get<lua::table>( L, idx );
-  if( !maybe_t.has_value() ) return nothing;
-  lua::table& t = *maybe_t;
-  if( t["atoms"] == lua::nil ) return nothing;
+  auto expect_tbl = lua::get<lua::table>( L, idx );
+  if( !expect_tbl.has_value() ) return lua::unexpected{};
+  lua::table& t = *expect_tbl;
+  if( t["atoms"] == lua::nil ) return lua::unexpected{};
   int atoms_ = lua::as<int>( t["atoms"] );
   return MovementPoints( atoms_ / 3, atoms_ % 3 );
 }

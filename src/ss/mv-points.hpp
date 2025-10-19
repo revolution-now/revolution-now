@@ -13,9 +13,6 @@
 
 #include "core-config.hpp"
 
-// Revolution Now
-#include "maybe.hpp"
-
 // cdr
 #include "cdr/ext.hpp"
 
@@ -147,7 +144,7 @@ class ND MovementPoints {
 
   base::valid_or<std::string> validate() const;
 
-  friend maybe<MovementPoints> lua_get(
+  friend lua::lua_expect<MovementPoints> lua_get(
       lua::cthread L, int idx, lua::tag<MovementPoints> );
   friend void lua_push( lua::cthread L, MovementPoints mv_pts );
 

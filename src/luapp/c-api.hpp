@@ -16,9 +16,6 @@
 #include "thread-status.hpp"
 #include "types.hpp"
 
-// base
-#include "base/maybe.hpp"
-
 namespace lua {
 
 /****************************************************************
@@ -608,18 +605,18 @@ struct c_api {
  private:
   bool get( int idx, bool* ) noexcept;
   boolean get( int idx, boolean* ) noexcept;
-  base::maybe<integer> get( int idx, integer* ) noexcept;
+  lua_expect<integer> get( int idx, integer* ) noexcept;
   // This is for when you know the result will fit into an int.
-  base::maybe<int> get( int idx, int* ) noexcept;
-  base::maybe<double> get( int idx, double* ) noexcept;
-  base::maybe<floating> get( int idx, floating* ) noexcept;
-  base::maybe<std::string> get( int idx, std::string* ) noexcept;
+  lua_expect<int> get( int idx, int* ) noexcept;
+  lua_expect<double> get( int idx, double* ) noexcept;
+  lua_expect<floating> get( int idx, floating* ) noexcept;
+  lua_expect<std::string> get( int idx, std::string* ) noexcept;
   // This is done as light userdata.
-  base::maybe<void*> get( int idx, void** ) noexcept;
-  base::maybe<lightuserdata> get( int idx,
-                                  lightuserdata* ) noexcept;
+  lua_expect<void*> get( int idx, void** ) noexcept;
+  lua_expect<lightuserdata> get( int idx,
+                                 lightuserdata* ) noexcept;
   // This is done as light userdata.
-  base::maybe<char const*> get( int idx, char const** ) noexcept;
+  lua_expect<char const*> get( int idx, char const** ) noexcept;
 
   type lua_type_to_enum( int type ) noexcept;
 
@@ -655,7 +652,7 @@ void push( c_api& C, T&& o ) {
 
 // For convenience.
 template<typename T>
-base::maybe<T> get( c_api& C, int idx, tag<T> t ) {
+lua_expect<T> get( c_api& C, int idx, tag<T> t ) {
   return get( C.this_cthread(), idx, t );
 }
 

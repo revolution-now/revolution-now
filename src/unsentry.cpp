@@ -21,6 +21,9 @@ namespace rn {
 
 namespace {
 
+using ::base::maybe;
+using ::base::nothing;
+
 // Get all units in the eight squares that surround coord.
 bool has_surrounding_foreign_unit( SSConst const& ss,
                                    e_player player,

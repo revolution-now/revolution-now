@@ -18,10 +18,10 @@ using namespace std;
 
 namespace lua {
 
-base::maybe<rfunction> lua_get( cthread L, int idx,
-                                tag<rfunction> ) {
+lua_expect<rfunction> lua_get( cthread L, int idx,
+                               tag<rfunction> ) {
   lua::c_api C( L );
-  if( C.type_of( idx ) != type::function ) return base::nothing;
+  if( C.type_of( idx ) != type::function ) return unexpected{};
   // Copy the requested value to the top of the stack.
   C.pushvalue( idx );
   // Then pop it into a registry reference.

@@ -36,6 +36,8 @@ namespace rn {
 namespace {
 
 using ::base::generic_err;
+using ::base::maybe;
+using ::base::nothing;
 using ::gfx::point;
 
 constexpr GenericUnitId kFirstUnitId{ 1 };

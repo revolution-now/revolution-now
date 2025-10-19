@@ -36,6 +36,9 @@ using ::base::FmtVerticalMap;
 
 namespace {
 
+using ::base::maybe;
+using ::base::nothing;
+
 // Commodity quantity can be positive or negative.
 vector<UnitTransformationFromCommodity> unit_delta_commodity(
     UnitComposition const& comp, Commodity const& commodity ) {

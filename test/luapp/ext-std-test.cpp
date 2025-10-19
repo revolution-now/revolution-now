@@ -59,8 +59,8 @@ LUA_TEST_CASE( "[ext-std] std::monostate" ) {
 
   lua::push( L, 5 );
   lua::push( L, "hello" );
-  REQUIRE( lua::get<monostate>( L, -1 ) == base::nothing );
-  REQUIRE( lua::get<monostate>( L, -2 ) == base::nothing );
+  REQUIRE( lua::get<monostate>( L, -1 ) == unexpected{} );
+  REQUIRE( lua::get<monostate>( L, -2 ) == unexpected{} );
 
   C.pop( 3 );
 }
@@ -172,7 +172,7 @@ LUA_TEST_CASE( "[ext-std] tuple" ) {
     auto res = st["foo"].pcall<tuple<int, MyUserdata&>>( 42 );
     REQUIRE( !res.has_value() );
     REQUIRE_THAT(
-        res.error(),
+        res.error().msg,
         Matches(
             "native code expected type `std::.*tuple\\<int, "
             "lua::MyUserdata&\\>' as a return value \\(which "
@@ -266,7 +266,7 @@ LUA_TEST_CASE( "[ext-std] pair" ) {
     auto res = st["foo"].pcall<pair<int, MyUserdata&>>( 42 );
     REQUIRE( !res.has_value() );
     REQUIRE_THAT(
-        res.error(),
+        res.error().msg,
         Matches( "native code expected type `std::.*pair\\<int, "
                  "lua::MyUserdata&\\>' as a return value "
                  "\\(which requires 2 Lua values\\), but the "

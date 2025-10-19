@@ -5,7 +5,7 @@
 *
 * Created by dsicilia on 2021-07-25.
 *
-* Description: Lua Stackable implementation for std::monostate.
+* Description: Lua get/push implementation for std::monostate.
 *
 *****************************************************************/
 #include "ext-monostate.hpp"
@@ -22,10 +22,10 @@ void lua_push( cthread L, monostate const& ) {
   lua_push( L, nil );
 }
 
-base::maybe<monostate> lua_get( cthread L, int idx,
-                                tag<monostate> ) {
+lua_expect<monostate> lua_get( cthread L, int idx,
+                               tag<monostate> ) {
   c_api C( L );
-  if( C.type_of( idx ) != type::nil ) return base::nothing;
+  if( C.type_of( idx ) != type::nil ) return unexpected{};
   return monostate{};
 }
 

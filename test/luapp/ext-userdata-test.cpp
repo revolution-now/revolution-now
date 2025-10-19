@@ -127,8 +127,6 @@ namespace {
 
 using namespace std;
 
-using ::base::maybe;
-using ::base::nothing;
 using ::base::valid;
 using ::Catch::Matches;
 
@@ -179,25 +177,25 @@ LUA_TEST_CASE( "[ext-userdata] cpp owned" ) {
                   CppOwned o2 ) { return o0.n + o1.n + o2.n; };
   REQUIRE( as<int>( st["foo"]( o, o, o ) ) == 5 * 3 );
 
-  static_assert( !Pushable<maybe<CppOwned>> );
-  static_assert( Pushable<maybe<CppOwned&>> );
-  static_assert( !Pushable<maybe<CppOwned const&>> );
-  static_assert( !Gettable<maybe<CppOwned>> );
-  static_assert( Gettable<maybe<CppOwned&>> );
-  static_assert( Gettable<maybe<CppOwned const&>> );
-  static_assert( !StorageGettable<maybe<CppOwned>> );
-  static_assert( StorageGettable<maybe<CppOwned&>> );
-  static_assert( StorageGettable<maybe<CppOwned const&>> );
+  static_assert( !Pushable<lua_expect<CppOwned>> );
+  static_assert( Pushable<lua_expect<CppOwned&>> );
+  static_assert( !Pushable<lua_expect<CppOwned const&>> );
+  static_assert( !Gettable<lua_expect<CppOwned>> );
+  static_assert( Gettable<lua_expect<CppOwned&>> );
+  static_assert( Gettable<lua_expect<CppOwned const&>> );
+  static_assert( !StorageGettable<lua_expect<CppOwned>> );
+  static_assert( StorageGettable<lua_expect<CppOwned&>> );
+  static_assert( StorageGettable<lua_expect<CppOwned const&>> );
   static_assert(
-      !Castable<decltype( st["x"] ), maybe<CppOwned>> );
+      !Castable<decltype( st["x"] ), lua_expect<CppOwned>> );
   static_assert(
-      Castable<decltype( st["x"] ), maybe<CppOwned&>> );
-  static_assert(
-      Castable<decltype( st["x"] ), maybe<CppOwned const&>> );
+      Castable<decltype( st["x"] ), lua_expect<CppOwned&>> );
+  static_assert( Castable<decltype( st["x"] ),
+                          lua_expect<CppOwned const&>> );
 
-  REQUIRE( as<maybe<CppOwned&>>( st["foo"]( o, o, o ) ) ==
-           nothing );
-  REQUIRE( as<maybe<CppOwned&>>( st["x"] ).value().n == 5 );
+  REQUIRE( as<lua_expect<CppOwned&>>( st["foo"]( o, o, o ) ) ==
+           unexpected{} );
+  REQUIRE( as<lua_expect<CppOwned&>>( st["x"] ).value().n == 5 );
 }
 
 LUA_TEST_CASE( "[ext-userdata] cpp owned non copyable" ) {
@@ -253,28 +251,33 @@ LUA_TEST_CASE( "[ext-userdata] cpp owned non copyable" ) {
   };
   REQUIRE( as<int>( st["foo"]( o, o ) ) == 5 * 2 );
 
-  static_assert( !Pushable<maybe<CppOwnedNonCopyable>> );
-  static_assert( Pushable<maybe<CppOwnedNonCopyable&>> );
-  static_assert( !Pushable<maybe<CppOwnedNonCopyable const&>> );
-  static_assert( !Gettable<maybe<CppOwnedNonCopyable>> );
-  static_assert( Gettable<maybe<CppOwnedNonCopyable&>> );
-  static_assert( Gettable<maybe<CppOwnedNonCopyable const&>> );
-  static_assert( !StorageGettable<maybe<CppOwnedNonCopyable>> );
-  static_assert( StorageGettable<maybe<CppOwnedNonCopyable&>> );
+  static_assert( !Pushable<lua_expect<CppOwnedNonCopyable>> );
+  static_assert( Pushable<lua_expect<CppOwnedNonCopyable&>> );
   static_assert(
-      StorageGettable<maybe<CppOwnedNonCopyable const&>> );
+      !Pushable<lua_expect<CppOwnedNonCopyable const&>> );
+  static_assert( !Gettable<lua_expect<CppOwnedNonCopyable>> );
+  static_assert( Gettable<lua_expect<CppOwnedNonCopyable&>> );
+  static_assert(
+      Gettable<lua_expect<CppOwnedNonCopyable const&>> );
+  static_assert(
+      !StorageGettable<lua_expect<CppOwnedNonCopyable>> );
+  static_assert(
+      StorageGettable<lua_expect<CppOwnedNonCopyable&>> );
+  static_assert(
+      StorageGettable<lua_expect<CppOwnedNonCopyable const&>> );
   static_assert( !Castable<decltype( st["x"] ),
-                           maybe<CppOwnedNonCopyable>> );
+                           lua_expect<CppOwnedNonCopyable>> );
   static_assert( Castable<decltype( st["x"] ),
-                          maybe<CppOwnedNonCopyable&>> );
-  static_assert( Castable<decltype( st["x"] ),
-                          maybe<CppOwnedNonCopyable const&>> );
+                          lua_expect<CppOwnedNonCopyable&>> );
+  static_assert(
+      Castable<decltype( st["x"] ),
+               lua_expect<CppOwnedNonCopyable const&>> );
 
-  REQUIRE( as<maybe<CppOwnedNonCopyable&>>(
-               st["foo"]( o, o ) ) == nothing );
-  REQUIRE(
-      as<maybe<CppOwnedNonCopyable&>>( st["x"] ).value().n ==
-      5 );
+  REQUIRE( as<lua_expect<CppOwnedNonCopyable&>>(
+               st["foo"]( o, o ) ) == unexpected{} );
+  REQUIRE( as<lua_expect<CppOwnedNonCopyable&>>( st["x"] )
+               .value()
+               .n == 5 );
 }
 
 LUA_TEST_CASE( "[ext-userdata] lua owned" ) {
@@ -324,26 +327,26 @@ LUA_TEST_CASE( "[ext-userdata] lua owned" ) {
   REQUIRE( as<int>( st["foo"]( LuaOwned{}, LuaOwned{},
                                LuaOwned{} ) ) == 5 * 3 );
 
-  static_assert( Pushable<maybe<LuaOwned>> );
-  static_assert( !Pushable<maybe<LuaOwned&>> );
-  static_assert( !Pushable<maybe<LuaOwned const&>> );
-  static_assert( !Gettable<maybe<LuaOwned>> );
-  static_assert( Gettable<maybe<LuaOwned&>> );
-  static_assert( Gettable<maybe<LuaOwned const&>> );
-  static_assert( !StorageGettable<maybe<LuaOwned>> );
-  static_assert( StorageGettable<maybe<LuaOwned&>> );
-  static_assert( StorageGettable<maybe<LuaOwned const&>> );
+  static_assert( Pushable<lua_expect<LuaOwned>> );
+  static_assert( !Pushable<lua_expect<LuaOwned&>> );
+  static_assert( !Pushable<lua_expect<LuaOwned const&>> );
+  static_assert( !Gettable<lua_expect<LuaOwned>> );
+  static_assert( Gettable<lua_expect<LuaOwned&>> );
+  static_assert( Gettable<lua_expect<LuaOwned const&>> );
+  static_assert( !StorageGettable<lua_expect<LuaOwned>> );
+  static_assert( StorageGettable<lua_expect<LuaOwned&>> );
+  static_assert( StorageGettable<lua_expect<LuaOwned const&>> );
   static_assert(
-      !Castable<decltype( st["x"] ), maybe<LuaOwned>> );
+      !Castable<decltype( st["x"] ), lua_expect<LuaOwned>> );
   static_assert(
-      Castable<decltype( st["x"] ), maybe<LuaOwned&>> );
-  static_assert(
-      Castable<decltype( st["x"] ), maybe<LuaOwned const&>> );
+      Castable<decltype( st["x"] ), lua_expect<LuaOwned&>> );
+  static_assert( Castable<decltype( st["x"] ),
+                          lua_expect<LuaOwned const&>> );
 
-  REQUIRE( as<maybe<LuaOwned&>>( st["foo"](
+  REQUIRE( as<lua_expect<LuaOwned&>>( st["foo"](
                LuaOwned{}, LuaOwned{}, LuaOwned{} ) ) ==
-           nothing );
-  REQUIRE( as<maybe<LuaOwned&>>( st["x"] ).value().n == 5 );
+           unexpected{} );
+  REQUIRE( as<lua_expect<LuaOwned&>>( st["x"] ).value().n == 5 );
 }
 
 LUA_TEST_CASE( "[ext-userdata] lua owned non copyable" ) {
@@ -399,29 +402,34 @@ LUA_TEST_CASE( "[ext-userdata] lua owned non copyable" ) {
                                LuaOwnedNonCopyable{} ) ) ==
            5 * 2 );
 
-  static_assert( Pushable<maybe<LuaOwnedNonCopyable>> );
-  static_assert( !Pushable<maybe<LuaOwnedNonCopyable&>> );
-  static_assert( !Pushable<maybe<LuaOwnedNonCopyable const&>> );
-  static_assert( !Gettable<maybe<LuaOwnedNonCopyable>> );
-  static_assert( Gettable<maybe<LuaOwnedNonCopyable&>> );
-  static_assert( Gettable<maybe<LuaOwnedNonCopyable const&>> );
-  static_assert( !StorageGettable<maybe<LuaOwnedNonCopyable>> );
-  static_assert( StorageGettable<maybe<LuaOwnedNonCopyable&>> );
+  static_assert( Pushable<lua_expect<LuaOwnedNonCopyable>> );
+  static_assert( !Pushable<lua_expect<LuaOwnedNonCopyable&>> );
   static_assert(
-      StorageGettable<maybe<LuaOwnedNonCopyable const&>> );
+      !Pushable<lua_expect<LuaOwnedNonCopyable const&>> );
+  static_assert( !Gettable<lua_expect<LuaOwnedNonCopyable>> );
+  static_assert( Gettable<lua_expect<LuaOwnedNonCopyable&>> );
+  static_assert(
+      Gettable<lua_expect<LuaOwnedNonCopyable const&>> );
+  static_assert(
+      !StorageGettable<lua_expect<LuaOwnedNonCopyable>> );
+  static_assert(
+      StorageGettable<lua_expect<LuaOwnedNonCopyable&>> );
+  static_assert(
+      StorageGettable<lua_expect<LuaOwnedNonCopyable const&>> );
   static_assert( !Castable<decltype( st["x"] ),
-                           maybe<LuaOwnedNonCopyable>> );
+                           lua_expect<LuaOwnedNonCopyable>> );
   static_assert( Castable<decltype( st["x"] ),
-                          maybe<LuaOwnedNonCopyable&>> );
-  static_assert( Castable<decltype( st["x"] ),
-                          maybe<LuaOwnedNonCopyable const&>> );
+                          lua_expect<LuaOwnedNonCopyable&>> );
+  static_assert(
+      Castable<decltype( st["x"] ),
+               lua_expect<LuaOwnedNonCopyable const&>> );
 
-  REQUIRE( as<maybe<LuaOwnedNonCopyable&>>(
-               st["foo"]( LuaOwnedNonCopyable{},
-                          LuaOwnedNonCopyable{} ) ) == nothing );
-  REQUIRE(
-      as<maybe<LuaOwnedNonCopyable&>>( st["x"] ).value().n ==
-      5 );
+  REQUIRE( as<lua_expect<LuaOwnedNonCopyable&>>( st["foo"](
+               LuaOwnedNonCopyable{},
+               LuaOwnedNonCopyable{} ) ) == unexpected{} );
+  REQUIRE( as<lua_expect<LuaOwnedNonCopyable&>>( st["x"] )
+               .value()
+               .n == 5 );
 }
 
 } // namespace

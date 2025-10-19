@@ -30,10 +30,9 @@ rthread::rthread( lua::cthread L, int ref ) : any( L, ref ) {
   C.pop();
 }
 
-base::maybe<rthread> lua_get( cthread L, int idx,
-                              tag<rthread> ) {
+lua_expect<rthread> lua_get( cthread L, int idx, tag<rthread> ) {
   lua::c_api C( L );
-  if( C.type_of( idx ) != type::thread ) return base::nothing;
+  if( C.type_of( idx ) != type::thread ) return unexpected{};
   // Copy the requested value to the top of the stack.
   C.pushvalue( idx );
   return rthread( L, C.ref_registry() );

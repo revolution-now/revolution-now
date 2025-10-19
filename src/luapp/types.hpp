@@ -15,7 +15,6 @@
 #include "ext.hpp"
 
 // base
-#include "base/maybe.hpp"
 #include "base/safe-num.hpp"
 
 namespace lua {
@@ -107,10 +106,9 @@ struct lightuserdata : public base::safe::pointer<void> {
   // erwise the implicit conversion to void* causes {fmt} to
   // refuse to format it (even though it can format void point-
   // ers). It tests if the type (lightuserdata) can be converted
-  // to void* (which lightuserdata and maybe<lightuserdata> can
-  // be, and thus it probably thinks that it (lightuserdata) is
-  // some kind of non-void pointer, which it does not support
-  // formatting.
+  // to void* (which lightuserdata can be, and thus it probably
+  // thinks that it (lightuserdata) is some kind of non-void
+  // pointer, which it does not support formatting.
   operator void*() const noexcept = delete;
 };
 
@@ -150,19 +148,19 @@ struct type_traits<std::string_view> {
 /****************************************************************
 ** extension point: lua_get
 *****************************************************************/
-base::maybe<bool> lua_get( cthread L, int idx, tag<bool> );
-base::maybe<int> lua_get( cthread L, int idx, tag<int> );
-base::maybe<int64_t> lua_get( cthread L, int idx, tag<int64_t> );
-base::maybe<double> lua_get( cthread L, int idx, tag<double> );
-base::maybe<void*> lua_get( cthread L, int idx, tag<void*> );
-base::maybe<boolean> lua_get( cthread L, int idx, tag<boolean> );
-base::maybe<integer> lua_get( cthread L, int idx, tag<integer> );
-base::maybe<floating> lua_get( cthread L, int idx,
-                               tag<floating> );
-base::maybe<lightuserdata> lua_get( cthread L, int idx,
-                                    tag<lightuserdata> );
-base::maybe<std::string> lua_get( cthread L, int idx,
-                                  tag<std::string> );
+lua_expect<bool> lua_get( cthread L, int idx, tag<bool> );
+lua_expect<int> lua_get( cthread L, int idx, tag<int> );
+lua_expect<int64_t> lua_get( cthread L, int idx, tag<int64_t> );
+lua_expect<double> lua_get( cthread L, int idx, tag<double> );
+lua_expect<void*> lua_get( cthread L, int idx, tag<void*> );
+lua_expect<boolean> lua_get( cthread L, int idx, tag<boolean> );
+lua_expect<integer> lua_get( cthread L, int idx, tag<integer> );
+lua_expect<floating> lua_get( cthread L, int idx,
+                              tag<floating> );
+lua_expect<lightuserdata> lua_get( cthread L, int idx,
+                                   tag<lightuserdata> );
+lua_expect<std::string> lua_get( cthread L, int idx,
+                                 tag<std::string> );
 void lua_get( cthread L, int idx,
               tag<std::string_view> )                = delete;
 void lua_get( cthread L, int idx, tag<char const*> ) = delete;

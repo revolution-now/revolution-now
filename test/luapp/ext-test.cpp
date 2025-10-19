@@ -21,6 +21,8 @@
 
 namespace my_ns {
 
+using ::lua::lua_expect;
+
 struct SomethingInternal {
   using luapp_internal = void;
 };
@@ -40,8 +42,8 @@ struct Point {
     C.setfield( -2, "y" );
   }
 
-  friend base::maybe<Point> lua_get( lua::cthread L, int idx,
-                                     lua::tag<Point> ) {
+  friend lua_expect<Point> lua_get( lua::cthread L, int idx,
+                                    lua::tag<Point> ) {
     lua::c_api C( L );
     CHECK( C.type_of( idx ) == lua::type::table );
     C.getfield( idx, "x" );
@@ -67,8 +69,8 @@ struct NonPushableNonGettable {};
 
 struct Both {
   friend void lua_push( lua::cthread L, Both const& p );
-  friend base::maybe<Both> lua_get( lua::cthread L, int idx,
-                                    lua::tag<Both> );
+  friend lua_expect<Both> lua_get( lua::cthread L, int idx,
+                                   lua::tag<Both> );
 };
 
 // This is not so much to test push/get on references, it is to
@@ -82,7 +84,7 @@ struct ReffableViaAdl {
     push( L, (void*)&r );
   }
 
-  friend base::maybe<ReffableViaAdl&> lua_get(
+  friend lua_expect<ReffableViaAdl&> lua_get(
       lua::cthread L, int idx, lua::tag<ReffableViaAdl&> ) {
     lua::c_api C( L );
     CHECK( C.type_of( idx ) == lua::type::lightuserdata );
@@ -110,7 +112,7 @@ struct type_traits<my_ns::ReffableViaTraits> {
     lua::push( L, (void*)&r );
   }
 
-  static base::maybe<my_ns::ReffableViaTraits&> get(
+  static lua_expect<my_ns::ReffableViaTraits&> get(
       cthread L, int idx, tag<my_ns::ReffableViaTraits&> ) {
     lua::c_api C( L );
     CHECK( C.type_of( idx ) == lua::type::lightuserdata );
@@ -133,11 +135,11 @@ struct type_traits<my_ns::Pair<First, Second>> {
     lua::push( L, p.second );
   }
 
-  static base::maybe<P> get( cthread L, int idx, tag<P> ) {
-    base::maybe<First> fst  = lua::get<First>( L, idx - 1 );
-    base::maybe<Second> snd = lua::get<Second>( L, idx );
+  static lua_expect<P> get( cthread L, int idx, tag<P> ) {
+    lua_expect<First> fst  = lua::get<First>( L, idx - 1 );
+    lua_expect<Second> snd = lua::get<Second>( L, idx );
     if( !fst.has_value() || !snd.has_value() )
-      return base::nothing;
+      return unexpected{};
     return P{ .first = *fst, .second = *snd };
   }
 };
@@ -148,8 +150,8 @@ struct type_traits<my_ns::Both> {
 
   static void push( cthread L, my_ns::Both const& p );
 
-  static base::maybe<my_ns::Both> get( cthread L, int idx,
-                                       tag<my_ns::Both> );
+  static lua_expect<my_ns::Both> get( cthread L, int idx,
+                                      tag<my_ns::Both> );
 };
 
 } // namespace lua
@@ -159,14 +161,12 @@ namespace {
 
 using namespace std;
 
-using ::base::maybe;
-using ::base::nothing;
 using ::base::valid;
 using ::my_ns::Point;
 
 static_assert( LuappInternal<my_ns::SomethingInternal> );
 
-static_assert( !Stackable<my_ns::NonPushableNonGettable> );
+static_assert( !Gettable<my_ns::NonPushableNonGettable> );
 static_assert( !Pushable<my_ns::NonPushableNonGettable> );
 static_assert( !PushableViaAdl<my_ns::NonPushableNonGettable> );
 static_assert(
@@ -176,7 +176,8 @@ static_assert( !GettableViaAdl<my_ns::NonPushableNonGettable> );
 static_assert(
     !GettableViaTraits<my_ns::NonPushableNonGettable> );
 
-static_assert( !Stackable<my_ns::NonPushableNonGettable> );
+static_assert( !Pushable<my_ns::NonPushableNonGettable> );
+static_assert( !Gettable<my_ns::NonPushableNonGettable> );
 static_assert( !Pushable<my_ns::Both> );
 static_assert( PushableViaAdl<my_ns::Both> );
 static_assert( PushableViaTraits<my_ns::Both> );
@@ -186,7 +187,7 @@ static_assert( GettableViaTraits<my_ns::Both> );
 static_assert( !LuappInternal<my_ns::Both> );
 
 static_assert( !LuappInternal<my_ns::Point> );
-static_assert( Stackable<my_ns::Point> );
+static_assert( Gettable<my_ns::Point> );
 static_assert( Pushable<my_ns::Point> );
 static_assert( PushableViaAdl<my_ns::Point> );
 static_assert( !PushableViaTraits<my_ns::Point> );
@@ -195,7 +196,7 @@ static_assert( GettableViaAdl<my_ns::Point> );
 static_assert( !GettableViaTraits<my_ns::Point> );
 
 static_assert( !LuappInternal<my_ns::Pair<int, int>> );
-static_assert( Stackable<my_ns::Pair<int, int>> );
+static_assert( Gettable<my_ns::Pair<int, int>> );
 static_assert( Pushable<my_ns::Pair<int, int>> );
 static_assert( !PushableViaAdl<my_ns::Pair<int, int>> );
 static_assert( PushableViaTraits<my_ns::Pair<int, int>> );
@@ -203,9 +204,6 @@ static_assert( Gettable<my_ns::Pair<int, int>> );
 static_assert( !GettableViaAdl<my_ns::Pair<int, int>> );
 static_assert( GettableViaTraits<my_ns::Pair<int, int>> );
 
-static_assert(
-    !Stackable<
-        my_ns::Pair<int, my_ns::NonPushableNonGettable>> );
 static_assert(
     !Pushable<my_ns::Pair<int, my_ns::NonPushableNonGettable>> );
 static_assert(
@@ -247,7 +245,7 @@ LUA_TEST_CASE( "[ext] Point" ) {
   push( L, lua_point );
   REQUIRE( C.stack_size() == 1 );
   REQUIRE( C.type_of( -1 ) == type::table );
-  maybe<Point> m = get<Point>( L, -1 );
+  auto const m = get<Point>( L, -1 );
   REQUIRE( m.has_value() );
   C.pop();
   REQUIRE( C.stack_size() == 0 );
@@ -281,7 +279,7 @@ LUA_TEST_CASE( "[ext] Pair" ) {
   // bad get.
   REQUIRE( C.dostring( "return 'world', 'no', 9.3" ) == valid );
   REQUIRE( C.stack_size() == 3 );
-  REQUIRE( get<P>( L, -1 ) == nothing );
+  REQUIRE( get<P>( L, -1 ) == unexpected{} );
   C.pop( 3 );
   REQUIRE( C.stack_size() == 0 );
 
@@ -299,8 +297,7 @@ LUA_TEST_CASE( "[ext-base] ref via adl" ) {
   push( L, r );
   REQUIRE( C.stack_size() == 1 );
   REQUIRE( C.type_of( -1 ) == type::lightuserdata );
-  maybe<my_ns::ReffableViaAdl&> m2 =
-      get<my_ns::ReffableViaAdl&>( L, -1 );
+  auto const m2 = get<my_ns::ReffableViaAdl&>( L, -1 );
   REQUIRE( m2.has_value() );
   REQUIRE( m2->x == 9 );
 
@@ -313,8 +310,7 @@ LUA_TEST_CASE( "[ext-base] ref via traits" ) {
   push( L, r );
   REQUIRE( C.stack_size() == 1 );
   REQUIRE( C.type_of( -1 ) == type::lightuserdata );
-  maybe<my_ns::ReffableViaTraits&> m2 =
-      get<my_ns::ReffableViaTraits&>( L, -1 );
+  auto const m2 = get<my_ns::ReffableViaTraits&>( L, -1 );
   REQUIRE( m2.has_value() );
   REQUIRE( m2->x == 9 );
 
@@ -330,12 +326,12 @@ LUA_TEST_CASE( "[ext-base] get_or_luaerr" ) {
   };
 
   char const* const err =
-      "ext-test.cpp:328:error: failed to convert Lua type "
+      "ext-test.cpp:324:error: failed to convert Lua type "
       "`number' to native type `lua::rfunction'.\n"
       "stack traceback:\n"
       "\t[C]: in ?";
 
-  REQUIRE( _G["fn"].pcall( 7 ) == lua_invalid( err ) );
+  REQUIRE( _G["fn"].pcall( 7 ) == unexpected{ .msg = err } );
 }
 
 } // namespace

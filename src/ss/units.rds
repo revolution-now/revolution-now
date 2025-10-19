@@ -18,6 +18,9 @@ include "ss/native-unit.rds.hpp"
 # gfx
 include "gfx/coord.hpp"
 
+# base
+include "base/maybe.hpp"
+
 # C++ standard library
 include "<unordered_map>"
 
@@ -81,7 +84,7 @@ sumtype.UnitOwnership {
     # in turn, that value is not present (i.e. at the very start
     # of the game) then it will use the player's starting posi-
     # tion as a final fallback.
-    sailed_from 'maybe<Coord>',
+    sailed_from 'base::maybe<Coord>',
   },
   colony {
     id 'ColonyId',

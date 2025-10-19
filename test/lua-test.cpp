@@ -16,23 +16,26 @@
 #include "test/fake/world.hpp"
 
 // Revolution Now
-#include "expect.hpp"
-#include "imap-updater.hpp"
-#include "lua.hpp"
+#include "src/expect.hpp"
+#include "src/imap-updater.hpp"
+#include "src/lua.hpp"
 
 // ss
-#include "ss/root.hpp"
+#include "src/ss/root.hpp"
 
 // gfx
-#include "gfx/coord.hpp"
+#include "src/gfx/coord.hpp"
 
 // luapp
-#include "luapp/as.hpp"
-#include "luapp/error.hpp"
-#include "luapp/ext-base.hpp"
-#include "luapp/register.hpp"
-#include "luapp/rstring.hpp"
-#include "luapp/state.hpp"
+#include "src/luapp/as.hpp"
+#include "src/luapp/error.hpp"
+#include "src/luapp/ext-base.hpp"
+#include "src/luapp/register.hpp"
+#include "src/luapp/rstring.hpp"
+#include "src/luapp/state.hpp"
+
+// refl
+#include "src/refl/to-str.hpp"
 
 // Must be last.
 #include "catch-common.hpp"
@@ -42,8 +45,10 @@ namespace {
 
 using namespace std;
 
-using Catch::Contains;
-using Catch::Equals;
+using ::Catch::Contains;
+using ::Catch::Equals;
+using ::lua::lua_expect;
+using ::lua::unexpected;
 
 /****************************************************************
 ** Fake World Setup
@@ -77,7 +82,8 @@ TEST_CASE( "[lua] syntax error" ) {
 
   auto xp = st.script.run_safe( script );
   REQUIRE( !xp.valid() );
-  REQUIRE_THAT( xp.error(), Contains( "unexpected symbol" ) );
+  REQUIRE_THAT( xp.error().msg,
+                Contains( "unexpected symbol" ) );
 }
 
 TEST_CASE( "[lua] semantic error" ) {
@@ -89,18 +95,18 @@ TEST_CASE( "[lua] semantic error" ) {
 
   auto xp = st.script.run_safe( script );
   REQUIRE( !xp.valid() );
-  REQUIRE_THAT( xp.error(),
+  REQUIRE_THAT( xp.error().msg,
                 Contains( "attempt to perform arithmetic" ) );
 }
 
 TEST_CASE( "[lua] has base lib" ) {
   lua::state st;
   st.lib.open_all();
-  auto script = R"lua(
+  auto script           = R"lua(
     return tostring( 5 ) .. type( function() end )
   )lua";
-  REQUIRE( st.script.run_safe<lua::rstring>( script ) ==
-           "5function" );
+  lua::rstring const rs = st.string.create( "5function" );
+  REQUIRE( st.script.run_safe<lua::rstring>( script ) == rs );
 }
 
 TEST_CASE( "[lua] no implicit conversions from double to int" ) {
@@ -108,7 +114,13 @@ TEST_CASE( "[lua] no implicit conversions from double to int" ) {
   auto script = R"lua(
     return 5+8.5
   )lua";
-  REQUIRE( st.script.run_safe<maybe<int>>( script ) == nothing );
+  REQUIRE( st.script.run_safe<int>( script ) ==
+           unexpected{
+             .msg = "native code expected type `int' as a "
+                    "return value (which requires 1 Lua value), "
+                    "but the values returned by Lua were not "
+                    "convertible to that native type.  The Lua "
+                    "values received were: [number]." } );
 }
 
 TEST_CASE( "[lua] returns double" ) {
@@ -146,16 +158,17 @@ LUA_FN( coord_test, Coord, Coord const& coord ) {
   return new_coord;
 }
 
-LUA_FN( opt_test, maybe<string>, maybe<int> const& maybe_int ) {
+LUA_FN( opt_test, lua_expect<string>,
+        lua_expect<int> const& maybe_int ) {
   if( !maybe_int ) return "got nothing";
   int n = *maybe_int;
-  if( n < 5 ) return nothing;
+  if( n < 5 ) return unexpected{};
   if( n < 10 ) return "less than 10";
   return to_string( n );
 }
 
-LUA_FN( opt_test2, maybe<Coord>,
-        maybe<Coord> const& maybe_coord ) {
+LUA_FN( opt_test2, lua_expect<Coord>,
+        lua_expect<Coord> const& maybe_coord ) {
   if( !maybe_coord ) return Coord{ .x = 5, .y = 7 };
   return Coord{ .x = maybe_coord->x + 1,
                 .y = maybe_coord->y + 1 };
@@ -249,25 +262,25 @@ TEST_CASE( "[lua] after initialization" ) {
     auto xp = st.script.run_safe( "new_game = 1" );
     REQUIRE( !xp.valid() );
     REQUIRE_THAT(
-        xp.error(),
+        xp.error().msg,
         Contains( "attempt to modify a read-only global" ) );
 
     xp = st.script.run_safe( "new_game.x = 1" );
     REQUIRE( !xp.valid() );
     REQUIRE_THAT(
-        xp.error(),
+        xp.error().msg,
         Contains( "attempt to modify a read-only table:" ) );
 
     xp = st.script.run_safe( "unit_mgr = 1" );
     REQUIRE( !xp.valid() );
     REQUIRE_THAT(
-        xp.error(),
+        xp.error().msg,
         Contains( "attempt to modify a read-only global" ) );
 
     xp = st.script.run_safe( "unit_mgr.x = 1" );
     REQUIRE( !xp.valid() );
     REQUIRE_THAT(
-        xp.error(),
+        xp.error().msg,
         Contains( "attempt to modify a read-only table:" ) );
 
     REQUIRE( st.script.run_safe<int>( "x = 1; return x" ) == 1 );
@@ -286,7 +299,7 @@ TEST_CASE( "[lua] after initialization" ) {
     auto xp = st.script.run_safe<int>( script );
     REQUIRE( !xp.has_value() );
     REQUIRE_THAT(
-        xp.error(),
+        xp.error().msg,
         Contains( "x (which is 11) must be less than 10." ) );
   }
 
@@ -304,23 +317,36 @@ TEST_CASE( "[lua] after initialization" ) {
     )lua";
     REQUIRE( st.script.run_safe( script ) == valid );
 
-    REQUIRE( st.script.run_safe<maybe<string>>( "return nil" ) ==
-             nothing );
-    REQUIRE( st.script.run_safe<maybe<string>>(
+    REQUIRE(
+        st.script.run_safe<string>( "return nil" ) ==
+        unexpected{
+          .msg = "native code expected type "
+                 "`std::__cxx11::basic_string<char, "
+                 "std::char_traits<char>, std::allocator<char> "
+                 ">' as a return value (which requires 1 Lua "
+                 "value), but the values returned by Lua were "
+                 "not convertible to that native type.  The Lua "
+                 "values received were: [nil]." } );
+    REQUIRE( st.script.run_safe<lua_expect<string>>(
                  "return 'hello'" ) == "hello" );
-    REQUIRE( st.script.run_safe<maybe<int>>(
-                 "return 'hello'" ) == nothing );
+    REQUIRE(
+        st.script.run_safe<int>( "return 'hello'" ) ==
+        unexpected{
+          .msg = "native code expected type `int' as a return "
+                 "value (which requires 1 Lua value), but the "
+                 "values returned by Lua were not convertible "
+                 "to that native type.  The Lua values received "
+                 "were: [string]." } );
 
     // Coord
-    REQUIRE( st.script.run_safe<maybe<Coord>>( "return nil" ) ==
-             nothing );
-    REQUIRE( st.script.run_safe<maybe<Coord>>(
-                 "return {x=9, y=8}" ) ==
+    REQUIRE(
+        st.script.run_safe<Coord>( "return nil" ).has_error() );
+    REQUIRE( st.script.run_safe<Coord>( "return {x=9, y=8}" ) ==
              Coord{ .x = 9, .y = 8 } );
-    REQUIRE( st.script.run_safe<maybe<Coord>>(
-                 "return 'hello'" ) == nothing );
-    REQUIRE( st.script.run_safe<maybe<Coord>>( "return 5" ) ==
-             nothing );
+    REQUIRE( st.script.run_safe<Coord>( "return 'hello'" )
+                 .has_error() );
+    REQUIRE(
+        st.script.run_safe<Coord>( "return 5" ).has_error() );
   }
 }
 
@@ -329,27 +355,28 @@ TEST_CASE( "[lua] rawset is locked down" ) {
   // `id` is locked down.
   auto xp = st.script.run_safe( "rawset( _ENV, 'id', 3 )" );
   REQUIRE( !xp.valid() );
-  REQUIRE_THAT( xp.error(), Contains( "nil value" ) );
+  REQUIRE_THAT( xp.error().msg, Contains( "nil value" ) );
 
   // `xxx` is not locked down, but rawset should fail for any
   // key.
   xp = st.script.run_safe( "rawset( _ENV, 'xxx', 3 )" );
   REQUIRE( !xp.valid() );
-  REQUIRE_THAT( xp.error(), Contains( "nil value" ) );
+  REQUIRE_THAT( xp.error().msg, Contains( "nil value" ) );
 }
 
-// Test the o.as<maybe<?>>() constructs. This tests the custom
-// handlers that we've defined for maybe<>.
-TEST_CASE( "[lua] get as maybe" ) {
+// Test the o.as<lua_expect<?>>() constructs. This tests the
+// custom handlers that we've defined for lua_expect<>.
+TEST_CASE( "[lua] get as lua_expect" ) {
   lua::state st;
   st["func"] = []( lua::any o ) -> string {
     if( o == lua::nil ) return "nil";
     if( lua::type_of( o ) == lua::type::string ) {
       return lua::as<string>( o ) + "!";
-    } else if( auto maybe_double = lua::as<maybe<double>>( o );
+    } else if( auto maybe_double =
+                   lua::as<lua_expect<double>>( o );
                maybe_double.has_value() ) {
       return fmt::format( "a double: {}", *maybe_double );
-    } else if( auto maybe_bool = lua::as<maybe<bool>>( o );
+    } else if( auto maybe_bool = lua::as<lua_expect<bool>>( o );
                maybe_bool.has_value() ) {
       return fmt::format( "a bool: {}", *maybe_bool );
     } else {
@@ -362,7 +389,7 @@ TEST_CASE( "[lua] get as maybe" ) {
   REQUIRE( lua::as<string>( st["func"]( true ) ) ==
            "a bool: true" );
 
-  REQUIRE( lua::as<maybe<string>>( st["func"]( false ) ) ==
+  REQUIRE( lua::as<lua_expect<string>>( st["func"]( false ) ) ==
            "a bool: false" );
 }
 

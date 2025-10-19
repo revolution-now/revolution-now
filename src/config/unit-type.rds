@@ -22,6 +22,9 @@ include "gfx/cartesian.rds.hpp"
 # refl
 include "refl/enum-map.hpp"
 
+# base
+include "base/maybe.hpp"
+
 # C++ standard library
 include "<unordered_set>"
 
@@ -280,7 +283,7 @@ struct.UnitTypeAttributes {
   # e.g. an expert farmer can be made into a soldier. It is for
   # those cases like a soldier or pioneer when the type (derived
   # type in that case) determines an inherent activity.
-  type_activity 'maybe<e_unit_activity>',
+  type_activity 'base::maybe<e_unit_activity>',
 
   # Can this unit type be obtained from a base type plus some
   # modifiers?

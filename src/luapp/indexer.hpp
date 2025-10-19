@@ -24,7 +24,6 @@
 #include "base/adl-tag.hpp"
 #include "base/error.hpp"
 #include "base/macros.hpp"
-#include "base/maybe.hpp"
 
 // C++ standard library
 #include <utility>

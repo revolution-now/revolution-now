@@ -56,15 +56,15 @@ requires Castable<From, To> && HasCthread<From>
   return as<To>( L, FWD( from ), loc );
 }
 
-// Wraps the type in a maybe<...> so that it won't throw errors
-// if the conversion does not succeed (maybe has a type_traits
-// specialization that makes this happen).
+// Wraps the type in a lua_expect<...> so that it won't throw er-
+// rors if the conversion does not succeed (lua_expect has a
+// type_traits specialization that makes this happen).
 template<typename To, typename From>
 requires Castable<From, To>
 [[nodiscard]] auto safe_as(
     From&& from, std::source_location loc =
                      std::source_location::current() ) {
-  return as<base::maybe<To>>( FWD( from ), loc );
+  return as<lua_expect<To>>( FWD( from ), loc );
 }
 
 } // namespace lua

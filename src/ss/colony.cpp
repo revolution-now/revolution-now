@@ -45,6 +45,9 @@ namespace rn {
 
 namespace {
 
+using ::base::maybe;
+using ::base::nothing;
+
 // This should be called at the end of any non-const member func-
 // tion that can edit the jobs/units maps.
 void validate_job_maps( Colony const& colony ) {

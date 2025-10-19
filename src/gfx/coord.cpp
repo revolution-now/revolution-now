@@ -482,16 +482,15 @@ Delta operator/( Delta const& lhs, Delta const& rhs ) {
 /****************************************************************
 ** Lua
 *****************************************************************/
-base::maybe<Coord> lua_get( lua::cthread L, int idx,
-                            lua::tag<Coord> ) {
+lua::lua_expect<Coord> lua_get( lua::cthread L, int idx,
+                                lua::tag<Coord> ) {
   auto st = lua::state::view( L );
 
-  base::maybe<lua::table> maybe_t =
-      lua::get<lua::table>( L, idx );
-  if( !maybe_t.has_value() ) return base::nothing;
-  lua::table& t = *maybe_t;
+  auto expect_tbl = lua::get<lua::table>( L, idx );
+  if( !expect_tbl.has_value() ) return lua::unexpected{};
+  lua::table& t = *expect_tbl;
   if( t["x"] == lua::nil || t["y"] == lua::nil )
-    return base::nothing;
+    return lua::unexpected{};
   Coord coord{ lua::as<X>( t["x"] ), lua::as<Y>( t["y"] ) };
   return coord;
 }
@@ -506,16 +505,15 @@ void lua_push( lua::cthread L, Coord const& coord ) {
   lua::push( L, t );
 }
 
-base::maybe<Delta> lua_get( lua::cthread L, int idx,
-                            lua::tag<Delta> ) {
+lua::lua_expect<Delta> lua_get( lua::cthread L, int idx,
+                                lua::tag<Delta> ) {
   auto st = lua::state::view( L );
 
-  base::maybe<lua::table> maybe_t =
-      lua::get<lua::table>( L, idx );
-  if( !maybe_t.has_value() ) return base::nothing;
-  lua::table& t = *maybe_t;
+  auto expect_tbl = lua::get<lua::table>( L, idx );
+  if( !expect_tbl.has_value() ) return lua::unexpected{};
+  lua::table& t = *expect_tbl;
   if( t["w"] == lua::nil || t["h"] == lua::nil )
-    return base::nothing;
+    return lua::unexpected{};
   Delta delta{ lua::as<W>( t["w"] ), lua::as<H>( t["h"] ) };
   return delta;
 }

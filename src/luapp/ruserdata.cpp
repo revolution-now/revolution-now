@@ -19,10 +19,10 @@ using namespace std;
 
 namespace lua {
 
-base::maybe<userdata> lua_get( cthread L, int idx,
-                               tag<userdata> ) {
+lua_expect<userdata> lua_get( cthread L, int idx,
+                              tag<userdata> ) {
   lua::c_api C( L );
-  if( C.type_of( idx ) != type::userdata ) return base::nothing;
+  if( C.type_of( idx ) != type::userdata ) return unexpected{};
   // Copy the requested value to the top of the stack.
   C.pushvalue( idx );
   // Then pop it into a registry reference.

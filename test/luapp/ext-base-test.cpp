@@ -45,8 +45,8 @@ struct Reffable {
     push( L, (void*)&r );
   }
 
-  friend base::maybe<Reffable&> lua_get( lua::cthread L, int idx,
-                                         lua::tag<Reffable&> ) {
+  friend lua_expect<Reffable&> lua_get( lua::cthread L, int idx,
+                                        lua::tag<Reffable&> ) {
     lua::c_api C( L );
     CHECK( C.type_of( idx ) == type::lightuserdata );
     UNWRAP_RETURN( m, C.get<void*>( idx ) );
@@ -99,7 +99,7 @@ LUA_TEST_CASE( "[ext-base] maybe push" ) {
 LUA_TEST_CASE( "[ext-base] maybe get" ) {
   SECTION( "nil" ) {
     push( L, nil );
-    maybe<maybe<int>> m = get<maybe<int>>( L, -1 );
+    lua_expect<maybe<int>> m = get<maybe<int>>( L, -1 );
     REQUIRE( m.has_value() );
     REQUIRE( *m == nothing );
     C.pop();
@@ -107,7 +107,7 @@ LUA_TEST_CASE( "[ext-base] maybe get" ) {
 
   SECTION( "something" ) {
     push( L, 9 );
-    maybe<maybe<int>> m = get<maybe<int>>( L, -1 );
+    lua_expect<maybe<int>> m = get<maybe<int>>( L, -1 );
     REQUIRE( m.has_value() );
     REQUIRE( m->has_value() );
     REQUIRE( **m == 9 );
@@ -122,7 +122,7 @@ LUA_TEST_CASE( "[ext-base] maybe ref" ) {
   push( L, m );
   REQUIRE( C.stack_size() == 1 );
   REQUIRE( C.type_of( -1 ) == type::lightuserdata );
-  maybe<Reffable&> m2 = get<Reffable&>( L, -1 );
+  lua_expect<Reffable&> const m2 = get<Reffable&>( L, -1 );
   REQUIRE( m2.has_value() );
   REQUIRE( m2->x == 9 );
 

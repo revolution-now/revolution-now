@@ -212,7 +212,7 @@ R call_lua_unsafe_and_get( cthread L, Args&&... args ) {
   if constexpr( !std::is_same_v<R, void> ) {
     // Should consume the nvalues starting at index (-1). Typi-
     // cally this will just be one value, but could be more.
-    base::maybe<R> res = lua::get<R>( L, -1 );
+    lua_expect<R> res = lua::get<R>( L, -1 );
     if( !res.has_value() )
       internal::throw_lua_error_bad_return_values(
           L, nresults, base::demangled_typename<R>() );
@@ -235,12 +235,12 @@ error_type_for_return_type<R> call_lua_safe_and_get(
   if constexpr( !std::is_same_v<R, void> ) {
     // Should consume the nvalues starting at index (-1). Typi-
     // cally this will just be one value, but could be more.
-    base::maybe<R> res = lua::get<R>( L, -1 );
+    lua_expect<R> res = lua::get<R>( L, -1 );
     if( !res.has_value() ) {
       std::string msg = internal::lua_error_bad_return_values(
           L, nresults, base::demangled_typename<R>() );
       internal::pop_call_results( L, nresults );
-      return lua_unexpected<R>( std::move( msg ) );
+      return unexpected{ .msg = std::move( msg ) };
     }
     internal::pop_call_results( L, nresults );
     return std::move( *res );
@@ -267,7 +267,7 @@ call_lua_resume_safe_and_get( cthread L_toresume,
   if constexpr( !std::is_same_v<R, void> ) {
     // Should consume the nvalues starting at index (-1). Typi-
     // cally this will just be one value, but could be more.
-    base::maybe<R> ret_val = lua::get<R>( L_toresume, -1 );
+    lua_expect<R> ret_val = lua::get<R>( L_toresume, -1 );
     if( !ret_val.has_value() ) {
       std::string msg = internal::lua_error_bad_return_values(
           L_toresume, nresults_needed,
@@ -280,8 +280,7 @@ call_lua_resume_safe_and_get( cthread L_toresume,
       // because we reset it when there is an error while running
       // the coroutine.
       (void)internal::resetthread( L_toresume );
-      return lua_unexpected<resume_result_with_value<R>>(
-          std::move( msg ) );
+      return unexpected{ .msg = std::move( msg ) };
     }
     internal::pop_call_results( L_toresume, nresults_needed );
     return resume_result_with_value<R>{
