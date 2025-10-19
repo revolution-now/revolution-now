@@ -74,13 +74,13 @@ private:
       ... );
     if( failed ) return unexpected{};
 
-    auto get_maybe =
+    auto get_expect =
         [&]<size_t I>( std::integral_constant<size_t, I> )
         -> decltype( auto ) {
       return *std::get<I>( tuple_of_expects );
     };
     return std::tuple<Ts...>{
-      get_maybe( std::integral_constant<size_t, Idx>{} )... };
+      get_expect( std::integral_constant<size_t, Idx>{} )... };
   }
 };
 
