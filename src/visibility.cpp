@@ -20,6 +20,7 @@
 
 // config
 #include "config/fathers.rds.hpp"
+#include "config/land-view.rds.hpp"
 #include "config/unit-type.hpp"
 
 // ss
@@ -353,13 +354,20 @@ vector<Coord> unit_visible_squares( SSConst const& ss,
     maybe<MapSquare const&> square =
         terrain.maybe_square_at( coord );
     if( !square.has_value() ) continue;
-    if( abs( tile.x - coord.x ) > 1 ||
-        abs( tile.y - coord.y ) > 1 ) {
+    if( !tile.cdirection_to( coord ).has_value() ) {
       // The tiles beyond the immediately adjacent are only vis-
       // ible if their surface type matches that of the unit, re-
       // gardless of the unit's sight radius (the original game
       // does this).
-      if( ship == is_land( *square ) ) continue;
+      if( ship != is_water( *square ) ) continue;
+      if( !config_land_view.visibility
+               .land_unit_visibility_crosses_continents &&
+          !ship ) {
+#if 0
+        if( !tiles_are_connected( connectivity, tile, coord ) )
+          continue;
+#endif
+      }
     }
     res.push_back( coord );
   }
