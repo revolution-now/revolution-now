@@ -47,6 +47,7 @@ using namespace std;
 
 using ::Catch::Contains;
 using ::Catch::Equals;
+using ::Catch::Matches;
 using ::lua::lua_expect;
 using ::lua::unexpected;
 
@@ -317,18 +318,17 @@ TEST_CASE( "[lua] after initialization" ) {
     )lua";
     REQUIRE( st.script.run_safe( script ) == valid );
 
-    REQUIRE(
-        st.script.run_safe<string>( "return nil" ) ==
-        unexpected{
-          .msg = "native code expected type "
-                 "`std::__cxx11::basic_string<char, "
-                 "std::char_traits<char>, std::allocator<char> "
-                 ">' as a return value (which requires 1 Lua "
-                 "value), but the values returned by Lua were "
-                 "not convertible to that native type.  The Lua "
-                 "values received were: [nil]." } );
+    REQUIRE_THAT(
+        st.script.run_safe<string>( "return nil" ).error().msg,
+        Matches( "native code expected type.*string.* as a "
+                 "return value \\(which requires 1 Lua "
+                 "value\\), but the values returned by Lua were "
+                 "not convertible to that native type\\.  The "
+                 "Lua values received were: \\[nil\\]\\." ) );
+
     REQUIRE( st.script.run_safe<lua_expect<string>>(
                  "return 'hello'" ) == "hello" );
+
     REQUIRE(
         st.script.run_safe<int>( "return 'hello'" ) ==
         unexpected{
