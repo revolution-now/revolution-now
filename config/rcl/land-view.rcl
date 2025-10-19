@@ -60,3 +60,38 @@ scrolling {
   # range [0, .3]. Setting to 0.0 will disable said scrolling.
   edge_thickness_percent: 0.1
 }
+
+visibility {
+  # In the OG, land units do not have visibility onto other con-
+  # tinents, even when they have an extended sighting radius
+  # (e.g. scouts) that would otherwise allow them to see the land
+  # tiles on a nearby continent. There are two downsides to this:
+  #
+  #   1. It leaks information to the player about which land
+  #      tiles are on a continent other than the one with the
+  #      unit, which is information that they might not otherwise
+  #      have had without further exploration.
+  #   2. It is inconsistent in a sense, since if you have a land
+  #      mass with a long and narrow body of water which is only
+  #      one tile wide, a scout can see the land tiles on the
+  #      other side of it if they are part of the same continent,
+  #      but cannot see tiles that same distance away if they are
+  #      on a different continent, which is a bit strange as the
+  #      "continent" in which a tile resides is not itself a
+  #      physical property of the tile.
+  #
+  # Perhaps this is an example of how game rules don't have to be
+  # realistic or logical in order to improve the game. For exam-
+  # ple, Scouts, which can have a sighting radius up to 3 with De
+  # Soto, might have too much visibility onto other nearby conti-
+  # nents, making ship exploration less imperative. For that rea-
+  # son, and the fact that it may have an impact on gameplay we
+  # default to the OG's behavior where visibiity never crosses
+  # onto other continents.
+  #
+  # This can be safely turned on in order to change that behav-
+  # ior, thereby making tile visibility only a function of dis-
+  # tance from the unit (as well as land/water status) as opposed
+  # to continent status.
+  land_unit_visibility_crosses_continents: false
+}

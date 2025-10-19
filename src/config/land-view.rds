@@ -48,6 +48,10 @@ struct.Camera {
   _features { equality, validation }
 }
 
+struct.Visibility {
+  land_unit_visibility_crosses_continents 'bool',
+}
+
 namespace "rn"
 
 struct.config_land_view_t {
@@ -61,6 +65,8 @@ struct.config_land_view_t {
   camera 'config::land_view::Camera',
 
   scrolling 'config::land_view::Scrolling',
+
+  visibility 'config::land_view::Visibility',
 }
 
 config.land_view {}
