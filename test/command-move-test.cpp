@@ -97,13 +97,9 @@ struct world : testing::World {
 // to ocean and that it can move from the land square onto the
 // ocean. This can happen if the ship in the port of a colony.
 TEST_CASE( "[command-move] ship can move from land to ocean" ) {
-#ifdef COMPILER_GCC
-  return;
-#endif
   world W;
   MockLandViewPlane mock_land_view;
   W.planes().get().set_bottom<ILandViewPlane>( mock_land_view );
-  W.update_terrain_connectivity();
   Player& player = W.default_player();
   UnitId id      = W.add_unit_on_map( e_unit_type::galleon,
                                       Coord{ .x = 1, .y = 1 } )
@@ -151,7 +147,6 @@ TEST_CASE( "[command-move] ship can move from land to ocean" ) {
 
 TEST_CASE( "[command-move] ship can't move into inland lake" ) {
   world W;
-  W.update_terrain_connectivity();
   Player& player = W.default_player();
   UnitId id      = W.add_unit_on_map( e_unit_type::galleon,
                                       Coord{ .x = 4, .y = 2 } )
@@ -692,7 +687,6 @@ TEST_CASE(
 TEST_CASE(
     "[command-move] sailing the high seas after declaring" ) {
   world w;
-  w.update_terrain_connectivity();
   MockLandViewPlane mock_land_view;
   MockIAgent& agent = w.agent();
   w.planes().get().set_bottom<ILandViewPlane>( mock_land_view );
@@ -836,7 +830,6 @@ TEST_CASE(
 
 TEST_CASE( "[command-move] goto: high seas via sea lane" ) {
   world w;
-  w.update_terrain_connectivity();
   MockLandViewPlane mock_land_view;
   MockIAgent& agent = w.agent();
   w.planes().get().set_bottom<ILandViewPlane>( mock_land_view );

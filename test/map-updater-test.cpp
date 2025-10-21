@@ -14,6 +14,9 @@
 // Testing
 #include "test/fake/world.hpp"
 
+// Revolution Now
+#include "src/connectivity.hpp"
+
 // ss
 #include "src/ss/ref.hpp"
 #include "src/ss/terrain.hpp"
@@ -68,7 +71,12 @@ TEST_CASE(
     "[map-updater] "
     "NonRenderingMapUpdater::make_squares_fogged" ) {
   World W;
-  NonRenderingMapUpdater map_updater( W.ss() );
+  // Here we don't use the one inside the World object because we
+  // are testing the map updater itself and so we are con-
+  // structing our own. In most tests you should not need to
+  // create your own connectivity or map updater.
+  TerrainConnectivity connectivity;
+  NonRenderingMapUpdater map_updater( W.ss(), connectivity );
   vector<BuffersUpdated> expected_buffers;
   e_player const player = W.default_player_type();
   PlayerTerrain& player_terrain =
@@ -168,7 +176,12 @@ TEST_CASE(
     "[map-updater] "
     "NonRenderingMapUpdater::make_squares_visible" ) {
   World W;
-  NonRenderingMapUpdater map_updater( W.ss() );
+  // Here we don't use the one inside the World object because we
+  // are testing the map updater itself and so we are con-
+  // structing our own. In most tests you should not need to
+  // create your own connectivity or map updater.
+  TerrainConnectivity connectivity;
+  NonRenderingMapUpdater map_updater( W.ss(), connectivity );
   vector<BuffersUpdated> expected_buffers;
   e_player player = W.default_player_type();
   PlayerTerrain& player_terrain =
@@ -254,7 +267,12 @@ TEST_CASE(
 TEST_CASE(
     "[map-updater] NonRenderingMapUpdater::modify_map_square" ) {
   World W;
-  NonRenderingMapUpdater map_updater( W.ss() );
+  // Here we don't use the one inside the World object because we
+  // are testing the map updater itself and so we are con-
+  // structing our own. In most tests you should not need to
+  // create your own connectivity or map updater.
+  TerrainConnectivity connectivity;
+  NonRenderingMapUpdater map_updater( W.ss(), connectivity );
   e_player const player = e_player::dutch;
   BuffersUpdated expected_buffers;
   auto* mutator    = +[]( MapSquare& ) {};
@@ -388,7 +406,12 @@ TEST_CASE(
     "[map-updater] "
     "NonRenderingMapUpdater::modify_entire_square" ) {
   World W;
-  NonRenderingMapUpdater map_updater( W.ss() );
+  // Here we don't use the one inside the World object because we
+  // are testing the map updater itself and so we are con-
+  // structing our own. In most tests you should not need to
+  // create your own connectivity or map updater.
+  TerrainConnectivity connectivity;
+  NonRenderingMapUpdater map_updater( W.ss(), connectivity );
   Coord const tile = { .x = 1, .y = 1 };
 
   MapSquare& real_square = W.square( tile );
@@ -433,7 +456,12 @@ TEST_CASE(
 // states of visible, hidden, and fog.
 TEST_CASE( "[map-updater] fog of war" ) {
   World W;
-  NonRenderingMapUpdater map_updater( W.ss() );
+  // Here we don't use the one inside the World object because we
+  // are testing the map updater itself and so we are con-
+  // structing our own. In most tests you should not need to
+  // create your own connectivity or map updater.
+  TerrainConnectivity connectivity;
+  NonRenderingMapUpdater map_updater( W.ss(), connectivity );
   vector<BuffersUpdated> expected;
   e_player const player = W.default_player_type();
   PlayerTerrain& player_terrain =
@@ -572,7 +600,12 @@ TEST_CASE(
     "[map-updater] "
     "NonRenderingMapUpdater::force_redraw_tiles" ) {
   World W;
-  NonRenderingMapUpdater map_updater( W.ss() );
+  // Here we don't use the one inside the World object because we
+  // are testing the map updater itself and so we are con-
+  // structing our own. In most tests you should not need to
+  // create your own connectivity or map updater.
+  TerrainConnectivity connectivity;
+  NonRenderingMapUpdater map_updater( W.ss(), connectivity );
   vector<BuffersUpdated> expected;
   Coord const coord1 = { .x = 0, .y = 0 };
   Coord const coord2 = { .x = 1, .y = 0 };
@@ -580,6 +613,11 @@ TEST_CASE(
   expected = {};
   REQUIRE( map_updater.force_redraw_tiles(
                { coord1, coord2 } ) == expected );
+}
+
+TEST_CASE(
+    "[map-updater] NonRenderingMapUpdater connectivity" ) {
+  World w;
 }
 
 } // namespace

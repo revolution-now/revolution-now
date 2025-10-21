@@ -22,6 +22,7 @@
 
 // Revolution Now
 #include "src/harbor-units.hpp"
+#include "src/imap-updater.hpp"
 
 // ss
 #include "src/ss/colonies.hpp"
@@ -257,13 +258,13 @@ TEST_CASE( "[declare] show_declare_rejection_msg" ) {
 
 TEST_CASE( "[declare] ask_declare" ) {
   world w;
-  w.update_terrain_connectivity();
 
   w.add_player( e_player::french );
 
   auto const f = [&] {
     return co_await_test( ask_declare(
-        w.ss(), w.gui(), w.connectivity(), w.french() ) );
+        w.ss(), w.gui(), w.map_updater().connectivity(),
+        w.french() ) );
   };
 
   point const kInland = { .x = 4, .y = 1 };

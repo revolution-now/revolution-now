@@ -856,9 +856,9 @@ TEST_CASE( "[colony-mgr] is_valid_new_colony_name" ) {
 
 TEST_CASE( "[colony-mgr] find_coastal_colonies" ) {
   world w;
-  w.update_terrain_connectivity();
 
-  TerrainConnectivity const& connectivity = w.connectivity();
+  TerrainConnectivity const& connectivity =
+      w.map_updater().connectivity();
 
   auto const f = [&] {
     return find_coastal_colonies( w.ss(), connectivity,

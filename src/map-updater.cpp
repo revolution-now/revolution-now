@@ -11,6 +11,7 @@
 #include "map-updater.hpp"
 
 // Revolution Now
+#include "connectivity.hpp"
 #include "depletion.hpp"
 #include "fog-conv.hpp"
 #include "render-terrain.hpp"
@@ -50,11 +51,16 @@ using unexplored = PlayerSquare::unexplored;
 ** NonRenderingMapUpdater
 *****************************************************************/
 NonRenderingMapUpdater::NonRenderingMapUpdater(
-    SS& ss, MapUpdaterOptions const& initial_options )
-  : IMapUpdater( initial_options ), ss_( ss ) {}
+    SS& ss, TerrainConnectivity& connectivity,
+    MapUpdaterOptions const& initial_options )
+  : IMapUpdater( initial_options ),
+    ss_( ss ),
+    connectivity_( connectivity ) {}
 
-NonRenderingMapUpdater::NonRenderingMapUpdater( SS& ss )
-  : NonRenderingMapUpdater( ss, MapUpdaterOptions{} ) {}
+NonRenderingMapUpdater::NonRenderingMapUpdater(
+    SS& ss, TerrainConnectivity& connectivity )
+  : NonRenderingMapUpdater( ss, connectivity,
+                            MapUpdaterOptions{} ) {}
 
 BuffersUpdated NonRenderingMapUpdater::modify_map_square(
     Coord tile, SquareUpdateFunc mutator ) {
@@ -63,6 +69,8 @@ BuffersUpdated NonRenderingMapUpdater::modify_map_square(
       tile ) );
   MapSquare const& new_square = ss_.terrain.square_at( tile );
   remove_depletion_counter_if_needed( ss_, tile );
+  if( new_square.surface != old_square.surface )
+    set_connectivity_dirty();
   // Check if the rendered map needs its buffer updated.
   return BuffersUpdated{
     .tile      = tile,
@@ -170,6 +178,23 @@ NonRenderingMapUpdater::make_squares_fogged(
   return res;
 }
 
+bool NonRenderingMapUpdater::is_connectivity_dirty() const {
+  return connectivity_.x_size == 0;
+}
+
+void NonRenderingMapUpdater::set_connectivity_dirty() {
+  connectivity_ = {};
+  CHECK( is_connectivity_dirty() );
+}
+
+TerrainConnectivity const&
+NonRenderingMapUpdater::connectivity() {
+  if( is_connectivity_dirty() )
+    connectivity_ = compute_terrain_connectivity( ss_ );
+  CHECK( !is_connectivity_dirty() );
+  return connectivity_;
+}
+
 vector<BuffersUpdated>
 NonRenderingMapUpdater::force_redraw_tiles(
     vector<Coord> const& ) {
@@ -182,6 +207,7 @@ void NonRenderingMapUpdater::modify_entire_map_no_redraw(
   // Go over the entire map and remove any depletion counter that
   // is set for a tile for which it is no longer relevant.
   remove_depletion_counters_where_needed( ss_ );
+  set_connectivity_dirty();
 }
 
 void NonRenderingMapUpdater::redraw() {}
@@ -192,9 +218,10 @@ void NonRenderingMapUpdater::unrender() {}
 ** RenderingMapUpdater
 *****************************************************************/
 RenderingMapUpdater::RenderingMapUpdater(
-    SS& ss, rr::Renderer& renderer,
+    SS& ss, TerrainConnectivity& connectivity,
+    rr::Renderer& renderer,
     MapUpdaterOptions const& initial_options )
-  : NonRenderingMapUpdater( ss, initial_options ),
+  : NonRenderingMapUpdater( ss, connectivity, initial_options ),
     renderer_( renderer ),
     landscape_tracking_( ss.terrain.world_size_tiles() ),
     obfuscation_tracking_( ss.terrain.world_size_tiles() ) {

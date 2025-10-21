@@ -118,13 +118,6 @@ SS& World::ss() { return *ss_; }
 SSConst const& World::ss() const { return *ss_const_; }
 SS& World::ss_saved() { return *ss_saved_; }
 
-TerrainConnectivity const& World::connectivity() const {
-  return *connectivity_;
-}
-TerrainConnectivity& World::connectivity() {
-  return *connectivity_;
-}
-
 NativeAgents& World::native_agents() {
   if( uninitialized_native_agents_ == nullptr )
     uninitialized_native_agents_ = [] {
@@ -219,10 +212,10 @@ namespace {
 // they currently store a reference to themselves in the lua
 // state (please FIXME).
 TS* make_ts( World& world ) {
-  auto* ts = new TS(
-      world.planes(), world.lua(), world.gui(), world.rand(),
-      world.combat(), world.colony_viewer(),
-      world.ss_saved().root, world.connectivity() );
+  auto* ts =
+      new TS( world.planes(), world.lua(), world.gui(),
+              world.rand(), world.combat(),
+              world.colony_viewer(), world.ss_saved().root );
   ts->set_map_updater_no_restore( world.map_updater() );
   ts->set_native_agents_no_restore( world.native_agents() );
   ts->set_agents_no_restore( world.agents() );
@@ -264,11 +257,6 @@ void World::build_map( vector<MapSquare> tiles, W width ) {
   init_player_maps();
 }
 
-void World::update_terrain_connectivity() {
-  CHECK( connectivity_ != nullptr );
-  *connectivity_ = compute_terrain_connectivity( ss() );
-}
-
 void World::init_player_maps() {
   for( e_player player : refl::enum_values<e_player> ) {
     if( !ss().players.players[player].has_value() ) continue;
@@ -278,6 +266,7 @@ void World::init_player_maps() {
 }
 
 MapSquare& World::square( point const p ) {
+  ( *connectivity_ ) = {}; // mark as dirty.
   return terrain().mutable_square_at( Coord::from_gfx( p ) );
 }
 
@@ -875,7 +864,8 @@ World::World()
     ss_const_( new SSConst( *ss_ ) ),
     ss_saved_( new SS ),
     connectivity_( new TerrainConnectivity ),
-    map_updater_( new NonRenderingMapUpdater( *ss_ ) ),
+    map_updater_(
+        new NonRenderingMapUpdater( *ss_, *connectivity_ ) ),
     // These are left uninitialized until they are needed.
     uninitialized_planes_(),
     uninitialized_lua_(),

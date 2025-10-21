@@ -111,10 +111,10 @@ wait<> run_game( IEngine& engine, Planes& planes, IGui& gui,
 
   TerrainConnectivity connectivity;
 
-  TS ts( planes, st, gui, rand, combat, colony_viewer, saved,
-         connectivity );
+  TS ts( planes, st, gui, rand, combat, colony_viewer, saved);
 
-  NonRenderingMapUpdater non_rendering_map_updater( ss );
+  NonRenderingMapUpdater non_rendering_map_updater(
+      ss, connectivity );
   auto _1 = ts.set_map_updater( non_rendering_map_updater );
 
   if( !co_await loader( ss, ts ) )
@@ -130,24 +130,23 @@ wait<> run_game( IEngine& engine, Planes& planes, IGui& gui,
   Agents agents = create_agents( engine, ss, planes, gui, rand );
   auto _3       = ts.set_agents( agents );
 
-  // After this, any changes to the map that change land to water
-  // or vice versa (or change map size) need to be followed up by
-  // a call to re-compute the terrain connectivity. In practice,
-  // this could only be done by opening the map editor mid-game.
-  connectivity = compute_terrain_connectivity( ss );
-  CHECK( !connectivity.indices.empty() );
-
   rr::Renderer& renderer =
       engine.renderer_use_only_when_needed();
 
   RenderingMapUpdater map_updater(
-      ss, renderer,
+      ss, connectivity, renderer,
       MapUpdaterOptions{
         .render_fog_of_war =
             ss.settings.in_game_options.game_menu_options
                 [e_game_menu_option::show_fog_of_war] } );
 
   auto _4 = ts.set_map_updater( map_updater );
+
+  // This will be needed eventually, so let's just compute it up
+  // front to avoid any surprises later.
+  CHECK( connectivity.indices.empty() );
+  map_updater.connectivity();
+  CHECK( !connectivity.indices.empty() );
 
   // Start the background coroutine that runs the color-cycling
   // animations on the map. Note that the enabled flag can change

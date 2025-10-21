@@ -22,6 +22,7 @@
 #include "test/util/coro.hpp"
 
 // Revolution Now
+#include "src/imap-updater.hpp"
 #include "src/plane-stack.hpp"
 #include "src/ref.rds.hpp"
 #include "src/unit-ownership.hpp"
@@ -468,7 +469,6 @@ TEST_CASE( "[ref] add_ref_unit (loop)" ) {
 TEST_CASE( "[ref] ref_colony_selection_metrics" ) {
   world w;
   w.create_default_map();
-  w.update_terrain_connectivity();
   RefColonySelectionMetrics expected;
 
   Player const& ref_player =
@@ -477,7 +477,7 @@ TEST_CASE( "[ref] ref_colony_selection_metrics" ) {
   auto const f =
       [&] [[clang::noinline]] ( Colony const& colony ) {
         return ref_colony_selection_metrics(
-            w.ss(), w.connectivity(), colony.id );
+            w.ss(), w.map_updater().connectivity(), colony.id );
       };
 
   SECTION( "inland next to inland lake" ) {
@@ -825,13 +825,12 @@ TEST_CASE( "[ref] ref_colony_selection_metrics (buggy spot)" ) {
   //  6*/ X,X,X,X,X,_,X,X, /*6
   //  7*/ X,X,X,X,X,_,X,X, /*7
   //      0 1 2 3 4 5 6 7
-  w.update_terrain_connectivity();
   RefColonySelectionMetrics expected;
 
   auto const f =
       [&] [[clang::noinline]] ( Colony const& colony ) {
         return ref_colony_selection_metrics(
-            w.ss(), w.connectivity(), colony.id );
+            w.ss(), w.map_updater().connectivity(), colony.id );
       };
 
   Colony& colony = w.add_colony( { .x = 4, .y = 3 } );
@@ -2707,7 +2706,6 @@ TEST_CASE( "[ref] create_ref_landing_units" ) {
 TEST_CASE( "[ref] produce_REF_landing_units" ) {
   world w;
   w.create_default_map();
-  w.update_terrain_connectivity();
   RefLanding expected;
 
   Player& colonial_player = w.default_player();
@@ -2721,8 +2719,9 @@ TEST_CASE( "[ref] produce_REF_landing_units" ) {
           .ref_can_spawn_ships;
 
   auto const f = [&] [[clang::noinline]] {
-    return produce_REF_landing_units( w.ss(), w.connectivity(),
-                                      w.default_nation() );
+    return produce_REF_landing_units(
+        w.ss(), w.map_updater().connectivity(),
+        w.default_nation() );
   };
 
   // Default.
@@ -3346,15 +3345,14 @@ TEST_CASE( "[ref] percent_ref_owned_population" ) {
 TEST_CASE( "[ref] ref_should_win" ) {
   world w;
   w.create_default_map();
-  w.update_terrain_connectivity();
   Player& ref_player =
       w.add_player( ref_player_for( w.default_nation() ) );
 
   w.add_player( e_player::english );
 
   auto const f = [&] [[clang::noinline]] {
-    return ref_should_win( w.ss(), w.connectivity(),
-                           ref_player );
+    return ref_should_win(
+        w.ss(), w.map_updater().connectivity(), ref_player );
   };
 
   using enum e_ref_win_reason;

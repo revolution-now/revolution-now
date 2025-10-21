@@ -655,8 +655,9 @@ wait<> run_map_editor_standalone( IEngine& engine,
   // FIXME: this duplicates initialization code in app-ctrl.
   SS ss;
   gfx::size constexpr kClassicWorldSize = { .w = 56, .h = 70 };
+  TerrainConnectivity connectivity;
   RenderingMapUpdater map_updater(
-      ss, engine.renderer_use_only_when_needed(),
+      ss, connectivity, engine.renderer_use_only_when_needed(),
       MapUpdaterOptions{} );
   reset_terrain( map_updater, kClassicWorldSize );
   lua::state st;
@@ -673,11 +674,9 @@ wait<> run_map_editor_standalone( IEngine& engine,
   Rand rand;
   TrappingCombat combat;
   ColonyViewer colony_viewer( engine, ss );
-  TerrainConnectivity connectivity;
   NativeAgents native_agents;
   Agents agents;
-  TS ts( planes, st, gui, rand, combat, colony_viewer, ss.root,
-         connectivity );
+  TS ts( planes, st, gui, rand, combat, colony_viewer, ss.root );
   auto _1 = ts.set_map_updater( map_updater );
   auto _2 = ts.set_native_agents( native_agents );
   auto _3 = ts.set_agents( agents );
@@ -705,7 +704,6 @@ wait<> run_map_editor( IEngine& engine, SS& ss, TS& ts ) {
           } );
 
   co_await map_edit_plane.run_map_editor();
-  ts.connectivity = compute_terrain_connectivity( ss );
 }
 
 } // namespace rn

@@ -565,7 +565,7 @@ wait<> menu_handler( IEngine& engine, SS& ss, TS& ts,
         break;
       }
       ui::e_confirm const answer = co_await ask_declare(
-          ss, ts.gui, ts.connectivity, player );
+          ss, ts.gui, ts.map_updater().connectivity(), player );
       if( answer != ui::e_confirm::yes ) break;
       co_await declare( engine, ss, ts, player );
       break;
@@ -1396,7 +1396,7 @@ wait<HighSeasStatus> advance_high_seas_unit(
       lg.debug( "unit {} has arrived in new world.", unit_id );
       maybe<Coord> const dst_coord =
           find_new_world_arrival_square(
-              ss, ts, player,
+              ss, ts.map_updater().connectivity(), player,
               ss.units.harbor_view_state_of( unit_id )
                   .sailed_from );
       if( !dst_coord.has_value() ) {
@@ -1729,8 +1729,8 @@ wait<> post_colonies_ref_only( SS& ss, TS& ts,
       ss.players.players[colonial_player_for( nation )] );
 
   // Deploy some REF troops.
-  auto const landing_units =
-      produce_REF_landing_units( ss, ts.connectivity, nation );
+  auto const landing_units = produce_REF_landing_units(
+      ss, ts.map_updater().connectivity(), nation );
   if( landing_units.has_value() )
     co_await offboard_ref_units(
         ss, ts.map_updater(),
@@ -1742,7 +1742,8 @@ wait<> post_colonies_ref_only( SS& ss, TS& ts,
       /*did_deploy_ref_this_turn=*/landing_units.has_value() );
   if( attempt_uprising ) {
     UprisingColonies const uprising_colonies =
-        find_uprising_colonies( ss.as_const, ts.connectivity,
+        find_uprising_colonies( ss.as_const,
+                                ts.map_updater().connectivity(),
                                 colonial_player_type );
     if( !uprising_colonies.colonies.empty() ) {
       UprisingColony const* uprising_colony =
@@ -1928,7 +1929,8 @@ wait<> player_start_of_turn( SS& ss, TS& ts, Player& player,
       player.revolution.status < e_revolution_status::declared )
     // Check for tax events (typically increases).
     co_await start_of_turn_tax_check(
-        ss, ts.rand, ts.connectivity, player, agent );
+        ss, ts.rand, ts.map_updater().connectivity(), player,
+        agent );
 
   // TODO:
   //
@@ -2131,7 +2133,7 @@ wait<> do_intervention_force_turn(
     lg.debug( "chose intervention forces: {}", forces );
     if( forces.has_value() ) {
       auto const target = find_intervention_deploy_tile(
-          ss, ts.rand, ts.connectivity, player );
+          ss, ts.rand, ts.map_updater().connectivity(), player );
       if( target.has_value() ) {
         UnitId const ship_id = deploy_intervention_forces(
             ss, ts, *target, *forces );

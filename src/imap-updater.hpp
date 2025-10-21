@@ -38,6 +38,7 @@ namespace rn {
 struct IMapUpdater;
 struct MapSquare;
 struct RealTerrain;
+struct TerrainConnectivity;
 
 /****************************************************************
 ** MapUpdaterOptions
@@ -128,6 +129,14 @@ struct IMapUpdater {
   // tice, this will just be the obfuscation buffer).
   virtual std::vector<BuffersUpdated> make_squares_fogged(
       e_player player, std::vector<Coord> const& tiles ) = 0;
+
+  // This will return the connectivity object but may first re-
+  // compute it if it is dirty. Thus, this could be an expensive
+  // operation. That said, in a normal game, it will be trivially
+  // cheap to call because the map is never modified in a way
+  // that requires a recomputation of connectivity (outside of
+  // cheat mode).
+  virtual TerrainConnectivity const& connectivity() = 0;
 
   // This should not be used by most game code. This is for those
   // rare cases where the rendered tile changes in response to a

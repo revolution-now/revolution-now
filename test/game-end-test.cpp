@@ -192,7 +192,6 @@ TEST_CASE( "[game-end] do_time_up" ) {
 // tested already, so we're going to go light here.
 TEST_CASE( "[game-end] check_for_ref_win" ) {
   world w;
-  w.update_terrain_connectivity();
 
   Player const& ref_player =
       w.add_player( e_player::ref_french );

@@ -19,6 +19,9 @@
 #include "test/mocks/irand.hpp"
 #include "test/util/coro.hpp"
 
+// Revolution Now
+#include "src/imap-updater.hpp"
+
 // ss
 #include "src/ss/player.rds.hpp"
 #include "src/ss/ref.hpp"
@@ -144,11 +147,11 @@ TEST_CASE( "[uprising] should_attempt_uprising" ) {
 TEST_CASE( "[uprising] find_uprising_colonies" ) {
   world w;
   UprisingColonies expected;
-  w.update_terrain_connectivity();
 
   auto const f = [&] [[clang::noinline]] {
-    return find_uprising_colonies( w.ss(), w.connectivity(),
-                                   w.default_player_type() );
+    return find_uprising_colonies(
+        w.ss(), w.map_updater().connectivity(),
+        w.default_player_type() );
   };
 
   expected = {};

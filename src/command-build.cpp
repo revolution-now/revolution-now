@@ -16,6 +16,7 @@
 #include "colony-view.hpp"
 #include "connectivity.hpp"
 #include "iagent.hpp"
+#include "imap-updater.hpp"
 #include "maybe.hpp"
 #include "ts.hpp"
 #include "woodcut.hpp"
@@ -97,8 +98,8 @@ struct BuildHandler : public CommandHandler {
     }
 
     Coord const location = ss_.units.coord_for( unit_id );
-    if( !colony_has_ocean_access( ss_, ts_.connectivity,
-                                  location ) ) {
+    if( !colony_has_ocean_access(
+            ss_, ts_.map_updater().connectivity(), location ) ) {
       maybe<ui::e_confirm> const answer =
           co_await agent_.confirm_build_inland_colony();
       if( answer != ui::e_confirm::yes ) co_return false;

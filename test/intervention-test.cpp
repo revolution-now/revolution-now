@@ -21,6 +21,7 @@
 #include "test/util/coro.hpp"
 
 // Revolution Now
+#include "src/imap-updater.hpp"
 #include "src/plane-stack.hpp"
 
 // ss
@@ -452,13 +453,12 @@ TEST_CASE( "[intervention] find_intervention_deploy_tile" ) {
   world w;
   InterventionDeployTile expected;
 
-  w.update_terrain_connectivity();
-
   Player const& player = w.english();
 
   auto const f = [&] {
     return find_intervention_deploy_tile(
-        w.ss().as_const, w.rand(), w.connectivity(), player );
+        w.ss().as_const, w.rand(),
+        w.map_updater().connectivity(), player );
   };
 
   static vector<int> const direction_idxs{ 0, 1, 2, 3,

@@ -104,10 +104,6 @@ struct World {
   // ------------------------------------------------------------
   void build_map( std::vector<MapSquare> tiles, W width );
 
-  // This is not done automatically for efficiency and because
-  // very few tests will need it.
-  void update_terrain_connectivity();
-
   // For each player that exists, this will re-initialize its
   // player map to be the size of the real map with all tiles
   // hidden.
@@ -412,9 +408,6 @@ struct World {
   SS& ss();
   SSConst const& ss() const;
   SS& ss_saved();
-
-  TerrainConnectivity const& connectivity() const;
-  TerrainConnectivity& connectivity();
 
   MockINativeAgent& native_agent( e_tribe tribe );
   MockIAgent& agent( maybe<e_player> player = nothing );

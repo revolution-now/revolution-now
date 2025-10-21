@@ -34,10 +34,12 @@ struct SS;
 // It is useful in unit tests where the map updater will be
 // called but we don't want to mock it.
 struct NonRenderingMapUpdater : IMapUpdater {
-  NonRenderingMapUpdater( SS& ss );
+  NonRenderingMapUpdater( SS& ss,
+                          TerrainConnectivity& connectivity );
 
   NonRenderingMapUpdater(
-      SS& ss, MapUpdaterOptions const& initial_options );
+      SS& ss, TerrainConnectivity& connectivity,
+      MapUpdaterOptions const& initial_options );
 
  public: // Implement IMapUpdater.
   BuffersUpdated modify_map_square( Coord,
@@ -51,6 +53,8 @@ struct NonRenderingMapUpdater : IMapUpdater {
       e_player player,
       std::vector<Coord> const& tiles ) override;
 
+  TerrainConnectivity const& connectivity() override;
+
   std::vector<BuffersUpdated> force_redraw_tiles(
       std::vector<Coord> const& tiles ) override;
 
@@ -63,6 +67,12 @@ struct NonRenderingMapUpdater : IMapUpdater {
 
  protected:
   SS& ss_;
+
+ private:
+  [[nodiscard]] bool is_connectivity_dirty() const;
+  void set_connectivity_dirty();
+
+  TerrainConnectivity& connectivity_;
 };
 
 /****************************************************************
@@ -75,7 +85,8 @@ struct RenderingMapUpdater : NonRenderingMapUpdater {
   using Base = NonRenderingMapUpdater;
 
   RenderingMapUpdater(
-      SS& ss, rr::Renderer& renderer,
+      SS& ss, TerrainConnectivity& connectivity,
+      rr::Renderer& renderer,
       MapUpdaterOptions const& initial_options );
 
  public: // Implement IMapUpdater.

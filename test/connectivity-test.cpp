@@ -16,6 +16,9 @@
 // Testing
 #include "test/fake/world.hpp"
 
+// Revolution Now
+#include "src/imap-updater.hpp"
+
 // ss
 #include "ss/ref.hpp"
 
@@ -445,11 +448,10 @@ TEST_CASE( "[connectivity] colony_has_ocean_access" ) {
     L, _, L, L, _, //
     L, _, L, _, _, //
   } );
-  w.update_terrain_connectivity();
 
   auto f = [&]( Coord coord ) {
-    return colony_has_ocean_access( w.ss(), w.connectivity(),
-                                    coord );
+    return colony_has_ocean_access(
+        w.ss(), w.map_updater().connectivity(), coord );
   };
 
   // water: { .x = 0, .y = 0 }

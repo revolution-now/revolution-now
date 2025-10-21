@@ -47,7 +47,6 @@ struct World : testing::World {
   World() : Base() {
     add_default_player();
     create_default_map();
-    update_terrain_connectivity();
   }
 
   void create_default_map() {

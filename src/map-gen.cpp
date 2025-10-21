@@ -57,8 +57,9 @@ void generate_terrain( lua::state& st,
       } );
 }
 
-void ascii_map_gen( lua::state& st, SS& ss ) {
-  NonRenderingMapUpdater map_updater( ss );
+void ascii_map_gen( lua::state& st, SS& ss,
+                    TerrainConnectivity& connectivity ) {
+  NonRenderingMapUpdater map_updater( ss, connectivity );
   generate_terrain( st, map_updater );
   gfx::Matrix<MapSquare> const& world_map =
       ss.terrain.world_map();

@@ -20,6 +20,7 @@
 #include "market.hpp"
 #include "player-mgr.hpp"
 #include "ts.hpp"
+#include "imap-updater.hpp"
 
 // config
 #include "config/colony.hpp"
@@ -112,7 +113,8 @@ e_water_access colony_water_access( SSConst const& ss, TS& ts,
         e_surface::water )
       continue;
     res = std::max( res, e_water_access::yes );
-    if( water_square_has_ocean_access( ts.connectivity, moved ) )
+    if( water_square_has_ocean_access(
+            ts.map_updater().connectivity(), moved ) )
       res = e_water_access::coastal;
   }
   return res;

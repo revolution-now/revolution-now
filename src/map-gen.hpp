@@ -23,11 +23,13 @@ namespace rn {
 
 struct IMapUpdater;
 struct SS;
+struct TerrainConnectivity;
 
 void generate_terrain( lua::state& st,
                        IMapUpdater& map_updater );
 
-void ascii_map_gen( lua::state& st, SS& ss );
+void ascii_map_gen( lua::state& st, SS& ss,
+                    TerrainConnectivity& connectivity );
 
 void reset_terrain( IMapUpdater& map_updater, Delta size );
 

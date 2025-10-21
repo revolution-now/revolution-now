@@ -214,8 +214,8 @@ void try_select_in_port_ship( SS& ss, Player& player ) {
 // Find the right place to put a ship which has just arrived from
 // europe.
 maybe<Coord> find_new_world_arrival_square(
-    SSConst const& ss, TS& ts, Player const& player,
-    maybe<Coord> sailed_from ) {
+    SSConst const& ss, TerrainConnectivity const& connectivity,
+    Player const& player, maybe<Coord> sailed_from ) {
   Coord const candidate = sailed_from.has_value() ? *sailed_from
                           : player.last_high_seas.has_value()
                               ? *player.last_high_seas
@@ -236,7 +236,7 @@ maybe<Coord> find_new_world_arrival_square(
     // there to begin with, and even if they were, it would prob-
     // ably be frustrating to the player because they may not
     // then be able to get the ship out.
-    if( is_inland_lake( ts.connectivity, c ) ) continue;
+    if( is_inland_lake( connectivity, c ) ) continue;
     // Need to use the real square here to avoid putting the ship
     // on a tile that has a foreign unit on it that is not cur-
     // rently visible to the player which can happen if either

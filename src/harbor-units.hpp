@@ -31,7 +31,7 @@ namespace rn {
 struct Player;
 struct SS;
 struct SSConst;
-struct TS;
+struct TerrainConnectivity;
 struct UnitsState;
 
 /****************************************************************
@@ -104,8 +104,8 @@ void unit_move_to_port( SS& ss, UnitId id );
 // pass the square that it sailed from as a preference for where
 // the ship should be placed.
 maybe<Coord> find_new_world_arrival_square(
-    SSConst const& ss, TS& ts, Player const& player,
-    maybe<Coord> sailed_from );
+    SSConst const& ss, TerrainConnectivity const& connectivity,
+    Player const& player, maybe<Coord> sailed_from );
 
 // This will check if there are ships in port and, if so, it will
 // ensure that at least one of them are selected (for a good

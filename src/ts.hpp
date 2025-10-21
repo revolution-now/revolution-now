@@ -30,7 +30,6 @@ struct IRand;
 struct NativeAgents;
 struct Planes;
 struct RootState;
-struct TerrainConnectivity;
 
 template<typename T>
 struct [[nodiscard]] set_and_restore_pointer {
@@ -67,7 +66,7 @@ struct [[nodiscard]] set_and_restore_pointer {
 struct TS {
   TS( Planes& planes, lua::state& lua_, IGui& gui_, IRand& rand_,
       ICombat& combat, IColonyViewer& colony_viewer,
-      RootState& saved, TerrainConnectivity& connectivity );
+      RootState& saved );
 
   ~TS();
 
@@ -90,8 +89,6 @@ struct TS {
   // saved or loaded. It is used to determine if the game needs
   // to be saved when the player tries to exit.
   RootState& saved;
-
-  TerrainConnectivity& connectivity;
 
  private:
   struct LuaRefSetAndRestore;

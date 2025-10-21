@@ -22,6 +22,7 @@
 #include "harbor-units.hpp"
 #include "iagent.hpp"
 #include "igui.hpp"
+#include "imap-updater.hpp"
 #include "land-view.hpp"
 #include "map-square.hpp"
 #include "mv-calc.hpp"
@@ -688,8 +689,8 @@ TravelHandler::confirm_travel_impl() {
   e_surface const surface = surface_type( dst_square );
 
   if( surface == e_surface::water and unit.desc().ship &&
-      !water_square_has_ocean_access( ts_.connectivity,
-                                      move_dst ) )
+      !water_square_has_ocean_access(
+          ts_.map_updater().connectivity(), move_dst ) )
     // TODO: evaluate whether it is ok to allow ships to move
     // into inland tiles. That would probably be nicer from a
     // player experience perspective. A glance through the code

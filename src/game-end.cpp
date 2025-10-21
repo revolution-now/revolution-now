@@ -13,6 +13,7 @@
 // Revolution Now
 #include "declare.hpp"
 #include "igui.hpp"
+#include "imap-updater.hpp"
 #include "interrupts.hpp"
 #include "map-view.hpp"
 #include "ref.hpp"
@@ -188,8 +189,8 @@ wait<e_game_end> check_for_ref_win( SS& ss, TS& ts,
   if( colonial_player.revolution.status !=
       e_revolution_status::declared )
     co_return e_game_end::not_ended;
-  auto const won =
-      ref_should_win( ss, ts.connectivity, ref_player );
+  auto const won = ref_should_win(
+      ss, ts.map_updater().connectivity(), ref_player );
   if( !won.has_value() ) co_return e_game_end::not_ended;
   do_ref_win( ss, ref_player );
   co_await ref_win_ui_routine( ss, ts.gui, ref_player, *won );

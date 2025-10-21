@@ -21,6 +21,7 @@
 
 // Revolution Now
 #include "src/connectivity.hpp"
+#include "src/imap-updater.hpp"
 
 // config
 #include "src/config/old-world.rds.hpp"
@@ -417,12 +418,12 @@ TEST_CASE( "[tax] prompt_for_tax_change_result" ) {
 
 TEST_CASE( "[tax] compute_tax_change" ) {
   World W;
-  W.update_terrain_connectivity();
   Player& player = W.default_player();
   TaxUpdateComputation expected;
 
   auto const f = [&] [[clang::noinline]] {
-    return compute_tax_change( W.ss(), W.connectivity(),
+    return compute_tax_change( W.ss(),
+                               W.map_updater().connectivity(),
                                W.rand(), player );
   };
 
@@ -592,12 +593,12 @@ TEST_CASE(
     "[tax] compute_tax_change skips colonies without ocean "
     "access" ) {
   World W;
-  W.update_terrain_connectivity();
   Player& player = W.default_player();
   TaxUpdateComputation expected;
 
   auto const f = [&] [[clang::noinline]] {
-    return compute_tax_change( W.ss(), W.connectivity(),
+    return compute_tax_change( W.ss(),
+                               W.map_updater().connectivity(),
                                W.rand(), player );
   };
 
@@ -616,9 +617,11 @@ TEST_CASE(
 
   // Sanity check that we're testing what we think we're testing.
   REQUIRE_FALSE( colony_has_ocean_access(
-      W.ss(), W.connectivity(), colony1.location ) );
-  REQUIRE( colony_has_ocean_access( W.ss(), W.connectivity(),
-                                    colony2.location ) );
+      W.ss(), W.map_updater().connectivity(),
+      colony1.location ) );
+  REQUIRE( colony_has_ocean_access(
+      W.ss(), W.map_updater().connectivity(),
+      colony2.location ) );
 
   // Tax change amount.
   W.rand().EXPECT__between_ints( 1, 8 ).returns( 4 );
@@ -665,13 +668,13 @@ TEST_CASE(
 
 TEST_CASE( "[tax] start_of_turn_tax_check" ) {
   World W;
-  W.update_terrain_connectivity();
   Player& player    = W.default_player();
   MockIAgent& agent = W.agent();
 
   auto const f = [&] [[clang::noinline]] {
     return start_of_turn_tax_check(
-        W.ss(), W.rand(), W.connectivity(), player, W.agent() );
+        W.ss(), W.rand(), W.map_updater().connectivity(), player,
+        W.agent() );
   };
 
   W.settings().game_setup_options.difficulty =
@@ -779,7 +782,8 @@ TEST_CASE( "[tax] compute_tax_change when over max" ) {
   TaxUpdateComputation expected;
 
   auto const f = [&] [[clang::noinline]] {
-    return compute_tax_change( W.ss(), W.connectivity(),
+    return compute_tax_change( W.ss(),
+                               W.map_updater().connectivity(),
                                W.rand(), player );
   };
 

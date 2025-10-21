@@ -66,7 +66,6 @@ struct World : testing::World {
 *****************************************************************/
 TEST_CASE( "[construction] select building, borders ocean" ) {
   World W;
-  W.update_terrain_connectivity();
   Colony& colony = W.add_colony( World::kBordersOcean );
   wait<> w       = make_wait<>();
 
@@ -336,7 +335,6 @@ TEST_CASE(
     "[construction] select building, borders water but not "
     "ocean" ) {
   World W;
-  W.update_terrain_connectivity();
   Colony& colony =
       W.add_colony( World::kNoBordersWaterButNoOcean );
   wait<> w = make_wait<>();

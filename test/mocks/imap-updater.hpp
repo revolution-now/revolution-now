@@ -33,6 +33,8 @@ struct MockIMapUpdater : IMapUpdater {
                (e_player, std::vector<Coord> const&), () );
   MOCK_METHOD( std::vector<BuffersUpdated>, make_squares_fogged,
                (e_player, std::vector<Coord> const&), () );
+  MOCK_METHOD( TerrainConnectivity const&, connectivity, (),
+               () );
   MOCK_METHOD( std::vector<BuffersUpdated>, force_redraw_tiles,
                (std::vector<Coord> const&), () );
   MOCK_METHOD( void, redraw, (), () );

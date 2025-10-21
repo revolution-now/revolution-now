@@ -23,6 +23,7 @@
 #include "src/goto-registry.hpp"
 #include "src/goto-viewer.hpp"
 #include "src/harbor-units.hpp"
+#include "src/imap-updater.hpp"
 #include "src/tribe-mgr.hpp"
 #include "src/unit-ownership.hpp"
 #include "src/visibility.hpp"
@@ -1359,9 +1360,9 @@ TEST_CASE( "[goto] find_goto_port" ) {
   Player& player = w.default_player();
 
   auto const f = [&] [[clang::noinline]] {
-    return find_goto_port( w.ss().as_const, w.connectivity(),
-                           w.default_player_type(), unit_type,
-                           src );
+    return find_goto_port(
+        w.ss().as_const, w.map_updater().connectivity(),
+        w.default_player_type(), unit_type, src );
   };
 
   using enum e_ground_terrain;
@@ -1396,7 +1397,6 @@ TEST_CASE( "[goto] find_goto_port" ) {
   // clang-format on
 
   w.build_map( std::move( tiles ), 10 );
-  w.update_terrain_connectivity();
 
   unit_type = caravel;
   src       = { .x = 0, .y = 0 };

@@ -64,8 +64,7 @@ struct TS::LuaRefSetAndRestore {
 *****************************************************************/
 TS::TS( Planes& planes_, lua::state& lua_, IGui& gui_,
         IRand& rand_, ICombat& combat_,
-        IColonyViewer& colony_viewer_, RootState& saved,
-        TerrainConnectivity& connectivity_ )
+        IColonyViewer& colony_viewer_, RootState& saved )
   : planes( planes_ ),
     lua( lua_ ),
     gui( gui_ ),
@@ -73,7 +72,6 @@ TS::TS( Planes& planes_, lua::state& lua_, IGui& gui_,
     combat( combat_ ),
     colony_viewer( colony_viewer_ ),
     saved( saved ),
-    connectivity( connectivity_ ),
     pimpl_( new LuaRefSetAndRestore( lua, *this ) ) {}
 
 // These are here because we are using the pimpl idiom.
