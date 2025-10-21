@@ -84,20 +84,22 @@ void Agents::update( e_player const player,
 ** Public API.
 *****************************************************************/
 unique_ptr<IAgent> create_agent( IEngine& engine, SS& ss,
+                                 IMapUpdater& map_updater,
                                  Planes& planes, IGui& gui,
                                  IRand& rand,
                                  e_player const player ) {
   switch( ss.players.players[player]->control ) {
     case e_player_control::ai: {
       if( is_ref( player ) )
-        return make_unique<RefAIAgent>( player, ss, rand );
+        return make_unique<RefAIAgent>( player, ss, map_updater,
+                                        rand );
       else
         // TODO
         return make_unique<NoopAgent>( ss.as_const, player );
     }
     case e_player_control::human: {
-      return make_unique<HumanAgent>( player, engine, ss, gui,
-                                      planes );
+      return make_unique<HumanAgent>( player, engine, ss,
+                                      map_updater, gui, planes );
     }
     case e_player_control::inactive: {
       return make_unique<NoopAgent>( ss.as_const, player );
@@ -105,13 +107,14 @@ unique_ptr<IAgent> create_agent( IEngine& engine, SS& ss,
   }
 }
 
-Agents create_agents( IEngine& engine, SS& ss, Planes& planes,
+Agents create_agents( IEngine& engine, SS& ss,
+                      IMapUpdater& map_updater, Planes& planes,
                       IGui& gui, IRand& rand ) {
   unordered_map<e_player, unique_ptr<IAgent>> holder;
   for( e_player const player : refl::enum_values<e_player> )
     if( ss.players.players[player].has_value() )
-      holder[player] =
-          create_agent( engine, ss, planes, gui, rand, player );
+      holder[player] = create_agent( engine, ss, map_updater,
+                                     planes, gui, rand, player );
   return Agents( std::move( holder ) );
 }
 

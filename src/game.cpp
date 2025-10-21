@@ -111,7 +111,7 @@ wait<> run_game( IEngine& engine, Planes& planes, IGui& gui,
 
   TerrainConnectivity connectivity;
 
-  TS ts( planes, st, gui, rand, combat, colony_viewer, saved);
+  TS ts( planes, st, gui, rand, combat, colony_viewer, saved );
 
   NonRenderingMapUpdater non_rendering_map_updater(
       ss, connectivity );
@@ -127,8 +127,9 @@ wait<> run_game( IEngine& engine, Planes& planes, IGui& gui,
 
   // This one needs to run after the loader because it needs to
   // know which nations are human.
-  Agents agents = create_agents( engine, ss, planes, gui, rand );
-  auto _3       = ts.set_agents( agents );
+  Agents agents = create_agents(
+      engine, ss, non_rendering_map_updater, planes, gui, rand );
+  auto _3 = ts.set_agents( agents );
 
   rr::Renderer& renderer =
       engine.renderer_use_only_when_needed();
@@ -142,9 +143,9 @@ wait<> run_game( IEngine& engine, Planes& planes, IGui& gui,
 
   auto _4 = ts.set_map_updater( map_updater );
 
-  // This will be needed eventually, so let's just compute it up
-  // front to avoid any surprises later.
-  CHECK( connectivity.indices.empty() );
+  // This has likely already been done as a part of game set up
+  // (e.g. initial unit placement), but let's just make sure it
+  // has up front to avoid any surprises later.
   map_updater.connectivity();
   CHECK( !connectivity.indices.empty() );
 

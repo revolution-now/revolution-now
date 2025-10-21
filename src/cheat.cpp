@@ -484,8 +484,9 @@ wait<> cheat_set_player_control( IEngine& engine, SS& ss,
   for( auto const& [type, needs_update] : changed )
     if( needs_update )
       ts.agents().update(
-          type, create_agent( engine, ss, ts.planes, ts.gui,
-                              ts.rand, type ) );
+          type,
+          create_agent( engine, ss, ts.map_updater(), ts.planes,
+                        ts.gui, ts.rand, type ) );
 
   // We do this because we need to back out beyond the individual
   // nation's turn processor in order to handle this configura-
@@ -570,7 +571,8 @@ void cheat_hide_entire_map( SS& ss, TS& ts ) {
     if( !world.has_value() ) continue;
     point const tile                 = world->coord;
     vector<Coord> const unit_visible = unit_visible_squares(
-        ss, unit.player_type(), unit.type(), tile );
+        ss, ts.map_updater().connectivity(), unit.player_type(),
+        unit.type(), tile );
     visible.push_back( tile );
     for( point const p : unit_visible ) visible.push_back( p );
   }

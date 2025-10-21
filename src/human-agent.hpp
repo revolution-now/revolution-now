@@ -22,6 +22,7 @@ struct IEngine;
 struct IGotoMapViewer;
 struct IGui;
 struct ILandViewPlane;
+struct IMapUpdater;
 struct Planes;
 struct SS;
 
@@ -32,7 +33,8 @@ struct SS;
 // via GUI actions or input in order to fulfill the requests.
 struct HumanAgent final : IAgent {
   HumanAgent( e_player player, IEngine& engine, SS& ss,
-              IGui& gui, Planes& planes );
+              IMapUpdater& map_updater, IGui& gui,
+              Planes& planes );
 
  public: // IAgent.
   wait<> message_box( std::string const& msg ) override;
@@ -134,6 +136,7 @@ struct HumanAgent final : IAgent {
 
   IEngine& engine_;
   SS& ss_;
+  IMapUpdater& map_updater_;
   IGui& gui_;
   Planes& planes_;
 

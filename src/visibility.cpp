@@ -11,6 +11,7 @@
 #include "visibility.hpp"
 
 // Revolution Now
+#include "connectivity.hpp"
 #include "imap-updater.hpp"
 #include "land-view.hpp"
 #include "map-square.hpp"
@@ -332,10 +333,9 @@ std::unique_ptr<IVisibility const> create_visibility_for(
     return make_unique<VisibilityEntire const>( ss );
 }
 
-vector<Coord> unit_visible_squares( SSConst const& ss,
-                                    e_player player,
-                                    e_unit_type type,
-                                    point const tile ) {
+vector<Coord> unit_visible_squares(
+    SSConst const& ss, TerrainConnectivity const& connectivity,
+    e_player player, e_unit_type type, point const tile ) {
   TerrainState const& terrain = ss.terrain;
   int const radius = unit_sight_radius( ss, player, type );
   Rect const possible =
@@ -363,10 +363,8 @@ vector<Coord> unit_visible_squares( SSConst const& ss,
       if( !config_land_view.visibility
                .land_unit_visibility_crosses_continents &&
           !ship ) {
-#if 0
         if( !tiles_are_connected( connectivity, tile, coord ) )
           continue;
-#endif
       }
     }
     res.push_back( coord );
@@ -434,7 +432,8 @@ void recompute_fog_for_player( SS& ss, TS& ts,
     if( unit.player_type() != player ) continue;
     // This should not yield and squares that don't exist.
     vector<Coord> const visible = unit_visible_squares(
-        ss, player, unit.type(), world->coord );
+        ss, ts.map_updater().connectivity(), player, unit.type(),
+        world->coord );
     for( point const coord : visible ) { fogged.erase( coord ); }
   }
 

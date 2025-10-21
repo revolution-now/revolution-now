@@ -263,7 +263,8 @@ void UnitOnMapMover::to_map_common( SS& ss,
   // to the destination square and (potentially) leaving a source
   // square. Should be done before unit is moved.
   vector<Coord> const visible = unit_visible_squares(
-      ss, unit.player_type(), unit.type(), world_square );
+      ss, map_updater.connectivity(), unit.player_type(),
+      unit.type(), world_square );
   map_updater.make_squares_visible( unit.player_type(),
                                     visible );
 

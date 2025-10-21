@@ -2904,7 +2904,8 @@ TEST_CASE( "[goto] find_next_move_for_unit_with_goto_target" ) {
     GotoMapViewer const viewer(
         w.ss(), *p_viz, p_unit->player_type(), p_unit->type() );
     return find_next_move_for_unit_with_goto_target(
-        w.ss().as_const, registry, viewer, *p_unit, target );
+        w.ss().as_const, w.map_updater().connectivity(),
+        registry, viewer, *p_unit, target );
   };
 
   auto const set_unit_pos = [&]( point const p ) {

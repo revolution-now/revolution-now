@@ -21,6 +21,9 @@
 #include "src/imap-updater.hpp"
 #include "src/plane-stack.hpp"
 
+// config
+#include "src/config/land-view.rds.hpp"
+
 // ss
 #include "ss/land-view.rds.hpp"
 #include "ss/player.rds.hpp"
@@ -134,13 +137,20 @@ struct world : testing::World {
 TEST_CASE( "[visibility] unit_visible_squares" ) {
   world W;
   W.create_default_map();
+
+  auto& conf = detail::__config_land_view;
+  SCOPED_SET_AND_RESTORE(
+      conf.visibility.land_unit_visibility_crosses_continents,
+      true );
+
   e_unit_type type = {};
   Coord tile       = {};
   vector<Coord> expected;
 
   auto f = [&] {
-    return unit_visible_squares( W.ss(), W.default_player_type(),
-                                 type, tile );
+    return unit_visible_squares(
+        W.ss(), W.map_updater().connectivity(),
+        W.default_player_type(), type, tile );
   };
 
   // _, L, _, _, L, _, L, L, L, L, L, L, _, L, L,
@@ -517,6 +527,11 @@ TEST_CASE( "[visibility] set_map_visibility" ) {
 TEST_CASE( "[visibility] recompute_fog_for_player" ) {
   world W;
   W.create_default_map();
+
+  auto& conf = detail::__config_land_view;
+  SCOPED_SET_AND_RESTORE(
+      conf.visibility.land_unit_visibility_crosses_continents,
+      true );
 
   auto f = [&] {
     recompute_fog_for_player( W.ss(), W.ts(),

@@ -45,6 +45,7 @@ struct SS;
 struct SSConst;
 struct SSConst;
 struct TS;
+struct TerrainConnectivity;
 struct TerrainState;
 
 enum class e_natural_resource;
@@ -240,10 +241,9 @@ bool does_player_have_fog_removed_on_square( SSConst const& ss,
 // another island, or a ship with large sighting radius from
 // being able to see too far inland. This mirrors how the OG ap-
 // pears to work.
-std::vector<Coord> unit_visible_squares( SSConst const& ss,
-                                         e_player player,
-                                         e_unit_type type,
-                                         gfx::point tile );
+std::vector<Coord> unit_visible_squares(
+    SSConst const& ss, TerrainConnectivity const& connectivity,
+    e_player player, e_unit_type type, gfx::point tile );
 
 // Will restore all visible tiles' fog state to "fog enabled" un-
 // less the square is within the sighting radius of a friendly

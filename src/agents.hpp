@@ -19,6 +19,7 @@ namespace rn {
 struct IEngine;
 struct IAgent;
 struct IGui;
+struct IMapUpdater;
 struct INativeAgent;
 struct IRand;
 struct Planes;
@@ -90,11 +91,13 @@ struct Agents {
 ** Public API.
 *****************************************************************/
 std::unique_ptr<IAgent> create_agent( IEngine& engine, SS& ss,
+                                      IMapUpdater& map_updater,
                                       Planes& planes, IGui& gui,
                                       IRand& rand,
                                       e_player player );
 
-Agents create_agents( IEngine& engine, SS& ss, Planes& planes,
+Agents create_agents( IEngine& engine, SS& ss,
+                      IMapUpdater& map_updater, Planes& planes,
                       IGui& gui, IRand& rand );
 
 NativeAgents create_native_agents( SS& ss, IRand& rand );

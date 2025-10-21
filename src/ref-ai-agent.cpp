@@ -16,6 +16,7 @@
 #include "goto-registry.hpp"
 #include "goto-viewer.hpp"
 #include "goto.hpp"
+#include "imap-updater.hpp"
 #include "irand.hpp"
 #include "ref.hpp"
 #include "society.hpp"
@@ -79,9 +80,10 @@ struct RefAIAgent::State {
 ** RefAIAgent
 *****************************************************************/
 RefAIAgent::RefAIAgent( e_player const player, SS& ss,
-                        IRand& rand )
+                        IMapUpdater& map_updater, IRand& rand )
   : IAgent( player ),
     ss_( ss ),
+    map_updater_( map_updater ),
     rand_( rand ),
     colonial_player_( get_colonial_player(
         ss.as_const, nation_for( player ) ) ),
@@ -207,8 +209,9 @@ command RefAIAgent::ask_orders( UnitId const unit_id ) {
                                      unit.type() );
     EvolveGoto const evolved =
         find_next_move_for_unit_with_goto_target(
-            ss_, state().goto_registry, goto_viewer,
-            as_const( unit ), goto_target::harbor{} );
+            ss_, map_updater_.connectivity(),
+            state().goto_registry, goto_viewer, as_const( unit ),
+            goto_target::harbor{} );
     SWITCH( evolved ) {
       CASE( abort ) { return nothing; }
       CASE( move ) {

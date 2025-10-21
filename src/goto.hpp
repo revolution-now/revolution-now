@@ -96,8 +96,8 @@ wait<maybe<goto_target>> ask_goto_port(
 // orders.
 [[nodiscard]] EvolveGoto
 find_next_move_for_unit_with_goto_target(
-    SSConst const& ss, GotoRegistry& registry,
-    IGotoMapViewer const& goto_viewer, Unit const& unit,
-    goto_target const& target );
+    SSConst const& ss, TerrainConnectivity const& connectivity,
+    GotoRegistry& registry, IGotoMapViewer const& goto_viewer,
+    Unit const& unit, goto_target const& target );
 
 } // namespace rn

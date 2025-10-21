@@ -20,6 +20,7 @@
 #include "goto.hpp"
 #include "iengine.hpp"
 #include "igui.hpp"
+#include "imap-updater.hpp"
 #include "land-view.hpp"
 #include "meet-natives.hpp"
 #include "plane-stack.hpp"
@@ -82,10 +83,12 @@ valid_or<string> is_valid_colony_name_msg(
 ** HumanAgent
 *****************************************************************/
 HumanAgent::HumanAgent( e_player player, IEngine& engine, SS& ss,
-                        IGui& gui, Planes& planes )
+                        IMapUpdater& map_updater, IGui& gui,
+                        Planes& planes )
   : IAgent( player ),
     engine_( engine ),
     ss_( ss ),
+    map_updater_( map_updater ),
     gui_( gui ),
     planes_( planes ) {}
 
@@ -435,7 +438,8 @@ EvolveGoto HumanAgent::evolve_goto( UnitId const unit_id ) {
   GotoMapViewer const goto_viewer( ss_, *goto_path_viz,
                                    player_type(), unit.type() );
   return find_next_move_for_unit_with_goto_target(
-      ss_.as_const, goto_registry_, goto_viewer, unit, target );
+      ss_.as_const, map_updater_.connectivity(), goto_registry_,
+      goto_viewer, unit, target );
 }
 
 } // namespace rn

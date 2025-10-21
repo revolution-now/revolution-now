@@ -97,8 +97,8 @@ TEST_CASE( "[agents] create_agent" ) {
   W.ref_dutch().control   = e_player_control::ai;
 
   auto f = [&]( e_player const p ) {
-    return create_agent( W.engine(), W.ss(), W.planes(), W.gui(),
-                         W.rand(), p );
+    return create_agent( W.engine(), W.ss(), W.map_updater(),
+                         W.planes(), W.gui(), W.rand(), p );
   };
 
   auto const english_agent     = f( e_player::english );
@@ -171,8 +171,8 @@ TEST_CASE( "[agents] create_agents" ) {
   W.ref_dutch().control   = e_player_control::ai;
 
   auto f = [&] {
-    return create_agents( W.engine(), W.ss(), W.planes(),
-                          W.gui(), W.rand() );
+    return create_agents( W.engine(), W.ss(), W.map_updater(),
+                          W.planes(), W.gui(), W.rand() );
   };
 
   Agents const agents = f();

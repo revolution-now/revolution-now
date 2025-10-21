@@ -577,9 +577,9 @@ bool is_new_goto_snapshot_allowed(
 // following paths may not have them. The unit may just have a
 // goto_target stored elsewhere in e.g. AI strategy state.
 EvolveGoto find_next_move_for_unit_with_goto_target(
-    SSConst const& ss, GotoRegistry& registry,
-    IGotoMapViewer const& viewer, Unit const& unit,
-    goto_target const& target ) {
+    SSConst const& ss, TerrainConnectivity const& connectivity,
+    GotoRegistry& registry, IGotoMapViewer const& viewer,
+    Unit const& unit, goto_target const& target ) {
   UnitId const unit_id       = unit.id();
   e_player const player_type = unit.player_type();
 
@@ -732,7 +732,7 @@ EvolveGoto find_next_move_for_unit_with_goto_target(
       // timal path and ending up with the optimal path.
       if( registry.units.contains( unit_id ) ) {
         vector<Coord> const visible = unit_visible_squares(
-            ss, player_type, unit.type(), src );
+            ss, connectivity, player_type, unit.type(), src );
         lg.debug( "re-exploring {} tiles for sea lane.",
                   visible.size() );
         for( point const p : visible ) {

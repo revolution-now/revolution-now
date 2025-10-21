@@ -15,6 +15,7 @@
 
 namespace rn {
 
+struct IMapUpdater;
 struct IRand;
 struct SS;
 
@@ -24,7 +25,8 @@ struct SS;
 // This is an implementation that will consult with a human user
 // via GUI actions or input in order to fulfill the requests.
 struct RefAIAgent final : IAgent {
-  RefAIAgent( e_player player, SS& ss, IRand& rand );
+  RefAIAgent( e_player player, SS& ss, IMapUpdater& map_updater,
+              IRand& rand );
 
   ~RefAIAgent() override;
 
@@ -125,6 +127,7 @@ struct RefAIAgent final : IAgent {
 
  private:
   SS& ss_;
+  IMapUpdater& map_updater_;
   IRand& rand_;
   Player const& colonial_player_;
 
