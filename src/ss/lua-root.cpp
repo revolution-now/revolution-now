@@ -165,53 +165,6 @@ struct type_traits<std::array<T, N>>
   : TraitsForModel<std::array<T, N>,
                    e_userdata_ownership_model::owned_by_cpp> {};
 
-// FIXME: need to think about these
-
-template<>
-struct type_traits<base::maybe<rn::Player>>
-  : TraitsForModel<base::maybe<rn::Player>,
-                   e_userdata_ownership_model::owned_by_cpp> {};
-template<>
-struct type_traits<base::maybe<rn::PlayerTerrain>>
-  : TraitsForModel<base::maybe<rn::PlayerTerrain>,
-                   e_userdata_ownership_model::owned_by_cpp> {};
-template<>
-struct type_traits<base::maybe<rn::Tribe>>
-  : TraitsForModel<base::maybe<rn::Tribe>,
-                   e_userdata_ownership_model::owned_by_cpp> {};
-template<>
-struct type_traits<base::maybe<rn::Dwelling>>
-  : TraitsForModel<base::maybe<rn::Dwelling>,
-                   e_userdata_ownership_model::owned_by_cpp> {};
-template<>
-struct type_traits<base::maybe<rn::FrozenDwelling>>
-  : TraitsForModel<base::maybe<rn::FrozenDwelling>,
-                   e_userdata_ownership_model::owned_by_cpp> {};
-template<>
-struct type_traits<base::maybe<rn::FrozenMission>>
-  : TraitsForModel<base::maybe<rn::FrozenMission>,
-                   e_userdata_ownership_model::owned_by_cpp> {};
-template<>
-struct type_traits<base::maybe<rn::GotoTargetSnapshot>>
-  : TraitsForModel<base::maybe<rn::GotoTargetSnapshot>,
-                   e_userdata_ownership_model::owned_by_cpp> {};
-template<>
-struct type_traits<base::maybe<rn::Construction>>
-  : TraitsForModel<base::maybe<rn::Construction>,
-                   e_userdata_ownership_model::owned_by_cpp> {};
-template<>
-struct type_traits<base::maybe<rn::Colony>>
-  : TraitsForModel<base::maybe<rn::Colony>,
-                   e_userdata_ownership_model::owned_by_cpp> {};
-template<>
-struct type_traits<base::maybe<rn::FrozenColony>>
-  : TraitsForModel<base::maybe<rn::FrozenColony>,
-                   e_userdata_ownership_model::owned_by_cpp> {};
-template<>
-struct type_traits<base::maybe<rn::OutdoorUnit>>
-  : TraitsForModel<base::maybe<rn::OutdoorUnit>,
-                   e_userdata_ownership_model::owned_by_cpp> {};
-
 } // namespace lua
 
 /****************************************************************

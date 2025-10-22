@@ -231,7 +231,7 @@ int push( cthread L, T&& o ) {
                    "should not be here." );
   int n_pushed =
       internal::ext_stack_size( L ) - start_stack_size;
-  assert( n_pushed == nvalues_for<T>() );
+  CHECK_EQ( n_pushed, nvalues_for<T>() );
   return n_pushed;
 }
 

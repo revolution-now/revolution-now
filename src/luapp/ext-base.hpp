@@ -11,6 +11,7 @@
 #pragma once
 
 // luapp
+#include "ext-userdata.hpp"
 #include "ext.hpp"
 #include "types.hpp"
 
@@ -60,5 +61,15 @@ struct type_traits<base::maybe<T>> {
     return *res;
   }
 };
+
+template<typename T>
+requires HasRefUserdataOwnershipModel<T>
+struct type_traits<base::maybe<T>>
+  : userdata_type_traits_cpp_owned<base::maybe<T>> {};
+
+template<typename T>
+requires HasValueUserdataOwnershipModel<T>
+struct type_traits<base::maybe<T>>
+  : userdata_type_traits_lua_owned<base::maybe<T>> {};
 
 } // namespace lua

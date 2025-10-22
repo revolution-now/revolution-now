@@ -123,7 +123,7 @@ assert( root.players.players.french.type == 'english' )
 assert( root.players.players.french.nation == 'english' )
 french.type = 'french'
 french.nation = 'french'
-print( 'root.players.players.french.has_value(): ' .. tostring( root.players.players.french:has_value() ) )
+print( 'root.players.players.french:has_value(): ' .. tostring( root.players.players.french:has_value() ) )
 assert( root.players.players.french:has_value() )
 assert( root.players.players.french.type == 'french' )
 assert( root.players.players.french.nation == 'french' )

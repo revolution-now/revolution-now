@@ -21,11 +21,21 @@
 
 namespace lua {
 
-struct MyLuaOwned {};
+struct MyLuaOwned {
+  int n = 0;
+};
 [[maybe_unused]] static void to_str( MyLuaOwned const&,
                                      std::string&,
                                      base::tag<MyLuaOwned> ) {}
 LUA_USERDATA_TRAITS( MyLuaOwned, owned_by_lua ){};
+
+struct MyCppOwned {
+  int n = 0;
+};
+[[maybe_unused]] static void to_str( MyCppOwned const&,
+                                     std::string&,
+                                     base::tag<MyCppOwned> ) {}
+LUA_USERDATA_TRAITS( MyCppOwned, owned_by_lua ){};
 
 namespace {
 
@@ -55,23 +65,56 @@ struct Reffable {
   }
 };
 
-LUA_TEST_CASE( "[ext-base] lua-owned" ) {
-  maybe<MyLuaOwned> m;
+LUA_TEST_CASE( "[ext-base] cpp-owned" ) {
+  maybe<MyCppOwned> m;
 
   SECTION( "nothing" ) {
-    m.reset();
     push( L, std::move( m ) );
     REQUIRE( C.stack_size() == 1 );
-    REQUIRE( C.type_of( -1 ) == type::nil );
+    REQUIRE( C.type_of( -1 ) == type::userdata );
+    auto const p = get<maybe<MyCppOwned>&>( L, -1 );
+    REQUIRE( p.has_value() );
+    REQUIRE( !p->has_value() );
     C.pop();
   }
 
   SECTION( "something" ) {
-    m.reset();
-    m.emplace();
+    m.emplace().n = 5;
     push( L, std::move( m ) );
     REQUIRE( C.stack_size() == 1 );
     REQUIRE( C.type_of( -1 ) == type::userdata );
+    auto const p = get<maybe<MyCppOwned>&>( L, -1 );
+    REQUIRE( p.has_value() );
+    REQUIRE( p->has_value() );
+    REQUIRE( p->value().n == 5 );
+    C.pop();
+  }
+}
+
+LUA_TEST_CASE( "[ext-base] lua-owned" ) {
+  maybe<MyLuaOwned> m;
+
+  SECTION( "nothing" ) {
+    push( L, std::move( m ) );
+    REQUIRE( C.stack_size() == 1 );
+    REQUIRE( C.type_of( -1 ) == type::userdata );
+    // Try non-const ref.
+    auto const p = get<maybe<MyLuaOwned>&>( L, -1 );
+    REQUIRE( p.has_value() );
+    REQUIRE( !p->has_value() );
+    C.pop();
+  }
+
+  SECTION( "something" ) {
+    m.emplace().n = 5;
+    push( L, std::move( m ) );
+    REQUIRE( C.stack_size() == 1 );
+    REQUIRE( C.type_of( -1 ) == type::userdata );
+    // Try const ref.
+    auto const p = get<maybe<MyLuaOwned> const&>( L, -1 );
+    REQUIRE( p.has_value() );
+    REQUIRE( p->has_value() );
+    REQUIRE( p->value().n == 5 );
     C.pop();
   }
 }
