@@ -15,12 +15,6 @@
 #include "ss/nation.hpp"
 #include "ss/revolution.hpp"
 
-// luapp
-#include "luapp/enum.hpp"
-#include "luapp/ext-base.hpp"
-#include "luapp/register.hpp"
-#include "luapp/state.hpp"
-
 // refl
 #include "refl/to-str.hpp"
 
@@ -48,52 +42,5 @@ valid_or<string> Player::validate() const {
 
   return valid;
 }
-
-/****************************************************************
-** Lua Bindings
-*****************************************************************/
-namespace {
-
-LUA_STARTUP( lua::state& st ) {
-  {
-    using U = ::rn::WoodcutMap;
-    auto u  = st.usertype.create<U>();
-
-    // TODO: make this generic for enum maps.
-    u[lua::metatable_key]["__index"] =
-        []( U& o, e_woodcut type ) { return o[type]; };
-
-    // TODO: make this generic for enum maps.
-    u[lua::metatable_key]["__newindex"] =
-        []( U& o, e_woodcut type, bool b ) { o[type] = b; };
-
-    // !! NOTE: because we overwrote the __*index metamethods on
-    // this userdata we cannot add any further (non-metatable)
-    // members on this object, since there will be no way to look
-    // them up by name.
-  };
-
-  {
-    using U = ::rn::Player;
-    auto u  = st.usertype.create<U>();
-
-    u["type"]                = &U::type;
-    u["nation"]              = &U::nation;
-    u["name"]                = &U::name;
-    u["control"]             = &U::control;
-    u["money"]               = &U::money;
-    u["crosses"]             = &U::crosses;
-    u["new_world_name"]      = &U::new_world_name;
-    u["woodcuts"]            = &U::woodcuts;
-    u["bells"]               = &U::bells;
-    u["revolution"]          = &U::revolution;
-    u["fathers"]             = &U::fathers;
-    u["starting_position"]   = &U::starting_position;
-    u["last_high_seas"]      = &U::last_high_seas;
-    u["artillery_purchases"] = &U::artillery_purchases;
-  };
-};
-
-} // namespace
 
 } // namespace rn

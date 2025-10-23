@@ -10,10 +10,6 @@
 *****************************************************************/
 #include "dwelling.hpp"
 
-// luapp
-#include "luapp/enum.hpp"
-#include "luapp/register.hpp"
-
 // refl
 #include "refl/ext.hpp"
 #include "refl/to-str.hpp"
@@ -31,9 +27,6 @@ using ::base::valid;
 using ::base::valid_or;
 
 } // namespace
-
-void linker_dont_discard_module_ss_dwelling();
-void linker_dont_discard_module_ss_dwelling() {}
 
 /****************************************************************
 ** DwellingRelationship
@@ -61,66 +54,5 @@ valid_or<string> Dwelling::validate() const {
 
   return valid;
 }
-
-/****************************************************************
-** Lua Bindings
-*****************************************************************/
-namespace {
-
-LUA_STARTUP( lua::state& st ) {
-  // DwellingTradingState.
-  [&] {
-    using U = ::rn::DwellingTradingState;
-
-    auto u = st.usertype.create<U>();
-
-    u["seeking_primary"]     = &U::seeking_primary;
-    u["seeking_secondary_1"] = &U::seeking_secondary_1;
-    u["seeking_secondary_2"] = &U::seeking_secondary_2;
-  }();
-
-  // DwellingRelationshipMap.
-  // TODO: make this generic.
-  [&] {
-    using U = ::rn::DwellingRelationshipMap;
-    auto u  = st.usertype.create<U>();
-
-    u[lua::metatable_key]["__index"] =
-        [&]( U& obj, e_player player ) -> DwellingRelationship& {
-      return obj[player];
-    };
-  }();
-
-  // DwellingRelationship.
-  [&] {
-    using U = ::rn::DwellingRelationship;
-
-    auto u = st.usertype.create<U>();
-
-    u["dwelling_only_alarm"]   = &U::dwelling_only_alarm;
-    u["has_spoken_with_chief"] = &U::has_spoken_with_chief;
-  }();
-
-  // Dwelling.
-  [&] {
-    using U = ::rn::Dwelling;
-
-    auto u = st.usertype.create<U>();
-
-    u["id"]         = &U::id;
-    u["is_capital"] = &U::is_capital;
-    u["population"] = &U::population;
-    u["trading"]    = &U::trading;
-    u["teaches"]    = &U::teaches;
-    u["has_taught"] = &U::has_taught;
-
-    u["relationship"] =
-        []( U& o, e_player player ) -> DwellingRelationship& {
-      return o.relationship[player];
-    };
-  }();
-};
-
-} // namespace
 
 } // namespace rn

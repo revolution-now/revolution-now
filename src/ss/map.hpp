@@ -14,15 +14,4 @@
 // Rds
 #include "map.rds.hpp"
 
-// luapp
-#include "luapp/ext-userdata.hpp"
-
 namespace rn {} // namespace rn
-
-/****************************************************************
-** Lua
-*****************************************************************/
-namespace lua {
-LUA_USERDATA_TRAITS( rn::MapState, owned_by_cpp ){};
-LUA_USERDATA_TRAITS( rn::ResourceDepletion, owned_by_cpp ){};
-} // namespace lua

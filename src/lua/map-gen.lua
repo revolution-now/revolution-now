@@ -1112,7 +1112,7 @@ local function distribute_prime_forest_resources( y_offset )
 end
 
 local function reset_depletion_counters()
-  ROOT.map.depletion:reset_depletion_counters()
+  ROOT.map.depletion.counters:clear()
 end
 
 -----------------------------------------------------------------

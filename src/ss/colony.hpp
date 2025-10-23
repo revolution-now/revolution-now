@@ -10,22 +10,13 @@
 *****************************************************************/
 #pragma once
 
+// rds
+#include "ss/colony.rds.hpp"
+
 // luapp
 #include "luapp/ext-userdata.hpp"
 
-// Rds
-#include "ss/colony.rds.hpp"
-
 namespace rn {
-
-using CommodityQuantityMap = refl::enum_map<e_commodity, int>;
-
-using CustomHouseMap = refl::enum_map<e_commodity, bool>;
-
-using TeachersMap = std::unordered_map<UnitId, int>;
-
-using ColonyBuildingsMap =
-    refl::enum_map<e_colony_building, bool>;
 
 std::vector<UnitId> colony_units_all( Colony const& colony );
 
@@ -35,16 +26,5 @@ std::vector<UnitId> colony_units_all( Colony const& colony );
 ** Lua
 *****************************************************************/
 namespace lua {
-
 LUA_USERDATA_TRAITS( ::rn::Colony, owned_by_cpp ){};
-
-LUA_USERDATA_TRAITS( ::rn::CommodityQuantityMap,
-                     owned_by_cpp ){};
-
-LUA_USERDATA_TRAITS( ::rn::CustomHouseMap, owned_by_cpp ){};
-
-LUA_USERDATA_TRAITS( ::rn::ColonyBuildingsMap, owned_by_cpp ){};
-
-LUA_USERDATA_TRAITS( ::rn::TeachersMap, owned_by_cpp ){};
-
 }

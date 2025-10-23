@@ -10,10 +10,6 @@
 *****************************************************************/
 #include "land-view.hpp"
 
-// luapp
-#include "luapp/register.hpp"
-#include "luapp/state.hpp"
-
 // refl
 #include "refl/ext.hpp"
 #include "refl/to-str.hpp"
@@ -31,33 +27,5 @@ base::valid_or<string> Viewport::validate() const {
                  "y center must be larger than 0" );
   return base::valid;
 }
-
-/****************************************************************
-** Lua Bindings
-*****************************************************************/
-namespace {
-
-// LandViewState
-LUA_STARTUP( lua::state& st ) {
-  // Viewport
-  [&] {
-    using U = ::rn::Viewport;
-    auto u  = st.usertype.create<U>();
-
-    u["zoom"]     = &U::zoom;
-    u["center_x"] = &U::center_x;
-    u["center_y"] = &U::center_y;
-  }();
-
-  // LandViewState.
-  [&] {
-    using U = ::rn::LandViewState;
-    auto u  = st.usertype.create<U>();
-
-    u["viewport"] = &U::viewport;
-  }();
-};
-
-} // namespace
 
 } // namespace rn

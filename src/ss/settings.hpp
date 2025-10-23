@@ -10,9 +10,7 @@
 *****************************************************************/
 #pragma once
 
-#include "core-config.hpp"
-
-// Rds
+// rds
 #include "settings.rds.hpp"
 
 // luapp
@@ -26,7 +24,5 @@ namespace rn {} // namespace rn
 namespace lua {
 
 LUA_USERDATA_TRAITS( ::rn::SettingsState, owned_by_cpp ){};
-LUA_USERDATA_TRAITS( ::rn::CheatOptions, owned_by_cpp ){};
-LUA_USERDATA_TRAITS( ::rn::GameSetupOptions, owned_by_cpp ){};
 
 } // namespace lua

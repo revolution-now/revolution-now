@@ -238,58 +238,6 @@ bool TerrainState::is_pacific_ocean( Coord coord ) const {
 namespace {
 
 LUA_STARTUP( lua::state& st ) {
-  // PlayerTerrainMatrix.
-  [&] {
-    using U = ::rn::PlayerTerrainMatrix;
-
-    auto u = st.usertype.create<U>();
-
-    u["size"]          = &U::size;
-    u["square_exists"] = []( U& o, Coord tile ) {
-      return tile.is_inside( o.rect() );
-    };
-    u["square_at"] =
-        []( U& o, Coord tile ) -> base::maybe<PlayerSquare&> {
-      if( !tile.is_inside( o.rect() ) ) return base::nothing;
-      return o[tile];
-    };
-  }();
-
-  // PlayerTerrain.
-  [&] {
-    using U = ::rn::PlayerTerrain;
-    auto u  = st.usertype.create<U>();
-
-    u["map"] = &U::map;
-  }();
-
-  // PlayerTerrainMap.
-  [&] {
-    using U = ::rn::PlayerTerrainMap;
-    auto u  = st.usertype.create<U>();
-
-    u["for_player"] = [&]( U& obj, e_player c )
-        -> base::maybe<PlayerTerrain&> { return obj[c]; };
-
-    u["add_player"] = [&]( U& obj,
-                           e_player c ) -> PlayerTerrain& {
-      if( !obj[c].has_value() ) obj[c].emplace();
-      return *obj[c];
-    };
-  }();
-
-  // ProtoSquaresMap.
-  // TODO: make this generic.
-  [&] {
-    using U = ::rn::ProtoSquaresMap;
-    auto u  = st.usertype.create<U>();
-
-    u[lua::metatable_key]["__index"] =
-        [&]( U& obj, e_cardinal_direction c ) -> MapSquare& {
-      return obj[c];
-    };
-  }();
-
   // TerrainState.
   [&] {
     using U = ::rn::TerrainState;

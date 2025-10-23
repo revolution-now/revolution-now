@@ -10,15 +10,6 @@
 *****************************************************************/
 #include "fog-square.hpp" // IWYU pragma: keep
 
-// ss
-#include "ss/map-square.hpp" // IWYU pragma: keep
-
-// luapp
-#include "luapp/enum.hpp"     // IWYU pragma: keep
-#include "luapp/ext-base.hpp" // IWYU pragma: keep
-#include "luapp/register.hpp"
-#include "luapp/state.hpp"
-
 // refl
 #include "refl/to-str.hpp" // IWYU pragma: keep
 
@@ -70,33 +61,5 @@ valid_or<string> FrozenSquare::validate() const {
 
   return valid;
 }
-
-/****************************************************************
-** Lua Bindings
-*****************************************************************/
-namespace {
-
-LUA_STARTUP( lua::state& st ) {
-  // FrozenSquare.
-  [&] {
-    using U = ::rn::FrozenSquare;
-
-    auto u = st.usertype.create<U>();
-
-    u["square"] = &U::square;
-  }();
-
-  // PlayerSquare.
-  [&] {
-    using U = ::rn::PlayerSquare;
-
-    auto u = st.usertype.create<U>();
-
-    // TODO
-    (void)u;
-  }();
-};
-
-} // namespace
 
 } // namespace rn

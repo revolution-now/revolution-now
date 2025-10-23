@@ -17,12 +17,6 @@
 #include "ss/old-world-state.hpp"
 #include "ss/player.hpp"
 
-// luapp
-#include "luapp/enum.hpp"
-#include "luapp/ext-base.hpp"
-#include "luapp/register.hpp"
-#include "luapp/state.hpp"
-
 // refl
 #include "refl/to-str.hpp"
 
@@ -141,60 +135,5 @@ Player const& player_for_player_or_die(
                     player_type );
   return player;
 }
-
-/****************************************************************
-** Lua Bindings
-*****************************************************************/
-namespace {
-
-// PlayersState
-LUA_STARTUP( lua::state& st ) {
-  [&] {
-    using U = ::rn::PlayersState;
-    auto u  = st.usertype.create<U>();
-
-    u["players"]             = &U::players;
-    u["old_world"]           = &U::old_world;
-    u["global_market_state"] = &U::global_market_state;
-    u[lua::metatable_key]    = st.table.create();
-  }();
-
-  // PlayersMap
-  [&] {
-    using U = ::rn::PlayersMap;
-    auto u  = st.usertype.create<U>();
-
-    // We could instead do this by overriding the __index
-    // metamethod, but then we would not be able to register any
-    // further (non-metamethod) members of this userdata.
-    u["get"] = [&]( U& o, e_player player ) -> maybe<Player&> {
-      return o[player];
-    };
-
-    u["reset_player"] = []( U& o, e_player player ) -> Player& {
-      o[player] = Player{};
-      return *o[player];
-    };
-  }();
-
-  // OldWorldMap
-  [&] {
-    using U = ::rn::OldWorldMap;
-    auto u  = st.usertype.create<U>();
-
-    // TODO: make this generic for enum maps.
-    u[lua::metatable_key]["__index"] =
-        []( U& o, e_nation const type ) -> auto& {
-      return o[type];
-    };
-
-    // !! NOTE: because we overwrote the __*index metamethods on
-    // this userdata we cannot add any further (non-metatable)
-    // members on this object, since there will be no way to look
-    // them up by name.
-  }();
-};
-
-} // namespace
 
 } // namespace rn

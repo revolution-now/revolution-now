@@ -11,10 +11,6 @@
 *****************************************************************/
 #include "map.hpp"
 
-// luapp
-#include "luapp/register.hpp"
-#include "luapp/state.hpp"
-
 // refl
 #include "refl/to-str.hpp"
 
@@ -34,34 +30,5 @@ using ::base::valid_or;
 base::valid_or<string> MapState::validate() const {
   return valid;
 }
-
-/****************************************************************
-** Lua Bindings
-*****************************************************************/
-namespace {
-
-LUA_STARTUP( lua::state& st ) {
-  // MapState.
-  [&] {
-    using U = ::rn::MapState;
-
-    auto u = st.usertype.create<U>();
-
-    u["depletion"] = &U::depletion;
-  }();
-
-  // ResourceDepletion.
-  [&] {
-    using U = ::rn::ResourceDepletion;
-
-    auto u = st.usertype.create<U>();
-
-    u["reset_depletion_counters"] = []( U& o ) {
-      o.counters.clear();
-    };
-  }();
-};
-
-} // namespace
 
 } // namespace rn

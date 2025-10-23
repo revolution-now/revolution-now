@@ -133,12 +133,8 @@ LUA_USERDATA_TRAITS_KV( std::map, owned_by_cpp ){};
 LUA_USERDATA_TRAITS_KV( std::unordered_map, owned_by_cpp ){};
 LUA_USERDATA_TRAITS_KV( refl::enum_map, owned_by_cpp ){};
 
-// Ensure this one doesn't get type traits from the reflected
-// struct version above, since Coord uses ADL for push/get.
-template<>
-struct type_traits<::rn::Coord> {};
-
 template<refl::ReflectedStruct S>
+requires( !PushableViaAdl<S> && !GettableViaAdl<S> )
 struct type_traits<S>
   : TraitsForModel<S, e_userdata_ownership_model::owned_by_cpp> {
 };
@@ -211,6 +207,8 @@ void define_usertype_for( lua::state& st,
   u["has_value"] = []( U& o ) { return o.has_value(); };
   u["reset"]     = []( U& o ) { o.reset(); };
   u["emplace"]   = []( U& o ) -> T& { return o.emplace(); };
+  // This one will return either lua nil or userdata T&.
+  u["value"] = [&]( U& o ) -> base::maybe<T&> { return o; };
 
   table mt           = u[metatable_key];
   auto const __index = mt["__index"].template as<rfunction>();
@@ -242,15 +240,16 @@ void define_usertype_for_map_impl( lua::state& st,
   using U = M<K, V>;
   auto u  = st.usertype.create<U>();
 
-  u["size"] = []( U& o ) -> int { return o.size(); };
+  u["size"]  = []( U& o ) -> int { return o.size(); };
+  u["clear"] = []( U& o ) { o.clear(); };
 
   table mt           = u[metatable_key];
   auto const __index = mt["__index"].template as<rfunction>();
 
   // Add some members here.
 
-  u[metatable_key]["__index"] =
-      [__index]( U& o, any const key ) -> base::maybe<any> {
+  mt["__index"] = [__index](
+                      U& o, any const key ) -> base::maybe<any> {
     if( auto const member = __index( o, key ); member != nil )
       return member.template as<any>();
     auto const maybe_key = safe_as<K>( key );
@@ -264,10 +263,8 @@ void define_usertype_for_map_impl( lua::state& st,
   using ValueType =
       std::conditional_t<lua::Gettable<V const&>, V const&, V>;
 
-  u[metatable_key]["__newindex"] = []( U& o, K const& key,
-                                       ValueType const val ) {
-    o[key] = val;
-  };
+  mt["__newindex"] = []( U& o, K const& key,
+                         ValueType const val ) { o[key] = val; };
 }
 
 template<typename K, typename V>
@@ -293,8 +290,8 @@ void define_usertype_for( lua::state& st,
 
   // Add some members here.
 
-  u[metatable_key]["__index"] =
-      [__index]( U& o, any const key ) -> base::maybe<any> {
+  mt["__index"] = [__index](
+                      U& o, any const key ) -> base::maybe<any> {
     if( auto const member = __index( o, key ); member != nil )
       return member.template as<any>();
     auto const maybe_key = safe_as<K>( key );
@@ -307,10 +304,8 @@ void define_usertype_for( lua::state& st,
   using ValueType =
       std::conditional_t<lua::Gettable<V const&>, V const&, V>;
 
-  u[metatable_key]["__newindex"] = []( U& o, K const& key,
-                                       ValueType const val ) {
-    o[key] = val;
-  };
+  mt["__newindex"] = []( U& o, K const& key,
+                         ValueType const val ) { o[key] = val; };
 }
 
 template<refl::ReflectedStruct S>
@@ -347,8 +342,8 @@ void define_usertype_rds_variant_impl(
 
   // Add some members here.
 
-  u[metatable_key]["__index"] =
-      [__index]( U& o, any const key ) -> base::maybe<any> {
+  mt["__index"] = [__index](
+                      U& o, any const key ) -> base::maybe<any> {
     base::maybe<any> res;
     if( auto const member = __index( o, key ); member != nil ) {
       res = member.template as<any>();
@@ -371,18 +366,16 @@ void define_usertype_rds_variant_impl(
     return res;
   };
 
-  u[metatable_key]["__newindex"] =
-      [__index]( U& o, string const& key, any const ) {
-        [&]<size_t... I>( index_sequence<I...> ) {
-          auto const fn =
-              [&]<size_t Idx>( integral_constant<size_t, Idx> ) {
-                static_assert( Idx < variant_size_v<V> );
-                if( kNames[Idx] == key )
-                  o.template emplace<Idx>();
-              };
-          ( fn( integral_constant<size_t, I>{} ), ... );
-        }( make_index_sequence<sizeof...( Ts )>() );
-      };
+  mt["__newindex"] = []( U& o, string const& key, any const ) {
+    [&]<size_t... I>( index_sequence<I...> ) {
+      auto const fn =
+          [&]<size_t Idx>( integral_constant<size_t, Idx> ) {
+            static_assert( Idx < variant_size_v<V> );
+            if( kNames[Idx] == key ) o.template emplace<Idx>();
+          };
+      ( fn( integral_constant<size_t, I>{} ), ... );
+    }( make_index_sequence<sizeof...( Ts )>() );
+  };
 }
 
 template<refl::ReflectedStruct... Ts>
@@ -438,6 +431,26 @@ void define_usertype_for( lua::state& st,
   auto u  = st.usertype.create<U>();
 
   u["size"] = []( U& ) -> int { return N; };
+
+  table mt           = u[metatable_key];
+  auto const __index = mt["__index"].template as<rfunction>();
+
+  mt["__index"] = [&, L = st.resource()](
+                      U& o, any const key ) -> any {
+    if( auto const member = __index( o, key ); member != nil ) {
+      return member.template as<any>();
+    }
+    size_t const idx = key.as<int64_t>();
+    LUA_CHECK( st, idx >= 1 && idx <= N,
+               "array index out of bounds" );
+    return as<any>( L, o[idx - 1] );
+  };
+
+  mt["__newindex"] = [&]( U& obj, int idx, T type ) {
+    LUA_CHECK( st, idx >= 1 && idx <= 3,
+               "immigrant pool index must be either 1, 2, 3." );
+    obj[idx - 1] = type;
+  };
 }
 
 } // namespace
@@ -464,16 +477,12 @@ struct RegisterLuaType {
   };
 #endif
 
-  inline static auto constexpr register_fn =
-      +[]( lua::state& st ) {
-        ::lua::define_usertype_for( st, ::lua::tag<T>{} );
-      };
-
-  inline static auto constexpr p_register_fn = +register_fn;
-  inline static auto* const* p_p_register_fn = &p_register_fn;
-
   inline static int _ = [] {
-    ::lua::detail::register_lua_fn( p_p_register_fn );
+    static auto constexpr register_fn = +[]( lua::state& st ) {
+      ::lua::define_usertype_for( st, ::lua::tag<T>{} );
+    };
+    static auto constexpr p_register_fn = +register_fn;
+    ::lua::detail::register_lua_fn( &p_register_fn );
     return 0;
   }();
   ODR_USE_MEMBER( _ );
@@ -489,5 +498,4 @@ TRV_RUN_TYPE_TRAVERSE( RegisterLuaType, RootState );
 namespace rn {
 void linker_dont_discard_module_ss_lua_root();
 void linker_dont_discard_module_ss_lua_root() {}
-
 } // namespace rn

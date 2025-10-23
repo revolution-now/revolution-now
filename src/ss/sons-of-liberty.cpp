@@ -10,9 +10,6 @@
 *****************************************************************/
 #include "sons-of-liberty.hpp"
 
-// luapp
-#include "luapp/register.hpp"
-
 // refl
 #include "refl/ext.hpp"
 #include "refl/to-str.hpp"
@@ -37,22 +34,5 @@ base::valid_or<string> SonsOfLiberty::validate() const {
                  "colony must be >= 1.0" );
   return base::valid;
 }
-
-/****************************************************************
-** Lua Bindings
-*****************************************************************/
-namespace {
-
-LUA_STARTUP( lua::state& st ) {
-  using U = ::rn::SonsOfLiberty;
-  auto u  = st.usertype.create<U>();
-
-  u["num_rebels_from_bells_only"] =
-      &U::num_rebels_from_bells_only;
-  u["last_sons_of_liberty_integral_percent"] =
-      &U::last_sons_of_liberty_integral_percent;
-};
-
-} // namespace
 
 } // namespace rn

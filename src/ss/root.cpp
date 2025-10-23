@@ -247,16 +247,8 @@ LUA_STARTUP( lua::state& st ) {
   using U = ::rn::RootState;
   auto u  = st.usertype.create<U>();
 
-  // u["version"] = &U::version;
-  u["settings"] = &U::settings;
-  // u["events"] = &U::events;
-  u["units"]     = &U::units;
-  u["players"]   = &U::players;
-  u["turn"]      = &U::turn;
-  u["colonies"]  = &U::colonies;
-  u["natives"]   = &U::natives;
-  u["land_view"] = &U::land_view;
-  u["map"]       = &U::map;
+  // All the members will be registered automatically, so we just
+  // need to create an alias for this one.
   u["terrain"]   = &U::zzz_terrain;
 };
 

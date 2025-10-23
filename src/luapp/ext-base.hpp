@@ -23,6 +23,14 @@ namespace lua {
 /****************************************************************
 ** maybe
 *****************************************************************/
+// NOTE: This first specialization applies not only to simple
+// types like int or string, but also applies when T is a refer-
+// ence, even to a userdata. So one way to view this when it
+// comes to userdata is that the specializations further below
+// for userdata with ownership models applies to pushing and pop-
+// ping maybe<T> where T is a non-reference userdata type, while
+// this specialization can be used to push and pop maybe<T&>,
+// since it will push either T& or nil.
 template<typename T>
 struct type_traits<base::maybe<T>> {
   using M = base::maybe<T>;

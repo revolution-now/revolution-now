@@ -10,30 +10,17 @@
 *****************************************************************/
 #pragma once
 
-// Rds
+// rds
 #include "ss/dwelling.rds.hpp"
 
 // luapp
 #include "luapp/ext-userdata.hpp"
 
-namespace rn {
-
-using DwellingRelationshipMap =
-    refl::enum_map<e_player, DwellingRelationship>;
-
-} // namespace rn
+namespace rn {} // namespace rn
 
 /****************************************************************
 ** Lua
 *****************************************************************/
 namespace lua {
-
 LUA_USERDATA_TRAITS( ::rn::Dwelling, owned_by_cpp ){};
-LUA_USERDATA_TRAITS( ::rn::DwellingTradingState,
-                     owned_by_cpp ){};
-LUA_USERDATA_TRAITS( ::rn::DwellingRelationship,
-                     owned_by_cpp ){};
-LUA_USERDATA_TRAITS( ::rn::DwellingRelationshipMap,
-                     owned_by_cpp ){};
-
 }

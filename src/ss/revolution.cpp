@@ -10,12 +10,6 @@
 *****************************************************************/
 #include "revolution.hpp"
 
-// luapp
-#include "luapp/enum.hpp"
-#include "luapp/ext-base.hpp"
-#include "luapp/register.hpp"
-#include "luapp/state.hpp"
-
 // refl
 #include "refl/ext.hpp"
 #include "refl/to-str.hpp"
@@ -59,38 +53,3 @@ valid_or<string> RevolutionState::validate() const {
 }
 
 } // namespace rn
-
-/****************************************************************
-** Lua Bindings
-*****************************************************************/
-namespace {
-
-// ExpeditionaryForce
-LUA_STARTUP( lua::state& st ) {
-  using U = ::rn::ExpeditionaryForce;
-  auto u  = st.usertype.create<U>();
-
-  u["regular"]   = &U::regular;
-  u["cavalry"]   = &U::cavalry;
-  u["artillery"] = &U::artillery;
-  u["man_o_war"] = &U::man_o_war;
-};
-
-// RevolutionState
-LUA_STARTUP( lua::state& st ) {
-  using U = ::rn::RevolutionState;
-  auto u  = st.usertype.create<U>();
-
-  u["rebel_sentiment"] = &U::rebel_sentiment;
-  u["status"]          = &U::status;
-  u["continental_army_mobilized"] =
-      &U::continental_army_mobilized;
-  u["gave_independence_war_hints"] =
-      &U::gave_independence_war_hints;
-  u["intervention_force_deployed"] =
-      &U::intervention_force_deployed;
-  u["ref_will_forfeit"]    = &U::ref_will_forfeit;
-  u["expeditionary_force"] = &U::expeditionary_force;
-};
-
-} // namespace

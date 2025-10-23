@@ -12,17 +12,4 @@
 
 #include "revolution.rds.hpp"
 
-// luapp
-#include "luapp/ext-userdata.hpp"
-
 namespace rn {} // namespace rn
-
-/****************************************************************
-** Lua
-*****************************************************************/
-namespace lua {
-
-LUA_USERDATA_TRAITS( ::rn::ExpeditionaryForce, owned_by_cpp ){};
-LUA_USERDATA_TRAITS( ::rn::RevolutionState, owned_by_cpp ){};
-
-} // namespace lua

@@ -26,6 +26,5 @@ using WoodcutMap = refl::enum_map<e_woodcut, bool>;
 ** Lua
 *****************************************************************/
 namespace lua {
-LUA_USERDATA_TRAITS( rn::WoodcutMap, owned_by_cpp ){};
 LUA_USERDATA_TRAITS( rn::Player, owned_by_cpp ){};
 }

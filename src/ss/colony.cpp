@@ -10,27 +10,15 @@
 *****************************************************************/
 #include "colony.hpp"
 
-// gs
-#include "commodity.rds.hpp"
-
-// ss
-#include "ss/sons-of-liberty.hpp"
-#include "ss/units.hpp"
-
 // config
 #include "config/colony.rds.hpp"
 
-// luapp
-#include "luapp/enum.hpp"
-#include "luapp/register.hpp"
+// ss
+#include "commodity.rds.hpp"
 
 // refl
 #include "refl/query-enum.hpp"
 #include "refl/to-str.hpp"
-
-// luapp
-#include "luapp/register.hpp"
-#include "luapp/state.hpp"
 
 // base
 #include "base/error.hpp"
@@ -47,6 +35,8 @@ namespace {
 
 using ::base::maybe;
 using ::base::nothing;
+using ::base::valid;
+using ::base::valid_or;
 
 // This should be called at the end of any non-const member func-
 // tion that can edit the jobs/units maps.
@@ -206,82 +196,4 @@ vector<UnitId> colony_units_all( Colony const& colony ) {
   return res;
 }
 
-} // namespace rn
-
-/****************************************************************
-** Lua Bindings
-*****************************************************************/
-namespace rn {
-namespace {
-
-LUA_STARTUP( lua::state& st ) {
-  // CommodityQuantityMap
-  // TODO: make this generic.
-  [&] {
-    using U = ::rn::CommodityQuantityMap;
-    auto u  = st.usertype.create<U>();
-
-    u[lua::metatable_key]["__index"] =
-        [&]( U& obj, e_commodity c ) { return obj[c]; };
-
-    u[lua::metatable_key]["__newindex"] =
-        [&]( U& obj, e_commodity c, int quantity ) {
-          obj[c] = quantity;
-        };
-  }();
-
-  // CustomHouseMap.
-  // TODO: make this generic.
-  [&] {
-    using U = ::rn::CustomHouseMap;
-    auto u  = st.usertype.create<U>();
-
-    u[lua::metatable_key]["__index"] =
-        [&]( U& obj, e_commodity c ) { return obj[c]; };
-
-    u[lua::metatable_key]["__newindex"] =
-        [&]( U& obj, e_commodity c, int quantity ) {
-          obj[c] = quantity;
-        };
-  }();
-
-  // ColonyBuildingsMap
-  // TODO: make this generic.
-  [&] {
-    using U = ::rn::ColonyBuildingsMap;
-    auto u  = st.usertype.create<U>();
-
-    u[lua::metatable_key]["__index"] =
-        [&]( U& obj, e_colony_building c ) { return obj[c]; };
-
-    u[lua::metatable_key]["__newindex"] =
-        [&]( U& obj, e_colony_building c, bool b ) {
-          obj[c] = b;
-        };
-  }();
-
-  // !! NOTE: because we overwrote the __index and __newindex
-  // metamethods on this userdata we cannot add any further
-  // (non-metatable) members on this object, since there will be
-  // no way to look them up by name.
-};
-
-LUA_STARTUP( lua::state& st ) {
-  using U = Colony;
-  auto u  = st.usertype.create<U>();
-
-  // Getters.
-  u["id"]              = &U::id;
-  u["nation"]          = &U::player;
-  u["name"]            = &U::name;
-  u["location"]        = &U::location;
-  u["sons_of_liberty"] = &U::sons_of_liberty;
-  u["buildings"]       = &U::buildings;
-  u["commodities"]     = &U::commodities;
-  u["custom_house"]    = &U::custom_house;
-  // FIXME: figure out how to expose C++ maps to Lua.
-  u["teachers"] = &U::teachers;
-};
-
-} // namespace
 } // namespace rn

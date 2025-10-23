@@ -10,22 +10,7 @@
 *****************************************************************/
 #pragma once
 
-#include "core-config.hpp"
-
-// Rds
+// rds
 #include "ss/land-view.rds.hpp"
 
-// luapp
-#include "luapp/ext-userdata.hpp"
-
 namespace rn {} // namespace rn
-
-/****************************************************************
-** Lua
-*****************************************************************/
-namespace lua {
-
-LUA_USERDATA_TRAITS( ::rn::LandViewState, owned_by_cpp ){};
-LUA_USERDATA_TRAITS( ::rn::Viewport, owned_by_cpp ){};
-
-} // namespace lua

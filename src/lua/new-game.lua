@@ -92,7 +92,7 @@ end
 -- will be placed where we want them.
 local function create_initial_units_for_player(options,
                                                player_type, root )
-  local player = root.players.players:get( player_type )
+  local player = root.players.players[player_type]:value()
   local coord = assert( options.players[player_type].ship_pos )
 
   -- Ship.
@@ -263,7 +263,7 @@ local function init_non_processed_goods_prices(root, options,
     assert( min <= max )
     local bid_price = math.random( min, max )
     for _, o in ipairs( options.ordered_players ) do
-      local player = players:get( o.nation )
+      local player = players[o.nation]:value()
       local old_world = root.players.old_world[player.type]
       old_world.market.commodities[comm].bid_price = bid_price
     end
@@ -294,7 +294,7 @@ local function init_processed_goods_prices(root, options, players )
   local eq_ask_prices = group:equilibrium_prices()
   for _, comm in ipairs{ 'rum', 'cigars', 'cloth', 'coats' } do
     for _, o in ipairs( options.ordered_players ) do
-      local player = players:get( o.nation )
+      local player = players[o.nation]:value()
       local old_world = root.players.old_world[player.type]
       local c = old_world.market.commodities[comm]
       local spread = market.bid_ask_spread( comm )

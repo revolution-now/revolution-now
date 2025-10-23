@@ -15,14 +15,7 @@
 // Rds
 #include "players.rds.hpp"
 
-// luapp
-#include "luapp/ext-userdata.hpp"
-
 namespace rn {
-
-using PlayersMap = refl::enum_map<e_player, maybe<Player>>;
-
-using OldWorldMap = refl::enum_map<e_nation, OldWorldState>;
 
 Player& player_for_player_or_die( PlayersState& players,
                                   e_player player );
@@ -31,14 +24,3 @@ Player const& player_for_player_or_die(
     PlayersState const& players, e_player player );
 
 } // namespace rn
-
-/****************************************************************
-** Lua
-*****************************************************************/
-namespace lua {
-
-LUA_USERDATA_TRAITS( ::rn::PlayersState, owned_by_cpp ){};
-LUA_USERDATA_TRAITS( ::rn::PlayersMap, owned_by_cpp ){};
-LUA_USERDATA_TRAITS( ::rn::OldWorldMap, owned_by_cpp ){};
-
-} // namespace lua

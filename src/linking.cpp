@@ -18,13 +18,9 @@ void linker_dont_discard_module_conductor();
 void linker_dont_discard_module_co_lua();
 void linker_dont_discard_module_lua_ui();
 void linker_dont_discard_module_map_gen();
-void linker_dont_discard_module_ss_fathers();
 void linker_dont_discard_module_time();
-void linker_dont_discard_module_ss_map_square();
 void linker_dont_discard_module_irand();
-void linker_dont_discard_module_ss_dwelling();
 void linker_dont_discard_module_native_expertise();
-void linker_dont_discard_module_ss_native_unit();
 void linker_dont_discard_module_classic_sav();
 void linker_dont_discard_module_ss_lua_root();
 
@@ -35,13 +31,9 @@ void linker_dont_discard_me() {
   linker_dont_discard_module_co_lua();
   linker_dont_discard_module_lua_ui();
   linker_dont_discard_module_map_gen();
-  linker_dont_discard_module_ss_fathers();
   linker_dont_discard_module_time();
-  linker_dont_discard_module_ss_map_square();
   linker_dont_discard_module_irand();
-  linker_dont_discard_module_ss_dwelling();
   linker_dont_discard_module_native_expertise();
-  linker_dont_discard_module_ss_native_unit();
   linker_dont_discard_module_classic_sav();
   linker_dont_discard_module_ss_lua_root();
   // Add more here as needed.

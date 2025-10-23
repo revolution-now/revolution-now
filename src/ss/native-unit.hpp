@@ -10,7 +10,7 @@
 *****************************************************************/
 #pragma once
 
-// Rds
+// rds
 #include "native-unit.rds.hpp"
 
 // luapp
@@ -22,7 +22,5 @@ namespace rn {} // namespace rn
 ** Lua
 *****************************************************************/
 namespace lua {
-
 LUA_USERDATA_TRAITS( ::rn::NativeUnit, owned_by_cpp ){};
-
 }

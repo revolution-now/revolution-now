@@ -10,7 +10,7 @@
 *****************************************************************/
 #pragma once
 
-// Rds
+// rds
 #include "ss/sons-of-liberty.rds.hpp"
 
 // luapp
@@ -22,7 +22,5 @@ namespace rn {} // namespace rn
 ** Lua
 *****************************************************************/
 namespace lua {
-
 LUA_USERDATA_TRAITS( ::rn::SonsOfLiberty, owned_by_cpp ){};
-
 }

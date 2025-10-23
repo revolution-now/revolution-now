@@ -10,7 +10,7 @@
 *****************************************************************/
 #pragma once
 
-// Rds
+// rds
 #include "ss/map-square.rds.hpp"
 
 // luapp

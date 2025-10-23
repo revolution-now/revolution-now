@@ -21,6 +21,7 @@
 
 // base
 #include "base/expect.hpp"
+#include "base/function-ref.hpp"
 #include "base/maybe.hpp"
 
 namespace rn {
@@ -144,12 +145,6 @@ struct TerrainState {
   // none.
 };
 
-using ProtoSquaresMap =
-    refl::enum_map<e_cardinal_direction, MapSquare>;
-using PlayerTerrainMap =
-    refl::enum_map<e_player, base::maybe<PlayerTerrain>>;
-using PlayerTerrainMatrix = gfx::Matrix<PlayerSquare>;
-
 } // namespace rn
 
 /****************************************************************
@@ -157,8 +152,4 @@ using PlayerTerrainMatrix = gfx::Matrix<PlayerSquare>;
 *****************************************************************/
 namespace lua {
 LUA_USERDATA_TRAITS( rn::TerrainState, owned_by_cpp ){};
-LUA_USERDATA_TRAITS( rn::ProtoSquaresMap, owned_by_cpp ){};
-LUA_USERDATA_TRAITS( rn::PlayerTerrain, owned_by_cpp ){};
-LUA_USERDATA_TRAITS( rn::PlayerTerrainMap, owned_by_cpp ){};
-LUA_USERDATA_TRAITS( rn::PlayerTerrainMatrix, owned_by_cpp ){};
 } // namespace lua

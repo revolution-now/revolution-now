@@ -16,12 +16,7 @@
 // luapp
 #include "luapp/ext-userdata.hpp"
 
-namespace rn {
-
-using TribeRelationshipMap =
-    refl::enum_map<e_player, TribeRelationship>;
-
-} // namespace rn
+namespace rn {} // namespace rn
 
 /****************************************************************
 ** Lua
@@ -29,8 +24,5 @@ using TribeRelationshipMap =
 namespace lua {
 
 LUA_USERDATA_TRAITS( ::rn::Tribe, owned_by_cpp ){};
-LUA_USERDATA_TRAITS( ::rn::TribeRelationship, owned_by_cpp ){};
-LUA_USERDATA_TRAITS( ::rn::TribeRelationshipMap,
-                     owned_by_cpp ){};
 
 }
