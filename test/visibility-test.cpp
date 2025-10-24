@@ -87,6 +87,23 @@ struct world : testing::World {
     build_map( std::move( tiles ), 15 );
   }
 
+  void create_medium_map() {
+    MapSquare const L = make_grassland();
+    MapSquare const _ = make_ocean();
+    // clang-format off
+    vector<MapSquare> tiles{
+      _, _, L, L, L, L, _,
+      _, _, L, _, _, L, _,
+      _, _, _, _, _, L, _,
+      _, L, _, L, L, L, _,
+      _, L, _, _, _, _, _,
+      _, L, L, L, L, L, L,
+      _, _, L, L, _, _, _,
+    };
+    // clang-format on
+    build_map( std::move( tiles ), 7 );
+  }
+
   void create_small_map() {
     MapSquare const L = make_grassland();
     MapSquare const _ = make_ocean();
@@ -134,7 +151,9 @@ struct world : testing::World {
 /****************************************************************
 ** Test Cases
 *****************************************************************/
-TEST_CASE( "[visibility] unit_visible_squares" ) {
+TEST_CASE(
+    "[visibility] unit_visible_squares (no connectivity "
+    "checking)" ) {
   world W;
   W.create_default_map();
 
@@ -240,6 +259,98 @@ TEST_CASE( "[visibility] unit_visible_squares" ) {
   };
   // clang-format on
   REQUIRE( f() == expected );
+}
+
+// This one does not turn off the
+// land_unit_visibility_crosses_continents and thus it tests the
+// (default) case where visibility does not extend to
+// non-connected regions.
+TEST_CASE(
+    "[visibility] unit_visible_squares (with connectivity "
+    "checking)" ) {
+  world w;
+  w.create_medium_map();
+
+  e_unit_type type = {};
+  Coord tile       = {};
+  vector<Coord> expected;
+
+  auto f = [&] {
+    return unit_visible_squares(
+        w.ss(), w.map_updater().connectivity(),
+        w.default_player_type(), type, tile );
+  };
+
+  // _, _, L, L, L, L, _,
+  // _, _, L, _, _, L, _,
+  // _, _, _, _, _, L, _,
+  // _, L, _, L, L, L, _,
+  // _, L, _, _, _, _, _,
+  // _, L, L, L, L, L, L,
+  // _, _, L, L, _, _, _,
+
+  SECTION( "with connectivity checking" ) {
+    tile = { .x = 3, .y = 3 };
+    type = e_unit_type::scout;
+    // clang-format off
+    expected = {
+    /*{.x=1,.y=1},*/{.x=2, .y=1},/*{.x=3, .y=1},  {.x=4, .y=1},*/{.x=5, .y=1},
+    /*{.x=1,.y=2},*/{.x=2, .y=2},  {.x=3, .y=2},  {.x=4, .y=2},  {.x=5, .y=2},
+    /*{.x=1,.y=3},*/{.x=2, .y=3},  {.x=3, .y=3},  {.x=4, .y=3},  {.x=5, .y=3},
+    /*{.x=1,.y=4},*/{.x=2, .y=4},  {.x=3, .y=4},  {.x=4, .y=4},/*{.x=5, .y=4},*/
+    /*{.x=1,.y=5},  {.x=2, .y=5},  {.x=3, .y=5},  {.x=4, .y=5},  {.x=5, .y=5},*/
+    };
+    // clang-format on
+    REQUIRE( f() == expected );
+
+    // NOTE: connectivity checking doesn't apply to ships.
+    tile = { .x = 4, .y = 4 };
+    type = e_unit_type::galleon;
+    // clang-format off
+    expected = {
+      {.x=2,.y=2},  {.x=3, .y=2},  {.x=4, .y=2},/*{.x=5, .y=2},*/{.x=6, .y=2},
+      {.x=2,.y=3},  {.x=3, .y=3},  {.x=4, .y=3},  {.x=5, .y=3},  {.x=6, .y=3},
+      {.x=2,.y=4},  {.x=3, .y=4},  {.x=4, .y=4},  {.x=5, .y=4},  {.x=6, .y=4},
+    /*{.x=2,.y=5},*/{.x=3, .y=5},  {.x=4, .y=5},  {.x=5, .y=5},/*{.x=6, .y=5},*/
+    /*{.x=2,.y=6},  {.x=3, .y=6},*/{.x=4, .y=6},  {.x=5, .y=6},  {.x=6, .y=6},
+    };
+    // clang-format on
+    REQUIRE( f() == expected );
+  }
+
+  SECTION( "no connectivity checking" ) {
+    auto& conf = detail::__config_land_view;
+    SCOPED_SET_AND_RESTORE(
+        conf.visibility.land_unit_visibility_crosses_continents,
+        true );
+
+    tile = { .x = 3, .y = 3 };
+    type = e_unit_type::scout;
+    // clang-format off
+    expected = {
+    /*{.x=1,.y=1},*/{.x=2, .y=1},/*{.x=3, .y=1},  {.x=4, .y=1},*/{.x=5, .y=1},
+    /*{.x=1,.y=2},*/{.x=2, .y=2},  {.x=3, .y=2},  {.x=4, .y=2},  {.x=5, .y=2},
+      {.x=1,.y=3},  {.x=2, .y=3},  {.x=3, .y=3},  {.x=4, .y=3},  {.x=5, .y=3},
+      {.x=1,.y=4},  {.x=2, .y=4},  {.x=3, .y=4},  {.x=4, .y=4},/*{.x=5, .y=4},*/
+      {.x=1,.y=5},  {.x=2, .y=5},  {.x=3, .y=5},  {.x=4, .y=5},  {.x=5, .y=5},
+    };
+    // clang-format on
+    REQUIRE( f() == expected );
+
+    // NOTE: connectivity checking doesn't apply to ships.
+    tile = { .x = 4, .y = 4 };
+    type = e_unit_type::galleon;
+    // clang-format off
+    expected = {
+      {.x=2,.y=2},  {.x=3, .y=2},  {.x=4, .y=2},/*{.x=5, .y=2},*/{.x=6, .y=2},
+      {.x=2,.y=3},  {.x=3, .y=3},  {.x=4, .y=3},  {.x=5, .y=3},  {.x=6, .y=3},
+      {.x=2,.y=4},  {.x=3, .y=4},  {.x=4, .y=4},  {.x=5, .y=4},  {.x=6, .y=4},
+    /*{.x=2,.y=5},*/{.x=3, .y=5},  {.x=4, .y=5},  {.x=5, .y=5},/*{.x=6, .y=5},*/
+    /*{.x=2,.y=6},  {.x=3, .y=6},*/{.x=4, .y=6},  {.x=5, .y=6},  {.x=6, .y=6},
+    };
+    // clang-format on
+    REQUIRE( f() == expected );
+  }
 }
 
 TEST_CASE( "[visibility] Visibility" ) {
@@ -524,7 +635,9 @@ TEST_CASE( "[visibility] set_map_visibility" ) {
            e_player::french );
 }
 
-TEST_CASE( "[visibility] recompute_fog_for_player" ) {
+TEST_CASE(
+    "[visibility] recompute_fog_for_player (without "
+    "connectivity checking)" ) {
   world W;
   W.create_default_map();
 
@@ -817,6 +930,342 @@ TEST_CASE( "[visibility] recompute_fog_for_player" ) {
   REQUIRE( eng_map[{ .x = 3, .y = 7 }]
                .inner_if<explored>()
                .get_if<clear>() );
+  REQUIRE( eng_map[{ .x = 3, .y = 8 }] == unexplored{} );
+  REQUIRE( eng_map[{ .x = 3, .y = 9 }]
+               .inner_if<explored>()
+               .get_if<fogged>() );
+  REQUIRE( eng_map[{ .x = 3, .y = 10 }] == unexplored{} );
+
+  REQUIRE( eng_map[{ .x = 8, .y = 0 }]
+               .inner_if<explored>()
+               .get_if<fogged>() );
+  REQUIRE( eng_map[{ .x = 8, .y = 1 }]
+               .inner_if<explored>()
+               .get_if<clear>() );
+  REQUIRE( eng_map[{ .x = 8, .y = 2 }]
+               .inner_if<explored>()
+               .get_if<clear>() );
+  REQUIRE( eng_map[{ .x = 8, .y = 3 }]
+               .inner_if<explored>()
+               .get_if<clear>() );
+  REQUIRE( eng_map[{ .x = 8, .y = 4 }]
+               .inner_if<explored>()
+               .get_if<fogged>() );
+  REQUIRE( eng_map[{ .x = 8, .y = 5 }] == unexplored{} );
+  REQUIRE( eng_map[{ .x = 8, .y = 6 }]
+               .inner_if<explored>()
+               .get_if<fogged>() );
+  REQUIRE( eng_map[{ .x = 8, .y = 7 }] == unexplored{} );
+  REQUIRE( eng_map[{ .x = 8, .y = 8 }]
+               .inner_if<explored>()
+               .get_if<fogged>() );
+  REQUIRE( eng_map[{ .x = 8, .y = 9 }] == unexplored{} );
+  REQUIRE( eng_map[{ .x = 8, .y = 10 }]
+               .inner_if<explored>()
+               .get_if<fogged>() );
+}
+
+TEST_CASE(
+    "[visibility] recompute_fog_for_player (with connectivity "
+    "checking)" ) {
+  world W;
+  W.create_default_map();
+
+  auto f = [&] {
+    recompute_fog_for_player( W.ss(), W.ts(),
+                              e_player::english );
+  };
+
+  gfx::Matrix<PlayerSquare>& eng_map =
+      W.ss()
+          .mutable_terrain_use_with_care
+          .mutable_player_terrain( e_player::english )
+          .map;
+  gfx::Matrix<PlayerSquare>& fr_map =
+      W.ss()
+          .mutable_terrain_use_with_care
+          .mutable_player_terrain( e_player::french )
+          .map;
+
+  // Make a checkerboard pattern of visibility.
+  for( int y = 0; y < eng_map.size().h; ++y )
+    for( int x = 0; x < eng_map.size().w; ++x )
+      if( ( x + y ) % 2 == 0 )
+        eng_map[{ .x = x, .y = y }]
+            .emplace<explored>()
+            .fog_status.emplace<fogged>();
+  for( int y = 0; y < fr_map.size().h; ++y )
+    for( int x = 0; x < fr_map.size().w; ++x )
+      if( ( x + y ) % 2 == 0 )
+        fr_map[{ .x = x, .y = y }]
+            .emplace<explored>()
+            .fog_status.emplace<fogged>();
+
+  // Sanity check our checkerboard.
+  REQUIRE( eng_map[{ .x = 0, .y = 0 }]
+               .inner_if<explored>()
+               .get_if<fogged>() );
+  REQUIRE( fr_map[{ .x = 0, .y = 0 }]
+               .inner_if<explored>()
+               .get_if<fogged>() );
+  REQUIRE( eng_map[{ .x = 1, .y = 0 }] == unexplored{} );
+  REQUIRE( fr_map[{ .x = 1, .y = 0 }] == unexplored{} );
+  REQUIRE( eng_map[{ .x = 0, .y = 1 }] == unexplored{} );
+  REQUIRE( fr_map[{ .x = 0, .y = 1 }] == unexplored{} );
+  REQUIRE( eng_map[{ .x = 1, .y = 1 }]
+               .inner_if<explored>()
+               .get_if<fogged>() );
+  REQUIRE( fr_map[{ .x = 1, .y = 1 }]
+               .inner_if<explored>()
+               .get_if<fogged>() );
+
+  W.clear_all_fog( eng_map );
+  W.clear_all_fog( fr_map );
+
+  // Sanity check checkerboard with fog removed.
+  REQUIRE( eng_map[{ .x = 0, .y = 0 }]
+               .inner_if<explored>()
+               .get_if<clear>() );
+  REQUIRE( fr_map[{ .x = 0, .y = 0 }]
+               .inner_if<explored>()
+               .get_if<clear>() );
+  REQUIRE( eng_map[{ .x = 1, .y = 0 }] == unexplored{} );
+  REQUIRE( fr_map[{ .x = 1, .y = 0 }] == unexplored{} );
+  REQUIRE( eng_map[{ .x = 0, .y = 1 }] == unexplored{} );
+  REQUIRE( fr_map[{ .x = 0, .y = 1 }] == unexplored{} );
+  REQUIRE( eng_map[{ .x = 1, .y = 1 }]
+               .inner_if<explored>()
+               .get_if<clear>() );
+  REQUIRE( fr_map[{ .x = 1, .y = 1 }]
+               .inner_if<explored>()
+               .get_if<clear>() );
+
+  f();
+
+  // Back to all fog.
+  REQUIRE( eng_map[{ .x = 0, .y = 0 }]
+               .inner_if<explored>()
+               .get_if<fogged>() );
+  REQUIRE( fr_map[{ .x = 0, .y = 0 }]
+               .inner_if<explored>()
+               .get_if<clear>() );
+  REQUIRE( eng_map[{ .x = 1, .y = 0 }] == unexplored{} );
+  REQUIRE( fr_map[{ .x = 1, .y = 0 }] == unexplored{} );
+  REQUIRE( eng_map[{ .x = 0, .y = 1 }] == unexplored{} );
+  REQUIRE( fr_map[{ .x = 0, .y = 1 }] == unexplored{} );
+  REQUIRE( eng_map[{ .x = 1, .y = 1 }]
+               .inner_if<explored>()
+               .get_if<fogged>() );
+  REQUIRE( fr_map[{ .x = 1, .y = 1 }]
+               .inner_if<explored>()
+               .get_if<clear>() );
+
+  W.clear_all_fog( eng_map );
+
+  // . . . . . . . . . .
+  // . . . . . . . . . .
+  // . . f . . . . c . .
+  // . . . . . . . . . .
+  // . . . . . . . . . .
+  // . . . . . s . . . .
+  // . . . . . . . . . .
+  // f . . . . . . . . .
+  // . . . . . . . . . .
+  // . . . x . . . . . .
+  // . . . . . . . . . .
+
+  //  _, L, _, _, L, _, L, L, L, L, L, L, _, L, L,
+  //  L, L, L, L, L, L, L, L, L, L, L, L, L, L, L,
+  //  _, L, L, L, L, _, L, L, L, L, L, L, L, L, L,
+  //  _, L, _, _, L, _, L, _, L, L, L, L, _, L, L,
+  //  L, L, L, L, L, L, L, L, _, L, L, L, L, L, L,
+  //  _, _, _, L, L, _, _, _, _, _, L, L, L, L, L,
+  //  _, L, _, _, L, _, L, _, _, _, _, L, _, L, L,
+  //  L, L, L, L, L, L, L, _, _, _, _, L, L, L, L,
+  //  _, L, L, L, L, _, L, L, L, _, L, L, L, L, L,
+  //  _, L, _, _, L, _, L, _, L, L, L, L, _, L, L,
+  //  L, L, L, L, L, L, L, _, _, L, L, L, L, L, L,
+  //  _, L, L, L, L, _, L, L, L, L, L, L, L, L, L,
+
+  REQUIRE( eng_map[{ .x = 0, .y = 0 }]
+               .inner_if<explored>()
+               .get_if<clear>() );
+  REQUIRE( eng_map[{ .x = 0, .y = 1 }] == unexplored{} );
+  REQUIRE( eng_map[{ .x = 0, .y = 2 }]
+               .inner_if<explored>()
+               .get_if<clear>() );
+  REQUIRE( eng_map[{ .x = 0, .y = 3 }] == unexplored{} );
+  REQUIRE( eng_map[{ .x = 0, .y = 4 }]
+               .inner_if<explored>()
+               .get_if<clear>() );
+  REQUIRE( eng_map[{ .x = 0, .y = 5 }] == unexplored{} );
+  REQUIRE( eng_map[{ .x = 0, .y = 6 }]
+               .inner_if<explored>()
+               .get_if<clear>() );
+  REQUIRE( eng_map[{ .x = 0, .y = 7 }] == unexplored{} );
+  REQUIRE( eng_map[{ .x = 0, .y = 8 }]
+               .inner_if<explored>()
+               .get_if<clear>() );
+  REQUIRE( eng_map[{ .x = 0, .y = 9 }] == unexplored{} );
+  REQUIRE( eng_map[{ .x = 0, .y = 10 }]
+               .inner_if<explored>()
+               .get_if<clear>() );
+
+  REQUIRE( eng_map[{ .x = 0, .y = 9 }] == unexplored{} );
+  REQUIRE( eng_map[{ .x = 1, .y = 9 }]
+               .inner_if<explored>()
+               .get_if<clear>() );
+  REQUIRE( eng_map[{ .x = 2, .y = 9 }] == unexplored{} );
+  REQUIRE( eng_map[{ .x = 3, .y = 9 }]
+               .inner_if<explored>()
+               .get_if<clear>() );
+  REQUIRE( eng_map[{ .x = 4, .y = 9 }] == unexplored{} );
+  REQUIRE( eng_map[{ .x = 5, .y = 9 }]
+               .inner_if<explored>()
+               .get_if<clear>() );
+  REQUIRE( eng_map[{ .x = 6, .y = 9 }] == unexplored{} );
+  REQUIRE( eng_map[{ .x = 7, .y = 9 }]
+               .inner_if<explored>()
+               .get_if<clear>() );
+  REQUIRE( eng_map[{ .x = 8, .y = 9 }] == unexplored{} );
+  REQUIRE( eng_map[{ .x = 9, .y = 9 }]
+               .inner_if<explored>()
+               .get_if<clear>() );
+
+  REQUIRE( eng_map[{ .x = 3, .y = 0 }] == unexplored{} );
+  REQUIRE( eng_map[{ .x = 3, .y = 1 }]
+               .inner_if<explored>()
+               .get_if<clear>() );
+  REQUIRE( eng_map[{ .x = 3, .y = 2 }] == unexplored{} );
+  REQUIRE( eng_map[{ .x = 3, .y = 3 }]
+               .inner_if<explored>()
+               .get_if<clear>() );
+  REQUIRE( eng_map[{ .x = 3, .y = 4 }] == unexplored{} );
+  REQUIRE( eng_map[{ .x = 3, .y = 5 }]
+               .inner_if<explored>()
+               .get_if<clear>() );
+  REQUIRE( eng_map[{ .x = 3, .y = 6 }] == unexplored{} );
+  REQUIRE( eng_map[{ .x = 3, .y = 7 }]
+               .inner_if<explored>()
+               .get_if<clear>() );
+  REQUIRE( eng_map[{ .x = 3, .y = 8 }] == unexplored{} );
+  REQUIRE( eng_map[{ .x = 3, .y = 9 }]
+               .inner_if<explored>()
+               .get_if<clear>() );
+  REQUIRE( eng_map[{ .x = 3, .y = 10 }] == unexplored{} );
+
+  REQUIRE( eng_map[{ .x = 8, .y = 0 }]
+               .inner_if<explored>()
+               .get_if<clear>() );
+  REQUIRE( eng_map[{ .x = 8, .y = 1 }] == unexplored{} );
+  REQUIRE( eng_map[{ .x = 8, .y = 2 }]
+               .inner_if<explored>()
+               .get_if<clear>() );
+  REQUIRE( eng_map[{ .x = 8, .y = 3 }] == unexplored{} );
+  REQUIRE( eng_map[{ .x = 8, .y = 4 }]
+               .inner_if<explored>()
+               .get_if<clear>() );
+  REQUIRE( eng_map[{ .x = 8, .y = 5 }] == unexplored{} );
+  REQUIRE( eng_map[{ .x = 8, .y = 6 }]
+               .inner_if<explored>()
+               .get_if<clear>() );
+  REQUIRE( eng_map[{ .x = 8, .y = 7 }] == unexplored{} );
+  REQUIRE( eng_map[{ .x = 8, .y = 8 }]
+               .inner_if<explored>()
+               .get_if<clear>() );
+  REQUIRE( eng_map[{ .x = 8, .y = 9 }] == unexplored{} );
+  REQUIRE( eng_map[{ .x = 8, .y = 10 }]
+               .inner_if<explored>()
+               .get_if<clear>() );
+
+  W.add_unit_on_map( e_unit_type::free_colonist,
+                     { .x = 0, .y = 7 }, e_player::english );
+  W.add_unit_on_map( e_unit_type::free_colonist,
+                     { .x = 2, .y = 2 }, e_player::english );
+  W.add_unit_on_map( e_unit_type::free_colonist,
+                     { .x = 3, .y = 9 }, e_player::french );
+  W.add_unit_on_map( e_unit_type::scout, { .x = 5, .y = 5 },
+                     e_player::english );
+  W.add_colony( { .x = 7, .y = 2 }, e_player::english );
+  W.map_updater().make_squares_visible( e_player::english,
+                                        { { .x = 7, .y = 2 },
+                                          { .x = 6, .y = 1 },
+                                          { .x = 7, .y = 1 },
+                                          { .x = 8, .y = 1 },
+                                          { .x = 6, .y = 2 },
+                                          { .x = 7, .y = 2 },
+                                          { .x = 8, .y = 2 },
+                                          { .x = 6, .y = 3 },
+                                          { .x = 7, .y = 3 },
+                                          { .x = 8, .y = 3 } } );
+
+  f();
+
+  REQUIRE( eng_map[{ .x = 0, .y = 0 }]
+               .inner_if<explored>()
+               .get_if<fogged>() );
+  REQUIRE( eng_map[{ .x = 0, .y = 1 }] == unexplored{} );
+  REQUIRE( eng_map[{ .x = 0, .y = 2 }]
+               .inner_if<explored>()
+               .get_if<fogged>() );
+  REQUIRE( eng_map[{ .x = 0, .y = 3 }] == unexplored{} );
+  REQUIRE( eng_map[{ .x = 0, .y = 4 }]
+               .inner_if<explored>()
+               .get_if<fogged>() );
+  REQUIRE( eng_map[{ .x = 0, .y = 5 }] == unexplored{} );
+  REQUIRE( eng_map[{ .x = 0, .y = 6 }]
+               .inner_if<explored>()
+               .get_if<clear>() );
+  REQUIRE( eng_map[{ .x = 0, .y = 7 }]
+               .inner_if<explored>()
+               .get_if<clear>() );
+  REQUIRE( eng_map[{ .x = 0, .y = 8 }]
+               .inner_if<explored>()
+               .get_if<clear>() );
+  REQUIRE( eng_map[{ .x = 0, .y = 9 }] == unexplored{} );
+  REQUIRE( eng_map[{ .x = 0, .y = 10 }]
+               .inner_if<explored>()
+               .get_if<fogged>() );
+
+  REQUIRE( eng_map[{ .x = 0, .y = 9 }] == unexplored{} );
+  REQUIRE( eng_map[{ .x = 1, .y = 9 }]
+               .inner_if<explored>()
+               .get_if<fogged>() );
+  REQUIRE( eng_map[{ .x = 2, .y = 9 }] == unexplored{} );
+  REQUIRE( eng_map[{ .x = 3, .y = 9 }]
+               .inner_if<explored>()
+               .get_if<fogged>() );
+  REQUIRE( eng_map[{ .x = 4, .y = 9 }] == unexplored{} );
+  REQUIRE( eng_map[{ .x = 5, .y = 9 }]
+               .inner_if<explored>()
+               .get_if<fogged>() );
+  REQUIRE( eng_map[{ .x = 6, .y = 9 }] == unexplored{} );
+  REQUIRE( eng_map[{ .x = 7, .y = 9 }]
+               .inner_if<explored>()
+               .get_if<fogged>() );
+  REQUIRE( eng_map[{ .x = 8, .y = 9 }] == unexplored{} );
+  REQUIRE( eng_map[{ .x = 9, .y = 9 }]
+               .inner_if<explored>()
+               .get_if<fogged>() );
+
+  REQUIRE( eng_map[{ .x = 3, .y = 0 }] == unexplored{} );
+  REQUIRE( eng_map[{ .x = 3, .y = 1 }]
+               .inner_if<explored>()
+               .get_if<clear>() );
+  REQUIRE( eng_map[{ .x = 3, .y = 2 }]
+               .inner_if<explored>()
+               .get_if<clear>() );
+  REQUIRE( eng_map[{ .x = 3, .y = 3 }]
+               .inner_if<explored>()
+               .get_if<clear>() );
+  REQUIRE( eng_map[{ .x = 3, .y = 4 }] == unexplored{} );
+  REQUIRE( eng_map[{ .x = 3, .y = 5 }]
+               .inner_if<explored>()
+               .get_if<fogged>() );
+  REQUIRE( eng_map[{ .x = 3, .y = 6 }] == unexplored{} );
+  REQUIRE( eng_map[{ .x = 3, .y = 7 }]
+               .inner_if<explored>()
+               .get_if<fogged>() );
   REQUIRE( eng_map[{ .x = 3, .y = 8 }] == unexplored{} );
   REQUIRE( eng_map[{ .x = 3, .y = 9 }]
                .inner_if<explored>()

@@ -333,6 +333,7 @@ std::unique_ptr<IVisibility const> create_visibility_for(
     return make_unique<VisibilityEntire const>( ss );
 }
 
+// This only applies to units on the map.
 vector<Coord> unit_visible_squares(
     SSConst const& ss, TerrainConnectivity const& connectivity,
     e_player player, e_unit_type type, point const tile ) {
