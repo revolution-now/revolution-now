@@ -30,6 +30,8 @@ sumtype.TradeRouteTarget {
   colony {
     colony_id 'ColonyId',
   },
+
+  _features { equality, validation }
 }
 
 struct.TradeRouteStop {
@@ -54,12 +56,13 @@ struct.TradeRoute {
 
   # NOTE: in the OG this has a maximum of four stops.
   stops 'std::vector<TradeRouteStop>',
+
+  _features { equality, validation }
 }
 
 struct.TradeRouteState {
-  # Maps TradeRouteId to the route. NOTE: in the OG there are a
-  # maximum of 12 trade routes.
-  routes 'std::map<int, TradeRoute>',
+  # NOTE: in the OG there are a maximum of 12 trade routes.
+  routes 'std::map<TradeRouteId, TradeRoute>',
 
   _features { equality, validation }
 }

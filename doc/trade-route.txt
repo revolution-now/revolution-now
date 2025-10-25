@@ -17,6 +17,9 @@ TODO:
   * Note that the trade route edit screen allows editing the
     name.
 
+  * Note that the OG allows a trade route with one stop, which
+    could be useful for just continuing to load stuff.
+
   * When the wagon train lands in a colony, it does not do its
     loading/unloading until the start of the next turn.
 

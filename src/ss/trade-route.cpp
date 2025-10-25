@@ -25,7 +25,25 @@ using ::base::valid_or;
 }
 
 /****************************************************************
-** SettingsState
+** TradeRouteTarget
+*****************************************************************/
+valid_or<string> TradeRouteTarget::harbor::validate() const {
+  return valid;
+}
+
+valid_or<string> TradeRouteTarget::colony::validate() const {
+  return valid;
+}
+
+/****************************************************************
+** TradeRoute
+*****************************************************************/
+valid_or<string> TradeRoute::validate() const {
+  return valid;
+}
+
+/****************************************************************
+** TradeRouteState
 *****************************************************************/
 valid_or<string> TradeRouteState::validate() const {
   return valid;
