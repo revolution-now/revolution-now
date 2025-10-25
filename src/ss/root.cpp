@@ -249,7 +249,7 @@ LUA_STARTUP( lua::state& st ) {
 
   // All the members will be registered automatically, so we just
   // need to create an alias for this one.
-  u["terrain"]   = &U::zzz_terrain;
+  u["terrain"] = &U::zzz_terrain;
 };
 
 } // namespace

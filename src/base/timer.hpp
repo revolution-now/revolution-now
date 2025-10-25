@@ -113,7 +113,7 @@ struct ScopedTimer {
 
  private:
   struct Segment {
-    std::string label               = {};
+    std::string label = {};
     // If there is a label function then it will be used instead
     // of the label (called to obtain label).
     maybe<LabelFn> label_fn         = {};

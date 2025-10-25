@@ -17,10 +17,10 @@
 #include "colony.hpp"
 #include "connectivity.hpp"
 #include "igui.hpp"
+#include "imap-updater.hpp"
 #include "market.hpp"
 #include "player-mgr.hpp"
 #include "ts.hpp"
-#include "imap-updater.hpp"
 
 // config
 #include "config/colony.hpp"

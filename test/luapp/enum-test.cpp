@@ -121,9 +121,9 @@ LUA_TEST_CASE( "[luapp/enum] push/get" ) {
 
   push( L, "xxx" );
   e = lua::get<my_ns::my_enum>( L, -1 );
-  REQUIRE( e ==
-           unexpected{ .msg = "failed to convert string value "
-                              "'xxx' to enum my_enum" } );
+  REQUIRE( e == unexpected{ .msg =
+                                "failed to convert string value "
+                                "'xxx' to enum my_enum" } );
   C.pop();
 }
 
