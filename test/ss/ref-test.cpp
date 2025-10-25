@@ -368,6 +368,9 @@ value cdr_game_state_default = table{
               "counters"_key = list{},
             },
       },
+  "trade_routes"_key = table{
+      "routes"_key = list{},
+  },
   "zzz_terrain"_key =
       table{
         "placement_seed"_key = 0,

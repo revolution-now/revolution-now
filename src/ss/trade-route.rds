@@ -1,0 +1,65 @@
+# ===============================================================
+# trade-route.rds
+#
+# Project: Revolution Now
+#
+# Created by David P. Sicilia on 2025-10-25.
+#
+# Description: Rds definitions for the ss/trade-route module.
+#
+# ===============================================================
+# ss
+include "commodity.rds.hpp"
+include "trade-route-id.hpp"
+include "colony-id.hpp"
+
+# C++ standard library
+include "<map>"
+include "<string>"
+include "<vector>"
+
+namespace "rn"
+
+enum.e_trade_route_type {
+  land,
+  sea,
+}
+
+sumtype.TradeRouteTarget {
+  harbor {},
+  colony {
+    colony_id 'ColonyId',
+  },
+}
+
+struct.TradeRouteStop {
+  target 'TradeRouteTarget',
+
+  # NOTE: in the OG there is a maximum of six here. We don't need
+  # to impose that, but we might for compatibility.
+  loads 'std::vector<e_commodity>',
+
+  # NOTE: in the OG there is a maximum of six here. We don't need
+  # to impose that, but we might for compatibility.
+  unloads 'std::vector<e_commodity>',
+}
+
+struct.TradeRoute {
+  id 'TradeRouteId',
+
+  # NOTE: in the OG this is a max of 32 chars.
+  name 'std::string',
+
+  type 'e_trade_route_type',
+
+  # NOTE: in the OG this has a maximum of four stops.
+  stops 'std::vector<TradeRouteStop>',
+}
+
+struct.TradeRouteState {
+  # Maps TradeRouteId to the route. NOTE: in the OG there are a
+  # maximum of 12 trade routes.
+  routes 'std::map<int, TradeRoute>',
+
+  _features { equality, validation }
+}

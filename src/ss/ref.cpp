@@ -67,6 +67,7 @@ SS::SS()
     natives( impl_->top.natives ),
     land_view( impl_->top.land_view ),
     map( impl_->top.map ),
+    trade_routes( impl_->top.trade_routes ),
     terrain( impl_->top.zzz_terrain ),
     mutable_terrain_use_with_care( impl_->top.zzz_terrain ),
     root( impl_->top ),
@@ -99,6 +100,7 @@ SSConst::SSConst( SS& ss )
     natives( ss_.natives ),
     land_view( ss_.land_view ),
     map( ss_.map ),
+    trade_routes( ss_.trade_routes ),
     terrain( ss_.terrain ),
     root( ss_.root ) {}
 
@@ -114,6 +116,7 @@ SSConst::SSConst( SS const& ss )
     natives( ss_.natives ),
     land_view( ss_.land_view ),
     map( ss_.map ),
+    trade_routes( ss_.trade_routes ),
     terrain( ss_.terrain ),
     root( ss_.root ) {}
 

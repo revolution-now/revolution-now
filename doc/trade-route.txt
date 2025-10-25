@@ -4,7 +4,18 @@ TODO:
 
   * Enable Trade Route menu item in orders menu.
 
+  * Add the trade route data structure to ss.
+
   * Add 't' key to land view input.
+
+  * Determine whether a load from a colony will load more than
+    100, either when there are other things to load and when not.
+    Maybe we should cycle around, loading 100 of each until a
+    full cycle is made where nothing is loaded. Note that the
+    same commodity can be added multiple times...
+
+  * Note that the trade route edit screen allows editing the
+    name.
 
   * When the wagon train lands in a colony, it does not do its
     loading/unloading until the start of the next turn.

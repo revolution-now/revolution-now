@@ -9,19 +9,18 @@
 #              state.
 #
 # ===============================================================
-# Revolution Now
+# ss
 include "ss/colonies.hpp"
-include "ss/natives.hpp"
-include "ss/terrain.hpp"
-include "ss/units.hpp"
-
-# Rds
-include "ss/settings.rds.hpp"
 include "ss/events.rds.hpp"
-include "ss/players.rds.hpp"
-include "ss/turn.rds.hpp"
 include "ss/land-view.rds.hpp"
 include "ss/map.rds.hpp"
+include "ss/natives.hpp"
+include "ss/players.rds.hpp"
+include "ss/settings.rds.hpp"
+include "ss/terrain.hpp"
+include "ss/trade-route.rds.hpp"
+include "ss/turn.rds.hpp"
+include "ss/units.hpp"
 
 namespace "rn"
 
@@ -46,6 +45,7 @@ struct.RootState {
   natives 'rn::NativesState',
   land_view 'rn::LandViewState',
   map 'rn::MapState',
+  trade_routes 'rn::TradeRouteState',
   # Use a zzz prefix to make sure that the terrain field will be
   # last in the save file (keys are alphabetized) for convenience
   # because it is so large.
