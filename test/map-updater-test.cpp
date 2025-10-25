@@ -618,6 +618,137 @@ TEST_CASE(
 TEST_CASE(
     "[map-updater] NonRenderingMapUpdater connectivity" ) {
   World w;
+
+  TerrainConnectivity connectivity, expected;
+  NonRenderingMapUpdater map_updater( w.ss(), connectivity );
+
+  // Map, for reference:
+  //
+  //   _  L  _
+  //   L  L  L
+  //   _  L  L
+
+  // Not generated until asked for.
+  expected = TerrainConnectivity{};
+  REQUIRE( connectivity == expected );
+
+  map_updater.connectivity();
+
+  // Generated for the first time.
+  expected = TerrainConnectivity{
+    .x_size  = 3,
+    .indices = { 1, 2, 3, 2, 2, 2, 4, 2, 2 },
+    .indices_with_right_edge_access = { 2, 3 },
+    .indices_with_left_edge_access  = { 4, 2, 1 } };
+  REQUIRE( connectivity == expected );
+
+  // Put in a marker which will be removed if the connectivity is
+  // regenerated, so that we know when it happens.
+  connectivity.indices.push_back( 999 );
+  expected = TerrainConnectivity{
+    .x_size  = 3,
+    .indices = { 1, 2, 3, 2, 2, 2, 4, 2, 2, 999 },
+    .indices_with_right_edge_access = { 2, 3 },
+    .indices_with_left_edge_access  = { 4, 2, 1 } };
+  REQUIRE( connectivity == expected ); // sanity check.
+
+  map_updater.connectivity();
+
+  // Not regenerated.
+  expected = TerrainConnectivity{
+    .x_size  = 3,
+    .indices = { 1, 2, 3, 2, 2, 2, 4, 2, 2, 999 },
+    .indices_with_right_edge_access = { 2, 3 },
+    .indices_with_left_edge_access  = { 4, 2, 1 } };
+  REQUIRE( connectivity == expected );
+
+  // No-op mutation.
+  map_updater.modify_map_square(
+      { .x = 0, .y = 0 },
+      [&]( MapSquare& square ) { square = w.make_ocean(); } );
+
+  map_updater.connectivity();
+
+  // Not regenerated.
+  expected = TerrainConnectivity{
+    .x_size  = 3,
+    .indices = { 1, 2, 3, 2, 2, 2, 4, 2, 2, 999 },
+    .indices_with_right_edge_access = { 2, 3 },
+    .indices_with_left_edge_access  = { 4, 2, 1 } };
+  REQUIRE( connectivity == expected );
+
+  // Real mutation but that doesn't change connectivity.
+  map_updater.modify_map_square( { .x = 0, .y = 0 },
+                                 [&]( MapSquare& square ) {
+                                   square.lost_city_rumor = true;
+                                 } );
+
+  map_updater.connectivity();
+
+  // Not regenerated.
+  expected = TerrainConnectivity{
+    .x_size  = 3,
+    .indices = { 1, 2, 3, 2, 2, 2, 4, 2, 2, 999 },
+    .indices_with_right_edge_access = { 2, 3 },
+    .indices_with_left_edge_access  = { 4, 2, 1 } };
+  REQUIRE( connectivity == expected );
+
+  // Real mutation that changes connectivity.
+  map_updater.modify_map_square(
+      { .x = 1, .y = 1 }, [&]( MapSquare& square ) {
+        square.surface = e_surface::water;
+      } );
+
+  // Map now looks like:
+  //
+  //   _  L  _
+  //   L  _  L
+  //   _  L  L
+
+  map_updater.connectivity();
+
+  // Not regenerated.
+  expected = TerrainConnectivity{
+    .x_size  = 3,
+    .indices = { 1, 2, 1, 2, 1, 2, 1, 2, 2 },
+    .indices_with_right_edge_access = { 2, 1 },
+    .indices_with_left_edge_access  = { 2, 1 } };
+  REQUIRE( connectivity == expected );
+
+  // Insert marker.
+  connectivity.indices.push_back( 999 );
+  expected = TerrainConnectivity{
+    .x_size  = 3,
+    .indices = { 1, 2, 1, 2, 1, 2, 1, 2, 2, 999 },
+    .indices_with_right_edge_access = { 2, 1 },
+    .indices_with_left_edge_access  = { 2, 1 } };
+  REQUIRE( connectivity == expected ); // sanity check.
+
+  map_updater.connectivity();
+
+  // Not regenerated.
+  expected = TerrainConnectivity{
+    .x_size  = 3,
+    .indices = { 1, 2, 1, 2, 1, 2, 1, 2, 2, 999 },
+    .indices_with_right_edge_access = { 2, 1 },
+    .indices_with_left_edge_access  = { 2, 1 } };
+  REQUIRE( connectivity == expected );
+
+  map_updater.modify_entire_map_no_redraw( []( auto& ) {} );
+
+  // Connectivity reset (marked dirty) but not yet regenerated.
+  expected = TerrainConnectivity{};
+  REQUIRE( connectivity == expected );
+
+  map_updater.connectivity();
+
+  // Regenerated.
+  expected = TerrainConnectivity{
+    .x_size  = 3,
+    .indices = { 1, 2, 1, 2, 1, 2, 1, 2, 2 },
+    .indices_with_right_edge_access = { 2, 1 },
+    .indices_with_left_edge_access  = { 2, 1 } };
+  REQUIRE( connectivity == expected );
 }
 
 } // namespace
