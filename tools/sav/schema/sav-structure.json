@@ -1870,182 +1870,62 @@
         "count": 12,
         "struct":
         {
-            "__key_order": [
-                "name",
-                "land_or_sea",
-                "stops_count",
-                "stop_1_colony_index",
-                "stop_1_loads_and_unloads_count",
-                "stop_1_loads_cargo",
-                "stop_1_unloads_cargo",
-                "unknown47",
-                "stop_2_colony_index",
-                "stop_2_loads_and_unloads_count",
-                "stop_2_loads_cargo",
-                "stop_2_unloads_cargo",
-                "unknown48",
-                "stop_3_colony_index",
-                "stop_3_loads_and_unloads_count",
-                "stop_3_loads_cargo",
-                "stop_3_unloads_cargo",
-                "unknown49",
-                "stop_4_colony_index",
-                "stop_4_loads_and_unloads_count",
-                "stop_4_loads_cargo",
-                "stop_4_unloads_cargo",
-                "unknown50"
-            ],
+            "__key_order": ["name", "land_or_sea", "stops_count", "stops"],
             "name": {"size": 32, "type": "str"},
             "land_or_sea": {"size": 1, "type": "trade_route_type"},
-            "stops_count": {"size": 1, "type": "uint"},
-            "stop_1_colony_index": {"size": 2, "type": "uint", "__hint": "corresponds to colony index in COLONY list"},
-            "stop_1_loads_and_unloads_count":
+            "stops_count": {"size": 1, "type": "uint", "__hint": "how many of the 4 hard-coded stops below are actually used/active."},
+            "stops":
             {
-                "bit_struct":
+                "__hint": "There must be 4 stops present, though they may not all be used (see 'stops_count' above).",
+                "count": 4,
+                "struct":
                 {
-                    "__key_order": ["unloads_count", "loads_count"],
-                    "unloads_count": {"size": 4, "type": "uint"},
-                    "loads_count": {"size": 4, "type": "uint"}
+                    "__key_order": [
+                        "colony_index",
+                        "loads_and_unloads_count",
+                        "loads_cargo",
+                        "unloads_cargo",
+                        "unknown47"
+                    ],
+                    "colony_index": {"size": 2, "type": "uint", "__hint": "corresponds to colony index in COLONY list, 999 for European harbor."},
+                    "loads_and_unloads_count":
+                    {
+                        "bit_struct":
+                        {
+                            "__key_order": ["unloads_count", "loads_count"],
+                            "unloads_count": {"size": 4, "type": "uint"},
+                            "loads_count": {"size": 4, "type": "uint"}
+                        }
+                    },
+                    "loads_cargo":
+                    {
+                        "bit_struct":
+                        {
+                            "__key_order": ["cargo_1", "cargo_2", "cargo_3", "cargo_4", "cargo_5", "cargo_6"],
+                            "cargo_1": {"size": 4, "type": "cargo_4bit_type"},
+                            "cargo_2": {"size": 4, "type": "cargo_4bit_type"},
+                            "cargo_3": {"size": 4, "type": "cargo_4bit_type"},
+                            "cargo_4": {"size": 4, "type": "cargo_4bit_type"},
+                            "cargo_5": {"size": 4, "type": "cargo_4bit_type"},
+                            "cargo_6": {"size": 4, "type": "cargo_4bit_type"}
+                        }
+                    },
+                    "unloads_cargo":
+                    {
+                        "bit_struct":
+                        {
+                            "__key_order": ["cargo_1", "cargo_2", "cargo_3", "cargo_4", "cargo_5", "cargo_6"],
+                            "cargo_1": {"size": 4, "type": "cargo_4bit_type"},
+                            "cargo_2": {"size": 4, "type": "cargo_4bit_type"},
+                            "cargo_3": {"size": 4, "type": "cargo_4bit_type"},
+                            "cargo_4": {"size": 4, "type": "cargo_4bit_type"},
+                            "cargo_5": {"size": 4, "type": "cargo_4bit_type"},
+                            "cargo_6": {"size": 4, "type": "cargo_4bit_type"}
+                        }
+                    },
+                    "unknown47": {"size": 1}
                 }
-            },
-            "stop_1_loads_cargo":
-            {
-                "bit_struct":
-                {
-                    "__key_order": ["cargo_1", "cargo_2", "cargo_3", "cargo_4", "cargo_5", "cargo_6"],
-                    "cargo_1": {"size": 4, "type": "cargo_4bit_type"},
-                    "cargo_2": {"size": 4, "type": "cargo_4bit_type"},
-                    "cargo_3": {"size": 4, "type": "cargo_4bit_type"},
-                    "cargo_4": {"size": 4, "type": "cargo_4bit_type"},
-                    "cargo_5": {"size": 4, "type": "cargo_4bit_type"},
-                    "cargo_6": {"size": 4, "type": "cargo_4bit_type"}
-                }
-            },
-            "stop_1_unloads_cargo":
-            {
-                "bit_struct":
-                {
-                    "__key_order": ["cargo_1", "cargo_2", "cargo_3", "cargo_4", "cargo_5", "cargo_6"],
-                    "cargo_1": {"size": 4, "type": "cargo_4bit_type"},
-                    "cargo_2": {"size": 4, "type": "cargo_4bit_type"},
-                    "cargo_3": {"size": 4, "type": "cargo_4bit_type"},
-                    "cargo_4": {"size": 4, "type": "cargo_4bit_type"},
-                    "cargo_5": {"size": 4, "type": "cargo_4bit_type"},
-                    "cargo_6": {"size": 4, "type": "cargo_4bit_type"}
-                }
-            },
-            "unknown47": {"size": 1},
-            "stop_2_colony_index": {"size": 2, "type": "uint", "__hint": "corresponds to colony index in COLONY list"},
-            "stop_2_loads_and_unloads_count":
-            {
-                "bit_struct":
-                {
-                    "__key_order": ["unloads_count", "loads_count"],
-                    "unloads_count": {"size": 4, "type": "uint"},
-                    "loads_count": {"size": 4, "type": "uint"}
-                }
-            },
-            "stop_2_loads_cargo":
-            {
-                "bit_struct":
-                {
-                    "__key_order": ["cargo_1", "cargo_2", "cargo_3", "cargo_4", "cargo_5", "cargo_6"],
-                    "cargo_1": {"size": 4, "type": "cargo_4bit_type"},
-                    "cargo_2": {"size": 4, "type": "cargo_4bit_type"},
-                    "cargo_3": {"size": 4, "type": "cargo_4bit_type"},
-                    "cargo_4": {"size": 4, "type": "cargo_4bit_type"},
-                    "cargo_5": {"size": 4, "type": "cargo_4bit_type"},
-                    "cargo_6": {"size": 4, "type": "cargo_4bit_type"}
-                }
-            },
-            "stop_2_unloads_cargo":
-            {
-                "bit_struct":
-                {
-                    "__key_order": ["cargo_1", "cargo_2", "cargo_3", "cargo_4", "cargo_5", "cargo_6"],
-                    "cargo_1": {"size": 4, "type": "cargo_4bit_type"},
-                    "cargo_2": {"size": 4, "type": "cargo_4bit_type"},
-                    "cargo_3": {"size": 4, "type": "cargo_4bit_type"},
-                    "cargo_4": {"size": 4, "type": "cargo_4bit_type"},
-                    "cargo_5": {"size": 4, "type": "cargo_4bit_type"},
-                    "cargo_6": {"size": 4, "type": "cargo_4bit_type"}
-                }
-            },
-            "unknown48": {"size": 1},
-            "stop_3_colony_index": {"size": 2, "type": "uint", "__hint": "corresponds to colony index in COLONY list"},
-            "stop_3_loads_and_unloads_count":
-            {
-                "bit_struct":
-                {
-                    "__key_order": ["unloads_count", "loads_count"],
-                    "unloads_count": {"size": 4, "type": "uint"},
-                    "loads_count": {"size": 4, "type": "uint"}
-                }
-            },
-            "stop_3_loads_cargo":
-            {
-                "bit_struct":
-                {
-                    "__key_order": ["cargo_1", "cargo_2", "cargo_3", "cargo_4", "cargo_5", "cargo_6"],
-                    "cargo_1": {"size": 4, "type": "cargo_4bit_type"},
-                    "cargo_2": {"size": 4, "type": "cargo_4bit_type"},
-                    "cargo_3": {"size": 4, "type": "cargo_4bit_type"},
-                    "cargo_4": {"size": 4, "type": "cargo_4bit_type"},
-                    "cargo_5": {"size": 4, "type": "cargo_4bit_type"},
-                    "cargo_6": {"size": 4, "type": "cargo_4bit_type"}
-                }
-            },
-            "stop_3_unloads_cargo":
-            {
-                "bit_struct":
-                {
-                    "__key_order": ["cargo_1", "cargo_2", "cargo_3", "cargo_4", "cargo_5", "cargo_6"],
-                    "cargo_1": {"size": 4, "type": "cargo_4bit_type"},
-                    "cargo_2": {"size": 4, "type": "cargo_4bit_type"},
-                    "cargo_3": {"size": 4, "type": "cargo_4bit_type"},
-                    "cargo_4": {"size": 4, "type": "cargo_4bit_type"},
-                    "cargo_5": {"size": 4, "type": "cargo_4bit_type"},
-                    "cargo_6": {"size": 4, "type": "cargo_4bit_type"}
-                }
-            },
-            "unknown49": {"size": 1},
-            "stop_4_colony_index": {"size": 2, "type": "uint", "__hint": "corresponds to colony index in COLONY list"},
-            "stop_4_loads_and_unloads_count":
-            {
-                "bit_struct":
-                {
-                    "__key_order": ["unloads_count", "loads_count"],
-                    "unloads_count": {"size": 4, "type": "uint"},
-                    "loads_count": {"size": 4, "type": "uint"}
-                }
-            },
-            "stop_4_loads_cargo":
-            {
-                "bit_struct":
-                {
-                    "__key_order": ["cargo_1", "cargo_2", "cargo_3", "cargo_4", "cargo_5", "cargo_6"],
-                    "cargo_1": {"size": 4, "type": "cargo_4bit_type"},
-                    "cargo_2": {"size": 4, "type": "cargo_4bit_type"},
-                    "cargo_3": {"size": 4, "type": "cargo_4bit_type"},
-                    "cargo_4": {"size": 4, "type": "cargo_4bit_type"},
-                    "cargo_5": {"size": 4, "type": "cargo_4bit_type"},
-                    "cargo_6": {"size": 4, "type": "cargo_4bit_type"}
-                }
-            },
-            "stop_4_unloads_cargo":
-            {
-                "bit_struct":
-                {
-                    "__key_order": ["cargo_1", "cargo_2", "cargo_3", "cargo_4", "cargo_5", "cargo_6"],
-                    "cargo_1": {"size": 4, "type": "cargo_4bit_type"},
-                    "cargo_2": {"size": 4, "type": "cargo_4bit_type"},
-                    "cargo_3": {"size": 4, "type": "cargo_4bit_type"},
-                    "cargo_4": {"size": 4, "type": "cargo_4bit_type"},
-                    "cargo_5": {"size": 4, "type": "cargo_4bit_type"},
-                    "cargo_6": {"size": 4, "type": "cargo_4bit_type"}
-                }
-            },
-            "unknown50": {"size": 1}
+            }
         }
     }
 }

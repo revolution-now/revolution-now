@@ -1921,37 +1921,37 @@ cdr::result<LandConnectivity> from_canonical(
                          cdr::tag_t<LandConnectivity> );
 
 /****************************************************************
-** Stop1LoadsAndUnloadsCount
+** LoadsAndUnloadsCount
 *****************************************************************/
-struct Stop1LoadsAndUnloadsCount {
+struct LoadsAndUnloadsCount {
   uint8_t unloads_count : 4 = {};
   uint8_t loads_count : 4 = {};
 
-  bool operator==( Stop1LoadsAndUnloadsCount const& ) const = default;
+  bool operator==( LoadsAndUnloadsCount const& ) const = default;
 };
 
 // String conversion.
-void to_str( Stop1LoadsAndUnloadsCount const& o, std::string& out, base::tag<Stop1LoadsAndUnloadsCount> );
+void to_str( LoadsAndUnloadsCount const& o, std::string& out, base::tag<LoadsAndUnloadsCount> );
 
 // Binary conversion.
-bool read_binary( base::IBinaryIO& b, Stop1LoadsAndUnloadsCount& o );
+bool read_binary( base::IBinaryIO& b, LoadsAndUnloadsCount& o );
 
-bool write_binary( base::IBinaryIO& b, Stop1LoadsAndUnloadsCount const& o );
+bool write_binary( base::IBinaryIO& b, LoadsAndUnloadsCount const& o );
 
 // Cdr conversions.
 cdr::value to_canonical( cdr::converter& conv,
-                         Stop1LoadsAndUnloadsCount const& o,
-                         cdr::tag_t<Stop1LoadsAndUnloadsCount> );
+                         LoadsAndUnloadsCount const& o,
+                         cdr::tag_t<LoadsAndUnloadsCount> );
 
-cdr::result<Stop1LoadsAndUnloadsCount> from_canonical(
+cdr::result<LoadsAndUnloadsCount> from_canonical(
                          cdr::converter& conv,
                          cdr::value const& v,
-                         cdr::tag_t<Stop1LoadsAndUnloadsCount> );
+                         cdr::tag_t<LoadsAndUnloadsCount> );
 
 /****************************************************************
-** Stop1LoadsCargo
+** LoadsCargo
 *****************************************************************/
-struct Stop1LoadsCargo {
+struct LoadsCargo {
   cargo_4bit_type cargo_1 : 4 = {};
   cargo_4bit_type cargo_2 : 4 = {};
   cargo_4bit_type cargo_3 : 4 = {};
@@ -1959,31 +1959,31 @@ struct Stop1LoadsCargo {
   cargo_4bit_type cargo_5 : 4 = {};
   cargo_4bit_type cargo_6 : 4 = {};
 
-  bool operator==( Stop1LoadsCargo const& ) const = default;
+  bool operator==( LoadsCargo const& ) const = default;
 };
 
 // String conversion.
-void to_str( Stop1LoadsCargo const& o, std::string& out, base::tag<Stop1LoadsCargo> );
+void to_str( LoadsCargo const& o, std::string& out, base::tag<LoadsCargo> );
 
 // Binary conversion.
-bool read_binary( base::IBinaryIO& b, Stop1LoadsCargo& o );
+bool read_binary( base::IBinaryIO& b, LoadsCargo& o );
 
-bool write_binary( base::IBinaryIO& b, Stop1LoadsCargo const& o );
+bool write_binary( base::IBinaryIO& b, LoadsCargo const& o );
 
 // Cdr conversions.
 cdr::value to_canonical( cdr::converter& conv,
-                         Stop1LoadsCargo const& o,
-                         cdr::tag_t<Stop1LoadsCargo> );
+                         LoadsCargo const& o,
+                         cdr::tag_t<LoadsCargo> );
 
-cdr::result<Stop1LoadsCargo> from_canonical(
+cdr::result<LoadsCargo> from_canonical(
                          cdr::converter& conv,
                          cdr::value const& v,
-                         cdr::tag_t<Stop1LoadsCargo> );
+                         cdr::tag_t<LoadsCargo> );
 
 /****************************************************************
-** Stop1UnloadsCargo
+** UnloadsCargo
 *****************************************************************/
-struct Stop1UnloadsCargo {
+struct UnloadsCargo {
   cargo_4bit_type cargo_1 : 4 = {};
   cargo_4bit_type cargo_2 : 4 = {};
   cargo_4bit_type cargo_3 : 4 = {};
@@ -1991,302 +1991,26 @@ struct Stop1UnloadsCargo {
   cargo_4bit_type cargo_5 : 4 = {};
   cargo_4bit_type cargo_6 : 4 = {};
 
-  bool operator==( Stop1UnloadsCargo const& ) const = default;
+  bool operator==( UnloadsCargo const& ) const = default;
 };
 
 // String conversion.
-void to_str( Stop1UnloadsCargo const& o, std::string& out, base::tag<Stop1UnloadsCargo> );
+void to_str( UnloadsCargo const& o, std::string& out, base::tag<UnloadsCargo> );
 
 // Binary conversion.
-bool read_binary( base::IBinaryIO& b, Stop1UnloadsCargo& o );
+bool read_binary( base::IBinaryIO& b, UnloadsCargo& o );
 
-bool write_binary( base::IBinaryIO& b, Stop1UnloadsCargo const& o );
+bool write_binary( base::IBinaryIO& b, UnloadsCargo const& o );
 
 // Cdr conversions.
 cdr::value to_canonical( cdr::converter& conv,
-                         Stop1UnloadsCargo const& o,
-                         cdr::tag_t<Stop1UnloadsCargo> );
+                         UnloadsCargo const& o,
+                         cdr::tag_t<UnloadsCargo> );
 
-cdr::result<Stop1UnloadsCargo> from_canonical(
+cdr::result<UnloadsCargo> from_canonical(
                          cdr::converter& conv,
                          cdr::value const& v,
-                         cdr::tag_t<Stop1UnloadsCargo> );
-
-/****************************************************************
-** Stop2LoadsAndUnloadsCount
-*****************************************************************/
-struct Stop2LoadsAndUnloadsCount {
-  uint8_t unloads_count : 4 = {};
-  uint8_t loads_count : 4 = {};
-
-  bool operator==( Stop2LoadsAndUnloadsCount const& ) const = default;
-};
-
-// String conversion.
-void to_str( Stop2LoadsAndUnloadsCount const& o, std::string& out, base::tag<Stop2LoadsAndUnloadsCount> );
-
-// Binary conversion.
-bool read_binary( base::IBinaryIO& b, Stop2LoadsAndUnloadsCount& o );
-
-bool write_binary( base::IBinaryIO& b, Stop2LoadsAndUnloadsCount const& o );
-
-// Cdr conversions.
-cdr::value to_canonical( cdr::converter& conv,
-                         Stop2LoadsAndUnloadsCount const& o,
-                         cdr::tag_t<Stop2LoadsAndUnloadsCount> );
-
-cdr::result<Stop2LoadsAndUnloadsCount> from_canonical(
-                         cdr::converter& conv,
-                         cdr::value const& v,
-                         cdr::tag_t<Stop2LoadsAndUnloadsCount> );
-
-/****************************************************************
-** Stop2LoadsCargo
-*****************************************************************/
-struct Stop2LoadsCargo {
-  cargo_4bit_type cargo_1 : 4 = {};
-  cargo_4bit_type cargo_2 : 4 = {};
-  cargo_4bit_type cargo_3 : 4 = {};
-  cargo_4bit_type cargo_4 : 4 = {};
-  cargo_4bit_type cargo_5 : 4 = {};
-  cargo_4bit_type cargo_6 : 4 = {};
-
-  bool operator==( Stop2LoadsCargo const& ) const = default;
-};
-
-// String conversion.
-void to_str( Stop2LoadsCargo const& o, std::string& out, base::tag<Stop2LoadsCargo> );
-
-// Binary conversion.
-bool read_binary( base::IBinaryIO& b, Stop2LoadsCargo& o );
-
-bool write_binary( base::IBinaryIO& b, Stop2LoadsCargo const& o );
-
-// Cdr conversions.
-cdr::value to_canonical( cdr::converter& conv,
-                         Stop2LoadsCargo const& o,
-                         cdr::tag_t<Stop2LoadsCargo> );
-
-cdr::result<Stop2LoadsCargo> from_canonical(
-                         cdr::converter& conv,
-                         cdr::value const& v,
-                         cdr::tag_t<Stop2LoadsCargo> );
-
-/****************************************************************
-** Stop2UnloadsCargo
-*****************************************************************/
-struct Stop2UnloadsCargo {
-  cargo_4bit_type cargo_1 : 4 = {};
-  cargo_4bit_type cargo_2 : 4 = {};
-  cargo_4bit_type cargo_3 : 4 = {};
-  cargo_4bit_type cargo_4 : 4 = {};
-  cargo_4bit_type cargo_5 : 4 = {};
-  cargo_4bit_type cargo_6 : 4 = {};
-
-  bool operator==( Stop2UnloadsCargo const& ) const = default;
-};
-
-// String conversion.
-void to_str( Stop2UnloadsCargo const& o, std::string& out, base::tag<Stop2UnloadsCargo> );
-
-// Binary conversion.
-bool read_binary( base::IBinaryIO& b, Stop2UnloadsCargo& o );
-
-bool write_binary( base::IBinaryIO& b, Stop2UnloadsCargo const& o );
-
-// Cdr conversions.
-cdr::value to_canonical( cdr::converter& conv,
-                         Stop2UnloadsCargo const& o,
-                         cdr::tag_t<Stop2UnloadsCargo> );
-
-cdr::result<Stop2UnloadsCargo> from_canonical(
-                         cdr::converter& conv,
-                         cdr::value const& v,
-                         cdr::tag_t<Stop2UnloadsCargo> );
-
-/****************************************************************
-** Stop3LoadsAndUnloadsCount
-*****************************************************************/
-struct Stop3LoadsAndUnloadsCount {
-  uint8_t unloads_count : 4 = {};
-  uint8_t loads_count : 4 = {};
-
-  bool operator==( Stop3LoadsAndUnloadsCount const& ) const = default;
-};
-
-// String conversion.
-void to_str( Stop3LoadsAndUnloadsCount const& o, std::string& out, base::tag<Stop3LoadsAndUnloadsCount> );
-
-// Binary conversion.
-bool read_binary( base::IBinaryIO& b, Stop3LoadsAndUnloadsCount& o );
-
-bool write_binary( base::IBinaryIO& b, Stop3LoadsAndUnloadsCount const& o );
-
-// Cdr conversions.
-cdr::value to_canonical( cdr::converter& conv,
-                         Stop3LoadsAndUnloadsCount const& o,
-                         cdr::tag_t<Stop3LoadsAndUnloadsCount> );
-
-cdr::result<Stop3LoadsAndUnloadsCount> from_canonical(
-                         cdr::converter& conv,
-                         cdr::value const& v,
-                         cdr::tag_t<Stop3LoadsAndUnloadsCount> );
-
-/****************************************************************
-** Stop3LoadsCargo
-*****************************************************************/
-struct Stop3LoadsCargo {
-  cargo_4bit_type cargo_1 : 4 = {};
-  cargo_4bit_type cargo_2 : 4 = {};
-  cargo_4bit_type cargo_3 : 4 = {};
-  cargo_4bit_type cargo_4 : 4 = {};
-  cargo_4bit_type cargo_5 : 4 = {};
-  cargo_4bit_type cargo_6 : 4 = {};
-
-  bool operator==( Stop3LoadsCargo const& ) const = default;
-};
-
-// String conversion.
-void to_str( Stop3LoadsCargo const& o, std::string& out, base::tag<Stop3LoadsCargo> );
-
-// Binary conversion.
-bool read_binary( base::IBinaryIO& b, Stop3LoadsCargo& o );
-
-bool write_binary( base::IBinaryIO& b, Stop3LoadsCargo const& o );
-
-// Cdr conversions.
-cdr::value to_canonical( cdr::converter& conv,
-                         Stop3LoadsCargo const& o,
-                         cdr::tag_t<Stop3LoadsCargo> );
-
-cdr::result<Stop3LoadsCargo> from_canonical(
-                         cdr::converter& conv,
-                         cdr::value const& v,
-                         cdr::tag_t<Stop3LoadsCargo> );
-
-/****************************************************************
-** Stop3UnloadsCargo
-*****************************************************************/
-struct Stop3UnloadsCargo {
-  cargo_4bit_type cargo_1 : 4 = {};
-  cargo_4bit_type cargo_2 : 4 = {};
-  cargo_4bit_type cargo_3 : 4 = {};
-  cargo_4bit_type cargo_4 : 4 = {};
-  cargo_4bit_type cargo_5 : 4 = {};
-  cargo_4bit_type cargo_6 : 4 = {};
-
-  bool operator==( Stop3UnloadsCargo const& ) const = default;
-};
-
-// String conversion.
-void to_str( Stop3UnloadsCargo const& o, std::string& out, base::tag<Stop3UnloadsCargo> );
-
-// Binary conversion.
-bool read_binary( base::IBinaryIO& b, Stop3UnloadsCargo& o );
-
-bool write_binary( base::IBinaryIO& b, Stop3UnloadsCargo const& o );
-
-// Cdr conversions.
-cdr::value to_canonical( cdr::converter& conv,
-                         Stop3UnloadsCargo const& o,
-                         cdr::tag_t<Stop3UnloadsCargo> );
-
-cdr::result<Stop3UnloadsCargo> from_canonical(
-                         cdr::converter& conv,
-                         cdr::value const& v,
-                         cdr::tag_t<Stop3UnloadsCargo> );
-
-/****************************************************************
-** Stop4LoadsAndUnloadsCount
-*****************************************************************/
-struct Stop4LoadsAndUnloadsCount {
-  uint8_t unloads_count : 4 = {};
-  uint8_t loads_count : 4 = {};
-
-  bool operator==( Stop4LoadsAndUnloadsCount const& ) const = default;
-};
-
-// String conversion.
-void to_str( Stop4LoadsAndUnloadsCount const& o, std::string& out, base::tag<Stop4LoadsAndUnloadsCount> );
-
-// Binary conversion.
-bool read_binary( base::IBinaryIO& b, Stop4LoadsAndUnloadsCount& o );
-
-bool write_binary( base::IBinaryIO& b, Stop4LoadsAndUnloadsCount const& o );
-
-// Cdr conversions.
-cdr::value to_canonical( cdr::converter& conv,
-                         Stop4LoadsAndUnloadsCount const& o,
-                         cdr::tag_t<Stop4LoadsAndUnloadsCount> );
-
-cdr::result<Stop4LoadsAndUnloadsCount> from_canonical(
-                         cdr::converter& conv,
-                         cdr::value const& v,
-                         cdr::tag_t<Stop4LoadsAndUnloadsCount> );
-
-/****************************************************************
-** Stop4LoadsCargo
-*****************************************************************/
-struct Stop4LoadsCargo {
-  cargo_4bit_type cargo_1 : 4 = {};
-  cargo_4bit_type cargo_2 : 4 = {};
-  cargo_4bit_type cargo_3 : 4 = {};
-  cargo_4bit_type cargo_4 : 4 = {};
-  cargo_4bit_type cargo_5 : 4 = {};
-  cargo_4bit_type cargo_6 : 4 = {};
-
-  bool operator==( Stop4LoadsCargo const& ) const = default;
-};
-
-// String conversion.
-void to_str( Stop4LoadsCargo const& o, std::string& out, base::tag<Stop4LoadsCargo> );
-
-// Binary conversion.
-bool read_binary( base::IBinaryIO& b, Stop4LoadsCargo& o );
-
-bool write_binary( base::IBinaryIO& b, Stop4LoadsCargo const& o );
-
-// Cdr conversions.
-cdr::value to_canonical( cdr::converter& conv,
-                         Stop4LoadsCargo const& o,
-                         cdr::tag_t<Stop4LoadsCargo> );
-
-cdr::result<Stop4LoadsCargo> from_canonical(
-                         cdr::converter& conv,
-                         cdr::value const& v,
-                         cdr::tag_t<Stop4LoadsCargo> );
-
-/****************************************************************
-** Stop4UnloadsCargo
-*****************************************************************/
-struct Stop4UnloadsCargo {
-  cargo_4bit_type cargo_1 : 4 = {};
-  cargo_4bit_type cargo_2 : 4 = {};
-  cargo_4bit_type cargo_3 : 4 = {};
-  cargo_4bit_type cargo_4 : 4 = {};
-  cargo_4bit_type cargo_5 : 4 = {};
-  cargo_4bit_type cargo_6 : 4 = {};
-
-  bool operator==( Stop4UnloadsCargo const& ) const = default;
-};
-
-// String conversion.
-void to_str( Stop4UnloadsCargo const& o, std::string& out, base::tag<Stop4UnloadsCargo> );
-
-// Binary conversion.
-bool read_binary( base::IBinaryIO& b, Stop4UnloadsCargo& o );
-
-bool write_binary( base::IBinaryIO& b, Stop4UnloadsCargo const& o );
-
-// Cdr conversions.
-cdr::value to_canonical( cdr::converter& conv,
-                         Stop4UnloadsCargo const& o,
-                         cdr::tag_t<Stop4UnloadsCargo> );
-
-cdr::result<Stop4UnloadsCargo> from_canonical(
-                         cdr::converter& conv,
-                         cdr::value const& v,
-                         cdr::tag_t<Stop4UnloadsCargo> );
+                         cdr::tag_t<UnloadsCargo> );
 
 /****************************************************************
 ** ExpeditionaryForce
@@ -3462,32 +3186,44 @@ cdr::result<CONNECTIVITY> from_canonical(
                          cdr::tag_t<CONNECTIVITY> );
 
 /****************************************************************
+** Stops
+*****************************************************************/
+struct Stops {
+  uint16_t colony_index = {};
+  LoadsAndUnloadsCount loads_and_unloads_count = {};
+  LoadsCargo loads_cargo = {};
+  UnloadsCargo unloads_cargo = {};
+  bytes<1> unknown47 = {};
+
+  bool operator==( Stops const& ) const = default;
+};
+
+// String conversion.
+void to_str( Stops const& o, std::string& out, base::tag<Stops> );
+
+// Binary conversion.
+bool read_binary( base::IBinaryIO& b, Stops& o );
+
+bool write_binary( base::IBinaryIO& b, Stops const& o );
+
+// Cdr conversions.
+cdr::value to_canonical( cdr::converter& conv,
+                         Stops const& o,
+                         cdr::tag_t<Stops> );
+
+cdr::result<Stops> from_canonical(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<Stops> );
+
+/****************************************************************
 ** TRADEROUTE
 *****************************************************************/
 struct TRADEROUTE {
   array_string<32> name = {};
   trade_route_type land_or_sea = {};
   uint8_t stops_count = {};
-  uint16_t stop_1_colony_index = {};
-  Stop1LoadsAndUnloadsCount stop_1_loads_and_unloads_count = {};
-  Stop1LoadsCargo stop_1_loads_cargo = {};
-  Stop1UnloadsCargo stop_1_unloads_cargo = {};
-  bytes<1> unknown47 = {};
-  uint16_t stop_2_colony_index = {};
-  Stop2LoadsAndUnloadsCount stop_2_loads_and_unloads_count = {};
-  Stop2LoadsCargo stop_2_loads_cargo = {};
-  Stop2UnloadsCargo stop_2_unloads_cargo = {};
-  bytes<1> unknown48 = {};
-  uint16_t stop_3_colony_index = {};
-  Stop3LoadsAndUnloadsCount stop_3_loads_and_unloads_count = {};
-  Stop3LoadsCargo stop_3_loads_cargo = {};
-  Stop3UnloadsCargo stop_3_unloads_cargo = {};
-  bytes<1> unknown49 = {};
-  uint16_t stop_4_colony_index = {};
-  Stop4LoadsAndUnloadsCount stop_4_loads_and_unloads_count = {};
-  Stop4LoadsCargo stop_4_loads_cargo = {};
-  Stop4UnloadsCargo stop_4_unloads_cargo = {};
-  bytes<1> unknown50 = {};
+  std::array<Stops, 4> stops = {};
 
   bool operator==( TRADEROUTE const& ) const = default;
 };

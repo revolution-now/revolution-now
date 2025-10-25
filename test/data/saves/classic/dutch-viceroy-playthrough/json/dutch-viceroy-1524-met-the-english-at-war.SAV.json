@@ -122064,1117 +122064,1237 @@
       "name": "Fort Orange Cargo",
       "land_or_sea": "land",
       "stops_count": 2,
-      "stop_1_colony_index": 5,
-      "stop_1_loads_and_unloads_count": {
-        "unloads_count": 0,
-        "loads_count": 1
-      },
-      "stop_1_loads_cargo": {
-        "cargo_1": "furs",
-        "cargo_2": "food",
-        "cargo_3": "food",
-        "cargo_4": "food",
-        "cargo_5": "food",
-        "cargo_6": "food"
-      },
-      "stop_1_unloads_cargo": {
-        "cargo_1": "food",
-        "cargo_2": "food",
-        "cargo_3": "food",
-        "cargo_4": "food",
-        "cargo_5": "food",
-        "cargo_6": "food"
-      },
-      "unknown47": "00",
-      "stop_2_colony_index": 0,
-      "stop_2_loads_and_unloads_count": {
-        "unloads_count": 1,
-        "loads_count": 0
-      },
-      "stop_2_loads_cargo": {
-        "cargo_1": "food",
-        "cargo_2": "food",
-        "cargo_3": "food",
-        "cargo_4": "food",
-        "cargo_5": "food",
-        "cargo_6": "food"
-      },
-      "stop_2_unloads_cargo": {
-        "cargo_1": "furs",
-        "cargo_2": "food",
-        "cargo_3": "food",
-        "cargo_4": "food",
-        "cargo_5": "food",
-        "cargo_6": "food"
-      },
-      "unknown48": "00",
-      "stop_3_colony_index": 0,
-      "stop_3_loads_and_unloads_count": {
-        "unloads_count": 0,
-        "loads_count": 0
-      },
-      "stop_3_loads_cargo": {
-        "cargo_1": "food",
-        "cargo_2": "food",
-        "cargo_3": "food",
-        "cargo_4": "food",
-        "cargo_5": "food",
-        "cargo_6": "food"
-      },
-      "stop_3_unloads_cargo": {
-        "cargo_1": "food",
-        "cargo_2": "food",
-        "cargo_3": "food",
-        "cargo_4": "food",
-        "cargo_5": "food",
-        "cargo_6": "food"
-      },
-      "unknown49": "00",
-      "stop_4_colony_index": 0,
-      "stop_4_loads_and_unloads_count": {
-        "unloads_count": 0,
-        "loads_count": 0
-      },
-      "stop_4_loads_cargo": {
-        "cargo_1": "food",
-        "cargo_2": "food",
-        "cargo_3": "food",
-        "cargo_4": "food",
-        "cargo_5": "food",
-        "cargo_6": "food"
-      },
-      "stop_4_unloads_cargo": {
-        "cargo_1": "food",
-        "cargo_2": "food",
-        "cargo_3": "food",
-        "cargo_4": "food",
-        "cargo_5": "food",
-        "cargo_6": "food"
-      },
-      "unknown50": "00"
+      "stops": [
+        {
+          "colony_index": 5,
+          "loads_and_unloads_count": {
+            "unloads_count": 0,
+            "loads_count": 1
+          },
+          "loads_cargo": {
+            "cargo_1": "furs",
+            "cargo_2": "food",
+            "cargo_3": "food",
+            "cargo_4": "food",
+            "cargo_5": "food",
+            "cargo_6": "food"
+          },
+          "unloads_cargo": {
+            "cargo_1": "food",
+            "cargo_2": "food",
+            "cargo_3": "food",
+            "cargo_4": "food",
+            "cargo_5": "food",
+            "cargo_6": "food"
+          },
+          "unknown47": "00"
+        },
+        {
+          "colony_index": 0,
+          "loads_and_unloads_count": {
+            "unloads_count": 1,
+            "loads_count": 0
+          },
+          "loads_cargo": {
+            "cargo_1": "food",
+            "cargo_2": "food",
+            "cargo_3": "food",
+            "cargo_4": "food",
+            "cargo_5": "food",
+            "cargo_6": "food"
+          },
+          "unloads_cargo": {
+            "cargo_1": "furs",
+            "cargo_2": "food",
+            "cargo_3": "food",
+            "cargo_4": "food",
+            "cargo_5": "food",
+            "cargo_6": "food"
+          },
+          "unknown47": "00"
+        },
+        {
+          "colony_index": 0,
+          "loads_and_unloads_count": {
+            "unloads_count": 0,
+            "loads_count": 0
+          },
+          "loads_cargo": {
+            "cargo_1": "food",
+            "cargo_2": "food",
+            "cargo_3": "food",
+            "cargo_4": "food",
+            "cargo_5": "food",
+            "cargo_6": "food"
+          },
+          "unloads_cargo": {
+            "cargo_1": "food",
+            "cargo_2": "food",
+            "cargo_3": "food",
+            "cargo_4": "food",
+            "cargo_5": "food",
+            "cargo_6": "food"
+          },
+          "unknown47": "00"
+        },
+        {
+          "colony_index": 0,
+          "loads_and_unloads_count": {
+            "unloads_count": 0,
+            "loads_count": 0
+          },
+          "loads_cargo": {
+            "cargo_1": "food",
+            "cargo_2": "food",
+            "cargo_3": "food",
+            "cargo_4": "food",
+            "cargo_5": "food",
+            "cargo_6": "food"
+          },
+          "unloads_cargo": {
+            "cargo_1": "food",
+            "cargo_2": "food",
+            "cargo_3": "food",
+            "cargo_4": "food",
+            "cargo_5": "food",
+            "cargo_6": "food"
+          },
+          "unknown47": "00"
+        }
+      ]
     },
     {
       "name": "New Amsterdam Run",
       "land_or_sea": "land",
       "stops_count": 2,
-      "stop_1_colony_index": 0,
-      "stop_1_loads_and_unloads_count": {
-        "unloads_count": 1,
-        "loads_count": 1
-      },
-      "stop_1_loads_cargo": {
-        "cargo_1": "ore",
-        "cargo_2": "food",
-        "cargo_3": "food",
-        "cargo_4": "food",
-        "cargo_5": "food",
-        "cargo_6": "food"
-      },
-      "stop_1_unloads_cargo": {
-        "cargo_1": "food",
-        "cargo_2": "food",
-        "cargo_3": "food",
-        "cargo_4": "food",
-        "cargo_5": "food",
-        "cargo_6": "food"
-      },
-      "unknown47": "00",
-      "stop_2_colony_index": 5,
-      "stop_2_loads_and_unloads_count": {
-        "unloads_count": 1,
-        "loads_count": 1
-      },
-      "stop_2_loads_cargo": {
-        "cargo_1": "food",
-        "cargo_2": "food",
-        "cargo_3": "food",
-        "cargo_4": "food",
-        "cargo_5": "food",
-        "cargo_6": "food"
-      },
-      "stop_2_unloads_cargo": {
-        "cargo_1": "ore",
-        "cargo_2": "food",
-        "cargo_3": "food",
-        "cargo_4": "food",
-        "cargo_5": "food",
-        "cargo_6": "food"
-      },
-      "unknown48": "00",
-      "stop_3_colony_index": 0,
-      "stop_3_loads_and_unloads_count": {
-        "unloads_count": 0,
-        "loads_count": 0
-      },
-      "stop_3_loads_cargo": {
-        "cargo_1": "food",
-        "cargo_2": "food",
-        "cargo_3": "food",
-        "cargo_4": "food",
-        "cargo_5": "food",
-        "cargo_6": "food"
-      },
-      "stop_3_unloads_cargo": {
-        "cargo_1": "food",
-        "cargo_2": "food",
-        "cargo_3": "food",
-        "cargo_4": "food",
-        "cargo_5": "food",
-        "cargo_6": "food"
-      },
-      "unknown49": "00",
-      "stop_4_colony_index": 0,
-      "stop_4_loads_and_unloads_count": {
-        "unloads_count": 0,
-        "loads_count": 0
-      },
-      "stop_4_loads_cargo": {
-        "cargo_1": "food",
-        "cargo_2": "food",
-        "cargo_3": "food",
-        "cargo_4": "food",
-        "cargo_5": "food",
-        "cargo_6": "food"
-      },
-      "stop_4_unloads_cargo": {
-        "cargo_1": "food",
-        "cargo_2": "food",
-        "cargo_3": "food",
-        "cargo_4": "food",
-        "cargo_5": "food",
-        "cargo_6": "food"
-      },
-      "unknown50": "00"
+      "stops": [
+        {
+          "colony_index": 0,
+          "loads_and_unloads_count": {
+            "unloads_count": 1,
+            "loads_count": 1
+          },
+          "loads_cargo": {
+            "cargo_1": "ore",
+            "cargo_2": "food",
+            "cargo_3": "food",
+            "cargo_4": "food",
+            "cargo_5": "food",
+            "cargo_6": "food"
+          },
+          "unloads_cargo": {
+            "cargo_1": "food",
+            "cargo_2": "food",
+            "cargo_3": "food",
+            "cargo_4": "food",
+            "cargo_5": "food",
+            "cargo_6": "food"
+          },
+          "unknown47": "00"
+        },
+        {
+          "colony_index": 5,
+          "loads_and_unloads_count": {
+            "unloads_count": 1,
+            "loads_count": 1
+          },
+          "loads_cargo": {
+            "cargo_1": "food",
+            "cargo_2": "food",
+            "cargo_3": "food",
+            "cargo_4": "food",
+            "cargo_5": "food",
+            "cargo_6": "food"
+          },
+          "unloads_cargo": {
+            "cargo_1": "ore",
+            "cargo_2": "food",
+            "cargo_3": "food",
+            "cargo_4": "food",
+            "cargo_5": "food",
+            "cargo_6": "food"
+          },
+          "unknown47": "00"
+        },
+        {
+          "colony_index": 0,
+          "loads_and_unloads_count": {
+            "unloads_count": 0,
+            "loads_count": 0
+          },
+          "loads_cargo": {
+            "cargo_1": "food",
+            "cargo_2": "food",
+            "cargo_3": "food",
+            "cargo_4": "food",
+            "cargo_5": "food",
+            "cargo_6": "food"
+          },
+          "unloads_cargo": {
+            "cargo_1": "food",
+            "cargo_2": "food",
+            "cargo_3": "food",
+            "cargo_4": "food",
+            "cargo_5": "food",
+            "cargo_6": "food"
+          },
+          "unknown47": "00"
+        },
+        {
+          "colony_index": 0,
+          "loads_and_unloads_count": {
+            "unloads_count": 0,
+            "loads_count": 0
+          },
+          "loads_cargo": {
+            "cargo_1": "food",
+            "cargo_2": "food",
+            "cargo_3": "food",
+            "cargo_4": "food",
+            "cargo_5": "food",
+            "cargo_6": "food"
+          },
+          "unloads_cargo": {
+            "cargo_1": "food",
+            "cargo_2": "food",
+            "cargo_3": "food",
+            "cargo_4": "food",
+            "cargo_5": "food",
+            "cargo_6": "food"
+          },
+          "unknown47": "00"
+        }
+      ]
     },
     {
       "name": "",
       "land_or_sea": "land",
       "stops_count": 0,
-      "stop_1_colony_index": 0,
-      "stop_1_loads_and_unloads_count": {
-        "unloads_count": 0,
-        "loads_count": 0
-      },
-      "stop_1_loads_cargo": {
-        "cargo_1": "food",
-        "cargo_2": "food",
-        "cargo_3": "food",
-        "cargo_4": "food",
-        "cargo_5": "food",
-        "cargo_6": "food"
-      },
-      "stop_1_unloads_cargo": {
-        "cargo_1": "food",
-        "cargo_2": "food",
-        "cargo_3": "food",
-        "cargo_4": "food",
-        "cargo_5": "food",
-        "cargo_6": "food"
-      },
-      "unknown47": "00",
-      "stop_2_colony_index": 0,
-      "stop_2_loads_and_unloads_count": {
-        "unloads_count": 0,
-        "loads_count": 0
-      },
-      "stop_2_loads_cargo": {
-        "cargo_1": "food",
-        "cargo_2": "food",
-        "cargo_3": "food",
-        "cargo_4": "food",
-        "cargo_5": "food",
-        "cargo_6": "food"
-      },
-      "stop_2_unloads_cargo": {
-        "cargo_1": "food",
-        "cargo_2": "food",
-        "cargo_3": "food",
-        "cargo_4": "food",
-        "cargo_5": "food",
-        "cargo_6": "food"
-      },
-      "unknown48": "00",
-      "stop_3_colony_index": 0,
-      "stop_3_loads_and_unloads_count": {
-        "unloads_count": 0,
-        "loads_count": 0
-      },
-      "stop_3_loads_cargo": {
-        "cargo_1": "food",
-        "cargo_2": "food",
-        "cargo_3": "food",
-        "cargo_4": "food",
-        "cargo_5": "food",
-        "cargo_6": "food"
-      },
-      "stop_3_unloads_cargo": {
-        "cargo_1": "food",
-        "cargo_2": "food",
-        "cargo_3": "food",
-        "cargo_4": "food",
-        "cargo_5": "food",
-        "cargo_6": "food"
-      },
-      "unknown49": "00",
-      "stop_4_colony_index": 0,
-      "stop_4_loads_and_unloads_count": {
-        "unloads_count": 0,
-        "loads_count": 0
-      },
-      "stop_4_loads_cargo": {
-        "cargo_1": "food",
-        "cargo_2": "food",
-        "cargo_3": "food",
-        "cargo_4": "food",
-        "cargo_5": "food",
-        "cargo_6": "food"
-      },
-      "stop_4_unloads_cargo": {
-        "cargo_1": "food",
-        "cargo_2": "food",
-        "cargo_3": "food",
-        "cargo_4": "food",
-        "cargo_5": "food",
-        "cargo_6": "food"
-      },
-      "unknown50": "00"
+      "stops": [
+        {
+          "colony_index": 0,
+          "loads_and_unloads_count": {
+            "unloads_count": 0,
+            "loads_count": 0
+          },
+          "loads_cargo": {
+            "cargo_1": "food",
+            "cargo_2": "food",
+            "cargo_3": "food",
+            "cargo_4": "food",
+            "cargo_5": "food",
+            "cargo_6": "food"
+          },
+          "unloads_cargo": {
+            "cargo_1": "food",
+            "cargo_2": "food",
+            "cargo_3": "food",
+            "cargo_4": "food",
+            "cargo_5": "food",
+            "cargo_6": "food"
+          },
+          "unknown47": "00"
+        },
+        {
+          "colony_index": 0,
+          "loads_and_unloads_count": {
+            "unloads_count": 0,
+            "loads_count": 0
+          },
+          "loads_cargo": {
+            "cargo_1": "food",
+            "cargo_2": "food",
+            "cargo_3": "food",
+            "cargo_4": "food",
+            "cargo_5": "food",
+            "cargo_6": "food"
+          },
+          "unloads_cargo": {
+            "cargo_1": "food",
+            "cargo_2": "food",
+            "cargo_3": "food",
+            "cargo_4": "food",
+            "cargo_5": "food",
+            "cargo_6": "food"
+          },
+          "unknown47": "00"
+        },
+        {
+          "colony_index": 0,
+          "loads_and_unloads_count": {
+            "unloads_count": 0,
+            "loads_count": 0
+          },
+          "loads_cargo": {
+            "cargo_1": "food",
+            "cargo_2": "food",
+            "cargo_3": "food",
+            "cargo_4": "food",
+            "cargo_5": "food",
+            "cargo_6": "food"
+          },
+          "unloads_cargo": {
+            "cargo_1": "food",
+            "cargo_2": "food",
+            "cargo_3": "food",
+            "cargo_4": "food",
+            "cargo_5": "food",
+            "cargo_6": "food"
+          },
+          "unknown47": "00"
+        },
+        {
+          "colony_index": 0,
+          "loads_and_unloads_count": {
+            "unloads_count": 0,
+            "loads_count": 0
+          },
+          "loads_cargo": {
+            "cargo_1": "food",
+            "cargo_2": "food",
+            "cargo_3": "food",
+            "cargo_4": "food",
+            "cargo_5": "food",
+            "cargo_6": "food"
+          },
+          "unloads_cargo": {
+            "cargo_1": "food",
+            "cargo_2": "food",
+            "cargo_3": "food",
+            "cargo_4": "food",
+            "cargo_5": "food",
+            "cargo_6": "food"
+          },
+          "unknown47": "00"
+        }
+      ]
     },
     {
       "name": "",
       "land_or_sea": "land",
       "stops_count": 0,
-      "stop_1_colony_index": 0,
-      "stop_1_loads_and_unloads_count": {
-        "unloads_count": 0,
-        "loads_count": 0
-      },
-      "stop_1_loads_cargo": {
-        "cargo_1": "food",
-        "cargo_2": "food",
-        "cargo_3": "food",
-        "cargo_4": "food",
-        "cargo_5": "food",
-        "cargo_6": "food"
-      },
-      "stop_1_unloads_cargo": {
-        "cargo_1": "food",
-        "cargo_2": "food",
-        "cargo_3": "food",
-        "cargo_4": "food",
-        "cargo_5": "food",
-        "cargo_6": "food"
-      },
-      "unknown47": "00",
-      "stop_2_colony_index": 0,
-      "stop_2_loads_and_unloads_count": {
-        "unloads_count": 0,
-        "loads_count": 0
-      },
-      "stop_2_loads_cargo": {
-        "cargo_1": "food",
-        "cargo_2": "food",
-        "cargo_3": "food",
-        "cargo_4": "food",
-        "cargo_5": "food",
-        "cargo_6": "food"
-      },
-      "stop_2_unloads_cargo": {
-        "cargo_1": "food",
-        "cargo_2": "food",
-        "cargo_3": "food",
-        "cargo_4": "food",
-        "cargo_5": "food",
-        "cargo_6": "food"
-      },
-      "unknown48": "00",
-      "stop_3_colony_index": 0,
-      "stop_3_loads_and_unloads_count": {
-        "unloads_count": 0,
-        "loads_count": 0
-      },
-      "stop_3_loads_cargo": {
-        "cargo_1": "food",
-        "cargo_2": "food",
-        "cargo_3": "food",
-        "cargo_4": "food",
-        "cargo_5": "food",
-        "cargo_6": "food"
-      },
-      "stop_3_unloads_cargo": {
-        "cargo_1": "food",
-        "cargo_2": "food",
-        "cargo_3": "food",
-        "cargo_4": "food",
-        "cargo_5": "food",
-        "cargo_6": "food"
-      },
-      "unknown49": "00",
-      "stop_4_colony_index": 0,
-      "stop_4_loads_and_unloads_count": {
-        "unloads_count": 0,
-        "loads_count": 0
-      },
-      "stop_4_loads_cargo": {
-        "cargo_1": "food",
-        "cargo_2": "food",
-        "cargo_3": "food",
-        "cargo_4": "food",
-        "cargo_5": "food",
-        "cargo_6": "food"
-      },
-      "stop_4_unloads_cargo": {
-        "cargo_1": "food",
-        "cargo_2": "food",
-        "cargo_3": "food",
-        "cargo_4": "food",
-        "cargo_5": "food",
-        "cargo_6": "food"
-      },
-      "unknown50": "00"
+      "stops": [
+        {
+          "colony_index": 0,
+          "loads_and_unloads_count": {
+            "unloads_count": 0,
+            "loads_count": 0
+          },
+          "loads_cargo": {
+            "cargo_1": "food",
+            "cargo_2": "food",
+            "cargo_3": "food",
+            "cargo_4": "food",
+            "cargo_5": "food",
+            "cargo_6": "food"
+          },
+          "unloads_cargo": {
+            "cargo_1": "food",
+            "cargo_2": "food",
+            "cargo_3": "food",
+            "cargo_4": "food",
+            "cargo_5": "food",
+            "cargo_6": "food"
+          },
+          "unknown47": "00"
+        },
+        {
+          "colony_index": 0,
+          "loads_and_unloads_count": {
+            "unloads_count": 0,
+            "loads_count": 0
+          },
+          "loads_cargo": {
+            "cargo_1": "food",
+            "cargo_2": "food",
+            "cargo_3": "food",
+            "cargo_4": "food",
+            "cargo_5": "food",
+            "cargo_6": "food"
+          },
+          "unloads_cargo": {
+            "cargo_1": "food",
+            "cargo_2": "food",
+            "cargo_3": "food",
+            "cargo_4": "food",
+            "cargo_5": "food",
+            "cargo_6": "food"
+          },
+          "unknown47": "00"
+        },
+        {
+          "colony_index": 0,
+          "loads_and_unloads_count": {
+            "unloads_count": 0,
+            "loads_count": 0
+          },
+          "loads_cargo": {
+            "cargo_1": "food",
+            "cargo_2": "food",
+            "cargo_3": "food",
+            "cargo_4": "food",
+            "cargo_5": "food",
+            "cargo_6": "food"
+          },
+          "unloads_cargo": {
+            "cargo_1": "food",
+            "cargo_2": "food",
+            "cargo_3": "food",
+            "cargo_4": "food",
+            "cargo_5": "food",
+            "cargo_6": "food"
+          },
+          "unknown47": "00"
+        },
+        {
+          "colony_index": 0,
+          "loads_and_unloads_count": {
+            "unloads_count": 0,
+            "loads_count": 0
+          },
+          "loads_cargo": {
+            "cargo_1": "food",
+            "cargo_2": "food",
+            "cargo_3": "food",
+            "cargo_4": "food",
+            "cargo_5": "food",
+            "cargo_6": "food"
+          },
+          "unloads_cargo": {
+            "cargo_1": "food",
+            "cargo_2": "food",
+            "cargo_3": "food",
+            "cargo_4": "food",
+            "cargo_5": "food",
+            "cargo_6": "food"
+          },
+          "unknown47": "00"
+        }
+      ]
     },
     {
       "name": "",
       "land_or_sea": "land",
       "stops_count": 0,
-      "stop_1_colony_index": 0,
-      "stop_1_loads_and_unloads_count": {
-        "unloads_count": 0,
-        "loads_count": 0
-      },
-      "stop_1_loads_cargo": {
-        "cargo_1": "food",
-        "cargo_2": "food",
-        "cargo_3": "food",
-        "cargo_4": "food",
-        "cargo_5": "food",
-        "cargo_6": "food"
-      },
-      "stop_1_unloads_cargo": {
-        "cargo_1": "food",
-        "cargo_2": "food",
-        "cargo_3": "food",
-        "cargo_4": "food",
-        "cargo_5": "food",
-        "cargo_6": "food"
-      },
-      "unknown47": "00",
-      "stop_2_colony_index": 0,
-      "stop_2_loads_and_unloads_count": {
-        "unloads_count": 0,
-        "loads_count": 0
-      },
-      "stop_2_loads_cargo": {
-        "cargo_1": "food",
-        "cargo_2": "food",
-        "cargo_3": "food",
-        "cargo_4": "food",
-        "cargo_5": "food",
-        "cargo_6": "food"
-      },
-      "stop_2_unloads_cargo": {
-        "cargo_1": "food",
-        "cargo_2": "food",
-        "cargo_3": "food",
-        "cargo_4": "food",
-        "cargo_5": "food",
-        "cargo_6": "food"
-      },
-      "unknown48": "00",
-      "stop_3_colony_index": 0,
-      "stop_3_loads_and_unloads_count": {
-        "unloads_count": 0,
-        "loads_count": 0
-      },
-      "stop_3_loads_cargo": {
-        "cargo_1": "food",
-        "cargo_2": "food",
-        "cargo_3": "food",
-        "cargo_4": "food",
-        "cargo_5": "food",
-        "cargo_6": "food"
-      },
-      "stop_3_unloads_cargo": {
-        "cargo_1": "food",
-        "cargo_2": "food",
-        "cargo_3": "food",
-        "cargo_4": "food",
-        "cargo_5": "food",
-        "cargo_6": "food"
-      },
-      "unknown49": "00",
-      "stop_4_colony_index": 0,
-      "stop_4_loads_and_unloads_count": {
-        "unloads_count": 0,
-        "loads_count": 0
-      },
-      "stop_4_loads_cargo": {
-        "cargo_1": "food",
-        "cargo_2": "food",
-        "cargo_3": "food",
-        "cargo_4": "food",
-        "cargo_5": "food",
-        "cargo_6": "food"
-      },
-      "stop_4_unloads_cargo": {
-        "cargo_1": "food",
-        "cargo_2": "food",
-        "cargo_3": "food",
-        "cargo_4": "food",
-        "cargo_5": "food",
-        "cargo_6": "food"
-      },
-      "unknown50": "00"
+      "stops": [
+        {
+          "colony_index": 0,
+          "loads_and_unloads_count": {
+            "unloads_count": 0,
+            "loads_count": 0
+          },
+          "loads_cargo": {
+            "cargo_1": "food",
+            "cargo_2": "food",
+            "cargo_3": "food",
+            "cargo_4": "food",
+            "cargo_5": "food",
+            "cargo_6": "food"
+          },
+          "unloads_cargo": {
+            "cargo_1": "food",
+            "cargo_2": "food",
+            "cargo_3": "food",
+            "cargo_4": "food",
+            "cargo_5": "food",
+            "cargo_6": "food"
+          },
+          "unknown47": "00"
+        },
+        {
+          "colony_index": 0,
+          "loads_and_unloads_count": {
+            "unloads_count": 0,
+            "loads_count": 0
+          },
+          "loads_cargo": {
+            "cargo_1": "food",
+            "cargo_2": "food",
+            "cargo_3": "food",
+            "cargo_4": "food",
+            "cargo_5": "food",
+            "cargo_6": "food"
+          },
+          "unloads_cargo": {
+            "cargo_1": "food",
+            "cargo_2": "food",
+            "cargo_3": "food",
+            "cargo_4": "food",
+            "cargo_5": "food",
+            "cargo_6": "food"
+          },
+          "unknown47": "00"
+        },
+        {
+          "colony_index": 0,
+          "loads_and_unloads_count": {
+            "unloads_count": 0,
+            "loads_count": 0
+          },
+          "loads_cargo": {
+            "cargo_1": "food",
+            "cargo_2": "food",
+            "cargo_3": "food",
+            "cargo_4": "food",
+            "cargo_5": "food",
+            "cargo_6": "food"
+          },
+          "unloads_cargo": {
+            "cargo_1": "food",
+            "cargo_2": "food",
+            "cargo_3": "food",
+            "cargo_4": "food",
+            "cargo_5": "food",
+            "cargo_6": "food"
+          },
+          "unknown47": "00"
+        },
+        {
+          "colony_index": 0,
+          "loads_and_unloads_count": {
+            "unloads_count": 0,
+            "loads_count": 0
+          },
+          "loads_cargo": {
+            "cargo_1": "food",
+            "cargo_2": "food",
+            "cargo_3": "food",
+            "cargo_4": "food",
+            "cargo_5": "food",
+            "cargo_6": "food"
+          },
+          "unloads_cargo": {
+            "cargo_1": "food",
+            "cargo_2": "food",
+            "cargo_3": "food",
+            "cargo_4": "food",
+            "cargo_5": "food",
+            "cargo_6": "food"
+          },
+          "unknown47": "00"
+        }
+      ]
     },
     {
       "name": "",
       "land_or_sea": "land",
       "stops_count": 0,
-      "stop_1_colony_index": 0,
-      "stop_1_loads_and_unloads_count": {
-        "unloads_count": 0,
-        "loads_count": 0
-      },
-      "stop_1_loads_cargo": {
-        "cargo_1": "food",
-        "cargo_2": "food",
-        "cargo_3": "food",
-        "cargo_4": "food",
-        "cargo_5": "food",
-        "cargo_6": "food"
-      },
-      "stop_1_unloads_cargo": {
-        "cargo_1": "food",
-        "cargo_2": "food",
-        "cargo_3": "food",
-        "cargo_4": "food",
-        "cargo_5": "food",
-        "cargo_6": "food"
-      },
-      "unknown47": "00",
-      "stop_2_colony_index": 0,
-      "stop_2_loads_and_unloads_count": {
-        "unloads_count": 0,
-        "loads_count": 0
-      },
-      "stop_2_loads_cargo": {
-        "cargo_1": "food",
-        "cargo_2": "food",
-        "cargo_3": "food",
-        "cargo_4": "food",
-        "cargo_5": "food",
-        "cargo_6": "food"
-      },
-      "stop_2_unloads_cargo": {
-        "cargo_1": "food",
-        "cargo_2": "food",
-        "cargo_3": "food",
-        "cargo_4": "food",
-        "cargo_5": "food",
-        "cargo_6": "food"
-      },
-      "unknown48": "00",
-      "stop_3_colony_index": 0,
-      "stop_3_loads_and_unloads_count": {
-        "unloads_count": 0,
-        "loads_count": 0
-      },
-      "stop_3_loads_cargo": {
-        "cargo_1": "food",
-        "cargo_2": "food",
-        "cargo_3": "food",
-        "cargo_4": "food",
-        "cargo_5": "food",
-        "cargo_6": "food"
-      },
-      "stop_3_unloads_cargo": {
-        "cargo_1": "food",
-        "cargo_2": "food",
-        "cargo_3": "food",
-        "cargo_4": "food",
-        "cargo_5": "food",
-        "cargo_6": "food"
-      },
-      "unknown49": "00",
-      "stop_4_colony_index": 0,
-      "stop_4_loads_and_unloads_count": {
-        "unloads_count": 0,
-        "loads_count": 0
-      },
-      "stop_4_loads_cargo": {
-        "cargo_1": "food",
-        "cargo_2": "food",
-        "cargo_3": "food",
-        "cargo_4": "food",
-        "cargo_5": "food",
-        "cargo_6": "food"
-      },
-      "stop_4_unloads_cargo": {
-        "cargo_1": "food",
-        "cargo_2": "food",
-        "cargo_3": "food",
-        "cargo_4": "food",
-        "cargo_5": "food",
-        "cargo_6": "food"
-      },
-      "unknown50": "00"
+      "stops": [
+        {
+          "colony_index": 0,
+          "loads_and_unloads_count": {
+            "unloads_count": 0,
+            "loads_count": 0
+          },
+          "loads_cargo": {
+            "cargo_1": "food",
+            "cargo_2": "food",
+            "cargo_3": "food",
+            "cargo_4": "food",
+            "cargo_5": "food",
+            "cargo_6": "food"
+          },
+          "unloads_cargo": {
+            "cargo_1": "food",
+            "cargo_2": "food",
+            "cargo_3": "food",
+            "cargo_4": "food",
+            "cargo_5": "food",
+            "cargo_6": "food"
+          },
+          "unknown47": "00"
+        },
+        {
+          "colony_index": 0,
+          "loads_and_unloads_count": {
+            "unloads_count": 0,
+            "loads_count": 0
+          },
+          "loads_cargo": {
+            "cargo_1": "food",
+            "cargo_2": "food",
+            "cargo_3": "food",
+            "cargo_4": "food",
+            "cargo_5": "food",
+            "cargo_6": "food"
+          },
+          "unloads_cargo": {
+            "cargo_1": "food",
+            "cargo_2": "food",
+            "cargo_3": "food",
+            "cargo_4": "food",
+            "cargo_5": "food",
+            "cargo_6": "food"
+          },
+          "unknown47": "00"
+        },
+        {
+          "colony_index": 0,
+          "loads_and_unloads_count": {
+            "unloads_count": 0,
+            "loads_count": 0
+          },
+          "loads_cargo": {
+            "cargo_1": "food",
+            "cargo_2": "food",
+            "cargo_3": "food",
+            "cargo_4": "food",
+            "cargo_5": "food",
+            "cargo_6": "food"
+          },
+          "unloads_cargo": {
+            "cargo_1": "food",
+            "cargo_2": "food",
+            "cargo_3": "food",
+            "cargo_4": "food",
+            "cargo_5": "food",
+            "cargo_6": "food"
+          },
+          "unknown47": "00"
+        },
+        {
+          "colony_index": 0,
+          "loads_and_unloads_count": {
+            "unloads_count": 0,
+            "loads_count": 0
+          },
+          "loads_cargo": {
+            "cargo_1": "food",
+            "cargo_2": "food",
+            "cargo_3": "food",
+            "cargo_4": "food",
+            "cargo_5": "food",
+            "cargo_6": "food"
+          },
+          "unloads_cargo": {
+            "cargo_1": "food",
+            "cargo_2": "food",
+            "cargo_3": "food",
+            "cargo_4": "food",
+            "cargo_5": "food",
+            "cargo_6": "food"
+          },
+          "unknown47": "00"
+        }
+      ]
     },
     {
       "name": "",
       "land_or_sea": "land",
       "stops_count": 0,
-      "stop_1_colony_index": 0,
-      "stop_1_loads_and_unloads_count": {
-        "unloads_count": 0,
-        "loads_count": 0
-      },
-      "stop_1_loads_cargo": {
-        "cargo_1": "food",
-        "cargo_2": "food",
-        "cargo_3": "food",
-        "cargo_4": "food",
-        "cargo_5": "food",
-        "cargo_6": "food"
-      },
-      "stop_1_unloads_cargo": {
-        "cargo_1": "food",
-        "cargo_2": "food",
-        "cargo_3": "food",
-        "cargo_4": "food",
-        "cargo_5": "food",
-        "cargo_6": "food"
-      },
-      "unknown47": "00",
-      "stop_2_colony_index": 0,
-      "stop_2_loads_and_unloads_count": {
-        "unloads_count": 0,
-        "loads_count": 0
-      },
-      "stop_2_loads_cargo": {
-        "cargo_1": "food",
-        "cargo_2": "food",
-        "cargo_3": "food",
-        "cargo_4": "food",
-        "cargo_5": "food",
-        "cargo_6": "food"
-      },
-      "stop_2_unloads_cargo": {
-        "cargo_1": "food",
-        "cargo_2": "food",
-        "cargo_3": "food",
-        "cargo_4": "food",
-        "cargo_5": "food",
-        "cargo_6": "food"
-      },
-      "unknown48": "00",
-      "stop_3_colony_index": 0,
-      "stop_3_loads_and_unloads_count": {
-        "unloads_count": 0,
-        "loads_count": 0
-      },
-      "stop_3_loads_cargo": {
-        "cargo_1": "food",
-        "cargo_2": "food",
-        "cargo_3": "food",
-        "cargo_4": "food",
-        "cargo_5": "food",
-        "cargo_6": "food"
-      },
-      "stop_3_unloads_cargo": {
-        "cargo_1": "food",
-        "cargo_2": "food",
-        "cargo_3": "food",
-        "cargo_4": "food",
-        "cargo_5": "food",
-        "cargo_6": "food"
-      },
-      "unknown49": "00",
-      "stop_4_colony_index": 0,
-      "stop_4_loads_and_unloads_count": {
-        "unloads_count": 0,
-        "loads_count": 0
-      },
-      "stop_4_loads_cargo": {
-        "cargo_1": "food",
-        "cargo_2": "food",
-        "cargo_3": "food",
-        "cargo_4": "food",
-        "cargo_5": "food",
-        "cargo_6": "food"
-      },
-      "stop_4_unloads_cargo": {
-        "cargo_1": "food",
-        "cargo_2": "food",
-        "cargo_3": "food",
-        "cargo_4": "food",
-        "cargo_5": "food",
-        "cargo_6": "food"
-      },
-      "unknown50": "00"
+      "stops": [
+        {
+          "colony_index": 0,
+          "loads_and_unloads_count": {
+            "unloads_count": 0,
+            "loads_count": 0
+          },
+          "loads_cargo": {
+            "cargo_1": "food",
+            "cargo_2": "food",
+            "cargo_3": "food",
+            "cargo_4": "food",
+            "cargo_5": "food",
+            "cargo_6": "food"
+          },
+          "unloads_cargo": {
+            "cargo_1": "food",
+            "cargo_2": "food",
+            "cargo_3": "food",
+            "cargo_4": "food",
+            "cargo_5": "food",
+            "cargo_6": "food"
+          },
+          "unknown47": "00"
+        },
+        {
+          "colony_index": 0,
+          "loads_and_unloads_count": {
+            "unloads_count": 0,
+            "loads_count": 0
+          },
+          "loads_cargo": {
+            "cargo_1": "food",
+            "cargo_2": "food",
+            "cargo_3": "food",
+            "cargo_4": "food",
+            "cargo_5": "food",
+            "cargo_6": "food"
+          },
+          "unloads_cargo": {
+            "cargo_1": "food",
+            "cargo_2": "food",
+            "cargo_3": "food",
+            "cargo_4": "food",
+            "cargo_5": "food",
+            "cargo_6": "food"
+          },
+          "unknown47": "00"
+        },
+        {
+          "colony_index": 0,
+          "loads_and_unloads_count": {
+            "unloads_count": 0,
+            "loads_count": 0
+          },
+          "loads_cargo": {
+            "cargo_1": "food",
+            "cargo_2": "food",
+            "cargo_3": "food",
+            "cargo_4": "food",
+            "cargo_5": "food",
+            "cargo_6": "food"
+          },
+          "unloads_cargo": {
+            "cargo_1": "food",
+            "cargo_2": "food",
+            "cargo_3": "food",
+            "cargo_4": "food",
+            "cargo_5": "food",
+            "cargo_6": "food"
+          },
+          "unknown47": "00"
+        },
+        {
+          "colony_index": 0,
+          "loads_and_unloads_count": {
+            "unloads_count": 0,
+            "loads_count": 0
+          },
+          "loads_cargo": {
+            "cargo_1": "food",
+            "cargo_2": "food",
+            "cargo_3": "food",
+            "cargo_4": "food",
+            "cargo_5": "food",
+            "cargo_6": "food"
+          },
+          "unloads_cargo": {
+            "cargo_1": "food",
+            "cargo_2": "food",
+            "cargo_3": "food",
+            "cargo_4": "food",
+            "cargo_5": "food",
+            "cargo_6": "food"
+          },
+          "unknown47": "00"
+        }
+      ]
     },
     {
       "name": "",
       "land_or_sea": "land",
       "stops_count": 0,
-      "stop_1_colony_index": 0,
-      "stop_1_loads_and_unloads_count": {
-        "unloads_count": 0,
-        "loads_count": 0
-      },
-      "stop_1_loads_cargo": {
-        "cargo_1": "food",
-        "cargo_2": "food",
-        "cargo_3": "food",
-        "cargo_4": "food",
-        "cargo_5": "food",
-        "cargo_6": "food"
-      },
-      "stop_1_unloads_cargo": {
-        "cargo_1": "food",
-        "cargo_2": "food",
-        "cargo_3": "food",
-        "cargo_4": "food",
-        "cargo_5": "food",
-        "cargo_6": "food"
-      },
-      "unknown47": "00",
-      "stop_2_colony_index": 0,
-      "stop_2_loads_and_unloads_count": {
-        "unloads_count": 0,
-        "loads_count": 0
-      },
-      "stop_2_loads_cargo": {
-        "cargo_1": "food",
-        "cargo_2": "food",
-        "cargo_3": "food",
-        "cargo_4": "food",
-        "cargo_5": "food",
-        "cargo_6": "food"
-      },
-      "stop_2_unloads_cargo": {
-        "cargo_1": "food",
-        "cargo_2": "food",
-        "cargo_3": "food",
-        "cargo_4": "food",
-        "cargo_5": "food",
-        "cargo_6": "food"
-      },
-      "unknown48": "00",
-      "stop_3_colony_index": 0,
-      "stop_3_loads_and_unloads_count": {
-        "unloads_count": 0,
-        "loads_count": 0
-      },
-      "stop_3_loads_cargo": {
-        "cargo_1": "food",
-        "cargo_2": "food",
-        "cargo_3": "food",
-        "cargo_4": "food",
-        "cargo_5": "food",
-        "cargo_6": "food"
-      },
-      "stop_3_unloads_cargo": {
-        "cargo_1": "food",
-        "cargo_2": "food",
-        "cargo_3": "food",
-        "cargo_4": "food",
-        "cargo_5": "food",
-        "cargo_6": "food"
-      },
-      "unknown49": "00",
-      "stop_4_colony_index": 0,
-      "stop_4_loads_and_unloads_count": {
-        "unloads_count": 0,
-        "loads_count": 0
-      },
-      "stop_4_loads_cargo": {
-        "cargo_1": "food",
-        "cargo_2": "food",
-        "cargo_3": "food",
-        "cargo_4": "food",
-        "cargo_5": "food",
-        "cargo_6": "food"
-      },
-      "stop_4_unloads_cargo": {
-        "cargo_1": "food",
-        "cargo_2": "food",
-        "cargo_3": "food",
-        "cargo_4": "food",
-        "cargo_5": "food",
-        "cargo_6": "food"
-      },
-      "unknown50": "00"
+      "stops": [
+        {
+          "colony_index": 0,
+          "loads_and_unloads_count": {
+            "unloads_count": 0,
+            "loads_count": 0
+          },
+          "loads_cargo": {
+            "cargo_1": "food",
+            "cargo_2": "food",
+            "cargo_3": "food",
+            "cargo_4": "food",
+            "cargo_5": "food",
+            "cargo_6": "food"
+          },
+          "unloads_cargo": {
+            "cargo_1": "food",
+            "cargo_2": "food",
+            "cargo_3": "food",
+            "cargo_4": "food",
+            "cargo_5": "food",
+            "cargo_6": "food"
+          },
+          "unknown47": "00"
+        },
+        {
+          "colony_index": 0,
+          "loads_and_unloads_count": {
+            "unloads_count": 0,
+            "loads_count": 0
+          },
+          "loads_cargo": {
+            "cargo_1": "food",
+            "cargo_2": "food",
+            "cargo_3": "food",
+            "cargo_4": "food",
+            "cargo_5": "food",
+            "cargo_6": "food"
+          },
+          "unloads_cargo": {
+            "cargo_1": "food",
+            "cargo_2": "food",
+            "cargo_3": "food",
+            "cargo_4": "food",
+            "cargo_5": "food",
+            "cargo_6": "food"
+          },
+          "unknown47": "00"
+        },
+        {
+          "colony_index": 0,
+          "loads_and_unloads_count": {
+            "unloads_count": 0,
+            "loads_count": 0
+          },
+          "loads_cargo": {
+            "cargo_1": "food",
+            "cargo_2": "food",
+            "cargo_3": "food",
+            "cargo_4": "food",
+            "cargo_5": "food",
+            "cargo_6": "food"
+          },
+          "unloads_cargo": {
+            "cargo_1": "food",
+            "cargo_2": "food",
+            "cargo_3": "food",
+            "cargo_4": "food",
+            "cargo_5": "food",
+            "cargo_6": "food"
+          },
+          "unknown47": "00"
+        },
+        {
+          "colony_index": 0,
+          "loads_and_unloads_count": {
+            "unloads_count": 0,
+            "loads_count": 0
+          },
+          "loads_cargo": {
+            "cargo_1": "food",
+            "cargo_2": "food",
+            "cargo_3": "food",
+            "cargo_4": "food",
+            "cargo_5": "food",
+            "cargo_6": "food"
+          },
+          "unloads_cargo": {
+            "cargo_1": "food",
+            "cargo_2": "food",
+            "cargo_3": "food",
+            "cargo_4": "food",
+            "cargo_5": "food",
+            "cargo_6": "food"
+          },
+          "unknown47": "00"
+        }
+      ]
     },
     {
       "name": "",
       "land_or_sea": "land",
       "stops_count": 0,
-      "stop_1_colony_index": 0,
-      "stop_1_loads_and_unloads_count": {
-        "unloads_count": 0,
-        "loads_count": 0
-      },
-      "stop_1_loads_cargo": {
-        "cargo_1": "food",
-        "cargo_2": "food",
-        "cargo_3": "food",
-        "cargo_4": "food",
-        "cargo_5": "food",
-        "cargo_6": "food"
-      },
-      "stop_1_unloads_cargo": {
-        "cargo_1": "food",
-        "cargo_2": "food",
-        "cargo_3": "food",
-        "cargo_4": "food",
-        "cargo_5": "food",
-        "cargo_6": "food"
-      },
-      "unknown47": "00",
-      "stop_2_colony_index": 0,
-      "stop_2_loads_and_unloads_count": {
-        "unloads_count": 0,
-        "loads_count": 0
-      },
-      "stop_2_loads_cargo": {
-        "cargo_1": "food",
-        "cargo_2": "food",
-        "cargo_3": "food",
-        "cargo_4": "food",
-        "cargo_5": "food",
-        "cargo_6": "food"
-      },
-      "stop_2_unloads_cargo": {
-        "cargo_1": "food",
-        "cargo_2": "food",
-        "cargo_3": "food",
-        "cargo_4": "food",
-        "cargo_5": "food",
-        "cargo_6": "food"
-      },
-      "unknown48": "00",
-      "stop_3_colony_index": 0,
-      "stop_3_loads_and_unloads_count": {
-        "unloads_count": 0,
-        "loads_count": 0
-      },
-      "stop_3_loads_cargo": {
-        "cargo_1": "food",
-        "cargo_2": "food",
-        "cargo_3": "food",
-        "cargo_4": "food",
-        "cargo_5": "food",
-        "cargo_6": "food"
-      },
-      "stop_3_unloads_cargo": {
-        "cargo_1": "food",
-        "cargo_2": "food",
-        "cargo_3": "food",
-        "cargo_4": "food",
-        "cargo_5": "food",
-        "cargo_6": "food"
-      },
-      "unknown49": "00",
-      "stop_4_colony_index": 0,
-      "stop_4_loads_and_unloads_count": {
-        "unloads_count": 0,
-        "loads_count": 0
-      },
-      "stop_4_loads_cargo": {
-        "cargo_1": "food",
-        "cargo_2": "food",
-        "cargo_3": "food",
-        "cargo_4": "food",
-        "cargo_5": "food",
-        "cargo_6": "food"
-      },
-      "stop_4_unloads_cargo": {
-        "cargo_1": "food",
-        "cargo_2": "food",
-        "cargo_3": "food",
-        "cargo_4": "food",
-        "cargo_5": "food",
-        "cargo_6": "food"
-      },
-      "unknown50": "00"
+      "stops": [
+        {
+          "colony_index": 0,
+          "loads_and_unloads_count": {
+            "unloads_count": 0,
+            "loads_count": 0
+          },
+          "loads_cargo": {
+            "cargo_1": "food",
+            "cargo_2": "food",
+            "cargo_3": "food",
+            "cargo_4": "food",
+            "cargo_5": "food",
+            "cargo_6": "food"
+          },
+          "unloads_cargo": {
+            "cargo_1": "food",
+            "cargo_2": "food",
+            "cargo_3": "food",
+            "cargo_4": "food",
+            "cargo_5": "food",
+            "cargo_6": "food"
+          },
+          "unknown47": "00"
+        },
+        {
+          "colony_index": 0,
+          "loads_and_unloads_count": {
+            "unloads_count": 0,
+            "loads_count": 0
+          },
+          "loads_cargo": {
+            "cargo_1": "food",
+            "cargo_2": "food",
+            "cargo_3": "food",
+            "cargo_4": "food",
+            "cargo_5": "food",
+            "cargo_6": "food"
+          },
+          "unloads_cargo": {
+            "cargo_1": "food",
+            "cargo_2": "food",
+            "cargo_3": "food",
+            "cargo_4": "food",
+            "cargo_5": "food",
+            "cargo_6": "food"
+          },
+          "unknown47": "00"
+        },
+        {
+          "colony_index": 0,
+          "loads_and_unloads_count": {
+            "unloads_count": 0,
+            "loads_count": 0
+          },
+          "loads_cargo": {
+            "cargo_1": "food",
+            "cargo_2": "food",
+            "cargo_3": "food",
+            "cargo_4": "food",
+            "cargo_5": "food",
+            "cargo_6": "food"
+          },
+          "unloads_cargo": {
+            "cargo_1": "food",
+            "cargo_2": "food",
+            "cargo_3": "food",
+            "cargo_4": "food",
+            "cargo_5": "food",
+            "cargo_6": "food"
+          },
+          "unknown47": "00"
+        },
+        {
+          "colony_index": 0,
+          "loads_and_unloads_count": {
+            "unloads_count": 0,
+            "loads_count": 0
+          },
+          "loads_cargo": {
+            "cargo_1": "food",
+            "cargo_2": "food",
+            "cargo_3": "food",
+            "cargo_4": "food",
+            "cargo_5": "food",
+            "cargo_6": "food"
+          },
+          "unloads_cargo": {
+            "cargo_1": "food",
+            "cargo_2": "food",
+            "cargo_3": "food",
+            "cargo_4": "food",
+            "cargo_5": "food",
+            "cargo_6": "food"
+          },
+          "unknown47": "00"
+        }
+      ]
     },
     {
       "name": "",
       "land_or_sea": "land",
       "stops_count": 0,
-      "stop_1_colony_index": 0,
-      "stop_1_loads_and_unloads_count": {
-        "unloads_count": 0,
-        "loads_count": 0
-      },
-      "stop_1_loads_cargo": {
-        "cargo_1": "food",
-        "cargo_2": "food",
-        "cargo_3": "food",
-        "cargo_4": "food",
-        "cargo_5": "food",
-        "cargo_6": "food"
-      },
-      "stop_1_unloads_cargo": {
-        "cargo_1": "food",
-        "cargo_2": "food",
-        "cargo_3": "food",
-        "cargo_4": "food",
-        "cargo_5": "food",
-        "cargo_6": "food"
-      },
-      "unknown47": "00",
-      "stop_2_colony_index": 0,
-      "stop_2_loads_and_unloads_count": {
-        "unloads_count": 0,
-        "loads_count": 0
-      },
-      "stop_2_loads_cargo": {
-        "cargo_1": "food",
-        "cargo_2": "food",
-        "cargo_3": "food",
-        "cargo_4": "food",
-        "cargo_5": "food",
-        "cargo_6": "food"
-      },
-      "stop_2_unloads_cargo": {
-        "cargo_1": "food",
-        "cargo_2": "food",
-        "cargo_3": "food",
-        "cargo_4": "food",
-        "cargo_5": "food",
-        "cargo_6": "food"
-      },
-      "unknown48": "00",
-      "stop_3_colony_index": 0,
-      "stop_3_loads_and_unloads_count": {
-        "unloads_count": 0,
-        "loads_count": 0
-      },
-      "stop_3_loads_cargo": {
-        "cargo_1": "food",
-        "cargo_2": "food",
-        "cargo_3": "food",
-        "cargo_4": "food",
-        "cargo_5": "food",
-        "cargo_6": "food"
-      },
-      "stop_3_unloads_cargo": {
-        "cargo_1": "food",
-        "cargo_2": "food",
-        "cargo_3": "food",
-        "cargo_4": "food",
-        "cargo_5": "food",
-        "cargo_6": "food"
-      },
-      "unknown49": "00",
-      "stop_4_colony_index": 0,
-      "stop_4_loads_and_unloads_count": {
-        "unloads_count": 0,
-        "loads_count": 0
-      },
-      "stop_4_loads_cargo": {
-        "cargo_1": "food",
-        "cargo_2": "food",
-        "cargo_3": "food",
-        "cargo_4": "food",
-        "cargo_5": "food",
-        "cargo_6": "food"
-      },
-      "stop_4_unloads_cargo": {
-        "cargo_1": "food",
-        "cargo_2": "food",
-        "cargo_3": "food",
-        "cargo_4": "food",
-        "cargo_5": "food",
-        "cargo_6": "food"
-      },
-      "unknown50": "00"
+      "stops": [
+        {
+          "colony_index": 0,
+          "loads_and_unloads_count": {
+            "unloads_count": 0,
+            "loads_count": 0
+          },
+          "loads_cargo": {
+            "cargo_1": "food",
+            "cargo_2": "food",
+            "cargo_3": "food",
+            "cargo_4": "food",
+            "cargo_5": "food",
+            "cargo_6": "food"
+          },
+          "unloads_cargo": {
+            "cargo_1": "food",
+            "cargo_2": "food",
+            "cargo_3": "food",
+            "cargo_4": "food",
+            "cargo_5": "food",
+            "cargo_6": "food"
+          },
+          "unknown47": "00"
+        },
+        {
+          "colony_index": 0,
+          "loads_and_unloads_count": {
+            "unloads_count": 0,
+            "loads_count": 0
+          },
+          "loads_cargo": {
+            "cargo_1": "food",
+            "cargo_2": "food",
+            "cargo_3": "food",
+            "cargo_4": "food",
+            "cargo_5": "food",
+            "cargo_6": "food"
+          },
+          "unloads_cargo": {
+            "cargo_1": "food",
+            "cargo_2": "food",
+            "cargo_3": "food",
+            "cargo_4": "food",
+            "cargo_5": "food",
+            "cargo_6": "food"
+          },
+          "unknown47": "00"
+        },
+        {
+          "colony_index": 0,
+          "loads_and_unloads_count": {
+            "unloads_count": 0,
+            "loads_count": 0
+          },
+          "loads_cargo": {
+            "cargo_1": "food",
+            "cargo_2": "food",
+            "cargo_3": "food",
+            "cargo_4": "food",
+            "cargo_5": "food",
+            "cargo_6": "food"
+          },
+          "unloads_cargo": {
+            "cargo_1": "food",
+            "cargo_2": "food",
+            "cargo_3": "food",
+            "cargo_4": "food",
+            "cargo_5": "food",
+            "cargo_6": "food"
+          },
+          "unknown47": "00"
+        },
+        {
+          "colony_index": 0,
+          "loads_and_unloads_count": {
+            "unloads_count": 0,
+            "loads_count": 0
+          },
+          "loads_cargo": {
+            "cargo_1": "food",
+            "cargo_2": "food",
+            "cargo_3": "food",
+            "cargo_4": "food",
+            "cargo_5": "food",
+            "cargo_6": "food"
+          },
+          "unloads_cargo": {
+            "cargo_1": "food",
+            "cargo_2": "food",
+            "cargo_3": "food",
+            "cargo_4": "food",
+            "cargo_5": "food",
+            "cargo_6": "food"
+          },
+          "unknown47": "00"
+        }
+      ]
     },
     {
       "name": "",
       "land_or_sea": "land",
       "stops_count": 0,
-      "stop_1_colony_index": 0,
-      "stop_1_loads_and_unloads_count": {
-        "unloads_count": 0,
-        "loads_count": 0
-      },
-      "stop_1_loads_cargo": {
-        "cargo_1": "food",
-        "cargo_2": "food",
-        "cargo_3": "food",
-        "cargo_4": "food",
-        "cargo_5": "food",
-        "cargo_6": "food"
-      },
-      "stop_1_unloads_cargo": {
-        "cargo_1": "food",
-        "cargo_2": "food",
-        "cargo_3": "food",
-        "cargo_4": "food",
-        "cargo_5": "food",
-        "cargo_6": "food"
-      },
-      "unknown47": "00",
-      "stop_2_colony_index": 0,
-      "stop_2_loads_and_unloads_count": {
-        "unloads_count": 0,
-        "loads_count": 0
-      },
-      "stop_2_loads_cargo": {
-        "cargo_1": "food",
-        "cargo_2": "food",
-        "cargo_3": "food",
-        "cargo_4": "food",
-        "cargo_5": "food",
-        "cargo_6": "food"
-      },
-      "stop_2_unloads_cargo": {
-        "cargo_1": "food",
-        "cargo_2": "food",
-        "cargo_3": "food",
-        "cargo_4": "food",
-        "cargo_5": "food",
-        "cargo_6": "food"
-      },
-      "unknown48": "00",
-      "stop_3_colony_index": 0,
-      "stop_3_loads_and_unloads_count": {
-        "unloads_count": 0,
-        "loads_count": 0
-      },
-      "stop_3_loads_cargo": {
-        "cargo_1": "food",
-        "cargo_2": "food",
-        "cargo_3": "food",
-        "cargo_4": "food",
-        "cargo_5": "food",
-        "cargo_6": "food"
-      },
-      "stop_3_unloads_cargo": {
-        "cargo_1": "food",
-        "cargo_2": "food",
-        "cargo_3": "food",
-        "cargo_4": "food",
-        "cargo_5": "food",
-        "cargo_6": "food"
-      },
-      "unknown49": "00",
-      "stop_4_colony_index": 0,
-      "stop_4_loads_and_unloads_count": {
-        "unloads_count": 0,
-        "loads_count": 0
-      },
-      "stop_4_loads_cargo": {
-        "cargo_1": "food",
-        "cargo_2": "food",
-        "cargo_3": "food",
-        "cargo_4": "food",
-        "cargo_5": "food",
-        "cargo_6": "food"
-      },
-      "stop_4_unloads_cargo": {
-        "cargo_1": "food",
-        "cargo_2": "food",
-        "cargo_3": "food",
-        "cargo_4": "food",
-        "cargo_5": "food",
-        "cargo_6": "food"
-      },
-      "unknown50": "00"
+      "stops": [
+        {
+          "colony_index": 0,
+          "loads_and_unloads_count": {
+            "unloads_count": 0,
+            "loads_count": 0
+          },
+          "loads_cargo": {
+            "cargo_1": "food",
+            "cargo_2": "food",
+            "cargo_3": "food",
+            "cargo_4": "food",
+            "cargo_5": "food",
+            "cargo_6": "food"
+          },
+          "unloads_cargo": {
+            "cargo_1": "food",
+            "cargo_2": "food",
+            "cargo_3": "food",
+            "cargo_4": "food",
+            "cargo_5": "food",
+            "cargo_6": "food"
+          },
+          "unknown47": "00"
+        },
+        {
+          "colony_index": 0,
+          "loads_and_unloads_count": {
+            "unloads_count": 0,
+            "loads_count": 0
+          },
+          "loads_cargo": {
+            "cargo_1": "food",
+            "cargo_2": "food",
+            "cargo_3": "food",
+            "cargo_4": "food",
+            "cargo_5": "food",
+            "cargo_6": "food"
+          },
+          "unloads_cargo": {
+            "cargo_1": "food",
+            "cargo_2": "food",
+            "cargo_3": "food",
+            "cargo_4": "food",
+            "cargo_5": "food",
+            "cargo_6": "food"
+          },
+          "unknown47": "00"
+        },
+        {
+          "colony_index": 0,
+          "loads_and_unloads_count": {
+            "unloads_count": 0,
+            "loads_count": 0
+          },
+          "loads_cargo": {
+            "cargo_1": "food",
+            "cargo_2": "food",
+            "cargo_3": "food",
+            "cargo_4": "food",
+            "cargo_5": "food",
+            "cargo_6": "food"
+          },
+          "unloads_cargo": {
+            "cargo_1": "food",
+            "cargo_2": "food",
+            "cargo_3": "food",
+            "cargo_4": "food",
+            "cargo_5": "food",
+            "cargo_6": "food"
+          },
+          "unknown47": "00"
+        },
+        {
+          "colony_index": 0,
+          "loads_and_unloads_count": {
+            "unloads_count": 0,
+            "loads_count": 0
+          },
+          "loads_cargo": {
+            "cargo_1": "food",
+            "cargo_2": "food",
+            "cargo_3": "food",
+            "cargo_4": "food",
+            "cargo_5": "food",
+            "cargo_6": "food"
+          },
+          "unloads_cargo": {
+            "cargo_1": "food",
+            "cargo_2": "food",
+            "cargo_3": "food",
+            "cargo_4": "food",
+            "cargo_5": "food",
+            "cargo_6": "food"
+          },
+          "unknown47": "00"
+        }
+      ]
     },
     {
       "name": "",
       "land_or_sea": "land",
       "stops_count": 0,
-      "stop_1_colony_index": 0,
-      "stop_1_loads_and_unloads_count": {
-        "unloads_count": 0,
-        "loads_count": 0
-      },
-      "stop_1_loads_cargo": {
-        "cargo_1": "food",
-        "cargo_2": "food",
-        "cargo_3": "food",
-        "cargo_4": "food",
-        "cargo_5": "food",
-        "cargo_6": "food"
-      },
-      "stop_1_unloads_cargo": {
-        "cargo_1": "food",
-        "cargo_2": "food",
-        "cargo_3": "food",
-        "cargo_4": "food",
-        "cargo_5": "food",
-        "cargo_6": "food"
-      },
-      "unknown47": "00",
-      "stop_2_colony_index": 0,
-      "stop_2_loads_and_unloads_count": {
-        "unloads_count": 0,
-        "loads_count": 0
-      },
-      "stop_2_loads_cargo": {
-        "cargo_1": "food",
-        "cargo_2": "food",
-        "cargo_3": "food",
-        "cargo_4": "food",
-        "cargo_5": "food",
-        "cargo_6": "food"
-      },
-      "stop_2_unloads_cargo": {
-        "cargo_1": "food",
-        "cargo_2": "food",
-        "cargo_3": "food",
-        "cargo_4": "food",
-        "cargo_5": "food",
-        "cargo_6": "food"
-      },
-      "unknown48": "00",
-      "stop_3_colony_index": 0,
-      "stop_3_loads_and_unloads_count": {
-        "unloads_count": 0,
-        "loads_count": 0
-      },
-      "stop_3_loads_cargo": {
-        "cargo_1": "food",
-        "cargo_2": "food",
-        "cargo_3": "food",
-        "cargo_4": "food",
-        "cargo_5": "food",
-        "cargo_6": "food"
-      },
-      "stop_3_unloads_cargo": {
-        "cargo_1": "food",
-        "cargo_2": "food",
-        "cargo_3": "food",
-        "cargo_4": "food",
-        "cargo_5": "food",
-        "cargo_6": "food"
-      },
-      "unknown49": "00",
-      "stop_4_colony_index": 0,
-      "stop_4_loads_and_unloads_count": {
-        "unloads_count": 0,
-        "loads_count": 0
-      },
-      "stop_4_loads_cargo": {
-        "cargo_1": "food",
-        "cargo_2": "food",
-        "cargo_3": "food",
-        "cargo_4": "food",
-        "cargo_5": "food",
-        "cargo_6": "food"
-      },
-      "stop_4_unloads_cargo": {
-        "cargo_1": "food",
-        "cargo_2": "food",
-        "cargo_3": "food",
-        "cargo_4": "food",
-        "cargo_5": "food",
-        "cargo_6": "food"
-      },
-      "unknown50": "00"
+      "stops": [
+        {
+          "colony_index": 0,
+          "loads_and_unloads_count": {
+            "unloads_count": 0,
+            "loads_count": 0
+          },
+          "loads_cargo": {
+            "cargo_1": "food",
+            "cargo_2": "food",
+            "cargo_3": "food",
+            "cargo_4": "food",
+            "cargo_5": "food",
+            "cargo_6": "food"
+          },
+          "unloads_cargo": {
+            "cargo_1": "food",
+            "cargo_2": "food",
+            "cargo_3": "food",
+            "cargo_4": "food",
+            "cargo_5": "food",
+            "cargo_6": "food"
+          },
+          "unknown47": "00"
+        },
+        {
+          "colony_index": 0,
+          "loads_and_unloads_count": {
+            "unloads_count": 0,
+            "loads_count": 0
+          },
+          "loads_cargo": {
+            "cargo_1": "food",
+            "cargo_2": "food",
+            "cargo_3": "food",
+            "cargo_4": "food",
+            "cargo_5": "food",
+            "cargo_6": "food"
+          },
+          "unloads_cargo": {
+            "cargo_1": "food",
+            "cargo_2": "food",
+            "cargo_3": "food",
+            "cargo_4": "food",
+            "cargo_5": "food",
+            "cargo_6": "food"
+          },
+          "unknown47": "00"
+        },
+        {
+          "colony_index": 0,
+          "loads_and_unloads_count": {
+            "unloads_count": 0,
+            "loads_count": 0
+          },
+          "loads_cargo": {
+            "cargo_1": "food",
+            "cargo_2": "food",
+            "cargo_3": "food",
+            "cargo_4": "food",
+            "cargo_5": "food",
+            "cargo_6": "food"
+          },
+          "unloads_cargo": {
+            "cargo_1": "food",
+            "cargo_2": "food",
+            "cargo_3": "food",
+            "cargo_4": "food",
+            "cargo_5": "food",
+            "cargo_6": "food"
+          },
+          "unknown47": "00"
+        },
+        {
+          "colony_index": 0,
+          "loads_and_unloads_count": {
+            "unloads_count": 0,
+            "loads_count": 0
+          },
+          "loads_cargo": {
+            "cargo_1": "food",
+            "cargo_2": "food",
+            "cargo_3": "food",
+            "cargo_4": "food",
+            "cargo_5": "food",
+            "cargo_6": "food"
+          },
+          "unloads_cargo": {
+            "cargo_1": "food",
+            "cargo_2": "food",
+            "cargo_3": "food",
+            "cargo_4": "food",
+            "cargo_5": "food",
+            "cargo_6": "food"
+          },
+          "unknown47": "00"
+        }
+      ]
     }
   ]
 }

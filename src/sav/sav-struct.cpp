@@ -4365,17 +4365,17 @@ cdr::result<LandConnectivity> from_canonical(
 }
 
 /****************************************************************
-** Stop1LoadsAndUnloadsCount
+** LoadsAndUnloadsCount
 *****************************************************************/
-void to_str( Stop1LoadsAndUnloadsCount const& o, std::string& out, base::tag<Stop1LoadsAndUnloadsCount> ) {
-  out += "Stop1LoadsAndUnloadsCount{";
+void to_str( LoadsAndUnloadsCount const& o, std::string& out, base::tag<LoadsAndUnloadsCount> ) {
+  out += "LoadsAndUnloadsCount{";
   out += "unloads_count="; base::to_str( o.unloads_count, out ); out += ',';
   out += "loads_count="; base::to_str( o.loads_count, out );
   out += '}';
 }
 
 // Binary conversion.
-bool read_binary( base::IBinaryIO& b, Stop1LoadsAndUnloadsCount& o ) {
+bool read_binary( base::IBinaryIO& b, LoadsAndUnloadsCount& o ) {
   uint8_t bits = 0;
   if( !b.read_bytes<1>( bits ) ) return false;
   o.unloads_count = (bits & 0b1111); bits >>= 4;
@@ -4383,7 +4383,7 @@ bool read_binary( base::IBinaryIO& b, Stop1LoadsAndUnloadsCount& o ) {
   return true;
 }
 
-bool write_binary( base::IBinaryIO& b, Stop1LoadsAndUnloadsCount const& o ) {
+bool write_binary( base::IBinaryIO& b, LoadsAndUnloadsCount const& o ) {
   uint8_t bits = 0;
   bits |= (o.loads_count & 0b1111); bits <<= 4;
   bits |= (o.unloads_count & 0b1111); bits <<= 0;
@@ -4391,8 +4391,8 @@ bool write_binary( base::IBinaryIO& b, Stop1LoadsAndUnloadsCount const& o ) {
 }
 
 cdr::value to_canonical( cdr::converter& conv,
-                         Stop1LoadsAndUnloadsCount const& o,
-                         cdr::tag_t<Stop1LoadsAndUnloadsCount> ) {
+                         LoadsAndUnloadsCount const& o,
+                         cdr::tag_t<LoadsAndUnloadsCount> ) {
   cdr::table tbl;
   conv.to_field( tbl, "unloads_count", o.unloads_count );
   conv.to_field( tbl, "loads_count", o.loads_count );
@@ -4403,12 +4403,12 @@ cdr::value to_canonical( cdr::converter& conv,
   return tbl;
 }
 
-cdr::result<Stop1LoadsAndUnloadsCount> from_canonical(
+cdr::result<LoadsAndUnloadsCount> from_canonical(
                          cdr::converter& conv,
                          cdr::value const& v,
-                         cdr::tag_t<Stop1LoadsAndUnloadsCount> ) {
+                         cdr::tag_t<LoadsAndUnloadsCount> ) {
   UNWRAP_RETURN( tbl, conv.ensure_type<cdr::table>( v ) );
-  Stop1LoadsAndUnloadsCount res = {};
+  LoadsAndUnloadsCount res = {};
   std::set<std::string> used_keys;
   CONV_FROM_FIELD( "unloads_count", unloads_count );
   CONV_FROM_FIELD( "loads_count", loads_count );
@@ -4417,10 +4417,10 @@ cdr::result<Stop1LoadsAndUnloadsCount> from_canonical(
 }
 
 /****************************************************************
-** Stop1LoadsCargo
+** LoadsCargo
 *****************************************************************/
-void to_str( Stop1LoadsCargo const& o, std::string& out, base::tag<Stop1LoadsCargo> ) {
-  out += "Stop1LoadsCargo{";
+void to_str( LoadsCargo const& o, std::string& out, base::tag<LoadsCargo> ) {
+  out += "LoadsCargo{";
   out += "cargo_1="; base::to_str( o.cargo_1, out ); out += ',';
   out += "cargo_2="; base::to_str( o.cargo_2, out ); out += ',';
   out += "cargo_3="; base::to_str( o.cargo_3, out ); out += ',';
@@ -4431,7 +4431,7 @@ void to_str( Stop1LoadsCargo const& o, std::string& out, base::tag<Stop1LoadsCar
 }
 
 // Binary conversion.
-bool read_binary( base::IBinaryIO& b, Stop1LoadsCargo& o ) {
+bool read_binary( base::IBinaryIO& b, LoadsCargo& o ) {
   uint32_t bits = 0;
   if( !b.read_bytes<3>( bits ) ) return false;
   o.cargo_1 = static_cast<cargo_4bit_type>( bits & 0b1111 ); bits >>= 4;
@@ -4443,7 +4443,7 @@ bool read_binary( base::IBinaryIO& b, Stop1LoadsCargo& o ) {
   return true;
 }
 
-bool write_binary( base::IBinaryIO& b, Stop1LoadsCargo const& o ) {
+bool write_binary( base::IBinaryIO& b, LoadsCargo const& o ) {
   uint32_t bits = 0;
   bits |= (static_cast<uint32_t>( o.cargo_6 ) & 0b1111); bits <<= 4;
   bits |= (static_cast<uint32_t>( o.cargo_5 ) & 0b1111); bits <<= 4;
@@ -4455,8 +4455,8 @@ bool write_binary( base::IBinaryIO& b, Stop1LoadsCargo const& o ) {
 }
 
 cdr::value to_canonical( cdr::converter& conv,
-                         Stop1LoadsCargo const& o,
-                         cdr::tag_t<Stop1LoadsCargo> ) {
+                         LoadsCargo const& o,
+                         cdr::tag_t<LoadsCargo> ) {
   cdr::table tbl;
   conv.to_field( tbl, "cargo_1", o.cargo_1 );
   conv.to_field( tbl, "cargo_2", o.cargo_2 );
@@ -4475,12 +4475,12 @@ cdr::value to_canonical( cdr::converter& conv,
   return tbl;
 }
 
-cdr::result<Stop1LoadsCargo> from_canonical(
+cdr::result<LoadsCargo> from_canonical(
                          cdr::converter& conv,
                          cdr::value const& v,
-                         cdr::tag_t<Stop1LoadsCargo> ) {
+                         cdr::tag_t<LoadsCargo> ) {
   UNWRAP_RETURN( tbl, conv.ensure_type<cdr::table>( v ) );
-  Stop1LoadsCargo res = {};
+  LoadsCargo res = {};
   std::set<std::string> used_keys;
   CONV_FROM_FIELD( "cargo_1", cargo_1 );
   CONV_FROM_FIELD( "cargo_2", cargo_2 );
@@ -4493,10 +4493,10 @@ cdr::result<Stop1LoadsCargo> from_canonical(
 }
 
 /****************************************************************
-** Stop1UnloadsCargo
+** UnloadsCargo
 *****************************************************************/
-void to_str( Stop1UnloadsCargo const& o, std::string& out, base::tag<Stop1UnloadsCargo> ) {
-  out += "Stop1UnloadsCargo{";
+void to_str( UnloadsCargo const& o, std::string& out, base::tag<UnloadsCargo> ) {
+  out += "UnloadsCargo{";
   out += "cargo_1="; base::to_str( o.cargo_1, out ); out += ',';
   out += "cargo_2="; base::to_str( o.cargo_2, out ); out += ',';
   out += "cargo_3="; base::to_str( o.cargo_3, out ); out += ',';
@@ -4507,7 +4507,7 @@ void to_str( Stop1UnloadsCargo const& o, std::string& out, base::tag<Stop1Unload
 }
 
 // Binary conversion.
-bool read_binary( base::IBinaryIO& b, Stop1UnloadsCargo& o ) {
+bool read_binary( base::IBinaryIO& b, UnloadsCargo& o ) {
   uint32_t bits = 0;
   if( !b.read_bytes<3>( bits ) ) return false;
   o.cargo_1 = static_cast<cargo_4bit_type>( bits & 0b1111 ); bits >>= 4;
@@ -4519,7 +4519,7 @@ bool read_binary( base::IBinaryIO& b, Stop1UnloadsCargo& o ) {
   return true;
 }
 
-bool write_binary( base::IBinaryIO& b, Stop1UnloadsCargo const& o ) {
+bool write_binary( base::IBinaryIO& b, UnloadsCargo const& o ) {
   uint32_t bits = 0;
   bits |= (static_cast<uint32_t>( o.cargo_6 ) & 0b1111); bits <<= 4;
   bits |= (static_cast<uint32_t>( o.cargo_5 ) & 0b1111); bits <<= 4;
@@ -4531,8 +4531,8 @@ bool write_binary( base::IBinaryIO& b, Stop1UnloadsCargo const& o ) {
 }
 
 cdr::value to_canonical( cdr::converter& conv,
-                         Stop1UnloadsCargo const& o,
-                         cdr::tag_t<Stop1UnloadsCargo> ) {
+                         UnloadsCargo const& o,
+                         cdr::tag_t<UnloadsCargo> ) {
   cdr::table tbl;
   conv.to_field( tbl, "cargo_1", o.cargo_1 );
   conv.to_field( tbl, "cargo_2", o.cargo_2 );
@@ -4551,624 +4551,12 @@ cdr::value to_canonical( cdr::converter& conv,
   return tbl;
 }
 
-cdr::result<Stop1UnloadsCargo> from_canonical(
+cdr::result<UnloadsCargo> from_canonical(
                          cdr::converter& conv,
                          cdr::value const& v,
-                         cdr::tag_t<Stop1UnloadsCargo> ) {
+                         cdr::tag_t<UnloadsCargo> ) {
   UNWRAP_RETURN( tbl, conv.ensure_type<cdr::table>( v ) );
-  Stop1UnloadsCargo res = {};
-  std::set<std::string> used_keys;
-  CONV_FROM_FIELD( "cargo_1", cargo_1 );
-  CONV_FROM_FIELD( "cargo_2", cargo_2 );
-  CONV_FROM_FIELD( "cargo_3", cargo_3 );
-  CONV_FROM_FIELD( "cargo_4", cargo_4 );
-  CONV_FROM_FIELD( "cargo_5", cargo_5 );
-  CONV_FROM_FIELD( "cargo_6", cargo_6 );
-  HAS_VALUE_OR_RET( conv.end_field_tracking( tbl, used_keys ) );
-  return res;
-}
-
-/****************************************************************
-** Stop2LoadsAndUnloadsCount
-*****************************************************************/
-void to_str( Stop2LoadsAndUnloadsCount const& o, std::string& out, base::tag<Stop2LoadsAndUnloadsCount> ) {
-  out += "Stop2LoadsAndUnloadsCount{";
-  out += "unloads_count="; base::to_str( o.unloads_count, out ); out += ',';
-  out += "loads_count="; base::to_str( o.loads_count, out );
-  out += '}';
-}
-
-// Binary conversion.
-bool read_binary( base::IBinaryIO& b, Stop2LoadsAndUnloadsCount& o ) {
-  uint8_t bits = 0;
-  if( !b.read_bytes<1>( bits ) ) return false;
-  o.unloads_count = (bits & 0b1111); bits >>= 4;
-  o.loads_count = (bits & 0b1111); bits >>= 4;
-  return true;
-}
-
-bool write_binary( base::IBinaryIO& b, Stop2LoadsAndUnloadsCount const& o ) {
-  uint8_t bits = 0;
-  bits |= (o.loads_count & 0b1111); bits <<= 4;
-  bits |= (o.unloads_count & 0b1111); bits <<= 0;
-  return b.write_bytes<1>( bits );
-}
-
-cdr::value to_canonical( cdr::converter& conv,
-                         Stop2LoadsAndUnloadsCount const& o,
-                         cdr::tag_t<Stop2LoadsAndUnloadsCount> ) {
-  cdr::table tbl;
-  conv.to_field( tbl, "unloads_count", o.unloads_count );
-  conv.to_field( tbl, "loads_count", o.loads_count );
-  tbl["__key_order"] = cdr::list{
-    "unloads_count",
-    "loads_count",
-  };
-  return tbl;
-}
-
-cdr::result<Stop2LoadsAndUnloadsCount> from_canonical(
-                         cdr::converter& conv,
-                         cdr::value const& v,
-                         cdr::tag_t<Stop2LoadsAndUnloadsCount> ) {
-  UNWRAP_RETURN( tbl, conv.ensure_type<cdr::table>( v ) );
-  Stop2LoadsAndUnloadsCount res = {};
-  std::set<std::string> used_keys;
-  CONV_FROM_FIELD( "unloads_count", unloads_count );
-  CONV_FROM_FIELD( "loads_count", loads_count );
-  HAS_VALUE_OR_RET( conv.end_field_tracking( tbl, used_keys ) );
-  return res;
-}
-
-/****************************************************************
-** Stop2LoadsCargo
-*****************************************************************/
-void to_str( Stop2LoadsCargo const& o, std::string& out, base::tag<Stop2LoadsCargo> ) {
-  out += "Stop2LoadsCargo{";
-  out += "cargo_1="; base::to_str( o.cargo_1, out ); out += ',';
-  out += "cargo_2="; base::to_str( o.cargo_2, out ); out += ',';
-  out += "cargo_3="; base::to_str( o.cargo_3, out ); out += ',';
-  out += "cargo_4="; base::to_str( o.cargo_4, out ); out += ',';
-  out += "cargo_5="; base::to_str( o.cargo_5, out ); out += ',';
-  out += "cargo_6="; base::to_str( o.cargo_6, out );
-  out += '}';
-}
-
-// Binary conversion.
-bool read_binary( base::IBinaryIO& b, Stop2LoadsCargo& o ) {
-  uint32_t bits = 0;
-  if( !b.read_bytes<3>( bits ) ) return false;
-  o.cargo_1 = static_cast<cargo_4bit_type>( bits & 0b1111 ); bits >>= 4;
-  o.cargo_2 = static_cast<cargo_4bit_type>( bits & 0b1111 ); bits >>= 4;
-  o.cargo_3 = static_cast<cargo_4bit_type>( bits & 0b1111 ); bits >>= 4;
-  o.cargo_4 = static_cast<cargo_4bit_type>( bits & 0b1111 ); bits >>= 4;
-  o.cargo_5 = static_cast<cargo_4bit_type>( bits & 0b1111 ); bits >>= 4;
-  o.cargo_6 = static_cast<cargo_4bit_type>( bits & 0b1111 ); bits >>= 4;
-  return true;
-}
-
-bool write_binary( base::IBinaryIO& b, Stop2LoadsCargo const& o ) {
-  uint32_t bits = 0;
-  bits |= (static_cast<uint32_t>( o.cargo_6 ) & 0b1111); bits <<= 4;
-  bits |= (static_cast<uint32_t>( o.cargo_5 ) & 0b1111); bits <<= 4;
-  bits |= (static_cast<uint32_t>( o.cargo_4 ) & 0b1111); bits <<= 4;
-  bits |= (static_cast<uint32_t>( o.cargo_3 ) & 0b1111); bits <<= 4;
-  bits |= (static_cast<uint32_t>( o.cargo_2 ) & 0b1111); bits <<= 4;
-  bits |= (static_cast<uint32_t>( o.cargo_1 ) & 0b1111); bits <<= 0;
-  return b.write_bytes<3>( bits );
-}
-
-cdr::value to_canonical( cdr::converter& conv,
-                         Stop2LoadsCargo const& o,
-                         cdr::tag_t<Stop2LoadsCargo> ) {
-  cdr::table tbl;
-  conv.to_field( tbl, "cargo_1", o.cargo_1 );
-  conv.to_field( tbl, "cargo_2", o.cargo_2 );
-  conv.to_field( tbl, "cargo_3", o.cargo_3 );
-  conv.to_field( tbl, "cargo_4", o.cargo_4 );
-  conv.to_field( tbl, "cargo_5", o.cargo_5 );
-  conv.to_field( tbl, "cargo_6", o.cargo_6 );
-  tbl["__key_order"] = cdr::list{
-    "cargo_1",
-    "cargo_2",
-    "cargo_3",
-    "cargo_4",
-    "cargo_5",
-    "cargo_6",
-  };
-  return tbl;
-}
-
-cdr::result<Stop2LoadsCargo> from_canonical(
-                         cdr::converter& conv,
-                         cdr::value const& v,
-                         cdr::tag_t<Stop2LoadsCargo> ) {
-  UNWRAP_RETURN( tbl, conv.ensure_type<cdr::table>( v ) );
-  Stop2LoadsCargo res = {};
-  std::set<std::string> used_keys;
-  CONV_FROM_FIELD( "cargo_1", cargo_1 );
-  CONV_FROM_FIELD( "cargo_2", cargo_2 );
-  CONV_FROM_FIELD( "cargo_3", cargo_3 );
-  CONV_FROM_FIELD( "cargo_4", cargo_4 );
-  CONV_FROM_FIELD( "cargo_5", cargo_5 );
-  CONV_FROM_FIELD( "cargo_6", cargo_6 );
-  HAS_VALUE_OR_RET( conv.end_field_tracking( tbl, used_keys ) );
-  return res;
-}
-
-/****************************************************************
-** Stop2UnloadsCargo
-*****************************************************************/
-void to_str( Stop2UnloadsCargo const& o, std::string& out, base::tag<Stop2UnloadsCargo> ) {
-  out += "Stop2UnloadsCargo{";
-  out += "cargo_1="; base::to_str( o.cargo_1, out ); out += ',';
-  out += "cargo_2="; base::to_str( o.cargo_2, out ); out += ',';
-  out += "cargo_3="; base::to_str( o.cargo_3, out ); out += ',';
-  out += "cargo_4="; base::to_str( o.cargo_4, out ); out += ',';
-  out += "cargo_5="; base::to_str( o.cargo_5, out ); out += ',';
-  out += "cargo_6="; base::to_str( o.cargo_6, out );
-  out += '}';
-}
-
-// Binary conversion.
-bool read_binary( base::IBinaryIO& b, Stop2UnloadsCargo& o ) {
-  uint32_t bits = 0;
-  if( !b.read_bytes<3>( bits ) ) return false;
-  o.cargo_1 = static_cast<cargo_4bit_type>( bits & 0b1111 ); bits >>= 4;
-  o.cargo_2 = static_cast<cargo_4bit_type>( bits & 0b1111 ); bits >>= 4;
-  o.cargo_3 = static_cast<cargo_4bit_type>( bits & 0b1111 ); bits >>= 4;
-  o.cargo_4 = static_cast<cargo_4bit_type>( bits & 0b1111 ); bits >>= 4;
-  o.cargo_5 = static_cast<cargo_4bit_type>( bits & 0b1111 ); bits >>= 4;
-  o.cargo_6 = static_cast<cargo_4bit_type>( bits & 0b1111 ); bits >>= 4;
-  return true;
-}
-
-bool write_binary( base::IBinaryIO& b, Stop2UnloadsCargo const& o ) {
-  uint32_t bits = 0;
-  bits |= (static_cast<uint32_t>( o.cargo_6 ) & 0b1111); bits <<= 4;
-  bits |= (static_cast<uint32_t>( o.cargo_5 ) & 0b1111); bits <<= 4;
-  bits |= (static_cast<uint32_t>( o.cargo_4 ) & 0b1111); bits <<= 4;
-  bits |= (static_cast<uint32_t>( o.cargo_3 ) & 0b1111); bits <<= 4;
-  bits |= (static_cast<uint32_t>( o.cargo_2 ) & 0b1111); bits <<= 4;
-  bits |= (static_cast<uint32_t>( o.cargo_1 ) & 0b1111); bits <<= 0;
-  return b.write_bytes<3>( bits );
-}
-
-cdr::value to_canonical( cdr::converter& conv,
-                         Stop2UnloadsCargo const& o,
-                         cdr::tag_t<Stop2UnloadsCargo> ) {
-  cdr::table tbl;
-  conv.to_field( tbl, "cargo_1", o.cargo_1 );
-  conv.to_field( tbl, "cargo_2", o.cargo_2 );
-  conv.to_field( tbl, "cargo_3", o.cargo_3 );
-  conv.to_field( tbl, "cargo_4", o.cargo_4 );
-  conv.to_field( tbl, "cargo_5", o.cargo_5 );
-  conv.to_field( tbl, "cargo_6", o.cargo_6 );
-  tbl["__key_order"] = cdr::list{
-    "cargo_1",
-    "cargo_2",
-    "cargo_3",
-    "cargo_4",
-    "cargo_5",
-    "cargo_6",
-  };
-  return tbl;
-}
-
-cdr::result<Stop2UnloadsCargo> from_canonical(
-                         cdr::converter& conv,
-                         cdr::value const& v,
-                         cdr::tag_t<Stop2UnloadsCargo> ) {
-  UNWRAP_RETURN( tbl, conv.ensure_type<cdr::table>( v ) );
-  Stop2UnloadsCargo res = {};
-  std::set<std::string> used_keys;
-  CONV_FROM_FIELD( "cargo_1", cargo_1 );
-  CONV_FROM_FIELD( "cargo_2", cargo_2 );
-  CONV_FROM_FIELD( "cargo_3", cargo_3 );
-  CONV_FROM_FIELD( "cargo_4", cargo_4 );
-  CONV_FROM_FIELD( "cargo_5", cargo_5 );
-  CONV_FROM_FIELD( "cargo_6", cargo_6 );
-  HAS_VALUE_OR_RET( conv.end_field_tracking( tbl, used_keys ) );
-  return res;
-}
-
-/****************************************************************
-** Stop3LoadsAndUnloadsCount
-*****************************************************************/
-void to_str( Stop3LoadsAndUnloadsCount const& o, std::string& out, base::tag<Stop3LoadsAndUnloadsCount> ) {
-  out += "Stop3LoadsAndUnloadsCount{";
-  out += "unloads_count="; base::to_str( o.unloads_count, out ); out += ',';
-  out += "loads_count="; base::to_str( o.loads_count, out );
-  out += '}';
-}
-
-// Binary conversion.
-bool read_binary( base::IBinaryIO& b, Stop3LoadsAndUnloadsCount& o ) {
-  uint8_t bits = 0;
-  if( !b.read_bytes<1>( bits ) ) return false;
-  o.unloads_count = (bits & 0b1111); bits >>= 4;
-  o.loads_count = (bits & 0b1111); bits >>= 4;
-  return true;
-}
-
-bool write_binary( base::IBinaryIO& b, Stop3LoadsAndUnloadsCount const& o ) {
-  uint8_t bits = 0;
-  bits |= (o.loads_count & 0b1111); bits <<= 4;
-  bits |= (o.unloads_count & 0b1111); bits <<= 0;
-  return b.write_bytes<1>( bits );
-}
-
-cdr::value to_canonical( cdr::converter& conv,
-                         Stop3LoadsAndUnloadsCount const& o,
-                         cdr::tag_t<Stop3LoadsAndUnloadsCount> ) {
-  cdr::table tbl;
-  conv.to_field( tbl, "unloads_count", o.unloads_count );
-  conv.to_field( tbl, "loads_count", o.loads_count );
-  tbl["__key_order"] = cdr::list{
-    "unloads_count",
-    "loads_count",
-  };
-  return tbl;
-}
-
-cdr::result<Stop3LoadsAndUnloadsCount> from_canonical(
-                         cdr::converter& conv,
-                         cdr::value const& v,
-                         cdr::tag_t<Stop3LoadsAndUnloadsCount> ) {
-  UNWRAP_RETURN( tbl, conv.ensure_type<cdr::table>( v ) );
-  Stop3LoadsAndUnloadsCount res = {};
-  std::set<std::string> used_keys;
-  CONV_FROM_FIELD( "unloads_count", unloads_count );
-  CONV_FROM_FIELD( "loads_count", loads_count );
-  HAS_VALUE_OR_RET( conv.end_field_tracking( tbl, used_keys ) );
-  return res;
-}
-
-/****************************************************************
-** Stop3LoadsCargo
-*****************************************************************/
-void to_str( Stop3LoadsCargo const& o, std::string& out, base::tag<Stop3LoadsCargo> ) {
-  out += "Stop3LoadsCargo{";
-  out += "cargo_1="; base::to_str( o.cargo_1, out ); out += ',';
-  out += "cargo_2="; base::to_str( o.cargo_2, out ); out += ',';
-  out += "cargo_3="; base::to_str( o.cargo_3, out ); out += ',';
-  out += "cargo_4="; base::to_str( o.cargo_4, out ); out += ',';
-  out += "cargo_5="; base::to_str( o.cargo_5, out ); out += ',';
-  out += "cargo_6="; base::to_str( o.cargo_6, out );
-  out += '}';
-}
-
-// Binary conversion.
-bool read_binary( base::IBinaryIO& b, Stop3LoadsCargo& o ) {
-  uint32_t bits = 0;
-  if( !b.read_bytes<3>( bits ) ) return false;
-  o.cargo_1 = static_cast<cargo_4bit_type>( bits & 0b1111 ); bits >>= 4;
-  o.cargo_2 = static_cast<cargo_4bit_type>( bits & 0b1111 ); bits >>= 4;
-  o.cargo_3 = static_cast<cargo_4bit_type>( bits & 0b1111 ); bits >>= 4;
-  o.cargo_4 = static_cast<cargo_4bit_type>( bits & 0b1111 ); bits >>= 4;
-  o.cargo_5 = static_cast<cargo_4bit_type>( bits & 0b1111 ); bits >>= 4;
-  o.cargo_6 = static_cast<cargo_4bit_type>( bits & 0b1111 ); bits >>= 4;
-  return true;
-}
-
-bool write_binary( base::IBinaryIO& b, Stop3LoadsCargo const& o ) {
-  uint32_t bits = 0;
-  bits |= (static_cast<uint32_t>( o.cargo_6 ) & 0b1111); bits <<= 4;
-  bits |= (static_cast<uint32_t>( o.cargo_5 ) & 0b1111); bits <<= 4;
-  bits |= (static_cast<uint32_t>( o.cargo_4 ) & 0b1111); bits <<= 4;
-  bits |= (static_cast<uint32_t>( o.cargo_3 ) & 0b1111); bits <<= 4;
-  bits |= (static_cast<uint32_t>( o.cargo_2 ) & 0b1111); bits <<= 4;
-  bits |= (static_cast<uint32_t>( o.cargo_1 ) & 0b1111); bits <<= 0;
-  return b.write_bytes<3>( bits );
-}
-
-cdr::value to_canonical( cdr::converter& conv,
-                         Stop3LoadsCargo const& o,
-                         cdr::tag_t<Stop3LoadsCargo> ) {
-  cdr::table tbl;
-  conv.to_field( tbl, "cargo_1", o.cargo_1 );
-  conv.to_field( tbl, "cargo_2", o.cargo_2 );
-  conv.to_field( tbl, "cargo_3", o.cargo_3 );
-  conv.to_field( tbl, "cargo_4", o.cargo_4 );
-  conv.to_field( tbl, "cargo_5", o.cargo_5 );
-  conv.to_field( tbl, "cargo_6", o.cargo_6 );
-  tbl["__key_order"] = cdr::list{
-    "cargo_1",
-    "cargo_2",
-    "cargo_3",
-    "cargo_4",
-    "cargo_5",
-    "cargo_6",
-  };
-  return tbl;
-}
-
-cdr::result<Stop3LoadsCargo> from_canonical(
-                         cdr::converter& conv,
-                         cdr::value const& v,
-                         cdr::tag_t<Stop3LoadsCargo> ) {
-  UNWRAP_RETURN( tbl, conv.ensure_type<cdr::table>( v ) );
-  Stop3LoadsCargo res = {};
-  std::set<std::string> used_keys;
-  CONV_FROM_FIELD( "cargo_1", cargo_1 );
-  CONV_FROM_FIELD( "cargo_2", cargo_2 );
-  CONV_FROM_FIELD( "cargo_3", cargo_3 );
-  CONV_FROM_FIELD( "cargo_4", cargo_4 );
-  CONV_FROM_FIELD( "cargo_5", cargo_5 );
-  CONV_FROM_FIELD( "cargo_6", cargo_6 );
-  HAS_VALUE_OR_RET( conv.end_field_tracking( tbl, used_keys ) );
-  return res;
-}
-
-/****************************************************************
-** Stop3UnloadsCargo
-*****************************************************************/
-void to_str( Stop3UnloadsCargo const& o, std::string& out, base::tag<Stop3UnloadsCargo> ) {
-  out += "Stop3UnloadsCargo{";
-  out += "cargo_1="; base::to_str( o.cargo_1, out ); out += ',';
-  out += "cargo_2="; base::to_str( o.cargo_2, out ); out += ',';
-  out += "cargo_3="; base::to_str( o.cargo_3, out ); out += ',';
-  out += "cargo_4="; base::to_str( o.cargo_4, out ); out += ',';
-  out += "cargo_5="; base::to_str( o.cargo_5, out ); out += ',';
-  out += "cargo_6="; base::to_str( o.cargo_6, out );
-  out += '}';
-}
-
-// Binary conversion.
-bool read_binary( base::IBinaryIO& b, Stop3UnloadsCargo& o ) {
-  uint32_t bits = 0;
-  if( !b.read_bytes<3>( bits ) ) return false;
-  o.cargo_1 = static_cast<cargo_4bit_type>( bits & 0b1111 ); bits >>= 4;
-  o.cargo_2 = static_cast<cargo_4bit_type>( bits & 0b1111 ); bits >>= 4;
-  o.cargo_3 = static_cast<cargo_4bit_type>( bits & 0b1111 ); bits >>= 4;
-  o.cargo_4 = static_cast<cargo_4bit_type>( bits & 0b1111 ); bits >>= 4;
-  o.cargo_5 = static_cast<cargo_4bit_type>( bits & 0b1111 ); bits >>= 4;
-  o.cargo_6 = static_cast<cargo_4bit_type>( bits & 0b1111 ); bits >>= 4;
-  return true;
-}
-
-bool write_binary( base::IBinaryIO& b, Stop3UnloadsCargo const& o ) {
-  uint32_t bits = 0;
-  bits |= (static_cast<uint32_t>( o.cargo_6 ) & 0b1111); bits <<= 4;
-  bits |= (static_cast<uint32_t>( o.cargo_5 ) & 0b1111); bits <<= 4;
-  bits |= (static_cast<uint32_t>( o.cargo_4 ) & 0b1111); bits <<= 4;
-  bits |= (static_cast<uint32_t>( o.cargo_3 ) & 0b1111); bits <<= 4;
-  bits |= (static_cast<uint32_t>( o.cargo_2 ) & 0b1111); bits <<= 4;
-  bits |= (static_cast<uint32_t>( o.cargo_1 ) & 0b1111); bits <<= 0;
-  return b.write_bytes<3>( bits );
-}
-
-cdr::value to_canonical( cdr::converter& conv,
-                         Stop3UnloadsCargo const& o,
-                         cdr::tag_t<Stop3UnloadsCargo> ) {
-  cdr::table tbl;
-  conv.to_field( tbl, "cargo_1", o.cargo_1 );
-  conv.to_field( tbl, "cargo_2", o.cargo_2 );
-  conv.to_field( tbl, "cargo_3", o.cargo_3 );
-  conv.to_field( tbl, "cargo_4", o.cargo_4 );
-  conv.to_field( tbl, "cargo_5", o.cargo_5 );
-  conv.to_field( tbl, "cargo_6", o.cargo_6 );
-  tbl["__key_order"] = cdr::list{
-    "cargo_1",
-    "cargo_2",
-    "cargo_3",
-    "cargo_4",
-    "cargo_5",
-    "cargo_6",
-  };
-  return tbl;
-}
-
-cdr::result<Stop3UnloadsCargo> from_canonical(
-                         cdr::converter& conv,
-                         cdr::value const& v,
-                         cdr::tag_t<Stop3UnloadsCargo> ) {
-  UNWRAP_RETURN( tbl, conv.ensure_type<cdr::table>( v ) );
-  Stop3UnloadsCargo res = {};
-  std::set<std::string> used_keys;
-  CONV_FROM_FIELD( "cargo_1", cargo_1 );
-  CONV_FROM_FIELD( "cargo_2", cargo_2 );
-  CONV_FROM_FIELD( "cargo_3", cargo_3 );
-  CONV_FROM_FIELD( "cargo_4", cargo_4 );
-  CONV_FROM_FIELD( "cargo_5", cargo_5 );
-  CONV_FROM_FIELD( "cargo_6", cargo_6 );
-  HAS_VALUE_OR_RET( conv.end_field_tracking( tbl, used_keys ) );
-  return res;
-}
-
-/****************************************************************
-** Stop4LoadsAndUnloadsCount
-*****************************************************************/
-void to_str( Stop4LoadsAndUnloadsCount const& o, std::string& out, base::tag<Stop4LoadsAndUnloadsCount> ) {
-  out += "Stop4LoadsAndUnloadsCount{";
-  out += "unloads_count="; base::to_str( o.unloads_count, out ); out += ',';
-  out += "loads_count="; base::to_str( o.loads_count, out );
-  out += '}';
-}
-
-// Binary conversion.
-bool read_binary( base::IBinaryIO& b, Stop4LoadsAndUnloadsCount& o ) {
-  uint8_t bits = 0;
-  if( !b.read_bytes<1>( bits ) ) return false;
-  o.unloads_count = (bits & 0b1111); bits >>= 4;
-  o.loads_count = (bits & 0b1111); bits >>= 4;
-  return true;
-}
-
-bool write_binary( base::IBinaryIO& b, Stop4LoadsAndUnloadsCount const& o ) {
-  uint8_t bits = 0;
-  bits |= (o.loads_count & 0b1111); bits <<= 4;
-  bits |= (o.unloads_count & 0b1111); bits <<= 0;
-  return b.write_bytes<1>( bits );
-}
-
-cdr::value to_canonical( cdr::converter& conv,
-                         Stop4LoadsAndUnloadsCount const& o,
-                         cdr::tag_t<Stop4LoadsAndUnloadsCount> ) {
-  cdr::table tbl;
-  conv.to_field( tbl, "unloads_count", o.unloads_count );
-  conv.to_field( tbl, "loads_count", o.loads_count );
-  tbl["__key_order"] = cdr::list{
-    "unloads_count",
-    "loads_count",
-  };
-  return tbl;
-}
-
-cdr::result<Stop4LoadsAndUnloadsCount> from_canonical(
-                         cdr::converter& conv,
-                         cdr::value const& v,
-                         cdr::tag_t<Stop4LoadsAndUnloadsCount> ) {
-  UNWRAP_RETURN( tbl, conv.ensure_type<cdr::table>( v ) );
-  Stop4LoadsAndUnloadsCount res = {};
-  std::set<std::string> used_keys;
-  CONV_FROM_FIELD( "unloads_count", unloads_count );
-  CONV_FROM_FIELD( "loads_count", loads_count );
-  HAS_VALUE_OR_RET( conv.end_field_tracking( tbl, used_keys ) );
-  return res;
-}
-
-/****************************************************************
-** Stop4LoadsCargo
-*****************************************************************/
-void to_str( Stop4LoadsCargo const& o, std::string& out, base::tag<Stop4LoadsCargo> ) {
-  out += "Stop4LoadsCargo{";
-  out += "cargo_1="; base::to_str( o.cargo_1, out ); out += ',';
-  out += "cargo_2="; base::to_str( o.cargo_2, out ); out += ',';
-  out += "cargo_3="; base::to_str( o.cargo_3, out ); out += ',';
-  out += "cargo_4="; base::to_str( o.cargo_4, out ); out += ',';
-  out += "cargo_5="; base::to_str( o.cargo_5, out ); out += ',';
-  out += "cargo_6="; base::to_str( o.cargo_6, out );
-  out += '}';
-}
-
-// Binary conversion.
-bool read_binary( base::IBinaryIO& b, Stop4LoadsCargo& o ) {
-  uint32_t bits = 0;
-  if( !b.read_bytes<3>( bits ) ) return false;
-  o.cargo_1 = static_cast<cargo_4bit_type>( bits & 0b1111 ); bits >>= 4;
-  o.cargo_2 = static_cast<cargo_4bit_type>( bits & 0b1111 ); bits >>= 4;
-  o.cargo_3 = static_cast<cargo_4bit_type>( bits & 0b1111 ); bits >>= 4;
-  o.cargo_4 = static_cast<cargo_4bit_type>( bits & 0b1111 ); bits >>= 4;
-  o.cargo_5 = static_cast<cargo_4bit_type>( bits & 0b1111 ); bits >>= 4;
-  o.cargo_6 = static_cast<cargo_4bit_type>( bits & 0b1111 ); bits >>= 4;
-  return true;
-}
-
-bool write_binary( base::IBinaryIO& b, Stop4LoadsCargo const& o ) {
-  uint32_t bits = 0;
-  bits |= (static_cast<uint32_t>( o.cargo_6 ) & 0b1111); bits <<= 4;
-  bits |= (static_cast<uint32_t>( o.cargo_5 ) & 0b1111); bits <<= 4;
-  bits |= (static_cast<uint32_t>( o.cargo_4 ) & 0b1111); bits <<= 4;
-  bits |= (static_cast<uint32_t>( o.cargo_3 ) & 0b1111); bits <<= 4;
-  bits |= (static_cast<uint32_t>( o.cargo_2 ) & 0b1111); bits <<= 4;
-  bits |= (static_cast<uint32_t>( o.cargo_1 ) & 0b1111); bits <<= 0;
-  return b.write_bytes<3>( bits );
-}
-
-cdr::value to_canonical( cdr::converter& conv,
-                         Stop4LoadsCargo const& o,
-                         cdr::tag_t<Stop4LoadsCargo> ) {
-  cdr::table tbl;
-  conv.to_field( tbl, "cargo_1", o.cargo_1 );
-  conv.to_field( tbl, "cargo_2", o.cargo_2 );
-  conv.to_field( tbl, "cargo_3", o.cargo_3 );
-  conv.to_field( tbl, "cargo_4", o.cargo_4 );
-  conv.to_field( tbl, "cargo_5", o.cargo_5 );
-  conv.to_field( tbl, "cargo_6", o.cargo_6 );
-  tbl["__key_order"] = cdr::list{
-    "cargo_1",
-    "cargo_2",
-    "cargo_3",
-    "cargo_4",
-    "cargo_5",
-    "cargo_6",
-  };
-  return tbl;
-}
-
-cdr::result<Stop4LoadsCargo> from_canonical(
-                         cdr::converter& conv,
-                         cdr::value const& v,
-                         cdr::tag_t<Stop4LoadsCargo> ) {
-  UNWRAP_RETURN( tbl, conv.ensure_type<cdr::table>( v ) );
-  Stop4LoadsCargo res = {};
-  std::set<std::string> used_keys;
-  CONV_FROM_FIELD( "cargo_1", cargo_1 );
-  CONV_FROM_FIELD( "cargo_2", cargo_2 );
-  CONV_FROM_FIELD( "cargo_3", cargo_3 );
-  CONV_FROM_FIELD( "cargo_4", cargo_4 );
-  CONV_FROM_FIELD( "cargo_5", cargo_5 );
-  CONV_FROM_FIELD( "cargo_6", cargo_6 );
-  HAS_VALUE_OR_RET( conv.end_field_tracking( tbl, used_keys ) );
-  return res;
-}
-
-/****************************************************************
-** Stop4UnloadsCargo
-*****************************************************************/
-void to_str( Stop4UnloadsCargo const& o, std::string& out, base::tag<Stop4UnloadsCargo> ) {
-  out += "Stop4UnloadsCargo{";
-  out += "cargo_1="; base::to_str( o.cargo_1, out ); out += ',';
-  out += "cargo_2="; base::to_str( o.cargo_2, out ); out += ',';
-  out += "cargo_3="; base::to_str( o.cargo_3, out ); out += ',';
-  out += "cargo_4="; base::to_str( o.cargo_4, out ); out += ',';
-  out += "cargo_5="; base::to_str( o.cargo_5, out ); out += ',';
-  out += "cargo_6="; base::to_str( o.cargo_6, out );
-  out += '}';
-}
-
-// Binary conversion.
-bool read_binary( base::IBinaryIO& b, Stop4UnloadsCargo& o ) {
-  uint32_t bits = 0;
-  if( !b.read_bytes<3>( bits ) ) return false;
-  o.cargo_1 = static_cast<cargo_4bit_type>( bits & 0b1111 ); bits >>= 4;
-  o.cargo_2 = static_cast<cargo_4bit_type>( bits & 0b1111 ); bits >>= 4;
-  o.cargo_3 = static_cast<cargo_4bit_type>( bits & 0b1111 ); bits >>= 4;
-  o.cargo_4 = static_cast<cargo_4bit_type>( bits & 0b1111 ); bits >>= 4;
-  o.cargo_5 = static_cast<cargo_4bit_type>( bits & 0b1111 ); bits >>= 4;
-  o.cargo_6 = static_cast<cargo_4bit_type>( bits & 0b1111 ); bits >>= 4;
-  return true;
-}
-
-bool write_binary( base::IBinaryIO& b, Stop4UnloadsCargo const& o ) {
-  uint32_t bits = 0;
-  bits |= (static_cast<uint32_t>( o.cargo_6 ) & 0b1111); bits <<= 4;
-  bits |= (static_cast<uint32_t>( o.cargo_5 ) & 0b1111); bits <<= 4;
-  bits |= (static_cast<uint32_t>( o.cargo_4 ) & 0b1111); bits <<= 4;
-  bits |= (static_cast<uint32_t>( o.cargo_3 ) & 0b1111); bits <<= 4;
-  bits |= (static_cast<uint32_t>( o.cargo_2 ) & 0b1111); bits <<= 4;
-  bits |= (static_cast<uint32_t>( o.cargo_1 ) & 0b1111); bits <<= 0;
-  return b.write_bytes<3>( bits );
-}
-
-cdr::value to_canonical( cdr::converter& conv,
-                         Stop4UnloadsCargo const& o,
-                         cdr::tag_t<Stop4UnloadsCargo> ) {
-  cdr::table tbl;
-  conv.to_field( tbl, "cargo_1", o.cargo_1 );
-  conv.to_field( tbl, "cargo_2", o.cargo_2 );
-  conv.to_field( tbl, "cargo_3", o.cargo_3 );
-  conv.to_field( tbl, "cargo_4", o.cargo_4 );
-  conv.to_field( tbl, "cargo_5", o.cargo_5 );
-  conv.to_field( tbl, "cargo_6", o.cargo_6 );
-  tbl["__key_order"] = cdr::list{
-    "cargo_1",
-    "cargo_2",
-    "cargo_3",
-    "cargo_4",
-    "cargo_5",
-    "cargo_6",
-  };
-  return tbl;
-}
-
-cdr::result<Stop4UnloadsCargo> from_canonical(
-                         cdr::converter& conv,
-                         cdr::value const& v,
-                         cdr::tag_t<Stop4UnloadsCargo> ) {
-  UNWRAP_RETURN( tbl, conv.ensure_type<cdr::table>( v ) );
-  Stop4UnloadsCargo res = {};
+  UnloadsCargo res = {};
   std::set<std::string> used_keys;
   CONV_FROM_FIELD( "cargo_1", cargo_1 );
   CONV_FROM_FIELD( "cargo_2", cargo_2 );
@@ -8358,6 +7746,75 @@ cdr::result<CONNECTIVITY> from_canonical(
 }
 
 /****************************************************************
+** Stops
+*****************************************************************/
+void to_str( Stops const& o, std::string& out, base::tag<Stops> ) {
+  out += "Stops{";
+  out += "colony_index="; base::to_str( o.colony_index, out ); out += ',';
+  out += "loads_and_unloads_count="; base::to_str( o.loads_and_unloads_count, out ); out += ',';
+  out += "loads_cargo="; base::to_str( o.loads_cargo, out ); out += ',';
+  out += "unloads_cargo="; base::to_str( o.unloads_cargo, out ); out += ',';
+  out += "unknown47="; base::to_str( o.unknown47, out );
+  out += '}';
+}
+
+// Binary conversion.
+bool read_binary( base::IBinaryIO& b, Stops& o ) {
+  return true
+    && read_binary( b, o.colony_index )
+    && read_binary( b, o.loads_and_unloads_count )
+    && read_binary( b, o.loads_cargo )
+    && read_binary( b, o.unloads_cargo )
+    && read_binary( b, o.unknown47 )
+    ;
+}
+
+bool write_binary( base::IBinaryIO& b, Stops const& o ) {
+  return true
+    && write_binary( b, o.colony_index )
+    && write_binary( b, o.loads_and_unloads_count )
+    && write_binary( b, o.loads_cargo )
+    && write_binary( b, o.unloads_cargo )
+    && write_binary( b, o.unknown47 )
+    ;
+}
+
+cdr::value to_canonical( cdr::converter& conv,
+                         Stops const& o,
+                         cdr::tag_t<Stops> ) {
+  cdr::table tbl;
+  conv.to_field( tbl, "colony_index", o.colony_index );
+  conv.to_field( tbl, "loads_and_unloads_count", o.loads_and_unloads_count );
+  conv.to_field( tbl, "loads_cargo", o.loads_cargo );
+  conv.to_field( tbl, "unloads_cargo", o.unloads_cargo );
+  conv.to_field( tbl, "unknown47", o.unknown47 );
+  tbl["__key_order"] = cdr::list{
+    "colony_index",
+    "loads_and_unloads_count",
+    "loads_cargo",
+    "unloads_cargo",
+    "unknown47",
+  };
+  return tbl;
+}
+
+cdr::result<Stops> from_canonical(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<Stops> ) {
+  UNWRAP_RETURN( tbl, conv.ensure_type<cdr::table>( v ) );
+  Stops res = {};
+  std::set<std::string> used_keys;
+  CONV_FROM_FIELD( "colony_index", colony_index );
+  CONV_FROM_FIELD( "loads_and_unloads_count", loads_and_unloads_count );
+  CONV_FROM_FIELD( "loads_cargo", loads_cargo );
+  CONV_FROM_FIELD( "unloads_cargo", unloads_cargo );
+  CONV_FROM_FIELD( "unknown47", unknown47 );
+  HAS_VALUE_OR_RET( conv.end_field_tracking( tbl, used_keys ) );
+  return res;
+}
+
+/****************************************************************
 ** TRADEROUTE
 *****************************************************************/
 void to_str( TRADEROUTE const& o, std::string& out, base::tag<TRADEROUTE> ) {
@@ -8365,26 +7822,7 @@ void to_str( TRADEROUTE const& o, std::string& out, base::tag<TRADEROUTE> ) {
   out += "name="; base::to_str( o.name, out ); out += ',';
   out += "land_or_sea="; base::to_str( o.land_or_sea, out ); out += ',';
   out += "stops_count="; base::to_str( o.stops_count, out ); out += ',';
-  out += "stop_1_colony_index="; base::to_str( o.stop_1_colony_index, out ); out += ',';
-  out += "stop_1_loads_and_unloads_count="; base::to_str( o.stop_1_loads_and_unloads_count, out ); out += ',';
-  out += "stop_1_loads_cargo="; base::to_str( o.stop_1_loads_cargo, out ); out += ',';
-  out += "stop_1_unloads_cargo="; base::to_str( o.stop_1_unloads_cargo, out ); out += ',';
-  out += "unknown47="; base::to_str( o.unknown47, out ); out += ',';
-  out += "stop_2_colony_index="; base::to_str( o.stop_2_colony_index, out ); out += ',';
-  out += "stop_2_loads_and_unloads_count="; base::to_str( o.stop_2_loads_and_unloads_count, out ); out += ',';
-  out += "stop_2_loads_cargo="; base::to_str( o.stop_2_loads_cargo, out ); out += ',';
-  out += "stop_2_unloads_cargo="; base::to_str( o.stop_2_unloads_cargo, out ); out += ',';
-  out += "unknown48="; base::to_str( o.unknown48, out ); out += ',';
-  out += "stop_3_colony_index="; base::to_str( o.stop_3_colony_index, out ); out += ',';
-  out += "stop_3_loads_and_unloads_count="; base::to_str( o.stop_3_loads_and_unloads_count, out ); out += ',';
-  out += "stop_3_loads_cargo="; base::to_str( o.stop_3_loads_cargo, out ); out += ',';
-  out += "stop_3_unloads_cargo="; base::to_str( o.stop_3_unloads_cargo, out ); out += ',';
-  out += "unknown49="; base::to_str( o.unknown49, out ); out += ',';
-  out += "stop_4_colony_index="; base::to_str( o.stop_4_colony_index, out ); out += ',';
-  out += "stop_4_loads_and_unloads_count="; base::to_str( o.stop_4_loads_and_unloads_count, out ); out += ',';
-  out += "stop_4_loads_cargo="; base::to_str( o.stop_4_loads_cargo, out ); out += ',';
-  out += "stop_4_unloads_cargo="; base::to_str( o.stop_4_unloads_cargo, out ); out += ',';
-  out += "unknown50="; base::to_str( o.unknown50, out );
+  out += "stops="; base::to_str( o.stops, out );
   out += '}';
 }
 
@@ -8394,26 +7832,7 @@ bool read_binary( base::IBinaryIO& b, TRADEROUTE& o ) {
     && read_binary( b, o.name )
     && read_binary( b, o.land_or_sea )
     && read_binary( b, o.stops_count )
-    && read_binary( b, o.stop_1_colony_index )
-    && read_binary( b, o.stop_1_loads_and_unloads_count )
-    && read_binary( b, o.stop_1_loads_cargo )
-    && read_binary( b, o.stop_1_unloads_cargo )
-    && read_binary( b, o.unknown47 )
-    && read_binary( b, o.stop_2_colony_index )
-    && read_binary( b, o.stop_2_loads_and_unloads_count )
-    && read_binary( b, o.stop_2_loads_cargo )
-    && read_binary( b, o.stop_2_unloads_cargo )
-    && read_binary( b, o.unknown48 )
-    && read_binary( b, o.stop_3_colony_index )
-    && read_binary( b, o.stop_3_loads_and_unloads_count )
-    && read_binary( b, o.stop_3_loads_cargo )
-    && read_binary( b, o.stop_3_unloads_cargo )
-    && read_binary( b, o.unknown49 )
-    && read_binary( b, o.stop_4_colony_index )
-    && read_binary( b, o.stop_4_loads_and_unloads_count )
-    && read_binary( b, o.stop_4_loads_cargo )
-    && read_binary( b, o.stop_4_unloads_cargo )
-    && read_binary( b, o.unknown50 )
+    && read_binary( b, o.stops )
     ;
 }
 
@@ -8422,26 +7841,7 @@ bool write_binary( base::IBinaryIO& b, TRADEROUTE const& o ) {
     && write_binary( b, o.name )
     && write_binary( b, o.land_or_sea )
     && write_binary( b, o.stops_count )
-    && write_binary( b, o.stop_1_colony_index )
-    && write_binary( b, o.stop_1_loads_and_unloads_count )
-    && write_binary( b, o.stop_1_loads_cargo )
-    && write_binary( b, o.stop_1_unloads_cargo )
-    && write_binary( b, o.unknown47 )
-    && write_binary( b, o.stop_2_colony_index )
-    && write_binary( b, o.stop_2_loads_and_unloads_count )
-    && write_binary( b, o.stop_2_loads_cargo )
-    && write_binary( b, o.stop_2_unloads_cargo )
-    && write_binary( b, o.unknown48 )
-    && write_binary( b, o.stop_3_colony_index )
-    && write_binary( b, o.stop_3_loads_and_unloads_count )
-    && write_binary( b, o.stop_3_loads_cargo )
-    && write_binary( b, o.stop_3_unloads_cargo )
-    && write_binary( b, o.unknown49 )
-    && write_binary( b, o.stop_4_colony_index )
-    && write_binary( b, o.stop_4_loads_and_unloads_count )
-    && write_binary( b, o.stop_4_loads_cargo )
-    && write_binary( b, o.stop_4_unloads_cargo )
-    && write_binary( b, o.unknown50 )
+    && write_binary( b, o.stops )
     ;
 }
 
@@ -8452,50 +7852,12 @@ cdr::value to_canonical( cdr::converter& conv,
   conv.to_field( tbl, "name", o.name );
   conv.to_field( tbl, "land_or_sea", o.land_or_sea );
   conv.to_field( tbl, "stops_count", o.stops_count );
-  conv.to_field( tbl, "stop_1_colony_index", o.stop_1_colony_index );
-  conv.to_field( tbl, "stop_1_loads_and_unloads_count", o.stop_1_loads_and_unloads_count );
-  conv.to_field( tbl, "stop_1_loads_cargo", o.stop_1_loads_cargo );
-  conv.to_field( tbl, "stop_1_unloads_cargo", o.stop_1_unloads_cargo );
-  conv.to_field( tbl, "unknown47", o.unknown47 );
-  conv.to_field( tbl, "stop_2_colony_index", o.stop_2_colony_index );
-  conv.to_field( tbl, "stop_2_loads_and_unloads_count", o.stop_2_loads_and_unloads_count );
-  conv.to_field( tbl, "stop_2_loads_cargo", o.stop_2_loads_cargo );
-  conv.to_field( tbl, "stop_2_unloads_cargo", o.stop_2_unloads_cargo );
-  conv.to_field( tbl, "unknown48", o.unknown48 );
-  conv.to_field( tbl, "stop_3_colony_index", o.stop_3_colony_index );
-  conv.to_field( tbl, "stop_3_loads_and_unloads_count", o.stop_3_loads_and_unloads_count );
-  conv.to_field( tbl, "stop_3_loads_cargo", o.stop_3_loads_cargo );
-  conv.to_field( tbl, "stop_3_unloads_cargo", o.stop_3_unloads_cargo );
-  conv.to_field( tbl, "unknown49", o.unknown49 );
-  conv.to_field( tbl, "stop_4_colony_index", o.stop_4_colony_index );
-  conv.to_field( tbl, "stop_4_loads_and_unloads_count", o.stop_4_loads_and_unloads_count );
-  conv.to_field( tbl, "stop_4_loads_cargo", o.stop_4_loads_cargo );
-  conv.to_field( tbl, "stop_4_unloads_cargo", o.stop_4_unloads_cargo );
-  conv.to_field( tbl, "unknown50", o.unknown50 );
+  conv.to_field( tbl, "stops", o.stops );
   tbl["__key_order"] = cdr::list{
     "name",
     "land_or_sea",
     "stops_count",
-    "stop_1_colony_index",
-    "stop_1_loads_and_unloads_count",
-    "stop_1_loads_cargo",
-    "stop_1_unloads_cargo",
-    "unknown47",
-    "stop_2_colony_index",
-    "stop_2_loads_and_unloads_count",
-    "stop_2_loads_cargo",
-    "stop_2_unloads_cargo",
-    "unknown48",
-    "stop_3_colony_index",
-    "stop_3_loads_and_unloads_count",
-    "stop_3_loads_cargo",
-    "stop_3_unloads_cargo",
-    "unknown49",
-    "stop_4_colony_index",
-    "stop_4_loads_and_unloads_count",
-    "stop_4_loads_cargo",
-    "stop_4_unloads_cargo",
-    "unknown50",
+    "stops",
   };
   return tbl;
 }
@@ -8510,26 +7872,7 @@ cdr::result<TRADEROUTE> from_canonical(
   CONV_FROM_FIELD( "name", name );
   CONV_FROM_FIELD( "land_or_sea", land_or_sea );
   CONV_FROM_FIELD( "stops_count", stops_count );
-  CONV_FROM_FIELD( "stop_1_colony_index", stop_1_colony_index );
-  CONV_FROM_FIELD( "stop_1_loads_and_unloads_count", stop_1_loads_and_unloads_count );
-  CONV_FROM_FIELD( "stop_1_loads_cargo", stop_1_loads_cargo );
-  CONV_FROM_FIELD( "stop_1_unloads_cargo", stop_1_unloads_cargo );
-  CONV_FROM_FIELD( "unknown47", unknown47 );
-  CONV_FROM_FIELD( "stop_2_colony_index", stop_2_colony_index );
-  CONV_FROM_FIELD( "stop_2_loads_and_unloads_count", stop_2_loads_and_unloads_count );
-  CONV_FROM_FIELD( "stop_2_loads_cargo", stop_2_loads_cargo );
-  CONV_FROM_FIELD( "stop_2_unloads_cargo", stop_2_unloads_cargo );
-  CONV_FROM_FIELD( "unknown48", unknown48 );
-  CONV_FROM_FIELD( "stop_3_colony_index", stop_3_colony_index );
-  CONV_FROM_FIELD( "stop_3_loads_and_unloads_count", stop_3_loads_and_unloads_count );
-  CONV_FROM_FIELD( "stop_3_loads_cargo", stop_3_loads_cargo );
-  CONV_FROM_FIELD( "stop_3_unloads_cargo", stop_3_unloads_cargo );
-  CONV_FROM_FIELD( "unknown49", unknown49 );
-  CONV_FROM_FIELD( "stop_4_colony_index", stop_4_colony_index );
-  CONV_FROM_FIELD( "stop_4_loads_and_unloads_count", stop_4_loads_and_unloads_count );
-  CONV_FROM_FIELD( "stop_4_loads_cargo", stop_4_loads_cargo );
-  CONV_FROM_FIELD( "stop_4_unloads_cargo", stop_4_unloads_cargo );
-  CONV_FROM_FIELD( "unknown50", unknown50 );
+  CONV_FROM_FIELD( "stops", stops );
   HAS_VALUE_OR_RET( conv.end_field_tracking( tbl, used_keys ) );
   return res;
 }
