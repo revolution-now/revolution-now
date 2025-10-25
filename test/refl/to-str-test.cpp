@@ -35,7 +35,9 @@ struct MyStructWrapper {
     : wrapped( std::move( ms ) ) {}
 
   // Implement refl::WrapsReflected.
-  rn::MyStruct const& refl() const { return wrapped; }
+  [[maybe_unused]] rn::MyStruct const& refl() const {
+    return wrapped;
+  }
   static constexpr string_view refl_ns   = "other";
   static constexpr string_view refl_name = "MyStructWrapper";
 
