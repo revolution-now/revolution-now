@@ -14,6 +14,7 @@
 
 // refl
 #include "refl/ext.hpp"
+#include "refl/to-str.hpp"
 
 // base
 #include "base/variant.hpp"

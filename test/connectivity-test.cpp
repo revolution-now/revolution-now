@@ -20,7 +20,10 @@
 #include "src/imap-updater.hpp"
 
 // ss
-#include "ss/ref.hpp"
+#include "src/ss/ref.hpp"
+
+// base
+#include "src/base/to-str-ext-std.hpp"
 
 // Must be last.
 #include "test/catch-common.hpp"

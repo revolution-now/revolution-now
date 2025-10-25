@@ -990,6 +990,8 @@ struct CodeGenerator {
     if( needs_refl_ext ) {
       comment( "refl" );
       line( "#include \"refl/ext.hpp\"" );
+      // This is needed to avoid ODR violations.
+      line( "#include \"refl/to-str.hpp\"" );
       newline();
     }
 

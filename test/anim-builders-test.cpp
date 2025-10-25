@@ -27,6 +27,10 @@
 #include "ss/ref.hpp"
 #include "ss/unit.hpp"
 
+// base
+#include "src/base/to-str-ext-chrono.hpp"
+#include "src/base/to-str-ext-std.hpp"
+
 // Must be last.
 #include "test/catch-common.hpp"
 
