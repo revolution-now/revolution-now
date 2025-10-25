@@ -1,0 +1,58 @@
+TODO:
+
+  * Add trade_route to unit orders.
+
+  * Enable Trade Route menu item in orders menu.
+
+  * Add 't' key to land view input.
+
+  * When the wagon train lands in a colony, it does not do its
+    loading/unloading until the start of the next turn.
+
+  * When a unit starts a trade route, the gui allows selecting
+    the starting location.
+
+  * When creating a sea trade route, the harbor is among the
+    available stops. However, second-stop menu does not include
+    it, but probably should. In the OG it can be added in the
+    trade route editing screen.
+
+  * Need to support the fact that a trade route can be edited
+    while there are units carrying it out.
+
+  * Need to make sure that transacting in the harbor while on a
+    trade route respects boycotts.
+
+  * When a ship arrives in the harbor it will transact immedi-
+    ately, and a message will be shown over the land view without
+    showing the harbor. But then the ship waits until the next
+    turn to sail back.
+
+  * When a wagon train arrives at a colony or loads/unloads
+    stuff, a brief message appears in the top bar. Not sure yet
+    if we want to replicate this.
+
+  * Need to limit the number of wagon trains per colony as in the
+    OG, or perhaps find another way to limit their number, e.g.
+    by increasing the cost exponentially for each one built. Or,
+    if the wagon train remains stationary for more than x number
+    of turns, any goods in it will spoil (!!). With a bit of in-
+    telligence in this algorithm, it could work to allow an arbi-
+    trary number of wagon trains without the player being able to
+    exploit them for additional storage.
+
+    This is important because simply limiting the number of wagon
+    trains to the number of colonies can be cheated by creating a
+    large number of temporary population-1 colonies and then
+    building the wagon trains, then abandoning the colonies.
+
+  * Wagon trains need to end their turn when entering a colony.
+
+  * There is a strategy (described in the SG) whereby one can
+    chain wagon train routes to move items within one turn a dis-
+    tance much further than one wagon train can move. Doing this
+    efficiently requires the player being able to set up wagon
+    trains that move in a predictable order so that one can pick
+    up where the prior one left off. Make sure this work.
+
+  * Need a list of default name suffixes for trade routes.
