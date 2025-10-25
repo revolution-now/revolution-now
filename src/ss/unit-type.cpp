@@ -111,48 +111,6 @@ MvPoints movement_points( Player const& player,
   return attr.base_movement_points;
 }
 
-// Lua
-namespace {
-
-LUA_STARTUP( lua::state& st ) {
-  using UD = ::rn::UnitTypeAttributes;
-
-  auto ut = st.usertype.create<UD>();
-
-  // FIXME(maybe): these are writable to lua. Find an equivalent
-  // of sol::readonly to make them appear constant to luapp.
-
-  LUA_ADD_MEMBER( name );
-  // LUA_ADD_MEMBER( tile );
-  LUA_ADD_MEMBER( nat_icon_front );
-  LUA_ADD_MEMBER( nat_icon_position );
-  LUA_ADD_MEMBER( ship );
-  LUA_ADD_MEMBER( colonist );
-  LUA_ADD_MEMBER( visibility );
-  // Should not be accessing this in Lua since it would probably
-  // indicate a bug. Intead Lua should call the movement_points
-  // function defined below since it accounts for bonuses.
-  // LUA_ADD_MEMBER( base_movement_points );
-  LUA_ADD_MEMBER( can_attack );
-  LUA_ADD_MEMBER( combat );
-  LUA_ADD_MEMBER( cargo_slots );
-  LUA_ADD_MEMBER( cargo_slots_occupies );
-  LUA_ADD_MEMBER( canonical_base );
-  LUA_ADD_MEMBER( expertise );
-  LUA_ADD_MEMBER( cleared_expertise );
-  LUA_ADD_MEMBER( type );
-  LUA_ADD_MEMBER( is_derived );
-
-  // FIXME: Figure out how to deal with C++ variants in Lua.
-  // LUA_ADD_MEMBER( on_death );
-  // LUA_ADD_MEMBER( promotion );
-  // LUA_ADD_MEMBER( modifiers );
-};
-
-LUA_AUTO_FN( movement_points );
-
-} // namespace
-
 /****************************************************************
 ** Unit Type Modifier Inspection / Updating.
 *****************************************************************/

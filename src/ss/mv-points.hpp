@@ -29,12 +29,6 @@ class ND MovementPoints {
  private:
   static constexpr int factor = 3;
 
-  // atoms_ can be > 2
-  constexpr MovementPoints( int integral, int atoms_arg )
-    : atoms_(
-          ( ( integral + ( atoms_arg / factor ) ) * factor ) +
-          ( atoms_arg % factor ) ) {}
-
  public:
   constexpr MovementPoints() = default;
   explicit constexpr MovementPoints( int p )
@@ -163,6 +157,12 @@ class ND MovementPoints {
   }
 
  private:
+  // atoms_ can be > 2
+  constexpr MovementPoints( int integral, int atoms_arg )
+    : atoms_(
+          ( ( integral + ( atoms_arg / factor ) ) * factor ) +
+          ( atoms_arg % factor ) ) {}
+
   // 2 points would be represented by 2*factor.
   int atoms_ = 0;
 };
