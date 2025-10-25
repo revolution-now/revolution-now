@@ -13,10 +13,6 @@
 // config
 #include "config/unit-type.rds.hpp"
 
-// luapp
-#include "luapp/register.hpp"
-#include "luapp/state.hpp"
-
 // rds
 #include "rds/switch-macro.hpp"
 
@@ -1079,30 +1075,5 @@ UnitsState::braves_for_dwelling( DwellingId dwelling_id ) const {
       base::lookup( braves_for_dwelling_, dwelling_id );
   return units.has_value() ? *units : empty;
 }
-
-/****************************************************************
-** Lua Bindings
-*****************************************************************/
-namespace {
-
-LUA_STARTUP( lua::state& st ) {
-  using U = ::rn::UnitsState;
-
-  auto u = st.usertype.create<U>();
-
-  u["last_unit_id"] = &U::last_unit_id;
-  u["unit_from_id"] = []( U& o, UnitId id ) -> Unit& {
-    return o.unit_for( id );
-  };
-  u["from_coord"] = [&]( U& o, Coord tile ) -> lua::table {
-    lua::table tbl   = st.table.create();
-    auto& from_coord = o.from_coord( tile );
-    int i            = 1;
-    for( auto id : from_coord ) tbl[i++] = id;
-    return tbl;
-  };
-};
-
-} // namespace
 
 } // namespace rn
