@@ -32,6 +32,9 @@ valid_or<string> TradeRouteTarget::harbor::validate() const {
 }
 
 valid_or<string> TradeRouteTarget::colony::validate() const {
+  REFL_VALIDATE( colony_id > 0,
+                 "invalid colony ID in trade route target: {}",
+                 colony_id );
   return valid;
 }
 
@@ -39,6 +42,19 @@ valid_or<string> TradeRouteTarget::colony::validate() const {
 ** TradeRoute
 *****************************************************************/
 valid_or<string> TradeRoute::validate() const {
+  REFL_VALIDATE(
+      id > 0, "invalid trade route ID in trade route target: {}",
+      id );
+
+  // If trade route type is land then we cannot have any harbor
+  // stops.
+  if( type == e_trade_route_type::land )
+    for( TradeRouteStop const& stop : stops )
+      REFL_VALIDATE(
+          !stop.target.holds<TradeRouteTarget::harbor>(),
+          "A land trade route cannot have the European Harbor "
+          "as a stop." );
+
   return valid;
 }
 
@@ -46,6 +62,17 @@ valid_or<string> TradeRoute::validate() const {
 ** TradeRouteState
 *****************************************************************/
 valid_or<string> TradeRouteState::validate() const {
+  REFL_VALIDATE( !routes.contains( TradeRouteId{ 0 } ),
+                 "trade routes list contains a trade route ID "
+                 "of zero which is invalid." );
+
+  // Trade route ID matches that inside route object.
+  for( auto const& [id, route] : routes )
+    REFL_VALIDATE(
+        route.id == id,
+        "inconsistent trade route IDs found: {} != {}", route.id,
+        id );
+
   return valid;
 }
 
