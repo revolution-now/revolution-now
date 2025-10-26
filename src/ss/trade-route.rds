@@ -47,6 +47,7 @@ struct.TradeRouteStop {
 }
 
 struct.TradeRoute {
+  # Must be >= 1.
   id 'TradeRouteId',
 
   # NOTE: in the OG this is a max of 32 chars.
@@ -61,6 +62,16 @@ struct.TradeRoute {
 }
 
 struct.TradeRouteState {
+  # Trade route IDs must be >= 1, so we store this as "previous"
+  # so that the default value of zero is a valid value: it means
+  # that no trade routes have yet been created. If we were to
+  # store "next" then it would have to be at least one.
+  #
+  # Note that this also effectively gives the total number of
+  # trade routes that have ever been created since the start of
+  # the game.
+  prev_trade_route_id 'TradeRouteId',
+
   # NOTE: in the OG there are a maximum of 12 trade routes.
   routes 'std::map<TradeRouteId, TradeRoute>',
 

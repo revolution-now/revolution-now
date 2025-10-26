@@ -62,9 +62,24 @@ valid_or<string> TradeRoute::validate() const {
 ** TradeRouteState
 *****************************************************************/
 valid_or<string> TradeRouteState::validate() const {
+  // Must be a valid ID or zero.
+  REFL_VALIDATE( prev_trade_route_id >= 0,
+                 "prev_trade_route_id must be >= zero." );
+
+  // Zero is not a valid trade route ID.
   REFL_VALIDATE( !routes.contains( TradeRouteId{ 0 } ),
                  "trade routes list contains a trade route ID "
                  "of zero which is invalid." );
+
+  // Given that prev_trade_route_id gives the number of trade
+  // routes that have been created thus far in the game, it fol-
+  // lows that the current trade route count must be less or
+  // equal to it.
+  REFL_VALIDATE(
+      ssize( routes ) <= prev_trade_route_id,
+      "prev_trade_route_id indicates that there should be at "
+      "most {} active trade routes, but there are {}.",
+      prev_trade_route_id, routes.size() );
 
   // Trade route ID matches that inside route object.
   for( auto const& [id, route] : routes )
@@ -72,6 +87,13 @@ valid_or<string> TradeRouteState::validate() const {
         route.id == id,
         "inconsistent trade route IDs found: {} != {}", route.id,
         id );
+
+  // Each active trade route ID is <= to prev_trade_route_id.
+  for( auto const& [id, route] : routes )
+    REFL_VALIDATE( id <= prev_trade_route_id,
+                   "there is an active trade route with id={} "
+                   "which is > than prev_trade_route_id={}",
+                   route.id, prev_trade_route_id );
 
   return valid;
 }
