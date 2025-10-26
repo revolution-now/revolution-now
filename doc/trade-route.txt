@@ -1,28 +1,28 @@
 TODO:
 
-  * Add trade_route to unit orders.
-
-  * Enable Trade Route menu item in orders menu.
-
-  * Add the trade route data structure to ss.
-
-  * Add 't' key to land view input.
-
-  * In the sav files a unit on a trade route keeps track of which
-    trade route it is on and which stop it is headed to next in
-    the `auxiliary_data` field.
-
   * Determine whether a load from a colony will load more than
     100, either when there are other things to load and when not.
     Maybe we should cycle around, loading 100 of each until a
     full cycle is made where nothing is loaded. Note that the
     same commodity can be added multiple times...
 
+  * Wagon trains need to end their turn when entering a colony.
+
+  * Add trade_route to unit orders.
+
+  * Enable Trade Route menu item in orders menu.
+
+  * Add 't' key to land view input.
+
   * Note that the trade route edit screen allows editing the
     name.
 
   * Note that the OG allows a trade route with one stop, which
-    could be useful for just continuing to load stuff.
+    could be useful for just continuing to load stuff. However it
+    does not allow a trade route with zero stops, so we probably
+    shouldn't allow that as well, since it would have no purpose
+    and would make things more complicated when converting sav
+    files.
 
   * When the wagon train lands in a colony, it does not do its
     loading/unloading until the start of the next turn.
@@ -41,6 +41,11 @@ TODO:
   * Need to make sure that transacting in the harbor while on a
     trade route respects boycotts.
 
+  * Need to ensure that if a ship is in the harbor carrying out a
+    trade route and either the trade route gets deleted, or its
+    next stop gets deleted (possibly leaving only the harbor in
+    the list) that it does the right thing.
+
   * When a ship arrives in the harbor it will transact immedi-
     ately, and a message will be shown over the land view without
     showing the harbor. But then the ship waits until the next
@@ -57,14 +62,15 @@ TODO:
     of turns, any goods in it will spoil (!!). With a bit of in-
     telligence in this algorithm, it could work to allow an arbi-
     trary number of wagon trains without the player being able to
-    exploit them for additional storage.
+    exploit them for additional storage. This may not work be-
+    cause the player could just put the wagon trains on a trade
+    route between two colonies, just moving back and forth.
 
-    This is important because simply limiting the number of wagon
-    trains to the number of colonies can be cheated by creating a
-    large number of temporary population-1 colonies and then
-    building the wagon trains, then abandoning the colonies.
-
-  * Wagon trains need to end their turn when entering a colony.
+    It is important to solve this because simply limiting the
+    number of wagon trains to the number of colonies can be
+    cheated by creating a large number of temporary population-1
+    colonies and then building the wagon trains, then abandoning
+    the colonies.
 
   * There is a strategy (described in the SG) whereby one can
     chain wagon train routes to move items within one turn a dis-
@@ -74,3 +80,13 @@ TODO:
     up where the prior one left off. Make sure this work.
 
   * Need a list of default name suffixes for trade routes.
+
+Done:
+
+  * Add the trade route data structure to ss.
+
+  * Add T to unit flag rendering.
+
+  * In the sav files a unit on a trade route keeps track of which
+    trade route it is on and which stop it is headed to next in
+    the `auxiliary_data` field.
