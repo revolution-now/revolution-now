@@ -221,7 +221,9 @@ local function initial_ships_pos_for_row( y )
       return { x=size.w - 1, y=y }
     end
   end
-  return x + 1
+  -- Need the min in case we are using a custom map where there
+  -- is no sea lane on the right edge at all.
+  return min( x + 1, size.w - 1 )
 end
 
 -- TODO: Move this into new-game.lua.
