@@ -37,6 +37,9 @@ TODO:
   * When the player manually loads into a wagon train in the
     colony view, its orders clear.
 
+  * Make sure that things are ok if a unit is on a trade route
+    and then the control of the player is changed to AI.
+
   * In the editor screen, for land routes, the first stop defines
     the continent, then it will only allow selecting other
     colonies on that same continent, and we should probably
