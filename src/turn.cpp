@@ -294,6 +294,8 @@ bool should_remove_unit_from_queue( Unit const& unit ) {
       return false;
     case e::go_to:
       return false;
+    case e::trade_route:
+      return false;
   }
 }
 
@@ -316,6 +318,8 @@ bool can_ask_for_orders( Unit const& unit ) {
     case e::damaged:
       return false;
     case e::go_to:
+      return false;
+    case e::trade_route:
       return false;
   }
 }
