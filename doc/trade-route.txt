@@ -1,5 +1,24 @@
 TODO:
 
+  * The way that the OG loads cargo is according to market value.
+    It looks at all the goods to load and it iterates through
+    them and finds the most valuable one, multiplying market sell
+    price*quantity (quantity can be > 100), then it loads 100 of
+    the one that had the max value (or less than 100 if there is
+    less). If there are multiple goods tied for the max value
+    then it will take the one furthest to the right. Then it re-
+    peats this until it cannot load any further, which in this
+    case is equivalent to all slots being filled or partially
+    filled, since it should never be necessary to add more to a
+    previous slot on a subsequent iteration.
+
+  * NOTE: the auto load algo used for trade routes seems to ap-
+    pears to behave slightly differently from the "auto load"
+    feature in the colony that happens when you press 'L', though
+    they seem similar. Need to investigate how the latter works.
+    Indications are that it loads the commodity with the largest
+    market value but where the quantity is capped at 100.
+
   * Determine whether a load from a colony will load more than
     100, either when there are other things to load and when not.
     Maybe we should cycle around, loading 100 of each until a
@@ -16,6 +35,9 @@ TODO:
 
   * Note that the trade route edit screen allows editing the
     name.
+
+  * When the player manually loads into a wagon train in the
+    colony view, its orders clear.
 
   * Note that the OG allows a trade route with one stop, which
     could be useful for just continuing to load stuff. However it
