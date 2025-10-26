@@ -77,13 +77,13 @@ void expect_rands( World& W ) {
       .times( 3 * 4 /*players*/ )
       .returns( 0.0 );
 
-  // These are for choosing the initial processed goods volumes.
-  W.rand().EXPECT__between_ints( _, _ ).times( 4 ).returns(
-      0x200 );
-
   // These are for choosing the expertise of each native
   // dwelling.
   W.rand().EXPECT__between_ints( _, _ ).times( 6 ).returns( 0 );
+
+  // These are for choosing the initial processed goods volumes.
+  W.rand().EXPECT__between_ints( _, _ ).times( 4 ).returns(
+      0x200 );
 }
 
 void create_new_game_from_lua( World& world ) {
