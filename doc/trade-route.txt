@@ -12,6 +12,12 @@ TODO:
     filled, since it should never be necessary to add more to a
     previous slot on a subsequent iteration.
 
+    Not sure yet if we want to replicate this... maybe we can
+    have an option to either keep that behavior or have an alter-
+    nate behavior where we try to divide the cargo space equally
+    among the goods that need to be moved, irrespective of market
+    prices.
+
   * NOTE: the auto load algo used for trade routes seems to ap-
     pears to behave slightly differently from the "auto load"
     feature in the colony that happens when you press 'L', though
@@ -19,11 +25,9 @@ TODO:
     Indications are that it loads the commodity with the largest
     market value but where the quantity is capped at 100.
 
-  * Determine whether a load from a colony will load more than
-    100, either when there are other things to load and when not.
-    Maybe we should cycle around, loading 100 of each until a
-    full cycle is made where nothing is loaded. Note that the
-    same commodity can be added multiple times...
+  * When a wagon train cannot find a path to its next stop it
+    will clear its orders. That said, the wagon train will go as
+    far as it can before doing this.
 
   * Wagon trains need to end their turn when entering a colony.
 
@@ -39,12 +43,26 @@ TODO:
   * When the player manually loads into a wagon train in the
     colony view, its orders clear.
 
+  * In the editor screen, for land routes, the first stop defines
+    the continent, then it will only allow selecting other
+    colonies on that same continent, and we should probably
+    replicate this. That said, in the menus that appear when cre-
+    ating a new trade route, it will allow selecting two colonies
+    on different continents for a land route, which is probably a
+    bug.
+
+  * The editor screen will avoid inland colonies for sea routes
+    and will avoid cross continent colonies for land routes.
+
   * Note that the OG allows a trade route with one stop, which
     could be useful for just continuing to load stuff. However it
     does not allow a trade route with zero stops, so we probably
     shouldn't allow that as well, since it would have no purpose
     and would make things more complicated when converting sav
     files.
+
+  * Need to allow for the player editing the map, which could put
+    colonies within a given trade route on different continents.
 
   * When the wagon train lands in a colony, it does not do its
     loading/unloading until the start of the next turn.
