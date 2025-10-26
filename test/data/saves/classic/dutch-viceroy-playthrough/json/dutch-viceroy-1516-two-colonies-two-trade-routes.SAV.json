@@ -1701,7 +1701,7 @@
         0
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": 0,
+      "auxiliary_data": 0,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": 90
@@ -1755,7 +1755,7 @@
         0
       ],
       "turns_worked": 0,
-      "profession_or_treasure_amount": 0,
+      "auxiliary_data": 0,
       "transport_chain": {
         "next_unit_idx": 92,
         "prev_unit_idx": -1
@@ -1809,7 +1809,7 @@
         0
       ],
       "turns_worked": 0,
-      "profession_or_treasure_amount": 0,
+      "auxiliary_data": 0,
       "transport_chain": {
         "next_unit_idx": 87,
         "prev_unit_idx": 3
@@ -1863,7 +1863,7 @@
         0
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": 21,
+      "auxiliary_data": 21,
       "transport_chain": {
         "next_unit_idx": 2,
         "prev_unit_idx": -1
@@ -1917,7 +1917,7 @@
         0
       ],
       "turns_worked": 0,
-      "profession_or_treasure_amount": 0,
+      "auxiliary_data": 0,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -1971,7 +1971,7 @@
         40
       ],
       "turns_worked": 0,
-      "profession_or_treasure_amount": 20,
+      "auxiliary_data": 20,
       "transport_chain": {
         "next_unit_idx": 93,
         "prev_unit_idx": -1
@@ -2025,7 +2025,7 @@
         0
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": 28,
+      "auxiliary_data": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -2079,7 +2079,7 @@
         0
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": 28,
+      "auxiliary_data": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -2133,7 +2133,7 @@
         0
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": 28,
+      "auxiliary_data": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -2187,7 +2187,7 @@
         0
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": 28,
+      "auxiliary_data": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -2241,7 +2241,7 @@
         0
       ],
       "turns_worked": 3,
-      "profession_or_treasure_amount": 28,
+      "auxiliary_data": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -2295,7 +2295,7 @@
         0
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": 28,
+      "auxiliary_data": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -2349,7 +2349,7 @@
         0
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": 28,
+      "auxiliary_data": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -2403,7 +2403,7 @@
         0
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": 28,
+      "auxiliary_data": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -2457,7 +2457,7 @@
         0
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": 28,
+      "auxiliary_data": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -2511,7 +2511,7 @@
         0
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": 28,
+      "auxiliary_data": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -2565,7 +2565,7 @@
         0
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": 28,
+      "auxiliary_data": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -2619,7 +2619,7 @@
         0
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": 28,
+      "auxiliary_data": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -2673,7 +2673,7 @@
         0
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": 28,
+      "auxiliary_data": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -2727,7 +2727,7 @@
         0
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": 28,
+      "auxiliary_data": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -2781,7 +2781,7 @@
         0
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": 28,
+      "auxiliary_data": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -2835,7 +2835,7 @@
         0
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": 28,
+      "auxiliary_data": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -2889,7 +2889,7 @@
         0
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": 28,
+      "auxiliary_data": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -2943,7 +2943,7 @@
         0
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": 28,
+      "auxiliary_data": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -2997,7 +2997,7 @@
         0
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": 28,
+      "auxiliary_data": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -3051,7 +3051,7 @@
         0
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": 28,
+      "auxiliary_data": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -3105,7 +3105,7 @@
         0
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": 28,
+      "auxiliary_data": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -3159,7 +3159,7 @@
         0
       ],
       "turns_worked": 2,
-      "profession_or_treasure_amount": 28,
+      "auxiliary_data": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -3213,7 +3213,7 @@
         0
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": 28,
+      "auxiliary_data": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -3267,7 +3267,7 @@
         0
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": 28,
+      "auxiliary_data": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -3321,7 +3321,7 @@
         0
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": 28,
+      "auxiliary_data": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -3375,7 +3375,7 @@
         0
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": 28,
+      "auxiliary_data": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -3429,7 +3429,7 @@
         0
       ],
       "turns_worked": 3,
-      "profession_or_treasure_amount": 28,
+      "auxiliary_data": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -3483,7 +3483,7 @@
         0
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": 28,
+      "auxiliary_data": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -3537,7 +3537,7 @@
         0
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": 28,
+      "auxiliary_data": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -3591,7 +3591,7 @@
         0
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": 28,
+      "auxiliary_data": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -3645,7 +3645,7 @@
         0
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": 28,
+      "auxiliary_data": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -3699,7 +3699,7 @@
         0
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": 28,
+      "auxiliary_data": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -3753,7 +3753,7 @@
         0
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": 28,
+      "auxiliary_data": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -3807,7 +3807,7 @@
         0
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": 28,
+      "auxiliary_data": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -3861,7 +3861,7 @@
         0
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": 28,
+      "auxiliary_data": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -3915,7 +3915,7 @@
         0
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": 28,
+      "auxiliary_data": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -3969,7 +3969,7 @@
         0
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": 28,
+      "auxiliary_data": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -4023,7 +4023,7 @@
         0
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": 28,
+      "auxiliary_data": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -4077,7 +4077,7 @@
         0
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": 28,
+      "auxiliary_data": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -4131,7 +4131,7 @@
         0
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": 28,
+      "auxiliary_data": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -4185,7 +4185,7 @@
         0
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": 28,
+      "auxiliary_data": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -4239,7 +4239,7 @@
         0
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": 28,
+      "auxiliary_data": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -4293,7 +4293,7 @@
         0
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": 28,
+      "auxiliary_data": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -4347,7 +4347,7 @@
         0
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": 28,
+      "auxiliary_data": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -4401,7 +4401,7 @@
         0
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": 28,
+      "auxiliary_data": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -4455,7 +4455,7 @@
         0
       ],
       "turns_worked": 2,
-      "profession_or_treasure_amount": 28,
+      "auxiliary_data": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -4509,7 +4509,7 @@
         0
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": 28,
+      "auxiliary_data": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -4563,7 +4563,7 @@
         0
       ],
       "turns_worked": 3,
-      "profession_or_treasure_amount": 28,
+      "auxiliary_data": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -4617,7 +4617,7 @@
         0
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": 28,
+      "auxiliary_data": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -4671,7 +4671,7 @@
         0
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": 28,
+      "auxiliary_data": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -4725,7 +4725,7 @@
         0
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": 28,
+      "auxiliary_data": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -4779,7 +4779,7 @@
         0
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": 28,
+      "auxiliary_data": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -4833,7 +4833,7 @@
         0
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": 28,
+      "auxiliary_data": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -4887,7 +4887,7 @@
         0
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": 28,
+      "auxiliary_data": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -4941,7 +4941,7 @@
         0
       ],
       "turns_worked": 3,
-      "profession_or_treasure_amount": 28,
+      "auxiliary_data": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -4995,7 +4995,7 @@
         0
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": 28,
+      "auxiliary_data": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -5049,7 +5049,7 @@
         0
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": 28,
+      "auxiliary_data": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -5103,7 +5103,7 @@
         0
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": 28,
+      "auxiliary_data": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -5157,7 +5157,7 @@
         0
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": 28,
+      "auxiliary_data": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -5211,7 +5211,7 @@
         0
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": 28,
+      "auxiliary_data": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -5265,7 +5265,7 @@
         0
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": 28,
+      "auxiliary_data": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -5319,7 +5319,7 @@
         0
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": 28,
+      "auxiliary_data": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -5373,7 +5373,7 @@
         0
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": 28,
+      "auxiliary_data": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -5427,7 +5427,7 @@
         0
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": 28,
+      "auxiliary_data": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -5481,7 +5481,7 @@
         0
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": 28,
+      "auxiliary_data": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -5535,7 +5535,7 @@
         0
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": 28,
+      "auxiliary_data": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -5589,7 +5589,7 @@
         0
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": 28,
+      "auxiliary_data": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -5643,7 +5643,7 @@
         0
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": 28,
+      "auxiliary_data": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -5697,7 +5697,7 @@
         0
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": 28,
+      "auxiliary_data": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -5751,7 +5751,7 @@
         0
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": 28,
+      "auxiliary_data": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -5805,7 +5805,7 @@
         0
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": 28,
+      "auxiliary_data": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -5859,7 +5859,7 @@
         0
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": 28,
+      "auxiliary_data": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -5913,7 +5913,7 @@
         0
       ],
       "turns_worked": 0,
-      "profession_or_treasure_amount": 28,
+      "auxiliary_data": 28,
       "transport_chain": {
         "next_unit_idx": 79,
         "prev_unit_idx": -1
@@ -5967,7 +5967,7 @@
         0
       ],
       "turns_worked": 0,
-      "profession_or_treasure_amount": 28,
+      "auxiliary_data": 28,
       "transport_chain": {
         "next_unit_idx": 80,
         "prev_unit_idx": 78
@@ -6021,7 +6021,7 @@
         0
       ],
       "turns_worked": 0,
-      "profession_or_treasure_amount": 28,
+      "auxiliary_data": 28,
       "transport_chain": {
         "next_unit_idx": 81,
         "prev_unit_idx": 79
@@ -6075,7 +6075,7 @@
         0
       ],
       "turns_worked": 0,
-      "profession_or_treasure_amount": 28,
+      "auxiliary_data": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": 80
@@ -6129,7 +6129,7 @@
         40
       ],
       "turns_worked": 2,
-      "profession_or_treasure_amount": 20,
+      "auxiliary_data": 20,
       "transport_chain": {
         "next_unit_idx": 83,
         "prev_unit_idx": -1
@@ -6183,7 +6183,7 @@
         60
       ],
       "turns_worked": 0,
-      "profession_or_treasure_amount": 20,
+      "auxiliary_data": 20,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": 82
@@ -6237,7 +6237,7 @@
         100
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": 28,
+      "auxiliary_data": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -6291,7 +6291,7 @@
         80
       ],
       "turns_worked": 0,
-      "profession_or_treasure_amount": 26,
+      "auxiliary_data": 26,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -6345,7 +6345,7 @@
         80
       ],
       "turns_worked": 0,
-      "profession_or_treasure_amount": 22,
+      "auxiliary_data": 22,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -6399,7 +6399,7 @@
         80
       ],
       "turns_worked": 0,
-      "profession_or_treasure_amount": 26,
+      "auxiliary_data": 26,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": 2
@@ -6453,7 +6453,7 @@
         80
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": 28,
+      "auxiliary_data": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -6507,7 +6507,7 @@
         80
       ],
       "turns_worked": 0,
-      "profession_or_treasure_amount": 28,
+      "auxiliary_data": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -6561,7 +6561,7 @@
         80
       ],
       "turns_worked": 1,
-      "profession_or_treasure_amount": 24,
+      "auxiliary_data": 24,
       "transport_chain": {
         "next_unit_idx": 0,
         "prev_unit_idx": -1
@@ -6615,7 +6615,7 @@
         60
       ],
       "turns_worked": 0,
-      "profession_or_treasure_amount": 26,
+      "auxiliary_data": 26,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": -1
@@ -6669,7 +6669,7 @@
         60
       ],
       "turns_worked": 0,
-      "profession_or_treasure_amount": 28,
+      "auxiliary_data": 28,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": 1
@@ -6723,7 +6723,7 @@
         40
       ],
       "turns_worked": 0,
-      "profession_or_treasure_amount": 16,
+      "auxiliary_data": 16,
       "transport_chain": {
         "next_unit_idx": 94,
         "prev_unit_idx": 5
@@ -6777,7 +6777,7 @@
         80
       ],
       "turns_worked": 0,
-      "profession_or_treasure_amount": 1,
+      "auxiliary_data": 1,
       "transport_chain": {
         "next_unit_idx": -1,
         "prev_unit_idx": 93

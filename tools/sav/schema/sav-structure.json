@@ -621,7 +621,7 @@
             "colony_count": {"size": 2, "save_meta": true, "type": "uint", "__hint": "colonies count, saving to meta for later use"},
             "trade_route_count": {"size": 2, "type": "uint"},
             "show_entire_map": {"size": 2, "type": "uint"},
-            "fixed_nation_map_view": {"size": 2, "type": "nation_2byte_type"},
+            "fixed_nation_map_view": {"size": 2, "type": "nation_2byte_type", "__hint": "Set only if a specific nation is chosen from the Cheat->Reveal Map menu; otherwise None"},
             "difficulty": {"size": 1, "type": "difficulty_type"},
             "unknown43a": {"size": 1, "__hint": "looks somehow related to tax rate, despite the dedicated tax_rate field that we already have."},
             "unknown43b": {"size": 1},
@@ -1045,7 +1045,7 @@
                 "cargo_items",
                 "cargo_hold",
                 "turns_worked",
-                "profession_or_treasure_amount",
+                "auxiliary_data",
                 "transport_chain"
             ],
             "x, y": {"size": 1, "count": 2, "type": "uint", "no_indent": true},
@@ -1094,7 +1094,7 @@
             },
             "cargo_hold": {"size": 1, "cols": 6, "type": "uint", "no_indent": true, "__hint": "last number contains pioneer tool count."},
             "turns_worked": {"size": 1, "type": "uint", "__hint": "for ships on the high seas this is a counter that determines when they advance to the next position, which seems to happen when the value is 1 for sailing from either east or west."},
-            "profession_or_treasure_amount": {"size": 1, "type": "uint", "__hint": "Can be 'expert farmer' for ships, it's ok. A amount of gold for Treasure units (100's, i.e. 0x32 = 50d = 5000 gold)"},
+            "auxiliary_data": {"size": 1, "type": "uint", "__hint": "May contain unit profession, treasure amount, or trade route state. See supplemental-info.md for info for details."},
             "transport_chain":
             {
                 "__hint01": "Defines a bidirectional linked list of units that are on the same tile. May also apply to units on the high seas",

@@ -8,6 +8,10 @@ TODO:
 
   * Add 't' key to land view input.
 
+  * In the sav files a unit on a trade route keeps track of which
+    trade route it is on and which stop it is headed to next in
+    the `auxiliary_data` field.
+
   * Determine whether a load from a colony will load more than
     100, either when there are other things to load and when not.
     Maybe we should cycle around, loading 100 of each until a

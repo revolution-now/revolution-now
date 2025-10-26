@@ -5806,7 +5806,7 @@ void to_str( UNIT const& o, std::string& out, base::tag<UNIT> ) {
   out += "cargo_items="; base::to_str( o.cargo_items, out ); out += ',';
   out += "cargo_hold="; base::to_str( o.cargo_hold, out ); out += ',';
   out += "turns_worked="; base::to_str( o.turns_worked, out ); out += ',';
-  out += "profession_or_treasure_amount="; base::to_str( o.profession_or_treasure_amount, out ); out += ',';
+  out += "auxiliary_data="; base::to_str( o.auxiliary_data, out ); out += ',';
   out += "transport_chain="; base::to_str( o.transport_chain, out );
   out += '}';
 }
@@ -5829,7 +5829,7 @@ bool read_binary( base::IBinaryIO& b, UNIT& o ) {
     && read_binary( b, o.cargo_items )
     && read_binary( b, o.cargo_hold )
     && read_binary( b, o.turns_worked )
-    && read_binary( b, o.profession_or_treasure_amount )
+    && read_binary( b, o.auxiliary_data )
     && read_binary( b, o.transport_chain )
     ;
 }
@@ -5851,7 +5851,7 @@ bool write_binary( base::IBinaryIO& b, UNIT const& o ) {
     && write_binary( b, o.cargo_items )
     && write_binary( b, o.cargo_hold )
     && write_binary( b, o.turns_worked )
-    && write_binary( b, o.profession_or_treasure_amount )
+    && write_binary( b, o.auxiliary_data )
     && write_binary( b, o.transport_chain )
     ;
 }
@@ -5875,7 +5875,7 @@ cdr::value to_canonical( cdr::converter& conv,
   conv.to_field( tbl, "cargo_items", o.cargo_items );
   conv.to_field( tbl, "cargo_hold", o.cargo_hold );
   conv.to_field( tbl, "turns_worked", o.turns_worked );
-  conv.to_field( tbl, "profession_or_treasure_amount", o.profession_or_treasure_amount );
+  conv.to_field( tbl, "auxiliary_data", o.auxiliary_data );
   conv.to_field( tbl, "transport_chain", o.transport_chain );
   tbl["__key_order"] = cdr::list{
     "x, y",
@@ -5893,7 +5893,7 @@ cdr::value to_canonical( cdr::converter& conv,
     "cargo_items",
     "cargo_hold",
     "turns_worked",
-    "profession_or_treasure_amount",
+    "auxiliary_data",
     "transport_chain",
   };
   return tbl;
@@ -5921,7 +5921,7 @@ cdr::result<UNIT> from_canonical(
   CONV_FROM_FIELD( "cargo_items", cargo_items );
   CONV_FROM_FIELD( "cargo_hold", cargo_hold );
   CONV_FROM_FIELD( "turns_worked", turns_worked );
-  CONV_FROM_FIELD( "profession_or_treasure_amount", profession_or_treasure_amount );
+  CONV_FROM_FIELD( "auxiliary_data", auxiliary_data );
   CONV_FROM_FIELD( "transport_chain", transport_chain );
   HAS_VALUE_OR_RET( conv.end_field_tracking( tbl, used_keys ) );
   return res;
