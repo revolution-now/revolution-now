@@ -553,17 +553,17 @@ wait<bool> MapEditPlane::Impl::handle_event(
       event.buttons == input::e_mouse_button_event::right_down;
   if( !left && !right ) co_return false;
   Coord click_pos = event.pos;
+  if( left && click_pos.is_inside( toolbar_rect() ) ) {
+    co_await click_on_toolbar(
+        Coord{} + ( click_pos - toolbar_rect().upper_left() ) /
+                      g_tile_delta );
+    co_return false;
+  }
   if( auto maybe_tile =
           viewport().screen_pixel_to_world_tile( click_pos ) ) {
     lg.debug( "clicked on tile: {}.", *maybe_tile );
     e_action action = left ? e_action::add : e_action::remove;
     co_await click_on_tile( *maybe_tile, action );
-    co_return false;
-  }
-  if( left && click_pos.is_inside( toolbar_rect() ) ) {
-    co_await click_on_toolbar(
-        Coord{} + ( click_pos - toolbar_rect().upper_left() ) /
-                      g_tile_delta );
     co_return false;
   }
   co_return false;
