@@ -31,12 +31,6 @@ TODO:
 
   * Wagon trains need to end their turn when entering a colony.
 
-  * Add trade_route to unit orders.
-
-  * Enable Trade Route menu item in orders menu.
-
-  * Add 't' key to land view input.
-
   * Note that the trade route edit screen allows editing the
     name.
 
@@ -130,3 +124,9 @@ Done:
   * In the sav files a unit on a trade route keeps track of which
     trade route it is on and which stop it is headed to next in
     the `auxiliary_data` field.
+
+  * Add trade_route to unit orders.
+
+  * Enable Trade Route menu item in orders menu.
+
+  * Add 't' key to land view input.

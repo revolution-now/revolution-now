@@ -49,19 +49,20 @@ struct.CommandHandlerRunResult {
 # cause a land unit to go into a sea square without a ship, which
 # would not be allowed. In that case, the command is not allowed.
 sumtype.command {
-  wait      {},
-  forfeight {},
-  build     {},
-  road      {},
-  plow      {},
-  fortify   {},
-  sentry    {},
-  disband   {
+  wait        {},
+  forfeight   {},
+  build       {},
+  road        {},
+  plow        {},
+  fortify     {},
+  sentry      {},
+  dump        {},
+  trade_route {},
+  move        { d 'e_direction' },
+  go_to       { target 'goto_target' },
+  disband     {
     # For use only when issuing a disband command on a tile and
     # not a unit asking for orders.
     tile 'base::maybe<gfx::point>',
   },
-  dump      {},
-  move      { d 'e_direction' },
-  go_to     { target 'goto_target' },
 }

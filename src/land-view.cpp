@@ -36,6 +36,7 @@
 #include "roles.hpp"
 #include "screen.hpp" // FIXME: remove
 #include "time.hpp"
+#include "trade-route.hpp"
 #include "ts.hpp"
 #include "unit-id.hpp"
 #include "unit-mgr.hpp"
@@ -223,6 +224,8 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
         e_menu_item::move, *this ) );
     dereg.push_back( menu_server.register_handler(
         e_menu_item::go_to, *this ) );
+    dereg.push_back( menu_server.register_handler(
+        e_menu_item::trade_route, *this ) );
     dereg.push_back( menu_server.register_handler(
         e_menu_item::return_to_europe, *this ) );
     dereg.push_back( menu_server.register_handler(
@@ -1305,6 +1308,21 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
           };
         break;
       }
+      case e_menu_item::trade_route: {
+        if( auto const unit_input =
+                mode_.top().get_if<LandViewMode::unit_input>();
+            unit_input.has_value() ) {
+          Unit const& unit =
+              ss_.units.unit_for( unit_input->unit_id );
+          if( unit_can_start_trade_route( unit.type() ) )
+            return [this] {
+              raw_input_stream_.send(
+                  RawInput( LandViewRawInput::cmd{
+                    .what = command::trade_route{} } ) );
+            };
+        }
+        break;
+      }
       case e_menu_item::no_orders: {
         if( mode_.top().holds<LandViewMode::unit_input>() )
           return [this] {
@@ -1461,6 +1479,14 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
             else
               raw_input_stream_.send(
                   RawInput( LandViewRawInput::goto_port{} ) );
+            break;
+          case ::SDLK_t:
+            if( !mode_.top().holds<LandViewMode::unit_input>() )
+              break;
+            if( !key_event.mod.shf_down )
+              raw_input_stream_.send(
+                  RawInput( LandViewRawInput::cmd{
+                    .what = command::trade_route{} } ) );
             break;
           case ::SDLK_v:
             if( key_event.mod.shf_down ) break;

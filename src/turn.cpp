@@ -101,6 +101,7 @@
 
 // base
 #include "base/conv.hpp"
+#include "base/error.hpp"
 #include "base/keyval.hpp"
 #include "base/lambda.hpp"
 #include "base/logger.hpp"
@@ -618,6 +619,15 @@ wait<> menu_handler( IEngine& engine, SS& ss, TS& ts,
       co_await open_game_options_box( ss, ts );
       break;
     }
+    case e_menu_item::edit_trade_route: {
+      NOT_IMPLEMENTED;
+    }
+    case e_menu_item::create_trade_route: {
+      NOT_IMPLEMENTED;
+    }
+    case e_menu_item::delete_trade_route: {
+      NOT_IMPLEMENTED;
+    }
     default: {
       FATAL( "Not supposed to be handling menu item {} here.",
              item );
@@ -642,6 +652,9 @@ struct TurnMenuHandler : public IMenuHandler {
         e_menu_item::cheat_advance_revolution_status,
         e_menu_item::game_options,
         e_menu_item::continental_congress,
+        e_menu_item::edit_trade_route,
+        e_menu_item::create_trade_route,
+        e_menu_item::delete_trade_route,
       };
 
   co::stream<e_menu_item> menu_actions;
@@ -1348,6 +1361,12 @@ wait<> advance_unit( IEngine& engine, SS& ss, TS& ts,
     co_return;
   }
 
+  if( auto const trade_route =
+          unit.orders().get_if<unit_orders::trade_route>();
+      trade_route.has_value() ) {
+    unit.forfeight_mv_points();
+  }
+
   if( is_unit_in_port( ss.units, id ) ) {
     finish_turn( unit );
     co_return;
@@ -1448,6 +1467,7 @@ wait<> move_remaining_units( IEngine& engine, SS& ss, TS& ts,
                              Player& player, IAgent& agent,
                              PlayerTurnState::units& nat_units,
                              deque<UnitId>& q ) {
+  unordered_map<UnitId, int> circuit_breaker;
   while( !q.empty() ) {
     UnitId const id = q.front();
 
@@ -1456,6 +1476,11 @@ wait<> move_remaining_units( IEngine& engine, SS& ss, TS& ts,
       q.pop_front();
       continue;
     }
+
+    // Eventually before shipping this should be replaced by just
+    // logging an error and ending the unit's turn.
+    CHECK( ++circuit_breaker[id] < 100'000,
+           "unit {} is not progressing in its turn.", id );
 
     // High seas units are supposed to all be moved at the start
     // of the units turn in a separate location and should not be

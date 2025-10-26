@@ -22,6 +22,7 @@
 #include "command-move.hpp"
 #include "command-plow.hpp"
 #include "command-road.hpp"
+#include "command-trade.hpp"
 #include "unit-mgr.hpp"
 
 // ss
