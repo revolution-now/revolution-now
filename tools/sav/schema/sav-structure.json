@@ -1078,7 +1078,7 @@
             "orders": {"size": 1, "type": "orders_type"},
             "goto_x": {"size": 1, "type": "uint"},
             "goto_y": {"size": 1, "type": "uint"},
-            "goto_last_moved_attempted": {"size": 1, "type": "direction_type", "__hint": "For a human unit int goto mode OR for AI units, this gives the direction that the unit last moved OR at least attempted to move (e.g. maybe it ran out of movement points so not actually moved). When it didn't even attempt to move, it will be 'center'."},
+            "goto_last_moved_attempted": {"size": 1, "type": "direction_type", "__hint": "For a human unit with either Goto orders or Trade Route orders, OR for AI units, this gives the direction that the unit last moved OR at least attempted to move (e.g. maybe it ran out of movement points so not actually moved). When it didn't even attempt to move, it will be 'center'."},
             "holds_occupied": {"size": 1, "type": "uint"},
             "cargo_items":
             {
