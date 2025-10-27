@@ -15,12 +15,16 @@
 #include "ext.hpp"
 #include "query-enum.hpp"
 
-// Cdr
+// cdr
 #include "cdr/converter.hpp"
 #include "cdr/ext.hpp"
 
+// luapp
+#include "luapp/ext-userdata.hpp"
+
 // traverse
 #include "traverse/ext.hpp"
+#include "traverse/type-ext.hpp"
 
 // base
 #include "base/adl-tag.hpp"
@@ -197,3 +201,17 @@ struct enum_map : public std::vector<std::pair<Enum, ValT>> {
 };
 
 } // namespace refl
+
+/****************************************************************
+** TypeTraverse Specializations.
+*****************************************************************/
+namespace trv {
+TRV_TYPE_TRAVERSE( ::refl::enum_map, K, V );
+}
+
+/****************************************************************
+** Lua
+*****************************************************************/
+namespace lua {
+LUA_USERDATA_TRAITS_KV( refl::enum_map, owned_by_cpp ){};
+}

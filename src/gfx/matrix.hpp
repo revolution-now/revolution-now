@@ -15,8 +15,12 @@
 // gfx
 #include "coord.hpp"
 
+// luapp
+#include "luapp/ext-userdata.hpp"
+
 // traverse
 #include "traverse/ext.hpp"
+#include "traverse/type-ext.hpp"
 
 // base
 #include "base/attributes.hpp"
@@ -123,3 +127,17 @@ struct Matrix {
 };
 
 } // namespace gfx
+
+/****************************************************************
+** TypeTraverse Specializations.
+*****************************************************************/
+namespace trv {
+TRV_TYPE_TRAVERSE( ::gfx::Matrix, T );
+}
+
+/****************************************************************
+** Lua
+*****************************************************************/
+namespace lua {
+LUA_USERDATA_TRAITS_T( ::gfx::Matrix, owned_by_cpp ){};
+}

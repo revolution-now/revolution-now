@@ -17,13 +17,17 @@
 #include "luapp/any.hpp"
 #include "luapp/enum.hpp"
 #include "luapp/ext-base.hpp"
+#include "luapp/ext-refl.hpp"
 #include "luapp/ext-std.hpp"
+#include "luapp/ext-userdata.hpp"
 #include "luapp/register.hpp"
 #include "luapp/state.hpp"
 #include "luapp/types.hpp"
 #include "luapp/usertype.hpp"
 
 // refl
+#include "refl/enum-map.hpp"
+#include "refl/ext-type-traverse.hpp"
 #include "refl/ext.hpp"
 #include "refl/query-struct.hpp"
 #include "refl/to-str.hpp"
@@ -31,6 +35,8 @@
 // traverse
 #include "traverse/ext-std.hpp"
 #include "traverse/ext.hpp"
+#include "traverse/type-ext-base.hpp"
+#include "traverse/type-ext-std.hpp"
 #include "traverse/type-ext.hpp"
 
 // base
@@ -44,144 +50,10 @@
 using namespace std;
 
 /****************************************************************
-** TypeTraverse Specializations.
-*****************************************************************/
-namespace trv {
-
-TRV_TYPE_TRAVERSE( ::base::maybe, T );
-TRV_TYPE_TRAVERSE( ::gfx::Matrix, T );
-TRV_TYPE_TRAVERSE( ::refl::enum_map, K, V );
-TRV_TYPE_TRAVERSE( ::rn::GenericUnitId );
-TRV_TYPE_TRAVERSE( ::rn::MovementPoints );
-TRV_TYPE_TRAVERSE( ::rn::UnitComposition );
-TRV_TYPE_TRAVERSE( ::rn::UnitType );
-TRV_TYPE_TRAVERSE( ::std::deque, T );
-TRV_TYPE_TRAVERSE( ::std::map, K, V );
-TRV_TYPE_TRAVERSE( ::std::string );
-TRV_TYPE_TRAVERSE( ::std::unordered_map, K, V );
-TRV_TYPE_TRAVERSE( ::std::vector, T );
-
-// std::tuple of refl::StructFields
-template<template<typename> typename O, typename... Ts>
-struct TypeTraverse<O, std::tuple<::refl::StructField<Ts>...>> {
-  using type = trv::list<typename O<
-      typename ::refl::StructField<Ts>::type>::type...>;
-};
-
-// std::array
-template<template<typename> typename O, typename T, size_t N>
-struct TypeTraverse<O, std::array<T, N>> {
-  using type = trv::list<typename O<T>::type>;
-};
-
-// ReflectedStruct
-template<template<typename> typename O,
-         ::refl::ReflectedStruct S>
-struct TypeTraverse<O, S> {
-  // NOTE: this is non-standard because we don't want to actually
-  // traverse the tuple<StructField...>, instead we want to skip
-  // straight to the underlying field types.
-  using type = TypeTraverse<
-      O, std::remove_const_t<
-             decltype( ::refl::traits<S>::fields )>>::type;
-};
-
-// Variant of ReflectedStructs
-template<template<typename> typename O,
-         ::refl::ReflectedStruct... Ts>
-struct TypeTraverse<O, ::base::variant<Ts...>> {
-  using type = trv::list<typename O<Ts>::type...>;
-};
-
-// Rds variant
-template<template<typename> typename O, typename S>
-requires requires { typename S::i_am_rds_variant; }
-struct TypeTraverse<O, S> {
-  using type = trv::list<typename O<typename S::Base>::type>;
-};
-
-// WrapsReflected
-template<template<typename> typename O, ::refl::WrapsReflected T>
-struct TypeTraverse<O, T> {
-  using type = trv::list<typename O<std::remove_cvref_t<
-      decltype( std::declval<T>().refl() )>>::type>;
-};
-
-} // namespace trv
-
-/****************************************************************
-** Lua Traits
-*****************************************************************/
-namespace lua {
-
-#define LUA_USERDATA_TRAITS_T( type, model ) \
-  template<typename T>                       \
-  struct type_traits<type<T>>                \
-    : TraitsForModel<type<T>,                \
-                     e_userdata_ownership_model::owned_by_cpp>
-
-#define LUA_USERDATA_TRAITS_KV( type, model ) \
-  template<typename K, typename V>            \
-  struct type_traits<type<K, V>>              \
-    : TraitsForModel<type<K, V>,              \
-                     e_userdata_ownership_model::owned_by_cpp>
-
-LUA_USERDATA_TRAITS_T( std::vector, owned_by_cpp ){};
-LUA_USERDATA_TRAITS_T( std::deque, owned_by_cpp ){};
-LUA_USERDATA_TRAITS_T( ::gfx::Matrix, owned_by_cpp ){};
-LUA_USERDATA_TRAITS_KV( std::map, owned_by_cpp ){};
-LUA_USERDATA_TRAITS_KV( std::unordered_map, owned_by_cpp ){};
-LUA_USERDATA_TRAITS_KV( refl::enum_map, owned_by_cpp ){};
-
-template<refl::ReflectedStruct S>
-requires( !PushableViaAdl<S> && !GettableViaAdl<S> )
-struct type_traits<S>
-  : TraitsForModel<S, e_userdata_ownership_model::owned_by_cpp> {
-};
-
-template<refl::WrapsReflected S>
-requires( !requires { typename type_traits<S>::type; } )
-struct type_traits<S>
-  : TraitsForModel<S, e_userdata_ownership_model::owned_by_cpp> {
-};
-
-template<refl::ReflectedStruct... Ts>
-struct type_traits<base::variant<Ts...>>
-  : TraitsForModel<base::variant<Ts...>,
-                   e_userdata_ownership_model::owned_by_cpp> {};
-
-template<typename S>
-requires requires { typename S::i_am_rds_variant; }
-struct type_traits<S>
-  : TraitsForModel<S, e_userdata_ownership_model::owned_by_cpp> {
-};
-
-template<typename T, size_t N>
-struct type_traits<std::array<T, N>>
-  : TraitsForModel<std::array<T, N>,
-                   e_userdata_ownership_model::owned_by_cpp> {};
-
-} // namespace lua
-
-/****************************************************************
 ** Lua Usertypes
 *****************************************************************/
 namespace lua {
 namespace {
-
-template<typename T>
-requires std::is_scalar_v<T>
-void define_usertype_for( lua::state&, tag<T> ) {}
-
-void define_usertype_for( lua::state&, tag<std::string> ) {}
-
-void define_usertype_for( lua::state&, tag<::rn::Coord> ) {}
-
-void define_usertype_for( lua::state&,
-                          tag<::rn::GenericUnitId> ) {}
-
-void define_usertype_for( lua::state&,
-                          tag<rn::MovementPoints> ) {}
 
 template<typename T>
 requires lua::Pushable<T> && lua::Gettable<T>
@@ -309,18 +181,19 @@ void define_usertype_for( lua::state& st,
 }
 
 template<refl::ReflectedStruct S>
+requires( !lua::PushableViaAdl<S> && !lua::GettableViaAdl<S> )
 void define_usertype_for( lua::state& st, tag<S> ) {
   auto u = st.usertype.create<S>();
   trv::traverse(
       refl::traits<S>::fields,
-      [&]( auto& field, string_view const ) {
+      // Here the `name` passed into this lambda is e.g. "<0>",
+      // "<1>", because we are traversing the tuple. So we need
+      // field.name to get the real field name.
+      [&]( auto& field, string_view const /*name*/ ) {
         using FieldType =
             std::remove_cvref_t<decltype( field )>::type;
-        // Here the `name` passed into this lambda is e.g. "<0>",
-        // "<1>", because we are traversing the tuple. So we need
-        // field.name to get the real field name.
-        if constexpr( !std::is_same_v<FieldType,
-                                      ::rn::UnitComposition> )
+        if constexpr( !HasValueUserdataOwnershipModel<
+                          FieldType> )
           u[field.name] = field.accessor;
       } );
 }
@@ -459,38 +332,41 @@ void define_usertype_for( lua::state& st,
 /****************************************************************
 ** RegisterLuaType
 *****************************************************************/
-namespace rn {
+namespace lua {
+
+template<typename T>
+concept HasUsertypeDefinition = requires( state& st, tag<T> ) {
+  { define_usertype_for( st, tag<T>{} ) } -> std::same_as<void>;
+};
+
+template<typename T>
+concept HasUniqueOwnershipCategory =
+    Gettable<T> + Gettable<T&> + Gettable<T&&> == 1;
 
 template<typename T>
 struct RegisterLuaType {
   using type = ::trv::TypeTraverse<RegisterLuaType, T>::type;
 
-  // Ensure that we're never Gettable in two different ways.
-  static_assert( lua::Gettable<T&> != lua::Gettable<T> );
-
-#if 0
-  // Ensure that we're never pushable in two different ways.
-  inline static auto const static_asserts = [] {
-    if constexpr( !std::is_same_v<T, ::rn::UnitComposition> &&
-                  !std::is_scalar_v<T> )
-      static_assert( lua::Pushable<T&> != lua::Pushable<T> );
-  };
-#endif
+  // Ensure that we're never Gettable in more than one way.
+  static_assert( HasUniqueOwnershipCategory<T> );
+  static_assert( !Gettable<T const&&> );
 
   inline static int _ = [] {
-    static auto constexpr register_fn = +[]( lua::state& st ) {
-      ::lua::define_usertype_for( st, ::lua::tag<T>{} );
-    };
-    static auto constexpr p_register_fn = +register_fn;
-    ::lua::detail::register_lua_fn( &p_register_fn );
+    if constexpr( HasUsertypeDefinition<T> ) {
+      static auto constexpr register_fn = +[]( state& st ) {
+        define_usertype_for( st, tag<T>{} );
+      };
+      static auto constexpr p_register_fn = +register_fn;
+      detail::register_lua_fn( &p_register_fn );
+    }
     return 0;
   }();
   ODR_USE_MEMBER( _ );
 };
 
-TRV_RUN_TYPE_TRAVERSE( RegisterLuaType, RootState );
+TRV_RUN_TYPE_TRAVERSE( RegisterLuaType, ::rn::RootState );
 
-} // namespace rn
+} // namespace lua
 
 /****************************************************************
 ** Linker.

@@ -5,7 +5,7 @@
 *
 * Created by David P. Sicilia on 2024-02-03.
 *
-* Description: TODO [FILL ME IN]
+* Description: Represents unit type and inventory.
 *
 *****************************************************************/
 #include "unit-composition.hpp"

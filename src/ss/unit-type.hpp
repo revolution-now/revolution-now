@@ -20,6 +20,9 @@
 // luapp
 #include "luapp/ext-userdata.hpp"
 
+// traverse
+#include "traverse/type-ext.hpp"
+
 // base
 #include "base/adl-tag.hpp"
 #include "base/expect.hpp"
@@ -144,6 +147,16 @@ base::maybe<UnitType> find_unit_type_modifiers(
 
 } // namespace rn
 
+/****************************************************************
+** TypeTraverse Specializations.
+*****************************************************************/
+namespace trv {
+TRV_TYPE_TRAVERSE( ::rn::UnitType );
+}
+
+/****************************************************************
+** Lua
+*****************************************************************/
 namespace lua {
 LUA_USERDATA_TRAITS( ::rn::UnitType, owned_by_lua ){};
 }
