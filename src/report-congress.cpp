@@ -397,7 +397,7 @@ Layout layout_auto( SSConst const& ss, Player const& player,
 }
 
 /****************************************************************
-** DfficultyScreen
+** ContinentalCongressReport
 *****************************************************************/
 struct ContinentalCongressReport : public IPlane {
   // State
