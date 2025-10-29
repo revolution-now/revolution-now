@@ -207,7 +207,7 @@ TEST_CASE( "[enum-map] cdr/no-defaults" ) {
 }
 
 struct NonCopyable {
-  NonCopyable() = default;
+  [[maybe_unused]] NonCopyable() = default;
   NonCopyable( int m ) : n( m ) {}
 
   NonCopyable( NonCopyable const& )            = delete;

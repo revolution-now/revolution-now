@@ -10,13 +10,29 @@
 *****************************************************************/
 #pragma once
 
-// Revolution Now
+// luapp
+#include "ext-userdata.hpp"
 #include "ext.hpp"
 
 // C++ standard library
+#include <array>
+#include <deque>
+#include <map>
 #include <tuple>
+#include <unordered_map>
+#include <vector>
 
 namespace lua {
+
+LUA_USERDATA_TRAITS_T( std::vector, owned_by_cpp ){};
+LUA_USERDATA_TRAITS_T( std::deque, owned_by_cpp ){};
+LUA_USERDATA_TRAITS_KV( std::map, owned_by_cpp ){};
+LUA_USERDATA_TRAITS_KV( std::unordered_map, owned_by_cpp ){};
+
+template<typename T, size_t N>
+struct type_traits<std::array<T, N>>
+  : TraitsForModel<std::array<T, N>,
+                   e_userdata_ownership_model::owned_by_cpp> {};
 
 /****************************************************************
 ** std::tuple

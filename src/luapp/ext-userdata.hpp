@@ -143,4 +143,18 @@ concept HasUserdataOwnershipModel =
   struct type_traits<type>                 \
     : TraitsForModel<type, e_userdata_ownership_model::model>
 
+// For templates with one template parameter.
+#define LUA_USERDATA_TRAITS_T( type, model ) \
+  template<typename T>                       \
+  struct type_traits<type<T>>                \
+    : TraitsForModel<type<T>,                \
+                     e_userdata_ownership_model::owned_by_cpp>
+
+// For templates with two template parameters.
+#define LUA_USERDATA_TRAITS_KV( type, model ) \
+  template<typename K, typename V>            \
+  struct type_traits<type<K, V>>              \
+    : TraitsForModel<type<K, V>,              \
+                     e_userdata_ownership_model::owned_by_cpp>
+
 } // namespace lua

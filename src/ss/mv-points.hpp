@@ -18,6 +18,7 @@
 
 // traverse
 #include "traverse/ext.hpp"
+#include "traverse/type-ext.hpp"
 
 // luapp
 #include "luapp/ext.hpp"
@@ -171,3 +172,10 @@ NOTHROW_MOVE( MovementPoints );
 using MvPoints = MovementPoints;
 
 } // namespace rn
+
+/****************************************************************
+** TypeTraverse Specializations.
+*****************************************************************/
+namespace trv {
+TRV_TYPE_TRAVERSE( ::rn::MovementPoints );
+}

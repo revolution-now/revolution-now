@@ -18,6 +18,7 @@
 
 // traverse
 #include "traverse/ext.hpp"
+#include "traverse/type-ext.hpp"
 
 // base
 #include "base/to-str.hpp"
@@ -156,3 +157,10 @@ struct hash<::rn::GenericUnitId> {
 };
 
 } // namespace std
+
+/****************************************************************
+** TypeTraverse Specializations.
+*****************************************************************/
+namespace trv {
+TRV_TYPE_TRAVERSE( ::rn::GenericUnitId );
+}

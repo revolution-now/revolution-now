@@ -19,6 +19,9 @@
 // luapp
 #include "luapp/ext-userdata.hpp"
 
+// traverse
+#include "traverse/type-ext.hpp"
+
 namespace rn {
 
 /****************************************************************
@@ -63,6 +66,13 @@ struct UnitComposition {
 };
 
 } // namespace rn
+
+/****************************************************************
+** TypeTraverse Specializations.
+*****************************************************************/
+namespace trv {
+TRV_TYPE_TRAVERSE( ::rn::UnitComposition );
+}
 
 /****************************************************************
 ** Lua
