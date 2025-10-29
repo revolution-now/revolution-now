@@ -65,6 +65,8 @@
 #include "save-game.hpp"
 #include "succession.hpp"
 #include "tax.hpp"
+#include "trade-route-ui.hpp"
+#include "trade-route.hpp"
 #include "ts.hpp"
 #include "turn-mgr.hpp"
 #include "unit-mgr.hpp"
@@ -620,13 +622,36 @@ wait<> menu_handler( IEngine& engine, SS& ss, TS& ts,
       break;
     }
     case e_menu_item::edit_trade_route: {
-      NOT_IMPLEMENTED;
+      auto const trade_route_id = co_await ask_edit_trade_route(
+          ss.as_const, as_const( player ), ts.gui );
+      if( !trade_route_id.has_value() ) break;
+      co_await show_trade_route_edit_ui(
+          engine, ss.as_const, as_const( player ), ts.gui,
+          ts.planes, ss.trade_routes, *trade_route_id );
+      break;
     }
     case e_menu_item::create_trade_route: {
-      NOT_IMPLEMENTED;
+      auto const params = co_await ask_create_trade_route(
+          ss.as_const, as_const( player ), ts.gui,
+          ts.map_updater().connectivity() );
+      if( !params.has_value() ) break;
+      TradeRouteId const trade_route_id =
+          create_trade_route( ss.trade_routes, *params );
+      co_await show_trade_route_edit_ui(
+          engine, ss.as_const, as_const( player ), ts.gui,
+          ts.planes, ss.trade_routes, trade_route_id );
+      break;
     }
     case e_menu_item::delete_trade_route: {
-      NOT_IMPLEMENTED;
+      auto const trade_route_id =
+          co_await ask_delete_trade_route(
+              ss.as_const, as_const( player ), ts.gui );
+      if( !trade_route_id.has_value() ) break;
+      if( !co_await confirm_delete_trade_route(
+              ss.as_const, ts.gui, *trade_route_id ) )
+        break;
+      delete_trade_route( ss.trade_routes, *trade_route_id );
+      break;
     }
     default: {
       FATAL( "Not supposed to be handling menu item {} here.",

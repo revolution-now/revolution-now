@@ -125,6 +125,10 @@ struct IGui {
   wait<maybe<int>> optional_choice_idx(
       ChoiceConfig const& config );
 
+  // Same as above but the ID returned is parsed from the key.
+  wait<maybe<int>> optional_choice_int_key(
+      ChoiceConfig const& config );
+
   wait<std::string> required_choice(
       ChoiceConfig const& config );
 

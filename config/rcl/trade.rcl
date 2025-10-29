@@ -1,0 +1,9 @@
+trade_routes {
+  name_suggestion_suffixes: [
+    Run
+    Ferry
+    Cargo
+    Transport
+    Triangle
+  ]
+}

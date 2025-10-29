@@ -81,6 +81,7 @@ namespace rn {
 
 namespace {
 
+using ::gfx::point;
 using ::refl::enum_values;
 
 // This returns all units that are either working in the colony
@@ -623,14 +624,28 @@ void give_stockade_if_needed( Player const& player,
 vector<ColonyId> find_coastal_colonies(
     SSConst const& ss, TerrainConnectivity const& connectivity,
     e_player const player ) {
-  vector<ColonyId> colonies = ss.colonies.for_player( player );
+  vector<ColonyId> colonies =
+      ss.colonies.for_player_sorted( player );
   erase_if( colonies, [&]( ColonyId const colony_id ) {
     Colony const& colony = ss.colonies.colony_for( colony_id );
     bool const coastal   = colony_has_ocean_access(
         ss, connectivity, colony.location );
     return !coastal;
   } );
-  rg::sort( colonies );
+  return colonies;
+}
+
+vector<ColonyId> find_connected_colonies(
+    SSConst const& ss, TerrainConnectivity const& connectivity,
+    e_player const player, point const tile ) {
+  vector<ColonyId> colonies =
+      ss.colonies.for_player_sorted( player );
+  erase_if( colonies, [&]( ColonyId const colony_id ) {
+    Colony const& colony = ss.colonies.colony_for( colony_id );
+    bool const connected = tiles_are_connected(
+        connectivity, tile, colony.location );
+    return !connected;
+  } );
   return colonies;
 }
 

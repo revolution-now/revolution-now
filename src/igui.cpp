@@ -14,6 +14,7 @@
 #include "co-wait.hpp"
 
 // base
+#include "base/conv.hpp"
 #include "base/string.hpp"
 
 using namespace std;
@@ -39,6 +40,14 @@ wait<maybe<int>> IGui::optional_choice_idx(
       "programmer error: choice result '{}' not found in "
       "options.",
       *str );
+}
+
+wait<maybe<int>> IGui::optional_choice_int_key(
+    ChoiceConfig const& config ) {
+  auto const str = co_await choice( config );
+  if( !str.has_value() ) co_return nothing;
+  UNWRAP_CHECK_T( int const n, base::stoi( *str ) );
+  co_return n;
 }
 
 wait<string> IGui::required_choice(

@@ -899,6 +899,37 @@ TEST_CASE( "[colony-mgr] find_coastal_colonies" ) {
   REQUIRE( f() == vector<ColonyId>{ colony_id_2, colony_id_3 } );
 }
 
+TEST_CASE( "[colony-mgr] find_connected_colonies" ) {
+  world w;
+  vector<ColonyId> expected;
+
+  TerrainConnectivity const& connectivity =
+      w.map_updater().connectivity();
+
+  point tile;
+
+  auto const f = [&] [[clang::noinline]] {
+    return find_connected_colonies(
+        w.ss(), connectivity, w.default_player_type(), tile );
+  };
+
+  // // clang-format off
+  // // 0  1  2  3  4  5  6  7  8
+  //    _, L, _, L, L, L, L, L, _, // 0
+  //    L, L, L, L, L, L, _, L, _, // 1
+  //    _, L, L, L, L, L, L, L, _, // 2
+  //    _, L, _, L, L, L, L, _, _, // 3
+  //    _, L, L, L, L, L, L, L, _, // 4
+  //    L, L, L, L, L, L, L, L, _, // 5
+  // };
+  // // clang-format on
+
+  tile     = { .x = 1, .y = 1 };
+  expected = {};
+  REQUIRE( f() == expected );
+
+}
+
 TEST_CASE( "[colony-mgr] total_colonies_population" ) {
   world w;
 

@@ -146,4 +146,10 @@ std::vector<ColonyId> find_coastal_colonies(
     SSConst const& ss, TerrainConnectivity const& connectivity,
     e_player player );
 
+// Finds the player's colonies that have the same connectivity
+// index as the given tile.
+std::vector<ColonyId> find_connected_colonies(
+    SSConst const& ss, TerrainConnectivity const& connectivity,
+    e_player player, gfx::point tile );
+
 } // namespace rn

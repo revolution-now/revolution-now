@@ -40,6 +40,11 @@ TODO:
   * Make sure that things are ok if a unit is on a trade route
     and then the control of the player is changed to AI.
 
+  * If a colony is captured then we should halt units that are on
+    trade routes containing that colony.
+
+  * Make sure there aren't duplicate trade route names.
+
   * In the editor screen, for land routes, the first stop defines
     the continent, then it will only allow selecting other
     colonies on that same continent, and we should probably

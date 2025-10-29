@@ -1,0 +1,39 @@
+# ===============================================================
+# trade-route-ui-impl.rds
+#
+# Project: Revolution Now
+#
+# Created by David P. Sicilia on 2025-10-26.
+#
+# Description: Rds definitions for the trade-route-ui-impl module.
+#
+# ===============================================================
+namespace "rn"
+
+sumtype.TradeRouteInput {
+  done {},
+  cancel {},
+  select_trade_route {},
+
+  change_name {},
+
+  destination_add {},
+  destination_remove {
+    stop 'int',
+  },
+
+  load_add {
+    stop 'int',
+  },
+  unload_add {
+    stop 'int',
+  },
+  load_remove {
+    stop 'int',
+    cargo 'int',
+  },
+  unload_remove {
+    stop 'int',
+    cargo 'int',
+  },
+}

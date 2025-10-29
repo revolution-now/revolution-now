@@ -717,7 +717,7 @@ namespace {
       window_manager.engine().textometer(), string( msg ),
       m_info, r_info );
   auto le_view = make_unique<ui::LineEditorView>(
-      window_manager.engine().textometer(), /*chars_wide=*/20,
+      window_manager.engine().textometer(), /*chars_wide=*/30,
       initial_text );
   ui::LineEditorView* p_le_view = le_view.get();
 

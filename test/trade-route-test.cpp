@@ -81,5 +81,29 @@ TEST_CASE( "[trade-route] unit_can_start_trade_route" ) {
   REQUIRE_FALSE( f( treasure ) );
 }
 
+TEST_CASE( "[trade-route] ask_edit_trade_route" ) {
+  world w;
+}
+
+TEST_CASE( "[trade-route] ask_delete_trade_route" ) {
+  world w;
+}
+
+TEST_CASE( "[trade-route] ask_create_trade_route" ) {
+  world w;
+}
+
+TEST_CASE( "[trade-route] create_trade_route" ) {
+  world w;
+}
+
+TEST_CASE( "[trade-route] confirm_delete_trade_route" ) {
+  world w;
+}
+
+TEST_CASE( "[trade-route] delete_trade_route" ) {
+  world w;
+}
+
 } // namespace
 } // namespace rn

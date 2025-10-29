@@ -12,6 +12,7 @@
 include "commodity.rds.hpp"
 include "trade-route-id.hpp"
 include "colony-id.hpp"
+include "nation.rds.hpp"
 
 # C++ standard library
 include "<map>"
@@ -52,6 +53,12 @@ struct.TradeRoute {
 
   # NOTE: in the OG this is a max of 32 chars.
   name 'std::string',
+
+  # Player that created the trade route. The OG does not have
+  # this, so when we convert to OG SAV format we will only save
+  # those from the designated human player (in the NG we can have
+  # multiple human players).
+  player 'e_player',
 
   type 'e_trade_route_type',
 

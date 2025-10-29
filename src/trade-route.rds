@@ -1,0 +1,25 @@
+# ===============================================================
+# trade-route.rds
+#
+# Project: Revolution Now
+#
+# Created by David P. Sicilia on 2025-10-26.
+#
+# Description: Rds definitions for the trade-route module.
+#
+# ===============================================================
+# ss
+include "ss/trade-route.rds.hpp"
+
+# C++ standard library
+include "<string>"
+
+namespace "rn"
+
+struct.CreateTradeRoute {
+  name 'std::string',
+  type 'e_trade_route_type',
+  player 'e_player',
+  stop1 'TradeRouteTarget',
+  stop2 'TradeRouteTarget',
+}

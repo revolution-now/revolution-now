@@ -41,6 +41,7 @@
 #include "config/terrain.rds.hpp"
 #include "config/text.rds.hpp"
 #include "config/tile-sheet.rds.hpp"
+#include "config/trade.rds.hpp"
 #include "config/turn.rds.hpp"
 #include "config/ui.rds.hpp"
 #include "config/unit-type.rds.hpp"
@@ -133,6 +134,7 @@ void inject_configs( lua::state& st ) {
   INJECT( terrain );
   INJECT( text );
   INJECT( tile_sheet );
+  INJECT( trade );
   INJECT( turn );
   INJECT( ui );
   INJECT( unit_type );

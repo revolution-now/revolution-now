@@ -250,5 +250,9 @@ TEST_CASE( "[igui] enum_check_boxes" ) {
   REQUIRE( items == expected );
 }
 
+TEST_CASE( "[igui] optional_choice_int_key" ) {
+  MockIGui gui;
+}
+
 } // namespace
 } // namespace rn
