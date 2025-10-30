@@ -58,11 +58,6 @@ UnitTypeAttributes const& Unit::desc() const {
   return unit_attr( type() );
 }
 
-// FIXME: luapp can only take this as non-const....
-UnitTypeAttributes& Unit::desc_non_const() const {
-  return const_cast<UnitTypeAttributes&>( unit_attr( type() ) );
-}
-
 bool Unit::is_colonist() const {
   return is_unit_a_colonist( o_.composition.type_obj() );
 }
@@ -192,9 +187,16 @@ void define_usertype_for( lua::state& st, lua::tag<Unit> ) {
   auto u  = st.usertype.create<Unit>();
 
   // Getters.
-  u["id"] = &U::id;
-  // FIXME: luapp can only take this as non-const...
-  u["desc"]        = &U::desc_non_const;
+  u["id"]   = &U::id;
+  u["desc"] = [&st]( U& o ) {
+    // The desc() method returns a const& which we don't support
+    // in our lua ownership model. So we will take advantage of
+    // the fact that this method just returns a view into the
+    // static unit configs, and the fact that we replicate that
+    // structure in pure lua in the "config" global.
+    return st["config"]["unit_type"]["composition"]["unit_types"]
+             [o.type()];
+  };
   u["type_obj"]    = &U::type_obj;
   u["composition"] = []( Unit& unit ) {
     return unit.composition();

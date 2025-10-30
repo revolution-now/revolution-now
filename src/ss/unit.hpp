@@ -38,8 +38,6 @@ struct ND Unit {
 
   [[nodiscard]] UnitId id() const { return o_.id; }
   UnitTypeAttributes const& desc() const;
-  // FIXME: luapp can only take this as non-const....
-  UnitTypeAttributes& desc_non_const() const;
   bool is_colonist() const;
   unit_orders const& orders() const { return o_.orders; }
   unit_orders& orders() { return o_.orders; }
