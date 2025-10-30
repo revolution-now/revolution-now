@@ -597,6 +597,10 @@ struct c_api {
   [[noreturn]] void error( std::string const& msg ) noexcept(
       false );
 
+  // Get a string containing a multiline traceback of the thread
+  // held herein.
+  std::string traceback() noexcept;
+
   /**************************************************************
   ** Debugging
   ***************************************************************/

@@ -22,7 +22,10 @@ local timer = require( 'util.timer' )
 -----------------------------------------------------------------
 -- Globals.
 -----------------------------------------------------------------
-local function global( name ) return assert( _G[name] ) end
+local function global( name )
+  return assert( _G[name], string.format(
+                     'global name %s not found', name ) )
+end
 
 local classic_sav = global( 'classic_sav' )
 local config = global( 'config' )
@@ -39,6 +42,8 @@ local format = string.format
 local import_map_file = classic_sav.import_map_file
 
 local unordered_pairs = pairs
+
+---@diagnostic disable-next-line: unused-local, unused-function
 local pairs = function( _ )
   error( 'should not use pairs as it is not deterministic.' )
 end
@@ -1717,7 +1722,8 @@ function M.redistribute_resources( seed )
     square.forest_resource = nil
   end )
   distribute_bonuses( seed )
-  ROOT_TS.map_updater:redraw()
+  local TS = global( 'TS' )
+  TS.map_updater:redraw()
 end
 
 -- This will recompute the distribution of resources but with the
@@ -1731,7 +1737,8 @@ function M.remake_rivers( options )
   options = options or M.default_options()
   on_all( function( _, square ) square.river = nil end )
   create_rivers( options )
-  ROOT_TS.map_updater:redraw()
+  local TS = global( 'TS' )
+  TS.map_updater:redraw()
 end
 
 -- Note that this will not regenerate the indian dwellings.
@@ -1744,7 +1751,8 @@ function M.regenerate_native_land_partitions(
   if paint_map_by_partition then
     paint_native_land_partitions( partitions )
   end
-  ROOT_TS.map_updater:redraw()
+  local TS = global( 'TS' )
+  TS.map_updater:redraw()
 end
 
 -----------------------------------------------------------------
@@ -1752,7 +1760,8 @@ end
 -----------------------------------------------------------------
 function M.regen( options )
   M.generate( options )
-  ROOT_TS.map_updater:redraw()
+  local TS = global( 'TS' )
+  TS.map_updater:redraw()
 end
 
 local function generate( options )

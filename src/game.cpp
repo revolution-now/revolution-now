@@ -89,8 +89,8 @@ void play( IRand& rand, e_game_module_tune_points tune ) {
 }
 
 using LoaderFunc =
-    base::function_ref<wait<base::NoDiscard<bool>>( SS& ss,
-                                                    TS& ts )>;
+    base::function_ref<wait<base::NoDiscard<bool>>(
+        SS& ss, TS& ts, lua::state& lua )>;
 
 wait<> run_game( IEngine& engine, Planes& planes, IGui& gui,
                  LoaderFunc loader ) {
@@ -112,13 +112,14 @@ wait<> run_game( IEngine& engine, Planes& planes, IGui& gui,
 
   TerrainConnectivity connectivity;
 
-  TS ts( planes, st, gui, rand, combat, colony_viewer, saved );
+  TS ts( planes, gui, rand, combat, colony_viewer, saved );
+  st["TS"] = ts;
 
   NonRenderingMapUpdater non_rendering_map_updater(
       ss, connectivity );
   auto _1 = ts.set_map_updater( non_rendering_map_updater );
 
-  if( !co_await loader( ss, ts ) )
+  if( !co_await loader( ss, ts, st ) )
     // Didn't load a game for some reason. Could have failed or
     // maybe there are no games to load.
     co_return;
@@ -221,15 +222,16 @@ wait<> persistent_msg_box( IGui& gui, string_view const msg ) {
 
 wait<> handle_mode( IEngine& engine, Planes& planes, IGui& gui,
                     StartMode::new_random const& ) {
-  auto factory = [&]( SS& ss,
-                      TS& ts ) -> wait<base::NoDiscard<bool>> {
-    lua::table options = ts.lua.table.create();
+  auto factory =
+      [&]( SS& ss, TS&,
+           lua::state& lua ) -> wait<base::NoDiscard<bool>> {
+    lua::table options = lua.table.create();
     options["difficulty"] =
         co_await choose_difficulty_screen( engine, planes );
     wait<> const generating_msg = persistent_msg_box(
         gui, "Generating game... please wait." );
     co_await 1_frames;
-    ts.lua["new_game"]["create"]( ss.root, options );
+    lua["new_game"]["create"]( ss.root, options );
     // NOTE: this takes ~100-200ms for a normal map size on a
     // fast machine.
     CHECK_HAS_VALUE( ss.as_const.validate_full_game_state() );
@@ -250,8 +252,9 @@ wait<> handle_mode( IEngine&, Planes&, IGui&,
 
 wait<> handle_mode( IEngine& engine, Planes& planes, IGui& gui,
                     StartMode::load const& load ) {
-  auto factory = [&]( SS& ss,
-                      TS& ts ) -> wait<base::NoDiscard<bool>> {
+  auto factory =
+      [&]( SS& ss, TS& ts,
+           lua::state& ) -> wait<base::NoDiscard<bool>> {
     maybe<int> slot = load.slot;
     if( !slot.has_value() ) {
       // Pop open the load-game box to let the player choose what

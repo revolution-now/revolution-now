@@ -72,10 +72,6 @@
 #include "base/logger.hpp"
 #include "base/scope-exit.hpp"
 
-// luapp
-#include "luapp/enum.hpp" // IWYU pragma: keep
-#include "luapp/state.hpp"
-
 // C++ standard library
 #include <chrono>
 #include <queue>
@@ -989,55 +985,6 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
     }
   }
 
-  maybe<command> try_orders_from_lua( int keycode,
-                                      bool ctrl_down,
-                                      bool shf_down ) {
-    lua::state& st = ts_.lua;
-
-    lua::any lua_orders = st["land_view"]["key_to_orders"](
-        keycode, ctrl_down, shf_down );
-    if( !lua_orders ) return nothing;
-
-    // FIXME: the conversion from Lua to C++ below needs to be
-    // au- tomated once we have sumtype and struct reflection.
-    // When this is done then ideally we will just be able to do
-    // this:
-    //
-    //   command command = lua_orders.as<command>();
-    //
-    // And it should do the correct conversion and error
-    // checking.
-    lua::table tbl = lua_orders.as<lua::table>();
-    command command;
-    if( false )
-      ;
-    else if( tbl["wait"] )
-      command = command::wait{};
-    else if( tbl["forfeight"] )
-      command = command::forfeight{};
-    else if( tbl["build"] )
-      command = command::build{};
-    else if( tbl["fortify"] )
-      command = command::fortify{};
-    else if( tbl["sentry"] )
-      command = command::sentry{};
-    else if( tbl["disband"] )
-      ; // handled in c++
-    else if( tbl["road"] )
-      command = command::road{};
-    else if( tbl["plow"] )
-      command = command::plow{};
-    else if( tbl["move"] ) {
-      e_direction d = tbl["move"]["d"].as<e_direction>();
-      command       = command::move{ .d = d };
-    } else {
-      FATAL(
-          "invalid command::move object received from "
-          "lua." );
-    }
-    return command;
-  }
-
   void advance_state() override { advance_viewport_state(); }
 
   void draw( rr::Renderer& renderer ) const override {
@@ -1396,17 +1343,7 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
             break;
           }
         }
-        // First allow the Lua hook to handle the key press if it
-        // wants.
-        maybe<command> lua_orders = try_orders_from_lua(
-            key_event.keycode, key_event.mod.ctrl_down,
-            key_event.mod.shf_down );
-        if( lua_orders ) {
-          // lg.debug( "received key from lua: {}", lua_orders );
-          raw_input_stream_.send( RawInput(
-              LandViewRawInput::cmd{ .what = *lua_orders } ) );
-          break;
-        }
+
         switch( key_event.keycode ) {
           case ::SDLK_x: {
             // FIXME: these are only needed because of the fact

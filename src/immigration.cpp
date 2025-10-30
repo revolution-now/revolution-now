@@ -333,8 +333,8 @@ namespace {
 
 LUA_FN( pick_next_unit_for_pool, e_unit_type,
         Player const& player, SettingsState const& settings ) {
-  IRand& rand = st["ROOT_TS"]["rand"].as<IRand&>();
-  return pick_next_unit_for_pool( rand, player, settings );
+  TS& ts = st["TS"].as<TS&>();
+  return pick_next_unit_for_pool( ts.rand, player, settings );
 };
 
 } // namespace

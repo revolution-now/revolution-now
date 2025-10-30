@@ -64,16 +64,14 @@ struct [[nodiscard]] set_and_restore_pointer {
 ** TS
 *****************************************************************/
 struct TS {
-  TS( Planes& planes, lua::state& lua_, IGui& gui_, IRand& rand_,
-      ICombat& combat, IColonyViewer& colony_viewer,
-      RootState& saved );
+  TS( Planes& planes, IGui& gui_, IRand& rand_, ICombat& combat,
+      IColonyViewer& colony_viewer, RootState& saved );
 
   ~TS();
 
   TS( TS&& ) = delete;
 
   Planes& planes;
-  lua::state& lua;
   IGui& gui;
   IRand& rand;
   ICombat& combat;
@@ -89,10 +87,6 @@ struct TS {
   // saved or loaded. It is used to determine if the game needs
   // to be saved when the player tries to exit.
   RootState& saved;
-
- private:
-  struct LuaRefSetAndRestore;
-  std::unique_ptr<LuaRefSetAndRestore> pimpl_;
 };
 
 void to_str( TS const& o, std::string& out, base::tag<TS> );
@@ -105,7 +99,5 @@ void to_str( TS const& o, std::string& out, base::tag<TS> );
 ** Lua
 *****************************************************************/
 namespace lua {
-
 LUA_USERDATA_TRAITS( ::rn::TS, owned_by_cpp ){};
-
 }

@@ -164,6 +164,7 @@ lua::state& World::lua() {
     // FIXME: need to dedupe this logic.
     st["ROOT"] = root();
     st["SS"]   = ss();
+    st["TS"]   = ts();
   }
   return *uninitialized_lua_;
 }
@@ -213,10 +214,9 @@ namespace {
 // they currently store a reference to themselves in the lua
 // state (please FIXME).
 TS* make_ts( World& world ) {
-  auto* ts =
-      new TS( world.planes(), world.lua(), world.gui(),
-              world.rand(), world.combat(),
-              world.colony_viewer(), world.ss_saved().root );
+  auto* ts = new TS( world.planes(), world.gui(), world.rand(),
+                     world.combat(), world.colony_viewer(),
+                     world.ss_saved().root );
   ts->set_map_updater_no_restore( world.map_updater() );
   ts->set_native_agents_no_restore( world.native_agents() );
   ts->set_agents_no_restore( world.agents() );

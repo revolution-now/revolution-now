@@ -601,6 +601,21 @@ void c_api::error( std::string const& msg ) noexcept( false ) {
   throw 0;
 }
 
+// NOTE: the error handler in this module should already print a
+// traceback, so it should not be necessary to call this really.
+// TODO: This should be unit tested (if it is even used), but not
+// sure how to really do that.
+std::string c_api::traceback() noexcept {
+  char const* const msg = nullptr;
+  int const level       = 0;
+  // Creates and pushes a traceback of the stack L1. If msg is
+  // not NULL it is appended at the beginning of the traceback.
+  // The level parameter tells at which level to start the trace-
+  // back.
+  luaL_traceback( L_, /*stack for thread=*/L_, msg, level );
+  return pop_tostring();
+}
+
 int c_api::noref() noexcept { return LUA_NOREF; }
 
 void c_api::gc_collect() {
