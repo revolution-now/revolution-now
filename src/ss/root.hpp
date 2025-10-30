@@ -29,7 +29,5 @@ void define_usertype_for( lua::state& st, lua::tag<RootState> );
 ** Lua
 *****************************************************************/
 namespace lua {
-
 LUA_USERDATA_TRAITS( ::rn::RootState, owned_by_cpp ){};
-
 } // namespace lua

@@ -19,7 +19,6 @@
 #include "ss/players.hpp"
 #include "ss/settings.hpp"
 #include "ss/terrain.hpp"
-#include "ss/trade-route.hpp"
 #include "ss/turn.hpp"
 
 // luapp
