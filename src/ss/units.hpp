@@ -22,9 +22,6 @@
 // gfx
 #include "gfx/coord.hpp"
 
-// luapp
-#include "luapp/ext-userdata.hpp"
-
 // C++ standard library
 #include <unordered_map>
 #include <unordered_set>
@@ -293,10 +290,3 @@ struct UnitsState {
 };
 
 } // namespace rn
-
-/****************************************************************
-** Lua
-*****************************************************************/
-namespace lua {
-LUA_USERDATA_TRAITS( ::rn::UnitsState, owned_by_cpp ){};
-}

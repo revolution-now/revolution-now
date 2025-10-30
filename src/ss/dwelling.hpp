@@ -13,14 +13,4 @@
 // rds
 #include "ss/dwelling.rds.hpp"
 
-// luapp
-#include "luapp/ext-userdata.hpp"
-
 namespace rn {} // namespace rn
-
-/****************************************************************
-** Lua
-*****************************************************************/
-namespace lua {
-LUA_USERDATA_TRAITS( ::rn::Dwelling, owned_by_cpp ){};
-}

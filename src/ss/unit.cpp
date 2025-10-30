@@ -25,6 +25,7 @@
 // luapp
 #include "luapp/enum.hpp"
 #include "luapp/ext-base.hpp"
+#include "luapp/ext-refl.hpp"
 #include "luapp/rtable.hpp"
 #include "luapp/state.hpp"
 #include "luapp/types.hpp"

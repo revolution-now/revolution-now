@@ -13,14 +13,4 @@
 // rds
 #include "ss/sons-of-liberty.rds.hpp"
 
-// luapp
-#include "luapp/ext-userdata.hpp"
-
 namespace rn {} // namespace rn
-
-/****************************************************************
-** Lua
-*****************************************************************/
-namespace lua {
-LUA_USERDATA_TRAITS( ::rn::SonsOfLiberty, owned_by_cpp ){};
-}

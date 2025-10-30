@@ -15,7 +15,7 @@
 #include "ss/natives.rds.hpp"
 
 // luapp
-#include "luapp/ext-userdata.hpp"
+#include "luapp/ext-usertype.hpp"
 
 // gfx
 #include "gfx/coord.hpp"
@@ -172,12 +172,3 @@ struct NativesState {
 };
 
 } // namespace rn
-
-/****************************************************************
-** Lua
-*****************************************************************/
-namespace lua {
-
-LUA_USERDATA_TRAITS( ::rn::NativesState, owned_by_cpp ){};
-
-} // namespace lua

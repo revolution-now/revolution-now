@@ -21,7 +21,6 @@
 
 // ss
 #include "ss/colony-enums.rds.hpp"
-#include "ss/dwelling.hpp"
 #include "ss/native-enums.hpp"
 #include "ss/natives.hpp"
 #include "ss/ref.hpp"
@@ -29,6 +28,7 @@
 
 // luapp
 #include "luapp/enum.hpp"
+#include "luapp/ext-refl.hpp"
 #include "luapp/register.hpp"
 
 // gfx

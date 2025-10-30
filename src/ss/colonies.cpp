@@ -12,6 +12,7 @@
 
 // luapp
 #include "luapp/ext-base.hpp"
+#include "luapp/ext-refl.hpp"
 #include "luapp/state.hpp"
 
 // refl

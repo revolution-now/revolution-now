@@ -53,6 +53,7 @@
 #include "src/ss/root.hpp"
 
 // luapp
+#include "luapp/ext-refl.hpp"
 #include "luapp/state.hpp"
 
 // refl

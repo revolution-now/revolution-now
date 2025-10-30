@@ -49,6 +49,7 @@
 
 // luapp
 #include "luapp/enum.hpp" // FIXME
+#include "luapp/ext-refl.hpp"
 #include "luapp/state.hpp"
 
 // refl

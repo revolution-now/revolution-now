@@ -14,7 +14,7 @@
 #include "ss/colonies.rds.hpp"
 
 // luapp
-#include "luapp/ext-userdata.hpp"
+#include "luapp/ext-usertype.hpp"
 
 namespace rn {
 
@@ -96,12 +96,3 @@ struct ColoniesState {
 };
 
 } // namespace rn
-
-/****************************************************************
-** Lua
-*****************************************************************/
-namespace lua {
-
-LUA_USERDATA_TRAITS( ::rn::ColoniesState, owned_by_cpp ){};
-
-} // namespace lua

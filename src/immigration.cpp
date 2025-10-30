@@ -37,6 +37,7 @@
 
 // luapp
 #include "luapp/enum.hpp"
+#include "luapp/ext-refl.hpp"
 #include "luapp/register.hpp"
 #include "luapp/state.hpp"
 

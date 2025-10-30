@@ -17,7 +17,7 @@
 #include "gfx/coord.hpp"
 
 // luapp
-#include "luapp/ext-userdata.hpp"
+#include "luapp/ext-usertype.hpp"
 
 // base
 #include "base/expect.hpp"
@@ -150,10 +150,3 @@ struct TerrainState {
 };
 
 } // namespace rn
-
-/****************************************************************
-** Lua
-*****************************************************************/
-namespace lua {
-LUA_USERDATA_TRAITS( rn::TerrainState, owned_by_cpp ){};
-} // namespace lua

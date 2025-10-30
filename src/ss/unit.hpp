@@ -12,9 +12,6 @@
 
 #include "core-config.hpp"
 
-// luapp
-#include "luapp/ext-userdata.hpp"
-
 // Rds
 #include "unit.rds.hpp"
 
@@ -174,10 +171,3 @@ NOTHROW_MOVE( Unit );
 std::string debug_string( Unit const& unit );
 
 } // namespace rn
-
-/****************************************************************
-** Lua
-*****************************************************************/
-namespace lua {
-LUA_USERDATA_TRAITS( ::rn::Unit, owned_by_cpp ){};
-}

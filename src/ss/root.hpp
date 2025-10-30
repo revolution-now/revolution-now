@@ -17,17 +17,10 @@
 #include "root.rds.hpp"
 
 // luapp
-#include "luapp/ext-userdata.hpp"
+#include "luapp/ext-usertype.hpp"
 
 namespace rn {
 
 void define_usertype_for( lua::state& st, lua::tag<RootState> );
 
 } // namespace rn
-
-/****************************************************************
-** Lua
-*****************************************************************/
-namespace lua {
-LUA_USERDATA_TRAITS( ::rn::RootState, owned_by_cpp ){};
-} // namespace lua

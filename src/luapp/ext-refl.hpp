@@ -63,12 +63,9 @@ struct type_traits<S>
   : TraitsForModel<S, e_userdata_ownership_model::owned_by_cpp> {
 };
 
-template<refl::WrapsReflected S>
-void define_usertype_for( state&, tag<S> ) {
-  // Default specialization. This in practice won't be used be-
-  // cause we'll likely provide a specialization for each wrap-
-  // ping type.
-}
+// NOTE: no default specialization for refl::WrapsReflected;
+// those have to be provided for each type specially since we
+// have no way of knowing what's C++ API is.
 
 /****************************************************************
 ** Reflected Variant

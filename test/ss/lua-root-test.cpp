@@ -22,6 +22,9 @@
 // ss
 #include "src/ss/root.hpp"
 
+// luapp
+#include "src/luapp/ext-refl.hpp"
+
 // refl
 #include "src/refl/to-str.hpp"
 
