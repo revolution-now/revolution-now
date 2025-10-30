@@ -25,7 +25,6 @@
 // luapp
 #include "luapp/enum.hpp"
 #include "luapp/ext-base.hpp"
-#include "luapp/register.hpp"
 #include "luapp/rtable.hpp"
 #include "luapp/state.hpp"
 #include "luapp/types.hpp"
@@ -186,15 +185,10 @@ maybe<e_unit_type> Unit::demoted_type() const {
   return demoted.type();
 }
 
-/****************************************************************
-** Lua Bindings
-*****************************************************************/
-namespace {
-
-LUA_STARTUP( lua::state& st ) {
-  using U = ::rn::Unit;
-
-  auto u = st.usertype.create<rn::Unit>();
+// Lua bindings.
+void define_usertype_for( lua::state& st, lua::tag<Unit> ) {
+  using U = Unit;
+  auto u  = st.usertype.create<Unit>();
 
   // Getters.
   u["id"] = &U::id;
@@ -221,5 +215,4 @@ LUA_STARTUP( lua::state& st ) {
   };
 };
 
-} // namespace
 } // namespace rn

@@ -543,9 +543,8 @@ LUA_TEST_CASE(
   SECTION( "wrong arg type" ) {
     // clang-format off
     char const* err =
-      "Native function expected type 'double' for argument 3 "
-        "(1-based), but received non-convertible type 'string' "
-        "from Lua.\n"
+      "Native function expected type 'double' for argument 3 (1-based), "
+      "but received non-convertible value of type 'string' from Lua.\n"
       "stack traceback:\n"
       "\t[C]: in function 'go'\n"
       "\t[string \"...\"]:2: in main chunk";

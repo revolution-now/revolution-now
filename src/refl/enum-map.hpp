@@ -21,6 +21,8 @@
 
 // luapp
 #include "luapp/ext-userdata.hpp"
+#include "luapp/ext-usertype.hpp"
+#include "luapp/state.hpp"
 
 // traverse
 #include "traverse/ext.hpp"
@@ -198,6 +200,38 @@ struct enum_map : public std::vector<std::pair<Enum, ValT>> {
                         trv::tag_t<enum_map> ) {
     for( auto const& [k, v] : o ) fn( v, k );
   }
+
+  friend void define_usertype_for( lua::state& st,
+                                   lua::tag<enum_map> ) {
+    using K = Enum;
+    using V = ValT;
+    using U = enum_map;
+
+    auto u = st.usertype.create<U>();
+
+    lua::table mt = u[lua::metatable_key];
+    auto const __index =
+        mt["__index"].template as<lua::rfunction>();
+    lua::cthread const L = st.resource();
+
+    mt["__index"] =
+        [L, __index](
+            U& o, lua::any const key ) -> base::maybe<lua::any> {
+      auto const st = lua::state::view( L );
+      if( auto const member = __index( o, key );
+          member != lua::nil )
+        return member.template as<lua::any>();
+      auto const maybe_key = safe_as<K>( key );
+      if( !maybe_key.has_value() ) return base::nothing;
+      auto& val    = o[*maybe_key];
+      auto const L = __index.this_cthread();
+      return lua::as<lua::any>( L, val );
+    };
+
+    mt["__newindex"] = []( U& o, K const& key, V const& val ) {
+      o[key] = val;
+    };
+  }
 };
 
 } // namespace refl
@@ -214,4 +248,4 @@ TRV_TYPE_TRAVERSE( ::refl::enum_map, K, V );
 *****************************************************************/
 namespace lua {
 LUA_USERDATA_TRAITS_KV( refl::enum_map, owned_by_cpp ){};
-}
+} // namespace lua

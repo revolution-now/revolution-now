@@ -16,7 +16,6 @@
 // luapp
 #include "luapp/enum.hpp"
 #include "luapp/ext-base.hpp"
-#include "luapp/register.hpp"
 #include "luapp/rtable.hpp"
 #include "luapp/state.hpp"
 #include "luapp/types.hpp"
@@ -112,15 +111,11 @@ int UnitComposition::operator[]( e_unit_inventory inv ) const {
   return o_.inventory[inv];
 }
 
-/****************************************************************
-** Lua Bindings
-*****************************************************************/
-namespace {
-
-LUA_STARTUP( lua::state& st ) {
+// Lua bindings.
+void define_usertype_for( lua::state& st,
+                          lua::tag<UnitComposition> ) {
   using U = UnitComposition;
-
-  auto u = st.usertype.create<UnitComposition>();
+  auto u  = st.usertype.create<UnitComposition>();
 
   u["base_type"] = &U::base_type;
   u["type"]      = &U::type;
@@ -140,21 +135,18 @@ LUA_STARTUP( lua::state& st ) {
   //
   // u["with_new_type"] = &U::with_new_type;
 
+  // TODO: get rid of this and find a way to create these objects
+  // in some other way.
   lua::table ucomp_tbl =
       lua::table::create_or_get( st["unit_composition"] );
-
   lua::table tbl_UnitComposition =
       lua::table::create_or_get( ucomp_tbl["UnitComposition"] );
-
   tbl_UnitComposition["create_with_type"] =
       [&]( e_unit_type type ) -> UnitComposition {
     return type;
   };
-
   tbl_UnitComposition["create_with_type_obj"] =
       [&]( UnitType type ) -> UnitComposition { return type; };
 };
-
-} // namespace
 
 } // namespace rn

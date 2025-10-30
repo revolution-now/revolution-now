@@ -61,18 +61,15 @@ struct UnitComposition {
   static constexpr std::string_view refl_name =
       "UnitComposition";
 
+  // Lua bindings.
+  friend void define_usertype_for( lua::state& st,
+                                   lua::tag<UnitComposition> );
+
  private:
   wrapped::UnitComposition o_;
 };
 
 } // namespace rn
-
-/****************************************************************
-** TypeTraverse Specializations.
-*****************************************************************/
-namespace trv {
-TRV_TYPE_TRAVERSE( ::rn::UnitComposition );
-}
 
 /****************************************************************
 ** Lua

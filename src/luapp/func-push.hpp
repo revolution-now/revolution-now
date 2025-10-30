@@ -162,9 +162,9 @@ void push_cpp_function_impl(
       if( !m.has_value() )
         throw_lua_error(
             L,
-            "Native function expected type '{}' for "
-            "argument {} (1-based), but received "
-            "non-convertible type '{}' from Lua.",
+            "Native function expected type '{}' for argument {} "
+            "(1-based), but received non-convertible value of "
+            "type '{}' from Lua.",
             base::demangled_typename<elem_t>(), Index + 1,
             type_name( L, lua_idx ) );
       return *m;

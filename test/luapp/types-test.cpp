@@ -51,6 +51,14 @@ static_assert( GettableViaAdl<int64_t> );
 static_assert( !GettableViaTraits<int64_t> );
 static_assert( !HasTraitsNvalues<int64_t> );
 
+static_assert( !Pushable<unsigned long> );
+static_assert( !PushableViaAdl<unsigned long> );
+static_assert( !PushableViaTraits<unsigned long> );
+static_assert( Gettable<unsigned long> );
+static_assert( GettableViaAdl<unsigned long> );
+static_assert( !GettableViaTraits<unsigned long> );
+static_assert( !HasTraitsNvalues<unsigned long> );
+
 static_assert( Pushable<char[6]> );
 static_assert( PushableViaAdl<char[6]> );
 static_assert( !PushableViaTraits<char[6]> );
@@ -203,6 +211,7 @@ LUA_TEST_CASE( "[types] get" ) {
   REQUIRE( get<boolean>( L, -1 ) == false );
   REQUIRE( get<int>( L, -1 ) == unexpected{} );
   REQUIRE( get<int64_t>( L, -1 ) == unexpected{} );
+  REQUIRE( get<unsigned long>( L, -1 ) == unexpected{} );
   REQUIRE( get<integer>( L, -1 ) == unexpected{} );
   REQUIRE( get<double>( L, -1 ) == unexpected{} );
   REQUIRE( get<floating>( L, -1 ) == unexpected{} );
@@ -216,6 +225,7 @@ LUA_TEST_CASE( "[types] get" ) {
   REQUIRE( get<boolean>( L, -1 ) == true );
   REQUIRE( get<int>( L, -1 ) == 5 );
   REQUIRE( get<int64_t>( L, -1 ) == 5 );
+  REQUIRE( get<unsigned long>( L, -1 ) == 5u );
   REQUIRE( get<integer>( L, -1 ) == 5 );
   REQUIRE( get<double>( L, -1 ) == 5.0 );
   REQUIRE( get<floating>( L, -1 ) == 5.0 );
@@ -224,11 +234,26 @@ LUA_TEST_CASE( "[types] get" ) {
   REQUIRE( get<string>( L, -1 ) == "5" );
   C.pop();
 
+  push( L, -5 );
+  REQUIRE( get<bool>( L, -1 ) == true );
+  REQUIRE( get<boolean>( L, -1 ) == true );
+  REQUIRE( get<int>( L, -1 ) == -5 );
+  REQUIRE( get<int64_t>( L, -1 ) == -5 );
+  REQUIRE( get<unsigned long>( L, -1 ) == unexpected{} );
+  REQUIRE( get<integer>( L, -1 ) == -5 );
+  REQUIRE( get<double>( L, -1 ) == -5.0 );
+  REQUIRE( get<floating>( L, -1 ) == -5.0 );
+  REQUIRE( get<lightuserdata>( L, -1 ) == unexpected{} );
+  REQUIRE( get<void*>( L, -1 ) == unexpected{} );
+  REQUIRE( get<string>( L, -1 ) == "-5" );
+  C.pop();
+
   push( L, 5.0 );
   REQUIRE( get<bool>( L, -1 ) == true );
   REQUIRE( get<boolean>( L, -1 ) == true );
   REQUIRE( get<int>( L, -1 ) == 5 );
   REQUIRE( get<int64_t>( L, -1 ) == 5 );
+  REQUIRE( get<unsigned long>( L, -1 ) == 5u );
   REQUIRE( get<integer>( L, -1 ) == 5 );
   REQUIRE( get<double>( L, -1 ) == 5.0 );
   REQUIRE( get<floating>( L, -1 ) == 5.0 );
@@ -242,6 +267,7 @@ LUA_TEST_CASE( "[types] get" ) {
   REQUIRE( get<boolean>( L, -1 ) == true );
   REQUIRE( get<int>( L, -1 ) == unexpected{} );
   REQUIRE( get<int64_t>( L, -1 ) == unexpected{} );
+  REQUIRE( get<unsigned long>( L, -1 ) == unexpected{} );
   REQUIRE( get<integer>( L, -1 ) == unexpected{} );
   REQUIRE( get<double>( L, -1 ) == 5.5 );
   REQUIRE( get<floating>( L, -1 ) == 5.5 );
@@ -255,6 +281,7 @@ LUA_TEST_CASE( "[types] get" ) {
   REQUIRE( get<boolean>( L, -1 ) == true );
   REQUIRE( get<int>( L, -1 ) == unexpected{} );
   REQUIRE( get<int64_t>( L, -1 ) == unexpected{} );
+  REQUIRE( get<unsigned long>( L, -1 ) == unexpected{} );
   REQUIRE( get<integer>( L, -1 ) == unexpected{} );
   REQUIRE( get<double>( L, -1 ) == unexpected{} );
   REQUIRE( get<floating>( L, -1 ) == unexpected{} );
@@ -268,6 +295,7 @@ LUA_TEST_CASE( "[types] get" ) {
   REQUIRE( get<boolean>( L, -1 ) == true );
   REQUIRE( get<int>( L, -1 ) == unexpected{} );
   REQUIRE( get<int64_t>( L, -1 ) == unexpected{} );
+  REQUIRE( get<unsigned long>( L, -1 ) == unexpected{} );
   REQUIRE( get<integer>( L, -1 ) == unexpected{} );
   REQUIRE( get<double>( L, -1 ) == unexpected{} );
   REQUIRE( get<floating>( L, -1 ) == unexpected{} );
@@ -283,6 +311,7 @@ LUA_TEST_CASE( "[types] get" ) {
   REQUIRE( get<boolean>( L, -1 ) == true );
   REQUIRE( get<int>( L, -1 ) == unexpected{} );
   REQUIRE( get<int64_t>( L, -1 ) == unexpected{} );
+  REQUIRE( get<unsigned long>( L, -1 ) == unexpected{} );
   REQUIRE( get<integer>( L, -1 ) == unexpected{} );
   REQUIRE( get<double>( L, -1 ) == unexpected{} );
   REQUIRE( get<floating>( L, -1 ) == unexpected{} );

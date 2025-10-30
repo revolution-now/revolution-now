@@ -19,7 +19,11 @@
 // luapp
 #include "luapp/ext-userdata.hpp"
 
-namespace rn {} // namespace rn
+namespace rn {
+
+void define_usertype_for( lua::state& st, lua::tag<RootState> );
+
+} // namespace rn
 
 /****************************************************************
 ** Lua

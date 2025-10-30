@@ -305,5 +305,20 @@ LUA_TEST_CASE( "[ext-std] pair" ) {
   }
 }
 
+LUA_TEST_CASE( "[ext-std] std::map API" ) {
+}
+
+LUA_TEST_CASE( "[ext-std] std::unordered_map API" ) {
+}
+
+LUA_TEST_CASE( "[ext-std] std::vector API" ) {
+}
+
+LUA_TEST_CASE( "[ext-std] std::array API" ) {
+}
+
+LUA_TEST_CASE( "[ext-std] std::deque API" ) {
+}
+
 } // namespace
 } // namespace lua

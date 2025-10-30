@@ -134,6 +134,10 @@ struct TerrainState {
   // modified.
   MapSquare& mutable_proto_square( e_cardinal_direction d );
 
+  // Lua bindings.
+  friend void define_usertype_for( lua::state& st,
+                                   lua::tag<TerrainState> );
+
  private:
   base::valid_or<std::string> validate() const;
   void validate_or_die() const;

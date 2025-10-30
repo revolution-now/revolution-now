@@ -20,7 +20,6 @@
 // luapp
 #include "luapp/enum.hpp"
 #include "luapp/ext-base.hpp"
-#include "luapp/register.hpp"
 #include "luapp/rtable.hpp"
 #include "luapp/state.hpp"
 #include "luapp/types.hpp"
@@ -284,37 +283,32 @@ maybe<UnitType> rm_unit_type_modifiers(
                                    target_modifiers );
 }
 
-// Lua
-namespace {
+// Lua bindings.
+void define_usertype_for( lua::state& st, lua::tag<UnitType> ) {
+  using U        = UnitType;
+  auto unit_type = st.usertype.create<U>();
 
-LUA_STARTUP( lua::state& st ) {
-  auto unit_type = st.usertype.create<UnitType>();
+  unit_type["base_type"] = &U::base_type;
+  unit_type["type"]      = &U::type;
 
-  unit_type["base_type"] = &UnitType::base_type;
-  unit_type["type"]      = &UnitType::type;
-
+  // TODO: get rid of this and find a way to create these objects
+  // in some other way.
   lua::table utype_tbl =
       lua::table::create_or_get( st["unit_type"] );
-
   lua::table tbl_UnitType =
       lua::table::create_or_get( utype_tbl["UnitType"] );
-
   tbl_UnitType["create_with_base"] =
-      [&]( e_unit_type type,
-           e_unit_type base_type ) -> UnitType {
-    maybe<UnitType> ut = UnitType::create( type, base_type );
+      [&]( e_unit_type type, e_unit_type base_type ) -> U {
+    maybe<U> ut = U::create( type, base_type );
     LUA_CHECK( st, ut.has_value(),
                "failed to create UnitType with type={} and "
                "base_type={}.",
                type, base_type );
     return *ut;
   };
-
-  tbl_UnitType["create"] = [&]( e_unit_type type ) -> UnitType {
+  tbl_UnitType["create"] = [&]( e_unit_type type ) -> U {
     return type;
   };
-};
-
-} // namespace
+}
 
 } // namespace rn

@@ -18,7 +18,6 @@
 // luapp
 #include "luapp/enum.hpp"
 #include "luapp/ext-base.hpp"
-#include "luapp/register.hpp"
 
 // refl
 #include "refl/to-str.hpp"
@@ -365,13 +364,9 @@ void NativesState::mark_land_unowned_for_tribe( e_tribe tribe ) {
       dwellings_for_tribe( tribe ) );
 }
 
-/****************************************************************
-** Lua Bindings
-*****************************************************************/
-namespace {
-
-// NativesState
-LUA_STARTUP( lua::state& st ) {
+// Lua bindings.
+void define_usertype_for( lua::state& st,
+                          lua::tag<NativesState> ) {
   using U = ::rn::NativesState;
   auto u  = st.usertype.create<U>();
 
@@ -410,7 +405,5 @@ LUA_STARTUP( lua::state& st ) {
   u["create_or_get_tribe"] = &U::create_or_get_tribe;
   u["mark_land_owned"]     = &U::mark_land_owned;
 };
-
-} // namespace
 
 } // namespace rn

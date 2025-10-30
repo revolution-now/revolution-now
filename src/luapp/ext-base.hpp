@@ -12,7 +12,9 @@
 
 // luapp
 #include "ext-userdata.hpp"
+#include "ext-usertype.hpp"
 #include "ext.hpp"
+#include "state.hpp"
 #include "types.hpp"
 
 // base
@@ -79,5 +81,46 @@ template<typename T>
 requires HasValueUserdataOwnershipModel<T>
 struct type_traits<base::maybe<T>>
   : userdata_type_traits_lua_owned<base::maybe<T>> {};
+
+template<typename T>
+requires HasValueUserdataOwnershipModel<T>
+void define_usertype_for( state&,
+                          tag<::base::maybe<T>> ) = delete;
+
+template<typename T>
+requires HasRefUserdataOwnershipModel<T>
+void define_usertype_for( state& st, tag<::base::maybe<T>> ) {
+  using U      = ::base::maybe<T>;
+  auto const L = st.resource();
+  auto u       = st.usertype.create<U>();
+
+  u["has_value"] = []( U& o ) { return o.has_value(); };
+  u["reset"]     = []( U& o ) { o.reset(); };
+  u["emplace"]   = []( U& o ) -> T& { return o.emplace(); };
+  // This one will return either lua nil or userdata T&.
+  u["value"] = [&]( U& o ) -> base::maybe<T&> { return o; };
+
+  table mt           = u[metatable_key];
+  auto const __index = mt["__index"].template as<rfunction>();
+
+  mt["__index"] = [L, __index](
+                      U& o, any const key ) -> base::maybe<any> {
+    if( auto const member = __index( o, key ); member != nil )
+      return member.template as<any>();
+    if( !o.has_value() )
+      throw_lua_error(
+          L, "cannot get field '{}' on an empty value.", key );
+    any const underlying = as<any>( L, *o );
+    return underlying[key];
+  };
+
+  mt["__newindex"] = [L]( U& o, any const key, any const val ) {
+    if( !o.has_value() )
+      throw_lua_error(
+          L, "cannot set field '{}' on an empty value.", key );
+    any const underlying = as<any>( L, *o );
+    underlying[key]      = val;
+  };
+}
 
 } // namespace lua

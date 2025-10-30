@@ -13,8 +13,9 @@
 // Under test.
 #include "src/refl/enum-map.hpp"
 
-// Rds
-#include "rds/testing.rds.hpp"
+// testing
+#include "test/luapp/common.hpp"
+#include "test/rds/testing.rds.hpp"
 
 // refl
 #include "refl/to-str.hpp"
@@ -317,6 +318,9 @@ TEST_CASE( "[enum-map] traverse" ) {
                   "e_color",
                   "again",
                 } );
+}
+
+LUA_TEST_CASE( "[enum-map] Lua API" ) {
 }
 
 } // namespace

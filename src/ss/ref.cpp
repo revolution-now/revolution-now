@@ -13,9 +13,6 @@
 // ss
 #include "root.hpp"
 
-// luapp
-#include "luapp/register.hpp"
-
 // refl
 #include "refl/to-str.hpp"
 #include "refl/traverse.hpp"
@@ -151,20 +148,4 @@ void assign_src_to_dst( RootState const& src, RootState& dst ) {
   dst = src;
 }
 
-/****************************************************************
-** Lua Bindings
-*****************************************************************/
-namespace {
-
-LUA_STARTUP( lua::state& st ) {
-  using U = SS;
-  st.usertype.create<U>();
-  // We don't need to register any members here since lua should
-  // access those via the "ROOT" global which will be a RootState
-  // and its fields are exposed. We just need to expose the SS
-  // type so that we can extract it from Lua to C++ and pass it
-  // to a C++ function.
-};
-
-} // namespace
 } // namespace rn

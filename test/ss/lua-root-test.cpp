@@ -39,14 +39,13 @@ using namespace std;
 /****************************************************************
 ** Test Cases
 *****************************************************************/
-LUA_TEST_CASE( "[ss/lua-root] some test" ) {
+LUA_TEST_CASE(
+    "[ss/lua-root] root data structure exposed to lua" ) {
   st.lib.open_all();
   run_lua_startup_routines( st );
 
   RootState root;
   st["root"] = root;
-
-  root.map.depletion.counters[{ .x = 0, .y = 1 }] = 3;
 
   auto const file =
       testing::data_dir() / "lua" / "lua-root-test.lua";

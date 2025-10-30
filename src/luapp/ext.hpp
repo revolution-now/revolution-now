@@ -145,6 +145,10 @@ concept PushableOrVoid = Pushable<T> || std::same_as<void, T>;
 template<typename T>
 concept GettableOrVoid = Gettable<T> || std::same_as<void, T>;
 
+template<typename T>
+concept HasUniqueOwnershipCategory =
+    Pushable<T&> || ( Pushable<T> && Pushable<T&&> );
+
 /****************************************************************
 ** helpers
 *****************************************************************/

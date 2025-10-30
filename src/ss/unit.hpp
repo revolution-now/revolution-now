@@ -157,6 +157,10 @@ struct ND Unit {
   static constexpr std::string_view refl_ns   = "rn";
   static constexpr std::string_view refl_name = "Unit";
 
+  // Lua bindings.
+  friend void define_usertype_for( lua::state& st,
+                                   lua::tag<Unit> );
+
  private:
   friend struct UnitsState;
 

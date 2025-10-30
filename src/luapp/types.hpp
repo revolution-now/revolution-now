@@ -150,6 +150,8 @@ struct type_traits<std::string_view> {
 *****************************************************************/
 lua_expect<bool> lua_get( cthread L, int idx, tag<bool> );
 lua_expect<int> lua_get( cthread L, int idx, tag<int> );
+lua_expect<unsigned long> lua_get( cthread L, int idx,
+                                   tag<unsigned long> );
 lua_expect<int64_t> lua_get( cthread L, int idx, tag<int64_t> );
 lua_expect<double> lua_get( cthread L, int idx, tag<double> );
 lua_expect<void*> lua_get( cthread L, int idx, tag<void*> );

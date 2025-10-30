@@ -74,6 +74,10 @@ struct ColoniesState {
   // ences to the colony after this.
   void destroy_colony( ColonyId id );
 
+  // Lua bindings.
+  friend void define_usertype_for( lua::state& st,
+                                   lua::tag<ColoniesState> );
+
  private:
   [[nodiscard]] ColonyId next_colony_id();
 

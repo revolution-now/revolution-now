@@ -91,6 +91,9 @@ LUA_TEST_CASE( "[ext-base] cpp-owned" ) {
   }
 }
 
+LUA_TEST_CASE( "[ext-base] API for cpp-owned T" ) {
+}
+
 LUA_TEST_CASE( "[ext-base] lua-owned" ) {
   maybe<MyLuaOwned> m;
 

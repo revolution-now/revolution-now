@@ -502,6 +502,18 @@ void lua_push( lua::cthread L, Coord const& coord ) {
   t["x"]       = coord.x;
   t["y"]       = coord.y;
 
+  // FIXME: setting these metatables each time is too slow.
+  lua::table mt         = st.table.create();
+  t[lua::metatable_key] = mt;
+
+  mt["__eq"] = []( Coord const lhs, Coord const rhs ) {
+    return lhs == rhs;
+  };
+
+  mt["__tostring"] = []( Coord const o ) {
+    return base::to_str( o );
+  };
+
   lua::push( L, t );
 }
 

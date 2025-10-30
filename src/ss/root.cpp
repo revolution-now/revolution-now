@@ -19,14 +19,18 @@
 #include "ss/players.hpp"
 #include "ss/settings.hpp"
 #include "ss/terrain.hpp"
+#include "ss/trade-route.hpp"
 #include "ss/turn.hpp"
 
 // luapp
-#include "luapp/register.hpp"
+#include "luapp/ext-refl.hpp"
 #include "luapp/state.hpp"
 
 // refl
 #include "refl/to-str.hpp"
+
+// traverse
+#include "traverse/ext-std.hpp"
 
 // base
 #include "base/to-str-ext-std.hpp"
@@ -237,21 +241,21 @@ valid_or<string> RootState::validate() const {
   return valid;
 }
 
-/****************************************************************
-** Lua Bindings
-*****************************************************************/
-namespace {
-
-// RootState
-LUA_STARTUP( lua::state& st ) {
-  using U = ::rn::RootState;
+// Lua bindings.
+void define_usertype_for( lua::state& st, lua::tag<RootState> ) {
+  using U = RootState;
   auto u  = st.usertype.create<U>();
 
-  // All the members will be registered automatically, so we just
-  // need to create an alias for this one.
-  u["terrain"] = &U::zzz_terrain;
-};
+  // This is essentially the refl::ReflectedStruct overload of
+  // define_usertype_for. We'll run this first to get all fields.
+  trv::traverse(
+      refl::traits<U>::fields,
+      [&]( auto& field, std::string_view const /*key*/ ) {
+        u[field.name] = field.accessor;
+      } );
 
-} // namespace
+  // Now just add our additional alias.
+  u["terrain"] = &U::zzz_terrain;
+}
 
 } // namespace rn

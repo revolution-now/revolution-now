@@ -17,7 +17,6 @@
 // luapp
 #include "luapp/enum.hpp"
 #include "luapp/ext-base.hpp"
-#include "luapp/register.hpp"
 #include "luapp/state.hpp"
 #include "luapp/types.hpp"
 
@@ -232,53 +231,43 @@ bool TerrainState::is_pacific_ocean( Coord coord ) const {
   return ( coord.x < o_.pacific_ocean_endpoints[coord.y] );
 }
 
-/****************************************************************
-** Lua Bindings
-*****************************************************************/
-namespace {
+// Lua bindings.
+void define_usertype_for( lua::state& st,
+                          lua::tag<TerrainState> ) {
+  using U = ::rn::TerrainState;
+  auto u  = st.usertype.create<U>();
 
-LUA_STARTUP( lua::state& st ) {
-  // TerrainState.
-  [&] {
-    using U = ::rn::TerrainState;
+  u["placement_seed"]     = &U::placement_seed;
+  u["set_placement_seed"] = &U::set_placement_seed;
+  u["size"]               = &U::world_size_tiles;
+  u["square_exists"]      = []( U& o, Coord const tile ) {
+    return o.square_exists( tile );
+  };
+  u["square_at"] = []( U& o, Coord const tile ) -> MapSquare& {
+    return o.mutable_square_at( tile );
+  };
+  u["proto_square"]              = &U::mutable_proto_square;
+  u["initialize_player_terrain"] = &U::initialize_player_terrain;
 
-    auto u = st.usertype.create<U>();
+  u["reset"] = []( U& o, Delta size ) {
+    o.modify_entire_map( [&]( RealTerrain& real_terrain ) {
+      real_terrain.map = gfx::Matrix<MapSquare>( size );
+    } );
+  };
 
-    u["placement_seed"]     = &U::placement_seed;
-    u["set_placement_seed"] = &U::set_placement_seed;
-    u["size"]               = &U::world_size_tiles;
-    u["square_exists"]      = []( U& o, Coord const tile ) {
-      return o.square_exists( tile );
-    };
-    u["square_at"] = []( U& o, Coord const tile ) -> MapSquare& {
-      return o.mutable_square_at( tile );
-    };
-    u["proto_square"] = &U::mutable_proto_square;
-    u["initialize_player_terrain"] =
-        &U::initialize_player_terrain;
-
-    u["reset"] = []( U& o, Delta size ) {
-      o.modify_entire_map( [&]( RealTerrain& real_terrain ) {
-        real_terrain.map = gfx::Matrix<MapSquare>( size );
-      } );
-    };
-
-    u["pacific_ocean_endpoint"] = [&]( U& o, int row ) {
-      LUA_CHECK( st,
-                 row < int( o.pacific_ocean_endpoints().size() ),
-                 "row {} is out of bounds.", row );
-      return o.pacific_ocean_endpoints()[row];
-    };
-    u["set_pacific_ocean_endpoint"] = [&]( U& o, int row,
-                                           int endpoint ) {
-      LUA_CHECK( st,
-                 row < int( o.pacific_ocean_endpoints().size() ),
-                 "row {} is out of bounds.", row );
-      o.pacific_ocean_endpoints()[row] = endpoint;
-    };
-  }();
-};
-
-} // namespace
+  u["pacific_ocean_endpoint"] = [&]( U& o, int row ) {
+    LUA_CHECK( st,
+               row < int( o.pacific_ocean_endpoints().size() ),
+               "row {} is out of bounds.", row );
+    return o.pacific_ocean_endpoints()[row];
+  };
+  u["set_pacific_ocean_endpoint"] = [&]( U& o, int row,
+                                         int endpoint ) {
+    LUA_CHECK( st,
+               row < int( o.pacific_ocean_endpoints().size() ),
+               "row {} is out of bounds.", row );
+    o.pacific_ocean_endpoints()[row] = endpoint;
+  };
+}
 
 } // namespace rn

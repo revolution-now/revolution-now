@@ -20,7 +20,10 @@ local map_gen = require( 'map-gen' )
 -- cess do exist eagerly upon loading this module. As a result,
 -- every variable referenced in this module is either a local or
 -- a declared global.
-local function global( name ) return assert( _G[name] ) end
+local function global( name )
+  return assert( _G[name], string.format(
+                     'global name %s not found', name ) )
+end
 
 local cheat = global( 'cheat' )
 local config = global( 'config' )

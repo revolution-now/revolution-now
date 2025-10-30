@@ -12,7 +12,6 @@
 
 // luapp
 #include "luapp/ext-base.hpp"
-#include "luapp/register.hpp"
 #include "luapp/state.hpp"
 
 // refl
@@ -252,14 +251,10 @@ bool ColoniesState::exists( ColonyId id ) const {
   return o_.colonies.contains( id );
 }
 
-/****************************************************************
-** Lua Bindings
-*****************************************************************/
-namespace {
-
-// ColoniesState
-LUA_STARTUP( lua::state& st ) {
-  using U = ::rn::ColoniesState;
+// Lua bindings.
+void define_usertype_for( lua::state& st,
+                          lua::tag<ColoniesState> ) {
+  using U = ColoniesState;
   auto u  = st.usertype.create<U>();
 
   u["last_colony_id"] = &U::last_colony_id;
@@ -270,7 +265,5 @@ LUA_STARTUP( lua::state& st ) {
     return o.colony_for( id );
   };
 };
-
-} // namespace
 
 } // namespace rn

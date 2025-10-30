@@ -151,6 +151,10 @@ struct NativesState {
       std::unordered_set<DwellingId> const& dwelling_ids );
   void mark_land_unowned_for_tribe( e_tribe tribe );
 
+  // Lua bindings.
+  friend void define_usertype_for( lua::state& st,
+                                   lua::tag<NativesState> );
+
  private:
   [[nodiscard]] DwellingId next_dwelling_id();
 

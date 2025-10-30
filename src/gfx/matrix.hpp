@@ -17,6 +17,8 @@
 
 // luapp
 #include "luapp/ext-userdata.hpp"
+#include "luapp/ext-usertype.hpp"
+#include "luapp/state.hpp"
 
 // traverse
 #include "traverse/ext.hpp"
@@ -91,13 +93,12 @@ struct Matrix {
     return { &data_[y * w_], size_t( w_ ) };
   }
 
-  T const& operator[]( gfx::point point ) const
-      ATTR_LIFETIMEBOUND {
+  T const& operator[]( point point ) const ATTR_LIFETIMEBOUND {
     // These subscript operators should do the range checking.
     return ( *this )[point.y][point.x];
   };
 
-  T& operator[]( gfx::point point ) ATTR_LIFETIMEBOUND {
+  T& operator[]( point point ) ATTR_LIFETIMEBOUND {
     // These subscript operators should do the range checking.
     return ( *this )[point.y][point.x];
   };
@@ -123,6 +124,22 @@ struct Matrix {
     for( p.y = 0; p.y < y_size; ++p.y )
       for( p.x = 0; p.x < o.w_; ++p.x ) //
         fn( o[p], p );
+  }
+
+  friend void define_usertype_for( lua::state& st,
+                                   lua::tag<Matrix<T>> ) {
+    using U = Matrix<T>;
+    auto u  = st.usertype.create<U>();
+
+    // TODO: may need to expand this in the future.
+
+    u["size"] = [&]( U& o ) -> lua::table {
+      lua::table tbl     = st.table.create();
+      gfx::size const sz = o.size();
+      tbl["w"]           = sz.w;
+      tbl["h"]           = sz.h;
+      return tbl;
+    };
   }
 };
 

@@ -19,6 +19,7 @@
 
 // luapp
 #include "luapp/ext-userdata.hpp"
+#include "luapp/ext-usertype.hpp"
 
 // traverse
 #include "traverse/type-ext.hpp"
@@ -100,6 +101,10 @@ struct UnitType {
   wrapped::UnitType const& refl() const { return o_; }
   static constexpr std::string_view refl_ns   = "rn";
   static constexpr std::string_view refl_name = "UnitType";
+
+  // Lua bindings.
+  friend void define_usertype_for( lua::state& st,
+                                   lua::tag<UnitType> );
 
  private:
   // This one is private because it can fail; the user should
