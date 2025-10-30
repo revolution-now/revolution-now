@@ -139,7 +139,8 @@ void define_usertype_rds_variant_impl(
                    variant_str );
         return res;
       };
-      return as<any>( L, std::move( f ) );
+      res = as<any>( L, std::move( f ) );
+      return res;
     }
     [&]<size_t... I>( std::index_sequence<I...> ) {
       auto const fn = [&]<size_t Idx>(
