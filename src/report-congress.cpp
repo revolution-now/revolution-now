@@ -36,6 +36,7 @@
 #include "ss/ref.hpp"
 
 // render
+#include "render/extra.hpp"
 #include "render/renderer.hpp"
 
 // gfx
@@ -448,8 +449,12 @@ struct ContinentalCongressReport : public IPlane {
 
   void draw( rr::Renderer& renderer, const Layout& l ) const {
     rr::Painter painter = renderer.painter();
-    painter.draw_solid_rect( renderer.logical_screen_rect(),
-                             pixel::from_hex_rgb( 0xb86624 ) );
+    draw_rect_noisy_filled( renderer, l.canvas,
+                            pixel::from_hex_rgb( 0xb86624 ) );
+    // To soften the noise.
+    painter.draw_solid_rect(
+        renderer.logical_screen_rect(),
+        pixel::from_hex_rgb( 0xb86624 ).with_alpha( 160 ) );
 
     write_centered( renderer, pixel::from_hex_rgb( 0xeeeeaa ),
                     /*color_bg=*/nothing, l.title_center,
