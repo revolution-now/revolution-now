@@ -47,10 +47,14 @@ using ::refl::enum_map;
 string trade_route_name_suggestion(
     TradeRouteState const& trade_routes,
     string const& colony_name ) {
+  string suggestion;
   auto const& suffixes =
       config_trade.trade_routes.name_suggestion_suffixes;
   int const num_suffixes = suffixes.size();
-  if( num_suffixes == 0 ) return "Route";
+  if( num_suffixes == 0 ) {
+    suggestion = "Route";
+    return suggestion;
+  }
   auto const get_suffix = [&]( int const idx ) {
     CHECK_GE( idx, 0 );
     CHECK_LT( idx, ssize( suffixes ) );
@@ -61,19 +65,18 @@ string trade_route_name_suggestion(
     return format( "{} {}", colony_name, suffix );
   };
   for( int i = 0; i < num_suffixes; ++i ) {
-    int const idx          = ( start + i ) % num_suffixes;
-    string const candidate = use( get_suffix( idx ) );
-    if( !trade_route_name_exists( trade_routes, candidate ) )
-      return candidate;
+    int const idx = ( start + i ) % num_suffixes;
+    suggestion    = use( get_suffix( idx ) );
+    if( !trade_route_name_exists( trade_routes, suggestion ) )
+      return suggestion;
   }
   // We can't find a straightforward combination that hasn't al-
   // ready been used, so we need to start appending numbers.
   string const suffix = get_suffix( start % num_suffixes );
   for( int iteration = 2;; ++iteration ) {
-    string const candidate =
-        use( format( "{} {}", suffix, iteration ) );
-    if( !trade_route_name_exists( trade_routes, candidate ) )
-      return candidate;
+    suggestion = use( format( "{} {}", suffix, iteration ) );
+    if( !trade_route_name_exists( trade_routes, suggestion ) )
+      return suggestion;
   }
 }
 
