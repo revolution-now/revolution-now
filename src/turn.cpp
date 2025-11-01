@@ -627,7 +627,8 @@ wait<> menu_handler( IEngine& engine, SS& ss, TS& ts,
       if( !trade_route_id.has_value() ) break;
       co_await show_trade_route_edit_ui(
           engine, ss.as_const, as_const( player ), ts.gui,
-          ts.planes, ss.trade_routes, *trade_route_id );
+          ts.map_updater().connectivity(), ts.planes,
+          ss.trade_routes, *trade_route_id );
       break;
     }
     case e_menu_item::create_trade_route: {
@@ -635,11 +636,12 @@ wait<> menu_handler( IEngine& engine, SS& ss, TS& ts,
           ss.as_const, as_const( player ), ts.gui,
           ts.map_updater().connectivity() );
       if( !params.has_value() ) break;
-      TradeRouteId const trade_route_id =
-          create_trade_route( ss.trade_routes, *params );
-      co_await show_trade_route_edit_ui(
+      TradeRoute const trade_route =
+          create_trade_route_object( ss.trade_routes, *params );
+      co_await show_trade_route_create_ui(
           engine, ss.as_const, as_const( player ), ts.gui,
-          ts.planes, ss.trade_routes, trade_route_id );
+          ts.map_updater().connectivity(), ts.planes,
+          ss.trade_routes, trade_route );
       break;
     }
     case e_menu_item::delete_trade_route: {

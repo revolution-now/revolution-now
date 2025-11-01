@@ -93,7 +93,7 @@ TEST_CASE( "[trade-route] ask_create_trade_route" ) {
   world w;
 }
 
-TEST_CASE( "[trade-route] create_trade_route" ) {
+TEST_CASE( "[trade-route] create_trade_route_object" ) {
   world w;
 }
 
@@ -102,6 +102,10 @@ TEST_CASE( "[trade-route] confirm_delete_trade_route" ) {
 }
 
 TEST_CASE( "[trade-route] delete_trade_route" ) {
+  world w;
+}
+
+TEST_CASE( "[trade-route] available_colonies_for_route" ) {
   world w;
 }
 

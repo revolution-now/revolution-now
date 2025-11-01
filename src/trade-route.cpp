@@ -162,36 +162,15 @@ wait<maybe<CreateTradeRoute>> ask_create_trade_route(
     type = *maybe_type;
   }
   vector<ColonyId> const second_colony_candidates = [&] {
-    switch( type ) {
-      case land:
-        return find_connected_colonies( ss, connectivity,
-                                        player.type,
-                                        first_colony.location );
-      case sea:
-        // Technically this is not perfect because not all
-        // colonies with sea lane access necessarily need to be
-        // connected to eachother via water, especially on modded
-        // maps. But this should be good enough, because if the
-        // player chooses colonies that are not connected, then
-        // unit will eventually notice and refuse to go. Doing
-        // this properly would be a pain because you'd have to
-        // check all tiles around the first colony to see which
-        // regions it is connected to, then find only colonies
-        // that have surrounding tiles connected to one of those.
-        // And even that would not be perfect because you could
-        // have a map where two bodies of water (both with sea
-        // lane access) are only connected via a land tile con-
-        // taining a colony, which would cause pathing issues.
-        // Just doing the full list of coastal colonies should be
-        // sufficient for almost all cases in practice and won't
-        // cause any harm even when it is not perfect.
-        return find_coastal_colonies( ss, connectivity,
-                                      player.type );
-    }
+    TradeRoute dummy;
+    dummy.stops.push_back(
+        TradeRouteStop{ .target = TradeRouteTarget::colony{
+                          .colony_id = *first_colony_id } } );
+    return available_colonies_for_route( ss, player,
+                                         connectivity, dummy );
   }();
   // At the very least, the first colony should be in this list.
   CHECK( !second_colony_candidates.empty() );
-
   config     = {};
   config.msg = "Select Second Stop:";
   if( type == sea ) {
@@ -250,19 +229,18 @@ wait<maybe<CreateTradeRoute>> ask_create_trade_route(
                               .stop2  = stop2_target };
 }
 
-TradeRouteId create_trade_route(
+TradeRoute create_trade_route_object(
     TradeRouteState& trade_routes,
     CreateTradeRoute const& params ) {
   TradeRouteId const trade_route_id =
       ++trade_routes.prev_trade_route_id;
-  trade_routes.routes[trade_route_id] = TradeRoute{
+  return TradeRoute{
     .id     = trade_route_id,
     .name   = params.name,
     .player = params.player,
     .type   = params.type,
     .stops  = { TradeRouteStop{ .target = params.stop1 },
                 TradeRouteStop{ .target = params.stop2 } } };
-  return {};
 }
 
 wait<base::NoDiscard<bool>> confirm_delete_trade_route(
@@ -288,6 +266,55 @@ wait<base::NoDiscard<bool>> confirm_delete_trade_route(
 void delete_trade_route( TradeRouteState& trade_routes,
                          TradeRouteId trade_route_id ) {
   trade_routes.routes.erase( trade_route_id );
+}
+
+vector<ColonyId> available_colonies_for_route(
+    SSConst const& ss, Player const& player,
+    TerrainConnectivity const& connectivity,
+    TradeRoute const& route ) {
+  using enum e_trade_route_type;
+  switch( route.type ) {
+    case land: {
+      // Find the first colony as a reference point for terrain
+      // connectivity. If there is none, then just admit all
+      // colonies.
+      auto const first_colony_id = [&] -> maybe<ColonyId> {
+        for( TradeRouteStop const& stop : route.stops )
+          if( auto const colony_id =
+                  stop.target
+                      .inner_if<TradeRouteTarget::colony>();
+              colony_id.has_value() )
+            return *colony_id;
+        return nothing;
+      }();
+      if( !first_colony_id.has_value() )
+        return ss.colonies.for_player_sorted( player.type );
+      Colony const& first_colony =
+          ss.colonies.colony_for( *first_colony_id );
+      return find_connected_colonies(
+          ss, connectivity, player.type, first_colony.location );
+    }
+    case sea:
+      // Technically this is not perfect because not all colonies
+      // with sea lane access necessarily need to be connected to
+      // eachother via water, especially on modded maps. But this
+      // should be good enough, because if the player chooses
+      // colonies that are not connected, then unit will eventu-
+      // ally notice and refuse to go. Doing this properly would
+      // be a pain because you'd have to check all tiles around
+      // the first colony to see which regions it is connected
+      // to, then find only colonies that have surrounding tiles
+      // connected to one of those. And even that would not be
+      // perfect because you could have a map where two bodies of
+      // water (both with sea lane access) are only connected via
+      // a land tile containing a colony, which would cause
+      // pathing issues. Just doing the full list of coastal
+      // colonies should be sufficient for almost all cases in
+      // practice and won't cause any harm even when it is not
+      // perfect.
+      return find_coastal_colonies( ss, connectivity,
+                                    player.type );
+  }
 }
 
 } // namespace rn

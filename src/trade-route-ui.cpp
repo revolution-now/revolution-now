@@ -18,11 +18,13 @@
 #include "co-wait.hpp"
 #include "commodity.hpp"
 #include "iengine.hpp"
+#include "igui.hpp"
 #include "input.hpp"
 #include "plane-stack.hpp"
 #include "screen.hpp"
 #include "spread-builder.hpp"
 #include "spread-render.hpp"
+#include "trade-route.hpp"
 
 // config
 #include "config/nation.rds.hpp"
@@ -70,34 +72,35 @@ using ::gfx::point;
 using ::gfx::rect;
 using ::gfx::size;
 
-string text_cutoff_dots( rr::ITextometer const& textometer,
-                         rr::TextLayout const& text_layout,
-                         int const max_pixel_width,
-                         string_view const dots,
-                         string_view const fallback,
-                         string& text ) {
+// TODO: Move this out since it is a general utility.
+void text_cutoff_dots( rr::ITextometer const& textometer,
+                       rr::TextLayout const& text_layout,
+                       int const max_pixel_width,
+                       string_view const suffix,
+                       string_view const fallback,
+                       string& text ) {
   auto const width_good = [&]( string const& candidate ) {
     return textometer
                .dimensions_for_line( text_layout, candidate )
                .w <= max_pixel_width;
   };
 
-  if( width_good( text ) ) return text;
+  if( width_good( text ) ) return;
 
   while( !text.empty() ) {
     text.pop_back();
-    string const candidate = format( "{}{}", text, dots );
-    if( width_good( candidate ) ) return candidate;
+    string candidate = format( "{}{}", text, suffix );
+    if( width_good( candidate ) ) {
+      text = std::move( candidate );
+      return;
+    }
   }
 
-  return string( fallback );
+  text = string( fallback );
 }
 
 string name_for_target( SSConst const& ss, Player const& player,
-                        TradeRouteTarget const& target,
-                        rr::ITextometer const& textometer,
-                        rr::TextLayout const& text_layout,
-                        int const max_pixel_width ) {
+                        TradeRouteTarget const& target ) {
   string name;
   SWITCH( target ) {
     CASE( colony ) {
@@ -110,8 +113,18 @@ string name_for_target( SSConst const& ss, Player const& player,
       break;
     }
   }
+  return name;
+}
+
+string name_for_target_with_cutoff(
+    SSConst const& ss, Player const& player,
+    TradeRouteTarget const& target,
+    rr::ITextometer const& textometer,
+    rr::TextLayout const& text_layout,
+    int const max_pixel_width ) {
+  string name = name_for_target( ss, player, target );
   text_cutoff_dots( textometer, text_layout, max_pixel_width,
-                    /*fallback=*/"...", /*dots=*/"...", name );
+                    /*suffix=*/"...", /*fallback=*/"-", name );
   return name;
 }
 
@@ -136,6 +149,8 @@ struct LayoutHeader {
 };
 
 struct LayoutStop {
+  int index = {};
+
   rect r;
 
   rect destination;
@@ -155,9 +170,11 @@ struct LayoutInfo {
 
   LayoutString route_name_label;
   LayoutString route_name;
+  rect route_name_change_click_area;
 
   LayoutString route_type_label;
   LayoutString route_type;
+  rect route_type_change_click_area;
 };
 
 struct LayoutButton {
@@ -245,10 +262,18 @@ Layout layout_auto( IEngine& engine, SSConst const& ss,
   info.route_name = {
     .text = route.name,
     .nw = info.route_name_label.nw.moved_right( info_offset ) };
+  info.route_name_change_click_area = {
+    .origin = info.route_name_label.nw,
+    .size   = { .w = kCanvasWidthWithMargins / 2,
+                .h = kLineHeight } };
   info.route_type = {
     .text =
         base::capitalize_initials( base::to_str( route.type ) ),
     .nw = info.route_type_label.nw.moved_right( info_offset ) };
+  info.route_type_change_click_area = {
+    .origin = info.route_type_label.nw,
+    .size   = { .w = kCanvasWidthWithMargins / 2,
+                .h = kLineHeight } };
 
   l.info.r = { .origin = info.route_name_label.nw,
                .size   = { .w = kCanvasWidthWithMargins,
@@ -296,7 +321,9 @@ Layout layout_auto( IEngine& engine, SSConst const& ss,
 
   cur.y += stop_height;
   for( int i = 0; i < 4; ++i ) {
+    SCOPE_EXIT { cur.y += stop_height; };
     auto& stop       = l.stops[i];
+    stop.index       = i;
     stop.r           = { .origin = cur,
                          .size   = { .w = kCanvasWidthWithMargins,
                                      .h = stop_height } };
@@ -323,7 +350,7 @@ Layout layout_auto( IEngine& engine, SSConst const& ss,
     if( i >= ssize( route.stops ) ) continue;
     TradeRouteStop const& route_stop = route.stops.at( i );
 
-    stop.destination_text.text = name_for_target(
+    stop.destination_text.text = name_for_target_with_cutoff(
         ss, player, route_stop.target, engine.textometer(),
         l.text_layout, cell_inner_width - num_prefix_width );
 
@@ -347,8 +374,6 @@ Layout layout_auto( IEngine& engine, SSConst const& ss,
 
     make_spread( route_stop.unloads, stop.unload_plan );
     make_spread( route_stop.loads, stop.load_plan );
-
-    cur.y += stop_height;
   }
 
   size const button_sz{ .w = 64, .h = 16 };
@@ -400,21 +425,30 @@ struct TradeRouteUI : public IPlane {
   IEngine& engine_;
   SSConst const& ss_;
   Player const& player_;
-  TradeRouteState& trade_route_state_;
-  maybe<Layout> layout_    = {};
-  wait_promise<> finished_ = {};
-  co::stream<TradeRouteInput> in_;
+  IGui& gui_;
+  TerrainConnectivity const& connectivity_;
+  TradeRouteState& trade_route_state_modify_only_on_save_;
+  TradeRouteState trade_route_state_;
+  maybe<Layout> layout_                   = {};
+  wait_promise<ui::e_ok_cancel> finished_ = {};
+  co::stream<TradeGuiInput> in_;
   TradeRouteId curr_id_ = {};
 
  public:
   TradeRouteUI( IEngine& engine, SSConst const& ss,
-                Player const& player,
-                TradeRouteState& trade_route_state,
+                Player const& player, IGui& gui,
+                TerrainConnectivity const& connectivity,
+                TradeRouteState& trade_route_state_real,
+                TradeRouteState const& trade_route_state_to_edit,
                 TradeRouteId const initial_id )
     : engine_( engine ),
       ss_( ss ),
       player_( player ),
-      trade_route_state_( trade_route_state ),
+      gui_( gui ),
+      connectivity_( connectivity ),
+      trade_route_state_modify_only_on_save_(
+          trade_route_state_real ),
+      trade_route_state_( trade_route_state_to_edit ),
       curr_id_( initial_id ) {
     if( auto const named = named_resolution( engine_ );
         named.has_value() )
@@ -426,13 +460,19 @@ struct TradeRouteUI : public IPlane {
 
  private:
   TradeRoute& curr_trade_route() {
-    CHECK( trade_route_state_.routes.contains( curr_id_ ) );
-    return trade_route_state_.routes[curr_id_];
+    auto const it = trade_route_state_.routes.find( curr_id_ );
+    CHECK( it != trade_route_state_.routes.end() );
+    return it->second;
   }
 
   TradeRoute const& curr_trade_route() const {
-    CHECK( trade_route_state_.routes.contains( curr_id_ ) );
-    return trade_route_state_.routes[curr_id_];
+    auto const it = trade_route_state_.routes.find( curr_id_ );
+    CHECK( it != trade_route_state_.routes.end() );
+    return it->second;
+  }
+
+  [[nodiscard]] bool has_stop( int const idx ) const {
+    return idx >= 0 && idx < ssize( curr_trade_route().stops );
   }
 
   Layout layout_gen( e_resolution const resolution ) {
@@ -447,6 +487,14 @@ struct TradeRouteUI : public IPlane {
         return layout_auto( engine_, ss_, player_, resolution,
                             route, engine_.textometer() );
     }
+  }
+
+  void update_layout() {
+    if( !layout_.has_value() )
+      // The current resolution can't produce a valid layout, so
+      // no need to try updating it.
+      return;
+    layout_ = layout_gen( layout_->named_resolution );
   }
 
   void on_logical_resolution_selected(
@@ -508,8 +556,9 @@ struct TradeRouteUI : public IPlane {
   }
 
   void draw( rr::Renderer& renderer, Layout const& l,
-             int const idx, LayoutStop const& layout_stop,
+             LayoutStop const& layout_stop,
              TradeRouteStop const& ) const {
+    int const idx = layout_stop.index;
     // Destination cell.
     string const destination_label = format(
         "{}. {}", idx + 1, layout_stop.destination_text.text );
@@ -549,9 +598,9 @@ struct TradeRouteUI : public IPlane {
 
     for( LayoutStop const& stop : l.stops )
       draw( renderer, l, stop );
-    for( auto const [idx, layout_stop, route_stop] :
-         rv::zip( rv::iota( 0 ), l.stops, route.stops ) )
-      draw( renderer, l, idx, layout_stop, route_stop );
+    for( auto const [layout_stop, route_stop] :
+         rv::zip( l.stops, route.stops ) )
+      draw( renderer, l, layout_stop, route_stop );
 
     draw( renderer, l, l.ok_button );
     draw( renderer, l, l.cxl_button );
@@ -562,12 +611,45 @@ struct TradeRouteUI : public IPlane {
     draw( renderer, *layout_ );
   }
 
+  // This allows you to do e.g.:
+  //
+  //   send_input<TradeGuiInput::load_add>() = { .stop = 2 };
+  //
+  template<typename T>
+  auto send_input() {
+    struct sender {
+      sender( co::stream<TradeGuiInput>& in ) : in_( in ) {}
+      ~sender() { in_.send( TradeGuiInput{ std::move( o ) } ); }
+
+      void operator=( T&& in ) { o = std::move( in ); }
+
+     private:
+      co::stream<TradeGuiInput>& in_;
+      T o{};
+    };
+    return sender( in_ );
+  }
+
+  void close_screen( ui::e_ok_cancel const result ) {
+    finished_.set_value( result );
+  }
+
   e_input_handled on_key(
       input::key_event_t const& event ) override {
     if( event.change != input::e_key_change::down )
       return e_input_handled::no;
     if( input::is_mod_key( event ) ) return e_input_handled::no;
-    finished_.set_value( monostate{} );
+
+    switch( event.keycode ) {
+      case ::SDLK_ESCAPE:
+        send_input<TradeGuiInput::cancel>() = {};
+        break;
+      case ::SDLK_RETURN:
+      case ::SDLK_KP_ENTER:
+        send_input<TradeGuiInput::done>() = {};
+        break;
+    }
+
     return e_input_handled::yes;
   }
 
@@ -578,13 +660,208 @@ struct TradeRouteUI : public IPlane {
     // by the land-view which requires using the up click in
     // order to distinguish clicks from drags.
     if( event.buttons != input::e_mouse_button_event::left_up )
-      return e_input_handled::no;
-    finished_.set_value( monostate{} );
+      return e_input_handled::yes;
+    if( !layout_.has_value() ) return e_input_handled::yes;
+    Layout const& l = *layout_;
+    point const p   = event.pos;
+
+    if( p.is_inside( l.cxl_button.r ) ) {
+      send_input<TradeGuiInput::cancel>() = {};
+      return e_input_handled::yes;
+    }
+
+    if( p.is_inside( l.ok_button.r ) ) {
+      send_input<TradeGuiInput::done>() = {};
+      return e_input_handled::yes;
+    }
+
+    if( p.is_inside( l.info.route_name_change_click_area ) ) {
+      send_input<TradeGuiInput::change_name>() = {};
+      return e_input_handled::yes;
+    }
+
+    if( p.is_inside( l.info.route_type_change_click_area ) ) {
+      // NOTE: we don't currently allow changing the type of the
+      // trade route since that would require a bunch of valida-
+      // tion of the stops.
+    }
+
+    for( LayoutStop const& stop : l.stops ) {
+      if( !p.is_inside( stop.r ) ) continue;
+      if( p.is_inside( stop.destination ) ) {
+        if( has_stop( stop.index ) ) {
+          if( event.mod.shf_down )
+            send_input<TradeGuiInput::destination_remove>() = {
+              .stop = stop.index };
+          else
+            send_input<TradeGuiInput::destination_change>() = {
+              .stop = stop.index };
+        } else {
+          send_input<TradeGuiInput::destination_add>();
+        }
+      } else if( p.is_inside( stop.unload ) ) {
+        // TODO
+      } else if( p.is_inside( stop.load ) ) {
+        // TODO
+      }
+    }
+
     return e_input_handled::yes;
   }
 
+  e_input_handled on_mouse_move(
+      input::mouse_move_event_t const& ) override {
+    return e_input_handled::yes;
+  }
+
+  wait<maybe<TradeRouteTarget>> ask_target(
+      vector<TradeRouteTarget> const& targets,
+      string const& msg ) const {
+    if( targets.empty() ) co_return nothing;
+    ChoiceConfig config{
+      .msg = msg,
+    };
+    for( int idx = 0; TradeRouteTarget const& target : targets )
+      config.options.push_back( ChoiceConfigOption{
+        .key = to_string( idx++ ),
+        .display_name =
+            name_for_target( ss_, player_, target ) } );
+    auto const choice =
+        co_await gui_.optional_choice_int_key( config );
+    if( !choice.has_value() ) co_return nothing;
+    CHECK_LT( *choice, ssize( targets ) );
+    co_return targets[*choice];
+  }
+
+  wait<> input_processor() {
+    TradeRoute& route = curr_trade_route();
+    while( true ) {
+      TradeGuiInput const in = co_await in_.next();
+      SWITCH( in ) {
+        CASE( done ) {
+          trade_route_state_modify_only_on_save_ =
+              trade_route_state_;
+          close_screen( ui::e_ok_cancel::ok );
+          break;
+        }
+        CASE( cancel ) {
+          if( trade_route_state_modify_only_on_save_ !=
+              trade_route_state_ ) {
+            YesNoConfig const config{
+              .msg            = "Discard Unsaved Changes?",
+              .yes_label      = "Yes, discard and leave.",
+              .no_label       = "No, stay here",
+              .no_comes_first = true,
+            };
+            if( co_await gui_.optional_yes_no( config ) !=
+                ui::e_confirm::yes )
+              break;
+          }
+          close_screen( ui::e_ok_cancel::cancel );
+          break;
+        }
+        CASE( change_name ) {
+          auto const new_name =
+              co_await gui_.optional_string_input(
+                  StringInputConfig{
+                    .msg = "Enter new name for trade route:",
+                    .initial_text = route.name } );
+          if( new_name.value_or( "" ).empty() ) break;
+          route.name = *new_name;
+          update_layout();
+          break;
+        }
+        CASE( destination_remove ) {
+          int const num_stops = ssize( route.stops );
+          if( num_stops == 1 )
+            // Must always have at least one stop.
+            break;
+          CHECK_LT( destination_remove.stop, num_stops );
+          TradeRouteTarget const& target =
+              route.stops[destination_remove.stop].target;
+          YesNoConfig const config{
+            .msg = format(
+                "Are you sure you want to delete stop [{}]?",
+                name_for_target( ss_, player_, target ) ),
+            .yes_label      = "Delete",
+            .no_label       = "Cancel",
+            .no_comes_first = true,
+          };
+          if( co_await gui_.optional_yes_no( config ) !=
+              ui::e_confirm::yes )
+            break;
+          route.stops.erase( route.stops.begin() +
+                             destination_remove.stop );
+          update_layout();
+          break;
+        }
+        CASE( destination_change ) {
+          CHECK_LT( destination_change.stop,
+                    ssize( route.stops ) );
+          vector<ColonyId> const colonies =
+              available_colonies_for_route(
+                  ss_, player_, connectivity_, route );
+          vector<TradeRouteTarget> targets;
+          targets.reserve( colonies.size() + 1 );
+          if( destination_change.stop > 0 &&
+              route.type == e_trade_route_type::sea )
+            targets.push_back( TradeRouteTarget::harbor{} );
+          for( ColonyId const colony_id : colonies )
+            targets.push_back( TradeRouteTarget::colony{
+              .colony_id = colony_id } );
+          auto const target = co_await ask_target(
+              targets, "Select New Destination:" );
+          if( !target.has_value() ) break;
+          // Only change the target, that way we keep all the
+          // load/unload settings.
+          route.stops[destination_change.stop].target = *target;
+          update_layout();
+          break;
+        }
+        CASE( destination_add ) {
+          vector<ColonyId> const colonies =
+              available_colonies_for_route(
+                  ss_, player_, connectivity_, route );
+          vector<TradeRouteTarget> targets;
+          targets.reserve( colonies.size() + 1 );
+          if( route.type == e_trade_route_type::sea )
+            targets.push_back( TradeRouteTarget::harbor{} );
+          for( ColonyId const colony_id : colonies )
+            targets.push_back( TradeRouteTarget::colony{
+              .colony_id = colony_id } );
+          auto const target = co_await ask_target(
+              targets, "Select New Destination:" );
+          if( !target.has_value() ) break;
+          route.stops.push_back(
+              TradeRouteStop{ .target = *target } );
+          update_layout();
+          break;
+        }
+        CASE( load_add ) {
+          // TODO
+          break;
+        }
+        CASE( load_remove ) {
+          // TODO
+          break;
+        }
+        CASE( unload_add ) {
+          // TODO
+          break;
+        }
+        CASE( unload_remove ) {
+          // TODO
+          break;
+        }
+      }
+    }
+  }
+
  public:
-  wait<> run() { co_await finished_.wait(); }
+  wait<ui::e_ok_cancel> run() {
+    auto const _ = input_processor();
+    co_return co_await finished_.wait();
+  }
 };
 
 } // namespace
@@ -594,14 +871,35 @@ struct TradeRouteUI : public IPlane {
 *****************************************************************/
 wait<> show_trade_route_edit_ui(
     IEngine& engine, SSConst const& ss, Player const& player,
-    IGui&, Planes& planes, TradeRouteState& trade_route_state,
+    IGui& gui, TerrainConnectivity const& connectivity,
+    Planes& planes, TradeRouteState& trade_route_state,
     TradeRouteId const trade_route_id ) {
   auto owner        = planes.push();
   PlaneGroup& group = owner.group;
   TradeRouteUI trade_route_ui(
-      engine, ss, player, trade_route_state, trade_route_id );
+      engine, ss, player, gui, connectivity, trade_route_state,
+      trade_route_state, trade_route_id );
   group.bottom = &trade_route_ui;
-  co_await trade_route_ui.run();
+  (void)co_await trade_route_ui.run();
+}
+
+wait<> show_trade_route_create_ui(
+    IEngine& engine, SSConst const& ss, Player const& player,
+    IGui& gui, TerrainConnectivity const& connectivity,
+    Planes& planes, TradeRouteState& trade_route_state,
+    TradeRoute const& new_trade_route ) {
+  auto owner        = planes.push();
+  PlaneGroup& group = owner.group;
+  CHECK_GT( new_trade_route.id, 0 );
+  CHECK(
+      !trade_route_state.routes.contains( new_trade_route.id ) );
+  TradeRouteState with_new_added            = trade_route_state;
+  with_new_added.routes[new_trade_route.id] = new_trade_route;
+  TradeRouteUI trade_route_ui(
+      engine, ss, player, gui, connectivity, trade_route_state,
+      with_new_added, new_trade_route.id );
+  group.bottom = &trade_route_ui;
+  (void)co_await trade_route_ui.run();
 }
 
 } // namespace rn

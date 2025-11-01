@@ -26,6 +26,8 @@ struct IGui;
 struct Planes;
 struct SSConst;
 struct Player;
+struct TerrainConnectivity;
+struct TradeRoute;
 struct TradeRouteState;
 
 /****************************************************************
@@ -34,8 +36,16 @@ struct TradeRouteState;
 // Shows the full-screen Trade Route editing UI.
 wait<> show_trade_route_edit_ui(
     IEngine& engine, SSConst const& ss, Player const& player,
-    IGui& gui, Planes& planes,
-    TradeRouteState& trade_route_state,
+    IGui& gui, TerrainConnectivity const& connectivity,
+    Planes& planes, TradeRouteState& trade_route_state,
     TradeRouteId trade_route_id );
+
+// The new trade route should have a valid/unique ID, but should
+// not yet have been added into the list of routes.
+wait<> show_trade_route_create_ui(
+    IEngine& engine, SSConst const& ss, Player const& player,
+    IGui& gui, TerrainConnectivity const& connectivity,
+    Planes& planes, TradeRouteState& trade_route_state,
+    TradeRoute const& new_trade_route );
 
 } // namespace rn

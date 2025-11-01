@@ -10,13 +10,33 @@
 # ===============================================================
 namespace "rn"
 
-sumtype.TradeRouteInput {
+sumtype.TradeGuiMouseHover {
+  button_ok {},
+  button_cxl {},
+  name {},
+  type {},
+  destination {
+    stop 'int',
+  },
+  unloads {
+    stop 'int',
+    tile 'base::maybe<int>',
+  },
+  loads {
+    stop 'int',
+    tile 'base::maybe<int>',
+  },
+}
+
+sumtype.TradeGuiInput {
   done {},
   cancel {},
-  select_trade_route {},
 
   change_name {},
 
+  destination_change {
+    stop 'int',
+  },
   destination_add {},
   destination_remove {
     stop 'int',
@@ -28,6 +48,7 @@ sumtype.TradeRouteInput {
   unload_add {
     stop 'int',
   },
+
   load_remove {
     stop 'int',
     cargo 'int',

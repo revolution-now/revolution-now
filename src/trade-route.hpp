@@ -54,7 +54,7 @@ wait<maybe<CreateTradeRoute>> ask_create_trade_route(
     SSConst const& ss, Player const& player, IGui& gui,
     TerrainConnectivity const& connectivity );
 
-[[nodiscard]] TradeRouteId create_trade_route(
+[[nodiscard]] TradeRoute create_trade_route_object(
     TradeRouteState& trade_routes,
     CreateTradeRoute const& params );
 
@@ -63,5 +63,16 @@ wait<base::NoDiscard<bool>> confirm_delete_trade_route(
 
 void delete_trade_route( TradeRouteState& trade_routes,
                          TradeRouteId trade_route_id );
+
+/****************************************************************
+** Trade Route Editing.
+*****************************************************************/
+// This will give the list of valid colonies that can be added to
+// a trade route. The list will depend on the trade route type as
+// well as any existing colony targets within it.
+std::vector<ColonyId> available_colonies_for_route(
+    SSConst const& ss, Player const& player,
+    TerrainConnectivity const& connectivity,
+    TradeRoute const& route );
 
 } // namespace rn
