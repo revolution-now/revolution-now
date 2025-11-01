@@ -361,6 +361,8 @@ struct rect {
   [[nodiscard]] point sw() const;
 
   [[nodiscard]] point corner( e_diagonal_direction d ) const;
+  [[nodiscard]] point point_at( e_cdirection d ) const;
+  [[nodiscard]] point point_at( e_direction d ) const;
 
   [[nodiscard]] int top() const;
   [[nodiscard]] int bottom() const;

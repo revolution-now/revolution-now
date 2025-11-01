@@ -658,6 +658,26 @@ point rect::corner( e_diagonal_direction const d ) const {
   }
 }
 
+point rect::point_at( e_cdirection const d ) const {
+  // clang-format off
+  switch( d ) {
+    case e_cdirection::c:  return center();
+    case e_cdirection::nw: return nw();
+    case e_cdirection::ne: return ne();
+    case e_cdirection::sw: return sw();
+    case e_cdirection::se: return se();
+    case e_cdirection::n:  return { .x=center().x, .y=top()      };
+    case e_cdirection::s:  return { .x=center().x, .y=bottom()   };
+    case e_cdirection::w:  return { .x=left(),     .y=center().y };
+    case e_cdirection::e:  return { .x=right(),    .y=center().y };
+  };
+  // clang-format on
+}
+
+point rect::point_at( e_direction const d ) const {
+  return point_at( to_cdirection( d ) );
+}
+
 int rect::top() const {
   rect norm = normalized();
   return norm.origin.y;

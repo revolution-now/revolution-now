@@ -1050,6 +1050,39 @@ TEST_CASE( "[gfx/cartesian] rect::corner" ) {
            point{ .x = 3, .y = 7 } );
 }
 
+TEST_CASE( "[gfx/cartesian] rect::point_at (e_cdirection)" ) {
+  rect const r{ .origin = { .x = -1, .y = -1 },
+                .size   = { .w = 2, .h = 2 } };
+
+  using enum e_cdirection;
+
+  REQUIRE( r.point_at( c ) == point{ .x = 0, .y = 0 } );
+  REQUIRE( r.point_at( nw ) == point{ .x = -1, .y = -1 } );
+  REQUIRE( r.point_at( ne ) == point{ .x = 1, .y = -1 } );
+  REQUIRE( r.point_at( sw ) == point{ .x = -1, .y = 1 } );
+  REQUIRE( r.point_at( se ) == point{ .x = 1, .y = 1 } );
+  REQUIRE( r.point_at( n ) == point{ .x = 0, .y = -1 } );
+  REQUIRE( r.point_at( s ) == point{ .x = 0, .y = 1 } );
+  REQUIRE( r.point_at( w ) == point{ .x = -1, .y = 0 } );
+  REQUIRE( r.point_at( e ) == point{ .x = 1, .y = 0 } );
+}
+
+TEST_CASE( "[gfx/cartesian] rect::point_at (e_direction)" ) {
+  rect const r{ .origin = { .x = -1, .y = -1 },
+                .size   = { .w = 2, .h = 2 } };
+
+  using enum e_direction;
+
+  REQUIRE( r.point_at( nw ) == point{ .x = -1, .y = -1 } );
+  REQUIRE( r.point_at( ne ) == point{ .x = 1, .y = -1 } );
+  REQUIRE( r.point_at( sw ) == point{ .x = -1, .y = 1 } );
+  REQUIRE( r.point_at( se ) == point{ .x = 1, .y = 1 } );
+  REQUIRE( r.point_at( n ) == point{ .x = 0, .y = -1 } );
+  REQUIRE( r.point_at( s ) == point{ .x = 0, .y = 1 } );
+  REQUIRE( r.point_at( w ) == point{ .x = -1, .y = 0 } );
+  REQUIRE( r.point_at( e ) == point{ .x = 1, .y = 0 } );
+}
+
 TEST_CASE(
     "[gfx/cartesian] negative rect::nw, rect::se, etc." ) {
   rect r;
