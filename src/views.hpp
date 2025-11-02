@@ -487,7 +487,9 @@ class LineEditorView : public View {
   // Implement UI.
   bool on_key( input::key_event_t const& event ) override;
 
-  std::string const& text() const { return current_rendering_; }
+  std::string const& text() const {
+    return line_editor_.buffer();
+  }
   // Absolute cursor position.
   int cursor_pos() const { return line_editor_.pos(); }
 
