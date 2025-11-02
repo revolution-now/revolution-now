@@ -817,7 +817,7 @@ struct TradeRouteUI : public IPlane {
 
     pixel shaded_text_color = text_color;
     if( state == hover ) // don't highlight on click.
-      shaded_text_color = text_color.highlighted( 4 );
+      shaded_text_color = pixel::white();
     write_centered( renderer, shaded_text_color,
                     /*color_bg=*/nothing,
                     r.center() + click_shift, label );
@@ -1011,8 +1011,9 @@ struct TradeRouteUI : public IPlane {
             .stop = unloads.stop, .cargo = *unloads.tile };
           break;
         }
-        send_input<Input::unload_add>() = { .stop =
-                                                unloads.stop };
+        if( !unloads.tiles )
+          send_input<Input::unload_add>() = { .stop =
+                                                  unloads.stop };
         break;
       }
       CASE( loads ) {
@@ -1022,7 +1023,8 @@ struct TradeRouteUI : public IPlane {
             .stop = loads.stop, .cargo = *loads.tile };
           break;
         }
-        send_input<Input::load_add>() = { .stop = loads.stop };
+        if( !loads.tiles )
+          send_input<Input::load_add>() = { .stop = loads.stop };
         break;
       }
     }
