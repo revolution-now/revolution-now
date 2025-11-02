@@ -423,7 +423,8 @@ Layout layout_auto( IEngine& engine, SSConst const& ss,
                     engine.textometer(), l.text_layout,
                     cell_inner_width - num_prefix_width ) );
     stop.destination_ui_icon_nw =
-        stop.destination_text.nw
+        stop.destination_ui_icon_nw
+            .with_x( stop.destination_text.nw.x )
             .moved_right( textometer
                               .dimensions_for_line(
                                   l.text_layout,
@@ -457,14 +458,16 @@ Layout layout_auto( IEngine& engine, SSConst const& ss,
         .sort_tiles  = false };
       layout_icons.render_plan = build_inhomogeneous_tile_spread(
           engine.textometer(), spread_config );
-      layout_icons.bounds =
-          layout_icons.render_plan.bounds
-              .origin_becomes_point( layout_icons.icons_nw )
-              // Make these rects extend from the top to the
-              // bottom of the cell so that mouse hover behavior
-              // is less eratic.
-              .with_new_top_edge( stop.r.top() + 1 )
-              .with_new_bottom_edge( stop.r.bottom() );
+      if( !comms.empty() )
+        layout_icons.bounds =
+            layout_icons.render_plan.bounds
+                .origin_becomes_point( layout_icons.icons_nw )
+                // Make these rects extend from the top to the
+                // bottom of the cell and to the left edge so
+                // that mouse hover behavior is less eratic.
+                .with_new_top_edge( stop.r.top() )
+                .with_new_bottom_edge( stop.r.bottom() )
+                .with_new_left_edge( cell_r.left() );
       point const add_icon_nw_x_min =
           gfx::centered_at_left(
               sprite_size( e_tile::circle_for_change ), cell_r )
@@ -504,7 +507,7 @@ Layout layout_auto( IEngine& engine, SSConst const& ss,
                 // Make these rects extend from the top to the
                 // bottom of the cell so that mouse hover be-
                 // havior is less eratic.
-                .with_new_top_edge( stop.r.top() + 1 )
+                .with_new_top_edge( stop.r.top() )
                 .with_new_bottom_edge( stop.r.bottom() );
       }
     };
@@ -633,23 +636,26 @@ struct TradeRouteUI : public IPlane {
     }
   }
 
-  void update_layout() {
+  void update_layout(
+      maybe<e_resolution> resolution = nothing ) {
     // NOTE: Recomputing mouse hover in this method is important
     // to avoid crashes because we don't want it to be left re-
     // ferring to some entity that has been deleted.
     mouse_hover_.reset();
-    if( !layout_.has_value() )
-      // The current resolution can't produce a valid layout, so
-      // no need to try updating it.
+    if( !resolution.has_value() )
+      resolution = layout_.member( &Layout::named_resolution );
+    if( !resolution.has_value() )
+      // There is no resolution available at which to compute the
+      // layout.
       return;
-    layout_ = layout_gen( layout_->named_resolution );
+    layout_ = layout_gen( *resolution );
     mouse_hover_ =
         mouse_hover( input::current_mouse_position() );
   }
 
   void on_logical_resolution_selected(
       e_resolution const resolution ) override {
-    layout_ = layout_gen( resolution );
+    update_layout( resolution );
   }
 
   void write_centered( rr::Renderer& renderer,
@@ -738,7 +744,9 @@ struct TradeRouteUI : public IPlane {
     if constexpr( DEBUG_RECTS ) {
       if( tiles )
         renderer.painter().draw_empty_rect(
-            layout_icons.bounds,
+            layout_icons.bounds.moved_down()
+                .moved_right()
+                .with_dec_size(),
             rr::Painter::e_border_mode::inside, pixel::green() );
     }
 
@@ -747,20 +755,18 @@ struct TradeRouteUI : public IPlane {
       rect const r = layout_icons.rects[*tile].r;
       if constexpr( DEBUG_RECTS ) {
         renderer.painter().draw_empty_rect(
-            r, rr::Painter::e_border_mode::inside,
-            pixel::red() );
+            r.moved_down().with_dec_size( size{ .h = 1 } ),
+            rr::Painter::e_border_mode::inside, pixel::red() );
       }
       // For the y coordinate to be consistent for all tiles oth-
       // erwise the y position of the X icon will vary since the
-      // icons are of different sizes and positions. Use the y
-      // coordinate of the destination UI icon for convenience
-      // since that will be at the same level.
-      render_sprite(
-          renderer,
-          gfx::centered_in( sprite_size( e_tile::x_for_remove ),
-                            r )
-              .with_y( layout_stop.destination_ui_icon_nw.y ),
-          e_tile::x_for_remove );
+      // icons are of different sizes and positions.
+      point p = gfx::centered_in(
+                    sprite_size( e_tile::x_for_remove ), r )
+                    .with_y( layout_icons.add_icon_nw.y );
+      // Make sure that id never goes to the right of the + icon.
+      p.x = std::min( p.x, layout_icons.add_icon_nw.x );
+      render_sprite( renderer, p, e_tile::x_for_remove );
     } else if( !tiles ) {
       render_sprite( renderer, layout_icons.add_icon_nw,
                      e_tile::plus_for_add );
