@@ -308,7 +308,10 @@ TileSpreadRenderPlan build_inhomogeneous_tile_spread(
   // tile in order to produce a result with all of the fields
   // filled out, then we will replace the tiles and then adjust
   // the spacing to account for the fact that the tiles will have
-  // differently sized trimmed areas.
+  // differently sized trimmed areas. We need to use the first
+  // tile otherwise if we use a different tile (which may have a
+  // different trimmed width) it might cause the first tile to be
+  // placed at an incorrect offset.
   e_tile const first_tile = config.tiles[0].tile;
   TileSpreadConfig const tile_spread_config{
     .tile    = TileSpread{ .tile  = first_tile,
@@ -317,8 +320,7 @@ TileSpreadRenderPlan build_inhomogeneous_tile_spread(
   res = build_tile_spread( textometer, tile_spread_config );
   // Restore the true set of (varying) tiles. This `zip` should
   // correctly handle the case where there are fewer tiles ren-
-  // dered than requested, though that case is not expected to
-  // arise in this method in practice.
+  // dered than requested.
   for( auto const [tile_w_opts, tile] :
        rv::zip( config.tiles, res.tiles ) ) {
     tile.tile      = tile_w_opts.tile;
@@ -338,13 +340,23 @@ TileSpreadRenderPlan build_inhomogeneous_tile_spread(
   auto const expand = [&] {
     TileSpreadRenderPlan scaled = res;
     while( true ) {
-      int delta = 0;
-      for( auto& tile_render_plan : scaled.tiles )
+      for( int delta = 0; auto& tile_render_plan : scaled.tiles )
         tile_render_plan.where.x += delta++;
       rect const bounds_scaled = bounds( scaled );
       if( bounds_scaled.size.w > config.options.bounds ) break;
       if( bounds_scaled == bounds( res ) ) break;
       res = scaled;
+    }
+  };
+  // Contract if the tiles exceed bounds.
+  auto const contract = [&] {
+    while( true ) {
+      int const old_width = bounds( res ).size.w;
+      if( old_width <= config.options.bounds ) break;
+      for( int delta = 0; auto& tile_render_plan : res.tiles )
+        tile_render_plan.where.x -= delta++;
+      int const new_width = bounds( res ).size.w;
+      if( new_width == old_width ) break;
     }
   };
   // Move left any tiles that are spaced too far apart.
@@ -362,15 +374,60 @@ TileSpreadRenderPlan build_inhomogeneous_tile_spread(
             config.max_spacing.value_or( 1 );
     }
   };
-  // Because the expand is not done per tile, we need to do it
-  // after the squeeze. But then we need the squeeze again so
-  // that the tiles are not too far apart.
-  squeeze();
+
+  // The steps below and their ordering are carefully chosen so
+  // that we maximum spacing of the icons but never violate the
+  // contract of this function:
+  //   1. The bounds must never be exceeded.
+  //   2. The true spacing between the trimmed sections of adja-
+  //      cent tiles must be respected.
+  // Note that in some cases it is not possible to fit the result
+  // within the bounds if the bounds are not large enough to hold
+  // even one tile. But in most normal cases that is not a con-
+  // cern.
+
+  // At this point they are all uniformly spaced, though they may
+  // not fit within bounds (which can happen if the reference
+  // tile we chose above was slim). So first do a compression to
+  // ensure they fit within bounds.
+  contract();
+
+  // Now, just in case they are spaced too closely (which can
+  // happen if the reference tile we chose above was wider than
+  // average) and there is more room to uniformly expand them, do
+  // that now.
   expand();
+
+  // We now have the tiles fit within the bounds and expanded to
+  // maximum spacing subject to the bounds. However, we need to
+  // clip any that are spaced too far apart. This is because the
+  // uniform spacing of the icons won't take into account the
+  // true apparent spacing given that the icons are not of uni-
+  // form width.
   squeeze();
+
+  // At this point we have the icons fit within the bounds and
+  // without violating max true spacing between them. Since the
+  // last time we did an "expand" they were uniformly space and
+  // since now some of them may have less space between them do
+  // to the squeeze we just did, there could be room to uniformly
+  // expand again.
+  expand();
+
+  // One more squeeze to enforce max spacing between adjacent
+  // trimmed areas in case it was violated on the last expand.
+  squeeze();
+
   // Need to recompute bounds now that we've moved things.
   res.bounds = bounds( res );
-  CHECK_LE( res.bounds.size.w, config.options.bounds );
+  // NOTE: there are edge cases where res.bounds might not actu-
+  // ally fit in config.options.bounds; this can happen when the
+  // target bounds are not large enough to hold the first tile.
+  // Or another scenario is that the bounds were enought to hold
+  // two of the first (reference) tile, then when we replace the
+  // reference tiles with the real tiles, the second tile was
+  // larger and caused the bounds to be exceeded, and the con-
+  // traction wasn't able to fix it.
   return res;
 }
 

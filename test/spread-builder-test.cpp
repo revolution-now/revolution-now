@@ -1212,7 +1212,9 @@ TEST_CASE( "[spread-builder] build_inhomogeneous_tile_spread" ) {
   REQUIRE( f() == ex );
 }
 
-TEST_CASE( "[spread-builder] crash (2025-11-02)" ) {
+TEST_CASE(
+    "[spread-builder] build_inhomogeneous_tile_spread crash "
+    "(2025-11-02)" ) {
   rr::MockTextometer textometer;
   InhomogeneousTileSpreadConfig in;
   TileSpreadRenderPlan ex;
@@ -1273,23 +1275,24 @@ TEST_CASE( "[spread-builder] crash (2025-11-02)" ) {
                                .size   = { .w = 6, .h = 18 } } );
 
   in = {
-    .tiles = { { .tile = commodity_food_20, .greyed = false },
-               { .tile = commodity_sugar_20, .greyed = false },
-               { .tile = commodity_tobacco_20, .greyed = false },
-               { .tile = commodity_cotton_20, .greyed = false },
-               { .tile = commodity_furs_20, .greyed = false },
-               { .tile = commodity_lumber_20, .greyed = false },
-               { .tile = commodity_ore_20, .greyed = false },
-               { .tile = commodity_silver_20, .greyed = false },
-               { .tile = commodity_cigars_20, .greyed = false },
-               { .tile = commodity_cloth_20, .greyed = false },
-               { .tile = commodity_coats_20, .greyed = false },
-               { .tile   = commodity_trade_goods_20,
-                 .greyed = false },
-               { .tile = commodity_tools_20, .greyed = false },
-               { .tile = commodity_muskets_20, .greyed = false },
-               { .tile   = commodity_lumber_20,
-                 .greyed = false } },
+    .tiles =
+        {
+          { .tile = commodity_food_20 },
+          { .tile = commodity_sugar_20 },
+          { .tile = commodity_tobacco_20 },
+          { .tile = commodity_cotton_20 },
+          { .tile = commodity_furs_20 },
+          { .tile = commodity_lumber_20 },
+          { .tile = commodity_ore_20 },
+          { .tile = commodity_silver_20 },
+          { .tile = commodity_cigars_20 },
+          { .tile = commodity_cloth_20 },
+          { .tile = commodity_coats_20 },
+          { .tile = commodity_trade_goods_20 },
+          { .tile = commodity_tools_20 },
+          { .tile = commodity_muskets_20 },
+          { .tile = commodity_lumber_20 },
+        },
     .max_spacing = 3,
     .options     = { .bounds       = 194,
                      .label_policy = SpreadLabels::never{},
@@ -1299,7 +1302,75 @@ TEST_CASE( "[spread-builder] crash (2025-11-02)" ) {
                                        .text_padding = nothing } },
     .sort_tiles  = false };
 
-  ex = {};
+  ex = { .bounds = { .origin = { .x = 0, .y = 0 },
+                     .size   = { .w = 184, .h = 20 } },
+         .tiles  = { { .tile  = commodity_food_20,
+                       .where = { .x = -4, .y = 0 } },
+                     { .tile  = commodity_sugar_20,
+                       .where = { .x = 8, .y = 0 } },
+                     { .tile  = commodity_tobacco_20,
+                       .where = { .x = 20, .y = 0 } },
+                     { .tile  = commodity_cotton_20,
+                       .where = { .x = 32, .y = 0 } },
+                     { .tile  = commodity_furs_20,
+                       .where = { .x = 44, .y = 0 } },
+                     { .tile  = commodity_lumber_20,
+                       .where = { .x = 56, .y = 0 } },
+                     { .tile  = commodity_ore_20,
+                       .where = { .x = 68, .y = 0 } },
+                     { .tile  = commodity_silver_20,
+                       .where = { .x = 80, .y = 0 } },
+                     { .tile  = commodity_cigars_20,
+                       .where = { .x = 92, .y = 0 } },
+                     { .tile  = commodity_cloth_20,
+                       .where = { .x = 104, .y = 0 } },
+                     { .tile  = commodity_coats_20,
+                       .where = { .x = 116, .y = 0 } },
+                     { .tile  = commodity_trade_goods_20,
+                       .where = { .x = 128, .y = 0 } },
+                     { .tile  = commodity_tools_20,
+                       .where = { .x = 140, .y = 0 } },
+                     { .tile  = commodity_muskets_20,
+                       .where = { .x = 152, .y = 0 } },
+                     { .tile  = commodity_lumber_20,
+                       .where = { .x = 164, .y = 0 } } },
+         .labels = {} };
+  REQUIRE( f() == ex );
+}
+
+TEST_CASE(
+    "[spread-builder] build_inhomogeneous_tile_spread not "
+    "enough room for one tile" ) {
+  rr::MockTextometer textometer;
+  InhomogeneousTileSpreadConfig in;
+  TileSpreadRenderPlan ex;
+
+  auto const f = [&] [[clang::noinline]] {
+    return build_inhomogeneous_tile_spread( textometer, in );
+  };
+
+  using enum e_tile;
+
+  testing_set_trimmed_cache( commodity_food_20,
+                             { .origin = { .x = 4, .y = 0 },
+                               .size = { .w = 12, .h = 20 } } );
+
+  in = { .tiles =
+             {
+               { .tile = commodity_horses_20 },
+               { .tile = commodity_horses_20 },
+               { .tile = commodity_horses_20 },
+               { .tile = commodity_horses_20 },
+               { .tile = commodity_muskets_20 },
+             },
+         .max_spacing = 1,
+         .options     = { .bounds       = 1,
+                          .label_policy = SpreadLabels::never{} } };
+
+  ex = { .bounds = { .origin = { .x = 0, .y = 0 },
+                     .size   = { .w = 18, .h = 19 } },
+         .tiles  = { { .tile  = commodity_horses_20,
+                       .where = { .x = -1, .y = 0 } } } };
   REQUIRE( f() == ex );
 }
 
