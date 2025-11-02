@@ -73,6 +73,7 @@ using ::gfx::pixel;
 using ::gfx::point;
 using ::gfx::rect;
 using ::gfx::size;
+using ::refl::enum_values;
 using ::rn::trade_gui::Hover;
 using ::rn::trade_gui::Input;
 
@@ -618,10 +619,13 @@ struct TradeRouteUI : public IPlane {
         mouse_hover_.get_if<HoverT>().member( &HoverT::stop );
     auto const idx = mouse_hover_.get_if<HoverT>().maybe_member(
         &HoverT::tile );
-    if( stop.has_value() && *stop == layout_stop.index &&
-        idx.has_value() )
-      renderer.painter().draw_empty_rect(
-          layout_icons.rects[*idx].r, pixel::red() );
+    if( stop.has_value() && *stop == layout_stop.index ) {
+      if( idx.has_value() )
+        renderer.painter().draw_empty_rect(
+            layout_icons.rects[*idx].r, pixel::red() );
+      else
+        ; // TODO: draw +
+    }
   }
 
   void draw( rr::Renderer& renderer, Layout const& l,
@@ -765,13 +769,10 @@ struct TradeRouteUI : public IPlane {
     return nothing;
   }
 
-#define REQUIRE_DIRECTION( up_down )                \
-  if( event.buttons !=                              \
-      input::e_mouse_button_event::left_##up_down ) \
-    return e_input_handled::yes;
-
   e_input_handled on_mouse_button(
       input::mouse_button_event_t const& event ) override {
+    if( event.buttons != input::e_mouse_button_event::left_up )
+      return e_input_handled::yes;
     if( !layout_.has_value() ) return e_input_handled::yes;
     point const p = event.pos;
 
@@ -783,7 +784,6 @@ struct TradeRouteUI : public IPlane {
         // Require button up here since if we all the down click
         // to close this screen then the up click will go to
         // whatever the next screen is.
-        REQUIRE_DIRECTION( up );
         send_input<Input::cancel>() = {};
         break;
       }
@@ -791,24 +791,20 @@ struct TradeRouteUI : public IPlane {
         // Require button up here since if we all the down click
         // to close this screen then the up click will go to
         // whatever the next screen is.
-        REQUIRE_DIRECTION( up );
         send_input<Input::done>() = {};
         break;
       }
       CASE( name ) {
-        REQUIRE_DIRECTION( down );
         send_input<Input::change_name>() = {};
         break;
       }
       CASE( type ) {
-        REQUIRE_DIRECTION( down );
         // NOTE: we don't currently allow changing the type of
         // the trade route since that would require a bunch of
         // validation of the stops.
         break;
       }
       CASE( destination ) {
-        REQUIRE_DIRECTION( down );
         if( has_stop( destination.stop ) ) {
           if( event.mod.shf_down )
             send_input<Input::destination_remove>() = {
@@ -822,7 +818,7 @@ struct TradeRouteUI : public IPlane {
         break;
       }
       CASE( unloads ) {
-        REQUIRE_DIRECTION( down );
+        if( !has_stop( unloads.stop ) ) break;
         if( unloads.tile.has_value() ) {
           send_input<Input::unload_remove>() = {
             .stop = unloads.stop, .cargo = *unloads.tile };
@@ -833,7 +829,7 @@ struct TradeRouteUI : public IPlane {
         break;
       }
       CASE( loads ) {
-        REQUIRE_DIRECTION( down );
+        if( !has_stop( loads.stop ) ) break;
         if( loads.tile.has_value() ) {
           send_input<Input::load_remove>() = {
             .stop = loads.stop, .cargo = *loads.tile };
@@ -980,12 +976,34 @@ struct TradeRouteUI : public IPlane {
           break;
         }
         CASE( load_add ) {
-          // TODO
+          CHECK_LT( load_add.stop, ssize( route.stops ) );
+          TradeRouteStop& stop = route.stops[load_add.stop];
+          EnumChoiceConfig config{
+            .msg = format(
+                "Select cargo to load at [{}]:",
+                name_for_target( ss_, player_, stop.target ) ),
+          };
+          auto const choice =
+              co_await gui_.optional_enum_choice<e_commodity>(
+                  config );
+          if( !choice.has_value() ) break;
+          stop.loads.push_back( *choice );
           update_layout();
           break;
         }
         CASE( unload_add ) {
-          // TODO
+          CHECK_LT( unload_add.stop, ssize( route.stops ) );
+          TradeRouteStop& stop = route.stops[unload_add.stop];
+          EnumChoiceConfig config{
+            .msg = format(
+                "Select cargo to unload at [{}]:",
+                name_for_target( ss_, player_, stop.target ) ),
+          };
+          auto const choice =
+              co_await gui_.optional_enum_choice<e_commodity>(
+                  config );
+          if( !choice.has_value() ) break;
+          stop.unloads.push_back( *choice );
           update_layout();
           break;
         }
