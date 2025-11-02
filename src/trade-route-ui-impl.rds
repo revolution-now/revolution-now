@@ -8,9 +8,9 @@
 # Description: Rds definitions for the trade-route-ui-impl module.
 #
 # ===============================================================
-namespace "rn"
+namespace "rn.trade_gui"
 
-sumtype.TradeGuiMouseHover {
+sumtype.Hover {
   button_ok {},
   button_cxl {},
   name {},
@@ -28,7 +28,7 @@ sumtype.TradeGuiMouseHover {
   },
 }
 
-sumtype.TradeGuiInput {
+sumtype.Input {
   done {},
   cancel {},
 

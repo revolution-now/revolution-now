@@ -24,6 +24,7 @@
 #include "screen.hpp"
 #include "spread-builder.hpp"
 #include "spread-render.hpp"
+#include "tiles.hpp"
 #include "trade-route.hpp"
 
 // config
@@ -53,6 +54,7 @@
 #include "refl/to-str.hpp"
 
 // base
+#include "base/logger.hpp"
 #include "base/string.hpp"
 
 // C++ standard library
@@ -71,6 +73,8 @@ using ::gfx::pixel;
 using ::gfx::point;
 using ::gfx::rect;
 using ::gfx::size;
+using ::rn::trade_gui::Hover;
+using ::rn::trade_gui::Input;
 
 // TODO: Move this out since it is a general utility.
 void text_cutoff_dots( rr::ITextometer const& textometer,
@@ -148,6 +152,18 @@ struct LayoutHeader {
   rect load_r;
 };
 
+struct LayoutCommodity {
+  int index        = {};
+  e_commodity type = {};
+  rect r;
+};
+
+struct LayoutIcons {
+  point icons_nw;
+  TileSpreadRenderPlan render_plan;
+  vector<LayoutCommodity> rects;
+};
+
 struct LayoutStop {
   int index = {};
 
@@ -157,12 +173,10 @@ struct LayoutStop {
   rect unload;
   rect load;
 
+  // Contents of the cells.
   LayoutString destination_text;
-  point unload_icons_nw;
-  point load_icons_nw;
-
-  TileSpreadRenderPlan unload_plan;
-  TileSpreadRenderPlan load_plan;
+  LayoutIcons icons_unload;
+  LayoutIcons icons_load;
 };
 
 struct LayoutInfo {
@@ -338,14 +352,16 @@ Layout layout_auto( IEngine& engine, SSConst const& ss,
                 .moved_right( margin )
                 .moved_up( kHalfLineHeight )
                 .moved_down( 1 ) };
-    stop.unload_icons_nw = stop.unload.point_at( e_direction::w )
-                               .moved_right( margin )
-                               .moved_up( kIconSize.h / 2 )
-                               .moved_down( 1 );
-    stop.load_icons_nw = stop.load.point_at( e_direction::w )
-                             .moved_right( margin )
-                             .moved_up( kIconSize.h / 2 )
-                             .moved_down( 1 );
+    stop.icons_unload.icons_nw =
+        stop.unload.point_at( e_direction::w )
+            .moved_right( margin )
+            .moved_up( kIconSize.h / 2 )
+            .moved_down( 1 );
+    stop.icons_load.icons_nw =
+        stop.load.point_at( e_direction::w )
+            .moved_right( margin )
+            .moved_up( kIconSize.h / 2 )
+            .moved_down( 1 );
 
     if( i >= ssize( route.stops ) ) continue;
     TradeRouteStop const& route_stop = route.stops.at( i );
@@ -355,25 +371,53 @@ Layout layout_auto( IEngine& engine, SSConst const& ss,
         l.text_layout, cell_inner_width - num_prefix_width );
 
     // Unload icons.
-    auto const make_spread =
-        [&]( vector<e_commodity> const& comms,
-             TileSpreadRenderPlan& plan ) {
-          vector<TileWithOptions> tiles;
-          tiles.reserve( comms.size() );
-          for( e_commodity const type : comms )
-            tiles.push_back( TileWithOptions{
-              .tile = tile_for_commodity_20( type ) } );
-          InhomogeneousTileSpreadConfig const spread_config{
-            .tiles       = std::move( tiles ),
-            .max_spacing = 3,
-            .options     = { .bounds = cell_inner_width },
-            .sort_tiles  = false };
-          plan = build_inhomogeneous_tile_spread(
-              engine.textometer(), spread_config );
-        };
+    auto const make_spread = [&]( vector<e_commodity> const&
+                                      comms,
+                                  LayoutIcons& layout_icons ) {
+      vector<TileWithOptions> tiles;
+      tiles.reserve( comms.size() );
+      for( int index = 0; e_commodity const type : comms ) {
+        tiles.push_back( TileWithOptions{
+          .tile = tile_for_commodity_20( type ) } );
+        layout_icons.rects.push_back( LayoutCommodity{
+          .index = index++,
+          .type  = type,
+          .r     = {} // filled out below
+        } );
+      }
+      InhomogeneousTileSpreadConfig const spread_config{
+        .tiles       = std::move( tiles ),
+        .max_spacing = 3,
+        .options     = { .bounds = cell_inner_width },
+        .sort_tiles  = false };
+      layout_icons.render_plan = build_inhomogeneous_tile_spread(
+          engine.textometer(), spread_config );
+      // Just in case we ended up rendering fewer than we re-
+      // quested due to lack of space. zip will handle that
+      // case but we don't want to leave extra rects on the
+      // end that don't correspond to anything rendered.
+      CHECK_GE( layout_icons.rects.size(),
+                layout_icons.render_plan.tiles.size() );
+      layout_icons.rects.resize(
+          layout_icons.render_plan.tiles.size() );
+      for( auto const [comm_layout, tile_plan] : rv::zip(
+               layout_icons.rects,
+               as_const( layout_icons.render_plan.tiles ) ) ) {
+        rect const trimmed = trimmed_area_for( tile_plan.tile );
+        comm_layout.r =
+            rect{
+              .origin =
+                  trimmed.origin_becomes_point( tile_plan.where )
+                      .nw(),
+              .size = trimmed.size }
+                .origin_becomes_point( layout_icons.icons_nw )
+                .with_border_added()
+                .with_dec_size();
+      }
+    };
 
-    make_spread( route_stop.unloads, stop.unload_plan );
-    make_spread( route_stop.loads, stop.load_plan );
+    make_spread( route_stop.unloads, stop.icons_unload );
+    make_spread( route_stop.loads, stop.icons_load );
   }
 
   size const button_sz{ .w = 64, .h = 16 };
@@ -431,8 +475,9 @@ struct TradeRouteUI : public IPlane {
   TradeRouteState trade_route_state_;
   maybe<Layout> layout_                   = {};
   wait_promise<ui::e_ok_cancel> finished_ = {};
-  co::stream<TradeGuiInput> in_;
+  co::stream<Input> in_;
   TradeRouteId curr_id_ = {};
+  maybe<Hover> mouse_hover_;
 
  public:
   TradeRouteUI( IEngine& engine, SSConst const& ss,
@@ -453,6 +498,8 @@ struct TradeRouteUI : public IPlane {
     if( auto const named = named_resolution( engine_ );
         named.has_value() )
       on_logical_resolution_changed( *named );
+    mouse_hover_ =
+        mouse_hover( input::current_mouse_position() );
   }
 
   // Doing private by default allows the compiler to tell us
@@ -490,11 +537,17 @@ struct TradeRouteUI : public IPlane {
   }
 
   void update_layout() {
+    // NOTE: Recomputing mouse hover in this method is important
+    // to avoid crashes because we don't want it to be left re-
+    // ferring to some entity that has been deleted.
+    mouse_hover_.reset();
     if( !layout_.has_value() )
       // The current resolution can't produce a valid layout, so
       // no need to try updating it.
       return;
     layout_ = layout_gen( layout_->named_resolution );
+    mouse_hover_ =
+        mouse_hover( input::current_mouse_position() );
   }
 
   void on_logical_resolution_selected(
@@ -555,6 +608,22 @@ struct TradeRouteUI : public IPlane {
     draw_rect( stop.load );
   }
 
+  template<typename HoverT>
+  void draw( rr::Renderer& renderer, Layout const&,
+             LayoutStop const& layout_stop,
+             LayoutIcons const& layout_icons ) const {
+    draw_rendered_icon_spread( renderer, layout_icons.icons_nw,
+                               layout_icons.render_plan );
+    auto const stop =
+        mouse_hover_.get_if<HoverT>().member( &HoverT::stop );
+    auto const idx = mouse_hover_.get_if<HoverT>().maybe_member(
+        &HoverT::tile );
+    if( stop.has_value() && *stop == layout_stop.index &&
+        idx.has_value() )
+      renderer.painter().draw_empty_rect(
+          layout_icons.rects[*idx].r, pixel::red() );
+  }
+
   void draw( rr::Renderer& renderer, Layout const& l,
              LayoutStop const& layout_stop,
              TradeRouteStop const& ) const {
@@ -566,12 +635,10 @@ struct TradeRouteUI : public IPlane {
         renderer.typer( layout_stop.destination_text.nw, l.fg );
     typer.write( "{}", destination_label );
 
-    draw_rendered_icon_spread( renderer,
-                               layout_stop.unload_icons_nw,
-                               layout_stop.unload_plan );
-    draw_rendered_icon_spread( renderer,
-                               layout_stop.load_icons_nw,
-                               layout_stop.load_plan );
+    draw<Hover::unloads>( renderer, l, layout_stop,
+                          layout_stop.icons_unload );
+    draw<Hover::loads>( renderer, l, layout_stop,
+                        layout_stop.icons_load );
   }
 
   void draw( rr::Renderer& renderer, Layout const& l,
@@ -613,18 +680,18 @@ struct TradeRouteUI : public IPlane {
 
   // This allows you to do e.g.:
   //
-  //   send_input<TradeGuiInput::load_add>() = { .stop = 2 };
+  //   send_input<Input::load_add>() = { .stop = 2 };
   //
   template<typename T>
   auto send_input() {
     struct sender {
-      sender( co::stream<TradeGuiInput>& in ) : in_( in ) {}
-      ~sender() { in_.send( TradeGuiInput{ std::move( o ) } ); }
+      sender( co::stream<Input>& in ) : in_( in ) {}
+      ~sender() { in_.send( Input{ std::move( o ) } ); }
 
       void operator=( T&& in ) { o = std::move( in ); }
 
      private:
-      co::stream<TradeGuiInput>& in_;
+      co::stream<Input>& in_;
       T o{};
     };
     return sender( in_ );
@@ -642,67 +709,138 @@ struct TradeRouteUI : public IPlane {
 
     switch( event.keycode ) {
       case ::SDLK_ESCAPE:
-        send_input<TradeGuiInput::cancel>() = {};
+        send_input<Input::cancel>() = {};
         break;
       case ::SDLK_RETURN:
       case ::SDLK_KP_ENTER:
-        send_input<TradeGuiInput::done>() = {};
+        send_input<Input::done>() = {};
         break;
     }
 
     return e_input_handled::yes;
   }
 
-  e_input_handled on_mouse_button(
-      input::mouse_button_event_t const& event ) override {
-    // Need to use left_up here otherwise the down click will
-    // close this screen and then the up click will get picked up
-    // by the land-view which requires using the up click in
-    // order to distinguish clicks from drags.
-    if( event.buttons != input::e_mouse_button_event::left_up )
-      return e_input_handled::yes;
-    if( !layout_.has_value() ) return e_input_handled::yes;
+  maybe<Hover> mouse_hover( point const p ) const {
+    if( !layout_.has_value() ) return nothing;
     Layout const& l = *layout_;
-    point const p   = event.pos;
 
-    if( p.is_inside( l.cxl_button.r ) ) {
-      send_input<TradeGuiInput::cancel>() = {};
-      return e_input_handled::yes;
-    }
+    if( p.is_inside( l.cxl_button.r ) )
+      return Hover::button_cxl{};
 
-    if( p.is_inside( l.ok_button.r ) ) {
-      send_input<TradeGuiInput::done>() = {};
-      return e_input_handled::yes;
-    }
+    if( p.is_inside( l.ok_button.r ) ) return Hover::button_ok{};
 
-    if( p.is_inside( l.info.route_name_change_click_area ) ) {
-      send_input<TradeGuiInput::change_name>() = {};
-      return e_input_handled::yes;
-    }
+    if( p.is_inside( l.info.route_name_change_click_area ) )
+      return Hover::name{};
 
-    if( p.is_inside( l.info.route_type_change_click_area ) ) {
-      // NOTE: we don't currently allow changing the type of the
-      // trade route since that would require a bunch of valida-
-      // tion of the stops.
-    }
+    if( p.is_inside( l.info.route_type_change_click_area ) )
+      return Hover::type{};
 
     for( LayoutStop const& stop : l.stops ) {
       if( !p.is_inside( stop.r ) ) continue;
-      if( p.is_inside( stop.destination ) ) {
-        if( has_stop( stop.index ) ) {
-          if( event.mod.shf_down )
-            send_input<TradeGuiInput::destination_remove>() = {
-              .stop = stop.index };
-          else
-            send_input<TradeGuiInput::destination_change>() = {
-              .stop = stop.index };
-        } else {
-          send_input<TradeGuiInput::destination_add>();
+      if( p.is_inside( stop.destination ) )
+        return Hover::destination{ .stop = stop.index };
+      if( p.is_inside( stop.unload ) ) {
+        maybe<int> tile;
+        for( LayoutCommodity const& comm :
+             rv::reverse( stop.icons_unload.rects ) ) {
+          if( !p.is_inside( comm.r ) ) continue;
+          tile = comm.index;
+          break;
         }
-      } else if( p.is_inside( stop.unload ) ) {
-        // TODO
-      } else if( p.is_inside( stop.load ) ) {
-        // TODO
+        return Hover::unloads{ .stop = stop.index,
+                               .tile = tile };
+      }
+      if( p.is_inside( stop.load ) ) {
+        maybe<int> tile;
+        for( LayoutCommodity const& comm :
+             rv::reverse( stop.icons_load.rects ) ) {
+          if( !p.is_inside( comm.r ) ) continue;
+          tile = comm.index;
+          break;
+        }
+        return Hover::loads{ .stop = stop.index, .tile = tile };
+      }
+    }
+
+    return nothing;
+  }
+
+#define REQUIRE_DIRECTION( up_down )                \
+  if( event.buttons !=                              \
+      input::e_mouse_button_event::left_##up_down ) \
+    return e_input_handled::yes;
+
+  e_input_handled on_mouse_button(
+      input::mouse_button_event_t const& event ) override {
+    if( !layout_.has_value() ) return e_input_handled::yes;
+    point const p = event.pos;
+
+    auto const hover = mouse_hover( p );
+    if( !hover.has_value() ) return e_input_handled::yes;
+
+    SWITCH( *hover ) {
+      CASE( button_cxl ) {
+        // Require button up here since if we all the down click
+        // to close this screen then the up click will go to
+        // whatever the next screen is.
+        REQUIRE_DIRECTION( up );
+        send_input<Input::cancel>() = {};
+        break;
+      }
+      CASE( button_ok ) {
+        // Require button up here since if we all the down click
+        // to close this screen then the up click will go to
+        // whatever the next screen is.
+        REQUIRE_DIRECTION( up );
+        send_input<Input::done>() = {};
+        break;
+      }
+      CASE( name ) {
+        REQUIRE_DIRECTION( down );
+        send_input<Input::change_name>() = {};
+        break;
+      }
+      CASE( type ) {
+        REQUIRE_DIRECTION( down );
+        // NOTE: we don't currently allow changing the type of
+        // the trade route since that would require a bunch of
+        // validation of the stops.
+        break;
+      }
+      CASE( destination ) {
+        REQUIRE_DIRECTION( down );
+        if( has_stop( destination.stop ) ) {
+          if( event.mod.shf_down )
+            send_input<Input::destination_remove>() = {
+              .stop = destination.stop };
+          else
+            send_input<Input::destination_change>() = {
+              .stop = destination.stop };
+        } else {
+          send_input<Input::destination_add>();
+        }
+        break;
+      }
+      CASE( unloads ) {
+        REQUIRE_DIRECTION( down );
+        if( unloads.tile.has_value() ) {
+          send_input<Input::unload_remove>() = {
+            .stop = unloads.stop, .cargo = *unloads.tile };
+          break;
+        }
+        send_input<Input::unload_add>() = { .stop =
+                                                unloads.stop };
+        break;
+      }
+      CASE( loads ) {
+        REQUIRE_DIRECTION( down );
+        if( loads.tile.has_value() ) {
+          send_input<Input::load_remove>() = {
+            .stop = loads.stop, .cargo = *loads.tile };
+          break;
+        }
+        send_input<Input::load_add>() = { .stop = loads.stop };
+        break;
       }
     }
 
@@ -710,7 +848,11 @@ struct TradeRouteUI : public IPlane {
   }
 
   e_input_handled on_mouse_move(
-      input::mouse_move_event_t const& ) override {
+      input::mouse_move_event_t const& event ) override {
+    point const p = event.pos;
+    mouse_hover_  = mouse_hover( p );
+    if( !mouse_hover_.has_value() ) return e_input_handled::yes;
+    // TBD
     return e_input_handled::yes;
   }
 
@@ -736,7 +878,7 @@ struct TradeRouteUI : public IPlane {
   wait<> input_processor() {
     TradeRoute& route = curr_trade_route();
     while( true ) {
-      TradeGuiInput const in = co_await in_.next();
+      Input const in = co_await in_.next();
       SWITCH( in ) {
         CASE( done ) {
           trade_route_state_modify_only_on_save_ =
@@ -839,18 +981,30 @@ struct TradeRouteUI : public IPlane {
         }
         CASE( load_add ) {
           // TODO
-          break;
-        }
-        CASE( load_remove ) {
-          // TODO
+          update_layout();
           break;
         }
         CASE( unload_add ) {
           // TODO
+          update_layout();
+          break;
+        }
+        CASE( load_remove ) {
+          CHECK_LT( load_remove.stop, ssize( route.stops ) );
+          TradeRouteStop& stop = route.stops[load_remove.stop];
+          int const cargo_idx  = load_remove.cargo;
+          CHECK_LT( cargo_idx, ssize( stop.loads ) );
+          stop.loads.erase( stop.loads.begin() + cargo_idx );
+          update_layout();
           break;
         }
         CASE( unload_remove ) {
-          // TODO
+          CHECK_LT( unload_remove.stop, ssize( route.stops ) );
+          TradeRouteStop& stop = route.stops[unload_remove.stop];
+          int const cargo_idx  = unload_remove.cargo;
+          CHECK_LT( cargo_idx, ssize( stop.unloads ) );
+          stop.unloads.erase( stop.unloads.begin() + cargo_idx );
+          update_layout();
           break;
         }
       }
