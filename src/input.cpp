@@ -28,6 +28,7 @@
 // base
 #include "base/keyval.hpp"
 #include "base/lambda.hpp"
+#include "base/logger.hpp"
 #include "base/variant-util.hpp"
 
 // C++ standard library
@@ -401,8 +402,7 @@ event_t from_SDL( IEngine& engine, ::SDL_Event sdl_event ) {
   // with this event?
   base.mod = query_mod_keys( keyboard_state );
 
-  base.l_mouse_down = bool( g_mouse_buttons & SDL_BUTTON_LMASK );
-  base.r_mouse_down = bool( g_mouse_buttons & SDL_BUTTON_RMASK );
+  base.mouse_buttons_state = get_mouse_buttons_state();
 
   return event;
 }
@@ -584,8 +584,8 @@ bool has_mod_key( key_event_t const& event ) {
       ;
 }
 
-mouse_buttons_state get_mouse_buttons_state() {
-  mouse_buttons_state state;
+mouse_buttons_state_t get_mouse_buttons_state() {
+  mouse_buttons_state_t state;
   state.l_down = bool( g_mouse_buttons & SDL_BUTTON_LMASK );
   state.m_down = bool( g_mouse_buttons & SDL_BUTTON_MMASK );
   state.r_down = bool( g_mouse_buttons & SDL_BUTTON_RMASK );

@@ -128,10 +128,14 @@ void write_centered( Renderer& renderer, pixel const color_fg,
 void draw_rect_noisy_filled( Renderer& renderer, rect const area,
                              pixel const center_color,
                              NoisyFillOptions const& options ) {
-  renderer.painter().draw_solid_rect(
-      rect{ .origin = {},
-            .size   = renderer.logical_screen_size() },
-      center_color );
+  renderer.painter().draw_solid_rect( area, center_color );
+  // This is done so that when we change the origin of the rect
+  // the noise will move with it. This is used e.g. when the
+  // background color of a button is filled with this noise and
+  // we want to move the noise one pixel when the button is
+  // pressed. Without this the texture wouldn't move.
+  SCOPED_RENDERER_MOD_SET( painter_mods.depixelate.hash_anchor,
+                           area.nw() );
   {
     pixel const noise_color =
         center_color.shaded( options.color_divergence );

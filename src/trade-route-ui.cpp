@@ -79,6 +79,12 @@ using ::rn::trade_gui::Hover;
 using ::rn::trade_gui::Input;
 using ::rn::trade_gui::RouteSelection;
 
+enum class e_button_state {
+  none,
+  hover,
+  clicking,
+};
+
 bool constexpr DEBUG_RECTS = false;
 
 // TODO: Move this out since it is a general utility.
@@ -191,6 +197,7 @@ struct LayoutInfo {
   LayoutString route_name_label;
   LayoutString route_name;
   rect route_name_change_click_area;
+  point name_change_icon_nw;
 
   LayoutString route_type_label;
   LayoutString route_type;
@@ -224,6 +231,8 @@ struct Layout {
 
   LayoutButton ok_button;
   LayoutButton cxl_button;
+  pixel button_color      = pixel::from_hex_rgb( 0x24347c );
+  pixel button_text_color = pixel::from_hex_rgb( 0x88a3d1 );
 };
 
 /****************************************************************
@@ -257,7 +266,7 @@ Layout layout_auto( IEngine& engine, SSConst const& ss,
       l.canvas.size.w - 2 * margin;
   size const kIconSize = kCommodityTileLargeSize;
 
-  l.title        = "EDIT TRADE ROUTE";
+  l.title        = format( "EDIT TRADE ROUTE {}", route.id );
   l.title_center = { .x = l.canvas.center().x,
                      .y = cur.y + kHalfLineHeight };
 
@@ -266,6 +275,10 @@ Layout layout_auto( IEngine& engine, SSConst const& ss,
   auto& info                 = l.info;
   info.route_name_label.text = "Route Name: ";
   info.route_name_label.nw   = cur;
+  // Need two lines here so that we have room for the "change"
+  // icon that appears next to the route name when hovering the
+  // mouse over it.
+  cur.y += kLineHeight;
   cur.y += kLineHeight;
   info.route_type_label.text = "Route Type: ";
   info.route_type_label.nw   = cur;
@@ -282,6 +295,15 @@ Layout layout_auto( IEngine& engine, SSConst const& ss,
   info.route_name = {
     .text = route.name,
     .nw = info.route_name_label.nw.moved_right( info_offset ) };
+  info.name_change_icon_nw =
+      info.route_name_label.nw.moved_down( kHalfLineHeight )
+          .moved_right( info_offset )
+          .moved_right( textometer
+                            .dimensions_for_line( l.text_layout,
+                                                  route.name )
+                            .w )
+          .moved_right( 2 )
+          .moved_up( 5 );
   info.route_name_change_click_area = {
     .origin = info.route_name_label.nw,
     .size   = { .w = kCanvasWidthWithMargins / 2,
@@ -399,8 +421,13 @@ Layout layout_auto( IEngine& engine, SSConst const& ss,
       layout_icons.render_plan = build_inhomogeneous_tile_spread(
           engine.textometer(), spread_config );
       layout_icons.bounds =
-          layout_icons.render_plan.bounds.origin_becomes_point(
-              layout_icons.icons_nw );
+          layout_icons.render_plan.bounds
+              .origin_becomes_point( layout_icons.icons_nw )
+              // Make these rects extend from the top to the
+              // bottom of the cell so that mouse hover behavior
+              // is less eratic.
+              .with_new_top_edge( stop.r.top() + 1 )
+              .with_new_bottom_edge( stop.r.bottom() );
       // Just in case we ended up rendering fewer than we re-
       // quested due to lack of space. zip will handle that
       // case but we don't want to leave extra rects on the
@@ -419,7 +446,12 @@ Layout layout_auto( IEngine& engine, SSConst const& ss,
                   trimmed.origin_becomes_point( tile_plan.where )
                       .nw(),
               .size = trimmed.size }
-                .origin_becomes_point( layout_icons.icons_nw );
+                .origin_becomes_point( layout_icons.icons_nw )
+                // Make these rects extend from the top to the
+                // bottom of the cell so that mouse hover be-
+                // havior is less eratic.
+                .with_new_top_edge( stop.r.top() + 1 )
+                .with_new_bottom_edge( stop.r.bottom() );
       }
     };
 
@@ -485,6 +517,9 @@ struct TradeRouteUI : public IPlane {
   co::stream<Input> in_;
   TradeRouteId curr_id_ = {};
   maybe<Hover> mouse_hover_;
+  // Keep this instead of getting the real value otherwise we
+  // react to mouse clicks on other planes.
+  input::mouse_buttons_state_t mouse_buttons_state_;
 
  public:
   TradeRouteUI( IEngine& engine, SSConst const& ss,
@@ -595,6 +630,10 @@ struct TradeRouteUI : public IPlane {
     draw( renderer, l, info.route_name );
     draw( renderer, l, info.route_type_label );
     draw( renderer, l, info.route_type );
+
+    if( mouse_hover_.get_if<Hover::name>() )
+      render_sprite( renderer, info.name_change_icon_nw,
+                     e_tile::circle_for_change );
   }
 
   void draw( rr::Renderer& renderer, Layout const& l,
@@ -625,7 +664,8 @@ struct TradeRouteUI : public IPlane {
       point const p =
           gfx::centered_at_right( sprite_size( tile ),
                                   layout_stop.destination )
-              .moved_left( l.margin );
+              .moved_left( l.margin )
+              .moved_down();
       render_sprite( renderer, p, tile );
     }
   }
@@ -665,6 +705,7 @@ struct TradeRouteUI : public IPlane {
       int const y =
           gfx::centered_in( sprite_size( e_tile::x_for_remove ),
                             cell_r )
+              .moved_down()
               .y;
       render_sprite( renderer,
                      gfx::centered_in(
@@ -675,7 +716,8 @@ struct TradeRouteUI : public IPlane {
       point const p =
           gfx::centered_at_right(
               sprite_size( e_tile::plus_for_add ), cell_r )
-              .moved_left( l.margin );
+              .moved_left( l.margin )
+              .moved_down();
       render_sprite( renderer, p, e_tile::plus_for_add );
     }
   }
@@ -700,14 +742,55 @@ struct TradeRouteUI : public IPlane {
                         layout_stop.icons_load );
   }
 
-  void draw( rr::Renderer& renderer, Layout const& l,
-             LayoutButton const& layout_button ) const {
-    draw_empty_rect_faded_corners( renderer, layout_button.r,
-                                   l.fg );
-    write_centered( renderer, l.fg,
+  void draw_button( rr::Renderer& renderer, rect const r,
+                    pixel const button_color,
+                    pixel const text_color, string const& label,
+                    e_button_state const state ) const {
+    using enum e_button_state;
+    rr::Painter P = renderer.painter();
+    size const click_shift =
+        ( state >= clicking ) ? size{ .w = -1, .h = 1 } : size{};
+    // This draws the body in a way that it will appear to move
+    // up and to the right when pressed.
+    rect const r_body = r.moved_right().moved( click_shift );
+    draw_rect_noisy_filled( renderer, r_body, button_color );
+    P.draw_solid_rect( r_body, button_color.with_alpha( 128 ) );
+    pixel const shaded    = button_color.shaded( 2 );
+    pixel const highlight = button_color.highlighted( 2 );
+    if( state >= clicking ) {
+      P.draw_vertical_line( r.ne(), r.size.h + 1, shaded );
+      P.draw_horizontal_line( r.nw(), r.size.w, shaded );
+    } else {
+      P.draw_vertical_line( r.ne(), r.size.h + 1, highlight );
+      P.draw_horizontal_line( r.nw(), r.size.w, highlight );
+      P.draw_vertical_line( r.nw(), r.size.h, shaded );
+      P.draw_horizontal_line( r.sw(), r.size.w, shaded );
+      P.draw_point( r.nw(), highlight.with_alpha( 128 ) );
+      P.draw_point( r.se(), shaded.with_alpha( 128 ) );
+    }
+
+    pixel shaded_text_color = text_color;
+    if( state == hover ) // don't highlight on click.
+      shaded_text_color = text_color.highlighted( 4 );
+    write_centered( renderer, shaded_text_color,
                     /*color_bg=*/nothing,
-                    layout_button.r.center(),
-                    layout_button.label );
+                    r.center() + click_shift, label );
+  }
+
+  void draw( rr::Renderer& renderer, Layout const& l,
+             LayoutButton const& layout_button,
+             e_button_state const state ) const {
+    draw_button( renderer, layout_button.r, l.button_color,
+                 l.button_text_color, layout_button.label,
+                 state );
+  }
+
+  template<typename HoverT>
+  [[nodiscard]] e_button_state get_button_state() const {
+    using enum e_button_state;
+    if( !mouse_hover_.get_if<HoverT>().has_value() ) return none;
+    if( mouse_buttons_state_.l_down ) return clicking;
+    return hover;
   }
 
   void draw( rr::Renderer& renderer, Layout const& l ) const {
@@ -728,8 +811,10 @@ struct TradeRouteUI : public IPlane {
     for( LayoutStop const& stop : l.stops )
       draw( renderer, l, stop );
 
-    draw( renderer, l, l.ok_button );
-    draw( renderer, l, l.cxl_button );
+    draw( renderer, l, l.ok_button,
+          get_button_state<Hover::button_ok>() );
+    draw( renderer, l, l.cxl_button,
+          get_button_state<Hover::button_cxl>() );
   }
 
   void draw( rr::Renderer& renderer ) const override {
@@ -831,6 +916,7 @@ struct TradeRouteUI : public IPlane {
 
   e_input_handled on_mouse_button(
       input::mouse_button_event_t const& event ) override {
+    mouse_buttons_state_ = event.mouse_buttons_state;
     if( event.buttons != input::e_mouse_button_event::left_up )
       return e_input_handled::yes;
     if( !layout_.has_value() ) return e_input_handled::yes;
@@ -905,6 +991,12 @@ struct TradeRouteUI : public IPlane {
     if( !mouse_hover_.has_value() ) return e_input_handled::yes;
     // TBD
     return e_input_handled::yes;
+  }
+
+  IPlane::e_accept_drag can_drag(
+      input::e_mouse_button /*button*/,
+      Coord /*origin*/ ) override {
+    return IPlane::e_accept_drag::motion;
   }
 
   wait<maybe<RouteSelection>> ask_target(

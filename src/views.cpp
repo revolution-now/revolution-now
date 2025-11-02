@@ -807,8 +807,9 @@ bool ButtonView::on_mouse_move(
       case button_state::down:
         break;
       case button_state::up:
-        set_state( event.l_mouse_down ? button_state::down
-                                      : button_state::hover );
+        set_state( event.mouse_buttons_state.l_down
+                       ? button_state::down
+                       : button_state::hover );
         break;
       case button_state::disabled:
         break;

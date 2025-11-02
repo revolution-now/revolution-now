@@ -50,9 +50,8 @@ namespace rn::input {
 // All event types must inherit either directly or indirectly
 // from this type.
 struct event_base_t {
-  mod_keys mod      = {};
-  bool l_mouse_down = false;
-  bool r_mouse_down = false;
+  mod_keys mod                              = {};
+  mouse_buttons_state_t mouse_buttons_state = {};
 
   bool operator==( event_base_t const& ) const = default;
 };
@@ -313,7 +312,7 @@ bool is_mod_key( key_event_t const& event );
 // Is there a mod key down in addition to any other key?
 bool has_mod_key( key_event_t const& event );
 
-mouse_buttons_state get_mouse_buttons_state();
+mouse_buttons_state_t get_mouse_buttons_state();
 
 // Make the mouse position contained in `event` (if there is one)
 // relative to an origin that is shifted by `delta` from the cur-

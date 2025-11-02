@@ -55,7 +55,7 @@ enum.e_mouse_button_event {
   right_up,
 }
 
-struct.mouse_buttons_state {
+struct.mouse_buttons_state_t {
   l_down 'bool',
   m_down 'bool',
   r_down 'bool',
