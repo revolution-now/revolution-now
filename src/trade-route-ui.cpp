@@ -174,6 +174,7 @@ struct LayoutIcons {
   rect bounds;
   TileSpreadRenderPlan render_plan;
   vector<LayoutCommodity> rects;
+  point add_icon_nw;
 };
 
 struct LayoutStop {
@@ -187,6 +188,8 @@ struct LayoutStop {
 
   // Contents of the cells.
   LayoutString destination_text;
+  point destination_ui_icon_nw;
+
   LayoutIcons icons_unload;
   LayoutIcons icons_load;
 };
@@ -283,6 +286,11 @@ Layout layout_auto( IEngine& engine, SSConst const& ss,
   info.route_type_label.text = "Route Type: ";
   info.route_type_label.nw   = cur;
 
+  // This is the spacing between the end of the cell contents
+  // (either text or commodities) and the placement of the little
+  // UI icon representing add/change.
+  int const ui_icon_spacing = 3;
+
   int const info_offset = std::max(
       textometer
           .dimensions_for_line( l.text_layout,
@@ -302,7 +310,7 @@ Layout layout_auto( IEngine& engine, SSConst const& ss,
                             .dimensions_for_line( l.text_layout,
                                                   route.name )
                             .w )
-          .moved_right( 2 )
+          .moved_right( ui_icon_spacing )
           .moved_up( 5 );
   info.route_name_change_click_area = {
     .origin = info.route_name_label.nw,
@@ -380,6 +388,20 @@ Layout layout_auto( IEngine& engine, SSConst const& ss,
                 .moved_right( margin )
                 .moved_up( kHalfLineHeight )
                 .moved_down( 1 ) };
+    point const ui_icon_nw_min =
+        gfx::centered_at_left(
+            sprite_size( e_tile::circle_for_change ),
+            stop.destination )
+            .moved_right( l.margin )
+            .moved_down();
+    point const ui_icon_nw_max =
+        gfx::centered_at_right(
+            sprite_size( e_tile::circle_for_change ),
+            stop.destination )
+            .moved_left( l.margin )
+            .moved_down();
+    // This may get overridden below if there is a stop here.
+    stop.destination_ui_icon_nw = ui_icon_nw_min;
     if( i >= ssize( route.stops ) ) continue;
     TradeRouteStop const& route_stop = route.stops.at( i );
 
@@ -394,13 +416,28 @@ Layout layout_auto( IEngine& engine, SSConst const& ss,
             .moved_up( kIconSize.h / 2 )
             .moved_down( 1 );
 
-    stop.destination_text.text = name_for_target_with_cutoff(
-        ss, player, route_stop.target, engine.textometer(),
-        l.text_layout, cell_inner_width - num_prefix_width );
+    stop.destination_text.text =
+        format( "{}. {}", stop.index + 1,
+                name_for_target_with_cutoff(
+                    ss, player, route_stop.target,
+                    engine.textometer(), l.text_layout,
+                    cell_inner_width - num_prefix_width ) );
+    stop.destination_ui_icon_nw =
+        stop.destination_text.nw
+            .moved_right( textometer
+                              .dimensions_for_line(
+                                  l.text_layout,
+                                  stop.destination_text.text )
+                              .w )
+            .moved_right( ui_icon_spacing );
+    stop.destination_ui_icon_nw.x =
+        clamp( stop.destination_ui_icon_nw.x, ui_icon_nw_min.x,
+               ui_icon_nw_max.x );
 
     // Unload icons.
     auto const make_spread = [&]( vector<e_commodity> const&
                                       comms,
+                                  rect const cell_r,
                                   LayoutIcons& layout_icons ) {
       vector<TileWithOptions> tiles;
       tiles.reserve( comms.size() );
@@ -428,6 +465,23 @@ Layout layout_auto( IEngine& engine, SSConst const& ss,
               // is less eratic.
               .with_new_top_edge( stop.r.top() + 1 )
               .with_new_bottom_edge( stop.r.bottom() );
+      point const add_icon_nw_x_min =
+          gfx::centered_at_left(
+              sprite_size( e_tile::circle_for_change ), cell_r )
+              .moved_right( l.margin )
+              .moved_down();
+      point const add_icon_nw_x_max =
+          gfx::centered_at_right(
+              sprite_size( e_tile::circle_for_change ), cell_r )
+              .moved_left( l.margin )
+              .moved_down();
+      layout_icons.add_icon_nw = add_icon_nw_x_min;
+      if( !comms.empty() )
+        layout_icons.add_icon_nw.x =
+            layout_icons.bounds.right() + ui_icon_spacing;
+      layout_icons.add_icon_nw.x =
+          clamp( layout_icons.add_icon_nw.x, add_icon_nw_x_min.x,
+                 add_icon_nw_x_max.x );
       // Just in case we ended up rendering fewer than we re-
       // quested due to lack of space. zip will handle that
       // case but we don't want to leave extra rects on the
@@ -455,8 +509,9 @@ Layout layout_auto( IEngine& engine, SSConst const& ss,
       }
     };
 
-    make_spread( route_stop.unloads, stop.icons_unload );
-    make_spread( route_stop.loads, stop.icons_load );
+    make_spread( route_stop.unloads, stop.unload,
+                 stop.icons_unload );
+    make_spread( route_stop.loads, stop.load, stop.icons_load );
   }
 
   size const button_sz{ .w = 64, .h = 16 };
@@ -661,18 +716,14 @@ struct TradeRouteUI : public IPlane {
       e_tile const tile = has_stop( destination->stop )
                               ? e_tile::circle_for_change
                               : e_tile::plus_for_add;
-      point const p =
-          gfx::centered_at_right( sprite_size( tile ),
-                                  layout_stop.destination )
-              .moved_left( l.margin )
-              .moved_down();
-      render_sprite( renderer, p, tile );
+      render_sprite( renderer,
+                     layout_stop.destination_ui_icon_nw, tile );
     }
   }
 
   // This is for the load/unload cells when the stop exists.
   template<typename HoverT>
-  void draw( rr::Renderer& renderer, Layout const& l,
+  void draw( rr::Renderer& renderer, Layout const&,
              LayoutStop const& layout_stop, rect const cell_r,
              LayoutIcons const& layout_icons ) const {
     draw_rendered_icon_spread( renderer, layout_icons.icons_nw,
@@ -713,12 +764,8 @@ struct TradeRouteUI : public IPlane {
                          .with_y( y ),
                      e_tile::x_for_remove );
     } else if( !tiles ) {
-      point const p =
-          gfx::centered_at_right(
-              sprite_size( e_tile::plus_for_add ), cell_r )
-              .moved_left( l.margin )
-              .moved_down();
-      render_sprite( renderer, p, e_tile::plus_for_add );
+      render_sprite( renderer, layout_icons.add_icon_nw,
+                     e_tile::plus_for_add );
     }
   }
 
@@ -726,13 +773,10 @@ struct TradeRouteUI : public IPlane {
   void draw( rr::Renderer& renderer, Layout const& l,
              LayoutStop const& layout_stop,
              TradeRouteStop const& ) const {
-    int const idx = layout_stop.index;
     // Destination cell.
-    string const destination_label = format(
-        "{}. {}", idx + 1, layout_stop.destination_text.text );
     rr::Typer typer =
         renderer.typer( layout_stop.destination_text.nw, l.fg );
-    typer.write( "{}", destination_label );
+    typer.write( "{}", layout_stop.destination_text.text );
 
     draw<Hover::unloads>( renderer, l, layout_stop,
                           layout_stop.unload,
@@ -1111,8 +1155,7 @@ struct TradeRouteUI : public IPlane {
                   ss_, player_, connectivity_, route );
           vector<TradeRouteTarget> targets;
           targets.reserve( colonies.size() + 1 );
-          if( destination_change.stop > 0 &&
-              route.type == e_trade_route_type::sea )
+          if( route.type == e_trade_route_type::sea )
             targets.push_back( TradeRouteTarget::harbor{} );
           for( ColonyId const colony_id : colonies )
             targets.push_back( TradeRouteTarget::colony{
