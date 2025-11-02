@@ -86,11 +86,12 @@ wait<maybe<TradeRouteId>> ask_select_trade_route(
   auto const& routes = ss.trade_routes;
   ChoiceConfig config;
   config.msg = title;
-  for( auto const& [route_id, route] : routes.routes ) {
+  for( int i = 1;
+       auto const& [route_id, route] : routes.routes ) {
     if( route.player != player.type ) continue;
-    config.options.push_back(
-        ChoiceConfigOption{ .key = to_string( route_id ),
-                            .display_name = route.name } );
+    config.options.push_back( ChoiceConfigOption{
+      .key          = to_string( route_id ),
+      .display_name = format( "{}. {}", i++, route.name ) } );
   }
   if( config.options.empty() ) {
     co_await gui.message_box(

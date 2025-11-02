@@ -1359,7 +1359,9 @@ OptionSelectView::OptionSelectView(
 
   Coord so_far{};
   W min_width{ 0 };
-  for( auto const& option : options ) {
+  for( auto const& option_unindented : options ) {
+    auto option = option_unindented;
+    option.name = "  "s + option.name;
     auto view =
         make_unique<OptionSelectItemView>( textometer, option );
     auto width  = view->delta().w;
