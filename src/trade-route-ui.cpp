@@ -29,6 +29,7 @@
 
 // config
 #include "config/nation.rds.hpp"
+#include "config/tile-enum.rds.hpp"
 
 // ss
 #include "ss/colonies.hpp"
@@ -76,6 +77,9 @@ using ::gfx::size;
 using ::refl::enum_values;
 using ::rn::trade_gui::Hover;
 using ::rn::trade_gui::Input;
+using ::rn::trade_gui::RouteSelection;
+
+bool constexpr DEBUG_RECTS = false;
 
 // TODO: Move this out since it is a general utility.
 void text_cutoff_dots( rr::ITextometer const& textometer,
@@ -161,6 +165,7 @@ struct LayoutCommodity {
 
 struct LayoutIcons {
   point icons_nw;
+  rect bounds;
   TileSpreadRenderPlan render_plan;
   vector<LayoutCommodity> rects;
 };
@@ -353,6 +358,9 @@ Layout layout_auto( IEngine& engine, SSConst const& ss,
                 .moved_right( margin )
                 .moved_up( kHalfLineHeight )
                 .moved_down( 1 ) };
+    if( i >= ssize( route.stops ) ) continue;
+    TradeRouteStop const& route_stop = route.stops.at( i );
+
     stop.icons_unload.icons_nw =
         stop.unload.point_at( e_direction::w )
             .moved_right( margin )
@@ -363,9 +371,6 @@ Layout layout_auto( IEngine& engine, SSConst const& ss,
             .moved_right( margin )
             .moved_up( kIconSize.h / 2 )
             .moved_down( 1 );
-
-    if( i >= ssize( route.stops ) ) continue;
-    TradeRouteStop const& route_stop = route.stops.at( i );
 
     stop.destination_text.text = name_for_target_with_cutoff(
         ss, player, route_stop.target, engine.textometer(),
@@ -393,6 +398,9 @@ Layout layout_auto( IEngine& engine, SSConst const& ss,
         .sort_tiles  = false };
       layout_icons.render_plan = build_inhomogeneous_tile_spread(
           engine.textometer(), spread_config );
+      layout_icons.bounds =
+          layout_icons.render_plan.bounds.origin_becomes_point(
+              layout_icons.icons_nw );
       // Just in case we ended up rendering fewer than we re-
       // quested due to lack of space. zip will handle that
       // case but we don't want to leave extra rects on the
@@ -411,9 +419,7 @@ Layout layout_auto( IEngine& engine, SSConst const& ss,
                   trimmed.origin_becomes_point( tile_plan.where )
                       .nw(),
               .size = trimmed.size }
-                .origin_becomes_point( layout_icons.icons_nw )
-                .with_border_added()
-                .with_dec_size();
+                .origin_becomes_point( layout_icons.icons_nw );
       }
     };
 
@@ -598,36 +604,83 @@ struct TradeRouteUI : public IPlane {
     draw( renderer, l, header.load );
   }
 
+  // This gets run whether or not the stop exists.
   void draw( rr::Renderer& renderer, Layout const& l,
-             LayoutStop const& stop ) const {
+             LayoutStop const& layout_stop ) const {
     auto const draw_rect = [&]( rect const r ) {
       draw_empty_rect_faded_corners( renderer, r, l.fg );
     };
 
-    draw_rect( stop.destination );
-    draw_rect( stop.unload );
-    draw_rect( stop.load );
-  }
+    draw_rect( layout_stop.destination );
+    draw_rect( layout_stop.unload );
+    draw_rect( layout_stop.load );
 
-  template<typename HoverT>
-  void draw( rr::Renderer& renderer, Layout const&,
-             LayoutStop const& layout_stop,
-             LayoutIcons const& layout_icons ) const {
-    draw_rendered_icon_spread( renderer, layout_icons.icons_nw,
-                               layout_icons.render_plan );
-    auto const stop =
-        mouse_hover_.get_if<HoverT>().member( &HoverT::stop );
-    auto const idx = mouse_hover_.get_if<HoverT>().maybe_member(
-        &HoverT::tile );
-    if( stop.has_value() && *stop == layout_stop.index ) {
-      if( idx.has_value() )
-        renderer.painter().draw_empty_rect(
-            layout_icons.rects[*idx].r, pixel::red() );
-      else
-        ; // TODO: draw +
+    if( auto const destination =
+            mouse_hover_.get_if<Hover::destination>();
+        destination.has_value() &&
+        destination->stop == layout_stop.index ) {
+      e_tile const tile = has_stop( destination->stop )
+                              ? e_tile::circle_for_change
+                              : e_tile::plus_for_add;
+      point const p =
+          gfx::centered_at_right( sprite_size( tile ),
+                                  layout_stop.destination )
+              .moved_left( l.margin );
+      render_sprite( renderer, p, tile );
     }
   }
 
+  // This is for the load/unload cells when the stop exists.
+  template<typename HoverT>
+  void draw( rr::Renderer& renderer, Layout const& l,
+             LayoutStop const& layout_stop, rect const cell_r,
+             LayoutIcons const& layout_icons ) const {
+    draw_rendered_icon_spread( renderer, layout_icons.icons_nw,
+                               layout_icons.render_plan );
+    auto const stop_hover = mouse_hover_.get_if<HoverT>();
+    if( !stop_hover.has_value() ) return;
+
+    int const stop = stop_hover->stop;
+    if( stop != layout_stop.index ) return;
+
+    bool const tiles = stop_hover->tiles;
+    if constexpr( DEBUG_RECTS ) {
+      if( tiles )
+        renderer.painter().draw_empty_rect(
+            layout_icons.bounds,
+            rr::Painter::e_border_mode::inside, pixel::green() );
+    }
+
+    auto const tile = stop_hover->tile;
+    if( tile.has_value() ) {
+      rect const r = layout_icons.rects[*tile].r;
+      if constexpr( DEBUG_RECTS ) {
+        renderer.painter().draw_empty_rect(
+            r, rr::Painter::e_border_mode::inside,
+            pixel::red() );
+      }
+      // For the y coordinate to be consistent for all tiles oth-
+      // erwise the y position of the X icon will vary since the
+      // icons are of different sizes and positions.
+      int const y =
+          gfx::centered_in( sprite_size( e_tile::x_for_remove ),
+                            cell_r )
+              .y;
+      render_sprite( renderer,
+                     gfx::centered_in(
+                         sprite_size( e_tile::x_for_remove ), r )
+                         .with_y( y ),
+                     e_tile::x_for_remove );
+    } else if( !tiles ) {
+      point const p =
+          gfx::centered_at_right(
+              sprite_size( e_tile::plus_for_add ), cell_r )
+              .moved_left( l.margin );
+      render_sprite( renderer, p, e_tile::plus_for_add );
+    }
+  }
+
+  // This is for when the stop exists.
   void draw( rr::Renderer& renderer, Layout const& l,
              LayoutStop const& layout_stop,
              TradeRouteStop const& ) const {
@@ -640,8 +693,10 @@ struct TradeRouteUI : public IPlane {
     typer.write( "{}", destination_label );
 
     draw<Hover::unloads>( renderer, l, layout_stop,
+                          layout_stop.unload,
                           layout_stop.icons_unload );
     draw<Hover::loads>( renderer, l, layout_stop,
+                        layout_stop.load,
                         layout_stop.icons_load );
   }
 
@@ -667,11 +722,11 @@ struct TradeRouteUI : public IPlane {
     draw( renderer, l, l.info );
     draw( renderer, l, l.header );
 
-    for( LayoutStop const& stop : l.stops )
-      draw( renderer, l, stop );
     for( auto const [layout_stop, route_stop] :
          rv::zip( l.stops, route.stops ) )
       draw( renderer, l, layout_stop, route_stop );
+    for( LayoutStop const& stop : l.stops )
+      draw( renderer, l, stop );
 
     draw( renderer, l, l.ok_button );
     draw( renderer, l, l.cxl_button );
@@ -751,8 +806,10 @@ struct TradeRouteUI : public IPlane {
           tile = comm.index;
           break;
         }
-        return Hover::unloads{ .stop = stop.index,
-                               .tile = tile };
+        return Hover::unloads{
+          .stop  = stop.index,
+          .tiles = p.is_inside( stop.icons_unload.bounds ),
+          .tile  = tile };
       }
       if( p.is_inside( stop.load ) ) {
         maybe<int> tile;
@@ -762,7 +819,10 @@ struct TradeRouteUI : public IPlane {
           tile = comm.index;
           break;
         }
-        return Hover::loads{ .stop = stop.index, .tile = tile };
+        return Hover::loads{
+          .stop  = stop.index,
+          .tiles = p.is_inside( stop.icons_load.bounds ),
+          .tile  = tile };
       }
     }
 
@@ -805,16 +865,11 @@ struct TradeRouteUI : public IPlane {
         break;
       }
       CASE( destination ) {
-        if( has_stop( destination.stop ) ) {
-          if( event.mod.shf_down )
-            send_input<Input::destination_remove>() = {
-              .stop = destination.stop };
-          else
-            send_input<Input::destination_change>() = {
-              .stop = destination.stop };
-        } else {
+        if( has_stop( destination.stop ) )
+          send_input<Input::destination_change>() = {
+            .stop = destination.stop };
+        else
           send_input<Input::destination_add>();
-        }
         break;
       }
       CASE( unloads ) {
@@ -852,23 +907,46 @@ struct TradeRouteUI : public IPlane {
     return e_input_handled::yes;
   }
 
-  wait<maybe<TradeRouteTarget>> ask_target(
-      vector<TradeRouteTarget> const& targets,
-      string const& msg ) const {
+  wait<maybe<RouteSelection>> ask_target(
+      vector<TradeRouteTarget> const& targets, string const& msg,
+      bool const show_delete ) const {
     if( targets.empty() ) co_return nothing;
     ChoiceConfig config{
       .msg = msg,
     };
-    for( int idx = 0; TradeRouteTarget const& target : targets )
+    maybe<int> show_delete_idx;
+    int idx = 0;
+    for( TradeRouteTarget const& target : targets )
       config.options.push_back( ChoiceConfigOption{
         .key = to_string( idx++ ),
         .display_name =
             name_for_target( ss_, player_, target ) } );
+    if( show_delete ) {
+      show_delete_idx = idx++;
+      config.options.push_back( ChoiceConfigOption{
+        .key          = to_string( *show_delete_idx ),
+        .display_name = "(Delete Stop)" } );
+    }
     auto const choice =
         co_await gui_.optional_choice_int_key( config );
     if( !choice.has_value() ) co_return nothing;
+    if( choice == show_delete_idx )
+      co_return RouteSelection::remove{};
     CHECK_LT( *choice, ssize( targets ) );
-    co_return targets[*choice];
+    co_return RouteSelection::target{ .value =
+                                          targets[*choice] };
+  }
+
+  wait<maybe<TradeRouteTarget>> ask_target_no_delete(
+      vector<TradeRouteTarget> const& targets,
+      string const& msg ) const {
+    auto route_selection = co_await ask_target(
+        targets, msg, /*show_delete=*/false );
+    if( !route_selection.has_value() ) co_return nothing;
+    UNWRAP_CHECK_T(
+        TradeRouteTarget & target,
+        route_selection->inner_if<RouteSelection::target>() );
+    co_return target;
   }
 
   wait<> input_processor() {
@@ -947,13 +1025,26 @@ struct TradeRouteUI : public IPlane {
           for( ColonyId const colony_id : colonies )
             targets.push_back( TradeRouteTarget::colony{
               .colony_id = colony_id } );
-          auto const target = co_await ask_target(
-              targets, "Select New Destination:" );
-          if( !target.has_value() ) break;
-          // Only change the target, that way we keep all the
-          // load/unload settings.
-          route.stops[destination_change.stop].target = *target;
-          update_layout();
+          int const num_stops    = ssize( route.stops );
+          bool const show_delete = num_stops > 1;
+          auto const selection   = co_await ask_target(
+              targets, "Select New Destination:", show_delete );
+          if( !selection.has_value() ) break;
+          SWITCH( *selection ) {
+            CASE( target ) {
+              // Only change the target, that way we keep all the
+              // load/unload settings.
+              route.stops[destination_change.stop].target =
+                  target.value;
+              update_layout();
+              break;
+            }
+            CASE( remove ) {
+              send_input<Input::destination_remove>() = {
+                .stop = destination_change.stop };
+              break;
+            }
+          }
           break;
         }
         CASE( destination_add ) {
@@ -967,7 +1058,7 @@ struct TradeRouteUI : public IPlane {
           for( ColonyId const colony_id : colonies )
             targets.push_back( TradeRouteTarget::colony{
               .colony_id = colony_id } );
-          auto const target = co_await ask_target(
+          auto const target = co_await ask_target_no_delete(
               targets, "Select New Destination:" );
           if( !target.has_value() ) break;
           route.stops.push_back(

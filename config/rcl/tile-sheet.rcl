@@ -1379,10 +1379,13 @@ sheets {
         compute_burrow: false
       }
       sprites {
-        checkbox_back:  { y: 0, x: 0 }
-        checkbox_check: { y: 0, x: 1 }
-        radio_back:     { y: 1, x: 0 }
-        radio_check:    { y: 1, x: 1 }
+        checkbox_back:     { y: 0, x: 0 }
+        checkbox_check:    { y: 0, x: 1 }
+        radio_back:        { y: 1, x: 0 }
+        radio_check:       { y: 1, x: 1 }
+        x_for_remove:      { y: 0, x: 2 }
+        plus_for_add:      { y: 1, x: 2 }
+        circle_for_change: { y: 2, x: 2 }
       }
     }
     {

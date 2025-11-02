@@ -675,6 +675,10 @@ enum.e_tile {
   radio_back,
   radio_check,
 
+  x_for_remove,
+  plus_for_add,
+  circle_for_change,
+
   # =============================================================
   # Commodities
   # =============================================================

@@ -8,7 +8,16 @@
 # Description: Rds definitions for the trade-route-ui-impl module.
 #
 # ===============================================================
+include "ss/trade-route.rds.hpp"
+
 namespace "rn.trade_gui"
+
+sumtype.RouteSelection {
+  target {
+    value 'TradeRouteTarget',
+  },
+  remove {},
+}
 
 sumtype.Hover {
   button_ok {},
@@ -20,10 +29,20 @@ sumtype.Hover {
   },
   unloads {
     stop 'int',
+    # Are we over the tile region in general, which can include
+    # the space between the tiles.
+    tiles 'bool',
+    # Are we over a particular tile. NOTE: this could be nothing
+    # even when tiles == true.
     tile 'base::maybe<int>',
   },
   loads {
     stop 'int',
+    # Are we over the tile region in general, which can include
+    # the space between the tiles.
+    tiles 'bool',
+    # Are we over a particular tile. NOTE: this could be nothing
+    # even when tiles == true.
     tile 'base::maybe<int>',
   },
 }

@@ -1212,5 +1212,96 @@ TEST_CASE( "[spread-builder] build_inhomogeneous_tile_spread" ) {
   REQUIRE( f() == ex );
 }
 
+TEST_CASE( "[spread-builder] crash (2025-11-02)" ) {
+  rr::MockTextometer textometer;
+  InhomogeneousTileSpreadConfig in;
+  TileSpreadRenderPlan ex;
+
+  auto const f = [&] [[clang::noinline]] {
+    return build_inhomogeneous_tile_spread( textometer, in );
+  };
+
+  using enum e_tile;
+
+  testing_set_trimmed_cache( commodity_food_20,
+                             { .origin = { .x = 4, .y = 0 },
+                               .size = { .w = 12, .h = 20 } } );
+  testing_set_trimmed_cache( commodity_sugar_20,
+                             { .origin = { .x = 2, .y = 2 },
+                               .size = { .w = 17, .h = 17 } } );
+  testing_set_trimmed_cache( commodity_tobacco_20,
+                             { .origin = { .x = 4, .y = 1 },
+                               .size = { .w = 13, .h = 19 } } );
+  testing_set_trimmed_cache( commodity_cotton_20,
+                             { .origin = { .x = 1, .y = 1 },
+                               .size = { .w = 19, .h = 17 } } );
+  testing_set_trimmed_cache( commodity_furs_20,
+                             { .origin = { .x = 2, .y = 1 },
+                               .size = { .w = 16, .h = 18 } } );
+  testing_set_trimmed_cache( commodity_lumber_20,
+                             { .origin = { .x = 0, .y = 6 },
+                               .size   = { .w = 20, .h = 8 } } );
+  testing_set_trimmed_cache( commodity_ore_20,
+                             { .origin = { .x = 2, .y = 4 },
+                               .size = { .w = 16, .h = 14 } } );
+  testing_set_trimmed_cache( commodity_silver_20,
+                             { .origin = { .x = 2, .y = 4 },
+                               .size = { .w = 16, .h = 12 } } );
+  testing_set_trimmed_cache( commodity_horses_20,
+                             { .origin = { .x = 1, .y = 3 },
+                               .size = { .w = 18, .h = 16 } } );
+  testing_set_trimmed_cache( commodity_rum_20,
+                             { .origin = { .x = 5, .y = 1 },
+                               .size = { .w = 10, .h = 18 } } );
+  testing_set_trimmed_cache( commodity_cigars_20,
+                             { .origin = { .x = 7, .y = 2 },
+                               .size   = { .w = 5, .h = 16 } } );
+  testing_set_trimmed_cache( commodity_cloth_20,
+                             { .origin = { .x = 3, .y = 2 },
+                               .size = { .w = 14, .h = 16 } } );
+  testing_set_trimmed_cache( commodity_coats_20,
+                             { .origin = { .x = 4, .y = 1 },
+                               .size = { .w = 12, .h = 18 } } );
+  testing_set_trimmed_cache( commodity_trade_goods_20,
+                             { .origin = { .x = 3, .y = 2 },
+                               .size = { .w = 15, .h = 16 } } );
+  testing_set_trimmed_cache( commodity_tools_20,
+                             { .origin = { .x = 2, .y = 3 },
+                               .size = { .w = 16, .h = 15 } } );
+  testing_set_trimmed_cache( commodity_muskets_20,
+                             { .origin = { .x = 8, .y = 1 },
+                               .size   = { .w = 6, .h = 18 } } );
+
+  in = {
+    .tiles = { { .tile = commodity_food_20, .greyed = false },
+               { .tile = commodity_sugar_20, .greyed = false },
+               { .tile = commodity_tobacco_20, .greyed = false },
+               { .tile = commodity_cotton_20, .greyed = false },
+               { .tile = commodity_furs_20, .greyed = false },
+               { .tile = commodity_lumber_20, .greyed = false },
+               { .tile = commodity_ore_20, .greyed = false },
+               { .tile = commodity_silver_20, .greyed = false },
+               { .tile = commodity_cigars_20, .greyed = false },
+               { .tile = commodity_cloth_20, .greyed = false },
+               { .tile = commodity_coats_20, .greyed = false },
+               { .tile   = commodity_trade_goods_20,
+                 .greyed = false },
+               { .tile = commodity_tools_20, .greyed = false },
+               { .tile = commodity_muskets_20, .greyed = false },
+               { .tile   = commodity_lumber_20,
+                 .greyed = false } },
+    .max_spacing = 3,
+    .options     = { .bounds       = 194,
+                     .label_policy = SpreadLabels::never{},
+                     .label_opts   = { .color_fg     = nothing,
+                                       .color_bg     = nothing,
+                                       .placement    = nothing,
+                                       .text_padding = nothing } },
+    .sort_tiles  = false };
+
+  ex = {};
+  REQUIRE( f() == ex );
+}
+
 } // namespace
 } // namespace rn
