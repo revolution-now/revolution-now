@@ -567,8 +567,8 @@ struct TradeRouteUI : public IPlane {
   TerrainConnectivity const& connectivity_;
   TradeRouteState& trade_route_state_modify_only_on_save_;
   TradeRouteState trade_route_state_;
-  maybe<Layout> layout_                   = {};
-  wait_promise<ui::e_ok_cancel> finished_ = {};
+  maybe<Layout> layout_    = {};
+  wait_promise<> finished_ = {};
   co::stream<Input> in_;
   TradeRouteId curr_id_ = {};
   maybe<Hover> mouse_hover_;
@@ -724,7 +724,7 @@ struct TradeRouteUI : public IPlane {
   // This is for the load/unload cells when the stop exists.
   template<typename HoverT>
   void draw( rr::Renderer& renderer, Layout const&,
-             LayoutStop const& layout_stop, rect const cell_r,
+             LayoutStop const& layout_stop,
              LayoutIcons const& layout_icons ) const {
     draw_rendered_icon_spread( renderer, layout_icons.icons_nw,
                                layout_icons.render_plan );
@@ -752,17 +752,15 @@ struct TradeRouteUI : public IPlane {
       }
       // For the y coordinate to be consistent for all tiles oth-
       // erwise the y position of the X icon will vary since the
-      // icons are of different sizes and positions.
-      int const y =
+      // icons are of different sizes and positions. Use the y
+      // coordinate of the destination UI icon for convenience
+      // since that will be at the same level.
+      render_sprite(
+          renderer,
           gfx::centered_in( sprite_size( e_tile::x_for_remove ),
-                            cell_r )
-              .moved_down()
-              .y;
-      render_sprite( renderer,
-                     gfx::centered_in(
-                         sprite_size( e_tile::x_for_remove ), r )
-                         .with_y( y ),
-                     e_tile::x_for_remove );
+                            r )
+              .with_y( layout_stop.destination_ui_icon_nw.y ),
+          e_tile::x_for_remove );
     } else if( !tiles ) {
       render_sprite( renderer, layout_icons.add_icon_nw,
                      e_tile::plus_for_add );
@@ -779,10 +777,8 @@ struct TradeRouteUI : public IPlane {
     typer.write( "{}", layout_stop.destination_text.text );
 
     draw<Hover::unloads>( renderer, l, layout_stop,
-                          layout_stop.unload,
                           layout_stop.icons_unload );
     draw<Hover::loads>( renderer, l, layout_stop,
-                        layout_stop.load,
                         layout_stop.icons_load );
   }
 
@@ -885,8 +881,8 @@ struct TradeRouteUI : public IPlane {
     return sender( in_ );
   }
 
-  void close_screen( ui::e_ok_cancel const result ) {
-    finished_.set_value( result );
+  void close_screen() {
+    finished_.set_value_if_not_set( monostate{} );
   }
 
   e_input_handled on_key(
@@ -1030,10 +1026,7 @@ struct TradeRouteUI : public IPlane {
 
   e_input_handled on_mouse_move(
       input::mouse_move_event_t const& event ) override {
-    point const p = event.pos;
-    mouse_hover_  = mouse_hover( p );
-    if( !mouse_hover_.has_value() ) return e_input_handled::yes;
-    // TBD
+    mouse_hover_ = mouse_hover( event.pos );
     return e_input_handled::yes;
   }
 
@@ -1093,7 +1086,7 @@ struct TradeRouteUI : public IPlane {
         CASE( done ) {
           trade_route_state_modify_only_on_save_ =
               trade_route_state_;
-          close_screen( ui::e_ok_cancel::ok );
+          close_screen();
           break;
         }
         CASE( cancel ) {
@@ -1109,7 +1102,7 @@ struct TradeRouteUI : public IPlane {
                 ui::e_confirm::yes )
               break;
           }
-          close_screen( ui::e_ok_cancel::cancel );
+          close_screen();
           break;
         }
         CASE( change_name ) {
@@ -1256,9 +1249,9 @@ struct TradeRouteUI : public IPlane {
   }
 
  public:
-  wait<ui::e_ok_cancel> run() {
+  wait<> run() {
     auto const _ = input_processor();
-    co_return co_await finished_.wait();
+    co_await finished_.wait();
   }
 };
 
@@ -1278,7 +1271,7 @@ wait<> show_trade_route_edit_ui(
       engine, ss, player, gui, connectivity, trade_route_state,
       trade_route_state, trade_route_id );
   group.bottom = &trade_route_ui;
-  (void)co_await trade_route_ui.run();
+  co_await trade_route_ui.run();
 }
 
 wait<> show_trade_route_create_ui(
@@ -1297,7 +1290,7 @@ wait<> show_trade_route_create_ui(
       engine, ss, player, gui, connectivity, trade_route_state,
       with_new_added, new_trade_route.id );
   group.bottom = &trade_route_ui;
-  (void)co_await trade_route_ui.run();
+  co_await trade_route_ui.run();
 }
 
 } // namespace rn
