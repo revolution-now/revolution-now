@@ -189,18 +189,20 @@ class [[nodiscard]] wait {
     return *this;
   }
 
-  bool ready() const { return state_ && state_->has_value(); }
+  [[nodiscard]] bool ready() const {
+    return state_ && state_->has_value();
+  }
 
-  std::exception_ptr exception() const {
+  [[nodiscard]] std::exception_ptr exception() const {
     return state_->exception();
   }
 
-  bool has_exception() const {
+  [[nodiscard]] bool has_exception() const {
     CHECK( state_ != nullptr );
     return state_->has_exception();
   }
 
-  operator bool() const { return ready(); }
+  explicit operator bool() const { return ready(); }
 
   T& get() noexcept { return state_->get(); }
 

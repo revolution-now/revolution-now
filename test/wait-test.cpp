@@ -23,6 +23,7 @@
 
 // C++ standard library
 #include <queue>
+#include <type_traits>
 
 namespace rn {
 namespace {
@@ -34,6 +35,13 @@ using ::Catch::Equals;
 
 // Unit test for wait's default template parameter.
 static_assert( is_same_v<wait<>, wait<monostate>> );
+
+// These were violated before we made operator bool() explicit,
+// causing trouble.
+static_assert( !is_convertible_v<wait<maybe<int>>, maybe<int>> );
+static_assert(
+    !is_constructible_v<maybe<int>, wait<maybe<int>>> );
+static_assert( !is_assignable_v<maybe<int>, wait<maybe<int>>> );
 
 TEST_CASE( "[wait] future api basic" ) {
   auto ss    = make_unique<detail::wait_state<int>>();
