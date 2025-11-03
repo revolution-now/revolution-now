@@ -15,10 +15,6 @@
 // luapp
 #include "luapp/ext-userdata.hpp"
 
-namespace lua {
-struct state;
-}
-
 namespace rn {
 
 struct Agents;

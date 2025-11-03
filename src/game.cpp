@@ -37,6 +37,7 @@
 #include "rand.hpp"
 #include "rcl-game-storage.hpp" // FIXME: temporary
 #include "save-game.hpp"
+#include "terminal.hpp" // FIXME
 #include "ts.hpp"
 #include "turn.hpp"
 
@@ -100,20 +101,24 @@ wait<> run_game( IEngine& engine, Planes& planes, IGui& gui,
   // saved (not including auto-save) and/or loaded.
   RootState saved;
 
-  lua::state& st = planes.get().console.typed().lua_state();
-  st["ROOT"]     = ss.root;
-  st["SS"]       = ss;
-  SCOPE_EXIT { st["ROOT"] = lua::nil; };
-  SCOPE_EXIT { st["SS"] = lua::nil; };
+  // This is the lua state that will be operative throughout the
+  // duration of this particular game.
+  lua::state st;
 
   Rand rand; // random seed.
   RealCombat combat( ss, rand );
   ColonyViewer colony_viewer( engine, ss );
-
   TerrainConnectivity connectivity;
 
   TS ts( planes, gui, rand, combat, colony_viewer, saved );
-  st["TS"] = ts;
+
+  st["ROOT"] = ss.root;
+  st["SS"]   = ss;
+  st["TS"]   = ts;
+
+  // Do this after we set globals so that they will be included
+  // in the freezing.
+  lua_init( st );
 
   NonRenderingMapUpdater non_rendering_map_updater(
       ss, connectivity );
@@ -176,6 +181,15 @@ wait<> run_game( IEngine& engine, Planes& planes, IGui& gui,
 
   PanelPlane panel_plane( engine, ss, ts, land_view_plane );
   group.panel = panel_plane;
+
+  // We could create a new terminal object here which would clear
+  // the history, but there doesn't seem to be a good reason to
+  // do that, so just provide continuity. Note that we are using
+  // a new Lua state though for the duration of this particular
+  // new or loaded game.
+  Terminal& terminal = group.console.typed().terminal();
+  ConsolePlane console_plane( engine, terminal, st );
+  group.console = console_plane;
 
   // Perform the initial rendering of the map. Even though it
   // will be wasteful in a sense, we will render the entire map

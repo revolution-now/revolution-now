@@ -11,6 +11,7 @@
 #include "console.hpp"
 
 // Revolution Now
+#include "auto-complete.hpp"
 #include "deferred.hpp"
 #include "frame.hpp"
 #include "iengine.hpp"
@@ -62,13 +63,14 @@ struct ConsolePlane::Impl : public IPlane {
   // State.
   IEngine& engine_;
   Terminal& terminal_;
+  lua::state& st_;
   bool show_{ false };
   double show_percent_{ 0.0 };
   deferred<ui::LineEditorView> le_view_{};
   int history_index_{ -1 };
 
-  Impl( IEngine& engine, Terminal& terminal )
-    : engine_( engine ), terminal_( terminal ) {
+  Impl( IEngine& engine, Terminal& terminal, lua::state& st )
+    : engine_( engine ), terminal_( terminal ), st_( st ) {
     // FIXME: move this into method that gets called when logical
     // window size changes.
     auto const width = console_rect().size.w;
@@ -228,7 +230,7 @@ struct ConsolePlane::Impl : public IPlane {
     if( key_event.keycode == ::SDLK_TAB ) {
       auto const& text = le_view_.get().text();
       if( int( text.size() ) == le_view_.get().cursor_pos() ) {
-        auto options = terminal_.autocomplete_iterative( text );
+        auto options = autocomplete_iterative( st_, text );
         if( options.size() == 1 ) {
           // Set cursor pos to one-past-the-end.
           le_view_.get().set( options[0], /*cursor_pos=*/-1 );
@@ -266,7 +268,7 @@ struct ConsolePlane::Impl : public IPlane {
       if( !text.empty() ) {
         history_index_ = -1;
         // Don't care here whether command succeeded or not.
-        (void)terminal_.run_cmd( text );
+        (void)terminal_.run_cmd( st_, text );
         le_view_.get().clear();
         return e_input_handled::yes;
       }
@@ -311,13 +313,12 @@ IPlane& ConsolePlane::impl() { return *impl_; }
 
 ConsolePlane::~ConsolePlane() = default;
 
-ConsolePlane::ConsolePlane( IEngine& engine, Terminal& terminal )
-  : impl_( new Impl( engine, terminal ) ) {}
+ConsolePlane::ConsolePlane( IEngine& engine, Terminal& terminal,
+                            lua::state& st )
+  : impl_( new Impl( engine, terminal, st ) ) {}
 
-Terminal& ConsolePlane::terminal() { return impl_->terminal_; }
-
-lua::state& ConsolePlane::lua_state() {
-  return impl_->terminal_.lua_state();
+Terminal& ConsolePlane::terminal() const {
+  return impl_->terminal_;
 }
 
 } // namespace rn

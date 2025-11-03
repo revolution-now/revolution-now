@@ -13,7 +13,6 @@
 // Revolution Now
 #include "imap-updater.hpp"
 #include "irand.hpp"
-#include "map-updater-lua.hpp"
 
 // luapp
 #include "luapp/register.hpp"

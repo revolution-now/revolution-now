@@ -83,7 +83,7 @@ lua::table require( lua::state& st, string const& required ) {
   return module_table;
 }
 
-void add_some_members( lua::state& st ) {
+void add_logging_methods( lua::state& st ) {
   CHECK( st["log"] == lua::nil );
   lua::table log = lua::table::create_or_get( st["log"] );
   log["info"]    = []( string const& msg ) {
@@ -110,9 +110,6 @@ void add_some_members( lua::state& st ) {
     lua::c_api C( o.this_cthread() );
     lg.info( "{}", C.pop_tostring() );
   };
-  st["require"] = [&]( string const& name ) {
-    return require( st, name );
-  };
 }
 
 void load_lua_modules( lua::state& st ) {
@@ -128,35 +125,29 @@ void load_lua_modules( lua::state& st ) {
 *****************************************************************/
 void run_lua_startup_routines( lua::state& st ) {
   lg.info( "registering Lua functions." );
-  for( auto fn : lua::registration_functions() ) ( *fn )( st );
-}
-
-void freeze_globals( lua::state& st ) {
-  // Freeze all existing global variables and global tables.
-  // TODO: see also util.freeze.harden.
-  st["meta"]["freeze_all"]();
+  for( auto const fn : lua::registration_functions() )
+    ( *fn )( st );
 }
 
 void lua_init( lua::state& st ) {
   st.lib.open_all();
+
+  st["require"] = [&]( string const& name ) {
+    return require( st, name );
+  };
+
+  // NOTE: these will not be frozen when injected; it is expected
+  // that all globals will be recursively frozen at the end of
+  // the init process.
   inject_configs( st );
-  // Freeze the config tables. Need to do this before doing any-
-  // thing else so that we guarantee that no other lua modules
-  // grab hold of the un-frozen config table when loading.
-  //
-  // FIXME: we need to fix the TS lua mechanism so that we can
-  // apply a general freeze to all globals. There is a method in
-  // the lua meta module that does that, though it does not ap-
-  // pear to be recursive; we need to decide if/when we want the
-  // freezing to be fully recursive. For some things, such as the
-  // configs, we can and do.
-  auto harden = require( st, "util.freeze" )["harden"];
 
-  st["config"] = harden( st["config"] );
-
-  add_some_members( st );
   run_lua_startup_routines( st );
+
+  add_logging_methods( st );
   load_lua_modules( st );
+
+  // Freeze all existing global variables and global tables.
+  st["require"]( "util.freeze" )["freeze_environment"]();
 }
 
 } // namespace rn

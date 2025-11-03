@@ -10,6 +10,10 @@
 *****************************************************************/
 #include "imap-updater.hpp"
 
+// luapp
+#include "luapp/register.hpp"
+#include "luapp/state.hpp"
+
 using namespace std;
 
 namespace rn {
@@ -77,5 +81,26 @@ void to_str( IMapUpdater const&, string& out,
              base::tag<IMapUpdater> ) {
   out += "IMapUpdater";
 }
+
+/****************************************************************
+** Lua Bindings
+*****************************************************************/
+namespace {
+
+LUA_STARTUP( lua::state& st ) {
+  using U = ::rn::IMapUpdater;
+
+  auto u = st.usertype.create<U>();
+
+  u["redraw"]      = &U::redraw;
+  u["toggle_grid"] = []( U& o ) {
+    o.mutate_options_and_redraw(
+        []( MapUpdaterOptions& options ) {
+          options.grid = !options.grid;
+        } );
+  };
+};
+
+} // namespace
 
 } // namespace rn

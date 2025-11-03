@@ -18,6 +18,7 @@ local dist = require( 'map-gen.classic.resource-dist' )
 local partition = require( 'map-gen.classic.land-partition' )
 local weights = require( 'map-gen.classic.terrain-weights' )
 local timer = require( 'util.timer' )
+local freeze = require( 'util.freeze' )
 
 -----------------------------------------------------------------
 -- Globals.
@@ -43,6 +44,9 @@ local import_map_file = classic_sav.import_map_file
 
 local unordered_pairs = pairs
 
+local block_invalid_reads = freeze.block_invalid_reads
+local secure_options = freeze.secure_options
+
 ---@diagnostic disable-next-line: unused-local, unused-function
 local pairs = function( _ )
   error( 'should not use pairs as it is not deterministic.' )
@@ -58,19 +62,8 @@ local CLASSIC_WORLD_SIZE = { w=56, h=70 }
 -----------------------------------------------------------------
 -- Options
 -----------------------------------------------------------------
--- TODO: move this into a dedicated options module that can be
--- shared.
-local function secure_options( tbl )
-  assert( tbl )
-  return setmetatable( tbl, {
-    __index=function( _, key )
-      error( 'options key ' .. key .. ' does not exist.' )
-    end,
-  } )
-end
-
 function M.default_options()
-  return secure_options{
+  return block_invalid_reads{
     world_size=CLASSIC_WORLD_SIZE,
     type='normal',
     -- The original game seems to have a land density of about
@@ -1765,15 +1758,7 @@ function M.regen( options )
 end
 
 local function generate( options )
-  options = options or {}
-  -- Merge the options with the default ones so that any missing
-  -- fields will have their default values.
-  -- TODO: move this into a dedicated options module that can be
-  -- shared.
-  for k, v in unordered_pairs( M.default_options() ) do
-    if options[k] == nil then options[k] = v end
-  end
-  options = secure_options( options )
+  options = secure_options( options, M.default_options() )
 
   log.info( 'generating map...' );
 

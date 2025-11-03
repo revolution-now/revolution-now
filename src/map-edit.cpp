@@ -23,7 +23,6 @@
 #include "imenu-server.hpp"
 #include "inative-agent.hpp" // FIXME
 #include "input.hpp"
-#include "lua.hpp" // FIXME
 #include "map-gen.hpp"
 #include "map-square.hpp"
 #include "map-updater.hpp"
@@ -58,9 +57,6 @@
 
 // gfx
 #include "gfx/coord.hpp"
-
-// luapp
-#include "luapp/state.hpp" // FIXME
 
 // refl
 #include "refl/enum-map.hpp"
@@ -660,15 +656,11 @@ wait<> run_map_editor_standalone( IEngine& engine,
       ss, connectivity, engine.renderer_use_only_when_needed(),
       MapUpdaterOptions{} );
   reset_terrain( map_updater, kClassicWorldSize );
-  lua::state st;
-  lua_init( st );
-  Terminal terminal( st );
+  Terminal terminal;
   function<void( string_view )> const terminal_log =
       [&]( string_view const msg ) { terminal.log( msg ); };
   base::set_console_terminal( terminal_log );
   SCOPE_EXIT { base::set_console_terminal( nothing ); };
-  lua::table::create_or_get( st["log"] )["console"] =
-      [&]( string const& msg ) { terminal.log( msg ); };
   WindowPlane window_plane( engine );
   RealGui gui( planes, engine.textometer() );
   Rand rand;

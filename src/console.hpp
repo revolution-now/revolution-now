@@ -32,12 +32,11 @@ struct Terminal;
 ** ConsolePlane
 *****************************************************************/
 struct ConsolePlane {
-  ConsolePlane( IEngine& engine, Terminal& terminal );
+  ConsolePlane( IEngine& engine, Terminal& terminal,
+                lua::state& st );
   ~ConsolePlane();
 
-  Terminal& terminal();
-
-  lua::state& lua_state();
+  Terminal& terminal() const;
 
  private:
   struct Impl;

@@ -11,8 +11,15 @@
 --]] ------------------------------------------------------------
 local M = {}
 
+-----------------------------------------------------------------
+-- Imports.
+-----------------------------------------------------------------
 local map_gen = require( 'map-gen' )
+local freeze = require( 'util.freeze' )
 
+-----------------------------------------------------------------
+-- Globals.
+-----------------------------------------------------------------
 -- This, together with the LSP's warnings on accessing global
 -- variables, will help to ensure that we 1) don't access global
 -- variables accidentally, and 2) if we do then we need to de-
@@ -37,10 +44,16 @@ local unit_mgr = global( 'unit_mgr' )
 local unit_type = global( 'unit_type' )
 
 -----------------------------------------------------------------
+-- Aliases.
+-----------------------------------------------------------------
+local secure_options = freeze.secure_options
+local block_invalid_reads = freeze.block_invalid_reads
+
+-----------------------------------------------------------------
 -- Options
 -----------------------------------------------------------------
 function M.default_options()
-  return {
+  return block_invalid_reads{
     difficulty='conquistador',
     -- This determines which nations are enabled and some proper-
     -- ties. If initial ship position is null then the randomly
@@ -386,12 +399,7 @@ end
 -- save-game state should be default-constructed before calling
 -- this.
 function M.create( root, options )
-  options = options or {}
-  -- Merge the options with the default ones so that any missing
-  -- fields will have their default values.
-  for k, v in pairs( M.default_options() ) do
-    if options[k] == nil then options[k] = v end
-  end
+  options = secure_options( options, M.default_options() )
 
   add_testing_options( options )
 

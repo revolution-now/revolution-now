@@ -178,9 +178,6 @@ LUA_FN( opt_test2, lua_expect<Coord>,
 TEST_CASE( "[lua] after initialization" ) {
   World W;
   W.expensive_run_lua_init();
-  // Cause TS to initialize lua since this test happens to need
-  // the "TS" global in place.
-  W.initialize_ts();
   lua::state& st = W.lua();
 
   // Configs injected.
@@ -209,19 +206,78 @@ TEST_CASE( "[lua] after initialization" ) {
   // Configs hardened.
   {
     auto script = R"lua(
+      local ok = config.nation.players.spanish
       local bad_get = function()
-        return config.player.types.spanishx
+        return config.nation.players.spanishx
       end
       assert( not pcall( bad_get ),
              'no error thrown on invalid field get.' )
       bad_get = function()
-        config.player.types.spanish = 5
+        config.nation.players.spanish = 5
       end
       assert( not pcall( bad_get ),
              'no error thrown on field set.' )
     )lua";
 
     REQUIRE( W.lua().script.run_safe( script ) == valid );
+  }
+
+  // More frozen globals.
+  {
+    auto xp = st.script.run_safe( "new_game = 1" );
+    REQUIRE( !xp.valid() );
+    REQUIRE_THAT(
+        xp.error().msg,
+        Contains( "attempt to modify a read-only global" ) );
+
+    xp = st.script.run_safe( "new_game.x = 1" );
+    REQUIRE( !xp.valid() );
+    REQUIRE_THAT(
+        xp.error().msg,
+        Contains( "attempt to modify a read-only table" ) );
+
+    xp = st.script.run_safe( "unit_mgr = 1" );
+    REQUIRE( !xp.valid() );
+    REQUIRE_THAT(
+        xp.error().msg,
+        Contains( "attempt to modify a read-only global" ) );
+
+    xp = st.script.run_safe( "unit_mgr.x = 1" );
+    REQUIRE( !xp.valid() );
+    REQUIRE_THAT(
+        xp.error().msg,
+        Contains( "attempt to modify a read-only table" ) );
+
+    REQUIRE( st.script.run_safe<int>( "x = 1; return x" ) == 1 );
+
+    REQUIRE( st.script.run_safe<int>(
+                 "d = {}; d.x = 1; return d.x" ) == 1 );
+
+    xp = st.script.run_safe( "unit_composition = 1" );
+    REQUIRE( !xp.valid() );
+    REQUIRE_THAT(
+        xp.error().msg,
+        Contains( "attempt to modify a read-only global" ) );
+
+    xp = st.script.run_safe( "unit_composition.x = 1" );
+    REQUIRE( !xp.valid() );
+    REQUIRE_THAT(
+        xp.error().msg,
+        Contains( "attempt to modify a read-only table" ) );
+
+    xp = st.script.run_safe(
+        "unit_composition.UnitComposition = 1" );
+    REQUIRE( !xp.valid() );
+    REQUIRE_THAT(
+        xp.error().msg,
+        Contains( "attempt to modify a read-only table" ) );
+
+    xp = st.script.run_safe(
+        "unit_composition.UnitComposition.x = 1" );
+    REQUIRE( !xp.valid() );
+    REQUIRE_THAT(
+        xp.error().msg,
+        Contains( "attempt to modify a read-only table" ) );
   }
 
   // Function binding.
@@ -247,49 +303,6 @@ TEST_CASE( "[lua] after initialization" ) {
 
     REQUIRE( W.lua().script.run_safe<int>( script ) == 2 );
   }
-
-  // FIXME: re-enable this once the TS mechanism is cleaned up.
-  // The below snippet will catch when we re-enable the freezing
-  // so that we don't forget to re-enable the below.
-  {
-    auto xp = st.script.run_safe( "new_game = 1" );
-    REQUIRE( xp.valid() );
-  }
-#if 0
-  freeze_globals( st );
-
-  // Frozen globals.
-  {
-    auto xp = st.script.run_safe( "new_game = 1" );
-    REQUIRE( !xp.valid() );
-    REQUIRE_THAT(
-        xp.error().msg,
-        Contains( "attempt to modify a read-only global" ) );
-
-    xp = st.script.run_safe( "new_game.x = 1" );
-    REQUIRE( !xp.valid() );
-    REQUIRE_THAT(
-        xp.error().msg,
-        Contains( "attempt to modify a read-only table:" ) );
-
-    xp = st.script.run_safe( "unit_mgr = 1" );
-    REQUIRE( !xp.valid() );
-    REQUIRE_THAT(
-        xp.error().msg,
-        Contains( "attempt to modify a read-only global" ) );
-
-    xp = st.script.run_safe( "unit_mgr.x = 1" );
-    REQUIRE( !xp.valid() );
-    REQUIRE_THAT(
-        xp.error().msg,
-        Contains( "attempt to modify a read-only table:" ) );
-
-    REQUIRE( st.script.run_safe<int>( "x = 1; return x" ) == 1 );
-
-    REQUIRE( st.script.run_safe<int>(
-                 "d = {}; d.x = 1; return d.x" ) == 1 );
-  }
-#endif
 
   // Throwing.
   {

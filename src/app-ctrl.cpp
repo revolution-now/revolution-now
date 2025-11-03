@@ -70,21 +70,22 @@ wait<> revolution_now( IEngine& engine, Planes& planes ) {
   if( resolution_override.has_value() )
     co_await force_resolution( engine, *resolution_override );
 
-  lua::state st;
-  lua_init( st );
-  Terminal terminal( st );
+  Terminal terminal;
   function<void( string_view )> const terminal_log =
       [&]( string_view const msg ) { terminal.log( msg ); };
   base::set_console_terminal( terminal_log );
   SCOPE_EXIT { base::set_console_terminal( nothing ); };
-  lua::table::create_or_get( st["log"] )["console"] =
-      [&]( string const& msg ) { terminal.log( msg ); };
+
+  // This lua state is the one that is operative outside of indi-
+  // vidual games, i.e. during the menus.
+  lua::state st;
+  lua_init( st );
 
   auto owner        = planes.push();
   PlaneGroup& group = owner.group;
   MenuPlane menu_plane( engine );
   OmniPlane omni_plane( engine, menu_plane );
-  ConsolePlane console_plane( engine, terminal );
+  ConsolePlane console_plane( engine, terminal, st );
   WindowPlane window_plane( engine );
   group.omni    = omni_plane;
   group.console = console_plane;

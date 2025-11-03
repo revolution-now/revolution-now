@@ -28,7 +28,6 @@
 #include "src/harbor-units.hpp"
 #include "src/lua.hpp"
 #include "src/map-square.hpp"
-#include "src/map-updater-lua.hpp"
 #include "src/map-updater.hpp"
 #include "src/market.hpp"
 #include "src/missionary.hpp"

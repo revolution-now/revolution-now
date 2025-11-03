@@ -11,6 +11,9 @@
 --]] ------------------------------------------------------------
 local M = {}
 
+-----------------------------------------------------------------
+-- API
+-----------------------------------------------------------------
 function M.starts_with( str, start )
   return str:sub( 1, #start ) == start
 end
@@ -32,7 +35,7 @@ function M.ls( table )
   end
   for k, v in pairs( table ) do
     if not M.starts_with( tostring( k ), '__' ) then
-      log.console( tostring( k ) .. ': ' .. tostring( v ) )
+      print( tostring( k ) .. ': ' .. tostring( v ) )
     end
   end
 end

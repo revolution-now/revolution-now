@@ -8,22 +8,20 @@
 * Description: The Revolution Begins.
 *
 *****************************************************************/
+// rds
+#include "main.rds.hpp"
+
+// Revolution Now
 #include "app-ctrl.hpp"
-#include "console.hpp"
 #include "engine.hpp"
 #include "error.hpp"
 #include "frame.hpp"
-#include "init.hpp"
 #include "interrupts.hpp"
 #include "linking.hpp"
 #include "lua-ui.hpp"
 #include "map-edit.hpp"
 #include "map-gen.hpp"
-#include "omni.hpp"
 #include "plane-stack.hpp"
-
-// rds
-#include "main.rds.hpp"
 
 // refl
 #include "refl/query-enum.hpp"
@@ -31,7 +29,6 @@
 // base
 #include "base/cli-args.hpp"
 #include "base/error.hpp"
-#include "base/keyval.hpp"
 #include "base/logger.hpp"
 #include "base/scope-exit.hpp"
 #include "base/stack-trace.hpp"

@@ -129,13 +129,13 @@ struct indexer : indexer_base<Predecessor> {
   operator any() const noexcept;
 
   template<Pushable... Args>
-  any operator()( Args&&... args );
+  any operator()( Args&&... args ) const;
 
   template<GettableOrVoid R = void, Pushable... Args>
-  R call( Args&&... args );
+  R call( Args&&... args ) const;
 
   template<GettableOrVoid R = void, Pushable... Args>
-  error_type_for_return_type<R> pcall( Args&&... args );
+  error_type_for_return_type<R> pcall( Args&&... args ) const;
 
   template<Gettable T>
   T as() const {
@@ -167,7 +167,8 @@ indexer<IndexT, Predecessor>::operator=( U&& rhs ) {
 
 template<typename IndexT, Pushable Predecessor>
 template<Pushable... Args>
-any indexer<IndexT, Predecessor>::operator()( Args&&... args ) {
+any indexer<IndexT, Predecessor>::operator()(
+    Args&&... args ) const {
   cthread L = this_cthread();
   push( L, *this );
   return call_lua_unsafe_and_get<any>( L, FWD( args )... );
@@ -175,7 +176,7 @@ any indexer<IndexT, Predecessor>::operator()( Args&&... args ) {
 
 template<typename IndexT, Pushable Predecessor>
 template<GettableOrVoid R, Pushable... Args>
-R indexer<IndexT, Predecessor>::call( Args&&... args ) {
+R indexer<IndexT, Predecessor>::call( Args&&... args ) const {
   cthread L = this_cthread();
   push( L, *this );
   return call_lua_unsafe_and_get<R>( L, FWD( args )... );
@@ -184,7 +185,7 @@ R indexer<IndexT, Predecessor>::call( Args&&... args ) {
 template<typename IndexT, Pushable Predecessor>
 template<GettableOrVoid R, Pushable... Args>
 error_type_for_return_type<R>
-indexer<IndexT, Predecessor>::pcall( Args&&... args ) {
+indexer<IndexT, Predecessor>::pcall( Args&&... args ) const {
   cthread L = this_cthread();
   push( L, *this );
   return call_lua_safe_and_get<R>( L, FWD( args )... );

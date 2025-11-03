@@ -25,6 +25,9 @@
 // gfx
 #include "gfx/coord.hpp"
 
+// luapp
+#include "luapp/ext-userdata.hpp"
+
 // base
 #include "base/function-ref.hpp"
 #include "base/macros.hpp"
@@ -188,3 +191,10 @@ struct IMapUpdater {
 };
 
 } // namespace rn
+
+/****************************************************************
+** Lua
+*****************************************************************/
+namespace lua {
+LUA_USERDATA_TRAITS( ::rn::IMapUpdater, owned_by_cpp ){};
+}

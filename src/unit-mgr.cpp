@@ -20,7 +20,6 @@
 #include "imap-updater.hpp"
 #include "land-production.hpp"
 #include "macros.hpp"
-#include "map-updater-lua.hpp"
 #include "on-map.hpp"
 #include "ts.hpp"
 #include "unit-ownership.hpp"
