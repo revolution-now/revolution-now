@@ -43,8 +43,8 @@ sumtype.unit_orders {
   go_to {
     target 'goto_target',
   },
-  # The values in this trade_route orders actually do not neces-
-  # sarily need to be valid, because it is possible that the
+  # NOTE: The values in this trade_route orders actually do not
+  # necessarily need to be valid, because it is possible that the
   # player could edit or delete a trade route that is being car-
   # ried out by a unit and then save the game before the unit
   # moves and has a chance to react. It would be possible to

@@ -27,6 +27,7 @@
 #include "ss/player.rds.hpp"
 #include "ss/ref.hpp"
 #include "ss/trade-route.hpp"
+#include "ss/unit.hpp"
 
 // rds
 #include "rds/switch-macro.hpp"
@@ -336,6 +337,71 @@ string name_for_target( SSConst const& ss, Player const& player,
     }
   }
   return name;
+}
+
+vector<TradeRouteId> find_eligible_trade_routes_for_unit(
+    SSConst const& ss, Unit const& unit ) {
+  vector<TradeRouteId> res;
+  for( auto const& [id, route] : ss.trade_routes.routes ) {
+    if( route.player != unit.player_type() ) continue;
+    switch( route.type ) {
+      case e_trade_route_type::land: {
+        if( unit.desc().ship ) continue;
+        break;
+      }
+      case e_trade_route_type::sea: {
+        if( !unit.desc().ship ) continue;
+        break;
+      }
+    }
+    // NOTE: we don't check the number of stops here, that will
+    // be checked later.
+    res.push_back( id );
+  }
+  return res;
+}
+
+wait<maybe<TradeRouteId>> select_trade_route(
+    SSConst const& ss, Unit const& unit, IGui& gui,
+    vector<TradeRouteId> const& route_ids ) {
+  maybe<TradeRouteId> res;
+  ChoiceConfig config{
+    .msg = format( "Select Trade Route for [{}]:",
+                   unit.desc().name ) };
+  for( TradeRouteId const id : route_ids ) {
+    auto const iter = ss.trade_routes.routes.find( id );
+    CHECK( iter != ss.trade_routes.routes.end(),
+           "trade route {} does not exist", id );
+    TradeRoute const& route = iter->second;
+    config.options.push_back( ChoiceConfigOption{
+      .key = to_string( id ), .display_name = route.name } );
+  }
+  if( !config.options.empty() )
+    res = co_await gui.optional_choice_int_key( config );
+  co_return res;
+}
+
+wait<maybe<int>> ask_first_stop( SSConst const& ss,
+                                 Player const& player, IGui& gui,
+                                 TradeRouteId const route_id ) {
+  maybe<int> res;
+  auto const iter = ss.trade_routes.routes.find( route_id );
+  CHECK( iter != ss.trade_routes.routes.end(),
+         "trade route {} does not exist", route_id );
+  TradeRoute const& route = iter->second;
+  ChoiceConfig config{ .msg = "Select initial destination:" };
+  for( int idx = 0; TradeRouteStop const& stop : route.stops )
+    config.options.push_back( ChoiceConfigOption{
+      .key = to_string( idx++ ),
+      .display_name =
+          name_for_target( ss, player, stop.target ) } );
+  if( !config.options.empty() )
+    res = co_await gui.optional_choice_int_key( config );
+  else
+    co_await gui.message_box(
+        "Trade Route [{}] has no stops registered.",
+        route.name );
+  co_return res;
 }
 
 } // namespace rn

@@ -109,7 +109,20 @@ TEST_CASE( "[trade-route] available_colonies_for_route" ) {
   world w;
 }
 
-TEST_CASE( "[trade-route] namie_for_target" ) {
+TEST_CASE( "[trade-route] name_for_target" ) {
+  world w;
+}
+
+TEST_CASE(
+    "[trade-route] find_eligible_trade_routes_for_unit" ) {
+  world w;
+}
+
+TEST_CASE( "[trade-route] select_trade_route" ) {
+  world w;
+}
+
+TEST_CASE( "[trade-route] ask_first_stop" ) {
   world w;
 }
 

@@ -32,6 +32,7 @@ struct Player;
 struct SSConst;
 struct TerrainConnectivity;
 struct TradeRouteState;
+struct Unit;
 
 enum class e_unit_type;
 
@@ -78,5 +79,19 @@ std::vector<ColonyId> available_colonies_for_route(
 std::string name_for_target( SSConst const& ss,
                              Player const& player,
                              TradeRouteTarget const& target );
+
+/****************************************************************
+** Trade Route Orders.
+*****************************************************************/
+std::vector<TradeRouteId> find_eligible_trade_routes_for_unit(
+    SSConst const& ss, Unit const& unit );
+
+wait<maybe<TradeRouteId>> select_trade_route(
+    SSConst const& ss, Unit const& unit, IGui& gui,
+    std::vector<TradeRouteId> const& route_ids );
+
+wait<maybe<int>> ask_first_stop( SSConst const& ss,
+                                 Player const& player, IGui& gui,
+                                 TradeRouteId const route_id );
 
 } // namespace rn
