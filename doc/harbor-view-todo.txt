@@ -55,6 +55,7 @@ Harbor View TODO
       bar. For example, in the OG for the dutch it just says "Am-
       sterdam, Netherlands" whereas we are saying "Amsterdam, The
       Netherlands" which sounds wrong.
+  17. Make the harbor work with the 480x300 resolution.
 
 Pedia
 -----
