@@ -109,5 +109,9 @@ TEST_CASE( "[trade-route] available_colonies_for_route" ) {
   world w;
 }
 
+TEST_CASE( "[trade-route] namie_for_target" ) {
+  world w;
+}
+
 } // namespace
 } // namespace rn

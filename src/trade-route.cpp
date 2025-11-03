@@ -28,6 +28,9 @@
 #include "ss/ref.hpp"
 #include "ss/trade-route.hpp"
 
+// rds
+#include "rds/switch-macro.hpp"
+
 using namespace std;
 
 namespace rn {
@@ -316,6 +319,23 @@ vector<ColonyId> available_colonies_for_route(
       return find_coastal_colonies( ss, connectivity,
                                     player.type );
   }
+}
+
+string name_for_target( SSConst const& ss, Player const& player,
+                        TradeRouteTarget const& target ) {
+  string name;
+  SWITCH( target ) {
+    CASE( colony ) {
+      name = ss.colonies.colony_for( colony.colony_id ).name;
+      break;
+    }
+    CASE( harbor ) {
+      name =
+          config_nation.nations[player.nation].harbor_city_name;
+      break;
+    }
+  }
+  return name;
 }
 
 } // namespace rn

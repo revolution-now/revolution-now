@@ -90,7 +90,8 @@ void HarborStatusBar::draw_text( rr::Renderer& renderer ) const {
       status_override_.value_or( build_status_normal() );
   pixel const color = text_color_override_.value_or(
       config_ui.dialog_text.normal );
-  write_centered( renderer, color, layout_.text_center, text );
+  rr::write_centered( renderer, color, layout_.text_center,
+                      text );
 }
 
 string HarborStatusBar::build_status_normal() const {

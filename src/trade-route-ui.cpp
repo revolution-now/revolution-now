@@ -24,6 +24,7 @@
 #include "screen.hpp"
 #include "spread-builder.hpp"
 #include "spread-render.hpp"
+#include "text.hpp"
 #include "tiles.hpp"
 #include "trade-route.hpp"
 
@@ -87,50 +88,6 @@ enum class e_button_state {
 
 bool constexpr DEBUG_RECTS = false;
 
-// TODO: Move this out since it is a general utility.
-void text_cutoff_dots( rr::ITextometer const& textometer,
-                       rr::TextLayout const& text_layout,
-                       int const max_pixel_width,
-                       string_view const suffix,
-                       string_view const fallback,
-                       string& text ) {
-  auto const width_good = [&]( string const& candidate ) {
-    return textometer
-               .dimensions_for_line( text_layout, candidate )
-               .w <= max_pixel_width;
-  };
-
-  if( width_good( text ) ) return;
-
-  while( !text.empty() ) {
-    text.pop_back();
-    string candidate = format( "{}{}", text, suffix );
-    if( width_good( candidate ) ) {
-      text = std::move( candidate );
-      return;
-    }
-  }
-
-  text = string( fallback );
-}
-
-string name_for_target( SSConst const& ss, Player const& player,
-                        TradeRouteTarget const& target ) {
-  string name;
-  SWITCH( target ) {
-    CASE( colony ) {
-      name = ss.colonies.colony_for( colony.colony_id ).name;
-      break;
-    }
-    CASE( harbor ) {
-      name =
-          config_nation.nations[player.nation].harbor_city_name;
-      break;
-    }
-  }
-  return name;
-}
-
 string name_for_target_with_cutoff(
     SSConst const& ss, Player const& player,
     TradeRouteTarget const& target,
@@ -138,8 +95,8 @@ string name_for_target_with_cutoff(
     rr::TextLayout const& text_layout,
     int const max_pixel_width ) {
   string name = name_for_target( ss, player, target );
-  text_cutoff_dots( textometer, text_layout, max_pixel_width,
-                    /*suffix=*/"...", /*fallback=*/"-", name );
+  text_cutoff( textometer, text_layout, max_pixel_width,
+               /*suffix=*/"...", /*fallback=*/"-", name );
   return name;
 }
 
@@ -149,6 +106,15 @@ string name_for_target_with_cutoff(
 struct LayoutString {
   string text;
   point nw;
+  pixel color;
+  bool has_shadow = false;
+};
+
+struct LayoutCenterString {
+  string text;
+  point center;
+  pixel color;
+  bool has_shadow = false;
 };
 
 struct LayoutHeader {
@@ -221,10 +187,19 @@ struct Layout {
 
   int margin = {};
 
-  pixel fg = pixel::from_hex_rgb( 0xeeeeff );
+  pixel light       = pixel::from_hex_rgb( 0xa9bdde );
+  pixel super_light = pixel::from_hex_rgb( 0xeeeeff );
+  pixel grey_blue   = pixel::from_hex_rgb( 0x444474 );
+  pixel dark_blue   = pixel::from_hex_rgb( 0x24347c );
+  pixel shadow_blue = pixel::from_hex_rgb( 0x1f2334 );
 
-  string title;
-  point title_center;
+  pixel fg                = light;
+  pixel bg                = grey_blue;
+  pixel bg_dark           = dark_blue;
+  pixel fg_light          = super_light;
+  pixel text_shadow_color = shadow_blue;
+
+  LayoutCenterString title;
 
   LayoutInfo info;
 
@@ -234,8 +209,8 @@ struct Layout {
 
   LayoutButton ok_button;
   LayoutButton cxl_button;
-  pixel button_color      = pixel::from_hex_rgb( 0x24347c );
-  pixel button_text_color = pixel::from_hex_rgb( 0x88a3d1 );
+  pixel button_color      = dark_blue;
+  pixel button_text_color = fg;
 };
 
 /****************************************************************
@@ -269,22 +244,23 @@ Layout layout_auto( IEngine& engine, SSConst const& ss,
       l.canvas.size.w - 2 * margin;
   size const kIconSize = kCommodityTileLargeSize;
 
-  l.title        = format( "EDIT TRADE ROUTE {}", route.id );
-  l.title_center = { .x = l.canvas.center().x,
-                     .y = cur.y + kHalfLineHeight };
+  l.title.text       = format( "EDIT TRADE ROUTE {}", route.id );
+  l.title.has_shadow = true;
+  l.title.color      = l.fg;
+  l.title.center     = { .x = l.canvas.center().x,
+                         .y = cur.y + kHalfLineHeight };
 
   cur.y += kBufferAfterTitle * 2;
 
-  auto& info                 = l.info;
-  info.route_name_label.text = "Route Name: ";
-  info.route_name_label.nw   = cur;
-  // Need two lines here so that we have room for the "change"
-  // icon that appears next to the route name when hovering the
-  // mouse over it.
+  auto& info                       = l.info;
+  info.route_name_label.text       = "Route Name: ";
+  info.route_name_label.nw         = cur;
+  info.route_name_label.has_shadow = true;
   cur.y += kLineHeight;
-  cur.y += kLineHeight;
-  info.route_type_label.text = "Route Type: ";
-  info.route_type_label.nw   = cur;
+  cur.y += margin;
+  info.route_type_label.text       = "Route Type: ";
+  info.route_type_label.nw         = cur;
+  info.route_type_label.has_shadow = true;
 
   // This is the spacing between the end of the cell contents
   // (either text or commodities) and the placement of the little
@@ -301,8 +277,9 @@ Layout layout_auto( IEngine& engine, SSConst const& ss,
                                 info.route_type_label.text )
           .w );
   info.route_name = {
-    .text = route.name,
-    .nw = info.route_name_label.nw.moved_right( info_offset ) };
+    .text  = route.name,
+    .nw    = info.route_name_label.nw.moved_right( info_offset ),
+    .color = l.fg_light };
   info.name_change_icon_nw =
       info.route_name_label.nw.moved_down( kHalfLineHeight )
           .moved_right( info_offset )
@@ -319,7 +296,8 @@ Layout layout_auto( IEngine& engine, SSConst const& ss,
   info.route_type = {
     .text =
         base::capitalize_initials( base::to_str( route.type ) ),
-    .nw = info.route_type_label.nw.moved_right( info_offset ) };
+    .nw    = info.route_type_label.nw.moved_right( info_offset ),
+    .color = l.fg_light };
   info.route_type_change_click_area = {
     .origin = info.route_type_label.nw,
     .size   = { .w = kCanvasWidthWithMargins / 2,
@@ -346,12 +324,15 @@ Layout layout_auto( IEngine& engine, SSConst const& ss,
   // Header.
   cur.y =
       l.canvas.size.h / 2 - stops_total_height / 2 - stop_height;
-  l.header.destination.text = "Destination";
-  l.header.unload.text      = "Unload Cargo";
-  l.header.load.text        = "Load Cargo";
-  l.header.destination_r    = { .origin = cur, .size = cell_sz };
-  l.header.unload_r         = {
-            .origin = cur.moved_right( column_width ), .size = cell_sz };
+  l.header.destination.text       = "Destination";
+  l.header.destination.has_shadow = true;
+  l.header.unload.text            = "Unload Cargo";
+  l.header.unload.has_shadow      = true;
+  l.header.load.text              = "Load Cargo";
+  l.header.load.has_shadow        = true;
+  l.header.destination_r = { .origin = cur, .size = cell_sz };
+  l.header.unload_r      = {
+         .origin = cur.moved_right( column_width ), .size = cell_sz };
   l.header.load_r = {
     .origin = cur.moved_right( column_width * 2 ),
     .size   = cell_sz };
@@ -387,7 +368,8 @@ Layout layout_auto( IEngine& engine, SSConst const& ss,
       .nw   = stop.destination.point_at( e_direction::w )
                 .moved_right( margin )
                 .moved_up( kHalfLineHeight )
-                .moved_down( 1 ) };
+                .moved_down( 1 ),
+      .color = l.fg_light };
     point const ui_icon_nw_min =
         gfx::centered_at_left(
             sprite_size( e_tile::circle_for_change ),
@@ -658,55 +640,55 @@ struct TradeRouteUI : public IPlane {
     update_layout( resolution );
   }
 
-  void write_centered( rr::Renderer& renderer,
-                       pixel const color_fg,
-                       maybe<pixel> const color_bg,
-                       point const center,
-                       string_view const text ) const {
-    rr::Typer typer      = renderer.typer();
-    size const text_size = typer.dimensions_for_line( text );
-    rect const text_rect = gfx::centered_on( text_size, center );
-    if( color_bg.has_value() ) {
-      typer.set_color( *color_bg );
-      typer.set_position( text_rect.nw() + size{ .w = 1 } );
-      typer.write( text );
-      typer.set_position( text_rect.nw() + size{ .h = 1 } );
-      typer.write( text );
+  /**************************************************************
+  ** Draw Methods.
+  ***************************************************************/
+  void draw_string( rr::Renderer& renderer, Layout const& l,
+                    LayoutString const& str ) const {
+    pixel const color = str.color == pixel{} ? l.fg : str.color;
+    if( str.has_shadow ) {
+      renderer.typer( str.nw.moved_right(), l.text_shadow_color )
+          .write( "{}", str.text );
+      renderer.typer( str.nw.moved_down(), l.text_shadow_color )
+          .write( "{}", str.text );
     }
-    typer.set_color( color_fg );
-    typer.set_position( text_rect.nw() );
-    typer.write( text );
+    renderer.typer( str.nw, color ).write( "{}", str.text );
   }
 
-  void draw( rr::Renderer& renderer, Layout const& l,
-             LayoutString const& str ) const {
-    rr::Typer typer = renderer.typer( str.nw, l.fg );
-
-    typer.write( "{}", str.text );
+  void draw_string_centered(
+      rr::Renderer& renderer, Layout const& l,
+      LayoutCenterString const& str ) const {
+    pixel const color = str.color == pixel{} ? l.fg : str.color;
+    if( str.has_shadow )
+      rr::write_centered( renderer, color, l.text_shadow_color,
+                          str.center, str.text );
+    else
+      rr::write_centered( renderer, color, str.center,
+                          str.text );
   }
 
-  void draw( rr::Renderer& renderer, Layout const& l,
-             LayoutInfo const& info ) const {
-    draw( renderer, l, info.route_name_label );
-    draw( renderer, l, info.route_name );
-    draw( renderer, l, info.route_type_label );
-    draw( renderer, l, info.route_type );
+  void draw_info( rr::Renderer& renderer, Layout const& l,
+                  LayoutInfo const& info ) const {
+    draw_string( renderer, l, info.route_name_label );
+    draw_string( renderer, l, info.route_name );
+    draw_string( renderer, l, info.route_type_label );
+    draw_string( renderer, l, info.route_type );
 
     if( mouse_hover_.get_if<Hover::name>() )
       render_sprite( renderer, info.name_change_icon_nw,
                      e_tile::circle_for_change );
   }
 
-  void draw( rr::Renderer& renderer, Layout const& l,
-             LayoutHeader const& header ) const {
-    draw( renderer, l, header.destination );
-    draw( renderer, l, header.unload );
-    draw( renderer, l, header.load );
+  void draw_header( rr::Renderer& renderer, Layout const& l,
+                    LayoutHeader const& header ) const {
+    draw_string( renderer, l, header.destination );
+    draw_string( renderer, l, header.unload );
+    draw_string( renderer, l, header.load );
   }
 
   // This gets run whether or not the stop exists.
-  void draw( rr::Renderer& renderer, Layout const& l,
-             LayoutStop const& layout_stop ) const {
+  void draw_stop( rr::Renderer& renderer, Layout const& l,
+                  LayoutStop const& layout_stop ) const {
     auto const draw_rect = [&]( rect const r ) {
       draw_empty_rect_faded_corners( renderer, r, l.fg );
     };
@@ -729,9 +711,9 @@ struct TradeRouteUI : public IPlane {
 
   // This is for the load/unload cells when the stop exists.
   template<typename HoverT>
-  void draw( rr::Renderer& renderer, Layout const&,
-             LayoutStop const& layout_stop,
-             LayoutIcons const& layout_icons ) const {
+  void draw_icons( rr::Renderer& renderer, Layout const&,
+                   LayoutStop const& layout_stop,
+                   LayoutIcons const& layout_icons ) const {
     draw_rendered_icon_spread( renderer, layout_icons.icons_nw,
                                layout_icons.render_plan );
     auto const stop_hover = mouse_hover_.get_if<HoverT>();
@@ -774,18 +756,15 @@ struct TradeRouteUI : public IPlane {
   }
 
   // This is for when the stop exists.
-  void draw( rr::Renderer& renderer, Layout const& l,
-             LayoutStop const& layout_stop,
-             TradeRouteStop const& ) const {
-    // Destination cell.
-    rr::Typer typer =
-        renderer.typer( layout_stop.destination_text.nw, l.fg );
-    typer.write( "{}", layout_stop.destination_text.text );
+  void draw_real_stop( rr::Renderer& renderer, Layout const& l,
+                       LayoutStop const& layout_stop,
+                       TradeRouteStop const& ) const {
+    draw_string( renderer, l, layout_stop.destination_text );
 
-    draw<Hover::unloads>( renderer, l, layout_stop,
-                          layout_stop.icons_unload );
-    draw<Hover::loads>( renderer, l, layout_stop,
-                        layout_stop.icons_load );
+    draw_icons<Hover::unloads>( renderer, l, layout_stop,
+                                layout_stop.icons_unload );
+    draw_icons<Hover::loads>( renderer, l, layout_stop,
+                              layout_stop.icons_load );
   }
 
   void draw_button( rr::Renderer& renderer, rect const r,
@@ -806,6 +785,10 @@ struct TradeRouteUI : public IPlane {
     if( state >= clicking ) {
       P.draw_vertical_line( r.ne(), r.size.h + 1, shaded );
       P.draw_horizontal_line( r.nw(), r.size.w, shaded );
+      P.draw_vertical_line( r.nw(), r.size.h,
+                            shaded.with_alpha( 64 ) );
+      P.draw_horizontal_line( r.sw(), r.size.w,
+                              shaded.with_alpha( 64 ) );
     } else {
       P.draw_vertical_line( r.ne(), r.size.h + 1, highlight );
       P.draw_horizontal_line( r.nw(), r.size.w, highlight );
@@ -818,14 +801,13 @@ struct TradeRouteUI : public IPlane {
     pixel shaded_text_color = text_color;
     if( state == hover ) // don't highlight on click.
       shaded_text_color = pixel::white();
-    write_centered( renderer, shaded_text_color,
-                    /*color_bg=*/nothing,
-                    r.center() + click_shift, label );
+    rr::write_centered( renderer, shaded_text_color,
+                        r.center() + click_shift, label );
   }
 
-  void draw( rr::Renderer& renderer, Layout const& l,
-             LayoutButton const& layout_button,
-             e_button_state const state ) const {
+  void draw_button( rr::Renderer& renderer, Layout const& l,
+                    LayoutButton const& layout_button,
+                    e_button_state const state ) const {
     draw_button( renderer, layout_button.r, l.button_color,
                  l.button_text_color, layout_button.label,
                  state );
@@ -839,35 +821,34 @@ struct TradeRouteUI : public IPlane {
     return hover;
   }
 
-  void draw( rr::Renderer& renderer, Layout const& l ) const {
+  void draw_layout( rr::Renderer& renderer,
+                    Layout const& l ) const {
     TradeRoute const& route = curr_trade_route();
-    draw_rect_noisy_filled( renderer, l.canvas,
-                            pixel::from_hex_rgb( 0x555588 ) );
-
-    write_centered( renderer, l.fg,
-                    /*color_bg=*/nothing, l.title_center,
-                    l.title );
-
-    draw( renderer, l, l.info );
-    draw( renderer, l, l.header );
+    draw_rect_noisy_filled( renderer, l.canvas, l.bg );
+    draw_string_centered( renderer, l, l.title );
+    draw_info( renderer, l, l.info );
+    draw_header( renderer, l, l.header );
 
     for( auto const [layout_stop, route_stop] :
          rv::zip( l.stops, route.stops ) )
-      draw( renderer, l, layout_stop, route_stop );
+      draw_real_stop( renderer, l, layout_stop, route_stop );
     for( LayoutStop const& stop : l.stops )
-      draw( renderer, l, stop );
+      draw_stop( renderer, l, stop );
 
-    draw( renderer, l, l.ok_button,
-          get_button_state<Hover::button_ok>() );
-    draw( renderer, l, l.cxl_button,
-          get_button_state<Hover::button_cxl>() );
+    draw_button( renderer, l, l.ok_button,
+                 get_button_state<Hover::button_ok>() );
+    draw_button( renderer, l, l.cxl_button,
+                 get_button_state<Hover::button_cxl>() );
   }
 
   void draw( rr::Renderer& renderer ) const override {
     if( !layout_ ) return;
-    draw( renderer, *layout_ );
+    draw_layout( renderer, *layout_ );
   }
 
+  /**************************************************************
+  ** Input Methods.
+  ***************************************************************/
   // This allows you to do e.g.:
   //
   //   send_input<Input::load_add>() = { .stop = 2 };

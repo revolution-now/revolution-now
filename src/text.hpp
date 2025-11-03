@@ -97,4 +97,25 @@ void render_text_overlay_with_anchor(
     gfx::oriented_point op, gfx::pixel color_fg,
     gfx::pixel color_bg, int scale );
 
+// Edits the text to truncate it if its rendered width would ex-
+// ceed the threshold. When that happens, it will have `suffix`
+// appended to it (typically "...") in such a way that, including
+// that suffix, it will fit into the given bounds. If it is not
+// possible to find anything that fits into the bounds then the
+// value of `fallback` will be copied into it.
+//
+// For example:
+//
+//   suffix   = "..."
+//   fallback = "-"
+//   text before:  "This is a very long sentence."
+//   text after:   "This is a ve..."
+//
+void text_cutoff( rr::ITextometer const& textometer,
+                  rr::TextLayout const& text_layout,
+                  int const max_pixel_width,
+                  std::string_view const suffix,
+                  std::string_view const fallback,
+                  std::string& text );
+
 } // namespace rn

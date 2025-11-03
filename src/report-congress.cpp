@@ -427,26 +427,6 @@ struct ContinentalCongressReport : public IPlane {
     layout_ = layout_gen( resolution );
   }
 
-  void write_centered( rr::Renderer& renderer,
-                       pixel const color_fg,
-                       maybe<pixel> const color_bg,
-                       point const center,
-                       string_view const text ) const {
-    rr::Typer typer      = renderer.typer();
-    size const text_size = typer.dimensions_for_line( text );
-    rect const text_rect = gfx::centered_on( text_size, center );
-    if( color_bg.has_value() ) {
-      typer.set_color( *color_bg );
-      typer.set_position( text_rect.nw() + size{ .w = 1 } );
-      typer.write( text );
-      typer.set_position( text_rect.nw() + size{ .h = 1 } );
-      typer.write( text );
-    }
-    typer.set_color( color_fg );
-    typer.set_position( text_rect.nw() );
-    typer.write( text );
-  }
-
   void draw( rr::Renderer& renderer, const Layout& l ) const {
     rr::Painter painter = renderer.painter();
     draw_rect_noisy_filled( renderer, l.canvas,
@@ -456,9 +436,9 @@ struct ContinentalCongressReport : public IPlane {
         renderer.logical_screen_rect(),
         pixel::from_hex_rgb( 0xb86624 ).with_alpha( 160 ) );
 
-    write_centered( renderer, pixel::from_hex_rgb( 0xeeeeaa ),
-                    /*color_bg=*/nothing, l.title_center,
-                    l.title );
+    rr::write_centered( renderer,
+                        pixel::from_hex_rgb( 0xeeeeaa ),
+                        l.title_center, l.title );
 
     // Founding father.
     renderer.typer( l.founding_father_text_nw, pixel::banana() )

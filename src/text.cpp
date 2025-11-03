@@ -366,4 +366,29 @@ void render_text_overlay_with_anchor(
   }
 }
 
+void text_cutoff( rr::ITextometer const& textometer,
+                  rr::TextLayout const& text_layout,
+                  int const max_pixel_width,
+                  string_view const suffix,
+                  string_view const fallback, string& text ) {
+  auto const width_good = [&]( string const& candidate ) {
+    return textometer
+               .dimensions_for_line( text_layout, candidate )
+               .w <= max_pixel_width;
+  };
+
+  if( width_good( text ) ) return;
+
+  while( !text.empty() ) {
+    text.pop_back();
+    string candidate = format( "{}{}", text, suffix );
+    if( width_good( candidate ) ) {
+      text = std::move( candidate );
+      return;
+    }
+  }
+
+  text = string( fallback );
+}
+
 } // namespace rn

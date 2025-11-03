@@ -75,4 +75,8 @@ std::vector<ColonyId> available_colonies_for_route(
     TerrainConnectivity const& connectivity,
     TradeRoute const& route );
 
+std::string name_for_target( SSConst const& ss,
+                             Player const& player,
+                             TradeRouteTarget const& target );
+
 } // namespace rn
