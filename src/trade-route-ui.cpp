@@ -187,17 +187,14 @@ struct Layout {
 
   int margin = {};
 
-  pixel light       = pixel::from_hex_rgb( 0xa9bdde );
-  pixel super_light = pixel::from_hex_rgb( 0xeeeeff );
-  pixel grey_blue   = pixel::from_hex_rgb( 0x444474 );
-  pixel dark_blue   = pixel::from_hex_rgb( 0x24347c );
-  pixel shadow_blue = pixel::from_hex_rgb( 0x1f2334 );
-
-  pixel fg                = light;
-  pixel bg                = grey_blue;
-  pixel bg_dark           = dark_blue;
-  pixel fg_light          = super_light;
-  pixel text_shadow_color = shadow_blue;
+  // Colors.
+  pixel fg                = pixel::from_hex_rgb( 0xa9bdde );
+  pixel bg                = pixel::from_hex_rgb( 0x2b2b75 );
+  pixel bg_dark           = pixel::from_hex_rgb( 0x1f1364 );
+  pixel fg_light          = pixel::from_hex_rgb( 0xeeeeff );
+  pixel text_shadow_color = pixel::from_hex_rgb( 0x1f2334 );
+  pixel button_color      = pixel::from_hex_rgb( 0x4273a9 );
+  pixel button_text_color = fg_light;
 
   LayoutCenterString title;
 
@@ -209,8 +206,6 @@ struct Layout {
 
   LayoutButton ok_button;
   LayoutButton cxl_button;
-  pixel button_color      = dark_blue;
-  pixel button_text_color = fg;
 };
 
 /****************************************************************
@@ -798,9 +793,10 @@ struct TradeRouteUI : public IPlane {
       P.draw_point( r.se(), shaded.with_alpha( 128 ) );
     }
 
-    pixel shaded_text_color = text_color;
-    if( state == hover ) // don't highlight on click.
-      shaded_text_color = pixel::white();
+    // NOTE: We don't highlight on click.
+    pixel const shaded_text_color =
+        state == hover ? text_color.highlighted( 3 )
+                       : text_color.shaded( 1 );
     rr::write_centered( renderer, shaded_text_color,
                         r.center() + click_shift, label );
   }
