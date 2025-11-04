@@ -15,11 +15,14 @@
 
 // Testing.
 #include "test/fake/world.hpp"
+#include "test/mocking.hpp"
 #include "test/mocks/iagent.hpp"
 #include "test/mocks/iengine.hpp"
+#include "test/mocks/igui.hpp"
 #include "test/util/coro.hpp"
 
 // ss
+#include "ss/trade-route.rds.hpp"
 #include "ss/unit-composition.hpp"
 #include "ss/unit.hpp"
 
@@ -30,6 +33,9 @@ namespace rn {
 namespace {
 
 using namespace std;
+
+using ::mock::matchers::Field;
+using ::mock::matchers::StrContains;
 
 /****************************************************************
 ** Fake World Setup
@@ -68,7 +74,16 @@ TEST_CASE( "[command-trade] some test" ) {
   world w;
   MockIAgent& agent = w.agent();
 
-  Unit& unit = w.add_unit_on_map( e_unit_type::free_colonist,
+  TradeRoute& route1 = w.trade_routes().routes[1];
+  route1.id          = 1;
+  route1.name        = "some route";
+  route1.player      = w.default_player_type();
+  route1.type        = e_trade_route_type::land;
+  route1.stops.resize( 2 );
+  // TradeRouteStop& stop1 = route1.stops[0];
+  // TradeRouteStop& stop2 = route1.stops[1];
+
+  Unit& unit = w.add_unit_on_map( e_unit_type::wagon_train,
                                   { .x = 2, .y = 2 } );
 
   command::trade_route const trade_route;
@@ -88,11 +103,24 @@ TEST_CASE( "[command-trade] some test" ) {
   REQUIRE_FALSE( unit.mv_pts_exhausted() );
   REQUIRE( unit.orders() == unit_orders::none{} );
 
+  w.gui()
+      .EXPECT__choice(
+          Field( &ChoiceConfig::msg,
+                 StrContains(
+                     "Select Trade Route for [Wagon Train]" ) ) )
+      .returns( "1" );
+  w.gui()
+      .EXPECT__choice(
+          Field( &ChoiceConfig::msg,
+                 StrContains( "Select initial destination:" ) ) )
+      .returns( "0" );
+
   REQUIRE( confirm() == true );
   perform();
 
   REQUIRE_FALSE( unit.mv_pts_exhausted() );
-  REQUIRE( unit.orders() == unit_orders::trade_route{} );
+  REQUIRE( unit.orders() == unit_orders::trade_route{
+                              .id = 1, .en_route_to_stop = 0 } );
 }
 
 } // namespace
