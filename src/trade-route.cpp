@@ -11,6 +11,7 @@
 #include "trade-route.hpp"
 
 // Revolution Now
+#include "co-wait.hpp"
 #include "colony-mgr.hpp"
 #include "connectivity.hpp"
 #include "igui.hpp"
@@ -402,6 +403,54 @@ wait<maybe<int>> ask_first_stop( SSConst const& ss,
         "Trade Route [{}] has no stops registered.",
         route.name );
   co_return res;
+}
+
+wait<maybe<TradeRouteOrdersConfirmed>>
+confirm_trade_route_orders( SSConst const& ss,
+                            Player const& player,
+                            Unit const& unit, IGui& gui ) {
+  if( !unit_can_start_trade_route( unit.type() ) ) {
+    // Not expected to happen since the land-view should not
+    // allow trade route orders to be assigned to this unit,
+    // but just in case...
+    co_await gui.message_box(
+        "[{}] cannot carry out trade routes.",
+        unit.desc().name_plural );
+    co_return nothing;
+  }
+
+  if( ss.trade_routes.routes.empty() ) {
+    co_await gui.message_box(
+        "We have not yet defined any trade routes." );
+    co_return nothing;
+  }
+
+  vector<TradeRouteId> const routes =
+      find_eligible_trade_routes_for_unit( ss, unit );
+  if( routes.empty() ) {
+    co_await gui.message_box(
+        "This [{}] is not eligible for any of the trade "
+        "routes that we have defined.",
+        unit.desc().name );
+    co_return nothing;
+  }
+
+  auto const route_id =
+      co_await select_trade_route( ss, unit, gui, routes );
+  if( !route_id.has_value() )
+    // Cancelled by the player.
+    co_return nothing;
+
+  TradeRouteId const trade_route_id = *route_id;
+
+  auto const first_stop =
+      co_await ask_first_stop( ss, player, gui, trade_route_id );
+  if( !first_stop.has_value() )
+    // Either this route has no stops or the player cancelled.
+    co_return nothing;
+
+  co_return TradeRouteOrdersConfirmed{
+    .id = trade_route_id, .en_route_to_stop = *first_stop };
 }
 
 } // namespace rn

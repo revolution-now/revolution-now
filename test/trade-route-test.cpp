@@ -126,5 +126,9 @@ TEST_CASE( "[trade-route] ask_first_stop" ) {
   world w;
 }
 
+TEST_CASE( "[trade-route] confirm_trade_route_orders" ) {
+  world w;
+}
+
 } // namespace
 } // namespace rn

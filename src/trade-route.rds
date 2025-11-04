@@ -23,3 +23,12 @@ struct.CreateTradeRoute {
   stop1 'TradeRouteTarget',
   stop2 'TradeRouteTarget',
 }
+
+# This is so that we don't have to depend on the unit orders def-
+# inition which pulls in other dependences.
+struct.TradeRouteOrdersConfirmed {
+    id 'TradeRouteId',
+    # This is not advanced until the unit has unloaded at its
+    # current stop and is actually moving toward the next stop.
+    en_route_to_stop 'int',
+}

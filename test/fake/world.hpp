@@ -82,6 +82,7 @@ struct SettingsState;
 struct TS;
 struct TerrainConnectivity;
 struct TerrainState;
+struct TradeRouteState;
 struct Tribe;
 struct TurnState;
 struct Unit;
@@ -388,6 +389,7 @@ struct World {
   NativesState& natives();
   LandViewState& land_view();
   MapState& map();
+  TradeRouteState& trade_routes();
   TerrainState& terrain();
 
   FormatVersion const& version() const;
@@ -400,6 +402,7 @@ struct World {
   NativesState const& natives() const;
   LandViewState const& land_view() const;
   MapState const& map() const;
+  TradeRouteState const& trade_routes() const;
   TerrainState const& terrain() const;
 
   RootState& root();

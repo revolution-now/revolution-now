@@ -83,6 +83,9 @@ ColoniesState& World::colonies() { return root().colonies; }
 NativesState& World::natives() { return root().natives; }
 LandViewState& World::land_view() { return root().land_view; }
 MapState& World::map() { return root().map; }
+TradeRouteState& World::trade_routes() {
+  return root().trade_routes;
+}
 TerrainState& World::terrain() { return root().zzz_terrain; }
 RootState& World::root() { return ss_->root; }
 
@@ -108,6 +111,10 @@ NativesState const& World::natives() const {
 }
 LandViewState const& World::land_view() const {
   return root().land_view;
+}
+MapState const& World::map() const { return root().map; }
+TradeRouteState const& World::trade_routes() const {
+  return root().trade_routes;
 }
 TerrainState const& World::terrain() const {
   return root().zzz_terrain;

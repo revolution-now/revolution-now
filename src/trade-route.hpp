@@ -94,4 +94,9 @@ wait<maybe<int>> ask_first_stop( SSConst const& ss,
                                  Player const& player, IGui& gui,
                                  TradeRouteId const route_id );
 
+wait<maybe<TradeRouteOrdersConfirmed>>
+confirm_trade_route_orders( SSConst const& ss,
+                            Player const& player,
+                            Unit const& unit, IGui& gui );
+
 } // namespace rn
