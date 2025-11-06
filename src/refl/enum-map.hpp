@@ -30,15 +30,21 @@
 
 // base
 #include "base/adl-tag.hpp"
-#include "base/cc-specific.hpp"
 #include "base/maybe.hpp"
 
 // C++ standard library
+#include <map>
 #include <memory>
 #include <set>
-#include <vector>
 
 namespace refl {
+
+namespace detail {
+// TODO: replace this with C++23's std::flat_map after compilers
+// are upgraded next.
+template<refl::ReflectedEnum E, typename V>
+using EnumMapBase = std::map<E, V>;
+}
 
 // This is a map whose keys are always reflected enums and which
 // is always guaranteed to have a value for every possible value
@@ -52,12 +58,12 @@ namespace refl {
 //
 // Iteration order is guaranteed to be in order of the reflected
 // enum elements because the backing container is ordered.
-template<refl::ReflectedEnum Enum, typename ValT>
-struct enum_map : public std::vector<std::pair<Enum, ValT>> {
-  static_assert( std::is_default_constructible_v<ValT> );
-  using Base = std::vector<std::pair<Enum, ValT>>;
+template<refl::ReflectedEnum E, typename V>
+struct enum_map : public detail::EnumMapBase<E, V> {
+  static_assert( std::is_default_constructible_v<V> );
+  using Base = detail::EnumMapBase<E, V>;
 
-  static constexpr int kSize = refl::enum_count<Enum>;
+  static constexpr int kSize = refl::enum_count<E>;
 
   Base& as_base() { return *this; }
   Base const& as_base() const { return *this; }
@@ -71,61 +77,54 @@ struct enum_map : public std::vector<std::pair<Enum, ValT>> {
   using key_type   = typename Base::value_type::first_type;
   using value_type = typename Base::value_type::second_type;
 
-  // All other constructors should ultimately call this one,
-  // since this is the one that ensures that all keys have a
-  // value.
-  enum_map( Base&& b ) : Base( kSize ) {
-    // At this point the backing container has the correct size
-    // and all of its values are default constructed, but we
-    // still need to initialize the keys.
-    for( Enum e : refl::enum_values<Enum> ) {
-      auto& p = this->as_base()[static_cast<size_t>( e )];
-      p.first = e;
-      if constexpr( std::equality_comparable<ValT> ) {
-        DCHECK( p.second == ValT{} );
-      }
-    }
-    // Now insert any values that were provided.
-    for( auto& [e, val] : b ) ( *this )[e] = std::move( val );
+ private:
+  // All other constructors that are not operating on another
+  // (existing) map should ultimately call this one, since this
+  // is the one that ensures that all keys have a value.
+  enum_map( Base&& b ) : Base( std::move( b ) ) {
+    // Make sure we have a value for every key.
+    for( E const e : refl::enum_values<E> ) this->as_base()[e];
+    CHECK( as_base().size() == kSize );
   }
 
-  enum_map( Base const& b ) : enum_map( Base{ b } ) {}
-
+ public:
   enum_map() : enum_map( Base{} ) {}
 
-  enum_map(
-      std::initializer_list<std::pair<Enum const, ValT>> il )
+  enum_map( std::initializer_list<std::pair<E const, V>> il )
     : enum_map( Base( il.begin(), il.end() ) ) {}
+
+  enum_map( enum_map&& )                 = default;
+  enum_map( enum_map const& )            = default;
+  enum_map& operator=( enum_map&& )      = default;
+  enum_map& operator=( enum_map const& ) = default;
 
   consteval size_t size() const { return kSize; }
   consteval int ssize() const { return kSize; }
 
   bool operator==( enum_map const& ) const = default;
 
-  ValT const& operator[]( Enum i ) const { return at( i ); }
-
-  ValT& operator[]( Enum i ) { return at( i ); }
-
-  ValT const& at( Enum i ) const {
-    size_t const idx = static_cast<size_t>( i );
-    DCHECK( idx >= 0 );
-    DCHECK( idx < kSize );
-    return this->as_base()[idx].second;
+  V const& operator[]( E const i ) const {
+    auto const iter = this->as_base().find( i );
+    CHECK( iter != this->as_base().end() );
+    return iter->second;
   }
 
-  ValT& at( Enum i ) {
-    size_t const idx = static_cast<size_t>( i );
-    DCHECK( idx >= 0 );
-    DCHECK( idx < kSize );
-    return this->as_base()[idx].second;
+  V& operator[]( E const i ) { return this->as_base()[i]; }
+
+  V const& at( E const i ) const {
+    auto const iter = this->as_base().find( i );
+    CHECK( iter != this->as_base().end() );
+    return iter->second;
   }
+
+  V& at( E const i ) { return this->as_base()[i]; }
 
   // Return the number of entries whose values are not equal to
   // the default-constructed value. This is the closest thing
   // that we get to a concept of a "size" with this container.
   int count_non_default_values() const {
-    int count               = 0;
-    static ValT const empty = {};
+    int count            = 0;
+    static V const empty = {};
     for( auto const& [k, v] : *this )
       if( v != empty ) //
         ++count;
@@ -141,18 +140,18 @@ struct enum_map : public std::vector<std::pair<Enum, ValT>> {
   // We can't just hide the base class and only expose the
   // methods we want (whitelist) because we want this type to im-
   // plicitly convert to the base.
-  void contains( Enum )              = delete;
-  void erase( Enum )                 = delete;
-  void reserve( size_t )             = delete;
-  void shrink_to_fit()               = delete;
-  void clear()                       = delete;
-  void insert( size_t, ValT const& ) = delete;
-  void push_back( ValT const& )      = delete;
-  void emplace_back( ValT const& )   = delete;
-  void pop_back()                    = delete;
-  void resize( size_t )              = delete;
-  void find( ValT )                  = delete;
-  void empty()                       = delete;
+  void contains( E )              = delete;
+  void erase( E )                 = delete;
+  void reserve( size_t )          = delete;
+  void shrink_to_fit()            = delete;
+  void clear()                    = delete;
+  void insert( size_t, V const& ) = delete;
+  void push_back( V const& )      = delete;
+  void emplace_back( V const& )   = delete;
+  void pop_back()                 = delete;
+  void resize( size_t )           = delete;
+  void find( V )                  = delete;
+  void empty()                    = delete;
 
   friend cdr::value to_canonical( cdr::converter& conv,
                                   enum_map const& o,
@@ -162,7 +161,7 @@ struct enum_map : public std::vector<std::pair<Enum, ValT>> {
     // default field value behavior because, for this data struc-
     // ture, we know the complete set of possible keys and all of
     // their names, similar to a struct.
-    for( Enum e : refl::enum_values<Enum> )
+    for( E e : refl::enum_values<E> )
       conv.to_field(
           tbl, std::string( refl::enum_value_name( e ) ), o[e] );
     return tbl;
@@ -178,10 +177,10 @@ struct enum_map : public std::vector<std::pair<Enum, ValT>> {
     // trol default field value behavior because, for this data
     // structure, we know the complete set of possible keys and
     // all of their names, similar to a struct.
-    for( Enum e : refl::enum_values<Enum> ) {
+    for( E e : refl::enum_values<E> ) {
       UNWRAP_RETURN(
           val,
-          conv.from_field<ValT>(
+          conv.from_field<V>(
               tbl, std::string( refl::enum_value_name( e ) ),
               used_keys ) );
       res[e] = std::move( val );
@@ -203,8 +202,6 @@ struct enum_map : public std::vector<std::pair<Enum, ValT>> {
 
   friend void define_usertype_for( lua::state& st,
                                    lua::tag<enum_map> ) {
-    using K = Enum;
-    using V = ValT;
     using U = enum_map;
 
     auto u = st.usertype.create<U>();
@@ -221,14 +218,14 @@ struct enum_map : public std::vector<std::pair<Enum, ValT>> {
       if( auto const member = __index( o, key );
           member != lua::nil )
         return member.template as<lua::any>();
-      auto const maybe_key = safe_as<K>( key );
+      auto const maybe_key = safe_as<E>( key );
       if( !maybe_key.has_value() ) return base::nothing;
       auto& val    = o[*maybe_key];
       auto const L = __index.this_cthread();
       return lua::as<lua::any>( L, val );
     };
 
-    mt["__newindex"] = []( U& o, K const& key, V const& val ) {
+    mt["__newindex"] = []( U& o, E const& key, V const& val ) {
       o[key] = val;
     };
   }

@@ -492,8 +492,8 @@ TEST_CASE( "[uprising] generate_uprising_units" ) {
   };
 
   count = 4;
-  w.rand().EXPECT__between_ints( 0, 99 ).returns( 78 );
   w.rand().EXPECT__between_ints( 0, 99 ).returns( 50 );
+  w.rand().EXPECT__between_ints( 0, 99 ).returns( 78 );
   w.rand().EXPECT__between_ints( 0, 99 ).returns( 95 );
   w.rand().EXPECT__between_ints( 0, 99 ).returns( 0 );
   expected = {

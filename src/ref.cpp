@@ -308,7 +308,7 @@ e_expeditionary_force_type select_next_ref_type(
           .percent );
 
   vector<pair<e_expeditionary_force_type, double>>
-      sorted_metrics = metrics;
+      sorted_metrics( metrics.begin(), metrics.end() );
   // Sort largest to smallest.
   rg::stable_sort( sorted_metrics,
                    []( auto const& l, auto const& r ) {

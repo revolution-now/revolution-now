@@ -21,6 +21,7 @@
 
 // C++ standard library
 #include <array>
+#include <map>
 #include <vector>
 
 namespace rn {
@@ -68,12 +69,12 @@ struct IRand {
   // chosen.
   template<typename T>
   [[nodiscard]] T pick_from_weighted_values(
-      std::vector<std::pair<T, int>> const& weights );
+      std::map<T, int> const& weights );
 
   // For doubles.
   template<typename T>
   [[nodiscard]] T pick_from_weighted_values(
-      std::vector<std::pair<T, double>> const& weights );
+      std::map<T, double> const& weights );
 };
 
 void to_str( IRand const& o, std::string& out,
@@ -111,12 +112,12 @@ void IRand::shuffle( std::array<T, N>& arr ) {
 
 template<typename T>
 T IRand::pick_from_weighted_values(
-    std::vector<std::pair<T, int>> const& weights ) {
+    std::map<T, int> const& weights ) {
   int total = 0;
-  for( auto [item, weight] : weights ) total += weight;
+  for( auto const& [item, weight] : weights ) total += weight;
   CHECK_GT( total, 0 );
-  int stop    = between_ints( 0, total - 1 );
-  int running = 0;
+  int const stop = between_ints( 0, total - 1 );
+  int running    = 0;
   for( auto const& [item, weight] : weights ) {
     running += weight;
     if( running > stop ) return item;
@@ -126,13 +127,13 @@ T IRand::pick_from_weighted_values(
 
 template<typename T>
 T IRand::pick_from_weighted_values(
-    std::vector<std::pair<T, double>> const& weights ) {
+    std::map<T, double> const& weights ) {
   double total = 0;
-  for( auto [item, weight] : weights ) total += weight;
+  for( auto const& [item, weight] : weights ) total += weight;
   CHECK_GE( total, 0.0 );
-  double stop    = between_doubles( 0.0, total );
-  double running = 0.0;
-  T res          = {};
+  double const stop = between_doubles( 0.0, total );
+  double running    = 0.0;
+  T res             = {};
   for( auto const& [item, weight] : weights ) {
     res = item;
     running += weight;
@@ -140,9 +141,9 @@ T IRand::pick_from_weighted_values(
   }
   // Unlike with the int version above, I am not convinced that
   // we can check-fail if we get here in the case of doubles,
-  // since I'm not sure if there are any edge cases with
-  // rounding errors. So instead we'll just arrange to always
-  // return a value.
+  // since I'm not sure if there are any edge cases with rounding
+  // errors. So instead we'll just arrange to always return a
+  // value.
   return res;
 }
 

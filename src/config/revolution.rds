@@ -58,7 +58,7 @@ struct.RoyalMoney {
 }
 
 struct.Uprising {
-  unit_type_probabilities 'std::vector<std::pair<e_unit_type, int>>',
+  unit_type_probabilities 'std::map<e_unit_type, int>',
   probability_difficulty_term 'refl::enum_map<e_difficulty, int>',
 
   _features { equality, validation }
