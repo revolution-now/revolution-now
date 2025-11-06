@@ -39,21 +39,21 @@ namespace {
 
 using namespace std;
 
+using ::testing::data_dir;
+
 /****************************************************************
 ** Test Cases
 *****************************************************************/
 LUA_TEST_CASE(
-    "[ss/lua-root] root data structure exposed to lua" ) {
+    "[ss/lua-root] root data structure lua bindings" ) {
   st.lib.open_all();
   run_lua_startup_routines( st );
 
   RootState root;
   st["root"] = root;
 
-  auto const file =
-      testing::data_dir() / "lua" / "lua-root-test.lua";
-  auto const res = st.script.run_file_safe( file.string() );
-  REQUIRE( res == valid );
+  auto const file = data_dir() / "lua" / "lua-root-test.lua";
+  REQUIRE( st.script.run_file_safe( file.string() ) == valid );
 }
 
 } // namespace
