@@ -1,0 +1,22 @@
+# ===============================================================
+# iagent.rds
+#
+# Project: Revolution Now
+#
+# Created by David P. Sicilia on 2025-11-06.
+#
+# Description: Rds definitions for the iagent module.
+#
+# ===============================================================
+# gfx
+include "gfx/cartesian.hpp"
+
+namespace "rn"
+
+sumtype.EvolveTradeRoute {
+  abort {},
+  sail_to_new_world {},
+  move {
+    to 'e_direction',
+  },
+}

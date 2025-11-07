@@ -58,7 +58,16 @@ sumtype.command {
   sentry      {},
   dump        {},
   trade_route {},
-  move        { d 'e_direction' },
+  move        {
+    d 'e_direction',
+    # Was the given mod key being held down when this command was
+    # issued. This is for human players only. One use for this is
+    # that the player can hold down a certain mod key while a
+    # ship is moving into a colony and have the colony view open
+    # up when it moves in.
+    mod_key_1 'bool',
+    mod_key_2 'bool',
+  },
   go_to       { target 'goto_target' },
   disband     {
     # For use only when issuing a disband command on a tile and

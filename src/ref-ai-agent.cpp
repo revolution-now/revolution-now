@@ -396,4 +396,8 @@ EvolveGoto RefAIAgent::evolve_goto( UnitId const ) {
   return EvolveGoto::abort{};
 }
 
+EvolveTradeRoute RefAIAgent::evolve_trade_route( UnitId const ) {
+  return EvolveTradeRoute::abort{};
+}
+
 } // namespace rn

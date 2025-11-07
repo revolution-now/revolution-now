@@ -387,5 +387,9 @@ TEST_CASE( "[human-agent] evolve_goto" ) {
   REQUIRE( f() == expected );
 }
 
+TEST_CASE( "[human-agent] evolve_trade_route" ) {
+  world w;
+}
+
 } // namespace
 } // namespace rn

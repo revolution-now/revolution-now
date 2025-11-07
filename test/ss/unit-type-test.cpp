@@ -119,6 +119,7 @@ TEST_CASE( "[unit-type] unit type attributes deserialization" ) {
     REQUIRE( desc.can_found == e_unit_can_found_colony::yes );
     REQUIRE( desc.visibility == 1 );
     REQUIRE( desc.base_movement_points == 1 );
+    REQUIRE( desc.ends_turn_in_colony == false );
     REQUIRE( desc.can_attack == false );
     REQUIRE( desc.combat == 1 );
     REQUIRE( desc.veteran_bonus == false );
@@ -166,6 +167,7 @@ TEST_CASE( "[unit-type] unit type attributes deserialization" ) {
     REQUIRE( desc.can_found == e_unit_can_found_colony::yes );
     REQUIRE( desc.visibility == 1 );
     REQUIRE( desc.base_movement_points == 1 );
+    REQUIRE( desc.ends_turn_in_colony == false );
     REQUIRE( desc.can_attack == false );
     REQUIRE( desc.combat == 1 );
     REQUIRE( desc.veteran_bonus == false );
@@ -212,6 +214,7 @@ TEST_CASE( "[unit-type] unit type attributes deserialization" ) {
     REQUIRE( desc.can_found == e_unit_can_found_colony::yes );
     REQUIRE( desc.visibility == 1 );
     REQUIRE( desc.base_movement_points == 1 );
+    REQUIRE( desc.ends_turn_in_colony == false );
     REQUIRE( desc.can_attack == false );
     REQUIRE( desc.combat == 1 );
     REQUIRE( desc.veteran_bonus == false );
@@ -260,6 +263,7 @@ TEST_CASE( "[unit-type] unit type attributes deserialization" ) {
     REQUIRE( desc.can_found == e_unit_can_found_colony::yes );
     REQUIRE( desc.visibility == 1 );
     REQUIRE( desc.base_movement_points == 1 );
+    REQUIRE( desc.ends_turn_in_colony == false );
     REQUIRE( desc.can_attack == false );
     REQUIRE( desc.combat == 1 );
     REQUIRE( desc.veteran_bonus == false );
@@ -307,6 +311,7 @@ TEST_CASE( "[unit-type] unit type attributes deserialization" ) {
              e_unit_can_found_colony::from_base );
     REQUIRE( desc.visibility == 1 );
     REQUIRE( desc.base_movement_points == 4 );
+    REQUIRE( desc.ends_turn_in_colony == false );
     REQUIRE( desc.can_attack == true );
     REQUIRE( desc.combat == 3 );
     REQUIRE( desc.veteran_bonus == true );
@@ -347,6 +352,7 @@ TEST_CASE( "[unit-type] unit type attributes deserialization" ) {
              e_unit_can_found_colony::from_base );
     REQUIRE( desc.visibility == 1 );
     REQUIRE( desc.base_movement_points == 1 );
+    REQUIRE( desc.ends_turn_in_colony == false );
     REQUIRE( desc.can_attack == true );
     REQUIRE( desc.combat == 2 );
     REQUIRE( desc.veteran_bonus == true );
@@ -387,6 +393,7 @@ TEST_CASE( "[unit-type] unit type attributes deserialization" ) {
              e_unit_can_found_colony::from_base );
     REQUIRE( desc.visibility == 2 );
     REQUIRE( desc.base_movement_points == 4 );
+    REQUIRE( desc.ends_turn_in_colony == false );
     REQUIRE( desc.can_attack == true );
     REQUIRE( desc.combat == 1 );
     REQUIRE( desc.veteran_bonus == false );
@@ -424,6 +431,7 @@ TEST_CASE( "[unit-type] unit type attributes deserialization" ) {
              e_unit_can_found_colony::from_base );
     REQUIRE( desc.visibility == 1 );
     REQUIRE( desc.base_movement_points == 1 );
+    REQUIRE( desc.ends_turn_in_colony == false );
     REQUIRE( desc.can_attack == false );
     REQUIRE( desc.combat == 1 );
     REQUIRE( desc.veteran_bonus == false );
@@ -462,6 +470,7 @@ TEST_CASE( "[unit-type] unit type attributes deserialization" ) {
              e_unit_can_found_colony::from_base );
     REQUIRE( desc.visibility == 1 );
     REQUIRE( desc.base_movement_points == 2 );
+    REQUIRE( desc.ends_turn_in_colony == false );
     REQUIRE( desc.can_attack == false );
     REQUIRE( desc.combat == 1 );
     REQUIRE( desc.veteran_bonus == false );
@@ -498,6 +507,7 @@ TEST_CASE( "[unit-type] unit type attributes deserialization" ) {
     REQUIRE( desc.can_found == e_unit_can_found_colony::no );
     REQUIRE( desc.visibility == 1 );
     REQUIRE( desc.base_movement_points == 1 );
+    REQUIRE( desc.ends_turn_in_colony == false );
     REQUIRE( desc.can_attack == false );
     REQUIRE( desc.combat == 0 );
     REQUIRE( desc.veteran_bonus == false );
@@ -516,6 +526,41 @@ TEST_CASE( "[unit-type] unit type attributes deserialization" ) {
                e_unit_inventory::gold } );
     // Derived fields.
     REQUIRE( desc.type == e_unit_type::treasure );
+    REQUIRE( desc.is_derived == false );
+    REQUIRE( can_attack( desc.type ) == false );
+    REQUIRE( is_military_unit( desc.type ) == false );
+  }
+  SECTION( "caravel" ) {
+    UnitTypeAttributes const& desc =
+        unit_attr( e_unit_type::caravel );
+    REQUIRE( desc.name == "Caravel" );
+    REQUIRE( desc.name_plural == "Caravels" );
+    REQUIRE( desc.tile == e_tile::caravel );
+    REQUIRE( desc.nat_icon_front == false );
+    REQUIRE( desc.nat_icon_position == e_direction::nw );
+    REQUIRE( desc.ship == true );
+    REQUIRE( desc.colonist == e_unit_colonist::no );
+    REQUIRE( desc.can_found == e_unit_can_found_colony::no );
+    REQUIRE( desc.visibility == 1 );
+    REQUIRE( desc.base_movement_points == 4 );
+    REQUIRE( desc.ends_turn_in_colony == true );
+    REQUIRE( desc.can_attack == false );
+    REQUIRE( desc.combat == 2 );
+    REQUIRE( desc.veteran_bonus == false );
+    REQUIRE( desc.cargo_slots == 2 );
+    REQUIRE( desc.cargo_slots_occupies == nothing );
+    REQUIRE( desc.on_death == UnitDeathAction::naval{} );
+    REQUIRE( desc.canonical_base == nothing );
+    REQUIRE( desc.expertise == nothing );
+    REQUIRE( desc.promotion == nothing );
+    unordered_map<e_unit_type,
+                  unordered_set<e_unit_type_modifier>>
+        expected_modifiers{};
+    REQUIRE( desc.modifiers == expected_modifiers );
+    REQUIRE( desc.inventory_types ==
+             unordered_set<e_unit_inventory>{} );
+    // Derived fields.
+    REQUIRE( desc.type == e_unit_type::caravel );
     REQUIRE( desc.is_derived == false );
     REQUIRE( can_attack( desc.type ) == false );
     REQUIRE( is_military_unit( desc.type ) == false );

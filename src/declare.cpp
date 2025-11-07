@@ -338,6 +338,8 @@ DeclarationResult declare_independence( IEngine& engine, SS& ss,
     unit.forfeight_mv_points();
   }
 
+  // Step: Remove any harbor stops from trade routes of this
+  // player and notify them.
   return res;
 }
 

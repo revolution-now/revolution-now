@@ -1324,6 +1324,7 @@ TEST_CASE( "[goto] unit_has_reached_goto_target" ) {
   Unit& unit1 =
       w.add_unit_on_map( free_colonist, { .x = 2, .y = 2 } );
 
+  target = goto_target::map{ .tile = { .x = 2, .y = 1 } };
   REQUIRE( f( unit1.id() ) == false );
   target = goto_target::map{ .tile = { .x = 3, .y = 4 } };
   REQUIRE( f( unit1.id() ) == false );
@@ -1331,6 +1332,7 @@ TEST_CASE( "[goto] unit_has_reached_goto_target" ) {
   REQUIRE( f( unit1.id() ) == true );
 
   Unit& unit2 = w.add_unit_on_map( frigate, { .x = 1, .y = 2 } );
+  target      = goto_target::map{ .tile = { .x = 2, .y = 1 } };
   REQUIRE( f( unit2.id() ) == false );
   target = goto_target::map{ .tile = { .x = 1, .y = 1 } };
   REQUIRE( f( unit2.id() ) == false );
@@ -1338,17 +1340,17 @@ TEST_CASE( "[goto] unit_has_reached_goto_target" ) {
   REQUIRE( f( unit2.id() ) == true );
 
   unit_sail_to_harbor( w.ss(), unit2.id() );
+  target = goto_target::map{ .tile = { .x = 1, .y = 2 } };
   REQUIRE( f( unit2.id() ) == false );
   target = goto_target::harbor{};
   REQUIRE( f( unit2.id() ) == false );
 
   Unit& unit3 = w.add_unit_in_port( frigate );
+  target      = goto_target::map{ .tile = { .x = 1, .y = 2 } };
   REQUIRE( f( unit3.id() ) == false );
   target = goto_target::harbor{};
-  REQUIRE( f( unit3.id() ) == false );
+  REQUIRE( f( unit3.id() ) == true );
   unit_sail_to_new_world( w.ss(), unit3.id() );
-  REQUIRE( f( unit3.id() ) == false );
-  target = goto_target::harbor{};
   REQUIRE( f( unit3.id() ) == false );
 }
 

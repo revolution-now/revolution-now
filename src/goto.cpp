@@ -291,11 +291,7 @@ bool unit_has_reached_goto_target( SSConst const& ss,
       return unit_tile == map.tile;
     }
     CASE( harbor ) {
-      // This is not really used; whenever we get here we should
-      // be returning false, because when we do eventually sail
-      // the high seas, then unit's orders will be cleared and we
-      // won't be in goto mode to begin with.
-      return false;
+      return is_unit_in_port( ss.units, unit.id() );
     }
   }
 }

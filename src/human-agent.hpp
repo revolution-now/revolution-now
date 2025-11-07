@@ -112,6 +112,8 @@ struct HumanAgent final : IAgent {
 
   EvolveGoto evolve_goto( UnitId unit_id ) override;
 
+  EvolveTradeRoute evolve_trade_route( UnitId unit_id ) override;
+
  public: // Signals.
   OVERRIDE_SIGNAL( ChooseImmigrant );
   OVERRIDE_SIGNAL( ColonyDestroyedByNatives );

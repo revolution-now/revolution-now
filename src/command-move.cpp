@@ -30,6 +30,7 @@
 #include "pacific.hpp"
 #include "plane-stack.hpp"
 #include "society.hpp"
+#include "trade-route.hpp"
 #include "ts.hpp"
 #include "unit-mgr.hpp"
 #include "unit-ownership.hpp"
@@ -201,12 +202,14 @@ maybe<MovementPoints> check_movement_points(
 ** TravelHandler
 *****************************************************************/
 struct TravelHandler : public CommandHandler {
-  TravelHandler( SS& ss, TS& ts, UnitId unit_id_, e_direction d,
-                 IAgent& agent, Player& player )
+  TravelHandler( SS& ss, TS& ts, UnitId unit_id_,
+                 command::move const& mv, IAgent& agent,
+                 Player& player )
     : ss_( ss ),
       ts_( ts ),
       unit_id( unit_id_ ),
-      direction( d ),
+      mv_( mv ),
+      direction_( mv.d ),
       player_( player ),
       agent_( agent ) {}
 
@@ -324,7 +327,7 @@ struct TravelHandler : public CommandHandler {
         // that the player knows which ship is being boarded.
         CHECK( target_unit.has_value() );
         AnimationSequence const seq = anim_seq_for_boarding_ship(
-            ss_, unit_id, *target_unit, direction );
+            ss_, unit_id, *target_unit, direction_ );
         co_await ts_.planes.get()
             .get_bottom<ILandViewPlane>()
             .animate_if_visible( seq );
@@ -341,7 +344,7 @@ struct TravelHandler : public CommandHandler {
       case e_travel_verdict::ship_into_port:
       case e_travel_verdict::sail_high_seas: {
         AnimationSequence const seq =
-            anim_seq_for_unit_move( ss_, unit_id, direction );
+            anim_seq_for_unit_move( ss_, unit_id, direction_ );
         co_await ts_.planes.get()
             .get_bottom<ILandViewPlane>()
             .animate_if_visible( seq );
@@ -374,8 +377,9 @@ struct TravelHandler : public CommandHandler {
   TS& ts_;
 
   // The unit that is moving.
-  UnitId unit_id        = {};
-  e_direction direction = {};
+  UnitId unit_id = {};
+  command::move const mv_;
+  e_direction direction_ = {};
 
   vector<UnitId> prioritize = {};
 
@@ -547,9 +551,24 @@ TravelHandler::confirm_sail_high_seas() const {
     }
   }();
 
+  auto const trade_orders =
+      unit.orders().get_if<unit_orders::trade_route>();
+  bool const in_trade_mode = trade_orders.has_value();
+  auto const trade_target =
+      curr_trade_route_target( ss_.trade_routes, unit );
+  bool const trading_to_harbor =
+      in_trade_mode && trade_target.has_value() && [&] {
+        SWITCH( *trade_target ) {
+          CASE( colony ) { return false; }
+          CASE( harbor ) { return true; }
+        }
+      }();
+  bool const trade_suppresses =
+      in_trade_mode && !trading_to_harbor;
+
   bool const should_sail_high_seas =
       correct_src && correct_dst && correct_direction &&
-      !goto_suppresses;
+      !goto_suppresses && !trade_suppresses;
 
   if( !should_sail_high_seas )
     co_return e_travel_verdict::map_to_map;
@@ -570,7 +589,8 @@ TravelHandler::confirm_sail_high_seas() const {
     co_return e_travel_verdict::map_to_map;
   }
 
-  bool const needs_confirmation = !in_goto_mode;
+  bool const needs_confirmation =
+      !in_goto_mode && !in_trade_mode;
 
   if( !needs_confirmation )
     co_return TravelHandler::e_travel_verdict::sail_high_seas;
@@ -608,10 +628,15 @@ TravelHandler::confirm_sail_high_seas_map_edge() const {
   }
 
   Unit const& unit = ss_.units.unit_for( unit_id );
-  auto const go_to = unit.orders().get_if<unit_orders::go_to>();
-  bool const in_goto_mode = go_to.has_value();
+  bool const in_goto_mode =
+      unit.orders().get_if<unit_orders::go_to>().has_value();
+  bool const in_trade_mode =
+      unit.orders()
+          .get_if<unit_orders::trade_route>()
+          .has_value();
 
-  bool const needs_confirmation = !in_goto_mode;
+  bool const needs_confirmation =
+      !in_goto_mode && !in_trade_mode;
 
   if( !needs_confirmation )
     co_return TravelHandler::e_travel_verdict::
@@ -629,7 +654,7 @@ TravelHandler::confirm_travel_impl() {
   UnitId id        = unit_id;
   Unit const& unit = ss_.units.unit_for( id );
   move_src = coord_for_unit_indirect_or_die( ss_.units, id );
-  move_dst = move_src.moved( direction );
+  move_dst = move_src.moved( direction_ );
 
   if( !move_dst.is_inside( ss_.terrain.world_rect_tiles() ) ) {
     if( unit.desc().ship )
@@ -1006,7 +1031,8 @@ wait<> TravelHandler::perform() {
 
   CHECK( !unit.mv_pts_exhausted() );
   CHECK( unit.orders().holds<unit_orders::none>() ||
-         unit.orders().holds<unit_orders::go_to>() );
+         unit.orders().holds<unit_orders::go_to>() ||
+         unit.orders().holds<unit_orders::trade_route>() );
 
   co_await animate();
 
@@ -1074,11 +1100,9 @@ wait<> TravelHandler::perform() {
           co_await UnitOwnershipChanger( ss_, id ).change_to_map(
               ts_, move_dst );
       CHECK( !unit_deleted.has_value() );
-      // When a ship moves into port it forfeights its movement
-      // points as in the OG.
-      unit.forfeight_mv_points();
       CHECK( unit.orders().holds<unit_orders::none>() ||
-             unit.orders().holds<unit_orders::go_to>() );
+             unit.orders().holds<unit_orders::go_to>() ||
+             unit.orders().holds<unit_orders::trade_route>() );
       // Clear any goto orders so that if the ship is in goto
       // mode then it will not show a 'G' on its flag in the
       // colony view. We are assuming that a goto path cannot in-
@@ -1089,8 +1113,6 @@ wait<> TravelHandler::perform() {
       // the colony view.
       if( unit.orders().holds<unit_orders::go_to>() )
         unit.clear_orders();
-      UNWRAP_CHECK( colony_id,
-                    ss_.colonies.maybe_from_coord( move_dst ) );
       // Unload units and prioritize them.
       vector<UnitId> const held = unit.cargo().units();
       for( UnitId const held_id : held ) {
@@ -1104,11 +1126,17 @@ wait<> TravelHandler::perform() {
         ss_.units.unit_for( held_id ).clear_orders();
         prioritize.push_back( held_id );
       }
-      // TODO: by default we should not open the colony view when
-      // a ship moves into port. But it would be convenient to
-      // allow the user to specify that they want to open it by
-      // holding SHIFT while moving the unit.
-      if( agent_.human() ) {
+      // The OG does not open (or allow opening) the colony view
+      // when a ship moves into it, but we allow that by holding
+      // down mod key 2 (typically control) when moving the unit
+      // into the colony, since it is convenient. We don't use
+      // mod_key_1 (typically shift) because shift-motion keys
+      // are used to pan the map in the OG which we want to keep.
+      // The check for human() might be redundant here, but we'll
+      // do it anyway out of principle.
+      if( mv_.mod_key_2 && agent_.human() ) {
+        UNWRAP_CHECK( colony_id, ss_.colonies.maybe_from_coord(
+                                     move_dst ) );
         e_colony_abandoned const abandoned =
             co_await ts_.colony_viewer.show( ts_, colony_id );
         if( abandoned == e_colony_abandoned::yes )
@@ -1171,6 +1199,12 @@ wait<> TravelHandler::perform() {
   // !! Note that the unit could be gone here. Though in that
   // case the above should probably have returned early.
   if( !ss_.units.exists( id ) ) co_return;
+
+  // When ships and wagon trains enter a colony they forfeight
+  // their movement points by default.
+  if( ss_.colonies.maybe_from_coord( this->move_dst ) &&
+      unit.desc().ends_turn_in_colony )
+    unit.forfeight_mv_points();
 }
 
 /****************************************************************
@@ -1374,7 +1408,8 @@ unique_ptr<CommandHandler> dispatch( SS& ss, TS& ts,
                                      IAgent& agent,
                                      Player& player,
                                      UnitId attacker_id,
-                                     e_direction d ) {
+                                     command::move const& mv ) {
+  e_direction const d = mv.d;
   point const src =
       coord_for_unit_indirect_or_die( ss.units, attacker_id );
   point const dst = src.moved( d );
@@ -1383,7 +1418,7 @@ unique_ptr<CommandHandler> dispatch( SS& ss, TS& ts,
   if( !dst.is_inside( ss.terrain.world_rect_tiles() ) )
     // This is an invalid move, but the TravelHandler is the one
     // that knows how to handle it.
-    return make_unique<TravelHandler>( ss, ts, attacker_id, d,
+    return make_unique<TravelHandler>( ss, ts, attacker_id, mv,
                                        agent, player );
 
   // Can reference the real square here because we know it is
@@ -1392,14 +1427,14 @@ unique_ptr<CommandHandler> dispatch( SS& ss, TS& ts,
 
   if( !society.has_value() )
     // No entities on target sqaure, so it is just a travel.
-    return make_unique<TravelHandler>( ss, ts, attacker_id, d,
+    return make_unique<TravelHandler>( ss, ts, attacker_id, mv,
                                        agent, player );
   CHECK( society.has_value() );
 
   if( *society == Society{ Society::european{
                     .player = attacker.player_type() } } )
     // Friendly unit on target square, so not an attack.
-    return make_unique<TravelHandler>( ss, ts, attacker_id, d,
+    return make_unique<TravelHandler>( ss, ts, attacker_id, mv,
                                        agent, player );
 
   if( society->holds<Society::native>() ) {
@@ -1494,7 +1529,7 @@ unique_ptr<CommandHandler> dispatch( SS& ss, TS& ts,
 unique_ptr<CommandHandler> handle_command(
     IEngine&, SS& ss, TS& ts, IAgent& agent, Player& player,
     UnitId id, command::move const& mv ) {
-  return dispatch( ss, ts, agent, player, id, mv.d );
+  return dispatch( ss, ts, agent, player, id, mv );
 }
 
 } // namespace rn

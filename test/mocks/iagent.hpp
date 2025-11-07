@@ -86,6 +86,8 @@ struct MockIAgent : IAgent {
   MOCK_METHOD( wait<ui::e_confirm>, should_sail_high_seas,
                ( UnitId ), () );
   MOCK_METHOD( EvolveGoto, evolve_goto, ( UnitId ), () );
+  MOCK_METHOD( EvolveTradeRoute, evolve_trade_route, ( UnitId ),
+               () );
 
   using CommoditySlotMap = std::map<int, Commodity>;
   MOCK_METHOD( wait<maybe<int>>, pick_dump_cargo,

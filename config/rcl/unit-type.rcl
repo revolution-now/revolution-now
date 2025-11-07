@@ -84,6 +84,7 @@ composition {
       nat_icon_position:     se
       visibility:            1
       base_movement_points:  1
+      ends_turn_in_colony:   false
       can_attack:            false
       combat:                1
       veteran_bonus:         false
@@ -122,6 +123,7 @@ composition {
       nat_icon_position:     se
       visibility:            1
       base_movement_points:  1
+      ends_turn_in_colony:   false
       can_attack:            false
       combat:                1
       veteran_bonus:         false
@@ -160,6 +162,7 @@ composition {
       nat_icon_position:     se
       visibility:            1
       base_movement_points:  1
+      ends_turn_in_colony:   false
       can_attack:            false
       combat:                1
       veteran_bonus:         false
@@ -200,6 +203,7 @@ composition {
       nat_icon_position:     se
       visibility:            1
       base_movement_points:  1
+      ends_turn_in_colony:   false
       can_attack:            false
       combat:                1
       veteran_bonus:         false
@@ -235,6 +239,7 @@ composition {
       nat_icon_position:     se
       visibility:            1
       base_movement_points:  1
+      ends_turn_in_colony:   false
       can_attack:            false
       combat:                1
       veteran_bonus:         false
@@ -270,6 +275,7 @@ composition {
       nat_icon_position:     se
       visibility:            1
       base_movement_points:  2
+      ends_turn_in_colony:   false
       can_attack:            false
       combat:                1
       veteran_bonus:         false
@@ -305,6 +311,7 @@ composition {
       nat_icon_position:     sw
       visibility:            2
       base_movement_points:  4
+      ends_turn_in_colony:   false
       can_attack:            true
       combat:                1
       veteran_bonus:         false
@@ -339,6 +346,7 @@ composition {
       nat_icon_position:     se
       visibility:            1
       base_movement_points:  1
+      ends_turn_in_colony:   false
       can_attack:            true
       combat:                2
       veteran_bonus:         false
@@ -371,6 +379,7 @@ composition {
       nat_icon_position:     sw
       visibility:            1
       base_movement_points:  4
+      ends_turn_in_colony:   false
       can_attack:            true
       combat:                3
       veteran_bonus:         false
@@ -406,6 +415,7 @@ composition {
       nat_icon_position:     se
       visibility:            1
       base_movement_points:  1
+      ends_turn_in_colony:   false
       can_attack:            false
       combat:                1
       veteran_bonus:         false
@@ -444,6 +454,7 @@ composition {
       nat_icon_position:     se
       visibility:            1
       base_movement_points:  1
+      ends_turn_in_colony:   false
       can_attack:            false
       combat:                1
       veteran_bonus:         false
@@ -482,6 +493,7 @@ composition {
       nat_icon_position:     se
       visibility:            1
       base_movement_points:  1
+      ends_turn_in_colony:   false
       can_attack:            false
       combat:                1
       veteran_bonus:         false
@@ -520,6 +532,7 @@ composition {
       nat_icon_position:     se
       visibility:            1
       base_movement_points:  1
+      ends_turn_in_colony:   false
       can_attack:            false
       combat:                1
       veteran_bonus:         false
@@ -558,6 +571,7 @@ composition {
       nat_icon_position:     se
       visibility:            1
       base_movement_points:  1
+      ends_turn_in_colony:   false
       can_attack:            false
       combat:                1
       veteran_bonus:         false
@@ -596,6 +610,7 @@ composition {
       nat_icon_position:     se
       visibility:            1
       base_movement_points:  1
+      ends_turn_in_colony:   false
       can_attack:            false
       combat:                1
       veteran_bonus:         false
@@ -634,6 +649,7 @@ composition {
       nat_icon_position:     se
       visibility:            1
       base_movement_points:  1
+      ends_turn_in_colony:   false
       can_attack:            false
       combat:                1
       veteran_bonus:         false
@@ -672,6 +688,7 @@ composition {
       nat_icon_position:     se
       visibility:            1
       base_movement_points:  1
+      ends_turn_in_colony:   false
       can_attack:            false
       combat:                1
       veteran_bonus:         false
@@ -710,6 +727,7 @@ composition {
       nat_icon_position:     se
       visibility:            1
       base_movement_points:  1
+      ends_turn_in_colony:   false
       can_attack:            false
       combat:                1
       veteran_bonus:         false
@@ -748,6 +766,7 @@ composition {
       nat_icon_position:     se
       visibility:            1
       base_movement_points:  1
+      ends_turn_in_colony:   false
       can_attack:            false
       combat:                1
       veteran_bonus:         false
@@ -786,6 +805,7 @@ composition {
       nat_icon_position:     se
       visibility:            1
       base_movement_points:  1
+      ends_turn_in_colony:   false
       can_attack:            false
       combat:                1
       veteran_bonus:         false
@@ -824,6 +844,7 @@ composition {
       nat_icon_position:     se
       visibility:            1
       base_movement_points:  1
+      ends_turn_in_colony:   false
       can_attack:            false
       combat:                1
       veteran_bonus:         false
@@ -862,6 +883,7 @@ composition {
       nat_icon_position:     se
       visibility:            1
       base_movement_points:  1
+      ends_turn_in_colony:   false
       can_attack:            false
       combat:                1
       veteran_bonus:         false
@@ -900,6 +922,7 @@ composition {
       nat_icon_position:     se
       visibility:            1
       base_movement_points:  1
+      ends_turn_in_colony:   false
       can_attack:            false
       combat:                1
       veteran_bonus:         false
@@ -938,6 +961,7 @@ composition {
       nat_icon_position:     se
       visibility:            1
       base_movement_points:  1
+      ends_turn_in_colony:   false
       can_attack:            false
       combat:                1
       veteran_bonus:         false
@@ -976,6 +1000,7 @@ composition {
       nat_icon_position:     se
       visibility:            1
       base_movement_points:  1
+      ends_turn_in_colony:   false
       can_attack:            false
       combat:                1
       veteran_bonus:         false
@@ -1014,6 +1039,7 @@ composition {
       nat_icon_position:     se
       visibility:            1
       base_movement_points:  1
+      ends_turn_in_colony:   false
       can_attack:            false
       combat:                1
       veteran_bonus:         false
@@ -1052,6 +1078,7 @@ composition {
       nat_icon_position:     se
       visibility:            1
       base_movement_points:  1
+      ends_turn_in_colony:   false
       can_attack:            false
       combat:                1
       veteran_bonus:         false
@@ -1090,6 +1117,7 @@ composition {
       nat_icon_position:     se
       visibility:            1
       base_movement_points:  1
+      ends_turn_in_colony:   false
       can_attack:            false
       combat:                1
       veteran_bonus:         false
@@ -1128,6 +1156,7 @@ composition {
       nat_icon_position:     se
       visibility:            1
       base_movement_points:  1
+      ends_turn_in_colony:   false
       can_attack:            false
       combat:                1
       veteran_bonus:         false
@@ -1166,6 +1195,7 @@ composition {
       nat_icon_position:     se
       visibility:            1
       base_movement_points:  1
+      ends_turn_in_colony:   false
       can_attack:            false
       combat:                1
       veteran_bonus:         false
@@ -1204,6 +1234,7 @@ composition {
       nat_icon_position:     se
       visibility:            1
       base_movement_points:  1
+      ends_turn_in_colony:   false
       can_attack:            false
       combat:                1
       veteran_bonus:         false
@@ -1242,6 +1273,7 @@ composition {
       nat_icon_position:     se
       visibility:            1
       base_movement_points:  1
+      ends_turn_in_colony:   false
       can_attack:            false
       combat:                1
       veteran_bonus:         false
@@ -1285,6 +1317,7 @@ composition {
       nat_icon_position:     se
       visibility:            1
       base_movement_points:  1
+      ends_turn_in_colony:   false
       can_attack:            true
       combat:                2
       veteran_bonus:         true
@@ -1317,6 +1350,7 @@ composition {
       nat_icon_position:     sw
       visibility:            1
       base_movement_points:  4
+      ends_turn_in_colony:   false
       can_attack:            true
       combat:                3
       veteran_bonus:         true
@@ -1349,6 +1383,7 @@ composition {
       nat_icon_position:     se
       visibility:            1
       base_movement_points:  1
+      ends_turn_in_colony:   false
       can_attack:            true
       combat:                4
       veteran_bonus:         false
@@ -1381,6 +1416,7 @@ composition {
       nat_icon_position:     sw
       visibility:            1
       base_movement_points:  4
+      ends_turn_in_colony:   false
       can_attack:            true
       combat:                5
       veteran_bonus:         false
@@ -1413,6 +1449,7 @@ composition {
       nat_icon_position:     se
       visibility:            1
       base_movement_points:  1
+      ends_turn_in_colony:   false
       can_attack:            true
       combat:                5
       veteran_bonus:         false
@@ -1447,6 +1484,7 @@ composition {
       nat_icon_position:     sw
       visibility:            1
       base_movement_points:  4
+      ends_turn_in_colony:   false
       can_attack:            true
       combat:                6
       veteran_bonus:         false
@@ -1479,6 +1517,7 @@ composition {
       nat_icon_position:     se
       visibility:            1
       base_movement_points:  1
+      ends_turn_in_colony:   false
       can_attack:            false
       combat:                1
       veteran_bonus:         false
@@ -1514,6 +1553,7 @@ composition {
       nat_icon_position:     se
       visibility:            1
       base_movement_points:  2
+      ends_turn_in_colony:   false
       can_attack:            false
       combat:                1
       veteran_bonus:         false
@@ -1549,6 +1589,7 @@ composition {
       nat_icon_position:     sw
       visibility:            2
       base_movement_points:  4
+      ends_turn_in_colony:   false
       can_attack:            true
       combat:                1
       veteran_bonus:         false
@@ -1586,6 +1627,7 @@ composition {
       nat_icon_position:     w
       visibility:            1
       base_movement_points:  1
+      ends_turn_in_colony:   false
       can_attack:            true
       combat:                3
       veteran_bonus:         false
@@ -1620,6 +1662,7 @@ composition {
       nat_icon_position:     w
       visibility:            1
       base_movement_points:  1
+      ends_turn_in_colony:   false
       can_attack:            true
       combat:                5
       veteran_bonus:         false
@@ -1655,6 +1698,9 @@ composition {
       nat_icon_position:     nw
       visibility:            1
       base_movement_points:  4
+      # When the ship is on a trade route it will always end its
+      # turn in a colony regardless of this flag.
+      ends_turn_in_colony:   true
       can_attack:            false
       combat:                2
       veteran_bonus:         false
@@ -1687,6 +1733,9 @@ composition {
       nat_icon_position:     nw
       visibility:            1
       base_movement_points:  5
+      # When the ship is on a trade route it will always end its
+      # turn in a colony regardless of this flag.
+      ends_turn_in_colony:   true
       can_attack:            false
       combat:                6
       veteran_bonus:         false
@@ -1719,6 +1768,9 @@ composition {
       nat_icon_position:     ne
       visibility:            2
       base_movement_points:  6
+      # When the ship is on a trade route it will always end its
+      # turn in a colony regardless of this flag.
+      ends_turn_in_colony:   true
       can_attack:            false
       combat:                10
       veteran_bonus:         false
@@ -1751,6 +1803,9 @@ composition {
       nat_icon_position:     nw
       visibility:            2
       base_movement_points:  8
+      # When the ship is on a trade route it will always end its
+      # turn in a colony regardless of this flag.
+      ends_turn_in_colony:   true
       can_attack:            true
       combat:                8
       veteran_bonus:         false
@@ -1783,6 +1838,9 @@ composition {
       nat_icon_position:     ne
       visibility:            2
       base_movement_points:  6
+      # When the ship is on a trade route it will always end its
+      # turn in a colony regardless of this flag.
+      ends_turn_in_colony:   true
       can_attack:            true
       combat:                16
       veteran_bonus:         false
@@ -1815,6 +1873,9 @@ composition {
       nat_icon_position:     ne
       visibility:            1
       base_movement_points:  5
+      # When the ship is on a trade route it will always end its
+      # turn in a colony regardless of this flag.
+      ends_turn_in_colony:   true
       can_attack:            true
       combat:                24
       veteran_bonus:         false
@@ -1850,6 +1911,12 @@ composition {
       nat_icon_position:     n
       visibility:            1
       base_movement_points:  2
+      # You can set this to false so that wagon trains don't au-
+      # tomatically end their turn when the hit a colony. How-
+      # ever, note that this setting only applies when the wagon
+      # train is not on a trade route; when it's on a trade route
+      # it will still end its turn when arriving in a colony.
+      ends_turn_in_colony:   true
       can_attack:            false
       combat:                1
       veteran_bonus:         false
@@ -1885,6 +1952,7 @@ composition {
       nat_icon_position:     n
       visibility:            1
       base_movement_points:  1
+      ends_turn_in_colony:   false
       can_attack:            false
       combat:                0  # always loses.
       veteran_bonus:         false

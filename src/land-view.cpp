@@ -1581,7 +1581,9 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
               raw_input_stream_.send(
                   RawInput( LandViewRawInput::cmd{
                     .what = command::move{
-                      *key_event.direction } } ) );
+                      *key_event.direction,
+                      .mod_key_2 =
+                          key_event.mod.ctrl_down } } ) );
               handled = e_input_handled::yes;
             }
             break;
@@ -1970,7 +1972,8 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
 
     auto const direction =
         input.inner_if<LandViewPlayerInput::give_command>()
-            .inner_if<command::move>();
+            .get_if<command::move>()
+            .member( &command::move::d );
 
     if( !direction.has_value() ) co_return input;
 

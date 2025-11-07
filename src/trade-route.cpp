@@ -14,8 +14,10 @@
 #include "co-wait.hpp"
 #include "colony-mgr.hpp"
 #include "connectivity.hpp"
+#include "harbor-units.hpp"
 #include "igui.hpp"
 #include "trade-route-ui.hpp"
+#include "unit-mgr.hpp"
 
 // config
 #include "config/nation.rds.hpp"
@@ -39,6 +41,7 @@ namespace rn {
 
 namespace {
 
+using ::gfx::point;
 using ::refl::enum_map;
 
 [[nodiscard]] bool trade_route_name_exists(
@@ -451,6 +454,77 @@ confirm_trade_route_orders( SSConst const& ss,
 
   co_return TradeRouteOrdersConfirmed{
     .id = trade_route_id, .en_route_to_stop = *first_stop };
+}
+
+maybe<TradeRoute&> look_up_trade_route(
+    TradeRouteState& trade_routes, TradeRouteId const id ) {
+  auto const iter = trade_routes.routes.find( id );
+  if( iter == trade_routes.routes.end() ) return nothing;
+  return iter->second;
+}
+
+maybe<TradeRouteStop const&> look_up_trade_route_stop(
+    TradeRoute const& route, int const stop ) {
+  CHECK_GE( stop, 0 );
+  if( stop >= ssize( route.stops ) ) return nothing;
+  return route.stops[stop];
+}
+
+maybe<TradeRouteStop const&> look_up_next_trade_route_stop(
+    TradeRoute const& route, int const curr_stop ) {
+  int next = curr_stop;
+  ++next;
+  if( next >= ssize( route.stops ) ) next = 0;
+  return look_up_trade_route_stop( route, next );
+}
+
+maybe<TradeRouteTarget const&> curr_trade_route_target(
+    TradeRouteState const& trade_routes, Unit const& unit ) {
+  auto const trade_orders =
+      unit.orders().get_if<unit_orders::trade_route>();
+  if( !trade_orders.has_value() ) return nothing;
+  auto const route_iter =
+      trade_routes.routes.find( trade_orders->id );
+  if( route_iter == trade_routes.routes.end() ) return nothing;
+  TradeRoute const& route = route_iter->second;
+  auto const stop         = look_up_trade_route_stop(
+      route, trade_orders->en_route_to_stop );
+  if( !stop.has_value() ) return nothing;
+  return stop->target;
+}
+
+bool are_all_stops_identical( TradeRoute const& route ) {
+  struct comp {
+    [[maybe_unused]] static bool operator()(
+        TradeRouteTarget const& l, TradeRouteTarget const& r ) {
+      return base::to_str( l ) < base::to_str( r );
+    }
+  };
+  set<TradeRouteTarget, comp> targets;
+  for( TradeRouteStop const& stop : route.stops )
+    targets.insert( stop.target );
+  return targets.size() <= 1;
+}
+
+[[nodiscard]] bool unit_has_reached_trade_route_stop(
+    SSConst const& ss, Unit const& unit ) {
+  auto const trade_route_target =
+      curr_trade_route_target( ss.trade_routes, unit );
+  if( !trade_route_target.has_value() ) return false;
+  SWITCH( *trade_route_target ) {
+    CASE( colony ) {
+      auto const unit_tile =
+          coord_for_unit_indirect( ss.units, unit.id() );
+      if( !unit_tile.has_value() ) return false;
+      if( !ss.colonies.exists( colony.colony_id ) ) return false;
+      point const colony_tile =
+          ss.colonies.colony_for( colony.colony_id ).location;
+      return *unit_tile == colony_tile;
+    }
+    CASE( harbor ) {
+      return is_unit_in_port( ss.units, unit.id() );
+    }
+  }
 }
 
 } // namespace rn

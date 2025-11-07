@@ -37,10 +37,31 @@ struct Unit;
 enum class e_unit_type;
 
 /****************************************************************
+** Querying.
+*****************************************************************/
+maybe<TradeRoute&> look_up_trade_route(
+    TradeRouteState& trade_routes, TradeRouteId id );
+
+maybe<TradeRouteStop const&> look_up_trade_route_stop(
+    TradeRoute const& route, int stop );
+
+maybe<TradeRouteStop const&> look_up_next_trade_route_stop(
+    TradeRoute const& route, int curr_stop );
+
+maybe<TradeRouteTarget const&> curr_trade_route_target(
+    TradeRouteState const& trade_routes, Unit const& unit );
+
+[[nodiscard]] bool are_all_stops_identical(
+    TradeRoute const& route );
+
+/****************************************************************
 ** Unit Assignments.
 *****************************************************************/
 [[nodiscard]] bool unit_can_start_trade_route(
     e_unit_type type );
+
+[[nodiscard]] bool unit_has_reached_trade_route_stop(
+    SSConst const& ss, Unit const& unit );
 
 /****************************************************************
 ** Create/Edit/Delete trade routes.

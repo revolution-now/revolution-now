@@ -331,6 +331,7 @@ void unit_move_to_port( SS& ss, UnitId id ) {
   UnitOwnershipChanger( ss, id ).change_to_harbor(
       new_state.port_status, new_state.sailed_from );
   if( !unit.orders().holds<unit_orders::damaged>() &&
+      !unit.orders().holds<unit_orders::trade_route>() &&
       unit.desc().ship )
     // There are various scenarios in the game where a ship that
     // is fortified or sentried can get immediatelly transported
@@ -349,13 +350,15 @@ void unit_move_to_port( SS& ss, UnitId id ) {
 }
 
 void unit_sail_to_harbor( SS& ss, UnitId id ) {
-  // FIXME: do other checks here, e.g., make sure that the
-  //        ship is not damaged.
   Unit& unit = ss.units.unit_for( id );
   CHECK( unit.desc().ship );
+  // NOTE: this implicitly also verifies that the ship is not
+  // damaged, since that is an order state.
   CHECK( unit.orders().holds<unit_orders::none>() ||
-         unit.orders().holds<unit_orders::go_to>() );
-  unit.clear_orders();
+         unit.orders().holds<unit_orders::go_to>() ||
+         unit.orders().holds<unit_orders::trade_route>() );
+  if( !unit.orders().holds<unit_orders::trade_route>() )
+    unit.clear_orders();
   Player& player =
       player_for_player_or_die( ss.players, unit.player_type() );
   if( maybe<UnitOwnership::harbor const&> previous_harbor_state =
@@ -405,11 +408,12 @@ void unit_sail_to_harbor( SS& ss, UnitId id ) {
 }
 
 void unit_sail_to_new_world( SS& ss, UnitId id ) {
-  // FIXME: do other checks here, e.g., make sure that the
-  //        ship is not damaged.
   Unit const& unit = ss.units.unit_for( id );
   CHECK( unit.desc().ship );
-  CHECK( unit.orders().holds<unit_orders::none>() );
+  // NOTE: this implicitly also verifies that the ship is not
+  // damaged, since that is an order state.
+  CHECK( unit.orders().holds<unit_orders::none>() ||
+         unit.orders().holds<unit_orders::trade_route>() );
   Player const& player =
       player_for_player_or_die( ss.players, unit.player_type() );
   CHECK( unit.desc().ship );
@@ -449,9 +453,9 @@ void unit_sail_to_new_world( SS& ss, UnitId id ) {
 e_high_seas_result advance_unit_on_high_seas( SS& ss,
                                               Player& player,
                                               UnitId id ) {
-  CHECK( ss.units.unit_for( id )
-             .orders()
-             .holds<unit_orders::none>() );
+  Unit const& unit = ss.units.unit_for( id );
+  CHECK( unit.orders().holds<unit_orders::none>() ||
+         unit.orders().holds<unit_orders::trade_route>() );
   UNWRAP_CHECK( info,
                 ss.units.maybe_harbor_view_state_of( id ) );
   int const turns_needed =

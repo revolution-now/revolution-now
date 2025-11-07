@@ -72,7 +72,8 @@ valid_or<string> wrapped::UnitsState::validate() const {
   // Check that ships in the harbor have cleared orders. This is
   // important because the game does not provide any mechanism
   // for the player to clear their orders when in the harbor, and
-  // so they will never move.
+  // so they will never move. The exception to this is ships that
+  // are on trade routes.
   for( auto const& [id, unit_state] : units ) {
     SWITCH( unit_state ) {
       CASE( euro ) {
@@ -84,6 +85,9 @@ valid_or<string> wrapped::UnitsState::validate() const {
         if( !harbor->port_status.holds<PortStatus::in_port>() )
           break;
         if( euro.unit.orders().holds<unit_orders::damaged>() )
+          break;
+        if( euro.unit.orders()
+                .holds<unit_orders::trade_route>() )
           break;
         REFL_VALIDATE(
             euro.unit.orders().holds<unit_orders::none>(),

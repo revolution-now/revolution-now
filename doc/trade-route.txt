@@ -25,9 +25,27 @@ TODO:
     Indications are that it loads the commodity with the largest
     market value but where the quantity is capped at 100.
 
+  * Need to handle the case when there is only one colony in
+    the route, we don't want to get into an infinite loop given
+    that the unit will never consume any movement points.
+
+  * Need to handle the case (in the trade route edit UI and else-
+    where) where a colony does no longer exist.
+
   * When a wagon train cannot find a path to its next stop it
     will clear its orders. That said, the wagon train will go as
     far as it can before doing this.
+
+  * Given how the mechanics of trade routes work where the unit
+    arrives in a colony and then waits a turn before they unload
+    and proceed, it seems necessary that any unit on a trade
+    route needs to end their turn when they hit a destination.
+    This is done automatically, but it would be good to have a
+    flag where we only have this limitation on wagon trains when
+    they are on trade routes. This could be done by changing the
+    relevant unit config flag. Trade routes will still work be-
+    cause the trade route logic ensures that the unit ends its
+    turn regardless of its unit type config.
 
   * Wagon trains need to end their turn when entering a colony.
 

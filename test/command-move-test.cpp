@@ -176,8 +176,8 @@ TEST_CASE(
   world W;
   MockLandViewPlane land_view_plane;
   W.planes().get().set_bottom<ILandViewPlane>( land_view_plane );
-  Player& player         = W.default_player();
-  Colony const& colony   = W.add_colony( { .x = 1, .y = 1 } );
+  Player& player = W.default_player();
+  W.add_colony( { .x = 1, .y = 1 } );
   Unit const& missionary = W.add_unit_on_map(
       e_unit_type::missionary, { .x = 0, .y = 1 } );
   Unit const& free_colonist = W.add_unit_on_map(
@@ -188,6 +188,7 @@ TEST_CASE(
       e_unit_type::privateer, { .x = 0, .y = 0 } );
 
   auto move_unit = [&]( UnitId unit_id, e_direction d ) {
+    INFO( format( "unit_id={}, d={}", unit_id, d ) );
     land_view_plane.EXPECT__animate_if_visible( _ );
     unique_ptr<CommandHandler> handler = handle_command(
         W.engine(), W.ss(), W.ts(), W.agent(), player, unit_id,
@@ -226,11 +227,6 @@ TEST_CASE(
   move_unit( missionary.id(), e_direction::e );
   move_unit( free_colonist.id(), e_direction::w );
   move_unit( wagon_train.id(), e_direction::s );
-
-  W.colony_viewer()
-      .EXPECT__show( _, colony.id )
-      .returns( e_colony_abandoned::no );
-  W.agent().EXPECT__human().returns( true );
   move_unit( privateer.id(), e_direction::se );
 
   // No road; consumes one movement point.
@@ -240,10 +236,9 @@ TEST_CASE(
   REQUIRE( free_colonist.movement_points() ==
            MovementPoints::_2_3() );
 
-  // Normal movement point consumption for wagon train, unlike OG
-  // it doesn't forfeight all points when moving into a colony
-  // square.
-  REQUIRE( wagon_train.movement_points() == 1 );
+  // This is the OG behavior; can be changed via the unit-type
+  // config (ends_turn_in_colony).
+  REQUIRE( wagon_train.movement_points() == 0 );
   REQUIRE( privateer.movement_points() == 0 );
   REQUIRE( W.units().coord_for( missionary.id() ) ==
            Coord{ .x = 1, .y = 1 } );
@@ -256,15 +251,91 @@ TEST_CASE(
 }
 
 TEST_CASE(
+    "[command-move] opening of colony view when moving into a "
+    "colony" ) {
+  world w;
+  MockLandViewPlane land_view_plane;
+  w.planes().get().set_bottom<ILandViewPlane>( land_view_plane );
+  Player& player            = w.default_player();
+  Colony const& colony      = w.add_colony( { .x = 1, .y = 1 } );
+  Unit const& free_colonist = w.add_unit_on_map(
+      e_unit_type::free_colonist, { .x = 2, .y = 1 } );
+  Unit const& wagon_train = w.add_unit_on_map(
+      e_unit_type::wagon_train, { .x = 1, .y = 0 } );
+  Unit const& privateer = w.add_unit_on_map(
+      e_unit_type::privateer, { .x = 0, .y = 0 } );
+
+  auto move_unit = [&]( UnitId const unit_id,
+                        command::move const& mv ) {
+    land_view_plane.EXPECT__animate_if_visible( _ );
+    unique_ptr<CommandHandler> handler =
+        handle_command( w.engine(), w.ss(), w.ts(), w.agent(),
+                        player, unit_id, mv );
+    wait<CommandHandlerRunResult> const w = handler->run();
+    REQUIRE( !w.exception() );
+    REQUIRE( w.ready() );
+    CommandHandlerRunResult const expected_result{
+      .order_was_run = true, .units_to_prioritize = {} };
+    REQUIRE( *w == expected_result );
+  };
+
+  // Allow the free colonist to move along a road. This tests
+  // that a unit is allowed to expend less than one movement
+  // point to enter a colony in the relevant situation.
+  w.square( { .x = 1, .y = 1 } ).road = true;
+  w.square( { .x = 2, .y = 1 } ).road = true;
+  // This will make sure that the movement points required to
+  // enter a colony square are capped at 1.
+  w.square( { .x = 1, .y = 1 } ).overlay = e_land_overlay::hills;
+
+  // Sanity check.
+  REQUIRE( w.units().coord_for( free_colonist.id() ) ==
+           Coord{ .x = 2, .y = 1 } );
+  REQUIRE( w.units().coord_for( wagon_train.id() ) ==
+           Coord{ .x = 1, .y = 0 } );
+  REQUIRE( w.units().coord_for( privateer.id() ) ==
+           Coord{ .x = 0, .y = 0 } );
+
+  SECTION( "no mod key" ) {
+    move_unit( free_colonist.id(),
+               { .d = e_direction::w, .mod_key_2 = false } );
+    move_unit( wagon_train.id(),
+               { .d = e_direction::s, .mod_key_2 = false } );
+    move_unit( privateer.id(),
+               { .d = e_direction::se, .mod_key_2 = false } );
+  }
+
+  SECTION( "with mod key" ) {
+    move_unit( free_colonist.id(),
+               { .d = e_direction::w, .mod_key_2 = true } );
+    move_unit( wagon_train.id(),
+               { .d = e_direction::s, .mod_key_2 = true } );
+    w.colony_viewer()
+        .EXPECT__show( _, colony.id )
+        .returns( e_colony_abandoned::no );
+    w.agent().EXPECT__human().returns( true );
+    move_unit( privateer.id(),
+               { .d = e_direction::se, .mod_key_2 = true } );
+  }
+
+  REQUIRE( w.units().coord_for( free_colonist.id() ) ==
+           Coord{ .x = 1, .y = 1 } );
+  REQUIRE( w.units().coord_for( wagon_train.id() ) ==
+           Coord{ .x = 1, .y = 1 } );
+  REQUIRE( w.units().coord_for( privateer.id() ) ==
+           Coord{ .x = 1, .y = 1 } );
+}
+
+TEST_CASE(
     "[command-move] ship unloads units when moving into "
     "colony" ) {
   world W;
   MockLandViewPlane land_view_plane;
   W.planes().get().set_bottom<ILandViewPlane>( land_view_plane );
-  Player& player       = W.default_player();
-  Colony const& colony = W.add_colony( { .x = 1, .y = 1 } );
-  Unit const& galleon  = W.add_unit_on_map( e_unit_type::galleon,
-                                            { .x = 0, .y = 0 } );
+  Player& player = W.default_player();
+  W.add_colony( { .x = 1, .y = 1 } );
+  Unit const& galleon = W.add_unit_on_map( e_unit_type::galleon,
+                                           { .x = 0, .y = 0 } );
   Unit const& missionary = W.add_unit_in_cargo(
       e_unit_type::missionary, galleon.id() );
   Unit const& free_colonist = W.add_unit_in_cargo(
@@ -282,10 +353,6 @@ TEST_CASE(
   };
 
   // Sanity check.
-  W.agent().EXPECT__human().returns( true );
-  W.colony_viewer()
-      .EXPECT__show( _, colony.id )
-      .returns( e_colony_abandoned::no );
   CommandHandlerRunResult const expected_res{
     .order_was_run       = true,
     .units_to_prioritize = { missionary.id(),
@@ -319,11 +386,11 @@ TEST_CASE(
       e_difficulty::conquistador;
   MockLandViewPlane land_view_plane;
   w.planes().get().set_bottom<ILandViewPlane>( land_view_plane );
-  Player& player       = w.default_player();
-  MockIAgent& agent    = w.agent();
-  Colony const& colony = w.add_colony( { .x = 1, .y = 1 } );
-  Unit const& galleon  = w.add_unit_on_map( e_unit_type::galleon,
-                                            { .x = 0, .y = 0 } );
+  Player& player    = w.default_player();
+  MockIAgent& agent = w.agent();
+  w.add_colony( { .x = 1, .y = 1 } );
+  Unit const& galleon = w.add_unit_on_map( e_unit_type::galleon,
+                                           { .x = 0, .y = 0 } );
   UnitId const treasure_id =
       w.add_unit_in_cargo( e_unit_type::treasure, galleon.id() )
           .id();
@@ -338,11 +405,6 @@ TEST_CASE(
     REQUIRE( w.ready() );
     return *w;
   };
-
-  w.agent().EXPECT__human().returns( true );
-  w.colony_viewer()
-      .EXPECT__show( _, colony.id )
-      .returns( e_colony_abandoned::no );
 
   SECTION( "no cortes" ) {
     CommandHandlerRunResult const expected_res{
@@ -393,7 +455,7 @@ TEST_CASE(
   Player& player           = w.default_player();
   MockIAgent& agent        = w.agent();
   player.revolution.status = e_revolution_status::declared;
-  Colony const& colony     = w.add_colony( { .x = 1, .y = 1 } );
+  w.add_colony( { .x = 1, .y = 1 } );
   Unit const& galleon = w.add_unit_on_map( e_unit_type::galleon,
                                            { .x = 0, .y = 0 } );
   // This unit will be deleted.
@@ -416,10 +478,6 @@ TEST_CASE(
   agent.EXPECT__message_box(
       StrContains( "traveling merchants" ) );
   agent.EXPECT__handle( TreasureArrived{} );
-  w.agent().EXPECT__human().returns( true );
-  w.colony_viewer()
-      .EXPECT__show( _, colony.id )
-      .returns( e_colony_abandoned::no );
   CommandHandlerRunResult const expected_res{
     .order_was_run = true, .units_to_prioritize = {} };
   CommandHandlerRunResult const res =
@@ -993,7 +1051,6 @@ TEST_CASE(
   bool const confirmed = co_await_test( handler->confirm() );
   REQUIRE( confirmed );
   mock_land_view.EXPECT__animate_if_visible( _ );
-  w.agent().EXPECT__human().returns( false );
   co_await_test( handler->perform() );
   REQUIRE( w.units().coord_for( caravel.id() ).to_gfx() ==
            point{ .x = 1, .y = 0 } );

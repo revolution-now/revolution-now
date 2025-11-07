@@ -11,6 +11,9 @@
 *****************************************************************/
 #pragma once
 
+// rds
+#include "iagent.rds.hpp"
+
 // Revolution Now
 #include "command.rds.hpp"
 #include "goto.rds.hpp"
@@ -178,6 +181,9 @@ struct IAgent : ISignalHandler {
 
   virtual EvolveGoto evolve_goto( UnitId unit_id ) = 0;
 
+  virtual EvolveTradeRoute evolve_trade_route(
+      UnitId unit_id ) = 0;
+
  public: // Signals.
   // Non-waitable signal, no message.
   auto signal( NonWaitableSignalContext auto const& ctx ) {
@@ -309,6 +315,8 @@ struct NoopAgent final : IAgent {
       UnitId unit_id ) override;
 
   EvolveGoto evolve_goto( UnitId unit_id ) override;
+
+  EvolveTradeRoute evolve_trade_route( UnitId unit_id ) override;
 
  public: // ISignalHandler
   OVERRIDE_SIGNAL( ChooseImmigrant );

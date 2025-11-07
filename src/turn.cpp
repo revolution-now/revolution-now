@@ -1335,7 +1335,9 @@ wait<> advance_unit( IEngine& engine, SS& ss, TS& ts,
                                           still_goto->target ) )
           // Needed so that a unit that ends its turn on its goto
           // target will have its orders cleared right away,
-          // which looks better to the player.
+          // which looks better to the player. Note that for
+          // ships sailing to the harbor, their orders will be
+          // cleared before they get there.
           unit.clear_orders();
         // Here we test if the unit hasn't moved and clear or-
         // ders. Some examples of this:
@@ -1391,7 +1393,79 @@ wait<> advance_unit( IEngine& engine, SS& ss, TS& ts,
   if( auto const trade_route =
           unit.orders().get_if<unit_orders::trade_route>();
       trade_route.has_value() ) {
-    unit.forfeight_mv_points();
+    EvolveTradeRoute const evolve_route =
+        agent.evolve_trade_route( id );
+    SWITCH( evolve_route ) {
+      CASE( abort ) {
+        unit.clear_orders();
+        break;
+      }
+      CASE( sail_to_new_world ) {
+        unit_sail_to_new_world( ss, unit.id() );
+        break;
+      }
+      CASE( move ) {
+        // Units with trade_route orders can be on the high seas
+        // or in port, but those should have been removed al-
+        // ready.
+        point const prev_tile = coord_for_unit_indirect_or_die(
+            ss.units, unit.id() );
+        auto const handler =
+            command_handler( engine, ss, ts, agent, player, id,
+                             command::move{ .d = move.to } );
+        CHECK( handler );
+        auto const run_result = co_await handler->run();
+        // This always needs to happen.
+        for( UnitId const id : run_result.units_to_prioritize )
+          prioritize_unit( q, id );
+        // NOTE: !! The unit may no longer exist here if e.g. it
+        // steps into an LCR and dies.
+        if( !ss.units.exists( id ) ) co_return;
+        if( !run_result.order_was_run ) {
+          unit.clear_orders();
+          break;
+        }
+        auto const still_trade_route =
+            unit.orders().get_if<unit_orders::trade_route>();
+        if( !still_trade_route.has_value() ) break;
+        if( unit_has_reached_trade_route_stop( ss.as_const,
+                                               unit ) )
+          // In the OG, and by default in this game, the only
+          // units that can do trade routes (wagon trains and
+          // ships) will automatically end their turn when moving
+          // into a colony and ships will end their turn when ar-
+          // riving in the harbor. So in that sense this is re-
+          // dundant. However we should still keep it because
+          // there are config settings that allow changing that
+          // behavior for wagon trains, which means that they
+          // will not end their turn when they enter a colony.
+          // Since that would not work with trade routes, we will
+          // do this anyway. So in other words, the rule in the
+          // NG that cannot be broken is that wagon trains and
+          // ships that are on trade routes must always end their
+          // turn when entering a colony.
+          unit.forfeight_mv_points();
+        // After all is said and done, if the unit hasn't moved
+        // then clear its orders as a circuit breaker. I believe
+        // this is more critical in the case of goto orders and
+        // shouldn't really be as important with trade route or-
+        // ders because 1) destinations are always friendly, and
+        // 2) routes are recomputed at the start of each turn and
+        // will be aborted if there isn't a path. But just for
+        // safety we'll do it anyway.
+        auto const new_tile =
+            coord_for_unit_indirect( ss.units, unit.id() );
+        bool const did_not_move =
+            new_tile.has_value() && new_tile == prev_tile;
+        if( did_not_move &&
+            !run_result.insufficient_movement_points ) {
+          unit.clear_orders();
+          break;
+        }
+        break;
+      }
+    }
+    co_return;
   }
 
   if( is_unit_in_port( ss.units, id ) ) {
@@ -1410,15 +1484,19 @@ wait<> advance_unit( IEngine& engine, SS& ss, TS& ts,
 // whether e.g. to go to the harbor screen, which we only want to
 // do once and not for each unit.
 struct HighSeasStatus {
-  bool arrived_in_harbor             = false;
-  bool arrived_in_harbor_with_cargo  = false;
-  UnitId last_unit_arrived_in_harbor = {};
+  bool arrived_in_harbor                    = false;
+  bool arrived_in_harbor_not_on_trade_route = false;
+  bool arrived_in_harbor_with_cargo         = false;
+  UnitId last_unit_arrived_in_harbor        = {};
 
   HighSeasStatus combined_with(
       HighSeasStatus const& rhs ) const {
     HighSeasStatus combined = *this;
     combined.arrived_in_harbor =
         combined.arrived_in_harbor || rhs.arrived_in_harbor;
+    combined.arrived_in_harbor_not_on_trade_route =
+        combined.arrived_in_harbor_not_on_trade_route ||
+        rhs.arrived_in_harbor_not_on_trade_route;
     combined.arrived_in_harbor_with_cargo =
         combined.arrived_in_harbor_with_cargo ||
         rhs.arrived_in_harbor_with_cargo;
@@ -1455,13 +1533,14 @@ wait<HighSeasStatus> advance_high_seas_unit(
             "new world, there are no appropriate water squares "
             "on which to place it.  We will try again next "
             "turn.",
-            ss.units.unit_for( unit_id ).desc().name );
+            unit.desc().name );
         co_await agent.signal(
             signal::NoSpotForShip{ .unit_id = unit_id }, msg );
         finish_turn( unit );
         break;
       }
-      ss.units.unit_for( unit_id ).clear_orders();
+      if( !unit.orders().holds<unit_orders::trade_route>() )
+        unit.clear_orders();
       maybe<UnitDeleted> const unit_deleted =
           co_await UnitOwnershipChanger( ss, unit_id )
               .change_to_map( ts, *dst_coord );
@@ -1478,8 +1557,13 @@ wait<HighSeasStatus> advance_high_seas_unit(
     }
     case e_high_seas_result::arrived_in_harbor: {
       lg.debug( "unit {} has arrived in old world.", unit_id );
+      // This is important for ships on trade routes; we need
+      // them to wait one turn in the harbor before loading and
+      // unloading and sailing back.
       finish_turn( unit );
-      res.arrived_in_harbor           = true;
+      res.arrived_in_harbor = true;
+      if( !unit.orders().holds<unit_orders::trade_route>() )
+        res.arrived_in_harbor_not_on_trade_route = true;
       res.last_unit_arrived_in_harbor = unit_id;
       res.arrived_in_harbor_with_cargo =
           ( unit.cargo()
@@ -1613,22 +1697,27 @@ wait<> move_high_seas_units( IEngine& engine, SS& ss, TS& ts,
 
   if( status_union.arrived_in_harbor ) {
     if( !is_ref( player.type ) ) {
-      CHECK( status_union.last_unit_arrived_in_harbor !=
-             UnitId{} );
-      auto& agent = ts.agents()[player.type];
-      if( status_union.arrived_in_harbor_with_cargo )
-        co_await show_woodcut_if_needed(
-            player, agent, e_woodcut::cargo_from_the_new_world );
-      if( agent.human() ) {
-        // NOTE: This is too much of a pain to put into the human
-        // agent because ultimately opening the harbor view re-
-        // quires TS at the moment, and we don't want to put that
-        // into the agents since we're trying to get away from it
-        // in general.
-        HarborViewer harbor_viewer( engine, ss, ts, player );
-        harbor_viewer.set_selected_unit(
-            status_union.last_unit_arrived_in_harbor );
-        co_await harbor_viewer.show();
+      // Only do the interactive stuff if there is at least one
+      // ship that arrived that is not on a trade route.
+      if( status_union.arrived_in_harbor_not_on_trade_route ) {
+        CHECK( status_union.last_unit_arrived_in_harbor !=
+               UnitId{} );
+        auto& agent = ts.agents()[player.type];
+        if( status_union.arrived_in_harbor_with_cargo )
+          co_await show_woodcut_if_needed(
+              player, agent,
+              e_woodcut::cargo_from_the_new_world );
+        if( agent.human() ) {
+          // NOTE: This is too much of a pain to put into the
+          // human agent because ultimately opening the harbor
+          // view re- quires TS at the moment, and we don't want
+          // to put that into the agents since we're trying to
+          // get away from it in general.
+          HarborViewer harbor_viewer( engine, ss, ts, player );
+          harbor_viewer.set_selected_unit(
+              status_union.last_unit_arrived_in_harbor );
+          co_await harbor_viewer.show();
+        }
       }
     } else {
       // An REF ship made it to port. For REF players these ships

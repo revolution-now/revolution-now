@@ -81,6 +81,18 @@ TEST_CASE( "[trade-route] unit_can_start_trade_route" ) {
   REQUIRE_FALSE( f( treasure ) );
 }
 
+TEST_CASE( "[trade-route] look_up_trade_route" ) {
+  world w;
+}
+
+TEST_CASE( "[trade-route] look_up_trade_route_stop" ) {
+  world w;
+}
+
+TEST_CASE( "[trade-route] look_up_next_trade_route_stop" ) {
+  world w;
+}
+
 TEST_CASE( "[trade-route] ask_edit_trade_route" ) {
   world w;
 }
@@ -127,6 +139,18 @@ TEST_CASE( "[trade-route] ask_first_stop" ) {
 }
 
 TEST_CASE( "[trade-route] confirm_trade_route_orders" ) {
+  world w;
+}
+
+TEST_CASE( "[trade-route] curr_trade_route_target" ) {
+  world w;
+}
+
+TEST_CASE( "[trade-route] are_all_stops_identical" ) {
+  world w;
+}
+
+TEST_CASE( "[trade-route] unit_has_reached_trade_route_stop" ) {
   world w;
 }
 

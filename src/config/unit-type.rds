@@ -189,6 +189,11 @@ struct.UnitTypeAttributes {
   # These are the point without any bonuses applied (e.g. without
   # the Magellan bonus for ships).
   base_movement_points 'MvPoints',
+  # Does this unit forfeight the remainder of its movement points
+  # when moving into a colony. But note that if the unit is on a
+  # trade route it will always end its turn when entering a
+  # colony regardless of this flag.
+  ends_turn_in_colony 'bool',
 
   # Combat
   can_attack 'bool',
