@@ -780,10 +780,10 @@ struct TradeRouteUI : public IPlane {
     if( state >= clicking ) {
       P.draw_vertical_line( r.ne(), r.size.h + 1, shaded );
       P.draw_horizontal_line( r.nw(), r.size.w, shaded );
-      P.draw_vertical_line( r.nw(), r.size.h,
-                            shaded.with_alpha( 64 ) );
-      P.draw_horizontal_line( r.sw(), r.size.w,
-                              shaded.with_alpha( 64 ) );
+      P.draw_vertical_line( r.nw(), r.size.h, highlight );
+      P.draw_horizontal_line( r.sw(), r.size.w, highlight );
+      P.draw_point( r.nw(), shaded.with_alpha( 128 ) );
+      P.draw_point( r.se(), highlight.with_alpha( 128 ) );
     } else {
       P.draw_vertical_line( r.ne(), r.size.h + 1, highlight );
       P.draw_horizontal_line( r.nw(), r.size.w, highlight );
