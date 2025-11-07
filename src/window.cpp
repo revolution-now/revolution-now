@@ -243,7 +243,8 @@ struct WindowPlane::Impl : public IPlane {
   void on_drag( input::mod_keys const& mod,
                 input::e_mouse_button button, Coord origin,
                 Coord prev, Coord current ) override {
-    CHECK( wm.num_windows() != 0 );
+    // NOTE: there may not be any windows open here if the user
+    // closes a window while dragging (e.g. but hitting escape).
     wm.on_drag( mod, button, origin, prev, current );
   }
 
@@ -527,8 +528,9 @@ void WindowManager::on_drag( input::mod_keys const& /*unused*/,
                              Coord current ) {
   if( dragging_win_ == nullptr )
     // This can happen if the window is destroyed while dragging
-    // is in progress, which can happen if a wait that owns
-    // the window is cancelled.
+    // is in progress, which can happen if a wait that owns the
+    // window is cancelled, or if the user hits escape to close
+    // the window.
     return;
   if( button == input::e_mouse_button::l ) {
     Coord pos = position( *dragging_win_ );
