@@ -339,7 +339,7 @@ value cdr_game_state_default = table{
       table{
         "viewport"_key =
             table{
-              "zoom"_key     = 0.0,
+              "zoom"_key     = 1.0,
               "center_x"_key = 0.0,
               "center_y"_key = 0.0,
             },
@@ -487,6 +487,10 @@ TEST_CASE( "[ss/ref] some test" ) {
   init_cdr_data();
   cdr::converter conv;
   RootState root_def;
+
+  // Patches to satisfy validation.
+  root_def.land_view.viewport.zoom = 1.0;
+
   value const v = conv.to( root_def );
   REQUIRE( v == cdr_game_state_default );
   // Round trip.
@@ -511,6 +515,9 @@ TEST_CASE( "[ss/ref] RootState convenience methods" ) {
 TEST_CASE( "[ss/ref] validate_full_game_state" ) {
   SS ss;
   RootState& root = ss.root;
+
+  // Patches to satisfy validation.
+  root.land_view.viewport.zoom = 1.0;
 
   auto const f = [&] [[clang::noinline]] {
     return ss.as_const.validate_full_game_state();
@@ -545,6 +552,9 @@ TEST_CASE( "[ss/ref] validate_full_game_state" ) {
 TEST_CASE( "[ss/ref] validate_non_terrain_game_state" ) {
   SS ss;
   RootState& root = ss.root;
+
+  // Patches to satisfy validation.
+  root.land_view.viewport.zoom = 1.0;
 
   auto const f = [&] [[clang::noinline]] {
     return ss.as_const.validate_non_terrain_game_state();

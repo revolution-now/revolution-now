@@ -19,12 +19,13 @@ using namespace std;
 namespace rn {
 
 base::valid_or<string> Viewport::validate() const {
-  REFL_VALIDATE( zoom >= 0.0, "zoom must be larger than zero" );
-  REFL_VALIDATE( zoom >= 0.0, "zoom must be less than one" );
+  REFL_VALIDATE( zoom > 0.0,
+                 "zoom must be larger than zero; the normal "
+                 "value is 1.0." );
   REFL_VALIDATE( center_x >= 0.0,
-                 "x center must be larger than 0" );
+                 "x center must be non-negative" );
   REFL_VALIDATE( center_y >= 0.0,
-                 "y center must be larger than 0" );
+                 "y center must be non-negative" );
   return base::valid;
 }
 
