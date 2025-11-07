@@ -1517,10 +1517,24 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
                 RawInput( LandViewRawInput::hidden_terrain{} ) );
             break;
           case ::SDLK_r:
-            // Cheat function -- reveal entire map.
-            if( !key_event.mod.shf_down ) break;
-            raw_input_stream_.send( RawInput(
-                LandViewRawInput::toggle_map_reveal{} ) );
+            if( key_event.mod.shf_down ) {
+              // Cheat function -- reveal entire map.
+              raw_input_stream_.send( RawInput(
+                  LandViewRawInput::toggle_map_reveal{} ) );
+              break;
+            }
+            if( mode_.top().holds<LandViewMode::unit_input>() )
+              raw_input_stream_.send(
+                  RawInput( LandViewRawInput::cmd{
+                    .what = command::road{} } ) );
+            break;
+          case ::SDLK_p:
+            if( key_event.mod.shf_down ) break;
+            if( !mode_.top().holds<LandViewMode::unit_input>() )
+              break;
+            raw_input_stream_.send(
+                RawInput( LandViewRawInput::cmd{
+                  .what = command::plow{} } ) );
             break;
           case ::SDLK_e:
             raw_input_stream_.send( RawInput(
