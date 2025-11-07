@@ -162,10 +162,10 @@ uprising {
   # There must be at least one unit here and the total weights
   # must sum to 100.
   unit_type_probabilities: [
-    { key: soldier,         val: 45 }
-    { key: veteran_soldier, val: 30 }
     { key: dragoon,         val: 15 }
+    { key: soldier,         val: 45 }
     { key: veteran_dragoon, val: 10 }
+    { key: veteran_soldier, val: 30 }
   ]
 
   # If a colony is eligible for an uprising (based on its de-

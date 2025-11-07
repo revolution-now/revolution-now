@@ -54,6 +54,14 @@ static_assert(
 static_assert(
     is_nothrow_move_assignable_v<enum_map<e_color, int>> );
 
+// Our iterable element is a type of pair of Enum and Value; make
+// sure that the first component is const as it should be for a
+// map-like object.
+static_assert(
+    is_const_v<decltype( declval<enum_map<e_color, int>>()
+                             .begin()
+                             ->first )> );
+
 TEST_CASE( "[enum-map] enum_map empty" ) {
   enum_map<e_empty, int> m;
   static_assert( m.kSize == 0 );
@@ -214,7 +222,8 @@ struct NonCopyable {
   NonCopyable( NonCopyable const& )            = delete;
   NonCopyable& operator=( NonCopyable const& ) = delete;
 
-  NonCopyable& operator=( NonCopyable&& ) = default;
+  [[maybe_unused]] NonCopyable( NonCopyable&& ) = default;
+  NonCopyable& operator=( NonCopyable&& )       = default;
 
   bool operator==( NonCopyable const& ) const = default;
 
