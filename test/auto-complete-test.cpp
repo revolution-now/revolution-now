@@ -348,12 +348,9 @@ TEST_CASE( "[auto-complete] autocomplete_iterative" ) {
 }
 
 LUA_TEST_CASE(
-    "[auto-complete] autocomplete for serializable game state" ) {
+    "[auto-complete] autocomplete for serializable game "
+    "state" ) {
   world w;
-  // FIXME: we need this so that the autocomplete logic can call
-  // meta.all_pairs, which it really shouldn't be doing, but has
-  // to because luapp currently has no way to do proper lua-style
-  // iteration on the result of the pairs method.
   w.expensive_run_lua_init();
 
   lua::state& st = w.lua();

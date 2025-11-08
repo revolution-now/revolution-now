@@ -12,6 +12,7 @@
 
 // luapp
 #include "any.hpp"
+#include "rfunction.hpp"
 #include "rtable.hpp"
 
 // C++ standard library
@@ -20,27 +21,83 @@
 namespace lua {
 
 /****************************************************************
-** raw_table_iterator
+** Lua-style table iteration.
+*****************************************************************/
+// This is what should be used by default to iterate because it
+// will call the __pairs metamethod. You can use it like so:
+//
+//   for( auto const& [k, v] : lua::pairs( x ) )
+//     ...
+//
+// If you omit the pairs() and just iterate over a table then you
+// will get the raw table iteration further below, which can only
+// iterate over keys that are explicitly there.
+struct lua_iterator {
+  using iterator_category = std::input_iterator_tag;
+  using difference_type   = int;
+  using value_type        = std::pair<any, any>;
+  using pointer           = std::pair<any, any>*;
+  using reference         = std::pair<any, any>&;
+
+  lua_iterator( rfunction next, table tbl, any seed );
+
+  lua_iterator() = default; // end iterator
+
+  lua_iterator( lua_iterator const& ) = default;
+  lua_iterator( lua_iterator&& )      = default;
+
+  lua_iterator& operator=( lua_iterator const& ) = default;
+  lua_iterator& operator=( lua_iterator&& )      = default;
+
+  value_type const& operator*() const;
+
+  value_type const* operator->() const;
+
+  lua_iterator& operator++();
+
+  lua_iterator operator++( int ) {
+    auto res = *this;
+    ++( *this );
+    return res;
+  }
+
+  bool operator==( lua_iterator const& rhs ) const;
+
+  bool operator!=( lua_iterator const& rhs ) const {
+    return !( *this == rhs );
+  }
+
+ private:
+  struct iter_data {
+    rfunction next;
+    table tbl;
+    // NOTE: the third component of the iteration trio is in the
+    // first component of the pair, namely the previous key.
+    value_type value;
+  };
+  base::maybe<iter_data> data_;
+};
+
+struct pairs {
+  pairs( any const a ) : a( a ) {}
+  any const a;
+};
+
+lua_iterator begin( pairs p ) noexcept;
+lua_iterator end( pairs p ) noexcept;
+
+/****************************************************************
+** Raw table iteration.
 *****************************************************************/
 // NOTE: Iteration order of keys when using lua_next is not spec-
 // ified, even for numeric indices. To iterate through the in-
 // dices of an array in order, use a numerical-for loop, or C
 // equivalent (i.e. don't use this in that case).
 //
-// FIXME: There is a problem with this: 1) it only iterates
-// through a table, and 2) it only iterates through keys/values
-// that are explicitly present in the table, as opposed to using
-// the __pairs metamethod. What we should probably do instead is
-// to create an iteration mechanism that mirrors the one that lua
-// uses (which is function based). Then, using that, we could it-
-// erate on the result of the `pairs` or `ipairs` methods to get
-// the relevant keys/values as would be done in real Lua code.
-// The current iterator could be kept since it could theoreti-
-// cally be useful, but if so, then at least it should be renamed
-// to something like "explicit k/v table iterator."
-//
-// FIXME: do the above using base::generator<T>.
-
+// This is only for iterating among keys that are literally in
+// the table. Normally though you should iterate using the
+// lua-style iterator which will call pairs on the table and then
+// iterate using Lua's function based iteration.
 struct raw_table_iterator {
   using iterator_category = std::input_iterator_tag;
   using difference_type   = int;

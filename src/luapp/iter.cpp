@@ -21,12 +21,83 @@ using namespace std;
 
 namespace lua {
 
-raw_table_iterator begin( table tbl ) noexcept {
-  return raw_table_iterator( tbl, /*is_end=*/false );
+/****************************************************************
+** lua_iterator
+*****************************************************************/
+lua_iterator::lua_iterator( rfunction const next,
+                            table const tbl, any const seed ) {
+  cthread const L = tbl.this_cthread();
+  c_api C( L );
+  SCOPE_CHECK_STACK_UNCHANGED;
+  push( L, next );
+  push( L, tbl );
+  push( L, seed );
+  C.call( 2, 2 );
+  // Order matters here.
+  any const val( L, C.ref_registry() );
+  any const key( L, C.ref_registry() );
+  if( key == nil ) return;
+  data_ = { .next = next, .tbl = tbl, .value = { key, val } };
 }
 
-raw_table_iterator end( table tbl ) noexcept {
-  return raw_table_iterator( tbl, /*is_end=*/true );
+lua_iterator::value_type const& lua_iterator::operator*() const {
+  CHECK( data_.has_value(),
+         "attempt to dereference an invalid table iterator." );
+  return data_->value;
+}
+
+lua_iterator::value_type const* lua_iterator::operator->()
+    const {
+  CHECK( data_.has_value(),
+         "attempt to dereference an invalid table iterator." );
+  return &data_->value;
+}
+
+bool lua_iterator::operator==( lua_iterator const& rhs ) const {
+  if( data_.has_value() != rhs.data_.has_value() ) return false;
+  if( !data_.has_value() ) return true;
+  return data_->value.first == rhs.data_->value.first;
+}
+
+lua_iterator& lua_iterator::operator++() {
+  CHECK( data_.has_value(),
+         "attempt to iterate beyond the end of a table." );
+  auto& [next, tbl, value] = *data_;
+  auto const prev_key      = value.first;
+  cthread const L          = tbl.this_cthread();
+  c_api C( L );
+  SCOPE_CHECK_STACK_UNCHANGED;
+  push( L, next );
+  push( L, tbl );
+  push( L, prev_key );
+  C.call( 2, 2 );
+  // Order matters here.
+  any const val( L, C.ref_registry() );
+  any const key( L, C.ref_registry() );
+  if( key == nil )
+    data_.reset();
+  else
+    data_ = { .next = next, .tbl = tbl, .value = { key, val } };
+  return *this;
+}
+
+lua_iterator begin( pairs const p ) noexcept {
+  cthread const L = p.a.this_cthread();
+  c_api C( L );
+  SCOPE_CHECK_STACK_UNCHANGED;
+  if( C.getglobal( "pairs" ) == type::nil )
+    C.error( "pairs method not found among globals" );
+  push( L, p.a );
+  C.call( 1, 3 );
+  // Order matters here.
+  any const seed( L, C.ref_registry() );
+  table const t( L, C.ref_registry() );
+  rfunction const fn( L, C.ref_registry() );
+  return lua_iterator( fn, t, seed );
+}
+
+lua_iterator end( pairs const ) noexcept {
+  return lua_iterator();
 }
 
 /****************************************************************
@@ -94,6 +165,14 @@ raw_table_iterator& raw_table_iterator::operator++() {
   curr_pair_ = pair{ key, val };
   C.pop();
   return *this;
+}
+
+raw_table_iterator begin( table tbl ) noexcept {
+  return raw_table_iterator( tbl, /*is_end=*/false );
+}
+
+raw_table_iterator end( table tbl ) noexcept {
+  return raw_table_iterator( tbl, /*is_end=*/true );
 }
 
 } // namespace lua

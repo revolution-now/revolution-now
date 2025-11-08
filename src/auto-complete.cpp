@@ -88,29 +88,22 @@ vector<string> autocomplete( lua::state& st,
       res = lua::as<lua::table>( o );
     if( lua::type_of( o ) == lua::type::userdata ) {
       lua::userdata ud = lua::as<lua::userdata>( o );
-
+      // FIXME: rework this to handle userdata types by using lu-
+      // a::pairs to iterate over their methods (userdata will
+      // need to be given a __pairs metamethod).
       res = ud[lua::metatable_key]["member_types"]
                 .as<lua::table>();
     }
     return res;
   };
 
-  auto lifted_pairs_for_table = [&]( lua::table t ) {
-    // FIXME: luapp should have a way to iterate something using
-    // proper lua style iteration (which we could then use on the
-    // result of the pairs method and would not then need the
-    // all_pairs method here). Currently luapp can only iterate
-    // through the keys/values in a table that are physically
-    // present, as opposed to those produced by a __pairs
-    // metamethod.
-    return lua::as<lua::table>( st["meta"]["all_pairs"]( t ) );
-  };
-
   auto table_count_if = [&]( lua::table t, auto&& func ) {
-    int size    = 0;
-    auto lifted = lifted_pairs_for_table( t );
-    for( auto p : lifted )
-      if( func( lua::any( lifted ), p.first ) ) ++size;
+    int size = 0;
+    // Need pairs because some tables might have been frozen
+    // which means that they can only be iterated via __pairs.
+    for( auto p : lua::pairs( t ) )
+      if( func( lua::any( t ), p.first ) ) //
+        ++size;
     return size;
   };
 
@@ -175,7 +168,9 @@ vector<string> autocomplete( lua::state& st,
       }
     }
   };
-  for( auto p : lifted_pairs_for_table( curr_table ) )
+  // Need pairs because some tables might have been frozen which
+  // means that they can only be iterated via __pairs.
+  for( auto p : lua::pairs( curr_table ) )
     add_keys( curr_obj, p );
 
   sort( res.begin(), res.end() );
@@ -186,9 +181,9 @@ vector<string> autocomplete( lua::state& st,
         base::str_replace_all( match, { { ":", "." } } );
     auto fragment_dots =
         base::str_replace_all( fragment, { { ":", "." } } );
-    DCHECK( util::starts_with( match_dots, fragment_dots ),
-            "`{}` does not start with `{}`", match_dots,
-            fragment_dots );
+    CHECK( util::starts_with( match_dots, fragment_dots ),
+           "`{}` does not start with `{}`", match_dots,
+           fragment_dots );
   }
 
   if( res.size() == 0 ) {
@@ -203,7 +198,7 @@ vector<string> autocomplete( lua::state& st,
     return res;
   }
 
-  DCHECK( res.size() == 1 );
+  CHECK( res.size() == 1 );
   if( res[0] == fragment ) {
     trace( "res[0], fragment: {},{}", res[0], fragment );
     // Need to use curr_obj instead of curr_table because we need
@@ -212,7 +207,7 @@ vector<string> autocomplete( lua::state& st,
     // member_types table (from which the keys of the userdata
     // are extracted) are always bools (see luapp/userdata).
     lua::any o = curr_obj[last];
-    DCHECK( o != lua::nil );
+    CHECK( o != lua::nil );
     if( lua::type_of( o ) == lua::type::table ) {
       UNWRAP_CHECK( t, table_for_object( o ) );
       auto size = table_size_non_meta( t );

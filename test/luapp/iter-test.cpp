@@ -32,7 +32,7 @@ using namespace std;
 
 using ::Catch::UnorderedEquals;
 
-LUA_TEST_CASE( "[iter] empty" ) {
+LUA_TEST_CASE( "[iter] raw_table_iterator|empty" ) {
   st["tbl"] = st.table.create();
 
   vector<pair<string, int>> pairs;
@@ -47,7 +47,7 @@ LUA_TEST_CASE( "[iter] empty" ) {
   REQUIRE_THAT( pairs, Catch::UnorderedEquals( expected ) );
 }
 
-LUA_TEST_CASE( "[iter] single" ) {
+LUA_TEST_CASE( "[iter] raw_table_iterator|single" ) {
   st["tbl"]          = st.table.create();
   st["tbl"]["hello"] = 5;
 
@@ -63,7 +63,7 @@ LUA_TEST_CASE( "[iter] single" ) {
   REQUIRE_THAT( pairs, Catch::UnorderedEquals( expected ) );
 }
 
-LUA_TEST_CASE( "[iter] iterate" ) {
+LUA_TEST_CASE( "[iter] raw_table_iterator|iterate" ) {
   st["tbl"]            = st.table.create();
   st["tbl"]["hello"]   = 5;
   st["tbl"]["world"]   = 6;
@@ -82,7 +82,8 @@ LUA_TEST_CASE( "[iter] iterate" ) {
   REQUIRE_THAT( pairs, Catch::UnorderedEquals( expected ) );
 }
 
-LUA_TEST_CASE( "[iter] iterate with numbers" ) {
+LUA_TEST_CASE(
+    "[iter] raw_table_iterator|iterate with numbers" ) {
   st["tbl"]          = st.table.create();
   st["tbl"][5]       = 5;
   st["tbl"]["world"] = 6;
@@ -137,6 +138,124 @@ LUA_TEST_CASE( "[iter] iterate with numbers" ) {
   }
 
   REQUIRE( it == end( tbl ) );
+}
+
+LUA_TEST_CASE( "[iter] raw_table_iterator|has __pairs" ) {
+  st.lib.open_all();
+
+  string const script = R"lua(
+    tbl = {}
+    local mt = {
+      __pairs=function( tbl )
+        local inside = { x=1, y=2, z=3 }
+        return next, inside, nil
+      end
+    }
+    setmetatable( tbl, mt )
+  )lua";
+  st.script.run( script );
+
+  vector<pair<string, int>> res;
+
+  table const tbl = as<table>( st["tbl"] );
+
+  for( auto& [k, v] : tbl )
+    res.push_back( { as<string>( k ), as<int>( v ) } );
+
+  // Got nothing.
+  vector<pair<string, int>> expected;
+
+  REQUIRE_THAT( res, Catch::UnorderedEquals( expected ) );
+}
+
+LUA_TEST_CASE( "[iter] lua_iterator|iterate no __pairs" ) {
+  st.lib.open_all(); // need pairs method.
+
+  st["tbl"]            = st.table.create();
+  st["tbl"]["hello"]   = 5;
+  st["tbl"]["world"]   = 6;
+  st["tbl"]["the_end"] = 7;
+
+  vector<pair<string, int>> res;
+
+  table tbl = as<table>( st["tbl"] );
+
+  for( auto& [k, v] : pairs( tbl ) )
+    res.push_back( { as<string>( k ), as<int>( v ) } );
+
+  vector<pair<string, int>> expected{
+    { "hello", 5 }, { "world", 6 }, { "the_end", 7 } };
+
+  REQUIRE_THAT( res, Catch::UnorderedEquals( expected ) );
+}
+
+LUA_TEST_CASE( "[iter] lua_iterator|has __pairs, empty" ) {
+  st.lib.open_all();
+
+  string const script = R"lua(
+    tbl = {}
+    local mt = {
+      __pairs=function( tbl )
+        local inside = {}
+        return next, inside, nil
+      end
+    }
+    setmetatable( tbl, mt )
+  )lua";
+  st.script.run( script );
+
+  vector<pair<string, int>> res;
+
+  table const tbl = as<table>( st["tbl"] );
+
+  for( auto& [k, v] : pairs( tbl ) )
+    res.push_back( { as<string>( k ), as<int>( v ) } );
+
+  vector<pair<string, int>> expected;
+
+  REQUIRE_THAT( res, Catch::UnorderedEquals( expected ) );
+}
+
+LUA_TEST_CASE( "[iter] lua_iterator|has __pairs" ) {
+  st.lib.open_all();
+
+  string const script = R"lua(
+    tbl = {}
+    local mt = {
+      __pairs=function( tbl )
+        local inside = { x=1, hello=2, z=3 }
+        return next, inside, nil
+      end
+    }
+    setmetatable( tbl, mt )
+  )lua";
+  st.script.run( script );
+
+  vector<pair<string, int>> res;
+
+  table const tbl = as<table>( st["tbl"] );
+
+  for( auto& [k, v] : pairs( tbl ) )
+    res.push_back( { as<string>( k ), as<int>( v ) } );
+
+  vector<pair<string, int>> expected{
+    { "x", 1 }, { "hello", 2 }, { "z", 3 } };
+
+  REQUIRE_THAT( res, Catch::UnorderedEquals( expected ) );
+}
+
+LUA_TEST_CASE( "[iter] lua_iterator|_G two ways" ) {
+  st.lib.open_all();
+
+  vector<string> v1;
+  for( auto& [k, v] : st.table.global() )
+    v1.push_back( k.as<string>() );
+
+  vector<string> v2;
+  for( auto& [k, v] : pairs( st.table.global() ) )
+    v2.push_back( k.as<string>() );
+
+  REQUIRE_THAT( v1, Catch::UnorderedEquals( v2 ) );
 }
 
 } // namespace
