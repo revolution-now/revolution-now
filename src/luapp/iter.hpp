@@ -68,6 +68,8 @@ struct lua_iterator {
   }
 
  private:
+  void advance( rfunction next, table tbl, any prev_key );
+
   struct iter_data {
     rfunction next;
     table tbl;

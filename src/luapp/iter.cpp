@@ -29,15 +29,7 @@ lua_iterator::lua_iterator( rfunction const next,
   cthread const L = tbl.this_cthread();
   c_api C( L );
   SCOPE_CHECK_STACK_UNCHANGED;
-  push( L, next );
-  push( L, tbl );
-  push( L, seed );
-  C.call( 2, 2 );
-  // Order matters here.
-  any const val( L, C.ref_registry() );
-  any const key( L, C.ref_registry() );
-  if( key == nil ) return;
-  data_ = { .next = next, .tbl = tbl, .value = { key, val } };
+  advance( next, tbl, seed );
 }
 
 lua_iterator::value_type const& lua_iterator::operator*() const {
@@ -64,7 +56,14 @@ lua_iterator& lua_iterator::operator++() {
          "attempt to iterate beyond the end of a table." );
   auto& [next, tbl, value] = *data_;
   auto const prev_key      = value.first;
-  cthread const L          = tbl.this_cthread();
+  advance( next, tbl, prev_key );
+  return *this;
+}
+
+void lua_iterator::advance( rfunction const next,
+                            table const tbl,
+                            any const prev_key ) {
+  cthread const L = tbl.this_cthread();
   c_api C( L );
   SCOPE_CHECK_STACK_UNCHANGED;
   push( L, next );
@@ -78,7 +77,6 @@ lua_iterator& lua_iterator::operator++() {
     data_.reset();
   else
     data_ = { .next = next, .tbl = tbl, .value = { key, val } };
-  return *this;
 }
 
 lua_iterator begin( pairs const p ) noexcept {
