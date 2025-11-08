@@ -26,22 +26,19 @@ namespace lua {
 *****************************************************************/
 lua_iterator::lua_iterator( rfunction const next,
                             table const tbl, any const seed ) {
-  cthread const L = tbl.this_cthread();
-  c_api C( L );
-  SCOPE_CHECK_STACK_UNCHANGED;
   advance( next, tbl, seed );
 }
 
 lua_iterator::value_type const& lua_iterator::operator*() const {
   CHECK( data_.has_value(),
-         "attempt to dereference an invalid table iterator." );
+         "attempt to dereference an invalid iterator." );
   return data_->value;
 }
 
 lua_iterator::value_type const* lua_iterator::operator->()
     const {
   CHECK( data_.has_value(),
-         "attempt to dereference an invalid table iterator." );
+         "attempt to dereference an invalid iterator." );
   return &data_->value;
 }
 
@@ -54,9 +51,8 @@ bool lua_iterator::operator==( lua_iterator const& rhs ) const {
 lua_iterator& lua_iterator::operator++() {
   CHECK( data_.has_value(),
          "attempt to iterate beyond the end of a table." );
-  auto& [next, tbl, value] = *data_;
-  auto const prev_key      = value.first;
-  advance( next, tbl, prev_key );
+  auto const& [next, tbl, value] = *data_;
+  advance( next, tbl, value.first );
   return *this;
 }
 
