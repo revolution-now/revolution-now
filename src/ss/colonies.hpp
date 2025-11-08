@@ -51,6 +51,11 @@ struct ColoniesState {
   Colony const& colony_for( ColonyId id ) const;
   Colony& colony_for( ColonyId id );
 
+  // Will return nothing if the colony no longer exists. But note
+  // that it had to exist at one point, otherwise check fail.
+  base::maybe<Colony const&> maybe_for( ColonyId id ) const;
+  base::maybe<Colony&> maybe_for( ColonyId id );
+
   Coord coord_for( ColonyId id ) const;
 
   base::maybe<ColonyId> maybe_from_coord( Coord const& c ) const;

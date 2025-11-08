@@ -92,9 +92,9 @@ string name_for_target_with_cutoff(
     SSConst const& ss, Player const& player,
     TradeRouteTarget const& target,
     rr::ITextometer const& textometer,
-    rr::TextLayout const& text_layout,
-    int const max_pixel_width ) {
-  string name = name_for_target( ss, player, target );
+    rr::TextLayout const& text_layout, int const max_pixel_width,
+    TradeRoutesSanitizedToken const& token ) {
+  string name = name_for_target( ss, player, target, token );
   text_cutoff( textometer, text_layout, max_pixel_width,
                /*suffix=*/"...", /*fallback=*/"-", name );
   return name;
@@ -215,7 +215,8 @@ Layout layout_auto( IEngine& engine, SSConst const& ss,
                     Player const& player,
                     e_resolution const resolution,
                     TradeRoute const& route,
-                    rr::ITextometer const& textometer ) {
+                    rr::ITextometer const& textometer,
+                    TradeRoutesSanitizedToken const& token ) {
   Layout l;
 
   l.text_layout = {
@@ -393,12 +394,12 @@ Layout layout_auto( IEngine& engine, SSConst const& ss,
             .moved_up( kIconSize.h / 2 )
             .moved_down( 1 );
 
-    stop.destination_text.text =
-        format( "{}. {}", stop.index + 1,
-                name_for_target_with_cutoff(
-                    ss, player, route_stop.target,
-                    engine.textometer(), l.text_layout,
-                    cell_inner_width - num_prefix_width ) );
+    stop.destination_text.text = format(
+        "{}. {}", stop.index + 1,
+        name_for_target_with_cutoff(
+            ss, player, route_stop.target, engine.textometer(),
+            l.text_layout, cell_inner_width - num_prefix_width,
+            token ) );
     stop.destination_ui_icon_nw =
         stop.destination_ui_icon_nw
             .with_x( stop.destination_text.nw.x )
@@ -523,10 +524,11 @@ Layout layout_auto( IEngine& engine, SSConst const& ss,
 Layout layout_576x360( IEngine& engine, SSConst const& ss,
                        Player const& player,
                        TradeRoute const& route,
-                       rr::ITextometer const& textometer ) {
+                       rr::ITextometer const& textometer,
+                       TradeRoutesSanitizedToken const& token ) {
   Layout l =
       layout_auto( engine, ss, player, e_resolution::_576x360,
-                   route, textometer );
+                   route, textometer, token );
   // Customize.
   return l;
 }
@@ -547,6 +549,7 @@ struct TradeRouteUI : public IPlane {
   TerrainConnectivity const& connectivity_;
   TradeRouteState& trade_route_state_modify_only_on_save_;
   TradeRouteState trade_route_state_;
+  TradeRoutesSanitizedToken const& token_;
   maybe<Layout> layout_    = {};
   wait_promise<> finished_ = {};
   co::stream<Input> in_;
@@ -562,6 +565,7 @@ struct TradeRouteUI : public IPlane {
                 TerrainConnectivity const& connectivity,
                 TradeRouteState& trade_route_state_real,
                 TradeRouteState const& trade_route_state_to_edit,
+                TradeRoutesSanitizedToken const& token,
                 TradeRouteId const initial_id )
     : engine_( engine ),
       ss_( ss ),
@@ -571,6 +575,7 @@ struct TradeRouteUI : public IPlane {
       trade_route_state_modify_only_on_save_(
           trade_route_state_real ),
       trade_route_state_( trade_route_state_to_edit ),
+      token_( token ),
       curr_id_( initial_id ) {
     if( auto const named = named_resolution( engine_ );
         named.has_value() )
@@ -606,10 +611,11 @@ struct TradeRouteUI : public IPlane {
       case _576x360:
         // Example for how to customize per resolution.
         return layout_576x360( engine_, ss_, player_, route,
-                               engine_.textometer() );
+                               engine_.textometer(), token_ );
       default:
         return layout_auto( engine_, ss_, player_, resolution,
-                            route, engine_.textometer() );
+                            route, engine_.textometer(),
+                            token_ );
     }
   }
 
@@ -1034,7 +1040,7 @@ struct TradeRouteUI : public IPlane {
       config.options.push_back( ChoiceConfigOption{
         .key = to_string( idx++ ),
         .display_name =
-            name_for_target( ss_, player_, target ) } );
+            name_for_target( ss_, player_, target, token_ ) } );
     if( show_delete ) {
       show_delete_idx = idx++;
       config.options.push_back( ChoiceConfigOption{
@@ -1112,7 +1118,8 @@ struct TradeRouteUI : public IPlane {
           YesNoConfig const config{
             .msg = format(
                 "Are you sure you want to delete stop [{}]?",
-                name_for_target( ss_, player_, target ) ),
+                name_for_target( ss_, player_, target,
+                                 token_ ) ),
             .yes_label      = "Delete",
             .no_label       = "Cancel",
             .no_comes_first = true,
@@ -1183,9 +1190,10 @@ struct TradeRouteUI : public IPlane {
           CHECK_LT( load_add.stop, ssize( route.stops ) );
           TradeRouteStop& stop = route.stops[load_add.stop];
           EnumChoiceConfig config{
-            .msg = format(
-                "Select cargo to load at [{}]:",
-                name_for_target( ss_, player_, stop.target ) ),
+            .msg =
+                format( "Select cargo to load at [{}]:",
+                        name_for_target( ss_, player_,
+                                         stop.target, token_ ) ),
           };
           auto const choice =
               co_await gui_.optional_enum_choice<e_commodity>(
@@ -1199,9 +1207,10 @@ struct TradeRouteUI : public IPlane {
           CHECK_LT( unload_add.stop, ssize( route.stops ) );
           TradeRouteStop& stop = route.stops[unload_add.stop];
           EnumChoiceConfig config{
-            .msg = format(
-                "Select cargo to unload at [{}]:",
-                name_for_target( ss_, player_, stop.target ) ),
+            .msg =
+                format( "Select cargo to unload at [{}]:",
+                        name_for_target( ss_, player_,
+                                         stop.target, token_ ) ),
           };
           auto const choice =
               co_await gui_.optional_enum_choice<e_commodity>(
@@ -1249,12 +1258,13 @@ wait<> show_trade_route_edit_ui(
     IEngine& engine, SSConst const& ss, Player const& player,
     IGui& gui, TerrainConnectivity const& connectivity,
     Planes& planes, TradeRouteState& trade_route_state,
-    TradeRouteId const trade_route_id ) {
+    TradeRouteId const trade_route_id,
+    TradeRoutesSanitizedToken const& token ) {
   auto owner        = planes.push();
   PlaneGroup& group = owner.group;
   TradeRouteUI trade_route_ui(
       engine, ss, player, gui, connectivity, trade_route_state,
-      trade_route_state, trade_route_id );
+      trade_route_state, token, trade_route_id );
   group.bottom = &trade_route_ui;
   co_await trade_route_ui.run();
 }
@@ -1263,7 +1273,8 @@ wait<> show_trade_route_create_ui(
     IEngine& engine, SSConst const& ss, Player const& player,
     IGui& gui, TerrainConnectivity const& connectivity,
     Planes& planes, TradeRouteState& trade_route_state,
-    TradeRoute const& new_trade_route ) {
+    TradeRoute const& new_trade_route,
+    TradeRoutesSanitizedToken const& token ) {
   auto owner        = planes.push();
   PlaneGroup& group = owner.group;
   CHECK_GT( new_trade_route.id, 0 );
@@ -1273,7 +1284,7 @@ wait<> show_trade_route_create_ui(
   with_new_added.routes[new_trade_route.id] = new_trade_route;
   TradeRouteUI trade_route_ui(
       engine, ss, player, gui, connectivity, trade_route_state,
-      with_new_added, new_trade_route.id );
+      with_new_added, token, new_trade_route.id );
   group.bottom = &trade_route_ui;
   co_await trade_route_ui.run();
 }

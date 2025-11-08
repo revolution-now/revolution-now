@@ -57,6 +57,55 @@ struct world : testing::World {
 /****************************************************************
 ** Test Cases
 *****************************************************************/
+TEST_CASE( "[trade-route] validate_token" ) {
+  world w;
+}
+
+TEST_CASE( "[trade-route] sanitize_trade_routes" ) {
+  world w;
+}
+
+TEST_CASE( "[trade-route] show_sanitization_actions" ) {
+  world w;
+}
+
+TEST_CASE( "[trade-route] run_trade_route_sanitization" ) {
+  world w;
+}
+
+TEST_CASE( "[trade-route] sanitize_unit_orders" ) {
+  world w;
+}
+
+TEST_CASE( "[trade-route] look_up_trade_route (non-const)" ) {
+  world w;
+}
+
+TEST_CASE( "[trade-route] look_up_trade_route (const)" ) {
+  world w;
+}
+
+TEST_CASE( "[trade-route] look_up_trade_route_stop" ) {
+  world w;
+}
+
+TEST_CASE( "[trade-route] look_up_next_trade_route_stop" ) {
+  world w;
+}
+
+TEST_CASE( "[trade-route] curr_trade_route_target" ) {
+  world w;
+}
+
+TEST_CASE( "[trade-route] are_all_stops_identical" ) {
+  world w;
+}
+
+TEST_CASE(
+    "[trade-route] convert_trade_route_target_to_goto_target" ) {
+  world w;
+}
+
 TEST_CASE( "[trade-route] unit_can_start_trade_route" ) {
   world w;
 
@@ -81,15 +130,7 @@ TEST_CASE( "[trade-route] unit_can_start_trade_route" ) {
   REQUIRE_FALSE( f( treasure ) );
 }
 
-TEST_CASE( "[trade-route] look_up_trade_route" ) {
-  world w;
-}
-
-TEST_CASE( "[trade-route] look_up_trade_route_stop" ) {
-  world w;
-}
-
-TEST_CASE( "[trade-route] look_up_next_trade_route_stop" ) {
+TEST_CASE( "[trade-route] unit_has_reached_trade_route_stop" ) {
   world w;
 }
 
@@ -139,18 +180,6 @@ TEST_CASE( "[trade-route] ask_first_stop" ) {
 }
 
 TEST_CASE( "[trade-route] confirm_trade_route_orders" ) {
-  world w;
-}
-
-TEST_CASE( "[trade-route] curr_trade_route_target" ) {
-  world w;
-}
-
-TEST_CASE( "[trade-route] are_all_stops_identical" ) {
-  world w;
-}
-
-TEST_CASE( "[trade-route] unit_has_reached_trade_route_stop" ) {
   world w;
 }
 

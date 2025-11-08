@@ -24,10 +24,11 @@ namespace rn {
 struct IEngine;
 struct IGui;
 struct Planes;
-struct SSConst;
 struct Player;
+struct SSConst;
 struct TerrainConnectivity;
 struct TradeRoute;
+struct TradeRoutesSanitizedToken;
 struct TradeRouteState;
 
 /****************************************************************
@@ -38,7 +39,8 @@ wait<> show_trade_route_edit_ui(
     IEngine& engine, SSConst const& ss, Player const& player,
     IGui& gui, TerrainConnectivity const& connectivity,
     Planes& planes, TradeRouteState& trade_route_state,
-    TradeRouteId trade_route_id );
+    TradeRouteId trade_route_id,
+    TradeRoutesSanitizedToken const& token );
 
 // The new trade route should have a valid/unique ID, but should
 // not yet have been added into the list of routes.
@@ -46,6 +48,7 @@ wait<> show_trade_route_create_ui(
     IEngine& engine, SSConst const& ss, Player const& player,
     IGui& gui, TerrainConnectivity const& connectivity,
     Planes& planes, TradeRouteState& trade_route_state,
-    TradeRoute const& new_trade_route );
+    TradeRoute const& new_trade_route,
+    TradeRoutesSanitizedToken const& token );
 
 } // namespace rn

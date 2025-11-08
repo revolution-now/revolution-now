@@ -622,16 +622,28 @@ wait<> menu_handler( IEngine& engine, SS& ss, TS& ts,
       break;
     }
     case e_menu_item::edit_trade_route: {
+      // Sanitize.
+      TradeRoutesSanitizedToken const& token =
+          co_await run_trade_route_sanitization(
+              ss.as_const, player, ss.trade_routes,
+              ts.agents()[player.type] );
+      // Edit.
       auto const trade_route_id = co_await ask_edit_trade_route(
           ss.as_const, as_const( player ), ts.gui );
       if( !trade_route_id.has_value() ) break;
       co_await show_trade_route_edit_ui(
           engine, ss.as_const, as_const( player ), ts.gui,
           ts.map_updater().connectivity(), ts.planes,
-          ss.trade_routes, *trade_route_id );
+          ss.trade_routes, *trade_route_id, token );
       break;
     }
     case e_menu_item::create_trade_route: {
+      // Sanitize.
+      TradeRoutesSanitizedToken const& token =
+          co_await run_trade_route_sanitization(
+              ss.as_const, player, ss.trade_routes,
+              ts.agents()[player.type] );
+      // Create.
       auto const params = co_await ask_create_trade_route(
           ss.as_const, as_const( player ), ts.gui,
           ts.map_updater().connectivity() );
@@ -641,7 +653,7 @@ wait<> menu_handler( IEngine& engine, SS& ss, TS& ts,
       co_await show_trade_route_create_ui(
           engine, ss.as_const, as_const( player ), ts.gui,
           ts.map_updater().connectivity(), ts.planes,
-          ss.trade_routes, trade_route );
+          ss.trade_routes, trade_route, token );
       break;
     }
     case e_menu_item::delete_trade_route: {
@@ -1393,6 +1405,12 @@ wait<> advance_unit( IEngine& engine, SS& ss, TS& ts,
   if( auto const trade_route =
           unit.orders().get_if<unit_orders::trade_route>();
       trade_route.has_value() ) {
+    // This sanitization will also be done by the player's agent
+    // before moving, but here we can run the interactive version
+    // of it to a better UX.
+    co_await run_trade_route_sanitization(
+        ss.as_const, player, ss.trade_routes,
+        ts.agents()[player.type] );
     EvolveTradeRoute const evolve_route =
         agent.evolve_trade_route( id );
     SWITCH( evolve_route ) {
@@ -1854,9 +1872,16 @@ wait<> colonies_turn( IEngine& engine, SS& ss, TS& ts,
 // Here we do things that must be done once per turn but where we
 // want the colonies to be evolved first. These things are done
 // both for the colonial player and the REF.
-wait<> post_colonies_common( SS&, TS&, Player& ) {
-  // Nothing here yet.
-  co_return;
+wait<> post_colonies_common( SS& ss, TS& ts, Player& player ) {
+  // This is technically not necessary to run here since the code
+  // that really needs this sanitization will run it there, but
+  // running here provides a better UX since the sooner we can
+  // notify the player about an invalidation of some aspect of a
+  // trade route, the better, since it will be closer to the
+  // event that actually caused it.
+  co_await run_trade_route_sanitization(
+      ss.as_const, player, ss.trade_routes,
+      ts.agents()[player.type] );
 }
 
 // Here we do things that must be done once per turn but where we

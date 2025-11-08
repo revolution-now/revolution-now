@@ -15,6 +15,7 @@
 #include "colony-mgr.hpp"
 #include "connectivity.hpp"
 #include "harbor-units.hpp"
+#include "iagent.hpp"
 #include "igui.hpp"
 #include "trade-route-ui.hpp"
 #include "unit-mgr.hpp"
@@ -28,6 +29,7 @@
 #include "ss/colonies.hpp"
 #include "ss/nation.hpp"
 #include "ss/player.rds.hpp"
+#include "ss/players.rds.hpp"
 #include "ss/ref.hpp"
 #include "ss/trade-route.hpp"
 #include "ss/unit.hpp"
@@ -112,13 +114,280 @@ wait<maybe<TradeRouteId>> ask_select_trade_route(
 } // namespace
 
 /****************************************************************
-** Public API.
+** Sanitization.
 *****************************************************************/
-[[nodiscard]] bool unit_can_start_trade_route(
-    e_unit_type const type ) {
+struct TradeRoutesSanitizedToken {
+  int authentic = 123456;
+
+ private:
+  friend TradeRoutesSanitizedToken const& sanitize_trade_routes(
+      SSConst const& ss, Player const& player,
+      TradeRouteState& trade_routes,
+      vector<TradeRouteSanitizationAction>& actions_taken );
+
+  TradeRoutesSanitizedToken() = default;
+};
+
+void validate_token( TradeRoutesSanitizedToken const& token ) {
+  CHECK( token.authentic == 123456,
+         "invalid trade route sanitization token." );
+}
+
+// Returning nothing means the stop is ok.
+static maybe<TradeRouteSanitizationAction>
+trade_route_stop_inaccessible( SSConst const& ss,
+                               Player const& player,
+                               TradeRouteTarget const& target ) {
+  SWITCH( target ) {
+    CASE( colony ) {
+      if( !ss.colonies.exists( colony.colony_id ) )
+        return TradeRouteSanitizationAction::
+            colony_no_longer_exists{};
+      Colony const& colony_o =
+          ss.colonies.colony_for( colony.colony_id );
+      if( colony_o.player != player.type )
+        return TradeRouteSanitizationAction::
+            colony_changed_player{ .colony_id =
+                                       colony.colony_id };
+      break;
+    }
+    CASE( harbor ) {
+      if( player.revolution.status >=
+          e_revolution_status::declared )
+        return TradeRouteSanitizationAction::
+            harbor_inaccessible{};
+      break;
+    }
+  }
+  return nothing;
+}
+
+TradeRoutesSanitizedToken const& sanitize_trade_routes(
+    SSConst const& ss, Player const& player,
+    TradeRouteState& trade_routes,
+    vector<TradeRouteSanitizationAction>& actions_taken ) {
+  static TradeRoutesSanitizedToken const kToken;
+  actions_taken.clear();
+
+  // Erase inaccessible stops.
+  for( auto& [route_id, route] : trade_routes.routes ) {
+    if( route.player != player.type ) continue;
+    bool const needs_removing = [&] {
+      for( TradeRouteStop const& stop : route.stops )
+        if( trade_route_stop_inaccessible( ss, player,
+                                           stop.target ) )
+          return true;
+      return false;
+    }();
+    if( !needs_removing ) continue;
+    vector<TradeRouteStop> new_stops;
+    new_stops.reserve( route.stops.size() );
+    for( TradeRouteStop const& stop : route.stops ) {
+      auto const reason = trade_route_stop_inaccessible(
+          ss, player, stop.target );
+      if( reason.has_value() ) {
+        actions_taken.push_back( *reason );
+        continue;
+      }
+      new_stops.push_back( stop );
+    }
+    route.stops = new_stops;
+  }
+
+  // Erase empty routes.
+  vector<pair<int, string>> empty;
+  for( auto const& [id, route] : trade_routes.routes ) {
+    if( route.player != player.type ) continue;
+    if( route.stops.empty() )
+      empty.push_back( pair{ id, route.name } );
+  }
+  for( auto const& [id, name] : empty ) {
+    actions_taken.push_back(
+        TradeRouteSanitizationAction::empty_route{ .name =
+                                                       name } );
+    trade_routes.routes.erase( id );
+  }
+
+  return kToken;
+}
+
+wait<> show_sanitization_actions(
+    SSConst const&, IAgent& agent,
+    vector<TradeRouteSanitizationAction> const& actions_taken,
+    TradeRoutesSanitizedToken const& token ) {
+  validate_token( token );
+  if( actions_taken.empty() ) co_return;
+  for( TradeRouteSanitizationAction const& action :
+       actions_taken ) {
+    SWITCH( action ) {
+      CASE( colony_no_longer_exists ) {
+        break;
+      }
+      CASE( colony_changed_player ) {
+        break;
+      }
+      CASE( harbor_inaccessible ) {
+        break;
+      }
+      CASE( empty_route ) {
+        break;
+      }
+    }
+  }
+  co_await agent.message_box(
+      "Some trade routes and/or trade route stops were "
+      "removed." );
+  co_return;
+}
+
+wait<std::reference_wrapper<TradeRoutesSanitizedToken const>>
+run_trade_route_sanitization( SSConst const& ss,
+                              Player const& player,
+                              TradeRouteState& trade_routes,
+                              IAgent& agent ) {
+  vector<TradeRouteSanitizationAction> actions_taken;
+  TradeRoutesSanitizedToken const& token = sanitize_trade_routes(
+      ss, player, trade_routes, actions_taken );
+  co_await show_sanitization_actions(
+      ss, agent, as_const( actions_taken ), token );
+  co_return token;
+}
+
+maybe<unit_orders::trade_route> sanitize_unit_orders(
+    SSConst const& ss, unit_orders::trade_route const& orders,
+    TradeRoutesSanitizedToken const& token ) {
+  maybe<unit_orders::trade_route> res;
+  validate_token( token );
+  auto const route =
+      look_up_trade_route( ss.trade_routes, orders.id );
+  if( !route.has_value() ) return res;
+  // This should have been caught in the sanitization process.
+  CHECK( !route->stops.empty() );
+  auto& new_orders = res.emplace();
+  new_orders       = orders;
+  if( new_orders.en_route_to_stop >= ssize( route->stops ) )
+    new_orders.en_route_to_stop = 0;
+  return res;
+}
+
+/****************************************************************
+** Querying.
+*****************************************************************/
+maybe<TradeRoute&> look_up_trade_route(
+    TradeRouteState& trade_routes, TradeRouteId const id ) {
+  auto const iter = trade_routes.routes.find( id );
+  if( iter == trade_routes.routes.end() ) return nothing;
+  return iter->second;
+}
+
+maybe<TradeRoute const&> look_up_trade_route(
+    TradeRouteState const& trade_routes,
+    TradeRouteId const id ) {
+  auto const iter = trade_routes.routes.find( id );
+  if( iter == trade_routes.routes.end() ) return nothing;
+  return iter->second;
+}
+
+maybe<TradeRouteStop const&> look_up_trade_route_stop(
+    TradeRoute const& route, int const stop ) {
+  CHECK_GE( stop, 0 );
+  if( stop >= ssize( route.stops ) ) return nothing;
+  return route.stops[stop];
+}
+
+maybe<TradeRouteStop const&> look_up_next_trade_route_stop(
+    TradeRoute const& route, int const curr_stop ) {
+  int next = curr_stop;
+  ++next;
+  if( next >= ssize( route.stops ) ) next = 0;
+  return look_up_trade_route_stop( route, next );
+}
+
+maybe<TradeRouteTarget const&> curr_trade_route_target(
+    TradeRouteState const& trade_routes, Unit const& unit ) {
+  auto const trade_orders =
+      unit.orders().get_if<unit_orders::trade_route>();
+  if( !trade_orders.has_value() ) return nothing;
+  auto const route_iter =
+      trade_routes.routes.find( trade_orders->id );
+  if( route_iter == trade_routes.routes.end() ) return nothing;
+  TradeRoute const& route = route_iter->second;
+  auto const stop         = look_up_trade_route_stop(
+      route, trade_orders->en_route_to_stop );
+  if( !stop.has_value() ) return nothing;
+  return stop->target;
+}
+
+bool are_all_stops_identical( TradeRoute const& route ) {
+  struct comp {
+    [[maybe_unused]] static bool operator()(
+        TradeRouteTarget const& l, TradeRouteTarget const& r ) {
+      return base::to_str( l ) < base::to_str( r );
+    }
+  };
+  set<TradeRouteTarget, comp> targets;
+  for( TradeRouteStop const& stop : route.stops )
+    targets.insert( stop.target );
+  return targets.size() <= 1;
+}
+
+goto_target convert_trade_route_target_to_goto_target(
+    SSConst const& ss, Player const&,
+    TradeRouteTarget const& trade_route_target,
+    TradeRoutesSanitizedToken const& token ) {
+  validate_token( token );
+  SWITCH( trade_route_target ) {
+    CASE( colony ) {
+      // Although colonies that are on trade routes can be
+      // deleted or destroyed, this should not fail because this
+      // function requires the sanitization token.
+      return goto_target::map{
+        .tile =
+            ss.colonies.colony_for( colony.colony_id ).location,
+        // We don't need a snapshot here because trade route tar-
+        // gets are always friendly tiles (or the harbor) thus
+        // there's no risk of ending up on a tile that we don't
+        // expect. Even in the case that a unit is on the way to
+        // a colony and that colony is captured, said capture
+        // will be detected and the stop will be sanitized away
+        // before we even get here.
+        .snapshot = nothing };
+    }
+    CASE( harbor ) { return goto_target::harbor{}; }
+  }
+}
+
+/****************************************************************
+** Unit Assignments.
+*****************************************************************/
+bool unit_can_start_trade_route( e_unit_type const type ) {
   return unit_attr( type ).cargo_slots > 0;
 }
 
+bool unit_has_reached_trade_route_stop( SSConst const& ss,
+                                        Unit const& unit ) {
+  auto const trade_route_target =
+      curr_trade_route_target( ss.trade_routes, unit );
+  if( !trade_route_target.has_value() ) return false;
+  SWITCH( *trade_route_target ) {
+    CASE( colony ) {
+      auto const unit_tile =
+          coord_for_unit_indirect( ss.units, unit.id() );
+      if( !unit_tile.has_value() ) return false;
+      if( !ss.colonies.exists( colony.colony_id ) ) return false;
+      point const colony_tile =
+          ss.colonies.colony_for( colony.colony_id ).location;
+      return *unit_tile == colony_tile;
+    }
+    CASE( harbor ) {
+      return is_unit_in_port( ss.units, unit.id() );
+    }
+  }
+}
+
+/****************************************************************
+** Create/Edit/Delete trade routes.
+*****************************************************************/
 wait<maybe<TradeRouteId>> ask_edit_trade_route(
     SSConst const& ss, Player const& player, IGui& gui ) {
   co_return co_await ask_select_trade_route(
@@ -172,6 +441,7 @@ wait<maybe<CreateTradeRoute>> ask_create_trade_route(
   }
   vector<ColonyId> const second_colony_candidates = [&] {
     TradeRoute dummy;
+    dummy.type = type;
     dummy.stops.push_back(
         TradeRouteStop{ .target = TradeRouteTarget::colony{
                           .colony_id = *first_colony_id } } );
@@ -326,8 +596,11 @@ vector<ColonyId> available_colonies_for_route(
   }
 }
 
-string name_for_target( SSConst const& ss, Player const& player,
-                        TradeRouteTarget const& target ) {
+string name_for_target(
+    SSConst const& ss, Player const& player,
+    TradeRouteTarget const& target,
+    TradeRoutesSanitizedToken const& token ) {
+  validate_token( token );
   string name;
   SWITCH( target ) {
     CASE( colony ) {
@@ -385,10 +658,12 @@ wait<maybe<TradeRouteId>> select_trade_route(
   co_return res;
 }
 
-wait<maybe<int>> ask_first_stop( SSConst const& ss,
-                                 Player const& player, IGui& gui,
-                                 TradeRouteId const route_id ) {
+wait<maybe<int>> ask_first_stop(
+    SSConst const& ss, Player const& player, IGui& gui,
+    TradeRouteId const route_id,
+    TradeRoutesSanitizedToken const& token ) {
   maybe<int> res;
+  validate_token( token );
   auto const iter = ss.trade_routes.routes.find( route_id );
   CHECK( iter != ss.trade_routes.routes.end(),
          "trade route {} does not exist", route_id );
@@ -398,7 +673,7 @@ wait<maybe<int>> ask_first_stop( SSConst const& ss,
     config.options.push_back( ChoiceConfigOption{
       .key = to_string( idx++ ),
       .display_name =
-          name_for_target( ss, player, stop.target ) } );
+          name_for_target( ss, player, stop.target, token ) } );
   if( !config.options.empty() )
     res = co_await gui.optional_choice_int_key( config );
   else
@@ -409,9 +684,10 @@ wait<maybe<int>> ask_first_stop( SSConst const& ss,
 }
 
 wait<maybe<TradeRouteOrdersConfirmed>>
-confirm_trade_route_orders( SSConst const& ss,
-                            Player const& player,
-                            Unit const& unit, IGui& gui ) {
+confirm_trade_route_orders(
+    SSConst const& ss, Player const& player, Unit const& unit,
+    IGui& gui, TradeRoutesSanitizedToken const& token ) {
+  validate_token( token );
   if( !unit_can_start_trade_route( unit.type() ) ) {
     // Not expected to happen since the land-view should not
     // allow trade route orders to be assigned to this unit,
@@ -446,85 +722,14 @@ confirm_trade_route_orders( SSConst const& ss,
 
   TradeRouteId const trade_route_id = *route_id;
 
-  auto const first_stop =
-      co_await ask_first_stop( ss, player, gui, trade_route_id );
+  auto const first_stop = co_await ask_first_stop(
+      ss, player, gui, trade_route_id, token );
   if( !first_stop.has_value() )
     // Either this route has no stops or the player cancelled.
     co_return nothing;
 
   co_return TradeRouteOrdersConfirmed{
     .id = trade_route_id, .en_route_to_stop = *first_stop };
-}
-
-maybe<TradeRoute&> look_up_trade_route(
-    TradeRouteState& trade_routes, TradeRouteId const id ) {
-  auto const iter = trade_routes.routes.find( id );
-  if( iter == trade_routes.routes.end() ) return nothing;
-  return iter->second;
-}
-
-maybe<TradeRouteStop const&> look_up_trade_route_stop(
-    TradeRoute const& route, int const stop ) {
-  CHECK_GE( stop, 0 );
-  if( stop >= ssize( route.stops ) ) return nothing;
-  return route.stops[stop];
-}
-
-maybe<TradeRouteStop const&> look_up_next_trade_route_stop(
-    TradeRoute const& route, int const curr_stop ) {
-  int next = curr_stop;
-  ++next;
-  if( next >= ssize( route.stops ) ) next = 0;
-  return look_up_trade_route_stop( route, next );
-}
-
-maybe<TradeRouteTarget const&> curr_trade_route_target(
-    TradeRouteState const& trade_routes, Unit const& unit ) {
-  auto const trade_orders =
-      unit.orders().get_if<unit_orders::trade_route>();
-  if( !trade_orders.has_value() ) return nothing;
-  auto const route_iter =
-      trade_routes.routes.find( trade_orders->id );
-  if( route_iter == trade_routes.routes.end() ) return nothing;
-  TradeRoute const& route = route_iter->second;
-  auto const stop         = look_up_trade_route_stop(
-      route, trade_orders->en_route_to_stop );
-  if( !stop.has_value() ) return nothing;
-  return stop->target;
-}
-
-bool are_all_stops_identical( TradeRoute const& route ) {
-  struct comp {
-    [[maybe_unused]] static bool operator()(
-        TradeRouteTarget const& l, TradeRouteTarget const& r ) {
-      return base::to_str( l ) < base::to_str( r );
-    }
-  };
-  set<TradeRouteTarget, comp> targets;
-  for( TradeRouteStop const& stop : route.stops )
-    targets.insert( stop.target );
-  return targets.size() <= 1;
-}
-
-[[nodiscard]] bool unit_has_reached_trade_route_stop(
-    SSConst const& ss, Unit const& unit ) {
-  auto const trade_route_target =
-      curr_trade_route_target( ss.trade_routes, unit );
-  if( !trade_route_target.has_value() ) return false;
-  SWITCH( *trade_route_target ) {
-    CASE( colony ) {
-      auto const unit_tile =
-          coord_for_unit_indirect( ss.units, unit.id() );
-      if( !unit_tile.has_value() ) return false;
-      if( !ss.colonies.exists( colony.colony_id ) ) return false;
-      point const colony_tile =
-          ss.colonies.colony_for( colony.colony_id ).location;
-      return *unit_tile == colony_tile;
-    }
-    CASE( harbor ) {
-      return is_unit_in_port( ss.units, unit.id() );
-    }
-  }
 }
 
 } // namespace rn

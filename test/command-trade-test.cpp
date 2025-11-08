@@ -74,14 +74,21 @@ TEST_CASE( "[command-trade] some test" ) {
   world w;
   MockIAgent& agent = w.agent();
 
+  Colony const colony1 = w.add_colony( { .x = 1, .y = 0 } );
+  Colony const colony2 = w.add_colony( { .x = 3, .y = 0 } );
+
   TradeRoute& route1 = w.trade_routes().routes[1];
   route1.id          = 1;
   route1.name        = "some route";
   route1.player      = w.default_player_type();
   route1.type        = e_trade_route_type::land;
   route1.stops.resize( 2 );
-  // TradeRouteStop& stop1 = route1.stops[0];
-  // TradeRouteStop& stop2 = route1.stops[1];
+  TradeRouteStop& stop1 = route1.stops[0];
+  TradeRouteStop& stop2 = route1.stops[1];
+  stop1.target =
+      TradeRouteTarget::colony{ .colony_id = colony1.id };
+  stop2.target =
+      TradeRouteTarget::colony{ .colony_id = colony2.id };
 
   Unit& unit = w.add_unit_on_map( e_unit_type::wagon_train,
                                   { .x = 2, .y = 2 } );

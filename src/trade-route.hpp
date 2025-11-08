@@ -17,7 +17,9 @@
 #include "wait.hpp"
 
 // ss
+#include "ss/goto.rds.hpp"
 #include "ss/trade-route-id.hpp"
+#include "ss/unit-orders.rds.hpp"
 
 // base
 #include "base/vocab.hpp"
@@ -27,6 +29,7 @@ namespace rn {
 /****************************************************************
 ** Fwd. Decls.
 *****************************************************************/
+struct IAgent;
 struct IGui;
 struct Player;
 struct SSConst;
@@ -37,10 +40,63 @@ struct Unit;
 enum class e_unit_type;
 
 /****************************************************************
+** Sanitization.
+*****************************************************************/
+// Unfortunately various things can change in the game that can
+// invalidate the set of trade routes and/or trade route stops
+// that are currently defined, and there are multiple reasons
+// this can happen (e.g., colonies being abandoned, disbanded,
+// captured, harbor being inaccessible, routes having no re-
+// maining stops, cheat mode, manual save editing, etc.). This
+// generally puts any code that reads and works with trade routes
+// at risk for either check-failing or showing/doing inconsistent
+// things. For this reason, any such code that requires a valid
+// trade routes state requires a token that proves that the
+// caller did the sanitization first before calling.
+
+// This is a token that gets passed around to ensure that the
+// trade route data has been sanitized before reading it. Saniti-
+// zation removes stops associated with non-existent or inacces-
+// sible targets, or empty routes.
+struct [[nodiscard]] TradeRoutesSanitizedToken;
+
+void validate_token( TradeRoutesSanitizedToken const& token );
+
+// The actions vector will be cleared and populated with any ac-
+// tions taken as a result of this function call.
+TradeRoutesSanitizedToken const& sanitize_trade_routes(
+    SSConst const& ss, Player const& player,
+    TradeRouteState& trade_routes,
+    std::vector<TradeRouteSanitizationAction>& actions_taken );
+
+wait<> show_sanitization_actions(
+    SSConst const&, IAgent& agent,
+    std::vector<TradeRouteSanitizationAction> const&
+        actions_taken,
+    TradeRoutesSanitizedToken const& token );
+
+// This is the preferred method to use for sanitization when in
+// an interactive context.
+wait<std::reference_wrapper<TradeRoutesSanitizedToken const>>
+run_trade_route_sanitization( SSConst const& ss,
+                              Player const& player,
+                              TradeRouteState& trade_routes,
+                              IAgent& agent );
+
+// Returns nothing if the orders cannot be salvaged, e.g. if the
+// route no longer exists.
+maybe<unit_orders::trade_route> sanitize_unit_orders(
+    SSConst const& ss, unit_orders::trade_route const& orders,
+    TradeRoutesSanitizedToken const& token );
+
+/****************************************************************
 ** Querying.
 *****************************************************************/
 maybe<TradeRoute&> look_up_trade_route(
     TradeRouteState& trade_routes, TradeRouteId id );
+
+maybe<TradeRoute const&> look_up_trade_route(
+    TradeRouteState const& trade_routes, TradeRouteId id );
 
 maybe<TradeRouteStop const&> look_up_trade_route_stop(
     TradeRoute const& route, int stop );
@@ -53,6 +109,14 @@ maybe<TradeRouteTarget const&> curr_trade_route_target(
 
 [[nodiscard]] bool are_all_stops_identical(
     TradeRoute const& route );
+
+// Include player here because the sanitization process is player
+// specific, so we want to make sure we're running in a
+// player-specific context.
+goto_target convert_trade_route_target_to_goto_target(
+    SSConst const& ss, Player const& player,
+    TradeRouteTarget const& trade_route_target,
+    TradeRoutesSanitizedToken const& token );
 
 /****************************************************************
 ** Unit Assignments.
@@ -97,9 +161,12 @@ std::vector<ColonyId> available_colonies_for_route(
     TerrainConnectivity const& connectivity,
     TradeRoute const& route );
 
-std::string name_for_target( SSConst const& ss,
-                             Player const& player,
-                             TradeRouteTarget const& target );
+// Check-fail if the target refers to a colony that no longer ex-
+// ists.
+std::string name_for_target(
+    SSConst const& ss, Player const& player,
+    TradeRouteTarget const& target,
+    TradeRoutesSanitizedToken const& token );
 
 /****************************************************************
 ** Trade Route Orders.
@@ -111,13 +178,14 @@ wait<maybe<TradeRouteId>> select_trade_route(
     SSConst const& ss, Unit const& unit, IGui& gui,
     std::vector<TradeRouteId> const& route_ids );
 
-wait<maybe<int>> ask_first_stop( SSConst const& ss,
-                                 Player const& player, IGui& gui,
-                                 TradeRouteId const route_id );
+wait<maybe<int>> ask_first_stop(
+    SSConst const& ss, Player const& player, IGui& gui,
+    TradeRouteId const route_id,
+    TradeRoutesSanitizedToken const& token );
 
 wait<maybe<TradeRouteOrdersConfirmed>>
-confirm_trade_route_orders( SSConst const& ss,
-                            Player const& player,
-                            Unit const& unit, IGui& gui );
+confirm_trade_route_orders(
+    SSConst const& ss, Player const& player, Unit const& unit,
+    IGui& gui, TradeRoutesSanitizedToken const& token );
 
 } // namespace rn

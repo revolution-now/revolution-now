@@ -32,3 +32,14 @@ struct.TradeRouteOrdersConfirmed {
     # current stop and is actually moving toward the next stop.
     en_route_to_stop 'int',
 }
+
+sumtype.TradeRouteSanitizationAction {
+  colony_no_longer_exists {},
+  colony_changed_player {
+    colony_id 'ColonyId',
+  },
+  harbor_inaccessible {},
+  empty_route {
+    name 'std::string',
+  },
+}

@@ -32,6 +32,13 @@ namespace rg = ::std::ranges;
 
 namespace rn {
 
+namespace {
+
+using ::base::maybe;
+using ::base::nothing;
+
+}
+
 /****************************************************************
 ** wrapped::ColoniesState
 *****************************************************************/
@@ -159,6 +166,19 @@ Colony const& ColoniesState::colony_for( ColonyId id ) const {
 Colony& ColoniesState::colony_for( ColonyId id ) {
   UNWRAP_CHECK_MSG( col, base::lookup( o_.colonies, id ),
                     "colony {} does not exist", id );
+  CHECK( !col.frozen.has_value() );
+  return col;
+}
+
+maybe<Colony const&> ColoniesState::maybe_for(
+    ColonyId const id ) const {
+  UNWRAP_RETURN( col, base::lookup( o_.colonies, id ) );
+  CHECK( !col.frozen.has_value() );
+  return col;
+}
+
+maybe<Colony&> ColoniesState::maybe_for( ColonyId const id ) {
+  UNWRAP_RETURN( col, base::lookup( o_.colonies, id ) );
   CHECK( !col.frozen.has_value() );
   return col;
 }

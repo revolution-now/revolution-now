@@ -1,0 +1,60 @@
+# ===============================================================
+# unit-orders.rds
+#
+# Project: Revolution Now
+#
+# Created by David P. Sicilia on 2025-11-08.
+#
+# Description: Unit orders sumtype.
+#
+# ===============================================================
+# ss
+include "goto.rds.hpp"
+include "trade-route-id.hpp"
+
+namespace "rn"
+
+sumtype.unit_orders {
+  none {},
+  sentry {},
+  # In the original game, when a unit fortifies, it does not gain
+  # the benefits of fortification until the next turn. That way
+  # you can't just immediately fortify when an enemy approaches
+  # and gain the benefits. This is visually indicated on the flag
+  # by rendering a dimmer 'F' after the fortification has gone
+  # into effect. A unit will remain in the `fortifying` stage
+  # until the next turn.
+  fortifying {},
+  fortified {},
+  road {
+    turns_worked 'int',
+  },
+  plow {
+    turns_worked 'int',
+  },
+  damaged {
+    turns_until_repair 'int',
+  },
+  go_to {
+    target 'goto_target',
+  },
+  # NOTE: The values in this trade_route orders actually do not
+  # necessarily need to be valid, because it is possible that the
+  # player could edit or delete a trade route that is being car-
+  # ried out by a unit and then save the game before the unit
+  # moves and has a chance to react. It would be possible to
+  # search through all units and edit their orders in response,
+  # but it is probably better not to try to get that right and to
+  # just let the unit react when it next moves.
+  #
+  # Note that these two fields correspond exactly to the low and
+  # high nibbles (respectively) of the unit's auxiliary_data
+  # field in the OG save file, except that the trade route ID
+  # will have to be mapped to one of the available 0-12 there.
+  trade_route {
+    id 'TradeRouteId',
+    # This is not advanced until the unit has unloaded at its
+    # current stop and is actually moving toward the next stop.
+    en_route_to_stop 'int',
+  },
+}

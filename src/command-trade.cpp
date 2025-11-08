@@ -11,8 +11,8 @@
 #include "command-trade.hpp"
 
 // Revolution Now
+#include "agents.hpp"
 #include "co-wait.hpp"
-#include "igui.hpp"
 #include "trade-route.hpp"
 #include "ts.hpp"
 
@@ -20,6 +20,7 @@
 #include "config/unit-type.rds.hpp"
 
 // ss
+#include "ss/player.rds.hpp"
 #include "ss/ref.hpp"
 #include "ss/units.hpp"
 
@@ -33,14 +34,25 @@ namespace {
 ** TradeRouteHandler
 *****************************************************************/
 struct TradeRouteHandler : public CommandHandler {
-  TradeRouteHandler( SSConst const& ss, Player const& player,
-                     Unit& unit, IGui& gui )
-    : ss_( ss ), player_( player ), unit_( unit ), gui_( gui ) {}
+  TradeRouteHandler( SS& ss, Player const& player, Unit& unit,
+                     IAgent& agent, IGui& gui )
+    : ss_( ss ),
+      player_( player ),
+      unit_( unit ),
+      agent_( agent ),
+      gui_( gui ) {}
 
   wait<bool> confirm() override {
+    // Sanitize.
+    TradeRoutesSanitizedToken const& token =
+        co_await run_trade_route_sanitization(
+            ss_.as_const, player_, ss_.trade_routes, agent_ );
+
+    // Confirm.
     auto const route_orders =
         co_await confirm_trade_route_orders(
-            ss_, player_, as_const( unit_ ), gui_ );
+            ss_.as_const, player_, as_const( unit_ ), gui_,
+            token );
     if( !route_orders.has_value() ) co_return false;
 
     trade_route_orders_ = {
@@ -58,9 +70,10 @@ struct TradeRouteHandler : public CommandHandler {
   }
 
  private:
-  SSConst const& ss_;
+  SS& ss_;
   Player const& player_;
   Unit& unit_;
+  IAgent& agent_;
   IGui& gui_;
   unit_orders::trade_route trade_route_orders_;
 };
@@ -74,8 +87,8 @@ unique_ptr<CommandHandler> handle_command(
     IEngine&, SS& ss, TS& ts, IAgent&, Player& player,
     UnitId const unit_id, command::trade_route const& ) {
   return make_unique<TradeRouteHandler>(
-      ss.as_const, as_const( player ),
-      ss.units.unit_for( unit_id ), ts.gui );
+      ss, as_const( player ), ss.units.unit_for( unit_id ),
+      ts.agents()[player.type], ts.gui );
 }
 
 } // namespace rn

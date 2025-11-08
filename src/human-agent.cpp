@@ -445,58 +445,6 @@ EvolveGoto HumanAgent::evolve_goto( UnitId const unit_id ) {
       goto_viewer, unit, target );
 }
 
-[[nodiscard]] static bool trade_route_stop_accessible(
-    SSConst const& ss, Player const& player,
-    TradeRouteTarget const& target ) {
-  SWITCH( target ) {
-    CASE( colony ) {
-      if( !ss.colonies.exists( colony.colony_id ) ) return false;
-      Colony const& colony_o =
-          ss.colonies.colony_for( colony.colony_id );
-      if( colony_o.player != player.type ) return false;
-      return true;
-    }
-    CASE( harbor ) {
-      return player.revolution.status <
-             e_revolution_status::declared;
-    }
-  }
-}
-
-static void erase_inaccessible_stops( SSConst const& ss,
-                                      Player const& player,
-                                      TradeRoute& route,
-                                      int& en_route_to_stop ) {
-  if( route.stops.empty() ) {
-    en_route_to_stop = 0;
-    return;
-  }
-  if( en_route_to_stop >= ssize( route.stops ) )
-    en_route_to_stop = 0;
-  bool const needs_removing = [&] {
-    for( TradeRouteStop const& stop : route.stops )
-      if( !trade_route_stop_accessible( ss, player,
-                                        stop.target ) )
-        return true;
-    return false;
-  }();
-  if( !needs_removing ) return;
-  vector<TradeRouteStop> new_stops;
-  new_stops.reserve( route.stops.size() );
-  for( int idx = 0; TradeRouteStop const& stop : route.stops ) {
-    if( trade_route_stop_accessible( ss, player,
-                                     stop.target ) ) {
-      new_stops.push_back( stop );
-      ++idx;
-      continue;
-    }
-    if( en_route_to_stop > idx ) {
-      --en_route_to_stop;
-      CHECK_GE( en_route_to_stop, 0 );
-    }
-  }
-}
-
 EvolveTradeRoute HumanAgent::evolve_trade_route(
     UnitId const unit_id ) {
   auto const abort = [&]( string const& /*msg*/ ) {
@@ -514,6 +462,17 @@ EvolveTradeRoute HumanAgent::evolve_trade_route(
       auto& trade_route_orders,
       unit.orders().get_if<unit_orders::trade_route>() );
 
+  vector<TradeRouteSanitizationAction> actions_taken;
+  TradeRoutesSanitizedToken const& token =
+      sanitize_trade_routes( ss_.as_const, as_const( player() ),
+                             ss_.trade_routes, actions_taken );
+
+  auto const sanitized_orders = sanitize_unit_orders(
+      ss_.as_const, as_const( trade_route_orders ), token );
+  if( !sanitized_orders.has_value() )
+    return abort( "unit orders no longer valid" );
+  trade_route_orders = *sanitized_orders;
+
   auto const route = look_up_trade_route(
       ss_.trade_routes, trade_route_orders.id );
   if( !route.has_value() )
@@ -521,37 +480,23 @@ EvolveTradeRoute HumanAgent::evolve_trade_route(
                           trade_route_orders.id ) );
   if( route->stops.empty() ) return abort( "empty stops" );
 
-  erase_inaccessible_stops(
-      ss_, player(), *route,
-      trade_route_orders.en_route_to_stop );
   if( route->stops.empty() )
     return abort( "no accessible stops" );
   CHECK_GE( trade_route_orders.en_route_to_stop, 0 );
   CHECK_LT( trade_route_orders.en_route_to_stop,
             ssize( route->stops ) );
 
-  auto const to_goto_target =
-      [&]( TradeRouteTarget const& trade_route_target )
-      -> goto_target {
-    SWITCH( trade_route_target ) {
-      CASE( colony ) {
-        return goto_target::map{
-          .tile = ss_.colonies.colony_for( colony.colony_id )
-                      .location,
-          .snapshot = nothing };
-      }
-      CASE( harbor ) { return goto_target::harbor{}; }
-    }
-  };
-
   UNWRAP_CHECK_T(
       TradeRouteStop const& stop,
       look_up_trade_route_stop(
           *route, trade_route_orders.en_route_to_stop ) );
 
-  if( !unit_has_reached_goto_target(
-          ss_, as_const( unit ),
-          to_goto_target( stop.target ) ) ) {
+  goto_target const target_goto =
+      convert_trade_route_target_to_goto_target(
+          ss_, as_const( player() ), stop.target, token );
+
+  if( !unit_has_reached_goto_target( ss_, as_const( unit ),
+                                     target_goto ) ) {
     // In the OG this is true, but in the NG it defaults to
     // false.
     bool const omniscient =
@@ -565,8 +510,6 @@ EvolveTradeRoute HumanAgent::evolve_trade_route(
                               ss_, e_player_role::viewer ) );
     GotoMapViewer const goto_viewer(
         ss_, *goto_path_viz, player_type(), unit.type() );
-    goto_target const target_goto =
-        to_goto_target( stop.target );
     EvolveGoto const evolve_goto =
         find_next_move_for_unit_with_goto_target(
             ss_.as_const, map_updater_.connectivity(),
