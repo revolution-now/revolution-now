@@ -440,7 +440,7 @@ struct c_api {
   // next returns false (and pushes nothing).
   //
   // This does NOT call the __pairs method.
-  bool next( int idx ) noexcept;
+  [[nodiscard]] bool next( int idx ) noexcept;
 
   /**************************************************************
   ** threads
