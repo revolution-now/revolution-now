@@ -42,4 +42,7 @@ sumtype.TradeRouteSanitizationAction {
   empty_route {
     name 'std::string',
   },
+  too_many_stops {
+    route_id 'TradeRouteId',
+  },
 }

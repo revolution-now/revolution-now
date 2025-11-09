@@ -62,7 +62,14 @@ struct.TradeRoute {
 
   type 'e_trade_route_type',
 
-  # NOTE: in the OG this has a maximum of four stops.
+  # In the OG this has a maximum of four stops, and so in this
+  # game we limit it to four as well. This is mainly because the
+  # editing UI only supports four stops, but also because we
+  # wouldn't be able to interconvert to the OG SAV files. This
+  # shouldn't really be an issue, even if the player has no in-
+  # tention of converting to OG SAV because they can just create
+  # more trade routes if they need to, since in the NG we don't
+  # cap them at 12 unlike the OG.
   stops 'std::vector<TradeRouteStop>',
 
   _features { equality, validation }

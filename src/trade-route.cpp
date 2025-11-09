@@ -169,6 +169,15 @@ TradeRoutesSanitizedToken const& sanitize_trade_routes(
   static TradeRoutesSanitizedToken const kToken;
   actions_taken.clear();
 
+  // Cap number of stops to four. This isn't really necessary be-
+  // cause both the editing UI and the save state validation will
+  // ensure that there are never more than four stops, but we'll
+  // be defensive.
+  for( auto& [route_id, route] : trade_routes.routes ) {
+    if( route.player != player.type ) continue;
+    if( route.stops.size() > 4 ) route.stops.resize( 4 );
+  }
+
   // Erase inaccessible stops.
   for( auto& [route_id, route] : trade_routes.routes ) {
     if( route.player != player.type ) continue;
@@ -230,6 +239,9 @@ wait<> show_sanitization_actions(
         break;
       }
       CASE( empty_route ) {
+        break;
+      }
+      CASE( too_many_stops ) {
         break;
       }
     }

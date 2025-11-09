@@ -36,6 +36,11 @@ TODO:
     will clear its orders. That said, the wagon train will go as
     far as it can before doing this.
 
+  * Allow editing the trade route of a unit by right clicking on
+    it.
+
+  * Show the trade route of the active unit in the panel.
+
   * Given how the mechanics of trade routes work where the unit
     arrives in a colony and then waits a turn before they unload
     and proceed, it seems necessary that any unit on a trade

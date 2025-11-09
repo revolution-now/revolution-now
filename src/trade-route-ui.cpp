@@ -88,6 +88,8 @@ enum class e_button_state {
 
 bool constexpr DEBUG_RECTS = false;
 
+int constexpr kMaxStops = 4;
+
 string name_for_target_with_cutoff(
     SSConst const& ss, Player const& player,
     TradeRouteTarget const& target,
@@ -202,7 +204,7 @@ struct Layout {
 
   LayoutHeader header;
 
-  array<LayoutStop, 4> stops;
+  array<LayoutStop, kMaxStops> stops;
 
   LayoutButton ok_button;
   LayoutButton cxl_button;
@@ -306,7 +308,7 @@ Layout layout_auto( IEngine& engine, SSConst const& ss,
   cur.y += kLineHeight;
 
   int const stops_total_height = l.canvas.size.h / 3;
-  int const stop_height        = stops_total_height / 4;
+  int const stop_height = stops_total_height / l.stops.size();
 
   int const column_width = ( l.canvas.size.w - 2 * margin ) / 3;
   size const cell_sz = { .w = column_width, .h = stop_height };
@@ -347,7 +349,7 @@ Layout layout_auto( IEngine& engine, SSConst const& ss,
     .size   = { .w = column_width * 3, .h = stop_height } };
 
   cur.y += stop_height;
-  for( int i = 0; i < 4; ++i ) {
+  for( int i = 0; i < ssize( l.stops ); ++i ) {
     SCOPE_EXIT { cur.y += stop_height; };
     auto& stop       = l.stops[i];
     stop.index       = i;

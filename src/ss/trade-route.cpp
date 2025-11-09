@@ -46,6 +46,11 @@ valid_or<string> TradeRoute::validate() const {
       id > 0, "invalid trade route ID in trade route target: {}",
       id );
 
+  REFL_VALIDATE( stops.size() <= 4,
+                 "trade route {} has {} stops but trade routes "
+                 "are only allowed a maximum of four.",
+                 id, stops.size() );
+
   // If trade route type is land then we cannot have any harbor
   // stops.
   if( type == e_trade_route_type::land )
