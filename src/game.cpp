@@ -101,16 +101,20 @@ wait<> run_game( IEngine& engine, Planes& planes, IGui& gui,
   // saved (not including auto-save) and/or loaded.
   RootState saved;
 
-  // This is the lua state that will be operative throughout the
-  // duration of this particular game.
-  lua::state st;
-
   Rand rand; // random seed.
   RealCombat combat( ss, rand );
   ColonyViewer colony_viewer( engine, ss );
   TerrainConnectivity connectivity;
 
   TS ts( planes, gui, rand, combat, colony_viewer, saved );
+
+  NonRenderingMapUpdater non_rendering_map_updater(
+      ss, connectivity );
+  auto _1 = ts.set_map_updater( non_rendering_map_updater );
+
+  // This is the lua state that will be operative throughout the
+  // duration of this particular game.
+  lua::state st;
 
   st["ROOT"] = ss.root;
   st["SS"]   = ss;
@@ -119,10 +123,6 @@ wait<> run_game( IEngine& engine, Planes& planes, IGui& gui,
   // Do this after we set globals so that they will be included
   // in the freezing.
   lua_init( st );
-
-  NonRenderingMapUpdater non_rendering_map_updater(
-      ss, connectivity );
-  auto _1 = ts.set_map_updater( non_rendering_map_updater );
 
   if( !co_await loader( ss, ts, st ) )
     // Didn't load a game for some reason. Could have failed or
@@ -169,27 +169,26 @@ wait<> run_game( IEngine& engine, Planes& planes, IGui& gui,
 
   ensure_human_player( ss.players );
 
-  auto owner          = planes.push();
-  PlaneGroup& group   = owner.group;
-  group.menus_enabled = true;
-  group.menu.typed().enable_cheat_menu(
-      ss.settings.cheat_options.enabled );
-
-  LandViewPlane land_view_plane( engine, ss, ts,
-                                 /*visibility=*/nothing );
-  group.set_bottom<ILandViewPlane>( land_view_plane );
-
-  PanelPlane panel_plane( engine, ss, ts, land_view_plane );
-  group.panel = panel_plane;
-
   // We could create a new terminal object here which would clear
   // the history, but there doesn't seem to be a good reason to
   // do that, so just provide continuity. Note that we are using
   // a new Lua state though for the duration of this particular
   // new or loaded game.
-  Terminal& terminal = group.console.typed().terminal();
+  Terminal& terminal = planes.get().console.typed().terminal();
+
   ConsolePlane console_plane( engine, terminal, st );
+  LandViewPlane land_view_plane( engine, ss, ts,
+                                 /*visibility=*/nothing );
+  PanelPlane panel_plane( engine, ss, ts, land_view_plane );
+
+  auto owner          = planes.push();
+  PlaneGroup& group   = owner.group;
+  group.menus_enabled = true;
+  group.menu.typed().enable_cheat_menu(
+      ss.settings.cheat_options.enabled );
+  group.panel   = panel_plane;
   group.console = console_plane;
+  group.set_bottom<ILandViewPlane>( land_view_plane );
 
   // Perform the initial rendering of the map. Even though it
   // will be wasteful in a sense, we will render the entire map
