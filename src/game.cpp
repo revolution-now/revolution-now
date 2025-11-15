@@ -32,7 +32,7 @@
 #include "land-view.hpp"
 #include "lua.hpp"
 #include "map-updater.hpp"
-#include "panel.hpp"
+#include "panel-plane.hpp"
 #include "plane-stack.hpp"
 #include "rand.hpp"
 #include "rcl-game-storage.hpp" // FIXME: temporary

@@ -1,5 +1,5 @@
 /****************************************************************
-**panel.hpp
+**panel-plane.hpp
 *
 * Project: Revolution Now
 *

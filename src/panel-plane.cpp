@@ -1,5 +1,5 @@
 /****************************************************************
-**panel.cpp
+**panel-plane.cpp
 *
 * Project: Revolution Now
 *
@@ -8,7 +8,7 @@
 * Description: The side panel on land view.
 *
 *****************************************************************/
-#include "panel.hpp"
+#include "panel-plane.hpp"
 
 // Revolution Now
 #include "cheat.hpp"

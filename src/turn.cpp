@@ -52,7 +52,7 @@
 #include "market.hpp"
 #include "native-turn.hpp"
 #include "on-map.hpp"
-#include "panel.hpp"
+#include "panel-plane.hpp"
 #include "plane-stack.hpp"
 #include "plane.hpp"
 #include "plow.hpp"
