@@ -5,5 +5,7 @@ trade_routes {
     Cargo
     Transport
     Triangle
+    Circle
+    Interchange
   ]
 }
