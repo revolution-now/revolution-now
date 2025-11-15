@@ -3,20 +3,27 @@ TODO:
   * The way that the OG loads cargo is according to market value.
     It looks at all the goods to load and it iterates through
     them and finds the most valuable one, multiplying market sell
-    price*quantity (quantity can be > 100), then it loads 100 of
-    the one that had the max value (or less than 100 if there is
-    less). If there are multiple goods tied for the max value
-    then it will take the one furthest to the right. Then it re-
-    peats this until it cannot load any further, which in this
-    case is equivalent to all slots being filled or partially
-    filled, since it should never be necessary to add more to a
-    previous slot on a subsequent iteration.
+    price*quantity (quantity can be > 100, which we allow so that
+    we also weight the selection toward commodities that we have
+    more of, all else being equal, so as to balance them out),
+    then it loads 100 of the one that had the max value (or less
+    than 100 if there is less). If there are multiple goods tied
+    for the max value then it will take the one furthest to the
+    right. Then it repeats this until it cannot load any further,
+    which in this case is equivalent to all slots being filled or
+    partially filled, since it should never be necessary to add
+    more to a previous slot on a subsequent iteration.
 
     Not sure yet if we want to replicate this... maybe we can
     have an option to either keep that behavior or have an alter-
     nate behavior where we try to divide the cargo space equally
     among the goods that need to be moved, irrespective of market
     prices.
+
+  * The way that ship loading works is that it just iterates over
+    the commodities in order and attempts to buy 100 (or as much
+    as it can fit). If it can then it will, otherwise it will
+    move onto the next one.
 
   * NOTE: the auto load algo used for trade routes seems to ap-
     pears to behave slightly differently from the "auto load"
@@ -40,6 +47,9 @@ TODO:
     it.
 
   * Show the trade route of the active unit in the panel.
+
+  * Go through the trade route files and put more stuff in the
+    configs.
 
   * Given how the mechanics of trade routes work where the unit
     arrives in a colony and then waits a turn before they unload
