@@ -10,13 +10,11 @@
 *****************************************************************/
 {{INCLUDE_MODULE_HEADER}}
 
-{{USING_NAMESPACE_STD}}
-
 namespace {{NAMESPACE}} {
 
 namespace {
 
-// TODO
+{{USING_NAMESPACE_STD}}
 
 } // namespace
 
