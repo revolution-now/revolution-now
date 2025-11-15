@@ -138,6 +138,7 @@ struct HumanAgent final : IAgent {
 
   IEngine& engine_;
   SS& ss_;
+  Player& player_;
   IMapUpdater& map_updater_;
   IGui& gui_;
   Planes& planes_;

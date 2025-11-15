@@ -85,12 +85,13 @@ valid_or<string> is_valid_colony_name_msg(
 /****************************************************************
 ** HumanAgent
 *****************************************************************/
-HumanAgent::HumanAgent( e_player player, IEngine& engine, SS& ss,
-                        IMapUpdater& map_updater, IGui& gui,
-                        Planes& planes )
+HumanAgent::HumanAgent( e_player const player, IEngine& engine,
+                        SS& ss, IMapUpdater& map_updater,
+                        IGui& gui, Planes& planes )
   : IAgent( player ),
     engine_( engine ),
     ss_( ss ),
+    player_( player_for_player_or_die( ss_.players, player ) ),
     map_updater_( map_updater ),
     gui_( gui ),
     planes_( planes ) {}
@@ -521,6 +522,11 @@ EvolveTradeRoute HumanAgent::evolve_trade_route(
       }
     }
   }
+
+  // At this point we have reached our current goto target, so we
+  // must do the unload/load.
+  trade_route_unload( ss_, player_, unit, stop );
+  trade_route_load( ss_, player_, unit, stop );
 
   if( route->stops.size() == 1 ) return abort( "single stop" );
 

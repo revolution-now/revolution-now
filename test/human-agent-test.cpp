@@ -52,9 +52,8 @@ using ::refl::enum_map;
 *****************************************************************/
 struct world : testing::World {
   world()
-    : agent_( default_player_type(), engine(), ss(),
-              map_updater(), gui(), planes() ) {
-    add_default_player();
+    : agent_( ( add_default_player(), default_player_type() ),
+              engine(), ss(), map_updater(), gui(), planes() ) {
     create_default_map();
   }
 

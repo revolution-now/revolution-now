@@ -183,5 +183,13 @@ TEST_CASE( "[trade-route] confirm_trade_route_orders" ) {
   world w;
 }
 
+TEST_CASE( "[trade-route] trade_route_unload" ) {
+  world w;
+}
+
+TEST_CASE( "[trade-route] trade_route_load" ) {
+  world w;
+}
+
 } // namespace
 } // namespace rn

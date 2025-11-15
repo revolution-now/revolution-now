@@ -32,6 +32,7 @@ namespace rn {
 struct IAgent;
 struct IGui;
 struct Player;
+struct SS;
 struct SSConst;
 struct TerrainConnectivity;
 struct TradeRouteState;
@@ -187,5 +188,14 @@ wait<maybe<TradeRouteOrdersConfirmed>>
 confirm_trade_route_orders(
     SSConst const& ss, Player const& player, Unit const& unit,
     IGui& gui, TradeRoutesSanitizedToken const& token );
+
+/****************************************************************
+** Load/Unload.
+*****************************************************************/
+void trade_route_unload( SS& ss, Player& player, Unit& unit,
+                         TradeRouteStop const& stop );
+
+void trade_route_load( SS& ss, Player& player, Unit& unit,
+                       TradeRouteStop const& stop );
 
 } // namespace rn

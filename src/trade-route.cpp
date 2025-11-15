@@ -13,10 +13,12 @@
 // Revolution Now
 #include "co-wait.hpp"
 #include "colony-mgr.hpp"
+#include "commodity.hpp"
 #include "connectivity.hpp"
 #include "harbor-units.hpp"
 #include "iagent.hpp"
 #include "igui.hpp"
+#include "market.hpp"
 #include "trade-route-ui.hpp"
 #include "unit-mgr.hpp"
 
@@ -33,11 +35,17 @@
 #include "ss/ref.hpp"
 #include "ss/trade-route.hpp"
 #include "ss/unit.hpp"
+#include "ss/units.hpp"
 
 // rds
 #include "rds/switch-macro.hpp"
 
+// C++ standard library
+#include <ranges>
+
 using namespace std;
+
+namespace rg = std::ranges;
 
 namespace rn {
 
@@ -742,6 +750,161 @@ confirm_trade_route_orders(
 
   co_return TradeRouteOrdersConfirmed{
     .id = trade_route_id, .en_route_to_stop = *first_stop };
+}
+
+/****************************************************************
+** Load/Unload.
+*****************************************************************/
+void trade_route_unload( SS& ss, Player& player, Unit& unit,
+                         TradeRouteStop const& stop ) {
+  bool const is_harbor =
+      stop.target.holds<TradeRouteTarget::harbor>();
+  auto const has_boycott = [&]( e_commodity const comm ) {
+    return ss.players.old_world[player.nation]
+        .market.commodities[comm]
+        .boycott;
+  };
+
+  enum_map<e_commodity, int> unloaded;
+  for( e_commodity const type : stop.unloads ) {
+    for( auto const& [comm, slot] :
+         unit.cargo().commodities( type ) ) {
+      if( is_harbor && has_boycott( comm.type ) ) continue;
+      Commodity const removed = rm_commodity_from_cargo(
+          ss.units, unit.cargo(), slot );
+      CHECK_EQ( removed, comm );
+      unloaded[removed.type] += removed.quantity;
+    }
+  }
+
+  SWITCH( stop.target ) {
+    CASE( colony ) {
+      Colony& colony_o =
+          ss.colonies.colony_for( colony.colony_id );
+      CHECK_EQ( colony_o.player, unit.player_type() );
+      CHECK_EQ( ss.units.coord_for( unit.id() ),
+                colony_o.location );
+      for( auto const [comm, q] : unloaded )
+        colony_o.commodities[comm] += q;
+      break;
+    }
+    CASE( harbor ) {
+      CHECK( is_unit_in_port( ss.units, unit.id() ) );
+      for( auto const [comm, q] : unloaded ) {
+        // Should have been checked above.
+        CHECK( !has_boycott( comm ) );
+        Invoice const invoice = transaction_invoice(
+            ss, player, Commodity{ .type = comm, .quantity = q },
+            e_transaction::sell,
+            e_immediate_price_change_allowed::allowed );
+        apply_invoice( ss, player, invoice );
+      }
+      break;
+    }
+  }
+}
+
+static void trade_route_load_colony(
+    SS& ss, Player& player, Unit& unit, Colony& colony,
+    vector<e_commodity> const& desired ) {
+  auto const sale_value_no_tax = [&]( Commodity const& comm ) {
+    return market_price( ss, player, comm.type ).bid *
+           comm.quantity;
+  };
+
+  // Sorts in reverse order of pre-tax sale value and then com-
+  // modity index, mirroring the OG.
+  auto const comparator = [&]( Commodity const& l,
+                               Commodity const& r ) {
+    int const value_l = sale_value_no_tax( l );
+    int const value_r = sale_value_no_tax( r );
+    if( value_l != value_r ) return value_r < value_l;
+    return r.type < l.type;
+  };
+
+  unit.cargo().compactify( ss.as_const.units );
+
+  while( true ) {
+    vector<Commodity> loadables;
+    loadables.reserve( desired.size() );
+    for( e_commodity const type : desired )
+      loadables.push_back( Commodity{
+        .type = type, .quantity = colony.commodities[type] } );
+    rg::sort( loadables, comparator );
+    bool loaded_something = false;
+    for( Commodity const& comm : loadables ) {
+      int const available         = comm.quantity;
+      int const try_load_quantity = std::min(
+          { available, 100,
+            unit.cargo().max_commodity_quantity_that_fits(
+                comm.type ) } );
+      CHECK_GE( try_load_quantity, 0 );
+      if( try_load_quantity == 0 ) continue;
+      colony.commodities[comm.type] -= try_load_quantity;
+      CHECK_GE( colony.commodities[comm.type], 0 );
+      // This will check-fail if the commodity does not fit, but
+      // that should not happen because we should have checked
+      // that max quantity that can fit already above.
+      add_commodity_to_cargo(
+          ss.as_const.units,
+          with_quantity( comm, try_load_quantity ), unit.cargo(),
+          /*slot=*/0,
+          /*try_other_slots=*/true );
+      loaded_something = true;
+      break;
+    }
+    if( !loaded_something ) break;
+  }
+}
+
+static void trade_route_load_harbor(
+    SS& ss, Player& player, Unit& unit,
+    vector<e_commodity> const& desired ) {
+  auto const has_boycott = [&]( e_commodity const comm ) {
+    return ss.players.old_world[player.nation]
+        .market.commodities[comm]
+        .boycott;
+  };
+
+  CHECK( is_unit_in_port( ss.units, unit.id() ) );
+  for( e_commodity const type : desired ) {
+    if( has_boycott( type ) ) continue;
+    int const q = std::min(
+        unit.cargo().max_commodity_quantity_that_fits( type ),
+        100 );
+    if( q == 0 ) continue;
+    Commodity const comm{ .type = type, .quantity = q };
+    Invoice const invoice = transaction_invoice(
+        ss.as_const, as_const( player ), comm,
+        e_transaction::buy,
+        e_immediate_price_change_allowed::allowed );
+    CHECK_LE( invoice.money_delta_final, 0 );
+    if( -invoice.money_delta_final > player.money )
+      // Cannot afford.
+      continue;
+    apply_invoice( ss, player, invoice );
+    add_commodity_to_cargo( ss.as_const.units, comm,
+                            unit.cargo(),
+                            /*slot=*/0,
+                            /*try_other_slots=*/true );
+  }
+}
+
+void trade_route_load( SS& ss, Player& player, Unit& unit,
+                       TradeRouteStop const& stop ) {
+  SWITCH( stop.target ) {
+    CASE( colony ) {
+      trade_route_load_colony(
+          ss, player, unit,
+          ss.colonies.colony_for( colony.colony_id ),
+          stop.loads );
+      break;
+    }
+    CASE( harbor ) {
+      trade_route_load_harbor( ss, player, unit, stop.loads );
+      break;
+    }
+  }
 }
 
 } // namespace rn
