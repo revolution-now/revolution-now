@@ -3,10 +3,10 @@ window {
   window_padding: 3
   border_color: "#0CA0BD"
   ui_padding: 4
-  border_darker:  "#322018"
-  border_dark:    "#422D22"
-  border_light:   "#4D3428"
-  border_lighter: "#5C3E30"
+  border_darker:  "#1e1009"
+  border_dark:    "#331b0e"
+  border_light:   "#4c2714"
+  border_lighter: "#63351d"
 }
 
 dialog_text {
