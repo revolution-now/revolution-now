@@ -1129,14 +1129,29 @@ void LandViewRenderer::render_white_box() const {
   auto const& state = lv_animator_.white_box_anim_state();
   if( !state.has_value() ) return;
   if( !state->visible ) return;
+  if( viewport_.get_zoom() < 0.000001 )
+    // This should never happen, but lets be defensive here since
+    // it's not clear what will happen in the loop below if zoom
+    // is zero.
+    return;
   gfx::rect const box =
       get_render_rect_for_tile( white_box_tile( ss_ ) )
           .with_dec_size();
+  // Normally we just draw the box one layer thick, but we do
+  // something a bit fancier to avoid losing sides of the box as
+  // we zoom out, namely we double the thickness of the box with
+  // each factor of two that we are zoomed out.
+  int const layers_min = 1;
+  int const layers_max = 256;
+  int const layers     = std::clamp(
+      int( lround( ceil( 1.0 / viewport_.get_zoom() ) ) ),
+      layers_min, layers_max );
   // The white box needs to be above the obfuscation layers.
   SCOPED_RENDERER_MOD_SET( buffer_mods.buffer,
                            rr::e_render_buffer::normal );
-  rr::draw_empty_rect_faded_corners( renderer, box,
-                                     pixel::white() );
+  for( int i = 0; i < layers; ++i )
+    rr::draw_empty_rect_faded_corners(
+        renderer, box.with_edges_removed( i ), pixel::white() );
 }
 
 } // namespace rn
