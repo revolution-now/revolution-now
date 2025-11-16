@@ -52,7 +52,9 @@ namespace rn {
 namespace {
 
 using ::gfx::point;
+using ::refl::enum_count;
 using ::refl::enum_map;
+using ::refl::enum_values;
 
 [[nodiscard]] bool trade_route_name_exists(
     TradeRouteState const& trade_routes, string const& name ) {
@@ -804,9 +806,9 @@ void trade_route_unload( SS& ss, Player& player, Unit& unit,
   }
 }
 
-static void trade_route_load_colony(
-    SS& ss, Player& player, Unit& unit, Colony& colony,
-    vector<e_commodity> const& desired ) {
+vector<Commodity> colony_commodities_by_value(
+    SSConst const& ss, Player const& player,
+    Colony const& colony, vector<e_commodity> const& desired ) {
   auto const sale_value_no_tax = [&]( Commodity const& comm ) {
     return market_price( ss, player, comm.type ).bid *
            comm.quantity;
@@ -822,15 +824,39 @@ static void trade_route_load_colony(
     return r.type < l.type;
   };
 
+  vector<Commodity> loadables;
+  loadables.reserve( desired.size() );
+  for( e_commodity const type : desired )
+    loadables.push_back( Commodity{
+      .type = type, .quantity = colony.commodities[type] } );
+  rg::sort( loadables, comparator );
+
+  return loadables;
+}
+
+vector<Commodity> colony_commodities_by_value(
+    SSConst const& ss, Player const& player,
+    Colony const& colony ) {
+  static vector<e_commodity> const all = [&] {
+    vector<e_commodity> res;
+    res.reserve( enum_count<e_commodity> );
+    for( e_commodity const type : enum_values<e_commodity> )
+      res.push_back( type );
+    return res;
+  }();
+  return colony_commodities_by_value( ss, player, colony, all );
+}
+
+static void trade_route_load_colony(
+    SS& ss, Player& player, Unit& unit, Colony& colony,
+    vector<e_commodity> const& desired ) {
   unit.cargo().compactify( ss.as_const.units );
 
   while( true ) {
-    vector<Commodity> loadables;
-    loadables.reserve( desired.size() );
-    for( e_commodity const type : desired )
-      loadables.push_back( Commodity{
-        .type = type, .quantity = colony.commodities[type] } );
-    rg::sort( loadables, comparator );
+    vector<Commodity> const loadables =
+        colony_commodities_by_value(
+            ss.as_const, as_const( player ), as_const( colony ),
+            desired );
     bool loaded_something = false;
     for( Commodity const& comm : loadables ) {
       int const available         = comm.quantity;

@@ -40,7 +40,15 @@ console {
 }
 
 panel {
-  width: 128
+  # This is the width of the side panel in pixels. We don't auto
+  # scale it with resolution because it has fixed requirements as
+  # to what it needs to hold, and sprite/text sizes don't scale
+  # with resolution in terms of their pixel size.
+  #
+  # This is chosen to mirror the OG which has a panel of a width
+  # that fits just under five unit sprites horizontally. Since
+  # our unit tiles are 32x32 we do 4.5*32 = 144.
+  width: 144
 }
 
 # This configures the way that "tile spreads" are rendered. These

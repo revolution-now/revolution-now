@@ -10,6 +10,8 @@
 # ===============================================================
 # ss
 include "ss/colony-id.hpp"
+include "ss/map-square.rds.hpp"
+include "ss/nation.hpp"
 include "ss/unit-id.hpp"
 
 # gfx
@@ -19,6 +21,7 @@ include "gfx/cartesian.hpp"
 include "base/maybe.hpp"
 
 # C++ standard library
+include "<string>"
 include "<vector>"
 
 namespace "rn"
@@ -29,17 +32,30 @@ sumtype.PanelCity {
   },
   # This one is either for a colony or dwelling. The caller needs
   # to use the viz to get it.
-  limited {
-    tile 'gfx::point',
-  },
+  foreign_colony {},
+  dwelling {},
+}
+
+struct.PanelActiveUnit {
+  unit_id 'UnitId',
+  orders_name 'std::string',
+}
+
+struct.PanelUnit {
+  generic_unit_id 'GenericUnitId',
+  orders_name 'base::maybe<std::string>',
 }
 
 struct.PanelEntities {
+  tile 'base::maybe<gfx::point>',
+
+  player 'base::maybe<e_player>',
+
   # The active unit is always a friendly unit.
-  active_unit 'base::maybe<UnitId>',
+  active_unit 'base::maybe<PanelActiveUnit>',
 
   # Colony or dwelling.
-  city 'PanelCity',
+  city 'base::maybe<PanelCity>',
 
   # This does not include the active unit, if there is one. When
   # not in cheat mode this will never contain multiple foreign
@@ -52,10 +68,13 @@ struct.PanelEntities {
   # the player to see the "top" one. NOTE: this ordering is not
   # the same as the unit ordering that controls ordering at the
   # colony gate or at the harbor.
-  unit_stack 'std::vector<GenericUnitId>',
+  unit_stack 'std::vector<PanelUnit>',
+
   # This will always be true if there are multiple units on the
   # tile, even they are not all provided in the vector. This is
   # so that we can render a double flag so that it is consistent
   # with what the player would see on the map.
   has_multiple_units 'bool',
+
+  square 'base::maybe<MapSquare>',
 }

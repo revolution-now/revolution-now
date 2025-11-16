@@ -29,6 +29,7 @@ namespace rn {
 /****************************************************************
 ** Fwd. Decls.
 *****************************************************************/
+struct Colony;
 struct IAgent;
 struct IGui;
 struct Player;
@@ -65,7 +66,8 @@ void validate_token( TradeRoutesSanitizedToken const& token );
 
 // The actions vector will be cleared and populated with any ac-
 // tions taken as a result of this function call.
-TradeRoutesSanitizedToken const& sanitize_trade_routes(
+[[nodiscard]] TradeRoutesSanitizedToken const&
+sanitize_trade_routes(
     SSConst const& ss, Player const& player,
     TradeRouteState& trade_routes,
     std::vector<TradeRouteSanitizationAction>& actions_taken );
@@ -114,7 +116,8 @@ maybe<TradeRouteTarget const&> curr_trade_route_target(
 // Include player here because the sanitization process is player
 // specific, so we want to make sure we're running in a
 // player-specific context.
-goto_target convert_trade_route_target_to_goto_target(
+[[nodiscard]] goto_target
+convert_trade_route_target_to_goto_target(
     SSConst const& ss, Player const& player,
     TradeRouteTarget const& trade_route_target,
     TradeRoutesSanitizedToken const& token );
@@ -157,14 +160,14 @@ void delete_trade_route( TradeRouteState& trade_routes,
 // This will give the list of valid colonies that can be added to
 // a trade route. The list will depend on the trade route type as
 // well as any existing colony targets within it.
-std::vector<ColonyId> available_colonies_for_route(
+[[nodiscard]] std::vector<ColonyId> available_colonies_for_route(
     SSConst const& ss, Player const& player,
     TerrainConnectivity const& connectivity,
     TradeRoute const& route );
 
 // Check-fail if the target refers to a colony that no longer ex-
 // ists.
-std::string name_for_target(
+[[nodiscard]] std::string name_for_target(
     SSConst const& ss, Player const& player,
     TradeRouteTarget const& target,
     TradeRoutesSanitizedToken const& token );
@@ -172,8 +175,9 @@ std::string name_for_target(
 /****************************************************************
 ** Trade Route Orders.
 *****************************************************************/
-std::vector<TradeRouteId> find_eligible_trade_routes_for_unit(
-    SSConst const& ss, Unit const& unit );
+[[nodiscard]] std::vector<TradeRouteId>
+find_eligible_trade_routes_for_unit( SSConst const& ss,
+                                     Unit const& unit );
 
 wait<maybe<TradeRouteId>> select_trade_route(
     SSConst const& ss, Unit const& unit, IGui& gui,
@@ -194,6 +198,19 @@ confirm_trade_route_orders(
 *****************************************************************/
 void trade_route_unload( SS& ss, Player& player, Unit& unit,
                          TradeRouteStop const& stop );
+
+// Sorts all colony commodities by their total value (defined as
+// pre-tax sale rate multiplied by quantity). The more valuable
+// ones will be first.
+[[nodiscard]] std::vector<Commodity> colony_commodities_by_value(
+    SSConst const& ss, Player const& player,
+    Colony const& colony );
+
+// Same as above but can limit to a desired set.
+[[nodiscard]] std::vector<Commodity> colony_commodities_by_value(
+    SSConst const& ss, Player const& player,
+    Colony const& colony,
+    std::vector<e_commodity> const& desired );
 
 void trade_route_load( SS& ss, Player& player, Unit& unit,
                        TradeRouteStop const& stop );

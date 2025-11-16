@@ -187,6 +187,15 @@ TEST_CASE( "[trade-route] trade_route_unload" ) {
   world w;
 }
 
+TEST_CASE( "[trade-route] colony_commodities_by_value (all)" ) {
+  world w;
+}
+
+TEST_CASE(
+    "[trade-route] colony_commodities_by_value (restricted)" ) {
+  world w;
+}
+
 TEST_CASE( "[trade-route] trade_route_load" ) {
   world w;
 }

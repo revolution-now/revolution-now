@@ -24,6 +24,7 @@
 #include "ss/players.rds.hpp"
 #include "ss/ref.hpp"
 #include "ss/turn.rds.hpp"
+#include "ss/units.hpp"
 
 // rds
 #include "rds/switch-macro.hpp"
@@ -37,6 +38,50 @@ using namespace std;
 using ::base::maybe;
 using ::base::nothing;
 using ::gfx::point;
+
+string orders_name_for_euro_unit( SSConst const& ss,
+                                  UnitId const unit_id ) {
+  Unit const& unit = ss.units.unit_for( unit_id );
+  SWITCH( unit.orders() ) {
+    CASE( damaged ) {
+      // Shouldn't really be here, but oh well...
+      return "Damaged";
+    }
+    CASE( fortified ) { return "Fortified"; }
+    CASE( fortifying ) { return "Fortifying"; }
+    CASE( go_to ) {
+      SWITCH( go_to.target ) {
+        CASE( harbor ) {
+          return format(
+              "Go To {}",
+              config_nation
+                  .nations[nation_for( unit.player_type() )]
+                  .harbor_city_name );
+        }
+        CASE( map ) {
+          return format( "Go To ({}, {})", map.tile.x + 1,
+                         map.tile.y + 1 );
+        }
+      }
+    }
+    CASE( none ) { return "No Orders"; }
+    CASE( plow ) { return "Clear/Plow"; }
+    CASE( road ) { return "Build Road"; }
+    CASE( sentry ) { return "Sentried"; }
+    CASE( trade_route ) { return "Trade Route"; }
+  }
+}
+
+maybe<string> orders_name_for_unit_generic(
+    SSConst const& ss, GenericUnitId const generic_unit_id ) {
+  switch( ss.units.unit_kind( generic_unit_id ) ) {
+    case e_unit_kind::euro:
+      return orders_name_for_euro_unit(
+          ss, ss.units.check_euro_unit( generic_unit_id ) );
+    case e_unit_kind::native:
+      return nothing;
+  }
+}
 
 } // namespace
 
@@ -76,12 +121,12 @@ PanelEntities entities_shown_on_panel( SSConst const& ss ) {
     // limited amount of info about it regardless of whether the
     // tile is fogged or not. The caller will have to look up the
     // colony using the visibility object.
-    entities.city = PanelCity::limited{ .tile = tile };
+    entities.city = PanelCity::foreign_colony{};
   };
 
   auto const populate_dwelling = [&]( point const tile ) {
     if( viz->dwelling_at( tile ).has_value() )
-      entities.city = PanelCity::limited{ .tile = tile };
+      entities.city = PanelCity::dwelling{};
   };
 
   auto const populate_unit_stack = [&]( point const tile ) {
@@ -94,13 +139,21 @@ PanelEntities entities_shown_on_panel( SSConst const& ss ) {
     }();
     if( units_sorted.empty() ) return;
     auto const show_all_units = [&] {
-      entities.unit_stack         = units_sorted;
       entities.has_multiple_units = units_sorted.size() > 1;
+      for( GenericUnitId const generic_unit_id : units_sorted )
+        entities.unit_stack.push_back( PanelUnit{
+          .generic_unit_id = generic_unit_id,
+          .orders_name     = orders_name_for_unit_generic(
+              ss, generic_unit_id ) } );
     };
     auto const show_first_unit = [&] {
       CHECK( !units_sorted.empty() );
-      entities.unit_stack.push_back( units_sorted[0] );
       entities.has_multiple_units = units_sorted.size() > 1;
+      GenericUnitId const generic_unit_id = units_sorted[0];
+      entities.unit_stack.push_back(
+          PanelUnit{ .generic_unit_id = generic_unit_id,
+                     .orders_name = orders_name_for_unit_generic(
+                         ss, generic_unit_id ) } );
     };
     // If the entire map is visible then there are no constraints
     // on what can be seen, regardless of player/ownership.
@@ -135,6 +188,8 @@ PanelEntities entities_shown_on_panel( SSConst const& ss ) {
   };
 
   auto const populate_for_tile = [&]( point const tile ) {
+    entities.tile   = tile;
+    entities.square = viz->square_at( tile );
     populate_colony( tile );
     populate_dwelling( tile );
     populate_unit_stack( tile );
@@ -153,6 +208,7 @@ PanelEntities entities_shown_on_panel( SSConst const& ss ) {
                       ss.players.players[player.type] );
       if( player_o.control != e_player_control::human ) break;
       if( viewer.has_value() && *viewer != player.type ) break;
+      entities.player = player.type;
       SWITCH( player.st ) {
         CASE( not_started ) { break; }
         CASE( units ) {
@@ -162,7 +218,10 @@ PanelEntities entities_shown_on_panel( SSConst const& ss ) {
           }
           if( units.q.empty() ) break;
           UnitId const unit_id = units.q.front();
-          entities.active_unit = unit_id;
+          entities.active_unit = PanelActiveUnit{
+            .unit_id = unit_id,
+            .orders_name =
+                orders_name_for_euro_unit( ss, unit_id ) };
           auto const tile =
               coord_for_unit_multi_ownership( ss, unit_id );
           if( tile.has_value() ) populate_for_tile( *tile );
@@ -181,6 +240,21 @@ PanelEntities entities_shown_on_panel( SSConst const& ss ) {
     CASE( end_cycle ) { break; }
     CASE( finished ) { break; }
   }
+
+  // Remove the active unit from the unit list if it is there.
+  if( entities.active_unit.has_value() )
+    erase_if( entities.unit_stack, [&]( PanelUnit const punit ) {
+      return punit.generic_unit_id ==
+             entities.active_unit->unit_id;
+    } );
+
+  // If we have a foreign view of a colony then don't put any
+  // units there since it is a foreign colony.
+  if( entities.city.holds<PanelCity::foreign_colony>() ) {
+    entities.unit_stack.clear();
+    entities.has_multiple_units = false;
+  }
+
   return entities;
 }
 
