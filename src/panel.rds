@@ -1,0 +1,61 @@
+# ===============================================================
+# panel.rds
+#
+# Project: Revolution Now
+#
+# Created by David P. Sicilia on 2025-11-15.
+#
+# Description: Rds definitions for the panel module.
+#
+# ===============================================================
+# ss
+include "ss/colony-id.hpp"
+include "ss/unit-id.hpp"
+
+# gfx
+include "gfx/cartesian.hpp"
+
+# base
+include "base/maybe.hpp"
+
+# C++ standard library
+include "<vector>"
+
+namespace "rn"
+
+sumtype.PanelCity {
+  visible_colony {
+    colony_id 'ColonyId',
+  },
+  # This one is either for a colony or dwelling. The caller needs
+  # to use the viz to get it.
+  limited {
+    tile 'gfx::point',
+  },
+}
+
+struct.PanelEntities {
+  # The active unit is always a friendly unit.
+  active_unit 'base::maybe<UnitId>',
+
+  # Colony or dwelling.
+  city 'PanelCity',
+
+  # This does not include the active unit, if there is one. When
+  # not in cheat mode this will never contain multiple foreign
+  # units; it only contains the one visible on top. NOTE: these
+  # will be sorted by the logic in the unit-stack module which
+  # handles selecting the order of display when there are mul-
+  # tiple units on a tile. We have to do it this way so that it
+  # is consistent with what the player sees, especially in the
+  # case where there are foreign units on a tile and we only want
+  # the player to see the "top" one. NOTE: this ordering is not
+  # the same as the unit ordering that controls ordering at the
+  # colony gate or at the harbor.
+  unit_stack 'std::vector<GenericUnitId>',
+  # This will always be true if there are multiple units on the
+  # tile, even they are not all provided in the vector. This is
+  # so that we can render a double flag so that it is consistent
+  # with what the player would see on the map.
+  has_multiple_units 'bool',
+}
