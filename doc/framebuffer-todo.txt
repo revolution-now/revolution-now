@@ -1,0 +1,24 @@
+Framebuffers TODO:
+--------------------------------------------------
+
+  * Add video settings menu to allow setting the post processing
+    mode. This should ideally be stored in a per-installation
+    config location.
+
+  * Config parameters controlling framebuffer should be:
+
+      - Direct to screen (no post processing).
+      - Strict pixels.
+      - Enable post processing effect X.
+
+  * Only snap to pixel in viewport when in the pixelated mode.
+    The viewport stuff needs to be looked at there... it causes
+    weird behavior when in pixelated mode and zooming is happen-
+    ing.
+
+  * Fix rendering issues when zoomed out in pixelated mode:
+      - Fog of war.
+      - Sea lane animations.
+
+  * Allow framebuffer to be the size of the physical screen so
+    that we can get postprocessing without pixel enforcement.
