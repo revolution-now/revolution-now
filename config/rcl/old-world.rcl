@@ -5,7 +5,7 @@ taxes {
 
     # Below this turn count there will never be tax change
     # events. Note that, although this point corresponds to the
-    # year 1530 in the OG as mentioned below, the OG actually
+    # year 1528 in the OG as mentioned below, the OG actually
     # uses a turn count and not the absolute year when deter-
     # mining when this point has been reached.
     min_turn_for_tax_change_events: 38 # year 1530
