@@ -1,0 +1,66 @@
+TODO:
+
+  * At the start of the turn (after all units have moved, but be-
+    fore the turn ends) a message is shown like "The King of
+    Spain offers to send us a force of trained [mercenaries] (3
+    regular, artillery) in exchange for 8000 gold."
+  * It may appear to happen at the end of the turn, but that is
+    because the season/year doesn't appear to get updated until
+    the player moves; instead it should be judged based on how
+    the natives move.
+  * Default selection is "No thank you."
+  * If "yes" is selected then those units arrive immediately
+    after the window closes. A message box says "Spanish merce-
+    naries arrive in Jamestown."
+  * They arrive by selecting a colony, then a Man-o-War with the
+    player's flag (i.e. not the Spanish in this case, but the
+    English) appears next to the colony and provides those
+    forces.
+  * There is some randomness in when it appears.
+  * It happens:
+      - Before declaration: ?
+      - After declaration:  yes
+  * If the player has no coastal colonies then we will simply not
+    ask the player as there is no way for them to be delivered
+    (not clear on what the OG does here, but either way we are
+    kind of forced to do that).
+  * When does it happen:
+      * The frequency of the messages doesn't seem to depend on
+        how many armies we have, although it might to a limited
+        extent that is difficult to measure.
+      * Seems to depend on quantity of money. One hypothesis is
+        that the game rolls dice to see if it happens, then se-
+        lects the units, then based on that (plus difficulty
+        level) computes the price (note there is some randomness
+        in the price as well, since the same set of units can
+        cost different amounts), then if the player has enough it
+        will ask them, otherwise no. TBD if this is correct.
+  * When the player is given 100k+ gold from 1492, the earliest
+    the message box has been seen to appear is in the year 1527
+    (or could have been 1528). This seems to coincide with the
+    first year that tax increase are allowed (1528 on conquista-
+    dor). NOTE: the OG probably uses the turn count for this and
+    not the actual year. That said, it is hard to measure pre de-
+    claration because it is so rare.
+  * They seem to happen much less often before declaration, at
+    least during peace time.
+  * Doesn't seem to be affected by peace/war status with other
+    nations, though not yet sure if it monitors active combat.
+  * It may happen more often when we are in active combat.
+  * Minimum amount of money (on Conquistador) for this to happen
+    seems to be 4000, although there really may not be a minimum.
+    It could be that the units are chosen then cost computed and
+    if the player has enough the the message will show.
+  * Prices:
+      * Asking price does not seem to scale with available money.
+  * Some sample data on Conquistador (repeats not shown):
+      - Pre declaration (uses normal units):
+          2 dragoons              -> 3200
+          1 dragoons, 1 artillery -> 4800
+          4 dragoons              -> 6000
+          2 dragoons, 1 artillery -> 6400
+      - Post declaration (uses upgraded units):
+          2 regulars, 1 artillery -> 4000, 4400, 4800, 5200, 5600, 6000, 6400
+          2 regulars, 1 cavalry   -> 4000, 4400, 4800, 5200, 5600, 6000, 6400
+          3 regulars, 1 artillery -> 5000, 5500, 6000, 6500, 7000, 7500, 8000
+          3 regulars, 1 cavalry   -> 5000, 5500, 6000, 6500, 7000, 7500, 8000
