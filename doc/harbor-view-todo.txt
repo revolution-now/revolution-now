@@ -1,61 +1,64 @@
 Harbor View TODO
 ----------------
 
-  1.  The OG opens a confirmation box before purchasing things in
+  1.  If the harbor view opens and there is at least one ship in
+      some box but there are no ships selected then we should au-
+      tomatically select one.
+  2.  The OG opens a confirmation box before purchasing things in
       the Purchase box. We might consider doing the same for the
       Train box, though the OG doesn't do that. Maybe just for
       the more expensive ones?
-  2.  Fix up any text rendering issues introduced as a result of
+  3.  Fix up any text rendering issues introduced as a result of
       the character packing change.
-  3.  Units on the dock might need a shadow behind them to help
+  4.  Units on the dock might need a shadow behind them to help
       distinguish them, especiall those toward the edge that have
       the water behind them. Or if not a shadow then at least an
       outline. Don't forget the ref units that are rendered
       post-declaration. This needs to be tested when the unit
       spacing is dense.
-  4.  There is a written-out summary of the last transaction that
+  5.  There is a written-out summary of the last transaction that
       lingers under the top bar... should decide if/how we want
       to do this. Seems like it might be useful.
-  5.  Allow dragging tools/muskets/horses to units on the dock to
+  6.  Allow dragging tools/muskets/horses to units on the dock to
       equip them. Not allowing this might end up being
       non-intuitive to the player given that it is allowed in all
       other cases.
-  6.  Make some kind of animation or sound effect for when a
+  7.  Make some kind of animation or sound effect for when a
       treasure is reimbursed.
-  7.  Consider adjusting the hue of the water/sky to make it more
+  8.  Consider adjusting the hue of the water/sky to make it more
       blue and less red.
-  8.  The smaller market plates need to be made taller.
-  9.  Refactor the backdrop/dock modules so that we can render
+  9.  The smaller market plates need to be made taller.
+  10. Refactor the backdrop/dock modules so that we can render
       the game intro sequence. Don't forget the different light
       levels and stars.
-  10. Experiment with giving units in cargo slots a light outline
+  11. Experiment with giving units in cargo slots a light outline
       like we do for commodities.
-  11. The way that items are positioned inside the cargo slots
+  12. The way that items are positioned inside the cargo slots
       might need to be tweaked: units and commodities are not
       aligned, they are all too low, and they don't looks like
       they are inside the box.
-  12. When a ship is purchased, that new ship should be auto se-
+  13. When a ship is purchased, that new ship should be auto se-
       lected (just seems to feel like the right thing to do).
-  13. When a ship is made to sail to the new world and we're
+  14. When a ship is made to sail to the new world and we're
       checking if there are any remaining ships in port (to know
       whether we should close the harbor view screen) we should
       exclude ships in port that are damaged.
-  14. Add a menu item when clicking on a unit on the dock to load
+  15. Add a menu item when clicking on a unit on the dock to load
       them into the currently selected ship. This might make the
       new unit loading mechanism more discoverable for existing
       users.
-  15. Need to help the player understand that units on the dock
+  16. Need to help the player understand that units on the dock
       don't automatically board ships (more for existing play-
       ers). The first time a ship sails to the new world with
       cargo space available for a unit and there is a unit on the
       dock, and the player has never put a unit in the cargo of a
       ship in the harbor, give the player a hint to ask if they
       really want to sail to the new world.
-  16. Make sure that the country names are correct in the title
+  17. Make sure that the country names are correct in the title
       bar. For example, in the OG for the dutch it just says "Am-
       sterdam, Netherlands" whereas we are saying "Amsterdam, The
       Netherlands" which sounds wrong.
-  17. Make the harbor work with the 480x300 resolution.
+  18. Make the harbor work with the 480x300 resolution.
 
 Pedia
 -----
