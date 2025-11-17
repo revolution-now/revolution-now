@@ -56,8 +56,8 @@ struct World : testing::World {
 
   void create_1x1_map() {
     MapSquare const L = make_grassland();
-    vector<MapSquare> tiles{ L };
-    build_map( std::move( tiles ), 1 );
+    vector<MapSquare> tiles{ L, L };
+    build_map( std::move( tiles ), 2 );
   }
 };
 

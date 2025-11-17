@@ -193,11 +193,17 @@ struct.Notifications {
   _features { equality, validation }
 }
 
+struct.Founding {
+  can_found_on_island 'bool',
+}
+
 namespace "rn"
 
 # Note that this config is for non-production related things. For
 # production-related things there is a dedicated config file.
 struct.config_colony_t {
+  founding 'config::colony::Founding',
+
   # How many tiles around the colony can the colony see? In the
   # OG this is 1, meaning that only the 3x3 grid around the
   # colony is visible to it.

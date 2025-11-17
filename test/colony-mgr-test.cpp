@@ -78,6 +78,22 @@ struct world : testing::World {
     // clang-format on
     build_map( std::move( tiles ), 9 );
   }
+
+  void create_island_map() {
+    MapSquare const _ = make_ocean();
+    MapSquare const L = make_grassland();
+    // clang-format off
+    vector<MapSquare> tiles{
+    // 0  1  2  3  4
+       _, _, _, L, _, // 0
+       _, L, _, _, _, // 1
+       _, _, _, _, _, // 2
+       _, _, _, L, _, // 3
+       L, _, _, L, _, // 4
+    };
+    // clang-format on
+    build_map( std::move( tiles ), 5 );
+  }
 };
 
 TEST_CASE( "[colony-mgr] found_colony on land successful" ) {
@@ -106,6 +122,42 @@ TEST_CASE( "[colony-mgr] found_colony during war fails" ) {
       W.add_unit_on_map( e_unit_type::free_colonist, coord );
   REQUIRE( unit_can_found_colony( W.ss(), unit.id() ) ==
            e_found_colony_err::war_of_independence );
+}
+
+TEST_CASE( "[colony-mgr] found_colony on island" ) {
+  world w;
+  w.create_island_map();
+  {
+    point const tile = { .x = 1, .y = 1 };
+    UnitId const unit_id =
+        w.add_unit_on_map( e_unit_type::free_colonist, tile )
+            .id();
+    REQUIRE( unit_can_found_colony( w.ss(), unit_id ) ==
+             e_found_colony_err::no_island_colony );
+  }
+  {
+    point const tile = { .x = 0, .y = 4 };
+    UnitId const unit_id =
+        w.add_unit_on_map( e_unit_type::free_colonist, tile )
+            .id();
+    REQUIRE( unit_can_found_colony( w.ss(), unit_id ) ==
+             e_found_colony_err::no_island_colony );
+  }
+  {
+    point const tile = { .x = 3, .y = 0 };
+    UnitId const unit_id =
+        w.add_unit_on_map( e_unit_type::free_colonist, tile )
+            .id();
+    REQUIRE( unit_can_found_colony( w.ss(), unit_id ) ==
+             e_found_colony_err::no_island_colony );
+  }
+  {
+    point const tile = { .x = 3, .y = 4 };
+    UnitId const unit_id =
+        w.add_unit_on_map( e_unit_type::free_colonist, tile )
+            .id();
+    REQUIRE( unit_can_found_colony( w.ss(), unit_id ) == valid );
+  }
 }
 
 TEST_CASE( "[colony-mgr] native convert cannot found" ) {
@@ -927,7 +979,6 @@ TEST_CASE( "[colony-mgr] find_connected_colonies" ) {
   tile     = { .x = 1, .y = 1 };
   expected = {};
   REQUIRE( f() == expected );
-
 }
 
 TEST_CASE( "[colony-mgr] total_colonies_population" ) {

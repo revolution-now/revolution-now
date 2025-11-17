@@ -282,6 +282,21 @@ valid_or<e_found_colony_err> unit_can_found_colony(
       e_land_overlay::mountains )
     return invalid( Res_t::no_mountain_colony );
 
+  int const surrounding_land_squares = [&] {
+    int total = 0;
+    for( e_direction const d : enum_values<e_direction> ) {
+      point const moved = maybe_coord->moved( d );
+      if( !ss.terrain.square_exists( moved ) ) continue;
+      MapSquare const& square = ss.terrain.square_at( moved );
+      if( is_water( square ) ) continue;
+      ++total;
+    }
+    return total;
+  }();
+  if( !config_colony.founding.can_found_on_island &&
+      surrounding_land_squares == 0 )
+    return invalid( Res_t::no_island_colony );
+
   return valid;
 }
 

@@ -1,5 +1,38 @@
 colony_visibility_radius: 1
 
+founding {
+  # Although the OG does allow founding colonies on "island"
+  # tiles (i.e. tiles that have no adjacent land tiles) we dis-
+  # allow this by default because it creates a significant
+  # problem for the end game. This is because such a colony will
+  # be considered a coastal colony which the REF needs to capture
+  # it to win (assuming it can't get 90% of the population which
+  # is another way it can win). However, the REF can't capture
+  # such a colony because there are no landing tiles adjacent to
+  # it. In such a situation the player would be forced to abandon
+  # the colony, but they may be prevented from doing that (e.g.
+  # if the colony has a stockade). Thus the game will get into a
+  # state where neither side can win. Setting this flag to false
+  # will prevent that.
+  #
+  # Note that, because of this, and because there is nothing else
+  # that one can really do with an island, the standard map gen-
+  # erator in both the NG and OG will remove islands altogether
+  # during map generation. So in that sense setting this flag to
+  # false does not really lose anything, save for perhaps the
+  # ability to found colonies on certain island arctic tiles, but
+  # it is not likely the player will want/need to do that anyway.
+  #
+  # One more related note: if a colony is situated such that the
+  # only adjacent land tiles to it have native dwellings on them
+  # then we have a similar problem. To avoid this (unlike the OG)
+  # the REF in the NG is allowed to displace dwellings when it
+  # must do so in order to land next to a colony. So that, to-
+  # gether with setting this flag to false, should eliminate all
+  # such issues in the NG.
+  can_found_on_island: false
+}
+
 warehouses {
   # Maximum amount of non-food quantity of a commodity that can
   # be stored in a colony with no warehouses.

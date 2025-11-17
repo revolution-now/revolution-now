@@ -94,6 +94,11 @@ struct BuildHandler : public CommandHandler {
           co_return false;
         case e_found_colony_err::colonist_not_on_map:
           SHOULD_NOT_BE_HERE;
+        case e_found_colony_err::no_island_colony:
+          co_await agent_.message_box(
+              "Colonies must have at least one adjacent land "
+              "tile." );
+          co_return false;
       }
     }
 
