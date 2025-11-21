@@ -97,6 +97,7 @@ struct PanelPlane::Impl : public IPlane, public IMenuHandler {
   unique_ptr<ui::InvisibleView> view_;
   wait_promise<> w_promise_;
   vector<IMenuServer::Deregistrar> dereg_;
+  rect mini_map_area_;
 
   Rect rect() const {
     auto const r = main_window_logical_rect(
@@ -111,7 +112,7 @@ struct PanelPlane::Impl : public IPlane, public IMenuHandler {
     Rect mini_map_available_rect = rect();
     int const kBorder            = 8;
     mini_map_available_rect.x += kBorder;
-    mini_map_available_rect.y += kBorder / 2;
+    mini_map_available_rect.y += kBorder;
     mini_map_available_rect.w -= kBorder * 2;
     // This mirrors the OG's ratio, which appears to be a good
     // one both in terms of function and appearance.
@@ -137,11 +138,12 @@ struct PanelPlane::Impl : public IPlane, public IMenuHandler {
     auto mini_map                 = make_unique<MiniMapView>(
         ss, ts, land_view_plane.viewport(),
         mini_map_available.delta() );
-    Coord const mini_map_upper_left =
+    mini_map_area_.size = mini_map->delta();
+    mini_map_area_.origin =
         centered( mini_map->delta(), mini_map_available );
     view_vec.emplace_back( ui::OwningPositionedView{
       .view  = std::move( mini_map ),
-      .coord = mini_map_upper_left.with_new_origin(
+      .coord = mini_map_area_.origin.point_becomes_origin(
           rect().upper_left() ) } );
 
     auto button_view = make_unique<ui::ButtonView>(
@@ -249,16 +251,15 @@ struct PanelPlane::Impl : public IPlane, public IMenuHandler {
 
     view_->draw( renderer, origin() );
 
-    Rect const mini_map_rect = mini_map_available_rect();
-
-    Coord const divider_p = mini_map_rect.to_gfx()
-                                .sw()
-                                .with_x( rect().x )
-                                .moved_down( 8 );
+    int const x_margin =
+        std::max( mini_map_area_.origin.x - rect().x, 0 );
+    Coord const divider_p =
+        mini_map_area_.sw()
+            .with_x( rect().x )
+            .moved_down( std::min( 8, x_margin ) + 2 );
     render_divider( renderer, divider_p, rect().w );
 
-    Coord const p =
-        mini_map_rect.lower_left() + Delta{ .h = 8 + 6 };
+    Coord const p = divider_p + Delta{ .w = 8, .h = 6 };
     draw_some_stats( renderer, p );
   }
 
