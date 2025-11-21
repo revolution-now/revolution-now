@@ -92,6 +92,11 @@ void Typer::write( string_view line ) {
   for( char c : line ) write_char_impl( colored_painter, c );
 }
 
+void Typer::writeln( string_view const line ) {
+  write( line );
+  newline();
+}
+
 gfx::size Typer::dimensions_for_line(
     string_view const text ) const {
   return Textometer( painter_.atlas(), ascii_font_ )

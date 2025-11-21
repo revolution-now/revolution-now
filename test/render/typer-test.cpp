@@ -502,5 +502,36 @@ TEST_CASE( "[render/typer] frame position/non-monospace" ) {
   REQUIRE( typer2.line_start() == point{ .x = 35, .y = 63 } );
 }
 
+TEST_CASE( "[render/typer] writeln" ) {
+  vector<GenericVertex> v;
+  Emitter emitter( v );
+  Painter painter( atlas_map(), emitter );
+  Typer typer( painter, ascii_font(), TextLayout{},
+               { .x = 20, .y = 30 }, B );
+  typer.layout().monospace = false;
+
+  REQUIRE( typer.position() == point{ .x = 20, .y = 30 } );
+  REQUIRE( typer.line_start() == point{ .x = 20, .y = 30 } );
+
+  SECTION( "no newline" ) {
+    typer.write( "hello" );
+    REQUIRE( typer.position() ==
+             point{ .x = 20 + 3 * 5 + 5, .y = 30 } );
+    REQUIRE( typer.line_start() == point{ .x = 20, .y = 30 } );
+  }
+
+  SECTION( "manual newline" ) {
+    typer.write( "hello\n" );
+    REQUIRE( typer.position() == point{ .x = 20, .y = 37 } );
+    REQUIRE( typer.line_start() == point{ .x = 20, .y = 37 } );
+  }
+
+  SECTION( "writeln" ) {
+    typer.writeln( "hell{}", 'o' );
+    REQUIRE( typer.position() == point{ .x = 20, .y = 37 } );
+    REQUIRE( typer.line_start() == point{ .x = 20, .y = 37 } );
+  }
+}
+
 } // namespace
 } // namespace rr

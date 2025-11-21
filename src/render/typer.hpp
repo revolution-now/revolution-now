@@ -89,6 +89,9 @@ struct Typer {
   // Just loops through the characters and writes them.
   void write( std::string_view line );
 
+  // Same as above but puts a newline after.
+  void writeln( std::string_view line );
+
   // For convenience.
   template<typename Arg, typename... Rest>
   void write(
@@ -100,6 +103,19 @@ struct Typer {
       Arg&& arg, Rest&&... rest ) {
     write( fmt::format( fmt, std::forward<Arg>( arg ),
                         std::forward<Rest>( rest )... ) );
+  }
+
+  // For convenience.
+  template<typename Arg, typename... Rest>
+  void writeln(
+      // The type_identity prevents the compiler from using the
+      // first arg to try to infer Arg/Rest (which would fail);
+      // it will defer that, then when it gets to the end it will
+      // have inferred those parameters through other args.
+      fmt::format_string<std::type_identity_t<Arg>, Rest...> fmt,
+      Arg&& arg, Rest&&... rest ) {
+    writeln( fmt::format( fmt, std::forward<Arg>( arg ),
+                          std::forward<Rest>( rest )... ) );
   }
 
   // Moves the cursor down to the start of the next line, where
