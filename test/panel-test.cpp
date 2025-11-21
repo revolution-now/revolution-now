@@ -61,5 +61,17 @@ TEST_CASE( "[panel] entities_shown_on_panel" ) {
   world w;
 }
 
+TEST_CASE( "[panel] panel_layout" ) {
+  world w;
+}
+
+TEST_CASE( "[panel] panel_render_plan" ) {
+  world w;
+}
+
+TEST_CASE( "[panel] render_panel_layout" ) {
+  world w;
+}
+
 } // namespace
 } // namespace rn

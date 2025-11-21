@@ -28,12 +28,9 @@
 #include "plane.hpp"
 #include "player-mgr.hpp"
 #include "render.hpp"
-#include "revolution-status.hpp"
 #include "roles.hpp"
 #include "screen.hpp"
 #include "screen.hpp" // FIXME
-#include "spread-builder.hpp"
-#include "spread-render.hpp"
 #include "tiles.hpp"
 #include "trade-route.hpp"
 #include "tribe-mgr.hpp"
@@ -47,10 +44,8 @@
 #include "config/menu-items.rds.hpp"
 #include "config/nation.rds.hpp"
 #include "config/natives.rds.hpp"
-#include "config/text.rds.hpp"
 #include "config/tile-enum.rds.hpp"
 #include "config/ui.rds.hpp"
-#include "config/unit-type.rds.hpp"
 
 // ss
 #include "ss/colonies.hpp"
@@ -212,322 +207,18 @@ struct PanelPlane::Impl : public IPlane, public IMenuHandler {
 
   void draw_some_stats( rr::Renderer& renderer,
                         Coord const where ) const {
-    rr::Typer typer =
-        renderer.typer( where, config_ui.dialog_text.normal );
-
-    // First some general stats that are not player specific.
-    TurnState const& turn_state = ss_.turn;
-    typer.write( "{} {}\n",
-                 ts_.gui.identifier_to_display_name(
-                     refl::enum_value_name(
-                         turn_state.time_point.season ) ),
-                 turn_state.time_point.year );
-
-    auto const viewer =
-        player_for_role( ss_, e_player_role::viewer );
-    auto const viz = create_visibility_for( ss_, viewer );
+    auto const viz = create_visibility_for(
+        ss_, player_for_role( ss_, e_player_role::viewer ) );
     PanelEntities const entities =
-        entities_shown_on_panel( ss_ );
-
-    if( !entities.player.has_value() ) return;
-
-    // We have an active player, so print some info about it.
-    e_player const player_type        = *entities.player;
-    PlayersState const& players_state = ss_.players;
-    UNWRAP_CHECK( player, players_state.players[player_type] );
-
-    typer.write(
-        "Gold: {}{}  Tax: {}%\n", player.money,
-        config_text.special_chars.currency,
-        old_world_state( ss_, player.type ).taxes.tax_rate );
-
-    if constexpr( false ) {
-      if( player.new_world_name )
-        typer.write( "{}\n", *player.new_world_name );
-    }
-
-    auto const write_tile = [&] {
-      if( !entities.tile.has_value() ) return;
-      typer.write( "Tile: ({}, {})\n", entities.tile->x + 1,
-                   entities.tile->y + 1 );
-    };
-
-    auto const write_terrain = [&] {
-      if( !entities.square.has_value() ) return;
-      string contents;
-      MapSquare const& square = *entities.square;
-      if( square.surface == e_surface::water &&
-          square.sea_lane ) {
-        contents = "Sea Lane";
-      } else {
-        e_terrain const terrain = effective_terrain( square );
-        contents = IGui::identifier_to_display_name(
-            base::to_str( terrain ) );
-        if( has_forest( square ) ) contents += " Forest";
-      }
-      typer.write( "({})\n", contents );
-    };
-
-    // Active unit info.
-    if( auto const active_unit = entities.active_unit;
-        active_unit.has_value() ) {
-      typer.newline();
-      UnitId const unit_id = active_unit->unit_id;
-      Unit const& unit     = ss_.units.unit_for( unit_id );
-      UnitFlagRenderInfo const flag_info =
-          euro_unit_flag_render_info(
-              unit, viewer,
-              UnitFlagOptions{ .flag_count =
-                                   e_flag_count::single } );
-      render_unit( renderer, typer.position(), unit,
-                   UnitRenderOptions{ .flag = flag_info } );
-      int const shift = 32 + 6;
-      typer.move_frame_by( { .w = shift } );
-      typer.write( "Moves: {}\n", unit.movement_points() );
-      write_tile();
-      typer.newline();
-      typer.newline();
-      typer.move_frame_by( { .w = -shift } );
-
-      typer.write( "{} {}\n", player_possessive( player ),
-                   unit.desc().name );
-      if( unit.type() == e_unit_type::treasure )
-        typer.write( "Holding: {}{}\n",
-                     unit.composition()
-                         .inventory()[e_unit_inventory::gold],
-                     config_text.special_chars.currency );
-      typer.set_color( config_ui.dialog_text.highlighted );
-      typer.write( "{}\n", active_unit->orders_name );
-      typer.set_color( config_ui.dialog_text.normal );
-      write_terrain();
-      typer.newline();
-      vector<pair<Commodity, int /*slot*/>> const commodities =
-          unit.cargo().commodities();
-      if( !commodities.empty() ) {
-        typer.write( "With: " );
-        point const spread_origin = typer.position();
-        vector<TileWithOptions> tiles;
-        tiles.reserve( commodities.size() );
-        for( auto const& [comm, _] : commodities )
-          tiles.push_back( TileWithOptions{
-            .tile   = tile_for_commodity_16( comm.type ),
-            .greyed = comm.quantity < 100 } );
-        InhomogeneousTileSpreadConfig const spread_config{
-          .tiles = std::move( tiles ),
-          .options    = { .bounds = ( rect().right_edge() -
-                                   spread_origin.x ) },
-          .sort_tiles = true };
-        TileSpreadRenderPlan const spread_plan =
-            build_inhomogeneous_tile_spread(
-                engine_.textometer(), spread_config );
-        draw_rendered_icon_spread( renderer, spread_origin,
-                                   spread_plan );
-      }
-      typer.newline();
-    } else {
-      // No active unit.
-      write_tile();
-      write_terrain();
-    }
-
-    if( entities.city.has_value() ) {
-      UNWRAP_CHECK_T( point const tile, entities.tile );
-      auto const write_colony = [&]( Colony const& colony ) {
-        e_tile const sprite_tile =
-            houses_tile_for_colony( colony );
-        gfx::rect const trimmed =
-            trimmed_area_for( sprite_tile );
-        render_colony(
-            renderer,
-            typer.position() -
-                trimmed.origin.distance_from_origin(),
-            *viz, tile, ss_, colony,
-            ColonyRenderOptions{ .render_name       = false,
-                                 .render_population = false,
-                                 .render_flag       = true } );
-        int const shift = trimmed.size.w + 6;
-        typer.move_frame_by( { .w = shift } );
-        typer.write( "{}\n", colony.name );
-        typer.newline();
-        typer.newline();
-        typer.newline();
-        typer.move_frame_by( { .w = -shift } );
-        typer.newline();
-      };
-      SWITCH( *entities.city ) {
-        CASE( dwelling ) {
-          UNWRAP_CHECK_T( Dwelling const& dwelling_o,
-                          viz->dwelling_at( *entities.tile ) );
-          e_tile const sprite_tile =
-              tile_for_dwelling( ss_, dwelling_o );
-          gfx::rect const trimmed =
-              trimmed_area_for( sprite_tile );
-          render_dwelling(
-              renderer,
-              typer.position() -
-                  trimmed.origin.distance_from_origin(),
-              *viz, tile, ss_, dwelling_o );
-          e_tribe const tribe_type =
-              tribe_type_for_dwelling( ss_, dwelling_o );
-          string const tribe_name =
-              config_natives.tribes[tribe_type].name_possessive;
-          int const shift = trimmed.size.w + 6;
-          typer.move_frame_by( { .w = shift } );
-          typer.write( "{}\n", tribe_name );
-          typer.write(
-              "{}\n",
-              config_natives
-                  .dwelling_types
-                      [config_natives.tribes[tribe_type].level]
-                  .name_singular );
-          typer.newline();
-          typer.newline();
-          typer.move_frame_by( { .w = -shift } );
-          break;
-        }
-        CASE( foreign_colony ) {
-          UNWRAP_CHECK_T( Colony const& colony,
-                          viz->colony_at( *entities.tile ) );
-          write_colony( colony );
-          break;
-        }
-        CASE( visible_colony ) {
-          Colony const& colony = ss_.colonies.colony_for(
-              visible_colony.colony_id );
-          write_colony( colony );
-          vector<Commodity> const commodities =
-              colony_commodities_by_value( ss_, player, colony );
-          if( !commodities.empty() ) {
-            typer.write( "With: " );
-            point const spread_origin = typer.position();
-            vector<TileWithOptions> tiles;
-            tiles.reserve( commodities.size() );
-            for( int i = 0; auto const& comm : commodities ) {
-              if( comm.quantity == 0 ) continue;
-              if( i++ == 5 ) break;
-              tiles.push_back( TileWithOptions{
-                .tile   = tile_for_commodity_16( comm.type ),
-                .greyed = comm.quantity < 100 } );
-            }
-            InhomogeneousTileSpreadConfig const spread_config{
-              .tiles = std::move( tiles ),
-              .options    = { .bounds = ( rect().right_edge() -
-                                       spread_origin.x ) },
-              .sort_tiles = true };
-            TileSpreadRenderPlan const spread_plan =
-                build_inhomogeneous_tile_spread(
-                    engine_.textometer(), spread_config );
-            draw_rendered_icon_spread( renderer, spread_origin,
-                                       spread_plan );
-            break;
-          }
-        }
-      }
-      typer.newline();
-    }
-
-    typer.newline();
-    if( !entities.unit_stack.empty() ) {
-      for( PanelUnit const& punit : entities.unit_stack ) {
-        switch( ss_.units.unit_kind( punit.generic_unit_id ) ) {
-          case e_unit_kind::native: {
-            NativeUnit const& native_unit =
-                ss_.units.native_unit_for(
-                    punit.generic_unit_id );
-            UnitFlagRenderInfo const flag_info =
-                native_unit_flag_render_info(
-                    ss_, native_unit,
-                    UnitFlagOptions{
-                      .flag_count =
-                          entities.has_multiple_units
-                              ? e_flag_count::multiple
-                              : e_flag_count::single } );
-            render_native_unit(
-                renderer, typer.position(), native_unit,
-                UnitRenderOptions{ .flag = flag_info } );
-            e_tribe const tribe_type =
-                tribe_type_for_unit( ss_, native_unit );
-            string const tribe_name =
-                config_natives.tribes[tribe_type]
-                    .name_possessive;
-            int const shift = 32 + 6;
-            typer.move_frame_by( { .w = shift } );
-            typer.write( "{}\n", tribe_name );
-            typer.write(
-                "{}\n",
-                config_natives.unit_types[native_unit.type]
-                    .name_plural );
-            typer.newline();
-            typer.newline();
-            typer.move_frame_by( { .w = -shift } );
-            break;
-          }
-          case e_unit_kind::euro: {
-            Unit const& unit =
-                ss_.units.euro_unit_for( punit.generic_unit_id );
-            UnitFlagRenderInfo const flag_info =
-                euro_unit_flag_render_info(
-                    unit, viewer,
-                    UnitFlagOptions{
-                      .flag_count =
-                          ( entities.has_multiple_units &&
-                            entities.unit_stack.size() == 1 )
-                              ? e_flag_count::multiple
-                              : e_flag_count::single } );
-            render_unit(
-                renderer, typer.position(), unit,
-                UnitRenderOptions{ .flag = flag_info } );
-            int const shift = 32 + 6;
-            typer.move_frame_by( { .w = shift } );
-
-            typer.set_color( config_ui.dialog_text.highlighted );
-            if( unit.type() == e_unit_type::treasure )
-              typer.write(
-                  "Holding: {}{}\n",
-                  unit.composition()
-                      .inventory()[e_unit_inventory::gold],
-                  config_text.special_chars.currency );
-
-            vector<pair<Commodity, int /*slot*/>> const
-                commodities = unit.cargo().commodities();
-            if( !commodities.empty() ) {
-              point const spread_origin = typer.position();
-              vector<TileWithOptions> tiles;
-              tiles.reserve( commodities.size() );
-              for( auto const& [comm, _] : commodities )
-                tiles.push_back( TileWithOptions{
-                  .tile   = tile_for_commodity_16( comm.type ),
-                  .greyed = comm.quantity < 100 } );
-              InhomogeneousTileSpreadConfig const spread_config{
-                .tiles = std::move( tiles ),
-                .options    = { .bounds = ( rect().right_edge() -
-                                         spread_origin.x ) },
-                .sort_tiles = true };
-              TileSpreadRenderPlan const spread_plan =
-                  build_inhomogeneous_tile_spread(
-                      engine_.textometer(), spread_config );
-              draw_rendered_icon_spread( renderer, spread_origin,
-                                         spread_plan );
-            }
-            typer.newline();
-            typer.newline();
-            typer.write( "{}\n", punit.orders_name );
-            typer.set_color( config_ui.dialog_text.normal );
-            typer.move_frame_by( { .w = -shift } );
-            break;
-          }
-        }
-      }
-    }
-
-    // Extra debugging.
-    typer.newline();
-    typer.write( "Royal Money: {}{}\n", player.royal_money,
-                 config_text.special_chars.currency );
-    typer.write( "Zoom: {}\n", ss_.land_view.viewport.zoom );
+        entities_shown_on_panel( ss_, *viz );
+    render_panel_layout(
+        renderer, ss_, where, *viz,
+        panel_render_plan( ss_, *viz, engine_.textometer(),
+                           panel_layout( ss_, *viz, entities ),
+                           rect().w ) );
 
     // Bottom.
-    {
+    if( entities.player_turn.has_value() ) {
       size const padding = { .w = 8, .h = -4 };
       int const height   = 4;
       gfx::rect const curr_player_rect{
@@ -537,7 +228,8 @@ struct PanelPlane::Impl : public IPlane, public IMenuHandler {
                   .h = height } };
       renderer.painter().draw_solid_rect(
           curr_player_rect,
-          config_nation.players[player_type].flag_color );
+          config_nation.players[*entities.player_turn]
+              .flag_color );
     }
   }
 

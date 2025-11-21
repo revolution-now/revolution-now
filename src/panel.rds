@@ -8,11 +8,17 @@
 # Description: Rds definitions for the panel module.
 #
 # ===============================================================
+# Revolution Now
+include "spread-render.hpp"
+include "unit-flag.hpp"
+include "render.hpp"
+
 # ss
 include "ss/colony-id.hpp"
 include "ss/map-square.rds.hpp"
 include "ss/nation.hpp"
 include "ss/unit-id.hpp"
+include "ss/commodity.rds.hpp"
 
 # gfx
 include "gfx/cartesian.hpp"
@@ -26,6 +32,9 @@ include "<vector>"
 
 namespace "rn"
 
+# ===============================================================
+# Entities on Panel.
+# ===============================================================
 sumtype.PanelCity {
   visible_colony {
     colony_id 'ColonyId',
@@ -49,7 +58,7 @@ struct.PanelUnit {
 struct.PanelEntities {
   tile 'base::maybe<gfx::point>',
 
-  player 'base::maybe<e_player>',
+  player_turn 'base::maybe<e_player>',
 
   # The active unit is always a friendly unit.
   active_unit 'base::maybe<PanelActiveUnit>',
@@ -77,4 +86,82 @@ struct.PanelEntities {
   has_multiple_units 'bool',
 
   square 'base::maybe<MapSquare>',
+}
+
+# ===============================================================
+# Panel Layout.
+# ===============================================================
+struct.PanelCommodity {
+  type 'e_commodity',
+  greyed 'bool',
+}
+
+sumtype.PanelEntity {
+  text {
+    value 'std::string',
+  },
+  text_highlight {
+    value 'std::string',
+  },
+  commodity_spread {
+    # Commodity and grey status.
+    comms 'std::vector<PanelCommodity>',
+  },
+  euro_unit {
+    unit_id 'UnitId',
+    flag_stacked 'bool',
+  },
+  brave {
+    native_unit_id 'NativeUnitId',
+    flag_stacked 'bool',
+  },
+  icon_colony {
+    tile 'gfx::point',
+  },
+  icon_dwelling {
+    tile 'gfx::point',
+  },
+}
+
+struct.PanelRow {
+  # Each column can have a number of rows within itself.
+  columns 'std::vector<std::vector<PanelEntity>>',
+}
+
+struct.PanelLayout {
+  rows 'std::vector<PanelRow>',
+}
+
+# ===============================================================
+# Layout Render Plan.
+# ===============================================================
+struct.PanelTextRenderPlan {
+  text 'std::string',
+  color 'gfx::pixel',
+}
+
+struct.PanelUnitRenderPlan {
+  unit_id 'UnitId',
+  flag_info 'UnitFlagRenderInfo',
+}
+
+struct.PanelNativeUnitRenderPlan {
+  native_unit_id 'NativeUnitId',
+  flag_info 'UnitFlagRenderInfo',
+}
+
+struct.PanelColonyPlan {
+  tile 'gfx::point',
+  options 'ColonyRenderOptions',
+}
+
+struct.PanelRenderPlan {
+  area 'gfx::rect',
+
+  texts 'std::vector<std::pair<PanelTextRenderPlan, gfx::point>>',
+  spreads 'std::vector<std::pair<TileSpreadRenderPlan, gfx::point>>',
+  euro_units 'std::vector<std::pair<PanelUnitRenderPlan, gfx::point>>',
+  braves 'std::vector<std::pair<PanelNativeUnitRenderPlan, gfx::point>>',
+  colonies 'std::vector<std::pair<PanelColonyPlan, gfx::point>>',
+  dwellings 'std::vector<std::pair<gfx::point, gfx::point>>',
 }

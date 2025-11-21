@@ -114,6 +114,8 @@ struct ColonyRenderOptions {
   bool render_name       = true;
   bool render_population = true;
   bool render_flag       = true;
+
+  auto operator<=>( ColonyRenderOptions const& ) const = default;
 };
 
 void render_colony( rr::Renderer& renderer, Coord where,
