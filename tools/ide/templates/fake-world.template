@@ -3,24 +3,28 @@
 *****************************************************************/
 struct world : testing::World {
   world() {
-    add_default_player();
+    using enum e_player;
+    add_player( english );
+    set_default_player_type( english );
+    set_default_player_type( english );
+    set_default_player_as_human();
     create_default_map();
   }
 
   void create_default_map() {
-    static MapSquare const _ = make_ocean();
-    static MapSquare const X = make_grassland();
+    static MapSquare const S = make_ocean();
+    static MapSquare const _ = make_grassland();
     // clang-format off
     vector<MapSquare> tiles{/*
           0 1 2 3 4 5 6 7
-      0*/ _,X,X,X,X,X,X,_, /*0
-      1*/ _,X,X,X,X,X,X,_, /*1
-      2*/ _,X,X,X,X,X,X,_, /*2
-      3*/ _,X,X,X,X,X,X,_, /*3
-      4*/ _,X,X,X,X,X,X,_, /*4
-      5*/ _,X,X,X,X,X,X,_, /*5
-      6*/ _,X,X,X,X,X,X,_, /*6
-      7*/ _,X,X,X,X,X,X,_, /*7
+      0*/ S,_,_,_,_,_,_,S, /*0
+      1*/ S,_,_,_,_,_,_,S, /*1
+      2*/ S,_,_,_,_,_,_,S, /*2
+      3*/ S,_,_,_,_,_,_,S, /*3
+      4*/ S,_,_,_,_,_,_,S, /*4
+      5*/ S,_,_,_,_,_,_,S, /*5
+      6*/ S,_,_,_,_,_,_,S, /*6
+      7*/ S,_,_,_,_,_,_,S, /*7
           0 1 2 3 4 5 6 7
     */};
     // clang-format on
