@@ -1,47 +1,35 @@
 TODO:
 
-  * The way that the OG loads cargo is according to market value.
-    It looks at all the goods to load and it iterates through
-    them and finds the most valuable one, multiplying market sell
-    price*quantity (quantity can be > 100, which we allow so that
-    we also weight the selection toward commodities that we have
-    more of, all else being equal, so as to balance them out),
-    then it loads 100 of the one that had the max value (or less
-    than 100 if there is less). If there are multiple goods tied
-    for the max value then it will take the one furthest to the
-    right. Then it repeats this until it cannot load any further,
-    which in this case is equivalent to all slots being filled or
-    partially filled, since it should never be necessary to add
-    more to a previous slot on a subsequent iteration.
+  * Add the bridge for trade routes to sav/bridge.
 
-    Not sure yet if we want to replicate this... maybe we can
-    have an option to either keep that behavior or have an alter-
-    nate behavior where we try to divide the cargo space equally
-    among the goods that need to be moved, irrespective of market
-    prices.
+  * If a wagon train aborts its trade route because there is a
+    distant brave blocking the path, there should probably be a
+    message notifying the user. Or even better, if the brave is
+    far enough away, the wagon train should somehow keep going
+    anyway since the brave will probably have moved by the time
+    it gets to that area.
 
-  * The way that ship loading works is that it just iterates over
-    the commodities in order and attempts to buy 100 (or as much
-    as it can fit). If it can then it will, otherwise it will
-    move onto the next one.
+  * The auto load algo used for trade routes seems to behave
+    slightly differently from the "auto load" feature in the
+    colony that happens when you press 'L', though they seem sim-
+    ilar. Need to investigate how the latter works. Indications
+    are that it loads the commodity with the largest market value
+    but where the quantity is capped at 100. We may want to just
+    use the same algo as for wagon train loading.
 
-  * NOTE: the auto load algo used for trade routes seems to ap-
-    pears to behave slightly differently from the "auto load"
-    feature in the colony that happens when you press 'L', though
-    they seem similar. Need to investigate how the latter works.
-    Indications are that it loads the commodity with the largest
-    market value but where the quantity is capped at 100.
-
-  * Need to handle the case when there is only one colony in
-    the route, we don't want to get into an infinite loop given
-    that the unit will never consume any movement points.
-
-  * Need to handle the case (in the trade route edit UI and else-
-    where) where a colony does no longer exist.
+  * Need to handle the case when there is only one colony in the
+    route. Currently we do handle it in the sense that we don'
+    get into an infinite loop and we clear the orders of the
+    unit. However, the OG shows a message. We should probably do
+    this also, because there is the possibility that a trade
+    route could be left with only one stop if e.g. a colony on
+    the route gets captured or destroyed, and we don't want the
+    player to be confused about why the trade route stopped.
 
   * When a wagon train cannot find a path to its next stop it
-    will clear its orders. That said, the wagon train will go as
-    far as it can before doing this.
+    will clear its orders. Maybe a message should be displayed in
+    this case. Or maybe not a big deal because the trade route
+    editing UI should prevent this (should verify).
 
   * Allow editing the trade route of a unit by right clicking on
     it.
@@ -51,21 +39,26 @@ TODO:
   * Go through the trade route files and put more stuff in the
     configs.
 
-  * Given how the mechanics of trade routes work where the unit
-    arrives in a colony and then waits a turn before they unload
-    and proceed, it seems necessary that any unit on a trade
-    route needs to end their turn when they hit a destination.
-    This is done automatically, but it would be good to have a
-    flag where we only have this limitation on wagon trains when
-    they are on trade routes. This could be done by changing the
-    relevant unit config flag. Trade routes will still work be-
-    cause the trade route logic ensures that the unit ends its
-    turn regardless of its unit type config.
-
-  * Wagon trains need to end their turn when entering a colony.
-
-  * Note that the trade route edit screen allows editing the
-    name.
+  * In the OG, wagon trains and ships end their turn when en-
+    tering a colony, whether on a trade route or not. Given how
+    the mechanics of trade routes work where the unit arrives in
+    a colony and then waits a turn before they unload and pro-
+    ceed, it is necessary that any unit on a trade route end
+    their turn when they hit a colony. This is ensured automati-
+    cally, regardless of unit config. But it would be good to
+    have a flag where we can turn this off so that those units
+    don't have to end their turn in a colony when they are not on
+    a trade route. This makes sense because one option that
+    people may not like is that wagon trains must always end
+    their turn in a colony even if not on a trade route. We
+    should probably make it a game config option that this can be
+    turned off. So, get rid of the current unit-type config flag
+    ends_turn_in_colony and replace it with one game config flag
+    that controls that for wagon trains. We don't need to support
+    changing that behavior for ships because it would have too
+    much of an effect on gameplay, and it feels right that a ship
+    should end its turn when entering a port, unlike for a wagon
+    train.
 
   * When the player manually loads into a wagon train in the
     colony view, its orders clear.
@@ -76,45 +69,15 @@ TODO:
   * If a colony is captured then we should halt units that are on
     trade routes containing that colony.
 
-  * Make sure there aren't duplicate trade route names.
+  * Make sure there aren't duplicate trade route names both when
+    creating and in the validation.
 
-  * In the editor screen, for land routes, the first stop defines
-    the continent, then it will only allow selecting other
-    colonies on that same continent, and we should probably
-    replicate this. That said, in the menus that appear when cre-
-    ating a new trade route, it will allow selecting two colonies
-    on different continents for a land route, which is probably a
-    bug.
-
-  * The editor screen will avoid inland colonies for sea routes
-    and will avoid cross continent colonies for land routes.
-
-  * Note that the OG allows a trade route with one stop, which
-    could be useful for just continuing to load stuff. However it
-    does not allow a trade route with zero stops, so we probably
-    shouldn't allow that as well, since it would have no purpose
-    and would make things more complicated when converting sav
-    files.
+  * Although the OG allows a trade route with one stop, it dis-
+    plays a message each turn when a unit is on that trade route
+    (and at the stop), so in effect it doesn't like them.
 
   * Need to allow for the player editing the map, which could put
     colonies within a given trade route on different continents.
-
-  * When the wagon train lands in a colony, it does not do its
-    loading/unloading until the start of the next turn.
-
-  * When a unit starts a trade route, the gui allows selecting
-    the starting location.
-
-  * When creating a sea trade route, the harbor is among the
-    available stops. However, second-stop menu does not include
-    it, but probably should. In the OG it can be added in the
-    trade route editing screen.
-
-  * Need to support the fact that a trade route can be edited
-    while there are units carrying it out.
-
-  * Need to make sure that transacting in the harbor while on a
-    trade route respects boycotts.
 
   * Need to ensure that if a ship is in the harbor carrying out a
     trade route and either the trade route gets deleted, or its
@@ -124,7 +87,9 @@ TODO:
   * When a ship arrives in the harbor it will transact immedi-
     ately, and a message will be shown over the land view without
     showing the harbor. But then the ship waits until the next
-    turn to sail back.
+    turn to sail back. Not sure we're going to replicate this,
+    since it doesn't seem to matter much, and is inconsistent
+    with wagon train behavior.
 
   * When a wagon train arrives at a colony or loads/unloads
     stuff, a brief message appears in the top bar. Not sure yet
@@ -152,9 +117,11 @@ TODO:
     tance much further than one wagon train can move. Doing this
     efficiently requires the player being able to set up wagon
     trains that move in a predictable order so that one can pick
-    up where the prior one left off. Make sure this work.
-
-  * Need a list of default name suffixes for trade routes.
+    up where the prior one left off. Make sure this works. EDIT:
+    not sure how this is possible given that the wagon train does
+    not unload in the same turn when it arrives at a colony...
+    need to take another look at that; if it came from the SG
+    then it could be something outdated.
 
 Done:
 
@@ -171,3 +138,68 @@ Done:
   * Enable Trade Route menu item in orders menu.
 
   * Add 't' key to land view input.
+
+  * The way that the OG loads cargo is according to market value.
+    It looks at all the goods to load and it iterates through
+    them and finds the most valuable one, multiplying market sell
+    price*quantity (quantity can be > 100, which we allow so that
+    we also weight the selection toward commodities that we have
+    more of, all else being equal, so as to balance them out),
+    then it loads 100 of the one that had the max value (or less
+    than 100 if there is less). If there are multiple goods tied
+    for the max value then it will take the one furthest to the
+    right. Then it repeats this until it cannot load any further,
+    which in this case is equivalent to all slots being filled or
+    partially filled.
+
+  * The way that ship loading in the harbor works is that it just
+    iterates over the commodities in order and attempts to buy
+    100 (or as much as it can fit). If it can then it will, oth-
+    erwise it will move onto the next one.
+
+  * Need to handle the case (in the trade route edit UI and else-
+    where) where a colony does no longer exist. Solution: trade
+    route state will be sanitized before any operation that re-
+    quires it, and if e.g. the player tries to edit a trade route
+    and one of them is left with no colonies, a message is dis-
+    played and the trade route is removed.
+
+  * Wagon trains need to end their turn when entering a colony.
+
+  * Note that the trade route edit screen allows editing the
+    name.
+
+  * In the editor screen, for land routes, the first stop defines
+    the continent, then it will only allow selecting other
+    colonies on that same continent, and we should probably
+    replicate this. That said, in the menus that appear when cre-
+    ating a new trade route, it will allow selecting two colonies
+    on different continents for a land route, which is probably a
+    bug.
+
+  * The editor screen will avoid inland colonies for sea routes
+    and will avoid cross continent colonies for land routes.
+
+  * The OG does not allow a trade route with zero stops, so we
+    probably shouldn't allow that as well, since it would have no
+    purpose and would make things more complicated when con-
+    verting sav files.
+
+  * When the wagon train lands in a colony, it does not do its
+    loading/unloading until the start of the next turn.
+
+  * When a unit starts a trade route, the gui allows selecting
+    the starting location.
+
+  * When creating a sea trade route, the harbor is among the
+    available stops. However, second-stop menu does not include
+    it, but probably should. In the OG it can be added in the
+    trade route editing screen.
+
+  * Need to support the fact that a trade route can be edited
+    while there are units carrying it out.
+
+  * Need to make sure that transacting in the harbor while on a
+    trade route respects boycotts.
+
+  * Need a list of default name suffixes for trade routes.
