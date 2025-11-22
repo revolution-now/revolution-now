@@ -4,6 +4,8 @@ local function print( ... )
   if ENABLE_PRINT then _ENV.print( ... ) end
 end
 
+local root = assert( _G['root'] )
+
 -----------------------------------------------------------------
 -- LuaFormatter off
 -----------------------------------------------------------------
@@ -177,6 +179,7 @@ target_colony.colony_id = 7
 print( 'stop_1.target: ' .. tostring( stop_1.target ) )
 assert( stop_1.target.colony.colony_id == 7 )
 local harbor = stop_1.target.select_harbor()
+assert( harbor )
 assert( stop_1.target.harbor )
 print( 'stop_1.target: ' .. tostring( stop_1.target ) )
 print( 'stop_1.loads: ' .. tostring( stop_1.loads ) )
@@ -244,7 +247,7 @@ market.commodities.ore.boycott = true
 print( 'market.commodities.ore.boycott: ' .. tostring( market.commodities.ore.boycott ) )
 assert( market.commodities.ore.boycott == true )
 
-local french = root.players.players.french
+french = root.players.players.french
 assert( french )
 print( 'french.new_world_name: ' .. tostring( french.new_world_name ) )
 assert( french.new_world_name == nil )
