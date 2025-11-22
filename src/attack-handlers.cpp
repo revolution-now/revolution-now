@@ -425,7 +425,9 @@ wait<> AttackColonyUndefendedHandler::perform() {
   // Note that when we are searching for a port colony to repair
   // the ship we should make sure that it doesn't find the colony
   // being captured; that might require modifying the
-  // find_repair_port_for_ship function.
+  // find_repair_port_for_ship function. Also be sure to handle
+  // post-declaration when the harbor is not available for re-
+  // pair.
   // TODO
 
   // Step. Any veteran_colonists in the colony must have their
@@ -470,7 +472,25 @@ wait<> AttackColonyUndefendedHandler::perform() {
   co_await attacker_agent_.message_box( capture_msg );
   co_await defender_agent_.message_box( capture_msg );
 
-  // 8. Open colony view.
+  // Step: clear orders for all units at the gate. This is espe-
+  // cially important for units with trade_route or go_to orders,
+  // but it seems to make sense for all units. Note that for
+  // units with trade route orders, their inconsistent state
+  // would eventually be detected and their orders cleared, but
+  // it is better for us to do this eagerly for a better UX.
+  vector<UnitId> const at_gate = euro_units_from_coord_recursive(
+      ss_.units, colony_.location );
+  for( UnitId const unit_id : at_gate ) {
+    Unit& unit = ss_.units.unit_for( unit_id );
+    // Ownership should have already changed value.
+    CHECK_EQ( unit.player_type(), attacking_player_.type );
+    // NOTE: we don't have to worry about damaged ships here
+    // (which is a form of unit orders) because all ships in port
+    // will have been sent elsewhere for repairs or destroyed.
+    unit.clear_orders();
+  }
+
+  // Last step: Open colony view.
   if( attacker_agent_.human() ) {
     e_colony_abandoned const abandoned =
         co_await ts_.colony_viewer.show( ts_, colony_.id );
@@ -478,10 +498,6 @@ wait<> AttackColonyUndefendedHandler::perform() {
       // Nothing really special to do here.
       co_return;
   }
-
-  // TODO: what if there are trade routes that involve this
-  // colony?
-  co_return;
 }
 
 /****************************************************************
