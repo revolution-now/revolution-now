@@ -269,6 +269,8 @@ base::maybe<ColonyId> ColoniesState::maybe_from_name(
 }
 
 bool ColoniesState::exists( ColonyId id ) const {
+  CHECK( id < o_.next_colony_id, "colony id {} never existed.",
+         id );
   return o_.colonies.contains( id );
 }
 
