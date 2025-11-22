@@ -60,6 +60,10 @@ valid_or<string> TradeRoute::validate() const {
           "A land trade route cannot have the European Harbor "
           "as a stop." );
 
+  // Each trade route must have at least one stop.
+  REFL_VALIDATE( !stops.empty(), "trade route {} has no stops",
+                 id );
+
   return valid;
 }
 
@@ -99,11 +103,6 @@ valid_or<string> TradeRouteState::validate() const {
                    "there is an active trade route with id={} "
                    "which is > than prev_trade_route_id={}",
                    route.id, prev_trade_route_id );
-
-  // Each trade route must have at least one stop.
-  for( auto const& [id, route] : routes )
-    REFL_VALIDATE( !route.stops.empty(),
-                   "trade route {} has no stops", id );
 
   return valid;
 }
