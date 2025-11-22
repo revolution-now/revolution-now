@@ -99,7 +99,7 @@ struct PanelPlane::Impl : public IPlane, public IMenuHandler {
   vector<IMenuServer::Deregistrar> dereg_;
   rect mini_map_area_;
 
-  Rect rect() const {
+  Rect panel_rect() const {
     auto const r = main_window_logical_rect(
         engine_.video(), engine_.window(),
         engine_.resolutions() );
@@ -109,7 +109,7 @@ struct PanelPlane::Impl : public IPlane, public IMenuHandler {
   }
 
   Rect mini_map_available_rect() const {
-    Rect mini_map_available_rect = rect();
+    Rect mini_map_available_rect = panel_rect();
     int const kBorder            = 8;
     mini_map_available_rect.x += kBorder;
     mini_map_available_rect.y += kBorder;
@@ -144,7 +144,7 @@ struct PanelPlane::Impl : public IPlane, public IMenuHandler {
     view_vec.emplace_back( ui::OwningPositionedView{
       .view  = std::move( mini_map ),
       .coord = mini_map_area_.origin.point_becomes_origin(
-          rect().upper_left() ) } );
+          panel_rect().upper_left() ) } );
 
     auto button_view = make_unique<ui::ButtonView>(
         engine_.textometer(), "Next Turn", [this] {
@@ -155,9 +155,9 @@ struct PanelPlane::Impl : public IPlane, public IMenuHandler {
     button_view->blink( /*enabled=*/true );
 
     auto button_size = button_view->delta();
-    Coord where      = centered( button_size, rect() );
+    Coord where      = centered( button_size, panel_rect() );
     where.y          = panel_height() - button_size.h * 2;
-    where            = Coord{} + ( where - rect().upper_left() );
+    where = Coord{} + ( where - panel_rect().upper_left() );
 
     ui::OwningPositionedView p_view{
       .view = std::move( button_view ), .coord = where };
@@ -171,13 +171,13 @@ struct PanelPlane::Impl : public IPlane, public IMenuHandler {
 
   void advance_state() override { view_->advance_state(); }
 
-  W panel_width() const { return rect().w; }
-  H panel_height() const { return rect().h; }
+  W panel_width() const { return panel_rect().w; }
+  H panel_height() const { return panel_rect().h; }
 
   Delta delta() const {
     return { panel_width(), panel_height() };
   }
-  Coord origin() const { return rect().upper_left(); };
+  Coord origin() const { return panel_rect().upper_left(); };
 
   ui::ButtonView& next_turn_button() const {
     auto p_view = view_->at( 1 );
@@ -217,17 +217,18 @@ struct PanelPlane::Impl : public IPlane, public IMenuHandler {
         renderer, ss_, where, *viz,
         panel_render_plan( ss_, *viz, engine_.textometer(),
                            panel_layout( ss_, *viz, entities ),
-                           rect().w ) );
+                           panel_rect().w ) );
 
     // Bottom.
     if( entities.player_turn.has_value() ) {
       size const padding = { .w = 8, .h = -4 };
       int const height   = 4;
       gfx::rect const curr_player_rect{
-        .origin = rect().to_gfx().sw() + size{ .h = -height } +
-                  padding,
-        .size = { .w = rect().to_gfx().size.w - padding.w * 2,
-                  .h = height } };
+        .origin = panel_rect().to_gfx().sw() +
+                  size{ .h = -height } + padding,
+        .size = {
+          .w = panel_rect().to_gfx().size.w - padding.w * 2,
+          .h = height } };
       renderer.painter().draw_solid_rect(
           curr_player_rect,
           config_nation.players[*entities.player_turn]
@@ -236,9 +237,9 @@ struct PanelPlane::Impl : public IPlane, public IMenuHandler {
   }
 
   void draw( rr::Renderer& renderer ) const override {
-    tile_sprite( renderer, e_tile::wood_middle, rect() );
+    tile_sprite( renderer, e_tile::wood_middle, panel_rect() );
     // Render border on left and bottom.
-    Rect const r = rect();
+    Rect const r = panel_rect();
     {
       SCOPED_RENDERER_MOD_MUL( painter_mods.alpha, .75 );
       rr::Painter painter = renderer.painter();
@@ -252,12 +253,12 @@ struct PanelPlane::Impl : public IPlane, public IMenuHandler {
     view_->draw( renderer, origin() );
 
     int const x_margin =
-        std::max( mini_map_area_.origin.x - rect().x, 0 );
+        std::max( mini_map_area_.origin.x - panel_rect().x, 0 );
     Coord const divider_p =
         mini_map_area_.sw()
-            .with_x( rect().x )
+            .with_x( panel_rect().x )
             .moved_down( std::min( 8, x_margin ) + 2 );
-    render_divider( renderer, divider_p, rect().w );
+    render_divider( renderer, divider_p, panel_rect().w );
 
     Coord const p = divider_p + Delta{ .w = 8, .h = 6 };
     draw_some_stats( renderer, p );
@@ -279,7 +280,7 @@ struct PanelPlane::Impl : public IPlane, public IMenuHandler {
       // that we started within this view, and so (for a smooth
       // UX) we allow the subsequent drag events to be received
       // even if the cursor runs out of this view in the process.
-      if( pos.is_inside( rect() ) ||
+      if( pos.is_inside( panel_rect() ) ||
           event.holds<input::mouse_drag_event_t>() ) {
         auto new_event =
             mouse_origin_moved_by( event, origin() - Coord{} );
@@ -295,7 +296,8 @@ struct PanelPlane::Impl : public IPlane, public IMenuHandler {
   // Override IPlane.
   e_accept_drag can_drag( input::e_mouse_button,
                           Coord origin ) override {
-    if( !origin.is_inside( rect() ) ) return e_accept_drag::no;
+    if( !origin.is_inside( panel_rect() ) )
+      return e_accept_drag::no;
     // We're doing this so that the minimap can handle dragging
     // without adding the special drag methods to the interface.
     // If we need to change this then we will need to fix the
@@ -340,7 +342,7 @@ struct PanelPlane::Impl : public IPlane, public IMenuHandler {
     view_vec.emplace_back( ui::OwningPositionedView{
       .view  = std::move( mini_map ),
       .coord = mini_map_upper_left.with_new_origin(
-          rect().upper_left() ) } );
+          panel_rect().upper_left() ) } );
 
     auto button_view = make_unique<ui::ButtonView>(
         engine_.textometer(), "Next Turn", [this] {
@@ -351,9 +353,9 @@ struct PanelPlane::Impl : public IPlane, public IMenuHandler {
     button_view->blink( /*enabled=*/true );
 
     auto button_size = button_view->delta();
-    Coord where      = centered( button_size, rect() );
+    Coord where      = centered( button_size, panel_rect() );
     where.y          = panel_height() - button_size.h * 2;
-    where            = Coord{} + ( where - rect().upper_left() );
+    where = Coord{} + ( where - panel_rect().upper_left() );
 
     ui::OwningPositionedView p_view{
       .view = std::move( button_view ), .coord = where };
