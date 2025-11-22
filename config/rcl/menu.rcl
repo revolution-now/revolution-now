@@ -66,7 +66,8 @@ items {
   build_colony.name: Build Colony
   center_view.name: Center View
   cheat_advance_revolution_status.name: Advance Revolution Status
-  cheat_create_unit_on_map.name: Create Unit
+  cheat_create_unit.name: Create Unit
+  cheat_create_foreign_unit.name: Create Foreign Unit
   cheat_edit_fathers.name: Edit Founding Fathers
   cheat_explore_entire_map.name: Explore Entire Map
   cheat_hide_entire_map.name: Hide Entire Map
@@ -221,7 +222,8 @@ layout {
   ]
 
   cheat.contents: [
-    .leaf.item: cheat_create_unit_on_map
+    .leaf.item: cheat_create_unit
+    .leaf.item: cheat_create_foreign_unit
     null
     .leaf.item: cheat_reveal_map
     .leaf.item: cheat_explore_entire_map

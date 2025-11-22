@@ -75,6 +75,7 @@
 // C++ standard library
 #include <chrono>
 #include <queue>
+#include <ranges>
 
 #define SCOPED_MODE_PUSH_AND_GET( mode, type )       \
   auto& mode = mode_.emplace( LandViewMode::type{} ) \
@@ -83,6 +84,8 @@
 
 using namespace std;
 
+namespace rg = std::ranges;
+
 namespace rn {
 
 namespace {
@@ -90,6 +93,7 @@ namespace {
 using ::gfx::point;
 using ::gfx::rect;
 using ::gfx::size;
+using ::refl::enum_map;
 
 struct RawInput {
   RawInput( LandViewRawInput input_ )
@@ -181,7 +185,9 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
   void register_menu_items( IMenuServer& menu_server ) {
     // Register menu handlers.
     dereg.push_back( menu_server.register_handler(
-        e_menu_item::cheat_create_unit_on_map, *this ) );
+        e_menu_item::cheat_create_unit, *this ) );
+    dereg.push_back( menu_server.register_handler(
+        e_menu_item::cheat_create_foreign_unit, *this ) );
     dereg.push_back( menu_server.register_handler(
         e_menu_item::cheat_reveal_map, *this ) );
     dereg.push_back( menu_server.register_handler(
@@ -672,12 +678,45 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
       case e::cheat_create_unit: {
         if( !cheat_mode_enabled( ss_ ) ) break;
         maybe<e_player> const player =
-            player_for_role( ss_, e_player_role::active );
+            player_for_role( ss_, e_player_role::viewer );
         if( !player.has_value() ) break;
         auto const tile = cheat_target_square( ss_, ts_ );
         if( !tile.has_value() ) break;
-        co_await cheat_create_unit_on_map( ss_, ts_, *player,
-                                           *tile );
+        co_await cheat_create_unit( ss_, ts_, *player, *tile );
+        break;
+      }
+      case e::cheat_create_foreign_unit: {
+        if( !cheat_mode_enabled( ss_ ) ) break;
+        enum_map<e_player, bool> disabled;
+        maybe<e_player> const viewer =
+            player_for_role( ss_, e_player_role::viewer );
+        if( !viewer.has_value() )
+          // Shouldn't ever happen.
+          break;
+        for( auto const& [type, player] : ss_.players.players ) {
+          if( type == viewer || !player.has_value() ||
+              player->control == e_player_control::inactive ) {
+            disabled[type] = true;
+            continue;
+          }
+        }
+        bool const has_enabled = rg::any_of(
+            disabled,
+            []( auto const& p ) { return !p.second; } );
+        if( !has_enabled ) {
+          co_await ts_.gui.message_box(
+              "There are no active foreign players.  You can "
+              "use the [Set Player Control] menu option to "
+              "enable any players that exist but are "
+              "inactive." );
+          break;
+        }
+        auto const player =
+            co_await ts_.gui.optional_enum_choice( disabled );
+        if( !player.has_value() ) break;
+        auto const tile = cheat_target_square( ss_, ts_ );
+        if( !tile.has_value() ) break;
+        co_await cheat_create_unit( ss_, ts_, *player, *tile );
         break;
       }
       case e::escape: {
@@ -748,8 +787,8 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
           maybe<e_player> const player =
               player_for_role( ss_, e_player_role::active );
           if( !player.has_value() ) break;
-          co_await cheat_create_unit_on_map( ss_, ts_, *player,
-                                             o.coord );
+          co_await cheat_create_unit( ss_, ts_, *player,
+                                      o.coord );
           break;
         }
         vector<PI> inputs =
@@ -1015,7 +1054,7 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
     // store to previous state.
     static_assert( zoom_in_factor * zoom_out_factor == 1.0 );
     switch( item ) {
-      case e_menu_item::cheat_create_unit_on_map: {
+      case e_menu_item::cheat_create_unit: {
         if( !mode_.top().holds<LandViewMode::unit_input>() &&
             !mode_.top().holds<LandViewMode::view_mode>() &&
             !mode_.top().holds<LandViewMode::end_of_turn>() )
@@ -1023,6 +1062,17 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
         auto handler = [this] {
           raw_input_stream_.send( RawInput(
               LandViewRawInput::cheat_create_unit{} ) );
+        };
+        return handler;
+      }
+      case e_menu_item::cheat_create_foreign_unit: {
+        if( !mode_.top().holds<LandViewMode::unit_input>() &&
+            !mode_.top().holds<LandViewMode::view_mode>() &&
+            !mode_.top().holds<LandViewMode::end_of_turn>() )
+          break;
+        auto handler = [this] {
+          raw_input_stream_.send( RawInput(
+              LandViewRawInput::cheat_create_foreign_unit{} ) );
         };
         return handler;
       }

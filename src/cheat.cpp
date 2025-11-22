@@ -1175,9 +1175,9 @@ void cheat_advance_colony_one_turn(
   if( ev.colony_disappeared ) lg.debug( "colony has starved." );
 }
 
-wait<> cheat_create_unit_on_map( SS& ss, TS& ts,
-                                 e_player const player_type,
-                                 point const tile ) {
+wait<> cheat_create_unit( SS& ss, TS& ts,
+                          e_player const player_type,
+                          point const tile ) {
   static refl::enum_map<e_cheat_unit_creation_categories,
                         vector<e_unit_type>> const categories{
     { e_cheat_unit_creation_categories::basic_colonists,

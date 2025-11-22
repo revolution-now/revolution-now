@@ -128,8 +128,8 @@ void cheat_advance_colony_one_turn(
 
 // This is called when the player asks to just create a unit on
 // the map. It will allow the player to select the unit type.
-wait<> cheat_create_unit_on_map( SS& ss, TS& ts, e_player player,
-                                 gfx::point tile );
+wait<> cheat_create_unit( SS& ss, TS& ts, e_player player,
+                          gfx::point tile );
 
 /****************************************************************
 ** In Harbor View
