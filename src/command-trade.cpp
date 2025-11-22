@@ -46,7 +46,8 @@ struct TradeRouteHandler : public CommandHandler {
     // Sanitize.
     TradeRoutesSanitizedToken const& token =
         co_await run_trade_route_sanitization(
-            ss_.as_const, player_, ss_.trade_routes, agent_ );
+            ss_.as_const, player_, gui_, ss_.trade_routes,
+            agent_ );
 
     // Confirm.
     auto const route_orders =

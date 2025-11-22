@@ -147,25 +147,27 @@ void validate_token( TradeRoutesSanitizedToken const& token ) {
 static maybe<TradeRouteSanitizationAction>
 trade_route_stop_inaccessible( SSConst const& ss,
                                Player const& player,
+                               TradeRoute const& route,
                                TradeRouteTarget const& target ) {
+  using Action = TradeRouteSanitizationAction;
   SWITCH( target ) {
     CASE( colony ) {
       if( !ss.colonies.exists( colony.colony_id ) )
-        return TradeRouteSanitizationAction::
-            colony_no_longer_exists{};
+        return Action::colony_no_longer_exists{
+          .route_id = route.id, .route_name = route.name };
       Colony const& colony_o =
           ss.colonies.colony_for( colony.colony_id );
       if( colony_o.player != player.type )
-        return TradeRouteSanitizationAction::
-            colony_changed_player{ .colony_id =
-                                       colony.colony_id };
+        return Action::colony_changed_player{
+          .colony_id  = colony.colony_id,
+          .route_name = route.name };
       break;
     }
     CASE( harbor ) {
       if( player.revolution.status >=
           e_revolution_status::declared )
-        return TradeRouteSanitizationAction::
-            harbor_inaccessible{};
+        return Action::no_harbor_post_declaration{
+          .route_name = route.name };
       break;
     }
   }
@@ -176,6 +178,7 @@ TradeRoutesSanitizedToken const& sanitize_trade_routes(
     SSConst const& ss, Player const& player,
     TradeRouteState& trade_routes,
     vector<TradeRouteSanitizationAction>& actions_taken ) {
+  using Action = TradeRouteSanitizationAction;
   static TradeRoutesSanitizedToken const kToken;
   actions_taken.clear();
 
@@ -185,7 +188,10 @@ TradeRoutesSanitizedToken const& sanitize_trade_routes(
   // be defensive.
   for( auto& [route_id, route] : trade_routes.routes ) {
     if( route.player != player.type ) continue;
-    if( route.stops.size() > 4 ) route.stops.resize( 4 );
+    if( route.stops.size() <= 4 ) continue;
+    route.stops.resize( 4 );
+    actions_taken.push_back( Action::too_many_stops{
+      .route_id = route_id, .route_name = route.name } );
   }
 
   // Erase inaccessible stops.
@@ -193,7 +199,7 @@ TradeRoutesSanitizedToken const& sanitize_trade_routes(
     if( route.player != player.type ) continue;
     bool const needs_removing = [&] {
       for( TradeRouteStop const& stop : route.stops )
-        if( trade_route_stop_inaccessible( ss, player,
+        if( trade_route_stop_inaccessible( ss, player, route,
                                            stop.target ) )
           return true;
       return false;
@@ -203,7 +209,7 @@ TradeRoutesSanitizedToken const& sanitize_trade_routes(
     new_stops.reserve( route.stops.size() );
     for( TradeRouteStop const& stop : route.stops ) {
       auto const reason = trade_route_stop_inaccessible(
-          ss, player, stop.target );
+          ss, player, route, stop.target );
       if( reason.has_value() ) {
         actions_taken.push_back( *reason );
         continue;
@@ -213,7 +219,8 @@ TradeRoutesSanitizedToken const& sanitize_trade_routes(
     route.stops = new_stops;
   }
 
-  // Erase empty routes.
+  // Erase empty routes. NOTE: must do this last in case the
+  // above steps made changes that yielded empty routes.
   vector<pair<int, string>> empty;
   for( auto const& [id, route] : trade_routes.routes ) {
     if( route.player != player.type ) continue;
@@ -222,7 +229,7 @@ TradeRoutesSanitizedToken const& sanitize_trade_routes(
   }
   for( auto const& [id, name] : empty ) {
     actions_taken.push_back(
-        TradeRouteSanitizationAction::empty_route{ .name =
+        TradeRouteSanitizationAction::empty_route{ .route_name =
                                                        name } );
     trade_routes.routes.erase( id );
   }
@@ -231,65 +238,108 @@ TradeRoutesSanitizedToken const& sanitize_trade_routes(
 }
 
 wait<> show_sanitization_actions(
-    SSConst const&, IAgent& agent,
+    SSConst const& ss, IGui& gui, IAgent& agent,
     vector<TradeRouteSanitizationAction> const& actions_taken,
     TradeRoutesSanitizedToken const& token ) {
   validate_token( token );
   if( actions_taken.empty() ) co_return;
+  vector<string> msgs;
+  // NOTE: we should not assume that any trade route referenced
+  // still exists, since the sanitization action could have per-
+  // formed an action on a trade route (such as removing
+  // colonies) which left it empty in which case it will have
+  // been removed.
   for( TradeRouteSanitizationAction const& action :
        actions_taken ) {
     SWITCH( action ) {
       CASE( colony_no_longer_exists ) {
+        msgs.push_back(
+            format( "A colony listed as a stop on the [{}] "
+                    "trade route has been removed from the "
+                    "itinerary as it no longer exists.",
+                    colony_no_longer_exists.route_name ) );
         break;
       }
       CASE( colony_changed_player ) {
+        Colony const& colony = ss.colonies.colony_for(
+            colony_changed_player.colony_id );
+        msgs.push_back( format(
+            "The colony of [{}], listed as a stop on the [{}] "
+            "trade route, has been removed from the itinerary "
+            "as it is now occupied by the [{}].",
+            colony.name, colony_changed_player.route_name,
+            config_nation.players[colony.player]
+                .display_name_pre_declaration ) );
         break;
       }
-      CASE( harbor_inaccessible ) {
+      CASE( no_harbor_post_declaration ) {
+        msgs.push_back(
+            format( "All European Harbor stops on the [{}] "
+                    "trade route have been removed as the "
+                    "European Harbor is no longer accessible "
+                    "after the War of Independence begins.",
+                    no_harbor_post_declaration.route_name ) );
         break;
       }
       CASE( empty_route ) {
+        msgs.push_back( format(
+            "The [{}] trade route has been left with no stops "
+            "on its itinerary and has thus been deleted.",
+            empty_route.route_name ) );
         break;
       }
       CASE( too_many_stops ) {
+        msgs.push_back(
+            format( "The [{}] trade route has exceeded the "
+                    "limit of four stops. All stops beyond the "
+                    "fourth have thus been removed.",
+                    too_many_stops.route_name ) );
         break;
       }
     }
   }
-  co_await agent.message_box(
-      "Some trade routes and/or trade route stops were "
-      "removed." );
+  chrono::milliseconds sleep;
+  for( string const& msg : msgs ) {
+    co_await agent.message_box( "Trade Route Alert: {}", msg );
+    co_await gui.wait_for( sleep );
+    sleep = chrono::milliseconds{ 200 };
+  }
   co_return;
 }
 
 wait<std::reference_wrapper<TradeRoutesSanitizedToken const>>
 run_trade_route_sanitization( SSConst const& ss,
-                              Player const& player,
+                              Player const& player, IGui& gui,
                               TradeRouteState& trade_routes,
                               IAgent& agent ) {
   vector<TradeRouteSanitizationAction> actions_taken;
   TradeRoutesSanitizedToken const& token = sanitize_trade_routes(
       ss, player, trade_routes, actions_taken );
   co_await show_sanitization_actions(
-      ss, agent, as_const( actions_taken ), token );
+      ss, gui, agent, as_const( actions_taken ), token );
   co_return token;
 }
 
-maybe<unit_orders::trade_route> sanitize_unit_orders(
-    SSConst const& ss, unit_orders::trade_route const& orders,
+maybe<unit_orders::trade_route> sanitize_unit_trade_route_orders(
+    SSConst const& ss, Unit const& unit,
     TradeRoutesSanitizedToken const& token ) {
-  maybe<unit_orders::trade_route> res;
   validate_token( token );
+  UNWRAP_RETURN_T(
+      unit_orders::trade_route const& orders,
+      unit.orders().get_if<unit_orders::trade_route>() );
   auto const route =
       look_up_trade_route( ss.trade_routes, orders.id );
-  if( !route.has_value() ) return res;
-  // This should have been caught in the sanitization process.
-  CHECK( !route->stops.empty() );
-  auto& new_orders = res.emplace();
-  new_orders       = orders;
+  if( !route.has_value() ) return nothing;
+  // This should not happen as it should have been caught in san-
+  // itization, but lets be defensive.
+  if( route->stops.empty() ) return nothing;
+  // This can happen if the wagon train is captured in a colony
+  // while on a trade route.
+  if( route->player != unit.player_type() ) return nothing;
+  unit_orders::trade_route new_orders = orders;
   if( new_orders.en_route_to_stop >= ssize( route->stops ) )
     new_orders.en_route_to_stop = 0;
-  return res;
+  return new_orders;
 }
 
 /****************************************************************

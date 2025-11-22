@@ -33,16 +33,27 @@ struct.TradeRouteOrdersConfirmed {
     en_route_to_stop 'int',
 }
 
+# We include the route names here just in case the route ends up
+# getting deleted as a result of the sanitization. That way, we
+# can tell the player the name of the route (which we wouldn't be
+# able to do if it got deleted).
 sumtype.TradeRouteSanitizationAction {
-  colony_no_longer_exists {},
+  colony_no_longer_exists {
+    route_id 'TradeRouteId',
+    route_name 'std::string',
+  },
   colony_changed_player {
     colony_id 'ColonyId',
+    route_name 'std::string',
   },
-  harbor_inaccessible {},
+  no_harbor_post_declaration {
+    route_name 'std::string',
+  },
   empty_route {
-    name 'std::string',
+    route_name 'std::string',
   },
   too_many_stops {
     route_id 'TradeRouteId',
+    route_name 'std::string',
   },
 }

@@ -625,7 +625,7 @@ wait<> menu_handler( IEngine& engine, SS& ss, TS& ts,
       // Sanitize.
       TradeRoutesSanitizedToken const& token =
           co_await run_trade_route_sanitization(
-              ss.as_const, player, ss.trade_routes,
+              ss.as_const, player, ts.gui, ss.trade_routes,
               ts.agents()[player.type] );
       // Edit.
       auto const trade_route_id = co_await ask_edit_trade_route(
@@ -641,7 +641,7 @@ wait<> menu_handler( IEngine& engine, SS& ss, TS& ts,
       // Sanitize.
       TradeRoutesSanitizedToken const& token =
           co_await run_trade_route_sanitization(
-              ss.as_const, player, ss.trade_routes,
+              ss.as_const, player, ts.gui, ss.trade_routes,
               ts.agents()[player.type] );
       // Create.
       auto const params = co_await ask_create_trade_route(
@@ -1409,7 +1409,7 @@ wait<> advance_unit( IEngine& engine, SS& ss, TS& ts,
     // before moving, but here we can run the interactive version
     // of it to a better UX.
     co_await run_trade_route_sanitization(
-        ss.as_const, player, ss.trade_routes,
+        ss.as_const, player, ts.gui, ss.trade_routes,
         ts.agents()[player.type] );
     EvolveTradeRoute const evolve_route =
         agent.evolve_trade_route( id );
@@ -1880,7 +1880,7 @@ wait<> post_colonies_common( SS& ss, TS& ts, Player& player ) {
   // trade route, the better, since it will be closer to the
   // event that actually caused it.
   co_await run_trade_route_sanitization(
-      ss.as_const, player, ss.trade_routes,
+      ss.as_const, player, ts.gui, ss.trade_routes,
       ts.agents()[player.type] );
 }
 

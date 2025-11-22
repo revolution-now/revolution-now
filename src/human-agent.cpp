@@ -459,19 +459,21 @@ EvolveTradeRoute HumanAgent::evolve_trade_route(
   if( unit.has_full_mv_points() )
     goto_registry_.units.erase( unit_id );
 
-  UNWRAP_CHECK_T(
-      auto& trade_route_orders,
-      unit.orders().get_if<unit_orders::trade_route>() );
-
+  // We can't really show a message here communicating the ac-
+  // tions taken, but hopefully it won't matter because sanitiza-
+  // tion will be done interactively just before calling the
+  // method we are currently in.
   vector<TradeRouteSanitizationAction> actions_taken;
   TradeRoutesSanitizedToken const& token =
       sanitize_trade_routes( ss_.as_const, as_const( player() ),
                              ss_.trade_routes, actions_taken );
 
-  auto const sanitized_orders = sanitize_unit_orders(
-      ss_.as_const, as_const( trade_route_orders ), token );
+  auto const sanitized_orders = sanitize_unit_trade_route_orders(
+      ss_.as_const, as_const( unit ), token );
   if( !sanitized_orders.has_value() )
-    return abort( "unit orders no longer valid" );
+    return abort( "unit trade route orders no longer valid" );
+  unit_orders::trade_route& trade_route_orders =
+      unit.orders().emplace<unit_orders::trade_route>();
   trade_route_orders = *sanitized_orders;
 
   auto const route = look_up_trade_route(

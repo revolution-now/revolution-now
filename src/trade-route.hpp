@@ -73,7 +73,7 @@ sanitize_trade_routes(
     std::vector<TradeRouteSanitizationAction>& actions_taken );
 
 wait<> show_sanitization_actions(
-    SSConst const&, IAgent& agent,
+    SSConst const&, IGui& gui, IAgent& agent,
     std::vector<TradeRouteSanitizationAction> const&
         actions_taken,
     TradeRoutesSanitizedToken const& token );
@@ -82,14 +82,14 @@ wait<> show_sanitization_actions(
 // an interactive context.
 wait<std::reference_wrapper<TradeRoutesSanitizedToken const>>
 run_trade_route_sanitization( SSConst const& ss,
-                              Player const& player,
+                              Player const& player, IGui& gui,
                               TradeRouteState& trade_routes,
                               IAgent& agent );
 
 // Returns nothing if the orders cannot be salvaged, e.g. if the
 // route no longer exists.
-maybe<unit_orders::trade_route> sanitize_unit_orders(
-    SSConst const& ss, unit_orders::trade_route const& orders,
+maybe<unit_orders::trade_route> sanitize_unit_trade_route_orders(
+    SSConst const& ss, Unit const& unit,
     TradeRoutesSanitizedToken const& token );
 
 /****************************************************************
