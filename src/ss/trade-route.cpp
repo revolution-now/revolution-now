@@ -49,6 +49,7 @@ bool operator<( TradeRouteTarget const& l,
         CASE( harbor ) { return false; }
         CASE( colony ) { return true; }
       }
+      break;
     }
     CASE( colony ) {
       auto const& l_colony = colony;
@@ -59,6 +60,7 @@ bool operator<( TradeRouteTarget const& l,
           return l_colony.colony_id < r_colony.colony_id;
         }
       }
+      break;
     }
   }
 }
