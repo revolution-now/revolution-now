@@ -984,6 +984,12 @@ TEST_CASE( "[trade-route] ask_create_trade_route" ) {
   StringInputConfig const conf_choose_name{
     .msg          = "Choose a name for this trade route:",
     .initial_text = "colony.1 Run" };
+  StringInputConfig const conf_choose_name_2{
+    .msg          = "Choose a name for this trade route:",
+    .initial_text = "colony.1 Ferry" };
+  StringInputConfig const conf_choose_name_3{
+    .msg          = "Choose a name for this trade route:",
+    .initial_text = "colony.1 Ferry 3" };
 
   G.EXPECT__choice( conf_select_stop ).returns();
   REQUIRE( f() == nothing );
@@ -1030,6 +1036,55 @@ TEST_CASE( "[trade-route] ask_create_trade_route" ) {
     .player = english,
     .stop1  = TradeRouteTarget::colony{ .colony_id = 1 },
     .stop2  = TradeRouteTarget::harbor{} };
+  REQUIRE( f() == expected );
+
+  // Name already exists.
+  w.add_land_route_1();
+  G.EXPECT__choice( conf_select_stop ).returns( "1" );
+  G.EXPECT__choice( conf_what_kind ).returns( "land" );
+  G.EXPECT__choice( conf_snd_stop_land ).returns( "3" );
+  G.EXPECT__string_input( conf_choose_name_2 )
+      .returns( "land.1" );
+  G.EXPECT__message_box(
+      "There is already a trade route with the name [land.1]. "
+      "Please enter a new name." );
+  G.EXPECT__string_input( conf_choose_name_2 )
+      .returns( "land.1x" );
+  expected = {
+    .name   = "land.1x",
+    .type   = land,
+    .player = english,
+    .stop1  = TradeRouteTarget::colony{ .colony_id = 1 },
+    .stop2  = TradeRouteTarget::colony{ .colony_id = 3 } };
+  REQUIRE( f() == expected );
+
+  w.trade_routes()        = {};
+  string const suffixes[] = {
+    "Run",      "Ferry",  "Cargo",       "Transport",
+    "Triangle", "Circle", "Interchange",
+  };
+  for( int i = 1; string const& suffix : suffixes ) {
+    w.add_land_route_1();
+    w.trade_routes().routes.at( i++ ).name =
+        "colony.1 "s + suffix;
+    w.add_land_route_1();
+    w.trade_routes().routes.at( i++ ).name =
+        "colony.1 "s + suffix + " 2";
+  }
+
+  // Can't find a name with suffixes alone.
+  w.add_land_route_1();
+  G.EXPECT__choice( conf_select_stop ).returns( "1" );
+  G.EXPECT__choice( conf_what_kind ).returns( "land" );
+  G.EXPECT__choice( conf_snd_stop_land ).returns( "3" );
+  G.EXPECT__string_input( conf_choose_name_3 )
+      .returns( "my name" );
+  expected = {
+    .name   = "my name",
+    .type   = land,
+    .player = english,
+    .stop1  = TradeRouteTarget::colony{ .colony_id = 1 },
+    .stop2  = TradeRouteTarget::colony{ .colony_id = 3 } };
   REQUIRE( f() == expected );
 }
 

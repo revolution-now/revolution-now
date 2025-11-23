@@ -72,7 +72,7 @@ string trade_route_name_suggestion(
       config_trade.trade_routes.name_suggestion_suffixes;
   int const num_suffixes = suffixes.size();
   if( num_suffixes == 0 ) {
-    suggestion = "Route";
+    suggestion = format( "{} Route", colony_name );
     return suggestion;
   }
   auto const get_suffix = [&]( int const idx ) {
