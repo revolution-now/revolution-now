@@ -755,8 +755,10 @@ wait<maybe<int>> ask_first_stop(
   if( !config.options.empty() )
     res = co_await gui.optional_choice_int_key( config );
   else
+    // Should not happen because we sanitized, but let's just be
+    // defensive.
     co_await gui.message_box(
-        "Trade Route [{}] has no stops registered.",
+        "Trade Route [{}] has no stops registered!",
         route.name );
   co_return res;
 }

@@ -127,22 +127,21 @@ struct world : testing::World {
     using enum e_commodity;
     using enum e_trade_route_type;
     create_colonies();
-    add_route( TradeRoute{
-      .type  = land,
-      .stops = {
-        { .target =
-              TradeRouteTarget::colony{
-                .colony_id = get<0>( colonies_ )->id,
-              },
-          .loads   = { furs },
-          .unloads = { coats } },
-        { .target =
-              TradeRouteTarget::colony{
-                .colony_id = get<1>( colonies_ )->id,
-              },
-          .loads   = { coats },
-          .unloads = { furs } },
-      } } );
+    add_route( TradeRoute{ .type  = land,
+                           .stops = {
+                             { .target =
+                                   TradeRouteTarget::colony{
+                                     .colony_id = colony<0>().id,
+                                   },
+                               .loads   = { furs },
+                               .unloads = { coats } },
+                             { .target =
+                                   TradeRouteTarget::colony{
+                                     .colony_id = colony<1>().id,
+                                   },
+                               .loads   = { coats },
+                               .unloads = { furs } },
+                           } } );
   }
 
   // [2] <-> [2], exchanging furs/coats.
@@ -150,22 +149,21 @@ struct world : testing::World {
     using enum e_commodity;
     using enum e_trade_route_type;
     create_colonies();
-    add_route( TradeRoute{
-      .type  = land,
-      .stops = {
-        { .target =
-              TradeRouteTarget::colony{
-                .colony_id = get<0>( colonies_ )->id,
-              },
-          .loads   = { furs },
-          .unloads = { coats } },
-        { .target =
-              TradeRouteTarget::colony{
-                .colony_id = get<0>( colonies_ )->id,
-              },
-          .loads   = { coats },
-          .unloads = { furs } },
-      } } );
+    add_route( TradeRoute{ .type  = land,
+                           .stops = {
+                             { .target =
+                                   TradeRouteTarget::colony{
+                                     .colony_id = colony<0>().id,
+                                   },
+                               .loads   = { furs },
+                               .unloads = { coats } },
+                             { .target =
+                                   TradeRouteTarget::colony{
+                                     .colony_id = colony<0>().id,
+                                   },
+                               .loads   = { coats },
+                               .unloads = { furs } },
+                           } } );
   }
 
   // [1] --> [harbor] --> [2].
@@ -173,25 +171,25 @@ struct world : testing::World {
     using enum e_commodity;
     using enum e_trade_route_type;
     create_colonies();
-    add_route( TradeRoute{
-      .type  = sea,
-      .stops = {
-        { .target =
-              TradeRouteTarget::colony{
-                .colony_id = get<0>( colonies_ )->id,
-              },
-          .loads   = { furs },
-          .unloads = { coats } },
-        { .target  = TradeRouteTarget::harbor{},
-          .loads   = { trade_goods },
-          .unloads = { furs } },
-        { .target =
-              TradeRouteTarget::colony{
-                .colony_id = get<1>( colonies_ )->id,
-              },
-          .loads   = { coats },
-          .unloads = { trade_goods } },
-      } } );
+    add_route(
+        TradeRoute{ .type  = sea,
+                    .stops = {
+                      { .target =
+                            TradeRouteTarget::colony{
+                              .colony_id = colony<0>().id,
+                            },
+                        .loads   = { furs },
+                        .unloads = { coats } },
+                      { .target  = TradeRouteTarget::harbor{},
+                        .loads   = { trade_goods },
+                        .unloads = { furs } },
+                      { .target =
+                            TradeRouteTarget::colony{
+                              .colony_id = colony<1>().id,
+                            },
+                        .loads   = { coats },
+                        .unloads = { trade_goods } },
+                    } } );
   }
 
   // [harbor] --> [harbor].
@@ -218,8 +216,15 @@ struct world : testing::World {
         ss(), default_player(), trade_routes(), actions_taken );
   }
 
- public:
-  array<Colony*, kNumColonies> colonies_;
+  template<size_t Idx>
+  Colony& colony() const {
+    Colony* res = get<Idx>( colonies_ );
+    BASE_CHECK( res != nullptr );
+    return *res;
+  }
+
+ private:
+  array<Colony*, kNumColonies> colonies_ = {};
 };
 
 /****************************************************************
@@ -305,7 +310,7 @@ TEST_WORLD(
     add_land_route_1();
     auto old = trade_routes();
 
-    get<0>( colonies_ )->player = french;
+    colony<0>().player = french;
     f();
     expected = { A::colony_changed_player{
       .colony_id = 1, .route_name = "land.1" } };
@@ -319,8 +324,8 @@ TEST_WORLD(
     add_land_route_1();
     auto old = trade_routes();
 
-    get<0>( colonies_ )->player = french;
-    get<1>( colonies_ )->player = french;
+    colony<0>().player = french;
+    colony<1>().player = french;
     f();
     expected = { A::colony_changed_player{
                    .colony_id = 1, .route_name = "land.1" },
@@ -335,7 +340,7 @@ TEST_WORLD(
   SECTION( "colony no longer exists" ) {
     add_land_route_1();
     auto old = trade_routes();
-    destroy_colony( ss(), ts(), *get<0>( colonies_ ) );
+    destroy_colony( ss(), ts(), colony<0>() );
     f();
     expected = {
       A::colony_no_longer_exists{ .route_name = "land.1" } };
@@ -681,7 +686,7 @@ TEST_CASE( "[trade-route] curr_trade_route_target" ) {
   unit.orders() =
       unit_orders::trade_route{ .id = 2, .en_route_to_stop = 1 };
   REQUIRE( f() == TradeRouteTarget::colony{
-                    .colony_id = w.colonies_[1]->id } );
+                    .colony_id = w.colony<1>().id } );
 
   SECTION( "bad stop" ) {
     unit.orders()
@@ -801,7 +806,7 @@ TEST_CASE( "[trade-route] unit_has_reached_trade_route_stop" ) {
                                        { .x = 6, .y = 1 } );
     unit.orders() = unit_orders::trade_route{
       .id = 1, .en_route_to_stop = 1 };
-    destroy_colony( w.ss(), w.ts(), *get<1>( w.colonies_ ) );
+    destroy_colony( w.ss(), w.ts(), w.colony<1>() );
     REQUIRE_FALSE( f( unit ) );
   }
 
@@ -1070,8 +1075,8 @@ TEST_CASE( "[trade-route] name_for_target" ) {
   target = TradeRouteTarget::colony{ .colony_id = 2 };
   REQUIRE( f() == "2" );
 
-  get<1>( w.colonies_ )->name = "my colony";
-  player                      = english;
+  w.colony<1>().name = "my colony";
+  player             = english;
   target = TradeRouteTarget::colony{ .colony_id = 2 };
   REQUIRE( f() == "my colony" );
 }
@@ -1132,11 +1137,84 @@ TEST_CASE(
 }
 
 TEST_CASE( "[trade-route] select_trade_route" ) {
+  using enum e_unit_type;
   world w;
+  vector<TradeRouteId> route_ids;
+
+  auto const f = [&] [[clang::noinline]] ( Unit const& unit ) {
+    return co_await_test( select_trade_route(
+        w.ss().as_const, unit, w.gui(), route_ids ) );
+  };
+
+  Unit const& ship =
+      w.add_unit_on_map( caravel, { .x = 0, .y = 0 } );
+  Unit const& wagon =
+      w.add_unit_on_map( wagon_train, { .x = 2, .y = 0 } );
+
+  w.add_land_route_1();
+  w.add_sea_route_1();
+  w.add_land_route_1();
+  w.add_sea_route_1();
+
+  ChoiceConfig config;
+
+  route_ids = {};
+  REQUIRE( f( ship ) == nothing );
+  REQUIRE( f( wagon ) == nothing );
+
+  route_ids = { 2, 4 };
+  config    = {
+       .msg     = "Select Trade Route for [Caravel]:",
+       .options = { { .key = "2", .display_name = "sea.2" },
+                    { .key = "4", .display_name = "sea.4" } } };
+  w.gui().EXPECT__choice( config ).returns( nothing );
+  REQUIRE( f( ship ) == nothing );
+  w.gui().EXPECT__choice( config ).returns( "4" );
+  REQUIRE( f( ship ) == 4 );
+
+  route_ids = { 1, 3 };
+  config    = {
+       .msg     = "Select Trade Route for [Wagon Train]:",
+       .options = { { .key = "1", .display_name = "land.1" },
+                    { .key = "3", .display_name = "land.3" } } };
+  w.gui().EXPECT__choice( config ).returns( nothing );
+  REQUIRE( f( wagon ) == nothing );
+  w.gui().EXPECT__choice( config ).returns( "1" );
+  REQUIRE( f( wagon ) == 1 );
 }
 
 TEST_CASE( "[trade-route] ask_first_stop" ) {
   world w;
+  auto const& token = w.token();
+
+  auto const f =
+      [&] [[clang::noinline]] ( TradeRouteId const route_id ) {
+        return co_await_test(
+            ask_first_stop( w.ss().as_const, w.default_player(),
+                            w.gui(), route_id, token ) );
+      };
+
+  w.add_sea_route_1();
+
+  w.colony<0>().name = "colony.1";
+  w.colony<1>().name = "colony.2";
+
+  ChoiceConfig config;
+
+  config = {
+    .msg     = "Select initial destination:",
+    .options = { { .key = "0", .display_name = "colony.1" },
+                 { .key = "1", .display_name = "London" },
+                 { .key = "2", .display_name = "colony.2" } } };
+  w.gui().EXPECT__choice( config ).returns( nothing );
+  REQUIRE( f( 1 ) == nothing );
+  w.gui().EXPECT__choice( config ).returns( "1" );
+  REQUIRE( f( 1 ) == 1 );
+
+  w.trade_routes().routes.at( 1 ).stops.clear();
+  w.gui().EXPECT__message_box(
+      "Trade Route [sea.1] has no stops registered!" );
+  REQUIRE( f( 1 ) == nothing );
 }
 
 TEST_CASE( "[trade-route] confirm_trade_route_orders" ) {
