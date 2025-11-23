@@ -17,6 +17,7 @@
 #include "test/mocking.hpp"
 #include "test/mocks/igui.hpp"
 #include "test/rds/testing.rds.hpp"
+#include "test/util/coro.hpp"
 
 // refl
 #include "src/refl/to-str.hpp"
@@ -252,6 +253,28 @@ TEST_CASE( "[igui] enum_check_boxes" ) {
 
 TEST_CASE( "[igui] optional_choice_int_key" ) {
   MockIGui gui;
+
+  ChoiceConfig const config{
+    .msg     = "some msg",
+    .options = {
+      ChoiceConfigOption{ .key = "3", .display_name = "three" },
+      ChoiceConfigOption{ .key = "7", .display_name = "seven" },
+      ChoiceConfigOption{ .key = "9", .display_name = "nine" },
+    } };
+
+  auto const f = [&] [[clang::noinline]] {
+    return co_await_test(
+        gui.optional_choice_int_key( config ) );
+  };
+
+  gui.EXPECT__choice( config ).returns();
+  REQUIRE( f() == nothing );
+
+  gui.EXPECT__choice( config ).returns( "3" );
+  REQUIRE( f() == 3 );
+
+  gui.EXPECT__choice( config ).returns( "7" );
+  REQUIRE( f() == 7 );
 }
 
 } // namespace

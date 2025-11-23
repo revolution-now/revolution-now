@@ -71,6 +71,11 @@ wait<maybe<string>> RealGui::choice(
            "The game attempted to open a select box with input "
            "required but with no enabled items." );
   }
+  if( config.options.empty() ) {
+    co_await IGui::message_box( "{}: No options available!",
+                                config.msg );
+    co_return nothing;
+  }
   if( config.sort ) {
     ChoiceConfig new_config = config;
     std::sort( new_config.options.begin(),

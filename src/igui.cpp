@@ -46,8 +46,20 @@ wait<maybe<int>> IGui::optional_choice_int_key(
     ChoiceConfig const& config ) {
   auto const str = co_await choice( config );
   if( !str.has_value() ) co_return nothing;
-  UNWRAP_CHECK_T( int const n, base::stoi( *str ) );
-  co_return n;
+  for( int i = 0; i < ssize( config.options ); ++i ) {
+    if( *str == config.options[i].key ) {
+      UNWRAP_CHECK_T( int const n, base::stoi( *str ) );
+      // NOTE: `n` here is not necessarily equal to `i`, because
+      // the keys do not have to be consecutive integers, i.e.
+      // the keys could be [4, 7, 9].
+      co_return n;
+    }
+  }
+  // Should never get here regardless of user input or the con-
+  // tents of `config`.
+  FATAL(
+      "internal error: choice result '{}' not found in options.",
+      *str );
 }
 
 wait<string> IGui::required_choice(
