@@ -57,7 +57,7 @@ struct world : testing::World {
   world() {
     using enum e_player;
     add_player( english );
-    set_default_player_type( english );
+    add_player( french );
     set_default_player_type( english );
     set_default_player_as_human();
     create_default_map();
@@ -473,12 +473,14 @@ TEST_WORLD( "[trade-route] run_trade_route_sanitization" ) {
   Player& player = default_player();
   using enum e_player;
 
-  auto const f = [&] [[clang::noinline]] {
-    TradeRoutesSanitizedToken const& token =
+  auto const f = [&] [[clang::noinline]]
+      -> TradeRoutesSanitizedToken const& {
+    auto const token =
         co_await_test( run_trade_route_sanitization(
             ss(), as_const( player ), gui(), trade_routes(),
             agent() ) );
     validate_token( token );
+    return token;
   };
 
   add_land_route_1();
@@ -770,14 +772,151 @@ TEST_CASE( "[trade-route] unit_can_start_trade_route" ) {
 
 TEST_CASE( "[trade-route] unit_has_reached_trade_route_stop" ) {
   world w;
+
+  auto const f = [&] [[clang::noinline]] ( Unit const& unit ) {
+    return unit_has_reached_trade_route_stop( w.ss(), unit );
+  };
+
+  w.add_land_route_1();
+  w.add_sea_route_1();
+
+  SECTION( "headed to colony, not arrived" ) {
+    Unit& unit    = w.add_unit_on_map( e_unit_type::wagon_train,
+                                       { .x = 1, .y = 2 } );
+    unit.orders() = unit_orders::trade_route{
+      .id = 1, .en_route_to_stop = 1 };
+    REQUIRE_FALSE( f( unit ) );
+  }
+
+  SECTION( "headed to colony, arrived" ) {
+    Unit& unit    = w.add_unit_on_map( e_unit_type::wagon_train,
+                                       { .x = 6, .y = 1 } );
+    unit.orders() = unit_orders::trade_route{
+      .id = 1, .en_route_to_stop = 1 };
+    REQUIRE( f( unit ) );
+  }
+
+  SECTION( "headed to colony, colony non-existent" ) {
+    Unit& unit    = w.add_unit_on_map( e_unit_type::wagon_train,
+                                       { .x = 6, .y = 1 } );
+    unit.orders() = unit_orders::trade_route{
+      .id = 1, .en_route_to_stop = 1 };
+    destroy_colony( w.ss(), w.ts(), *get<1>( w.colonies_ ) );
+    REQUIRE_FALSE( f( unit ) );
+  }
+
+  SECTION( "headed to colony from harbor" ) {
+    Unit& unit    = w.add_unit_in_port( e_unit_type::caravel );
+    unit.orders() = unit_orders::trade_route{
+      .id = 2, .en_route_to_stop = 2 };
+    REQUIRE_FALSE( f( unit ) );
+  }
+
+  SECTION( "headed to harbor, not arrived" ) {
+    Unit& unit    = w.add_unit_on_map( e_unit_type::caravel,
+                                       { .x = 0, .y = 0 } );
+    unit.orders() = unit_orders::trade_route{
+      .id = 2, .en_route_to_stop = 1 };
+    REQUIRE_FALSE( f( unit ) );
+  }
+
+  SECTION( "headed to harbor, arrived" ) {
+    Unit& unit    = w.add_unit_in_port( e_unit_type::caravel );
+    unit.orders() = unit_orders::trade_route{
+      .id = 2, .en_route_to_stop = 1 };
+    REQUIRE( f( unit ) );
+  }
+
+  SECTION( "headed somewhere, route doesn't exist" ) {
+    Unit& unit    = w.add_unit_in_port( e_unit_type::caravel );
+    unit.orders() = unit_orders::trade_route{
+      .id = 5, .en_route_to_stop = 1 };
+    REQUIRE_FALSE( f( unit ) );
+  }
 }
 
 TEST_CASE( "[trade-route] ask_edit_trade_route" ) {
+  using enum e_player;
   world w;
+
+  auto const f =
+      [&] [[clang::noinline]] ( Player const& player ) {
+        return co_await_test(
+            ask_edit_trade_route( w.ss(), player, w.gui() ) );
+      };
+
+  w.gui().EXPECT__message_box(
+      "You have not yet defined any trade routes." );
+  REQUIRE( f( w.english() ) == nothing );
+
+  w.add_land_route_1();
+  w.add_land_route_2();
+  w.add_sea_route_1();
+
+  w.trade_routes().routes.at( 2 ).player = french;
+
+  ChoiceConfig config;
+
+  config = {
+    .msg     = "Select Trade Route to Edit",
+    .options = { { .key = "1", .display_name = "1. land.1" },
+                 { .key = "3", .display_name = "2. sea.3" } } };
+  w.gui().EXPECT__choice( config ).returns( nothing );
+  REQUIRE( f( w.english() ) == nothing );
+
+  w.gui().EXPECT__choice( config ).returns( "3" );
+  REQUIRE( f( w.english() ) == 3 );
+
+  config = {
+    .msg     = "Select Trade Route to Edit",
+    .options = { { .key = "2", .display_name = "1. land.2" } } };
+  w.gui().EXPECT__choice( config ).returns( nothing );
+  REQUIRE( f( w.french() ) == nothing );
+
+  w.gui().EXPECT__choice( config ).returns( "2" );
+  REQUIRE( f( w.french() ) == 2 );
 }
 
 TEST_CASE( "[trade-route] ask_delete_trade_route" ) {
+  using enum e_player;
   world w;
+
+  auto const f =
+      [&] [[clang::noinline]] ( Player const& player ) {
+        return co_await_test(
+            ask_delete_trade_route( w.ss(), player, w.gui() ) );
+      };
+
+  w.gui().EXPECT__message_box(
+      "You have not yet defined any trade routes." );
+  REQUIRE( f( w.english() ) == nothing );
+
+  w.add_land_route_1();
+  w.add_land_route_2();
+  w.add_sea_route_1();
+
+  w.trade_routes().routes.at( 2 ).player = french;
+
+  ChoiceConfig config;
+
+  config = {
+    .msg     = "Select Trade Route to Delete",
+    .options = { { .key = "1", .display_name = "1. land.1" },
+                 { .key = "3", .display_name = "2. sea.3" } } };
+  w.gui().EXPECT__choice( config ).returns( nothing );
+  REQUIRE( f( w.english() ) == nothing );
+
+  w.gui().EXPECT__choice( config ).returns( "3" );
+  REQUIRE( f( w.english() ) == 3 );
+
+  config = {
+    .msg     = "Select Trade Route to Delete",
+    .options = { { .key = "2", .display_name = "1. land.2" } } };
+  w.gui().EXPECT__choice( config ).returns( nothing );
+  REQUIRE( f( w.french() ) == nothing );
+
+  w.gui().EXPECT__choice( config ).returns( "2" );
+  REQUIRE( f( w.french() ) == 2 );
 }
 
 TEST_CASE( "[trade-route] ask_create_trade_route" ) {
@@ -785,7 +924,51 @@ TEST_CASE( "[trade-route] ask_create_trade_route" ) {
 }
 
 TEST_CASE( "[trade-route] create_trade_route_object" ) {
+  using enum e_player;
+  using enum e_trade_route_type;
   world w;
+  CreateTradeRoute params;
+  TradeRoute expected;
+
+  auto const f = [&] [[clang::noinline]] {
+    return create_trade_route_object( w.trade_routes(), params );
+  };
+
+  params = {
+    .name   = "some route",
+    .type   = land,
+    .player = english,
+    .stop1  = TradeRouteTarget::harbor{},
+    .stop2  = TradeRouteTarget::colony{ .colony_id = 3 },
+  };
+  expected = {
+    .id     = 1,
+    .name   = "some route",
+    .player = english,
+    .type   = land,
+    .stops  = { { .target = TradeRouteTarget::harbor{} },
+                { .target = TradeRouteTarget::colony{ .colony_id =
+                                                         3 } } },
+  };
+  REQUIRE( f() == expected );
+
+  params = {
+    .name   = "some route 2",
+    .type   = sea,
+    .player = french,
+    .stop1  = TradeRouteTarget::colony{ .colony_id = 4 },
+    .stop2  = TradeRouteTarget::harbor{},
+  };
+  expected = {
+    .id     = 2,
+    .name   = "some route 2",
+    .player = french,
+    .type   = sea,
+    .stops = { { .target = TradeRouteTarget::colony{ .colony_id =
+                                                         4 } },
+               { .target = TradeRouteTarget::harbor{} } },
+  };
+  REQUIRE( f() == expected );
 }
 
 TEST_CASE( "[trade-route] confirm_delete_trade_route" ) {
