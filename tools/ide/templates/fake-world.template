@@ -6,7 +6,6 @@ struct world : testing::World {
     using enum e_player;
     add_player( english );
     set_default_player_type( english );
-    set_default_player_type( english );
     set_default_player_as_human();
     create_default_map();
   }
