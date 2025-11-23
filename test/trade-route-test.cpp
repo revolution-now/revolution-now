@@ -18,6 +18,7 @@
 #include "test/mocking.hpp"
 #include "test/mocks/iagent.hpp"
 #include "test/mocks/igui.hpp"
+#include "test/mocks/imap-updater.hpp"
 #include "test/util/coro.hpp"
 
 // Revolution Now
@@ -74,9 +75,9 @@ struct world : testing::World {
       2*/ S,_,_,_,_,_,_,S, /*2
       3*/ S,_,_,_,_,_,_,S, /*3
       4*/ S,_,_,_,_,_,_,S, /*4
-      5*/ S,_,_,_,_,_,_,S, /*5
-      6*/ S,_,_,_,_,_,_,S, /*6
-      7*/ S,_,_,_,_,_,_,S, /*7
+      5*/ S,_,_,_,_,S,S,S, /*5
+      6*/ S,_,_,_,_,S,_,S, /*6
+      7*/ S,_,_,_,_,S,_,S, /*7
           0 1 2 3 4 5 6 7
     */};
     // clang-format on
@@ -93,9 +94,9 @@ struct world : testing::World {
     //  2|  S _ _ _ _ _ _ S  |2
     //  3|  S _ _ c _ _ _ S  |3
     //  4|  S c _ _ _ _ _ S  |4
-    //  5|  S _ _ c _ _ _ S  |5
-    //  6|  S _ _ _ _ _ _ S  |6
-    //  7|  S _ _ _ _ _ c S  |7
+    //  5|  S _ _ c _ S S S  |5
+    //  6|  S _ _ _ _ S _ S  |6
+    //  7|  S _ _ _ _ S c S  |7
     //  -----------------------
     //      0 1 2 3 4 5 6 7
     static array<point, kNumColonies> const kColonyTiles = {
@@ -925,7 +926,111 @@ TEST_CASE( "[trade-route] ask_delete_trade_route" ) {
 }
 
 TEST_CASE( "[trade-route] ask_create_trade_route" ) {
+  using enum e_player;
+  using enum e_trade_route_type;
   world w;
+  CreateTradeRoute expected;
+
+  auto const f = [&] [[clang::noinline]] {
+    return co_await_test( ask_create_trade_route(
+        w.ss().as_const, w.default_player(), w.gui(),
+        w.map_updater().connectivity() ) );
+  };
+
+  auto& G = w.gui();
+
+  // Default.
+  G.EXPECT__message_box(
+      "We must have at least one colony to create a trade "
+      "route." );
+  REQUIRE( f() == nothing );
+
+  w.create_colonies();
+
+  w.colony<0>().name = "colony.1";
+  w.colony<1>().name = "colony.2";
+  w.colony<2>().name = "colony.3";
+  w.colony<3>().name = "colony.4";
+  w.colony<4>().name = "colony.5";
+  w.colony<5>().name = "colony.6";
+
+  ChoiceConfig const conf_select_stop{
+    .msg     = "Select First Stop:",
+    .options = { { .key = "1", .display_name = "colony.1" },
+                 { .key = "2", .display_name = "colony.2" },
+                 { .key = "3", .display_name = "colony.3" },
+                 { .key = "4", .display_name = "colony.4" },
+                 { .key = "5", .display_name = "colony.5" },
+                 { .key = "6", .display_name = "colony.6" } } };
+  ChoiceConfig const conf_what_kind{
+    .msg     = "What kind of trade route will this be?",
+    .options = { { .key = "land", .display_name = "Land" },
+                 { .key = "sea", .display_name = "Sea" } } };
+  ChoiceConfig const conf_snd_stop_land{
+    .msg     = "Select Second Stop:",
+    .options = { { .key = "1", .display_name = "colony.1" },
+                 { .key = "2", .display_name = "colony.2" },
+                 { .key = "3", .display_name = "colony.3" },
+                 { .key = "4", .display_name = "colony.4" },
+                 { .key = "5", .display_name = "colony.5" } } };
+  ChoiceConfig const conf_snd_stop_sea{
+    .msg     = "Select Second Stop:",
+    .options = {
+      { .key = "0", .display_name = "Europe (London)" },
+      { .key = "1", .display_name = "colony.1" },
+      { .key = "2", .display_name = "colony.2" },
+      { .key = "4", .display_name = "colony.4" },
+      { .key = "6", .display_name = "colony.6" } } };
+  StringInputConfig const conf_choose_name{
+    .msg          = "Choose a name for this trade route:",
+    .initial_text = "colony.1 Run" };
+
+  G.EXPECT__choice( conf_select_stop ).returns();
+  REQUIRE( f() == nothing );
+
+  G.EXPECT__choice( conf_select_stop ).returns( "1" );
+  G.EXPECT__choice( conf_what_kind ).returns( nothing );
+  REQUIRE( f() == nothing );
+
+  G.EXPECT__choice( conf_select_stop ).returns( "1" );
+  G.EXPECT__choice( conf_what_kind ).returns( "land" );
+  G.EXPECT__choice( conf_snd_stop_land ).returns( nothing );
+  REQUIRE( f() == nothing );
+
+  G.EXPECT__choice( conf_select_stop ).returns( "1" );
+  G.EXPECT__choice( conf_what_kind ).returns( "land" );
+  G.EXPECT__choice( conf_snd_stop_land ).returns( "3" );
+  G.EXPECT__string_input( conf_choose_name ).returns();
+  REQUIRE( f() == nothing );
+
+  G.EXPECT__choice( conf_select_stop ).returns( "1" );
+  G.EXPECT__choice( conf_what_kind ).returns( "land" );
+  G.EXPECT__choice( conf_snd_stop_land ).returns( "3" );
+  G.EXPECT__string_input( conf_choose_name ).returns( "hello" );
+  expected = {
+    .name   = "hello",
+    .type   = land,
+    .player = english,
+    .stop1  = TradeRouteTarget::colony{ .colony_id = 1 },
+    .stop2  = TradeRouteTarget::colony{ .colony_id = 3 } };
+  REQUIRE( f() == expected );
+
+  G.EXPECT__choice( conf_select_stop ).returns( "1" );
+  G.EXPECT__choice( conf_what_kind ).returns( "sea" );
+  G.EXPECT__choice( conf_snd_stop_sea ).returns( nothing );
+  REQUIRE( f() == nothing );
+
+  G.EXPECT__choice( conf_select_stop ).returns( "1" );
+  G.EXPECT__choice( conf_what_kind ).returns( "sea" );
+  G.EXPECT__choice( conf_snd_stop_sea ).returns( "0" );
+  G.EXPECT__string_input( conf_choose_name ).returns( "hello" );
+  expected = {
+    .name   = "hello",
+    .type   = sea,
+    .player = english,
+    .stop1  = TradeRouteTarget::colony{ .colony_id = 1 },
+    .stop2  = TradeRouteTarget::harbor{} };
+  REQUIRE( f() == expected );
 }
 
 TEST_CASE( "[trade-route] create_trade_route_object" ) {
@@ -1047,6 +1152,29 @@ TEST_CASE( "[trade-route] delete_trade_route" ) {
 
 TEST_CASE( "[trade-route] available_colonies_for_route" ) {
   world w;
+  vector<ColonyId> expected;
+
+  auto const f =
+      [&] [[clang::noinline]] ( TradeRoute const& route ) {
+        return available_colonies_for_route(
+            w.ss().as_const, w.default_player(),
+            w.map_updater().connectivity(), route );
+      };
+
+  w.add_land_route_1();
+  w.add_sea_route_1();
+  w.add_land_route_2();
+  w.add_double_harbor_route();
+
+  expected = { 1, 2, 4, 6 };
+  REQUIRE( f( w.trade_routes().routes.at( 2 ) ) == expected );
+
+  expected = { 1, 2, 3, 4, 5 };
+  REQUIRE( f( w.trade_routes().routes.at( 3 ) ) == expected );
+
+  w.trade_routes().routes.at( 3 ).stops.clear();
+  expected = { 1, 2, 3, 4, 5, 6 };
+  REQUIRE( f( w.trade_routes().routes.at( 3 ) ) == expected );
 }
 
 TEST_CASE( "[trade-route] name_for_target" ) {
@@ -1218,7 +1346,79 @@ TEST_CASE( "[trade-route] ask_first_stop" ) {
 }
 
 TEST_CASE( "[trade-route] confirm_trade_route_orders" ) {
+  using enum e_unit_type;
   world w;
+  auto const& token = w.token();
+  TradeRouteOrdersConfirmed expected;
+
+  Unit& wagon =
+      w.add_unit_on_map( wagon_train, { .x = 2, .y = 0 } );
+  Unit& ship = w.add_unit_on_map( caravel, { .x = 2, .y = 0 } );
+  Unit& colonist =
+      w.add_unit_on_map( free_colonist, { .x = 2, .y = 0 } );
+
+  auto const f = [&] [[clang::noinline]] ( Unit const& unit ) {
+    return co_await_test( confirm_trade_route_orders(
+        w.ss().as_const, w.default_player(), unit, w.gui(),
+        token ) );
+  };
+
+  w.gui().EXPECT__message_box(
+      "[Free Colonists] cannot carry out trade routes." );
+  REQUIRE( f( colonist ) == nothing );
+
+  w.gui().EXPECT__message_box(
+      "We have not yet defined any trade routes." );
+  REQUIRE( f( wagon ) == nothing );
+
+  w.add_land_route_1();
+  w.gui().EXPECT__message_box(
+      "Our [Caravel] is not eligible for any of the trade "
+      "routes that we have defined." );
+  REQUIRE( f( ship ) == nothing );
+
+  ChoiceConfig config;
+
+  w.add_sea_route_1();
+  w.add_sea_route_1();
+  config = {
+    .msg     = "Select Trade Route for [Caravel]:",
+    .options = { { .key = "2", .display_name = "sea.2" },
+                 { .key = "3", .display_name = "sea.3" } } };
+  w.gui().EXPECT__choice( config ).returns( nothing );
+  REQUIRE( f( ship ) == nothing );
+
+  w.colony<0>().name = "colony.1";
+  w.colony<1>().name = "colony.2";
+
+  // Cancel on stop prompt.
+  config = {
+    .msg     = "Select Trade Route for [Caravel]:",
+    .options = { { .key = "2", .display_name = "sea.2" },
+                 { .key = "3", .display_name = "sea.3" } } };
+  w.gui().EXPECT__choice( config ).returns( "3" );
+  config = {
+    .msg     = "Select initial destination:",
+    .options = { { .key = "0", .display_name = "colony.1" },
+                 { .key = "1", .display_name = "London" },
+                 { .key = "2", .display_name = "colony.2" } } };
+  w.gui().EXPECT__choice( config ).returns( nothing );
+  REQUIRE( f( ship ) == nothing );
+
+  // Valid stop.
+  config = {
+    .msg     = "Select Trade Route for [Caravel]:",
+    .options = { { .key = "2", .display_name = "sea.2" },
+                 { .key = "3", .display_name = "sea.3" } } };
+  w.gui().EXPECT__choice( config ).returns( "3" );
+  config = {
+    .msg     = "Select initial destination:",
+    .options = { { .key = "0", .display_name = "colony.1" },
+                 { .key = "1", .display_name = "London" },
+                 { .key = "2", .display_name = "colony.2" } } };
+  w.gui().EXPECT__choice( config ).returns( "1" );
+  expected = { .id = 3, .en_route_to_stop = 1 };
+  REQUIRE( f( ship ) == expected );
 }
 
 TEST_CASE( "[trade-route] trade_route_unload" ) {

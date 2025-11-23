@@ -656,7 +656,7 @@ vector<ColonyId> available_colonies_for_route(
       // with sea lane access necessarily need to be connected to
       // eachother via water, especially on modded maps. But this
       // should be good enough, because if the player chooses
-      // colonies that are not connected, then unit will eventu-
+      // colonies that are not connected, the unit will eventu-
       // ally notice and refuse to go. Doing this properly would
       // be a pain because you'd have to check all tiles around
       // the first colony to see which regions it is connected
@@ -667,8 +667,7 @@ vector<ColonyId> available_colonies_for_route(
       // a land tile containing a colony, which would cause
       // pathing issues. Just doing the full list of coastal
       // colonies should be sufficient for almost all cases in
-      // practice and won't cause any harm even when it is not
-      // perfect.
+      // practice and shouldn't cause harm even when not perfect.
       return find_coastal_colonies( ss, connectivity,
                                     player.type );
   }
@@ -788,8 +787,8 @@ confirm_trade_route_orders(
       find_eligible_trade_routes_for_unit( ss, unit );
   if( routes.empty() ) {
     co_await gui.message_box(
-        "This [{}] is not eligible for any of the trade "
-        "routes that we have defined.",
+        "Our [{}] is not eligible for any of the trade routes "
+        "that we have defined.",
         unit.desc().name );
     co_return nothing;
   }
