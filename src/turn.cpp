@@ -302,8 +302,9 @@ bool should_remove_unit_from_queue( Unit const& unit ) {
   }
 }
 
-bool can_ask_for_orders( Unit const& unit ) {
+bool can_ask_for_orders( SSConst const& ss, Unit const& unit ) {
   if( finished_turn( unit ) ) return false;
+  if( is_unit_in_port( ss.units, unit.id() ) ) return false;
   switch( unit.orders().to_enum() ) {
     using e = unit_orders::e;
     case e::fortified:
@@ -1647,7 +1648,7 @@ wait<> move_remaining_units( IEngine& engine, SS& ss, TS& ts,
       // eration.
       continue;
 
-    if( !can_ask_for_orders( ss.units.unit_for( id ) ) )
+    if( !can_ask_for_orders( ss, ss.units.unit_for( id ) ) )
       // The idea here is that the unit has not yet finished its
       // turn but it has orders such that it should not blink and
       // ask for orders, which should mean that it just needs to
