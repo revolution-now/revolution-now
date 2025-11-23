@@ -973,10 +973,71 @@ TEST_CASE( "[trade-route] create_trade_route_object" ) {
 
 TEST_CASE( "[trade-route] confirm_delete_trade_route" ) {
   world w;
+
+  auto const f =
+      [&] [[clang::noinline]] ( TradeRouteId const route_id ) {
+        return co_await_test( confirm_delete_trade_route(
+            w.ss().as_const, w.gui(), route_id ) );
+      };
+
+  w.add_land_route_1();
+  w.add_land_route_2();
+  w.add_sea_route_1();
+
+  ChoiceConfig const config = {
+    .msg =
+        "Are you sure that you want to delete the [land.2] "
+        "trade route?",
+    .options = { { .key = "no", .display_name = "No" },
+                 { .key = "yes", .display_name = "Yes" } } };
+
+  w.gui().EXPECT__choice( config ).returns( nothing );
+  REQUIRE_FALSE( f( 2 ) );
+
+  w.gui().EXPECT__choice( config ).returns( "yes" );
+  REQUIRE( f( 2 ) );
 }
 
 TEST_CASE( "[trade-route] delete_trade_route" ) {
   world w;
+
+  w.add_land_route_1();
+  w.add_land_route_2();
+  w.add_sea_route_1();
+  REQUIRE( w.trade_routes().routes.size() == 3 );
+
+  REQUIRE( w.trade_routes().routes.contains( 1 ) );
+  REQUIRE( w.trade_routes().routes.contains( 2 ) );
+  REQUIRE( w.trade_routes().routes.contains( 3 ) );
+  REQUIRE( w.trade_routes().routes.size() == 3 );
+
+  delete_trade_route( w.trade_routes(), 2 );
+
+  REQUIRE( w.trade_routes().routes.contains( 1 ) );
+  REQUIRE_FALSE( w.trade_routes().routes.contains( 2 ) );
+  REQUIRE( w.trade_routes().routes.contains( 3 ) );
+  REQUIRE( w.trade_routes().routes.size() == 2 );
+
+  delete_trade_route( w.trade_routes(), 2 );
+
+  REQUIRE( w.trade_routes().routes.contains( 1 ) );
+  REQUIRE_FALSE( w.trade_routes().routes.contains( 2 ) );
+  REQUIRE( w.trade_routes().routes.contains( 3 ) );
+  REQUIRE( w.trade_routes().routes.size() == 2 );
+
+  delete_trade_route( w.trade_routes(), 1 );
+
+  REQUIRE_FALSE( w.trade_routes().routes.contains( 1 ) );
+  REQUIRE_FALSE( w.trade_routes().routes.contains( 2 ) );
+  REQUIRE( w.trade_routes().routes.contains( 3 ) );
+  REQUIRE( w.trade_routes().routes.size() == 1 );
+
+  delete_trade_route( w.trade_routes(), 3 );
+
+  REQUIRE_FALSE( w.trade_routes().routes.contains( 1 ) );
+  REQUIRE_FALSE( w.trade_routes().routes.contains( 2 ) );
+  REQUIRE_FALSE( w.trade_routes().routes.contains( 3 ) );
+  REQUIRE( w.trade_routes().routes.size() == 0 );
 }
 
 TEST_CASE( "[trade-route] available_colonies_for_route" ) {
@@ -984,12 +1045,90 @@ TEST_CASE( "[trade-route] available_colonies_for_route" ) {
 }
 
 TEST_CASE( "[trade-route] name_for_target" ) {
+  using enum e_player;
   world w;
+  TradeRouteTarget target;
+  auto const& token = w.token();
+  e_player player   = {};
+
+  auto const f = [&] [[clang::noinline]] {
+    return name_for_target( w.ss().as_const, w.player( player ),
+                            target, token );
+  };
+
+  player = english;
+  target = TradeRouteTarget::harbor{};
+  REQUIRE( f() == "London" );
+
+  player = french;
+  target = TradeRouteTarget::harbor{};
+  REQUIRE( f() == "La Rochelle" );
+
+  w.create_colonies();
+
+  player = english;
+  target = TradeRouteTarget::colony{ .colony_id = 2 };
+  REQUIRE( f() == "2" );
+
+  get<1>( w.colonies_ )->name = "my colony";
+  player                      = english;
+  target = TradeRouteTarget::colony{ .colony_id = 2 };
+  REQUIRE( f() == "my colony" );
 }
 
 TEST_CASE(
     "[trade-route] find_eligible_trade_routes_for_unit" ) {
+  using enum e_player;
+  using enum e_unit_type;
   world w;
+  vector<TradeRouteId> expected;
+
+  Unit const& ship =
+      w.add_unit_on_map( caravel, { .x = 0, .y = 0 } );
+  Unit const& foreign_ship =
+      w.add_unit_on_map( caravel, { .x = 0, .y = 1 }, french );
+  Unit const& wagon =
+      w.add_unit_on_map( wagon_train, { .x = 2, .y = 0 } );
+  Unit const& foreign_wagon = w.add_unit_on_map(
+      wagon_train, { .x = 2, .y = 1 }, french );
+
+  auto const f = [&] [[clang::noinline]] ( Unit const& unit ) {
+    return find_eligible_trade_routes_for_unit( w.ss().as_const,
+                                                unit );
+  };
+
+  // No trade routes.
+  expected = {};
+  REQUIRE( f( ship ) == expected );
+  REQUIRE( f( foreign_ship ) == expected );
+  REQUIRE( f( wagon ) == expected );
+  REQUIRE( f( foreign_wagon ) == expected );
+
+  w.add_land_route_1();
+  w.add_sea_route_1();
+  w.add_land_route_1();
+  w.add_sea_route_1();
+
+  expected = { 2, 4 };
+  REQUIRE( f( ship ) == expected );
+  expected = {};
+  REQUIRE( f( foreign_ship ) == expected );
+  expected = { 1, 3 };
+  REQUIRE( f( wagon ) == expected );
+  expected = {};
+  REQUIRE( f( foreign_wagon ) == expected );
+
+  w.trade_routes().routes.at( 2 ).player = french;
+  w.trade_routes().routes.at( 3 ).player = french;
+
+  expected = { 4 };
+  REQUIRE( f( ship ) == expected );
+  expected = { 2 };
+  REQUIRE( f( foreign_ship ) == expected );
+  expected = { 1 };
+  REQUIRE( f( wagon ) == expected );
+  expected = { 3 };
+  REQUIRE( f( foreign_wagon ) == expected );
 }
 
 TEST_CASE( "[trade-route] select_trade_route" ) {
