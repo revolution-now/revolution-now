@@ -10,8 +10,4 @@
 *****************************************************************/
 #include "expect.hpp"
 
-namespace base {
-
-void bad_expect_access::dummy_key_function() const {}
-
-} // namespace base
+namespace base {} // namespace base

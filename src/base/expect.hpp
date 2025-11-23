@@ -19,7 +19,6 @@
 
 // C++ standard library
 #include <concepts>
-#include <source_location>
 #include <stdexcept>
 #include <type_traits>
 #include <utility>
@@ -52,38 +51,6 @@ concept ExpectTypeRequirements = requires {
 template<typename T, typename E>
 requires ExpectTypeRequirements<T, E>
 class [[nodiscard]] expect;
-
-/****************************************************************
-** bad_expect_access exception
-*****************************************************************/
-struct bad_expect_access : public std::exception {
-  // Don't give a default value to loc because we want that to be
-  // supplied by someone further up the call chain in order to
-  // produce a more helpful location to the user.
-  bad_expect_access( std::source_location loc, bool error )
-    : std::exception{}, loc_{ std::move( loc ) }, error_msg_{} {
-    error_msg_ = loc_.file_name();
-    error_msg_ += ":";
-    error_msg_ += std::to_string( loc_.line() );
-    error_msg_ += ": ";
-    if( !error )
-      error_msg_ += "value() called on an inactive expect.";
-    else
-      error_msg_ += "error() called on an active expect.";
-  }
-
-  // This is to suppress clang's -Wweak-vtables, which warns that
-  // without any out-of-line-functions the vtable would have to
-  // be emitted in every translation unit, which we don't want.
-  virtual void dummy_key_function() const final;
-
-  char const* what() const noexcept override {
-    return error_msg_.c_str();
-  }
-
-  std::source_location loc_;
-  std::string error_msg_;
-};
 
 /****************************************************************
 ** Basic metaprogramming helpers.
@@ -810,58 +777,42 @@ class [[nodiscard]] expect { /* clang-format on */
   /**************************************************************
   ** value
   ***************************************************************/
-  [[nodiscard]] constexpr T const& value(
-      std::source_location loc =
-          std::source_location::current() ) const& {
-    if( !good_ ) throw bad_expect_access{ loc, /*error=*/false };
+  [[nodiscard]] constexpr T const& value() const& {
+    CHECK( good_, "value() called on an inactive expect." );
     return **this;
   }
-  [[nodiscard]] constexpr T& value(
-      std::source_location loc =
-          std::source_location::current() ) & {
-    if( !good_ ) throw bad_expect_access{ loc, /*error=*/false };
+  [[nodiscard]] constexpr T& value() & {
+    CHECK( good_, "value() called on an inactive expect." );
     return **this;
   }
 
-  [[nodiscard]] constexpr T const&& value(
-      std::source_location loc =
-          std::source_location::current() ) const&& {
-    if( !good_ ) throw bad_expect_access{ loc, /*error=*/false };
+  [[nodiscard]] constexpr T const&& value() const&& {
+    CHECK( good_, "value() called on an inactive expect." );
     return std::move( **this );
   }
-  [[nodiscard]] constexpr T&& value(
-      std::source_location loc =
-          std::source_location::current() ) && {
-    if( !good_ ) throw bad_expect_access{ loc, /*error=*/false };
+  [[nodiscard]] constexpr T&& value() && {
+    CHECK( good_, "value() called on an inactive expect." );
     return std::move( **this );
   }
 
   /**************************************************************
   ** error
   ***************************************************************/
-  [[nodiscard]] constexpr E const& error(
-      std::source_location loc =
-          std::source_location::current() ) const& {
-    if( good_ ) throw bad_expect_access{ loc, /*error=*/true };
+  [[nodiscard]] constexpr E const& error() const& {
+    CHECK( !good_, "error() called on an active expect." );
     return err_;
   }
-  [[nodiscard]] constexpr E& error(
-      std::source_location loc =
-          std::source_location::current() ) & {
-    if( good_ ) throw bad_expect_access{ loc, /*error=*/true };
+  [[nodiscard]] constexpr E& error() & {
+    CHECK( !good_, "error() called on an active expect." );
     return err_;
   }
 
-  [[nodiscard]] constexpr E const&& error(
-      std::source_location loc =
-          std::source_location::current() ) const&& {
-    if( good_ ) throw bad_expect_access{ loc, /*error=*/true };
+  [[nodiscard]] constexpr E const&& error() const&& {
+    CHECK( !good_, "error() called on an active expect." );
     return std::move( err_ );
   }
-  [[nodiscard]] constexpr E&& error(
-      std::source_location loc =
-          std::source_location::current() ) && {
-    if( good_ ) throw bad_expect_access{ loc, /*error=*/true };
+  [[nodiscard]] constexpr E&& error() && {
+    CHECK( !good_, "error() called on an active expect." );
     return std::move( err_ );
   }
 
@@ -1409,30 +1360,22 @@ class [[nodiscard]] expect<T&, E> { /* clang-format on */
   /**************************************************************
   ** value
   ***************************************************************/
-  [[nodiscard]] constexpr T& value(
-      std::source_location loc =
-          std::source_location::current() ) const {
-    if( !has_value() )
-      throw bad_expect_access{ loc, /*error=*/false };
+  [[nodiscard]] constexpr T& value() const {
+    CHECK( has_value(),
+           "value() called on an inactive expect." );
     return **this;
   }
 
   /**************************************************************
   ** error
   ***************************************************************/
-  [[nodiscard]] constexpr E& error(
-      std::source_location loc =
-          std::source_location::current() ) {
-    if( has_value() )
-      throw bad_expect_access{ loc, /*error=*/true };
+  [[nodiscard]] constexpr E& error() {
+    CHECK( !has_value(), "error() called on an active expect." );
     return err_;
   }
 
-  [[nodiscard]] constexpr E const& error(
-      std::source_location loc =
-          std::source_location::current() ) const {
-    if( has_value() )
-      throw bad_expect_access{ loc, /*error=*/false };
+  [[nodiscard]] constexpr E const& error() const {
+    CHECK( !has_value(), "error() called on an active expect." );
     return err_;
   }
 

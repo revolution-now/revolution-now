@@ -1683,17 +1683,7 @@ TEST_CASE( "[expected] comparison with value" ) {
 TEST_CASE( "[expected] value()" ) {
   SECTION( "int" ) {
     E<int, string> m1 = "hello";
-    try {
-      (void)m1.value( source_location{} );
-      // Should not be here.
-      REQUIRE( false );
-    } catch( bad_expect_access const& e ) {
-      REQUIRE_THAT(
-          e.what(),
-          Contains( fmt::format(
-              ":0: value() called on an inactive expect" ) ) );
-    }
-    m1 = 5;
+    m1                = 5;
     REQUIRE( m1.has_value() );
     REQUIRE( m1.value() == 5 );
     const E<int, string> m2 = 5;
@@ -1713,17 +1703,7 @@ TEST_CASE( "[expected] value()" ) {
 TEST_CASE( "[expected] error()" ) {
   SECTION( "int" ) {
     E<int, string> m1 = 5;
-    try {
-      (void)m1.error( source_location{} );
-      // Should not be here.
-      REQUIRE( false );
-    } catch( bad_expect_access const& e ) {
-      REQUIRE_THAT(
-          e.what(),
-          Contains( fmt::format(
-              ":0: error() called on an active expect" ) ) );
-    }
-    m1 = "hello";
+    m1                = "hello";
     REQUIRE( !m1.has_value() );
     REQUIRE( m1.error() == "hello" );
     const E<int, string> m2 = "world";
@@ -2322,11 +2302,6 @@ TEST_CASE( "[expected-ref] construction" ) {
     REQUIRE( !m0.has_value() );
     REQUIRE( m0.error() == "hello" );
     REQUIRE( !bool( m0 ) );
-    try {
-      (void)m0.value();
-      // Should not be here.
-      REQUIRE( false );
-    } catch( bad_expect_access const& ) {}
     REQUIRE( m0.value_or( m ) == 9 );
 
     E<int&, string> m1 = "hello";
@@ -2400,11 +2375,6 @@ TEST_CASE( "[expected-ref] construction" ) {
     E<int const&, string> m0 = "hello";
     REQUIRE( !m0.has_value() );
     REQUIRE( !bool( m0 ) );
-    try {
-      (void)m0.value();
-      // Should not be here.
-      REQUIRE( false );
-    } catch( bad_expect_access const& ) {}
     REQUIRE( m0.value_or( m ) == 9 );
 
     E<int const&, string> m1 = "hello";

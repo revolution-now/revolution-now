@@ -1392,17 +1392,6 @@ TEST_CASE( "[maybe] comparison with value" ) {
 TEST_CASE( "[maybe] value()" ) {
   SECTION( "int" ) {
     M<int> m1;
-    try {
-      (void)m1.value( source_location{} );
-      // Should not be here.
-      REQUIRE( false );
-    } catch( bad_maybe_access const& e ) {
-      REQUIRE_THAT(
-          e.what(),
-          Contains( fmt::format(
-              ":0: value() called on an inactive maybe" ) ) );
-    }
-
     m1 = 5;
     REQUIRE( m1.value() == 5 );
     const M<int> m2 = 5;
@@ -1941,11 +1930,6 @@ TEST_CASE( "[maybe-ref] construction" ) {
     M<int&> m0 = nothing;
     REQUIRE( !m0.has_value() );
     REQUIRE( !bool( m0 ) );
-    try {
-      (void)m0.value();
-      // Should not be here.
-      REQUIRE( false );
-    } catch( bad_maybe_access const& ) {}
     REQUIRE( m0.value_or( m ) == 9 );
 
     M<int&> m1;
@@ -2018,11 +2002,6 @@ TEST_CASE( "[maybe-ref] construction" ) {
     M<int const&> m0 = nothing;
     REQUIRE( !m0.has_value() );
     REQUIRE( !bool( m0 ) );
-    try {
-      (void)m0.value();
-      // Should not be here.
-      REQUIRE( false );
-    } catch( bad_maybe_access const& ) {}
     REQUIRE( m0.value_or( m ) == 9 );
 
     M<int const&> m1;

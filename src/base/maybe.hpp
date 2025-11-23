@@ -25,7 +25,6 @@
 
 // C++ standard library
 #include <functional>
-#include <source_location>
 #include <stdexcept>
 #include <string>
 #include <type_traits>
@@ -77,35 +76,6 @@ class [[nodiscard]] maybe;
 template<class T>
 requires MaybeTypeRequirements<T> /* clang-format off */
 maybe( T ) -> maybe<T>; /* clang-format on */
-
-/****************************************************************
-** bad_maybe_access exception
-*****************************************************************/
-struct bad_maybe_access : public std::exception {
-  // Don't give a default value to loc because we want that to be
-  // supplied by someone further up the call chain in order to
-  // produce a more helpful location to the user.
-  bad_maybe_access( std::source_location loc )
-    : std::exception{}, loc_{ std::move( loc ) }, error_msg_{} {
-    error_msg_ = loc_.file_name();
-    error_msg_ += ":";
-    error_msg_ += std::to_string( loc_.line() );
-    error_msg_ += ": ";
-    error_msg_ += "value() called on an inactive maybe.";
-  }
-
-  // This is to suppress clang's -Wweak-vtables, which warns that
-  // without any out-of-line-functions the vtable would have to
-  // be emitted in every translation unit, which we don't want.
-  virtual void dummy_key_function() const final;
-
-  char const* what() const noexcept override {
-    return error_msg_.c_str();
-  }
-
-  std::source_location loc_;
-  std::string error_msg_;
-};
 
 /****************************************************************
 ** Basic metaprogramming helpers.
@@ -623,37 +593,27 @@ class [[nodiscard]] maybe { /* clang-format on */
   /**************************************************************
   ** value
   ***************************************************************/
-  [[nodiscard]] constexpr T const& value(
-      std::source_location loc =
-          std::source_location::current() ) const& {
-    if( !active_ ) throw bad_maybe_access{ loc };
+  [[nodiscard]] constexpr T const& value() const& {
+    CHECK( active_, "value() called on an inactive maybe." );
     return **this;
   }
-  [[nodiscard]] constexpr T& value(
-      std::source_location loc =
-          std::source_location::current() ) & {
-    if( !active_ ) throw bad_maybe_access{ loc };
+  [[nodiscard]] constexpr T& value() & {
+    CHECK( active_, "value() called on an inactive maybe." );
     return **this;
   }
 
-  [[nodiscard]] constexpr T const&& value(
-      std::source_location loc =
-          std::source_location::current() ) const&& {
-    if( !active_ ) throw bad_maybe_access{ loc };
+  [[nodiscard]] constexpr T const&& value() const&& {
+    CHECK( active_, "value() called on an inactive maybe." );
     return std::move( **this );
   }
-  [[nodiscard]] constexpr T&& value(
-      std::source_location loc =
-          std::source_location::current() ) && {
-    if( !active_ ) throw bad_maybe_access{ loc };
+  [[nodiscard]] constexpr T&& value() && {
+    CHECK( active_, "value() called on an inactive maybe." );
     return std::move( **this );
   }
 
   // Just to give a uniform interface with expect<>.
-  constexpr nothing_t error(
-      std::source_location loc =
-          std::source_location::current() ) const {
-    if( active_ ) throw bad_maybe_access{ loc };
+  constexpr nothing_t error() const {
+    CHECK( !active_, "error() called on an active maybe." );
     return nothing;
   }
 
@@ -1164,18 +1124,14 @@ class [[nodiscard]] maybe<T&> { /* clang-format on */
   /**************************************************************
   ** value
   ***************************************************************/
-  [[nodiscard]] constexpr T& value(
-      std::source_location loc =
-          std::source_location::current() ) const {
-    if( !has_value() ) throw bad_maybe_access{ loc };
+  [[nodiscard]] constexpr T& value() const {
+    CHECK( has_value(), "value() called on an inactive maybe." );
     return **this;
   }
 
   // Just to give a uniform interface with expect<>.
-  constexpr nothing_t error(
-      std::source_location loc =
-          std::source_location::current() ) const {
-    if( has_value() ) throw bad_maybe_access{ loc };
+  constexpr nothing_t error() const {
+    CHECK( !has_value(), "error() called on an active maybe." );
     return nothing;
   }
 

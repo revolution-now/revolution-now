@@ -11,8 +11,4 @@
 *****************************************************************/
 #include "maybe.hpp"
 
-namespace base {
-
-void bad_maybe_access::dummy_key_function() const {}
-
-} // namespace base
+namespace base {} // namespace base
