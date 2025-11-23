@@ -15,6 +15,10 @@
 
 // Testing.
 #include "test/fake/world.hpp"
+#include "test/mocking.hpp"
+#include "test/mocks/iagent.hpp"
+#include "test/mocks/igui.hpp"
+#include "test/util/coro.hpp"
 
 // Revolution Now
 #include "src/colony-mgr.hpp"
@@ -28,6 +32,7 @@
 #include "src/refl/to-str.hpp"
 
 // base
+#include "src/base/scope-exit.hpp"
 #include "src/base/to-str-ext-std.hpp"
 
 // C++ standard library
@@ -42,6 +47,7 @@ namespace {
 using namespace std;
 
 using ::gfx::point;
+using ::mock::matchers::StrContains;
 using ::std::ranges::views::zip;
 
 /****************************************************************
@@ -139,6 +145,13 @@ struct world : testing::World {
       } } );
   }
 
+  TradeRoutesSanitizedToken const& token() {
+    vector<TradeRouteSanitizationAction> actions_taken;
+    SCOPE_EXIT { CHECK( actions_taken.empty() ); };
+    return sanitize_trade_routes(
+        ss(), default_player(), trade_routes(), actions_taken );
+  }
+
  public:
   array<Colony*, kNumColonies> colonies_;
 };
@@ -172,8 +185,7 @@ TEST_WORLD(
     auto old = trade_routes();
     trade_routes().routes.at( 2 ).stops.resize( 6 );
     f();
-    expected = { A::too_many_stops{ .route_id   = 2,
-                                    .route_name = "land.2" } };
+    expected = { A::too_many_stops{ .route_name = "land.2" } };
     REQUIRE( actions_taken == expected );
     old.routes.at( 2 ).stops.resize( 4 );
     REQUIRE( trade_routes() == old );
@@ -259,8 +271,8 @@ TEST_WORLD(
     auto old = trade_routes();
     destroy_colony( ss(), ts(), *get<0>( colonies_ ) );
     f();
-    expected = { A::colony_no_longer_exists{
-      .route_id = 1, .route_name = "land.1" } };
+    expected = {
+      A::colony_no_longer_exists{ .route_name = "land.1" } };
     REQUIRE( actions_taken == expected );
     old.routes.at( 1 ).stops.erase(
         old.routes.at( 1 ).stops.begin() );
@@ -272,11 +284,10 @@ TEST_WORLD(
     auto old = trade_routes();
     kill_all_colonies();
     f();
-    expected = { A::colony_no_longer_exists{
-                   .route_id = 1, .route_name = "land.1" },
-                 A::colony_no_longer_exists{
-                   .route_id = 1, .route_name = "land.1" },
-                 A::empty_route{ .route_name = "land.1" } };
+    expected = {
+      A::colony_no_longer_exists{ .route_name = "land.1" },
+      A::colony_no_longer_exists{ .route_name = "land.1" },
+      A::empty_route{ .route_name = "land.1" } };
     REQUIRE( actions_taken == expected );
     old.routes.erase( 1 );
     REQUIRE( trade_routes() == old );
@@ -285,6 +296,109 @@ TEST_WORLD(
 
 TEST_CASE( "[trade-route] show_sanitization_actions" ) {
   world w;
+  auto const& token = w.token();
+  vector<TradeRouteSanitizationAction> actions_taken;
+  using A = TradeRouteSanitizationAction;
+
+  auto const f = [&] [[clang::noinline]] {
+    co_await_test( show_sanitization_actions(
+        w.ss(), w.gui(), w.agent(), actions_taken, token ) );
+  };
+
+  // Default.
+  f();
+
+  // colony_no_longer_exists
+  actions_taken = {
+    A::colony_no_longer_exists{ .route_name = "some route" } };
+  w.agent().EXPECT__message_box( StrContains(
+      "[some route] trade route has been removed from the "
+      "itinerary as it no longer exists" ) );
+  f();
+
+  w.add_colony( { .x = 1, .y = 0 }, e_player::spanish ).name =
+      "some colony";
+
+  // colony_changed_player
+  // no_harbor_post_declaration
+  actions_taken = {
+    A::colony_changed_player{ .colony_id  = 1,
+                              .route_name = "some route" },
+    A::no_harbor_post_declaration{ .route_name =
+                                       "some route" } };
+  w.agent().EXPECT__message_box( StrContains(
+      "The colony of [some colony], listed as a stop on the "
+      "[some route] trade route, has been removed from the "
+      "itinerary as it is now occupied by the [Spanish]" ) );
+  w.agent().EXPECT__human().returns( true );
+  w.gui().EXPECT__wait_for( chrono::milliseconds{ 200 } );
+  w.agent().EXPECT__message_box(
+      StrContains( "All European Harbor stops on the [some "
+                   "route] trade route have been removed" ) );
+  f();
+
+  // empty_route
+  actions_taken = {
+    A::empty_route{ .route_name = "some route" } };
+  w.agent().EXPECT__message_box(
+      StrContains( "The [some route] trade route has been left "
+                   "with no stops" ) );
+  f();
+
+  // too_many_stops
+  actions_taken = {
+    A::too_many_stops{ .route_name = "some route" } };
+  w.agent().EXPECT__message_box(
+      StrContains( "The [some route] trade route has exceeded "
+                   "the limit of four stops" ) );
+  f();
+
+  // colony_changed_player
+  // no_harbor_post_declaration
+  // empty_route
+  actions_taken = {
+    A::colony_changed_player{ .colony_id  = 1,
+                              .route_name = "some route" },
+    A::no_harbor_post_declaration{ .route_name = "some route" },
+    A::empty_route{ .route_name = "some route" } };
+  w.agent().EXPECT__message_box( StrContains(
+      "The colony of [some colony], listed as a stop on the "
+      "[some route] trade route, has been removed from the "
+      "itinerary as it is now occupied by the [Spanish]" ) );
+  w.agent().EXPECT__human().returns( true );
+  w.gui().EXPECT__wait_for( chrono::milliseconds{ 200 } );
+  w.agent().EXPECT__message_box(
+      StrContains( "All European Harbor stops on the [some "
+                   "route] trade route have been removed" ) );
+  w.agent().EXPECT__human().returns( true );
+  w.gui().EXPECT__wait_for( chrono::milliseconds{ 200 } );
+  w.agent().EXPECT__message_box(
+      StrContains( "The [some route] trade route has been left "
+                   "with no stops" ) );
+  f();
+
+  // (non-human)
+  // colony_changed_player
+  // no_harbor_post_declaration
+  // empty_route
+  actions_taken = {
+    A::colony_changed_player{ .colony_id  = 1,
+                              .route_name = "some route" },
+    A::no_harbor_post_declaration{ .route_name = "some route" },
+    A::empty_route{ .route_name = "some route" } };
+  w.agent().EXPECT__message_box( StrContains(
+      "The colony of [some colony], listed as a stop on the "
+      "[some route] trade route, has been removed from the "
+      "itinerary as it is now occupied by the [Spanish]" ) );
+  w.agent().EXPECT__human().returns( false );
+  w.agent().EXPECT__message_box(
+      StrContains( "All European Harbor stops on the [some "
+                   "route] trade route have been removed" ) );
+  w.agent().EXPECT__human().returns( false );
+  w.agent().EXPECT__message_box(
+      StrContains( "The [some route] trade route has been left "
+                   "with no stops" ) );
+  f();
 }
 
 TEST_CASE( "[trade-route] run_trade_route_sanitization" ) {

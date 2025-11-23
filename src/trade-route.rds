@@ -39,7 +39,6 @@ struct.TradeRouteOrdersConfirmed {
 # able to do if it got deleted).
 sumtype.TradeRouteSanitizationAction {
   colony_no_longer_exists {
-    route_id 'TradeRouteId',
     route_name 'std::string',
   },
   colony_changed_player {
@@ -53,7 +52,6 @@ sumtype.TradeRouteSanitizationAction {
     route_name 'std::string',
   },
   too_many_stops {
-    route_id 'TradeRouteId',
     route_name 'std::string',
   },
 }

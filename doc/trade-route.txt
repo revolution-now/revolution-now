@@ -123,6 +123,9 @@ TODO:
     need to take another look at that; if it came from the SG
     then it could be something outdated.
 
+  * Do one last check of all the CHECKs in the trade route mod-
+    ules to make sure there is nothing risky.
+
 Done:
 
   * Add the trade route data structure to ss.

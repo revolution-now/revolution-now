@@ -153,8 +153,8 @@ trade_route_stop_inaccessible( SSConst const& ss,
   SWITCH( target ) {
     CASE( colony ) {
       if( !ss.colonies.exists( colony.colony_id ) )
-        return Action::colony_no_longer_exists{
-          .route_id = route.id, .route_name = route.name };
+        return Action::colony_no_longer_exists{ .route_name =
+                                                    route.name };
       Colony const& colony_o =
           ss.colonies.colony_for( colony.colony_id );
       if( colony_o.player != player.type )
@@ -190,8 +190,8 @@ TradeRoutesSanitizedToken const& sanitize_trade_routes(
     if( route.player != player.type ) continue;
     if( route.stops.size() <= 4 ) continue;
     route.stops.resize( 4 );
-    actions_taken.push_back( Action::too_many_stops{
-      .route_id = route_id, .route_name = route.name } );
+    actions_taken.push_back(
+        Action::too_many_stops{ .route_name = route.name } );
   }
 
   // Erase inaccessible stops.
@@ -298,11 +298,11 @@ wait<> show_sanitization_actions(
       }
     }
   }
-  chrono::milliseconds sleep;
-  for( string const& msg : msgs ) {
+  for( bool sleep = false; string const& msg : msgs ) {
     co_await agent.message_box( "Trade Route Alert: {}", msg );
-    co_await gui.wait_for( sleep );
-    sleep = chrono::milliseconds{ 200 };
+    if( sleep && agent.human() )
+      co_await gui.wait_for( chrono::milliseconds{ 200 } );
+    sleep = true;
   }
   co_return;
 }
