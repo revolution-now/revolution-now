@@ -89,6 +89,7 @@ string orders_name_for_euro_unit( SSConst const& ss,
                          map.tile.y + 1 );
         }
       }
+      UNREACHABLE_LOCATION;
     }
     CASE( none ) { return "No Orders"; }
     CASE( plow ) { return "Clear/Plow"; }
