@@ -1031,5 +1031,14 @@ TEST_CASE( "[colony-mgr] total_colonies_population" ) {
   REQUIRE( f( english ) == 2 );
 }
 
+TEST_CASE( "[colony-mgr] colony_commodities_by_value" ) {
+  world w;
+}
+
+TEST_CASE(
+    "[colony-mgr] colony_commodities_by_value_restricted" ) {
+  world w;
+}
+
 } // namespace
 } // namespace rn

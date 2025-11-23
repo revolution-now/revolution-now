@@ -19,6 +19,7 @@
 
 // ss
 #include "ss/colony-id.hpp"
+#include "ss/commodity.rds.hpp"
 #include "ss/unit-id.hpp"
 
 // gfx
@@ -151,5 +152,19 @@ std::vector<ColonyId> find_coastal_colonies(
 std::vector<ColonyId> find_connected_colonies(
     SSConst const& ss, TerrainConnectivity const& connectivity,
     e_player player, gfx::point tile );
+
+// Sorts all colony commodities by their total value (defined as
+// pre-tax sale rate multiplied by quantity). The more valuable
+// ones will be first.
+[[nodiscard]] std::vector<Commodity> colony_commodities_by_value(
+    SSConst const& ss, Player const& player,
+    Colony const& colony );
+
+// Same as above but can limit to a desired set.
+[[nodiscard]] std::vector<Commodity>
+colony_commodities_by_value_restricted(
+    SSConst const& ss, Player const& player,
+    Colony const& colony,
+    std::vector<e_commodity> const& desired );
 
 } // namespace rn

@@ -199,19 +199,6 @@ confirm_trade_route_orders(
 void trade_route_unload( SS& ss, Player& player, Unit& unit,
                          TradeRouteStop const& stop );
 
-// Sorts all colony commodities by their total value (defined as
-// pre-tax sale rate multiplied by quantity). The more valuable
-// ones will be first.
-[[nodiscard]] std::vector<Commodity> colony_commodities_by_value(
-    SSConst const& ss, Player const& player,
-    Colony const& colony );
-
-// Same as above but can limit to a desired set.
-[[nodiscard]] std::vector<Commodity> colony_commodities_by_value(
-    SSConst const& ss, Player const& player,
-    Colony const& colony,
-    std::vector<e_commodity> const& desired );
-
 void trade_route_load( SS& ss, Player& player, Unit& unit,
                        TradeRouteStop const& stop );
 

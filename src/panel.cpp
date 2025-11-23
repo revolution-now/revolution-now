@@ -11,6 +11,7 @@
 #include "panel.hpp"
 
 // Revolution Now
+#include "colony-mgr.hpp"
 #include "commodity.hpp"
 #include "igui.hpp"
 #include "map-square.hpp"
@@ -22,7 +23,6 @@
 #include "spread-builder.hpp"
 #include "spread-render.hpp"
 #include "tiles.hpp"
-#include "trade-route.hpp"
 #include "tribe-mgr.hpp"
 #include "unit-mgr.hpp"
 #include "unit-stack.hpp"

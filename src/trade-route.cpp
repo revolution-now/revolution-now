@@ -863,47 +863,6 @@ void trade_route_unload( SS& ss, Player& player, Unit& unit,
   }
 }
 
-vector<Commodity> colony_commodities_by_value(
-    SSConst const& ss, Player const& player,
-    Colony const& colony, vector<e_commodity> const& desired ) {
-  auto const sale_value_no_tax = [&]( Commodity const& comm ) {
-    return market_price( ss, player, comm.type ).bid *
-           comm.quantity;
-  };
-
-  // Sorts in reverse order of pre-tax sale value and then com-
-  // modity index, mirroring the OG.
-  auto const comparator = [&]( Commodity const& l,
-                               Commodity const& r ) {
-    int const value_l = sale_value_no_tax( l );
-    int const value_r = sale_value_no_tax( r );
-    if( value_l != value_r ) return value_r < value_l;
-    return r.type < l.type;
-  };
-
-  vector<Commodity> loadables;
-  loadables.reserve( desired.size() );
-  for( e_commodity const type : desired )
-    loadables.push_back( Commodity{
-      .type = type, .quantity = colony.commodities[type] } );
-  rg::sort( loadables, comparator );
-
-  return loadables;
-}
-
-vector<Commodity> colony_commodities_by_value(
-    SSConst const& ss, Player const& player,
-    Colony const& colony ) {
-  static vector<e_commodity> const all = [&] {
-    vector<e_commodity> res;
-    res.reserve( enum_count<e_commodity> );
-    for( e_commodity const type : enum_values<e_commodity> )
-      res.push_back( type );
-    return res;
-  }();
-  return colony_commodities_by_value( ss, player, colony, all );
-}
-
 static void trade_route_load_colony(
     SS& ss, Player& player, Unit& unit, Colony& colony,
     vector<e_commodity> const& desired ) {
@@ -911,7 +870,7 @@ static void trade_route_load_colony(
 
   while( true ) {
     vector<Commodity> const loadables =
-        colony_commodities_by_value(
+        colony_commodities_by_value_restricted(
             ss.as_const, as_const( player ), as_const( colony ),
             desired );
     bool loaded_something = false;
