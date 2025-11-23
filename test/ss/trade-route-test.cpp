@@ -32,6 +32,23 @@ TEST_CASE(
     "[ss/trade-route] TradeRouteTarget::colony::validate" ) {
 }
 
+TEST_CASE( "[ss/trade-route] operator<( TradeRouteTarget )" ) {
+  using T = TradeRouteTarget;
+  REQUIRE_FALSE( T{ T::harbor{} } < T{ T::harbor{} } );
+  REQUIRE( T{ T::harbor{} } < T{ T::colony{} } );
+  REQUIRE( T{ T::harbor{} } < T{ T::colony{ .colony_id = 2 } } );
+  REQUIRE_FALSE( T{ T::colony{} } < T{ T::harbor{} } );
+  REQUIRE_FALSE( T{ T::colony{ .colony_id = 2 } } <
+                 T{ T::harbor{} } );
+  REQUIRE_FALSE( T{ T::colony{} } < T{ T::colony{} } );
+  REQUIRE_FALSE( T{ T::colony{ .colony_id = 2 } } <
+                 T{ T::colony{ .colony_id = 2 } } );
+  REQUIRE( T{ T::colony{ .colony_id = 2 } } <
+           T{ T::colony{ .colony_id = 3 } } );
+  REQUIRE_FALSE( T{ T::colony{ .colony_id = 3 } } <
+                 T{ T::colony{ .colony_id = 2 } } );
+}
+
 TEST_CASE( "[ss/trade-route] TradeRoute::validate" ) {
 }
 

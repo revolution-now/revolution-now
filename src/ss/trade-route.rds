@@ -26,6 +26,8 @@ enum.e_trade_route_type {
   sea,
 }
 
+# NOTE: if this is changed in any way don't forget to update the
+# operator< implementation.
 sumtype.TradeRouteTarget {
   # Having the harbor first means that a default-constructed
   # target is valid. If the colony were first then the colony_id

@@ -13,4 +13,12 @@
 // rds
 #include "trade-route.rds.hpp"
 
-namespace rn {} // namespace rn
+namespace rn {
+
+/****************************************************************
+** TradeRouteTarget
+*****************************************************************/
+[[nodiscard]] bool operator<( TradeRouteTarget const& l,
+                              TradeRouteTarget const& r );
+
+} // namespace rn

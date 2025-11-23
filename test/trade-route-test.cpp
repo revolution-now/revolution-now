@@ -145,6 +145,72 @@ struct world : testing::World {
       } } );
   }
 
+  // [2] <-> [2], exchanging furs/coats.
+  void add_land_route_2() {
+    using enum e_commodity;
+    using enum e_trade_route_type;
+    create_colonies();
+    add_route( TradeRoute{
+      .type  = land,
+      .stops = {
+        { .target =
+              TradeRouteTarget::colony{
+                .colony_id = get<0>( colonies_ )->id,
+              },
+          .loads   = { furs },
+          .unloads = { coats } },
+        { .target =
+              TradeRouteTarget::colony{
+                .colony_id = get<0>( colonies_ )->id,
+              },
+          .loads   = { coats },
+          .unloads = { furs } },
+      } } );
+  }
+
+  // [1] --> [harbor] --> [2].
+  void add_sea_route_1() {
+    using enum e_commodity;
+    using enum e_trade_route_type;
+    create_colonies();
+    add_route( TradeRoute{
+      .type  = sea,
+      .stops = {
+        { .target =
+              TradeRouteTarget::colony{
+                .colony_id = get<0>( colonies_ )->id,
+              },
+          .loads   = { furs },
+          .unloads = { coats } },
+        { .target  = TradeRouteTarget::harbor{},
+          .loads   = { trade_goods },
+          .unloads = { furs } },
+        { .target =
+              TradeRouteTarget::colony{
+                .colony_id = get<1>( colonies_ )->id,
+              },
+          .loads   = { coats },
+          .unloads = { trade_goods } },
+      } } );
+  }
+
+  // [harbor] --> [harbor].
+  void add_double_harbor_route() {
+    using enum e_commodity;
+    using enum e_trade_route_type;
+    create_colonies();
+    add_route(
+        TradeRoute{ .type  = sea,
+                    .stops = {
+                      { .target  = TradeRouteTarget::harbor{},
+                        .loads   = { trade_goods },
+                        .unloads = { furs } },
+                      { .target  = TradeRouteTarget::harbor{},
+                        .loads   = { furs },
+                        .unloads = { trade_goods } },
+                    } } );
+  }
+
   TradeRoutesSanitizedToken const& token() {
     vector<TradeRouteSanitizationAction> actions_taken;
     SCOPE_EXIT { CHECK( actions_taken.empty() ); };
@@ -405,7 +471,6 @@ TEST_CASE( "[trade-route] show_sanitization_actions" ) {
 // function calls that are already tested.
 TEST_WORLD( "[trade-route] run_trade_route_sanitization" ) {
   Player& player = default_player();
-  using A        = TradeRouteSanitizationAction;
   using enum e_player;
 
   auto const f = [&] [[clang::noinline]] {
@@ -431,6 +496,10 @@ TEST_WORLD( "[trade-route] run_trade_route_sanitization" ) {
 TEST_CASE( "[trade-route] sanitize_unit_trade_route_orders" ) {
   world w;
   w.add_land_route_1();
+  w.add_land_route_1();
+  w.add_land_route_1();
+  // Remove the second one.
+  w.trade_routes().routes.erase( 2 );
   auto const& token = w.token();
 
   Unit& unit = w.add_unit_on_map( e_unit_type::wagon_train,
@@ -490,6 +559,8 @@ TEST_CASE( "[trade-route] look_up_trade_route (non-const)" ) {
       [&] [[clang::noinline]] ( TradeRouteId const id ) {
         return look_up_trade_route( w.trade_routes(), id );
       };
+  static_assert(
+      is_same_v<decltype( f( 1 ) ), maybe<TradeRoute&>> );
 
   REQUIRE( &f( 1 ).value() == &w.trade_routes().routes.at( 1 ) );
   REQUIRE( &f( 2 ).value() == &w.trade_routes().routes.at( 2 ) );
@@ -499,27 +570,178 @@ TEST_CASE( "[trade-route] look_up_trade_route (non-const)" ) {
 
 TEST_CASE( "[trade-route] look_up_trade_route (const)" ) {
   world w;
+  w.add_land_route_1();
+  w.add_land_route_1();
+  w.add_land_route_1();
+  w.add_land_route_1();
+
+  w.trade_routes().routes.erase( 3 );
+
+  auto const f =
+      [&] [[clang::noinline]] ( TradeRouteId const id ) {
+        return look_up_trade_route( as_const( w.trade_routes() ),
+                                    id );
+      };
+  static_assert(
+      is_same_v<decltype( f( 1 ) ), maybe<TradeRoute const&>> );
+
+  REQUIRE( &f( 1 ).value() == &w.trade_routes().routes.at( 1 ) );
+  REQUIRE( &f( 2 ).value() == &w.trade_routes().routes.at( 2 ) );
+  REQUIRE( f( 3 ) == nothing );
+  REQUIRE( &f( 4 ).value() == &w.trade_routes().routes.at( 4 ) );
 }
 
 TEST_CASE( "[trade-route] look_up_trade_route_stop" ) {
   world w;
+  TradeRoute route;
+
+  auto const f = [&] [[clang::noinline]] ( int const stop ) {
+    return look_up_trade_route_stop( as_const( route ), stop );
+  };
+
+  REQUIRE( f( 0 ) == nothing );
+  REQUIRE( f( 1 ) == nothing );
+  REQUIRE( f( 2 ) == nothing );
+
+  route.stops.resize( 1 );
+  REQUIRE( &f( 0 ).value() == &route.stops.at( 0 ) );
+  REQUIRE( f( 1 ) == nothing );
+  REQUIRE( f( 2 ) == nothing );
+
+  route.stops.resize( 2 );
+  REQUIRE( &f( 0 ).value() == &route.stops.at( 0 ) );
+  REQUIRE( &f( 1 ).value() == &route.stops.at( 1 ) );
+  REQUIRE( f( 2 ) == nothing );
+
+  route.stops.resize( 3 );
+  REQUIRE( &f( 0 ).value() == &route.stops.at( 0 ) );
+  REQUIRE( &f( 1 ).value() == &route.stops.at( 1 ) );
+  REQUIRE( &f( 2 ).value() == &route.stops.at( 2 ) );
 }
 
 TEST_CASE( "[trade-route] look_up_next_trade_route_stop" ) {
   world w;
+  TradeRoute route;
+
+  auto const f = [&] [[clang::noinline]] ( int const stop ) {
+    return look_up_next_trade_route_stop( as_const( route ),
+                                          stop );
+  };
+
+  REQUIRE( f( 0 ) == nothing );
+  REQUIRE( f( 1 ) == nothing );
+  REQUIRE( f( 2 ) == nothing );
+  REQUIRE( f( 3 ) == nothing );
+  REQUIRE( f( 4 ) == nothing );
+
+  route.stops.resize( 1 );
+  REQUIRE( &f( 0 ).value() == &route.stops.at( 0 ) );
+  REQUIRE( &f( 1 ).value() == &route.stops.at( 0 ) );
+  REQUIRE( &f( 2 ).value() == &route.stops.at( 0 ) );
+  REQUIRE( &f( 3 ).value() == &route.stops.at( 0 ) );
+  REQUIRE( &f( 4 ).value() == &route.stops.at( 0 ) );
+
+  route.stops.resize( 2 );
+  REQUIRE( &f( 0 ).value() == &route.stops.at( 1 ) );
+  REQUIRE( &f( 1 ).value() == &route.stops.at( 0 ) );
+  REQUIRE( &f( 2 ).value() == &route.stops.at( 0 ) );
+  REQUIRE( &f( 3 ).value() == &route.stops.at( 0 ) );
+  REQUIRE( &f( 4 ).value() == &route.stops.at( 0 ) );
+
+  route.stops.resize( 3 );
+  REQUIRE( &f( 0 ).value() == &route.stops.at( 1 ) );
+  REQUIRE( &f( 1 ).value() == &route.stops.at( 2 ) );
+  REQUIRE( &f( 2 ).value() == &route.stops.at( 0 ) );
+  REQUIRE( &f( 3 ).value() == &route.stops.at( 0 ) );
+  REQUIRE( &f( 4 ).value() == &route.stops.at( 0 ) );
+
+  route.stops.resize( 4 );
+  REQUIRE( &f( 0 ).value() == &route.stops.at( 1 ) );
+  REQUIRE( &f( 1 ).value() == &route.stops.at( 2 ) );
+  REQUIRE( &f( 2 ).value() == &route.stops.at( 3 ) );
+  REQUIRE( &f( 3 ).value() == &route.stops.at( 0 ) );
+  REQUIRE( &f( 4 ).value() == &route.stops.at( 0 ) );
 }
 
 TEST_CASE( "[trade-route] curr_trade_route_target" ) {
   world w;
+  w.add_land_route_1();
+  w.add_land_route_1();
+  w.add_land_route_1();
+
+  Unit& unit = w.add_unit_on_map( e_unit_type::wagon_train,
+                                  { .x = 1, .y = 2 } );
+
+  auto const f = [&] [[clang::noinline]] {
+    return curr_trade_route_target( w.trade_routes(), unit );
+  };
+
+  unit.orders() =
+      unit_orders::trade_route{ .id = 2, .en_route_to_stop = 1 };
+  REQUIRE( f() == TradeRouteTarget::colony{
+                    .colony_id = w.colonies_[1]->id } );
+
+  SECTION( "bad stop" ) {
+    unit.orders()
+        .get_if<unit_orders::trade_route>()
+        .value()
+        .en_route_to_stop = 2;
+    REQUIRE( f() == nothing );
+  }
+
+  SECTION( "bad route" ) {
+    unit.orders().get_if<unit_orders::trade_route>().value().id =
+        4;
+    REQUIRE( f() == nothing );
+  }
+
+  SECTION( "bad orders" ) {
+    unit.orders() = unit_orders::go_to{};
+    REQUIRE( f() == nothing );
+    unit.clear_orders();
+    REQUIRE( f() == nothing );
+  }
 }
 
 TEST_CASE( "[trade-route] are_all_stops_identical" ) {
   world w;
+
+  auto const f =
+      [&] [[clang::noinline]] ( TradeRoute const& route ) {
+        return are_all_stops_identical( route );
+      };
+
+  w.add_land_route_1();
+  w.add_land_route_2();
+  w.add_sea_route_1();
+  w.add_double_harbor_route();
+
+  REQUIRE_FALSE( f( w.trade_routes().routes.at( 1 ) ) );
+  REQUIRE( f( w.trade_routes().routes.at( 2 ) ) );
+  REQUIRE_FALSE( f( w.trade_routes().routes.at( 3 ) ) );
+  REQUIRE( f( w.trade_routes().routes.at( 4 ) ) );
 }
 
 TEST_CASE(
     "[trade-route] convert_trade_route_target_to_goto_target" ) {
   world w;
+  w.create_colonies();
+  auto const& token = w.token();
+  TradeRouteTarget target;
+  goto_target expected;
+
+  auto const f = [&] [[clang::noinline]] {
+    return convert_trade_route_target_to_goto_target(
+        w.ss(), w.default_player(), target, token );
+  };
+
+  target   = TradeRouteTarget::harbor{};
+  expected = goto_target::harbor{};
+  REQUIRE( f() == expected );
+
+  target   = TradeRouteTarget::colony{ .colony_id = 2 };
+  expected = goto_target::map{ .tile = { .x = 6, .y = 1 } };
+  REQUIRE( f() == expected );
 }
 
 TEST_CASE( "[trade-route] unit_can_start_trade_route" ) {

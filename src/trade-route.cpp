@@ -365,6 +365,8 @@ maybe<TradeRoute&> look_up_trade_route(
 maybe<TradeRoute const&> look_up_trade_route(
     TradeRouteState const& trade_routes,
     TradeRouteId const id ) {
+  CHECK_GT( id, 0 ); // zero is always an invalid value.
+  CHECK_LE( id, trade_routes.last_trade_route_id );
   auto const iter = trade_routes.routes.find( id );
   if( iter == trade_routes.routes.end() ) return nothing;
   return iter->second;
@@ -401,13 +403,7 @@ maybe<TradeRouteTarget const&> curr_trade_route_target(
 }
 
 bool are_all_stops_identical( TradeRoute const& route ) {
-  struct comp {
-    [[maybe_unused]] static bool operator()(
-        TradeRouteTarget const& l, TradeRouteTarget const& r ) {
-      return base::to_str( l ) < base::to_str( r );
-    }
-  };
-  set<TradeRouteTarget, comp> targets;
+  set<TradeRouteTarget> targets;
   for( TradeRouteStop const& stop : route.stops )
     targets.insert( stop.target );
   return targets.size() <= 1;

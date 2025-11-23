@@ -10,6 +10,9 @@
 *****************************************************************/
 #include "trade-route.hpp"
 
+// rds
+#include "rds/switch-macro.hpp"
+
 // refl
 #include "refl/ext.hpp"
 
@@ -36,6 +39,28 @@ valid_or<string> TradeRouteTarget::colony::validate() const {
                  "invalid colony ID in trade route target: {}",
                  colony_id );
   return valid;
+}
+
+bool operator<( TradeRouteTarget const& l,
+                TradeRouteTarget const& r ) {
+  SWITCH( l ) {
+    CASE( harbor ) {
+      SWITCH( r ) {
+        CASE( harbor ) { return false; }
+        CASE( colony ) { return true; }
+      }
+    }
+    CASE( colony ) {
+      auto const& l_colony = colony;
+      SWITCH( r ) {
+        CASE( harbor ) { return false; }
+        CASE( colony ) {
+          auto const& r_colony = colony;
+          return l_colony.colony_id < r_colony.colony_id;
+        }
+      }
+    }
+  }
 }
 
 /****************************************************************
