@@ -80,7 +80,7 @@ string trade_route_name_suggestion(
     CHECK_LT( idx, ssize( suffixes ) );
     return suffixes[idx];
   };
-  int const start = trade_routes.prev_trade_route_id;
+  int const start = trade_routes.last_trade_route_id;
   auto const use  = [&]( string const& suffix ) {
     return format( "{} {}", colony_name, suffix );
   };
@@ -330,12 +330,20 @@ maybe<unit_orders::trade_route> sanitize_unit_trade_route_orders(
   auto const route =
       look_up_trade_route( ss.trade_routes, orders.id );
   if( !route.has_value() ) return nothing;
-  // This should not happen as it should have been caught in san-
-  // itization, but lets be defensive.
-  if( route->stops.empty() ) return nothing;
   // This can happen if the wagon train is captured in a colony
   // while on a trade route.
   if( route->player != unit.player_type() ) return nothing;
+  // This should not happen as it should have been caught in san-
+  // itization, but lets be defensive. In particular, this is
+  // just in case there is a weird edge case that we're not
+  // thinking of where the unit in question changes nation while
+  // it is on a trade route with no stops and then only the new
+  // nation's trade routes get sanitized, thus leaving it still
+  // pointing to a trade route with no stops. There is another
+  // safety against this which is that we check the nation of the
+  // unit above, so really that should not happen either, but you
+  // never know.
+  if( route->stops.empty() ) return nothing;
   unit_orders::trade_route new_orders = orders;
   if( new_orders.en_route_to_stop >= ssize( route->stops ) )
     new_orders.en_route_to_stop = 0;
@@ -347,6 +355,8 @@ maybe<unit_orders::trade_route> sanitize_unit_trade_route_orders(
 *****************************************************************/
 maybe<TradeRoute&> look_up_trade_route(
     TradeRouteState& trade_routes, TradeRouteId const id ) {
+  CHECK_GT( id, 0 ); // zero is always an invalid value.
+  CHECK_LE( id, trade_routes.last_trade_route_id );
   auto const iter = trade_routes.routes.find( id );
   if( iter == trade_routes.routes.end() ) return nothing;
   return iter->second;
@@ -584,7 +594,7 @@ TradeRoute create_trade_route_object(
     TradeRouteState& trade_routes,
     CreateTradeRoute const& params ) {
   TradeRouteId const trade_route_id =
-      ++trade_routes.prev_trade_route_id;
+      ++trade_routes.last_trade_route_id;
   return TradeRoute{
     .id     = trade_route_id,
     .name   = params.name,

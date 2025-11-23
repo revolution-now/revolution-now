@@ -114,7 +114,7 @@ struct world : testing::World {
 
   void add_route( TradeRoute&& route ) {
     auto& tr              = trade_routes();
-    TradeRouteId const id = ++tr.prev_trade_route_id;
+    TradeRouteId const id = ++tr.last_trade_route_id;
 
     route.id      = id;
     route.name    = format( "{}.{}", route.type, id );
@@ -401,16 +401,100 @@ TEST_CASE( "[trade-route] show_sanitization_actions" ) {
   f();
 }
 
-TEST_CASE( "[trade-route] run_trade_route_sanitization" ) {
-  world w;
+// This one is abbreviated because it is just composed of two
+// function calls that are already tested.
+TEST_WORLD( "[trade-route] run_trade_route_sanitization" ) {
+  Player& player = default_player();
+  using A        = TradeRouteSanitizationAction;
+  using enum e_player;
+
+  auto const f = [&] [[clang::noinline]] {
+    TradeRoutesSanitizedToken const& token =
+        co_await_test( run_trade_route_sanitization(
+            ss(), as_const( player ), gui(), trade_routes(),
+            agent() ) );
+    validate_token( token );
+  };
+
+  add_land_route_1();
+  add_land_route_1();
+  auto old = trade_routes();
+  trade_routes().routes.at( 2 ).stops.resize( 6 );
+  agent().EXPECT__message_box(
+      StrContains( "The [land.2] trade route has exceeded the "
+                   "limit of four stops" ) );
+  f();
+  old.routes.at( 2 ).stops.resize( 4 );
+  REQUIRE( trade_routes() == old );
 }
 
 TEST_CASE( "[trade-route] sanitize_unit_trade_route_orders" ) {
   world w;
+  w.add_land_route_1();
+  auto const& token = w.token();
+
+  Unit& unit = w.add_unit_on_map( e_unit_type::wagon_train,
+                                  { .x = 1, .y = 2 } );
+
+  auto const f = [&] [[clang::noinline]] {
+    return sanitize_unit_trade_route_orders( w.ss(), unit,
+                                             token );
+  };
+
+  auto& orders =
+      unit.orders().emplace<unit_orders::trade_route>();
+
+  orders.id               = 1;
+  orders.en_route_to_stop = 1;
+  REQUIRE( f() == unit_orders::trade_route{
+                    .id = 1, .en_route_to_stop = 1 } );
+
+  SECTION( "wrong orders" ) {
+    unit.clear_orders();
+    REQUIRE( f() == nothing );
+  }
+
+  SECTION( "non-existent route" ) {
+    orders.id = 2;
+    REQUIRE( f() == nothing );
+  }
+
+  SECTION( "wrong player" ) {
+    w.trade_routes().routes.at( 1 ).player = e_player::spanish;
+    REQUIRE( f() == nothing );
+  }
+
+  SECTION( "empty stops" ) {
+    w.trade_routes().routes.at( 1 ).stops.clear();
+    REQUIRE( f() == nothing );
+  }
+
+  SECTION( "next stop doesn't exist" ) {
+    w.trade_routes().routes.at( 1 ).stops.resize( 1 );
+    REQUIRE( orders.en_route_to_stop == 1 ); // sanity check.
+    REQUIRE( f() == unit_orders::trade_route{
+                      .id = 1, .en_route_to_stop = 0 } );
+  }
 }
 
 TEST_CASE( "[trade-route] look_up_trade_route (non-const)" ) {
   world w;
+  w.add_land_route_1();
+  w.add_land_route_1();
+  w.add_land_route_1();
+  w.add_land_route_1();
+
+  w.trade_routes().routes.erase( 3 );
+
+  auto const f =
+      [&] [[clang::noinline]] ( TradeRouteId const id ) {
+        return look_up_trade_route( w.trade_routes(), id );
+      };
+
+  REQUIRE( &f( 1 ).value() == &w.trade_routes().routes.at( 1 ) );
+  REQUIRE( &f( 2 ).value() == &w.trade_routes().routes.at( 2 ) );
+  REQUIRE( f( 3 ) == nothing );
+  REQUIRE( &f( 4 ).value() == &w.trade_routes().routes.at( 4 ) );
 }
 
 TEST_CASE( "[trade-route] look_up_trade_route (const)" ) {

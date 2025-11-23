@@ -87,7 +87,7 @@ struct.TradeRouteState {
   # Note that this also effectively gives the total number of
   # trade routes that have ever been created since the start of
   # the game.
-  prev_trade_route_id 'TradeRouteId',
+  last_trade_route_id 'TradeRouteId',
 
   # NOTE: in the OG there are a maximum of 12 trade routes.
   routes 'std::map<TradeRouteId, TradeRoute>',

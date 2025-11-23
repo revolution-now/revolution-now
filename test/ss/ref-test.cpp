@@ -369,7 +369,7 @@ value cdr_game_state_default = table{
             },
       },
   "trade_routes"_key = table{
-      "prev_trade_route_id"_key = 0,
+      "last_trade_route_id"_key = 0,
       "routes"_key = list{},
   },
   "zzz_terrain"_key =
