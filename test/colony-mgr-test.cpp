@@ -29,6 +29,7 @@
 // ss
 #include "ss/colonies.hpp"
 #include "ss/player.rds.hpp"
+#include "ss/players.rds.hpp"
 #include "ss/ref.hpp"
 #include "ss/terrain.hpp"
 #include "ss/units.hpp"
@@ -1031,13 +1032,292 @@ TEST_CASE( "[colony-mgr] total_colonies_population" ) {
   REQUIRE( f( english ) == 2 );
 }
 
-TEST_CASE( "[colony-mgr] colony_commodities_by_value" ) {
-  world w;
+TEST_WORLD( "[colony-mgr] colony_commodities_by_value" ) {
+  using enum e_commodity;
+  vector<e_commodity> desired;
+  vector<Commodity> expected;
+
+  auto& prices =
+      players().old_world[default_nation()].market.commodities;
+  Colony& colony = add_colony( { .x = 1, .y = 1 } );
+  auto& comms    = colony.commodities;
+
+  auto const f = [&] [[clang::noinline]] {
+    return colony_commodities_by_value_restricted(
+        ss(), default_player(), as_const( colony ), desired );
+  };
+
+  // Default. NOTE: setting prices to default means setting the
+  // bid_price to zero. The ask price is implicitly larger than
+  // zero because the spreads are fixed, but only the bid price
+  // is used by this method.
+  prices   = {};
+  comms    = {};
+  desired  = {};
+  expected = {};
+  REQUIRE( f() == expected );
+
+  // One item, no quantity.
+  prices   = {};
+  comms    = {};
+  desired  = { sugar };
+  expected = {};
+  REQUIRE( f() == expected );
+
+  // One item, some quantity.
+  prices   = {};
+  comms    = { { sugar, 10 } };
+  desired  = { sugar };
+  expected = { { .type = sugar, .quantity = 10 } };
+  REQUIRE( f() == expected );
+
+  // Two items, no prices.
+  prices   = {};
+  comms    = { { sugar, 10 }, { silver, 50 } };
+  desired  = { sugar, silver };
+  expected = { { .type = silver, .quantity = 50 },
+               { .type = sugar, .quantity = 10 } };
+  REQUIRE( f() == expected );
+
+  // Three items, no prices.
+  prices   = {};
+  comms    = { { sugar, 10 }, { silver, 50 }, { muskets, 130 } };
+  desired  = { sugar, silver, muskets };
+  expected = { { .type = muskets, .quantity = 130 },
+               { .type = silver, .quantity = 50 },
+               { .type = sugar, .quantity = 10 } };
+  REQUIRE( f() == expected );
+
+  // Has bid price.
+  prices[sugar].bid_price = 1;
+  comms    = { { sugar, 10 }, { silver, 50 }, { muskets, 130 } };
+  desired  = { sugar, silver, muskets };
+  expected = {
+    { .type = sugar, .quantity = 10 },
+    { .type = muskets, .quantity = 130 },
+    { .type = silver, .quantity = 50 },
+  };
+  REQUIRE( f() == expected );
+
+  prices[sugar].bid_price   = 1;
+  prices[muskets].bid_price = 1;
+  comms    = { { sugar, 10 }, { silver, 50 }, { muskets, 130 } };
+  desired  = { sugar, silver, muskets };
+  expected = {
+    { .type = muskets, .quantity = 130 },
+    { .type = sugar, .quantity = 10 },
+    { .type = silver, .quantity = 50 },
+  };
+  REQUIRE( f() == expected );
+
+  prices[sugar].bid_price   = 12;
+  prices[muskets].bid_price = 1;
+  comms    = { { sugar, 10 }, { silver, 50 }, { muskets, 130 } };
+  desired  = { sugar, silver, muskets };
+  expected = {
+    { .type = muskets, .quantity = 130 },
+    { .type = sugar, .quantity = 10 },
+    { .type = silver, .quantity = 50 },
+  };
+  REQUIRE( f() == expected );
+
+  prices[sugar].bid_price   = 13;
+  prices[muskets].bid_price = 1;
+  comms    = { { sugar, 10 }, { silver, 50 }, { muskets, 130 } };
+  desired  = { sugar, silver, muskets };
+  expected = {
+    { .type = muskets, .quantity = 130 },
+    { .type = sugar, .quantity = 10 },
+    { .type = silver, .quantity = 50 },
+  };
+  REQUIRE( f() == expected );
+
+  prices[sugar].bid_price   = 14;
+  prices[muskets].bid_price = 1;
+  comms    = { { sugar, 10 }, { silver, 50 }, { muskets, 130 } };
+  desired  = { sugar, silver, muskets };
+  expected = {
+    { .type = sugar, .quantity = 10 },
+    { .type = muskets, .quantity = 130 },
+    { .type = silver, .quantity = 50 },
+  };
+  REQUIRE( f() == expected );
+
+  prices[sugar].bid_price   = 14;
+  prices[muskets].bid_price = 1;
+  prices[silver].bid_price  = 2;
+  comms    = { { sugar, 10 }, { silver, 50 }, { muskets, 130 } };
+  desired  = { sugar, silver, muskets };
+  expected = {
+    { .type = sugar, .quantity = 10 },
+    { .type = muskets, .quantity = 130 },
+    { .type = silver, .quantity = 50 },
+  };
+  REQUIRE( f() == expected );
+
+  prices[sugar].bid_price   = 14;
+  prices[muskets].bid_price = 1;
+  prices[silver].bid_price  = 3;
+  comms    = { { sugar, 10 }, { silver, 50 }, { muskets, 130 } };
+  desired  = { sugar, silver, muskets };
+  expected = {
+    { .type = silver, .quantity = 50 },
+    { .type = sugar, .quantity = 10 },
+    { .type = muskets, .quantity = 130 },
+  };
+  REQUIRE( f() == expected );
+
+  prices[sugar].bid_price   = 14;
+  prices[muskets].bid_price = 2;
+  prices[silver].bid_price  = 3;
+  comms    = { { sugar, 10 }, { silver, 50 }, { muskets, 130 } };
+  desired  = { sugar, silver, muskets };
+  expected = {
+    { .type = muskets, .quantity = 130 },
+    { .type = silver, .quantity = 50 },
+    { .type = sugar, .quantity = 10 },
+  };
+  REQUIRE( f() == expected );
+
+  prices[sugar].bid_price   = 14;
+  prices[muskets].bid_price = 2;
+  prices[silver].bid_price  = 3;
+  comms    = { { sugar, 10 }, { silver, 50 }, { muskets, 130 } };
+  desired  = { sugar, muskets };
+  expected = {
+    { .type = muskets, .quantity = 130 },
+    { .type = sugar, .quantity = 10 },
+  };
+  REQUIRE( f() == expected );
 }
 
-TEST_CASE(
+TEST_WORLD(
     "[colony-mgr] colony_commodities_by_value_restricted" ) {
-  world w;
+  using enum e_commodity;
+  vector<Commodity> expected;
+
+  auto& prices =
+      players().old_world[default_nation()].market.commodities;
+  Colony& colony = add_colony( { .x = 1, .y = 1 } );
+  auto& comms    = colony.commodities;
+
+  auto const f = [&] [[clang::noinline]] {
+    return colony_commodities_by_value( ss(), default_player(),
+                                        as_const( colony ) );
+  };
+
+  // Default. NOTE: setting prices to default means setting the
+  // bid_price to zero. The ask price is implicitly larger than
+  // zero because the spreads are fixed, but only the bid price
+  // is used by this method.
+  prices   = {};
+  comms    = {};
+  expected = {};
+  REQUIRE( f() == expected );
+
+  // One item, some quantity.
+  prices   = {};
+  comms    = { { sugar, 10 } };
+  expected = { { .type = sugar, .quantity = 10 } };
+  REQUIRE( f() == expected );
+
+  // Two items, no prices.
+  prices   = {};
+  comms    = { { sugar, 10 }, { silver, 50 } };
+  expected = { { .type = silver, .quantity = 50 },
+               { .type = sugar, .quantity = 10 } };
+  REQUIRE( f() == expected );
+
+  // Three items, no prices.
+  prices   = {};
+  comms    = { { sugar, 10 }, { silver, 50 }, { muskets, 130 } };
+  expected = { { .type = muskets, .quantity = 130 },
+               { .type = silver, .quantity = 50 },
+               { .type = sugar, .quantity = 10 } };
+  REQUIRE( f() == expected );
+
+  // Has bid price.
+  prices[sugar].bid_price = 1;
+  comms    = { { sugar, 10 }, { silver, 50 }, { muskets, 130 } };
+  expected = {
+    { .type = sugar, .quantity = 10 },
+    { .type = muskets, .quantity = 130 },
+    { .type = silver, .quantity = 50 },
+  };
+  REQUIRE( f() == expected );
+
+  prices[sugar].bid_price   = 1;
+  prices[muskets].bid_price = 1;
+  comms    = { { sugar, 10 }, { silver, 50 }, { muskets, 130 } };
+  expected = {
+    { .type = muskets, .quantity = 130 },
+    { .type = sugar, .quantity = 10 },
+    { .type = silver, .quantity = 50 },
+  };
+  REQUIRE( f() == expected );
+
+  prices[sugar].bid_price   = 12;
+  prices[muskets].bid_price = 1;
+  comms    = { { sugar, 10 }, { silver, 50 }, { muskets, 130 } };
+  expected = {
+    { .type = muskets, .quantity = 130 },
+    { .type = sugar, .quantity = 10 },
+    { .type = silver, .quantity = 50 },
+  };
+  REQUIRE( f() == expected );
+
+  prices[sugar].bid_price   = 13;
+  prices[muskets].bid_price = 1;
+  comms    = { { sugar, 10 }, { silver, 50 }, { muskets, 130 } };
+  expected = {
+    { .type = muskets, .quantity = 130 },
+    { .type = sugar, .quantity = 10 },
+    { .type = silver, .quantity = 50 },
+  };
+  REQUIRE( f() == expected );
+
+  prices[sugar].bid_price   = 14;
+  prices[muskets].bid_price = 1;
+  comms    = { { sugar, 10 }, { silver, 50 }, { muskets, 130 } };
+  expected = {
+    { .type = sugar, .quantity = 10 },
+    { .type = muskets, .quantity = 130 },
+    { .type = silver, .quantity = 50 },
+  };
+  REQUIRE( f() == expected );
+
+  prices[sugar].bid_price   = 14;
+  prices[muskets].bid_price = 1;
+  prices[silver].bid_price  = 2;
+  comms    = { { sugar, 10 }, { silver, 50 }, { muskets, 130 } };
+  expected = {
+    { .type = sugar, .quantity = 10 },
+    { .type = muskets, .quantity = 130 },
+    { .type = silver, .quantity = 50 },
+  };
+  REQUIRE( f() == expected );
+
+  prices[sugar].bid_price   = 14;
+  prices[muskets].bid_price = 1;
+  prices[silver].bid_price  = 3;
+  comms    = { { sugar, 10 }, { silver, 50 }, { muskets, 130 } };
+  expected = {
+    { .type = silver, .quantity = 50 },
+    { .type = sugar, .quantity = 10 },
+    { .type = muskets, .quantity = 130 },
+  };
+  REQUIRE( f() == expected );
+
+  prices[sugar].bid_price   = 14;
+  prices[muskets].bid_price = 2;
+  prices[silver].bid_price  = 3;
+  comms    = { { sugar, 10 }, { silver, 50 }, { muskets, 130 } };
+  expected = {
+    { .type = muskets, .quantity = 130 },
+    { .type = silver, .quantity = 50 },
+    { .type = sugar, .quantity = 10 },
+  };
+  REQUIRE( f() == expected );
 }
 
 } // namespace

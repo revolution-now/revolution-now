@@ -686,9 +686,12 @@ vector<Commodity> colony_commodities_by_value_restricted(
 
   vector<Commodity> loadables;
   loadables.reserve( desired.size() );
-  for( e_commodity const type : desired )
-    loadables.push_back( Commodity{
-      .type = type, .quantity = colony.commodities[type] } );
+  for( e_commodity const type : desired ) {
+    int const q = colony.commodities[type];
+    if( q == 0 ) continue;
+    loadables.push_back(
+        Commodity{ .type = type, .quantity = q } );
+  }
   rg::sort( loadables, comparator );
 
   return loadables;

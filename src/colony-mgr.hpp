@@ -155,7 +155,8 @@ std::vector<ColonyId> find_connected_colonies(
 
 // Sorts all colony commodities by their total value (defined as
 // pre-tax sale rate multiplied by quantity). The more valuable
-// ones will be first.
+// ones will be first. If two commodities have an equal value it
+// will prefer those with larger indexes.
 [[nodiscard]] std::vector<Commodity> colony_commodities_by_value(
     SSConst const& ss, Player const& player,
     Colony const& colony );
