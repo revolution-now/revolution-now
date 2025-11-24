@@ -206,6 +206,64 @@ e_cdirection to_cdirection( e_cardinal_direction d ) {
   }
 }
 
+base::maybe<e_cardinal_direction> to_cardinal(
+    e_direction const d ) {
+  base::maybe<e_cardinal_direction> res;
+  switch( d ) {
+    case e_direction::nw:
+      break;
+    case e_direction::ne:
+      break;
+    case e_direction::sw:
+      break;
+    case e_direction::se:
+      break;
+    case e_direction::n:
+      res = e_cardinal_direction::n;
+      break;
+    case e_direction::w:
+      res = e_cardinal_direction::w;
+      break;
+    case e_direction::e:
+      res = e_cardinal_direction::e;
+      break;
+    case e_direction::s:
+      res = e_cardinal_direction::s;
+      break;
+  }
+  return res;
+}
+
+base::maybe<e_cardinal_direction> to_cardinal(
+    e_cdirection const cd ) {
+  base::maybe<e_cardinal_direction> res;
+  switch( cd ) {
+    case e_cdirection::nw:
+      break;
+    case e_cdirection::ne:
+      break;
+    case e_cdirection::sw:
+      break;
+    case e_cdirection::se:
+      break;
+    case e_cdirection::n:
+      res = e_cardinal_direction::n;
+      break;
+    case e_cdirection::w:
+      res = e_cardinal_direction::w;
+      break;
+    case e_cdirection::e:
+      res = e_cardinal_direction::e;
+      break;
+    case e_cdirection::s:
+      res = e_cardinal_direction::s;
+      break;
+    case e_cdirection::c:
+      break;
+  }
+  return res;
+}
+
 /****************************************************************
 ** e_diagonal_direction
 *****************************************************************/
@@ -222,7 +280,8 @@ e_direction to_direction( e_diagonal_direction d ) {
   }
 }
 
-base::maybe<e_diagonal_direction> to_diagonal( e_direction d ) {
+base::maybe<e_diagonal_direction> to_diagonal(
+    e_direction const d ) {
   switch( d ) {
     case e_direction::nw:
       return e_diagonal_direction::nw;
@@ -236,6 +295,26 @@ base::maybe<e_diagonal_direction> to_diagonal( e_direction d ) {
     case e_direction::w:
     case e_direction::e:
     case e_direction::s:
+      return base::nothing;
+  }
+}
+
+base::maybe<e_diagonal_direction> to_diagonal(
+    e_cdirection const d ) {
+  switch( d ) {
+    case e_cdirection::nw:
+      return e_diagonal_direction::nw;
+    case e_cdirection::ne:
+      return e_diagonal_direction::ne;
+    case e_cdirection::sw:
+      return e_diagonal_direction::sw;
+    case e_cdirection::se:
+      return e_diagonal_direction::se;
+    case e_cdirection::n:
+    case e_cdirection::w:
+    case e_cdirection::e:
+    case e_cdirection::s:
+    case e_cdirection::c:
       return base::nothing;
   }
 }
