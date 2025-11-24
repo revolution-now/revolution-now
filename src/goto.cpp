@@ -67,7 +67,18 @@ using ::refl::enum_count;
 using ::refl::enum_values;
 
 struct TileWithCost {
-  int cost   = {}; // must be first for comparison.
+  // Must be first for comparison.
+  int cost = {};
+  // Being diagonal is considered a cost, all else being equal.
+  // Note that this only comes into play when the real costs
+  // (above) are equal, which is important because a diagonal
+  // movement doesn't actually cost more than a cardinal move-
+  // ment; we are just treating it like that in order to have the
+  // algo prefer cardinal movements, all else being equal, since
+  // they look more natural.
+  bool is_diagonal = {};
+  // To guarantee deterministic sorting when all other sorting
+  // parameters are equal.
   point tile = {};
 
   [[maybe_unused]] auto operator<=>(
@@ -89,12 +100,15 @@ GotoPath a_star( IGotoMapViewer const& viewer, point const src,
   unordered_map<point /*to*/, TileWithCost /*from*/> explored;
   PriorityQueue<TileWithCost> todo;
   auto const push = [&]( point const from, point const to,
-                         int const cost ) {
+                         e_cdirection const d, int const cost ) {
+    bool const is_diagonal = to_diagonal( d ).has_value();
     todo.push( { .cost = cost + viewer.heuristic_cost( to, dst ),
-                 .tile = to } );
-    explored[to] = { .cost = cost, .tile = from };
+                 .is_diagonal = is_diagonal,
+                 .tile        = to } );
+    explored[to] = {
+      .cost = cost, .is_diagonal = is_diagonal, .tile = from };
   };
-  push( src, src, 0 );
+  push( src, src, e_cdirection::c, 0 );
   while( !todo.empty() ) {
     ++goto_path.meta.iterations;
     point const curr = todo.top().tile;
@@ -119,16 +133,18 @@ GotoPath a_star( IGotoMapViewer const& viewer, point const src,
       // of the map which means "goto harbor".
       if( moved != dst && !viewer.can_enter_tile( moved ) )
         continue;
-      int const proposed_cost =
-          explored[curr].cost + viewer.travel_cost( curr, d );
+      TileWithCost const proposed{
+        .cost =
+            explored[curr].cost + viewer.travel_cost( curr, d ),
+        .is_diagonal = to_diagonal( d ).has_value(),
+        .tile        = curr };
       if( auto const it = explored.find( moved );
-          it != explored.end() &&
-          proposed_cost >= it->second.cost )
+          it != explored.end() && proposed >= it->second )
         continue;
       // Either we haven't seen this node before or we've found a
       // shorter path to it (see the NOTE above this function re-
       // garding the latter case).
-      push( curr, moved, proposed_cost );
+      push( curr, moved, to_cdirection( d ), proposed.cost );
     }
   }
   // Record meta info even if we failed.

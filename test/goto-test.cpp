@@ -154,8 +154,8 @@ TEST_CASE( "[goto] compute_goto_path" ) {
     src      = { .x = 6, .y = 2 };
     dst      = { .x = 4, .y = 9 };
     expected = { .meta = { .tiles_touched     = 36,
-                           .iterations        = 32,
-                           .queue_size_at_end = 4 },
+                           .iterations        = 34,
+                           .queue_size_at_end = 9 },
 
                  .reverse_path = {
                    { .x = 4, .y = 9 },
@@ -174,8 +174,8 @@ TEST_CASE( "[goto] compute_goto_path" ) {
     src      = { .x = 4, .y = 9 };
     dst      = { .x = 6, .y = 2 };
     expected = { .meta = { .tiles_touched     = 25,
-                           .iterations        = 18,
-                           .queue_size_at_end = 10 },
+                           .iterations        = 19,
+                           .queue_size_at_end = 9 },
 
                  .reverse_path = {
                    { .x = 6, .y = 2 },
@@ -194,7 +194,7 @@ TEST_CASE( "[goto] compute_goto_path" ) {
     src      = { .x = 8, .y = 7 };
     dst      = { .x = 4, .y = 9 };
     expected = { .meta = { .tiles_touched     = 36,
-                           .iterations        = 37,
+                           .iterations        = 48,
                            .queue_size_at_end = 0 },
 
                  .reverse_path = {
@@ -216,8 +216,8 @@ TEST_CASE( "[goto] compute_goto_path" ) {
     src      = { .x = 4, .y = 9 };
     dst      = { .x = 8, .y = 7 };
     expected = { .meta = { .tiles_touched     = 36,
-                           .iterations        = 33,
-                           .queue_size_at_end = 3 },
+                           .iterations        = 35,
+                           .queue_size_at_end = 4 },
 
                  .reverse_path = {
                    { .x = 8, .y = 7 },
@@ -283,13 +283,13 @@ TEST_CASE( "[goto] compute_goto_path" ) {
       src      = { .x = 4, .y = 3 };
       dst      = { .x = 10, .y = 3 };
       expected = { .meta = { .tiles_touched     = 30,
-                             .iterations        = 29,
+                             .iterations        = 39,
                              .queue_size_at_end = 1 },
 
                    .reverse_path = {
                      { .x = 10, .y = 3 },
                      { .x = 9, .y = 2 },
-                     { .x = 8, .y = 1 },
+                     { .x = 8, .y = 2 },
                      { .x = 7, .y = 2 },
                      { .x = 6, .y = 2 },
                      { .x = 5, .y = 3 },
@@ -299,15 +299,15 @@ TEST_CASE( "[goto] compute_goto_path" ) {
       src      = { .x = 10, .y = 3 };
       dst      = { .x = 4, .y = 3 };
       expected = { .meta = { .tiles_touched     = 20,
-                             .iterations        = 17,
-                             .queue_size_at_end = 3 },
+                             .iterations        = 19,
+                             .queue_size_at_end = 4 },
 
                    .reverse_path = {
                      { .x = 4, .y = 3 },
                      { .x = 5, .y = 3 },
-                     { .x = 6, .y = 2 },
+                     { .x = 6, .y = 3 },
                      { .x = 7, .y = 2 },
-                     { .x = 8, .y = 1 },
+                     { .x = 8, .y = 2 },
                      { .x = 9, .y = 2 },
                    } };
       REQUIRE( f( viewer ) == expected );
@@ -321,7 +321,7 @@ TEST_CASE( "[goto] compute_goto_path" ) {
       src      = { .x = 4, .y = 3 };
       dst      = { .x = 10, .y = 3 };
       expected = { .meta = { .tiles_touched     = 30,
-                             .iterations        = 30,
+                             .iterations        = 36,
                              .queue_size_at_end = 0 },
 
                    .reverse_path = {
@@ -337,7 +337,7 @@ TEST_CASE( "[goto] compute_goto_path" ) {
       src      = { .x = 10, .y = 3 };
       dst      = { .x = 4, .y = 3 };
       expected = { .meta = { .tiles_touched     = 24,
-                             .iterations        = 19,
+                             .iterations        = 21,
                              .queue_size_at_end = 5 },
 
                    .reverse_path = {
@@ -402,8 +402,8 @@ TEST_CASE( "[goto] compute_goto_path" ) {
       src      = { .x = 4, .y = 3 };
       dst      = { .x = 10, .y = 3 };
       expected = { .meta = { .tiles_touched     = 30,
-                             .iterations        = 27,
-                             .queue_size_at_end = 3 },
+                             .iterations        = 36,
+                             .queue_size_at_end = 4 },
 
                    .reverse_path = {
                      { .x = 10, .y = 3 },
@@ -419,12 +419,12 @@ TEST_CASE( "[goto] compute_goto_path" ) {
       dst      = { .x = 4, .y = 3 };
       expected = { .meta = { .tiles_touched     = 20,
                              .iterations        = 18,
-                             .queue_size_at_end = 4 },
+                             .queue_size_at_end = 6 },
 
                    .reverse_path = {
                      { .x = 4, .y = 3 },
                      { .x = 5, .y = 3 },
-                     { .x = 6, .y = 2 },
+                     { .x = 6, .y = 3 },
                      { .x = 7, .y = 2 },
                      { .x = 8, .y = 2 },
                      { .x = 9, .y = 2 },
@@ -440,7 +440,7 @@ TEST_CASE( "[goto] compute_goto_path" ) {
       src      = { .x = 4, .y = 3 };
       dst      = { .x = 10, .y = 3 };
       expected = { .meta = { .tiles_touched     = 30,
-                             .iterations        = 30,
+                             .iterations        = 36,
                              .queue_size_at_end = 0 },
 
                    .reverse_path = {
@@ -456,13 +456,13 @@ TEST_CASE( "[goto] compute_goto_path" ) {
       src      = { .x = 10, .y = 3 };
       dst      = { .x = 4, .y = 3 };
       expected = { .meta = { .tiles_touched     = 24,
-                             .iterations        = 20,
-                             .queue_size_at_end = 5 },
+                             .iterations        = 21,
+                             .queue_size_at_end = 6 },
 
                    .reverse_path = {
                      { .x = 4, .y = 3 },
                      { .x = 5, .y = 3 },
-                     { .x = 6, .y = 2 },
+                     { .x = 6, .y = 3 },
                      { .x = 7, .y = 2 },
                      { .x = 8, .y = 2 },
                      { .x = 9, .y = 2 },
@@ -519,15 +519,15 @@ TEST_CASE( "[goto] compute_goto_path" ) {
     // path: island
     src      = { .x = 8, .y = 9 };
     dst      = { .x = 4, .y = 9 };
-    expected = { .meta = { .tiles_touched     = 29,
-                           .iterations        = 19,
-                           .queue_size_at_end = 10 },
+    expected = { .meta = { .tiles_touched     = 28,
+                           .iterations        = 23,
+                           .queue_size_at_end = 16 },
 
                  .reverse_path = {
                    { .x = 4, .y = 9 },
-                   { .x = 5, .y = 8 },
-                   { .x = 6, .y = 7 },
-                   { .x = 7, .y = 8 },
+                   { .x = 5, .y = 9 },
+                   { .x = 6, .y = 9 },
+                   { .x = 7, .y = 9 },
                  } };
     REQUIRE( f( viewer ) == expected );
 
@@ -536,14 +536,14 @@ TEST_CASE( "[goto] compute_goto_path" ) {
     w.make_clear( { .x = 8, .y = 8 } );
     src      = { .x = 8, .y = 9 };
     dst      = { .x = 4, .y = 9 };
-    expected = { .meta = { .tiles_touched     = 25,
+    expected = { .meta = { .tiles_touched     = 22,
                            .iterations        = 15,
-                           .queue_size_at_end = 10 },
+                           .queue_size_at_end = 13 },
 
                  .reverse_path = {
                    { .x = 4, .y = 9 },
-                   { .x = 5, .y = 8 },
-                   { .x = 6, .y = 8 },
+                   { .x = 5, .y = 9 },
+                   { .x = 6, .y = 9 },
                    { .x = 7, .y = 9 },
                  } };
     REQUIRE( f( viewer ) == expected );
@@ -552,15 +552,15 @@ TEST_CASE( "[goto] compute_goto_path" ) {
     src      = { .x = 5, .y = 3 };
     dst      = { .x = 4, .y = 9 };
     expected = { .meta = { .tiles_touched     = 94,
-                           .iterations        = 73,
-                           .queue_size_at_end = 21 },
+                           .iterations        = 105,
+                           .queue_size_at_end = 44 },
 
                  .reverse_path = {
                    { .x = 4, .y = 9 },
-                   { .x = 3, .y = 8 },
-                   { .x = 2, .y = 7 },
-                   { .x = 2, .y = 6 },
-                   { .x = 3, .y = 5 },
+                   { .x = 4, .y = 8 },
+                   { .x = 4, .y = 7 },
+                   { .x = 4, .y = 6 },
+                   { .x = 4, .y = 5 },
                    { .x = 4, .y = 4 },
                  } };
     REQUIRE( f( viewer ) == expected );
@@ -576,15 +576,15 @@ TEST_CASE( "[goto] compute_goto_path" ) {
     w.make_clear( { .x = 2, .y = 6 } );
     src      = { .x = 5, .y = 3 };
     dst      = { .x = 4, .y = 9 };
-    expected = { .meta = { .tiles_touched     = 93,
-                           .iterations        = 61,
-                           .queue_size_at_end = 33 },
+    expected = { .meta = { .tiles_touched     = 92,
+                           .iterations        = 79,
+                           .queue_size_at_end = 53 },
 
                  .reverse_path = {
                    { .x = 4, .y = 9 },
-                   { .x = 3, .y = 8 },
-                   { .x = 2, .y = 7 },
-                   { .x = 3, .y = 6 },
+                   { .x = 4, .y = 8 },
+                   { .x = 4, .y = 7 },
+                   { .x = 4, .y = 6 },
                    { .x = 4, .y = 5 },
                    { .x = 5, .y = 4 },
                  } };
@@ -596,8 +596,8 @@ TEST_CASE( "[goto] compute_goto_path" ) {
     src      = { .x = 5, .y = 3 };
     dst      = { .x = 4, .y = 9 };
     expected = { .meta = { .tiles_touched     = 91,
-                           .iterations        = 60,
-                           .queue_size_at_end = 33 },
+                           .iterations        = 78,
+                           .queue_size_at_end = 51 },
 
                  .reverse_path = {
                    { .x = 4, .y = 9 },
@@ -641,39 +641,38 @@ TEST_CASE( "[goto] compute_goto_path" ) {
 
     src      = { .x = 3, .y = 5 };
     dst      = { .x = 1, .y = 4 };
-    expected = { .meta = { .tiles_touched     = 66,
-                           .iterations        = 57,
-                           .queue_size_at_end = 9 },
+    expected = { .meta = { .tiles_touched     = 67,
+                           .iterations        = 76,
+                           .queue_size_at_end = 12 },
 
                  .reverse_path = {
                    { .x = 1, .y = 4 },
-                   { .x = 0, .y = 3 },
+                   { .x = 1, .y = 3 },
                    { .x = 1, .y = 2 },
                    { .x = 2, .y = 1 },
                    { .x = 3, .y = 1 },
                    { .x = 4, .y = 1 },
-                   { .x = 5, .y = 0 },
-                   { .x = 6, .y = 0 },
+                   { .x = 5, .y = 1 },
+                   { .x = 6, .y = 1 },
                    { .x = 7, .y = 1 },
                    { .x = 8, .y = 2 },
                    { .x = 8, .y = 3 },
                    { .x = 8, .y = 4 },
                    { .x = 7, .y = 5 },
-                   { .x = 6, .y = 4 },
-                   { .x = 5, .y = 3 },
-                   { .x = 4, .y = 4 },
+                   { .x = 6, .y = 5 },
+                   { .x = 5, .y = 5 },
+                   { .x = 4, .y = 5 },
                  } };
     REQUIRE( f( viewer ) == expected );
 
     src      = { .x = 3, .y = 5 };
     dst      = { .x = 1, .y = 6 };
-    expected = { .meta = { .tiles_touched     = 65,
-                           .iterations        = 55,
-                           .queue_size_at_end = 10 },
-
+    expected = { .meta         = { .tiles_touched     = 65,
+                                   .iterations        = 72,
+                                   .queue_size_at_end = 12 },
                  .reverse_path = {
                    { .x = 1, .y = 6 },
-                   { .x = 0, .y = 7 },
+                   { .x = 1, .y = 7 },
                    { .x = 1, .y = 8 },
                    { .x = 2, .y = 9 },
                    { .x = 3, .y = 9 },
@@ -685,36 +684,35 @@ TEST_CASE( "[goto] compute_goto_path" ) {
                    { .x = 8, .y = 7 },
                    { .x = 8, .y = 6 },
                    { .x = 7, .y = 5 },
-                   { .x = 6, .y = 4 },
-                   { .x = 5, .y = 3 },
-                   { .x = 4, .y = 4 },
+                   { .x = 6, .y = 5 },
+                   { .x = 5, .y = 5 },
+                   { .x = 4, .y = 5 },
                  } };
     REQUIRE( f( viewer ) == expected );
 
     src      = { .x = 3, .y = 5 };
     dst      = { .x = 1, .y = 5 };
-    expected = { .meta = { .tiles_touched     = 70,
-                           .iterations        = 63,
-                           .queue_size_at_end = 7 },
-
+    expected = { .meta         = { .tiles_touched     = 72,
+                                   .iterations        = 82,
+                                   .queue_size_at_end = 11 },
                  .reverse_path = {
                    { .x = 1, .y = 5 },
-                   { .x = 0, .y = 4 },
-                   { .x = 0, .y = 3 },
+                   { .x = 1, .y = 4 },
+                   { .x = 1, .y = 3 },
                    { .x = 1, .y = 2 },
                    { .x = 2, .y = 1 },
                    { .x = 3, .y = 1 },
                    { .x = 4, .y = 1 },
                    { .x = 5, .y = 1 },
-                   { .x = 6, .y = 0 },
+                   { .x = 6, .y = 1 },
                    { .x = 7, .y = 1 },
                    { .x = 8, .y = 2 },
                    { .x = 8, .y = 3 },
                    { .x = 8, .y = 4 },
                    { .x = 7, .y = 5 },
-                   { .x = 6, .y = 4 },
-                   { .x = 5, .y = 3 },
-                   { .x = 4, .y = 4 },
+                   { .x = 6, .y = 5 },
+                   { .x = 5, .y = 5 },
+                   { .x = 4, .y = 5 },
                  } };
     REQUIRE( f( viewer ) == expected );
   }
