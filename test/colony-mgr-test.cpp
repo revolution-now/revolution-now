@@ -80,6 +80,23 @@ struct world : testing::World {
     build_map( std::move( tiles ), 9 );
   }
 
+  void create_disconnected_map() {
+    MapSquare const _ = make_ocean();
+    MapSquare const L = make_grassland();
+    // clang-format off
+    vector<MapSquare> tiles{
+    // 0  1  2  3  4  5  6  7  8
+       _, L, _, L, _, L, L, L, _, // 0
+       L, L, L, L, _, L, _, L, _, // 1
+       _, L, L, L, _, L, L, L, _, // 2
+       _, _, _, _, _, _, _, _, _, // 3
+       _, L, L, L, _, L, L, L, _, // 4
+       L, L, L, L, _, L, L, L, _, // 5
+    };
+    // clang-format on
+    build_map( std::move( tiles ), 9 );
+  }
+
   void create_island_map() {
     MapSquare const _ = make_ocean();
     MapSquare const L = make_grassland();
@@ -952,32 +969,76 @@ TEST_CASE( "[colony-mgr] find_coastal_colonies" ) {
   REQUIRE( f() == vector<ColonyId>{ colony_id_2, colony_id_3 } );
 }
 
-TEST_CASE( "[colony-mgr] find_connected_colonies" ) {
-  world w;
+TEST_WORLD( "[colony-mgr] find_connected_colonies" ) {
+  create_disconnected_map();
   vector<ColonyId> expected;
-
-  TerrainConnectivity const& connectivity =
-      w.map_updater().connectivity();
 
   point tile;
 
   auto const f = [&] [[clang::noinline]] {
     return find_connected_colonies(
-        w.ss(), connectivity, w.default_player_type(), tile );
+        ss(), map_updater().connectivity(),
+        default_player_type(), tile );
   };
 
-  // // clang-format off
-  // // 0  1  2  3  4  5  6  7  8
-  //    _, L, _, L, L, L, L, L, _, // 0
-  //    L, L, L, L, L, L, _, L, _, // 1
-  //    _, L, L, L, L, L, L, L, _, // 2
-  //    _, L, _, L, L, L, L, _, _, // 3
-  //    _, L, L, L, L, L, L, L, _, // 4
-  //    L, L, L, L, L, L, L, L, _, // 5
-  // };
-  // // clang-format on
+  // clang-format off
+  //
+  //       0  1  2  3  4  5  6  7  8
+  //     +----------------------------+
+  //   0 | _, L, _, L, _, L, L, L, _, | 0
+  //   1 | L, L, L, L, _, L, _, L, _, | 1
+  //   2 | _, L, L, L, _, L, L, L, _, | 2
+  //   3 | _, _, _, _, _, _, _, _, _, | 3
+  //   4 | _, L, L, L, _, L, L, L, _, | 4
+  //   5 | L, L, L, L, _, L, L, L, _, | 5
+  //     +----------------------------+
+  //       0  1  2  3  4  5  6  7  8
+  //
+  // clang-format on
+
+  point const colony_tiles[] = {
+    // ---------------------
+    { .x = 1, .y = 1 }, // 1
+    { .x = 3, .y = 1 }, // 2
+    // ---------------------
+    { .x = 5, .y = 0 }, // 3
+    // ---------------------
+    { .x = 3, .y = 4 }, // 4
+    { .x = 0, .y = 5 }, // 5
+    // ---------------------
+  };
+
+  for( point const p : colony_tiles ) add_colony( p );
+
+  tile     = { .x = 0, .y = 0 };
+  expected = {};
+  REQUIRE( f() == expected );
+
+  tile     = { .x = 2, .y = 3 };
+  expected = {};
+  REQUIRE( f() == expected );
 
   tile     = { .x = 1, .y = 1 };
+  expected = { 1, 2 };
+  REQUIRE( f() == expected );
+
+  tile     = { .x = 1, .y = 2 };
+  expected = { 1, 2 };
+  REQUIRE( f() == expected );
+
+  tile     = { .x = 1, .y = 4 };
+  expected = { 4, 5 };
+  REQUIRE( f() == expected );
+
+  tile     = { .x = 5, .y = 0 };
+  expected = { 3 };
+  REQUIRE( f() == expected );
+
+  tile     = { .x = 7, .y = 2 };
+  expected = { 3 };
+  REQUIRE( f() == expected );
+
+  tile     = { .x = 5, .y = 4 };
   expected = {};
   REQUIRE( f() == expected );
 }
