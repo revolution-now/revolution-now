@@ -486,6 +486,17 @@ ColonyDestructionOutcome destroy_colony( SS& ss, TS& ts,
   clear_abandoned_colony_road( ss, ts.map_updater(),
                                colony.location );
 
+  // NOTE: we could remove the colony from any trade routes here.
+  // But this is technically not necessary since the trade route
+  // mechanism will be defensive and know how to handle this, and
+  // will display a message to the user when it happens. If we
+  // were to do it here then it'd be a pain because we'd have to
+  // find the stops, remove them, then check if there are any
+  // routes left with no stops as a result, remove those routes,
+  // then check if there are any units with those routes, etc.
+  // Better to just leave things to the trade route's sanitiza-
+  // tion mechanism where all of that will be handled.
+
   // Send any ships for repair, if a port is available (otherwise
   // the ships will get destroyed). Note that this method handles
   // both the case where a colony is abandoned and the case where
