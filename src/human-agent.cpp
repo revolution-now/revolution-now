@@ -457,7 +457,7 @@ EvolveTradeRoute HumanAgent::evolve_trade_route(
   auto const abort = [&]( string const& msg ) {
     lg.debug( "aborting trade route: {}", msg );
     goto_registry_.units.erase( unit_id );
-    return EvolveTradeRoute{ EvolveTradeRoute::abort{} };
+    return EvolveTradeRoute::abort{};
   };
   auto& abort__ = abort;
 
@@ -486,6 +486,8 @@ EvolveTradeRoute HumanAgent::evolve_trade_route(
   TradeRoutesSanitizedToken const& token =
       sanitize_trade_routes( ss_.as_const, as_const( player() ),
                              ss_.trade_routes, actions_taken );
+  CHECK( actions_taken.empty(),
+         "trade routes must be sanitized before calling" );
   auto const sanitized_orders = sanitize_unit_trade_route_orders(
       ss_.as_const, as_const( unit ), token );
   if( !sanitized_orders.has_value() )
@@ -499,9 +501,6 @@ EvolveTradeRoute HumanAgent::evolve_trade_route(
   UNWRAP_CHECK_T(
       TradeRoute const& route,
       look_up_trade_route( ss_.trade_routes, orders.id ) );
-  CHECK( !route.stops.empty() );
-  CHECK_GE( orders.en_route_to_stop, 0 );
-  CHECK_LT( orders.en_route_to_stop, ssize( route.stops ) );
   UNWRAP_CHECK_T( TradeRouteStop const& stop,
                   look_up_trade_route_stop(
                       route, orders.en_route_to_stop ) );
