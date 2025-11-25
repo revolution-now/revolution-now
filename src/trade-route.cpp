@@ -850,6 +850,7 @@ void trade_route_unload( SS& ss, Player& player, Unit& unit,
     CASE( harbor ) {
       CHECK( is_unit_in_port( ss.units, unit.id() ) );
       for( auto const [comm, q] : unloaded ) {
+        if( q == 0 ) continue;
         // Should have been checked above.
         CHECK( !has_boycott( comm ) );
         Invoice const invoice = transaction_invoice(

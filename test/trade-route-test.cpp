@@ -23,10 +23,12 @@
 
 // Revolution Now
 #include "src/colony-mgr.hpp"
+#include "src/commodity.hpp"
 
 // ss
 #include "src/ss/colonies.hpp"
 #include "src/ss/player.rds.hpp"
+#include "src/ss/players.rds.hpp"
 #include "src/ss/ref.hpp"
 
 // refl
@@ -49,6 +51,7 @@ using namespace std;
 
 using ::gfx::point;
 using ::mock::matchers::StrContains;
+using ::refl::enum_map;
 using ::std::ranges::views::zip;
 
 /****************************************************************
@@ -1476,8 +1479,202 @@ TEST_CASE( "[trade-route] confirm_trade_route_orders" ) {
   REQUIRE( f( ship ) == expected );
 }
 
-TEST_CASE( "[trade-route] trade_route_unload" ) {
-  world w;
+TEST_WORLD( "[trade-route] trade_route_unload" ) {
+  using enum e_unit_type;
+  using enum e_commodity;
+  TradeRouteStop stop;
+  enum_map<e_commodity, int> expected_comms;
+  int expected_money = {};
+
+  Player& player = default_player();
+  auto& money    = player.money;
+  auto& prices =
+      players().old_world[default_nation()].market.commodities;
+
+  create_colonies();
+  auto& colony_comms = colony<0>().commodities;
+
+  Colony const& colony = this->colony<0>();
+
+  Unit* unit  = {};
+  Unit& wagon = add_unit_on_map( wagon_train, colony.location );
+  Unit& ship  = add_unit_on_map( galleon, colony.location );
+  Unit& harbor_ship = add_unit_in_port( galleon );
+
+  auto const f = [&] [[clang::noinline]] {
+    BASE_CHECK( unit );
+    trade_route_unload( ss(), default_player(), *unit, stop );
+  };
+
+  // Case
+  // ------------------------------------------------------------
+  unit = &ship;
+  stop = {
+    .target = TradeRouteTarget::colony{ .colony_id = colony.id },
+    .unloads = {},
+  };
+  unit->cargo().clear_commodities();
+  colony_comms   = {};
+  money          = 0;
+  expected_comms = {};
+  expected_money = {};
+  f();
+  REQUIRE( colony_comms == expected_comms );
+  REQUIRE( money == expected_money );
+  REQUIRE( unit->cargo().slots_occupied() == 0 );
+
+  // Case
+  // ------------------------------------------------------------
+  unit = &wagon;
+  stop = {
+    .target = TradeRouteTarget::colony{ .colony_id = colony.id },
+    .unloads = { muskets, silver },
+  };
+  unit->cargo().clear_commodities();
+  add_commodity_to_cargo( units(),
+                          { .type = silver, .quantity = 70 },
+                          unit->cargo(), /*slot=*/0,
+                          /*try_other_slots=*/true );
+  add_commodity_to_cargo( units(),
+                          { .type = muskets, .quantity = 100 },
+                          unit->cargo(), /*slot=*/0,
+                          /*try_other_slots=*/true );
+  colony_comms   = {};
+  prices         = {};
+  money          = 0;
+  expected_comms = { { silver, 70 }, { muskets, 100 } };
+  expected_money = {};
+  f();
+  REQUIRE( colony_comms == expected_comms );
+  REQUIRE( money == expected_money );
+  REQUIRE( unit->cargo().slots_occupied() == 0 );
+
+  // Case
+  // ------------------------------------------------------------
+  unit = &ship;
+  stop = {
+    .target = TradeRouteTarget::colony{ .colony_id = colony.id },
+    .unloads = { sugar, silver, muskets },
+  };
+  unit->cargo().clear_commodities();
+  add_commodity_to_cargo( units(),
+                          { .type = food, .quantity = 10 },
+                          unit->cargo(), /*slot=*/0,
+                          /*try_other_slots=*/true );
+  add_commodity_to_cargo( units(),
+                          { .type = silver, .quantity = 70 },
+                          unit->cargo(), /*slot=*/0,
+                          /*try_other_slots=*/true );
+  add_commodity_to_cargo( units(),
+                          { .type = muskets, .quantity = 100 },
+                          unit->cargo(), /*slot=*/0,
+                          /*try_other_slots=*/true );
+  colony_comms   = {};
+  prices         = {};
+  money          = 0;
+  expected_comms = { { silver, 70 }, { muskets, 100 } };
+  expected_money = {};
+  f();
+  REQUIRE( colony_comms == expected_comms );
+  REQUIRE( money == expected_money );
+  REQUIRE( unit->cargo().slots_occupied() == 1 );
+
+  // Case
+  // ------------------------------------------------------------
+  unit = &ship;
+  stop = {
+    .target = TradeRouteTarget::colony{ .colony_id = colony.id },
+    .unloads = { sugar, silver, muskets },
+  };
+  unit->cargo().clear_commodities();
+  add_commodity_to_cargo( units(),
+                          { .type = sugar, .quantity = 10 },
+                          unit->cargo(), /*slot=*/0,
+                          /*try_other_slots=*/true );
+  add_commodity_to_cargo( units(),
+                          { .type = silver, .quantity = 70 },
+                          unit->cargo(), /*slot=*/0,
+                          /*try_other_slots=*/true );
+  add_commodity_to_cargo( units(),
+                          { .type = muskets, .quantity = 100 },
+                          unit->cargo(), /*slot=*/0,
+                          /*try_other_slots=*/true );
+  prices         = {};
+  money          = 0;
+  expected_comms = {
+    { sugar, 10 }, { silver, 140 }, { muskets, 200 } };
+  expected_money = {};
+  f();
+  REQUIRE( colony_comms == expected_comms );
+  REQUIRE( money == expected_money );
+  REQUIRE( unit->cargo().slots_occupied() == 0 );
+
+  // Case
+  // ------------------------------------------------------------
+  unit = &harbor_ship;
+  stop = {
+    .target  = TradeRouteTarget::harbor{},
+    .unloads = { sugar, silver, muskets },
+  };
+  unit->cargo().clear_commodities();
+  add_commodity_to_cargo( units(),
+                          { .type = sugar, .quantity = 10 },
+                          unit->cargo(), /*slot=*/0,
+                          /*try_other_slots=*/true );
+  add_commodity_to_cargo( units(),
+                          { .type = silver, .quantity = 70 },
+                          unit->cargo(), /*slot=*/0,
+                          /*try_other_slots=*/true );
+  add_commodity_to_cargo( units(),
+                          { .type = muskets, .quantity = 100 },
+                          unit->cargo(), /*slot=*/0,
+                          /*try_other_slots=*/true );
+  colony_comms              = {};
+  prices                    = {};
+  prices[sugar].bid_price   = 5;
+  prices[silver].bid_price  = 6;
+  prices[muskets].bid_price = 7;
+  money                     = 0;
+  expected_comms            = {};
+  expected_money            = 5 * 10 + 70 * 6 + 100 * 7;
+  f();
+  REQUIRE( colony_comms == expected_comms );
+  REQUIRE( money == expected_money );
+  REQUIRE( unit->cargo().slots_occupied() == 0 );
+
+  // Case
+  // ------------------------------------------------------------
+  unit = &harbor_ship;
+  stop = {
+    .target  = TradeRouteTarget::harbor{},
+    .unloads = { sugar, silver, muskets },
+  };
+  unit->cargo().clear_commodities();
+  add_commodity_to_cargo( units(),
+                          { .type = sugar, .quantity = 10 },
+                          unit->cargo(), /*slot=*/0,
+                          /*try_other_slots=*/true );
+  add_commodity_to_cargo( units(),
+                          { .type = silver, .quantity = 70 },
+                          unit->cargo(), /*slot=*/0,
+                          /*try_other_slots=*/true );
+  add_commodity_to_cargo( units(),
+                          { .type = muskets, .quantity = 100 },
+                          unit->cargo(), /*slot=*/0,
+                          /*try_other_slots=*/true );
+  colony_comms              = {};
+  prices                    = {};
+  prices[sugar].bid_price   = 5;
+  prices[silver].bid_price  = 6;
+  prices[muskets].bid_price = 7;
+  prices[silver].boycott    = true;
+  money                     = 0;
+  expected_comms            = {};
+  expected_money            = 5 * 10 + 100 * 7;
+  f();
+  REQUIRE( colony_comms == expected_comms );
+  REQUIRE( money == expected_money );
+  REQUIRE( unit->cargo().slots_occupied() == 1 );
 }
 
 TEST_CASE( "[trade-route] trade_route_load" ) {

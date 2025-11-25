@@ -475,24 +475,19 @@ EvolveTradeRoute HumanAgent::evolve_trade_route(
   unit_orders::trade_route& trade_route_orders =
       unit.orders().emplace<unit_orders::trade_route>();
   trade_route_orders = *sanitized_orders;
-
-  auto const route = look_up_trade_route(
-      ss_.trade_routes, trade_route_orders.id );
-  if( !route.has_value() )
-    return abort( format( "cannot find route {}",
-                          trade_route_orders.id ) );
-  if( route->stops.empty() ) return abort( "empty stops" );
-
-  if( route->stops.empty() )
-    return abort( "no accessible stops" );
+  // All of these checks should have been checked in the sanitize
+  // unit orders step above.
+  UNWRAP_CHECK_T( TradeRoute const& route,
+                  look_up_trade_route( ss_.trade_routes,
+                                       trade_route_orders.id ) );
+  CHECK( !route.stops.empty() );
   CHECK_GE( trade_route_orders.en_route_to_stop, 0 );
   CHECK_LT( trade_route_orders.en_route_to_stop,
-            ssize( route->stops ) );
-
+            ssize( route.stops ) );
   UNWRAP_CHECK_T(
       TradeRouteStop const& stop,
       look_up_trade_route_stop(
-          *route, trade_route_orders.en_route_to_stop ) );
+          route, trade_route_orders.en_route_to_stop ) );
 
   goto_target const target_goto =
       convert_trade_route_target_to_goto_target(
@@ -530,15 +525,15 @@ EvolveTradeRoute HumanAgent::evolve_trade_route(
   trade_route_unload( ss_, player_, unit, stop );
   trade_route_load( ss_, player_, unit, stop );
 
-  if( route->stops.size() == 1 ) return abort( "single stop" );
+  if( route.stops.size() == 1 ) return abort( "single stop" );
 
   // This will catch the case where there is only one stop.
-  if( are_all_stops_identical( *route ) )
+  if( are_all_stops_identical( route ) )
     return abort( "all stops identical" );
 
   ++trade_route_orders.en_route_to_stop;
   if( trade_route_orders.en_route_to_stop >=
-      ssize( route->stops ) )
+      ssize( route.stops ) )
     trade_route_orders.en_route_to_stop = 0;
 
   if( is_unit_in_port( ss_.units, unit.id() ) )
