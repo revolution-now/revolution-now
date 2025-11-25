@@ -436,9 +436,10 @@ EvolveGoto HumanAgent::evolve_goto( UnitId const unit_id ) {
 
 EvolveTradeRoute HumanAgent::evolve_trade_route(
     UnitId const unit_id ) {
+  Unit& unit = ss_.units.unit_for( unit_id );
   return evolve_trade_route_human( ss_, player_, goto_registry_,
                                    map_updater_.connectivity(),
-                                   unit_id );
+                                   unit );
 }
 
 } // namespace rn

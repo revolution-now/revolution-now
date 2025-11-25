@@ -387,7 +387,9 @@ TEST_CASE( "[human-agent] evolve_goto" ) {
 }
 
 TEST_CASE( "[human-agent] evolve_trade_route" ) {
-  world w;
+  // NOTE: this function just calls evolve_trade_route_human and
+  // so we won't test it here as that method is thoroughly tested
+  // elsewhere.
 }
 
 } // namespace

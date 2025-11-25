@@ -24,15 +24,21 @@
 // Revolution Now
 #include "src/colony-mgr.hpp"
 #include "src/commodity.hpp"
+#include "src/goto-registry.hpp"
+#include "src/unit-ownership.hpp"
 
 // ss
 #include "src/ss/colonies.hpp"
 #include "src/ss/player.rds.hpp"
 #include "src/ss/players.rds.hpp"
 #include "src/ss/ref.hpp"
+#include "src/ss/terrain.hpp"
 
 // refl
 #include "src/refl/to-str.hpp"
+
+// gfx
+#include "src/gfx/iter.hpp"
 
 // base
 #include "src/base/scope-exit.hpp"
@@ -2012,8 +2018,292 @@ TEST_WORLD( "[trade-route] trade_route_load" ) {
   REQUIRE( unit->cargo().slots_occupied() == 6 );
 }
 
-TEST_CASE( "[trade-route] evolve_trade_route_human" ) {
-  world w;
+// Here we do a full pass through a trade route.
+TEST_WORLD( "[trade-route] evolve_trade_route_human" ) {
+  using enum e_unit_type;
+  using enum e_direction;
+  using enum e_commodity;
+  EvolveTradeRoute expected;
+  // clang-format off
+  //      0 1 2 3 4 5 6 7
+  //  -----------------------
+  //  0|  S c _ _ _ _ _ S  |0
+  //  1|  S _ _ _ _ _ c S  |1
+  //  2|  S _ _ _ _ _ _ S  |2
+  //  3|  S _ _ c _ _ _ S  |3
+  //  4|  S c _ _ _ _ _ S  |4
+  //  5|  S _ _ c _ S S S  |5
+  //  6|  S _ _ _ _ S _ S  |6
+  //  7|  S _ _ _ _ S c S  |7
+  //  -----------------------
+  //      0 1 2 3 4 5 6 7
+  // clang-format on
+
+  add_land_route_1();
+
+  colony<0>().commodities[furs]  = 20;
+  colony<1>().commodities[coats] = 20;
+
+  GotoRegistry goto_registry;
+
+  auto const f = [&] [[clang::noinline]] [[nodiscard]] ( Unit &
+                                                         unit ) {
+    return evolve_trade_route_human(
+        ss(), default_player(), goto_registry,
+        map_updater().connectivity(), unit );
+  };
+
+  point p     = { .x = 3, .y = 2 };
+  Unit& wagon = add_unit_on_map( wagon_train, p );
+  add_commodity_to_cargo( units(),
+                          { .type = furs, .quantity = 10 },
+                          wagon.cargo(), /*slot=*/0,
+                          /*try_other_slots=*/true );
+
+  goto_registry.units[wagon.id()].path.reverse_path.resize( 5 );
+
+  // Default.
+  expected = EvolveTradeRoute::abort{};
+  REQUIRE( f( wagon ) == expected );
+  REQUIRE( !goto_registry.units.contains( wagon.id() ) );
+
+  wagon.orders() =
+      unit_orders::trade_route{ .id = 1, .en_route_to_stop = 1 };
+
+  expected = EvolveTradeRoute::move{ .to = ne };
+  REQUIRE( f( wagon ) == expected );
+  REQUIRE( goto_registry.units.contains( wagon.id() ) );
+  REQUIRE( wagon.orders()
+               .get_if<unit_orders::trade_route>()
+               .value()
+               .en_route_to_stop == 1 );
+  REQUIRE(
+      wagon.cargo().commodities() ==
+      vector<pair<Commodity, int>>{
+        { Commodity{ .type = furs, .quantity = 10 }, 0 } } );
+  REQUIRE( colony<0>().commodities[furs] == 20 );
+  REQUIRE( colony<0>().commodities[coats] == 0 );
+  REQUIRE( colony<1>().commodities[furs] == 0 );
+  REQUIRE( colony<1>().commodities[coats] == 20 );
+
+  p = p.moved( ne );
+  UnitOwnershipChanger( ss(), wagon.id() )
+      .change_to_map_non_interactive( map_updater(), p );
+
+  expected = EvolveTradeRoute::move{ .to = e };
+  REQUIRE( f( wagon ) == expected );
+  REQUIRE( goto_registry.units.contains( wagon.id() ) );
+  REQUIRE( wagon.orders()
+               .get_if<unit_orders::trade_route>()
+               .value()
+               .en_route_to_stop == 1 );
+  REQUIRE(
+      wagon.cargo().commodities() ==
+      vector<pair<Commodity, int>>{
+        { Commodity{ .type = furs, .quantity = 10 }, 0 } } );
+  REQUIRE( colony<0>().commodities[furs] == 20 );
+  REQUIRE( colony<0>().commodities[coats] == 0 );
+  REQUIRE( colony<1>().commodities[furs] == 0 );
+  REQUIRE( colony<1>().commodities[coats] == 20 );
+
+  p = p.moved( e );
+  UnitOwnershipChanger( ss(), wagon.id() )
+      .change_to_map_non_interactive( map_updater(), p );
+
+  expected = EvolveTradeRoute::move{ .to = e };
+  REQUIRE( f( wagon ) == expected );
+  REQUIRE( goto_registry.units.contains( wagon.id() ) );
+  REQUIRE( wagon.orders()
+               .get_if<unit_orders::trade_route>()
+               .value()
+               .en_route_to_stop == 1 );
+  REQUIRE(
+      wagon.cargo().commodities() ==
+      vector<pair<Commodity, int>>{
+        { Commodity{ .type = furs, .quantity = 10 }, 0 } } );
+  REQUIRE( colony<0>().commodities[furs] == 20 );
+  REQUIRE( colony<0>().commodities[coats] == 0 );
+  REQUIRE( colony<1>().commodities[furs] == 0 );
+  REQUIRE( colony<1>().commodities[coats] == 20 );
+
+  p = p.moved( e );
+  UnitOwnershipChanger( ss(), wagon.id() )
+      .change_to_map_non_interactive( map_updater(), p );
+
+  expected = EvolveTradeRoute::move{ .to = nw };
+  REQUIRE( f( wagon ) == expected );
+  REQUIRE( goto_registry.units.contains( wagon.id() ) );
+  REQUIRE( wagon.orders()
+               .get_if<unit_orders::trade_route>()
+               .value()
+               .en_route_to_stop == 0 );
+  REQUIRE(
+      wagon.cargo().commodities() ==
+      vector<pair<Commodity, int>>{
+        { Commodity{ .type = coats, .quantity = 20 }, 0 } } );
+  REQUIRE( colony<0>().commodities[furs] == 20 );
+  REQUIRE( colony<0>().commodities[coats] == 0 );
+  REQUIRE( colony<1>().commodities[furs] == 10 );
+  REQUIRE( colony<1>().commodities[coats] == 0 );
+
+  p = p.moved( nw );
+  UnitOwnershipChanger( ss(), wagon.id() )
+      .change_to_map_non_interactive( map_updater(), p );
+
+  expected = EvolveTradeRoute::move{ .to = w };
+  REQUIRE( f( wagon ) == expected );
+  REQUIRE( goto_registry.units.contains( wagon.id() ) );
+  REQUIRE( wagon.orders()
+               .get_if<unit_orders::trade_route>()
+               .value()
+               .en_route_to_stop == 0 );
+  REQUIRE(
+      wagon.cargo().commodities() ==
+      vector<pair<Commodity, int>>{
+        { Commodity{ .type = coats, .quantity = 20 }, 0 } } );
+  REQUIRE( colony<0>().commodities[furs] == 20 );
+  REQUIRE( colony<0>().commodities[coats] == 0 );
+  REQUIRE( colony<1>().commodities[furs] == 10 );
+  REQUIRE( colony<1>().commodities[coats] == 0 );
+
+  p = p.moved( w );
+  UnitOwnershipChanger( ss(), wagon.id() )
+      .change_to_map_non_interactive( map_updater(), p );
+
+  expected = EvolveTradeRoute::move{ .to = w };
+  REQUIRE( f( wagon ) == expected );
+  REQUIRE( goto_registry.units.contains( wagon.id() ) );
+  REQUIRE( wagon.orders()
+               .get_if<unit_orders::trade_route>()
+               .value()
+               .en_route_to_stop == 0 );
+  REQUIRE(
+      wagon.cargo().commodities() ==
+      vector<pair<Commodity, int>>{
+        { Commodity{ .type = coats, .quantity = 20 }, 0 } } );
+  REQUIRE( colony<0>().commodities[furs] == 20 );
+  REQUIRE( colony<0>().commodities[coats] == 0 );
+  REQUIRE( colony<1>().commodities[furs] == 10 );
+  REQUIRE( colony<1>().commodities[coats] == 0 );
+
+  p = p.moved( w );
+  UnitOwnershipChanger( ss(), wagon.id() )
+      .change_to_map_non_interactive( map_updater(), p );
+
+  expected = EvolveTradeRoute::move{ .to = w };
+  REQUIRE( f( wagon ) == expected );
+  REQUIRE( goto_registry.units.contains( wagon.id() ) );
+  REQUIRE( wagon.orders()
+               .get_if<unit_orders::trade_route>()
+               .value()
+               .en_route_to_stop == 0 );
+  REQUIRE(
+      wagon.cargo().commodities() ==
+      vector<pair<Commodity, int>>{
+        { Commodity{ .type = coats, .quantity = 20 }, 0 } } );
+  REQUIRE( colony<0>().commodities[furs] == 20 );
+  REQUIRE( colony<0>().commodities[coats] == 0 );
+  REQUIRE( colony<1>().commodities[furs] == 10 );
+  REQUIRE( colony<1>().commodities[coats] == 0 );
+
+  p = p.moved( w );
+  UnitOwnershipChanger( ss(), wagon.id() )
+      .change_to_map_non_interactive( map_updater(), p );
+
+  expected = EvolveTradeRoute::move{ .to = w };
+  REQUIRE( f( wagon ) == expected );
+  REQUIRE( goto_registry.units.contains( wagon.id() ) );
+  REQUIRE( wagon.orders()
+               .get_if<unit_orders::trade_route>()
+               .value()
+               .en_route_to_stop == 0 );
+  REQUIRE(
+      wagon.cargo().commodities() ==
+      vector<pair<Commodity, int>>{
+        { Commodity{ .type = coats, .quantity = 20 }, 0 } } );
+  REQUIRE( colony<0>().commodities[furs] == 20 );
+  REQUIRE( colony<0>().commodities[coats] == 0 );
+  REQUIRE( colony<1>().commodities[furs] == 10 );
+  REQUIRE( colony<1>().commodities[coats] == 0 );
+
+  p = p.moved( w );
+  UnitOwnershipChanger( ss(), wagon.id() )
+      .change_to_map_non_interactive( map_updater(), p );
+
+  expected = EvolveTradeRoute::move{ .to = se };
+  REQUIRE( f( wagon ) == expected );
+  REQUIRE( goto_registry.units.contains( wagon.id() ) );
+  REQUIRE( wagon.orders()
+               .get_if<unit_orders::trade_route>()
+               .value()
+               .en_route_to_stop == 1 );
+  REQUIRE(
+      wagon.cargo().commodities() ==
+      vector<pair<Commodity, int>>{
+        { Commodity{ .type = furs, .quantity = 20 }, 0 } } );
+  REQUIRE( colony<0>().commodities[furs] == 0 );
+  REQUIRE( colony<0>().commodities[coats] == 20 );
+  REQUIRE( colony<1>().commodities[furs] == 10 );
+  REQUIRE( colony<1>().commodities[coats] == 0 );
+
+  // Remove second colony.
+  trade_routes().routes.at( 1 ).stops.resize( 1 );
+
+  expected = EvolveTradeRoute::wait_one_unique_stop{};
+  REQUIRE( f( wagon ) == expected );
+  REQUIRE( !goto_registry.units.contains( wagon.id() ) );
+  REQUIRE( wagon.orders()
+               .get_if<unit_orders::trade_route>()
+               .value()
+               .en_route_to_stop == 0 );
+  REQUIRE(
+      wagon.cargo().commodities() ==
+      vector<pair<Commodity, int>>{
+        { Commodity{ .type = furs, .quantity = 20 }, 0 } } );
+  REQUIRE( colony<0>().commodities[furs] == 0 );
+  REQUIRE( colony<0>().commodities[coats] == 20 );
+  REQUIRE( colony<1>().commodities[furs] == 10 );
+  REQUIRE( colony<1>().commodities[coats] == 0 );
+
+  trade_routes().routes.at( 1 ).stops.resize( 2 );
+  trade_routes().routes.at( 1 ).stops[1].target =
+      TradeRouteTarget::colony{ .colony_id = 6 };
+  wagon.orders()
+      .get_if<unit_orders::trade_route>()
+      .value()
+      .en_route_to_stop = 1;
+
+  for( point const tile : gfx::rect_iterator(
+           terrain().world_rect_tiles().to_gfx() ) )
+    make_clear( tile, wagon.player_type() );
+
+  expected = EvolveTradeRoute::abort_no_path{};
+  REQUIRE( f( wagon ) == expected );
+  REQUIRE( !goto_registry.units.contains( wagon.id() ) );
+  REQUIRE( wagon.orders()
+               .get_if<unit_orders::trade_route>()
+               .value()
+               .en_route_to_stop == 1 );
+  REQUIRE(
+      wagon.cargo().commodities() ==
+      vector<pair<Commodity, int>>{
+        { Commodity{ .type = furs, .quantity = 20 }, 0 } } );
+  REQUIRE( colony<0>().commodities[furs] == 0 );
+  REQUIRE( colony<0>().commodities[coats] == 20 );
+  REQUIRE( colony<1>().commodities[furs] == 10 );
+  REQUIRE( colony<1>().commodities[coats] == 0 );
+
+  add_sea_route_1();
+  Unit& ship = add_unit_in_port( caravel );
+  ship.orders() =
+      unit_orders::trade_route{ .id = 2, .en_route_to_stop = 2 };
+  expected = EvolveTradeRoute::sail_to_new_world{};
+  REQUIRE( f( ship ) == expected );
+  REQUIRE( !goto_registry.units.contains( ship.id() ) );
+  REQUIRE( ship.orders()
+               .get_if<unit_orders::trade_route>()
+               .value()
+               .en_route_to_stop == 2 );
 }
 
 } // namespace

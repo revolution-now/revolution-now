@@ -209,6 +209,6 @@ void trade_route_load( SS& ss, Player& player, Unit& unit,
 *****************************************************************/
 EvolveTradeRoute evolve_trade_route_human(
     SS& ss, Player& player, GotoRegistry& goto_registry,
-    TerrainConnectivity const& connectivity, UnitId unit_id );
+    TerrainConnectivity const& connectivity, Unit& unit );
 
 } // namespace rn

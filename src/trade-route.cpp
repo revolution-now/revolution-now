@@ -960,18 +960,15 @@ void trade_route_load( SS& ss, Player& player, Unit& unit,
 *****************************************************************/
 EvolveTradeRoute evolve_trade_route_human(
     SS& ss, Player& player, GotoRegistry& goto_registry,
-    TerrainConnectivity const& connectivity,
-    UnitId const unit_id ) {
+    TerrainConnectivity const& connectivity, Unit& unit ) {
   auto const abort = [&]( string const& msg ) {
     lg.debug( "aborting trade route: {}", msg );
-    goto_registry.units.erase( unit_id );
+    goto_registry.units.erase( unit.id() );
     return EvolveTradeRoute::abort{};
   };
 
-  Unit& unit = ss.units.unit_for( unit_id );
-
   if( unit.has_full_mv_points() &&
-      goto_registry.units.contains( unit_id ) ) {
+      goto_registry.units.contains( unit.id() ) ) {
     // If we're at the start of a unit's turn and the path has
     // already been computed and it is short enough then it
     // should be recomputed (once, at the start of the turn).
@@ -980,9 +977,9 @@ EvolveTradeRoute evolve_trade_route_human(
     // since moved then it will not go off-road (around the for-
     // eign unit) for no reason; it will take the road. This will
     // probably happen often due to braves getting in the way.
-    if( goto_registry.units[unit_id].path.reverse_path.size() <
+    if( goto_registry.units[unit.id()].path.reverse_path.size() <
         20 )
-      goto_registry.units.erase( unit_id );
+      goto_registry.units.erase( unit.id() );
   }
 
   // We can't really show a message here communicating the ac-
@@ -1046,7 +1043,7 @@ EvolveTradeRoute evolve_trade_route_human(
 
   // Recurse.
   return evolve_trade_route_human( ss, player, goto_registry,
-                                   connectivity, unit_id );
+                                   connectivity, unit );
 }
 
 } // namespace rn
