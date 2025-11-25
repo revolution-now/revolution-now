@@ -20,6 +20,7 @@
 #include "ss/goto.rds.hpp"
 #include "ss/trade-route-id.hpp"
 #include "ss/unit-orders.rds.hpp"
+#include "ss/unit.hpp"
 
 // base
 #include "base/vocab.hpp"
@@ -30,6 +31,7 @@ namespace rn {
 ** Fwd. Decls.
 *****************************************************************/
 struct Colony;
+struct GotoRegistry;
 struct IAgent;
 struct IGui;
 struct Player;
@@ -201,5 +203,12 @@ void trade_route_unload( SS& ss, Player& player, Unit& unit,
 
 void trade_route_load( SS& ss, Player& player, Unit& unit,
                        TradeRouteStop const& stop );
+
+/****************************************************************
+** End to end.
+*****************************************************************/
+EvolveTradeRoute evolve_trade_route_human(
+    SS& ss, Player& player, GotoRegistry& goto_registry,
+    TerrainConnectivity const& connectivity, UnitId unit_id );
 
 } // namespace rn

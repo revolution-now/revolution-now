@@ -136,9 +136,6 @@ struct HumanAgent final : IAgent {
  private:
   ILandViewPlane& land_view() const;
 
-  EvolveGoto evolve_goto_impl( Unit const& unit,
-                               goto_target const& target );
-
   IEngine& engine_;
   SS& ss_;
   Player& player_;

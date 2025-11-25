@@ -2012,5 +2012,9 @@ TEST_WORLD( "[trade-route] trade_route_load" ) {
   REQUIRE( unit->cargo().slots_occupied() == 6 );
 }
 
+TEST_CASE( "[trade-route] evolve_trade_route_human" ) {
+  world w;
+}
+
 } // namespace
 } // namespace rn

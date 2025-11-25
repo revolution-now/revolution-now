@@ -14,6 +14,7 @@
 #include "co-wait.hpp"
 #include "connectivity.hpp"
 #include "goto-registry.hpp"
+#include "goto-viewer.hpp"
 #include "harbor-units.hpp"
 #include "igoto-viewer.hpp"
 #include "igui.hpp"
@@ -23,6 +24,7 @@
 #include "visibility.hpp"
 
 // config
+#include "config/command.rds.hpp"
 #include "config/nation.rds.hpp"
 #include "config/unit-type.hpp"
 
@@ -760,6 +762,27 @@ EvolveGoto find_next_move_for_unit_with_goto_target(
       return go_or_reattempt( direction );
     }
   }
+}
+
+EvolveGoto evolve_goto_human(
+    SSConst const& ss, TerrainConnectivity const& connectivity,
+    GotoRegistry& goto_registry, Unit const& unit,
+    goto_target const& target ) {
+  // In the OG this is true, but in the NG it defaults to false.
+  bool const omniscient =
+      config_command.go_to.omniscient_path_finding;
+  // This is the visibility that is used to plot the path, and it
+  // is not necessarily what the player sees (because of the "om-
+  // niscient" option).
+  auto const goto_path_viz = create_visibility_for(
+      ss, omniscient
+              ? nothing
+              : player_for_role( ss, e_player_role::viewer ) );
+  GotoMapViewer const goto_viewer(
+      ss, *goto_path_viz, unit.player_type(), unit.type() );
+  return find_next_move_for_unit_with_goto_target(
+      ss, connectivity, goto_registry, goto_viewer, unit,
+      target );
 }
 
 } // namespace rn

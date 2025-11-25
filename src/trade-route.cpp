@@ -15,6 +15,8 @@
 #include "colony-mgr.hpp"
 #include "commodity.hpp"
 #include "connectivity.hpp"
+#include "goto-registry.hpp"
+#include "goto.hpp"
 #include "harbor-units.hpp"
 #include "iagent.hpp"
 #include "igui.hpp"
@@ -39,6 +41,9 @@
 
 // rds
 #include "rds/switch-macro.hpp"
+
+// base
+#include "base/logger.hpp"
 
 // C++ standard library
 #include <ranges>
@@ -948,6 +953,100 @@ void trade_route_load( SS& ss, Player& player, Unit& unit,
       break;
     }
   }
+}
+
+/****************************************************************
+** End to end.
+*****************************************************************/
+EvolveTradeRoute evolve_trade_route_human(
+    SS& ss, Player& player, GotoRegistry& goto_registry,
+    TerrainConnectivity const& connectivity,
+    UnitId const unit_id ) {
+  auto const abort = [&]( string const& msg ) {
+    lg.debug( "aborting trade route: {}", msg );
+    goto_registry.units.erase( unit_id );
+    return EvolveTradeRoute::abort{};
+  };
+
+  Unit& unit = ss.units.unit_for( unit_id );
+
+  if( unit.has_full_mv_points() &&
+      goto_registry.units.contains( unit_id ) ) {
+    // If we're at the start of a unit's turn and the path has
+    // already been computed and it is short enough then it
+    // should be recomputed (once, at the start of the turn).
+    // That way, if e.g. a wagon train planned a course while
+    // there was an enemy unit blocking a road and that unit has
+    // since moved then it will not go off-road (around the for-
+    // eign unit) for no reason; it will take the road. This will
+    // probably happen often due to braves getting in the way.
+    if( goto_registry.units[unit_id].path.reverse_path.size() <
+        20 )
+      goto_registry.units.erase( unit_id );
+  }
+
+  // We can't really show a message here communicating the ac-
+  // tions taken, but hopefully it won't matter because sanitiza-
+  // tion will be done interactively just before calling the
+  // method we are currently in.
+  vector<TradeRouteSanitizationAction> actions_taken;
+  TradeRoutesSanitizedToken const& token =
+      sanitize_trade_routes( ss.as_const, as_const( player ),
+                             ss.trade_routes, actions_taken );
+  CHECK( actions_taken.empty(),
+         "trade routes must be sanitized before calling" );
+  auto const sanitized_orders = sanitize_unit_trade_route_orders(
+      ss.as_const, as_const( unit ), token );
+  if( !sanitized_orders.has_value() )
+    return abort( "unit trade route orders no longer valid" );
+  unit_orders::trade_route& orders =
+      unit.orders().emplace<unit_orders::trade_route>();
+  orders = *sanitized_orders;
+
+  // All of these checks should have been checked in the sanitize
+  // unit orders step above.
+  UNWRAP_CHECK_T(
+      TradeRoute const& route,
+      look_up_trade_route( ss.trade_routes, orders.id ) );
+  UNWRAP_CHECK_T( TradeRouteStop const& stop,
+                  look_up_trade_route_stop(
+                      route, orders.en_route_to_stop ) );
+
+  goto_target const target_goto =
+      convert_trade_route_target_to_goto_target(
+          ss, as_const( player ), stop.target, token );
+
+  if( !unit_has_reached_goto_target( ss, as_const( unit ),
+                                     target_goto ) ) {
+    if( is_unit_in_port( ss.units, unit.id() ) )
+      return EvolveTradeRoute::sail_to_new_world{};
+    SWITCH( evolve_goto_human( ss, connectivity, goto_registry,
+                               unit, target_goto ) ) {
+      CASE( abort ) { return EvolveTradeRoute::abort_no_path{}; }
+      CASE( move ) {
+        return EvolveTradeRoute::move{ .to = move.to };
+      }
+    }
+  }
+
+  // At this point we have reached our current goto target, so we
+  // must do the unload/load.
+  trade_route_unload( ss, player, unit, stop );
+  trade_route_load( ss, player, unit, stop );
+
+  if( ++orders.en_route_to_stop >= ssize( route.stops ) )
+    orders.en_route_to_stop = 0;
+
+  // This will catch the case where there is only one unique stop
+  // on the route. This will prevent infinite loops which would
+  // otherwise happen since we normally process consecutive stops
+  // all in one shot when they have the same target.
+  if( are_all_stops_identical( route ) )
+    return EvolveTradeRoute::wait_one_unique_stop{};
+
+  // Recurse.
+  return evolve_trade_route_human( ss, player, goto_registry,
+                                   connectivity, unit_id );
 }
 
 } // namespace rn

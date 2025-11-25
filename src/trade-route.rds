@@ -8,8 +8,14 @@
 # Description: Rds definitions for the trade-route module.
 #
 # ===============================================================
+# Revolution Now
+include "goto.rds.hpp"
+
 # ss
 include "ss/trade-route.rds.hpp"
+
+# gfx
+include "gfx/cartesian.hpp"
 
 # C++ standard library
 include "<string>"
@@ -54,4 +60,22 @@ sumtype.TradeRouteSanitizationAction {
   too_many_stops {
     route_name 'std::string',
   },
+}
+
+sumtype.EvolveTradeRoute {
+  # Catch-all abort.
+  abort {},
+  # Specifically for aborting because we can't find a path.
+  abort_no_path {},
+  move {
+    to 'e_direction',
+  },
+  sail_to_new_world {},
+  # Normally when there are multiple consecutive stops on the
+  # route that have the same target we process them all in one
+  # turn. However, if the is only one unique stop for the entire
+  # route (it may or may not appear multiple times) then we need
+  # to wait a turn after loading/unloading to avoid going into an
+  # infinite loop.
+  wait_one_unique_stop {},
 }

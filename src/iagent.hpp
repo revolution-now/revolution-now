@@ -11,15 +11,13 @@
 *****************************************************************/
 #pragma once
 
-// rds
-#include "iagent.rds.hpp"
-
 // Revolution Now
 #include "command.rds.hpp"
 #include "goto.rds.hpp"
 #include "isignal.hpp"
 #include "meet-natives.rds.hpp"
 #include "native-owned.rds.hpp"
+#include "trade-route.rds.hpp"
 #include "ui-enums.rds.hpp"
 #include "wait.hpp"
 

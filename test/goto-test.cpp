@@ -3190,5 +3190,9 @@ TEST_CASE( "[goto] find_next_move_for_unit_with_goto_target" ) {
   REQUIRE( f() == expected );
 }
 
+TEST_CASE( "[goto] evolve_goto_human" ) {
+  world w;
+}
+
 } // namespace
 } // namespace rn

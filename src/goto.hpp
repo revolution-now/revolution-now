@@ -100,4 +100,9 @@ find_next_move_for_unit_with_goto_target(
     GotoRegistry& registry, IGotoMapViewer const& goto_viewer,
     Unit const& unit, goto_target const& target );
 
+EvolveGoto evolve_goto_human(
+    SSConst const& ss, TerrainConnectivity const& connectivity,
+    GotoRegistry& goto_registry, Unit const& unit,
+    goto_target const& target );
+
 } // namespace rn
