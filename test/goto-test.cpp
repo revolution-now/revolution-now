@@ -35,6 +35,7 @@
 #include "src/ss/map-square.rds.hpp"
 #include "src/ss/player.rds.hpp"
 #include "src/ss/ref.hpp"
+#include "src/ss/turn.rds.hpp"
 #include "src/ss/unit-composition.hpp"
 #include "src/ss/units.hpp"
 
@@ -69,6 +70,20 @@ struct world : testing::World {
     set_default_player_type( e_player::dutch );
     add_player( e_player::french );
     // No map creation here by default.
+  }
+
+  void create_isolation_map() {
+    MapSquare const _ = make_ocean();
+    MapSquare const L = make_grassland();
+    vector<MapSquare> tiles{
+      L, L, _, L, L, L, //
+      L, L, _, L, L, L, //
+      _, _, _, L, L, L, //
+      L, L, L, L, L, L, //
+      L, L, L, L, L, L, //
+      L, L, L, L, L, L, //
+    };
+    build_map( std::move( tiles ), 6 );
   }
 };
 
@@ -3190,8 +3205,55 @@ TEST_CASE( "[goto] find_next_move_for_unit_with_goto_target" ) {
   REQUIRE( f() == expected );
 }
 
+// Just do something basic here since the bulk of it is already
+// tested in other test cases. One thing that this provides is
+// that it will break if omniscient path finding is enabled.
 TEST_CASE( "[goto] evolve_goto_human" ) {
   world w;
+  w.create_isolation_map();
+  EvolveGoto expected;
+
+  using enum e_surface;
+  using enum e_unit_type;
+
+  point const kStartingTile{ .x = 0, .y = 0 };
+  point const kTargetTile{ .x = 4, .y = 4 };
+
+  Unit& unit = w.add_unit_on_map( free_colonist, kStartingTile );
+
+  GotoRegistry goto_registry;
+
+  auto const f = [&] [[clang::noinline]] {
+    UNWRAP_CHECK_T(
+        goto_target const& target,
+        unit.orders().inner_if<unit_orders::go_to>() );
+    return evolve_goto_human( w.ss().as_const,
+                              w.map_updater().connectivity(),
+                              goto_registry, unit, target );
+  };
+
+  BASE_CHECK( w.square( kStartingTile ).surface == land );
+  BASE_CHECK( w.square( kTargetTile ).surface == land );
+
+  // This will cause the viz to be from the player's standpoint,
+  // wherein all tiles are hidden, so the path should succeed. On
+  // the other hand, if omniscient path finding is enabled then
+  // the path should fail here.
+  w.turn().cycle =
+      TurnCycle::player{ .type = w.default_player_type() };
+  w.land_view().map_revealed = MapRevealed::no_special_view{};
+  unit.orders()              = unit_orders::go_to{
+                 .target = goto_target::map{ .tile = kTargetTile } };
+  expected = EvolveGoto::move{ .to = e_direction::se };
+  REQUIRE( f() == expected );
+
+  // This viz will see the full map regardless of the omniscient
+  // path finding config, thus the path should always fail.
+  w.land_view().map_revealed = MapRevealed::entire{};
+  unit.orders()              = unit_orders::go_to{
+                 .target = goto_target::map{ .tile = kTargetTile } };
+  expected = EvolveGoto::abort{};
+  REQUIRE( f() == expected );
 }
 
 } // namespace
