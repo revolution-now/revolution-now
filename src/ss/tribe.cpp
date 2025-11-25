@@ -10,9 +10,6 @@
 *****************************************************************/
 #include "tribe.hpp"
 
-// config
-#include "config/natives.rds.hpp"
-
 // refl
 #include "refl/to-str.hpp"
 
