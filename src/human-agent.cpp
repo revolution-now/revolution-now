@@ -425,10 +425,8 @@ wait<ui::e_confirm> HumanAgent::should_sail_high_seas(
   co_return res.value_or( ui::e_confirm::no );
 }
 
-EvolveGoto HumanAgent::evolve_goto( UnitId const unit_id ) {
-  Unit const& unit = ss_.units.unit_for( unit_id );
-  UNWRAP_CHECK_T( goto_target const& target,
-                  unit.orders().inner_if<unit_orders::go_to>() );
+EvolveGoto HumanAgent::evolve_goto_impl(
+    Unit const& unit, goto_target const& target ) {
   // In the OG this is true, but in the NG it defaults to false.
   bool const omniscient =
       config_command.go_to.omniscient_path_finding;
@@ -446,18 +444,38 @@ EvolveGoto HumanAgent::evolve_goto( UnitId const unit_id ) {
       goto_viewer, unit, target );
 }
 
+EvolveGoto HumanAgent::evolve_goto( UnitId const unit_id ) {
+  Unit const& unit = ss_.units.unit_for( unit_id );
+  UNWRAP_CHECK_T( goto_target const& target,
+                  unit.orders().inner_if<unit_orders::go_to>() );
+  return evolve_goto_impl( unit, target );
+}
+
 EvolveTradeRoute HumanAgent::evolve_trade_route(
     UnitId const unit_id ) {
   auto const abort = [&]( string const& /*msg*/ ) {
     // lg.debug( "abort trade route: {}", msg );
     goto_registry_.units.erase( unit_id );
-    return EvolveTradeRoute::abort{};
+    return EvolveTradeRoute{ EvolveTradeRoute::abort{} };
   };
+  auto& abort__ = abort;
 
   Unit& unit = ss_.units.unit_for( unit_id );
 
-  if( unit.has_full_mv_points() )
-    goto_registry_.units.erase( unit_id );
+  if( unit.has_full_mv_points() &&
+      goto_registry_.units.contains( unit_id ) ) {
+    // If we're at the start of a unit's turn and the path has
+    // already been computed and it is short enough then it
+    // should be recomputed (once, at the start of the turn).
+    // That way, if e.g. a wagon train planned a course while
+    // there was an enemy unit blocking a road and that unit has
+    // since moved then it will not go off-road (around the for-
+    // eign unit) for no reason; it will take the road. This will
+    // probably happen often due to braves getting in the way.
+    if( goto_registry_.units[unit_id].path.reverse_path.size() <
+        20 )
+      goto_registry_.units.erase( unit_id );
+  }
 
   // We can't really show a message here communicating the ac-
   // tions taken, but hopefully it won't matter because sanitiza-
@@ -472,22 +490,20 @@ EvolveTradeRoute HumanAgent::evolve_trade_route(
       ss_.as_const, as_const( unit ), token );
   if( !sanitized_orders.has_value() )
     return abort( "unit trade route orders no longer valid" );
-  unit_orders::trade_route& trade_route_orders =
+  unit_orders::trade_route& orders =
       unit.orders().emplace<unit_orders::trade_route>();
-  trade_route_orders = *sanitized_orders;
+  orders = *sanitized_orders;
   // All of these checks should have been checked in the sanitize
   // unit orders step above.
-  UNWRAP_CHECK_T( TradeRoute const& route,
-                  look_up_trade_route( ss_.trade_routes,
-                                       trade_route_orders.id ) );
-  CHECK( !route.stops.empty() );
-  CHECK_GE( trade_route_orders.en_route_to_stop, 0 );
-  CHECK_LT( trade_route_orders.en_route_to_stop,
-            ssize( route.stops ) );
   UNWRAP_CHECK_T(
-      TradeRouteStop const& stop,
-      look_up_trade_route_stop(
-          route, trade_route_orders.en_route_to_stop ) );
+      TradeRoute const& route,
+      look_up_trade_route( ss_.trade_routes, orders.id ) );
+  CHECK( !route.stops.empty() );
+  CHECK_GE( orders.en_route_to_stop, 0 );
+  CHECK_LT( orders.en_route_to_stop, ssize( route.stops ) );
+  UNWRAP_CHECK_T( TradeRouteStop const& stop,
+                  look_up_trade_route_stop(
+                      route, orders.en_route_to_stop ) );
 
   goto_target const target_goto =
       convert_trade_route_target_to_goto_target(
@@ -495,25 +511,14 @@ EvolveTradeRoute HumanAgent::evolve_trade_route(
 
   if( !unit_has_reached_goto_target( ss_, as_const( unit ),
                                      target_goto ) ) {
-    // In the OG this is true, but in the NG it defaults to
-    // false.
-    bool const omniscient =
-        config_command.go_to.omniscient_path_finding;
-    // This is the visibility that is used to plot the path, and
-    // it is not necessarily what the player sees (because of the
-    // "om- niscient" option).
-    auto const goto_path_viz = create_visibility_for(
-        ss_, omniscient ? nothing
-                        : player_for_role(
-                              ss_, e_player_role::viewer ) );
-    GotoMapViewer const goto_viewer(
-        ss_, *goto_path_viz, player_type(), unit.type() );
-    EvolveGoto const evolve_goto =
-        find_next_move_for_unit_with_goto_target(
-            ss_.as_const, map_updater_.connectivity(),
-            goto_registry_, goto_viewer, unit, target_goto );
-    SWITCH( evolve_goto ) {
-      CASE( abort ) { return EvolveTradeRoute::abort{}; }
+    if( is_unit_in_port( ss_.units, unit.id() ) )
+      return EvolveTradeRoute::sail_to_new_world{};
+    SWITCH( evolve_goto_impl( unit, target_goto ) ) {
+      CASE( abort ) {
+        // TODO: If we can't find a path to the next target then
+        // we should probably show a message to the user.
+        return abort__( "" );
+      }
       CASE( move ) {
         return EvolveTradeRoute::move{ .to = move.to };
       }
@@ -525,20 +530,17 @@ EvolveTradeRoute HumanAgent::evolve_trade_route(
   trade_route_unload( ss_, player_, unit, stop );
   trade_route_load( ss_, player_, unit, stop );
 
-  if( route.stops.size() == 1 ) return abort( "single stop" );
-
-  // This will catch the case where there is only one stop.
+  // This will catch the case where there is only one unique stop
+  // on the route. This will prevent infinite loops which would
+  // otherwise happen since we normally process consecutive stops
+  // all in one shot when they have the same target.
   if( are_all_stops_identical( route ) )
-    return abort( "all stops identical" );
+    return EvolveTradeRoute::wait_one_unique_stop{};
 
-  ++trade_route_orders.en_route_to_stop;
-  if( trade_route_orders.en_route_to_stop >=
-      ssize( route.stops ) )
-    trade_route_orders.en_route_to_stop = 0;
+  if( ++orders.en_route_to_stop >= ssize( route.stops ) )
+    orders.en_route_to_stop = 0;
 
-  if( is_unit_in_port( ss_.units, unit.id() ) )
-    return EvolveTradeRoute::sail_to_new_world{};
-
+  // Recurse.
   return this->evolve_trade_route( unit_id );
 }
 

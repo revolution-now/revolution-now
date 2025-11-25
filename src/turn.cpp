@@ -1419,6 +1419,10 @@ wait<> advance_unit( IEngine& engine, SS& ss, TS& ts,
         unit.clear_orders();
         break;
       }
+      CASE( wait_one_unique_stop ) {
+        unit.forfeight_mv_points();
+        break;
+      }
       CASE( sail_to_new_world ) {
         unit_sail_to_new_world( ss, unit.id() );
         break;
