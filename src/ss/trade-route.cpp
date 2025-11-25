@@ -70,12 +70,11 @@ bool operator<( TradeRouteTarget const& l,
 *****************************************************************/
 valid_or<string> TradeRoute::validate() const {
   REFL_VALIDATE(
-      id > 0, "invalid trade route ID in trade route target: {}",
-      id );
+      id > 0, "invalid trade route ID in trade route: {}", id );
 
   REFL_VALIDATE( stops.size() <= 4,
-                 "trade route {} has {} stops but trade routes "
-                 "are only allowed a maximum of four.",
+                 "trade route {} has {} stops which exceeds the "
+                 "maximum of four.",
                  id, stops.size() );
 
   // If trade route type is land then we cannot have any harbor
