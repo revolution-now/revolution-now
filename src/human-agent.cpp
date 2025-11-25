@@ -53,6 +53,7 @@
 
 // base
 #include "base/conv.hpp"
+#include "base/logger.hpp"
 
 using namespace std;
 
@@ -453,8 +454,8 @@ EvolveGoto HumanAgent::evolve_goto( UnitId const unit_id ) {
 
 EvolveTradeRoute HumanAgent::evolve_trade_route(
     UnitId const unit_id ) {
-  auto const abort = [&]( string const& /*msg*/ ) {
-    // lg.debug( "abort trade route: {}", msg );
+  auto const abort = [&]( string const& msg ) {
+    lg.debug( "aborting trade route: {}", msg );
     goto_registry_.units.erase( unit_id );
     return EvolveTradeRoute{ EvolveTradeRoute::abort{} };
   };
@@ -485,7 +486,6 @@ EvolveTradeRoute HumanAgent::evolve_trade_route(
   TradeRoutesSanitizedToken const& token =
       sanitize_trade_routes( ss_.as_const, as_const( player() ),
                              ss_.trade_routes, actions_taken );
-
   auto const sanitized_orders = sanitize_unit_trade_route_orders(
       ss_.as_const, as_const( unit ), token );
   if( !sanitized_orders.has_value() )
@@ -493,6 +493,7 @@ EvolveTradeRoute HumanAgent::evolve_trade_route(
   unit_orders::trade_route& orders =
       unit.orders().emplace<unit_orders::trade_route>();
   orders = *sanitized_orders;
+
   // All of these checks should have been checked in the sanitize
   // unit orders step above.
   UNWRAP_CHECK_T(
@@ -517,7 +518,7 @@ EvolveTradeRoute HumanAgent::evolve_trade_route(
       CASE( abort ) {
         // TODO: If we can't find a path to the next target then
         // we should probably show a message to the user.
-        return abort__( "" );
+        return abort__( "no path to target" );
       }
       CASE( move ) {
         return EvolveTradeRoute::move{ .to = move.to };
@@ -530,15 +531,15 @@ EvolveTradeRoute HumanAgent::evolve_trade_route(
   trade_route_unload( ss_, player_, unit, stop );
   trade_route_load( ss_, player_, unit, stop );
 
+  if( ++orders.en_route_to_stop >= ssize( route.stops ) )
+    orders.en_route_to_stop = 0;
+
   // This will catch the case where there is only one unique stop
   // on the route. This will prevent infinite loops which would
   // otherwise happen since we normally process consecutive stops
   // all in one shot when they have the same target.
   if( are_all_stops_identical( route ) )
     return EvolveTradeRoute::wait_one_unique_stop{};
-
-  if( ++orders.en_route_to_stop >= ssize( route.stops ) )
-    orders.en_route_to_stop = 0;
 
   // Recurse.
   return this->evolve_trade_route( unit_id );
