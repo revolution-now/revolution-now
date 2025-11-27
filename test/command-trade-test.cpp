@@ -128,6 +128,20 @@ TEST_CASE( "[command-trade] some test" ) {
   REQUIRE_FALSE( unit.mv_pts_exhausted() );
   REQUIRE( unit.orders() == unit_orders::trade_route{
                               .id = 1, .en_route_to_stop = 1 } );
+
+  w.gui()
+      .EXPECT__choice(
+          Field( &ChoiceConfig::msg,
+                 StrContains(
+                     "Select Trade Route for [Wagon Train]" ) ) )
+      .returns( "1" );
+  w.gui()
+      .EXPECT__choice(
+          Field( &ChoiceConfig::msg,
+                 StrContains( "Select initial destination:" ) ) )
+      .returns( nothing );
+
+  REQUIRE( confirm() == false );
 }
 
 } // namespace
