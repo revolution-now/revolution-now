@@ -120,14 +120,14 @@ TEST_CASE( "[command-trade] some test" ) {
       .EXPECT__choice(
           Field( &ChoiceConfig::msg,
                  StrContains( "Select initial destination:" ) ) )
-      .returns( "0" );
+      .returns( "1" );
 
   REQUIRE( confirm() == true );
   perform();
 
   REQUIRE_FALSE( unit.mv_pts_exhausted() );
   REQUIRE( unit.orders() == unit_orders::trade_route{
-                              .id = 1, .en_route_to_stop = 0 } );
+                              .id = 1, .en_route_to_stop = 1 } );
 }
 
 } // namespace
