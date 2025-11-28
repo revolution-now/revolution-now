@@ -244,6 +244,7 @@ PanelEntities entities_shown_on_panel( SSConst const& ss,
           }
           if( units.q.empty() ) break;
           UnitId const unit_id = units.q.front();
+          if( !ss.units.exists( unit_id ) ) break;
           entities.active_unit = PanelActiveUnit{
             .unit_id = unit_id,
             .orders_name =
