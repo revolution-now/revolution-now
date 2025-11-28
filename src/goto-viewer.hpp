@@ -46,6 +46,10 @@ struct GotoMapViewer : IGotoMapViewer {
 
   maybe<bool> has_lcr( gfx::point tile ) const override;
 
+  bool has_colony( gfx::point tile ) const override;
+
+  bool ends_turn_in_colony() const override;
+
   maybe<MovementPoints> movement_points_required(
       gfx::point src, e_direction direction ) const override;
 

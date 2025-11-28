@@ -20,6 +20,7 @@
 #include "config/unit-type.hpp"
 
 // ss
+#include "ss/colonies.hpp"
 #include "ss/ref.hpp"
 
 // rds
@@ -130,6 +131,15 @@ maybe<bool> GotoMapViewer::has_lcr( point const tile ) const {
     case e_tile_visibility::clear:
       return viz_.square_at( tile ).lost_city_rumor;
   }
+}
+
+bool GotoMapViewer::has_colony( point const tile ) const {
+  return ss_.colonies.maybe_from_coord( tile ).has_value();
+}
+
+bool GotoMapViewer::ends_turn_in_colony() const {
+  return config_unit_type.composition.unit_types[unit_type_]
+      .ends_turn_in_colony;
 }
 
 maybe<MovementPoints> GotoMapViewer::movement_points_required(

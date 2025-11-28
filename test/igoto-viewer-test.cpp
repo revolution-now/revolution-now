@@ -49,6 +49,7 @@ TEST_CASE( "[igoto-viewer] travel_cost" ) {
       MovementPoints( 2 ) );
   viewer.EXPECT__has_lcr( point{ .x = 1, .y = 0 } )
       .returns( false );
+  viewer.EXPECT__has_colony( src.moved( d ) ).returns( false );
   REQUIRE( f() == 2 * 3 );
 
   src = { .x = 3, .y = 5 };
@@ -57,6 +58,7 @@ TEST_CASE( "[igoto-viewer] travel_cost" ) {
       MovementPoints::_1_3() );
   viewer.EXPECT__has_lcr( point{ .x = 4, .y = 5 } )
       .returns( false );
+  viewer.EXPECT__has_colony( src.moved( d ) ).returns( false );
   REQUIRE( f() == 1 );
 
   src = { .x = 7, .y = 1 };
@@ -65,6 +67,7 @@ TEST_CASE( "[igoto-viewer] travel_cost" ) {
       MovementPoints::_1_3() );
   viewer.EXPECT__has_lcr( point{ .x = 6, .y = 0 } )
       .returns( true );
+  viewer.EXPECT__has_colony( src.moved( d ) ).returns( false );
   REQUIRE( f() == 1 + 4 * 3 );
 
   src = { .x = 1, .y = 1 };
@@ -73,6 +76,7 @@ TEST_CASE( "[igoto-viewer] travel_cost" ) {
       nothing );
   viewer.EXPECT__has_lcr( point{ .x = 1, .y = 2 } )
       .returns( true );
+  viewer.EXPECT__has_colony( src.moved( d ) ).returns( false );
   REQUIRE( f() == 1 * 3 + 4 * 3 );
 
   src = { .x = 40, .y = 55 };
@@ -81,7 +85,37 @@ TEST_CASE( "[igoto-viewer] travel_cost" ) {
       nothing );
   viewer.EXPECT__has_lcr( point{ .x = 41, .y = 56 } )
       .returns( false );
+  viewer.EXPECT__has_colony( src.moved( d ) ).returns( false );
   REQUIRE( f() == 1 * 3 );
+
+  src = {};
+  d   = e;
+  viewer.EXPECT__movement_points_required( src, d ).returns(
+      MovementPoints( 2 ) );
+  viewer.EXPECT__has_lcr( point{ .x = 1, .y = 0 } )
+      .returns( false );
+  viewer.EXPECT__has_colony( src.moved( d ) ).returns( true );
+  viewer.EXPECT__ends_turn_in_colony().returns( false );
+  REQUIRE( f() == 2 * 3 );
+
+  src = {};
+  d   = e;
+  viewer.EXPECT__movement_points_required( src, d ).returns(
+      MovementPoints( 2 ) );
+  viewer.EXPECT__has_lcr( point{ .x = 1, .y = 0 } )
+      .returns( false );
+  viewer.EXPECT__has_colony( src.moved( d ) ).returns( false );
+  REQUIRE( f() == 2 * 3 );
+
+  src = {};
+  d   = e;
+  viewer.EXPECT__movement_points_required( src, d ).returns(
+      MovementPoints( 2 ) );
+  viewer.EXPECT__has_lcr( point{ .x = 1, .y = 0 } )
+      .returns( false );
+  viewer.EXPECT__has_colony( src.moved( d ) ).returns( true );
+  viewer.EXPECT__ends_turn_in_colony().returns( true );
+  REQUIRE( f() == ( 2 + 1000 ) * 3 );
 }
 
 TEST_CASE( "[igoto-viewer] heuristic_cost" ) {

@@ -54,6 +54,15 @@ struct IGotoMapViewer {
   [[nodiscard]] virtual maybe<bool> has_lcr(
       gfx::point tile ) const = 0;
 
+  [[nodiscard]] virtual bool has_colony(
+      gfx::point tile ) const = 0;
+
+  // Does the unit in question always end its turn in a colony?
+  // Note that, even if this returns false for a unit, that unit
+  // will still always end its turn if it is on a trade route and
+  // arrives at a stop on that trade route.
+  [[nodiscard]] virtual bool ends_turn_in_colony() const = 0;
+
   // Assuming that movement is possible between the two tiles
   // this will return the estimated cost in movement points by
   // the unit, accounting for how many total movement points the

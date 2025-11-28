@@ -1912,10 +1912,12 @@ composition {
       visibility:            1
       base_movement_points:  2
       # You can set this to false so that wagon trains don't au-
-      # tomatically end their turn when the hit a colony. How-
+      # tomatically end their turn when they hit a colony. How-
       # ever, note that this setting only applies when the wagon
-      # train is not on a trade route; when it's on a trade route
-      # it will still end its turn when arriving in a colony.
+      # train is either not on a trade route or it is on a trade
+      # route but passing through a colony that is not it's cur-
+      # rent stop; when it's on a trade route and arrives at a
+      # stop it will still always end its turn.
       ends_turn_in_colony:   true
       can_attack:            false
       combat:                1

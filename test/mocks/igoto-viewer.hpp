@@ -29,6 +29,8 @@ struct MockIGotoMapViewer : IGotoMapViewer {
   MOCK_METHOD( maybe<bool>, is_sea_lane, ( gfx::point ),
                ( const ) );
   MOCK_METHOD( maybe<bool>, has_lcr, ( gfx::point ), ( const ) );
+  MOCK_METHOD( bool, has_colony, ( gfx::point ), ( const ) );
+  MOCK_METHOD( bool, ends_turn_in_colony, (), ( const ) );
   MOCK_METHOD( maybe<MovementPoints>, movement_points_required,
                ( gfx::point, e_direction ), ( const ) );
   MOCK_METHOD( MovementPoints, minimum_heuristic_tile_cost, (),

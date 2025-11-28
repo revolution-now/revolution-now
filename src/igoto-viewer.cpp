@@ -98,6 +98,17 @@ int IGotoMapViewer::travel_cost( point const src,
     static MovementPoints const kLcrPoints( 4 );
     res += kLcrPoints;
   }
+  if( has_colony( dst ) && ends_turn_in_colony() )
+    // If the unit has ends_turn_in_colony then it will end its
+    // turn in a colony unconditionally, and so that should be
+    // taken into acccount in the cost. For example, it may be
+    // advantageous for a wagon train to go around a colony for
+    // that reason. Note that if a unit is on a trade route and
+    // arrives at its next stop then it will always ends its turn
+    // regardless, but we don't have to worry about that here be-
+    // cause its next stop will always be the destination tile
+    // and so it will always attempt to enter it.
+    res += 1000;
   return res.atoms();
 }
 

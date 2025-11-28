@@ -593,5 +593,69 @@ TEST_CASE( "[goto-viewer] minimum_heuristic_tile_cost" ) {
   REQUIRE( f( merchantman ) == MovementPoints( 1 ) );
 }
 
+TEST_CASE( "[goto-viewer] has_colony" ) {
+  using enum e_player;
+  using enum e_unit_type;
+  world w;
+  MockIVisibility viz( w.ss().as_const );
+
+  point tile;
+
+  e_unit_type const unit_type = wagon_train;
+
+  auto const f = [&] [[clang::noinline]] {
+    GotoMapViewer const viewer(
+        w.ss(), viz, w.default_player_type(), unit_type );
+    return viewer.has_colony( tile );
+  };
+
+  tile = { .x = 1, .y = 0 };
+  REQUIRE( f() == false );
+  tile = { .x = 3, .y = 0 };
+  REQUIRE( f() == false );
+
+  w.add_colony( { .x = 1, .y = 0 }, english );
+  w.add_colony( { .x = 3, .y = 0 }, french );
+
+  tile = { .x = 1, .y = 0 };
+  REQUIRE( f() == true );
+  tile = { .x = 3, .y = 0 };
+  REQUIRE( f() == true );
+}
+
+TEST_CASE( "[goto-viewer] ends_turn_in_colony" ) {
+  using enum e_unit_type;
+  world w;
+  MockIVisibility viz( w.ss().as_const );
+
+  e_unit_type unit_type = {};
+
+  auto const f = [&] [[clang::noinline]] {
+    GotoMapViewer const viewer(
+        w.ss(), viz, w.default_player_type(), unit_type );
+    return viewer.ends_turn_in_colony();
+  };
+
+  SECTION( "free_colonist" ) {
+    unit_type = free_colonist;
+    REQUIRE( f() == false );
+  }
+
+  SECTION( "wagon_train" ) {
+    unit_type = wagon_train;
+    REQUIRE( f() == true );
+  }
+
+  SECTION( "caravel" ) {
+    unit_type = caravel;
+    REQUIRE( f() == true );
+  }
+
+  SECTION( "soldier" ) {
+    unit_type = soldier;
+    REQUIRE( f() == false );
+  }
+}
+
 } // namespace
 } // namespace rn
