@@ -1268,6 +1268,20 @@ struct NativeDwellingHandler : public CommandHandler {
     EnterNativeDwellingOptions const options =
         enter_native_dwelling_options( ss_, player_,
                                        unit_.type(), dwelling_ );
+
+    // The OG does not do this, but we will do it because it
+    // makes various things simpler and more consistent regarding
+    // animation and relying on the screen being panned properly.
+    // In particular, it is weird to not animate anything when a
+    // unit enters a native village as part of goto orders since
+    // then the dwelling entry options box pops up and it is not
+    // clear to the user which unit just caused it.
+    AnimationSequence const seq =
+        anim_seq_for_unit_talk( ss_, unit_.id(), direction_ );
+    co_await ts_.planes.get()
+        .get_bottom<ILandViewPlane>()
+        .animate_if_visible( seq );
+
     outcome_ = compute_enter_dwelling_outcome(
         co_await present_dwelling_entry_options(
             ss_, ts_, player_, options ) );

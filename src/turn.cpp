@@ -1319,13 +1319,6 @@ wait<> advance_unit( IEngine& engine, SS& ss, TS& ts,
       CASE( move ) {
         point const prev_tile = coord_for_unit_indirect_or_die(
             ss.units, unit.id() );
-        // Should make sure the unit is visible because it may be
-        // about to start an interaction that does not involve
-        // moving and thus the viewport may not automatically
-        // scroll.
-        co_await ts.planes.get()
-            .get_bottom<ILandViewPlane>()
-            .ensure_visible( prev_tile );
         auto const handler = command_handler(
             engine, ss, ts, agent, player, unit_id,
             command::move{ .d = move.to } );
