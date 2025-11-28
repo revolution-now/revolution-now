@@ -232,6 +232,10 @@ struct UnitsState {
                                           UnitId id );
   friend void testing_friend_destroy_unit( UnitsState& units,
                                            UnitId id );
+  friend void testing_friend_change_to_cargo( UnitsState& units,
+                                              UnitId new_holder,
+                                              UnitId held,
+                                              int slot );
 
  private:
   [[nodiscard]] GenericUnitId next_unit_id();

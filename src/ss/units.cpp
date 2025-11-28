@@ -948,8 +948,9 @@ void UnitsState::change_to_map( UnitId id, Coord target ) {
   add_or_bump_unit_ordering_index( id );
 }
 
-void UnitsState::change_to_cargo( UnitId new_holder, UnitId held,
-                                  int slot ) {
+void UnitsState::change_to_cargo( UnitId const new_holder,
+                                  UnitId const held,
+                                  int const slot ) {
   // Make sure that we're not adding the unit to its own cargo.
   // Should never happen theoretically, but...
   CHECK( new_holder != held );

@@ -40,6 +40,13 @@ void testing_friend_destroy_unit( UnitsState& units,
   units.destroy_unit( id );
 }
 
+void testing_friend_change_to_cargo( UnitsState& units,
+                                     UnitId const new_holder,
+                                     UnitId const held,
+                                     int const slot ) {
+  return units.change_to_cargo( new_holder, held, slot );
+}
+
 namespace {
 
 using namespace std;
@@ -441,6 +448,26 @@ TEST_CASE(
       Contains(
           "unit 2 is in the cargo of another unit but its "
           "orders are not 'sentry'; instead they are 1." ) );
+}
+
+TEST_CASE( "[units] change_to_cargo sentries" ) {
+  using enum e_unit_type;
+  world w;
+  base::valid_or<string> v = valid;
+
+  REQUIRE( w.units().validate() == valid );
+
+  Unit& ship =
+      w.add_unit_sailing_to_port( e_unit_type::merchantman );
+  Unit& free =
+      w.add_unit_on_map( free_colonist, { .x = 1, .y = 1 } );
+
+  REQUIRE( free.orders().holds<unit_orders::none>() );
+
+  testing_friend_change_to_cargo( w.units(), ship.id(),
+                                  free.id(), 0 );
+
+  REQUIRE( free.orders().holds<unit_orders::sentry>() );
 }
 
 } // namespace
