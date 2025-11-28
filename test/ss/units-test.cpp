@@ -383,6 +383,7 @@ TEST_CASE(
 TEST_CASE(
     "[units] validation: units in trade route mode must be on "
     "the map or indirectly on the map" ) {
+  using enum e_unit_type;
   world w;
   base::valid_or<string> v = valid;
 
@@ -391,20 +392,15 @@ TEST_CASE(
   Colony& colony = w.add_colony( { .x = 1, .y = 0 } );
   Unit& statesman =
       w.add_unit_indoors( colony.id, e_indoor_job::bells );
-  Unit& caravel  = w.add_unit_on_map( e_unit_type::caravel,
-                                      { .x = 0, .y = 0 } );
-  Unit& colonist = w.add_unit_in_cargo(
-      e_unit_type::free_colonist, caravel.id() );
-  Unit& unit_to_port =
-      w.add_unit_sailing_to_port( e_unit_type::merchantman );
-  Unit& unit_from_port =
-      w.add_unit_sailing_from_port( e_unit_type::galleon );
-  Unit& in_cargo = w.add_unit_in_cargo(
-      e_unit_type::free_colonist, unit_to_port.id() );
+  Unit& ship = w.add_unit_on_map( caravel, { .x = 0, .y = 0 } );
+  Unit& colonist =
+      w.add_unit_in_cargo( free_colonist, ship.id() );
+  Unit& unit_to_port = w.add_unit_sailing_to_port( merchantman );
+  Unit& unit_from_port = w.add_unit_sailing_from_port( galleon );
 
   REQUIRE( w.units().validate() == valid );
 
-  caravel.orders()        = unit_orders::trade_route{};
+  ship.orders()           = unit_orders::trade_route{};
   colonist.orders()       = unit_orders::trade_route{};
   unit_to_port.orders()   = unit_orders::trade_route{};
   unit_from_port.orders() = unit_orders::trade_route{};
@@ -418,15 +414,33 @@ TEST_CASE(
       Contains( "unit 1 is in trade route mode but is neither "
                 "on the map directly, on the map indirectly, on "
                 "the high seas, or in the harbor." ) );
-
   statesman.clear_orders();
+}
+
+TEST_CASE(
+    "[units] validation: units in cargo must be in sentry "
+    "mode." ) {
+  world w;
+  base::valid_or<string> v = valid;
+
+  REQUIRE( w.units().validate() == valid );
+
+  Unit& unit_to_port =
+      w.add_unit_sailing_to_port( e_unit_type::merchantman );
+  Unit& in_cargo = w.add_unit_in_cargo(
+      e_unit_type::free_colonist, unit_to_port.id() );
+
+  REQUIRE( w.units().validate() == valid );
+
+  unit_to_port.orders() = unit_orders::trade_route{};
   REQUIRE( w.units().validate() == valid );
 
   in_cargo.orders() = unit_orders::trade_route{};
   REQUIRE_THAT(
       w.units().validate().error(),
-      Contains( "unit 6 is in trade route mode but is in the "
-                "cargo of unit 4 which is not on the map." ) );
+      Contains(
+          "unit 2 is in the cargo of another unit but its "
+          "orders are not 'sentry'; instead they are 1." ) );
 }
 
 } // namespace

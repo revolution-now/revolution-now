@@ -100,7 +100,8 @@ valid_or<string> wrapped::UnitsState::validate() const {
     }
   }
 
-  // Check that units in cargo have holders that exist.
+  // Check that units in cargo have holders that exist and are
+  // european units.
   for( auto const& [id, unit_state] : units ) {
     SWITCH( unit_state ) {
       CASE( euro ) {
@@ -115,6 +116,47 @@ valid_or<string> wrapped::UnitsState::validate() const {
             "unit {} is being held in the cargo of unit {} but "
             "the latter unit id does not exist.",
             unit.id(), holder_id );
+        // Validated by the check above.
+        UNWRAP_CHECK_T( UnitState const& holder_state,
+                        lookup( units, holder_id ) );
+        auto const holder_euro =
+            holder_state.get_if<UnitState::euro>();
+        REFL_VALIDATE(
+            holder_euro.has_value(),
+            "unit {} is being held in the cargo of unit {} "
+            "but the latter unit id is not a european unit.",
+            unit.id(), holder_id );
+        break;
+      }
+      CASE( native ) { break; }
+    }
+  }
+
+  for( auto const& [id, unit_state] : units ) {
+    SWITCH( unit_state ) {
+      CASE( euro ) {
+        auto const& unit = euro.unit;
+        auto const cargo =
+            euro.ownership.get_if<UnitOwnership::cargo>();
+        if( !cargo.has_value() ) continue;
+        UnitId const holder_id = cargo->holder;
+        // Should have been validated already.
+        UNWRAP_CHECK_T( UnitState const& holder_state,
+                        lookup( units, holder_id ) );
+        UNWRAP_CHECK_T( auto const& holder_euro,
+                        holder_state.get_if<UnitState::euro>() );
+        UnitOwnership const& holder_ownership =
+            holder_euro.ownership;
+        if( !holder_ownership.holds<UnitOwnership::harbor>() )
+          continue;
+        // At this point we have a unit that is in the cargo of a
+        // unit that is on the high seas or in the harbor. Thus
+        // the cargo unit's orders should be "sentry."
+        REFL_VALIDATE(
+            unit.orders().holds<unit_orders::sentry>(),
+            "unit {} is in the cargo of another unit but its "
+            "orders are not 'sentry'; instead they are {}.",
+            unit.id(), holder_id, unit.orders() );
         break;
       }
       CASE( native ) { break; }
