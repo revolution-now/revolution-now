@@ -677,8 +677,10 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
       }
       case e::cheat_create_unit: {
         if( !cheat_mode_enabled( ss_ ) ) break;
+        // This has to be "active" and not "viewer" otherwise it
+        // won't work when the entire map is visible.
         maybe<e_player> const player =
-            player_for_role( ss_, e_player_role::viewer );
+            player_for_role( ss_, e_player_role::active );
         if( !player.has_value() ) break;
         auto const tile = cheat_target_square( ss_, ts_ );
         if( !tile.has_value() ) break;
