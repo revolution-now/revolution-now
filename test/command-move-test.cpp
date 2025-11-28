@@ -1157,9 +1157,6 @@ TEST_CASE( "[command-move] move off top edge of map" ) {
   Unit& caravel = w.add_unit_on_map(
       e_unit_type::caravel, { .x = 0, .y = 0 }, player.type );
 
-  auto const sail_high_seas = Field(
-      &ChoiceConfig::msg, StrContains( "sail the high seas?" ) );
-
   auto const handler = handle_command(
       w.engine(), w.ss(), w.ts(), w.agent(), player,
       caravel.id(), command::move{ .d = e_direction::n } );
@@ -1168,6 +1165,48 @@ TEST_CASE( "[command-move] move off top edge of map" ) {
   REQUIRE( w.units().coord_for( caravel.id() ).to_gfx() ==
            point{ .x = 0, .y = 0 } );
   REQUIRE( caravel.orders().holds<unit_orders::none>() );
+}
+
+TEST_WORLD( "[command-move] high seas sentries cargo units" ) {
+  using enum e_unit_type;
+  MockLandViewPlane mock_land_view;
+  MockIAgent& agent = this->agent();
+  planes().get().set_bottom<ILandViewPlane>( mock_land_view );
+  Player& player = default_player();
+
+  Unit const& ship = add_unit_on_map(
+      galleon, { .x = 6, .y = 1 }, player.type );
+  Unit& cargo1 = add_unit_in_cargo( free_colonist, ship.id() );
+  Unit& cargo2 = add_unit_in_cargo( free_colonist, ship.id() );
+  Unit& cargo3 = add_unit_in_cargo( free_colonist, ship.id() );
+  Unit& cargo4 = add_unit_in_cargo( free_colonist, ship.id() );
+  Unit& cargo5 = add_unit_in_cargo( free_colonist, ship.id() );
+  cargo1.clear_orders();
+  cargo2.sentry();
+  cargo3.fortify();
+  cargo4.orders() = unit_orders::go_to{};
+  cargo5.orders() = unit_orders::trade_route{};
+
+  // Make sure we're testing what we think we're testing.
+  BASE_CHECK( units().coord_for( ship.id() ).x ==
+              terrain().world_size_tiles().w - 3 );
+
+  auto const handler = handle_command(
+      engine(), ss(), ts(), agent, player, ship.id(),
+      command::move{ .d = e_direction::e } );
+  agent.EXPECT__should_sail_high_seas( ship.id() )
+      .returns( ui::e_confirm::yes );
+  REQUIRE( co_await_test( handler->confirm() ) );
+  mock_land_view.EXPECT__animate_if_visible( _ );
+  co_await_test( handler->perform() );
+
+  REQUIRE( is_unit_inbound( units(), ship.id() ) );
+  REQUIRE( ship.orders().holds<unit_orders::none>() );
+  REQUIRE( cargo1.orders().holds<unit_orders::sentry>() );
+  REQUIRE( cargo2.orders().holds<unit_orders::sentry>() );
+  REQUIRE( cargo3.orders().holds<unit_orders::sentry>() );
+  REQUIRE( cargo4.orders().holds<unit_orders::sentry>() );
+  REQUIRE( cargo5.orders().holds<unit_orders::sentry>() );
 }
 
 } // namespace

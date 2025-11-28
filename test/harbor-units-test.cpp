@@ -45,8 +45,8 @@ namespace {
 
 using namespace std;
 
-struct World : testing::World {
-  World() {
+struct world : testing::World {
+  world() {
     MapSquare const O = make_ocean();
     MapSquare const S = make_sea_lane();
     MapSquare const L = make_grassland();
@@ -72,7 +72,7 @@ struct World : testing::World {
 };
 
 TEST_CASE( "[harbor-units] is_unit_?" ) {
-  World w;
+  world w;
   Player& player = w.default_player();
   Coord coord{ .x = 8, .y = 5 };
 
@@ -142,7 +142,7 @@ TEST_CASE( "[harbor-units] is_unit_?" ) {
 }
 
 TEST_CASE( "[harbor-units] harbor_units_?" ) {
-  World w;
+  world w;
   Player& player = w.default_player();
   REQUIRE( w.old_world( player ).harbor_state.selected_unit ==
            nothing );
@@ -191,7 +191,7 @@ TEST_CASE( "[harbor-units] harbor_units_?" ) {
 }
 
 TEST_CASE( "[harbor-units] create_unit_in_harbor" ) {
-  World w;
+  world w;
   Player& player = w.default_player();
   UnitId id1 =
       create_unit_in_harbor( w.ss(), w.player( e_player::dutch ),
@@ -221,7 +221,7 @@ TEST_CASE( "[harbor-units] create_unit_in_harbor" ) {
 }
 
 TEST_CASE( "[harbor-units] unit_sail_to_new_world" ) {
-  World w;
+  world w;
   Player& player = w.default_player();
   REQUIRE( w.old_world( player ).harbor_state.selected_unit ==
            nothing );
@@ -239,25 +239,40 @@ TEST_CASE( "[harbor-units] unit_sail_to_new_world" ) {
         .port_status = PortStatus::outbound{ .turns = 0 } } );
 }
 
-TEST_CASE( "[harbor-units] unit_sail_to_harbor" ) {
-  World w;
-  Player& player = w.default_player();
+TEST_WORLD( "[harbor-units] unit_sail_to_harbor" ) {
+  using enum e_unit_type;
+  Player& player = default_player();
   Coord const coord{ .x = 8, .y = 5 };
-  UnitId caravel1 =
-      w.add_unit_on_map( e_unit_type::caravel, coord ).id();
-  REQUIRE( w.units().maybe_harbor_view_state_of( caravel1 ) ==
+  Unit const& ship = add_unit_on_map( galleon, coord );
+  Unit& cargo1 = add_unit_in_cargo( free_colonist, ship.id() );
+  Unit& cargo2 = add_unit_in_cargo( free_colonist, ship.id() );
+  Unit& cargo3 = add_unit_in_cargo( free_colonist, ship.id() );
+  Unit& cargo4 = add_unit_in_cargo( free_colonist, ship.id() );
+  Unit& cargo5 = add_unit_in_cargo( free_colonist, ship.id() );
+  cargo1.clear_orders();
+  cargo2.sentry();
+  cargo3.fortify();
+  cargo4.orders() = unit_orders::go_to{};
+  cargo5.orders() = unit_orders::trade_route{};
+  REQUIRE( units().maybe_harbor_view_state_of( ship.id() ) ==
            nothing );
-  unit_sail_to_harbor( w.ss(), caravel1 );
-  REQUIRE( w.old_world( player ).harbor_state.selected_unit ==
+  unit_sail_to_harbor( ss(), ship.id() );
+  REQUIRE( old_world( player ).harbor_state.selected_unit ==
            nothing );
-  REQUIRE( w.units().harbor_view_state_of( caravel1 ) ==
+  REQUIRE( units().harbor_view_state_of( ship.id() ) ==
            UnitOwnership::harbor{
              .port_status = PortStatus::inbound{ .turns = 0 },
              .sailed_from = coord } );
+  REQUIRE( ship.orders().holds<unit_orders::none>() );
+  REQUIRE( cargo1.orders().holds<unit_orders::sentry>() );
+  REQUIRE( cargo2.orders().holds<unit_orders::sentry>() );
+  REQUIRE( cargo3.orders().holds<unit_orders::sentry>() );
+  REQUIRE( cargo4.orders().holds<unit_orders::sentry>() );
+  REQUIRE( cargo5.orders().holds<unit_orders::sentry>() );
 }
 
 TEST_CASE( "[harbor-units] unit_move_to_port" ) {
-  World w;
+  world w;
   Player& player = w.default_player();
 
   // Add units.
@@ -405,7 +420,7 @@ TEST_CASE( "[harbor-units] unit_move_to_port" ) {
 }
 
 TEST_CASE( "[harbor-units] advance_unit_on_high_seas" ) {
-  World w;
+  world w;
   Player& player = w.default_player();
   Coord coord{ .x = 8, .y = 5 };
 
@@ -531,7 +546,7 @@ TEST_CASE( "[harbor-units] advance_unit_on_high_seas" ) {
 }
 
 TEST_CASE( "[harbor-units] find_new_world_arrival_square" ) {
-  World w;
+  world w;
   Coord const starting{ .x = 8, .y = 3 };
   Coord const ship_loc{ .x = 8, .y = 5 };
 
@@ -600,7 +615,7 @@ TEST_CASE( "[harbor-units] find_new_world_arrival_square" ) {
 TEST_CASE(
     "[harbor-units] find_new_world_arrival_square with foreign "
     "unit" ) {
-  World w;
+  world w;
 
   SECTION( "friendly unit" ) {
     Coord const ship_loc{ .x = 8, .y = 5 };
@@ -797,7 +812,7 @@ TEST_CASE(
 }
 
 TEST_CASE( "[harbor-units] sail west edge" ) {
-  World w;
+  world w;
   Coord const coord{ .x = 0, .y = 0 };
   UnitId id =
       w.add_unit_on_map( e_unit_type::caravel, coord ).id();
@@ -843,7 +858,7 @@ TEST_CASE( "[harbor-units] sail west edge" ) {
 }
 
 TEST_CASE( "[harbor-units] sail east edge" ) {
-  World w;
+  world w;
   Coord const coord{ .x = 9, .y = 0 };
   UnitId id =
       w.add_unit_on_map( e_unit_type::caravel, coord ).id();
@@ -874,7 +889,7 @@ TEST_CASE( "[harbor-units] sail east edge" ) {
 
 TEST_CASE(
     "[harbor-units] update_harbor_selected_unit idempotency" ) {
-  World w;
+  world w;
 
   Player& player = w.default_player();
 
@@ -934,7 +949,7 @@ TEST_CASE(
 TEST_CASE(
     "[harbor-units] update_harbor_selected_unit unit "
     "destruction" ) {
-  World w;
+  world w;
   Player& player = w.default_player();
   REQUIRE( w.old_world( player ).harbor_state.selected_unit ==
            nothing );
@@ -961,7 +976,7 @@ TEST_CASE(
 }
 
 TEST_CASE( "[harbor-units] unit ordering on dock" ) {
-  World w;
+  world w;
   vector<UnitId> expected;
 
   auto const f = [&] {
@@ -1008,7 +1023,7 @@ TEST_CASE( "[harbor-units] unit ordering on dock" ) {
 }
 
 TEST_CASE( "[harbor-units] unit ordering in port" ) {
-  World w;
+  world w;
   vector<UnitId> expected;
 
   auto const f = [&] {
@@ -1055,7 +1070,7 @@ TEST_CASE( "[harbor-units] unit ordering in port" ) {
 }
 
 TEST_CASE( "[harbor-units] try_select_in_port_ship" ) {
-  World w;
+  world w;
 
   Player& player = w.default_player();
 

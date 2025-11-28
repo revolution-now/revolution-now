@@ -359,6 +359,9 @@ void unit_sail_to_harbor( SS& ss, UnitId id ) {
          unit.orders().holds<unit_orders::trade_route>() );
   if( !unit.orders().holds<unit_orders::trade_route>() )
     unit.clear_orders();
+  for( auto const cargo_unit :
+       unit.cargo().items_of_type<Cargo::unit>() )
+    ss.units.unit_for( cargo_unit.id ).sentry();
   Player& player =
       player_for_player_or_die( ss.players, unit.player_type() );
   if( maybe<UnitOwnership::harbor const&> previous_harbor_state =

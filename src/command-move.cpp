@@ -1184,11 +1184,7 @@ wait<> TravelHandler::perform() {
       break;
     case e_travel_verdict::sail_high_seas:
     case e_travel_verdict::map_edge_high_seas: {
-      for( Cargo::unit const u :
-           unit.cargo().items_of_type<Cargo::unit>() ) {
-        auto& cargo_unit = ss_.units.unit_for( u.id );
-        cargo_unit.sentry();
-      }
+      // NOTE: this will sentry any units in the cargo.
       unit_sail_to_harbor( ss_, id );
       // Don't process it again this turn.
       unit.forfeight_mv_points();
