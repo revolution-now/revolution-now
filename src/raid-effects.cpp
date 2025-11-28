@@ -141,15 +141,14 @@ BraveAttackColonyEffect choose_ship_to_damage(
 }
 
 BraveAttackColonyEffect choose_building_to_destroy(
-    IRand& rand, Colony const& colony ) {
+    SSConst const& ss, IRand& rand, Colony const& colony ) {
+  using enum e_colony_building;
   auto const& conf       = config_natives.combat.colony_attack;
   static const auto none = BraveAttackColonyEffect::none{};
   // The SG states that, although undocumented, a colony with a
   // fort (or fortress, it is assumed) will not have any build-
   // ings destroyed during native raids.
-  if( colony_has_building_level( colony,
-                                 e_colony_building::fort ) )
-    return none;
+  if( colony_has_building_level( colony, fort ) ) return none;
 
   // First randomly choose a building slot.
   e_colony_building_slot const slot =
@@ -157,12 +156,22 @@ BraveAttackColonyEffect choose_building_to_destroy(
   if( !conf.building_slots_eligible_for_destruction[slot] )
     return none;
 
-  maybe<e_colony_building> const building =
-      building_for_slot( colony, slot );
+  auto const building = building_for_slot( colony, slot );
   if( !building.has_value() ) return none;
   // The OG does not destroy any of the initial colony buildings.
   if( config_colony.initial_colony_buildings[*building] )
     return none;
+  if( building == drydock ) {
+    // Should not destroy the drydock if there is a ship getting
+    // repaired there. Destroying the shipyard is ok because pre-
+    // sumably we will just revert back to a drydock.
+    auto const& units = ss.units.from_coord( colony.location );
+    for( GenericUnitId const generic_id : units ) {
+      Unit const& unit = ss.units.euro_unit_for( generic_id );
+      if( unit.orders().holds<unit_orders::damaged>() )
+        return none;
+    }
+  }
   return BraveAttackColonyEffect::building_destroyed{
     .which = *building };
 }
@@ -192,7 +201,7 @@ BraveAttackColonyEffect select_brave_attack_colony_effect(
     case e_brave_attack_colony_effect::money_stolen:
       return calculate_money_stolen( ss, rand, colony );
     case e_brave_attack_colony_effect::building_destroyed:
-      return choose_building_to_destroy( rand, colony );
+      return choose_building_to_destroy( ss, rand, colony );
     case e_brave_attack_colony_effect::ship_in_port_damaged:
       return choose_ship_to_damage( ss, rand, colony );
   }

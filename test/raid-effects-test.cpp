@@ -71,7 +71,7 @@ TEST_CASE( "[raid] select_brave_attack_colony_effect" ) {
 
   Colony& colony = W.add_colony( { .x = 1, .y = 1 } );
 
-  auto f = [&] {
+  auto const f = [&] [[clang::noinline]] {
     return select_brave_attack_colony_effect( W.ss(), W.rand(),
                                               colony );
   };
@@ -437,6 +437,60 @@ TEST_CASE( "[raid] select_brave_attack_colony_effect" ) {
       R.EXPECT__between_ints( 0, 16 - 1 ).returns( 15 );
       expected = BraveAttackColonyEffect::building_destroyed{
         .which = B::custom_house };
+      REQUIRE( f() == expected );
+    }
+
+    SECTION( "attempt=docks" ) {
+      buildings[B::docks] = true;
+      R.EXPECT__between_ints( 0, 100 - 1 ).returns( 74 );
+      // slot = offshore.
+      R.EXPECT__between_ints( 0, 16 - 1 ).returns( 10 );
+      expected = BraveAttackColonyEffect::building_destroyed{
+        .which = B::docks };
+      REQUIRE( f() == expected );
+    }
+
+    SECTION( "attempt=drydock" ) {
+      buildings[B::docks]   = true;
+      buildings[B::drydock] = true;
+      R.EXPECT__between_ints( 0, 100 - 1 ).returns( 74 );
+      // slot = offshore.
+      R.EXPECT__between_ints( 0, 16 - 1 ).returns( 10 );
+      expected = BraveAttackColonyEffect::building_destroyed{
+        .which = B::drydock };
+      REQUIRE( f() == expected );
+    }
+
+    // Do not destroy drydock if there is a ship being repaired
+    // in the colony.
+    SECTION( "attempt=drydock" ) {
+      Unit& unit    = W.add_unit_on_map( e_unit_type::caravel,
+                                         { .x = 1, .y = 1 } );
+      unit.orders() = unit_orders::damaged{};
+      buildings[B::docks]   = true;
+      buildings[B::drydock] = true;
+      R.EXPECT__between_ints( 0, 100 - 1 ).returns( 74 );
+      // slot = offshore.
+      R.EXPECT__between_ints( 0, 16 - 1 ).returns( 10 );
+      expected = BraveAttackColonyEffect::none{};
+      REQUIRE( f() == expected );
+    }
+
+    // Shipyard can be destroyed even if there is a ship being
+    // repaired in the colony, since we assume that we will re-
+    // vert back to a drydock.
+    SECTION( "attempt=drydock" ) {
+      Unit& unit    = W.add_unit_on_map( e_unit_type::caravel,
+                                         { .x = 1, .y = 1 } );
+      unit.orders() = unit_orders::damaged{};
+      buildings[B::docks]    = true;
+      buildings[B::drydock]  = true;
+      buildings[B::shipyard] = true;
+      R.EXPECT__between_ints( 0, 100 - 1 ).returns( 74 );
+      // slot = offshore.
+      R.EXPECT__between_ints( 0, 16 - 1 ).returns( 10 );
+      expected = BraveAttackColonyEffect::building_destroyed{
+        .which = B::shipyard };
       REQUIRE( f() == expected );
     }
   }
