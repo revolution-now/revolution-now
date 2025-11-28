@@ -130,9 +130,9 @@ valid_or<string> wrapped::UnitsState::validate() const {
         if( !unit.orders().holds<unit_orders::go_to>() )
           continue;
         UnitOwnership const& st = euro.ownership;
-        auto const is_in_cargo =
-            st.get_if<UnitOwnership::cargo>();
-        if( is_in_cargo.has_value() ) {
+        if( auto const is_in_cargo =
+                st.get_if<UnitOwnership::cargo>();
+            is_in_cargo.has_value() ) {
           UnitId const holder_id = is_in_cargo->holder;
           // Should have been validated already.
           auto const it = units.find( holder_id );
@@ -167,6 +167,63 @@ valid_or<string> wrapped::UnitsState::validate() const {
             is_on_map.has_value(),
             "unit {} is in goto mode but is not directly or "
             "indirectly on the map.",
+            unit.id() );
+        break;
+      }
+      CASE( native ) { break; }
+    }
+  }
+
+  // Check that units in trade route mode are either directly or
+  // indirectly on the map, or are on the high seas or in port.
+  for( auto const& [id, unit_state] : units ) {
+    SWITCH( unit_state ) {
+      CASE( euro ) {
+        ::rn::Unit const& unit = euro.unit;
+        if( !unit.orders().holds<unit_orders::trade_route>() )
+          continue;
+        UnitOwnership const& st = euro.ownership;
+        if( auto const is_in_cargo =
+                st.get_if<UnitOwnership::cargo>();
+            is_in_cargo.has_value() ) {
+          UnitId const holder_id = is_in_cargo->holder;
+          // Should have been validated already.
+          auto const it = units.find( holder_id );
+          CHECK( it != units.end(),
+                 "unit {} is being held in the cargo of unit {} "
+                 "but the latter unit id does not exist.",
+                 unit.id(), holder_id );
+          UnitState const& holder_state = it->second;
+          auto const holder_euro =
+              holder_state.get_if<UnitState::euro>();
+          REFL_VALIDATE(
+              holder_euro.has_value(),
+              "unit {} is being held in the cargo of unit {} "
+              "but the latter unit id is not a european unit.",
+              unit.id(), holder_id );
+          UnitOwnership const& holder_ownership =
+              holder_euro->ownership;
+          REFL_VALIDATE(
+              holder_ownership.holds<UnitOwnership::world>(),
+              "unit {} is in trade route mode but is in the "
+              "cargo of unit {} which is not on the map.",
+              unit.id(), holder_id );
+          // At this point we know the unit is in the cargo of
+          // another unit that is on the map, so we're good.
+          continue;
+        }
+        // The unit is not in the cargo of another unit, so it is
+        // required to be either on the map, high seas or in
+        // port, given that it is in trade route mode.
+        auto const is_on_map = st.get_if<UnitOwnership::world>();
+        auto const is_on_high_seas_or_in_port =
+            st.get_if<UnitOwnership::harbor>();
+        REFL_VALIDATE(
+            is_on_map.has_value() ||
+                is_on_high_seas_or_in_port.has_value(),
+            "unit {} is in trade route mode but is neither on "
+            "the map directly, on the map indirectly, on the "
+            "high seas, or in the harbor.",
             unit.id() );
         break;
       }
@@ -1029,12 +1086,6 @@ GenericUnitId UnitsState::next_unit_id() {
       GenericUnitId{ to_underlying( curr_id ) + 1 };
   o_.next_unit_id = new_id;
   return curr_id;
-}
-
-GenericUnitId UnitsState::last_unit_id() const {
-  CHECK( to_underlying( o_.next_unit_id ) > 0,
-         "no units yet created." );
-  return o_.next_unit_id;
 }
 
 std::unordered_set<GenericUnitId> const& UnitsState::from_coord(

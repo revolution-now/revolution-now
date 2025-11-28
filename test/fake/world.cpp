@@ -341,6 +341,26 @@ Unit& World::add_unit_in_port( e_unit_type type,
       type ) );
 }
 
+Unit& World::add_unit_sailing_to_port(
+    e_unit_type const type, maybe<e_player> const player ) {
+  UnitId const unit_id = create_unit_in_harbor(
+      ss(),
+      this->player( player.value_or( default_player_type_ ) ),
+      type );
+  unit_sail_to_harbor( ss(), unit_id );
+  return units().unit_for( unit_id );
+}
+
+Unit& World::add_unit_sailing_from_port(
+    e_unit_type const type, maybe<e_player> const player ) {
+  UnitId const unit_id = create_unit_in_harbor(
+      ss(),
+      this->player( player.value_or( default_player_type_ ) ),
+      type );
+  unit_sail_to_new_world( ss(), unit_id );
+  return units().unit_for( unit_id );
+}
+
 NativeUnit& World::add_native_unit_on_map(
     e_native_unit_type type, point const tile,
     DwellingId dwelling_id ) {

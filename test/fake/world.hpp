@@ -142,6 +142,12 @@ struct World {
   Unit& add_unit_in_port( e_unit_type type,
                           maybe<e_player> player = nothing );
 
+  Unit& add_unit_sailing_to_port(
+      e_unit_type type, maybe<e_player> player = nothing );
+
+  Unit& add_unit_sailing_from_port(
+      e_unit_type type, maybe<e_player> player = nothing );
+
   NativeUnit& add_native_unit_on_map( e_native_unit_type type,
                                       gfx::point tile,
                                       DwellingId dwelling_id );

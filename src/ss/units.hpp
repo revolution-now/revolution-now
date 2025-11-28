@@ -50,8 +50,6 @@ struct UnitsState {
   // variants. Any more complicated game logic that gets layered
   // on top of these should go elsewhere.
 
-  GenericUnitId last_unit_id() const;
-
   std::unordered_map<GenericUnitId, UnitState> const& all()
       const;
   std::unordered_map<UnitId, UnitState::euro const*> const&
