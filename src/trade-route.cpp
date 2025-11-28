@@ -126,6 +126,12 @@ wait<maybe<TradeRouteId>> ask_select_trade_route(
   co_return co_await gui.optional_choice_int_key( config );
 }
 
+[[nodiscard]] e_trade_route_type trade_route_type_for_unit(
+    Unit const& unit ) {
+  using enum e_trade_route_type;
+  return unit.desc().ship ? sea : land;
+}
+
 } // namespace
 
 /****************************************************************
@@ -335,6 +341,8 @@ maybe<unit_orders::trade_route> sanitize_unit_trade_route_orders(
   auto const route =
       look_up_trade_route( ss.trade_routes, orders.id );
   if( !route.has_value() ) return nothing;
+  if( route->type != trade_route_type_for_unit( unit ) )
+    return nothing;
   // This can happen if the wagon train is captured in a colony
   // while on a trade route.
   if( route->player != unit.player_type() ) return nothing;
@@ -703,16 +711,8 @@ vector<TradeRouteId> find_eligible_trade_routes_for_unit(
   vector<TradeRouteId> res;
   for( auto const& [id, route] : ss.trade_routes.routes ) {
     if( route.player != unit.player_type() ) continue;
-    switch( route.type ) {
-      case e_trade_route_type::land: {
-        if( unit.desc().ship ) continue;
-        break;
-      }
-      case e_trade_route_type::sea: {
-        if( !unit.desc().ship ) continue;
-        break;
-      }
-    }
+    if( route.type != trade_route_type_for_unit( unit ) )
+      continue;
     // NOTE: we don't check the number of stops here, that will
     // be checked later.
     res.push_back( id );

@@ -550,6 +550,12 @@ TEST_CASE( "[trade-route] sanitize_unit_trade_route_orders" ) {
     REQUIRE( f() == nothing );
   }
 
+  SECTION( "wrong type" ) {
+    w.trade_routes().routes.at( 1 ).type =
+        e_trade_route_type::sea;
+    REQUIRE( f() == nothing );
+  }
+
   SECTION( "empty stops" ) {
     w.trade_routes().routes.at( 1 ).stops.clear();
     REQUIRE( f() == nothing );
