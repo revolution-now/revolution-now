@@ -42,6 +42,7 @@
 #include "ss/revolution.rds.hpp"
 #include "ss/settings.hpp"
 #include "ss/terrain.hpp"
+#include "ss/trade-route.rds.hpp"
 #include "ss/unit.hpp"
 #include "ss/units.hpp"
 
@@ -1004,6 +1005,37 @@ TEST_CASE( "[command-move] goto: high seas via sea lane" ) {
   }
 }
 
+TEST_CASE(
+    "[command-move] trade route: high seas via sea lane" ) {
+  world w;
+  MockLandViewPlane mock_land_view;
+  w.planes().get().set_bottom<ILandViewPlane>( mock_land_view );
+  Player& player = w.default_player();
+
+  Unit& caravel = w.add_unit_on_map(
+      e_unit_type::caravel, { .x = 6, .y = 1 }, player.type );
+
+  // Make sure we're testing what we think we're testing.
+  BASE_CHECK( w.units().coord_for( caravel.id() ).x ==
+              w.terrain().world_size_tiles().w - 3 );
+
+  w.trade_routes().routes[1] = TradeRoute{
+    .id    = 1,
+    .stops = {
+      TradeRouteStop{ .target = TradeRouteTarget::harbor{} } } };
+  caravel.orders() =
+      unit_orders::trade_route{ .id = 1, .en_route_to_stop = 0 };
+  auto const handler = handle_command(
+      w.engine(), w.ss(), w.ts(), w.agent(), player,
+      caravel.id(), command::move{ .d = e_direction::e } );
+  bool const confirmed = co_await_test( handler->confirm() );
+  REQUIRE( confirmed );
+  mock_land_view.EXPECT__animate_if_visible( _ );
+  co_await_test( handler->perform() );
+  REQUIRE( is_unit_inbound( w.units(), caravel.id() ) );
+  REQUIRE( caravel.orders().holds<unit_orders::trade_route>() );
+}
+
 TEST_CASE( "[command-move] goto: high seas via map edge" ) {
   world w;
   MockLandViewPlane mock_land_view;
@@ -1031,6 +1063,37 @@ TEST_CASE( "[command-move] goto: high seas via map edge" ) {
 }
 
 TEST_CASE(
+    "[command-move] trade route: high seas via map edge" ) {
+  world w;
+  MockLandViewPlane mock_land_view;
+  w.planes().get().set_bottom<ILandViewPlane>( mock_land_view );
+  Player& player = w.default_player();
+
+  Unit& caravel = w.add_unit_on_map(
+      e_unit_type::caravel, { .x = 8, .y = 1 }, player.type );
+
+  // Make sure we're testing what we think we're testing.
+  BASE_CHECK( w.units().coord_for( caravel.id() ).x ==
+              w.terrain().world_size_tiles().w - 1 );
+
+  w.trade_routes().routes[1] = TradeRoute{
+    .id    = 1,
+    .stops = {
+      TradeRouteStop{ .target = TradeRouteTarget::harbor{} } } };
+  caravel.orders() =
+      unit_orders::trade_route{ .id = 1, .en_route_to_stop = 0 };
+  auto const handler = handle_command(
+      w.engine(), w.ss(), w.ts(), w.agent(), player,
+      caravel.id(), command::move{ .d = e_direction::e } );
+  bool const confirmed = co_await_test( handler->confirm() );
+  REQUIRE( confirmed );
+  mock_land_view.EXPECT__animate_if_visible( _ );
+  co_await_test( handler->perform() );
+  REQUIRE( is_unit_inbound( w.units(), caravel.id() ) );
+  REQUIRE( caravel.orders().holds<unit_orders::trade_route>() );
+}
+
+TEST_CASE(
     "[command-move] goto: ship in colony port clears orders" ) {
   world w;
   MockLandViewPlane mock_land_view;
@@ -1055,6 +1118,36 @@ TEST_CASE(
   REQUIRE( w.units().coord_for( caravel.id() ).to_gfx() ==
            point{ .x = 1, .y = 0 } );
   REQUIRE( caravel.orders().holds<unit_orders::none>() );
+}
+
+TEST_CASE(
+    "[command-move] trade route: ship in colony port does NOT "
+    "clear orders" ) {
+  world w;
+  MockLandViewPlane mock_land_view;
+  w.planes().get().set_bottom<ILandViewPlane>( mock_land_view );
+  Player& player = w.default_player();
+
+  w.add_colony( { .x = 1, .y = 0 } );
+  Unit& caravel = w.add_unit_on_map(
+      e_unit_type::caravel, { .x = 0, .y = 0 }, player.type );
+  w.trade_routes().routes[1] = TradeRoute{
+    .id    = 1,
+    .stops = { TradeRouteStop{
+      .target = TradeRouteTarget::colony{ .colony_id = 1 } } } };
+  caravel.orders() =
+      unit_orders::trade_route{ .id = 1, .en_route_to_stop = 0 };
+
+  auto const handler = handle_command(
+      w.engine(), w.ss(), w.ts(), w.agent(), player,
+      caravel.id(), command::move{ .d = e_direction::e } );
+  bool const confirmed = co_await_test( handler->confirm() );
+  REQUIRE( confirmed );
+  mock_land_view.EXPECT__animate_if_visible( _ );
+  co_await_test( handler->perform() );
+  REQUIRE( w.units().coord_for( caravel.id() ).to_gfx() ==
+           point{ .x = 1, .y = 0 } );
+  REQUIRE( caravel.orders().holds<unit_orders::trade_route>() );
 }
 
 TEST_CASE( "[command-move] move off top edge of map" ) {

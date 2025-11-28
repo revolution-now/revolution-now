@@ -39,6 +39,10 @@ TODO:
   * Go through the trade route files and put more stuff in the
     configs.
 
+  * Units in the harbor on trade routes should have that status
+    shown, and there should be a menu option when clicking on it
+    to clear the trade route status.
+
   * In the OG, wagon trains and ships end their turn when en-
     tering a colony, whether on a trade route or not. Given how
     the mechanics of trade routes work where the unit arrives in
