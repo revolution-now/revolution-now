@@ -39,6 +39,8 @@ struct MockLandViewPlane : ILandViewPlane {
   MOCK_METHOD( wait<>, center_on_tile, ( gfx::point ), () );
   MOCK_METHOD( wait<>, ensure_visible_unit, ( GenericUnitId ),
                () );
+  MOCK_METHOD( wait<>, hold_unit_in_front, ( GenericUnitId ),
+               () );
   MOCK_METHOD( wait<>, show_hidden_terrain, (), () );
   MOCK_METHOD( wait<LandViewPlayerInput>, show_view_mode,
                ( ViewModeOptions ), () );

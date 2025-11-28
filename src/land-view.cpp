@@ -2279,6 +2279,16 @@ wait<> LandViewPlane::ensure_visible_unit( GenericUnitId id ) {
   return impl_->animator_.ensure_visible_unit( id );
 }
 
+wait<> LandViewPlane::hold_unit_in_front(
+    GenericUnitId const id ) {
+  auto const tile =
+      coord_for_unit_multi_ownership( impl_->ss_, id );
+  if( !tile.has_value() ) co_return;
+  co_await ensure_visible( *tile );
+  AnimationSequence const seq = anim_seq_unit_to_front( id );
+  co_await animate_always_and_hold( seq );
+}
+
 wait<> LandViewPlane::show_hidden_terrain() {
   return impl_->show_hidden_terrain();
 }

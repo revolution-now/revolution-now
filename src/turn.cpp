@@ -1203,10 +1203,10 @@ wait<> show_view_mode( IEngine& engine, SS& ss, TS& ts,
 // will ask for orders.
 wait<> advance_unit( IEngine& engine, SS& ss, TS& ts,
                      Player& player, IAgent& agent,
-                     deque<UnitId>& q, UnitId const id ) {
-  Unit& unit = ss.units.unit_for( id );
+                     deque<UnitId>& q, UnitId const unit_id ) {
+  Unit& unit = ss.units.unit_for( unit_id );
   CHECK( !should_remove_unit_from_queue( unit ) );
-  CHECK( !is_unit_on_high_seas( ss, id ),
+  CHECK( !is_unit_on_high_seas( ss, unit_id ),
          "units on the high seas are advanced elsewhere." );
 
   if( unit.orders().holds<unit_orders::fortifying>() ) {
@@ -1272,9 +1272,9 @@ wait<> advance_unit( IEngine& engine, SS& ss, TS& ts,
     perform_road_work( ss, ts, unit );
     if( unit.composition()[e_unit_inventory::tools] == 0 ) {
       CHECK( unit.orders().holds<unit_orders::none>() );
-      co_await agent.pan_unit( id );
+      co_await agent.pan_unit( unit_id );
       co_await agent.signal(
-          signal::PioneerExhaustedTools{ .unit_id = id },
+          signal::PioneerExhaustedTools{ .unit_id = unit_id },
           "Our pioneer has exhausted all of its tools." );
     }
     co_return;
@@ -1294,14 +1294,14 @@ wait<> advance_unit( IEngine& engine, SS& ss, TS& ts,
           yield.yield_to_add_to_colony );
       co_await agent.signal(
           signal::ForestClearedNearColony{
-            .unit_id = id, .colony_id = yield.colony_id },
+            .unit_id = unit_id, .colony_id = yield.colony_id },
           msg );
     }
     if( unit.composition()[e_unit_inventory::tools] == 0 ) {
       CHECK( unit.orders().holds<unit_orders::none>() );
-      co_await agent.pan_unit( id );
+      co_await agent.pan_unit( unit_id );
       co_await agent.signal(
-          signal::PioneerExhaustedTools{ .unit_id = id },
+          signal::PioneerExhaustedTools{ .unit_id = unit_id },
           "Our pioneer has exhausted all of its tools." );
     }
     co_return;
@@ -1310,7 +1310,7 @@ wait<> advance_unit( IEngine& engine, SS& ss, TS& ts,
   if( auto const go_to =
           unit.orders().get_if<unit_orders::go_to>();
       go_to.has_value() ) {
-    EvolveGoto const evolve_goto = agent.evolve_goto( id );
+    EvolveGoto const evolve_goto = agent.evolve_goto( unit_id );
     SWITCH( evolve_goto ) {
       CASE( abort ) {
         unit.clear_orders();
@@ -1326,9 +1326,9 @@ wait<> advance_unit( IEngine& engine, SS& ss, TS& ts,
         co_await ts.planes.get()
             .get_bottom<ILandViewPlane>()
             .ensure_visible( prev_tile );
-        auto const handler =
-            command_handler( engine, ss, ts, agent, player, id,
-                             command::move{ .d = move.to } );
+        auto const handler = command_handler(
+            engine, ss, ts, agent, player, unit_id,
+            command::move{ .d = move.to } );
         CHECK( handler );
         auto const run_result = co_await handler->run();
         // This always needs to happen.
@@ -1336,7 +1336,7 @@ wait<> advance_unit( IEngine& engine, SS& ss, TS& ts,
           prioritize_unit( q, id );
         // NOTE: !! The unit may no longer exist here if e.g. it
         // steps into an LCR and dies.
-        if( !ss.units.exists( id ) ) co_return;
+        if( !ss.units.exists( unit_id ) ) co_return;
         if( !run_result.order_was_run ) {
           unit.clear_orders();
           break;
@@ -1413,32 +1413,45 @@ wait<> advance_unit( IEngine& engine, SS& ss, TS& ts,
         ss.as_const, player, ts.gui, ss.trade_routes,
         ts.agents()[player.type] );
     EvolveTradeRoute const evolve_route =
-        agent.evolve_trade_route( id );
+        agent.evolve_trade_route( unit_id );
+    auto& landview =
+        ts.planes.get().get_bottom<ILandViewPlane>();
     SWITCH( evolve_route ) {
       CASE( abort ) {
         unit.clear_orders();
         break;
       }
       CASE( abort_no_path ) {
+        unit.clear_orders();
+        auto const _ = landview.hold_unit_in_front( unit_id );
+        co_await agent.message_box(
+            "Our [{}] was not able to find a path to its next "
+            "trade route stop.",
+            unit.desc().name );
         break;
       }
       CASE( wait_one_unique_stop ) {
         unit.forfeight_mv_points();
+        auto const _ = landview.hold_unit_in_front( unit_id );
+        co_await agent.message_box(
+            "Our [{}] is on a trade route that contains only "
+            "one stop!",
+            unit.desc().name );
         break;
       }
       CASE( sail_to_new_world ) {
-        unit_sail_to_new_world( ss, unit.id() );
+        unit_sail_to_new_world( ss, unit_id );
         break;
       }
       CASE( move ) {
         // Units with trade_route orders can be on the high seas
         // or in port, but those should have been removed al-
         // ready.
-        point const prev_tile = coord_for_unit_indirect_or_die(
-            ss.units, unit.id() );
-        auto const handler =
-            command_handler( engine, ss, ts, agent, player, id,
-                             command::move{ .d = move.to } );
+        point const prev_tile =
+            coord_for_unit_indirect_or_die( ss.units, unit_id );
+        auto const handler = command_handler(
+            engine, ss, ts, agent, player, unit_id,
+            command::move{ .d = move.to } );
         CHECK( handler );
         auto const run_result = co_await handler->run();
         // This always needs to happen.
@@ -1446,7 +1459,7 @@ wait<> advance_unit( IEngine& engine, SS& ss, TS& ts,
           prioritize_unit( q, id );
         // NOTE: !! The unit may no longer exist here if e.g. it
         // steps into an LCR and dies.
-        if( !ss.units.exists( id ) ) co_return;
+        if( !ss.units.exists( unit_id ) ) co_return;
         if( !run_result.order_was_run ) {
           unit.clear_orders();
           break;
@@ -1480,7 +1493,7 @@ wait<> advance_unit( IEngine& engine, SS& ss, TS& ts,
         // will be aborted if there isn't a path. But just for
         // safety we'll do it anyway.
         auto const new_tile =
-            coord_for_unit_indirect( ss.units, unit.id() );
+            coord_for_unit_indirect( ss.units, unit_id );
         bool const did_not_move =
             new_tile.has_value() && new_tile == prev_tile;
         if( did_not_move &&
@@ -1494,12 +1507,12 @@ wait<> advance_unit( IEngine& engine, SS& ss, TS& ts,
     co_return;
   }
 
-  if( is_unit_in_port( ss.units, id ) ) {
+  if( is_unit_in_port( ss.units, unit_id ) ) {
     finish_turn( unit );
     co_return;
   }
 
-  if( !is_unit_on_map_indirect( ss.units, id ) ) {
+  if( !is_unit_on_map_indirect( ss.units, unit_id ) ) {
     finish_turn( unit );
     co_return;
   }

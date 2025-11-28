@@ -50,6 +50,11 @@ struct ILandViewPlane {
 
   virtual wait<> ensure_visible_unit( GenericUnitId id ) = 0;
 
+  // This is meant to run in the background to both pan to a unit
+  // and then bring it to the front and hold it visible e.g.
+  // while a message is shown concerning it.
+  virtual wait<> hold_unit_in_front( GenericUnitId id ) = 0;
+
   // Does a brief animation to reveal the underlying ground tiles
   // in a way similar to the OG, without revealing any informa-
   // tion to the player that they wouldn't otherwise know (i.e.
@@ -132,6 +137,7 @@ struct LandViewPlane : ILandViewPlane {
   wait<> ensure_visible( Coord const& coord ) override;
   wait<> center_on_tile( gfx::point tile ) override;
   wait<> ensure_visible_unit( GenericUnitId id ) override;
+  wait<> hold_unit_in_front( GenericUnitId id ) override;
 
   wait<> show_hidden_terrain() override;
 

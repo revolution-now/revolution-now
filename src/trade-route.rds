@@ -76,6 +76,6 @@ sumtype.EvolveTradeRoute {
   # turn. However, if the is only one unique stop for the entire
   # route (it may or may not appear multiple times) then we need
   # to wait a turn after loading/unloading to avoid going into an
-  # infinite loop.
+  # infinite loop. Also, we want to notify the user of this.
   wait_one_unique_stop {},
 }

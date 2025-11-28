@@ -17,15 +17,6 @@ TODO:
     but where the quantity is capped at 100. We may want to just
     use the same algo as for wagon train loading.
 
-  * Need to handle the case when there is only one colony in the
-    route. Currently we do handle it in the sense that we don'
-    get into an infinite loop and we clear the orders of the
-    unit. However, the OG shows a message. We should probably do
-    this also, because there is the possibility that a trade
-    route could be left with only one stop if e.g. a colony on
-    the route gets captured or destroyed, and we don't want the
-    player to be confused about why the trade route stopped.
-
   * When a wagon train cannot find a path to its next stop it
     will clear its orders. Maybe a message should be displayed in
     this case. Or maybe not a big deal because the trade route
@@ -210,3 +201,12 @@ Done:
     trade route respects boycotts.
 
   * Need a list of default name suffixes for trade routes.
+
+  * Need to handle the case when there is only one colony in the
+    route. Currently we do handle it in the sense that we don't
+    get into an infinite loop and we clear the orders of the
+    unit. However, the OG shows a message. We should probably do
+    this also, because there is the possibility that a trade
+    route could be left with only one stop if e.g. a colony on
+    the route gets captured or destroyed, and we don't want the
+    player to be confused about why the trade route stopped.
