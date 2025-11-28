@@ -668,7 +668,8 @@ PanelLayout panel_layout( SSConst const& ss,
            PanelColonyPlan{
              .tile = icon_colony.tile,
              .options =
-                 ColonyRenderOptions{ .render_name       = false,
+                 ColonyRenderOptions{ .render_building   = true,
+                                      .render_name       = false,
                                       .render_population = false,
                                       .render_flag = true } },
            offset );

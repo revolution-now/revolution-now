@@ -111,9 +111,19 @@ void render_native_unit_depixelate_to(
 e_tile houses_tile_for_colony( Colony const& colony );
 
 struct ColonyRenderOptions {
+  bool render_building   = true;
   bool render_name       = true;
   bool render_population = true;
   bool render_flag       = true;
+
+  static ColonyRenderOptions with_all_off() {
+    return ColonyRenderOptions{
+      .render_building   = false,
+      .render_name       = false,
+      .render_population = false,
+      .render_flag       = false,
+    };
+  }
 
   auto operator<=>( ColonyRenderOptions const& ) const = default;
 };

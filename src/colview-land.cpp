@@ -445,7 +445,8 @@ void ColonyLandView::draw_land_3x3( rr::Renderer& renderer,
         local_coord * g_tile_delta - Delta{ .w = 6, .h = 6 },
         viz, colony_square.to_gfx(), ss_,
         ss_.colonies.colony_for( *maybe_col_id ),
-        ColonyRenderOptions{ .render_name       = false,
+        ColonyRenderOptions{ .render_building   = true,
+                             .render_name       = false,
                              .render_population = false,
                              .render_flag       = true } );
   }

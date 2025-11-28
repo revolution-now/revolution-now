@@ -1541,7 +1541,8 @@ void RenderedColonyView::draw( rr::Renderer& renderer,
                                Coord const where ) const {
   render_colony( renderer, where, *viz_, colony_.location, ss_,
                  colony_,
-                 ColonyRenderOptions{ .render_name       = false,
+                 ColonyRenderOptions{ .render_building   = true,
+                                      .render_name       = false,
                                       .render_population = true,
                                       .render_flag = true } );
 }

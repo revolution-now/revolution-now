@@ -720,17 +720,30 @@ Coord LandViewRenderer::colony_pixel_coord_from_tile(
   return pixel_coord;
 }
 
-static ColonyRenderOptions const kDefaultColonyRenderOptions{
-  .render_name       = true,
-  .render_population = true,
-  .render_flag       = true };
-
 void LandViewRenderer::render_colony(
     Colony const& colony ) const {
-  rn::render_colony(
-      renderer_, colony_pixel_coord_from_tile( colony.location ),
-      *viz_, colony.location, ss_, colony,
-      kDefaultColonyRenderOptions );
+  // First render with everything on except for the name.
+  {
+    ColonyRenderOptions render_options;
+    render_options.render_name = false;
+    rn::render_colony(
+        renderer_,
+        colony_pixel_coord_from_tile( colony.location ), *viz_,
+        colony.location, ss_, colony, render_options );
+  }
+  // Now render only the name in the normal buffer because it
+  // needs to go above the obfuscation layers.
+  {
+    ColonyRenderOptions render_options =
+        ColonyRenderOptions::with_all_off();
+    render_options.render_name = true;
+    SCOPED_RENDERER_MOD_SET( buffer_mods.buffer,
+                             rr::e_render_buffer::normal );
+    rn::render_colony(
+        renderer_,
+        colony_pixel_coord_from_tile( colony.location ), *viz_,
+        colony.location, ss_, colony, render_options );
+  }
 }
 
 void LandViewRenderer::render_colony_depixelate(

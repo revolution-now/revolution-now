@@ -470,19 +470,22 @@ void render_colony( rr::Renderer& renderer, Coord const where,
                     IVisibility const& viz, point const map_tile,
                     SSConst const& ss, Colony const& colony,
                     ColonyRenderOptions const& options ) {
-  e_tile const tile      = houses_tile_for_colony( colony );
-  auto const walls_back  = back_walls_tile_for_colony( colony );
-  auto const walls_front = front_walls_tile_for_colony( colony );
-  bool const has_walls =
-      walls_back.has_value() && walls_front.has_value();
-  if( has_walls ) {
-    render_sprite( renderer, where, *walls_back );
-    render_sprite( renderer, where, tile );
-    render_large_sprite_with_forest_burrowing(
-        viz, renderer, where, map_tile, *walls_front );
-  } else {
-    render_large_sprite_with_forest_burrowing(
-        viz, renderer, where, map_tile, tile );
+  if( options.render_building ) {
+    e_tile const tile     = houses_tile_for_colony( colony );
+    auto const walls_back = back_walls_tile_for_colony( colony );
+    auto const walls_front =
+        front_walls_tile_for_colony( colony );
+    bool const has_walls =
+        walls_back.has_value() && walls_front.has_value();
+    if( has_walls ) {
+      render_sprite( renderer, where, *walls_back );
+      render_sprite( renderer, where, tile );
+      render_large_sprite_with_forest_burrowing(
+          viz, renderer, where, map_tile, *walls_front );
+    } else {
+      render_large_sprite_with_forest_burrowing(
+          viz, renderer, where, map_tile, tile );
+    }
   }
   auto const& player_conf = player_obj( colony.player );
   if( options.render_flag ) {
