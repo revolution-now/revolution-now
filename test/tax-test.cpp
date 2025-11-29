@@ -18,6 +18,7 @@
 #include "test/mocks/iagent.hpp"
 #include "test/mocks/igui.hpp"
 #include "test/mocks/irand.hpp"
+#include "test/util/coro.hpp"
 
 // Revolution Now
 #include "src/connectivity.hpp"
@@ -47,9 +48,9 @@ using namespace std;
 /****************************************************************
 ** Fake World Setup
 *****************************************************************/
-struct World : testing::World {
+struct world : testing::World {
   using Base = testing::World;
-  World() : Base() {
+  world() : Base() {
     add_default_player();
     create_default_map();
   }
@@ -73,7 +74,7 @@ struct World : testing::World {
 ** Test Cases
 *****************************************************************/
 TEST_CASE( "[tax] try_trade_boycotted_commodity" ) {
-  World W;
+  world W;
   Player& player   = W.default_player();
   e_commodity type = {};
   wait<> w         = make_wait<>();
@@ -176,7 +177,7 @@ TEST_CASE( "[tax] try_trade_boycotted_commodity" ) {
 }
 
 TEST_CASE( "[tax] back_tax_for_boycotted_commodity" ) {
-  World W;
+  world W;
   Player& player   = W.default_player();
   e_commodity type = {};
   int expected     = 0;
@@ -208,7 +209,7 @@ TEST_CASE( "[tax] back_tax_for_boycotted_commodity" ) {
 }
 
 TEST_CASE( "[tax] apply_tax_result" ) {
-  World W;
+  world W;
   Player& player          = W.default_player();
   int next_tax_event_turn = 0;
   TaxChangeResult change;
@@ -287,7 +288,7 @@ TEST_CASE( "[tax] prompt_for_tax_change_result" ) {
 #ifdef COMPILER_GCC
   return;
 #endif
-  World W;
+  world W;
   Player& player    = W.default_player();
   MockIAgent& agent = W.agent();
   TaxChangeProposal proposal;
@@ -417,7 +418,7 @@ TEST_CASE( "[tax] prompt_for_tax_change_result" ) {
 }
 
 TEST_CASE( "[tax] compute_tax_change" ) {
-  World W;
+  world W;
   Player& player = W.default_player();
   TaxUpdateComputation expected;
 
@@ -592,7 +593,7 @@ TEST_CASE( "[tax] compute_tax_change" ) {
 TEST_CASE(
     "[tax] compute_tax_change skips colonies without ocean "
     "access" ) {
-  World W;
+  world W;
   Player& player = W.default_player();
   TaxUpdateComputation expected;
 
@@ -667,7 +668,7 @@ TEST_CASE(
 }
 
 TEST_CASE( "[tax] start_of_turn_tax_check" ) {
-  World W;
+  world W;
   Player& player    = W.default_player();
   MockIAgent& agent = W.agent();
 
@@ -776,8 +777,48 @@ TEST_CASE( "[tax] start_of_turn_tax_check" ) {
   REQUIRE( W.old_world( player ).market == market_saved );
 }
 
+// This tests that we don't crash if the start of turn tax check
+// runs and the player has manually adjusted the tax rate to be
+// out of the normally allowed bounds, then the "tax decrease"
+// option gets selected.
+TEST_CASE( "[tax] start_of_turn_tax_check (out of range)" ) {
+  world w;
+  Player& player = w.default_player();
+
+  auto const f = [&] [[clang::noinline]] {
+    co_await_test( start_of_turn_tax_check(
+        w.ss(), w.rand(), w.map_updater().connectivity(), player,
+        w.agent() ) );
+  };
+
+  w.settings().game_setup_options.difficulty =
+      e_difficulty::discoverer;
+
+  w.rand().EXPECT__between_ints( 18, 22 ).returns( 18 );
+
+  w.turn().time_point.turns                       = 38;
+  w.old_world( player ).taxes.next_tax_event_turn = 37;
+  w.old_world( player ).taxes.tax_rate            = 80;
+
+  // Make sure we're testing what we think we're testing.
+  BASE_CHECK(
+      w.old_world( player ).taxes.tax_rate >
+      config_old_world
+          .taxes[w.ss().settings.game_setup_options.difficulty]
+          .maximum_tax_rate );
+
+  auto [colony1, founder1] =
+      w.found_colony_with_new_unit( Coord{} );
+  colony1.name = "my colony 1";
+  colony1.sons_of_liberty.num_rebels_from_bells_only = .3;
+
+  REQUIRE( w.old_world( player ).taxes.tax_rate == 80 );
+  f();
+  REQUIRE( w.old_world( player ).taxes.tax_rate == 80 );
+}
+
 TEST_CASE( "[tax] compute_tax_change when over max" ) {
-  World W;
+  world W;
   Player& player = W.default_player();
   TaxUpdateComputation expected;
 
@@ -792,20 +833,11 @@ TEST_CASE( "[tax] compute_tax_change when over max" ) {
 
   W.rand().EXPECT__between_ints( 14, 18 ).returns( 13 );
 
-  W.turn().time_point.turns                       = 37;
-  W.old_world( player ).taxes.next_tax_event_turn = 37;
-
   W.turn().time_point.turns                       = 38;
   W.old_world( player ).taxes.next_tax_event_turn = 37;
 
   W.found_colony_with_new_unit( Coord{} );
   W.found_colony_with_new_unit( Coord{ .x = 2 } );
-
-  // Tax change amount.
-  W.rand().EXPECT__between_ints( 1, 8 ).returns( 4 );
-
-  // Tax increase probability.
-  W.rand().EXPECT__bernoulli( .98 ).returns( true );
 
   W.old_world( player ).taxes.tax_rate = 76;
   BASE_CHECK(

@@ -185,7 +185,7 @@ TaxUpdateComputation compute_tax_change(
   if( state.next_tax_event_turn > turn )
     // Most common case, we have nothing to do.
     return update;
-  auto& tax_config =
+  auto const& tax_config =
       config_old_world
           .taxes[ss.settings.game_setup_options.difficulty];
   int const next =
@@ -207,6 +207,19 @@ TaxUpdateComputation compute_tax_change(
     // colonies later in the game, the OG also pauses tax in-
     // creases.
     return update;
+  int const curr_tax =
+      old_world_state( ss, player.type ).taxes.tax_rate;
+  if( curr_tax > tax_config.maximum_tax_rate )
+    // This will happen when the player uses cheat mode to fiddle
+    // with the tax rate, specifically making it higher than the
+    // maximum that is normally possible on the current diffi-
+    // culty level. Or they could have used modding or cheat mode
+    // to lower the difficulty level mid-game. We should be de-
+    // fensive here and not do anything (even lowering the tax
+    // rate) because if we do then we risk check-failing later in
+    // the subsequent logic that ensures that the tax rate
+    // doesn't end up outside the allowed range from the config.
+    return update;
   // We have a tax event this turn. Whatever happens, we will
   // need an amount.
   int const amount =
@@ -215,8 +228,6 @@ TaxUpdateComputation compute_tax_change(
   // if it's the latter then our job is easy.
   bool const increase =
       rand.bernoulli( tax_config.tax_increase.probability );
-  int const curr_tax =
-      old_world_state( ss, player.type ).taxes.tax_rate;
   if( !increase ) {
     if( curr_tax == 0 ) return update;
     // Make sure the tax rate doesn't go below zero.
@@ -228,7 +239,7 @@ TaxUpdateComputation compute_tax_change(
     return update;
   }
   // We have an increase.
-  if( curr_tax >= tax_config.maximum_tax_rate ) return update;
+  if( curr_tax == tax_config.maximum_tax_rate ) return update;
   int const new_tax_rate =
       std::min( curr_tax + amount, tax_config.maximum_tax_rate );
   int const clamped_amount = new_tax_rate - curr_tax;
