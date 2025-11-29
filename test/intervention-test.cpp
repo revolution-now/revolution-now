@@ -177,7 +177,19 @@ TEST_CASE( "[intervention] should_trigger_intervention" ) {
   REQUIRE_FALSE( f() );
 
   difficulty                                    = conquistador;
-  player.revolution.status                      = lost;
+  player.revolution.status                      = lost_war;
+  player.revolution.intervention_force_deployed = false;
+  player.bells                                  = 5000;
+  REQUIRE_FALSE( f() );
+
+  difficulty               = conquistador;
+  player.revolution.status = time_up_pre_declaration;
+  player.revolution.intervention_force_deployed = false;
+  player.bells                                  = 5000;
+  REQUIRE_FALSE( f() );
+
+  difficulty               = conquistador;
+  player.revolution.status = time_up_post_declaration;
   player.revolution.intervention_force_deployed = false;
   player.bells                                  = 5000;
   REQUIRE_FALSE( f() );
