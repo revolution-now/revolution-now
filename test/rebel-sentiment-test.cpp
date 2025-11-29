@@ -282,7 +282,15 @@ TEST_CASE(
 
   player.revolution.status = e_revolution_status::not_declared;
   REQUIRE( f() );
+  player.revolution.status =
+      e_revolution_status::time_up_pre_declaration;
+  REQUIRE( f() );
   player.revolution.status = e_revolution_status::declared;
+  REQUIRE_FALSE( f() );
+  player.revolution.status =
+      e_revolution_status::time_up_post_declaration;
+  REQUIRE_FALSE( f() );
+  player.revolution.status = e_revolution_status::lost_war;
   REQUIRE_FALSE( f() );
   player.revolution.status = e_revolution_status::won;
   REQUIRE_FALSE( f() );

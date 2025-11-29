@@ -216,9 +216,21 @@ TEST_CASE( "[declare] can_declare_independence" ) {
     REQUIRE( f( player ) == already_won );
   }
 
-  SECTION( "lost_war" ) {
-    player.revolution.status = lost;
-    REQUIRE( f( player ) == lost_war );
+  SECTION( "already_lost_war" ) {
+    player.revolution.status = lost_war;
+    REQUIRE( f( player ) == already_lost_war );
+  }
+
+  SECTION( "time_up_pre_declaration" ) {
+    player.revolution.status =
+        e_revolution_status::time_up_pre_declaration;
+    REQUIRE( f( player ) == time_up );
+  }
+
+  SECTION( "time_up_post_declaration" ) {
+    player.revolution.status =
+        e_revolution_status::time_up_post_declaration;
+    REQUIRE( f( player ) == already_declared );
   }
 }
 
@@ -250,10 +262,13 @@ TEST_CASE( "[declare] show_declare_rejection_msg" ) {
   f( already_won );
 
   expect_msg( "fought and lost" );
-  f( lost_war );
+  f( already_lost_war );
 
   expect_msg( "Royal Expeditionary Force cannot declare" );
   f( ref_cannot_declare );
+
+  expect_msg( "time having run out" );
+  f( time_up );
 }
 
 TEST_CASE( "[declare] ask_declare" ) {

@@ -27,6 +27,7 @@
 #include "src/ss/events.rds.hpp"
 #include "src/ss/player.rds.hpp"
 #include "src/ss/ref.hpp"
+#include "src/ss/revolution.rds.hpp"
 #include "src/ss/settings.rds.hpp"
 #include "src/ss/turn.rds.hpp"
 
@@ -81,6 +82,23 @@ TEST_CASE( "[game-end] check_time_up" ) {
 
   SECTION( "already won" ) {
     w.french().revolution.status = e_revolution_status::won;
+    REQUIRE( f() == false );
+  }
+
+  SECTION( "lost_war" ) {
+    w.french().revolution.status = e_revolution_status::lost_war;
+    REQUIRE( f() == false );
+  }
+
+  SECTION( "time_up_pre_declaration" ) {
+    w.french().revolution.status =
+        e_revolution_status::time_up_pre_declaration;
+    REQUIRE( f() == false );
+  }
+
+  SECTION( "time_up_post_declaration" ) {
+    w.french().revolution.status =
+        e_revolution_status::time_up_post_declaration;
     REQUIRE( f() == false );
   }
 
@@ -142,9 +160,11 @@ TEST_CASE( "[game-end] do_time_up" ) {
   w.gui().EXPECT__choice( _ ).returns( "yes" );
   REQUIRE( f() == ended_and_player_continues );
   REQUIRE( w.english().revolution.status == not_declared );
-  REQUIRE( w.french().revolution.status == lost );
+  REQUIRE( w.french().revolution.status ==
+           time_up_pre_declaration );
   REQUIRE( w.spanish().revolution.status == not_declared );
-  REQUIRE( w.dutch().revolution.status == lost );
+  REQUIRE( w.dutch().revolution.status ==
+           time_up_pre_declaration );
 
   w.english().revolution.status              = not_declared;
   w.french().revolution.status               = not_declared;
@@ -157,9 +177,11 @@ TEST_CASE( "[game-end] do_time_up" ) {
   w.gui().EXPECT__choice( _ ).returns( "no" );
   REQUIRE( f() == ended_and_back_to_main_menu );
   REQUIRE( w.english().revolution.status == not_declared );
-  REQUIRE( w.french().revolution.status == lost );
+  REQUIRE( w.french().revolution.status ==
+           time_up_pre_declaration );
   REQUIRE( w.spanish().revolution.status == not_declared );
-  REQUIRE( w.dutch().revolution.status == lost );
+  REQUIRE( w.dutch().revolution.status ==
+           time_up_pre_declaration );
 
   w.english().revolution.status              = not_declared;
   w.french().revolution.status               = declared;
@@ -171,9 +193,11 @@ TEST_CASE( "[game-end] do_time_up" ) {
   w.gui().EXPECT__choice( _ ).returns( "yes" );
   REQUIRE( f() == ended_and_player_continues );
   REQUIRE( w.english().revolution.status == not_declared );
-  REQUIRE( w.french().revolution.status == lost );
+  REQUIRE( w.french().revolution.status ==
+           time_up_post_declaration );
   REQUIRE( w.spanish().revolution.status == not_declared );
-  REQUIRE( w.dutch().revolution.status == lost );
+  REQUIRE( w.dutch().revolution.status ==
+           time_up_pre_declaration );
 
   w.english().revolution.status = not_declared;
   w.french().revolution.status  = not_declared;
@@ -206,11 +230,10 @@ TEST_CASE( "[game-end] check_for_ref_win" ) {
   using enum e_revolution_status;
 
   colonial_player.revolution.status = declared;
-
   w.gui().EXPECT__message_box( _ ).returns();
   w.gui().EXPECT__message_box( _ ).returns();
   REQUIRE( f() == ended_and_back_to_main_menu );
-  REQUIRE( colonial_player.revolution.status == lost );
+  REQUIRE( colonial_player.revolution.status == lost_war );
 
   colonial_player.revolution.status = declared;
   Colony const& colony =

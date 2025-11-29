@@ -3206,6 +3206,9 @@ TEST_CASE( "[ref] ref_should_forfeight" ) {
 
   w.add_colony( { .x = 1, .y = 0 }, ref_player.type );
   REQUIRE( f() == false );
+
+  colonial_player.revolution.ref_will_forfeit = true;
+  REQUIRE( f() == true );
 }
 
 TEST_CASE( "[ref] do_ref_forfeight" ) {
@@ -3450,11 +3453,11 @@ TEST_CASE( "[ref] do_ref_win" ) {
 
   colonial_player.revolution.status = not_declared;
   f();
-  REQUIRE( colonial_player.revolution.status == lost );
+  REQUIRE( colonial_player.revolution.status == lost_war );
 
   colonial_player.revolution.status = declared;
   f();
-  REQUIRE( colonial_player.revolution.status == lost );
+  REQUIRE( colonial_player.revolution.status == lost_war );
 }
 
 TEST_CASE( "[ref] ref_win_ui_routine" ) {

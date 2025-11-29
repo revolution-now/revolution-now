@@ -112,15 +112,23 @@ bool check_time_up( SSConst const& ss ) {
     return false;
 
   // We might have just arrived at the time limit, but maybe the
-  // human player has already won and opted to keep playing. Need
-  // to check this before we check declaration status below.
-  for( e_player const player : enum_values<e_player> )
-    if( ss.players.players[player].has_value() )
-      if( ss.players.players[player]->control ==
-          e_player_control::human )
-        if( ss.players.players[player]->revolution.status ==
-            e_revolution_status::won )
-          return false;
+  // human player has already won and opted to keep playing.
+  for( e_player const player_type : enum_values<e_player> ) {
+    using enum e_revolution_status;
+    auto const& player = ss.players.players[player_type];
+    if( !player.has_value() ) continue;
+    if( player->control != e_player_control::human ) continue;
+    switch( player->revolution.status ) {
+      case not_declared:
+      case declared:
+        break;
+      case time_up_pre_declaration:
+      case time_up_post_declaration:
+      case lost_war:
+      case won:
+        return false;
+    }
+  }
 
   return true;
 }
@@ -160,12 +168,17 @@ wait<e_game_end> do_time_up( SS& ss, IGui& gui ) {
   }
 
   // All human players lose.
-  for( e_player const player : enum_values<e_player> )
-    if( ss.players.players[player].has_value() )
-      if( ss.players.players[player]->control ==
-          e_player_control::human )
-        ss.players.players[player]->revolution.status =
-            e_revolution_status::lost;
+  for( e_player const player_type : enum_values<e_player> ) {
+    using enum e_revolution_status;
+    auto& player = ss.players.players[player_type];
+    if( !player.has_value() ) continue;
+    if( player->control != e_player_control::human ) continue;
+    player->revolution.status =
+        player->revolution.status < declared
+            ? time_up_pre_declaration
+            : player->revolution.status =
+                  time_up_post_declaration;
+  }
 
   // TODO: record loss.
   // TODO: do scoring.

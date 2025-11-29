@@ -10,17 +10,19 @@
 # ===============================================================
 namespace "rn"
 
-# Note: it is important that these go in chronological order so
-# that we can use inequality operators on them, which we do in
-# some places. E.g. if status <= declared then...
+# Note: the ordering of these is important so that we can use in-
+# equality operators on them, which we do in some places. E.g. if
+# status <= declared then...
 enum.e_revolution_status {
   not_declared,
+  time_up_pre_declaration,
+  # -------------------------------------------------------------
   declared,
+  time_up_post_declaration,
+  lost_war,
+  # -------------------------------------------------------------
   # For the AI player this means "granted".
   won,
-  # For human players: can be a lost to the REF or just exceeded
-  # time limit.
-  lost,
 }
 
 enum.e_expeditionary_force_type {

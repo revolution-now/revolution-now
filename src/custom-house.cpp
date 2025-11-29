@@ -151,8 +151,8 @@ CustomHouseSales compute_custom_house_sales(
     // charge on all goods sold via custom house ("smuggling
     // fee") instead of the tax rate. Or at least there is sup-
     // posed to be... it may not be working right in the OG.
-    if( player.revolution.status >
-        e_revolution_status::not_declared ) {
+    if( player.revolution.status >=
+        e_revolution_status::declared ) {
       invoice.tax_rate =
           config_colony.custom_house.charge_during_revolution;
       invoice.tax_amount =

@@ -824,6 +824,29 @@ TEST_CASE( "[colony-evolve] evolves bells" ) {
   f();
   REQUIRE( player.bells == 0 );
 
+  player.revolution.status =
+      e_revolution_status::time_up_pre_declaration;
+  player.revolution.intervention_force_deployed = false;
+  f();
+  REQUIRE( player.bells == 0 );
+  f();
+  REQUIRE( player.bells == 0 );
+
+  player.revolution.status =
+      e_revolution_status::time_up_post_declaration;
+  player.revolution.intervention_force_deployed = false;
+  f();
+  REQUIRE( player.bells == 0 );
+  f();
+  REQUIRE( player.bells == 0 );
+
+  player.revolution.status = e_revolution_status::lost_war;
+  player.revolution.intervention_force_deployed = false;
+  f();
+  REQUIRE( player.bells == 0 );
+  f();
+  REQUIRE( player.bells == 0 );
+
   player.revolution.status = e_revolution_status::not_declared;
   player.revolution.intervention_force_deployed = false;
   f();

@@ -99,12 +99,15 @@ valid_or<e_declare_rejection> can_declare_independence(
         return rebel_sentiment_too_low;
       return valid;
     }
+    case time_up_pre_declaration:
+      return time_up;
     case declared:
+    case time_up_post_declaration:
       return already_declared;
     case won:
       return already_won;
-    case lost:
-      return lost_war;
+    case lost_war:
+      return already_lost_war;
   }
 }
 
@@ -125,6 +128,11 @@ wait<> show_declare_rejection_msg(
                   [ss.settings.game_setup_options.difficulty]
               .percent );
       break;
+    case time_up:
+      co_await gui.message_box(
+          "We cannot start the war of independence because this "
+          "game has already ended due to time having run out." );
+      break;
     case already_declared:
       co_await gui.message_box(
           "We are already fighting the War of Independence." );
@@ -138,7 +146,7 @@ wait<> show_declare_rejection_msg(
       co_await gui.message_box(
           "We have already won the War of Independence." );
       break;
-    case lost_war:
+    case already_lost_war:
       co_await gui.message_box(
           "We have already fought and lost the War of "
           "Independence." );

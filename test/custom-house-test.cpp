@@ -233,7 +233,14 @@ TEST_CASE( "[custom-house] compute_custom_house_sales" ) {
     colony.custom_house[e_commodity::ore]     = true;
     colony.custom_house[e_commodity::cloth]   = true;
     colony.custom_house[e_commodity::muskets] = true;
-    dutch.revolution.status = e_revolution_status::not_declared;
+    SECTION( "not_declared" ) {
+      dutch.revolution.status =
+          e_revolution_status::not_declared;
+    }
+    SECTION( "time_up_pre_declaration" ) {
+      dutch.revolution.status =
+          e_revolution_status::time_up_pre_declaration;
+    }
     W.set_human_player_and_rest_ai( e_player::dutch );
     CustomHouseSales const res =
         compute_custom_house_sales( W.ss(), dutch, colony );

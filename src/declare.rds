@@ -24,7 +24,8 @@ enum.e_declare_rejection {
   other_human_already_declared,
   ref_cannot_declare,
   already_won,
-  lost_war,
+  already_lost_war,
+  time_up,
 }
 
 struct.DeclarationResult {

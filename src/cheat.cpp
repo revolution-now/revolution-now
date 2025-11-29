@@ -898,8 +898,7 @@ wait<> cheat_advance_revolution_status( IEngine& engine, SS& ss,
     co_return;
   }
 
-  if( player.revolution.status <=
-      e_revolution_status::declared ) {
+  if( player.revolution.status < e_revolution_status::won ) {
     // In this case, "end of the REF's next turn" means at the
     // end of the REF's turn in this same turn cycle.
     co_await ts.gui.message_box(

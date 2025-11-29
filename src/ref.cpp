@@ -1030,6 +1030,17 @@ bool can_send_more_ref_units( SSConst const& ss,
 bool ref_should_forfeight( SSConst const& ss,
                            Player const& ref_player ) {
   CHECK( is_ref( ref_player.type ) );
+  e_player const colonial_player_type =
+      colonial_player_for( nation_for( ref_player.type ) );
+  UNWRAP_CHECK_T( Player const& colonial_player,
+                  ss.players.players[colonial_player_type] );
+  if( colonial_player.revolution.ref_will_forfeit )
+    // This ref_will_forfeit is only used as a result of cheat
+    // mode. The OG has an equivalent flag, and it seems to be
+    // used in a similar way. I.e., normal game flow will not set
+    // this flag; forfeight will be computed based on the current
+    // state of the game.
+    return true;
   vector<ColonyId> const ref_colonies =
       ss.colonies.for_player( ref_player.type );
   if( !ref_colonies.empty() )
@@ -1049,10 +1060,6 @@ bool ref_should_forfeight( SSConst const& ss,
       // REF land unit somewhere on the map.
       return false;
   }
-  e_player const colonial_player_type =
-      colonial_player_for( nation_for( ref_player.type ) );
-  UNWRAP_CHECK_T( Player const& colonial_player,
-                  ss.players.players[colonial_player_type] );
   return !can_send_more_ref_units( ss, colonial_player,
                                    ref_player );
 }
@@ -1131,8 +1138,8 @@ void do_ref_win( SS& ss, Player const& ref_player ) {
       colonial_player_for( nation_for( ref_player.type ) );
   UNWRAP_CHECK_T( Player & colonial_player,
                   ss.players.players[colonial_player_type] );
-
-  colonial_player.revolution.status = e_revolution_status::lost;
+  colonial_player.revolution.status =
+      e_revolution_status::lost_war;
 }
 
 wait<> ref_win_ui_routine( SSConst const&, IGui& gui,

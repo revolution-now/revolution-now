@@ -23,6 +23,7 @@
 #include "on-map.hpp"
 #include "production.hpp"
 #include "promotion.hpp"
+#include "revolution.rds.hpp"
 #include "sons-of-liberty.hpp"
 #include "teaching.hpp"
 #include "ts.hpp"
@@ -347,8 +348,9 @@ void apply_commodity_increase(
 }
 
 void apply_bells( Player& player, int bells_produced ) {
+  using enum e_revolution_status;
   switch( player.revolution.status ) {
-    case e_revolution_status::not_declared: {
+    case not_declared: {
       // Bells go toward founding fathers.
       if( has_all_fathers( player ) ) {
         // Before the declaration, when all fathers have been ob-
@@ -361,7 +363,7 @@ void apply_bells( Player& player, int bells_produced ) {
       }
       break;
     }
-    case e_revolution_status::declared: {
+    case declared: {
       // Bells go toward intervention force.
       if( player.revolution.intervention_force_deployed ) {
         // When the intervention force has already been deployed
@@ -374,8 +376,10 @@ void apply_bells( Player& player, int bells_produced ) {
       }
       break;
     }
-    case e_revolution_status::won:
-    case e_revolution_status::lost: {
+    case time_up_pre_declaration:
+    case time_up_post_declaration:
+    case lost_war:
+    case won: {
       // Bells do nothing here.
       player.bells = 0;
       break;
