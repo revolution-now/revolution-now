@@ -17,11 +17,6 @@ TODO:
     but where the quantity is capped at 100. We may want to just
     use the same algo as for wagon train loading.
 
-  * When a wagon train cannot find a path to its next stop it
-    will clear its orders. Maybe a message should be displayed in
-    this case. Or maybe not a big deal because the trade route
-    editing UI should prevent this (should verify).
-
   * Allow editing the trade route of a unit by right clicking on
     it.
 
@@ -34,45 +29,14 @@ TODO:
     shown, and there should be a menu option when clicking on it
     to clear the trade route status.
 
-  * In the OG, wagon trains and ships end their turn when en-
-    tering a colony, whether on a trade route or not. Given how
-    the mechanics of trade routes work where the unit arrives in
-    a colony and then waits a turn before they unload and pro-
-    ceed, it is necessary that any unit on a trade route end
-    their turn when they hit a colony. This is ensured automati-
-    cally, regardless of unit config. But it would be good to
-    have a flag where we can turn this off so that those units
-    don't have to end their turn in a colony when they are not on
-    a trade route. This makes sense because one option that
-    people may not like is that wagon trains must always end
-    their turn in a colony even if not on a trade route. We
-    should probably make it a game config option that this can be
-    turned off. So, get rid of the current unit-type config flag
-    ends_turn_in_colony and replace it with one game config flag
-    that controls that for wagon trains. We don't need to support
-    changing that behavior for ships because it would have too
-    much of an effect on gameplay, and it feels right that a ship
-    should end its turn when entering a port, unlike for a wagon
-    train.
-
   * When the player manually loads into a wagon train in the
     colony view, its orders clear.
 
   * Make sure that things are ok if a unit is on a trade route
     and then the control of the player is changed to AI.
 
-  * If a colony is captured then we should halt units that are on
-    trade routes containing that colony.
-
   * Make sure there aren't duplicate trade route names both when
     creating and in the validation.
-
-  * Although the OG allows a trade route with one stop, it dis-
-    plays a message each turn when a unit is on that trade route
-    (and at the stop), so in effect it doesn't like them.
-
-  * Need to allow for the player editing the map, which could put
-    colonies within a given trade route on different continents.
 
   * Need to ensure that if a ship is in the harbor carrying out a
     trade route and either the trade route gets deleted, or its
@@ -210,3 +174,33 @@ Done:
     route could be left with only one stop if e.g. a colony on
     the route gets captured or destroyed, and we don't want the
     player to be confused about why the trade route stopped.
+
+  * In the OG, wagon trains and ships end their turn when en-
+    tering a colony, whether on a trade route or not. Given how
+    the mechanics of trade routes work where the unit arrives in
+    a colony and then waits a turn before they unload and pro-
+    ceed, it is necessary that any unit on a trade route end
+    their turn when they hit a colony. This is ensured automati-
+    cally, regardless of unit config. But it would be good to
+    have a flag where we can turn this off so that those units
+    don't have to end their turn in a colony when they are not on
+    a trade route. This makes sense because one option that
+    people may not like is that wagon trains must always end
+    their turn in a colony even if not on a trade route. We
+    should probably make it a game config option that this can be
+    turned off.
+
+  * Need to allow for the player editing the map, which could put
+    colonies within a given trade route on different continents.
+
+  * Although the OG allows a trade route with one stop, it dis-
+    plays a message each turn when a unit is on that trade route
+    (and at the stop), so in effect it doesn't like them.
+
+  * If a colony that is on a trade route is captured then we
+    should handle that properly.
+
+  * When a wagon train cannot find a path to its next stop it
+    will clear its orders. Maybe a message should be displayed in
+    this case. In practice this happens when braves get in the
+    way.
