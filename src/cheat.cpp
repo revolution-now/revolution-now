@@ -69,9 +69,6 @@
 #include "ss/unit.hpp"
 #include "ss/units.hpp"
 
-// luapp
-#include "luapp/register.hpp"
-
 // gfx
 #include "gfx/iter.hpp"
 
@@ -112,13 +109,6 @@ bool can_remove_building( Colony const& colony,
   maybe<e_indoor_job> job = indoor_job_for_slot( slot );
   if( !job.has_value() ) return true;
   return colony.indoor_jobs[*job].empty();
-}
-
-// This just decides if cheat functions should be enabled by de-
-// fault when a new game starts. The actual per-game setting is
-// stored in the game settings.
-bool enable_cheat_mode_by_default() {
-  return config_cheat.enable_cheat_mode_by_default;
 }
 
 } // namespace
@@ -1266,15 +1256,6 @@ wait<> cheat_create_unit( SS& ss, TS& ts,
   [[maybe_unused]] maybe<UnitId> unit_id =
       co_await create_unit_on_map( ss, ts, player, *type,
                                    Coord::from_gfx( tile ) );
-}
-
-/****************************************************************
-** Lua
-*****************************************************************/
-namespace {
-
-LUA_AUTO_FN( enable_cheat_mode_by_default );
-
 }
 
 } // namespace rn

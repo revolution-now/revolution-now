@@ -32,7 +32,6 @@ local function global( name )
                      'global name %s not found', name ) )
 end
 
-local cheat = global( 'cheat' )
 local config = global( 'config' )
 local game_options = global( 'game_options' )
 local immigration = global( 'immigration' )
@@ -73,8 +72,8 @@ end
 -----------------------------------------------------------------
 local function set_default_settings( options, settings )
   settings.game_setup_options.difficulty = options.difficulty
-  settings.cheat_options.enabled =
-      cheat.enable_cheat_mode_by_default()
+  settings.cheat_options.enabled = config.cheat
+                                       .enable_cheat_mode_by_default
   local menu_opts = config.rn.game_menu_options_defaults
   for k, v in pairs( menu_opts ) do
     game_options.set_flag( k, v )
