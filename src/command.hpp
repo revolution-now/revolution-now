@@ -32,9 +32,6 @@ struct Player;
 struct SS;
 struct TS;
 
-void push_unit_command( UnitId id, command const& command );
-maybe<command> pop_unit_command( UnitId id );
-
 struct CommandHandler {
   CommandHandler()          = default;
   virtual ~CommandHandler() = default;

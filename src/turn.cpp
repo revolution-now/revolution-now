@@ -981,32 +981,28 @@ wait<> process_human_player_input_normal_mode(
 wait<LandViewPlayerInput> landview_human_player_input(
     SS& ss, TS& ts, PlayerTurnState::units& nat_units,
     UnitId id ) {
-  LandViewPlayerInput response;
-  if( auto maybe_command = pop_unit_command( id ) ) {
-    response = LandViewPlayerInput::give_command{
-      .cmd = *maybe_command };
-  } else {
-    lg.debug( "asking orders for: {}",
-              debug_string( as_const( ss.units ), id ) );
-    nat_units.skip_eot = true;
-    // See comments above the autosave_if_needed function for why
-    // we are putting it in this general location and how it
-    // works (note it appears in other locations as well). That
-    // said, as a comment about this specific location, we should
-    // save the game after we set skip_eot to true otherwise if
-    // the player loads an auto-save file that was saved here and
-    // then immediately tries to exit the game, the game state
-    // will be dirty because the skip_eot will have changed. It
-    // won't cause any issues that we're saving with skip_eot set
-    // to true because when the auto-save is reloaded from this
-    // point, the unit that is asking for orders will still be
-    // asking for orders, so skip_eot will again be set to true.
-    autosave_if_needed( ss, ts );
-    response = co_await ts.planes.get()
-                   .get_bottom<ILandViewPlane>()
-                   .get_next_input( id );
-  }
-  co_return response;
+  // NOTE: this needs to go before the autosave below.
+  nat_units.skip_eot = true;
+
+  // See comments above the autosave_if_needed function for why
+  // we are putting it in this general location and how it works
+  // (note it appears in other locations as well). That said, as
+  // a comment about this specific location, we should save the
+  // game after we set skip_eot to true otherwise if the player
+  // loads an auto-save file that was saved here and then immedi-
+  // ately tries to exit the game, the game state will be dirty
+  // because the skip_eot will have changed. It won't cause any
+  // issues that we're saving with skip_eot set to true because
+  // when the auto-save is reloaded from this point, the unit
+  // that is asking for orders will still be asking for orders,
+  // so skip_eot will again be set to true.
+  autosave_if_needed( ss, ts );
+
+  lg.info( "asking orders for: {}",
+           debug_string( as_const( ss.units ), id ) );
+  co_return co_await ts.planes.get()
+      .get_bottom<ILandViewPlane>()
+      .get_next_input( id );
 }
 
 wait<> process_ai_player_input_normal_mode(

@@ -32,17 +32,11 @@
 // base
 #include "base/lambda.hpp"
 
-// C++ standard library
-#include <queue>
-#include <unordered_map>
-
 using namespace std;
 
 namespace rn {
 
 namespace {
-
-unordered_map<UnitId, queue<command>> g_command_queue;
 
 unique_ptr<CommandHandler> handle_command(
     IEngine&, SS&, TS&, IAgent&, Player&, UnitId,
@@ -57,22 +51,6 @@ unique_ptr<CommandHandler> handle_command(
 }
 
 } // namespace
-
-void push_unit_command( UnitId id, command const& command ) {
-  g_command_queue[id].push( command );
-}
-
-maybe<command> pop_unit_command( UnitId id ) {
-  maybe<command> res{};
-  if( g_command_queue.contains( id ) ) {
-    auto& q = g_command_queue[id];
-    if( !q.empty() ) {
-      res = q.front();
-      q.pop();
-    }
-  }
-  return res;
-}
 
 unique_ptr<CommandHandler> command_handler(
     IEngine& engine, SS& ss, TS& ts, IAgent& agent,

@@ -1036,11 +1036,6 @@ wait<> TravelHandler::perform() {
 
   co_await animate();
 
-  // This will throw if the unit has no coords, but I think it
-  // should always be ok at this point if we're moving it.
-  auto old_coord =
-      coord_for_unit_indirect_or_die( ss_.units, id );
-
   switch( verdict_ ) {
     case e_travel_verdict::cancelled:
     case e_travel_verdict::map_edge:
@@ -1154,15 +1149,18 @@ wait<> TravelHandler::perform() {
       for( auto unit_item :
            unit.cargo().items_of_type<Cargo::unit>() ) {
         auto& cargo_unit = ss_.units.unit_for( unit_item.id );
-        if( !cargo_unit.mv_pts_exhausted() ) {
-          UNWRAP_CHECK( direction,
-                        old_coord.direction_to( move_dst ) );
-          command command = command::move{ direction };
-          push_unit_command( unit_item.id, command );
-          // Stop after first eligible unit. The rest of the
-          // units will just ask for commands on the ship.
-          break;
-        }
+        if( cargo_unit.mv_pts_exhausted() ) continue;
+        auto const first_unit_handler =
+            make_unique<TravelHandler>(
+                ss_, ts_, cargo_unit.id(),
+                command::move{ .d = direction_ }, agent_,
+                player_ );
+        auto const run_result =
+            co_await first_unit_handler->run();
+        CHECK( run_result.order_was_run );
+        // Stop after first eligible unit. The rest of the units
+        // will just ask for commands on the ship.
+        break;
       }
       break;
     case e_travel_verdict::sail_high_seas:
@@ -1421,23 +1419,82 @@ struct NativeDwellingHandler : public CommandHandler {
 };
 
 /****************************************************************
+** ForeignColonyTradeHandler
+*****************************************************************/
+struct ForeignColonyTradeHandler : public CommandHandler {
+  ForeignColonyTradeHandler( SS& ss, TS& ts, IAgent& agent,
+                             Player& player,
+                             UnitId const unit_id,
+                             e_direction const d,
+                             Colony& colony )
+    : ss_( ss ),
+      ts_( ts ),
+      player_( player ),
+      agent_( agent ),
+      unit_id_( unit_id ),
+      unit_( ss_.units.unit_for( unit_id ) ),
+      colony_( colony ),
+      direction_( d ),
+      move_src_( coord_for_unit_indirect_or_die( ss.units,
+                                                 unit_.id() ) ),
+      move_dst_( move_src_.moved( d ) ) {}
+
+  wait<bool> confirm() override {
+    // The OG doesn't do this animation, but we do it because it
+    // seems better for the overall UX to have all movements feel
+    // responsive visually.
+    AnimationSequence const seq =
+        anim_seq_for_unit_talk( ss_, unit_.id(), direction_ );
+    co_await ts_.planes.get()
+        .get_bottom<ILandViewPlane>()
+        .animate_if_visible( seq );
+
+    co_await agent_.message_box(
+        "Trade with foreign colonies is not yet implemented." );
+    co_return false;
+  }
+
+  wait<> perform() override {
+    unit_.forfeight_mv_points();
+    // TODO
+    co_return;
+  }
+
+  SS& ss_;
+  TS& ts_;
+  Player& player_;
+  IAgent& agent_;
+
+  // The unit doing the attacking. We need to record the unit id
+  // so that we can test if the unit has been destroyed.
+  UnitId unit_id_ = {};
+  Unit& unit_;
+  Colony& colony_;
+
+  // Source and destination squares of the move.
+  e_direction direction_ = {};
+  point move_src_;
+  point move_dst_;
+};
+
+/****************************************************************
 ** Dispatch
 *****************************************************************/
 unique_ptr<CommandHandler> dispatch( SS& ss, TS& ts,
                                      IAgent& agent,
                                      Player& player,
-                                     UnitId attacker_id,
+                                     UnitId const mover_id,
                                      command::move const& mv ) {
   e_direction const d = mv.d;
   point const src =
-      coord_for_unit_indirect_or_die( ss.units, attacker_id );
+      coord_for_unit_indirect_or_die( ss.units, mover_id );
   point const dst = src.moved( d );
-  Unit& attacker  = ss.units.unit_for( attacker_id );
+  Unit& mover     = ss.units.unit_for( mover_id );
 
   if( !dst.is_inside( ss.terrain.world_rect_tiles() ) )
     // This is an invalid move, but the TravelHandler is the one
     // that knows how to handle it.
-    return make_unique<TravelHandler>( ss, ts, attacker_id, mv,
+    return make_unique<TravelHandler>( ss, ts, mover_id, mv,
                                        agent, player );
 
   // Can reference the real square here because we know it is
@@ -1446,14 +1503,14 @@ unique_ptr<CommandHandler> dispatch( SS& ss, TS& ts,
 
   if( !society.has_value() )
     // No entities on target sqaure, so it is just a travel.
-    return make_unique<TravelHandler>( ss, ts, attacker_id, mv,
+    return make_unique<TravelHandler>( ss, ts, mover_id, mv,
                                        agent, player );
-  CHECK( society.has_value() );
 
+  CHECK( society.has_value() );
   if( *society == Society{ Society::european{
-                    .player = attacker.player_type() } } )
+                    .player = mover.player_type() } } )
     // Friendly unit on target square, so not an attack.
-    return make_unique<TravelHandler>( ss, ts, attacker_id, mv,
+    return make_unique<TravelHandler>( ss, ts, mover_id, mv,
                                        agent, player );
 
   if( society->holds<Society::native>() ) {
@@ -1465,22 +1522,27 @@ unique_ptr<CommandHandler> dispatch( SS& ss, TS& ts,
     // a brave on the tile or not.
     if( dwelling_id.has_value() )
       return make_unique<NativeDwellingHandler>(
-          ss, ts, agent, player, attacker_id, d,
+          ss, ts, agent, player, mover_id, d,
           ss.natives.dwelling_for( *dwelling_id ) );
 
     // Must be attacking a brave.
     NativeUnitId const defender_id =
         select_native_unit_defender( ss, dst );
-    return attack_native_unit_handler( ss, ts, attacker_id,
+    return attack_native_unit_handler( ss, ts, mover_id,
                                        defender_id );
   }
 
-  // Must be an attack (or an attempted attack) on a foreign eu-
-  // ropean unit or colony. First check for an undefended colony.
+  // At this stage we are entering a tile with foreign european
+  // entities on it.
+
   if( maybe<ColonyId> const colony_id =
           ss.colonies.maybe_from_coord( dst );
       colony_id.has_value() ) {
     Colony& colony = ss.colonies.colony_for( *colony_id );
+    if( mover.desc().ship ||
+        mover.type() == e_unit_type::wagon_train )
+      return make_unique<ForeignColonyTradeHandler>(
+          ss, ts, agent, player, mover_id, d, colony );
     // Before we select the defender we need to unload all mili-
     // tary units on ships in the colony's port in order to
     // replicate the OG's behavior.
@@ -1506,11 +1568,11 @@ unique_ptr<CommandHandler> dispatch( SS& ss, TS& ts,
         select_colony_defender( ss, ts.rand, colony );
     Unit const& defender = ss.units.unit_for( defender_id );
     if( is_military_unit( defender.desc().type ) )
-      return attack_euro_land_handler( ss, ts, attacker_id,
+      return attack_euro_land_handler( ss, ts, mover_id,
                                        defender_id );
     else
       return attack_colony_undefended_handler(
-          ss, ts, attacker_id, defender_id, colony );
+          ss, ts, mover_id, defender_id, colony );
   }
 
   UnitId const defender_id =
@@ -1522,21 +1584,20 @@ unique_ptr<CommandHandler> dispatch( SS& ss, TS& ts,
   // on land, in which case that is just a land battle. So it is
   // really the attacker's ship status that determines whether
   // this is a naval battle.
-  if( attacker.desc().ship )
+  if( mover.desc().ship )
     // In the OG, if a warship is on a sealane square and it is
     // attacking a ship on a sea lane square to its right, then
     // before the attack, it will ask to sail the high seas. How-
     // ever, this is likely a bug, since it does not allow this
     // for non-war ships, so we don't replicate it here.
-    return naval_battle_handler( ss, ts, attacker_id,
-                                 defender_id );
+    return naval_battle_handler( ss, ts, mover_id, defender_id );
 
   // We are attacking a foreign european unit either outside of a
   // colony or at a colony's gate. Note that this may include
   // some forbidden scenarios, such as a land unit trying to
   // board or attack a foreign ship, but those should be inter-
   // cepted and prevented.
-  return attack_euro_land_handler( ss, ts, attacker_id,
+  return attack_euro_land_handler( ss, ts, mover_id,
                                    defender_id );
 }
 
