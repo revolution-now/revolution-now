@@ -307,14 +307,24 @@ TEST_CASE(
   }
 
   SECTION( "with mod key" ) {
-    move_unit( free_colonist.id(),
-               { .d = e_direction::w, .mod_key_2 = true } );
-    move_unit( wagon_train.id(),
-               { .d = e_direction::s, .mod_key_2 = true } );
+    w.agent().EXPECT__human().returns( true );
     w.colony_viewer()
         .EXPECT__show( _, colony.id )
         .returns( e_colony_abandoned::no );
+    move_unit( free_colonist.id(),
+               { .d = e_direction::w, .mod_key_2 = true } );
+
     w.agent().EXPECT__human().returns( true );
+    w.colony_viewer()
+        .EXPECT__show( _, colony.id )
+        .returns( e_colony_abandoned::no );
+    move_unit( wagon_train.id(),
+               { .d = e_direction::s, .mod_key_2 = true } );
+
+    w.agent().EXPECT__human().returns( true );
+    w.colony_viewer()
+        .EXPECT__show( _, colony.id )
+        .returns( e_colony_abandoned::no );
     move_unit( privateer.id(),
                { .d = e_direction::se, .mod_key_2 = true } );
   }

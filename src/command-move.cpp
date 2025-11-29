@@ -1126,23 +1126,6 @@ wait<> TravelHandler::perform() {
         ss_.units.unit_for( held_id ).clear_orders();
         prioritize.push_back( held_id );
       }
-      // The OG does not open (or allow opening) the colony view
-      // when a ship moves into it, but we allow that by holding
-      // down mod key 2 (typically control) when moving the unit
-      // into the colony, since it is convenient. We don't use
-      // mod_key_1 (typically shift) because shift-motion keys
-      // are used to pan the map in the OG which we want to keep.
-      // The check for human() might be redundant here, but we'll
-      // do it anyway out of principle.
-      if( mv_.mod_key_2 && agent_.human() ) {
-        UNWRAP_CHECK( colony_id, ss_.colonies.maybe_from_coord(
-                                     move_dst ) );
-        e_colony_abandoned const abandoned =
-            co_await ts_.colony_viewer.show( ts_, colony_id );
-        if( abandoned == e_colony_abandoned::yes )
-          // Nothing really special to do here.
-          break;
-      }
       break;
     }
     case e_travel_verdict::land_fall:
@@ -1201,6 +1184,32 @@ wait<> TravelHandler::perform() {
   if( ss_.colonies.maybe_from_coord( this->move_dst ) &&
       unit.desc().ends_turn_in_colony )
     unit.forfeight_mv_points();
+
+  // The OG does not open (or allow opening) the colony view when
+  // a unit moves into it, but we allow that by holding down mod
+  // key 2 (typically control) when moving the unit into the
+  // colony, since it is convenient (especially for ships and
+  // wagon trains where we often want to load/unload cargo). We
+  // don't use mod_key_1 (typically shift) because shift-motion
+  // keys are used to pan the map in the OG which we want to
+  // keep. The check for human() might be redundant here, but
+  // we'll do it anyway out of principle.
+  if( mv_.mod_key_2 ) do {
+      auto const colony_id =
+          ss_.colonies.maybe_from_coord( move_dst );
+      if( !colony_id.has_value() ) break;
+      Colony const& colony =
+          ss_.colonies.colony_for( *colony_id );
+      // If the colony were not friendly then we would not be in
+      // this TravelHandler to begin with.
+      CHECK_EQ( colony.player, player_.type );
+      if( !agent_.human() ) break;
+      e_colony_abandoned const abandoned =
+          co_await ts_.colony_viewer.show( ts_, *colony_id );
+      if( abandoned == e_colony_abandoned::yes )
+        // Nothing really special to do here.
+        break;
+    } while( false );
 }
 
 /****************************************************************
