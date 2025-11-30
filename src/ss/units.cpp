@@ -875,6 +875,34 @@ int64_t UnitsState::unit_ordering( UnitId const id ) const {
   return iter->second;
 }
 
+void UnitsState::sort_by_ordering(
+    vector<UnitId>& sort_me ) const {
+  sort( sort_me.begin(), sort_me.end(),
+        [&]( UnitId const lhs, UnitId const rhs ) {
+          // Reverse sorting since later ordered units are always
+          // considered at the "front".
+          return unit_ordering( rhs ) < unit_ordering( lhs );
+        } );
+}
+
+vector<UnitId> UnitsState::ordered_euro_units_from_tile(
+    point const tile ) const {
+  vector<UnitId> res;
+  auto const& units = from_coord( tile );
+  res.reserve( units.size() );
+  for( GenericUnitId const generic_id : units ) {
+    switch( unit_kind( generic_id ) ) {
+      case e_unit_kind::euro:
+        res.push_back( check_euro_unit( generic_id ) );
+        break;
+      case e_unit_kind::native:
+        break;
+    }
+  }
+  sort_by_ordering( res );
+  return res;
+}
+
 void UnitsState::move_unit_on_map( NativeUnitId id,
                                    Coord target ) {
   auto& [curr_coord, dwelling_id] = ownership_of( id );

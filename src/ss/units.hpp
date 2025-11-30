@@ -159,6 +159,16 @@ struct UnitsState {
   // The unit must be in the ordering map.
   int64_t unit_ordering( UnitId id ) const;
 
+  // Units on the tile according to the unit ordering. They will
+  // be reverse sorted so that the units at the start of the
+  // vector will be the units "in front".
+  std::vector<UnitId> ordered_euro_units_from_tile(
+      gfx::point tile ) const;
+
+  // These will be reverse sorted so that the units at the start
+  // of the vector will be the units "in front".
+  void sort_by_ordering( std::vector<UnitId>& sort_me ) const;
+
   // The unit must exist and must be in the ordering map (in
   // practice, this means that it is owned by either the map or
   // the harbor, which are the ones where ordering is needed).

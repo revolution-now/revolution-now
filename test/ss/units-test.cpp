@@ -470,5 +470,13 @@ TEST_CASE( "[units] change_to_cargo sentries" ) {
   REQUIRE( free.orders().holds<unit_orders::sentry>() );
 }
 
+TEST_CASE( "[ss/units] sort_by_ordering" ) {
+  world w;
+}
+
+TEST_CASE( "[ss/units] ordered_euro_units_from_tile" ) {
+  world w;
+}
+
 } // namespace
 } // namespace rn
