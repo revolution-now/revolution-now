@@ -1545,21 +1545,22 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
                 RawInput( LandViewRawInput::center{} ) );
             break;
           case ::SDLK_d:
-            if( !key_event.mod.shf_down ) {
-              // No shift.
-              if( mode_.top().holds<LandViewMode::unit_input>() )
-                raw_input_stream_.send(
-                    RawInput( LandViewRawInput::cmd{
-                      .what = command::disband{} } ) );
-            } else {
-              // shift key down.
-              if( mode_.top().holds<LandViewMode::view_mode>() ||
-                  mode_.top()
-                      .holds<LandViewMode::end_of_turn>() )
-                raw_input_stream_.send(
-                    RawInput( LandViewRawInput::cmd{
-                      .what = command::disband{
-                        .tile = white_box_tile( ss_ ) } } ) );
+            if( !key_event.mod.shf_down ) break;
+            // shift key down.
+            if( mode_.top().holds<LandViewMode::unit_input>() ) {
+              raw_input_stream_.send(
+                  RawInput( LandViewRawInput::cmd{
+                    .what = command::disband{} } ) );
+              break;
+            }
+            if( mode_.top().holds<LandViewMode::view_mode>() ||
+                mode_.top()
+                    .holds<LandViewMode::end_of_turn>() ) {
+              raw_input_stream_.send(
+                  RawInput( LandViewRawInput::cmd{
+                    .what = command::disband{
+                      .tile = white_box_tile( ss_ ) } } ) );
+              break;
             }
             break;
           case ::SDLK_h:
