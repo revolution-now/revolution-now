@@ -47,6 +47,12 @@ void testing_friend_change_to_cargo( UnitsState& units,
   return units.change_to_cargo( new_holder, held, slot );
 }
 
+void testing_friend_change_to_map( UnitsState& units,
+                                   UnitId const id,
+                                   gfx::point const tile ) {
+  return units.change_to_map( id, tile );
+}
+
 namespace {
 
 using namespace std;
@@ -471,11 +477,57 @@ TEST_CASE( "[units] change_to_cargo sentries" ) {
 }
 
 TEST_CASE( "[ss/units] sort_by_ordering" ) {
+  using enum e_unit_type;
   world w;
+  vector<UnitId> expected;
+
+  Unit& unit1 =
+      w.add_unit_on_map( free_colonist, { .x = 1, .y = 1 } );
+  Unit& unit2 =
+      w.add_unit_on_map( free_colonist, { .x = 1, .y = 1 } );
+  w.add_unit_on_map( free_colonist, { .x = 1, .y = 1 } );
+  w.add_unit_on_map( soldier, { .x = 2, .y = 1 } );
+  w.add_unit_on_map( soldier, { .x = 2, .y = 1 } );
+
+  testing_friend_change_to_map( w.units(), unit1.id(),
+                                { .x = 2, .y = 1 } );
+  testing_friend_change_to_map( w.units(), unit2.id(),
+                                { .x = 1, .y = 1 } );
+
+  vector<UnitId> v1{ UnitId{ 1 }, UnitId{ 2 }, UnitId{ 3 },
+                     UnitId{ 4 }, UnitId{ 5 } };
+  w.units().sort_by_ordering( v1 );
+
+  expected = { UnitId{ 2 }, UnitId{ 1 }, UnitId{ 5 },
+               UnitId{ 4 }, UnitId{ 3 } };
+  REQUIRE( v1 == expected );
 }
 
 TEST_CASE( "[ss/units] ordered_euro_units_from_tile" ) {
+  using enum e_unit_type;
   world w;
+  vector<UnitId> expected;
+
+  Unit& unit1 =
+      w.add_unit_on_map( free_colonist, { .x = 1, .y = 1 } );
+  Unit& unit2 =
+      w.add_unit_on_map( free_colonist, { .x = 1, .y = 1 } );
+  w.add_unit_on_map( free_colonist, { .x = 1, .y = 1 } );
+  w.add_unit_on_map( soldier, { .x = 2, .y = 1 } );
+  w.add_unit_on_map( soldier, { .x = 2, .y = 1 } );
+
+  testing_friend_change_to_map( w.units(), unit1.id(),
+                                { .x = 2, .y = 1 } );
+  testing_friend_change_to_map( w.units(), unit2.id(),
+                                { .x = 1, .y = 1 } );
+
+  expected = { UnitId{ 2 }, UnitId{ 3 } };
+  REQUIRE( w.units().ordered_euro_units_from_tile(
+               { .x = 1, .y = 1 } ) == expected );
+
+  expected = { UnitId{ 1 }, UnitId{ 5 }, UnitId{ 4 } };
+  REQUIRE( w.units().ordered_euro_units_from_tile(
+               { .x = 2, .y = 1 } ) == expected );
 }
 
 } // namespace

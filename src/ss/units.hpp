@@ -246,6 +246,9 @@ struct UnitsState {
                                               UnitId new_holder,
                                               UnitId held,
                                               int slot );
+  friend void testing_friend_change_to_map( UnitsState& units,
+                                            UnitId id,
+                                            gfx::point tile );
 
  private:
   [[nodiscard]] GenericUnitId next_unit_id();

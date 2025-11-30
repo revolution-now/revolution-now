@@ -369,13 +369,13 @@ TEST_CASE( "[colony-mgr] create, query, destroy" ) {
   REQUIRE( colony.location == Coord{ .x = 1, .y = 2 } );
 
   // These will check-fail if they don't exist.
-  W.colonies().colony_for( ColonyId{ 1 } );
+  REQUIRE( W.colonies().exists( ColonyId{ 1 } ) );
 
   Colony& colony2 =
       W.add_colony( Coord{ .x = 1, .y = 3 }, e_player::dutch );
   REQUIRE( colony2.id == 2 );
-  W.colonies().colony_for( ColonyId{ 1 } );
-  W.colonies().colony_for( ColonyId{ 2 } );
+  REQUIRE( W.colonies().exists( ColonyId{ 1 } ) );
+  REQUIRE( W.colonies().exists( ColonyId{ 2 } ) );
   REQUIRE( W.colonies().all().size() == 2 );
   REQUIRE( W.colonies().all().contains( 1 ) );
   REQUIRE( W.colonies().all().contains( 2 ) );
