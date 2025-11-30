@@ -43,36 +43,37 @@ struct ColoniesState {
 
   // NOTE: the ordering of the IDs are not specified. If you want
   // sorted see below.
-  std::vector<ColonyId> for_player( e_player player ) const;
-
-  std::vector<ColonyId> for_player_sorted(
+  [[nodiscard]] std::vector<ColonyId> for_player(
       e_player player ) const;
 
-  Colony const& colony_for( ColonyId id ) const;
-  Colony& colony_for( ColonyId id );
+  [[nodiscard]] std::vector<ColonyId> for_player_sorted(
+      e_player player ) const;
+
+  [[nodiscard]] Colony const& colony_for( ColonyId id ) const;
+  [[nodiscard]] Colony& colony_for( ColonyId id );
 
   // Will return nothing if the colony no longer exists. But note
   // that it had to exist at one point, otherwise check fail.
   base::maybe<Colony const&> maybe_for( ColonyId id ) const;
   base::maybe<Colony&> maybe_for( ColonyId id );
 
-  Coord coord_for( ColonyId id ) const;
+  [[nodiscard]] Coord coord_for( ColonyId id ) const;
 
   base::maybe<ColonyId> maybe_from_coord( Coord const& c ) const;
   base::maybe<ColonyId> maybe_from_coord(
       gfx::point tile ) const;
-  ColonyId from_coord( Coord const& c ) const;
-  ColonyId from_coord( gfx::point tile ) const;
+  [[nodiscard]] ColonyId from_coord( Coord const& c ) const;
+  [[nodiscard]] ColonyId from_coord( gfx::point tile ) const;
 
   base::maybe<ColonyId> maybe_from_name(
       std::string_view name ) const;
 
-  bool exists( ColonyId id ) const;
+  [[nodiscard]] bool exists( ColonyId id ) const;
 
   // The id of this colony must be zero (i.e., you can't select
   // the ID); a new ID will be generated for this unit and re-
   // turned.
-  ColonyId add_colony( Colony&& colony );
+  [[nodiscard]] ColonyId add_colony( Colony&& colony );
 
   // DO NOT call this directly as it will not properly remove
   // units or check for errors. Should not be holding any refer-
