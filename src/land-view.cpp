@@ -983,8 +983,12 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
   void advance_viewport_state() {
     viewport().advance_state();
 
-    // TODO: should only do the following when the viewport has
-    // input focus.
+    // TODO: find a way to re-introduce smooth scrolling via key-
+    // board. Note that the OG does discrete panning of the map
+    // via shift-direction keys which we do reproduce in the NG,
+    // which means that if we want smooth panning we need to find
+    // another set of keys.
+#if 0
     auto const* __state = ::SDL_GetKeyboardState( nullptr );
 
     // Returns true if key is pressed.
@@ -1011,6 +1015,7 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
           state( ::SDL_SCANCODE_S ) )
         viewport().stop_auto_panning();
     }
+#endif
 
     // Let the mouse push when it is near the edge of the visible
     // map to help scroll to the goto target.
@@ -1641,8 +1646,27 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
             }
             break;
           default:
-            if( key_event.mod.shf_down ) break;
             handled = e_input_handled::no;
+            if( key_event.mod.shf_down ) {
+              // Pan the screen as in OG.
+              if( key_event.direction.has_value() ) {
+                size const delta =
+                    point{}
+                        .moved( *key_event.direction )
+                        .distance_from_origin() *
+                    size{ .w = 32, .h = 32 };
+                viewport().pan_by_world_coords( delta );
+                if( white_box_stream_.has_value() )
+                  white_box_stream_->send(
+                      white_box_tile( ss_ )
+                          .moved( *key_event.direction )
+                          .clamped( viz_->rect_tiles()
+                                        .to_gfx()
+                                        .with_dec_size() ) );
+                handled = e_input_handled::yes;
+              }
+              break;
+            }
             if( key_event.direction ) {
               raw_input_stream_.send(
                   RawInput( LandViewRawInput::cmd{
@@ -1651,6 +1675,7 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
                       .mod_key_2 =
                           key_event.mod.ctrl_down } } ) );
               handled = e_input_handled::yes;
+              break;
             }
             break;
         }
