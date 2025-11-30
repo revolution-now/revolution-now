@@ -1224,5 +1224,9 @@ TEST_CASE( "[cheat] cheat_advance_revolution_status" ) {
   REQUIRE( !w.players().players[ref_dutch].has_value() );
 }
 
+TEST_CASE( "[cheat] cheat_create_unit" ) {
+  world w;
+}
+
 } // namespace
 } // namespace rn

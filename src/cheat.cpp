@@ -18,6 +18,7 @@
 #include "anim-builders.hpp"
 #include "co-wait.hpp"
 #include "colony-buildings.hpp"
+#include "connectivity.hpp"
 #include "declare.hpp"
 #include "fathers.hpp"
 #include "fog-conv.hpp"
@@ -30,6 +31,7 @@
 #include "interrupts.hpp"
 #include "intervention.hpp"
 #include "land-view.hpp"
+#include "map-square.hpp"
 #include "map-view.hpp"
 #include "market.hpp"
 #include "plane-stack.hpp"
@@ -40,10 +42,12 @@
 #include "rebel-sentiment.hpp"
 #include "roles.hpp"
 #include "settings.rds.hpp"
+#include "society.hpp"
 #include "succession.hpp"
 #include "tribe-mgr.hpp"
 #include "ts.hpp"
 #include "unit-mgr.hpp"
+#include "unit-ownership.hpp"
 #include "views.hpp"
 #include "visibility.hpp"
 #include "white-box.hpp"
@@ -66,6 +70,7 @@
 #include "ss/players.rds.hpp"
 #include "ss/ref.hpp"
 #include "ss/terrain.hpp"
+#include "ss/unit-composition.hpp"
 #include "ss/unit.hpp"
 #include "ss/units.hpp"
 
@@ -1239,6 +1244,39 @@ wait<> cheat_create_unit( SS& ss, TS& ts,
         e_unit_type::treasure,
       } },
   };
+  // Check: tile must exist.
+  if( !ss.terrain.square_exists( tile ) ) {
+    co_await ts.gui.message_box( "Tile ({},{}) does not exist.",
+                                 tile.x + 1, tile.y + 1 );
+    co_return;
+  }
+  // Check: no creating a unit on a tile with foreign entities.
+  auto const society =
+      society_on_real_square( ss.as_const, tile );
+  if( society.has_value() ) {
+    SWITCH( *society ) {
+      CASE( european ) {
+        if( european.player == player_type ) break;
+        co_await ts.gui.message_box(
+            "Cannot create {} unit here because this tile is "
+            "already occupied by the [{}].",
+            config_nation.players[player_type]
+                .possessive_pre_declaration,
+            config_nation.players[european.player]
+                .display_name_pre_declaration );
+        co_return;
+      }
+      CASE( native ) {
+        co_await ts.gui.message_box(
+            "Cannot create {} unit here because this tile is "
+            "already occupied by the [{}].",
+            config_nation.players[player_type]
+                .possessive_pre_declaration,
+            config_natives.tribes[native.tribe].name_singular );
+        co_return;
+      }
+    }
+  }
   maybe<e_cheat_unit_creation_categories> category =
       co_await ts.gui.optional_enum_choice<
           e_cheat_unit_creation_categories>();
@@ -1247,15 +1285,83 @@ wait<> cheat_create_unit( SS& ss, TS& ts,
       co_await ts.gui.partial_optional_enum_choice<e_unit_type>(
           categories[*category] );
   if( !type.has_value() ) co_return;
+  bool const land_tile = is_land( ss.terrain.square_at( tile ) );
+  bool const ship_unit = unit_attr( *type ).ship;
+  bool const water_tile = !land_tile;
+  bool const land_unit  = !ship_unit;
   UNWRAP_CHECK( player, ss.players.players[player_type] );
-  // TODO:
-  //   * If we are trying to add a land unit onto an ocean tile
-  //     then we should prevent it unless there is a ship on that
-  //     tile that can hold the unit, in which case we should add
-  //     the unit as cargo onto the ship.
-  [[maybe_unused]] maybe<UnitId> unit_id =
-      co_await create_unit_on_map( ss, ts, player, *type,
-                                   Coord::from_gfx( tile ) );
+
+  if( land_tile && ship_unit ) {
+    auto const colony = [&] -> maybe<Colony const&> {
+      auto const colony_id =
+          ss.colonies.maybe_from_coord( tile );
+      if( !colony_id.has_value() ) return nothing;
+      return ss.colonies.colony_for( *colony_id );
+    }();
+    if( !colony.has_value() || colony->player != player_type ) {
+      co_await ts.gui.message_box(
+          "Cannot place a ship unit on a land tile unless it "
+          "contains a friendly colony at which to dock." );
+      co_return;
+    }
+    [[maybe_unused]] maybe<UnitId> unit_id =
+        co_await create_unit_on_map( ss, ts, player, *type,
+                                     tile );
+    co_return;
+  }
+
+  if( water_tile && ship_unit ) {
+    TerrainConnectivity const& connectivity =
+        ts.map_updater().connectivity();
+    if( !water_square_has_ocean_access( connectivity, tile ) ) {
+      co_await ts.gui.message_box(
+          "Ships cannot occupy inland lake tiles." );
+      co_return;
+    }
+    [[maybe_unused]] maybe<UnitId> unit_id =
+        co_await create_unit_on_map( ss, ts, player, *type,
+                                     tile );
+    co_return;
+  }
+
+  if( land_tile && land_unit ) {
+    // Land unit on land: good.
+    [[maybe_unused]] maybe<UnitId> unit_id =
+        co_await create_unit_on_map( ss, ts, player, *type,
+                                     tile );
+    co_return;
+  }
+
+  if( water_tile && land_unit ) {
+    // Land unit on water tile... only allowed if there is a
+    // ship that can accept the unit.
+    auto const ships =
+        ss.units.ordered_euro_units_from_tile( tile );
+    maybe<UnitId> holder_id;
+    for( UnitId const ship_id : ships ) {
+      Unit const& ship = ss.units.unit_for( ship_id );
+      if( ship.cargo().fits_unit_type_somewhere( *type ) ) {
+        holder_id = ship_id;
+        break;
+      }
+    }
+    if( !holder_id.has_value() ) {
+      co_await ts.gui.message_box(
+          "Cannot place a land unit on an ocean tile unless "
+          "it contains at least one friendly ship whose cargo "
+          "holds can carry it." );
+      co_return;
+    }
+    Unit& holder = ss.units.unit_for( *holder_id );
+    UnitId const cargo_unit =
+        create_free_unit( ss.units, player, *type );
+    UnitOwnershipChanger( ss, cargo_unit )
+        .change_to_cargo( holder.id(), /*starting_slot=*/0 );
+    co_return;
+  }
+
+  // Should not ever get here.
+  co_await ts.gui.message_box( "Could not create unit." );
 }
 
 } // namespace rn
