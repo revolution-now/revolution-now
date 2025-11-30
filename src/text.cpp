@@ -127,14 +127,20 @@ void render_lines_markup(
 
 vector<vector<MarkedUpChunk>> text_markup_reflow_impl(
     TextReflowInfo const& reflow_info, string_view text ) {
+  vector<vector<MarkedUpChunk>> reflowed;
+
   // (1)
-  auto words = util::split_strip_any( text, " \t\r\n" );
+  auto const words = util::split_strip_any( text, " \t\r\n" );
 
   // (2)
-  auto text_one_line = util::join( words, " " );
+  auto const text_one_line = util::join( words, " " );
 
   // (3)
   UNWRAP_CHECK( mk_texts, parse_markup( text_one_line ) );
+  // Can have either zero chunks (input is either empty or con-
+  // tains only space characters) or, if not, then exactly one
+  // chunk.
+  if( mk_texts.chunks.empty() ) return reflowed;
   CHECK( mk_texts.chunks.size() == 1 );
   auto mk_text = std::move( mk_texts.chunks[0] );
 
@@ -147,7 +153,6 @@ vector<vector<MarkedUpChunk>> text_markup_reflow_impl(
       util::wrap_text( non_mk_text, reflow_info.max_cols );
 
   // (6)
-  vector<vector<MarkedUpChunk>> reflowed;
   reflowed.resize( wrapped.size() );
   // mk_pos tracks the current item in mk_text and mk_char_pos
   // tracks the current character in the current mk_text element.
