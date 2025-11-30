@@ -1559,16 +1559,6 @@ class UnitsAtGateColonyView
     }
   }
 
-  void sort_by_ordering( vector<UnitId>& sort_me ) const {
-    sort( sort_me.begin(), sort_me.end(),
-          [&]( UnitId const lhs, UnitId const rhs ) {
-            // Reverse sorting since later ordered units are
-            // always considered at the "front" in the colony.
-            return ss_.units.unit_ordering( rhs ) <
-                   ss_.units.unit_ordering( lhs );
-          } );
-  }
-
   void update_this_and_children() override {
     auto const& colony = ss_.colonies.colony_for( colony_.id );
     auto const units   = [&] {
@@ -1578,7 +1568,7 @@ class UnitsAtGateColonyView
       res.reserve( units_set.size() );
       for( GenericUnitId const generic_id : units_set )
         res.push_back( ss_.units.check_euro_unit( generic_id ) );
-      sort_by_ordering( res );
+      ss_.units.sort_by_ordering( res );
       return res;
     }();
     auto unit_pos = Coord{} + Delta{ .w = 1, .h = 16 };

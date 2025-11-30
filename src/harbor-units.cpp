@@ -94,17 +94,6 @@ vector<UnitId> units_in_harbor_view(
   return res;
 }
 
-void sort_by_ordering( UnitsState const& units,
-                       vector<UnitId>& sort_me ) {
-  sort( sort_me.begin(), sort_me.end(),
-        [&]( UnitId const lhs, UnitId const rhs ) {
-          // Reverse sorting since later ordered units are always
-          // considered at the "front" in the harbor.
-          return units.unit_ordering( rhs ) <
-                 units.unit_ordering( lhs );
-        } );
-}
-
 template<typename Func>
 vector<UnitId> units_in_harbor_filtered(
     UnitsState const& units_state, e_player player,
@@ -114,7 +103,7 @@ vector<UnitId> units_in_harbor_filtered(
   erase_if( res, not_fn( [&]( UnitId id ) {
               return func( units_state, id );
             } ) );
-  sort_by_ordering( units_state, res );
+  units_state.sort_by_ordering( res );
   return res;
 }
 
