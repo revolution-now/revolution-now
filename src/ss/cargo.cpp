@@ -15,7 +15,7 @@
 #include "macros.hpp"
 
 // config
-#include "config/unit-type.rds.hpp"
+#include "config/unit-type.hpp"
 
 // ss
 #include "ss/units.hpp"
@@ -287,29 +287,41 @@ int CargoHold::max_commodity_quantity_that_fits(
   return rl::all( o_.slots ).map( one_slot ).accumulate();
 }
 
+bool CargoHold::fits_unit_type( e_unit_type const unit_type,
+                                int const slot ) const {
+  auto const maybe_occupied =
+      unit_attr( unit_type ).cargo_slots_occupies;
+  if( !maybe_occupied )
+    // Unit cannot be held as cargo.
+    return false;
+  auto const occupied = *maybe_occupied;
+  // Check that all needed slots are `empty`.
+  for( int i = slot; i < slot + occupied; ++i ) {
+    if( i >= slots_total() )
+      // Not enough slots left.
+      return false;
+    if( !holds<CargoSlot::empty>( o_.slots[i] ) )
+      // Needed slots are not empty.
+      return false;
+  }
+  return true;
+}
+
+bool CargoHold::fits_unit_type_somewhere(
+    e_unit_type const unit_type ) const {
+  for( int slot = 0; slot < ssize( o_.slots ); ++slot )
+    if( fits_unit_type( unit_type, slot ) ) return true;
+  return false;
+}
+
 bool CargoHold::fits( UnitsState const& units_state,
                       Cargo const& cargo, int slot ) const {
   CHECK( slot >= 0 && slot < int( o_.slots.size() ) );
   return overload_visit(
       cargo,
       [&]( Cargo::unit u ) {
-        auto maybe_occupied = units_state.unit_for( u.id )
-                                  .desc()
-                                  .cargo_slots_occupies;
-        if( !maybe_occupied )
-          // Unit cannot be held as cargo.
-          return false;
-        auto occupied = *maybe_occupied;
-        // Check that all needed slots are `empty`.
-        for( int i = slot; i < slot + occupied; ++i ) {
-          if( i >= slots_total() )
-            // Not enough slots left.
-            return false;
-          if( !holds<CargoSlot::empty>( o_.slots[i] ) )
-            // Needed slots are not empty.
-            return false;
-        }
-        return true;
+        return fits_unit_type(
+            units_state.unit_for( u.id ).type(), slot );
       },
       [&]( Cargo::commodity const& c ) {
         auto const& proposed = c.obj;

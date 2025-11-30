@@ -2781,5 +2781,99 @@ TEST_CASE( "CargoHold::clear_commodities" ) {
   ch.clear();
 }
 
+TEST_CASE( "[ss/cargo] fits_unit_type" ) {
+  using enum e_commodity;
+  using enum e_player;
+  using enum e_unit_type;
+  World w;
+  CargoHoldTester ch( 8 );
+
+  auto const comm = Commodity{ .type = food, .quantity = 100 };
+
+  REQUIRE( ch.fits_unit_type( treasure, 0 ) );
+  REQUIRE( ch.fits_unit_type( treasure, 1 ) );
+  REQUIRE( ch.fits_unit_type( treasure, 2 ) );
+  REQUIRE( !ch.fits_unit_type( treasure, 3 ) );
+  REQUIRE( !ch.fits_unit_type( treasure, 4 ) );
+  REQUIRE( !ch.fits_unit_type( treasure, 5 ) );
+  REQUIRE( !ch.fits_unit_type( treasure, 6 ) );
+  REQUIRE( !ch.fits_unit_type( treasure, 7 ) );
+
+  REQUIRE( ch.fits_unit_type( free_colonist, 0 ) );
+  REQUIRE( ch.fits_unit_type( free_colonist, 1 ) );
+  REQUIRE( ch.fits_unit_type( free_colonist, 2 ) );
+  REQUIRE( ch.fits_unit_type( free_colonist, 3 ) );
+  REQUIRE( ch.fits_unit_type( free_colonist, 4 ) );
+  REQUIRE( ch.fits_unit_type( free_colonist, 5 ) );
+  REQUIRE( ch.fits_unit_type( free_colonist, 6 ) );
+  REQUIRE( ch.fits_unit_type( free_colonist, 7 ) );
+
+  REQUIRE( ch.try_add( w.units(),
+                       Cargo::commodity{ .obj = comm }, 6 ) );
+
+  REQUIRE( ch.fits_unit_type( treasure, 0 ) );
+  REQUIRE( !ch.fits_unit_type( treasure, 1 ) );
+  REQUIRE( !ch.fits_unit_type( treasure, 2 ) );
+  REQUIRE( !ch.fits_unit_type( treasure, 3 ) );
+  REQUIRE( !ch.fits_unit_type( treasure, 4 ) );
+  REQUIRE( !ch.fits_unit_type( treasure, 5 ) );
+  REQUIRE( !ch.fits_unit_type( treasure, 6 ) );
+  REQUIRE( !ch.fits_unit_type( treasure, 7 ) );
+
+  REQUIRE( ch.fits_unit_type( free_colonist, 0 ) );
+  REQUIRE( ch.fits_unit_type( free_colonist, 1 ) );
+  REQUIRE( ch.fits_unit_type( free_colonist, 2 ) );
+  REQUIRE( ch.fits_unit_type( free_colonist, 3 ) );
+  REQUIRE( ch.fits_unit_type( free_colonist, 4 ) );
+  REQUIRE( ch.fits_unit_type( free_colonist, 5 ) );
+  REQUIRE( !ch.fits_unit_type( free_colonist, 6 ) );
+  REQUIRE( ch.fits_unit_type( free_colonist, 7 ) );
+}
+
+TEST_CASE( "[ss/cargo] fits_unit_type_somewhere" ) {
+  using enum e_commodity;
+  using enum e_player;
+  using enum e_unit_type;
+  World w;
+  CargoHoldTester ch( 8 );
+
+  auto const comm = Commodity{ .type = food, .quantity = 100 };
+
+  REQUIRE( ch.fits_unit_type_somewhere( treasure ) );
+  REQUIRE( ch.fits_unit_type_somewhere( free_colonist ) );
+
+  REQUIRE( ch.try_add( w.units(),
+                       Cargo::commodity{ .obj = comm }, 6 ) );
+
+  REQUIRE( ch.fits_unit_type_somewhere( treasure ) );
+  REQUIRE( ch.fits_unit_type_somewhere( free_colonist ) );
+
+  REQUIRE( ch.try_add( w.units(),
+                       Cargo::commodity{ .obj = comm }, 5 ) );
+
+  REQUIRE( !ch.fits_unit_type_somewhere( treasure ) );
+  REQUIRE( ch.fits_unit_type_somewhere( free_colonist ) );
+
+  REQUIRE( ch.try_add( w.units(),
+                       Cargo::commodity{ .obj = comm }, 4 ) );
+  REQUIRE( ch.try_add( w.units(),
+                       Cargo::commodity{ .obj = comm }, 3 ) );
+  REQUIRE( ch.try_add( w.units(),
+                       Cargo::commodity{ .obj = comm }, 2 ) );
+  REQUIRE( ch.try_add( w.units(),
+                       Cargo::commodity{ .obj = comm }, 1 ) );
+  REQUIRE( ch.try_add( w.units(),
+                       Cargo::commodity{ .obj = comm }, 0 ) );
+
+  REQUIRE( !ch.fits_unit_type_somewhere( treasure ) );
+  REQUIRE( ch.fits_unit_type_somewhere( free_colonist ) );
+
+  REQUIRE( ch.try_add( w.units(),
+                       Cargo::commodity{ .obj = comm }, 7 ) );
+
+  REQUIRE( !ch.fits_unit_type_somewhere( treasure ) );
+  REQUIRE( !ch.fits_unit_type_somewhere( free_colonist ) );
+}
+
 } // namespace
 } // namespace rn

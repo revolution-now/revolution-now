@@ -41,6 +41,8 @@ namespace rn {
 
 struct UnitsState;
 
+enum class e_unit_type;
+
 void add_commodity_to_cargo( Commodity const& comm,
                              UnitId holder, int slot,
                              bool try_other_slots );
@@ -118,6 +120,14 @@ struct CargoHold {
   // cargo.
   ND bool fits( UnitsState const& units_state,
                 Cargo const& cargo, int slot ) const;
+
+  // The assumption here is that the unit type alone determines
+  // how many slots will be required, which is true.
+  ND bool fits_unit_type( e_unit_type unit_type,
+                          int slot ) const;
+
+  ND bool fits_unit_type_somewhere(
+      e_unit_type unit_type ) const;
 
   // Precondition: there must be a cargo item whose first slot is
   // the given slot; if not, then an error will be thrown. This
