@@ -35,7 +35,6 @@ end
 local config = global( 'config' )
 local game_options = global( 'game_options' )
 local immigration = global( 'immigration' )
-local market = global( 'market' )
 local player_mgr = global( 'player_mgr' )
 local price_group = global( 'price_group' )
 local unit_composition = global( 'unit_composition' )
@@ -272,9 +271,10 @@ local function init_non_processed_goods_prices(root, options,
   -- Initializes the same commodity for all players to the same
   -- value.
   local init_commodity = function( comm )
-    local limits = market.starting_price_limits( comm )
-    local min = assert( limits.bid_price_start_min )
-    local max = assert( limits.bid_price_start_max )
+    local min = config.market.price_behavior[comm].price_limits
+                    .bid_price_start_min
+    local max = config.market.price_behavior[comm].price_limits
+                    .bid_price_start_max
     assert( min <= max )
     local bid_price = math.random( min, max )
     for _, o in ipairs( options.ordered_players ) do
@@ -312,7 +312,8 @@ local function init_processed_goods_prices(root, options, players )
       local player = players[o.nation]:value()
       local old_world = root.players.old_world[player.type]
       local c = old_world.market.commodities[comm]
-      local spread = market.bid_ask_spread( comm )
+      local spread = config.market.price_behavior[comm]
+                         .price_limits.bid_ask_spread
       c.bid_price = eq_ask_prices[comm] - spread
       c.intrinsic_volume = 0 -- not used.
     end

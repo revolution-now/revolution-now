@@ -29,10 +29,6 @@
 #include "ss/ref.hpp"
 #include "ss/settings.hpp"
 
-// luapp
-#include "luapp/enum.hpp"
-#include "luapp/register.hpp"
-
 // refl
 #include "refl/to-str.hpp"
 
@@ -41,6 +37,30 @@ using namespace std;
 namespace rn {
 
 namespace {
+
+using ::refl::enum_map;
+using ::refl::enum_values;
+
+void assert_bid_price_range( int const bid,
+                             e_commodity const type ) {
+  CHECK_GE( bid, config_market.price_behavior[type]
+                     .price_limits.bid_price_min );
+  CHECK_LE( bid, config_market.price_behavior[type]
+                     .price_limits.bid_price_max );
+}
+
+void clamp_bid_prices( SS& ss, e_player const player_type ) {
+  for( e_commodity const type : enum_values<e_commodity> ) {
+    int const min = config_market.price_behavior[type]
+                        .price_limits.bid_price_min;
+    int const max = config_market.price_behavior[type]
+                        .price_limits.bid_price_max;
+    int& bid = old_world_state( ss, player_type )
+                   .market.commodities[type]
+                   .bid_price;
+    bid = clamp( bid, min, max );
+  }
+}
 
 int with_volatility( int what, int volatility ) {
   if( volatility >= 0 )
@@ -272,13 +292,6 @@ Invoice transaction_invoice_default_model(
         price_change );
   invoice.price_change =
       create_price_change( ss, player, comm_type, price_change );
-
-  CHECK_GE( invoice.price_change.to.bid,
-            config_market.price_behavior[transacted.type]
-                .price_limits.bid_price_min );
-  CHECK_LE( invoice.price_change.to.bid,
-            config_market.price_behavior[transacted.type]
-                .price_limits.bid_price_max );
   return invoice;
 }
 
@@ -408,9 +421,9 @@ PriceChange evolve_default_model_commodity(
 }
 
 // This is done once at the start of each player turn.
-refl::enum_map<e_commodity, PriceChange>
-evolve_group_model_prices( SS& ss, Player& player ) {
-  refl::enum_map<e_commodity, PriceChange> res;
+enum_map<e_commodity, PriceChange> evolve_group_model_prices(
+    SS& ss, Player& player ) {
+  enum_map<e_commodity, PriceChange> res;
 
   // Note that there is no designated player in the context of
   // this evolution, so the is_dutch parameter is not relevant.
@@ -451,8 +464,8 @@ CommodityPrice make_commodity_price( e_commodity commodity,
 *****************************************************************/
 PriceChange create_price_change( SSConst const& ss,
                                  Player const& player,
-                                 e_commodity comm,
-                                 int price_change ) {
+                                 e_commodity const comm,
+                                 int const price_change ) {
   int const current_bid = old_world_state( ss, player.type )
                               .market.commodities[comm]
                               .bid_price;
@@ -482,8 +495,8 @@ int ask_from_bid( e_commodity type, int bid ) {
 
 Invoice transaction_invoice(
     SSConst const& ss, Player const& player,
-    Commodity transacted, e_transaction transaction_type,
-    e_immediate_price_change_allowed
+    Commodity transacted, e_transaction const transaction_type,
+    e_immediate_price_change_allowed const
         immediate_price_change_allowed ) {
   Invoice invoice;
   if( is_in_processed_goods_price_group( transacted.type ) )
@@ -494,12 +507,6 @@ Invoice transaction_invoice(
     invoice = transaction_invoice_default_model(
         ss, player, transacted, transaction_type,
         immediate_price_change_allowed );
-  CHECK_GE( invoice.price_change.to.bid,
-            config_market.price_behavior[transacted.type]
-                .price_limits.bid_price_min );
-  CHECK_LE( invoice.price_change.to.bid,
-            config_market.price_behavior[transacted.type]
-                .price_limits.bid_price_max );
   return invoice;
 }
 
@@ -581,20 +588,28 @@ void evolve_group_model_volumes( SS& ss ) {
   }
 }
 
-refl::enum_map<e_commodity, PriceChange> evolve_player_prices(
+enum_map<e_commodity, PriceChange> evolve_player_prices(
     SS& ss, Player& player ) {
-  refl::enum_map<e_commodity, PriceChange> res;
-  refl::enum_map<e_commodity, PriceChange> const
-      processed_goods = evolve_group_model_prices( ss, player );
-  for( e_commodity c : refl::enum_values<e_commodity> ) {
-    if( is_in_processed_goods_price_group( c ) )
-      res[c] = processed_goods[c];
+  enum_map<e_commodity, PriceChange> res;
+  enum_map<e_commodity, PriceChange> const processed_goods =
+      evolve_group_model_prices( ss, player );
+  // At the end of processing each commodity we check fail if the
+  // bid prices are not left in the right range, so therefore we
+  // need to make sure that are clamped to that range to begin
+  // with. In a normal game this should not be necessary, but
+  // we're going to be defensive here to allow for modding, lack
+  // of initialization, or other manual adjustment. We're opting
+  // to not add validation for this in the save state because
+  // then 1) a default constructed market is not valid, and 2) we
+  // again want to be defensive.
+  clamp_bid_prices( ss, player.type );
+  for( e_commodity const type : enum_values<e_commodity> ) {
+    if( is_in_processed_goods_price_group( type ) )
+      res[type] = processed_goods[type];
     else
-      res[c] = evolve_default_model_commodity( ss, player, c );
-    CHECK_GE( res[c].to.bid, config_market.price_behavior[c]
-                                 .price_limits.bid_price_min );
-    CHECK_LE( res[c].to.bid, config_market.price_behavior[c]
-                                 .price_limits.bid_price_max );
+      res[type] =
+          evolve_default_model_commodity( ss, player, type );
+    assert_bid_price_range( res[type].to.bid, type );
   }
   return res;
 }
@@ -607,27 +622,4 @@ PriceLimits price_limits_for_commodity( e_commodity comm ) {
                comm, conf.price_limits.bid_price_max ) };
 }
 
-/****************************************************************
-** Lua Bindings
-*****************************************************************/
-namespace {
-
-// FIXME: temporary until we can expose config data to lua.
-LUA_FN( starting_price_limits, lua::table, e_commodity comm ) {
-  lua::table tbl = st.table.create();
-  tbl["bid_price_start_min"] =
-      config_market.price_behavior[comm]
-          .price_limits.bid_price_start_min;
-  tbl["bid_price_start_max"] =
-      config_market.price_behavior[comm]
-          .price_limits.bid_price_start_max;
-  return tbl;
-}
-
-LUA_FN( bid_ask_spread, int, e_commodity comm ) {
-  return config_market.price_behavior[comm]
-      .price_limits.bid_ask_spread;
-}
-
-} // namespace
 } // namespace rn

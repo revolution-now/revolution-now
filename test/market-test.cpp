@@ -42,12 +42,14 @@ namespace {
 
 using namespace std;
 
+using ::refl::enum_map;
+
 /****************************************************************
 ** Fake World Setup
 *****************************************************************/
-struct World : testing::World {
+struct world : testing::World {
   using Base = testing::World;
-  World() : Base() {
+  world() : Base() {
     create_default_map();
     set_default_player_type( e_player::french );
     add_player( e_player::french );
@@ -67,7 +69,7 @@ struct World : testing::World {
 ** Test Cases
 *****************************************************************/
 TEST_CASE( "[market] market_price" ) {
-  World W;
+  world W;
   Player& french = W.player( e_player::french );
 
   W.old_world( french )
@@ -91,7 +93,7 @@ TEST_CASE( "[market] market_price" ) {
 }
 
 TEST_CASE( "[market] create_price_change" ) {
-  World W;
+  world W;
   W.set_current_bid_price( e_commodity::ore, 10 );
   PriceChange const change =
       create_price_change( W.ss(), W.player(), e_commodity::ore,
@@ -104,7 +106,7 @@ TEST_CASE( "[market] create_price_change" ) {
 }
 
 TEST_CASE( "[market] display_price_change_notification" ) {
-  World W;
+  world W;
   Player const& player = W.default_player();
   PriceChange change;
   wait<> w = make_wait<>();
@@ -154,7 +156,7 @@ TEST_CASE( "[market] ask_from_bid" ) {
 }
 
 TEST_CASE( "[market] apply_invoice" ) {
-  World W;
+  world W;
   Invoice invoice;
 
   W.set_current_bid_price( e_commodity::silver, 10 );
@@ -261,7 +263,7 @@ TEST_CASE( "[market] apply_invoice" ) {
 }
 
 TEST_CASE( "[market] evolve_group_model_volumes" ) {
-  World W;
+  world W;
   // We'll set dutch=true just to make sure that nothing special
   // happens during the evolution; the dutch should only get an
   // advantage when buying/selling in the price group model.
@@ -347,7 +349,7 @@ TEST_CASE( "[market] evolve_group_model_volumes" ) {
 }
 
 TEST_CASE( "[market] evolve_player_prices (non-dutch)" ) {
-  World W;
+  world W;
   W.set_default_player_type( e_player::french );
   Player& player = W.default_player();
   // Set each price to its middle value.
@@ -685,7 +687,7 @@ TEST_CASE( "[market] evolve_player_prices (non-dutch)" ) {
 }
 
 TEST_CASE( "[market] evolve_player_prices (dutch)" ) {
-  World W;
+  world W;
   W.set_default_player_type( e_player::dutch );
   Player& player = W.default_player();
   // Set each price to its middle value.
@@ -1026,7 +1028,7 @@ TEST_CASE( "[market] evolve_player_prices (dutch)" ) {
 // price that the price doesn't go over the limit.
 TEST_CASE(
     "[market] processed good buy remains within limits" ) {
-  World W;
+  world W;
   W.set_default_player_type( e_player::french );
   e_immediate_price_change_allowed const
       immediate_price_change_allowed =
@@ -1065,7 +1067,7 @@ TEST_CASE(
 
 TEST_CASE(
     "[market] default model good buy remains within limits" ) {
-  World W;
+  world W;
   W.set_default_player_type( e_player::french );
   e_immediate_price_change_allowed const
       immediate_price_change_allowed =
@@ -1086,7 +1088,7 @@ TEST_CASE(
 }
 
 TEST_CASE( "[market] transaction_invoice buy" ) {
-  World W;
+  world W;
   Commodity to_buy;
   Invoice expected;
   e_immediate_price_change_allowed
@@ -1640,7 +1642,7 @@ TEST_CASE( "[market] transaction_invoice buy" ) {
 }
 
 TEST_CASE( "[market] transaction_invoice sell" ) {
-  World W;
+  world W;
   Commodity to_sell;
   Invoice expected;
   e_immediate_price_change_allowed
@@ -2218,7 +2220,7 @@ TEST_CASE( "[market] price_limits_for_commodity" ) {
 }
 
 TEST_CASE( "[market] attrition bonus" ) {
-  World W;
+  world W;
   W.set_default_player_type( e_player::french );
   Player& player = W.default_player();
   W.init_prices_to_average();
@@ -2251,6 +2253,144 @@ TEST_CASE( "[market] attrition bonus" ) {
   REQUIRE( iv( e_commodity::trade_goods ) == 704 );
   REQUIRE( iv( e_commodity::tools ) == 805 );
   REQUIRE( iv( e_commodity::muskets ) == 806 );
+}
+
+TEST_CASE(
+    "[market] transaction_invoice (bid prices out of range)" ) {
+  using enum e_commodity;
+  using enum e_player;
+  world w;
+  Invoice expected;
+  Commodity transacted;
+  e_transaction transaction_type = e_transaction::sell;
+  e_immediate_price_change_allowed
+      immediate_price_change_allowed = {};
+
+  auto const f = [&] [[clang::noinline]] {
+    return transaction_invoice( w.ss(), w.default_player(),
+                                transacted, transaction_type,
+                                immediate_price_change_allowed );
+  };
+
+  transacted.type = sugar;
+  // Make sure we're testing what we think we're testing.
+  BASE_CHECK( config_market.price_behavior[transacted.type]
+                  .price_limits.bid_price_min > 0 );
+  transacted.quantity = 1;
+  expected = { .what = { .type = sugar, .quantity = 1 },
+               .money_delta_before_taxes = 0,
+               .tax_rate                 = 0,
+               .tax_amount               = 0,
+               .money_delta_final        = 0,
+               .player_volume_delta      = 1,
+               .intrinsic_volume_delta   = { { english, 1 },
+                                             { french, 1 },
+                                             { spanish, 1 },
+                                             { dutch, 0 },
+                                             { ref_english, 0 },
+                                             { ref_french, 0 },
+                                             { ref_spanish, 0 },
+                                             { ref_dutch, 0 } },
+               .price_change             = { .type  = sugar,
+                                             .from  = { .bid = 0, .ask = 2 },
+                                             .to    = { .bid = 0, .ask = 2 },
+                                             .delta = 0 } };
+  REQUIRE( f() == expected );
+}
+
+// This test would crash if the function in question didn't first
+// clamp the bid prices.
+TEST_CASE(
+    "[market] evolve_player_prices (bid prices out of range)" ) {
+  using enum e_commodity;
+  world w;
+  enum_map<e_commodity, PriceChange> expected;
+
+  auto const f = [&] [[clang::noinline]] {
+    return evolve_player_prices( w.ss(), w.default_player() );
+  };
+
+  expected = { { food,
+                 { .type  = food,
+                   .from  = { .bid = 0, .ask = 8 },
+                   .to    = { .bid = 0, .ask = 8 },
+                   .delta = 0 } },
+               { sugar,
+                 { .type  = sugar,
+                   .from  = { .bid = 2, .ask = 4 },
+                   .to    = { .bid = 2, .ask = 4 },
+                   .delta = 0 } },
+               { tobacco,
+                 { .type  = tobacco,
+                   .from  = { .bid = 1, .ask = 3 },
+                   .to    = { .bid = 1, .ask = 3 },
+                   .delta = 0 } },
+               { cotton,
+                 { .type  = cotton,
+                   .from  = { .bid = 1, .ask = 3 },
+                   .to    = { .bid = 1, .ask = 3 },
+                   .delta = 0 } },
+               { furs,
+                 { .type  = furs,
+                   .from  = { .bid = 1, .ask = 3 },
+                   .to    = { .bid = 1, .ask = 3 },
+                   .delta = 0 } },
+               { lumber,
+                 { .type  = lumber,
+                   .from  = { .bid = 1, .ask = 6 },
+                   .to    = { .bid = 1, .ask = 6 },
+                   .delta = 0 } },
+               { ore,
+                 { .type  = ore,
+                   .from  = { .bid = 1, .ask = 4 },
+                   .to    = { .bid = 1, .ask = 4 },
+                   .delta = 0 } },
+               { silver,
+                 { .type  = silver,
+                   .from  = { .bid = 1, .ask = 2 },
+                   .to    = { .bid = 1, .ask = 2 },
+                   .delta = 0 } },
+               { horses,
+                 { .type  = horses,
+                   .from  = { .bid = 1, .ask = 2 },
+                   .to    = { .bid = 1, .ask = 2 },
+                   .delta = 0 } },
+               { rum,
+                 { .type  = rum,
+                   .from  = { .bid = 0, .ask = 1 },
+                   .to    = { .bid = 0, .ask = 1 },
+                   .delta = 0 } },
+               { cigars,
+                 { .type  = cigars,
+                   .from  = { .bid = 0, .ask = 1 },
+                   .to    = { .bid = 0, .ask = 1 },
+                   .delta = 0 } },
+               { cloth,
+                 { .type  = cloth,
+                   .from  = { .bid = 0, .ask = 1 },
+                   .to    = { .bid = 0, .ask = 1 },
+                   .delta = 0 } },
+               { coats,
+                 { .type  = coats,
+                   .from  = { .bid = 0, .ask = 1 },
+                   .to    = { .bid = 0, .ask = 1 },
+                   .delta = 0 } },
+               { trade_goods,
+                 { .type  = trade_goods,
+                   .from  = { .bid = 1, .ask = 2 },
+                   .to    = { .bid = 1, .ask = 2 },
+                   .delta = 0 } },
+               { tools,
+                 { .type  = tools,
+                   .from  = { .bid = 1, .ask = 2 },
+                   .to    = { .bid = 1, .ask = 2 },
+                   .delta = 0 } },
+               { muskets,
+                 { .type  = muskets,
+                   .from  = { .bid = 1, .ask = 2 },
+                   .to    = { .bid = 1, .ask = 2 },
+                   .delta = 0 } } };
+  REQUIRE( f() == expected );
 }
 
 } // namespace
