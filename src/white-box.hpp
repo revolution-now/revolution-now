@@ -35,7 +35,7 @@ gfx::point white_box_tile( SSConst const& ss );
 
 // NOTE: most code should not call this method; instead changes
 // to the white box tile should be fed to the white box tile
-// thread s that animation state can be updated. That said, if
+// thread so that animation state can be updated. That said, if
 // you want to set the white box position when NOT in a mode
 // where it is visible then you can call this.
 void set_white_box_tile( SS& ss, gfx::point tile );
