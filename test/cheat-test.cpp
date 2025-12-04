@@ -93,6 +93,9 @@ struct world : testing::World {
       _, L, _,
       L, L, L,
       _, L, L,
+      L, L, L,
+      L, _, L,
+      L, L, L,
     };
     // clang-format on
     build_map( std::move( tiles ), 3 );
@@ -1225,7 +1228,200 @@ TEST_CASE( "[cheat] cheat_advance_revolution_status" ) {
 }
 
 TEST_CASE( "[cheat] cheat_create_unit" ) {
+  using enum e_unit_type;
+  using enum e_player;
   world w;
+  MockLandViewPlane mock_land_view;
+  w.planes().get().set_bottom<ILandViewPlane>( mock_land_view );
+  point tile;
+
+  auto const f = [&] [[clang::noinline]] {
+    co_await_test( cheat_create_unit(
+        w.ss(), w.ts(), w.default_player_type(), tile ) );
+  };
+
+  w.dutch().new_world_name  = "";
+  w.french().new_world_name = "";
+
+  w.dutch().woodcuts[e_woodcut::discovered_new_world]  = true;
+  w.french().woodcuts[e_woodcut::discovered_new_world] = true;
+
+  SECTION( "tile does not exist" ) {
+    tile = { .x = 1000, .y = 1000 };
+    w.gui().EXPECT__message_box(
+        "Tile (1001,1001) does not exist." );
+    f();
+    REQUIRE( w.units().all().size() == 0 );
+  }
+
+  SECTION( "non-friendly euro unit" ) {
+    tile = { .x = 0, .y = 0 };
+    w.add_unit_on_map( caravel, tile, french );
+    w.gui().EXPECT__message_box(
+        "Cannot create Dutch unit here because this tile is "
+        "already occupied by the [French]." );
+    REQUIRE( w.units().all().size() == 1 );
+    f();
+    REQUIRE( w.units().all().size() == 1 );
+  }
+
+  SECTION( "non-friendly native unit" ) {
+    tile = { .x = 1, .y = 0 };
+    w.add_dwelling_and_brave( tile, e_tribe::iroquois );
+    w.gui().EXPECT__message_box(
+        "Cannot create Dutch unit here because this tile is "
+        "already occupied by the [Iroquois]." );
+    REQUIRE( w.units().all().size() == 1 );
+    f();
+    REQUIRE( w.units().all().size() == 1 );
+  }
+
+  SECTION( "land unit on ocean, empty" ) {
+    tile = { .x = 0, .y = 0 };
+    w.gui().EXPECT__choice( _ ).returns( "basic_colonists" );
+    w.gui().EXPECT__choice( _ ).returns( "indentured_servant" );
+    w.gui().EXPECT__message_box(
+        "Cannot place a land unit on an ocean tile unless it "
+        "contains at least one friendly ship whose cargo holds "
+        "can carry it." );
+    f();
+    REQUIRE( w.units().all().size() == 0 );
+  }
+
+  SECTION( "land unit on ocean, friendly ship" ) {
+    tile             = { .x = 0, .y = 0 };
+    Unit const& ship = w.add_unit_on_map( caravel, tile );
+    w.gui().EXPECT__choice( _ ).returns( "basic_colonists" );
+    w.gui().EXPECT__choice( _ ).returns( "indentured_servant" );
+    REQUIRE( ship.cargo().slots_occupied() == 0 );
+    f();
+    REQUIRE( ship.cargo().slots_occupied() == 1 );
+    UnitId const cargo_id =
+        UnitId{ static_cast<int>( ship.id() ) + 1 };
+    REQUIRE( ship.cargo().units() ==
+             vector<UnitId>{ cargo_id } );
+    REQUIRE( w.units().all().size() == 2 );
+  }
+
+  SECTION( "land unit on ocean, foreign ship" ) {
+    tile = { .x = 0, .y = 0 };
+    w.add_unit_on_map( caravel, tile, french );
+    w.gui().EXPECT__message_box(
+        "Cannot create Dutch unit here because this tile is "
+        "already occupied by the [French]." );
+    REQUIRE( w.units().all().size() == 1 );
+    f();
+    REQUIRE( w.units().all().size() == 1 );
+  }
+
+  SECTION( "land unit on land, empty" ) {
+    tile = { .x = 1, .y = 0 };
+    w.gui().EXPECT__choice( _ ).returns( "basic_colonists" );
+    w.gui().EXPECT__choice( _ ).returns( "indentured_servant" );
+    f();
+    REQUIRE( w.units().ordered_euro_units_from_tile( tile ) ==
+             vector<UnitId>{ UnitId{ 1 } } );
+    REQUIRE( w.units().all().size() == 1 );
+  }
+
+  SECTION( "land unit on land, friendly unit" ) {
+    tile = { .x = 1, .y = 0 };
+    w.add_unit_on_map( soldier, tile );
+    w.gui().EXPECT__choice( _ ).returns( "basic_colonists" );
+    w.gui().EXPECT__choice( _ ).returns( "indentured_servant" );
+    f();
+    REQUIRE( w.units().ordered_euro_units_from_tile( tile ) ==
+             vector<UnitId>{ UnitId{ 2 }, UnitId{ 1 } } );
+    REQUIRE( w.units().all().size() == 2 );
+  }
+
+  SECTION( "ship unit on land, empty" ) {
+    tile = { .x = 1, .y = 0 };
+    w.gui().EXPECT__choice( _ ).returns( "ships" );
+    w.gui().EXPECT__choice( _ ).returns( "caravel" );
+    w.gui().EXPECT__message_box(
+        "Cannot place a ship unit on a land tile unless it "
+        "contains a friendly colony at which to dock." );
+    f();
+    REQUIRE( w.units().ordered_euro_units_from_tile( tile ) ==
+             vector<UnitId>{} );
+    REQUIRE( w.units().all().size() == 0 );
+  }
+
+  SECTION( "ship unit on land, friendly colony" ) {
+    tile = { .x = 1, .y = 0 };
+    w.add_colony( tile );
+    w.gui().EXPECT__choice( _ ).returns( "ships" );
+    w.gui().EXPECT__choice( _ ).returns( "caravel" );
+    f();
+    REQUIRE( w.units().ordered_euro_units_from_tile( tile ) ==
+             vector<UnitId>{ UnitId{ 1 } } );
+    REQUIRE( w.units().all().size() == 1 );
+  }
+
+  SECTION( "ship unit on land, foreign colony" ) {
+    tile = { .x = 1, .y = 0 };
+    w.add_colony( tile, french );
+    w.gui().EXPECT__message_box(
+        "Cannot create Dutch unit here because this tile is "
+        "already occupied by the [French]." );
+    f();
+    REQUIRE( w.units().ordered_euro_units_from_tile( tile ) ==
+             vector<UnitId>{} );
+    REQUIRE( w.units().all().size() == 0 );
+  }
+
+  SECTION( "ship unit on water, empty" ) {
+    tile = { .x = 0, .y = 0 };
+    w.gui().EXPECT__choice( _ ).returns( "ships" );
+    w.gui().EXPECT__choice( _ ).returns( "caravel" );
+    f();
+    REQUIRE( w.units().ordered_euro_units_from_tile( tile ) ==
+             vector<UnitId>{ UnitId{ 1 } } );
+    REQUIRE( w.units().all().size() == 1 );
+  }
+
+  SECTION( "ship unit on water, friendly unit" ) {
+    tile = { .x = 0, .y = 0 };
+    w.add_unit_on_map( frigate, tile );
+    w.gui().EXPECT__choice( _ ).returns( "ships" );
+    w.gui().EXPECT__choice( _ ).returns( "caravel" );
+    f();
+    REQUIRE( w.units().ordered_euro_units_from_tile( tile ) ==
+             vector<UnitId>{ UnitId{ 2 }, UnitId{ 1 } } );
+    REQUIRE( w.units().all().size() == 2 );
+  }
+
+  SECTION( "ship unit inland lake" ) {
+    tile = { .x = 1, .y = 4 };
+    w.gui().EXPECT__choice( _ ).returns( "ships" );
+    w.gui().EXPECT__choice( _ ).returns( "caravel" );
+    w.gui().EXPECT__message_box(
+        "Ships cannot occupy inland lake tiles." );
+    f();
+    REQUIRE( w.units().ordered_euro_units_from_tile( tile ) ==
+             vector<UnitId>{} );
+    REQUIRE( w.units().all().size() == 0 );
+  }
+
+  SECTION( "cancel first menu" ) {
+    tile = { .x = 0, .y = 0 };
+    w.gui().EXPECT__choice( _ ).returns( nothing );
+    f();
+    REQUIRE( w.units().ordered_euro_units_from_tile( tile ) ==
+             vector<UnitId>{} );
+    REQUIRE( w.units().all().size() == 0 );
+  }
+
+  SECTION( "cancel second menu" ) {
+    tile = { .x = 0, .y = 0 };
+    w.gui().EXPECT__choice( _ ).returns( "ships" );
+    w.gui().EXPECT__choice( _ ).returns( nothing );
+    f();
+    REQUIRE( w.units().ordered_euro_units_from_tile( tile ) ==
+             vector<UnitId>{} );
+    REQUIRE( w.units().all().size() == 0 );
+  }
 }
 
 } // namespace
