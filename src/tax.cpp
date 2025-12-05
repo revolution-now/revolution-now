@@ -437,9 +437,8 @@ wait<NoDiscard<bool>> try_trade_boycotted_commodity(
     .no_label       = "This is taxation without representation!",
     .no_comes_first = true,
   };
-  ui::e_confirm const answer =
-      co_await gui.required_yes_no( config );
-  switch( answer ) {
+  auto const answer = co_await gui.optional_yes_no( config );
+  switch( answer.value_or( ui::e_confirm::no ) ) {
     case ui::e_confirm::yes:
       // Lift the boycott.
       boycott = false;

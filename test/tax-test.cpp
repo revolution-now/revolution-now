@@ -112,6 +112,37 @@ TEST_CASE( "[tax] try_trade_boycotted_commodity" ) {
     REQUIRE( W.old_world( player ).taxes.tax_rate == 7 );
   }
 
+  SECTION( "muskets, enough money, cancels" ) {
+    type         = e_commodity::muskets;
+    player.money = 33;
+
+    string const expected_msg =
+        "[Muskets] are currently under Parliamentary "
+        "boycott. We cannot trade muskets until Parliament "
+        "lifts the boycott, which it will not do unless we "
+        "agree to pay [33] in back taxes.";
+    ChoiceConfig const config{
+      .msg     = expected_msg,
+      .options = {
+        ChoiceConfigOption{
+          .key = "no",
+          .display_name =
+              "This is taxation without representation!",
+        },
+        ChoiceConfigOption{
+          .key          = "yes",
+          .display_name = "Pay [33].",
+        } } };
+    W.gui().EXPECT__choice( config ).returns(
+        make_wait<maybe<string>>( nothing ) );
+
+    REQUIRE( f() );
+    REQUIRE( player.money == 33 );
+    REQUIRE(
+        W.old_world( player ).market.commodities[type].boycott );
+    REQUIRE( W.old_world( player ).taxes.tax_rate == 7 );
+  }
+
   SECTION( "muskets, enough money, selects no" ) {
     type         = e_commodity::muskets;
     player.money = 33;
