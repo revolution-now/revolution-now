@@ -156,13 +156,8 @@ std::vector<ColonyId> find_connected_colonies(
 // Sorts the commodities by their total value (defined as pre-tax
 // sale rate multiplied by quantity). The more valuable ones will
 // be first. If two commodities have an equal value it will
-// prefer those with larger indexes.
-void sort_commodities_by_value( SSConst const& ss,
-                                Player const& player,
-                                std::vector<Commodity>& comms );
-
-// Same as above but does a slotted version that we get from the
-// cargo API.
+// prefer those with larger indexes. Note that this vector of
+// pair type is the one that we get from the unit cargo API.
 void sort_slotted_commodities_by_value(
     SSConst const& ss, Player const& player,
     std::vector<std::pair<Commodity, int /*slot*/>>& comms );

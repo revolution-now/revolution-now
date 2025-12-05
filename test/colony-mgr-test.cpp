@@ -1094,7 +1094,8 @@ TEST_CASE( "[colony-mgr] total_colonies_population" ) {
   REQUIRE( f( english ) == 2 );
 }
 
-TEST_WORLD( "[colony-mgr] colony_commodities_by_value" ) {
+TEST_WORLD(
+    "[colony-mgr] colony_commodities_by_value_restricted" ) {
   using enum e_commodity;
   vector<e_commodity> desired;
   vector<Commodity> expected;
@@ -1253,8 +1254,7 @@ TEST_WORLD( "[colony-mgr] colony_commodities_by_value" ) {
   REQUIRE( f() == expected );
 }
 
-TEST_WORLD(
-    "[colony-mgr] colony_commodities_by_value_restricted" ) {
+TEST_WORLD( "[colony-mgr] colony_commodities_by_value" ) {
   using enum e_commodity;
   vector<Commodity> expected;
 
@@ -1382,12 +1382,105 @@ TEST_WORLD(
   REQUIRE( f() == expected );
 }
 
-TEST_CASE( "[colony-mgr] sort_commodities_by_value" ) {
-  world w;
-}
+TEST_WORLD( "[colony-mgr] sort_slotted_commodities_by_value" ) {
+  using enum e_commodity;
+  vector<pair<Commodity, int /*slot*/>> comms;
+  vector<pair<Commodity, int /*slot*/>> expected;
 
-TEST_CASE( "[colony-mgr] sort_slotted_commodities_by_value" ) {
-  world w;
+  auto const f = [&] [[clang::noinline]] {
+    sort_slotted_commodities_by_value(
+        ss().as_const, as_const( default_player() ), comms );
+  };
+
+  auto& prices =
+      players().old_world[default_nation()].market.commodities;
+
+  comms    = {};
+  expected = {};
+  f();
+  REQUIRE( comms == expected );
+
+  comms = {
+    { { .type = tools }, 0 },
+    { { .type = sugar }, 2 },
+    { { .type = silver }, 5 },
+  };
+  expected = {
+    { { .type = tools }, 0 },
+    { { .type = silver }, 5 },
+    { { .type = sugar }, 2 },
+  };
+  f();
+  REQUIRE( comms == expected );
+
+  prices[sugar].bid_price = 1;
+
+  comms = {
+    { { .type = tools }, 0 },
+    { { .type = sugar }, 2 },
+    { { .type = silver }, 5 },
+  };
+  expected = {
+    { { .type = tools }, 0 },
+    { { .type = silver }, 5 },
+    { { .type = sugar }, 2 },
+  };
+  f();
+  REQUIRE( comms == expected );
+
+  comms = {
+    { { .type = tools, .quantity = 1 }, 0 },
+    { { .type = sugar, .quantity = 1 }, 2 },
+    { { .type = silver, .quantity = 1 }, 5 },
+  };
+  expected = {
+    { { .type = sugar, .quantity = 1 }, 2 },
+    { { .type = tools, .quantity = 1 }, 0 },
+    { { .type = silver, .quantity = 1 }, 5 },
+  };
+  f();
+  REQUIRE( comms == expected );
+
+  prices[tools].bid_price = 1;
+
+  comms = {
+    { { .type = tools, .quantity = 1 }, 0 },
+    { { .type = sugar, .quantity = 1 }, 2 },
+    { { .type = silver, .quantity = 1 }, 5 },
+  };
+  expected = {
+    { { .type = tools, .quantity = 1 }, 0 },
+    { { .type = sugar, .quantity = 1 }, 2 },
+    { { .type = silver, .quantity = 1 }, 5 },
+  };
+  f();
+  REQUIRE( comms == expected );
+
+  comms = {
+    { { .type = tools, .quantity = 1 }, 0 },
+    { { .type = sugar, .quantity = 1 }, 2 },
+    { { .type = silver, .quantity = 2 }, 5 },
+  };
+  expected = {
+    { { .type = tools, .quantity = 1 }, 0 },
+    { { .type = sugar, .quantity = 1 }, 2 },
+    { { .type = silver, .quantity = 2 }, 5 },
+  };
+  f();
+  REQUIRE( comms == expected );
+
+  comms = {
+    { { .type = tools, .quantity = 1 }, 0 },
+    { { .type = sugar, .quantity = 2 }, 2 },
+    { { .type = silver, .quantity = 2 }, 5 },
+  };
+  expected = {
+    { { .type = sugar, .quantity = 2 }, 2 },
+    { { .type = tools, .quantity = 1 }, 0 },
+    { { .type = silver, .quantity = 2 }, 5 },
+  };
+  f();
+  REQUIRE( comms == expected );
 }
 
 TEST_WORLD( "[colony-mgr] colony_auto_load_commodity" ) {
@@ -1635,6 +1728,147 @@ TEST_WORLD( "[colony-mgr] colony_auto_load_commodity" ) {
 }
 
 TEST_WORLD( "[colony-mgr] colony_auto_unload_commodity" ) {
+  using enum e_unit_type;
+  using enum e_commodity;
+  Colony& colony = add_colony( { .x = 1, .y = 1 } );
+  Unit& unit     = add_unit_on_map( galleon, colony.location );
+  maybe<Commodity> expected_comm;
+  enum_map<e_commodity, int> expected_colony_comms;
+  vector<pair<Commodity, int /*slot*/>> expected_unit_cargo;
+
+  auto& colony_comms = colony.commodities;
+
+  auto const f = [&] [[clang::noinline]] {
+    return colony_auto_unload_commodity(
+        ss().as_const, as_const( default_player() ), unit,
+        colony );
+  };
+
+  auto& prices =
+      players().old_world[default_nation()].market.commodities;
+
+  expected_comm         = nothing;
+  expected_colony_comms = {};
+  REQUIRE( f() == expected_comm );
+  REQUIRE( colony_comms == expected_colony_comms );
+
+  add_commodity_to_cargo( units(),
+                          { .type = muskets, .quantity = 100 },
+                          unit.cargo(), /*slot=*/0,
+                          /*try_other_slots=*/true );
+  add_commodity_to_cargo( units(),
+                          { .type = horses, .quantity = 50 },
+                          unit.cargo(), /*slot=*/0,
+                          /*try_other_slots=*/true );
+  add_commodity_to_cargo( units(),
+                          { .type = sugar, .quantity = 100 },
+                          unit.cargo(), /*slot=*/0,
+                          /*try_other_slots=*/true );
+
+  expected_unit_cargo = {
+    { { muskets, 100 }, 0 },
+    { { horses, 50 }, 1 },
+    { { sugar, 100 }, 2 },
+  };
+  REQUIRE( unit.cargo().commodities() == expected_unit_cargo );
+
+  SECTION( "zero prices" ) {
+    expected_comm         = { .type = sugar, .quantity = 100 };
+    expected_colony_comms = {
+      { sugar, 100 },
+    };
+    expected_unit_cargo = {
+      { { muskets, 100 }, 0 },
+      { { horses, 50 }, 1 },
+    };
+    REQUIRE( f() == expected_comm );
+    REQUIRE( colony_comms == expected_colony_comms );
+    REQUIRE( unit.cargo().commodities() == expected_unit_cargo );
+
+    expected_comm         = { .type = horses, .quantity = 50 };
+    expected_colony_comms = {
+      { sugar, 100 },
+      { horses, 50 },
+    };
+    expected_unit_cargo = {
+      { { muskets, 100 }, 0 },
+    };
+    REQUIRE( f() == expected_comm );
+    REQUIRE( colony_comms == expected_colony_comms );
+    REQUIRE( unit.cargo().commodities() == expected_unit_cargo );
+
+    expected_comm         = { .type = muskets, .quantity = 100 };
+    expected_colony_comms = {
+      { muskets, 100 },
+      { horses, 50 },
+      { sugar, 100 },
+    };
+    expected_unit_cargo = {};
+    REQUIRE( f() == expected_comm );
+    REQUIRE( colony_comms == expected_colony_comms );
+    REQUIRE( unit.cargo().commodities() == expected_unit_cargo );
+
+    expected_comm         = nothing;
+    expected_colony_comms = {
+      { muskets, 100 },
+      { horses, 50 },
+      { sugar, 100 },
+    };
+    expected_unit_cargo = {};
+    REQUIRE( f() == expected_comm );
+    REQUIRE( colony_comms == expected_colony_comms );
+    REQUIRE( unit.cargo().commodities() == expected_unit_cargo );
+  }
+
+  SECTION( "non-zero prices" ) {
+    prices[sugar].bid_price = 1;
+
+    expected_comm         = { .type = horses, .quantity = 50 };
+    expected_colony_comms = {
+      { horses, 50 },
+    };
+    expected_unit_cargo = {
+      { { muskets, 100 }, 0 },
+      { { sugar, 100 }, 2 },
+    };
+    REQUIRE( f() == expected_comm );
+    REQUIRE( colony_comms == expected_colony_comms );
+    REQUIRE( unit.cargo().commodities() == expected_unit_cargo );
+
+    expected_comm         = { .type = muskets, .quantity = 100 };
+    expected_colony_comms = {
+      { muskets, 100 },
+      { horses, 50 },
+    };
+    expected_unit_cargo = {
+      { { sugar, 100 }, 2 },
+    };
+    REQUIRE( f() == expected_comm );
+    REQUIRE( colony_comms == expected_colony_comms );
+    REQUIRE( unit.cargo().commodities() == expected_unit_cargo );
+
+    expected_comm         = { .type = sugar, .quantity = 100 };
+    expected_colony_comms = {
+      { muskets, 100 },
+      { horses, 50 },
+      { sugar, 100 },
+    };
+    expected_unit_cargo = {};
+    REQUIRE( f() == expected_comm );
+    REQUIRE( colony_comms == expected_colony_comms );
+    REQUIRE( unit.cargo().commodities() == expected_unit_cargo );
+
+    expected_comm         = nothing;
+    expected_colony_comms = {
+      { muskets, 100 },
+      { horses, 50 },
+      { sugar, 100 },
+    };
+    expected_unit_cargo = {};
+    REQUIRE( f() == expected_comm );
+    REQUIRE( colony_comms == expected_colony_comms );
+    REQUIRE( unit.cargo().commodities() == expected_unit_cargo );
+  }
 }
 
 } // namespace

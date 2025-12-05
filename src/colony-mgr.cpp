@@ -687,23 +687,23 @@ void sort_slotted_commodities_by_value(
            comm.quantity;
   };
 
-  // Sorts in reverse order of pre-tax sale value and then com-
-  // modity index, mirroring the OG.
+  // Sorts in reverse order of (pre-tax sale value and then by
+  // then by commodity index).
   auto const comparator = [&]( S const& l, S const& r ) {
     auto const& [l_comm, l_slot] = l;
     auto const& [r_comm, r_slot] = r;
-    int const value_l            = sale_value_no_tax( l_comm );
-    int const value_r            = sale_value_no_tax( r_comm );
-    if( value_l != value_r ) return value_r < value_l;
+    int const l_value            = sale_value_no_tax( l_comm );
+    int const r_value            = sale_value_no_tax( r_comm );
+    if( l_value != r_value ) return r_value < l_value;
     return r_comm.type < l_comm.type;
   };
 
-  rg::sort( comms, comparator );
+  rg::stable_sort( comms, comparator );
 }
 
-void sort_commodities_by_value( SSConst const& ss,
-                                Player const& player,
-                                vector<Commodity>& comms ) {
+static void sort_commodities_by_value(
+    SSConst const& ss, Player const& player,
+    vector<Commodity>& comms ) {
   auto const sale_value_no_tax = [&]( Commodity const& comm ) {
     return market_price( ss, player, comm.type ).bid *
            comm.quantity;
@@ -804,7 +804,7 @@ maybe<Commodity> colony_auto_unload_commodity(
   auto in_cargo = unit.cargo().commodities();
   sort_slotted_commodities_by_value( ss, player, in_cargo );
   if( in_cargo.empty() ) return nothing;
-  // Take the least valuable item, as in the OG.
+  // Unload the least valuable thing first.
   auto const& [comm, slot] = in_cargo.back();
   colony.commodities[comm.type] += comm.quantity;
   CHECK_GE( colony.commodities[comm.type], 0 );
