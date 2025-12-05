@@ -9,14 +9,6 @@ TODO:
     anyway since the brave will probably have moved by the time
     it gets to that area.
 
-  * The auto load algo used for trade routes seems to behave
-    slightly differently from the "auto load" feature in the
-    colony that happens when you press 'L', though they seem sim-
-    ilar. Need to investigate how the latter works. Indications
-    are that it loads the commodity with the largest market value
-    but where the quantity is capped at 100. We may want to just
-    use the same algo as for wagon train loading.
-
   * Allow editing the trade route of a unit by right clicking on
     it.
 
@@ -37,6 +29,10 @@ TODO:
 
   * Make sure there aren't duplicate trade route names both when
     creating and in the validation.
+
+  * In the OG there is a bug where trade routes can't load or un-
+    load stuff in colonies if they are boycotted. Add a test to
+    make sure that doesn't happen.
 
   * Need to ensure that if a ship is in the harbor carrying out a
     trade route and either the trade route gets deleted, or its
@@ -204,3 +200,11 @@ Done:
     will clear its orders. Maybe a message should be displayed in
     this case. In practice this happens when braves get in the
     way.
+
+  * The auto load algo used for trade routes seems to behave
+    slightly differently from the "auto load" feature in the
+    colony that happens when you press 'L', though they seem sim-
+    ilar. Need to investigate how the latter works. Indications
+    are that it loads the commodity with the largest market value
+    but where the quantity is capped at 100. We may want to just
+    use the same algo as for wagon train loading.

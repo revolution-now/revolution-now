@@ -1391,6 +1391,247 @@ TEST_CASE( "[colony-mgr] sort_slotted_commodities_by_value" ) {
 }
 
 TEST_WORLD( "[colony-mgr] colony_auto_load_commodity" ) {
+  using enum e_unit_type;
+  using enum e_commodity;
+  enum_map<e_commodity, int> expected_colony_comms;
+  vector<pair<Commodity, int>> expected_unit_comms;
+  Commodity expected;
+
+  Player& player = default_player();
+  // Money should be irrelevant here, so we'll check that it re-
+  // mains unchanged.
+  player.money = 1000;
+  auto& prices =
+      players().old_world[default_nation()].market.commodities;
+
+  Colony& colony     = add_colony( { .x = 1, .y = 1 } );
+  auto& colony_comms = colony.commodities;
+
+  Unit& unit = add_unit_on_map( wagon_train, colony.location );
+
+  auto const f = [&] [[clang::noinline]] {
+    return colony_auto_load_commodity(
+        ss().as_const, as_const( default_player() ), unit,
+        colony );
+  };
+
+  // Case
+  // ------------------------------------------------------------
+  unit.cargo().clear_commodities();
+  colony_comms          = {};
+  prices                = {};
+  expected_colony_comms = {};
+  expected_unit_comms   = {};
+  REQUIRE( f() == nothing );
+  REQUIRE( colony_comms == expected_colony_comms );
+  REQUIRE( unit.cargo().commodities() == expected_unit_comms );
+  REQUIRE( unit.cargo().slots_occupied() == 0 );
+
+  // Case
+  // ------------------------------------------------------------
+  unit.cargo().clear_commodities();
+  colony_comms          = { { silver, 110 }, { muskets, 100 } };
+  prices                = {};
+  expected_colony_comms = { { silver, 110 } };
+  expected_unit_comms   = {
+    { Commodity{ .type = muskets, .quantity = 100 }, 0 },
+  };
+  expected = { .type = muskets, .quantity = 100 };
+  REQUIRE( f() == expected );
+  REQUIRE( colony_comms == expected_colony_comms );
+  REQUIRE( unit.cargo().commodities() == expected_unit_comms );
+  REQUIRE( unit.cargo().slots_occupied() == 1 );
+  expected_colony_comms = { { silver, 10 } };
+  expected_unit_comms   = {
+    { Commodity{ .type = muskets, .quantity = 100 }, 0 },
+    { Commodity{ .type = silver, .quantity = 100 }, 1 },
+  };
+  expected = { .type = silver, .quantity = 100 };
+  REQUIRE( f() == expected );
+  REQUIRE( colony_comms == expected_colony_comms );
+  REQUIRE( unit.cargo().commodities() == expected_unit_comms );
+  REQUIRE( unit.cargo().slots_occupied() == 2 );
+
+  // Case
+  // ------------------------------------------------------------
+  unit.cargo().clear_commodities();
+  colony_comms = { { silver, 110 }, { muskets, 100 } };
+  prices       = {};
+  prices[silver].bid_price  = 2;
+  prices[muskets].bid_price = 1;
+  expected_colony_comms = { { silver, 10 }, { muskets, 100 } };
+  expected_unit_comms   = {
+    { Commodity{ .type = silver, .quantity = 100 }, 0 },
+  };
+  expected = { .type = silver, .quantity = 100 };
+  REQUIRE( f() == expected );
+  REQUIRE( colony_comms == expected_colony_comms );
+  REQUIRE( unit.cargo().commodities() == expected_unit_comms );
+  REQUIRE( unit.cargo().slots_occupied() == 1 );
+  expected_colony_comms = { { silver, 10 } };
+  expected_unit_comms   = {
+    { Commodity{ .type = silver, .quantity = 100 }, 0 },
+    { Commodity{ .type = muskets, .quantity = 100 }, 1 },
+  };
+  expected = { .type = muskets, .quantity = 100 };
+  REQUIRE( f() == expected );
+  REQUIRE( colony_comms == expected_colony_comms );
+  REQUIRE( unit.cargo().commodities() == expected_unit_comms );
+  REQUIRE( unit.cargo().slots_occupied() == 2 );
+
+  // Case
+  // ------------------------------------------------------------
+  unit.cargo().clear_commodities();
+  colony_comms = { { silver, 110 }, { muskets, 100 } };
+  prices       = {};
+  prices[silver].bid_price  = 1;
+  prices[muskets].bid_price = 0;
+  expected_colony_comms     = { { muskets, 100 } };
+  expected_unit_comms       = {
+    { Commodity{ .type = silver, .quantity = 100 }, 0 },
+    { Commodity{ .type = silver, .quantity = 10 }, 1 },
+  };
+  expected = { .type = silver, .quantity = 100 };
+  REQUIRE( f() == expected );
+  expected = { .type = silver, .quantity = 10 };
+  REQUIRE( f() == expected );
+  REQUIRE( colony_comms == expected_colony_comms );
+  REQUIRE( unit.cargo().commodities() == expected_unit_comms );
+  REQUIRE( unit.cargo().slots_occupied() == 2 );
+
+  // Case
+  // ------------------------------------------------------------
+  unit.cargo().clear_commodities();
+  add_commodity_to_cargo( units(),
+                          { .type = silver, .quantity = 100 },
+                          unit.cargo(), /*slot=*/0,
+                          /*try_other_slots=*/true );
+  add_commodity_to_cargo( units(),
+                          { .type = muskets, .quantity = 70 },
+                          unit.cargo(), /*slot=*/0,
+                          /*try_other_slots=*/true );
+  colony_comms = {
+    { silver, 100 }, { muskets, 100 }, { trade_goods, 100 } };
+  prices                    = {};
+  prices[silver].bid_price  = 2;
+  prices[muskets].bid_price = 1;
+  expected_colony_comms     = {
+    { silver, 100 }, { muskets, 70 }, { trade_goods, 100 } };
+  expected_unit_comms = {
+    { Commodity{ .type = silver, .quantity = 100 }, 0 },
+    { Commodity{ .type = muskets, .quantity = 100 }, 1 },
+  };
+  expected = { .type = muskets, .quantity = 30 };
+  REQUIRE( f() == expected );
+  REQUIRE( colony_comms == expected_colony_comms );
+  REQUIRE( unit.cargo().commodities() == expected_unit_comms );
+  REQUIRE( unit.cargo().slots_occupied() == 2 );
+  expected_colony_comms = {
+    { silver, 100 }, { muskets, 70 }, { trade_goods, 100 } };
+  expected_unit_comms = {
+    { Commodity{ .type = silver, .quantity = 100 }, 0 },
+    { Commodity{ .type = muskets, .quantity = 100 }, 1 },
+  };
+  REQUIRE( f() == nothing );
+  REQUIRE( colony_comms == expected_colony_comms );
+  REQUIRE( unit.cargo().commodities() == expected_unit_comms );
+  REQUIRE( unit.cargo().slots_occupied() == 2 );
+
+  // Case
+  // ------------------------------------------------------------
+  unit.cargo().clear_commodities();
+  colony_comms = {
+    { silver, 100 }, { muskets, 200 }, { trade_goods, 100 } };
+  prices                    = {};
+  prices[silver].bid_price  = 3;
+  prices[muskets].bid_price = 19;
+  expected_colony_comms     = {
+    { silver, 100 }, { muskets, 100 }, { trade_goods, 100 } };
+  expected_unit_comms = {
+    { Commodity{ .type = muskets, .quantity = 100 }, 0 },
+  };
+  expected = { .type = muskets, .quantity = 100 };
+  REQUIRE( f() == expected );
+  REQUIRE( colony_comms == expected_colony_comms );
+  REQUIRE( unit.cargo().commodities() == expected_unit_comms );
+  REQUIRE( unit.cargo().slots_occupied() == 1 );
+  expected_colony_comms = { { silver, 100 },
+                            { trade_goods, 100 } };
+  expected_unit_comms   = {
+    { Commodity{ .type = muskets, .quantity = 100 }, 0 },
+    { Commodity{ .type = muskets, .quantity = 100 }, 1 },
+  };
+  expected = { .type = muskets, .quantity = 100 };
+  REQUIRE( f() == expected );
+  REQUIRE( colony_comms == expected_colony_comms );
+  REQUIRE( unit.cargo().commodities() == expected_unit_comms );
+  REQUIRE( unit.cargo().slots_occupied() == 2 );
+
+  // Case
+  // ------------------------------------------------------------
+  unit.cargo().clear_commodities();
+  colony_comms = {
+    { silver, 100 }, { muskets, 200 }, { trade_goods, 100 } };
+  prices                    = {};
+  prices[silver].bid_price  = 19;
+  prices[muskets].bid_price = 3;
+  expected_colony_comms     = { { muskets, 200 },
+                                { trade_goods, 100 } };
+  expected_unit_comms       = {
+    { Commodity{ .type = silver, .quantity = 100 }, 0 },
+  };
+  expected = { .type = silver, .quantity = 100 };
+  REQUIRE( f() == expected );
+  REQUIRE( colony_comms == expected_colony_comms );
+  REQUIRE( unit.cargo().commodities() == expected_unit_comms );
+  REQUIRE( unit.cargo().slots_occupied() == 1 );
+  expected_colony_comms = { { muskets, 100 },
+                            { trade_goods, 100 } };
+  expected_unit_comms   = {
+    { Commodity{ .type = silver, .quantity = 100 }, 0 },
+    { Commodity{ .type = muskets, .quantity = 100 }, 1 },
+  };
+  expected = { .type = muskets, .quantity = 100 };
+  REQUIRE( f() == expected );
+  REQUIRE( colony_comms == expected_colony_comms );
+  REQUIRE( unit.cargo().commodities() == expected_unit_comms );
+  REQUIRE( unit.cargo().slots_occupied() == 2 );
+
+  // Case (boycotts have no effect)
+  // ------------------------------------------------------------
+  unit.cargo().clear_commodities();
+  colony_comms = {
+    { silver, 100 }, { muskets, 200 }, { trade_goods, 100 } };
+  prices                    = {};
+  prices[silver].bid_price  = 3;
+  prices[muskets].bid_price = 19;
+  prices[silver].boycott    = true;
+  prices[muskets].boycott   = true;
+  expected_colony_comms     = {
+    { silver, 100 }, { muskets, 100 }, { trade_goods, 100 } };
+  expected_unit_comms = {
+    { Commodity{ .type = muskets, .quantity = 100 }, 0 },
+  };
+  expected = { .type = muskets, .quantity = 100 };
+  REQUIRE( f() == expected );
+  REQUIRE( colony_comms == expected_colony_comms );
+  REQUIRE( unit.cargo().commodities() == expected_unit_comms );
+  REQUIRE( unit.cargo().slots_occupied() == 1 );
+  expected_colony_comms = { { silver, 100 },
+                            { trade_goods, 100 } };
+  expected_unit_comms   = {
+    { Commodity{ .type = muskets, .quantity = 100 }, 0 },
+    { Commodity{ .type = muskets, .quantity = 100 }, 1 },
+  };
+  expected = { .type = muskets, .quantity = 100 };
+  REQUIRE( f() == expected );
+  REQUIRE( colony_comms == expected_colony_comms );
+  REQUIRE( unit.cargo().commodities() == expected_unit_comms );
+  REQUIRE( unit.cargo().slots_occupied() == 2 );
+
+  // Sanity check.
+  // ------------------------------------------------------------
+  REQUIRE( player.money == 1000 );
 }
 
 TEST_WORLD( "[colony-mgr] colony_auto_unload_commodity" ) {

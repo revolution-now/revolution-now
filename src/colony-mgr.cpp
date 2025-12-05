@@ -770,38 +770,30 @@ vector<Commodity> colony_commodities_by_value(
 maybe<Commodity> colony_auto_load_commodity(
     SSConst const& ss, Player const& player, Unit& unit,
     Colony& colony ) {
-  // Only compactify if we can save slots by doing so. Otherwise
-  // don't compactify because it will also sort the items which
-  // will make them suddenly change order, leading to a bad UX.
-  {
-    auto cargo = unit.cargo();
-    cargo.compactify( ss.units );
-    if( cargo.slots_occupied() < unit.cargo().slots_occupied() )
-      unit.cargo() = cargo;
-  }
   vector<Commodity> const loadables =
       colony_commodities_by_value( ss, player,
                                    as_const( colony ) );
-  for( Commodity const& comm : loadables ) {
-    int const available         = comm.quantity;
+  for( auto const& [type, quantity] : loadables ) {
+    int const available         = quantity;
     int const try_load_quantity = std::min(
         { available, 100,
           unit.cargo().max_commodity_quantity_that_fits(
-              comm.type ) } );
+              type ) } );
     CHECK_GE( try_load_quantity, 0 );
     if( try_load_quantity == 0 ) continue;
-    colony.commodities[comm.type] -= try_load_quantity;
-    CHECK_GE( colony.commodities[comm.type], 0 );
+    colony.commodities[type] -= try_load_quantity;
+    CHECK_GE( colony.commodities[type], 0 );
+    Commodity const to_remove{ .type     = type,
+                               .quantity = try_load_quantity };
     // This will check-fail if the commodity does not fit, but
     // that should not happen because we should have checked
     // that max quantity that can fit already above.
-    add_commodity_to_cargo(
-        ss.units, with_quantity( comm, try_load_quantity ),
-        unit.cargo(),
-        /*slot=*/0,
-        /*try_other_slots=*/true );
-    lg.info( "loaded {} {}.", comm.quantity, comm.type );
-    return comm;
+    add_commodity_to_cargo( ss.units, to_remove, unit.cargo(),
+                            /*slot=*/0,
+                            /*try_other_slots=*/true );
+    lg.info( "loaded {} {}.", to_remove.quantity,
+             to_remove.type );
+    return to_remove;
   }
   return nothing;
 }
