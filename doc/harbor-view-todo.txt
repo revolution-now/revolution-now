@@ -59,6 +59,10 @@ Harbor View TODO
       sterdam, Netherlands" whereas we are saying "Amsterdam, The
       Netherlands" which sounds wrong.
   18. Make the harbor work with the 480x300 resolution.
+  19. When using the unload key, if the first commodity is boy-
+      cotted and the player cancels then it won't unload anything
+      else. Maybe the unload key should skip over boycotted goods
+      unless they are the only ones left.
 
 Pedia
 -----
