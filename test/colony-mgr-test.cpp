@@ -50,6 +50,7 @@ using ::Catch::UnorderedEquals;
 
 using ::gfx::point;
 using ::mock::matchers::_;
+using ::refl::enum_map;
 
 /****************************************************************
 ** Fake World Setup
@@ -1379,6 +1380,20 @@ TEST_WORLD(
     { .type = sugar, .quantity = 10 },
   };
   REQUIRE( f() == expected );
+}
+
+TEST_CASE( "[colony-mgr] sort_commodities_by_value" ) {
+  world w;
+}
+
+TEST_CASE( "[colony-mgr] sort_slotted_commodities_by_value" ) {
+  world w;
+}
+
+TEST_WORLD( "[colony-mgr] colony_auto_load_commodity" ) {
+}
+
+TEST_WORLD( "[colony-mgr] colony_auto_unload_commodity" ) {
 }
 
 } // namespace

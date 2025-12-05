@@ -677,9 +677,33 @@ vector<ColonyId> find_connected_colonies(
   return colonies;
 }
 
-vector<Commodity> colony_commodities_by_value_restricted(
+void sort_slotted_commodities_by_value(
     SSConst const& ss, Player const& player,
-    Colony const& colony, vector<e_commodity> const& desired ) {
+    vector<pair<Commodity, int /*slot*/>>& comms ) {
+  using S = pair<Commodity, int>;
+
+  auto const sale_value_no_tax = [&]( Commodity const& comm ) {
+    return market_price( ss, player, comm.type ).bid *
+           comm.quantity;
+  };
+
+  // Sorts in reverse order of pre-tax sale value and then com-
+  // modity index, mirroring the OG.
+  auto const comparator = [&]( S const& l, S const& r ) {
+    auto const& [l_comm, l_slot] = l;
+    auto const& [r_comm, r_slot] = r;
+    int const value_l            = sale_value_no_tax( l_comm );
+    int const value_r            = sale_value_no_tax( r_comm );
+    if( value_l != value_r ) return value_r < value_l;
+    return r_comm.type < l_comm.type;
+  };
+
+  rg::sort( comms, comparator );
+}
+
+void sort_commodities_by_value( SSConst const& ss,
+                                Player const& player,
+                                vector<Commodity>& comms ) {
   auto const sale_value_no_tax = [&]( Commodity const& comm ) {
     return market_price( ss, player, comm.type ).bid *
            comm.quantity;
@@ -695,6 +719,12 @@ vector<Commodity> colony_commodities_by_value_restricted(
     return r.type < l.type;
   };
 
+  rg::sort( comms, comparator );
+}
+
+vector<Commodity> colony_commodities_by_value_restricted(
+    SSConst const& ss, Player const& player,
+    Colony const& colony, vector<e_commodity> const& desired ) {
   vector<Commodity> loadables;
   loadables.reserve( desired.size() );
   for( e_commodity const type : desired ) {
@@ -703,8 +733,7 @@ vector<Commodity> colony_commodities_by_value_restricted(
     loadables.push_back(
         Commodity{ .type = type, .quantity = q } );
   }
-  rg::sort( loadables, comparator );
-
+  sort_commodities_by_value( ss, player, loadables );
   return loadables;
 }
 
@@ -720,6 +749,78 @@ vector<Commodity> colony_commodities_by_value(
   }();
   return colony_commodities_by_value_restricted( ss, player,
                                                  colony, all );
+}
+
+// NOTE: The algorithm used here (including the one used to sort
+// the commodities) is the same one used by units on trade routes
+// to select commodities to load from a colony from among the
+// choices that they are configured with. However the function
+// below actually runs when the user manual loads into the cargo
+// using the 'l' key (auto load). Some experimentation with the
+// OG indicates that this manual loading mechanism works slightly
+// differently in how it selects the commodity to load as com-
+// pared with the loading mechanism used by units on trade
+// routes. Specifically, the trade route one, when computing the
+// market value of a commodity, will use the total quantity in
+// the store, whereas in the non-trade route case it will first
+// cap it at 100, then compute. However, this difference doesn't
+// seem like a big deal, so we will just use some same algo for
+// simplicity, that way we don't have to create another commodity
+// sorting function.
+maybe<Commodity> colony_auto_load_commodity(
+    SSConst const& ss, Player const& player, Unit& unit,
+    Colony& colony ) {
+  // Only compactify if we can save slots by doing so. Otherwise
+  // don't compactify because it will also sort the items which
+  // will make them suddenly change order, leading to a bad UX.
+  {
+    auto cargo = unit.cargo();
+    cargo.compactify( ss.units );
+    if( cargo.slots_occupied() < unit.cargo().slots_occupied() )
+      unit.cargo() = cargo;
+  }
+  vector<Commodity> const loadables =
+      colony_commodities_by_value( ss, player,
+                                   as_const( colony ) );
+  for( Commodity const& comm : loadables ) {
+    int const available         = comm.quantity;
+    int const try_load_quantity = std::min(
+        { available, 100,
+          unit.cargo().max_commodity_quantity_that_fits(
+              comm.type ) } );
+    CHECK_GE( try_load_quantity, 0 );
+    if( try_load_quantity == 0 ) continue;
+    colony.commodities[comm.type] -= try_load_quantity;
+    CHECK_GE( colony.commodities[comm.type], 0 );
+    // This will check-fail if the commodity does not fit, but
+    // that should not happen because we should have checked
+    // that max quantity that can fit already above.
+    add_commodity_to_cargo(
+        ss.units, with_quantity( comm, try_load_quantity ),
+        unit.cargo(),
+        /*slot=*/0,
+        /*try_other_slots=*/true );
+    lg.info( "loaded {} {}.", comm.quantity, comm.type );
+    return comm;
+  }
+  return nothing;
+}
+
+maybe<Commodity> colony_auto_unload_commodity(
+    SSConst const& ss, Player const& player, Unit& unit,
+    Colony& colony ) {
+  auto in_cargo = unit.cargo().commodities();
+  sort_slotted_commodities_by_value( ss, player, in_cargo );
+  if( in_cargo.empty() ) return nothing;
+  // Take the least valuable item, as in the OG.
+  auto const& [comm, slot] = in_cargo.back();
+  colony.commodities[comm.type] += comm.quantity;
+  CHECK_GE( colony.commodities[comm.type], 0 );
+  Commodity const removed =
+      rm_commodity_from_cargo( ss.units, unit.cargo(), slot );
+  CHECK_EQ( removed, comm );
+  lg.info( "unloaded {} {}.", comm.quantity, comm.type );
+  return removed;
 }
 
 } // namespace rn

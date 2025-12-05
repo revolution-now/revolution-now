@@ -153,10 +153,21 @@ std::vector<ColonyId> find_connected_colonies(
     SSConst const& ss, TerrainConnectivity const& connectivity,
     e_player player, gfx::point tile );
 
-// Sorts all colony commodities by their total value (defined as
-// pre-tax sale rate multiplied by quantity). The more valuable
-// ones will be first. If two commodities have an equal value it
-// will prefer those with larger indexes.
+// Sorts the commodities by their total value (defined as pre-tax
+// sale rate multiplied by quantity). The more valuable ones will
+// be first. If two commodities have an equal value it will
+// prefer those with larger indexes.
+void sort_commodities_by_value( SSConst const& ss,
+                                Player const& player,
+                                std::vector<Commodity>& comms );
+
+// Same as above but does a slotted version that we get from the
+// cargo API.
+void sort_slotted_commodities_by_value(
+    SSConst const& ss, Player const& player,
+    std::vector<std::pair<Commodity, int /*slot*/>>& comms );
+
+// Same as above but on the commodities in the colony store.
 [[nodiscard]] std::vector<Commodity> colony_commodities_by_value(
     SSConst const& ss, Player const& player,
     Colony const& colony );
@@ -167,5 +178,21 @@ colony_commodities_by_value_restricted(
     SSConst const& ss, Player const& player,
     Colony const& colony,
     std::vector<e_commodity> const& desired );
+
+// This is called when the player presses 'l' (load) in the
+// colony view. It will auto-select a commodity from the store
+// and load it into the cargo of the given unit assuming it fits.
+// Returns if something was loaded.
+maybe<Commodity> colony_auto_load_commodity(
+    SSConst const& ss, Player const& player, Unit& unit,
+    Colony& colony );
+
+// This is called when the player presses 'u' (unload) in the
+// colony view. It will auto-select a commodity from the cargo
+// and unload it into the store. Returns if something was un-
+// loaded.
+maybe<Commodity> colony_auto_unload_commodity(
+    SSConst const& ss, Player const& player, Unit& unit,
+    Colony& colony );
 
 } // namespace rn

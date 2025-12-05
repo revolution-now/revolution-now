@@ -1025,6 +1025,52 @@ class CargoView : public ui::View,
     co_return ColViewObject::commodity{ new_comm };
   }
 
+  // Auto-selects some commodity and loads it into the cargo.
+  wait<> auto_load() {
+    if( !holder_.has_value() ) co_return;
+    if( dragging_.has_value() ) co_return;
+    Unit& holder      = ss_.units.unit_for( *holder_ );
+    auto const loaded = colony_auto_load_commodity(
+        ss_.as_const, as_const( player_ ), holder, colony_ );
+    if( loaded.has_value() ) {
+      holder.clear_orders();
+    }
+  }
+
+  // Auto-selects some commodity and unloads it into the store.
+  wait<> auto_unload() {
+    if( !holder_.has_value() ) co_return;
+    if( dragging_.has_value() ) co_return;
+    Unit& holder        = ss_.units.unit_for( *holder_ );
+    auto const unloaded = colony_auto_unload_commodity(
+        ss_.as_const, as_const( player_ ), holder, colony_ );
+    if( unloaded.has_value() ) {
+      holder.clear_orders();
+    }
+  }
+
+  // Implement AwaitView.
+  wait<NoDiscard<bool>> perform_key(
+      input::key_event_t const& event ) override {
+    if( dragging_.has_value() ) co_return false;
+    if( event.change != input::e_key_change::down )
+      co_return false;
+    // NOTE: We must take care to return true here if we do any
+    // loading/unloading below in order for the production view
+    // to be updated as a result of any changes to the contents
+    // of the commodity store.
+    switch( event.keycode ) {
+      case ::SDLK_l:
+        co_await auto_load();
+        co_return true;
+      case ::SDLK_u:
+        co_await auto_unload();
+        co_return true;
+      default:
+        co_return false;
+    }
+  }
+
  private:
   struct Draggable {
     int slot;
