@@ -335,7 +335,9 @@ class TitleBar : public ui::View, public ColonySubView {
   TitleBar( IEngine& engine, SS& ss, TS& ts, Player& player,
             Colony& colony, Delta size )
     : ColonySubView( engine, ss, ts, player, colony ),
-      size_( size ) {}
+      size_( size ) {
+    content_thread_ = run_content_thread();
+  }
 
   Delta delta() const override { return size_; }
 
@@ -349,10 +351,14 @@ class TitleBar : public ui::View, public ColonySubView {
     return *this;
   }
 
-  string title() const {
+  string default_title() const {
     auto const& colony = ss_.colonies.colony_for( colony_.id );
     return fmt::format( "{}, population {}", colony.name,
                         colony_population( colony ) );
+  }
+
+  void queue_transient_msg( string const& msg ) {
+    transient_.send( msg );
   }
 
   void draw( rr::Renderer& renderer,
@@ -363,13 +369,37 @@ class TitleBar : public ui::View, public ColonySubView {
     rr::Typer typer = renderer.typer( rr::TextLayout{} );
     typer.set_color( pixel::banana() );
     typer.set_position(
-        gfx::centered_in( typer.dimensions_for_line( title() ),
+        gfx::centered_in( typer.dimensions_for_line( msg_ ),
                           bounds( coord ).to_gfx() ) );
-    typer.write( title() );
+    typer.write( msg_ );
   }
 
  private:
+  wait<> run_content_thread() {
+    using namespace std::chrono;
+    while( true ) {
+      msg_ = default_title();
+      msg_ = co_await transient_.next();
+      while( true ) {
+        auto const res = co_await co::first(
+            transient_.next(),
+            wait_for_duration( milliseconds{ 1500 } ) );
+        if( auto const next_msg = res.get_if<string>();
+            !next_msg.has_value() )
+          // Timed out.
+          break;
+        else
+          // We have another transient message.
+          msg_ = *next_msg;
+      }
+    }
+    co_return;
+  }
+
   Delta size_;
+  string msg_;
+  co::stream<string> transient_;
+  wait<> content_thread_;
 };
 
 class MarketCommodities
@@ -599,14 +629,16 @@ class CargoView : public ui::View,
   static unique_ptr<CargoView> create( IEngine& engine, SS& ss,
                                        TS& ts, Player& player,
                                        Colony& colony,
+                                       TitleBar& title_bar,
                                        Delta size ) {
     return make_unique<CargoView>( engine, ss, ts, player,
-                                   colony, size );
+                                   colony, title_bar, size );
   }
 
   CargoView( IEngine& engine, SS& ss, TS& ts, Player& player,
-             Colony& colony, Delta size )
+             Colony& colony, TitleBar& title_bar, Delta size )
     : ColonySubView( engine, ss, ts, player, colony ),
+      title_bar_( title_bar ),
       size_( size ) {}
 
   Delta delta() const override { return size_; }
@@ -1034,6 +1066,11 @@ class CargoView : public ui::View,
         ss_.as_const, as_const( player_ ), holder, colony_ );
     if( loaded.has_value() ) {
       holder.clear_orders();
+      string const msg =
+          format( "Loaded {} tons of {}", loaded->quantity,
+                  IGui::identifier_to_display_name(
+                      base::to_str( loaded->type ) ) );
+      title_bar_.queue_transient_msg( msg );
     }
   }
 
@@ -1046,6 +1083,11 @@ class CargoView : public ui::View,
         ss_.as_const, as_const( player_ ), holder, colony_ );
     if( unloaded.has_value() ) {
       holder.clear_orders();
+      string const msg =
+          format( "Unloaded {} tons of {}", unloaded->quantity,
+                  IGui::identifier_to_display_name(
+                      base::to_str( unloaded->type ) ) );
+      title_bar_.queue_transient_msg( msg );
     }
   }
 
@@ -1077,6 +1119,7 @@ class CargoView : public ui::View,
     ColViewObject object;
   };
 
+  TitleBar& title_bar_;
   // FIXME: this gets reset whenever we recomposite. We need to
   // either put this in a global place, or not recreate all of
   // these view objects each time we recomposite (i.e., reuse
@@ -1776,6 +1819,7 @@ void recomposite( IEngine& engine, SS& ss, TS& ts,
   auto title_bar =
       TitleBar::create( engine, ss, ts, player, colony,
                         Delta{ .w = canvas_size.w, .h = 10 } );
+  auto* const p_title_view = title_bar.get();
   g_composition.entities[e_colview_entity::title_bar] =
       title_bar.get();
   pos = Coord{};
@@ -1819,7 +1863,7 @@ void recomposite( IEngine& engine, SS& ss, TS& ts,
 
   // [Cargo] ----------------------------------------------------
   auto cargo_view = CargoView::create(
-      engine, ss, ts, player, colony,
+      engine, ss, ts, player, colony, *p_title_view,
       middle_strip_size.with_width( middle_strip_size.w / 3 )
           .with_height( 32 ) );
   g_composition.entities[e_colview_entity::cargo] =
