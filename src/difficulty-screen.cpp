@@ -379,26 +379,21 @@ struct DifficultyScreen : public IPlane {
         break;
       case ::SDLK_LEFT:
       case ::SDLK_KP_4:
-      case ::SDLK_h:
-      case ::SDLK_j:
         selected_ =
             l.cells[selected_].next[e_cardinal_direction::w];
         break;
       case ::SDLK_RIGHT:
       case ::SDLK_KP_6:
-      case ::SDLK_l:
         selected_ =
             l.cells[selected_].next[e_cardinal_direction::e];
         break;
       case ::SDLK_UP:
       case ::SDLK_KP_8:
-      case ::SDLK_i:
         selected_ =
             l.cells[selected_].next[e_cardinal_direction::n];
         break;
       case ::SDLK_DOWN:
       case ::SDLK_KP_2:
-      case ::SDLK_COMMA:
         selected_ =
             l.cells[selected_].next[e_cardinal_direction::s];
         break;
