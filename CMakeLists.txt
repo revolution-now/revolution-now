@@ -57,7 +57,7 @@ set( BUILD_SHARED_LIBS NO )
 # These should not be necessary, but some subdirectories' cmake
 # files are not playing nicely and just setting
 # CMAKE_CXX_STANDARD, so we have to set it here.
-set( CMAKE_CXX_STANDARD 20 )
+set( CMAKE_CXX_STANDARD 23 )
 
 # We don't want this variable set when we import the externs be-
 # cause it will cause trouble; it may be enabled from the pre-

@@ -4,7 +4,7 @@ set( sources src/glad.cpp )
 add_library( glad STATIC ${sources} )
 add_library( glad::glad ALIAS glad )
 
-target_compile_features( glad PUBLIC cxx_std_20 )
+target_compile_features( glad PUBLIC cxx_std_23 )
 set_target_properties( glad PROPERTIES CXX_EXTENSIONS OFF )
 set_warning_options( glad )
 
