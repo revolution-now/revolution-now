@@ -11,13 +11,6 @@
 # gfx
 include "gfx/coord.hpp"
 
-namespace "rn"
-
-enum.e_input_handled {
-  no,
-  yes,
-}
-
 namespace "rn.input"
 
 enum.e_drag_phase {

@@ -1033,7 +1033,7 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
 
   void advance_state() override { advance_viewport_state(); }
 
-  void draw( rr::Renderer& renderer ) const override {
+  void draw( rr::Renderer& renderer, Coord ) const override {
     LandViewRenderer const lv_renderer(
         ss_, renderer, animator_, viz_, last_unit_input_id(),
         landview_renderable_rect(), input_overrun_indicator_,
@@ -1365,8 +1365,8 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
       .hypothetical_tile = hypo_tile };
   }
 
-  e_input_handled input( input::event_t const& event ) override {
-    auto handled = e_input_handled::no;
+  bool input( input::event_t const& event ) override {
+    auto handled = false;
     switch( event.to_enum() ) {
       case input::e_input_event::unknown_event: //
         break;
@@ -1378,7 +1378,7 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
         auto& key_event = event.get<input::key_event_t>();
         if( key_event.change != input::e_key_change::down )
           break;
-        handled          = e_input_handled::yes;
+        handled          = true;
         auto is_move_key = [&] {
           return key_event.direction.has_value();
         };
@@ -1647,7 +1647,7 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
             }
             break;
           default:
-            handled = e_input_handled::no;
+            handled = false;
             if( key_event.mod.shf_down ) {
               // Pan the screen as in OG.
               if( key_event.direction.has_value() ) {
@@ -1664,7 +1664,7 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
                           .clamped( viz_->rect_tiles()
                                         .to_gfx()
                                         .with_dec_size() ) );
-                handled = e_input_handled::yes;
+                handled = true;
               }
               break;
             }
@@ -1675,7 +1675,7 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
                       .d = *key_event.direction,
                       .mod_key_2 =
                           key_event.mod.ctrl_down } } ) );
-              handled = e_input_handled::yes;
+              handled = true;
               break;
             }
             break;
@@ -1686,7 +1686,7 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
         auto& val = event.get<input::mouse_move_event_t>();
         raw_input_stream_.send(
             RawInput( produce_mouse_over_event( val.pos ) ) );
-        handled = e_input_handled::yes;
+        handled = true;
         break;
       }
       case input::e_input_event::mouse_wheel_event: {
@@ -1710,7 +1710,7 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
           // currently be happening.
           viewport().stop_auto_zoom();
           viewport().stop_auto_panning();
-          handled = e_input_handled::yes;
+          handled = true;
         }
         break;
       }
@@ -1725,13 +1725,13 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
               LandViewRawInput::mouse_click_outside_of_map{
                 .buttons           = val.buttons,
                 .hypothetical_tile = hypo_tile } ) );
-          handled = e_input_handled::yes;
+          handled = true;
           break;
         }
         UNWRAP_BREAK(
             tile,
             viewport().screen_pixel_to_world_tile( val.pos ) );
-        handled = e_input_handled::yes;
+        handled = true;
         lg.debug( "clicked on tile: {}.", tile );
         // Need to only handle "up" events here because if we
         // handled "down" events then that would interfere with

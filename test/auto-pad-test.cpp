@@ -73,77 +73,74 @@ TEST_CASE( "[auto-pad] autopad" ) {
     REQUIRE( out != nullptr );
     INFO( format( "phase: {}", phase ) );
     REQUIRE( out->cast_safe<VerticalArrayView>() );
-    auto const v_arr = *out->cast_safe<VerticalArrayView>();
-    REQUIRE( v_arr->count() == 3 );
+    auto const& v_arr = *out->cast_safe<VerticalArrayView>();
+    REQUIRE( v_arr.count() == 3 );
 
     // First row.
-    REQUIRE( v_arr->at( 0 ).view->cast_safe<PaddingView>() );
-    REQUIRE( ( **v_arr->at( 0 ).view->cast_safe<PaddingView>() )
+    REQUIRE( v_arr.at( 0 ).view->cast_safe<PaddingView>() );
+    REQUIRE( ( *v_arr.at( 0 ).view->cast_safe<PaddingView>() )
                  .single()
                  ->cast_safe<CheckBoxView>() );
     REQUIRE_FALSE(
-        ( **( **v_arr->at( 0 ).view->cast_safe<PaddingView>() )
-                .single()
-                ->cast_safe<CheckBoxView>() )
+        ( *( *v_arr.at( 0 ).view->cast_safe<PaddingView>() )
+               .single()
+               ->cast_safe<CheckBoxView>() )
             .on() );
 
     // Second row.
-    REQUIRE( v_arr->at( 1 ).view->cast_safe<PaddingView>() );
-    REQUIRE( ( **v_arr->at( 1 ).view->cast_safe<PaddingView>() )
+    REQUIRE( v_arr.at( 1 ).view->cast_safe<PaddingView>() );
+    REQUIRE( ( *v_arr.at( 1 ).view->cast_safe<PaddingView>() )
                  .single()
                  ->cast_safe<RefView>() );
+    REQUIRE( ( *( *v_arr.at( 1 ).view->cast_safe<PaddingView>() )
+                    .single()
+                    ->cast_safe<RefView>() )
+                 .referenced()
+                 .cast_safe<CheckBoxView>() );
     REQUIRE(
-        ( **( **v_arr->at( 1 ).view->cast_safe<PaddingView>() )
-                .single()
-                ->cast_safe<RefView>() )
-            .referenced()
-            .cast_safe<CheckBoxView>() );
-    REQUIRE( ( **( **( **v_arr->at( 1 )
-                             .view->cast_safe<PaddingView>() )
-                         .single()
-                         ->cast_safe<RefView>() )
-                     .referenced()
-                     .cast_safe<CheckBoxView>() )
-                 .on() );
+        ( *( *( *v_arr.at( 1 ).view->cast_safe<PaddingView>() )
+                  .single()
+                  ->cast_safe<RefView>() )
+               .referenced()
+               .cast_safe<CheckBoxView>() )
+            .on() );
 
     // Third row.
     REQUIRE(
-        v_arr->at( 2 ).view->cast_safe<HorizontalArrayView>() );
+        v_arr.at( 2 ).view->cast_safe<HorizontalArrayView>() );
     auto& h_arr =
-        **v_arr->at( 2 ).view->cast_safe<HorizontalArrayView>();
+        *v_arr.at( 2 ).view->cast_safe<HorizontalArrayView>();
 
     // First column.
     REQUIRE( h_arr.at( 0 ).view->cast_safe<EmptyView>() );
 
     // Second column.
     REQUIRE( h_arr.at( 1 ).view->cast_safe<PaddingView>() );
-    REQUIRE( ( **h_arr.at( 1 ).view->cast_safe<PaddingView>() )
+    REQUIRE( ( *h_arr.at( 1 ).view->cast_safe<PaddingView>() )
                  .single()
                  ->cast_safe<RefView>() );
+    REQUIRE( ( *( *h_arr.at( 1 ).view->cast_safe<PaddingView>() )
+                    .single()
+                    ->cast_safe<RefView>() )
+                 .referenced()
+                 .cast_safe<CheckBoxView>() );
     REQUIRE(
-        ( **( **h_arr.at( 1 ).view->cast_safe<PaddingView>() )
-                .single()
-                ->cast_safe<RefView>() )
-            .referenced()
-            .cast_safe<CheckBoxView>() );
-    REQUIRE( ( **( **( **h_arr.at( 1 )
-                             .view->cast_safe<PaddingView>() )
-                         .single()
-                         ->cast_safe<RefView>() )
-                     .referenced()
-                     .cast_safe<CheckBoxView>() )
-                 .on() );
+        ( *( *( *h_arr.at( 1 ).view->cast_safe<PaddingView>() )
+                  .single()
+                  ->cast_safe<RefView>() )
+               .referenced()
+               .cast_safe<CheckBoxView>() )
+            .on() );
 
     // Third column.
     REQUIRE( h_arr.at( 2 ).view->cast_safe<PaddingView>() );
-    REQUIRE( ( **h_arr.at( 2 ).view->cast_safe<PaddingView>() )
+    REQUIRE( ( *h_arr.at( 2 ).view->cast_safe<PaddingView>() )
                  .single()
                  ->cast_safe<CheckBoxView>() );
-    REQUIRE(
-        ( **( **h_arr.at( 2 ).view->cast_safe<PaddingView>() )
-                .single()
-                ->cast_safe<CheckBoxView>() )
-            .on() );
+    REQUIRE( ( *( *h_arr.at( 2 ).view->cast_safe<PaddingView>() )
+                    .single()
+                    ->cast_safe<CheckBoxView>() )
+                 .on() );
   };
 
   // Run/test.

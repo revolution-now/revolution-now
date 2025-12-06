@@ -10,94 +10,104 @@
 *****************************************************************/
 #include "ui.hpp"
 
+// Revolution Now
+#include "input.hpp"
+
+// rds
+#include "rds/switch-macro.hpp"
+
 namespace rn::ui {
 
 namespace {} // namespace
 
-void Object::advance_state() {}
+void object::advance_state() {}
 
-bool Object::input( input::event_t const& event ) {
+bool object::input( input::event_t const& event ) {
   if( disabled() ) return false;
-  switch( event.to_enum() ) {
-    case input::e_input_event::unknown_event: //
-      return false;
-    case input::e_input_event::quit_event: //
-      return false;
-    case input::e_input_event::win_event: {
-      auto& val = event.get<input::win_event_t>();
-      return on_win_event( val );
+  SWITCH( event ) {
+    CASE( unknown_event ) { //
+      return on_unknown_event( unknown_event );
     }
-    case input::e_input_event::resolution_event: {
-      auto& val = event.get<input::resolution_event_t>();
-      return on_resolution_event( val );
+    CASE( quit_event ) { //
+      return on_quit( quit_event );
     }
-    case input::e_input_event::cheat_event: {
-      auto& val = event.get<input::cheat_event_t>();
-      return on_cheat_event( val );
+    CASE( win_event ) { //
+      return on_win_event( win_event );
     }
-    case input::e_input_event::key_event: {
-      auto& val = event.get<input::key_event_t>();
-      return on_key( val );
+    CASE( resolution_event ) { //
+      return on_resolution_event( resolution_event );
     }
-    case input::e_input_event::mouse_wheel_event: {
-      auto& val = event.get<input::mouse_wheel_event_t>();
-      return on_wheel( val );
+    CASE( cheat_event ) { //
+      return on_cheat_event( cheat_event );
     }
-    case input::e_input_event::mouse_move_event: {
-      auto& val = event.get<input::mouse_move_event_t>();
-      return on_mouse_move( val );
+    CASE( key_event ) { //
+      return on_key( key_event );
     }
-    case input::e_input_event::mouse_button_event: {
-      auto& val = event.get<input::mouse_button_event_t>();
-      return on_mouse_button( val );
+    CASE( mouse_move_event ) { //
+      return on_mouse_move( mouse_move_event );
     }
-    case input::e_input_event::mouse_drag_event: {
-      auto& val = event.get<input::mouse_drag_event_t>();
-      return on_mouse_drag( val );
+    CASE( mouse_button_event ) { //
+      return on_mouse_button( mouse_button_event );
+    }
+    CASE( mouse_wheel_event ) { //
+      return on_wheel( mouse_wheel_event );
+    }
+    CASE( mouse_drag_event ) { //
+      return on_mouse_drag( mouse_drag_event );
     }
   }
 }
 
-bool Object::on_key( input::key_event_t const& /*unused*/ ) {
+bool object::on_key( input::key_event_t const& /*unused*/ ) {
   return false;
 }
 
-bool Object::on_wheel(
+bool object::on_wheel(
     input::mouse_wheel_event_t const& /*unused*/ ) {
   return false;
 }
 
-bool Object::on_mouse_move(
+bool object::on_mouse_move(
     input::mouse_move_event_t const& /*unused*/ ) {
   return false;
 }
 
-bool Object::on_mouse_drag(
+bool object::on_mouse_drag(
     input::mouse_drag_event_t const& /*unused*/ ) {
   return false;
 }
 
-bool Object::on_mouse_button(
+bool object::on_mouse_button(
     input::mouse_button_event_t const& /*unused*/ ) {
   return false;
 }
 
-bool Object::on_win_event(
+bool object::on_win_event(
     input::win_event_t const& /*unused*/ ) {
   return false;
 }
 
-bool Object::on_resolution_event(
+bool object::on_resolution_event(
     input::resolution_event_t const& /*unused*/ ) {
   return false;
 }
 
-bool Object::on_cheat_event(
+bool object::on_cheat_event(
     input::cheat_event_t const& /*unused*/ ) {
   return false;
 }
 
-void Object::on_mouse_leave( Coord ) {}
-void Object::on_mouse_enter( Coord ) {}
+bool object::on_unknown_event(
+    input::unknown_event_t const& /*unused*/ ) {
+  return false;
+}
+
+bool object::on_quit( input::quit_event_t const& /*unused*/ ) {
+  return false;
+}
+
+void object::on_mouse_leave( Coord ) {}
+
+void object::on_mouse_enter( Coord ) {}
 
 } // namespace rn::ui

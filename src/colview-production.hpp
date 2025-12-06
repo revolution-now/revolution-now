@@ -82,7 +82,7 @@ class ProductionView : public ui::View, public ColonySubView {
                   Player& player, Colony& colony,
                   Layout layout );
 
- public: // ui::Object
+ public: // ui::object
   Delta delta() const override { return layout_.size; }
 
   void draw( rr::Renderer& renderer,

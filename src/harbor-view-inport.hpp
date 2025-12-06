@@ -54,7 +54,7 @@ struct HarborInPortShips
       HarborMarketCommodities& harbor_market_commodities,
       Layout layout );
 
-  // Implement ui::Object.
+  // Implement ui::object.
   Delta delta() const override;
 
   // Implement IDraggableObjectsView.
@@ -66,7 +66,7 @@ struct HarborInPortShips
   maybe<DraggableObjectWithBounds<HarborDraggableObject>>
   object_here( Coord const& where ) const override;
 
-  // Implement ui::Object.
+  // Implement ui::object.
   void draw( rr::Renderer& renderer,
              Coord coord ) const override;
 

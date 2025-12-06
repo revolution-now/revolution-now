@@ -1530,12 +1530,12 @@ although technically this is not necessary since the view will
 receive a mouse move event when the mouse enters.
 
 The way this is implemented is the following. First add an API
-method to the ui::Object class (pure virtual) that will be called
+method to the ui::object class (pure virtual) that will be called
 with a coordinate (relative to the view origin) and which will
 add any views (either itself of children) into a set that overlap
 that coordinate:
 
-  using ObjectSet = absl::flat_hash_set<ui::Object const*>;
+  using ObjectSet = absl::flat_hash_set<ui::object const*>;
   virtual void children_under_coord( Coord where,
                                      ObjectSet& objects ) = 0;
 

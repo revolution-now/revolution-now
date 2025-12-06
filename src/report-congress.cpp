@@ -480,30 +480,28 @@ struct ContinentalCongressReport : public IPlane {
                                l.intervention_force_spreads );
   }
 
-  void draw( rr::Renderer& renderer ) const override {
+  void draw( rr::Renderer& renderer, Coord ) const override {
     if( !layout_ ) return;
     draw( renderer, *layout_ );
   }
 
-  e_input_handled on_key(
-      input::key_event_t const& event ) override {
-    if( event.change != input::e_key_change::down )
-      return e_input_handled::no;
-    if( input::is_mod_key( event ) ) return e_input_handled::no;
+  bool on_key( input::key_event_t const& event ) override {
+    if( event.change != input::e_key_change::down ) return false;
+    if( input::is_mod_key( event ) ) return false;
     finished_.set_value( monostate{} );
-    return e_input_handled::yes;
+    return true;
   }
 
-  e_input_handled on_mouse_button(
+  bool on_mouse_button(
       input::mouse_button_event_t const& event ) override {
     // Need to use left_up here otherwise the down click will
     // close this screen and then the up click will get picked up
     // by the land-view which requires using the up click in
     // order to distinguish clicks from drags.
     if( event.buttons != input::e_mouse_button_event::left_up )
-      return e_input_handled::no;
+      return false;
     finished_.set_value( monostate{} );
-    return e_input_handled::yes;
+    return true;
   }
 
   wait<> run() { co_await finished_.wait(); }

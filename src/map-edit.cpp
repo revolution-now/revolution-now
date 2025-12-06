@@ -166,7 +166,7 @@ struct MapEditPlane::Impl : public IPlane, public IMenuHandler {
 
   void advance_state() override { viewport().advance_state(); }
 
-  void draw( rr::Renderer& renderer ) const override {
+  void draw( rr::Renderer& renderer, Coord ) const override {
     renderer.set_camera(
         viewport()
             .landscape_buffer_render_upper_left()
@@ -176,7 +176,7 @@ struct MapEditPlane::Impl : public IPlane, public IMenuHandler {
     render_toolbar( renderer );
   }
 
-  e_input_handled input( input::event_t const& event ) override {
+  bool input( input::event_t const& event ) override {
     input::event_t event_translated = mouse_origin_moved_by(
         event, canvas_.upper_left().distance_from_origin() );
     input_.send( event_translated );
@@ -184,8 +184,8 @@ struct MapEditPlane::Impl : public IPlane, public IMenuHandler {
       // Generally we should return no here because this is an
       // event that we want all planes to see. FIXME: need to
       // find a better way to handle this automatically.
-      return e_input_handled::no;
-    return e_input_handled::yes;
+      return false;
+    return true;
   }
 
   Rect toolbar_rect() const;

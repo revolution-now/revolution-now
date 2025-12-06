@@ -55,7 +55,7 @@ struct ColonyLandView : public ui::View,
 
   static Delta size_needed( e_render_mode mode );
 
-  // Implement ui::Object.
+  // Implement ui::object.
   Delta delta() const override;
 
  private:

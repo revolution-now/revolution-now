@@ -51,7 +51,7 @@ struct HarborOutboundShips
   HarborOutboundShips( SS& ss, TS& ts, Player& player,
                        Layout layout );
 
- public: // ui::Object.
+ public: // ui::object.
   Delta delta() const override;
 
   void draw( rr::Renderer& renderer,

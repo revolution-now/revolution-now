@@ -64,7 +64,7 @@ class ColViewBuildings : public ui::View,
 
   Delta delta() const override { return layout_.size; }
 
-  // Implement ui::Object.
+  // Implement ui::object.
   void draw( rr::Renderer& renderer,
              Coord coord ) const override;
 

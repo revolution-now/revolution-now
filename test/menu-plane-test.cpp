@@ -206,8 +206,8 @@ TEST_CASE( "[menu-plane] open_menu" ) {
     mock_handler
         .EXPECT__will_handle_menu_click( e_menu_item::zoom_in )
         .returns( true );
-    REQUIRE( send_key( ::SDLK_DOWN ) == e_input_handled::yes );
-    REQUIRE( send_key( ::SDLK_RETURN ) == e_input_handled::yes );
+    REQUIRE( send_key( ::SDLK_DOWN ) == true );
+    REQUIRE( send_key( ::SDLK_RETURN ) == true );
     finish_click_animation();
     REQUIRE( w.ready() );
     REQUIRE( w->has_value() );

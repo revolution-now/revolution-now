@@ -26,6 +26,7 @@ namespace rn {
 namespace {
 
 using ::gfx::e_resolution;
+using ::gfx::point;
 
 }
 
@@ -34,15 +35,14 @@ using ::gfx::e_resolution;
 *****************************************************************/
 void IPlaneGroup::draw( rr::Renderer& renderer ) const {
   for( IPlane const* const plane : planes() )
-    plane->draw( renderer );
+    plane->draw( renderer, point{} );
 }
 
 void IPlaneGroup::advance_state() {
   for( IPlane* plane : planes() ) plane->advance_state();
 }
 
-e_input_handled IPlaneGroup::input(
-    input::event_t const& event ) {
+bool IPlaneGroup::input( input::event_t const& event ) {
   using namespace input;
   auto* drag_event =
       std::get_if<input::mouse_drag_event_t>( &event );
@@ -50,15 +50,10 @@ e_input_handled IPlaneGroup::input(
     vector<IPlane*> const active = planes();
     auto reversed                = rl::rall( active );
     // Normal event, so send it out using the usual protocol.
-    for( IPlane* plane : reversed ) {
-      switch( plane->input( event ) ) {
-        case e_input_handled::yes:
-          return e_input_handled::yes;
-        case e_input_handled::no:
-          break;
-      }
-    }
-    return e_input_handled::no;
+    for( IPlane* plane : reversed )
+      if( plane->input( event ) ) //
+        return true;
+    return false;
   }
 
   // We have a drag event. Test if there is a plane registered
@@ -118,7 +113,7 @@ e_input_handled IPlaneGroup::input(
       drag_state_.reset();
     // Here it is assumed/required that the plane handle it be-
     // cause the plane has already accepted this drag.
-    return e_input_handled::yes;
+    return true;
   }
 
   // No drag plane registered to accept the event, so lets send
@@ -161,13 +156,13 @@ e_input_handled IPlaneGroup::input(
           CHECK( !maybe_button.has_value() );
           (void)plane->input( motion );
           // All events within a drag are assumed handled.
-          return e_input_handled::yes;
+          return true;
         }
         case IPlane::e_accept_drag::swallow:
           drag_state_.reset();
           // The plane says that it doesn't want to handle it
           // AND it doesn't want anyone else to handle it.
-          return e_input_handled::yes;
+          return true;
         case IPlane::e_accept_drag::yes:
           // Wants to handle it.
           drag_state_.reset();
@@ -181,19 +176,19 @@ e_input_handled IPlaneGroup::input(
           plane->on_drag( drag_event->mod, drag_event->button,
                           drag_event->state.origin,
                           drag_event->prev, drag_event->pos );
-          return e_input_handled::yes;
+          return true;
         case IPlane::e_accept_drag::yes_but_raw:
           drag_state_.reset();
           drag_state_.emplace();
           drag_state_->plane = plane;
           drag_state_->mode  = e_drag_send_mode::raw;
           (void)plane->input( event );
-          return e_input_handled::yes;
+          return true;
       }
     }
   }
   // If no one handled it then that's it.
-  return e_input_handled::no;
+  return false;
 }
 
 void IPlaneGroup::on_logical_resolution_changed(

@@ -123,7 +123,7 @@ struct HarborPlane : public IPlane {
         ->perform_click( input::mouse_button_event_t() );
   }
 
-  void draw( rr::Renderer& renderer ) const override {
+  void draw( rr::Renderer& renderer, Coord ) const override {
     harbor_view_top_level().view().draw( renderer, point{} );
     harbor_view_drag_n_drop_draw( renderer );
   }
@@ -183,9 +183,9 @@ struct HarborPlane : public IPlane {
     }
   }
 
-  e_input_handled input( input::event_t const& event ) override {
+  bool input( input::event_t const& event ) override {
     input_.send( event );
-    return e_input_handled::yes;
+    return true;
   }
 
   IPlane::e_accept_drag can_drag(

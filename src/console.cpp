@@ -86,7 +86,7 @@ struct ConsolePlane::Impl : public IPlane {
     show_percent_ = std::clamp( show_percent_, 0.0, 1.0 );
   }
 
-  void draw( rr::Renderer& renderer ) const override {
+  void draw( rr::Renderer& renderer, Coord ) const override {
     // SCOPED_RENDERER_MOD_MUL( painter_mods.alpha, .75 );
     if( show_percent_ < .0001 ) return;
     rr::Painter painter = renderer.painter();
@@ -198,34 +198,33 @@ struct ConsolePlane::Impl : public IPlane {
     }
   }
 
-  e_input_handled input( input::event_t const& event ) override {
-    if( !event.holds<input::key_event_t>() )
-      return e_input_handled::no;
+  bool input( input::event_t const& event ) override {
+    if( !event.holds<input::key_event_t>() ) return false;
     auto const& key_event =
         *std::get_if<input::key_event_t>( &event );
     if( key_event.change != input::e_key_change::down )
-      return e_input_handled::no;
+      return false;
     if( key_event.keycode == ::SDLK_BACKQUOTE ) {
       if( key_event.mod.shf_down ) {
         // rotate_console();
-        return e_input_handled::yes;
+        return true;
       }
       show_ = !show_;
-      return e_input_handled::yes;
+      return true;
     }
-    if( !show_ ) return e_input_handled::no;
-    if( !is_mouse_over_console() ) return e_input_handled::no;
+    if( !show_ ) return false;
+    if( !is_mouse_over_console() ) return false;
     if( key_event.keycode == ::SDLK_l &&
         key_event.mod.ctrl_down ) {
       terminal_.clear();
-      return e_input_handled::yes;
+      return true;
     }
     if( key_event.keycode == ::SDLK_u &&
         key_event.mod.ctrl_down ) {
       auto text = le_view_.get().text();
       text.erase( 0, le_view_.get().cursor_pos() );
       le_view_.get().set( text, 0 );
-      return e_input_handled::yes;
+      return true;
     }
     if( key_event.keycode == ::SDLK_TAB ) {
       auto const& text = le_view_.get().text();
@@ -240,28 +239,28 @@ struct ConsolePlane::Impl : public IPlane {
             terminal_.log( option );
         }
       }
-      return e_input_handled::yes;
+      return true;
     }
     if( key_event.keycode == ::SDLK_UP ) {
       CHECK( history_index_ >= -1 );
       auto maybe_item_ref =
           terminal_.history( history_index_ + 1 );
-      if( !maybe_item_ref ) return e_input_handled::yes;
+      if( !maybe_item_ref ) return true;
       history_index_++;
       le_view_.get().set( *maybe_item_ref,
                           /*cursor_pos=*/-1 );
-      return e_input_handled::yes;
+      return true;
     }
     if( key_event.keycode == ::SDLK_DOWN ) {
-      if( history_index_ == -1 ) return e_input_handled::yes;
+      if( history_index_ == -1 ) return true;
       CHECK( history_index_ >= 0 );
       history_index_--;
-      if( history_index_ == -1 ) return e_input_handled::yes;
+      if( history_index_ == -1 ) return true;
       auto maybe_item_ref = terminal_.history( history_index_ );
-      if( !maybe_item_ref ) return e_input_handled::yes;
+      if( !maybe_item_ref ) return true;
       le_view_.get().set( *maybe_item_ref,
                           /*cursor_pos=*/-1 );
-      return e_input_handled::yes;
+      return true;
     }
     if( key_event.keycode == ::SDLK_RETURN ) {
       auto text = le_view_.get().text();
@@ -270,13 +269,11 @@ struct ConsolePlane::Impl : public IPlane {
         // Don't care here whether command succeeded or not.
         (void)terminal_.run_cmd( st_, text );
         le_view_.get().clear();
-        return e_input_handled::yes;
+        return true;
       }
-      return e_input_handled::no;
+      return false;
     }
-    return le_view_.get().on_key( key_event )
-               ? e_input_handled::yes
-               : e_input_handled::no;
+    return le_view_.get().on_key( key_event ) ? true : false;
   }
 
   double console_height() const {

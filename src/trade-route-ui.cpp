@@ -845,7 +845,7 @@ struct TradeRouteUI : public IPlane {
                  get_button_state<Hover::button_cxl>() );
   }
 
-  void draw( rr::Renderer& renderer ) const override {
+  void draw( rr::Renderer& renderer, Coord ) const override {
     if( !layout_ ) return;
     draw_layout( renderer, *layout_ );
   }
@@ -876,11 +876,9 @@ struct TradeRouteUI : public IPlane {
     finished_.set_value_if_not_set( monostate{} );
   }
 
-  e_input_handled on_key(
-      input::key_event_t const& event ) override {
-    if( event.change != input::e_key_change::down )
-      return e_input_handled::no;
-    if( input::is_mod_key( event ) ) return e_input_handled::no;
+  bool on_key( input::key_event_t const& event ) override {
+    if( event.change != input::e_key_change::down ) return false;
+    if( input::is_mod_key( event ) ) return false;
 
     switch( event.keycode ) {
       case ::SDLK_ESCAPE:
@@ -892,7 +890,7 @@ struct TradeRouteUI : public IPlane {
         break;
     }
 
-    return e_input_handled::yes;
+    return true;
   }
 
   maybe<Hover> mouse_hover( point const p ) const {
@@ -945,16 +943,16 @@ struct TradeRouteUI : public IPlane {
     return nothing;
   }
 
-  e_input_handled on_mouse_button(
+  bool on_mouse_button(
       input::mouse_button_event_t const& event ) override {
     mouse_buttons_state_ = event.mouse_buttons_state;
     if( event.buttons != input::e_mouse_button_event::left_up )
-      return e_input_handled::yes;
-    if( !layout_.has_value() ) return e_input_handled::yes;
+      return true;
+    if( !layout_.has_value() ) return true;
     point const p = event.pos;
 
     auto const hover = mouse_hover( p );
-    if( !hover.has_value() ) return e_input_handled::yes;
+    if( !hover.has_value() ) return true;
 
     SWITCH( *hover ) {
       CASE( button_cxl ) {
@@ -1014,13 +1012,13 @@ struct TradeRouteUI : public IPlane {
       }
     }
 
-    return e_input_handled::yes;
+    return true;
   }
 
-  e_input_handled on_mouse_move(
+  bool on_mouse_move(
       input::mouse_move_event_t const& event ) override {
     mouse_hover_ = mouse_hover( event.pos );
-    return e_input_handled::yes;
+    return true;
   }
 
   IPlane::e_accept_drag can_drag(

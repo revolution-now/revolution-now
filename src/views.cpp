@@ -68,7 +68,7 @@ void CompositeView::children_updated() {
   for( auto p_view : *this )
     if( auto cv = p_view.view->cast_safe<CompositeView>();
         cv.has_value() )
-      ( *cv )->children_updated();
+      cv->children_updated();
   // Finally, this node. Note that this is the only place that
   // this notify_children_updated function should be called.
   notify_children_updated();

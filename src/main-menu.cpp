@@ -50,7 +50,7 @@ struct MainMenuPlane : public IPlane {
   MainMenuPlane( IEngine& engine, Planes& planes, IGui& gui )
     : engine_( engine ), planes_( planes ), gui_( gui ) {}
 
-  void draw( rr::Renderer& renderer ) const override {
+  void draw( rr::Renderer& renderer, Coord ) const override {
     auto const area = main_window_logical_rect(
         engine_.video(), engine_.window(),
         engine_.resolutions() );

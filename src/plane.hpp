@@ -10,7 +10,9 @@
 *****************************************************************/
 #pragma once
 
-#include "core-config.hpp"
+// Revolution Now
+#include "error.hpp"
+#include "ui.hpp"
 
 // gfx
 #include "gfx/coord.hpp"
@@ -18,88 +20,28 @@
 /****************************************************************
 ** Forward Decls.
 *****************************************************************/
-namespace rr {
-struct Renderer;
-}
-
 namespace gfx {
 enum class e_resolution;
 }
 
-namespace rn {
-enum class e_input_handled;
-namespace input {
-struct event_t;
-struct unknown_event_t;
-struct key_event_t;
-struct quit_event_t;
-struct mouse_wheel_event_t;
-struct mouse_move_event_t;
-struct mouse_drag_event_t;
-struct mouse_button_event_t;
-struct win_event_t;
-struct resolution_event_t;
-struct cheat_event_t;
+namespace rn::input {
 struct mod_keys;
 enum class e_mouse_button;
-} // namespace input
-} // namespace rn
+} // namespace rn::input
 
 namespace rn {
 
 /****************************************************************
 ** IPlane
 *****************************************************************/
-struct IPlane {
-  virtual ~IPlane() = default;
+struct IPlane : public ui::object {
+  IPlane() = default;
 
-  IPlane()                = default;
-  IPlane( IPlane const& ) = default;
-  IPlane( IPlane&& )      = default;
+ public: // ui::object
+  Delta delta() const override { NOT_IMPLEMENTED; }
 
-  virtual void draw( rr::Renderer& renderer ) const;
-
-  // Called once per frame.
-  virtual void advance_state();
-
-  // ------------------------------------------------------------
-  // Input
-  // ------------------------------------------------------------
-  // The default implementation of this will delegate to the spe-
-  // cific handlers below, which is typically what you should
-  // override instead of this one.
-  [[nodiscard]] e_input_handled virtual input(
-      input::event_t const& event );
-
-  [[nodiscard]] virtual e_input_handled on_key(
-      input::key_event_t const& event );
-
-  [[nodiscard]] virtual e_input_handled on_wheel(
-      input::mouse_wheel_event_t const& event );
-
-  [[nodiscard]] virtual e_input_handled on_mouse_move(
-      input::mouse_move_event_t const& event );
-
-  [[nodiscard]] virtual e_input_handled on_mouse_drag(
-      input::mouse_drag_event_t const& event );
-
-  [[nodiscard]] virtual e_input_handled on_mouse_button(
-      input::mouse_button_event_t const& event );
-
-  [[nodiscard]] virtual e_input_handled on_win_event(
-      input::win_event_t const& event );
-
-  [[nodiscard]] virtual e_input_handled on_resolution_event(
-      input::resolution_event_t const& event );
-
-  [[nodiscard]] virtual e_input_handled on_cheat_event(
-      input::cheat_event_t const& event );
-
-  [[nodiscard]] virtual e_input_handled on_unknown_event(
-      input::unknown_event_t const& event );
-
-  [[nodiscard]] virtual e_input_handled on_quit(
-      input::quit_event_t const& event );
+  void draw( rr::Renderer& renderer,
+             Coord coord ) const override;
 
   // ------------------------------------------------------------
   // Input
@@ -132,7 +74,7 @@ struct IPlane {
   // has started). If it returns `yes` then it will immediately
   // receive the initial on_drag() event and then continue to re-
   // ceive all the drag events until the current drag ends.
-  ND e_accept_drag virtual can_drag(
+  [[nodiscard]] e_accept_drag virtual can_drag(
       input::e_mouse_button button, Coord origin );
 
   // For drag events from [first, last). This will only be called

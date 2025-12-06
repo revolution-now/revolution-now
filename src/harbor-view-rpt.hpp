@@ -71,7 +71,7 @@ struct HarborRptButtons : public ui::View, public HarborSubView {
                     HarborDockUnits& harbor_dock_units,
                     Layout layout );
 
- public: // ui::Object
+ public: // ui::object
   Delta delta() const override;
 
   void draw( rr::Renderer& renderer,

@@ -57,7 +57,7 @@ struct UnitsState;
 // TODO: Keep this generic and move it into the ui namespace
 // eventually, and dedupe it with the one in harbor view. Also,
 // need to figure out how its methods override (or not) the
-// methods in ui::Object that accept the same events.
+// methods in ui::object that accept the same events.
 struct AwaitView {
   virtual ~AwaitView() = default;
 

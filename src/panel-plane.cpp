@@ -174,7 +174,7 @@ struct PanelPlane::Impl : public IPlane, public IMenuHandler {
   W panel_width() const { return panel_rect().w; }
   H panel_height() const { return panel_rect().h; }
 
-  Delta delta() const {
+  Delta delta() const override {
     return { panel_width(), panel_height() };
   }
   Coord origin() const { return panel_rect().upper_left(); };
@@ -236,7 +236,7 @@ struct PanelPlane::Impl : public IPlane, public IMenuHandler {
     }
   }
 
-  void draw( rr::Renderer& renderer ) const override {
+  void draw( rr::Renderer& renderer, Coord ) const override {
     tile_sprite( renderer, e_tile::wood_middle, panel_rect() );
     // Render border on left and bottom.
     Rect const r = panel_rect();
@@ -264,10 +264,10 @@ struct PanelPlane::Impl : public IPlane, public IMenuHandler {
     draw_some_stats( renderer, p );
   }
 
-  e_input_handled input( input::event_t const& event ) override {
+  bool input( input::event_t const& event ) override {
     if( event.holds<input::cheat_event_t>() ) {
       enable_cheat_mode( ss_, ts_ );
-      return e_input_handled::yes;
+      return true;
     }
 
     // FIXME: we need a window manager in the panel to avoid du-
@@ -285,12 +285,11 @@ struct PanelPlane::Impl : public IPlane, public IMenuHandler {
         auto new_event =
             mouse_origin_moved_by( event, origin() - Coord{} );
         (void)view_->input( new_event );
-        return e_input_handled::yes;
+        return true;
       }
-      return e_input_handled::no;
+      return false;
     } else
-      return view_->input( event ) ? e_input_handled::yes
-                                   : e_input_handled::no;
+      return view_->input( event ) ? true : false;
   }
 
   // Override IPlane.

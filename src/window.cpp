@@ -113,7 +113,7 @@ struct WindowManager {
       pw.win->advance_state();
   }
 
-  ND e_input_handled input( input::event_t const& event );
+  bool input( input::event_t const& event );
 
   IPlane::e_accept_drag can_drag( input::e_mouse_button button,
                                   Coord origin );
@@ -227,11 +227,11 @@ struct WindowPlane::Impl : public IPlane {
 
   void advance_state() override { wm.advance_state(); }
 
-  void draw( rr::Renderer& renderer ) const override {
+  void draw( rr::Renderer& renderer, Coord ) const override {
     wm.draw_layout( renderer );
   }
 
-  e_input_handled input( input::event_t const& event ) override {
+  bool input( input::event_t const& event ) override {
     return wm.input( event );
   }
 
@@ -421,11 +421,10 @@ maybe<Window&> WindowManager::window_for_cursor_pos_in_view(
   return nothing;
 }
 
-e_input_handled WindowManager::input(
-    input::event_t const& event ) {
+bool WindowManager::input( input::event_t const& event ) {
   // Since windows are modal we will always declare that we've
   // handled the event, unless there are no windows open.
-  if( this->num_windows() == 0 ) return e_input_handled::no;
+  if( this->num_windows() == 0 ) return false;
 
   CHECK(
       !focused().view()->disabled(),
@@ -437,11 +436,11 @@ e_input_handled WindowManager::input(
     if( focused().cancel_actions().disallow_escape_key &&
         event.get_if<input::key_event_t>().member(
             &input::key_event_t::keycode ) == ::SDLK_ESCAPE )
-      return e_input_handled::yes;
+      return true;
     // It's a non-mouse event, so just send it to the top-most
     // window and declare it to be handled.
     (void)focused().view()->input( event );
-    return e_input_handled::yes;
+    return true;
   }
 
   // It's a mouse event.
@@ -451,10 +450,10 @@ e_input_handled WindowManager::input(
   if( !win || addressof( *win ) != addressof( focused() ) ) {
     auto button_event =
         event.get_if<input::mouse_button_event_t>();
-    if( !button_event.has_value() ) return e_input_handled::yes;
+    if( !button_event.has_value() ) return true;
     if( button_event->buttons !=
         input::e_mouse_button_event::left_up )
-      return e_input_handled::yes;
+      return true;
     // We have a window open and the user has clicked the mouse,
     // but the user has clicked outside of the window. In order
     // to reproduce the behavior of the original game (which al-
@@ -472,7 +471,7 @@ e_input_handled WindowManager::input(
       (void)focused().view()->input( escape_event );
     }
 
-    return e_input_handled::yes;
+    return true;
   }
   auto view_rect = Rect::from( win->view_pos( position( *win ) ),
                                win->view()->delta() );
@@ -507,7 +506,7 @@ e_input_handled WindowManager::input(
     (void)win->view()->input( new_event );
   }
   // Always handle the event if there is a window open.
-  return e_input_handled::yes;
+  return true;
 }
 
 IPlane::e_accept_drag WindowManager::can_drag(

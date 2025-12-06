@@ -41,7 +41,7 @@ struct HarborBackdrop : public ui::View, public HarborSubView {
   static PositionedHarborSubView<HarborBackdrop> create(
       SS& ss, TS& ts, Player& player, Rect canvas );
 
-  // Implement ui::Object.
+  // Implement ui::object.
   Delta delta() const override;
 
   // Implement IDraggableObjectsView.
@@ -50,7 +50,7 @@ struct HarborBackdrop : public ui::View, public HarborSubView {
   ui::View& view() noexcept override;
   ui::View const& view() const noexcept override;
 
-  // Implement ui::Object.
+  // Implement ui::object.
   void draw( rr::Renderer& renderer,
              Coord coord ) const override;
 

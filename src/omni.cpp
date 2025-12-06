@@ -466,7 +466,7 @@ struct OmniPlane::Impl : public IPlane, public IMenuHandler {
     return !get_resolution( engine_ ).has_value();
   }
 
-  void draw( rr::Renderer& renderer ) const override {
+  void draw( rr::Renderer& renderer, Coord ) const override {
     // This must be the top-most thing that is drawn in the en-
     // tire game, since nothing else can effectively be drawn if
     // we don't know what the logical resolution is, which in
@@ -509,8 +509,8 @@ struct OmniPlane::Impl : public IPlane, public IMenuHandler {
     }
   }
 
-  e_input_handled input( input::event_t const& event ) override {
-    auto handled = e_input_handled::no;
+  bool input( input::event_t const& event ) override {
+    auto handled = false;
     update_system_cursor();
     SWITCH( event ) {
       CASE( quit_event ) { throw exception_hard_exit{}; }
@@ -522,7 +522,7 @@ struct OmniPlane::Impl : public IPlane, public IMenuHandler {
           // be handled at the top of the next frame.
           on_main_window_resized( engine_.video(),
                                   engine_.window() );
-          handled = e_input_handled::yes;
+          handled = true;
         }
         break;
       }
@@ -535,7 +535,7 @@ struct OmniPlane::Impl : public IPlane, public IMenuHandler {
           // we don't know if this key is intended to be part of
           // a magic sequence (there are other Alt key combos in
           // the game, such as to open menus).
-          handled = e_input_handled::no;
+          handled = false;
           break;
         }
         switch( key_event.keycode ) {
@@ -559,7 +559,7 @@ struct OmniPlane::Impl : public IPlane, public IMenuHandler {
             break;
           case ::SDLK_F11:
             this->toggle_fullscreen();
-            handled = e_input_handled::yes;
+            handled = true;
             break;
           case ::SDLK_F10: {
             auto const next_mode = cycle_enum(
@@ -574,7 +574,7 @@ struct OmniPlane::Impl : public IPlane, public IMenuHandler {
             engine_.renderer_settings()
                 .set_render_framebuffer_mode( next_mode );
             lg.info( "framebuffer render mode: {}", next_mode );
-            handled = e_input_handled::yes;
+            handled = true;
             break;
           }
           case ::SDLK_F3:
@@ -584,27 +584,27 @@ struct OmniPlane::Impl : public IPlane, public IMenuHandler {
                     e_menu_item::continental_congress ) ) {
               if( menu_server_.click_item(
                       e_menu_item::continental_congress ) )
-                handled = e_input_handled::yes;
+                handled = true;
             }
             break;
           case ::SDLK_o:
             if( key_event.mod.ctrl_down ) {
               cycle_omni_overlay();
-              handled = e_input_handled::yes;
+              handled = true;
             }
             break;
           case ::SDLK_MINUS:
             if( key_event.mod.ctrl_down ) {
               if( can_cycle_resolution_down() )
                 cycle_resolution( engine_.resolutions(), -1 );
-              handled = e_input_handled::yes;
+              handled = true;
             }
             break;
           case ::SDLK_EQUALS:
             if( key_event.mod.ctrl_down ) {
               if( can_cycle_resolution_up() )
                 cycle_resolution( engine_.resolutions(), 1 );
-              handled = e_input_handled::yes;
+              handled = true;
             }
             break;
           case ::SDLK_q:
@@ -620,7 +620,7 @@ struct OmniPlane::Impl : public IPlane, public IMenuHandler {
         break;
     }
     bool const hazard_is_shown = window_too_small();
-    return hazard_is_shown ? e_input_handled::yes : handled;
+    return hazard_is_shown ? true : handled;
   }
 
   void on_logical_resolution_selected(

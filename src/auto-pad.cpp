@@ -15,7 +15,7 @@
 
 #define DISPATCH( type )                        \
   if( auto const o = v.cast_safe<type>(); o ) { \
-    pad_children( **o );                        \
+    pad_children( *o );                         \
     return;                                     \
   }
 

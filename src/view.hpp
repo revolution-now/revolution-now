@@ -10,8 +10,6 @@
 *****************************************************************/
 #pragma once
 
-#include "core-config.hpp"
-
 // Revolution Now
 #include "ui.hpp"
 
@@ -23,7 +21,7 @@
 
 namespace rn::ui {
 
-struct View : public Object {};
+struct View : public object {};
 
 // This is a View coupled with a coordinate representing the po-
 // sition of the upper-left corner of the view. Note that the co-

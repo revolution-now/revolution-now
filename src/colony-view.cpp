@@ -167,16 +167,16 @@ struct ColonyPlane : public IPlane {
     recomposite_.send( resolution );
   }
 
-  void draw( rr::Renderer& renderer ) const override {
+  void draw( rr::Renderer& renderer, Coord ) const override {
     draw_colony_view( engine_, colony_, renderer );
     if( drag_state_.has_value() )
       colview_drag_n_drop_draw( ss_, renderer, *drag_state_,
                                 point{} );
   }
 
-  e_input_handled input( input::event_t const& event ) override {
+  bool input( input::event_t const& event ) override {
     input_.send( event );
-    return e_input_handled::yes;
+    return true;
   }
 
   IPlane::e_accept_drag can_drag(

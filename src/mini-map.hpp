@@ -95,25 +95,25 @@ struct MiniMapView : ui::View {
       viewport_( viewport ),
       mini_map_( ss, viewport_, available ) {}
 
-  // Implement ui::Object.
+  // Implement ui::object.
   void draw( rr::Renderer& renderer,
              Coord coord ) const override;
 
-  // Implement ui::Object.
+  // Implement ui::object.
   ND Delta delta() const override;
 
-  // Override ui::Object.
+  // Override ui::object.
   void advance_state() override;
 
-  // Override ui::Object.
+  // Override ui::object.
   [[nodiscard]] bool on_wheel(
       input::mouse_wheel_event_t const& event ) override;
 
-  // Override ui::Object.
+  // Override ui::object.
   [[nodiscard]] bool on_mouse_drag(
       input::mouse_drag_event_t const& event ) override;
 
-  // Override ui::Object.
+  // Override ui::object.
   [[nodiscard]] bool on_mouse_button(
       input::mouse_button_event_t const& event ) override;
 

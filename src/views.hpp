@@ -71,7 +71,7 @@ class CompositeView : public View {
   // Implement Object
   Delta delta() const override;
 
-  // Override ui::Object.
+  // Override ui::object.
   virtual void advance_state() override;
 
   bool on_key( input::key_event_t const& event ) override;
@@ -90,7 +90,7 @@ class CompositeView : public View {
 
   bool on_win_event( input::win_event_t const& event ) override;
 
-  // Implement ui::Object
+  // Implement ui::object
   void on_mouse_leave( Coord from ) override;
   void on_mouse_enter( Coord to ) override;
 
@@ -187,7 +187,7 @@ class RefView : public View {
   // Implement Object
   Delta delta() const override;
 
-  // Override ui::Object.
+  // Override ui::object.
   void advance_state() override;
 
   bool on_key( input::key_event_t const& event ) override;
@@ -206,7 +206,7 @@ class RefView : public View {
 
   bool on_win_event( input::win_event_t const& event ) override;
 
-  // Implement ui::Object
+  // Implement ui::object
   void on_mouse_leave( Coord from ) override;
   void on_mouse_enter( Coord to ) override;
   Rect bounds( Coord position ) const override;
@@ -621,7 +621,7 @@ class OkCancelView2 : public CompositeView {
   // Implement CompositeView
   void notify_children_updated() override {}
 
-  // Override ui::Object.
+  // Override ui::object.
   bool on_key( input::key_event_t const& event ) override;
 
  private:
@@ -650,7 +650,7 @@ class OkCancelView : public CompositeView {
   // Implement CompositeView
   void notify_children_updated() override {}
 
-  // Override ui::Object.
+  // Override ui::object.
   bool on_key( input::key_event_t const& event ) override;
 
   ButtonView* ok_button() { return ok_ref_; }
@@ -778,7 +778,7 @@ struct RadioButtonView : public View, IRadioButton {
   // Implement Object
   Delta delta() const override;
 
-  // Override ui::Object.
+  // Override ui::object.
   bool on_mouse_button(
       input::mouse_button_event_t const& event ) override;
 
@@ -797,7 +797,7 @@ struct LabeledRadioButtonView : public HorizontalArrayView,
   LabeledRadioButtonView( RadioButtonGroup& group,
                           std::unique_ptr<View> label );
 
-  // Override ui::Object.
+  // Override ui::object.
   bool on_mouse_button(
       input::mouse_button_event_t const& event ) override;
 
@@ -829,7 +829,7 @@ struct CheckBoxView : public View {
 
   bool on() const { return on_; }
 
-  // Override ui::Object.
+  // Override ui::object.
   bool on_mouse_button(
       input::mouse_button_event_t const& event ) override;
 
@@ -843,7 +843,7 @@ struct LabeledCheckBoxView : public HorizontalArrayView {
 
   bool on() const { return check_box_->on(); }
 
-  // Override ui::Object.
+  // Override ui::object.
   bool on_mouse_button(
       input::mouse_button_event_t const& event ) override;
 
@@ -927,10 +927,10 @@ class OptionSelectView : public VectorView {
   // Implement CompositeView
   void notify_children_updated() override {}
 
-  // Implement ui::Object.
+  // Implement ui::object.
   bool on_key( input::key_event_t const& event ) override;
 
-  // Implement ui::Object.
+  // Implement ui::object.
   bool on_mouse_button(
       input::mouse_button_event_t const& event ) override;
 

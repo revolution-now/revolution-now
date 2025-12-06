@@ -37,7 +37,7 @@ struct IPlaneGroup {
 
   void advance_state();
 
-  e_input_handled input( input::event_t const& event );
+  [[nodiscard]] bool input( input::event_t const& event );
 
   void on_logical_resolution_changed(
       gfx::e_resolution resolution );

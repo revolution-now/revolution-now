@@ -354,19 +354,17 @@ struct DifficultyScreen : public IPlane {
         "(Click here when finished)" );
   }
 
-  void draw( rr::Renderer& renderer ) const override {
+  void draw( rr::Renderer& renderer, Coord ) const override {
     if( !layout_ ) return;
     draw( renderer, *layout_ );
   }
 
-  e_input_handled on_key(
-      input::key_event_t const& event ) override {
-    if( event.change != input::e_key_change::down )
-      return e_input_handled::no;
-    if( input::has_mod_key( event ) ) return e_input_handled::no;
-    if( !layout_ ) return e_input_handled::no;
+  bool on_key( input::key_event_t const& event ) override {
+    if( event.change != input::e_key_change::down ) return false;
+    if( input::has_mod_key( event ) ) return false;
+    if( !layout_ ) return false;
     auto const& l = *layout_;
-    auto handled  = e_input_handled::no;
+    auto handled  = false;
     switch( event.keycode ) {
       case ::SDLK_SPACE:
       case ::SDLK_RETURN:
@@ -401,9 +399,9 @@ struct DifficultyScreen : public IPlane {
     return handled;
   }
 
-  e_input_handled on_mouse_move(
+  bool on_mouse_move(
       input::mouse_move_event_t const& event ) override {
-    if( !layout_ ) return e_input_handled::no;
+    if( !layout_ ) return false;
     auto const& l = *layout_;
 
     static size const kPlateSize =
@@ -419,15 +417,15 @@ struct DifficultyScreen : public IPlane {
     hover_finished_ =
         event.pos.is_inside( l.instructions_cell.select_rect );
 
-    return e_input_handled::yes;
+    return true;
   }
 
-  e_input_handled on_mouse_button(
+  bool on_mouse_button(
       input::mouse_button_event_t const& event ) override {
     if( event.buttons != input::e_mouse_button_event::left_down )
-      return e_input_handled::no;
+      return false;
 
-    if( !layout_ ) return e_input_handled::no;
+    if( !layout_ ) return false;
     auto const& l = *layout_;
 
     if( event.pos.to_gfx().is_inside(
@@ -444,7 +442,7 @@ struct DifficultyScreen : public IPlane {
       }
     }
 
-    return e_input_handled::yes;
+    return true;
   }
 
   wait<e_difficulty> run() {

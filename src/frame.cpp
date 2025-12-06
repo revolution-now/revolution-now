@@ -223,7 +223,7 @@ void frame_loop_body( IEngine& engine, Planes& planes,
     on_logical_resolution_changed(
         engine.video(), engine.window(), renderer,
         engine.resolutions(), event.resolutions.get() );
-    planes.get().input( event );
+    (void)planes.get().input( event );
     run_all_coroutines();
     if( auto const rs =
             get_selected_resolution( event.resolutions );
@@ -243,7 +243,7 @@ void frame_loop_body( IEngine& engine, Planes& planes,
     input::event_t const& event = q.front();
     bool const was_deferred =
         try_defer( deferred_events, event );
-    if( !was_deferred ) planes.get().input( event );
+    if( !was_deferred ) (void)planes.get().input( event );
     q.pop();
     run_all_coroutines();
   }

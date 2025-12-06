@@ -46,7 +46,7 @@ class PopulationView : public ui::View, public ColonySubView {
     : ColonySubView( engine, ss, ts, player, colony ),
       layout_( layout ) {}
 
- public: // ui::Object.
+ public: // ui::object.
   Delta delta() const override { return layout_.size; }
 
   void draw( rr::Renderer& renderer,

@@ -12,6 +12,7 @@
 
 // Revolution Now
 #include "imap-updater.hpp"
+#include "input.hpp"
 #include "land-view.hpp"
 #include "plane-stack.hpp"
 #include "render.hpp"

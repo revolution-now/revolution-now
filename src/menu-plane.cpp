@@ -134,7 +134,7 @@ struct MenuPlane::Impl : IPlane, IMenuServer {
     restart_bar_thread_if_running();
   }
 
-  void draw( rr::Renderer& renderer ) const override {
+  void draw( rr::Renderer& renderer, Coord ) const override {
     if( bar_is_running() ) {
       auto const& anim_state    = bar_.anim_state();
       auto const& render_layout = bar_.render_layout();
@@ -154,23 +154,23 @@ struct MenuPlane::Impl : IPlane, IMenuServer {
     }
   }
 
-  e_input_handled input( input::event_t const& event ) override {
+  bool input( input::event_t const& event ) override {
     if( event.holds<input::cheat_event_t>() )
       // Let this pass through because we don't handle it here
       // and the alt-WIN key combination can sometimes cause
       // menus to pop open which interfere with the cheat event
       // making it down to lower planes.
-      return e_input_handled::no;
+      return false;
 
     if( bar_is_running() ) {
       auto const raw = MenuBarEventRaw::device{ .event = event };
-      if( bar_.send_event( raw ) ) return e_input_handled::yes;
+      if( bar_.send_event( raw ) ) return true;
     }
 
     if( menu_threads_.open_count() != 0 ) { // Menu threads.
       auto const raw = MenuEventRaw::device{ .event = event };
       menu_threads_.send_event( raw );
-      return e_input_handled::yes;
+      return true;
     }
 
     // FIXME: this is a temporary hack, need to move these into a
@@ -187,7 +187,7 @@ struct MenuPlane::Impl : IPlane, IMenuServer {
       }
     }
 
-    return e_input_handled::no;
+    return false;
   }
 
   e_accept_drag can_drag( input::e_mouse_button const /*button*/,
