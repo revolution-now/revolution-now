@@ -284,7 +284,9 @@ void MenuThreads::send_event( MenuEventRaw const& event ) {
           if( menu_id.has_value() ) {
             // Since the mouse is over an open menu we will al-
             // ways return here, though if it is the left button
-            // then we pass it through.
+            // then we pass it through. Need to use only up
+            // clicks here because we don't want down clicks to
+            // select menu items.
             if( mouse_button_event.buttons ==
                 input::e_mouse_button_event::left_up )
               lookup_menu( *menu_id ).routed_input.send( event );
@@ -293,9 +295,9 @@ void MenuThreads::send_event( MenuEventRaw const& event ) {
           // This ensures that if there is a click outside of the
           // menus that it causes all to close.
           if( mouse_button_event.buttons ==
-                  input::e_mouse_button_event::left_up ||
+                  input::e_mouse_button_event::left_down ||
               mouse_button_event.buttons ==
-                  input::e_mouse_button_event::right_up )
+                  input::e_mouse_button_event::right_down )
             send_event( MenuEventRaw::close_all{} );
           return;
         }

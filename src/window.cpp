@@ -231,7 +231,7 @@ struct WindowPlane::Impl : public IPlane {
     wm.draw_layout( renderer );
   }
 
-  bool input( input::event_t const& event ) override {
+  bool on_input( input::event_t const& event ) override {
     return wm.input( event );
   }
 
@@ -451,8 +451,11 @@ bool WindowManager::input( input::event_t const& event ) {
     auto button_event =
         event.get_if<input::mouse_button_event_t>();
     if( !button_event.has_value() ) return true;
+    // It's ok to let the down click close the window because the
+    // up click will not be then processed by any underlying
+    // planes due to ui::object's click filtering logic.
     if( button_event->buttons !=
-        input::e_mouse_button_event::left_up )
+        input::e_mouse_button_event::left_down )
       return true;
     // We have a window open and the user has clicked the mouse,
     // but the user has clicked outside of the window. In order

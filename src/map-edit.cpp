@@ -176,7 +176,7 @@ struct MapEditPlane::Impl : public IPlane, public IMenuHandler {
     render_toolbar( renderer );
   }
 
-  bool input( input::event_t const& event ) override {
+  bool on_input( input::event_t const& event ) override {
     input::event_t event_translated = mouse_origin_moved_by(
         event, canvas_.upper_left().distance_from_origin() );
     input_.send( event_translated );

@@ -260,12 +260,18 @@ bool MenuBar::send_event( MenuBarEventRaw const& event ) {
           return false;
         }
         CASE( mouse_button_event ) {
-          UNWRAP_BREAK( header, header_from_point(
-                                    mouse_button_event.pos ) );
-          if( mouse_button_event.buttons ==
-              input::e_mouse_button_event::left_down )
+          if( !mouse_button_event.pos.is_inside(
+                  state_->render_layout.bounds ) )
+            break;
+          auto const header =
+              header_from_point( mouse_button_event.pos );
+          if( header.has_value() &&
+              mouse_button_event.buttons ==
+                  input::e_mouse_button_event::left_down )
             st.events.send(
-                MenuBarEvent::click{ .menu = header } );
+                MenuBarEvent::click{ .menu = *header } );
+          // Always return true here because the mouse is over
+          // the menu bar, so don't let anything pass through.
           return true;
         }
         default:

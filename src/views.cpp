@@ -289,7 +289,7 @@ Rect RefView::bounds( Coord position ) const {
   return view_.bounds( position );
 }
 
-bool RefView::input( input::event_t const& e ) {
+bool RefView::on_input( input::event_t const& e ) {
   return view_.input( e );
 }
 
@@ -1590,9 +1590,11 @@ OnInputView::OnInputView( unique_ptr<View> view,
   : CompositeSingleView( std::move( view ), Coord{} ),
     on_input_( std::move( on_input ) ) {}
 
-bool OnInputView::input( input::event_t const& event ) {
+bool OnInputView::on_input( input::event_t const& event ) {
   if( on_input_( event ) ) return true;
-  return this->CompositeSingleView::input( event );
+  // NOTE: be careful to call on_input here and not input() oth-
+  // erwise we go into an infinite loop.
+  return this->CompositeSingleView::on_input( event );
 }
 
 /****************************************************************

@@ -494,11 +494,7 @@ struct ContinentalCongressReport : public IPlane {
 
   bool on_mouse_button(
       input::mouse_button_event_t const& event ) override {
-    // Need to use left_up here otherwise the down click will
-    // close this screen and then the up click will get picked up
-    // by the land-view which requires using the up click in
-    // order to distinguish clicks from drags.
-    if( event.buttons != input::e_mouse_button_event::left_up )
+    if( event.buttons != input::e_mouse_button_event::left_down )
       return false;
     finished_.set_value( monostate{} );
     return true;

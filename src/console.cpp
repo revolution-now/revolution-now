@@ -198,7 +198,7 @@ struct ConsolePlane::Impl : public IPlane {
     }
   }
 
-  bool input( input::event_t const& event ) override {
+  bool on_input( input::event_t const& event ) override {
     if( !event.holds<input::key_event_t>() ) return false;
     auto const& key_event =
         *std::get_if<input::key_event_t>( &event );

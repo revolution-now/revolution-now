@@ -609,9 +609,7 @@ bool MiniMapView::on_mouse_drag(
 
 bool MiniMapView::on_mouse_button(
     input::mouse_button_event_t const& event ) {
-  // Need to filter out left_down otherwise the drag events will
-  // enter into this method and have adverse effects.
-  if( event.buttons != input::e_mouse_button_event::left_up )
+  if( event.buttons != input::e_mouse_button_event::left_down )
     return true;
   viewport_.stop_auto_zoom();
   viewport_.stop_auto_panning();

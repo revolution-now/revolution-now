@@ -210,7 +210,7 @@ class RefView : public View {
   void on_mouse_leave( Coord from ) override;
   void on_mouse_enter( Coord to ) override;
   Rect bounds( Coord position ) const override;
-  bool input( input::event_t const& e ) override;
+  bool on_input( input::event_t const& e ) override;
   bool needs_padding() const override;
   bool on_resolution_event(
       input::resolution_event_t const& event ) override;
@@ -1063,7 +1063,7 @@ class OnInputView : public CompositeSingleView {
   void notify_children_updated() override {}
 
   // Implement UI.
-  bool input( input::event_t const& e ) override;
+  bool on_input( input::event_t const& e ) override;
 
  private:
   OnInput on_input_;

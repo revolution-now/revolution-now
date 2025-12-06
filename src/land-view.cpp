@@ -1365,7 +1365,7 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
       .hypothetical_tile = hypo_tile };
   }
 
-  bool input( input::event_t const& event ) override {
+  bool on_input( input::event_t const& event ) override {
     auto handled = false;
     switch( event.to_enum() ) {
       case input::e_input_event::unknown_event: //
@@ -1733,24 +1733,20 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
             viewport().screen_pixel_to_world_tile( val.pos ) );
         handled = true;
         lg.debug( "clicked on tile: {}.", tile );
-        // Need to only handle "up" events here because if we
-        // handled "down" events then that would interfere with
-        // dragging.
         switch( val.buttons ) {
-          // FIXME: Try to find a way to make this left_down be-
-          // cause it is more responsive. When it was tried it
-          // messed some things up, for example when clicking on
-          // a unit that already moved a message box would pop
-          // up, then the release of the mouse button (left_up)
-          // would close the window. Not sure if it will be fea-
-          // sible to do this, but should try.
-          case input::e_mouse_button_event::left_up: {
+          case input::e_mouse_button_event::left_down: {
+            // For the left mouse button we can use down clicks
+            // because there is no left button dragging in the
+            // land view, at least at the moment.
             raw_input_stream_.send(
                 RawInput( LandViewRawInput::tile_click{
                   .coord = tile, .mods = val.mod } ) );
             break;
           }
           case input::e_mouse_button_event::right_up: {
+            // Need to only handle "up" events here because if we
+            // handled "down" events then that would interfere
+            // with dragging.
             if( val.mod.shf_down ) {
               raw_input_stream_.send(
                   RawInput( LandViewRawInput::context_menu{

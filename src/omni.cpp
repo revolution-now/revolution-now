@@ -509,7 +509,7 @@ struct OmniPlane::Impl : public IPlane, public IMenuHandler {
     }
   }
 
-  bool input( input::event_t const& event ) override {
+  bool on_input( input::event_t const& event ) override {
     auto handled = false;
     update_system_cursor();
     SWITCH( event ) {

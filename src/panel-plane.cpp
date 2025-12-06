@@ -264,7 +264,7 @@ struct PanelPlane::Impl : public IPlane, public IMenuHandler {
     draw_some_stats( renderer, p );
   }
 
-  bool input( input::event_t const& event ) override {
+  bool on_input( input::event_t const& event ) override {
     if( event.holds<input::cheat_event_t>() ) {
       enable_cheat_mode( ss_, ts_ );
       return true;

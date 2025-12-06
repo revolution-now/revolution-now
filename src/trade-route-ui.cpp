@@ -946,16 +946,18 @@ struct TradeRouteUI : public IPlane {
   bool on_mouse_button(
       input::mouse_button_event_t const& event ) override {
     mouse_buttons_state_ = event.mouse_buttons_state;
-    if( event.buttons != input::e_mouse_button_event::left_up )
-      return true;
     if( !layout_.has_value() ) return true;
     point const p = event.pos;
 
     auto const hover = mouse_hover( p );
     if( !hover.has_value() ) return true;
 
+    using enum input::e_mouse_button_event;
     SWITCH( *hover ) {
       CASE( button_cxl ) {
+        // Use "up" for the buttons because we don't want them to
+        // "click" until they are released.
+        if( event.buttons != left_up ) return true;
         // Require button up here since if we all the down click
         // to close this screen then the up click will go to
         // whatever the next screen is.
@@ -963,6 +965,9 @@ struct TradeRouteUI : public IPlane {
         break;
       }
       CASE( button_ok ) {
+        // Use "up" for the buttons because we don't want them to
+        // "click" until they are released.
+        if( event.buttons != left_up ) return true;
         // Require button up here since if we all the down click
         // to close this screen then the up click will go to
         // whatever the next screen is.
@@ -970,16 +975,19 @@ struct TradeRouteUI : public IPlane {
         break;
       }
       CASE( name ) {
+        if( event.buttons != left_down ) return true;
         send_input<Input::change_name>() = {};
         break;
       }
       CASE( type ) {
+        if( event.buttons != left_down ) return true;
         // NOTE: we don't currently allow changing the type of
         // the trade route since that would require a bunch of
         // validation of the stops.
         break;
       }
       CASE( destination ) {
+        if( event.buttons != left_down ) return true;
         if( has_stop( destination.stop ) )
           send_input<Input::destination_change>() = {
             .stop = destination.stop };
@@ -988,6 +996,7 @@ struct TradeRouteUI : public IPlane {
         break;
       }
       CASE( unloads ) {
+        if( event.buttons != left_down ) return true;
         if( !has_stop( unloads.stop ) ) break;
         if( unloads.tile.has_value() ) {
           send_input<Input::unload_remove>() = {
@@ -1000,6 +1009,7 @@ struct TradeRouteUI : public IPlane {
         break;
       }
       CASE( loads ) {
+        if( event.buttons != left_down ) return true;
         if( !has_stop( loads.stop ) ) break;
         if( loads.tile.has_value() ) {
           send_input<Input::load_remove>() = {

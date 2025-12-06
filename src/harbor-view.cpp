@@ -183,7 +183,7 @@ struct HarborPlane : public IPlane {
     }
   }
 
-  bool input( input::event_t const& event ) override {
+  bool on_input( input::event_t const& event ) override {
     input_.send( event );
     return true;
   }
@@ -257,8 +257,9 @@ struct HarborPlane : public IPlane {
   // Returns true if the user wants to exit the colony view.
   wait<> handle_event(
       input::mouse_button_event_t const& event ) {
-    // Need to filter these out otherwise the start of drag
-    // events will call perform_click which we don't want.
+    // In the harbor view we need to use up-clicks because gener-
+    // ally entities support both clicking and dragging, and we
+    // don't want the down click on a drag to call perform_click.
     if( event.buttons != input::e_mouse_button_event::left_up &&
         event.buttons != input::e_mouse_button_event::right_up )
       co_return;

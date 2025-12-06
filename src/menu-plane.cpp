@@ -154,7 +154,7 @@ struct MenuPlane::Impl : IPlane, IMenuServer {
     }
   }
 
-  bool input( input::event_t const& event ) override {
+  bool on_input( input::event_t const& event ) override {
     if( event.holds<input::cheat_event_t>() )
       // Let this pass through because we don't handle it here
       // and the alt-WIN key combination can sometimes cause

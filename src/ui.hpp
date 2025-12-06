@@ -111,12 +111,24 @@ class object {
   /**************************************************************
   ** Input.
   ***************************************************************/
-  // Returns true if the input was handled. Mouse coordinates
-  // will be adjusted to be relative to upper-left corner of the
-  // view. Mouse events where the cursor is outside the bounds of
-  // the view will not be sent to this function.
-  [[nodiscard]] virtual bool input( input::event_t const& e );
+  // Use this to send input to the object. Returns true if the
+  // input was handled. Mouse coordinates will be adjusted to be
+  // relative to upper-left corner of the view. Mouse events
+  // where the cursor is outside the bounds of the view will not
+  // be sent to this function. This is not meant to be overridden
+  // because it performs some common processing that must be done
+  // before delgating to base classes (via on_input below).
+  [[nodiscard]] virtual bool input(
+      input::event_t const& e ) final;
 
+ protected:
+  // This is the one that derived clases can override to receive
+  // general input events. That said, it is recommended instead
+  // to just override the methods for individual input event
+  // types (e.g. on_mouse_button) instead of this one.
+  [[nodiscard]] virtual bool on_input( input::event_t const& e );
+
+ public:
   /**************************************************************
   ** Padding.
   ***************************************************************/
@@ -138,6 +150,10 @@ class object {
   /**************************************************************
   ** Input handlers
   ***************************************************************/
+  // NOTE: these should not be called directly except by special
+  // classes such as composte views and this class. Instead,
+  // input should be fed via the main input() method.
+
   [[nodiscard]] virtual bool on_key(
       input::key_event_t const& event );
 
@@ -180,6 +196,23 @@ class object {
 
  private:
   bool disabled_ = false;
+
+  // Click tracking.
+  enum class e_mouse_button_click_state {
+    waiting_for_down,
+    waiting_for_up_or_down,
+  };
+
+  e_mouse_button_click_state l_button_state_ = {};
+  e_mouse_button_click_state r_button_state_ = {};
+
+  [[nodiscard]] bool on_up_click(
+      input::mouse_button_event_t const& event,
+      e_mouse_button_click_state& state );
+
+  [[nodiscard]] bool on_down_click(
+      input::mouse_button_event_t const& event,
+      e_mouse_button_click_state& state );
 };
 
 } // namespace rn::ui
