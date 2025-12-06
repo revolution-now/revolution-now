@@ -431,20 +431,6 @@ void ViewportController::fix_invariants() {
   if( !config_rn.viewport.can_reveal_space_around_map )
     o_.zoom = std::max( o_.zoom, min_zoom_for_no_border() );
 
-  // Snap to zoomed-out logical pixel size. This is necessary to
-  // make things scroll correctly when we render to an offscreen
-  // buffer in a way that locks us into the logical pixel resolu-
-  // tion. It makes things less ideal for other rendering modes,
-  // so we try to constrain when it is used to only when it is
-  // needed.
-  if( engine_.renderer_settings().render_framebuffer_mode() ==
-          rr::e_render_framebuffer_mode::
-              offscreen_with_logical_resolution &&
-      o_.zoom < 1.0 ) {
-    o_.center_x = lround( o_.center_x * o_.zoom ) / o_.zoom;
-    o_.center_y = lround( o_.center_y * o_.zoom ) / o_.zoom;
-  }
-
   auto [size_x, size_y] = world_size_tiles();
   size_y *= g_tile_height;
   size_x *= g_tile_width;
