@@ -1,6 +1,9 @@
 Framebuffers TODO:
 --------------------------------------------------
 
+  * Consider adding a postprocessing effect to adjust colors for
+    colorblind people.
+
   * Add video settings menu to allow setting the post processing
     mode. This should ideally be stored in a per-installation
     config location.
