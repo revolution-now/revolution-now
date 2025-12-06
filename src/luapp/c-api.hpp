@@ -518,7 +518,7 @@ struct c_api {
   // or it will contain the function/yield results. Specifically,
   // it returns LUA_YIELD if the coroutine yields, LUA_OK if the
   // coroutine finishes its execution without errors, or an error
-  // code in case of errors.4.1).
+  // code in case of errors.
   //
   // In case of errors, the error object is left on the top of
   // the stack, but it is returned in the lua_expect object.

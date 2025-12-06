@@ -99,7 +99,8 @@ enum class coroutine_status {
   // produced this status).
   normal,
   // If the coroutine has finished its body function, or if it
-  // has stopped with an error.
+  // has stopped with an error, or if it is in a non-dead state
+  // but it is reset/closed via lua_closethread.
   dead
 };
 

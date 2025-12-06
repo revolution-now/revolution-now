@@ -1217,8 +1217,8 @@ LUA_TEST_CASE( "[lua-c-api] setmetatable/getmetatable" ) {
   REQUIRE( C.stack_size() == 0 );
 
   char const* err =
-      "[string \"...\"]:2: field 'assert' is not callable (a "
-      "nil value)\n"
+      "[string \"...\"]:2: attempt to call a nil value (field "
+      "'assert')\n"
       "stack traceback:\n"
       "\t[string \"...\"]:2: in main chunk";
 
@@ -2113,14 +2113,16 @@ LUA_TEST_CASE( "[lua-c-api] resume_or_leak" ) {
     REQUIRE( c_api( cth ).get<string>( -1 ) ==
              "[string \"...\"]:19: some error" );
     REQUIRE( st["f2_closed"] == nil );
+    REQUIRE( c_api( cth ).coro_status() ==
+             coroutine_status::dead );
     REQUIRE(
         c_api( cth ).resetthread() ==
         unexpected{ .msg = "[string \"...\"]:19: some error" } );
     // This verifies the parameter that we passed to resume.
     REQUIRE( st["f2_closed"] == 42 );
-    REQUIRE( c_api( cth ).status() == thread_status::err );
+    REQUIRE( c_api( cth ).status() == thread_status::ok );
     REQUIRE( c_api( cth ).coro_status() ==
-             coroutine_status::dead );
+             coroutine_status::suspended );
     REQUIRE( c_api( cth ).stack_size() == 1 );
   }
 
@@ -2156,9 +2158,9 @@ LUA_TEST_CASE( "[lua-c-api] resume_or_leak" ) {
         c_api( cth ).resetthread() ==
         unexpected{
           .msg = "[string \"...\"]:25: error in closing" } );
-    REQUIRE( c_api( cth ).status() == thread_status::err );
+    REQUIRE( c_api( cth ).status() == thread_status::ok );
     REQUIRE( c_api( cth ).coro_status() ==
-             coroutine_status::dead );
+             coroutine_status::suspended );
     REQUIRE( c_api( cth ).stack_size() == 1 );
   }
 }
@@ -2234,9 +2236,9 @@ LUA_TEST_CASE( "[lua-c-api] resume_or_reset" ) {
     REQUIRE(
         C.resume_or_reset( cth, /*nargs=*/1 ) ==
         unexpected{ .msg = "[string \"...\"]:19: some error" } );
-    REQUIRE( c_api( cth ).status() == thread_status::err );
+    REQUIRE( c_api( cth ).status() == thread_status::ok );
     REQUIRE( c_api( cth ).coro_status() ==
-             coroutine_status::dead );
+             coroutine_status::suspended );
     // Error object on top of stack.
     REQUIRE( c_api( cth ).stack_size() == 1 );
     REQUIRE( c_api( cth ).type_of( -1 ) == type::string );
@@ -2245,10 +2247,10 @@ LUA_TEST_CASE( "[lua-c-api] resume_or_reset" ) {
     // This verifies the parameter that we passed to resume AND
     // that the thread was reset by resume_or_reset.
     REQUIRE( st["f2_closed"] == 42 );
-    REQUIRE(
-        c_api( cth ).resetthread() ==
-        unexpected{ .msg = "[string \"...\"]:19: some error" } );
-    REQUIRE( c_api( cth ).status() == thread_status::err );
+    REQUIRE( c_api( cth ).coro_status() ==
+             coroutine_status::suspended );
+    REQUIRE( c_api( cth ).resetthread() == valid );
+    REQUIRE( c_api( cth ).status() == thread_status::ok );
     REQUIRE( c_api( cth ).coro_status() ==
              coroutine_status::dead );
   }
@@ -2268,19 +2270,16 @@ LUA_TEST_CASE( "[lua-c-api] resume_or_reset" ) {
         C.resume_or_reset( cth, /*nargs=*/0 ) ==
         unexpected{
           .msg = "[string \"...\"]:25: error in closing" } );
-    REQUIRE( c_api( cth ).status() == thread_status::err );
+    REQUIRE( c_api( cth ).status() == thread_status::ok );
     REQUIRE( c_api( cth ).coro_status() ==
-             coroutine_status::dead );
+             coroutine_status::suspended );
     // Error object on top of stack.
     REQUIRE( c_api( cth ).stack_size() == 1 );
     REQUIRE( c_api( cth ).type_of( -1 ) == type::string );
     REQUIRE( c_api( cth ).get<string>( -1 ) ==
              "[string \"...\"]:25: error in closing" );
-    REQUIRE(
-        c_api( cth ).resetthread() ==
-        unexpected{
-          .msg = "[string \"...\"]:25: error in closing" } );
-    REQUIRE( c_api( cth ).status() == thread_status::err );
+    REQUIRE( c_api( cth ).resetthread() == valid );
+    REQUIRE( c_api( cth ).status() == thread_status::ok );
     REQUIRE( c_api( cth ).coro_status() ==
              coroutine_status::dead );
   }

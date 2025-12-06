@@ -145,8 +145,8 @@ LUA_TEST_CASE( "[lua-state] thread resume safe w/ error" ) {
   REQUIRE(
       coro.resume_safe<int>( 6 ) ==
       unexpected{ .msg = "[string \"...\"]:6: some error" } );
-  REQUIRE( coro.status() == thread_status::err );
-  REQUIRE( coro.coro_status() == coroutine_status::dead );
+  REQUIRE( coro.status() == thread_status::ok );
+  REQUIRE( coro.coro_status() == coroutine_status::suspended );
 }
 
 } // namespace

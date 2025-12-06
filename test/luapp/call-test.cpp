@@ -484,12 +484,12 @@ LUA_TEST_CASE( "[lua-call] call_lua_resume_safe w/ error" ) {
   REQUIRE(
       call_lua_resume_safe( L2, 6 ) ==
       unexpected{ .msg = "[string \"...\"]:9: some error" } );
-  REQUIRE( C2.coro_status() == coroutine_status::dead );
+  REQUIRE( C2.coro_status() == coroutine_status::suspended );
   REQUIRE( st["f_is_closed"] == true );
   // Error object is still on the stack.
   REQUIRE( C2.stack_size() == 1 );
   C2.pop();
-  REQUIRE( C2.status() == thread_status::err );
+  REQUIRE( C2.status() == thread_status::ok );
 
   // Ensure that we can push things once again to the L2 stack.
   C2.push( 5 );
@@ -592,28 +592,42 @@ LUA_TEST_CASE(
   REQUIRE(
       call_lua_resume_safe_and_get<string>( L2, 6 ) ==
       unexpected{ .msg = "[string \"...\"]:9: some error" } );
-  REQUIRE( C2.coro_status() == coroutine_status::dead );
+  REQUIRE( C2.coro_status() == coroutine_status::suspended );
   REQUIRE( st["f_is_closed"] == true );
   // Error object is still on the stack.
   REQUIRE( C2.stack_size() == 1 );
   C2.pop();
-  REQUIRE( C2.status() == thread_status::err );
+  REQUIRE( C2.status() == thread_status::ok );
 
   // Ensure that we can push things once again to the L2 stack.
   C2.push( 5 );
   REQUIRE( C2.stack_size() == 1 );
   C2.pop();
 
-  // Let's try to run another coroutine on it.
   st.script.run( R"lua(
   function f( n )
     return coroutine.yield( n+1 )
   end
   )lua" );
+
+  // Let's try to run another coroutine on it.
   C2.getglobal( "f" );
   REQUIRE( C2.stack_size() == 1 );
-  REQUIRE( call_lua_resume_safe_and_get<int>( L2, 5 ) ==
-           unexpected{ .msg = "cannot resume dead coroutine" } );
+  resume_result_with_value<string> expected2{
+    .status = resume_status::yield,
+    .value  = "6",
+  };
+  REQUIRE( call_lua_resume_safe_and_get<string>( L2, 5 ) ==
+           expected2 );
+  REQUIRE( C2.coro_status() == coroutine_status::suspended );
+
+  // Again.
+  resume_result_with_value<string> expected3{
+    .status = resume_status::ok,
+    .value  = "10",
+  };
+  REQUIRE( call_lua_resume_safe_and_get<string>( L2, 10 ) ==
+           expected3 );
   REQUIRE( C2.coro_status() == coroutine_status::dead );
 
   REQUIRE( C.stack_size() == 1 );

@@ -147,7 +147,7 @@ int c_api::pcall_preamble( int nargs, int nresults ) noexcept {
 
 lua_valid c_api::pcall( int nargs, int nresults ) noexcept {
   int msghandler_idx = pcall_preamble( nargs, nresults );
-  DCHECK( msghandler_idx > 0 );
+  CHECK( msghandler_idx > 0 );
   // Remove message handler from the stack. This index will re-
   // main valid because it is positive.
   SCOPE_EXIT { lua_remove( L_, msghandler_idx ); };
@@ -170,7 +170,7 @@ void c_api::pcallk( int nargs, int nresults, LuaKContext ctx,
   CHECK( k != nullptr, "continuation must be non-null." );
   // We have a continuation function.
   int msghandler_idx = pcall_preamble( nargs, nresults );
-  DCHECK( msghandler_idx > 0 );
+  CHECK( msghandler_idx > 0 );
   // !! Note that we cannot use SCOPE_EXIT to remove the message
   // handler from the stack here because it will get called pre-
   // maturely if the lua_pcallk yields, so it is unfortunately
@@ -770,6 +770,7 @@ lua_valid c_api::resetthread() noexcept {
   // As of Lua 5.4.4, this will reset the error state of the
   // thread as well, though it will still return the error from
   // this function (presumably just the first time).
+  // TODO: replace this with lua_closethread with 5.4.6.
   int res = lua_resetthread( L_ );
   if( res == LUA_OK ) return base::valid;
   // We have an error, either in closing the to-be-closed vari-
@@ -812,7 +813,7 @@ lua_expect<resume_result> c_api::resume_or_reset(
     // resetthread is supposed to leave the error object on the
     // top of the stack, and it appears that it is the ONLY thing
     // left on the stack.
-    DCHECK( C_toresume.stack_size() == 1 );
+    CHECK( C_toresume.stack_size() == 1 );
   }
   return res;
 }

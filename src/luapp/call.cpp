@@ -67,7 +67,7 @@ lua_expect<resume_result> call_lua_resume_from_cpp(
   int after_args = C_toresume.stack_size();
 
   int nargs = after_args - before_args;
-  DCHECK( nargs >= 0 );
+  CHECK( nargs >= 0 );
   return C_toresume.resume_or_reset( L_toresume, nargs );
 }
 
@@ -109,7 +109,7 @@ void adjust_return_values( cthread L, int nresults_returned,
   } else if( diff < 0 ) {
     C.pop( -diff );
   }
-  DCHECK( C.stack_size() >= nresults_needed );
+  CHECK( C.stack_size() >= nresults_needed );
 }
 
 lua_valid resetthread( cthread L ) {
