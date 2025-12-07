@@ -104,8 +104,8 @@ valid_or<string> validate_sprite_sheets(
 ** TileSheetsConfig
 *****************************************************************/
 valid_or<string> config::tile_sheet::sprites::validate() const {
-  HAS_VALUE_OR_RET( validate_font_sheets( font_sheets ) );
-  HAS_VALUE_OR_RET( validate_sprite_sheets( sprite_sheets ) );
+  GOOD_OR_RETURN( validate_font_sheets( font_sheets ) );
+  GOOD_OR_RETURN( validate_sprite_sheets( sprite_sheets ) );
   return valid;
 }
 

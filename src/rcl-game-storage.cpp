@@ -212,7 +212,7 @@ valid_or<string> RclGameStorageLoad::load(
     return fmt::format( "failed to read Rcl file" );
   {
     base::ScopedTimer timer( "loading game from rcl" );
-    HAS_VALUE_OR_RET(
+    GOOD_OR_RETURN(
         load_game_from_rcl( ss_.root, p.string(), *maybe_rcl ) );
   }
   return valid;

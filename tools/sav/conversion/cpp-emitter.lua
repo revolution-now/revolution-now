@@ -760,7 +760,7 @@ local function emit_bit_struct_cdr_conv_def(cpp, name, bit_struct )
     ::continue::
   end
   cpp:line(
-      'HAS_VALUE_OR_RET( conv.end_field_tracking( tbl, used_keys ) );' )
+      'GOOD_OR_RETURN( conv.end_field_tracking( tbl, used_keys ) );' )
   cpp:line( 'return res;' )
   cpp:unindent()
   cpp:line( '}' )
@@ -826,7 +826,7 @@ local function emit_struct_cdr_conv_def( cpp, name, struct )
     ::continue::
   end
   cpp:line(
-      'HAS_VALUE_OR_RET( conv.end_field_tracking( tbl, used_keys ) );' )
+      'GOOD_OR_RETURN( conv.end_field_tracking( tbl, used_keys ) );' )
   cpp:line( 'return res;' )
   cpp:unindent()
   cpp:line( '}' )

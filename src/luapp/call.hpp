@@ -160,7 +160,7 @@ lua_expect<int> call_lua_safe( cthread L,
 template<Pushable... Args>
 lua_valid call_lua_safe_nresults( cthread L, int nresults,
                                   Args&&... args ) noexcept {
-  HAS_VALUE_OR_RET( internal::call_lua_from_cpp(
+  GOOD_OR_RETURN( internal::call_lua_from_cpp(
       L, nresults, /*safe=*/true, [&] {
         ( push( L, std::forward<Args>( args ) ), ... );
       } ) );
@@ -230,7 +230,7 @@ error_type_for_return_type<R> call_lua_safe_and_get(
   // Otherwise, Lua could return fewer than that, and our `get`
   // method (if it consumes multiple stack values) would run the
   // risk of consuming values that are already on the stack.
-  HAS_VALUE_OR_RET(
+  GOOD_OR_RETURN(
       call_lua_safe_nresults( L, nresults, FWD( args )... ) );
   if constexpr( !std::is_same_v<R, void> ) {
     // Should consume the nvalues starting at index (-1). Typi-
@@ -256,7 +256,7 @@ call_lua_resume_safe_and_get( cthread L_toresume,
   static constexpr int nresults_needed = nvalues_for<R>();
   lua_expect<resume_result> res =
       call_lua_resume_safe( L_toresume, FWD( args )... );
-  HAS_VALUE_OR_RET( res );
+  GOOD_OR_RETURN( res );
   // This basically does what call/pcall do when we specify a
   // fixed nresults, which we can't do for some reason with
   // lua_resume, so we do it manually.

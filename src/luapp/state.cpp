@@ -146,8 +146,7 @@ state::Script::Script( cthread cth ) : L( cth ) {}
 lua_expect<rfunction> state::Script::load_safe(
     std::string_view code ) noexcept {
   c_api C( L );
-  HAS_VALUE_OR_RET(
-      C.loadstring( std::string( code ).c_str() ) );
+  GOOD_OR_RETURN( C.loadstring( std::string( code ).c_str() ) );
   return rfunction( L, C.ref_registry() );
 }
 

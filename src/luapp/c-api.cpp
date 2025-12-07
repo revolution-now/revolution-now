@@ -124,7 +124,7 @@ lua_valid c_api::loadstring( char const* script ) noexcept {
 }
 
 lua_valid c_api::dostring( char const* script ) noexcept {
-  HAS_VALUE_OR_RET( loadstring( script ) );
+  GOOD_OR_RETURN( loadstring( script ) );
   enforce_stack_size_ge( 1 );
   return pcall( /*nargs=*/0, /*nresults=*/LUA_MULTRET );
 }
@@ -790,7 +790,7 @@ lua_expect<resume_result> c_api::resume_or_leak(
   int nresults         = 0;
   thread_status status = to_thread_status(
       lua_resume( L_toresume, L_from, nargs, &nresults ) );
-  HAS_VALUE_OR_RET( C_toresume.thread_ok() );
+  GOOD_OR_RETURN( C_toresume.thread_ok() );
   CHECK( status != thread_status::err );
   return resume_result{ .status = ( status == thread_status::ok )
                                       ? resume_status::ok

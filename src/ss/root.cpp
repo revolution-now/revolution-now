@@ -227,16 +227,14 @@ valid_or<string> FormatVersion::validate() const {
 }
 
 valid_or<string> RootState::validate() const {
-  HAS_VALUE_OR_RET( validate_interaction( colonies, units ) );
-  HAS_VALUE_OR_RET( validate_interaction( colonies, players ) );
-  HAS_VALUE_OR_RET( validate_interaction( units, players ) );
-  HAS_VALUE_OR_RET(
+  GOOD_OR_RETURN( validate_interaction( colonies, units ) );
+  GOOD_OR_RETURN( validate_interaction( colonies, players ) );
+  GOOD_OR_RETURN( validate_interaction( units, players ) );
+  GOOD_OR_RETURN(
       validate_interaction( colonies, zzz_terrain ) );
-  HAS_VALUE_OR_RET(
-      validate_interaction( natives, zzz_terrain ) );
-  HAS_VALUE_OR_RET( validate_interaction( map, zzz_terrain ) );
-  HAS_VALUE_OR_RET(
-      validate_interaction( players, zzz_terrain ) );
+  GOOD_OR_RETURN( validate_interaction( natives, zzz_terrain ) );
+  GOOD_OR_RETURN( validate_interaction( map, zzz_terrain ) );
+  GOOD_OR_RETURN( validate_interaction( players, zzz_terrain ) );
   return valid;
 }
 

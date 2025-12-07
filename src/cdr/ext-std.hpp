@@ -119,7 +119,7 @@ result<std::pair<Fst, Snd>> from_canonical(
                  conv.from_field<Fst>( tbl, "key", used_keys ) );
   UNWRAP_RETURN( snd,
                  conv.from_field<Snd>( tbl, "val", used_keys ) );
-  HAS_VALUE_OR_RET( conv.end_field_tracking( tbl, used_keys ) );
+  GOOD_OR_RETURN( conv.end_field_tracking( tbl, used_keys ) );
   return std::pair<Fst, Snd>{ std::move( fst ),
                               std::move( snd ) };
 }
@@ -205,7 +205,7 @@ template<FromCanonical T, size_t N>
 result<std::array<T, N>> from_canonical(
     converter& conv, value const& v, tag_t<std::array<T, N>> ) {
   UNWRAP_RETURN( lst, conv.ensure_type<list>( v ) );
-  HAS_VALUE_OR_RET( conv.ensure_list_size( lst, N ) );
+  GOOD_OR_RETURN( conv.ensure_list_size( lst, N ) );
   std::array<T, N> res;
   for( int idx = 0; idx < lst.ssize(); ++idx ) {
     UNWRAP_RETURN( val, conv.from_index<T>( lst, idx ) );

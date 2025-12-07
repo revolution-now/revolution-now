@@ -118,7 +118,7 @@ cdr::result<MovementPoints> from_canonical(
   std::set<std::string> used_keys;
   UNWRAP_RETURN(
       n, conv.from_field<int>( tbl, "atoms", used_keys ) );
-  HAS_VALUE_OR_RET( conv.end_field_tracking( tbl, used_keys ) );
+  GOOD_OR_RETURN( conv.end_field_tracking( tbl, used_keys ) );
   MovementPoints res;
   res.atoms_ = n;
   return res;

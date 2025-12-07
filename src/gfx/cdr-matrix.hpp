@@ -145,19 +145,17 @@ cdr::result<Matrix<T>> from_canonical( cdr::converter& conv,
         data,
         conv.from_field<std::vector<std::pair<rn::Coord, T>>>(
             tbl, "data", used_keys ) );
-    HAS_VALUE_OR_RET( check_sizes( data ) );
+    GOOD_OR_RETURN( check_sizes( data ) );
     Matrix<T> res( size );
     for( auto& [coord, elem] : data )
       res[coord] = std::move( elem );
-    HAS_VALUE_OR_RET(
-        conv.end_field_tracking( tbl, used_keys ) );
+    GOOD_OR_RETURN( conv.end_field_tracking( tbl, used_keys ) );
     return cdr::result<Matrix<T>>( std::move( res ) );
   } else {
     UNWRAP_RETURN( data, conv.from_field<std::vector<T>>(
                              tbl, "data", used_keys ) );
-    HAS_VALUE_OR_RET( check_sizes( data ) );
-    HAS_VALUE_OR_RET(
-        conv.end_field_tracking( tbl, used_keys ) );
+    GOOD_OR_RETURN( check_sizes( data ) );
+    GOOD_OR_RETURN( conv.end_field_tracking( tbl, used_keys ) );
     return cdr::result<Matrix<T>>(
         Matrix<T>( std::move( data ), size.w ) );
   }

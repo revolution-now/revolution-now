@@ -221,10 +221,10 @@
     }                                               \
   } while( false )
 
-#define HAS_VALUE_OR_RET( ... )                  \
-  do {                                           \
-    if( auto xp__ = __VA_ARGS__; !bool( xp__ ) ) \
-      return std::move( xp__.error() );          \
+#define GOOD_OR_RETURN( ... )                      \
+  do {                                             \
+    if( auto&& xp__ = __VA_ARGS__; !bool( xp__ ) ) \
+      return std::move( xp__.error() );            \
   } while( false )
 
 /****************************************************************

@@ -125,7 +125,7 @@ result<S> from_canonical( converter& conv, value const& v,
     return false; // keep going.
   };
   if( err.has_value() ) return *err;
-  HAS_VALUE_OR_RET( conv.end_field_tracking( tbl, used_keys ) );
+  GOOD_OR_RETURN( conv.end_field_tracking( tbl, used_keys ) );
   if constexpr( refl::detail::HasValidateMethod<S> ) {
     static_assert( refl::ValidatableStruct<S>,
                    "validate method has incorrect signature." );
@@ -227,7 +227,7 @@ result<base::variant<Ts...>> from_canonical(
     // !! Fall-through to table size check.
   }
   // Make sure that there is precisely one key in the table.
-  HAS_VALUE_OR_RET(
+  GOOD_OR_RETURN(
       conv.ensure_table_size( tbl, /*expected_size=*/1 ) );
   std::string const& key = tbl.begin()->first;
   base::maybe<error> err;

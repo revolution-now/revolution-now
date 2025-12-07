@@ -210,7 +210,7 @@ expect<SlotCopiedPaths> copy_slot_to_slot(
         "failed to locate save file {} for copying to {}.",
         src_path, dst_path );
 
-  HAS_VALUE_OR_RET( base::copy_file_overwriting_destination(
+  GOOD_OR_RETURN( base::copy_file_overwriting_destination(
       src_path, dst_path ) );
 
   return SlotCopiedPaths{ .src = src_path, .dst = dst_path };
@@ -239,7 +239,7 @@ expect<fs::path> save_to_slot( SSConst const& ss, TS& ts,
                                IGameStorageSave const& saver,
                                int slot ) {
   auto const p = query_file_for_slot( saver, slot );
-  HAS_VALUE_OR_RET( saver.store( p ) );
+  GOOD_OR_RETURN( saver.store( p ) );
   record_checkpoint( ss, ts );
   return p;
 }
@@ -250,7 +250,7 @@ expect<fs::path> save_to_slot_no_checkpoint(
     SSConst const&, TS&, IGameStorageSave const& saver,
     int slot ) {
   auto const p = query_file_for_slot( saver, slot );
-  HAS_VALUE_OR_RET( saver.store( p ) );
+  GOOD_OR_RETURN( saver.store( p ) );
   return p;
 }
 
@@ -280,7 +280,7 @@ expect<fs::path> load_from_slot( SS& ss, TS& ts,
   if( !fs::exists( p ) )
     return fmt::format( "save file not found for slot {}.",
                         slot );
-  HAS_VALUE_OR_RET( loader.load( p ) );
+  GOOD_OR_RETURN( loader.load( p ) );
   record_checkpoint( ss, ts );
   return p;
 }

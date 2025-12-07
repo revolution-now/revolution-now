@@ -190,7 +190,7 @@ struct state : base::zero<state, cthread> {
     template<GettableOrVoid R = void>
     error_type_for_return_type<R> run_file_safe(
         std::string_view file ) noexcept {
-      HAS_VALUE_OR_RET( load_file_safe( file ) );
+      GOOD_OR_RETURN( load_file_safe( file ) );
       return call_lua_safe_and_get<R>( L );
     }
 

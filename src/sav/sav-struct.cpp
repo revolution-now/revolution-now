@@ -1978,7 +1978,7 @@ cdr::result<TutorialHelp> from_canonical(
   CONV_FROM_FIELD( "hint_harbor", hint_harbor );
   CONV_FROM_FIELD( "unknown06", unknown06 );
   CONV_FROM_FIELD( "hint_native_convert", hint_native_convert );
-  HAS_VALUE_OR_RET( conv.end_field_tracking( tbl, used_keys ) );
+  GOOD_OR_RETURN( conv.end_field_tracking( tbl, used_keys ) );
   return res;
 }
 
@@ -2114,7 +2114,7 @@ cdr::result<GameFlags1> from_canonical(
   CONV_FROM_FIELD( "cheats_enabled", cheats_enabled );
   CONV_FROM_FIELD( "show_foreign_moves", show_foreign_moves );
   CONV_FROM_FIELD( "show_indian_moves", show_indian_moves );
-  HAS_VALUE_OR_RET( conv.end_field_tracking( tbl, used_keys ) );
+  GOOD_OR_RETURN( conv.end_field_tracking( tbl, used_keys ) );
   return res;
 }
 
@@ -2220,7 +2220,7 @@ cdr::result<ColonyReportOptionsToDisable> from_canonical(
   CONV_FROM_FIELD( "report_sons_of_liberty_membership", report_sons_of_liberty_membership );
   CONV_FROM_FIELD( "report_rebel_majorities", report_rebel_majorities );
   CONV_FROM_BITSTRING_FIELD( "unused03", unused03, 6 );
-  HAS_VALUE_OR_RET( conv.end_field_tracking( tbl, used_keys ) );
+  GOOD_OR_RETURN( conv.end_field_tracking( tbl, used_keys ) );
   return res;
 }
 
@@ -2356,7 +2356,7 @@ cdr::result<GameFlags2> from_canonical(
   CONV_FROM_FIELD( "unknown_hint09", unknown_hint09 );
   CONV_FROM_FIELD( "hint_ship_valuable", hint_ship_valuable );
   CONV_FROM_FIELD( "hint_ship_in_colony", hint_ship_in_colony );
-  HAS_VALUE_OR_RET( conv.end_field_tracking( tbl, used_keys ) );
+  GOOD_OR_RETURN( conv.end_field_tracking( tbl, used_keys ) );
   return res;
 }
 
@@ -2492,7 +2492,7 @@ cdr::result<Event> from_canonical(
   CONV_FROM_FIELD( "woodcut14", woodcut14 );
   CONV_FROM_FIELD( "woodcut15", woodcut15 );
   CONV_FROM_FIELD( "woodcut16", woodcut16 );
-  HAS_VALUE_OR_RET( conv.end_field_tracking( tbl, used_keys ) );
+  GOOD_OR_RETURN( conv.end_field_tracking( tbl, used_keys ) );
   return res;
 }
 
@@ -2544,7 +2544,7 @@ cdr::result<PlayerFlags> from_canonical(
   std::set<std::string> used_keys;
   CONV_FROM_BITSTRING_FIELD( "unknown06a", unknown06a, 7 );
   CONV_FROM_FIELD( "named_new_world", named_new_world );
-  HAS_VALUE_OR_RET( conv.end_field_tracking( tbl, used_keys ) );
+  GOOD_OR_RETURN( conv.end_field_tracking( tbl, used_keys ) );
   return res;
 }
 
@@ -2632,7 +2632,7 @@ cdr::result<ColonyFlags> from_canonical(
   CONV_FROM_FIELD( "unknown05", unknown05 );
   CONV_FROM_FIELD( "port_colony", port_colony );
   CONV_FROM_FIELD( "construction_complete_blinking", construction_complete_blinking );
-  HAS_VALUE_OR_RET( conv.end_field_tracking( tbl, used_keys ) );
+  GOOD_OR_RETURN( conv.end_field_tracking( tbl, used_keys ) );
   return res;
 }
 
@@ -2684,7 +2684,7 @@ cdr::result<Duration> from_canonical(
   std::set<std::string> used_keys;
   CONV_FROM_FIELD( "dur_1", dur_1 );
   CONV_FROM_FIELD( "dur_2", dur_2 );
-  HAS_VALUE_OR_RET( conv.end_field_tracking( tbl, used_keys ) );
+  GOOD_OR_RETURN( conv.end_field_tracking( tbl, used_keys ) );
   return res;
 }
 
@@ -2838,7 +2838,7 @@ cdr::result<Buildings> from_canonical(
   CONV_FROM_FIELD( "church", church );
   CONV_FROM_FIELD( "blacksmiths_house", blacksmiths_house );
   CONV_FROM_BITSTRING_FIELD( "unused05b", unused05b, 6 );
-  HAS_VALUE_OR_RET( conv.end_field_tracking( tbl, used_keys ) );
+  GOOD_OR_RETURN( conv.end_field_tracking( tbl, used_keys ) );
   return res;
 }
 
@@ -2974,7 +2974,7 @@ cdr::result<CustomHouseFlags> from_canonical(
   CONV_FROM_FIELD( "trade_goods", trade_goods );
   CONV_FROM_FIELD( "tools", tools );
   CONV_FROM_FIELD( "muskets", muskets );
-  HAS_VALUE_OR_RET( conv.end_field_tracking( tbl, used_keys ) );
+  GOOD_OR_RETURN( conv.end_field_tracking( tbl, used_keys ) );
   return res;
 }
 
@@ -3044,7 +3044,7 @@ cdr::result<NationInfo> from_canonical(
   CONV_FROM_FIELD( "vis_to_french", vis_to_french );
   CONV_FROM_FIELD( "vis_to_spanish", vis_to_spanish );
   CONV_FROM_FIELD( "vis_to_dutch", vis_to_dutch );
-  HAS_VALUE_OR_RET( conv.end_field_tracking( tbl, used_keys ) );
+  GOOD_OR_RETURN( conv.end_field_tracking( tbl, used_keys ) );
   return res;
 }
 
@@ -3096,7 +3096,7 @@ cdr::result<Unknown15> from_canonical(
   std::set<std::string> used_keys;
   CONV_FROM_BITSTRING_FIELD( "unknown15a", unknown15a, 7 );
   CONV_FROM_FIELD( "damaged", damaged );
-  HAS_VALUE_OR_RET( conv.end_field_tracking( tbl, used_keys ) );
+  GOOD_OR_RETURN( conv.end_field_tracking( tbl, used_keys ) );
   return res;
 }
 
@@ -3148,7 +3148,7 @@ cdr::result<CargoItems> from_canonical(
   std::set<std::string> used_keys;
   CONV_FROM_FIELD( "cargo_1", cargo_1 );
   CONV_FROM_FIELD( "cargo_2", cargo_2 );
-  HAS_VALUE_OR_RET( conv.end_field_tracking( tbl, used_keys ) );
+  GOOD_OR_RETURN( conv.end_field_tracking( tbl, used_keys ) );
   return res;
 }
 
@@ -3224,7 +3224,7 @@ cdr::result<NationFlags> from_canonical(
   CONV_FROM_BITSTRING_FIELD( "unknown19b", unknown19b, 2 );
   CONV_FROM_FIELD( "immigration_started", immigration_started );
   CONV_FROM_BITSTRING_FIELD( "unknown19c", unknown19c, 1 );
-  HAS_VALUE_OR_RET( conv.end_field_tracking( tbl, used_keys ) );
+  GOOD_OR_RETURN( conv.end_field_tracking( tbl, used_keys ) );
   return res;
 }
 
@@ -3420,7 +3420,7 @@ cdr::result<FoundingFathers> from_canonical(
   CONV_FROM_FIELD( "juan_de_sepulveda", juan_de_sepulveda );
   CONV_FROM_FIELD( "bartolme_de_las_casas", bartolme_de_las_casas );
   CONV_FROM_BITSTRING_FIELD( "unknown00", unknown00, 7 );
-  HAS_VALUE_OR_RET( conv.end_field_tracking( tbl, used_keys ) );
+  GOOD_OR_RETURN( conv.end_field_tracking( tbl, used_keys ) );
   return res;
 }
 
@@ -3556,7 +3556,7 @@ cdr::result<BoycottBitmap> from_canonical(
   CONV_FROM_FIELD( "trade_goods", trade_goods );
   CONV_FROM_FIELD( "tools", tools );
   CONV_FROM_FIELD( "muskets", muskets );
-  HAS_VALUE_OR_RET( conv.end_field_tracking( tbl, used_keys ) );
+  GOOD_OR_RETURN( conv.end_field_tracking( tbl, used_keys ) );
   return res;
 }
 
@@ -3614,7 +3614,7 @@ cdr::result<RelationByNations> from_canonical(
   CONV_FROM_FIELD( "attitude?", attitudeq );
   CONV_FROM_FIELD( "status", status );
   CONV_FROM_FIELD( "irritated_by_piracy", irritated_by_piracy );
-  HAS_VALUE_OR_RET( conv.end_field_tracking( tbl, used_keys ) );
+  GOOD_OR_RETURN( conv.end_field_tracking( tbl, used_keys ) );
   return res;
 }
 
@@ -3672,7 +3672,7 @@ cdr::result<RelationByIndian> from_canonical(
   CONV_FROM_FIELD( "attitude?", attitudeq );
   CONV_FROM_FIELD( "status", status );
   CONV_FROM_FIELD( "unused", unused );
-  HAS_VALUE_OR_RET( conv.end_field_tracking( tbl, used_keys ) );
+  GOOD_OR_RETURN( conv.end_field_tracking( tbl, used_keys ) );
   return res;
 }
 
@@ -3742,7 +3742,7 @@ cdr::result<BLCS> from_canonical(
   CONV_FROM_FIELD( "capital", capital );
   CONV_FROM_FIELD( "scouted", scouted );
   CONV_FROM_BITSTRING_FIELD( "unused09", unused09, 4 );
-  HAS_VALUE_OR_RET( conv.end_field_tracking( tbl, used_keys ) );
+  GOOD_OR_RETURN( conv.end_field_tracking( tbl, used_keys ) );
   return res;
 }
 
@@ -3800,7 +3800,7 @@ cdr::result<Mission> from_canonical(
   CONV_FROM_FIELD( "nation_id", nation_id );
   CONV_FROM_FIELD( "expert", expert );
   CONV_FROM_BITSTRING_FIELD( "unknown", unknown, 3 );
-  HAS_VALUE_OR_RET( conv.end_field_tracking( tbl, used_keys ) );
+  GOOD_OR_RETURN( conv.end_field_tracking( tbl, used_keys ) );
   return res;
 }
 
@@ -3864,7 +3864,7 @@ cdr::result<TribeFlags> from_canonical(
   CONV_FROM_FIELD( "joined_ref", joined_ref );
   CONV_FROM_BITSTRING_FIELD( "unknown02", unknown02, 1 );
   CONV_FROM_FIELD( "extinct", extinct );
-  HAS_VALUE_OR_RET( conv.end_field_tracking( tbl, used_keys ) );
+  GOOD_OR_RETURN( conv.end_field_tracking( tbl, used_keys ) );
   return res;
 }
 
@@ -3922,7 +3922,7 @@ cdr::result<RelationByNations2> from_canonical(
   CONV_FROM_FIELD( "attitude?", attitudeq );
   CONV_FROM_FIELD( "status", status );
   CONV_FROM_FIELD( "unused", unused );
-  HAS_VALUE_OR_RET( conv.end_field_tracking( tbl, used_keys ) );
+  GOOD_OR_RETURN( conv.end_field_tracking( tbl, used_keys ) );
   return res;
 }
 
@@ -3974,7 +3974,7 @@ cdr::result<TILE> from_canonical(
   std::set<std::string> used_keys;
   CONV_FROM_FIELD( "tile", tile );
   CONV_FROM_FIELD( "hill_river", hill_river );
-  HAS_VALUE_OR_RET( conv.end_field_tracking( tbl, used_keys ) );
+  GOOD_OR_RETURN( conv.end_field_tracking( tbl, used_keys ) );
   return res;
 }
 
@@ -4062,7 +4062,7 @@ cdr::result<MASK> from_canonical(
   CONV_FROM_FIELD( "pacific", pacific );
   CONV_FROM_FIELD( "plowed", plowed );
   CONV_FROM_FIELD( "unused", unused );
-  HAS_VALUE_OR_RET( conv.end_field_tracking( tbl, used_keys ) );
+  GOOD_OR_RETURN( conv.end_field_tracking( tbl, used_keys ) );
   return res;
 }
 
@@ -4114,7 +4114,7 @@ cdr::result<PATH> from_canonical(
   std::set<std::string> used_keys;
   CONV_FROM_FIELD( "region_id", region_id );
   CONV_FROM_FIELD( "visitor_nation", visitor_nation );
-  HAS_VALUE_OR_RET( conv.end_field_tracking( tbl, used_keys ) );
+  GOOD_OR_RETURN( conv.end_field_tracking( tbl, used_keys ) );
   return res;
 }
 
@@ -4184,7 +4184,7 @@ cdr::result<SEEN> from_canonical(
   CONV_FROM_FIELD( "vis2fr", vis2fr );
   CONV_FROM_FIELD( "vis2sp", vis2sp );
   CONV_FROM_FIELD( "vis2du", vis2du );
-  HAS_VALUE_OR_RET( conv.end_field_tracking( tbl, used_keys ) );
+  GOOD_OR_RETURN( conv.end_field_tracking( tbl, used_keys ) );
   return res;
 }
 
@@ -4272,7 +4272,7 @@ cdr::result<SeaLaneConnectivity> from_canonical(
   CONV_FROM_FIELD( "swest", swest );
   CONV_FROM_FIELD( "west", west );
   CONV_FROM_FIELD( "nwest", nwest );
-  HAS_VALUE_OR_RET( conv.end_field_tracking( tbl, used_keys ) );
+  GOOD_OR_RETURN( conv.end_field_tracking( tbl, used_keys ) );
   return res;
 }
 
@@ -4360,7 +4360,7 @@ cdr::result<LandConnectivity> from_canonical(
   CONV_FROM_FIELD( "swest", swest );
   CONV_FROM_FIELD( "west", west );
   CONV_FROM_FIELD( "nwest", nwest );
-  HAS_VALUE_OR_RET( conv.end_field_tracking( tbl, used_keys ) );
+  GOOD_OR_RETURN( conv.end_field_tracking( tbl, used_keys ) );
   return res;
 }
 
@@ -4412,7 +4412,7 @@ cdr::result<LoadsAndUnloadsCount> from_canonical(
   std::set<std::string> used_keys;
   CONV_FROM_FIELD( "unloads_count", unloads_count );
   CONV_FROM_FIELD( "loads_count", loads_count );
-  HAS_VALUE_OR_RET( conv.end_field_tracking( tbl, used_keys ) );
+  GOOD_OR_RETURN( conv.end_field_tracking( tbl, used_keys ) );
   return res;
 }
 
@@ -4488,7 +4488,7 @@ cdr::result<LoadsCargo> from_canonical(
   CONV_FROM_FIELD( "cargo_4", cargo_4 );
   CONV_FROM_FIELD( "cargo_5", cargo_5 );
   CONV_FROM_FIELD( "cargo_6", cargo_6 );
-  HAS_VALUE_OR_RET( conv.end_field_tracking( tbl, used_keys ) );
+  GOOD_OR_RETURN( conv.end_field_tracking( tbl, used_keys ) );
   return res;
 }
 
@@ -4564,7 +4564,7 @@ cdr::result<UnloadsCargo> from_canonical(
   CONV_FROM_FIELD( "cargo_4", cargo_4 );
   CONV_FROM_FIELD( "cargo_5", cargo_5 );
   CONV_FROM_FIELD( "cargo_6", cargo_6 );
-  HAS_VALUE_OR_RET( conv.end_field_tracking( tbl, used_keys ) );
+  GOOD_OR_RETURN( conv.end_field_tracking( tbl, used_keys ) );
   return res;
 }
 
@@ -4627,7 +4627,7 @@ cdr::result<ExpeditionaryForce> from_canonical(
   CONV_FROM_FIELD( "dragoons", dragoons );
   CONV_FROM_FIELD( "man-o-wars", man_o_wars );
   CONV_FROM_FIELD( "artillery", artillery );
-  HAS_VALUE_OR_RET( conv.end_field_tracking( tbl, used_keys ) );
+  GOOD_OR_RETURN( conv.end_field_tracking( tbl, used_keys ) );
   return res;
 }
 
@@ -4690,7 +4690,7 @@ cdr::result<BackupForce> from_canonical(
   CONV_FROM_FIELD( "dragoons", dragoons );
   CONV_FROM_FIELD( "man-o-wars", man_o_wars );
   CONV_FROM_FIELD( "artillery", artillery );
-  HAS_VALUE_OR_RET( conv.end_field_tracking( tbl, used_keys ) );
+  GOOD_OR_RETURN( conv.end_field_tracking( tbl, used_keys ) );
   return res;
 }
 
@@ -4765,7 +4765,7 @@ cdr::result<PriceGroupState> from_canonical(
   CONV_FROM_FIELD( "cloth", cloth );
   CONV_FROM_FIELD( "coats", coats );
   CONV_FROM_FIELD( "unused2", unused2 );
-  HAS_VALUE_OR_RET( conv.end_field_tracking( tbl, used_keys ) );
+  GOOD_OR_RETURN( conv.end_field_tracking( tbl, used_keys ) );
   return res;
 }
 
@@ -5056,7 +5056,7 @@ cdr::result<HEADER> from_canonical(
   CONV_FROM_FIELD( "price_group_state", price_group_state );
   CONV_FROM_FIELD( "event", event );
   CONV_FROM_FIELD( "unknown05", unknown05 );
-  HAS_VALUE_OR_RET( conv.end_field_tracking( tbl, used_keys ) );
+  GOOD_OR_RETURN( conv.end_field_tracking( tbl, used_keys ) );
   return res;
 }
 
@@ -5131,7 +5131,7 @@ cdr::result<PLAYER> from_canonical(
   CONV_FROM_FIELD( "control", control );
   CONV_FROM_FIELD( "founded_colonies", founded_colonies );
   CONV_FROM_FIELD( "diplomacy", diplomacy );
-  HAS_VALUE_OR_RET( conv.end_field_tracking( tbl, used_keys ) );
+  GOOD_OR_RETURN( conv.end_field_tracking( tbl, used_keys ) );
   return res;
 }
 
@@ -5188,7 +5188,7 @@ cdr::result<OTHER> from_canonical(
   CONV_FROM_FIELD( "unknown51a", unknown51a );
   CONV_FROM_FIELD( "click_before_open_colony x, y", click_before_open_colony_x_y );
   CONV_FROM_FIELD( "unknown51b", unknown51b );
-  HAS_VALUE_OR_RET( conv.end_field_tracking( tbl, used_keys ) );
+  GOOD_OR_RETURN( conv.end_field_tracking( tbl, used_keys ) );
   return res;
 }
 
@@ -5275,7 +5275,7 @@ cdr::result<Tiles> from_canonical(
   CONV_FROM_FIELD( "tile_NE", tile_ne );
   CONV_FROM_FIELD( "tile_SE", tile_se );
   CONV_FROM_FIELD( "tile_SW", tile_sw );
-  HAS_VALUE_OR_RET( conv.end_field_tracking( tbl, used_keys ) );
+  GOOD_OR_RETURN( conv.end_field_tracking( tbl, used_keys ) );
   return res;
 }
 
@@ -5410,7 +5410,7 @@ cdr::result<Stock> from_canonical(
   CONV_FROM_FIELD( "trade_goods", trade_goods );
   CONV_FROM_FIELD( "tools", tools );
   CONV_FROM_FIELD( "muskets", muskets );
-  HAS_VALUE_OR_RET( conv.end_field_tracking( tbl, used_keys ) );
+  GOOD_OR_RETURN( conv.end_field_tracking( tbl, used_keys ) );
   return res;
 }
 
@@ -5473,7 +5473,7 @@ cdr::result<PopulationOnMap> from_canonical(
   CONV_FROM_FIELD( "for french", for_french );
   CONV_FROM_FIELD( "for spanish", for_spanish );
   CONV_FROM_FIELD( "for dutch", for_dutch );
-  HAS_VALUE_OR_RET( conv.end_field_tracking( tbl, used_keys ) );
+  GOOD_OR_RETURN( conv.end_field_tracking( tbl, used_keys ) );
   return res;
 }
 
@@ -5536,7 +5536,7 @@ cdr::result<FortificationOnMap> from_canonical(
   CONV_FROM_FIELD( "for french", for_french );
   CONV_FROM_FIELD( "for spanish", for_spanish );
   CONV_FROM_FIELD( "for dutch", for_dutch );
-  HAS_VALUE_OR_RET( conv.end_field_tracking( tbl, used_keys ) );
+  GOOD_OR_RETURN( conv.end_field_tracking( tbl, used_keys ) );
   return res;
 }
 
@@ -5731,7 +5731,7 @@ cdr::result<COLONY> from_canonical(
   CONV_FROM_FIELD( "fortification_on_map", fortification_on_map );
   CONV_FROM_FIELD( "rebel_dividend", rebel_dividend );
   CONV_FROM_FIELD( "rebel_divisor", rebel_divisor );
-  HAS_VALUE_OR_RET( conv.end_field_tracking( tbl, used_keys ) );
+  GOOD_OR_RETURN( conv.end_field_tracking( tbl, used_keys ) );
   return res;
 }
 
@@ -5782,7 +5782,7 @@ cdr::result<TransportChain> from_canonical(
   std::set<std::string> used_keys;
   CONV_FROM_FIELD( "next_unit_idx", next_unit_idx );
   CONV_FROM_FIELD( "prev_unit_idx", prev_unit_idx );
-  HAS_VALUE_OR_RET( conv.end_field_tracking( tbl, used_keys ) );
+  GOOD_OR_RETURN( conv.end_field_tracking( tbl, used_keys ) );
   return res;
 }
 
@@ -5923,7 +5923,7 @@ cdr::result<UNIT> from_canonical(
   CONV_FROM_FIELD( "turns_worked", turns_worked );
   CONV_FROM_FIELD( "auxiliary_data", auxiliary_data );
   CONV_FROM_FIELD( "transport_chain", transport_chain );
-  HAS_VALUE_OR_RET( conv.end_field_tracking( tbl, used_keys ) );
+  GOOD_OR_RETURN( conv.end_field_tracking( tbl, used_keys ) );
   return res;
 }
 
@@ -6058,7 +6058,7 @@ cdr::result<IntrinsicVolume> from_canonical(
   CONV_FROM_FIELD( "trade_goods", trade_goods );
   CONV_FROM_FIELD( "tools", tools );
   CONV_FROM_FIELD( "muskets", muskets );
-  HAS_VALUE_OR_RET( conv.end_field_tracking( tbl, used_keys ) );
+  GOOD_OR_RETURN( conv.end_field_tracking( tbl, used_keys ) );
   return res;
 }
 
@@ -6127,7 +6127,7 @@ cdr::result<Trade> from_canonical(
   CONV_FROM_FIELD( "gold", gold );
   CONV_FROM_FIELD( "tons_traded", tons_traded );
   CONV_FROM_FIELD( "tons_traded2", tons_traded2 );
-  HAS_VALUE_OR_RET( conv.end_field_tracking( tbl, used_keys ) );
+  GOOD_OR_RETURN( conv.end_field_tracking( tbl, used_keys ) );
   return res;
 }
 
@@ -6346,7 +6346,7 @@ cdr::result<NATION> from_canonical(
   CONV_FROM_FIELD( "unknown26b", unknown26b );
   CONV_FROM_FIELD( "unknown26c", unknown26c );
   CONV_FROM_FIELD( "trade", trade );
-  HAS_VALUE_OR_RET( conv.end_field_tracking( tbl, used_keys ) );
+  GOOD_OR_RETURN( conv.end_field_tracking( tbl, used_keys ) );
   return res;
 }
 
@@ -6397,7 +6397,7 @@ cdr::result<Alarm> from_canonical(
   std::set<std::string> used_keys;
   CONV_FROM_FIELD( "friction", friction );
   CONV_FROM_FIELD( "attacks", attacks );
-  HAS_VALUE_OR_RET( conv.end_field_tracking( tbl, used_keys ) );
+  GOOD_OR_RETURN( conv.end_field_tracking( tbl, used_keys ) );
   return res;
 }
 
@@ -6496,7 +6496,7 @@ cdr::result<DWELLING> from_canonical(
   CONV_FROM_FIELD( "last_bought", last_bought );
   CONV_FROM_FIELD( "last_sold", last_sold );
   CONV_FROM_FIELD( "alarm", alarm );
-  HAS_VALUE_OR_RET( conv.end_field_tracking( tbl, used_keys ) );
+  GOOD_OR_RETURN( conv.end_field_tracking( tbl, used_keys ) );
   return res;
 }
 
@@ -6619,7 +6619,7 @@ cdr::result<TRIBE> from_canonical(
   CONV_FROM_FIELD( "relation_by_nations", relation_by_nations );
   CONV_FROM_FIELD( "zeros33", zeros33 );
   CONV_FROM_FIELD( "alarm_by_player", alarm_by_player );
-  HAS_VALUE_OR_RET( conv.end_field_tracking( tbl, used_keys ) );
+  GOOD_OR_RETURN( conv.end_field_tracking( tbl, used_keys ) );
   return res;
 }
 
@@ -6682,7 +6682,7 @@ cdr::result<NationUnitCount> from_canonical(
   CONV_FROM_FIELD( "french", french );
   CONV_FROM_FIELD( "spanish", spanish );
   CONV_FROM_FIELD( "dutch", dutch );
-  HAS_VALUE_OR_RET( conv.end_field_tracking( tbl, used_keys ) );
+  GOOD_OR_RETURN( conv.end_field_tracking( tbl, used_keys ) );
   return res;
 }
 
@@ -6745,7 +6745,7 @@ cdr::result<NationColonyCount> from_canonical(
   CONV_FROM_FIELD( "french", french );
   CONV_FROM_FIELD( "spanish", spanish );
   CONV_FROM_FIELD( "dutch", dutch );
-  HAS_VALUE_OR_RET( conv.end_field_tracking( tbl, used_keys ) );
+  GOOD_OR_RETURN( conv.end_field_tracking( tbl, used_keys ) );
   return res;
 }
 
@@ -6808,7 +6808,7 @@ cdr::result<Unknown34a> from_canonical(
   CONV_FROM_FIELD( "french", french );
   CONV_FROM_FIELD( "spanish", spanish );
   CONV_FROM_FIELD( "dutch", dutch );
-  HAS_VALUE_OR_RET( conv.end_field_tracking( tbl, used_keys ) );
+  GOOD_OR_RETURN( conv.end_field_tracking( tbl, used_keys ) );
   return res;
 }
 
@@ -6871,7 +6871,7 @@ cdr::result<TotalColoniesPopulation> from_canonical(
   CONV_FROM_FIELD( "french", french );
   CONV_FROM_FIELD( "spanish", spanish );
   CONV_FROM_FIELD( "dutch", dutch );
-  HAS_VALUE_OR_RET( conv.end_field_tracking( tbl, used_keys ) );
+  GOOD_OR_RETURN( conv.end_field_tracking( tbl, used_keys ) );
   return res;
 }
 
@@ -6934,7 +6934,7 @@ cdr::result<Unknown36ab> from_canonical(
   CONV_FROM_FIELD( "french", french );
   CONV_FROM_FIELD( "spanish", spanish );
   CONV_FROM_FIELD( "dutch", dutch );
-  HAS_VALUE_OR_RET( conv.end_field_tracking( tbl, used_keys ) );
+  GOOD_OR_RETURN( conv.end_field_tracking( tbl, used_keys ) );
   return res;
 }
 
@@ -6997,7 +6997,7 @@ cdr::result<ForeignAffairsReport> from_canonical(
   CONV_FROM_FIELD( "unknown36ab", unknown36ab );
   CONV_FROM_FIELD( "merchant_marine", merchant_marine );
   CONV_FROM_FIELD( "ship_counts", ship_counts );
-  HAS_VALUE_OR_RET( conv.end_field_tracking( tbl, used_keys ) );
+  GOOD_OR_RETURN( conv.end_field_tracking( tbl, used_keys ) );
   return res;
 }
 
@@ -7084,7 +7084,7 @@ cdr::result<UnknownTribeData1> from_canonical(
   CONV_FROM_FIELD( "apache", apache );
   CONV_FROM_FIELD( "sioux", sioux );
   CONV_FROM_FIELD( "tupi", tupi );
-  HAS_VALUE_OR_RET( conv.end_field_tracking( tbl, used_keys ) );
+  GOOD_OR_RETURN( conv.end_field_tracking( tbl, used_keys ) );
   return res;
 }
 
@@ -7171,7 +7171,7 @@ cdr::result<UnknownTribeData2> from_canonical(
   CONV_FROM_FIELD( "apache", apache );
   CONV_FROM_FIELD( "sioux", sioux );
   CONV_FROM_FIELD( "tupi", tupi );
-  HAS_VALUE_OR_RET( conv.end_field_tracking( tbl, used_keys ) );
+  GOOD_OR_RETURN( conv.end_field_tracking( tbl, used_keys ) );
   return res;
 }
 
@@ -7258,7 +7258,7 @@ cdr::result<TribeDwellingCount> from_canonical(
   CONV_FROM_FIELD( "apache", apache );
   CONV_FROM_FIELD( "sioux", sioux );
   CONV_FROM_FIELD( "tupi", tupi );
-  HAS_VALUE_OR_RET( conv.end_field_tracking( tbl, used_keys ) );
+  GOOD_OR_RETURN( conv.end_field_tracking( tbl, used_keys ) );
   return res;
 }
 
@@ -7345,7 +7345,7 @@ cdr::result<UnknownTribeData4> from_canonical(
   CONV_FROM_FIELD( "apache", apache );
   CONV_FROM_FIELD( "sioux", sioux );
   CONV_FROM_FIELD( "tupi", tupi );
-  HAS_VALUE_OR_RET( conv.end_field_tracking( tbl, used_keys ) );
+  GOOD_OR_RETURN( conv.end_field_tracking( tbl, used_keys ) );
   return res;
 }
 
@@ -7432,7 +7432,7 @@ cdr::result<UnknownTribeData5> from_canonical(
   CONV_FROM_FIELD( "apache", apache );
   CONV_FROM_FIELD( "sioux", sioux );
   CONV_FROM_FIELD( "tupi", tupi );
-  HAS_VALUE_OR_RET( conv.end_field_tracking( tbl, used_keys ) );
+  GOOD_OR_RETURN( conv.end_field_tracking( tbl, used_keys ) );
   return res;
 }
 
@@ -7519,7 +7519,7 @@ cdr::result<UnknownTribeData6> from_canonical(
   CONV_FROM_FIELD( "apache", apache );
   CONV_FROM_FIELD( "sioux", sioux );
   CONV_FROM_FIELD( "tupi", tupi );
-  HAS_VALUE_OR_RET( conv.end_field_tracking( tbl, used_keys ) );
+  GOOD_OR_RETURN( conv.end_field_tracking( tbl, used_keys ) );
   return res;
 }
 
@@ -7690,7 +7690,7 @@ cdr::result<STUFF> from_canonical(
   CONV_FROM_FIELD( "unknown37", unknown37 );
   CONV_FROM_FIELD( "viewport_x", viewport_x );
   CONV_FROM_FIELD( "viewport_y", viewport_y );
-  HAS_VALUE_OR_RET( conv.end_field_tracking( tbl, used_keys ) );
+  GOOD_OR_RETURN( conv.end_field_tracking( tbl, used_keys ) );
   return res;
 }
 
@@ -7741,7 +7741,7 @@ cdr::result<CONNECTIVITY> from_canonical(
   std::set<std::string> used_keys;
   CONV_FROM_FIELD( "sea_lane_connectivity", sea_lane_connectivity );
   CONV_FROM_FIELD( "land_connectivity", land_connectivity );
-  HAS_VALUE_OR_RET( conv.end_field_tracking( tbl, used_keys ) );
+  GOOD_OR_RETURN( conv.end_field_tracking( tbl, used_keys ) );
   return res;
 }
 
@@ -7810,7 +7810,7 @@ cdr::result<Stops> from_canonical(
   CONV_FROM_FIELD( "loads_cargo", loads_cargo );
   CONV_FROM_FIELD( "unloads_cargo", unloads_cargo );
   CONV_FROM_FIELD( "unknown47", unknown47 );
-  HAS_VALUE_OR_RET( conv.end_field_tracking( tbl, used_keys ) );
+  GOOD_OR_RETURN( conv.end_field_tracking( tbl, used_keys ) );
   return res;
 }
 
@@ -7873,7 +7873,7 @@ cdr::result<TRADEROUTE> from_canonical(
   CONV_FROM_FIELD( "land_or_sea", land_or_sea );
   CONV_FROM_FIELD( "stops_count", stops_count );
   CONV_FROM_FIELD( "stops", stops );
-  HAS_VALUE_OR_RET( conv.end_field_tracking( tbl, used_keys ) );
+  GOOD_OR_RETURN( conv.end_field_tracking( tbl, used_keys ) );
   return res;
 }
 
@@ -7987,7 +7987,7 @@ cdr::result<ColonySAV> from_canonical(
   CONV_FROM_FIELD( "prime_resource_seed", prime_resource_seed );
   CONV_FROM_FIELD( "unknown39d", unknown39d );
   CONV_FROM_FIELD( "TRADE_ROUTE", trade_route );
-  HAS_VALUE_OR_RET( conv.end_field_tracking( tbl, used_keys ) );
+  GOOD_OR_RETURN( conv.end_field_tracking( tbl, used_keys ) );
   return res;
 }
 

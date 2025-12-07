@@ -435,8 +435,8 @@ wait<> cheat_set_player_control( IEngine& engine, SS& ss,
 
   auto const validate =
       [&]( Result const& res ) -> valid_or<string> {
-    HAS_VALUE_OR_RET( has_at_least_one_human( res ) );
-    HAS_VALUE_OR_RET( check_post_declaration_changes( res ) );
+    GOOD_OR_RETURN( has_at_least_one_human( res ) );
+    GOOD_OR_RETURN( check_post_declaration_changes( res ) );
     return valid;
   };
 

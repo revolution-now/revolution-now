@@ -128,9 +128,9 @@ struct Program : ProgramNonTyped {
                    ProgramNonTyped::create( vertex, fragment ) );
     auto pgrm = Program( std::move( pgrm_non_typed ) );
 #if 1 // to enable input vertex attribute type checking.
-    HAS_VALUE_OR_RET( validate_program( pgrm ) );
+    GOOD_OR_RETURN( validate_program( pgrm ) );
 #endif
-    HAS_VALUE_OR_RET( try_initialize_uniforms( pgrm ) );
+    GOOD_OR_RETURN( try_initialize_uniforms( pgrm ) );
     return pgrm;
   }
 

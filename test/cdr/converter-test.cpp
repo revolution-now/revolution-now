@@ -71,7 +71,7 @@ result<Address> from_canonical( converter& conv, value const& v,
   set<string> used_keys;
   CONV_FROM_FIELD( street_number );
   CONV_FROM_FIELD( state );
-  HAS_VALUE_OR_RET( conv.end_field_tracking( tbl, used_keys ) );
+  GOOD_OR_RETURN( conv.end_field_tracking( tbl, used_keys ) );
   return res;
 }
 
@@ -166,7 +166,7 @@ result<Person> from_canonical( converter& conv, value const& v,
   CONV_FROM_FIELD( male );
   CONV_FROM_FIELD( houses );
   CONV_FROM_FIELD( pets );
-  HAS_VALUE_OR_RET( conv.end_field_tracking( tbl, used_keys ) );
+  GOOD_OR_RETURN( conv.end_field_tracking( tbl, used_keys ) );
   return res;
 }
 
@@ -208,7 +208,7 @@ result<Rolodex> from_canonical( converter& conv, value const& v,
   CONV_FROM_FIELD( self );
   CONV_FROM_FIELD( updated );
   CONV_FROM_FIELD( contacts );
-  HAS_VALUE_OR_RET( conv.end_field_tracking( tbl, used_keys ) );
+  GOOD_OR_RETURN( conv.end_field_tracking( tbl, used_keys ) );
   return res;
 }
 

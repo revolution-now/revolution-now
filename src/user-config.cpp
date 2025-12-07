@@ -184,7 +184,7 @@ auto UserConfig::load_from_file( string const& path )
   UNWRAP_RETURN(
       config, cdr::run_conversion_from_canonical<config_user_t>(
                   val, options ) );
-  HAS_VALUE_OR_RET( config.validate() );
+  GOOD_OR_RETURN( config.validate() );
   return SettingsFile{ .gaps_filled   = num_missing,
                        .path          = path,
                        .last_snapshot = std::move( config ) };

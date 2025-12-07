@@ -346,7 +346,7 @@ valid_or<std::string> convert_to_rn( sav::ColonySAV const& in,
 
   // Terrain.
   rn::wrapped::TerrainState terrain_o;
-  HAS_VALUE_OR_RET( tiles_to_map_squares(
+  GOOD_OR_RETURN( tiles_to_map_squares(
       in.header.map_size_x, in.header.map_size_y, in.tile,
       terrain_o.real_terrain ) );
   out.zzz_terrain = rn::TerrainState( std::move( terrain_o ) );
@@ -368,7 +368,7 @@ valid_or<std::string> convert_to_og( rn::RootState const& in,
                           'I', 'Z', 'E', 0 };
 
   // Terrain.
-  HAS_VALUE_OR_RET( map_squares_to_tiles(
+  GOOD_OR_RETURN( map_squares_to_tiles(
       in.zzz_terrain.refl().real_terrain, out.header.map_size_x,
       out.header.map_size_y, out.tile ) );
 
@@ -393,7 +393,7 @@ valid_or<std::string> convert_to_og( rn::RootState const& in,
 valid_or<std::string> convert_to_rn( sav::MapFile const& in,
                                      rn::RealTerrain& out ) {
   ScopedTimer timer( "convert map from OG to RN" );
-  HAS_VALUE_OR_RET( tiles_to_map_squares(
+  GOOD_OR_RETURN( tiles_to_map_squares(
       in.map_size_x, in.map_size_y, in.tile, out ) );
   return valid;
 }
@@ -402,7 +402,7 @@ valid_or<std::string> convert_to_og( rn::RealTerrain const& in,
                                      sav::MapFile& out ) {
   ScopedTimer timer( "convert map from RN to OG" );
   sav::HEADER header;
-  HAS_VALUE_OR_RET( map_squares_to_tiles(
+  GOOD_OR_RETURN( map_squares_to_tiles(
       in, header.map_size_x, header.map_size_y, out.tile ) );
 
   // This only populates the region IDs, but that is fine for a

@@ -101,7 +101,7 @@ base::valid_or<string> wrapped::ColoniesState::validate() const {
 ** ColoniesState
 *****************************************************************/
 base::valid_or<std::string> ColoniesState::validate() const {
-  HAS_VALUE_OR_RET( o_.validate() );
+  GOOD_OR_RETURN( o_.validate() );
 
   for( auto const& [colony_id, colony] : o_.colonies ) {
     // Consistency of IDs.

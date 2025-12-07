@@ -185,8 +185,7 @@ struct enum_map : public detail::EnumMapBase<E, V> {
               used_keys ) );
       res[e] = std::move( val );
     }
-    HAS_VALUE_OR_RET(
-        conv.end_field_tracking( tbl, used_keys ) );
+    GOOD_OR_RETURN( conv.end_field_tracking( tbl, used_keys ) );
     return res;
   }
 

@@ -46,7 +46,7 @@ template<typename T>
 valid_or<string> read_vector( IBinaryIO& b, string_view label,
                               int count, int sanity_max,
                               vector<T>& out ) {
-  HAS_VALUE_OR_RET(
+  GOOD_OR_RETURN(
       sanity_check_count( label, count, sanity_max ) );
   out.resize( count );
   for( int i = 0; i < count; ++i )
@@ -76,22 +76,22 @@ valid_or<string> read( IBinaryIO& b, ColonySAV& out ) {
   // than 5k then something is definitely wrong. Actually, some
   // reports say that the OG only allows 38 colonies per player,
   // so this should be more than enough.
-  HAS_VALUE_OR_RET( read_vector(
+  GOOD_OR_RETURN( read_vector(
       b, "colony", out.header.colony_count, 5000, out.colony ) );
 
   // The OG apparently has a limit of 256 units on the map (per
   // player?), which is what this section holds. But we'll be a
   // bit more generous. Note that this section only includes
   // units on the map.
-  HAS_VALUE_OR_RET( read_vector(
-      b, "unit", out.header.unit_count, 10000, out.unit ) );
+  GOOD_OR_RETURN( read_vector( b, "unit", out.header.unit_count,
+                               10000, out.unit ) );
 
   if( !read_binary( b, out.nation ) )
     return fmt::format( "while reading nation array." );
 
-  HAS_VALUE_OR_RET( read_vector( b, "dwelling",
-                                 out.header.dwelling_count,
-                                 8 * 200, out.dwelling ) );
+  GOOD_OR_RETURN( read_vector( b, "dwelling",
+                               out.header.dwelling_count,
+                               8 * 200, out.dwelling ) );
 
   if( !read_binary( b, out.tribe ) )
     return fmt::format( "while reading tribe array." );
@@ -118,14 +118,14 @@ valid_or<string> read( IBinaryIO& b, ColonySAV& out ) {
         "original game's map, which is {}x{} tiles.",
         tile_count, kOGMapX, kOGMapY );
 
-  HAS_VALUE_OR_RET( read_vector( b, "tile", tile_count,
-                                 kMaxTiles, out.tile ) );
-  HAS_VALUE_OR_RET( read_vector( b, "mask", tile_count,
-                                 kMaxTiles, out.mask ) );
-  HAS_VALUE_OR_RET( read_vector( b, "path", tile_count,
-                                 kMaxTiles, out.path ) );
-  HAS_VALUE_OR_RET( read_vector( b, "seen", tile_count,
-                                 kMaxTiles, out.seen ) );
+  GOOD_OR_RETURN( read_vector( b, "tile", tile_count, kMaxTiles,
+                               out.tile ) );
+  GOOD_OR_RETURN( read_vector( b, "mask", tile_count, kMaxTiles,
+                               out.mask ) );
+  GOOD_OR_RETURN( read_vector( b, "path", tile_count, kMaxTiles,
+                               out.path ) );
+  GOOD_OR_RETURN( read_vector( b, "seen", tile_count, kMaxTiles,
+                               out.seen ) );
 
   if( !read_binary( b, out.connectivity ) )
     return fmt::format( "while reading connectivity section." );
@@ -178,12 +178,12 @@ valid_or<string> read( IBinaryIO& b, MapFile& out ) {
         "original game's map, which is {}x{} tiles.",
         tile_count, kOGMapX, kOGMapY );
 
-  HAS_VALUE_OR_RET( read_vector( b, "tile", tile_count,
-                                 kMaxTiles, out.tile ) );
-  HAS_VALUE_OR_RET( read_vector( b, "mask", tile_count,
-                                 kMaxTiles, out.mask ) );
-  HAS_VALUE_OR_RET( read_vector( b, "path", tile_count,
-                                 kMaxTiles, out.path ) );
+  GOOD_OR_RETURN( read_vector( b, "tile", tile_count, kMaxTiles,
+                               out.tile ) );
+  GOOD_OR_RETURN( read_vector( b, "mask", tile_count, kMaxTiles,
+                               out.mask ) );
+  GOOD_OR_RETURN( read_vector( b, "path", tile_count, kMaxTiles,
+                               out.path ) );
 
   return valid;
 }
@@ -196,9 +196,9 @@ valid_or<string> write( IBinaryIO& b, MapFile const& out ) {
   if( !write_binary( b, out.unknown ) )
     return fmt::format( "while writing bytes 4+5." );
 
-  HAS_VALUE_OR_RET( write_vector( b, "tile", out.tile ) );
-  HAS_VALUE_OR_RET( write_vector( b, "mask", out.mask ) );
-  HAS_VALUE_OR_RET( write_vector( b, "path", out.path ) );
+  GOOD_OR_RETURN( write_vector( b, "tile", out.tile ) );
+  GOOD_OR_RETURN( write_vector( b, "mask", out.mask ) );
+  GOOD_OR_RETURN( write_vector( b, "path", out.path ) );
 
   return valid;
 }
@@ -211,25 +211,24 @@ valid_or<string> write( IBinaryIO& b, ColonySAV const& out ) {
   if( !write_binary( b, out.other ) )
     return fmt::format( "while writing 'other' section." );
 
-  HAS_VALUE_OR_RET( write_vector( b, "colony", out.colony ) );
+  GOOD_OR_RETURN( write_vector( b, "colony", out.colony ) );
 
-  HAS_VALUE_OR_RET( write_vector( b, "unit", out.unit ) );
+  GOOD_OR_RETURN( write_vector( b, "unit", out.unit ) );
 
   if( !write_binary( b, out.nation ) )
     return fmt::format( "while writing nation array." );
 
-  HAS_VALUE_OR_RET(
-      write_vector( b, "dwelling", out.dwelling ) );
+  GOOD_OR_RETURN( write_vector( b, "dwelling", out.dwelling ) );
 
   if( !write_binary( b, out.tribe ) )
     return fmt::format( "while writing tribe array." );
   if( !write_binary( b, out.stuff ) )
     return fmt::format( "while writing 'stuff' section." );
 
-  HAS_VALUE_OR_RET( write_vector( b, "tile", out.tile ) );
-  HAS_VALUE_OR_RET( write_vector( b, "mask", out.mask ) );
-  HAS_VALUE_OR_RET( write_vector( b, "path", out.path ) );
-  HAS_VALUE_OR_RET( write_vector( b, "seen", out.seen ) );
+  GOOD_OR_RETURN( write_vector( b, "tile", out.tile ) );
+  GOOD_OR_RETURN( write_vector( b, "mask", out.mask ) );
+  GOOD_OR_RETURN( write_vector( b, "path", out.path ) );
+  GOOD_OR_RETURN( write_vector( b, "seen", out.seen ) );
 
   if( !write_binary( b, out.connectivity ) )
     return fmt::format( "while writing connectivity section." );

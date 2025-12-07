@@ -38,7 +38,7 @@ lua_expect<int> call_lua_from_cpp(
   int num_args = after_args - before_args;
 
   if( safe ) {
-    HAS_VALUE_OR_RET( C.pcall(
+    GOOD_OR_RETURN( C.pcall(
         num_args, nresults.value_or( c_api::multret() ) ) );
   } else {
     C.call( num_args, nresults.value_or( c_api::multret() ) );

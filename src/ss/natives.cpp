@@ -110,7 +110,7 @@ base::valid_or<string> wrapped::NativesState::validate() const {
 ** NativesState
 *****************************************************************/
 base::valid_or<std::string> NativesState::validate() const {
-  HAS_VALUE_OR_RET( o_.validate() );
+  GOOD_OR_RETURN( o_.validate() );
 
   // Dwelling location matches coord.
   for( auto const& [dwelling_id, state] : o_.dwellings ) {

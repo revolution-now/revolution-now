@@ -459,7 +459,7 @@ valid_or<string> wrapped::UnitsState::validate() const {
 ** UnitsState
 *****************************************************************/
 valid_or<std::string> UnitsState::validate() const {
-  HAS_VALUE_OR_RET( o_.validate() );
+  GOOD_OR_RETURN( o_.validate() );
 
   // Validate all unit cargos. We can only do this now after
   // all units have been loaded.
