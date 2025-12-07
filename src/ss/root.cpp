@@ -27,9 +27,13 @@
 
 // refl
 #include "refl/to-str.hpp"
+#include "refl/traverse.hpp"
+#include "refl/validate.hpp"
 
 // traverse
+#include "traverse/ext-base.hpp"
 #include "traverse/ext-std.hpp"
+#include "traverse/ext.hpp"
 
 // base
 #include "base/to-str-ext-std.hpp"
@@ -236,6 +240,23 @@ valid_or<string> RootState::validate() const {
   GOOD_OR_RETURN( validate_interaction( map, zzz_terrain ) );
   GOOD_OR_RETURN( validate_interaction( players, zzz_terrain ) );
   return valid;
+}
+
+valid_or<string> validate_recursive( RootState const& root ) {
+  return refl::validate_recursive( root, "root" );
+}
+
+valid_or<string> validate_recursive_non_terrain(
+    RootState const& root ) {
+  valid_or<string> res = valid;
+  trv::traverse(
+      root, [&]( auto const& o, string_view const name ) {
+        if( !res.valid() ) return;
+        if( name.find( "terrain" ) != string_view::npos ) return;
+        string const key = format( "root.{}", name );
+        res              = refl::validate_recursive( o, key );
+      } );
+  return res;
 }
 
 // Lua bindings.

@@ -23,4 +23,12 @@ namespace rn {
 
 void define_usertype_for( lua::state& st, lua::tag<RootState> );
 
+// Run a full recursive validation over all fields.
+base::valid_or<std::string> validate_recursive(
+    RootState const& root );
+
+// Faster because it omits terrain.
+base::valid_or<std::string> validate_recursive_non_terrain(
+    RootState const& root );
+
 } // namespace rn
