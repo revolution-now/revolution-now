@@ -236,7 +236,7 @@ TEST_CASE( "[sav/bridge] OG to NG [scenario 1]" ) {
   rn_bidirectional_scenario_1( expected );
 
   rn::RootState converted;
-  REQUIRE( convert_to_rn( classic, converted ) == valid );
+  REQUIRE( convert_to_ng( classic, converted ) == valid );
 
   REQUIRE( converted.version == expected.version );
   REQUIRE( converted.settings == expected.settings );
@@ -436,7 +436,7 @@ TEST_CASE( "[sav/bridge] OG to NG [scenario 2]" ) {
   rn_unidirectional_scenario_1( expected );
 
   rn::RootState converted;
-  REQUIRE( convert_to_rn( classic, converted ) == valid );
+  REQUIRE( convert_to_ng( classic, converted ) == valid );
 
   REQUIRE( converted.version == expected.version );
   REQUIRE( converted.settings == expected.settings );
@@ -501,7 +501,7 @@ TEST_CASE( "[sav/bridge] OG to NG [MapFile]" ) {
   classic_at( { .x = 3, .y = 3 } ) = T{ .tile = t5t::swf };
   classic_at( { .x = 4, .y = 3 } ) = T{ .tile = t5t::mrw };
 
-  REQUIRE( convert_to_rn( classic, modern ) == valid );
+  REQUIRE( convert_to_ng( classic, modern ) == valid );
 
   auto const& map = modern.map;
   REQUIRE( map.size().to_gfx() == gfx::size{ .w = 5, .h = 6 } );

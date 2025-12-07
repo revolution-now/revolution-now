@@ -5,7 +5,8 @@
 *
 * Created by David P. Sicilia on 2023-11-12.
 *
-* Description: TODO [FILL ME IN]
+* Description: Translates between the OG and NG save state
+*              representation.
 *
 *****************************************************************/
 #include "bridge.hpp"
@@ -272,13 +273,14 @@ expect<sav::TILE, string> tile_from_map_square(
   return res;
 }
 
-valid_or<std::string> tiles_to_map_squares(
-    int og_map_size_x, int og_map_size_y,
-    vector<sav::TILE> const& tiles, rn::RealTerrain& out ) {
+ConvResult tiles_to_map_squares( int og_map_size_x,
+                                 int og_map_size_y,
+                                 vector<sav::TILE> const& tiles,
+                                 rn::RealTerrain& out ) {
   int const rn_map_size_x  = og_map_size_x - 2;
   int const rn_map_size_y  = og_map_size_y - 2;
   int const total_og_tiles = og_map_size_x * og_map_size_y;
-  int const total_rn_tiles = rn_map_size_x * rn_map_size_y;
+  int const total_ng_tiles = rn_map_size_x * rn_map_size_y;
   if( og_map_size_x <= 2 || og_map_size_y <= 2 )
     return "map size too small";
   if( int( tiles.size() ) != total_og_tiles )
@@ -286,7 +288,7 @@ valid_or<std::string> tiles_to_map_squares(
   auto& map = out.map;
 
   vector<rn::MapSquare> squares;
-  squares.reserve( total_rn_tiles );
+  squares.reserve( total_ng_tiles );
   for( int y = 1; y < og_map_size_y - 1; ++y ) {
     for( int x = 1; x < og_map_size_x - 1; ++x ) {
       int const og_offset   = ( y * og_map_size_x ) + x;
@@ -295,15 +297,16 @@ valid_or<std::string> tiles_to_map_squares(
       squares.push_back( square );
     }
   }
-  CHECK_EQ( int( squares.size() ), total_rn_tiles );
+  CHECK_EQ( int( squares.size() ), total_ng_tiles );
   map = gfx::Matrix<rn::MapSquare>( std::move( squares ),
                                     rn_map_size_x );
   return valid;
 }
 
-valid_or<std::string> map_squares_to_tiles(
-    rn::RealTerrain const& in, uint16_t& og_map_size_x,
-    uint16_t& og_map_size_y, vector<sav::TILE>& tiles ) {
+ConvResult map_squares_to_tiles( rn::RealTerrain const& in,
+                                 uint16_t& og_map_size_x,
+                                 uint16_t& og_map_size_y,
+                                 vector<sav::TILE>& tiles ) {
   int const rn_map_size_x  = in.map.size().w;
   int const rn_map_size_y  = in.map.size().h;
   og_map_size_x            = rn_map_size_x + 2;
@@ -340,8 +343,8 @@ valid_or<std::string> map_squares_to_tiles(
 /****************************************************************
 ** Public API.
 *****************************************************************/
-valid_or<std::string> convert_to_rn( sav::ColonySAV const& in,
-                                     rn::RootState& out ) {
+ConvResult convert_to_ng( sav::ColonySAV const& in,
+                          rn::RootState& out ) {
   ScopedTimer timer( "convert saved game from OG to RN" );
 
   // Terrain.
@@ -359,8 +362,8 @@ valid_or<std::string> convert_to_rn( sav::ColonySAV const& in,
   return valid;
 }
 
-valid_or<std::string> convert_to_og( rn::RootState const& in,
-                                     sav::ColonySAV& out ) {
+ConvResult convert_to_og( rn::RootState const& in,
+                          sav::ColonySAV& out ) {
   ScopedTimer timer( "convert saved game from RN to OG" );
 
   // Header.
@@ -390,16 +393,16 @@ valid_or<std::string> convert_to_og( rn::RootState const& in,
   return valid;
 }
 
-valid_or<std::string> convert_to_rn( sav::MapFile const& in,
-                                     rn::RealTerrain& out ) {
+ConvResult convert_to_ng( sav::MapFile const& in,
+                          rn::RealTerrain& out ) {
   ScopedTimer timer( "convert map from OG to RN" );
   GOOD_OR_RETURN( tiles_to_map_squares(
       in.map_size_x, in.map_size_y, in.tile, out ) );
   return valid;
 }
 
-valid_or<std::string> convert_to_og( rn::RealTerrain const& in,
-                                     sav::MapFile& out ) {
+ConvResult convert_to_og( rn::RealTerrain const& in,
+                          sav::MapFile& out ) {
   ScopedTimer timer( "convert map from RN to OG" );
   sav::HEADER header;
   GOOD_OR_RETURN( map_squares_to_tiles(

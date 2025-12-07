@@ -31,16 +31,18 @@ struct MapFile;
 // data types must be qualified for better readability.
 namespace bridge {
 
-base::valid_or<std::string> convert_to_rn(
-    sav::ColonySAV const& in, rn::RootState& out );
+using ConvResult = base::valid_or<std::string>;
 
-base::valid_or<std::string> convert_to_og(
-    rn::RootState const& in, sav::ColonySAV& out );
+ConvResult convert_to_ng( sav::ColonySAV const& in,
+                          rn::RootState& out );
 
-base::valid_or<std::string> convert_to_rn(
-    sav::MapFile const& in, rn::RealTerrain& out );
+ConvResult convert_to_og( rn::RootState const& in,
+                          sav::ColonySAV& out );
 
-base::valid_or<std::string> convert_to_og(
-    rn::RealTerrain const& in, sav::MapFile& out );
+ConvResult convert_to_ng( sav::MapFile const& in,
+                          rn::RealTerrain& out );
+
+ConvResult convert_to_og( rn::RealTerrain const& in,
+                          sav::MapFile& out );
 
 } // namespace bridge
