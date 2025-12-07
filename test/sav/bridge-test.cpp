@@ -247,6 +247,8 @@ TEST_CASE( "[sav/bridge] OG to NG [scenario 1]" ) {
   REQUIRE( converted.colonies == expected.colonies );
   REQUIRE( converted.natives == expected.natives );
   REQUIRE( converted.land_view == expected.land_view );
+  REQUIRE( converted.map == expected.map );
+  REQUIRE( converted.trade_routes == expected.trade_routes );
   REQUIRE( converted.zzz_terrain == expected.zzz_terrain );
 }
 
@@ -268,7 +270,7 @@ TEST_CASE( "[sav/bridge] NG to OG [scenario 1]" ) {
   REQUIRE( converted.other == expected.other );
   REQUIRE( converted.colony == expected.colony );
   REQUIRE( converted.unit == expected.unit );
-  REQUIRE( converted.player == expected.player );
+  REQUIRE( converted.nation == expected.nation );
   REQUIRE( converted.dwelling == expected.dwelling );
   REQUIRE( converted.tribe == expected.tribe );
   REQUIRE( converted.stuff == expected.stuff );
@@ -447,6 +449,8 @@ TEST_CASE( "[sav/bridge] OG to NG [scenario 2]" ) {
   REQUIRE( converted.colonies == expected.colonies );
   REQUIRE( converted.natives == expected.natives );
   REQUIRE( converted.land_view == expected.land_view );
+  REQUIRE( converted.map == expected.map );
+  REQUIRE( converted.trade_routes == expected.trade_routes );
   REQUIRE( converted.zzz_terrain == expected.zzz_terrain );
 }
 
