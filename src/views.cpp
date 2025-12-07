@@ -840,7 +840,7 @@ bool ButtonView::on_mouse_button(
         break;
     }
   }
-  return false;
+  return true;
 }
 
 void ButtonView::on_mouse_leave( Coord /*unused*/ ) {
