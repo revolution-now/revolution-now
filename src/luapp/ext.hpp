@@ -205,6 +205,10 @@ concept StorageGettable =
 /****************************************************************
 ** nvalues_for
 *****************************************************************/
+// WARNING: any header or TU thaat uses nvalues_for must be sure
+// to include luapp/types.hpp plus any other headers needed to
+// define the traits structs for other types used with
+// nvalues_for. This is to prevent ODR violations.
 template<typename T>
 constexpr int nvalues_for() {
   if constexpr( HasTraitsNvalues<T> ) {

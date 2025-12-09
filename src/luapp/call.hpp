@@ -15,6 +15,7 @@
 #include "error.hpp"
 #include "ext.hpp"
 #include "thread-status.hpp"
+#include "types.hpp" // prevents ODR violations due to nvalues_for
 
 // base
 #include "base/cc-specific.hpp"
@@ -254,6 +255,14 @@ lua_expect<resume_result_with_value<R>>
 call_lua_resume_safe_and_get( cthread L_toresume,
                               Args&&... args ) {
   static constexpr int nresults_needed = nvalues_for<R>();
+  if constexpr( std::is_same_v<R, void> )
+    // This is here to provide a safeguard against a bug that was
+    // once found (ODR violation) where the nvalues_for called
+    // above to compute results needed was called on a type
+    // (void) where the traits had not yet been seen in at least
+    // one TU (causing the nvalues_for to default to 1 incor-
+    // rectly, since it is supposed to be zero for void).
+    static_assert( nresults_needed == 0 );
   lua_expect<resume_result> res =
       call_lua_resume_safe( L_toresume, FWD( args )... );
   GOOD_OR_RETURN( res );

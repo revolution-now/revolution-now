@@ -1896,6 +1896,19 @@ LUA_TEST_CASE(
     REQUIRE( c_api( cth ).status() == thread_status::ok );
     REQUIRE( c_api( cth ).coro_status() ==
              coroutine_status::dead );
+    {
+      // Here we test that the thread goes back to "suspended"
+      // status just by virtue of there being one item on the
+      // stack.
+      REQUIRE( c_api( cth ).coro_status() ==
+               coroutine_status::dead );
+      c_api( cth ).push( 1 );
+      REQUIRE( c_api( cth ).coro_status() ==
+               coroutine_status::suspended );
+      c_api( cth ).pop();
+      REQUIRE( c_api( cth ).coro_status() ==
+               coroutine_status::dead );
+    }
     REQUIRE( c_api( cth ).thread_ok() == valid );
     REQUIRE( C.stack_size() == 0 );
   }
