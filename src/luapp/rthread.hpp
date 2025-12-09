@@ -39,7 +39,6 @@ struct rthread : public any {
 
   bool is_main() const noexcept;
 
-  // As of Lua 5.4.4, this will reset the error state as well.
   lua_valid resetthread() const noexcept;
   thread_status status() const noexcept;
   coroutine_status coro_status() const noexcept;
