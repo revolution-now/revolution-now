@@ -38,6 +38,65 @@ TEST_CASE( "[sav/string] construction" ) {
   REQUIRE( as.a[4] == 0 );
 }
 
+TEST_CASE( "[sav/string] populate_from_string" ) {
+  SECTION( "empty array + empty" ) {
+    array_string<0> const expected = {};
+    string_view const sv           = "";
+    array_string<0> target;
+    REQUIRE( target.populate_from_string( sv ) );
+    REQUIRE( target == expected );
+  }
+  SECTION( "empty array + non-empty" ) {
+    array_string<0> const expected = {};
+    string_view const sv           = "a";
+    array_string<0> target;
+    REQUIRE_FALSE( target.populate_from_string( sv ) );
+    REQUIRE( target == expected );
+  }
+  SECTION( "empty" ) {
+    array_string<5> const expected = { 0, 0, 0, 0, 0 };
+    string_view const sv           = "";
+    array_string<5> target;
+    REQUIRE( target.populate_from_string( sv ) );
+    REQUIRE( target == expected );
+  }
+  SECTION( "one char" ) {
+    array_string<5> const expected = { 'a', 0, 0, 0, 0 };
+    string_view const sv           = "a";
+    array_string<5> target;
+    REQUIRE( target.populate_from_string( sv ) );
+    REQUIRE( target == expected );
+  }
+  SECTION( "fits" ) {
+    array_string<5> const expected = { 'y', 'e', 's', 0, 0 };
+    string_view const sv           = "yes";
+    array_string<5> target;
+    REQUIRE( target.populate_from_string( sv ) );
+    REQUIRE( target == expected );
+  }
+  SECTION( "max size" ) {
+    array_string<5> const expected = { 'h', 'e', 'l', 'l', 'o' };
+    string_view const sv           = "hello";
+    array_string<5> target;
+    REQUIRE( target.populate_from_string( sv ) );
+    REQUIRE( target == expected );
+  }
+  SECTION( "no fit" ) {
+    array_string<5> const expected = { 'h', 'e', 'l', 'l', 'o' };
+    string_view const sv           = "hellos";
+    array_string<5> target;
+    REQUIRE_FALSE( target.populate_from_string( sv ) );
+    REQUIRE( target == expected );
+  }
+  SECTION( "long" ) {
+    array_string<5> const expected = { 'h', 'e', 'l', 'l', 'o' };
+    string_view const sv           = "hello world hello world";
+    array_string<5> target;
+    REQUIRE_FALSE( target.populate_from_string( sv ) );
+    REQUIRE( target == expected );
+  }
+}
+
 TEST_CASE( "[sav/string] to_str" ) {
   SECTION( "null zero" ) {
     array_string<5> const as = { 'y', 'e', 's', 0, 0 };

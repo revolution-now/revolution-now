@@ -18,6 +18,7 @@
 #include "src/sav/sav-struct.hpp"
 
 // ss
+#include "src/ss/player.rds.hpp"
 #include "src/ss/root.hpp"
 
 // refl
@@ -150,7 +151,62 @@ void og_bidirectional_scenario_1( sav::ColonySAV& out ) {
   out.connectivity.land_connectivity[0].east = true;
   out.connectivity.land_connectivity[3].west = true;
 
-  // TODO: Add more here.
+  // Land View.
+  out.stuff.zoom_level       = 2;
+  out.stuff.viewport_x       = 4;
+  out.stuff.viewport_y       = 5;
+  out.stuff.white_box_x      = 14;
+  out.stuff.white_box_y      = 15;
+  out.header.show_entire_map = 0;
+  out.header.fixed_nation_map_view =
+      sav::nation_2byte_type::none;
+
+  // Players.
+  sav::PLAYER& english = out.player[0];
+  sav::PLAYER& french  = out.player[1];
+  sav::PLAYER& spanish = out.player[2];
+  sav::PLAYER& dutch   = out.player[3];
+
+  english.control = sav::control_type::ai;
+  french.control  = sav::control_type::player;
+  spanish.control = sav::control_type::withdrawn;
+  dutch.control   = sav::control_type::ai;
+
+  // Trade Routes.
+  out.header.trade_route_count = 2;
+
+  using C4T          = sav::cargo_4bit_type;
+  out.trade_route[0] = sav::TRADEROUTE{
+    .name = { 'm', 'y', ' ', 'r', 'o', 'u', 't', 'e', ' ', '1',
+              '\0' },
+    .land_or_sea = sav::trade_route_type::sea,
+    .stops_count = 2,
+    .stops       = {
+      sav::Stops{
+              .colony_index            = 999,
+              .loads_and_unloads_count = { .unloads_count = 1,
+                                           .loads_count   = 2 },
+              .loads_cargo             = { .cargo_1 = C4T::cloth,
+                                           .cargo_2 = C4T::tools },
+              .unloads_cargo           = { .cargo_1 = C4T::food } },
+      sav::Stops{
+              .colony_index            = 2,
+              .loads_and_unloads_count = { .unloads_count = 2,
+                                           .loads_count   = 1 },
+              .loads_cargo             = { .cargo_1 = C4T::horses },
+              .unloads_cargo           = { .cargo_1 = C4T::cloth,
+                                           .cargo_2 = C4T::tools } } } };
+  out.trade_route[1] = sav::TRADEROUTE{
+    .name = { 'm', 'y', ' ', 'r', 'o', 'u', 't', 'e', ' ', '2',
+              '\0' },
+    .land_or_sea = sav::trade_route_type::land,
+    .stops_count = 1,
+    .stops       = { sav::Stops{
+            .colony_index            = 3,
+            .loads_and_unloads_count = { .unloads_count = 1 },
+            .unloads_cargo           = { .cargo_1 = C4T::goods } } } };
+
+  // TODO: add more here.
 }
 
 void rn_bidirectional_scenario_1( rn::RootState& out ) {
@@ -220,7 +276,83 @@ void rn_bidirectional_scenario_1( rn::RootState& out ) {
 
   terrain_o.real_terrain.map =
       gfx::Matrix<rn::MapSquare>( std::move( squares ), 6 );
+
+  terrain_o.player_terrain[rn::e_player::english].emplace().map =
+      gfx::Matrix<rn::PlayerSquare>(
+          gfx::size{ .w = 6, .h = 8 } );
+  terrain_o.player_terrain[rn::e_player::french].emplace().map =
+      gfx::Matrix<rn::PlayerSquare>(
+          gfx::size{ .w = 6, .h = 8 } );
+  terrain_o.player_terrain[rn::e_player::spanish].emplace().map =
+      gfx::Matrix<rn::PlayerSquare>(
+          gfx::size{ .w = 6, .h = 8 } );
+  terrain_o.player_terrain[rn::e_player::dutch].emplace().map =
+      gfx::Matrix<rn::PlayerSquare>(
+          gfx::size{ .w = 6, .h = 8 } );
+
+  terrain_o.pacific_ocean_endpoints = vector<int>( 8 );
+
   out.zzz_terrain = rn::TerrainState( std::move( terrain_o ) );
+
+  // Land View.
+  out.land_view.viewport.center_x = ( 4 - 1 ) * 32;
+  out.land_view.viewport.center_y = ( 5 - 1 ) * 32;
+  out.land_view.viewport.zoom     = .25;
+  out.land_view.white_box.x       = 14 - 1;
+  out.land_view.white_box.y       = 15 - 1;
+  out.land_view.map_revealed =
+      rn::MapRevealed::no_special_view{};
+
+  // Players.
+  rn::Player& english =
+      out.players.players[rn::e_player::english].emplace();
+  english.type   = rn::e_player::english;
+  english.nation = rn::e_nation::english;
+  rn::Player& french =
+      out.players.players[rn::e_player::french].emplace();
+  french.type   = rn::e_player::french;
+  french.nation = rn::e_nation::french;
+  rn::Player& spanish =
+      out.players.players[rn::e_player::spanish].emplace();
+  spanish.type   = rn::e_player::spanish;
+  spanish.nation = rn::e_nation::spanish;
+  rn::Player& dutch =
+      out.players.players[rn::e_player::dutch].emplace();
+  dutch.type   = rn::e_player::dutch;
+  dutch.nation = rn::e_nation::dutch;
+
+  english.control = rn::e_player_control::ai;
+  french.control  = rn::e_player_control::human;
+  spanish.control = rn::e_player_control::inactive;
+  dutch.control   = rn::e_player_control::ai;
+
+  // Trade Routes.
+  out.trade_routes.last_trade_route_id = 2;
+
+  out.trade_routes.routes[1] = rn::TradeRoute{
+    .id     = 1,
+    .name   = "my route 1",
+    .player = rn::e_player::french,
+    .type   = rn::e_trade_route_type::sea,
+    .stops  = {
+      rn::TradeRouteStop{
+         .target  = rn::TradeRouteTarget::harbor{},
+         .loads   = { rn::e_commodity::cloth,
+                      rn::e_commodity::tools },
+         .unloads = { rn::e_commodity::food } },
+      rn::TradeRouteStop{
+         .target = rn::TradeRouteTarget::colony{ .colony_id = 3 },
+         .loads  = { rn::e_commodity::horses },
+         .unloads = { rn::e_commodity::cloth,
+                      rn::e_commodity::tools } } } };
+  out.trade_routes.routes[2] = rn::TradeRoute{
+    .id     = 2,
+    .name   = "my route 2",
+    .player = rn::e_player::french,
+    .type   = rn::e_trade_route_type::land,
+    .stops  = { rn::TradeRouteStop{
+       .target  = rn::TradeRouteTarget::colony{ .colony_id = 4 },
+       .unloads = { rn::e_commodity::trade_goods } } } };
 
   // TODO: add more here.
 }
@@ -229,74 +361,74 @@ void rn_bidirectional_scenario_1( rn::RootState& out ) {
 // case itself; instead, just add new stuff into the scenario
 // preparation each time a new element is translated.
 TEST_CASE( "[sav/bridge] OG to NG [scenario 1]" ) {
-  sav::ColonySAV classic;
-  og_bidirectional_scenario_1( classic );
+  sav::ColonySAV from;
+  og_bidirectional_scenario_1( from );
 
-  rn::RootState expected;
-  rn_bidirectional_scenario_1( expected );
+  rn::RootState exp;
+  rn_bidirectional_scenario_1( exp );
 
-  rn::RootState converted;
-  REQUIRE( convert_to_ng( classic, converted ) == valid );
+  rn::RootState to;
+  REQUIRE( convert_to_ng( from, to ) == valid );
 
-  REQUIRE( converted.version == expected.version );
-  REQUIRE( converted.settings == expected.settings );
-  REQUIRE( converted.events == expected.events );
-  REQUIRE( converted.units == expected.units );
-  REQUIRE( converted.players == expected.players );
-  REQUIRE( converted.turn == expected.turn );
-  REQUIRE( converted.colonies == expected.colonies );
-  REQUIRE( converted.natives == expected.natives );
-  REQUIRE( converted.land_view == expected.land_view );
-  REQUIRE( converted.map == expected.map );
-  REQUIRE( converted.trade_routes == expected.trade_routes );
-  REQUIRE( converted.zzz_terrain == expected.zzz_terrain );
+  REQUIRE( to.version == exp.version );
+  REQUIRE( to.settings == exp.settings );
+  REQUIRE( to.events == exp.events );
+  REQUIRE( to.units == exp.units );
+  REQUIRE( to.players == exp.players );
+  REQUIRE( to.turn == exp.turn );
+  REQUIRE( to.colonies == exp.colonies );
+  REQUIRE( to.natives == exp.natives );
+  REQUIRE( to.land_view == exp.land_view );
+  REQUIRE( to.map == exp.map );
+  REQUIRE( to.trade_routes == exp.trade_routes );
+  REQUIRE( to.zzz_terrain == exp.zzz_terrain );
 }
 
 // NOTE: it shouldn't really be necessary to modify this test
 // case itself; instead, just add new stuff into the scenario
 // preparation each time a new element is translated.
 TEST_CASE( "[sav/bridge] NG to OG [scenario 1]" ) {
-  rn::RootState modern;
-  rn_bidirectional_scenario_1( modern );
+  rn::RootState from;
+  rn_bidirectional_scenario_1( from );
 
-  sav::ColonySAV expected;
-  og_bidirectional_scenario_1( expected );
+  sav::ColonySAV exp;
+  og_bidirectional_scenario_1( exp );
 
-  sav::ColonySAV converted;
-  REQUIRE( convert_to_og( modern, converted ) == valid );
+  sav::ColonySAV to;
+  REQUIRE( convert_to_og( from, to ) == valid );
 
-  REQUIRE( converted.header == expected.header );
-  REQUIRE( converted.player == expected.player );
-  REQUIRE( converted.other == expected.other );
-  REQUIRE( converted.colony == expected.colony );
-  REQUIRE( converted.unit == expected.unit );
-  REQUIRE( converted.nation == expected.nation );
-  REQUIRE( converted.dwelling == expected.dwelling );
-  REQUIRE( converted.tribe == expected.tribe );
-  REQUIRE( converted.stuff == expected.stuff );
-  REQUIRE( converted.tile == expected.tile );
-  REQUIRE( converted.mask == expected.mask );
-  REQUIRE( converted.path == expected.path );
-  REQUIRE( converted.seen == expected.seen );
-#if 0
+  REQUIRE( to.header == exp.header );
+  REQUIRE( to.player == exp.player );
+  REQUIRE( to.other == exp.other );
+  REQUIRE( to.colony == exp.colony );
+  REQUIRE( to.unit == exp.unit );
+  REQUIRE( to.nation == exp.nation );
+  REQUIRE( to.dwelling == exp.dwelling );
+  REQUIRE( to.tribe == exp.tribe );
+  REQUIRE( to.stuff == exp.stuff );
+  REQUIRE( to.tile == exp.tile );
+  REQUIRE( to.mask == exp.mask );
+  REQUIRE( to.path == exp.path );
+  REQUIRE( to.seen == exp.seen );
+  REQUIRE( to.unknown_map38c2 == exp.unknown_map38c2 );
+  REQUIRE( to.unknown_map38c3 == exp.unknown_map38c3 );
+  REQUIRE( to.strategy == exp.strategy );
+  REQUIRE( to.unknown_map38d == exp.unknown_map38d );
+  REQUIRE( to.prime_resource_seed == exp.prime_resource_seed );
+  REQUIRE( to.unknown39d == exp.unknown39d );
+  REQUIRE( to.trade_route == exp.trade_route );
+
+#if 1
+  REQUIRE( to.connectivity == exp.connectivity );
+#else
   print_connectivity_old_new(
-      expected.connectivity.sea_lane_connectivity,
-      converted.connectivity.sea_lane_connectivity, 8, 10 );
-  print_connectivity_old_new(
-      expected.connectivity.land_connectivity,
-      converted.connectivity.land_connectivity, 8, 10 );
+      exp.connectivity.sea_lane_connectivity,
+      to.connectivity.sea_lane_connectivity, 8, 10 );
+  print_connectivity_old_new( exp.connectivity.land_connectivity,
+                              to.connectivity.land_connectivity,
+                              8, 10 );
+  REQUIRE( ( to.connectivity == to.connectivity ) );
 #endif
-  REQUIRE( ( converted.connectivity == expected.connectivity ) );
-  REQUIRE( converted.unknown_map38c2 ==
-           expected.unknown_map38c2 );
-  REQUIRE( converted.unknown_map38c3 ==
-           expected.unknown_map38c3 );
-  REQUIRE( converted.strategy == expected.strategy );
-  REQUIRE( converted.unknown_map38d == expected.unknown_map38d );
-  REQUIRE( converted.prime_resource_seed ==
-           expected.prime_resource_seed );
-  REQUIRE( converted.unknown39d == expected.unknown39d );
-  REQUIRE( converted.trade_route == expected.trade_route );
 }
 
 /****************************************************************
@@ -351,6 +483,27 @@ void og_unidirectional_scenario_1( sav::ColonySAV& out ) {
   out.tile[8 + 6].hill_river  = HR::tt;
   out.tile[8 + 21].hill_river = HR::empty;
   out.tile[8 + 26].hill_river = HR::cc;
+
+  // Land View.
+  out.stuff.zoom_level       = 2;
+  out.stuff.viewport_x       = 4;
+  out.stuff.viewport_y       = 5;
+  out.stuff.white_box_x      = 14;
+  out.stuff.white_box_y      = 15;
+  out.header.show_entire_map = 0;
+  out.header.fixed_nation_map_view =
+      sav::nation_2byte_type::none;
+
+  // Players.
+  sav::PLAYER& english = out.player[0];
+  sav::PLAYER& french  = out.player[1];
+  sav::PLAYER& spanish = out.player[2];
+  sav::PLAYER& dutch   = out.player[3];
+
+  english.control = sav::control_type::ai;
+  french.control  = sav::control_type::player;
+  spanish.control = sav::control_type::withdrawn;
+  dutch.control   = sav::control_type::ai;
 
   // TODO: Add more here.
 }
@@ -420,9 +573,56 @@ void rn_unidirectional_scenario_1( rn::RootState& out ) {
   squares[16].overlay = nothing;
   squares[19].overlay = rn::e_land_overlay::mountains;
 
+  terrain_o.player_terrain[rn::e_player::english].emplace().map =
+      gfx::Matrix<rn::PlayerSquare>(
+          gfx::size{ .w = 6, .h = 8 } );
+  terrain_o.player_terrain[rn::e_player::french].emplace().map =
+      gfx::Matrix<rn::PlayerSquare>(
+          gfx::size{ .w = 6, .h = 8 } );
+  terrain_o.player_terrain[rn::e_player::spanish].emplace().map =
+      gfx::Matrix<rn::PlayerSquare>(
+          gfx::size{ .w = 6, .h = 8 } );
+  terrain_o.player_terrain[rn::e_player::dutch].emplace().map =
+      gfx::Matrix<rn::PlayerSquare>(
+          gfx::size{ .w = 6, .h = 8 } );
+
+  terrain_o.pacific_ocean_endpoints = vector<int>( 8 );
+
   terrain_o.real_terrain.map =
       gfx::Matrix<rn::MapSquare>( std::move( squares ), 6 );
   out.zzz_terrain = rn::TerrainState( std::move( terrain_o ) );
+
+  // Land View.
+  out.land_view.viewport.center_x = ( 4 - 1 ) * 32;
+  out.land_view.viewport.center_y = ( 5 - 1 ) * 32;
+  out.land_view.viewport.zoom     = .25;
+  out.land_view.white_box.x       = 14 - 1;
+  out.land_view.white_box.y       = 15 - 1;
+  out.land_view.map_revealed =
+      rn::MapRevealed::no_special_view{};
+
+  // Players.
+  rn::Player& english =
+      out.players.players[rn::e_player::english].emplace();
+  english.type   = rn::e_player::english;
+  english.nation = rn::e_nation::english;
+  rn::Player& french =
+      out.players.players[rn::e_player::french].emplace();
+  french.type   = rn::e_player::french;
+  french.nation = rn::e_nation::french;
+  rn::Player& spanish =
+      out.players.players[rn::e_player::spanish].emplace();
+  spanish.type   = rn::e_player::spanish;
+  spanish.nation = rn::e_nation::spanish;
+  rn::Player& dutch =
+      out.players.players[rn::e_player::dutch].emplace();
+  dutch.type   = rn::e_player::dutch;
+  dutch.nation = rn::e_nation::dutch;
+
+  english.control = rn::e_player_control::ai;
+  french.control  = rn::e_player_control::human;
+  spanish.control = rn::e_player_control::inactive;
+  dutch.control   = rn::e_player_control::ai;
 
   // TODO: add more here.
 }
@@ -844,6 +1044,44 @@ TEST_CASE( "[sav/bridge] NG to OG [MapFile]" ) {
   REQUIRE( tile[5 + ( 7 * 7 )] == expected );
   expected = sav::TILE{ .tile = t5t::ttt };
   REQUIRE( tile[6 + ( 7 * 7 )] == expected );
+}
+
+TEST_CASE( "[sav/bridge] focused tests" ) {
+  // TODO: the above roundtrip tests are good, but we should
+  // probably do some more targeted unit tests since the logic
+  // for each component is too complicated to be adequately
+  // tested by a couple fixed scenarios that we have above.
+  //
+  // In addition, we should probably try to set up an automatic
+  // roundtrip sav/conversion at the end of each game turn to re-
+  // ally put it to the test. Specifically, at the end of each
+  // turn we should be able to save to OG then reload the OG sav
+  // and convert back to NG and have an identical state, assuming
+  // we are not doing anything that is not OG-compatible.
+  //
+  // Basically the policy should be: if the conversion to OG suc-
+  // ceeds then it should always be possible to convert back
+  // losslessly.
+  //
+  // NOTE: This may actually be challenging because of e.g. unit
+  // IDs that change during the conversion (also colony IDs,
+  // trade route IDs, etc.). Some possible solutions to this
+  // would be:
+  //
+  //   1. Do two round trips before we do the comparison, though
+  //      that isn't ideal because then we can't compare with the
+  //      original, so we don't really know if we are losing
+  //      things.
+  //   2. Try to find some unused bytes in the unit/colony
+  //      structs in the OG sav file to store the ID mapping so
+  //      that it can be recovered. There appears to be some can-
+  //      didate fields in the COLONY struct, but not the UNIT
+  //      struct. So the bytes may need to be sourced from else-
+  //      where in the file.
+  //   3. Before doing the comparison after the roundtrip, go
+  //      through and normalize the unit IDs in the original
+  //      struct. This might be a pain because there are unit IDs
+  //      everywhere...
 }
 
 } // namespace

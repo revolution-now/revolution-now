@@ -1,7 +1,5 @@
 TODO:
 
-  * Add the bridge for trade routes to sav/bridge.
-
   * If a wagon train aborts its trade route because there is a
     distant brave blocking the path, there should probably be a
     message notifying the user. Or even better, if the brave is
@@ -208,3 +206,5 @@ Done:
     are that it loads the commodity with the largest market value
     but where the quantity is capped at 100. We may want to just
     use the same algo as for wagon train loading.
+
+  * Add the bridge for trade routes to sav/bridge.

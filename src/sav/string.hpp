@@ -33,8 +33,30 @@ template<size_t N>
 struct array_string {
   auto operator<=>( array_string const& ) const = default;
 
+  // Returns true if the string was populated without any trunca-
+  // tion (loss). Note that if the string has size N then then
+  // there will NOT be a null zero at the end, and the function
+  // will return true in that case since it is valid.
+  [[nodiscard]] bool populate_from_string(
+      std::string_view const sv );
+
   std::array<unsigned char, N> a = {};
 };
+
+template<size_t N>
+bool array_string<N>::populate_from_string(
+    std::string_view const str ) {
+  a = {};
+  for( int idx = 0; auto const c : str ) {
+    if( idx == int( N ) ) return false;
+    CHECK_LT( idx, int( N ) );
+    a[idx++] = c;
+  }
+  // The remainder should be left as zeroes; but note that there
+  // is not guaranteed to be a zero at the end if the string is
+  // of size N.
+  return true;
+}
 
 // to_str
 template<size_t N>
@@ -81,13 +103,7 @@ cdr::result<array_string<N>> from_canonical(
         "length {}.",
         N, str.size() );
   array_string<N> res;
-  if constexpr( N > 0 ) { CHECK( res.a[0] == 0 ); }
-  int idx = 0;
-  for( auto const c : str ) {
-    CHECK_LT( idx, int( N ) );
-    res.a[idx++] = c;
-  }
-  // The remainder should be left as zeroes.
+  CHECK( res.populate_from_string( str ) );
   return res;
 }
 
