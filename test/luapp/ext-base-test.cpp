@@ -35,7 +35,13 @@ struct MyCppOwned {
 [[maybe_unused]] static void to_str( MyCppOwned const&,
                                      std::string&,
                                      base::tag<MyCppOwned> ) {}
-LUA_USERDATA_TRAITS( MyCppOwned, owned_by_lua ){};
+LUA_USERDATA_TRAITS( MyCppOwned, owned_by_cpp ){};
+
+static void define_usertype_for( state& st, tag<MyCppOwned> ) {
+  using U = MyCppOwned;
+  auto u  = st.usertype.create<U>();
+  u["n"]  = &U::n;
+}
 
 namespace {
 
@@ -43,6 +49,7 @@ using namespace std;
 
 using ::base::maybe;
 using ::base::nothing;
+using ::base::valid;
 
 // This is not so much to test push/get on references, it is to
 // test that maybe<T> can be pushed/popped when T is a reference.
@@ -65,11 +72,11 @@ struct Reffable {
   }
 };
 
-LUA_TEST_CASE( "[ext-base] cpp-owned" ) {
+LUA_TEST_CASE( "[ext-base] maybe<cpp-owned>" ) {
   maybe<MyCppOwned> m;
 
   SECTION( "nothing" ) {
-    push( L, std::move( m ) );
+    push( L, m );
     REQUIRE( C.stack_size() == 1 );
     REQUIRE( C.type_of( -1 ) == type::userdata );
     auto const p = get<maybe<MyCppOwned>&>( L, -1 );
@@ -80,7 +87,7 @@ LUA_TEST_CASE( "[ext-base] cpp-owned" ) {
 
   SECTION( "something" ) {
     m.emplace().n = 5;
-    push( L, std::move( m ) );
+    push( L, m );
     REQUIRE( C.stack_size() == 1 );
     REQUIRE( C.type_of( -1 ) == type::userdata );
     auto const p = get<maybe<MyCppOwned>&>( L, -1 );
@@ -91,10 +98,41 @@ LUA_TEST_CASE( "[ext-base] cpp-owned" ) {
   }
 }
 
-LUA_TEST_CASE( "[ext-base] API for cpp-owned T" ) {
+LUA_TEST_CASE( "[ext-base] API for maybe<cpp-owned>" ) {
+  st.lib.open_all();
+  define_usertype_for( st, tag<MyCppOwned>{} );
+  define_usertype_for( st, tag<maybe<MyCppOwned>>{} );
+
+  auto constexpr script   = R"lua(
+    local m = ...
+    assert( m )
+    assert( not m:has_value() )
+    assert( m:value() == nil )
+    assert( not pcall( function()
+      return m.n
+    end ) )
+    assert( not pcall( function()
+      m.n = 5
+    end ) )
+    local o = m:emplace()
+    o.n = 7
+    assert( m:value().n == 7 )
+    m.n = 5
+    assert( o.n == 5 )
+    assert( m:value().n == 5 )
+    return 42
+  )lua";
+  lua::rfunction const fn = st.script.load( script );
+
+  maybe<MyCppOwned> m;
+
+  REQUIRE( fn.pcall<int>( m ) == 42 );
+
+  REQUIRE( m.has_value() );
+  REQUIRE( m->n == 5 );
 }
 
-LUA_TEST_CASE( "[ext-base] lua-owned" ) {
+LUA_TEST_CASE( "[ext-base] maybe<lua-owned>" ) {
   maybe<MyLuaOwned> m;
 
   SECTION( "nothing" ) {

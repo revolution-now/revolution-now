@@ -160,7 +160,8 @@ struct state : base::zero<state, cthread> {
   struct Script {
     Script( cthread cth );
 
-    rfunction load( std::string_view code ) noexcept;
+    [[nodiscard]] rfunction load(
+        std::string_view code ) noexcept;
 
     lua_expect<rfunction> load_safe(
         std::string_view code ) noexcept;
