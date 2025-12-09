@@ -35,6 +35,7 @@ namespace rn {
 
 using ::gfx::point;
 using ::gfx::rect;
+using ::gfx::size;
 
 /****************************************************************
 ** TerrainState
@@ -44,7 +45,22 @@ base::valid_or<std::string> wrapped::TerrainState::validate()
   REFL_VALIDATE( int( pacific_ocean_endpoints.size() ) ==
                      real_terrain.map.size().h,
                  "the pacific_ocean_endpoints array must have "
-                 "one element for each row in the map." );
+                 "one element for each row in the map: {} != {}",
+                 pacific_ocean_endpoints.size(),
+                 real_terrain.map.size().h );
+
+  // Check that the player terrain maps are the same size as the
+  // real map.
+  size const real_map_size = real_terrain.map.size();
+  for( auto const& [type, pterrain] : player_terrain ) {
+    if( !pterrain.has_value() ) continue;
+    REFL_VALIDATE(
+        pterrain->map.size().to_gfx() == real_map_size,
+        "the player terrain map for the {} has a different size "
+        "than the real map: {} != {}",
+        type, pterrain->map.size().to_gfx(), real_map_size );
+  }
+
   return base::valid;
 }
 
