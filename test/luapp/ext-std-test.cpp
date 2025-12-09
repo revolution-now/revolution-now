@@ -47,6 +47,12 @@ struct MyUserdata {
 
 LUA_USERDATA_TRAITS( MyUserdata, owned_by_cpp ){};
 
+static void define_usertype_for( state& st, tag<MyUserdata> ) {
+  using U = MyUserdata;
+  auto u  = st.usertype.create<U>();
+  u["n"]  = &U::n;
+}
+
 namespace {
 
 using ::Catch::Matches;
@@ -65,7 +71,7 @@ LUA_TEST_CASE( "[ext-std] std::monostate" ) {
   C.pop( 3 );
 }
 
-LUA_TEST_CASE( "[ext-std] push/get" ) {
+LUA_TEST_CASE( "[ext-std] tuple/pair push/get" ) {
   SECTION( "tuple" ) {
     tuple<double, string, int> t{ 7.7, "hello", 9 };
     REQUIRE( C.stack_size() == 0 );
@@ -306,18 +312,279 @@ LUA_TEST_CASE( "[ext-std] pair" ) {
 }
 
 LUA_TEST_CASE( "[ext-std] std::map API" ) {
+  st.lib.open_all();
+
+  SECTION( "int value" ) {
+    using M = std::map<string, int>;
+    define_usertype_for( st, tag<M>{} );
+
+    auto constexpr script   = R"lua(
+      local m = ...
+      assert( m )
+      assert( m.hello == 5 )
+      assert( m.world == 7 )
+      assert( m.xyz == nil )
+      assert( m:size() == 2 )
+      m:clear()
+      assert( m:size() == 0 )
+      m.new = 99
+      m.hello = 5
+      return 42
+    )lua";
+    lua::rfunction const fn = st.script.load( script );
+
+    M m;
+    m["hello"] = 5;
+    m["world"] = 7;
+
+    REQUIRE( fn.pcall<int>( m ) == 42 );
+    REQUIRE( m == M{ { "hello", 5 }, { "new", 99 } } );
+  }
+
+  SECTION( "userdata value" ) {
+    using M = std::map<string, MyUserdata>;
+    define_usertype_for( st, tag<MyUserdata>{} );
+    define_usertype_for( st, tag<M>{} );
+
+    auto constexpr script   = R"lua(
+      local m = ...
+      assert( m )
+      assert( m.hello.n == 5 )
+      assert( m.world.n == 9 )
+      assert( m.xyz == nil )
+      assert( m:size() == 2 )
+      m:clear()
+      assert( m:size() == 0 )
+      local new = m:make( 'new' )
+      new.n = 4
+      local hello = m:make( 'hello' )
+      hello.n = 6
+      return 42
+    )lua";
+    lua::rfunction const fn = st.script.load( script );
+
+    M m;
+    m["hello"] = MyUserdata{};
+    m["world"] = MyUserdata{ .n = 9 };
+
+    REQUIRE( fn.pcall<int>( m ) == 42 );
+    REQUIRE( m == M{ { "hello", MyUserdata{ .n = 6 } },
+                     { "new", MyUserdata{ .n = 4 } } } );
+  }
 }
 
 LUA_TEST_CASE( "[ext-std] std::unordered_map API" ) {
+  st.lib.open_all();
+
+  SECTION( "int value" ) {
+    using M = std::unordered_map<string, int>;
+    define_usertype_for( st, tag<M>{} );
+
+    auto constexpr script   = R"lua(
+      local m = ...
+      assert( m )
+      assert( m.hello == 5 )
+      assert( m.world == 7 )
+      assert( m.xyz == nil )
+      assert( m:size() == 2 )
+      m:clear()
+      assert( m:size() == 0 )
+      m.new = 99
+      m.hello = 5
+      return 42
+    )lua";
+    lua::rfunction const fn = st.script.load( script );
+
+    M m;
+    m["hello"] = 5;
+    m["world"] = 7;
+
+    REQUIRE( fn.pcall<int>( m ) == 42 );
+    REQUIRE( m == M{ { "hello", 5 }, { "new", 99 } } );
+  }
+
+  SECTION( "userdata value" ) {
+    using M = std::unordered_map<string, MyUserdata>;
+    define_usertype_for( st, tag<MyUserdata>{} );
+    define_usertype_for( st, tag<M>{} );
+
+    auto constexpr script   = R"lua(
+      local m = ...
+      assert( m )
+      assert( m.hello.n == 5 )
+      assert( m.world.n == 9 )
+      assert( m.xyz == nil )
+      assert( m:size() == 2 )
+      m:clear()
+      assert( m:size() == 0 )
+      local new = m:make( 'new' )
+      new.n = 4
+      local hello = m:make( 'hello' )
+      hello.n = 6
+      return 42
+    )lua";
+    lua::rfunction const fn = st.script.load( script );
+
+    M m;
+    m["hello"] = MyUserdata{};
+    m["world"] = MyUserdata{ .n = 9 };
+
+    REQUIRE( fn.pcall<int>( m ) == 42 );
+    REQUIRE( m == M{ { "hello", MyUserdata{ .n = 6 } },
+                     { "new", MyUserdata{ .n = 4 } } } );
+  }
 }
 
 LUA_TEST_CASE( "[ext-std] std::vector API" ) {
+  st.lib.open_all();
+
+  SECTION( "int value" ) {
+    using V = std::vector<int>;
+    define_usertype_for( st, tag<V>{} );
+
+    auto constexpr script   = R"lua(
+      local m = ...
+      assert( m )
+      assert( m[1] == 5 )
+      assert( m[2] == 7 )
+      assert( not pcall( function()
+        return m.xyz
+      end ) )
+      assert( m:size() == 2 )
+      m:clear()
+      assert( m:size() == 0 )
+      m:add()
+      m[1] = 99
+      m:add()
+      m[2] = 5
+      return 42
+    )lua";
+    lua::rfunction const fn = st.script.load( script );
+
+    V m;
+    m.push_back( 5 );
+    m.push_back( 7 );
+
+    REQUIRE( fn.pcall<int>( m ) == 42 );
+    REQUIRE( m == V{ 99, 5 } );
+  }
+
+  SECTION( "userdata value" ) {
+    using V = std::vector<MyUserdata>;
+    define_usertype_for( st, tag<MyUserdata>{} );
+    define_usertype_for( st, tag<V>{} );
+
+    auto constexpr script   = R"lua(
+      local m = ...
+      assert( m )
+      assert( m[1].n == 5 )
+      assert( m[2].n == 9 )
+      assert( not pcall( function()
+        return m.xyz
+      end ) )
+      assert( m:size() == 2 )
+      m:clear()
+      assert( m:size() == 0 )
+      m:add()
+      m[1].n = 6
+      m:add()
+      m[2].n = 4
+      m:add()
+      m[3].n = 0
+      return 42
+    )lua";
+    lua::rfunction const fn = st.script.load( script );
+
+    V m;
+    m.push_back( MyUserdata{} );
+    m.push_back( MyUserdata{ .n = 9 } );
+
+    REQUIRE( fn.pcall<int>( m ) == 42 );
+    REQUIRE( m == V{ MyUserdata{ .n = 6 }, MyUserdata{ .n = 4 },
+                     MyUserdata{ .n = 0 } } );
+  }
 }
 
 LUA_TEST_CASE( "[ext-std] std::array API" ) {
+  st.lib.open_all();
+
+  SECTION( "int value" ) {
+    using V = std::array<int, 2>;
+    define_usertype_for( st, tag<V>{} );
+
+    auto constexpr script   = R"lua(
+      local m = ...
+      assert( m )
+      assert( m[1] == 5 )
+      assert( m[2] == 7 )
+      assert( not pcall( function()
+        return m.xyz
+      end ) )
+      assert( m:size() == 2 )
+      m[1] = 99
+      m[2] = 5
+      return 42
+    )lua";
+    lua::rfunction const fn = st.script.load( script );
+
+    V m;
+    m[0] = 5;
+    m[1] = 7;
+
+    REQUIRE( fn.pcall<int>( m ) == 42 );
+    REQUIRE( m == V{ 99, 5 } );
+  }
+
+  SECTION( "userdata value" ) {
+    using V = std::array<MyUserdata, 2>;
+    define_usertype_for( st, tag<MyUserdata>{} );
+    define_usertype_for( st, tag<V>{} );
+
+    auto constexpr script   = R"lua(
+      local m = ...
+      assert( m )
+      assert( m[1].n == 5 )
+      assert( m[2].n == 9 )
+      assert( not pcall( function()
+        return m.xyz
+      end ) )
+      assert( m:size() == 2 )
+      m[1].n = 6
+      m[2].n = 4
+      return 42
+    )lua";
+    lua::rfunction const fn = st.script.load( script );
+
+    V m;
+    m[0] = MyUserdata{};
+    m[1] = MyUserdata{ .n = 9 };
+
+    REQUIRE( fn.pcall<int>( m ) == 42 );
+    REQUIRE( m ==
+             V{ MyUserdata{ .n = 6 }, MyUserdata{ .n = 4 } } );
+  }
 }
 
 LUA_TEST_CASE( "[ext-std] std::deque API" ) {
+  st.lib.open_all();
+
+  using V = std::deque<int>;
+  define_usertype_for( st, tag<V>{} );
+
+  auto constexpr script   = R"lua(
+    local m = ...
+    assert( m )
+    assert( m:size() == 2 )
+    return 42
+  )lua";
+  lua::rfunction const fn = st.script.load( script );
+
+  V m;
+  m.push_back( 5 );
+  m.push_back( 7 );
+
+  REQUIRE( fn.pcall<int>( m ) == 42 );
+  REQUIRE( m == V{ 5, 7 } );
 }
 
 } // namespace
