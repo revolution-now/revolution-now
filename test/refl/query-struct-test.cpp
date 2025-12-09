@@ -13,6 +13,9 @@
 // Under test.
 #include "src/refl/query-struct.hpp"
 
+// Testing.
+#include "test/rds/testing.rds.hpp"
+
 // Must be last.
 #include "test/catch-common.hpp" // IWYU pragma: keep
 
@@ -25,6 +28,11 @@ using namespace std;
 ** Test Cases
 *****************************************************************/
 TEST_CASE( "[refl/query-struct] alternative_names" ) {
+  constexpr array<string_view, 3> const& names =
+      alternative_names<rn::MySumtype>();
+  static_assert( names[0] == "none" );
+  static_assert( names[1] == "some" );
+  static_assert( names[2] == "more" );
 }
 
 } // namespace
