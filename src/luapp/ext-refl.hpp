@@ -21,6 +21,7 @@
 #include "refl/query-struct.hpp"
 
 // traverse
+#include "traverse/ext-std.hpp"
 #include "traverse/ext.hpp"
 
 // base
