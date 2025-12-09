@@ -17,6 +17,11 @@
 #include "test/luapp/common.hpp"
 #include "test/rds/testing.rds.hpp"
 
+// luapp
+#include "src/luapp/enum.hpp"
+#include "src/luapp/ext-refl.hpp"
+#include "src/luapp/ext.hpp"
+
 // refl
 #include "refl/to-str.hpp"
 
@@ -29,6 +34,31 @@
 
 // Must be last.
 #include "test/catch-common.hpp"
+
+namespace lua {
+
+struct EnumMapValueUserdata {
+  int n = 5;
+
+  bool operator==( EnumMapValueUserdata const& ) const = default;
+
+  friend void to_str( EnumMapValueUserdata const& o,
+                      std::string& out,
+                      base::tag<EnumMapValueUserdata> ) {
+    out += fmt::format( "EnumMapValueUserdata{{n={}}}", o.n );
+  }
+};
+
+LUA_USERDATA_TRAITS( EnumMapValueUserdata, owned_by_cpp ){};
+
+static void define_usertype_for( state& st,
+                                 tag<EnumMapValueUserdata> ) {
+  using U = EnumMapValueUserdata;
+  auto u  = st.usertype.create<U>();
+  u["n"]  = &U::n;
+}
+
+} // namespace lua
 
 namespace refl {
 namespace {
@@ -330,6 +360,70 @@ TEST_CASE( "[enum-map] traverse" ) {
 }
 
 LUA_TEST_CASE( "[enum-map] Lua API" ) {
+  st.lib.open_all();
+
+  SECTION( "int value" ) {
+    using M = enum_map<e_color, int>;
+    define_usertype_for( st, lua::tag<M>{} );
+
+    auto constexpr script   = R"lua(
+      local m = ...
+      assert( m )
+      assert( m.red == 5 )
+      assert( m.green == 7 )
+      assert( m.blue == 0 )
+      assert( m.xyz == nil )
+      m.red = 3
+      m.green = 4
+      m.blue = 99999
+      return 42
+    )lua";
+    lua::rfunction const fn = st.script.load( script );
+
+    M m;
+    m[e_color::red]   = 5;
+    m[e_color::green] = 7;
+    m[e_color::blue]  = 0;
+
+    REQUIRE( fn.pcall<int>( m ) == 42 );
+    REQUIRE( m == M{ { e_color::red, 3 },
+                     { e_color::green, 4 },
+                     { e_color::blue, 99999 } } );
+  }
+
+  SECTION( "userdata value" ) {
+    using M = enum_map<e_color, lua::EnumMapValueUserdata>;
+    define_usertype_for( st,
+                         lua::tag<lua::EnumMapValueUserdata>{} );
+    define_usertype_for( st, lua::tag<M>{} );
+
+    auto constexpr script   = R"lua(
+      local m = ...
+      assert( m )
+      assert( m.red.n == 5 )
+      assert( m.green.n == 2 )
+      assert( m.blue.n == 4 )
+      assert( m.xyz == nil )
+      m.red.n = 3
+      m.green.n = 4
+      m.blue.n = 99999
+      return 42
+    )lua";
+    lua::rfunction const fn = st.script.load( script );
+
+    M m;
+    m[e_color::red]   = lua::EnumMapValueUserdata{};
+    m[e_color::green] = lua::EnumMapValueUserdata{ .n = 2 };
+    m[e_color::blue]  = lua::EnumMapValueUserdata{ .n = 4 };
+
+    REQUIRE( fn.pcall<int>( m ) == 42 );
+    REQUIRE( m == M{ { e_color::red,
+                       lua::EnumMapValueUserdata{ .n = 3 } },
+                     { e_color::green,
+                       lua::EnumMapValueUserdata{ .n = 4 } },
+                     { e_color::blue, lua::EnumMapValueUserdata{
+                                        .n = 99999 } } } );
+  }
 }
 
 } // namespace
