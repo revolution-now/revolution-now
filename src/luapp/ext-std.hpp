@@ -11,6 +11,7 @@
 #pragma once
 
 // luapp
+#include "ext-base.hpp" // For lambdas returning maybe<T> to lua.
 #include "ext-userdata.hpp"
 #include "ext-usertype.hpp"
 #include "ext.hpp"
