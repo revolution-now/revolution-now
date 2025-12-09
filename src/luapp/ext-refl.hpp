@@ -11,6 +11,7 @@
 #pragma once
 
 // luapp
+#include "ext-base.hpp"
 #include "ext-userdata.hpp"
 #include "ext-usertype.hpp"
 #include "state.hpp"
