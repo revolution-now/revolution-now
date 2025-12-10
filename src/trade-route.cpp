@@ -1039,7 +1039,7 @@ EvolveTradeRoute evolve_trade_route_human(
   // otherwise happen since we normally process consecutive stops
   // all in one shot when they have the same target.
   if( are_all_stops_identical( route ) )
-    return EvolveTradeRoute::wait_one_unique_stop{};
+    return EvolveTradeRoute::one_unique_stop{};
 
   // Recurse.
   return evolve_trade_route_human( ss, player, goto_registry,

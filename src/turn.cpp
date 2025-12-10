@@ -1419,13 +1419,18 @@ wait<> advance_unit( IEngine& engine, SS& ss, TS& ts,
             unit.desc().name );
         break;
       }
-      CASE( wait_one_unique_stop ) {
-        unit.forfeight_mv_points();
+      CASE( one_unique_stop ) {
         auto const _ = landview.hold_unit_in_front( unit_id );
         co_await agent.message_box(
             "Our [{}] is on a trade route that contains only "
-            "one stop!",
+            "one stop! Its orders will be cleared so that it "
+            "can be given a more sensible activity.",
             unit.desc().name );
+        // NOTE: if we weren't to clear orders here then we would
+        // have to forfeight the unit's movement points (i.e.
+        // call forfeight_mv_points) otherwise we would go into
+        // an infinite loop of processing that unit.
+        unit.clear_orders();
         break;
       }
       CASE( sail_to_new_world ) {

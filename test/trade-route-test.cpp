@@ -2255,7 +2255,7 @@ TEST_WORLD( "[trade-route] evolve_trade_route_human" ) {
   // Remove second colony.
   trade_routes().routes.at( 1 ).stops.resize( 1 );
 
-  expected = EvolveTradeRoute::wait_one_unique_stop{};
+  expected = EvolveTradeRoute::one_unique_stop{};
   REQUIRE( f( wagon ) == expected );
   REQUIRE( !goto_registry.units.contains( wagon.id() ) );
   REQUIRE( wagon.orders()
