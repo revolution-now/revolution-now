@@ -24,6 +24,8 @@
 #include "render.hpp"
 #include "tiles.hpp"
 #include "ts.hpp"
+#include "ui-enums.rds.hpp"
+#include "unit-flag.hpp"
 #include "unit-ownership.hpp"
 
 // config
@@ -136,7 +138,7 @@ point HarborInPortShips::frame_nw() const {
 
 wait<> HarborInPortShips::click_on_unit( UnitId const unit_id ) {
   if( get_active_unit() == unit_id ) {
-    Unit const& unit = ss_.units.unit_for( unit_id );
+    Unit& unit = ss_.units.unit_for( unit_id );
     if( auto damaged =
             unit.orders().get_if<unit_orders::damaged>();
         damaged.has_value() ) {
@@ -158,6 +160,11 @@ wait<> HarborInPortShips::click_on_unit( UnitId const unit_id ) {
     config.options.push_back(
         { .key          = "unload",
           .display_name = "Unload all cargo." } );
+    string const kClearTradeRouteKey = "clear trade route";
+    if( unit.orders().holds<unit_orders::trade_route>() )
+      config.options.push_back(
+          { .key          = kClearTradeRouteKey,
+            .display_name = "Clear trade route status." } );
     config.options.push_back(
         { .key = "no changes", .display_name = "No Changes." } );
 
@@ -171,6 +178,19 @@ wait<> HarborInPortShips::click_on_unit( UnitId const unit_id ) {
     }
     if( choice == "unload" ) {
       co_await harbor_market_commodities_.unload_all();
+      co_return;
+    }
+    if( choice == kClearTradeRouteKey ) {
+      auto const ok =
+          co_await ts_.gui.optional_yes_no( YesNoConfig{
+            .msg =
+                "Really clear Trade Route orders?  You will "
+                "then have to return this ship to the New World "
+                "if you want it to start another trade route.",
+            .yes_label      = "Yes, clear trade route orders.",
+            .no_label       = "Cancel.",
+            .no_comes_first = true } );
+      if( ok == ui::e_confirm::yes ) unit.clear_orders();
       co_return;
     }
     if( choice == "set sail" ) {
@@ -445,7 +465,12 @@ void HarborInPortShips::draw( rr::Renderer& renderer,
       render_unit_glow( renderer, point{}, unit.type(),
                         32 / bounds.size.w );
     }
-    render_unit( renderer, point{}, unit, UnitRenderOptions{} );
+    maybe<UnitFlagRenderInfo> flag_info;
+    if( unit.orders().holds<unit_orders::trade_route>() )
+      flag_info = euro_unit_flag_render_info(
+          unit, player_.type, UnitFlagOptions{} );
+    render_unit( renderer, point{}, unit,
+                 UnitRenderOptions{ .flag = flag_info } );
   }
 
   // Draw the select box after all units so that it is never par-
