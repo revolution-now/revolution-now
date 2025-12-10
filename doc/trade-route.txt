@@ -1,9 +1,5 @@
 TODO:
 
-  * Units in the harbor on trade routes should have that status
-    shown, and there should be a menu option when clicking on it
-    to clear the trade route status.
-
   * Make sure there aren't duplicate trade route names both when
     creating and in the validation.
 
@@ -48,17 +44,8 @@ TODO:
     load stuff in colonies if they are boycotted. Add a test to
     make sure that doesn't happen.
 
-  * Need to ensure that if a ship is in the harbor carrying out a
-    trade route and either the trade route gets deleted, or its
-    next stop gets deleted (possibly leaving only the harbor in
-    the list) that it does the right thing.
-
-  * When a ship arrives in the harbor it will transact immedi-
-    ately, and a message will be shown over the land view without
-    showing the harbor. But then the ship waits until the next
-    turn to sail back. Not sure we're going to replicate this,
-    since it doesn't seem to matter much, and is inconsistent
-    with wagon train behavior.
+  * When a ship trades in the harbor a message will be shown over
+    the land view without showing the harbor.
 
   * There is a strategy (described in the SG) whereby one can
     chain wagon train routes to move items within one turn a dis-
@@ -206,3 +193,18 @@ Done:
     use the same algo as for wagon train loading.
 
   * Add the bridge for trade routes to sav/bridge.
+
+  * Units in the harbor on trade routes should have that status
+    shown, and there should be a menu option when clicking on it
+    to clear the trade route status.
+
+  * Need to ensure that if a ship is in the harbor carrying out a
+    trade route and either the trade route gets deleted, or its
+    next stop gets deleted (possibly leaving only the harbor in
+    the list) that it does the right thing.
+
+  * When a ship arrives in the harbor it will transact immedi-
+    ately. But then the ship waits until the next turn to sail
+    back. Not sure we're going to replicate this, since it
+    doesn't seem to matter much, and is inconsistent with wagon
+    train behavior.
