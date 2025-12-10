@@ -1563,6 +1563,33 @@ TEST_WORLD( "[trade-route] trade_route_unload" ) {
 
   // Case
   // ------------------------------------------------------------
+  // Check that we can unload a boycotted commodity into a
+  // colony. This is being tested because there is a well-known
+  // bug in the OG where trade routes apparently cannot load/un-
+  // load boycotted goods in colonies.
+  unit = &wagon;
+  stop = {
+    .target = TradeRouteTarget::colony{ .colony_id = colony.id },
+    .unloads = { silver },
+  };
+  unit->cargo().clear_commodities();
+  add_commodity_to_cargo( units(),
+                          { .type = silver, .quantity = 100 },
+                          unit->cargo(), /*slot=*/0,
+                          /*try_other_slots=*/true );
+  colony_comms           = {};
+  prices                 = {};
+  prices[silver].boycott = true;
+  money                  = 0;
+  expected_comms         = { { silver, 100 } };
+  expected_money         = {};
+  f();
+  REQUIRE( colony_comms == expected_comms );
+  REQUIRE( money == expected_money );
+  REQUIRE( unit->cargo().slots_occupied() == 0 );
+
+  // Case
+  // ------------------------------------------------------------
   unit = &ship;
   stop = {
     .target = TradeRouteTarget::colony{ .colony_id = colony.id },
@@ -1917,6 +1944,34 @@ TEST_WORLD( "[trade-route] trade_route_load" ) {
   REQUIRE( money == expected_money );
   REQUIRE( unit->cargo().commodities() == expected_unit_comms );
   REQUIRE( unit->cargo().slots_occupied() == 2 );
+
+  // Case
+  // ------------------------------------------------------------
+  // Check that we can unload a boycotted commodity into a
+  // colony. This is being tested because there is a well-known
+  // bug in the OG where trade routes apparently cannot load/un-
+  // load boycotted goods in colonies.
+  unit = &wagon;
+  stop = {
+    .target = TradeRouteTarget::colony{ .colony_id = colony.id },
+    .loads  = { silver },
+  };
+  unit->cargo().clear_commodities();
+  colony_comms             = { { silver, 100 } };
+  prices                   = {};
+  prices[silver].bid_price = 1;
+  prices[silver].boycott   = true;
+  money                    = 0;
+  expected_colony_comms    = {};
+  expected_unit_comms      = {
+    { Commodity{ .type = silver, .quantity = 100 }, 0 },
+  };
+  expected_money = {};
+  f();
+  REQUIRE( colony_comms == expected_colony_comms );
+  REQUIRE( money == expected_money );
+  REQUIRE( unit->cargo().commodities() == expected_unit_comms );
+  REQUIRE( unit->cargo().slots_occupied() == 1 );
 
   // Case
   // ------------------------------------------------------------

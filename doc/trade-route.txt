@@ -2,12 +2,6 @@ TODO:
 
   * Show the trade route of the active unit in the panel.
 
-  * When the player manually loads into a wagon train in the
-    colony view, its orders clear.
-
-  * Allow editing the trade route of a unit by right clicking on
-    it.
-
   * Need to limit the number of wagon trains per colony as in the
     OG, or perhaps find another way to limit their number, e.g.
     by increasing the cost exponentially for each one built. Or,
@@ -22,24 +16,6 @@ TODO:
     wagon trains to the number of colonies can be cheated by cre-
     ating a large number of temporary population-1 colonies and
     then building the wagon trains, then abandoning the colonies.
-
-  * When a wagon train arrives at a colony or loads/unloads
-    stuff, a brief message appears in the top bar. Not sure yet
-    if we want to replicate this.
-
-  * If a wagon train aborts its trade route because there is a
-    distant brave blocking the path, there should probably be a
-    message notifying the user. Or even better, if the brave is
-    far enough away, the wagon train should somehow keep going
-    anyway since the brave will probably have moved by the time
-    it gets to that area.
-
-  * Make sure that things are ok if a unit is on a trade route
-    and then the control of the player is changed to AI.
-
-  * In the OG there is a bug where trade routes can't load or un-
-    load stuff in colonies if they are boycotted. Add a test to
-    make sure that doesn't happen.
 
   * When a ship trades in the harbor a message will be shown over
     the land view without showing the harbor.
@@ -60,6 +36,28 @@ TODO:
 
   * Do one last check of all the CHECKs in the trade route mod-
     ules to make sure there is nothing risky.
+
+Maybe in the future:
+
+  * Allow editing the trade route of a unit by right clicking on
+    it. This might be tricky since it might require reworking
+    that way that menus work, since currently they can't really
+    carry context information that can be delivered to the place
+    where the menu selection is handled and/or enabled/disabled.
+
+  * In the OG, when a wagon train arrives at a colony or load-
+    s/unloads stuff, a brief message appears in the top bar. Not
+    sure yet if we want to replicate this. Might be awkward be-
+    cause the loading/unloading is done at the start of its turn
+    right before it launches off to its next target, so not sure
+    how that would make sense visually to the player.
+
+  * If a wagon train aborts its trade route because there is a
+    distant brave blocking the path, there should probably be a
+    message notifying the user. Or even better, if the brave is
+    far enough away, the wagon train should somehow keep going
+    anyway since the brave will probably have moved by the time
+    it gets to that area.
 
 Done:
 
@@ -208,3 +206,13 @@ Done:
 
   * Make sure there aren't duplicate trade route names both when
     creating and in the validation.
+
+  * When the player manually loads into a wagon train in the
+    colony view, its orders clear.
+
+  * Make sure that things are ok if a unit is on a trade route
+    and then the control of the player is changed to AI.
+
+  * In the OG there is a bug where trade routes can't load or un-
+    load stuff in colonies if they are boycotted. Add a test to
+    make sure that doesn't happen.
