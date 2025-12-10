@@ -72,7 +72,7 @@ add_subdirectory( extern/base-util/src EXCLUDE_FROM_ALL )
 add_subdirectory( extern/midifile      EXCLUDE_FROM_ALL )
 add_subdirectory( extern/rtmidi        EXCLUDE_FROM_ALL )
 add_subdirectory( extern/rg-2-midi/src EXCLUDE_FROM_ALL )
-add_subdirectory( extern/lua-5.4.6     EXCLUDE_FROM_ALL )
+add_subdirectory( extern/lua-5.4.8     EXCLUDE_FROM_ALL )
 add_subdirectory( extern/glad          EXCLUDE_FROM_ALL )
 add_subdirectory( extern/stb           EXCLUDE_FROM_ALL )
 
