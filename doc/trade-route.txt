@@ -1,41 +1,18 @@
 TODO:
 
-  * Show the trade route of the active unit in the panel.
-
-  * Need to limit the number of wagon trains per colony as in the
-    OG, or perhaps find another way to limit their number, e.g.
-    by increasing the cost exponentially for each one built. Or,
-    if the wagon train remains stationary for more than x number
-    of turns, any goods in it will spoil (!!). With a bit of in-
-    telligence in this algorithm, it could work to allow an arbi-
-    trary number of wagon trains without the player being able to
-    exploit them for additional storage. This may not work be-
-    cause the player could just put the wagon trains on a trade
-    route between two colonies, just moving back and forth. It is
-    important to solve this because simply limiting the number of
-    wagon trains to the number of colonies can be cheated by cre-
-    ating a large number of temporary population-1 colonies and
-    then building the wagon trains, then abandoning the colonies.
-
-  * When a ship trades in the harbor a message will be shown over
-    the land view without showing the harbor.
-
-  * There is a strategy (described in the SG) whereby one can
-    chain wagon train routes to move items within one turn a dis-
-    tance much further than one wagon train can move. Doing this
-    efficiently requires the player being able to set up wagon
-    trains that move in a predictable order so that one can pick
-    up where the prior one left off. Make sure this works. EDIT:
-    not sure how this is possible given that the wagon train does
-    not unload in the same turn when it arrives at a colony...
-    need to take another look at that; if it came from the SG
-    then it could be something outdated.
-
   * Go through the trade route files and put more stuff in the
     configs.
 
-  * Do one last check of all the CHECKs in the trade route mod-
-    ules to make sure there is nothing risky.
+  * Need to limit the number of wagon trains as in the OG. This
+    is to prevent wagon trains from being used to expand storage.
+    The OG does this by limiting them to the number of colonies.
+    However, doing it this way can be cheated by creating a large
+    number of temporary population-1 colonies and then building
+    the wagon trains, then abandoning the colonies. Also, it
+    feels a bit artificial. So we will create a game option that
+    allows going with an alternate mode with the number of wagon
+    trains will be max( 1, P/4 ) where P is the total in-colony
+    population of all colonies.
 
 Maybe in the future:
 
@@ -51,6 +28,10 @@ Maybe in the future:
     cause the loading/unloading is done at the start of its turn
     right before it launches off to its next target, so not sure
     how that would make sense visually to the player.
+
+  * Similarly, when a ship trades in the harbor a transient mes-
+    sage will be shown over the land view without showing the
+    harbor.
 
   * If a wagon train aborts its trade route because there is a
     distant brave blocking the path, there should probably be a
@@ -216,3 +197,20 @@ Done:
   * In the OG there is a bug where trade routes can't load or un-
     load stuff in colonies if they are boycotted. Add a test to
     make sure that doesn't happen.
+
+  * There is a strategy (described in the SG) whereby one can
+    chain wagon train routes to move items across multiple
+    colonies faster than would be possible with just one wagon
+    train. Doing this efficiently requires the player being able
+    to set up wagon trains that move in a predictable order so
+    that one can pick up where the prior one left off. Make sure
+    this works. Since wagon trains don't unload immediately when
+    entering a colony, it means that the wagon train unloading
+    needs to move first out of the colony then the other wagon
+    train moves out of the colony in the opposite direction,
+    picking up what the first wagon train left.
+
+  * Show the trade route of the active unit in the panel.
+
+  * Do one last check of all the CHECKs in the trade route mod-
+    ules to make sure there is nothing risky.

@@ -539,8 +539,19 @@ wait<maybe<CreateTradeRoute>> ask_create_trade_route(
     return available_colonies_for_route( ss, player,
                                          connectivity, dummy );
   }();
-  // At the very least, the first colony should be in this list.
-  CHECK( !second_colony_candidates.empty() );
+  // At the very least, the first colony should be in the list,
+  // so second_colony_candidates should never be empty. That
+  // said, it feels like we should be defensive here... just a
+  // gut feeling, so we'll do a DCHECK and then just handle the
+  // error.
+  DCHECK( !second_colony_candidates.empty() );
+  if( second_colony_candidates.empty() ) {
+    string const error =
+        "Error: Empty list of candidates for colony stop!";
+    lg.error( "internal error: {}", error );
+    co_await gui.message_box( "{}", error );
+    co_return nothing;
+  }
   config     = {};
   config.msg = "Select Second Stop:";
   if( type == sea ) {
@@ -990,8 +1001,16 @@ EvolveTradeRoute evolve_trade_route_human(
   TradeRoutesSanitizedToken const& token =
       sanitize_trade_routes( ss.as_const, as_const( player ),
                              ss.trade_routes, actions_taken );
-  CHECK( actions_taken.empty(),
-         "trade routes must be sanitized before calling" );
+  // Let's be defensive here even though this should not happen
+  // since the caller is supposed to do the sanitization just be-
+  // fore calling this method.
+  if( !actions_taken.empty() ) {
+    string const err =
+        "trade routes must be sanitized before calling";
+    DCHECK( actions_taken.empty(), "{}", err );
+    lg.error( "internal error: {}", err );
+    return EvolveTradeRoute::abort{};
+  }
   auto const sanitized_orders = sanitize_unit_trade_route_orders(
       ss.as_const, as_const( unit ), token );
   if( !sanitized_orders.has_value() )
