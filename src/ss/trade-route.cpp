@@ -16,6 +16,9 @@
 // refl
 #include "refl/ext.hpp"
 
+// C++ standard library
+#include <set>
+
 using namespace std;
 
 namespace rn {
@@ -129,6 +132,16 @@ valid_or<string> TradeRouteState::validate() const {
                    "there is an active trade route with id={} "
                    "which is > than last_trade_route_id={}",
                    route.id, last_trade_route_id );
+
+  // No duplicate trade route names.
+  set<string> names;
+  for( auto const& [id, route] : routes ) {
+    REFL_VALIDATE(
+        !names.contains( route.name ),
+        "there are multiple trade routes with the name \"{}\"",
+        route.name );
+    names.insert( route.name );
+  }
 
   return valid;
 }

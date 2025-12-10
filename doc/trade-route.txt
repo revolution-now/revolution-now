@@ -1,8 +1,5 @@
 TODO:
 
-  * Make sure there aren't duplicate trade route names both when
-    creating and in the validation.
-
   * Show the trade route of the active unit in the panel.
 
   * When the player manually loads into a wagon train in the
@@ -208,3 +205,6 @@ Done:
     back. Not sure we're going to replicate this, since it
     doesn't seem to matter much, and is inconsistent with wagon
     train behavior.
+
+  * Make sure there aren't duplicate trade route names both when
+    creating and in the validation.

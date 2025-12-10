@@ -149,6 +149,19 @@ TEST_CASE( "[ss/trade-route] TradeRouteState::validate" ) {
 
   v = state.validate();
   REQUIRE( v.valid() );
+
+  state.routes[1].name = "hello";
+  state.routes[1].id   = 1;
+  state.routes[2].name = "hello";
+  state.routes[2].id   = 2;
+
+  state.last_trade_route_id = 2;
+
+  v = state.validate();
+  REQUIRE( !v.valid() );
+  REQUIRE_THAT( v.error(),
+                Contains( "there are multiple trade routes with "
+                          "the name \"hello\"" ) );
 }
 
 } // namespace
