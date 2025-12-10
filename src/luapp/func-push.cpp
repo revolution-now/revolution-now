@@ -16,16 +16,14 @@
 // base
 #include "base/macros.hpp"
 
-// Lua
-#include "lua.h"
-
 using namespace std;
 
 namespace lua {
 
 namespace detail {
 
-void func_push_cpp_check_args( cthread L, int num_cpp_args ) {
+void func_push_cpp_check_args( cthread const L,
+                               int const num_cpp_args ) {
   c_api C( L );
   int num_lua_args = C.gettop();
   if( num_lua_args != num_cpp_args )
@@ -37,9 +35,9 @@ void func_push_cpp_check_args( cthread L, int num_cpp_args ) {
 
 } // namespace detail
 
-void push_stateless_lua_c_function( cthread L,
-                                    LuaCFunction* func,
-                                    int upvalues ) {
+void push_stateless_lua_c_function( cthread const L,
+                                    LuaCFunction* const func,
+                                    int const upvalues ) {
   c_api C( L );
   C.push( func, upvalues );
 }
