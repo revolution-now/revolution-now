@@ -11,6 +11,9 @@
 *****************************************************************/
 #pragma once
 
+// rds
+#include "bridge.rds.hpp"
+
 // base
 #include "base/valid.hpp"
 
@@ -33,11 +36,14 @@ namespace bridge {
 
 using ConvResult = base::valid_or<std::string>;
 
+// Convert OG -> NG.  Note that this one reads the ID map.
 ConvResult convert_to_ng( sav::ColonySAV const& in,
-                          rn::RootState& out );
+                          rn::RootState& out,
+                          IdMap const& id_map );
 
+// Convert NG -> OG.  Note that this one writes the ID map.
 ConvResult convert_to_og( rn::RootState const& in,
-                          sav::ColonySAV& out );
+                          sav::ColonySAV& out, IdMap& id_map );
 
 ConvResult convert_map_to_ng( sav::MapFile const& in,
                               rn::RealTerrain& out );

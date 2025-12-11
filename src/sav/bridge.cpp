@@ -62,6 +62,20 @@ auto to_underlying( E e ) {
 /****************************************************************
 ** General Helpers.
 *****************************************************************/
+[[nodiscard]] int get_ng_id( map<int, int> const& m,
+                             int const og_id ) {
+  if( m.empty() )
+    // We're not in the mode where we are reverse mapping IDs, so
+    // just us the OG ID + 1. We need to add 1 because the NG IDs
+    // all start at 1.
+    return og_id + 1;
+  // We're in the mode where we are mapping IDs, thus the ID must
+  // be present in the map.
+  auto const iter = m.find( og_id );
+  CHECK( iter != m.end(), "failed to look up OG ID {}", og_id );
+  return iter->second;
+}
+
 struct OgHumanIndependence {
   rn::e_nation declared = {};
   rn::e_nation ref_slot = {};
@@ -730,12 +744,14 @@ sav::trade_route_type trade_route_type_to_og(
 ConvResult convert_trade_routes_to_ng(
     sav::ColonySAV const& sav, rn::e_player const human,
     rn::ColoniesState const& ng_colonies,
-    rn::TradeRouteState& out ) {
+    rn::TradeRouteState& out, IdMap const& id_map ) {
   out.routes.clear();
   for( int idx = 0;
        sav::TRADEROUTE const& og_route : sav.trade_route ) {
     if( idx >= sav.header.trade_route_count ) break;
-    ++out.last_trade_route_id;
+    int const ng_id = get_ng_id( id_map.trade_route_ids, idx );
+    out.last_trade_route_id =
+        std::max( out.last_trade_route_id, ng_id );
     rn::TradeRoute& ng_route =
         out.routes[out.last_trade_route_id];
     ng_route.id     = out.last_trade_route_id;
@@ -817,7 +833,8 @@ ConvResult convert_trade_routes_to_ng(
 
 ConvResult convert_trade_routes_to_og(
     rn::RootState const& root, rn::Player const& human,
-    ColonyIdToOg const colony_id_to_og, sav::ColonySAV& out ) {
+    ColonyIdToOg const colony_id_to_og, sav::ColonySAV& out,
+    IdMap& id_map ) {
   bool const has_foreign_routes = [&] {
     for( auto const& [id, route] : root.trade_routes.routes )
       if( route.player != human.type ) //
@@ -839,6 +856,7 @@ ConvResult convert_trade_routes_to_og(
   out.header.trade_route_count = num_routes;
   for( int idx = 0;
        auto const& [id, ng_route] : root.trade_routes.routes ) {
+    id_map.trade_route_ids[idx] = id;
     if( ng_route.stops.size() > 4 )
       return format(
           "The OG supports a maximum of four stops per trade "
@@ -1210,7 +1228,8 @@ ConvResult convert_players_to_og( rn::RootState const& in,
 ** Public API.
 *****************************************************************/
 ConvResult convert_to_ng( sav::ColonySAV const& in,
-                          rn::RootState& out ) {
+                          rn::RootState& out,
+                          IdMap const& id_map ) {
   ScopedTimer timer( "convert saved game from OG to RN" );
 
   auto const human_nation = find_human_player_og( in );
@@ -1240,8 +1259,9 @@ ConvResult convert_to_ng( sav::ColonySAV const& in,
   // TODO
 
   // Trade Routes.
-  GOOD_OR_RETURN( convert_trade_routes_to_ng(
-      in, player_type, out.colonies, out.trade_routes ) );
+  GOOD_OR_RETURN(
+      convert_trade_routes_to_ng( in, player_type, out.colonies,
+                                  out.trade_routes, id_map ) );
 
   // Land view.
   GOOD_OR_RETURN( convert_landview_to_ng( in, out.land_view ) );
@@ -1262,7 +1282,7 @@ ConvResult convert_to_ng( sav::ColonySAV const& in,
 }
 
 ConvResult convert_to_og( rn::RootState const& in,
-                          sav::ColonySAV& out ) {
+                          sav::ColonySAV& out, IdMap& id_map ) {
   ScopedTimer timer( "convert saved game from RN to OG" );
 
   auto const human_nation = find_human_nation_ng( in );
@@ -1315,7 +1335,7 @@ ConvResult convert_to_og( rn::RootState const& in,
   // and that will make it more likely that things will be kosher
   // and not upset the OG with what we write.
   GOOD_OR_RETURN( convert_trade_routes_to_og(
-      in, ng_human_player, colony_id_map_fn, out ) );
+      in, ng_human_player, colony_id_map_fn, out, id_map ) );
 
   // Land view.
   GOOD_OR_RETURN( convert_landview_to_og( in.land_view, out ) );

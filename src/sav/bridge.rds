@@ -1,0 +1,28 @@
+# ===============================================================
+# bridge.rds
+#
+# Project: Revolution Now
+#
+# Created by David P. Sicilia on 2025-12-11.
+#
+# Description: Rds definitions for the sav/bridge module.
+#
+# ===============================================================
+# C++ standard library
+include "<map>"
+
+namespace "bridge"
+
+# These are filled out when converting from NG -> OG so that if
+# we want to convert back to NG (thereby performing a roundtrip)
+# we can do so in a way that recovers the original IDs. This is
+# only needed for doing roundtrip tests of the bridge conversion
+# methods. Outside of testing, it is not necessary to track or
+# preserve IDs when interconverting between the two formats.
+struct.IdMap {
+  # NOTE: These ids go from OG -> NG.
+  unit_ids 'std::map<int, int>',
+  colony_ids 'std::map<int, int>',
+  dwelling_ids 'std::map<int, int>',
+  trade_route_ids 'std::map<int, int>',
+}

@@ -327,10 +327,11 @@ void rn_bidirectional_scenario_1( rn::RootState& out ) {
   dutch.control   = rn::e_player_control::ai;
 
   // Trade Routes.
-  out.trade_routes.last_trade_route_id = 2;
+  out.trade_routes.last_trade_route_id = 5;
 
-  out.trade_routes.routes[1] = rn::TradeRoute{
-    .id     = 1,
+  // Skip some IDs to test the ID mapping.
+  out.trade_routes.routes[2] = rn::TradeRoute{
+    .id     = 2,
     .name   = "my route 1",
     .player = rn::e_player::french,
     .type   = rn::e_trade_route_type::sea,
@@ -345,8 +346,8 @@ void rn_bidirectional_scenario_1( rn::RootState& out ) {
          .loads  = { rn::e_commodity::horses },
          .unloads = { rn::e_commodity::cloth,
                       rn::e_commodity::tools } } } };
-  out.trade_routes.routes[2] = rn::TradeRoute{
-    .id     = 2,
+  out.trade_routes.routes[5] = rn::TradeRoute{
+    .id     = 5,
     .name   = "my route 2",
     .player = rn::e_player::french,
     .type   = rn::e_trade_route_type::land,
@@ -361,6 +362,10 @@ void rn_bidirectional_scenario_1( rn::RootState& out ) {
 // case itself; instead, just add new stuff into the scenario
 // preparation each time a new element is translated.
 TEST_CASE( "[sav/bridge] OG to NG [scenario 1]" ) {
+  IdMap const id_map{
+    .trade_route_ids = { { 0, 2 }, { 1, 5 } },
+  };
+
   sav::ColonySAV from;
   og_bidirectional_scenario_1( from );
 
@@ -368,7 +373,7 @@ TEST_CASE( "[sav/bridge] OG to NG [scenario 1]" ) {
   rn_bidirectional_scenario_1( exp );
 
   rn::RootState to;
-  REQUIRE( convert_to_ng( from, to ) == valid );
+  REQUIRE( convert_to_ng( from, to, id_map ) == valid );
 
   REQUIRE( to.version == exp.version );
   REQUIRE( to.settings == exp.settings );
@@ -388,6 +393,8 @@ TEST_CASE( "[sav/bridge] OG to NG [scenario 1]" ) {
 // case itself; instead, just add new stuff into the scenario
 // preparation each time a new element is translated.
 TEST_CASE( "[sav/bridge] NG to OG [scenario 1]" ) {
+  IdMap id_map, expected_id_map;
+
   rn::RootState from;
   rn_bidirectional_scenario_1( from );
 
@@ -395,7 +402,7 @@ TEST_CASE( "[sav/bridge] NG to OG [scenario 1]" ) {
   og_bidirectional_scenario_1( exp );
 
   sav::ColonySAV to;
-  REQUIRE( convert_to_og( from, to ) == valid );
+  REQUIRE( convert_to_og( from, to, id_map ) == valid );
 
   REQUIRE( to.header == exp.header );
   REQUIRE( to.player == exp.player );
@@ -429,6 +436,11 @@ TEST_CASE( "[sav/bridge] NG to OG [scenario 1]" ) {
                               8, 10 );
   REQUIRE( ( to.connectivity == to.connectivity ) );
 #endif
+
+  expected_id_map = {
+    .trade_route_ids = { { 0, 2 }, { 1, 5 } },
+  };
+  REQUIRE( id_map == expected_id_map );
 }
 
 /****************************************************************
@@ -631,6 +643,8 @@ void rn_unidirectional_scenario_1( rn::RootState& out ) {
 // case itself; instead, just add new stuff into the scenario
 // preparation each time a new element is translated.
 TEST_CASE( "[sav/bridge] OG to NG [scenario 2]" ) {
+  IdMap id_map, expected_id_map;
+
   sav::ColonySAV classic;
   og_unidirectional_scenario_1( classic );
 
@@ -638,7 +652,8 @@ TEST_CASE( "[sav/bridge] OG to NG [scenario 2]" ) {
   rn_unidirectional_scenario_1( expected );
 
   rn::RootState converted;
-  REQUIRE( convert_to_ng( classic, converted ) == valid );
+  REQUIRE( convert_to_ng( classic, converted,
+                          as_const( id_map ) ) == valid );
 
   REQUIRE( converted.version == expected.version );
   REQUIRE( converted.settings == expected.settings );
@@ -652,6 +667,9 @@ TEST_CASE( "[sav/bridge] OG to NG [scenario 2]" ) {
   REQUIRE( converted.map == expected.map );
   REQUIRE( converted.trade_routes == expected.trade_routes );
   REQUIRE( converted.zzz_terrain == expected.zzz_terrain );
+
+  expected_id_map = {};
+  REQUIRE( id_map == expected_id_map );
 }
 
 // This test should not ever need to be changed.
