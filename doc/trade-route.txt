@@ -3,17 +3,6 @@ TODO:
   * Go through the trade route files and put more stuff in the
     configs.
 
-  * Need to limit the number of wagon trains as in the OG. This
-    is to prevent wagon trains from being used to expand storage.
-    The OG does this by limiting them to the number of colonies.
-    However, doing it this way can be cheated by creating a large
-    number of temporary population-1 colonies and then building
-    the wagon trains, then abandoning the colonies. Also, it
-    feels a bit artificial. So we will create a game option that
-    allows going with an alternate mode with the number of wagon
-    trains will be max( 1, P/4 ) where P is the total in-colony
-    population of all colonies.
-
 Maybe in the future:
 
   * Allow editing the trade route of a unit by right clicking on
@@ -214,3 +203,14 @@ Done:
 
   * Do one last check of all the CHECKs in the trade route mod-
     ules to make sure there is nothing risky.
+
+  * Need to limit the number of wagon trains as in the OG. This
+    is to prevent wagon trains from being used to expand storage.
+    The OG does this by limiting them to the number of colonies.
+    However, doing it this way can be cheated by creating a large
+    number of temporary population-1 colonies and then building
+    the wagon trains, then abandoning the colonies. Also, it
+    feels a bit artificial. So we will create a game option that
+    allows going with an alternate mode with the number of wagon
+    trains will be max( 1, P/4 ) where P is the total in-colony
+    population of all colonies.
