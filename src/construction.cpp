@@ -25,14 +25,18 @@
 // config
 #include "config/colony.hpp"
 #include "config/nation.hpp"
+#include "config/options.rds.hpp"
 #include "config/unit-type.hpp"
 
 // ss
+#include "ss/colonies.hpp"
 #include "ss/old-world-state.rds.hpp"
 #include "ss/players.hpp"
 #include "ss/ref.hpp"
+#include "ss/settings.rds.hpp"
 #include "ss/terrain.hpp"
 #include "ss/unit-type.hpp"
+#include "ss/units.hpp"
 
 // refl
 #include "refl/to-str.hpp"
@@ -314,6 +318,36 @@ wait<> rush_construction_prompt(
   if( colony.commodities[e_commodity::tools] <
       invoice.total_tools )
     colony.commodities[e_commodity::tools] = invoice.total_tools;
+}
+
+bool wagon_train_limit_exceeded( SSConst const& ss,
+                                 Player const& player ) {
+  int const num_wagon_trains = [&] {
+    int total = 0;
+    for( auto const& [unit_id, p_state] : ss.units.euro_all() ) {
+      Unit const& unit = ss.units.unit_for( unit_id );
+      if( unit.player_type() != player.type ) continue;
+      if( unit.type() != e_unit_type::wagon_train ) continue;
+      ++total;
+    }
+    return total;
+  }();
+  int const max_allowed = [&] {
+    switch( ss.settings.game_setup_options.customized_rules
+                .wagon_train_limit_mode ) {
+      using enum config::options::e_wagon_train_limit_mode;
+      case classic:
+        return int(
+            ss.colonies.for_player( player.type ).size() );
+      case population:
+        return std::max(
+            1,
+            total_colonies_population( ss, player.type ) / 4 );
+      case none:
+        return numeric_limits<int>::max();
+    }
+  }();
+  return num_wagon_trains >= max_allowed;
 }
 
 } // namespace rn

@@ -1877,7 +1877,7 @@ wait<> colonies_turn( IEngine& engine, SS& ss, TS& ts,
                       Player& player ) {
   RealColonyEvolver const colony_evolver( ss, ts );
   RealColonyNotificationGenerator const
-      colony_notification_generator;
+      colony_notification_generator( ss.as_const );
   HarborViewer harbor_viewer( engine, ss, ts, player );
   co_await evolve_colonies_for_player(
       ss, ts, player, colony_evolver, harbor_viewer,

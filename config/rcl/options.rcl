@@ -123,6 +123,30 @@ help {
       there is no time limit. This has the value 1850 in the OG.
     "
   }
+
+  wagon_train_limit_mode: {
+    title: Wagon Train Limit Mode
+    category: units
+    quick: "
+      Selects the mechanic used for limiting the number of wagon
+      trains that the player may construct at a given time.
+    "
+    detail: "
+      The OG limits the number of Wagon Trains that the player
+      can construct to the number of colonies that the player has
+      at a given time. This is likely to prevent Wagon Trains
+      from being used as a cheap auxiliary storage mechanism,
+      which might affect game balance. Since this limit could be
+      seen as somewhat artificial, the NG allows changing this
+      behavior. The available modes are 'classic', 'population',
+      and 'none'. The value 'classic' reproduces the OG's behav-
+      ior, the value 'none' removes all limits on the number of
+      Wagon Trains, and the value 'population' is a new mode
+      where the maximum number of wagon trains is given by:
+        Max Wagon Trains = max(1, P/4)
+      where P is the total in-colony population of the player.
+    "
+  }
 }
 
 # NOTE: Changing these values in this file is generally NOT what
@@ -134,4 +158,5 @@ default_values {
   ref_can_spawn_ships: true
   withdraw_on_declaration: true
   deadline_for_winning: 1850
+  wagon_train_limit_mode: classic
 }

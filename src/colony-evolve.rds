@@ -117,6 +117,7 @@ sumtype.ColonyNotification {
     what 'e_natural_resource',
     partial_depletion 'bool',
   },
+  wagon_train_limit_reached {},
 }
 
 struct.ColonyEvolution {

@@ -31,16 +31,18 @@
 #include "unit-ownership.hpp"
 
 // config
+#include "config/colony.rds.hpp"
 #include "config/unit-type.hpp"
 
 // ss
 #include "ss/players.hpp"
 #include "ss/ref.hpp"
+#include "ss/settings.rds.hpp"
 #include "ss/unit-type.hpp"
 #include "ss/units.hpp"
 
-// config
-#include "config/colony.rds.hpp"
+// rds
+#include "rds/switch-macro.hpp"
 
 // refl
 #include "refl/to-str.hpp"
@@ -275,6 +277,21 @@ void check_construction( SS& ss, TS& ts, Player const& player,
           .have_tools = have_tools,
           .need_tools = requirements.tools } );
     return;
+  }
+
+  // Check wagon train count limit.
+  SWITCH( construction ) {
+    CASE( building ) { break; }
+    CASE( unit ) {
+      if( unit.type != e_unit_type::wagon_train ) break;
+      if( wagon_train_limit_exceeded( ss,
+                                      as_const( player ) ) ) {
+        ev.notifications.emplace_back(
+            ColonyNotification::wagon_train_limit_reached{} );
+        return;
+      }
+      break;
+    }
   }
 
   // In the original game, when a construction finishes it resets
@@ -587,7 +604,7 @@ void check_prime_resource_depletion(
 ** Public API.
 *****************************************************************/
 ColonyNotificationMessage generate_colony_notification_message(
-    Colony const& colony,
+    SSConst const& ss, Colony const& colony,
     ColonyNotification const& notification ) {
   ColonyNotificationMessage res{
     // We shouldn't ever use this, but give a fallback to help
@@ -596,6 +613,31 @@ ColonyNotificationMessage generate_colony_notification_message(
     .transient = false };
 
   switch( notification.to_enum() ) {
+    case ColonyNotification::e::wagon_train_limit_reached: {
+      res.msg = fmt::format(
+          "[{}] is producing Wagon Trains but we have reached "
+          "the current limit on Wagon Trains.",
+          colony.name );
+      switch( ss.settings.game_setup_options.customized_rules
+                  .wagon_train_limit_mode ) {
+        using enum config::options::e_wagon_train_limit_mode;
+        case classic:
+          res.msg +=
+              " We can build at most one Wagon Train for each "
+              "colony.";
+          break;
+        case population:
+          res.msg +=
+              " Beyond the first Wagon Train, we can build at "
+              "most one Wagon Train per four colonists in our "
+              "colonies.";
+          break;
+        case none: {
+          SHOULD_NOT_BE_HERE;
+        }
+      }
+      break;
+    }
     case ColonyNotification::e::new_colonist: {
       res.msg = fmt::format(
           "The [{}] colony has produced a new colonist.",

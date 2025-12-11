@@ -69,6 +69,7 @@ value cdr_game_state_default = table{
                 "ref_can_spawn_ships"_key = false,
                 "withdraw_on_declaration"_key = false,
                 "deadline_for_winning"_key = null,
+                "wagon_train_limit_mode"_key = "classic",
               },
             },
         "in_game_options"_key =

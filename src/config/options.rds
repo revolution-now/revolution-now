@@ -14,7 +14,14 @@ include "<string>"
 namespace "rn.config.options"
 
 enum.e_option_category {
+  units,
   war_of_independence,
+}
+
+enum.e_wagon_train_limit_mode {
+  classic,
+  population,
+  none,
 }
 
 struct.OptionHelp {
@@ -29,6 +36,7 @@ struct.Values {
   ref_can_spawn_ships 'bool',
   withdraw_on_declaration 'bool',
   deadline_for_winning 'base::maybe<int>',
+  wagon_train_limit_mode 'e_wagon_train_limit_mode',
 }
 
 struct.Help {
@@ -36,6 +44,7 @@ struct.Help {
   ref_can_spawn_ships 'OptionHelp',
   withdraw_on_declaration 'OptionHelp',
   deadline_for_winning 'OptionHelp',
+  wagon_train_limit_mode 'OptionHelp',
 }
 
 namespace "rn"

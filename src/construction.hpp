@@ -51,4 +51,9 @@ wait<> rush_construction_prompt(
     Player& player, Colony& colony, IGui& gui,
     RushConstruction const& invoice );
 
+// In the OG the number of wagon trains one can build at a given
+// time is limited. This will perform that check.
+[[nodiscard]] bool wagon_train_limit_exceeded(
+    SSConst const& ss, Player const& player );
+
 } // namespace rn

@@ -33,9 +33,9 @@ using namespace std;
 /****************************************************************
 ** Fake World Setup
 *****************************************************************/
-struct World : testing::World {
+struct world : testing::World {
   using Base = testing::World;
-  World() : Base() {
+  world() : Base() {
     add_default_player();
     create_default_map();
   }
@@ -65,8 +65,8 @@ struct World : testing::World {
 ** Test Cases
 *****************************************************************/
 TEST_CASE( "[construction] select building, borders ocean" ) {
-  World W;
-  Colony& colony = W.add_colony( World::kBordersOcean );
+  world W;
+  Colony& colony = W.add_colony( world::kBordersOcean );
   wait<> w       = make_wait<>();
 
   auto f = [&] {
@@ -334,9 +334,9 @@ TEST_CASE( "[construction] select building, borders ocean" ) {
 TEST_CASE(
     "[construction] select building, borders water but not "
     "ocean" ) {
-  World W;
+  world W;
   Colony& colony =
-      W.add_colony( World::kNoBordersWaterButNoOcean );
+      W.add_colony( world::kNoBordersWaterButNoOcean );
   wait<> w = make_wait<>();
 
   auto f = [&] {
@@ -604,8 +604,8 @@ TEST_CASE(
 
 TEST_CASE(
     "[construction] select building, doesn't border water" ) {
-  World W;
-  Colony& colony = W.add_colony( World::kNoBordersWater );
+  world W;
+  Colony& colony = W.add_colony( world::kNoBordersWater );
   wait<> w       = make_wait<>();
 
   auto f = [&] {
@@ -662,7 +662,7 @@ TEST_CASE(
 }
 
 TEST_CASE( "[construction] rush_construction_cost" ) {
-  World W;
+  world W;
   auto [colony, founder] =
       W.found_colony_with_new_unit( Coord{ .x = 1, .y = 1 } );
   Player& player = W.default_player();
@@ -896,7 +896,7 @@ TEST_CASE( "[construction] rush_construction_prompt" ) {
 #ifdef COMPILER_GCC
   return;
 #endif
-  World W;
+  world W;
   auto [colony, founder] =
       W.found_colony_with_new_unit( Coord{ .x = 1, .y = 1 } );
   Player& player = W.default_player();
@@ -1048,6 +1048,10 @@ TEST_CASE( "[construction] rush_construction_prompt" ) {
     REQUIRE( colony.hammers == 20 );
     REQUIRE( colony.commodities[e_commodity::tools] == 30 );
   }
+}
+
+TEST_CASE( "[construction] wagon_train_limit_exceeded" ) {
+  world w;
 }
 
 } // namespace

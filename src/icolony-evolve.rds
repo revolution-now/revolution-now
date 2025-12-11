@@ -33,4 +33,8 @@ interface.IColonyNotificationGenerator {
     colony 'Colony const&',
     notification 'ColonyNotification const&',
   },
+
+  _context {
+    ss 'SSConst const&',
+  },
 }

@@ -20,6 +20,7 @@ namespace rn {
 struct Colony;
 struct Player;
 struct SS;
+struct SSConst;
 struct TS;
 
 /****************************************************************
@@ -36,7 +37,7 @@ ColonyEvolution evolve_colony_one_turn( SS& ss, TS& ts,
 // This generates the text messages that are actually shown to
 // the player.
 ColonyNotificationMessage generate_colony_notification_message(
-    Colony const& colony,
+    SSConst const& ss, Colony const& colony,
     ColonyNotification const& notification );
 
 } // namespace rn

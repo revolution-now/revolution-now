@@ -46,9 +46,9 @@ using ::refl::enum_values;
 /****************************************************************
 ** Fake World Setup
 *****************************************************************/
-struct World : testing::World {
+struct world : testing::World {
   using Base = testing::World;
-  World() : Base() {
+  world() : Base() {
     add_default_player();
     create_default_map();
   }
@@ -85,7 +85,7 @@ struct World : testing::World {
 ** Test Cases
 *****************************************************************/
 TEST_CASE( "[colony-evolve] spoilage" ) {
-  World W;
+  world W;
   Colony& colony = W.add_colony( { .x = 1, .y = 1 } );
   for( e_commodity c : refl::enum_values<e_commodity> )
     colony.commodities[c] = 101;
@@ -200,7 +200,7 @@ TEST_CASE( "[colony-evolve] spoilage" ) {
 }
 
 TEST_CASE( "[colony-evolve] ran out of raw materials" ) {
-  World W;
+  world W;
   Colony& colony = W.add_colony( Coord{ .x = 1, .y = 1 } );
   // Add this so no one starves.
   colony.commodities[e_commodity::food] = 20;
@@ -231,7 +231,7 @@ TEST_CASE( "[colony-evolve] ran out of raw materials" ) {
 }
 
 TEST_CASE( "[colony-evolve] warns when colony starving" ) {
-  World W;
+  world W;
   vector<ColonyNotification> expected_notifications;
   ColonyEvolution ev;
   Colony& colony    = W.add_colony( Coord{ .x = 1, .y = 1 } );
@@ -495,7 +495,7 @@ TEST_CASE( "[colony-evolve] warns when colony starving" ) {
 }
 
 TEST_CASE( "[colony-evolve] colony starves" ) {
-  World W;
+  world W;
   // This way it is impossible for any food to be produced either
   // on the center square or any other square when on a hard dif-
   // ficulty level.
@@ -541,7 +541,7 @@ TEST_CASE( "[colony-evolve] colony starves" ) {
 
 TEST_CASE(
     "[colony-evolve] does not promote unit producing nothing" ) {
-  World W;
+  world W;
   Colony& colony = W.add_colony( Coord{ .x = 1, .y = 1 } );
   // Make sure no one starves.
   colony.commodities[e_commodity::food] = 100;
@@ -571,7 +571,7 @@ TEST_CASE(
 }
 
 TEST_CASE( "[colony-evolve] promotes units" ) {
-  World W;
+  world W;
   Colony& colony = W.add_colony( Coord{ .x = 1, .y = 1 } );
   // Make sure no one starves.
   colony.commodities[e_commodity::food] = 100;
@@ -697,7 +697,7 @@ TEST_CASE( "[colony-evolve] promotes units" ) {
 }
 
 TEST_CASE( "[colony-evolve] gives stockade if needed" ) {
-  World W;
+  world W;
   Player& dutch = W.dutch();
   // _, L, _,
   // L, L, L,
@@ -721,7 +721,7 @@ TEST_CASE( "[colony-evolve] gives stockade if needed" ) {
 }
 
 TEST_CASE( "[colony-evolve] checks prime resource depletion" ) {
-  World W;
+  world W;
   vector<ColonyNotification> expected;
   map<Coord, int> expected_counters;
 
@@ -774,7 +774,7 @@ TEST_CASE( "[colony-evolve] checks prime resource depletion" ) {
 }
 
 TEST_CASE( "[colony-evolve] evolves bells" ) {
-  World W;
+  world W;
 
   Player& player = W.default_player();
 
@@ -901,12 +901,12 @@ TEST_CASE( "[colony-evolve] evolves bells" ) {
 }
 
 TEST_CASE( "[colony-evolve] applies production" ) {
-  World W;
+  world W;
   // TODO
 }
 
 TEST_CASE( "[colony-evolve] construction" ) {
-  World W;
+  world W;
   // TODO
 
   // TODO: test a case where a construction project requires
@@ -914,21 +914,28 @@ TEST_CASE( "[colony-evolve] construction" ) {
   // colony but there is also a gunsmith consuming tools. In the
   // original game, the gunsmith will consume the tools before
   // they can be used for the construction project.
+
+  // TODO: checks wagon train limits.
 }
 
 TEST_CASE( "[colony-evolve] new colonist" ) {
-  World W;
+  world W;
   // TODO
 }
 
 TEST_CASE( "[colony-evolve] colonist starved" ) {
-  World W;
+  world W;
   // TODO
 }
 
 TEST_CASE( "[colony-evolve] evolves sons of liberty" ) {
-  World W;
+  world W;
   // TODO
+}
+
+TEST_CASE(
+    "[colony-evolve] generate_colony_notification_message" ) {
+  world w;
 }
 
 } // namespace
