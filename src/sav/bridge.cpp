@@ -1338,16 +1338,16 @@ ConvResult convert_to_og( rn::RootState const& in,
   return valid;
 }
 
-ConvResult convert_to_ng( sav::MapFile const& in,
-                          rn::RealTerrain& out ) {
+ConvResult convert_map_to_ng( sav::MapFile const& in,
+                              rn::RealTerrain& out ) {
   ScopedTimer timer( "convert map from OG to RN" );
   GOOD_OR_RETURN( tiles_to_map_squares(
       in.map_size_x, in.map_size_y, in.tile, out ) );
   return valid;
 }
 
-ConvResult convert_to_og( rn::RealTerrain const& in,
-                          sav::MapFile& out ) {
+ConvResult convert_map_to_og( rn::RealTerrain const& in,
+                              sav::MapFile& out ) {
   ScopedTimer timer( "convert map from RN to OG" );
   sav::HEADER header;
   GOOD_OR_RETURN( map_squares_to_tiles(

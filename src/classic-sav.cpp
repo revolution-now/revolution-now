@@ -46,7 +46,7 @@ valid_or<string> load_classic_map_file(
   sav::MapFile map_file;
   CHECK_HAS_VALUE( sav::load_map_file( path, map_file ) );
   CHECK_HAS_VALUE(
-      bridge::convert_to_ng( map_file, real_terrain ) );
+      bridge::convert_map_to_ng( map_file, real_terrain ) );
   return valid;
 }
 

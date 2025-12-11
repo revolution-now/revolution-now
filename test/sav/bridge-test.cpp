@@ -705,7 +705,7 @@ TEST_CASE( "[sav/bridge] OG to NG [MapFile]" ) {
   classic_at( { .x = 3, .y = 3 } ) = T{ .tile = t5t::swf };
   classic_at( { .x = 4, .y = 3 } ) = T{ .tile = t5t::mrw };
 
-  REQUIRE( convert_to_ng( classic, modern ) == valid );
+  REQUIRE( convert_map_to_ng( classic, modern ) == valid );
 
   auto const& map = modern.map;
   REQUIRE( map.size().to_gfx() == gfx::size{ .w = 5, .h = 6 } );
@@ -919,7 +919,7 @@ TEST_CASE( "[sav/bridge] NG to OG [MapFile]" ) {
           .ground  = rn::e_ground_terrain::grassland,
           .overlay = rn::e_land_overlay::hills };
 
-  REQUIRE( convert_to_og( modern, classic ) == valid );
+  REQUIRE( convert_map_to_og( modern, classic ) == valid );
 
   auto const& tile = classic.tile;
   REQUIRE( tile.size() == ( 5 + 2 ) * ( 6 + 2 ) );

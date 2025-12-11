@@ -39,10 +39,10 @@ ConvResult convert_to_ng( sav::ColonySAV const& in,
 ConvResult convert_to_og( rn::RootState const& in,
                           sav::ColonySAV& out );
 
-ConvResult convert_to_ng( sav::MapFile const& in,
-                          rn::RealTerrain& out );
+ConvResult convert_map_to_ng( sav::MapFile const& in,
+                              rn::RealTerrain& out );
 
-ConvResult convert_to_og( rn::RealTerrain const& in,
-                          sav::MapFile& out );
+ConvResult convert_map_to_og( rn::RealTerrain const& in,
+                              sav::MapFile& out );
 
 } // namespace bridge
