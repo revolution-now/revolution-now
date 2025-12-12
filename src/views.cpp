@@ -525,6 +525,8 @@ void ButtonBaseView::render_pressed( rr::Renderer& renderer,
 
 void ButtonBaseView::render_unpressed( rr::Renderer& renderer,
                                        gfx::point where ) const {
+  // TODO: get rid of all these tiles and just draw it like we do
+  // in the trade route edit window.
   render_rect_of_sprites_with_border(
       renderer, Coord::from_gfx( where ),
       size_in_pixels_ / Delta{ .w = 8, .h = 8 }, //
