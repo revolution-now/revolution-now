@@ -17,10 +17,15 @@
 #include "test/fake/world.hpp"
 #include "test/mocks/igui.hpp"
 
+// config
+#include "src/config/options.rds.hpp"
+
 // ss
 #include "src/ss/old-world-state.rds.hpp"
 #include "src/ss/player.hpp"
 #include "src/ss/ref.hpp"
+#include "src/ss/settings.rds.hpp"
+#include "src/ss/unit-composition.hpp"
 
 // Must be last.
 #include "test/catch-common.hpp"
@@ -29,6 +34,9 @@ namespace rn {
 namespace {
 
 using namespace std;
+
+using ::gfx::point;
+using ::refl::enum_values;
 
 /****************************************************************
 ** Fake World Setup
@@ -1050,8 +1058,153 @@ TEST_CASE( "[construction] rush_construction_prompt" ) {
   }
 }
 
-TEST_CASE( "[construction] wagon_train_limit_exceeded" ) {
-  world w;
+TEST_WORLD( "[construction] wagon_train_limit_exceeded" ) {
+  auto const exceeded = [&] [[clang::noinline]] {
+    return wagon_train_limit_exceeded( ss(), default_player() );
+  };
+  auto const not_exceeded = [&] [[clang::noinline]] {
+    return !exceeded();
+  };
+
+  auto& mode = settings()
+                   .game_setup_options.customized_rules
+                   .wagon_train_limit_mode;
+  using enum config::options::e_wagon_train_limit_mode;
+
+  // _, L, _, L, L, L,
+  // L, L, L, L, L, L,
+  // _, L, L, L, L, L,
+  static vector<point> const kColonyTileList = {
+    { .x = 5, .y = 2 }, //
+    { .x = 5, .y = 0 }, //
+    { .x = 3, .y = 2 }, //
+    { .x = 3, .y = 0 }, //
+    { .x = 1, .y = 2 }, //
+    { .x = 1, .y = 0 }, //
+  };
+  auto add_colony = [this,
+                     list = kColonyTileList] mutable -> Colony& {
+    BASE_CHECK( !list.empty(), "ran out of colony tiles" );
+    Colony& colony = this->add_colony( list.back() );
+    list.pop_back();
+    return colony;
+  };
+
+  auto const add_population = [&]( Colony& colony ) {
+    for( e_direction const d : enum_values<e_direction> ) {
+      if( colony.outdoor_jobs[d].has_value() ) continue;
+      add_unit_outdoors( colony.id, d, e_outdoor_job::food );
+      return;
+    }
+    for( e_indoor_job const job : enum_values<e_indoor_job> ) {
+      if( !colony.indoor_jobs[job].empty() ) continue;
+      add_unit_indoors( colony.id, job );
+      return;
+    }
+    FATAL( "cannot find a job for colonist" );
+  };
+
+  auto const add_wagon_train = [&] {
+    add_unit_on_map( e_unit_type::wagon_train,
+                     { .x = 1, .y = 1 } );
+  };
+
+  // Verify default is OG behavior.
+  REQUIRE( mode == classic );
+
+  // Default.
+  REQUIRE( exceeded() );
+
+  SECTION( "limit mode=classic" ) {
+    mode = classic;
+    REQUIRE( exceeded() );
+    Colony& c1 = add_colony();
+    REQUIRE( not_exceeded() );
+    add_wagon_train();
+    REQUIRE( exceeded() );
+    add_population( c1 );
+    add_population( c1 );
+    add_population( c1 );
+    add_population( c1 );
+    add_population( c1 );
+    add_population( c1 );
+    add_population( c1 );
+    add_population( c1 );
+    add_population( c1 );
+    add_population( c1 );
+    add_population( c1 );
+    add_population( c1 );
+    add_population( c1 );
+    add_population( c1 );
+    REQUIRE( exceeded() );
+    add_colony();
+    REQUIRE( not_exceeded() );
+    add_wagon_train();
+    REQUIRE( exceeded() );
+    add_colony();
+    REQUIRE( not_exceeded() );
+    add_wagon_train();
+    REQUIRE( exceeded() );
+  }
+
+  SECTION( "limit mode=population" ) {
+    mode = population;
+    REQUIRE( not_exceeded() );
+    add_wagon_train();
+    REQUIRE( exceeded() );
+    add_colony();
+    add_colony();
+    add_colony();
+    add_colony();
+    add_colony();
+    Colony& c1 = add_colony();
+    REQUIRE( exceeded() );
+    add_population( c1 );
+    REQUIRE( exceeded() );
+    add_population( c1 );
+    REQUIRE( exceeded() );
+    add_population( c1 );
+    REQUIRE( exceeded() );
+    add_population( c1 );
+    REQUIRE( not_exceeded() );
+    add_wagon_train();
+    REQUIRE( exceeded() );
+    add_population( c1 );
+    REQUIRE( exceeded() );
+    add_population( c1 );
+    REQUIRE( exceeded() );
+    add_population( c1 );
+    REQUIRE( exceeded() );
+    add_population( c1 );
+    REQUIRE( not_exceeded() );
+  }
+
+  SECTION( "limit mode=none" ) {
+    mode = none;
+    REQUIRE( not_exceeded() );
+    add_wagon_train();
+    REQUIRE( not_exceeded() );
+    add_wagon_train();
+    REQUIRE( not_exceeded() );
+    add_wagon_train();
+    REQUIRE( not_exceeded() );
+    add_wagon_train();
+    REQUIRE( not_exceeded() );
+    add_wagon_train();
+    REQUIRE( not_exceeded() );
+    add_wagon_train();
+    REQUIRE( not_exceeded() );
+    add_wagon_train();
+    REQUIRE( not_exceeded() );
+    add_wagon_train();
+    REQUIRE( not_exceeded() );
+    add_wagon_train();
+    REQUIRE( not_exceeded() );
+    add_wagon_train();
+    REQUIRE( not_exceeded() );
+    add_wagon_train();
+    REQUIRE( not_exceeded() );
+  }
 }
 
 } // namespace

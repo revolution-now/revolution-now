@@ -340,9 +340,8 @@ bool wagon_train_limit_exceeded( SSConst const& ss,
         return int(
             ss.colonies.for_player( player.type ).size() );
       case population:
-        return std::max(
-            1,
-            total_colonies_population( ss, player.type ) / 4 );
+        return 1 +
+               total_colonies_population( ss, player.type ) / 4;
       case none:
         return numeric_limits<int>::max();
     }
