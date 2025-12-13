@@ -61,28 +61,28 @@ players {
   }
 
   ref_dutch {
-    display_name_pre_declaration: Tory
+    display_name_pre_declaration: Tories
     article:                      a
     possessive_pre_declaration:   Tory
     flag_color:                  "#FFFFFF"
   }
 
   ref_french {
-    display_name_pre_declaration: Tory
+    display_name_pre_declaration: Tories
     article:                      a
     possessive_pre_declaration:   Tory
     flag_color:                  "#FFFFFF"
   }
 
   ref_english {
-    display_name_pre_declaration: Tory
+    display_name_pre_declaration: Tories
     article:                      a
     possessive_pre_declaration:   Tory
     flag_color:                  "#FFFFFF"
   }
 
   ref_spanish {
-    display_name_pre_declaration: Tory
+    display_name_pre_declaration: Tories
     article:                      a
     possessive_pre_declaration:   Tory
     flag_color:                  "#FFFFFF"

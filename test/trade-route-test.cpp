@@ -399,6 +399,8 @@ TEST_CASE( "[trade-route] show_sanitization_actions" ) {
 
   w.add_colony( { .x = 1, .y = 0 }, e_player::spanish ).name =
       "some colony";
+  w.add_colony( { .x = 3, .y = 0 }, e_player::ref_spanish )
+      .name = "some ref colony";
 
   // colony_changed_player
   // no_harbor_post_declaration
@@ -411,6 +413,24 @@ TEST_CASE( "[trade-route] show_sanitization_actions" ) {
       "The colony of [some colony], listed as a stop on the "
       "[some route] trade route, has been removed from the "
       "itinerary as it is now occupied by the [Spanish]" ) );
+  w.agent().EXPECT__human().returns( true );
+  w.gui().EXPECT__wait_for( chrono::milliseconds{ 200 } );
+  w.agent().EXPECT__message_box(
+      StrContains( "All European Harbor stops on the [some "
+                   "route] trade route have been removed" ) );
+  f();
+
+  // colony_changed_player(ref)
+  // no_harbor_post_declaration
+  actions_taken = {
+    A::colony_changed_player{ .colony_id  = 2,
+                              .route_name = "some route" },
+    A::no_harbor_post_declaration{ .route_name =
+                                       "some route" } };
+  w.agent().EXPECT__message_box( StrContains(
+      "The colony of [some ref colony], listed as a stop on the "
+      "[some route] trade route, has been removed from the "
+      "itinerary as it is now occupied by the [Tories]" ) );
   w.agent().EXPECT__human().returns( true );
   w.gui().EXPECT__wait_for( chrono::milliseconds{ 200 } );
   w.agent().EXPECT__message_box(

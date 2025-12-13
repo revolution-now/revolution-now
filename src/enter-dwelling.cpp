@@ -645,7 +645,7 @@ wait<> do_speak_with_chief(
     case ChiefAction::e::none: {
       co_await ts.gui.message_box(
           "We always welcome [{}] travelors.",
-          player_display_name( player ) );
+          player_possessive( player ) );
       co_return;
     }
     case ChiefAction::e::gift_money: {
