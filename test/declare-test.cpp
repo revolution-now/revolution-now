@@ -427,7 +427,8 @@ TEST_CASE( "[declare] declare_independence" ) {
   world w;
   DeclarationResult expected;
 
-  Player& player = w.add_player( e_player::english );
+  Player& player        = w.add_player( e_player::english );
+  player.new_world_name = "New England";
   e_player const ref_player_type =
       ref_player_for( nation_for( player.type ) );
   // This is so that it will add one man-o-war.
@@ -523,6 +524,7 @@ TEST_CASE( "[declare] declare_independence" ) {
 
   REQUIRE( player.revolution.status ==
            e_revolution_status::not_declared );
+  REQUIRE( player.new_world_name == "New England" );
   REQUIRE( player.revolution.intervention_force ==
            InterventionForce{} );
   REQUIRE( !w.players().players[ref_player_type].has_value() );
@@ -587,6 +589,7 @@ TEST_CASE( "[declare] declare_independence" ) {
 
   REQUIRE( player.revolution.status ==
            e_revolution_status::declared );
+  REQUIRE( player.new_world_name == "United States of America" );
   REQUIRE( player.revolution.intervention_force ==
            InterventionForce{ .continental_army    = 3,
                               .continental_cavalry = 2,

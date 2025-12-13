@@ -1,31 +1,35 @@
 nations {
 
   english {
-    country_name:        England
-    harbor_city_name:    London
-    new_world_name:      New England
-    default_leader_name: Walter Raleigh
+    country_name:             England
+    country_name_independent: United States of America
+    harbor_city_name:         London
+    new_world_name:           New England
+    default_leader_name:      Walter Raleigh
   }
 
   french {
-    country_name:        France
-    harbor_city_name:    La Rochelle
-    new_world_name:      New France
-    default_leader_name: Jacques Cartier
+    country_name:             France
+    country_name_independent: Republic of Quebec
+    harbor_city_name:         La Rochelle
+    new_world_name:           New France
+    default_leader_name:      Jacques Cartier
   }
 
   spanish {
-    country_name:        Spain
-    harbor_city_name:    Seville
-    new_world_name:      New Spain
-    default_leader_name: Christopher Columbus
+    country_name:             Spain
+    country_name_independent: Republic of Mexico
+    harbor_city_name:         Seville
+    new_world_name:           New Spain
+    default_leader_name:      Christopher Columbus
   }
 
   dutch {
-    country_name:        The Netherlands
-    harbor_city_name:    Amsterdam
-    new_world_name:      New Netherlands
-    default_leader_name: Michiel De Ruyter
+    country_name:             The Netherlands
+    country_name_independent: Republic of Surinam
+    harbor_city_name:         Amsterdam
+    new_world_name:           New Netherlands
+    default_leader_name:      Michiel De Ruyter
   }
 
 }

@@ -339,6 +339,11 @@ DeclarationResult declare_independence( IEngine& engine, SS& ss,
     if( !offboarded.empty() ) res.offboarded_units = true;
   }
 
+  // Step: Change the country name of the player.
+  // United States of America
+  player.new_world_name = config_nation.nations[player.nation]
+                              .country_name_independent;
+
   // Step: End the turn of the player.
   for( auto& [unit_id, p_state] : ss.units.euro_all() ) {
     Unit& unit = ss.units.unit_for( unit_id );

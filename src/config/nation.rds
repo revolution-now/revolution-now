@@ -54,6 +54,9 @@ struct.Nation {
   # The king of ____ has declared...
   country_name 'std::string',
 
+  # Country name post independence.
+  country_name_independent 'std::string',
+
   # The old world port city is named ___.
   harbor_city_name 'std::string',
 
