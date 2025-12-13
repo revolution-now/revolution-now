@@ -116,28 +116,6 @@ maybe<ColonyNotification::spoilage> check_spoilage(
     .spoiled = std::move( spoiled ) };
 }
 
-config::colony::construction_requirements materials_needed(
-    Construction const& construction ) {
-  switch( construction.to_enum() ) {
-    using e = Construction::e;
-    case e::building: {
-      auto& o = construction.get<Construction::building>();
-      return config_colony.requirements_for_building[o.what];
-    }
-    case e::unit: {
-      auto& o = construction.get<Construction::unit>();
-      maybe<config::colony::construction_requirements> const&
-          materials =
-              config_colony.requirements_for_unit[o.type];
-      CHECK( materials.has_value(),
-             "a colony is constructing unit {}, but that unit "
-             "is not buildable.",
-             o.type );
-      return *materials;
-    }
-  }
-}
-
 void check_create_or_starve_colonist(
     SS& ss, TS& ts, Player const& player, Colony& colony,
     ColonyProduction const& pr, bool& colony_disappeared,
@@ -218,123 +196,6 @@ void check_create_or_starve_colonist(
     if( percent_loss >= .25 )
       notifications.push_back(
           ColonyNotification::colony_starving{} );
-  }
-}
-
-void check_construction( SS& ss, TS& ts, Player const& player,
-                         Colony& colony, ColonyEvolution& ev ) {
-  if( !colony.construction.has_value() ) return;
-  Construction const& construction = *colony.construction;
-
-  // First check if it's a building that the colony already has.
-  if( auto building =
-          construction.get_if<Construction::building>();
-      building.has_value() ) {
-    if( colony.buildings[building->what] ) {
-      // We already have the building, but we will only notify
-      // the player (to minimize spam) if there are active car-
-      // penter's building.
-      if( !colony.indoor_jobs[e_indoor_job::hammers].empty() )
-        ev.notifications.emplace_back(
-            ColonyNotification::construction_already_finished{
-              .what = construction } );
-      return;
-    }
-  }
-
-  auto const requirements = materials_needed( construction );
-
-  if( colony_population( colony ) <
-      requirements.minimum_population ) {
-    ev.notifications.emplace_back(
-        ColonyNotification::construction_lacking_population{
-          .what = construction,
-          .required_population =
-              requirements.minimum_population } );
-    return;
-  }
-
-  if( requirements.required_building.has_value() &&
-      !colony_has_building_level(
-          colony, *requirements.required_building ) ) {
-    ev.notifications.emplace_back(
-        ColonyNotification::construction_lacking_building{
-          .what = construction,
-          .required_building =
-              *requirements.required_building } );
-    return;
-  }
-
-  if( colony.hammers < requirements.hammers ) return;
-
-  int const have_tools = colony.commodities[e_commodity::tools];
-
-  if( colony.commodities[e_commodity::tools] <
-      requirements.tools ) {
-    ev.notifications.emplace_back(
-        ColonyNotification::construction_missing_tools{
-          .what       = construction,
-          .have_tools = have_tools,
-          .need_tools = requirements.tools } );
-    return;
-  }
-
-  // Check wagon train count limit.
-  SWITCH( construction ) {
-    CASE( building ) { break; }
-    CASE( unit ) {
-      if( unit.type != e_unit_type::wagon_train ) break;
-      if( wagon_train_limit_exceeded( ss,
-                                      as_const( player ) ) ) {
-        ev.notifications.emplace_back(
-            ColonyNotification::wagon_train_limit_reached{} );
-        return;
-      }
-      break;
-    }
-  }
-
-  // In the original game, when a construction finishes it resets
-  // the hammers to zero, even if we've accumulated more than we
-  // need (waiting for tools). If we didn't do this then it might
-  // not give the player an incentive to get the tools in a
-  // timely manner, since they would never lose hammers. That
-  // said, it does appear to allow hammers to accumulate after a
-  // construction (while we are waiting for the player to change
-  // construction) and those hammers can then be reused on the
-  // next construction (to some extent, depending on difficulty
-  // level).
-  colony.hammers = 0;
-  colony.commodities[e_commodity::tools] -= requirements.tools;
-  CHECK_GE( colony.commodities[e_commodity::tools], 0 );
-
-  ev.notifications.emplace_back(
-      ColonyNotification::construction_complete{
-        .what = construction } );
-
-  switch( construction.to_enum() ) {
-    using e = Construction::e;
-    case e::building: {
-      auto& o = construction.get<Construction::building>();
-      add_colony_building( colony, o.what );
-      DCHECK( !ev.built.has_value() );
-      ev.built = o.what;
-      return;
-    }
-    case e::unit: {
-      auto& o = construction.get<Construction::unit>();
-      // We need a real map updater here because e.g. theoreti-
-      // cally we could construct a unit that has a two-square
-      // sighting radius and that might cause new squares to be-
-      // come visible, which would have to be rendered. That
-      // said, in the original game, no unit that can be con-
-      // structed in this manner has a sighting radius of more
-      // than one.
-      create_unit_on_map_non_interactive( ss, ts.map_updater(),
-                                          player, o.type,
-                                          colony.location );
-      break;
-    }
   }
 }
 
@@ -916,7 +777,17 @@ ColonyEvolution evolve_colony_one_turn( SS& ss, TS& ts,
 
   check_ran_out_of_raw_materials( ev );
 
-  check_construction( ss, ts, as_const( player ), colony, ev );
+  auto const built = evolve_colony_construction(
+      ss, ts, as_const( player ), colony, ev.notifications );
+  if( built.has_value() ) {
+    SWITCH( *built ) {
+      CASE( building ) {
+        ev.built = building.what;
+        break;
+      }
+      CASE( unit ) { break; }
+    }
+  }
 
   // This determines which (and how much) of each commodity
   // should be sold this turn by the custom house. It will then

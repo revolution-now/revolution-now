@@ -1207,5 +1207,9 @@ TEST_WORLD( "[construction] wagon_train_limit_exceeded" ) {
   }
 }
 
+TEST_CASE( "[construction] evolve_colony_construction" ) {
+  world w;
+}
+
 } // namespace
 } // namespace rn

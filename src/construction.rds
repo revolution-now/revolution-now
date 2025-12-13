@@ -8,7 +8,9 @@
 # Description: Rds definitions for the construction module.
 #
 # ===============================================================
+# ss
 include "ss/colony.rds.hpp"
+include "ss/unit-id.hpp"
 
 namespace "rn"
 
@@ -25,4 +27,13 @@ struct.RushConstruction {
   # If we are disallowing rushing tools and there is a boycott on
   # tools this will be true.
   blocked_by_tools_boycott 'bool',
+}
+
+sumtype.ColonyBuilt {
+  unit {
+    unit_id 'UnitId',
+  },
+  building {
+    what 'e_colony_building',
+  },
 }

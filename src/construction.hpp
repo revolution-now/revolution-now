@@ -12,10 +12,11 @@
 
 #include "core-config.hpp"
 
-// Rds
+// rds
 #include "construction.rds.hpp"
 
 // Revolution Now
+#include "colony-notification.rds.hpp"
 #include "maybe.hpp"
 #include "wait.hpp"
 
@@ -27,6 +28,7 @@ namespace rn {
 struct IGui;
 struct Colony;
 struct Player;
+struct SS;
 struct SSConst;
 struct TS;
 
@@ -55,5 +57,11 @@ wait<> rush_construction_prompt(
 // time is limited. This will perform that check.
 [[nodiscard]] bool wagon_train_limit_exceeded(
     SSConst const& ss, Player const& player );
+
+// Called once per turn on each colony in order to evolve the
+// state of construction.
+maybe<ColonyBuilt> evolve_colony_construction(
+    SS& ss, TS& ts, Player const& player, Colony& colony,
+    std::vector<ColonyNotification>& notifications );
 
 } // namespace rn

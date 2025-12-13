@@ -1,0 +1,121 @@
+# ===============================================================
+# colony-notification.rds
+#
+# Project: Revolution Now
+#
+# Created by David P. Sicilia on 2025-12-13.
+#
+# Description: Rds definitions for the colony-notification module.
+#
+# ===============================================================
+# Revolution Now
+include "market.rds.hpp"
+
+# ss
+include "ss/colony-enums.rds.hpp"
+include "ss/colony.rds.hpp"
+include "ss/commodity.rds.hpp"
+include "ss/terrain-enums.rds.hpp"
+include "ss/unit-id.hpp"
+include "ss/unit-type.rds.hpp"
+
+# C++ standard library
+include "<vector>"
+
+namespace "rn"
+
+sumtype.ColonyNotification {
+  new_colonist {
+    id 'UnitId',
+  },
+  colony_starving {},
+  colonist_starved {
+    # Here we only give the unit type since by the time someone
+    # reads this message, the unit will already have been
+    # deleted.
+    type 'e_unit_type',
+  },
+  spoilage {
+    spoiled 'std::vector<Commodity>',
+  },
+  full_cargo {
+    what 'e_commodity',
+  },
+  run_out_of_raw_material {
+    what 'e_commodity',
+    job 'e_indoor_job',
+  },
+  construction_missing_tools {
+    what 'Construction',
+    have_tools 'int',
+    need_tools 'int',
+  },
+  construction_complete {
+    what 'Construction',
+  },
+  construction_already_finished {
+    what 'Construction',
+  },
+  construction_lacking_population {
+    # The UI should not allow initiating construction of some-
+    # thing when the population is lacking, so this message would
+    # only get displayed if the colony population dropped below
+    # the minimum required after construction was initiated.
+    what 'Construction',
+    required_population 'int',
+  },
+  construction_lacking_building {
+    # The UI should not allow initiating construction of some-
+    # thing when the population is lacking, so this message would
+    # only get displayed if a required building in the colony
+    # were destroyed (e.g., but an attack from natives) after
+    # construction was initiated.
+    what 'Construction',
+    required_building 'e_colony_building',
+  },
+  sons_of_liberty_increased {
+    from 'int', # integral percents.
+    to 'int',
+  },
+  sons_of_liberty_decreased {
+    from 'int', # integral percents.
+    to 'int',
+  },
+  unit_promoted {
+    # This is a unit that has been promoted through on-the-job
+    # training. In rare circumstances there could be more than
+    # one unit per turn per colony that gets promoted, but if
+    # that happens, each unit will get its own notification ob-
+    # ject, hence there is only one unit here. We could have in-
+    # cluded the unit id here but it is not really needed for the
+    # notification.
+    promoted_to 'e_unit_type',
+  },
+  unit_taught {
+    # A unit was promoted as a result of teaching.
+    from 'e_unit_type',
+    to   'e_unit_type',
+  },
+  teacher_but_no_students {
+    # There are teachers in the colony but no units that can be
+    # promoted (they are all experts working in the colony).
+    teacher_type 'e_unit_type',
+  },
+  custom_house_sales {
+    # What did the custom house sell this turn.
+    what 'std::vector<Invoice>',
+  },
+  custom_house_selling_boycotted_good {
+    # When the "respect_boycotts" config flag is enabled, which
+    # it is by default, the player will be notified when the
+    # custom house in a colony is attempting to sell boycotted
+    # goods (which it cannot do).
+    what 'std::vector<e_commodity>',
+  },
+  prime_resource_depleted {
+    what 'e_natural_resource',
+    partial_depletion 'bool',
+  },
+  wagon_train_limit_reached {},
+}
+
