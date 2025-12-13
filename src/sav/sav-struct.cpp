@@ -6151,7 +6151,8 @@ void to_str( NATION const& o, std::string& out, base::tag<NATION> ) {
   out += "prob_founding_father_count_end="; base::to_str( o.prob_founding_father_count_end, out ); out += ',';
   out += "villages_burned="; base::to_str( o.villages_burned, out ); out += ',';
   out += "rebel_sentiment="; base::to_str( o.rebel_sentiment, out ); out += ',';
-  out += "unknown23="; base::to_str( o.unknown23, out ); out += ',';
+  out += "total_rebels_last_report="; base::to_str( o.total_rebels_last_report, out ); out += ',';
+  out += "unknown23a="; base::to_str( o.unknown23a, out ); out += ',';
   out += "artillery_bought_count="; base::to_str( o.artillery_bought_count, out ); out += ',';
   out += "boycott_bitmap="; base::to_str( o.boycott_bitmap, out ); out += ',';
   out += "royal_money="; base::to_str( o.royal_money, out ); out += ',';
@@ -6187,7 +6188,8 @@ bool read_binary( base::IBinaryIO& b, NATION& o ) {
     && read_binary( b, o.prob_founding_father_count_end )
     && read_binary( b, o.villages_burned )
     && read_binary( b, o.rebel_sentiment )
-    && read_binary( b, o.unknown23 )
+    && read_binary( b, o.total_rebels_last_report )
+    && read_binary( b, o.unknown23a )
     && read_binary( b, o.artillery_bought_count )
     && read_binary( b, o.boycott_bitmap )
     && read_binary( b, o.royal_money )
@@ -6222,7 +6224,8 @@ bool write_binary( base::IBinaryIO& b, NATION const& o ) {
     && write_binary( b, o.prob_founding_father_count_end )
     && write_binary( b, o.villages_burned )
     && write_binary( b, o.rebel_sentiment )
-    && write_binary( b, o.unknown23 )
+    && write_binary( b, o.total_rebels_last_report )
+    && write_binary( b, o.unknown23a )
     && write_binary( b, o.artillery_bought_count )
     && write_binary( b, o.boycott_bitmap )
     && write_binary( b, o.royal_money )
@@ -6259,7 +6262,8 @@ cdr::value to_canonical( cdr::converter& conv,
   conv.to_field( tbl, "prob_founding_father_count_end", o.prob_founding_father_count_end );
   conv.to_field( tbl, "villages_burned", o.villages_burned );
   conv.to_field( tbl, "rebel_sentiment", o.rebel_sentiment );
-  conv.to_field( tbl, "unknown23", o.unknown23 );
+  conv.to_field( tbl, "total_rebels_last_report", o.total_rebels_last_report );
+  conv.to_field( tbl, "unknown23a", o.unknown23a );
   conv.to_field( tbl, "artillery_bought_count", o.artillery_bought_count );
   conv.to_field( tbl, "boycott_bitmap", o.boycott_bitmap );
   conv.to_field( tbl, "royal_money", o.royal_money );
@@ -6290,7 +6294,8 @@ cdr::value to_canonical( cdr::converter& conv,
     "prob_founding_father_count_end",
     "villages_burned",
     "rebel_sentiment",
-    "unknown23",
+    "total_rebels_last_report",
+    "unknown23a",
     "artillery_bought_count",
     "boycott_bitmap",
     "royal_money",
@@ -6331,7 +6336,8 @@ cdr::result<NATION> from_canonical(
   CONV_FROM_FIELD( "prob_founding_father_count_end", prob_founding_father_count_end );
   CONV_FROM_FIELD( "villages_burned", villages_burned );
   CONV_FROM_FIELD( "rebel_sentiment", rebel_sentiment );
-  CONV_FROM_FIELD( "unknown23", unknown23 );
+  CONV_FROM_FIELD( "total_rebels_last_report", total_rebels_last_report );
+  CONV_FROM_FIELD( "unknown23a", unknown23a );
   CONV_FROM_FIELD( "artillery_bought_count", artillery_bought_count );
   CONV_FROM_FIELD( "boycott_bitmap", boycott_bitmap );
   CONV_FROM_FIELD( "royal_money", royal_money );

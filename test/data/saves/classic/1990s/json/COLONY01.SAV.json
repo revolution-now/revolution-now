@@ -19289,7 +19289,8 @@
       "prob_founding_father_count_end": "00 00",
       "villages_burned": 1,
       "rebel_sentiment": 48,
-      "unknown23": "36 00 00 00",
+      "total_rebels_last_report": 54,
+      "unknown23a": "00 00 00",
       "artillery_bought_count": 0,
       "boycott_bitmap": {
         "food": false,
@@ -19532,7 +19533,8 @@
       "prob_founding_father_count_end": "00 00",
       "villages_burned": 0,
       "rebel_sentiment": 58,
-      "unknown23": "4c 00 00 00",
+      "total_rebels_last_report": 76,
+      "unknown23a": "00 00 00",
       "artillery_bought_count": 0,
       "boycott_bitmap": {
         "food": false,
@@ -19775,7 +19777,8 @@
       "prob_founding_father_count_end": "00 00",
       "villages_burned": 8,
       "rebel_sentiment": 11,
-      "unknown23": "00 00 00 00",
+      "total_rebels_last_report": 0,
+      "unknown23a": "00 00 00",
       "artillery_bought_count": 0,
       "boycott_bitmap": {
         "food": false,
@@ -20018,7 +20021,8 @@
       "prob_founding_father_count_end": "00 00",
       "villages_burned": 15,
       "rebel_sentiment": 100,
-      "unknown23": "00 00 00 00",
+      "total_rebels_last_report": 0,
+      "unknown23a": "00 00 00",
       "artillery_bought_count": 4,
       "boycott_bitmap": {
         "food": false,

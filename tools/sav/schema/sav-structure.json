@@ -326,6 +326,7 @@
             "tools": "1110",
             "muskets": "1111"
         },
+        "__hint_relation_3bit_type": "When an AI nation is granted independence it will change to post_granted_independnece, but then if the player declares it will again change to peace.",
         "relation_3bit_type":
         {
             "self/vanished/not met": "000",
@@ -1132,7 +1133,8 @@
                 "prob_founding_father_count_end",
                 "villages_burned",
                 "rebel_sentiment",
-                "unknown23",
+                "total_rebels_last_report",
+                "unknown23a",
                 "artillery_bought_count",
                 "boycott_bitmap",
                 "royal_money",
@@ -1241,7 +1243,8 @@
             "prob_founding_father_count_end": {"size": 2},
             "villages_burned": {"size": 1, "type": "uint"},
             "rebel_sentiment": {"size": 1, "type": "int", "__hint": "0-100, rebel sentiment for nation. Computed each turn, but appears unused; instead rebel_sentiment_report in the header is used for all nations."},
-            "unknown23": {"size": 4},
+            "total_rebels_last_report": {"size": 1, "type": "uint", "__hint": "Tracks the last rebel count reported for the nation when it is AI (only).  After the AI nation is granted independence this stops getting updated. Note this is only for reporting; the actual value is likely computed from rebel_sentiment."},
+            "unknown23a": {"size": 3},
             "artillery_bought_count": {"size": 2, "type": "uint"},
             "boycott_bitmap":
             {

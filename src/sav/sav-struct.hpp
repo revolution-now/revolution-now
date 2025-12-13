@@ -2584,7 +2584,8 @@ struct NATION {
   bytes<2> prob_founding_father_count_end = {};
   uint8_t villages_burned = {};
   int8_t rebel_sentiment = {};
-  bytes<4> unknown23 = {};
+  uint8_t total_rebels_last_report = {};
+  bytes<3> unknown23a = {};
   uint16_t artillery_bought_count = {};
   BoycottBitmap boycott_bitmap = {};
   int32_t royal_money = {};
