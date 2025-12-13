@@ -111,6 +111,11 @@ bool should_do_war_of_succession( SSConst const& ss,
   return true;
 }
 
+// NOTE: experiments in the OG indicate that the selection of the
+// nation that withdraws is agnostic to whether that nation was
+// granted independence already or not. In other words, a nation
+// can be chosen to withdraw even if it has already been granted
+// its independence.
 WarOfSuccessionNations select_players_for_war_of_succession(
     SSConst const& ss ) {
   vector<e_nation> ai_nations;
