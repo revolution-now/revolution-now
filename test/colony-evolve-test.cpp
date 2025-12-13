@@ -18,6 +18,9 @@
 #include "test/mocking.hpp"
 #include "test/mocks/irand.hpp"
 
+// config
+#include "src/config/options.rds.hpp"
+
 // ss
 #include "src/ss/colony.hpp"
 #include "src/ss/map.rds.hpp"
@@ -900,6 +903,83 @@ TEST_CASE( "[colony-evolve] evolves bells" ) {
   REQUIRE( player.bells == 0 );
 }
 
+TEST_CASE(
+    "[colony-evolve] generate_colony_notification_message" ) {
+  world w;
+  ColonyNotificationMessage expected;
+  ColonyNotification notification;
+
+  Colony& colony = w.add_colony( { .x = 1, .y = 1 } );
+  colony.name    = "my col";
+
+  auto const f = [&] [[clang::noinline]] {
+    return generate_colony_notification_message(
+        w.ss(), colony, as_const( notification ) );
+  };
+
+  // wagon_train_limit_reached
+  notification = ColonyNotification::wagon_train_limit_reached{};
+  w.settings()
+      .game_setup_options.customized_rules
+      .wagon_train_limit_mode =
+      config::options::e_wagon_train_limit_mode::classic;
+  expected = ColonyNotificationMessage{
+    .msg =
+        "[my col] is producing Wagon Trains but we have reached "
+        "the current limit on Wagon Trains. We can build at "
+        "most one Wagon Train for each colony." };
+  REQUIRE( f() == expected );
+  w.settings()
+      .game_setup_options.customized_rules
+      .wagon_train_limit_mode =
+      config::options::e_wagon_train_limit_mode::population;
+  expected = ColonyNotificationMessage{
+    .msg =
+        "[my col] is producing Wagon Trains but we have reached "
+        "the current limit on Wagon Trains. Beyond the first "
+        "Wagon Train, we can build at most one Wagon Train per "
+        "four colonists in our colonies." };
+  REQUIRE( f() == expected );
+
+  // TODO: new_colonist
+
+  // TODO: colony_starving
+
+  // TODO: colonist_starved
+
+  // TODO: spoilage
+
+  // TODO: full_cargo
+
+  // TODO: run_out_of_raw_material
+
+  // TODO: construction_missing_tools
+
+  // TODO: construction_complete
+
+  // TODO: construction_already_finished
+
+  // TODO: construction_lacking_population
+
+  // TODO: construction_lacking_building
+
+  // TODO: sons_of_liberty_increased
+
+  // TODO: sons_of_liberty_decreased
+
+  // TODO: unit_promoted
+
+  // TODO: unit_taught
+
+  // TODO: teacher_but_no_students
+
+  // TODO: custom_house_sales
+
+  // TODO: custom_house_selling_boycotted_good
+
+  // TODO: prime_resource_depleted
+}
+
 TEST_CASE( "[colony-evolve] applies production" ) {
   world W;
   // TODO
@@ -931,11 +1011,6 @@ TEST_CASE( "[colony-evolve] colonist starved" ) {
 TEST_CASE( "[colony-evolve] evolves sons of liberty" ) {
   world W;
   // TODO
-}
-
-TEST_CASE(
-    "[colony-evolve] generate_colony_notification_message" ) {
-  world w;
 }
 
 } // namespace
