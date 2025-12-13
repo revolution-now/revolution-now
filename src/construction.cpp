@@ -383,13 +383,13 @@ maybe<ColonyBuilt> evolve_colony_construction(
   Construction const& construction = *colony.construction;
 
   // First check if it's a building that the colony already has.
-  if( auto building =
+  if( auto const building =
           construction.get_if<Construction::building>();
       building.has_value() ) {
     if( colony.buildings[building->what] ) {
       // We already have the building, but we will only notify
       // the player (to minimize spam) if there are active car-
-      // penter's building.
+      // penters working.
       if( !colony.indoor_jobs[e_indoor_job::hammers].empty() )
         notifications.emplace_back(
             ColonyNotification::construction_already_finished{
@@ -468,16 +468,13 @@ maybe<ColonyBuilt> evolve_colony_construction(
       ColonyNotification::construction_complete{
         .what = construction } );
 
-  switch( construction.to_enum() ) {
-    using e = Construction::e;
-    case e::building: {
-      auto& o = construction.get<Construction::building>();
-      add_colony_building( colony, o.what );
-      res = ColonyBuilt::building{ .what = o.what };
+  SWITCH( construction ) {
+    CASE( building ) {
+      add_colony_building( colony, building.what );
+      res = ColonyBuilt::building{ .what = building.what };
       return res;
     }
-    case e::unit: {
-      auto& o = construction.get<Construction::unit>();
+    CASE( unit ) {
       // We need a real map updater here because e.g. theoreti-
       // cally we could construct a unit that has a two-square
       // sighting radius and that might cause new squares to be-
@@ -486,7 +483,7 @@ maybe<ColonyBuilt> evolve_colony_construction(
       // structed in this manner has a sighting radius of more
       // than one.
       UnitId const unit_id = create_unit_on_map_non_interactive(
-          ss, ts.map_updater(), player, o.type,
+          ss, ts.map_updater(), player, unit.type,
           colony.location );
       res = ColonyBuilt::unit{ .unit_id = unit_id };
       return res;

@@ -26,6 +26,7 @@
 #include "src/ss/ref.hpp"
 #include "src/ss/settings.rds.hpp"
 #include "src/ss/unit-composition.hpp"
+#include "src/ss/units.hpp"
 
 // Must be last.
 #include "test/catch-common.hpp"
@@ -1209,6 +1210,196 @@ TEST_WORLD( "[construction] wagon_train_limit_exceeded" ) {
 
 TEST_CASE( "[construction] evolve_colony_construction" ) {
   world w;
+  ColonyBuilt expected;
+  vector<ColonyNotification> notifications;
+  vector<ColonyNotification> expected_notifications;
+
+  Colony& colony = w.add_colony( { .x = 1, .y = 1 } );
+
+  auto const f = [&] [[clang::noinline]] {
+    notifications.clear();
+    return evolve_colony_construction( w.ss(), w.ts(),
+                                       w.default_player(),
+                                       colony, notifications );
+  };
+
+  using N = ColonyNotification;
+
+  // Default.
+  expected_notifications = {};
+  REQUIRE( f() == nothing );
+  REQUIRE( notifications == expected_notifications );
+
+  // Already has docks (no carpenters).
+  colony.buildings[e_colony_building::docks] = true;
+  colony.construction =
+      Construction::building{ .what = e_colony_building::docks };
+  expected_notifications = {};
+  REQUIRE( f() == nothing );
+  REQUIRE( notifications == expected_notifications );
+  REQUIRE( colony.buildings[e_colony_building::docks] == true );
+  colony.buildings[e_colony_building::docks] = false;
+
+  // Already has docks (with carpenters).
+  colony.buildings[e_colony_building::docks] = true;
+  w.add_unit_indoors( colony.id, e_indoor_job::hammers );
+  colony.construction =
+      Construction::building{ .what = e_colony_building::docks };
+  expected_notifications = {
+    N::construction_already_finished{
+      .what =
+          Construction::building{
+            .what = e_colony_building::docks } },
+  };
+  REQUIRE( f() == nothing );
+  REQUIRE( notifications == expected_notifications );
+  REQUIRE( colony.buildings[e_colony_building::docks] == true );
+  colony.buildings[e_colony_building::docks] = false;
+
+  // Lacking population.
+  colony.construction = Construction::building{
+    .what = e_colony_building::stockade };
+  expected_notifications = {
+    N::construction_lacking_population{
+      .what =
+          Construction::building{
+            .what = e_colony_building::stockade },
+      .required_population = 3 },
+  };
+  REQUIRE( f() == nothing );
+  REQUIRE( notifications == expected_notifications );
+  REQUIRE( colony.buildings[e_colony_building::stockade] ==
+           false );
+
+  // Lacking buiding.
+  colony.construction = Construction::building{
+    .what = e_colony_building::warehouse_expansion };
+  expected_notifications = {
+    N::construction_lacking_building{
+      .what =
+          Construction::building{
+            .what = e_colony_building::warehouse_expansion },
+      .required_building = e_colony_building::warehouse },
+  };
+  REQUIRE( f() == nothing );
+  REQUIRE( notifications == expected_notifications );
+  REQUIRE(
+      colony.buildings[e_colony_building::warehouse_expansion] ==
+      false );
+
+  // Lacking hammers.
+  colony.buildings[e_colony_building::warehouse] = true;
+  colony.construction = Construction::building{
+    .what = e_colony_building::warehouse_expansion };
+  expected_notifications = {};
+  REQUIRE( f() == nothing );
+  REQUIRE( notifications == expected_notifications );
+  REQUIRE(
+      colony.buildings[e_colony_building::warehouse_expansion] ==
+      false );
+
+  // Lacking hammers still.
+  colony.hammers      = 79;
+  colony.construction = Construction::building{
+    .what = e_colony_building::warehouse_expansion };
+  expected_notifications = {};
+  REQUIRE( f() == nothing );
+  REQUIRE( notifications == expected_notifications );
+  REQUIRE(
+      colony.buildings[e_colony_building::warehouse_expansion] ==
+      false );
+
+  // Lacking tools.
+  colony.hammers                         = 80;
+  colony.commodities[e_commodity::tools] = 10;
+  colony.construction = Construction::building{
+    .what = e_colony_building::warehouse_expansion };
+  expected_notifications = { N::construction_missing_tools{
+    .what =
+        Construction::building{
+          .what = e_colony_building::warehouse_expansion },
+    .have_tools = 10,
+    .need_tools = 20 } };
+  REQUIRE( f() == nothing );
+  REQUIRE( notifications == expected_notifications );
+  REQUIRE( colony.hammers == 80 );
+  REQUIRE( colony.commodities[e_commodity::tools] == 10 );
+  REQUIRE(
+      colony.buildings[e_colony_building::warehouse_expansion] ==
+      false );
+
+  // Built building.
+  colony.hammers                         = 82;
+  colony.commodities[e_commodity::tools] = 23;
+  colony.construction = Construction::building{
+    .what = e_colony_building::warehouse_expansion };
+  expected_notifications = { N::construction_complete{
+    .what = Construction::building{
+      .what = e_colony_building::warehouse_expansion } } };
+  expected               = ColonyBuilt::building{
+                  .what = e_colony_building::warehouse_expansion };
+  REQUIRE( f() == expected );
+  REQUIRE( notifications == expected_notifications );
+  REQUIRE( colony.hammers == 0 ); // NOTE: not 2.
+  REQUIRE( colony.commodities[e_commodity::tools] == 3 );
+  REQUIRE(
+      colony.buildings[e_colony_building::warehouse_expansion] ==
+      true );
+
+  // Build wagon train (lacking hammers).
+  colony.hammers                         = 39;
+  colony.commodities[e_commodity::tools] = 0;
+  colony.construction =
+      Construction::unit{ .type = e_unit_type::wagon_train };
+  expected_notifications = {};
+  REQUIRE( f() == nothing );
+  REQUIRE( notifications == expected_notifications );
+  REQUIRE( w.units().all().size() == 1 ); // nothing built.
+  REQUIRE( colony.hammers == 39 );
+  REQUIRE( colony.commodities[e_commodity::tools] == 0 );
+
+  // Build wagon train.
+  colony.hammers                         = 40;
+  colony.commodities[e_commodity::tools] = 0;
+  colony.construction =
+      Construction::unit{ .type = e_unit_type::wagon_train };
+  expected_notifications = { N::construction_complete{
+    .what = Construction::unit{
+      .type = e_unit_type::wagon_train } } };
+  expected = ColonyBuilt::unit{ .unit_id = UnitId{ 2 } };
+  REQUIRE( f() == expected );
+  REQUIRE( notifications == expected_notifications );
+  REQUIRE( w.units().all().size() == 2 ); // one built.
+  REQUIRE( colony.hammers == 0 );
+  REQUIRE( colony.commodities[e_commodity::tools] == 0 );
+
+  // Build wagon train (limit exceeded).
+  colony.hammers                         = 40;
+  colony.commodities[e_commodity::tools] = 0;
+  colony.construction =
+      Construction::unit{ .type = e_unit_type::wagon_train };
+  expected_notifications = { N::wagon_train_limit_reached{} };
+  REQUIRE( f() == nothing );
+  REQUIRE( notifications == expected_notifications );
+  REQUIRE( w.units().all().size() == 2 ); // nothing built.
+  REQUIRE( colony.hammers == 40 );
+  REQUIRE( colony.commodities[e_commodity::tools] == 0 );
+
+  // Build caraval.
+  colony.hammers                                = 128;
+  colony.commodities[e_commodity::tools]        = 40;
+  colony.buildings[e_colony_building::shipyard] = true;
+  colony.construction =
+      Construction::unit{ .type = e_unit_type::caravel };
+  expected_notifications = { N::construction_complete{
+    .what =
+        Construction::unit{ .type = e_unit_type::caravel } } };
+  expected = ColonyBuilt::unit{ .unit_id = UnitId{ 3 } };
+  REQUIRE( f() == expected );
+  REQUIRE( notifications == expected_notifications );
+  REQUIRE( w.units().all().size() == 3 ); // one built.
+  REQUIRE( colony.hammers == 0 );
+  REQUIRE( colony.commodities[e_commodity::tools] == 0 );
 }
 
 } // namespace

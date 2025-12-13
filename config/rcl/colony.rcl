@@ -576,7 +576,7 @@ requirements_for_unit  {
   # NAMES.TXT in the @Units section (hammers=cost*32, tools=tool-
   # s*10). So it would be:
   #
-  #   artillery: {
+  #   man_o_war: {
   #     hammers:             1024
   #     tools:               900
   #     required_building:   shipyard
