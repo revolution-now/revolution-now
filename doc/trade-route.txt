@@ -1,8 +1,3 @@
-TODO:
-
-  * Go through the trade route files and put more stuff in the
-    configs.
-
 Maybe in the future:
 
   * Allow editing the trade route of a unit by right clicking on
@@ -214,3 +209,6 @@ Done:
     allows going with an alternate mode with the number of wagon
     trains will be max( 1, P/4 ) where P is the total in-colony
     population of all colonies.
+
+  * Go through the trade route files and put more stuff in the
+    configs.
