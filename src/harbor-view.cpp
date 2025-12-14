@@ -79,8 +79,8 @@ void check_selected_unit_in_harbor( SS& ss,
   //
   // So we'll keep these as debug-only checks and then log an
   // error afterward and clean up.
-  DCHECK( ss.units.exists( id ) );
-  DCHECK( ss.units.maybe_harbor_view_state_of( id ) );
+  DCHECK( ss.units.exists( unit_id ) );
+  DCHECK( ss.units.maybe_harbor_view_state_of( unit_id ) );
   if( !ss.units.exists( unit_id ) ||
       !ss.units.maybe_harbor_view_state_of( unit_id ) ) {
     lg.error(
