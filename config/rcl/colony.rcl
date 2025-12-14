@@ -25,11 +25,8 @@ founding {
   #
   # One more related note: if a colony is situated such that the
   # only adjacent land tiles to it have native dwellings on them
-  # then we have a similar problem. To avoid this (unlike the OG)
-  # the REF in the NG is allowed to displace dwellings when it
-  # must do so in order to land next to a colony. So that, to-
-  # gether with setting this flag to false, should eliminate all
-  # such issues in the NG.
+  # then we have a similar problem. That issue must be handled
+  # separately.
   #
   # Note that if this flag is true then the player will be able
   # to found on islands but they will still be given a warning
