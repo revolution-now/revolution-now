@@ -25,8 +25,9 @@ founding {
   #
   # One more related note: if a colony is situated such that the
   # only adjacent land tiles to it have native dwellings on them
-  # then we have a similar problem. That issue must be handled
-  # separately.
+  # then we have a similar problem. That issue is handled sepa-
+  # rately (upon declaring, any such colonies will have one of
+  # their adjacent dwellings removed to make way for the REF).
   #
   # Note that if this flag is true then the player will be able
   # to found on islands but they will still be given a warning

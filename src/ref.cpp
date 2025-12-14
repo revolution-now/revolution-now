@@ -826,6 +826,10 @@ maybe<RefLanding> produce_REF_landing_units(
     // about end-game consequences (namely, the stalling men-
     // tioned above).
     //
+    // The second case should also already be handled in that
+    // when independence is declared we will search for any such
+    // colonies and remove one dwelling from their surroundings
+    // to make way for the REF (and we give the user a message).
     return nothing;
   }
   // If valid_landings were empty then that means that the score
