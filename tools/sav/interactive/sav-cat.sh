@@ -26,7 +26,7 @@ tmp_file="/tmp/$sav_file.json"
 log "tmp_file: $tmp_file"
 rm -f "$tmp_file"
 
-log "converting $sav_file to JSON file $tmp_file..." 1>&2
+log "converting $sav_file to JSON file $tmp_file..."
 $conv/binary-to-json.sh "$sav_file" "$tmp_file"
 [[ -e "$tmp_file" ]]
 
