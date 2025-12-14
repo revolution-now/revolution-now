@@ -60,9 +60,9 @@ TerrainConnectivity compute_terrain_connectivity(
 // Is one of the tiles adjacent to `tile` connected to a segment
 // that touches one of the edges of the map? This is used e.g. to
 // tell if a colony square has access to the ocean.
-[[nodiscard]] bool colony_has_ocean_access(
+[[nodiscard]] bool tile_has_surrounding_ocean_access(
     SSConst const& ss, TerrainConnectivity const& connectivity,
-    Coord tile );
+    gfx::point tile );
 
 // For this to return true the two tiles need to be either both
 // land or both water and they need to be connected.

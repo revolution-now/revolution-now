@@ -196,9 +196,9 @@ bool is_inland_lake( TerrainConnectivity const& conn,
   return !water_square_has_ocean_access( conn, tile );
 }
 
-bool colony_has_ocean_access(
+bool tile_has_surrounding_ocean_access(
     SSConst const& ss, TerrainConnectivity const& connectivity,
-    Coord tile ) {
+    point const tile ) {
   CHECK( ss.terrain.square_at( tile ).surface ==
          e_surface::land );
   for( e_direction const d : refl::enum_values<e_direction> ) {

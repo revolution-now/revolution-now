@@ -104,7 +104,7 @@ struct BuildHandler : public CommandHandler {
     }
 
     Coord const location = ss_.units.coord_for( unit_id );
-    if( !colony_has_ocean_access(
+    if( !tile_has_surrounding_ocean_access(
             ss_, ts_.map_updater().connectivity(), location ) ) {
       maybe<ui::e_confirm> const answer =
           co_await agent_.confirm_build_inland_colony();

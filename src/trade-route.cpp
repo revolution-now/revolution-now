@@ -520,8 +520,8 @@ wait<maybe<CreateTradeRoute>> ask_create_trade_route(
       ss.colonies.colony_for( *first_colony_id );
   using enum e_trade_route_type;
   e_trade_route_type type = land;
-  if( colony_has_ocean_access( ss, connectivity,
-                               first_colony.location ) ) {
+  if( tile_has_surrounding_ocean_access(
+          ss, connectivity, first_colony.location ) ) {
     EnumChoiceConfig const enum_config{
       .msg = "What kind of trade route will this be?" };
     auto const maybe_type =

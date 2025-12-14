@@ -648,10 +648,10 @@ TEST_CASE(
       W.found_colony_with_new_unit( { .x = 0, .y = 3 } );
 
   // Sanity check that we're testing what we think we're testing.
-  REQUIRE_FALSE( colony_has_ocean_access(
+  REQUIRE_FALSE( tile_has_surrounding_ocean_access(
       W.ss(), W.map_updater().connectivity(),
       colony1.location ) );
-  REQUIRE( colony_has_ocean_access(
+  REQUIRE( tile_has_surrounding_ocean_access(
       W.ss(), W.map_updater().connectivity(),
       colony2.location ) );
 

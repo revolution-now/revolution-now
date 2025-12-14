@@ -86,8 +86,8 @@ maybe<CommodityInColony> find_what_to_boycott(
   int largest_value = 0;
   for( ColonyId const colony_id : player_colonies ) {
     Colony const& colony = ss.colonies.colony_for( colony_id );
-    if( !colony_has_ocean_access( ss, connectivity,
-                                  colony.location ) )
+    if( !tile_has_surrounding_ocean_access( ss, connectivity,
+                                            colony.location ) )
       // In the OG, only colonies that have ocean (sea lane) ac-
       // cess can boycott, because boycotting entails "throwing
       // goods into the sea."

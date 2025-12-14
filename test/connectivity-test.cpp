@@ -439,7 +439,7 @@ TEST_CASE( "[connectivity] water_square_has_ocean_access" ) {
   }
 }
 
-TEST_CASE( "[connectivity] colony_has_ocean_access" ) {
+TEST_CASE( "[connectivity] tile_has_surrounding_ocean_access" ) {
   world w;
   MapSquare const _ = w.make_ocean();
   MapSquare const L = w.make_grassland();
@@ -453,7 +453,7 @@ TEST_CASE( "[connectivity] colony_has_ocean_access" ) {
   } );
 
   auto f = [&]( Coord coord ) {
-    return colony_has_ocean_access(
+    return tile_has_surrounding_ocean_access(
         w.ss(), w.map_updater().connectivity(), coord );
   };
 

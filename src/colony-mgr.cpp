@@ -648,7 +648,7 @@ vector<ColonyId> find_coastal_colonies(
       ss.colonies.for_player_sorted( player );
   erase_if( colonies, [&]( ColonyId const colony_id ) {
     Colony const& colony = ss.colonies.colony_for( colony_id );
-    bool const coastal   = colony_has_ocean_access(
+    bool const coastal   = tile_has_surrounding_ocean_access(
         ss, connectivity, colony.location );
     return !coastal;
   } );
