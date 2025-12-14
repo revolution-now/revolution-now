@@ -1,5 +1,8 @@
 TODO:
 
+  NOTE: more investigation needs to be done here, since probably
+  not all associated behavior has been captured.
+
   * At the start of the turn (after all units have moved, but be-
     fore the turn ends) a message is shown like "The King of
     Spain offers to send us a force of trained [mercenaries] (3
@@ -64,3 +67,6 @@ TODO:
           2 regulars, 1 cavalry   -> 4000, 4400, 4800, 5200, 5600, 6000, 6400
           3 regulars, 1 artillery -> 5000, 5500, 6000, 6500, 7000, 7500, 8000
           3 regulars, 1 cavalry   -> 5000, 5500, 6000, 6500, 7000, 7500, 8000
+        These seem to be the only four combinations available,
+        and the prices seem canned into two buckets, as shown
+        above.
