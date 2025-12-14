@@ -23,6 +23,7 @@
 // Revolution Now
 #include "src/harbor-units.hpp"
 #include "src/imap-updater.hpp"
+#include "src/player-mgr.hpp"
 
 // ss
 #include "src/ss/colonies.hpp"
@@ -517,10 +518,13 @@ TEST_CASE( "[declare] declare_independence" ) {
                                  player );
   };
 
-  // BEFORE: sanity check.
-
   w.settings().game_setup_options.difficulty =
       e_difficulty::conquistador;
+  auto& hb_state =
+      old_world_state( w.ss(), player.type ).harbor_state;
+  hb_state.selected_unit = UnitId{ 999 };
+
+  // BEFORE: sanity check.
 
   REQUIRE( player.revolution.status ==
            e_revolution_status::not_declared );
@@ -572,6 +576,7 @@ TEST_CASE( "[declare] declare_independence" ) {
   REQUIRE(
       player.fathers.pool[e_founding_father_type::military] ==
       e_founding_father::hernan_cortes );
+  REQUIRE( hb_state.selected_unit == UnitId{ 999 } );
 
   // ***********
   expected = DeclarationResult{
@@ -644,6 +649,7 @@ TEST_CASE( "[declare] declare_independence" ) {
   REQUIRE(
       player.fathers.pool[e_founding_father_type::military] ==
       nothing );
+  REQUIRE( hb_state.selected_unit == nothing );
 }
 
 } // namespace

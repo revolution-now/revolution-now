@@ -23,9 +23,12 @@
 
 // Revolution Now
 #include "src/plane-stack.hpp"
+#include "src/player-mgr.hpp"
 
 // ss
 #include "src/ss/dwelling.rds.hpp"
+#include "src/ss/old-world-state.rds.hpp"
+#include "src/ss/ref.hpp"
 #include "src/ss/unit.hpp"
 #include "src/ss/units.hpp"
 #include "src/ss/woodcut.rds.hpp"
@@ -85,9 +88,17 @@ TEST_CASE( "[unit-ownership] UnitOwnershipChanger" ) {
       W.add_unit_on_map( e_unit_type::caravel,
                          { .x = 0, .y = 0 } )
           .id();
+  UnitId const galleon_id =
+      W.add_unit_on_map( e_unit_type::galleon,
+                         { .x = 0, .y = 0 } )
+          .id();
 
   UnitOwnership expected_free_colonist, expected_missionary,
-      expected_caravel;
+      expected_caravel, expected_galleon;
+
+  HarborState& hb_state =
+      old_world_state( W.ss(), W.default_player_type() )
+          .harbor_state;
 
   auto ownership = [&]( UnitId unit_id ) {
     return as_const( W.units() ).ownership_of( unit_id );
@@ -103,7 +114,7 @@ TEST_CASE( "[unit-ownership] UnitOwnershipChanger" ) {
       UnitOwnership::world{ .coord = { .x = 3, .y = 0 } };
   expected_caravel =
       UnitOwnership::world{ .coord = { .x = 0, .y = 0 } };
-  REQUIRE( W.units().all().size() == 3 );
+  REQUIRE( W.units().all().size() == 4 );
   REQUIRE( W.units().exists( free_colonist_id ) );
   REQUIRE( W.units().exists( missionary_id ) );
   REQUIRE( W.units().exists( caravel_id ) );
@@ -123,7 +134,7 @@ TEST_CASE( "[unit-ownership] UnitOwnershipChanger" ) {
   expected_caravel =
       UnitOwnership::world{ .coord = { .x = 0, .y = 0 } };
   o( free_colonist_id ).change_to_free();
-  REQUIRE( W.units().all().size() == 3 );
+  REQUIRE( W.units().all().size() == 4 );
   REQUIRE( W.units().exists( free_colonist_id ) );
   REQUIRE( W.units().exists( missionary_id ) );
   REQUIRE( W.units().exists( caravel_id ) );
@@ -146,7 +157,7 @@ TEST_CASE( "[unit-ownership] UnitOwnershipChanger" ) {
   o( free_colonist_id )
       .change_to_map_non_interactive( W.map_updater(),
                                       { .x = 1, .y = 2 } );
-  REQUIRE( W.units().all().size() == 3 );
+  REQUIRE( W.units().all().size() == 4 );
   REQUIRE( W.units().exists( free_colonist_id ) );
   REQUIRE( W.units().exists( missionary_id ) );
   REQUIRE( W.units().exists( caravel_id ) );
@@ -172,7 +183,7 @@ TEST_CASE( "[unit-ownership] UnitOwnershipChanger" ) {
       .change_to_colony(
           W.ts(), colony,
           ColonyJob::indoor{ .job = e_indoor_job::tools } );
-  REQUIRE( W.units().all().size() == 3 );
+  REQUIRE( W.units().all().size() == 4 );
   REQUIRE( W.units().exists( free_colonist_id ) );
   REQUIRE( W.units().exists( missionary_id ) );
   REQUIRE( W.units().exists( caravel_id ) );
@@ -197,7 +208,7 @@ TEST_CASE( "[unit-ownership] UnitOwnershipChanger" ) {
       UnitOwnership::world{ .coord = { .x = 0, .y = 0 } };
   o( free_colonist_id )
       .change_to_cargo( caravel_id, /*starting_slot=*/0 );
-  REQUIRE( W.units().all().size() == 3 );
+  REQUIRE( W.units().all().size() == 4 );
   REQUIRE( W.units().exists( free_colonist_id ) );
   REQUIRE( W.units().exists( missionary_id ) );
   REQUIRE( W.units().exists( caravel_id ) );
@@ -223,7 +234,7 @@ TEST_CASE( "[unit-ownership] UnitOwnershipChanger" ) {
   expected_caravel =
       UnitOwnership::world{ .coord = { .x = 0, .y = 0 } };
   o( missionary_id ).change_to_dwelling( dwelling.id );
-  REQUIRE( W.units().all().size() == 3 );
+  REQUIRE( W.units().all().size() == 4 );
   REQUIRE( W.units().exists( free_colonist_id ) );
   REQUIRE( W.units().exists( missionary_id ) );
   REQUIRE( W.units().exists( caravel_id ) );
@@ -250,7 +261,7 @@ TEST_CASE( "[unit-ownership] UnitOwnershipChanger" ) {
       UnitOwnership::world{ .coord = { .x = 0, .y = 0 } };
   o( missionary_id )
       .change_to_cargo( caravel_id, /*starting_slot=*/0 );
-  REQUIRE( W.units().all().size() == 3 );
+  REQUIRE( W.units().all().size() == 4 );
   REQUIRE( W.units().exists( free_colonist_id ) );
   REQUIRE( W.units().exists( missionary_id ) );
   REQUIRE( W.units().exists( caravel_id ) );
@@ -279,7 +290,7 @@ TEST_CASE( "[unit-ownership] UnitOwnershipChanger" ) {
   o( caravel_id )
       .change_to_harbor( PortStatus::inbound{ .turns = 0 },
                          Coord{} );
-  REQUIRE( W.units().all().size() == 3 );
+  REQUIRE( W.units().all().size() == 4 );
   REQUIRE( W.units().exists( free_colonist_id ) );
   REQUIRE( W.units().exists( missionary_id ) );
   REQUIRE( W.units().exists( caravel_id ) );
@@ -308,7 +319,7 @@ TEST_CASE( "[unit-ownership] UnitOwnershipChanger" ) {
   o( caravel_id )
       .change_to_harbor( PortStatus::outbound{ .turns = 4 },
                          Coord{} );
-  REQUIRE( W.units().all().size() == 3 );
+  REQUIRE( W.units().all().size() == 4 );
   REQUIRE( W.units().exists( free_colonist_id ) );
   REQUIRE( W.units().exists( missionary_id ) );
   REQUIRE( W.units().exists( caravel_id ) );
@@ -336,7 +347,7 @@ TEST_CASE( "[unit-ownership] UnitOwnershipChanger" ) {
     .sailed_from = Coord{ .x = 0, .y = 0 } };
   o( caravel_id )
       .change_to_harbor( PortStatus::in_port{}, Coord{} );
-  REQUIRE( W.units().all().size() == 3 );
+  REQUIRE( W.units().all().size() == 4 );
   REQUIRE( W.units().exists( free_colonist_id ) );
   REQUIRE( W.units().exists( missionary_id ) );
   REQUIRE( W.units().exists( caravel_id ) );
@@ -353,6 +364,22 @@ TEST_CASE( "[unit-ownership] UnitOwnershipChanger" ) {
                .slots_occupied() == 2 );
   REQUIRE( W.units().missionary_from_dwelling( dwelling.id ) ==
            nothing );
+
+  // Destroy from port. This can happen when independence is
+  // declared and units on the high seas are destroyed.
+  expected_galleon = UnitOwnership::harbor{
+    .port_status = PortStatus::in_port{},
+    .sailed_from = Coord{ .x = 0, .y = 0 } };
+  o( galleon_id )
+      .change_to_harbor( PortStatus::in_port{}, Coord{} );
+  hb_state.selected_unit = galleon_id;
+  REQUIRE( W.units().all().size() == 4 );
+  REQUIRE( W.units().exists( galleon_id ) );
+  REQUIRE( ownership( galleon_id ) == expected_galleon );
+  o( galleon_id ).destroy();
+  REQUIRE( hb_state.selected_unit == nothing );
+  REQUIRE( W.units().all().size() == 3 );
+  REQUIRE_FALSE( W.units().exists( galleon_id ) );
 
   // Destroy from colony.
   expected_free_colonist =

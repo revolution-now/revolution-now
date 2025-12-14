@@ -90,6 +90,11 @@ void UnitOwnershipChanger::destroy() const {
   }();
   for( UnitId const to_destroy : cargo_units_to_destroy )
     UnitOwnershipChanger( ss_, to_destroy ).destroy();
+  // Now handle the unit itself.
+  if( auto& harbor_unit = ss_.players.old_world[player_.nation]
+                              .harbor_state.selected_unit;
+      harbor_unit == unit_id_ )
+    harbor_unit = nothing;
   ss_.units.destroy_unit( unit_id_ );
 }
 

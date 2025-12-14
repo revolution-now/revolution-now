@@ -61,15 +61,34 @@ using ::gfx::e_resolution;
 using ::gfx::point;
 using ::gfx::size;
 
-void check_selected_unit_in_harbor( SSConst const& ss,
+void check_selected_unit_in_harbor( SS& ss,
                                     Player const& player ) {
   // In case the unit that was selected
-  HarborState const& hb_state =
+  HarborState& hb_state =
       old_world_state( ss, player.type ).harbor_state;
   if( !hb_state.selected_unit.has_value() ) return;
-  UnitId id = *hb_state.selected_unit;
-  CHECK( ss.units.exists( id ) );
-  CHECK( ss.units.maybe_harbor_view_state_of( id ) );
+  UnitId const unit_id = *hb_state.selected_unit;
+  // This should not trigger, but we should probably be defensive
+  // here, since there are other parts of the game that can
+  // delete units in the harbor, e.g. when independence is de-
+  // clared all harbor units will be captured and destroyed,
+  // which might include the selected one. That particular case
+  // should be accounted for in the code that destroys units, but
+  // we should probably be defensive here anyway just in case
+  // there is a case that we're not aware of.
+  //
+  // So we'll keep these as debug-only checks and then log an
+  // error afterward and clean up.
+  DCHECK( ss.units.exists( id ) );
+  DCHECK( ss.units.maybe_harbor_view_state_of( id ) );
+  if( !ss.units.exists( unit_id ) ||
+      !ss.units.maybe_harbor_view_state_of( unit_id ) ) {
+    lg.error(
+        "selected harbor unit either does not exist or is not "
+        "in the harbor: {}",
+        unit_id );
+    hb_state.selected_unit = nothing;
+  }
 }
 
 /****************************************************************

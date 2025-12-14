@@ -317,6 +317,10 @@ DeclarationResult declare_independence( IEngine& engine, SS& ss,
     }
   }
   destroy_units( ss, destroy );
+  // This should have already been done by the destroy method
+  // above, but just in case.
+  old_world_state( ss, player.type ).harbor_state.selected_unit =
+      nothing;
 
   // Step: zero out crosses and bells.
   player.crosses = 0;

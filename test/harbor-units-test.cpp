@@ -963,13 +963,13 @@ TEST_CASE(
            id1 );
   UnitOwnershipChanger( w.ss(), id1 ).destroy();
   REQUIRE( w.old_world( player ).harbor_state.selected_unit ==
-           id1 );
+           nothing );
   update_harbor_selected_unit( w.ss(), player );
   REQUIRE( w.old_world( player ).harbor_state.selected_unit ==
            id2 );
   UnitOwnershipChanger( w.ss(), id2 ).destroy();
   REQUIRE( w.old_world( player ).harbor_state.selected_unit ==
-           id2 );
+           nothing );
   update_harbor_selected_unit( w.ss(), player );
   REQUIRE( w.old_world( player ).harbor_state.selected_unit ==
            nothing );
