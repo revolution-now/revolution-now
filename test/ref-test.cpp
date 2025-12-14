@@ -3438,6 +3438,40 @@ TEST_CASE( "[ref] ref_should_win" ) {
   REQUIRE( f() == ref_controls_90_percent_population );
 }
 
+TEST_CASE( "[ref] ref_should_win (with island colonies)" ) {
+  world w;
+  w.create_default_map();
+  Player& ref_player =
+      w.add_player( ref_player_for( w.default_nation() ) );
+
+  auto const f = [&] [[clang::noinline]] {
+    return ref_should_win(
+        w.ss(), w.map_updater().connectivity(), ref_player );
+  };
+
+  using enum e_ref_win_reason;
+  using enum e_indoor_job;
+
+  // Default.
+  REQUIRE( f() == port_colonies_captured );
+
+  Colony& colony_1 =
+      w.add_colony( { .x = 6, .y = 0 }, e_player::french );
+  w.add_unit_indoors( colony_1.id, bells );
+  w.add_unit_indoors( colony_1.id, bells );
+  REQUIRE( f() == nothing );
+
+  Colony& colony_2 =
+      w.add_colony( { .x = 0, .y = 7 }, e_player::french );
+  w.add_unit_indoors( colony_2.id, bells );
+  w.add_unit_indoors( colony_2.id, bells );
+  REQUIRE( f() == nothing );
+
+  colony_1.player = e_player::ref_english;
+
+  REQUIRE( f() == non_island_port_colonies_captured );
+}
+
 TEST_CASE( "[ref] do_ref_win" ) {
   world w;
 

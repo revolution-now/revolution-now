@@ -168,6 +168,10 @@ wait<ui::e_confirm> NoopAgent::confirm_disband_unit(
 wait<ui::e_confirm> NoopAgent::confirm_build_inland_colony() {
   co_return ui::e_confirm::no;
 }
+wait<ui::e_confirm> NoopAgent::confirm_build_island_colony() {
+  co_return ui::e_confirm::no;
+}
+
 
 wait<maybe<std::string>> NoopAgent::name_colony() {
   co_return nothing;

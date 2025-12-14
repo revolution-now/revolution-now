@@ -80,6 +80,8 @@ struct MockIAgent : IAgent {
                ( UnitId ), () );
   MOCK_METHOD( wait<ui::e_confirm>, confirm_build_inland_colony,
                (), () );
+  MOCK_METHOD( wait<ui::e_confirm>, confirm_build_island_colony,
+               (), () );
   MOCK_METHOD( wait<maybe<std::string>>, name_colony, (), () );
   MOCK_METHOD( wait<ui::e_confirm>, should_make_landfall, (bool),
                () );

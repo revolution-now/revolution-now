@@ -6,7 +6,7 @@ founding {
   # allow this by default because it creates a significant
   # problem for the end game. This is because such a colony will
   # be considered a coastal colony which the REF needs to capture
-  # it to win (assuming it can't get 90% of the population which
+  # in order to win (assuming it can't get 90% of the population which
   # is another way it can win). However, the REF can't capture
   # such a colony because there are no landing tiles adjacent to
   # it. In such a situation the player would be forced to abandon
@@ -30,6 +30,10 @@ founding {
   # must do so in order to land next to a colony. So that, to-
   # gether with setting this flag to false, should eliminate all
   # such issues in the NG.
+  #
+  # Note that if this flag is true then the player will be able
+  # to found on islands but they will still be given a warning
+  # about the consequences for the end game.
   can_found_on_island: false
 }
 

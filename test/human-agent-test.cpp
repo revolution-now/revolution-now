@@ -209,6 +209,36 @@ TEST_CASE( "[human-agent] confirm_build_inland_colony" ) {
   REQUIRE( f() == ui::e_confirm::no );
 }
 
+TEST_CASE( "[human-agent] confirm_build_island_colony" ) {
+  world w;
+
+  auto const f = [&] [[clang::noinline]] {
+    return co_await_test(
+        w.agent_.confirm_build_island_colony() );
+  };
+
+  w.gui()
+      .EXPECT__choice( Field(
+          &ChoiceConfig::msg,
+          StrContains( "not count as a [port colony]" ) ) )
+      .returns( "no" );
+  REQUIRE( f() == ui::e_confirm::no );
+
+  w.gui()
+      .EXPECT__choice( Field(
+          &ChoiceConfig::msg,
+          StrContains( "not count as a [port colony]" ) ) )
+      .returns( "yes" );
+  REQUIRE( f() == ui::e_confirm::yes );
+
+  w.gui()
+      .EXPECT__choice( Field(
+          &ChoiceConfig::msg,
+          StrContains( "not count as a [port colony]" ) ) )
+      .returns( nothing );
+  REQUIRE( f() == ui::e_confirm::no );
+}
+
 TEST_CASE( "[human-agent] name_colony" ) {
   world w;
   Colony& colony = w.add_colony( { .x = 1, .y = 1 } );

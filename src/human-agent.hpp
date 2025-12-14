@@ -102,6 +102,8 @@ struct HumanAgent final : IAgent {
 
   wait<ui::e_confirm> confirm_build_inland_colony() override;
 
+  wait<ui::e_confirm> confirm_build_island_colony() override;
+
   wait<maybe<std::string>> name_colony() override;
 
   wait<ui::e_confirm> should_make_landfall(

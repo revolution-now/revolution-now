@@ -21,6 +21,9 @@
 #include "test/mocks/iengine.hpp"
 #include "test/util/coro.hpp"
 
+// config
+#include "src/config/colony.rds.hpp"
+
 // ss
 #include "src/ss/colonies.hpp"
 #include "src/ss/ref.hpp"
@@ -58,6 +61,8 @@ struct World : testing::World {
       _, _, L, L, L, //
       _, L, L, L, L, //
       _, L, L, _, L, //
+      _, _, _, _, _, //
+      _, L, _, _, _, //
     };
     build_map( std::move( tiles ), 5 );
   }
@@ -115,12 +120,9 @@ TEST_CASE( "[command-build] build colony" ) {
 }
 
 TEST_CASE( "[command-build] build colony no ocean access" ) {
-#ifdef COMPILER_GCC
-  return;
-#endif
   World W;
   MockIAgent& agent = W.agent();
-  Coord const tile{ .x = 3, .y = 3 };
+  Coord const tile{ .x = 3, .y = 2 };
   Unit const& unit =
       W.add_unit_on_map( e_unit_type::free_colonist, tile );
   unique_ptr<CommandHandler> handler = handle_command(
@@ -129,11 +131,8 @@ TEST_CASE( "[command-build] build colony no ocean access" ) {
 
   REQUIRE_FALSE( unit.mv_pts_exhausted() );
 
-  auto confirm = [&] {
-    wait<bool> w_confirm = handler->confirm();
-    REQUIRE( !w_confirm.exception() );
-    REQUIRE( w_confirm.ready() );
-    return *w_confirm;
+  auto const confirm = [&] [[clang::noinline]] {
+    return co_await_test( handler->confirm() );
   };
 
   REQUIRE( W.colonies().last_colony_id() == nothing );
@@ -144,6 +143,53 @@ TEST_CASE( "[command-build] build colony no ocean access" ) {
   REQUIRE_FALSE( unit.mv_pts_exhausted() );
   REQUIRE( unit.orders().to_enum() == unit_orders::e::none );
   REQUIRE( W.colonies().last_colony_id() == nothing );
+}
+
+TEST_CASE( "[command-build] build colony on island" ) {
+  World W;
+  MockIAgent& agent = W.agent();
+  Coord const tile{ .x = 1, .y = 6 };
+  Unit const& unit =
+      W.add_unit_on_map( e_unit_type::free_colonist, tile );
+  unique_ptr<CommandHandler> handler = handle_command(
+      W.engine(), W.ss(), W.ts(), W.agent(), W.default_player(),
+      unit.id(), command::build{} );
+
+  // By default the founding on an island is not allowed and will
+  // get intercepted earlier in the process relative to the code
+  // we are testing here. So let's simulate that the player has
+  // enabled founding on islands so that we can test the warning
+  // that we give them.
+  auto& conf = detail::__config_colony;
+  SCOPED_SET_AND_RESTORE( conf.founding.can_found_on_island,
+                          true );
+
+  REQUIRE_FALSE( unit.mv_pts_exhausted() );
+
+  auto const confirm = [&] [[clang::noinline]] {
+    return co_await_test( handler->confirm() );
+  };
+
+  REQUIRE( W.colonies().last_colony_id() == nothing );
+
+  SECTION( "no" ) {
+    agent.EXPECT__confirm_build_island_colony().returns(
+        ui::e_confirm::no );
+    REQUIRE( confirm() == false );
+    REQUIRE_FALSE( unit.mv_pts_exhausted() );
+    REQUIRE( unit.orders().to_enum() == unit_orders::e::none );
+    REQUIRE( W.colonies().last_colony_id() == nothing );
+  }
+
+  SECTION( "yes" ) {
+    agent.EXPECT__confirm_build_island_colony().returns(
+        ui::e_confirm::yes );
+    agent.EXPECT__name_colony().returns( nothing );
+    REQUIRE( confirm() == false );
+    REQUIRE_FALSE( unit.mv_pts_exhausted() );
+    REQUIRE( unit.orders().to_enum() == unit_orders::e::none );
+    REQUIRE( W.colonies().last_colony_id() == nothing );
+  }
 }
 
 TEST_CASE( "[command-build] build colony by ship" ) {

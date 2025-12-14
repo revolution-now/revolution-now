@@ -141,6 +141,15 @@ void remove_unit_from_colony_obj_low_level( SS& ss,
                                             Colony& colony,
                                             UnitId unit_id );
 
+// This would also include colonies built on loan arctic tiles
+// bordering the edge of the map. NOTE: the default game config
+// does not allow founding these, but the player could enable
+// that config flag and/or be playing a modded game, so we still
+// need to be able to check for this in particular for dealing
+// with the REF winning conditions.
+[[nodiscard]] bool colony_is_on_island( SSConst const& ss,
+                                        Colony const& colony );
+
 // These are colonies with sea lane access on either the left or
 // right edge of the map.
 std::vector<ColonyId> find_coastal_colonies(

@@ -1120,13 +1120,27 @@ maybe<e_ref_win_reason> ref_should_win(
   CHECK( is_ref( ref_player.type ) );
   e_player const colonial_player_type =
       colonial_player_for( nation_for( ref_player.type ) );
-  vector<ColonyId> const coastal = find_coastal_colonies(
+  vector<ColonyId> coastal = find_coastal_colonies(
       ss, connectivity, colonial_player_type );
   if( coastal.empty() )
     // This condition happens if either the player has never had
     // any port colonies since declaration (in which case they
     // lose immediately) or if the REF has captured them.
     return e_ref_win_reason::port_colonies_captured;
+  // Remove colonies on islands.
+  erase_if( coastal, [&]( ColonyId const colony_id ) {
+    Colony const& colony = ss.colonies.colony_for( colony_id );
+    return colony_is_on_island( ss, colony );
+  } );
+  if( coastal.empty() )
+    // This condition happens if the player has some coastal
+    // colonies still uncaptured but they are on islands, which
+    // are not counted for REF winning purposes because the REF
+    // cannot land near them. NOTE: such colonies are not allowed
+    // by default in the NG (unlike the OG) because of these is-
+    // sues, however the player can still enable that flag and so
+    // we still need to deal with it.
+    return e_ref_win_reason::non_island_port_colonies_captured;
   if( percent_ref_owned_population( ss, ref_player ) >= 90 )
     return e_ref_win_reason::ref_controls_90_percent_population;
   return nothing;

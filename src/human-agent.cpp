@@ -385,6 +385,22 @@ wait<ui::e_confirm> HumanAgent::confirm_build_inland_colony() {
   co_return answer.value_or( ui::e_confirm::no );
 }
 
+wait<ui::e_confirm> HumanAgent::confirm_build_island_colony() {
+  YesNoConfig const config{
+    .msg =
+        "Your Excellency, this square is located on an "
+        "[island]. As such, it will not count as a [port "
+        "colony] if and when we declare independence.  This "
+        "means that we could lose the game even if the REF has "
+        "not captured this colony.",
+    .yes_label = "Proceed to build the colony anyway.",
+    .no_label  = "Nevermind, let us abandon this colony site.",
+    .no_comes_first = true };
+  maybe<ui::e_confirm> const answer =
+      co_await gui_.optional_yes_no( config );
+  co_return answer.value_or( ui::e_confirm::no );
+}
+
 wait<maybe<std::string>> HumanAgent::name_colony() {
   maybe<string> colony_name;
   while( true ) {

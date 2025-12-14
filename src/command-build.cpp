@@ -18,6 +18,7 @@
 #include "iagent.hpp"
 #include "imap-updater.hpp"
 #include "maybe.hpp"
+#include "terrain-mgr.hpp"
 #include "ts.hpp"
 #include "woodcut.hpp"
 
@@ -107,6 +108,16 @@ struct BuildHandler : public CommandHandler {
             ss_, ts_.map_updater().connectivity(), location ) ) {
       maybe<ui::e_confirm> const answer =
           co_await agent_.confirm_build_inland_colony();
+      if( answer != ui::e_confirm::yes ) co_return false;
+    }
+
+    // NOTE: this typically gets intercepted above by the
+    // no_island_colony condition, but we should still warn the
+    // player just in case they enable that feature, or if we de-
+    // cide to enable it by default in the future.
+    if( is_island( ss_, location ) ) {
+      maybe<ui::e_confirm> const answer =
+          co_await agent_.confirm_build_island_colony();
       if( answer != ui::e_confirm::yes ) co_return false;
     }
 

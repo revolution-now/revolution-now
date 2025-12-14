@@ -374,6 +374,10 @@ wait<ui::e_confirm> RefAIAgent::confirm_build_inland_colony() {
   co_return ui::e_confirm::no;
 }
 
+wait<ui::e_confirm> RefAIAgent::confirm_build_island_colony() {
+  co_return ui::e_confirm::no;
+}
+
 wait<maybe<std::string>> RefAIAgent::name_colony() {
   co_return nothing;
 }

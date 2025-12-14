@@ -169,6 +169,8 @@ struct IAgent : ISignalHandler {
 
   virtual wait<ui::e_confirm> confirm_build_inland_colony() = 0;
 
+  virtual wait<ui::e_confirm> confirm_build_island_colony() = 0;
+
   virtual wait<maybe<std::string>> name_colony() = 0;
 
   virtual wait<ui::e_confirm> should_make_landfall(
@@ -303,6 +305,8 @@ struct NoopAgent final : IAgent {
       UnitId unit_id ) override;
 
   wait<ui::e_confirm> confirm_build_inland_colony() override;
+
+  wait<ui::e_confirm> confirm_build_island_colony() override;
 
   wait<maybe<std::string>> name_colony() override;
 

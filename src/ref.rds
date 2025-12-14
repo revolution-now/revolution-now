@@ -110,5 +110,14 @@ struct.RefLanding {
 
 enum.e_ref_win_reason {
   port_colonies_captured,
+  # This means that the player may have some port colonies left
+  # but they are on islands. Since the REF cannot land on an is-
+  # land colony they are considered as not existing for the pur-
+  # pose of computing the REF win. NOTE: the default game config
+  # prevents founding colonies on islands, but we still need to
+  # deal with it in case that flag is on (which one might do for
+  # compatibility with the OG) or if the player is somehow
+  # playing a modded game.
+  non_island_port_colonies_captured,
   ref_controls_90_percent_population,
 }

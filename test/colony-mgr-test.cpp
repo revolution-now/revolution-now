@@ -1871,5 +1871,32 @@ TEST_WORLD( "[colony-mgr] colony_auto_unload_commodity" ) {
   }
 }
 
+TEST_CASE( "[colony-mgr] colony_is_on_island" ) {
+  world w;
+  w.create_island_map();
+
+  auto const f =
+      [&] [[clang::noinline]] ( Colony const& colony ) {
+        return colony_is_on_island( w.ss(), colony );
+      };
+
+  // 0  1  2  3  4
+  // _, _, _, L, _, // 0
+  // _, L, _, _, _, // 1
+  // _, _, _, _, _, // 2
+  // _, _, _, L, _, // 3
+  // L, _, _, L, _, // 4
+
+  Colony const& colony_1 = w.add_colony( { .x = 0, .y = 4 } );
+  Colony const& colony_2 = w.add_colony( { .x = 1, .y = 1 } );
+  Colony const& colony_3 = w.add_colony( { .x = 3, .y = 0 } );
+  Colony const& colony_4 = w.add_colony( { .x = 3, .y = 3 } );
+
+  REQUIRE( f( colony_1 ) );
+  REQUIRE( f( colony_2 ) );
+  REQUIRE( f( colony_3 ) );
+  REQUIRE_FALSE( f( colony_4 ) );
+}
+
 } // namespace
 } // namespace rn
