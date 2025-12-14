@@ -1734,10 +1734,19 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
         handled = true;
         lg.debug( "clicked on tile: {}.", tile );
         switch( val.buttons ) {
-          case input::e_mouse_button_event::left_down: {
-            // For the left mouse button we can use down clicks
-            // because there is no left button dragging in the
-            // land view, at least at the moment.
+          case input::e_mouse_button_event::left_up: {
+            // We have to use "up" for this because there is left
+            // mouse button dragging on the land view which is
+            // used to initiate a "goto". For example, if there
+            // is a unit asking for orders over a colony and the
+            // user tries to drag it to an adjacent tile (goto)
+            // then responding here on the "down" button would
+            // have the effect of opening the colony view instead
+            // of entering a goto drag. Also, responding on a
+            // downclick would also have the effect of panning
+            // the map on the downclick which feels slightly
+            // weird for some reason; seems to feel better to do
+            // it on the up click.
             raw_input_stream_.send(
                 RawInput( LandViewRawInput::tile_click{
                   .coord = tile, .mods = val.mod } ) );
