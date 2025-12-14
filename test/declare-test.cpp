@@ -71,6 +71,14 @@ struct world : testing::World {
       L, L, L, L, L, L, L, //
       L, _, L, L, L, L, _, //
       L, L, L, L, L, L, L, //
+      _, _, _, _, _, _, _, //
+      _, L, _, L, L, L, L, //
+      _, L, _, L, L, L, L, //
+      _, _, _, _, _, _, _, //
+      L, L, L, L, L, L, _, //
+      L, _, _, L, _, _, _, //
+      L, _, L, L, _, L, _, //
+      L, _, _, L, _, _, _, //
     };
     build_map( std::move( tiles ), 7 );
   }
@@ -376,16 +384,21 @@ TEST_CASE( "[declare] declare_independence_ui_sequence_post" ) {
 
   using enum e_unit_type;
 
-  decl_res = { .seized_ships     = { { privateer, 2 },
-                                     { merchantman, 3 },
-                                     { galleon, 1 } },
-               .offboarded_units = true };
+  decl_res = {
+    .seized_ships     = { { privateer, 2 },
+                          { merchantman, 3 },
+                          { galleon, 1 } },
+    .offboarded_units = true,
+    .seized_dwellings = { { e_tribe::aztec, 1 },
+                          { e_tribe::iroquois, 3 } } };
 
   expect_msg( "signs [Declaration of Independence]" );
   expect_msg( "seized [three Merchantmen]" );
   expect_msg( "seized [one Galleon]" );
   expect_msg( "seized [two Privateers]" );
   expect_msg( "ships in our colonies have offboarded" );
+  expect_msg( "One [Aztec] dwelling has been seized" );
+  expect_msg( "Three [Iroquois] dwellings have been seized" );
 
   f();
 }
@@ -470,8 +483,30 @@ TEST_CASE( "[declare] declare_independence" ) {
                   .holds<PortStatus::outbound>(),
               "wrong unit ownership: {}",
               as_const( w.units() ).ownership_of( unit_6 ) );
+  e_tribe const tribe_type = e_tribe::aztec;
+  w.add_tribe( tribe_type );
+  // 0  1  2  3  4  5  6
+  // L, L, C, d, L, L, L, // 0
+  // L, _, L, L, C, d, _, // 1
+  // L, L, L, L, L, L, L, // 2
+  // _, _, _, _, _, _, _, // 3
+  // _, L, _, L, L, L, L, // 4
+  // _, L, _, L, L, L, L, // 5
+  // _, _, _, _, _, _, _, // 6
+  // L, L, L, L, d, C, _, // 7
+  // L, _, _, L, _, _, _, // 8
+  // L, _, L, L, _, L, _, // 9
+  // L, _, _, L, _, _, _, // a
   Colony const& colony =
       w.add_colony( { .x = 2, .y = 0 }, player.type );
+  w.add_colony( { .x = 1, .y = 5 }, player.type );
+  w.add_colony( { .x = 4, .y = 1 }, player.type );
+  DwellingId const dwelling_id_1 =
+      w.add_dwelling( { .x = 3, .y = 0 }, tribe_type ).id;
+  DwellingId const dwelling_id_2 =
+      w.add_dwelling( { .x = 5, .y = 1 }, tribe_type ).id;
+  DwellingId const dwelling_id_3 =
+      w.add_dwelling( { .x = 1, .y = 4 }, tribe_type ).id;
   UnitId const unit_7 =
       w.add_unit_on_map( e_unit_type::merchantman,
                          colony.location, player.type )
@@ -509,9 +544,6 @@ TEST_CASE( "[declare] declare_independence" ) {
       w.add_unit_indoors( foreign_colony_id,
                           e_indoor_job::bells )
           .id();
-
-  e_tribe const tribe_type = e_tribe::aztec;
-  w.add_tribe( tribe_type );
 
   auto const f = [&] {
     return declare_independence( w.engine(), w.ss(), w.ts(),
@@ -577,6 +609,10 @@ TEST_CASE( "[declare] declare_independence" ) {
       player.fathers.pool[e_founding_father_type::military] ==
       e_founding_father::hernan_cortes );
   REQUIRE( hb_state.selected_unit == UnitId{ 999 } );
+  REQUIRE( w.natives().tribe_exists( e_tribe::aztec ) );
+  REQUIRE( w.natives().dwelling_exists( dwelling_id_1 ) );
+  REQUIRE( w.natives().dwelling_exists( dwelling_id_2 ) );
+  REQUIRE( w.natives().dwelling_exists( dwelling_id_3 ) );
 
   // ***********
   expected = DeclarationResult{
@@ -586,6 +622,7 @@ TEST_CASE( "[declare] declare_independence" ) {
           { e_unit_type::galleon, 2 },
         },
     .offboarded_units = true,
+    .seized_dwellings = { { e_tribe::aztec, 1 } },
   };
   REQUIRE( f() == expected );
   // ***********
@@ -650,6 +687,180 @@ TEST_CASE( "[declare] declare_independence" ) {
       player.fathers.pool[e_founding_father_type::military] ==
       nothing );
   REQUIRE( hb_state.selected_unit == nothing );
+  REQUIRE( w.natives().dwelling_exists( dwelling_id_1 ) );
+  REQUIRE( w.natives().dwelling_exists( dwelling_id_2 ) );
+  REQUIRE( !w.natives().dwelling_exists( dwelling_id_3 ) );
+}
+
+TEST_CASE(
+    "[declare] declare_independence (dwelling removal edge "
+    "cases)" ) {
+  world w;
+  DeclarationResult expected;
+
+  Player& player        = w.add_player( e_player::english );
+  player.new_world_name = "New England";
+  // This is so that it will add one man-o-war.
+  player.control           = e_player_control::human;
+  e_tribe const tribe_type = e_tribe::aztec;
+  w.add_tribe( tribe_type );
+
+  auto const f = [&] {
+    return declare_independence( w.engine(), w.ss(), w.ts(),
+                                 player );
+  };
+
+  SECTION( "tribe destroyed" ) {
+    // 0  1  2  3  4  5  6
+    // L, L, L, L, L, L, L, // 0
+    // L, _, L, L, L, L, _, // 1
+    // L, L, L, L, L, L, L, // 2
+    // _, _, _, _, _, _, _, // 3
+    // _, L, _, L, L, L, L, // 4
+    // _, L, _, L, L, L, L, // 5
+    // _, _, _, _, _, _, _, // 6
+    // L, L, L, L, d, C, _, // 7
+    // L, _, _, L, _, _, _, // 8
+    // L, _, L, L, _, L, _, // 9
+    // L, _, _, L, _, _, _, // a
+    w.add_colony( { .x = 5, .y = 7 }, player.type );
+    DwellingId const dwelling_id_1 =
+        w.add_dwelling( { .x = 4, .y = 7 }, tribe_type ).id;
+
+    // BEFORE: sanity check.
+    REQUIRE( w.natives().tribe_exists( e_tribe::aztec ) );
+    REQUIRE( w.natives().dwelling_exists( dwelling_id_1 ) );
+
+    // ***********
+    expected = DeclarationResult{
+      .seized_dwellings = { { e_tribe::aztec, 1 } },
+    };
+    REQUIRE( f() == expected );
+    // ***********
+
+    // AFTER.
+    REQUIRE( player.revolution.status ==
+             e_revolution_status::declared );
+    REQUIRE( !w.natives().dwelling_exists( dwelling_id_1 ) );
+    REQUIRE( !w.natives().tribe_exists( e_tribe::aztec ) );
+  }
+
+  SECTION( "one dwelling without ocean access" ) {
+    // 0  1  2  3  4  5  6
+    // L, L, L, L, L, L, L, // 0
+    // L, _, L, L, L, L, _, // 1
+    // L, L, L, L, L, L, L, // 2
+    // _, _, _, _, _, _, _, // 3
+    // _, L, _, L, L, L, L, // 4
+    // _, L, _, L, L, L, L, // 5
+    // _, _, _, _, _, _, _, // 6
+    // L, L, L, L, L, L, _, // 7
+    // L, _, _, d, _, _, _, // 8
+    // L, _, d, C, _, L, _, // 9
+    // L, _, _, d, _, _, _, // a
+    w.add_colony( { .x = 3, .y = 9 }, player.type );
+    DwellingId const dwelling_id_1 =
+        w.add_dwelling( { .x = 2, .y = 9 }, tribe_type ).id;
+    DwellingId const dwelling_id_2 =
+        w.add_dwelling( { .x = 3, .y = 8 }, tribe_type ).id;
+    DwellingId const dwelling_id_3 =
+        w.add_dwelling( { .x = 3, .y = 10 }, tribe_type ).id;
+
+    // BEFORE: sanity check.
+    REQUIRE( w.natives().tribe_exists( e_tribe::aztec ) );
+    REQUIRE( w.natives().dwelling_exists( dwelling_id_1 ) );
+    REQUIRE( w.natives().dwelling_exists( dwelling_id_2 ) );
+    REQUIRE( w.natives().dwelling_exists( dwelling_id_3 ) );
+
+    // ***********
+    expected = DeclarationResult{
+      .seized_dwellings = { { e_tribe::aztec, 1 } },
+    };
+    REQUIRE( f() == expected );
+    // ***********
+
+    // AFTER.
+    REQUIRE( player.revolution.status ==
+             e_revolution_status::declared );
+    REQUIRE( w.natives().tribe_exists( e_tribe::aztec ) );
+    REQUIRE( w.natives().dwelling_exists( dwelling_id_1 ) );
+    REQUIRE( !w.natives().dwelling_exists( dwelling_id_2 ) );
+    REQUIRE( w.natives().dwelling_exists( dwelling_id_3 ) );
+  }
+
+  SECTION( "island colony" ) {
+    // 0  1  2  3  4  5  6
+    // L, L, L, L, L, L, L, // 0
+    // L, _, L, L, L, L, _, // 1
+    // L, L, L, L, L, L, L, // 2
+    // _, _, _, _, _, _, _, // 3
+    // _, L, _, L, L, L, L, // 4
+    // _, L, _, L, L, L, L, // 5
+    // _, _, _, _, _, _, _, // 6
+    // L, L, L, L, L, L, _, // 7
+    // L, _, _, L, _, _, _, // 8
+    // L, _, L, L, _, C, _, // 9
+    // L, _, _, L, _, _, _, // a
+    w.add_colony( { .x = 5, .y = 9 }, player.type );
+    DwellingId const dwelling_id_1 =
+        w.add_dwelling( { .x = 5, .y = 7 }, tribe_type ).id;
+
+    // BEFORE: sanity check.
+    REQUIRE( w.natives().tribe_exists( e_tribe::aztec ) );
+    REQUIRE( w.natives().dwelling_exists( dwelling_id_1 ) );
+
+    // ***********
+    expected = DeclarationResult{
+      .seized_dwellings = {},
+    };
+    REQUIRE( f() == expected );
+    // ***********
+
+    // AFTER.
+    REQUIRE( player.revolution.status ==
+             e_revolution_status::declared );
+    REQUIRE( w.natives().tribe_exists( e_tribe::aztec ) );
+    REQUIRE( w.natives().dwelling_exists( dwelling_id_1 ) );
+  }
+
+  SECTION( "edge colony" ) {
+    // 0  1  2  3  4  5  6
+    // L, L, L, L, L, L, L, // 0
+    // L, _, L, L, L, L, _, // 1
+    // L, L, L, L, L, L, L, // 2
+    // _, _, _, _, _, _, _, // 3
+    // _, L, _, L, L, L, L, // 4
+    // _, L, _, L, L, L, L, // 5
+    // _, _, _, _, _, _, _, // 6
+    // L, L, L, L, L, L, _, // 7
+    // L, _, _, L, _, _, _, // 8
+    // L, _, d, d, _, L, _, // 9
+    // L, _, _, C, _, _, _, // a
+    w.add_colony( { .x = 3, .y = 10 }, player.type );
+    DwellingId const dwelling_id_1 =
+        w.add_dwelling( { .x = 3, .y = 9 }, tribe_type ).id;
+    DwellingId const dwelling_id_2 =
+        w.add_dwelling( { .x = 2, .y = 9 }, tribe_type ).id;
+
+    // BEFORE: sanity check.
+    REQUIRE( w.natives().tribe_exists( e_tribe::aztec ) );
+    REQUIRE( w.natives().dwelling_exists( dwelling_id_1 ) );
+    REQUIRE( w.natives().dwelling_exists( dwelling_id_2 ) );
+
+    // ***********
+    expected = DeclarationResult{
+      .seized_dwellings = { { e_tribe::aztec, 1 } },
+    };
+    REQUIRE( f() == expected );
+    // ***********
+
+    // AFTER.
+    REQUIRE( player.revolution.status ==
+             e_revolution_status::declared );
+    REQUIRE( w.natives().tribe_exists( e_tribe::aztec ) );
+    REQUIRE( !w.natives().dwelling_exists( dwelling_id_1 ) );
+    REQUIRE( w.natives().dwelling_exists( dwelling_id_2 ) );
+  }
 }
 
 } // namespace

@@ -14,16 +14,21 @@
 #include "agents.hpp"
 #include "co-wait.hpp"
 #include "colony-mgr.hpp"
+#include "connectivity.hpp"
 #include "iagent.hpp"
 #include "igui.hpp"
+#include "imap-updater.hpp"
+#include "map-square.hpp"
 #include "player-mgr.hpp"
 #include "rebel-sentiment.hpp"
 #include "revolution-status.hpp"
+#include "tribe-mgr.hpp"
 #include "ts.hpp"
 #include "unit-mgr.hpp"
 
 // config
 #include "config/nation.rds.hpp"
+#include "config/natives.rds.hpp"
 #include "config/revolution.rds.hpp"
 #include "config/unit-type.rds.hpp"
 
@@ -31,10 +36,12 @@
 #include "revolution.rds.hpp"
 #include "ss/colonies.hpp"
 #include "ss/nation.hpp"
+#include "ss/natives.hpp"
 #include "ss/player.rds.hpp"
 #include "ss/players.rds.hpp"
 #include "ss/ref.hpp"
 #include "ss/settings.rds.hpp"
+#include "ss/terrain.hpp"
 #include "ss/units.hpp"
 
 // rds
@@ -45,8 +52,14 @@
 
 // base
 #include "base/conv.hpp"
+#include "base/string.hpp"
+
+// C++ standard library
+#include <ranges>
 
 using namespace std;
+
+namespace rg = ::std::ranges;
 
 namespace rn {
 
@@ -54,6 +67,8 @@ namespace {
 
 using ::base::valid;
 using ::base::valid_or;
+using ::gfx::point;
+using ::refl::enum_values;
 
 bool rebellion_large_enough_to_declare(
     SettingsState const& settings, Player const& player ) {
@@ -343,6 +358,56 @@ DeclarationResult declare_independence( IEngine& engine, SS& ss,
     if( !offboarded.empty() ) res.offboarded_units = true;
   }
 
+  // Step: find all port colonies where all surrounding land
+  // tiles have a dwelling on them and destroy one of them on a
+  // tile that has ocean access to make way for the REF.
+  for( ColonyId const colony_id : colonies ) {
+    Colony const& colony = ss.colonies.colony_for( colony_id );
+    bool const coastal   = tile_has_surrounding_ocean_access(
+        ss, ts.map_updater().connectivity(), colony.location );
+    if( !coastal )
+      // The REF won't land here anyway.
+      continue;
+    bool has_non_dwelling_land_tile = false;
+    vector<DwellingId> adjacent_dwellings_with_ocean_access;
+    for( e_direction const d : enum_values<e_direction> ) {
+      point const moved = colony.location.moved( d );
+      if( !ss.terrain.square_exists( moved ) ) continue;
+      MapSquare const& square = ss.terrain.square_at( moved );
+      if( is_water( square ) ) continue;
+      auto const dwelling_id =
+          ss.natives.maybe_dwelling_from_coord( moved );
+      if( !dwelling_id.has_value() ) {
+        has_non_dwelling_land_tile = true;
+        continue;
+      }
+      if( !tile_has_surrounding_ocean_access(
+              ss, ts.map_updater().connectivity(), moved ) )
+        continue;
+      adjacent_dwellings_with_ocean_access.push_back(
+          *dwelling_id );
+    }
+    if( has_non_dwelling_land_tile ) continue;
+    rg::sort( adjacent_dwellings_with_ocean_access );
+    if( adjacent_dwellings_with_ocean_access.empty() )
+      // This could be an island colony... not much we can do
+      // here. The default game config disallows these, but the
+      // player could enable them and/or mod the game, so we need
+      // to handle this case.
+      continue;
+    // We need to eliminate one of the dwellings.
+    DwellingId const dwelling_id =
+        adjacent_dwellings_with_ocean_access[0];
+    Dwelling const& dwelling =
+        ss.natives.dwelling_for( dwelling_id );
+    e_tribe const tribe_type =
+        tribe_type_for_dwelling( as_const( ss ), dwelling );
+    ++res.seized_dwellings[tribe_type];
+    destroy_dwelling( ss, ts.map_updater(), dwelling_id );
+    if( ss.natives.dwellings_for_tribe( tribe_type ).empty() )
+      destroy_tribe( ss, ts.map_updater(), tribe_type );
+  }
+
   // Step: Change the country name of the player.
   // United States of America
   player.new_world_name = config_nation.nations[player.nation]
@@ -379,6 +444,23 @@ wait<> declare_independence_ui_sequence_post(
     co_await ts.gui.message_box(
         "Units in the cargo of ships in our colonies have "
         "offboarded in order to help defend the colonies." );
+
+  for( auto const& [tribe_type, wiped] :
+       decl.seized_dwellings ) {
+    if( wiped == 0 ) continue;
+    if( wiped == 1 )
+      co_await ts.gui.message_box(
+          "One [{}] dwelling has been seized by the REF in "
+          "order gain access to colonial port colonies.",
+          config_natives.tribes[tribe_type].name_possessive );
+    if( wiped > 1 )
+      co_await ts.gui.message_box(
+          "{} [{}] dwellings have been seized by the REF in "
+          "order gain access to colonial port colonies.",
+          base::capitalize_initials(
+              base::int_to_string_literary( wiped ) ),
+          config_natives.tribes[tribe_type].name_possessive );
+  }
 }
 
 e_turn_after_declaration post_declaration_turn(
