@@ -462,6 +462,8 @@ TEST_CASE( "[tax] compute_tax_change" ) {
   W.settings().game_setup_options.difficulty =
       e_difficulty::conquistador;
 
+  W.turn().time_point.year = 1550;
+
   SECTION( "not yet" ) {
     W.turn().time_point.turns                       = 10;
     W.old_world( player ).taxes.next_tax_event_turn = 15;
@@ -495,7 +497,7 @@ TEST_CASE( "[tax] compute_tax_change" ) {
       }
 
       SECTION( "late enough" ) {
-        W.rand().EXPECT__between_ints( 14, 18 ).returns( 13 );
+        W.rand().EXPECT__between_ints( 17, 19 ).returns( 13 );
 
         W.turn().time_point.turns                       = 38;
         W.old_world( player ).taxes.next_tax_event_turn = 37;
@@ -634,7 +636,7 @@ TEST_CASE(
   W.settings().game_setup_options.difficulty =
       e_difficulty::conquistador;
 
-  W.rand().EXPECT__between_ints( 14, 18 ).returns( 13 );
+  W.rand().EXPECT__between_ints( 17, 19 ).returns( 13 );
 
   W.turn().time_point.turns                       = 38;
   W.old_world( player ).taxes.next_tax_event_turn = 37;
@@ -695,6 +697,87 @@ TEST_CASE(
   REQUIRE( f() == expected );
 }
 
+TEST_CASE( "[tax] compute_tax_change has year dependence" ) {
+  world w;
+  Player& player = w.default_player();
+  TaxUpdateComputation expected;
+
+  auto const f = [&] [[clang::noinline]] {
+    return compute_tax_change( w.ss(),
+                               w.map_updater().connectivity(),
+                               w.rand(), player );
+  };
+
+  w.settings().game_setup_options.difficulty =
+      e_difficulty::conquistador;
+
+  w.turn().time_point.turns                       = 38;
+  w.old_world( player ).taxes.next_tax_event_turn = 37;
+  w.old_world( player ).taxes.tax_rate            = 10;
+
+  w.add_colony( { .x = 0, .y = 0 } );
+
+  SECTION( "0-1599" ) {
+    w.turn().time_point.year = 1599;
+    w.rand().EXPECT__between_ints( 17, 19 ).returns( 13 );
+    // Tax change amount.
+    w.rand().EXPECT__between_ints( 1, 8 ).returns( 3 );
+    // Tax increase probability.
+    w.rand().EXPECT__bernoulli( .98 ).returns( false );
+
+    expected = {
+      .next_tax_event_turn = 51,
+      .proposed_tax_change =
+          TaxChangeProposal::decrease{ .amount = 3 } };
+    REQUIRE( f() == expected );
+  }
+
+  SECTION( "1600-1699" ) {
+    w.turn().time_point.year = 1699;
+    w.rand().EXPECT__between_ints( 14, 16 ).returns( 13 );
+    // Tax change amount.
+    w.rand().EXPECT__between_ints( 1, 8 ).returns( 3 );
+    // Tax increase probability.
+    w.rand().EXPECT__bernoulli( .98 ).returns( false );
+
+    expected = {
+      .next_tax_event_turn = 51,
+      .proposed_tax_change =
+          TaxChangeProposal::decrease{ .amount = 3 } };
+    REQUIRE( f() == expected );
+  }
+
+  SECTION( "1700-1799" ) {
+    w.turn().time_point.year = 1799;
+    w.rand().EXPECT__between_ints( 11, 13 ).returns( 13 );
+    // Tax change amount.
+    w.rand().EXPECT__between_ints( 1, 8 ).returns( 3 );
+    // Tax increase probability.
+    w.rand().EXPECT__bernoulli( .98 ).returns( false );
+
+    expected = {
+      .next_tax_event_turn = 51,
+      .proposed_tax_change =
+          TaxChangeProposal::decrease{ .amount = 3 } };
+    REQUIRE( f() == expected );
+  }
+
+  SECTION( "1800-1899" ) {
+    w.turn().time_point.year = 1899;
+    w.rand().EXPECT__between_ints( 8, 10 ).returns( 13 );
+    // Tax change amount.
+    w.rand().EXPECT__between_ints( 1, 8 ).returns( 3 );
+    // Tax increase probability.
+    w.rand().EXPECT__bernoulli( .98 ).returns( false );
+
+    expected = {
+      .next_tax_event_turn = 51,
+      .proposed_tax_change =
+          TaxChangeProposal::decrease{ .amount = 3 } };
+    REQUIRE( f() == expected );
+  }
+}
+
 TEST_CASE( "[tax] start_of_turn_tax_check" ) {
   world W;
   Player& player    = W.default_player();
@@ -709,7 +792,7 @@ TEST_CASE( "[tax] start_of_turn_tax_check" ) {
   W.settings().game_setup_options.difficulty =
       e_difficulty::conquistador;
 
-  W.rand().EXPECT__between_ints( 14, 18 ).returns( 13 );
+  W.rand().EXPECT__between_ints( 17, 19 ).returns( 13 );
 
   W.turn().time_point.turns                       = 38;
   W.old_world( player ).taxes.next_tax_event_turn = 37;
@@ -822,7 +905,7 @@ TEST_CASE( "[tax] start_of_turn_tax_check (out of range)" ) {
   w.settings().game_setup_options.difficulty =
       e_difficulty::discoverer;
 
-  w.rand().EXPECT__between_ints( 18, 22 ).returns( 18 );
+  w.rand().EXPECT__between_ints( 21, 23 ).returns( 18 );
 
   w.turn().time_point.turns                       = 38;
   w.old_world( player ).taxes.next_tax_event_turn = 37;
@@ -859,7 +942,7 @@ TEST_CASE( "[tax] compute_tax_change when over max" ) {
   W.settings().game_setup_options.difficulty =
       e_difficulty::conquistador;
 
-  W.rand().EXPECT__between_ints( 14, 18 ).returns( 13 );
+  W.rand().EXPECT__between_ints( 17, 19 ).returns( 13 );
 
   W.turn().time_point.turns                       = 38;
   W.old_world( player ).taxes.next_tax_event_turn = 37;

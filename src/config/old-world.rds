@@ -19,6 +19,13 @@ include "refl/enum-map.hpp"
 
 namespace "rn.config.old_world"
 
+struct.TaxChangeRanges {
+  years_0000_to_1599 'IntRange',
+  years_1600_to_1699 'IntRange',
+  years_1700_to_1799 'IntRange',
+  years_1800_to_9999 'IntRange',
+}
+
 struct.Taxes {
   # Taxes will never be increased above this.
   maximum_tax_rate 'int',
@@ -28,7 +35,7 @@ struct.Taxes {
 
   # The number of turns between each tax change event will be se-
   # lected uniformly from this interval.
-  turns_between_tax_change_events 'IntRange',
+  turns_between_tax_change_events 'TaxChangeRanges',
 
   # Probability that a tax change event will be an increase (as
   # opposed to a decrease).

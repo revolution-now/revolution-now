@@ -1,6 +1,10 @@
-# Measurements on the OG suggest that the first tax change event
-# is always at a fixed turn number, and that turn number is a
-# function of difficulty level.
+# Measurements on the OG suggest that there is no randomness in
+# the tax increase intervals, though the intervals change after
+# the year 1600 and they also depend on difficulty level. It does
+# though seem desirable to add just a bit of randomness to it, so
+# we largely replicate the OG's behavior, just with a bit of ran-
+# domness added. Specifically, the time intervals are given a
+# 1-year spread of randomness.
 taxes {
   discoverer {
     # Taxes will never be increased above this.
@@ -14,7 +18,12 @@ taxes {
 
     # The number of turns between each tax change event will be
     # selected uniformly from this interval.
-    turns_between_tax_change_events: { min=18, max=22 }
+    turns_between_tax_change_events {
+      years_0000_to_1599: { min: 21, max: 23 } # fixed at 22 in OG.
+      years_1600_to_1699: { min: 18, max: 20 } # fixed at 19 in OG.
+      years_1700_to_1799: { min: 15, max: 17 } # fixed at 16 in OG.
+      years_1800_to_9999: { min: 12, max: 14 } # fixed at 13 in OG.
+    }
 
     # Probability that a tax change event will be an increase (as
     # opposed to a decrease).
@@ -36,7 +45,12 @@ taxes {
   explorer {
     maximum_tax_rate: 75
     min_turn_for_tax_change_events: 40 # year 1532
-    turns_between_tax_change_events: { min=16, max=20 }
+    turns_between_tax_change_events {
+      years_0000_to_1599: { min: 19, max: 21 } # fixed at 20 in OG.
+      years_1600_to_1699: { min: 16, max: 18 } # fixed at 17 in OG.
+      years_1700_to_1799: { min: 13, max: 15 } # fixed at 14 in OG.
+      years_1800_to_9999: { min: 10, max: 12 } # fixed at 11 in OG.
+    }
     tax_increase.probability: .98
     tax_rate_change: { min=1, max=8 }
     intervention_increase.probability: 0.3
@@ -46,7 +60,12 @@ taxes {
   conquistador {
     maximum_tax_rate: 75
     min_turn_for_tax_change_events: 36 # year 1528
-    turns_between_tax_change_events: { min=14, max=18 }
+    turns_between_tax_change_events {
+      years_0000_to_1599: { min: 17, max: 19 } # fixed at 18 in OG.
+      years_1600_to_1699: { min: 14, max: 16 } # fixed at 15 in OG.
+      years_1700_to_1799: { min: 11, max: 13 } # fixed at 12 in OG.
+      years_1800_to_9999: { min:  8, max: 10 } # fixed at  9 in OG.
+    }
     tax_increase.probability: .98
     tax_rate_change: { min=1, max=8 }
     intervention_increase.probability: 0.5
@@ -56,7 +75,12 @@ taxes {
   governor {
     maximum_tax_rate: 75
     min_turn_for_tax_change_events: 32 # year 1524
-    turns_between_tax_change_events: { min=12, max=16 }
+    turns_between_tax_change_events {
+      years_0000_to_1599: { min: 15, max: 17 } # fixed at 16 in OG.
+      years_1600_to_1699: { min: 12, max: 14 } # fixed at 13 in OG.
+      years_1700_to_1799: { min:  9, max: 11 } # fixed at 10 in OG.
+      years_1800_to_9999: { min:  6, max:  8 } # fixed at  7 in OG.
+    }
     tax_increase.probability: .98
     tax_rate_change: { min=1, max=8 }
     intervention_increase.probability: 0.7
@@ -68,7 +92,12 @@ taxes {
     # This one does not follow the pattern (which would suggest
     # it should be 28), but many measurements have confirmed it.
     min_turn_for_tax_change_events: 42 # year 1534
-    turns_between_tax_change_events: { min=10, max=14 }
+    turns_between_tax_change_events {
+      years_0000_to_1599: { min: 13, max: 15 } # fixed at 14 in OG.
+      years_1600_to_1699: { min: 10, max: 12 } # fixed at 11 in OG.
+      years_1700_to_1799: { min:  7, max:  9 } # fixed at  8 in OG.
+      years_1800_to_9999: { min:  4, max:  6 } # fixed at  5 in OG.
+    }
     tax_increase.probability: .98
     tax_rate_change: { min=1, max=8 }
     intervention_increase.probability: 0.9

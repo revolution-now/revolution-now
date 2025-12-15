@@ -49,6 +49,17 @@ int rand_int_range( IRand& rand, auto const& int_range ) {
   return rand.between_ints( min, max );
 }
 
+int rand_int_range_by_year(
+    int const year, IRand& rand,
+    config::old_world::TaxChangeRanges const& ranges ) {
+  config::IntRange const& range =
+      ( year < 1600 )   ? ranges.years_0000_to_1599
+      : ( year < 1700 ) ? ranges.years_1600_to_1699
+      : ( year < 1800 ) ? ranges.years_1700_to_1799
+                        : ranges.years_1800_to_9999;
+  return rand.between_ints( range.min, range.max );
+}
+
 double rand_dbl_range( IRand& rand, auto const& dbl_range ) {
   double const min = dbl_range.min;
   double const max = dbl_range.max;
@@ -177,6 +188,7 @@ int remarry( SS& ss, IRand& rand, Player& player ) {
 TaxUpdateComputation compute_tax_change(
     SSConst const& ss, TerrainConnectivity const& connectivity,
     IRand& rand, Player const& player ) {
+  int const year = ss.turn.time_point.year;
   auto const& tax_config =
       config_old_world
           .taxes[ss.settings.game_setup_options.difficulty];
@@ -197,9 +209,9 @@ TaxUpdateComputation compute_tax_change(
   // The next tax event turn is at or behind us, and so whatever
   // happens we need to advance it.
   update.next_tax_event_turn =
-      turn +
-      rand_int_range(
-          rand, tax_config.turns_between_tax_change_events );
+      turn + rand_int_range_by_year(
+                 year, rand,
+                 tax_config.turns_between_tax_change_events );
   if( ss.colonies.for_player( player.type ).size() == 0 )
     // This is basically to prevent tax increases too early in
     // the game, although if the player finds themselves with no
