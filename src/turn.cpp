@@ -16,6 +16,7 @@
 // Revolution Now
 #include "agents.hpp"
 #include "auto-save.hpp"
+#include "charter.hpp"
 #include "cheat.hpp"
 #include "co-combinator.hpp"
 #include "co-wait.hpp"
@@ -2102,6 +2103,18 @@ wait<> player_start_of_turn( SS& ss, TS& ts, Player& player,
   // have other side effects, e.g. you could not sentry a unit in
   // a colony to board a ship if there were foreign units nearby.
   unsentry_units_next_to_foreign_units( ss, player.type );
+
+  // The OG appears to do this at the top of the turn before any-
+  // thing else, and that makes sense because it'd be weird to be
+  // halfway through a turn when the charter gets revoked. This
+  // method should do all of the tests to make sure it is appro-
+  // priate to end the charter for this player at this time.
+  if( should_end_charter( ss.as_const, player.type ) ) {
+    co_await end_charter_ui_seq( ss.as_const, ts.gui,
+                                 player.type );
+    // TODO: Show score screen sequence, as in OG.
+    throw main_menu_interrupt{};
+  }
 
   if( !is_ref( player.type ) ) {
     // Evolve market prices.

@@ -11,6 +11,7 @@
 #include "colview-entities.hpp"
 
 // Revolution Now
+#include "charter.hpp"
 #include "co-wait.hpp"
 #include "colony-buildings.hpp"
 #include "colony-mgr.hpp"
@@ -151,12 +152,22 @@ bool check_stockade_3( Colony const& colony ) {
 }
 
 // Returns whether the action should be rejected.
-wait<bool> check_abandon( Colony const& colony, IGui& gui ) {
+wait<bool> check_abandon( SSConst const& ss,
+                          Colony const& colony, IGui& gui ) {
   if( colony_population( colony ) > 1 ) co_return false;
+  string msg = "Shall we abandon this colony, Your Excellency?";
+  bool const last_colony =
+      ss.colonies.for_player( colony.player ).size() == 1;
+  if( last_colony &&
+      should_warn_about_charter_end( ss, colony.player ) )
+    msg += format(
+        " If we have no remaining colonies after the year {} "
+        "then the King may end our charter!",
+        charter_end_year() );
   YesNoConfig const config{
-    .msg = "Shall we abandon this colony, Your Excellency?",
+    .msg            = msg,
     .yes_label      = "Yes, it is God's will.",
-    .no_label       = "Never!  That would be folly.",
+    .no_label       = "Never! That would be folly.",
     .no_comes_first = true,
   };
   maybe<ui::e_confirm> res =
@@ -862,7 +873,7 @@ class CargoView : public ui::View,
         if( check_stockade_3( colony_ ) )
           co_return DragRejection{
             .reason = string( kReduceStockadeThreeMsg ) };
-        if( co_await check_abandon( colony_, ts_.gui ) )
+        if( co_await check_abandon( ss_, colony_, ts_.gui ) )
           // If we're rejecting then that means that the player
           // has opted not to abandon the colony, so there is no
           // need to display a reason message.
@@ -1331,7 +1342,7 @@ class UnitsAtGateColonyView
         if( check_stockade_3( colony_ ) )
           co_return DragRejection{
             .reason = string( kReduceStockadeThreeMsg ) };
-        if( co_await check_abandon( colony_, ts_.gui ) )
+        if( co_await check_abandon( ss_, colony_, ts_.gui ) )
           // If we're rejecting then that means that the player
           // has opted not to abandon the colony, so there is no
           // need to display a reason message.

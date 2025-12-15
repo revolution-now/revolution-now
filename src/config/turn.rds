@@ -24,11 +24,18 @@ struct.GameStart {
   starting_season 'e_season',
 }
 
+struct.Charter {
+  enable_charter_term_limit 'bool',
+  charter_end_without_colonies 'int',
+  warn_charter_end_without_colonies 'int',
+}
+
 namespace "rn"
 
 struct.config_turn_t {
   game_start 'config::turn::GameStart',
   turns_to_wait 'config::turn::TurnsToWait',
+  charter 'config::turn::Charter',
 }
 
 config.turn {}

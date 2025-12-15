@@ -11,3 +11,22 @@ turns_to_wait {
   # that stage anyway.
   market_evolution: 10
 }
+
+# The "Charter" essentially just refers to the mechanic whereby
+# the King revokes the player's charter (i.e., the game ends)
+# when the player has not made sufficient progress after a suffi-
+# cient amount of time. Specifically, "progress" seems to mean
+# "has at least one colony", and "sufficient time" means "by the
+# year 1600."
+charter {
+  # Turning this off will prevent the charter from ending.
+  enable_charter_term_limit: true
+
+  # If, on this date or at any point later, the player has no
+  # colonies, then the charter is revoked and the game ends.
+  charter_end_without_colonies: 1600
+
+  # The game will warn the player this many years before the
+  # charter end point whenever they abandon their last colony.
+  warn_charter_end_without_colonies: 25
+}
