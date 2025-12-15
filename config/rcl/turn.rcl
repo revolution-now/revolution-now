@@ -30,3 +30,7 @@ charter {
   # charter end point whenever they abandon their last colony.
   warn_charter_end_without_colonies: 25
 }
+
+# Starting on this year the timescale changes to two turns per
+# year.
+time_scale_change_year: 1600

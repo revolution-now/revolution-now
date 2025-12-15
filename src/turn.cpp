@@ -151,13 +151,15 @@ using UserInputEndOfTurn = base::variant< //
 // To be called once per turn.
 wait<> advance_time( IGui& gui, TurnTimePoint& time_point ) {
   ++time_point.turns;
-  if( time_point.year == 1600 &&
+  if( time_point.year == config_turn.time_scale_change_year &&
       time_point.season == e_season::spring )
     co_await gui.message_box(
-        "Starting in the year [1600] the time scale "
-        "changes.  Henceforth there will be both a "
-        "[Spring] and a [Fall] turn each year." );
-  bool const two_turns = ( time_point.year >= 1600 );
+        "Starting in the year [{}] the time scale changes.  "
+        "Henceforth there will be both a [Spring] and a [Fall] "
+        "turn each year.",
+        config_turn.time_scale_change_year );
+  bool const two_turns =
+      ( time_point.year >= config_turn.time_scale_change_year );
   switch( time_point.season ) {
     case e_season::winter:
       // We're not currently supporting four seasons per year, so
