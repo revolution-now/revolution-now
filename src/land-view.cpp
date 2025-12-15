@@ -555,8 +555,13 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
 
     // Center up front, and then only center below on certain
     // events. In particular, we don't want to center each time
-    // the mouse moves, otherwise the screen scrolls too fast.
-    co_await animator_.ensure_visible( mode.curr_tile );
+    // the mouse moves, otherwise the screen scrolls too fast. We
+    // need to only center if the unit is fully non-visible oth-
+    // erwise if a unit is close to the edge of the screen but
+    // still visible then it will cause a sudden centering of the
+    // unit on screen which will be incorrect.
+    if( !mode.curr_tile.is_inside( viewport().covered_tiles() ) )
+      co_await animator_.ensure_visible( mode.curr_tile );
 
     // Take updates and wait for a tile to be selected either
     // with the keyboard or mouse click. Likely it'll be the key-
@@ -593,8 +598,10 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
               // sponse to the keyboard, so the scrolling won't
               // get out of hand as it would for when the target
               // is moved by the mouse.
-              co_await animator_.ensure_visible(
-                  mode.curr_tile );
+              if( !mode.curr_tile.is_inside(
+                      viewport().fully_covered_tiles() ) )
+                co_await animator_.ensure_visible(
+                    mode.curr_tile );
               break;
             }
             CASE( forfeight ) {
@@ -914,29 +921,43 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
     }
   }
 
+  pair<rect, rect> mouse_scroll_hotrects() const {
+    rect const outter = landview_renderable_rect();
+    size const n_trim =
+        ( outter.size.to_double() *
+          config_land_view.scrolling.edge_thickness_percent )
+            .truncated();
+    auto const trim = [&]( rect const r ) {
+      return r.moved( n_trim )
+          .with_dec_size( n_trim )
+          .with_dec_size( n_trim );
+    };
+    rect const inner  = trim( outter );
+    rect const inner2 = trim( trim( inner ) );
+    return { inner, inner2 };
+  }
+
+  [[nodiscard]] bool will_mouse_pos_cause_scrolling(
+      point const mouse_pos ) const {
+    auto const [inner, inner2] = mouse_scroll_hotrects();
+    return !mouse_pos.is_inside( inner );
+  }
+
   // TODO: this needs to be polished so that the degree of
   // scrolling in a given direction is proportional to the dis-
   // tance to that map edge. Otherwise the scrolling directions
   // are too rigid.
   //
   // TODO: once done, move this to map-view and unit test it.
-  bool scroll_when_mouse_pos_at_edge( point const mouse_pos ) {
-    rect const outter = landview_renderable_rect();
-    size const n_trim =
-        ( outter.size.to_double() *
-          config_land_view.scrolling.edge_thickness_percent )
-            .truncated();
-    if( n_trim == size{} )
-      // This allows us to configure edge_thickness_percent to be
-      // 0.0 to effectively disable this scrolling.
+  [[nodiscard]] bool scroll_when_mouse_pos_at_edge(
+      point const mouse_pos ) {
+    if( config_land_view.scrolling.edge_thickness_percent ==
+        0.0 )
+      // This allows us to configure edge_thickness_percent so as
+      // to disable this scrolling.
       return false;
-    auto const trim = [&]( rect const r ) {
-      return r.moved( n_trim )
-          .with_dec_size( n_trim )
-          .with_dec_size( n_trim );
-    };
 
-    rect const inner = trim( outter );
+    auto const [inner, inner2] = mouse_scroll_hotrects();
     if( mouse_pos.is_inside( inner ) ) return false;
 
     // The idea here is that if at least one of the mouse dimen-
@@ -951,7 +972,7 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
     // feel a bit weird. We didn't want to solve this by lowering
     // the above trimming percent because then that would make
     // all scrolling too sensitive.
-    rect const inner2 = trim( trim( inner ) );
+
     // Use e.g. > and not >= so that when the edge thickness is
     // configured to be zero then we don't scroll.
     bool const push_x_positive = mouse_pos.x > inner2.right();
@@ -1018,17 +1039,34 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
 #endif
 
     // Let the mouse push when it is near the edge of the visible
-    // map to help scroll to the goto target.
-    if( mode_.top().holds<LandViewMode::goto_mode>() ) {
-      point const mouse_pos = input::current_mouse_position();
-      if( scroll_when_mouse_pos_at_edge( mouse_pos ) )
-        // We've scrolled, so send an event that will trigger an
-        // update of the selected tile given the mouse position,
-        // otherwise the the tile selection won't know that the
-        // mouse is over a different tile than it.
-        raw_input_stream_.send(
-            RawInput( produce_mouse_over_event( mouse_pos ) ) );
-    }
+    // map to help scroll to the goto target. Additionally, for a
+    // better UX, we don't auto-pan the screen in response to the
+    // mouse being at the edge of the screen unless the mouse is
+    // first or moved away from the edge (or starts off away from
+    // the edge), and then is moved back to the edge. This pre-
+    // vents the screen from panning automatically against the
+    // user's will just because the mouse happens to be located
+    // at the edge upon entering goto mode. In other words, only
+    // auto-pan when the mouse is purposely moved to the edge.
+    if( auto goto_mode =
+            mode_.top().get_if<LandViewMode::goto_mode>();
+        goto_mode.has_value() )
+      do {
+        point const mouse_pos = input::current_mouse_position();
+        if( !will_mouse_pos_cause_scrolling( mouse_pos ) ) {
+          goto_mode->mouse_has_been_away_from_edges = true;
+          break;
+        }
+        if( !goto_mode->mouse_has_been_away_from_edges ) break;
+        if( scroll_when_mouse_pos_at_edge( mouse_pos ) )
+          // We've scrolled, so send an event that will trigger
+          // an update of the selected tile given the mouse
+          // position, otherwise the the tile selection won't
+          // know that the mouse is over a different tile than
+          // it.
+          raw_input_stream_.send( RawInput(
+              produce_mouse_over_event( mouse_pos ) ) );
+      } while( false );
   }
 
   void advance_state() override { advance_viewport_state(); }

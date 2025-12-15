@@ -45,6 +45,18 @@ sumtype.LandViewMode {
     # a shorter path to the high seas, given that the player ex-
     # plicitly chose the right side.
     curr_tile 'gfx::point',
+    # This is used to suppress auto panning when initiating a
+    # goto (in either keyboard or mouse mode) when the mouse is
+    # initially at the edge of the screen upon entering goto
+    # mode. If we don't do this then the player will likely be
+    # met with a sudden unexpected panning of the screen. Instead
+    # we require that the mouse be put away from the edges at
+    # least once after entering goto mode before we allow auto
+    # panning (meaning that we only allow auto panning when the
+    # use purposely moves the mouse to the edge of the screen and
+    # not just because the mouse happen to being at the edge of
+    # the screen when entering goto mode).
+    mouse_has_been_away_from_edges 'bool',
   },
   hidden_terrain {},
   # This is a mode that can be entered mid-turn where units pause
