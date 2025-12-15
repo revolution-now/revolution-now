@@ -476,30 +476,27 @@ TEST_CASE( "[tax] compute_tax_change" ) {
   }
 
   SECTION( "it is here" ) {
-    W.rand().EXPECT__between_ints( 14, 18 ).returns( 13 );
-
     SECTION( "next_tax_event_turn=0" ) {
       W.turn().time_point.turns                       = 10;
       W.old_world( player ).taxes.next_tax_event_turn = 0;
-      expected = { .next_tax_event_turn = 23,
+      expected = { .next_tax_event_turn = 36,
                    .proposed_tax_change = {} };
       REQUIRE( f() == expected );
     }
 
     SECTION( "after 0" ) {
-      W.turn().time_point.turns                       = 37;
+      W.turn().time_point.turns                       = 36;
       W.old_world( player ).taxes.next_tax_event_turn = 37;
 
       SECTION( "too early" ) {
-        // This tests that we don't cause any tax events before a
-        // fixed number of turns into the game (configured to 38
-        // at the time of writing).
-        expected = { .next_tax_event_turn = 50,
+        expected = { .next_tax_event_turn = 37,
                      .proposed_tax_change = {} };
         REQUIRE( f() == expected );
       }
 
       SECTION( "late enough" ) {
+        W.rand().EXPECT__between_ints( 14, 18 ).returns( 13 );
+
         W.turn().time_point.turns                       = 38;
         W.old_world( player ).taxes.next_tax_event_turn = 37;
 

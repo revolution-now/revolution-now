@@ -1,14 +1,16 @@
+# Measurements on the OG suggest that the first tax change event
+# is always at a fixed turn number, and that turn number is a
+# function of difficulty level.
 taxes {
   discoverer {
     # Taxes will never be increased above this.
     maximum_tax_rate: 75
 
     # Below this turn count there will never be tax change
-    # events. Note that, although this point corresponds to the
-    # year 1528 in the OG as mentioned below, the OG actually
-    # uses a turn count and not the absolute year when deter-
-    # mining when this point has been reached.
-    min_turn_for_tax_change_events: 38 # year 1530
+    # events. Note that the OG uses the turn count and not the
+    # absolute year when determining when this point has been
+    # reached.
+    min_turn_for_tax_change_events: 44 # year 1536
 
     # The number of turns between each tax change event will be
     # selected uniformly from this interval.
@@ -33,7 +35,7 @@ taxes {
 
   explorer {
     maximum_tax_rate: 75
-    min_turn_for_tax_change_events: 38 # year 1530
+    min_turn_for_tax_change_events: 40 # year 1532
     turns_between_tax_change_events: { min=16, max=20 }
     tax_increase.probability: .98
     tax_rate_change: { min=1, max=8 }
@@ -43,7 +45,7 @@ taxes {
 
   conquistador {
     maximum_tax_rate: 75
-    min_turn_for_tax_change_events: 38 # year 1530
+    min_turn_for_tax_change_events: 36 # year 1528
     turns_between_tax_change_events: { min=14, max=18 }
     tax_increase.probability: .98
     tax_rate_change: { min=1, max=8 }
@@ -53,7 +55,7 @@ taxes {
 
   governor {
     maximum_tax_rate: 75
-    min_turn_for_tax_change_events: 38 # year 1530
+    min_turn_for_tax_change_events: 32 # year 1524
     turns_between_tax_change_events: { min=12, max=16 }
     tax_increase.probability: .98
     tax_rate_change: { min=1, max=8 }
@@ -63,7 +65,9 @@ taxes {
 
   viceroy {
     maximum_tax_rate: 75
-    min_turn_for_tax_change_events: 38 # year 1530
+    # This one does not follow the pattern (which would suggest
+    # it should be 28), but many measurements have confirmed it.
+    min_turn_for_tax_change_events: 42 # year 1534
     turns_between_tax_change_events: { min=10, max=14 }
     tax_increase.probability: .98
     tax_rate_change: { min=1, max=8 }

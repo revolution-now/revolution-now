@@ -177,30 +177,29 @@ int remarry( SS& ss, IRand& rand, Player& player ) {
 TaxUpdateComputation compute_tax_change(
     SSConst const& ss, TerrainConnectivity const& connectivity,
     IRand& rand, Player const& player ) {
-  TaxationState const& state =
-      old_world_state( ss, player.type ).taxes;
-  int const turn = ss.turn.time_point.turns;
-  TaxUpdateComputation update;
-  update.next_tax_event_turn = state.next_tax_event_turn;
-  if( state.next_tax_event_turn > turn )
-    // Most common case, we have nothing to do.
-    return update;
   auto const& tax_config =
       config_old_world
           .taxes[ss.settings.game_setup_options.difficulty];
-  int const next =
+  TaxUpdateComputation update;
+  update.next_tax_event_turn = [&] {
+    TaxationState const& state =
+        old_world_state( ss, player.type ).taxes;
+    if( state.next_tax_event_turn == 0 )
+      // As in the OG, set the first tax event turn to be the
+      // fixed value specified in the config.
+      return tax_config.min_turn_for_tax_change_events;
+    return state.next_tax_event_turn;
+  }();
+  int const turn = ss.turn.time_point.turns;
+  if( turn < update.next_tax_event_turn )
+    // Most common case, we have nothing to do.
+    return update;
+  // The next tax event turn is at or behind us, and so whatever
+  // happens we need to advance it.
+  update.next_tax_event_turn =
       turn +
       rand_int_range(
           rand, tax_config.turns_between_tax_change_events );
-  // The next tax event turn is at or behind us, and so whatever
-  // happens we need to advance it.
-  update.next_tax_event_turn = next;
-  if( state.next_tax_event_turn == 0 )
-    // No tax changes on the first turn.
-    return update;
-  // Check for remaining blockers, year and #colonies.
-  if( turn < tax_config.min_turn_for_tax_change_events )
-    return update;
   if( ss.colonies.for_player( player.type ).size() == 0 )
     // This is basically to prevent tax increases too early in
     // the game, although if the player finds themselves with no
