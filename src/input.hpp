@@ -167,6 +167,16 @@ struct key_event_t : public event_base_t {
 };
 
 /****************************************************************
+** Mod keys.
+*****************************************************************/
+// Should try to not call this from outside this module if possi-
+// ble, instead relying on the mod keys delivered with the input
+// events. However, there are some cases where we need to get the
+// state of these in code that is not triggered by keyboard
+// events and thus where we don't have an event.
+mod_keys query_mod_keys();
+
+/****************************************************************
 ** Window
 *****************************************************************/
 enum class e_win_event_type {

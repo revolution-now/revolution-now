@@ -81,7 +81,8 @@ bool is_in_drag_zone( Coord current, Coord origin ) {
 
 // Should not call this from outside this module; should instead
 // use the mod keys delivered with the input events.
-mod_keys query_mod_keys( ::Uint8 const* sdl_keyboard_state ) {
+mod_keys query_mod_keys_impl(
+    ::Uint8 const* sdl_keyboard_state ) {
   auto keymods = ::SDL_GetModState();
   mod_keys mod{};
 
@@ -400,7 +401,7 @@ event_t from_SDL( IEngine& engine, ::SDL_Event sdl_event ) {
   // TODO: is the keyboard_state as well as the key mod state
   // (obtained inside the query_mod_keys function) both current
   // with this event?
-  base.mod = query_mod_keys( keyboard_state );
+  base.mod = query_mod_keys_impl( keyboard_state );
 
   base.mouse_buttons_state = get_mouse_buttons_state();
 
@@ -454,6 +455,14 @@ void update_mouse_pos_with_viewport_change(
   p -= new_resolution.viewport.origin.distance_from_origin();
   p /= new_resolution.scale;
   g_prev_mouse_pos = Coord::from_gfx( p );
+}
+
+/****************************************************************
+** Mod Keys.
+*****************************************************************/
+mod_keys query_mod_keys() {
+  return query_mod_keys_impl(
+      ::SDL_GetKeyboardState( nullptr ) );
 }
 
 /****************************************************************

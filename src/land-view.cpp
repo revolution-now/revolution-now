@@ -1707,10 +1707,13 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
               break;
             }
             if( key_event.direction ) {
+              // TODO: dedupe the various places that populate
+              // these mod keys to ensure they are consistent.
               raw_input_stream_.send(
                   RawInput( LandViewRawInput::cmd{
                     .what = command::move{
-                      .d = *key_event.direction,
+                      .d         = *key_event.direction,
+                      .mod_key_1 = key_event.mod.shf_down,
                       .mod_key_2 =
                           key_event.mod.ctrl_down } } ) );
               handled = true;

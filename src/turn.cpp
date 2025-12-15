@@ -39,6 +39,7 @@
 #include "imap-updater.hpp"
 #include "imenu-handler.hpp"
 #include "imenu-server.hpp"
+#include "input.hpp"
 #include "interrupts.hpp"
 #include "intervention.hpp"
 #include "iraid.rds.hpp"
@@ -1315,9 +1316,16 @@ wait<> advance_unit( IEngine& engine, SS& ss, TS& ts,
       CASE( move ) {
         point const prev_tile = coord_for_unit_indirect_or_die(
             ss.units, unit.id() );
+        // Checking the mod keys allows us to hold shift while we
+        // drag a ship into a colony to open the colony view.
+        input::mod_keys const mkeys = input::query_mod_keys();
+        // TODO: dedupe the various places that populate these
+        // mod keys to ensure they are consistent.
         auto const handler = command_handler(
             engine, ss, ts, agent, player, unit_id,
-            command::move{ .d = move.to } );
+            command::move{ .d         = move.to,
+                           .mod_key_1 = mkeys.shf_down,
+                           .mod_key_2 = mkeys.ctrl_down } );
         CHECK( handler );
         auto const run_result = co_await handler->run();
         // This always needs to happen.
