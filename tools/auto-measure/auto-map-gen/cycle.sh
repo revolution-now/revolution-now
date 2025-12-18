@@ -14,7 +14,10 @@ dir="$1"
 [[ -d "$dir" ]]
 
 sav=~/games/colonization/data/MPS/COLONIZE/COLONY00.SAV
-[[ -L "$sav" || ! -f "$sav" ]]
+[[ -L "$sav" || ! -f "$sav" ]] || {
+  echo "$sav must be either a symlink or not exist." 1>&2
+  exit 1
+}
 
 real_sav="$(basename "$(realpath "$sav")")"
 
