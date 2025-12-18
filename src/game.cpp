@@ -119,6 +119,7 @@ wait<> run_game( IEngine& engine, Planes& planes, IGui& gui,
   st["ROOT"] = ss.root;
   st["SS"]   = ss;
   st["TS"]   = ts;
+  st["IRand"] = static_cast<IRand&>( rand );
 
   // Do this after we set globals so that they will be included
   // in the freezing.

@@ -11,16 +11,21 @@
 #include "map-gen.hpp"
 
 // Revolution Now
+#include "connectivity.hpp"
+#include "lua.hpp"
 #include "map-square.hpp"
 #include "map-updater.hpp"
+#include "rand.hpp"
 
 // ss
 #include "ss/land-view.hpp"
 #include "ss/map-square.hpp"
 #include "ss/ref.hpp"
+#include "ss/root.hpp" // FIXME
 #include "ss/terrain.hpp"
 
 // luapp
+#include "luapp/ext-refl.hpp"
 #include "luapp/state.hpp"
 
 // refl
@@ -57,8 +62,16 @@ void generate_terrain( lua::state& st,
       } );
 }
 
-void ascii_map_gen( lua::state& st, SS& ss,
-                    TerrainConnectivity& connectivity ) {
+void ascii_map_gen() {
+  lua::state st;
+  lua_init( st );
+  SS ss;
+  st["ROOT"] = ss.root;
+  st["SS"]   = ss;
+  TerrainConnectivity connectivity;
+  Rand rand;
+  st["IRand"] = static_cast<IRand&>( rand );
+
   NonRenderingMapUpdater map_updater( ss, connectivity );
   generate_terrain( st, map_updater );
   gfx::Matrix<MapSquare> const& world_map =

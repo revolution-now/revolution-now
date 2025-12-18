@@ -14,7 +14,6 @@
 // Revolution Now
 #include "irand.hpp"
 #include "land-production.hpp"
-#include "ts.hpp"
 
 // config
 #include "config/natives.rds.hpp"
@@ -160,8 +159,8 @@ refl::enum_map<e_native_skill, int> dwelling_expertise_weights(
 }
 
 e_native_skill select_expertise_for_dwelling(
-    TS& ts, refl::enum_map<e_native_skill, int> weights ) {
-  return ts.rand.pick_from_weighted_values( weights );
+    IRand& rand, refl::enum_map<e_native_skill, int> weights ) {
+  return rand.pick_from_weighted_values( weights );
 }
 
 /****************************************************************
@@ -171,11 +170,11 @@ namespace {
 
 LUA_FN( select_expertise_for_dwelling, e_native_skill,
         Dwelling& dwelling ) {
-  SS& ss = st["SS"].as<SS&>();
-  TS& ts = st["TS"].as<TS&>();
+  SS& ss      = st["SS"].as<SS&>();
+  IRand& rand = st["IRand"].as<IRand&>();
   refl::enum_map<e_native_skill, int> weights =
       dwelling_expertise_weights( ss, dwelling );
-  return select_expertise_for_dwelling( ts, weights );
+  return select_expertise_for_dwelling( rand, weights );
 }
 
 } // namespace

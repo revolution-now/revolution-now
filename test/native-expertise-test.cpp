@@ -101,7 +101,7 @@ TEST_CASE( "[native-expertise] select_expertise_for_dwelling" ) {
 
   W.rand().EXPECT__between_ints( 0, 55 - 1 ).returns( 10 );
   e_native_skill const res =
-      select_expertise_for_dwelling( W.ts(), weights );
+      select_expertise_for_dwelling( W.rand(), weights );
   REQUIRE( res == e_native_skill::fishing );
 }
 

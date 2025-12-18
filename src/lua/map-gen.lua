@@ -38,6 +38,7 @@ local native_expertise = global( 'native_expertise' )
 -----------------------------------------------------------------
 local min = math.min
 local max = math.max
+local ceil = math.ceil
 local format = string.format
 
 local import_map_file = classic_sav.import_map_file
@@ -73,7 +74,7 @@ function M.default_options()
     land_density=.17 + math.random() * .1,
     remove_Xs=true,
     remove_X_probability=0.8,
-    brush='rand',
+    brush='mixed',
     -- This is the probability that, given a land square, we will
     -- start creating a river from it.
     river_density=.10,
@@ -125,6 +126,8 @@ local function percent( x )
 end
 
 local function round( x ) return math.floor( x + 0.5 ) end
+
+local function clamp( n, l, h ) return max( min( n, h ), l ) end
 
 -----------------------------------------------------------------
 -- Random Numbers
@@ -450,6 +453,15 @@ local function filter_on_map( coords )
     if square_exists( coord ) then table.insert( res, coord ) end
   end
   return res
+end
+
+local function square_has_surrounding_water( center )
+  local squares = filter_on_map(
+                      surrounding_squares_3x3( center ) )
+  for _, coord in ipairs( squares ) do
+    if square_at( coord ).surface == 'water' then return true end
+  end
+  return false
 end
 
 -----------------------------------------------------------------
@@ -1426,7 +1438,7 @@ end
 -- lems where continents with a seed close to the map edge get a
 -- large area and then end up with a flat cutoff along one of the
 -- sides, which looks unnatural. So instead we choose the conti-
--- nent aread based on where the seed is. The closer the seed is
+-- nent area based on where the seed is. The closer the seed is
 -- to a map edge along a given dimension (x or y), the less its
 -- area will (statistically) extend along that dimensions.
 --
@@ -1536,6 +1548,38 @@ local function round_buffer( target )
   return min( max( round( target ), 1 ), 10 )
 end
 
+local function cut_land_to_target_density( options )
+  local size = world_size()
+  local land_tiles = {}
+  local num_tiles = 0
+  on_all( function( center, square )
+    num_tiles = num_tiles + 1
+    if square.surface == 'land' then
+      append( land_tiles, center )
+    end
+  end )
+  local target_num_land_tiles = ceil(
+                                    options.land_density *
+                                        num_tiles )
+  local num_to_remove = #land_tiles - target_num_land_tiles
+  if num_to_remove <= 0 then return #land_tiles end
+  shuffle( land_tiles )
+  local num_removed = 0
+  for i = 1, #land_tiles do
+    local coord = assert( land_tiles[i] )
+    assert( square_at( coord ).surface == 'land' )
+    -- Don't cut arctic tiles.
+    if coord.y == 0 or coord.y == size.h - 1 then goto skip end
+    if square_has_surrounding_water( coord ) then
+      square_at( coord ).surface = 'water'
+      num_removed = num_removed + 1
+      if num_removed >= num_to_remove then break end
+    end
+    ::skip::
+  end
+  return #land_tiles - num_removed
+end
+
 local function generate_land( options )
   local size = world_size()
   -- The buffer zone will have no land in it, so it should be
@@ -1590,19 +1634,25 @@ local function generate_land( options )
     end
     local density = total_land_density( land_squares )
     local target = options.land_density
-    if density > target then
-      log.info( 'land density actual/target: ' ..
-                    percent( density ) .. '/' ..
-                    percent( target ) )
-      break
-    end
+    if density > target then break end
   end
   clear_buffer_area( buffer )
+
+  -- Cut down land mass until it reaches the target density.
+  land_squares = cut_land_to_target_density( options )
   if options.remove_Xs then remove_Xs( options ) end
-  -- TODO: also need to remove two-tile islands which have a
-  -- dwelling on them because the REF would not be able to land
-  -- there if the player founds a colony.
   remove_islands()
+
+  -- Stats.
+  do
+    local density = total_land_density( land_squares )
+    local target = options.land_density
+    log.info(
+        'land density actual/target: ' .. percent( density ) ..
+            '/' .. percent( target ) )
+  end
+
+  -- Assign ground types.
   create_arctic( options )
   assign_dry_ground_types()
   -- We need to have already created the rivers before this.

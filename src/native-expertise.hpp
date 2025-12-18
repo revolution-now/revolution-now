@@ -22,8 +22,8 @@
 namespace rn {
 
 struct Dwelling;
+struct IRand;
 struct SSConst;
-struct TS;
 
 // Looks at all of the production values (outdoor and some in-
 // door) on all square in the vicinity of the dwelling and re-
@@ -36,6 +36,6 @@ refl::enum_map<e_native_skill, int> dwelling_expertise_weights(
 
 // Randomly selects an expertise according to the weights.
 e_native_skill select_expertise_for_dwelling(
-    TS& ts, refl::enum_map<e_native_skill, int> weights );
+    IRand& rand, refl::enum_map<e_native_skill, int> weights );
 
 } // namespace rn

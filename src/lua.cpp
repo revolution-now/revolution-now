@@ -61,7 +61,7 @@ lua::table require( lua::state& st, string const& required ) {
     return module_table;
   }
   // The module has not already been loaded.
-  lg.info( "loading lua module \"{}\".", key );
+  lg.debug( "loading lua module \"{}\".", key );
   fs::path const file_name =
       module_name_to_file_name( required );
   LUA_CHECK( st, fs::exists( file_name ),

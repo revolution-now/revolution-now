@@ -79,9 +79,8 @@ void run( e_mode mode ) {
     }
     case e_mode::map_gen: {
       engine.init( e_engine_mode::console );
-      NOT_IMPLEMENTED;
-      // ascii_map_gen();
-      // break;
+      ascii_map_gen();
+      break;
     }
     case e_mode::test_ui: {
       engine.init( e_engine_mode::ui_test );
