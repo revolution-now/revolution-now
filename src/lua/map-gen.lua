@@ -60,18 +60,22 @@ end
 -- edges are not visible, so effectively we have 56x70.
 local CLASSIC_WORLD_SIZE = { w=56, h=70 }
 
+-- These are measured from the OG. They tend to have about aa 10%
+-- spread of randomness applied to them.
+local TARGET_LAND_DENSITY = block_invalid_reads{
+  small=.18,
+  moderate=.245,
+  large=.30,
+}
+
 -----------------------------------------------------------------
 -- Options
 -----------------------------------------------------------------
 function M.default_options()
-  return block_invalid_reads{
+  return {
     world_size=CLASSIC_WORLD_SIZE,
     type='normal',
-    -- The original game seems to have a land density of about
-    -- 25% on normal map generation settings. However we will put
-    -- the average slightly lower because it tends to end up
-    -- slightly higher than the target.
-    land_density=.17 + math.random() * .1,
+    land_mass='moderate',
     remove_Xs=true,
     remove_X_probability=0.8,
     brush='mixed',
@@ -106,6 +110,11 @@ function M.default_options()
     -- what leads to a similar result given our algorithm.
     dwelling_frequency=.14,
   }
+end
+
+local function add_target_land_density( options )
+  local avg_density = TARGET_LAND_DENSITY[options.land_mass]
+  return avg_density + avg_density * (math.random() * .2 - .1)
 end
 
 -----------------------------------------------------------------
@@ -1776,8 +1785,7 @@ function M.refresh_resources()
 end
 
 function M.remake_rivers( options )
-  -- FIXME: merge these options with the default ones.
-  options = options or M.default_options()
+  options = secure_options( options, M.default_options() )
   on_all( function( _, square ) square.river = nil end )
   create_rivers( options )
   local TS = global( 'TS' )
@@ -1809,6 +1817,11 @@ end
 
 local function generate( options )
   options = secure_options( options, M.default_options() )
+
+  options.land_density = add_target_land_density( options )
+
+  -- Once more for the computed parameters.
+  options = block_invalid_reads( options )
 
   log.info( 'generating map...' );
 
