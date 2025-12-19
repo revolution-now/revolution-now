@@ -102,7 +102,7 @@ local function generate_one_map( config )
   forget_dosbox_window()
   local launcher<close> = launch.colonization_launcher()
 
-  sleep( 3 )
+  sleep( 4 )
 
   local actions = action_api( dosbox.window() )
 
@@ -134,8 +134,10 @@ local function generate_one_map( config )
   actions.enter() -- leave harbor when map-gen is done.
   actions.enter() -- leave harbor when map-gen is done.
 
-  -- Wait for map gen to finish.
-  sleep( 11 )
+  -- Wait for map gen to finish. Note that this takes longer when
+  -- the larger land mass option is selected, so it has to be
+  -- long enough for that mode.
+  sleep( 13 )
 
   -- Land view is now visible.
   save_game( SAV_SLOT )
