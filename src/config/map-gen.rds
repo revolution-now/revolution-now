@@ -1,0 +1,48 @@
+# ===============================================================
+# map-gen.rds
+#
+# Project: Revolution Now
+#
+# Created by David P. Sicilia on 2025-12-20.
+#
+# Description: Config data for the map-gen module.
+#
+# ===============================================================
+# config
+include "range-helpers.rds.hpp"
+
+# refl
+include "refl/enum-map.hpp"
+
+namespace "rn"
+
+enum.e_land_mass {
+  small,
+  moderate,
+  large,
+}
+
+namespace "rn.config.map_gen"
+
+struct.LandGeneration {
+  named_landmass_density 'refl::enum_map<e_land_mass, config::DoublePercent>',
+  landmass_density_fluctuation 'double',
+  min_map_height_for_arctic 'int',
+  river_density 'config::DoublePercent',
+  mountain_density 'config::DoublePercent',
+  mountain_range_probability 'config::Probability',
+  hills_density 'config::DoublePercent',
+  hills_range_probability 'config::Probability',
+  major_river_fraction 'config::DoublePercent',
+  forest_density 'config::DoublePercent',
+  add_arctic_tiles 'bool',
+  arctic_tile_density 'config::DoublePercent',
+}
+
+namespace "rn"
+
+struct.config_map_gen_t {
+  land_generation 'config::map_gen::LandGeneration',
+}
+
+config.map_gen {}

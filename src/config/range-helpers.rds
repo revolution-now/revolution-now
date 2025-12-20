@@ -16,6 +16,12 @@ struct.IntPercent {
   _features { equality, validation }
 }
 
+struct.DoublePercent {
+  fraction 'double',
+
+  _features { equality, validation }
+}
+
 struct.IntRange {
   min 'int',
   max 'int',

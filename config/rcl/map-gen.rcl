@@ -1,0 +1,57 @@
+# Settings relevant when the map is generated randomly.
+#
+# NOTE: You likely do NOT want to change these values here as
+# these are just the default values used by the game when it is
+# not customized. If you want to customize the map generation
+# then you should do this in-game by choosing "Customize New
+# World" and then choosing the appropriate customization level
+# that meets your needs. In the process you will have the oppor-
+# tunity to tweak all of the settings below, at least on the
+# highest customization level.
+land_generation {
+  # These values were measured across many randomly generated map
+  # samples from the OG.
+  named_landmass_density {
+    small:    { fraction: 0.180 }
+    moderate: { fraction: 0.245 }
+    large:    { fraction: 0.300 }
+  }
+
+  # Absolute magnitude of fluctuation that will (additively) de-
+  # fine the bounds in which the random land density will be se-
+  # lected relative to the averages above. So if the landmass
+  # density is "moderate" and this fluctuation value is 0.03 then
+  # the possible values will range from [.215, .275].
+  landmass_density_fluctuation: 0.03
+
+  # If the map height is not at least this tall then the arctic
+  # rows at the top and bottom of the map will be omitted to save
+  # space.
+  min_map_height_for_arctic: 10
+
+  # This is the probability that, given a land square, we will
+  # start creating a river from it.
+  river_density: { fraction: .10 }
+
+  # Probability that each land square will have mountains/hills
+  # on it.
+  hills_density:    { fraction: .05 }
+  mountain_density: { fraction: .1 }
+
+  # Probability that a tile that has been chosen to have a moun-
+  # tain/hill on it will be the start of a range.
+  hills_range_probability:    { probability: .1 }
+  mountain_range_probability: { probability: .1 }
+
+  # This is the probability that a given river segment will be a
+  # major river. This should really be smaller than .5 because
+  # major rivers give a production bonus over minor rivers.
+  major_river_fraction: { fraction: .15 }
+
+  # Probability that an eligible tile will get forest cover. In
+  # the OG most tiles are initially covered in forest.
+  forest_density: { fraction: .95 }
+
+  add_arctic_tiles: true
+  arctic_tile_density: { fraction: .5 }
+}

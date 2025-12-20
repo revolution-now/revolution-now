@@ -28,6 +28,7 @@
 #include "config/input.rds.hpp"
 #include "config/land-view.rds.hpp"
 #include "config/lcr.rds.hpp"
+#include "config/map-gen.rds.hpp"
 #include "config/market.rds.hpp"
 #include "config/menu.rds.hpp"
 #include "config/missionary.rds.hpp"
@@ -79,6 +80,7 @@ INSTANTIATE_RN_CONFIG( immigration );
 INSTANTIATE_RN_CONFIG( input );
 INSTANTIATE_RN_CONFIG( land_view );
 INSTANTIATE_RN_CONFIG( lcr );
+INSTANTIATE_RN_CONFIG( map_gen );
 INSTANTIATE_RN_CONFIG( market );
 INSTANTIATE_RN_CONFIG( menu );
 INSTANTIATE_RN_CONFIG( missionary );

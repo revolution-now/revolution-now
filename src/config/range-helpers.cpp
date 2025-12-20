@@ -24,6 +24,13 @@ base::valid_or<string> IntPercent::validate() const {
   return base::valid;
 }
 
+base::valid_or<string> DoublePercent::validate() const {
+  REFL_VALIDATE(
+      fraction >= 0.0 && fraction <= 1.0,
+      "floating point percents must be in the range [0, 1.0]." );
+  return base::valid;
+}
+
 base::valid_or<string> IntRange::validate() const {
   REFL_VALIDATE( min <= max, "min must be <= max in range." );
   return base::valid;

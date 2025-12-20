@@ -24,6 +24,7 @@
 #include "config/input.rds.hpp"
 #include "config/land-view.rds.hpp"
 #include "config/lcr.rds.hpp"
+#include "config/map-gen.rds.hpp"
 #include "config/market.rds.hpp"
 #include "config/menu.rds.hpp"
 #include "config/missionary.rds.hpp"
@@ -118,6 +119,7 @@ void inject_configs( lua::state& st ) {
   INJECT( input );
   INJECT( land_view );
   INJECT( lcr );
+  INJECT( map_gen );
   INJECT( market );
   INJECT( menu );
   INJECT( missionary );
