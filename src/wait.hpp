@@ -19,6 +19,7 @@
 // base
 #include "base/unique-coro.hpp"
 #include "base/unique-func.hpp"
+#include "base/no-discard.hpp"
 
 // C++ standard library
 #include <exception>
@@ -370,6 +371,8 @@ concept IsWait = is_wait_v<T>;
 /****************************************************************
 ** Helpers
 *****************************************************************/
+using wait_bool = wait<base::NoDiscard<bool>>;
+
 // Returns a wait immediately containing the given value.
 template<typename T = std::monostate, typename... Args>
 wait<T> make_wait( Args&&... args ) {
