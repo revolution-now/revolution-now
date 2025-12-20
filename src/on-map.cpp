@@ -49,7 +49,7 @@
 
 // base
 #include "base/logger.hpp"
-#include "base/vocab.hpp"
+#include "base/no-discard.hpp"
 
 using namespace std;
 

@@ -19,7 +19,7 @@
 #include "wait.hpp"
 
 // base
-#include "base/vocab.hpp"
+#include "base/no-discard.hpp"
 
 namespace rn {
 

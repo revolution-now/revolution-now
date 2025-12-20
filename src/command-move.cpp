@@ -58,8 +58,8 @@
 
 // base
 #include "base/logger.hpp"
+#include "base/no-discard.hpp"
 #include "base/to-str-ext-std.hpp"
-#include "base/vocab.hpp"
 
 using namespace std;
 

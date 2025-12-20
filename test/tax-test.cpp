@@ -35,7 +35,7 @@
 #include "src/ss/turn.rds.hpp"
 
 // base
-#include "src/base/vocab.hpp"
+#include "src/base/no-discard.hpp"
 
 // Must be last.
 #include "test/catch-common.hpp"
