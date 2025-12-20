@@ -371,7 +371,7 @@ concept IsWait = is_wait_v<T>;
 /****************************************************************
 ** Helpers
 *****************************************************************/
-using wait_bool = wait_bool;
+using wait_bool = wait<base::NoDiscard<bool>>;
 
 // Returns a wait immediately containing the given value.
 template<typename T = std::monostate, typename... Args>
