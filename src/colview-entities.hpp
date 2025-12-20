@@ -61,12 +61,11 @@ struct UnitsState;
 struct AwaitView {
   virtual ~AwaitView() = default;
 
-  virtual wait<base::NoDiscard<bool>> perform_key(
-      input::key_event_t const& ) {
+  virtual wait_bool perform_key( input::key_event_t const& ) {
     co_return false; // not handled.
   }
 
-  virtual wait<base::NoDiscard<bool>> perform_click(
+  virtual wait_bool perform_click(
       input::mouse_button_event_t const& ) {
     co_return false; // not handled.
   }

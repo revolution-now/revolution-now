@@ -49,7 +49,7 @@ wait<maybe<int>> select_load_slot(
 /****************************************************************
 ** Saving.
 *****************************************************************/
-wait<base::NoDiscard<bool>> save_to_slot_interactive(
+wait_bool save_to_slot_interactive(
     SSConst const& ss, TS& ts, IGameStorageSave const& saver,
     int slot );
 
@@ -78,7 +78,7 @@ expect<SlotCopiedPaths> copy_slot_to_slot(
 *****************************************************************/
 // Given a slot (which must contain a save file) load it. Will
 // return if the load actually succeeded.
-wait<base::NoDiscard<bool>> load_from_slot_interactive(
+wait_bool load_from_slot_interactive(
     SS& ss, TS& ts, IGameStorageLoad const& loader, int slot );
 
 expect<fs::path> load_from_slot( SS& ss, TS& ts,

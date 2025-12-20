@@ -80,7 +80,7 @@ struct ColonyLandView : public ui::View,
   ui::View const& view() const noexcept override;
 
   // Implement AwaitView.
-  wait<base::NoDiscard<bool>> perform_click(
+  wait_bool perform_click(
       input::mouse_button_event_t const& event ) override;
 
   // Implement IDragSink.

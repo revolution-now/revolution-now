@@ -345,8 +345,8 @@ HarborMarketCommodities::user_edit_object() const {
     .comm = new_comm };
 }
 
-wait<base::NoDiscard<bool>>
-HarborMarketCommodities::check_boycott( e_commodity type ) {
+wait_bool HarborMarketCommodities::check_boycott(
+    e_commodity type ) {
   bool const boycott = old_world_state( ss_, player_.type )
                            .market.commodities[type]
                            .boycott;

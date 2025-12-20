@@ -168,7 +168,7 @@ maybe<LandPrice> price_for_native_owned_land(
   return res;
 }
 
-wait<base::NoDiscard<bool>> prompt_player_for_taking_native_land(
+wait_bool prompt_player_for_taking_native_land(
     SS& ss, IAgent& agent, Player& player, Coord tile,
     e_native_land_grab_type context ) {
   UNWRAP_CHECK(

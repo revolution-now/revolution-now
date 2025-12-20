@@ -1103,7 +1103,7 @@ class CargoView : public ui::View,
   }
 
   // Implement AwaitView.
-  wait<NoDiscard<bool>> perform_key(
+  wait_bool perform_key(
       input::key_event_t const& event ) override {
     if( dragging_.has_value() ) co_return false;
     if( event.change != input::e_key_change::down )
@@ -1206,7 +1206,7 @@ class UnitsAtGateColonyView
   }
 
   // Implement AwaitView.
-  wait<NoDiscard<bool>> perform_click(
+  wait_bool perform_click(
       input::mouse_button_event_t const& event ) override {
     if( event.buttons != input::e_mouse_button_event::left_up )
       co_return false;
@@ -1734,7 +1734,7 @@ struct CompositeColSubView : public ui::InvisibleView,
   }
 
   // Implement AwaitView.
-  wait<NoDiscard<bool>> perform_click(
+  wait_bool perform_click(
       input::mouse_button_event_t const& event ) override {
     for( int i = 0; i < count(); ++i ) {
       ui::PositionedView pos_view = at( i );
@@ -1754,7 +1754,7 @@ struct CompositeColSubView : public ui::InvisibleView,
   }
 
   // Implement AwaitView.
-  wait<NoDiscard<bool>> perform_key(
+  wait_bool perform_key(
       input::key_event_t const& event ) override {
     for( int i = 0; i < count(); ++i ) {
       // Need to co_await so that shifted_event stays alive.

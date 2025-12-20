@@ -146,7 +146,7 @@ struct HarborMarketCommodities
  private:
   // Returns true if the commodity is boycotted and the player
   // did not lift it, i.e. we are blocked.
-  wait<base::NoDiscard<bool>> check_boycott( e_commodity type );
+  wait_bool check_boycott( e_commodity type );
 
   // For managing the status bar.
   void send_invoice_msg_to_status_bar(

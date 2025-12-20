@@ -375,7 +375,7 @@ wait<> ColViewBuildings::disown_dragged_object() {
 }
 
 // Implement AwaitView.
-wait<NoDiscard<bool>> ColViewBuildings::perform_click(
+wait_bool ColViewBuildings::perform_click(
     input::mouse_button_event_t const& event ) {
   if( event.buttons != input::e_mouse_button_event::left_up )
     co_return true;

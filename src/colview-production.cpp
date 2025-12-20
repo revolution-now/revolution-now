@@ -300,7 +300,7 @@ void ProductionView::draw( rr::Renderer& renderer,
       layout_.size.h, pixel::black() );
 }
 
-wait<NoDiscard<bool>> ProductionView::perform_click(
+wait_bool ProductionView::perform_click(
     input::mouse_button_event_t const& event ) {
   CHECK( event.pos.is_inside( bounds( {} ) ) );
   if( event.pos.is_inside( layout_.buttons_area_rect ) ) {
@@ -343,7 +343,7 @@ wait<NoDiscard<bool>> ProductionView::perform_click(
   co_return true;
 }
 
-wait<NoDiscard<bool>> ProductionView::perform_key(
+wait_bool ProductionView::perform_key(
     input::key_event_t const& event ) {
   if( event.change != input::e_key_change::down )
     co_return false;

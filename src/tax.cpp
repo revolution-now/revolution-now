@@ -420,9 +420,10 @@ int back_tax_for_boycotted_commodity( SSConst const& ss,
 
 // This one is only called by human players in the harbor view,
 // so can use the IGui interface.
-wait<NoDiscard<bool>> try_trade_boycotted_commodity(
-    SS& ss, IGui& gui, Player& player, e_commodity type,
-    int back_taxes ) {
+wait_bool try_trade_boycotted_commodity( SS& ss, IGui& gui,
+                                         Player& player,
+                                         e_commodity type,
+                                         int back_taxes ) {
   bool& boycott = old_world_state( ss, player.type )
                       .market.commodities[type]
                       .boycott;

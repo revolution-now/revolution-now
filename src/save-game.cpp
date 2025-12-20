@@ -219,7 +219,7 @@ expect<SlotCopiedPaths> copy_slot_to_slot(
 /****************************************************************
 ** Saving.
 *****************************************************************/
-wait<base::NoDiscard<bool>> save_to_slot_interactive(
+wait_bool save_to_slot_interactive(
     SSConst const& ss, TS& ts, IGameStorageSave const& saver,
     int slot ) {
   expect<fs::path> result = save_to_slot( ss, ts, saver, slot );
@@ -257,7 +257,7 @@ expect<fs::path> save_to_slot_no_checkpoint(
 /****************************************************************
 ** Loading.
 *****************************************************************/
-wait<base::NoDiscard<bool>> load_from_slot_interactive(
+wait_bool load_from_slot_interactive(
     SS& ss, TS& ts, IGameStorageLoad const& loader, int slot ) {
   expect<fs::path> const result =
       load_from_slot( ss, ts, loader, slot );

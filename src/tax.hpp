@@ -72,8 +72,9 @@ int back_tax_for_boycotted_commodity( SSConst const& ss,
 // The commodity should be boycotted here otherwise it will
 // check-fail. Returns the new boycott status (for convenience;
 // if the status changed, the state will have been updated).
-wait<base::NoDiscard<bool>> try_trade_boycotted_commodity(
-    SS& ss, IGui& gui, Player& player, e_commodity type,
-    int back_taxes );
+wait_bool try_trade_boycotted_commodity( SS& ss, IGui& gui,
+                                         Player& player,
+                                         e_commodity type,
+                                         int back_taxes );
 
 } // namespace rn

@@ -80,7 +80,7 @@ maybe<LandPrice> price_for_native_owned_land(
 // player has acquired the land in some way. The land must be
 // owned by a tribe from the perspective of the player otherwise
 // check-fail.
-wait<base::NoDiscard<bool>> prompt_player_for_taking_native_land(
+wait_bool prompt_player_for_taking_native_land(
     SS& ss, IAgent& agent, Player& player, Coord tile,
     e_native_land_grab_type context );
 

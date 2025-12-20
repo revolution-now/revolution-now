@@ -104,10 +104,11 @@ wait<> try_discover_pacific_ocean( SSConst const& ss,
 }
 
 // Returns true if the unit was deleted.
-wait<base::NoDiscard<bool>> try_lost_city_rumor(
-    SS& ss, ILandViewPlane& land_view, IMapUpdater& map_updater,
-    IRand& rand, Player& player, IAgent& agent, UnitId id,
-    Coord tile ) {
+wait_bool try_lost_city_rumor( SS& ss, ILandViewPlane& land_view,
+                               IMapUpdater& map_updater,
+                               IRand& rand, Player& player,
+                               IAgent& agent, UnitId id,
+                               Coord tile ) {
   // Check if the unit actually moved and it landed on a Lost
   // City Rumor.
   bool const has_lost_city_rumor =

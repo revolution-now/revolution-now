@@ -23,7 +23,7 @@ namespace "rn"
 # ===============================================================
 interface.IGameSaver {
   save_to_slot_interactive {
-    returns 'wait<base::NoDiscard<bool>>',
+    returns 'wait_bool',
     slot 'int',
   },
 

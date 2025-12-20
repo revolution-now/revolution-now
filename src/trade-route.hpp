@@ -151,7 +151,7 @@ wait<maybe<CreateTradeRoute>> ask_create_trade_route(
     CreateTradeRoute const& params );
 
 // The trade route must exist, or check fail.
-wait<base::NoDiscard<bool>> confirm_delete_trade_route(
+wait_bool confirm_delete_trade_route(
     SSConst const& ss, IGui& gui, TradeRouteId trade_route_id );
 
 void delete_trade_route( TradeRouteState& trade_routes,

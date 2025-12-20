@@ -199,7 +199,7 @@ wait<> advance_time( IGui& gui, TurnTimePoint& time_point ) {
 // prompted the save-game box to appear in the first place.
 //
 // Will return whether it is safe to proceed.
-wait<NoDiscard<bool>> check_if_not_dirty_or_can_proceed(
+wait_bool check_if_not_dirty_or_can_proceed(
     IEngine& engine, SSConst const& ss, TS& ts,
     IGameStorageSave const& storage_save ) {
   auto is_game_saved = [&] {
@@ -393,7 +393,7 @@ wait<vector<UnitId>> process_unit_prioritization_request(
   co_return prioritize;
 }
 
-wait<NoDiscard<bool>> process_unit_prioritization_request(
+wait_bool process_unit_prioritization_request(
     SSConst const& ss, TS& ts, UnitId const unit_id ) {
   LandViewPlayerInput::prioritize const request{
     .units = { unit_id } };

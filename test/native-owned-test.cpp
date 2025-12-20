@@ -959,9 +959,8 @@ TEST_CASE(
                                    { .x = x, .y = y } );
 
   auto f = [&]() -> bool {
-    wait<base::NoDiscard<bool>> w =
-        prompt_player_for_taking_native_land(
-            W.ss(), W.agent(), W.default_player(), tile, type );
+    wait_bool const w = prompt_player_for_taking_native_land(
+        W.ss(), W.agent(), W.default_player(), tile, type );
     CHECK( !w.exception() );
     CHECK( w.ready() );
     return *w;

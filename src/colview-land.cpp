@@ -189,7 +189,7 @@ ui::View const& ColonyLandView::view() const noexcept {
   return *this;
 }
 
-wait<NoDiscard<bool>> ColonyLandView::perform_click(
+wait_bool ColonyLandView::perform_click(
     input::mouse_button_event_t const& event ) {
   CHECK( event.pos.is_inside( bounds( {} ) ) );
   maybe<UnitId> unit_id = unit_under_cursor( event.pos );
