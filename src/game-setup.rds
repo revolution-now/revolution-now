@@ -1,0 +1,172 @@
+# ===============================================================
+# game-setup.rds
+#
+# Project: Revolution Now
+#
+# Created by David P. Sicilia on 2025-12-20.
+#
+# Description: Data structure for defining a new game.
+#
+# ===============================================================
+# config
+include "config/options.rds.hpp"
+include "config/range-helpers.rds.hpp"
+
+# ss
+include "ss/difficulty.rds.hpp"
+include "ss/nation.rds.hpp"
+include "ss/native-enums.rds.hpp"
+
+# gfx
+include "gfx/cartesian.hpp"
+
+# refl
+include "refl/enum-map.hpp"
+
+# C++ standard library
+include "<string>"
+
+namespace "rn"
+
+# This is what you can customize when you select "Start Game in
+# NEW WORLD" in the OG.
+struct.BasicSetup {
+  difficulty 'e_difficulty',
+  nation 'e_nation',
+  namie 'std::string',
+}
+
+struct.TribeSetup {
+  enabled 'bool',
+}
+
+struct.NativesSetup {
+  tribes 'refl::enum_map<e_tribe, TribeSetup>',
+  # This is in [0,1] and gives a probability that a dwelling will
+  # be placed on a tile assuming that all other conditions are
+  # met. The OG appears to have ~6% of land tiles occupied by
+  # dwellings. The number that we choose below is what leads to a
+  # similar result given our algorithm.
+  dwelling_frequency 'double',
+}
+
+enum.e_temperature {
+  cool,
+  temperate,
+  warm,
+}
+
+enum.e_climate {
+  arid,
+  normal,
+  wet,
+}
+
+sumtype.LcrSetup {
+  none {},
+  classic {},
+}
+
+sumtype.PrimeResourceSetup {
+  none {},
+  classic {},
+}
+
+struct.RemoveXs {
+  # If we're removing Xs then this is the probabiliy we will do
+  # so for each X found. Can be 0/1 for fully off/on.
+  remove_Xs_probability 'double',
+}
+
+sumtype.LandGeneratorAlgorithm {
+  seeded_organic {
+    continent_size 'config::IntRange',
+    brush 'mixed',
+  },
+  perlin {
+    # TODO: add Perlin-specific parameters here.
+  }
+}
+
+struct.LandGeneratorSetup {
+  seed 'int',
+  target_density 'double',
+  remove_xs 'RemoveXs',
+  generator_algo 'LandGeneratorAlgorithm',
+}
+
+struct.GeneratedTerrainSetup {
+  # Map Size.
+  # -------------------------------------------------------------
+  size 'gfx::size',
+
+  # Surface tile selection.
+  # -------------------------------------------------------------
+  land_generator 'LandGeneratorSetup',
+
+  # Ground types.
+  # -------------------------------------------------------------
+  temperature 'e_temperature',
+  climate 'e_climate',
+
+  # Arctic.
+  # -------------------------------------------------------------
+  add_arctic_tiles 'bool',
+  arctic_tile_density 'double',
+
+  # Rivers.
+  # -------------------------------------------------------------
+  # This is the probability that, given a land square touching
+  # water, we will start creating a river from it.
+  river_density 'double',
+  # This is the probability that a given river segment will be a
+  # major river. This should really be smaller than .5 because
+  # major rivers give a production bonus over minor rivers.
+  major_river_fraction 'double',
+
+  # Overlays.
+  # -------------------------------------------------------------
+  forest_density 'double',
+  mountain_density 'double',
+  # Probability that a tile chosen to have a mountain on it will
+  # continue into a mountain range. This is applied recursively
+  # on each new mountain tile added in the range to determine
+  # whether to continue or not.
+  mountains_range_probability 'double',
+  hills_density 'double',
+  hills_range_probability 'double',
+
+  # Prime resources.
+  # -------------------------------------------------------------
+  prime_resources 'PrimeResourceSetup',
+
+  # Lost City Rumors.
+  # -------------------------------------------------------------
+  lcr 'LcrSetup',
+}
+
+sumtype.MapSetup {
+  load_from_file {
+    path 'std::string',
+  },
+  generate {
+    terrain 'GeneratedTerrainSetup',
+  },
+}
+
+struct.RulesSetup {
+  values 'config::options::Values',
+}
+
+# This struct contains all of the settings that can be specified
+# (customized) to create a new game. The higher the level of cus-
+# tomization that the player chooses, the more of these options
+# will be customizable in the UI when creating a new game. When
+# there is no customization at all then the vast majority of them
+# will be selected automatically.
+struct.GameSetup {
+  basic 'BasicSetup',
+  map 'MapSetup',
+  natives 'NativesSetup',
+  rules 'RulesSetup',
+}
