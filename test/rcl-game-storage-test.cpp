@@ -80,7 +80,7 @@ void expect_rands( World& W ) {
 
   // These are for choosing the expertise of each native
   // dwelling.
-  W.rand().EXPECT__between_ints( _, _ ).times( 6 ).returns( 0 );
+  W.rand().EXPECT__between_ints( _, _ ).times( 7 ).returns( 0 );
 
   // These are for choosing the initial processed goods volumes.
   W.rand().EXPECT__between_ints( _, _ ).times( 4 ).returns(
@@ -93,8 +93,7 @@ void create_new_game_from_lua( World& world ) {
   UNWRAP_CHECK(
       options, new_game["default_options"].pcall<lua::table>() );
   options["map"]["world_size"] = Delta{ .w = 8, .h = 8 };
-  CHECK_HAS_VALUE(
-      new_game["create"].pcall( world.root(), options ) );
+  CHECK_HAS_VALUE( new_game["create"].pcall( options ) );
 }
 
 void generate_save_file(

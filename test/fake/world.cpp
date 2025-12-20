@@ -26,6 +26,7 @@
 #include "src/commodity.hpp"
 #include "src/connectivity.hpp"
 #include "src/harbor-units.hpp"
+#include "src/irand.hpp"
 #include "src/lua.hpp"
 #include "src/map-square.hpp"
 #include "src/map-updater.hpp"
@@ -168,9 +169,10 @@ lua::state& World::lua() {
     uninitialized_lua_ = make_unique<lua::state>();
     lua::state& st     = *uninitialized_lua_;
     // FIXME: need to dedupe this logic.
-    st["ROOT"] = root();
-    st["SS"]   = ss();
-    st["TS"]   = ts();
+    st["ROOT"]  = root();
+    st["SS"]    = ss();
+    st["TS"]    = ts();
+    st["IRand"] = static_cast<IRand&>( rand() );
   }
   return *uninitialized_lua_;
 }

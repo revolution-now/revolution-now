@@ -10,7 +10,6 @@
 # ===============================================================
 # config
 include "config/options.rds.hpp"
-include "config/range-helpers.rds.hpp"
 
 # ss
 include "ss/difficulty.rds.hpp"
@@ -23,21 +22,27 @@ include "gfx/cartesian.hpp"
 # refl
 include "refl/enum-map.hpp"
 
+# base
+include "base/maybe.hpp"
+
 # C++ standard library
 include "<string>"
 
 namespace "rn"
 
-# This is what you can customize when you select "Start Game in
-# NEW WORLD" in the OG.
-struct.BasicSetup {
-  difficulty 'e_difficulty',
-  nation 'e_nation',
-  namie 'std::string',
+struct.NationSetup {
+  name 'std::string',
+  human 'bool',
 }
 
+struct.NationsSetup {
+  nations 'refl::enum_map<e_nation, base::maybe<NationSetup>>',
+}
+
+# This is set up so that its default value is what is used in a
+# normal game.
 struct.TribeSetup {
-  enabled 'bool',
+  disabled 'bool',
 }
 
 struct.NativesSetup {
@@ -72,16 +77,16 @@ sumtype.PrimeResourceSetup {
   classic {},
 }
 
-struct.RemoveXs {
-  # If we're removing Xs then this is the probabiliy we will do
-  # so for each X found. Can be 0/1 for fully off/on.
-  remove_Xs_probability 'double',
+enum.e_land_brush_type {
+  single,
+  cross,
+  mixed,
+  rand,
 }
 
 sumtype.LandGeneratorAlgorithm {
   seeded_organic {
-    continent_size 'config::IntRange',
-    brush 'mixed',
+    brush 'e_land_brush_type',
   },
   perlin {
     # TODO: add Perlin-specific parameters here.
@@ -91,7 +96,10 @@ sumtype.LandGeneratorAlgorithm {
 struct.LandGeneratorSetup {
   seed 'int',
   target_density 'double',
-  remove_xs 'RemoveXs',
+  # If we're removing Xs then this is the probabiliy we will do
+  # so for each X found. Can be 0/1 for fully off/on.
+  remove_Xs_probability 'double',
+  remove_islands 'bool',
   generator_algo 'LandGeneratorAlgorithm',
 }
 
@@ -132,7 +140,7 @@ struct.GeneratedTerrainSetup {
   # continue into a mountain range. This is applied recursively
   # on each new mountain tile added in the range to determine
   # whether to continue or not.
-  mountains_range_probability 'double',
+  mountain_range_probability 'double',
   hills_density 'double',
   hills_range_probability 'double',
 
@@ -158,15 +166,28 @@ struct.RulesSetup {
   values 'config::options::Values',
 }
 
+struct.TurnSetup {
+  starting_year 'int',
+}
+
+struct.SettingsStateSetup {
+  difficulty 'e_difficulty',
+}
+
 # This struct contains all of the settings that can be specified
 # (customized) to create a new game. The higher the level of cus-
 # tomization that the player chooses, the more of these options
 # will be customizable in the UI when creating a new game. When
 # there is no customization at all then the vast majority of them
 # will be selected automatically.
+#
+# These are in the reverse order in which they are selected, vis-
+# ited and applied.
 struct.GameSetup {
-  basic 'BasicSetup',
-  map 'MapSetup',
+  turns 'TurnSetup',
+  nations 'NationsSetup',
   natives 'NativesSetup',
+  map 'MapSetup',
   rules 'RulesSetup',
+  settings_state 'SettingsStateSetup',
 }

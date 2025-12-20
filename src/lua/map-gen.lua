@@ -77,23 +77,29 @@ function M.default_options()
     type='normal',
     land_mass='moderate',
     remove_Xs=true,
-    remove_X_probability=0.8,
+    remove_Xs_probability=0.8,
     brush='mixed',
     -- This is the probability that, given a land square, we will
     -- start creating a river from it.
     river_density=.10,
+    -- Probability that an eligible tile will get forest cover.
+    -- In the OG most tiles are initially covered in forest.
+    forest_density=.95,
     -- Probability that each land square will have mountain-
     -- s/hills on it.
     hills_density=.05,
+    mountain_density=.1,
+    -- Probability that a tile that has been chosen to have a
+    -- mountain on it will be the start of a mountain range.
+    hills_range_probability=.05,
+    mountain_range_probability=.1,
+    -- Probability that an eligible tile will get arctic.
+    arctic_tile_density=0.5,
     -- If the map height is not at least this tall then the
     -- arctic rows at the top and bottom of the map will be
     -- omitted to save space. That said, the top and bottom proto
     -- squares will still be artic.
     min_map_height_for_arctic=10,
-    mountains_density=.1,
-    -- Probability that a tile that has been chosen to have a
-    -- mountain on it will be the start of a mountain range.
-    mountains_range_density=.1,
     -- This is the probability that a given river segment will be
     -- a major river. This should really be smaller than .5 be-
     -- cause major rivers give a production bonus over minor
@@ -135,8 +141,6 @@ local function percent( x )
 end
 
 local function round( x ) return math.floor( x + 0.5 ) end
-
-local function clamp( n, l, h ) return max( min( n, h ), l ) end
 
 -----------------------------------------------------------------
 -- Random Numbers
@@ -476,7 +480,7 @@ end
 -----------------------------------------------------------------
 -- Hills/Mountains Generation
 -----------------------------------------------------------------
-local function create_hills( options )
+function M.create_hills( options )
   on_all( function( coord )
     local square = square_at( coord )
     if square.surface == 'land' then
@@ -512,12 +516,12 @@ local function create_mountain_range( coord )
   end
 end
 
-local function create_mountains( options )
+function M.create_mountains( options )
   on_all( function( coord )
     local square = square_at( coord )
     if can_receive_mountain( square ) then
-      if math.random() <= options.mountains_density then
-        if math.random() <= options.mountains_range_density then
+      if math.random() <= options.mountain_density then
+        if math.random() <= options.mountain_range_probability then
           create_mountain_range( coord )
         else
           square.overlay = 'mountains'
@@ -531,13 +535,13 @@ end
 -- Forest Generation
 -----------------------------------------------------------------
 -- TODO: tweak the density of forest to match the original game.
-local function forest_cover()
+function M.forest_cover( options )
   on_all( function( coord )
     local square = square_at( coord )
     if square.surface == 'land' then
       -- Make sure there are no hills/mountains on this tile.
       if square.ground ~= 'arctic' and square.overlay == nil then
-        if math.random() <= .95 then
+        if math.random() <= options.forest_density then
           square.overlay = 'forest'
         end
       end
@@ -563,25 +567,26 @@ local function clear_buffer_area( buffer )
   end )
 end
 
-local function create_arctic_along_row( y )
+local function create_arctic_along_row( options, y )
   local size = world_size()
   -- Note that we don't include the edges.
   for x = 1, size.w - 2 do
-    if math.random( 1, 2 ) == 1 then set_arctic{ x=x, y=y } end
+    if random_bool( options.arctic_tile_density ) then
+      set_arctic{ x=x, y=y }
+    end
   end
 end
 
-local function create_arctic( options )
+function M.create_arctic( options )
   local size = world_size()
-  if size.h < options.min_map_height_for_arctic then return end
-  create_arctic_along_row( 0 )
-  create_arctic_along_row( size.h - 1 )
+  create_arctic_along_row( options, 0 )
+  create_arctic_along_row( options, size.h - 1 )
 end
 
 -----------------------------------------------------------------
 -- Sea Lane Generation
 -----------------------------------------------------------------
-local function create_sea_lanes()
+function M.create_sea_lanes()
   local size = world_size()
 
   -- First set all water tiles to sea lane.
@@ -708,7 +713,7 @@ end
 -- all water tiles on the left half of the map "pacific ocean"
 -- tiles unless there is one or more land tiles to the west of
 -- the tile.
-local function create_pacific_ocean()
+function M.create_pacific_ocean()
   local size = world_size()
 
   for y = 0, size.h - 1 do
@@ -979,7 +984,8 @@ local function log_dwelling_expertises( level )
   end
 end
 
-local function create_indian_villages( options )
+function M.create_indian_villages( options )
+  options = block_invalid_reads( options )
   local size = world_size()
   local function has_land( coord )
     return square_at( coord ).surface == 'land'
@@ -1141,7 +1147,7 @@ end
 -----------------------------------------------------------------
 -- This accepts the one-byte seed used by the OG and replicates
 -- the distribution that would result.
-local function distribute_bonuses( seed )
+function M.distribute_bonuses( seed )
   if not seed then
     -- The OG uses a one byte seed. Actually, because of the dis-
     -- tribution algorithm used, only its value mod 32 matters.
@@ -1166,7 +1172,7 @@ end
 -----------------------------------------------------------------
 -- Ground Terrain Assignment
 -----------------------------------------------------------------
-local function assign_dry_ground_types()
+function M.assign_dry_ground_types()
   local size = world_size()
   local dry_weights = {}
   for y = 0, size.h - 1 do
@@ -1197,7 +1203,7 @@ local function has_water_source( coord )
   return false
 end
 
-local function assign_wet_ground_types()
+function M.assign_wet_ground_types()
   local size = world_size()
   local wet_weights = {}
   for y = 0, size.h - 1 do
@@ -1249,7 +1255,7 @@ end
 -- many of them and they don't really look good.
 local function remove_Xs( options )
   local size = world_size()
-  local p = assert( options.remove_X_probability )
+  local p = assert( options.remove_Xs_probability )
   on_all( function( coord, square )
     if coord.y < size.h - 1 and coord.x < size.w - 1 then
       local square_right = square_at{ x=coord.x + 1, y=coord.y }
@@ -1395,7 +1401,7 @@ end
 -- TODO: in the original game, all rivers seem to originate on
 -- ocean tiles, even inland ocean tiles (which makes sense).
 -- Also, it looks like rivers can fork mid-way.
-local function create_rivers( options )
+function M.create_rivers( options )
   on_all( function( center, square )
     if is_land( square ) then
       if random_bool( options.river_density ) then
@@ -1428,7 +1434,7 @@ end
 -- proto squares are returned by the square_at method so that
 -- code doesn't have to filter out non-exstent squares in every
 -- algorithm.
-local function generate_proto_squares()
+function M.generate_proto_squares()
   -- Arctic.
   set_square_arctic( ROOT.terrain:proto_square( 'n' ) )
   set_square_arctic( ROOT.terrain:proto_square( 's' ) )
@@ -1439,7 +1445,7 @@ local function generate_proto_squares()
 end
 
 -----------------------------------------------------------------
--- Continent Generation
+-- Land Generation
 -----------------------------------------------------------------
 -- For each continent that we ask the continent generator to gen-
 -- erate, we need to give it an area. One way to do that would be
@@ -1533,9 +1539,6 @@ local function generate_continent( options, seed_square, stretch )
   return land_squares
 end
 
------------------------------------------------------------------
--- Land Generation
------------------------------------------------------------------
 local function total_land_density( land_count )
   local size = world_size()
   local total_count = size.w * size.h
@@ -1589,7 +1592,8 @@ local function cut_land_to_target_density( options )
   return #land_tiles - num_removed
 end
 
-local function generate_land( options )
+function M.generate_land( options )
+  options = block_invalid_reads( options );
   local size = world_size()
   -- The buffer zone will have no land in it, so it should be
   -- relatively small. These are calculated so that for the orig-
@@ -1660,136 +1664,15 @@ local function generate_land( options )
         'land density actual/target: ' .. percent( density ) ..
             '/' .. percent( target ) )
   end
-
-  -- Assign ground types.
-  create_arctic( options )
-  assign_dry_ground_types()
-  -- We need to have already created the rivers before this.
-  assign_wet_ground_types()
-
-  -- These need to be done before the rivers since rivers don't
-  -- seem to flow on hills/mountains in the OG.
-  create_hills( options )
-  create_mountains( options )
-  create_rivers( options )
-  forest_cover()
-  distribute_bonuses()
 end
 
 -----------------------------------------------------------------
 -- Testing
 -----------------------------------------------------------------
----- FIXME move this
-local function generate_testing_land()
-  on_all( function( coord, square )
-    local main = { x=coord.x, y=coord.y - 2 }
-    if main.x > 5 and main.x < 50 and main.y > 5 and main.y < 60 then
-      square.surface = 'land'
-      square.ground = (main.y // 6) % 9 -- "plains"
-      if main.x // 5 % 2 == 1 then square.overlay = 'forest' end
-      if main.x >= 40 and main.x <= 44 then
-        if main.y // 6 % 2 == 1 then
-          square.overlay = 'hills'
-        else
-          square.overlay = 'mountains'
-        end
-      end
-    else
-      square.surface = 'water'
-    end
-    if coord.y < 4 or coord.y > 65 then
-      square.surface = 'land'
-      square.ground = math.random( 0, 8 )
-      if math.random( 1, 5 ) == 1 then
-        square.overlay = math.random( 0, 3 )
-      end
-    end
-  end )
-
-  distribute_bonuses()
-
-  -- on_all( function( coord, square )
-  --   if square.surface == "land" then
-  --     square.lost_city_rumor = true
-  --     square.road = true
-  --   end
-  -- end )
-end
-
--- local function generate_circles_land( options )
---   local circles = {
---     { x=10, y=10, r=3 }, { x=46, y=10, r=3 },
---     { x=10, y=60, r=3 }, { x=46, y=60, r=3 }, --
---     { x=28, y=20, r=3 }, { x=28, y=50, r=3 },
---     { x=10, y=35, r=3 }, { x=46, y=35, r=3 }
---   }
---   on_all( function( coord, square )
---     local in_circle = false
---     for _, circle in ipairs( circles ) do
---       local dist = math.sqrt( (coord.x - circle.x) ^ 2 +
---                                   (coord.y - circle.y) ^ 2 )
---       if dist <= circle.r then
---         in_circle = true
---         break
---       end
---     end
---     if not in_circle then return end
---     square.surface = 'land'
---     square.ground = 'grassland'
---   end )
--- end
-
--- FIXME move this
-local function generate_battlefield()
-  on_all( function( _, square )
-    square.surface = 'land'
-    square.ground = 'grassland'
-  end )
-end
-
--- FIXME move this
-local function generate_half_land()
-  local size = world_size()
-  on_all( function( coord, square )
-    if coord.x == size.w // 2 then
-      square.surface = 'land'
-      square.ground = 'desert'
-    elseif coord.x < size.w // 2 then
-      square.surface = 'land'
-      square.ground = 'grassland'
-    end
-  end )
-end
-
--- This will clear all resources and lost city rumors and redis-
--- tribute them (with a random seed). This is useful when cre-
--- ating a map with the map editor where you'd like to have the
--- standard distribution algorithm applied after the map is fin-
--- ished.
-function M.redistribute_resources( seed )
-  reset_depletion_counters()
-  on_all( function( _, square )
-    square.lost_city_rumor = false
-    square.ground_resource = nil
-    square.forest_resource = nil
-  end )
-  distribute_bonuses( seed )
-  local TS = global( 'TS' )
-  TS.map_updater:redraw()
-end
-
 -- This will recompute the distribution of resources but with the
 -- same placement seed.
 function M.refresh_resources()
   M.redistribute_resources( ROOT.terrain:placement_seed() )
-end
-
-function M.remake_rivers( options )
-  options = secure_options( options, M.default_options() )
-  on_all( function( _, square ) square.river = nil end )
-  create_rivers( options )
-  local TS = global( 'TS' )
-  TS.map_updater:redraw()
 end
 
 -- Note that this will not regenerate the indian dwellings.
@@ -1809,12 +1692,7 @@ end
 -----------------------------------------------------------------
 -- Map Generator
 -----------------------------------------------------------------
-function M.regen( options )
-  M.generate( options )
-  local TS = global( 'TS' )
-  TS.map_updater:redraw()
-end
-
+-- TODO: Get rid of this once once we are driving from C++.
 local function generate( options )
   options = secure_options( options, M.default_options() )
 
@@ -1827,12 +1705,9 @@ local function generate( options )
 
   reset_terrain( options )
 
-  generate_proto_squares()
+  M.generate_proto_squares()
 
-  if options.type == 'battlefield' then
-    generate_battlefield()
-    return
-  elseif options.type == 'america' then
+  if options.type == 'america' then
     -- TODO: the OG seems hard-coded to detect when a file named
     -- AMER2.MP is loaded and it will place a mountain on the
     -- one-tile island off of the tip of South America, likely to
@@ -1844,26 +1719,35 @@ local function generate( options )
     -- America map does have an island on it, and we want to
     -- replicate that.
     import_map_file( 'test/data/saves/classic/map/AMER2.MP' )
-    distribute_bonuses()
-    create_pacific_ocean()
-    create_indian_villages( options )
+    M.distribute_bonuses()
+    M.create_pacific_ocean()
+    M.create_indian_villages( options )
     return
   elseif options.type == 'land-partition' then
-    generate_land( options )
+    M.generate_land( options )
     M.regenerate_native_land_partitions( true )
     return
-  elseif options.type == 'half_and_half' then
-    generate_half_land()
-  elseif options.type == 'testing' then
-    generate_testing_land()
   else
-    generate_land( options )
+    M.generate_land( options )
+    -- Assign ground types.
+    M.create_arctic( options )
+    M.assign_dry_ground_types()
+    -- We need to have already created the rivers before this.
+    M.assign_wet_ground_types()
+
+    -- These need to be done before the rivers since rivers don't
+    -- seem to flow on hills/mountains in the OG.
+    M.create_hills( options )
+    M.create_mountains( options )
+    M.create_rivers( options )
+    M.forest_cover( options )
+    M.distribute_bonuses()
   end
 
-  create_sea_lanes()
-  create_pacific_ocean()
+  M.create_sea_lanes()
+  M.create_pacific_ocean()
 
-  create_indian_villages( options )
+  M.create_indian_villages( options )
 end
 
 function M.generate( ... )

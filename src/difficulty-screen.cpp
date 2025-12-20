@@ -13,7 +13,6 @@
 // Revolution Now
 #include "co-wait.hpp"
 #include "input.hpp"
-#include "interrupts.hpp"
 #include "plane-stack.hpp"
 #include "screen.hpp"
 #include "tiles.hpp"
@@ -445,11 +444,11 @@ struct DifficultyScreen : public IPlane {
     return true;
   }
 
-  wait<e_difficulty> run() {
+  wait<maybe<e_difficulty>> run() {
     auto const difficulty = co_await result_.wait();
-    if( !difficulty.has_value() ) throw main_menu_interrupt{};
-    lg.info( "selected difficulty level: {}", *difficulty );
-    co_return *difficulty;
+    if( difficulty.has_value() )
+      lg.info( "selected difficulty level: {}", *difficulty );
+    co_return difficulty;
   }
 };
 
@@ -458,8 +457,8 @@ struct DifficultyScreen : public IPlane {
 /****************************************************************
 ** Public API.
 *****************************************************************/
-wait<e_difficulty> choose_difficulty_screen( IEngine& engine,
-                                             Planes& planes ) {
+wait<maybe<e_difficulty>> choose_difficulty_screen(
+    IEngine& engine, Planes& planes ) {
   auto owner        = planes.push();
   PlaneGroup& group = owner.group;
 

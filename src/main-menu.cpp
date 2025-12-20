@@ -88,7 +88,7 @@ struct MainMenuPlane : public IPlane {
 
   wait<maybe<e_main_menu_item>> show_menu() {
     EnumChoiceConfig const config{
-      .msg = "[REVOLUTION*NOW] Version 1.0 -- 4-Apr-24",
+      .msg = "[REVOLUTION NOW] Version 0.1.0 -- 19-Dec-25",
       .cancel_actions = { .disallow_clicking_outside = true,
                           .disallow_escape_key       = false },
     };
@@ -102,8 +102,8 @@ struct MainMenuPlane : public IPlane {
     names[load]             = "LOAD Game";
     names[hall_of_fame]     = "View Hall of Fame";
     disabled[new_random]    = false;
-    disabled[new_america]   = true;
-    disabled[new_customize] = true;
+    disabled[new_america]   = false;
+    disabled[new_customize] = false;
     disabled[load]          = false;
     disabled[hall_of_fame]  = true;
 

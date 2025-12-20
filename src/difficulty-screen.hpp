@@ -20,7 +20,7 @@ struct Planes;
 
 enum class e_difficulty;
 
-wait<e_difficulty> choose_difficulty_screen( IEngine& engine,
-                                             Planes& planes );
+wait<maybe<e_difficulty>> choose_difficulty_screen(
+    IEngine& engine, Planes& planes );
 
 } // namespace rn

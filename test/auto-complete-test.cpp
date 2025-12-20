@@ -291,7 +291,12 @@ TEST_CASE( "[auto-complete] autocomplete_iterative" ) {
   REQUIRE_THAT( ac_i( in ), Contains( out ) );
 
   in  = "map_gen.ge";
-  out = { "map_gen.generate(" };
+  out = { "map_gen.generate" };
+  REQUIRE_THAT( ac_i( in ), Contains( out ) );
+
+  in  = "map_gen.generate_";
+  out = { "map_gen.generate_land",
+          "map_gen.generate_proto_squares" };
   REQUIRE_THAT( ac_i( in ), Contains( out ) );
 
   in  = ".";

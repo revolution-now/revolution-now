@@ -17,11 +17,12 @@
 #include "colony-view.hpp"
 #include "color-cycle.hpp"
 #include "combat.hpp"
-#include "conductor.hpp"
 #include "connectivity.hpp"
 #include "console.hpp"
+#include "customize.hpp"
 #include "difficulty-screen.hpp"
 #include "frame-count.hpp" // FIXME
+#include "game-setup.hpp"
 #include "iagent.hpp"
 #include "iengine.hpp"
 #include "igui.hpp"
@@ -58,6 +59,7 @@
 
 // base
 #include "base/logger.hpp"
+#include "base/no-discard.hpp"
 #include "base/scope-exit.hpp"
 #include "base/to-str-ext-std.hpp"
 
@@ -67,10 +69,7 @@ namespace rn {
 
 namespace {
 
-enum class e_game_module_tune_points {
-  start_game //
-};
-
+// TODO: temporary
 e_player ensure_human_player( PlayersState const& players ) {
   for( auto& [player_type, player] : players.players )
     if( player.has_value() )
@@ -79,22 +78,64 @@ e_player ensure_human_player( PlayersState const& players ) {
   FATAL( "there must be at least player under human control" );
 }
 
-void play( IRand& rand, e_game_module_tune_points tune ) {
-  switch( tune ) {
-    case e_game_module_tune_points::start_game:
-      conductor::play_request(
-          rand, conductor::e_request::fife_drum_happy,
-          conductor::e_request_probability::always );
-      break;
-  }
+wait<> persistent_msg_box( IGui& gui, string_view const msg ) {
+  while( true ) co_await gui.message_box( string( msg ) );
 }
 
-using LoaderFunc =
-    base::function_ref<wait<base::NoDiscard<bool>>(
-        SS& ss, TS& ts, lua::state& lua )>;
+wait_bool create_from_setup( SS& ss, IGui& gui, IRand& rand,
+                             lua::state& lua,
+                             GameSetup const& setup ) {
+  wait<> const generating_msg = persistent_msg_box(
+      gui, "Generating game... please wait." );
+  co_await 1_frames;
+  if( !co_await create_game_from_setup( ss, rand, lua, setup ) )
+    co_return false;
+  // NOTE: this takes ~100-200ms for a normal map size on a
+  // fast machine.
+  CHECK_HAS_VALUE( ss.as_const.validate_full_game_state() );
+  co_return true;
+}
+
+wait_bool new_game_new_world( IEngine& engine, Planes& planes,
+                              SS& ss, TS& ts, lua::state& lua ) {
+  auto const setup = co_await create_default_game_setup(
+      engine, planes, ts.gui, ts.rand, lua );
+  if( !setup.has_value() ) co_return false;
+  co_return co_await create_from_setup( ss, ts.gui, ts.rand, lua,
+                                        *setup );
+}
+
+wait_bool new_game_america( IEngine& engine, Planes& planes,
+                            SS& ss, TS& ts, lua::state& lua ) {
+  auto const setup = co_await create_america_game_setup(
+      engine, planes, ts.gui, ts.rand, lua );
+  if( !setup.has_value() ) co_return false;
+  co_return co_await create_from_setup( ss, ts.gui, ts.rand, lua,
+                                        *setup );
+}
+
+wait_bool customize_new_world( IEngine& engine, Planes& planes,
+                               SS& ss, TS& ts,
+                               lua::state& lua ) {
+  EnumChoiceConfig const config{
+    .msg = "Select Desired Customization Level:",
+  };
+  auto const mode =
+      co_await ts.gui.optional_enum_choice<e_customization_mode>(
+          config );
+  if( !mode.has_value() ) co_return false;
+  auto const setup = co_await create_customized_game_setup(
+      engine, planes, ts.gui, *mode );
+  if( !setup.has_value() ) co_return false;
+  co_return co_await create_from_setup( ss, ts.gui, ts.rand, lua,
+                                        *setup );
+}
+
+using LoaderFunc = base::function_ref<wait_bool(
+    IEngine&, Planes&, SS& ss, TS& ts, lua::state& lua )>;
 
 wait<> run_game( IEngine& engine, Planes& planes, IGui& gui,
-                 LoaderFunc loader ) {
+                 LoaderFunc const loader ) {
   // This is the entire (serializable) state representing a game.
   SS ss;
   // This will hold the state of the game the last time it was
@@ -116,16 +157,16 @@ wait<> run_game( IEngine& engine, Planes& planes, IGui& gui,
   // duration of this particular game.
   lua::state st;
 
-  st["ROOT"] = ss.root;
-  st["SS"]   = ss;
-  st["TS"]   = ts;
+  st["ROOT"]  = ss.root;
+  st["SS"]    = ss;
+  st["TS"]    = ts;
   st["IRand"] = static_cast<IRand&>( rand );
 
   // Do this after we set globals so that they will be included
   // in the freezing.
   lua_init( st );
 
-  if( !co_await loader( ss, ts, st ) )
+  if( !co_await loader( engine, planes, ss, ts, st ) )
     // Didn't load a game for some reason. Could have failed or
     // maybe there are no games to load.
     co_return;
@@ -168,6 +209,7 @@ wait<> run_game( IEngine& engine, Planes& planes, IGui& gui,
   wait<> const cycling_thread =
       cycle_map_colors_thread( renderer, gui, cycling_enabled );
 
+  // TODO: temporary
   ensure_human_player( ss.players );
 
   // We could create a new terminal object here which would clear
@@ -209,7 +251,6 @@ wait<> run_game( IEngine& engine, Planes& planes, IGui& gui,
   // won't continue to render in the background.
   SCOPE_EXIT { ts.map_updater().unrender(); };
 
-  play( rand, e_game_module_tune_points::start_game );
   // All of the above needs to stay alive, so we must wait.
   //
   // TODO: if this is a new game then Lua may have placed some
@@ -230,61 +271,42 @@ wait<> run_game( IEngine& engine, Planes& planes, IGui& gui,
   co_await co::erase( co::try_<game_quit_interrupt>( loop ) );
 }
 
-wait<> persistent_msg_box( IGui& gui, string_view const msg ) {
-  while( true ) co_await gui.message_box( string( msg ) );
+wait<> handle_mode( IEngine& engine, Planes& planes, IGui& gui,
+                    StartMode::new_random const& ) {
+  co_await run_game( engine, planes, gui, new_game_new_world );
 }
 
 wait<> handle_mode( IEngine& engine, Planes& planes, IGui& gui,
-                    StartMode::new_random const& ) {
-  auto factory =
-      [&]( SS& ss, TS&,
-           lua::state& lua ) -> wait<base::NoDiscard<bool>> {
-    lua::table options = lua.table.create();
-    options["difficulty"] =
-        co_await choose_difficulty_screen( engine, planes );
-    wait<> const generating_msg = persistent_msg_box(
-        gui, "Generating game... please wait." );
-    co_await 1_frames;
-    lua["new_game"]["create"]( ss.root, options );
-    // NOTE: this takes ~100-200ms for a normal map size on a
-    // fast machine.
-    CHECK_HAS_VALUE( ss.as_const.validate_full_game_state() );
-    co_return true;
-  };
-  co_await run_game( engine, planes, gui, factory );
-}
-
-wait<> handle_mode( IEngine&, Planes&, IGui&,
                     StartMode::new_america const& ) {
-  NOT_IMPLEMENTED;
+  co_await run_game( engine, planes, gui, new_game_america );
 }
 
-wait<> handle_mode( IEngine&, Planes&, IGui&,
+wait<> handle_mode( IEngine& engine, Planes& planes, IGui& gui,
                     StartMode::new_customize const& ) {
-  NOT_IMPLEMENTED;
+  co_await run_game( engine, planes, gui, customize_new_world );
 }
 
 wait<> handle_mode( IEngine& engine, Planes& planes, IGui& gui,
                     StartMode::load const& load ) {
-  auto factory =
-      [&]( SS& ss, TS& ts,
-           lua::state& ) -> wait<base::NoDiscard<bool>> {
-    maybe<int> slot = load.slot;
-    if( !slot.has_value() ) {
-      // Pop open the load-game box to let the player choose what
-      // they want to load.
-      slot =
-          co_await select_load_slot( ts, RclGameStorageQuery() );
-      if( !slot.has_value() )
-        // The player has cancelled, or the load did not succeed
-        // for some other reason.
-        co_return false;
-    }
-    CHECK( slot.has_value() );
-    co_return co_await load_from_slot_interactive(
-        ss, ts, RclGameStorageLoad( ss ), *slot );
-  };
-  co_await run_game( engine, planes, gui, factory );
+  co_await run_game(
+      engine, planes, gui,
+      [&]( IEngine&, Planes&, SS& ss, TS& ts,
+           lua::state& ) -> wait_bool {
+        maybe<int> slot = load.slot;
+        if( !slot.has_value() ) {
+          // Pop open the load-game box to let the player choose
+          // what they want to load.
+          slot = co_await select_load_slot(
+              ts, RclGameStorageQuery() );
+          if( !slot.has_value() )
+            // The player has cancelled, or the load did not
+            // succeed for some other reason.
+            co_return false;
+        }
+        CHECK( slot.has_value() );
+        co_return co_await load_from_slot_interactive(
+            ss, ts, RclGameStorageLoad( ss ), *slot );
+      } );
 }
 
 } // namespace
