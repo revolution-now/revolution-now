@@ -69,15 +69,23 @@ struct TS {
 
   TS( TS&& ) = delete;
 
+  // TODO: not yet sure how to get rid of this.
   Planes& planes;
+
   // FIXME: change this to a function that gets its value by
   // taking the window plane from the planes list, which will
   // need to implement the IGui interface itself.
   IGui& gui;
+
+  // TODO: not yet sure how to get rid of these.
   ICombat& combat;
   IColonyViewer& colony_viewer;
 
+  // FIXME: move this into SS since its job is just to modify the
+  // map which is stored in SS.
   TS_FIELD( IMapUpdater, map_updater );
+
+  // TODO: not yet sure how to get rid of these.
   TS_FIELD( NativeAgents, native_agents );
   TS_FIELD( Agents, agents );
 
