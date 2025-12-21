@@ -20,16 +20,17 @@
 namespace rn {
 
 struct Colony;
+struct IRand;
 struct NativeUnit;
 struct SS;
 struct TS;
 
 // Brave attacks a european unit outside of a colony.
-wait<> raid_unit( SS& ss, TS& ts, NativeUnit& attacker,
-                  Coord dst );
+wait<> raid_unit( SS& ss, TS& ts, IRand& rand,
+                  NativeUnit& attacker, Coord dst );
 
 // Brave attacks a colony.
-wait<> raid_colony( SS& ss, TS& ts, NativeUnit& attacker,
-                    Colony& colony );
+wait<> raid_colony( SS& ss, TS& ts, IRand& rand,
+                    NativeUnit& attacker, Colony& colony );
 
 } // namespace rn

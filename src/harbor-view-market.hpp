@@ -71,10 +71,11 @@ struct HarborMarketCommodities
   };
 
   static PositionedHarborSubView<HarborMarketCommodities> create(
-      SS& ss, TS& ts, Player& player, Rect canvas,
-      HarborStatusBar& harbor_status_bar );
+      IEngine& engine, SS& ss, TS& ts, Player& player,
+      Rect canvas, HarborStatusBar& harbor_status_bar );
 
-  HarborMarketCommodities( SS& ss, TS& ts, Player& player,
+  HarborMarketCommodities( IEngine& engine, SS& ss, TS& ts,
+                           Player& player,
                            HarborStatusBar& harbor_status_bar,
                            Layout const& layout );
 

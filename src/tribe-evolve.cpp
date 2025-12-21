@@ -47,7 +47,7 @@ void spawn_brave( SS& ss, IRand& rand, Dwelling const& dwelling,
       dwelling.id );
 }
 
-void evolve_dwelling( SS& ss, TS& ts, Dwelling& dwelling ) {
+void evolve_dwelling( SS& ss, IRand& rand, Dwelling& dwelling ) {
   e_tribe const tribe_type =
       ss.natives.tribe_type_for( dwelling.id );
   Tribe& tribe = ss.natives.tribe_for( tribe_type );
@@ -71,7 +71,7 @@ void evolve_dwelling( SS& ss, TS& ts, Dwelling& dwelling ) {
       config_natives.growth_counter_threshold ) {
     dwelling.growth_counter = 0;
     if( !has_brave ) {
-      spawn_brave( ss, ts.rand, dwelling, tribe );
+      spawn_brave( ss, rand, dwelling, tribe );
     } else {
       CHECK( !has_max_population,
              "expected dwelling {}'s population to be less than "
@@ -89,19 +89,19 @@ void evolve_dwelling( SS& ss, TS& ts, Dwelling& dwelling ) {
 /****************************************************************
 ** Public API.
 *****************************************************************/
-void evolve_tribe_common( SS& ss, TS&, e_tribe tribe_type ) {
+void evolve_tribe_common( SS& ss, IRand&, e_tribe tribe_type ) {
   Tribe& tribe = ss.natives.tribe_for( tribe_type );
 
   // Horses.
   evolve_tribe_horse_breeding( ss, tribe );
 }
 
-void evolve_dwellings_for_tribe( SS& ss, TS& ts,
+void evolve_dwellings_for_tribe( SS& ss, IRand& rand,
                                  e_tribe tribe_type ) {
   unordered_set<DwellingId> const& dwellings =
       ss.natives.dwellings_for_tribe( tribe_type );
   for( DwellingId const dwelling_id : dwellings )
-    evolve_dwelling( ss, ts,
+    evolve_dwelling( ss, rand,
                      ss.natives.dwelling_for( dwelling_id ) );
 }
 

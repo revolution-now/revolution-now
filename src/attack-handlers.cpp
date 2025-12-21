@@ -26,6 +26,7 @@
 #include "harbor-units.hpp"
 #include "iagent.hpp"
 #include "icombat.hpp"
+#include "iengine.hpp"
 #include "imap-updater.hpp"
 #include "inative-agent.hpp"
 #include "land-view.hpp"
@@ -143,8 +144,8 @@ e_direction direction_of_attack( SSConst const& ss,
 // Base class for all handlers that have a european unit as the
 // attacker.
 struct AttackHandlerBase : public CommandHandler {
-  AttackHandlerBase( SS& ss, TS& ts, UnitId attacker_id,
-                     e_direction direction );
+  AttackHandlerBase( IEngine& engine, SS& ss, TS& ts,
+                     UnitId attacker_id, e_direction direction );
 
   // Implement CommandHandler.
   wait<bool> confirm() override;
@@ -156,6 +157,7 @@ struct AttackHandlerBase : public CommandHandler {
   wait<maybe<e_attack_verdict_base>> check_attack_verdict_base()
       const;
 
+  IEngine& engine_;
   SS& ss_;
   TS& ts_;
 
@@ -177,10 +179,11 @@ struct AttackHandlerBase : public CommandHandler {
   Coord attack_dst_{};
 };
 
-AttackHandlerBase::AttackHandlerBase( SS& ss, TS& ts,
-                                      UnitId attacker_id,
+AttackHandlerBase::AttackHandlerBase( IEngine& engine, SS& ss,
+                                      TS& ts, UnitId attacker_id,
                                       e_direction direction )
-  : ss_( ss ),
+  : engine_( engine ),
+    ss_( ss ),
     ts_( ts ),
     viz_( create_visibility_for(
         ss, player_for_role( ss, e_player_role::viewer ) ) ),
@@ -261,7 +264,8 @@ wait<> AttackHandlerBase::perform() {
 struct EuroAttackHandlerBase : public AttackHandlerBase {
   using Base = AttackHandlerBase;
 
-  EuroAttackHandlerBase( SS& ss, TS& ts, UnitId attacker_id,
+  EuroAttackHandlerBase( IEngine& engine, SS& ss, TS& ts,
+                         UnitId attacker_id,
                          UnitId defender_id );
 
  protected:
@@ -272,9 +276,10 @@ struct EuroAttackHandlerBase : public AttackHandlerBase {
 };
 
 EuroAttackHandlerBase::EuroAttackHandlerBase(
-    SS& ss, TS& ts, UnitId attacker_id, UnitId defender_id )
+    IEngine& engine, SS& ss, TS& ts, UnitId attacker_id,
+    UnitId defender_id )
   : AttackHandlerBase(
-        ss, ts, attacker_id,
+        engine, ss, ts, attacker_id,
         direction_of_attack( ss, attacker_id, defender_id ) ),
     defender_id_( defender_id ),
     defender_( ss.units.unit_for( defender_id ) ),
@@ -291,7 +296,8 @@ EuroAttackHandlerBase::EuroAttackHandlerBase(
 struct NativeAttackHandlerBase : public AttackHandlerBase {
   using Base = AttackHandlerBase;
 
-  NativeAttackHandlerBase( SS& ss, TS& ts, UnitId attacker_id,
+  NativeAttackHandlerBase( IEngine& engine, SS& ss, TS& ts,
+                           UnitId attacker_id,
                            NativeUnitId defender_id );
 
  protected:
@@ -302,10 +308,10 @@ struct NativeAttackHandlerBase : public AttackHandlerBase {
 };
 
 NativeAttackHandlerBase::NativeAttackHandlerBase(
-    SS& ss, TS& ts, UnitId attacker_id,
+    IEngine& engine, SS& ss, TS& ts, UnitId attacker_id,
     NativeUnitId defender_id )
   : AttackHandlerBase(
-        ss, ts, attacker_id,
+        engine, ss, ts, attacker_id,
         direction_of_attack( ss, attacker_id, defender_id ) ),
     defender_id_( defender_id ),
     defender_( ss.units.unit_for( defender_id ) ),
@@ -320,7 +326,7 @@ struct AttackColonyUndefendedHandler
   : public EuroAttackHandlerBase {
   using Base = EuroAttackHandlerBase;
 
-  AttackColonyUndefendedHandler( SS& ss, TS& ts,
+  AttackColonyUndefendedHandler( IEngine& engine, SS& ss, TS& ts,
                                  UnitId attacker_id,
                                  UnitId defender_id,
                                  Colony& colony );
@@ -336,9 +342,10 @@ struct AttackColonyUndefendedHandler
 };
 
 AttackColonyUndefendedHandler::AttackColonyUndefendedHandler(
-    SS& ss, TS& ts, UnitId attacker_id, UnitId defender_id,
-    Colony& colony )
-  : EuroAttackHandlerBase( ss, ts, attacker_id, defender_id ),
+    IEngine& engine, SS& ss, TS& ts, UnitId attacker_id,
+    UnitId defender_id, Colony& colony )
+  : EuroAttackHandlerBase( engine, ss, ts, attacker_id,
+                           defender_id ),
     colony_( colony ) {}
 
 wait<bool> AttackColonyUndefendedHandler::confirm() {
@@ -405,7 +412,7 @@ wait<> AttackColonyUndefendedHandler::perform() {
   }
   maybe<UnitDeleted> const unit_deleted =
       co_await UnitOwnershipChanger( ss_, attacker_.id() )
-          .change_to_map( ts_, attack_dst_ );
+          .change_to_map( ts_, engine_.rand(), attack_dst_ );
   CHECK( !unit_deleted.has_value() );
 
   // Step. All ships in the colony's port are considered damaged
@@ -588,7 +595,7 @@ wait<> NavalBattleHandler::perform() {
       o.has_value() )
     auto const /*deleted*/ _ =
         co_await UnitOwnershipChanger( ss_, attacker_id_ )
-            .change_to_map( ts_, o->to );
+            .change_to_map( ts_, engine_.rand(), o->to );
 }
 
 wait<> NavalBattleHandler::perform_loser_cargo_captures(
@@ -773,7 +780,8 @@ wait<> AttackNativeUnitHandler::perform() {
 struct AttackDwellingHandler : public AttackHandlerBase {
   using Base = AttackHandlerBase;
 
-  AttackDwellingHandler( SS& ss, TS& ts, UnitId attacker_id,
+  AttackDwellingHandler( IEngine& engine, SS& ss, TS& ts,
+                         UnitId attacker_id,
                          DwellingId defender_id );
 
   // Implement CommandHandler.
@@ -808,9 +816,10 @@ struct AttackDwellingHandler : public AttackHandlerBase {
 };
 
 AttackDwellingHandler::AttackDwellingHandler(
-    SS& ss, TS& ts, UnitId attacker_id, DwellingId dwelling_id )
+    IEngine& engine, SS& ss, TS& ts, UnitId attacker_id,
+    DwellingId dwelling_id )
   : AttackHandlerBase(
-        ss, ts, attacker_id,
+        engine, ss, ts, attacker_id,
         direction_of_attack( ss, attacker_id, dwelling_id ) ),
     dwelling_id_( dwelling_id ),
     dwelling_( ss.natives.dwelling_for( dwelling_id ) ),
@@ -1180,7 +1189,8 @@ wait<> AttackDwellingHandler::perform() {
     // from unencountered tribe, or the pacific ocean.
     [[maybe_unused]] auto const unit_deleted =
         co_await UnitOwnershipChanger( ss_, treasure_id )
-            .change_to_map( ts_, dwelling_location );
+            .change_to_map( ts_, engine_.rand(),
+                            dwelling_location );
   }
 
   if( was_capital && !destruction.tribe_destroyed.has_value() )
@@ -1203,7 +1213,8 @@ wait<> AttackDwellingHandler::perform() {
     [[maybe_unused]] auto const unit_deleted =
         co_await UnitOwnershipChanger(
             ss_, *destruction.missionary_to_release )
-            .change_to_map( ts_, dwelling_location );
+            .change_to_map( ts_, engine_.rand(),
+                            dwelling_location );
   }
 }
 
@@ -1222,36 +1233,38 @@ vector<UnitId> AttackDwellingHandler::units_to_prioritize()
 ** Public API
 *****************************************************************/
 unique_ptr<CommandHandler> attack_euro_land_handler(
-    SS& ss, TS& ts, UnitId attacker_id, UnitId defender_id ) {
-  return make_unique<EuroAttackHandler>( ss, ts, attacker_id,
-                                         defender_id );
+    IEngine& engine, SS& ss, TS& ts, UnitId attacker_id,
+    UnitId defender_id ) {
+  return make_unique<EuroAttackHandler>(
+      engine, ss, ts, attacker_id, defender_id );
 }
 
 unique_ptr<CommandHandler> naval_battle_handler(
-    SS& ss, TS& ts, UnitId attacker_id, UnitId defender_id ) {
-  return make_unique<NavalBattleHandler>( ss, ts, attacker_id,
-                                          defender_id );
+    IEngine& engine, SS& ss, TS& ts, UnitId attacker_id,
+    UnitId defender_id ) {
+  return make_unique<NavalBattleHandler>(
+      engine, ss, ts, attacker_id, defender_id );
 }
 
 unique_ptr<CommandHandler> attack_colony_undefended_handler(
-    SS& ss, TS& ts, UnitId attacker_id, UnitId defender_id,
-    Colony& colony ) {
+    IEngine& engine, SS& ss, TS& ts, UnitId attacker_id,
+    UnitId defender_id, Colony& colony ) {
   return make_unique<AttackColonyUndefendedHandler>(
-      ss, ts, attacker_id, defender_id, colony );
+      engine, ss, ts, attacker_id, defender_id, colony );
 }
 
 unique_ptr<CommandHandler> attack_native_unit_handler(
-    SS& ss, TS& ts, UnitId attacker_id,
+    IEngine& engine, SS& ss, TS& ts, UnitId attacker_id,
     NativeUnitId defender_id ) {
   return make_unique<AttackNativeUnitHandler>(
-      ss, ts, attacker_id, defender_id );
+      engine, ss, ts, attacker_id, defender_id );
 }
 
 unique_ptr<CommandHandler> attack_dwelling_handler(
-    SS& ss, TS& ts, UnitId attacker_id,
+    IEngine& engine, SS& ss, TS& ts, UnitId attacker_id,
     DwellingId dwelling_id ) {
-  return make_unique<AttackDwellingHandler>( ss, ts, attacker_id,
-                                             dwelling_id );
+  return make_unique<AttackDwellingHandler>(
+      engine, ss, ts, attacker_id, dwelling_id );
 }
 
 } // namespace rn

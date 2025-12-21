@@ -99,10 +99,10 @@ void UnitOwnershipChanger::destroy() const {
 }
 
 wait<maybe<UnitDeleted>> UnitOwnershipChanger::change_to_map(
-    TS& ts, Coord target ) const {
+    TS& ts, IRand& rand, Coord target ) const {
   change_to_free();
   co_return co_await UnitOnMapMover::to_map_interactive(
-      ss_, ts, unit_id_, target );
+      ss_, ts, rand, unit_id_, target );
 }
 
 void UnitOwnershipChanger::change_to_map_non_interactive(

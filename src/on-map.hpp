@@ -29,6 +29,7 @@ namespace rn {
 
 struct EuroUnitOwnershipChangeTo;
 struct IMapUpdater;
+struct IRand;
 struct SS;
 struct TS;
 
@@ -51,7 +52,7 @@ struct UnitOnMapMover {
                                       Coord tile );
 
   static wait<maybe<UnitDeleted>> to_map_interactive(
-      SS& ss, TS& ts, UnitId unit_id, Coord tile );
+      SS& ss, TS& ts, IRand& rand, UnitId unit_id, Coord tile );
 
   static void to_map_common( SS& ss, IMapUpdater& map_updater,
                              UnitId unit_id, Coord tile );

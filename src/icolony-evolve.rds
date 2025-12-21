@@ -22,6 +22,7 @@ interface.IColonyEvolver {
   _context {
     ss 'SS&',
     ts 'TS&',
+    rand 'IRand&',
   },
 }
 

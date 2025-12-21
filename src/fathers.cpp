@@ -54,7 +54,7 @@ namespace rn {
 namespace {
 
 maybe<e_founding_father> pick_next_father_for_type(
-    SSConst const& ss, TS& ts, Player const& player,
+    SSConst const& ss, IRand& rand, Player const& player,
     e_founding_father_type type ) {
   int const year = ss.turn.time_point.year;
   auto weight    = [&]( e_founding_father father ) {
@@ -85,12 +85,12 @@ maybe<e_founding_father> pick_next_father_for_type(
     }
   }
   if( available.empty() ) return nothing;
-  return ts.rand.pick_one( available );
+  return rand.pick_one( available );
 }
 
 // Ensure that the current pool of founding fathers is populated
 // with one father of each type, if available.
-void fill_father_selection( SSConst const& ss, TS& ts,
+void fill_father_selection( SSConst const& ss, IRand& rand,
                             Player& player ) {
   for( auto& [type, father] : player.fathers.pool ) {
     if( father.has_value() ) {
@@ -103,7 +103,7 @@ void fill_father_selection( SSConst const& ss, TS& ts,
     }
     // Could be nothing if there are no fathers left in this cat-
     // egory.
-    father = pick_next_father_for_type( ss, ts, player, type );
+    father = pick_next_father_for_type( ss, rand, player, type );
   }
 }
 
@@ -217,7 +217,7 @@ void pocahontas( SS& ss, Player const& player ) {
 // The one-time effect here, as in the OG, is that any criminals
 // or servants that are currently in the recruitment pool will be
 // removed and re-selected.
-void william_brewster( SS& ss, TS& ts, Player& player ) {
+void william_brewster( SS& ss, IRand& rand, Player& player ) {
   ImmigrationState& immigration_state =
       old_world_state( ss, player.type ).immigration;
   auto& pool           = immigration_state.immigrants_pool;
@@ -228,7 +228,7 @@ void william_brewster( SS& ss, TS& ts, Player& player ) {
   for( int i = 0; i < int( pool.size() ); ++i ) {
     if( !needs_replacing( pool[i] ) ) continue;
     e_unit_type const replacement =
-        pick_next_unit_for_pool( ts.rand, player, ss.settings );
+        pick_next_unit_for_pool( rand, player, ss.settings );
     CHECK_NEQ( replacement, e_unit_type::petty_criminal );
     CHECK_NEQ( replacement, e_unit_type::indentured_servant );
     take_immigrant_from_pool( immigration_state, i,
@@ -327,7 +327,8 @@ maybe<int> bells_needed_for_next_father( SSConst const& ss,
   return total_cost;
 }
 
-wait<> pick_founding_father_if_needed( SSConst const& ss, TS& ts,
+wait<> pick_founding_father_if_needed( SSConst const& ss,
+                                       IGui& gui, IRand& rand,
                                        Player& player ) {
   // Make sure that if we're working on someone that we don't al-
   // ready have him. We shouldn't normally encounter this situa-
@@ -346,7 +347,7 @@ wait<> pick_founding_father_if_needed( SSConst const& ss, TS& ts,
   // At this point we have some bells but we're not working on
   // anyone, so we need to ask the player to pick someone. First
   // make sure the pool is filled (if possible).
-  fill_father_selection( ss, ts, player );
+  fill_father_selection( ss, rand, player );
   ChoiceConfig config{
     .msg =
         "Which Founding Father shall we appoint as the next "
@@ -368,7 +369,7 @@ wait<> pick_founding_father_if_needed( SSConst const& ss, TS& ts,
     // No founding fathers in the pool.
     co_return;
   string const choice_str =
-      co_await ts.gui.required_choice( config );
+      co_await gui.required_choice( config );
   UNWRAP_CHECK(
       choice,
       refl::enum_from_string<e_founding_father>( choice_str ) );
@@ -411,16 +412,17 @@ maybe<e_founding_father> check_founding_fathers(
   return new_father;
 }
 
-wait<> play_new_father_cut_scene( TS& ts, Player const&,
-                                  e_founding_father father ) {
+wait<> play_new_father_cut_scene(
+    TS& ts, Player const&, e_founding_father const father ) {
   // TODO: temporary.
   co_await ts.gui.message_box(
       "[{}] has joined the Continental Congress!",
       config_fathers.fathers[father].name );
 }
 
-void on_father_received( SS& ss, TS& ts, Player& player,
-                         e_founding_father father ) {
+void on_father_received( SS& ss, TS& ts, IRand& rand,
+                         Player& player,
+                         e_founding_father const father ) {
   lg.info( "performing one-time effects (if any) for {}.",
            father );
   switch( father ) {
@@ -446,7 +448,7 @@ void on_father_received( SS& ss, TS& ts, Player& player,
     case e_founding_father::hernando_de_soto:
       return hernando_de_soto( ss, ts, player );
     case e_founding_father::william_brewster:
-      return william_brewster( ss, ts, player );
+      return william_brewster( ss, rand, player );
     case e_founding_father::bartolome_de_las_casas:
       return bartolome_de_las_casas( ss, ts, player );
     case e_founding_father::francisco_de_coronado:

@@ -691,7 +691,8 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
         if( !player.has_value() ) break;
         auto const tile = cheat_target_square( ss_, ts_ );
         if( !tile.has_value() ) break;
-        co_await cheat_create_unit( ss_, ts_, *player, *tile );
+        co_await cheat_create_unit( engine_, ss_, ts_, *player,
+                                    *tile );
         break;
       }
       case e::cheat_create_foreign_unit: {
@@ -725,7 +726,8 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
         if( !player.has_value() ) break;
         auto const tile = cheat_target_square( ss_, ts_ );
         if( !tile.has_value() ) break;
-        co_await cheat_create_unit( ss_, ts_, *player, *tile );
+        co_await cheat_create_unit( engine_, ss_, ts_, *player,
+                                    *tile );
         break;
       }
       case e::escape: {
@@ -796,7 +798,7 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
           maybe<e_player> const player =
               player_for_role( ss_, e_player_role::active );
           if( !player.has_value() ) break;
-          co_await cheat_create_unit( ss_, ts_, *player,
+          co_await cheat_create_unit( engine_, ss_, ts_, *player,
                                       o.coord );
           break;
         }
@@ -2073,7 +2075,8 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
             } );
 
     HiddenTerrainAnimationSequence const seq =
-        anim_seq_for_hidden_terrain( ss_, *viz_, ts_.rand );
+        anim_seq_for_hidden_terrain( ss_, *viz_,
+                                     engine_.rand() );
 
     co_await co::first(
         animator_.animate_sequence( seq.hide ),

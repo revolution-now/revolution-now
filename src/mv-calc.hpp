@@ -18,9 +18,9 @@
 
 namespace rn {
 
+struct IRand;
 struct NativeUnit;
 struct Player;
-struct TS;
 struct Unit;
 
 /****************************************************************
@@ -101,11 +101,11 @@ void to_str( MovementPointsAnalysis const& o, std::string& out,
 // be the final points required after considering e.g. colonies,
 // roads, rivers, or ships on the square.
 MovementPointsAnalysis can_unit_move_based_on_mv_points(
-    TS& ts, Player const& player, Unit const& unit,
+    IRand& rand, Player const& player, Unit const& unit,
     MovementPoints needed );
 
 // Same as above but for native units.
 MovementPointsAnalysis can_native_unit_move_based_on_mv_points(
-    TS& ts, NativeUnit const& unit, MovementPoints needed );
+    IRand& rand, NativeUnit const& unit, MovementPoints needed );
 
 } // namespace rn

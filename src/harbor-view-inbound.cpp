@@ -351,11 +351,12 @@ HarborInboundShips::Layout HarborInboundShips::create_layout(
 
 PositionedHarborSubView<HarborInboundShips>
 HarborInboundShips::create(
-    SS& ss, TS& ts, Player& player, Rect const canvas,
+    IEngine& engine, SS& ss, TS& ts, Player& player,
+    Rect const canvas,
     HarborOutboundShips const& outbound_ships ) {
   Layout layout = create_layout( canvas, outbound_ships );
-  auto view =
-      make_unique<HarborInboundShips>( ss, ts, player, layout );
+  auto view = make_unique<HarborInboundShips>( engine, ss, ts,
+                                               player, layout );
   HarborSubView* const harbor_sub_view = view.get();
   HarborInboundShips* const p_actual   = view.get();
   return PositionedHarborSubView<HarborInboundShips>{
@@ -365,9 +366,9 @@ HarborInboundShips::create(
     .actual = p_actual };
 }
 
-HarborInboundShips::HarborInboundShips( SS& ss, TS& ts,
-                                        Player& player,
+HarborInboundShips::HarborInboundShips( IEngine& engine, SS& ss,
+                                        TS& ts, Player& player,
                                         Layout layout )
-  : HarborSubView( ss, ts, player ), layout_( layout ) {}
+  : HarborSubView( engine, ss, ts, player ), layout_( layout ) {}
 
 } // namespace rn

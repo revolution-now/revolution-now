@@ -17,6 +17,7 @@
 #include "anim-builders.hpp"
 #include "co-wait.hpp"
 #include "iagent.hpp"
+#include "iengine.hpp"
 #include "inative-agent.hpp"
 #include "iraid.rds.hpp"
 #include "itribe-evolve.rds.hpp"
@@ -126,7 +127,8 @@ wait<> handle_native_unit_talk( SS& ss, TS& ts,
   native_unit.movement_points = 0;
 }
 
-wait<> handle_native_unit_travel( SS& ss, TS& ts,
+wait<> handle_native_unit_travel( IEngine& engine, SS& ss,
+                                  TS& ts,
                                   NativeUnit& native_unit,
                                   e_direction direction ) {
   Coord const src = ss.units.coord_for( native_unit.id );
@@ -135,8 +137,8 @@ wait<> handle_native_unit_travel( SS& ss, TS& ts,
       ss.terrain.square_at( src ), ss.terrain.square_at( dst ),
       direction );
   MovementPointsAnalysis const mv_analysis =
-      can_native_unit_move_based_on_mv_points( ts, native_unit,
-                                               needed );
+      can_native_unit_move_based_on_mv_points(
+          engine.rand(), native_unit, needed );
   // Note that the AI may select a move that ends up not being
   // allowed on the basis of movement points since the unit may
   // have less movement points that required and hence it comes
@@ -159,8 +161,9 @@ wait<> handle_native_unit_travel( SS& ss, TS& ts,
 }
 
 wait<> handle_native_unit_command(
-    SS& ss, TS& ts, IRaid const& raid, e_tribe tribe_type,
-    NativeUnit& native_unit, NativeUnitCommand const& command ) {
+    IEngine& engine, SS& ss, TS& ts, IRaid const& raid,
+    e_tribe tribe_type, NativeUnit& native_unit,
+    NativeUnitCommand const& command ) {
   SWITCH( command ) {
     CASE( forfeight ) {
       native_unit.movement_points = 0;
@@ -191,14 +194,14 @@ wait<> handle_native_unit_command(
       Coord const dst    = src.moved( move.direction );
       auto const society = society_on_real_square( ss, dst );
       if( !society.has_value() ) {
-        co_await handle_native_unit_travel( ss, ts, native_unit,
-                                            move.direction );
+        co_await handle_native_unit_travel(
+            engine, ss, ts, native_unit, move.direction );
       } else {
         SWITCH( *society ) {
           CASE( native ) {
             CHECK( native.tribe == tribe_type );
             co_await handle_native_unit_travel(
-                ss, ts, native_unit, move.direction );
+                engine, ss, ts, native_unit, move.direction );
             break;
           }
           CASE( european ) {
@@ -232,8 +235,8 @@ wait<> handle_native_unit_command(
   // !! Note that the unit may no longer exist here.
 }
 
-wait<> tribe_turn( SS& ss, TS& ts, INativeAgent& agent,
-                   IRaid const& raid,
+wait<> tribe_turn( IEngine& engine, SS& ss, TS& ts,
+                   INativeAgent& agent, IRaid const& raid,
                    ITribeEvolve const& tribe_evolver ) {
   // Evolve those aspects/properties of the tribe that are common
   // to the entire tribe, i.e. not dwellingor unit-specific.
@@ -298,7 +301,7 @@ wait<> tribe_turn( SS& ss, TS& ts, INativeAgent& agent,
            kMaxTries, native_unit_id );
 
     co_await handle_native_unit_command(
-        ss, ts, raid, agent.tribe_type(), native_unit,
+        engine, ss, ts, raid, agent.tribe_type(), native_unit,
         agent.command_for( native_unit_id ) );
 
     // !! Unit may no longer exist at this point.
@@ -317,7 +320,8 @@ wait<> tribe_turn( SS& ss, TS& ts, INativeAgent& agent,
 /****************************************************************
 ** Public API
 *****************************************************************/
-wait<> natives_turn( SS& ss, TS& ts, IRaid const& raid,
+wait<> natives_turn( IEngine& engine, SS& ss, TS& ts,
+                     IRaid const& raid,
                      ITribeEvolve const& tribe_evolver ) {
   base::ScopedTimer timer( "native turns" );
   timer.options().no_checkpoints_logging = true;
@@ -326,7 +330,8 @@ wait<> natives_turn( SS& ss, TS& ts, IRaid const& raid,
     if( !ss.natives.tribe_exists( tribe ) ) continue;
     INativeAgent& agent = ts.native_agents()[tribe];
     timer.checkpoint( "{}", tribe );
-    co_await tribe_turn( ss, ts, agent, raid, tribe_evolver );
+    co_await tribe_turn( engine, ss, ts, agent, raid,
+                         tribe_evolver );
   }
 }
 

@@ -16,6 +16,7 @@
 // Testing
 #include "test/fake/world.hpp"
 #include "test/mocking.hpp"
+#include "test/mocks/iengine.hpp"
 #include "test/mocks/inative-agent.hpp"
 #include "test/mocks/irand.hpp"
 #include "test/mocks/land-view-plane.hpp"
@@ -91,8 +92,8 @@ struct World : testing::World {
 *****************************************************************/
 TEST_CASE( "[native-turn] unit iteration, travel" ) {
   World W;
-  RealRaid real_raid( W.ss(), W.ts() );
-  RealTribeEvolve real_tribe_evolver( W.ss(), W.ts() );
+  RealRaid real_raid( W.ss(), W.ts(), W.rand() );
+  RealTribeEvolve real_tribe_evolver( W.ss(), W.rand() );
 
   MockLandViewPlane mock_land_view;
   W.planes().get().set_bottom<ILandViewPlane>( mock_land_view );
@@ -100,7 +101,8 @@ TEST_CASE( "[native-turn] unit iteration, travel" ) {
   auto f = [&] {
     // In this one we don't inject dependencies because it seems
     // simple enough to test thoroughly.
-    co_await_test( natives_turn( W.ss(), W.ts(), real_raid,
+    co_await_test( natives_turn( W.engine(), W.ss(), W.ts(),
+                                 real_raid,
                                  real_tribe_evolver ) );
   };
 
@@ -518,7 +520,8 @@ TEST_CASE( "[native-turn] attack euro unit" ) {
   W.planes().get().set_bottom<ILandViewPlane>( mock_land_view );
 
   auto f = [&] {
-    co_await_test( natives_turn( W.ss(), W.ts(), mock_raid,
+    co_await_test( natives_turn( W.engine(), W.ss(), W.ts(),
+                                 mock_raid,
                                  mock_tribe_evolver ) );
   };
 
@@ -581,7 +584,8 @@ TEST_CASE( "[native-turn] brave spawns" ) {
   MockITribeEvolve mock_tribe_evolver;
 
   auto f = [&] {
-    co_await_test( natives_turn( W.ss(), W.ts(), mock_raid,
+    co_await_test( natives_turn( W.engine(), W.ss(), W.ts(),
+                                 mock_raid,
                                  mock_tribe_evolver ) );
   };
 
@@ -622,7 +626,8 @@ TEST_CASE( "[native-turn] brave equips" ) {
   MockITribeEvolve mock_tribe_evolver;
 
   auto f = [&] {
-    co_await_test( natives_turn( W.ss(), W.ts(), mock_raid,
+    co_await_test( natives_turn( W.engine(), W.ss(), W.ts(),
+                                 mock_raid,
                                  mock_tribe_evolver ) );
   };
 

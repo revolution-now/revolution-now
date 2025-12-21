@@ -1236,8 +1236,9 @@ TEST_CASE( "[cheat] cheat_create_unit" ) {
   point tile;
 
   auto const f = [&] [[clang::noinline]] {
-    co_await_test( cheat_create_unit(
-        w.ss(), w.ts(), w.default_player_type(), tile ) );
+    co_await_test( cheat_create_unit( w.engine(), w.ss(), w.ts(),
+                                      w.default_player_type(),
+                                      tile ) );
   };
 
   w.dutch().new_world_name  = "";

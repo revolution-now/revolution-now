@@ -44,6 +44,7 @@ enum class e_resolution;
 namespace rn {
 
 struct IAgent;
+struct IEngine;
 struct SS;
 struct SSConst;
 struct TS;
@@ -82,7 +83,8 @@ class HarborSubView
   : public IDraggableObjectsView<HarborDraggableObject>,
     public ui::AwaitView {
  public:
-  HarborSubView( SS& ss, TS& ts, Player& player );
+  HarborSubView( IEngine& engine, SS& ss, TS& ts,
+                 Player& player );
 
   // All HarborSubView's will also be unspecified subclassess of
   // ui::View.
@@ -113,6 +115,7 @@ class HarborSubView
   virtual void update_this_and_children() {}
 
  protected:
+  IEngine& engine_;
   SS& ss_;
   TS& ts_;
   Player& player_;
@@ -138,7 +141,7 @@ struct HarborViewComposited {
 };
 
 HarborViewComposited recomposite_harbor_view(
-    SS& ss, TS& ts, Player& player,
+    IEngine& engine, SS& ss, TS& ts, Player& player,
     gfx::e_resolution resolution );
 
 } // namespace rn

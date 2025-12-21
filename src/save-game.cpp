@@ -78,12 +78,12 @@ int number_of_total_slots() {
 
 // We must record the serialized state of the game each time it
 // is loaded or saved so that we can check when it is dirty.
-void record_checkpoint( SSConst const& ss, TS& ts ) {
+void record_checkpoint( SSConst const& ss, RootState& saved ) {
   // If we're trying to copy to ourselves then something is
   // wrong.
-  CHECK( &ts.saved != &ss.root );
+  CHECK( &saved != &ss.root );
   base::timer( "copy of root baseline", [&] {
-    assign_src_to_dst( as_const( ss.root ), ts.saved );
+    assign_src_to_dst( as_const( ss.root ), saved );
   } );
 }
 
@@ -93,7 +93,7 @@ void record_checkpoint( SSConst const& ss, TS& ts ) {
 ** Slot selection.
 *****************************************************************/
 static wait<maybe<int>> select_save_slot_impl(
-    TS& ts, IGameStorageQuery const& query ) {
+    IGui& gui, IGameStorageQuery const& query ) {
   unordered_map<int, string> slots;
   for( int i = 0; i < number_of_total_slots(); ++i )
     if( query_slot_exists( query, i ) )
@@ -118,7 +118,7 @@ static wait<maybe<int>> select_save_slot_impl(
   }
   while( true ) {
     maybe<string> selection =
-        co_await ts.gui.optional_choice( config );
+        co_await gui.optional_choice( config );
     if( !selection.has_value() ) co_return nothing;
     UNWRAP_CHECK( slot, base::from_chars<int>( *selection ) );
     co_return slot;
@@ -126,10 +126,11 @@ static wait<maybe<int>> select_save_slot_impl(
 }
 
 wait<maybe<int>> select_save_slot(
-    IEngine& engine, TS& ts, IGameStorageQuery const& query ) {
+    IEngine& engine, IGui& gui,
+    IGameStorageQuery const& query ) {
   maybe<int> slot;
   while( true ) {
-    slot = co_await select_save_slot_impl( ts, query );
+    slot = co_await select_save_slot_impl( gui, query );
     if( !slot.has_value() ) co_return nothing;
     if( !query_slot_exists( query, *slot ) ) break;
     if( !engine.user_config()
@@ -144,7 +145,7 @@ wait<maybe<int>> select_save_slot(
       .no_comes_first = true };
 
     maybe<ui::e_confirm> const answer =
-        co_await ts.gui.optional_yes_no( config );
+        co_await gui.optional_yes_no( config );
     if( answer == ui::e_confirm::yes ) break;
   }
   CHECK( slot.has_value() );
@@ -152,14 +153,14 @@ wait<maybe<int>> select_save_slot(
 }
 
 wait<maybe<int>> select_load_slot(
-    TS& ts, IGameStorageQuery const& query ) {
+    IGui& gui, IGameStorageQuery const& query ) {
   unordered_map<int, string> slots;
   for( int i = 0; i < number_of_total_slots(); ++i )
     if( query_slot_exists( query, i ) )
       slots[i] =
           query.description( query_file_for_slot( query, i ) );
   if( slots.size() == 0 ) {
-    co_await ts.gui.message_box(
+    co_await gui.message_box(
         "There are no available games to load." );
     co_return nothing;
   }
@@ -184,19 +185,18 @@ wait<maybe<int>> select_load_slot(
   }
   while( true ) {
     maybe<string> selection =
-        co_await ts.gui.optional_choice( config );
+        co_await gui.optional_choice( config );
     if( !selection.has_value() ) co_return nothing;
     UNWRAP_CHECK( slot, base::from_chars<int>( *selection ) );
     // We're not allowing to select empty slots.
     if( slots.contains( slot ) ) co_return slot;
-    co_await ts.gui.message_box(
+    co_await gui.message_box(
         "There is no game saved in this slot." );
   }
 }
 
 expect<SlotCopiedPaths> copy_slot_to_slot(
-    SSConst const&, TS&, IGameStorageSave const& saver,
-    int src_slot, int dst_slot ) {
+    IGameStorageSave const& saver, int src_slot, int dst_slot ) {
   fs::path const src_path =
       query_file_for_slot( saver, src_slot );
   fs::path const dst_path =
@@ -220,35 +220,32 @@ expect<SlotCopiedPaths> copy_slot_to_slot(
 ** Saving.
 *****************************************************************/
 wait_bool save_to_slot_interactive(
-    SSConst const& ss, TS& ts, IGameStorageSave const& saver,
-    int slot ) {
-  expect<fs::path> result = save_to_slot( ss, ts, saver, slot );
+    SSConst const& ss, IGui& gui, IGameStorageSave const& saver,
+    RootState& saved, int slot ) {
+  expect<fs::path> result =
+      save_to_slot( ss, gui, saver, saved, slot );
   if( !result.has_value() ) {
-    co_await ts.gui.message_box( "Error: failed to save game." );
+    co_await gui.message_box( "Error: failed to save game." );
     lg.error( "failed to save game: {}.", result.error() );
     co_return false;
   }
-  co_await ts.gui.message_box(
+  co_await gui.message_box(
       fmt::format( "Successfully saved game to {}.",
                    stem_for_slot( slot ) ) );
   lg.info( "saved game to {}.", stem_for_slot( slot ) );
   co_return true;
 }
 
-expect<fs::path> save_to_slot( SSConst const& ss, TS& ts,
+expect<fs::path> save_to_slot( SSConst const& ss, IGui&,
                                IGameStorageSave const& saver,
-                               int slot ) {
-  auto const p = query_file_for_slot( saver, slot );
-  GOOD_OR_RETURN( saver.store( p ) );
-  record_checkpoint( ss, ts );
+                               RootState& saved, int slot ) {
+  UNWRAP_RETURN( p, save_to_slot_no_checkpoint( saver, slot ) );
+  record_checkpoint( ss, saved );
   return p;
 }
 
-// The extra unused params are so that we can fit into the IGame-
-// Saver module interface.
 expect<fs::path> save_to_slot_no_checkpoint(
-    SSConst const&, TS&, IGameStorageSave const& saver,
-    int slot ) {
+    IGameStorageSave const& saver, int const slot ) {
   auto const p = query_file_for_slot( saver, slot );
   GOOD_OR_RETURN( saver.store( p ) );
   return p;
@@ -258,30 +255,32 @@ expect<fs::path> save_to_slot_no_checkpoint(
 ** Loading.
 *****************************************************************/
 wait_bool load_from_slot_interactive(
-    SS& ss, TS& ts, IGameStorageLoad const& loader, int slot ) {
+    SS& ss, IGui& gui, IGameStorageLoad const& loader,
+    RootState& saved, int const slot ) {
   expect<fs::path> const result =
-      load_from_slot( ss, ts, loader, slot );
+      load_from_slot( ss, loader, saved, slot );
   if( !result.has_value() ) {
-    co_await ts.gui.message_box( "Error: failed to load game." );
+    co_await gui.message_box( "Error: failed to load game." );
     lg.error( "failed to load game: {}", result.error() );
     co_return false;
   }
-  co_await ts.gui.message_box(
+  co_await gui.message_box(
       fmt::format( "Successfully loaded game from {}.",
                    stem_for_slot( slot ) ) );
   lg.info( "loaded game from {}.", stem_for_slot( slot ) );
   co_return true;
 }
 
-expect<fs::path> load_from_slot( SS& ss, TS& ts,
+expect<fs::path> load_from_slot( SS& ss,
                                  IGameStorageLoad const& loader,
-                                 int slot ) {
+                                 RootState& saved,
+                                 int const slot ) {
   fs::path const p = query_file_for_slot( loader, slot );
   if( !fs::exists( p ) )
     return fmt::format( "save file not found for slot {}.",
                         slot );
   GOOD_OR_RETURN( loader.load( p ) );
-  record_checkpoint( ss, ts );
+  record_checkpoint( ss, saved );
   return p;
 }
 

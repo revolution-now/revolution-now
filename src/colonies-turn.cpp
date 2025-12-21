@@ -156,7 +156,7 @@ wait<> fire_fortifications( SS&, TS&, Player&, Colony& ) {
 ** Public API.
 *****************************************************************/
 wait<> evolve_colonies_for_player(
-    SS& ss, TS& ts, Player& player,
+    SS& ss, TS& ts, IRand& rand, Player& player,
     IColonyEvolver const& colony_evolver,
     IHarborViewer& harbor_viewer,
     IColonyNotificationGenerator const&
@@ -245,7 +245,7 @@ wait<> evolve_colonies_for_player(
     give_new_crosses_to_player( player, crosses_calc,
                                 evolutions );
     maybe<UnitId> immigrant = co_await check_for_new_immigrant(
-        ss, ts, player, crosses_calc.crosses_needed );
+        ss, ts, rand, player, crosses_calc.crosses_needed );
     if( immigrant.has_value() ) {
       lg.info( "a new immigrant ({}) has arrived for player {}.",
                player_type,

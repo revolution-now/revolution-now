@@ -34,8 +34,8 @@ struct HarborOutboundShips
     public IDragSink<HarborDraggableObject>,
     public IDragSinkCheck<HarborDraggableObject> {
   static PositionedHarborSubView<HarborOutboundShips> create(
-      SS& ss, TS& ts, Player& player, Rect canvas,
-      HarborInPortShips const& in_port_ships );
+      IEngine& engine, SS& ss, TS& ts, Player& player,
+      Rect canvas, HarborInPortShips const& in_port_ships );
 
   struct Layout {
     // Absolute coordinates.
@@ -48,8 +48,8 @@ struct HarborOutboundShips
     std::vector<gfx::rect> slots;
   };
 
-  HarborOutboundShips( SS& ss, TS& ts, Player& player,
-                       Layout layout );
+  HarborOutboundShips( IEngine& engine, SS& ss, TS& ts,
+                       Player& player, Layout layout );
 
  public: // ui::object.
   Delta delta() const override;

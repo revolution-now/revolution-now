@@ -115,7 +115,7 @@ TEST_CASE( "[rpt] click_purchase" ) {
   REQUIRE( units.all().size() == 0 );
   REQUIRE( player.artillery_purchases == 2 );
 
-  wait<> w = click_purchase( W.ss(), W.ts(), player );
+  wait<> w = click_purchase( W.ss(), W.gui(), player );
   REQUIRE( !w.exception() );
   REQUIRE( w.ready() );
 
@@ -206,7 +206,7 @@ TEST_CASE( "[rpt] click_train" ) {
   UnitsState const& units = W.ss().units;
   REQUIRE( units.all().size() == 0 );
 
-  wait<> w = click_train( W.ss(), W.ts(), player );
+  wait<> w = click_train( W.ss(), W.gui(), player );
   REQUIRE( !w.exception() );
   REQUIRE( w.ready() );
 
@@ -279,7 +279,7 @@ TEST_CASE( "[rpt] click_recruit" ) {
   UnitsState const& units = W.ss().units;
   REQUIRE( units.all().size() == 0 );
 
-  wait<> w = click_recruit( W.ss(), W.ts(), player );
+  wait<> w = click_recruit( W.ss(), W.gui(), W.rand(), player );
   REQUIRE( !w.exception() );
   REQUIRE( w.ready() );
 

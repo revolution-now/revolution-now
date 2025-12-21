@@ -34,15 +34,16 @@ struct HarborDockUnits
     public IDragSource<HarborDraggableObject>,
     public IDragSink<HarborDraggableObject> {
   static PositionedHarborSubView<HarborDockUnits> create(
-      SS& ss, TS& ts, Player& player, Rect canvas,
-      HarborBackdrop const& backdrop );
+      IEngine& engine, SS& ss, TS& ts, Player& player,
+      Rect canvas, HarborBackdrop const& backdrop );
 
   struct Layout {
     // Absolute coords.
     gfx::rect view;
   };
 
-  HarborDockUnits( SS& ss, TS& ts, Player& player,
+  HarborDockUnits( IEngine& engine, SS& ss, TS& ts,
+                   Player& player,
                    HarborBackdrop const& backdrop,
                    Layout layout );
 

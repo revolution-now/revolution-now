@@ -78,7 +78,7 @@ set<int> should_autosave( SSConst const& ss ) {
 // then if there are multiple slots that need to get saved then
 // we'll just copy the first file onto the remaining files.
 expect<std::vector<fs::path>> autosave(
-    SSConst const& ss, IGameSaver const& game_saver,
+    SSConst const& ss, IGameWriter const& game_writer,
     Autosave& autosave, set<int> autosave_slots ) {
   auto const initial_slots_size = autosave_slots.size();
   vector<fs::path> res;
@@ -101,7 +101,7 @@ expect<std::vector<fs::path>> autosave(
   // prompted to save the game on exit if it had just been
   // auto-saved.
   UNWRAP_RETURN( first_path,
-                 game_saver.save_to_slot_no_checkpoint(
+                 game_writer.save_to_slot_no_checkpoint(
                      first_absolute_slot ) );
   res.push_back( first_path );
 
@@ -112,7 +112,7 @@ expect<std::vector<fs::path>> autosave(
         autosave_to_absolute( dst_autosave_slot );
     CHECK_NEQ( first_absolute_slot, dst_absolute_slot );
     UNWRAP_RETURN(
-        paths, game_saver.copy_slot_to_slot(
+        paths, game_writer.copy_slot_to_slot(
                    first_absolute_slot, dst_absolute_slot ) );
     auto const& [src_path, dst_path] = paths;
     CHECK_EQ( src_path, first_path );

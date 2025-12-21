@@ -18,14 +18,16 @@
 
 namespace rn {
 
+struct IGui;
+struct IRand;
 struct Player;
 struct SS;
-struct TS;
 
-wait<> click_recruit( SS& ss, TS& ts, Player& player );
+wait<> click_recruit( SS& ss, IGui& gui, IRand& rand,
+                      Player& player );
 
-wait<> click_purchase( SS& ss, TS& ts, Player& player );
+wait<> click_purchase( SS& ss, IGui& gui, Player& player );
 
-wait<> click_train( SS& ss, TS& ts, Player& player );
+wait<> click_train( SS& ss, IGui& gui, Player& player );
 
 } // namespace rn

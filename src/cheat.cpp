@@ -481,7 +481,7 @@ wait<> cheat_set_player_control( IEngine& engine, SS& ss,
       ts.agents().update(
           type,
           create_agent( engine, ss, ts.map_updater(), ts.planes,
-                        ts.gui, ts.rand, type ) );
+                        ts.gui, engine.rand(), type ) );
 
   // We do this because we need to back out beyond the individual
   // nation's turn processor in order to handle this configura-
@@ -687,7 +687,8 @@ wait<> cheat_edit_fathers( IEngine& engine, SS& ss, TS& ts,
     bool const has_now         = box->on();
     player.fathers.has[father] = has_now;
     if( has_now && !had_previously )
-      on_father_received( ss, ts, player, father );
+      on_father_received( ss, ts, engine.rand(), player,
+                          father );
   }
 }
 
@@ -1169,7 +1170,7 @@ void cheat_advance_colony_one_turn(
   if( ev.colony_disappeared ) lg.debug( "colony has starved." );
 }
 
-wait<> cheat_create_unit( SS& ss, TS& ts,
+wait<> cheat_create_unit( IEngine& engine, SS& ss, TS& ts,
                           e_player const player_type,
                           point const tile ) {
   static refl::enum_map<e_cheat_unit_creation_categories,
@@ -1305,8 +1306,8 @@ wait<> cheat_create_unit( SS& ss, TS& ts,
       co_return;
     }
     [[maybe_unused]] maybe<UnitId> unit_id =
-        co_await create_unit_on_map( ss, ts, player, *type,
-                                     tile );
+        co_await create_unit_on_map( ss, ts, engine.rand(),
+                                     player, *type, tile );
     co_return;
   }
 
@@ -1319,16 +1320,16 @@ wait<> cheat_create_unit( SS& ss, TS& ts,
       co_return;
     }
     [[maybe_unused]] maybe<UnitId> unit_id =
-        co_await create_unit_on_map( ss, ts, player, *type,
-                                     tile );
+        co_await create_unit_on_map( ss, ts, engine.rand(),
+                                     player, *type, tile );
     co_return;
   }
 
   if( land_tile && land_unit ) {
     // Land unit on land: good.
     [[maybe_unused]] maybe<UnitId> unit_id =
-        co_await create_unit_on_map( ss, ts, player, *type,
-                                     tile );
+        co_await create_unit_on_map( ss, ts, engine.rand(),
+                                     player, *type, tile );
     co_return;
   }
 

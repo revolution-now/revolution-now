@@ -611,7 +611,7 @@ TEST_CASE( "[enter-dwelling] compute_speak_with_chief" ) {
 
   auto f = [&] {
     CHECK( p_unit != nullptr );
-    return compute_speak_with_chief( W.ss(), W.ts(), *dwelling,
+    return compute_speak_with_chief( W.ss(), W.rand(), *dwelling,
                                      *p_unit );
   };
 
@@ -791,9 +791,9 @@ TEST_CASE( "[enter-dwelling] do_speak_with_chief" ) {
               .secondary_trade_2 = e_commodity::cloth };
 
   auto f = [&] {
-    wait<> w = do_speak_with_chief( W.ss(), W.ts(), dwelling,
-                                    W.default_player(), *p_unit,
-                                    outcome );
+    wait<> w = do_speak_with_chief( W.ss(), W.ts(), W.rand(),
+                                    dwelling, W.default_player(),
+                                    *p_unit, outcome );
     REQUIRE( !w.has_exception() );
     REQUIRE( w.ready() );
   };

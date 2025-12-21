@@ -522,7 +522,7 @@ static vector<Coord> compute_tales_of_nearby_lands_tiles(
 }
 
 static ChiefAction compute_speak_with_chief_action(
-    SSConst const& ss, TS& ts, Dwelling const& dwelling,
+    SSConst const& ss, IRand& rand, Dwelling const& dwelling,
     Unit const& unit ) {
   UNWRAP_CHECK_MSG(
       type, scout_type( unit.type() ),
@@ -552,7 +552,7 @@ static ChiefAction compute_speak_with_chief_action(
   lg.debug( "scout elimination probability: {}",
             eliminate_probability );
   bool const should_eliminate =
-      ts.rand.bernoulli( eliminate_probability );
+      rand.bernoulli( eliminate_probability );
   if( should_eliminate ) return ChiefAction::target_practice{};
 
   // At this point we know that the scout will not be eliminated
@@ -563,7 +563,7 @@ static ChiefAction compute_speak_with_chief_action(
           .has_spoken_with_chief )
     return ChiefAction::none{};
 
-  auto const outcome = ts.rand.pick_from_weighted_values(
+  auto const outcome = rand.pick_from_weighted_values(
       conf.positive_outcome_weights );
   switch( outcome ) {
     case e_speak_with_chief_result::none:
@@ -574,7 +574,7 @@ static ChiefAction compute_speak_with_chief_action(
       config::IntRange const& gift_range =
           conf.gift_range[config_natives.tribes[tribe].level];
       int const quantity =
-          ts.rand.between_ints( gift_range.min, gift_range.max );
+          rand.between_ints( gift_range.min, gift_range.max );
       return ChiefAction::gift_money{ .quantity = quantity };
     }
     case e_speak_with_chief_result::tales_of_nearby_lands: {
@@ -606,20 +606,21 @@ static ChiefAction compute_speak_with_chief_action(
 }
 
 SpeakWithChiefResult compute_speak_with_chief(
-    SSConst const& ss, TS& ts, Dwelling const& dwelling,
+    SSConst const& ss, IRand& rand, Dwelling const& dwelling,
     Unit const& unit ) {
   return SpeakWithChiefResult{
     .expertise         = dwelling.teaches,
     .primary_trade     = dwelling.trading.seeking_primary,
     .secondary_trade_1 = dwelling.trading.seeking_secondary_1,
     .secondary_trade_2 = dwelling.trading.seeking_secondary_2,
-    .action = compute_speak_with_chief_action( ss, ts, dwelling,
-                                               unit ) };
+    .action            = compute_speak_with_chief_action(
+        ss, rand, dwelling, unit ) };
 }
 
 wait<> do_speak_with_chief(
-    SS& ss, TS& ts, Dwelling& dwelling, Player& player,
-    Unit& unit, SpeakWithChiefResult const& outcome ) {
+    SS& ss, TS& ts, IRand& rand, Dwelling& dwelling,
+    Player& player, Unit& unit,
+    SpeakWithChiefResult const& outcome ) {
   dwelling.relationship[unit.player_type()]
       .has_spoken_with_chief = true;
   e_tribe const tribe = ss.natives.tribe_for( dwelling.id ).type;
@@ -664,7 +665,7 @@ wait<> do_speak_with_chief(
               .get<ChiefAction::tales_of_nearby_lands>();
       CHECK( !o.tiles.empty() );
       auto tiles = o.tiles;
-      ts.rand.shuffle( tiles );
+      rand.shuffle( tiles );
       co_await ts.gui.message_box(
           "We invite you to sit around the campfire with us as "
           "we tell you the tales of nearby lands." );

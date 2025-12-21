@@ -35,8 +35,8 @@ struct HarborInPortShips
     public IDragSourceCheck<HarborDraggableObject>,
     public IDragSink<HarborDraggableObject> {
   static PositionedHarborSubView<HarborInPortShips> create(
-      SS& ss, TS& ts, Player& player, Rect canvas,
-      HarborBackdrop const& backdrop,
+      IEngine& engine, SS& ss, TS& ts, Player& player,
+      Rect canvas, HarborBackdrop const& backdrop,
       HarborMarketCommodities& harbor_market_commodities );
 
   struct Layout {
@@ -50,7 +50,7 @@ struct HarborInPortShips
   };
 
   HarborInPortShips(
-      SS& ss, TS& ts, Player& player,
+      IEngine& engine, SS& ss, TS& ts, Player& player,
       HarborMarketCommodities& harbor_market_commodities,
       Layout layout );
 

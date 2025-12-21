@@ -26,6 +26,6 @@ interface.ITribeEvolve {
 
   _context {
     ss 'SS&',
-    ts 'TS&',
+    rand 'IRand&',
   },
 }

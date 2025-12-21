@@ -73,7 +73,7 @@ TEST_CASE(
   e_tribe tribe_type = {};
 
   auto f = [&] {
-    evolve_dwellings_for_tribe( W.ss(), W.ts(), tribe_type );
+    evolve_dwellings_for_tribe( W.ss(), W.rand(), tribe_type );
   };
 
   auto unit_count = [&]() -> int {
@@ -402,7 +402,7 @@ TEST_CASE(
   Tribe& tribe             = W.add_tribe( tribe_type );
 
   auto f = [&] {
-    evolve_dwellings_for_tribe( W.ss(), W.ts(), tribe_type );
+    evolve_dwellings_for_tribe( W.ss(), W.rand(), tribe_type );
   };
 
   auto units = [&] {
@@ -482,7 +482,7 @@ TEST_CASE( "[tribe-evolve] evolves horse breeding" ) {
   Tribe& tribe             = W.add_tribe( tribe_type );
 
   auto f = [&] {
-    evolve_tribe_common( W.ss(), W.ts(), tribe_type );
+    evolve_tribe_common( W.ss(), W.rand(), tribe_type );
   };
 
   REQUIRE( tribe.muskets == 0 );

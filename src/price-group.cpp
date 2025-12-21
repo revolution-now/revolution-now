@@ -14,7 +14,6 @@
 
 // Revolution Now
 #include "irand.hpp"
-#include "ts.hpp"
 
 // config
 #include "config/market.rds.hpp"
@@ -282,11 +281,11 @@ void ProcessedGoodsPriceGroup::evolve() {
 /****************************************************************
 ** Public API
 *****************************************************************/
-int generate_random_intrinsic_volume( TS& ts, int center,
+int generate_random_intrinsic_volume( IRand& rand, int center,
                                       int window ) {
   int const bottom = center - window / 2;
   int const top    = center + window / 2;
-  return ts.rand.between_ints( bottom, top );
+  return rand.between_ints( bottom, top );
 }
 
 /****************************************************************
@@ -307,7 +306,7 @@ LUA_STARTUP( lua::state& st ) {
 
     // FIXME: move this into a separate API function.
     constructor["new_with_random_volumes"] = [&] {
-      UNWRAP_CHECK( ts, safe_as<TS&>( st["TS"] ) );
+      UNWRAP_CHECK( rand, safe_as<IRand&>( st["IRand"] ) );
       ProcessedGoodsPriceGroupConfig config =
           default_processed_goods_price_group_config();
       auto const& model_params =
@@ -316,7 +315,7 @@ LUA_STARTUP( lua::state& st ) {
            refl::enum_values<e_processed_good> )
         config.starting_intrinsic_volumes[good] =
             generate_random_intrinsic_volume(
-                ts, model_params.random_init_center,
+                rand, model_params.random_init_center,
                 model_params.random_init_window );
       return ProcessedGoodsPriceGroup( config );
     };

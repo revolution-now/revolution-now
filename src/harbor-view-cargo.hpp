@@ -51,10 +51,10 @@ struct HarborCargo
   };
 
   static PositionedHarborSubView<HarborCargo> create(
-      SS& ss, TS& ts, Player& player, gfx::rect canvas,
-      HarborStatusBar& harbor_status_bar );
+      IEngine& engine, SS& ss, TS& ts, Player& player,
+      gfx::rect canvas, HarborStatusBar& harbor_status_bar );
 
-  HarborCargo( SS& ss, TS& ts, Player& player,
+  HarborCargo( IEngine& engine, SS& ss, TS& ts, Player& player,
                HarborStatusBar& harbor_status_bar,
                Layout const& layout );
 

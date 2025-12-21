@@ -18,6 +18,7 @@
 namespace rn {
 
 struct Colony;
+struct IRand;
 struct Player;
 struct SS;
 struct SSConst;
@@ -32,6 +33,7 @@ struct TS;
 // to evolve a colony (e.g. for cheat mode) where we can control
 // what is shown to the user.
 ColonyEvolution evolve_colony_one_turn( SS& ss, TS& ts,
+                                        IRand& rand,
                                         Colony& colony );
 
 // This generates the text messages that are actually shown to

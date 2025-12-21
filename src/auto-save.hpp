@@ -22,7 +22,7 @@
 namespace rn {
 
 struct Autosave;
-struct IGameSaver;
+struct IGameWriter;
 struct SSConst;
 
 // Returns the list of autosave slots that need to be saved to
@@ -31,7 +31,7 @@ struct SSConst;
 
 // This will do the save.
 [[nodiscard]] expect<std::vector<fs::path>> autosave(
-    SSConst const& ss, IGameSaver const& game_saver,
+    SSConst const& ss, IGameWriter const& game_writer,
     Autosave& autosave, std::set<int> autosave_slots );
 
 } // namespace rn

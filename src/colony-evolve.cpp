@@ -117,8 +117,9 @@ maybe<ColonyNotification::spoilage> check_spoilage(
 }
 
 void check_create_or_starve_colonist(
-    SS& ss, TS& ts, Player const& player, Colony& colony,
-    ColonyProduction const& pr, bool& colony_disappeared,
+    SS& ss, TS& ts, IRand& rand, Player const& player,
+    Colony& colony, ColonyProduction const& pr,
+    bool& colony_disappeared,
     vector<ColonyNotification>& notifications ) {
   if( pr.food_horses.colonist_starved ) {
     vector<UnitId> const units_in_colony =
@@ -142,7 +143,7 @@ void check_create_or_starve_colonist(
       // such colonies is generally not liked, and so a loophole
       // such as this should not be unwelcome.
     } else {
-      UnitId unit_id   = ts.rand.pick_one( units_in_colony );
+      UnitId unit_id   = rand.pick_one( units_in_colony );
       e_unit_type type = ss.units.unit_for( unit_id ).type();
       UnitOwnershipChanger( ss, unit_id ).destroy();
       notifications.emplace_back(
@@ -336,10 +337,11 @@ void apply_production_to_colony(
 }
 
 void check_colonist_on_the_job_training(
-    SS& ss, TS& ts, Colony& colony, ColonyProduction const& pr,
+    SS& ss, TS& ts, IRand& rand, Colony& colony,
+    ColonyProduction const& pr,
     vector<ColonyNotification>& notifications ) {
   vector<OnTheJobPromotionResult> const res =
-      workers_to_promote_for_on_the_job_training( ss, ts,
+      workers_to_promote_for_on_the_job_training( ss, rand,
                                                   colony );
   for( auto const& [unit_id, promoted_to] : res ) {
     CHECK( as_const( ss.units )
@@ -392,10 +394,10 @@ void check_colonist_on_the_job_training(
 }
 
 void check_colonists_teaching(
-    SS& ss, TS& ts, Colony& colony,
+    SS& ss, TS& ts, IRand& rand, Colony& colony,
     vector<ColonyNotification>& notifications ) {
   ColonyTeachingEvolution const ev =
-      evolve_teachers( ss, ts, colony );
+      evolve_teachers( ss, ts, rand, colony );
   CHECK_LE( int( ev.teachers.size() ), 3 );
 
   // First check if we have teachers but no one teachable.
@@ -447,10 +449,10 @@ void process_custom_house( SS& ss, Player& player,
 }
 
 void check_prime_resource_depletion(
-    SS& ss, TS& ts, Colony const& colony,
+    SS& ss, TS& ts, IRand& rand, Colony const& colony,
     vector<ColonyNotification>& notifications ) {
   vector<DepletionEvent> const events =
-      advance_depletion_state( ss, ts.rand, colony );
+      advance_depletion_state( ss, rand, colony );
   update_depleted_tiles( ts.map_updater(), events );
   for( DepletionEvent const& event : events )
     notifications.push_back(
@@ -757,6 +759,7 @@ ColonyNotificationMessage generate_colony_notification_message(
 }
 
 ColonyEvolution evolve_colony_one_turn( SS& ss, TS& ts,
+                                        IRand& rand,
                                         Colony& colony ) {
   ColonyEvolution ev;
   ev.production = production_for_colony( ss, colony );
@@ -827,7 +830,7 @@ ColonyEvolution evolve_colony_one_turn( SS& ss, TS& ts,
 
   // Needs to be done after food deltas have been applied.
   check_create_or_starve_colonist(
-      ss, ts, as_const( player ), colony, ev.production,
+      ss, ts, rand, as_const( player ), colony, ev.production,
       ev.colony_disappeared, ev.notifications );
   if( ev.colony_disappeared )
     // If the colony is to disappear then there isn't much point
@@ -848,12 +851,13 @@ ColonyEvolution evolve_colony_one_turn( SS& ss, TS& ts,
   // any other changes to colonists (such as starvation) have al-
   // ready been done.
   check_colonist_on_the_job_training(
-      ss, ts, colony, ev.production, ev.notifications );
-  check_colonists_teaching( ss, ts, colony, ev.notifications );
+      ss, ts, rand, colony, ev.production, ev.notifications );
+  check_colonists_teaching( ss, ts, rand, colony,
+                            ev.notifications );
 
   give_stockade_if_needed( player, colony );
 
-  check_prime_resource_depletion( ss, ts, colony,
+  check_prime_resource_depletion( ss, ts, rand, colony,
                                   ev.notifications );
 
   return ev;

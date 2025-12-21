@@ -81,6 +81,7 @@ int max_teachers_allowed( Colony const& colony ) {
 
 // This will actuall evolve the teachers and promote any units.
 ColonyTeachingEvolution evolve_teachers( SS& ss, TS& ts,
+                                         IRand& rand,
                                          Colony& colony ) {
   ColonyTeachingEvolution ev;
   if( colony.teachers.empty() ) return ev;
@@ -96,7 +97,7 @@ ColonyTeachingEvolution evolve_teachers( SS& ss, TS& ts,
       stored = teachable_colonists( ss, colony );
       // For ease of testing/predictability.
       sort( stored->begin(), stored->end() );
-      ts.rand.shuffle( *stored );
+      rand.shuffle( *stored );
     }
     DCHECK( stored.has_value() );
     return *stored;

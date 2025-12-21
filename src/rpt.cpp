@@ -53,7 +53,8 @@ int artillery_price( Player const& player ) {
 /****************************************************************
 ** Public API
 *****************************************************************/
-wait<> click_recruit( SS& ss, TS& ts, Player& player ) {
+wait<> click_recruit( SS& ss, IGui& gui, IRand& rand,
+                      Player& player ) {
   CrossesCalculation const crosses =
       compute_crosses( ss.units, player.type );
   int const price = cost_of_recruit(
@@ -90,17 +91,17 @@ wait<> click_recruit( SS& ss, TS& ts, Player& player ) {
   // back than manually creating stringified integer keys and
   // converting them back to ints.
   maybe<string> selected_str =
-      co_await ts.gui.optional_choice( config );
+      co_await gui.optional_choice( config );
   if( !selected_str.has_value() ) co_return;
   if( *selected_str == kNone ) co_return;
   UNWRAP_CHECK( selected_n,
                 base::from_chars<int>( *selected_str ) );
   CHECK_GE( selected_n, 0 );
   CHECK_LT( selected_n, 3 );
-  rush_recruit_next_immigrant( ss, ts, player, selected_n );
+  rush_recruit_next_immigrant( ss, rand, player, selected_n );
 }
 
-wait<> click_purchase( SS& ss, TS& ts, Player& player ) {
+wait<> click_purchase( SS& ss, IGui& gui, Player& player ) {
   ChoiceConfig config{ .msg = "What would you like to purchase?",
                        .initial_selection = 0 };
   static string const kNone = "none";
@@ -133,7 +134,7 @@ wait<> click_purchase( SS& ss, TS& ts, Player& player ) {
   push( e_unit_type::privateer );
   push( e_unit_type::frigate );
   maybe<string> selected_str =
-      co_await ts.gui.optional_choice( config );
+      co_await gui.optional_choice( config );
   if( !selected_str.has_value() ) co_return;
   if( *selected_str == kNone ) co_return;
   UNWRAP_CHECK(
@@ -147,7 +148,7 @@ wait<> click_purchase( SS& ss, TS& ts, Player& player ) {
     ++player.artillery_purchases;
 }
 
-wait<> click_train( SS& ss, TS& ts, Player& player ) {
+wait<> click_train( SS& ss, IGui& gui, Player& player ) {
   ChoiceConfig config{
     .msg =
         "The [Royal University] can provide us with "
@@ -182,7 +183,7 @@ wait<> click_train( SS& ss, TS& ts, Player& player ) {
   };
   for( e_unit_type type : ordering ) push( type );
   maybe<string> selected_str =
-      co_await ts.gui.optional_choice( config );
+      co_await gui.optional_choice( config );
   if( !selected_str.has_value() ) co_return;
   if( *selected_str == kNone ) co_return;
   UNWRAP_CHECK(

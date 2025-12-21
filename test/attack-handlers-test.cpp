@@ -18,6 +18,7 @@
 #include "test/fake/world.hpp"
 #include "test/mocks/iagent.hpp"
 #include "test/mocks/icombat.hpp"
+#include "test/mocks/iengine.hpp"
 #include "test/mocks/igui.hpp"
 #include "test/mocks/inative-agent.hpp"
 #include "test/mocks/land-view-plane.hpp"
@@ -295,7 +296,7 @@ TEST_CASE(
 
   auto const f = [&] [[clang::noinline]] {
     return W.run_handler( attack_euro_land_handler(
-        W.ss(), W.ts(), combat.attacker.id,
+        W.engine(), W.ss(), W.ts(), combat.attacker.id,
         combat.defender.id ) );
   };
 
@@ -382,9 +383,9 @@ TEST_CASE(
   CombatEuroAttackEuro combat;
 
   auto const f = [&] [[clang::noinline]] {
-    return W.run_handler(
-        naval_battle_handler( W.ss(), W.ts(), combat.attacker.id,
-                              combat.defender.id ) );
+    return W.run_handler( naval_battle_handler(
+        W.engine(), W.ss(), W.ts(), combat.attacker.id,
+        combat.defender.id ) );
   };
 
   SECTION( "ships cannot attack land units" ) {
@@ -412,7 +413,7 @@ TEST_CASE( "[attack-handlers] attack_euro_land_handler" ) {
 
   auto const f = [&] [[clang::noinline]] {
     return W.run_handler( attack_euro_land_handler(
-        W.ss(), W.ts(), combat.attacker.id,
+        W.engine(), W.ss(), W.ts(), combat.attacker.id,
         combat.defender.id ) );
   };
 
@@ -660,7 +661,7 @@ TEST_CASE( "[attack-handlers] attack_native_unit_handler" ) {
 
   auto const f = [&] [[clang::noinline]] {
     return W.run_handler( attack_native_unit_handler(
-        W.ss(), W.ts(), combat.attacker.id,
+        W.engine(), W.ss(), W.ts(), combat.attacker.id,
         combat.defender.id ) );
   };
 
@@ -852,7 +853,7 @@ TEST_CASE( "[attack-handlers] attack_dwelling_handler" ) {
 
   auto const f = [&] [[clang::noinline]] {
     return W.run_handler( attack_dwelling_handler(
-        W.ss(), W.ts(), combat.attacker.id,
+        W.engine(), W.ss(), W.ts(), combat.attacker.id,
         combat.defender.id ) );
   };
 
@@ -1814,7 +1815,7 @@ TEST_CASE(
 
   auto const f = [&] [[clang::noinline]] {
     return W.run_handler( attack_dwelling_handler(
-        W.ss(), W.ts(), combat.attacker.id,
+        W.engine(), W.ss(), W.ts(), combat.attacker.id,
         combat.defender.id ) );
   };
 
@@ -1881,9 +1882,9 @@ TEST_CASE( "[attack-handlers] naval_battle_handler" ) {
   };
 
   auto const f = [&] [[clang::noinline]] {
-    return W.run_handler(
-        naval_battle_handler( W.ss(), W.ts(), combat.attacker.id,
-                              combat.defender.id ) );
+    return W.run_handler( naval_battle_handler(
+        W.engine(), W.ss(), W.ts(), combat.attacker.id,
+        combat.defender.id ) );
   };
 
   SECTION( "evade" ) {

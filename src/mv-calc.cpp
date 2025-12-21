@@ -13,7 +13,6 @@
 
 // Revolution Now
 #include "irand.hpp"
-#include "ts.hpp"
 
 // config
 #include "config/natives.hpp"
@@ -33,8 +32,8 @@ namespace rn {
 namespace {
 
 MovementPointsAnalysis can_unit_move_based_on_mv_points_impl(
-    TS& ts, MovementPoints has, MovementPoints start_of_turn_pts,
-    MovementPoints needed ) {
+    IRand& rand, MovementPoints has,
+    MovementPoints start_of_turn_pts, MovementPoints needed ) {
   MovementPointsAnalysis res{
     .has                           = has,
     .needed                        = needed,
@@ -51,8 +50,7 @@ MovementPointsAnalysis can_unit_move_based_on_mv_points_impl(
   double const probability =
       double( has.atoms() ) / needed.atoms();
   // If this returns true then the unit gets to move anyway.
-  res.using_overdraw_allowance =
-      ts.rand.bernoulli( probability );
+  res.using_overdraw_allowance = rand.bernoulli( probability );
   return res;
 }
 
@@ -86,17 +84,18 @@ void to_str( MovementPointsAnalysis const& o, std::string& out,
 ** Public API
 *****************************************************************/
 MovementPointsAnalysis can_unit_move_based_on_mv_points(
-    TS& ts, Player const& player, Unit const& unit,
+    IRand& rand, Player const& player, Unit const& unit,
     MovementPoints needed ) {
   return can_unit_move_based_on_mv_points_impl(
-      ts, unit.movement_points(),
+      rand, unit.movement_points(),
       movement_points( player, unit.type() ), needed );
 }
 
 MovementPointsAnalysis can_native_unit_move_based_on_mv_points(
-    TS& ts, NativeUnit const& unit, MovementPoints needed ) {
+    IRand& rand, NativeUnit const& unit,
+    MovementPoints needed ) {
   return can_unit_move_based_on_mv_points_impl(
-      ts, unit.movement_points,
+      rand, unit.movement_points,
       unit_attr( unit.type ).movement_points, needed );
 }
 

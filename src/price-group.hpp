@@ -28,7 +28,7 @@
 
 namespace rn {
 
-struct TS;
+struct IRand;
 
 /****************************************************************
 ** e_processed_good
@@ -98,7 +98,7 @@ struct ProcessedGoodsPriceGroup {
 /****************************************************************
 ** Public API
 *****************************************************************/
-int generate_random_intrinsic_volume( TS& ts, int center,
+int generate_random_intrinsic_volume( IRand& rand, int center,
                                       int window );
 
 } // namespace rn

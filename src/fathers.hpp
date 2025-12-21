@@ -24,6 +24,8 @@
 
 namespace rn {
 
+struct IGui;
+struct IRand;
 struct Player;
 struct SS;
 struct SSConst;
@@ -65,7 +67,8 @@ maybe<int> bells_needed_for_next_father( SSConst const& ss,
 // (requiring) the player to choose a founding father. Before it
 // does so it will re-populate the pool of fathers. If there are
 // no fathers left then it will do nothing.
-wait<> pick_founding_father_if_needed( SSConst const& ss, TS& ts,
+wait<> pick_founding_father_if_needed( SSConst const& ss,
+                                       IGui& gui, IRand& rand,
                                        Player& player );
 
 // This is called once per turn to check if we need to choose a
@@ -87,7 +90,8 @@ wait<> play_new_father_cut_scene( TS& ts, Player const& player,
 // are supposed to happen as a result of obtaining that father
 // (some founding fathers have one-time effects while others' ef-
 // fects are ongoing; this function is for the former).
-void on_father_received( SS& ss, TS& ts, Player& player,
+void on_father_received( SS& ss, TS& ts, IRand& rand,
+                         Player& player,
                          e_founding_father father );
 
 } // namespace rn

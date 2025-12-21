@@ -186,13 +186,13 @@ NativeUnitId create_unit_on_map_non_interactive(
 }
 
 wait<maybe<UnitId>> create_unit_on_map(
-    SS& ss, TS& ts, Player& player, UnitComposition const& comp,
-    Coord coord ) {
+    SS& ss, TS& ts, IRand& rand, Player& player,
+    UnitComposition const& comp, Coord coord ) {
   UnitId id =
       create_free_unit( ss.units, player, std::move( comp ) );
   maybe<UnitDeleted> const deleted =
       co_await UnitOwnershipChanger( ss, id ).change_to_map(
-          ts, coord );
+          ts, rand, coord );
   if( deleted.has_value() ) co_return nothing;
   co_return id;
 }

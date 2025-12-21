@@ -35,7 +35,7 @@
 // Must be last.
 #include "test/catch-common.hpp" // IWYU pragma: keep
 
-RDS_DEFINE_MOCK( IGameSaver );
+RDS_DEFINE_MOCK( IGameWriter );
 
 namespace rn {
 namespace {
@@ -161,10 +161,10 @@ TEST_CASE( "[auto-save] autosave" ) {
   set<int> slots;
   expect<std::vector<fs::path>> expected = "";
 
-  MockIGameSaver mock_game_saver;
+  MockIGameWriter mock_game_writer;
 
   auto f = [&] {
-    return autosave( w.ss(), mock_game_saver, w.turn().autosave,
+    return autosave( w.ss(), mock_game_writer, w.turn().autosave,
                      slots );
   };
 
@@ -180,7 +180,7 @@ TEST_CASE( "[auto-save] autosave" ) {
   SECTION( "slot 0 only" ) {
     slots    = { 0 };
     expected = vector<fs::path>{ "xyz" };
-    mock_game_saver.EXPECT__save_to_slot_no_checkpoint( 8 )
+    mock_game_writer.EXPECT__save_to_slot_no_checkpoint( 8 )
         .returns<fs::path>( "xyz" )
         .invokes( [&] {
           // This checks that the last_save field is set before
@@ -193,7 +193,7 @@ TEST_CASE( "[auto-save] autosave" ) {
   SECTION( "slot 1 only" ) {
     slots    = { 1 };
     expected = vector<fs::path>{ "xyz" };
-    mock_game_saver.EXPECT__save_to_slot_no_checkpoint( 9 )
+    mock_game_writer.EXPECT__save_to_slot_no_checkpoint( 9 )
         .returns<fs::path>( "xyz" )
         .invokes( [&] {
           // This checks that the last_save field is set before
@@ -206,14 +206,14 @@ TEST_CASE( "[auto-save] autosave" ) {
   SECTION( "slot 0, 1" ) {
     slots    = { 0, 1 };
     expected = vector<fs::path>{ "abc", "xyz" };
-    mock_game_saver.EXPECT__save_to_slot_no_checkpoint( 8 )
+    mock_game_writer.EXPECT__save_to_slot_no_checkpoint( 8 )
         .returns<fs::path>( "abc" )
         .invokes( [&] {
           // This checks that the last_save field is set before
           // doing the actual save.
           BASE_CHECK( w.turn().autosave.last_save == 3 );
         } );
-    mock_game_saver.EXPECT__copy_slot_to_slot( 8, 9 ).returns(
+    mock_game_writer.EXPECT__copy_slot_to_slot( 8, 9 ).returns(
         SlotCopiedPaths{ .src = "abc", .dst = "xyz" } );
     REQUIRE( f() == expected );
   }

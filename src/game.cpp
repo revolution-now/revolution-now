@@ -35,7 +35,6 @@
 #include "map-updater.hpp"
 #include "panel-plane.hpp"
 #include "plane-stack.hpp"
-#include "rand.hpp"
 #include "rcl-game-storage.hpp" // FIXME: temporary
 #include "save-game.hpp"
 #include "terminal.hpp" // FIXME
@@ -97,42 +96,45 @@ wait_bool create_from_setup( SS& ss, IGui& gui, IRand& rand,
 }
 
 wait_bool new_game_new_world( IEngine& engine, Planes& planes,
-                              SS& ss, TS& ts, lua::state& lua ) {
+                              SS& ss, IGui& gui, RootState&,
+                              lua::state& lua ) {
   auto const setup = co_await create_default_game_setup(
-      engine, planes, ts.gui, ts.rand, lua );
+      engine, planes, gui, engine.rand(), lua );
   if( !setup.has_value() ) co_return false;
-  co_return co_await create_from_setup( ss, ts.gui, ts.rand, lua,
-                                        *setup );
+  co_return co_await create_from_setup( ss, gui, engine.rand(),
+                                        lua, *setup );
 }
 
 wait_bool new_game_america( IEngine& engine, Planes& planes,
-                            SS& ss, TS& ts, lua::state& lua ) {
+                            SS& ss, IGui& gui, RootState&,
+                            lua::state& lua ) {
   auto const setup = co_await create_america_game_setup(
-      engine, planes, ts.gui, ts.rand, lua );
+      engine, planes, gui, engine.rand(), lua );
   if( !setup.has_value() ) co_return false;
-  co_return co_await create_from_setup( ss, ts.gui, ts.rand, lua,
-                                        *setup );
+  co_return co_await create_from_setup( ss, gui, engine.rand(),
+                                        lua, *setup );
 }
 
 wait_bool customize_new_world( IEngine& engine, Planes& planes,
-                               SS& ss, TS& ts,
+                               SS& ss, IGui& gui, RootState&,
                                lua::state& lua ) {
   EnumChoiceConfig const config{
     .msg = "Select Desired Customization Level:",
   };
   auto const mode =
-      co_await ts.gui.optional_enum_choice<e_customization_mode>(
+      co_await gui.optional_enum_choice<e_customization_mode>(
           config );
   if( !mode.has_value() ) co_return false;
   auto const setup = co_await create_customized_game_setup(
-      engine, planes, ts.gui, *mode );
+      engine, planes, gui, *mode );
   if( !setup.has_value() ) co_return false;
-  co_return co_await create_from_setup( ss, ts.gui, ts.rand, lua,
-                                        *setup );
+  co_return co_await create_from_setup( ss, gui, engine.rand(),
+                                        lua, *setup );
 }
 
 using LoaderFunc = base::function_ref<wait_bool(
-    IEngine&, Planes&, SS& ss, TS& ts, lua::state& lua )>;
+    IEngine&, Planes&, SS& ss, IGui& gui, RootState& saved,
+    lua::state& lua )>;
 
 wait<> run_game( IEngine& engine, Planes& planes, IGui& gui,
                  LoaderFunc const loader ) {
@@ -142,12 +144,11 @@ wait<> run_game( IEngine& engine, Planes& planes, IGui& gui,
   // saved (not including auto-save) and/or loaded.
   RootState saved;
 
-  Rand rand; // random seed.
-  RealCombat combat( ss, rand );
+  RealCombat combat( ss, engine.rand() );
   ColonyViewer colony_viewer( engine, ss );
   TerrainConnectivity connectivity;
 
-  TS ts( planes, gui, rand, combat, colony_viewer, saved );
+  TS ts( planes, gui, combat, colony_viewer, saved );
 
   NonRenderingMapUpdater non_rendering_map_updater(
       ss, connectivity );
@@ -160,24 +161,26 @@ wait<> run_game( IEngine& engine, Planes& planes, IGui& gui,
   st["ROOT"]  = ss.root;
   st["SS"]    = ss;
   st["TS"]    = ts;
-  st["IRand"] = static_cast<IRand&>( rand );
+  st["IRand"] = static_cast<IRand&>( engine.rand() );
 
   // Do this after we set globals so that they will be included
   // in the freezing.
   lua_init( st );
 
-  if( !co_await loader( engine, planes, ss, ts, st ) )
+  if( !co_await loader( engine, planes, ss, ts.gui, saved, st ) )
     // Didn't load a game for some reason. Could have failed or
     // maybe there are no games to load.
     co_return;
 
-  NativeAgents native_agents = create_native_agents( ss, rand );
+  NativeAgents native_agents =
+      create_native_agents( ss, engine.rand() );
   auto _2 = ts.set_native_agents( native_agents );
 
   // This one needs to run after the loader because it needs to
   // know which nations are human.
-  Agents agents = create_agents(
-      engine, ss, non_rendering_map_updater, planes, gui, rand );
+  Agents agents =
+      create_agents( engine, ss, non_rendering_map_updater,
+                     planes, gui, engine.rand() );
   auto _3 = ts.set_agents( agents );
 
   rr::Renderer& renderer =
@@ -290,14 +293,14 @@ wait<> handle_mode( IEngine& engine, Planes& planes, IGui& gui,
                     StartMode::load const& load ) {
   co_await run_game(
       engine, planes, gui,
-      [&]( IEngine&, Planes&, SS& ss, TS& ts,
-           lua::state& ) -> wait_bool {
+      [&]( IEngine&, Planes&, SS& ss, IGui& gui,
+           RootState& saved, lua::state& ) -> wait_bool {
         maybe<int> slot = load.slot;
         if( !slot.has_value() ) {
           // Pop open the load-game box to let the player choose
           // what they want to load.
           slot = co_await select_load_slot(
-              ts, RclGameStorageQuery() );
+              gui, RclGameStorageQuery() );
           if( !slot.has_value() )
             // The player has cancelled, or the load did not
             // succeed for some other reason.
@@ -305,7 +308,7 @@ wait<> handle_mode( IEngine& engine, Planes& planes, IGui& gui,
         }
         CHECK( slot.has_value() );
         co_return co_await load_from_slot_interactive(
-            ss, ts, RclGameStorageLoad( ss ), *slot );
+            ss, gui, RclGameStorageLoad( ss ), saved, *slot );
       } );
 }
 

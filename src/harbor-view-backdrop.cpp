@@ -322,7 +322,7 @@ void HarborBackdrop::insert_clouds( Layout& l,
 }
 
 HarborBackdrop::Layout HarborBackdrop::recomposite(
-    TS& ts, size const sz ) {
+    IRand& rand, size const sz ) {
   Layout l;
   rect const all{ .size = sz };
 
@@ -400,11 +400,10 @@ HarborBackdrop::Layout HarborBackdrop::recomposite(
   rect const birds_available_space =
       all.with_new_bottom_edge( l.horizon_center.y - 107 );
   point p_birds{
-    .x = ts.rand.between_ints( birds_available_space.left(),
-                               birds_available_space.right() ),
-    .y =
-        ts.rand.between_ints( birds_available_space.top(),
-                              birds_available_space.bottom() ) };
+    .x = rand.between_ints( birds_available_space.left(),
+                            birds_available_space.right() ),
+    .y = rand.between_ints( birds_available_space.top(),
+                            birds_available_space.bottom() ) };
   l.birds_states.emplace_back() = Layout::BirdsLayout{
     .p = p_birds, .tile = e_tile::harbor_birds_1 };
   p_birds += size{ .w = 5, .h = 6 };
@@ -423,17 +422,18 @@ HarborBackdrop::Layout HarborBackdrop::recomposite(
 }
 
 PositionedHarborSubView<HarborBackdrop> HarborBackdrop::create(
-    SS& ss, TS& ts, Player& player, Rect canvas ) {
+    IEngine& engine, SS& ss, TS& ts, IRand& rand, Player& player,
+    Rect canvas ) {
   // The canvas will exclude the market commodities.
   unique_ptr<HarborBackdrop> view;
   HarborSubView* harbor_sub_view = nullptr;
 
-  Layout const layout = recomposite( ts, canvas.delta() );
+  Layout const layout = recomposite( rand, canvas.delta() );
   point const origin  = {};
 
-  view            = make_unique<HarborBackdrop>( ss, ts, player,
-                                                 canvas.delta(), layout );
-  harbor_sub_view = view.get();
+  view = make_unique<HarborBackdrop>( engine, ss, ts, player,
+                                      canvas.delta(), layout );
+  harbor_sub_view          = view.get();
   HarborBackdrop* p_actual = view.get();
   return PositionedHarborSubView<HarborBackdrop>{
     .owned  = { .view = std::move( view ), .coord = origin },
@@ -441,9 +441,10 @@ PositionedHarborSubView<HarborBackdrop> HarborBackdrop::create(
     .actual = p_actual };
 }
 
-HarborBackdrop::HarborBackdrop( SS& ss, TS& ts, Player& player,
-                                Delta size, Layout layout )
-  : HarborSubView( ss, ts, player ),
+HarborBackdrop::HarborBackdrop( IEngine& engine, SS& ss, TS& ts,
+                                Player& player, Delta size,
+                                Layout layout )
+  : HarborSubView( engine, ss, ts, player ),
     size_( size ),
     layout_( layout ),
     birds_thread_( birds_thread() ),

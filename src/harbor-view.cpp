@@ -340,8 +340,8 @@ struct HarborPlane : public IPlane {
     // posite then we'd have a running coroutine with dangling
     // pointers to views.
     auto const recomposite = [&]( e_resolution const r ) {
-      composition_ =
-          recomposite_harbor_view( ss_, ts_, player_, r );
+      composition_ = recomposite_harbor_view( engine_, ss_, ts_,
+                                              player_, r );
     };
     CHECK( !composition_.top_level );
     recomposite(

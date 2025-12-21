@@ -32,6 +32,17 @@ interface.IGameSaver {
     slot 'int',
   },
 
+  _context {
+    ss 'SSConst const&',
+    gui 'IGui&',
+    saver 'IGameStorageSave const&',
+    saved 'RootState&',
+  },
+}
+
+# This one just writes or copies the game but without doing a
+# proper save, i.e. no checkpointing.
+interface.IGameWriter {
   save_to_slot_no_checkpoint {
     returns 'base::expect<fs::path>',
     slot 'int',
@@ -44,8 +55,6 @@ interface.IGameSaver {
   },
 
   _context {
-    ss 'SSConst const&',
-    ts 'TS&',
     saver 'IGameStorageSave const&',
   },
 }

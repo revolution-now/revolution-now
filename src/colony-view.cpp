@@ -219,7 +219,8 @@ struct ColonyPlane : public IPlane {
           break;
         case ::SDLK_SPACE:
           cheat_advance_colony_one_turn(
-              RealColonyEvolver( ss_, ts_ ), colony_ );
+              RealColonyEvolver( ss_, ts_, engine_.rand() ),
+              colony_ );
           update_colony_view( ss_, colony_ );
           break;
         case ::SDLK_LEFTBRACKET:

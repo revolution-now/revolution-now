@@ -12,7 +12,6 @@
 
 // Revolution Now
 #include "imap-updater.hpp"
-#include "irand.hpp"
 
 // luapp
 #include "luapp/register.hpp"
@@ -28,12 +27,10 @@ namespace rn {
 /****************************************************************
 ** TS
 *****************************************************************/
-TS::TS( Planes& planes_, IGui& gui_, IRand& rand_,
-        ICombat& combat_, IColonyViewer& colony_viewer_,
-        RootState& saved )
+TS::TS( Planes& planes_, IGui& gui_, ICombat& combat_,
+        IColonyViewer& colony_viewer_, RootState& saved )
   : planes( planes_ ),
     gui( gui_ ),
-    rand( rand_ ),
     combat( combat_ ),
     colony_viewer( colony_viewer_ ),
     saved( saved ) {}

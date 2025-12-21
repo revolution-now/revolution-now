@@ -158,7 +158,7 @@ TEST_CASE( "[on-map] interactive: discovers new world" ) {
     player.new_world_name = "my world";
     player.woodcuts[e_woodcut::discovered_new_world] = true;
     w = TestingOnlyUnitOnMapMover::to_map_interactive(
-        W.ss(), W.ts(), unit_id, { .x = 0, .y = 1 } );
+        W.ss(), W.ts(), W.rand(), unit_id, { .x = 0, .y = 1 } );
     REQUIRE( !w.exception() );
     REQUIRE( w.ready() );
     REQUIRE( *w == nothing );
@@ -172,7 +172,7 @@ TEST_CASE( "[on-map] interactive: discovers new world" ) {
         e_woodcut::discovered_new_world );
     agent.EXPECT__name_new_world().returns( "my world 2" );
     w = TestingOnlyUnitOnMapMover::to_map_interactive(
-        W.ss(), W.ts(), unit_id, { .x = 0, .y = 1 } );
+        W.ss(), W.ts(), W.rand(), unit_id, { .x = 0, .y = 1 } );
     REQUIRE( !w.exception() );
     REQUIRE( w.ready() );
     REQUIRE( *w == nothing );
@@ -209,7 +209,7 @@ TEST_CASE( "[on-map] interactive: meets natives" ) {
            false );
 
   auto const w = TestingOnlyUnitOnMapMover::to_map_interactive(
-      W.ss(), W.ts(), unit_id, { .x = 1, .y = 0 } );
+      W.ss(), W.ts(), W.rand(), unit_id, { .x = 1, .y = 0 } );
   REQUIRE( !w.exception() );
   REQUIRE( w.ready() );
   REQUIRE( *w == nothing );
@@ -241,7 +241,7 @@ TEST_CASE( "[on-map] interactive: discovers pacific ocean" ) {
   W.agent().EXPECT__show_woodcut(
       e_woodcut::discovered_pacific_ocean );
   w = TestingOnlyUnitOnMapMover::to_map_interactive(
-      W.ss(), W.ts(), unit_id, { .x = 1, .y = 3 } );
+      W.ss(), W.ts(), W.rand(), unit_id, { .x = 1, .y = 3 } );
   REQUIRE( !w.exception() );
   REQUIRE( w.ready() );
   REQUIRE( *w == nothing );
@@ -254,7 +254,7 @@ TEST_CASE( "[on-map] interactive: discovers pacific ocean" ) {
   // Make sure it doesn't happen again.
   REQUIRE( W.terrain().is_pacific_ocean( { .x = 0, .y = 2 } ) );
   w = TestingOnlyUnitOnMapMover::to_map_interactive(
-      W.ss(), W.ts(), unit_id, { .x = 0, .y = 3 } );
+      W.ss(), W.ts(), W.rand(), unit_id, { .x = 0, .y = 3 } );
   REQUIRE( !w.exception() );
   REQUIRE( w.ready() );
   REQUIRE( *w == nothing );
@@ -283,7 +283,7 @@ TEST_CASE( "[on-map] interactive: treasure in colony" ) {
 
   SECTION( "not entering colony" ) {
     w = TestingOnlyUnitOnMapMover::to_map_interactive(
-        W.ss(), W.ts(), unit_id, { .x = 0, .y = 1 } );
+        W.ss(), W.ts(), W.rand(), unit_id, { .x = 0, .y = 1 } );
     REQUIRE( !w.exception() );
     REQUIRE( w.ready() );
     REQUIRE( *w == nothing );
@@ -295,7 +295,7 @@ TEST_CASE( "[on-map] interactive: treasure in colony" ) {
     agent.EXPECT__should_king_transport_treasure( _ ).returns(
         ui::e_confirm::no );
     w = TestingOnlyUnitOnMapMover::to_map_interactive(
-        W.ss(), W.ts(), unit_id, { .x = 1, .y = 1 } );
+        W.ss(), W.ts(), W.rand(), unit_id, { .x = 1, .y = 1 } );
     REQUIRE( !w.exception() );
     REQUIRE( w.ready() );
     REQUIRE( *w == nothing );
@@ -313,7 +313,7 @@ TEST_CASE( "[on-map] interactive: treasure in colony" ) {
     agent.EXPECT__message_box( msg );
     agent.EXPECT__handle( TreasureArrived{} );
     w = TestingOnlyUnitOnMapMover::to_map_interactive(
-        W.ss(), W.ts(), unit_id, { .x = 1, .y = 1 } );
+        W.ss(), W.ts(), W.rand(), unit_id, { .x = 1, .y = 1 } );
     REQUIRE( !w.exception() );
     REQUIRE( w.ready() );
     REQUIRE( w->has_value() );
@@ -340,7 +340,7 @@ TEST_CASE(
   auto f = [&] {
     wait<maybe<UnitDeleted>> const w =
         TestingOnlyUnitOnMapMover::to_map_interactive(
-            W.ss(), W.ts(), unit.id(), to );
+            W.ss(), W.ts(), W.rand(), unit.id(), to );
     REQUIRE( !w.exception() );
     REQUIRE( w.ready() );
     REQUIRE( *w == nothing );
@@ -388,7 +388,7 @@ TEST_CASE( "[on-map] interactive: [LCR] unit lost" ) {
   REQUIRE( W.units().exists( unit_id ) );
   wait<maybe<UnitDeleted>> const w =
       TestingOnlyUnitOnMapMover::to_map_interactive(
-          W.ss(), W.ts(), unit_id, to );
+          W.ss(), W.ts(), W.rand(), unit_id, to );
   REQUIRE( !w.exception() );
   REQUIRE( w.ready() );
   REQUIRE( w->has_value() );
@@ -652,7 +652,8 @@ TEST_CASE(
   auto f = [&] {
     return co_await_test(
         TestingOnlyUnitOnMapMover::to_map_interactive(
-            W.ss(), W.ts(), unit_id, { .x = 1, .y = 1 } ) );
+            W.ss(), W.ts(), W.rand(), unit_id,
+            { .x = 1, .y = 1 } ) );
   };
 
   REQUIRE( player.new_world_name == nothing );

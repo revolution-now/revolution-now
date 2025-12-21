@@ -30,6 +30,7 @@
 namespace rn {
 
 struct Colony;
+struct IRand;
 struct SSConst;
 struct TS;
 struct SS;
@@ -153,6 +154,6 @@ maybe<e_unit_type> on_capture_demoted_type( UnitType ut );
 // independently.
 std::vector<OnTheJobPromotionResult>
 workers_to_promote_for_on_the_job_training(
-    SSConst const& ss, TS& ts, Colony const& colony );
+    SSConst const& ss, IRand& rand, Colony const& colony );
 
 } // namespace rn

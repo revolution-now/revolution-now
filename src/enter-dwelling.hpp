@@ -22,6 +22,7 @@
 namespace rn {
 
 struct Dwelling;
+struct IRand;
 struct Player;
 struct SS;
 struct SSConst;
@@ -58,12 +59,13 @@ wait<> do_live_among_the_natives(
 ** Speak with Chief
 *****************************************************************/
 SpeakWithChiefResult compute_speak_with_chief(
-    SSConst const& ss, TS& ts, Dwelling const& dwelling,
+    SSConst const& ss, IRand& rand, Dwelling const& dwelling,
     Unit const& unit );
 
 wait<> do_speak_with_chief(
-    SS& ss, TS& ts, Dwelling& dwelling, Player& player,
-    Unit& unit, SpeakWithChiefResult const& outcome );
+    SS& ss, TS& ts, IRand& rand, Dwelling& dwelling,
+    Player& player, Unit& unit,
+    SpeakWithChiefResult const& outcome );
 
 /****************************************************************
 ** Establish Mission

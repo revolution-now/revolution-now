@@ -534,12 +534,12 @@ HarborCargo::Layout HarborCargo::create_layout(
 }
 
 PositionedHarborSubView<HarborCargo> HarborCargo::create(
-    SS& ss, TS& ts, Player& player, rect const canvas,
-    HarborStatusBar& harbor_status_bar ) {
+    IEngine& engine, SS& ss, TS& ts, Player& player,
+    rect const canvas, HarborStatusBar& harbor_status_bar ) {
   Layout const layout = create_layout( canvas );
 
   unique_ptr<HarborCargo> view = make_unique<HarborCargo>(
-      ss, ts, player, harbor_status_bar, layout );
+      engine, ss, ts, player, harbor_status_bar, layout );
   HarborSubView* harbor_sub_view = view.get();
   HarborCargo* p_actual          = view.get();
   return PositionedHarborSubView<HarborCargo>{
@@ -549,10 +549,11 @@ PositionedHarborSubView<HarborCargo> HarborCargo::create(
     .actual = p_actual };
 }
 
-HarborCargo::HarborCargo( SS& ss, TS& ts, Player& player,
+HarborCargo::HarborCargo( IEngine& engine, SS& ss, TS& ts,
+                          Player& player,
                           HarborStatusBar& harbor_status_bar,
                           Layout const& layout )
-  : HarborSubView( ss, ts, player ),
+  : HarborSubView( engine, ss, ts, player ),
     harbor_status_bar_( harbor_status_bar ),
     layout_( layout ) {}
 

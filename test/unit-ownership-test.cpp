@@ -18,6 +18,7 @@
 #include "test/mocking.hpp"
 #include "test/mocks/iagent.hpp"
 #include "test/mocks/igui.hpp"
+#include "test/mocks/irand.hpp"
 #include "test/mocks/land-view-plane.hpp"
 #include "test/util/coro.hpp"
 
@@ -543,9 +544,9 @@ TEST_CASE( "[unit-ownership] change_to_map" ) {
   };
 
   auto f = [&] {
-    maybe<UnitDeleted> const unit_deleted =
-        co_await_test( UnitOwnershipChanger( W.ss(), unit.id() )
-                           .change_to_map( W.ts(), target ) );
+    maybe<UnitDeleted> const unit_deleted = co_await_test(
+        UnitOwnershipChanger( W.ss(), unit.id() )
+            .change_to_map( W.ts(), W.rand(), target ) );
     BASE_CHECK( !unit_deleted.has_value() );
   };
 

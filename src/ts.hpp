@@ -22,7 +22,6 @@ struct IColonyViewer;
 struct ICombat;
 struct IGui;
 struct IMapUpdater;
-struct IRand;
 struct NativeAgents;
 struct Planes;
 struct RootState;
@@ -60,7 +59,7 @@ struct [[nodiscard]] set_and_restore_pointer {
 ** TS
 *****************************************************************/
 struct TS {
-  TS( Planes& planes, IGui& gui_, IRand& rand_, ICombat& combat,
+  TS( Planes& planes, IGui& gui_, ICombat& combat,
       IColonyViewer& colony_viewer, RootState& saved );
 
   ~TS();
@@ -68,8 +67,10 @@ struct TS {
   TS( TS&& ) = delete;
 
   Planes& planes;
+  // FIXME: change this to a function that gets its value by
+  // taking the window plane from the planes list, which will
+  // need to implement the IGui interface itself.
   IGui& gui;
-  IRand& rand;
   ICombat& combat;
   IColonyViewer& colony_viewer;
 

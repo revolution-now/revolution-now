@@ -32,7 +32,8 @@ struct TS;
 *****************************************************************/
 struct HarborStatusBar : public ui::View, public HarborSubView {
   static PositionedHarborSubView<HarborStatusBar> create(
-      SS& ss, TS& ts, Player& player, Rect canvas );
+      IEngine& engine, SS& ss, TS& ts, Player& player,
+      Rect canvas );
 
   HarborStatusBar( HarborStatusBar&& ) = delete;
 
@@ -46,8 +47,8 @@ struct HarborStatusBar : public ui::View, public HarborSubView {
     gfx::point text_center = {};
   };
 
-  HarborStatusBar( SS& ss, TS& ts, Player& player,
-                   Layout layout );
+  HarborStatusBar( IEngine& engine, SS& ss, TS& ts,
+                   Player& player, Layout layout );
 
  public: // ui::object
   Delta delta() const override;

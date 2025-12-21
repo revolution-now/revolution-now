@@ -27,6 +27,7 @@ namespace rn {
 struct Colony;
 struct ColonyJob;
 struct IMapUpdater;
+struct IRand;
 struct Player;
 struct PortStatus;
 struct SS;
@@ -61,7 +62,7 @@ struct UnitOwnershipChanger {
   void destroy() const;
 
   // Map.
-  wait<maybe<UnitDeleted>> change_to_map( TS& ts,
+  wait<maybe<UnitDeleted>> change_to_map( TS& ts, IRand& rand,
                                           Coord target ) const;
 
   void change_to_map_non_interactive( IMapUpdater& map_updater,

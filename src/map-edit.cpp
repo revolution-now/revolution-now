@@ -668,7 +668,7 @@ wait<> run_map_editor_standalone( IEngine& engine,
   ColonyViewer colony_viewer( engine, ss );
   NativeAgents native_agents;
   Agents agents;
-  TS ts( planes, gui, rand, combat, colony_viewer, ss.root );
+  TS ts( planes, gui, combat, colony_viewer, ss.root );
   auto _1 = ts.set_map_updater( map_updater );
   auto _2 = ts.set_native_agents( native_agents );
   auto _3 = ts.set_agents( agents );

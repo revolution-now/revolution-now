@@ -94,7 +94,7 @@ TEST_CASE( "[colony-evolve] spoilage" ) {
     colony.commodities[c] = 101;
   colony.commodities[e_commodity::food] = 150;
   ColonyEvolution ev =
-      evolve_colony_one_turn( W.ss(), W.ts(), colony );
+      evolve_colony_one_turn( W.ss(), W.ts(), W.rand(), colony );
   REQUIRE( ev.production.center_food_production == 5 );
   // Food is only 152 despite the 5 food produced in the center
   // square because of horse production, which in this case al-
@@ -152,7 +152,8 @@ TEST_CASE( "[colony-evolve] spoilage" ) {
   for( e_commodity c : refl::enum_values<e_commodity> )
     colony.commodities[c] = 201;
   colony.commodities[e_commodity::food] = 800;
-  ev = evolve_colony_one_turn( W.ss(), W.ts(), colony );
+  ev =
+      evolve_colony_one_turn( W.ss(), W.ts(), W.rand(), colony );
   REQUIRE( ev.production.center_food_production == 5 );
   // Food goes up by 5 due to center square production and down
   // by 3 due to horse breeding, then down 200 due to new
@@ -217,7 +218,7 @@ TEST_CASE( "[colony-evolve] ran out of raw materials" ) {
                       e_unit_type::free_colonist );
 
   ColonyEvolution ev =
-      evolve_colony_one_turn( W.ss(), W.ts(), colony );
+      evolve_colony_one_turn( W.ss(), W.ts(), W.rand(), colony );
 
   vector<ColonyNotification> const expected = {
     ColonyNotification::run_out_of_raw_material{
@@ -261,7 +262,8 @@ TEST_CASE( "[colony-evolve] warns when colony starving" ) {
   expected_food          = 37;
   expected_notifications = {};
 
-  ev = evolve_colony_one_turn( W.ss(), W.ts(), colony );
+  ev =
+      evolve_colony_one_turn( W.ss(), W.ts(), W.rand(), colony );
   REQUIRE( ev.production.food_horses.food_produced == 3 );
   REQUIRE( ev.production.food_horses
                .food_consumed_by_colonists_theoretical == 6 );
@@ -276,7 +278,8 @@ TEST_CASE( "[colony-evolve] warns when colony starving" ) {
   expected_food          = 27;
   expected_notifications = {};
 
-  ev = evolve_colony_one_turn( W.ss(), W.ts(), colony );
+  ev =
+      evolve_colony_one_turn( W.ss(), W.ts(), W.rand(), colony );
   REQUIRE( ev.production.food_horses.food_produced == 3 );
   REQUIRE( ev.production.food_horses
                .food_consumed_by_colonists_theoretical == 6 );
@@ -291,7 +294,8 @@ TEST_CASE( "[colony-evolve] warns when colony starving" ) {
   expected_food          = 17;
   expected_notifications = {};
 
-  ev = evolve_colony_one_turn( W.ss(), W.ts(), colony );
+  ev =
+      evolve_colony_one_turn( W.ss(), W.ts(), W.rand(), colony );
   REQUIRE( ev.production.food_horses.food_produced == 3 );
   REQUIRE( ev.production.food_horses
                .food_consumed_by_colonists_theoretical == 6 );
@@ -306,7 +310,8 @@ TEST_CASE( "[colony-evolve] warns when colony starving" ) {
   expected_food          = 10;
   expected_notifications = {};
 
-  ev = evolve_colony_one_turn( W.ss(), W.ts(), colony );
+  ev =
+      evolve_colony_one_turn( W.ss(), W.ts(), W.rand(), colony );
   REQUIRE( ev.production.food_horses.food_produced == 3 );
   REQUIRE( ev.production.food_horses
                .food_consumed_by_colonists_theoretical == 6 );
@@ -322,7 +327,8 @@ TEST_CASE( "[colony-evolve] warns when colony starving" ) {
   expected_notifications = {
     ColonyNotification::colony_starving{} };
 
-  ev = evolve_colony_one_turn( W.ss(), W.ts(), colony );
+  ev =
+      evolve_colony_one_turn( W.ss(), W.ts(), W.rand(), colony );
   REQUIRE( ev.production.food_horses.food_produced == 3 );
   REQUIRE( ev.production.food_horses
                .food_consumed_by_colonists_theoretical == 6 );
@@ -338,7 +344,8 @@ TEST_CASE( "[colony-evolve] warns when colony starving" ) {
   expected_notifications = {
     ColonyNotification::colony_starving{} };
 
-  ev = evolve_colony_one_turn( W.ss(), W.ts(), colony );
+  ev =
+      evolve_colony_one_turn( W.ss(), W.ts(), W.rand(), colony );
   REQUIRE( ev.production.food_horses.food_produced == 3 );
   REQUIRE( ev.production.food_horses
                .food_consumed_by_colonists_theoretical == 6 );
@@ -354,7 +361,8 @@ TEST_CASE( "[colony-evolve] warns when colony starving" ) {
   expected_notifications = {
     ColonyNotification::colony_starving{} };
 
-  ev = evolve_colony_one_turn( W.ss(), W.ts(), colony );
+  ev =
+      evolve_colony_one_turn( W.ss(), W.ts(), W.rand(), colony );
   REQUIRE( ev.production.food_horses.food_produced == 3 );
   REQUIRE( ev.production.food_horses
                .food_consumed_by_colonists_theoretical == 6 );
@@ -370,7 +378,8 @@ TEST_CASE( "[colony-evolve] warns when colony starving" ) {
   expected_notifications = {
     ColonyNotification::colony_starving{} };
 
-  ev = evolve_colony_one_turn( W.ss(), W.ts(), colony );
+  ev =
+      evolve_colony_one_turn( W.ss(), W.ts(), W.rand(), colony );
   REQUIRE( ev.production.food_horses.food_produced == 3 );
   REQUIRE( ev.production.food_horses
                .food_consumed_by_colonists_theoretical == 6 );
@@ -386,7 +395,8 @@ TEST_CASE( "[colony-evolve] warns when colony starving" ) {
   expected_notifications = {
     ColonyNotification::colony_starving{} };
 
-  ev = evolve_colony_one_turn( W.ss(), W.ts(), colony );
+  ev =
+      evolve_colony_one_turn( W.ss(), W.ts(), W.rand(), colony );
   REQUIRE( ev.production.food_horses.food_produced == 3 );
   REQUIRE( ev.production.food_horses
                .food_consumed_by_colonists_theoretical == 6 );
@@ -402,7 +412,8 @@ TEST_CASE( "[colony-evolve] warns when colony starving" ) {
   expected_notifications = {
     ColonyNotification::colony_starving{} };
 
-  ev = evolve_colony_one_turn( W.ss(), W.ts(), colony );
+  ev =
+      evolve_colony_one_turn( W.ss(), W.ts(), W.rand(), colony );
   REQUIRE( ev.production.food_horses.food_produced == 3 );
   REQUIRE( ev.production.food_horses
                .food_consumed_by_colonists_theoretical == 6 );
@@ -418,7 +429,8 @@ TEST_CASE( "[colony-evolve] warns when colony starving" ) {
   expected_notifications = {
     ColonyNotification::colony_starving{} };
 
-  ev = evolve_colony_one_turn( W.ss(), W.ts(), colony );
+  ev =
+      evolve_colony_one_turn( W.ss(), W.ts(), W.rand(), colony );
   REQUIRE( ev.production.food_horses.food_produced == 3 );
   REQUIRE( ev.production.food_horses
                .food_consumed_by_colonists_theoretical == 6 );
@@ -436,7 +448,8 @@ TEST_CASE( "[colony-evolve] warns when colony starving" ) {
       .type = e_unit_type::free_colonist } };
   W.rand().EXPECT__between_ints( 0, 3 - 1 ).returns( 0 );
 
-  ev = evolve_colony_one_turn( W.ss(), W.ts(), colony );
+  ev =
+      evolve_colony_one_turn( W.ss(), W.ts(), W.rand(), colony );
   REQUIRE( ev.production.food_horses.food_produced == 3 );
   REQUIRE( ev.production.food_horses
                .food_consumed_by_colonists_theoretical == 6 );
@@ -452,7 +465,8 @@ TEST_CASE( "[colony-evolve] warns when colony starving" ) {
   expected_notifications = {
     ColonyNotification::colony_starving{} };
 
-  ev = evolve_colony_one_turn( W.ss(), W.ts(), colony );
+  ev =
+      evolve_colony_one_turn( W.ss(), W.ts(), W.rand(), colony );
   REQUIRE( ev.production.food_horses.food_produced == 3 );
   REQUIRE( ev.production.food_horses
                .food_consumed_by_colonists_theoretical == 4 );
@@ -470,7 +484,8 @@ TEST_CASE( "[colony-evolve] warns when colony starving" ) {
       .type = e_unit_type::free_colonist } };
   W.rand().EXPECT__between_ints( 0, 2 - 1 ).returns( 0 );
 
-  ev = evolve_colony_one_turn( W.ss(), W.ts(), colony );
+  ev =
+      evolve_colony_one_turn( W.ss(), W.ts(), W.rand(), colony );
   REQUIRE( ev.production.food_horses.food_produced == 3 );
   REQUIRE( ev.production.food_horses
                .food_consumed_by_colonists_theoretical == 4 );
@@ -486,7 +501,8 @@ TEST_CASE( "[colony-evolve] warns when colony starving" ) {
   expected_food          = 1;
   expected_notifications = {};
 
-  ev = evolve_colony_one_turn( W.ss(), W.ts(), colony );
+  ev =
+      evolve_colony_one_turn( W.ss(), W.ts(), W.rand(), colony );
   REQUIRE( ev.production.food_horses.food_produced == 3 );
   REQUIRE( ev.production.food_horses
                .food_consumed_by_colonists_theoretical == 2 );
@@ -514,8 +530,8 @@ TEST_CASE( "[colony-evolve] colony starves" ) {
     // produce any because it is arctic.
     W.settings().game_setup_options.difficulty =
         e_difficulty::discoverer;
-    ColonyEvolution ev =
-        evolve_colony_one_turn( W.ss(), W.ts(), colony );
+    ColonyEvolution ev = evolve_colony_one_turn(
+        W.ss(), W.ts(), W.rand(), colony );
     REQUIRE( !ev.colony_disappeared );
   }
 
@@ -525,16 +541,16 @@ TEST_CASE( "[colony-evolve] colony starves" ) {
     // land).
     W.settings().game_setup_options.difficulty =
         e_difficulty::explorer;
-    ColonyEvolution ev =
-        evolve_colony_one_turn( W.ss(), W.ts(), colony );
+    ColonyEvolution ev = evolve_colony_one_turn(
+        W.ss(), W.ts(), W.rand(), colony );
     REQUIRE( ev.colony_disappeared );
   }
 
   SECTION( "viceroy" ) {
     W.settings().game_setup_options.difficulty =
         e_difficulty::viceroy;
-    ColonyEvolution ev =
-        evolve_colony_one_turn( W.ss(), W.ts(), colony );
+    ColonyEvolution ev = evolve_colony_one_turn(
+        W.ss(), W.ts(), W.rand(), colony );
     REQUIRE( ev.colony_disappeared );
   }
 
@@ -563,7 +579,7 @@ TEST_CASE(
            e_unit_type::petty_criminal );
 
   ColonyEvolution const ev =
-      evolve_colony_one_turn( W.ss(), W.ts(), colony );
+      evolve_colony_one_turn( W.ss(), W.ts(), W.rand(), colony );
 
   vector<ColonyNotification> const expected;
   REQUIRE( ev.notifications == expected );
@@ -657,7 +673,7 @@ TEST_CASE( "[colony-evolve] promotes units" ) {
   // notifications are added.
 
   ColonyEvolution const ev =
-      evolve_colony_one_turn( W.ss(), W.ts(), colony );
+      evolve_colony_one_turn( W.ss(), W.ts(), W.rand(), colony );
 
   // Sanity check to make sure that all colonists are producing,
   // since otherwise they wouldn't be promoted anyway.
@@ -715,11 +731,11 @@ TEST_CASE( "[colony-evolve] gives stockade if needed" ) {
   // Sanity check.
   REQUIRE_FALSE( colony.buildings[e_colony_building::stockade] );
 
-  evolve_colony_one_turn( W.ss(), W.ts(), colony );
+  evolve_colony_one_turn( W.ss(), W.ts(), W.rand(), colony );
   REQUIRE_FALSE( colony.buildings[e_colony_building::stockade] );
 
   W.add_unit_indoors( colony.id, e_indoor_job::bells );
-  evolve_colony_one_turn( W.ss(), W.ts(), colony );
+  evolve_colony_one_turn( W.ss(), W.ts(), W.rand(), colony );
   REQUIRE( colony.buildings[e_colony_building::stockade] );
 }
 
@@ -736,7 +752,8 @@ TEST_CASE( "[colony-evolve] checks prime resource depletion" ) {
       e_natural_resource::silver;
 
   auto f = [&] {
-    return evolve_colony_one_turn( W.ss(), W.ts(), colony );
+    return evolve_colony_one_turn( W.ss(), W.ts(), W.rand(),
+                                   colony );
   };
 
   // Sanity check.
@@ -784,7 +801,8 @@ TEST_CASE( "[colony-evolve] evolves bells" ) {
   Colony& colony = W.add_colony( { .x = 1, .y = 0 } );
 
   auto f = [&] {
-    return evolve_colony_one_turn( W.ss(), W.ts(), colony );
+    return evolve_colony_one_turn( W.ss(), W.ts(), W.rand(),
+                                   colony );
   };
 
   player.revolution.status = e_revolution_status::not_declared;

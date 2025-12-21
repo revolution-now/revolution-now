@@ -979,8 +979,8 @@ TEST_CASE( "[unit-type] on the job promotion" ) {
                        e_unit_type::expert_farmer );
 
   vector<OnTheJobPromotionResult> const res =
-      workers_to_promote_for_on_the_job_training( W.ss(), W.ts(),
-                                                  colony );
+      workers_to_promote_for_on_the_job_training(
+          W.ss(), W.rand(), colony );
 
   vector<OnTheJobPromotionResult> const expected{
     { .unit_id     = UnitId{ 7 },

@@ -17,6 +17,7 @@
 // Testing.
 #include "test/fake/world.hpp"
 #include "test/mocking.hpp"
+#include "test/mocks/iengine.hpp"
 #include "test/mocks/igui.hpp"
 #include "test/util/coro.hpp"
 
@@ -79,9 +80,9 @@ TEST_CASE( "[harbor-view-market] unload_one" ) {
   vector<pair<Commodity, int>> expected;
 
   auto const p_status_bar = HarborStatusBar::create(
-      w.ss(), w.ts(), w.default_player(), canvas );
+      w.engine(), w.ss(), w.ts(), w.default_player(), canvas );
   auto const p_market = HarborMarketCommodities::create(
-      w.ss(), w.ts(), w.default_player(), canvas,
+      w.engine(), w.ss(), w.ts(), w.default_player(), canvas,
       *p_status_bar.actual );
   auto& market_ref = *p_market.actual;
 
@@ -222,9 +223,9 @@ TEST_CASE( "[harbor-view-market] unload_all" ) {
   vector<pair<Commodity, int>> expected;
 
   auto const p_status_bar = HarborStatusBar::create(
-      w.ss(), w.ts(), w.default_player(), canvas );
+      w.engine(), w.ss(), w.ts(), w.default_player(), canvas );
   auto const p_market = HarborMarketCommodities::create(
-      w.ss(), w.ts(), w.default_player(), canvas,
+      w.engine(), w.ss(), w.ts(), w.default_player(), canvas,
       *p_status_bar.actual );
   auto& market_ref = *p_market.actual;
 

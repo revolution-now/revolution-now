@@ -430,7 +430,7 @@ TEST_CASE( "[immigration] check_for_new_immigrant" ) {
     player.crosses           = 10;
     int const crosses_needed = 11;
     wait<maybe<UnitId>> w    = check_for_new_immigrant(
-        W.ss(), W.ts(), player, crosses_needed );
+        W.ss(), W.ts(), W.rand(), player, crosses_needed );
     REQUIRE( w.ready() );
     REQUIRE( *w == nothing );
     REQUIRE( player.crosses == 10 );
@@ -459,7 +459,7 @@ TEST_CASE( "[immigration] check_for_new_immigrant" ) {
         .EXPECT__between_doubles( 0, Approx( 9960.0, .00001 ) )
         .returns( 5000.0 ); // chosen to give scout.
     wait<maybe<UnitId>> w = check_for_new_immigrant(
-        W.ss(), W.ts(), player, crosses_needed );
+        W.ss(), W.ts(), W.rand(), player, crosses_needed );
     REQUIRE( w.ready() );
     REQUIRE( *w == UnitId{ 1 } );
     REQUIRE( W.units().unit_for( **w ).type() ==
@@ -504,7 +504,7 @@ TEST_CASE( "[immigration] check_for_new_immigrant" ) {
         .EXPECT__between_doubles( 0, Approx( 8960.0, .00001 ) )
         .returns( 5000.0 ); // chosen to give expert lumberjack.
     wait<maybe<UnitId>> w = check_for_new_immigrant(
-        W.ss(), W.ts(), player, crosses_needed );
+        W.ss(), W.ts(), W.rand(), player, crosses_needed );
     REQUIRE( w.ready() );
     REQUIRE( w->has_value() );
     REQUIRE( **w == UnitId{ 1 } );
@@ -643,7 +643,7 @@ TEST_CASE( "[immigration] rush_recruit_next_immigrant" ) {
 
   REQUIRE( W.ss().units.all().size() == 0 );
 
-  rush_recruit_next_immigrant( W.ss(), W.ts(), player,
+  rush_recruit_next_immigrant( W.ss(), W.rand(), player,
                                /*slot_selected=*/1 );
 
   REQUIRE( player.crosses == 0 );

@@ -18,13 +18,14 @@ namespace rn {
 struct IColonyEvolver;
 struct IColonyNotificationGenerator;
 struct IHarborViewer;
+struct IRand;
 struct Player;
 struct SS;
 struct TS;
 
 // Evolve the player's colonies by one turn.
 wait<> evolve_colonies_for_player(
-    SS& ss, TS& ts, Player& player,
+    SS& ss, TS& ts, IRand& rand, Player& player,
     IColonyEvolver const& colony_evolver,
     IHarborViewer& harbor_viewer,
     IColonyNotificationGenerator const&

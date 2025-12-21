@@ -25,6 +25,7 @@
 
 namespace rn {
 
+struct IEngine;
 struct HarborBackdrop;
 struct HarborDockUnits;
 struct HarborInPortShips;
@@ -52,8 +53,8 @@ struct RptButton {
 *****************************************************************/
 struct HarborRptButtons : public ui::View, public HarborSubView {
   static PositionedHarborSubView<HarborRptButtons> create(
-      SS& ss, TS& ts, Player& player, Rect canvas,
-      HarborBackdrop const& backdrop,
+      IEngine& engine, SS& ss, TS& ts, Player& player,
+      Rect canvas, HarborBackdrop const& backdrop,
       HarborDockUnits& harbor_dock_units );
 
   struct Layout {
@@ -67,7 +68,8 @@ struct HarborRptButtons : public ui::View, public HarborSubView {
     refl::enum_map<e_rpt_button, RptButton> buttons = {};
   };
 
-  HarborRptButtons( SS& ss, TS& ts, Player& player,
+  HarborRptButtons( IEngine& engine, SS& ss, TS& ts,
+                    Player& player,
                     HarborDockUnits& harbor_dock_units,
                     Layout layout );
 

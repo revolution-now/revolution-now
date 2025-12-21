@@ -82,7 +82,7 @@ wait<> surprise_raid_msg( SSConst const& ss, IAgent& agent,
 /****************************************************************
 ** Public API.
 *****************************************************************/
-wait<> raid_unit( SS& ss, TS& ts, NativeUnit& attacker,
+wait<> raid_unit( SS& ss, TS& ts, IRand&, NativeUnit& attacker,
                   Coord dst ) {
   UnitId const defender_id =
       select_euro_unit_defender( ss, dst );
@@ -146,8 +146,9 @@ wait<> raid_unit( SS& ss, TS& ts, NativeUnit& attacker,
 // money stolen) which wouldn't be handled if we were to delegate
 // to the normal brave attack handler.
 static wait<> raid_colony_battle(
-    SS& ss, TS& ts, NativeUnit& attacker, Colony& colony,
-    Tribe& tribe, CombatBraveAttackColony const& combat ) {
+    SS& ss, TS& ts, IRand& rand, NativeUnit& attacker,
+    Colony& colony, Tribe& tribe,
+    CombatBraveAttackColony const& combat ) {
   CHECK( !combat.colony_destroyed );
   IAgent& agent  = ts.agents()[colony.player];
   Unit& defender = ss.units.unit_for( combat.defender.id );
@@ -156,7 +157,7 @@ static wait<> raid_colony_battle(
   // destroyed, because many of those effects don't really make
   // sense if the colony is gone.
   BraveAttackColonyEffect const side_effect =
-      select_brave_attack_colony_effect( ss, ts.rand, colony );
+      select_brave_attack_colony_effect( ss, rand, colony );
   CombatEffectsMessages const effects_msg =
       combat_effects_msg( ss, combat );
 
@@ -239,8 +240,8 @@ static wait<> raid_colony_burn(
       combat, BraveAttackColonyEffect::none{} );
 }
 
-wait<> raid_colony( SS& ss, TS& ts, NativeUnit& attacker,
-                    Colony& colony ) {
+wait<> raid_colony( SS& ss, TS& ts, IRand& rand,
+                    NativeUnit& attacker, Colony& colony ) {
   // This offboarding is done automatically when the colonist is
   // destroyed (because ships are marked as damaged), but we need
   // to do it first here so that the units therein can be consid-
@@ -253,7 +254,7 @@ wait<> raid_colony( SS& ss, TS& ts, NativeUnit& attacker,
   vector<UnitId> const offboarded =
       offboard_units_on_ships( ss, ts, colony.location );
   Unit& defender = ss.units.unit_for(
-      select_colony_defender( ss, ts.rand, colony ) );
+      select_colony_defender( ss, rand, colony ) );
   CombatBraveAttackColony const combat =
       ts.combat.brave_attack_colony( attacker, defender,
                                      colony );
@@ -303,8 +304,8 @@ wait<> raid_colony( SS& ss, TS& ts, NativeUnit& attacker,
     co_await raid_colony_burn( ss, ts, attacker, colony,
                                tribe_type, combat );
   else
-    co_await raid_colony_battle( ss, ts, attacker, colony, tribe,
-                                 combat );
+    co_await raid_colony_battle( ss, ts, rand, attacker, colony,
+                                 tribe, combat );
 }
 
 } // namespace rn

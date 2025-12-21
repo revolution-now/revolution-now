@@ -539,12 +539,13 @@ HarborInPortShips::Layout HarborInPortShips::create_layout(
 
 PositionedHarborSubView<HarborInPortShips>
 HarborInPortShips::create(
-    SS& ss, TS& ts, Player& player, Rect,
+    IEngine& engine, SS& ss, TS& ts, Player& player, Rect,
     HarborBackdrop const& backdrop,
     HarborMarketCommodities& harbor_market_commodities ) {
   Layout layout = create_layout( backdrop );
   auto view     = make_unique<HarborInPortShips>(
-      ss, ts, player, harbor_market_commodities, layout );
+      engine, ss, ts, player, harbor_market_commodities,
+      layout );
   HarborSubView* const harbor_sub_view = view.get();
   HarborInPortShips* const p_actual    = view.get();
   return PositionedHarborSubView<HarborInPortShips>{
@@ -555,10 +556,10 @@ HarborInPortShips::create(
 }
 
 HarborInPortShips::HarborInPortShips(
-    SS& ss, TS& ts, Player& player,
+    IEngine& engine, SS& ss, TS& ts, Player& player,
     HarborMarketCommodities& harbor_market_commodities,
     Layout layout )
-  : HarborSubView( ss, ts, player ),
+  : HarborSubView( engine, ss, ts, player ),
     harbor_market_commodities_( harbor_market_commodities ),
     layout_( std::move( layout ) ) {}
 

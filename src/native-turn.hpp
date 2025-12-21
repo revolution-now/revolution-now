@@ -17,6 +17,7 @@
 
 namespace rn {
 
+struct IEngine;
 struct IRaid;
 struct ITribeEvolve;
 struct SS;
@@ -25,7 +26,8 @@ struct TS;
 /****************************************************************
 ** Public API.
 *****************************************************************/
-wait<> natives_turn( SS& ss, TS& ts, IRaid const& raid,
+wait<> natives_turn( IEngine& engine, SS& ss, TS& ts,
+                     IRaid const& raid,
                      ITribeEvolve const& tribe_evolver );
 
 } // namespace rn

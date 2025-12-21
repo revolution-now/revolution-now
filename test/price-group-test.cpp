@@ -564,7 +564,7 @@ TEST_CASE( "[price-group] generate_random_intrinsic_volume" ) {
   int const window = 10;
 
   auto f = [&] {
-    return generate_random_intrinsic_volume( W.ts(), center,
+    return generate_random_intrinsic_volume( W.rand(), center,
                                              window );
   };
 

@@ -209,8 +209,8 @@ TEST_CASE( "[fathers] pick_founding_father_if_needed" ) {
   Player& player = W.default_player();
 
   auto f = [&] {
-    wait<> w =
-        pick_founding_father_if_needed( W.ss(), W.ts(), player );
+    wait<> w = pick_founding_father_if_needed(
+        W.ss(), W.gui(), W.rand(), player );
     BASE_CHECK( !w.exception() );
     BASE_CHECK( w.ready() );
   };
@@ -507,7 +507,7 @@ TEST_CASE( "[fathers] on_father_received: john_paul_jones" ) {
 
   REQUIRE( W.units().all().size() == 0 );
   player.fathers.has[father] = true;
-  on_father_received( W.ss(), W.ts(), player, father );
+  on_father_received( W.ss(), W.ts(), W.rand(), player, father );
   REQUIRE( W.units().all().size() == 1 );
   UnitState::euro const& state =
       as_const( W.units() ).state_of( UnitId{ 1 } );
@@ -559,7 +559,7 @@ TEST_CASE(
            e_unit_type::native_convert );
 
   player.fathers.has[father] = true;
-  on_father_received( W.ss(), W.ts(), player, father );
+  on_father_received( W.ss(), W.ts(), W.rand(), player, father );
 
   REQUIRE( W.units().all().size() == 7 );
   REQUIRE( W.units().unit_for( UnitId{ 1 } ).type() ==
@@ -596,7 +596,7 @@ TEST_CASE( "[fathers] on_father_received: jakob_fugger" ) {
       .market.commodities[e_commodity::food]
       .boycott               = true;
   player.fathers.has[father] = true;
-  on_father_received( w.ss(), w.ts(), player, father );
+  on_father_received( w.ss(), w.ts(), w.rand(), player, father );
   for( auto& [comm, market_item] :
        w.old_world( player ).market.commodities ) {
     INFO( fmt::format( "comm={}, market_item={}", comm,
@@ -640,7 +640,7 @@ TEST_CASE(
   }
 
   dutch.fathers.has[father] = true;
-  on_father_received( W.ss(), W.ts(), dutch, father );
+  on_father_received( W.ss(), W.ts(), W.rand(), dutch, father );
 
   Rect const expected_visible_1 =
       Rect{ .x = 1, .y = 1, .w = 11, .h = 11 };
@@ -693,7 +693,7 @@ TEST_CASE( "[fathers] on_father_received: sieur_de_la_salle" ) {
       french_colony.buildings[e_colony_building::stockade] );
 
   dutch.fathers.has[father] = true;
-  on_father_received( W.ss(), W.ts(), dutch, father );
+  on_father_received( W.ss(), W.ts(), W.rand(), dutch, father );
 
   REQUIRE_FALSE(
       dutch_colony1.buildings[e_colony_building::stockade] );
@@ -722,7 +722,7 @@ TEST_CASE( "[fathers] on_father_received: pocahontas" ) {
   auto& aztec_relationship = aztec.relationship[player.type];
 
   auto f = [&] {
-    on_father_received( W.ss(), W.ts(), player,
+    on_father_received( W.ss(), W.ts(), W.rand(), player,
                         e_founding_father::pocahontas );
   };
 
@@ -752,7 +752,7 @@ TEST_CASE( "[fathers] on_father_received: william_brewster" ) {
   player.fathers.has[e_founding_father::william_brewster] = true;
 
   auto f = [&] {
-    on_father_received( w.ss(), w.ts(), player,
+    on_father_received( w.ss(), w.ts(), w.rand(), player,
                         e_founding_father::william_brewster );
   };
 
@@ -794,7 +794,7 @@ TEST_CASE( "[fathers] on_father_received: hernando_de_soto" ) {
                 .has[e_founding_father::hernando_de_soto] );
     player.fathers.has[e_founding_father::hernando_de_soto] =
         true;
-    on_father_received( W.ss(), W.ts(), player,
+    on_father_received( W.ss(), W.ts(), W.rand(), player,
                         e_founding_father::hernando_de_soto );
   };
 

@@ -564,7 +564,7 @@ void HarborMarketCommodities::draw( rr::Renderer& renderer,
 
 PositionedHarborSubView<HarborMarketCommodities>
 HarborMarketCommodities::create(
-    SS& ss, TS& ts, Player& player, Rect canvas,
+    IEngine& engine, SS& ss, TS& ts, Player& player, Rect canvas,
     HarborStatusBar& harbor_status_bar ) {
   size const sz = canvas.delta();
 
@@ -725,7 +725,7 @@ HarborMarketCommodities::create(
   unique_ptr<HarborMarketCommodities> view;
   HarborSubView* harbor_sub_view = nullptr;
   view = make_unique<HarborMarketCommodities>(
-      ss, ts, player, harbor_status_bar, layout );
+      engine, ss, ts, player, harbor_status_bar, layout );
   harbor_sub_view                   = view.get();
   HarborMarketCommodities* p_actual = view.get();
   return PositionedHarborSubView<HarborMarketCommodities>{
@@ -735,9 +735,9 @@ HarborMarketCommodities::create(
 }
 
 HarborMarketCommodities::HarborMarketCommodities(
-    SS& ss, TS& ts, Player& player,
+    IEngine& engine, SS& ss, TS& ts, Player& player,
     HarborStatusBar& harbor_status_bar, Layout const& layout )
-  : HarborSubView( ss, ts, player ),
+  : HarborSubView( engine, ss, ts, player ),
     harbor_status_bar_( harbor_status_bar ),
     layout_( layout ) {}
 

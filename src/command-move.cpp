@@ -21,6 +21,7 @@
 #include "enter-dwelling.hpp"
 #include "harbor-units.hpp"
 #include "iagent.hpp"
+#include "iengine.hpp"
 #include "igui.hpp"
 #include "imap-updater.hpp"
 #include "land-view.hpp"
@@ -170,10 +171,10 @@ BEHAVIOR( water, friendly, unit, always, never, move_onto_ship,
 // movement points, e.g. if a unit is moving onto a colony
 // square.
 maybe<MovementPoints> check_movement_points(
-    TS& ts, Player const& player, Unit const& unit,
+    IRand& rand, Player const& player, Unit const& unit,
     MovementPoints needed ) {
   MovementPointsAnalysis const analysis =
-      can_unit_move_based_on_mv_points( ts, player, unit,
+      can_unit_move_based_on_mv_points( rand, player, unit,
                                         needed );
   if( analysis.allowed() ) {
     if( analysis.using_start_of_turn_exemption )
@@ -190,22 +191,23 @@ maybe<MovementPoints> check_movement_points(
 // of when this would not be the case is what there is a colony
 // on the destination square.
 maybe<MovementPoints> check_movement_points(
-    TS& ts, Player const& player, Unit const& unit,
+    IRand& rand, Player const& player, Unit const& unit,
     MapSquare const& src_square, MapSquare const& dst_square,
     e_direction direction ) {
   MovementPoints const needed = movement_points_required(
       src_square, dst_square, direction );
-  return check_movement_points( ts, player, unit, needed );
+  return check_movement_points( rand, player, unit, needed );
 }
 
 /****************************************************************
 ** TravelHandler
 *****************************************************************/
 struct TravelHandler : public CommandHandler {
-  TravelHandler( SS& ss, TS& ts, UnitId unit_id_,
-                 command::move const& mv, IAgent& agent,
-                 Player& player )
-    : ss_( ss ),
+  TravelHandler( IEngine& engine, SS& ss, TS& ts,
+                 UnitId unit_id_, command::move const& mv,
+                 IAgent& agent, Player& player )
+    : engine_( engine ),
+      ss_( ss ),
       ts_( ts ),
       unit_id( unit_id_ ),
       mv_( mv ),
@@ -373,6 +375,7 @@ struct TravelHandler : public CommandHandler {
   wait<e_travel_verdict> confirm_sail_high_seas() const;
   wait<e_travel_verdict> confirm_sail_high_seas_map_edge() const;
 
+  IEngine& engine_;
   SS& ss_;
   TS& ts_;
 
@@ -699,11 +702,12 @@ TravelHandler::confirm_travel_impl() {
     CHECK( !this->checked_mv_points_ );
     this->checked_mv_points_ = true;
     maybe<MovementPoints> const to_subtract =
-        needed.has_value() ? check_movement_points(
-                                 ts_, player_, unit, *needed )
-                           : check_movement_points(
-                                 ts_, player_, unit, src_square,
-                                 dst_square, direction );
+        needed.has_value()
+            ? check_movement_points( engine_.rand(), player_,
+                                     unit, *needed )
+            : check_movement_points( engine_.rand(), player_,
+                                     unit, src_square,
+                                     dst_square, direction );
     if( !to_subtract.has_value() ) return false;
     mv_points_to_subtract_ = *to_subtract;
     return true;
@@ -1061,7 +1065,7 @@ wait<> TravelHandler::perform() {
       }
       maybe<UnitDeleted> const unit_deleted =
           co_await UnitOwnershipChanger( ss_, id ).change_to_map(
-              ts_, move_dst );
+              ts_, engine_.rand(), move_dst );
       CHECK_GT( mv_points_to_subtract_, 0 );
       if( unit_deleted.has_value() ) co_return;
       unit.consume_mv_points( mv_points_to_subtract_ );
@@ -1083,7 +1087,7 @@ wait<> TravelHandler::perform() {
     case e_travel_verdict::offboard_ship: {
       maybe<UnitDeleted> const unit_deleted =
           co_await UnitOwnershipChanger( ss_, id ).change_to_map(
-              ts_, move_dst );
+              ts_, engine_.rand(), move_dst );
       if( unit_deleted.has_value() ) co_return;
       unit.forfeight_mv_points();
       CHECK( unit.orders().holds<unit_orders::none>() ||
@@ -1093,7 +1097,7 @@ wait<> TravelHandler::perform() {
     case e_travel_verdict::ship_into_port: {
       maybe<UnitDeleted> const unit_deleted =
           co_await UnitOwnershipChanger( ss_, id ).change_to_map(
-              ts_, move_dst );
+              ts_, engine_.rand(), move_dst );
       CHECK( !unit_deleted.has_value() );
       CHECK( unit.orders().holds<unit_orders::none>() ||
              unit.orders().holds<unit_orders::go_to>() ||
@@ -1113,7 +1117,7 @@ wait<> TravelHandler::perform() {
       for( UnitId const held_id : held ) {
         maybe<UnitDeleted> const unit_deleted =
             co_await UnitOwnershipChanger( ss_, held_id )
-                .change_to_map( ts_, move_dst );
+                .change_to_map( ts_, engine_.rand(), move_dst );
         // !! Note that the unit could have been deleted here in
         // the case that the unit is a treasure and the player
         // accepts the King's offer to transport it.
@@ -1152,7 +1156,7 @@ wait<> TravelHandler::perform() {
         if( cargo_unit.mv_pts_exhausted() ) continue;
         auto const first_unit_handler =
             make_unique<TravelHandler>(
-                ss_, ts_, cargo_unit.id(),
+                engine_, ss_, ts_, cargo_unit.id(),
                 command::move{ .d = direction_ }, agent_,
                 player_ );
         auto const run_result =
@@ -1214,10 +1218,12 @@ wait<> TravelHandler::perform() {
 ** NativeDwellingHandler
 *****************************************************************/
 struct NativeDwellingHandler : public CommandHandler {
-  NativeDwellingHandler( SS& ss, TS& ts, IAgent& agent,
-                         Player& player, UnitId unit_id,
-                         e_direction d, Dwelling& dwelling )
-    : ss_( ss ),
+  NativeDwellingHandler( IEngine& engine, SS& ss, TS& ts,
+                         IAgent& agent, Player& player,
+                         UnitId unit_id, e_direction d,
+                         Dwelling& dwelling )
+    : engine_( engine ),
+      ss_( ss ),
       ts_( ts ),
       player_( player ),
       agent_( agent ),
@@ -1240,7 +1246,7 @@ struct NativeDwellingHandler : public CommandHandler {
       case e_enter_dwelling_option::speak_with_chief:
         return EnterDwellingOutcome::speak_with_chief{
           .outcome = compute_speak_with_chief(
-              ss_, ts_, dwelling_, unit_ ) };
+              ss_, engine_.rand(), dwelling_, unit_ ) };
       case e_enter_dwelling_option::attack_village:
         // Outcome handled by the delegated handler.
         return EnterDwellingOutcome::attack_village{};
@@ -1316,8 +1322,8 @@ struct NativeDwellingHandler : public CommandHandler {
       // with this new handler.
       NativeUnitId const defender_id =
           select_native_unit_defender( ss_, move_dst_ );
-      return attack_native_unit_handler( ss_, ts_, unit_id_,
-                                         defender_id );
+      return attack_native_unit_handler( engine_, ss_, ts_,
+                                         unit_id_, defender_id );
     }
 
     if( outcome_
@@ -1329,8 +1335,8 @@ struct NativeDwellingHandler : public CommandHandler {
       relationship.player_has_attacked_tribe = true;
       // Delegate: the order handling process will be restarted
       // with this new handler.
-      return attack_dwelling_handler( ss_, ts_, unit_id_,
-                                      dwelling_.id );
+      return attack_dwelling_handler( engine_, ss_, ts_,
+                                      unit_id_, dwelling_.id );
     }
 
     return nullptr; // Continue with this handler.
@@ -1361,8 +1367,9 @@ struct NativeDwellingHandler : public CommandHandler {
         auto& o =
             outcome_
                 .get<EnterDwellingOutcome::speak_with_chief>();
-        co_await do_speak_with_chief(
-            ss_, ts_, dwelling_, player_, unit_, o.outcome );
+        co_await do_speak_with_chief( ss_, ts_, engine_.rand(),
+                                      dwelling_, player_, unit_,
+                                      o.outcome );
         // !! Note that the unit may no longer exist here if the
         // scout was used a target practice.
         break;
@@ -1397,6 +1404,7 @@ struct NativeDwellingHandler : public CommandHandler {
     // scout was used a target practice or scout lost an attack.
   }
 
+  IEngine& engine_;
   SS& ss_;
   TS& ts_;
   Player& player_;
@@ -1480,8 +1488,8 @@ struct ForeignColonyTradeHandler : public CommandHandler {
 /****************************************************************
 ** Dispatch
 *****************************************************************/
-unique_ptr<CommandHandler> dispatch( SS& ss, TS& ts,
-                                     IAgent& agent,
+unique_ptr<CommandHandler> dispatch( IEngine& engine, SS& ss,
+                                     TS& ts, IAgent& agent,
                                      Player& player,
                                      UnitId const mover_id,
                                      command::move const& mv ) {
@@ -1494,8 +1502,8 @@ unique_ptr<CommandHandler> dispatch( SS& ss, TS& ts,
   if( !dst.is_inside( ss.terrain.world_rect_tiles() ) )
     // This is an invalid move, but the TravelHandler is the one
     // that knows how to handle it.
-    return make_unique<TravelHandler>( ss, ts, mover_id, mv,
-                                       agent, player );
+    return make_unique<TravelHandler>( engine, ss, ts, mover_id,
+                                       mv, agent, player );
 
   // Can reference the real square here because we know it is
   // clear since the unit is adjacent to it.
@@ -1503,15 +1511,15 @@ unique_ptr<CommandHandler> dispatch( SS& ss, TS& ts,
 
   if( !society.has_value() )
     // No entities on target sqaure, so it is just a travel.
-    return make_unique<TravelHandler>( ss, ts, mover_id, mv,
-                                       agent, player );
+    return make_unique<TravelHandler>( engine, ss, ts, mover_id,
+                                       mv, agent, player );
 
   CHECK( society.has_value() );
   if( *society == Society{ Society::european{
                     .player = mover.player_type() } } )
     // Friendly unit on target square, so not an attack.
-    return make_unique<TravelHandler>( ss, ts, mover_id, mv,
-                                       agent, player );
+    return make_unique<TravelHandler>( engine, ss, ts, mover_id,
+                                       mv, agent, player );
 
   if( society->holds<Society::native>() ) {
     maybe<DwellingId> const dwelling_id =
@@ -1522,13 +1530,13 @@ unique_ptr<CommandHandler> dispatch( SS& ss, TS& ts,
     // a brave on the tile or not.
     if( dwelling_id.has_value() )
       return make_unique<NativeDwellingHandler>(
-          ss, ts, agent, player, mover_id, d,
+          engine, ss, ts, agent, player, mover_id, d,
           ss.natives.dwelling_for( *dwelling_id ) );
 
     // Must be attacking a brave.
     NativeUnitId const defender_id =
         select_native_unit_defender( ss, dst );
-    return attack_native_unit_handler( ss, ts, mover_id,
+    return attack_native_unit_handler( engine, ss, ts, mover_id,
                                        defender_id );
   }
 
@@ -1565,14 +1573,14 @@ unique_ptr<CommandHandler> dispatch( SS& ss, TS& ts,
           "to help defend the colony.",
           colony.name );
     UnitId const defender_id =
-        select_colony_defender( ss, ts.rand, colony );
+        select_colony_defender( ss, engine.rand(), colony );
     Unit const& defender = ss.units.unit_for( defender_id );
     if( is_military_unit( defender.desc().type ) )
-      return attack_euro_land_handler( ss, ts, mover_id,
+      return attack_euro_land_handler( engine, ss, ts, mover_id,
                                        defender_id );
     else
       return attack_colony_undefended_handler(
-          ss, ts, mover_id, defender_id, colony );
+          engine, ss, ts, mover_id, defender_id, colony );
   }
 
   UnitId const defender_id =
@@ -1590,14 +1598,15 @@ unique_ptr<CommandHandler> dispatch( SS& ss, TS& ts,
     // before the attack, it will ask to sail the high seas. How-
     // ever, this is likely a bug, since it does not allow this
     // for non-war ships, so we don't replicate it here.
-    return naval_battle_handler( ss, ts, mover_id, defender_id );
+    return naval_battle_handler( engine, ss, ts, mover_id,
+                                 defender_id );
 
   // We are attacking a foreign european unit either outside of a
   // colony or at a colony's gate. Note that this may include
   // some forbidden scenarios, such as a land unit trying to
   // board or attack a foreign ship, but those should be inter-
   // cepted and prevented.
-  return attack_euro_land_handler( ss, ts, mover_id,
+  return attack_euro_land_handler( engine, ss, ts, mover_id,
                                    defender_id );
 }
 
@@ -1607,9 +1616,9 @@ unique_ptr<CommandHandler> dispatch( SS& ss, TS& ts,
 ** Public API
 *****************************************************************/
 unique_ptr<CommandHandler> handle_command(
-    IEngine&, SS& ss, TS& ts, IAgent& agent, Player& player,
-    UnitId id, command::move const& mv ) {
-  return dispatch( ss, ts, agent, player, id, mv );
+    IEngine& engine, SS& ss, TS& ts, IAgent& agent,
+    Player& player, UnitId id, command::move const& mv ) {
+  return dispatch( engine, ss, ts, agent, player, id, mv );
 }
 
 } // namespace rn

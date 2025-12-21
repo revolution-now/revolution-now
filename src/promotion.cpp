@@ -339,7 +339,7 @@ maybe<e_unit_type> on_capture_demoted_type( UnitType ut ) {
 
 std::vector<OnTheJobPromotionResult>
 workers_to_promote_for_on_the_job_training(
-    SSConst const& ss, TS& ts, Colony const& colony ) {
+    SSConst const& ss, IRand& rand, Colony const& colony ) {
   std::vector<OnTheJobPromotionResult> res;
 
   // First the indoor workers. Note that in the original game
@@ -364,7 +364,7 @@ workers_to_promote_for_on_the_job_training(
       // job are both such that unit is eligible for promotion.
       // Now roll the dice to see if it happens.
       DCHECK( *probability >= 0 && *probability <= 1.0 );
-      if( !ts.rand.bernoulli( *probability ) )
+      if( !rand.bernoulli( *probability ) )
         // Sorry, maybe next time.
         continue;
       // The unit is getting promoted! Now find what type. The
@@ -403,7 +403,7 @@ workers_to_promote_for_on_the_job_training(
     // job are both such that unit is eligible for promotion. Now
     // roll the dice to see if it happens.
     DCHECK( *probability >= 0 && *probability <= 1.0 );
-    if( !ts.rand.bernoulli( *probability ) )
+    if( !rand.bernoulli( *probability ) )
       // Sorry, maybe next time.
       continue;
     // The unit is getting promoted! Now find what type. The idea

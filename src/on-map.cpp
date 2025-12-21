@@ -296,14 +296,14 @@ void UnitOnMapMover::to_map_non_interactive(
 }
 
 wait<maybe<UnitDeleted>> UnitOnMapMover::to_map_interactive(
-    SS& ss, TS& ts, UnitId const id, Coord const dst ) {
+    SS& ss, TS& ts, IRand& rand, UnitId const id,
+    Coord const dst ) {
   to_map_common( ss, ts.map_updater(), id, dst );
 
   Unit& unit = ss.units.unit_for( id );
   UNWRAP_CHECK( player, ss.players.players[unit.player_type()] );
   IAgent& agent            = ts.agents()[player.type];
   IMapUpdater& map_updater = ts.map_updater();
-  IRand& rand              = ts.rand;
   ILandViewPlane& land_view =
       ts.planes.get().get_bottom<ILandViewPlane>();
 

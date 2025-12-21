@@ -54,7 +54,7 @@ TEST_CASE( "[src/mv-calc] can_unit_move_based_on_mv_points" ) {
 
   auto f = [&] {
     return can_unit_move_based_on_mv_points(
-        W.ts(), W.default_player(), unit, needed );
+        W.rand(), W.default_player(), unit, needed );
   };
 
   auto create = [&]( e_unit_type type ) {
@@ -261,8 +261,8 @@ TEST_CASE(
   MovementPoints needed;
 
   auto f = [&] {
-    return can_native_unit_move_based_on_mv_points( W.ts(), unit,
-                                                    needed );
+    return can_native_unit_move_based_on_mv_points(
+        W.rand(), unit, needed );
   };
 
   auto create = [&]( e_native_unit_type type ) {

@@ -368,11 +368,11 @@ HarborDockUnits::Layout HarborDockUnits::create_layout(
 }
 
 PositionedHarborSubView<HarborDockUnits> HarborDockUnits::create(
-    SS& ss, TS& ts, Player& player, Rect const,
+    IEngine& engine, SS& ss, TS& ts, Player& player, Rect const,
     HarborBackdrop const& backdrop ) {
   Layout layout = create_layout( backdrop );
-  auto view     = make_unique<HarborDockUnits>( ss, ts, player,
-                                                backdrop, layout );
+  auto view     = make_unique<HarborDockUnits>(
+      engine, ss, ts, player, backdrop, layout );
   HarborSubView* const harbor_sub_view = view.get();
   HarborDockUnits* p_actual            = view.get();
   return PositionedHarborSubView<HarborDockUnits>{
@@ -382,10 +382,11 @@ PositionedHarborSubView<HarborDockUnits> HarborDockUnits::create(
     .actual = p_actual };
 }
 
-HarborDockUnits::HarborDockUnits( SS& ss, TS& ts, Player& player,
+HarborDockUnits::HarborDockUnits( IEngine& engine, SS& ss,
+                                  TS& ts, Player& player,
                                   HarborBackdrop const& backdrop,
                                   Layout layout )
-  : HarborSubView( ss, ts, player ),
+  : HarborSubView( engine, ss, ts, player ),
     backdrop_( backdrop ),
     layout_( std::move( layout ) ) {
   update_units();

@@ -97,8 +97,9 @@ TEST_CASE( "[colonies-turn] presents transient updates." ) {
 
   auto evolve_colonies = [&] {
     co_await_test( evolve_colonies_for_player(
-        w.ss(), w.ts(), w.default_player(), mock_colony_evolver,
-        harbor_viewer, mock_colony_notification_generator ) );
+        w.ss(), w.ts(), w.rand(), w.default_player(),
+        mock_colony_evolver, harbor_viewer,
+        mock_colony_notification_generator ) );
   };
 
   MockIAgent& agent = w.agent();
@@ -227,8 +228,9 @@ TEST_CASE(
 
   auto const evolve_colonies = [&] {
     co_await_test( evolve_colonies_for_player(
-        w.ss(), w.ts(), w.default_player(), mock_colony_evolver,
-        harbor_viewer, mock_colony_notification_generator ) );
+        w.ss(), w.ts(), w.rand(), w.default_player(),
+        mock_colony_evolver, harbor_viewer,
+        mock_colony_notification_generator ) );
   };
 
   point const kPoint{ .x = 1, .y = 1 };

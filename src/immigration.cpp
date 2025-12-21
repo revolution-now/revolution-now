@@ -227,7 +227,8 @@ void add_player_crosses( Player& player,
 }
 
 wait<maybe<UnitId>> check_for_new_immigrant(
-    SS& ss, TS& ts, Player& player, int crosses_needed ) {
+    SS& ss, TS& ts, IRand& rand, Player& player,
+    int crosses_needed ) {
   CHECK_GE( crosses_needed, 0 );
   if( player.crosses < crosses_needed ) co_return nothing;
   player.crosses -= crosses_needed;
@@ -249,7 +250,7 @@ wait<maybe<UnitId>> check_for_new_immigrant(
     CHECK_GE( immigrant_idx, 0 );
     CHECK_LE( immigrant_idx, 2 );
   } else {
-    immigrant_idx = ts.rand.between_ints( 0, 2 );
+    immigrant_idx = rand.between_ints( 0, 2 );
     e_unit_type const type =
         old_world_state( ss, player.type )
             .immigration.immigrants_pool[immigrant_idx];
@@ -261,7 +262,7 @@ wait<maybe<UnitId>> check_for_new_immigrant(
         signal::ImmigrantArrived{ .type = type }, msg );
   }
   e_unit_type replacement =
-      pick_next_unit_for_pool( ts.rand, player, ss.settings );
+      pick_next_unit_for_pool( rand, player, ss.settings );
   e_unit_type type = take_immigrant_from_pool(
       old_world_state( ss, player.type ).immigration,
       immigrant_idx, replacement );
@@ -304,13 +305,14 @@ int cost_of_recruit( SSConst const& ss, Player const& player,
   return std::max( cost, I );
 }
 
-void rush_recruit_next_immigrant( SS& ss, TS& ts, Player& player,
-                                  int slot_selected ) {
+void rush_recruit_next_immigrant( SS& ss, IRand& rand,
+                                  Player& player,
+                                  int const slot_selected ) {
   auto& pool = old_world_state( ss, player.type )
                    .immigration.immigrants_pool;
   e_unit_type const selected_type = pool[slot_selected];
   e_unit_type const replacement =
-      pick_next_unit_for_pool( ts.rand, player, ss.settings );
+      pick_next_unit_for_pool( rand, player, ss.settings );
   CHECK( take_immigrant_from_pool(
              old_world_state( ss, player.type ).immigration,
              slot_selected, replacement ) == selected_type );
@@ -333,8 +335,8 @@ namespace {
 
 LUA_FN( pick_next_unit_for_pool, e_unit_type,
         Player const& player, SettingsState const& settings ) {
-  TS& ts = st["TS"].as<TS&>();
-  return pick_next_unit_for_pool( ts.rand, player, settings );
+  IRand& rand = st["IRand"].as<IRand&>();
+  return pick_next_unit_for_pool( rand, player, settings );
 };
 
 } // namespace

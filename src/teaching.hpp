@@ -21,6 +21,7 @@
 namespace rn {
 
 struct Colony;
+struct IRand;
 struct SS;
 struct TS;
 
@@ -40,6 +41,7 @@ void sync_colony_teachers( Colony& colony );
 
 // This will actually evolve the teachers and promote any units.
 ColonyTeachingEvolution evolve_teachers( SS& ss, TS& ts,
+                                         IRand& rand,
                                          Colony& colony );
 
 // In the original game, this is any expert colonist, or unit

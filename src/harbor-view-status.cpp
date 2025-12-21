@@ -192,10 +192,11 @@ HarborStatusBar::Layout HarborStatusBar::create_layout(
 }
 
 PositionedHarborSubView<HarborStatusBar> HarborStatusBar::create(
-    SS& ss, TS& ts, Player& player, Rect const canvas ) {
+    IEngine& engine, SS& ss, TS& ts, Player& player,
+    Rect const canvas ) {
   Layout layout = create_layout( canvas );
   auto view     = make_unique<HarborStatusBar>(
-      ss, ts, player, std::move( layout ) );
+      engine, ss, ts, player, std::move( layout ) );
   HarborSubView* const harbor_sub_view = view.get();
   HarborStatusBar* p_actual            = view.get();
   return PositionedHarborSubView<HarborStatusBar>{
@@ -205,9 +206,10 @@ PositionedHarborSubView<HarborStatusBar> HarborStatusBar::create(
     .actual = p_actual };
 }
 
-HarborStatusBar::HarborStatusBar( SS& ss, TS& ts, Player& player,
+HarborStatusBar::HarborStatusBar( IEngine& engine, SS& ss,
+                                  TS& ts, Player& player,
                                   Layout layout )
-  : HarborSubView( ss, ts, player ), layout_( layout ) {
+  : HarborSubView( engine, ss, ts, player ), layout_( layout ) {
   status_generator_thread_ = status_generator();
 }
 

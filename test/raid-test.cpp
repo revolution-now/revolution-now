@@ -89,8 +89,8 @@ TEST_CASE( "[raid] raid_unit" ) {
   NativeUnitId const brave_id = brave.id;
 
   auto f = [&] [[clang::noinline]] {
-    co_await_test(
-        raid_unit( W.ss(), W.ts(), brave, defender_coord ) );
+    co_await_test( raid_unit( W.ss(), W.ts(), W.rand(), brave,
+                              defender_coord ) );
   };
 
   SECTION( "brave, one euro, brave loses, soldier promoted" ) {
@@ -369,8 +369,8 @@ TEST_CASE( "[raid] raid_colony" ) {
   REQUIRE( W.square( colony.location ).road );
 
   auto f = [&] [[clang::noinline]] ( NativeUnit & attacker ) {
-    co_await_test(
-        raid_colony( W.ss(), W.ts(), attacker, colony ) );
+    co_await_test( raid_colony( W.ss(), W.ts(), W.rand(),
+                                attacker, colony ) );
   };
 
   SECTION( "brave->soldier, brave wins" ) {

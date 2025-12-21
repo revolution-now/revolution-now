@@ -13,15 +13,16 @@
 namespace rn {
 
 struct SS;
-struct TS;
+struct IRand;
 
 enum class e_tribe;
 
-void evolve_dwellings_for_tribe( SS& ss, TS& ts,
+void evolve_dwellings_for_tribe( SS& ss, IRand& rand,
                                  e_tribe tribe_type );
 
 // Evolve those aspects/properties of the tribe that are common
 // to the entire tribe, i.e. not dwellingor unit-specific.
-void evolve_tribe_common( SS& ss, TS& ts, e_tribe tribe_type );
+void evolve_tribe_common( SS& ss, IRand& rand,
+                          e_tribe tribe_type );
 
 } // namespace rn

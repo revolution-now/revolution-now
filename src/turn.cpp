@@ -226,9 +226,10 @@ wait_bool check_if_not_dirty_or_can_proceed(
   if( !answer.has_value() ) co_return false;
   if( answer == ui::e_confirm::no ) co_return true;
   maybe<int> const slot =
-      co_await select_save_slot( engine, ts, storage_save );
+      co_await select_save_slot( engine, ts.gui, storage_save );
   if( !slot.has_value() ) co_return false;
-  RealGameSaver const game_saver( ss, ts, storage_save );
+  RealGameSaver const game_saver( ss, ts.gui, storage_save,
+                                  ts.saved );
   bool const saved =
       co_await game_saver.save_to_slot_interactive( *slot );
   co_return saved;
@@ -442,15 +443,15 @@ wait_bool process_unit_prioritization_request(
 // asking the player for input. Thus, if you just keep loading an
 // autosave file, you will see the year steadily increase just
 // from the loading. We of course are not reproducing that bug.
-void autosave_if_needed( SS& ss, TS& ts ) {
+void autosave_if_needed( SS& ss ) {
   set<int> const autosave_slots = should_autosave( ss.as_const );
   if( autosave_slots.empty() ) return;
   // TODO: we may want to inject these somewhere higher up.
   RclGameStorageSave const storage_save( ss );
-  RealGameSaver const game_saver( ss, ts, storage_save );
+  RealGameWriter const game_writer( storage_save );
   // This will do the save.
-  expect<std::vector<fs::path>> const paths_saved =
-      autosave( ss.as_const, game_saver, ss.turn.autosave,
+  expect<vector<fs::path>> const paths_saved =
+      autosave( ss.as_const, game_writer, ss.turn.autosave,
                 autosave_slots );
   if( !paths_saved.has_value() )
     lg.error( "failed to auto-save: {}", paths_saved.error() );
@@ -545,9 +546,10 @@ wait<> menu_handler( IEngine& engine, SS& ss, TS& ts,
     case e_menu_item::save: {
       // TODO: we may want to inject these somewhere higher up.
       RclGameStorageSave const storage_save( ss );
-      RealGameSaver const game_saver( ss, ts, storage_save );
-      maybe<int> const slot =
-          co_await select_save_slot( engine, ts, storage_save );
+      RealGameSaver const game_saver( ss, ts.gui, storage_save,
+                                      ts.saved );
+      maybe<int> const slot = co_await select_save_slot(
+          engine, ts.gui, storage_save );
       if( slot.has_value() ) {
         bool const saved =
             co_await game_saver.save_to_slot_interactive(
@@ -564,7 +566,8 @@ wait<> menu_handler( IEngine& engine, SS& ss, TS& ts,
               engine, ss, ts, storage_save );
       if( !can_proceed ) break;
       game_load_interrupt load;
-      load.slot = co_await select_load_slot( ts, storage_save );
+      load.slot =
+          co_await select_load_slot( ts.gui, storage_save );
       if( load.slot.has_value() ) throw load;
       break;
     }
@@ -867,7 +870,7 @@ wait<EndOfTurnResult> end_of_turn( IEngine& engine, SS& ss,
     co_return EndOfTurnResult::proceed{};
   // See comments above the autosave_if_needed function for why
   // we are putting this here and how it works.
-  autosave_if_needed( ss, ts );
+  autosave_if_needed( ss );
   co_return co_await process_input_eot( engine, ss, ts, player );
 }
 
@@ -1000,7 +1003,7 @@ wait<LandViewPlayerInput> landview_human_player_input(
   // when the auto-save is reloaded from this point, the unit
   // that is asking for orders will still be asking for orders,
   // so skip_eot will again be set to true.
-  autosave_if_needed( ss, ts );
+  autosave_if_needed( ss );
 
   lg.info( "asking orders for: {}",
            debug_string( as_const( ss.units ), id ) );
@@ -1552,8 +1555,8 @@ struct HighSeasStatus {
 };
 
 wait<HighSeasStatus> advance_high_seas_unit(
-    SS& ss, TS& ts, Player& player, IAgent& agent,
-    UnitId const unit_id ) {
+    IEngine& engine, SS& ss, TS& ts, Player& player,
+    IAgent& agent, UnitId const unit_id ) {
   HighSeasStatus res;
   CHECK( is_unit_on_high_seas( ss, unit_id ) );
   Unit& unit = ss.units.unit_for( unit_id );
@@ -1587,7 +1590,7 @@ wait<HighSeasStatus> advance_high_seas_unit(
         unit.clear_orders();
       maybe<UnitDeleted> const unit_deleted =
           co_await UnitOwnershipChanger( ss, unit_id )
-              .change_to_map( ts, *dst_coord );
+              .change_to_map( ts, engine.rand(), *dst_coord );
       // There are no LCR tiles on water squares.
       CHECK( !unit_deleted.has_value() );
       // This is not required, but it is for a good player ex-
@@ -1724,8 +1727,8 @@ wait<> move_high_seas_units( IEngine& engine, SS& ss, TS& ts,
         ss.units.unit_for( id ) ) );
 
     HighSeasStatus const status =
-        co_await advance_high_seas_unit( ss, ts, player, agent,
-                                         id );
+        co_await advance_high_seas_unit( engine, ss, ts, player,
+                                         agent, id );
     status_union = status_union.combined_with( status );
 
     // Should not have inserted any new units.
@@ -1886,13 +1889,14 @@ wait<> units_turn( IEngine& engine, SS& ss, TS& ts,
 *****************************************************************/
 wait<> colonies_turn( IEngine& engine, SS& ss, TS& ts,
                       Player& player ) {
-  RealColonyEvolver const colony_evolver( ss, ts );
+  RealColonyEvolver const colony_evolver( ss, ts,
+                                          engine.rand() );
   RealColonyNotificationGenerator const
       colony_notification_generator( ss.as_const );
   HarborViewer harbor_viewer( engine, ss, ts, player );
   co_await evolve_colonies_for_player(
-      ss, ts, player, colony_evolver, harbor_viewer,
-      colony_notification_generator );
+      ss, ts, engine.rand(), player, colony_evolver,
+      harbor_viewer, colony_notification_generator );
 }
 
 // Here we do things that must be done once per turn but where we
@@ -1913,7 +1917,7 @@ wait<> post_colonies_common( SS& ss, TS& ts, Player& player ) {
 // Here we do things that must be done once per turn but where we
 // want the colonies to be evolved first. Also, these things are
 // only done for the REF players only (not colonial players).
-wait<> post_colonies_ref_only( SS& ss, TS& ts,
+wait<> post_colonies_ref_only( IEngine& engine, SS& ss, TS& ts,
                                Player& ref_player ) {
   CHECK( is_ref( ref_player.type ) );
 
@@ -1943,14 +1947,14 @@ wait<> post_colonies_ref_only( SS& ss, TS& ts,
                                 colonial_player_type );
     if( !uprising_colonies.colonies.empty() ) {
       UprisingColony const* uprising_colony =
-          select_uprising_colony( ss.as_const, ts.rand,
+          select_uprising_colony( ss.as_const, engine.rand(),
                                   uprising_colonies );
       if( uprising_colony ) {
         vector<e_unit_type> const unit_types =
             generate_uprising_units(
-                ts.rand, uprising_colony->unit_count );
+                engine.rand(), uprising_colony->unit_count );
         auto const distributed = distribute_uprising_units(
-            ts.rand, *uprising_colony, unit_types );
+            engine.rand(), *uprising_colony, unit_types );
         deploy_uprising_units( ss, ref_player, ts.map_updater(),
                                *uprising_colony, distributed );
         co_await show_uprising_msg( ss.as_const, ts.gui,
@@ -1963,14 +1967,15 @@ wait<> post_colonies_ref_only( SS& ss, TS& ts,
 // Here we do things that must be done once per turn but where we
 // want the colonies to be evolved first. Also, these things are
 // only done for the colonial player (not the REF).
-wait<> post_colonies_colonial_only( SS& ss, TS& ts,
-                                    Player& player ) {
+wait<> post_colonies_colonial_only( IEngine& engine, SS& ss,
+                                    TS& ts, Player& player ) {
   CHECK( !is_ref( player.type ) );
 
   // Founding fathers.
   if( player.revolution.status <
       e_revolution_status::declared ) {
-    co_await pick_founding_father_if_needed( ss, ts, player );
+    co_await pick_founding_father_if_needed(
+        ss, ts.gui, engine.rand(), player );
     maybe<e_founding_father> const new_father =
         check_founding_fathers( ss, player );
     if( new_father.has_value() ) {
@@ -1979,7 +1984,8 @@ wait<> post_colonies_colonial_only( SS& ss, TS& ts,
       // This will affect any one-time changes that the new
       // father causes. E.g. for John Paul Jones it will create
       // the frigate.
-      on_father_received( ss, ts, player, *new_father );
+      on_father_received( ss, ts, engine.rand(), player,
+                          *new_father );
     }
   }
 
@@ -2089,8 +2095,8 @@ wait<> post_colonies_colonial_only( SS& ss, TS& ts,
 // Here we do things that must be done once at the start of each
 // nation's turn but where the player can't save the game until
 // they are complete.
-wait<> player_start_of_turn( SS& ss, TS& ts, Player& player,
-                             IAgent& agent ) {
+wait<> player_start_of_turn( IEngine& engine, SS& ss, TS& ts,
+                             Player& player, IAgent& agent ) {
   recompute_fog_for_all_players( ss, ts );
 
   // Unsentry any units that are directly on the map and which
@@ -2137,8 +2143,8 @@ wait<> player_start_of_turn( SS& ss, TS& ts, Player& player,
       player.revolution.status < e_revolution_status::declared )
     // Check for tax events (typically increases).
     co_await start_of_turn_tax_check(
-        ss, ts.rand, ts.map_updater().connectivity(), player,
-        agent );
+        ss, engine.rand(), ts.map_updater().connectivity(),
+        player, agent );
 
   // TODO:
   //
@@ -2253,14 +2259,17 @@ wait<PlayerTurnState> player_turn_iter(
     CASE( not_started ) {
       base::print_bar( '-',
                        fmt::format( "[ {} ]", player_type ) );
-      co_await player_start_of_turn( ss, ts, player, agent );
+      co_await player_start_of_turn( engine, ss, ts, player,
+                                     agent );
       // Colonies.
       co_await colonies_turn( engine, ss, ts, player );
       co_await post_colonies_common( ss, ts, player );
       if( is_ref( player.type ) )
-        co_await post_colonies_ref_only( ss, ts, player );
+        co_await post_colonies_ref_only( engine, ss, ts,
+                                         player );
       else
-        co_await post_colonies_colonial_only( ss, ts, player );
+        co_await post_colonies_colonial_only( engine, ss, ts,
+                                              player );
       co_return PlayerTurnState::units{};
     }
     CASE( units ) {
@@ -2320,7 +2329,7 @@ wait<> nation_turn( IEngine& engine, SS& ss, TS& ts,
 ** Intervention Force.
 *****************************************************************/
 wait<> do_intervention_force_turn(
-    IEngine&, SS& ss, TS& ts, e_player const player_type,
+    IEngine& engine, SS& ss, TS& ts, e_player const player_type,
     TurnCycle::intervention const& ) {
   UNWRAP_CHECK( player, ss.players.players[player_type] );
   if( !player.revolution.intervention_force_deployed ) {
@@ -2341,7 +2350,8 @@ wait<> do_intervention_force_turn(
     lg.debug( "chose intervention forces: {}", forces );
     if( forces.has_value() ) {
       auto const target = find_intervention_deploy_tile(
-          ss, ts.rand, ts.map_updater().connectivity(), player );
+          ss, engine.rand(), ts.map_updater().connectivity(),
+          player );
       if( target.has_value() ) {
         UnitId const ship_id = deploy_intervention_forces(
             ss, ts, *target, *forces );
@@ -2412,8 +2422,9 @@ wait<TurnCycle> next_turn_iter( IEngine& engine, SS& ss,
     }
     CASE( natives ) {
       recompute_fog_for_all_players( ss, ts );
-      co_await natives_turn( ss, ts, RealRaid( ss, ts ),
-                             RealTribeEvolve( ss, ts ) );
+      co_await natives_turn(
+          engine, ss, ts, RealRaid( ss, ts, engine.rand() ),
+          RealTribeEvolve( ss, engine.rand() ) );
       if( auto const player = find_first_player_to_move( ss );
           player.has_value() )
         co_return TurnCycle::player{ .type = *player };

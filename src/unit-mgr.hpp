@@ -37,13 +37,14 @@ namespace rn {
 
 struct ColoniesState;
 struct IMapUpdater;
+struct IRand;
 struct Player;
 struct SS;
 struct SSConst;
-struct TS;
 struct Tribe;
-struct UnitsState;
+struct TS;
 struct UnitComposition;
+struct UnitsState;
 
 enum class e_native_unit_type;
 enum class e_tribe;
@@ -156,8 +157,8 @@ NativeUnit create_unregistered_unit( e_native_unit_type type );
 // coroutine version, the LCR will be explored and one of the
 // outcomes is that the unit could be lost.
 wait<maybe<UnitId>> create_unit_on_map(
-    SS& ss, TS& ts, Player& player, UnitComposition const& comp,
-    Coord coord );
+    SS& ss, TS& ts, IRand& rand, Player& player,
+    UnitComposition const& comp, Coord coord );
 
 // Note: when calling from a coroutine, call the coroutine ver-
 // sion above since it will run through any UI actions.

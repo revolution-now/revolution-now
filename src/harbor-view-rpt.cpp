@@ -16,11 +16,13 @@
 #include "harbor-view-backdrop.hpp"
 #include "harbor-view-dock.hpp"
 #include "harbor-view-inport.hpp"
+#include "iengine.hpp"
 #include "input.hpp"
 #include "markup.hpp"
 #include "rpt.hpp"
 #include "text.hpp"
 #include "tiles.hpp"
+#include "ts.hpp"
 
 // config
 #include "config/tile-enum.rds.hpp"
@@ -90,13 +92,14 @@ wait<> HarborRptButtons::perform_click(
   SCOPE_EXIT { harbor_dock_units_.update_units(); };
   switch( *button ) {
     case e_rpt_button::recruit:
-      co_await click_recruit( ss_, ts_, player_ );
+      co_await click_recruit( ss_, ts_.gui, engine_.rand(),
+                              player_ );
       break;
     case e_rpt_button::purchase:
-      co_await click_purchase( ss_, ts_, player_ );
+      co_await click_purchase( ss_, ts_.gui, player_ );
       break;
     case e_rpt_button::train:
-      co_await click_train( ss_, ts_, player_ );
+      co_await click_train( ss_, ts_.gui, player_ );
       break;
   }
 }
@@ -115,17 +118,18 @@ wait<bool> HarborRptButtons::perform_key(
   switch( event.keycode ) {
     case ::SDLK_r:
       mouse_hover_.reset();
-      co_await click_recruit( ss_, ts_, player_ );
+      co_await click_recruit( ss_, ts_.gui, engine_.rand(),
+                              player_ );
       harbor_dock_units_.update_units();
       co_return true;
     case ::SDLK_p:
       mouse_hover_.reset();
-      co_await click_purchase( ss_, ts_, player_ );
+      co_await click_purchase( ss_, ts_.gui, player_ );
       harbor_dock_units_.update_units();
       co_return true;
     case ::SDLK_t:
       mouse_hover_.reset();
-      co_await click_train( ss_, ts_, player_ );
+      co_await click_train( ss_, ts_.gui, player_ );
       harbor_dock_units_.update_units();
       co_return true;
   }
@@ -223,13 +227,14 @@ HarborRptButtons::Layout HarborRptButtons::create_layout(
 }
 
 PositionedHarborSubView<HarborRptButtons>
-HarborRptButtons::create( SS& ss, TS& ts, Player& player,
-                          Rect const canvas,
+HarborRptButtons::create( IEngine& engine, SS& ss, TS& ts,
+                          Player& player, Rect const canvas,
                           HarborBackdrop const& backdrop,
                           HarborDockUnits& harbor_dock_units ) {
   Layout layout = create_layout( canvas, backdrop );
   auto view     = make_unique<HarborRptButtons>(
-      ss, ts, player, harbor_dock_units, std::move( layout ) );
+      engine, ss, ts, player, harbor_dock_units,
+      std::move( layout ) );
   HarborSubView* const harbor_sub_view = view.get();
   HarborRptButtons* p_actual           = view.get();
   return PositionedHarborSubView<HarborRptButtons>{
@@ -240,9 +245,9 @@ HarborRptButtons::create( SS& ss, TS& ts, Player& player,
 }
 
 HarborRptButtons::HarborRptButtons(
-    SS& ss, TS& ts, Player& player,
+    IEngine& engine, SS& ss, TS& ts, Player& player,
     HarborDockUnits& harbor_dock_units, Layout layout )
-  : HarborSubView( ss, ts, player ),
+  : HarborSubView( engine, ss, ts, player ),
     harbor_dock_units_( harbor_dock_units ),
     layout_( layout ) {}
 

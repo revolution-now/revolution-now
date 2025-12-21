@@ -19,6 +19,7 @@
 
 namespace rn {
 
+struct IRand;
 struct SS;
 struct TS;
 struct Player;
@@ -39,7 +40,8 @@ struct DockUnitsLayout {
 *****************************************************************/
 struct HarborBackdrop : public ui::View, public HarborSubView {
   static PositionedHarborSubView<HarborBackdrop> create(
-      SS& ss, TS& ts, Player& player, Rect canvas );
+      IEngine& engine, SS& ss, TS& ts, IRand& rand,
+      Player& player, Rect canvas );
 
   // Implement ui::object.
   Delta delta() const override;
@@ -100,11 +102,11 @@ struct HarborBackdrop : public ui::View, public HarborSubView {
   };
 
  public:
-  HarborBackdrop( SS& ss, TS& ts, Player& player, Delta size,
-                  Layout layout );
+  HarborBackdrop( IEngine& engine, SS& ss, TS& ts,
+                  Player& player, Delta size, Layout layout );
 
  private:
-  static Layout recomposite( TS& ts, gfx::size size );
+  static Layout recomposite( IRand& rand, gfx::size size );
 
   static void insert_clouds( Layout& l, gfx::size shift );
 
