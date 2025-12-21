@@ -169,10 +169,10 @@ lua::state& World::lua() {
     uninitialized_lua_ = make_unique<lua::state>();
     lua::state& st     = *uninitialized_lua_;
     // FIXME: need to dedupe this logic.
-    st["ROOT"]  = root();
-    st["SS"]    = ss();
-    st["TS"]    = ts();
-    st["IRand"] = static_cast<IRand&>( rand() );
+    st["ROOT"]        = root();
+    st["SS"]          = ss();
+    st["IMapUpdater"] = map_updater();
+    st["IRand"]       = static_cast<IRand&>( rand() );
   }
   return *uninitialized_lua_;
 }

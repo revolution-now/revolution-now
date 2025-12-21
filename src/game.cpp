@@ -148,40 +148,40 @@ wait<> run_game( IEngine& engine, Planes& planes, IGui& gui,
   ColonyViewer colony_viewer( engine, ss );
   TerrainConnectivity connectivity;
 
-  TS ts( planes, gui, combat, colony_viewer, saved );
-
   NonRenderingMapUpdater non_rendering_map_updater(
       ss, connectivity );
-  auto _1 = ts.set_map_updater( non_rendering_map_updater );
 
   // This is the lua state that will be operative throughout the
   // duration of this particular game.
   lua::state st;
 
-  st["ROOT"]  = ss.root;
-  st["SS"]    = ss;
-  st["TS"]    = ts;
+  st["ROOT"] = ss.root;
+  st["SS"]   = ss;
+  st["IMapUpdater"] =
+      static_cast<IMapUpdater&>( non_rendering_map_updater );
   st["IRand"] = static_cast<IRand&>( engine.rand() );
 
   // Do this after we set globals so that they will be included
   // in the freezing.
   lua_init( st );
 
-  if( !co_await loader( engine, planes, ss, ts.gui, saved, st ) )
+  if( !co_await loader( engine, planes, ss, gui, saved, st ) )
     // Didn't load a game for some reason. Could have failed or
     // maybe there are no games to load.
     co_return;
 
+  TS ts( planes, gui, combat, colony_viewer, saved );
+
   NativeAgents native_agents =
       create_native_agents( ss, engine.rand() );
-  auto _2 = ts.set_native_agents( native_agents );
+  auto _1 = ts.set_native_agents( native_agents );
 
   // This one needs to run after the loader because it needs to
   // know which nations are human.
   Agents agents =
       create_agents( engine, ss, non_rendering_map_updater,
                      planes, gui, engine.rand() );
-  auto _3 = ts.set_agents( agents );
+  auto _2 = ts.set_agents( agents );
 
   rr::Renderer& renderer =
       engine.renderer_use_only_when_needed();
@@ -193,7 +193,7 @@ wait<> run_game( IEngine& engine, Planes& planes, IGui& gui,
             ss.settings.in_game_options.game_menu_options
                 [e_game_menu_option::show_fog_of_war] } );
 
-  auto _4 = ts.set_map_updater( map_updater );
+  auto _3 = ts.set_map_updater( map_updater );
 
   // This has likely already been done as a part of game set up
   // (e.g. initial unit placement), but let's just make sure it

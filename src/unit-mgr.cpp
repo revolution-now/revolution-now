@@ -503,13 +503,14 @@ namespace {
 
 LUA_FN( create_unit_on_map, Unit&, e_player const player_type,
         UnitComposition& comp, Coord const& coord ) {
-  SS& ss                      = st["SS"].as<SS&>();
-  TS& ts                      = st["TS"].as<TS&>();
+  SS& ss = st["SS"].as<SS&>();
+  IMapUpdater& map_updater =
+      st["IMapUpdater"].as<IMapUpdater&>();
   maybe<Player const&> player = ss.players.players[player_type];
   LUA_CHECK( st, player.has_value(),
              "player for player {} does not exist.", player );
   UnitId id = create_unit_on_map_non_interactive(
-      ss, ts.map_updater(), *player, comp, coord );
+      ss, map_updater, *player, comp, coord );
   lg.trace( "created a {} on square {}.",
             unit_attr( comp.type() ).name, coord );
   return ss.units.unit_for( id );

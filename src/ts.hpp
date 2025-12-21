@@ -12,8 +12,11 @@
 
 #include "core-config.hpp"
 
-// luapp
-#include "luapp/ext-userdata.hpp"
+// base
+#include "base/error.hpp"
+
+// C++ standard library
+#include <utility>
 
 namespace rn {
 
@@ -62,7 +65,7 @@ struct TS {
   TS( Planes& planes, IGui& gui_, ICombat& combat,
       IColonyViewer& colony_viewer, RootState& saved );
 
-  ~TS();
+  ~TS() = default;
 
   TS( TS&& ) = delete;
 
@@ -91,10 +94,3 @@ void to_str( TS const& o, std::string& out, base::tag<TS> );
 } // namespace rn
 
 #undef TS_FIELD
-
-/****************************************************************
-** Lua
-*****************************************************************/
-namespace lua {
-LUA_USERDATA_TRAITS( ::rn::TS, owned_by_cpp ){};
-}

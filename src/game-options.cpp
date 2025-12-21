@@ -186,13 +186,14 @@ LUA_FN( get_flag, bool, e_game_menu_option flag ) {
 
 LUA_FN( set_flag, void, e_game_menu_option option, bool value ) {
   SS& ss = st["SS"].as<SS&>();
-  TS& ts = st["TS"].as<TS&>();
+  IMapUpdater& map_updater =
+      st["IMapUpdater"].as<IMapUpdater&>();
 
   ss.settings.in_game_options.game_menu_options[option] = value;
   if( value )
-    on_option_enabled( ts.map_updater(), option );
+    on_option_enabled( map_updater, option );
   else
-    on_option_disabled( ts.map_updater(), option );
+    on_option_disabled( map_updater, option );
 };
 
 } // namespace
