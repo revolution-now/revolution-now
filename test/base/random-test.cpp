@@ -24,6 +24,20 @@ using namespace std;
 /****************************************************************
 ** Test Cases
 *****************************************************************/
+TEST_CASE( "[base/random] reseed" ) {
+  random r;
+
+  r.reseed( 42 );
+  int const n1 = r.uniform( 0, 1000 );
+  r.reseed( 42 );
+  int const n2 = r.uniform( 0, 1000 );
+  r.reseed( 42 );
+  int const n3 = r.uniform( 0, 1000 );
+
+  REQUIRE( n1 == n2 );
+  REQUIRE( n2 == n3 );
+}
+
 TEST_CASE( "[base/random] pick_one_safe" ) {
   random r;
 

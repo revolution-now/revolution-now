@@ -27,27 +27,28 @@ namespace base {
 struct random {
   random() : engine_( std::random_device{}() ) {}
 
-  random( uint32_t seed ) : engine_( seed ) {}
+  random( uint32_t const seed ) : engine_( seed ) {}
 
   template<typename RandomDevice>
   random( RandomDevice&& device )
     : engine_( std::forward<RandomDevice>( device )() ) {}
 
-  bool bernoulli( double p );
+  void reseed( uint32_t new_seed );
+
+  // Biased coin flip.
+  [[nodiscard]] bool bernoulli( double p );
 
   // Closed on both ends.
-  int uniform( int lower, int upper );
+  [[nodiscard]] int uniform( int lower, int upper );
 
   // Closed on both ends.
-  double uniform( double lower, double upper );
+  [[nodiscard]] double uniform( double lower, double upper );
 
   template<typename T>
   maybe<T const&> pick_one_safe(
       std::vector<T> const& v ATTR_LIFETIMEBOUND ) {
     if( v.empty() ) return nothing;
-    std::uniform_int_distribution<int> uniform_dist(
-        0, v.size() - 1 );
-    return v[uniform_dist( engine_ )];
+    return v[uniform( 0, v.size() - 1 )];
   }
 
   template<typename T>
@@ -58,7 +59,15 @@ struct random {
   }
 
  private:
-  std::default_random_engine engine_;
+  // It seems the default engine (linear congruential) does not
+  // produce high-enough quality results. Given that there has
+  // always been so much talk about issues with the random number
+  // generator in the OG, we definitely don't want to risk any
+  // issues there in the NG, and this Mersenne Twister should
+  // guarantee that.
+  using engine_t = std::mt19937;
+
+  engine_t engine_;
 };
 
 } // namespace base
