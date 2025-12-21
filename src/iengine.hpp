@@ -35,6 +35,7 @@ struct Resolutions;
 
 namespace rn {
 
+struct IRand;
 struct IUserConfig;
 
 /****************************************************************
@@ -60,6 +61,8 @@ struct IEngine {
   virtual gfx::Resolutions& resolutions() = 0;
 
   virtual rr::ITextometer& textometer() = 0;
+
+  virtual IRand& rand() = 0;
 
   // Will pause the entire engine and block until the pause key
   // is pressed. In the meantime, the window title bar will say

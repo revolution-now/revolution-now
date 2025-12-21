@@ -203,8 +203,12 @@ MockIColonyViewer& World::colony_viewer() {
 }
 
 MockIEngine& World::engine() {
-  if( uninitialized_engine_ == nullptr )
+  if( uninitialized_engine_ == nullptr ) {
     uninitialized_engine_ = make_unique<MockIEngine>();
+    // NOTE: this way we don't have to do this in every test.
+    uninitialized_engine_->EXPECT__rand().by_default().returns(
+        rand() );
+  }
   return *uninitialized_engine_;
 }
 

@@ -18,6 +18,7 @@
 #include "midiplayer.hpp"
 #include "midiseq.hpp"
 #include "oggplayer.hpp"
+#include "rand.hpp"
 #include "screen.hpp"
 #include "tiles.hpp"
 #include "user-config.hpp"
@@ -147,6 +148,19 @@ struct Engine::Impl {
     CHECK( user_config_ );
     return *user_config_;
   }
+
+  // ============================================================
+  // Random engine.
+  // ============================================================
+  void init_rand() {
+    // NOTE: the underlying random generator should be automati-
+    // cally seeded from some entropy source so there is no need
+    // to seed it here.
+  }
+
+  void deinit_rand() {}
+
+  IRand& rand() { return rand_; }
 
   // ============================================================
   // SDL Base
@@ -473,6 +487,7 @@ struct Engine::Impl {
   maybe<gl::InitResult> gl_iface_;
   unique_ptr<sfx::SfxSDL> sfx_;
   unique_ptr<rr::Textometer> textometer_;
+  Rand rand_;
 };
 
 /****************************************************************
@@ -494,6 +509,7 @@ void Engine::init( e_engine_mode const mode ) {
     case e_engine_mode::game: {
       impl().init_configs();
       impl().init_user_config();
+      impl().init_rand();
       impl().init_sdl_base();
       impl().init_input();
       impl().init_video();
@@ -520,6 +536,7 @@ void Engine::init( e_engine_mode const mode ) {
     case e_engine_mode::map_editor: {
       impl().init_configs();
       impl().init_user_config();
+      impl().init_rand();
       impl().init_sdl_base();
       impl().init_input();
       impl().init_video();
@@ -533,6 +550,7 @@ void Engine::init( e_engine_mode const mode ) {
     case e_engine_mode::ui_test: {
       impl().init_configs();
       impl().init_user_config();
+      impl().init_rand();
       impl().init_sdl_base();
       impl().init_input();
       impl().init_video();
@@ -566,6 +584,7 @@ void Engine::deinit() {
   impl().deinit_video();
   impl().deinit_input();
   impl().deinit_sdl_base();
+  impl().deinit_rand();
   impl().deinit_user_config();
   impl().deinit_configs();
 }
@@ -597,6 +616,8 @@ gfx::Resolutions& Engine::resolutions() {
 rr::ITextometer& Engine::textometer() {
   return impl().textometer();
 }
+
+IRand& Engine::rand() { return impl().rand(); }
 
 void Engine::pause() { impl().pause(); }
 

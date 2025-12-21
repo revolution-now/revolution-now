@@ -49,6 +49,8 @@ struct Engine : IEngine {
 
   rr::ITextometer& textometer() override;
 
+  IRand& rand() override;
+
   void pause() override;
 
  private:
