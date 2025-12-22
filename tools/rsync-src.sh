@@ -45,7 +45,7 @@ sync_file() {
 
 sync_dir() {
   local rel="$1"
-  echo "Are you sure you want to the folder $rel? <Ctrl-c> to cancel."
+  echo "Are you sure you want to rsync the folder $rel? <Ctrl-c> to cancel."
   read
   [[ -n "$rel" ]]
   local local_dir="$rel/"
