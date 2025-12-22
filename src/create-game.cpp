@@ -205,10 +205,6 @@ valid_or<string> load_map_from_file(
         case e_map_file_format::json:
           return "modern json map format not yet supported.";
       }
-      // TODO: the modern format maps will have prime resources
-      // and LCRs builtin to the map. So we should probably scan
-      // the map to see if it has any of those and, if not, then
-      // distribute them, otherwise just keep what is there.
       break;
     }
   }
