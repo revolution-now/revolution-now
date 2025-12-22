@@ -5,7 +5,8 @@
 #
 # Created by David P. Sicilia on 2025-12-20.
 #
-# Description: Rds definitions for the game-setup module.
+# Description: Data representation of the information needed to
+#              define a new game.
 #
 # ===============================================================
 # config
@@ -153,13 +154,49 @@ struct.GeneratedTerrainSetup {
   lcr 'LcrSetup',
 }
 
-sumtype.MapSetup {
+enum.e_map_file_epoch {
+  classic,
+  modern,
+}
+
+enum.e_map_file_format {
+  binary,
+  json,
+  rcl,
+}
+
+enum.e_map_file_contents {
+  map_only,
+  full_save,
+}
+
+struct.MapFileType {
+  epoch 'e_map_file_epoch',
+  format 'e_map_file_format',
+  contents 'e_map_file_contents',
+}
+
+sumtype.MapSource {
   load_from_file {
     path 'std::string',
+    type 'MapFileType',
+    convert_islands_to_mountains 'bool',
   },
   generate {
     terrain 'GeneratedTerrainSetup',
   },
+}
+
+struct.MapSetup {
+  source 'MapSource',
+  # If we need to generate prime resources/LCRs (typically we
+  # will, unless we happen to be loading a modern map that al-
+  # ready contains them) then this seed will be used, if provided
+  # (mod 256). If this is needed but is not specified then a
+  # random one will be chosen. If we are using the classic dis-
+  # tribution algo then this corresponds to the exact
+  # prime_resource_seed in the OG sav file.
+  bonuses_seed 'base::maybe<int>',
 }
 
 struct.RulesSetup {

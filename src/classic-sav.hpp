@@ -21,7 +21,7 @@ namespace rn {
 
 struct RealTerrain;
 
-base::valid_or<std::string> load_classic_map_file(
+base::valid_or<std::string> load_classic_binary_map_file(
     std::string const& path, RealTerrain& real_terrain );
 
 } // namespace rn

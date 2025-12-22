@@ -18,6 +18,7 @@ namespace rn {
 /****************************************************************
 ** Fwd. Decls.
 *****************************************************************/
+struct RealTerrain;
 struct SSConst;
 
 /****************************************************************
@@ -26,7 +27,13 @@ struct SSConst;
 [[nodiscard]] int num_surrounding_land_tiles( SSConst const& ss,
                                               gfx::point tile );
 
+[[nodiscard]] int num_surrounding_land_tiles(
+    RealTerrain const& terrain, gfx::point tile );
+
 [[nodiscard]] bool is_island( SSConst const& ss,
+                              gfx::point tile );
+
+[[nodiscard]] bool is_island( RealTerrain const& terrain,
                               gfx::point tile );
 
 } // namespace rn

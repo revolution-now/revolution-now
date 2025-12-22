@@ -42,7 +42,7 @@ struct rect_iterator {
   rect r_;
 
  public:
-  rect_iterator( rect r ) : r_( r ) {}
+  rect_iterator( rect const r ) : r_( r ) {}
 
   // Iteration begins at the upper-left corner of the rect, and
   // it will yields coordinates for each point such that x <

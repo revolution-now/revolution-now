@@ -28,7 +28,6 @@ local function global( name )
                      'global name %s not found', name ) )
 end
 
-local classic_sav = global( 'classic_sav' )
 local config = global( 'config' )
 local unit_mgr = global( 'unit_mgr' )
 local native_expertise = global( 'native_expertise' )
@@ -40,8 +39,6 @@ local min = math.min
 local max = math.max
 local ceil = math.ceil
 local format = string.format
-
-local import_map_file = classic_sav.import_map_file
 
 local unordered_pairs = pairs
 
@@ -1154,9 +1151,10 @@ function M.distribute_bonuses( seed )
     seed = math.random( 0, 256 )
     ROOT.terrain:set_placement_seed( seed )
   end
+  seed = seed % 256 -- this is only one byte in the OG.
   -- The OG uses the same seed for all of these, and it matters
-  -- because we need to be able to exactly regenerate the dis-
-  -- tributes of both of these so that we can load the OG's saved
+  -- because we need to be able to exactly regenerate the distri-
+  -- butions of both of these so that we can load the OG's saved
   -- games, and since we've replicated the distribution algos, we
   -- need to replicate the seeds used as well. Also note that the
   -- forest distribution algo assumes that we will use the same
@@ -1707,23 +1705,7 @@ local function generate( options )
 
   M.generate_proto_squares()
 
-  if options.type == 'america' then
-    -- TODO: the OG seems hard-coded to detect when a file named
-    -- AMER2.MP is loaded and it will place a mountain on the
-    -- one-tile island off of the tip of South America, likely to
-    -- prevent founding a colony there (which would allow cheat-
-    -- ing). We should add a function in this module to scan for
-    -- islands and put mountains on them. During normal map gen-
-    -- eration (as in the OG) one-tile islands are removed alto-
-    -- gether, so we don't have to worry about. However, the OG's
-    -- America map does have an island on it, and we want to
-    -- replicate that.
-    import_map_file( 'test/data/saves/classic/map/AMER2.MP' )
-    M.distribute_bonuses()
-    M.create_pacific_ocean()
-    M.create_indian_villages( options )
-    return
-  elseif options.type == 'land-partition' then
+  if options.type == 'land-partition' then
     M.generate_land( options )
     M.regenerate_native_land_partitions( true )
     return

@@ -22,10 +22,6 @@
 // ss
 #include "ss/terrain.hpp"
 
-// luapp
-#include "luapp/register.hpp"
-#include "luapp/state.hpp"
-
 using namespace std;
 
 namespace rn {
@@ -40,7 +36,7 @@ using ::base::valid_or;
 /****************************************************************
 ** Public API.
 *****************************************************************/
-valid_or<string> load_classic_map_file(
+valid_or<string> load_classic_binary_map_file(
     std::string const& path, RealTerrain& real_terrain ) {
   sav::MapFile map_file;
   CHECK_HAS_VALUE( sav::load_map_file( path, map_file ) );
@@ -48,29 +44,5 @@ valid_or<string> load_classic_map_file(
       bridge::convert_map_to_ng( map_file, real_terrain ) );
   return valid;
 }
-
-/****************************************************************
-** Lua.
-*****************************************************************/
-namespace {
-
-LUA_FN( import_map_file, void, std::string const& path ) {
-  IMapUpdater& map_updater =
-      st["IMapUpdater"].as<IMapUpdater&>();
-
-  map_updater.modify_entire_map_no_redraw(
-      [&]( RealTerrain& real_terrain ) {
-        valid_or<string> const success =
-            load_classic_map_file( path, real_terrain );
-        LUA_CHECK( st, success.valid(),
-                   "failed to load map file: {}",
-                   success.error() );
-      } );
-}
-
-} // namespace
-
-void linker_dont_discard_module_classic_sav();
-void linker_dont_discard_module_classic_sav() {}
 
 } // namespace rn

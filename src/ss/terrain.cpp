@@ -84,7 +84,11 @@ TerrainState::TerrainState()
 }
 
 gfx::Matrix<MapSquare> const& TerrainState::world_map() const {
-  return o_.real_terrain.map;
+  return real_terrain().map;
+}
+
+RealTerrain const& TerrainState::real_terrain() const {
+  return o_.real_terrain;
 }
 
 void TerrainState::modify_entire_map(

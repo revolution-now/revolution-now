@@ -11,7 +11,9 @@
 #include "create-game.hpp"
 
 // Revolution Now
+#include "classic-sav.hpp"
 #include "co-wait.hpp"
+#include "terrain-mgr.hpp"
 
 // config
 #include "config/turn.rds.hpp"
@@ -27,6 +29,9 @@
 // luapp
 #include "luapp/enum.hpp"
 
+// gfx
+#include "gfx/iter.hpp"
+
 // refl
 #include "refl/to-str.hpp"
 
@@ -39,15 +44,55 @@ namespace {
 
 using namespace std;
 
-using ::base::NoDiscard;
+using ::base::valid;
+using ::base::valid_or;
+using ::gfx::point;
+using ::gfx::rect_iterator;
+using ::refl::enum_values;
 
-[[nodiscard]] bool generated_terrain_setup_perlin(
-    GeneratedTerrainSetup const&,
-    LandGeneratorAlgorithm::perlin const& ) {
-  NOT_IMPLEMENTED;
+[[nodiscard]] bool has_bonuses( RealTerrain const& terrain ) {
+  for( point const p : rect_iterator( terrain.map.rect() ) ) {
+    MapSquare const& square = terrain.map[p];
+    if( square.ground_resource.has_value() ) return true;
+    if( square.forest_resource.has_value() ) return true;
+    if( square.lost_city_rumor ) return true;
+  }
+  return false;
 }
 
-[[nodiscard]] bool generated_terrain_setup_seeded_organic(
+void generate_proto_tiles( RootState& root ) {
+  auto const set_arctic = []( MapSquare& square ) {
+    square         = {};
+    square.surface = e_surface::land;
+    square.ground  = e_ground_terrain::arctic;
+  };
+  auto const set_sea_lane = []( MapSquare& square ) {
+    square          = {};
+    square.surface  = e_surface::water;
+    square.sea_lane = true;
+  };
+  {
+    using enum e_cardinal_direction;
+    set_arctic( root.zzz_terrain.mutable_proto_square( n ) );
+    set_arctic( root.zzz_terrain.mutable_proto_square( s ) );
+    set_sea_lane( root.zzz_terrain.mutable_proto_square( e ) );
+    set_sea_lane( root.zzz_terrain.mutable_proto_square( w ) );
+  }
+}
+
+void convert_islands_to_mountains( RealTerrain& out ) {
+  for( point const p : rect_iterator( out.map.rect() ) )
+    if( is_island( as_const( out ), p ) )
+      out.map[p].overlay = e_land_overlay::mountains;
+}
+
+valid_or<string> generated_terrain_setup_perlin(
+    GeneratedTerrainSetup const&,
+    LandGeneratorAlgorithm::perlin const& ) {
+  return "Perlin noise map generator not yet supported.";
+}
+
+valid_or<string> generated_terrain_setup_seeded_organic(
     lua::state& lua, GeneratedTerrainSetup const& setup,
     LandGeneratorAlgorithm::seeded_organic const&
         seeded_organic_setup ) {
@@ -101,10 +146,10 @@ using ::base::NoDiscard;
   // ------------------------------------------------------------
   M["create_pacific_ocean"]();
 
-  return true;
+  return valid;
 }
 
-wait_bool generated_terrain_setup(
+valid_or<string> generated_terrain_setup(
     TerrainState& terrain, IRand&, lua::state& lua,
     GeneratedTerrainSetup const& setup ) {
   CHECK( setup.size.area() > 0, "map has zero tiles" );
@@ -113,13 +158,98 @@ wait_bool generated_terrain_setup(
   } );
   SWITCH( setup.land_generator.generator_algo ) {
     CASE( perlin ) {
-      co_return generated_terrain_setup_perlin( setup, perlin );
+      return generated_terrain_setup_perlin( setup, perlin );
     }
     CASE( seeded_organic ) {
-      co_return generated_terrain_setup_seeded_organic(
+      return generated_terrain_setup_seeded_organic(
           lua, setup, seeded_organic );
     }
   }
+}
+
+valid_or<string> load_map_from_file(
+    MapSetup const& setup,
+    MapSource::load_from_file const& load_from_file,
+    lua::state& lua, RootState& root ) {
+  auto const load_terrain = [&]( RealTerrain&& src ) {
+    root.zzz_terrain.modify_entire_map(
+        [&]( RealTerrain& out ) { out = std::move( src ); } );
+  };
+
+  // Load the map.
+  switch( load_from_file.type.epoch ) {
+    case e_map_file_epoch::classic: {
+      switch( load_from_file.type.format ) {
+        case e_map_file_format::binary: {
+          RealTerrain loaded;
+          GOOD_OR_RETURN( load_classic_binary_map_file(
+              load_from_file.path, loaded ) );
+          load_terrain( std::move( loaded ) );
+          break;
+        }
+        case e_map_file_format::json:
+          return "classic json map format not yet "
+                 "supported.";
+        case e_map_file_format::rcl:
+          return "classic rcl map format not yet supported.";
+      }
+      break;
+    }
+    case e_map_file_epoch::modern: {
+      switch( load_from_file.type.format ) {
+        case e_map_file_format::rcl:
+          return "modern rcl map format not yet supported.";
+        case e_map_file_format::binary:
+          return "modern binary map format not yet "
+                 "supported.";
+        case e_map_file_format::json:
+          return "modern json map format not yet supported.";
+      }
+      // TODO: the modern format maps will have prime resources
+      // and LCRs builtin to the map. So we should probably scan
+      // the map to see if it has any of those and, if not, then
+      // distribute them, otherwise just keep what is there.
+      break;
+    }
+  }
+
+  // Set proto tiles.
+  generate_proto_tiles( root );
+
+  if( load_from_file.convert_islands_to_mountains )
+    root.zzz_terrain.modify_entire_map( [&]( RealTerrain& out ) {
+      convert_islands_to_mountains( out );
+    } );
+
+  // Generate prime resources if needed.
+  //
+  // Depending on which map type we've loaded above, there may or
+  // may not already be bonuses distributed there. For the
+  // classic maps there will not be, and for the modern maps
+  // there may be, though there may not be. So in either case we
+  // will search the map to see if there are any bonuses and if
+  // so we will leave them as they are, otherwise we will redis-
+  // tribute them. Classic maps do not have prime resources and
+  // LCRs builtin, thus we need to distribute them here.
+  //
+  // NOTE: we need to do this after mountainizing islands because
+  // putting mountains on a tile affects which prime resource it
+  // gets. Actually this is irrelevant in a sense because since
+  // it has mountains on it, the tile will not be eligible as a
+  // colony site and therefore no colony will be able to mine
+  // that tile. That said, it will look incorrect if we e.g. put
+  // a cotton resource on a mountain tile just from a visual
+  // standpoint.
+  if( !has_bonuses( root.zzz_terrain.real_terrain() ) ) {
+    auto const distribute_bonuses =
+        lua["map_gen"]["distribute_bonuses"];
+    if( setup.bonuses_seed.has_value() )
+      distribute_bonuses( *setup.bonuses_seed );
+    else
+      distribute_bonuses();
+  }
+
+  return valid;
 }
 
 } // namespace
@@ -130,9 +260,9 @@ wait_bool generated_terrain_setup(
 // NOTE: we visit each section in reverse order that it appears
 // in the struct, since some of the earlier ones depend on the
 // later ones.
-wait_bool create_game_from_setup( SS& ss, IRand& rand,
-                                  lua::state& lua,
-                                  GameSetup const& setup ) {
+valid_or<string> create_game_from_setup(
+    SS& ss, IRand& rand, lua::state& lua,
+    GameSetup const& setup ) {
   RootState& root = ss.root;
 
   // SettingsState state.
@@ -152,13 +282,16 @@ wait_bool create_game_from_setup( SS& ss, IRand& rand,
   // Map.
   // ------------------------------------------------------------
   lg.info( "game setup: generating map..." );
-  SWITCH( setup.map ) {
-    CASE( load_from_file ) { NOT_IMPLEMENTED; }
+  SWITCH( setup.map.source ) {
+    CASE( load_from_file ) {
+      GOOD_OR_RETURN( load_map_from_file(
+          setup.map, load_from_file, lua, root ) );
+      break;
+    }
     CASE( generate ) {
-      if( !co_await generated_terrain_setup(
-              ss.mutable_terrain_use_with_care, rand, lua,
-              generate.terrain ) )
-        co_return false;
+      GOOD_OR_RETURN( generated_terrain_setup(
+          ss.mutable_terrain_use_with_care, rand, lua,
+          generate.terrain ) );
       break;
     }
   }
@@ -215,7 +348,7 @@ wait_bool create_game_from_setup( SS& ss, IRand& rand,
   lg.info( "game setup: generating map view state..." );
   lua["new_game"]["create_mapview_state"]( player_options );
 
-  co_return true;
+  return valid;
 }
 
 } // namespace rn

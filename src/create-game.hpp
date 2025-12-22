@@ -12,7 +12,9 @@
 
 // Revolution Now
 #include "game-setup.rds.hpp"
-#include "wait.hpp"
+
+// base
+#include "base/valid.hpp"
 
 namespace rn {
 
@@ -25,8 +27,8 @@ struct SS;
 /****************************************************************
 ** Public API.
 *****************************************************************/
-wait_bool create_game_from_setup( SS& ss, IRand& rand,
-                                  lua::state& lua,
-                                  GameSetup const& setup );
+base::valid_or<std::string> create_game_from_setup(
+    SS& ss, IRand& rand, lua::state& lua,
+    GameSetup const& setup );
 
 } // namespace rn

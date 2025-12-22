@@ -13,6 +13,7 @@
 // Revolution Now
 #include "co-wait.hpp"
 #include "difficulty-screen.hpp"
+#include "game-setup.rds.hpp"
 #include "igui.hpp"
 #include "irand.hpp"
 
@@ -109,39 +110,46 @@ wait<maybe<GameSetup>> create_default_game_setup(
   };
   auto const& map_conf = config_map_gen.land_generation;
 
-  setup.map = MapSetup::generate{
-    .terrain = GeneratedTerrainSetup{
-      .size = { .w = 56, .h = 70 },
-      .land_generator =
-          LandGeneratorSetup{
-            .seed = 0,
-            .target_density =
-                select_landmass( rand, kLandMassWeights ),
-            .remove_Xs_probability = 0.8,
-            .generator_algo =
-                LandGeneratorAlgorithm::seeded_organic{
-                  .brush = e_land_brush_type::mixed,
-                },
-          },
-      .temperature =
-          rand.pick_from_weighted_values( kTemperatureWeights ),
-      .climate =
-          rand.pick_from_weighted_values( kClimateWeights ),
-      .add_arctic_tiles = map_conf.add_arctic_tiles,
-      .arctic_tile_density =
-          map_conf.arctic_tile_density.fraction,
-      .river_density = map_conf.river_density.fraction,
-      .major_river_fraction =
-          map_conf.major_river_fraction.fraction,
-      .forest_density   = map_conf.forest_density.fraction,
-      .mountain_density = map_conf.mountain_density.fraction,
-      .mountain_range_probability =
-          map_conf.mountain_range_probability.probability,
-      .hills_density = map_conf.hills_density.fraction,
-      .hills_range_probability =
-          map_conf.hills_range_probability.probability,
-      .prime_resources = PrimeResourceSetup::classic{},
-      .lcr             = LcrSetup::classic{} } };
+  setup.map = MapSetup{
+    .source =
+        MapSource::generate{
+          .terrain =
+              GeneratedTerrainSetup{
+                .size = { .w = 56, .h = 70 },
+                .land_generator =
+                    LandGeneratorSetup{
+                      .seed           = 0,
+                      .target_density = select_landmass(
+                          rand, kLandMassWeights ),
+                      .remove_Xs_probability = 0.8,
+                      .generator_algo =
+                          LandGeneratorAlgorithm::seeded_organic{
+                            .brush = e_land_brush_type::mixed,
+                          },
+                    },
+                .temperature = rand.pick_from_weighted_values(
+                    kTemperatureWeights ),
+                .climate = rand.pick_from_weighted_values(
+                    kClimateWeights ),
+                .add_arctic_tiles = map_conf.add_arctic_tiles,
+                .arctic_tile_density =
+                    map_conf.arctic_tile_density.fraction,
+                .river_density = map_conf.river_density.fraction,
+                .major_river_fraction =
+                    map_conf.major_river_fraction.fraction,
+                .forest_density =
+                    map_conf.forest_density.fraction,
+                .mountain_density =
+                    map_conf.mountain_density.fraction,
+                .mountain_range_probability =
+                    map_conf.mountain_range_probability
+                        .probability,
+                .hills_density = map_conf.hills_density.fraction,
+                .hills_range_probability =
+                    map_conf.hills_range_probability.probability,
+                .prime_resources = PrimeResourceSetup::classic{},
+                .lcr             = LcrSetup::classic{} } },
+    .bonuses_seed = nothing };
 
   // category: natives
   // ------------------------------------------------------------
@@ -174,13 +182,34 @@ wait<maybe<GameSetup>> create_default_game_setup(
   co_return setup;
 }
 
-wait<maybe<GameSetup>> create_america_game_setup( IEngine&,
-                                                  Planes&, IGui&,
-                                                  IRand&,
-                                                  lua::state& ) {
+wait<maybe<GameSetup>> create_america_game_setup(
+    IEngine& engine, Planes& planes, IGui& gui, IRand& rand,
+    lua::state& lua ) {
   maybe<GameSetup> setup;
-  // TODO
-  NOT_IMPLEMENTED;
+  setup = co_await create_default_game_setup( engine, planes,
+                                              gui, rand, lua );
+  if( !setup.has_value() ) co_return setup;
+  setup->map = MapSetup{
+    .source =
+        MapSource::load_from_file{
+          // TODO: get this via a file selection dialog, and then
+          // potentially cache it in the user settings.
+          .path = "test/data/saves/classic/map/AMER2.MP",
+          .type = { .epoch    = e_map_file_epoch::classic,
+                    .format   = e_map_file_format::binary,
+                    .contents = e_map_file_contents::map_only },
+          // The OG seems hard-coded to detect when a file named
+          // AMER2.MP is loaded and it will place a mountain on
+          // all of the islands on the map (there appear to be
+          // three of them), likely to prevent founding a colony
+          // there which would allow cheating in a sense.
+          .convert_islands_to_mountains = true,
+        },
+    .bonuses_seed = nothing,
+  };
+
+  // TODO: see if we need to override any settings related to the
+  // natives, such as dwelling frequency.
   co_return setup;
 }
 

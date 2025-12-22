@@ -87,8 +87,16 @@ wait_bool create_from_setup( SS& ss, IGui& gui, IRand& rand,
   wait<> const generating_msg = persistent_msg_box(
       gui, "Generating game... please wait." );
   co_await 1_frames;
-  if( !co_await create_game_from_setup( ss, rand, lua, setup ) )
+  // TODO: we could consider putting the below function in a
+  // sandbox of some kind and then running it in its own thread
+  // so that we don't block the main thread.
+  if( auto const ok =
+          create_game_from_setup( ss, rand, lua, setup );
+      !ok ) {
+    co_await gui.message_box( "Failed to create game: {}",
+                              ok.error() );
     co_return false;
+  }
   // NOTE: this takes ~100-200ms for a normal map size on a
   // fast machine.
   CHECK_HAS_VALUE( ss.as_const.validate_full_game_state() );

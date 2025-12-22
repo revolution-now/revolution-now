@@ -1,3 +1,7 @@
+TODO:
+
+  * Need to figure out how settings are chosen when the player
+    just selects "Start Game in NEW WORLD".
 
 Land Mass:
 

@@ -43,7 +43,7 @@ fs::path classic_map_dir() { return classic_sav_dir() / "map"; }
 /****************************************************************
 ** Test Cases
 *****************************************************************/
-TEST_CASE( "[classic-sav] load_classic_map_file" ) {
+TEST_CASE( "[classic-sav] load_classic_binary_map_file" ) {
   Coord coord;
   MapSquare expected;
   fs::path input;
@@ -63,7 +63,7 @@ TEST_CASE( "[classic-sav] load_classic_map_file" ) {
   }
 
   RealTerrain real_terrain;
-  REQUIRE( load_classic_map_file( input, real_terrain ) ==
+  REQUIRE( load_classic_binary_map_file( input, real_terrain ) ==
            valid );
 
   coord    = { .x = 0, .y = 0 };
