@@ -1,17 +1,17 @@
 /****************************************************************
-**customize.hpp
+**create-game.hpp
 *
 * Project: Revolution Now
 *
 * Created by David P. Sicilia on 2025-12-20.
 *
-* Description: Creates UI sequences used to customize the game.
+* Description: Creates UI sequences used to create-game the game.
 *
 *****************************************************************/
 #pragma once
 
 // rds
-#include "customize.rds.hpp"
+#include "create-game.rds.hpp"
 
 // Revolution Now
 #include "game-setup.rds.hpp"

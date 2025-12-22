@@ -1,17 +1,17 @@
 /****************************************************************
-**customize-test.cpp
+**create-game-test.cpp
 *
 * Project: Revolution Now
 *
 * Created by David P. Sicilia on 2025-12-20.
 *
-* Description: Unit tests for the customize module.
+* Description: Unit tests for the create-game module.
 *
 *****************************************************************/
 #include "test/testing.hpp"
 
 // Under test.
-#include "src/customize.hpp"
+#include "src/create-game.hpp"
 
 // Testing.
 #include "test/fake/world.hpp"
@@ -60,15 +60,15 @@ struct world : testing::World {
 /****************************************************************
 ** Test Cases
 *****************************************************************/
-TEST_CASE( "[customize] create_default_game_setup" ) {
+TEST_CASE( "[create-game] create_default_game_setup" ) {
   world w;
 }
 
-TEST_CASE( "[customize] create_america_game_setup" ) {
+TEST_CASE( "[create-game] create_america_game_setup" ) {
   world w;
 }
 
-TEST_CASE( "[customize] create_customized_game_setup" ) {
+TEST_CASE( "[create-game] create_customized_game_setup" ) {
   world w;
 }
 

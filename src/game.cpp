@@ -19,7 +19,7 @@
 #include "combat.hpp"
 #include "connectivity.hpp"
 #include "console.hpp"
-#include "customize.hpp"
+#include "create-game.hpp"
 #include "difficulty-screen.hpp"
 #include "frame-count.hpp" // FIXME
 #include "game-setup.hpp"

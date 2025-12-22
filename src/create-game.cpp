@@ -1,14 +1,14 @@
 /****************************************************************
-**customize.cpp
+**create-game.cpp
 *
 * Project: Revolution Now
 *
 * Created by David P. Sicilia on 2025-12-20.
 *
-* Description: Creates UI sequences used to customize the game.
+* Description: Creates UI sequences used to create-game the game.
 *
 *****************************************************************/
-#include "customize.hpp"
+#include "create-game.hpp"
 
 // Revolution Now
 #include "co-wait.hpp"
