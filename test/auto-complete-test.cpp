@@ -361,8 +361,13 @@ LUA_TEST_CASE(
   lua::state& st = w.lua();
 
   auto const autocomplete =
-      [&] [[clang::noinline]] ( string_view in ) {
+      [&] [[clang::noinline]] ( string_view const in ) {
         return rn::autocomplete( st, in );
+      };
+
+  auto const autocomplete_iterative =
+      [&] [[clang::noinline]] ( string_view const in ) {
+        return rn::autocomplete_iterative( st, in );
       };
 
   auto const empty = vector<string>{};
@@ -409,6 +414,15 @@ LUA_TEST_CASE(
 
   in = "ROOT.colonies:colony_for_id(";
   REQUIRE_THAT( autocomplete( in ), Equals( empty ) );
+
+  // This next bit tests a crash that was observed on 2025-12-21.
+  st.script.run( "s = ROOT.zzz_terrain:square_at{ x=1, y=1 }" );
+  in  = "s.forest_resource";
+  out = { "s.forest_resource" };
+  REQUIRE_THAT( autocomplete( in ), Equals( out ) );
+  in  = "s.for";
+  out = { "s.forest_resource" };
+  REQUIRE_THAT( autocomplete_iterative( in ), Equals( out ) );
 }
 
 } // namespace

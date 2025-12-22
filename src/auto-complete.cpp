@@ -34,10 +34,11 @@ namespace {
 using ::base::maybe;
 using ::base::nothing;
 
-template<typename... Args>
-void trace( Args&&... ) {
-  // TODO
-}
+#if 0
+#  define trace( ... ) fmt::println( __VA_ARGS__ )
+#else
+#  define trace( ... )
+#endif
 
 } // namespace
 
@@ -207,7 +208,20 @@ vector<string> autocomplete( lua::state& st,
     // member_types table (from which the keys of the userdata
     // are extracted) are always bools (see luapp/userdata).
     lua::any o = curr_obj[last];
-    CHECK( o != lua::nil );
+    trace( "last:         {}", last );
+    trace( "curr_obj:     {}", curr_obj );
+    trace( "type_of( o ): {}", lua::type_of( o ) );
+    // The field we are retrieving should not be nil at this
+    // point since otherwise it wouldn't have been selected. How-
+    // ever, the exception there is that if the field's parent
+    // object is a userdata then the field could be e.g. a may-
+    // be<int> with a value of `nothing`. Such a field exists and
+    // will be found but it will convert to lua as a nil since
+    // the type inside the maybe is a simple value type as op-
+    // posed to a userdata.
+    if( lua::type_of( curr_obj ) != lua::type::userdata ) {
+      CHECK( o != lua::nil );
+    }
     if( lua::type_of( o ) == lua::type::table ) {
       UNWRAP_CHECK( t, table_for_object( o ) );
       auto size = table_size_non_meta( t );
