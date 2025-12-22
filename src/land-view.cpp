@@ -434,6 +434,12 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
     // This will ensure that the menu opens in a direction such
     // that it doesn't get hidden beyond the bounds of the view-
     // port, if the mouse is too near to the edge.
+    // FIXME: this is not ideal... the popup menu ideally should
+    // always open with its body below and to the right of the
+    // cursor unless it doesn't fit there in which case another
+    // orientation should be chosen. But that would require pre-
+    // computing the size of the menu (not sure if we currently
+    // are able to do that easily, should check).
     e_diagonal_direction const orientation = [&] {
       return where.x < r.center().x
                  ? where.y < r.center().y
