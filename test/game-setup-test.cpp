@@ -60,7 +60,15 @@ struct world : testing::World {
 /****************************************************************
 ** Test Cases
 *****************************************************************/
-TEST_CASE( "[game-setup] create_game_from_setup" ) {
+TEST_CASE( "[game-setup] create_default_game_setup" ) {
+  world w;
+}
+
+TEST_CASE( "[game-setup] create_america_game_setup" ) {
+  world w;
+}
+
+TEST_CASE( "[game-setup] create_customized_game_setup" ) {
   world w;
 }
 

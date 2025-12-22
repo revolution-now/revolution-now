@@ -5,7 +5,7 @@
 *
 * Created by David P. Sicilia on 2025-12-20.
 *
-* Description: Handles the setup of a new game.
+* Description: Creates UI sequences used to game-setup the game.
 *
 *****************************************************************/
 #pragma once
@@ -14,6 +14,8 @@
 #include "game-setup.rds.hpp"
 
 // Revolution Now
+#include "game-setup.rds.hpp"
+#include "maybe.hpp"
 #include "wait.hpp"
 
 namespace rn {
@@ -21,14 +23,24 @@ namespace rn {
 /****************************************************************
 ** Fwd. Decls.
 *****************************************************************/
+struct IGui;
 struct IRand;
-struct SS;
+struct IEngine;
+struct Planes;
 
 /****************************************************************
 ** Public API.
 *****************************************************************/
-wait_bool create_game_from_setup( SS& ss, IRand& rand,
-                                  lua::state& lua,
-                                  GameSetup const& setup );
+wait<maybe<GameSetup>> create_default_game_setup(
+    IEngine& engine, Planes& planes, IGui& gui, IRand& rand,
+    lua::state& lua );
+
+wait<maybe<GameSetup>> create_america_game_setup(
+    IEngine& engine, Planes& planes, IGui& gui, IRand& rand,
+    lua::state& lua );
+
+wait<maybe<GameSetup>> create_customized_game_setup(
+    IEngine& engine, Planes& planes, IGui& gui,
+    e_customization_mode mode );
 
 } // namespace rn

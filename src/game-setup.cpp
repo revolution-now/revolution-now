@@ -5,33 +5,25 @@
 *
 * Created by David P. Sicilia on 2025-12-20.
 *
-* Description: Handles the setup of a new game.
+* Description: Creates UI sequences used to game-setup the game.
 *
 *****************************************************************/
 #include "game-setup.hpp"
 
 // Revolution Now
 #include "co-wait.hpp"
+#include "difficulty-screen.hpp"
+#include "igui.hpp"
+#include "irand.hpp"
 
 // config
+#include "config/map-gen.rds.hpp"
+#include "config/nation.rds.hpp"
+#include "config/options.rds.hpp"
 #include "config/turn.rds.hpp"
 
-// ss
-#include "error.hpp"
-#include "ss/ref.hpp"
-#include "ss/root.hpp"
-
-// rds
-#include "rds/switch-macro.hpp"
-
-// luapp
-#include "luapp/enum.hpp"
-
 // refl
-#include "refl/to-str.hpp"
-
-// base
-#include "base/logger.hpp"
+#include "refl/query-enum.hpp"
 
 namespace rn {
 
@@ -39,87 +31,39 @@ namespace {
 
 using namespace std;
 
-using ::base::NoDiscard;
+using ::refl::enum_map;
+using ::refl::enum_values;
 
-[[nodiscard]] bool generated_terrain_setup_perlin(
-    GeneratedTerrainSetup const&,
-    LandGeneratorAlgorithm::perlin const& ) {
-  NOT_IMPLEMENTED;
+double select_landmass(
+    IRand& rand, enum_map<e_land_mass, int> const& weights ) {
+  e_land_mass const land_mass =
+      rand.pick_from_weighted_values( weights );
+  double const avg = config_map_gen.land_generation
+                         .named_landmass_density[land_mass]
+                         .fraction;
+  double const delta = config_map_gen.land_generation
+                           .landmass_density_fluctuation;
+  return clamp( avg + rand.between_doubles( -delta, delta ), 0.0,
+                1.0 );
 }
 
-[[nodiscard]] bool generated_terrain_setup_seeded_organic(
-    lua::state& lua, GeneratedTerrainSetup const& setup,
-    LandGeneratorAlgorithm::seeded_organic const&
-        seeded_organic_setup ) {
-  lua::table M = lua["map_gen"].as<lua::table>();
-
-  // Proto squares.
-  // ------------------------------------------------------------
-  M["generate_proto_squares"]();
-
-  // Land generation.
-  // ------------------------------------------------------------
-  lua::table options      = lua.table.create();
-  options["brush"]        = seeded_organic_setup.brush;
-  options["land_density"] = setup.land_generator.target_density;
-  options["remove_Xs"] =
-      ( setup.land_generator.remove_Xs_probability > 0.0 );
-  options["remove_Xs_probability"] =
-      setup.land_generator.remove_Xs_probability;
-  options["min_map_height_for_arctic"] = 10;
-
-  options["river_density"]    = setup.river_density;
-  options["hills_density"]    = setup.hills_density;
-  options["mountain_density"] = setup.mountain_density;
-  options["hills_range_probability"] =
-      setup.hills_range_probability;
-  options["mountain_range_probability"] =
-      setup.mountain_range_probability;
-  options["major_river_fraction"] = setup.major_river_fraction;
-  options["forest_density"]       = setup.forest_density;
-  options["arctic_tile_density"]  = setup.arctic_tile_density;
-
-  // Assign land vs. water.
-  M["generate_land"]( options );
-  if( setup.add_arctic_tiles ) M["create_arctic"]( options );
-  M["assign_dry_ground_types"]();
-  // We need to have already created the rivers before this.
-  M["assign_wet_ground_types"]();
-  // These need to be done before the rivers since rivers don't
-  // seem to flow on hills/mountains in the OG.
-  M["create_hills"]( options );
-  M["create_mountains"]( options );
-  M["create_rivers"]( options );
-  M["forest_cover"]( options );
-  M["distribute_bonuses"]();
-
-  // Sea lane.
-  // ------------------------------------------------------------
-  M["create_sea_lanes"]();
-
-  // Arctic.
-  // ------------------------------------------------------------
-  M["create_pacific_ocean"]();
-
-  return true;
+wait<maybe<e_nation>> choose_human( IGui& gui ) {
+  EnumChoiceConfig const config{
+    .msg = "Select Your Nation:",
+  };
+  // TODO: make this into a plane.
+  co_return co_await gui.optional_enum_choice<e_nation>(
+      config );
 }
 
-wait_bool generated_terrain_setup(
-    TerrainState& terrain, IRand&, lua::state& lua,
-    GeneratedTerrainSetup const& setup ) {
-  CHECK( setup.size.area() > 0, "map has zero tiles" );
-  terrain.modify_entire_map( [&]( RealTerrain& real_terrain ) {
-    real_terrain.map = gfx::Matrix<MapSquare>( setup.size );
-  } );
-  SWITCH( setup.land_generator.generator_algo ) {
-    CASE( perlin ) {
-      co_return generated_terrain_setup_perlin( setup, perlin );
-    }
-    CASE( seeded_organic ) {
-      co_return generated_terrain_setup_seeded_organic(
-          lua, setup, seeded_organic );
-    }
-  }
+// TODO: make this a transparent window, kind of like the OG.
+wait<maybe<string>> choose_leader_name( IGui& gui,
+                                        e_nation const nation ) {
+  co_return co_await gui.optional_string_input(
+      StringInputConfig{
+        .msg          = "Please Enter Your Name:",
+        .initial_text = config_nation.nations[nation]
+                            .default_leader_name } );
 }
 
 } // namespace
@@ -127,95 +71,140 @@ wait_bool generated_terrain_setup(
 /****************************************************************
 ** Public API.
 *****************************************************************/
-// NOTE: we visit each section in reverse order that it appears
-// in the struct, since some of the earlier ones depend on the
-// later ones.
-wait_bool create_game_from_setup( SS& ss, IRand& rand,
-                                  lua::state& lua,
-                                  GameSetup const& setup ) {
-  RootState& root = ss.root;
+wait<maybe<GameSetup>> create_default_game_setup(
+    IEngine& engine, Planes& planes, IGui& gui, IRand& rand,
+    lua::state& ) {
+  GameSetup setup;
 
-  // SettingsState state.
+  // category: settings_state
   // ------------------------------------------------------------
-  lg.info( "game setup: setting settings state..." );
-  lua::table settings_options = lua.table.create();
-  settings_options["difficulty"] =
-      setup.settings_state.difficulty;
-  lua["new_game"]["create_settings_state"]( settings_options );
+  auto const difficulty =
+      co_await choose_difficulty_screen( engine, planes );
+  if( !difficulty.has_value() ) co_return nothing;
+  setup.settings_state.difficulty = *difficulty;
 
-  // Rules.
+  // category: rules
   // ------------------------------------------------------------
-  lg.info( "game setup: setting rules..." );
-  root.settings.game_setup_options.customized_rules =
-      setup.rules.values;
+  setup.rules.values = config_options.default_values;
 
-  // Map.
+  // category: map
   // ------------------------------------------------------------
-  lg.info( "game setup: generating map..." );
-  SWITCH( setup.map ) {
-    CASE( load_from_file ) { NOT_IMPLEMENTED; }
-    CASE( generate ) {
-      if( !co_await generated_terrain_setup(
-              ss.mutable_terrain_use_with_care, rand, lua,
-              generate.terrain ) )
-        co_return false;
-      break;
+  // TODO: measure this.
+  enum_map<e_temperature, int> const kTemperatureWeights{
+    { e_temperature::cool, 20 },
+    { e_temperature::temperate, 60 },
+    { e_temperature::warm, 20 },
+  };
+  // TODO: measure this.
+  enum_map<e_climate, int> const kClimateWeights{
+    { e_climate::arid, 20 },
+    { e_climate::normal, 60 },
+    { e_climate::wet, 20 },
+  };
+  // TODO: measure this.
+  static enum_map<e_land_mass, int> const kLandMassWeights{
+    { e_land_mass::small, 20 },
+    { e_land_mass::moderate, 60 },
+    { e_land_mass::large, 20 },
+  };
+  auto const& map_conf = config_map_gen.land_generation;
+
+  setup.map = MapSetup::generate{
+    .terrain = GeneratedTerrainSetup{
+      .size = { .w = 56, .h = 70 },
+      .land_generator =
+          LandGeneratorSetup{
+            .seed = 0,
+            .target_density =
+                select_landmass( rand, kLandMassWeights ),
+            .remove_Xs_probability = 0.8,
+            .generator_algo =
+                LandGeneratorAlgorithm::seeded_organic{
+                  .brush = e_land_brush_type::mixed,
+                },
+          },
+      .temperature =
+          rand.pick_from_weighted_values( kTemperatureWeights ),
+      .climate =
+          rand.pick_from_weighted_values( kClimateWeights ),
+      .add_arctic_tiles = map_conf.add_arctic_tiles,
+      .arctic_tile_density =
+          map_conf.arctic_tile_density.fraction,
+      .river_density = map_conf.river_density.fraction,
+      .major_river_fraction =
+          map_conf.major_river_fraction.fraction,
+      .forest_density   = map_conf.forest_density.fraction,
+      .mountain_density = map_conf.mountain_density.fraction,
+      .mountain_range_probability =
+          map_conf.mountain_range_probability.probability,
+      .hills_density = map_conf.hills_density.fraction,
+      .hills_range_probability =
+          map_conf.hills_range_probability.probability,
+      .prime_resources = PrimeResourceSetup::classic{},
+      .lcr             = LcrSetup::classic{} } };
+
+  // category: natives
+  // ------------------------------------------------------------
+  setup.natives.dwelling_frequency = .14;
+  // Should include all with default settings.
+  setup.natives.tribes = {};
+
+  // category: nations
+  // ------------------------------------------------------------
+  auto const human = co_await choose_human( gui );
+  if( !human.has_value() ) co_return nothing;
+  for( e_nation const nation : enum_values<e_nation> ) {
+    auto& o = setup.nations.nations[nation].emplace();
+    CHECK( human.has_value() );
+    o.human = ( *human == nation );
+    o.name  = config_nation.nations[nation].default_leader_name;
+    if( o.human ) {
+      auto const human_name =
+          co_await choose_leader_name( gui, nation );
+      if( !human_name.has_value() ) co_return nothing;
+      o.name = *human_name;
     }
   }
 
-  // Natives.
+  // category: turns
   // ------------------------------------------------------------
-  lg.info( "game setup: generating natives..." );
-  lua::table natives_options = lua.table.create();
-  natives_options["dwelling_frequency"] =
-      setup.natives.dwelling_frequency;
-  lua::table native_tribes = lua::table::create_or_get(
-      natives_options["native_tribes"] );
-  for( int i = 1; auto const& [tribe_type, tribe_setup] :
-                  setup.natives.tribes ) {
-    if( tribe_setup.disabled ) continue;
-    native_tribes[i++] = tribe_type;
+  setup.turns.starting_year =
+      config_turn.game_start.starting_year;
+
+  co_return setup;
+}
+
+wait<maybe<GameSetup>> create_america_game_setup( IEngine&,
+                                                  Planes&, IGui&,
+                                                  IRand&,
+                                                  lua::state& ) {
+  maybe<GameSetup> setup;
+  // TODO
+  NOT_IMPLEMENTED;
+  co_return setup;
+}
+
+wait<maybe<GameSetup>> create_customized_game_setup(
+    IEngine&, Planes&, IGui&, e_customization_mode const mode ) {
+  switch( mode ) {
+    using enum e_customization_mode;
+    case classic: {
+      // TODO
+      NOT_IMPLEMENTED;
+      // break;
+    }
+    case modern: {
+      // TODO
+      NOT_IMPLEMENTED;
+      // break;
+    }
+    case extreme: {
+      // TODO
+      NOT_IMPLEMENTED;
+      // break;
+    }
   }
-  natives_options["native_tribes"] = native_tribes;
-  lua["map_gen"]["create_indian_villages"]( natives_options );
-
-  // Nations/Players.
-  // ------------------------------------------------------------
-  lg.info( "game setup: generating nations..." );
-  lua::table player_options         = lua.table.create();
-  lua::table ordered_players        = lua.table.create();
-  lua::table players_unordered      = lua.table.create();
-  player_options["ordered_players"] = ordered_players;
-  player_options["players"]         = players_unordered;
-  for( int i = 1; auto const& [nation, nation_setup] :
-                  setup.nations.nations ) {
-    if( !nation_setup.has_value() ) continue;
-    lua::table player = lua.table.create();
-    player["nation"]  = nation;
-    player["control"] = nation_setup->human ? "human" : "ai";
-    players_unordered[nation] = player;
-    ordered_players[i++]      = player;
-  }
-  lua["new_game"]["create_players"]( player_options );
-
-  // Create turn state.
-  // ------------------------------------------------------------
-  lg.info( "game setup: generating turn state..." );
-  ss.turn.time_point.year = setup.turns.starting_year;
-  ss.turn.time_point.season =
-      config_turn.game_start.starting_season;
-
-  // Initial units.
-  // ------------------------------------------------------------
-  lg.info( "game setup: generating initial ships..." );
-  lua["new_game"]["create_units_state"]( player_options );
-
-  // Map view state.
-  // ------------------------------------------------------------
-  lg.info( "game setup: generating map view state..." );
-  lua["new_game"]["create_mapview_state"]( player_options );
-
-  co_return true;
+  co_return nothing;
 }
 
 } // namespace rn

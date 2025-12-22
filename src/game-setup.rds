@@ -5,7 +5,7 @@
 #
 # Created by David P. Sicilia on 2025-12-20.
 #
-# Description: Data structure for defining a new game.
+# Description: Rds definitions for the game-setup module.
 #
 # ===============================================================
 # config
@@ -190,4 +190,10 @@ struct.GameSetup {
   map 'MapSetup',
   rules 'RulesSetup',
   settings_state 'SettingsStateSetup',
+}
+
+enum.e_customization_mode {
+  classic,
+  modern,
+  extreme,
 }
