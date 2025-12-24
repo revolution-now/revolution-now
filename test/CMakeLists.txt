@@ -11,6 +11,7 @@ file( GLOB src_cdr_sources    "cdr/[a-zA-Z]*.cpp"        )
 file( GLOB src_gfx_sources    "gfx/[a-zA-Z]*.cpp"        )
 file( GLOB src_gl_sources     "gl/[a-zA-Z]*.cpp"         )
 file( GLOB src_luapp_sources  "luapp/[a-zA-Z]*.cpp"      )
+file( GLOB src_math_sources   "math/[a-zA-Z]*.cpp"       )
 file( GLOB src_mock_sources   "mock/[a-zA-Z]*.cpp"       )
 file( GLOB src_rcl_sources    "rcl/[a-zA-Z]*.cpp"        )
 file( GLOB src_refl_sources   "refl/[a-zA-Z]*.cpp"       )
@@ -35,6 +36,7 @@ add_executable(
   ${src_rcl_sources}
   ${src_luapp_sources}
   ${src_gl_sources}
+  ${src_math_sources}
   ${src_mock_sources}
   ${src_stb_sources}
   ${src_gfx_sources}

@@ -21,6 +21,7 @@ add_subdirectory( video )
 add_subdirectory( sfx )
 add_subdirectory( sdl )
 add_subdirectory( traverse )
+add_subdirectory( math )
 
 # === this directory ==============================================
 
@@ -43,6 +44,7 @@ add_rn_library(
   rn-ss
   rn-rcl
   rn-luapp
+  rn-math
   rn-refl
   rn-render
   rn-rds-util

@@ -56,6 +56,7 @@ local handlers = {
       render='rr',
       gl='gl',
       gfx='gfx',
+      math='math',
       mock='mock',
       stb='stb',
       rcl='rcl',
