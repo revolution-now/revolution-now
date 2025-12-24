@@ -115,5 +115,9 @@ TEST_CASE( "[classic-sav] load_classic_binary_map_file" ) {
   REQUIRE( real_terrain.map[coord] == expected );
 }
 
+TEST_CASE( "[classic-sav] load_classic_binary_sav_file" ) {
+}
+
+
 } // namespace
 } // namespace rn

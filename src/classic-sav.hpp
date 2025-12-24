@@ -19,9 +19,19 @@
 
 namespace rn {
 
+/****************************************************************
+** Fwd. Decls.
+*****************************************************************/
 struct RealTerrain;
+struct RootState;
 
+/****************************************************************
+** Public API.
+*****************************************************************/
 base::valid_or<std::string> load_classic_binary_map_file(
     std::string const& path, RealTerrain& real_terrain );
+
+base::valid_or<std::string> load_classic_binary_sav_file(
+    std::string const& path, RootState& root );
 
 } // namespace rn

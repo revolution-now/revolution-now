@@ -105,7 +105,7 @@ auto reproduces_sav_connectivity_with_bug_removed(
     fs::path const& folder, fs::path const& file ) {
   static ColonySAV sav;
   fs::path const in = folder / file;
-  CHECK_HAS_VALUE( load_binary( in, sav ) );
+  CHECK_HAS_VALUE( load_sav_file( in, sav ) );
   CONNECTIVITY new_connectivity;
   populate_connectivity( sav.tile, sav.path,
                          { .w = 58, .h = 72 },
@@ -137,7 +137,7 @@ void produce_connectivity_for_sav( fs::path const& folder,
                                    CONNECTIVITY& out ) {
   static ColonySAV sav;
   fs::path const in = folder / file;
-  CHECK_HAS_VALUE( load_binary( in, sav ) );
+  CHECK_HAS_VALUE( load_sav_file( in, sav ) );
   populate_connectivity( sav.tile, sav.path,
                          { .w = 58, .h = 72 }, out );
 #if 0

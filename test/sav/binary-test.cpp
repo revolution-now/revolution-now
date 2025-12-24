@@ -62,8 +62,8 @@ bool binary_sav_round_trip( fs::path const& folder,
   static ColonySAV sav;
   fs::path const in  = folder / file;
   fs::path const out = tmp / file;
-  CHECK_HAS_VALUE( load_binary( in, sav ) );
-  CHECK_HAS_VALUE( save_binary( out, sav ) );
+  CHECK_HAS_VALUE( load_sav_file( in, sav ) );
+  CHECK_HAS_VALUE( save_sav_file( out, sav ) );
   return file_contents_same( in, out );
 }
 

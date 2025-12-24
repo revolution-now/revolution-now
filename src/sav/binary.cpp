@@ -258,8 +258,8 @@ valid_or<string> write( IBinaryIO& b, ColonySAV const& out ) {
 /****************************************************************
 ** Public API.
 *****************************************************************/
-valid_or<string> load_binary( string const& path,
-                              ColonySAV& out ) {
+valid_or<string> load_sav_file( string const& path,
+                                ColonySAV& out ) {
   ScopedTimer timer( "load SAV binary" );
   UNWRAP_RETURN(
       file, FileBinaryIO::open_for_rw_fail_on_nonexist( path ) );
@@ -276,8 +276,8 @@ valid_or<string> load_binary( string const& path,
   return valid;
 }
 
-valid_or<string> save_binary( string const& path,
-                              ColonySAV const& in ) {
+valid_or<string> save_sav_file( string const& path,
+                                ColonySAV const& in ) {
   ScopedTimer timer( "save SAV binary" );
   UNWRAP_RETURN(
       file, FileBinaryIO::open_for_rw_and_truncate( path ) );

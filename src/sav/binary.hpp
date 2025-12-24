@@ -25,11 +25,11 @@ struct MapFile;
 // These will load/save the OG's binary save files (*.SAV) into a
 // data structure that precisely reflects its contents so that a
 // load followed by a save will produce an identical file.
-base::valid_or<std::string> load_binary( std::string const& path,
-                                         ColonySAV& out );
+base::valid_or<std::string> load_sav_file(
+    std::string const& path, ColonySAV& out );
 
-base::valid_or<std::string> save_binary( std::string const& path,
-                                         ColonySAV const& in );
+base::valid_or<std::string> save_sav_file(
+    std::string const& path, ColonySAV const& in );
 
 // These will load/save the OG's map files, i.e. those files gen-
 // erated by the map editor. They tend to have the extension MP.
