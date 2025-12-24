@@ -6,7 +6,7 @@ lambda="$1"
 [[ -f "$lambda" ]]
 
 tools=~/dev/revolution-now/tools
-config=mmmm
+config=bbmm
 gamegen=~/dev/revolution-now/tools/auto-measure/auto-map-gen/gamegen/config/$config
 
 for f in $(find "$gamegen" -name "COLONY*.*"); do

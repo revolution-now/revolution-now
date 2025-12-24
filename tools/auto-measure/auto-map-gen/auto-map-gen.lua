@@ -95,15 +95,19 @@ local function select_land_configuration( config, actions )
   select_strength( config.climate, actions )
 end
 
-local function generate_one_map( config )
-  assert( not sav_exists( SAV_SLOT ), format(
-              '%s must not exist.', path_for_sav( SAV_SLOT ) ) )
+-- "Start a Game in NEW WORLD"
+local function generate_one_map_new_world( config )
+  local actions = action_api( dosbox.window() )
 
-  forget_dosbox_window()
-  local launcher<close> = launch.colonization_launcher()
+  -- Select "Start a Game in NEW WORLD"
+  actions.enter()
+  sleep( .3 ) -- wait for screen to change.
 
-  sleep( 4 )
+  -- The rest of handled in common code.
+end
 
+-- "CUSTOMIZE New World"
+local function generate_one_map_customized( config )
   local actions = action_api( dosbox.window() )
 
   -- Select "customize new world."
@@ -115,6 +119,24 @@ local function generate_one_map( config )
   -- Select land configuration.
   select_land_configuration( config, actions )
   actions.enter() -- next screen.
+
+  -- The rest of handled in common code.
+end
+
+local function generate_one_map( config, selection_fn )
+  assert( not sav_exists( SAV_SLOT ), format(
+              '%s must not exist.', path_for_sav( SAV_SLOT ) ) )
+
+  forget_dosbox_window()
+  local launcher<close> = launch.colonization_launcher()
+
+  sleep( 4 )
+
+  local actions = action_api( dosbox.window() )
+
+  -- Does the initial menu selection which can vary based on how
+  -- we want the game configured, but then the rest is common.
+  selection_fn( config )
 
   -- Select conquistador.
   actions.right()
@@ -145,7 +167,7 @@ local function generate_one_map( config )
   sleep( 1 )
 end
 
-local function make_config_dir( config )
+local function make_customized_config_dir( config )
   local function level( of )
     assert( of )
     if of == 1 then return 'b' end
@@ -167,8 +189,16 @@ local function main()
 
   local config = require( 'config' )
   assert( config )
-  local subdir = make_config_dir( config )
-  local output_dir = format( '%s/config/%s', GAMEGEN, subdir )
+  assert( config.mode )
+  local output_dir
+  if config.mode == 'new' then
+    output_dir = format( '%s/config/%s', GAMEGEN, 'new' )
+  elseif config.mode == 'customize' then
+    local subdir = make_customized_config_dir( config )
+    output_dir = format( '%s/config/%s', GAMEGEN, subdir )
+  else
+    error( 'unsupported mode: ' .. config.mode )
+  end
   command( 'mkdir', '-p', output_dir )
   local target_count = assert( config.target_count )
   local have_count = tonumber( trim(
@@ -180,9 +210,14 @@ local function main()
     info( 'all files generated.' )
     exit( 0 )
   end
+  local modes = {
+    new=generate_one_map_new_world,
+    customize=generate_one_map_customized,
+  }
+  local mode_fn = assert( modes[config.mode] )
   for i = 1, need_count do
     info( 'generating %d/%d...', i, need_count )
-    generate_one_map( config )
+    generate_one_map( config, mode_fn )
     assert( sav_exists( SAV_SLOT ) )
     local sav_src = path_for_sav( SAV_SLOT )
     local sav_dst = format( '%s/COLONY00.SAV.%d', output_dir,
