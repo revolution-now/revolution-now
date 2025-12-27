@@ -3,7 +3,10 @@ set -eo pipefail
 
 cd "$(dirname "$0")"
 
-files="$(find . -name '*.SAV.*')"
+# config_dir=.
+config_dir=./gamegen/config/ttmm
+
+files="$(find $config_dir -name '*.SAV.*')"
 
 for f in $files; do
   echo "$f"
