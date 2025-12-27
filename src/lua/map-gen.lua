@@ -1283,7 +1283,7 @@ end
 -- land. The exception is the arctic, in which we will allow is-
 -- lands. If the player wants to use that as a loop hole, so be
 -- it.
-local function remove_islands()
+function M.remove_islands()
   local size = world_size()
   on_all( function( coord, square )
     if coord.y > 0 and coord.y < size.h - 1 then
@@ -1652,7 +1652,7 @@ function M.generate_land( options )
   -- Cut down land mass until it reaches the target density.
   land_squares = cut_land_to_target_density( options )
   if options.remove_Xs then remove_Xs( options ) end
-  remove_islands()
+  M.remove_islands()
 
   -- Stats.
   do
