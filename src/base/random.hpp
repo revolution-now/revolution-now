@@ -44,6 +44,15 @@ struct random {
   // Closed on both ends.
   [[nodiscard]] double uniform( double lower, double upper );
 
+  // Uniform over all values of the type.
+  template<typename T>
+  requires std::is_integral_v<T>
+  [[nodiscard]] T uniform() {
+    return std::uniform_int_distribution<T>(
+        std::numeric_limits<T>::min(),
+        std::numeric_limits<T>::max() )( engine_ );
+  }
+
   template<typename T>
   maybe<T const&> pick_one_safe(
       std::vector<T> const& v ATTR_LIFETIMEBOUND ) {

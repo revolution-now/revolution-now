@@ -98,12 +98,28 @@ TEST_CASE( "[base/random] bernoulli" ) {
   REQUIRE( ( b == true || b == false ) );
 }
 
-TEST_CASE( "[base/random] uniform" ) {
+TEST_CASE( "[base/random] uniform( range )" ) {
   random r;
   int const i = r.uniform( 5, 8 );
   REQUIRE( ( i >= 5 && i <= 8 ) );
   double const d = r.uniform( 5.5, 8.3 );
   REQUIRE( ( d >= 5.5 && d <= 8.3 ) );
+}
+
+TEST_CASE( "[base/random] uniform<T>" ) {
+  random r;
+
+  SECTION( "short" ) {
+    int const i = r.uniform<short>();
+    REQUIRE( i >= numeric_limits<short>::min() );
+    REQUIRE( i <= numeric_limits<short>::max() );
+  }
+
+  SECTION( "unsigned short" ) {
+    int const i = r.uniform<unsigned short>();
+    REQUIRE( i >= numeric_limits<unsigned short>::min() );
+    REQUIRE( i <= numeric_limits<unsigned short>::max() );
+  }
 }
 
 } // namespace
