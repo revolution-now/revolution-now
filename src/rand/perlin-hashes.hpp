@@ -15,7 +15,7 @@
 #include <cstddef>
 #include <cstdint>
 
-namespace math {
+namespace rng {
 
 size_t constexpr kNumPerlinHashes = 65536;
 size_t constexpr kPerlinHashMask  = 65535;
@@ -24,4 +24,4 @@ using PerlinHashes = std::array<uint16_t, kNumPerlinHashes>;
 
 PerlinHashes const& perlin_hashes();
 
-} // namespace math
+} // namespace rng

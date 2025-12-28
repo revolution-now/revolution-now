@@ -5,13 +5,13 @@
 *
 * Created by David P. Sicilia on 2025-12-26.
 *
-* Description: Unit tests for the math/perlin-hashes module.
+* Description: Unit tests for the rng/perlin-hashes module.
 *
 *****************************************************************/
 #include "test/testing.hpp"
 
 // Under test.
-#include "src/math/perlin-hashes.hpp"
+#include "src/rand/perlin-hashes.hpp"
 
 // Must be last.
 #include "test/catch-common.hpp" // IWYU pragma: keep
@@ -19,7 +19,7 @@
 // C++ standard library
 #include <map>
 
-namespace math {
+namespace rng {
 namespace {
 
 using namespace std;
@@ -27,7 +27,7 @@ using namespace std;
 /****************************************************************
 ** Test Cases
 *****************************************************************/
-TEST_CASE( "[math/perlin-hashes] perlin_hashes" ) {
+TEST_CASE( "[rng/perlin-hashes] perlin_hashes" ) {
   PerlinHashes const& hashes = perlin_hashes();
   REQUIRE( hashes.size() == 65536 );
   map<uint16_t, int /*count*/> m;
@@ -48,4 +48,4 @@ TEST_CASE( "[math/perlin-hashes] perlin_hashes" ) {
 }
 
 } // namespace
-} // namespace math
+} // namespace rng

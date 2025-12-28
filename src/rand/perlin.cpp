@@ -10,7 +10,7 @@
 *****************************************************************/
 #include "perlin.hpp"
 
-// math
+// rng
 #include "perlin-hashes.hpp"
 
 // base
@@ -22,7 +22,7 @@
 #include <cstdint>
 #include <functional>
 
-namespace math {
+namespace rng {
 
 namespace {
 
@@ -150,4 +150,4 @@ PerlinFloat perlin_noise_2d(
   return total / max;
 }
 
-} // namespace math
+} // namespace rng

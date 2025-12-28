@@ -1,5 +1,5 @@
 add_rn_library(
-  rn-math
+  rn-rand
   # Dependencies.
   rn-base
 )

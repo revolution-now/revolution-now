@@ -10,7 +10,7 @@
 *****************************************************************/
 #include "perlin-hashes.hpp"
 
-namespace math {
+namespace rng {
 
 namespace {
 
@@ -8225,4 +8225,4 @@ PerlinHashes const& perlin_hashes() {
   return kPerlinHashes;
 }
 
-} // namespace math
+} // namespace rng

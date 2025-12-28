@@ -10,13 +10,13 @@
 *****************************************************************/
 #pragma once
 
-// math
+// rng
 #include "vec.hpp"
 
 // C++ standard library
 #include <cstdint>
 
-namespace math {
+namespace rng {
 
 /****************************************************************
 ** Types.
@@ -56,4 +56,4 @@ struct PerlinFractalOptions {
     // This is almost kind of like a seed.
     PerlinInt const base );
 
-} // namespace math
+} // namespace rng

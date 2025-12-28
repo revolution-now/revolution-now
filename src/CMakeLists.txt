@@ -4,24 +4,24 @@ find_sdl2_lib( SDL2_mixer )
 # === subdirectories ==============================================
 
 add_subdirectory( base )
-add_subdirectory( rcl )
-add_subdirectory( luapp )
-add_subdirectory( rds )
-add_subdirectory( gl )
-add_subdirectory( mock ) # should not be depended on by `rn`.
-add_subdirectory( stb )
-add_subdirectory( gfx )
 add_subdirectory( cdr )
+add_subdirectory( config )
+add_subdirectory( gfx )
+add_subdirectory( gl )
+add_subdirectory( luapp )
+add_subdirectory( mock ) # should not be depended on by `rn`.
+add_subdirectory( rand )
+add_subdirectory( rcl )
+add_subdirectory( rds )
 add_subdirectory( refl )
 add_subdirectory( render )
-add_subdirectory( config )
-add_subdirectory( ss )
 add_subdirectory( sav )
-add_subdirectory( video )
-add_subdirectory( sfx )
 add_subdirectory( sdl )
+add_subdirectory( sfx )
+add_subdirectory( ss )
+add_subdirectory( stb )
 add_subdirectory( traverse )
-add_subdirectory( math )
+add_subdirectory( video )
 
 # === this directory ==============================================
 
@@ -41,16 +41,16 @@ add_rn_library(
   rn-config
   rn-gfx
   rn-gl
-  rn-ss
-  rn-rcl
   rn-luapp
-  rn-math
+  rn-rand
+  rn-rcl
+  rn-rds-util
   rn-refl
   rn-render
-  rn-rds-util
   rn-sav
   rn-sdl
   rn-sfx
+  rn-ss
   rn-stb
   rn-traverse
   rn-video

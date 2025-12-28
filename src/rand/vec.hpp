@@ -10,7 +10,7 @@
 *****************************************************************/
 #pragma once
 
-namespace math {
+namespace rng {
 
 struct vec2 {
   double x = {};
@@ -25,4 +25,4 @@ struct vec2 {
   }
 };
 
-} // namespace math
+} // namespace rng
