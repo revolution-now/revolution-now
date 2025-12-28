@@ -37,6 +37,8 @@ struct Rand : IRand {
 
   ~Rand() override = default;
 
+  void reseed( uint32_t new_seed );
+
   // Implement IRand.
   bool bernoulli( double p ) override;
 

@@ -19,6 +19,10 @@ namespace rn {
 *****************************************************************/
 Rand::Rand( uint32_t seed ) : rd_( seed ) {}
 
+void Rand::reseed( uint32_t const new_seed ) {
+  rd_.reseed( new_seed );
+}
+
 bool Rand::bernoulli( double p ) { return rd_.bernoulli( p ); }
 
 int Rand::between_ints( int lower, int upper ) {
