@@ -59,9 +59,11 @@
 // refl
 #include "refl/to-str.hpp"
 
+// rand
+#include "src/rand/random.hpp"
+
 // base
 #include "src/base/keyval.hpp"
-#include "src/base/random.hpp"
 #include "src/base/to-str-ext-std.hpp"
 
 using namespace std;
@@ -908,9 +910,9 @@ World::World()
 
 World::~World() noexcept = default;
 
-base::random& World::random() {
+rng::random& World::random() {
   if( uninitialized_random_ == nullptr )
-    uninitialized_random_ = make_unique<base::random>();
+    uninitialized_random_ = make_unique<rng::random>();
   return *uninitialized_random_;
 }
 

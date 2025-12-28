@@ -11,15 +11,15 @@
 #pragma once
 
 // base
-#include "attributes.hpp"
-#include "error.hpp"
-#include "maybe.hpp"
+#include "base/attributes.hpp"
+#include "base/error.hpp"
+#include "base/maybe.hpp"
 
 // C++ standard library
 #include <random>
 #include <vector>
 
-namespace base {
+namespace rng {
 
 /****************************************************************
 ** random
@@ -54,9 +54,9 @@ struct random {
   }
 
   template<typename T>
-  maybe<T const&> pick_one_safe(
+  base::maybe<T const&> pick_one_safe(
       std::vector<T> const& v ATTR_LIFETIMEBOUND ) {
-    if( v.empty() ) return nothing;
+    if( v.empty() ) return base::nothing;
     return v[uniform( 0, v.size() - 1 )];
   }
 
@@ -79,4 +79,4 @@ struct random {
   engine_t engine_;
 };
 
-} // namespace base
+} // namespace rng

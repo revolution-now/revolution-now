@@ -16,8 +16,8 @@
 #include "error.hpp"
 #include "irand.hpp"
 
-// base
-#include "base/random.hpp"
+// rand
+#include "rand/random.hpp"
 
 // C++ standard library
 #include <random>
@@ -47,7 +47,7 @@ struct Rand : IRand {
   double between_doubles( double lower, double upper ) override;
 
  private:
-  base::random rd_;
+  rng::random rd_;
 };
 
 } // namespace rn

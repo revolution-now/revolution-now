@@ -10,8 +10,8 @@
 *****************************************************************/
 #include "noise.hpp"
 
-// base
-#include "base/random.hpp"
+// rand
+#include "rand/random.hpp"
 
 using namespace std;
 
@@ -35,7 +35,7 @@ image create_noise_image( size const sz ) {
       static_cast<unsigned char*>( ::malloc( num_bytes ) );
   image res( sz, data );
   span<pixel> const sp = res;
-  base::random rd;
+  rng::random rd;
   for( pixel& p : sp ) {
     p.r = rd.uniform( 0, 255 );
     p.g = rd.uniform( 0, 255 );

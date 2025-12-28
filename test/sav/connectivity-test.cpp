@@ -17,9 +17,11 @@
 #include "src/sav/binary.hpp"
 #include "src/sav/sav-struct.hpp"
 
+// rand
+#include "src/rand/random.hpp"
+
 // base
 #include "src/base/binary-data.hpp"
-#include "src/base/random.hpp"
 #include "src/base/to-str-ext-std.hpp"
 
 // Must be last.
@@ -185,7 +187,7 @@ TEST_CASE(
   // clang-format on
 
   // Can't do all of these cause it's too slow.
-  base::random rd;
+  rng::random rd;
   auto& [dir, file] = rd.pick_one( paths );
   INFO( fmt::format( "path: {}", dir / file ) );
   auto const [sea_lane_equal_without_bug,

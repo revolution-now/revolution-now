@@ -34,7 +34,7 @@
 // method in the World class (or something derived from it).
 #define TEST_WORLD( ... ) TEST_CASE_METHOD( world, __VA_ARGS__ )
 
-namespace base {
+namespace rng {
 struct random;
 }
 
@@ -440,7 +440,7 @@ struct World {
 
   // This is not the IRand interface mock, it is used for actu-
   // ally generating randomness when needed for unit tests.
-  base::random& random();
+  rng::random& random();
 
   // Run lua_init. This will load all of the lua modules; should
   // only be done when needed. It is very bad to have many test
@@ -477,7 +477,7 @@ struct World {
   std::unique_ptr<Agents> uninitialized_agents_;
   std::unique_ptr<TS> uninitialized_ts_;
 
-  std::unique_ptr<base::random> uninitialized_random_;
+  std::unique_ptr<rng::random> uninitialized_random_;
 };
 
 } // namespace rn::testing

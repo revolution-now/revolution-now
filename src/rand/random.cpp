@@ -12,7 +12,7 @@
 
 using namespace std;
 
-namespace base {
+namespace rng {
 
 /****************************************************************
 ** random
@@ -40,4 +40,4 @@ double random::uniform( double const lower,
                                             upper )( engine_ );
 }
 
-} // namespace base
+} // namespace rng

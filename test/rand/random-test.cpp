@@ -5,26 +5,28 @@
 *
 * Created by David P. Sicilia on 2024-02-24.
 *
-* Description: Unit tests for the base/random module.
+* Description: Unit tests for the rand/random module.
 *
 *****************************************************************/
 #include "test/testing.hpp"
 
 // Under test.
-#include "src/base/random.hpp"
+#include "src/rand/random.hpp"
 
 // Must be last.
 #include "test/catch-common.hpp" // IWYU pragma: keep
 
-namespace base {
+namespace rng {
 namespace {
 
 using namespace std;
 
+using ::base::nothing;
+
 /****************************************************************
 ** Test Cases
 *****************************************************************/
-TEST_CASE( "[base/random] reseed" ) {
+TEST_CASE( "[rand/random] reseed" ) {
   random r;
 
   r.reseed( 42 );
@@ -38,7 +40,7 @@ TEST_CASE( "[base/random] reseed" ) {
   REQUIRE( n2 == n3 );
 }
 
-TEST_CASE( "[base/random] pick_one_safe" ) {
+TEST_CASE( "[rand/random] pick_one_safe" ) {
   random r;
 
   vector<int> v;
@@ -68,7 +70,7 @@ TEST_CASE( "[base/random] pick_one_safe" ) {
   }
 }
 
-TEST_CASE( "[base/random] pick_one" ) {
+TEST_CASE( "[rand/random] pick_one" ) {
   random r;
 
   vector<int> v;
@@ -92,13 +94,13 @@ TEST_CASE( "[base/random] pick_one" ) {
   }
 }
 
-TEST_CASE( "[base/random] bernoulli" ) {
+TEST_CASE( "[rand/random] bernoulli" ) {
   random r;
   bool const b = r.bernoulli( .7 );
   REQUIRE( ( b == true || b == false ) );
 }
 
-TEST_CASE( "[base/random] uniform( range )" ) {
+TEST_CASE( "[rand/random] uniform( range )" ) {
   random r;
   int const i = r.uniform( 5, 8 );
   REQUIRE( ( i >= 5 && i <= 8 ) );
@@ -106,7 +108,7 @@ TEST_CASE( "[base/random] uniform( range )" ) {
   REQUIRE( ( d >= 5.5 && d <= 8.3 ) );
 }
 
-TEST_CASE( "[base/random] uniform<T>" ) {
+TEST_CASE( "[rand/random] uniform<T>" ) {
   random r;
 
   SECTION( "short" ) {
@@ -123,4 +125,4 @@ TEST_CASE( "[base/random] uniform<T>" ) {
 }
 
 } // namespace
-} // namespace base
+} // namespace rng

@@ -17,9 +17,11 @@
 #include "src/sav/map-file.hpp"
 #include "src/sav/sav-struct.hpp"
 
+// rand
+#include "src/rand/random.hpp"
+
 // base
 #include "src/base/binary-data.hpp"
-#include "src/base/random.hpp"
 #include "src/base/to-str-ext-std.hpp"
 
 // Must be last.
@@ -116,7 +118,7 @@ TEST_CASE( "[sav/binary] SAV file binary roundtrip" ) {
   // clang-format on
 
   // Can't do all of these cause it's too slow.
-  base::random rd;
+  rng::random rd;
   auto& [dir, file] = rd.pick_one( paths );
   INFO( fmt::format( "path: {}", dir / file ) );
   bool const good = binary_sav_round_trip( dir, file, tmp );
@@ -135,7 +137,7 @@ TEST_CASE( "[sav/binary] MP file roundtrip" ) {
   // clang-format on
 
   // Can't do all of these cause it's too slow.
-  base::random rd;
+  rng::random rd;
   auto& [dir, file] = rd.pick_one( paths );
   INFO( fmt::format( "path: {}", dir / file ) );
   bool const good = binary_map_round_trip( dir, file, tmp );
