@@ -284,6 +284,8 @@ struct dpoint {
 
   [[nodiscard]] dpoint operator/( double scale ) const;
 
+  [[nodiscard]] dpoint operator/( dsize scale ) const;
+
   [[nodiscard]] bool operator==( dpoint const& ) const = default;
 };
 

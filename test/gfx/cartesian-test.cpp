@@ -837,6 +837,12 @@ TEST_CASE( "[gfx/cartesian] dpoint::operator/( double )" ) {
   REQUIRE( p / 2 == dpoint{ .x = 2.1, .y = 1.1 } );
 }
 
+TEST_CASE( "[gfx/cartesian] dpoint::operator/( dsize )" ) {
+  dpoint const p{ .x = 4.2, .y = 2.2 };
+  dsize const sz{ .w = 2.0, .h = 4.0 };
+  REQUIRE( p / sz == dpoint{ .x = 2.1, .y = 0.55 } );
+}
+
 TEST_CASE( "[gfx/cartesian] dpoint::point_becomes_origin" ) {
   dpoint const p{ .x = 4.2, .y = 2 };
   dpoint const arg{ .x = 2, .y = 1 };

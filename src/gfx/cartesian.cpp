@@ -643,6 +643,10 @@ dpoint dpoint::operator/( double scale ) const {
   return res;
 }
 
+dpoint dpoint::operator/( dsize const scale ) const {
+  return dpoint{ .x = x / scale.w, .y = y / scale.h };
+}
+
 dpoint dpoint::point_becomes_origin( dpoint p ) const {
   return dpoint{ .x = x - p.x, .y = y - p.y };
 }
