@@ -23,10 +23,18 @@ local function printfln( ... ) print( string.format( ... ) ) end
 return function( json )
   local total_tiles = 0
   local land_tiles = 0
+  local left_most_land_x = 1000000000
+  local right_most_land_x = -1
   Q.on_all_tiles( function( tile )
     total_tiles = total_tiles + 1
     if Q.is_land( json, tile ) then
       land_tiles = land_tiles + 1
+      if tile.x < left_most_land_x then
+        left_most_land_x = tile.x
+      end
+      if tile.x > right_most_land_x then
+        right_most_land_x = tile.x
+      end
     end
   end )
   assert( total_tiles == 3920 )
@@ -61,4 +69,8 @@ return function( json )
   printfln( 'num_dwellings_close: %d', num_dwellings_close )
   printfln( 'dwelling fraction: %.1f%%',
             num_dwellings / land_tiles * 100 );
+  printfln( 'left_most_land_x (NG coords): %d',
+            left_most_land_x - 1 )
+  printfln( 'right_most_land_x (NG coords): %d',
+            right_most_land_x - 1 )
 end
