@@ -268,7 +268,7 @@ bool parse_number( value* out ) {
     return true;
   } else {
     // int.
-    base::maybe<int> i = base::stoi( string( sv ) );
+    auto const i = base::stoll( string( sv ) );
     if( !i ) { return FAIL_RESTORE; }
     *out = *i;
     return true;
