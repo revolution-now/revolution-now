@@ -28,10 +28,12 @@ namespace base {
 *****************************************************************/
 inline constexpr int default_base{ 10 }; // base 10 is decimal
 
-// This is to replace std::stoi -- it will enforce that the input
-// string is not empty and that the parsing consumes the entire
-// string.
+// This is to replace std::stoi/stoll -- it will enforce that the
+// input string is not empty and that the parsing consumes the
+// entire string.
 maybe<int> stoi( std::string const& s, int base = default_base );
+maybe<long long> stoll( std::string const& s,
+                        int base = default_base );
 maybe<double> stod( std::string const& s );
 
 // This is to replace std::from_chars -- it will enforce that the
