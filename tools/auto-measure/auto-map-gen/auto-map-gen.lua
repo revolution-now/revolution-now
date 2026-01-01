@@ -23,7 +23,9 @@ local exists = file.exists
 local realpath = file.realpath
 local info = logger.info
 local sav_exists = readwrite.sav_exists
+local sav_is_symlink = readwrite.sav_is_symlink
 local path_for_sav = readwrite.path_for_sav
+local remove_sav = readwrite.remove_sav
 local save_game = coldo.save_game
 local action_api = xdotool.action_api
 local sleep = time.sleep
@@ -124,6 +126,7 @@ local function generate_one_map_customized( config )
 end
 
 local function generate_one_map( config, selection_fn )
+  if sav_is_symlink( SAV_SLOT ) then remove_sav( SAV_SLOT ) end
   assert( not sav_exists( SAV_SLOT ), format(
               '%s must not exist.', path_for_sav( SAV_SLOT ) ) )
 
@@ -131,6 +134,8 @@ local function generate_one_map( config, selection_fn )
   local launcher<close> = launch.colonization_launcher()
 
   sleep( 4 )
+
+  xdotool.center_window( dosbox.window() )
 
   local actions = action_api( dosbox.window() )
 

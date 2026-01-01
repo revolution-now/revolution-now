@@ -15,6 +15,7 @@ assert( sav_writer.save )
 local format = string.format
 local getenv = os.getenv
 local exists = file.exists
+local is_symlink = file.is_symlink
 local copy_file = file.copy_file
 local info = logger.info
 
@@ -80,6 +81,11 @@ local function exists_sav( sav )
   return exists( path )
 end
 
+local function sav_is_symlink( sav )
+  local path = path_for_sav( sav )
+  return is_symlink( path )
+end
+
 local function copy_sav( from, to )
   remove_sav( to )
   local src = path_for_sav( from )
@@ -104,6 +110,7 @@ return {
   modify_sav=modify_sav,
   remove_sav=remove_sav,
   sav_exists=exists_sav,
+  sav_is_symlink=sav_is_symlink,
   copy_sav=copy_sav,
   path_for_sav=path_for_sav,
   sav_file_for_slot=sav_file_for_slot,

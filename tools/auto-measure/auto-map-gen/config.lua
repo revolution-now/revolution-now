@@ -1,5 +1,5 @@
 return {
-  target_count=42, --
+  target_count=80, --
 
   -- Values:
   --   new:       "Start a Game in NEW WORLD".

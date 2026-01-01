@@ -23,12 +23,16 @@ local function printfln( ... ) print( string.format( ... ) ) end
 return function( json )
   local total_tiles = 0
   local land_tiles = 0
+  local land_tiles_no_arctic = 0
   local left_most_land_x = 1000000000
   local right_most_land_x = -1
   Q.on_all_tiles( function( tile )
     total_tiles = total_tiles + 1
     if Q.is_land( json, tile ) then
       land_tiles = land_tiles + 1
+      if tile.y > 1 and tile.y < 70 then
+        land_tiles_no_arctic = land_tiles_no_arctic + 1
+      end
       if tile.x < left_most_land_x then
         left_most_land_x = tile.x
       end
@@ -63,7 +67,9 @@ return function( json )
   for _, _ in pairs( dwellings_close ) do
     num_dwellings_close = num_dwellings_close + 1
   end
-  printfln( 'land fraction: %.1f%%',
+  printfln( 'land fraction (no arctic):   %.1f%%',
+            land_tiles_no_arctic / total_tiles * 100 );
+  printfln( 'land fraction (with arctic): %.1f%%',
             land_tiles / total_tiles * 100 );
   printfln( 'num_dwellings: %d', num_dwellings )
   printfln( 'num_dwellings_close: %d', num_dwellings_close )

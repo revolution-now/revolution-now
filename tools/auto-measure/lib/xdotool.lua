@@ -33,6 +33,11 @@ local function find_window_named( regex )
   return xdotool( 'search', '--name', regex )
 end
 
+local function center_window( window )
+  info( 'centering window')
+  xdotool( 'windowmove', tostring( window ), '650', '300' )
+end
+
 -----------------------------------------------------------------
 -- General X commands.
 -----------------------------------------------------------------
@@ -110,4 +115,5 @@ return {
   press_keys=press_keys,
   press_return_to_exit=press_return_to_exit,
   action_api=action_api,
+  center_window=center_window,
 }

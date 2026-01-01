@@ -16,14 +16,17 @@ sav_path="$1"
 log "sav_path: $sav_path"
 [[ -e "$sav_path" ]]
 
-sav_file="$(basename "$sav_path")"
+sav_file="$sav_path"
 log "sav_file: $sav_file"
 [[ "$sav_file" =~ .*\.SAV* ]]
 
 lambda_name="$2"
 log "lambda_name: $lambda_name"
 
-lambda_file="$interactive/lambda/$lambda_name.lua"
+lambda_file="$lambda_name"
+if [[ ! -e "$lambda_file" ]]; then
+  lambda_file="$interactive/lambda/$lambda_name.lua"
+fi
 log "lambda_file: $lambda_file"
 # NOTE: don't check if the lambda file exists here; instead let
 # the below script check it because it will create a better error
