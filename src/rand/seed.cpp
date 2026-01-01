@@ -1,14 +1,14 @@
 /****************************************************************
-**seed.cpp
+**entropy.cpp
 *
 * Project: Revolution Now
 *
 * Created by David P. Sicilia on 2026-01-01.
 *
-* Description: Representation for random seeds.
+* Description: Representation for random entropy.
 *
 *****************************************************************/
-#include "seed.hpp"
+#include "entropy.hpp"
 
 // cdr
 #include "cdr/converter.hpp"
@@ -75,11 +75,11 @@ void mix128( uint32_t& a, uint32_t& b, uint32_t& c,
 } // namespace
 
 /****************************************************************
-** seed
+** entropy
 *****************************************************************/
-maybe<seed> seed::from_string( string_view const sv ) {
+maybe<entropy> entropy::from_string( string_view const sv ) {
   if( sv.size() != kHashStrSize ) return nothing;
-  seed res;
+  entropy res;
   UNWRAP_RETURN_T( res.e4, parse8hex( sv.substr( 0, 8 ) ) );
   UNWRAP_RETURN_T( res.e3, parse8hex( sv.substr( 8, 8 ) ) );
   UNWRAP_RETURN_T( res.e2, parse8hex( sv.substr( 16, 8 ) ) );
@@ -87,12 +87,13 @@ maybe<seed> seed::from_string( string_view const sv ) {
   return res;
 }
 
-void seed::mix() { mix128( e1, e2, e3, e4 ); }
+void entropy::mix() { mix128( e1, e2, e3, e4 ); }
 
 /****************************************************************
 ** to_str
 *****************************************************************/
-void to_str( seed const& o, string& out, base::tag<seed> ) {
+void to_str( entropy const& o, string& out,
+             base::tag<entropy> ) {
   out += format( "{:08x}{:08x}{:08x}{:08x}", o.e4, o.e3, o.e2,
                  o.e1 );
 }
@@ -100,26 +101,26 @@ void to_str( seed const& o, string& out, base::tag<seed> ) {
 /****************************************************************
 ** CDR
 *****************************************************************/
-cdr::value to_canonical( cdr::converter&, seed const& o,
-                         cdr::tag_t<seed> ) {
+cdr::value to_canonical( cdr::converter&, entropy const& o,
+                         cdr::tag_t<entropy> ) {
   return base::to_str( o );
 }
 
-cdr::result<seed> from_canonical( cdr::converter& conv,
-                                  cdr::value const& v,
-                                  cdr::tag_t<seed> ) {
+cdr::result<entropy> from_canonical( cdr::converter& conv,
+                                     cdr::value const& v,
+                                     cdr::tag_t<entropy> ) {
   UNWRAP_RETURN( hex, conv.from<string>( v ) );
   if( hex.size() != kHashStrSize )
     return conv.err(
-        "seed strings must be {}-character hex strings.",
+        "hash/entropy strings must be {}-character hex strings.",
         kHashStrSize );
-  auto const seed = seed::from_string( hex );
-  if( !seed.has_value() )
+  auto const entropy = entropy::from_string( hex );
+  if( !entropy.has_value() )
     return conv.err(
-        "seed strings must be {}-character hex strings with "
-        "characters 0-9, a-f, A-F.",
+        "hash/entropy strings must be {}-character hex strings "
+        "with characters 0-9, a-f, A-F.",
         kHashStrSize );
-  return *seed;
+  return *entropy;
 }
 
 } // namespace rng
