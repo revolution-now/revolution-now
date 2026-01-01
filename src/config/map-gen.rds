@@ -11,8 +11,14 @@
 # config
 include "range-helpers.rds.hpp"
 
+# gfx
+include "gfx/cartesian.hpp"
+
 # refl
 include "refl/enum-map.hpp"
+
+# base
+include "base/maybe.hpp"
 
 namespace "rn"
 
@@ -22,7 +28,31 @@ enum.e_land_mass {
   large,
 }
 
+struct.MapSeed {
+  s1 'uint32_t',
+  s2 'uint32_t',
+  s3 'uint32_t',
+  s4 'uint32_t',
+};
+
 namespace "rn.config.map_gen"
+
+struct.PerlinMap {
+  size 'gfx::size',
+
+  scale 'double',
+
+  n_octaves 'int',
+  persistence 'double',
+  lacunarity 'double',
+
+  target_density 'double',
+
+  suppress_edges 'bool',
+  suppression_decay 'double',
+
+  seed 'base::maybe<MapSeed>',
+}
 
 struct.LandGeneration {
   named_landmass_density 'refl::enum_map<e_land_mass, config::DoublePercent>',
@@ -37,12 +67,14 @@ struct.LandGeneration {
   forest_density 'config::DoublePercent',
   add_arctic_tiles 'bool',
   arctic_tile_density 'config::DoublePercent',
+  remove_x_probability 'config::DoublePercent',
 }
 
 namespace "rn"
 
 struct.config_map_gen_t {
   land_generation 'config::map_gen::LandGeneration',
+  perlin_map 'config::map_gen::PerlinMap',
 }
 
 config.map_gen {}

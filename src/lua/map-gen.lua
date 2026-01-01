@@ -31,6 +31,7 @@ end
 local config = global( 'config' )
 local unit_mgr = global( 'unit_mgr' )
 local native_expertise = global( 'native_expertise' )
+local map_gen = global( 'map_gen' )
 
 -----------------------------------------------------------------
 -- Aliases.
@@ -1251,9 +1252,8 @@ end
 -- But, we will do so here for two reasons: 1) because the orig-
 -- inal game did, and 2) we otherwise seem to end up with too
 -- many of them and they don't really look good.
-local function remove_Xs( options )
+function M.remove_Xs( probability )
   local size = world_size()
-  local p = assert( options.remove_Xs_probability )
   on_all( function( coord, square )
     if coord.y < size.h - 1 and coord.x < size.w - 1 then
       local square_right = square_at{ x=coord.x + 1, y=coord.y }
@@ -1262,43 +1262,15 @@ local function remove_Xs( options )
                                      y=coord.y + 1 }
       if is_land( square ) and is_water( square_right ) and
           is_water( square_down ) and is_land( square_diag ) then
-        if random_bool( p ) then
+        if random_bool( probability ) then
           square_diag.surface = 'water'
         end
       end
       if is_water( square ) and is_land( square_right ) and
           is_land( square_down ) and is_water( square_diag ) then
-        if random_bool( p ) then
+        if random_bool( probability ) then
           square_diag.surface = 'land'
         end
-      end
-    end
-  end )
-end
-
--- We cannot have islands in the game because that would give the
--- player a way to have a coastal colony that could not be at-
--- tacked by the royal forces during the war of independence be-
--- cause they would have no adjacent land squares on which to
--- land. The exception is the arctic, in which we will allow is-
--- lands. If the player wants to use that as a loop hole, so be
--- it.
-function M.remove_islands()
-  local size = world_size()
-  on_all( function( coord, square )
-    if coord.y > 0 and coord.y < size.h - 1 then
-      local surrounding = filter_on_map(
-                              surrounding_squares_3x3( coord ) )
-      local has_land = false
-      for _, surrounding_square in ipairs( surrounding ) do
-        if square_at( surrounding_square ).surface == 'land' then
-          has_land = true
-          break
-        end
-      end
-      if not has_land then
-        -- We have an island.
-        square.surface = 'water'
       end
     end
   end )
@@ -1651,8 +1623,10 @@ function M.generate_land( options )
 
   -- Cut down land mass until it reaches the target density.
   land_squares = cut_land_to_target_density( options )
-  if options.remove_Xs then remove_Xs( options ) end
-  M.remove_islands()
+  if options.remove_Xs then
+    M.remove_Xs( options.remove_Xs_probability )
+  end
+  map_gen.remove_islands()
 
   -- Stats.
   do

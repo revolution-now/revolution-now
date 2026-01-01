@@ -26,7 +26,7 @@ using PerlinFloat = double;
 using PerlinVec2  = vec2;
 
 struct PerlinFractalOptions {
-  PerlinInt const n_octaves     = 1;
+  int const n_octaves           = 1;
   PerlinFloat const persistence = 0.5;
   PerlinFloat const lacunarity  = 2.0;
 };

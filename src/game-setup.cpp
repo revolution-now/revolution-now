@@ -121,7 +121,8 @@ wait<maybe<GameSetup>> create_default_game_setup(
                       .seed           = 0,
                       .target_density = select_landmass(
                           rand, kLandMassWeights ),
-                      .remove_Xs_probability = 0.8,
+                      .remove_Xs_probability =
+                          map_conf.remove_x_probability.fraction,
                       .generator_algo =
                           LandGeneratorAlgorithm::seeded_organic{
                             .brush = e_land_brush_type::mixed,

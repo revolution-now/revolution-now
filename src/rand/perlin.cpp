@@ -137,7 +137,7 @@ PerlinFloat perlin_noise_2d(
   PerlinFloat max   = 0.0;
   PerlinFloat total = 0.0;
 
-  for( size_t i = 0; i < fractal_options.n_octaves; ++i ) {
+  for( int i = 0; i < fractal_options.n_octaves; ++i ) {
     total += perlin_noise_2d_single_octave(
                  hashes, point * freq, seamless_repeat * freq,
                  base ) *
