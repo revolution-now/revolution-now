@@ -24,10 +24,22 @@ namespace base {
 maybe<int> stoi( string const& s, int base ) {
   maybe<int> res;
   if( !s.empty() ) {
-    size_t written;
+    size_t read;
     try {
-      auto n = ::std::stoi( s, &written, base );
-      if( written == s.size() ) res = n;
+      auto const n = ::std::stoi( s, &read, base );
+      if( read == s.size() ) res = n;
+    } catch( std::exception const& ) {}
+  }
+  return res;
+}
+
+maybe<long long> stoll( string const& s, int base ) {
+  maybe<long long> res;
+  if( !s.empty() ) {
+    size_t read;
+    try {
+      auto const n = ::std::stoll( s, &read, base );
+      if( read == s.size() ) res = n;
     } catch( std::exception const& ) {}
   }
   return res;
@@ -36,10 +48,10 @@ maybe<int> stoi( string const& s, int base ) {
 maybe<double> stod( string const& s ) {
   maybe<double> res;
   if( !s.empty() ) {
-    size_t written;
+    size_t read;
     try {
-      auto d = ::std::stod( s, &written );
-      if( written == s.size() ) res = d;
+      auto const d = ::std::stod( s, &read );
+      if( read == s.size() ) res = d;
     } catch( std::exception const& ) {}
   }
   return res;

@@ -31,6 +31,19 @@ TEST_CASE( "[conv] from string" ) {
   REQUIRE( base::stoi( "-10" ) == -10 );
   REQUIRE( base::stoi( "-0" ) == 0 );
   REQUIRE( !base::stoi( "1 a" ).has_value() );
+  REQUIRE( !base::stoi( "5271221587730554630" ) );
+
+  REQUIRE( !base::stoll( "" ).has_value() );
+  REQUIRE( base::stoll( "0" ) == 0 );
+  REQUIRE( base::stoll( "1" ) == 1 );
+  REQUIRE( base::stoll( "222" ) == 222 );
+  REQUIRE( base::stoll( "0", 16 ) == 0 );
+  REQUIRE( base::stoll( "10", 16 ) == 16 );
+  REQUIRE( base::stoll( "-10" ) == -10 );
+  REQUIRE( base::stoll( "-0" ) == 0 );
+  REQUIRE( !base::stoll( "1 a" ).has_value() );
+  REQUIRE( base::stoll( "5271221587730554630" ) ==
+           5271221587730554630 );
 
   REQUIRE( !base::from_chars<int>( "" ).has_value() );
   REQUIRE( base::from_chars<int>( "0" ) == 0 );

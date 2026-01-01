@@ -351,6 +351,18 @@ TEST_CASE( "[parse] table with duplicate keys" ) {
   }
 }
 
+TEST_CASE( "[parse] can parse 64 bit ints" ) {
+  using namespace cdr;
+  using namespace cdr::literals;
+
+  static string const input = "x: 1817822836693700485";
+
+  auto const doc = parse( "fake-file", input );
+  REQUIRE( doc );
+  table const expected{ "x"_key = 1817822836693700485 };
+  REQUIRE( doc->top_tbl() == expected );
+}
+
 TEST_CASE( "[parse] parse empty document." ) {
   string const input;
   auto doc = parse( "fake-file", input );
