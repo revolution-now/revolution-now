@@ -104,5 +104,5 @@ perlin_map {
   suppression_decay: .5
 
   # seed: null
-  seed: { s1=1881732023, s2=2750817252, s3=2320584634, s4=3689938707 }
+  seed: 'f6b40e13ac3f28da90933ec8d573c58a'
 }

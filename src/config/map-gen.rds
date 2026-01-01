@@ -14,6 +14,9 @@ include "range-helpers.rds.hpp"
 # gfx
 include "gfx/cartesian.hpp"
 
+# rand
+include "rand/seed.hpp"
+
 # refl
 include "refl/enum-map.hpp"
 
@@ -27,13 +30,6 @@ enum.e_land_mass {
   moderate,
   large,
 }
-
-struct.MapSeed {
-  s1 'uint32_t',
-  s2 'uint32_t',
-  s3 'uint32_t',
-  s4 'uint32_t',
-};
 
 namespace "rn.config.map_gen"
 
@@ -51,7 +47,7 @@ struct.PerlinMap {
   suppress_edges 'bool',
   suppression_decay 'double',
 
-  seed 'base::maybe<MapSeed>',
+  seed 'base::maybe<rng::seed>',
 }
 
 struct.LandGeneration {

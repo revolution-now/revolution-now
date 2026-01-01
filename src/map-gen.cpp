@@ -44,6 +44,7 @@
 #include "rand/perlin-hashes.hpp"
 #include "rand/perlin.hpp"
 #include "rand/random.hpp"
+#include "rand/seed.hpp"
 
 // base
 #include "base/logger.hpp"
@@ -154,7 +155,7 @@ void remove_islands( RealTerrain& real_terrain ) {
 }
 
 [[maybe_unused]] void generate_terrain_perlin(
-    lua::state&, Matrix<MapSquare>& m, MapSeed const seed ) {
+    lua::state&, Matrix<MapSquare>& m, rng::seed const& seed ) {
   auto const sz = config_map_gen.perlin_map.size;
   // double const kSeaLevel =
   // config_map_gen.perlin_map.sea_level;
@@ -169,9 +170,9 @@ void remove_islands( RealTerrain& real_terrain ) {
   // Repeat behavior of parameters:
   //   offset: repeats every rng::kNumUniquePerlinHashes*kScale.
   //   base:   repeats every rng::kNumUniquePerlinHashes.
-  uint32_t const offset_x = seed.s1;
-  uint32_t const offset_y = seed.s2;
-  uint32_t const base     = seed.s3 & rng::kPerlinHashMask;
+  uint32_t const offset_x = seed.e1;
+  uint32_t const offset_y = seed.e2;
+  uint32_t const base     = seed.e3 & rng::kPerlinHashMask;
   auto const perlin_noise = [&]( point const p_real ) {
     rng::vec2 const p{ .x = p_real.x * 1.0 + offset_x,
                        .y = p_real.y * 1.0 + offset_y };
@@ -306,7 +307,7 @@ void remove_islands( RealTerrain& real_terrain ) {
 
 void generate_terrain( GeneratedTerrainSetup const& setup,
                        lua::state& st, IMapUpdater& map_updater,
-                       MapSeed const seed ) {
+                       rng::seed const& seed ) {
   ScopedTimer const timer( "total map generation time" );
   map_updater.modify_entire_map_no_redraw(
       [&]( RealTerrain& real_terrain ) {
@@ -357,15 +358,15 @@ void ascii_map_gen() {
       static_cast<IMapUpdater&>( non_rendering_map_updater );
   st["IRand"] = static_cast<IRand&>( rand );
 
-  MapSeed const seed = [&] {
+  rng::seed const seed = [&] {
     if( config_map_gen.perlin_map.seed.has_value() )
       return *config_map_gen.perlin_map.seed;
     rng::random rng;
-    return MapSeed{
-      .s1 = rng.uniform<uint32_t>(),
-      .s2 = rng.uniform<uint32_t>(),
-      .s3 = rng.uniform<uint32_t>(),
-      .s4 = rng.uniform<uint32_t>(),
+    return rng::seed{
+      .e1 = rng.uniform<uint32_t>(),
+      .e2 = rng.uniform<uint32_t>(),
+      .e3 = rng.uniform<uint32_t>(),
+      .e4 = rng.uniform<uint32_t>(),
     };
   }();
   lg.info( "map seed: {}", seed );
