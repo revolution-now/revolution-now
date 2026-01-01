@@ -10,8 +10,8 @@ return {
   --   -1 ==> up
   --    0 ==> middle
   --    1 ==> down
-  land_mass=-1, --
-  land_form=-1, --
+  land_mass=1, --
+  land_form=1, --
   temperature=0, --
   climate=0, --
 }
