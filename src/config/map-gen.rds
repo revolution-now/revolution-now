@@ -15,7 +15,7 @@ include "range-helpers.rds.hpp"
 include "gfx/cartesian.hpp"
 
 # rand
-include "rand/seed.hpp"
+include "rand/entropy.hpp"
 
 # refl
 include "refl/enum-map.hpp"
@@ -47,7 +47,7 @@ struct.PerlinMap {
   suppress_edges 'bool',
   suppression_decay 'double',
 
-  seed 'base::maybe<rng::seed>',
+  seed 'base::maybe<rng::entropy>',
 }
 
 struct.LandGeneration {

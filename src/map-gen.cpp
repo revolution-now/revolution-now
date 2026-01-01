@@ -41,10 +41,10 @@
 #include "gfx/iter.hpp"
 
 // rand
+#include "rand/entropy.hpp"
 #include "rand/perlin-hashes.hpp"
 #include "rand/perlin.hpp"
 #include "rand/random.hpp"
-#include "rand/seed.hpp"
 
 // base
 #include "base/logger.hpp"
@@ -155,7 +155,8 @@ void remove_islands( RealTerrain& real_terrain ) {
 }
 
 [[maybe_unused]] void generate_terrain_perlin(
-    lua::state&, Matrix<MapSquare>& m, rng::seed const& seed ) {
+    lua::state&, Matrix<MapSquare>& m,
+    rng::entropy const& seed ) {
   auto const sz = config_map_gen.perlin_map.size;
   // double const kSeaLevel =
   // config_map_gen.perlin_map.sea_level;
@@ -307,7 +308,7 @@ void remove_islands( RealTerrain& real_terrain ) {
 
 void generate_terrain( GeneratedTerrainSetup const& setup,
                        lua::state& st, IMapUpdater& map_updater,
-                       rng::seed const& seed ) {
+                       rng::entropy const& seed ) {
   ScopedTimer const timer( "total map generation time" );
   map_updater.modify_entire_map_no_redraw(
       [&]( RealTerrain& real_terrain ) {
@@ -358,11 +359,11 @@ void ascii_map_gen() {
       static_cast<IMapUpdater&>( non_rendering_map_updater );
   st["IRand"] = static_cast<IRand&>( rand );
 
-  rng::seed const seed = [&] {
+  rng::entropy const seed = [&] {
     if( config_map_gen.perlin_map.seed.has_value() )
       return *config_map_gen.perlin_map.seed;
     rng::random rng;
-    return rng::seed{
+    return rng::entropy{
       .e1 = rng.uniform<uint32_t>(),
       .e2 = rng.uniform<uint32_t>(),
       .e3 = rng.uniform<uint32_t>(),
