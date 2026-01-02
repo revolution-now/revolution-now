@@ -215,7 +215,8 @@ TEST_CASE( "[rand/random] uniform_int full range coverage" ) {
         ++found;
       }
       ++count;
-      if( count & 131071 == 0 ) // 2^17-1, avoid modulo for perf.
+      if( ( count & 131071 ) ==
+          0 ) // 2^17-1, avoid modulo for perf.
         fmt::println( "found={}, count={}", found, count );
     }
     fmt::println( "found={}, count={}", found, count );
