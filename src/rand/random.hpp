@@ -39,12 +39,12 @@ struct random {
   // guarantee that.
   using engine_t = std::mt19937;
 
+  static_assert( sizeof( engine_t::result_type ) >=
+                 sizeof( uint32_t ) );
   using result_type = engine_t::result_type;
 
  public:
   random() = default;
-
-  random( uint32_t const seed ) : engine_( seed ) {}
 
   void reseed( entropy const& new_seed );
 
@@ -56,29 +56,30 @@ struct random {
   [[nodiscard]] bool bernoulli( double p );
 
   // Closed on both ends.
-  [[nodiscard]] int uniform( int lower, int upper );
+  [[nodiscard]] int uniform_int( int lower, int upper );
 
   // Closed on both ends.
-  [[nodiscard]] double uniform( double lower, double upper );
+  [[nodiscard]] double uniform_double( double lower,
+                                       double upper );
 
   // Uniform over all values of the type.
   template<typename T>
-  requires std::is_integral_v<T>
+  requires( std::is_integral_v<T> && std::is_unsigned_v<T> &&
+            !std::is_same_v<T, bool> )
   [[nodiscard]] T uniform() {
-    return std::uniform_int_distribution<T>(
-        std::numeric_limits<T>::min(),
-        std::numeric_limits<T>::max() )( engine_ );
+    static_assert( sizeof( decltype( raw() ) ) >= sizeof( T ) );
+    return raw() & std::numeric_limits<T>::max();
   }
 
   template<typename T>
   base::maybe<T const&> pick_one_safe(
       std::vector<T> const& v ATTR_LIFETIMEBOUND ) {
     if( v.empty() ) return base::nothing;
-    return v[uniform( 0, v.size() - 1 )];
+    return v[uniform_int( 0, v.size() - 1 )];
   }
 
   template<typename T>
-  T const& pick_one(
+  [[nodiscard]] T const& pick_one(
       std::vector<T> const& v ATTR_LIFETIMEBOUND ) {
     UNWRAP_CHECK( res, pick_one_safe( v ) );
     return res;

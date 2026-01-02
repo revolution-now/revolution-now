@@ -19,6 +19,9 @@
 // Must be last.
 #include "test/catch-common.hpp" // IWYU pragma: keep
 
+// C++ standard library
+#include <vector>
+
 namespace rng {
 namespace {
 
@@ -40,11 +43,11 @@ TEST_CASE( "[rand/random] reseed" ) {
   };
 
   r.reseed( e );
-  int const n1 = r.uniform( 0, 1000 );
+  int const n1 = r.uniform_int( 0, 1000 );
   r.reseed( e );
-  int const n2 = r.uniform( 0, 1000 );
+  int const n2 = r.uniform_int( 0, 1000 );
   r.reseed( e );
-  int const n3 = r.uniform( 0, 1000 );
+  int const n3 = r.uniform_int( 0, 1000 );
 
   REQUIRE( n1 == n2 );
   REQUIRE( n2 == n3 );
@@ -56,27 +59,41 @@ TEST_CASE( "[rand/random] pick_one_safe" ) {
   vector<int> v;
 
   SECTION( "empty" ) {
-    v        = {};
-    auto val = r.pick_one_safe( v );
-    REQUIRE( val == nothing );
+    v = {};
+    REQUIRE( r.pick_one_safe( v ) == nothing );
+    REQUIRE( r.pick_one_safe( v ) == nothing );
   }
 
   SECTION( "single" ) {
-    v        = { 111 };
-    auto val = r.pick_one_safe( v );
-    REQUIRE( val == 111 );
+    v = { 111 };
+    REQUIRE( r.pick_one_safe( v ) == 111 );
+    REQUIRE( r.pick_one_safe( v ) == 111 );
+    REQUIRE( r.pick_one_safe( v ) == 111 );
+    REQUIRE( r.pick_one_safe( v ) == 111 );
+    REQUIRE( r.pick_one_safe( v ) == 111 );
   }
 
   SECTION( "double" ) {
-    v        = { 111, 222 };
-    auto val = r.pick_one_safe( v );
-    REQUIRE( ( val == 111 || val == 222 ) );
+    v = { 111, 222 };
+    REQUIRE( r.pick_one_safe( v ) == 222 );
+    REQUIRE( r.pick_one_safe( v ) == 111 );
+    REQUIRE( r.pick_one_safe( v ) == 222 );
+    REQUIRE( r.pick_one_safe( v ) == 222 );
+    REQUIRE( r.pick_one_safe( v ) == 111 );
   }
 
   SECTION( "triple" ) {
-    v        = { 111, 222, 333 };
-    auto val = r.pick_one_safe( v );
-    REQUIRE( ( val == 111 || val == 222 || val == 333 ) );
+    v = { 111, 222, 333 };
+    REQUIRE( r.pick_one_safe( v ) == 333 );
+    REQUIRE( r.pick_one_safe( v ) == 111 );
+    REQUIRE( r.pick_one_safe( v ) == 333 );
+    REQUIRE( r.pick_one_safe( v ) == 333 );
+    REQUIRE( r.pick_one_safe( v ) == 111 );
+    REQUIRE( r.pick_one_safe( v ) == 333 );
+    REQUIRE( r.pick_one_safe( v ) == 333 );
+    REQUIRE( r.pick_one_safe( v ) == 111 );
+    REQUIRE( r.pick_one_safe( v ) == 222 );
+    REQUIRE( r.pick_one_safe( v ) == 111 );
   }
 }
 
@@ -86,51 +103,149 @@ TEST_CASE( "[rand/random] pick_one" ) {
   vector<int> v;
 
   SECTION( "single" ) {
-    v             = { 111 };
-    int const val = r.pick_one( v );
-    REQUIRE( val == 111 );
+    v = { 111 };
+    REQUIRE( r.pick_one( v ) == 111 );
+    REQUIRE( r.pick_one( v ) == 111 );
+    REQUIRE( r.pick_one( v ) == 111 );
+    REQUIRE( r.pick_one( v ) == 111 );
+    REQUIRE( r.pick_one( v ) == 111 );
   }
 
   SECTION( "double" ) {
-    v             = { 111, 222 };
-    int const val = r.pick_one( v );
-    REQUIRE( ( val == 111 || val == 222 ) );
+    v = { 111, 222 };
+    REQUIRE( r.pick_one( v ) == 222 );
+    REQUIRE( r.pick_one( v ) == 111 );
+    REQUIRE( r.pick_one( v ) == 222 );
+    REQUIRE( r.pick_one( v ) == 222 );
+    REQUIRE( r.pick_one( v ) == 111 );
   }
 
   SECTION( "triple" ) {
-    v             = { 111, 222, 333 };
-    int const val = r.pick_one( v );
-    REQUIRE( ( val == 111 || val == 222 || val == 333 ) );
+    v = { 111, 222, 333 };
+    REQUIRE( r.pick_one( v ) == 333 );
+    REQUIRE( r.pick_one( v ) == 111 );
+    REQUIRE( r.pick_one( v ) == 333 );
+    REQUIRE( r.pick_one( v ) == 333 );
+    REQUIRE( r.pick_one( v ) == 111 );
+    REQUIRE( r.pick_one( v ) == 333 );
+    REQUIRE( r.pick_one( v ) == 333 );
+    REQUIRE( r.pick_one( v ) == 111 );
+    REQUIRE( r.pick_one( v ) == 222 );
+    REQUIRE( r.pick_one( v ) == 111 );
   }
 }
 
+// TODO: this is technically not deterministic until we implement
+// our own bernoulli distribution.
 TEST_CASE( "[rand/random] bernoulli" ) {
   random r;
-  bool const b = r.bernoulli( .7 );
-  REQUIRE( ( b == true || b == false ) );
+  REQUIRE( r.bernoulli( .7 ) == true );
+  REQUIRE( r.bernoulli( .7 ) == false );
+  REQUIRE( r.bernoulli( .7 ) == false );
+  REQUIRE( r.bernoulli( .7 ) == true );
 }
 
-TEST_CASE( "[rand/random] uniform( range )" ) {
+TEST_CASE( "[rand/random] uniform_int" ) {
   random r;
-  int const i = r.uniform( 5, 8 );
-  REQUIRE( ( i >= 5 && i <= 8 ) );
-  double const d = r.uniform( 5.5, 8.3 );
+  REQUIRE( r.uniform_int( 5, 8 ) == 8 );
+  REQUIRE( r.uniform_int( 5, 8 ) == 5 );
+  REQUIRE( r.uniform_int( 5, 8 ) == 8 );
+  REQUIRE( r.uniform_int( 5, 8 ) == 8 );
+  REQUIRE( r.uniform_int( 5, 8 ) == 5 );
+  REQUIRE( r.uniform_int( 5, 8 ) == 8 );
+  REQUIRE( r.uniform_int( 5, 8 ) == 8 );
+  REQUIRE( r.uniform_int( 5, 8 ) == 5 );
+  REQUIRE( r.uniform_int( 5, 8 ) == 7 );
+  REQUIRE( r.uniform_int( 5, 8 ) == 6 );
+  REQUIRE( r.uniform_int( 5, 8 ) == 5 );
+  REQUIRE( r.uniform_int( 5, 8 ) == 7 );
+  REQUIRE( r.uniform_int( 5, 8 ) == 6 );
+  REQUIRE( r.uniform_int( 5, 8 ) == 5 );
+}
+
+TEST_CASE( "[rand/random] uniform_double" ) {
+  random r;
+  double const d = r.uniform_double( 5.5, 8.3 );
   REQUIRE( ( d >= 5.5 && d <= 8.3 ) );
+}
+
+// Deterministic since there is no seeding and we are only using
+// the uniform_int which we implement ourselves.
+TEST_CASE( "[rand/random] uniform_int full range coverage" ) {
+  random r; // NOTE: no seeding.
+
+  SECTION( "small int range" ) {
+    static int constexpr kMin   = 3;
+    static int constexpr kMax   = 17;
+    static int constexpr kCount = kMax - kMin + 1;
+    vector<uint8_t> s( kCount );
+    int64_t count  = 0;
+    uint32_t found = 0;
+    while( found < kCount ) {
+      int64_t x = r.uniform_int( kMin, kMax );
+      CHECK( x >= kMin );
+      CHECK( x <= kMax );
+      x -= kMin;
+      auto& r = s.at( x );
+      if( !r ) {
+        r = 1;
+        ++found;
+      }
+      ++count;
+    }
+    REQUIRE( count == 44 );
+    REQUIRE( found == 15 );
+  }
+
+#if 0 // takes like an hour to run.
+  SECTION( "full int range" ) {
+    vector<uint8_t> s( uint64_t( 0xffffffff ) + 1 );
+    int64_t count              = 0;
+    uint64_t found             = 0;
+    static auto constexpr kMin = numeric_limits<int>::min();
+    static auto constexpr kMax = numeric_limits<int>::max();
+    static auto constexpr kAdd =
+        -int64_t( numeric_limits<int>::min() );
+    while( found < uint64_t( 0xffffffff ) + 1 ) {
+      int64_t x = r.uniform_int( kMin, kMax );
+      x += kAdd;
+      auto& r = s[x];
+      if( !r ) {
+        r = 1;
+        ++found;
+      }
+      ++count;
+      if( count & 131071 == 0 ) // 2^17-1, avoid modulo for perf.
+        fmt::println( "found={}, count={}", found, count );
+    }
+    fmt::println( "found={}, count={}", found, count );
+  }
+#endif
 }
 
 TEST_CASE( "[rand/random] uniform<T>" ) {
   random r;
 
-  SECTION( "short" ) {
-    int const i = r.uniform<short>();
-    REQUIRE( i >= numeric_limits<short>::min() );
-    REQUIRE( i <= numeric_limits<short>::max() );
+  SECTION( "uint8_t" ) {
+    REQUIRE( r.uniform<uint8_t>() == 92 );
+    REQUIRE( r.uniform<uint8_t>() == 246 );
+    REQUIRE( r.uniform<uint8_t>() == 238 );
+    REQUIRE( r.uniform<uint8_t>() == 121 );
+    REQUIRE( r.uniform<uint8_t>() == 44 );
+    REQUIRE( r.uniform<uint8_t>() == 223 );
+    REQUIRE( r.uniform<uint8_t>() == 5 );
+    REQUIRE( r.uniform<uint8_t>() == 225 );
   }
 
   SECTION( "unsigned short" ) {
-    int const i = r.uniform<unsigned short>();
-    REQUIRE( i >= numeric_limits<unsigned short>::min() );
-    REQUIRE( i <= numeric_limits<unsigned short>::max() );
+    REQUIRE( r.uniform<unsigned short>() == 47964 );
+    REQUIRE( r.uniform<unsigned short>() == 40694 );
+    REQUIRE( r.uniform<unsigned short>() == 64238 );
+    REQUIRE( r.uniform<unsigned short>() == 8057 );
+    REQUIRE( r.uniform<unsigned short>() == 13612 );
+    REQUIRE( r.uniform<unsigned short>() == 47071 );
+    REQUIRE( r.uniform<unsigned short>() == 5 );
+    REQUIRE( r.uniform<unsigned short>() == 45025 );
   }
 }
 

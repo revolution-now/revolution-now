@@ -21,11 +21,12 @@ struct state;
 
 namespace rn {
 
+struct IEngine;
 struct IMapUpdater;
 struct SS;
 struct TerrainConnectivity;
 
-void ascii_map_gen();
+void ascii_map_gen( IEngine& engine );
 
 void reset_terrain( IMapUpdater& map_updater, Delta size );
 

@@ -79,7 +79,7 @@ void run( e_mode mode ) {
     }
     case e_mode::map_gen: {
       engine.init( e_engine_mode::console );
-      ascii_map_gen();
+      ascii_map_gen( engine );
       break;
     }
     case e_mode::test_ui: {

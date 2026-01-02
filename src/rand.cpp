@@ -17,8 +17,6 @@ namespace rn {
 /****************************************************************
 ** Rand
 *****************************************************************/
-Rand::Rand( uint32_t seed ) : rd_( seed ) {}
-
 void Rand::reseed( rng::entropy const& seed ) {
   rd_.reseed( seed );
 }
@@ -26,11 +24,20 @@ void Rand::reseed( rng::entropy const& seed ) {
 bool Rand::bernoulli( double p ) { return rd_.bernoulli( p ); }
 
 int Rand::uniform_int( int lower, int upper ) {
-  return rd_.uniform( lower, upper );
+  return rd_.uniform_int( lower, upper );
 }
 
 double Rand::uniform_double( double lower, double upper ) {
-  return rd_.uniform( lower, upper );
+  return rd_.uniform_double( lower, upper );
+}
+
+rng::seed Rand::generate_deterministic_seed() {
+  return rng::seed{
+    .e1 = rd_.uniform<uint32_t>(),
+    .e2 = rd_.uniform<uint32_t>(),
+    .e3 = rd_.uniform<uint32_t>(),
+    .e4 = rd_.uniform<uint32_t>(),
+  };
 }
 
 } // namespace rn

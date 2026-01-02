@@ -12,11 +12,12 @@
 
 // Revolution Now
 #include "connectivity.hpp"
+#include "engine.hpp"
 #include "game-setup.hpp"
+#include "irand.hpp"
 #include "lua.hpp"
 #include "map-square.hpp"
 #include "map-updater.hpp"
-#include "rand.hpp"
 #include "terrain-mgr.hpp"
 
 // config
@@ -44,7 +45,6 @@
 #include "rand/entropy.hpp"
 #include "rand/perlin-hashes.hpp"
 #include "rand/perlin.hpp"
-#include "rand/random.hpp"
 
 // base
 #include "base/logger.hpp"
@@ -155,8 +155,7 @@ void remove_islands( RealTerrain& real_terrain ) {
 }
 
 [[maybe_unused]] void generate_terrain_perlin(
-    lua::state&, Matrix<MapSquare>& m,
-    rng::entropy const& seed ) {
+    lua::state&, Matrix<MapSquare>& m, rng::seed const& seed ) {
   auto const sz = config_map_gen.perlin_map.size;
   // double const kSeaLevel =
   // config_map_gen.perlin_map.sea_level;
@@ -308,7 +307,7 @@ void remove_islands( RealTerrain& real_terrain ) {
 
 void generate_terrain( GeneratedTerrainSetup const& setup,
                        lua::state& st, IMapUpdater& map_updater,
-                       rng::entropy const& seed ) {
+                       rng::seed const& seed ) {
   ScopedTimer const timer( "total map generation time" );
   map_updater.modify_entire_map_no_redraw(
       [&]( RealTerrain& real_terrain ) {
@@ -345,32 +344,25 @@ void reset_terrain( IMapUpdater& map_updater, Delta size ) {
       } );
 }
 
-void ascii_map_gen() {
+void ascii_map_gen( IEngine& engine ) {
   lua::state st;
   lua_init( st );
   SS ss;
   st["ROOT"] = ss.root;
   st["SS"]   = ss;
   TerrainConnectivity connectivity;
-  Rand rand;
   NonRenderingMapUpdater non_rendering_map_updater(
       ss, connectivity );
   st["IMapUpdater"] =
       static_cast<IMapUpdater&>( non_rendering_map_updater );
+  IRand& rand = engine.rand();
   st["IRand"] = static_cast<IRand&>( rand );
 
-  rng::entropy const seed = [&] {
-    if( config_map_gen.perlin_map.seed.has_value() )
-      return *config_map_gen.perlin_map.seed;
-    rng::random rng;
-    return rng::entropy{
-      .e1 = rng.uniform<uint32_t>(),
-      .e2 = rng.uniform<uint32_t>(),
-      .e3 = rng.uniform<uint32_t>(),
-      .e4 = rng.uniform<uint32_t>(),
-    };
-  }();
-  lg.info( "map seed: {}", seed );
+  rng::seed const seed =
+      config_map_gen.perlin_map.seed.has_value()
+          ? *config_map_gen.perlin_map.seed
+          : rand.generate_deterministic_seed();
+  lg.info( "seed: {}", seed );
 
   // ------------------------------------------------------------
   // GameSetup

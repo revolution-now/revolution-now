@@ -55,6 +55,9 @@
 #include "gfx/monitor.hpp"
 #include "gfx/resolution.hpp"
 
+// rand
+#include "rand/entropy.hpp"
+
 // refl
 #include "refl/to-str.hpp"
 
@@ -153,14 +156,21 @@ struct Engine::Impl {
   // Random engine.
   // ============================================================
   void init_rand() {
-    // NOTE: the underlying random generator should be automati-
-    // cally seeded from some entropy source so there is no need
-    // to seed it here.
+    CHECK( !rand_ );
+    rand_ = make_unique<Rand>();
+    // NOTE: the above will not have randomly seed it, so we need
+    // to make a random seed.
+    rng::entropy const seed = rng::entropy::from_random_device();
+    rand_->reseed( seed );
   }
 
-  void deinit_rand() {}
+  void deinit_rand() { rand_.reset(); }
 
-  IRand& rand() { return rand_; }
+  IRand& rand() {
+    CHECK( rand_ != nullptr,
+           "random number system has not been initialized." );
+    return *rand_;
+  }
 
   // ============================================================
   // SDL Base
@@ -487,7 +497,7 @@ struct Engine::Impl {
   maybe<gl::InitResult> gl_iface_;
   unique_ptr<sfx::SfxSDL> sfx_;
   unique_ptr<rr::Textometer> textometer_;
-  Rand rand_;
+  unique_ptr<Rand> rand_; // unique_ptr to ensure initialization.
 };
 
 /****************************************************************
@@ -531,6 +541,7 @@ void Engine::init( e_engine_mode const mode ) {
     }
     case e_engine_mode::console: {
       impl().init_configs();
+      impl().init_rand();
       break;
     }
     case e_engine_mode::map_editor: {

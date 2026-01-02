@@ -19,6 +19,9 @@
 // base
 #include "base/conv.hpp"
 
+// C++ standard library
+#include <random>
+
 namespace rng {
 
 namespace {
@@ -95,8 +98,8 @@ entropy entropy::mixed() const {
   return copy;
 }
 
-void entropy::rotate_right_n_bytes( int const n_bytes ) {
-  for( int i = 0; i < n_bytes; ++i ) {
+void entropy::rotate_right_n_bytes( uint8_t const n_bytes ) {
+  for( int i = 0; i < n_bytes % 16; ++i ) {
     uint32_t const lsb1 = e1 & 0xff;
     uint32_t const lsb2 = e2 & 0xff;
     uint32_t const lsb3 = e3 & 0xff;
@@ -107,6 +110,24 @@ void entropy::rotate_right_n_bytes( int const n_bytes ) {
     e3 = ( e3 >> 8 ) + ( lsb4 << 24 );
     e4 = ( e4 >> 8 ) + ( lsb1 << 24 );
   }
+}
+
+entropy entropy::from_random_device() {
+  random_device rd;
+  // The standard says this shall be `unsigned int` which for us
+  // should always be a 32 bit int. If it weren't that then
+  // things would get a bit messier because our entropy object is
+  // composed of uint32_t.
+  static_assert( is_same_v<decltype( rd() ), uint32_t> );
+  entropy res{
+    .e1 = rd(),
+    .e2 = rd(),
+    .e3 = rd(),
+    .e4 = rd(),
+  };
+  // Just in case the values have some patterns in them.
+  res.mix();
+  return res;
 }
 
 /****************************************************************

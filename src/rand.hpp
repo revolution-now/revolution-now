@@ -37,23 +37,23 @@ namespace rn {
 // Generates real (pseudo-random) numbers. For unit testing in-
 // stead use a mock of IRand, not this one.
 struct Rand : IRand {
-  // Will invoke std::random_device for a seed.
+  // Will NOT randomly seed the underlying rng; will just default
+  // construct it, thus you must follow this up with a call to
+  // reseed if you want to seed it.
   Rand() = default;
-
-  Rand( uint32_t seed );
 
   ~Rand() override = default;
 
   void reseed( rng::entropy const& seed );
 
-  // Implement IRand.
+ public: // IRand.
   bool bernoulli( double p ) override;
 
-  // Implement IRand.
   int uniform_int( int lower, int upper ) override;
 
-  // Implement IRand.
   double uniform_double( double lower, double upper ) override;
+
+  rng::seed generate_deterministic_seed() override;
 
  private:
   rng::random rd_;

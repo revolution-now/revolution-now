@@ -29,6 +29,19 @@ using ::base::nothing;
 /****************************************************************
 ** Test Cases
 *****************************************************************/
+TEST_CASE( "[rand/entropy] from_random_device" ) {
+  auto const source1 = entropy::from_random_device();
+  auto const source2 = entropy::from_random_device();
+
+  // In theory these could be violated if by chance they happened
+  // to be the same and/or zero, but the probability of that
+  // should be extremely miniscule (1/2^128) if they are truly
+  // random.
+  REQUIRE( source1 != entropy{} );
+  REQUIRE( source2 != entropy{} );
+  REQUIRE( source1 != source2 );
+}
+
 TEST_CASE( "[rand/entropy] to_str" ) {
   entropy const s1{
     .e1 = 0x6151c187,

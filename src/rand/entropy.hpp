@@ -23,6 +23,12 @@
 
 namespace rng {
 
+/****************************************************************
+** entropy
+*****************************************************************/
+// This is a value that can be used to represent some true ran-
+// domness (e.g. to seed a pseudo-random rng) or could just be
+// used to generally hold a seed obtained deterministically.
 struct entropy {
   // These these are interpreted together as a 128 number they
   // are taken as "least significant" first.
@@ -34,12 +40,9 @@ struct entropy {
   auto operator<=>( entropy const& ) const = default;
 
   // ------------------------------------------------------------
-  // Stringification.
+  // Device/hardward source.
   // ------------------------------------------------------------
-  friend void to_str( entropy const& o, std::string& out,
-                      base::tag<entropy> );
-
-  static base::maybe<entropy> from_string( std::string_view sv );
+  static entropy from_random_device();
 
   // ------------------------------------------------------------
   // Mixing.
@@ -47,11 +50,6 @@ struct entropy {
   void mix();
 
   entropy mixed() const;
-
-  // ------------------------------------------------------------
-  // Rotating.
-  // ------------------------------------------------------------
-  void rotate_right_n_bytes( int n_bytes );
 
   // ------------------------------------------------------------
   // Consuming.
@@ -76,6 +74,14 @@ struct entropy {
   }
 
   // ------------------------------------------------------------
+  // Stringification.
+  // ------------------------------------------------------------
+  friend void to_str( entropy const& o, std::string& out,
+                      base::tag<entropy> );
+
+  static base::maybe<entropy> from_string( std::string_view sv );
+
+  // ------------------------------------------------------------
   // CDR.
   // ------------------------------------------------------------
   friend cdr::value to_canonical( cdr::converter& conv,
@@ -85,6 +91,24 @@ struct entropy {
   friend cdr::result<entropy> from_canonical(
       cdr::converter& conv, cdr::value const& v,
       cdr::tag_t<entropy> );
+
+  // ------------------------------------------------------------
+  // Implementation.
+  // ------------------------------------------------------------
+  void rotate_right_n_bytes( uint8_t n_bytes );
 };
+
+/****************************************************************
+** seed
+*****************************************************************/
+// For better expressing intended interpretation of an entropy
+// value. The basic convention we use is that "entropy" is some-
+// thing non-deterministic that comes from a random device and is
+// used to seed a pseudo-random generator, while a "seed" could
+// be generated deterministically by a pseudo-random generator
+// and used to seed something higher level such as a map gener-
+// ator where we might want to serialize and/or control or
+// specify the seed for reproducibility.
+using seed = entropy;
 
 } // namespace rng

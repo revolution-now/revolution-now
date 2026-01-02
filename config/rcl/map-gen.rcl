@@ -103,6 +103,6 @@ perlin_map {
   suppress_edges: true
   suppression_decay: .5
 
-  # seed: null
-  seed: 'f6b40e13ac3f28da90933ec8d573c58a'
+  seed: null
+  # seed: 'f6b40e13ac3f28da90933ec8d573c58a'
 }

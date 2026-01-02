@@ -12,6 +12,9 @@
 
 #include "core-config.hpp"
 
+// rand
+#include "rand/entropy.hpp"
+
 // luapp
 #include "luapp/ext-userdata.hpp"
 
@@ -45,6 +48,13 @@ struct IRand {
   // Random floating point number in [lower, upper).
   [[nodiscard]] virtual double uniform_double(
       double lower, double upper ) = 0;
+
+  // This generates a seed (entropy) object just using the cur-
+  // rent state of the pseudo-random generator; no true random-
+  // ness here. This would be used to generate e.g. map genera-
+  // tion seeds once the rng itself has been seeded.
+  [[nodiscard]] virtual rng::seed
+  generate_deterministic_seed() = 0;
 
   /**************************************************************
   ** For convenience.
