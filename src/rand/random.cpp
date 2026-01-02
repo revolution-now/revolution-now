@@ -10,6 +10,9 @@
 *****************************************************************/
 #include "random.hpp"
 
+// rand
+#include "entropy.hpp"
+
 using namespace std;
 
 namespace rng {
@@ -17,8 +20,10 @@ namespace rng {
 /****************************************************************
 ** random
 *****************************************************************/
-void random::reseed( uint32_t const new_seed ) {
-  engine_ = engine_t( new_seed );
+random::result_type random::raw() { return engine_(); }
+
+void random::reseed( entropy const& seed_unmixed ) {
+  engine_ = engine_t( seed_unmixed.mixed().consume<uint64_t>() );
 }
 
 bool random::bernoulli( double const p ) {

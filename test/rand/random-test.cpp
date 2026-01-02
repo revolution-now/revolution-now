@@ -13,6 +13,9 @@
 // Under test.
 #include "src/rand/random.hpp"
 
+// rand
+#include "src/rand/entropy.hpp"
+
 // Must be last.
 #include "test/catch-common.hpp" // IWYU pragma: keep
 
@@ -29,11 +32,18 @@ using ::base::nothing;
 TEST_CASE( "[rand/random] reseed" ) {
   random r;
 
-  r.reseed( 42 );
+  entropy const e{
+    .e1 = 0x6151c187,
+    .e2 = 0x6da636d6,
+    .e3 = 0xfbe4a276,
+    .e4 = 0x00f00076,
+  };
+
+  r.reseed( e );
   int const n1 = r.uniform( 0, 1000 );
-  r.reseed( 42 );
+  r.reseed( e );
   int const n2 = r.uniform( 0, 1000 );
-  r.reseed( 42 );
+  r.reseed( e );
   int const n3 = r.uniform( 0, 1000 );
 
   REQUIRE( n1 == n2 );
@@ -121,6 +131,31 @@ TEST_CASE( "[rand/random] uniform<T>" ) {
     int const i = r.uniform<unsigned short>();
     REQUIRE( i >= numeric_limits<unsigned short>::min() );
     REQUIRE( i <= numeric_limits<unsigned short>::max() );
+  }
+}
+
+// It was once said that a default-constructed std::mt19937 must
+// produce the value 4123659995 as its 10,000th output on every
+// compliant implementation.
+TEST_CASE( "[rand/random] marsenne determinacy" ) {
+  // This may not be guaranteed by the compiler but we want to
+  // know if it is violated, since it probably shouldn't be on
+  // the relevant platforms.
+  static_assert( is_same_v<random::result_type, uint64_t> );
+
+  random::result_type constexpr mt19937_ten_thousandth_output =
+      4123659995;
+
+  SECTION( "marsenne directly" ) {
+    random::engine_t engine;
+    for( int i = 0; i < 10'000 - 1; ++i ) engine();
+    REQUIRE( engine() == mt19937_ten_thousandth_output );
+  }
+
+  SECTION( "random object" ) {
+    random r;
+    for( int i = 0; i < 10'000 - 1; ++i ) (void)r.raw();
+    REQUIRE( r.raw() == mt19937_ten_thousandth_output );
   }
 }
 

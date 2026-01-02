@@ -22,18 +22,35 @@
 namespace rng {
 
 /****************************************************************
+** Fwd. Decls.
+*****************************************************************/
+struct entropy;
+
+/****************************************************************
 ** random
 *****************************************************************/
 struct random {
-  random() : engine_( std::random_device{}() ) {}
+ public:
+  // It seems the default engine (linear congruential) does not
+  // produce high-enough quality results. Given that there has
+  // always been so much talk about issues with the random number
+  // generator in the OG, we definitely don't want to risk any
+  // issues there in the NG, and this Mersenne Twister should
+  // guarantee that.
+  using engine_t = std::mt19937;
+
+  using result_type = engine_t::result_type;
+
+ public:
+  random() = default;
 
   random( uint32_t const seed ) : engine_( seed ) {}
 
-  template<typename RandomDevice>
-  random( RandomDevice&& device )
-    : engine_( std::forward<RandomDevice>( device )() ) {}
+  void reseed( entropy const& new_seed );
 
-  void reseed( uint32_t new_seed );
+  // Just get a raw random value from the engine of the type it
+  // is defined with.
+  [[nodiscard]] result_type raw();
 
   // Biased coin flip.
   [[nodiscard]] bool bernoulli( double p );
@@ -68,14 +85,6 @@ struct random {
   }
 
  private:
-  // It seems the default engine (linear congruential) does not
-  // produce high-enough quality results. Given that there has
-  // always been so much talk about issues with the random number
-  // generator in the OG, we definitely don't want to risk any
-  // issues there in the NG, and this Mersenne Twister should
-  // guarantee that.
-  using engine_t = std::mt19937;
-
   engine_t engine_;
 };
 

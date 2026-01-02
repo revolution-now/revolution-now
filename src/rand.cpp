@@ -19,8 +19,8 @@ namespace rn {
 *****************************************************************/
 Rand::Rand( uint32_t seed ) : rd_( seed ) {}
 
-void Rand::reseed( uint32_t const new_seed ) {
-  rd_.reseed( new_seed );
+void Rand::reseed( rng::entropy const& seed ) {
+  rd_.reseed( seed );
 }
 
 bool Rand::bernoulli( double p ) { return rd_.bernoulli( p ); }

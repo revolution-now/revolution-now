@@ -269,6 +269,25 @@ TEST_CASE( "[rand/entropy] mix" ) {
            "b2e1e4f71a4c6822847fa499bb3dae53" );
 }
 
+TEST_CASE( "[rand/entropy] mixed" ) {
+  entropy const s1{
+    .e1 = 0x4114dbe2,
+    .e2 = 0x3652472c,
+    .e3 = 0x0bc0f567,
+    .e4 = 0x320e5505,
+  };
+
+  REQUIRE( base::to_str( s1 ) ==
+           "320e55050bc0f5673652472c4114dbe2" );
+
+  entropy const s2 = s1.mixed();
+
+  REQUIRE( base::to_str( s1 ) ==
+           "320e55050bc0f5673652472c4114dbe2" );
+  REQUIRE( base::to_str( s2 ) ==
+           "0eb3a1c7894a1f11993c206b7efc5bca" );
+}
+
 TEST_CASE( "[rand/entropy] equality" ) {
   entropy const s1{
     .e1 = 0x4114dbe2,
@@ -358,6 +377,128 @@ TEST_CASE( "[rand/entropy] from_canonical" ) {
   };
   REQUIRE( conv.from<entropy>(
                "00f00076fbe4a2766da636d66151c187" ) == s1 );
+}
+
+TEST_CASE( "[rand/entropy] rotate_right_n_bytes" ) {
+  entropy const e{
+    .e1 = 0x6151c187,
+    .e2 = 0x6da636d6,
+    .e3 = 0xfbe4a276,
+    .e4 = 0x00f00076,
+  };
+
+  auto const f = [&] [[clang::noinline]] ( int const n ) {
+    auto cpy = e;
+    cpy.rotate_right_n_bytes( n );
+    return cpy;
+  };
+
+  entropy expected;
+
+  expected = e;
+  REQUIRE( f( 0 ) == expected );
+
+  expected = {
+    .e1 = 0xd66151c1,
+    .e2 = 0x766da636,
+    .e3 = 0x76fbe4a2,
+    .e4 = 0x8700f000,
+  };
+  REQUIRE( f( 1 ) == expected );
+
+  expected = {
+    .e1 = 0x36d66151,
+    .e2 = 0xa2766da6,
+    .e3 = 0x0076fbe4,
+    .e4 = 0xc18700f0,
+  };
+  REQUIRE( f( 2 ) == expected );
+
+  expected = {
+    .e1 = 0xa636d661,
+    .e2 = 0xe4a2766d,
+    .e3 = 0xf00076fb,
+    .e4 = 0x51c18700,
+  };
+  REQUIRE( f( 3 ) == expected );
+
+  expected = {
+    .e1 = 0x6da636d6,
+    .e2 = 0xfbe4a276,
+    .e3 = 0x00f00076,
+    .e4 = 0x6151c187,
+  };
+  REQUIRE( f( 4 ) == expected );
+
+  expected = {
+    .e1 = 0xe4a2766d,
+    .e2 = 0xf00076fb,
+    .e3 = 0x51c18700,
+    .e4 = 0xa636d661,
+  };
+  REQUIRE( f( 7 ) == expected );
+
+  expected = {
+    .e1 = 0x0076fbe4,
+    .e2 = 0xc18700f0,
+    .e3 = 0x36d66151,
+    .e4 = 0xa2766da6,
+  };
+  REQUIRE( f( 10 ) == expected );
+
+  expected = {
+    .e1 = 0x8700f000,
+    .e2 = 0xd66151c1,
+    .e3 = 0x766da636,
+    .e4 = 0x76fbe4a2,
+  };
+  REQUIRE( f( 13 ) == expected );
+
+  expected = e;
+  REQUIRE( f( 16 ) == expected );
+}
+
+TEST_CASE( "[rand/entropy] consume" ) {
+  entropy const e{
+    .e1 = 0x6151c187,
+    .e2 = 0x6da636d6,
+    .e3 = 0xfbe4a276,
+    .e4 = 0x00f00076,
+  };
+
+  entropy w = e;
+
+  auto const f = [&]<typename T> [[clang::noinline]] (
+                     T* const ) { return w.consume<T>(); };
+
+  entropy expected_w;
+
+  expected_w = {
+    .e1 = 0xd66151c1,
+    .e2 = 0x766da636,
+    .e3 = 0x76fbe4a2,
+    .e4 = 0x8700f000,
+  };
+  REQUIRE( f( (uint8_t*){} ) == 0x87 );
+  REQUIRE( w == expected_w );
+
+  expected_w = {
+    .e1 = 0x76fbe4a2,
+    .e2 = 0x8700f000,
+    .e3 = 0xd66151c1,
+    .e4 = 0x766da636,
+  };
+  REQUIRE( f( (uint64_t*){} ) == 0x766da636d66151c1 );
+  REQUIRE( w == expected_w );
+
+  expected_w = {
+    .e1 = 0xf00076fb,
+    .e2 = 0x51c18700,
+    .e3 = 0xa636d661,
+    .e4 = 0xe4a2766d,
+  };
+  REQUIRE( f( (uint16_t*){} ) == 0xe4a2 );
+  REQUIRE( w == expected_w );
 }
 
 } // namespace

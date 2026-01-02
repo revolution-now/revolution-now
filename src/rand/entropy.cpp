@@ -89,6 +89,26 @@ maybe<entropy> entropy::from_string( string_view const sv ) {
 
 void entropy::mix() { mix128( e1, e2, e3, e4 ); }
 
+entropy entropy::mixed() const {
+  auto copy = *this;
+  copy.mix();
+  return copy;
+}
+
+void entropy::rotate_right_n_bytes( int const n_bytes ) {
+  for( int i = 0; i < n_bytes; ++i ) {
+    uint32_t const lsb1 = e1 & 0xff;
+    uint32_t const lsb2 = e2 & 0xff;
+    uint32_t const lsb3 = e3 & 0xff;
+    uint32_t const lsb4 = e4 & 0xff;
+
+    e1 = ( e1 >> 8 ) + ( lsb2 << 24 );
+    e2 = ( e2 >> 8 ) + ( lsb3 << 24 );
+    e3 = ( e3 >> 8 ) + ( lsb4 << 24 );
+    e4 = ( e4 >> 8 ) + ( lsb1 << 24 );
+  }
+}
+
 /****************************************************************
 ** to_str
 *****************************************************************/

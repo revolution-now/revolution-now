@@ -22,6 +22,13 @@
 // C++ standard library
 #include <random>
 
+/****************************************************************
+** Fwd. Decls.
+*****************************************************************/
+namespace rng {
+struct entropy;
+}
+
 namespace rn {
 
 /****************************************************************
@@ -37,7 +44,7 @@ struct Rand : IRand {
 
   ~Rand() override = default;
 
-  void reseed( uint32_t new_seed );
+  void reseed( rng::entropy const& seed );
 
   // Implement IRand.
   bool bernoulli( double p ) override;
