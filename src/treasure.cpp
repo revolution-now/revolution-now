@@ -269,7 +269,7 @@ maybe<int> treasure_from_dwelling( SSConst const& ss,
   if( !should_get_treasure ) return nothing;
 
   double amount =
-      rand.between_ints( conf.range.min, conf.range.max );
+      rand.uniform_int( conf.range.min, conf.range.max );
 
   if( capital )
     amount *= config_natives.treasure.capital_amount_scale;

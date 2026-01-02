@@ -104,7 +104,7 @@ TEST_CASE( "[lcr] de soto means no negative results" ) {
   // the total weight will be 96.
   int const kUpperLimit = 96;
   W.rand()
-      .EXPECT__between_ints( 0, kUpperLimit - 1 )
+      .EXPECT__uniform_int( 0, kUpperLimit - 1 )
       .returns( 9 );
   REQUIRE( f() == LostCityRumor::none{} );
 }
@@ -294,7 +294,7 @@ TEST_CASE( "[lcr] run_lcr, fountain of youth" ) {
     // all of the unit type weights for all units on the discov-
     // erer level.
     W.rand()
-        .EXPECT__between_doubles(
+        .EXPECT__uniform_double(
             0, mock::matchers::Approx( 9960.0, .00001 ) )
         .returns( 5000.0 ); // chosen to give scout.
   }
@@ -802,34 +802,34 @@ TEST_CASE( "[lcr] compute_lcr, type=none" ) {
 
   SECTION( "type=none" ) {
     expected = LostCityRumor::none{};
-    W.rand().EXPECT__between_ints( 0, 99 ).returns( 0 );
+    W.rand().EXPECT__uniform_int( 0, 99 ).returns( 0 );
     REQUIRE( f() == expected );
   }
 
   SECTION( "type=fountain_of_youth" ) {
     expected = LostCityRumor::fountain_of_youth{};
-    W.rand().EXPECT__between_ints( 0, 99 ).returns( 48 );
+    W.rand().EXPECT__uniform_int( 0, 99 ).returns( 48 );
     REQUIRE( f() == expected );
   }
 
   SECTION( "no fountain_of_youth allowed" ) {
     player.revolution.status = e_revolution_status::declared;
     expected                 = LostCityRumor::free_colonist{};
-    W.rand().EXPECT__between_ints( 0, 94 ).returns( 48 );
+    W.rand().EXPECT__uniform_int( 0, 94 ).returns( 48 );
     REQUIRE( f() == expected );
   }
 
   SECTION( "type=free_colonist" ) {
     expected = LostCityRumor::free_colonist{};
-    W.rand().EXPECT__between_ints( 0, 99 ).returns( 53 );
+    W.rand().EXPECT__uniform_int( 0, 99 ).returns( 53 );
     REQUIRE( f() == expected );
   }
 
   SECTION( "type=ruins" ) {
     expected = LostCityRumor::ruins{ .gold = 120 };
-    W.rand().EXPECT__between_ints( 0, 99 ).returns( 65 );
+    W.rand().EXPECT__uniform_int( 0, 99 ).returns( 65 );
     // Will be rounded down to the nearest 10.
-    W.rand().EXPECT__between_ints( 120, 300 ).returns( 123 );
+    W.rand().EXPECT__uniform_int( 120, 300 ).returns( 123 );
     REQUIRE( f() == expected );
   }
 
@@ -837,10 +837,10 @@ TEST_CASE( "[lcr] compute_lcr, type=none" ) {
     expected = LostCityRumor::burial_mounds{
       .mounds         = BurialMounds::treasure{ .gold = 3300 },
       .burial_grounds = nothing };
-    W.rand().EXPECT__between_ints( 0, 99 ).returns( 76 );
-    W.rand().EXPECT__between_ints( 0, 99 ).returns( 0 );
+    W.rand().EXPECT__uniform_int( 0, 99 ).returns( 76 );
+    W.rand().EXPECT__uniform_int( 0, 99 ).returns( 0 );
     // Will be rounded down to the nearest 100.
-    W.rand().EXPECT__between_ints( 2500, 4000 ).returns( 3333 );
+    W.rand().EXPECT__uniform_int( 2500, 4000 ).returns( 3333 );
     mock_map_search
         .EXPECT__find_close_encountered_tribe(
             player.type, gfx::point{ .x = 0, .y = 0 }, 15 )
@@ -854,10 +854,10 @@ TEST_CASE( "[lcr] compute_lcr, type=none" ) {
     expected = LostCityRumor::burial_mounds{
       .mounds         = BurialMounds::trinkets{ .gold = 110 },
       .burial_grounds = nothing };
-    W.rand().EXPECT__between_ints( 0, 99 ).returns( 76 );
-    W.rand().EXPECT__between_ints( 0, 99 ).returns( 50 );
+    W.rand().EXPECT__uniform_int( 0, 99 ).returns( 76 );
+    W.rand().EXPECT__uniform_int( 0, 99 ).returns( 50 );
     // Will be rounded down to the nearest 10.
-    W.rand().EXPECT__between_ints( 70, 200 ).returns( 111 );
+    W.rand().EXPECT__uniform_int( 70, 200 ).returns( 111 );
     mock_map_search
         .EXPECT__find_close_encountered_tribe(
             player.type, gfx::point{ .x = 0, .y = 0 }, 15 )
@@ -871,8 +871,8 @@ TEST_CASE( "[lcr] compute_lcr, type=none" ) {
     expected = LostCityRumor::burial_mounds{
       .mounds         = BurialMounds::cold_and_empty{},
       .burial_grounds = nothing };
-    W.rand().EXPECT__between_ints( 0, 99 ).returns( 76 );
-    W.rand().EXPECT__between_ints( 0, 99 ).returns( 95 );
+    W.rand().EXPECT__uniform_int( 0, 99 ).returns( 76 );
+    W.rand().EXPECT__uniform_int( 0, 99 ).returns( 95 );
     mock_map_search
         .EXPECT__find_close_encountered_tribe(
             player.type, gfx::point{ .x = 0, .y = 0 }, 15 )
@@ -886,8 +886,8 @@ TEST_CASE( "[lcr] compute_lcr, type=none" ) {
     expected = LostCityRumor::burial_mounds{
       .mounds         = BurialMounds::cold_and_empty{},
       .burial_grounds = e_tribe::sioux };
-    W.rand().EXPECT__between_ints( 0, 99 ).returns( 76 );
-    W.rand().EXPECT__between_ints( 0, 99 ).returns( 95 );
+    W.rand().EXPECT__uniform_int( 0, 99 ).returns( 76 );
+    W.rand().EXPECT__uniform_int( 0, 99 ).returns( 95 );
     mock_map_search
         .EXPECT__find_close_encountered_tribe(
             player.type, gfx::point{ .x = 0, .y = 0 }, 15 )
@@ -899,14 +899,14 @@ TEST_CASE( "[lcr] compute_lcr, type=none" ) {
 
   SECTION( "type=chief gift" ) {
     expected = LostCityRumor::chief_gift{ .gold = 23 };
-    W.rand().EXPECT__between_ints( 0, 99 ).returns( 82 );
-    W.rand().EXPECT__between_ints( 15, 70 ).returns( 23 );
+    W.rand().EXPECT__uniform_int( 0, 99 ).returns( 82 );
+    W.rand().EXPECT__uniform_int( 15, 70 ).returns( 23 );
     REQUIRE( f() == expected );
   }
 
   SECTION( "type=unit_lost" ) {
     expected = LostCityRumor::unit_lost{};
-    W.rand().EXPECT__between_ints( 0, 99 ).returns( 94 );
+    W.rand().EXPECT__uniform_int( 0, 99 ).returns( 94 );
     REQUIRE( f() == expected );
   }
 
@@ -917,23 +917,23 @@ TEST_CASE( "[lcr] compute_lcr, type=none" ) {
     player.fathers.has[e_founding_father::hernando_de_soto] =
         true;
     expected = LostCityRumor::cibola{ .gold = 5500 };
-    W.rand().EXPECT__between_ints( 0, 95 ).returns( 94 );
+    W.rand().EXPECT__uniform_int( 0, 95 ).returns( 94 );
     // Will be rounded down to nearest 100.
-    W.rand().EXPECT__between_ints( 2500, 12000 ).returns( 5555 );
+    W.rand().EXPECT__uniform_int( 2500, 12000 ).returns( 5555 );
     REQUIRE( f() == expected );
   }
 
   SECTION( "type=cibola" ) {
     expected = LostCityRumor::cibola{ .gold = 5500 };
-    W.rand().EXPECT__between_ints( 0, 99 ).returns( 97 );
+    W.rand().EXPECT__uniform_int( 0, 99 ).returns( 97 );
     // Will be rounded down to nearest 100.
-    W.rand().EXPECT__between_ints( 2500, 12000 ).returns( 5555 );
+    W.rand().EXPECT__uniform_int( 2500, 12000 ).returns( 5555 );
     REQUIRE( f() == expected );
   }
 
   SECTION( "type=holy_shrines, no tribes" ) {
     expected = LostCityRumor::none{};
-    W.rand().EXPECT__between_ints( 0, 99 ).returns( 99 );
+    W.rand().EXPECT__uniform_int( 0, 99 ).returns( 99 );
     mock_map_search
         .EXPECT__find_close_encountered_tribe(
             player.type, gfx::point{ .x = 0, .y = 0 }, 15 )
@@ -944,13 +944,13 @@ TEST_CASE( "[lcr] compute_lcr, type=none" ) {
   SECTION( "type=holy_shrines" ) {
     expected = LostCityRumor::holy_shrines{
       .tribe = e_tribe::sioux, .alarm_increase = 16 };
-    W.rand().EXPECT__between_ints( 0, 99 ).returns( 99 );
+    W.rand().EXPECT__uniform_int( 0, 99 ).returns( 99 );
     mock_map_search
         .EXPECT__find_close_encountered_tribe(
             player.type, gfx::point{ .x = 0, .y = 0 }, 15 )
         .returns( e_tribe::sioux );
     // Alarm increase.
-    W.rand().EXPECT__between_ints( 14, 18 ).returns( 16 );
+    W.rand().EXPECT__uniform_int( 14, 18 ).returns( 16 );
     REQUIRE( f() == expected );
   }
 }

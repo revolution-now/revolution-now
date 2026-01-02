@@ -57,7 +57,7 @@ struct World : testing::World {
   // Temporary: this is for when the brave chooses a random di-
   // rection in which to move.
   void expect_random_move() {
-    rand().EXPECT__between_ints( _, _ );
+    rand().EXPECT__uniform_int( _, _ );
   }
 };
 

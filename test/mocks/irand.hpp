@@ -29,8 +29,8 @@ namespace rn {
 *****************************************************************/
 struct MockIRand : IRand {
   MOCK_METHOD( bool, bernoulli, (double), () );
-  MOCK_METHOD( int, between_ints, (int, int), () );
-  MOCK_METHOD( double, between_doubles, (double, double), () );
+  MOCK_METHOD( int, uniform_int, (int, int), () );
+  MOCK_METHOD( double, uniform_double, (double, double), () );
 };
 
 static_assert( !std::is_abstract_v<MockIRand> );

@@ -250,7 +250,7 @@ wait<maybe<UnitId>> check_for_new_immigrant(
     CHECK_GE( immigrant_idx, 0 );
     CHECK_LE( immigrant_idx, 2 );
   } else {
-    immigrant_idx = rand.between_ints( 0, 2 );
+    immigrant_idx = rand.uniform_int( 0, 2 );
     e_unit_type const type =
         old_world_state( ss, player.type )
             .immigration.immigrants_pool[immigrant_idx];

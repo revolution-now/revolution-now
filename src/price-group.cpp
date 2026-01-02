@@ -285,7 +285,7 @@ int generate_random_intrinsic_volume( IRand& rand, int center,
                                       int window ) {
   int const bottom = center - window / 2;
   int const top    = center + window / 2;
-  return rand.between_ints( bottom, top );
+  return rand.uniform_int( bottom, top );
 }
 
 /****************************************************************

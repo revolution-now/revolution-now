@@ -70,7 +70,7 @@ BraveAttackColonyEffect choose_stolen_commodity(
     comm_stolen_min = comm_stolen_max;
   CHECK_LE( comm_stolen_min, comm_stolen_max );
   int const quantity_to_steal =
-      rand.between_ints( comm_stolen_min, comm_stolen_max );
+      rand.uniform_int( comm_stolen_min, comm_stolen_max );
   CHECK_LE( quantity_to_steal, quantity_in_store );
   Commodity const commodity{ .type     = type,
                              .quantity = quantity_to_steal };
@@ -103,7 +103,7 @@ BraveAttackColonyEffect calculate_money_stolen(
   CHECK_LE( money_stolen_min, money_stolen_max );
   if( money_stolen_max == 0 ) return none;
   int const quantity =
-      rand.between_ints( money_stolen_min, money_stolen_max );
+      rand.uniform_int( money_stolen_min, money_stolen_max );
   if( quantity == 0 ) return none;
   CHECK_GT( quantity, 0 );
   return BraveAttackColonyEffect::money_stolen{ .quantity =

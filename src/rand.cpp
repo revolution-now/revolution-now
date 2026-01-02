@@ -25,11 +25,11 @@ void Rand::reseed( rng::entropy const& seed ) {
 
 bool Rand::bernoulli( double p ) { return rd_.bernoulli( p ); }
 
-int Rand::between_ints( int lower, int upper ) {
+int Rand::uniform_int( int lower, int upper ) {
   return rd_.uniform( lower, upper );
 }
 
-double Rand::between_doubles( double lower, double upper ) {
+double Rand::uniform_double( double lower, double upper ) {
   return rd_.uniform( lower, upper );
 }
 

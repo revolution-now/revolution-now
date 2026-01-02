@@ -41,7 +41,7 @@ struct World : testing::World {
 TEST_CASE( "[rand-enum] pick-one" ) {
   World W;
 
-  W.rand().EXPECT__between_ints( 0, 2 ).returns( 1 );
+  W.rand().EXPECT__uniform_int( 0, 2 ).returns( 1 );
 
   auto const res = pick_one<e_color>( W.rand() );
   static_assert(

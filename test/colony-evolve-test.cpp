@@ -446,7 +446,7 @@ TEST_CASE( "[colony-evolve] warns when colony starving" ) {
   expected_notifications = {
     ColonyNotification::colonist_starved{
       .type = e_unit_type::free_colonist } };
-  W.rand().EXPECT__between_ints( 0, 3 - 1 ).returns( 0 );
+  W.rand().EXPECT__uniform_int( 0, 3 - 1 ).returns( 0 );
 
   ev =
       evolve_colony_one_turn( W.ss(), W.ts(), W.rand(), colony );
@@ -482,7 +482,7 @@ TEST_CASE( "[colony-evolve] warns when colony starving" ) {
   expected_notifications = {
     ColonyNotification::colonist_starved{
       .type = e_unit_type::free_colonist } };
-  W.rand().EXPECT__between_ints( 0, 2 - 1 ).returns( 0 );
+  W.rand().EXPECT__uniform_int( 0, 2 - 1 ).returns( 0 );
 
   ev =
       evolve_colony_one_turn( W.ss(), W.ts(), W.rand(), colony );

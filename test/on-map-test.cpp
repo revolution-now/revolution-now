@@ -347,7 +347,7 @@ TEST_CASE(
   };
 
   // Selects rumor result = fountain of youth.
-  W.rand().EXPECT__between_ints( 0, 100 - 1 ).returns( 57 );
+  W.rand().EXPECT__uniform_int( 0, 100 - 1 ).returns( 57 );
   agent.EXPECT__show_woodcut(
       e_woodcut::discovered_fountain_of_youth );
   agent.EXPECT__message_box( StrContains( "Youth" ) );
@@ -356,7 +356,7 @@ TEST_CASE(
     // Pick immigrant.
     agent.EXPECT__handle( Type<ChooseImmigrant>() ).returns( 0 );
     // Replace with next immigrant.
-    W.rand().EXPECT__between_doubles( _, _ ).returns( 0 );
+    W.rand().EXPECT__uniform_double( _, _ ).returns( 0 );
     // Wait a bit.
     agent.EXPECT__wait_for( _ ).returns(
         chrono::microseconds{} );
@@ -382,7 +382,7 @@ TEST_CASE( "[on-map] interactive: [LCR] unit lost" ) {
   player.woodcuts[e_woodcut::discovered_new_world] = true;
 
   // Selects rumor result = fountain of youth.
-  W.rand().EXPECT__between_ints( 0, 100 - 1 ).returns( 94 );
+  W.rand().EXPECT__uniform_int( 0, 100 - 1 ).returns( 94 );
   agent.EXPECT__message_box( StrContains( "vanished" ) );
 
   REQUIRE( W.units().exists( unit_id ) );

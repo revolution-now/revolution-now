@@ -80,9 +80,9 @@ TEST_CASE( "[raid] select_brave_attack_colony_effect" ) {
 
   SECTION( "none" ) {
     expected = BraveAttackColonyEffect::none{};
-    R.EXPECT__between_ints( 0, 100 - 1 ).returns( 0 );
+    R.EXPECT__uniform_int( 0, 100 - 1 ).returns( 0 );
     REQUIRE( f() == expected );
-    R.EXPECT__between_ints( 0, 100 - 1 ).returns( 11 );
+    R.EXPECT__uniform_int( 0, 100 - 1 ).returns( 11 );
     REQUIRE( f() == expected );
   }
 
@@ -91,13 +91,13 @@ TEST_CASE( "[raid] select_brave_attack_colony_effect" ) {
     using C     = e_commodity;
 
     SECTION( "no comms" ) {
-      R.EXPECT__between_ints( 0, 100 - 1 ).returns( 12 );
+      R.EXPECT__uniform_int( 0, 100 - 1 ).returns( 12 );
       expected = BraveAttackColonyEffect::none{};
       REQUIRE( f() == expected );
     }
 
     SECTION( "not enough quantity" ) {
-      R.EXPECT__between_ints( 0, 100 - 1 ).returns( 12 );
+      R.EXPECT__uniform_int( 0, 100 - 1 ).returns( 12 );
       comms[C::food]   = 4;
       comms[C::silver] = 4;
       comms[C::cloth]  = 4;
@@ -106,12 +106,12 @@ TEST_CASE( "[raid] select_brave_attack_colony_effect" ) {
     }
 
     SECTION( "one with just enough quantity" ) {
-      R.EXPECT__between_ints( 0, 100 - 1 ).returns( 12 );
+      R.EXPECT__uniform_int( 0, 100 - 1 ).returns( 12 );
       comms[C::food]   = 4;
       comms[C::silver] = 5;
       comms[C::cloth]  = 4;
-      R.EXPECT__between_ints( 0, 1 - 1 ).returns( 0 );
-      R.EXPECT__between_ints( 5, 5 ).returns( 5 );
+      R.EXPECT__uniform_int( 0, 1 - 1 ).returns( 0 );
+      R.EXPECT__uniform_int( 5, 5 ).returns( 5 );
       expected = BraveAttackColonyEffect::commodity_stolen{
         .what = Commodity{ .type     = e_commodity::silver,
                            .quantity = 5 } };
@@ -119,13 +119,13 @@ TEST_CASE( "[raid] select_brave_attack_colony_effect" ) {
     }
 
     SECTION( "one with enough quantity" ) {
-      R.EXPECT__between_ints( 0, 100 - 1 ).returns( 12 );
+      R.EXPECT__uniform_int( 0, 100 - 1 ).returns( 12 );
       comms[C::food]    = 4;
       comms[C::silver]  = 6;
       comms[C::cloth]   = 4;
       comms[C::muskets] = 4;
-      R.EXPECT__between_ints( 0, 1 - 1 ).returns( 0 );
-      R.EXPECT__between_ints( 5, 5 ).returns( 5 );
+      R.EXPECT__uniform_int( 0, 1 - 1 ).returns( 0 );
+      R.EXPECT__uniform_int( 5, 5 ).returns( 5 );
       expected = BraveAttackColonyEffect::commodity_stolen{
         .what = Commodity{ .type     = e_commodity::silver,
                            .quantity = 5 } };
@@ -133,13 +133,13 @@ TEST_CASE( "[raid] select_brave_attack_colony_effect" ) {
     }
 
     SECTION( "one with 10 of one commodity" ) {
-      R.EXPECT__between_ints( 0, 100 - 1 ).returns( 12 );
+      R.EXPECT__uniform_int( 0, 100 - 1 ).returns( 12 );
       comms[C::food]    = 4;
       comms[C::silver]  = 10;
       comms[C::cloth]   = 4;
       comms[C::muskets] = 4;
-      R.EXPECT__between_ints( 0, 1 - 1 ).returns( 0 );
-      R.EXPECT__between_ints( 5, 5 ).returns( 5 );
+      R.EXPECT__uniform_int( 0, 1 - 1 ).returns( 0 );
+      R.EXPECT__uniform_int( 5, 5 ).returns( 5 );
       expected = BraveAttackColonyEffect::commodity_stolen{
         .what = Commodity{ .type     = e_commodity::silver,
                            .quantity = 5 } };
@@ -147,13 +147,13 @@ TEST_CASE( "[raid] select_brave_attack_colony_effect" ) {
     }
 
     SECTION( "one with 10 of one commodity" ) {
-      R.EXPECT__between_ints( 0, 100 - 1 ).returns( 12 );
+      R.EXPECT__uniform_int( 0, 100 - 1 ).returns( 12 );
       comms[C::food]    = 4;
       comms[C::silver]  = 12;
       comms[C::cloth]   = 4;
       comms[C::muskets] = 4;
-      R.EXPECT__between_ints( 0, 1 - 1 ).returns( 0 );
-      R.EXPECT__between_ints( 5, 6 ).returns( 5 );
+      R.EXPECT__uniform_int( 0, 1 - 1 ).returns( 0 );
+      R.EXPECT__uniform_int( 5, 6 ).returns( 5 );
       expected = BraveAttackColonyEffect::commodity_stolen{
         .what = Commodity{ .type     = e_commodity::silver,
                            .quantity = 5 } };
@@ -161,13 +161,13 @@ TEST_CASE( "[raid] select_brave_attack_colony_effect" ) {
     }
 
     SECTION( "one with 10 of one commodity" ) {
-      R.EXPECT__between_ints( 0, 100 - 1 ).returns( 12 );
+      R.EXPECT__uniform_int( 0, 100 - 1 ).returns( 12 );
       comms[C::food]    = 4;
       comms[C::silver]  = 12;
       comms[C::cloth]   = 4;
       comms[C::muskets] = 24;
-      R.EXPECT__between_ints( 0, 2 - 1 ).returns( 1 );
-      R.EXPECT__between_ints( 5, 12 ).returns( 11 );
+      R.EXPECT__uniform_int( 0, 2 - 1 ).returns( 1 );
+      R.EXPECT__uniform_int( 5, 12 ).returns( 11 );
       expected = BraveAttackColonyEffect::commodity_stolen{
         .what = Commodity{ .type     = e_commodity::muskets,
                            .quantity = 11 } };
@@ -191,16 +191,16 @@ TEST_CASE( "[raid] select_brave_attack_colony_effect" ) {
       comms[C::tobacco]     = 130;
       comms[C::tools]       = 140;
       comms[C::trade_goods] = 150;
-      R.EXPECT__between_ints( 0, 100 - 1 ).returns( 12 );
-      R.EXPECT__between_ints( 0, 15 - 1 ).returns( 9 );
-      R.EXPECT__between_ints( 5, 50 ).returns( 50 );
+      R.EXPECT__uniform_int( 0, 100 - 1 ).returns( 12 );
+      R.EXPECT__uniform_int( 0, 15 - 1 ).returns( 9 );
+      R.EXPECT__uniform_int( 5, 50 ).returns( 50 );
       expected = BraveAttackColonyEffect::commodity_stolen{
         .what = Commodity{ .type     = e_commodity::rum,
                            .quantity = 50 } };
       REQUIRE( f() == expected );
-      R.EXPECT__between_ints( 0, 100 - 1 ).returns( 12 );
-      R.EXPECT__between_ints( 0, 15 - 1 ).returns( 9 );
-      R.EXPECT__between_ints( 5, 50 ).returns( 5 );
+      R.EXPECT__uniform_int( 0, 100 - 1 ).returns( 12 );
+      R.EXPECT__uniform_int( 0, 15 - 1 ).returns( 9 );
+      R.EXPECT__uniform_int( 5, 50 ).returns( 5 );
       expected = BraveAttackColonyEffect::commodity_stolen{
         .what = Commodity{ .type     = e_commodity::rum,
                            .quantity = 5 } };
@@ -212,14 +212,14 @@ TEST_CASE( "[raid] select_brave_attack_colony_effect" ) {
     int& money = W.default_player().money;
 
     SECTION( "no money" ) {
-      R.EXPECT__between_ints( 0, 100 - 1 ).returns( 42 );
+      R.EXPECT__uniform_int( 0, 100 - 1 ).returns( 42 );
       money    = 0;
       expected = BraveAttackColonyEffect::none{};
       REQUIRE( f() == expected );
     }
 
     SECTION( "money=2" ) {
-      R.EXPECT__between_ints( 0, 100 - 1 ).returns( 42 );
+      R.EXPECT__uniform_int( 0, 100 - 1 ).returns( 42 );
       money    = 2;
       expected = BraveAttackColonyEffect::none{};
       REQUIRE( f() == expected );
@@ -227,16 +227,16 @@ TEST_CASE( "[raid] select_brave_attack_colony_effect" ) {
 
     SECTION( "money=3, res=0" ) {
       money = 3;
-      R.EXPECT__between_ints( 0, 100 - 1 ).returns( 42 );
-      R.EXPECT__between_ints( 0, 1 ).returns( 0 );
+      R.EXPECT__uniform_int( 0, 100 - 1 ).returns( 42 );
+      R.EXPECT__uniform_int( 0, 1 ).returns( 0 );
       expected = BraveAttackColonyEffect::none{};
       REQUIRE( f() == expected );
     }
 
     SECTION( "money=3, res=1" ) {
       money = 3;
-      R.EXPECT__between_ints( 0, 100 - 1 ).returns( 42 );
-      R.EXPECT__between_ints( 0, 1 ).returns( 1 );
+      R.EXPECT__uniform_int( 0, 100 - 1 ).returns( 42 );
+      R.EXPECT__uniform_int( 0, 1 ).returns( 1 );
       expected =
           BraveAttackColonyEffect::money_stolen{ .quantity = 1 };
       REQUIRE( f() == expected );
@@ -244,8 +244,8 @@ TEST_CASE( "[raid] select_brave_attack_colony_effect" ) {
 
     SECTION( "money=10, res=2" ) {
       money = 10;
-      R.EXPECT__between_ints( 0, 100 - 1 ).returns( 42 );
-      R.EXPECT__between_ints( 0, 2 ).returns( 2 );
+      R.EXPECT__uniform_int( 0, 100 - 1 ).returns( 42 );
+      R.EXPECT__uniform_int( 0, 2 ).returns( 2 );
       expected =
           BraveAttackColonyEffect::money_stolen{ .quantity = 2 };
       REQUIRE( f() == expected );
@@ -254,15 +254,15 @@ TEST_CASE( "[raid] select_brave_attack_colony_effect" ) {
     SECTION( "money=10, res=2, with stockade" ) {
       colony.buildings[e_colony_building::stockade] = true;
       money                                         = 10;
-      R.EXPECT__between_ints( 0, 100 - 1 ).returns( 42 );
+      R.EXPECT__uniform_int( 0, 100 - 1 ).returns( 42 );
       expected = BraveAttackColonyEffect::none{};
       REQUIRE( f() == expected );
     }
 
     SECTION( "money=10000, res=1234" ) {
       money = 10000;
-      R.EXPECT__between_ints( 0, 100 - 1 ).returns( 42 );
-      R.EXPECT__between_ints( 300, 2000 ).returns( 1234 );
+      R.EXPECT__uniform_int( 0, 100 - 1 ).returns( 42 );
+      R.EXPECT__uniform_int( 300, 2000 ).returns( 1234 );
       expected = BraveAttackColonyEffect::money_stolen{
         .quantity = 1234 };
       REQUIRE( f() == expected );
@@ -270,8 +270,8 @@ TEST_CASE( "[raid] select_brave_attack_colony_effect" ) {
 
     SECTION( "money=100000, res=12345" ) {
       money = 100000;
-      R.EXPECT__between_ints( 0, 100 - 1 ).returns( 42 );
-      R.EXPECT__between_ints( 3000, 20000 ).returns( 12345 );
+      R.EXPECT__uniform_int( 0, 100 - 1 ).returns( 42 );
+      R.EXPECT__uniform_int( 3000, 20000 ).returns( 12345 );
       expected = BraveAttackColonyEffect::money_stolen{
         .quantity = 12345 };
       REQUIRE( f() == expected );
@@ -279,8 +279,8 @@ TEST_CASE( "[raid] select_brave_attack_colony_effect" ) {
 
     SECTION( "money=200000, res=12345" ) {
       money = 200000;
-      R.EXPECT__between_ints( 0, 100 - 1 ).returns( 42 );
-      R.EXPECT__between_ints( 6000, 25000 ).returns( 12345 );
+      R.EXPECT__uniform_int( 0, 100 - 1 ).returns( 42 );
+      R.EXPECT__uniform_int( 6000, 25000 ).returns( 12345 );
       expected = BraveAttackColonyEffect::money_stolen{
         .quantity = 12345 };
       REQUIRE( f() == expected );
@@ -289,15 +289,15 @@ TEST_CASE( "[raid] select_brave_attack_colony_effect" ) {
     SECTION( "money=200000, res=12345, with fort" ) {
       colony.buildings[e_colony_building::fort] = true;
       money                                     = 200000;
-      R.EXPECT__between_ints( 0, 100 - 1 ).returns( 42 );
+      R.EXPECT__uniform_int( 0, 100 - 1 ).returns( 42 );
       expected = BraveAttackColonyEffect::none{};
       REQUIRE( f() == expected );
     }
 
     SECTION( "money=400000, res=12000" ) {
       money = 400000;
-      R.EXPECT__between_ints( 0, 100 - 1 ).returns( 42 );
-      R.EXPECT__between_ints( 12000, 25000 ).returns( 12000 );
+      R.EXPECT__uniform_int( 0, 100 - 1 ).returns( 42 );
+      R.EXPECT__uniform_int( 12000, 25000 ).returns( 12000 );
       expected = BraveAttackColonyEffect::money_stolen{
         .quantity = 12000 };
       REQUIRE( f() == expected );
@@ -305,8 +305,8 @@ TEST_CASE( "[raid] select_brave_attack_colony_effect" ) {
 
     SECTION( "money=800000, res=25000" ) {
       money = 800000;
-      R.EXPECT__between_ints( 0, 100 - 1 ).returns( 42 );
-      R.EXPECT__between_ints( 24000, 25000 ).returns( 25000 );
+      R.EXPECT__uniform_int( 0, 100 - 1 ).returns( 42 );
+      R.EXPECT__uniform_int( 24000, 25000 ).returns( 25000 );
       expected = BraveAttackColonyEffect::money_stolen{
         .quantity = 25000 };
       REQUIRE( f() == expected );
@@ -316,8 +316,8 @@ TEST_CASE( "[raid] select_brave_attack_colony_effect" ) {
     // the boundary of the maximum.
     SECTION( "money=1000000, res=25000" ) {
       money = 1000000;
-      R.EXPECT__between_ints( 0, 100 - 1 ).returns( 42 );
-      R.EXPECT__between_ints( 25000, 25000 ).returns( 25000 );
+      R.EXPECT__uniform_int( 0, 100 - 1 ).returns( 42 );
+      R.EXPECT__uniform_int( 25000, 25000 ).returns( 25000 );
       expected = BraveAttackColonyEffect::money_stolen{
         .quantity = 25000 };
       REQUIRE( f() == expected );
@@ -325,8 +325,8 @@ TEST_CASE( "[raid] select_brave_attack_colony_effect" ) {
 
     SECTION( "money=1100000, res=20000" ) {
       money = 1100000;
-      R.EXPECT__between_ints( 0, 100 - 1 ).returns( 42 );
-      R.EXPECT__between_ints( 25000, 25000 ).returns( 20000 );
+      R.EXPECT__uniform_int( 0, 100 - 1 ).returns( 42 );
+      R.EXPECT__uniform_int( 25000, 25000 ).returns( 20000 );
       expected = BraveAttackColonyEffect::money_stolen{
         .quantity = 20000 };
       REQUIRE( f() == expected );
@@ -335,7 +335,7 @@ TEST_CASE( "[raid] select_brave_attack_colony_effect" ) {
     SECTION( "money=1100000, res=20000, with fortress" ) {
       colony.buildings[e_colony_building::fortress] = true;
       money                                         = 1100000;
-      R.EXPECT__between_ints( 0, 100 - 1 ).returns( 42 );
+      R.EXPECT__uniform_int( 0, 100 - 1 ).returns( 42 );
       expected = BraveAttackColonyEffect::none{};
       REQUIRE( f() == expected );
     }
@@ -347,18 +347,18 @@ TEST_CASE( "[raid] select_brave_attack_colony_effect" ) {
 
     SECTION( "attempt=weaver's house" ) {
       buildings[B::weavers_house] = true;
-      R.EXPECT__between_ints( 0, 100 - 1 ).returns( 63 );
+      R.EXPECT__uniform_int( 0, 100 - 1 ).returns( 63 );
       // slot = cloth.
-      R.EXPECT__between_ints( 0, 16 - 1 ).returns( 3 );
+      R.EXPECT__uniform_int( 0, 16 - 1 ).returns( 3 );
       expected = BraveAttackColonyEffect::none{};
       REQUIRE( f() == expected );
     }
 
     SECTION( "attempt=weaver's shop" ) {
       buildings[B::weavers_shop] = true;
-      R.EXPECT__between_ints( 0, 100 - 1 ).returns( 63 );
+      R.EXPECT__uniform_int( 0, 100 - 1 ).returns( 63 );
       // slot = cloth.
-      R.EXPECT__between_ints( 0, 16 - 1 ).returns( 3 );
+      R.EXPECT__uniform_int( 0, 16 - 1 ).returns( 3 );
       expected = BraveAttackColonyEffect::building_destroyed{
         .which = B::weavers_shop };
       REQUIRE( f() == expected );
@@ -367,9 +367,9 @@ TEST_CASE( "[raid] select_brave_attack_colony_effect" ) {
     SECTION( "attempt=weaver's shop, with stockade" ) {
       buildings[B::stockade]     = true;
       buildings[B::weavers_shop] = true;
-      R.EXPECT__between_ints( 0, 100 - 1 ).returns( 63 );
+      R.EXPECT__uniform_int( 0, 100 - 1 ).returns( 63 );
       // slot = cloth.
-      R.EXPECT__between_ints( 0, 16 - 1 ).returns( 3 );
+      R.EXPECT__uniform_int( 0, 16 - 1 ).returns( 3 );
       expected = BraveAttackColonyEffect::building_destroyed{
         .which = B::weavers_shop };
       REQUIRE( f() == expected );
@@ -378,7 +378,7 @@ TEST_CASE( "[raid] select_brave_attack_colony_effect" ) {
     SECTION( "attempt=weaver's shop, with fort" ) {
       buildings[B::fort]         = true;
       buildings[B::weavers_shop] = true;
-      R.EXPECT__between_ints( 0, 100 - 1 ).returns( 63 );
+      R.EXPECT__uniform_int( 0, 100 - 1 ).returns( 63 );
       expected = BraveAttackColonyEffect::none{};
       REQUIRE( f() == expected );
     }
@@ -386,16 +386,16 @@ TEST_CASE( "[raid] select_brave_attack_colony_effect" ) {
     SECTION( "attempt=weaver's shop, with fortress" ) {
       buildings[B::fortress]     = true;
       buildings[B::weavers_shop] = true;
-      R.EXPECT__between_ints( 0, 100 - 1 ).returns( 63 );
+      R.EXPECT__uniform_int( 0, 100 - 1 ).returns( 63 );
       expected = BraveAttackColonyEffect::none{};
       REQUIRE( f() == expected );
     }
 
     SECTION( "attempt=town hall" ) {
       buildings[B::town_hall] = true;
-      R.EXPECT__between_ints( 0, 100 - 1 ).returns( 63 );
+      R.EXPECT__uniform_int( 0, 100 - 1 ).returns( 63 );
       // slot = town hall.
-      R.EXPECT__between_ints( 0, 16 - 1 ).returns( 7 );
+      R.EXPECT__uniform_int( 0, 16 - 1 ).returns( 7 );
       expected = BraveAttackColonyEffect::none{};
       REQUIRE( f() == expected );
     }
@@ -403,9 +403,9 @@ TEST_CASE( "[raid] select_brave_attack_colony_effect" ) {
     SECTION( "attempt=stockade" ) {
       buildings[B::stockade]  = true;
       buildings[B::town_hall] = true;
-      R.EXPECT__between_ints( 0, 100 - 1 ).returns( 63 );
+      R.EXPECT__uniform_int( 0, 100 - 1 ).returns( 63 );
       // slot = wall.
-      R.EXPECT__between_ints( 0, 16 - 1 ).returns( 12 );
+      R.EXPECT__uniform_int( 0, 16 - 1 ).returns( 12 );
       expected = BraveAttackColonyEffect::none{};
       REQUIRE( f() == expected );
     }
@@ -413,18 +413,18 @@ TEST_CASE( "[raid] select_brave_attack_colony_effect" ) {
     SECTION( "attempt=non existent hammers" ) {
       buildings[B::lumber_mill]     = false;
       buildings[B::carpenters_shop] = false;
-      R.EXPECT__between_ints( 0, 100 - 1 ).returns( 63 );
+      R.EXPECT__uniform_int( 0, 100 - 1 ).returns( 63 );
       // slot = hammers.
-      R.EXPECT__between_ints( 0, 16 - 1 ).returns( 6 );
+      R.EXPECT__uniform_int( 0, 16 - 1 ).returns( 6 );
       expected = BraveAttackColonyEffect::none{};
       REQUIRE( f() == expected );
     }
 
     SECTION( "attempt=textile mill" ) {
       buildings[B::textile_mill] = true;
-      R.EXPECT__between_ints( 0, 100 - 1 ).returns( 74 );
+      R.EXPECT__uniform_int( 0, 100 - 1 ).returns( 74 );
       // slot = cloth.
-      R.EXPECT__between_ints( 0, 16 - 1 ).returns( 3 );
+      R.EXPECT__uniform_int( 0, 16 - 1 ).returns( 3 );
       expected = BraveAttackColonyEffect::building_destroyed{
         .which = B::textile_mill };
       REQUIRE( f() == expected );
@@ -432,9 +432,9 @@ TEST_CASE( "[raid] select_brave_attack_colony_effect" ) {
 
     SECTION( "attempt=custom house" ) {
       buildings[B::custom_house] = true;
-      R.EXPECT__between_ints( 0, 100 - 1 ).returns( 74 );
+      R.EXPECT__uniform_int( 0, 100 - 1 ).returns( 74 );
       // slot = custom_house.
-      R.EXPECT__between_ints( 0, 16 - 1 ).returns( 15 );
+      R.EXPECT__uniform_int( 0, 16 - 1 ).returns( 15 );
       expected = BraveAttackColonyEffect::building_destroyed{
         .which = B::custom_house };
       REQUIRE( f() == expected );
@@ -442,9 +442,9 @@ TEST_CASE( "[raid] select_brave_attack_colony_effect" ) {
 
     SECTION( "attempt=docks" ) {
       buildings[B::docks] = true;
-      R.EXPECT__between_ints( 0, 100 - 1 ).returns( 74 );
+      R.EXPECT__uniform_int( 0, 100 - 1 ).returns( 74 );
       // slot = offshore.
-      R.EXPECT__between_ints( 0, 16 - 1 ).returns( 10 );
+      R.EXPECT__uniform_int( 0, 16 - 1 ).returns( 10 );
       expected = BraveAttackColonyEffect::building_destroyed{
         .which = B::docks };
       REQUIRE( f() == expected );
@@ -453,9 +453,9 @@ TEST_CASE( "[raid] select_brave_attack_colony_effect" ) {
     SECTION( "attempt=drydock" ) {
       buildings[B::docks]   = true;
       buildings[B::drydock] = true;
-      R.EXPECT__between_ints( 0, 100 - 1 ).returns( 74 );
+      R.EXPECT__uniform_int( 0, 100 - 1 ).returns( 74 );
       // slot = offshore.
-      R.EXPECT__between_ints( 0, 16 - 1 ).returns( 10 );
+      R.EXPECT__uniform_int( 0, 16 - 1 ).returns( 10 );
       expected = BraveAttackColonyEffect::building_destroyed{
         .which = B::drydock };
       REQUIRE( f() == expected );
@@ -469,9 +469,9 @@ TEST_CASE( "[raid] select_brave_attack_colony_effect" ) {
       unit.orders() = unit_orders::damaged{};
       buildings[B::docks]   = true;
       buildings[B::drydock] = true;
-      R.EXPECT__between_ints( 0, 100 - 1 ).returns( 74 );
+      R.EXPECT__uniform_int( 0, 100 - 1 ).returns( 74 );
       // slot = offshore.
-      R.EXPECT__between_ints( 0, 16 - 1 ).returns( 10 );
+      R.EXPECT__uniform_int( 0, 16 - 1 ).returns( 10 );
       expected = BraveAttackColonyEffect::none{};
       REQUIRE( f() == expected );
     }
@@ -486,9 +486,9 @@ TEST_CASE( "[raid] select_brave_attack_colony_effect" ) {
       buildings[B::docks]    = true;
       buildings[B::drydock]  = true;
       buildings[B::shipyard] = true;
-      R.EXPECT__between_ints( 0, 100 - 1 ).returns( 74 );
+      R.EXPECT__uniform_int( 0, 100 - 1 ).returns( 74 );
       // slot = offshore.
-      R.EXPECT__between_ints( 0, 16 - 1 ).returns( 10 );
+      R.EXPECT__uniform_int( 0, 16 - 1 ).returns( 10 );
       expected = BraveAttackColonyEffect::building_destroyed{
         .which = B::shipyard };
       REQUIRE( f() == expected );
@@ -502,16 +502,16 @@ TEST_CASE( "[raid] select_brave_attack_colony_effect" ) {
     };
 
     SECTION( "no ships" ) {
-      R.EXPECT__between_ints( 0, 100 - 1 ).returns( 75 );
+      R.EXPECT__uniform_int( 0, 100 - 1 ).returns( 75 );
       expected = BraveAttackColonyEffect::none{};
       REQUIRE( f() == expected );
     }
 
     SECTION( "one ship" ) {
-      R.EXPECT__between_ints( 0, 100 - 1 ).returns( 75 );
+      R.EXPECT__uniform_int( 0, 100 - 1 ).returns( 75 );
       UnitId const ship_id =
           add_ship( e_unit_type::caravel ).id();
-      R.EXPECT__between_ints( 0, 1 - 1 ).returns( 0 );
+      R.EXPECT__uniform_int( 0, 1 - 1 ).returns( 0 );
       expected = BraveAttackColonyEffect::ship_in_port_damaged{
         .which   = ship_id,
         .sent_to = ShipRepairPort::european_harbor{} };
@@ -519,7 +519,7 @@ TEST_CASE( "[raid] select_brave_attack_colony_effect" ) {
     }
 
     SECTION( "one damaged ship" ) {
-      R.EXPECT__between_ints( 0, 100 - 1 ).returns( 75 );
+      R.EXPECT__uniform_int( 0, 100 - 1 ).returns( 75 );
       Unit& ship    = add_ship( e_unit_type::caravel );
       ship.orders() = unit_orders::damaged{};
       expected      = BraveAttackColonyEffect::none{};
@@ -527,11 +527,11 @@ TEST_CASE( "[raid] select_brave_attack_colony_effect" ) {
     }
 
     SECTION( "two ships" ) {
-      R.EXPECT__between_ints( 0, 100 - 1 ).returns( 75 );
+      R.EXPECT__uniform_int( 0, 100 - 1 ).returns( 75 );
       add_ship( e_unit_type::caravel );
       UnitId const ship_id2 =
           add_ship( e_unit_type::galleon ).id();
-      R.EXPECT__between_ints( 0, 2 - 1 ).returns( 1 );
+      R.EXPECT__uniform_int( 0, 2 - 1 ).returns( 1 );
       expected = BraveAttackColonyEffect::ship_in_port_damaged{
         .which   = ship_id2,
         .sent_to = ShipRepairPort::european_harbor{} };
@@ -539,12 +539,12 @@ TEST_CASE( "[raid] select_brave_attack_colony_effect" ) {
     }
 
     SECTION( "three ships" ) {
-      R.EXPECT__between_ints( 0, 100 - 1 ).returns( 75 );
+      R.EXPECT__uniform_int( 0, 100 - 1 ).returns( 75 );
       UnitId const ship_id1 =
           add_ship( e_unit_type::caravel ).id();
       add_ship( e_unit_type::galleon );
       add_ship( e_unit_type::merchantman );
-      R.EXPECT__between_ints( 0, 3 - 1 ).returns( 0 );
+      R.EXPECT__uniform_int( 0, 3 - 1 ).returns( 0 );
       expected = BraveAttackColonyEffect::ship_in_port_damaged{
         .which   = ship_id1,
         .sent_to = ShipRepairPort::european_harbor{} };
@@ -553,12 +553,12 @@ TEST_CASE( "[raid] select_brave_attack_colony_effect" ) {
 
     SECTION( "three ships, stockade" ) {
       colony.buildings[e_colony_building::stockade] = true;
-      R.EXPECT__between_ints( 0, 100 - 1 ).returns( 75 );
+      R.EXPECT__uniform_int( 0, 100 - 1 ).returns( 75 );
       UnitId const ship_id1 =
           add_ship( e_unit_type::caravel ).id();
       add_ship( e_unit_type::galleon );
       add_ship( e_unit_type::merchantman );
-      R.EXPECT__between_ints( 0, 3 - 1 ).returns( 0 );
+      R.EXPECT__uniform_int( 0, 3 - 1 ).returns( 0 );
       expected = BraveAttackColonyEffect::ship_in_port_damaged{
         .which   = ship_id1,
         .sent_to = ShipRepairPort::european_harbor{} };
@@ -567,12 +567,12 @@ TEST_CASE( "[raid] select_brave_attack_colony_effect" ) {
 
     SECTION( "three ships, fort" ) {
       colony.buildings[e_colony_building::fort] = true;
-      R.EXPECT__between_ints( 0, 100 - 1 ).returns( 75 );
+      R.EXPECT__uniform_int( 0, 100 - 1 ).returns( 75 );
       UnitId const ship_id1 =
           add_ship( e_unit_type::caravel ).id();
       add_ship( e_unit_type::galleon );
       add_ship( e_unit_type::merchantman );
-      R.EXPECT__between_ints( 0, 3 - 1 ).returns( 0 );
+      R.EXPECT__uniform_int( 0, 3 - 1 ).returns( 0 );
       expected = BraveAttackColonyEffect::ship_in_port_damaged{
         .which   = ship_id1,
         .sent_to = ShipRepairPort::european_harbor{} };
@@ -581,7 +581,7 @@ TEST_CASE( "[raid] select_brave_attack_colony_effect" ) {
 
     SECTION( "three ships, fortress" ) {
       colony.buildings[e_colony_building::fortress] = true;
-      R.EXPECT__between_ints( 0, 100 - 1 ).returns( 75 );
+      R.EXPECT__uniform_int( 0, 100 - 1 ).returns( 75 );
       add_ship( e_unit_type::caravel );
       add_ship( e_unit_type::galleon );
       add_ship( e_unit_type::merchantman );
@@ -590,13 +590,13 @@ TEST_CASE( "[raid] select_brave_attack_colony_effect" ) {
     }
 
     SECTION( "three ships, one damaged" ) {
-      R.EXPECT__between_ints( 0, 100 - 1 ).returns( 75 );
+      R.EXPECT__uniform_int( 0, 100 - 1 ).returns( 75 );
       add_ship( e_unit_type::caravel );
       Unit& galleon = add_ship( e_unit_type::galleon );
       UnitId const ship_id3 =
           add_ship( e_unit_type::merchantman ).id();
       galleon.orders() = unit_orders::damaged{};
-      R.EXPECT__between_ints( 0, 2 - 1 ).returns( 1 );
+      R.EXPECT__uniform_int( 0, 2 - 1 ).returns( 1 );
       expected = BraveAttackColonyEffect::ship_in_port_damaged{
         .which   = ship_id3,
         .sent_to = ShipRepairPort::european_harbor{} };
@@ -604,7 +604,7 @@ TEST_CASE( "[raid] select_brave_attack_colony_effect" ) {
     }
 
     SECTION( "three ships, all damaged" ) {
-      R.EXPECT__between_ints( 0, 100 - 1 ).returns( 75 );
+      R.EXPECT__uniform_int( 0, 100 - 1 ).returns( 75 );
       Unit& caravel     = add_ship( e_unit_type::caravel );
       Unit& galleon     = add_ship( e_unit_type::galleon );
       Unit& merchantman = add_ship( e_unit_type::merchantman );
@@ -616,11 +616,11 @@ TEST_CASE( "[raid] select_brave_attack_colony_effect" ) {
     }
 
     SECTION( "one ship, second colony no drydock" ) {
-      R.EXPECT__between_ints( 0, 100 - 1 ).returns( 75 );
+      R.EXPECT__uniform_int( 0, 100 - 1 ).returns( 75 );
       W.add_colony( { .x = 0, .y = 1 } );
       UnitId const ship_id =
           add_ship( e_unit_type::caravel ).id();
-      R.EXPECT__between_ints( 0, 1 - 1 ).returns( 0 );
+      R.EXPECT__uniform_int( 0, 1 - 1 ).returns( 0 );
       expected = BraveAttackColonyEffect::ship_in_port_damaged{
         .which   = ship_id,
         .sent_to = ShipRepairPort::european_harbor{} };
@@ -628,12 +628,12 @@ TEST_CASE( "[raid] select_brave_attack_colony_effect" ) {
     }
 
     SECTION( "one ship, second colony with drydock" ) {
-      R.EXPECT__between_ints( 0, 100 - 1 ).returns( 75 );
+      R.EXPECT__uniform_int( 0, 100 - 1 ).returns( 75 );
       Colony& colony2 = W.add_colony( { .x = 0, .y = 1 } );
       colony2.buildings[e_colony_building::drydock] = true;
       UnitId const ship_id =
           add_ship( e_unit_type::caravel ).id();
-      R.EXPECT__between_ints( 0, 1 - 1 ).returns( 0 );
+      R.EXPECT__uniform_int( 0, 1 - 1 ).returns( 0 );
       expected = BraveAttackColonyEffect::ship_in_port_damaged{
         .which   = ship_id,
         .sent_to = ShipRepairPort::colony{ .id = colony2.id } };
@@ -641,12 +641,12 @@ TEST_CASE( "[raid] select_brave_attack_colony_effect" ) {
     }
 
     SECTION( "one ship, second colony with shipyard" ) {
-      R.EXPECT__between_ints( 0, 100 - 1 ).returns( 75 );
+      R.EXPECT__uniform_int( 0, 100 - 1 ).returns( 75 );
       Colony& colony2 = W.add_colony( { .x = 0, .y = 1 } );
       colony2.buildings[e_colony_building::shipyard] = true;
       UnitId const ship_id =
           add_ship( e_unit_type::caravel ).id();
-      R.EXPECT__between_ints( 0, 1 - 1 ).returns( 0 );
+      R.EXPECT__uniform_int( 0, 1 - 1 ).returns( 0 );
       expected = BraveAttackColonyEffect::ship_in_port_damaged{
         .which   = ship_id,
         .sent_to = ShipRepairPort::colony{ .id = colony2.id } };

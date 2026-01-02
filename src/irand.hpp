@@ -39,11 +39,11 @@ struct IRand {
   [[nodiscard]] virtual bool bernoulli( double p ) = 0;
 
   // Random integer between tbe bounds, closed on both ends.
-  [[nodiscard]] virtual int between_ints( int lower,
-                                          int upper ) = 0;
+  [[nodiscard]] virtual int uniform_int( int lower,
+                                         int upper ) = 0;
 
   // Random floating point number in [lower, upper).
-  [[nodiscard]] virtual double between_doubles(
+  [[nodiscard]] virtual double uniform_double(
       double lower, double upper ) = 0;
 
   /**************************************************************
@@ -61,7 +61,7 @@ struct IRand {
   [[nodiscard]] T const& pick_one(
       std::vector<T> const& v ATTR_LIFETIMEBOUND ) {
     CHECK( !v.empty() );
-    return v[between_ints( 0, v.size() - 1 )];
+    return v[uniform_int( 0, v.size() - 1 )];
   }
 
   // Picks a random value given the weights. All weights should
@@ -87,7 +87,7 @@ void IRand::shuffle( std::vector<T>& vec ) {
   // i < last_idx because we don't want to consider swapping the
   // last element with itself, which would have not purpose.
   for( int i = 0; i < last_idx; ++i ) {
-    int source = between_ints( i, last_idx );
+    int source = uniform_int( i, last_idx );
     using std::swap;
     swap( vec[i], vec[source] );
   }
@@ -103,7 +103,7 @@ void IRand::shuffle( std::array<T, N>& arr ) {
     // the last element with itself, which would have not pur-
     // pose.
     for( int i = 0; i < kLastIdx; ++i ) {
-      int source = between_ints( i, kLastIdx );
+      int source = uniform_int( i, kLastIdx );
       using std::swap;
       swap( arr[i], arr[source] );
     }
@@ -116,7 +116,7 @@ T IRand::pick_from_weighted_values(
   int total = 0;
   for( auto const& [item, weight] : weights ) total += weight;
   CHECK_GT( total, 0 );
-  int const stop = between_ints( 0, total - 1 );
+  int const stop = uniform_int( 0, total - 1 );
   int running    = 0;
   for( auto const& [item, weight] : weights ) {
     running += weight;
@@ -131,7 +131,7 @@ T IRand::pick_from_weighted_values(
   double total = 0;
   for( auto const& [item, weight] : weights ) total += weight;
   CHECK_GE( total, 0.0 );
-  double const stop = between_doubles( 0.0, total );
+  double const stop = uniform_double( 0.0, total );
   double running    = 0.0;
   T res             = {};
   for( auto const& [item, weight] : weights ) {

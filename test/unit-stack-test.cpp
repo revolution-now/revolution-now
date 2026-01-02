@@ -253,33 +253,33 @@ TEST_CASE( "[unit-stack] select_colony_defender" ) {
       w.add_unit_outdoors( colony.id, e_direction::s,
                            e_outdoor_job::fish )
           .id();
-  w.rand().EXPECT__between_ints( 0, 0 ).returns( 0 );
+  w.rand().EXPECT__uniform_int( 0, 0 ).returns( 0 );
   REQUIRE( f() == fisherman_id );
 
   UnitId const cotton_planter_id =
       w.add_unit_outdoors( colony.id, e_direction::sw,
                            e_outdoor_job::cotton )
           .id();
-  w.rand().EXPECT__between_ints( 0, 1 ).returns( 1 );
+  w.rand().EXPECT__uniform_int( 0, 1 ).returns( 1 );
   REQUIRE( f() == cotton_planter_id );
 
   UnitId const tobacco_planter_id =
       w.add_unit_outdoors( colony.id, e_direction::se,
                            e_outdoor_job::tobacco )
           .id();
-  w.rand().EXPECT__between_ints( 0, 2 ).returns( 1 );
+  w.rand().EXPECT__uniform_int( 0, 2 ).returns( 1 );
   REQUIRE( f() == cotton_planter_id );
 
   w.add_unit_on_map( e_unit_type::free_colonist, coord );
-  w.rand().EXPECT__between_ints( 0, 2 ).returns( 2 );
+  w.rand().EXPECT__uniform_int( 0, 2 ).returns( 2 );
   REQUIRE( f() == tobacco_planter_id );
 
   w.add_unit_on_map( e_unit_type::wagon_train, coord );
-  w.rand().EXPECT__between_ints( 0, 2 ).returns( 2 );
+  w.rand().EXPECT__uniform_int( 0, 2 ).returns( 2 );
   REQUIRE( f() == tobacco_planter_id );
 
   w.add_unit_on_map( e_unit_type::frigate, coord );
-  w.rand().EXPECT__between_ints( 0, 2 ).returns( 0 );
+  w.rand().EXPECT__uniform_int( 0, 2 ).returns( 0 );
   REQUIRE( f() == fisherman_id );
 
   UnitId const veteran_dragoon_id =

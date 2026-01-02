@@ -236,7 +236,7 @@ TEST_CASE( "[rpt] click_recruit" ) {
   // The 2229.0 should just barely put us in the range of the
   // free colonist.
   W.rand()
-      .EXPECT__between_doubles( 0, Approx( kUpperLimit, .1 ) )
+      .EXPECT__uniform_double( 0, Approx( kUpperLimit, .1 ) )
       .returns( 2229.0 );
 
   auto& pool = W.old_world( player ).immigration.immigrants_pool;

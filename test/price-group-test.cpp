@@ -573,7 +573,7 @@ TEST_CASE( "[price-group] generate_random_intrinsic_volume" ) {
     int const top    = 15;
     CHECK( ret >= bottom );
     CHECK( ret <= top );
-    W.rand().EXPECT__between_ints( bottom, top ).returns( ret );
+    W.rand().EXPECT__uniform_int( bottom, top ).returns( ret );
   };
 
   expect( 10 );

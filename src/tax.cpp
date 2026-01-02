@@ -46,7 +46,7 @@ using ::base::NoDiscard;
 int rand_int_range( IRand& rand, auto const& int_range ) {
   int const min = int_range.min;
   int const max = int_range.max;
-  return rand.between_ints( min, max );
+  return rand.uniform_int( min, max );
 }
 
 int rand_int_range_by_year(
@@ -57,13 +57,13 @@ int rand_int_range_by_year(
       : ( year < 1700 ) ? ranges.years_1600_to_1699
       : ( year < 1800 ) ? ranges.years_1700_to_1799
                         : ranges.years_1800_to_9999;
-  return rand.between_ints( range.min, range.max );
+  return rand.uniform_int( range.min, range.max );
 }
 
 double rand_dbl_range( IRand& rand, auto const& dbl_range ) {
   double const min = dbl_range.min;
   double const max = dbl_range.max;
-  return rand.between_doubles( min, max );
+  return rand.uniform_double( min, max );
 }
 
 string ordinal_for( int n ) {
@@ -171,7 +171,7 @@ int remarry( SS& ss, IRand& rand, Player& player ) {
                             .taxes.king_remarriage_count +
                         config_old_world.min_king_wife_number;
   int const remarriages_since_last_tax_event =
-      rand.between_ints( 1, 3 );
+      rand.uniform_int( 1, 3 );
   int const new_wife =
       curr_wife + remarriages_since_last_tax_event;
   old_world_state( ss, player.type )

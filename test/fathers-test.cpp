@@ -246,9 +246,7 @@ TEST_CASE( "[fathers] pick_founding_father_if_needed" ) {
   player.bells               = 1;
 
   auto expect_rand = [&]( int low, int high, int res ) {
-    W.rand()
-        .EXPECT__between_ints( low, high - 1 )
-        .returns( res );
+    W.rand().EXPECT__uniform_int( low, high - 1 ).returns( res );
   };
 
   SECTION( "fills pool and chooses, year 1500" ) {
@@ -774,8 +772,8 @@ TEST_CASE( "[fathers] on_father_received: william_brewster" ) {
     state.immigrants_pool[2] = e_unit_type::indentured_servant;
     // Note that the upper limit of the random double is tested
     // elsewhere.
-    w.rand().EXPECT__between_doubles( 0, _ ).returns( 0.0 );
-    w.rand().EXPECT__between_doubles( 0, _ ).returns( 2500.0 );
+    w.rand().EXPECT__uniform_double( 0, _ ).returns( 0.0 );
+    w.rand().EXPECT__uniform_double( 0, _ ).returns( 2500.0 );
     f();
     REQUIRE( state.immigrants_pool[0] ==
              e_unit_type::expert_farmer );

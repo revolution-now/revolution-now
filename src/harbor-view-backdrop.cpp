@@ -400,10 +400,10 @@ HarborBackdrop::Layout HarborBackdrop::recomposite(
   rect const birds_available_space =
       all.with_new_bottom_edge( l.horizon_center.y - 107 );
   point p_birds{
-    .x = rand.between_ints( birds_available_space.left(),
-                            birds_available_space.right() ),
-    .y = rand.between_ints( birds_available_space.top(),
-                            birds_available_space.bottom() ) };
+    .x = rand.uniform_int( birds_available_space.left(),
+                           birds_available_space.right() ),
+    .y = rand.uniform_int( birds_available_space.top(),
+                           birds_available_space.bottom() ) };
   l.birds_states.emplace_back() = Layout::BirdsLayout{
     .p = p_birds, .tile = e_tile::harbor_birds_1 };
   p_birds += size{ .w = 5, .h = 6 };

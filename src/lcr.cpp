@@ -75,7 +75,7 @@ int random_gift( IRand& rand, GiftOptions options ) {
   if( options.min < options.multiple )
     options.min = options.multiple;
   if( options.max < options.min ) options.max = options.min;
-  int amount = rand.between_ints( options.min, options.max );
+  int amount = rand.uniform_int( options.min, options.max );
   return ( amount / options.multiple ) * options.multiple;
 }
 
@@ -470,7 +470,7 @@ LostCityRumor compute_rumor_type(
         auto const& range =
             config_lcr.holy_shrines_alarm_increase[difficulty];
         int const alarm_increase =
-            rand.between_ints( range.min, range.max );
+            rand.uniform_int( range.min, range.max );
         return LostCityRumor::holy_shrines{
           .tribe          = *close_encountered_tribe,
           .alarm_increase = alarm_increase };

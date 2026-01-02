@@ -26,7 +26,7 @@ template<refl::ReflectedEnum Enum>
 [[nodiscard]] Enum pick_one( IRand& rand ) {
   constexpr auto count = refl::enum_count<Enum>;
   static_assert( count > 0 );
-  auto idx = rand.between_ints( 0, count - 1 );
+  auto idx = rand.uniform_int( 0, count - 1 );
   return refl::enum_values<Enum>[idx];
 }
 

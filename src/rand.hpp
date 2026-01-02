@@ -50,10 +50,10 @@ struct Rand : IRand {
   bool bernoulli( double p ) override;
 
   // Implement IRand.
-  int between_ints( int lower, int upper ) override;
+  int uniform_int( int lower, int upper ) override;
 
   // Implement IRand.
-  double between_doubles( double lower, double upper ) override;
+  double uniform_double( double lower, double upper ) override;
 
  private:
   rng::random rd_;

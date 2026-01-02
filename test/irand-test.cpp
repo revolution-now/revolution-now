@@ -46,11 +46,11 @@ TEST_CASE( "[irand] shuffle/vector" ) {
 
   SECTION( "two" ) {
     v = { "hello", "world" };
-    impl.EXPECT__between_ints( 0, 1 ).returns( 0 );
+    impl.EXPECT__uniform_int( 0, 1 ).returns( 0 );
     irand.shuffle( v );
     expected = { "hello", "world" };
     REQUIRE( v == expected );
-    impl.EXPECT__between_ints( 0, 1 ).returns( 1 );
+    impl.EXPECT__uniform_int( 0, 1 ).returns( 1 );
     irand.shuffle( v );
     expected = { "world", "hello" };
     REQUIRE( v == expected );
@@ -58,8 +58,8 @@ TEST_CASE( "[irand] shuffle/vector" ) {
 
   SECTION( "three" ) {
     v = { "hello", "world", "again" };
-    impl.EXPECT__between_ints( 0, 2 ).returns( 1 );
-    impl.EXPECT__between_ints( 1, 2 ).returns( 1 );
+    impl.EXPECT__uniform_int( 0, 2 ).returns( 1 );
+    impl.EXPECT__uniform_int( 1, 2 ).returns( 1 );
     irand.shuffle( v );
     expected = { "world", "hello", "again" };
     REQUIRE( v == expected );
@@ -67,9 +67,9 @@ TEST_CASE( "[irand] shuffle/vector" ) {
 
   SECTION( "four" ) {
     v = { "hello", "world", "again", "!!" };
-    impl.EXPECT__between_ints( 0, 3 ).returns( 0 );
-    impl.EXPECT__between_ints( 1, 3 ).returns( 2 );
-    impl.EXPECT__between_ints( 2, 3 ).returns( 3 );
+    impl.EXPECT__uniform_int( 0, 3 ).returns( 0 );
+    impl.EXPECT__uniform_int( 1, 3 ).returns( 2 );
+    impl.EXPECT__uniform_int( 2, 3 ).returns( 3 );
     irand.shuffle( v );
     expected = { "hello", "again", "!!", "world" };
     REQUIRE( v == expected );
@@ -77,9 +77,9 @@ TEST_CASE( "[irand] shuffle/vector" ) {
 
   SECTION( "four unchanged" ) {
     v = { "hello", "world", "again", "!!" };
-    impl.EXPECT__between_ints( 0, 3 ).returns( 0 );
-    impl.EXPECT__between_ints( 1, 3 ).returns( 1 );
-    impl.EXPECT__between_ints( 2, 3 ).returns( 2 );
+    impl.EXPECT__uniform_int( 0, 3 ).returns( 0 );
+    impl.EXPECT__uniform_int( 1, 3 ).returns( 1 );
+    impl.EXPECT__uniform_int( 2, 3 ).returns( 2 );
     irand.shuffle( v );
     expected = { "hello", "world", "again", "!!" };
     REQUIRE( v == expected );
@@ -87,9 +87,9 @@ TEST_CASE( "[irand] shuffle/vector" ) {
 
   SECTION( "four reversed" ) {
     v = { "hello", "world", "again", "!!" };
-    impl.EXPECT__between_ints( 0, 3 ).returns( 3 );
-    impl.EXPECT__between_ints( 1, 3 ).returns( 2 );
-    impl.EXPECT__between_ints( 2, 3 ).returns( 2 );
+    impl.EXPECT__uniform_int( 0, 3 ).returns( 3 );
+    impl.EXPECT__uniform_int( 1, 3 ).returns( 2 );
+    impl.EXPECT__uniform_int( 2, 3 ).returns( 2 );
     irand.shuffle( v );
     expected = { "!!", "again", "world", "hello" };
     REQUIRE( v == expected );
@@ -122,11 +122,11 @@ TEST_CASE( "[irand] shuffle/array" ) {
     size_t constexpr kSize = 2;
     array<string, kSize> v, expected;
     v = { "hello", "world" };
-    impl.EXPECT__between_ints( 0, 1 ).returns( 0 );
+    impl.EXPECT__uniform_int( 0, 1 ).returns( 0 );
     irand.shuffle( v );
     expected = { "hello", "world" };
     REQUIRE( v == expected );
-    impl.EXPECT__between_ints( 0, 1 ).returns( 1 );
+    impl.EXPECT__uniform_int( 0, 1 ).returns( 1 );
     irand.shuffle( v );
     expected = { "world", "hello" };
     REQUIRE( v == expected );
@@ -136,8 +136,8 @@ TEST_CASE( "[irand] shuffle/array" ) {
     size_t constexpr kSize = 3;
     array<string, kSize> v, expected;
     v = { "hello", "world", "again" };
-    impl.EXPECT__between_ints( 0, 2 ).returns( 1 );
-    impl.EXPECT__between_ints( 1, 2 ).returns( 1 );
+    impl.EXPECT__uniform_int( 0, 2 ).returns( 1 );
+    impl.EXPECT__uniform_int( 1, 2 ).returns( 1 );
     irand.shuffle( v );
     expected = { "world", "hello", "again" };
     REQUIRE( v == expected );
@@ -147,9 +147,9 @@ TEST_CASE( "[irand] shuffle/array" ) {
     size_t constexpr kSize = 4;
     array<string, kSize> v, expected;
     v = { "hello", "world", "again", "!!" };
-    impl.EXPECT__between_ints( 0, 3 ).returns( 0 );
-    impl.EXPECT__between_ints( 1, 3 ).returns( 2 );
-    impl.EXPECT__between_ints( 2, 3 ).returns( 3 );
+    impl.EXPECT__uniform_int( 0, 3 ).returns( 0 );
+    impl.EXPECT__uniform_int( 1, 3 ).returns( 2 );
+    impl.EXPECT__uniform_int( 2, 3 ).returns( 3 );
     irand.shuffle( v );
     expected = { "hello", "again", "!!", "world" };
     REQUIRE( v == expected );
@@ -159,9 +159,9 @@ TEST_CASE( "[irand] shuffle/array" ) {
     size_t constexpr kSize = 4;
     array<string, kSize> v, expected;
     v = { "hello", "world", "again", "!!" };
-    impl.EXPECT__between_ints( 0, 3 ).returns( 0 );
-    impl.EXPECT__between_ints( 1, 3 ).returns( 1 );
-    impl.EXPECT__between_ints( 2, 3 ).returns( 2 );
+    impl.EXPECT__uniform_int( 0, 3 ).returns( 0 );
+    impl.EXPECT__uniform_int( 1, 3 ).returns( 1 );
+    impl.EXPECT__uniform_int( 2, 3 ).returns( 2 );
     irand.shuffle( v );
     expected = { "hello", "world", "again", "!!" };
     REQUIRE( v == expected );
@@ -171,9 +171,9 @@ TEST_CASE( "[irand] shuffle/array" ) {
     size_t constexpr kSize = 4;
     array<string, kSize> v, expected;
     v = { "hello", "world", "again", "!!" };
-    impl.EXPECT__between_ints( 0, 3 ).returns( 3 );
-    impl.EXPECT__between_ints( 1, 3 ).returns( 2 );
-    impl.EXPECT__between_ints( 2, 3 ).returns( 2 );
+    impl.EXPECT__uniform_int( 0, 3 ).returns( 3 );
+    impl.EXPECT__uniform_int( 1, 3 ).returns( 2 );
+    impl.EXPECT__uniform_int( 2, 3 ).returns( 2 );
     irand.shuffle( v );
     expected = { "!!", "again", "world", "hello" };
     REQUIRE( v == expected );

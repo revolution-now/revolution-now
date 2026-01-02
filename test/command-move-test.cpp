@@ -675,7 +675,7 @@ TEST_CASE(
     // Select which colony worker to be the defender. In this
     // case there is only one. This is done because there are not
     // military units.
-    W.rand().EXPECT__between_ints( 0, 0 ).returns( 0 );
+    W.rand().EXPECT__uniform_int( 0, 0 ).returns( 0 );
     unique_ptr<CommandHandler> handler = handle_command(
         W.engine(), W.ss(), W.ts(), W.agent( e_player::french ),
         W.french(), soldier.id(),

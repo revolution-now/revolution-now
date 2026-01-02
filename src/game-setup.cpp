@@ -44,7 +44,7 @@ double select_landmass(
                          .fraction;
   double const delta = config_map_gen.land_generation
                            .landmass_density_fluctuation;
-  return clamp( avg + rand.between_doubles( -delta, delta ), 0.0,
+  return clamp( avg + rand.uniform_double( -delta, delta ), 0.0,
                 1.0 );
 }
 

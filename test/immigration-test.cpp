@@ -355,7 +355,7 @@ TEST_CASE( "[immigration] pick_next_unit_for_pool" ) {
   double const kUpperLimit = 6808.69;
   for( double d = 0.0; d < kUpperLimit; d += 100.0 ) {
     W.rand()
-        .EXPECT__between_doubles( 0, Approx( kUpperLimit, .1 ) )
+        .EXPECT__uniform_double( 0, Approx( kUpperLimit, .1 ) )
         .returns( d );
     e_unit_type type = pick_next_unit_for_pool( W.rand(), player,
                                                 W.settings() );
@@ -395,7 +395,7 @@ TEST_CASE(
   double const kUpperLimit = 4580.4;
   for( double d = 0.0; d < kUpperLimit; d += 100.0 ) {
     W.rand()
-        .EXPECT__between_doubles( 0, Approx( kUpperLimit, .1 ) )
+        .EXPECT__uniform_double( 0, Approx( kUpperLimit, .1 ) )
         .returns( d );
     e_unit_type type = pick_next_unit_for_pool( W.rand(), player,
                                                 W.settings() );
@@ -450,13 +450,13 @@ TEST_CASE( "[immigration] check_for_new_immigrant" ) {
       .type = e_unit_type::veteran_soldier } );
     // This one is to choose which immigrant we get, which is
     // done randomly because we don't have brewster.
-    W.rand().EXPECT__between_ints( 0, 2 ).returns( 1 );
+    W.rand().EXPECT__uniform_int( 0, 2 ).returns( 1 );
     // This one is to choose that unit's replacement in the pool,
     // which is always done randomly. 9960.0 was found by summing
     // all of the unit type weights for all units on the discov-
     // erer level.
     W.rand()
-        .EXPECT__between_doubles( 0, Approx( 9960.0, .00001 ) )
+        .EXPECT__uniform_double( 0, Approx( 9960.0, .00001 ) )
         .returns( 5000.0 ); // chosen to give scout.
     wait<maybe<UnitId>> w = check_for_new_immigrant(
         W.ss(), W.ts(), W.rand(), player, crosses_needed );
@@ -501,7 +501,7 @@ TEST_CASE( "[immigration] check_for_new_immigrant" ) {
     // level except assuming that the petty criminal and inden-
     // tured servant weights are zero.
     W.rand()
-        .EXPECT__between_doubles( 0, Approx( 8960.0, .00001 ) )
+        .EXPECT__uniform_double( 0, Approx( 8960.0, .00001 ) )
         .returns( 5000.0 ); // chosen to give expert lumberjack.
     wait<maybe<UnitId>> w = check_for_new_immigrant(
         W.ss(), W.ts(), W.rand(), player, crosses_needed );
@@ -627,7 +627,7 @@ TEST_CASE( "[immigration] rush_recruit_next_immigrant" ) {
   // The 2229.0 should just barely put us in the range of the
   // free colonist.
   W.rand()
-      .EXPECT__between_doubles( 0, Approx( kUpperLimit, .1 ) )
+      .EXPECT__uniform_double( 0, Approx( kUpperLimit, .1 ) )
       .returns( 2229.0 );
 
   auto& pool = W.old_world( player ).immigration.immigrants_pool;
