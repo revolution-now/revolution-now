@@ -346,7 +346,7 @@ void reset_terrain( IMapUpdater& map_updater, Delta size ) {
 
 void ascii_map_gen( IEngine& engine ) {
   lua::state st;
-  lua_init( st );
+  lua_init( engine, st );
   SS ss;
   st["ROOT"] = ss.root;
   st["SS"]   = ss;

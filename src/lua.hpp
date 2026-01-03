@@ -12,8 +12,15 @@
 
 #include "core-config.hpp"
 
+/****************************************************************
+** Fwd. Decls.
+*****************************************************************/
 namespace lua {
 struct state;
+}
+
+namespace rn {
+struct IEngine;
 }
 
 namespace rn {
@@ -23,7 +30,7 @@ namespace rn {
 *****************************************************************/
 // This runs the full init routine including loading all modules,
 // which is expensive.
-void lua_init( lua::state& st );
+void lua_init( IEngine& engine, lua::state& st );
 
 // This is mainly for unit tests where we want to run the startup
 // routines but nothing else, for efficiency.

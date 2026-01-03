@@ -14,11 +14,15 @@
 #include "config-lua.hpp"
 #include "error.hpp"
 #include "expect.hpp"
+#include "iengine.hpp"
+#include "irand.hpp"
 
 // luapp
 #include "luapp/c-api.hpp"
+#include "luapp/func-push.hpp"
 #include "luapp/iter.hpp"
 #include "luapp/register.hpp"
+#include "luapp/rfunction.hpp"
 #include "luapp/state.hpp"
 
 // refl
@@ -32,6 +36,9 @@
 // base-util
 #include "base-util/io.hpp"
 #include "base-util/string.hpp"
+
+// C++ standard library
+#include <bit>
 
 using namespace std;
 
@@ -118,6 +125,74 @@ void load_lua_modules( lua::state& st ) {
       require( st, path.stem() );
 }
 
+void set_up_lua_rng( IEngine& engine, lua::state& st ) {
+  CHECK( st["math"]["random"] == lua::nil &&
+             st["math"]["randomseed"] == lua::nil,
+         "lua rng facilities should be removed from the binary "
+         "as lua should generate random numbers through the C++ "
+         "API." );
+
+  IRand& rand = engine.rand();
+
+  // This seeks to reproduce Lua 5.4's math.random function.
+  lua::rfunction const math_random = st.script.load( R"lua(
+    -- NOTE: the math functions used below are injected from C++.
+    local function random( l, r )
+      if l == nil and r == nil then
+        return math.uniform_double( 0.0, 1.0 )
+      end
+      assert( l >= 0, 'interval is empty' )
+      if not r then
+        if l == 0 then
+          return math.uniform_int64()
+        end
+        return math.uniform_int( 1, l ) -- starts at 1.
+      end
+      assert( l <= r, 'interval is empty' )
+      return math.uniform_int( l, r )
+    end
+    return random
+  )lua" );
+
+  // Define this as a lua function because currently our lua
+  // framework can't expose C++ functions with an arbitrary
+  // number of parameters, and we want this to give the desired
+  // error no matter how many parameters it is called with.
+  lua::rfunction const math_randomseed = st.script.load( R"lua(
+    local function dummy()
+      error( "math.randomseed should not be used." )
+    end
+    return dummy
+  )lua" );
+
+  auto const uniform_int = [&rand]( int const l, int const r ) {
+    return rand.uniform_int( l, r );
+  };
+
+  auto const uniform_int64 = [&rand] {
+    // A little hacky, but saves us from having to add another
+    // api method for this.
+    rng::entropy const e = rand.generate_deterministic_seed();
+    uint64_t const ui =
+        ( uint64_t( e.e2 ) << 32 ) + uint64_t( e.e1 );
+    return bit_cast<int64_t>( ui );
+  };
+
+  auto const uniform_double = [&rand]( double const l,
+                                       double const r ) {
+    return rand.uniform_double( l, r );
+  };
+
+  // These are used above to implement our math.random, but they
+  // can also be called directly.
+  st["math"]["uniform_int"]    = auto( uniform_int );
+  st["math"]["uniform_int64"]  = auto( uniform_int64 );
+  st["math"]["uniform_double"] = auto( uniform_double );
+
+  st["math"]["random"]     = math_random;
+  st["math"]["randomseed"] = math_randomseed;
+}
+
 } // namespace
 
 /****************************************************************
@@ -129,8 +204,10 @@ void run_lua_startup_routines( lua::state& st ) {
     ( *fn )( st );
 }
 
-void lua_init( lua::state& st ) {
+void lua_init( IEngine&, lua::state& st ) {
   st.lib.open_all();
+
+  (void)set_up_lua_rng; //( engine, st );
 
   st["require"] = [&]( string const& name ) {
     return require( st, name );

@@ -16,6 +16,7 @@
 // Testing.
 #include "test/fake/world.hpp"
 #include "test/luapp/common.hpp"
+#include "test/mocks/iengine.hpp"
 
 // Revolution Now
 #include "src/lua.hpp"
@@ -66,9 +67,10 @@ struct world : testing::World {
 ** Test Cases
 *****************************************************************/
 TEST_CASE( "[auto-complete] autocomplete" ) {
+  world w;
   lua::state st;
   // NOTE: this is expensive, but this test currently needs it.
-  lua_init( st );
+  lua_init( w.engine(), st );
 
   auto const autocomplete =
       [&] [[clang::noinline]] ( string_view in ) {
@@ -211,9 +213,10 @@ TEST_CASE( "[auto-complete] autocomplete" ) {
 }
 
 TEST_CASE( "[auto-complete] autocomplete_iterative" ) {
+  world w;
   lua::state st;
   // NOTE: this is expensive, but this test currently needs it.
-  lua_init( st );
+  lua_init( w.engine(), st );
 
   auto const ac_i = [&] [[clang::noinline]] ( string_view in ) {
     return autocomplete_iterative( st, in );

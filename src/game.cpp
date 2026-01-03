@@ -171,7 +171,7 @@ wait<> run_game( IEngine& engine, Planes& planes, IGui& gui,
 
   // Do this after we set globals so that they will be included
   // in the freezing.
-  lua_init( st );
+  lua_init( engine, st );
 
   if( !co_await loader( engine, planes, ss, gui, saved, st ) )
     // Didn't load a game for some reason. Could have failed or

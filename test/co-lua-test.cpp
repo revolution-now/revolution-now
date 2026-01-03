@@ -15,6 +15,7 @@
 
 // Testing
 #include "test/fake/world.hpp"
+#include "test/mocks/iengine.hpp"
 
 // Revolution Now
 #include "src/co-runner.hpp"
@@ -64,6 +65,19 @@ string to_lower_str( string_view c ) {
   }
 
 /****************************************************************
+** Fake World Setup
+*****************************************************************/
+struct world : testing::World {
+  using Base = testing::World;
+  world() : Base() {
+    add_player( e_player::dutch );
+    MapSquare const L = make_grassland();
+    vector<MapSquare> tiles{ L };
+    build_map( std::move( tiles ), 1 );
+  }
+};
+
+/****************************************************************
 ** Scenario 0: Ready
 *****************************************************************/
 namespace scenario_0 {
@@ -105,8 +119,9 @@ void setup( lua::state& st ) {
 
 TEST_CASE( "[co-lua] scenario 0" ) {
   using namespace scenario_0;
+  world W;
   lua::state st;
-  lua_init( st ); // NOTE: expensive.
+  lua_init( W.engine(), st ); // NOTE: expensive.
 
   trace_log = {};
   setup( st );
@@ -124,8 +139,9 @@ TEST_CASE( "[co-lua] scenario 0" ) {
 
 TEST_CASE( "[co-lua] scenario 0 eager exception from lua" ) {
   using namespace scenario_0;
+  world W;
   lua::state st;
-  lua_init( st ); // NOTE: expensive.
+  lua_init( W.engine(), st ); // NOTE: expensive.
 
   trace_log = {};
   setup( st );
@@ -249,8 +265,9 @@ void setup( lua::state& st ) {
 
 TEST_CASE( "[co-lua] scenario 1 oneshot" ) {
   using namespace scenario_1;
+  world W;
   lua::state st;
-  lua_init( st ); // NOTE: expensive.
+  lua_init( W.engine(), st ); // NOTE: expensive.
   setup( st );
 
   p1.reset();
@@ -280,8 +297,9 @@ TEST_CASE( "[co-lua] scenario 1 oneshot" ) {
 
 TEST_CASE( "[co-lua] scenario 1 gradual" ) {
   using namespace scenario_1;
+  world W;
   lua::state st;
-  lua_init( st ); // NOTE: expensive.
+  lua_init( W.engine(), st ); // NOTE: expensive.
   setup( st );
 
   p1.reset();
@@ -333,8 +351,9 @@ TEST_CASE( "[co-lua] scenario 1 gradual" ) {
 
 TEST_CASE( "[co-lua] scenario 1 error from cpp" ) {
   using namespace scenario_1;
+  world W;
   lua::state st;
-  lua_init( st ); // NOTE: expensive.
+  lua_init( W.engine(), st ); // NOTE: expensive.
   setup( st );
 
   p1.reset();
@@ -375,8 +394,9 @@ TEST_CASE( "[co-lua] scenario 1 error from cpp" ) {
 
 TEST_CASE( "[co-lua] scenario 1 error from lua" ) {
   using namespace scenario_1;
+  world W;
   lua::state st;
-  lua_init( st ); // NOTE: expensive.
+  lua_init( W.engine(), st ); // NOTE: expensive.
   setup( st );
 
   p1.reset();
@@ -422,8 +442,9 @@ TEST_CASE( "[co-lua] scenario 1 error from lua" ) {
 
 TEST_CASE( "[co-lua] scenario 1 coroutine.create" ) {
   using namespace scenario_1;
+  world W;
   lua::state st;
-  lua_init( st ); // NOTE: expensive.
+  lua_init( W.engine(), st ); // NOTE: expensive.
 
   p1.reset();
   p2.reset();
@@ -558,8 +579,9 @@ void setup( lua::state& st ) {
 
 TEST_CASE( "[co-lua] scenario 2 oneshot" ) {
   using namespace scenario_2;
+  world W;
   lua::state st;
-  lua_init( st ); // NOTE: expensive.
+  lua_init( W.engine(), st ); // NOTE: expensive.
 
   p1.reset();
   p2.reset();
@@ -596,8 +618,9 @@ TEST_CASE( "[co-lua] scenario 2 oneshot" ) {
 
 TEST_CASE( "[co-lua] scenario 2 error" ) {
   using namespace scenario_2;
+  world W;
   lua::state st;
-  lua_init( st ); // NOTE: expensive.
+  lua_init( W.engine(), st ); // NOTE: expensive.
 
   p1.reset();
   p2.reset();
@@ -670,8 +693,9 @@ TEST_CASE( "[co-lua] scenario 2 error" ) {
 
 TEST_CASE( "[co-lua] scenario 2 cancellation" ) {
   using namespace scenario_2;
+  world W;
   lua::state st;
-  lua_init( st ); // NOTE: expensive.
+  lua_init( W.engine(), st ); // NOTE: expensive.
 
   p1.reset();
   p2.reset();
@@ -810,8 +834,9 @@ void setup( lua::state& st ) {
 
 TEST_CASE( "[co-lua] scenario 3" ) {
   using namespace scenario_3;
+  world W;
   lua::state st;
-  lua_init( st ); // NOTE: expensive.
+  lua_init( W.engine(), st ); // NOTE: expensive.
 
   p1.reset();
   p2.reset();
@@ -865,8 +890,9 @@ namespace rn {
 namespace {
 
 TEST_CASE( "[co-lua] wait auto registration" ) {
+  world W;
   lua::state st;
-  lua_init( st ); // NOTE: expensive.
+  lua_init( W.engine(), st ); // NOTE: expensive.
 
   st.script.run( R"lua(
     function assert_func( f )

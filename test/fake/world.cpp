@@ -889,7 +889,7 @@ base::valid_or<string> World::validate_colonies() const {
 
 void World::expensive_run_lua_init() {
   lua::state& st = lua();
-  lua_init( st );
+  lua_init( engine(), st );
 }
 
 void World::initialize_ts() { ts(); }

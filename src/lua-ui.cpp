@@ -62,7 +62,7 @@ wait<> lua_ui_test( IEngine& engine, Planes& planes ) {
   RealGui gui( planes, engine.textometer() );
 
   lua::state st;
-  lua_init( st ); // expensive.
+  lua_init( engine, st ); // expensive.
 
   lua::table M = st["lua_ui"].as<lua::table>();
 

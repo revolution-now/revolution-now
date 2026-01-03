@@ -21,12 +21,14 @@ using namespace std;
 
 // Lemire's algorithm for fast unbiased uniform ints in [0, s).
 // The rng() must produce uniform uint32_t values.
+// https://arxiv.org/pdf/1805.10941
 //
 // We are implementing our own here because the standard does not
 // guarantee the algorithm used, and we want our random number
-// generation to be deterministic which requires not only the un-
-// derlying pseudo random number generator must be consistent and
-// deterministic, but also the the distribution algorithms used.
+// generation to be consistent across platforms. This requires
+// not only that the underlying pseudo random number generator be
+// consistent and deterministic, but also the the distribution
+// algorithms used.
 //
 // WARNING: only call this with a proper random number generator
 // otherwise it could go into an infinite loop.
@@ -36,19 +38,26 @@ template<class Rng>
   static_assert( is_unsigned_v<decltype( rng() )> );
   static_assert( sizeof( decltype( rng() ) ) >=
                  sizeof( uint32_t ) );
+  CHECK_GT( s, 0u );
 
-  // We want threshold to be equal to (2^32 mod s). This can be
-  // computed as (-s) % s using the uint32 wrap-around.
-  CHECK( s != 0 );
-  uint32_t const threshold = (uint32_t)( -s ) % s;
+  uint32_t x = {};
+  uint64_t m = {};
+  uint32_t l = {};
 
-  for( ;; ) {
-    uint32_t const x = (uint32_t)rng(); // uniform in [0, 2^32).
-    uint64_t const m = (uint64_t)x * s; // full 64-bit product.
-    uint32_t const l = (uint32_t)m;     // low 32 bits.
-    if( l >= threshold )
-      return (uint32_t)( m >> 32 ); // high 32 bits in [0, s).
+  auto const one_round = [&] {
+    x = rng();
+    m = uint64_t( x ) * uint64_t( s );
+    l = uint32_t( m ); // low part.
+  };
+
+  one_round();
+  if( l < s ) [[unlikely]] {
+    // (2^32 mod s) == ((2^32-s) mod s) == ((-s) mod s) by using
+    // the uint32 wrap-around.
+    uint32_t const t = -s % s;
+    while( l < t ) one_round(); // rejection loop.
   }
+  return m >> 32;
 }
 
 } // namespace

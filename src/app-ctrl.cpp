@@ -79,7 +79,7 @@ wait<> revolution_now( IEngine& engine, Planes& planes ) {
   // This lua state is the one that is operative outside of indi-
   // vidual games, i.e. during the menus.
   lua::state st;
-  lua_init( st );
+  lua_init( engine, st );
 
   auto owner        = planes.push();
   PlaneGroup& group = owner.group;
