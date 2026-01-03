@@ -41,17 +41,17 @@ Land Mass:
 tt:
   scale:   9
   density: [.10, .20)
-  avg:     .15
-  stddev:  0.8
+  # avg:     .15
+  # stddev:  0.8
 
 mm:
   scale:   12
-  density: [.20, .28)
-  avg:     .24
-  stddev:  1.6
+  density: [.20, .30)
+  # avg:     .24
+  # stddev:  1.6
 
 bb:
   scale:   15
-  density: [.28,  .38)
-  avg:     .33
-  stddev:  2.0
+  density: [.30,  .40)
+  # avg:     .33
+  # stddev:  2.0

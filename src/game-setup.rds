@@ -11,6 +11,7 @@
 # ===============================================================
 # config
 include "config/options.rds.hpp"
+include "config/map-gen-types.rds.hpp"
 
 # ss
 include "ss/difficulty.rds.hpp"
@@ -54,18 +55,6 @@ struct.NativesSetup {
   # dwellings. The number that we choose below is what leads to a
   # similar result given our algorithm.
   dwelling_frequency 'double',
-}
-
-enum.e_temperature {
-  cool,
-  temperate,
-  warm,
-}
-
-enum.e_climate {
-  arid,
-  normal,
-  wet,
 }
 
 sumtype.LcrSetup {

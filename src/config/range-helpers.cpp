@@ -31,6 +31,18 @@ base::valid_or<string> DoublePercent::validate() const {
   return base::valid;
 }
 
+base::valid_or<string> DoublePercentRange::validate() const {
+  REFL_VALIDATE( lo >= 0.0 && lo <= 1.0,
+                 "floating point percent `lo' must be in the "
+                 "range [0, 1.0]." );
+  REFL_VALIDATE( hi >= 0.0 && hi <= 1.0,
+                 "floating point percent `hi' must be in the "
+                 "range [0, 1.0]." );
+  REFL_VALIDATE( lo <= hi,
+                 "`lo' must be less or equal to `hi'" );
+  return base::valid;
+}
+
 base::valid_or<string> IntRange::validate() const {
   REFL_VALIDATE( min <= max, "min must be <= max in range." );
   return base::valid;

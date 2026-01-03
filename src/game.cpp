@@ -84,6 +84,12 @@ wait<> persistent_msg_box( IGui& gui, string_view const msg ) {
 wait_bool create_from_setup( SS& ss, IGui& gui, IRand& rand,
                              lua::state& lua,
                              GameSetup const& setup ) {
+  auto const valid = validate_game_setup( setup );
+  if( !valid ) {
+    co_await gui.message_box( "Failed to create game: {}",
+                              valid.error() );
+    co_return false;
+  }
   wait<> const generating_msg = persistent_msg_box(
       gui, "Generating game... please wait." );
   co_await 1_frames;
@@ -175,7 +181,8 @@ wait<> run_game( IEngine& engine, Planes& planes, IGui& gui,
 
   if( !co_await loader( engine, planes, ss, gui, saved, st ) )
     // Didn't load a game for some reason. Could have failed or
-    // maybe there are no games to load.
+    // maybe there are no games to load. A message should already
+    // have been displayed if appropriate.
     co_return;
 
   TS ts( planes, gui, combat, colony_viewer, saved );

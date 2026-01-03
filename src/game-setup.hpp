@@ -43,4 +43,7 @@ wait<maybe<GameSetup>> create_customized_game_setup(
     IEngine& engine, Planes& planes, IGui& gui,
     e_customization_mode mode );
 
+base::valid_or<std::string> validate_game_setup(
+    GameSetup const& setup );
+
 } // namespace rn

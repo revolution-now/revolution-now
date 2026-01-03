@@ -1,0 +1,35 @@
+# ===============================================================
+# map-gen-types.rds
+#
+# Project: Revolution Now
+#
+# Created by David P. Sicilia on 2026-01-03.
+#
+# Description: Config data for the map-gen-types module.
+#
+# ===============================================================
+namespace "rn"
+
+enum.e_land_mass {
+  small,
+  moderate,
+  large,
+}
+
+enum.e_land_form {
+  archipelago,
+  normal,
+  continents,
+}
+
+enum.e_temperature {
+  cool,
+  temperate,
+  warm,
+}
+
+enum.e_climate {
+  arid,
+  normal,
+  wet,
+}

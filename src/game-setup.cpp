@@ -32,6 +32,8 @@ namespace {
 
 using namespace std;
 
+using ::base::valid;
+using ::base::valid_or;
 using ::refl::enum_map;
 using ::refl::enum_values;
 
@@ -39,12 +41,10 @@ double select_landmass(
     IRand& rand, enum_map<e_land_mass, int> const& weights ) {
   e_land_mass const land_mass =
       rand.pick_from_weighted_values( weights );
-  double const avg = config_map_gen.land_generation
-                         .named_landmass_density[land_mass]
-                         .fraction;
-  double const delta = config_map_gen.land_generation
-                           .landmass_density_fluctuation;
-  return clamp( avg + rand.uniform_double( -delta, delta ), 0.0,
+  auto const& range =
+      config_map_gen.terrain_generation.land_layout.land_mass
+          .densities[land_mass];
+  return clamp( rand.uniform_double( range.lo, range.hi ), 0.0,
                 1.0 );
 }
 
@@ -90,66 +90,43 @@ wait<maybe<GameSetup>> create_default_game_setup(
 
   // category: map
   // ------------------------------------------------------------
-  // TODO: measure this.
-  enum_map<e_temperature, int> const kTemperatureWeights{
-    { e_temperature::cool, 20 },
-    { e_temperature::temperate, 60 },
-    { e_temperature::warm, 20 },
-  };
-  // TODO: measure this.
-  enum_map<e_climate, int> const kClimateWeights{
-    { e_climate::arid, 20 },
-    { e_climate::normal, 60 },
-    { e_climate::wet, 20 },
-  };
-  // TODO: measure this.
-  static enum_map<e_land_mass, int> const kLandMassWeights{
-    { e_land_mass::small, 20 },
-    { e_land_mass::moderate, 60 },
-    { e_land_mass::large, 20 },
-  };
-  auto const& map_conf = config_map_gen.land_generation;
-
+  auto const& map_conf = config_map_gen.terrain_generation;
+  GeneratedTerrainSetup const terrain_setup{
+    .size = { .w = 56, .h = 70 },
+    .land_generator =
+        LandGeneratorSetup{
+          .seed           = 0,
+          .target_density = select_landmass(
+              rand, map_conf.land_layout.land_mass.weights ),
+          .remove_Xs_probability =
+              map_conf.land_layout.remove_x_probability.fraction,
+          .generator_algo =
+              LandGeneratorAlgorithm::seeded_organic{
+                .brush = e_land_brush_type::mixed,
+              },
+        },
+    .temperature = rand.pick_from_weighted_values(
+        map_conf.temperature.weights ),
+    .climate = rand.pick_from_weighted_values(
+        map_conf.climate.weights ),
+    .add_arctic_tiles = map_conf.land_layout.arctic.enabled,
+    .arctic_tile_density =
+        map_conf.land_layout.arctic.density.fraction,
+    .river_density = map_conf.rivers.density.fraction,
+    .major_river_fraction =
+        map_conf.rivers.major_river_fraction.fraction,
+    .forest_density = map_conf.overlay.forest_density.fraction,
+    .mountain_density =
+        map_conf.overlay.mountain_density.fraction,
+    .mountain_range_probability =
+        map_conf.overlay.mountain_range_probability.probability,
+    .hills_density = map_conf.overlay.hills_density.fraction,
+    .hills_range_probability =
+        map_conf.overlay.hills_range_probability.probability,
+    .prime_resources = PrimeResourceSetup::classic{},
+    .lcr             = LcrSetup::classic{} };
   setup.map = MapSetup{
-    .source =
-        MapSource::generate{
-          .terrain =
-              GeneratedTerrainSetup{
-                .size = { .w = 56, .h = 70 },
-                .land_generator =
-                    LandGeneratorSetup{
-                      .seed           = 0,
-                      .target_density = select_landmass(
-                          rand, kLandMassWeights ),
-                      .remove_Xs_probability =
-                          map_conf.remove_x_probability.fraction,
-                      .generator_algo =
-                          LandGeneratorAlgorithm::seeded_organic{
-                            .brush = e_land_brush_type::mixed,
-                          },
-                    },
-                .temperature = rand.pick_from_weighted_values(
-                    kTemperatureWeights ),
-                .climate = rand.pick_from_weighted_values(
-                    kClimateWeights ),
-                .add_arctic_tiles = map_conf.add_arctic_tiles,
-                .arctic_tile_density =
-                    map_conf.arctic_tile_density.fraction,
-                .river_density = map_conf.river_density.fraction,
-                .major_river_fraction =
-                    map_conf.major_river_fraction.fraction,
-                .forest_density =
-                    map_conf.forest_density.fraction,
-                .mountain_density =
-                    map_conf.mountain_density.fraction,
-                .mountain_range_probability =
-                    map_conf.mountain_range_probability
-                        .probability,
-                .hills_density = map_conf.hills_density.fraction,
-                .hills_range_probability =
-                    map_conf.hills_range_probability.probability,
-                .prime_resources = PrimeResourceSetup::classic{},
-                .lcr             = LcrSetup::classic{} } },
+    .source = MapSource::generate{ .terrain = terrain_setup },
     .bonuses_seed = nothing };
 
   // category: natives
@@ -235,6 +212,11 @@ wait<maybe<GameSetup>> create_customized_game_setup(
     }
   }
   co_return nothing;
+}
+
+valid_or<string> validate_game_setup( GameSetup const& setup ) {
+  (void)setup;
+  return valid;
 }
 
 } // namespace rn

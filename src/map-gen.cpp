@@ -372,8 +372,8 @@ void ascii_map_gen( IEngine& engine ) {
       setup.map.source.emplace<MapSource::generate>();
   generated_map_setup.terrain.land_generator
       .remove_Xs_probability =
-      config_map_gen.land_generation.remove_x_probability
-          .fraction;
+      config_map_gen.terrain_generation.land_layout
+          .remove_x_probability.fraction;
 
   // ------------------------------------------------------------
   // Generate map.
@@ -381,8 +381,7 @@ void ascii_map_gen( IEngine& engine ) {
   NonRenderingMapUpdater map_updater( ss, connectivity );
   generate_terrain( generated_map_setup.terrain, st, map_updater,
                     seed );
-  gfx::Matrix<MapSquare> const& world_map =
-      ss.terrain.world_map();
+  Matrix<MapSquare> const& world_map = ss.terrain.world_map();
 
   // ------------------------------------------------------------
   // Print map.

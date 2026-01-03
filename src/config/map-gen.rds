@@ -10,6 +10,7 @@
 # ===============================================================
 # config
 include "range-helpers.rds.hpp"
+include "map-gen-types.rds.hpp"
 
 # gfx
 include "gfx/cartesian.hpp"
@@ -23,16 +24,9 @@ include "refl/enum-map.hpp"
 # base
 include "base/maybe.hpp"
 
-namespace "rn"
-
-enum.e_land_mass {
-  small,
-  moderate,
-  large,
-}
-
 namespace "rn.config.map_gen"
 
+# TODO: temporary
 struct.PerlinMap {
   size 'gfx::size',
 
@@ -50,27 +44,95 @@ struct.PerlinMap {
   seed 'base::maybe<rng::entropy>',
 }
 
-struct.LandGeneration {
-  named_landmass_density 'refl::enum_map<e_land_mass, config::DoublePercent>',
-  landmass_density_fluctuation 'double',
-  min_map_height_for_arctic 'int',
-  river_density 'config::DoublePercent',
-  mountain_density 'config::DoublePercent',
-  mountain_range_probability 'config::Probability',
-  hills_density 'config::DoublePercent',
-  hills_range_probability 'config::Probability',
-  major_river_fraction 'config::DoublePercent',
-  forest_density 'config::DoublePercent',
-  add_arctic_tiles 'bool',
-  arctic_tile_density 'config::DoublePercent',
+struct.PerlinFractalSettings {
+  n_octaves 'int',
+  persistence 'double',
+  lacunarity 'double',
+  _features { equality, validation }
+}
+
+struct.PerlinSettings {
+  scale 'double',
+  fractal 'PerlinFractalSettings',
+  _features { equality, validation }
+}
+
+struct.LandMass {
+  weights 'refl::enum_map<e_land_mass, int>',
+  densities 'refl::enum_map<e_land_mass, config::DoublePercentRange>',
+  _features { equality, validation }
+}
+
+struct.LandForm {
+  weights 'refl::enum_map<e_land_form, int>',
+  perlin 'refl::enum_map<e_land_form, PerlinSettings>',
+  _features { equality, validation }
+}
+
+struct.Arctic {
+  enabled 'bool',
+  min_map_height 'int',
+  density 'config::DoublePercent',
+}
+
+struct.LandLayout {
+  land_mass 'LandMass',
+  land_form 'LandForm',
+
+  arctic 'Arctic',
+
   remove_x_probability 'config::DoublePercent',
+
+  suppress_edges 'bool',
+  suppression_decay 'double',
+}
+
+struct.Temperature {
+  weights 'refl::enum_map<e_temperature, int>',
+  _features { equality, validation }
+}
+
+struct.Climate {
+  weights 'refl::enum_map<e_climate, int>',
+  _features { equality, validation }
+}
+
+struct.Overlay {
+  hills_density 'config::DoublePercent',
+  mountain_density 'config::DoublePercent',
+  hills_range_probability 'config::Probability',
+  mountain_range_probability 'config::Probability',
+  forest_density 'config::DoublePercent',
+}
+
+struct.Rivers {
+  density 'config::DoublePercent',
+  major_river_fraction 'config::DoublePercent',
+}
+
+struct.TerrainGeneration {
+  land_layout 'LandLayout',
+  temperature 'Temperature',
+  climate 'Climate',
+  overlay 'Overlay',
+  rivers 'Rivers',
+}
+
+struct.DwellingGeneration {
+  # TODO
 }
 
 namespace "rn"
 
 struct.config_map_gen_t {
-  land_generation 'config::map_gen::LandGeneration',
+  default_map_size 'gfx::size',
+  terrain_generation 'config::map_gen::TerrainGeneration',
+  dwelling_generation 'config::map_gen::DwellingGeneration',
+
+  # TODO: temporary
   perlin_map 'config::map_gen::PerlinMap',
+
+  _features { equality, validation }
 }
 
 config.map_gen {}

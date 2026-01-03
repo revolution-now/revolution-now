@@ -158,8 +158,11 @@ struct Engine::Impl {
   void init_rand() {
     CHECK( !rand_ );
     rand_ = make_unique<Rand>();
-    // NOTE: the above will not have randomly seed it, so we need
-    // to make a random seed.
+    // NOTE: the above will not have randomly seeded the genera-
+    // tor, so we need to make a random seed. We may end up re-
+    // seeding with a specific seed later when loading a game,
+    // but even so we should still seed this here just to be safe
+    // so that if nothing is done we will have randomness.
     rng::entropy const seed = rng::entropy::from_random_device();
     rand_->reseed( seed );
   }
