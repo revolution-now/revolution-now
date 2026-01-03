@@ -30,6 +30,7 @@ namespace rn {
 // can just include it and isn't forced to pull in all of the
 // other headers.
 struct FormatVersion;
+struct MetaState;
 struct SettingsState;
 struct EventsState;
 struct UnitsState;
@@ -60,6 +61,7 @@ struct SSConst {
 
  public:
   FormatVersion const& version;
+  MetaState const& meta;
   SettingsState const& settings;
   EventsState const& events;
   UnitsState const& units;
@@ -102,6 +104,7 @@ struct SS {
 
  public:
   FormatVersion& version;
+  MetaState& meta;
   SettingsState& settings;
   EventsState& events;
   UnitsState& units;

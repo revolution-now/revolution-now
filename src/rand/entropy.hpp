@@ -17,6 +17,13 @@
 // cdr
 #include "cdr/ext.hpp"
 
+// luapp
+#include "luapp/ext.hpp"
+
+// traverse
+#include "traverse/ext.hpp"
+#include "traverse/type-ext.hpp"
+
 // C++ standard library
 #include <cstdint>
 #include <string_view>
@@ -93,6 +100,27 @@ struct entropy {
       cdr::tag_t<entropy> );
 
   // ------------------------------------------------------------
+  // traverse
+  // ------------------------------------------------------------
+  friend void traverse( entropy const& o, auto& fn,
+                        trv::tag_t<entropy> ) {
+    using namespace std::literals;
+    fn( o.e1, "e1"sv );
+    fn( o.e2, "e2"sv );
+    fn( o.e3, "e3"sv );
+    fn( o.e4, "e4"sv );
+  }
+
+  // ------------------------------------------------------------
+  // Lua.
+  // ------------------------------------------------------------
+  friend lua::lua_expect<entropy> lua_get( lua::cthread L,
+                                           int idx,
+                                           lua::tag<entropy> );
+
+  friend void lua_push( lua::cthread L, entropy const& e );
+
+  // ------------------------------------------------------------
   // Implementation.
   // ------------------------------------------------------------
   void rotate_right_n_bytes( uint8_t n_bytes );
@@ -112,3 +140,10 @@ struct entropy {
 using seed = entropy;
 
 } // namespace rng
+
+/****************************************************************
+** TypeTraverse Specializations.
+*****************************************************************/
+namespace trv {
+TRV_TYPE_TRAVERSE( ::rng::entropy );
+}

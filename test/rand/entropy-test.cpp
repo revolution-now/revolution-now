@@ -13,8 +13,14 @@
 // Under test.
 #include "src/rand/entropy.hpp"
 
+// Testing
+#include "test/luapp/common.hpp"
+
 // cdr
 #include "src/cdr/converter.hpp"
+
+// luapp
+#include "types.hpp"
 
 // Must be last.
 #include "test/catch-common.hpp" // IWYU pragma: keep
@@ -512,6 +518,56 @@ TEST_CASE( "[rand/entropy] consume" ) {
   };
   REQUIRE( f( (uint16_t*){} ) == 0xe4a2 );
   REQUIRE( w == expected_w );
+}
+
+LUA_TEST_CASE( "[rand/entropy] traverse" ) {
+  vector<uint32_t> v1;
+  vector<string> v2;
+  v1.reserve( 4 );
+  v2.reserve( 4 );
+
+  entropy const e{
+    .e1 = 0x6151c187,
+    .e2 = 0x6da636d6,
+    .e3 = 0xfbe4a276,
+    .e4 = 0x00f00076,
+  };
+
+  auto const fn = [&]( int const& o, string_view const sv ) {
+    v1.push_back( o );
+    v2.push_back( string( sv ) );
+  };
+
+  traverse( e, fn, trv::tag<entropy> );
+
+  REQUIRE( v1 == vector<uint32_t>{ 0x6151c187, 0x6da636d6,
+                                   0xfbe4a276, 0x00f00076 } );
+  REQUIRE( v2 == vector<string>{ "e1", "e2", "e3", "e4" } );
+}
+
+LUA_TEST_CASE( "[rand/entropy] lua bindings" ) {
+  entropy const e{
+    .e1 = 0x6151c187,
+    .e2 = 0x6da636d6,
+    .e3 = 0xfbe4a276,
+    .e4 = 0x00f00076,
+  };
+
+  lua::push( L, e );
+  lua::push( L, 5 );
+  lua::push( L, "hello" );
+
+  REQUIRE( lua::get<entropy>( L, -1 ) ==
+           lua::unexpected{ .msg = "failed to convert string "
+                                   "'hello' to entropy type" } );
+
+  REQUIRE( lua::get<entropy>( L, -2 ) ==
+           lua::unexpected{
+             .msg = "expected string but found type number" } );
+
+  REQUIRE( lua::get<entropy>( L, -3 ) == e );
+
+  lua::pop_stack( L, 3 );
 }
 
 } // namespace

@@ -14,6 +14,7 @@ include "ss/colonies.hpp"
 include "ss/events.rds.hpp"
 include "ss/land-view.rds.hpp"
 include "ss/map.rds.hpp"
+include "ss/meta.rds.hpp"
 include "ss/natives.hpp"
 include "ss/players.rds.hpp"
 include "ss/settings.rds.hpp"
@@ -36,6 +37,7 @@ namespace "rn"
 
 struct.RootState {
   version 'rn::FormatVersion',
+  meta 'rn::MetaState',
   settings 'rn::SettingsState',
   events 'rn::EventsState',
   units 'rn::UnitsState',

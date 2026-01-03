@@ -45,7 +45,9 @@ struct Point {
   friend lua_expect<Point> lua_get( lua::cthread L, int idx,
                                     lua::tag<Point> ) {
     lua::c_api C( L );
-    CHECK( C.type_of( idx ) == lua::type::table );
+    if( C.type_of( idx ) != lua::type::table )
+      // This tests that we can report custom error messages.
+      return lua::unexpected{ .msg = "wrong type" };
     C.getfield( idx, "x" );
     UNWRAP_RETURN( x, C.get<int>( -1 ) );
     C.pop();
@@ -326,8 +328,25 @@ LUA_TEST_CASE( "[ext-base] get_or_luaerr" ) {
   };
 
   char const* const err =
-      "ext-test.cpp:324:error: failed to convert Lua type "
+      "ext-test.cpp:327:error: failed to convert Lua type "
       "`number' to native type `lua::rfunction'.\n"
+      "stack traceback:\n"
+      "\t[C]: in ?";
+
+  REQUIRE( _G["fn"].pcall( 7 ) == unexpected{ .msg = err } );
+}
+
+LUA_TEST_CASE( "[ext-base] get_or_luaerr reason" ) {
+  auto _G = st.table.global();
+
+  _G["fn"] = [&]( ::lua_State* const L ) {
+    auto const _ = get_or_luaerr<Point>( L, -1 );
+    return 1;
+  };
+
+  char const* const err =
+      "ext-test.cpp:344:error: failed to convert Lua type "
+      "`number' to native type `my_ns::Point': wrong type\n"
       "stack traceback:\n"
       "\t[C]: in ?";
 

@@ -47,6 +47,7 @@ SS::~SS() = default;
 SS::SS()
   : impl_( new Impl ),
     version( impl_->top.version ),
+    meta( impl_->top.meta ),
     settings( impl_->top.settings ),
     events( impl_->top.events ),
     units( impl_->top.units ),
@@ -80,6 +81,7 @@ void to_str( SS const& o, string& out, base::tag<SS> ) {
 SSConst::SSConst( SS& ss )
   : ss_( ss ),
     version( ss_.version ),
+    meta( ss_.meta ),
     settings( ss_.settings ),
     events( ss_.events ),
     units( ss_.units ),
@@ -96,6 +98,7 @@ SSConst::SSConst( SS& ss )
 SSConst::SSConst( SS const& ss )
   : ss_( ss ),
     version( ss_.version ),
+    meta( ss_.meta ),
     settings( ss_.settings ),
     events( ss_.events ),
     units( ss_.units ),

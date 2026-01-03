@@ -18,6 +18,7 @@
 
 // base
 #include "base/conv.hpp"
+#include "types.hpp"
 
 // C++ standard library
 #include <random>
@@ -140,7 +141,7 @@ void to_str( entropy const& o, string& out,
 }
 
 /****************************************************************
-** CDR
+** cdr
 *****************************************************************/
 cdr::value to_canonical( cdr::converter&, entropy const& o,
                          cdr::tag_t<entropy> ) {
@@ -162,6 +163,31 @@ cdr::result<entropy> from_canonical( cdr::converter& conv,
         "with characters 0-9, a-f, A-F.",
         kHashStrSize );
   return *entropy;
+}
+
+/****************************************************************
+** Lua
+*****************************************************************/
+lua::lua_expect<entropy> lua_get( lua::cthread const L,
+                                  int const idx,
+                                  lua::tag<entropy> ) {
+  if( lua::type_of_idx( L, idx ) != lua::type::string )
+    return lua::unexpected{
+      .msg = format( "expected string but found type {}",
+                     lua::type_of_idx( L, idx ) ) };
+  UNWRAP_CHECK_T( string const& str,
+                  lua::get<string>( L, idx ) );
+  auto const e = entropy::from_string( str );
+  if( !e.has_value() )
+    return lua::unexpected{
+      .msg = format(
+          "failed to convert string '{}' to entropy type",
+          str ) };
+  return *e;
+}
+
+void lua_push( lua::cthread L, entropy const& e ) {
+  lua_push( L, base::to_str( e ) );
 }
 
 } // namespace rng

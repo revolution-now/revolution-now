@@ -59,6 +59,17 @@ value cdr_game_state_default = table{
         "minor"_key = 0,
         "patch"_key = 0,
       },
+  "meta"_key =
+      table {
+        "seeds"_key =
+          table{
+            "rng"_key = "00000000000000000000000000000000",
+            "map_generator"_key =
+              table{
+                "land_form"_key = "00000000000000000000000000000000",
+              },
+          },
+      },
   "settings"_key =
       table{
         "game_setup_options"_key =

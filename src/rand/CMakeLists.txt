@@ -3,4 +3,6 @@ add_rn_library(
   # Dependencies.
   rn-base
   rn-cdr
+  rn-luapp
+  rn-traverse
 )

@@ -267,13 +267,17 @@ template<Gettable T>
         std::source_location::current() ) {
   auto const m = lua::get<T>( L, idx );
   if( m.has_value() ) return *m;
+  std::string const& reason =
+      m.error().msg.empty()
+          ? "."
+          : std::format( ": {}", m.error().msg );
   throw_lua_error(
       L,
-      "{}:{}:error: failed to convert Lua type "
-      "`{}' to native type `{}'.",
+      "{}:{}:error: failed to convert Lua type `{}' to native "
+      "type `{}'{}",
       fs::path{ loc.file_name() }.filename().string(),
       loc.line(), internal::ext_type_name( L, idx ),
-      base::demangled_typename<T>() );
+      base::demangled_typename<T>(), reason );
 }
 
 /****************************************************************

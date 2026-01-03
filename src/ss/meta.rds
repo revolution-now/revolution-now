@@ -1,0 +1,27 @@
+# ===============================================================
+# meta.rds
+#
+# Project: Revolution Now
+#
+# Created by David P. Sicilia on 2026-01-03.
+#
+# Description: Rds definitions for the ss/meta module.
+#
+# ===============================================================
+# rand
+include "rand/entropy.hpp"
+
+namespace "rn"
+
+struct.MapGenSeeds {
+  land_form 'rng::seed',
+}
+
+struct.Seeds {
+  rng 'rng::seed',
+  map_generator 'MapGenSeeds',
+}
+
+struct.MetaState {
+  seeds 'Seeds',
+}
