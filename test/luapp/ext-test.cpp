@@ -328,7 +328,7 @@ LUA_TEST_CASE( "[ext-base] get_or_luaerr" ) {
   };
 
   char const* const err =
-      "ext-test.cpp:327:error: failed to convert Lua type "
+      "ext-test.cpp:326:error: failed to convert Lua type "
       "`number' to native type `lua::rfunction'.\n"
       "stack traceback:\n"
       "\t[C]: in ?";
@@ -345,7 +345,7 @@ LUA_TEST_CASE( "[ext-base] get_or_luaerr reason" ) {
   };
 
   char const* const err =
-      "ext-test.cpp:344:error: failed to convert Lua type "
+      "ext-test.cpp:343:error: failed to convert Lua type "
       "`number' to native type `my_ns::Point': wrong type\n"
       "stack traceback:\n"
       "\t[C]: in ?";
