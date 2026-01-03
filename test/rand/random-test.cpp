@@ -210,12 +210,14 @@ TEST_CASE( "[rand/random] uniform_int full range coverage" ) {
   SECTION( "full int range" ) {
 #if 0
     vector<atomic<uint8_t>> s( uint64_t( 0xffffffff ) + 1 );
-    atomic<bool> stop          = false;
     static auto constexpr kMin = numeric_limits<int>::min();
     static auto constexpr kMax = numeric_limits<int>::max();
     static auto constexpr kAdd =
         -int64_t( numeric_limits<int>::min() );
-    auto const f = [&] {
+    int const num_threads = thread::hardware_concurrency();
+    vector<atomic<bool>> stops( num_threads );
+    auto const f = [&]( int const idx ) {
+      auto& stop = stops[idx];
       // Here we need a separate generator for each thread be-
       // cause they are not thread safe. Also, we need a separate
       // seed in each thread otherwise all threads would just
@@ -231,20 +233,19 @@ TEST_CASE( "[rand/random] uniform_int full range coverage" ) {
     };
     auto const printer = [&] {
       while( true ) {
-        this_thread::sleep_for( chrono::milliseconds{ 10 } );
+        this_thread::sleep_for( chrono::milliseconds{ 10000 } );
         int64_t found = 0;
         for( auto const& e : s )
           if( e.load() ) //
             ++found;
-        fmt::println( "found={}", found );
+        fmt::println( "found={:L}", found );
         if( found == uint64_t( 0xffffffff ) + 1 ) break;
       }
-      stop = true;
+      for( auto& stop : stops ) stop = true;
     };
     vector<jthread> threads;
-    int const num_threads = thread::hardware_concurrency() / 2;
     for( int i = 0; i < num_threads; ++i )
-      threads.emplace_back( f );
+      threads.emplace_back( f, i );
     threads.emplace_back( printer );
     for( jthread& jt : threads ) jt.join();
 #endif
