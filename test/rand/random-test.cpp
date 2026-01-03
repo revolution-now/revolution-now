@@ -20,6 +20,8 @@
 #include "test/catch-common.hpp" // IWYU pragma: keep
 
 // C++ standard library
+#include <atomic>
+#include <thread>
 #include <vector>
 
 namespace rng {
@@ -172,9 +174,8 @@ TEST_CASE( "[rand/random] uniform_double" ) {
 // Deterministic since there is no seeding and we are only using
 // the uniform_int which we implement ourselves.
 TEST_CASE( "[rand/random] uniform_int full range coverage" ) {
-  random r; // NOTE: no seeding.
-
   SECTION( "small int range" ) {
+    random r; // NOTE: no seeding.
     static int constexpr kMin   = 3;
     static int constexpr kMax   = 17;
     static int constexpr kCount = kMax - kMin + 1;
@@ -197,31 +198,57 @@ TEST_CASE( "[rand/random] uniform_int full range coverage" ) {
     REQUIRE( found == 15 );
   }
 
-#if 0 // takes like an hour to run.
+  // This runs a cpu-intensive test with multiple threads to en-
+  // sure that the uniform_int generator, on the full range of
+  // ints, eventually produces all ~4.3 billion values. Since the
+  // implementation of uniform_int, in that scenario, defers to
+  // raw(), it is effectively testing that as well.
+  //
+  // NOTE: This takes ~6 mins with 16 cores, thus it is disabled
+  //       by default.
+  //
   SECTION( "full int range" ) {
-    vector<uint8_t> s( uint64_t( 0xffffffff ) + 1 );
-    int64_t count              = 0;
-    uint64_t found             = 0;
+#if 0
+    vector<atomic<uint8_t>> s( uint64_t( 0xffffffff ) + 1 );
+    atomic<bool> stop          = false;
     static auto constexpr kMin = numeric_limits<int>::min();
     static auto constexpr kMax = numeric_limits<int>::max();
     static auto constexpr kAdd =
         -int64_t( numeric_limits<int>::min() );
-    while( found < uint64_t( 0xffffffff ) + 1 ) {
-      int64_t x = r.uniform_int( kMin, kMax );
-      x += kAdd;
-      auto& r = s[x];
-      if( !r ) {
-        r = 1;
-        ++found;
+    auto const f = [&] {
+      // Here we need a separate generator for each thread be-
+      // cause they are not thread safe. Also, we need a separate
+      // seed in each thread otherwise all threads would just
+      // find the exact same values and there would be no speedup
+      // from multiple threads.
+      random r;
+      r.reseed( entropy::from_random_device() );
+      while( !stop ) {
+        int64_t x = r.uniform_int( kMin, kMax );
+        x += kAdd;
+        s[x] = 1;
       }
-      ++count;
-      if( ( count & 131071 ) ==
-          0 ) // 2^17-1, avoid modulo for perf.
-        fmt::println( "found={}, count={}", found, count );
-    }
-    fmt::println( "found={}, count={}", found, count );
-  }
+    };
+    auto const printer = [&] {
+      while( true ) {
+        this_thread::sleep_for( chrono::milliseconds{ 10 } );
+        int64_t found = 0;
+        for( auto const& e : s )
+          if( e.load() ) //
+            ++found;
+        fmt::println( "found={}", found );
+        if( found == uint64_t( 0xffffffff ) + 1 ) break;
+      }
+      stop = true;
+    };
+    vector<jthread> threads;
+    int const num_threads = thread::hardware_concurrency() / 2;
+    for( int i = 0; i < num_threads; ++i )
+      threads.emplace_back( f );
+    threads.emplace_back( printer );
+    for( jthread& jt : threads ) jt.join();
 #endif
+  }
 }
 
 TEST_CASE( "[rand/random] uniform<T>" ) {

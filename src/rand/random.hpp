@@ -68,6 +68,12 @@ struct random {
             !std::is_same_v<T, bool> )
   [[nodiscard]] T uniform() {
     static_assert( sizeof( decltype( raw() ) ) >= sizeof( T ) );
+    // This is effectively a modulus to get the desired uniform
+    // distribution. It is ok in this case because the range of
+    // desired values will always evenly divide into the total
+    // possible values returned by raw(), since we're always
+    // dealing with powers of two. Thus we don't need any rejec-
+    // tion step.
     return raw() & std::numeric_limits<T>::max();
   }
 
