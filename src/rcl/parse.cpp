@@ -33,9 +33,9 @@ namespace {
 /****************************************************************
 ** Global State
 *****************************************************************/
-char const* g_start = nullptr;
-char const* g_cur   = nullptr;
-char const* g_end   = nullptr;
+thread_local char const* g_start = nullptr;
+thread_local char const* g_cur   = nullptr;
+thread_local char const* g_end   = nullptr;
 
 /****************************************************************
 ** Helpers

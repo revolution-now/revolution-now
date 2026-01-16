@@ -23,19 +23,11 @@
 namespace rcl {
 
 // Rcl parser.
-//
-// WARNING: this function is NOT thread safe as it uses global
-//          state for speed and simplicity.
-//
 base::expect<doc> parse( std::string_view filename,
                          std::string const& in,
                          ProcessingOptions const& opts = {} );
 
 // For convenience.
-//
-// WARNING: this function is NOT thread safe as it uses global
-//          state for speed and simplicity.
-//
 base::expect<doc> parse_file(
     std::string_view filename,
     ProcessingOptions const& opts = {} );
