@@ -660,5 +660,15 @@ TEST_CASE( "[emit] table value of empty string" ) {
   REQUIRE( emit( *doc ) == expected );
 }
 
+TEST_CASE( "[emit] emit( cdr::value )" ) {
+  using namespace cdr::literals;
+
+}
+
+TEST_CASE( "[emit] emit_json( cdr::value )" ) {
+  using namespace cdr::literals;
+
+}
+
 } // namespace
 } // namespace rcl

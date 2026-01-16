@@ -31,6 +31,9 @@ struct EmitOptions {
 std::string emit( doc const& document,
                   EmitOptions const& options = {} );
 
+std::string emit( cdr::value const& v,
+                  EmitOptions const& options = {} );
+
 /****************************************************************
 ** JSON rcl dialect.
 *****************************************************************/
@@ -40,6 +43,9 @@ struct JsonEmitOptions {
 
 // Since rcl is a superset of JSON, we can emit JSON as well.
 std::string emit_json( doc const& document,
+                       JsonEmitOptions options = {} );
+
+std::string emit_json( cdr::value const& v,
                        JsonEmitOptions options = {} );
 
 } // namespace rcl

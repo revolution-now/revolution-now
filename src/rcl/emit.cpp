@@ -304,16 +304,37 @@ struct json_emitter {
 *****************************************************************/
 string emit( doc const& document, EmitOptions const& options ) {
   string res;
+  static int const indent = 0;
   standard_emitter{ options }.emit( document.top_tbl(), res,
-                                    /*indent=*/0 );
+                                    indent );
+  return res;
+}
+
+string emit( cdr::value const& v, EmitOptions const& options ) {
+  string res;
+  static int const indent = 0;
+  v.visit( [&]( auto& o ) {
+    standard_emitter{ options }.emit( o, res, indent );
+  } );
   return res;
 }
 
 string emit_json( doc const& document,
-                  JsonEmitOptions options ) {
+                  JsonEmitOptions const options ) {
   string res;
+  static int const indent = 1;
   json_emitter{ options }.emit( document.top_tbl(), res,
-                                /*indent=*/1 );
+                                indent );
+  return res;
+}
+
+string emit_json( cdr::value const& v,
+                  JsonEmitOptions const options ) {
+  string res;
+  static int const indent = 1;
+  v.visit( [&]( auto& o ) {
+    json_emitter{ options }.emit( o, res, indent );
+  } );
   return res;
 }
 
