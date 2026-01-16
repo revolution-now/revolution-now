@@ -172,8 +172,7 @@ namespace rcl {
 ** doc
 *****************************************************************/
 struct ProcessingOptions {
-  bool run_key_parse  = true;
-  bool unflatten_keys = true;
+  bool run_key_parse = true;
 };
 
 // This structure cannot be mutable after creation because it re-

@@ -259,7 +259,7 @@ void key_parser_impl( table& in, string&& raw_key, value&& v ) {
     // some special interpretations of characters, namely a dot
     // or consecutive spaces can delimit keys.
     if( *cur == ' ' || *cur == '.' ) {
-      // Consolodate consecutive spaces/dots into one delimiter.
+      // Consolidate consecutive spaces/dots into one delimiter.
       while( cur != end && ( *cur == ' ' || *cur == '.' ) )
         ++cur;
       if( res.size() == 0 || res.back() != kKeyDelimiterChar )
@@ -333,7 +333,7 @@ void unflatten_impl( table& in, string&& dotted, value&& v ) {
         fast_visit( unflatten_visitor{}, std::move( v ) ) );
     return;
   }
-  DCHECK( i + 1 < int( dotted.size() ) );
+  CHECK( i + 1 < int( dotted.size() ) );
   string_view key  = string_view( dotted ).substr( 0, i );
   string_view rest = string_view( dotted ).substr( i + 1 );
   auto [it, b] = in.emplace( string( key ), value{ table{} } );
@@ -357,31 +357,17 @@ list unflatten_list( list&& in ) {
   return l;
 }
 
-} // namespace
-
-namespace {
-
 /****************************************************************
 ** Post-processing Routine
 *****************************************************************/
 // This should only be run on the top-level table, since it will
-// be applied recursively. In practice, this is only really
-// useful for unit tests, since otherwise the top-level table is
-// placed into a doc, and the doc will run this post-processing.
-base::expect<table, string> run_postprocessing(
-    table&& v1, ProcessingOptions const& opts ) {
-  table v2;
+// be applied recursively.
+table run_postprocessing( table&& v1,
+                          ProcessingOptions const& opts ) {
   if( opts.run_key_parse )
-    v2 = key_parser_table( std::move( v1 ) );
-  else
-    v2 = std::move( v1 );
-  table v3;
-  if( opts.unflatten_keys )
-    v3 = unflatten_table( std::move( v2 ) );
-  else
-    v3 = std::move( v2 );
-  table v4 = std::move( v3 );
-  return v4;
+    return unflatten_table(
+        key_parser_table( std::move( v1 ) ) );
+  return std::move( v1 );
 }
 
 } // namespace
@@ -391,9 +377,7 @@ base::expect<table, string> run_postprocessing(
 *****************************************************************/
 expect<doc> doc::create( table&& tbl,
                          ProcessingOptions const& opts ) {
-  UNWRAP_RETURN( postprocessed,
-                 run_postprocessing( std::move( tbl ), opts ) );
-  return doc( std::move( postprocessed ) );
+  return doc( run_postprocessing( std::move( tbl ), opts ) );
 }
 
 } // namespace rcl

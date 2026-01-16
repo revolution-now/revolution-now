@@ -54,8 +54,8 @@ valid_or<string> load_rcl_impl( ColonySAV& out, LoadFn load ) {
   };
   base::ScopedTimer timer( "load-ColonySAV-from-rcl" );
   timer.checkpoint( "rcl parse" );
-  rcl::ProcessingOptions const proc_opts{
-    .run_key_parse = true, .unflatten_keys = true };
+  rcl::ProcessingOptions const proc_opts{ .run_key_parse =
+                                              true };
   UNWRAP_RETURN( rcl_doc, load( proc_opts ) );
   timer.checkpoint( "from_canonical" );
   UNWRAP_RETURN( converted,
@@ -98,8 +98,7 @@ string save_rcl_to_string( ColonySAV const& in,
       cdr::run_conversion_to_canonical( in, cdr_opts );
   cdr::converter conv( cdr_opts );
   UNWRAP_CHECK( tbl, conv.ensure_type<cdr::table>( cdr_val ) );
-  rcl::ProcessingOptions proc_opts{ .run_key_parse  = false,
-                                    .unflatten_keys = false };
+  rcl::ProcessingOptions proc_opts{ .run_key_parse = false };
   timer.checkpoint( "create doc" );
   UNWRAP_CHECK(
       rcl_doc, rcl::doc::create( std::move( tbl ), proc_opts ) );
