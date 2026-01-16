@@ -704,7 +704,7 @@ rect rect::normalized() const {
   return res;
 }
 
-rect rect::from( point first, point opposite ) {
+rect rect::from( point const first, point const opposite ) {
   return rect{ .origin = first, .size = ( opposite - first ) }
       .normalized();
 }
@@ -789,27 +789,27 @@ interval rect::vertical_slice() const {
   return interval{ .start = origin.y, .len = size.h };
 }
 
-rect rect::with_new_right_edge( const int edge ) const {
+rect rect::with_new_right_edge( int const edge ) const {
   return rect{ .origin = { .x = origin.x, .y = origin.y },
                .size   = { .w = edge - origin.x, .h = size.h } }
       .normalized();
 }
 
-rect rect::with_new_left_edge( const int edge ) const {
+rect rect::with_new_left_edge( int const edge ) const {
   return rect{
     .origin = { .x = edge, .y = origin.y },
     .size = { .w = size.w + ( origin.x - edge ), .h = size.h } }
       .normalized();
 }
 
-rect rect::with_new_top_edge( const int edge ) const {
+rect rect::with_new_top_edge( int const edge ) const {
   return rect{
     .origin = { .x = origin.x, .y = edge },
     .size = { .w = size.w, .h = size.h + ( origin.y - edge ) } }
       .normalized();
 }
 
-rect rect::with_new_bottom_edge( const int edge ) const {
+rect rect::with_new_bottom_edge( int const edge ) const {
   return rect{ .origin = { .x = origin.x, .y = origin.y },
                .size   = { .w = size.w, .h = edge - origin.y } }
       .normalized();
@@ -836,7 +836,7 @@ maybe<rect> rect::clipped_by( rect const other ) const {
   return res;
 }
 
-rect rect::clamped( rect bounds ) const {
+rect rect::clamped( rect const bounds ) const {
   return rect_clamped( *this, bounds );
 }
 
@@ -859,17 +859,17 @@ point rect::center() const {
   };
 }
 
-rect rect::point_becomes_origin( point p ) const {
+rect rect::point_becomes_origin( point const p ) const {
   return rect{ .origin = origin.point_becomes_origin( p ),
                .size   = size };
 }
 
-rect rect::origin_becomes_point( point p ) const {
+rect rect::origin_becomes_point( point const p ) const {
   return rect{ .origin = origin.origin_becomes_point( p ),
                .size   = size };
 }
 
-rect rect::with_border_added( int n ) const {
+rect rect::with_border_added( int const n ) const {
   // This requires a normalized rect in order to work properly.
   CHECK_GE( size.w, 0 );
   CHECK_GE( size.h, 0 );
@@ -878,14 +878,14 @@ rect rect::with_border_added( int n ) const {
     .size   = { .w = size.w + 2 * n, .h = size.h + 2 * n } };
 }
 
-rect rect::with_inc_size( int n ) const {
+rect rect::with_inc_size( int const n ) const {
   auto r = *this;
   r.size.w += n;
   r.size.h += n;
   return r;
 }
 
-rect rect::with_dec_size( int n ) const {
+rect rect::with_dec_size( int const n ) const {
   auto r = *this;
   r.size.w -= n;
   r.size.h -= n;
@@ -927,7 +927,7 @@ rect rect::uni0n( rect const rhs ) const {
                   .h = ( new_y2 - new_y1 ) } };
 }
 
-rect rect::with_edges_removed( int n ) const {
+rect rect::with_edges_removed( int const n ) const {
   rect r( *this );
 
   // TODO: not very efficient.
@@ -980,14 +980,14 @@ rect rect::moved( e_cdirection const d ) const {
   return rect{ .origin = origin.moved( d ), .size = size };
 }
 
-rect rect::operator*( int scale ) const {
+rect rect::operator*( int const scale ) const {
   rect res   = *this;
   res.origin = res.origin * scale;
   res.size   = res.size * scale;
   return res;
 }
 
-rect rect::operator/( int scale ) const {
+rect rect::operator/( int const scale ) const {
   rect res   = *this;
   res.origin = res.origin / scale;
   res.size   = res.size / scale;
