@@ -156,8 +156,13 @@ auto timer(
 }
 
 // Example usage:
-// auto res = TIMER( "my function", f( 1, 2, 3 ) );
-#define TIMER( name, code ) \
+// auto res = NAMED_TIMER[( "my function", f( 1, 2, 3 ) );
+#define NAMED_TIMER( name, code ) \
   ::base::timer( name, [&]() { return code; } );
+
+// Example usage:
+// auto res = TIMED_CALL( some_func, 1, 2, 3 );
+#define TIMED_CALL( fn, ... ) \
+  ::base::timer( #fn, [&]() { return fn( __VA_ARGS__ ); } );
 
 } // namespace base

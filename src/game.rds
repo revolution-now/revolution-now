@@ -16,6 +16,7 @@ namespace "rn"
 sumtype.StartMode {
   new_random {},
   new_america {},
+  new_exchange {},
   new_customize {},
   load {
     slot 'maybe<int>',

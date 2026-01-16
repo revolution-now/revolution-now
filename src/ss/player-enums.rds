@@ -1,0 +1,31 @@
+# ===============================================================
+# player-enums.rds
+#
+# Project: Revolution Now
+#
+# Created by David P. Sicilia on 2026-01-10.
+#
+# Description: Enums for player-related things.
+#
+# ===============================================================
+namespace "rn"
+
+# TODO: placeholder.
+enum.e_euro_relationship {
+  none,
+  peace,
+  war,
+}
+
+enum.e_player_control {
+  # We need the "inactive" value for dealing with foreign euro-
+  # pean powers after declaration: they completely stop evolving,
+  # but their colonies are still present on the map. Note that
+  # the OG refers to this state as "withdrawn", but we're using a
+  # different name here because "withdrawn" arguably is not the
+  # ideal word, since such a player still retains their colonies;
+  # it's really just that they no longer move or evolve.
+  inactive,
+  human,
+  ai,
+}

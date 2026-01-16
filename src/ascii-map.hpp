@@ -1,35 +1,29 @@
 /****************************************************************
-**map-gen.hpp
+**ascii-map.hpp
 *
 * Project: Revolution Now
 *
-* Created by dsicilia on 2022-04-21.
+* Created by David P. Sicilia on 2026-01-04.
 *
-* Description: Map-generator related helpers.
+* Description: Draws maps to the terminal for tools/testing.
 *
 *****************************************************************/
 #pragma once
 
-// gfx
-#include "gfx/cartesian.hpp"
+// C++ standard library
+#include <iosfwd>
 
 namespace rn {
 
 /****************************************************************
 ** Fwd. Decls.
 *****************************************************************/
-struct IMapUpdater;
 struct RealTerrain;
 
 /****************************************************************
 ** Public API.
 *****************************************************************/
-void remove_islands( RealTerrain& real_terrain );
-
-void remove_crosses( RealTerrain& real_terrain );
-
-[[nodiscard]] gfx::rect compute_land_zone( gfx::size world_sz );
-
-void reset_terrain( IMapUpdater& map_updater, gfx::size sz );
+void print_ascii_map( RealTerrain const& terrain,
+                      std::ostream& out );
 
 } // namespace rn

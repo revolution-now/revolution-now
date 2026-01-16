@@ -13,6 +13,7 @@ namespace "rn"
 enum.e_main_menu_item {
   new_random,
   new_america,
+  new_exchange,
   new_customize,
   load,
   hall_of_fame,

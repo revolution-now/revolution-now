@@ -1,0 +1,109 @@
+map.source.generate_native.setup {
+  size { w: 56, h: 70 }
+
+  surface_generator {
+    perlin_settings {
+      edge_suppression {
+        enabled: true
+        suppression_decay: 0.6
+      }
+      land_form {
+        fractal {
+          lacunarity: 2
+          n_octaves: 5
+          persistence: 0.5
+        }
+        scale: 12
+      }
+      seed {
+        base: 1152681597
+        offset_x: 876454408
+        offset_y: 2451924743
+      }
+    }
+    sanitization {
+      remove_crosses: true
+      remove_islands: true
+    }
+    target_density: 0.25
+  }
+
+  arctic {
+    density: 0.5
+    enabled: true
+    seed: ec13f733ef3aa1ea1fd245bd044a5959
+  }
+
+  ground_types {
+    climate: wet
+    seed: "48d55a01aef7295a21b2aabd78d68343"
+    temperature: temperate
+  }
+
+  rivers {
+    density: 0.1
+    major_river_fraction: 0.15
+    seed: ac0304879ebe1280b0f9ca5e56f762fc
+  }
+
+  hills {
+    density: 0.05
+    range_probability: 0.1
+    seed: "799e3a0b501cf2b907f25c9955c4da6f"
+  }
+
+  mountains {
+    density: 0.1
+    range_probability: 0.1
+    seed: "23edf70f1abb64d1b4e552f4ffa9cd9b"
+  }
+
+  forest {
+    density: 0.95
+    seed: "59d6ae93e9e67fe65760c811dc941337"
+  }
+
+  bonuses.seed: de7db42af1959c181457f2eb81adaf6c
+}
+
+nations.nations {
+  dutch {
+    control: ai
+    name: Michiel De Ruyter
+  }
+  english {
+    control: human
+    name: Walter Raleigh
+  }
+  french {
+    control: ai
+    name: Jacques Cartier
+  }
+  spanish {
+    control: ai
+    name: Christopher Columbus
+  }
+}
+
+natives.tribes {
+  apache {}
+  arawak {}
+  aztec {}
+  cherokee {}
+  inca {}
+  iroquois {}
+  sioux {}
+  tupi {}
+}
+
+settings {
+  difficulty: conquistador
+  rules {
+    deadline_for_winning: 1850
+    enable_war_of_succession: true
+    ref_can_spawn_ships: true
+    wagon_train_limit_mode: classic
+    withdraw_on_declaration: true
+  }
+  starting_year: 1492
+}

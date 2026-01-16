@@ -13,6 +13,9 @@
 // rng
 #include "perlin-hashes.hpp"
 
+// refl
+#include "refl/ext.hpp"
+
 // base
 #include "base/error.hpp"
 
@@ -27,6 +30,9 @@ namespace rng {
 namespace {
 
 using namespace std;
+
+using ::base::valid;
+using ::base::valid_or;
 
 /****************************************************************
 ** Data.
@@ -122,7 +128,14 @@ PerlinFloat perlin_noise_2d_single_octave(
 } // namespace
 
 /****************************************************************
-** Public API.
+** PerlinFractalOptions
+*****************************************************************/
+valid_or<string> PerlinFractalOptions::validate() const {
+  return valid;
+}
+
+/****************************************************************
+** Perlin Noise.
 *****************************************************************/
 // Multi-octave perline noise.
 PerlinFloat perlin_noise_2d(

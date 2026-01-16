@@ -34,6 +34,19 @@ using ::base::nothing;
 /****************************************************************
 ** Test Cases
 *****************************************************************/
+TEST_CASE( "[rand/random] construct with seed" ) {
+  entropy const e{
+    .e1 = 0x6151c187,
+    .e2 = 0x6da636d6,
+    .e3 = 0xfbe4a276,
+    .e4 = 0x00f00076,
+  };
+
+  int const n = random( e ).uniform<uint32_t>();
+
+  REQUIRE( n == 1911169126 );
+}
+
 TEST_CASE( "[rand/random] reseed" ) {
   random r;
 
@@ -301,6 +314,26 @@ TEST_CASE( "[rand/random] marsenne determinacy" ) {
     for( int i = 0; i < 10'000 - 1; ++i ) (void)r.raw();
     REQUIRE( r.raw() == mt19937_ten_thousandth_output );
   }
+}
+
+TEST_CASE( "[rand/random] generate_deterministic_seed" ) {
+  random r;
+
+  auto const f = [&] [[clang::noinline]] {
+    return r.generate_deterministic_seed();
+  };
+
+  // Should be deterministic because rand by default will not
+  // seed the underlying engine and the implementation of the
+  // uniform methods used don't include any further platform de-
+  // pendent stuff. Thus our marsenne twister engine should give
+  // consistent results, even across platforms it is said.
+
+  REQUIRE( base::to_str( f() ) ==
+           "d5c31f79e7e1faee22ae9ef6d091bb5c" );
+
+  REQUIRE( base::to_str( f() ) ==
+           "3895afe1e9d30005f807b7df2082352c" );
 }
 
 } // namespace

@@ -28,6 +28,7 @@ namespace rn {
 ** MockIRand
 *****************************************************************/
 struct MockIRand : IRand {
+  MOCK_METHOD( void, reseed, (rng::entropy const&), () );
   MOCK_METHOD( bool, bernoulli, (double), () );
   MOCK_METHOD( int, uniform_int, (int, int), () );
   MOCK_METHOD( double, uniform_double, (double, double), () );

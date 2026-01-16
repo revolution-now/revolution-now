@@ -13,6 +13,8 @@
 // Revolution Now
 #include "classic-sav.hpp"
 #include "co-wait.hpp"
+#include "map-gen.hpp"
+#include "perlin-map.hpp"
 #include "terrain-mgr.hpp"
 
 // config
@@ -32,11 +34,23 @@
 // gfx
 #include "gfx/iter.hpp"
 
+// rcl
+#include "rcl/to.hpp"
+
+// cdr
+#include "cdr/ext-base.hpp"
+#include "cdr/ext-builtin.hpp"
+#include "cdr/ext-std.hpp"
+
+// rand
+#include "rand/random.hpp"
+
 // refl
 #include "refl/to-str.hpp"
 
 // base
 #include "base/logger.hpp"
+#include "base/timer.hpp"
 
 namespace rn {
 
@@ -44,10 +58,14 @@ namespace {
 
 using namespace std;
 
+using ::base::ScopedTimer;
 using ::base::valid;
 using ::base::valid_or;
+using ::gfx::Matrix;
 using ::gfx::point;
+using ::gfx::rect;
 using ::gfx::rect_iterator;
+using ::gfx::size;
 using ::refl::enum_values;
 
 [[nodiscard]] bool has_bonuses( RealTerrain const& terrain ) {
@@ -86,17 +104,65 @@ void convert_islands_to_mountains( RealTerrain& out ) {
       out.map[p].overlay = e_land_overlay::mountains;
 }
 
-valid_or<string> generated_terrain_setup_perlin(
-    GeneratedTerrainSetup const&,
-    LandGeneratorAlgorithm::perlin const& ) {
-  return "Perlin noise map generator not yet supported.";
+valid_or<string> generate_land_perlin(
+    GeneratedMapSetup const& setup, RealTerrain& real_terrain ) {
+  size const sz                 = setup.size;
+  auto const& surface_generator = setup.surface_generator;
+
+  // Land form generator.
+  {
+    auto const& perlin_settings =
+        surface_generator.perlin_settings;
+    Matrix<e_surface> surface;
+    TIMED_CALL( land_gen_perlin, perlin_settings,
+                surface_generator.target_density, setup.size,
+                surface );
+    for( point const p : rect_iterator( surface.rect() ) )
+      real_terrain.map[p].surface = surface[p];
+    // FIXME: temporary
+    for( point const p : rect_iterator( surface.rect() ) )
+      real_terrain.map[p].ground = e_ground_terrain::grassland;
+  }
+
+  // Hard buffer exclusion.
+  auto const apply_exclusion = [&] {
+    using enum e_surface;
+    rect const land_zone = compute_land_zone( sz );
+    lg.info(
+        "land_zone.left={}, land_zone.right={}, "
+        "land_zone.top={}, land_zone.bottom={}",
+        land_zone.left(), sz.w - land_zone.right(),
+        land_zone.top(), sz.h - land_zone.bottom() );
+    auto& m = real_terrain.map;
+    for( point const p : rect_iterator( m.rect() ) )
+      if( !p.is_inside( land_zone ) ) //
+        m[p].surface = water;
+  };
+
+  // Run this the first time before the sanitization because re-
+  // moving some land tiles might create sanitization violations
+  // such as crosses.
+  apply_exclusion();
+
+  // Sanitization.
+  {
+    auto const& sanitization = surface_generator.sanitization;
+    if( sanitization.remove_crosses )
+      TIMED_CALL( remove_crosses, real_terrain );
+    if( sanitization.remove_islands )
+      TIMED_CALL( remove_islands, real_terrain );
+  }
+
+  // Now run it again just in case e.g. the cross removal ends up
+  // putting a land tile in the exclusion zone.
+  apply_exclusion();
+
+  return valid;
 }
 
-valid_or<string> generated_terrain_setup_seeded_organic(
-    lua::state& lua, GeneratedTerrainSetup const& setup,
-    LandGeneratorAlgorithm::seeded_organic const&
-        seeded_organic_setup ) {
-  lua::table M = lua["map_gen"].as<lua::table>();
+valid_or<string> generate_map_lua_impl(
+    GeneratedMapSetup const& setup, lua::state& st ) {
+  lua::table M = st["map_gen"].as<lua::table>();
 
   // Proto squares.
   // ------------------------------------------------------------
@@ -104,29 +170,29 @@ valid_or<string> generated_terrain_setup_seeded_organic(
 
   // Land generation.
   // ------------------------------------------------------------
-  lua::table options      = lua.table.create();
-  options["brush"]        = seeded_organic_setup.brush;
-  options["land_density"] = setup.land_generator.target_density;
-  options["remove_Xs"] =
-      ( setup.land_generator.remove_Xs_probability > 0.0 );
-  options["remove_Xs_probability"] =
-      setup.land_generator.remove_Xs_probability;
+  lua::table options = st.table.create();
+  options["brush"]   = "mixed";
+  options["land_density"] =
+      setup.surface_generator.target_density;
+  options["remove_crosses"] =
+      ( setup.surface_generator.sanitization.remove_crosses );
   options["min_map_height_for_arctic"] = 10;
 
-  options["river_density"]    = setup.river_density;
-  options["hills_density"]    = setup.hills_density;
-  options["mountain_density"] = setup.mountain_density;
+  options["river_density"]    = setup.rivers.density;
+  options["hills_density"]    = setup.hills.density;
+  options["mountain_density"] = setup.mountains.density;
   options["hills_range_probability"] =
-      setup.hills_range_probability;
+      setup.hills.range_probability;
   options["mountain_range_probability"] =
-      setup.mountain_range_probability;
-  options["major_river_fraction"] = setup.major_river_fraction;
-  options["forest_density"]       = setup.forest_density;
-  options["arctic_tile_density"]  = setup.arctic_tile_density;
+      setup.mountains.range_probability;
+  options["major_river_fraction"] =
+      setup.rivers.major_river_fraction;
+  options["forest_density"]      = setup.forest.density;
+  options["arctic_tile_density"] = setup.arctic.density;
 
   // Assign land vs. water.
   M["generate_land"]( options );
-  if( setup.add_arctic_tiles ) M["create_arctic"]( options );
+  if( setup.arctic.enabled ) M["create_arctic"]( options );
   M["assign_dry_ground_types"]();
   // We need to have already created the rivers before this.
   M["assign_wet_ground_types"]();
@@ -149,26 +215,44 @@ valid_or<string> generated_terrain_setup_seeded_organic(
   return valid;
 }
 
-valid_or<string> generated_terrain_setup(
-    TerrainState& terrain, IRand&, lua::state& lua,
-    GeneratedTerrainSetup const& setup ) {
+valid_or<string> generated_map_native(
+    GeneratedMapSetup const& setup, TerrainState& terrain ) {
   CHECK( setup.size.area() > 0, "map has zero tiles" );
+
+  auto modifier =
+      [&]( RealTerrain& real_terrain ) -> valid_or<string> {
+    GOOD_OR_RETURN(
+        generate_land_perlin( setup, real_terrain ) );
+    // TODO: add more land steps here.
+    return valid;
+  };
+
+  valid_or<string> res = valid;
   terrain.modify_entire_map( [&]( RealTerrain& real_terrain ) {
-    real_terrain.map = gfx::Matrix<MapSquare>( setup.size );
+    real_terrain.map = Matrix<MapSquare>( setup.size );
+    res              = modifier( real_terrain );
   } );
-  SWITCH( setup.land_generator.generator_algo ) {
-    CASE( perlin ) {
-      return generated_terrain_setup_perlin( setup, perlin );
-    }
-    CASE( seeded_organic ) {
-      return generated_terrain_setup_seeded_organic(
-          lua, setup, seeded_organic );
-    }
-  }
+  return res;
+}
+
+valid_or<string> generated_map_lua(
+    GeneratedMapSetup const& setup, lua::state& st,
+    TerrainState& terrain ) {
+  CHECK( setup.size.area() > 0, "map has zero tiles" );
+
+  auto modifier = [&]( RealTerrain& ) {
+    return generate_map_lua_impl( setup, st );
+  };
+
+  valid_or<string> res = valid;
+  terrain.modify_entire_map( [&]( RealTerrain& real_terrain ) {
+    real_terrain.map = Matrix<MapSquare>( setup.size );
+    res              = modifier( real_terrain );
+  } );
+  return res;
 }
 
 valid_or<string> load_map_from_file(
-    MapSetup const& setup,
     MapSource::load_from_file const& load_from_file,
     lua::state& lua, RootState& root ) {
   auto const load_terrain = [&]( RealTerrain&& src ) {
@@ -237,12 +321,10 @@ valid_or<string> load_map_from_file(
   // a cotton resource on a mountain tile just from a visual
   // standpoint.
   if( !has_bonuses( root.zzz_terrain.real_terrain() ) ) {
+    rng::random r( load_from_file.bonuses.seed );
     auto const distribute_bonuses =
         lua["map_gen"]["distribute_bonuses"];
-    if( setup.bonuses_seed.has_value() )
-      distribute_bonuses( *setup.bonuses_seed );
-    else
-      distribute_bonuses();
+    distribute_bonuses( r.uniform_int( 0, 255 ) );
   }
 
   return valid;
@@ -257,37 +339,48 @@ valid_or<string> load_map_from_file(
 // in the struct, since some of the earlier ones depend on the
 // later ones.
 valid_or<string> create_game_from_setup(
-    SS& ss, IRand& rand, lua::state& lua,
-    GameSetup const& setup ) {
+    SS& ss, lua::state& lua, GameSetup const& setup ) {
   RootState& root = ss.root;
+
+#if 0
+  lg.info( "creating game from:\n{}", rcl::to_rcl( setup ) );
+  lg.info( "creating game from:\n{}", rcl::to_json( setup ) );
+#endif
 
   // SettingsState state.
   // ------------------------------------------------------------
   lg.info( "game setup: setting settings state..." );
-  lua::table settings_options = lua.table.create();
-  settings_options["difficulty"] =
-      setup.settings_state.difficulty;
+  lua::table settings_options    = lua.table.create();
+  settings_options["difficulty"] = setup.settings.difficulty;
   lua["new_game"]["create_settings_state"]( settings_options );
 
   // Rules.
   // ------------------------------------------------------------
   lg.info( "game setup: setting rules..." );
   root.settings.game_setup_options.customized_rules =
-      setup.rules.values;
+      setup.settings.rules;
 
   // Map.
   // ------------------------------------------------------------
   lg.info( "game setup: generating map..." );
   SWITCH( setup.map.source ) {
     CASE( load_from_file ) {
-      GOOD_OR_RETURN( load_map_from_file(
-          setup.map, load_from_file, lua, root ) );
+      GOOD_OR_RETURN(
+          load_map_from_file( load_from_file, lua, root ) );
       break;
     }
-    CASE( generate ) {
-      GOOD_OR_RETURN( generated_terrain_setup(
-          ss.mutable_terrain_use_with_care, rand, lua,
-          generate.terrain ) );
+    CASE( generate_native ) {
+      ScopedTimer const timer( "total terrain generation time" );
+      GOOD_OR_RETURN( generated_map_native(
+          generate_native.setup,
+          ss.mutable_terrain_use_with_care ) );
+      break;
+    }
+    CASE( generate_lua ) {
+      ScopedTimer const timer( "total terrain generation time" );
+      GOOD_OR_RETURN( generated_map_lua(
+          generate_lua.setup, lua,
+          ss.mutable_terrain_use_with_care ) );
       break;
     }
   }
@@ -295,14 +388,13 @@ valid_or<string> create_game_from_setup(
   // Natives.
   // ------------------------------------------------------------
   lg.info( "game setup: generating natives..." );
-  lua::table natives_options = lua.table.create();
-  natives_options["dwelling_frequency"] =
-      setup.natives.dwelling_frequency;
+  lua::table natives_options            = lua.table.create();
+  natives_options["dwelling_frequency"] = 0.14; // TODO
   lua::table native_tribes = lua::table::create_or_get(
       natives_options["native_tribes"] );
   for( int i = 1; auto const& [tribe_type, tribe_setup] :
                   setup.natives.tribes ) {
-    if( tribe_setup.disabled ) continue;
+    if( !tribe_setup.has_value() ) continue;
     native_tribes[i++] = tribe_type;
   }
   natives_options["native_tribes"] = native_tribes;
@@ -321,7 +413,7 @@ valid_or<string> create_game_from_setup(
     if( !nation_setup.has_value() ) continue;
     lua::table player = lua.table.create();
     player["nation"]  = nation;
-    player["control"] = nation_setup->human ? "human" : "ai";
+    player["control"] = base::to_str( nation_setup->control );
     players_unordered[nation] = player;
     ordered_players[i++]      = player;
   }
@@ -330,7 +422,7 @@ valid_or<string> create_game_from_setup(
   // Create turn state.
   // ------------------------------------------------------------
   lg.info( "game setup: generating turn state..." );
-  ss.turn.time_point.year = setup.turns.starting_year;
+  ss.turn.time_point.year = setup.settings.starting_year;
   ss.turn.time_point.season =
       config_turn.game_start.starting_season;
 

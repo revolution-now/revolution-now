@@ -9,17 +9,23 @@
 #              define a new game.
 #
 # ===============================================================
+# Revolution Now
+include "perlin-map.rds.hpp"
+
 # config
 include "config/options.rds.hpp"
-include "config/map-gen-types.rds.hpp"
 
 # ss
 include "ss/difficulty.rds.hpp"
 include "ss/nation.rds.hpp"
 include "ss/native-enums.rds.hpp"
+include "ss/player-enums.rds.hpp"
 
 # gfx
 include "gfx/cartesian.hpp"
+
+# rand
+include "rand/entropy.hpp"
 
 # refl
 include "refl/enum-map.hpp"
@@ -34,113 +40,108 @@ namespace "rn"
 
 struct.NationSetup {
   name 'std::string',
-  human 'bool',
+  control 'e_player_control',
 }
 
 struct.NationsSetup {
   nations 'refl::enum_map<e_nation, base::maybe<NationSetup>>',
 }
 
-# This is set up so that its default value is what is used in a
-# normal game.
 struct.TribeSetup {
-  disabled 'bool',
+  # TODO
 }
 
 struct.NativesSetup {
-  tribes 'refl::enum_map<e_tribe, TribeSetup>',
-  # This is in [0,1] and gives a probability that a dwelling will
-  # be placed on a tile assuming that all other conditions are
-  # met. The OG appears to have ~6% of land tiles occupied by
-  # dwellings. The number that we choose below is what leads to a
-  # similar result given our algorithm.
-  dwelling_frequency 'double',
+  tribes 'refl::enum_map<e_tribe, base::maybe<TribeSetup>>',
 }
 
-sumtype.LcrSetup {
-  none {},
-  classic {},
-}
-
-sumtype.PrimeResourceSetup {
-  none {},
-  classic {},
-}
-
-enum.e_land_brush_type {
-  single,
-  cross,
-  mixed,
-  rand,
-}
-
-sumtype.LandGeneratorAlgorithm {
-  seeded_organic {
-    brush 'e_land_brush_type',
-  },
-  perlin {
-    # TODO: add Perlin-specific parameters here.
-  }
-}
-
-struct.LandGeneratorSetup {
-  seed 'int',
-  target_density 'double',
-  # If we're removing Xs then this is the probabiliy we will do
-  # so for each X found. Can be 0/1 for fully off/on.
-  remove_Xs_probability 'double',
+struct.SurfaceSanitizationSetup {
+  remove_crosses 'bool',
   remove_islands 'bool',
-  generator_algo 'LandGeneratorAlgorithm',
 }
 
-struct.GeneratedTerrainSetup {
-  # Map Size.
-  # -------------------------------------------------------------
-  size 'gfx::size',
+struct.SurfaceGeneratorSetup {
+  perlin_settings 'PerlinMapSettings',
+  target_density 'double',
+  sanitization 'SurfaceSanitizationSetup',
+}
 
-  # Surface tile selection.
-  # -------------------------------------------------------------
-  land_generator 'LandGeneratorSetup',
-
-  # Ground types.
-  # -------------------------------------------------------------
+struct.GroundTypeSetup {
+  seed 'rng::seed',
   temperature 'e_temperature',
   climate 'e_climate',
+}
 
-  # Arctic.
-  # -------------------------------------------------------------
-  add_arctic_tiles 'bool',
-  arctic_tile_density 'double',
+struct.ArcticSetup {
+  seed 'rng::seed',
+  enabled 'bool',
+  density 'double',
+}
 
-  # Rivers.
-  # -------------------------------------------------------------
+struct.RiverSetup {
+  seed 'rng::seed',
   # This is the probability that, given a land square touching
   # water, we will start creating a river from it.
-  river_density 'double',
+  density 'double',
   # This is the probability that a given river segment will be a
   # major river. This should really be smaller than .5 because
   # major rivers give a production bonus over minor rivers.
   major_river_fraction 'double',
+}
 
-  # Overlays.
-  # -------------------------------------------------------------
-  forest_density 'double',
-  mountain_density 'double',
+struct.MountainsSetup {
+  seed 'rng::seed',
+  density 'double',
   # Probability that a tile chosen to have a mountain on it will
   # continue into a mountain range. This is applied recursively
   # on each new mountain tile added in the range to determine
   # whether to continue or not.
-  mountain_range_probability 'double',
-  hills_density 'double',
-  hills_range_probability 'double',
+  range_probability 'double',
+}
 
-  # Prime resources.
-  # -------------------------------------------------------------
-  prime_resources 'PrimeResourceSetup',
+struct.HillsSetup {
+  seed 'rng::seed',
+  density 'double',
+  # Probability that a tile chosen to have a hill on it will con-
+  # tinue into a hill range. This is applied recursively on each
+  # new hill tile added in the range to determine whether to con-
+  # tinue or not.
+  range_probability 'double',
+}
 
-  # Lost City Rumors.
-  # -------------------------------------------------------------
-  lcr 'LcrSetup',
+struct.ForestSetup {
+  seed 'rng::seed',
+  density 'double',
+}
+
+struct.BonusesSetup {
+  # This seed will be used to obtain an OG-style prime resource
+  # seed which will then be used for both the prime resources as
+  # well as the LCR placement, in accordance to how the OG does
+  # it. We must do this otherwise it wouldn't be possible to have
+  # interop between new and old save files.
+  seed 'rng::seed',
+}
+
+# This will be the main body of the map exchange key, thus we
+# should try not to change this once it is set.
+struct.GeneratedMapSetup {
+  # Map Size.
+  size 'gfx::size',
+
+  surface_generator 'SurfaceGeneratorSetup',
+
+  ground_types 'GroundTypeSetup',
+
+  arctic 'ArcticSetup',
+
+  rivers 'RiverSetup',
+
+  mountains 'MountainsSetup',
+  hills 'HillsSetup',
+  forest 'ForestSetup',
+
+  bonuses 'BonusesSetup',
 }
 
 enum.e_map_file_epoch {
@@ -170,34 +171,28 @@ sumtype.MapSource {
     path 'std::string',
     type 'MapFileType',
     convert_islands_to_mountains 'bool',
+    # If we need to generate prime resources/LCRs (typically we
+    # will, unless we happen to be loading a modern map that al-
+    # ready contains them) then this seed will be used, otherwise
+    # it will be ignored.
+    bonuses 'BonusesSetup',
   },
-  generate {
-    terrain 'GeneratedTerrainSetup',
+  generate_native {
+    setup 'GeneratedMapSetup',
+  },
+  generate_lua {
+    setup 'GeneratedMapSetup',
   },
 }
 
 struct.MapSetup {
   source 'MapSource',
-  # If we need to generate prime resources/LCRs (typically we
-  # will, unless we happen to be loading a modern map that al-
-  # ready contains them) then this seed will be used, if provided
-  # (mod 256). If this is needed but is not specified then a
-  # random one will be chosen. If we are using the classic dis-
-  # tribution algo then this corresponds to the exact
-  # prime_resource_seed in the OG sav file.
-  bonuses_seed 'base::maybe<int>',
 }
 
-struct.RulesSetup {
-  values 'config::options::Values',
-}
-
-struct.TurnSetup {
-  starting_year 'int',
-}
-
-struct.SettingsStateSetup {
+struct.GameSettingsSetup {
   difficulty 'e_difficulty',
+  starting_year 'int',
+  rules 'config::options::Values',
 }
 
 # This struct contains all of the settings that can be specified
@@ -210,12 +205,17 @@ struct.SettingsStateSetup {
 # These are in the reverse order in which they are selected, vis-
 # ited and applied.
 struct.GameSetup {
-  turns 'TurnSetup',
+  settings 'GameSettingsSetup',
   nations 'NationsSetup',
   natives 'NativesSetup',
   map 'MapSetup',
-  rules 'RulesSetup',
-  settings_state 'SettingsStateSetup',
+}
+
+struct.ClassicCustomization {
+  land_mass 'e_land_mass',
+  land_form 'e_land_form',
+  temperature 'e_temperature',
+  climate 'e_climate',
 }
 
 enum.e_customization_mode {

@@ -32,12 +32,7 @@ double Rand::uniform_double( double lower, double upper ) {
 }
 
 rng::seed Rand::generate_deterministic_seed() {
-  return rng::seed{
-    .e1 = rd_.uniform<uint32_t>(),
-    .e2 = rd_.uniform<uint32_t>(),
-    .e3 = rd_.uniform<uint32_t>(),
-    .e4 = rd_.uniform<uint32_t>(),
-  };
+  return rd_.generate_deterministic_seed();
 }
 
 } // namespace rn

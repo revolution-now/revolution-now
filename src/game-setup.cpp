@@ -26,6 +26,9 @@
 // refl
 #include "refl/query-enum.hpp"
 
+// base
+#include "base/logger.hpp"
+
 namespace rn {
 
 namespace {
@@ -34,13 +37,12 @@ using namespace std;
 
 using ::base::valid;
 using ::base::valid_or;
+using ::gfx::size;
 using ::refl::enum_map;
 using ::refl::enum_values;
 
-double select_landmass(
-    IRand& rand, enum_map<e_land_mass, int> const& weights ) {
-  e_land_mass const land_mass =
-      rand.pick_from_weighted_values( weights );
+double density_for_landmass( IRand& rand,
+                             e_land_mass const land_mass ) {
   auto const& range =
       config_map_gen.terrain_generation.land_layout.land_mass
           .densities[land_mass];
@@ -72,9 +74,9 @@ wait<maybe<string>> choose_leader_name( IGui& gui,
 /****************************************************************
 ** Public API.
 *****************************************************************/
-wait<maybe<GameSetup>> create_default_game_setup(
+wait<maybe<GameSetup>> create_classic_customized_game_setup(
     IEngine& engine, Planes& planes, IGui& gui, IRand& rand,
-    lua::state& ) {
+    ClassicCustomization const& classic_customization ) {
   GameSetup setup;
 
   // category: settings_state
@@ -82,69 +84,136 @@ wait<maybe<GameSetup>> create_default_game_setup(
   auto const difficulty =
       co_await choose_difficulty_screen( engine, planes );
   if( !difficulty.has_value() ) co_return nothing;
-  setup.settings_state.difficulty = *difficulty;
+  setup.settings.difficulty = *difficulty;
 
   // category: rules
   // ------------------------------------------------------------
-  setup.rules.values = config_options.default_values;
+  setup.settings.rules = config_options.default_values;
 
   // category: map
   // ------------------------------------------------------------
+  size const world_sz = config_map_gen.default_map_size;
+
   auto const& map_conf = config_map_gen.terrain_generation;
-  GeneratedTerrainSetup const terrain_setup{
-    .size = { .w = 56, .h = 70 },
-    .land_generator =
-        LandGeneratorSetup{
-          .seed           = 0,
-          .target_density = select_landmass(
-              rand, map_conf.land_layout.land_mass.weights ),
-          .remove_Xs_probability =
-              map_conf.land_layout.remove_x_probability.fraction,
-          .generator_algo =
-              LandGeneratorAlgorithm::seeded_organic{
-                .brush = e_land_brush_type::mixed,
-              },
-        },
-    .temperature = rand.pick_from_weighted_values(
-        map_conf.temperature.weights ),
-    .climate = rand.pick_from_weighted_values(
-        map_conf.climate.weights ),
-    .add_arctic_tiles = map_conf.land_layout.arctic.enabled,
-    .arctic_tile_density =
-        map_conf.land_layout.arctic.density.fraction,
-    .river_density = map_conf.rivers.density.fraction,
+
+  // This seed is sufficient to generate the numbers that we want
+  // because it happens that the three uint32_t values that con-
+  // stitute the perlin seed fit within the 128 bits that are
+  // provided by the rng::seed type, so we can read the seed bits
+  // directly instead of generating random numbers.
+  rng::seed perlin_entropy = rand.generate_deterministic_seed();
+  PerlinSeed const perlin_seed{
+    .offset_x = perlin_entropy.consume<uint32_t>(),
+    .offset_y = perlin_entropy.consume<uint32_t>(),
+    .base     = perlin_entropy.consume<uint32_t>(),
+  };
+
+  PerlinMapSettings const perlin_settings{
+    .land_form =
+        map_conf.land_layout.land_form
+            .perlin_land_form[classic_customization.land_form],
+    .edge_suppression =
+        map_conf.land_layout.land_form.perlin_edge_suppression,
+    .seed = perlin_seed,
+  };
+
+  SurfaceSanitizationSetup const surface_sanitization{
+    .remove_crosses = map_conf.land_layout.remove_crosses,
+    .remove_islands = true,
+  };
+
+  SurfaceGeneratorSetup const surface_generator{
+    .perlin_settings = perlin_settings,
+    .target_density  = density_for_landmass(
+        rand, classic_customization.land_mass ),
+    .sanitization = surface_sanitization,
+  };
+
+  e_temperature const temperature =
+      rand.pick_from_weighted_values(
+          map_conf.temperature.weights );
+  e_climate const climate =
+      rand.pick_from_weighted_values( map_conf.climate.weights );
+
+  GroundTypeSetup const ground_types{
+    .seed        = rand.generate_deterministic_seed(),
+    .temperature = temperature,
+    .climate     = climate,
+  };
+
+  ArcticSetup const arctic{
+    .seed = rand.generate_deterministic_seed(),
+    .enabled =
+        map_conf.land_layout.arctic.enabled &&
+        world_sz.h >= map_conf.land_layout.arctic.min_map_height,
+    .density = map_conf.land_layout.arctic.density.fraction,
+  };
+
+  RiverSetup const rivers{
+    .seed    = rand.generate_deterministic_seed(),
+    .density = map_conf.rivers.density.fraction,
     .major_river_fraction =
         map_conf.rivers.major_river_fraction.fraction,
-    .forest_density = map_conf.overlay.forest_density.fraction,
-    .mountain_density =
-        map_conf.overlay.mountain_density.fraction,
-    .mountain_range_probability =
+  };
+
+  MountainsSetup const mountains{
+    .seed    = rand.generate_deterministic_seed(),
+    .density = map_conf.overlay.mountain_density.fraction,
+    .range_probability =
         map_conf.overlay.mountain_range_probability.probability,
-    .hills_density = map_conf.overlay.hills_density.fraction,
-    .hills_range_probability =
+  };
+
+  HillsSetup const hills{
+    .seed    = rand.generate_deterministic_seed(),
+    .density = map_conf.overlay.hills_density.fraction,
+    .range_probability =
         map_conf.overlay.hills_range_probability.probability,
-    .prime_resources = PrimeResourceSetup::classic{},
-    .lcr             = LcrSetup::classic{} };
-  setup.map = MapSetup{
-    .source = MapSource::generate{ .terrain = terrain_setup },
-    .bonuses_seed = nothing };
+  };
+
+  ForestSetup const forest{
+    .seed    = rand.generate_deterministic_seed(),
+    .density = map_conf.overlay.forest_density.fraction,
+  };
+
+  BonusesSetup const bonuses{
+    .seed = rand.generate_deterministic_seed(),
+  };
+
+  GeneratedMapSetup const generated_map_setup{
+    .size              = world_sz,
+    .surface_generator = surface_generator,
+    .ground_types      = ground_types,
+    .arctic            = arctic,
+    .rivers            = rivers,
+    .mountains         = mountains,
+    .hills             = hills,
+    .forest            = forest,
+    .bonuses           = bonuses,
+  };
+
+  setup.map = MapSetup{ .source = MapSource::generate_lua{
+                          .setup = generated_map_setup } };
 
   // category: natives
   // ------------------------------------------------------------
-  setup.natives.dwelling_frequency = .14;
-  // Should include all with default settings.
-  setup.natives.tribes = {};
+  for( e_tribe const tribe_type : enum_values<e_tribe> ) {
+    auto& tribe_setup =
+        setup.natives.tribes[tribe_type].emplace();
+    // TODO
+    (void)tribe_setup;
+  }
 
   // category: nations
   // ------------------------------------------------------------
-  auto const human = co_await choose_human( gui );
-  if( !human.has_value() ) co_return nothing;
+  auto const human_nation = co_await choose_human( gui );
+  if( !human_nation.has_value() ) co_return nothing;
   for( e_nation const nation : enum_values<e_nation> ) {
+    using enum e_player_control;
     auto& o = setup.nations.nations[nation].emplace();
-    CHECK( human.has_value() );
-    o.human = ( *human == nation );
-    o.name  = config_nation.nations[nation].default_leader_name;
-    if( o.human ) {
+    CHECK( human_nation.has_value() );
+    o.control = ( *human_nation == nation ) ? human : ai;
+    o.name = config_nation.nations[nation].default_leader_name;
+    if( o.control == human ) {
       auto const human_name =
           co_await choose_leader_name( gui, nation );
       if( !human_name.has_value() ) co_return nothing;
@@ -154,7 +223,7 @@ wait<maybe<GameSetup>> create_default_game_setup(
 
   // category: turns
   // ------------------------------------------------------------
-  setup.turns.starting_year =
+  setup.settings.starting_year =
       config_turn.game_start.starting_year;
 
   co_return setup;
@@ -182,13 +251,32 @@ wait<maybe<GameSetup>> create_america_game_setup(
           // three of them), likely to prevent founding a colony
           // there which would allow cheating in a sense.
           .convert_islands_to_mountains = true,
-        },
-    .bonuses_seed = nothing,
+          .bonuses =
+              BonusesSetup{
+                .seed = rand.generate_deterministic_seed() } },
   };
 
   // TODO: see if we need to override any settings related to the
   // natives, such as dwelling frequency.
   co_return setup;
+}
+
+wait<maybe<GameSetup>> create_default_game_setup(
+    IEngine& engine, Planes& planes, IGui& gui, IRand& rand,
+    lua::state& ) {
+  auto const& map_conf = config_map_gen.terrain_generation;
+  ClassicCustomization const params{
+    .land_mass = rand.pick_from_weighted_values(
+        map_conf.land_layout.land_mass.weights ),
+    .land_form = rand.pick_from_weighted_values(
+        map_conf.land_layout.land_form.weights ),
+    .temperature = rand.pick_from_weighted_values(
+        map_conf.temperature.weights ),
+    .climate = rand.pick_from_weighted_values(
+        map_conf.climate.weights ),
+  };
+  co_return co_await create_classic_customized_game_setup(
+      engine, planes, gui, rand, params );
 }
 
 wait<maybe<GameSetup>> create_customized_game_setup(

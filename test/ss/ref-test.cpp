@@ -64,10 +64,6 @@ value cdr_game_state_default = table{
         "seeds"_key =
           table{
             "rng"_key = "00000000000000000000000000000000",
-            "map_generator"_key =
-              table{
-                "land_form"_key = "00000000000000000000000000000000",
-              },
           },
       },
   "settings"_key =

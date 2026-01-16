@@ -10,6 +10,9 @@
 *****************************************************************/
 #pragma once
 
+// rds
+#include "perlin.rds.hpp"
+
 // rng
 #include "vec.hpp"
 
@@ -24,12 +27,6 @@ namespace rng {
 using PerlinInt   = uint32_t;
 using PerlinFloat = double;
 using PerlinVec2  = vec2;
-
-struct PerlinFractalOptions {
-  int const n_octaves           = 1;
-  PerlinFloat const persistence = 0.5;
-  PerlinFloat const lacunarity  = 2.0;
-};
 
 /****************************************************************
 ** Perlin Noise.

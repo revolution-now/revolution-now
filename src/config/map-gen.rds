@@ -26,37 +26,6 @@ include "base/maybe.hpp"
 
 namespace "rn.config.map_gen"
 
-# TODO: temporary
-struct.PerlinMap {
-  size 'gfx::size',
-
-  scale 'double',
-
-  n_octaves 'int',
-  persistence 'double',
-  lacunarity 'double',
-
-  target_density 'double',
-
-  suppress_edges 'bool',
-  suppression_decay 'double',
-
-  seed 'base::maybe<rng::entropy>',
-}
-
-struct.PerlinFractalSettings {
-  n_octaves 'int',
-  persistence 'double',
-  lacunarity 'double',
-  _features { equality, validation }
-}
-
-struct.PerlinSettings {
-  scale 'double',
-  fractal 'PerlinFractalSettings',
-  _features { equality, validation }
-}
-
 struct.LandMass {
   weights 'refl::enum_map<e_land_mass, int>',
   densities 'refl::enum_map<e_land_mass, config::DoublePercentRange>',
@@ -65,7 +34,8 @@ struct.LandMass {
 
 struct.LandForm {
   weights 'refl::enum_map<e_land_form, int>',
-  perlin 'refl::enum_map<e_land_form, PerlinSettings>',
+  perlin_land_form 'refl::enum_map<e_land_form, PerlinLandForm>',
+  perlin_edge_suppression 'PerlinEdgeSuppression',
   _features { equality, validation }
 }
 
@@ -81,10 +51,7 @@ struct.LandLayout {
 
   arctic 'Arctic',
 
-  remove_x_probability 'config::DoublePercent',
-
-  suppress_edges 'bool',
-  suppression_decay 'double',
+  remove_crosses 'bool',
 }
 
 struct.Temperature {
@@ -128,9 +95,6 @@ struct.config_map_gen_t {
   default_map_size 'gfx::size',
   terrain_generation 'config::map_gen::TerrainGeneration',
   dwelling_generation 'config::map_gen::DwellingGeneration',
-
-  # TODO: temporary
-  perlin_map 'config::map_gen::PerlinMap',
 
   _features { equality, validation }
 }

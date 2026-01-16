@@ -14,13 +14,19 @@
 #include <array>
 #include <cstddef>
 #include <cstdint>
+#include <numeric>
 
 namespace rng {
 
-size_t constexpr kNumPerlinHashes = 65536;
-size_t constexpr kPerlinHashMask  = 65535;
+using PerlinHashType = uint16_t;
 
-using PerlinHashes = std::array<uint16_t, kNumPerlinHashes>;
+size_t constexpr kPerlinHashMask =
+    std::numeric_limits<PerlinHashType>::max();
+size_t constexpr kNumPerlinHashes =
+    size_t( kPerlinHashMask ) + 1;
+
+using PerlinHashes =
+    std::array<PerlinHashType, kNumPerlinHashes>;
 
 PerlinHashes const& perlin_hashes();
 

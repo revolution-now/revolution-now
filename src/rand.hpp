@@ -44,7 +44,7 @@ struct Rand : IRand {
 
   ~Rand() override = default;
 
-  void reseed( rng::entropy const& seed );
+  void reseed( rng::entropy const& seed ) override;
 
  public: // IRand.
   bool bernoulli( double p ) override;

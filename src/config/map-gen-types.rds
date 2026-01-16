@@ -8,6 +8,9 @@
 # Description: Config data for the map-gen-types module.
 #
 # ===============================================================
+# rand
+include "rand/perlin.rds.hpp"
+
 namespace "rn"
 
 enum.e_land_mass {
@@ -32,4 +35,28 @@ enum.e_climate {
   arid,
   normal,
   wet,
+}
+
+struct.PerlinLandForm {
+  scale 'double',
+  fractal 'rng::PerlinFractalOptions',
+  _features { equality, validation }
+}
+
+struct.PerlinEdgeSuppression {
+  enabled 'bool',
+  suppression_decay 'double',
+  _features { equality, validation }
+}
+
+# These are technically inputs to the Perlin map generation algo-
+# rithm, but they are typically generated randomly since they
+# don't really change any macroscopic properties of the map that
+# one might want to customize; they just create variations on the
+# same map style/type. Thus, together they can be thought of as a
+# kind of seed.
+struct.PerlinSeed {
+  offset_x 'uint32_t',
+  offset_y 'uint32_t',
+  base     'uint32_t',
 }

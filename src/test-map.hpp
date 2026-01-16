@@ -1,35 +1,29 @@
 /****************************************************************
-**map-gen.hpp
+**test-map.hpp
 *
 * Project: Revolution Now
 *
-* Created by dsicilia on 2022-04-21.
+* Created by David P. Sicilia on 2026-01-04.
 *
-* Description: Map-generator related helpers.
+* Description: Generates maps for testing and prints them to the
+*              console.
 *
 *****************************************************************/
 #pragma once
-
-// gfx
-#include "gfx/cartesian.hpp"
 
 namespace rn {
 
 /****************************************************************
 ** Fwd. Decls.
 *****************************************************************/
-struct IMapUpdater;
-struct RealTerrain;
+struct IEngine;
+struct GameSetup;
 
 /****************************************************************
 ** Public API.
 *****************************************************************/
-void remove_islands( RealTerrain& real_terrain );
+void testing_map_gen( IEngine& engine );
 
-void remove_crosses( RealTerrain& real_terrain );
-
-[[nodiscard]] gfx::rect compute_land_zone( gfx::size world_sz );
-
-void reset_terrain( IMapUpdater& map_updater, gfx::size sz );
+void load_testing_game_setup( GameSetup& setup );
 
 } // namespace rn

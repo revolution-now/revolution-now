@@ -13,13 +13,12 @@ include "rand/entropy.hpp"
 
 namespace "rn"
 
-struct.MapGenSeeds {
-  land_form 'rng::seed',
-}
-
 struct.Seeds {
   rng 'rng::seed',
-  map_generator 'MapGenSeeds',
+
+  # map_exchange_key 'TerrainExchangeKey',
+
+  # game_exchange_key 'MapExchangeKey',
 }
 
 struct.MetaState {

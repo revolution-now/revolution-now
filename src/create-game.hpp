@@ -21,14 +21,12 @@ namespace rn {
 /****************************************************************
 ** Fwd. Decls.
 *****************************************************************/
-struct IRand;
 struct SS;
 
 /****************************************************************
 ** Public API.
 *****************************************************************/
 base::valid_or<std::string> create_game_from_setup(
-    SS& ss, IRand& rand, lua::state& lua,
-    GameSetup const& setup );
+    SS& ss, lua::state& lua, GameSetup const& setup );
 
 } // namespace rn

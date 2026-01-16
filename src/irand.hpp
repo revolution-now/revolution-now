@@ -38,6 +38,8 @@ namespace rn {
 struct IRand {
   virtual ~IRand() = default;
 
+  virtual void reseed( rng::entropy const& seed ) = 0;
+
   // Biased coin flip.  Returns true with probability p.
   [[nodiscard]] virtual bool bernoulli( double p ) = 0;
 

@@ -67,13 +67,27 @@ template<class Rng>
 *****************************************************************/
 random::result_type random::raw() { return engine_(); }
 
+random::random( entropy const& seed ) { reseed( seed ); }
+
 void random::reseed( entropy const& seed_unmixed ) {
+  // NOTE: this should not be changed otherwise it will change
+  // the meaning of a given seed.
   engine_ = engine_t( seed_unmixed.mixed().consume<uint64_t>() );
+}
+
+entropy random::generate_deterministic_seed() {
+  return entropy{
+    .e1 = uniform<uint32_t>(),
+    .e2 = uniform<uint32_t>(),
+    .e3 = uniform<uint32_t>(),
+    .e4 = uniform<uint32_t>(),
+  };
 }
 
 bool random::bernoulli( double const p ) {
   CHECK_GE( p, 0 );
   CHECK_LE( p, 1.0 );
+  // TODO: make this deterministic.
   return bernoulli_distribution( p )( engine_ );
 }
 
@@ -93,6 +107,7 @@ int random::uniform_int( int const lower, int const upper ) {
 double random::uniform_double( double const lower,
                                double const upper ) {
   CHECK_LE( lower, upper );
+  // TODO: make this deterministic.
   return uniform_real_distribution<double>( lower,
                                             upper )( engine_ );
 }

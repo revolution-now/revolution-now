@@ -27,20 +27,6 @@ using ::base::valid_or;
 namespace config::map_gen {
 
 /****************************************************************
-** PerlinFractalSettings
-*****************************************************************/
-valid_or<string> PerlinFractalSettings::validate() const {
-  return valid;
-}
-
-/****************************************************************
-** PerlinSettings
-*****************************************************************/
-valid_or<string> PerlinSettings::validate() const {
-  return valid;
-}
-
-/****************************************************************
 ** LandMass
 *****************************************************************/
 valid_or<string> LandMass::validate() const {

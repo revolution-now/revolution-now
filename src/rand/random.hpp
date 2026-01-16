@@ -46,7 +46,11 @@ struct random {
  public:
   random() = default;
 
+  random( entropy const& seed );
+
   void reseed( entropy const& new_seed );
+
+  entropy generate_deterministic_seed();
 
   // Just get a raw random value from the engine of the type it
   // is defined with.

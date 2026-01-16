@@ -14,6 +14,7 @@ include "maybe.hpp"
 # ss
 include "ss/fathers.rds.hpp"
 include "ss/nation.rds.hpp"
+include "ss/player-enums.rds.hpp"
 include "ss/revolution.rds.hpp"
 include "ss/woodcut.rds.hpp"
 
@@ -28,26 +29,6 @@ namespace "rn"
 # Stats collected for the purpose of calculating a final score.
 struct.PlayerScoreStats {
   dwellings_burned 'int',
-}
-
-# TODO: placeholder.
-enum.e_euro_relationship {
-  none,
-  peace,
-  war,
-}
-
-enum.e_player_control {
-  # We need the "inactive" value for dealing with foreign euro-
-  # pean powers after declaration: they completely stop evolving,
-  # but their colonies are still present on the map. Note that
-  # the OG refers to this state as "withdrawn", but we're using a
-  # different name here because "withdrawn" arguably is not the
-  # ideal word, since such a player still retains their colonies;
-  # it's really just that they no longer move or evolve.
-  inactive,
-  human,
-  ai,
 }
 
 # NOTE: when adding more fields here, consider the REF players.

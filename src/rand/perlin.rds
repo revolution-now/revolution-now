@@ -1,0 +1,18 @@
+# ===============================================================
+# perlin.rds
+#
+# Project: Revolution Now
+#
+# Created by David P. Sicilia on 2026-01-04.
+#
+# Description: Rds definitions for the rand/perlin module.
+#
+# ===============================================================
+namespace "rng"
+
+struct.PerlinFractalOptions {
+  n_octaves 'int',
+  persistence 'double',
+  lacunarity 'double',
+  _features { equality, validation }
+}

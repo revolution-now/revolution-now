@@ -38,6 +38,7 @@
 #include "rcl-game-storage.hpp" // FIXME: temporary
 #include "save-game.hpp"
 #include "terminal.hpp" // FIXME
+#include "test-map.hpp" // FIXME
 #include "ts.hpp"
 #include "turn.hpp"
 
@@ -81,8 +82,7 @@ wait<> persistent_msg_box( IGui& gui, string_view const msg ) {
   while( true ) co_await gui.message_box( string( msg ) );
 }
 
-wait_bool create_from_setup( SS& ss, IGui& gui, IRand& rand,
-                             lua::state& lua,
+wait_bool create_from_setup( SS& ss, IGui& gui, lua::state& lua,
                              GameSetup const& setup ) {
   auto const valid = validate_game_setup( setup );
   if( !valid ) {
@@ -96,8 +96,7 @@ wait_bool create_from_setup( SS& ss, IGui& gui, IRand& rand,
   // TODO: we could consider putting the below function in a
   // sandbox of some kind and then running it in its own thread
   // so that we don't block the main thread.
-  if( auto const ok =
-          create_game_from_setup( ss, rand, lua, setup );
+  if( auto const ok = create_game_from_setup( ss, lua, setup );
       !ok ) {
     co_await gui.message_box( "Failed to create game: {}",
                               ok.error() );
@@ -115,8 +114,7 @@ wait_bool new_game_new_world( IEngine& engine, Planes& planes,
   auto const setup = co_await create_default_game_setup(
       engine, planes, gui, engine.rand(), lua );
   if( !setup.has_value() ) co_return false;
-  co_return co_await create_from_setup( ss, gui, engine.rand(),
-                                        lua, *setup );
+  co_return co_await create_from_setup( ss, gui, lua, *setup );
 }
 
 wait_bool new_game_america( IEngine& engine, Planes& planes,
@@ -125,8 +123,15 @@ wait_bool new_game_america( IEngine& engine, Planes& planes,
   auto const setup = co_await create_america_game_setup(
       engine, planes, gui, engine.rand(), lua );
   if( !setup.has_value() ) co_return false;
-  co_return co_await create_from_setup( ss, gui, engine.rand(),
-                                        lua, *setup );
+  co_return co_await create_from_setup( ss, gui, lua, *setup );
+}
+
+wait_bool new_game_exchange( IEngine&, Planes&, SS& ss,
+                             IGui& gui, RootState&,
+                             lua::state& lua ) {
+  GameSetup setup;
+  load_testing_game_setup( setup );
+  co_return co_await create_from_setup( ss, gui, lua, setup );
 }
 
 wait_bool customize_new_world( IEngine& engine, Planes& planes,
@@ -142,8 +147,7 @@ wait_bool customize_new_world( IEngine& engine, Planes& planes,
   auto const setup = co_await create_customized_game_setup(
       engine, planes, gui, *mode );
   if( !setup.has_value() ) co_return false;
-  co_return co_await create_from_setup( ss, gui, engine.rand(),
-                                        lua, *setup );
+  co_return co_await create_from_setup( ss, gui, lua, *setup );
 }
 
 using LoaderFunc = base::function_ref<wait_bool(
@@ -297,6 +301,11 @@ wait<> handle_mode( IEngine& engine, Planes& planes, IGui& gui,
 wait<> handle_mode( IEngine& engine, Planes& planes, IGui& gui,
                     StartMode::new_america const& ) {
   co_await run_game( engine, planes, gui, new_game_america );
+}
+
+wait<> handle_mode( IEngine& engine, Planes& planes, IGui& gui,
+                    StartMode::new_exchange const& ) {
+  co_await run_game( engine, planes, gui, new_game_exchange );
 }
 
 wait<> handle_mode( IEngine& engine, Planes& planes, IGui& gui,

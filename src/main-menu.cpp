@@ -73,6 +73,10 @@ struct MainMenuPlane : public IPlane {
         co_await run_game_with_mode( engine_, planes_, gui_,
                                      StartMode::new_america{} );
         break;
+      case e_main_menu_item::new_exchange:
+        co_await run_game_with_mode( engine_, planes_, gui_,
+                                     StartMode::new_exchange{} );
+        break;
       case e_main_menu_item::new_customize:
         co_await run_game_with_mode(
             engine_, planes_, gui_, StartMode::new_customize{} );
@@ -98,11 +102,13 @@ struct MainMenuPlane : public IPlane {
     using enum e_main_menu_item;
     names[new_random]       = "Start a Game in NEW WORLD";
     names[new_america]      = "Start a Game in AMERICA";
+    names[new_exchange]     = "Start a Game from EXCHANGE KEY";
     names[new_customize]    = "CUSTOMIZE New World";
     names[load]             = "LOAD Game";
     names[hall_of_fame]     = "View Hall of Fame";
     disabled[new_random]    = false;
     disabled[new_america]   = false;
+    disabled[new_exchange]  = false;
     disabled[new_customize] = false;
     disabled[load]          = false;
     disabled[hall_of_fame]  = true;

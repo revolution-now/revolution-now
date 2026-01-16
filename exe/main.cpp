@@ -20,8 +20,8 @@
 #include "linking.hpp"
 #include "lua-ui.hpp"
 #include "map-edit.hpp"
-#include "map-gen.hpp"
 #include "plane-stack.hpp"
+#include "test-map.hpp"
 
 // refl
 #include "refl/query-enum.hpp"
@@ -79,7 +79,7 @@ void run( e_mode mode ) {
     }
     case e_mode::map_gen: {
       engine.init( e_engine_mode::console );
-      ascii_map_gen( engine );
+      testing_map_gen( engine );
       break;
     }
     case e_mode::test_ui: {
