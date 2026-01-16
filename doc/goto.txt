@@ -1,6 +1,13 @@
 TODO:
 -----------------------------------------------------------------
 
+  * In keyboard mode, the goto target can be one tile off the map
+    on the left/right edge to signal sailing the high seas. How-
+    ever, when the map edges are not visible (i.e. we're not
+    zoomed out enough) the goto target is then not visible, which
+    is not good. So if the goto target is one tile off the screen
+    and not visible then there should be an arrow rendered
+    telling the player that it is just off the map.
   * Auto-scrolling in response to mouse movement needs to be im-
     proved. Currently it doesn't feel great.
   * Using the mouse to select the goto tile (whether dragging or
