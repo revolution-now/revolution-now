@@ -569,6 +569,13 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
     if( !mode.curr_tile.is_inside( viewport().covered_tiles() ) )
       co_await animator_.ensure_visible( mode.curr_tile );
 
+    auto const clamp_curr_tile = [&] {
+      // Need with_dec_size because `clamped` is inclusive.
+      rect const bounds =
+          valid_goto_target_tiles( camera_ ).with_dec_size();
+      mode.curr_tile = mode.curr_tile.clamped( bounds );
+    };
+
     // Take updates and wait for a tile to be selected either
     // with the keyboard or mouse click. Likely it'll be the key-
     // board here since this is mostly for keyboard driven goto
@@ -600,6 +607,7 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
           SWITCH( cmd.what ) {
             CASE( move ) {
               mode.curr_tile = mode.curr_tile.moved( move.d );
+              clamp_curr_tile();
               // Here it is ok to scroll because this is in re-
               // sponse to the keyboard, so the scrolling won't
               // get out of hand as it would for when the target
@@ -628,10 +636,7 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
         default:
           break;
       }
-      // Need with_dec_size because `clamped` is inclusive.
-      rect const bounds =
-          valid_goto_target_tiles( camera_ ).with_dec_size();
-      mode.curr_tile = mode.curr_tile.clamped( bounds );
+      clamp_curr_tile();
     }
     co_return nothing;
   }
