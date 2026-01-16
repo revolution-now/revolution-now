@@ -529,8 +529,8 @@ base::expect<doc> parse_file( string_view filename,
                               ProcessingOptions const& opts ) {
   auto buffer = base::read_text_file_as_string( filename );
   if( !buffer )
-    FATAL( "{}", base::error_read_text_file_msg(
-                     filename, buffer.error() ) );
+    return base::error_read_text_file_msg( filename,
+                                           buffer.error() );
   return parse( filename, *buffer, opts );
 }
 
