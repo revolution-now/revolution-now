@@ -549,6 +549,12 @@ end
 -----------------------------------------------------------------
 -- TILE
 -----------------------------------------------------------------
+function M.is_arctic( json, coord )
+  local square = M.lookup_grid( json.TILE, coord )
+  local tile = assert( square.tile )
+  return tile == 'arc'
+end
+
 function M.is_water( json, coord )
   local square = M.lookup_grid( json.TILE, coord )
   local tile = assert( square.tile )
