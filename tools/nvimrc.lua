@@ -50,23 +50,16 @@ local template = require( 'ide.template' )
 -- Extra syntax files.
 -----------------------------------------------------------------
 -- This is so that the Rds syntax file gets picked up.
-o.runtimepath = o.runtimepath .. ',' .. RN_ROOT .. '/src/rds'
+o.runtimepath = o.runtimepath .. ',' .. RN_ROOT .. '/src/rds' ..
+                    ',' .. RN_ROOT .. '/src/rcl'
 
 -----------------------------------------------------------------
 -- Filetypes.
 -----------------------------------------------------------------
 vim.filetype.add{
-  -- jsav/rcl files are not yaml, but it seems to work nicely.
-  extension={ rds='rds' },
+  extension={ rds='rds', rcl='rcl' },
   pattern={ ['.*/doc/.*design.txt']='markdown' },
 }
-
--- Until we have something more dedicated.
-autocmd( { 'BufNewFile', 'BufWinEnter' }, {
-  pattern='*.rcl',
-  group=augroup( 'SetRclSyntax', { clear=true } ),
-  callback=function( ev ) vim.bo[ev.buf].syntax = 'yaml' end,
-} )
 
 -----------------------------------------------------------------
 -- Templates.
