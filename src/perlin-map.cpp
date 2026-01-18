@@ -180,7 +180,7 @@ void land_gen_perlin( PerlinMapSettings const& settings,
           ( sea_level_min + sea_level_max ) / 2.0;
       switch( sea_level_is( sea_level ) ) {
         case good:
-          lg.info( "bisections: {}", i + 1 );
+          lg.info( "perlin sea level bisections: {}", i + 1 );
           return;
         case too_low:
           sea_level_min = sea_level;
@@ -198,7 +198,8 @@ void land_gen_perlin( PerlinMapSettings const& settings,
 
   print_stats( "4" );
 
-  lg.info( "land density: {:.3}", land_density( sea_level ) );
+  lg.info( "perlin land density: {:.3}",
+           land_density( sea_level ) );
 
   {
     using enum e_surface;

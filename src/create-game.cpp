@@ -342,6 +342,8 @@ valid_or<string> create_game_from_setup(
     SS& ss, lua::state& lua, GameSetup const& setup ) {
   RootState& root = ss.root;
 
+  root = {}; // Just in case.
+
 #if 0
   lg.info( "creating game from:\n{}", rcl::to_rcl( setup ) );
   lg.info( "creating game from:\n{}", rcl::to_json( setup ) );
