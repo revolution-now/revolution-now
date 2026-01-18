@@ -566,22 +566,6 @@ local function clear_buffer_area( buffer )
   end )
 end
 
-local function create_arctic_along_row( options, y )
-  local size = world_size()
-  -- Note that we don't include the edges.
-  for x = 1, size.w - 2 do
-    if random_bool( options.arctic_tile_density ) then
-      set_arctic{ x=x, y=y }
-    end
-  end
-end
-
-function M.create_arctic( options )
-  local size = world_size()
-  create_arctic_along_row( options, 0 )
-  create_arctic_along_row( options, size.h - 1 )
-end
-
 -----------------------------------------------------------------
 -- Sea Lane Generation
 -----------------------------------------------------------------
@@ -1633,7 +1617,8 @@ local function generate( options )
   else
     M.generate_land( options )
     -- Assign ground types.
-    M.create_arctic( options )
+    map_gen.create_arctic( config.map_gen.terrain_generation
+                               .land_form.arctic.density )
     M.assign_dry_ground_types()
     -- We need to have already created the rivers before this.
     M.assign_wet_ground_types()

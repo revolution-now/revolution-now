@@ -32,24 +32,23 @@ struct.LandMass {
   _features { equality, validation }
 }
 
-struct.LandForm {
-  weights 'refl::enum_map<e_land_form, int>',
-  perlin_land_form 'refl::enum_map<e_land_form, PerlinLandForm>',
-  perlin_edge_suppression 'PerlinEdgeSuppression',
-  _features { equality, validation }
-}
-
 struct.Arctic {
   enabled 'bool',
   min_map_height 'int',
   density 'config::DoublePercent',
 }
 
+struct.LandForm {
+  weights 'refl::enum_map<e_land_form, int>',
+  perlin_land_form 'refl::enum_map<e_land_form, PerlinLandForm>',
+  arctic 'Arctic',
+  perlin_edge_suppression 'PerlinEdgeSuppression',
+  _features { equality, validation }
+}
+
 struct.LandLayout {
   land_mass 'LandMass',
   land_form 'LandForm',
-
-  arctic 'Arctic',
 
   remove_crosses 'bool',
 }

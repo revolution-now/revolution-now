@@ -64,7 +64,7 @@ void load_testing_game_setup( GameSetup& setup ) {
                                    rcl::ProcessingOptions{} ) );
   cdr::converter::options const options{
     .allow_unrecognized_fields        = true,
-    .default_construct_missing_fields = true,
+    .default_construct_missing_fields = false,
   };
   UNWRAP_CHECK_T( setup,
                   cdr::run_conversion_from_canonical<GameSetup>(
@@ -94,7 +94,8 @@ void testing_map_gen( IEngine& engine ) {
   // ------------------------------------------------------------
   // Generate map.
   // ------------------------------------------------------------
-  CHECK_HAS_VALUE( create_game_from_setup( ss, st, setup ) );
+  CHECK_HAS_VALUE(
+      create_game_from_setup( ss, rand, st, setup ) );
 
   // ------------------------------------------------------------
   // Print map.

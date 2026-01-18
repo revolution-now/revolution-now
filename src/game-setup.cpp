@@ -124,7 +124,15 @@ wait<maybe<GameSetup>> create_classic_customized_game_setup(
 
   SurfaceGeneratorSetup const surface_generator{
     .perlin_settings = perlin_settings,
-    .target_density  = density_for_landmass(
+    .arctic{
+      .seed    = rand.generate_deterministic_seed(),
+      .enabled = map_conf.land_layout.land_form.arctic.enabled &&
+                 world_sz.h >= map_conf.land_layout.land_form
+                                   .arctic.min_map_height,
+      .density =
+          map_conf.land_layout.land_form.arctic.density.fraction,
+    },
+    .target_density = density_for_landmass(
         rand, classic_customization.land_mass ),
     .sanitization = surface_sanitization,
   };
@@ -139,14 +147,6 @@ wait<maybe<GameSetup>> create_classic_customized_game_setup(
     .seed        = rand.generate_deterministic_seed(),
     .temperature = temperature,
     .climate     = climate,
-  };
-
-  ArcticSetup const arctic{
-    .seed = rand.generate_deterministic_seed(),
-    .enabled =
-        map_conf.land_layout.arctic.enabled &&
-        world_sz.h >= map_conf.land_layout.arctic.min_map_height,
-    .density = map_conf.land_layout.arctic.density.fraction,
   };
 
   RiverSetup const rivers{
@@ -183,7 +183,6 @@ wait<maybe<GameSetup>> create_classic_customized_game_setup(
     .size              = world_sz,
     .surface_generator = surface_generator,
     .ground_types      = ground_types,
-    .arctic            = arctic,
     .rivers            = rivers,
     .mountains         = mountains,
     .hills             = hills,

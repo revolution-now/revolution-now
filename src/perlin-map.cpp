@@ -160,18 +160,18 @@ void land_gen_perlin( PerlinMapSettings const& settings,
     good,
     too_high,
   };
+  double sea_level_min    = -10.0;
+  double sea_level_max    = 10.0;
   auto const sea_level_is = [&]( double const sea_level ) {
     double const density = land_density( sea_level );
-    lg.trace( "trying sea_level={} --> density={}", sea_level,
-              density );
+    lg.trace( "trying sea_level={} [{},{}] --> density={}",
+              sea_level, sea_level_min, sea_level_max, density );
     double const target = target_density;
     if( abs( density - target ) < kTolerance )
       return e_sea_level::good;
     if( density < target ) return e_sea_level::too_high;
     return e_sea_level::too_low;
   };
-  double sea_level_min = -10.0;
-  double sea_level_max = 10.0;
   [&] {
     ScopedTimer const timer( "sea level search" );
     using enum e_sea_level;
@@ -194,7 +194,6 @@ void land_gen_perlin( PerlinMapSettings const& settings,
   double const sea_level =
       ( sea_level_min + sea_level_max ) / 2.0;
   lg.info( "sea_level: {}", sea_level );
-  // CHECK( sea_level_is( sea_level ) == e_sea_level::good );
 
   print_stats( "4" );
 

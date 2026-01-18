@@ -21,17 +21,16 @@ map.source.generate_native.setup {
         offset_y: 2451924743
       }
     }
+    arctic {
+      density: 0.5
+      enabled: true
+      seed: ec13f733ef3aa1ea1fd245bd044a5960
+    }
     sanitization {
       remove_crosses: true
       remove_islands: true
     }
     target_density: 0.25
-  }
-
-  arctic {
-    density: 0.5
-    enabled: true
-    seed: ec13f733ef3aa1ea1fd245bd044a5959
   }
 
   ground_types {

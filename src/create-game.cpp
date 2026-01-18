@@ -13,6 +13,7 @@
 // Revolution Now
 #include "classic-sav.hpp"
 #include "co-wait.hpp"
+#include "irand.hpp"
 #include "map-gen.hpp"
 #include "perlin-map.hpp"
 #include "terrain-mgr.hpp"
@@ -78,26 +79,6 @@ using ::refl::enum_values;
   return false;
 }
 
-void generate_proto_tiles( RootState& root ) {
-  auto const set_arctic = []( MapSquare& square ) {
-    square         = {};
-    square.surface = e_surface::land;
-    square.ground  = e_ground_terrain::arctic;
-  };
-  auto const set_sea_lane = []( MapSquare& square ) {
-    square          = {};
-    square.surface  = e_surface::water;
-    square.sea_lane = true;
-  };
-  {
-    using enum e_cardinal_direction;
-    set_arctic( root.zzz_terrain.mutable_proto_square( n ) );
-    set_arctic( root.zzz_terrain.mutable_proto_square( s ) );
-    set_sea_lane( root.zzz_terrain.mutable_proto_square( e ) );
-    set_sea_lane( root.zzz_terrain.mutable_proto_square( w ) );
-  }
-}
-
 void convert_islands_to_mountains( RealTerrain& out ) {
   for( point const p : rect_iterator( out.map.rect() ) )
     if( is_island( as_const( out ), p ) )
@@ -105,7 +86,8 @@ void convert_islands_to_mountains( RealTerrain& out ) {
 }
 
 valid_or<string> generate_land_perlin(
-    GeneratedMapSetup const& setup, RealTerrain& real_terrain ) {
+    GeneratedMapSetup const& setup, IRand& rand,
+    RealTerrain& real_terrain ) {
   size const sz                 = setup.size;
   auto const& surface_generator = setup.surface_generator;
 
@@ -124,6 +106,19 @@ valid_or<string> generate_land_perlin(
       real_terrain.map[p].ground = e_ground_terrain::grassland;
   }
 
+  bool const arctic_enabled =
+      setup.surface_generator.arctic.enabled;
+
+  // Arctic. Should be done before exclusion.
+  if( arctic_enabled ) {
+    rand.reseed( setup.surface_generator.arctic.seed );
+    int const n_placed = place_arctic_perlin(
+        real_terrain, rand,
+        setup.surface_generator.arctic.density );
+    lg.info( "arctic density: {:.3}%",
+             double( n_placed ) / ( sz.w * 2 ) * 100 );
+  }
+
   // Hard buffer exclusion.
   auto const apply_exclusion = [&] {
     using enum e_surface;
@@ -134,9 +129,18 @@ valid_or<string> generate_land_perlin(
         land_zone.left(), sz.w - land_zone.right(),
         land_zone.top(), sz.h - land_zone.bottom() );
     auto& m = real_terrain.map;
-    for( point const p : rect_iterator( m.rect() ) )
-      if( !p.is_inside( land_zone ) ) //
-        m[p].surface = water;
+    for( point const p : rect_iterator( m.rect() ) ) {
+      if( p.is_inside( land_zone ) ) continue;
+      if( arctic_enabled ) {
+        // The idea here is that on the arctic rows (if arctic is
+        // enabled) we allow land on all tiles except for the
+        // four corners of the map.
+        if( p.y == 0 || p.y == sz.h - 1 )
+          if( p.x > 0 && p.x < sz.w - 1 ) //
+            continue;
+      }
+      m[p].surface = water;
+    }
   };
 
   // Run this the first time before the sanitization because re-
@@ -156,6 +160,20 @@ valid_or<string> generate_land_perlin(
   // Now run it again just in case e.g. the cross removal ends up
   // putting a land tile in the exclusion zone.
   apply_exclusion();
+
+  return valid;
+}
+
+valid_or<string> generate_map_native_impl(
+    GeneratedMapSetup const& setup, RootState& root,
+    RealTerrain& real_terrain, IRand& rand ) {
+  CHECK( setup.size.area() > 0, "map has zero tiles" );
+
+  // Surface.
+  GOOD_OR_RETURN(
+      generate_land_perlin( setup, rand, real_terrain ) );
+
+  generate_proto_tiles( root.zzz_terrain );
 
   return valid;
 }
@@ -187,12 +205,14 @@ valid_or<string> generate_map_lua_impl(
       setup.mountains.range_probability;
   options["major_river_fraction"] =
       setup.rivers.major_river_fraction;
-  options["forest_density"]      = setup.forest.density;
-  options["arctic_tile_density"] = setup.arctic.density;
+  options["forest_density"] = setup.forest.density;
+  options["arctic_tile_density"] =
+      setup.surface_generator.arctic.density;
 
   // Assign land vs. water.
   M["generate_land"]( options );
-  if( setup.arctic.enabled ) M["create_arctic"]( options );
+  if( setup.surface_generator.arctic.enabled )
+    M["create_arctic"]( setup.surface_generator.arctic.density );
   M["assign_dry_ground_types"]();
   // We need to have already created the rivers before this.
   M["assign_wet_ground_types"]();
@@ -208,34 +228,35 @@ valid_or<string> generate_map_lua_impl(
   // ------------------------------------------------------------
   M["create_sea_lanes"]();
 
-  // Arctic.
+  // Pacific Ocean.
   // ------------------------------------------------------------
   M["create_pacific_ocean"]();
 
   return valid;
 }
 
-valid_or<string> generated_map_native(
-    GeneratedMapSetup const& setup, TerrainState& terrain ) {
+valid_or<string> generate_map_native(
+    GeneratedMapSetup const& setup, RootState& root,
+    IRand& rand ) {
   CHECK( setup.size.area() > 0, "map has zero tiles" );
 
   auto modifier =
       [&]( RealTerrain& real_terrain ) -> valid_or<string> {
-    GOOD_OR_RETURN(
-        generate_land_perlin( setup, real_terrain ) );
-    // TODO: add more land steps here.
+    GOOD_OR_RETURN( generate_map_native_impl(
+        setup, root, real_terrain, rand ) );
     return valid;
   };
 
   valid_or<string> res = valid;
-  terrain.modify_entire_map( [&]( RealTerrain& real_terrain ) {
-    real_terrain.map = Matrix<MapSquare>( setup.size );
-    res              = modifier( real_terrain );
-  } );
+  root.zzz_terrain.modify_entire_map(
+      [&]( RealTerrain& real_terrain ) {
+        real_terrain.map = Matrix<MapSquare>( setup.size );
+        res              = modifier( real_terrain );
+      } );
   return res;
 }
 
-valid_or<string> generated_map_lua(
+valid_or<string> generate_map_lua(
     GeneratedMapSetup const& setup, lua::state& st,
     TerrainState& terrain ) {
   CHECK( setup.size.area() > 0, "map has zero tiles" );
@@ -294,7 +315,7 @@ valid_or<string> load_map_from_file(
   }
 
   // Set proto tiles.
-  generate_proto_tiles( root );
+  generate_proto_tiles( root.zzz_terrain );
 
   if( load_from_file.convert_islands_to_mountains )
     root.zzz_terrain.modify_entire_map( [&]( RealTerrain& out ) {
@@ -339,7 +360,8 @@ valid_or<string> load_map_from_file(
 // in the struct, since some of the earlier ones depend on the
 // later ones.
 valid_or<string> create_game_from_setup(
-    SS& ss, lua::state& lua, GameSetup const& setup ) {
+    SS& ss, IRand& rand, lua::state& lua,
+    GameSetup const& setup ) {
   RootState& root = ss.root;
 
   root = {}; // Just in case.
@@ -373,16 +395,15 @@ valid_or<string> create_game_from_setup(
     }
     CASE( generate_native ) {
       ScopedTimer const timer( "total terrain generation time" );
-      GOOD_OR_RETURN( generated_map_native(
-          generate_native.setup,
-          ss.mutable_terrain_use_with_care ) );
+      GOOD_OR_RETURN( generate_map_native( generate_native.setup,
+                                           root, rand ) );
       break;
     }
     CASE( generate_lua ) {
       ScopedTimer const timer( "total terrain generation time" );
-      GOOD_OR_RETURN( generated_map_lua(
-          generate_lua.setup, lua,
-          ss.mutable_terrain_use_with_care ) );
+      GOOD_OR_RETURN(
+          generate_map_lua( generate_lua.setup, lua,
+                            ss.mutable_terrain_use_with_care ) );
       break;
     }
   }

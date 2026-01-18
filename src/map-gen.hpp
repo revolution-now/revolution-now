@@ -19,7 +19,9 @@ namespace rn {
 ** Fwd. Decls.
 *****************************************************************/
 struct IMapUpdater;
+struct IRand;
 struct RealTerrain;
+struct TerrainState;
 
 /****************************************************************
 ** Public API.
@@ -31,5 +33,14 @@ void remove_crosses( RealTerrain& real_terrain );
 [[nodiscard]] gfx::rect compute_land_zone( gfx::size world_sz );
 
 void reset_terrain( IMapUpdater& map_updater, gfx::size sz );
+
+// Returns the number of arctic tiles placed.
+int place_arctic( RealTerrain& real_terrain, IRand& rand,
+                  double density );
+
+int place_arctic_perlin( RealTerrain& real_terrain, IRand& rand,
+                         double density );
+
+void generate_proto_tiles( TerrainState& root );
 
 } // namespace rn

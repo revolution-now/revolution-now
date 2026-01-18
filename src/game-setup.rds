@@ -60,8 +60,15 @@ struct.SurfaceSanitizationSetup {
   remove_islands 'bool',
 }
 
+struct.ArcticSetup {
+  seed 'rng::seed',
+  enabled 'bool',
+  density 'double',
+}
+
 struct.SurfaceGeneratorSetup {
   perlin_settings 'PerlinMapSettings',
+  arctic 'ArcticSetup',
   target_density 'double',
   sanitization 'SurfaceSanitizationSetup',
 }
@@ -70,12 +77,6 @@ struct.GroundTypeSetup {
   seed 'rng::seed',
   temperature 'e_temperature',
   climate 'e_climate',
-}
-
-struct.ArcticSetup {
-  seed 'rng::seed',
-  enabled 'bool',
-  density 'double',
 }
 
 struct.RiverSetup {
@@ -132,8 +133,6 @@ struct.GeneratedMapSetup {
   surface_generator 'SurfaceGeneratorSetup',
 
   ground_types 'GroundTypeSetup',
-
-  arctic 'ArcticSetup',
 
   rivers 'RiverSetup',
 

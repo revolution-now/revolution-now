@@ -13,6 +13,9 @@
 // Revolution Now
 #include "error.hpp"
 #include "imap-updater.hpp"
+#include "irand.hpp"
+#include "perlin-map.hpp"
+#include "perlin.rds.hpp"
 #include "terrain-mgr.hpp"
 
 // ss
@@ -235,6 +238,7 @@ void remove_crosses( RealTerrain& real_terrain ) {
     return min( max( lround( target ), 1L ), 10L );
   };
 
+  // Note that arctic tiles are handled separately.
   int const h_top    = 1;
   int const h_bottom = 1;
   // See note above function for the purpose of these min's.
@@ -248,6 +252,99 @@ void remove_crosses( RealTerrain& real_terrain ) {
       .with_new_bottom_edge( world_sz.h - h_bottom )
       .with_new_left_edge( w_left )
       .with_new_right_edge( world_sz.w - w_right );
+}
+
+int place_arctic( RealTerrain& real_terrain, IRand& rand,
+                  double const density ) {
+  CHECK_GE( density, 0.0 );
+  CHECK_LE( density, 1.0 );
+  auto& m                 = real_terrain.map;
+  int const top           = 0;
+  int const bottom        = m.size().h - 1;
+  int assigned            = 0;
+  auto const maybe_assign = [&]( point const p ) {
+    m[p].surface = e_surface::water;
+    if( !rand.bernoulli( density ) ) return;
+    auto& square   = m[p];
+    square         = {};
+    square.surface = e_surface::land;
+    square.ground  = e_ground_terrain::arctic;
+    ++assigned;
+  };
+  for( int x = 0; x < m.size().w; ++x ) {
+    maybe_assign( { .x = x, .y = top } );
+    maybe_assign( { .x = x, .y = bottom } );
+  }
+  return assigned;
+}
+
+int place_arctic_perlin( RealTerrain& real_terrain, IRand& rand,
+                         double const density ) {
+  CHECK_GE( density, 0.0 );
+  CHECK_LE( density, 1.0 );
+
+  rng::seed seed = rand.generate_deterministic_seed();
+
+  auto& m = real_terrain.map;
+  Matrix<e_surface> m_arctic;
+  PerlinMapSettings const perlin_settings{
+    .land_form =
+        PerlinLandForm{
+          .scale = 5,
+          .fractal =
+              rng::PerlinFractalOptions{
+                .n_octaves   = 3,
+                .persistence = 1.0,
+                .lacunarity  = 2.0,
+              },
+        },
+    .edge_suppression =
+        PerlinEdgeSuppression{ .enabled = false },
+    .seed =
+        PerlinSeed{
+          .offset_x = seed.consume<uint32_t>(),
+          .offset_y = seed.consume<uint32_t>(),
+          .base     = seed.consume<uint32_t>(),
+        },
+  };
+
+  land_gen_perlin( perlin_settings, density,
+                   m.size().with_height( 2 ), m_arctic );
+
+  int const top           = 0;
+  int const bottom        = m.size().h - 1;
+  int assigned            = 0;
+  auto const maybe_assign = [&]( point const p_world,
+                                 point const p_arctic ) {
+    m[p_world].surface = m_arctic[p_arctic];
+    m[p_world].ground  = e_ground_terrain::arctic;
+    ++assigned;
+  };
+  for( int x = 0; x < m.size().w; ++x ) {
+    maybe_assign( { .x = x, .y = top }, { .x = x, .y = 0 } );
+    maybe_assign( { .x = x, .y = bottom }, { .x = x, .y = 1 } );
+  }
+  return assigned;
+}
+
+void generate_proto_tiles( TerrainState& terrain ) {
+  auto const set_arctic = []( MapSquare& square ) {
+    square         = {};
+    square.surface = e_surface::land;
+    square.ground  = e_ground_terrain::arctic;
+  };
+  auto const set_sea_lane = []( MapSquare& square ) {
+    square          = {};
+    square.surface  = e_surface::water;
+    square.sea_lane = true;
+  };
+  {
+    using enum e_cardinal_direction;
+    set_arctic( terrain.mutable_proto_square( n ) );
+    set_arctic( terrain.mutable_proto_square( s ) );
+    set_sea_lane( terrain.mutable_proto_square( e ) );
+    set_sea_lane( terrain.mutable_proto_square( w ) );
+  }
 }
 
 void reset_terrain( IMapUpdater& map_updater, size const sz ) {
@@ -275,6 +372,16 @@ LUA_FN( remove_crosses, void ) {
   st["IMapUpdater"]
       .as<IMapUpdater&>()
       .modify_entire_map_no_redraw( remove_crosses );
+}
+
+LUA_FN( create_arctic, void, double const density ) {
+  IRand& rand = st["IRand"].as<IRand&>();
+  st["IMapUpdater"]
+      .as<IMapUpdater&>()
+      .modify_entire_map_no_redraw(
+          [&]( RealTerrain& real_terrain ) {
+            place_arctic( real_terrain, rand, density );
+          } );
 }
 
 } // namespace
