@@ -22,9 +22,9 @@ map.source.generate_native.setup {
       }
     }
     arctic {
-      density: 0.5
+      density: 0.6
       enabled: true
-      seed: ec13f733ef3aa1ea1fd245bd044a5960
+      seed: ae5312d3978ed9ef0bedf14820419370
     }
     sanitization {
       remove_crosses: true

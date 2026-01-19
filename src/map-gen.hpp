@@ -34,12 +34,9 @@ void remove_crosses( RealTerrain& real_terrain );
 
 void reset_terrain( IMapUpdater& map_updater, gfx::size sz );
 
-// Returns the number of arctic tiles placed.
-int place_arctic( RealTerrain& real_terrain, IRand& rand,
-                  double density );
-
-int place_arctic_perlin( RealTerrain& real_terrain, IRand& rand,
-                         double density );
+// Returns realized density.
+double place_arctic( RealTerrain& real_terrain, IRand& rand,
+                     double density );
 
 void generate_proto_tiles( TerrainState& root );
 

@@ -14,8 +14,6 @@
 #include "error.hpp"
 #include "imap-updater.hpp"
 #include "irand.hpp"
-#include "perlin-map.hpp"
-#include "perlin.rds.hpp"
 #include "terrain-mgr.hpp"
 
 // ss
@@ -254,77 +252,39 @@ void remove_crosses( RealTerrain& real_terrain ) {
       .with_new_right_edge( world_sz.w - w_right );
 }
 
-int place_arctic( RealTerrain& real_terrain, IRand& rand,
-                  double const density ) {
+// Instead of using a coin flip on each tile (which produces a
+// bit too much randomness and not enough consistency and unifor-
+// mity) we compute the number of tiles that we want and choose
+// that exact number, that way we actually get the density that
+// we want.
+double place_arctic( RealTerrain& real_terrain, IRand& rand,
+                     double const density ) {
   CHECK_GE( density, 0.0 );
   CHECK_LE( density, 1.0 );
-  auto& m                 = real_terrain.map;
-  int const top           = 0;
-  int const bottom        = m.size().h - 1;
-  int assigned            = 0;
-  auto const maybe_assign = [&]( point const p ) {
-    m[p].surface = e_surface::water;
-    if( !rand.bernoulli( density ) ) return;
-    auto& square   = m[p];
-    square         = {};
-    square.surface = e_surface::land;
-    square.ground  = e_ground_terrain::arctic;
-    ++assigned;
-  };
-  for( int x = 0; x < m.size().w; ++x ) {
-    maybe_assign( { .x = x, .y = top } );
-    maybe_assign( { .x = x, .y = bottom } );
-  }
-  return assigned;
-}
-
-int place_arctic_perlin( RealTerrain& real_terrain, IRand& rand,
-                         double const density ) {
-  CHECK_GE( density, 0.0 );
-  CHECK_LE( density, 1.0 );
-
-  rng::seed seed = rand.generate_deterministic_seed();
-
   auto& m = real_terrain.map;
-  Matrix<e_surface> m_arctic;
-  PerlinMapSettings const perlin_settings{
-    .land_form =
-        PerlinLandForm{
-          .scale = 5,
-          .fractal =
-              rng::PerlinFractalOptions{
-                .n_octaves   = 3,
-                .persistence = 1.0,
-                .lacunarity  = 2.0,
-              },
-        },
-    .edge_suppression =
-        PerlinEdgeSuppression{ .enabled = false },
-    .seed =
-        PerlinSeed{
-          .offset_x = seed.consume<uint32_t>(),
-          .offset_y = seed.consume<uint32_t>(),
-          .base     = seed.consume<uint32_t>(),
-        },
+
+  int const w = m.size().w;
+
+  int placed = 0;
+  int total  = 0;
+
+  auto const place_row = [&]( int const row ) {
+    vector<point> v;
+    v.reserve( w );
+    for( int x = 0; x < w; ++x )
+      v.push_back( { .x = x, .y = row } );
+    rand.shuffle( v );
+    int const n = clamp( lround( density * w ), 0l, ssize( v ) );
+    for( int i = 0; i < n; ++i )
+      m[v[i]].surface = e_surface::land;
+    placed += n;
+    total += w;
   };
 
-  land_gen_perlin( perlin_settings, density,
-                   m.size().with_height( 2 ), m_arctic );
+  place_row( 0 );
+  place_row( m.size().h - 1 );
 
-  int const top           = 0;
-  int const bottom        = m.size().h - 1;
-  int assigned            = 0;
-  auto const maybe_assign = [&]( point const p_world,
-                                 point const p_arctic ) {
-    m[p_world].surface = m_arctic[p_arctic];
-    m[p_world].ground  = e_ground_terrain::arctic;
-    ++assigned;
-  };
-  for( int x = 0; x < m.size().w; ++x ) {
-    maybe_assign( { .x = x, .y = top }, { .x = x, .y = 0 } );
-    maybe_assign( { .x = x, .y = bottom }, { .x = x, .y = 1 } );
-  }
-  return assigned;
+  return double( placed ) / total;
 }
 
 void generate_proto_tiles( TerrainState& terrain ) {
