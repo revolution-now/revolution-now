@@ -6,9 +6,11 @@ lambda="$1"
 [[ -f "$lambda" ]]
 
 tools=~/dev/revolution-now/tools
-config=bbmm
+config=bbtm
 gamegen=~/dev/revolution-now/tools/auto-measure/auto-map-gen/gamegen/config/$config
 
 files="$(find "$gamegen" -name "COLONY*.*")"
+
+echo config=$config
 
 "$tools/sav/conversion/lambda-on-binaries.sh" "$lambda" $files
