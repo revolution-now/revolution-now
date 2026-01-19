@@ -63,7 +63,7 @@ terrain_generation {
         # arctic rows at the top and bottom of the map will be
         # omitted to save space.
         min_map_height: 10
-        density: { fraction: .5 }
+        density: { fraction: .6 }
       }
 
       # Edge suppression can be turned off or changed, but there

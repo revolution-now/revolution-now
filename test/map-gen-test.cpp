@@ -76,10 +76,6 @@ TEST_CASE( "[map-gen] place_arctic" ) {
   world w;
 }
 
-TEST_CASE( "[map-gen] place_arctic_perlin" ) {
-  world w;
-}
-
 TEST_CASE( "[map-gen] reset_terrain" ) {
   world w;
 }

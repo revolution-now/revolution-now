@@ -112,11 +112,10 @@ valid_or<string> generate_land_perlin(
   // Arctic. Should be done before exclusion.
   if( arctic_enabled ) {
     rand.reseed( setup.surface_generator.arctic.seed );
-    int const n_placed = place_arctic_perlin(
-        real_terrain, rand,
-        setup.surface_generator.arctic.density );
-    lg.info( "arctic density: {:.3}%",
-             double( n_placed ) / ( sz.w * 2 ) * 100 );
+    double const actual_density =
+        place_arctic( real_terrain, rand,
+                      setup.surface_generator.arctic.density );
+    lg.info( "arctic density: {:.3}%", actual_density * 100 );
   }
 
   // Hard buffer exclusion.
@@ -368,7 +367,7 @@ valid_or<string> create_game_from_setup(
 
 #if 0
   lg.info( "creating game from:\n{}", rcl::to_rcl( setup ) );
-  lg.info( "creating game from:\n{}", rcl::to_json( setup ) );
+  // lg.info( "creating game from:\n{}", rcl::to_json( setup ) );
 #endif
 
   // SettingsState state.
