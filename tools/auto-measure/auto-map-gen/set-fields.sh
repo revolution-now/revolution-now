@@ -4,7 +4,7 @@ set -eo pipefail
 cd "$(dirname "$0")"
 
 # config_dir=.
-config_dir=./gamegen/config/mmmm
+config_dir=./gamegen/config/bbbm
 
 files="$(find $config_dir -name '*.SAV.*')"
 
