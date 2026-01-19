@@ -12,6 +12,7 @@ local command = cmd.command
 local info = logger.info
 local forget_dosbox_window = dosbox.forget_dosbox_window
 local format = string.format
+local execute = os.execute
 
 -----------------------------------------------------------------
 -- Constants.
@@ -40,11 +41,8 @@ local function launch_start()
   -- ways around that such as to store the returned handle in a
   -- global or preventing popen from opening pipes, but the fol-
   -- lowing is probably the simplest, namely just using os.exe-
-  -- cute and detaching the process. NOTE: we need to redirect
-  -- stdout/stdin here to /dev/null otherwise it will write the
-  -- output to a nohup log file in the current directory.
-  assert( os.execute( format( 'nohup %q 1>/dev/null 1>&2 &',
-                              START_SH ) ) )
+  -- cute and detaching the process.
+  assert( execute( format( 'bash -c "%q & disown"', START_SH ) ) )
 end
 
 local function kill_dosbox()
