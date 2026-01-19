@@ -98,7 +98,7 @@ local function select_land_configuration( config, actions )
 end
 
 -- "Start a Game in NEW WORLD"
-local function generate_one_map_new_world( config )
+local function generate_one_map_new_world( _ )
   local actions = action_api( dosbox.window() )
 
   -- Select "Start a Game in NEW WORLD"
@@ -121,6 +121,7 @@ local function generate_one_map_customized( config )
   -- Select land configuration.
   select_land_configuration( config, actions )
   actions.enter() -- next screen.
+  sleep( .3 ) -- wait for screen to change.
 
   -- The rest of handled in common code.
 end
@@ -133,7 +134,7 @@ local function generate_one_map( config, selection_fn )
   forget_dosbox_window()
   local launcher<close> = launch.colonization_launcher()
 
-  sleep( 4 )
+  sleep( 2.5 )
 
   xdotool.center_window( dosbox.window() )
 

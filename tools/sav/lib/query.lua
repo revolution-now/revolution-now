@@ -153,6 +153,43 @@ function M.nation_name( nation )
   return M.name_for_nation_idx( M.nation_to_idx( nation ) )
 end
 
+local OG_TERRAIN_TYPES = {
+  -- LuaFormatter off
+  -- Bare (no forest).
+  ['tu ']={ surface='land',  ground='tundra',    forest=false },
+  ['de ']={ surface='land',  ground='desert',    forest=false },
+  ['pl ']={ surface='land',  ground='plains',    forest=false },
+  ['pr ']={ surface='land',  ground='prairie',   forest=false },
+  ['gr ']={ surface='land',  ground='grassland', forest=false },
+  ['sa ']={ surface='land',  ground='savannah',  forest=false },
+  ['mr ']={ surface='land',  ground='marsh',     forest=false },
+  ['sw ']={ surface='land',  ground='swamp',     forest=false },
+  ['arc']={ surface='land',  ground='arctic',    forest=false },
+  -- Forest.
+  ['tuF']={ surface='land',  ground='tundra',    forest=true, forest_name='boreal'    },
+  ['deF']={ surface='land',  ground='desert',    forest=true, forest_name='scrub'     },
+  ['plF']={ surface='land',  ground='plains',    forest=true, forest_name='mixed'     },
+  ['prF']={ surface='land',  ground='prairie',   forest=true, forest_name='broadleaf' },
+  ['grF']={ surface='land',  ground='grassland', forest=true, forest_name='conifer'   },
+  ['saF']={ surface='land',  ground='savannah',  forest=true, forest_name='tropical'  },
+  ['mrF']={ surface='land',  ground='marsh',     forest=true, forest_name='wetland'   },
+  ['swF']={ surface='land',  ground='swamp',     forest=true, forest_name='rain'      },
+  -- Water.
+  ['~~~']={ surface='water', sea_lane=false },
+  ['~:~']={ surface='water', sea_lane=true  },
+  -- LuaFormatter on
+}
+
+-- These are alternate ones found in some old saves.
+OG_TERRAIN_TYPES['tuW'] = assert( OG_TERRAIN_TYPES['tuF'] )
+OG_TERRAIN_TYPES['deW'] = assert( OG_TERRAIN_TYPES['deF'] )
+OG_TERRAIN_TYPES['plW'] = assert( OG_TERRAIN_TYPES['plF'] )
+OG_TERRAIN_TYPES['prW'] = assert( OG_TERRAIN_TYPES['prF'] )
+OG_TERRAIN_TYPES['grW'] = assert( OG_TERRAIN_TYPES['grF'] )
+OG_TERRAIN_TYPES['saW'] = assert( OG_TERRAIN_TYPES['saF'] )
+OG_TERRAIN_TYPES['mrW'] = assert( OG_TERRAIN_TYPES['mrF'] )
+OG_TERRAIN_TYPES['swW'] = assert( OG_TERRAIN_TYPES['swF'] )
+
 -----------------------------------------------------------------
 -- Utilities.
 -----------------------------------------------------------------
@@ -563,6 +600,12 @@ end
 
 function M.is_land( json, coord )
   return not M.is_water( json, coord )
+end
+
+function M.terrain_at( json, coord )
+  local square = M.lookup_grid( json.TILE, coord )
+  local tile = assert( square.tile )
+  return assert( OG_TERRAIN_TYPES[tile] )
 end
 
 -----------------------------------------------------------------

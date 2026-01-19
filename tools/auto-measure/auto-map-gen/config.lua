@@ -12,6 +12,6 @@ return {
   --    1 ==> down
   land_mass=1, --
   land_form=1, --
-  temperature=0, --
+  temperature=1, --
   climate=0, --
 }

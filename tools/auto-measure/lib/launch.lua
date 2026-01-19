@@ -11,6 +11,7 @@ local dosbox = require'lib.dosbox'
 local command = cmd.command
 local info = logger.info
 local forget_dosbox_window = dosbox.forget_dosbox_window
+local format = string.format
 
 -----------------------------------------------------------------
 -- Constants.
@@ -28,7 +29,22 @@ end
 local function launch_start()
   assert( not is_dosbox_running() )
   info( 'starting DOSBox...' )
-  return assert( io.popen( START_SH ) )
+  -- This is very subtle here... we need to run this process in
+  -- the background, but we cannot simply use io.popen because
+  -- that will return a file handle which, if we drop it, will
+  -- later get garbage collected at a random time and cause the
+  -- program to hang because finalizing that handle entails
+  -- closing the pipes that popen opens, which are held open by
+  -- the child process (DOSBox) which will not be closing (until
+  -- we close it manually), thus hanging the program. There are
+  -- ways around that such as to store the returned handle in a
+  -- global or preventing popen from opening pipes, but the fol-
+  -- lowing is probably the simplest, namely just using os.exe-
+  -- cute and detaching the process. NOTE: we need to redirect
+  -- stdout/stdin here to /dev/null otherwise it will write the
+  -- output to a nohup log file in the current directory.
+  assert( os.execute( format( 'nohup %q 1>/dev/null 1>&2 &',
+                              START_SH ) ) )
 end
 
 local function kill_dosbox()

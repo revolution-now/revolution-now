@@ -1,6 +1,5 @@
--- This lambda will gather some statistics on the layout and con-
--- tents of the OG's maps in order to inform map generation and
--- dwelling distribution.
+-- This lambda will gather stats on the land form of the map,
+-- most notably density of land vs. water.
 -----------------------------------------------------------------
 -- Imports.
 -----------------------------------------------------------------
