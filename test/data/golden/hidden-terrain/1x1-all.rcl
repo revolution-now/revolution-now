@@ -1,18 +1,18 @@
 hide.sequence: [
   [
     .primitive.hide_unit.unit_id: 1,
-    .primitive.delay.duration: 30000,
+    .primitive.delay.duration: 15000,
   ],
   [
     .primitive.hide_unit.unit_id: 1,
     .primitive.hide_dwelling {},
-    .primitive.delay.duration: 20000,
+    .primitive.delay.duration: 10000,
   ],
   [
     .primitive.hide_unit.unit_id: 1,
     .primitive.hide_dwelling {},
     .primitive.hide_colony {},
-    .primitive.delay.duration: 20000,
+    .primitive.delay.duration: 10000,
   ],
   [
     .primitive.hide_unit.unit_id: 1,
@@ -29,7 +29,7 @@ hide.sequence: [
         surface: land
       },
     ],
-    .primitive.delay.duration: 80000,
+    .primitive.delay.duration: 40000,
   ],
   [
     .primitive.hide_unit.unit_id: 1,
@@ -43,7 +43,7 @@ hide.sequence: [
         surface: land
       },
     ],
-    .primitive.delay.duration: 40000,
+    .primitive.delay.duration: 20000,
   ],
   [
     .primitive.hide_unit.unit_id: 1,
@@ -56,7 +56,7 @@ hide.sequence: [
         surface: land
       },
     ],
-    .primitive.delay.duration: 80000,
+    .primitive.delay.duration: 40000,
   ],
 ]
 
@@ -87,7 +87,7 @@ show.sequence: [
         surface: land
       },
     ],
-    .primitive.delay.duration: 80000,
+    .primitive.delay.duration: 40000,
   ],
   [
     .primitive.hide_unit.unit_id: 1,
@@ -101,7 +101,7 @@ show.sequence: [
         surface: land
       },
     ],
-    .primitive.delay.duration: 40000,
+    .primitive.delay.duration: 20000,
   ],
   [
     .primitive.hide_unit.unit_id: 1,
@@ -118,21 +118,21 @@ show.sequence: [
         surface: land
       },
     ],
-    .primitive.delay.duration: 80000,
+    .primitive.delay.duration: 40000,
   ],
   [
     .primitive.hide_unit.unit_id: 1,
     .primitive.hide_dwelling {},
     .primitive.hide_colony {},
-    .primitive.delay.duration: 20000,
+    .primitive.delay.duration: 10000,
   ],
   [
     .primitive.hide_unit.unit_id: 1,
     .primitive.hide_dwelling {},
-    .primitive.delay.duration: 20000,
+    .primitive.delay.duration: 10000,
   ],
   [
     .primitive.hide_unit.unit_id: 1,
-    .primitive.delay.duration: 30000,
+    .primitive.delay.duration: 15000,
   ],
 ]

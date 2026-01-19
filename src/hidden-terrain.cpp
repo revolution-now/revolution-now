@@ -195,7 +195,7 @@ struct UnitsHider final
       ContentHiderImpl<vector<GenericUnitId>, UnitsHider>;
   using Base::Base;
 
-  inline static milliseconds const kDelay{ 30 };
+  inline static milliseconds const kDelay{ 15 };
 
   [[nodiscard]] bool on_tile( Coord tile ) {
     unordered_set<GenericUnitId> const& units =
@@ -223,7 +223,7 @@ struct DwellingsHider final
   using Base = ContentHiderImpl<vector<Coord>, DwellingsHider>;
   using Base::Base;
 
-  inline static milliseconds const kDelay{ 20 };
+  inline static milliseconds const kDelay{ 10 };
 
   [[nodiscard]] bool on_tile( Coord tile ) {
     if( !viz_.dwelling_at( tile ).has_value() ) return false;
@@ -245,7 +245,7 @@ struct ColoniesHider final
   using Base = ContentHiderImpl<vector<Coord>, ColoniesHider>;
   using Base::Base;
 
-  inline static milliseconds const kDelay{ 20 };
+  inline static milliseconds const kDelay{ 10 };
 
   [[nodiscard]] bool on_tile( Coord tile ) {
     if( !viz_.colony_at( tile ).has_value() ) return false;
@@ -270,7 +270,7 @@ struct ImprovementsHider final
       ContentHiderImpl<map<Coord, MapSquare>, ImprovementsHider>;
   using Base::Base;
 
-  inline static milliseconds const kDelay{ 80 };
+  inline static milliseconds const kDelay{ 40 };
 
   [[nodiscard]] bool on_tile( Coord tile ) {
     MapSquare const& square = current_square( tile );
@@ -293,7 +293,7 @@ struct ResourcesHider final
       ContentHiderImpl<map<Coord, MapSquare>, ResourcesHider>;
   using Base::Base;
 
-  inline static milliseconds const kDelay{ 40 };
+  inline static milliseconds const kDelay{ 20 };
 
   [[nodiscard]] bool on_tile( Coord tile ) {
     MapSquare const& square = current_square( tile );
@@ -324,7 +324,7 @@ struct ForestHider final
       ContentHiderImpl<map<Coord, MapSquare>, ForestHider>;
   using Base::Base;
 
-  inline static milliseconds const kDelay{ 80 };
+  inline static milliseconds const kDelay{ 40 };
 
   [[nodiscard]] bool on_tile( Coord tile ) {
     MapSquare const& square = current_square( tile );
