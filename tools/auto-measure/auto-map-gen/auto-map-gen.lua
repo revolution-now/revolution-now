@@ -11,6 +11,7 @@ local readwrite = require'lib.readwrite-sav'
 local xdotool = require'lib.xdotool'
 local dosbox = require'lib.dosbox'
 local launch = require'lib.launch'
+local libconfig = require'lib.config'
 
 -----------------------------------------------------------------
 -- Aliases
@@ -28,6 +29,7 @@ local path_for_sav = readwrite.path_for_sav
 local remove_sav = readwrite.remove_sav
 local save_game = coldo.save_game
 local action_api = xdotool.action_api
+local flatten_configs = libconfig.flatten_configs
 local sleep = time.sleep
 local forget_dosbox_window = dosbox.forget_dosbox_window
 local command = cmd.command
@@ -119,7 +121,7 @@ local function generate_one_map_customized( config )
   sleep( .3 ) -- wait for screen to change.
 
   -- Select land configuration.
-  select_land_configuration( config, actions )
+  select_land_configuration( config.settings, actions )
   actions.enter() -- next screen.
   sleep( .3 ) -- wait for screen to change.
 
@@ -165,7 +167,17 @@ local function generate_one_map( config, selection_fn )
   -- Wait for map gen to finish. Note that this takes longer when
   -- the larger land mass option is selected, so it has to be
   -- long enough for that mode.
-  sleep( 13 )
+  sleep( 25 )
+
+  -- In rare cases a price might move at the start of the first
+  -- turn; if so we need to close that window, but in a way that
+  -- won't change anything else.
+  actions.press_keys( 'z' )
+  sleep( 1 )
+  actions.press_keys( 'z' )
+  sleep( 1 )
+  actions.press_keys( 'z' )
+  sleep( 1 )
 
   -- Land view is now visible.
   save_game( SAV_SLOT )
@@ -188,19 +200,16 @@ local function make_customized_config_dir( config )
 end
 
 -----------------------------------------------------------------
--- main.
+-- Automatic Map Generator.
 -----------------------------------------------------------------
-local function main()
-  validate_environment()
-
-  local config = require( 'config' )
+local function auto_map_gen( config )
   assert( config )
   assert( config.mode )
   local output_dir
   if config.mode == 'new' then
     output_dir = format( '%s/config/%s', GAMEGEN, 'new' )
   elseif config.mode == 'customize' then
-    local subdir = make_customized_config_dir( config )
+    local subdir = make_customized_config_dir( config.settings )
     output_dir = format( '%s/config/%s', GAMEGEN, subdir )
   else
     error( 'unsupported mode: ' .. config.mode )
@@ -213,8 +222,8 @@ local function main()
                                                 output_dir ) ) ) )
   local need_count = target_count - have_count
   if need_count <= 0 then
-    info( 'all files generated.' )
-    exit( 0 )
+    info( 'all files generated for %s.', output_dir )
+    return 0
   end
   local modes = {
     new=generate_one_map_new_world,
@@ -234,7 +243,31 @@ local function main()
     sleep( 2 )
   end
 
-  info( 'generated %d maps.', need_count )
+  info( 'generated %d maps in %s.', need_count, output_dir )
+  return need_count
+end
+
+-----------------------------------------------------------------
+-- main.
+-----------------------------------------------------------------
+local function main()
+  validate_environment()
+
+  local master_config = require( 'config' )
+  assert( master_config )
+
+  local configs = flatten_configs( master_config )
+
+  print( 'num configs: ' .. tostring( #configs ) )
+
+  local num_generated = 0
+  local tc = require'json-transcode'
+  for _, config in ipairs( configs ) do
+    for line in tc.pprint_ordered( config ) do print( line ) end
+    num_generated = num_generated + auto_map_gen( config )
+  end
+
+  info( 'total: generated %d maps.', num_generated )
   info( 'finished.' )
   return 0
 end
