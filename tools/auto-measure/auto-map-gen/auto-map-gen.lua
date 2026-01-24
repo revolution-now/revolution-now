@@ -167,11 +167,13 @@ local function generate_one_map( config, selection_fn )
   -- Wait for map gen to finish. Note that this takes longer when
   -- the larger land mass option is selected, so it has to be
   -- long enough for that mode.
-  sleep( 25 )
+  sleep( 30 )
 
   -- In rare cases a price might move at the start of the first
   -- turn; if so we need to close that window, but in a way that
   -- won't change anything else.
+  actions.press_keys( 'z' )
+  sleep( 1 )
   actions.press_keys( 'z' )
   sleep( 1 )
   actions.press_keys( 'z' )

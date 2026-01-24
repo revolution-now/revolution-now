@@ -3,8 +3,8 @@ set -eo pipefail
 
 cd "$(dirname "$0")"
 
-# config_dir=.
-config_dir=./gamegen/config/bbtm
+config_dir=.
+# config_dir=./gamegen/config/bbtm
 
 files="$(find $config_dir -name '*.SAV.*')"
 
