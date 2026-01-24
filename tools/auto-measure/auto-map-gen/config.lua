@@ -1,5 +1,5 @@
 local conf = {
-  target_count=80, --
+  target_count=100, --
 
   -- Values:
   --   new:       "Start a Game in NEW WORLD".
