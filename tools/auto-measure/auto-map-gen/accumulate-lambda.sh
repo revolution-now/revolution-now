@@ -1,16 +1,18 @@
 #!/bin/bash
 set -e
 
-lambda="$1"
+tools=~/dev/revolution-now/tools
+
+config="$1"
+gamegen=$tools/auto-measure/auto-map-gen/gamegen/config/$config
+[[ -n "$gamegen" ]]
+[[ -d "$gamegen" ]]
+echo config=$config
+
+lambda="$2"
 [[ -n "$lambda" ]]
 [[ -f "$lambda" ]]
 
-tools=~/dev/revolution-now/tools
-config=bbtm
-gamegen=~/dev/revolution-now/tools/auto-measure/auto-map-gen/gamegen/config/$config
-
 files="$(find "$gamegen" -name "COLONY*.*")"
 
-echo config=$config
-
-"$tools/sav/conversion/lambda-on-binaries.sh" "$lambda" $files
+"$tools/sav/conversion/lambda-on-binaries.sh" "$config" "$lambda" $files
