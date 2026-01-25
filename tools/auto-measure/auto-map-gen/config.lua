@@ -1,5 +1,5 @@
 local conf = {
-  target_count=100, --
+  target_count=500, --
 
   -- Values:
   --   new:       "Start a Game in NEW WORLD".
@@ -14,19 +14,20 @@ local conf = {
 }
 
 if conf.mode == 'customize' then
-  for land_mass = -1, 1 do
-    for land_form = -1, 1 do
-      for temperature = -1, 1 do
-        for climate = -1, 1 do
-          table.insert( conf.settings, {
-            land_mass=land_mass,
-            land_form=land_form,
-            temperature=temperature,
-            climate=climate,
-          } )
-        end
-      end
-    end
+  local modes = {
+    { temperature=0, climate=-1 }, --
+    { temperature=0, climate=1 }, --
+    { temperature=-1, climate=0 }, --
+    { temperature=1, climate=0 }, --
+    { temperature=0, climate=0 }, --
+  }
+  for _, p in ipairs( modes ) do
+    table.insert( conf.settings, {
+      land_mass=1,
+      land_form=1,
+      temperature=assert( p.temperature ),
+      climate=assert( p.climate ),
+    } )
   end
 else
   table.insert( conf.settings, 'n/a' )
