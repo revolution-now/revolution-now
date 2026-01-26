@@ -36,8 +36,8 @@ local format = string.format
 -----------------------------------------------------------------
 local function usage()
   err( 'usage: ' .. 'lambda-on-binaries.lua ' ..
-           '<structure-json-file> ' .. '<lambda-file>' ..
-           '[<SAV-filename>, ...]' )
+           '<structure-json-file> ' .. '<label>' ..
+           '<lambda-file>' .. '[<SAV-filename>, ...]' )
 end
 
 local function clear_line()
@@ -49,13 +49,15 @@ end
 -----------------------------------------------------------------
 local function main( args )
   -- Check args.
-  if #args < 3 then
+  if #args < 4 then
     usage()
     return 1
   end
 
   local structure_json = assert( args[1] )
-  local lambda_file = assert( args[2] )
+  local label = assert( args[2] )
+  local lambda_file = assert( args[3] )
+  remove( args, 1 )
   remove( args, 1 )
   remove( args, 1 )
   local colony_savs = args
@@ -65,7 +67,9 @@ local function main( args )
   local env = setmetatable( { printf=printf }, { __index=_ENV } )
   local lambda_module =
       assert( loadfile( lambda_file, 't', env ) )
-  local lambda = assert( lambda_module() )
+  local module = assert( lambda_module() )
+  local lambda = assert( module.lambda )
+  local finished = assert( module.finished )
   check( type( lambda ) == 'function',
          'lambda module must return a function.' )
 
@@ -96,7 +100,7 @@ local function main( args )
 
   -- Tell the lambda that we're finished so that it can print re-
   -- sults.
-  lambda()
+  finished( label )
 
   return 0
 end

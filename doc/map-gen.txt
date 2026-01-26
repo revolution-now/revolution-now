@@ -1,8 +1,4 @@
-TODO:
-
-  * Need to figure out how settings are chosen when the player
-    just selects "Start Game in NEW WORLD".
-
+# vim: syntax=yaml
 Land Mass:
 
   * [TM] Small:
