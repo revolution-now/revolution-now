@@ -43,8 +43,9 @@ function M.load( args )
 
   -- Structure document.
   info( 'decoding json structure file %s...', structure_json )
-  local structure = json_decode(
-                        io.open( structure_json, 'r' ):read( 'a' ) )
+  local f_structure<close> = assert(
+                                 io.open( structure_json, 'r' ) )
+  local structure = json_decode( f_structure:read( 'a' ) )
   assert( structure.__metadata )
   assert( structure.HEADER )
 
