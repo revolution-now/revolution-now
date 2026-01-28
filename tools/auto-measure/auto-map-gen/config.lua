@@ -15,16 +15,19 @@ local conf = {
 
 if conf.mode == 'customize' then
   local modes = {
-    { temperature=0, climate=-1 }, --
-    { temperature=0, climate=1 }, --
-    { temperature=-1, climate=0 }, --
-    { temperature=1, climate=0 }, --
-    { temperature=0, climate=0 }, --
+    { land_mass=-1, land_form=0, temperature=0, climate=0 }, --
+    { land_mass=0, land_form=0, temperature=0, climate=0 }, --
+    { land_mass=1, land_form=0, temperature=0, climate=0 }, --
+    { land_mass=0, land_form=-1, temperature=0, climate=0 }, --
+    { land_mass=0, land_form=0, temperature=0, climate=0 }, --
+    { land_mass=0, land_form=1, temperature=0, climate=0 }, --
+    { land_mass=-1, land_form=-1, temperature=0, climate=0 }, --
+    { land_mass=1, land_form=1, temperature=0, climate=0 }, --
   }
   for _, p in ipairs( modes ) do
     table.insert( conf.settings, {
-      land_mass=1,
-      land_form=1,
+      land_mass=assert( p.land_mass ),
+      land_form=assert( p.land_form ),
       temperature=assert( p.temperature ),
       climate=assert( p.climate ),
     } )
