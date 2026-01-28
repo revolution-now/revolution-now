@@ -9,11 +9,14 @@ go() {
 go bbtt &
 go bbtm &
 go bbtb &
+wait
+
 go bbmt &
 go bbmm &
 go bbmb &
+wait
+
 go bbbt &
 go bbbm &
 go bbbb &
-
 wait
