@@ -61,6 +61,18 @@ local ORDERING = {
   'marsh', --
 }
 
+local function normalize_weights()
+  local total = 0
+  for _, curve in ipairs( ORDERING ) do
+    local spec = assert( SPEC[curve] )
+    total = total + assert( spec.weight )
+  end
+  for _, curve in ipairs( ORDERING ) do
+    local spec = assert( SPEC[curve] )
+    spec.weight = spec.weight / total
+  end
+end
+
 local function print_spec( emit )
   for _, curve in ipairs( ORDERING ) do
     local spec = assert( SPEC[curve] )
@@ -370,6 +382,7 @@ local function generate_mode( mode )
       f:write( format( fmt, ... ) )
     end
     print_metrics( emit, ratios, '# ' )
+    normalize_weights()
     print_spec( emit )
   end
 

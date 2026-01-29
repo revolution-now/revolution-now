@@ -8,49 +8,49 @@
 # swamp         1.0001    1.0005    1.0000
 # marsh         0.9999    1.0005    1.0000
 savannah {
-  weight: 9.976
+  weight: 0.381
   center: 37.022
   width: 3.119
   sub: 0.025
 }
 grassland {
-  weight: 3.207
+  weight: 0.123
   center: 35.669
   width: 6.481
   sub: 0.000
 }
 tundra {
-  weight: 0.280
+  weight: 0.011
   center: 51.423
   width: 4.468
   sub: 0.000
 }
 plains {
-  weight: 1.366
+  weight: 0.052
   center: 47.168
   width: 5.443
   sub: 0.000
 }
 prairie {
-  weight: 2.756
+  weight: 0.105
   center: 41.722
   width: 6.087
   sub: 0.000
 }
 desert {
-  weight: 3.148
+  weight: 0.120
   center: 39.930
   width: 4.588
   sub: 0.000
 }
 swamp {
-  weight: 4.337
+  weight: 0.166
   center: 37.077
   width: 3.153
   sub: 0.025
 }
 marsh {
-  weight: 1.098
+  weight: 0.042
   center: 35.716
   width: 6.227
   sub: 0.000
