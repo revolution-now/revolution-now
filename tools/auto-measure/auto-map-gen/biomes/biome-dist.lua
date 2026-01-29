@@ -23,7 +23,7 @@ local MAX_ITERATIONS = 10000
 -- Ignore the curve this close to the edges since it is noisy.
 local BUFFER = 5
 
-local RATIO_TOLERANCE = 0.005
+local RATIO_TOLERANCE = 0.002
 
 local MODES = {
   'bbtm', --
@@ -145,16 +145,16 @@ local function print_metrics( emit, metrics, prefix )
   assert( emit )
   assert( metrics )
   prefix = prefix or ''
-  emit( '%s%-12s', prefix, 'curve' )
+  emit( '%s%-10s', prefix, 'curve' )
   local metric_names = { 'area', 'avg', 'stddev' }
-  for _, name in ipairs( metric_names ) do emit( '%-12s', name ) end
+  for _, name in ipairs( metric_names ) do emit( '%10s', name ) end
   emit( '\n' )
   for _, curve in ipairs( ORDERING ) do
-    emit( '%s%-12s', prefix, curve )
+    emit( '%s%-10s', prefix, curve )
     for _, metric_name in ipairs( metric_names ) do
       local curve_metrics = assert( metrics[curve] )
-      emit( '%-12s', format( '%.4f', assert(
-                                 curve_metrics[metric_name] ) ) )
+      emit( '%10s', format( '%.4f',
+                            assert( curve_metrics[metric_name] ) ) )
     end
     emit( '\n' )
   end
