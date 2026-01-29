@@ -27,10 +27,12 @@ local RATIO_TOLERANCE = 0.0005
 
 local MODES = {
   'bbtm', --
+  'bbmm', --
   'bbbm', --
   'bbmt', --
   'bbmb', --
-  'bbmm', --
+  'bbbb', --
+  'bbtt', --
 }
 
 -- All of these values (except for `sub`) are placeholders; they
