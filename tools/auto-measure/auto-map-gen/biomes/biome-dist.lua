@@ -23,7 +23,7 @@ local MAX_ITERATIONS = 100000
 -- Ignore the curve this close to the edges since it is noisy.
 local BUFFER = 5
 
-local RATIO_TOLERANCE = 0.001
+local RATIO_TOLERANCE = 0.0005
 
 local MODES = {
   'bbtm', --
@@ -111,17 +111,16 @@ end
 -----------------------------------------------------------------
 -- Curves.
 -----------------------------------------------------------------
-local function gaussian( params, y )
-  local center = assert( params.c )
-  local stddev = assert( params.w )
-  local sub = assert( params.sub )
+local function gaussian( center, stddev, sub, y )
   local value = exp( -((y - center) / (stddev * 1.4142)) ^ 2 )
   value = value - sub
   return value
 end
 
-local function evaluate_curve( curve, y )
-  return assert( gaussian( curve, y ) )
+local function evaluate_mirrored_curves( curve, y )
+  return assert( gaussian( curve.c, curve.w, curve.sub, y ) ) +
+             assert(
+                 gaussian( 70 - curve.c, curve.w, curve.sub, y ) )
 end
 
 -----------------------------------------------------------------
@@ -272,8 +271,9 @@ local function evaluate_row( y )
     local weight = assert( SPEC[name].weight )
     local curve = assert( SPEC[name].curve )
     res[name] = res[name] or 0
-    res[name] = res[name] +
-                    max( weight * evaluate_curve( curve, y ), 0 )
+    res[name] = res[name] + weight *
+                    evaluate_mirrored_curves( curve, y )
+    res[name] = max( res[name], 0 )
   end
   return res
 end

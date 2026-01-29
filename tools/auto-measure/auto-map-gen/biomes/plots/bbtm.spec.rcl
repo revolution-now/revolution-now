@@ -1,57 +1,57 @@
 # curve           area       avg    stddev
-# savannah      0.9999    1.0010    0.9999
-# grassland     1.0000    0.9995    1.0000
+# savannah      1.0000    1.0005    0.9999
+# grassland     1.0000    0.9999    1.0000
 # tundra        1.0001    1.0000    1.0000
-# plains        1.0000    1.0000    1.0000
-# prairie       1.0000    0.9999    1.0000
+# plains        1.0000    1.0000    1.0001
+# prairie       0.9999    0.9999    1.0000
 # desert        1.0000    1.0000    1.0000
-# swamp         1.0000    1.0008    1.0000
-# marsh         1.0000    1.0002    1.0000
+# swamp         1.0001    1.0005    1.0000
+# marsh         0.9999    1.0005    1.0000
 savannah {
-  weight: 10.713
-  center: 36.638
-  width: 3.077
+  weight: 9.976
+  center: 37.022
+  width: 3.119
   sub: 0.025
 }
 grassland {
-  weight: 4.855
-  center: 35.672
-  width: 6.609
+  weight: 3.207
+  center: 35.669
+  width: 6.481
   sub: 0.000
 }
 tundra {
-  weight: 0.292
-  center: 51.950
-  width: 4.570
+  weight: 0.280
+  center: 51.423
+  width: 4.468
   sub: 0.000
 }
 plains {
-  weight: 1.300
-  center: 47.706
-  width: 5.619
+  weight: 1.366
+  center: 47.168
+  width: 5.443
   sub: 0.000
 }
 prairie {
-  weight: 2.678
-  center: 41.370
-  width: 6.468
+  weight: 2.756
+  center: 41.722
+  width: 6.087
   sub: 0.000
 }
 desert {
-  weight: 2.996
-  center: 39.583
-  width: 4.790
+  weight: 3.148
+  center: 39.930
+  width: 4.588
   sub: 0.000
 }
 swamp {
-  weight: 4.631
-  center: 36.737
-  width: 3.080
+  weight: 4.337
+  center: 37.077
+  width: 3.153
   sub: 0.025
 }
 marsh {
-  weight: 1.646
-  center: 35.711
-  width: 6.324
+  weight: 1.098
+  center: 35.716
+  width: 6.227
   sub: 0.000
 }
