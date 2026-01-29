@@ -73,16 +73,22 @@ local function normalize_weights()
   end
 end
 
-local function print_spec( emit )
+local function print_spec( mode, emit )
+  assert( mode )
+  emit( '%s {\n', mode )
   for _, curve in ipairs( ORDERING ) do
     local spec = assert( SPEC[curve] )
-    emit( '%s {\n', curve )
-    emit( '  weight: %.3f\n', assert( spec.weight ) )
-    emit( '  center: %.3f\n', assert( spec.curve.c ) )
-    emit( '  width: %.3f\n', assert( spec.curve.w ) )
-    emit( '  sub: %.3f\n', assert( spec.curve.sub ) )
-    emit( '}\n' )
+    local half = 70 - 35.5
+    local center = (assert( spec.curve.c ) - 35.5) / half
+    local stddev = assert( spec.curve.w ) / half
+    emit( '  %-9s {', curve )
+    emit( ' weight: %.4f,', assert( spec.weight ) )
+    emit( ' center: %.4f,', center )
+    emit( ' stddev: %.4f,', stddev )
+    emit( ' sub: %.4f', assert( spec.curve.sub ) )
+    emit( ' }\n' )
   end
+  emit( '}\n' )
 end
 
 -----------------------------------------------------------------
@@ -381,9 +387,9 @@ local function generate_mode( mode )
     local function emit( fmt, ... )
       f:write( format( fmt, ... ) )
     end
-    print_metrics( emit, ratios, '# ' )
+    -- print_metrics( emit, ratios, '# ' )
     normalize_weights()
-    print_spec( emit )
+    print_spec( mode, emit )
   end
 
   do
