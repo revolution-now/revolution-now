@@ -18,12 +18,12 @@ local abs = math.abs
 -----------------------------------------------------------------
 -- Spec.
 -----------------------------------------------------------------
-local MAX_ITERATIONS = 10000
+local MAX_ITERATIONS = 100000
 
 -- Ignore the curve this close to the edges since it is noisy.
 local BUFFER = 5
 
-local RATIO_TOLERANCE = 0.002
+local RATIO_TOLERANCE = 0.001
 
 local MODES = {
   'bbtm', --
@@ -33,17 +33,19 @@ local MODES = {
   'bbmm', --
 }
 
--- Some of these are just starter values; they will be adjusted
--- on each iteration to fit the experimental data.
+-- All of these values (except for `sub`) are placeholders; they
+-- will be adjusted on each iteration to fit the experimental
+-- data. They are given initial values in the valid range so that
+-- the iteration is able to get started.
 local SPEC_INIT = {
-  savannah={ weight=1.0, curve={ c=35.5, w=10, sub=.025 } },
-  grassland={ weight=1.0, curve={ c=35.5, w=10, sub=0 } },
-  tundra={ weight=1.0, curve={ c=60, w=10, sub=0 } },
-  plains={ weight=1.0, curve={ c=60, w=10, sub=0 } },
-  prairie={ weight=1.0, curve={ c=60, w=10, sub=0 } },
-  desert={ weight=1.0, curve={ c=35.5, w=10, sub=0 } },
-  swamp={ weight=1.0, curve={ c=35.5, w=10, sub=.025 } },
-  marsh={ weight=1.0, curve={ c=35.5, w=10, sub=0 } },
+  savannah={ weight=1.0, curve={ c=40, w=10, sub=.025 } },
+  grassland={ weight=1.0, curve={ c=40, w=10, sub=0 } },
+  tundra={ weight=1.0, curve={ c=40, w=10, sub=0 } },
+  plains={ weight=1.0, curve={ c=40, w=10, sub=0 } },
+  prairie={ weight=1.0, curve={ c=40, w=10, sub=0 } },
+  desert={ weight=1.0, curve={ c=40, w=10, sub=0 } },
+  swamp={ weight=1.0, curve={ c=40, w=10, sub=.025 } },
+  marsh={ weight=1.0, curve={ c=40, w=10, sub=0 } },
 }
 
 local SPEC
@@ -111,9 +113,9 @@ end
 -----------------------------------------------------------------
 local function gaussian( params, y )
   local center = assert( params.c )
-  local width = assert( params.w )
+  local stddev = assert( params.w )
   local sub = assert( params.sub )
-  local value = exp( -((y - center) / (width / 1.4142)) ^ 2 )
+  local value = exp( -((y - center) / (stddev * 1.4142)) ^ 2 )
   value = value - sub
   return value
 end
@@ -176,16 +178,26 @@ local function compute_metrics( graphs )
     local moment0 = 0.0
     local moment1 = 0.0
     local moment2 = 0.0
-    for y = 36, 70 - BUFFER do
+    local sample = function( y )
+      if y >= 70 then return graph[70] end
+      local lo = math.floor( y )
+      local hi = math.ceil( y )
+      local e = y - lo
+      return graph[lo] * e + graph[hi] * (1 - e)
+    end
+    for y = 36, 70 - BUFFER, .1 do
       local delta = y - 35.5
-      moment0 = moment0 + assert( graph[y] ) * delta ^ 0
-      moment1 = moment1 + assert( graph[y] ) * delta ^ 1
-      moment2 = moment2 + assert( graph[y] ) * delta ^ 2
+      local val = sample( y )
+      moment0 = moment0 + val * delta ^ 0
+      moment1 = moment1 + val * delta ^ 1
+      moment2 = moment2 + val * delta ^ 2
     end
     metrics[name] = metrics[name] or {}
     metrics[name].area = moment0
     metrics[name].avg = moment1 / moment0
-    metrics[name].stddev = (moment2 - moment0 ^ 2) ^ .5 / moment0
+    local var = moment2 / moment0
+    local mean = moment1 / moment0
+    metrics[name].stddev = (var - mean ^ 2) ^ .5
   end
   return metrics
 end
@@ -216,12 +228,17 @@ local function tweak_spec( curve, metric_name, ratios )
   elseif metric_name == 'avg' then
     local avg = assert( curve_metric_ratios.avg )
     local delta = abs( params.c - 35.5 )
-    delta = delta / avg
+    -- Instead of dividing by avg directly (which would make most
+    -- sense) bring it closer to 1 first since otherwise it seems
+    -- to overshoot causing convergence failures. Not sure why
+    -- this is.
+    delta = delta / ((avg + 1) / 2)
     if params.c < 35.5 then
       params.c = 35.5 - delta
     else
       params.c = delta + 35.5
     end
+    params.c = max( params.c, 35.5 )
   elseif metric_name == 'stddev' then
     local stddev = assert( curve_metric_ratios.stddev )
     params.w = params.w / stddev
@@ -233,14 +250,11 @@ end
 
 local function check_ratios( ratios )
   assert( ratios )
-  -- Leave out "avg" here because we can't fit that at the same
-  -- time that we fit stddev, and our algo seems to prefer fit-
-  -- ting stdev.
-  local metric_names = { 'area', 'stddev' }
+  local metric_names = { 'area', 'avg', 'stddev' }
   for _, curve in ipairs( ORDERING ) do
     for _, metric_name in ipairs( metric_names ) do
       local val = ratios[curve][metric_name]
-      if abs( 1.0 - val ) > RATIO_TOLERANCE then
+      if abs( 1.0 - val ) >= RATIO_TOLERANCE then
         return false
       end
     end
