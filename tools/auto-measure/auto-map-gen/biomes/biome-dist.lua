@@ -45,14 +45,14 @@ local MODES = {
 -- pirically to lead to convergence in the shortest amount of
 -- time (just to reduce script runtime).
 local SPEC_INIT = {
-  savannah={ weight=2.0, curve={ c=46, w=3, sub=.3 } },
-  grassland={ weight=1.0, curve={ c=46, w=3, sub=0 } },
-  tundra={ weight=1.0, curve={ c=46, w=3, sub=0 } },
-  plains={ weight=1.0, curve={ c=46, w=3, sub=0 } },
-  prairie={ weight=1.0, curve={ c=46, w=3, sub=0 } },
-  desert={ weight=4.0, curve={ c=46, w=9, sub=0 } },
-  swamp={ weight=2.0, curve={ c=46, w=3, sub=.3 } },
-  marsh={ weight=1.0, curve={ c=46, w=3, sub=0 } },
+  savannah={ weight=2.0, curve={ t='g2', c=46, w=3, sub=.3 } },
+  grassland={ weight=1.0, curve={ t='g2', c=46, w=3, sub=0 } },
+  tundra={ weight=1.0, curve={ t='g2', c=46, w=3, sub=0 } },
+  plains={ weight=1.0, curve={ t='g2', c=46, w=3, sub=0 } },
+  prairie={ weight=1.0, curve={ t='g2', c=46, w=3, sub=0 } },
+  desert={ weight=4.0, curve={ t='g4', c=46, w=10, sub=0 } },
+  swamp={ weight=2.0, curve={ t='g2', c=46, w=3, sub=.3 } },
+  marsh={ weight=1.0, curve={ t='g2', c=46, w=3, sub=0 } },
 }
 
 local ORDERING = {
@@ -158,10 +158,17 @@ local function gaussian( center, stddev, sub, y )
   return value
 end
 
+local function gaussian4( center, stddev, sub, y )
+  local value = exp( -((y - center) / (stddev * 1.4142)) ^ 4 )
+  value = value - sub
+  return value
+end
+
 local function evaluate_mirrored_curves( curve, y )
-  return assert( gaussian( curve.c, curve.w, curve.sub, y ) ) +
-             assert(
-                 gaussian( 70 - curve.c, curve.w, curve.sub, y ) )
+  local fns = { g2=gaussian, g4=gaussian4 }
+  local fn = assert( fns[curve.t] )
+  return assert( fn( curve.c, curve.w, curve.sub, y ) ) +
+             assert( fn( 70 - curve.c, curve.w, curve.sub, y ) )
 end
 
 -----------------------------------------------------------------
