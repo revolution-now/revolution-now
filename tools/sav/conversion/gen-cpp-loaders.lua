@@ -63,8 +63,8 @@ local function main( args )
   -- Structure document.
   local structure_json = assert( args[1] )
   info( 'decoding json structure file %s...', structure_json )
-  local structure = json_decode(
-                        io.open( structure_json, 'r' ):read( 'a' ) )
+  local f_structure<close> = io.open( structure_json, 'r' )
+  local structure = json_decode( f_structure:read( 'a' ) )
   info( 'producing reverse metadata mapping...' )
   assert( structure.__metadata )
   assert( structure.HEADER )
@@ -75,8 +75,8 @@ local function main( args )
   local cpp_file = format( '%s/sav-struct.cpp', output_dir )
   info( 'emitting hpp file %s', hpp_file )
   info( 'emitting cpp file %s', cpp_file )
-  local hpp = assert( io.open( hpp_file, 'w' ) )
-  local cpp = assert( io.open( cpp_file, 'w' ) )
+  local hpp<close> = assert( io.open( hpp_file, 'w' ) )
+  local cpp<close> = assert( io.open( cpp_file, 'w' ) )
 
   -- Emitting.
   info( 'running emitter...' )

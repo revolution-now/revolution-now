@@ -55,7 +55,8 @@ local function main( args )
 
   -- Input JSON file.
   info( 'parsing input JSON sav file %s...', input_json_file )
-  local input_file = assert( io.open( input_json_file, 'r' ) )
+  local input_file<close> = assert(
+                                io.open( input_json_file, 'r' ) )
   local colony_json = json_decode( input_file:read( 'a' ) )
   input_file:close()
 

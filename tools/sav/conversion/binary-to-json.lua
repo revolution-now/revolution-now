@@ -58,7 +58,7 @@ local function main( args )
   }
 
   -- Output JSON file.
-  local out = assert( io.open( output_json, 'w' ) )
+  local out<close> = assert( io.open( output_json, 'w' ) )
 
   -- Encoding and outputting JSON.
   info( 'encoding json output to file %s...', output_json )

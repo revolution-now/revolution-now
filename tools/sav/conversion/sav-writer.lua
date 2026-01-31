@@ -42,15 +42,15 @@ function M.save( args )
 
   -- Structure document.
   info( 'decoding json structure file %s...', structure_json )
-  local structure = json_decode(
-                        io.open( structure_json, 'r' ):read( 'a' ) )
+  local f_structure<close> = io.open( structure_json, 'r' )
+  local structure = json_decode( f_structure:read( 'a' ) )
   assert( structure.__metadata )
   assert( structure.HEADER )
 
   -- Binary SAV file.
   check( colony_sav:match( '%.SAV*' ),
          'colony_sav %s has invalid format.', colony_sav )
-  local out = assert( io.open( colony_sav, 'wb' ) )
+  local out<close> = assert( io.open( colony_sav, 'wb' ) )
 
   -- Traverse structure and emit binary.
   info( 'writing binary save file %s', colony_sav )

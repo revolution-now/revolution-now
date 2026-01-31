@@ -237,6 +237,7 @@ function M.NewBinaryLoader( metadata, binary_file )
       return base[key]
     end,
     __gc=function( self ) self.sav_file_:close() end,
+    __close=function( self ) self.sav_file_:close() end,
     __metatable=false,
   } )
   return obj

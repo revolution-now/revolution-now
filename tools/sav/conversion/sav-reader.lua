@@ -55,8 +55,9 @@ function M.load( args )
 
   -- Parsing.
   info( 'reading save file %s', colony_sav )
-  local loader = assert( NewBinaryLoader( structure.__metadata,
-                                          colony_sav ) )
+  local loader<close> = assert( NewBinaryLoader(
+                                    structure.__metadata,
+                                    colony_sav ) )
   local parsed = loader:struct( structure )
 
   -- Print stats.
