@@ -1,0 +1,90 @@
+cool_arid {  # bbtt
+  savannah  { exp: 2, weight: 0.2509, center: 0.1387, stddev: 0.1169, sub: 0.3000 }
+  grassland { exp: 2, weight: 0.1077, center: 0.2488, stddev: 0.1258, sub: 0.0000 }
+  tundra    { exp: 2, weight: 0.0578, center: 0.4660, stddev: 0.1048, sub: 0.0000 }
+  plains    { exp: 2, weight: 0.1726, center: 0.4066, stddev: 0.1155, sub: 0.0000 }
+  prairie   { exp: 2, weight: 0.1755, center: 0.3249, stddev: 0.1234, sub: 0.0000 }
+  desert    { exp: 4, weight: 0.0905, center: 0.2678, stddev: 0.1424, sub: 0.0000 }
+  swamp     { exp: 2, weight: 0.1122, center: 0.1432, stddev: 0.1090, sub: 0.3000 }
+  marsh     { exp: 2, weight: 0.0328, center: 0.2436, stddev: 0.1220, sub: 0.0000 }
+}
+cool_normal {  # bbtm
+  savannah  { exp: 2, weight: 0.2407, center: 0.1407, stddev: 0.1129, sub: 0.3000 }
+  grassland { exp: 2, weight: 0.1274, center: 0.2714, stddev: 0.1270, sub: 0.0000 }
+  tundra    { exp: 2, weight: 0.0437, center: 0.4774, stddev: 0.1041, sub: 0.0000 }
+  plains    { exp: 2, weight: 0.1681, center: 0.4147, stddev: 0.1169, sub: 0.0000 }
+  prairie   { exp: 2, weight: 0.1875, center: 0.3406, stddev: 0.1255, sub: 0.0000 }
+  desert    { exp: 4, weight: 0.0848, center: 0.2698, stddev: 0.1392, sub: 0.0000 }
+  swamp     { exp: 2, weight: 0.1079, center: 0.1428, stddev: 0.1137, sub: 0.3000 }
+  marsh     { exp: 2, weight: 0.0399, center: 0.2613, stddev: 0.1247, sub: 0.0000 }
+}
+cool_wet {  # bbtb
+  savannah  { exp: 2, weight: 0.2105, center: 0.1431, stddev: 0.1118, sub: 0.3000 }
+  grassland { exp: 2, weight: 0.1585, center: 0.2989, stddev: 0.1264, sub: 0.0000 }
+  tundra    { exp: 2, weight: 0.0289, center: 0.4922, stddev: 0.1025, sub: 0.0000 }
+  plains    { exp: 2, weight: 0.1524, center: 0.4240, stddev: 0.1179, sub: 0.0000 }
+  prairie   { exp: 2, weight: 0.2026, center: 0.3586, stddev: 0.1267, sub: 0.0000 }
+  desert    { exp: 4, weight: 0.0736, center: 0.2706, stddev: 0.1365, sub: 0.0000 }
+  swamp     { exp: 2, weight: 0.1198, center: 0.1468, stddev: 0.1116, sub: 0.3000 }
+  marsh     { exp: 2, weight: 0.0538, center: 0.2878, stddev: 0.1249, sub: 0.0000 }
+}
+temperate_arid {  # bbmt
+  savannah  { exp: 2, weight: 0.2838, center: 0.1700, stddev: 0.1403, sub: 0.3000 }
+  grassland { exp: 2, weight: 0.1134, center: 0.2780, stddev: 0.1259, sub: 0.0000 }
+  tundra    { exp: 2, weight: 0.0401, center: 0.4912, stddev: 0.1012, sub: 0.0000 }
+  plains    { exp: 2, weight: 0.1417, center: 0.4314, stddev: 0.1120, sub: 0.0000 }
+  prairie   { exp: 2, weight: 0.1702, center: 0.3521, stddev: 0.1207, sub: 0.0000 }
+  desert    { exp: 4, weight: 0.0924, center: 0.3018, stddev: 0.1445, sub: 0.0000 }
+  swamp     { exp: 2, weight: 0.1245, center: 0.1742, stddev: 0.1328, sub: 0.3000 }
+  marsh     { exp: 2, weight: 0.0340, center: 0.2744, stddev: 0.1224, sub: 0.0000 }
+}
+temperate_normal {  # bbmm
+  savannah  { exp: 2, weight: 0.2748, center: 0.1714, stddev: 0.1368, sub: 0.3000 }
+  grassland { exp: 2, weight: 0.1304, center: 0.2958, stddev: 0.1276, sub: 0.0000 }
+  tundra    { exp: 2, weight: 0.0294, center: 0.5027, stddev: 0.1003, sub: 0.0000 }
+  plains    { exp: 2, weight: 0.1344, center: 0.4380, stddev: 0.1135, sub: 0.0000 }
+  prairie   { exp: 2, weight: 0.1774, center: 0.3649, stddev: 0.1225, sub: 0.0000 }
+  desert    { exp: 4, weight: 0.0864, center: 0.3000, stddev: 0.1424, sub: 0.0000 }
+  swamp     { exp: 2, weight: 0.1250, center: 0.1750, stddev: 0.1382, sub: 0.3000 }
+  marsh     { exp: 2, weight: 0.0422, center: 0.2885, stddev: 0.1247, sub: 0.0000 }
+}
+temperate_wet {  # bbmb
+  savannah  { exp: 2, weight: 0.2543, center: 0.1725, stddev: 0.1362, sub: 0.3000 }
+  grassland { exp: 2, weight: 0.1579, center: 0.3182, stddev: 0.1289, sub: 0.0000 }
+  tundra    { exp: 2, weight: 0.0170, center: 0.5183, stddev: 0.0985, sub: 0.0000 }
+  plains    { exp: 2, weight: 0.1179, center: 0.4443, stddev: 0.1150, sub: 0.0000 }
+  prairie   { exp: 2, weight: 0.1845, center: 0.3785, stddev: 0.1252, sub: 0.0000 }
+  desert    { exp: 4, weight: 0.0782, center: 0.2974, stddev: 0.1401, sub: 0.0000 }
+  swamp     { exp: 2, weight: 0.1347, center: 0.1798, stddev: 0.1380, sub: 0.3000 }
+  marsh     { exp: 2, weight: 0.0555, center: 0.3082, stddev: 0.1258, sub: 0.0000 }
+}
+warm_arid {  # bbbt
+  savannah  { exp: 2, weight: 0.2998, center: 0.2022, stddev: 0.1707, sub: 0.3000 }
+  grassland { exp: 2, weight: 0.1207, center: 0.3033, stddev: 0.1248, sub: 0.0000 }
+  tundra    { exp: 2, weight: 0.0281, center: 0.5171, stddev: 0.0983, sub: 0.0000 }
+  plains    { exp: 2, weight: 0.1172, center: 0.4569, stddev: 0.1084, sub: 0.0000 }
+  prairie   { exp: 2, weight: 0.1603, center: 0.3781, stddev: 0.1180, sub: 0.0000 }
+  desert    { exp: 4, weight: 0.0953, center: 0.3369, stddev: 0.1438, sub: 0.0000 }
+  swamp     { exp: 2, weight: 0.1416, center: 0.2098, stddev: 0.1613, sub: 0.3000 }
+  marsh     { exp: 2, weight: 0.0370, center: 0.2990, stddev: 0.1213, sub: 0.0000 }
+}
+warm_normal {  # bbbm
+  savannah  { exp: 2, weight: 0.3015, center: 0.2037, stddev: 0.1656, sub: 0.3000 }
+  grassland { exp: 2, weight: 0.1342, center: 0.3196, stddev: 0.1277, sub: 0.0000 }
+  tundra    { exp: 2, weight: 0.0190, center: 0.5283, stddev: 0.0979, sub: 0.0000 }
+  plains    { exp: 2, weight: 0.1054, center: 0.4624, stddev: 0.1106, sub: 0.0000 }
+  prairie   { exp: 2, weight: 0.1668, center: 0.3899, stddev: 0.1196, sub: 0.0000 }
+  desert    { exp: 4, weight: 0.0874, center: 0.3338, stddev: 0.1435, sub: 0.0000 }
+  swamp     { exp: 2, weight: 0.1407, center: 0.2101, stddev: 0.1675, sub: 0.3000 }
+  marsh     { exp: 2, weight: 0.0451, center: 0.3134, stddev: 0.1244, sub: 0.0000 }
+}
+warm_wet {  # bbbb
+  savannah  { exp: 2, weight: 0.2889, center: 0.2013, stddev: 0.1650, sub: 0.3000 }
+  grassland { exp: 2, weight: 0.1565, center: 0.3312, stddev: 0.1284, sub: 0.0000 }
+  tundra    { exp: 2, weight: 0.0110, center: 0.5471, stddev: 0.0898, sub: 0.0000 }
+  plains    { exp: 2, weight: 0.0879, center: 0.4646, stddev: 0.1105, sub: 0.0000 }
+  prairie   { exp: 2, weight: 0.1643, center: 0.3964, stddev: 0.1211, sub: 0.0000 }
+  desert    { exp: 4, weight: 0.0782, center: 0.3278, stddev: 0.1412, sub: 0.0000 }
+  swamp     { exp: 2, weight: 0.1546, center: 0.2123, stddev: 0.1664, sub: 0.3000 }
+  marsh     { exp: 2, weight: 0.0586, center: 0.3247, stddev: 0.1228, sub: 0.0000 }
+}

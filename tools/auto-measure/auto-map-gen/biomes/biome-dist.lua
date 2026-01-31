@@ -14,6 +14,7 @@ local format = string.format
 local max = math.max
 local exp = math.exp
 local abs = math.abs
+local log = math.log
 
 -----------------------------------------------------------------
 -- Spec.
@@ -23,7 +24,7 @@ local MAX_ITERATIONS = 100000
 -- Ignore the curve this close to the edges since it is noisy.
 local BUFFER = 5
 
-local RATIO_TOLERANCE = 0.00005
+local RATIO_TOLERANCE = 0.00001
 
 local DIFF_CUTOFF = 0.10
 
@@ -45,14 +46,14 @@ local MODES = {
 -- pirically to lead to convergence in the shortest amount of
 -- time (just to reduce script runtime).
 local SPEC_INIT = {
-  savannah={ weight=2.0, curve={ t='g2', c=46, w=3, sub=.3 } },
-  grassland={ weight=1.0, curve={ t='g2', c=46, w=3, sub=0 } },
-  tundra={ weight=1.0, curve={ t='g2', c=46, w=3, sub=0 } },
-  plains={ weight=1.0, curve={ t='g2', c=46, w=3, sub=0 } },
-  prairie={ weight=1.0, curve={ t='g2', c=46, w=3, sub=0 } },
-  desert={ weight=4.0, curve={ t='g4', c=46, w=10, sub=0 } },
-  swamp={ weight=2.0, curve={ t='g2', c=46, w=3, sub=.3 } },
-  marsh={ weight=1.0, curve={ t='g2', c=46, w=3, sub=0 } },
+  savannah={ weight=2.0, curve={ e=2, c=46, w=3, sub=.3 } },
+  grassland={ weight=1.0, curve={ e=2, c=46, w=3, sub=0 } },
+  tundra={ weight=1.0, curve={ e=2, c=46, w=3, sub=0 } },
+  plains={ weight=1.0, curve={ e=2, c=46, w=3, sub=0 } },
+  prairie={ weight=1.0, curve={ e=2, c=46, w=3, sub=0 } },
+  desert={ weight=4.0, curve={ e=4, c=46, w=10, sub=0 } },
+  swamp={ weight=2.0, curve={ e=2, c=46, w=3, sub=.3 } },
+  marsh={ weight=1.0, curve={ e=2, c=46, w=3, sub=0 } },
 }
 
 local ORDERING = {
@@ -64,6 +65,18 @@ local ORDERING = {
   'desert', --
   'swamp', --
   'marsh', --
+}
+
+local MODE_NAMES = {
+  bbtt='cool_arid', --
+  bbtm='cool_normal', --
+  bbtb='cool_wet', --
+  bbmt='temperate_arid', --
+  bbmm='temperate_normal', --
+  bbmb='temperate_wet', --
+  bbbt='warm_arid', --
+  bbbm='warm_normal', --
+  bbbb='warm_wet', --
 }
 
 local function normalize_weights( SPEC )
@@ -80,13 +93,15 @@ end
 
 local function print_spec( spec, mode, emit )
   assert( mode )
-  emit( '%s {\n', mode )
+  local name = assert( MODE_NAMES[mode] )
+  emit( '%s {  # %s\n', name, mode )
   for _, curve in ipairs( ORDERING ) do
     local curve_spec = assert( spec[curve] )
     local half = 70 - 35.5
     local center = (assert( curve_spec.curve.c ) - 35.5) / half
     local stddev = assert( curve_spec.curve.w ) / half
     emit( '  %-9s {', curve )
+    emit( ' exp: %d,', assert( curve_spec.curve.e ) )
     emit( ' weight: %.4f,', assert( curve_spec.weight ) )
     emit( ' center: %.4f,', center )
     emit( ' stddev: %.4f,', stddev )
@@ -165,8 +180,8 @@ local function gaussian4( center, stddev, sub, y )
 end
 
 local function evaluate_mirrored_curves( curve, y )
-  local fns = { g2=gaussian, g4=gaussian4 }
-  local fn = assert( fns[curve.t] )
+  local fns = { [2]=gaussian, [4]=gaussian4 }
+  local fn = assert( fns[curve.e] )
   return assert( fn( curve.c, curve.w, curve.sub, y ) ) +
              assert( fn( 70 - curve.c, curve.w, curve.sub, y ) )
 end
@@ -375,7 +390,7 @@ end
 local function diff_values( l, r )
   assert( l )
   assert( r )
-  return (r - l) / l
+  return log( r / l )
 end
 
 local function compute_diff( l, r )
@@ -401,6 +416,28 @@ local function compute_diff( l, r )
   return diff
 end
 
+local function compute_diff_sum( l, r )
+  assert( l )
+  assert( r )
+  local sum = {}
+  for _, name in ipairs( ORDERING ) do
+    sum[name] = {}
+    local s = sum[name]
+    assert( l[name].weight )
+    assert( r[name].weight )
+    assert( l[name].curve.c )
+    assert( r[name].curve.c )
+    assert( l[name].curve.w )
+    assert( r[name].curve.w )
+    s.weight = l[name].weight + r[name].weight
+    s.curve = {}
+    s.curve.c = l[name].curve.c + r[name].curve.c
+    s.curve.w = l[name].curve.w + r[name].curve.w
+    s.curve.sub = l[name].curve.sub + r[name].curve.sub
+  end
+  return sum
+end
+
 local function compute_diffs( specs )
   assert( specs )
   local diffs = {}
@@ -410,6 +447,12 @@ local function compute_diffs( specs )
   diffs.climate_b = compute_diff( specs.bbmm, specs.bbmb )
   diffs.temp_clim_tt = compute_diff( specs.bbmm, specs.bbtt )
   diffs.temp_clim_bb = compute_diff( specs.bbmm, specs.bbbb )
+  diffs.temp_sum = compute_diff_sum( diffs.temperature_t,
+                                     diffs.temperature_b )
+  diffs.clim_sum = compute_diff_sum( diffs.climate_t,
+                                     diffs.climate_b )
+  diffs.temp_clim_sum = compute_diff_sum( diffs.temp_clim_tt,
+                                          diffs.temp_clim_bb )
   return diffs
 end
 
@@ -456,18 +499,6 @@ local function generate_mode( mode )
   end
 
   do
-    local filename = format( 'plots/%s.spec.rcl', mode )
-    printfln( 'writing spec result to %s', filename )
-    local f<close> = assert( io.open( filename, 'w' ) )
-    local function emit( fmt, ... )
-      f:write( format( fmt, ... ) )
-    end
-    -- print_metrics( emit, ratios, '# ' )
-    normalize_weights( spec )
-    print_spec( spec, mode, emit )
-  end
-
-  do
     local filename = format( 'plots/%s.gnuplot', mode )
     printfln( 'writing gnuplot file to %s', filename )
     local f<close> = assert( io.open( filename, 'w' ) )
@@ -477,6 +508,7 @@ local function generate_mode( mode )
     print_gnuplot_file( emit, mode )
   end
 
+  normalize_weights( spec )
   return spec
 end
 
@@ -489,6 +521,18 @@ local function generate()
     final_specs[mode] = assert( generate_mode( mode ) )
   end
 
+  do
+    local filename = format( 'plots/specs.rcl' )
+    printfln( 'writing final spec results to %s', filename )
+    local f<close> = assert( io.open( filename, 'w' ) )
+    local function emit( fmt, ... )
+      f:write( format( fmt, ... ) )
+    end
+    for _, mode in ipairs( MODES ) do
+      print_spec( assert( final_specs[mode] ), mode, emit )
+    end
+  end
+
   local diffs = compute_diffs( final_specs )
   do
     local filename = format( 'plots/diffs.rcl' )
@@ -499,11 +543,14 @@ local function generate()
     end
     local order = {
       'temperature_t', --
-      'climate_t', --
-      'temp_clim_tt', --
       'temperature_b', --
+      'temp_sum', --
+      'climate_t', --
       'climate_b', --
+      'clim_sum', --
+      'temp_clim_tt', --
       'temp_clim_bb', --
+      'temp_clim_sum', --
     }
     for _, key in ipairs( order ) do
       print_spec_diffs( assert( diffs[key] ), key, emit )
