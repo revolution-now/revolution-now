@@ -489,7 +489,6 @@ local function generate()
     local f<close> = assert( io.open( filename, 'w' ) )
     local function emit( fmt, ... )
       f:write( format( fmt, ... ) )
-      io.write( format( fmt, ... ) )
     end
     local order = {
       'temperature_t', --
