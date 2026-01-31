@@ -1,0 +1,60 @@
+temperature_t {
+  savannah  { weight:       -, stddev: -0.2557, center:       - }
+  grassland { weight: -0.1421, stddev:  0.2255, center:       - }
+  tundra    { weight:  1.2195, stddev:  0.1836, center:       - }
+  plains    { weight:  0.3472, stddev:  0.2265, center:       - }
+  prairie   { weight:       -, stddev:  0.2493, center:       - }
+  desert    { weight:       -, stddev:  0.1434, center:       - }
+  swamp     { weight:       -, stddev: -0.2342, center:       - }
+  marsh     { weight: -0.1360, stddev:  0.2208, center:       - }
+}
+climate_t {
+  savannah  { weight:       -, stddev:       -, center:       - }
+  grassland { weight:       -, stddev:       -, center:       - }
+  tundra    { weight:  0.7886, stddev:       -, center:       - }
+  plains    { weight:  0.2199, stddev:       -, center:       - }
+  prairie   { weight:       -, stddev:       -, center:       - }
+  desert    { weight:       -, stddev:       -, center:       - }
+  swamp     { weight:       -, stddev: -0.2028, center:       - }
+  marsh     { weight: -0.1406, stddev:       -, center:       - }
+}
+temp_clim_tt {
+  savannah  { weight:       -, stddev: -0.1639, center:       - }
+  grassland { weight: -0.1121, stddev:  0.1096, center:       - }
+  tundra    { weight:  1.8928, stddev:  0.1363, center:       - }
+  plains    { weight:  0.4262, stddev:  0.1469, center:       - }
+  prairie   { weight:       -, stddev:  0.1536, center:       - }
+  desert    { weight:       -, stddev:  0.1151, center:       - }
+  swamp     { weight:       -, stddev: -0.3409, center:       - }
+  marsh     { weight: -0.2003, stddev:       -, center:       - }
+}
+temperature_b {
+  savannah  { weight:       -, stddev:  0.1542, center:       - }
+  grassland { weight:       -, stddev: -0.1445, center:       - }
+  tundra    { weight: -0.5998, stddev: -0.1163, center:       - }
+  plains    { weight: -0.3307, stddev: -0.1402, center:       - }
+  prairie   { weight: -0.1103, stddev: -0.1555, center:       - }
+  desert    { weight:       -, stddev: -0.1264, center:       - }
+  swamp     { weight:       -, stddev:  0.1085, center:       - }
+  marsh     { weight:       -, stddev: -0.1405, center:       - }
+}
+climate_b {
+  savannah  { weight:       -, stddev:       -, center:       - }
+  grassland { weight:       -, stddev: -0.1073, center:       - }
+  tundra    { weight: -0.7751, stddev:       -, center:       - }
+  plains    { weight: -0.3617, stddev:       -, center:       - }
+  prairie   { weight:       -, stddev:       -, center:       - }
+  desert    { weight:       -, stddev:       -, center:       - }
+  swamp     { weight:  0.1389, stddev:       -, center:       - }
+  marsh     { weight:  0.1810, stddev: -0.1026, center:       - }
+}
+temp_clim_bb {
+  savannah  { weight: -0.1045, stddev:  0.2316, center:       - }
+  grassland { weight:       -, stddev:       -, center:       - }
+  tundra    { weight:       -, stddev:       -, center:       - }
+  plains    { weight:  0.2344, stddev:       -, center:       - }
+  prairie   { weight:       -, stddev:       -, center:       - }
+  desert    { weight:       -, stddev:       -, center:       - }
+  swamp     { weight:       -, stddev:       -, center:       - }
+  marsh     { weight:  0.1779, stddev:       -, center:       - }
+}

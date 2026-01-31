@@ -25,14 +25,18 @@ local BUFFER = 5
 
 local RATIO_TOLERANCE = 0.0005
 
+local DIFF_CUTOFF = 0.10
+
 local MODES = {
-  'bbtm', --
-  'bbmm', --
-  'bbbm', --
-  'bbmt', --
-  'bbmb', --
-  'bbbb', --
   'bbtt', --
+  'bbtm', --
+  'bbtb', --
+  'bbmt', --
+  'bbmm', --
+  'bbmb', --
+  'bbbt', --
+  'bbbm', --
+  'bbbb', --
 }
 
 -- All of these values (except for `sub`) are placeholders; they
@@ -50,8 +54,6 @@ local SPEC_INIT = {
   marsh={ weight=1.0, curve={ c=40, w=10, sub=0 } },
 }
 
-local SPEC
-
 local ORDERING = {
   'savannah', --
   'grassland', --
@@ -63,7 +65,7 @@ local ORDERING = {
   'marsh', --
 }
 
-local function normalize_weights()
+local function normalize_weights( SPEC )
   local total = 0
   for _, curve in ipairs( ORDERING ) do
     local spec = assert( SPEC[curve] )
@@ -75,20 +77,38 @@ local function normalize_weights()
   end
 end
 
-local function print_spec( mode, emit )
+local function print_spec( spec, mode, emit )
   assert( mode )
   emit( '%s {\n', mode )
   for _, curve in ipairs( ORDERING ) do
-    local spec = assert( SPEC[curve] )
+    local curve_spec = assert( spec[curve] )
     local half = 70 - 35.5
-    local center = (assert( spec.curve.c ) - 35.5) / half
-    local stddev = assert( spec.curve.w ) / half
+    local center = (assert( curve_spec.curve.c ) - 35.5) / half
+    local stddev = assert( curve_spec.curve.w ) / half
     emit( '  %-9s {', curve )
-    emit( ' weight: %.4f,', assert( spec.weight ) )
+    emit( ' weight: %.4f,', assert( curve_spec.weight ) )
     emit( ' center: %.4f,', center )
     emit( ' stddev: %.4f,', stddev )
-    emit( ' sub: %.4f', assert( spec.curve.sub ) )
+    emit( ' sub: %.4f', assert( curve_spec.curve.sub ) )
     emit( ' }\n' )
+  end
+  emit( '}\n' )
+end
+
+local function print_spec_diffs( spec, mode, emit )
+  assert( mode )
+  emit( '%s {\n', mode )
+  local function fmt( f )
+    if abs( f ) < DIFF_CUTOFF then return '-' end
+    return format( '%.4f', assert( f ) )
+  end
+  for _, curve in ipairs( ORDERING ) do
+    local curve_spec = assert( spec[curve] )
+    local weight = assert( curve_spec.weight )
+    local center = assert( curve_spec.curve.c )
+    local stddev = assert( curve_spec.curve.w )
+    emit( '  %-9s { weight: %7s, stddev: %7s, center: %7s }\n',
+          curve, fmt( weight ), fmt( stddev ), fmt( center ) )
   end
   emit( '}\n' )
 end
@@ -237,20 +257,21 @@ local function metrics_ratios( m1, m2 )
   return ratios
 end
 
-local function tweak_spec( curve, metric_name, ratios )
+local function tweak_spec( spec, curve, metric_name, ratios )
+  assert( spec )
   local curve_metric_ratios = assert( ratios[curve] )
-  local spec = assert( SPEC[curve] )
-  local params = spec.curve
+  local curve_spec = assert( spec[curve] )
+  local params = curve_spec.curve
+  -- Below, instead of dividing by the ratio directly (which
+  -- would make most sense) bring it closer to 1 first since oth-
+  -- erwise it seems to overshoot causing convergence to take
+  -- longer. Not sure why this is.
   if metric_name == 'area' then
     local area = assert( curve_metric_ratios.area )
-    spec.weight = spec.weight / area
+    curve_spec.weight = curve_spec.weight / ((area + 1) / 2)
   elseif metric_name == 'avg' then
     local avg = assert( curve_metric_ratios.avg )
     local delta = abs( params.c - 35.5 )
-    -- Instead of dividing by avg directly (which would make most
-    -- sense) bring it closer to 1 first since otherwise it seems
-    -- to overshoot causing convergence failures. Not sure why
-    -- this is.
     delta = delta / ((avg + 1) / 2)
     if params.c < 35.5 then
       params.c = 35.5 - delta
@@ -260,7 +281,7 @@ local function tweak_spec( curve, metric_name, ratios )
     params.c = max( params.c, 35.5 )
   elseif metric_name == 'stddev' then
     local stddev = assert( curve_metric_ratios.stddev )
-    params.w = params.w / stddev
+    params.w = params.w / ((stddev + 1) / 2)
   else
     error( format( 'unrecognized metric name: %s',
                    tostring( metric_name ) ) )
@@ -284,12 +305,12 @@ end
 -----------------------------------------------------------------
 -- Graph evaluation.
 -----------------------------------------------------------------
-local function evaluate_row( y )
+local function evaluate_row( spec, y )
   assert( y )
   local res = {}
   for _, name in ipairs( ORDERING ) do
-    local weight = assert( SPEC[name].weight )
-    local curve = assert( SPEC[name].curve )
+    local weight = assert( spec[name].weight )
+    local curve = assert( spec[name].curve )
     res[name] = res[name] or 0
     res[name] = res[name] + weight *
                     evaluate_mirrored_curves( curve, y )
@@ -298,10 +319,10 @@ local function evaluate_row( y )
   return res
 end
 
-local function compute_model_graphs()
+local function compute_model_graphs( spec )
   local graphs = {}
   for y = 36, 70 do
-    local numbers = assert( evaluate_row( y ) )
+    local numbers = assert( evaluate_row( spec, y ) )
     local row_total = 0
     for _, name in ipairs( ORDERING ) do
       row_total = row_total + assert( numbers[name] )
@@ -341,13 +362,57 @@ local function read_reference_plot( mode )
 end
 
 -----------------------------------------------------------------
+-- Diffs.
+-----------------------------------------------------------------
+local function diff_values( l, r )
+  assert( l )
+  assert( r )
+  return (r - l) / l
+end
+
+local function compute_diff( l, r )
+  assert( l )
+  assert( r )
+  local diff = {}
+  for _, name in ipairs( ORDERING ) do
+    diff[name] = {}
+    local d = diff[name]
+    assert( l[name].weight )
+    assert( r[name].weight )
+    assert( l[name].curve.c )
+    assert( r[name].curve.c )
+    assert( l[name].curve.w )
+    assert( r[name].curve.w )
+    d.weight = diff_values( l[name].weight, r[name].weight )
+    d.curve = {}
+    d.curve.c = diff_values( l[name].curve.c, r[name].curve.c )
+    d.curve.w = diff_values( l[name].curve.w, r[name].curve.w )
+    d.curve.sub = diff_values( l[name].curve.sub,
+                               r[name].curve.sub )
+  end
+  return diff
+end
+
+local function compute_diffs( specs )
+  assert( specs )
+  local diffs = {}
+  diffs.temperature_t = compute_diff( specs.bbmm, specs.bbtm )
+  diffs.temperature_b = compute_diff( specs.bbmm, specs.bbbm )
+  diffs.climate_t = compute_diff( specs.bbmm, specs.bbmt )
+  diffs.climate_b = compute_diff( specs.bbmm, specs.bbmb )
+  diffs.temp_clim_tt = compute_diff( specs.bbmm, specs.bbtt )
+  diffs.temp_clim_bb = compute_diff( specs.bbmm, specs.bbbb )
+  return diffs
+end
+
+-----------------------------------------------------------------
 -- Driver.
 -----------------------------------------------------------------
 local function generate_mode( mode )
   printfln( 'generating for mode %s', mode )
-  SPEC = deep_copy( SPEC_INIT )
+  local spec = deep_copy( SPEC_INIT )
   local _, ref_metrics = read_reference_plot( mode )
-  local model, model_metrics = compute_model_graphs()
+  local model, model_metrics = compute_model_graphs( spec )
   local ratios = metrics_ratios( model_metrics, ref_metrics )
   local metric_names = { 'area', 'avg', 'stddev' }
   local iteration = 0
@@ -355,8 +420,8 @@ local function generate_mode( mode )
     for _, curve in ipairs( ORDERING ) do
       for _, metric_name in ipairs( metric_names ) do
         iteration = iteration + 1
-        tweak_spec( curve, metric_name, ratios )
-        model, model_metrics = compute_model_graphs()
+        tweak_spec( spec, curve, metric_name, ratios )
+        model, model_metrics = compute_model_graphs( spec )
         ratios = metrics_ratios( model_metrics, ref_metrics )
         -- print_metrics_stdout( ratios )
         if check_ratios( ratios ) then goto done end
@@ -390,8 +455,8 @@ local function generate_mode( mode )
       f:write( format( fmt, ... ) )
     end
     -- print_metrics( emit, ratios, '# ' )
-    normalize_weights()
-    print_spec( mode, emit )
+    normalize_weights( spec )
+    print_spec( spec, mode, emit )
   end
 
   do
@@ -403,14 +468,39 @@ local function generate_mode( mode )
     end
     print_gnuplot_file( emit, mode )
   end
+
+  return spec
 end
 
 local function generate()
   local line = ''
+  local final_specs = {}
   for _, mode in ipairs( MODES ) do
     io.write( line )
     line = '\n'
-    generate_mode( mode )
+    final_specs[mode] = assert( generate_mode( mode ) )
+  end
+
+  local diffs = compute_diffs( final_specs )
+  do
+    local filename = format( 'plots/diffs.rcl' )
+    printfln( 'writing diff results to %s', filename )
+    local f<close> = assert( io.open( filename, 'w' ) )
+    local function emit( fmt, ... )
+      f:write( format( fmt, ... ) )
+      io.write( format( fmt, ... ) )
+    end
+    local order = {
+      'temperature_t', --
+      'climate_t', --
+      'temp_clim_tt', --
+      'temperature_b', --
+      'climate_b', --
+      'temp_clim_bb', --
+    }
+    for _, key in ipairs( order ) do
+      print_spec_diffs( assert( diffs[key] ), key, emit )
+    end
   end
 end
 

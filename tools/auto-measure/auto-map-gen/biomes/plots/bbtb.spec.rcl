@@ -1,0 +1,10 @@
+bbtb {
+  savannah  { weight: 0.3608, center: 0.0381, stddev: 0.0918, sub: 0.0250 }
+  grassland { weight: 0.1427, center: 0.0756, stddev: 0.1635, sub: 0.0000 }
+  tundra    { weight: 0.0037, center: 0.4379, stddev: 0.1206, sub: 0.0000 }
+  plains    { weight: 0.0347, center: 0.2992, stddev: 0.1488, sub: 0.0000 }
+  prairie   { weight: 0.0983, center: 0.1631, stddev: 0.1654, sub: 0.0000 }
+  desert    { weight: 0.1102, center: 0.1136, stddev: 0.1252, sub: 0.0000 }
+  swamp     { weight: 0.1961, center: 0.0542, stddev: 0.0865, sub: 0.0250 }
+  marsh     { weight: 0.0536, center: 0.0654, stddev: 0.1605, sub: 0.0000 }
+}
