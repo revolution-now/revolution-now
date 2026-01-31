@@ -27,7 +27,6 @@ local err = logger.err
 local info = logger.info
 local check = logger.check
 local remove = table.remove
-local insert = table.insert
 local printf = util.printf
 local format = string.format
 
@@ -73,10 +72,9 @@ local function main( args )
   check( type( lambda ) == 'function',
          'lambda module must return a function.' )
 
-  local parsed = {}
   for i, filename in ipairs( colony_savs ) do
     clear_line()
-    io.write( format( '\rloading [%d/%d] %s...', i, #colony_savs,
+    io.write( format( '\rrunning [%d/%d] %s...', i, #colony_savs,
                       filename:match( '.*/(.*)' ) ) )
     io.flush()
     local json = sav_reader.load{
@@ -84,19 +82,16 @@ local function main( args )
       colony_sav=filename,
     }
     assert( json )
-    insert( parsed, { json=json, filename=filename } )
+
+    local ok, msg = pcall( lambda, json )
+    if not ok then
+      printf( 'error in processing %s: %s',
+              filename:match( '.*/(.*)' ), msg )
+    end
+    if i % 100 == 0 then collectgarbage() end
   end
   clear_line()
   io.flush()
-
-  info( 'running lambda...' )
-  for _, loaded in ipairs( parsed ) do
-    local ok, msg = pcall( lambda, loaded.json )
-    if not ok then
-      printf( 'error in processing %s: %s',
-              loaded.filename:match( '.*/(.*)' ), msg )
-    end
-  end
 
   -- Tell the lambda that we're finished so that it can print re-
   -- sults.
