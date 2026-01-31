@@ -1,57 +1,10 @@
-# curve           area       avg    stddev
-# savannah      1.0000    1.0005    0.9999
-# grassland     1.0000    0.9999    1.0000
-# tundra        1.0001    1.0000    1.0000
-# plains        1.0000    1.0000    1.0001
-# prairie       0.9999    0.9999    1.0000
-# desert        1.0000    1.0000    1.0000
-# swamp         1.0001    1.0005    1.0000
-# marsh         0.9999    1.0005    1.0000
-savannah {
-  weight: 9.976
-  center: 37.022
-  width: 3.119
-  sub: 0.025
-}
-grassland {
-  weight: 3.207
-  center: 35.669
-  width: 6.481
-  sub: 0.000
-}
-tundra {
-  weight: 0.280
-  center: 51.423
-  width: 4.468
-  sub: 0.000
-}
-plains {
-  weight: 1.366
-  center: 47.168
-  width: 5.443
-  sub: 0.000
-}
-prairie {
-  weight: 2.756
-  center: 41.722
-  width: 6.087
-  sub: 0.000
-}
-desert {
-  weight: 3.148
-  center: 39.930
-  width: 4.588
-  sub: 0.000
-}
-swamp {
-  weight: 4.337
-  center: 37.077
-  width: 3.153
-  sub: 0.025
-}
-marsh {
-  weight: 1.098
-  center: 35.716
-  width: 6.227
-  sub: 0.000
+bbtm {
+  savannah  { weight: 0.3812, center: 0.0441, stddev: 0.0904, sub: 0.0250 }
+  grassland { weight: 0.1226, center: 0.0049, stddev: 0.1879, sub: 0.0000 }
+  tundra    { weight: 0.0107, center: 0.4615, stddev: 0.1295, sub: 0.0000 }
+  plains    { weight: 0.0522, center: 0.3382, stddev: 0.1578, sub: 0.0000 }
+  prairie   { weight: 0.1053, center: 0.1804, stddev: 0.1764, sub: 0.0000 }
+  desert    { weight: 0.1203, center: 0.1284, stddev: 0.1330, sub: 0.0000 }
+  swamp     { weight: 0.1658, center: 0.0457, stddev: 0.0914, sub: 0.0250 }
+  marsh     { weight: 0.0420, center: 0.0062, stddev: 0.1805, sub: 0.0000 }
 }
