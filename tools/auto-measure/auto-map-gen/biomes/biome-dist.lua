@@ -23,7 +23,7 @@ local MAX_ITERATIONS = 100000
 -- Ignore the curve this close to the edges since it is noisy.
 local BUFFER = 5
 
-local RATIO_TOLERANCE = 0.0005
+local RATIO_TOLERANCE = 0.00005
 
 local DIFF_CUTOFF = 0.10
 
@@ -41,17 +41,18 @@ local MODES = {
 
 -- All of these values (except for `sub`) are placeholders; they
 -- will be adjusted on each iteration to fit the experimental
--- data. They are given initial values in the valid range so that
--- the iteration is able to get started.
+-- data. They are given initial values that were determined em-
+-- pirically to lead to convergence in the shortest amount of
+-- time (just to reduce script runtime).
 local SPEC_INIT = {
-  savannah={ weight=1.0, curve={ c=40, w=10, sub=.025 } },
-  grassland={ weight=1.0, curve={ c=40, w=10, sub=0 } },
-  tundra={ weight=1.0, curve={ c=40, w=10, sub=0 } },
-  plains={ weight=1.0, curve={ c=40, w=10, sub=0 } },
-  prairie={ weight=1.0, curve={ c=40, w=10, sub=0 } },
-  desert={ weight=1.0, curve={ c=40, w=10, sub=0 } },
-  swamp={ weight=1.0, curve={ c=40, w=10, sub=.025 } },
-  marsh={ weight=1.0, curve={ c=40, w=10, sub=0 } },
+  savannah={ weight=2.0, curve={ c=46, w=3, sub=.3 } },
+  grassland={ weight=1.0, curve={ c=46, w=3, sub=0 } },
+  tundra={ weight=1.0, curve={ c=46, w=3, sub=0 } },
+  plains={ weight=1.0, curve={ c=46, w=3, sub=0 } },
+  prairie={ weight=1.0, curve={ c=46, w=3, sub=0 } },
+  desert={ weight=1.0, curve={ c=46, w=3, sub=0 } },
+  swamp={ weight=2.0, curve={ c=46, w=3, sub=.3 } },
+  marsh={ weight=1.0, curve={ c=46, w=3, sub=0 } },
 }
 
 local ORDERING = {

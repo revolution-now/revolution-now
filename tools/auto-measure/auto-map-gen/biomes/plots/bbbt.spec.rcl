@@ -1,10 +1,10 @@
 bbbt {
-  savannah  { weight: 0.3586, center: 0.0042, stddev: 0.1465, sub: 0.0250 }
-  grassland { weight: 0.1610, center: 0.1732, stddev: 0.1149, sub: 0.0000 }
-  tundra    { weight: 0.0034, center: 0.4073, stddev: 0.0946, sub: 0.0000 }
-  plains    { weight: 0.0319, center: 0.3300, stddev: 0.1036, sub: 0.0000 }
-  prairie   { weight: 0.1052, center: 0.2451, stddev: 0.1106, sub: 0.0000 }
-  desert    { weight: 0.1236, center: 0.2318, stddev: 0.0986, sub: 0.0000 }
-  swamp     { weight: 0.1664, center: 0.0992, stddev: 0.1140, sub: 0.0250 }
-  marsh     { weight: 0.0499, center: 0.1761, stddev: 0.1120, sub: 0.0000 }
+  savannah  { weight: 0.2070, center: 0.2261, stddev: 0.1692, sub: 0.3000 }
+  grassland { weight: 0.1183, center: 0.3488, stddev: 0.1226, sub: 0.0000 }
+  tundra    { weight: 0.0456, center: 0.5422, stddev: 0.0986, sub: 0.0000 }
+  plains    { weight: 0.1645, center: 0.4865, stddev: 0.1090, sub: 0.0000 }
+  prairie   { weight: 0.1882, center: 0.4157, stddev: 0.1172, sub: 0.0000 }
+  desert    { weight: 0.1454, center: 0.3626, stddev: 0.1031, sub: 0.0000 }
+  swamp     { weight: 0.0951, center: 0.2312, stddev: 0.1652, sub: 0.3000 }
+  marsh     { weight: 0.0359, center: 0.3422, stddev: 0.1190, sub: 0.0000 }
 }
