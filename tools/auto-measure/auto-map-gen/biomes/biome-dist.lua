@@ -50,7 +50,7 @@ local SPEC_INIT = {
   tundra={ weight=1.0, curve={ c=46, w=3, sub=0 } },
   plains={ weight=1.0, curve={ c=46, w=3, sub=0 } },
   prairie={ weight=1.0, curve={ c=46, w=3, sub=0 } },
-  desert={ weight=1.0, curve={ c=46, w=3, sub=0 } },
+  desert={ weight=4.0, curve={ c=46, w=9, sub=0 } },
   swamp={ weight=2.0, curve={ c=46, w=3, sub=.3 } },
   marsh={ weight=1.0, curve={ c=46, w=3, sub=0 } },
 }
