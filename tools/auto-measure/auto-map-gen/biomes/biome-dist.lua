@@ -218,15 +218,21 @@ local function print_metrics( emit, metrics, prefix )
   local metric_names = { 'area', 'avg', 'stddev' }
   for _, name in ipairs( metric_names ) do emit( '%10s', name ) end
   emit( '\n' )
+  emit( '%s----------------------------------------\n', prefix )
+  local max_deviation = 0
   for _, curve in ipairs( ORDERING ) do
     emit( '%s%-10s', prefix, curve )
+    local curve_metrics = assert( metrics[curve] )
     for _, metric_name in ipairs( metric_names ) do
-      local curve_metrics = assert( metrics[curve] )
-      emit( '%10s', format( '%.4f',
-                            assert( curve_metrics[metric_name] ) ) )
+      local val = assert( curve_metrics[metric_name] )
+      emit( '%10s', format( '%.4f', val ) )
+      max_deviation = max( abs( val - 1 ), max_deviation )
     end
     emit( '\n' )
   end
+  emit( '%s----------------------------------------\n', prefix )
+  emit( '%smax deviation: %.4f\n', prefix, max_deviation )
+  return max_deviation
 end
 
 local function print_metrics_stdout( metrics )
@@ -734,6 +740,31 @@ local function generate()
     emit( '\n' )
     print_spec_diffs( interps.climate_up, 'climate_gradient',
                       emit )
+  end
+
+  printfln( 'writing interpolated spec accuracy...' )
+  do
+    local filename = format( 'interpolated/accuracy.txt' )
+    local f<close> = assert( io.open( filename, 'w' ) )
+    local function emit( fmt, ... )
+      f:write( format( fmt, ... ) )
+    end
+    local global_max_deviation = 0
+    for _, mode in ipairs( MODES ) do
+      local _, ref_metrics = read_reference_plot( mode )
+      local interp = assert( generated_interps[mode], mode )
+      local interp_metrics = compute_metrics( interp )
+      local ratios =
+          metrics_ratios( interp_metrics, ref_metrics )
+      emit( 'mode: %s\n', mode )
+      local prefix = '  '
+      local max_deviation = print_metrics( emit, ratios, prefix )
+      global_max_deviation = max( max_deviation,
+                                  global_max_deviation )
+      emit( '\n' )
+    end
+    emit( '\n' )
+    emit( 'Global Max Deviation: %.4f\n', global_max_deviation )
   end
 end
 
