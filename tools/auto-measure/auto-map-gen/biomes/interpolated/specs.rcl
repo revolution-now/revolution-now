@@ -1,0 +1,32 @@
+temperate_normal {  # bbmm
+  savannah  { exp: 2, weight: 0.2748, center: 0.1714, stddev: 0.1368, sub: 0.3000 }
+  grassland { exp: 2, weight: 0.1304, center: 0.2958, stddev: 0.1276, sub: 0.0000 }
+  tundra    { exp: 2, weight: 0.0294, center: 0.5027, stddev: 0.1003, sub: 0.0000 }
+  plains    { exp: 2, weight: 0.1344, center: 0.4380, stddev: 0.1135, sub: 0.0000 }
+  prairie   { exp: 2, weight: 0.1774, center: 0.3649, stddev: 0.1225, sub: 0.0000 }
+  desert    { exp: 4, weight: 0.0864, center: 0.3000, stddev: 0.1424, sub: 0.0000 }
+  swamp     { exp: 2, weight: 0.1250, center: 0.1750, stddev: 0.1382, sub: 0.3000 }
+  marsh     { exp: 2, weight: 0.0422, center: 0.2885, stddev: 0.1247, sub: 0.0000 }
+}
+
+temperature_gradient {
+  savannah  { weight: -0.1106, center: -0.0262, stddev: -0.1929, sub:  0.0000 }
+  grassland { weight: -0.0262, center: -0.0182, stddev: -0.0026, sub:  0.0000 }
+  tundra    { weight:  0.4202, center: -0.0166, stddev:  0.0310, sub:  0.0000 }
+  plains    { weight:  0.2334, center: -0.0163, stddev:  0.0278, sub:  0.0000 }
+  prairie   { weight:  0.0584, center: -0.0177, stddev:  0.0242, sub:  0.0000 }
+  desert    { weight: -0.0145, center: -0.0240, stddev: -0.0150, sub:  0.0000 }
+  swamp     { weight: -0.1311, center: -0.0280, stddev: -0.1945, sub:  0.0000 }
+  marsh     { weight: -0.0616, center: -0.0198, stddev:  0.0013, sub:  0.0000 }
+}
+
+climate_gradient {
+  savannah  { weight:  0.0537, center: -0.0010, stddev:  0.0150, sub:  0.0000 }
+  grassland { weight: -0.1707, center: -0.0152, stddev: -0.0118, sub:  0.0000 }
+  tundra    { weight:  0.3931, center: -0.0089, stddev:  0.0135, sub:  0.0000 }
+  plains    { weight:  0.0886, center: -0.0044, stddev: -0.0129, sub:  0.0000 }
+  prairie   { weight: -0.0401, center: -0.0095, stddev: -0.0185, sub:  0.0000 }
+  desert    { weight:  0.0819, center:  0.0017, stddev:  0.0154, sub:  0.0000 }
+  swamp     { weight: -0.0411, center: -0.0023, stddev: -0.0204, sub:  0.0000 }
+  marsh     { weight: -0.2549, center: -0.0128, stddev: -0.0134, sub:  0.0000 }
+}

@@ -14,7 +14,6 @@ local format = string.format
 local max = math.max
 local exp = math.exp
 local abs = math.abs
-local log = math.log
 
 -----------------------------------------------------------------
 -- Spec.
@@ -26,7 +25,7 @@ local BUFFER = 5
 
 local RATIO_TOLERANCE = 0.00001
 
-local DIFF_CUTOFF = 0.10
+local DIFF_CUTOFF = 0.00
 
 local MODES = {
   'bbtt', --
@@ -93,7 +92,8 @@ end
 
 local function print_spec( spec, mode, emit )
   assert( mode )
-  local name = assert( MODE_NAMES[mode] )
+  local name = MODE_NAMES[mode] or mode
+  assert( name )
   emit( '%s {  # %s\n', name, mode )
   for _, curve in ipairs( ORDERING ) do
     local curve_spec = assert( spec[curve] )
@@ -101,7 +101,9 @@ local function print_spec( spec, mode, emit )
     local center = (assert( curve_spec.curve.c ) - 35.5) / half
     local stddev = assert( curve_spec.curve.w ) / half
     emit( '  %-9s {', curve )
-    emit( ' exp: %d,', assert( curve_spec.curve.e ) )
+    if curve_spec.curve.e then
+      emit( ' exp: %d,', assert( curve_spec.curve.e ) )
+    end
     emit( ' weight: %.4f,', assert( curve_spec.weight ) )
     emit( ' center: %.4f,', center )
     emit( ' stddev: %.4f,', stddev )
@@ -123,8 +125,11 @@ local function print_spec_diffs( spec, mode, emit )
     local weight = assert( curve_spec.weight )
     local center = assert( curve_spec.curve.c )
     local stddev = assert( curve_spec.curve.w )
-    emit( '  %-9s { weight: %7s, stddev: %7s, center: %7s }\n',
-          curve, fmt( weight ), fmt( stddev ), fmt( center ) )
+    local sub = assert( curve_spec.curve.sub )
+    emit(
+        '  %-9s { weight: %7s, center: %7s, stddev: %7s, sub: %7s }\n',
+        curve, fmt( weight ), fmt( center ), fmt( stddev ),
+        fmt( sub ) )
   end
   emit( '}\n' )
 end
@@ -390,7 +395,8 @@ end
 local function diff_values( l, r )
   assert( l )
   assert( r )
-  return log( r / l )
+  if l == 0 then return 0 end
+  return (r - l) / l
 end
 
 local function compute_diff( l, r )
@@ -416,19 +422,13 @@ local function compute_diff( l, r )
   return diff
 end
 
-local function compute_diff_sum( l, r )
+local function compute_spec_sum( l, r )
   assert( l )
   assert( r )
   local sum = {}
   for _, name in ipairs( ORDERING ) do
     sum[name] = {}
     local s = sum[name]
-    assert( l[name].weight )
-    assert( r[name].weight )
-    assert( l[name].curve.c )
-    assert( r[name].curve.c )
-    assert( l[name].curve.w )
-    assert( r[name].curve.w )
     s.weight = l[name].weight + r[name].weight
     s.curve = {}
     s.curve.c = l[name].curve.c + r[name].curve.c
@@ -436,6 +436,46 @@ local function compute_diff_sum( l, r )
     s.curve.sub = l[name].curve.sub + r[name].curve.sub
   end
   return sum
+end
+
+local function compute_spec_sub( l, r )
+  assert( l )
+  assert( r )
+  local sum = {}
+  for _, name in ipairs( ORDERING ) do
+    sum[name] = {}
+    local s = sum[name]
+    s.weight = r[name].weight - l[name].weight
+    s.curve = {}
+    s.curve.c = r[name].curve.c - l[name].curve.c
+    s.curve.w = r[name].curve.w - l[name].curve.w
+    s.curve.sub = r[name].curve.sub - l[name].curve.sub
+  end
+  return sum
+end
+
+local function compute_spec_abs_avg( l, r )
+  assert( l )
+  assert( r )
+  local abs_avg = {}
+  for _, name in ipairs( ORDERING ) do
+    abs_avg[name] = {}
+    local s = abs_avg[name]
+    s.weight = (abs( r[name].weight ) + abs( l[name].weight )) /
+                   2
+    if l[name].weight < 0 then s.weight = -s.weight end
+    s.curve = {}
+    s.curve.c =
+        (abs( r[name].curve.c ) + abs( l[name].curve.c )) / 2
+    if l[name].curve.c < 0 then s.curve.c = -s.curve.c end
+    s.curve.w =
+        (abs( r[name].curve.w ) + abs( l[name].curve.w )) / 2
+    if l[name].curve.w < 0 then s.curve.w = -s.curve.w end
+    s.curve.sub = (abs( r[name].curve.sub ) +
+                      abs( l[name].curve.sub )) / 2
+    if l[name].curve.sub < 0 then s.curve.sub = -s.curve.sub end
+  end
+  return abs_avg
 end
 
 local function compute_diffs( specs )
@@ -447,13 +487,92 @@ local function compute_diffs( specs )
   diffs.climate_b = compute_diff( specs.bbmm, specs.bbmb )
   diffs.temp_clim_tt = compute_diff( specs.bbmm, specs.bbtt )
   diffs.temp_clim_bb = compute_diff( specs.bbmm, specs.bbbb )
-  diffs.temp_sum = compute_diff_sum( diffs.temperature_t,
+  diffs.temp_sum = compute_spec_sum( diffs.temperature_t,
                                      diffs.temperature_b )
-  diffs.clim_sum = compute_diff_sum( diffs.climate_t,
+  diffs.clim_sum = compute_spec_sum( diffs.climate_t,
                                      diffs.climate_b )
-  diffs.temp_clim_sum = compute_diff_sum( diffs.temp_clim_tt,
+  diffs.temp_clim_sum = compute_spec_sum( diffs.temp_clim_tt,
                                           diffs.temp_clim_bb )
+  diffs.temp_clim_tt_sub = compute_spec_sub(
+                               compute_spec_sum(
+                                   diffs.temperature_t,
+                                   diffs.climate_t ),
+                               diffs.temp_clim_tt )
+  diffs.temp_clim_bb_sub = compute_spec_sub(
+                               compute_spec_sum(
+                                   diffs.temperature_b,
+                                   diffs.climate_b ),
+                               diffs.temp_clim_bb )
   return diffs
+end
+
+-----------------------------------------------------------------
+-- Interpolation.
+-----------------------------------------------------------------
+local function flip_interp( i )
+  assert( i )
+  local flipped = {}
+  for _, name in ipairs( ORDERING ) do
+    flipped[name] = {}
+    local s = flipped[name]
+    s.weight = -i[name].weight
+    s.curve = {}
+    s.curve.c = -i[name].curve.c
+    s.curve.w = -i[name].curve.w
+    s.curve.sub = -i[name].curve.sub
+  end
+  return flipped
+end
+
+local function compute_spec_interp( spec, temp_delta, clim_delta )
+  assert( spec )
+  local interp = {}
+  for _, name in ipairs( ORDERING ) do
+    interp[name] = deep_copy( assert( spec[name] ) )
+    local s = interp[name]
+    if temp_delta then
+      s.weight = s.weight * (1 + temp_delta[name].weight)
+      s.curve.c = s.curve.c * (1 + temp_delta[name].curve.c)
+      s.curve.w = s.curve.w * (1 + temp_delta[name].curve.w)
+      s.curve.sub = s.curve.sub *
+                        (1 + temp_delta[name].curve.sub)
+    end
+    if clim_delta then
+      s.weight = s.weight * (1 + clim_delta[name].weight)
+      s.curve.c = s.curve.c * (1 + clim_delta[name].curve.c)
+      s.curve.w = s.curve.w * (1 + clim_delta[name].curve.w)
+      s.curve.sub = s.curve.sub *
+                        (1 + clim_delta[name].curve.sub)
+    end
+  end
+  return interp
+end
+
+local function compute_interp( bbmm_spec, interps )
+  local temp_up = assert( interps.temperature_up )
+  local clim_up = assert( interps.climate_up )
+  local temp_down = assert( flip_interp( temp_up ) )
+  local clim_down = assert( flip_interp( clim_up ) )
+  local function emit( fmt, ... ) io.write( format( fmt, ... ) ) end
+  print_spec_diffs( temp_up, 'TEMP_DELTA_UP', emit )
+  print_spec_diffs( clim_up, 'CLIM_DELTA_UP', emit )
+  print_spec_diffs( temp_down, 'TEMP_DELTA_DOWN', emit )
+  print_spec_diffs( clim_down, 'CLIM_DELTA_DOWN', emit )
+  local res = {}
+  local function f( ... )
+    return compute_model_graphs(
+               compute_spec_interp( bbmm_spec, ... ) )
+  end
+  res.bbtt = f( temp_up, clim_up )
+  res.bbtm = f( temp_up, nil )
+  res.bbtb = f( temp_up, clim_down )
+  res.bbmt = f( nil, clim_up )
+  res.bbmm = f( nil, nil )
+  res.bbmb = f( nil, clim_down )
+  res.bbbt = f( temp_down, clim_up )
+  res.bbbm = f( temp_down, nil )
+  res.bbbb = f( temp_down, clim_down )
+  return res
 end
 
 -----------------------------------------------------------------
@@ -521,6 +640,7 @@ local function generate()
     final_specs[mode] = assert( generate_mode( mode ) )
   end
 
+  local interps = {}
   do
     local filename = format( 'plots/specs.rcl' )
     printfln( 'writing final spec results to %s', filename )
@@ -531,6 +651,20 @@ local function generate()
     for _, mode in ipairs( MODES ) do
       print_spec( assert( final_specs[mode] ), mode, emit )
     end
+    local bbtm_diff = compute_diff( final_specs.bbmm,
+                                    final_specs.bbtm )
+    local bbbm_diff = compute_diff( final_specs.bbmm,
+                                    final_specs.bbbm )
+    local bbmt_diff = compute_diff( final_specs.bbmm,
+                                    final_specs.bbmt )
+    local bbmb_diff = compute_diff( final_specs.bbmm,
+                                    final_specs.bbmb )
+    interps.temperature_up = assert(
+                                 compute_spec_abs_avg( bbtm_diff,
+                                                       bbbm_diff ) )
+    interps.climate_up = assert(
+                             compute_spec_abs_avg( bbmt_diff,
+                                                   bbmb_diff ) )
   end
 
   local diffs = compute_diffs( final_specs )
@@ -551,10 +685,55 @@ local function generate()
       'temp_clim_tt', --
       'temp_clim_bb', --
       'temp_clim_sum', --
+      'temp_clim_tt_sub', --
+      'temp_clim_bb_sub', --
     }
     for _, key in ipairs( order ) do
       print_spec_diffs( assert( diffs[key] ), key, emit )
     end
+  end
+
+  printfln( 'generating interpolated graphs...' )
+  local generated_interps = assert(
+                                compute_interp( final_specs.bbmm,
+                                                interps ) )
+  do
+    for _, mode in ipairs( MODES ) do
+      local interp = assert( generated_interps[mode], mode )
+      local filename = format( 'interpolated/%s.csv', mode )
+      printfln( 'writing interpolated results to %s', filename )
+      local f<close> = assert( io.open( filename, 'w' ) )
+      local function emit( fmt, ... )
+        f:write( format( fmt, ... ) )
+      end
+      print_csv( emit, interp )
+    end
+  end
+  do
+    for _, mode in ipairs( MODES ) do
+      local filename = format( 'interpolated/%s.gnuplot', mode )
+      local f<close> = assert( io.open( filename, 'w' ) )
+      local function emit( fmt, ... )
+        f:write( format( fmt, ... ) )
+      end
+      print_gnuplot_file( emit, mode )
+    end
+  end
+
+  printfln( 'writing interpolated specs...' )
+  do
+    local filename = format( 'interpolated/specs.rcl' )
+    local f<close> = assert( io.open( filename, 'w' ) )
+    local function emit( fmt, ... )
+      f:write( format( fmt, ... ) )
+    end
+    print_spec( assert( final_specs.bbmm ), 'bbmm', emit )
+    emit( '\n' )
+    print_spec_diffs( interps.temperature_up,
+                      'temperature_gradient', emit )
+    emit( '\n' )
+    print_spec_diffs( interps.climate_up, 'climate_gradient',
+                      emit )
   end
 end
 
