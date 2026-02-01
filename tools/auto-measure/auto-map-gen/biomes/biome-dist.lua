@@ -259,9 +259,10 @@ local function compute_metrics( graphs )
       local lo = math.floor( y )
       local hi = math.ceil( y )
       local e = y - lo
-      return graph[lo] * e + graph[hi] * (1 - e)
+      assert( e >= 0 )
+      return graph[lo] * (1 - e) + graph[hi] * e
     end
-    for y = 36, 70 - BUFFER, .1 do
+    for y = 35.5, 70 - BUFFER, .1 do
       local delta = y - 35.5
       local val = sample( y )
       moment0 = moment0 + val * delta ^ 0
