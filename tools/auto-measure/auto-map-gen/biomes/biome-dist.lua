@@ -617,7 +617,7 @@ local function generate_mode( mode )
           'ratios not within tolerance for mode ' .. mode )
 
   do
-    local filename = format( 'plots/%s.csv', mode )
+    local filename = format( 'fitted/%s.csv', mode )
     printfln( 'writing csv result to %s', filename )
     local f<close> = assert( io.open( filename, 'w' ) )
     local function emit( fmt, ... )
@@ -627,7 +627,7 @@ local function generate_mode( mode )
   end
 
   do
-    local filename = format( 'plots/%s.gnuplot', mode )
+    local filename = format( 'fitted/%s.gnuplot', mode )
     printfln( 'writing gnuplot file to %s', filename )
     local f<close> = assert( io.open( filename, 'w' ) )
     local function emit( fmt, ... )
@@ -651,7 +651,7 @@ local function generate()
 
   local interps = {}
   do
-    local filename = format( 'plots/specs.rcl' )
+    local filename = format( 'fitted/specs.rcl' )
     printfln( 'writing final spec results to %s', filename )
     local f<close> = assert( io.open( filename, 'w' ) )
     local function emit( fmt, ... )
@@ -678,7 +678,7 @@ local function generate()
 
   local diffs = compute_diffs( final_specs )
   do
-    local filename = format( 'plots/diffs.rcl' )
+    local filename = format( 'fitted/diffs.rcl' )
     printfln( 'writing diff results to %s', filename )
     local f<close> = assert( io.open( filename, 'w' ) )
     local function emit( fmt, ... )
