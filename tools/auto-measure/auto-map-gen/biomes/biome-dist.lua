@@ -182,6 +182,9 @@ local function gaussian( center, stddev, sub, y )
 end
 
 local function gaussian4( center, stddev, sub, y )
+  -- The sqrt( 2 ) here doesn't have the same meaning as in the
+  -- exp(-x^2) case, but we'll leave it in so that the two for-
+  -- mulas are the same except for exponent.
   local value = exp( -((y - center) / (stddev * 1.4142)) ^ 4 )
   value = value - sub
   return value
