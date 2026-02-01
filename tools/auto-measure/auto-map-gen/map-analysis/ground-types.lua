@@ -132,7 +132,7 @@ local function finished( mode )
   end
   emit( '%s\n', concat( header, ',' ) )
   for y_real = 1, 70 do
-    local y = clamp( y_real, 5, 65 )
+    local y = clamp( y_real, 4, 66 )
     local land = assert( D.land[y] )
     emit( '%d', y )
     if INCLUDE_LAND then

@@ -24,7 +24,7 @@ local abs = math.abs
 local MAX_ITERATIONS = 100000
 
 -- Ignore the curve this close to the edges since it is noisy.
-local BUFFER = 5
+local BUFFER = 4
 
 local RATIO_TOLERANCE = 0.00001
 
@@ -254,13 +254,16 @@ local function compute_metrics( graphs )
     local moment0 = 0.0
     local moment1 = 0.0
     local moment2 = 0.0
-    local sample = function( y )
+    local sample_impl = function( y )
       if y >= 70 then return graph[70] end
       local lo = math.floor( y )
       local hi = math.ceil( y )
       local e = y - lo
       assert( e >= 0 )
       return graph[lo] * (1 - e) + graph[hi] * e
+    end
+    local sample = function( y )
+      return (sample_impl( y ) + sample_impl( 70 - y )) / 2
     end
     for y = 35.5, 70 - BUFFER, .1 do
       local delta = y - 35.5
