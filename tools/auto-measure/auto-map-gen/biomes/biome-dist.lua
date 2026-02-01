@@ -4,13 +4,16 @@
 -----------------------------------------------------------------
 local csv = require( 'ftcsv' )
 local tbl = require( 'moon.tbl' )
+local printer = require( 'moon.printer' )
 
 -----------------------------------------------------------------
 -- Aliases.
 -----------------------------------------------------------------
 local deep_copy = tbl.deep_copy
+local bar = printer.bar
 
 local format = string.format
+local insert = table.insert
 local max = math.max
 local exp = math.exp
 local abs = math.abs
@@ -515,7 +518,7 @@ end
 -----------------------------------------------------------------
 -- Interpolation.
 -----------------------------------------------------------------
-local function flip_interp( i )
+local function flip_spec( i )
   assert( i )
   local flipped = {}
   for _, name in ipairs( ORDERING ) do
@@ -557,8 +560,8 @@ end
 local function compute_interp( bbmm_spec, interps )
   local temp_up = assert( interps.temperature_up )
   local clim_up = assert( interps.climate_up )
-  local temp_down = assert( flip_interp( temp_up ) )
-  local clim_down = assert( flip_interp( clim_up ) )
+  local temp_down = assert( flip_spec( temp_up ) )
+  local clim_down = assert( flip_spec( clim_up ) )
   local function emit( fmt, ... ) io.write( format( fmt, ... ) ) end
   print_spec_diffs( temp_up, 'TEMP_DELTA_UP', emit )
   print_spec_diffs( clim_up, 'CLIM_DELTA_UP', emit )
@@ -743,13 +746,14 @@ local function generate()
   end
 
   printfln( 'writing interpolated spec accuracy...' )
+  local deviations = {}
+  deviations.global_max_deviation = 0
   do
     local filename = format( 'interpolated/accuracy.txt' )
     local f<close> = assert( io.open( filename, 'w' ) )
     local function emit( fmt, ... )
       f:write( format( fmt, ... ) )
     end
-    local global_max_deviation = 0
     for _, mode in ipairs( MODES ) do
       local _, ref_metrics = read_reference_plot( mode )
       local interp = assert( generated_interps[mode], mode )
@@ -759,12 +763,37 @@ local function generate()
       emit( 'mode: %s\n', mode )
       local prefix = '  '
       local max_deviation = print_metrics( emit, ratios, prefix )
-      global_max_deviation = max( max_deviation,
-                                  global_max_deviation )
+      deviations[mode] = max_deviation
+      deviations.global_max_deviation =
+          max( max_deviation, deviations.global_max_deviation )
       emit( '\n' )
     end
     emit( '\n' )
-    emit( 'Global Max Deviation: %.4f\n', global_max_deviation )
+    emit( 'Global Max Deviation: %.4f\n',
+          deviations.global_max_deviation )
+  end
+
+  do
+    printfln( '' )
+    bar( '=' )
+    printfln(
+        'Deviations between predicted and empirical graphs:' )
+    bar( '-' )
+    printfln( '  global: %.4f',
+              assert( deviations.global_max_deviation ) )
+    printfln( '  --------------' )
+    local sorted_modes = {}
+    for _, mode in ipairs( MODES ) do
+      insert( sorted_modes,
+              { mode=mode, val=assert( deviations[mode] ) } )
+    end
+    table.sort( sorted_modes, function( l, r )
+      return assert( l.val ) < assert( r.val )
+    end )
+    for _, sorted_mode in ipairs( sorted_modes ) do
+      printfln( '    %s: %.4f', sorted_mode.mode, sorted_mode.val )
+    end
+    bar( '=' )
   end
 end
 
