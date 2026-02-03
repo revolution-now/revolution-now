@@ -29,16 +29,16 @@ mode: bbtm
 mode: bbtb
   curve           area       avg    stddev
   ----------------------------------------
-  savannah      0.9514    1.0338    0.9795
-  grassland     0.9674    0.9966    1.0227
-  tundra        0.9936    1.0021    1.0092
-  plains        1.0421    0.9983    1.0075
-  prairie       0.9763    0.9842    0.9978
-  desert        1.0753    0.9965    1.0112
-  swamp         1.0027    0.9793    0.9907
-  marsh         0.9582    0.9907    1.0255
+  savannah      0.9496    1.0308    0.9803
+  grassland     0.9668    0.9917    1.0180
+  tundra        1.0064    1.0015    1.0034
+  plains        1.0387    1.0001    1.0036
+  prairie       0.9773    0.9828    0.9985
+  desert        1.0670    0.9994    1.0145
+  swamp         1.0042    0.9794    0.9938
+  marsh         0.9660    0.9875    1.0197
   ----------------------------------------
-  max deviation: 0.0753
+  max deviation: 0.0670
 
 mode: bbmt
   curve           area       avg    stddev
@@ -85,16 +85,16 @@ mode: bbmb
 mode: bbbt
   curve           area       avg    stddev
   ----------------------------------------
-  savannah      1.0014    1.0083    0.9888
-  grassland     0.9685    0.9980    1.0215
-  tundra        0.9526    1.0015    1.0076
-  plains        1.0315    1.0044    0.9986
-  prairie       0.9898    0.9835    0.9831
-  desert        1.0625    1.0011    1.0123
-  swamp         0.9754    0.9670    0.9855
-  marsh         0.9243    1.0140    1.0241
+  savannah      1.0017    1.0058    0.9869
+  grassland     0.9649    0.9933    1.0170
+  tundra        0.9619    1.0007    1.0059
+  plains        1.0392    1.0021    0.9990
+  prairie       0.9764    0.9858    0.9878
+  desert        1.0565    1.0043    1.0134
+  swamp         0.9854    0.9868    1.0005
+  marsh         0.9288    0.9965    1.0163
   ----------------------------------------
-  max deviation: 0.0757
+  max deviation: 0.0712
 
 mode: bbbm
   curve           area       avg    stddev
@@ -125,4 +125,4 @@ mode: bbbb
   max deviation: 0.0532
 
 
-Global Max Deviation: 0.0757
+Global Max Deviation: 0.0751
