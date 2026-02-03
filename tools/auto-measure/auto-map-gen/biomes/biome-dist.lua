@@ -50,7 +50,7 @@ local MODES = {
 local SPEC_INIT = {
   savannah={ weight=2.0, curve={ e=2, c=46, w=3, sub=.3 } },
   grassland={ weight=1.0, curve={ e=2, c=46, w=3, sub=0 } },
-  tundra={ weight=1.0, curve={ e=2, c=46, w=3, sub=0 } },
+  tundra={ weight=0.5, curve={ e=2, c=44, w=5, sub=0 } },
   plains={ weight=1.0, curve={ e=2, c=46, w=3, sub=0 } },
   prairie={ weight=1.0, curve={ e=2, c=46, w=3, sub=0 } },
   desert={ weight=4.0, curve={ e=4, c=46, w=10, sub=0 } },
@@ -182,6 +182,9 @@ local function gaussian( center, stddev, sub, y )
 end
 
 local function gaussian4( center, stddev, sub, y )
+  -- The sqrt( 2 ) here doesn't have the same meaning as in the
+  -- exp(-x^2) case, but we'll leave it in so that the two for-
+  -- mulas are the same except for exponent.
   local value = exp( -((y - center) / (stddev * 1.4142)) ^ 4 )
   value = value - sub
   return value
