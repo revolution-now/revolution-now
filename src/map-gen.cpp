@@ -236,9 +236,13 @@ void remove_crosses( RealTerrain& real_terrain ) {
     return min( max( lround( target ), 1L ), 10L );
   };
 
-  // Note that arctic tiles are handled separately.
-  int const h_top    = 1;
-  int const h_bottom = 1;
+  // Note that arctic tiles are handled separately. Also, we
+  // don't want to remove land from the top/bottom rows because
+  // we want the normal land gen to be able to naturally extend
+  // land into the arctic, which the OG appears to allow. This
+  // way we don't have an artificial cutoff at the top/bottom.
+  int const h_top    = 0;
+  int const h_bottom = 0;
   // See note above function for the purpose of these min's.
   int const w_left =
       round_buffer( 2.0 * min( world_sz.w / 56.0, 1.0 ) );
@@ -276,6 +280,7 @@ double place_arctic( RealTerrain& real_terrain, IRand& rand,
     rand.shuffle( v );
     int const n = clamp( lround( density * w ), 0l, ssize( v ) );
     for( int i = 0; i < n; ++i )
+      // NOTE: don't remove land here, only add it.
       m[v[i]].surface = e_surface::land;
     placed += n;
     total += w;

@@ -5,7 +5,7 @@ map.source.generate_native.setup {
     perlin_settings {
       edge_suppression {
         enabled: true
-        suppression_decay: 0.6
+        suppression_decay: { w=0.75, h=0.0 }
       }
       land_form {
         fractal {
