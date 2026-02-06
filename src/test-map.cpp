@@ -90,6 +90,17 @@ void testing_map_gen( IEngine& engine ) {
   // ------------------------------------------------------------
   GameSetup setup;
   load_testing_game_setup( setup );
+#if 1
+  auto entropy = rand.generate_deterministic_seed();
+  PerlinSeed const perlin_seed{
+    .offset_x = entropy.consume<uint32_t>(),
+    .offset_y = entropy.consume<uint32_t>(),
+    .base     = entropy.consume<uint32_t>(),
+  };
+  setup.map.source.get_if<MapSource::generate_native>()
+      ->setup.surface_generator.perlin_settings.seed =
+      perlin_seed;
+#endif
 
   // ------------------------------------------------------------
   // Generate map.

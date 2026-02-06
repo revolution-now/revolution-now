@@ -48,9 +48,10 @@ using ::std::min;
 // NOTE: even though we use the classic map size dimensions as a
 // reference in this function, it is designed to work for any map
 // size, even super small or super large.
-void perlin_suppress_edges( point const p, size const map_sz,
-                            double const suppression_decay,
-                            double& level ) {
+void perlin_suppress_edges(
+    point const p, size const map_sz,
+    PerlinEdgeSuppression const& edge_suppression,
+    double& level ) {
   int const dist_x_unscaled =
       ( p.x < map_sz.w / 2 ) ? p.x : map_sz.w - p.x - 1;
   int const dist_y_unscaled =
@@ -61,14 +62,24 @@ void perlin_suppress_edges( point const p, size const map_sz,
     .h = sqrt( map_sz.h / 70.0 ),
   };
 
-  // x2 for y for less suppression near top/bottom edges.
   int const dist_x = lround( dist_x_unscaled / scale.w );
-  int const dist_y = lround( dist_y_unscaled / scale.h ) * 2;
+  int const dist_y = lround( dist_y_unscaled / scale.h );
 
-  int const dist = min( dist_x, dist_y );
+  auto const a =
+      ( ( double( dist_x - dist_y ) / ( dist_x + dist_y ) ) +
+        1.0 ) /
+      2.0;
+
+  // Weight the suppression factors based on how far the tile is
+  // to either the left/right edge or top/bottom edge.
+  double const decay =
+      ( 1 - a ) * edge_suppression.suppression_decay.w +
+      a * edge_suppression.suppression_decay.h;
+
+  int const dist = lround( ( 1 - a ) * dist_x + a * dist_y );
 
   double sub = 2.0;
-  for( int i = 0; i < dist; ++i ) sub *= suppression_decay;
+  for( int i = 0; i < dist; ++i ) sub *= decay;
   level -= sub;
 }
 
@@ -140,9 +151,8 @@ void land_gen_perlin( PerlinMapSettings const& settings,
   if( settings.edge_suppression.enabled ) {
     ScopedTimer const timer( "edge suppression" );
     for( point const p : rect_iterator( pm.rect() ) )
-      perlin_suppress_edges(
-          p, sz, settings.edge_suppression.suppression_decay,
-          pm[p] );
+      perlin_suppress_edges( p, sz, settings.edge_suppression,
+                             pm[p] );
   }
 
   print_stats( "3" );

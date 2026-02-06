@@ -11,6 +11,9 @@
 # rand
 include "rand/perlin.rds.hpp"
 
+# cartesian
+include "gfx/cartesian.hpp"
+
 namespace "rn"
 
 enum.e_land_mass {
@@ -45,7 +48,7 @@ struct.PerlinLandForm {
 
 struct.PerlinEdgeSuppression {
   enabled 'bool',
-  suppression_decay 'double',
+  suppression_decay 'gfx::dsize',
   _features { equality, validation }
 }
 

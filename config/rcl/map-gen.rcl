@@ -70,7 +70,7 @@ terrain_generation {
       # is probably no need to.
       perlin_edge_suppression {
         enabled: true
-        suppression_decay: .6
+        suppression_decay: { w=0.75, h=0.0 }
       }
     }
 
