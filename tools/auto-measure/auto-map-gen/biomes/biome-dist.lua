@@ -390,7 +390,7 @@ end
 -----------------------------------------------------------------
 local function read_reference_plot( mode )
   assert( mode )
-  local filename = format( '../gamegen/plots/%s.csv', mode )
+  local filename = format( 'empirical/%s.csv', mode )
   local rows, headers = csv.parse( filename )
   headers = headers -- use me
   local ref = {}

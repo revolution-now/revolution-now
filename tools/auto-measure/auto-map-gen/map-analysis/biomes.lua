@@ -23,7 +23,7 @@ local function clamp( n, l, h )
   return n
 end
 
-local PLOTS_DIR = 'gamegen/plots'
+local PLOTS_DIR = 'biomes/empirical'
 
 local GNUPLOT_FILE_TEMPLATE = [[
 #!/usr/bin/env -S gnuplot -p
