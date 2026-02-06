@@ -136,7 +136,7 @@ local function generate_one_map( config, selection_fn )
   forget_dosbox_window()
   local launcher<close> = launch.colonization_launcher()
 
-  sleep( 2.5 )
+  sleep( 2.0 )
 
   xdotool.center_window( dosbox.window() )
 
@@ -167,18 +167,20 @@ local function generate_one_map( config, selection_fn )
   -- Wait for map gen to finish. Note that this takes longer when
   -- the larger land mass option is selected, so it has to be
   -- long enough for that mode.
-  sleep( 12 )
+  sleep( 6 )
 
   -- In rare cases a price might move at the start of the first
-  -- turn; if so we need to close that window, but in a way that
-  -- won't change anything else.
-  actions.press_keys( 'z' )
-  sleep( 1 )
+  -- turn; if so we ideally should close that window since it
+  -- will cause the process to fail. But we'll skip it to save
+  -- time assuming that the script will auto restart. But here is
+  -- how that would be done:
+  -- actions.press_keys( 'z' )
+  -- sleep( 0.5 )
 
   -- Land view is now visible.
   save_game( SAV_SLOT )
 
-  sleep( 1 )
+  sleep( 0.5 )
 end
 
 local function make_customized_config_dir( config )

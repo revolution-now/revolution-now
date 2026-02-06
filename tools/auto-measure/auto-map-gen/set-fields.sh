@@ -4,7 +4,7 @@ set -eo pipefail
 cd "$(dirname "$0")"
 
 config_dir=.
-# config_dir=./gamegen/config/bbmb
+# config_dir=./gamegen/config/bbbb
 
 edit() {
   local f="$1"
