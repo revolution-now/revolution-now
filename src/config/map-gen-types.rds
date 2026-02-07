@@ -48,7 +48,7 @@ struct.PerlinLandForm {
 
 struct.PerlinEdgeSuppression {
   enabled 'bool',
-  suppression_decay 'gfx::dsize',
+  strength 'gfx::dsize',
   _features { equality, validation }
 }
 

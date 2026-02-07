@@ -65,6 +65,7 @@ void perlin_suppress_edges(
   int const dist_x = lround( dist_x_unscaled / scale.w );
   int const dist_y = lround( dist_y_unscaled / scale.h );
 
+#if 0 // old method
   auto const a =
       ( ( double( dist_x - dist_y ) / ( dist_x + dist_y ) ) +
         1.0 ) /
@@ -72,14 +73,25 @@ void perlin_suppress_edges(
 
   // Weight the suppression factors based on how far the tile is
   // to either the left/right edge or top/bottom edge.
-  double const decay =
-      ( 1 - a ) * edge_suppression.suppression_decay.w +
-      a * edge_suppression.suppression_decay.h;
+  double const decay = ( 1 - a ) * edge_suppression.decay.w +
+                       a * edge_suppression.decay.h;
 
-  int const dist = lround( ( 1 - a ) * dist_x + a * dist_y );
+  double const max = ( 1 - a ) * edge_suppression.max.w +
+                     a * edge_suppression.max.h;
 
-  double sub = 2.0;
-  for( int i = 0; i < dist; ++i ) sub *= decay;
+  int const dist = min( dist_x, dist_y );
+  int const dist = dist_x + dist_y;
+#endif
+
+  double const m     = 2.0;
+  double const limit = .95;
+  double const decay_x =
+      clamp( edge_suppression.strength.w, 0.0, 1.0 ) * limit;
+  double const decay_y =
+      clamp( edge_suppression.strength.h, 0.0, 1.0 ) * limit;
+  double const sub_x = m * pow( decay_x, dist_x );
+  double const sub_y = m * pow( decay_y, dist_y );
+  double const sub   = ( sub_x + sub_y ) / 2;
   level -= sub;
 }
 
@@ -109,7 +121,12 @@ void land_gen_perlin( PerlinMapSettings const& settings,
     // into [0,1] by rescaling. But we don't really need to do
     // that because we will be searching for the sea level using
     // a binary search below to achieve the target density, so
-    // the range of the noise doesn't really matter.
+    // the range of the noise doesn't really matter. Also,
+    // forcing it to fit into a fixed range makes the average
+    // (which is otherwise ~0) to be very sensitive to the min
+    // and max extremes, which might cause the edge suppression
+    // mechanism to behave in a less predictable way (not sure
+    // about that, but possible).
     return noise;
   };
   Matrix<double> pm( sz );
@@ -170,8 +187,8 @@ void land_gen_perlin( PerlinMapSettings const& settings,
     good,
     too_high,
   };
-  double sea_level_min    = -10.0;
-  double sea_level_max    = 10.0;
+  double sea_level_min    = -100.0;
+  double sea_level_max    = 100.0;
   auto const sea_level_is = [&]( double const sea_level ) {
     double const density = land_density( sea_level );
     lg.trace( "trying sea_level={} [{},{}] --> density={}",

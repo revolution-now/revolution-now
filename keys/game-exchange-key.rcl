@@ -5,7 +5,7 @@ map.source.generate_native.setup {
     perlin_settings {
       edge_suppression {
         enabled: true
-        suppression_decay: { w=0.75, h=0.0 }
+        strength: { w=0.6, h=0.1 }
       }
       land_form {
         fractal {
@@ -30,7 +30,7 @@ map.source.generate_native.setup {
       remove_crosses: true
       remove_islands: true
     }
-    target_density: 0.25
+    target_density: 0.245
   }
 
   ground_types {
