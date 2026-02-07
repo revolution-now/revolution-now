@@ -6,6 +6,7 @@ local logger = require'moon.logger'
 local time = require'moon.time'
 local cmd = require'moon.cmd'
 local str = require'moon.str'
+local printer = require'moon.printer'
 local coldo = require'lib.coldo'
 local readwrite = require'lib.readwrite-sav'
 local xdotool = require'lib.xdotool'
@@ -16,24 +17,27 @@ local libconfig = require'lib.config'
 -----------------------------------------------------------------
 -- Aliases
 -----------------------------------------------------------------
-local format = string.format
-local exit = os.exit
-local getenv = os.getenv
+local format = assert( string.format )
+local exit = assert( os.exit )
+local getenv = assert( os.getenv )
 
-local exists = file.exists
-local realpath = file.realpath
-local info = logger.info
-local sav_exists = readwrite.sav_exists
-local sav_is_symlink = readwrite.sav_is_symlink
-local path_for_sav = readwrite.path_for_sav
-local remove_sav = readwrite.remove_sav
-local save_game = coldo.save_game
-local action_api = xdotool.action_api
-local flatten_configs = libconfig.flatten_configs
-local sleep = time.sleep
-local forget_dosbox_window = dosbox.forget_dosbox_window
-local command = cmd.command
-local trim = str.trim
+local exists = assert( file.exists )
+local realpath = assert( file.realpath )
+local info = assert( logger.info )
+local sav_exists = assert( readwrite.sav_exists )
+local sav_is_symlink = assert( readwrite.sav_is_symlink )
+local path_for_sav = assert( readwrite.path_for_sav )
+local remove_sav = assert( readwrite.remove_sav )
+local save_game = assert( coldo.save_game )
+local action_api = assert( xdotool.action_api )
+local flatten_configs = assert( libconfig.flatten_configs )
+local sleep = assert( time.sleep )
+local timeit_micros = assert( time.timeit_micros )
+local forget_dosbox_window =
+    assert( dosbox.forget_dosbox_window )
+local command = assert( cmd.command )
+local trim = assert( str.trim )
+local printfln = assert( printer.printfln )
 
 -----------------------------------------------------------------
 -- Constants.
@@ -57,6 +61,13 @@ local VICEROY_EXE = format( '%s/VICEROY.EXE', COLONIZE )
 -----------------------------------------------------------------
 -- Helpers.
 -----------------------------------------------------------------
+local function timeit( name, fn )
+  local micros = timeit_micros( fn )
+  local secs = micros // 1000000
+  local millis = (micros % 1000000) // 1000
+  printfln( 'time taken for %s: %d.%03ds', name, secs, millis )
+end
+
 local function validate_environment()
   assert( getenv( 'DISPLAY' ),
           'the DISPLAY environment variable must be set.' )
@@ -230,7 +241,8 @@ local function auto_map_gen( config )
   local mode_fn = assert( modes[config.mode] )
   for i = 1, need_count do
     info( 'generating %d/%d...', i, need_count )
-    generate_one_map( config, mode_fn )
+    timeit( 'generate_one_map',
+            function() generate_one_map( config, mode_fn ) end )
     assert( sav_exists( SAV_SLOT ) )
     local sav_src = path_for_sav( SAV_SLOT )
     local sav_dst = format( '%s/COLONY00.SAV.%d', output_dir,
@@ -238,7 +250,6 @@ local function auto_map_gen( config )
     assert( os.rename( sav_src, sav_dst ), format(
                 'failed to move %s to %s', sav_src, sav_dst ) )
     assert( not sav_exists( SAV_SLOT ) )
-    sleep( 2 )
   end
 
   info( 'generated %d maps in %s.', need_count, output_dir )
