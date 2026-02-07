@@ -5,7 +5,7 @@ map.source.generate_native.setup {
     perlin_settings {
       edge_suppression {
         enabled: true
-        strength: { w=0.6, h=0.1 }
+        strength: { w=0.6, h=0.7 }
       }
       land_form {
         fractal {
@@ -19,6 +19,7 @@ map.source.generate_native.setup {
         base: 1152681597
         offset_x: 876454408
         offset_y: 2451924743
+        flip: false
       }
     }
     arctic {
@@ -30,7 +31,7 @@ map.source.generate_native.setup {
       remove_crosses: true
       remove_islands: true
     }
-    target_density: 0.245
+    target_density: 0.23
   }
 
   ground_types {

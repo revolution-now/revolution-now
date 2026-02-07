@@ -16,6 +16,7 @@
 #include "game-setup.rds.hpp"
 #include "igui.hpp"
 #include "irand.hpp"
+#include "perlin-map.hpp"
 
 // config
 #include "config/map-gen.rds.hpp"
@@ -96,17 +97,8 @@ wait<maybe<GameSetup>> create_classic_customized_game_setup(
 
   auto const& map_conf = config_map_gen.terrain_generation;
 
-  // This seed is sufficient to generate the numbers that we want
-  // because it happens that the three uint32_t values that con-
-  // stitute the perlin seed fit within the 128 bits that are
-  // provided by the rng::seed type, so we can read the seed bits
-  // directly instead of generating random numbers.
-  rng::seed perlin_entropy = rand.generate_deterministic_seed();
-  PerlinSeed const perlin_seed{
-    .offset_x = perlin_entropy.consume<uint32_t>(),
-    .offset_y = perlin_entropy.consume<uint32_t>(),
-    .base     = perlin_entropy.consume<uint32_t>(),
-  };
+  PerlinSeed const perlin_seed =
+      generate_perlin_seed( rand.generate_deterministic_seed() );
 
   PerlinMapSettings const perlin_settings{
     .land_form =

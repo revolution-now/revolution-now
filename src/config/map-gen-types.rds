@@ -62,4 +62,5 @@ struct.PerlinSeed {
   offset_x 'uint32_t',
   offset_y 'uint32_t',
   base     'uint32_t',
+  flip     'bool',
 }

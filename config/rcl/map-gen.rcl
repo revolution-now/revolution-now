@@ -26,9 +26,9 @@ terrain_generation {
       }
 
       densities {
-        small:    { lo: .10, hi: .20 }
-        moderate: { lo: .20, hi: .30 }
-        large:    { lo: .30, hi: .40 }
+        small:    { lo: .08, hi: .18 }
+        moderate: { lo: .18, hi: .28 }
+        large:    { lo: .28, hi: .38 }
       }
     }
 

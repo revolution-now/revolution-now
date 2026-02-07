@@ -17,6 +17,9 @@
 #include "ss/ref.hpp"
 #include "ss/terrain.hpp"
 
+// gfx
+#include "gfx/iter.hpp"
+
 // refl
 #include "refl/query-enum.hpp"
 
@@ -28,6 +31,7 @@ using namespace std;
 
 using ::gfx::point;
 using ::gfx::rect;
+using ::gfx::rect_iterator;
 using ::refl::enum_values;
 
 } // namespace
@@ -73,6 +77,15 @@ bool is_island( SSConst const& ss, point const tile ) {
   return ss.terrain.square_at( tile ).surface ==
              e_surface::land &&
          num_surrounding_land_tiles( ss, tile ) == 0;
+}
+
+void on_all_tiles(
+    SSConst const& ss,
+    base::function_ref<
+        void( gfx::point, MapSquare const& square )> const fn ) {
+  auto const& map  = ss.terrain.real_terrain().map;
+  rect const world = map.rect();
+  for( point const p : rect_iterator( world ) ) fn( p, map[p] );
 }
 
 } // namespace rn

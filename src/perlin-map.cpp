@@ -16,6 +16,9 @@
 // rand
 #include "rand/perlin.hpp"
 
+// rand
+#include "rand/entropy.hpp"
+
 // base
 #include "base/logger.hpp"
 #include "base/timer.hpp"
@@ -57,45 +60,54 @@ void perlin_suppress_edges(
   int const dist_y_unscaled =
       ( p.y < map_sz.h / 2 ) ? p.y : map_sz.h - p.y - 1;
 
+  // The sqrt is mean to lessen suppression margins as the map
+  // gets larger, otherwise for large maps it appears too large.
   dsize const scale{
     .w = sqrt( map_sz.w / 56.0 ),
     .h = sqrt( map_sz.h / 70.0 ),
   };
 
-  int const dist_x = lround( dist_x_unscaled / scale.w );
-  int const dist_y = lround( dist_y_unscaled / scale.h );
+  // Make the suppression start just a bit beyond the boundaries
+  // of the map because it is a bit too harsh at the start. In
+  // particular, it suppresses the second row too strongly which
+  // leads to unnatural breakages between continents and the
+  // arctic row. As this is just to fix arctic connections, we
+  // dont need it for the x direction.
+  int const H_BUFFER = 4;
+  int const W_BUFFER = 0;
 
-#if 0 // old method
-  auto const a =
-      ( ( double( dist_x - dist_y ) / ( dist_x + dist_y ) ) +
-        1.0 ) /
-      2.0;
+  int const dist_x =
+      lround( dist_x_unscaled / scale.w + W_BUFFER );
+  int const dist_y =
+      lround( dist_y_unscaled / scale.h + H_BUFFER );
 
-  // Weight the suppression factors based on how far the tile is
-  // to either the left/right edge or top/bottom edge.
-  double const decay = ( 1 - a ) * edge_suppression.decay.w +
-                       a * edge_suppression.decay.h;
+  double const m       = 2.0;
+  double const limit   = .95;
+  dsize const strength = edge_suppression.strength;
+  double const decay_x = clamp( strength.w, 0.0, 1.0 ) * limit;
+  double const decay_y = clamp( strength.h, 0.0, 1.0 ) * limit;
+  double const sub_x   = m * pow( decay_x, dist_x );
+  double const sub_y   = m * pow( decay_y, dist_y );
+  double const sub     = ( sub_x + sub_y ) / 2;
 
-  double const max = ( 1 - a ) * edge_suppression.max.w +
-                     a * edge_suppression.max.h;
-
-  int const dist = min( dist_x, dist_y );
-  int const dist = dist_x + dist_y;
-#endif
-
-  double const m     = 2.0;
-  double const limit = .95;
-  double const decay_x =
-      clamp( edge_suppression.strength.w, 0.0, 1.0 ) * limit;
-  double const decay_y =
-      clamp( edge_suppression.strength.h, 0.0, 1.0 ) * limit;
-  double const sub_x = m * pow( decay_x, dist_x );
-  double const sub_y = m * pow( decay_y, dist_y );
-  double const sub   = ( sub_x + sub_y ) / 2;
   level -= sub;
 }
 
 } // namespace
+
+// The entropy object is itself sufficient to generate the num-
+// bers that we want because it happens that the values that con-
+// stitute the perlin seed fit within the 128 bits that are pro-
+// vided by the rng::entropy type, so we can read the bits di-
+// rectly instead of generating random numbers.
+PerlinSeed generate_perlin_seed( rng::entropy entropy ) {
+  return PerlinSeed{
+    .offset_x = entropy.consume<uint32_t>(),
+    .offset_y = entropy.consume<uint32_t>(),
+    .base     = entropy.consume<uint32_t>(),
+    .flip     = entropy.consume<uint32_t>() % 2 == 0,
+  };
+}
 
 void land_gen_perlin( PerlinMapSettings const& settings,
                       double const target_density,
@@ -127,7 +139,7 @@ void land_gen_perlin( PerlinMapSettings const& settings,
     // and max extremes, which might cause the edge suppression
     // mechanism to behave in a less predictable way (not sure
     // about that, but possible).
-    return noise;
+    return settings.seed.flip ? -noise : noise;
   };
   Matrix<double> pm( sz );
 

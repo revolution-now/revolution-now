@@ -13,11 +13,15 @@
 // gfx
 #include "gfx/cartesian.hpp"
 
+// base
+#include "base/function-ref.hpp"
+
 namespace rn {
 
 /****************************************************************
 ** Fwd. Decls.
 *****************************************************************/
+struct MapSquare;
 struct RealTerrain;
 struct SSConst;
 
@@ -35,5 +39,10 @@ struct SSConst;
 
 [[nodiscard]] bool is_island( RealTerrain const& terrain,
                               gfx::point tile );
+
+void on_all_tiles( SSConst const& ss,
+                   base::function_ref<void(
+                       gfx::point, MapSquare const& square )>
+                       fn );
 
 } // namespace rn

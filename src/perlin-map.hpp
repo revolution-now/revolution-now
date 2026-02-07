@@ -20,11 +20,18 @@
 #include "gfx/cartesian.hpp"
 #include "gfx/matrix.hpp"
 
+namespace rng {
+struct entropy;
+}
+
 namespace rn {
 
 /****************************************************************
 ** Public API.
 *****************************************************************/
+[[nodiscard]] PerlinSeed generate_perlin_seed(
+    rng::entropy entropy );
+
 void land_gen_perlin( PerlinMapSettings const& settings,
                       double target_density,
                       gfx::size const world_sz,

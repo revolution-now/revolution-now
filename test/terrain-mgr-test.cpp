@@ -203,5 +203,9 @@ TEST_CASE( "[terrain-mgr] is_island/RealTerrain" ) {
   REQUIRE( f() == true );
 }
 
+TEST_CASE( "[terrain-mgr] on_all_tiles" ) {
+  world w;
+}
+
 } // namespace
 } // namespace rn

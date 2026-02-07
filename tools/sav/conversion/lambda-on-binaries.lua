@@ -87,6 +87,7 @@ local function main( args )
     if not ok then
       printf( 'error in processing %s: %s',
               filename:match( '.*/(.*)' ), msg )
+      os.exit( 1 )
     end
     if i % 100 == 0 then collectgarbage() end
   end
