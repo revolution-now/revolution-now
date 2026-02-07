@@ -30,6 +30,7 @@ run() {
       local dst="$(pwd)/$dir/$f"
       [[ -f "$dst" ]]
       ln -s "$dst" "$sav"
+      lua load-first-sav.lua
       exit
     fi
     if [[ "$(basename "$f")" == "$real_sav" ]]; then
@@ -39,6 +40,6 @@ run() {
 }
 
 run
-# echo "list finished. rerunning from beginning."
+echo "list finished. rerunning from beginning."
 rm -f "$sav"
 run
