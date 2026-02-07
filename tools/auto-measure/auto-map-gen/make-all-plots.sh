@@ -3,7 +3,7 @@ set -e
 
 go() {
   local config="$1"
-  ./accumulate-lambda.sh "$config" map-analysis/ground-types.lua
+  ./accumulate-lambda.sh "$config" map-analysis/biomes.lua
 }
 
 go bbtt &
@@ -15,4 +15,6 @@ go bbmb &
 go bbbt &
 go bbbm &
 go bbbb &
+go new  &
+
 wait
