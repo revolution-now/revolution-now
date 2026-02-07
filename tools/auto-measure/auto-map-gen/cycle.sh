@@ -4,6 +4,11 @@
 #   $ cycle.sh gamegen/config/bbmm
 #
 set -eo pipefail
+
+tools=~/dev/revolution-now/tools
+
+lambda=$tools/auto-measure/auto-map-gen/map-analysis/land-form.lua
+
 cd "$(dirname "$0")"
 
 dir="$1"
@@ -23,6 +28,11 @@ real_sav="$(basename "$(realpath "$sav")")"
 
 list="$(find "$dir" -name 'COLONY00.SAV.*' -printf '%f\n' | sort)"
 
+on_linked() {
+  lua load-first-sav.lua
+  "$tools/sav/conversion/lambda-on-binary.sh" "$sav" "$lambda"
+}
+
 run() {
   for f in $list; do
     if [[ ! -L "$sav" ]]; then
@@ -30,7 +40,7 @@ run() {
       local dst="$(pwd)/$dir/$f"
       [[ -f "$dst" ]]
       ln -s "$dst" "$sav"
-      lua load-first-sav.lua
+      on_linked
       exit
     fi
     if [[ "$(basename "$f")" == "$real_sav" ]]; then

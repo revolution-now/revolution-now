@@ -31,19 +31,20 @@ return function( json )
     total_tiles = total_tiles + 1
     if Q.is_land( json, tile ) then
       land_tiles = land_tiles + 1
-      if tile.y == 1 or tile.y == 70 then
+      local is_arctic_row = tile.y == 1 or tile.y == 70
+      if is_arctic_row then
         assert( Q.is_arctic( json, tile ), format(
                     'tile [%d,%d] is not arctic.', tile.x, tile.y ) )
         arctic_tiles = arctic_tiles + 1
       end
-      if tile.y > 1 and tile.y < 70 then
+      if not is_arctic_row then
         land_tiles_no_arctic = land_tiles_no_arctic + 1
-      end
-      if tile.x < left_most_land_x then
-        left_most_land_x = tile.x
-      end
-      if tile.x > right_most_land_x then
-        right_most_land_x = tile.x
+        if tile.x < left_most_land_x then
+          left_most_land_x = tile.x
+        end
+        if tile.x > right_most_land_x then
+          right_most_land_x = tile.x
+        end
       end
     end
   end )
