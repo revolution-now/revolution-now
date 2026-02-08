@@ -183,7 +183,7 @@ struct LandDensityStats : IGameStatsCollector {
         {
           { "{{TITLE}}", "Spatial Land Density (generated)" },
           { "{{CSV_STEM}}", "land-density.csv" },
-          { "{{MODE}}", "mode" },
+          { "{{MODE}}", "c++" },
           { "{{COUNT}}", to_string( maps_total ) },
           { "{{XRANGE}}", "0:1.0" },
         } ) );
