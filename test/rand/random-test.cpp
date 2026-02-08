@@ -30,6 +30,7 @@ namespace {
 using namespace std;
 
 using ::base::nothing;
+using ::Catch::Detail::Approx;
 
 /****************************************************************
 ** Test Cases
@@ -187,7 +188,7 @@ TEST_CASE( "[rand/random] uniform_double" ) {
 TEST_CASE( "[rand/random] normal" ) {
   random r;
   double const d = r.normal( 1.5, 2.3 );
-  REQUIRE( d == 1.8094182145 );
+  REQUIRE( d == Approx( 1.8094182145 ) );
 }
 
 // Deterministic since there is no seeding and we are only using
