@@ -90,11 +90,15 @@ void generate_single_map( IEngine& engine, SS& ss,
 #if 1
   GameSetup setup;
   load_testing_game_setup( setup );
-  if( reseed )
+  if( reseed ) {
     setup.map.source.get_if<MapSource::generate_native>()
         ->setup.surface_generator.perlin_settings.seed =
         generate_perlin_seed(
             rand.generate_deterministic_seed() );
+    setup.map.source.get_if<MapSource::generate_native>()
+        ->setup.surface_generator.arctic.seed =
+        rand.generate_deterministic_seed();
+  }
 #elif 0
   (void)reseed;
   ClassicGameSetupParamsCommon const params{

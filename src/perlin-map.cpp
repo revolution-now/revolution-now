@@ -56,10 +56,21 @@ void perlin_suppress_edges(
     double& level ) {
   int const dist_x_unscaled = abs( p.x - map_sz.w / 2 );
   int const dist_y_unscaled = abs( p.y - map_sz.h / 2 );
+
+  // This will have the effect of doing less suppression at the
+  // edges as the map size grows, which looks better. Don't let
+  // it go above 1 otherwise small maps will have too much re-
+  // moved.
+  double const scale_x =
+      min( pow( 56.0 / map_sz.w, .125 ), 1.0 );
+  double const scale_y =
+      min( pow( 70.0 / map_sz.h, .125 ), 1.0 );
+
   double const dist_x =
-      double( dist_x_unscaled ) / ( map_sz.w / 2 );
+      scale_x * double( dist_x_unscaled ) / ( map_sz.w / 2 );
   double const dist_y =
-      double( dist_y_unscaled ) / ( map_sz.h / 2 );
+      scale_y * double( dist_y_unscaled ) / ( map_sz.h / 2 );
+
   auto const fn = []( double const d ) {
     double constexpr kExp = 6;
     return pow( d, kExp );
