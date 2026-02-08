@@ -69,7 +69,6 @@ void generate_single_map( IEngine& engine, SS& ss,
                           bool const reseed ) {
   lua::state st;
   lua_init( engine, st );
-  SS ss;
   st["ROOT"] = ss.root;
   st["SS"]   = ss;
   TerrainConnectivity connectivity;
