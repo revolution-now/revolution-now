@@ -30,5 +30,6 @@ go() {
 # go bbmm &
 # go tbmm &
 # go btmm &
+# go new  &
 
 wait

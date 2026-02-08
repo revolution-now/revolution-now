@@ -87,7 +87,7 @@ void generate_single_map( IEngine& engine, SS& ss,
   // ------------------------------------------------------------
   // GameSetup
   // ------------------------------------------------------------
-#if 0
+#if 1
   GameSetup setup;
   load_testing_game_setup( setup );
   if( reseed )
@@ -186,9 +186,11 @@ struct LandDensityStats : IGameStatsCollector {
     gnu << gnuplot_body;
 
     csv << format( "coordinate,x,y,overall\n" );
+    // NOTE: subtract two because we did not include the arctic
+    // rows when collecting land.
     double const density =
         land_total /
-        ( double( map_sz_.w ) * map_sz_.h * maps_total );
+        ( double( map_sz_.w ) * ( map_sz_.h - 2 ) * maps_total );
     for( double p = 0; p < 1; p += .001 ) {
       csv << p;
       int const x = int( floor( p * map_sz_.w ) );
@@ -202,7 +204,7 @@ struct LandDensityStats : IGameStatsCollector {
       UNWRAP_CHECK_T( int const count_y,
                       lookup( land_count_y, y ) );
       double const density_x =
-          count_x / ( double( map_sz_.h ) * maps_total );
+          count_x / ( double( map_sz_.h - 2 ) * maps_total );
       double const density_y =
           count_y / ( double( map_sz_.w ) * maps_total );
       csv << format( ",{},{},{}\n", density_x, density_y,

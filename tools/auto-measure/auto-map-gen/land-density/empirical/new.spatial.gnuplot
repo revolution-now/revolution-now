@@ -1,16 +1,16 @@
 #!/usr/bin/env -S gnuplot -p
-set title "Overall Land Density (ttmm [2000])"
+set title "Spatial Land Density (new [2000])"
 set datafile separator ","
 set key outside right
 set grid
-set xlabel "density"
-set ylabel "frequency"
+set xlabel "X or Y coordinate"
+set ylabel "density"
 
 # Use the first row as column headers for titles.
 set key autotitle columnhead
 
-set yrange [0:*]
-set xrange [0:0.5]
+set yrange [0:1.0]
+set xrange [0:1.0]
 
 # Plot: x is column 1, then plot columns 2..N as separate lines.
-plot for [col=2:*] "ttmm.overall.csv" using 1:col with lines lw 2
+plot for [col=2:*] "new.spatial.csv" using 1:col with lines lw 2

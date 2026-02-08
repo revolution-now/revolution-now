@@ -1,5 +1,5 @@
 #!/usr/bin/env -S gnuplot -p
-set title "Overall Land Density (ttmm [2000])"
+set title "Overall Land Density (new [2000])"
 set datafile separator ","
 set key outside right
 set grid
@@ -13,4 +13,4 @@ set yrange [0:*]
 set xrange [0:0.5]
 
 # Plot: x is column 1, then plot columns 2..N as separate lines.
-plot for [col=2:*] "ttmm.overall.csv" using 1:col with lines lw 2
+plot for [col=2:*] "new.overall.csv" using 1:col with lines lw 2
