@@ -210,9 +210,28 @@ struct.GameSetup {
   map 'MapSetup',
 }
 
-struct.ClassicCustomization {
+struct.ClassicGameSetupParamsCommon {
+  difficulty 'e_difficulty',
+  player 'e_nation',
+  player_name 'std::string',
+}
+
+struct.ClassicGameSetupParamsCustom {
   land_mass 'e_land_mass',
   land_form 'e_land_form',
+  temperature 'e_temperature',
+  climate 'e_climate',
+}
+
+struct.ClassicGameSetupParams {
+  common 'ClassicGameSetupParamsCommon',
+  custom 'ClassicGameSetupParamsCustom ',
+}
+
+struct.ClassicGameSetupParamsEvaluated {
+  common 'ClassicGameSetupParamsCommon',
+  land_density 'double',
+  land_form 'PerlinLandForm',
   temperature 'e_temperature',
   climate 'e_climate',
 }

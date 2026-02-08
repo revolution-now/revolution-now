@@ -107,9 +107,16 @@ int random::uniform_int( int const lower, int const upper ) {
 double random::uniform_double( double const lower,
                                double const upper ) {
   CHECK_LE( lower, upper );
-  // TODO: make this deterministic.
+  // NOTE: this is not guaranteed to yield consistent values
+  // across implementations.
   return uniform_real_distribution<double>( lower,
                                             upper )( engine_ );
+}
+
+double random::normal( double const mean, double const stddev ) {
+  // NOTE: this is not guaranteed to yield consistent values
+  // across implementations.
+  return normal_distribution<double>( mean, stddev )( engine_ );
 }
 
 } // namespace rng

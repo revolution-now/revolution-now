@@ -53,6 +53,8 @@ struct Rand : IRand {
 
   double uniform_double( double lower, double upper ) override;
 
+  double normal( double mean, double stddev ) override;
+
   rng::seed generate_deterministic_seed() override;
 
  private:

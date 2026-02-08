@@ -51,6 +51,9 @@ struct IRand {
   [[nodiscard]] virtual double uniform_double(
       double lower, double upper ) = 0;
 
+  [[nodiscard]] virtual double normal( double mean,
+                                       double stddev ) = 0;
+
   // This generates a seed (entropy) object just using the cur-
   // rent state of the pseudo-random generator; no true random-
   // ness here. This would be used to generate e.g. map genera-

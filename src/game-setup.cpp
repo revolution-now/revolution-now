@@ -14,6 +14,7 @@
 #include "co-wait.hpp"
 #include "difficulty-screen.hpp"
 #include "game-setup.rds.hpp"
+#include "iengine.hpp"
 #include "igui.hpp"
 #include "irand.hpp"
 #include "perlin-map.hpp"
@@ -42,20 +43,16 @@ using ::gfx::size;
 using ::refl::enum_map;
 using ::refl::enum_values;
 
-double density_for_landmass( IRand& rand,
-                             e_land_mass const land_mass ) {
-  auto const& range =
-      config_map_gen.terrain_generation.land_layout.land_mass
-          .densities[land_mass];
-  return clamp( rand.uniform_double( range.lo, range.hi ), 0.0,
-                1.0 );
+[[nodiscard]] double sample_normal(
+    IRand& rand, config::BoundedNormalDist const& params ) {
+  return clamp( rand.normal( params.mean, params.stddev ),
+                params.min, params.max );
 }
 
 wait<maybe<e_nation>> choose_human( IGui& gui ) {
   EnumChoiceConfig const config{
     .msg = "Select Your Nation:",
   };
-  // TODO: make this into a plane.
   co_return co_await gui.optional_enum_choice<e_nation>(
       config );
 }
@@ -75,17 +72,14 @@ wait<maybe<string>> choose_leader_name( IGui& gui,
 /****************************************************************
 ** Public API.
 *****************************************************************/
-wait<maybe<GameSetup>> create_classic_customized_game_setup(
-    IEngine& engine, Planes& planes, IGui& gui, IRand& rand,
-    ClassicCustomization const& classic_customization ) {
+GameSetup create_classic_game_setup(
+    IRand& rand,
+    ClassicGameSetupParamsEvaluated const& params ) {
   GameSetup setup;
 
   // category: settings_state
   // ------------------------------------------------------------
-  auto const difficulty =
-      co_await choose_difficulty_screen( engine, planes );
-  if( !difficulty.has_value() ) co_return nothing;
-  setup.settings.difficulty = *difficulty;
+  setup.settings.difficulty = params.common.difficulty;
 
   // category: rules
   // ------------------------------------------------------------
@@ -101,9 +95,7 @@ wait<maybe<GameSetup>> create_classic_customized_game_setup(
       generate_perlin_seed( rand.generate_deterministic_seed() );
 
   PerlinMapSettings const perlin_settings{
-    .land_form =
-        map_conf.land_layout.land_form
-            .perlin_land_form[classic_customization.land_form],
+    .land_form = params.land_form,
     .edge_suppression =
         map_conf.land_layout.land_form.perlin_edge_suppression,
     .seed = perlin_seed,
@@ -118,15 +110,13 @@ wait<maybe<GameSetup>> create_classic_customized_game_setup(
     .perlin_settings = perlin_settings,
     .arctic{
       .seed    = rand.generate_deterministic_seed(),
-      .enabled = map_conf.land_layout.land_form.arctic.enabled &&
-                 world_sz.h >= map_conf.land_layout.land_form
-                                   .arctic.min_map_height,
-      .density =
-          map_conf.land_layout.land_form.arctic.density.fraction,
+      .enabled = map_conf.land_layout.arctic.enabled &&
+                 world_sz.h >=
+                     map_conf.land_layout.arctic.min_map_height,
+      .density = map_conf.land_layout.arctic.density.fraction,
     },
-    .target_density = density_for_landmass(
-        rand, classic_customization.land_mass ),
-    .sanitization = surface_sanitization,
+    .target_density = params.land_density,
+    .sanitization   = surface_sanitization,
   };
 
   e_temperature const temperature =
@@ -182,7 +172,7 @@ wait<maybe<GameSetup>> create_classic_customized_game_setup(
     .bonuses           = bonuses,
   };
 
-  setup.map = MapSetup{ .source = MapSource::generate_lua{
+  setup.map = MapSetup{ .source = MapSource::generate_native{
                           .setup = generated_map_setup } };
 
   // category: natives
@@ -196,20 +186,13 @@ wait<maybe<GameSetup>> create_classic_customized_game_setup(
 
   // category: nations
   // ------------------------------------------------------------
-  auto const human_nation = co_await choose_human( gui );
-  if( !human_nation.has_value() ) co_return nothing;
+  e_nation const human_nation = params.common.player;
   for( e_nation const nation : enum_values<e_nation> ) {
     using enum e_player_control;
-    auto& o = setup.nations.nations[nation].emplace();
-    CHECK( human_nation.has_value() );
-    o.control = ( *human_nation == nation ) ? human : ai;
+    auto& o   = setup.nations.nations[nation].emplace();
+    o.control = ( human_nation == nation ) ? human : ai;
     o.name = config_nation.nations[nation].default_leader_name;
-    if( o.control == human ) {
-      auto const human_name =
-          co_await choose_leader_name( gui, nation );
-      if( !human_name.has_value() ) co_return nothing;
-      o.name = *human_name;
-    }
+    if( o.control == human ) o.name = params.common.player_name;
   }
 
   // category: turns
@@ -217,17 +200,63 @@ wait<maybe<GameSetup>> create_classic_customized_game_setup(
   setup.settings.starting_year =
       config_turn.game_start.starting_year;
 
-  co_return setup;
+  return setup;
 }
 
-wait<maybe<GameSetup>> create_america_game_setup(
-    IEngine& engine, Planes& planes, IGui& gui, IRand& rand,
-    lua::state& lua ) {
-  maybe<GameSetup> setup;
-  setup = co_await create_default_game_setup( engine, planes,
-                                              gui, rand, lua );
-  if( !setup.has_value() ) co_return setup;
-  setup->map = MapSetup{
+GameSetup create_default_game_setup(
+    IRand& rand, ClassicGameSetupParamsCommon const& common ) {
+  auto const& map_conf = config_map_gen.terrain_generation;
+  PerlinLandForm const perlin_land_form{
+    .scale = sample_normal(
+        rand,
+        map_conf.land_layout.land_form.fully_random.scale ),
+    .fractal =
+        map_conf.land_layout.land_form.fully_random.fractal };
+
+  ClassicGameSetupParamsEvaluated const params{
+    .common       = common,
+    .land_density = sample_normal(
+        rand, map_conf.land_layout.land_mass.fully_random ),
+    .land_form   = perlin_land_form,
+    .temperature = rand.pick_from_weighted_values(
+        map_conf.temperature.weights ),
+    .climate = rand.pick_from_weighted_values(
+        map_conf.climate.weights ),
+  };
+  return create_classic_game_setup( rand, params );
+}
+
+GameSetup create_classic_customized_game_setup(
+    IRand& rand, ClassicGameSetupParams const& params ) {
+  auto const& map_conf      = config_map_gen.terrain_generation;
+  double const land_density = sample_normal(
+      rand, map_conf.land_layout.land_mass
+                .customized[params.custom.land_mass] );
+  PerlinLandForm const perlin_land_form{
+    .scale = sample_normal(
+        rand, map_conf.land_layout.land_form
+                  .customized[params.custom.land_form]
+                  .scale ),
+    .fractal = map_conf.land_layout.land_form
+                   .customized[params.custom.land_form]
+                   .fractal };
+
+  ClassicGameSetupParamsEvaluated const evaluated{
+    .common       = params.common,
+    .land_density = land_density,
+    .land_form    = perlin_land_form,
+    .temperature  = params.custom.temperature,
+    .climate      = params.custom.climate,
+  };
+
+  return create_classic_game_setup( rand, evaluated );
+}
+
+GameSetup create_america_game_setup(
+    IRand& rand, ClassicGameSetupParamsCommon const& common ) {
+  GameSetup setup = create_default_game_setup( rand, common );
+
+  setup.map = MapSetup{
     .source =
         MapSource::load_from_file{
           // TODO: get this via a file selection dialog, and then
@@ -249,35 +278,88 @@ wait<maybe<GameSetup>> create_america_game_setup(
 
   // TODO: see if we need to override any settings related to the
   // natives, such as dwelling frequency.
-  co_return setup;
+  return setup;
 }
 
-wait<maybe<GameSetup>> create_default_game_setup(
-    IEngine& engine, Planes& planes, IGui& gui, IRand& rand,
-    lua::state& ) {
-  auto const& map_conf = config_map_gen.terrain_generation;
-  ClassicCustomization const params{
-    .land_mass = rand.pick_from_weighted_values(
-        map_conf.land_layout.land_mass.weights ),
-    .land_form = rand.pick_from_weighted_values(
-        map_conf.land_layout.land_form.weights ),
-    .temperature = rand.pick_from_weighted_values(
-        map_conf.temperature.weights ),
-    .climate = rand.pick_from_weighted_values(
-        map_conf.climate.weights ),
-  };
-  co_return co_await create_classic_customized_game_setup(
-      engine, planes, gui, rand, params );
+wait<maybe<ClassicGameSetupParamsCommon>>
+create_classic_game_common_params( IEngine& engine,
+                                   Planes& planes, IGui& gui ) {
+  auto const difficulty =
+      co_await choose_difficulty_screen( engine, planes );
+  if( !difficulty.has_value() ) co_return nothing;
+
+  auto const nation = co_await choose_human( gui );
+  if( !nation.has_value() ) co_return nothing;
+
+  auto const human_name =
+      co_await choose_leader_name( gui, *nation );
+  if( !human_name.has_value() ) co_return nothing;
+
+  co_return ClassicGameSetupParamsCommon{
+    .difficulty  = *difficulty,
+    .player      = *nation,
+    .player_name = *human_name };
+}
+
+wait<maybe<ClassicGameSetupParamsCustom>>
+create_classic_game_custom_params( IEngine&, Planes&,
+                                   IGui& gui ) {
+  ClassicGameSetupParamsCustom params;
+  {
+    EnumChoiceConfig const config{
+      .msg = "Select Land Mass:",
+    };
+    UNWRAP_CO_RETURN(
+        params.land_mass,
+        co_await gui.optional_enum_choice<e_land_mass>(
+            config ) );
+  }
+  {
+    EnumChoiceConfig const config{
+      .msg = "Select Land Form:",
+    };
+    UNWRAP_CO_RETURN(
+        params.land_form,
+        co_await gui.optional_enum_choice<e_land_form>(
+            config ) );
+  }
+  {
+    EnumChoiceConfig const config{
+      .msg = "Select Temperature:",
+    };
+    UNWRAP_CO_RETURN(
+        params.temperature,
+        co_await gui.optional_enum_choice<e_temperature>(
+            config ) );
+  }
+  {
+    EnumChoiceConfig const config{
+      .msg = "Select Climate:",
+    };
+    UNWRAP_CO_RETURN(
+        params.climate,
+        co_await gui.optional_enum_choice<e_climate>( config ) );
+  }
+  co_return params;
 }
 
 wait<maybe<GameSetup>> create_customized_game_setup(
-    IEngine&, Planes&, IGui&, e_customization_mode const mode ) {
+    IEngine& engine, Planes& planes, IGui& gui,
+    e_customization_mode const mode ) {
   switch( mode ) {
     using enum e_customization_mode;
     case classic: {
-      // TODO
-      NOT_IMPLEMENTED;
-      // break;
+      ClassicGameSetupParams params;
+      UNWRAP_CO_RETURN(
+          params.custom,
+          co_await create_classic_game_custom_params(
+              engine, planes, gui ) );
+      UNWRAP_CO_RETURN(
+          params.common,
+          co_await create_classic_game_common_params(
+              engine, planes, gui ) );
+      co_return create_classic_customized_game_setup(
+          engine.rand(), params );
     }
     case modern: {
       // TODO

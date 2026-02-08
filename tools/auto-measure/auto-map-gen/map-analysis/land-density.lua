@@ -141,9 +141,7 @@ local function write_spatial_density( mode )
   local emit = function( fmt, ... )
     f:write( format( fmt, ... ) )
   end
-  local header = {
-    'coordinate', 'x', 'y', 'overall-no-arctic', 'arctic',
-  }
+  local header = { 'coordinate', 'x', 'y', 'overall', 'arctic' }
   emit( '%s\n', concat( header, ',' ) )
   local density = D.land_no_arctic / (56 * 70 * D.total_savs)
   for p = 0, 1, .001 do

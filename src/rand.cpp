@@ -31,6 +31,10 @@ double Rand::uniform_double( double lower, double upper ) {
   return rd_.uniform_double( lower, upper );
 }
 
+double Rand::normal( double const mean, double const stddev ) {
+  return rd_.normal( mean, stddev );
+}
+
 rng::seed Rand::generate_deterministic_seed() {
   return rd_.generate_deterministic_seed();
 }

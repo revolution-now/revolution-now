@@ -48,3 +48,19 @@ struct.Probability {
 
   _features { equality, validation }
 }
+
+struct.NormalDist {
+  mean 'double',
+  stddev 'double',
+
+  _features { equality, validation }
+}
+
+struct.BoundedNormalDist {
+  mean 'double',
+  stddev 'double',
+  min 'double',
+  max 'double',
+
+  _features { equality, validation }
+}

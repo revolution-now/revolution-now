@@ -27,8 +27,8 @@ include "base/maybe.hpp"
 namespace "rn.config.map_gen"
 
 struct.LandMass {
-  weights 'refl::enum_map<e_land_mass, int>',
-  densities 'refl::enum_map<e_land_mass, config::DoublePercentRange>',
+  fully_random 'config::BoundedNormalDist',
+  customized 'refl::enum_map<e_land_mass, config::BoundedNormalDist>',
   _features { equality, validation }
 }
 
@@ -38,10 +38,14 @@ struct.Arctic {
   density 'config::DoublePercent',
 }
 
+struct.PerlinLandFormRange {
+  scale 'config::BoundedNormalDist',
+  fractal 'rng::PerlinFractalOptions',
+}
+
 struct.LandForm {
-  weights 'refl::enum_map<e_land_form, int>',
-  perlin_land_form 'refl::enum_map<e_land_form, PerlinLandForm>',
-  arctic 'Arctic',
+  fully_random 'PerlinLandFormRange',
+  customized 'refl::enum_map<e_land_form, PerlinLandFormRange>',
   perlin_edge_suppression 'PerlinEdgeSuppression',
   _features { equality, validation }
 }
@@ -49,6 +53,7 @@ struct.LandForm {
 struct.LandLayout {
   land_mass 'LandMass',
   land_form 'LandForm',
+  arctic 'Arctic',
 
   remove_crosses 'bool',
 }

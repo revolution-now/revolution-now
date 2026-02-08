@@ -24,6 +24,8 @@ struct GameSetup;
 *****************************************************************/
 void testing_map_gen( IEngine& engine );
 
+void testing_map_gen_stats( IEngine& engine );
+
 void load_testing_game_setup( GameSetup& setup );
 
 } // namespace rn

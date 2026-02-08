@@ -32,6 +32,7 @@ struct MockIRand : IRand {
   MOCK_METHOD( bool, bernoulli, (double), () );
   MOCK_METHOD( int, uniform_int, (int, int), () );
   MOCK_METHOD( double, uniform_double, (double, double), () );
+  MOCK_METHOD( double, normal, (double, double), () );
   MOCK_METHOD( rng::entropy, generate_deterministic_seed, (),
                () );
 };

@@ -184,6 +184,12 @@ TEST_CASE( "[rand/random] uniform_double" ) {
   REQUIRE( ( d >= 5.5 && d <= 8.3 ) );
 }
 
+TEST_CASE( "[rand/random] normal" ) {
+  random r;
+  double const d = r.normal( 1.5, 2.3 );
+  REQUIRE( d == 1.8094182145 );
+}
+
 // Deterministic since there is no seeding and we are only using
 // the uniform_int which we implement ourselves.
 TEST_CASE( "[rand/random] uniform_int full range coverage" ) {

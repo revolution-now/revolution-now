@@ -61,4 +61,15 @@ base::valid_or<string> Probability::validate() const {
   return base::valid;
 }
 
+base::valid_or<string> NormalDist::validate() const {
+  REFL_VALIDATE( stddev >= 0.0, "stddev must be non-negative." );
+  return base::valid;
+}
+
+base::valid_or<string> BoundedNormalDist::validate() const {
+  REFL_VALIDATE( stddev >= 0.0, "stddev must be non-negative." );
+  REFL_VALIDATE( min <= max, "min must <= max." );
+  return base::valid;
+}
+
 } // namespace rn::config

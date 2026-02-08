@@ -113,21 +113,25 @@ wait_bool create_from_setup( SS& ss, IGui& gui, IRand& rand,
 wait_bool new_game_new_world( IEngine& engine, Planes& planes,
                               SS& ss, IGui& gui, RootState&,
                               lua::state& lua ) {
-  auto const setup = co_await create_default_game_setup(
-      engine, planes, gui, engine.rand(), lua );
-  if( !setup.has_value() ) co_return false;
+  auto const params = co_await create_classic_game_common_params(
+      engine, planes, gui );
+  if( !params.has_value() ) co_return false;
+  GameSetup const setup =
+      create_default_game_setup( engine.rand(), *params );
   co_return co_await create_from_setup( ss, gui, engine.rand(),
-                                        lua, *setup );
+                                        lua, setup );
 }
 
 wait_bool new_game_america( IEngine& engine, Planes& planes,
                             SS& ss, IGui& gui, RootState&,
                             lua::state& lua ) {
-  auto const setup = co_await create_america_game_setup(
-      engine, planes, gui, engine.rand(), lua );
-  if( !setup.has_value() ) co_return false;
+  auto const params = co_await create_classic_game_common_params(
+      engine, planes, gui );
+  if( !params.has_value() ) co_return false;
+  GameSetup const setup =
+      create_america_game_setup( engine.rand(), *params );
   co_return co_await create_from_setup( ss, gui, engine.rand(),
-                                        lua, *setup );
+                                        lua, setup );
 }
 
 wait_bool new_game_exchange( IEngine& engine, Planes&, SS& ss,

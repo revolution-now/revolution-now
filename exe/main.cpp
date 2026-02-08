@@ -80,6 +80,7 @@ void run( e_mode mode ) {
     case e_mode::map_gen: {
       engine.init( e_engine_mode::console );
       testing_map_gen( engine );
+      // testing_map_gen_stats( engine );
       break;
     }
     case e_mode::test_ui: {

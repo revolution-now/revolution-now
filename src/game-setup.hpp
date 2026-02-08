@@ -31,17 +31,25 @@ struct Planes;
 /****************************************************************
 ** Public API.
 *****************************************************************/
-wait<maybe<GameSetup>> create_classic_customized_game_setup(
-    IEngine& engine, Planes& planes, IGui& gui, IRand& rand,
-    ClassicCustomization const& params );
+GameSetup create_classic_game_setup(
+    IRand& rand, ClassicGameSetupParamsEvaluated const& params );
 
-wait<maybe<GameSetup>> create_default_game_setup(
-    IEngine& engine, Planes& planes, IGui& gui, IRand& rand,
-    lua::state& lua );
+GameSetup create_default_game_setup(
+    IRand& rand, ClassicGameSetupParamsCommon const& common );
 
-wait<maybe<GameSetup>> create_america_game_setup(
-    IEngine& engine, Planes& planes, IGui& gui, IRand& rand,
-    lua::state& lua );
+GameSetup create_classic_customized_game_setup(
+    IRand& rand, ClassicGameSetupParams const& params );
+
+GameSetup create_america_game_setup(
+    IRand& rand, ClassicGameSetupParamsCommon const& common );
+
+wait<maybe<ClassicGameSetupParamsCommon>>
+create_classic_game_common_params( IEngine& engine,
+                                   Planes& planes, IGui& gui );
+
+wait<maybe<ClassicGameSetupParamsCustom>>
+create_classic_game_custom_params( IEngine& engine,
+                                   Planes& planes, IGui& gui );
 
 wait<maybe<GameSetup>> create_customized_game_setup(
     IEngine& engine, Planes& planes, IGui& gui,

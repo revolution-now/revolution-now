@@ -66,6 +66,8 @@ struct random {
   [[nodiscard]] double uniform_double( double lower,
                                        double upper );
 
+  [[nodiscard]] double normal( double mean, double stddev );
+
   // Uniform over all values of the type.
   template<typename T>
   requires( std::is_integral_v<T> && std::is_unsigned_v<T> &&

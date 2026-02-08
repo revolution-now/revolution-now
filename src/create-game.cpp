@@ -160,6 +160,10 @@ valid_or<string> generate_land_perlin(
   // putting a land tile in the exclusion zone.
   apply_exclusion();
 
+  // TODO: it is possible that we might still end up with islands
+  // here, and so we should probably do a pass later to put moun-
+  // tains on them.
+
   return valid;
 }
 
@@ -373,9 +377,11 @@ valid_or<string> create_game_from_setup(
   // SettingsState state.
   // ------------------------------------------------------------
   lg.info( "game setup: setting settings state..." );
+#if 1
   lua::table settings_options    = lua.table.create();
   settings_options["difficulty"] = setup.settings.difficulty;
   lua["new_game"]["create_settings_state"]( settings_options );
+#endif
 
   // Rules.
   // ------------------------------------------------------------
@@ -407,6 +413,7 @@ valid_or<string> create_game_from_setup(
     }
   }
 
+#if 1
   // Natives.
   // ------------------------------------------------------------
   lg.info( "game setup: generating natives..." );
@@ -457,6 +464,7 @@ valid_or<string> create_game_from_setup(
   // ------------------------------------------------------------
   lg.info( "game setup: generating map view state..." );
   lua["new_game"]["create_mapview_state"]( player_options );
+#endif
 
   return valid;
 }
