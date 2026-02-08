@@ -13,6 +13,9 @@
 // ss
 #include "ss/terrain.rds.hpp"
 
+// base
+#include "base/env.hpp"
+
 // C++ standard library
 #include <ostream>
 
@@ -29,9 +32,12 @@ using namespace std;
 *****************************************************************/
 void print_ascii_map( RealTerrain const& terrain,
                       ostream& out ) {
-  auto const& m  = terrain.map;
-  auto const bar = [&] {
-    out << format( "+" );
+  auto const& m      = terrain.map;
+  int const columns  = base::os_terminal_columns().value_or( 0 );
+  int const n_indent = std::max( columns - m.size().w, 0 ) / 2;
+  string const indent = string( n_indent, ' ' );
+  auto const bar      = [&] {
+    out << indent << format( "+" );
     for( X x = 0; x < 0 + m.size().w; ++x ) out << format( "-" );
     out << format( "+\n" );
   };
@@ -39,7 +45,7 @@ void print_ascii_map( RealTerrain const& terrain,
   CHECK( m.size().h % 2 == 0,
          "The ascii printer requires an even map height." );
   for( Y y = 0; y < 0 + m.size().h; y += 2 ) {
-    out << format( "|" );
+    out << indent << format( "|" );
     for( X x = 0; x < 0 + m.size().w; ++x ) {
       bool land_top = ( m[y][x].surface == e_surface::land );
       bool land_bottom =
