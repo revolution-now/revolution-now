@@ -20,6 +20,7 @@
 #include "rand/entropy.hpp"
 
 // base
+#include "base/error.hpp"
 #include "base/logger.hpp"
 #include "base/timer.hpp"
 #include "base/to-str-ext-std.hpp"
@@ -34,6 +35,8 @@ namespace rn {
 namespace {
 
 using ::base::ScopedTimer;
+using ::base::valid;
+using ::base::valid_or;
 using ::gfx::dsize;
 using ::gfx::Matrix;
 using ::gfx::point;
@@ -47,50 +50,25 @@ using ::std::min;
 // generator because it works by lowering the "height" of the
 // tiles near the edges, making it more likely that they will end
 // up under the "sea level".
-//
-// NOTE: even though we use the classic map size dimensions as a
-// reference in this function, it is designed to work for any map
-// size, even super small or super large.
 void perlin_suppress_edges(
     point const p, size const map_sz,
     PerlinEdgeSuppression const& edge_suppression,
     double& level ) {
-  int const dist_x_unscaled =
-      ( p.x < map_sz.w / 2 ) ? p.x : map_sz.w - p.x - 1;
-  int const dist_y_unscaled =
-      ( p.y < map_sz.h / 2 ) ? p.y : map_sz.h - p.y - 1;
-
-  // The sqrt is mean to lessen suppression margins as the map
-  // gets larger, otherwise for large maps it appears too large.
-  dsize const scale{
-    .w = sqrt( map_sz.w / 56.0 ),
-    .h = sqrt( map_sz.h / 70.0 ),
+  int const dist_x_unscaled = abs( p.x - map_sz.w / 2 );
+  int const dist_y_unscaled = abs( p.y - map_sz.h / 2 );
+  double const dist_x =
+      double( dist_x_unscaled ) / ( map_sz.w / 2 );
+  double const dist_y =
+      double( dist_y_unscaled ) / ( map_sz.h / 2 );
+  auto const fn = []( double const d ) {
+    double constexpr kExp = 6;
+    return pow( d, kExp );
   };
-
-  // Make the suppression start just a bit beyond the boundaries
-  // of the map because it is a bit too harsh at the start. In
-  // particular, it suppresses the second row too strongly which
-  // leads to unnatural breakages between continents and the
-  // arctic row. As this is just to fix arctic connections, we
-  // dont need it for the x direction.
-  int const H_BUFFER = 4;
-  int const W_BUFFER = 0;
-
-  int const dist_x =
-      lround( dist_x_unscaled / scale.w + W_BUFFER );
-  int const dist_y =
-      lround( dist_y_unscaled / scale.h + H_BUFFER );
-
-  double const m       = 2.0;
-  double const limit   = .95;
-  dsize const strength = edge_suppression.strength;
-  double const decay_x = clamp( strength.w, 0.0, 1.0 ) * limit;
-  double const decay_y = clamp( strength.h, 0.0, 1.0 ) * limit;
-  double const sub_x   = m * pow( decay_x, dist_x );
-  double const sub_y   = m * pow( decay_y, dist_y );
-  double const sub     = ( sub_x + sub_y ) / 2;
-
-  level -= sub;
+  double const sub_x =
+      fn( dist_x * edge_suppression.strength.w );
+  double const sub_y =
+      fn( dist_y * edge_suppression.strength.h );
+  level -= sqrt( sub_x * sub_x + sub_y * sub_y );
 }
 
 } // namespace
@@ -109,10 +87,10 @@ PerlinSeed generate_perlin_seed( rng::entropy entropy ) {
   };
 }
 
-void land_gen_perlin( PerlinMapSettings const& settings,
-                      double const target_density,
-                      size const world_sz,
-                      Matrix<e_surface>& surface ) {
+valid_or<e_perlin_map_error> land_gen_perlin(
+    PerlinMapSettings const& settings,
+    double const target_density, size const world_sz,
+    Matrix<e_surface>& surface ) {
   size const sz = world_sz;
   rng::vec2 const kNoRepeat{ .x = 100'000'000,
                              .y = 100'000'000 };
@@ -199,8 +177,8 @@ void land_gen_perlin( PerlinMapSettings const& settings,
     good,
     too_high,
   };
-  double sea_level_min    = -100.0;
-  double sea_level_max    = 100.0;
+  double sea_level_min    = -100000.0;
+  double sea_level_max    = 100000.0;
   auto const sea_level_is = [&]( double const sea_level ) {
     double const density = land_density( sea_level );
     lg.trace( "trying sea_level={} [{},{}] --> density={}",
@@ -211,16 +189,16 @@ void land_gen_perlin( PerlinMapSettings const& settings,
     if( density < target ) return e_sea_level::too_high;
     return e_sea_level::too_low;
   };
-  [&] {
+  auto const found_level = [&] -> valid_or<e_perlin_map_error> {
     ScopedTimer const timer( "sea level search" );
     using enum e_sea_level;
-    for( int i = 0; i < 100; ++i ) {
+    for( int i = 0; i < 1000; ++i ) {
       double const sea_level =
           ( sea_level_min + sea_level_max ) / 2.0;
       switch( sea_level_is( sea_level ) ) {
         case good:
           lg.info( "perlin sea level bisections: {}", i + 1 );
-          return;
+          return valid;
         case too_low:
           sea_level_min = sea_level;
           break;
@@ -229,7 +207,9 @@ void land_gen_perlin( PerlinMapSettings const& settings,
           break;
       }
     }
+    return e_perlin_map_error::density_search_failed;
   }();
+  GOOD_OR_RETURN( found_level );
   double const sea_level =
       ( sea_level_min + sea_level_max ) / 2.0;
   lg.info( "sea_level: {}", sea_level );
@@ -249,6 +229,7 @@ void land_gen_perlin( PerlinMapSettings const& settings,
   }
 
   print_stats( "5" );
+  return valid;
 }
 
 } // namespace rn

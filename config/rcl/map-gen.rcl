@@ -24,12 +24,12 @@ terrain_generation {
       # This is for when the land mass is chosen randomly without
       # any customization; essentially this is when the player
       # selects "Start New Game" without any customizations.
-      fully_random: { mean: .23, stddev: .06, min: .09, max: .39 }
+      fully_random: { mean: .29, stddev: .07, min: .09, max: .46 }
 
       customized {
-        small:    { mean: .16, stddev: .03, min: .09, max: .39 }
-        moderate: { mean: .23, stddev: .03, min: .09, max: .39 }
-        large:    { mean: .30, stddev: .03, min: .09, max: .39 }
+        small:    { mean: .16, stddev: .03, min: .09, max: .46 }
+        moderate: { mean: .23, stddev: .03, min: .09, max: .46 }
+        large:    { mean: .30, stddev: .03, min: .09, max: .46 }
       }
     }
 
@@ -64,7 +64,10 @@ terrain_generation {
       # is probably no need to.
       perlin_edge_suppression {
         enabled: true
-        strength: { w=0.6, h=0.7 }
+        # Selected to match the behavior of the OG's land gener-
+        # ator near the map edges. These values seem to work well
+        # for all settings and map sizes.
+        strength: { w: 0.90, h: 0.77 }
       }
     }
 

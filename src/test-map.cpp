@@ -64,6 +64,7 @@ using ::base::lookup;
 using ::base::ScopedTimer;
 using ::base::str_replace_all;
 using ::gfx::point;
+using ::gfx::size;
 
 void generate_single_map( IEngine& engine, SS& ss,
                           bool const reseed ) {
@@ -81,7 +82,7 @@ void generate_single_map( IEngine& engine, SS& ss,
 
   // Need to reseed the engine because the previous generated map
   // may have seeded it.
-  engine.rand().reseed( rng::entropy::from_random_device() );
+  rand.reseed( rng::entropy::from_random_device() );
 
   // ------------------------------------------------------------
   // GameSetup
@@ -107,7 +108,7 @@ void generate_single_map( IEngine& engine, SS& ss,
   ClassicGameSetupParams const params{
     .common = { .difficulty  = e_difficulty::conquistador,
                 .player      = e_nation::english,
-                .player_name = "David" },
+                .player_name = "Conquistador David" },
     .custom = { .land_mass   = e_land_mass::moderate,
                 .land_form   = e_land_form::normal,
                 .temperature = e_temperature::temperate,
@@ -134,15 +135,20 @@ struct IGameStatsCollector {
 
 struct LandDensityStats : IGameStatsCollector {
   void collect( SSConst const& ss ) override {
+    map_sz_ = ss.terrain.world_size_tiles();
     ++maps_total;
     on_all_tiles(
         ss, [&]( point const tile, MapSquare const& square ) {
           land_count_x[tile.x];
           land_count_y[tile.y];
           if( square.surface == e_surface::water ) return;
-          ++land_total;
-          ++land_count_x[tile.x];
-          ++land_count_y[tile.y];
+          bool const arctic_row =
+              tile.y == 0 || tile.y == map_sz_.h - 1;
+          if( !arctic_row ) {
+            ++land_total;
+            ++land_count_x[tile.x];
+            ++land_count_y[tile.y];
+          }
         } );
   }
 
@@ -172,7 +178,7 @@ struct LandDensityStats : IGameStatsCollector {
         GNUPLOT_FILE_TEMPLATE,
         {
           { "{{TITLE}}", "Spatial Land Density (generated)" },
-          { "{{CSV_STEM}}", "generated.csv" },
+          { "{{CSV_STEM}}", "land-density.csv" },
           { "{{MODE}}", "mode" },
           { "{{COUNT}}", to_string( maps_total ) },
           { "{{XRANGE}}", "0:1.0" },
@@ -181,26 +187,30 @@ struct LandDensityStats : IGameStatsCollector {
 
     csv << format( "coordinate,x,y,overall\n" );
     double const density =
-        land_total / ( 56.0 * 70 * maps_total );
+        land_total /
+        ( double( map_sz_.w ) * map_sz_.h * maps_total );
     for( double p = 0; p < 1; p += .001 ) {
       csv << p;
-      int const x = int( floor( p * 56 ) );
-      int const y = int( floor( p * 70 ) );
+      int const x = int( floor( p * map_sz_.w ) );
+      int const y = int( floor( p * map_sz_.h ) );
       CHECK( x >= 0 );
       CHECK( y >= 0 );
-      CHECK( x < 56 );
-      CHECK( y < 70 );
+      CHECK( x < map_sz_.w );
+      CHECK( y < map_sz_.h );
       UNWRAP_CHECK_T( int const count_x,
                       lookup( land_count_x, x ) );
       UNWRAP_CHECK_T( int const count_y,
                       lookup( land_count_y, y ) );
-      double const density_x = count_x / ( 70.0 * maps_total );
-      double const density_y = count_y / ( 56.0 * maps_total );
+      double const density_x =
+          count_x / ( double( map_sz_.h ) * maps_total );
+      double const density_y =
+          count_y / ( double( map_sz_.w ) * maps_total );
       csv << format( ",{},{},{}\n", density_x, density_y,
                      density );
     }
   }
 
+  size map_sz_ = {};
   map<int, int> land_count_x;
   map<int, int> land_count_y;
   int land_total = 0;
@@ -225,9 +235,9 @@ void load_testing_game_setup( GameSetup& setup ) {
                       doc.top_val(), options ) );
 }
 
-void testing_map_gen( IEngine& engine ) {
+void testing_map_gen( IEngine& engine, bool const reseed ) {
   SS ss;
-  generate_single_map( engine, ss, /*reseed=*/true );
+  generate_single_map( engine, ss, reseed );
   print_ascii_map( ss.terrain.real_terrain(), cout );
 }
 
@@ -236,7 +246,7 @@ void testing_map_gen_stats( IEngine& engine ) {
   ScopedTimer const timer( format( "generate {} maps", n ) );
   LandDensityStats stats;
   for( int i = 0; i < n; ++i ) {
-    lg.info( "generating map {}...", i );
+    fmt::println( "generating map {}...", i );
     SS ss;
     generate_single_map( engine, ss, /*reseed=*/true );
     // print_ascii_map( ss.terrain.real_terrain(), cout );

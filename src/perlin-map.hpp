@@ -20,6 +20,9 @@
 #include "gfx/cartesian.hpp"
 #include "gfx/matrix.hpp"
 
+// base
+#include "base/valid.hpp"
+
 namespace rng {
 struct entropy;
 }
@@ -32,9 +35,8 @@ namespace rn {
 [[nodiscard]] PerlinSeed generate_perlin_seed(
     rng::entropy entropy );
 
-void land_gen_perlin( PerlinMapSettings const& settings,
-                      double target_density,
-                      gfx::size const world_sz,
-                      gfx::Matrix<e_surface>& surface );
+[[nodiscard]] base::valid_or<e_perlin_map_error> land_gen_perlin(
+    PerlinMapSettings const& settings, double target_density,
+    gfx::size const world_sz, gfx::Matrix<e_surface>& surface );
 
 } // namespace rn

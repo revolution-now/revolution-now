@@ -14,6 +14,8 @@ enum.e_mode {
   game,
   map_editor,
   map_gen,
+  map_gen_reseed,
+  map_gen_stats,
   test_ui,
   test_lua_ui,
 }

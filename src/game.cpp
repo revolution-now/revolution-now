@@ -69,6 +69,8 @@ namespace rn {
 
 namespace {
 
+using ::refl::enum_map;
+
 // TODO: temporary
 e_player ensure_human_player( PlayersState const& players ) {
   for( auto& [player_type, player] : players.players )
@@ -149,9 +151,14 @@ wait_bool customize_new_world( IEngine& engine, Planes& planes,
   EnumChoiceConfig const config{
     .msg = "Select Desired Customization Level:",
   };
+  enum_map<e_customization_mode, bool> const disabled{
+    { e_customization_mode::classic, false },
+    { e_customization_mode::modern, true },
+    { e_customization_mode::extreme, true },
+  };
   auto const mode =
       co_await gui.optional_enum_choice<e_customization_mode>(
-          config );
+          config, disabled );
   if( !mode.has_value() ) co_return false;
   auto const setup = co_await create_customized_game_setup(
       engine, planes, gui, *mode );

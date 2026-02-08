@@ -22,7 +22,7 @@ struct GameSetup;
 /****************************************************************
 ** Public API.
 *****************************************************************/
-void testing_map_gen( IEngine& engine );
+void testing_map_gen( IEngine& engine, bool reseed );
 
 void testing_map_gen_stats( IEngine& engine );
 

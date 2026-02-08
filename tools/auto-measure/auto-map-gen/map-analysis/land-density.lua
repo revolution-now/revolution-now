@@ -27,13 +27,13 @@ set title "{{TITLE}} ({{MODE}} [{{COUNT}}])"
 set datafile separator ","
 set key outside right
 set grid
-set xlabel "X or Y coordinate"
-set ylabel "density"
+set xlabel "{{XLABEL}}"
+set ylabel "{{YLABEL}}"
 
 # Use the first row as column headers for titles.
 set key autotitle columnhead
 
-set yrange [0:1.0]
+set yrange [{{YRANGE}}]
 set xrange [{{XRANGE}}]
 
 # Plot: x is column 1, then plot columns 2..N as separate lines.
@@ -54,6 +54,9 @@ local function write_spatial_gnuplot_file( csv_fname, mode, count )
     { key='{{MODE}}', val=mode }, --
     { key='{{COUNT}}', val=count }, --
     { key='{{XRANGE}}', val='0:1.0' }, --
+    { key='{{YRANGE}}', val='0:1.0' }, --
+    { key='{{XLABEL}}', val='X or Y coordinate' }, --
+    { key='{{YLABEL}}', val='density' }, --
   }
   for _, p in ipairs( subs ) do
     body = body:gsub( assert( p.key ), assert( p.val ) )
@@ -75,6 +78,9 @@ local function write_overall_gnuplot_file( csv_fname, mode, count )
     { key='{{MODE}}', val=mode }, --
     { key='{{COUNT}}', val=count }, --
     { key='{{XRANGE}}', val='0:0.5' }, --
+    { key='{{YRANGE}}', val='0:*' }, --
+    { key='{{XLABEL}}', val='density' }, --
+    { key='{{YLABEL}}', val='frequency' }, --
   }
   for _, p in ipairs( subs ) do
     body = body:gsub( assert( p.key ), assert( p.val ) )
@@ -120,7 +126,7 @@ local function lambda( json )
     end
     ::continue::
   end )
-  local overall_density = total_land_no_arctic / (56 * 70)
+  local overall_density = total_land_no_arctic / (56 * (70 - 2))
   local overall_density_bucket =
       floor( overall_density * 100 ) / 100
   D.overall_density[overall_density_bucket] =
@@ -143,7 +149,8 @@ local function write_spatial_density( mode )
   end
   local header = { 'coordinate', 'x', 'y', 'overall', 'arctic' }
   emit( '%s\n', concat( header, ',' ) )
-  local density = D.land_no_arctic / (56 * 70 * D.total_savs)
+  local density = D.land_no_arctic /
+                      (56 * (70 - 2) * D.total_savs)
   for p = 0, 1, .001 do
     emit( '%.3f', p )
     local x = floor( p * 56 + 1 )
@@ -156,7 +163,7 @@ local function write_spatial_density( mode )
     local count_y = assert( D.land_by_row[y] )
     -- x means "by column", and there are 70 tiles in a column.
     -- y means "by row", and there are 56 tiles in a row.
-    local density_x = count_x / (70 * D.total_savs)
+    local density_x = count_x / ((70 - 2) * D.total_savs)
     local density_y = count_y / (56 * D.total_savs)
     local arctic_density = assert( D.arctic_by_row[y] ) /
                                (56 * D.total_savs)
@@ -179,7 +186,9 @@ local function write_overall_density( mode )
   emit( '%s\n', concat( header, ',' ) )
   local sorted = {}
   for k, v in pairs( D.overall_density ) do
-    insert( sorted, { bucket=k, frequency=v / D.total_savs } )
+    -- 100 because our bucket size is .01
+    insert( sorted,
+            { bucket=k, frequency=100 * v / D.total_savs } )
   end
   sort( sorted, function( l, r )
     return assert( l.bucket ) < assert( r.bucket )

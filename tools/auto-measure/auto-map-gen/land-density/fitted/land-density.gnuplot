@@ -10,5 +10,5 @@ set yrange [0:2.0]
 plot Gaussian( x, .23-.07, .03) title "t",   \
      Gaussian( x, .23,     .03) title "m",   \
      Gaussian( x, .23+.07, .03) title "b",   \
-     Gaussian( x, .23,     .06) title "new", \
+     Gaussian( x, .28,     .07) title "new", \
      0.5 title "half"

@@ -13,6 +13,10 @@ include "config/map-gen-types.rds.hpp"
 
 namespace "rn"
 
+enum.e_perlin_map_error {
+  density_search_failed,
+}
+
 struct.PerlinMapSettings {
   land_form 'PerlinLandForm',
   edge_suppression 'PerlinEdgeSuppression',
