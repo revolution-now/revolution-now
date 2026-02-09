@@ -24,6 +24,9 @@ using namespace std;
 /****************************************************************
 ** Test Cases
 *****************************************************************/
+TEST_CASE( "[perlin-map] generate_perlin_seed" ) {
+}
+
 TEST_CASE( "[perlin-map] land_gen_perlin" ) {
 }
 

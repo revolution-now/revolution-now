@@ -102,9 +102,6 @@ valid_or<string> generate_land_perlin(
     if( !ok ) return base::to_str( ok.error() );
     for( point const p : rect_iterator( surface.rect() ) )
       real_terrain.map[p].surface = surface[p];
-    // FIXME: temporary
-    for( point const p : rect_iterator( surface.rect() ) )
-      real_terrain.map[p].ground = e_ground_terrain::grassland;
   }
 
   bool const arctic_enabled =
@@ -116,16 +113,16 @@ valid_or<string> generate_land_perlin(
     double const actual_density =
         place_arctic( real_terrain, rand,
                       setup.surface_generator.arctic.density );
-    lg.info( "arctic density: {:.3}%", actual_density * 100 );
+    lg.debug( "arctic density: {:.3}%", actual_density * 100 );
   }
 
   // Hard buffer exclusion.
   auto const apply_exclusion = [&] {
     using enum e_surface;
     rect const land_zone = compute_land_zone( sz );
-    lg.info(
-        "land_zone.left={}, land_zone.right={}, "
-        "land_zone.top={}, land_zone.bottom={}",
+    lg.debug(
+        "land exclusion margins: left={}, right={}, top={}, "
+        "bottom={}.",
         land_zone.left(), sz.w - land_zone.right(),
         land_zone.top(), sz.h - land_zone.bottom() );
     auto& m = real_terrain.map;
@@ -161,9 +158,14 @@ valid_or<string> generate_land_perlin(
   // putting a land tile in the exclusion zone.
   apply_exclusion();
 
-  // TODO: it is possible that we might still end up with islands
-  // here, and so we should probably do a pass later to put moun-
-  // tains on them.
+  // FIXME: it is possible that we might still end up with is-
+  // lands here, and so we should probably do a pass later to put
+  // mountains on them.
+
+  // FIXME: temporary
+  for( auto& m = real_terrain.map;
+       point const p : rect_iterator( m.rect() ) )
+    m[p].ground = e_ground_terrain::grassland;
 
   return valid;
 }

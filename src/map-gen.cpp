@@ -260,7 +260,8 @@ void remove_crosses( RealTerrain& real_terrain ) {
 // bit too much randomness and not enough consistency and unifor-
 // mity) we compute the number of tiles that we want and choose
 // that exact number, that way we actually get the density that
-// we want.
+// we want. This is ok because arctic tiles are mainly cosmetic;
+// they don't have much effect on gameplay.
 double place_arctic( RealTerrain& real_terrain, IRand& rand,
                      double const density ) {
   CHECK_GE( density, 0.0 );
@@ -280,7 +281,10 @@ double place_arctic( RealTerrain& real_terrain, IRand& rand,
     rand.shuffle( v );
     int const n = clamp( lround( density * w ), 0l, ssize( v ) );
     for( int i = 0; i < n; ++i )
-      // NOTE: don't remove land here, only add it.
+      // NOTE: don't remove land here, only add it. That way the
+      // standard land generation phase is able to bleed conti-
+      // nents into the arctic rows. Otherwise there would be
+      // artificial-looking discontinuities.
       m[v[i]].surface = e_surface::land;
     placed += n;
     total += w;
