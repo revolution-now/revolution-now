@@ -56,7 +56,10 @@ local SPEC_INIT = {
   desert={ weight=4.0, curve={ e=4, c=46, w=10, sub=0 } },
   swamp={ weight=2.0, curve={ e=2, c=46, w=3, sub=.3 } },
   marsh={ weight=1.0, curve={ e=2, c=46, w=3, sub=0 } },
+  arctic={ weight=0.0, curve={ e=0, c=35.5, w=0, sub=0 } },
 }
+
+ARCTIC_DIFF = { weight=0, curve={ c=0, w=0, sub=0 } }
 
 local ORDERING = {
   'savannah', --
@@ -67,6 +70,18 @@ local ORDERING = {
   'desert', --
   'swamp', --
   'marsh', --
+}
+
+local ORDERING_WITH_ARCTIC = {
+  'savannah', --
+  'grassland', --
+  'tundra', --
+  'plains', --
+  'prairie', --
+  'desert', --
+  'swamp', --
+  'marsh', --
+  'arctic', --
 }
 
 local MODE_NAMES = {
@@ -98,7 +113,7 @@ local function print_spec( spec, mode, emit )
   local name = MODE_NAMES[mode] or mode
   assert( name )
   emit( '%s {  # %s\n', name, mode )
-  for _, curve in ipairs( ORDERING ) do
+  for _, curve in ipairs( ORDERING_WITH_ARCTIC ) do
     local curve_spec = assert( spec[curve] )
     local half = 70 - 35.5
     local center = (assert( curve_spec.curve.c ) - 35.5) / half
@@ -123,8 +138,13 @@ local function print_spec_diffs( spec, mode, emit )
     if abs( f ) < DIFF_CUTOFF then return '-' end
     return format( '%.4f', assert( f ) )
   end
-  for _, curve in ipairs( ORDERING ) do
-    local curve_spec = assert( spec[curve] )
+  for _, curve in ipairs( ORDERING_WITH_ARCTIC ) do
+    local curve_spec
+    if curve == 'arctic' then
+      curve_spec = ARCTIC_DIFF
+    else
+      curve_spec = assert( spec[curve] )
+    end
     local weight = assert( curve_spec.weight )
     local center = assert( curve_spec.curve.c )
     local stddev = assert( curve_spec.curve.w )

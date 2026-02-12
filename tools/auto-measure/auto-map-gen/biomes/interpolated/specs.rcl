@@ -7,6 +7,7 @@ temperate_normal {  # bbmm
   desert    { exp: 4, weight: 0.0833, center: 0.2977, stddev: 0.1418, sub: 0.0000 }
   swamp     { exp: 2, weight: 0.1344, center: 0.1737, stddev: 0.1366, sub: 0.3000 }
   marsh     { exp: 2, weight: 0.0411, center: 0.2843, stddev: 0.1243, sub: 0.0000 }
+  arctic    { exp: 0, weight: 0.0000, center: 0.0000, stddev: 0.0000, sub: 0.0000 }
 }
 
 temperature_gradient {
@@ -18,6 +19,7 @@ temperature_gradient {
   desert    { weight: -0.0227, center: -0.0258, stddev: -0.0132, sub:  0.0000 }
   swamp     { weight: -0.0828, center: -0.0269, stddev: -0.2001, sub:  0.0000 }
   marsh     { weight: -0.0602, center: -0.0216, stddev: -0.0039, sub:  0.0000 }
+  arctic    { weight:  0.0000, center:  0.0000, stddev:  0.0000, sub:  0.0000 }
 }
 
 climate_gradient {
@@ -29,4 +31,5 @@ climate_gradient {
   desert    { weight:  0.0795, center: -0.0008, stddev:  0.0135, sub:  0.0000 }
   swamp     { weight: -0.0342, center: -0.0030, stddev: -0.0135, sub:  0.0000 }
   marsh     { weight: -0.2622, center: -0.0168, stddev: -0.0135, sub:  0.0000 }
+  arctic    { weight:  0.0000, center:  0.0000, stddev:  0.0000, sub:  0.0000 }
 }
