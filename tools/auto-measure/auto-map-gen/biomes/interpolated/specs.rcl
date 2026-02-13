@@ -1,13 +1,13 @@
-temperate_normal {  # bbmm
-  savannah  { exp: 2, weight: 0.2943, center: 0.1700, stddev: 0.1353, sub: 0.3000 }
-  grassland { exp: 2, weight: 0.1277, center: 0.2922, stddev: 0.1266, sub: 0.0000 }
-  tundra    { exp: 2, weight: 0.0265, center: 0.4997, stddev: 0.0995, sub: 0.0000 }
-  plains    { exp: 2, weight: 0.1259, center: 0.4344, stddev: 0.1126, sub: 0.0000 }
-  prairie   { exp: 2, weight: 0.1668, center: 0.3606, stddev: 0.1229, sub: 0.0000 }
-  desert    { exp: 4, weight: 0.0833, center: 0.2977, stddev: 0.1418, sub: 0.0000 }
-  swamp     { exp: 2, weight: 0.1344, center: 0.1737, stddev: 0.1366, sub: 0.3000 }
-  marsh     { exp: 2, weight: 0.0411, center: 0.2843, stddev: 0.1243, sub: 0.0000 }
-  arctic    { exp: 0, weight: 0.0000, center: 0.0000, stddev: 0.0000, sub: 0.0000 }
+normal_temperature_and_climate {  # bbmm
+  savannah  { exp: 2, params={ weight: 0.2943, center: 0.1700, stddev: 0.1353, sub: 0.3000 } }
+  grassland { exp: 2, params={ weight: 0.1277, center: 0.2922, stddev: 0.1266, sub: 0.0000 } }
+  tundra    { exp: 2, params={ weight: 0.0265, center: 0.4997, stddev: 0.0995, sub: 0.0000 } }
+  plains    { exp: 2, params={ weight: 0.1259, center: 0.4344, stddev: 0.1126, sub: 0.0000 } }
+  prairie   { exp: 2, params={ weight: 0.1668, center: 0.3606, stddev: 0.1229, sub: 0.0000 } }
+  desert    { exp: 4, params={ weight: 0.0833, center: 0.2977, stddev: 0.1418, sub: 0.0000 } }
+  swamp     { exp: 2, params={ weight: 0.1344, center: 0.1737, stddev: 0.1366, sub: 0.3000 } }
+  marsh     { exp: 2, params={ weight: 0.0411, center: 0.2843, stddev: 0.1243, sub: 0.0000 } }
+  arctic    { exp: 0, params={ weight: 0.0000, center: 0.0000, stddev: 0.0000, sub: 0.0000 } }
 }
 
 temperature_gradient {

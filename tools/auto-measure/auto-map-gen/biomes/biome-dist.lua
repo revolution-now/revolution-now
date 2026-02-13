@@ -89,7 +89,7 @@ local MODE_NAMES = {
   bbtm='cool_normal', --
   bbtb='cool_wet', --
   bbmt='temperate_arid', --
-  bbmm='temperate_normal', --
+  bbmm='normal_temperature_and_climate', --
   bbmb='temperate_wet', --
   bbbt='warm_arid', --
   bbbm='warm_normal', --
@@ -122,11 +122,12 @@ local function print_spec( spec, mode, emit )
     if curve_spec.curve.e then
       emit( ' exp: %d,', assert( curve_spec.curve.e ) )
     end
+    emit( ' params={' )
     emit( ' weight: %.4f,', assert( curve_spec.weight ) )
     emit( ' center: %.4f,', center )
     emit( ' stddev: %.4f,', stddev )
     emit( ' sub: %.4f', assert( curve_spec.curve.sub ) )
-    emit( ' }\n' )
+    emit( ' } }\n' )
   end
   emit( '}\n' )
 end
