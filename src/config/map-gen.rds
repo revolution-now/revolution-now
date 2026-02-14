@@ -12,6 +12,9 @@
 include "range-helpers.rds.hpp"
 include "map-gen-types.rds.hpp"
 
+# ss
+include "ss/terrain-enums.rds.hpp"
+
 # gfx
 include "gfx/cartesian.hpp"
 
@@ -58,14 +61,31 @@ struct.LandLayout {
   remove_crosses 'bool',
 }
 
-struct.Temperature {
-  weights 'refl::enum_map<e_temperature, int>',
+struct.BiomeCurveParams {
+  weight 'double',
+  center 'double',
+  stddev 'double',
+  sub    'double',
+}
+
+struct.BiomeCurve {
+  exp    'int',
+  params 'BiomeCurveParams',
   _features { equality, validation }
 }
 
-struct.Climate {
-  weights 'refl::enum_map<e_climate, int>',
-  _features { equality, validation }
+struct.Biomes {
+  temperature 'config::ParabolicDist',
+  climate     'config::ParabolicDist',
+  normal_temperature_and_climate [[
+    refl::enum_map<e_ground_terrain, BiomeCurve>
+  ]],
+  temperature_gradient [[
+    refl::enum_map<e_ground_terrain, BiomeCurveParams>
+  ]],
+  climate_gradient [[
+    refl::enum_map<e_ground_terrain, BiomeCurveParams>
+  ]],
 }
 
 struct.Overlay {
@@ -83,8 +103,7 @@ struct.Rivers {
 
 struct.TerrainGeneration {
   land_layout 'LandLayout',
-  temperature 'Temperature',
-  climate 'Climate',
+  biomes 'Biomes',
   overlay 'Overlay',
   rivers 'Rivers',
 }

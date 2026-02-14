@@ -56,7 +56,7 @@ local SPEC_INIT = {
   desert={ weight=4.0, curve={ e=4, c=46, w=10, sub=0 } },
   swamp={ weight=2.0, curve={ e=2, c=46, w=3, sub=.3 } },
   marsh={ weight=1.0, curve={ e=2, c=46, w=3, sub=0 } },
-  arctic={ weight=0.0, curve={ e=0, c=35.5, w=0, sub=0 } },
+  arctic={ weight=0.0, curve={ e=2, c=35.5, w=1, sub=0 } },
 }
 
 ARCTIC_DIFF = { weight=0, curve={ c=0, w=0, sub=0 } }

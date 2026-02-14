@@ -106,7 +106,8 @@ int random::uniform_int( int const lower, int const upper ) {
 
 double random::uniform_double( double const lower,
                                double const upper ) {
-  CHECK_LE( lower, upper );
+  // UB if they are equal, so check that.
+  CHECK_LT( lower, upper );
   // NOTE: this is not guaranteed to yield consistent values
   // across implementations.
   return uniform_real_distribution<double>( lower,

@@ -7,7 +7,7 @@ normal_temperature_and_climate {  # bbmm
   desert    { exp: 4, params={ weight: 0.0833, center: 0.2977, stddev: 0.1418, sub: 0.0000 } }
   swamp     { exp: 2, params={ weight: 0.1344, center: 0.1737, stddev: 0.1366, sub: 0.3000 } }
   marsh     { exp: 2, params={ weight: 0.0411, center: 0.2843, stddev: 0.1243, sub: 0.0000 } }
-  arctic    { exp: 0, params={ weight: 0.0000, center: 0.0000, stddev: 0.0000, sub: 0.0000 } }
+  arctic    { exp: 2, params={ weight: 0.0000, center: 0.0000, stddev: 0.0290, sub: 0.0000 } }
 }
 
 temperature_gradient {

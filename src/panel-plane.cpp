@@ -118,6 +118,10 @@ struct PanelPlane::Impl : public IPlane, public IMenuHandler {
     // one both in terms of function and appearance.
     mini_map_available_rect.h =
         static_cast<int>( mini_map_available_rect.h / 4.5 );
+    if( mini_map_available_rect.h % 2 != 0 )
+      --mini_map_available_rect.h;
+    if( mini_map_available_rect.w % 2 != 0 )
+      --mini_map_available_rect.w;
     return mini_map_available_rect;
   }
 

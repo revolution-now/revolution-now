@@ -72,4 +72,8 @@ base::valid_or<string> BoundedNormalDist::validate() const {
   return base::valid;
 }
 
+base::valid_or<string> ParabolicDist::validate() const {
+  return base::valid;
+}
+
 } // namespace rn::config

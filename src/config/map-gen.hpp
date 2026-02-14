@@ -10,6 +10,11 @@
 *****************************************************************/
 #pragma once
 
-#include "map-gen.rds.hpp"
+#include "config/map-gen.rds.hpp"
 
-namespace rn {} // namespace rn
+namespace rn {
+
+int constexpr kMapHeightMin = 6;
+int constexpr kMapWidthMin  = 6;
+
+} // namespace rn

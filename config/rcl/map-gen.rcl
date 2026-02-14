@@ -114,19 +114,44 @@ terrain_generation {
     remove_crosses: true
   }
 
-  temperature {
-    weights {
-      cool:      20
-      temperate: 60
-      warm:      20
-    }
-  }
+  biomes {
+    temperature { mean: 0, width: 0, height: 0 }
+    climate     { mean: 0, width: 0, height: 0 }
 
-  climate {
-    weights {
-      arid:   20
-      normal: 60
-      wet:    20
+    normal_temperature_and_climate {
+      savannah  { exp: 2, params={ weight: 0.2943, center: 0.1700, stddev: 0.1353, sub: 0.3000 } }
+      grassland { exp: 2, params={ weight: 0.1277, center: 0.2922, stddev: 0.1266, sub: 0.0000 } }
+      tundra    { exp: 2, params={ weight: 0.0265, center: 0.4997, stddev: 0.0995, sub: 0.0000 } }
+      plains    { exp: 2, params={ weight: 0.1259, center: 0.4344, stddev: 0.1126, sub: 0.0000 } }
+      prairie   { exp: 2, params={ weight: 0.1668, center: 0.3606, stddev: 0.1229, sub: 0.0000 } }
+      desert    { exp: 4, params={ weight: 0.0833, center: 0.2977, stddev: 0.1418, sub: 0.0000 } }
+      swamp     { exp: 2, params={ weight: 0.1344, center: 0.1737, stddev: 0.1366, sub: 0.3000 } }
+      marsh     { exp: 2, params={ weight: 0.0411, center: 0.2843, stddev: 0.1243, sub: 0.0000 } }
+      arctic    { exp: 2, params={ weight: 0.0000, center: 0.0000, stddev: 0.0290, sub: 0.0000 } }
+    }
+
+    temperature_gradient {
+      savannah  { weight: -0.0706, center: -0.0252, stddev: -0.1983, sub:  0.0000 }
+      grassland { weight: -0.0321, center: -0.0202, stddev: -0.0072, sub:  0.0000 }
+      tundra    { weight:  0.3748, center: -0.0177, stddev:  0.0272, sub:  0.0000 }
+      plains    { weight:  0.1997, center: -0.0179, stddev:  0.0253, sub:  0.0000 }
+      prairie   { weight:  0.0317, center: -0.0201, stddev:  0.0264, sub:  0.0000 }
+      desert    { weight: -0.0227, center: -0.0258, stddev: -0.0132, sub:  0.0000 }
+      swamp     { weight: -0.0828, center: -0.0269, stddev: -0.2001, sub:  0.0000 }
+      marsh     { weight: -0.0602, center: -0.0216, stddev: -0.0039, sub:  0.0000 }
+      arctic    { weight:  0.0000, center:  0.0000, stddev:  0.0000, sub:  0.0000 }
+    }
+
+    climate_gradient {
+      savannah  { weight:  0.0836, center: -0.0019, stddev:  0.0154, sub:  0.0000 }
+      grassland { weight: -0.1737, center: -0.0190, stddev: -0.0129, sub:  0.0000 }
+      tundra    { weight:  0.3318, center: -0.0121, stddev:  0.0095, sub:  0.0000 }
+      plains    { weight:  0.0458, center: -0.0078, stddev: -0.0173, sub:  0.0000 }
+      prairie   { weight: -0.0494, center: -0.0130, stddev: -0.0265, sub:  0.0000 }
+      desert    { weight:  0.0795, center: -0.0008, stddev:  0.0135, sub:  0.0000 }
+      swamp     { weight: -0.0342, center: -0.0030, stddev: -0.0135, sub:  0.0000 }
+      marsh     { weight: -0.2622, center: -0.0168, stddev: -0.0135, sub:  0.0000 }
+      arctic    { weight:  0.0000, center:  0.0000, stddev:  0.0000, sub:  0.0000 }
     }
   }
 

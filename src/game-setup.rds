@@ -73,10 +73,10 @@ struct.SurfaceGeneratorSetup {
   sanitization 'SurfaceSanitizationSetup',
 }
 
-struct.GroundTypeSetup {
+struct.BiomesSetup {
   seed 'rng::seed',
-  temperature 'e_temperature',
-  climate 'e_climate',
+  temperature 'int',  # [-100, 100] = [cold, warm]
+  climate 'int',      # [-100, 100] = [arid, wet]
 }
 
 struct.RiverSetup {
@@ -132,7 +132,7 @@ struct.GeneratedMapSetup {
 
   surface_generator 'SurfaceGeneratorSetup',
 
-  ground_types 'GroundTypeSetup',
+  biomes 'BiomesSetup',
 
   rivers 'RiverSetup',
 
@@ -141,6 +141,8 @@ struct.GeneratedMapSetup {
   forest 'ForestSetup',
 
   bonuses 'BonusesSetup',
+
+  _features { equality, validation }
 }
 
 enum.e_map_file_epoch {
@@ -232,8 +234,8 @@ struct.ClassicGameSetupParamsEvaluated {
   common 'ClassicGameSetupParamsCommon',
   land_density 'double',
   land_form 'PerlinLandForm',
-  temperature 'e_temperature',
-  climate 'e_climate',
+  temperature 'int', # [-100, 100] ==> [cool, warm]
+  climate     'int', # [-100, 100] ==> [arid, wet]
 }
 
 enum.e_customization_mode {

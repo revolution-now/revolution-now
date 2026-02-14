@@ -64,3 +64,11 @@ struct.BoundedNormalDist {
 
   _features { equality, validation }
 }
+
+struct.ParabolicDist {
+  mean 'double',
+  width 'double',
+  height 'double',
+
+  _features { equality, validation }
+}

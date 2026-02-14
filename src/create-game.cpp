@@ -11,6 +11,7 @@
 #include "create-game.hpp"
 
 // Revolution Now
+#include "biomes.hpp"
 #include "classic-sav.hpp"
 #include "co-wait.hpp"
 #include "irand.hpp"
@@ -165,7 +166,7 @@ valid_or<string> generate_land_perlin(
   // FIXME: temporary
   for( auto& m = real_terrain.map;
        point const p : rect_iterator( m.rect() ) )
-    m[p].ground = e_ground_terrain::grassland;
+    m[p].ground = e_ground_terrain::arctic;
 
   return valid;
 }
@@ -180,6 +181,12 @@ valid_or<string> generate_map_native_impl(
       generate_land_perlin( setup, rand, real_terrain ) );
 
   generate_proto_tiles( root.zzz_terrain );
+
+  // Biomes.
+  rand.reseed( setup.biomes.seed );
+  GOOD_OR_RETURN( assign_biomes( rand, real_terrain,
+                                 setup.biomes.temperature,
+                                 setup.biomes.climate ) );
 
   return valid;
 }

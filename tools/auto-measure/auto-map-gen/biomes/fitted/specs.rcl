@@ -7,7 +7,7 @@ cool_arid {  # bbtt
   desert    { exp: 4, params={ weight: 0.0862, center: 0.2572, stddev: 0.1431, sub: 0.0000 } }
   swamp     { exp: 2, params={ weight: 0.1265, center: 0.1400, stddev: 0.1117, sub: 0.3000 } }
   marsh     { exp: 2, params={ weight: 0.0318, center: 0.2280, stddev: 0.1223, sub: 0.0000 } }
-  arctic    { exp: 0, params={ weight: 0.0000, center: 0.0000, stddev: 0.0000, sub: 0.0000 } }
+  arctic    { exp: 2, params={ weight: 0.0000, center: 0.0000, stddev: 0.0290, sub: 0.0000 } }
 }
 cool_normal {  # bbtm
   savannah  { exp: 2, params={ weight: 0.2725, center: 0.1397, stddev: 0.1122, sub: 0.3000 } }
@@ -18,7 +18,7 @@ cool_normal {  # bbtm
   desert    { exp: 4, params={ weight: 0.0811, center: 0.2632, stddev: 0.1397, sub: 0.0000 } }
   swamp     { exp: 2, params={ weight: 0.1233, center: 0.1421, stddev: 0.1130, sub: 0.3000 } }
   marsh     { exp: 2, params={ weight: 0.0389, center: 0.2534, stddev: 0.1243, sub: 0.0000 } }
-  arctic    { exp: 0, params={ weight: 0.0000, center: 0.0000, stddev: 0.0000, sub: 0.0000 } }
+  arctic    { exp: 2, params={ weight: 0.0000, center: 0.0000, stddev: 0.0290, sub: 0.0000 } }
 }
 cool_wet {  # bbtb
   savannah  { exp: 2, params={ weight: 0.2358, center: 0.1425, stddev: 0.1109, sub: 0.3000 } }
@@ -29,7 +29,7 @@ cool_wet {  # bbtb
   desert    { exp: 4, params={ weight: 0.0725, center: 0.2665, stddev: 0.1366, sub: 0.0000 } }
   swamp     { exp: 2, params={ weight: 0.1252, center: 0.1469, stddev: 0.1121, sub: 0.3000 } }
   marsh     { exp: 2, params={ weight: 0.0528, center: 0.2839, stddev: 0.1241, sub: 0.0000 } }
-  arctic    { exp: 0, params={ weight: 0.0000, center: 0.0000, stddev: 0.0000, sub: 0.0000 } }
+  arctic    { exp: 2, params={ weight: 0.0000, center: 0.0000, stddev: 0.0290, sub: 0.0000 } }
 }
 temperate_arid {  # bbmt
   savannah  { exp: 2, params={ weight: 0.3135, center: 0.1673, stddev: 0.1386, sub: 0.3000 } }
@@ -40,7 +40,7 @@ temperate_arid {  # bbmt
   desert    { exp: 4, params={ weight: 0.0886, center: 0.2960, stddev: 0.1439, sub: 0.0000 } }
   swamp     { exp: 2, params={ weight: 0.1341, center: 0.1713, stddev: 0.1340, sub: 0.3000 } }
   marsh     { exp: 2, params={ weight: 0.0332, center: 0.2644, stddev: 0.1221, sub: 0.0000 } }
-  arctic    { exp: 0, params={ weight: 0.0000, center: 0.0000, stddev: 0.0000, sub: 0.0000 } }
+  arctic    { exp: 2, params={ weight: 0.0000, center: 0.0000, stddev: 0.0290, sub: 0.0000 } }
 }
 normal_temperature_and_climate {  # bbmm
   savannah  { exp: 2, params={ weight: 0.2943, center: 0.1700, stddev: 0.1353, sub: 0.3000 } }
@@ -51,7 +51,7 @@ normal_temperature_and_climate {  # bbmm
   desert    { exp: 4, params={ weight: 0.0833, center: 0.2977, stddev: 0.1418, sub: 0.0000 } }
   swamp     { exp: 2, params={ weight: 0.1344, center: 0.1737, stddev: 0.1366, sub: 0.3000 } }
   marsh     { exp: 2, params={ weight: 0.0411, center: 0.2843, stddev: 0.1243, sub: 0.0000 } }
-  arctic    { exp: 0, params={ weight: 0.0000, center: 0.0000, stddev: 0.0000, sub: 0.0000 } }
+  arctic    { exp: 2, params={ weight: 0.0000, center: 0.0000, stddev: 0.0290, sub: 0.0000 } }
 }
 temperate_wet {  # bbmb
   savannah  { exp: 2, params={ weight: 0.2643, center: 0.1718, stddev: 0.1344, sub: 0.3000 } }
@@ -62,7 +62,7 @@ temperate_wet {  # bbmb
   desert    { exp: 4, params={ weight: 0.0753, center: 0.2981, stddev: 0.1400, sub: 0.0000 } }
   swamp     { exp: 2, params={ weight: 0.1433, center: 0.1784, stddev: 0.1356, sub: 0.3000 } }
   marsh     { exp: 2, params={ weight: 0.0547, center: 0.3085, stddev: 0.1254, sub: 0.0000 } }
-  arctic    { exp: 0, params={ weight: 0.0000, center: 0.0000, stddev: 0.0000, sub: 0.0000 } }
+  arctic    { exp: 2, params={ weight: 0.0000, center: 0.0000, stddev: 0.0290, sub: 0.0000 } }
 }
 warm_arid {  # bbbt
   savannah  { exp: 2, params={ weight: 0.3214, center: 0.1994, stddev: 0.1699, sub: 0.3000 } }
@@ -73,7 +73,7 @@ warm_arid {  # bbbt
   desert    { exp: 4, params={ weight: 0.0913, center: 0.3329, stddev: 0.1441, sub: 0.0000 } }
   swamp     { exp: 2, params={ weight: 0.1449, center: 0.2039, stddev: 0.1617, sub: 0.3000 } }
   marsh     { exp: 2, params={ weight: 0.0358, center: 0.2950, stddev: 0.1227, sub: 0.0000 } }
-  arctic    { exp: 0, params={ weight: 0.0000, center: 0.0000, stddev: 0.0000, sub: 0.0000 } }
+  arctic    { exp: 2, params={ weight: 0.0000, center: 0.0000, stddev: 0.0290, sub: 0.0000 } }
 }
 warm_normal {  # bbbm
   savannah  { exp: 2, params={ weight: 0.3140, center: 0.2002, stddev: 0.1659, sub: 0.3000 } }
@@ -84,7 +84,7 @@ warm_normal {  # bbbm
   desert    { exp: 4, params={ weight: 0.0848, center: 0.3317, stddev: 0.1435, sub: 0.0000 } }
   swamp     { exp: 2, params={ weight: 0.1456, center: 0.2067, stddev: 0.1676, sub: 0.3000 } }
   marsh     { exp: 2, params={ weight: 0.0438, center: 0.3100, stddev: 0.1253, sub: 0.0000 } }
-  arctic    { exp: 0, params={ weight: 0.0000, center: 0.0000, stddev: 0.0000, sub: 0.0000 } }
+  arctic    { exp: 2, params={ weight: 0.0000, center: 0.0000, stddev: 0.0290, sub: 0.0000 } }
 }
 warm_wet {  # bbbb
   savannah  { exp: 2, params={ weight: 0.2868, center: 0.2020, stddev: 0.1647, sub: 0.3000 } }
@@ -95,5 +95,5 @@ warm_wet {  # bbbb
   desert    { exp: 4, params={ weight: 0.0775, center: 0.3308, stddev: 0.1412, sub: 0.0000 } }
   swamp     { exp: 2, params={ weight: 0.1626, center: 0.2120, stddev: 0.1649, sub: 0.3000 } }
   marsh     { exp: 2, params={ weight: 0.0568, center: 0.3300, stddev: 0.1263, sub: 0.0000 } }
-  arctic    { exp: 0, params={ weight: 0.0000, center: 0.0000, stddev: 0.0000, sub: 0.0000 } }
+  arctic    { exp: 2, params={ weight: 0.0000, center: 0.0000, stddev: 0.0290, sub: 0.0000 } }
 }

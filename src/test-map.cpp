@@ -239,6 +239,7 @@ void load_testing_game_setup( GameSetup& setup ) {
   UNWRAP_CHECK_T( setup,
                   cdr::run_conversion_from_canonical<GameSetup>(
                       doc.top_val(), options ) );
+  CHECK_HAS_VALUE( validate_game_setup( setup ) );
 }
 
 void testing_map_gen( IEngine& engine, bool const reseed ) {

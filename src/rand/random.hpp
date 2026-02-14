@@ -62,7 +62,7 @@ struct random {
   // Closed on both ends.
   [[nodiscard]] int uniform_int( int lower, int upper );
 
-  // Closed on both ends.
+  // [lower, upper)
   [[nodiscard]] double uniform_double( double lower,
                                        double upper );
 

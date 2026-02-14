@@ -90,6 +90,15 @@ struct IRand {
   template<typename T>
   [[nodiscard]] T pick_from_weighted_values(
       std::map<T, double> const& weights );
+
+  // These variants allow the case where the total weights sum to
+  // zero, in which case there is no value returned.
+  template<typename T>
+  [[nodiscard]] base::maybe<T> pick_from_weighted_values_safe(
+      std::map<T, int> const& weights );
+  template<typename T>
+  [[nodiscard]] base::maybe<T> pick_from_weighted_values_safe(
+      std::map<T, double> const& weights );
 };
 
 void to_str( IRand const& o, std::string& out,
@@ -126,11 +135,11 @@ void IRand::shuffle( std::array<T, N>& arr ) {
 }
 
 template<typename T>
-T IRand::pick_from_weighted_values(
+base::maybe<T> IRand::pick_from_weighted_values_safe(
     std::map<T, int> const& weights ) {
   int total = 0;
   for( auto const& [item, weight] : weights ) total += weight;
-  CHECK_GT( total, 0 );
+  if( total == 0 ) return base::nothing;
   int const stop = uniform_int( 0, total - 1 );
   int running    = 0;
   for( auto const& [item, weight] : weights ) {
@@ -142,23 +151,44 @@ T IRand::pick_from_weighted_values(
 
 template<typename T>
 T IRand::pick_from_weighted_values(
+    std::map<T, int> const& weights ) {
+  UNWRAP_CHECK_T( T res,
+                  pick_from_weighted_values_safe( weights ) );
+  return res;
+}
+
+template<typename T>
+base::maybe<T> IRand::pick_from_weighted_values_safe(
     std::map<T, double> const& weights ) {
   double total = 0;
   for( auto const& [item, weight] : weights ) total += weight;
-  CHECK_GE( total, 0.0 );
+  if( std::abs( total ) < 1e-12 ) return base::nothing;
+  // `stop` should always be less than `total`.
   double const stop = uniform_double( 0.0, total );
-  double running    = 0.0;
-  T res             = {};
+  CHECK_LT( stop, total );
+  double running = 0.0;
   for( auto const& [item, weight] : weights ) {
-    res = item;
     running += weight;
-    if( running > stop ) break;
+    // `running` will eventually equal `total` since it is accu-
+    // mulated using the exact same sequence of operations (sums)
+    // as is used to compute `total`. Thus, it will eventually
+    // always become larger than `stop`, thus this method should
+    // always return a value.
+    if( running > stop ) return item;
   }
-  // Unlike with the int version above, I am not convinced that
-  // we can check-fail if we get here in the case of doubles,
-  // since I'm not sure if there are any edge cases with rounding
-  // errors. So instead we'll just arrange to always return a
-  // value.
+  // It is claimed that, even in the face of rounding errors
+  // above, we should never get here.
+  FATAL(
+      "pick_from_weighted_values did not find a value: "
+      "running={}, total={}",
+      running, total );
+}
+
+template<typename T>
+T IRand::pick_from_weighted_values(
+    std::map<T, double> const& weights ) {
+  UNWRAP_CHECK_T( T res,
+                  pick_from_weighted_values_safe( weights ) );
   return res;
 }
 

@@ -34,10 +34,10 @@ map.source.generate_native.setup {
     target_density: 0.23
   }
 
-  ground_types {
-    climate: wet
+  biomes {
     seed: "48d55a01aef7295a21b2aabd78d68343"
-    temperature: temperate
+    temperature:  0
+    climate:      0
   }
 
   rivers {

@@ -20,9 +20,10 @@
 #include "perlin-map.hpp"
 
 // config
-#include "config/map-gen.rds.hpp"
+#include "config/map-gen.hpp"
 #include "config/nation.rds.hpp"
 #include "config/options.rds.hpp"
+#include "config/range-helpers.rds.hpp"
 #include "config/turn.rds.hpp"
 
 // refl
@@ -43,10 +44,50 @@ using ::gfx::size;
 using ::refl::enum_map;
 using ::refl::enum_values;
 
+int constexpr kBiomeSpectrumMax = 100;
+
 [[nodiscard]] double sample_normal(
     IRand& rand, config::BoundedNormalDist const& params ) {
   return clamp( rand.normal( params.mean, params.stddev ),
                 params.min, params.max );
+}
+
+[[nodiscard]] double sample_parabolic(
+    IRand& rand, config::ParabolicDist const& params ) {
+  double const area = rand.uniform_int( 0, 999999 ) / 1000000.0;
+  (void)area;
+  return params.mean; // FIXME
+}
+
+[[nodiscard]] int sample_parabolic_biome(
+    IRand& rand, config::ParabolicDist const& params ) {
+  double const sampled = sample_parabolic( rand, params );
+  return clamp( int( lround( sampled * kBiomeSpectrumMax ) ),
+                -kBiomeSpectrumMax, kBiomeSpectrumMax );
+}
+
+[[nodiscard]] int temperature_to_integral(
+    e_temperature const temperature ) {
+  switch( temperature ) {
+    case e_temperature::cool:
+      return -kBiomeSpectrumMax;
+    case e_temperature::temperate:
+      return 0;
+    case e_temperature::warm:
+      return kBiomeSpectrumMax;
+  }
+}
+
+[[nodiscard]] int climate_to_integral(
+    e_climate const climate ) {
+  switch( climate ) {
+    case e_climate::arid:
+      return -kBiomeSpectrumMax;
+    case e_climate::normal:
+      return 0;
+    case e_climate::wet:
+      return kBiomeSpectrumMax;
+  }
 }
 
 wait<maybe<e_nation>> choose_human( IGui& gui ) {
@@ -119,16 +160,10 @@ GameSetup create_classic_game_setup(
     .sanitization   = surface_sanitization,
   };
 
-  e_temperature const temperature =
-      rand.pick_from_weighted_values(
-          map_conf.temperature.weights );
-  e_climate const climate =
-      rand.pick_from_weighted_values( map_conf.climate.weights );
-
-  GroundTypeSetup const ground_types{
+  BiomesSetup const biomes{
     .seed        = rand.generate_deterministic_seed(),
-    .temperature = temperature,
-    .climate     = climate,
+    .temperature = params.temperature,
+    .climate     = params.climate,
   };
 
   RiverSetup const rivers{
@@ -164,7 +199,7 @@ GameSetup create_classic_game_setup(
   GeneratedMapSetup const generated_map_setup{
     .size              = world_sz,
     .surface_generator = surface_generator,
-    .ground_types      = ground_types,
+    .biomes            = biomes,
     .rivers            = rivers,
     .mountains         = mountains,
     .hills             = hills,
@@ -218,10 +253,10 @@ GameSetup create_default_game_setup(
     .land_density = sample_normal(
         rand, map_conf.land_layout.land_mass.fully_random ),
     .land_form   = perlin_land_form,
-    .temperature = rand.pick_from_weighted_values(
-        map_conf.temperature.weights ),
-    .climate = rand.pick_from_weighted_values(
-        map_conf.climate.weights ),
+    .temperature = sample_parabolic_biome(
+        rand, map_conf.biomes.temperature ),
+    .climate =
+        sample_parabolic_biome( rand, map_conf.biomes.climate ),
   };
   return create_classic_game_setup( rand, params );
 }
@@ -245,8 +280,9 @@ GameSetup create_classic_customized_game_setup(
     .common       = params.common,
     .land_density = land_density,
     .land_form    = perlin_land_form,
-    .temperature  = params.custom.temperature,
-    .climate      = params.custom.climate,
+    .temperature =
+        temperature_to_integral( params.custom.temperature ),
+    .climate = climate_to_integral( params.custom.climate ),
   };
 
   return create_classic_game_setup( rand, evaluated );
@@ -373,6 +409,19 @@ wait<maybe<GameSetup>> create_customized_game_setup(
     }
   }
   co_return nothing;
+}
+
+/****************************************************************
+** Validation.
+*****************************************************************/
+valid_or<string> GeneratedMapSetup::validate() const {
+  REFL_VALIDATE( size.w >= kMapWidthMin,
+                 "map width must be >= {}", kMapWidthMin );
+  REFL_VALIDATE( size.h >= kMapHeightMin,
+                 "map height must be >= {}", kMapHeightMin );
+  // The biome distribution algo assumes even map height.
+  REFL_VALIDATE( size.h % 2 == 0, "map height must be even" );
+  return valid;
 }
 
 valid_or<string> validate_game_setup( GameSetup const& setup ) {

@@ -201,5 +201,17 @@ TEST_CASE( "[irand] expect_shuffle" ) {
                                              "2", "5" } );
 }
 
+TEST_CASE( "[irand] pick_from_weighted_values<int>" ) {
+}
+
+TEST_CASE( "[irand] pick_from_weighted_values<double>" ) {
+}
+
+TEST_CASE( "[irand] pick_from_weighted_values_safe<int>" ) {
+}
+
+TEST_CASE( "[irand] pick_from_weighted_values_safe<double>" ) {
+}
+
 } // namespace
 } // namespace rn
