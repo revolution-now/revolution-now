@@ -1,0 +1,80 @@
+Swamp
+=================================================
+  count:   94546
+  density: 0.034
+    with_swamp_adjacent:          0.590
+    with_marsh_adjacent:          0.637
+    with_swamp_or_marsh_adjacent: 0.637
+    with_river_adjacent:          0.414
+    with_ocean_adjacent:          0.767
+    with_river_or_ocean_adjacent: 0.910
+    with_any_adjacent:            0.977
+
+Marsh
+=================================================
+  count:   96431
+  density: 0.035
+    with_swamp_adjacent:          0.273
+    with_marsh_adjacent:          0.345
+    with_swamp_or_marsh_adjacent: 0.345
+    with_river_adjacent:          0.380
+    with_ocean_adjacent:          0.784
+    with_river_or_ocean_adjacent: 0.913
+    with_any_adjacent:            0.962
+
+General Adjacency
+=================================================
+
+  prairie
+    count:           585745
+    adjacency_count: 1054554
+    density:         0.213
+    adjacency_result: 1.800
+
+  grassland
+    count:           319589
+    adjacency_count: 394066
+    density:         0.116
+    adjacency_result: 1.233
+
+  tundra
+    count:           310120
+    adjacency_count: 882470
+    density:         0.113
+    adjacency_result: 2.846
+
+  marsh
+    count:           96431
+    adjacency_count: 40512
+    density:         0.035
+    adjacency_result: 0.420
+
+  plains
+    count:           797341
+    adjacency_count: 2525974
+    density:         0.290
+    adjacency_result: 3.168
+
+  desert
+    count:           214439
+    adjacency_count: 256700
+    density:         0.078
+    adjacency_result: 1.197
+
+  savannah
+    count:           211775
+    adjacency_count: 516856
+    density:         0.077
+    adjacency_result: 2.441
+
+  arctic
+    count:           121085
+    adjacency_count: 160648
+    density:         0.044
+    adjacency_result: 1.327
+
+  swamp
+    count:           94546
+    adjacency_count: 81198
+    density:         0.034
+    adjacency_result: 0.859

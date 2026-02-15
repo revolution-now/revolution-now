@@ -10,6 +10,15 @@ local abs = math.abs
 -----------------------------------------------------------------
 -- Metadata.
 -----------------------------------------------------------------
+local OG_HILLS_RIVER = {
+  ['  ']={},
+  ['^ ']={ HILLS=true },
+  ['~ ']={ MINOR_RIVER=true },
+  ['~^']={ HILLS=true, MINOR_RIVER=true },
+  ['^^']={ MOUNTAINS=true },
+  ['~~']={ MAJOR_RIVER=true },
+}
+
 local NATION_NAMES = {
   'english', --
   'french', --
@@ -193,6 +202,8 @@ OG_TERRAIN_TYPES['swW'] = assert( OG_TERRAIN_TYPES['swF'] )
 -----------------------------------------------------------------
 -- Utilities.
 -----------------------------------------------------------------
+local function bool( o ) return not not o end
+
 -- Creates a fancy coord object. Should always use this to create
 -- a coord.
 local function coord_for( x, y )
@@ -201,11 +212,17 @@ local function coord_for( x, y )
     __eq=function( l, r ) return l.x == r.x and l.y == r.y; end,
     __index=function( tbl, k )
       if k == '__coord' then return true end
-      return rawget( tbl, k )
+      local res = rawget( tbl, k )
+      assert( res, 'attempt to read non-existent key from coord.' )
+      return res
+    end,
+    __newindex=function()
+      error( 'cannot add new fields to a coord object.' )
     end,
     __tostring=function( tbl )
       return format( '{x=%d,y=%d}', tbl.x, tbl.y )
     end,
+    __metatable=false,
   } )
 end
 M.coord_for = coord_for
@@ -606,6 +623,42 @@ function M.terrain_at( json, coord )
   local square = M.lookup_grid( json.TILE, coord )
   local tile = assert( square.tile )
   return assert( OG_TERRAIN_TYPES[tile] )
+end
+
+function M.hill_river( json, coord )
+  local square = M.lookup_grid( json.TILE, coord )
+  local hill_river = assert( square.hill_river )
+  return hill_river
+end
+
+function M.has_river( json, coord )
+  local hill_river = assert( M.hill_river( json, coord ) )
+  local contents = assert( OG_HILLS_RIVER[hill_river] )
+  return bool( contents.MINOR_RIVER or contents.MAJOR_RIVER )
+end
+
+function M.has_minor_river( json, coord )
+  local hill_river = assert( M.hill_river( json, coord ) )
+  local contents = assert( OG_HILLS_RIVER[hill_river] )
+  return bool( contents.MINOR_RIVER )
+end
+
+function M.has_major_river( json, coord )
+  local hill_river = assert( M.hill_river( json, coord ) )
+  local contents = assert( OG_HILLS_RIVER[hill_river] )
+  return bool( contents.MAJOR_RIVER )
+end
+
+function M.has_hills( json, coord )
+  local hill_river = assert( M.hill_river( json, coord ) )
+  local contents = assert( OG_HILLS_RIVER[hill_river] )
+  return bool( contents.HILLS )
+end
+
+function M.has_mountains( json, coord )
+  local hill_river = assert( M.hill_river( json, coord ) )
+  local contents = assert( OG_HILLS_RIVER[hill_river] )
+  return bool( contents.MOUNTAINS )
 end
 
 -----------------------------------------------------------------

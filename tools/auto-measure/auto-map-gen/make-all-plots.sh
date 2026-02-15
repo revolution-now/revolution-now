@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-lambda=land-density
+lambda=biomes
 
 go() {
   local config="$1"
