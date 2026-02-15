@@ -25,18 +25,6 @@ Marsh
 General Adjacency
 =================================================
 
-  swamp
-    count:           185346
-    adjacency_count: 232590
-    density:         0.067
-    adjacency_result: 1.255
-
-  tundra
-    count:           120799
-    adjacency_count: 248922
-    density:         0.044
-    adjacency_result: 2.061
-
   savannah
     count:           362776
     adjacency_count: 1180790
@@ -49,17 +37,11 @@ General Adjacency
     density:         0.167
     adjacency_result: 1.453
 
-  arctic
-    count:           121094
-    adjacency_count: 161332
+  tundra
+    count:           120799
+    adjacency_count: 248922
     density:         0.044
-    adjacency_result: 1.332
-
-  marsh
-    count:           152639
-    adjacency_count: 85168
-    density:         0.055
-    adjacency_result: 0.558
+    adjacency_result: 2.061
 
   plains
     count:           517615
@@ -78,3 +60,21 @@ General Adjacency
     adjacency_count: 236208
     density:         0.073
     adjacency_result: 1.180
+
+  swamp
+    count:           185346
+    adjacency_count: 232590
+    density:         0.067
+    adjacency_result: 1.255
+
+  marsh
+    count:           152639
+    adjacency_count: 85168
+    density:         0.055
+    adjacency_result: 0.558
+
+  arctic
+    count:           121094
+    adjacency_count: 161332
+    density:         0.044
+    adjacency_result: 1.332

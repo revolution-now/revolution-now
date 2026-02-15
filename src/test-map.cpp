@@ -69,6 +69,9 @@ using ::gfx::size;
 using ::refl::enum_map;
 using ::refl::enum_values;
 
+/****************************************************************
+** Helpers.
+*****************************************************************/
 string_view mode_name( e_temperature const t,
                        e_climate const c ) {
   switch( t ) {
@@ -102,6 +105,9 @@ string_view mode_name( e_temperature const t,
   }
 }
 
+/****************************************************************
+** Game/Map Generators.
+*****************************************************************/
 void generate_single_map_impl(
     IEngine& engine, SS& ss,
     function_ref<void( IRand&, GameSetup& ) const> const fn ) {
@@ -379,6 +385,14 @@ struct BiomeDensityStats : IGameStatsCollector {
 };
 
 struct BiomeAdjacencyStats : IGameStatsCollector {
+  static array<e_ground_terrain, 9> constexpr kGroundTypes = {
+    e_ground_terrain::savannah, e_ground_terrain::grassland,
+    e_ground_terrain::tundra,   e_ground_terrain::plains,
+    e_ground_terrain::prairie,  e_ground_terrain::desert,
+    e_ground_terrain::swamp,    e_ground_terrain::marsh,
+    e_ground_terrain::arctic,
+  };
+
   void collect( SSConst const& ss ) override {
     map_sz_ = ss.terrain.world_size_tiles();
     ++maps_total_;
@@ -401,12 +415,10 @@ struct BiomeAdjacencyStats : IGameStatsCollector {
   void write() const override {
     fmt::println( "maps_total: {}", maps_total_ );
     fmt::println( "land_total: {}", land_total_ );
-    for( e_ground_terrain const gt :
-         enum_values<e_ground_terrain> ) {
-      fmt::println( "{}:", gt );
-      fmt::println( "  {:.3f}", double( adjacency_[gt] ) /
-                                    terrain_total_[gt] );
-    }
+    for( e_ground_terrain const gt : kGroundTypes )
+      fmt::println(
+          "{}: {:.3f}", gt,
+          double( adjacency_[gt] ) / terrain_total_[gt] );
   }
 
  private:
@@ -417,32 +429,11 @@ struct BiomeAdjacencyStats : IGameStatsCollector {
   int maps_total_ = 0;
 };
 
-} // namespace
-
 /****************************************************************
-** Public API.
+** Runners.
 *****************************************************************/
-void load_testing_game_setup( GameSetup& setup ) {
-  UNWRAP_CHECK_T( rcl::doc const& doc,
-                  rcl::parse_file( "keys/game-exchange-key.rcl",
-                                   rcl::ProcessingOptions{} ) );
-  cdr::converter::options const options{
-    .allow_unrecognized_fields        = true,
-    .default_construct_missing_fields = false,
-  };
-  UNWRAP_CHECK_T( setup,
-                  cdr::run_conversion_from_canonical<GameSetup>(
-                      doc.top_val(), options ) );
-  CHECK_HAS_VALUE( validate_game_setup( setup ) );
-}
-
-void testing_map_gen( IEngine& engine, bool const reseed ) {
-  SS ss;
-  generate_single_map_key( engine, ss, reseed );
-  print_ascii_map( ss.terrain.real_terrain(), cout );
-}
-
-void testing_map_gen_stats( IEngine& engine ) {
+[[maybe_unused]] void testing_map_gen_biome_density_stats(
+    IEngine& engine ) {
   int constexpr kNumSamples = 2000;
 
   auto const generate =
@@ -482,6 +473,78 @@ void testing_map_gen_stats( IEngine& engine ) {
       fmt::print( "\n" );
     }
   }
+}
+
+[[maybe_unused]] void testing_map_gen_biome_adjacency_stats(
+    IEngine& engine ) {
+  int constexpr kNumSamples = 2000;
+
+  auto const generate =
+      [&]( SS& ss, ClassicGameSetupParamsCustom const& custom ) {
+        generate_single_map_custom( engine, ss, custom );
+      };
+
+  static auto constexpr kTemps = {
+    e_temperature::cool,
+    e_temperature::temperate,
+    e_temperature::warm,
+  };
+  static auto constexpr kClimates = {
+    e_climate::arid,
+    e_climate::normal,
+    e_climate::wet,
+  };
+
+  for( e_temperature const temperature : kTemps ) {
+    for( e_climate const climate : kClimates ) {
+      string const name( mode_name( temperature, climate ) );
+      BiomeAdjacencyStats stats;
+      fmt::println( "generate for {}...", name );
+      for( int i = 0; i < kNumSamples; ++i ) {
+        fmt::print( "generating map {}...", i + 1 );
+        SS ss;
+        generate( ss, { .land_mass   = e_land_mass::large,
+                        .land_form   = e_land_form::continents,
+                        .temperature = temperature,
+                        .climate     = climate } );
+        stats.collect( ss );
+        fmt::print( "\r\033[2K" );
+      }
+      stats.write();
+      fmt::print( "\n" );
+    }
+  }
+}
+
+} // namespace
+
+/****************************************************************
+** Public API.
+*****************************************************************/
+void load_testing_game_setup( GameSetup& setup ) {
+  UNWRAP_CHECK_T( rcl::doc const& doc,
+                  rcl::parse_file( "keys/game-exchange-key.rcl",
+                                   rcl::ProcessingOptions{} ) );
+  cdr::converter::options const options{
+    .allow_unrecognized_fields        = true,
+    .default_construct_missing_fields = false,
+  };
+  UNWRAP_CHECK_T( setup,
+                  cdr::run_conversion_from_canonical<GameSetup>(
+                      doc.top_val(), options ) );
+  CHECK_HAS_VALUE( validate_game_setup( setup ) );
+}
+
+void testing_map_gen( IEngine& engine, bool const reseed ) {
+  SS ss;
+  generate_single_map_key( engine, ss, reseed );
+  print_ascii_map( ss.terrain.real_terrain(), cout );
+}
+
+void testing_map_gen_stats( IEngine& engine ) {
+  // testing_map_gen_biome_density_stats( engine );
+
+  testing_map_gen_biome_adjacency_stats( engine );
 }
 
 } // namespace rn

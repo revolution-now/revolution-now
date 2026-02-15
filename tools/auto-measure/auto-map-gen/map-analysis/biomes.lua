@@ -331,7 +331,8 @@ local function finished( mode )
     emit( '=================================================\n' )
 
     -- General adjacency.
-    for ground, val in pairs( D.adjacency ) do
+    for _, ground in ipairs( GROUND_TYPES ) do
+      local val = assert( D.adjacency[ground] )
       emit( '\n' )
       emit( '  %s\n', ground )
       emit( '    count:           %d\n', val.count )
