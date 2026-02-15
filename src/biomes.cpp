@@ -57,7 +57,7 @@ struct biome_curve {
     double const d_climate =
         -clamp( climate, -100, 100 ) / 100.0;
 
-    auto const apply_gradient = [&]( auto member ) {
+    auto const apply_gradient = [&]( auto const member ) {
       res.curve_.params.*member *=
           ( 1 + conf.temperature_gradient[gt].*member *
                     d_temperature );
@@ -65,10 +65,11 @@ struct biome_curve {
           ( 1 + conf.climate_gradient[gt].*member * d_climate );
     };
 
-    apply_gradient( &config::map_gen::BiomeCurveParams::weight );
-    apply_gradient( &config::map_gen::BiomeCurveParams::center );
-    apply_gradient( &config::map_gen::BiomeCurveParams::stddev );
-    apply_gradient( &config::map_gen::BiomeCurveParams::sub );
+    using config::map_gen::BiomeCurveParams;
+    apply_gradient( &BiomeCurveParams::weight );
+    apply_gradient( &BiomeCurveParams::center );
+    apply_gradient( &BiomeCurveParams::stddev );
+    apply_gradient( &BiomeCurveParams::sub );
 
     GOOD_OR_RETURN( res.curve_.validate() );
     return res;
@@ -76,27 +77,27 @@ struct biome_curve {
 
   [[nodiscard]] double operator()( double const d ) const {
     CHECK_GE( d, 0.0 );
-    CHECK_LE( d, 1.0 );
+    CHECK_LT( d, 1.0 );
     // The sqrt( 2 ) here doesn't have the same meaning for
     // curves with exponents other than 2, but we'll leave it in
     // so that the formulas are the same except for exponent.
     static double const sqrt_2 = sqrt( 2.0 );
 
     auto const sample = [&]( double const x ) {
-      double const a      = curve_.params.weight;
-      double const mean   = curve_.params.center / 2.0 + 0.5;
-      double const stddev = curve_.params.stddev / 2.0;
-      double const sub    = curve_.params.sub;
-      double const xp     = curve_.exp;
-      return a *
-             ( exp( -pow( ( ( x - mean ) / ( stddev * sqrt_2 ) ),
-                          xp ) ) -
-               sub );
+      double const a    = curve_.params.weight;
+      double const mean = curve_.params.center;
+      double const w    = curve_.params.stddev;
+      double const sub  = curve_.params.sub;
+      double const xp   = curve_.exp;
+      return a * ( exp( -pow( ( ( x - mean ) / ( w * sqrt_2 ) ),
+                              xp ) ) -
+                   sub );
     };
     // The gaussians come in pairs in a way that is symmetric
     // about the equator, so when we sample one map row we need
     // to add the contributions from both.
-    return sample( d ) + sample( 1.0 - d );
+    static double constexpr kOneTile = 1.0 / 70;
+    return sample( d ) + sample( 1.0 - kOneTile - d );
   }
 
  private:

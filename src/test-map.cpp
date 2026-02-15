@@ -60,6 +60,7 @@ namespace {
 
 using namespace std;
 
+using ::base::function_ref;
 using ::base::lookup;
 using ::base::ScopedTimer;
 using ::base::str_replace_all;
@@ -68,8 +69,42 @@ using ::gfx::size;
 using ::refl::enum_map;
 using ::refl::enum_values;
 
-void generate_single_map( IEngine& engine, SS& ss,
-                          bool const reseed ) {
+string_view mode_name( e_temperature const t,
+                       e_climate const c ) {
+  switch( t ) {
+    case e_temperature::cool:
+      switch( c ) {
+        case e_climate::arid:
+          return "bbtt";
+        case e_climate::normal:
+          return "bbtm";
+        case e_climate::wet:
+          return "bbtb";
+      }
+    case e_temperature::temperate:
+      switch( c ) {
+        case e_climate::arid:
+          return "bbmt";
+        case e_climate::normal:
+          return "bbmm";
+        case e_climate::wet:
+          return "bbmb";
+      }
+    case e_temperature::warm:
+      switch( c ) {
+        case e_climate::arid:
+          return "bbbt";
+        case e_climate::normal:
+          return "bbbm";
+        case e_climate::wet:
+          return "bbbb";
+      }
+  }
+}
+
+void generate_single_map_impl(
+    IEngine& engine, SS& ss,
+    function_ref<void( IRand&, GameSetup& ) const> const fn ) {
   lua::state st;
   lua_init( engine, st );
   st["ROOT"] = ss.root;
@@ -89,45 +124,60 @@ void generate_single_map( IEngine& engine, SS& ss,
   // ------------------------------------------------------------
   // GameSetup
   // ------------------------------------------------------------
-#if 1
   GameSetup setup;
-  load_testing_game_setup( setup );
-  if( reseed ) {
-    setup.map.source.get_if<MapSource::generate_native>()
-        ->setup.surface_generator.perlin_settings.seed =
-        generate_perlin_seed(
-            rand.generate_deterministic_seed() );
-    setup.map.source.get_if<MapSource::generate_native>()
-        ->setup.surface_generator.arctic.seed =
-        rand.generate_deterministic_seed();
-  }
-#elif 0
-  (void)reseed;
-  ClassicGameSetupParamsCommon const params{
-    .difficulty  = e_difficulty::conquistador,
-    .player      = e_nation::english,
-    .player_name = "David" };
-  GameSetup const setup =
-      create_default_game_setup( rand, params );
-#else
-  (void)reseed;
-  ClassicGameSetupParams const params{
-    .common = { .difficulty  = e_difficulty::conquistador,
-                .player      = e_nation::english,
-                .player_name = "Conquistador David" },
-    .custom = { .land_mass   = e_land_mass::moderate,
-                .land_form   = e_land_form::normal,
-                .temperature = e_temperature::temperate,
-                .climate     = e_climate::normal } };
-  GameSetup const setup =
-      create_classic_customized_game_setup( rand, params );
-#endif
+  fn( rand, setup );
 
   // ------------------------------------------------------------
   // Generate map.
   // ------------------------------------------------------------
   CHECK_HAS_VALUE(
       create_game_from_setup( ss, rand, st, setup ) );
+}
+
+void generate_single_map_key( IEngine& engine, SS& ss,
+                              bool const reseed ) {
+  auto const fn = [&]( IRand& rand, GameSetup& setup ) {
+    load_testing_game_setup( setup );
+    if( !reseed ) return;
+    auto const S = [&] {
+      return rand.generate_deterministic_seed();
+    };
+    auto& native =
+        setup.map.source.get_if<MapSource::generate_native>()
+            ->setup;
+    auto& surf_gen = native.surface_generator;
+
+    surf_gen.perlin_settings.seed = generate_perlin_seed( S() );
+    surf_gen.arctic.seed          = S();
+    native.biomes.seed            = S();
+  };
+  generate_single_map_impl( engine, ss, fn );
+}
+
+[[maybe_unused]] void generate_single_map_new( IEngine& engine,
+                                               SS& ss ) {
+  auto const fn = [&]( IRand& rand, GameSetup& setup ) {
+    ClassicGameSetupParamsCommon const params{
+      .difficulty  = e_difficulty::conquistador,
+      .player      = e_nation::english,
+      .player_name = "David" };
+    setup = create_default_game_setup( rand, params );
+  };
+  generate_single_map_impl( engine, ss, fn );
+}
+
+[[maybe_unused]] void generate_single_map_custom(
+    IEngine& engine, SS& ss,
+    ClassicGameSetupParamsCustom const& custom ) {
+  auto const fn = [&]( IRand& rand, GameSetup& setup ) {
+    ClassicGameSetupParams const params{
+      .common = { .difficulty  = e_difficulty::conquistador,
+                  .player      = e_nation::english,
+                  .player_name = "Conquistador David" },
+      .custom = custom };
+    setup = create_classic_customized_game_setup( rand, params );
+  };
+  generate_single_map_impl( engine, ss, fn );
 }
 
 /****************************************************************
@@ -226,6 +276,108 @@ struct LandDensityStats : IGameStatsCollector {
   int maps_total_ = 0;
 };
 
+struct BiomeDensityStats : IGameStatsCollector {
+  static array<e_ground_terrain, 9> constexpr kGroundTypes = {
+    e_ground_terrain::savannah, e_ground_terrain::grassland,
+    e_ground_terrain::tundra,   e_ground_terrain::plains,
+    e_ground_terrain::prairie,  e_ground_terrain::desert,
+    e_ground_terrain::swamp,    e_ground_terrain::marsh,
+    e_ground_terrain::arctic,
+  };
+
+  BiomeDensityStats( string const& stem ) : stem_( stem ) {
+    CHECK( !stem_.empty() );
+  }
+
+  void collect( SSConst const& ss ) override {
+    map_sz_ = ss.terrain.world_size_tiles();
+    CHECK(
+        map_sz_.h == 70,
+        "this stats collector requires the standard map size." );
+    ++maps_total_;
+    on_all_tiles(
+        ss, [&]( point const tile, MapSquare const& square ) {
+          if( square.surface == e_surface::water ) return;
+          ++land_total_;
+          ++land_count_y_[tile.y + 1];
+          ++biome_count_y_[tile.y + 1][square.ground];
+        } );
+  }
+
+  void write() const override {
+    fs::path const generated =
+        "tools/auto-measure/auto-map-gen/biomes/generated";
+    ofstream csv( generated / format( "{}.csv", stem_ ) );
+    ofstream gnu( generated / format( "{}.gnuplot", stem_ ) );
+    CHECK( csv.good() );
+    CHECK( gnu.good() );
+    string const GNUPLOT_FILE_TEMPLATE = R"gnuplot(
+      #!/usr/bin/env -S gnuplot -p
+      set title "{{TITLE}} ({{MODE}} [{{COUNT}}])"
+      set datafile separator ","
+      set key outside right
+      set grid
+      set xlabel "Map Row (Y)"
+      set ylabel "Density"
+
+      # Use the first row as column headers for titles.
+      set key autotitle columnhead
+
+      set yrange [0:0.7]
+      set xrange [{{XRANGE}}]
+
+      plot for [col=2:*] "{{CSV_STEM}}.csv" using 1:col with lines lw 2
+    )gnuplot";
+    string const gnuplot_body = base::trim( str_replace_all(
+        GNUPLOT_FILE_TEMPLATE,
+        {
+          { "{{TITLE}}", "Biome Density (generated)" },
+          { "{{CSV_STEM}}", stem_ },
+          { "{{MODE}}", stem_ },
+          { "{{COUNT}}", to_string( maps_total_ ) },
+          { "{{XRANGE}}", "0:70" },
+        } ) );
+    gnu << gnuplot_body;
+
+    // Header.
+    csv << format( "y" );
+    for( auto const gt : kGroundTypes )
+      csv << ',' << base::to_str( gt );
+    csv << '\n';
+    for( int y = 0; y < map_sz_.h; ++y ) {
+      csv << y + 1;
+      for( auto const gt : kGroundTypes ) {
+        double value = 0.0;
+        {
+          auto const biome_count_y_row =
+              lookup( biome_count_y_, y + 1 );
+          if( !biome_count_y_row.has_value() ) goto skip;
+          auto const land_count_y_row =
+              lookup( land_count_y_, y + 1 );
+          if( !land_count_y_row.has_value() ) goto skip;
+          auto const biome_count_y_row_gt =
+              lookup( *biome_count_y_row, gt );
+          if( !biome_count_y_row_gt.has_value() ) goto skip;
+          value = double( *biome_count_y_row_gt ) /
+                  *land_count_y_row;
+        }
+      skip:
+        csv << ',' << value;
+      }
+      csv << '\n';
+    }
+  }
+
+ private:
+  string const stem_;
+  size map_sz_ = {};
+  map<int /*y+1*/, map<e_ground_terrain, int /*count*/>>
+      biome_count_y_;
+  map<int /*y+1*/, int> land_count_y_;
+  int land_total_ = 0;
+  int maps_total_ = 0;
+};
+
 struct BiomeAdjacencyStats : IGameStatsCollector {
   void collect( SSConst const& ss ) override {
     map_sz_ = ss.terrain.world_size_tiles();
@@ -286,22 +438,50 @@ void load_testing_game_setup( GameSetup& setup ) {
 
 void testing_map_gen( IEngine& engine, bool const reseed ) {
   SS ss;
-  generate_single_map( engine, ss, reseed );
+  generate_single_map_key( engine, ss, reseed );
   print_ascii_map( ss.terrain.real_terrain(), cout );
 }
 
 void testing_map_gen_stats( IEngine& engine ) {
-  int const n = 2000;
-  ScopedTimer const timer( format( "generate {} maps", n ) );
-  BiomeAdjacencyStats stats;
-  for( int i = 0; i < n; ++i ) {
-    fmt::println( "generating map {}...", i );
-    SS ss;
-    generate_single_map( engine, ss, /*reseed=*/true );
-    // print_ascii_map( ss.terrain.real_terrain(), cout );
-    stats.collect( ss );
+  int constexpr kNumSamples = 2000;
+
+  auto const generate =
+      [&]( SS& ss, ClassicGameSetupParamsCustom const& custom ) {
+        generate_single_map_custom( engine, ss, custom );
+      };
+
+  static auto constexpr kTemps = {
+    e_temperature::cool,
+    e_temperature::temperate,
+    e_temperature::warm,
+  };
+  static auto constexpr kClimates = {
+    e_climate::arid,
+    e_climate::normal,
+    e_climate::wet,
+  };
+
+  for( e_temperature const temperature : kTemps ) {
+    for( e_climate const climate : kClimates ) {
+      string const name( mode_name( temperature, climate ) );
+      BiomeDensityStats stats( name );
+      fmt::println( "generate for {}...", name );
+      ScopedTimer const timer(
+          format( "generate {} maps", kNumSamples ) );
+      for( int i = 0; i < kNumSamples; ++i ) {
+        fmt::print( "generating map {}...", i + 1 );
+        SS ss;
+        generate( ss, { .land_mass   = e_land_mass::large,
+                        .land_form   = e_land_form::continents,
+                        .temperature = temperature,
+                        .climate     = climate } );
+        stats.collect( ss );
+        fmt::print( "\r\033[2K" );
+      }
+      stats.write();
+      fmt::print( "\n" );
+    }
   }
-  stats.write();
 }
 
 } // namespace rn

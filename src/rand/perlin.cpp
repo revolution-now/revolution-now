@@ -53,7 +53,7 @@ array<PerlinVec2, 8> constexpr kGradients2d{
 // to vary smoothly between the two points.
 PerlinFloat lerp( PerlinFloat const ramp, PerlinFloat const a,
                   PerlinFloat const b ) {
-  CHECK( ramp >= 0.0 && ramp <= 1.0 );
+  CHECK( ramp >= 0.0 && ramp <= 1.0, "ramp is: {}", ramp );
   return a + ramp * ( b - a );
 }
 

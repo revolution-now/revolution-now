@@ -55,7 +55,7 @@ local SPEC_INIT = {
   prairie={ weight=1.0, curve={ e=2, c=46, w=3, sub=0 } },
   desert={ weight=4.0, curve={ e=4, c=46, w=10, sub=0 } },
   swamp={ weight=2.0, curve={ e=2, c=46, w=3, sub=.3 } },
-  marsh={ weight=1.0, curve={ e=2, c=46, w=3, sub=0 } },
+  marsh={ weight=2.0, curve={ e=2, c=53, w=2, sub=0 } },
   arctic={ weight=0.0, curve={ e=2, c=35.5, w=1, sub=0 } },
 }
 
@@ -115,9 +115,8 @@ local function print_spec( spec, mode, emit )
   emit( '%s {  # %s\n', name, mode )
   for _, curve in ipairs( ORDERING_WITH_ARCTIC ) do
     local curve_spec = assert( spec[curve] )
-    local half = 70 - 35.5
-    local center = (assert( curve_spec.curve.c ) - 35.5) / half
-    local stddev = assert( curve_spec.curve.w ) / half
+    local center = assert( curve_spec.curve.c - 1 ) / 70
+    local stddev = assert( curve_spec.curve.w ) / 70
     emit( '  %-9s {', curve )
     if curve_spec.curve.e then
       emit( ' exp: %d,', assert( curve_spec.curve.e ) )
@@ -215,7 +214,7 @@ local function evaluate_mirrored_curves( curve, y )
   local fns = { [2]=gaussian, [4]=gaussian4 }
   local fn = assert( fns[curve.e] )
   return assert( fn( curve.c, curve.w, curve.sub, y ) ) +
-             assert( fn( 70 - curve.c, curve.w, curve.sub, y ) )
+             assert( fn( 71 - curve.c, curve.w, curve.sub, y ) )
 end
 
 -----------------------------------------------------------------
@@ -287,7 +286,7 @@ local function compute_metrics( graphs )
       return graph[lo] * (1 - e) + graph[hi] * e
     end
     local sample = function( y )
-      return (sample_impl( y ) + sample_impl( 70 - y )) / 2
+      return (sample_impl( y ) + sample_impl( 71 - y )) / 2
     end
     for y = 35.5, 70 - BUFFER, .1 do
       local delta = y - 35.5
