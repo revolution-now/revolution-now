@@ -65,6 +65,8 @@ using ::base::ScopedTimer;
 using ::base::str_replace_all;
 using ::gfx::point;
 using ::gfx::size;
+using ::refl::enum_map;
+using ::refl::enum_values;
 
 void generate_single_map( IEngine& engine, SS& ss,
                           bool const reseed ) {
@@ -140,18 +142,18 @@ struct IGameStatsCollector {
 struct LandDensityStats : IGameStatsCollector {
   void collect( SSConst const& ss ) override {
     map_sz_ = ss.terrain.world_size_tiles();
-    ++maps_total;
+    ++maps_total_;
     on_all_tiles(
         ss, [&]( point const tile, MapSquare const& square ) {
-          land_count_x[tile.x];
-          land_count_y[tile.y];
+          land_count_x_[tile.x];
+          land_count_y_[tile.y];
           if( square.surface == e_surface::water ) return;
           bool const arctic_row =
               tile.y == 0 || tile.y == map_sz_.h - 1;
           if( !arctic_row ) {
-            ++land_total;
-            ++land_count_x[tile.x];
-            ++land_count_y[tile.y];
+            ++land_total_;
+            ++land_count_x_[tile.x];
+            ++land_count_y_[tile.y];
           }
         } );
   }
@@ -184,7 +186,7 @@ struct LandDensityStats : IGameStatsCollector {
           { "{{TITLE}}", "Spatial Land Density (generated)" },
           { "{{CSV_STEM}}", "land-density.csv" },
           { "{{MODE}}", "c++" },
-          { "{{COUNT}}", to_string( maps_total ) },
+          { "{{COUNT}}", to_string( maps_total_ ) },
           { "{{XRANGE}}", "0:1.0" },
         } ) );
     gnu << gnuplot_body;
@@ -193,8 +195,8 @@ struct LandDensityStats : IGameStatsCollector {
     // NOTE: subtract two because we did not include the arctic
     // rows when collecting land.
     double const density =
-        land_total /
-        ( double( map_sz_.w ) * ( map_sz_.h - 2 ) * maps_total );
+        land_total_ / ( double( map_sz_.w ) * ( map_sz_.h - 2 ) *
+                        maps_total_ );
     for( double p = 0; p < 1; p += .001 ) {
       csv << p;
       int const x = int( floor( p * map_sz_.w ) );
@@ -204,23 +206,63 @@ struct LandDensityStats : IGameStatsCollector {
       CHECK( x < map_sz_.w );
       CHECK( y < map_sz_.h );
       UNWRAP_CHECK_T( int const count_x,
-                      lookup( land_count_x, x ) );
+                      lookup( land_count_x_, x ) );
       UNWRAP_CHECK_T( int const count_y,
-                      lookup( land_count_y, y ) );
+                      lookup( land_count_y_, y ) );
       double const density_x =
-          count_x / ( double( map_sz_.h - 2 ) * maps_total );
+          count_x / ( double( map_sz_.h - 2 ) * maps_total_ );
       double const density_y =
-          count_y / ( double( map_sz_.w ) * maps_total );
+          count_y / ( double( map_sz_.w ) * maps_total_ );
       csv << format( ",{},{},{}\n", density_x, density_y,
                      density );
     }
   }
 
+ private:
   size map_sz_ = {};
-  map<int, int> land_count_x;
-  map<int, int> land_count_y;
-  int land_total = 0;
-  int maps_total = 0;
+  map<int, int> land_count_x_;
+  map<int, int> land_count_y_;
+  int land_total_ = 0;
+  int maps_total_ = 0;
+};
+
+struct BiomeAdjacencyStats : IGameStatsCollector {
+  void collect( SSConst const& ss ) override {
+    map_sz_ = ss.terrain.world_size_tiles();
+    ++maps_total_;
+    on_all_tiles(
+        ss, [&]( point const tile, MapSquare const& center ) {
+          if( center.surface == e_surface::water ) return;
+          ++land_total_;
+          ++terrain_total_[center.ground];
+          on_surrounding(
+              ss, tile,
+              [&]( point const, MapSquare const& adjacent ) {
+                if( adjacent.surface == e_surface::water )
+                  return;
+                if( adjacent.ground == center.ground )
+                  ++adjacency_[adjacent.ground];
+              } );
+        } );
+  }
+
+  void write() const override {
+    fmt::println( "maps_total: {}", maps_total_ );
+    fmt::println( "land_total: {}", land_total_ );
+    for( e_ground_terrain const gt :
+         enum_values<e_ground_terrain> ) {
+      fmt::println( "{}:", gt );
+      fmt::println( "  {:.3f}", double( adjacency_[gt] ) /
+                                    terrain_total_[gt] );
+    }
+  }
+
+ private:
+  size map_sz_ = {};
+  enum_map<e_ground_terrain, int> adjacency_;
+  enum_map<e_ground_terrain, int> terrain_total_;
+  int land_total_ = 0;
+  int maps_total_ = 0;
 };
 
 } // namespace
@@ -251,7 +293,7 @@ void testing_map_gen( IEngine& engine, bool const reseed ) {
 void testing_map_gen_stats( IEngine& engine ) {
   int const n = 2000;
   ScopedTimer const timer( format( "generate {} maps", n ) );
-  LandDensityStats stats;
+  BiomeAdjacencyStats stats;
   for( int i = 0; i < n; ++i ) {
     fmt::println( "generating map {}...", i );
     SS ss;

@@ -207,5 +207,9 @@ TEST_CASE( "[terrain-mgr] on_all_tiles" ) {
   world w;
 }
 
+TEST_CASE( "[terrain-mgr] on_surrounding" ) {
+  world w;
+}
+
 } // namespace
 } // namespace rn

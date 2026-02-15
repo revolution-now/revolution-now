@@ -88,4 +88,16 @@ void on_all_tiles(
   for( point const p : rect_iterator( world ) ) fn( p, map[p] );
 }
 
+void on_surrounding(
+    SSConst const& ss, point const tile,
+    base::function_ref<
+        void( gfx::point, MapSquare const& square )> const fn ) {
+  auto const& map = ss.terrain.real_terrain().map;
+  for( e_direction const d : enum_values<e_direction> ) {
+    point const p = tile.moved( d );
+    if( !ss.terrain.square_exists( p ) ) continue;
+    fn( p, map[p] );
+  }
+}
+
 } // namespace rn

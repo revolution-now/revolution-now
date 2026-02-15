@@ -45,4 +45,9 @@ void on_all_tiles( SSConst const& ss,
                        gfx::point, MapSquare const& square )>
                        fn );
 
+void on_surrounding( SSConst const& ss, gfx::point tile,
+                     base::function_ref<void(
+                         gfx::point, MapSquare const& square )>
+                         fn );
+
 } // namespace rn
