@@ -263,7 +263,7 @@ valid_or<string> generate_map_native(
   valid_or<string> res = valid;
   root.zzz_terrain.modify_entire_map(
       [&]( RealTerrain& real_terrain ) {
-        real_terrain.map = Matrix<MapSquare>( setup.size );
+        real_terrain.map = MapMatrix( setup.size );
         res              = modifier( real_terrain );
       } );
   return res;
@@ -280,7 +280,7 @@ valid_or<string> generate_map_lua(
 
   valid_or<string> res = valid;
   terrain.modify_entire_map( [&]( RealTerrain& real_terrain ) {
-    real_terrain.map = Matrix<MapSquare>( setup.size );
+    real_terrain.map = MapMatrix( setup.size );
     res              = modifier( real_terrain );
   } );
   return res;

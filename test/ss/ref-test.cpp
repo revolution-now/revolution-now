@@ -48,7 +48,6 @@ using ::cdr::null;
 using ::cdr::table;
 using ::cdr::value;
 using ::cdr::testing::conv_from_bt;
-using ::gfx::Matrix;
 using ::gfx::point;
 using ::gfx::size;
 
@@ -534,7 +533,7 @@ TEST_CASE( "[ss/ref] validate_full_game_state" ) {
   REQUIRE( f() == valid );
 
   root.zzz_terrain.modify_entire_map( []( RealTerrain& trn ) {
-    trn.map = Matrix<MapSquare>( size{ .w = 2, .h = 2 } );
+    trn.map = MapMatrix( size{ .w = 2, .h = 2 } );
   } );
   REQUIRE( f() == valid );
 
@@ -571,7 +570,7 @@ TEST_CASE( "[ss/ref] validate_non_terrain_game_state" ) {
   REQUIRE( f() == valid );
 
   root.zzz_terrain.modify_entire_map( []( RealTerrain& trn ) {
-    trn.map = Matrix<MapSquare>( size{ .w = 2, .h = 2 } );
+    trn.map = MapMatrix( size{ .w = 2, .h = 2 } );
   } );
   REQUIRE( f() == valid );
 

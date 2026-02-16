@@ -36,7 +36,7 @@ struct TerrainState {
   static constexpr std::string_view refl_ns   = "rn";
   static constexpr std::string_view refl_name = "TerrainState";
 
-  gfx::Matrix<MapSquare> const& world_map() const;
+  MapMatrix const& world_map() const;
   RealTerrain const& real_terrain() const;
 
   Delta world_size_tiles() const;

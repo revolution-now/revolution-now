@@ -267,7 +267,7 @@ void World::build_map( vector<MapSquare> tiles, W width ) {
   map_updater().modify_entire_map_no_redraw(
       [&]( RealTerrain& real_terrain ) {
         real_terrain.map =
-            gfx::Matrix<MapSquare>( std::move( tiles ), width );
+            MapMatrix( std::move( tiles ), width );
       } );
   init_player_maps();
 }

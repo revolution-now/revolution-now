@@ -83,7 +83,7 @@ TerrainState::TerrainState()
   validate_or_die();
 }
 
-gfx::Matrix<MapSquare> const& TerrainState::world_map() const {
+MapMatrix const& TerrainState::world_map() const {
   return real_terrain().map;
 }
 
@@ -271,7 +271,7 @@ void define_usertype_for( lua::state& st,
 
   u["reset"] = []( U& o, Delta size ) {
     o.modify_entire_map( [&]( RealTerrain& real_terrain ) {
-      real_terrain.map = gfx::Matrix<MapSquare>( size );
+      real_terrain.map = MapMatrix( size );
     } );
   };
 

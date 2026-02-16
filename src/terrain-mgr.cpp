@@ -89,15 +89,23 @@ void on_all_tiles(
 }
 
 void on_surrounding(
+    MapMatrix const& m, point const tile,
+    base::function_ref<
+        void( gfx::point, MapSquare const& square )> const fn ) {
+  rect const r = m.rect();
+  for( e_direction const d : enum_values<e_direction> ) {
+    point const p = tile.moved( d );
+    if( !p.is_inside( r ) ) continue;
+    fn( p, m[p] );
+  }
+}
+
+void on_surrounding(
     SSConst const& ss, point const tile,
     base::function_ref<
         void( gfx::point, MapSquare const& square )> const fn ) {
-  auto const& map = ss.terrain.real_terrain().map;
-  for( e_direction const d : enum_values<e_direction> ) {
-    point const p = tile.moved( d );
-    if( !ss.terrain.square_exists( p ) ) continue;
-    fn( p, map[p] );
-  }
+  return on_surrounding( ss.terrain.real_terrain().map, tile,
+                         fn );
 }
 
 } // namespace rn

@@ -11,6 +11,7 @@
 # ss
 include "ss/fog-square.rds.hpp"
 include "ss/map-square.rds.hpp"
+include "ss/map-matrix.hpp"
 include "ss/nation.rds.hpp"
 
 # gfx
@@ -32,7 +33,9 @@ struct.PlayerTerrain {
 }
 
 struct.RealTerrain {
-  map 'gfx::Matrix<MapSquare>',
+  # Use MapMatrix instead of Matrix<MapSquare> so that it can be
+  # forward declared.
+  map 'MapMatrix',
 }
 
 namespace "rn.wrapped"

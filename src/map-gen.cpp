@@ -66,7 +66,7 @@ using ::std::min;
 // cause they add noise to the map and are useless to the player.
 // Also, the OG removes islands.
 void remove_islands( RealTerrain& real_terrain ) {
-  Matrix<MapSquare>& m = real_terrain.map;
+  auto& m = real_terrain.map;
   for( point const p : rect_iterator( m.rect() ) )
     if( is_island( real_terrain, p ) )
       m[p].surface = e_surface::water;
@@ -319,7 +319,7 @@ void generate_proto_tiles( TerrainState& terrain ) {
 void reset_terrain( IMapUpdater& map_updater, size const sz ) {
   map_updater.modify_entire_map_no_redraw(
       [&]( RealTerrain& real_terrain ) {
-        real_terrain.map = gfx::Matrix<MapSquare>( sz );
+        real_terrain.map = MapMatrix( sz );
       } );
 }
 

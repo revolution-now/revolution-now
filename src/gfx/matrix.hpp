@@ -64,6 +64,11 @@ struct Matrix {
 
   Matrix() : Matrix( rn::Delta{} ) {}
 
+  Matrix( Matrix&& )                 = default;
+  Matrix( Matrix const& )            = default;
+  Matrix& operator=( Matrix&& )      = default;
+  Matrix& operator=( Matrix const& ) = default;
+
   Matrix( std::vector<T>&& data, int w )
     : w_{ w }, data_{ std::move( data ) } {}
 
@@ -120,16 +125,17 @@ struct Matrix {
                         trv::tag_t<Matrix> ) {
     using namespace std::literals;
     auto const y_size = o.size().h;
-    point p;
+    gfx::point p;
     for( p.y = 0; p.y < y_size; ++p.y )
       for( p.x = 0; p.x < o.w_; ++p.x ) //
         fn( o[p], p );
   }
 
-  friend void define_usertype_for( lua::state& st,
-                                   lua::tag<Matrix<T>> ) {
-    using U = Matrix<T>;
-    auto u  = st.usertype.create<U>();
+  template<typename U>
+  static void define_usertype_for_template( lua::state& st ) {
+    // NOTE: DO NOT use T in this function, only U.
+
+    auto u = st.usertype.create<U>();
 
     // TODO: may need to expand this in the future.
 
@@ -140,6 +146,11 @@ struct Matrix {
       tbl["h"]           = sz.h;
       return tbl;
     };
+  }
+
+  friend void define_usertype_for( lua::state& st,
+                                   lua::tag<Matrix<T>> ) {
+    define_usertype_for_template<Matrix<T>>( st );
   }
 };
 

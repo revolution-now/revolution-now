@@ -17,6 +17,7 @@
 #include "sav-struct.hpp"
 
 // ss
+#include "ss/map-matrix.hpp"
 #include "ss/nation.hpp"
 #include "ss/player.rds.hpp"
 #include "ss/root.hpp"
@@ -605,8 +606,7 @@ ConvResult tiles_to_map_squares( int og_map_size_x,
     }
   }
   CHECK_EQ( int( squares.size() ), total_ng_tiles );
-  map = gfx::Matrix<rn::MapSquare>( std::move( squares ),
-                                    rn_map_size_x );
+  map = rn::MapMatrix( std::move( squares ), rn_map_size_x );
   return valid;
 }
 
