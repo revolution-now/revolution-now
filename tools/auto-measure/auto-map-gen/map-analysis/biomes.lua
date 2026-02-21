@@ -106,6 +106,7 @@ local D = {
   --   count=N,
   --   adjacency_count=N,
   --   adjacency_count_per_row,
+  --   surrounding_land_on_row,
   -- }
   adjacency={},
 }
@@ -154,6 +155,16 @@ local function lambda( json )
   end )
 
   Q.on_all_tiles( function( tile )
+    for _, ground_type in ipairs( GROUND_TYPES ) do
+      D.adjacency[ground_type] = D.adjacency[ground_type] or {}
+      local o = D.adjacency[ground_type]
+      o.surrounding_land_on_row = o.surrounding_land_on_row or {}
+      o.surrounding_land_on_row[tile.y] =
+          o.surrounding_land_on_row[tile.y] or 0
+    end
+  end )
+
+  Q.on_all_tiles( function( tile )
     local terrain = terrain_at( json, tile )
 
     D.land[tile.y] = D.land[tile.y] or 0
@@ -187,6 +198,10 @@ local function lambda( json )
     local surround = Q.surrounding_coords( tile )
     for _, cc in ipairs( surround ) do
       local terrain = terrain_at( json, cc )
+      if terrain.surface == 'land' then
+        A.surrounding_land_on_row[tile.y] =
+            A.surrounding_land_on_row[tile.y] + 1
+      end
       if terrain.ground == center.ground then
         A.adjacency_count = A.adjacency_count + 1
         A.adjacency_count_per_row[tile.y] =
@@ -342,12 +357,16 @@ local function finished( mode )
       local adjacency_baseline = 0
       for y = 1, 70 do
         local land_on_row = assert( D.land[y] )
+        local biome_on_row =
+            assert( D.ground_per_row[ground][y] )
+        local surrounding_land_on_row = assert(
+                                            D.adjacency[ground]
+                                                .surrounding_land_on_row[y] )
         if land_on_row > 0 then
-          local density_at_row = assert(
-                                     D.ground_per_row[ground][y] ) /
-                                     land_on_row
+          local density_at_row =
+              assert( biome_on_row / land_on_row )
           local adjacency_baseline_at_row =
-              density_at_row * 8 * D.ground_per_row[ground][y]
+              density_at_row * surrounding_land_on_row
           adjacency_baseline = adjacency_baseline +
                                    adjacency_baseline_at_row
         end
@@ -388,9 +407,12 @@ local function collect()
     'bbbm', 'bbbb', 'new',
   }
   local o = {}
+  o.modes = {}
   o.biomes = {}
-  o.averages = {}
-  o.averages.__key_order = GROUND_TYPES
+  o.biome_averages = {}
+  o.modes.__key_order = MODES
+  o.biomes.__key_order = GROUND_TYPES
+  o.biome_averages.__key_order = GROUND_TYPES
   local csv_buckets = {}
   for _, mode in ipairs( MODES ) do
     local adjacency_file = format( '%s/%s.adjacency.json',
@@ -398,12 +420,15 @@ local function collect()
     local f<close> = assert( io.open( adjacency_file, 'r' ) )
     local mode_json = json.read( f:read( '*all' ) )
     local results = assert( mode_json.general.results )
-    o.biomes[mode] = results
-    o.biomes[mode].__key_order = GROUND_TYPES
+    o.modes[mode] = results
+    o.modes[mode].__key_order = GROUND_TYPES
     for _, biome in ipairs( GROUND_TYPES ) do
       local result = assert( results[biome] )
-      o.averages[biome] = o.averages[biome] or 0
-      o.averages[biome] = o.averages[biome] + result / #MODES
+      o.biomes[biome] = o.biomes[biome] or { __key_order=MODES }
+      o.biomes[biome][mode] = assert( o.modes[mode][biome] )
+      o.biome_averages[biome] = o.biome_averages[biome] or 0
+      o.biome_averages[biome] =
+          o.biome_averages[biome] + result / #MODES
       csv_buckets[biome] = csv_buckets[biome] or {}
       local bucket = math.floor( result * BUCKET_FRACTION )
       csv_buckets[biome][bucket] =
@@ -421,7 +446,7 @@ local function collect()
     csv_out:write( ',' .. biome )
   end
   csv_out:write( '\n' )
-  for i = 0, 2 * BUCKET_FRACTION do
+  for i = 0, 3 * BUCKET_FRACTION do
     csv_out:write( format( '%.3f', i / BUCKET_FRACTION ) )
     for _, biome in ipairs( GROUND_TYPES ) do
       csv_buckets[biome][i] = csv_buckets[biome][i] or 0

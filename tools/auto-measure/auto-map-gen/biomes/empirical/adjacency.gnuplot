@@ -9,7 +9,7 @@ set ylabel "Count"
 # Use the first row as column headers for titles.
 set key autotitle columnhead
 
-set xrange [.5:2]
+set xrange [.6:2.5]
 set yrange [0:6]
 
 # Plot: x is column 1, then plot columns 2..N as separate lines.

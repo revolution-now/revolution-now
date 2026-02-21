@@ -391,13 +391,28 @@ void mix_row_by_adjacency(
         ++res[p.y];
     return res;
   }();
+  map<int /*y*/, double> const avg_land_squares_in_row = [&] {
+    map<int /*y*/, double> res;
+    for( point const p : rect_iterator( m.rect() ) )
+      if( m[p].surface == e_surface::land &&
+          m[p].ground == biome )
+        res[p.y] += num_surrounding_land_tiles( m, p );
+    for( auto& [y, squares] : res ) {
+      UNWRAP_CONTINUE( int const biome_count,
+                       lookup( biome_count_per_row, y ) );
+      squares /= biome_count;
+    }
+    return res;
+  }();
   double adjacency_baseline = 0;
   for( auto const& [y, count] : biome_count_per_row ) {
     UNWRAP_CONTINUE( biome_dist const& row_dist,
                      lookup( biome_dists, y ) );
+    UNWRAP_CONTINUE( double const avg_surrounding_land,
+                     lookup( avg_land_squares_in_row, y ) );
     double const density_at_row = row_dist.probability( biome );
     double const adjacency_baseline_at_row =
-        density_at_row * 8 * count;
+        density_at_row * avg_surrounding_land * count;
     adjacency_baseline += adjacency_baseline_at_row;
   }
   double const adj_total = adjacency_total( m, biome );
@@ -466,43 +481,24 @@ valid_or<string> assign_biomes( IRand& rand,
   }();
 
   enum_map<e_ground_terrain, double> const targets{
-    { e_ground_terrain::savannah, 0.932 },  //
-    { e_ground_terrain::grassland, 0.861 }, //
-    { e_ground_terrain::tundra, 1.506 },    //
-    { e_ground_terrain::plains, 0.909 },    //
-    { e_ground_terrain::prairie, 0.869 },   //
-    { e_ground_terrain::desert, 1.027 },    //
-    { e_ground_terrain::swamp, 0.756 },     //
-    { e_ground_terrain::marsh, 0.877 },     //
-    { e_ground_terrain::arctic, 0.174 },    //
+    { e_ground_terrain::savannah, 1.083 },  //
+    { e_ground_terrain::grassland, 1.131 }, //
+    { e_ground_terrain::tundra, 1.754 },    //
+    { e_ground_terrain::plains, 1.143 },    //
+    { e_ground_terrain::prairie, 1.121 },   //
+    { e_ground_terrain::desert, 1.210 },    //
+    { e_ground_terrain::swamp, 1.067 },     //
+    { e_ground_terrain::marsh, 1.250 },     //
+    { e_ground_terrain::arctic, 0.895 },    //
   };
-  // enum_map<e_ground_terrain, double> const targets{
-  //   { e_ground_terrain::savannah, 5.0 },  //
-  //   { e_ground_terrain::grassland, 5.0 }, //
-  //   { e_ground_terrain::tundra, 5.0 },    //
-  //   { e_ground_terrain::plains, 5.0 },    //
-  //   { e_ground_terrain::prairie, 5.0 },   //
-  //   { e_ground_terrain::desert, 5.0 },    //
-  //   { e_ground_terrain::swamp, 5.0 },     //
-  //   { e_ground_terrain::marsh, 5.0 },     //
-  //   { e_ground_terrain::arctic, 5.0 },    //
-  // };
 
   // Anti-glob.
 #if 1
   {
     using enum e_ground_terrain;
-    enum_map<e_ground_terrain, double> const weights{
-      { savannah, -1.0 },  //
-      { grassland, -1.0 }, //
-      { tundra, -1.0 },    //
-      { plains, -1.0 },    //
-      { prairie, -1.0 },   //
-      { desert, -1.0 },    //
-      { swamp, -1.0 },     //
-      { marsh, -1.0 },     //
-      { arctic, -1.0 },    //
-    };
+    enum_map<e_ground_terrain, double> weights;
+    for( auto const gt : enum_values<e_ground_terrain> )
+      weights[gt] = -1.0;
     for( int iter = 0; iter < 100; ++iter )
       // Exclude artic rows.
       for( int y = 1; y < sz.h - 1; ++y )
@@ -515,17 +511,9 @@ valid_or<string> assign_biomes( IRand& rand,
 #if 1
   {
     using enum e_ground_terrain;
-    enum_map<e_ground_terrain, double> weights{
-      { savannah, 1.0 },  //
-      { grassland, 1.0 }, //
-      { tundra, 1.0 },    //
-      { plains, 1.0 },    //
-      { prairie, 1.0 },   //
-      { desert, 1.0 },    //
-      { swamp, 1.0 },     //
-      { marsh, 1.0 },     //
-      { arctic, 1.0 },    //
-    };
+    enum_map<e_ground_terrain, double> weights;
+    for( auto const gt : enum_values<e_ground_terrain> )
+      weights[gt] = 1.0;
     int iter = 0;
     for( iter = 0; iter < 1000; ++iter ) {
       bool keep_going = false;
@@ -557,78 +545,6 @@ valid_or<string> assign_biomes( IRand& rand,
     fmt::println(
         "{:10}: target={:0.3}, actual={:0.3}, error={:.3}%", gt,
         target, g, 100.0 * ( g - target ) / target );
-  }
-#endif
-
-#if 0
-  {
-    using enum e_ground_terrain;
-    enum_map<e_ground_terrain, double> const weights{
-      { savannah, 1.0 },  //
-      { grassland, 1.0 }, //
-      { tundra, 1.0 },    //
-      { plains, 1.0 },    //
-      { prairie, 1.0 },   //
-      { desert, 1.0 },    //
-      { swamp, 1.0 },     //
-      { marsh, 1.0 },     //
-      { arctic, 1.0 },    //
-    };
-    for( int iter = 0; iter < 1000; ++iter )
-      // Exclude artic rows.
-      for( int y = 1; y < sz.h - 1; ++y )
-        mix_row( m, y, land_tiles[y], rand, weights );
-  }
-#endif
-
-#if 0
-  {
-    using enum e_ground_terrain;
-    enum_map<e_ground_terrain, double> const weights{
-      { tundra, 1.0 }, //
-    };
-    for( int iter = 0; iter < 45; ++iter )
-      // Exclude artic rows.
-      for( int y = 1; y < sz.h - 1; ++y )
-        mix_row( m, y, land_tiles[y], rand, weights );
-  }
-  {
-    using enum e_ground_terrain;
-    enum_map<e_ground_terrain, double> const weights{
-      { savannah, 1.0 }, //
-    };
-    for( int iter = 0; iter < 5; ++iter )
-      // Exclude artic rows.
-      for( int y = 1; y < sz.h - 1; ++y )
-        mix_row( m, y, land_tiles[y], rand, weights );
-  }
-  {
-    using enum e_ground_terrain;
-    enum_map<e_ground_terrain, double> const weights{
-      { plains, 1.0 }, //
-    };
-    for( int iter = 0; iter < 5; ++iter )
-      // Exclude artic rows.
-      for( int y = 1; y < sz.h - 1; ++y )
-        mix_row( m, y, land_tiles[y], rand, weights );
-  }
-  {
-    using enum e_ground_terrain;
-    enum_map<e_ground_terrain, double> const weights{
-      { desert, 1.0 }, //
-    };
-    for( int iter = 0; iter < 5; ++iter )
-      // Exclude artic rows.
-      for( int y = 1; y < sz.h - 1; ++y )
-        mix_row( m, y, land_tiles[y], rand, weights );
-  }
-#endif
-
-#if 0
-  for( e_ground_terrain const gt : kOrdering ) {
-    if( gt == e_ground_terrain::arctic ) continue;
-    auto const g = gravity_total_for_biome( m, land_tiles, gt );
-    fmt::println( "{}: {:.3}", gt, g );
   }
 #endif
 

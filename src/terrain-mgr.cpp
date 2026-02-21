@@ -39,19 +39,23 @@ using ::refl::enum_values;
 /****************************************************************
 ** Public API.
 *****************************************************************/
-int num_surrounding_land_tiles( RealTerrain const& terrain,
+int num_surrounding_land_tiles( MapMatrix const& map,
                                 point const tile ) {
   int total        = 0;
-  auto const& map  = terrain.map;
   rect const world = map.rect();
   for( e_direction const d : enum_values<e_direction> ) {
     point const moved = tile.moved( d );
     if( !moved.is_inside( world ) ) continue;
-    MapSquare const& square = terrain.map[moved];
+    MapSquare const& square = map[moved];
     if( is_water( square ) ) continue;
     ++total;
   }
   return total;
+}
+
+int num_surrounding_land_tiles( RealTerrain const& terrain,
+                                point const tile ) {
+  return num_surrounding_land_tiles( terrain.map, tile );
 }
 
 bool is_island( RealTerrain const& terrain, point const tile ) {

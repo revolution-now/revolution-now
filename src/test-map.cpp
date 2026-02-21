@@ -414,6 +414,7 @@ struct BiomeAdjacencyStats : IGameStatsCollector {
               [&]( point const, MapSquare const& adjacent ) {
                 if( adjacent.surface == e_surface::water )
                   return;
+                ++surrounding_per_row_[center.ground][tile.y];
                 if( adjacent.ground == center.ground )
                   ++adjacency_[adjacent.ground];
               } );
@@ -430,10 +431,15 @@ struct BiomeAdjacencyStats : IGameStatsCollector {
       for( auto const& [y, count] : ground_per_row_[gt] ) {
         UNWRAP_CONTINUE( int const land_on_row,
                          lookup( land_per_row_, y ) );
+        UNWRAP_CONTINUE( int const surrounding_on_row,
+                         lookup( surrounding_per_row_[gt], y ) );
         double const density_at_row =
             double( count ) / land_on_row;
+        // This would be max 8 with full land density.
+        double const avg_surrounding_land =
+            double( surrounding_on_row ) / count;
         double const adjacency_baseline_at_row =
-            density_at_row * 8 * count;
+            density_at_row * avg_surrounding_land * count;
         adjacency_baseline += adjacency_baseline_at_row;
       }
       double const adjacency_avg =
@@ -446,15 +452,15 @@ struct BiomeAdjacencyStats : IGameStatsCollector {
     }
     using enum e_ground_terrain;
     enum_map<e_ground_terrain, double> const targets{
-      { savannah, 0.932 },  //
-      { grassland, 0.861 }, //
-      { tundra, 1.506 },    //
-      { plains, 0.909 },    //
-      { prairie, 0.869 },   //
-      { desert, 1.027 },    //
-      { swamp, 0.756 },     //
-      { marsh, 0.877 },     //
-      { arctic, 0.174 },    //
+      { e_ground_terrain::savannah, 1.083 },  //
+      { e_ground_terrain::grassland, 1.131 }, //
+      { e_ground_terrain::tundra, 1.754 },    //
+      { e_ground_terrain::plains, 1.143 },    //
+      { e_ground_terrain::prairie, 1.121 },   //
+      { e_ground_terrain::desert, 1.210 },    //
+      { e_ground_terrain::swamp, 1.067 },     //
+      { e_ground_terrain::marsh, 1.250 },     //
+      { e_ground_terrain::arctic, 0.895 },    //
     };
     fmt::println( "-----" );
     for( e_ground_terrain const gt : kGroundTypes ) {
@@ -474,6 +480,10 @@ struct BiomeAdjacencyStats : IGameStatsCollector {
   enum_map<e_ground_terrain, map<int /*y*/, int /*count*/>>
       ground_per_row_;
   map<int /*y*/, int /*count*/> land_per_row_;
+  // This gives the total number of surrounding land squares (of
+  // any biome) around tiles of the given biome on the given row.
+  enum_map<e_ground_terrain, map<int /*y*/, int /*count*/>>
+      surrounding_per_row_;
   int land_total_ = 0;
   int maps_total_ = 0;
 };

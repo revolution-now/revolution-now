@@ -35,6 +35,9 @@ struct SSConst;
 [[nodiscard]] int num_surrounding_land_tiles(
     RealTerrain const& terrain, gfx::point tile );
 
+[[nodiscard]] int num_surrounding_land_tiles( MapMatrix const& m,
+                                              gfx::point tile );
+
 [[nodiscard]] bool is_island( SSConst const& ss,
                               gfx::point tile );
 
