@@ -83,9 +83,15 @@ void on_all_tiles(
     SSConst const& ss,
     base::function_ref<
         void( gfx::point, MapSquare const& square )> const fn ) {
-  auto const& map  = ss.terrain.real_terrain().map;
-  rect const world = map.rect();
-  for( point const p : rect_iterator( world ) ) fn( p, map[p] );
+  return on_all_tiles( ss.terrain.real_terrain().map, fn );
+}
+
+void on_all_tiles( MapMatrix const& m,
+                   base::function_ref<void(
+                       gfx::point, MapSquare const& square )>
+                       fn ) {
+  rect const world = m.rect();
+  for( point const p : rect_iterator( world ) ) fn( p, m[p] );
 }
 
 void on_surrounding(

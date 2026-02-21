@@ -4,6 +4,7 @@
 -- Imports.
 -----------------------------------------------------------------
 local Q = require( 'lib.query' )
+local json = require( 'moon.json' )
 
 -----------------------------------------------------------------
 -- Aliases.
@@ -100,7 +101,12 @@ local D = {
   },
 
   -- Terrain adjacency.
-  -- key=ground_type, val={ count=N, adjacency_count=N }
+  -- key=ground_type,
+  -- val={
+  --   count=N,
+  --   adjacency_count=N,
+  --   adjacency_count_per_row,
+  -- }
   adjacency={},
 }
 
@@ -175,11 +181,16 @@ local function lambda( json )
     A.count = A.count or 0
     A.adjacency_count = A.adjacency_count or 0
     A.count = A.count + 1
+    A.adjacency_count_per_row = A.adjacency_count_per_row or {}
+    A.adjacency_count_per_row[tile.y] =
+        A.adjacency_count_per_row[tile.y] or 0
     local surround = Q.surrounding_coords( tile )
     for _, cc in ipairs( surround ) do
       local terrain = terrain_at( json, cc )
       if terrain.ground == center.ground then
         A.adjacency_count = A.adjacency_count + 1
+        A.adjacency_count_per_row[tile.y] =
+            A.adjacency_count_per_row[tile.y] + 1
       end
     end
   end )
@@ -290,62 +301,143 @@ local function finished( mode )
   printfln( 'Total Land: %d', D.total_land )
 
   -- Swamp/Marsh adjacency.
-  local function print_swamp_marsh_adjacency( emit, name, S )
+  local function add_swamp_marsh_adjacency( o, name )
     assert( name )
-    assert( S )
-    emit( '%s\n', name )
-    emit( '=================================================\n' )
-    emit( '  count:   %d\n', S.count )
-    emit( '  density: %.3f\n', S.count / D.total_land )
-    emit( '    with_swamp_adjacent:          %.3f\n',
-          S.with_swamp_adjacent / S.count )
-    emit( '    with_marsh_adjacent:          %.3f\n',
-          S.with_marsh_adjacent / S.count )
-    emit( '    with_swamp_or_marsh_adjacent: %.3f\n',
-          S.with_swamp_or_marsh_adjacent / S.count )
-    emit( '    with_river_adjacent:          %.3f\n',
-          S.with_river_adjacent / S.count )
-    emit( '    with_ocean_adjacent:          %.3f\n',
-          S.with_ocean_adjacent / S.count )
-    emit( '    with_river_or_ocean_adjacent: %.3f\n',
-          S.with_river_or_ocean_adjacent / S.count )
-    emit( '    with_any_adjacent:            %.3f\n',
-          S.with_any_adjacent / S.count )
+    local S = assert( D[name] )
+    o.wet = o.wet or {}
+    o.wet[name] = {}
+    local O = o.wet[name]
+    O.count = S.count
+    O.density = S.count / D.total_land
+    O.with_swamp_adjacent = S.with_swamp_adjacent / S.count
+    O.with_marsh_adjacent = S.with_marsh_adjacent / S.count
+    O.with_swamp_or_marsh_adjacent =
+        S.with_swamp_or_marsh_adjacent / S.count
+    O.with_river_adjacent = S.with_river_adjacent / S.count
+    O.with_ocean_adjacent = S.with_ocean_adjacent / S.count
+    O.with_river_or_ocean_adjacent =
+        S.with_river_or_ocean_adjacent / S.count
+    O.with_any_adjacent = S.with_any_adjacent / S.count
   end
 
   do
-    local adjacency_file = format( '%s/%s.adjacency.txt',
+    local adjacency_file = format( '%s/%s.adjacency.json',
                                    PLOTS_DIR, mode )
     printfln( 'writing file %s...', adjacency_file )
     local f<close> = assert( io.open( adjacency_file, 'w' ) )
-    local emit = function( fmt, ... )
-      f:write( format( fmt, ... ) )
-      io.write( format( fmt, ... ) )
-    end
-    print_swamp_marsh_adjacency( emit, 'Swamp', D.swamp )
-    emit( '\n' )
-    print_swamp_marsh_adjacency( emit, 'Marsh', D.marsh )
+    local emit = function( bit ) f:write( bit ) end
+    local o = {}
+    add_swamp_marsh_adjacency( o, 'swamp' )
+    add_swamp_marsh_adjacency( o, 'marsh' )
 
-    emit( '\n' )
-    emit( 'General Adjacency\n' )
-    emit( '=================================================\n' )
+    o.general = {}
+    local general = o.general
+    general.biome = {}
+    local biome = general.biome
+    biome.__key_order = GROUND_TYPES
 
     -- General adjacency.
+    local adjacency_relative = {}
     for _, ground in ipairs( GROUND_TYPES ) do
+      local adjacency_baseline = 0
+      for y = 1, 70 do
+        local land_on_row = assert( D.land[y] )
+        if land_on_row > 0 then
+          local density_at_row = assert(
+                                     D.ground_per_row[ground][y] ) /
+                                     land_on_row
+          local adjacency_baseline_at_row =
+              density_at_row * 8 * D.ground_per_row[ground][y]
+          adjacency_baseline = adjacency_baseline +
+                                   adjacency_baseline_at_row
+        end
+      end
       local val = assert( D.adjacency[ground] )
-      emit( '\n' )
-      emit( '  %s\n', ground )
-      emit( '    count:           %d\n', val.count )
-      emit( '    adjacency_count: %d\n', val.adjacency_count )
-      emit( '    density:         %.3f\n',
-            val.count / D.total_land )
-      emit( '    adjacency_result: %.3f\n',
-            val.adjacency_count / val.count )
+      local density = val.count / D.total_land
+      local adjacency_avg = val.adjacency_count / val.count
+      adjacency_relative[ground] =
+          val.adjacency_count / adjacency_baseline
+      local result = adjacency_relative[ground]
+      biome[ground] = {}
+      biome[ground].count = val.count
+      biome[ground].adjacency_count = val.adjacency_count
+      biome[ground].density = density
+      biome[ground].adjacency_avg = adjacency_avg
+      biome[ground].adjacency_baseline = adjacency_baseline
+      biome[ground].adjacency_relative = result
+    end
+    general.results = { __key_order=GROUND_TYPES }
+    for _, ground in ipairs( GROUND_TYPES ) do
+      general.results[ground] = assert(
+                                    adjacency_relative[ground] )
+    end
+    json.write( o, 2, emit )
+  end
+end
+
+-----------------------------------------------------------------
+-- Collection stage.
+-----------------------------------------------------------------
+-- This gets run once after all modes are run (which happen in
+-- separate processes) to collect all of their results.
+local function collect()
+  print( 'collecting...' )
+  local BUCKET_FRACTION = 100
+  local MODES = {
+    'bbtt', 'bbtm', 'bbtb', 'bbmt', 'bbmm', 'bbmb', 'bbbt',
+    'bbbm', 'bbbb', 'new',
+  }
+  local o = {}
+  o.biomes = {}
+  o.averages = {}
+  o.averages.__key_order = GROUND_TYPES
+  local csv_buckets = {}
+  for _, mode in ipairs( MODES ) do
+    local adjacency_file = format( '%s/%s.adjacency.json',
+                                   PLOTS_DIR, mode )
+    local f<close> = assert( io.open( adjacency_file, 'r' ) )
+    local mode_json = json.read( f:read( '*all' ) )
+    local results = assert( mode_json.general.results )
+    o.biomes[mode] = results
+    o.biomes[mode].__key_order = GROUND_TYPES
+    for _, biome in ipairs( GROUND_TYPES ) do
+      local result = assert( results[biome] )
+      o.averages[biome] = o.averages[biome] or 0
+      o.averages[biome] = o.averages[biome] + result / #MODES
+      csv_buckets[biome] = csv_buckets[biome] or {}
+      local bucket = math.floor( result * BUCKET_FRACTION )
+      csv_buckets[biome][bucket] =
+          csv_buckets[biome][bucket] or 0
+      csv_buckets[biome][bucket] = csv_buckets[biome][bucket] + 1
     end
   end
+  local collected_csv_file = format( '%s/adjacency.csv',
+                                     PLOTS_DIR )
+  printfln( 'writing %s...', collected_csv_file )
+  local csv_out<close> = assert(
+                             io.open( collected_csv_file, 'w' ) )
+  csv_out:write( 'value' )
+  for _, biome in ipairs( GROUND_TYPES ) do
+    csv_out:write( ',' .. biome )
+  end
+  csv_out:write( '\n' )
+  for i = 0, 2 * BUCKET_FRACTION do
+    csv_out:write( format( '%.3f', i / BUCKET_FRACTION ) )
+    for _, biome in ipairs( GROUND_TYPES ) do
+      csv_buckets[biome][i] = csv_buckets[biome][i] or 0
+      csv_out:write( format( ',%d', csv_buckets[biome][i] ) )
+    end
+    csv_out:write( '\n' )
+  end
+  local collected_json_file = format( '%s/adjacency.json',
+                                      PLOTS_DIR )
+  printfln( 'writing %s...', collected_json_file )
+  local json_out<close> = assert(
+                              io.open( collected_json_file, 'w' ) )
+  json.write( o, 2, function( bit ) json_out:write( bit ) end )
 end
 
 -----------------------------------------------------------------
 -- Lambda.
 -----------------------------------------------------------------
-return { lambda=lambda, finished=finished }
+return { lambda=lambda, finished=finished, collect=collect }

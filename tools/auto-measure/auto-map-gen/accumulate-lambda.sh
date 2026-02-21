@@ -13,6 +13,6 @@ lambda="$2"
 [[ -n "$lambda" ]]
 [[ -f "$lambda" ]]
 
-files="$(find "$gamegen" -name "COLONY*.*")"
+files="$(find "$gamegen" -name "COLONY*.*" | head -n2000)"
 
 "$tools/sav/conversion/lambda-on-binaries.sh" "$config" "$lambda" $files

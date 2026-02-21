@@ -84,6 +84,7 @@ string_view mode_name( e_temperature const t,
         case e_climate::wet:
           return "bbtb";
       }
+      break;
     case e_temperature::temperate:
       switch( c ) {
         case e_climate::arid:
@@ -93,6 +94,7 @@ string_view mode_name( e_temperature const t,
         case e_climate::wet:
           return "bbmb";
       }
+      break;
     case e_temperature::warm:
       switch( c ) {
         case e_climate::arid:
@@ -102,6 +104,7 @@ string_view mode_name( e_temperature const t,
         case e_climate::wet:
           return "bbbb";
       }
+      break;
   }
 }
 
@@ -111,17 +114,20 @@ string_view mode_name( e_temperature const t,
 void generate_single_map_impl(
     IEngine& engine, SS& ss,
     function_ref<void( IRand&, GameSetup& ) const> const fn ) {
-  lua::state st;
-  lua_init( engine, st );
-  st["ROOT"] = ss.root;
-  st["SS"]   = ss;
   TerrainConnectivity connectivity;
   NonRenderingMapUpdater non_rendering_map_updater(
       ss, connectivity );
+  IRand& rand = engine.rand();
+
+  lua::state st;
+#if 0
+  lua_init( engine, st );
+  st["ROOT"] = ss.root;
+  st["SS"]   = ss;
   st["IMapUpdater"] =
       static_cast<IMapUpdater&>( non_rendering_map_updater );
-  IRand& rand = engine.rand();
   st["IRand"] = static_cast<IRand&>( rand );
+#endif
 
   // Need to reseed the engine because the previous generated map
   // may have seeded it.
@@ -401,6 +407,8 @@ struct BiomeAdjacencyStats : IGameStatsCollector {
           if( center.surface == e_surface::water ) return;
           ++land_total_;
           ++terrain_total_[center.ground];
+          ++land_per_row_[tile.y];
+          ++ground_per_row_[center.ground][tile.y];
           on_surrounding(
               ss, tile,
               [&]( point const, MapSquare const& adjacent ) {
@@ -415,16 +423,57 @@ struct BiomeAdjacencyStats : IGameStatsCollector {
   void write() const override {
     fmt::println( "maps_total: {}", maps_total_ );
     fmt::println( "land_total: {}", land_total_ );
-    for( e_ground_terrain const gt : kGroundTypes )
-      fmt::println(
-          "{}: {:.3f}", gt,
-          double( adjacency_[gt] ) / terrain_total_[gt] );
+    fmt::println( "" );
+    enum_map<e_ground_terrain, double> relative_adjacencies;
+    for( e_ground_terrain const gt : kGroundTypes ) {
+      double adjacency_baseline = 0;
+      for( auto const& [y, count] : ground_per_row_[gt] ) {
+        UNWRAP_CONTINUE( int const land_on_row,
+                         lookup( land_per_row_, y ) );
+        double const density_at_row =
+            double( count ) / land_on_row;
+        double const adjacency_baseline_at_row =
+            density_at_row * 8 * count;
+        adjacency_baseline += adjacency_baseline_at_row;
+      }
+      double const adjacency_avg =
+          double( adjacency_[gt] ) / terrain_total_[gt];
+      double const result = adjacency_[gt] / adjacency_baseline;
+      relative_adjacencies[gt] = result;
+      fmt::println( "{}: {:.3f} | {}/{:.3f} ==> {:.3f}", gt,
+                    adjacency_avg, adjacency_[gt],
+                    adjacency_baseline, result );
+    }
+    using enum e_ground_terrain;
+    enum_map<e_ground_terrain, double> const targets{
+      { savannah, 0.932 },  //
+      { grassland, 0.861 }, //
+      { tundra, 1.506 },    //
+      { plains, 0.909 },    //
+      { prairie, 0.869 },   //
+      { desert, 1.027 },    //
+      { swamp, 0.756 },     //
+      { marsh, 0.877 },     //
+      { arctic, 0.174 },    //
+    };
+    fmt::println( "-----" );
+    for( e_ground_terrain const gt : kGroundTypes ) {
+      double const target = targets[gt];
+      if( gt == e_ground_terrain::arctic ) continue;
+      auto const g = relative_adjacencies[gt];
+      fmt::println( "{}: target={}, actual={:.3}, error={:.3}%",
+                    gt, target, g,
+                    100.0 * ( g - target ) / target );
+    }
   }
 
  private:
   size map_sz_ = {};
   enum_map<e_ground_terrain, int> adjacency_;
   enum_map<e_ground_terrain, int> terrain_total_;
+  enum_map<e_ground_terrain, map<int /*y*/, int /*count*/>>
+      ground_per_row_;
+  map<int /*y*/, int /*count*/> land_per_row_;
   int land_total_ = 0;
   int maps_total_ = 0;
 };
@@ -467,7 +516,8 @@ struct BiomeAdjacencyStats : IGameStatsCollector {
                         .temperature = temperature,
                         .climate     = climate } );
         stats.collect( ss );
-        fmt::print( "\r\033[2K" );
+        // fmt::print( "\r\033[2K" );
+        fmt::print( "\n" );
       }
       stats.write();
       fmt::print( "\n" );
@@ -485,14 +535,14 @@ struct BiomeAdjacencyStats : IGameStatsCollector {
       };
 
   static auto constexpr kTemps = {
-    e_temperature::cool,
+    // e_temperature::cool,
     e_temperature::temperate,
-    e_temperature::warm,
+    // e_temperature::warm,
   };
   static auto constexpr kClimates = {
-    e_climate::arid,
+    // e_climate::arid,
     e_climate::normal,
-    e_climate::wet,
+    // e_climate::wet,
   };
 
   for( e_temperature const temperature : kTemps ) {
@@ -508,7 +558,8 @@ struct BiomeAdjacencyStats : IGameStatsCollector {
                         .temperature = temperature,
                         .climate     = climate } );
         stats.collect( ss );
-        fmt::print( "\r\033[2K" );
+        // fmt::print( "\r\033[2K" );
+        fmt::print( "\n" );
       }
       stats.write();
       fmt::print( "\n" );

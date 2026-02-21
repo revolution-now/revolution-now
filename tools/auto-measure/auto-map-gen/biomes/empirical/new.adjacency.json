@@ -1,0 +1,113 @@
+{
+  "general": {
+    "biome": {
+      "savannah": {
+        "adjacency_avg": 2.9568386784064,
+        "adjacency_baseline": 787893.18959733,
+        "adjacency_count": 774742,
+        "adjacency_relative": 0.98330841061838,
+        "count": 262017,
+        "density": 0.11324319126269
+      },
+      "grassland": {
+        "adjacency_avg": 1.4711002482254,
+        "adjacency_baseline": 552191.97289057,
+        "adjacency_count": 540494,
+        "adjacency_relative": 0.9788153876462,
+        "count": 367408,
+        "density": 0.15879295776778
+      },
+      "tundra": {
+        "adjacency_avg": 2.3161306295154,
+        "adjacency_baseline": 170483.49378431,
+        "adjacency_count": 308724,
+        "adjacency_relative": 1.81087325903,
+        "count": 133293,
+        "density": 0.057608951682438
+      },
+      "plains": {
+        "adjacency_avg": 2.8318820194787,
+        "adjacency_baseline": 1279387.4001295,
+        "adjacency_count": 1328804,
+        "adjacency_relative": 1.0386252044263,
+        "count": 469230,
+        "density": 0.20280021004817
+      },
+      "prairie": {
+        "adjacency_avg": 1.9748544891881,
+        "adjacency_baseline": 1163366.8203313,
+        "adjacency_count": 1017212,
+        "adjacency_relative": 0.87436910028975,
+        "count": 515082,
+        "density": 0.22261734712621
+      },
+      "desert": {
+        "adjacency_avg": 1.1372546546244,
+        "adjacency_baseline": 146717.96341082,
+        "adjacency_count": 180314,
+        "adjacency_relative": 1.2289837986308,
+        "count": 158552,
+        "density": 0.06852583786961
+      },
+      "swamp": {
+        "adjacency_avg": 1.3165231843111,
+        "adjacency_baseline": 240586.85294848,
+        "adjacency_count": 198038,
+        "adjacency_relative": 0.8231455608358,
+        "count": 150425,
+        "density": 0.065013365719361
+      },
+      "marsh": {
+        "adjacency_avg": 0.65420936307012,
+        "adjacency_baseline": 86223.17893492,
+        "adjacency_count": 91168,
+        "adjacency_relative": 1.0573490925081,
+        "count": 139356,
+        "density": 0.060229367413577
+      },
+      "arctic": {
+        "adjacency_avg": 1.2566220690587,
+        "adjacency_baseline": 922998.88861827,
+        "adjacency_count": 148774,
+        "adjacency_relative": 0.16118545952175,
+        "count": 118392,
+        "density": 0.051168771110165
+      }
+    },
+    "results": {
+      "savannah": 0.98330841061838,
+      "grassland": 0.9788153876462,
+      "tundra": 1.81087325903,
+      "plains": 1.0386252044263,
+      "prairie": 0.87436910028975,
+      "desert": 1.2289837986308,
+      "swamp": 0.8231455608358,
+      "marsh": 1.0573490925081,
+      "arctic": 0.16118545952175
+    }
+  },
+  "wet": {
+    "marsh": {
+      "count": 139356,
+      "density": 0.060229367413577,
+      "with_any_adjacent": 0.97609718993082,
+      "with_marsh_adjacent": 0.38428915870146,
+      "with_ocean_adjacent": 0.79427509400385,
+      "with_river_adjacent": 0.39848302190074,
+      "with_river_or_ocean_adjacent": 0.92760986251041,
+      "with_swamp_adjacent": 0.28103562099945,
+      "with_swamp_or_marsh_adjacent": 0.38428915870146
+    },
+    "swamp": {
+      "count": 150425,
+      "density": 0.065013365719361,
+      "with_any_adjacent": 0.9874090078112,
+      "with_marsh_adjacent": 0.76190792753864,
+      "with_ocean_adjacent": 0.78607944158218,
+      "with_river_adjacent": 0.42058833305634,
+      "with_river_or_ocean_adjacent": 0.92477314276217,
+      "with_swamp_adjacent": 0.72627555260096,
+      "with_swamp_or_marsh_adjacent": 0.76190792753864
+    }
+  }
+}

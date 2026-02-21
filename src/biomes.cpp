@@ -13,6 +13,7 @@
 // Revolution Now
 #include "error.hpp"
 #include "irand.hpp"
+#include "terrain-mgr.hpp"
 
 // ss
 #include "ss/terrain.hpp"
@@ -21,9 +22,14 @@
 #include "config/map-gen.rds.hpp"
 #include "terrain-enums.rds.hpp"
 
+// gfx
+#include "gfx/iter.hpp"
+
 // base
 #include "base/expect.hpp"
+#include "base/keyval.hpp"
 #include "base/logger.hpp"
+#include "base/timer.hpp"
 
 namespace rn {
 
@@ -32,13 +38,30 @@ namespace {
 using namespace std;
 
 using ::base::expect;
+using ::base::lookup;
 using ::base::maybe;
+using ::base::ScopedTimer;
 using ::base::valid;
 using ::base::valid_or;
+using ::gfx::Matrix;
 using ::gfx::point;
+using ::gfx::rect_iterator;
 using ::gfx::size;
+using ::refl::enum_count;
 using ::refl::enum_map;
 using ::refl::enum_values;
+
+static array<e_ground_terrain, 9> const kOrdering{
+  e_ground_terrain::savannah,  //
+  e_ground_terrain::grassland, //
+  e_ground_terrain::tundra,    //
+  e_ground_terrain::plains,    //
+  e_ground_terrain::prairie,   //
+  e_ground_terrain::desert,    //
+  e_ground_terrain::swamp,     //
+  e_ground_terrain::marsh,     //
+  e_ground_terrain::arctic,    //
+};
 
 /****************************************************************
 ** biome_curve
@@ -135,39 +158,252 @@ struct biome_dist {
       // swamp curves which are lowered slightly below the axis.
       // In that case they are interpreted as being zero in that
       // region.
-      double const val = std::max( curves[gt]( o ), 0.0 );
-      weights_[gt]     = val;
+      double const val   = std::max( curves[gt]( o ), 0.0 );
+      probabilities_[gt] = val;
       total += val;
     }
-    // The function we use below to select a random weighted
-    // value does not need the values to be normalized, however
-    // it does fail if the total weight is considered too small,
-    // so we need to normalize it just to prevent that from hap-
-    // pening.
-    //
-    // FIXME: find a better way to deal with this, e.g. don't
-    //        allow creating the biome_dist object.
-    //
     if( total > 0.0 )
       for( auto const gt : enum_values<e_ground_terrain> )
-        weights_[gt] /= total;
+        probabilities_[gt] /= total;
     else
       for( auto const gt : enum_values<e_ground_terrain> )
-        weights_[gt] = 0.0;
+        probabilities_[gt] = 1.0 / enum_count<e_ground_terrain>;
+  }
+
+  [[nodiscard]] double probability(
+      e_ground_terrain const gt ) const {
+    return probabilities_[gt];
   }
 
   [[nodiscard]] maybe<e_ground_terrain> sample(
       IRand& rand ) const {
-    return rand.pick_from_weighted_values_safe( weights_ );
+    return rand.pick_from_weighted_values_safe( probabilities_ );
   }
 
   string to_str( e_ground_terrain const gt ) const {
-    return format( "dist.{}={}", gt, weights_[gt] );
+    return format( "dist.{}={}", gt, probabilities_[gt] );
   }
 
  private:
-  enum_map<e_ground_terrain, double> weights_;
+  enum_map<e_ground_terrain, double> probabilities_;
 };
+
+/****************************************************************
+** Adjacency.
+*****************************************************************/
+// Computes the adjacency of the tile as if the contents of the
+// tile were `assumed`.
+[[maybe_unused]] [[nodiscard]] double adjacency(
+    MapMatrix const& m, point const tile,
+    MapSquare const& assumed ) {
+  CHECK( assumed.surface != e_surface::water );
+  double res   = 0;
+  auto const f = [&]( auto&& fn ) {
+    on_surrounding( m, tile, fn );
+  };
+  f( [&]( point const, MapSquare const& adjacent ) {
+    if( adjacent.surface == e_surface::water ) return;
+    if( adjacent.ground == assumed.ground ) res += 1.0;
+  } );
+  return res;
+}
+
+[[nodiscard]] double adjacency( MapMatrix const& m,
+                                point const tile ) {
+  double res   = 0;
+  auto const f = [&]( auto&& fn ) {
+    on_surrounding( m, tile, fn );
+  };
+  MapSquare const& square = m[tile];
+  f( [&]( point const, MapSquare const& adjacent ) {
+    if( adjacent.surface == e_surface::water ) return;
+    if( adjacent.ground == square.ground ) res += 1.0;
+  } );
+  return res;
+}
+
+[[nodiscard]] double adjacency_total(
+    MapMatrix const& m, e_ground_terrain const biome ) {
+  double res = 0;
+  on_all_tiles(
+      m, [&]( point const tile, MapSquare const& square ) {
+        if( square.ground != biome ) return;
+        res += adjacency( m, tile );
+      } );
+  return res;
+}
+
+// Computes the gravity of the tile as if the contents of the
+// tile were `assumed`.
+[[nodiscard]] double gravity(
+    MapMatrix const& m, point const tile,
+    MapSquare const& assumed,
+    enum_map<e_ground_terrain, double> const& weights ) {
+  using enum e_ground_terrain;
+  CHECK( assumed.surface != e_surface::water );
+  double res   = 0;
+  auto const f = [&]( auto&& fn ) {
+    on_surrounding( m, tile, fn );
+  };
+  if( assumed.ground == swamp ) {
+    f( [&]( point const, MapSquare const& adjacent ) {
+      if( adjacent.surface == e_surface::water )
+        res += 2.0;
+      else if( adjacent.ground == assumed.ground )
+        res += 1.0;
+      else if( adjacent.ground == marsh )
+        res += 0.5;
+    } );
+  } else if( assumed.ground == marsh ) {
+    f( [&]( point const, MapSquare const& adjacent ) {
+      if( adjacent.surface == e_surface::water )
+        res += 2.0;
+      else if( adjacent.ground == assumed.ground )
+        res += 1.0;
+      else if( adjacent.ground == swamp )
+        res += 0.5;
+    } );
+  } else {
+    f( [&]( point const, MapSquare const& adjacent ) {
+      if( adjacent.surface == e_surface::water ) return;
+      if( adjacent.ground == assumed.ground ) res += 1.0;
+    } );
+  }
+  return res * weights[assumed.ground];
+}
+
+void mix_row_by_gravity(
+    MapMatrix& m, int const y,
+    vector<int /*x*/> const& land_tiles, IRand& rand,
+    enum_map<e_ground_terrain, double> const& weights ) {
+  if( land_tiles.size() <= 1 ) return;
+  int const x1 = rand.pick_one( land_tiles );
+  int const x2 = rand.pick_one( land_tiles );
+  if( x1 == x2 ) return;
+  point const tile1  = { .x = x1, .y = y };
+  point const tile2  = { .x = x2, .y = y };
+  MapSquare& square1 = m[tile1];
+  MapSquare& square2 = m[tile2];
+  CHECK( square1.surface != e_surface::water );
+  CHECK( square2.surface != e_surface::water );
+  if( square1.ground == square2.ground ) return;
+  auto const gravity_now =
+      gravity( m, tile1, square1, weights ) +
+      gravity( m, tile2, square2, weights );
+  auto const gravity_swap =
+      gravity( m, tile1, square2, weights ) +
+      gravity( m, tile2, square1, weights );
+  if( gravity_swap > gravity_now ) swap( square1, square2 );
+}
+
+void mix_row_by_adjacency(
+    MapMatrix& m, int const y,
+    vector<int /*x*/> const& land_tiles, IRand& rand,
+    enum_map<e_ground_terrain, double> const& weights ) {
+  if( land_tiles.size() <= 1 ) return;
+  int const x1 = rand.pick_one( land_tiles );
+  int const x2 = rand.pick_one( land_tiles );
+  if( x1 == x2 ) return;
+  point const tile1  = { .x = x1, .y = y };
+  point const tile2  = { .x = x2, .y = y };
+  MapSquare& square1 = m[tile1];
+  MapSquare& square2 = m[tile2];
+  CHECK( square1.surface != e_surface::water );
+  CHECK( square2.surface != e_surface::water );
+  if( square1.ground == square2.ground ) return;
+  e_ground_terrain const gt1 = square1.ground;
+  e_ground_terrain const gt2 = square2.ground;
+  auto const gravity_now =
+      adjacency( m, tile1, square1 ) * weights[gt1] +
+      adjacency( m, tile2, square2 ) * weights[gt2];
+  auto const gravity_swap =
+      adjacency( m, tile1, square2 ) * weights[gt2] +
+      adjacency( m, tile2, square1 ) * weights[gt1];
+  if( gravity_swap > gravity_now ) swap( square1, square2 );
+}
+
+[[maybe_unused]] double gravity_total(
+    MapMatrix const& m,
+    vector<vector<int /*x*/>> const& land_tiles ) {
+  double res                 = 0;
+  int const total_land_tiles = [&] {
+    int res = 0;
+    for( point const p : rect_iterator( m.rect() ) )
+      if( m[p].surface == e_surface::land ) ++res;
+    return res;
+  }();
+  using enum e_ground_terrain;
+  static enum_map<e_ground_terrain, double> const weights{
+    { savannah, 1.0 },  //
+    { grassland, 1.0 }, //
+    { tundra, 1.0 },    //
+    { plains, 1.0 },    //
+    { prairie, 1.0 },   //
+    { desert, 1.0 },    //
+    { swamp, 1.0 },     //
+    { marsh, 1.0 },     //
+    { arctic, 1.0 },    //
+  };
+  for( int y = 1; y < ssize( land_tiles ); ++y ) {
+    for( int const x : land_tiles[y] ) {
+      point const tile{ .x = x, .y = y };
+      res += gravity( m, tile, m[tile], weights );
+    }
+  }
+  return res / total_land_tiles;
+}
+
+[[maybe_unused]] double gravity_total_for_biome(
+    MapMatrix const& m,
+    vector<vector<int /*x*/>> const& land_tiles,
+    e_ground_terrain const biome ) {
+  int const total_biome_tiles = [&] {
+    int res = 0;
+    for( point const p : rect_iterator( m.rect() ) )
+      if( m[p].surface == e_surface::land &&
+          m[p].ground == biome )
+        ++res;
+    return res;
+  }();
+  using enum e_ground_terrain;
+  enum_map<e_ground_terrain, double> weights;
+  double res     = 0;
+  weights[biome] = 1.0;
+  for( int y = 1; y < ssize( land_tiles ); ++y ) {
+    for( int const x : land_tiles[y] ) {
+      point const tile{ .x = x, .y = y };
+      if( m[tile].ground != biome ) continue;
+      res += gravity( m, tile, m[tile], weights );
+    }
+  }
+  return res / total_biome_tiles;
+}
+
+[[nodiscard]] double relative_adjacency(
+    MapMatrix const& m,
+    map<int /*y*/, biome_dist> const& biome_dists,
+    e_ground_terrain const biome ) {
+  map<int /*y*/, int> const biome_count_per_row = [&] {
+    map<int /*y*/, int> res;
+    for( point const p : rect_iterator( m.rect() ) )
+      if( m[p].surface == e_surface::land &&
+          m[p].ground == biome )
+        ++res[p.y];
+    return res;
+  }();
+  double adjacency_baseline = 0;
+  for( auto const& [y, count] : biome_count_per_row ) {
+    UNWRAP_CONTINUE( biome_dist const& row_dist,
+                     lookup( biome_dists, y ) );
+    double const density_at_row = row_dist.probability( biome );
+    double const adjacency_baseline_at_row =
+        density_at_row * 8 * count;
+    adjacency_baseline += adjacency_baseline_at_row;
+  }
+  double const adj_total = adjacency_total( m, biome );
+  double const result    = adj_total / adjacency_baseline;
+  return result;
+}
 
 } // namespace
 
@@ -193,9 +429,12 @@ valid_or<string> assign_biomes( IRand& rand,
   CHECK( sz.h % 2 == 0 );
   CHECK( sz.h > 1 );
 
+  map<int /*y*/, biome_dist> biome_dists;
+
   for( int y = 0; y < sz.h; ++y ) {
     double const yd = double( y ) / sz.h;
     biome_dist const dist( curves, yd );
+    biome_dists.emplace( y, dist );
     for( int x = 0; x < m.size().w; ++x ) {
       MapSquare& square = m[{ .x = x, .y = y }];
       // There would be no harm in distributing ground types on
@@ -215,6 +454,183 @@ valid_or<string> assign_biomes( IRand& rand,
       square.ground = *sample;
     }
   }
+
+  // Adjacency adjustment.
+  vector<vector<int /*x*/>> const land_tiles = [&] {
+    vector<vector<int /*x*/>> res;
+    res.resize( sz.h );
+    for( point const p : rect_iterator( m.rect() ) )
+      if( m[p].surface == e_surface::land )
+        res[p.y].push_back( p.x );
+    return res;
+  }();
+
+  enum_map<e_ground_terrain, double> const targets{
+    { e_ground_terrain::savannah, 0.932 },  //
+    { e_ground_terrain::grassland, 0.861 }, //
+    { e_ground_terrain::tundra, 1.506 },    //
+    { e_ground_terrain::plains, 0.909 },    //
+    { e_ground_terrain::prairie, 0.869 },   //
+    { e_ground_terrain::desert, 1.027 },    //
+    { e_ground_terrain::swamp, 0.756 },     //
+    { e_ground_terrain::marsh, 0.877 },     //
+    { e_ground_terrain::arctic, 0.174 },    //
+  };
+  // enum_map<e_ground_terrain, double> const targets{
+  //   { e_ground_terrain::savannah, 5.0 },  //
+  //   { e_ground_terrain::grassland, 5.0 }, //
+  //   { e_ground_terrain::tundra, 5.0 },    //
+  //   { e_ground_terrain::plains, 5.0 },    //
+  //   { e_ground_terrain::prairie, 5.0 },   //
+  //   { e_ground_terrain::desert, 5.0 },    //
+  //   { e_ground_terrain::swamp, 5.0 },     //
+  //   { e_ground_terrain::marsh, 5.0 },     //
+  //   { e_ground_terrain::arctic, 5.0 },    //
+  // };
+
+  // Anti-glob.
+#if 1
+  {
+    using enum e_ground_terrain;
+    enum_map<e_ground_terrain, double> const weights{
+      { savannah, -1.0 },  //
+      { grassland, -1.0 }, //
+      { tundra, -1.0 },    //
+      { plains, -1.0 },    //
+      { prairie, -1.0 },   //
+      { desert, -1.0 },    //
+      { swamp, -1.0 },     //
+      { marsh, -1.0 },     //
+      { arctic, -1.0 },    //
+    };
+    for( int iter = 0; iter < 100; ++iter )
+      // Exclude artic rows.
+      for( int y = 1; y < sz.h - 1; ++y )
+        mix_row_by_adjacency( m, y, land_tiles[y], rand,
+                              weights );
+  }
+#endif
+
+  // Glob.
+#if 1
+  {
+    using enum e_ground_terrain;
+    enum_map<e_ground_terrain, double> weights{
+      { savannah, 1.0 },  //
+      { grassland, 1.0 }, //
+      { tundra, 1.0 },    //
+      { plains, 1.0 },    //
+      { prairie, 1.0 },   //
+      { desert, 1.0 },    //
+      { swamp, 1.0 },     //
+      { marsh, 1.0 },     //
+      { arctic, 1.0 },    //
+    };
+    int iter = 0;
+    for( iter = 0; iter < 1000; ++iter ) {
+      bool keep_going = false;
+      for( auto const gt : enum_values<e_ground_terrain> ) {
+        if( gt == e_ground_terrain::arctic ) continue;
+        if( weights[gt] > 0 ) {
+          double const g =
+              relative_adjacency( m, biome_dists, gt );
+          if( g > targets[gt] ) weights[gt] = 0.0;
+        }
+        if( weights[gt] != 0 ) keep_going = true;
+      }
+      if( !keep_going ) break;
+      // Exclude artic rows.
+      for( int y = 1; y < sz.h - 1; ++y )
+        mix_row_by_adjacency( m, y, land_tiles[y], rand,
+                              weights );
+    }
+    fmt::println( "\niters: {}", iter );
+  }
+#endif
+
+#if 1
+  fmt::println( "-----" );
+  for( e_ground_terrain const gt : kOrdering ) {
+    double const target = targets[gt];
+    if( gt == e_ground_terrain::arctic ) continue;
+    auto const g = relative_adjacency( m, biome_dists, gt );
+    fmt::println(
+        "{:10}: target={:0.3}, actual={:0.3}, error={:.3}%", gt,
+        target, g, 100.0 * ( g - target ) / target );
+  }
+#endif
+
+#if 0
+  {
+    using enum e_ground_terrain;
+    enum_map<e_ground_terrain, double> const weights{
+      { savannah, 1.0 },  //
+      { grassland, 1.0 }, //
+      { tundra, 1.0 },    //
+      { plains, 1.0 },    //
+      { prairie, 1.0 },   //
+      { desert, 1.0 },    //
+      { swamp, 1.0 },     //
+      { marsh, 1.0 },     //
+      { arctic, 1.0 },    //
+    };
+    for( int iter = 0; iter < 1000; ++iter )
+      // Exclude artic rows.
+      for( int y = 1; y < sz.h - 1; ++y )
+        mix_row( m, y, land_tiles[y], rand, weights );
+  }
+#endif
+
+#if 0
+  {
+    using enum e_ground_terrain;
+    enum_map<e_ground_terrain, double> const weights{
+      { tundra, 1.0 }, //
+    };
+    for( int iter = 0; iter < 45; ++iter )
+      // Exclude artic rows.
+      for( int y = 1; y < sz.h - 1; ++y )
+        mix_row( m, y, land_tiles[y], rand, weights );
+  }
+  {
+    using enum e_ground_terrain;
+    enum_map<e_ground_terrain, double> const weights{
+      { savannah, 1.0 }, //
+    };
+    for( int iter = 0; iter < 5; ++iter )
+      // Exclude artic rows.
+      for( int y = 1; y < sz.h - 1; ++y )
+        mix_row( m, y, land_tiles[y], rand, weights );
+  }
+  {
+    using enum e_ground_terrain;
+    enum_map<e_ground_terrain, double> const weights{
+      { plains, 1.0 }, //
+    };
+    for( int iter = 0; iter < 5; ++iter )
+      // Exclude artic rows.
+      for( int y = 1; y < sz.h - 1; ++y )
+        mix_row( m, y, land_tiles[y], rand, weights );
+  }
+  {
+    using enum e_ground_terrain;
+    enum_map<e_ground_terrain, double> const weights{
+      { desert, 1.0 }, //
+    };
+    for( int iter = 0; iter < 5; ++iter )
+      // Exclude artic rows.
+      for( int y = 1; y < sz.h - 1; ++y )
+        mix_row( m, y, land_tiles[y], rand, weights );
+  }
+#endif
+
+#if 0
+  for( e_ground_terrain const gt : kOrdering ) {
+    if( gt == e_ground_terrain::arctic ) continue;
+    auto const g = gravity_total_for_biome( m, land_tiles, gt );
+    fmt::println( "{}: {:.3}", gt, g );
+  }
+#endif
 
   return valid;
 }

@@ -17,6 +17,7 @@
 #include "irand.hpp"
 #include "map-gen.hpp"
 #include "perlin-map.hpp"
+#include "player-mgr.hpp" // FIXME
 #include "terrain-mgr.hpp"
 
 // config
@@ -387,7 +388,7 @@ valid_or<string> create_game_from_setup(
   // SettingsState state.
   // ------------------------------------------------------------
   lg.info( "game setup: setting settings state..." );
-#if 1
+#if 0
   lua::table settings_options    = lua.table.create();
   settings_options["difficulty"] = setup.settings.difficulty;
   lua["new_game"]["create_settings_state"]( settings_options );
@@ -423,7 +424,7 @@ valid_or<string> create_game_from_setup(
     }
   }
 
-#if 1
+#if 0
   // Natives.
   // ------------------------------------------------------------
   lg.info( "game setup: generating natives..." );
@@ -438,6 +439,7 @@ valid_or<string> create_game_from_setup(
   }
   natives_options["native_tribes"] = native_tribes;
   lua["map_gen"]["create_indian_villages"]( natives_options );
+#endif
 
   // Nations/Players.
   // ------------------------------------------------------------
@@ -447,6 +449,7 @@ valid_or<string> create_game_from_setup(
   lua::table players_unordered      = lua.table.create();
   player_options["ordered_players"] = ordered_players;
   player_options["players"]         = players_unordered;
+#if 0
   for( int i = 1; auto const& [nation, nation_setup] :
                   setup.nations.nations ) {
     if( !nation_setup.has_value() ) continue;
@@ -475,6 +478,11 @@ valid_or<string> create_game_from_setup(
   lg.info( "game setup: generating map view state..." );
   lua["new_game"]["create_mapview_state"]( player_options );
 #endif
+
+  // FIXME: temporary
+  root.land_view.viewport.zoom = 1.0;
+  Player& english = add_new_player( ss, e_player ::english );
+  english.control = e_player_control::human;
 
   return valid;
 }
