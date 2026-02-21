@@ -268,6 +268,11 @@
   }                                                            \
   auto&& BASE_IDENTITY( a ) = *STRING_JOIN( __e, __LINE__ )
 
+#define UNWRAP_CONTINUE( a, ... )                           \
+  auto&& STRING_JOIN( __e, __LINE__ ) = __VA_ARGS__;        \
+  if( !STRING_JOIN( __e, __LINE__ ).has_value() ) continue; \
+  BASE_IDENTITY( a ) = *STRING_JOIN( __e, __LINE__ )
+
 #define UNWRAP_RETURN( var, ... )                             \
   auto&& STRING_JOIN( __x, __LINE__ ) = __VA_ARGS__;          \
   if( !STRING_JOIN( __x, __LINE__ ).has_value() )             \
