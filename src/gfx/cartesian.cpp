@@ -980,6 +980,11 @@ rect rect::moved( e_cdirection const d ) const {
   return rect{ .origin = origin.moved( d ), .size = size };
 }
 
+maybe<int> rect::rasterize( point const p ) const {
+  if( !p.is_inside( *this ) ) return nothing;
+  return ( p.y - top() ) * size.w + ( p.x - left() );
+}
+
 rect rect::operator*( int const scale ) const {
   rect res   = *this;
   res.origin = res.origin * scale;

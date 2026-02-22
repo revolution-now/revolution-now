@@ -1005,6 +1005,25 @@ TEST_CASE( "[gfx/cartesian] rect::moved*" ) {
   }
 }
 
+TEST_CASE( "[gfx/cartesian] rasterize" ) {
+  rect const r{ .origin = { .x = 3, .y = 4 },
+                .size   = { .w = 5, .h = 8 } };
+
+  point const p1{ .x = 1, .y = 2 };
+  point const p2{ .x = 3, .y = 4 };
+  point const p3{ .x = 8, .y = 12 };
+  point const p4{ .x = 4, .y = 6 };
+  point const p5{ .x = 4, .y = 2 };
+  point const p6{ .x = 7, .y = 11 };
+
+  REQUIRE( r.rasterize( p1 ) == nothing );
+  REQUIRE( r.rasterize( p2 ) == 0 );
+  REQUIRE( r.rasterize( p3 ) == nothing );
+  REQUIRE( r.rasterize( p4 ) == 11 );
+  REQUIRE( r.rasterize( p5 ) == nothing );
+  REQUIRE( r.rasterize( p6 ) == 39 );
+}
+
 TEST_CASE( "[gfx/cartesian] with_border_added" ) {
   rect const r{ .origin = { .x = 3, .y = 4 },
                 .size   = { .w = 1, .h = 3 } };

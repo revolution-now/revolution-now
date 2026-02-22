@@ -407,6 +407,9 @@ struct rect {
 
   [[nodiscard]] rect moved( struct size sz ) const;
 
+  // Will return y*w + x if the point is in the rect.
+  base::maybe<int> rasterize( point p ) const;
+
   // Result will be the smallest rect that encompasses both
   // this one and the parameter.
   [[nodiscard]] rect uni0n( rect rhs ) const;
