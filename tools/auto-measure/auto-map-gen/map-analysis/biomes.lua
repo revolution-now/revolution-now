@@ -129,9 +129,9 @@ local GROUND_TYPES = {
 -----------------------------------------------------------------
 -- Lambda.
 -----------------------------------------------------------------
-local function terrain_at( json, tile )
+local function terrain_at( json_o, tile )
   -- Can intercept here.
-  return Q.terrain_at( json, tile )
+  return Q.terrain_at( json_o, tile )
   -- local t = Q.terrain_at( json, tile )
   -- return {
   --   surface=t.surface,
@@ -139,7 +139,7 @@ local function terrain_at( json, tile )
   -- }
 end
 
-local function lambda( json )
+local function lambda( json_o )
   D.total_savs = D.total_savs + 1
   for _, ground_type in ipairs( GROUND_TYPES ) do
     D.ground_per_row[ground_type] =
@@ -165,7 +165,7 @@ local function lambda( json )
   end )
 
   Q.on_all_tiles( function( tile )
-    local terrain = terrain_at( json, tile )
+    local terrain = terrain_at( json_o, tile )
 
     D.land[tile.y] = D.land[tile.y] or 0
     if terrain.surface == 'land' then
@@ -183,7 +183,7 @@ local function lambda( json )
 
   -- Terrain adjacency.
   Q.on_all_tiles( function( tile )
-    local center = terrain_at( json, tile )
+    local center = terrain_at( json_o, tile )
     if center.surface == 'water' then return end
     assert( center )
     assert( center.ground )
@@ -197,7 +197,7 @@ local function lambda( json )
         A.adjacency_count_per_row[tile.y] or 0
     local surround = Q.surrounding_coords( tile )
     for _, cc in ipairs( surround ) do
-      local terrain = terrain_at( json, cc )
+      local terrain = terrain_at( json_o, cc )
       if terrain.surface == 'land' then
         A.surrounding_land_on_row[tile.y] =
             A.surrounding_land_on_row[tile.y] + 1
@@ -215,7 +215,7 @@ local function lambda( json )
     assert( S )
     Q.on_all_tiles( function( tile )
       do
-        local terrain = terrain_at( json, tile )
+        local terrain = terrain_at( json_o, tile )
         if terrain.surface ~= 'land' then return end
         if terrain.ground ~= target_terrain then return end
       end
@@ -229,18 +229,18 @@ local function lambda( json )
       local has_river_or_ocean_adjacent = false
       local has_any_adjacent = false
       for _, cc in ipairs( surround ) do
-        local terrain = terrain_at( json, cc )
+        local terrain = terrain_at( json_o, cc )
         if terrain.surface == 'land' then
           has_swamp_adjacent = has_swamp_adjacent or
                                    (terrain.ground == 'swamp')
           has_marsh_adjacent = has_swamp_adjacent or
                                    (terrain.ground == 'marsh')
           has_river_adjacent = has_river_adjacent or
-                                   Q.has_river( json, cc )
+                                   Q.has_river( json_o, cc )
         else
           -- Ocean tiles can have rivers as well.
           has_river_adjacent = has_river_adjacent or
-                                   Q.has_river( json, cc )
+                                   Q.has_river( json_o, cc )
           has_ocean_adjacent = true
         end
         has_swamp_or_marsh_adjacent =
@@ -371,15 +371,15 @@ local function finished( mode )
                                    adjacency_baseline_at_row
         end
       end
-      local val = assert( D.adjacency[ground] )
-      local density = val.count / D.total_land
-      local adjacency_avg = val.adjacency_count / val.count
+      local A = assert( D.adjacency[ground] )
+      local density = A.count / D.total_land
+      local adjacency_avg = A.adjacency_count / A.count
       adjacency_relative[ground] =
-          val.adjacency_count / adjacency_baseline
+          A.adjacency_count / adjacency_baseline
       local result = adjacency_relative[ground]
       biome[ground] = {}
-      biome[ground].count = val.count
-      biome[ground].adjacency_count = val.adjacency_count
+      biome[ground].count = A.count
+      biome[ground].adjacency_count = A.adjacency_count
       biome[ground].density = density
       biome[ground].adjacency_avg = adjacency_avg
       biome[ground].adjacency_baseline = adjacency_baseline
