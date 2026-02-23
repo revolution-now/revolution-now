@@ -143,6 +143,10 @@ local function lambda( json_o )
   for _, ground_type in ipairs( GROUND_TYPES ) do
     D.ground_per_row[ground_type] =
         D.ground_per_row[ground_type] or {}
+    D.adjacency[ground_type] = D.adjacency[ground_type] or {}
+    local A = assert( D.adjacency[ground_type] )
+    A.count = A.count or 0
+    A.adjacency_count = A.adjacency_count or 0
   end
 
   Q.on_all_tiles( function( tile )
