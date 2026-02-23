@@ -27,6 +27,11 @@
 #include "ss/ref.hpp"
 #include "ss/root.hpp"
 
+// sav
+#include "sav/binary.hpp"
+#include "sav/bridge.hpp"
+#include "sav/map-file.hpp"
+
 // luapp
 #include "luapp/ext-refl.hpp"
 #include "luapp/register.hpp"
@@ -150,18 +155,21 @@ void generate_single_map_key( IEngine& engine, SS& ss,
                               bool const reseed ) {
   auto const fn = [&]( IRand& rand, GameSetup& setup ) {
     load_testing_game_setup( setup );
-    if( !reseed ) return;
-    auto const S = [&] {
-      return rand.generate_deterministic_seed();
-    };
-    auto& native =
-        setup.map.source.get_if<MapSource::generate_native>()
-            ->setup;
-    auto& surf_gen = native.surface_generator;
+    UNWRAP_CHECK_T(
+        auto& generate_native,
+        setup.map.source.get_if<MapSource::generate_native>() );
+    auto& native = generate_native.setup;
+    if( reseed ) {
+      auto const S = [&] {
+        return rand.generate_deterministic_seed();
+      };
+      auto& surf_gen = native.surface_generator;
 
-    surf_gen.perlin_settings.seed = generate_perlin_seed( S() );
-    surf_gen.arctic.seed          = S();
-    native.biomes.seed            = S();
+      surf_gen.perlin_settings.seed =
+          generate_perlin_seed( S() );
+      surf_gen.arctic.seed = S();
+      native.biomes.seed   = S();
+    }
   };
   generate_single_map_impl( engine, ss, fn );
 }
@@ -435,11 +443,8 @@ struct BiomeAdjacencyStats : IGameStatsCollector {
                          lookup( surrounding_per_row_[gt], y ) );
         double const density_at_row =
             double( count ) / land_on_row;
-        // This would be max 8 with full land density.
-        double const avg_surrounding_land =
-            double( surrounding_on_row ) / count;
         double const adjacency_baseline_at_row =
-            density_at_row * avg_surrounding_land * count;
+            density_at_row * surrounding_on_row;
         adjacency_baseline += adjacency_baseline_at_row;
       }
       double const adjacency_avg =
@@ -450,6 +455,7 @@ struct BiomeAdjacencyStats : IGameStatsCollector {
                     adjacency_avg, adjacency_[gt],
                     adjacency_baseline, result );
     }
+#if 0
     using enum e_ground_terrain;
     enum_map<e_ground_terrain, double> const targets{
       { e_ground_terrain::savannah, 1.083 },  //
@@ -460,7 +466,7 @@ struct BiomeAdjacencyStats : IGameStatsCollector {
       { e_ground_terrain::desert, 1.210 },    //
       { e_ground_terrain::swamp, 1.067 },     //
       { e_ground_terrain::marsh, 1.250 },     //
-      { e_ground_terrain::arctic, 0.895 },    //
+      { e_ground_terrain::arctic, 1.000 },    //
     };
     fmt::println( "-----" );
     for( e_ground_terrain const gt : kGroundTypes ) {
@@ -471,6 +477,7 @@ struct BiomeAdjacencyStats : IGameStatsCollector {
                     gt, target, g,
                     100.0 * ( g - target ) / target );
     }
+#endif
   }
 
  private:
@@ -561,7 +568,7 @@ struct BiomeAdjacencyStats : IGameStatsCollector {
       BiomeAdjacencyStats stats;
       fmt::println( "generate for {}...", name );
       for( int i = 0; i < kNumSamples; ++i ) {
-        fmt::print( "generating map {}...", i + 1 );
+        // fmt::print( "generating map {}...", i + 1 );
         SS ss;
         generate( ss, { .land_mass   = e_land_mass::large,
                         .land_form   = e_land_form::continents,
@@ -569,7 +576,7 @@ struct BiomeAdjacencyStats : IGameStatsCollector {
                         .climate     = climate } );
         stats.collect( ss );
         // fmt::print( "\r\033[2K" );
-        fmt::print( "\n" );
+        // fmt::print( "\n" );
       }
       stats.write();
       fmt::print( "\n" );
@@ -606,6 +613,22 @@ void testing_map_gen_stats( IEngine& engine ) {
   // testing_map_gen_biome_density_stats( engine );
 
   testing_map_gen_biome_adjacency_stats( engine );
+}
+
+void drop_large_og_map( IEngine& engine ) {
+  SS ss;
+  generate_single_map_key( engine, ss,
+                           /*reseed=*/true );
+  size const sz = ss.terrain.world_size_tiles();
+  sav::MapFile map_file;
+  CHECK_HAS_VALUE( bridge::convert_map_to_og(
+      ss.terrain.real_terrain(), map_file ) );
+  string const filename =
+      "/home/dsicilia/dev/revolution-now/LARGE.MP";
+  CHECK_HAS_VALUE( sav::save_map_file( filename, map_file ) );
+  print_ascii_map( ss.terrain.real_terrain(), cout );
+  fmt::println( "saved OG map file of size {} to {}.", sz,
+                filename );
 }
 
 } // namespace rn

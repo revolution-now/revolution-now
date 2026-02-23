@@ -16,6 +16,7 @@ enum.e_mode {
   map_gen,
   map_gen_reseed,
   map_gen_stats,
+  map_gen_og,
   test_ui,
   test_lua_ui,
 }

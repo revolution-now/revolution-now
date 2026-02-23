@@ -92,6 +92,11 @@ void run( e_mode mode ) {
       testing_map_gen_stats( engine );
       break;
     }
+    case e_mode::map_gen_og: {
+      engine.init( e_engine_mode::console );
+      drop_large_og_map( engine );
+      break;
+    }
     case e_mode::test_ui: {
       engine.init( e_engine_mode::ui_test );
       frame_loop( engine, planes, test_ui() );

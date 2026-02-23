@@ -1369,9 +1369,22 @@ ConvResult convert_map_to_ng( sav::MapFile const& in,
 ConvResult convert_map_to_og( rn::RealTerrain const& in,
                               sav::MapFile& out ) {
   ScopedTimer timer( "convert map from RN to OG" );
-  sav::HEADER header;
   GOOD_OR_RETURN( map_squares_to_tiles(
-      in, header.map_size_x, header.map_size_y, out.tile ) );
+      in, out.map_size_x, out.map_size_y, out.tile ) );
+
+  // These are some magic numbers required by the OG, not sure
+  // what they mean. Without this the map doesn't seem to load
+  // either in the map editor or in the game.
+  out.unknown.a[0] = 0x04;
+  out.unknown.a[1] = 0x00;
+
+  // TODO: need to convert the MASK, which includes pacific ocean
+  // tiles.
+  {
+    out.mask.resize( out.tile.size() );
+    static sav::MASK const kEmpty{};
+    fill( out.mask.begin(), out.mask.end(), kEmpty );
+  }
 
   // This only populates the region IDs, but that is fine for a
   // pure map conversion.

@@ -844,9 +844,6 @@ TEST_CASE( "[sav/bridge] NG to OG [MapFile]" ) {
   using hr3 = sav::hills_river_3bit_type;
   using MS  = rn::MapSquare;
 
-  sav::TILE expected;
-  sav::MapFile classic;
-
   rn::RealTerrain modern;
   modern.map.reset( { .w = 5, .h = 6 } );
 
@@ -937,7 +934,13 @@ TEST_CASE( "[sav/bridge] NG to OG [MapFile]" ) {
           .ground  = rn::e_ground_terrain::grassland,
           .overlay = rn::e_land_overlay::hills };
 
+  sav::TILE expected;
+  sav::MapFile classic;
+
   REQUIRE( convert_map_to_og( modern, classic ) == valid );
+
+  REQUIRE( classic.unknown.a[0] == 0x04 );
+  REQUIRE( classic.unknown.a[1] == 0x00 );
 
   auto const& tile = classic.tile;
   REQUIRE( tile.size() == ( 5 + 2 ) * ( 6 + 2 ) );

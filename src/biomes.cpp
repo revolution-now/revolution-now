@@ -51,17 +51,18 @@ using ::refl::enum_count;
 using ::refl::enum_map;
 using ::refl::enum_values;
 
-static array<e_ground_terrain, 9> const kOrdering{
-  e_ground_terrain::savannah,  //
-  e_ground_terrain::grassland, //
-  e_ground_terrain::tundra,    //
-  e_ground_terrain::plains,    //
-  e_ground_terrain::prairie,   //
-  e_ground_terrain::desert,    //
-  e_ground_terrain::swamp,     //
-  e_ground_terrain::marsh,     //
-  e_ground_terrain::arctic,    //
-};
+[[maybe_unused]] static array<e_ground_terrain, 9> const
+    kOrdering{
+      e_ground_terrain::savannah,  //
+      e_ground_terrain::grassland, //
+      e_ground_terrain::tundra,    //
+      e_ground_terrain::plains,    //
+      e_ground_terrain::prairie,   //
+      e_ground_terrain::desert,    //
+      e_ground_terrain::swamp,     //
+      e_ground_terrain::marsh,     //
+      e_ground_terrain::arctic,    //
+    };
 
 /****************************************************************
 ** biome_curve
@@ -272,7 +273,7 @@ struct biome_dist {
   return res * weights[assumed.ground];
 }
 
-void mix_row_by_gravity(
+[[maybe_unused]] void mix_row_by_gravity(
     MapMatrix& m, int const y,
     vector<int /*x*/> const& land_tiles, IRand& rand,
     enum_map<e_ground_terrain, double> const& weights ) {
@@ -489,11 +490,11 @@ valid_or<string> assign_biomes( IRand& rand,
     { e_ground_terrain::desert, 1.210 },    //
     { e_ground_terrain::swamp, 1.067 },     //
     { e_ground_terrain::marsh, 1.250 },     //
-    { e_ground_terrain::arctic, 0.895 },    //
+    { e_ground_terrain::arctic, 1.000 },    //
   };
 
   // Anti-glob.
-#if 1
+#if 0
   {
     using enum e_ground_terrain;
     enum_map<e_ground_terrain, double> weights;
@@ -536,7 +537,7 @@ valid_or<string> assign_biomes( IRand& rand,
   }
 #endif
 
-#if 1
+#if 0
   fmt::println( "-----" );
   for( e_ground_terrain const gt : kOrdering ) {
     double const target = targets[gt];

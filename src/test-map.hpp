@@ -28,4 +28,6 @@ void testing_map_gen_stats( IEngine& engine );
 
 void load_testing_game_setup( GameSetup& setup );
 
+void drop_large_og_map( IEngine& engine );
+
 } // namespace rn

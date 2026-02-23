@@ -234,11 +234,27 @@ function M.surrounding_coords( cc )
     coord_for( cc.x + 0, cc.y - 1 ),
     coord_for( cc.x + 1, cc.y - 1 ),
     coord_for( cc.x - 1, cc.y + 0 ),
-    -- coord_for( cc.x + 0, cc.y + 0 ),
     coord_for( cc.x + 1, cc.y + 0 ),
     coord_for( cc.x - 1, cc.y + 1 ),
     coord_for( cc.x + 0, cc.y + 1 ),
     coord_for( cc.x + 1, cc.y + 1 ),
+  }
+  local coords_exist = {}
+  for _, coord in ipairs( coords_all ) do
+    if M.square_exists( coord ) then
+      insert( coords_exist, coord )
+    end
+  end
+  return coords_exist
+end
+
+-- Will return ONLY tiles that exist. Will NOT include input tile.
+function M.surrounding_coords_cardinal( cc )
+  local coords_all = {
+    coord_for( cc.x + 0, cc.y - 1 ),
+    coord_for( cc.x - 1, cc.y + 0 ),
+    coord_for( cc.x + 1, cc.y + 0 ),
+    coord_for( cc.x + 0, cc.y + 1 ),
   }
   local coords_exist = {}
   for _, coord in ipairs( coords_all ) do

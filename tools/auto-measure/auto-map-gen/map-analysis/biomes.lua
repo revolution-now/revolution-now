@@ -105,7 +105,6 @@ local D = {
   -- val={
   --   count=N,
   --   adjacency_count=N,
-  --   adjacency_count_per_row,
   --   surrounding_land_on_row,
   -- }
   adjacency={},
@@ -175,9 +174,7 @@ local function lambda( json_o )
       return
     end
 
-    local o = assert( D.ground_per_row[terrain.ground],
-                      format( 'terrain.ground=%s not found',
-                              tostring( terrain.ground ) ) )
+    local o = assert( D.ground_per_row[terrain.ground] )
     o[tile.y] = o[tile.y] + 1
   end )
 
@@ -192,9 +189,6 @@ local function lambda( json_o )
     A.count = A.count or 0
     A.adjacency_count = A.adjacency_count or 0
     A.count = A.count + 1
-    A.adjacency_count_per_row = A.adjacency_count_per_row or {}
-    A.adjacency_count_per_row[tile.y] =
-        A.adjacency_count_per_row[tile.y] or 0
     local surround = Q.surrounding_coords( tile )
     for _, cc in ipairs( surround ) do
       local terrain = terrain_at( json_o, cc )
@@ -204,8 +198,6 @@ local function lambda( json_o )
       end
       if terrain.ground == center.ground then
         A.adjacency_count = A.adjacency_count + 1
-        A.adjacency_count_per_row[tile.y] =
-            A.adjacency_count_per_row[tile.y] + 1
       end
     end
   end )
