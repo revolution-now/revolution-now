@@ -21,6 +21,7 @@ namespace rn {
 struct IMapUpdater;
 struct IRand;
 struct RealTerrain;
+struct MapMatrix;
 struct TerrainState;
 
 /****************************************************************
@@ -39,5 +40,7 @@ double place_arctic( RealTerrain& real_terrain, IRand& rand,
                      double density );
 
 void generate_proto_tiles( TerrainState& root );
+
+void add_lakes( MapMatrix& m, IRand& rand, int target );
 
 } // namespace rn

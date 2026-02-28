@@ -147,8 +147,15 @@ GameSetup create_classic_game_setup(
     .remove_islands = true,
   };
 
+  LakesSetup const lakes_setup{
+    .seed = rand.generate_deterministic_seed(),
+    .bias = map_conf.land_layout.inland_lakes.bias,
+  };
+
   SurfaceGeneratorSetup const surface_generator{
+    .target_density  = params.land_density,
     .perlin_settings = perlin_settings,
+    .lakes           = lakes_setup,
     .arctic{
       .seed    = rand.generate_deterministic_seed(),
       .enabled = map_conf.land_layout.arctic.enabled &&
@@ -156,8 +163,7 @@ GameSetup create_classic_game_setup(
                      map_conf.land_layout.arctic.min_map_height,
       .density = map_conf.land_layout.arctic.density.fraction,
     },
-    .target_density = params.land_density,
-    .sanitization   = surface_sanitization,
+    .sanitization = surface_sanitization,
   };
 
   BiomesSetup const biomes{

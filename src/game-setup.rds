@@ -66,10 +66,16 @@ struct.ArcticSetup {
   density 'double',
 }
 
+struct.LakesSetup {
+  seed 'rng::seed',
+  bias 'double',
+}
+
 struct.SurfaceGeneratorSetup {
-  perlin_settings 'PerlinMapSettings',
-  arctic 'ArcticSetup',
   target_density 'double',
+  perlin_settings 'PerlinMapSettings',
+  lakes 'LakesSetup',
+  arctic 'ArcticSetup',
   sanitization 'SurfaceSanitizationSetup',
 }
 

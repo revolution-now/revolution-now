@@ -113,6 +113,42 @@ string_view mode_name( e_temperature const t,
   }
 }
 
+string_view mode_name( e_land_mass const m,
+                       e_land_form const f ) {
+  switch( m ) {
+    case e_land_mass::small:
+      switch( f ) {
+        case e_land_form::archipelago:
+          return "ttmm";
+        case e_land_form::normal:
+          return "tmmm";
+        case e_land_form::continents:
+          return "tbmm";
+      }
+      break;
+    case e_land_mass::moderate:
+      switch( f ) {
+        case e_land_form::archipelago:
+          return "mtmm";
+        case e_land_form::normal:
+          return "mmmm";
+        case e_land_form::continents:
+          return "mbmm";
+      }
+      break;
+    case e_land_mass::large:
+      switch( f ) {
+        case e_land_form::archipelago:
+          return "btmm";
+        case e_land_form::normal:
+          return "bmmm";
+        case e_land_form::continents:
+          return "bbmm";
+      }
+      break;
+  }
+}
+
 /****************************************************************
 ** Game/Map Generators.
 *****************************************************************/
@@ -167,6 +203,7 @@ void generate_single_map_key( IEngine& engine, SS& ss,
 
       surf_gen.perlin_settings.seed =
           generate_perlin_seed( S() );
+      surf_gen.lakes.seed  = S();
       surf_gen.arctic.seed = S();
       native.biomes.seed   = S();
     }
@@ -495,6 +532,78 @@ struct BiomeAdjacencyStats : IGameStatsCollector {
   int maps_total_ = 0;
 };
 
+struct LakeFrequencyStats : IGameStatsCollector {
+  void collect( SSConst const& ss ) override {
+    CHECK( map_sz_ == size{} or
+           map_sz_ == ss.terrain.world_size_tiles() );
+    map_sz_ = ss.terrain.world_size_tiles();
+    ++total_maps_;
+    auto const& m = ss.terrain.real_terrain().map;
+    TerrainConnectivity const connectivity =
+        compute_terrain_connectivity( ss );
+    on_all_tiles(
+        ss, [&]( point const tile, MapSquare const& center ) {
+          // Skip arctic rows.
+          if( tile.y == 0 || tile.y == map_sz_.h - 1 ) return;
+          if( center.surface == e_surface::land ) {
+            // Land.
+            ++total_land_;
+            bool has_adjacent_water = false;
+            on_surrounding(
+                m, tile,
+                [&]( point const, MapSquare const& adjacent ) {
+                  if( adjacent.surface == e_surface::water )
+                    has_adjacent_water = true;
+                } );
+            if( has_adjacent_water )
+              ++total_land_tiles_adjacent_to_water_;
+          } else {
+            // Water.
+            ++total_water_;
+            bool has_adjacent_land = false;
+            on_surrounding(
+                m, tile,
+                [&]( point const, MapSquare const& adjacent ) {
+                  if( adjacent.surface == e_surface::land )
+                    has_adjacent_land = true;
+                } );
+            if( has_adjacent_land )
+              ++total_water_tiles_adjacent_to_land_;
+            bool const is_inland =
+                is_inland_lake( connectivity, tile );
+            if( is_inland ) ++total_inland_water_tiles_;
+          }
+        } );
+  }
+
+  void write() const override {
+    double const metric = [&] {
+      double const land_density =
+          double( total_land_ ) / ( total_land_ + total_water_ );
+      return pow( 1.0 / land_density, 1.5 ) *
+             total_inland_water_tiles_ / total_land_;
+    }();
+    double const total_inland_water_tiles_per_map =
+        double( total_inland_water_tiles_ ) / total_maps_;
+
+    fmt::println( "total_maps:                       {}",
+                  total_maps_ );
+    fmt::println( "total_inland_water_tiles_per_map: {:.1f}",
+                  total_inland_water_tiles_per_map );
+    fmt::println( "metric:                           {:.3f}",
+                  metric );
+  }
+
+ private:
+  size map_sz_                            = {};
+  int total_maps_                         = 0;
+  int total_land_                         = 0;
+  int total_water_                        = 0;
+  int total_inland_water_tiles_           = 0;
+  int total_water_tiles_adjacent_to_land_ = 0;
+  int total_land_tiles_adjacent_to_water_ = 0;
+};
+
 /****************************************************************
 ** Runners.
 *****************************************************************/
@@ -566,21 +675,56 @@ struct BiomeAdjacencyStats : IGameStatsCollector {
     for( e_climate const climate : kClimates ) {
       string const name( mode_name( temperature, climate ) );
       BiomeAdjacencyStats stats;
-      fmt::println( "generate for {}...", name );
+      fmt::println( "generating for {}...", name );
       for( int i = 0; i < kNumSamples; ++i ) {
-        // fmt::print( "generating map {}...", i + 1 );
         SS ss;
         generate( ss, { .land_mass   = e_land_mass::large,
                         .land_form   = e_land_form::continents,
                         .temperature = temperature,
                         .climate     = climate } );
         stats.collect( ss );
-        // fmt::print( "\r\033[2K" );
-        // fmt::print( "\n" );
       }
       stats.write();
       fmt::print( "\n" );
     }
+  }
+}
+
+[[maybe_unused]] void testing_map_gen_lake_stats(
+    IEngine& engine ) {
+  int constexpr kNumSamples = 2000;
+
+  auto const generate =
+      [&]( SS& ss, ClassicGameSetupParamsCustom const& custom ) {
+        generate_single_map_custom( engine, ss, custom );
+      };
+
+  static auto constexpr kModes = {
+    pair{ e_land_mass::small, e_land_form::archipelago },
+    pair{ e_land_mass::moderate, e_land_form::normal },
+    pair{ e_land_mass::large, e_land_form::continents },
+    pair{ e_land_mass::moderate, e_land_form::archipelago },
+    pair{ e_land_mass::moderate, e_land_form::continents },
+    pair{ e_land_mass::small, e_land_form::normal },
+    pair{ e_land_mass::large, e_land_form::normal },
+    pair{ e_land_mass::small, e_land_form::continents },
+    pair{ e_land_mass::large, e_land_form::archipelago },
+  };
+
+  for( auto const& [land_mass, land_form] : kModes ) {
+    string const name( mode_name( land_mass, land_form ) );
+    LakeFrequencyStats stats;
+    fmt::println( "generating for {}...", name );
+    for( int i = 0; i < kNumSamples; ++i ) {
+      SS ss;
+      generate( ss, { .land_mass   = land_mass,
+                      .land_form   = land_form,
+                      .temperature = e_temperature::temperate,
+                      .climate     = e_climate::normal } );
+      stats.collect( ss );
+    }
+    stats.write();
+    fmt::print( "\n" );
   }
 }
 
@@ -603,16 +747,30 @@ void load_testing_game_setup( GameSetup& setup ) {
   CHECK_HAS_VALUE( validate_game_setup( setup ) );
 }
 
-void testing_map_gen( IEngine& engine, bool const reseed ) {
+void testing_map_gen_key( IEngine& engine, bool const reseed ) {
   SS ss;
   generate_single_map_key( engine, ss, reseed );
+  print_ascii_map( ss.terrain.real_terrain(), cout );
+}
+
+void testing_map_gen_custom( IEngine& engine ) {
+  SS ss;
+  generate_single_map_custom(
+      engine, ss,
+      ClassicGameSetupParamsCustom{
+        .land_mass   = e_land_mass::moderate,
+        .land_form   = e_land_form::normal,
+        .temperature = e_temperature::temperate,
+        .climate     = e_climate::normal } );
   print_ascii_map( ss.terrain.real_terrain(), cout );
 }
 
 void testing_map_gen_stats( IEngine& engine ) {
   // testing_map_gen_biome_density_stats( engine );
 
-  testing_map_gen_biome_adjacency_stats( engine );
+  // testing_map_gen_biome_adjacency_stats( engine );
+
+  testing_map_gen_lake_stats( engine );
 }
 
 void drop_large_og_map( IEngine& engine ) {

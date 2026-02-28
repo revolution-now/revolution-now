@@ -11,6 +11,7 @@
 #include "map-gen.hpp"
 
 // Revolution Now
+#include "connectivity.hpp"
 #include "error.hpp"
 #include "imap-updater.hpp"
 #include "irand.hpp"
@@ -34,8 +35,11 @@
 
 // C++ standard library
 #include <algorithm>
+#include <ranges>
 
 using namespace std;
+
+namespace rv = std::ranges::views;
 
 namespace rn {
 
@@ -321,6 +325,54 @@ void reset_terrain( IMapUpdater& map_updater, size const sz ) {
       [&]( RealTerrain& real_terrain ) {
         real_terrain.map = MapMatrix( sz );
       } );
+}
+
+void add_lakes( MapMatrix& m, IRand& rand, int const target ) {
+  using enum e_surface;
+  vector<point> shore;
+  vector<point> inland;
+  int have = 0;
+
+  TerrainConnectivity const connectivity =
+      compute_terrain_connectivity( m );
+
+  on_all_tiles( m, [&]( point const p, MapSquare const& s ) {
+    switch( s.surface ) {
+      case water: {
+        if( is_inland_lake( connectivity, p ) ) {
+          ++have;
+          break;
+        }
+        bool has_land_adjacent = false;
+        on_surrounding( m, p,
+                        [&]( point const, MapSquare const& s2 ) {
+                          if( s2.surface == land )
+                            has_land_adjacent = true;
+                        } );
+        if( has_land_adjacent ) shore.push_back( p );
+        break;
+      }
+      case land: {
+        bool has_water_adjacent = false;
+        on_surrounding( m, p,
+                        [&]( point const, MapSquare const& s2 ) {
+                          if( s2.surface == water )
+                            has_water_adjacent = true;
+                        } );
+        if( !has_water_adjacent ) inland.push_back( p );
+        break;
+      }
+    }
+  } );
+
+  int const need = target - have;
+  if( need <= 0 ) return;
+
+  rand.shuffle( shore );
+  rand.shuffle( inland );
+  for( auto const [water, land] :
+       rv::zip( shore, inland ) | rv::take( need ) )
+    swap( m[water], m[land] );
 }
 
 void linker_dont_discard_module_map_gen();

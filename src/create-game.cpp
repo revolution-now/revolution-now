@@ -87,37 +87,9 @@ void convert_islands_to_mountains( RealTerrain& out ) {
       out.map[p].overlay = e_land_overlay::mountains;
 }
 
-valid_or<string> generate_land_perlin(
-    GeneratedMapSetup const& setup, IRand& rand,
-    RealTerrain& real_terrain ) {
-  size const sz                 = setup.size;
-  auto const& surface_generator = setup.surface_generator;
-
-  // Land form generator.
-  {
-    auto const& perlin_settings =
-        surface_generator.perlin_settings;
-    Matrix<e_surface> surface;
-    auto const ok = TIMED_CALL( land_gen_perlin, perlin_settings,
-                                surface_generator.target_density,
-                                setup.size, surface );
-    if( !ok ) return base::to_str( ok.error() );
-    for( point const p : rect_iterator( surface.rect() ) )
-      real_terrain.map[p].surface = surface[p];
-  }
-
-  bool const arctic_enabled =
-      setup.surface_generator.arctic.enabled;
-
-  // Arctic. Should be done before exclusion.
-  if( arctic_enabled ) {
-    rand.reseed( setup.surface_generator.arctic.seed );
-    double const actual_density =
-        place_arctic( real_terrain, rand,
-                      setup.surface_generator.arctic.density );
-    lg.debug( "arctic density: {:.3}%", actual_density * 100 );
-  }
-
+valid_or<string> sanitize_land( GeneratedMapSetup const& setup,
+                                RealTerrain& real_terrain ) {
+  size const sz = real_terrain.map.size();
   // Hard buffer exclusion.
   auto const apply_exclusion = [&] {
     using enum e_surface;
@@ -130,7 +102,7 @@ valid_or<string> generate_land_perlin(
     auto& m = real_terrain.map;
     for( point const p : rect_iterator( m.rect() ) ) {
       if( p.is_inside( land_zone ) ) continue;
-      if( arctic_enabled ) {
+      if( setup.surface_generator.arctic.enabled ) {
         // The idea here is that on the arctic rows (if arctic is
         // enabled) we allow land on all tiles except for the
         // four corners of the map.
@@ -149,6 +121,7 @@ valid_or<string> generate_land_perlin(
 
   // Sanitization.
   {
+    auto const& surface_generator = setup.surface_generator;
     auto const& sanitization = surface_generator.sanitization;
     if( sanitization.remove_crosses )
       TIMED_CALL( remove_crosses, real_terrain );
@@ -163,11 +136,79 @@ valid_or<string> generate_land_perlin(
   // FIXME: it is possible that we might still end up with is-
   // lands here, and so we should probably do a pass later to put
   // mountains on them.
+  return valid;
+}
 
-  // FIXME: temporary
-  for( auto& m = real_terrain.map;
-       point const p : rect_iterator( m.rect() ) )
-    m[p].ground = e_ground_terrain::arctic;
+valid_or<string> generate_land_perlin(
+    GeneratedMapSetup const& setup, IRand& rand,
+    RealTerrain& real_terrain ) {
+  size const sz                 = real_terrain.map.size();
+  auto const& surface_generator = setup.surface_generator;
+
+  // Land form generator.
+  {
+    auto const& perlin_settings =
+        surface_generator.perlin_settings;
+    Matrix<e_surface> surface;
+    auto const ok = TIMED_CALL( land_gen_perlin, perlin_settings,
+                                surface_generator.target_density,
+                                setup.size, surface );
+    if( !ok ) return base::to_str( ok.error() );
+    for( point const p : rect_iterator( surface.rect() ) )
+      real_terrain.map[p].surface = surface[p];
+  }
+
+  // Inland lake generator.
+  {
+    // The constant scale applied ensures that at a normal land-
+    // form (perlin scale = 12) we get the desired value and that
+    // it scales properly with land form scale as in the way that
+    // the OG does. Namely, if the scale increases beyond 12 then
+    // the lake density appears to go down relatively speaking.
+    //
+    // This way, the player can leave the lake density at 1.0 and
+    // by default it will do the right thing as the map scales
+    // and the perlin scale changes. Then, if they make changes
+    // to the lake density it will be more meaningful.
+    double constexpr kNormalScale     = 12;
+    double constexpr kContinentsScale = 15;
+    // Density at scale 12 on normal map size with normal land
+    // density as measured in the OG.
+    double constexpr kD12 = .29;
+    rand.reseed( setup.surface_generator.lakes.seed );
+    double const land_form_scale = std::clamp(
+        surface_generator.perlin_settings.land_form.scale,
+        kNormalScale, kContinentsScale );
+    // The 6*2^bias is so that the user config parameter ("bias")
+    // can range from [-1,1] to cover the entire range of values
+    // and with 0.0 being what reproduces OG behavior.
+    int const need_lakes = lround(
+        pow( 2.0, surface_generator.lakes.bias * 6.0 ) * //
+        ( ( kD12 * kNormalScale ) / land_form_scale ) *  //
+        sz.area() *                                      //
+        pow( surface_generator.target_density, 2.5 ) );
+    add_lakes( real_terrain.map, rand, need_lakes );
+  }
+
+  // Arctic. Should be done before exclusion/sanitization.
+  if( setup.surface_generator.arctic.enabled ) {
+    rand.reseed( setup.surface_generator.arctic.seed );
+    double const actual_density =
+        place_arctic( real_terrain, rand,
+                      setup.surface_generator.arctic.density );
+    lg.debug( "arctic density: {:.3}%", actual_density * 100 );
+  }
+
+  GOOD_OR_RETURN( sanitize_land( setup, real_terrain ) );
+
+  // TODO: we might want to have a setup flag that can be enabled
+  // to guaranteed there is an ocean path between the left and
+  // right edge of the map. We can use the goto algorithm to
+  // check, and, if there isn't, we can find the row with the
+  // smallest number of tiles and just cut a path through it.
+  // This is probably a good idea to do when the user select's
+  // New Game because we want them to be able to get to the pa-
+  // cific ocean.
 
   return valid;
 }
@@ -483,6 +524,9 @@ valid_or<string> create_game_from_setup(
   root.land_view.viewport.zoom = 1.0;
   Player& english = add_new_player( ss, e_player ::english );
   english.control = e_player_control::human;
+  root.settings.cheat_options.enabled = true;
+  root.land_view.viewport.zoom        = 0.01;
+  root.land_view.map_revealed.emplace<MapRevealed::entire>();
 
   return valid;
 }
