@@ -12,47 +12,46 @@ namespace "rn.config"
 
 struct.IntPercent {
   percent 'int',
-
   _features { equality, validation }
 }
 
 struct.DoublePercent {
   fraction 'double',
-
   _features { equality, validation }
 }
 
 struct.DoublePercentRange {
   lo 'double',
   hi 'double',
-
   _features { equality, validation }
 }
 
 struct.IntRange {
   min 'int',
   max 'int',
-
   _features { equality, validation }
 }
 
 struct.DoubleRange {
   min 'double',
   max 'double',
-
   _features { equality, validation }
 }
 
 struct.Probability {
   probability 'double',
-
   _features { equality, validation }
 }
 
 struct.NormalDist {
   mean 'double',
   stddev 'double',
+  _features { equality, validation }
+}
 
+struct.UniformDist {
+  min 'double',
+  max 'double',
   _features { equality, validation }
 }
 
@@ -61,7 +60,6 @@ struct.BoundedNormalDist {
   stddev 'double',
   min 'double',
   max 'double',
-
   _features { equality, validation }
 }
 

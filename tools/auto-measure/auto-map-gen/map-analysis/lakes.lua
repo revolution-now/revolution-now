@@ -10,7 +10,6 @@ local json = require( 'moon.json' )
 -- Aliases.
 -----------------------------------------------------------------
 local format = string.format
-local insert = table.insert
 
 -----------------------------------------------------------------
 -- Helpers.

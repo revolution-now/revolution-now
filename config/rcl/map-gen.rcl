@@ -72,13 +72,22 @@ terrain_generation {
     }
 
     inland_lakes {
-      # This can range from [-1.0, 1.0] with -1 meaning no addi-
-      # tional inland lakes generated (beyond those that happen
-      # to appear randomly as a result of the Perlin land genera-
-      # tion, which is generally very few) and with +1 meaning
-      # maximal inland lake generation. A value of 0.0 reproduces
-      # OG behavior and should be the default.
-      bias: 0.0
+      # The inland lake bias determines the frequency with which
+      # inland lake tiles are generated in the interior of the
+      # land. An inland lake tile is a water tile that cannot ac-
+      # cess the edges of the map (sea lane).
+      #
+      # The `bias` determines this frequency and can be in the
+      # range [-1, 1] with -1 meaning no additional inland lakes
+      # generated and with +1 meaning maximal inland lake genera-
+      # tion. A value of 0.0 reproduces OG behavior and should be
+      # the default.
+      #
+      # When generating a new gamie, the bias parameter will be
+      # selected from a uniform distribution over the following
+      # range. Once again, the min/max values must be within
+      # [-1,1].
+      bias: { min: -0.1, max: 0.2 }
     }
 
     arctic {

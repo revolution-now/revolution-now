@@ -45,8 +45,10 @@ valid_or<string> LandForm::validate() const {
 *****************************************************************/
 valid_or<string> InlandLakes::validate() const {
   REFL_VALIDATE(
-      bias >= 0.0 && bias <= 1.0,
-      "Inland lake bias must be in the range [-1, 1]." );
+      bias.min >= -1.0 && bias.max <= 1.0,
+      "Inland lake bias range must be within [-1, 1]." );
+  REFL_VALIDATE( bias.min <= bias.max,
+                 "Inland lake bias min must be <= max." );
   return valid;
 }
 

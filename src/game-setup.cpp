@@ -52,6 +52,11 @@ int constexpr kBiomeSpectrumMax = 100;
                 params.min, params.max );
 }
 
+[[nodiscard]] double sample_uniform(
+    IRand& rand, config::UniformDist const& params ) {
+  return rand.uniform_double( params.min, params.max );
+}
+
 [[nodiscard]] double sample_parabolic(
     IRand& rand, config::ParabolicDist const& params ) {
   double const area = rand.uniform_int( 0, 999999 ) / 1000000.0;
@@ -149,7 +154,8 @@ GameSetup create_classic_game_setup(
 
   LakesSetup const lakes_setup{
     .seed = rand.generate_deterministic_seed(),
-    .bias = map_conf.land_layout.inland_lakes.bias,
+    .bias = sample_uniform(
+        rand, map_conf.land_layout.inland_lakes.bias ),
   };
 
   SurfaceGeneratorSetup const surface_generator{

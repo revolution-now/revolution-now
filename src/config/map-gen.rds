@@ -42,7 +42,7 @@ struct.Arctic {
 }
 
 struct.InlandLakes {
-  bias 'double',
+  bias 'config::UniformDist',
   _features { equality, validation }
 }
 

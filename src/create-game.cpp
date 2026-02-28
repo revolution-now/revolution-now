@@ -423,7 +423,6 @@ valid_or<string> create_game_from_setup(
 
 #if 0
   lg.info( "creating game from:\n{}", rcl::to_rcl( setup ) );
-  // lg.info( "creating game from:\n{}", rcl::to_json( setup ) );
 #endif
 
   // SettingsState state.
