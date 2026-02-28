@@ -297,7 +297,7 @@ struct biome_dist {
   if( gravity_swap > gravity_now ) swap( square1, square2 );
 }
 
-void mix_row_by_adjacency(
+[[maybe_unused]] void mix_row_by_adjacency(
     MapMatrix& m, int const y,
     vector<int /*x*/> const& land_tiles, IRand& rand,
     enum_map<e_ground_terrain, double> const& weights ) {
@@ -380,7 +380,7 @@ void mix_row_by_adjacency(
   return res / total_biome_tiles;
 }
 
-[[nodiscard]] double relative_adjacency(
+[[maybe_unused]] [[nodiscard]] double relative_adjacency(
     MapMatrix const& m,
     map<int /*y*/, biome_dist> const& biome_dists,
     e_ground_terrain const biome ) {
@@ -467,7 +467,8 @@ valid_or<string> assign_biomes( IRand& rand,
         return format( "failed to sample biome at map row {}",
                        y );
       }
-      square.ground = *sample;
+      // square.ground = *sample;
+      square.ground = e_ground_terrain::prairie;
     }
   }
 
@@ -509,7 +510,7 @@ valid_or<string> assign_biomes( IRand& rand,
 #endif
 
   // Glob.
-#if 1
+#if 0
   {
     using enum e_ground_terrain;
     enum_map<e_ground_terrain, double> weights;

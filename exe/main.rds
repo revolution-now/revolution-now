@@ -13,8 +13,9 @@ namespace "rn"
 enum.e_mode {
   game,
   map_editor,
-  map_gen,
-  map_gen_reseed,
+  map_gen_key,
+  map_gen_key_reseed,
+  map_gen_custom,
   map_gen_stats,
   map_gen_og,
   test_ui,

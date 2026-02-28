@@ -77,14 +77,19 @@ void run( e_mode mode ) {
                   run_map_editor_standalone( engine, planes ) );
       break;
     }
-    case e_mode::map_gen: {
+    case e_mode::map_gen_key: {
       engine.init( e_engine_mode::console );
-      testing_map_gen( engine, /*reseed=*/false );
+      testing_map_gen_key( engine, /*reseed=*/false );
       break;
     }
-    case e_mode::map_gen_reseed: {
+    case e_mode::map_gen_key_reseed: {
       engine.init( e_engine_mode::console );
-      testing_map_gen( engine, /*reseed=*/true );
+      testing_map_gen_key( engine, /*reseed=*/true );
+      break;
+    }
+    case e_mode::map_gen_custom: {
+      engine.init( e_engine_mode::console );
+      testing_map_gen_custom( engine );
       break;
     }
     case e_mode::map_gen_stats: {

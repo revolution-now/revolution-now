@@ -42,6 +42,18 @@ collect() {
 # go btmm &
 # go new  &
 
+# lakes.
+# go ttmm &
+# go tmmm &
+# go tbmm &
+# go mtmm &
+# go mmmm &
+# go mbmm &
+# go btmm &
+# go bmmm &
+# go bbmm &
+# go new  &
+
 wait
 
 collect

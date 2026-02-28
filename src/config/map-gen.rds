@@ -41,6 +41,11 @@ struct.Arctic {
   density 'config::DoublePercent',
 }
 
+struct.InlandLakes {
+  bias 'double',
+  _features { equality, validation }
+}
+
 struct.PerlinLandFormRange {
   scale 'config::BoundedNormalDist',
   fractal 'rng::PerlinFractalOptions',
@@ -56,6 +61,7 @@ struct.LandForm {
 struct.LandLayout {
   land_mass 'LandMass',
   land_form 'LandForm',
+  inland_lakes 'InlandLakes',
   arctic 'Arctic',
 
   remove_crosses 'bool',

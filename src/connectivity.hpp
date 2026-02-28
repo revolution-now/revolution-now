@@ -20,12 +20,16 @@
 
 namespace rn {
 
+struct MapMatrix;
 struct SSConst;
 
 // Scans the entire map and computes the set of connected seg-
 // ments of land and water, where "connected" means as a unit
 // would move (i.e., it includes diagonals). This is not cheap to
 // compute, so should only be computed when necessary.
+TerrainConnectivity compute_terrain_connectivity(
+    MapMatrix const& m );
+
 TerrainConnectivity compute_terrain_connectivity(
     SSConst const& ss );
 

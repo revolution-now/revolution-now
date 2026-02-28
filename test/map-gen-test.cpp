@@ -80,5 +80,9 @@ TEST_CASE( "[map-gen] reset_terrain" ) {
   world w;
 }
 
+TEST_CASE( "[map-gen] add_lakes" ) {
+  world w;
+}
+
 } // namespace
 } // namespace rn

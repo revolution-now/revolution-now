@@ -22,10 +22,15 @@ map.source.generate_native.setup {
         flip: false
       }
     }
+    lakes {
+      seed: f4ff514737de39e717b047f54068b0a5
+      # Ranges from [-1, 1] with 0.0 => OG.
+      bias: 0.0
+    }
     arctic {
+      seed: ae5312d3978ed9ef0bedf14820419370
       enabled: true
       density: 0.6
-      seed: ae5312d3978ed9ef0bedf14820419370
     }
     sanitization {
       remove_crosses: true
@@ -41,9 +46,9 @@ map.source.generate_native.setup {
   }
 
   rivers {
+    seed: ac0304879ebe1280b0f9ca5e56f762fc
     density: 0.1
     major_river_fraction: 0.15
-    seed: ac0304879ebe1280b0f9ca5e56f762fc
   }
 
   hills {

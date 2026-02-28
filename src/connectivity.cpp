@@ -27,10 +27,10 @@ namespace {
 using ::gfx::point;
 
 TerrainConnectivity compute_terrain_connectivity_impl(
-    SSConst const& ss ) {
+    MapMatrix const& m ) {
   TerrainConnectivity res;
-  int const y_size      = ss.terrain.world_size_tiles().h;
-  int const x_size      = ss.terrain.world_size_tiles().w;
+  int const y_size      = m.size().h;
+  int const x_size      = m.size().w;
   int const total_tiles = y_size * x_size;
 
   res.x_size = x_size;
@@ -80,12 +80,12 @@ TerrainConnectivity compute_terrain_connectivity_impl(
     return res;
   };
 
-  auto insert_q = [&]( Coord coord ) {
+  auto const insert_q = [&]( Coord coord ) {
     q.insert( rastor( coord ) );
   };
 
-  auto surface_at = [&]( Coord coord ) {
-    return ss.terrain.square_at( coord ).surface;
+  auto const surface_at = [&]( Coord coord ) {
+    return m[coord].surface;
   };
 
   // The zero index will never be used; this is done on purpose
@@ -112,7 +112,7 @@ TerrainConnectivity compute_terrain_connectivity_impl(
         for( e_direction const d :
              refl::enum_values<e_direction> ) {
           Coord const moved = center.moved( d );
-          if( !ss.terrain.square_exists( moved ) ) continue;
+          if( !moved.is_inside( m.rect() ) ) continue;
           if( get_index( moved ) > 0 ||
               q.contains( rastor( moved ) ) )
             // This tile has either already been marked with a
@@ -162,9 +162,15 @@ TerrainConnectivity compute_terrain_connectivity_impl(
 ** Public API
 *****************************************************************/
 TerrainConnectivity compute_terrain_connectivity(
-    SSConst const& ss ) {
+    MapMatrix const& m ) {
   base::ScopedTimer const timer( "terrain connectivity update" );
-  return compute_terrain_connectivity_impl( ss );
+  return compute_terrain_connectivity_impl( m );
+}
+
+TerrainConnectivity compute_terrain_connectivity(
+    SSConst const& ss ) {
+  return compute_terrain_connectivity(
+      ss.terrain.real_terrain().map );
 }
 
 bool water_square_has_left_ocean_access(

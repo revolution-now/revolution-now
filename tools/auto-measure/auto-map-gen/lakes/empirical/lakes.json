@@ -1,0 +1,84 @@
+{
+  "modes": {
+    "ttmm": {
+      "total_savs": 2000,
+      "total_land": 957913,
+      "total_water": 6658087,
+      "total_inland_water_tiles_per_map": 8.8395,
+      "metric_local": 0.41332194581058,
+      "metric_global": 0.41374516428155
+    },
+    "mmmm": {
+      "total_savs": 2000,
+      "total_land": 1819418,
+      "total_water": 5796582,
+      "total_inland_water_tiles_per_map": 36.116,
+      "metric_local": 0.33344060628311,
+      "metric_global": 0.34000775729313
+    },
+    "bbmm": {
+      "total_savs": 2000,
+      "total_land": 2631581,
+      "total_water": 4984419,
+      "total_inland_water_tiles_per_map": 71.848,
+      "metric_local": 0.26341564144446,
+      "metric_global": 0.26883959147291
+    },
+    "mtmm": {
+      "total_savs": 2000,
+      "total_land": 1477701,
+      "total_water": 6138299,
+      "total_inland_water_tiles_per_map": 21.4225,
+      "metric_local": 0.33725572077619,
+      "metric_global": 0.33925334010343
+    },
+    "mbmm": {
+      "total_savs": 2000,
+      "total_land": 2254277,
+      "total_water": 5361723,
+      "total_inland_water_tiles_per_map": 40.035,
+      "metric_local": 0.21667965046099,
+      "metric_global": 0.22056775940355
+    },
+    "tmmm": {
+      "total_savs": 2000,
+      "total_land": 1343009,
+      "total_water": 6272991,
+      "total_inland_water_tiles_per_map": 18.7905,
+      "metric_local": 0.37886239292114,
+      "metric_global": 0.37788654400466
+    },
+    "bmmm": {
+      "total_savs": 2000,
+      "total_land": 2247149,
+      "total_water": 5368851,
+      "total_inland_water_tiles_per_map": 71.0665,
+      "metric_local": 0.3883733273793,
+      "metric_global": 0.3946441335482
+    },
+    "tbmm": {
+      "total_savs": 2000,
+      "total_land": 1828528,
+      "total_water": 5787472,
+      "total_inland_water_tiles_per_map": 22.4175,
+      "metric_local": 0.20578876749752,
+      "metric_global": 0.20842678983036
+    },
+    "btmm": {
+      "total_savs": 2000,
+      "total_land": 1953900,
+      "total_water": 5662100,
+      "total_inland_water_tiles_per_map": 44.887,
+      "metric_local": 0.34963678533076,
+      "metric_global": 0.35357792843442
+    },
+    "new": {
+      "total_savs": 2000,
+      "total_land": 2201433,
+      "total_water": 5414567,
+      "total_inland_water_tiles_per_map": 61.454,
+      "metric_local": 0.31422221258931,
+      "metric_global": 0.35925835244815
+    }
+  }
+}

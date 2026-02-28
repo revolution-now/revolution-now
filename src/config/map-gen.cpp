@@ -41,6 +41,16 @@ valid_or<string> LandForm::validate() const {
 }
 
 /****************************************************************
+** InlandLakes
+*****************************************************************/
+valid_or<string> InlandLakes::validate() const {
+  REFL_VALIDATE(
+      bias >= 0.0 && bias <= 1.0,
+      "Inland lake bias must be in the range [-1, 1]." );
+  return valid;
+}
+
+/****************************************************************
 ** BiomeCurve
 *****************************************************************/
 valid_or<string> BiomeCurve::validate() const {

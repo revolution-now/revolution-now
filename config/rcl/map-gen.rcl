@@ -71,6 +71,16 @@ terrain_generation {
       }
     }
 
+    inland_lakes {
+      # This can range from [-1.0, 1.0] with -1 meaning no addi-
+      # tional inland lakes generated (beyond those that happen
+      # to appear randomly as a result of the Perlin land genera-
+      # tion, which is generally very few) and with +1 meaning
+      # maximal inland lake generation. A value of 0.0 reproduces
+      # OG behavior and should be the default.
+      bias: 0.0
+    }
+
     arctic {
       enabled: true
       # If the map height is not at least this tall then the

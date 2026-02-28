@@ -1,5 +1,9 @@
 local M = {}
 
+-- FIXME: get rid of the hard-coded map sizes. This probably will
+-- require putting the methods into an object that holds the json
+-- value, which is probably good to do anyway.
+
 -----------------------------------------------------------------
 -- Aliases.
 -----------------------------------------------------------------
@@ -162,6 +166,27 @@ function M.nation_name( nation )
   return M.name_for_nation_idx( M.nation_to_idx( nation ) )
 end
 
+local OG_REGION_ID_TO_INT = {
+  [' 0']=0, --
+  [' 1']=1, --
+  [' 2']=2, --
+  [' 3']=3, --
+  [' 4']=4, --
+  [' 5']=5, --
+  [' 6']=6, --
+  [' 7']=7, --
+  [' 8']=8, --
+  [' 9']=9, --
+  ['10']=10, --
+  ['11']=11, --
+  ['12']=12, --
+  ['13']=13, --
+  ['14']=14, --
+  ['15']=15, --
+}
+
+-- TODO: need to freeze these to avoid inadvertently mutating
+-- them.
 local OG_TERRAIN_TYPES = {
   -- LuaFormatter off
   -- Bare (no forest).
@@ -705,6 +730,27 @@ function M.set_visitor_nation_if_empty( json, coord, nation )
   if tile.visitor_nation == '  ' then
     M.set_visitor_nation( json, coord, nation )
   end
+end
+
+function M.region_id( json, coord )
+  local tile = M.lookup_grid( json.PATH, coord )
+  assert( tile.region_id )
+  return assert( OG_REGION_ID_TO_INT[tile.region_id],
+                 format( 'OG region_id not recognized: %s',
+                         tostring( tile.region_id ) ) )
+end
+
+-- Is this water tile connected to sea lane (region 1). Must be a
+-- water tile.
+function M.is_water_region_1( json, coord )
+  assert( M.is_water( json, coord ) )
+  local tile = M.lookup_grid( json.PATH, coord )
+  assert( tile.region_id )
+  local region_id = assert( OG_REGION_ID_TO_INT[tile.region_id],
+                            format(
+                                'OG region_id not recognized: %s',
+                                tostring( tile.region_id ) ) )
+  return region_id == 1
 end
 
 -----------------------------------------------------------------
