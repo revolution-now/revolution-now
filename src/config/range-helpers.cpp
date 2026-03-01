@@ -72,6 +72,11 @@ base::valid_or<string> BoundedNormalDist::validate() const {
   return base::valid;
 }
 
+base::valid_or<string> UniformDist::validate() const {
+  REFL_VALIDATE( min <= max, "min must <= max." );
+  return base::valid;
+}
+
 base::valid_or<string> ParabolicDist::validate() const {
   return base::valid;
 }
