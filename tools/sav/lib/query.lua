@@ -331,6 +331,27 @@ function M.on_surrounding_tiles( coord, fn )
   for _, tile in ipairs( tiles ) do fn( tile ) end
 end
 
+function M.on_surrounding_tiles_cardinal( coord, fn )
+  local tiles = M.surrounding_coords_cardinal( coord )
+  for _, tile in ipairs( tiles ) do fn( tile ) end
+end
+
+function M.on_non_arctic_surrounding_tiles( coord, fn )
+  local tiles = M.surrounding_coords( coord )
+  for _, tile in ipairs( tiles ) do
+    if tile.y == 1 or tile.y == 70 then return end
+    fn( tile )
+  end
+end
+
+function M.on_non_arctic_surrounding_tiles_cardinal( coord, fn )
+  local tiles = M.surrounding_coords_cardinal( coord )
+  for _, tile in ipairs( tiles ) do
+    if tile.y == 1 or tile.y == 70 then return end
+    fn( tile )
+  end
+end
+
 -----------------------------------------------------------------
 -- COLONY
 -----------------------------------------------------------------
@@ -635,6 +656,15 @@ function M.on_all_tiles( fn )
   -- coordinates are actually zero-based. The lookup function
   -- will adjust for Lua.
   for y = 1, 70 do
+    for x = 1, 56 do
+      fn( coord_for( x, y ) ) --
+    end
+  end
+end
+
+-- Same as above but excludes arctic rows.
+function M.on_all_non_arctic_tiles( fn )
+  for y = 2, 70 - 1 do
     for x = 1, 56 do
       fn( coord_for( x, y ) ) --
     end
