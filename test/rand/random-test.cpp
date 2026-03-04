@@ -188,7 +188,11 @@ TEST_CASE( "[rand/random] uniform_double" ) {
 TEST_CASE( "[rand/random] normal" ) {
   random r;
   double const d = r.normal( 1.5, 2.3 );
+#ifdef _LIBCPP_VERSION
+  REQUIRE( d == Approx( 1.1633219033 ) );
+#else
   REQUIRE( d == Approx( 1.8094182145 ) );
+#endif
 }
 
 // Deterministic since there is no seeding and we are only using
