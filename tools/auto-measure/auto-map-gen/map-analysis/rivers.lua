@@ -29,7 +29,7 @@ local BIOME_ORDERING = {
   'desert', --
   'swamp', --
   'marsh', --
-  -- 'arctic', --
+  'arctic', --
 }
 
 local GNUPLOT_FILE_TEMPLATE = [[
@@ -100,6 +100,7 @@ local D = {
   maj_by_row={},
   min_by_row={},
   any_by_row={},
+  any_on_land_by_row={},
 
   maj_forks=0,
   min_forks=0,
@@ -123,8 +124,11 @@ local D = {
 
   with_hills=0,
 
-  biome_river={}, -- key=biome, value=count
+  biome_rivers={}, -- key=biome, value=count
   biome_counts={}, -- key=biome, value=count
+  biome_rivers_per_row={}, -- key=y, value={ key=biome, value=count }
+  biome_counts_per_row={}, -- key=y, value={ key=biome, value=count }
+  land_per_row={}, -- key=y, value=count
 }
 
 -----------------------------------------------------------------
@@ -213,23 +217,43 @@ local function lambda( J )
 
   D.savs = D.savs + 1
 
+  for _, biome in ipairs( BIOME_ORDERING ) do
+    D.biome_rivers[biome] = D.biome_rivers[biome] or 0
+    D.biome_counts[biome] = D.biome_counts[biome] or 0
+  end
+  for y = 1, 70 do
+    D.biome_rivers_per_row[y] = D.biome_rivers_per_row[y] or {}
+    D.biome_counts_per_row[y] = D.biome_counts_per_row[y] or {}
+    D.land_per_row[y] = D.land_per_row[y] or 0
+    for _, biome in ipairs( BIOME_ORDERING ) do
+      D.biome_rivers_per_row[y][biome] =
+          D.biome_rivers_per_row[y][biome] or 0
+      D.biome_counts_per_row[y][biome] =
+          D.biome_counts_per_row[y][biome] or 0
+    end
+  end
+
   Q.on_all_non_arctic_tiles( function( tile )
     D.tiles = D.tiles + 1
     local square = terrain_at( J, tile )
 
     local biome = square.ground -- water won't have this.
     if biome then
-      D.biome_counts[biome] = D.biome_counts[biome] or 0
       D.biome_counts[biome] = D.biome_counts[biome] + 1
+      D.biome_counts_per_row[tile.y][biome] =
+          D.biome_counts_per_row[tile.y][biome] + 1
       if Q.has_river( J, tile ) then
-        D.biome_river[biome] = D.biome_river[biome] or 0
-        D.biome_river[biome] = D.biome_river[biome] + 1
+        D.biome_rivers[biome] = D.biome_rivers[biome] + 1
+        D.biome_rivers_per_row[tile.y][biome] =
+            D.biome_rivers_per_row[tile.y][biome] + 1
       end
     end
 
     D.maj_by_row[tile.y] = D.maj_by_row[tile.y] or 0
     D.min_by_row[tile.y] = D.min_by_row[tile.y] or 0
     D.any_by_row[tile.y] = D.any_by_row[tile.y] or 0
+    D.any_on_land_by_row[tile.y] =
+        D.any_on_land_by_row[tile.y] or 0
     D.starts_by_row[tile.y] = D.starts_by_row[tile.y] or 0
 
     if square.surface == 'water' then
@@ -249,7 +273,10 @@ local function lambda( J )
       end
     end
 
-    if square.surface == 'land' then D.land = D.land + 1 end
+    if square.surface == 'land' then
+      D.land = D.land + 1
+      D.land_per_row[tile.y] = D.land_per_row[tile.y] + 1
+    end
 
     if Q.has_river( J, tile ) then
       D.__river_tiles[Q.rastorize( tile )] = 0
@@ -297,6 +324,8 @@ local function lambda( J )
         end
       end
       if square.surface == 'land' then
+        D.any_on_land_by_row[tile.y] =
+            D.any_on_land_by_row[tile.y] + 1
         if rivers_surrounding == 0 then
           D.land_islands = D.land_islands + 1
           D.any_islands = D.any_islands + 1
@@ -320,6 +349,7 @@ local DATA_KEY_ORDER = {
   'maj', --
   'min', --
   'any', --
+  'any_per_land', --
   'maj_on_water', --
   'min_on_water', --
   'any_on_water', --
@@ -328,6 +358,7 @@ local DATA_KEY_ORDER = {
   'any_forks', --
   'num_connected', --
   'num_connected_per_shore', --
+  'num_connected_per_land', --
   'num_with_water', --
   'num_without_water', --
   'starts', --
@@ -352,6 +383,7 @@ local function finished( mode )
   o.maj = D.maj / D.savs
   o.min = D.min / D.savs
   o.any = D.any / D.savs
+  o.any_per_land = D.any / D.land
 
   o.maj_on_water = D.maj_on_water / D.savs
   o.min_on_water = D.min_on_water / D.savs
@@ -364,6 +396,7 @@ local function finished( mode )
   o.num_connected = D.num_connected / D.savs
   o.num_connected_per_shore = D.num_connected /
                                   D.water_adjacent_to_land
+  o.num_connected_per_land = D.num_connected / D.land
   o.num_with_water = D.num_with_water / D.savs
   o.num_without_water = D.num_without_water / D.savs
 
@@ -376,13 +409,35 @@ local function finished( mode )
 
   o.with_hills = D.with_hills / D.savs
 
-  o.biome_density = { __key_order=BIOME_ORDERING }
-  for biome, river_count in pairs( D.biome_river ) do
-    assert( type( biome ) == 'string' )
-    assert( type( river_count ) == 'number' )
-    local total_count = assert( D.biome_counts[biome] )
-    if total_count > 0 then
-      o.biome_density[biome] = river_count / total_count
+  o.biome_density = {}
+  for _, biome in ipairs( BIOME_ORDERING ) do
+    o.biome_density[biome] = 0
+  end
+  o.biome_density.__key_order = BIOME_ORDERING
+  local expected_biome_rivers = {}
+  for _, biome in ipairs( BIOME_ORDERING ) do
+    expected_biome_rivers[biome] = 0
+  end
+  for y = 1, 70 do
+    local land = assert( D.land_per_row[y] )
+    if land == 0 then goto continue end
+    for _, biome in ipairs( BIOME_ORDERING ) do
+      local river_density = assert( D.any_on_land_by_row[y] ) /
+                                land
+      local biome_count = assert(
+                              D.biome_counts_per_row[y][biome] )
+      expected_biome_rivers[biome] =
+          expected_biome_rivers[biome] + river_density *
+              biome_count
+    end
+    ::continue::
+  end
+  for _, biome in ipairs( BIOME_ORDERING ) do
+    if expected_biome_rivers[biome] > 0 then
+      o.biome_density[biome] = D.biome_rivers[biome] /
+                                   expected_biome_rivers[biome]
+    else
+      o.biome_density[biome] = 0
     end
   end
 
@@ -474,6 +529,7 @@ local function collect()
   o.avg.biome_density.__key_order = BIOME_ORDERING
   for _, mode in ipairs( MODES ) do
     local file = format( '%s/%s.data.json', PLOTS_DIR, mode )
+    printfln( 'reading file %s...', file )
     local f<close> = assert( io.open( file, 'r' ) )
     local mode_json = json.read( f:read( '*all' ) )
     local results = assert( mode_json )
