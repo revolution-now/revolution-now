@@ -431,6 +431,19 @@ TEST_CASE( "[gfx/cartesian] dsize::operator/( double )" ) {
 /****************************************************************
 ** point
 *****************************************************************/
+TEST_CASE( "[gfx/cartesian] operator<( point, point )" ) {
+  using P = point;
+  REQUIRE_FALSE( P{} < P{} );
+  REQUIRE( P{ .x = 10, .y = -4 } < P{ .x = 1, .y = 0 } );
+  REQUIRE_FALSE( P{ .x = 10, .y = 1 } < P{ .x = 1, .y = 0 } );
+  REQUIRE_FALSE( P{ .x = 1, .y = 1 } < P{ .x = 10, .y = 0 } );
+  REQUIRE( P{ .x = 1, .y = 1 } < P{ .x = 10, .y = 2 } );
+  REQUIRE( P{ .x = 1, .y = 2 } < P{ .x = 10, .y = 2 } );
+  REQUIRE_FALSE( P{ .x = 11, .y = 2 } < P{ .x = 10, .y = 2 } );
+  REQUIRE_FALSE( P{ .x = 10, .y = 2 } < P{ .x = 10, .y = 2 } );
+  REQUIRE( P{ .x = 9, .y = 2 } < P{ .x = 10, .y = 2 } );
+}
+
 TEST_CASE( "[gfx/cartesian] point::with_x/with_y" ) {
   REQUIRE( point{ .x = 1, .y = 2 }.with_x( 5 ) ==
            point{ .x = 5, .y = 2 } );

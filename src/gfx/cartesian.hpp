@@ -241,6 +241,14 @@ struct point {
   // nothing will be returned.
   base::maybe<e_direction> direction_to( point dest ) const;
   base::maybe<e_cdirection> cdirection_to( point dest ) const;
+
+  // This will be a lexical ordering (y, then x) so that we can
+  // use Coords in contexts where they need some well-defined or-
+  // dering.
+  friend auto operator<=>( point const l, point const r ) {
+    if( l.y != r.y ) return l.y <=> r.y;
+    return l.x <=> r.x;
+  }
 };
 
 /****************************************************************
