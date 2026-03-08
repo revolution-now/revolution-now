@@ -211,5 +211,9 @@ TEST_CASE( "[terrain-mgr] on_surrounding" ) {
   world w;
 }
 
+TEST_CASE( "[terrain-mgr] on_surrounding_cardinal" ) {
+  world w;
+}
+
 } // namespace
 } // namespace rn

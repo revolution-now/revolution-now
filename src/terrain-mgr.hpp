@@ -64,4 +64,10 @@ void on_surrounding( MapMatrix const& m, gfx::point tile,
                          gfx::point, MapSquare const& square )>
                          fn );
 
+void on_surrounding_cardinal(
+    MapMatrix const& m, gfx::point tile,
+    base::function_ref<void( gfx::point, MapSquare const&,
+                             gfx::e_cardinal_direction )>
+        fn );
+
 } // namespace rn

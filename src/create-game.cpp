@@ -224,6 +224,10 @@ valid_or<string> generate_map_native_impl(
 
   generate_proto_tiles( root.zzz_terrain );
 
+  // Rivers.
+  rand.reseed( setup.rivers.seed );
+  add_rivers( real_terrain.map, rand, setup.rivers.parameters );
+
   // Biomes.
   rand.reseed( setup.biomes.seed );
   GOOD_OR_RETURN( assign_biomes( rand, real_terrain,
@@ -251,15 +255,12 @@ valid_or<string> generate_map_lua_impl(
       ( setup.surface_generator.sanitization.remove_crosses );
   options["min_map_height_for_arctic"] = 10;
 
-  options["river_density"]    = setup.rivers.density;
   options["hills_density"]    = setup.hills.density;
   options["mountain_density"] = setup.mountains.density;
   options["hills_range_probability"] =
       setup.hills.range_probability;
   options["mountain_range_probability"] =
       setup.mountains.range_probability;
-  options["major_river_fraction"] =
-      setup.rivers.major_river_fraction;
   options["forest_density"] = setup.forest.density;
   options["arctic_tile_density"] =
       setup.surface_generator.arctic.density;

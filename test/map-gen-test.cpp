@@ -84,5 +84,9 @@ TEST_CASE( "[map-gen] add_lakes" ) {
   world w;
 }
 
+TEST_CASE( "[map-gen] add_rivers" ) {
+  world w;
+}
+
 } // namespace
 } // namespace rn

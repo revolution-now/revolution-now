@@ -133,6 +133,39 @@ terrain_generation {
     remove_crosses: true
   }
 
+  rivers {
+    min_length: 4
+
+    climate {
+      arid {
+        initiation.probability:    .05
+        growth.probability:        .70
+        sustain_major.probability: .25
+        turn.probability:          .25
+        fork.probability:          .03333
+        fork_major.probability:    .40
+      }
+
+      normal {
+        initiation.probability:    .05
+        growth.probability:        .70
+        sustain_major.probability: .25
+        turn.probability:          .25
+        fork.probability:          .03333
+        fork_major.probability:    .40
+      }
+
+      wet {
+        initiation.probability:    .05
+        growth.probability:        .70
+        sustain_major.probability: .25
+        turn.probability:          .25
+        fork.probability:          .03333
+        fork_major.probability:    .40
+      }
+    }
+  }
+
   biomes {
     temperature { mean: 0, width: 0, height: 0 }
     climate     { mean: 0, width: 0, height: 0 }
@@ -188,18 +221,6 @@ terrain_generation {
     # Probability that an eligible tile will get forest cover. In
     # the OG most tiles are initially covered in forest.
     forest_density: { fraction: .95 }
-  }
-
-  rivers {
-    # This is the probability that, given a land square, we will
-    # start creating a river from it.
-    density: { fraction: .10 }
-
-    # This is the probability that a given river segment will be
-    # a major river. This should really be smaller than .5 be-
-    # cause major rivers give a production bonus over minor
-    # rivers.
-    major_river_fraction: { fraction: .15 }
   }
 }
 

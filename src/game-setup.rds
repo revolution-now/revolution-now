@@ -85,15 +85,24 @@ struct.BiomesSetup {
   climate 'int',      # [-100, 100] = [arid, wet]
 }
 
+struct.RiverParameters {
+  # This is the probability that, given a water square with land
+  # adjacent in a cardinal direction, that we will start creating
+  # a river from it.
+  initiation_probability 'double',
+  growth_probability 'double',
+  sustain_major_probability 'double',
+  turn_probability 'double',
+  fork_probability 'double',
+  fork_major_probability 'double',
+  # This length includes the water tile which initiates the
+  # river.
+  min_length 'int',
+}
+
 struct.RiverSetup {
   seed 'rng::seed',
-  # This is the probability that, given a land square touching
-  # water, we will start creating a river from it.
-  density 'double',
-  # This is the probability that a given river segment will be a
-  # major river. This should really be smaller than .5 because
-  # major rivers give a production bonus over minor rivers.
-  major_river_fraction 'double',
+  parameters 'RiverParameters',
 }
 
 struct.MountainsSetup {
@@ -138,9 +147,9 @@ struct.GeneratedMapSetup {
 
   surface_generator 'SurfaceGeneratorSetup',
 
-  biomes 'BiomesSetup',
-
   rivers 'RiverSetup',
+
+  biomes 'BiomesSetup',
 
   mountains 'MountainsSetup',
   hills 'HillsSetup',

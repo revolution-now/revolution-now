@@ -172,17 +172,30 @@ GameSetup create_classic_game_setup(
     .sanitization = surface_sanitization,
   };
 
+  auto const river_interp = [&]( auto const p_field ) {
+    auto const& field =
+        map_conf.rivers.climate[e_climate::normal].*p_field;
+    return field.probability;
+  };
+
+  using RCP = config::map_gen::RiverClimateParameters;
+  RiverSetup const rivers{
+    .seed       = rand.generate_deterministic_seed(),
+    .parameters = {
+      .initiation_probability = river_interp( &RCP::initiation ),
+      .growth_probability     = river_interp( &RCP::growth ),
+      .sustain_major_probability =
+          river_interp( &RCP::sustain_major ),
+      .turn_probability       = river_interp( &RCP::turn ),
+      .fork_probability       = river_interp( &RCP::fork ),
+      .fork_major_probability = river_interp( &RCP::fork_major ),
+      .min_length             = map_conf.rivers.min_length,
+    } };
+
   BiomesSetup const biomes{
     .seed        = rand.generate_deterministic_seed(),
     .temperature = params.temperature,
     .climate     = params.climate,
-  };
-
-  RiverSetup const rivers{
-    .seed    = rand.generate_deterministic_seed(),
-    .density = map_conf.rivers.density.fraction,
-    .major_river_fraction =
-        map_conf.rivers.major_river_fraction.fraction,
   };
 
   MountainsSetup const mountains{
@@ -211,8 +224,8 @@ GameSetup create_classic_game_setup(
   GeneratedMapSetup const generated_map_setup{
     .size              = world_sz,
     .surface_generator = surface_generator,
-    .biomes            = biomes,
     .rivers            = rivers,
+    .biomes            = biomes,
     .mountains         = mountains,
     .hills             = hills,
     .forest            = forest,

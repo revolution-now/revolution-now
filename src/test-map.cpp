@@ -204,6 +204,7 @@ void generate_single_map_key( IEngine& engine, SS& ss,
       surf_gen.perlin_settings.seed =
           generate_perlin_seed( S() );
       surf_gen.lakes.seed  = S();
+      native.rivers.seed   = S();
       surf_gen.arctic.seed = S();
       native.biomes.seed   = S();
     }
@@ -604,6 +605,328 @@ struct LakeFrequencyStats : IGameStatsCollector {
   int total_land_tiles_adjacent_to_water_ = 0;
 };
 
+struct RiverFrequencyStats : IGameStatsCollector {
+  void collect( SSConst const& ss ) override {
+    __river_tile_segments_ = {};
+    __segments             = {};
+
+    ++maps_;
+    CHECK( map_sz_ == size{} or
+           map_sz_ == ss.terrain.world_size_tiles() );
+    map_sz_ = ss.terrain.world_size_tiles();
+
+    auto const& m = ss.terrain.real_terrain().map;
+
+    auto fn = [&]( point const tile, MapSquare const& center ) {
+      using enum e_surface;
+      using enum e_river;
+
+      // Skip arctic rows.
+      if( tile.y == 0 || tile.y == map_sz_.h - 1 ) return;
+
+      ++tiles_;
+
+      maj_by_row_[tile.y];
+      min_by_row_[tile.y];
+      any_by_row_[tile.y];
+      any_on_land_by_row_[tile.y];
+
+      if( center.surface == water ) {
+        ++water_;
+        bool has_adjacent_land = false;
+        on_surrounding_cardinal(
+            m, tile,
+            [&]( point const, MapSquare const& adjacent,
+                 e_cardinal_direction const ) {
+              if( adjacent.surface == land )
+                has_adjacent_land = true;
+            } );
+        if( has_adjacent_land ) ++water_adjacent_to_land_;
+      }
+
+      if( center.surface == land ) ++land_;
+
+      if( center.river.has_value() ) {
+        __river_tile_segments_[tile] = 0;
+        ++any_;
+        ++any_by_row_[tile.y];
+        if( center.river == minor ) {
+          ++min_;
+          ++min_by_row_[tile.y];
+        }
+        if( center.river == major ) {
+          ++maj_;
+          ++maj_by_row_[tile.y];
+        }
+        int rivers_surrounding = 0;
+        on_surrounding_cardinal(
+            m, tile,
+            [&]( point const, MapSquare const& adjacent,
+                 e_cardinal_direction const ) {
+              if( adjacent.river.has_value() )
+                ++rivers_surrounding;
+            } );
+        if( rivers_surrounding > 2 ) {
+          ++any_forks_;
+          if( center.river == minor ) ++min_forks_;
+          if( center.river == major ) ++maj_forks_;
+        }
+        if( center.surface == water ) {
+          ++any_on_water_;
+          ++starts_;
+          if( center.river == minor ) ++min_on_water_;
+          if( center.river == major ) ++maj_on_water_;
+          if( rivers_surrounding == 0 ) {
+            ++water_islands_;
+            ++any_islands_;
+          }
+        }
+        if( center.surface == land ) {
+          ++any_on_land_by_row_[tile.y];
+          if( rivers_surrounding == 0 ) {
+            ++land_islands_;
+            ++any_islands_;
+          }
+          if( rivers_surrounding == 1 ) ++ends_;
+          if( rivers_surrounding == 2 ) {
+            auto const has_river = [&]( point const p ) {
+              return m[p].river.has_value();
+            };
+            bool const has_top_bottom =
+                has_river( tile.moved_up() ) &&
+                has_river( tile.moved_down() );
+            bool const has_left_right =
+                has_river( tile.moved_left() ) &&
+                has_river( tile.moved_right() );
+            bool const is_turn =
+                not has_top_bottom and not has_left_right;
+            if( is_turn ) ++turns_;
+          }
+        }
+      }
+    };
+    on_all_tiles( ss, fn );
+
+    find_connected( m );
+  }
+
+  void assign_segment( MapMatrix const& m, point const start,
+                       int const segment ) {
+    using enum e_surface;
+    using enum e_river;
+    // Should not modify __river_tile_segments_ in this function
+    // except when setting the start tile. since we are iterating
+    // over it in the calling function.
+    auto const& rts        = __river_tile_segments_;
+    auto const look_up_rts = [&]( point const p ) -> maybe<int> {
+      return base::lookup( rts, p );
+    };
+    auto const set_rts = [&]( point const p, int const val ) {
+      CHECK( p == start );
+      __river_tile_segments_[p] = val;
+    };
+    CHECK( look_up_rts( start ) == 0,
+           "segment for tile {} is not zero, instead it is {}.",
+           start, look_up_rts( start ) );
+    CHECK( segment > 0 );
+    set_rts( start, segment );
+    CHECK( m[start].river.has_value() );
+    bool const is_this_water = m[start].surface == water;
+    auto fn = [&]( point const p, MapSquare const& adjacent,
+                   e_cardinal_direction const ) {
+      bool const is_surrounding_water =
+          adjacent.surface == water;
+      // Can't connect a single river segment across two water
+      // tiles.
+      if( is_this_water && is_surrounding_water ) return;
+      if( auto const v = look_up_rts( p );
+          v.has_value() && *v > 0 ) {
+        CHECK( adjacent.river.has_value() );
+        CHECK( *v == segment );
+        return;
+      }
+      if( adjacent.river.has_value() )
+        assign_segment( m, p, segment );
+    };
+    on_surrounding_cardinal( m, start, fn );
+  }
+
+  void find_connected( MapMatrix const& m ) {
+    for( auto const& [tile, segment] : __river_tile_segments_ ) {
+      MapSquare const& square = m[tile];
+      CHECK( square.river.has_value(), "tile {} has no river.",
+             tile );
+      if( segment == 0 ) {
+        ++__segments;
+        assign_segment( m, tile, __segments );
+      }
+    }
+    map<int /*segment*/, int> segment_length;
+    map<int /*segment*/, bool> segment_has_water;
+    auto fn = [&]( point const tile, MapSquare const& center ) {
+      using enum e_surface;
+      using enum e_river;
+      if( !center.river.has_value() ) return;
+      int const segment = __river_tile_segments_[tile];
+      CHECK( segment > 0 );
+      ++segment_length[segment];
+      if( center.surface == water )
+        segment_has_water[segment] = true;
+    };
+    on_all_tiles( m, fn );
+
+    int max_length = 0;
+    for( int segment = 1; segment <= __segments; ++segment ) {
+      int const length = segment_length[segment];
+      max_length       = std::max( max_length, length );
+      if( length > ssize( lengths_ ) - 1 )
+        lengths_.resize( length + 1 );
+      CHECK_LT( length, ssize( lengths_ ) );
+      ++lengths_[length];
+      if( segment_has_water[segment] )
+        ++num_with_water_;
+      else
+        ++num_without_water_;
+    }
+    num_connected_ += __segments;
+  }
+
+  void write() const override {
+    double const maps  = maps_;
+    double const tiles = tiles_ / maps;
+
+    double const land  = land_ / maps;
+    double const water = water_ / maps;
+    double const water_adjacent_to_land =
+        water_adjacent_to_land_ / maps;
+
+    double const maj          = maj_ / maps;
+    double const min          = min_ / maps;
+    double const any          = any_ / maps;
+    double const any_per_land = any_ / double( land_ );
+
+    double const maj_on_water = maj_on_water_ / maps;
+    double const min_on_water = min_on_water_ / maps;
+    double const any_on_water = any_on_water_ / maps;
+
+    double const maj_forks = maj_forks_ / maps;
+    double const min_forks = min_forks_ / maps;
+    double const any_forks = any_forks_ / maps;
+
+    double const any_forks_per_connected =
+        num_connected_ > 0
+            ? any_forks_ / double( num_connected_ )
+            : 0;
+
+    double const num_connected = num_connected_ / maps;
+    double const num_connected_per_shore =
+        num_connected_ / double( water_adjacent_to_land_ );
+    double const num_connected_per_land =
+        num_connected_ / double( land_ );
+
+    double const num_with_water    = num_with_water_ / maps;
+    double const num_without_water = num_without_water_ / maps;
+
+    double const starts = starts_ / maps;
+    double const ends   = ends_ / maps;
+    double const turns  = turns_ / maps;
+
+    double const turns_per_connected =
+        num_connected_ > 0 ? turns_ / double( num_connected_ )
+                           : 0;
+
+    double const land_islands  = land_islands_ / maps;
+    double const water_islands = water_islands_ / maps;
+    double const any_islands   = any_islands_ / maps;
+
+    double length_avg = 0;
+    int total_count   = 0;
+    for( int length = 1; length < ssize( lengths_ ); ++length ) {
+      int const count = lengths_[length];
+      total_count += count;
+      length_avg += length * count;
+    }
+    length_avg /= total_count;
+
+    // clang-format off
+    fmt::println( "savs:                    {:.3f}", maps);
+    fmt::println( "tiles:                   {:.3f}", tiles);
+    fmt::println( "land:                    {:.3f}", land);
+    fmt::println( "water:                   {:.3f}", water);
+    fmt::println( "water_adjacent_to_land:  {:.3f}", water_adjacent_to_land);
+    fmt::println( "maj:                     {:.3f}", maj);
+    fmt::println( "min:                     {:.3f}", min);
+    fmt::println( "any:                     {:.3f}", any);
+    fmt::println( "any_per_land:            {:.3f}", any_per_land);
+    fmt::println( "maj_on_water:            {:.3f}", maj_on_water);
+    fmt::println( "min_on_water:            {:.3f}", min_on_water);
+    fmt::println( "any_on_water:            {:.3f}", any_on_water);
+    fmt::println( "maj_forks:               {:.3f}", maj_forks);
+    fmt::println( "min_forks:               {:.3f}", min_forks);
+    fmt::println( "any_forks:               {:.3f}", any_forks);
+    fmt::println( "any_forks_per_connected: {:.3f}", any_forks_per_connected);
+    fmt::println( "num_connected:           {:.3f}", num_connected);
+    fmt::println( "num_connected_per_shore: {:.3f}", num_connected_per_shore);
+    fmt::println( "num_connected_per_land:  {:.3f}", num_connected_per_land);
+    fmt::println( "num_with_water:          {:.3f}", num_with_water);
+    fmt::println( "num_without_water:       {:.3f}", num_without_water);
+    fmt::println( "length_avg:              {:.3f}", length_avg);
+    fmt::println( "starts:                  {:.3f}", starts);
+    fmt::println( "ends:                    {:.3f}", ends);
+    fmt::println( "turns:                   {:.3f}", turns);
+    fmt::println( "turns_per_connected:     {:.3f}", turns_per_connected);
+    fmt::println( "land_islands:            {:.3f}", land_islands);
+    fmt::println( "water_islands:           {:.3f}", water_islands);
+    fmt::println( "any_islands:             {:.3f}", any_islands);
+    // clang-format on
+  }
+
+ private:
+  // These need to be reset on each map.
+  int __segments = 0;
+  map<point, int /*segment*/> __river_tile_segments_;
+
+  size map_sz_ = {};
+
+  int maps_  = 0;
+  int tiles_ = 0;
+
+  int land_                   = 0;
+  int water_                  = 0;
+  int water_adjacent_to_land_ = 0;
+
+  int maj_ = 0;
+  int min_ = 0;
+  int any_ = 0;
+
+  int maj_on_water_ = 0;
+  int min_on_water_ = 0;
+  int any_on_water_ = 0;
+
+  map<int /*y*/, int /*count*/> maj_by_row_;
+  map<int /*y*/, int /*count*/> min_by_row_;
+  map<int /*y*/, int /*count*/> any_by_row_;
+  map<int /*y*/, int /*count*/> any_on_land_by_row_;
+
+  int maj_forks_ = 0;
+  int min_forks_ = 0;
+  int any_forks_ = 0;
+
+  int num_connected_     = 0;
+  int num_with_water_    = 0;
+  int num_without_water_ = 0;
+
+  vector<int> lengths_; // idx=length, value=count
+
+  int starts_ = 0;
+  int ends_   = 0;
+  int turns_  = 0;
+
+  int land_islands_  = 0;
+  int water_islands_ = 0;
+  int any_islands_   = 0;
+};
+
 /****************************************************************
 ** Runners.
 *****************************************************************/
@@ -728,6 +1051,44 @@ struct LakeFrequencyStats : IGameStatsCollector {
   }
 }
 
+[[maybe_unused]] void testing_map_gen_river_stats(
+    IEngine& engine ) {
+  int constexpr kNumSamples = 500;
+
+  auto const generate =
+      [&]( SS& ss, ClassicGameSetupParamsCustom const& custom ) {
+        generate_single_map_custom( engine, ss, custom );
+      };
+
+  static auto constexpr kModes = {
+    // pair{ e_land_mass::small, e_land_form::archipelago },
+    pair{ e_land_mass::moderate, e_land_form::normal },
+    // pair{ e_land_mass::large, e_land_form::continents },
+    // pair{ e_land_mass::moderate, e_land_form::archipelago },
+    // pair{ e_land_mass::moderate, e_land_form::continents },
+    // pair{ e_land_mass::small, e_land_form::normal },
+    // pair{ e_land_mass::large, e_land_form::normal },
+    // pair{ e_land_mass::small, e_land_form::continents },
+    // pair{ e_land_mass::large, e_land_form::archipelago },
+  };
+
+  for( auto const& [land_mass, land_form] : kModes ) {
+    string const name( mode_name( land_mass, land_form ) );
+    RiverFrequencyStats stats;
+    fmt::println( "generating for {}...", name );
+    for( int i = 0; i < kNumSamples; ++i ) {
+      SS ss;
+      generate( ss, { .land_mass   = land_mass,
+                      .land_form   = land_form,
+                      .temperature = e_temperature::temperate,
+                      .climate     = e_climate::normal } );
+      stats.collect( ss );
+    }
+    stats.write();
+    fmt::print( "\n" );
+  }
+}
+
 } // namespace
 
 /****************************************************************
@@ -750,7 +1111,8 @@ void load_testing_game_setup( GameSetup& setup ) {
 void testing_map_gen_key( IEngine& engine, bool const reseed ) {
   SS ss;
   generate_single_map_key( engine, ss, reseed );
-  print_ascii_map( ss.terrain.real_terrain(), cout );
+  print_ascii_map( ss.terrain.real_terrain(),
+                   ascii_map_rivers_formatter(), cout );
 }
 
 void testing_map_gen_custom( IEngine& engine ) {
@@ -762,15 +1124,15 @@ void testing_map_gen_custom( IEngine& engine ) {
         .land_form   = e_land_form::normal,
         .temperature = e_temperature::temperate,
         .climate     = e_climate::normal } );
-  print_ascii_map( ss.terrain.real_terrain(), cout );
+  print_ascii_map( ss.terrain.real_terrain(),
+                   ascii_map_rivers_formatter(), cout );
 }
 
 void testing_map_gen_stats( IEngine& engine ) {
-  // testing_map_gen_biome_density_stats( engine );
-
-  // testing_map_gen_biome_adjacency_stats( engine );
-
-  testing_map_gen_lake_stats( engine );
+  // testing_map_gen_biome_density_stats( engine, formatter );
+  // testing_map_gen_biome_adjacency_stats( engine, formatter );
+  // testing_map_gen_lake_stats( engine );
+  testing_map_gen_river_stats( engine );
 }
 
 void drop_large_og_map( IEngine& engine ) {
@@ -784,7 +1146,8 @@ void drop_large_og_map( IEngine& engine ) {
   string const filename =
       "/home/dsicilia/dev/revolution-now/LARGE.MP";
   CHECK_HAS_VALUE( sav::save_map_file( filename, map_file ) );
-  print_ascii_map( ss.terrain.real_terrain(), cout );
+  print_ascii_map( ss.terrain.real_terrain(),
+                   ascii_map_biome_formatter(), cout );
   fmt::println( "saved OG map file of size {} to {}.", sz,
                 filename );
 }

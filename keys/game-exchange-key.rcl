@@ -39,16 +39,23 @@ map.source.generate_native.setup {
     target_density: 0.23
   }
 
+  rivers {
+    seed: ac0304879ebe1280b0f9ca5e56f762fc
+    parameters {
+      initiation_probability:    .05
+      growth_probability:        .70
+      sustain_major_probability: .25
+      turn_probability:          .25
+      fork_probability:          .03333
+      fork_major_probability:    .40
+      min_length:                4
+    }
+  }
+
   biomes {
     seed: "48d55a01aef7295a21b2aabd78d68343"
     temperature:  0
     climate:      0
-  }
-
-  rivers {
-    seed: ac0304879ebe1280b0f9ca5e56f762fc
-    density: 0.1
-    major_river_fraction: 0.15
   }
 
   hills {

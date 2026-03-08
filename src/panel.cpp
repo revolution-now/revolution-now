@@ -403,6 +403,18 @@ PanelLayout panel_layout( SSConst const& ss,
       if( has_forest( square ) ) contents += " Forest";
     }
     text_row( format( "({})", contents ) );
+    if( square.river.has_value() ) {
+      switch( *square.river ) {
+        case e_river::minor:
+          text_row( "(Minor River)" );
+          break;
+        case e_river::major:
+          text_row( "(Major River)" );
+          break;
+      }
+    }
+    if( square.road ) text_row( "(Road)" );
+    if( square.irrigation ) text_row( "(Plowed)" );
   };
 
   // Active unit info.

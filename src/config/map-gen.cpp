@@ -53,6 +53,21 @@ valid_or<string> InlandLakes::validate() const {
 }
 
 /****************************************************************
+** RiverClimateParameters
+*****************************************************************/
+valid_or<string> RiverClimateParameters::validate() const {
+  return valid;
+}
+
+/****************************************************************
+** Rivers
+*****************************************************************/
+valid_or<string> Rivers::validate() const {
+  REFL_VALIDATE( min_length >= 2, "min_length must be >= 2" );
+  return valid;
+}
+
+/****************************************************************
 ** BiomeCurve
 *****************************************************************/
 valid_or<string> BiomeCurve::validate() const {

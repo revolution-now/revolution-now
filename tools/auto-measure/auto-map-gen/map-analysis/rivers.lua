@@ -116,6 +116,7 @@ local D = {
 
   starts=0,
   ends=0,
+  turns=0,
   starts_by_row={},
 
   land_islands=0,
@@ -333,6 +334,17 @@ local function lambda( J )
         if rivers_surrounding == 1 then
           D.ends = D.ends + 1
         end
+        if rivers_surrounding == 2 then
+          local has_top_bottom =
+              Q.has_river( J, { x=tile.x, y=tile.y - 1 } ) and
+                  Q.has_river( J, { x=tile.x, y=tile.y + 1 } )
+          local has_left_right =
+              Q.has_river( J, { x=tile.x - 1, y=tile.y } ) and
+                  Q.has_river( J, { x=tile.x + 1, y=tile.y } )
+          local is_turn = not has_top_bottom and
+                              not has_left_right
+          if is_turn then D.turns = D.turns + 1 end
+        end
       end
     end
   end )
@@ -356,13 +368,17 @@ local DATA_KEY_ORDER = {
   'maj_forks', --
   'min_forks', --
   'any_forks', --
+  'any_forks_per_connected', --
   'num_connected', --
   'num_connected_per_shore', --
   'num_connected_per_land', --
   'num_with_water', --
   'num_without_water', --
+  'length_avg', --
   'starts', --
   'ends', --
+  'turns', --
+  'turns_per_connected', --
   'land_islands', --
   'water_islands', --
   'any_islands', --
@@ -392,6 +408,10 @@ local function finished( mode )
   o.maj_forks = D.maj_forks / D.savs
   o.min_forks = D.min_forks / D.savs
   o.any_forks = D.any_forks / D.savs
+  o.any_forks_per_connected = 0
+  if D.num_connected > 0 then
+    o.any_forks_per_connected = D.any_forks / D.num_connected
+  end
 
   o.num_connected = D.num_connected / D.savs
   o.num_connected_per_shore = D.num_connected /
@@ -402,12 +422,29 @@ local function finished( mode )
 
   o.starts = D.starts / D.savs
   o.ends = D.ends / D.savs
+  o.turns = D.turns / D.savs
+  o.turns_per_connected = 0
+  if D.num_connected > 0 then
+    o.turns_per_connected = D.turns / D.num_connected
+  end
 
   o.land_islands = D.land_islands / D.savs
   o.water_islands = D.water_islands / D.savs
   o.any_islands = D.any_islands / D.savs
 
   o.with_hills = D.with_hills / D.savs
+
+  do
+    local length_avg = 0
+    local total_count = 0
+    for length = 1, #D.lengths do
+      local count = D.lengths[length]
+      total_count = total_count + count
+      length_avg = length_avg + length * count
+    end
+    length_avg = length_avg / total_count
+    o.length_avg = length_avg
+  end
 
   o.biome_density = {}
   for _, biome in ipairs( BIOME_ORDERING ) do
@@ -461,6 +498,11 @@ local function finished( mode )
         ['min-by-row']=assert( D.min_by_row[y] ) / D.savs,
         ['any-by-row']=assert( D.any_by_row[y] ) / D.savs,
         ['starts-by-row']=assert( D.starts_by_row[y] ) / D.savs,
+        ['any-by-row-adjusted']=30 * assert( D.any_by_row[y] ) /
+            assert( D.land_per_row[y] ),
+        ['starts-by-row-adjusted']=180 *
+            assert( D.starts_by_row[y] ) /
+            assert( D.land_per_row[y] ),
       }
       insert( rows, row )
     end
@@ -471,6 +513,8 @@ local function finished( mode )
         'min-by-row', --
         'maj-by-row', --
         'starts-by-row', --
+        'any-by-row-adjusted', --
+        'starts-by-row-adjusted', --
       },
     }
     f:write( csv.encode( rows, csv_opts ) )

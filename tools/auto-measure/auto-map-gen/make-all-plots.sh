@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-lambda=biomes
+lambda=rivers
 
 this="$(dirname "$0")"
 sav="$(realpath "$this/../../sav")"
@@ -53,6 +53,22 @@ collect() {
 # go bmmm &
 # go bbmm &
 # go new  &
+
+# rivers.
+go ttmm &
+go tmmm &
+go mtmm &
+go mmmm &
+go mbmm &
+go bmmm &
+go bbmm &
+go bbtt &
+go bbmt &
+go bbmb &
+go bbtm &
+go bbbm &
+go bbbb &
+go new  &
 
 wait
 

@@ -118,4 +118,16 @@ void on_surrounding(
                          fn );
 }
 
+void on_surrounding_cardinal(
+    MapMatrix const& m, point const tile,
+    base::function_ref<void( gfx::point, MapSquare const&,
+                             e_cardinal_direction )> const fn ) {
+  rect const r = m.rect();
+  for( auto const d : enum_values<e_cardinal_direction> ) {
+    point const p = tile.moved( d );
+    if( !p.is_inside( r ) ) continue;
+    fn( p, m[p], d );
+  }
+}
+
 } // namespace rn
