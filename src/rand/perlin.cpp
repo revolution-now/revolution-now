@@ -53,6 +53,8 @@ array<PerlinVec2, 8> constexpr kGradients2d{
 // to vary smoothly between the two points.
 PerlinFloat lerp( PerlinFloat const ramp, PerlinFloat const a,
                   PerlinFloat const b ) {
+  // NOTE: the clamp that we do in the smooth_step function below
+  // should guard against violations of this.
   CHECK( ramp >= 0.0 && ramp <= 1.0, "ramp is: {}", ramp );
   return a + ramp * ( b - a );
 }
@@ -91,7 +93,13 @@ PerlinFloat perlin_noise_2d_single_octave(
   };
 
   static auto const smooth_step = []( PerlinFloat const d ) {
-    return d * d * d * ( d * ( d * 6 - 15 ) + 10 );
+    // This function theoretically always yields values in [0,1]
+    // so long as the input d is in that range. However, minute
+    // rounding errors can sometimes yield values slightly larger
+    // than one, so we need to guard against that otherwise it
+    // will cause problems later.
+    return clamp( d * d * d * ( d * ( d * 6 - 15 ) + 10 ), 0.0,
+                  1.0 );
   };
 
   auto const [x1, y1] = to_grid( p );

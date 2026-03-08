@@ -138,30 +138,33 @@ terrain_generation {
 
     climate {
       arid {
-        initiation.probability:    .05
-        growth.probability:        .70
-        sustain_major.probability: .25
-        turn.probability:          .25
-        fork.probability:          .03333
-        fork_major.probability:    .40
+        initiation.probability:    .065
+        growth.probability:        .61
+        start_major.probability:   .25
+        sustain_major.probability: .57
+        turn.probability:          .28
+        fork.probability:          .03
+        fork_major.probability:    .90
       }
 
       normal {
-        initiation.probability:    .05
-        growth.probability:        .70
-        sustain_major.probability: .25
-        turn.probability:          .25
-        fork.probability:          .03333
-        fork_major.probability:    .40
+        initiation.probability:    .065
+        growth.probability:        .61
+        start_major.probability:   .25
+        sustain_major.probability: .57
+        turn.probability:          .28
+        fork.probability:          .03
+        fork_major.probability:    .90
       }
 
       wet {
-        initiation.probability:    .05
-        growth.probability:        .70
-        sustain_major.probability: .25
-        turn.probability:          .25
-        fork.probability:          .03333
-        fork_major.probability:    .40
+        initiation.probability:    .065
+        growth.probability:        .61
+        start_major.probability:   .25
+        sustain_major.probability: .57
+        turn.probability:          .28
+        fork.probability:          .03
+        fork_major.probability:    .90
       }
     }
   }

@@ -92,6 +92,7 @@ struct.RiverParameters {
   initiation_probability 'double',
   growth_probability 'double',
   sustain_major_probability 'double',
+  start_major_probability 'double',
   turn_probability 'double',
   fork_probability 'double',
   fork_major_probability 'double',

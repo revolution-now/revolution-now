@@ -105,6 +105,7 @@ struct.Overlay {
 struct.RiverClimateParameters {
   initiation 'config::Probability',
   growth 'config::Probability',
+  start_major 'config::Probability',
   sustain_major 'config::Probability',
   turn 'config::Probability',
   fork 'config::Probability',

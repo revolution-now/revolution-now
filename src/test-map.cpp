@@ -666,10 +666,15 @@ struct RiverFrequencyStats : IGameStatsCollector {
               if( adjacent.river.has_value() )
                 ++rivers_surrounding;
             } );
-        if( rivers_surrounding > 2 ) {
+        if( rivers_surrounding == 3 ) {
           ++any_forks_;
           if( center.river == minor ) ++min_forks_;
           if( center.river == major ) ++maj_forks_;
+        }
+        if( rivers_surrounding == 4 ) {
+          ++any_crosses_;
+          if( center.river == minor ) ++min_crosses_;
+          if( center.river == major ) ++maj_crosses_;
         }
         if( center.surface == water ) {
           ++any_on_water_;
@@ -813,9 +818,18 @@ struct RiverFrequencyStats : IGameStatsCollector {
     double const min_forks = min_forks_ / maps;
     double const any_forks = any_forks_ / maps;
 
+    double const maj_crosses = maj_crosses_ / maps;
+    double const min_crosses = min_crosses_ / maps;
+    double const any_crosses = any_crosses_ / maps;
+
     double const any_forks_per_connected =
         num_connected_ > 0
             ? any_forks_ / double( num_connected_ )
+            : 0;
+
+    double const any_crosses_per_connected =
+        num_connected_ > 0
+            ? any_crosses_ / double( num_connected_ )
             : 0;
 
     double const num_connected = num_connected_ / maps;
@@ -849,35 +863,39 @@ struct RiverFrequencyStats : IGameStatsCollector {
     length_avg /= total_count;
 
     // clang-format off
-    fmt::println( "savs:                    {:.3f}", maps);
-    fmt::println( "tiles:                   {:.3f}", tiles);
-    fmt::println( "land:                    {:.3f}", land);
-    fmt::println( "water:                   {:.3f}", water);
-    fmt::println( "water_adjacent_to_land:  {:.3f}", water_adjacent_to_land);
-    fmt::println( "maj:                     {:.3f}", maj);
-    fmt::println( "min:                     {:.3f}", min);
-    fmt::println( "any:                     {:.3f}", any);
-    fmt::println( "any_per_land:            {:.3f}", any_per_land);
-    fmt::println( "maj_on_water:            {:.3f}", maj_on_water);
-    fmt::println( "min_on_water:            {:.3f}", min_on_water);
-    fmt::println( "any_on_water:            {:.3f}", any_on_water);
-    fmt::println( "maj_forks:               {:.3f}", maj_forks);
-    fmt::println( "min_forks:               {:.3f}", min_forks);
-    fmt::println( "any_forks:               {:.3f}", any_forks);
-    fmt::println( "any_forks_per_connected: {:.3f}", any_forks_per_connected);
-    fmt::println( "num_connected:           {:.3f}", num_connected);
-    fmt::println( "num_connected_per_shore: {:.3f}", num_connected_per_shore);
-    fmt::println( "num_connected_per_land:  {:.3f}", num_connected_per_land);
-    fmt::println( "num_with_water:          {:.3f}", num_with_water);
-    fmt::println( "num_without_water:       {:.3f}", num_without_water);
-    fmt::println( "length_avg:              {:.3f}", length_avg);
-    fmt::println( "starts:                  {:.3f}", starts);
-    fmt::println( "ends:                    {:.3f}", ends);
-    fmt::println( "turns:                   {:.3f}", turns);
-    fmt::println( "turns_per_connected:     {:.3f}", turns_per_connected);
-    fmt::println( "land_islands:            {:.3f}", land_islands);
-    fmt::println( "water_islands:           {:.3f}", water_islands);
-    fmt::println( "any_islands:             {:.3f}", any_islands);
+    fmt::println( "savs:                       {}", int( maps ) );
+    fmt::println( "tiles:                      {:.3f}", tiles);
+    fmt::println( "land:                       {:.3f}", land);
+    fmt::println( "water:                      {:.3f}", water);
+    fmt::println( "water_adjacent_to_land:     {:.3f}", water_adjacent_to_land);
+    fmt::println( "maj:                        {:.3f}", maj);
+    fmt::println( "min:                        {:.3f}", min);
+    fmt::println( "any:                        {:.3f}", any);
+    fmt::println( "any_per_land:               {:.3f}", any_per_land);
+    fmt::println( "maj_on_water:               {:.3f}", maj_on_water);
+    fmt::println( "min_on_water:               {:.3f}", min_on_water);
+    fmt::println( "any_on_water:               {:.3f}", any_on_water);
+    fmt::println( "maj_forks:                  {:.3f}", maj_forks);
+    fmt::println( "min_forks:                  {:.3f}", min_forks);
+    fmt::println( "any_forks:                  {:.3f}", any_forks);
+    fmt::println( "any_forks_per_connected:    {:.3f}", any_forks_per_connected);
+    fmt::println( "maj_crosses:                {:.3f}", maj_crosses);
+    fmt::println( "min_crosses:                {:.3f}", min_crosses);
+    fmt::println( "any_crosses:                {:.3f}", any_crosses);
+    fmt::println( "any_crosses_per_connected:  {:.3f}", any_crosses_per_connected);
+    fmt::println( "num_connected:              {:.3f}", num_connected);
+    fmt::println( "num_connected_per_shore:    {:.3f}", num_connected_per_shore);
+    fmt::println( "num_connected_per_land:     {:.3f}", num_connected_per_land);
+    fmt::println( "num_with_water:             {:.3f}", num_with_water);
+    fmt::println( "num_without_water:          {:.3f}", num_without_water);
+    fmt::println( "length_avg:                 {:.3f}", length_avg);
+    fmt::println( "starts:                     {:.3f}", starts);
+    fmt::println( "ends:                       {:.3f}", ends);
+    fmt::println( "turns:                      {:.3f}", turns);
+    fmt::println( "turns_per_connected:        {:.3f}", turns_per_connected);
+    fmt::println( "land_islands:               {:.3f}", land_islands);
+    fmt::println( "water_islands:              {:.3f}", water_islands);
+    fmt::println( "any_islands:                {:.3f}", any_islands);
     // clang-format on
   }
 
@@ -911,6 +929,10 @@ struct RiverFrequencyStats : IGameStatsCollector {
   int maj_forks_ = 0;
   int min_forks_ = 0;
   int any_forks_ = 0;
+
+  int maj_crosses_ = 0;
+  int min_crosses_ = 0;
+  int any_crosses_ = 0;
 
   int num_connected_     = 0;
   int num_with_water_    = 0;
@@ -1053,7 +1075,7 @@ struct RiverFrequencyStats : IGameStatsCollector {
 
 [[maybe_unused]] void testing_map_gen_river_stats(
     IEngine& engine ) {
-  int constexpr kNumSamples = 500;
+  int constexpr kNumSamples = 2000;
 
   auto const generate =
       [&]( SS& ss, ClassicGameSetupParamsCustom const& custom ) {

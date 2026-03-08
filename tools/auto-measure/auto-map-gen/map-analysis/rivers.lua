@@ -106,6 +106,10 @@ local D = {
   min_forks=0,
   any_forks=0,
 
+  maj_crosses=0,
+  min_crosses=0,
+  any_crosses=0,
+
   __segments=0,
   __river_tiles={}, -- key=rastorized_tile, value=segment
 
@@ -300,13 +304,22 @@ local function lambda( J )
           rivers_surrounding = rivers_surrounding + 1
         end
       end )
-      if rivers_surrounding > 2 then
+      if rivers_surrounding == 3 then
         D.any_forks = D.any_forks + 1
         if Q.has_minor_river( J, tile ) then
           D.min_forks = D.min_forks + 1
         end
         if Q.has_major_river( J, tile ) then
           D.maj_forks = D.maj_forks + 1
+        end
+      end
+      if rivers_surrounding == 4 then
+        D.any_crosses = D.any_crosses + 1
+        if Q.has_minor_river( J, tile ) then
+          D.min_crosses = D.min_crosses + 1
+        end
+        if Q.has_major_river( J, tile ) then
+          D.maj_crosses = D.maj_crosses + 1
         end
       end
       if square.surface == 'water' then
@@ -369,6 +382,10 @@ local DATA_KEY_ORDER = {
   'min_forks', --
   'any_forks', --
   'any_forks_per_connected', --
+  'maj_crosses', --
+  'min_crosses', --
+  'any_crosses', --
+  'any_crosses_per_connected', --
   'num_connected', --
   'num_connected_per_shore', --
   'num_connected_per_land', --
@@ -411,6 +428,14 @@ local function finished( mode )
   o.any_forks_per_connected = 0
   if D.num_connected > 0 then
     o.any_forks_per_connected = D.any_forks / D.num_connected
+  end
+
+  o.maj_crosses = D.maj_crosses / D.savs
+  o.min_crosses = D.min_crosses / D.savs
+  o.any_crosses = D.any_crosses / D.savs
+  o.any_crosses_per_connected = 0
+  if D.num_connected > 0 then
+    o.any_crosses_per_connected = D.any_crosses / D.num_connected
   end
 
   o.num_connected = D.num_connected / D.savs

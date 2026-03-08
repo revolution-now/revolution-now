@@ -186,6 +186,8 @@ GameSetup create_classic_game_setup(
       .growth_probability     = river_interp( &RCP::growth ),
       .sustain_major_probability =
           river_interp( &RCP::sustain_major ),
+      .start_major_probability =
+          river_interp( &RCP::start_major ),
       .turn_probability       = river_interp( &RCP::turn ),
       .fork_probability       = river_interp( &RCP::fork ),
       .fork_major_probability = river_interp( &RCP::fork_major ),

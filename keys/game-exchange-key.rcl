@@ -42,12 +42,13 @@ map.source.generate_native.setup {
   rivers {
     seed: ac0304879ebe1280b0f9ca5e56f762fc
     parameters {
-      initiation_probability:    .05
-      growth_probability:        .70
-      sustain_major_probability: .25
-      turn_probability:          .25
-      fork_probability:          .03333
-      fork_major_probability:    .40
+      initiation_probability:    .065
+      growth_probability:        .61
+      start_major_probability:   .25
+      sustain_major_probability: .57
+      turn_probability:          .28
+      fork_probability:          .03
+      fork_major_probability:    .90
       min_length:                4
     }
   }
