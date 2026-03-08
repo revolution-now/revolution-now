@@ -213,6 +213,34 @@ TEST_CASE( "[gfx/cartesian] to_cardinal( e_cdirection )" ) {
   REQUIRE( to_cardinal( e_cdirection::se ) == nothing );
 }
 
+TEST_CASE(
+    "[gfx/cartesian] reverse_direction( e_cardinal_direction "
+    ")" ) {
+  using enum e_cardinal_direction;
+  REQUIRE( reverse_direction( n ) == s );
+  REQUIRE( reverse_direction( s ) == n );
+  REQUIRE( reverse_direction( e ) == w );
+  REQUIRE( reverse_direction( w ) == e );
+}
+
+TEST_CASE(
+    "[gfx/cartesian] rotated_cw( e_cardinal_direction )" ) {
+  using enum e_cardinal_direction;
+  REQUIRE( rotated_cw( n ) == e );
+  REQUIRE( rotated_cw( s ) == w );
+  REQUIRE( rotated_cw( e ) == s );
+  REQUIRE( rotated_cw( w ) == n );
+}
+
+TEST_CASE(
+    "[gfx/cartesian] rotated_ccw( e_cardinal_direction )" ) {
+  using enum e_cardinal_direction;
+  REQUIRE( rotated_ccw( n ) == w );
+  REQUIRE( rotated_ccw( s ) == e );
+  REQUIRE( rotated_ccw( e ) == n );
+  REQUIRE( rotated_ccw( w ) == s );
+}
+
 /****************************************************************
 ** e_diagonal_direction
 *****************************************************************/

@@ -206,6 +206,49 @@ e_cdirection to_cdirection( e_cardinal_direction d ) {
   }
 }
 
+e_cardinal_direction reverse_direction(
+    e_cardinal_direction const d ) {
+  using enum e_cardinal_direction;
+  switch( d ) {
+    case n:
+      return s;
+    case w:
+      return e;
+    case e:
+      return w;
+    case s:
+      return n;
+  }
+}
+
+e_cardinal_direction rotated_cw( e_cardinal_direction d ) {
+  using enum e_cardinal_direction;
+  switch( d ) {
+    case n:
+      return e;
+    case w:
+      return n;
+    case e:
+      return s;
+    case s:
+      return w;
+  }
+}
+
+e_cardinal_direction rotated_ccw( e_cardinal_direction d ) {
+  using enum e_cardinal_direction;
+  switch( d ) {
+    case n:
+      return w;
+    case w:
+      return s;
+    case e:
+      return n;
+    case s:
+      return e;
+  }
+}
+
 base::maybe<e_cardinal_direction> to_cardinal(
     e_direction const d ) {
   base::maybe<e_cardinal_direction> res;
