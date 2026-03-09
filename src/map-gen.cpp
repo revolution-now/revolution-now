@@ -563,7 +563,7 @@ static void add_river_land_components(
       // If we ended up forking then recompute the fork type.
       if( did_fork )
         river_tiles[last_idx].type =
-            rand.bernoulli( params.fork_major_probability )
+            rand.bernoulli( params.fork_is_major_probability )
                 ? e_river::major
                 : e_river::minor;
       CHECK( river_tiles.size() == new_tiles.size() );

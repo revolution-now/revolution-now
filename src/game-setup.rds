@@ -86,6 +86,12 @@ struct.BiomesSetup {
 }
 
 struct.RiverParameters {
+  # This length includes the water tile which initiates the
+  # river.
+  min_length 'int',
+  turn_probability 'double',
+  fork_probability 'double',
+  fork_is_major_probability 'double',
   # This is the probability that, given a water square with land
   # adjacent in a cardinal direction, that we will start creating
   # a river from it.
@@ -93,12 +99,6 @@ struct.RiverParameters {
   growth_probability 'double',
   sustain_major_probability 'double',
   start_major_probability 'double',
-  turn_probability 'double',
-  fork_probability 'double',
-  fork_major_probability 'double',
-  # This length includes the water tile which initiates the
-  # river.
-  min_length 'int',
 }
 
 struct.RiverSetup {

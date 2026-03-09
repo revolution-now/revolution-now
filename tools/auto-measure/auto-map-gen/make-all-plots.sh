@@ -68,6 +68,8 @@ go bbmb &
 go bbtm &
 go bbbm &
 go bbbb &
+go mmmb &
+go mmmt &
 go new  &
 
 wait

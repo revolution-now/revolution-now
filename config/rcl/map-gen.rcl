@@ -135,36 +135,29 @@ terrain_generation {
 
   rivers {
     min_length: 4
-
-    climate {
+    turn.probability:          .280
+    fork.probability:          .030
+    fork_is_major.probability: .900
+    for_climate {
       arid {
-        initiation.probability:    .065
-        growth.probability:        .61
-        start_major.probability:   .25
-        sustain_major.probability: .57
-        turn.probability:          .28
-        fork.probability:          .03
-        fork_major.probability:    .90
+        initiation.probability:    .050
+        growth.probability:        .610
+        start_major.probability:   .170
+        sustain_major.probability: .450
       }
 
       normal {
         initiation.probability:    .065
-        growth.probability:        .61
-        start_major.probability:   .25
-        sustain_major.probability: .57
-        turn.probability:          .28
-        fork.probability:          .03
-        fork_major.probability:    .90
+        growth.probability:        .620
+        start_major.probability:   .250
+        sustain_major.probability: .570
       }
 
       wet {
-        initiation.probability:    .065
-        growth.probability:        .61
-        start_major.probability:   .25
-        sustain_major.probability: .57
-        turn.probability:          .28
-        fork.probability:          .03
-        fork_major.probability:    .90
+        initiation.probability:    .070
+        growth.probability:        .630
+        start_major.probability:   .300
+        sustain_major.probability: .570
       }
     }
   }

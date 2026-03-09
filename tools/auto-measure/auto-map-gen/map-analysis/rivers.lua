@@ -587,7 +587,8 @@ local function collect()
   print( 'collecting...' )
   local MODES = {
     'ttmm', 'tmmm', 'mtmm', 'mmmm', 'mbmm', 'bmmm', 'bbmm',
-    'bbtt', 'bbmt', 'bbmb', 'bbtm', 'bbbm', 'bbbb', 'new',
+    'bbtt', 'bbmt', 'bbmb', 'bbtm', 'bbbm', 'bbbb', 'mmmb',
+    'mmmt', 'new',
   }
   local o = {}
   o.modes = {}

@@ -107,9 +107,6 @@ struct.RiverClimateParameters {
   growth 'config::Probability',
   start_major 'config::Probability',
   sustain_major 'config::Probability',
-  turn 'config::Probability',
-  fork 'config::Probability',
-  fork_major 'config::Probability',
   _features { equality, validation }
 }
 
@@ -117,7 +114,10 @@ struct.Rivers {
   # This length includes the water tile which initiates the
   # river.
   min_length 'int',
-  climate 'refl::enum_map<e_climate, RiverClimateParameters>',
+  turn 'config::Probability',
+  fork 'config::Probability',
+  fork_is_major 'config::Probability',
+  for_climate 'refl::enum_map<e_climate, RiverClimateParameters>',
   _features { equality, validation }
 }
 

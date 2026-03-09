@@ -77,6 +77,17 @@ using ::refl::enum_values;
 /****************************************************************
 ** Helpers.
 *****************************************************************/
+string_view mode_name( e_climate const c ) {
+  switch( c ) {
+    case e_climate::arid:
+      return "t";
+    case e_climate::normal:
+      return "m";
+    case e_climate::wet:
+      return "b";
+  }
+}
+
 string_view mode_name( e_temperature const t,
                        e_climate const c ) {
   switch( t ) {
@@ -1083,27 +1094,21 @@ struct RiverFrequencyStats : IGameStatsCollector {
       };
 
   static auto constexpr kModes = {
-    // pair{ e_land_mass::small, e_land_form::archipelago },
-    pair{ e_land_mass::moderate, e_land_form::normal },
-    // pair{ e_land_mass::large, e_land_form::continents },
-    // pair{ e_land_mass::moderate, e_land_form::archipelago },
-    // pair{ e_land_mass::moderate, e_land_form::continents },
-    // pair{ e_land_mass::small, e_land_form::normal },
-    // pair{ e_land_mass::large, e_land_form::normal },
-    // pair{ e_land_mass::small, e_land_form::continents },
-    // pair{ e_land_mass::large, e_land_form::archipelago },
+    e_climate::arid,
+    e_climate::normal,
+    e_climate::wet,
   };
 
-  for( auto const& [land_mass, land_form] : kModes ) {
-    string const name( mode_name( land_mass, land_form ) );
+  for( e_climate const climate : kModes ) {
+    string const name = "mmm" + string( mode_name( climate ) );
     RiverFrequencyStats stats;
     fmt::println( "generating for {}...", name );
     for( int i = 0; i < kNumSamples; ++i ) {
       SS ss;
-      generate( ss, { .land_mass   = land_mass,
-                      .land_form   = land_form,
+      generate( ss, { .land_mass   = e_land_mass::moderate,
+                      .land_form   = e_land_form::normal,
                       .temperature = e_temperature::temperate,
-                      .climate     = e_climate::normal } );
+                      .climate     = climate } );
       stats.collect( ss );
     }
     stats.write();
