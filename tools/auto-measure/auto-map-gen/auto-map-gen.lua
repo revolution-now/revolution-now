@@ -250,6 +250,7 @@ local function auto_map_gen( config )
     assert( os.rename( sav_src, sav_dst ), format(
                 'failed to move %s to %s', sav_src, sav_dst ) )
     assert( not sav_exists( SAV_SLOT ) )
+    sleep( 1 )
   end
 
   info( 'generated %d maps in %s.', need_count, output_dir )
