@@ -12,12 +12,13 @@ go() {
   ninja all
 }
 
-folders="$(ls -d .builds/*)"
+folders="$(ls -d .builds/*/)"
 
 for folder in $folders; do
   test -d "$folder" || continue
   test -L "$folder" && continue
   [[ "$folder" =~ coverage ]] && continue
+  [[ "$folder" =~ current  ]] && continue
   # echo "folder: $folder"
   go "$folder" &
 done
