@@ -29,7 +29,8 @@ void UntypedIPlane::set_untyped( IPlane* const plane ) {
 /****************************************************************
 ** PlaneGroup
 *****************************************************************/
-void PlaneGroup::set_bottom( IPlane& p ATTR_LIFETIMEBOUND ) {
+void PlaneGroup::set_bottom(
+    IPlane& p [[clang::lifetime_capture_by( this )]] ) {
   bottom = &p;
 }
 

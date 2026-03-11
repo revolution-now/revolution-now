@@ -447,7 +447,7 @@ static void render_header_text(
     if( !shortcut.has_value() ) return res;
     // Highlight the letter representing the shortcut key.
     string const shortcut_str( 1, *shortcut );
-    auto const pos = name.find_first_of( shortcut_str );
+    auto const pos = res.find_first_of( shortcut_str );
     if( pos != string::npos )
       res.replace( pos, 1, fmt::format( "[{}]", shortcut_str ) );
     return res;

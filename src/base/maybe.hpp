@@ -109,7 +109,6 @@ class [[nodiscard]] maybe { /* clang-format on */
   requires( std::is_trivially_default_constructible_v<T> )
   = default;
 
-  // This does not initialize the union member.
   constexpr maybe() noexcept
   requires( !std::is_trivially_default_constructible_v<T> )
     : active_{ false } {}
@@ -1057,7 +1056,14 @@ class [[nodiscard]] maybe { /* clang-format on */
     }
   }
 
+  struct empty_byte {};
+
   union {
+    // This empty byte won't introduce any extra padding, but it
+    // will allow the union to have a valid value when the maybe
+    // is disengaged so that we can support T that are not de-
+    // fault constructible.
+    empty_byte empty_byte_ = {};
     T val_;
   };
   bool active_ = false;

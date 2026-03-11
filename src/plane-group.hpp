@@ -64,7 +64,8 @@ struct TypedIPlane : UntypedIPlane {
     return *typed_;
   }
 
-  TypedIPlane& operator=( T& p ATTR_LIFETIMEBOUND ) {
+  TypedIPlane& operator=(
+      T& p [[clang::lifetime_capture_by( this )]] ) {
     typed_ = &p;
     set_untyped( &p.impl() );
     CHECK( has_untyped() );
@@ -103,13 +104,15 @@ struct PlaneGroup : IPlaneGroup {
   // This one basically defines which general view we're in.
   BottomPlaneVariant bottom;
 
-  void set_bottom( IPlane& p ATTR_LIFETIMEBOUND );
+  void set_bottom( IPlane& p
+                   [[clang::lifetime_capture_by( this )]] );
   IPlane* get_bottom() const;
 
   bool menus_enabled = false;
 
   template<IsTypedBottomType T>
-  void set_bottom( T& p ATTR_LIFETIMEBOUND ) {
+  void set_bottom( T& p
+                   [[clang::lifetime_capture_by( this )]] ) {
     bottom.emplace<TypedIPlane<T>>() = p;
   }
 
