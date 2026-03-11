@@ -615,7 +615,7 @@ TEST_CASE( "[wait] simple exception" ) {
   REQUIRE( !w.ready() );
 }
 
-wait<> throws_eagerly_from_non_coro() {
+[[noreturn]] wait<> throws_eagerly_from_non_coro() {
   // This is not a coroutine (even though it returns a wait),
   // and so the following exception will just fly out.
   throw runtime_error( "eager exception" );
@@ -625,7 +625,7 @@ wait<> doomed_awaiter_on_non_coro() {
   co_await throws_eagerly_from_non_coro();
 }
 
-wait<> throws_eagerly_from_coro() {
+[[noreturn]] wait<> throws_eagerly_from_coro() {
   // This is a coroutine (because we have a co_return in it),
   // which changes how it will handle the below exception (it
   // will catch it instead of letting it fly).

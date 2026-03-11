@@ -2142,80 +2142,12 @@ namespace rn {
   }
 
 /****************************************************************
-*                    Interface: IContextOnly
+*                    Interface: IWithContext
 *****************************************************************/
 namespace rn {
 
-  struct IContextOnly {
-    virtual ~IContextOnly() = default;
-  };
-
-  struct RealContextOnly final : public IContextOnly {
-    RealContextOnly(
-        IEmpty&     aaa,
-        IOneMethod& bbb )
-      : aaa_( aaa ),
-        bbb_( bbb ) {}
-
-   private:
-    IEmpty&     aaa_;
-    IOneMethod& bbb_;
-  };
-
-} // namespace rn
-
-// MockIContextOnly
-#define RDS_DEFINE_MOCK_IContextOnly() \
-  namespace rn { \
-    struct MockIContextOnly : public IContextOnly {}; \
-  }
-
-/****************************************************************
-*              Interface: IContextOnlyEmptyMethod
-*****************************************************************/
-namespace rn {
-
-  struct IContextOnlyEmptyMethod {
-    virtual ~IContextOnlyEmptyMethod() = default;
-
-    virtual void some_method() const = 0;
-  };
-
-  struct RealContextOnlyEmptyMethod final : public IContextOnlyEmptyMethod {
-    RealContextOnlyEmptyMethod(
-        IEmpty&     aaa,
-        IOneMethod& bbb )
-      : aaa_( aaa ),
-        bbb_( bbb ) {}
-
-    void some_method() const override {
-      return ::rn::some_method(
-        aaa_,
-        bbb_ );
-    }
-
-   private:
-    IEmpty&     aaa_;
-    IOneMethod& bbb_;
-  };
-
-} // namespace rn
-
-// MockIContextOnlyEmptyMethod
-#define RDS_DEFINE_MOCK_IContextOnlyEmptyMethod() \
-  namespace rn { \
-    struct MockIContextOnlyEmptyMethod : public IContextOnlyEmptyMethod { \
-      MOCK_METHOD( void, some_method, (), ( const ) ); \
-    }; \
-  }
-
-/****************************************************************
-*                       Interface: IMulti
-*****************************************************************/
-namespace rn {
-
-  struct IMulti {
-    virtual ~IMulti() = default;
+  struct IWithContext {
+    virtual ~IWithContext() = default;
 
     virtual IEmpty& some_method(
         IOneMethod& one ) const = 0;
@@ -2225,8 +2157,8 @@ namespace rn {
         IOneMethodWithTwoArgs const& notification ) const = 0;
   };
 
-  struct RealMulti final : public IMulti {
-    RealMulti(
+  struct RealWithContext final : public IWithContext {
+    RealWithContext(
         int&          i,
         double const& d )
       : i_( i ),
@@ -2257,10 +2189,10 @@ namespace rn {
 
 } // namespace rn
 
-// MockIMulti
-#define RDS_DEFINE_MOCK_IMulti() \
+// MockIWithContext
+#define RDS_DEFINE_MOCK_IWithContext() \
   namespace rn { \
-    struct MockIMulti : public IMulti { \
+    struct MockIWithContext : public IWithContext { \
       MOCK_METHOD( IEmpty&, some_method, ( \
         IOneMethod& \
         ), ( const ) ); \

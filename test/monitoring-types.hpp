@@ -229,10 +229,10 @@ struct Throws {
   [[noreturn]] Throws( Throws&& ) {
     throw std::runtime_error( "move construction" );
   }
-  Throws& operator=( Throws const& ) {
+  [[noreturn]] Throws& operator=( Throws const& ) {
     throw std::runtime_error( "copy assignment" );
   }
-  Throws& operator=( Throws&& ) {
+  [[noreturn]] Throws& operator=( Throws&& ) {
     throw std::runtime_error( "move assignment" );
   }
 };

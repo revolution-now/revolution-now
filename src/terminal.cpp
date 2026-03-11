@@ -50,7 +50,9 @@ unordered_map<string,
           FATAL( "aborting in response to terminal command." );
         } }, //
       { "quit",
-        []( Terminal& ) { throw exception_hard_exit{}; } } //
+        [] [[noreturn]] ( Terminal& ) {
+          throw exception_hard_exit{};
+        } } //
     };
 
 bool is_statement( string const& cmd ) {

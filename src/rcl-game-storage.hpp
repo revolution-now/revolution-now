@@ -82,8 +82,7 @@ struct RclGameStorageLoad : public IGameStorageLoad,
                             private RclGameStorageQueryImpl {
   struct options {};
 
-  RclGameStorageLoad( SS& ss, options opts = {} )
-    : ss_( ss ), opts_( opts ) {}
+  RclGameStorageLoad( SS& ss, options const = {} ) : ss_( ss ) {}
 
  public: // IGameStorageLoad
   base::valid_or<std::string> load(
@@ -100,7 +99,6 @@ struct RclGameStorageLoad : public IGameStorageLoad,
 
  private:
   SS& ss_;
-  options opts_ = {};
 };
 
 } // namespace rn

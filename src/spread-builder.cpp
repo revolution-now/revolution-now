@@ -291,7 +291,7 @@ TileSpreadRenderPlan build_inhomogeneous_tile_spread(
   TileSpreadRenderPlan res;
   InhomogeneousTileSpreadConfig const config = [&] {
     InhomogeneousTileSpreadConfig res = config_unprocessed;
-    if( config.sort_tiles )
+    if( res.sort_tiles )
       sort( res.tiles.begin(), res.tiles.end(),
             []( TileWithOptions const& l,
                 TileWithOptions const& r ) {

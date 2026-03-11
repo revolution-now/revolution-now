@@ -584,14 +584,13 @@ void SpriteView::draw( rr::Renderer& renderer,
 ** LineEditorView
 *****************************************************************/
 LineEditorView::LineEditorView(
-    rr::ITextometer const& textometer, e_font font,
-    W pixels_wide, OnChangeFunc on_change, gfx::pixel fg,
-    gfx::pixel bg, string_view prompt, string_view initial_text )
+    rr::ITextometer const& textometer, e_font, W pixels_wide,
+    OnChangeFunc on_change, gfx::pixel fg, gfx::pixel bg,
+    string_view prompt, string_view initial_text )
   : textometer_( textometer ),
     prompt_{ prompt },
     fg_{ fg },
     bg_{ bg },
-    font_{ font },
     on_change_{ std::move( on_change ) },
     line_editor_( string( initial_text ), initial_text.size() ),
     input_view_( 1 ),

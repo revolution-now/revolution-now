@@ -190,7 +190,6 @@ maybe<Dwelling const&> VisibilityEntire::dwelling_at(
 VisibilityForPlayer::VisibilityForPlayer( SSConst const& ss,
                                           e_player player )
   : IVisibility( ss ),
-    ss_( ss ),
     entire_( ss ),
     player_( player ),
     player_terrain_( addressof(

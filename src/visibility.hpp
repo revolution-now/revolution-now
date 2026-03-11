@@ -178,7 +178,6 @@ struct VisibilityForPlayer : IVisibility {
   maybe<PlayerSquare const&> player_square_at(
       gfx::point tile ) const;
 
-  SSConst const& ss_;
   VisibilityEntire entire_;
   e_player const player_                     = {};
   PlayerTerrain const* const player_terrain_ = nullptr;

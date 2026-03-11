@@ -299,17 +299,7 @@ interface.ITwoMethodsWithTwoArgs {
   some_other_method { returns 'float' },
 }
 
-interface.IContextOnly {
-  _context { aaa 'IEmpty&', bbb 'IOneMethod&' }
-}
-
-interface.IContextOnlyEmptyMethod {
-  some_method { returns 'void' },
-
-  _context { aaa 'IEmpty&', bbb 'IOneMethod&' }
-}
-
-interface.IMulti {
+interface.IWithContext {
   some_method {
     returns 'IEmpty&',
     one 'IOneMethod&',

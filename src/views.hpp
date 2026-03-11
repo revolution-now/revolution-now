@@ -517,7 +517,6 @@ class LineEditorView : public View {
   std::string prompt_;
   gfx::pixel fg_;
   gfx::pixel bg_;
-  e_font font_;
   OnChangeFunc on_change_;
   LineEditor line_editor_;
   LineEditorInputView input_view_;
