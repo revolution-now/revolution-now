@@ -78,7 +78,7 @@
 // It is important that we only evaluate a once here!
 #define BASE_CHECK( a, ... )                             \
   do {                                                   \
-    if( !( a ) ) {                                       \
+    if( !( a ) ) [[unlikely]] {                          \
       ::base::abort_with_msg( ::base::detail::check_msg( \
           #a, fmt::format( "" __VA_ARGS__ ) ) );         \
     }                                                    \
@@ -97,14 +97,14 @@
 // the lambda returns.
 #define BASE_CHECK_EQ( x, y )                                \
   []( auto&& l, auto&& r ) {                                 \
-    if( l != r )                                             \
+    if( l != r ) [[unlikely]]                                \
       ::base::abort_with_msg( ::base::detail::check_msg(     \
           #x " == " #y, fmt::format( "{} != {}", l, r ) ) ); \
   }( x, y )
 
 #define BASE_CHECK_NEQ( x, y )                               \
   []( auto&& l, auto&& r ) {                                 \
-    if( l == r )                                             \
+    if( l == r ) [[unlikely]]                                \
       ::base::abort_with_msg( ::base::detail::check_msg(     \
           #x " != " #y, fmt::format( "{} == {}", l, r ) ) ); \
   }( x, y )
@@ -202,29 +202,29 @@
 #define CHECK_HAS_VALUE( ... ) \
   PP_ONE_OR_MORE_ARGS( CHECK_HAS_VALUE, __VA_ARGS__ )
 
-#define CHECK_HAS_VALUE_SINGLE( e )                 \
-  do {                                              \
-    auto const& STRING_JOIN( __e, __LINE__ ) = e;   \
-    if( !bool( STRING_JOIN( __e, __LINE__ ) ) ) {   \
-      ::base::abort_with_msg( ::base::to_str(       \
-          STRING_JOIN( __e, __LINE__ ).error() ) ); \
-    }                                               \
+#define CHECK_HAS_VALUE_SINGLE( e )                            \
+  do {                                                         \
+    auto const& STRING_JOIN( __e, __LINE__ ) = e;              \
+    if( !bool( STRING_JOIN( __e, __LINE__ ) ) ) [[unlikely]] { \
+      ::base::abort_with_msg( ::base::to_str(                  \
+          STRING_JOIN( __e, __LINE__ ).error() ) );            \
+    }                                                          \
   } while( false )
 
-#define CHECK_HAS_VALUE_MULTI( e, ... )             \
-  do {                                              \
-    auto const& STRING_JOIN( __e, __LINE__ ) = e;   \
-    if( !bool( STRING_JOIN( __e, __LINE__ ) ) ) {   \
-      ::base::abort_with_msg( fmt::format(          \
-          "{}: {}", fmt::format( __VA_ARGS__ ),     \
-          STRING_JOIN( __e, __LINE__ ).error() ) ); \
-    }                                               \
+#define CHECK_HAS_VALUE_MULTI( e, ... )                        \
+  do {                                                         \
+    auto const& STRING_JOIN( __e, __LINE__ ) = e;              \
+    if( !bool( STRING_JOIN( __e, __LINE__ ) ) ) [[unlikely]] { \
+      ::base::abort_with_msg( fmt::format(                     \
+          "{}: {}", fmt::format( __VA_ARGS__ ),                \
+          STRING_JOIN( __e, __LINE__ ).error() ) );            \
+    }                                                          \
   } while( false )
 
-#define GOOD_OR_RETURN( ... )                      \
-  do {                                             \
-    if( auto&& xp__ = __VA_ARGS__; !bool( xp__ ) ) \
-      return std::move( xp__.error() );            \
+#define GOOD_OR_RETURN( ... )                                   \
+  do {                                                          \
+    if( auto&& xp__ = __VA_ARGS__; !bool( xp__ ) ) [[unlikely]] \
+      return std::move( xp__.error() );                         \
   } while( false )
 
 /****************************************************************
@@ -239,7 +239,8 @@
 
 #define UNWRAP_CHECK( a, ... )                       \
   auto&& STRING_JOIN( __e, __LINE__ ) = __VA_ARGS__; \
-  if( !STRING_JOIN( __e, __LINE__ ).has_value() ) {  \
+  if( !STRING_JOIN( __e, __LINE__ ).has_value() )    \
+      [[unlikely]] {                                 \
     ::base::abort_with_msg( ::base::to_str(          \
         STRING_JOIN( __e, __LINE__ ).error() ) );    \
   }                                                  \
@@ -248,59 +249,65 @@
 // This is for the case where you want to specify the type.
 #define UNWRAP_CHECK_T( a, ... )                     \
   auto&& STRING_JOIN( __e, __LINE__ ) = __VA_ARGS__; \
-  if( !STRING_JOIN( __e, __LINE__ ).has_value() ) {  \
+  if( !STRING_JOIN( __e, __LINE__ ).has_value() )    \
+      [[unlikely]] {                                 \
     ::base::abort_with_msg( ::base::to_str(          \
         STRING_JOIN( __e, __LINE__ ).error() ) );    \
   }                                                  \
   BASE_IDENTITY( a ) = *STRING_JOIN( __e, __LINE__ )
 
-#define UNWRAP_BREAK( a, e )                             \
-  auto&& STRING_JOIN( __e, __LINE__ ) = e;               \
-  if( !STRING_JOIN( __e, __LINE__ ).has_value() ) break; \
+#define UNWRAP_BREAK( a, e )                                   \
+  auto&& STRING_JOIN( __e, __LINE__ ) = e;                     \
+  if( !STRING_JOIN( __e, __LINE__ ).has_value() ) [[unlikely]] \
+    break;                                                     \
   auto&& BASE_IDENTITY( a ) = *STRING_JOIN( __e, __LINE__ )
 
 #define UNWRAP_CHECK_MSG( a, e, ... )                          \
   auto&& STRING_JOIN( __e, __LINE__ ) = e;                     \
-  if( !STRING_JOIN( __e, __LINE__ ).has_value() ) {            \
+  if( !STRING_JOIN( __e, __LINE__ ).has_value() )              \
+      [[unlikely]] {                                           \
     ::base::abort_with_msg(                                    \
         fmt::format( "{}: {}", fmt::format( __VA_ARGS__ ),     \
                      STRING_JOIN( __e, __LINE__ ).error() ) ); \
   }                                                            \
   auto&& BASE_IDENTITY( a ) = *STRING_JOIN( __e, __LINE__ )
 
-#define UNWRAP_CONTINUE( a, ... )                           \
-  auto&& STRING_JOIN( __e, __LINE__ ) = __VA_ARGS__;        \
-  if( !STRING_JOIN( __e, __LINE__ ).has_value() ) continue; \
+#define UNWRAP_CONTINUE( a, ... )                              \
+  auto&& STRING_JOIN( __e, __LINE__ ) = __VA_ARGS__;           \
+  if( !STRING_JOIN( __e, __LINE__ ).has_value() ) [[unlikely]] \
+    continue;                                                  \
   BASE_IDENTITY( a ) = *STRING_JOIN( __e, __LINE__ )
 
-#define UNWRAP_RETURN( var, ... )                             \
-  auto&& STRING_JOIN( __x, __LINE__ ) = __VA_ARGS__;          \
-  if( !STRING_JOIN( __x, __LINE__ ).has_value() )             \
-    return std::move( STRING_JOIN( __x, __LINE__ ) ).error(); \
+#define UNWRAP_RETURN( var, ... )                              \
+  auto&& STRING_JOIN( __x, __LINE__ ) = __VA_ARGS__;           \
+  if( !STRING_JOIN( __x, __LINE__ ).has_value() ) [[unlikely]] \
+    return std::move( STRING_JOIN( __x, __LINE__ ) ).error();  \
   auto&& var = *STRING_JOIN( __x, __LINE__ );
 
-#define UNWRAP_RETURN_T( var, ... )                           \
-  auto&& STRING_JOIN( __x, __LINE__ ) = __VA_ARGS__;          \
-  if( !STRING_JOIN( __x, __LINE__ ).has_value() )             \
-    return std::move( STRING_JOIN( __x, __LINE__ ) ).error(); \
+#define UNWRAP_RETURN_T( var, ... )                            \
+  auto&& STRING_JOIN( __x, __LINE__ ) = __VA_ARGS__;           \
+  if( !STRING_JOIN( __x, __LINE__ ).has_value() ) [[unlikely]] \
+    return std::move( STRING_JOIN( __x, __LINE__ ) ).error();  \
   BASE_IDENTITY( var ) = *STRING_JOIN( __x, __LINE__ );
 
-#define UNWRAP_RETURN_VOID_T( var, ... )                  \
-  auto&& STRING_JOIN( __x, __LINE__ ) = __VA_ARGS__;      \
-  if( !STRING_JOIN( __x, __LINE__ ).has_value() ) return; \
+#define UNWRAP_RETURN_VOID_T( var, ... )                       \
+  auto&& STRING_JOIN( __x, __LINE__ ) = __VA_ARGS__;           \
+  if( !STRING_JOIN( __x, __LINE__ ).has_value() ) [[unlikely]] \
+    return;                                                    \
   BASE_IDENTITY( var ) = *STRING_JOIN( __x, __LINE__ );
 
-#define UNWRAP_RETURN_FALSE( var, ... )                         \
-  auto&& STRING_JOIN( __x, __LINE__ ) = __VA_ARGS__;            \
-  if( !STRING_JOIN( __x, __LINE__ ).has_value() ) return false; \
+#define UNWRAP_RETURN_FALSE( var, ... )                        \
+  auto&& STRING_JOIN( __x, __LINE__ ) = __VA_ARGS__;           \
+  if( !STRING_JOIN( __x, __LINE__ ).has_value() ) [[unlikely]] \
+    return false;                                              \
   auto&& var = *STRING_JOIN( __x, __LINE__ );
 
-#define UNWRAP_CO_RETURN( var, ... )                    \
-  auto&& STRING_JOIN( __x, __LINE__ ) = __VA_ARGS__;    \
-  if( !STRING_JOIN( __x, __LINE__ ).has_value() )       \
-    co_return std::move( STRING_JOIN( __x, __LINE__ ) ) \
-        .error();                                       \
-  BASE_IDENTITY( var ) =                                \
+#define UNWRAP_CO_RETURN( var, ... )                           \
+  auto&& STRING_JOIN( __x, __LINE__ ) = __VA_ARGS__;           \
+  if( !STRING_JOIN( __x, __LINE__ ).has_value() ) [[unlikely]] \
+    co_return std::move( STRING_JOIN( __x, __LINE__ ) )        \
+        .error();                                              \
+  BASE_IDENTITY( var ) =                                       \
       std::move( *STRING_JOIN( __x, __LINE__ ) );
 
 /****************************************************************
@@ -319,27 +326,27 @@
 #define RETURN_IF_FALSE( ... ) \
   PP_ONE_OR_MORE_ARGS( RETURN_IF_FALSE, __VA_ARGS__ )
 
-#define RETURN_IF_FALSE_SINGLE( e )          \
-  if( auto&& __expr = e; !bool( __expr ) ) { \
-    return fmt::format( #e );                \
+#define RETURN_IF_FALSE_SINGLE( e )                       \
+  if( auto&& __expr = e; !bool( __expr ) ) [[unlikely]] { \
+    return fmt::format( #e );                             \
   }
 
-#define RETURN_IF_FALSE_MULTI( e, ... )      \
-  if( auto&& __expr = e; !bool( __expr ) ) { \
-    return fmt::format( __VA_ARGS__ );       \
+#define RETURN_IF_FALSE_MULTI( e, ... )                   \
+  if( auto&& __expr = e; !bool( __expr ) ) [[unlikely]] { \
+    return fmt::format( __VA_ARGS__ );                    \
   }
 
 #define RETURN_IF( ... ) \
   PP_ONE_OR_MORE_ARGS( RETURN_IF, __VA_ARGS__ )
 
-#define RETURN_IF_SINGLE( e )               \
-  if( auto&& __expr = e; bool( __expr ) ) { \
-    return fmt::format( #e );               \
+#define RETURN_IF_SINGLE( e )                            \
+  if( auto&& __expr = e; bool( __expr ) ) [[unlikely]] { \
+    return fmt::format( #e );                            \
   }
 
-#define RETURN_IF_MULTI( e, ... )           \
-  if( auto&& __expr = e; bool( __expr ) ) { \
-    return fmt::format( __VA_ARGS__ );      \
+#define RETURN_IF_MULTI( e, ... )                        \
+  if( auto&& __expr = e; bool( __expr ) ) [[unlikely]] { \
+    return fmt::format( __VA_ARGS__ );                   \
   }
 
 /****************************************************************
@@ -349,13 +356,13 @@
   PP_ONE_OR_MORE_ARGS( TRUE_OR_RETURN_GENERIC_ERR, __VA_ARGS__ )
 
 #define TRUE_OR_RETURN_GENERIC_ERR_SINGLE( expr ) \
-  if( auto&& __e = expr; !__e ) {                 \
+  if( auto&& __e = expr; !__e ) [[unlikely]] {    \
     return ::base::GenericError::create(          \
         "condition failed: " #expr );             \
   }
 
 #define TRUE_OR_RETURN_GENERIC_ERR_MULTI( expr, ... )      \
-  if( auto&& __e = expr; !__e ) {                          \
+  if( auto&& __e = expr; !__e ) [[unlikely]] {             \
     return ::base::GenericError::create(                   \
         std::string( "condition failed: " #expr ) + ": " + \
         fmt::format( __VA_ARGS__ ) );                      \

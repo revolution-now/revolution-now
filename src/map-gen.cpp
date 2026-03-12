@@ -33,6 +33,7 @@
 // base
 #include "base/keyval.hpp"
 #include "base/logger.hpp"
+#include "base/range-lite.hpp"
 #include "base/timer.hpp"
 #include "base/to-str-ext-std.hpp"
 
@@ -44,6 +45,7 @@ using namespace std;
 
 namespace rg = std::ranges;
 namespace rv = std::ranges::views;
+namespace rl = base::rl;
 
 namespace rn {
 
@@ -56,7 +58,6 @@ using ::gfx::point;
 using ::gfx::rect;
 using ::gfx::rect_iterator;
 using ::gfx::size;
-using ::ranges::views::enumerate;
 using ::refl::enum_values;
 using ::std::max;
 using ::std::min;
@@ -651,7 +652,8 @@ void add_rivers( MapMatrix& m, IRand& rand,
     if( !river_tiles.has_value() ) continue;
     // Note that consecutive river tiles in this vector are not
     // necessarily adjacent to each other due to forking.
-    for( auto const [i, rt] : enumerate( *river_tiles ) ) {
+    for( auto const [i, rt] :
+         rl::all( *river_tiles ).enumerate() ) {
       CHECK( rt.tile.is_inside( m.rect() ) );
       if( i == 0 )
         CHECK( m[rt.tile].surface == e_surface::water );

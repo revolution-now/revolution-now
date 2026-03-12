@@ -213,11 +213,11 @@ struct list {
   value& operator[]( size_t idx );
   value const& operator[]( size_t idx ) const;
 
-  auto begin() { return o_.begin(); }
-  auto end() { return o_.end(); }
+  auto begin();
+  auto end();
 
-  auto begin() const { return o_.begin(); }
-  auto end() const { return o_.end(); }
+  auto begin() const;
+  auto end() const;
 
   template<typename... T>
   auto emplace_back( T&&... args ) {
@@ -332,6 +332,17 @@ inline void table::insert( value_type const& o ) {
 inline void table::insert( value_type&& o ) {
   o_->insert( std::move( o ) );
 }
+
+/****************************************************************
+** list implementation.
+*****************************************************************/
+// These need to go here due to the fwd declaration of `value`.
+
+inline auto list::begin() { return o_.begin(); }
+inline auto list::end() { return o_.end(); }
+
+inline auto list::begin() const { return o_.begin(); }
+inline auto list::end() const { return o_.end(); }
 
 /****************************************************************
 ** literals

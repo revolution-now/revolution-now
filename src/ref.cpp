@@ -1030,7 +1030,7 @@ bool can_send_more_ref_units( SSConst const& ss,
   // Check if the REF has any ships on the map.
   unordered_map<UnitId, UnitState::euro const*> const&
       units_all = ss.units.euro_all();
-  for( auto const [unit_id, p_euro] : units_all ) {
+  for( auto const& [unit_id, p_euro] : units_all ) {
     Unit const& unit = p_euro->unit;
     if( unit.player_type() != ref_player.type ) continue;
     if( unit.desc().ship )
@@ -1063,7 +1063,7 @@ bool ref_should_forfeight( SSConst const& ss,
     return false;
   unordered_map<UnitId, UnitState::euro const*> const&
       units_all = ss.units.euro_all();
-  for( auto const [unit_id, p_euro] : units_all ) {
+  for( auto const& [unit_id, p_euro] : units_all ) {
     Unit const& unit = p_euro->unit;
     if( unit.player_type() != ref_player.type ) continue;
     if( !unit.desc().ship && unit.desc().can_attack )

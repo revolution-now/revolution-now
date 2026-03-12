@@ -117,6 +117,14 @@ function( set_warning_options target )
             # fixable, so we will suppress that until it is
             # fixed.
             -Wno-maybe-uninitialized
+            # This apparently will severely degrade debuggability
+            # of code, but it speeds up compile times and sup-
+            # presses noisy warnings. Maybe we can try
+            # re-enabling it again in the future. If there are
+            # still noisy warnings then we can try increasing the
+            # var tracking limit, but that could increase compile
+            # times further.
+            -fno-var-tracking-assignments
          >
         # msvc
         $<$<CXX_COMPILER_ID:MSVC>:

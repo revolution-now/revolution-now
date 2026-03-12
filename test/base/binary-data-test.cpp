@@ -210,7 +210,7 @@ TEST_CASE( "[base/binary-data] IBinaryIO [write_bytes]" ) {
 
   REQUIRE( b.write_bytes<1>( i1 ) );
   REQUIRE( b.eof() );
-  REQUIRE_FALSE( b.remaining() == 1 );
+  REQUIRE( b.remaining() == 0 );
   REQUIRE( b.pos() == 16 );
   expected = { 0x05, 0xff, 0x80, 0,    0x20, 0,    0x10, 0x54,
                0x76, 0x98, 0x90, 0x78, 0x56, 0x34, 0x12, 0x05 };
@@ -218,7 +218,7 @@ TEST_CASE( "[base/binary-data] IBinaryIO [write_bytes]" ) {
 
   REQUIRE_FALSE( b.write_bytes<1>( i1 ) );
   REQUIRE( b.eof() );
-  REQUIRE_FALSE( b.remaining() == 1 );
+  REQUIRE( b.remaining() == 0 );
   REQUIRE( b.pos() == 16 );
   expected = { 0x05, 0xff, 0x80, 0,    0x20, 0,    0x10, 0x54,
                0x76, 0x98, 0x90, 0x78, 0x56, 0x34, 0x12, 0x05 };
@@ -226,7 +226,7 @@ TEST_CASE( "[base/binary-data] IBinaryIO [write_bytes]" ) {
 
   REQUIRE( b.write_bytes<0>( i1 ) );
   REQUIRE( b.eof() );
-  REQUIRE_FALSE( b.remaining() == 1 );
+  REQUIRE( b.remaining() == 0 );
   REQUIRE( b.pos() == 16 );
   expected = { 0x05, 0xff, 0x80, 0,    0x20, 0,    0x10, 0x54,
                0x76, 0x98, 0x90, 0x78, 0x56, 0x34, 0x12, 0x05 };
@@ -234,7 +234,7 @@ TEST_CASE( "[base/binary-data] IBinaryIO [write_bytes]" ) {
 
   REQUIRE_FALSE( b.write_bytes<8>( i4 ) );
   REQUIRE( b.eof() );
-  REQUIRE_FALSE( b.remaining() == 1 );
+  REQUIRE( b.remaining() == 0 );
   REQUIRE( b.pos() == 16 );
   expected = { 0x05, 0xff, 0x80, 0,    0x20, 0,    0x10, 0x54,
                0x76, 0x98, 0x90, 0x78, 0x56, 0x34, 0x12, 0x05 };

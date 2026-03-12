@@ -1895,7 +1895,9 @@ struct LandViewPlane::Impl : public IPlane, public IMenuHandler {
       point const origin ) {
     drag_stream.reset();
     SCOPE_EXIT { drag_stream.reset(); };
-    co_await ( this->*handler )( origin );
+    // First get w then co_await to avoid gcc 15.2.0 ICE.
+    wait<> w = ( this->*handler )( origin );
+    co_await std::move( w );
     // Wait for drag to finish if it hasn't already.
     while( co_await drag_stream.next() );
   }

@@ -511,10 +511,15 @@ CombatShipAttackShip RealCombat::ship_attack_ship(
 
   // Set the outcome of the winner.
   if( winner_unit.id() == attacker.id() )
-    winner_stats.outcome = EuroNavalUnitCombatOutcome::moved{
-      .to = defender_coord };
+    // Use emplace-assign to suppres weird gcc warnings.
+    winner_stats.outcome
+        .emplace<EuroNavalUnitCombatOutcome::moved>() =
+        EuroNavalUnitCombatOutcome::moved{ .to =
+                                               defender_coord };
   else
-    winner_stats.outcome =
+    // Use emplace-assign to suppres weird gcc warnings.
+    winner_stats.outcome
+        .emplace<EuroNavalUnitCombatOutcome::no_change>() =
         EuroNavalUnitCombatOutcome::no_change{};
 
   // Now we can compute the sink weights since we know whose guns

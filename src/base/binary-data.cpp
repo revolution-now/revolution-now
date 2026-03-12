@@ -85,14 +85,15 @@ int FileBinaryIO::size() const {
   return file_size;
 }
 
-bool FileBinaryIO::read_bytes( int n, unsigned char* dst ) {
+bool FileBinaryIO::read_bytes( int const n,
+                               unsigned char* const dst ) {
   FILE* const fp    = resource();
   size_t const read = std::fread( dst, 1, n, fp );
   return ( int( read ) == n );
 }
 
-bool FileBinaryIO::write_bytes( int n,
-                                unsigned char const* src ) {
+bool FileBinaryIO::write_bytes(
+    int const n, unsigned char const* const src ) {
   FILE* const fp       = resource();
   size_t const written = std::fwrite( src, 1, n, fp );
   return ( int( written ) == n );
@@ -101,7 +102,8 @@ bool FileBinaryIO::write_bytes( int n,
 /****************************************************************
 ** MemBufferBinaryIO
 *****************************************************************/
-bool MemBufferBinaryIO::read_bytes( int n, unsigned char* dst ) {
+bool MemBufferBinaryIO::read_bytes( int const n,
+                                    unsigned char* const dst ) {
   if( remaining() < n ) return false;
   std::memcpy( dst, &buffer_[idx_], n );
   idx_ += n;
@@ -109,8 +111,9 @@ bool MemBufferBinaryIO::read_bytes( int n, unsigned char* dst ) {
   return true;
 }
 
-bool MemBufferBinaryIO::write_bytes( int n,
-                                     unsigned char const* src ) {
+bool MemBufferBinaryIO::write_bytes(
+    int const n, unsigned char const* const src ) {
+  if( n == 0 ) return true;
   if( remaining() < n ) return false;
   std::memcpy( &buffer_[idx_], src, n );
   idx_ += n;

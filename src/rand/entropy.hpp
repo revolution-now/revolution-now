@@ -25,6 +25,7 @@
 #include "traverse/type-ext.hpp"
 
 // C++ standard library
+#include <bit>
 #include <cstdint>
 #include <string_view>
 
