@@ -27,55 +27,105 @@
 
 namespace base::detail {
 
+/****************************************************************
+** Fwd. Decls.
+*****************************************************************/
+template<typename T>
+struct maybe_promise_type;
+
+template<typename T>
+struct maybe_holder;
+
+/****************************************************************
+** Awaiters.
+*****************************************************************/
 struct maybe_await_bool {
-  bool b_ = {};
-  constexpr bool await_ready() noexcept { return b_; }
-  void await_suspend( std::coroutine_handle<> h ) noexcept {
-    // See corresponding comments in maybe_await.
-    h.destroy();
+  bool const b_ = {};
+
+  constexpr bool await_ready() const noexcept { return b_; }
+
+  template<typename Promise>
+  bool await_suspend(
+      std::coroutine_handle<Promise> ) const noexcept {
+    // One of the awaited maybes was nothing, thus suspend. We
+    // will never resume this coroutine, and the outer return ob-
+    // ject will destroy the coroutine frame safely from outside.
+    return true;
   }
-  constexpr void await_resume() noexcept {}
+
+  constexpr void await_resume() const noexcept {}
 };
 
 template<typename T>
 struct maybe_await {
-  maybe<T> const* o_;
-  bool await_ready() noexcept { return o_->has_value(); }
-  void await_suspend( std::coroutine_handle<> h ) noexcept {
-    // If we are suspending then that means that one of the
-    // maybe's is `nothing`, in which case we will return to
-    // the caller and never resume the coroutine, so there is
-    // never a need to resume.
-    h.destroy();
+  maybe<T> const* const o_;
+
+  bool await_ready() const noexcept { return o_->has_value(); }
+
+  template<typename Promise>
+  bool await_suspend(
+      std::coroutine_handle<Promise> ) const noexcept {
+    // One of the awaited maybes was nothing, thus suspend. We
+    // will never resume this coroutine, and the outer return ob-
+    // ject will destroy the coroutine frame safely from outside.
+    return true;
   }
-  T await_resume() noexcept { return o_->value(); }
+
+  T await_resume() const noexcept { return o_->value(); }
 };
 
-// Take advantage of the fact that the get_return_object function
-// on the promise is allowed to return a type that is implicitly
-// convertible to the result. This type is non-copyable and non-
-// movable, so should guarantee that the maybe<T> that it holds
-// will be a singleton within the coroutine and will not move ad-
-// dresses. This is then used to give the promise the address of
-// its maybe<T> member so that the promise can fill it in.
-// Without this, a co_return would not be able to communicate the
-// result since the get_return_object is called at the start of
-// the coroutine.
-//
-// Note this also requires that compiler defer the implicit con-
-// version of the return object until the point of return. Some
-// versions of MSVC may not do this (although they are supposed
-// to in the future); if the implicit conversion is done eagerly
-// what is done here is probably undefined behavior in that the
-// maybe_holder would be immediately converted to a maybe and the
-// pointer held by the promise would point into a dead object.
-template<typename T, typename PromiseT>
+template<typename T>
+struct maybe_await<T&> {
+  maybe<T&> const* const o_;
+
+  bool await_ready() const noexcept { return o_->has_value(); }
+
+  template<typename Promise>
+  bool await_suspend(
+      std::coroutine_handle<Promise> ) const noexcept {
+    // One of the awaited maybes was nothing, thus suspend. We
+    // will never resume this coroutine, and the outer return ob-
+    // ject will destroy the coroutine frame safely from outside.
+    return true;
+  }
+
+  T& await_resume() const noexcept { return o_->value(); }
+};
+
+/****************************************************************
+** Owning coroutine return object.
+*****************************************************************/
+// This is what get_return_object() returns. It owns the handle
+// until the compiler performs the implicit conversion to may-
+// be<T> at the coroutine function's return point.
+template<typename T>
 struct maybe_holder {
-  maybe<T> o_;
-  maybe_holder( PromiseT* p ) { p->o_ = &o_; }
-  maybe_holder( maybe_holder&& )      = delete;
-  maybe_holder( maybe_holder const& ) = delete;
-  operator maybe<T>() const noexcept { return std::move( o_ ); }
+  using promise_t = maybe_promise_type<T>;
+  using handle_t  = std::coroutine_handle<promise_t>;
+
+  handle_t h_ = {};
+
+  explicit maybe_holder( handle_t const h ) noexcept : h_( h ) {}
+
+  maybe_holder( maybe_holder&& other ) noexcept
+    : h_( std::exchange( other.h_, {} ) ) {}
+
+  maybe_holder( maybe_holder const& )            = delete;
+  maybe_holder& operator=( maybe_holder const& ) = delete;
+  maybe_holder& operator=( maybe_holder&& )      = delete;
+
+  ~maybe_holder() {
+    if( h_ ) h_.destroy();
+  }
+
+  operator maybe<T>() && noexcept {
+    // Extract result, then destroy safely from outside of the
+    // coroutine frame (coroutine will be suspended).
+    maybe<T> out = std::move( h_.promise().result_ );
+    h_.destroy();
+    h_ = {};
+    return out;
+  }
 };
 
 // TODO: Add support for maybe-ref promise types here. Although
@@ -87,28 +137,53 @@ struct maybe_holder {
 // separate maybe_holder for maybe_refs that holds a pointer to T
 // instead of a maybe.
 template<typename T>
-struct promise_type {
-  maybe<T>* o_ = nullptr;
+struct maybe_promise_type {
+  maybe<T> result_;
 
-  // Need to use base::suspend_never because it fixes some
-  // methods that need to be noexcept (used with the clang+libst-
-  // dc++ combo).
+  constexpr maybe_promise_type() = default;
+
   auto initial_suspend() noexcept {
     return std::suspend_never{};
   }
 
-  using holder = detail::maybe_holder<T, promise_type>;
-
-  holder get_return_object() noexcept { return holder{ this }; }
-
-  void return_value( T const& val ) noexcept {
-    CHECK( o_ != nullptr );
-    *o_ = val;
+  using holder = maybe_holder<T>;
+  // Take advantage of the fact that the get_return_object func-
+  // tion on the promise is allowed to return a type that is im-
+  // plicitly convertible to the result. This type will be re-
+  // sponsible for extracting the result from the promise and
+  // also destroying the coroutine.
+  //
+  // Note this also requires that compiler defer the implicit
+  // conversion of the return object until the point of return.
+  // Some versions of MSVC may not do this (although they are
+  // supposed to in the future); if the implicit conversion is
+  // done eagerly then what is done here is probably undefined
+  // behavior in that the maybe_holder would be immediately con-
+  // verted to a maybe and the coroutine frame destroyed.
+  holder get_return_object() noexcept {
+    using handle_t = std::coroutine_handle<maybe_promise_type>;
+    return holder{ handle_t::from_promise( *this ) };
   }
 
-  auto final_suspend() noexcept { return std::suspend_never{}; }
+  void return_value( T const& val ) noexcept { result_ = val; }
 
-  void unhandled_exception() noexcept {}
+  void return_value( T&& val ) noexcept {
+    result_ = std::move( val );
+  }
+
+  auto final_suspend() noexcept {
+    // Suspend at the end so the owning maybe_holder can inspect
+    // the promise and destroy the frame from outside.
+    return std::suspend_always{};
+  }
+
+  // Doing nothing in this method could be dubious -- I am told
+  // that it would swallow any exception that happens in the
+  // coroutine and convert it to a `nothing` result... not sure
+  // that is what we want. So we will check-fail.
+  void unhandled_exception() noexcept {
+    FATAL( "unhandled exception in maybe coroutine." );
+  }
 
   template<typename U>
   static auto await_transform( maybe<U> const& o ) noexcept {
@@ -137,6 +212,6 @@ struct promise_type {
 namespace std {
 template<typename T, typename... Args>
 struct coroutine_traits<::base::maybe<T>, Args...> {
-  using promise_type = ::base::detail::promise_type<T>;
+  using promise_type = ::base::detail::maybe_promise_type<T>;
 };
 } // namespace std
