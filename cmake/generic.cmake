@@ -15,72 +15,73 @@ function( set_warning_options target )
         ${target} PRIVATE
         # clang
         $<$<CXX_COMPILER_ID:Clang>:
-           # Turn on all warnings.
-           # ======================================================
-           -Weverything
+            # Turn on all warnings.
+            # ======================================================
+            -Weverything
 
-           # Turn some warnings to errors.
-           # ======================================================
-           # This will trigger when a function that is supposed
-           # to return a value does not, which we never want.
-           -Werror=return-type
+            # Turn some warnings to errors.
+            # ======================================================
+            # This will trigger when a function that is supposed
+            # to return a value does not, which we never want.
+            -Werror=return-type
 
-           # Disable some warnings.
-           # ======================================================
-           -Wno-pre-c++20-compat
-           -Wno-c++20-compat
-           -Wno-pre-c++17-compat
-           -Wno-pre-c++14-compat
-           -Wno-c99-extensions
-           -Wno-c++98-compat
-           -Wno-c++98-compat-pedantic
-           -Wno-reserved-macro-identifier
-           -Wno-newline-eof
-           -Wno-padded
-           -Wno-extra-semi-stmt
-           -Wno-extra-semi
-           -Wno-reserved-identifier
-           -Wno-ctad-maybe-unsupported
-           -Wno-undefined-func-template
-           -Wno-switch-default
-           # TODO: this looks like a new warning that is not
-           # ready for primetime yet, and/or it flags too many
-           # things. Try re-enabling it at some point in the fu-
-           # ture since it may eventually be good.
-           -Wno-unsafe-buffer-usage
-           # This one gives a warning about missing case state-
-           # ments even when there is a default, which we don't
-           # want. We still have -Wswitch which will tell us
-           # about missing case statements when there is no de-
-           # fault (which is important).
-           -Wno-switch-enum
+            # Disable some warnings.
+            # ======================================================
+            -Wno-pre-c++20-compat
+            -Wno-c++20-compat
+            -Wno-pre-c++17-compat
+            -Wno-pre-c++14-compat
+            -Wno-c99-extensions
+            -Wno-c++98-compat
+            -Wno-c++98-compat-pedantic
+            -Wno-reserved-macro-identifier
+            -Wno-newline-eof
+            -Wno-padded
+            -Wno-extra-semi-stmt
+            -Wno-extra-semi
+            -Wno-reserved-identifier
+            -Wno-ctad-maybe-unsupported
+            -Wno-undefined-func-template
+            -Wno-switch-default
+            # TODO: this looks like a new warning that is not
+            # ready for primetime yet, and/or it flags too many
+            # things. Try re-enabling it at some point in the fu-
+            # ture since it may eventually be good.
+            -Wno-unsafe-buffer-usage
+            # This one gives a warning about missing case state-
+            # ments even when there is a default, which we don't
+            # want. We still have -Wswitch which will tell us
+            # about missing case statements when there is no de-
+            # fault (which is important).
+            -Wno-switch-enum
 
-           # TODO: consider re-enabling.
-           -Wno-shadow
-           -Wno-shadow-uncaptured-local
-           -Wno-shadow-field
-           -Wno-exit-time-destructors
-           -Wno-implicit-int-conversion
-           -Wno-implicit-float-conversion
-           -Wno-sign-conversion
-           -Wno-old-style-cast
-           -Wno-shorten-64-to-32
-           -Wno-global-constructors
-           -Wno-weak-vtables
-           -Wno-double-promotion
-           -Wno-float-equal
+            # TODO: consider re-enabling.
+            -Wno-shadow
+            -Wno-shadow-uncaptured-local
+            -Wno-shadow-field
+            -Wno-exit-time-destructors
+            -Wno-implicit-int-conversion
+            -Wno-implicit-float-conversion
+            -Wno-sign-conversion
+            -Wno-old-style-cast
+            -Wno-shorten-64-to-32
+            -Wno-global-constructors
+            -Wno-weak-vtables
+            -Wno-double-promotion
+            -Wno-float-equal
 
-           # TODO: remove this after these issues are fixed:
-           #       https://bugs.llvm.org/show_bug.cgi?id=24883
-           #       https://bugs.llvm.org/show_bug.cgi?id=33298
-           -Wno-unused-local-typedef
+            # This is optional, should probably be removed even-
+            # tually. It is convenient when there is a new
+            # warning introduced that we want to disable but we
+            # don't want to update all clang builds to a version
+            # that includes that warning.
+            -Wno-unknown-warning-option
 
-           # This is optional, should probably be removed eventu-
-           # ally. It is convenient when there is a new warning
-           # introduced that we want to disable but we don't want
-           # to update all clang builds to a version that in-
-           # cludes that warning.
-           -Wno-unknown-warning-option
+            # This seems to be an experimental feature that is
+            # not yet working properly and emits noisy warnigs.
+            # Perhaps try re-enabling it sometime after we move
+            # past clang 21.1.8.
+            -Wno-thread-safety-negative
          >
         # gcc
         $<$<CXX_COMPILER_ID:GNU>:
@@ -119,10 +120,10 @@ function( set_warning_options target )
             -Wno-maybe-uninitialized
             # This apparently will severely degrade debuggability
             # of code, but it speeds up compile times and sup-
-            # presses noisy warnings. Maybe we can try
-            # re-enabling it again in the future. If there are
-            # still noisy warnings then we can try increasing the
-            # var tracking limit, but that could increase compile
+            # presses noisy warnings. Maybe we can try reenabling
+            # it again in the future. If there are still noisy
+            # warnings then we can try increasing the var
+            # tracking limit, but that could increase compile
             # times further.
             -fno-var-tracking-assignments
          >
