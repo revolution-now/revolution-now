@@ -43,9 +43,8 @@ rect Textometer::trimmed_area_for( char const c ) const {
 
 interval Textometer::trimmed_horizontally(
     TextLayout const& layout, char const c ) const {
-  size const csize    = ascii_font_.char_size();
-  interval const mono = { .start = 0, .len = csize.w };
-  if( layout.monospace ) return mono;
+  size const csize = ascii_font_.char_size();
+  if( layout.monospace ) return { .start = 0, .len = csize.w };
   if( c == ' ' )
     return interval{ .len = std::max( csize.w / 2, 1 ) };
   return trimmed_area_for( c ).horizontal_slice();

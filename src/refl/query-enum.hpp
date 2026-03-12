@@ -29,7 +29,8 @@ template<ReflectedEnum E>
 constexpr int enum_count = traits<E>::value_names.size();
 
 template<ReflectedEnum E>
-inline constexpr auto enum_values = [] {
+inline constexpr auto enum_values =
+    [] -> std::array<E, enum_count<E>> {
   std::array<E, enum_count<E>> arr{};
   for( int i = 0; i < enum_count<E>; ++i )
     arr[i] = static_cast<E>( i );

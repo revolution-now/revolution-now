@@ -161,7 +161,7 @@ template<refl::ReflectedStruct... Ts>
 value to_canonical( converter& conv,
                     base::variant<Ts...> const& o,
                     tag_t<base::variant<Ts...>> ) {
-  auto visitor = [&]<typename T>( T const& alt ) {
+  auto const visitor = [&]<typename T>( T const& alt ) -> table {
     using Tr = refl::traits<T>;
     static const std::string kName{ Tr::name };
     table res;

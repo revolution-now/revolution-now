@@ -102,8 +102,6 @@ struct HasFindMember {
     return 123;
   }
 
-  const_iterator end() { return 0; };
-
   bool find_member_called = false;
 };
 

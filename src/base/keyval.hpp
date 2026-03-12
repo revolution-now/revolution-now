@@ -35,10 +35,7 @@ auto find( Container&& s ATTR_LIFETIMEBOUND, Key const& k ) {
 template<typename Container, typename Key>
 requires HasBuiltinFind<std::remove_cvref_t<Container>, Key>
 auto find( Container&& s ATTR_LIFETIMEBOUND, Key const& k ) {
-  if( auto it = std::forward<Container>( s ).find( k );
-      it != std::forward<Container>( s ).end() )
-    return it;
-  return s.end();
+  return std::forward<Container>( s ).find( k );
 }
 
 // Does the container contain the given key. If not, returns end

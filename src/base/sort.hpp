@@ -19,8 +19,12 @@
 namespace base {
 
 template<typename Container>
-auto sorted( Container const& unsorted ) {
+auto sorted( Container const& unsorted )
+    -> std::vector<typename Container::value_type> {
   auto res = std::vector( unsorted.begin(), unsorted.end() );
+  static_assert( std::is_same_v<
+                 decltype( res ),
+                 std::vector<typename Container::value_type>> );
   std::sort( res.begin(), res.end() );
   return res;
 }

@@ -289,7 +289,7 @@ class MidiIO {
       else
         lg.warn(
             "failed to find recognizable midi output port." );
-      return nothing;
+      return res;
     }
     return res;
   }

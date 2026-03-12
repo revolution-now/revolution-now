@@ -63,7 +63,7 @@ bool has_path( point const src, point const dst, int upper_bound,
   unordered_map<point, /*min_distance=*/int> explored;
   explore[src] = 0;
   while( !explore.empty() ) {
-    auto const [p, dist] = *[&] {
+    auto const [p, dist] = *[&] -> decltype( explore.begin() ) {
       // This block is an optimization and not stricly necessary.
       // It finds the point in the `explore` list that is closest
       // to the destination by pythagorean distance in the hopes

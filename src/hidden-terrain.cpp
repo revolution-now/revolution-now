@@ -352,7 +352,8 @@ struct HiderBuilder {
       target_chunks_( target_chunks ) {}
 
   template<typename T, typename U>
-  auto hider( unique_ptr<U> const& accum_from ) {
+  auto hider( unique_ptr<U> const& accum_from )
+      -> unique_ptr<T> {
     CHECK( accum_from != nullptr );
     auto res = make_unique<T>(
         T::create( ss_, viz_, shuffled_tiles_, target_chunks_,
@@ -362,7 +363,7 @@ struct HiderBuilder {
   };
 
   template<typename T>
-  auto hider() {
+  auto hider() -> unique_ptr<T> {
     auto res = make_unique<T>( T::create(
         ss_, viz_, shuffled_tiles_, target_chunks_, {} ) );
     build_hider( *res );

@@ -59,7 +59,7 @@ maybe<e_player> player_for_role( SSConst const& ss,
                   ss, e_player_role::primary_human );
               primary_human.has_value() )
             return *primary_human;
-          return active;
+          return auto( active ); // suppress -Wnrvo.
         }
         CASE( entire ) { return nothing; }
         CASE( player ) { return player.type; }

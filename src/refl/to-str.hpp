@@ -73,7 +73,7 @@ void to_str( S const& o, std::string& out, tag<S> ) {
   using Tr = refl::traits<S>;
   static constexpr size_t kNumFields =
       std::tuple_size_v<decltype( Tr::fields )>;
-  static std::string const tmpl_params = [] {
+  static std::string const tmpl_params = [] -> std::string {
     std::string res;
     using tuple_ptr = typename Tr::template_types*;
     if constexpr( std::tuple_size_v<

@@ -183,7 +183,7 @@ struct callable_traits<R( Arg... ) const>
 
 // Function ref-qualified (abominable function type).
 template<typename R, typename... Arg>
-struct callable_traits<R( Arg... )&>
+struct callable_traits<R( Arg... ) &>
   : public detail::callable_traits_impl<R( Arg... )> {};
 
 // Function refref-qualified (abominable function type).
@@ -572,7 +572,8 @@ struct ForIndexRunner {
 // Given a tuple, return a new tuple containing the same values
 // but without the first element.
 template<typename... Ts>
-constexpr auto tuple_tail( std::tuple<Ts...> const input ) {
+constexpr auto tuple_tail( std::tuple<Ts...> const input )
+    -> to_tuple_t<tail_t<to_list_t<std::tuple<Ts...>>>> {
   using tuple_tail_t =
       to_tuple_t<tail_t<to_list_t<std::tuple<Ts...>>>>;
   tuple_tail_t smaller_tuple;

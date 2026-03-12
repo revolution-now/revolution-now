@@ -757,7 +757,7 @@ class ChainView {
   // derive keys, then they find the min/max key, and return the
   // range value corresponding to that key.
   template<typename Func>
-  auto min_by( Func&& f ) const {
+  auto min_by( Func&& f ) const -> maybe<ValueType> {
     using KeyType = std::invoke_result_t<Func, ValueType>;
     maybe<ValueType> res{};
     maybe<KeyType> min_key{};
@@ -772,7 +772,7 @@ class ChainView {
   }
 
   template<typename Func>
-  auto max_by( Func&& f ) const {
+  auto max_by( Func&& f ) const -> maybe<ValueType> {
     using KeyType = std::invoke_result_t<Func, ValueType>;
     maybe<ValueType> res{};
     maybe<KeyType> max_key{};
@@ -806,7 +806,7 @@ class ChainView {
   ***************************************************************/
   template<typename Op    = std::plus<>,
            typename InitT = value_type>
-  auto accumulate( Op&& op = {}, InitT init = {} ) {
+  auto accumulate( Op&& op = {}, InitT init = {} ) -> InitT {
     InitT res = init;
     for( auto const& e : *this )
       res = std::invoke( std::forward<Op>( op ), res, e );

@@ -34,7 +34,7 @@ std::string const& demangled_typename() {
 
 template<typename... Types>
 std::string const& type_list_to_names() {
-  static std::string const names = [] {
+  static std::string const names = [] -> std::string {
     std::string res;
     if constexpr( sizeof...( Types ) > 0 ) {
       std::string const joiner = ",";

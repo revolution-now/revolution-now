@@ -47,7 +47,7 @@ base::maybe<void*> try_udata( cthread L, int idx,
 // a userdata is needed.
 template<typename T>
 std::string const& userdata_typename() {
-  static std::string const name = [] {
+  static std::string const name = [] -> std::string {
     static_assert( !std::is_rvalue_reference_v<T> );
     static_assert( !std::is_pointer_v<T> );
     std::string res;

@@ -523,7 +523,7 @@ struct ResponderQueue {
     while( !answers_.empty() && answers_.front().finished() )
       answers_.pop();
     if( answers_.empty() ) {
-      std::string const formatted_args = [&] {
+      std::string const formatted_args = [&] -> std::string {
         std::string res = format_args_where_possible(
             std::forward<T>( args )... );
         if( !res.empty() ) res = fmt::format( " {} ", res );

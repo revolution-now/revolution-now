@@ -76,9 +76,8 @@ maybe<ColonyId> colony_for_unit_who_is_worker(
   if( auto const colony_state =
           units_state.ownership_of( id )
               .get_if<UnitOwnership::colony>();
-      colony_state.has_value() ) {
-    return colony_state->id;
-  }
+      colony_state.has_value() )
+    res = colony_state->id;
   return res;
 }
 
