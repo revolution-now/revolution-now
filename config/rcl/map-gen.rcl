@@ -140,9 +140,9 @@ terrain_generation {
     fork_is_major.probability: .900
     for_climate {
       arid {
-        initiation.probability:    .050
+        initiation.probability:    .049
         growth.probability:        .610
-        start_major.probability:   .170
+        start_major.probability:   .180
         sustain_major.probability: .450
       }
 
@@ -154,10 +154,10 @@ terrain_generation {
       }
 
       wet {
-        initiation.probability:    .070
+        initiation.probability:    .072
         growth.probability:        .630
         start_major.probability:   .300
-        sustain_major.probability: .570
+        sustain_major.probability: .645
       }
     }
   }

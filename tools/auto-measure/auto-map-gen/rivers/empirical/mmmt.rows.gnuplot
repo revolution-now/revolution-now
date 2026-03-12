@@ -1,5 +1,5 @@
 #!/usr/bin/env -S gnuplot -p
-set title "River Frequency by Row (mmmt [100])"
+set title "River Frequency by Row (mmmt [2000])"
 set datafile separator ","
 set key outside right
 set grid
