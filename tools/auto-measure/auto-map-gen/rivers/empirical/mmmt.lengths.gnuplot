@@ -1,5 +1,5 @@
 #!/usr/bin/env -S gnuplot -p
-set title "River Length Histogram (mmmt [100])"
+set title "River Length Histogram (mmmt [2000])"
 set datafile separator ","
 set key outside right
 set grid
