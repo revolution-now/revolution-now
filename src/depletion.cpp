@@ -63,6 +63,9 @@ maybe<e_natural_resource> depleted(
   }
 }
 
+// TODO: unfortunately the maybe coro is not ready for primetime
+// yet on gcc. We can try again in the future.
+#ifndef COMPILER_GCC
 // This is a maybe coroutine.
 maybe<DepletionEvent> advance_tile_depletion_state(
     SSConst const& ss, IRand& rand, ResourceDepletion& depletion,
@@ -91,6 +94,37 @@ maybe<DepletionEvent> advance_tile_depletion_state(
     .resource_from = resource,
     .resource_to   = depleted( resource ) };
 }
+#else
+maybe<DepletionEvent> advance_tile_depletion_state(
+    SSConst const& ss, IRand& rand, ResourceDepletion& depletion,
+    Colony const& colony, e_direction d ) {
+  auto const& conf =
+      config_production.outdoor_production.depletion;
+  Coord const tile = colony.location.moved( d );
+  UNWRAP_RETURN_T( auto const& square,
+                   ss.terrain.maybe_square_at( tile ) );
+  UNWRAP_RETURN_T( auto const resource,
+                   effective_resource( square ) );
+  UNWRAP_RETURN_T( auto const& outdoor_unit,
+                   colony.outdoor_jobs[d] );
+  e_outdoor_job const job  = outdoor_unit.job;
+  auto const& counter_bump = conf.counter_bump;
+  UNWRAP_RETURN_T( auto& by_resource,
+                   lookup( counter_bump, job ) );
+  UNWRAP_RETURN_T( auto& bump, lookup( by_resource, resource ) );
+  if( bump == 0 ) return nothing;
+  e_difficulty const difficulty =
+      ss.settings.game_setup_options.difficulty;
+  if( !rand.bernoulli( p_bump( difficulty ) ) ) return nothing;
+  auto& counter = depletion.counters[tile];
+  counter += bump;
+  if( counter < conf.counter_limit ) return nothing;
+  depletion.counters.erase( tile );
+  return DepletionEvent{ .tile          = tile,
+                         .resource_from = resource,
+                         .resource_to   = depleted( resource ) };
+}
+#endif
 
 bool square_allows_depletion_counter( MapSquare const& square ) {
   UNWRAP_RETURN_FALSE( rsrc, effective_resource( square ) );

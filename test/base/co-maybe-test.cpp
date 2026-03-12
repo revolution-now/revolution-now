@@ -21,6 +21,8 @@ namespace {
 
 using namespace std;
 
+#ifndef COMPILER_GCC
+
 maybe<int> get_num() { return 110; }
 maybe<int> get_den() { return 10; }
 maybe<int> get_den0() { return 0; }
@@ -98,6 +100,8 @@ TEST_CASE( "[co-maybe] co_awaiting on maybe refs" ) {
   maybe<int> const res = ref_coro_1();
   REQUIRE( res == 5 );
 }
+
+#endif
 
 } // namespace
 } // namespace base
