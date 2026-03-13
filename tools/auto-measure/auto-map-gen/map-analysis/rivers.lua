@@ -88,6 +88,7 @@ local D = {
   land=0,
   water=0,
   water_adjacent_to_land=0,
+  water_adjacent_to_land_per_row={},
 
   maj=0,
   min=0,
@@ -260,6 +261,8 @@ local function lambda( J )
     D.any_on_land_by_row[tile.y] =
         D.any_on_land_by_row[tile.y] or 0
     D.starts_by_row[tile.y] = D.starts_by_row[tile.y] or 0
+    D.water_adjacent_to_land_per_row[tile.y] =
+        D.water_adjacent_to_land_per_row[tile.y] or 0
 
     if square.surface == 'water' then
       D.water = D.water + 1
@@ -275,6 +278,8 @@ local function lambda( J )
 
       if has_adjacent_land then
         D.water_adjacent_to_land = D.water_adjacent_to_land + 1
+        D.water_adjacent_to_land_per_row[tile.y] =
+            D.water_adjacent_to_land_per_row[tile.y] + 1
       end
     end
 
@@ -523,10 +528,11 @@ local function finished( mode )
         ['min-by-row']=assert( D.min_by_row[y] ) / D.savs,
         ['any-by-row']=assert( D.any_by_row[y] ) / D.savs,
         ['starts-by-row']=assert( D.starts_by_row[y] ) / D.savs,
-        ['any-by-row-adjusted']=30 * assert( D.any_by_row[y] ) /
-            assert( D.land_per_row[y] ),
-        ['starts-by-row-adjusted']=180 *
+        ['starts-by-row-adjusted']=100 *
             assert( D.starts_by_row[y] ) /
+            assert( D.water_adjacent_to_land_per_row[y] ),
+        ['any-by-row-adjusted']=50 *
+            assert( D.any_on_land_by_row[y] ) /
             assert( D.land_per_row[y] ),
       }
       insert( rows, row )
@@ -538,8 +544,8 @@ local function finished( mode )
         'min-by-row', --
         'maj-by-row', --
         'starts-by-row', --
-        'any-by-row-adjusted', --
         'starts-by-row-adjusted', --
+        'any-by-row-adjusted', --
       },
     }
     f:write( csv.encode( rows, csv_opts ) )
