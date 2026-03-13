@@ -16,6 +16,7 @@
 #include "connectivity.hpp"
 #include "create-game.hpp"
 #include "game-setup.hpp"
+#include "gnuplot.hpp"
 #include "iengine.hpp"
 #include "irand.hpp"
 #include "lua.hpp"
@@ -617,6 +618,10 @@ struct LakeFrequencyStats : IGameStatsCollector {
 };
 
 struct RiverFrequencyStats : IGameStatsCollector {
+  RiverFrequencyStats( string const& mode ) : mode_( mode ) {
+    CHECK( !mode_.empty() );
+  }
+
   void collect( SSConst const& ss ) override {
     __river_tile_segments_ = {};
     __segments             = {};
@@ -641,6 +646,9 @@ struct RiverFrequencyStats : IGameStatsCollector {
       min_by_row_[tile.y];
       any_by_row_[tile.y];
       any_on_land_by_row_[tile.y];
+      land_by_row_[tile.y];
+      water_adjacent_to_land_by_row_[tile.y];
+      starts_by_row_[tile.y];
 
       if( center.surface == water ) {
         ++water_;
@@ -652,10 +660,16 @@ struct RiverFrequencyStats : IGameStatsCollector {
               if( adjacent.surface == land )
                 has_adjacent_land = true;
             } );
-        if( has_adjacent_land ) ++water_adjacent_to_land_;
+        if( has_adjacent_land ) {
+          ++water_adjacent_to_land_;
+          ++water_adjacent_to_land_by_row_[tile.y];
+        }
       }
 
-      if( center.surface == land ) ++land_;
+      if( center.surface == land ) {
+        ++land_;
+        ++land_by_row_[tile.y];
+      }
 
       if( center.river.has_value() ) {
         __river_tile_segments_[tile] = 0;
@@ -690,6 +704,7 @@ struct RiverFrequencyStats : IGameStatsCollector {
         if( center.surface == water ) {
           ++any_on_water_;
           ++starts_;
+          ++starts_by_row_[tile.y];
           if( center.river == minor ) ++min_on_water_;
           if( center.river == major ) ++maj_on_water_;
           if( rivers_surrounding == 0 ) {
@@ -908,9 +923,73 @@ struct RiverFrequencyStats : IGameStatsCollector {
     fmt::println( "water_islands:              {:.3f}", water_islands);
     fmt::println( "any_islands:                {:.3f}", any_islands);
     // clang-format on
+
+    write_per_row_plots();
+  }
+
+  void write_per_row_plots() const {
+    fs::path const generated =
+        "tools/auto-measure/auto-map-gen/rivers/generated";
+    GnuPlotSettings const settings{
+      .title   = format( "River Density (generated) ({}) [{}]",
+                         mode_, maps_ ),
+      .x_label = "Y (map row)",
+      .y_label = "Count Per Map",
+      .sep     = "comma",
+      .x_range = "1:70",
+      .y_range = "0:10",
+    };
+
+    CsvData csv_data{
+      .header =
+          {
+            "y",                      //
+            "any-by-row",             //
+            "min-by-row",             //
+            "maj-by-row",             //
+            "starts-by-row",          //
+            "starts-by-row-adjusted", //
+            "any-by-row-adjusted",    //
+          },
+      .rows = {},
+    };
+
+    auto const row_getter = []( int const y, auto const& m ) {
+      auto const it = m.find( y );
+      CHECK( it != m.end(), "failed to find row {} in map", y );
+      return it->second;
+    };
+
+    for( int y = 1; y < map_sz_.h - 1; ++y ) {
+      auto const Y = bind_front( row_getter, y );
+      vector<string> row{
+        /*y=*/to_string( y + 1 ),
+        /*any-by-row=*/
+        to_string( Y( any_by_row_ ) / double( maps_ ) ),
+        /*min-by-row=*/
+        to_string( Y( min_by_row_ ) / double( maps_ ) ),
+        /*maj-by-row=*/
+        to_string( Y( maj_by_row_ ) / double( maps_ ) ),
+        /*starts-by-row=*/
+        to_string( Y( starts_by_row_ ) / double( maps_ ) ),
+        /*starts-by-row-adjusted=*/
+        to_string(
+            100 * Y( starts_by_row_ ) /
+            double( Y( water_adjacent_to_land_by_row_ ) ) ),
+        /*any-by-row-adjusted=*/
+        to_string( 50 * Y( any_on_land_by_row_ ) /
+                   double( Y( land_by_row_ ) ) ),
+      };
+      csv_data.rows.push_back( std::move( row ) );
+    }
+
+    generate_gnuplot( generated, format( "{}.rows", mode_ ),
+                      settings, csv_data );
   }
 
  private:
+  string const mode_;
+
   // These need to be reset on each map.
   int __segments = 0;
   map<point, int /*segment*/> __river_tile_segments_;
@@ -923,6 +1002,8 @@ struct RiverFrequencyStats : IGameStatsCollector {
   int land_                   = 0;
   int water_                  = 0;
   int water_adjacent_to_land_ = 0;
+  map<int /*y*/, int /*count*/> water_adjacent_to_land_by_row_;
+  map<int /*y*/, int /*count*/> land_by_row_;
 
   int maj_ = 0;
   int min_ = 0;
@@ -954,6 +1035,7 @@ struct RiverFrequencyStats : IGameStatsCollector {
   int starts_ = 0;
   int ends_   = 0;
   int turns_  = 0;
+  map<int /*y*/, int /*count*/> starts_by_row_;
 
   int land_islands_  = 0;
   int water_islands_ = 0;
@@ -1086,7 +1168,7 @@ struct RiverFrequencyStats : IGameStatsCollector {
 
 [[maybe_unused]] void testing_map_gen_river_stats(
     IEngine& engine ) {
-  int constexpr kNumSamples = 2000;
+  int constexpr kNumSamples = 30000;
 
   auto const generate =
       [&]( SS& ss, ClassicGameSetupParamsCustom const& custom ) {
@@ -1101,7 +1183,7 @@ struct RiverFrequencyStats : IGameStatsCollector {
 
   for( e_climate const climate : kModes ) {
     string const name = "mmm" + string( mode_name( climate ) );
-    RiverFrequencyStats stats;
+    RiverFrequencyStats stats( name );
     fmt::println( "generating for {}...", name );
     for( int i = 0; i < kNumSamples; ++i ) {
       SS ss;

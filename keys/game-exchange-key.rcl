@@ -43,11 +43,11 @@ map.source.generate_native.setup {
     seed: ac0304879ebe1280b0f9ca5e56f762fc
     parameters {
       min_length:                4
+      growth_probability:        .64
       turn_probability:          .28
       fork_probability:          .03
       fork_is_major_probability: .90
-      initiation_probability:    .065
-      growth_probability:        .62
+      initiation_probability:    .07
       start_major_probability:   .25
       sustain_major_probability: .57
     }

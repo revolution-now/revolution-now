@@ -135,27 +135,25 @@ terrain_generation {
 
   rivers {
     min_length: 4
+    growth.probability:        .640
     turn.probability:          .280
     fork.probability:          .030
     fork_is_major.probability: .900
     for_climate {
       arid {
-        initiation.probability:    .049
-        growth.probability:        .610
+        initiation.probability:    .053
         start_major.probability:   .180
         sustain_major.probability: .450
       }
 
       normal {
-        initiation.probability:    .065
-        growth.probability:        .620
+        initiation.probability:    .070
         start_major.probability:   .250
         sustain_major.probability: .570
       }
 
       wet {
-        initiation.probability:    .072
-        growth.probability:        .630
+        initiation.probability:    .078
         start_major.probability:   .300
         sustain_major.probability: .645
       }

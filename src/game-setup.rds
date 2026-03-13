@@ -89,6 +89,7 @@ struct.RiverParameters {
   # This length includes the water tile which initiates the
   # river.
   min_length 'int',
+  growth_probability 'double',
   turn_probability 'double',
   fork_probability 'double',
   fork_is_major_probability 'double',
@@ -96,7 +97,6 @@ struct.RiverParameters {
   # adjacent in a cardinal direction, that we will start creating
   # a river from it.
   initiation_probability 'double',
-  growth_probability 'double',
   sustain_major_probability 'double',
   start_major_probability 'double',
 }

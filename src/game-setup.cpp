@@ -196,13 +196,13 @@ GameSetup create_classic_game_setup(
   RiverSetup const rivers{
     .seed       = rand.generate_deterministic_seed(),
     .parameters = {
-      .min_length       = map_conf.rivers.min_length,
-      .turn_probability = map_conf.rivers.turn.probability,
-      .fork_probability = map_conf.rivers.fork.probability,
+      .min_length         = map_conf.rivers.min_length,
+      .growth_probability = map_conf.rivers.growth.probability,
+      .turn_probability   = map_conf.rivers.turn.probability,
+      .fork_probability   = map_conf.rivers.fork.probability,
       .fork_is_major_probability =
           map_conf.rivers.fork_is_major.probability,
       .initiation_probability = river_interp( &RCP::initiation ),
-      .growth_probability     = river_interp( &RCP::growth ),
       .sustain_major_probability =
           river_interp( &RCP::sustain_major ),
       .start_major_probability =

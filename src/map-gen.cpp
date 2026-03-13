@@ -62,6 +62,16 @@ using ::refl::enum_values;
 using ::std::max;
 using ::std::min;
 
+[[nodiscard]] double probability_decay( int const map_height,
+                                        int const y ) {
+  double const tiles_from_equator =
+      abs( double( y ) - map_height / 2.0 );
+  double const half_height = map_height / 2.0;
+  return 1.0 -
+         clamp( pow( tiles_from_equator / half_height, 7.0 ),
+                0.0, 1.0 );
+}
+
 } // namespace
 
 // We cannot allow the player to build colonies on islands be-
@@ -412,7 +422,8 @@ static void add_river_land_components(
   CHECK( !m[start].river.has_value() );
   bool const should_grow =
       ( ssize( river_tiles ) < params.min_length ) ||
-      rand.bernoulli( params.growth_probability );
+      rand.bernoulli( params.growth_probability *
+                      probability_decay( m.size().h, start.y ) );
   if( !should_grow ) return;
 
   e_river const type = [&] {
@@ -641,9 +652,13 @@ void add_rivers( MapMatrix& m, IRand& rand,
   }();
   vector<point> chosen;
   chosen.reserve( starting_tiles.size() );
-  for( point const p : starting_tiles )
-    if( rand.bernoulli( params.initiation_probability ) )
+  for( point const p : starting_tiles ) {
+    double const row_probability =
+        params.initiation_probability *
+        probability_decay( m.size().h, p.y );
+    if( rand.bernoulli( row_probability ) )
       chosen.push_back( p );
+  }
   rand.shuffle( chosen );
 
   for( point const start : chosen ) {
