@@ -18,6 +18,7 @@
 #include "igui.hpp"
 #include "irand.hpp"
 #include "perlin-map.hpp"
+#include "rivers.hpp"
 
 // config
 #include "config/map-gen.hpp"
@@ -172,41 +173,27 @@ GameSetup create_classic_game_setup(
     .sanitization = surface_sanitization,
   };
 
-  auto const river_interp = [&]( auto const p_field ) {
-    double const field_arid =
-        ( map_conf.rivers.for_climate[e_climate::arid].*p_field )
-            .probability;
-    double const field_normal =
-        ( map_conf.rivers.for_climate[e_climate::normal].*
-          p_field )
-            .probability;
-    double const field_wet =
-        ( map_conf.rivers.for_climate[e_climate::wet].*p_field )
-            .probability;
-    int const climate = params.climate;
-    if( climate < 0 )
-      return lerp( field_normal, field_arid, -climate / 100.0 );
-    else if( climate > 0 )
-      return lerp( field_normal, field_wet, climate / 100.0 );
-    else
-      return field_normal;
-  };
+  RiverParameterInterpolator const river_interp(
+      params.land_form.scale, params.climate );
 
   using RCP = config::map_gen::RiverClimateParameters;
+  using RLP = config::map_gen::RiverLandFormParameters;
   RiverSetup const rivers{
     .seed       = rand.generate_deterministic_seed(),
     .parameters = {
-      .min_length         = map_conf.rivers.min_length,
-      .growth_probability = map_conf.rivers.growth.probability,
-      .turn_probability   = map_conf.rivers.turn.probability,
-      .fork_probability   = map_conf.rivers.fork.probability,
-      .fork_is_major_probability =
-          map_conf.rivers.fork_is_major.probability,
-      .initiation_probability = river_interp( &RCP::initiation ),
-      .sustain_major_probability =
-          river_interp( &RCP::sustain_major ),
-      .start_major_probability =
-          river_interp( &RCP::start_major ),
+      .min_length    = map_conf.rivers.min_length,
+      .turn          = map_conf.rivers.turn,
+      .fork          = map_conf.rivers.fork,
+      .fork_is_major = map_conf.rivers.fork_is_major,
+      .growth =
+          river_interp.for_land_form_probability( &RLP::growth ),
+      .initiation = river_interp.for_climate_probability(
+          &RCP::initiation ),
+      .sustain_major = river_interp.for_climate_probability(
+          &RCP::sustain_major ),
+      .start_major = river_interp.for_climate_probability(
+          &RCP::start_major ),
+      .edge_decay = river_interp.for_climate( &RCP::edge_decay ),
     } };
 
   BiomesSetup const biomes{

@@ -11,6 +11,7 @@
 # ===============================================================
 # Revolution Now
 include "perlin-map.rds.hpp"
+include "rivers.rds.hpp"
 
 # config
 include "config/options.rds.hpp"
@@ -83,22 +84,6 @@ struct.BiomesSetup {
   seed 'rng::seed',
   temperature 'int',  # [-100, 100] = [cold, warm]
   climate 'int',      # [-100, 100] = [arid, wet]
-}
-
-struct.RiverParameters {
-  # This length includes the water tile which initiates the
-  # river.
-  min_length 'int',
-  growth_probability 'double',
-  turn_probability 'double',
-  fork_probability 'double',
-  fork_is_major_probability 'double',
-  # This is the probability that, given a water square with land
-  # adjacent in a cardinal direction, that we will start creating
-  # a river from it.
-  initiation_probability 'double',
-  sustain_major_probability 'double',
-  start_major_probability 'double',
 }
 
 struct.RiverSetup {

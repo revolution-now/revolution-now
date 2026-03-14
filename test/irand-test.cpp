@@ -213,5 +213,8 @@ TEST_CASE( "[irand] pick_from_weighted_values_safe<int>" ) {
 TEST_CASE( "[irand] pick_from_weighted_values_safe<double>" ) {
 }
 
+TEST_CASE( "[irand] pick_one_safe" ) {
+}
+
 } // namespace
 } // namespace rn

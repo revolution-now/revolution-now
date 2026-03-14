@@ -106,17 +106,22 @@ struct.RiverClimateParameters {
   initiation 'config::Probability',
   start_major 'config::Probability',
   sustain_major 'config::Probability',
+  edge_decay 'double',
   _features { equality, validation }
+}
+
+struct.RiverLandFormParameters {
+  growth 'config::Probability',
 }
 
 struct.Rivers {
   # This length includes the water tile which initiates the
   # river.
   min_length 'int',
-  growth 'config::Probability',
   turn 'config::Probability',
   fork 'config::Probability',
   fork_is_major 'config::Probability',
+  for_land_form 'refl::enum_map<e_land_form, RiverLandFormParameters>',
   for_climate 'refl::enum_map<e_climate, RiverClimateParameters>',
   _features { equality, validation }
 }

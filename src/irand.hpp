@@ -21,6 +21,7 @@
 // base
 #include "base/attributes.hpp"
 #include "base/error.hpp"
+#include "base/maybe.hpp"
 
 // C++ standard library
 #include <array>
@@ -77,6 +78,21 @@ struct IRand {
       std::vector<T> const& v ATTR_LIFETIMEBOUND ) {
     CHECK( !v.empty() );
     return v[uniform_int( 0, v.size() - 1 )];
+  }
+
+  // Vector must be non-empty. Picks a random element.
+  template<typename T>
+  [[nodiscard]] base::maybe<T const&> pick_one_safe(
+      std::vector<T> const& v ATTR_LIFETIMEBOUND ) {
+    if( v.empty() ) return base::nothing;
+    return v[uniform_int( 0, v.size() - 1 )];
+  }
+
+  template<typename T, size_t N>
+  requires( N > 0 )
+  [[nodiscard]] T const& pick_one(
+      std::array<T, N> const& a ATTR_LIFETIMEBOUND ) {
+    return a[uniform_int( 0, N - 1 )];
   }
 
   // Picks a random value given the weights. All weights should

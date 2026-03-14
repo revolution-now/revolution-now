@@ -1,17 +1,17 @@
 /****************************************************************
-**map-gen-test.cpp
+**rivers-test.cpp
 *
 * Project: Revolution Now
 *
-* Created by David P. Sicilia on 2026-01-03.
+* Created by David P. Sicilia on 2026-03-14.
 *
-* Description: Unit tests for the map-gen module.
+* Description: Unit tests for the rivers module.
 *
 *****************************************************************/
 #include "test/testing.hpp"
 
 // Under test.
-#include "src/map-gen.hpp"
+// #include "src/rivers.hpp"
 
 // Testing.
 #include "test/fake/world.hpp"
@@ -60,27 +60,11 @@ struct world : testing::World {
 /****************************************************************
 ** Test Cases
 *****************************************************************/
-TEST_CASE( "[map-gen] remove_islands" ) {
+TEST_CASE( "[map-gen] RiverParameterInterpolator" ) {
   world w;
 }
 
-TEST_CASE( "[map-gen] remove_crosses" ) {
-  world w;
-}
-
-TEST_CASE( "[map-gen] compute_land_zone" ) {
-  world w;
-}
-
-TEST_CASE( "[map-gen] place_arctic" ) {
-  world w;
-}
-
-TEST_CASE( "[map-gen] reset_terrain" ) {
-  world w;
-}
-
-TEST_CASE( "[map-gen] add_lakes" ) {
+TEST_CASE( "[map-gen] add_rivers" ) {
   world w;
 }
 

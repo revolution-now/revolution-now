@@ -78,15 +78,54 @@ using ::refl::enum_values;
 /****************************************************************
 ** Helpers.
 *****************************************************************/
-string_view mode_name( e_climate const c ) {
-  switch( c ) {
+string mode_name( ClassicGameSetupParamsCustom const params ) {
+  string res;
+  res.resize( 4 );
+  switch( params.climate ) {
     case e_climate::arid:
-      return "t";
+      res[3] = 't';
+      break;
     case e_climate::normal:
-      return "m";
+      res[3] = 'm';
+      break;
     case e_climate::wet:
-      return "b";
+      res[3] = 'b';
+      break;
   }
+  switch( params.temperature ) {
+    case e_temperature::cool:
+      res[2] = 't';
+      break;
+    case e_temperature::temperate:
+      res[2] = 'm';
+      break;
+    case e_temperature::warm:
+      res[2] = 'b';
+      break;
+  }
+  switch( params.land_form ) {
+    case e_land_form::archipelago:
+      res[1] = 't';
+      break;
+    case e_land_form::normal:
+      res[1] = 'm';
+      break;
+    case e_land_form::continents:
+      res[1] = 'b';
+      break;
+  }
+  switch( params.land_mass ) {
+    case e_land_mass::small:
+      res[0] = 't';
+      break;
+    case e_land_mass::moderate:
+      res[0] = 'm';
+      break;
+    case e_land_mass::large:
+      res[0] = 'b';
+      break;
+  }
+  return res;
 }
 
 string_view mode_name( e_temperature const t,
@@ -655,8 +694,10 @@ struct RiverFrequencyStats : IGameStatsCollector {
         bool has_adjacent_land = false;
         on_surrounding_cardinal(
             m, tile,
-            [&]( point const, MapSquare const& adjacent,
+            [&]( point const p, MapSquare const& adjacent,
                  e_cardinal_direction const ) {
+              // Skip arctic rows.
+              if( p.y == 0 || p.y == map_sz_.h - 1 ) return;
               if( adjacent.surface == land )
                 has_adjacent_land = true;
             } );
@@ -686,8 +727,10 @@ struct RiverFrequencyStats : IGameStatsCollector {
         int rivers_surrounding = 0;
         on_surrounding_cardinal(
             m, tile,
-            [&]( point const, MapSquare const& adjacent,
+            [&]( point const p, MapSquare const& adjacent,
                  e_cardinal_direction const ) {
+              // Skip arctic rows.
+              if( p.y == 0 || p.y == map_sz_.h - 1 ) return;
               if( adjacent.river.has_value() )
                 ++rivers_surrounding;
             } );
@@ -954,7 +997,8 @@ struct RiverFrequencyStats : IGameStatsCollector {
       .rows = {},
     };
 
-    auto const row_getter = []( int const y, auto const& m ) {
+    auto const row_getter = []( int const y,
+                                auto const& m ) -> double {
       auto const it = m.find( y );
       CHECK( it != m.end(), "failed to find row {} in map", y );
       return it->second;
@@ -973,12 +1017,11 @@ struct RiverFrequencyStats : IGameStatsCollector {
         /*starts-by-row=*/
         to_string( Y( starts_by_row_ ) / double( maps_ ) ),
         /*starts-by-row-adjusted=*/
-        to_string(
-            100 * Y( starts_by_row_ ) /
-            double( Y( water_adjacent_to_land_by_row_ ) ) ),
+        to_string( 100 * Y( starts_by_row_ ) /
+                   Y( water_adjacent_to_land_by_row_ ) ),
         /*any-by-row-adjusted=*/
         to_string( 50 * Y( any_on_land_by_row_ ) /
-                   double( Y( land_by_row_ ) ) ),
+                   Y( land_by_row_ ) ),
       };
       csv_data.rows.push_back( std::move( row ) );
     }
@@ -1168,7 +1211,7 @@ struct RiverFrequencyStats : IGameStatsCollector {
 
 [[maybe_unused]] void testing_map_gen_river_stats(
     IEngine& engine ) {
-  int constexpr kNumSamples = 30000;
+  int constexpr kNumSamples = 2000;
 
   auto const generate =
       [&]( SS& ss, ClassicGameSetupParamsCustom const& custom ) {
@@ -1182,15 +1225,17 @@ struct RiverFrequencyStats : IGameStatsCollector {
   };
 
   for( e_climate const climate : kModes ) {
-    string const name = "mmm" + string( mode_name( climate ) );
+    ClassicGameSetupParamsCustom const params{
+      .land_mass   = e_land_mass::moderate,
+      .land_form   = e_land_form::normal,
+      .temperature = e_temperature::temperate,
+      .climate     = climate };
+    string const name = mode_name( params );
     RiverFrequencyStats stats( name );
     fmt::println( "generating for {}...", name );
     for( int i = 0; i < kNumSamples; ++i ) {
       SS ss;
-      generate( ss, { .land_mass   = e_land_mass::moderate,
-                      .land_form   = e_land_form::normal,
-                      .temperature = e_temperature::temperate,
-                      .climate     = climate } );
+      generate( ss, params );
       stats.collect( ss );
     }
     stats.write();
@@ -1224,15 +1269,18 @@ void testing_map_gen_key( IEngine& engine, bool const reseed ) {
                    ascii_map_rivers_formatter(), cout );
 }
 
+void testing_map_gen_fuzz( IEngine&, bool const ) {
+}
+
 void testing_map_gen_custom( IEngine& engine ) {
   SS ss;
-  generate_single_map_custom(
-      engine, ss,
-      ClassicGameSetupParamsCustom{
-        .land_mass   = e_land_mass::moderate,
-        .land_form   = e_land_form::normal,
-        .temperature = e_temperature::temperate,
-        .climate     = e_climate::normal } );
+  ClassicGameSetupParamsCustom const params{
+    .land_mass   = e_land_mass::moderate,
+    .land_form   = e_land_form::normal,
+    .temperature = e_temperature::temperate,
+    .climate     = e_climate::wet };
+  fmt::println( "mode: {}", mode_name( params ) );
+  generate_single_map_custom( engine, ss, params );
   print_ascii_map( ss.terrain.real_terrain(),
                    ascii_map_rivers_formatter(), cout );
 }

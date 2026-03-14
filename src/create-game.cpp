@@ -18,6 +18,7 @@
 #include "map-gen.hpp"
 #include "perlin-map.hpp"
 #include "player-mgr.hpp" // FIXME
+#include "rivers.hpp"
 #include "terrain-mgr.hpp"
 
 // config

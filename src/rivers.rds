@@ -1,0 +1,32 @@
+# ===============================================================
+# rivers.rds
+#
+# Project: Revolution Now
+#
+# Created by David P. Sicilia on 2026-03-14.
+#
+# Description: Rds definitions for the rivers module.
+#
+# ===============================================================
+# config
+include "config/range-helpers.rds.hpp"
+
+namespace "rn"
+
+struct.RiverParameters {
+  # This length includes the water tile which initiates the
+  # river.
+  min_length 'int',
+  turn 'config::Probability',
+  fork 'config::Probability',
+  fork_is_major 'config::Probability',
+  growth 'config::Probability',
+  # This is the probability that, given a water square with land
+  # adjacent in a cardinal direction, that we will start creating
+  # a river from it.
+  initiation 'config::Probability',
+  sustain_major 'config::Probability',
+  start_major 'config::Probability',
+  edge_decay 'double',
+}
+
