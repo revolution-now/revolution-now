@@ -84,26 +84,34 @@ double RiverParameterInterpolator::land_form_interp_impl(
       config_map_gen.terrain_generation.rivers;
   double const field_archipelago =
       fn( river_conf.for_land_form[e_land_form::archipelago] );
+  double const field_normal =
+      fn( river_conf.for_land_form[e_land_form::normal] );
   double const field_continents =
       fn( river_conf.for_land_form[e_land_form::continents] );
-  double const land_form_measure_range_half_range =
-      abs( map_conf.land_layout.land_form
-               .customized[e_land_form::continents]
-               .scale.mean -
-           map_conf.land_layout.land_form
-               .customized[e_land_form::archipelago]
-               .scale.mean ) /
-      2.0;
-  double const land_form_measure_range_center =
+  double const scale_archipelago =
+      map_conf.land_layout.land_form
+          .customized[e_land_form::archipelago]
+          .scale.mean;
+  double const scale_normal =
       map_conf.land_layout.land_form
           .customized[e_land_form::normal]
           .scale.mean;
-  double const land_form_measure =
-      clamp( ( scale_ - land_form_measure_range_center ) /
-                 land_form_measure_range_half_range,
-             -1.0, 1.0 );
-  double const interp = land_form_measure / 2.0 + 0.5;
-  return lerp( field_archipelago, field_continents, interp );
+  double const scale_continents =
+      map_conf.land_layout.land_form
+          .customized[e_land_form::continents]
+          .scale.mean;
+
+  if( scale_ <= scale_normal ) {
+    double const width =
+        std::max( scale_normal - scale_archipelago, 1.0 );
+    double const t = ( scale_ - scale_archipelago ) / width;
+    return lerp( field_archipelago, field_normal, t );
+  } else {
+    double const width =
+        std::max( scale_continents - scale_normal, 1.0 );
+    double const t = ( scale_ - scale_normal ) / width;
+    return lerp( field_normal, field_continents, t );
+  }
 }
 
 double RiverParameterInterpolator::climate_interp_impl(
@@ -117,7 +125,7 @@ double RiverParameterInterpolator::climate_interp_impl(
   double const field_wet =
       fn( river_conf.for_climate[e_climate::wet] );
   if( climate_ < 0 )
-    return lerp( field_normal, field_arid, climate_ / 100.0 );
+    return lerp( field_normal, field_arid, -climate_ / 100.0 );
   else if( climate_ > 0 )
     return lerp( field_normal, field_wet, climate_ / 100.0 );
   else
@@ -318,111 +326,10 @@ static void add_river_land_components(
   }
 }
 
-#if 0
-static maybe<RiverTiles> add_river(
-    MapMatrix const& m, IRand& rand,
-    RiverParameters const& params, point const start ) {
-  auto const initial = RiverTile{
-    .tile = start,
-    .type = rand.bernoulli( params.start_major_probability )
-                ? e_river::major
-                : e_river::minor };
-  vector<e_cardinal_direction> directions;
-  on_surrounding_cardinal(
-      m, start,
-      [&]( point const p, MapSquare const& square,
-           e_cardinal_direction const d ) {
-        if( p.y == 0 || p.y == m.size().h - 1 ) return;
-        if( square.surface == e_surface::water ) return;
-        if( square.river.has_value() ) return;
-        bool const has_surrounding_river = [&] {
-          bool res = false;
-          on_surrounding_cardinal(
-              m, p,
-              [&]( point const, MapSquare const& square,
-                   e_cardinal_direction const ) {
-                if( square.river.has_value() ) res = true;
-              } );
-          return res;
-        }();
-        if( has_surrounding_river ) return;
-        directions.push_back( d );
-      } );
-  if( directions.empty() ) return nothing;
-  rand.shuffle( directions );
-  for( e_cardinal_direction const d : directions ) {
-    RiverTiles river_tiles;
-    river_tiles.push_back( initial );
-    point const moved = start.moved( d );
-    CHECK( !m[moved].river.has_value() );
-    add_river_land_components( m, rand, params, moved, d,
-                               river_tiles, initial );
-    if( ssize( river_tiles ) >= params.min_length )
-      return river_tiles;
-  }
-  return nothing;
-}
-
 void add_rivers( MapMatrix& m, IRand& rand,
                  RiverParameters const& params ) {
   ScopedTimer const timer( "river generation time" );
-  set<point> const starting_tiles = [&] {
-    set<point> res;
-    on_all_tiles(
-        m, [&]( point const p, MapSquare const& center ) {
-          // Don't count arctic land tiles.
-          if( p.y == 0 || p.y == m.size().h - 1 ) return;
-          if( center.surface == e_surface::land ) return;
-          on_surrounding_cardinal(
-              m, p,
-              [&]( point const p2, MapSquare const& adjacent,
-                   e_cardinal_direction ) {
-                // Don't count arctic land tiles.
-                if( p2.y == 0 || p2.y == m.size().h - 1 ) return;
-                if( adjacent.surface == e_surface::water )
-                  return;
-                res.insert( p );
-              } );
-        } );
-    return res;
-  }();
-  vector<point> chosen;
-  chosen.reserve( starting_tiles.size() );
-  for( point const p : starting_tiles ) {
-    double const row_probability =
-        params.initiation_probability *
-        river_probability_decay( params.edge_decay, m.size().h, p.y );
-    if( rand.bernoulli( row_probability ) )
-      chosen.push_back( p );
-  }
-  rand.shuffle( chosen );
-
-  for( point const start : chosen ) {
-    CHECK( start.y != 0 && start.y != m.size().h - 1 );
-    auto const river_tiles = add_river( m, rand, params, start );
-    if( !river_tiles.has_value() ) continue;
-    // Note that consecutive river tiles in this vector are not
-    // necessarily adjacent to each other due to forking.
-    for( auto const [i, rt] :
-         rl::all( *river_tiles ).enumerate() ) {
-      CHECK( rt.tile.is_inside( m.rect() ) );
-      if( i == 0 )
-        CHECK( m[rt.tile].surface == e_surface::water );
-      else
-        CHECK( m[rt.tile].surface == e_surface::land );
-      CHECK( !m[rt.tile].river.has_value(),
-             "tile {} already has a river. i={}", rt.tile, i );
-      m[rt.tile].river = rt.type;
-    }
-  }
-}
-
-#else
-
-void add_rivers( MapMatrix& m, IRand& rand,
-                 RiverParameters const& params ) {
-  ScopedTimer const timer( "river generation time" );
-  set<point> const starting_tiles = [&] {
+  vector<point> const starting_tiles = [&] {
     set<point> res;
     on_all_tiles(
         m, [&]( point const p, MapSquare const& center ) {
@@ -439,19 +346,16 @@ void add_rivers( MapMatrix& m, IRand& rand,
                 res.insert( p );
               } );
         } );
-    return res;
+    vector shuffled( res.begin(), res.end() );
+    rand.shuffle( shuffled );
+    return shuffled;
   }();
-  vector<point> chosen;
-  chosen.reserve( starting_tiles.size() );
-  for( point const p : starting_tiles ) {
-    double const row_probability =
-        params.initiation.probability *
-        river_probability_decay( params.edge_decay, m.size().h,
-                                 p.y );
-    if( rand.bernoulli( row_probability ) )
-      chosen.push_back( p );
-  }
-  rand.shuffle( chosen );
+
+  int const n_desired = [&] {
+    int const have = starting_tiles.size();
+    double const p = params.initiation.probability;
+    return lround( p * have );
+  }();
 
   auto const is_open_tile = [&]( point const p ) {
     if( m[p].river.has_value() ) return false;
@@ -468,7 +372,7 @@ void add_rivers( MapMatrix& m, IRand& rand,
   };
 
   vector<e_cardinal_direction> waters;
-  for( point const start : chosen ) {
+  for( int have = 0; point const start : starting_tiles ) {
     if( !is_open_tile( start ) )
       // A previous iteration on another start tile could have
       // caused a river to be placed here.
@@ -510,9 +414,10 @@ void add_rivers( MapMatrix& m, IRand& rand,
              "tile {} already has a river. i={}", rt.tile, i );
       m[rt.tile].river = rt.type;
     }
+    ++have;
+    if( have == n_desired ) break;
   }
 }
-#endif
 
 int count_rivers( MapMatrix const& m ) {
   int total = 0;

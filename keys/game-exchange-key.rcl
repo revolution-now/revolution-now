@@ -47,7 +47,7 @@ map.source.generate_native.setup {
       fork.probability:          .03
       fork_is_major.probability: .90
       growth.probability:        .64
-      initiation.probability:    .07
+      initiation.probability:    .052
       start_major.probability:   .25
       sustain_major.probability: .57
       edge_decay:                .08

@@ -135,36 +135,36 @@ terrain_generation {
 
   rivers {
     min_length: 4
-    turn.probability: .280
-    fork.probability: .030
-    fork_is_major.probability: .900
+    turn.probability: .28
+    fork.probability: .03
+    fork_is_major.probability: .90
     for_land_form {
       archipelago {
-        growth.probability: .64
+        growth.probability: .62
       }
       normal {
         growth.probability: .64
       }
       continents {
-        growth.probability: .72
+        growth.probability: .71
       }
     }
     for_climate {
       arid {
-        initiation.probability:    .053
-        start_major.probability:   .180
-        sustain_major.probability: .450
+        initiation.probability:    .04
+        start_major.probability:   .18
+        sustain_major.probability: .45
         edge_decay:                .15
       }
       normal {
-        initiation.probability:    .068
-        start_major.probability:   .250
-        sustain_major.probability: .570
+        initiation.probability:    .052
+        start_major.probability:   .25
+        sustain_major.probability: .57
         edge_decay:                .08
       }
       wet {
-        initiation.probability:    .078
-        start_major.probability:   .300
+        initiation.probability:    .058
+        start_major.probability:   .30
         sustain_major.probability: .645
         edge_decay:                .06
       }

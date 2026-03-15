@@ -29,6 +29,13 @@
 
 // refl
 #include "refl/query-enum.hpp"
+#include "refl/traverse.hpp"
+#include "refl/validate.hpp"
+
+// traverse
+#include "traverse/ext-base.hpp"
+#include "traverse/ext-std.hpp"
+#include "traverse/ext.hpp"
 
 // base
 #include "base/logger.hpp"
@@ -454,8 +461,7 @@ valid_or<string> GeneratedMapSetup::validate() const {
 }
 
 valid_or<string> validate_game_setup( GameSetup const& setup ) {
-  (void)setup;
-  return valid;
+  return refl::validate_recursive( setup );
 }
 
 } // namespace rn

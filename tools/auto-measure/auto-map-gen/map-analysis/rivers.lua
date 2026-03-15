@@ -93,6 +93,8 @@ local D = {
   maj=0,
   min=0,
   any=0,
+  __any=0,
+  any_squared=0,
 
   maj_on_water=0,
   min_on_water=0,
@@ -115,6 +117,8 @@ local D = {
   __river_tiles={}, -- key=rastorized_tile, value=segment
 
   num_connected=0,
+  __num_connected=0,
+  num_connected_squared=0,
   num_with_water=0,
   num_without_water=0,
   lengths={}, -- key=length, value=count
@@ -215,11 +219,14 @@ local function find_connected( J )
     D.lengths[length] = D.lengths[length] or 0
   end
   D.num_connected = D.num_connected + assert( D.__segments )
+  D.__num_connected = D.__segments
 end
 
 local function lambda( J )
   D.__river_tiles = {}
   D.__segments = 0
+  D.__any = 0
+  D.__num_connected = 0
 
   D.savs = D.savs + 1
 
@@ -291,6 +298,7 @@ local function lambda( J )
     if Q.has_river( J, tile ) then
       D.__river_tiles[Q.rastorize( tile )] = 0
       D.any = D.any + 1
+      D.__any = D.__any + 1
       D.any_by_row[tile.y] = D.any_by_row[tile.y] + 1
       if Q.has_hills( J, tile ) then
         D.with_hills = D.with_hills + 1
@@ -368,21 +376,37 @@ local function lambda( J )
   end )
 
   find_connected( J )
+
+  D.any_squared = D.any_squared + D.__any ^ 2
+  D.num_connected_squared = D.num_connected_squared +
+                                D.__num_connected ^ 2
+end
+
+local function compute_stddev( s1, s2, denominator )
+  return (s2 / denominator - (s1 / denominator) ^ 2) ^ .5
 end
 
 local DATA_KEY_ORDER = {
   'savs', --
-  'tiles', --
+  'length_avg', --
+  'any', --
+  'any_stddev', --
+  'num_connected', --
+  'num_connected_stddev', --
+  'num_connected_per_shore', --
+  'num_connected_per_land', --
   'land', --
-  'water', --
   'water_adjacent_to_land', --
   'maj', --
   'min', --
-  'any', --
   'any_per_land', --
   'maj_on_water', --
   'min_on_water', --
   'any_on_water', --
+  'turns', --
+  'turns_per_connected', --
+  'tiles', --
+  'water', --
   'maj_forks', --
   'min_forks', --
   'any_forks', --
@@ -391,16 +415,10 @@ local DATA_KEY_ORDER = {
   'min_crosses', --
   'any_crosses', --
   'any_crosses_per_connected', --
-  'num_connected', --
-  'num_connected_per_shore', --
-  'num_connected_per_land', --
   'num_with_water', --
   'num_without_water', --
-  'length_avg', --
   'starts', --
   'ends', --
-  'turns', --
-  'turns_per_connected', --
   'land_islands', --
   'water_islands', --
   'any_islands', --
@@ -421,6 +439,7 @@ local function finished( mode )
   o.maj = D.maj / D.savs
   o.min = D.min / D.savs
   o.any = D.any / D.savs
+  o.any_stddev = compute_stddev( D.any, D.any_squared, D.savs )
   o.any_per_land = D.any / D.land
 
   o.maj_on_water = D.maj_on_water / D.savs
@@ -444,6 +463,9 @@ local function finished( mode )
   end
 
   o.num_connected = D.num_connected / D.savs
+  o.num_connected_stddev = compute_stddev( D.num_connected,
+                                           D.num_connected_squared,
+                                           D.savs )
   o.num_connected_per_shore = D.num_connected /
                                   D.water_adjacent_to_land
   o.num_connected_per_land = D.num_connected / D.land
@@ -592,9 +614,10 @@ end
 local function collect()
   print( 'collecting...' )
   local MODES = {
-    'ttmm', 'tmmm', 'mtmm', 'mmmm', 'mbmm', 'bmmm', 'bbmm',
-    'bbtt', 'bbmt', 'bbmb', 'bbtm', 'bbbm', 'bbbb', 'mmmb',
-    'mmmt', 'new',
+    'bbbb', 'bbbm', 'bbmb', 'bbmm', 'bbmt', 'bbtm', 'bbtt',
+    'bmmm', 'mbmb', 'mbmm', 'mbmt', 'mmmb', 'mmmm', 'mmmt',
+    'mtmb', 'mtmm', 'mtmt', 'tmmm', 'ttmb', 'ttmm', 'ttmt',
+    'new',
   }
   local o = {}
   o.modes = {}
