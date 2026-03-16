@@ -202,11 +202,7 @@ TEST_CASE( "[rand/random] piecewise (3)" ) {
     .m = { .value = 3.0, .weight = 1.0 },
     .r = { .value = 4.2, .weight = 0.2 } };
   double const d = r.piecewise( p3 );
-#ifdef _LIBCPP_VERSION
-  REQUIRE( d == Approx( 0.0 ) );
-#else
   REQUIRE( d == Approx( 2.7393880168 ) );
-#endif
 }
 
 // Deterministic since there is no seeding and we are only using
