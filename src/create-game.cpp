@@ -232,8 +232,8 @@ valid_or<string> generate_map_native_impl(
   // Biomes.
   rand.reseed( setup.biomes.seed );
   GOOD_OR_RETURN( assign_biomes( rand, real_terrain,
-                                 setup.biomes.temperature,
-                                 setup.biomes.climate ) );
+                                 setup.weather.temperature,
+                                 setup.weather.climate ) );
 
   return valid;
 }

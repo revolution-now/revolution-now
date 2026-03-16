@@ -41,4 +41,7 @@ void generate_gnuplot( fs::path const& dir,
                        GnuPlotSettings const& settings,
                        CsvData const& csv_data );
 
+std::string generate_gnuplot( GnuPlotSettings const& settings,
+                              CsvData const& csv_data );
+
 } // namespace rn

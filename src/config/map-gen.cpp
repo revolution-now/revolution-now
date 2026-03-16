@@ -21,6 +21,7 @@ using namespace std;
 
 using ::base::valid;
 using ::base::valid_or;
+using ::refl::enum_values;
 
 } // namespace
 
@@ -49,6 +50,22 @@ valid_or<string> InlandLakes::validate() const {
       "Inland lake bias range must be within [-1, 1]." );
   REFL_VALIDATE( bias.min <= bias.max,
                  "Inland lake bias min must be <= max." );
+  return valid;
+}
+
+/****************************************************************
+** WeatherDistribution
+*****************************************************************/
+valid_or<string> WeatherDistribution::validate() const {
+  REFL_VALIDATE(
+      distribution.min >= -100 && distribution.min <= 100,
+      "min must be in the interval [-100, 100]" );
+  REFL_VALIDATE(
+      distribution.max >= -100 && distribution.max <= 100,
+      "min must be in the interval [-100, 100]" );
+  REFL_VALIDATE(
+      distribution.peak >= -100 && distribution.peak <= 100,
+      "peak must be in the interval [-100, 100]" );
   return valid;
 }
 

@@ -92,6 +92,11 @@ void run( e_mode mode ) {
       testing_map_gen_custom( engine );
       break;
     }
+    case e_mode::map_gen_default: {
+      engine.init( e_engine_mode::console );
+      testing_map_gen_default( engine );
+      break;
+    }
     case e_mode::map_gen_stats: {
       engine.init( e_engine_mode::console );
       testing_map_gen_stats( engine );

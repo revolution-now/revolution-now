@@ -28,6 +28,8 @@ void testing_map_gen_fuzz( IEngine& engine, bool reseed );
 
 void testing_map_gen_custom( IEngine& engine );
 
+void testing_map_gen_default( IEngine& engine );
+
 void testing_map_gen_stats( IEngine& engine );
 
 void load_testing_game_setup( GameSetup& setup );

@@ -39,6 +39,11 @@ map.source.generate_native.setup {
     target_density: 0.23
   }
 
+  weather {
+    temperature:  0
+    climate:      0
+  }
+
   rivers {
     seed: ac0304879ebe1280b0f9ca5e56f762fc
     parameters {
@@ -56,8 +61,6 @@ map.source.generate_native.setup {
 
   biomes {
     seed: "48d55a01aef7295a21b2aabd78d68343"
-    temperature:  0
-    climate:      0
   }
 
   hills {

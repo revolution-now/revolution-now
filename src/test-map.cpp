@@ -988,12 +988,15 @@ struct RiverFrequencyStats : IGameStatsCollector {
     fmt::println( "any_islands:                {:.3f}", any_islands);
     // clang-format on
 
-    write_per_row_plots();
+    write_per_row_plot();
+
+    write_length_plot();
   }
 
-  void write_per_row_plots() const {
-    fs::path const generated =
-        "tools/auto-measure/auto-map-gen/rivers/generated";
+  fs::path const kGeneratedDir =
+      "tools/auto-measure/auto-map-gen/rivers/generated";
+
+  void write_per_row_plot() const {
     GnuPlotSettings const settings{
       .title   = format( "River Density (generated) ({}) [{}]",
                          mode_, maps_ ),
@@ -1047,8 +1050,38 @@ struct RiverFrequencyStats : IGameStatsCollector {
       csv_data.rows.push_back( std::move( row ) );
     }
 
-    generate_gnuplot( generated, format( "{}.rows", mode_ ),
+    generate_gnuplot( kGeneratedDir, format( "{}.rows", mode_ ),
                       settings, csv_data );
+  }
+
+  void write_length_plot() const {
+    GnuPlotSettings const settings{
+      .title =
+          format( "River Length Histogram (generated) ({}) [{}]",
+                  mode_, maps_ ),
+      .x_label = "Length",
+      .y_label = "Count Per Map",
+      .sep     = "comma",
+      .x_range = "1:20",
+      .y_range = "0:20",
+    };
+
+    CsvData csv_data{
+      .header = { "length", "count" },
+      .rows   = {},
+    };
+
+    for( int length = 1; length < ssize( lengths_ ); ++length ) {
+      int const count            = lengths_[length];
+      double const per_map_count = double( count ) / maps_;
+      vector<string> row{ to_string( length ),
+                          to_string( per_map_count ) };
+      csv_data.rows.push_back( std::move( row ) );
+    }
+
+    generate_gnuplot( kGeneratedDir,
+                      format( "{}.lengths", mode_ ), settings,
+                      csv_data );
   }
 
  private:
@@ -1243,24 +1276,52 @@ struct RiverFrequencyStats : IGameStatsCollector {
         generate_single_map_custom( engine, ss, custom );
       };
 
-  static auto constexpr kModes = {
-    e_climate::arid,
-    e_climate::normal,
-    e_climate::wet,
+  auto const generate_new = [&]( SS& ss ) {
+    generate_single_map_new( engine, ss );
   };
 
-  for( e_climate const climate : kModes ) {
-    ClassicGameSetupParamsCustom const params{
-      .land_mass   = e_land_mass::moderate,
-      .land_form   = e_land_form::continents,
-      .temperature = e_temperature::temperate,
-      .climate     = climate };
-    string const name = mode_name( params );
+  bool const kDoCustom = true;
+  bool const kDoNew    = true;
+
+  if( kDoCustom ) {
+    static auto constexpr kModes = {
+      pair{ e_land_form::archipelago, e_climate::arid },
+      pair{ e_land_form::archipelago, e_climate::normal },
+      pair{ e_land_form::archipelago, e_climate::wet },
+      pair{ e_land_form::normal, e_climate::arid },
+      pair{ e_land_form::normal, e_climate::normal },
+      pair{ e_land_form::normal, e_climate::wet },
+      pair{ e_land_form::continents, e_climate::arid },
+      pair{ e_land_form::continents, e_climate::normal },
+      pair{ e_land_form::continents, e_climate::wet },
+    };
+
+    for( auto const [land_form, climate] : kModes ) {
+      ClassicGameSetupParamsCustom const params{
+        .land_mass   = e_land_mass::moderate,
+        .land_form   = land_form,
+        .temperature = e_temperature::temperate,
+        .climate     = climate };
+      string const name = mode_name( params );
+      RiverFrequencyStats stats( name );
+      fmt::println( "generating for {}...", name );
+      for( int i = 0; i < kNumSamples; ++i ) {
+        SS ss;
+        generate( ss, params );
+        stats.collect( ss );
+      }
+      stats.write();
+      fmt::print( "\n" );
+    }
+  }
+
+  if( kDoNew ) {
+    string const name = "new";
     RiverFrequencyStats stats( name );
     fmt::println( "generating for {}...", name );
     for( int i = 0; i < kNumSamples; ++i ) {
       SS ss;
-      generate( ss, params );
+      generate_new( ss );
       stats.collect( ss );
     }
     stats.write();
@@ -1303,9 +1364,17 @@ void testing_map_gen_custom( IEngine& engine ) {
     .land_mass   = e_land_mass::moderate,
     .land_form   = e_land_form::normal,
     .temperature = e_temperature::temperate,
-    .climate     = e_climate::arid };
+    .climate     = e_climate::normal };
   fmt::println( "mode: {}", mode_name( params ) );
   generate_single_map_custom( engine, ss, params );
+  print_ascii_map( ss.terrain.real_terrain(),
+                   ascii_map_rivers_formatter(), cout );
+}
+
+void testing_map_gen_default( IEngine& engine ) {
+  SS ss;
+  fmt::println( "mode: new" );
+  generate_single_map_new( engine, ss );
   print_ascii_map( ss.terrain.real_terrain(),
                    ascii_map_rivers_formatter(), cout );
 }

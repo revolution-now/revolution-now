@@ -35,6 +35,20 @@ double Rand::normal( double const mean, double const stddev ) {
   return rd_.normal( mean, stddev );
 }
 
+double Rand::piecewise3( double const peak,
+                         double const weight_at_0,
+                         double const weight_at_1 ) {
+  static auto const C = []( double const d ) {
+    return clamp( d, 0.0, 1.0 );
+  };
+
+  return rd_.piecewise( rng::random::piecewise3{
+    .l = { .value = 0.0, .weight = C( weight_at_0 ) },
+    .m = { .value = C( peak ), .weight = 1.0 },
+    .r = { .value = 1.0, .weight = C( weight_at_1 ) },
+  } );
+}
+
 rng::seed Rand::generate_deterministic_seed() {
   return rd_.generate_deterministic_seed();
 }

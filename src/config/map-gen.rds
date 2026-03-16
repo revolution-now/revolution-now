@@ -30,7 +30,7 @@ include "base/maybe.hpp"
 namespace "rn.config.map_gen"
 
 struct.LandMass {
-  fully_random 'config::BoundedNormalDist',
+  fully_random 'config::Piecewise3Dist',
   customized 'refl::enum_map<e_land_mass, config::BoundedNormalDist>',
   _features { equality, validation }
 }
@@ -67,6 +67,24 @@ struct.LandLayout {
   remove_crosses 'bool',
 }
 
+struct.WeatherDistribution {
+  distribution 'config::Piecewise3Dist',
+  _features { equality, validation }
+}
+
+struct.Temperature {
+  fully_random 'WeatherDistribution',
+}
+
+struct.Climate {
+  fully_random 'WeatherDistribution',
+}
+
+struct.Weather {
+  temperature 'Temperature',
+  climate 'Climate',
+}
+
 struct.BiomeCurveParams {
   weight 'double',
   center 'double',
@@ -81,8 +99,6 @@ struct.BiomeCurve {
 }
 
 struct.Biomes {
-  temperature 'config::ParabolicDist',
-  climate     'config::ParabolicDist',
   normal_temperature_and_climate [[
     refl::enum_map<e_ground_terrain, BiomeCurve>
   ]],
@@ -128,6 +144,7 @@ struct.Rivers {
 
 struct.TerrainGeneration {
   land_layout 'LandLayout',
+  weather 'Weather',
   rivers 'Rivers',
   biomes 'Biomes',
   overlay 'Overlay',

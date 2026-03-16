@@ -47,13 +47,19 @@ struct Rand : IRand {
   void reseed( rng::entropy const& seed ) override;
 
  public: // IRand.
-  bool bernoulli( double p ) override;
+  [[nodiscard]] bool bernoulli( double p ) override;
 
-  int uniform_int( int lower, int upper ) override;
+  [[nodiscard]] int uniform_int( int lower, int upper ) override;
 
-  double uniform_double( double lower, double upper ) override;
+  [[nodiscard]] double uniform_double( double lower,
+                                       double upper ) override;
 
-  double normal( double mean, double stddev ) override;
+  [[nodiscard]] double normal( double mean,
+                               double stddev ) override;
+
+  [[nodiscard]] double piecewise3( double peak,
+                                   double weight_at_0,
+                                   double weight_at_1 ) override;
 
   rng::seed generate_deterministic_seed() override;
 

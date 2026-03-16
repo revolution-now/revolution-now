@@ -63,10 +63,11 @@ struct.BoundedNormalDist {
   _features { equality, validation }
 }
 
-struct.ParabolicDist {
-  mean 'double',
-  width 'double',
-  height 'double',
-
+struct.Piecewise3Dist {
+  min 'double',
+  peak 'double',
+  max 'double',
+  weight_min 'double',
+  weight_max 'double',
   _features { equality, validation }
 }

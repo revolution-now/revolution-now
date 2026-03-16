@@ -16,6 +16,7 @@ enum.e_mode {
   map_gen_key,
   map_gen_key_reseed,
   map_gen_custom,
+  map_gen_default, # "Start Game in NEW WORLD".
   map_gen_stats,
   map_gen_og,
   test_ui,

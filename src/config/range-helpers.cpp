@@ -17,21 +17,28 @@ using namespace std;
 
 namespace rn::config {
 
-base::valid_or<string> IntPercent::validate() const {
+namespace {
+
+using ::base::valid;
+using ::base::valid_or;
+
+}
+
+valid_or<string> IntPercent::validate() const {
   REFL_VALIDATE(
       percent >= 0 && percent <= 100,
       "integral percents must be in the range [0, 100]." );
-  return base::valid;
+  return valid;
 }
 
-base::valid_or<string> DoublePercent::validate() const {
+valid_or<string> DoublePercent::validate() const {
   REFL_VALIDATE(
       fraction >= 0.0 && fraction <= 1.0,
       "floating point percents must be in the range [0, 1.0]." );
-  return base::valid;
+  return valid;
 }
 
-base::valid_or<string> DoublePercentRange::validate() const {
+valid_or<string> DoublePercentRange::validate() const {
   REFL_VALIDATE( lo >= 0.0 && lo <= 1.0,
                  "floating point percent `lo' must be in the "
                  "range [0, 1.0]." );
@@ -40,45 +47,54 @@ base::valid_or<string> DoublePercentRange::validate() const {
                  "range [0, 1.0]." );
   REFL_VALIDATE( lo <= hi,
                  "`lo' must be less or equal to `hi'" );
-  return base::valid;
+  return valid;
 }
 
-base::valid_or<string> IntRange::validate() const {
+valid_or<string> IntRange::validate() const {
   REFL_VALIDATE( min <= max, "min must be <= max in range." );
-  return base::valid;
+  return valid;
 }
 
-base::valid_or<string> DoubleRange::validate() const {
+valid_or<string> DoubleRange::validate() const {
   REFL_VALIDATE( min <= max, "min must be <= max in range." );
-  return base::valid;
+  return valid;
 }
 
-base::valid_or<string> Probability::validate() const {
+valid_or<string> Probability::validate() const {
   REFL_VALIDATE( probability >= 0.0,
                  "probability must be >= 0.0." );
   REFL_VALIDATE( probability <= 1.0,
                  "probability must be <= 1.0." );
-  return base::valid;
+  return valid;
 }
 
-base::valid_or<string> NormalDist::validate() const {
+valid_or<string> NormalDist::validate() const {
   REFL_VALIDATE( stddev >= 0.0, "stddev must be non-negative." );
-  return base::valid;
+  return valid;
 }
 
-base::valid_or<string> BoundedNormalDist::validate() const {
+valid_or<string> BoundedNormalDist::validate() const {
   REFL_VALIDATE( stddev >= 0.0, "stddev must be non-negative." );
   REFL_VALIDATE( min <= max, "min must <= max." );
-  return base::valid;
+  return valid;
 }
 
-base::valid_or<string> UniformDist::validate() const {
+valid_or<string> UniformDist::validate() const {
   REFL_VALIDATE( min <= max, "min must <= max." );
-  return base::valid;
+  return valid;
 }
 
-base::valid_or<string> ParabolicDist::validate() const {
-  return base::valid;
+valid_or<string> Piecewise3Dist::validate() const {
+  static auto const is_0_1 = []( double const d ) {
+    return d >= 0.0 && d <= 1.0;
+  };
+  REFL_VALIDATE( is_0_1( weight_min ),
+                 "weight_min must in the interval [0, 1]" );
+  REFL_VALIDATE( is_0_1( weight_max ),
+                 "weight_max must in the interval [0, 1]" );
+  REFL_VALIDATE( min <= peak, "min must be <= peak" );
+  REFL_VALIDATE( peak <= max, "peak must be <= max" );
+  return valid;
 }
 
 } // namespace rn::config

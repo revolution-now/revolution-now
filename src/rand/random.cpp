@@ -120,4 +120,11 @@ double random::normal( double const mean, double const stddev ) {
   return normal_distribution<double>( mean, stddev )( engine_ );
 }
 
+double random::piecewise( piecewise3 const& p ) {
+  array<double, 3> const i{ p.l.value, p.m.value, p.r.value };
+  array<double, 3> const w{ p.l.weight, p.m.weight, p.r.weight };
+  return piecewise_linear_distribution<double>{
+    i.begin(), i.end(), w.begin() }( engine_ );
+}
+
 } // namespace rng

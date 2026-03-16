@@ -80,8 +80,7 @@ struct.SurfaceGeneratorSetup {
   sanitization 'SurfaceSanitizationSetup',
 }
 
-struct.BiomesSetup {
-  seed 'rng::seed',
+struct.WeatherSetup {
   temperature 'int',  # [-100, 100] = [cold, warm]
   climate 'int',      # [-100, 100] = [arid, wet]
 }
@@ -89,6 +88,10 @@ struct.BiomesSetup {
 struct.RiverSetup {
   seed 'rng::seed',
   parameters 'RiverParameters',
+}
+
+struct.BiomesSetup {
+  seed 'rng::seed',
 }
 
 struct.MountainsSetup {
@@ -132,6 +135,8 @@ struct.GeneratedMapSetup {
   size 'gfx::size',
 
   surface_generator 'SurfaceGeneratorSetup',
+
+  weather 'WeatherSetup',
 
   rivers 'RiverSetup',
 

@@ -15,6 +15,7 @@
 
 // C++ standard library.
 #include <fstream>
+#include <sstream>
 
 namespace rn {
 
@@ -27,14 +28,9 @@ using namespace std;
 /****************************************************************
 ** Public API.
 *****************************************************************/
-void generate_gnuplot( fs::path const& dir,
-                       std::string const& stem,
-                       GnuPlotSettings const& settings,
-                       CsvData const& csv_data ) {
-  string const fname = dir / format( "{}.gnuplot", stem );
-  lg.info( "writing gnuplot file: {}", fname );
-  ofstream out( fname );
-  CHECK( out.good(), "failed to open file {}", fname );
+string generate_gnuplot( GnuPlotSettings const& settings,
+                         CsvData const& csv_data ) {
+  ostringstream out;
 
   auto const emit_row = [&]( auto const& row ) {
     for( string sep; string const& col : row )
@@ -64,6 +60,18 @@ void generate_gnuplot( fs::path const& dir,
     out << format( "set yrange [{}]\n", settings.y_range );
   out << "plot for [col=2:*] $CSVData using 1:col with lines lw "
          "2\n";
+  return out.str();
+}
+
+void generate_gnuplot( fs::path const& dir,
+                       std::string const& stem,
+                       GnuPlotSettings const& settings,
+                       CsvData const& csv_data ) {
+  string const fname = dir / format( "{}.gnuplot", stem );
+  lg.info( "writing gnuplot file: {}", fname );
+  ofstream out( fname );
+  CHECK( out.good(), "failed to open file {}", fname );
+  out << generate_gnuplot( settings, csv_data );
 }
 
 } // namespace rn

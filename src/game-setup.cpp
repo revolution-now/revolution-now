@@ -65,17 +65,22 @@ int constexpr kBiomeSpectrumMax = 100;
   return rand.uniform_double( params.min, params.max );
 }
 
-[[nodiscard]] double sample_parabolic(
-    IRand& rand, config::ParabolicDist const& params ) {
-  double const area = rand.uniform_int( 0, 999999 ) / 1000000.0;
-  (void)area;
-  return params.mean; // FIXME
+[[nodiscard]] double sample_piecewise3(
+    IRand& rand, config::Piecewise3Dist const& dist ) {
+  double const width = dist.max - dist.min;
+  if( width < 1e-6 ) return dist.peak;
+  double const peak = ( dist.peak - dist.min ) / width;
+  double const in_0_1 =
+      rand.piecewise3( peak, dist.weight_min, dist.weight_max );
+  // clamp just in case there are rounding errors.
+  return clamp( in_0_1 * width + dist.min, dist.min, dist.max );
 }
 
-[[nodiscard]] int sample_parabolic_biome(
-    IRand& rand, config::ParabolicDist const& params ) {
-  double const sampled = sample_parabolic( rand, params );
-  return clamp( int( lround( sampled * kBiomeSpectrumMax ) ),
+[[nodiscard]] int sample_weather_dist(
+    IRand& rand,
+    config::map_gen::WeatherDistribution const& params ) {
+  return clamp( int( lround( sample_piecewise3(
+                    rand, params.distribution ) ) ),
                 -kBiomeSpectrumMax, kBiomeSpectrumMax );
 }
 
@@ -180,6 +185,11 @@ GameSetup create_classic_game_setup(
     .sanitization = surface_sanitization,
   };
 
+  WeatherSetup const weather{
+    .temperature = params.temperature,
+    .climate     = params.climate,
+  };
+
   RiverParameterInterpolator const river_interp(
       params.land_form.scale, params.climate );
 
@@ -204,9 +214,7 @@ GameSetup create_classic_game_setup(
     } };
 
   BiomesSetup const biomes{
-    .seed        = rand.generate_deterministic_seed(),
-    .temperature = params.temperature,
-    .climate     = params.climate,
+    .seed = rand.generate_deterministic_seed(),
   };
 
   MountainsSetup const mountains{
@@ -235,6 +243,7 @@ GameSetup create_classic_game_setup(
   GeneratedMapSetup const generated_map_setup{
     .size              = world_sz,
     .surface_generator = surface_generator,
+    .weather           = weather,
     .rivers            = rivers,
     .biomes            = biomes,
     .mountains         = mountains,
@@ -286,13 +295,13 @@ GameSetup create_default_game_setup(
 
   ClassicGameSetupParamsEvaluated const params{
     .common       = common,
-    .land_density = sample_normal(
+    .land_density = sample_piecewise3(
         rand, map_conf.land_layout.land_mass.fully_random ),
     .land_form   = perlin_land_form,
-    .temperature = sample_parabolic_biome(
-        rand, map_conf.biomes.temperature ),
-    .climate =
-        sample_parabolic_biome( rand, map_conf.biomes.climate ),
+    .temperature = sample_weather_dist(
+        rand, map_conf.weather.temperature.fully_random ),
+    .climate = sample_weather_dist(
+        rand, map_conf.weather.climate.fully_random ),
   };
   return create_classic_game_setup( rand, params );
 }

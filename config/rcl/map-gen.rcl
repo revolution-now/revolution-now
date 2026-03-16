@@ -24,7 +24,13 @@ terrain_generation {
       # This is for when the land mass is chosen randomly without
       # any customization; essentially this is when the player
       # selects "Start New Game" without any customizations.
-      fully_random: { mean: .29, stddev: .07, min: .09, max: .46 }
+      fully_random: {
+        min:  .10
+        peak: .30
+        max:  .47
+        weight_min: 0
+        weight_max: 0
+      }
 
       customized {
         small:    { mean: .16, stddev: .03, min: .09, max: .46 }
@@ -133,6 +139,27 @@ terrain_generation {
     remove_crosses: true
   }
 
+  weather {
+    temperature {
+      fully_random.distribution: {
+        min:  -100
+        peak:    0
+        max:   100
+        weight_min: .3
+        weight_max: .3
+      }
+    }
+    climate {
+      fully_random.distribution: {
+        min:  -100
+        peak:    0
+        max:   100
+        weight_min: .3
+        weight_max: .3
+      }
+    }
+  }
+
   rivers {
     min_length: 4
     turn.probability: .28
@@ -172,9 +199,6 @@ terrain_generation {
   }
 
   biomes {
-    temperature { mean: 0, width: 0, height: 0 }
-    climate     { mean: 0, width: 0, height: 0 }
-
     normal_temperature_and_climate {
       savannah  { exp: 2, params={ weight: 0.2879, center: 0.5800, stddev: 0.0631, sub: 0.3000 } }
       grassland { exp: 2, params={ weight: 0.1295, center: 0.6386, stddev: 0.0604, sub: 0.0000 } }

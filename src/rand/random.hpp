@@ -68,6 +68,19 @@ struct random {
 
   [[nodiscard]] double normal( double mean, double stddev );
 
+  struct piece {
+    double value  = {};
+    double weight = {};
+  };
+
+  struct piecewise3 {
+    piece l;
+    piece m;
+    piece r;
+  };
+
+  [[nodiscard]] double piecewise( piecewise3 const& params );
+
   // Uniform over all values of the type.
   template<typename T>
   requires( std::is_integral_v<T> && std::is_unsigned_v<T> &&

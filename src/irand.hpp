@@ -55,6 +55,32 @@ struct IRand {
   [[nodiscard]] virtual double normal( double mean,
                                        double stddev ) = 0;
 
+  // Example of a piecewise with three points:
+  //
+  //   {
+  //     .peak        = .7,  // x axis
+  //     .weight_at_0 = .3,  // y axis
+  //     .weight_at_1 = .6,  // y axis
+  //   }
+  //
+  //      ^
+  //   1. |                    *
+  //   .9 |                 *    *
+  //   .8 |              *         *
+  //   .7 |           *              *
+  //   .6 |        *                   *
+  //   .5 |     *                      *
+  //   .4 |  *                         *
+  //   .3 *                            *
+  //   .2 |                            *
+  //   .1 |                            *
+  //    0 +------------------------------------>
+  //      0 .1 .2 .3 .4 .5 .6 .7 .8 .9 1.
+  //
+  // All values must be in [0, 1.0].
+  [[nodiscard]] virtual double piecewise3(
+      double peak, double weight_at_0, double weight_at_1 ) = 0;
+
   // This generates a seed (entropy) object just using the cur-
   // rent state of the pseudo-random generator; no true random-
   // ness here. This would be used to generate e.g. map genera-
