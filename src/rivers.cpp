@@ -149,7 +149,7 @@ using RiverTiles = vector<RiverTile>;
 static void add_river_land_components(
     MapMatrix const& m, IRand& rand,
     RiverParameters const& params, point const start,
-    e_cardinal_direction const from, RiverTiles& river_tiles,
+    e_cardinal_direction const from, RiverTiles& history,
     RiverTile const prev_river_tile ) {
   auto const has_tile_in_history =
       []( RiverTiles const& river_tiles, point const p ) {
@@ -159,10 +159,10 @@ static void add_river_land_components(
         return false;
       };
 
-  CHECK( !river_tiles.empty() );
+  CHECK( !history.empty() );
   CHECK( !m[start].river.has_value() );
   bool const should_grow =
-      ( ssize( river_tiles ) < params.min_length ) ||
+      ( ssize( history ) < params.min_length ) ||
       rand.bernoulli( params.growth.probability *
                       river_probability_decay( params.edge_decay,
                                                m.size().h,
@@ -170,7 +170,7 @@ static void add_river_land_components(
   if( !should_grow ) return;
 
   e_river const type = [&] {
-    if( river_tiles.size() == 1 ) {
+    if( history.size() == 1 ) {
       return rand.bernoulli( params.sustain_major.probability )
                  ? e_river::major
                  : e_river::minor;
@@ -186,8 +186,7 @@ static void add_river_land_components(
 
   CHECK( !m[start].river.has_value(),
          "tile {} already has a river.", start );
-  river_tiles.push_back(
-      RiverTile{ .tile = start, .type = type } );
+  history.push_back( RiverTile{ .tile = start, .type = type } );
 
   e_cardinal_direction const forward          = from;
   array<e_cardinal_direction, 2> const turned = [&] {
@@ -224,14 +223,18 @@ static void add_river_land_components(
       if( moved.y == 0 || moved.y == m.size().h - 1 ) continue;
       if( square.river.has_value() ) continue;
       if( square.surface == e_surface::water ) continue;
-      if( has_tile_in_history( river_tiles, moved ) ) continue;
+      if( has_tile_in_history( history, moved ) ) continue;
       bool const has_surrounding_river = [&] {
         bool res = false;
         on_surrounding_cardinal(
             m, moved,
-            [&]( point const, MapSquare const& square,
+            [&]( point const p, MapSquare const& square,
                  e_cardinal_direction const ) {
               if( square.river.has_value() ) res = true;
+              CHECK( !history.empty() );
+              if( p != history.back().tile &&
+                  has_tile_in_history( history, p ) )
+                res = true;
             } );
         return res;
       }();
@@ -241,27 +244,31 @@ static void add_river_land_components(
     return res;
   }();
 
+  auto const close_to_previous =
+      [&]( RiverTiles const& history,
+           e_cardinal_direction const d ) {
+        point const moved         = start.moved( d );
+        bool adjacent_to_previous = false;
+        on_surrounding_cardinal(
+            m, moved,
+            [&]( point const p, MapSquare const&,
+                 e_cardinal_direction const d2 ) {
+              if( d2 == reverse_direction( d ) ) return;
+              adjacent_to_previous =
+                  adjacent_to_previous ||
+                  has_tile_in_history( history, p );
+            } );
+        return adjacent_to_previous;
+      };
+
   vector<e_cardinal_direction> const ranked_directions = [&] {
     vector<e_cardinal_direction> res = available_directions;
-    auto const close_to_previous =
-        [&]( e_cardinal_direction const d ) {
-          point const moved         = start.moved( d );
-          bool adjacent_to_previous = false;
-          on_surrounding_cardinal(
-              m, moved,
-              [&]( point const p, MapSquare const&,
-                   e_cardinal_direction const d2 ) {
-                if( d2 == reverse_direction( d ) ) return;
-                adjacent_to_previous =
-                    adjacent_to_previous ||
-                    has_tile_in_history( river_tiles, p );
-              } );
-          return adjacent_to_previous;
-        };
     auto const less = [&]( e_cardinal_direction const l,
                            e_cardinal_direction const r ) {
-      bool const l_close_to_previous = close_to_previous( l );
-      bool const r_close_to_previous = close_to_previous( r );
+      bool const l_close_to_previous =
+          close_to_previous( history, l );
+      bool const r_close_to_previous =
+          close_to_previous( history, r );
       if( l_close_to_previous != r_close_to_previous )
         return l_close_to_previous < r_close_to_previous;
       return false;
@@ -271,12 +278,12 @@ static void add_river_land_components(
   }();
 
   for( e_cardinal_direction const d : ranked_directions ) {
-    RiverTiles new_tiles          = river_tiles;
-    RiverTile const pre_fork_back = new_tiles.back();
+    RiverTiles new_history        = history;
+    RiverTile const pre_fork_back = new_history.back();
     add_river_land_components( m, rand, params, start.moved( d ),
-                               d, new_tiles, pre_fork_back );
+                               d, new_history, pre_fork_back );
     bool const did_main_leg =
-        new_tiles.size() > river_tiles.size();
+        new_history.size() > history.size();
     bool const did_fork = [&] {
       if( !did_main_leg ) return false;
       auto const fork_direction =
@@ -291,8 +298,10 @@ static void add_river_land_components(
             continue;
           // Test if the first leg that we just did above has al-
           // ready placed a river on this spot.
-          if( has_tile_in_history( new_tiles,
+          if( has_tile_in_history( new_history,
                                    start.moved( d_fork ) ) )
+            continue;
+          if( close_to_previous( new_history, d_fork ) )
             continue;
           available_fork_directions.push_back( d_fork );
         }
@@ -304,23 +313,23 @@ static void add_river_land_components(
           rand.bernoulli( params.fork.probability );
       if( !should_fork ) return false;
       CHECK( fork_direction.has_value() );
-      int const pre_fork_size = new_tiles.size();
+      int const pre_fork_size = new_history.size();
       add_river_land_components(
           m, rand, params, start.moved( *fork_direction ),
-          *fork_direction, new_tiles, pre_fork_back );
-      int const post_fork_size = new_tiles.size();
+          *fork_direction, new_history, pre_fork_back );
+      int const post_fork_size = new_history.size();
       return post_fork_size > pre_fork_size;
     }();
-    if( ssize( new_tiles ) >= params.min_length ) {
-      int const last_idx = river_tiles.size() - 1;
-      river_tiles        = new_tiles;
+    if( ssize( new_history ) >= params.min_length ) {
+      int const last_idx = history.size() - 1;
+      history            = new_history;
       // If we ended up forking then recompute the fork type.
       if( did_fork )
-        river_tiles[last_idx].type =
+        history[last_idx].type =
             rand.bernoulli( params.fork_is_major.probability )
                 ? e_river::major
                 : e_river::minor;
-      CHECK( river_tiles.size() == new_tiles.size() );
+      CHECK( history.size() == new_history.size() );
       return;
     }
   }
@@ -387,34 +396,37 @@ void add_rivers( MapMatrix& m, IRand& rand,
       waters.push_back( d );
     }
     if( waters.empty() ) continue;
-    e_cardinal_direction const d_water = rand.pick_one( waters );
-    point const water                  = start.moved( d_water );
-    RiverTiles river_tiles;
-    auto const initial = RiverTile{
-      .tile = water,
-      .type = rand.bernoulli( params.start_major.probability )
-                  ? e_river::major
-                  : e_river::minor };
-    river_tiles.push_back( initial );
-    add_river_land_components( m, rand, params, start,
-                               reverse_direction( d_water ),
-                               river_tiles, initial );
-    if( ssize( river_tiles ) < params.min_length ) continue;
-    // We have a well-formed river, so lay it down. Note that
-    // consecutive river tiles in this vector are not necessarily
-    // adjacent to each other due to forking.
-    for( auto const [i, rt] :
-         rl::all( river_tiles ).enumerate() ) {
-      CHECK( rt.tile.is_inside( m.rect() ) );
-      if( i == 0 )
-        CHECK( m[rt.tile].surface == e_surface::water );
-      else
-        CHECK( m[rt.tile].surface == e_surface::land );
-      CHECK( !m[rt.tile].river.has_value(),
-             "tile {} already has a river. i={}", rt.tile, i );
-      m[rt.tile].river = rt.type;
+    rand.shuffle( waters );
+    for( e_cardinal_direction const d_water : waters ) {
+      point const water = start.moved( d_water );
+      RiverTiles river_tiles;
+      auto const initial = RiverTile{
+        .tile = water,
+        .type = rand.bernoulli( params.start_major.probability )
+                    ? e_river::major
+                    : e_river::minor };
+      river_tiles.push_back( initial );
+      add_river_land_components( m, rand, params, start,
+                                 reverse_direction( d_water ),
+                                 river_tiles, initial );
+      if( ssize( river_tiles ) < params.min_length ) continue;
+      // We have a well-formed river, so lay it down. Note that
+      // consecutive river tiles in this vector are not neces-
+      // sarily adjacent to each other due to forking.
+      for( auto const [i, rt] :
+           rl::all( river_tiles ).enumerate() ) {
+        CHECK( rt.tile.is_inside( m.rect() ) );
+        if( i == 0 )
+          CHECK( m[rt.tile].surface == e_surface::water );
+        else
+          CHECK( m[rt.tile].surface == e_surface::land );
+        CHECK( !m[rt.tile].river.has_value(),
+               "tile {} already has a river. i={}", rt.tile, i );
+        m[rt.tile].river = rt.type;
+      }
+      ++have;
+      break;
     }
-    ++have;
     if( have == n_desired ) break;
   }
 }
