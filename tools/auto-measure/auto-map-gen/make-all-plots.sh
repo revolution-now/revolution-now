@@ -1,7 +1,8 @@
 #!/bin/bash
 set -e
 
-lambda=rivers
+#lambda=rivers/empirical
+lambda=biomes/empirical
 
 this="$(dirname "$0")"
 sav="$(realpath "$this/../../sav")"
@@ -11,11 +12,11 @@ export LUA_PATH="$sav/?.lua;$LUA_PATH"
 
 go() {
   local config="$1"
-  ./accumulate-lambda.sh "$config" "map-analysis/$lambda.lua"
+  ./accumulate-lambda.sh "$config" "$lambda.lua"
 }
 
 collect() {
-  lua -e "require( 'map-analysis/$lambda' ).collect()"
+  lua -e "require( '$lambda' ).collect()"
 }
 
 # biomes.
@@ -28,6 +29,10 @@ collect() {
 # go bbbt &
 # go bbbm &
 # go bbbb &
+# go tmmm &
+# go bmmm &
+# go mtmm &
+# go mbmm &
 # go new  &
 
 # land density.
