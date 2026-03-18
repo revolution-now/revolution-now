@@ -560,7 +560,7 @@ local function collect()
   local BUCKET_FRACTION = 100
   local MODES = {
     'bbtt', 'bbtm', 'bbtb', 'bbmt', 'bbmm', 'bbmb', 'bbbt',
-    'bbbm', 'bbbb', 'new',
+    'bbbm', 'bbbb', 'tmmm', 'bmmm', 'mtmm', 'mbmm', 'new',
   }
   local o = {}
   o.modes = {}
