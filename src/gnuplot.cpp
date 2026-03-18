@@ -39,7 +39,7 @@ string generate_gnuplot( GnuPlotSettings const& settings,
   };
 
   out << "#!/usr/bin/env -S gnuplot -p\n";
-  out << format( "set datafile separator {}\n", settings.sep );
+  out << format( "set datafile separator comma\n" );
   out << '\n';
 
   out << "$CSVData << EOF\n";

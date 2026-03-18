@@ -55,28 +55,28 @@ collect() {
 # go new  &
 
 # rivers.
-go bbbb &
-go bbbm &
-go bbmb &
-go bbmm &
-go bbmt &
-go bbtm &
-go bbtt &
-go bmmm &
-go mbmb &
-go mbmm &
-go mbmt &
-go mmmb &
-go mmmm &
-go mmmt &
-go mtmb &
-go mtmm &
-go mtmt &
-go tmmm &
-go ttmb &
-go ttmm &
-go ttmt &
-go new  &
+# go bbbb &
+# go bbbm &
+# go bbmb &
+# go bbmm &
+# go bbmt &
+# go bbtm &
+# go bbtt &
+# go bmmm &
+# go mbmb &
+# go mbmm &
+# go mbmt &
+# go mmmb &
+# go mmmm &
+# go mmmt &
+# go mtmb &
+# go mtmm &
+# go mtmt &
+# go tmmm &
+# go ttmb &
+# go ttmm &
+# go ttmt &
+# go new  &
 
 wait
 

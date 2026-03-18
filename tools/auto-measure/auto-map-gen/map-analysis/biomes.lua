@@ -5,6 +5,7 @@
 -----------------------------------------------------------------
 local Q = require( 'lib.query' )
 local json = require( 'moon.json' )
+local plot = require( 'moon.plot' )
 
 -----------------------------------------------------------------
 -- Aliases.
@@ -12,6 +13,12 @@ local json = require( 'moon.json' )
 local insert = table.insert
 local format = string.format
 local concat = table.concat
+local max = math.max
+
+-----------------------------------------------------------------
+-- Constants.
+-----------------------------------------------------------------
+local DESERT_DENSITY_BUCKET_SIZE = .0001
 
 -----------------------------------------------------------------
 -- Helpers.
@@ -25,43 +32,6 @@ local function clamp( n, l, h )
 end
 
 local PLOTS_DIR = 'biomes/empirical'
-
-local GNUPLOT_FILE_TEMPLATE = [[
-#!/usr/bin/env -S gnuplot -p
-set title "Terrain Distribution ({{MODE}} [{{COUNT}}])"
-set datafile separator ","
-set key outside right
-set grid
-set xlabel "Map Row (Y)"
-set ylabel "value"
-
-# Use the first row as column headers for titles.
-set key autotitle columnhead
-
-set yrange [0:0.7]
-
-# Plot: x is column 1, then plot columns 2..N as separate lines.
-plot for [col=2:*] "{{CSV_STEM}}" using 1:col with lines lw 2
-]]
-
-local function write_gnuplot_file( csv_fname, mode, count )
-  assert( mode )
-  assert( count )
-  local gnuplot_fname =
-      format( '%s/%s.gnuplot', PLOTS_DIR, mode )
-  printfln( 'writing gnuplot file %s...', gnuplot_fname )
-  local f<close> = assert( io.open( gnuplot_fname, 'w' ) )
-  local body = GNUPLOT_FILE_TEMPLATE
-  local subs = {
-    { key='{{CSV_STEM}}', val=csv_fname }, --
-    { key='{{MODE}}', val=mode }, --
-    { key='{{COUNT}}', val=count }, --
-  }
-  for _, p in ipairs( subs ) do
-    body = body:gsub( assert( p.key ), assert( p.val ) )
-  end
-  f:write( body )
-end
 
 -----------------------------------------------------------------
 -- Data.
@@ -108,10 +78,17 @@ local D = {
   --   surrounding_land_on_row,
   -- }
   adjacency={},
-}
 
-local INCLUDE_LAND = false
-local INCLUDE_SUM = false
+  -- Histogram of largest distance from equator where there is
+  -- savannah. This is used to estimate the temperature distribu-
+  -- tion on the `new` mode. key=distance, val=count.
+  max_savannah_row={},
+
+  -- Histogram of the density of desert in the middle two rows.
+  -- This is used to estimate the temperature distribution on the
+  -- `new` mode. key=density bucket, val=count.
+  desert_density_center={},
+}
 
 local GROUND_TYPES = {
   'savannah', --
@@ -271,42 +248,81 @@ local function lambda( json_o )
   -- Swamp.
   swamp_marsh_adjacency( 'swamp', D.swamp )
   swamp_marsh_adjacency( 'marsh', D.marsh )
+
+  local max_savannah_dist = 0
+  Q.on_all_tiles( function( tile )
+    local terrain = terrain_at( json_o, tile )
+    if terrain.ground == 'savannah' then
+      if tile.y >= 36 then
+        local delta = tile.y - 36
+        max_savannah_dist = max( max_savannah_dist, delta )
+      else
+        local delta = 35 - tile.y
+        max_savannah_dist = max( max_savannah_dist, delta )
+      end
+    end
+  end )
+  assert( max_savannah_dist )
+  assert( type( max_savannah_dist ) == 'number' )
+  assert( math.type( max_savannah_dist ) == 'integer' )
+  assert( max_savannah_dist > 0 )
+  D.max_savannah_row[max_savannah_dist] =
+      D.max_savannah_row[max_savannah_dist] or 0
+  D.max_savannah_row[max_savannah_dist] =
+      D.max_savannah_row[max_savannah_dist] + 1
+
+  local desert_count_center = 0
+  local land_count_center = 0
+  Q.on_all_tiles( function( tile )
+    if tile.y ~= 34 and tile.y ~= 35 and tile.y ~= 36 and tile.y ~=
+        37 then return end
+    local terrain = terrain_at( json_o, tile )
+    if terrain.surface == 'land' then
+      land_count_center = land_count_center + 1
+    end
+    if terrain.ground == 'desert' then
+      desert_count_center = desert_count_center + 1
+    end
+  end )
+  if land_count_center > 0 then
+    local desert_density_center =
+        desert_count_center / land_count_center
+    local bucket = math.floor( desert_density_center /
+                                   DESERT_DENSITY_BUCKET_SIZE )
+    D.desert_density_center[bucket] =
+        D.desert_density_center[bucket] or 0
+    D.desert_density_center[bucket] =
+        D.desert_density_center[bucket] + 1
+  end
 end
 
 local function finished( mode )
   do
-    local csv_fname = format( '%s.csv', mode )
-    local csv_path = format( '%s/%s', PLOTS_DIR, csv_fname )
-    write_gnuplot_file( csv_fname, mode, D.total_savs )
-    printfln( 'writing csv file %s...', csv_path )
-    local f<close> = assert( io.open( csv_path, 'w' ) )
-    local emit = function( fmt, ... )
-      f:write( format( fmt, ... ) )
-    end
-    local header = { 'y' }
-    if INCLUDE_LAND then insert( header, 'land' ) end
-    if INCLUDE_SUM then insert( header, 'sum' ) end
+    local opts = {
+      title=format( 'Terrain Distribution (empirical) (%s) [%d]',
+                    mode, D.total_savs ),
+      x_label='Map Row (Y)',
+      y_label='Value',
+      y_range='0:0.7',
+    }
+    local csv_data = { header={ 'y' }, rows={} }
     for _, ground in ipairs( GROUND_TYPES ) do
-      insert( header, ground )
+      insert( csv_data.header, ground )
     end
-    emit( '%s\n', concat( header, ',' ) )
     for y_real = 1, 70 do
       local y = clamp( y_real, 4, 66 )
+      local row = { y }
       local land = assert( D.land[y] )
-      emit( '%d', y )
-      if INCLUDE_LAND then
-        emit( ',%f', land / (56 * D.total_savs) )
-      end
-      local sum = 0
       for _, ground in ipairs( GROUND_TYPES ) do
         local count = assert( D.ground_per_row[ground][y] )
-        sum = sum + count
         local density = count / land
-        emit( ',%f', density )
+        table.insert( row, format( format( '%f', density ) ) )
       end
-      if INCLUDE_SUM then emit( ',%f', sum / land ) end
-      emit( '\n' )
+      table.insert( csv_data.rows, row )
     end
+    local path =
+        format( '%s/%s.spatial.gnuplot', PLOTS_DIR, mode )
+    plot.line_graph_to_file( path, csv_data, opts )
   end
 
   printfln( 'Total Land: %d', D.total_land )
@@ -388,6 +404,150 @@ local function finished( mode )
     end
     json.write( o, 2, emit )
   end
+
+  -- Savannah max row tracking.
+  local savannah_rows
+  do
+    if mode == 'bbtm' or mode == 'bbmm' or mode == 'bbbm' or mode ==
+        'new' then
+      local opts = {
+        title=format(
+            'Savannah Row Limit Histograph (empirical) (%s) [%d]',
+            mode, D.total_savs ),
+        x_label='Distance from Equator',
+        y_label='Frequency',
+        x_range='0:20',
+        y_range='0:1',
+      }
+
+      local csv_data = {
+        header={ 'savannah_distance', 'frequency' },
+        rows={},
+      }
+
+      local max_dist = 0
+      for dist, _ in pairs( D.max_savannah_row ) do
+        max_dist = max( max_dist, dist )
+      end
+      for i = 0, max_dist do
+        local row = { i, 0 }
+        if D.max_savannah_row[i] then
+          row[2] = D.max_savannah_row[i] / D.total_savs
+        end
+        table.insert( csv_data.rows, row )
+      end
+
+      local savannah_file = format( '%s/%s.savannah.gnuplot',
+                                    PLOTS_DIR, mode )
+      plot.line_graph_to_file( savannah_file, csv_data, opts )
+      savannah_rows = csv_data.rows
+    end
+
+    if mode == 'new' then
+      local function savannah_max_to_temperature( sm )
+        return 100 * (sm - 10) / 2
+      end
+
+      assert( savannah_rows )
+      local opts = {
+        title=format(
+            'Temperature Histograph from Savannah (empirical) (%s) [%d]',
+            mode, D.total_savs ),
+        x_label='Temperature',
+        y_label='Frequency',
+        x_range='-300:300',
+        y_range='0:1',
+      }
+
+      local csv_data = {
+        header={ 'temperature', 'frequency' },
+        rows={},
+      }
+
+      for _, row in ipairs( savannah_rows ) do
+        row[1] = savannah_max_to_temperature( row[1] )
+        table.insert( csv_data.rows, row )
+      end
+
+      local file = format( '%s/%s.savannah.temperature.gnuplot',
+                           PLOTS_DIR, mode )
+      plot.line_graph_to_file( file, csv_data, opts )
+    end
+  end
+
+  -- Desert center density tracking.
+  local desert_rows
+  do
+    if mode == 'bbtm' or mode == 'bbmm' or mode == 'bbbm' or mode ==
+        'new' then
+      local opts = {
+        title=format(
+            'Desert Center Density Histograph (empirical) (%s) [%d]',
+            mode, D.total_savs ),
+        x_label='Density',
+        y_label='Frequency',
+        x_range='0:0.3',
+        y_range='0:0.02',
+      }
+
+      local csv_data = {
+        header={ 'density', 'frequency' },
+        rows={},
+      }
+
+      local max_bucket = 0
+      for bucket, _ in pairs( D.desert_density_center ) do
+        max_bucket = max( max_bucket, bucket )
+      end
+      for i = 0, max_bucket do
+        local row = { i * DESERT_DENSITY_BUCKET_SIZE, 0 }
+        if D.desert_density_center[i] then
+          row[2] = D.desert_density_center[i] / D.total_savs
+        end
+        table.insert( csv_data.rows, row )
+      end
+
+      local file = format( '%s/%s.desert.gnuplot', PLOTS_DIR,
+                           mode )
+      plot.line_graph_to_file( file, csv_data, opts )
+      desert_rows = csv_data.rows
+    end
+
+    if mode == 'new' then
+      local function desert_density_to_temperature( sm )
+        if sm >= .04 then
+          return -100 * (sm - .04) / .08
+        else
+          return -100 * (sm - .04) / .04
+        end
+      end
+
+      assert( desert_rows )
+      local opts = {
+        title=format(
+            'Temperature Histograph from Desert (empirical) (%s) [%d]',
+            mode, D.total_savs ),
+        x_label='Temperature',
+        y_label='Frequency',
+        x_range='-300:300',
+        y_range='0:.01',
+      }
+
+      local csv_data = {
+        header={ 'temperature', 'frequency' },
+        rows={},
+      }
+
+      for _, row in ipairs( desert_rows ) do
+        row[1] = desert_density_to_temperature( row[1] )
+        table.insert( csv_data.rows, row )
+      end
+
+      local file = format( '%s/%s.desert.temperature.gnuplot',
+                           PLOTS_DIR, mode )
+      plot.line_graph_to_file( file, csv_data, opts )
+    end
+  end
 end
 
 -----------------------------------------------------------------
@@ -432,30 +592,43 @@ local function collect()
       csv_buckets[biome][bucket] = csv_buckets[biome][bucket] + 1
     end
   end
-  local collected_csv_file = format( '%s/adjacency.csv',
-                                     PLOTS_DIR )
-  printfln( 'writing %s...', collected_csv_file )
-  local csv_out<close> = assert(
-                             io.open( collected_csv_file, 'w' ) )
-  csv_out:write( 'value' )
-  for _, biome in ipairs( GROUND_TYPES ) do
-    csv_out:write( ',' .. biome )
-  end
-  csv_out:write( '\n' )
-  for i = 0, 3 * BUCKET_FRACTION do
-    csv_out:write( format( '%.3f', i / BUCKET_FRACTION ) )
+
+  do
+    local opts = {
+      title=format(
+          'Biome Adjacency Histogram (empirical) (%s) [%d]',
+          'collected', D.total_savs ),
+      x_label='Relative Adjacency',
+      y_label='Count',
+      x_range='.6:2.5',
+      y_range='0:6',
+    }
+    local csv_data = { header={ 'value' }, rows={} }
     for _, biome in ipairs( GROUND_TYPES ) do
-      csv_buckets[biome][i] = csv_buckets[biome][i] or 0
-      csv_out:write( format( ',%d', csv_buckets[biome][i] ) )
+      table.insert( csv_data.header, biome )
     end
-    csv_out:write( '\n' )
+    for i = 0, 3 * BUCKET_FRACTION do
+      local row = {}
+      table.insert( row, format( '%.3f', i / BUCKET_FRACTION ) )
+      for _, biome in ipairs( GROUND_TYPES ) do
+        csv_buckets[biome][i] = csv_buckets[biome][i] or 0
+        table.insert( row, format( ',%d', csv_buckets[biome][i] ) )
+      end
+      table.insert( csv_data.rows, row )
+    end
+    local adjacency_file = format( '%s/adjacency.gnuplot',
+                                   PLOTS_DIR )
+    plot.line_graph_to_file( adjacency_file, csv_data, opts )
   end
-  local collected_json_file = format( '%s/adjacency.json',
-                                      PLOTS_DIR )
-  printfln( 'writing %s...', collected_json_file )
-  local json_out<close> = assert(
-                              io.open( collected_json_file, 'w' ) )
-  json.write( o, 2, function( bit ) json_out:write( bit ) end )
+
+  do
+    local collected_json_file = format( '%s/adjacency.json',
+                                        PLOTS_DIR )
+    printfln( 'writing %s...', collected_json_file )
+    local json_out<close> = assert(
+                                io.open( collected_json_file, 'w' ) )
+    json.write( o, 2, function( bit ) json_out:write( bit ) end )
+  end
 end
 
 -----------------------------------------------------------------

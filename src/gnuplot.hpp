@@ -24,7 +24,6 @@ struct GnuPlotSettings {
   std::string title   = "Unnamed Graph";
   std::string x_label = "X";
   std::string y_label = "Y";
-  std::string sep     = "comma";
   base::maybe<std::string> x_range;
   base::maybe<std::string> y_range;
 };
