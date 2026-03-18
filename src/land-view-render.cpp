@@ -28,6 +28,7 @@
 // config
 #include "config/land-view.rds.hpp"
 #include "config/tile-enum.rds.hpp"
+#include "config/ui.rds.hpp"
 
 // ss
 #include "ss/colonies.hpp"
@@ -763,61 +764,52 @@ void LandViewRenderer::render_colony_depixelate(
   render_colony( colony );
 }
 
-// This will render the background around the zoomed-out map.
-// This background consists of some giant stretched ocean tiles.
-// It goes like this:
-//
-//   1. The tiles are scaled up, but only as large as possible so
-//      that they can remain as squares; so the tile size will be
-//      equal to the shorter side length of the viewport.
-//   2. Those tiles are then tiled to cover all of the area.
-//   3. Steps 1+2 are repeated two more times with partial alpha
-//      (i.e., layered on top of the previous), but each time
-//      being scaled up slightly more. The scaling is done about
-//      the center of the composite image in order create a
-//      "zooming" effect. To achieve this, the composite (total,
-//      tiled) image is rendered around the origin and the GPU
-//      then scales it and then translates it.
-//
-// As mentioned, all of the layers are done with partial alpha so
-// that they all end up visible and thus create a "zooming" ef-
-// fect.
 void LandViewRenderer::render_backdrop() const {
-  SCOPED_RENDERER_MOD_MUL( painter_mods.alpha, 0.2 );
-  auto const [shortest_side, longest_side] = [&] {
-    Delta const delta = viewport_rect_pixels_.delta();
-    int shortest_side = std::min( delta.w, delta.h );
-    int longest_side  = std::max( delta.w, delta.h );
-    return pair{ shortest_side, longest_side };
-  }();
-  if( shortest_side == 0 )
-    // This would happen if the user has resized the game window
-    // to something with no visible area.
-    return;
-  int const num_squares_needed =
-      longest_side / shortest_side + 1;
-  Delta const tile_size =
-      Delta{ .w = W{ shortest_side }, .h = H{ shortest_side } };
-  Rect const tiled_rect =
-      Rect::from( Coord{},
-                  tile_size * Delta{ .w = num_squares_needed,
-                                     .h = num_squares_needed } )
-          .centered_on( Coord{} );
-  Delta const shift = viewport_rect_pixels_.center() -
-                      viewport_rect_pixels_.upper_left();
-  double scale           = 1.00;
-  double const kScaleInc = .014;
-  int const kNumLayers   = 4;
-  for( int i = 0; i < kNumLayers; ++i ) {
-    SCOPED_RENDERER_MOD_MUL( painter_mods.repos.scale, scale );
-    SCOPED_RENDERER_MOD_ADD( painter_mods.repos.translation2,
-                             gfx::size( shift ).to_double() );
-    rr::Painter painter = renderer_.painter();
-    for( Rect rect : gfx::subrects( tiled_rect, tile_size ) )
-      render_sprite( painter,
-                     Rect::from( rect.upper_left(), tile_size ),
-                     e_tile::terrain_ocean );
-    scale += kScaleInc;
+  tile_sprite( renderer_, e_tile::wood_middle,
+               viewport_rect_pixels_ );
+  rect const r =
+      viewport_.rendering_dest_rect_rounded().with_inc_size();
+  {
+    SCOPED_RENDERER_MOD_MUL( painter_mods.alpha, .5 );
+    render_shadow_highlight_border(
+        renderer_, r.with_border_added( 3 ),
+        config_ui.window.border_light,
+        config_ui.window.border_dark );
+  }
+  render_shadow_highlight_border( renderer_,
+                                  r.with_border_added( 2 ),
+                                  config_ui.window.border_light,
+                                  config_ui.window.border_dark );
+  {
+    SCOPED_RENDERER_MOD_MUL( painter_mods.alpha, .5 );
+    render_shadow_highlight_border(
+        renderer_, r.with_border_added( 2 ),
+        config_ui.window.border_dark,
+        config_ui.window.border_darker );
+  }
+  render_shadow_highlight_border(
+      renderer_, r.with_border_added( 1 ),
+      config_ui.window.border_dark,
+      config_ui.window.border_darker );
+  render_shadow_highlight_border(
+      renderer_, r, config_ui.window.border_dark,
+      config_ui.window.border_darker );
+  // This one goes one pixel in to help correct slight misalign-
+  // ments between the position of the map (which in general goes
+  // between logical pixels due to the fact that it is rendered
+  // by the shader using a floating point zoom) and the frame,
+  // which is always pixel aligned.
+  render_shadow_highlight_border(
+      renderer_, r.with_border_added( -1 ),
+      config_ui.window.border_dark,
+      config_ui.window.border_darker );
+  {
+    auto const [alpha, color] =
+        pair{ .3, pixel{ .r = 8, .g = 8, .b = 8, .a = 255 } };
+    // auto const [alpha, color] = pair{ .05, pixel::banana() };
+    SCOPED_RENDERER_MOD_MUL( painter_mods.alpha, alpha );
+    rr::Painter painter = renderer.painter();
+    painter.draw_solid_rect( viewport_rect_pixels_, color );
   }
 }
 
@@ -1032,33 +1024,13 @@ void LandViewRenderer::render_landscape_anim_buffers() const {
 }
 
 void LandViewRenderer::render_non_entities() const {
-  // If the map is zoomed out enough such that some of the outter
+  // If the map is zoomed out enough such that some of the outer
   // space is visible, paint a background so that it won't just
   // have empty black surroundings.
   if( viewport_.are_surroundings_visible() ) {
     SCOPED_RENDERER_MOD_SET( buffer_mods.buffer,
                              rr::e_render_buffer::backdrop );
     render_backdrop();
-
-    {
-      // This is the shadow behind the land rectangle.
-      SCOPED_RENDERER_MOD_MUL( painter_mods.alpha, 0.4 );
-      double const zoom = viewport_.get_zoom();
-      int shadow_offset = 6;
-      gfx::dpoint corner =
-          viewport_.landscape_buffer_render_upper_left();
-      corner.x += shadow_offset;
-      corner.y += shadow_offset;
-      Rect const shadow_rect{
-        .x = int( corner.x ),
-        .y = int( corner.y ),
-        .w = int( viewport_.world_size_pixels().w * zoom ),
-        .h = int( viewport_.world_size_pixels().h * zoom ),
-      };
-      rr::Painter painter = renderer.painter();
-      painter.draw_solid_rect(
-          shadow_rect, pixel::black().with_alpha( 100 ) );
-    }
   }
 
   // Set camera.
