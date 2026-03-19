@@ -15,6 +15,7 @@ include "rivers.rds.hpp"
 
 # config
 include "config/options.rds.hpp"
+include "config/map-gen-types.rds.hpp"
 
 # ss
 include "ss/difficulty.rds.hpp"
@@ -81,8 +82,10 @@ struct.SurfaceGeneratorSetup {
 }
 
 struct.WeatherSetup {
-  temperature 'int',  # [-100, 100] = [cold, warm]
-  climate 'int',      # [-100, 100] = [arid, wet]
+  # See comments above definition of WeatherValue for what values
+  # these can take on and their meanings.
+  temperature 'WeatherValue',
+  climate     'WeatherValue',
 }
 
 struct.RiverSetup {
@@ -240,8 +243,11 @@ struct.ClassicGameSetupParamsEvaluated {
   common 'ClassicGameSetupParamsCommon',
   land_density 'double',
   land_form 'PerlinLandForm',
-  temperature 'int', # [-100, 100] ==> [cool, warm]
-  climate     'int', # [-100, 100] ==> [arid, wet]
+  # See comments above definition of WeatherValue for what values
+  # these can take on and their meanings.
+  temperature 'WeatherValue',
+  climate     'WeatherValue',
+  _features { equality, validation }
 }
 
 enum.e_customization_mode {

@@ -8,7 +8,7 @@
 * Description: Config data for the map-gen-types module.
 *
 *****************************************************************/
-#include "map-gen-types.rds.hpp"
+#include "map-gen-types.hpp"
 
 // refl
 #include "refl/ext.hpp"
@@ -35,6 +35,18 @@ valid_or<string> PerlinLandForm::validate() const {
 ** PerlinEdgeSuppression
 *****************************************************************/
 valid_or<string> PerlinEdgeSuppression::validate() const {
+  return valid;
+}
+
+/****************************************************************
+** WeatherValue
+*****************************************************************/
+valid_or<string> WeatherValue::validate() const {
+  REFL_VALIDATE( abs( value ) <= kWeatherValueMaxMagnitude,
+                 "A valid temperature or climate value must be "
+                 "an integer in the range [-{},{}].",
+                 kWeatherValueMaxMagnitude,
+                 kWeatherValueMaxMagnitude );
   return valid;
 }
 

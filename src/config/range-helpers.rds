@@ -55,6 +55,13 @@ struct.UniformDist {
   _features { equality, validation }
 }
 
+struct.UniformDistT {
+  _template { T },
+  min 'T',
+  max 'T',
+  _features { equality, validation }
+}
+
 struct.BoundedNormalDist {
   mean 'double',
   stddev 'double',

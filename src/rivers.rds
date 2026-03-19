@@ -29,4 +29,3 @@ struct.RiverParameters {
   start_major 'config::Probability',
   edge_decay 'double',
 }
-

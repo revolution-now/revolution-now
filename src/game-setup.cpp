@@ -21,6 +21,7 @@
 #include "rivers.hpp"
 
 // config
+#include "config/map-gen-types.hpp"
 #include "config/map-gen.hpp"
 #include "config/nation.rds.hpp"
 #include "config/options.rds.hpp"
@@ -52,8 +53,6 @@ using ::gfx::size;
 using ::refl::enum_map;
 using ::refl::enum_values;
 
-int constexpr kBiomeSpectrumMax = 100;
-
 [[nodiscard]] double sample_normal(
     IRand& rand, config::BoundedNormalDist const& params ) {
   return clamp( rand.normal( params.mean, params.stddev ),
@@ -63,6 +62,12 @@ int constexpr kBiomeSpectrumMax = 100;
 [[nodiscard]] double sample_uniform(
     IRand& rand, config::UniformDist const& params ) {
   return rand.uniform_double( params.min, params.max );
+}
+
+[[nodiscard]] double sample_uniform(
+    IRand& rand,
+    config::UniformDistT<WeatherValue> const& params ) {
+  return rand.uniform_int( params.min.value, params.max.value );
 }
 
 [[nodiscard]] double sample_piecewise3(
@@ -76,36 +81,17 @@ int constexpr kBiomeSpectrumMax = 100;
   return clamp( in_0_1 * width + dist.min, dist.min, dist.max );
 }
 
-[[nodiscard]] int sample_weather_dist(
+[[nodiscard]] WeatherValue sample_weather_dist(
     IRand& rand,
     config::map_gen::WeatherDistribution const& params ) {
-  return clamp( int( lround( sample_piecewise3(
-                    rand, params.distribution ) ) ),
-                -kBiomeSpectrumMax, kBiomeSpectrumMax );
-}
-
-[[nodiscard]] int temperature_to_integral(
-    e_temperature const temperature ) {
-  switch( temperature ) {
-    case e_temperature::cool:
-      return -kBiomeSpectrumMax;
-    case e_temperature::temperate:
-      return 0;
-    case e_temperature::warm:
-      return kBiomeSpectrumMax;
-  }
-}
-
-[[nodiscard]] int climate_to_integral(
-    e_climate const climate ) {
-  switch( climate ) {
-    case e_climate::arid:
-      return -kBiomeSpectrumMax;
-    case e_climate::normal:
-      return 0;
-    case e_climate::wet:
-      return kBiomeSpectrumMax;
-  }
+  // Config validators should already have ensured that the
+  // values fall in the allowed range, but we'll just be defen-
+  // sive here anyway.
+  int const res = clamp( int( lround( sample_uniform(
+                             rand, params.distribution ) ) ),
+                         -kWeatherValueMaxMagnitude,
+                         kWeatherValueMaxMagnitude );
+  return WeatherValue{ .value = res };
 }
 
 wait<maybe<e_nation>> choose_human( IGui& gui ) {
@@ -191,7 +177,7 @@ GameSetup create_classic_game_setup(
   };
 
   RiverParameterInterpolator const river_interp(
-      params.land_form.scale, params.climate );
+      params.land_form.scale, params.climate.value );
 
   using RCP = config::map_gen::RiverClimateParameters;
   using RLP = config::map_gen::RiverLandFormParameters;
@@ -326,8 +312,10 @@ GameSetup create_classic_customized_game_setup(
     .land_density = land_density,
     .land_form    = perlin_land_form,
     .temperature =
-        temperature_to_integral( params.custom.temperature ),
-    .climate = climate_to_integral( params.custom.climate ),
+        config_map_gen.terrain_generation.weather.temperature
+            .customized[params.custom.temperature],
+    .climate = config_map_gen.terrain_generation.weather.climate
+                   .customized[params.custom.climate],
   };
 
   return create_classic_game_setup( rand, evaluated );
@@ -466,6 +454,13 @@ valid_or<string> GeneratedMapSetup::validate() const {
                  "map height must be >= {}", kMapHeightMin );
   // The biome distribution algo assumes even map height.
   REFL_VALIDATE( size.h % 2 == 0, "map height must be even" );
+  return valid;
+}
+
+valid_or<string> ClassicGameSetupParamsEvaluated::validate()
+    const {
+  REFL_VALIDATE( land_density > 0.0 && land_density <= 1.0,
+                 "land_density must be in the range (0, 1.0]." );
   return valid;
 }
 

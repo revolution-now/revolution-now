@@ -15,12 +15,13 @@
 #include "irand.hpp"
 #include "terrain-mgr.hpp"
 
-// ss
-#include "ss/terrain.hpp"
-
 // config
+#include "config/map-gen-types.hpp"
 #include "config/map-gen.rds.hpp"
 #include "terrain-enums.rds.hpp"
+
+// ss
+#include "ss/terrain.hpp"
 
 // gfx
 #include "gfx/iter.hpp"
@@ -70,16 +71,23 @@ using ::refl::enum_values;
 struct biome_curve {
   [[maybe_unused]] biome_curve() = default;
 
-  static expect<biome_curve> create( e_ground_terrain const gt,
-                                     int const temperature,
-                                     int const climate ) {
+  static expect<biome_curve> create(
+      e_ground_terrain const gt, WeatherValue const temperature,
+      WeatherValue const climate ) {
     biome_curve res;
     auto const& conf = config_map_gen.terrain_generation.biomes;
     res.curve_       = conf.normal_temperature_and_climate[gt];
+    // Config validators should already have ensured that the
+    // values fall in the allowed range, but we'll just be defen-
+    // sive here anyway.
     double const d_temperature =
-        -clamp( temperature, -100, 100 ) / 100.0;
+        -clamp( temperature.value, -kWeatherValueMaxMagnitude,
+                kWeatherValueMaxMagnitude ) /
+        double( kWeatherValueCustomizationMagnitude );
     double const d_climate =
-        -clamp( climate, -100, 100 ) / 100.0;
+        -clamp( climate.value, -kWeatherValueMaxMagnitude,
+                kWeatherValueMaxMagnitude ) /
+        double( kWeatherValueCustomizationMagnitude );
 
     auto const apply_gradient = [&]( auto const member ) {
       res.curve_.params.*member *=
@@ -428,8 +436,8 @@ struct biome_dist {
 *****************************************************************/
 valid_or<string> assign_biomes( IRand& rand,
                                 RealTerrain& real_terrain,
-                                int const temperature,
-                                int const climate ) {
+                                WeatherValue const temperature,
+                                WeatherValue const climate ) {
   auto& m       = real_terrain.map;
   size const sz = m.size();
 

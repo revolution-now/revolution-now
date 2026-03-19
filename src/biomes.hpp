@@ -10,6 +10,9 @@
 *****************************************************************/
 #pragma once
 
+// config
+#include "config/map-gen-types.rds.hpp"
+
 // base
 #include "base/valid.hpp"
 
@@ -25,7 +28,7 @@ struct RealTerrain;
 ** Public API.
 *****************************************************************/
 base::valid_or<std::string> assign_biomes(
-    IRand& rand, RealTerrain& real_terrain, int temperature,
-    int climate );
+    IRand& rand, RealTerrain& real_terrain,
+    WeatherValue temperature, WeatherValue climate );
 
 } // namespace rn

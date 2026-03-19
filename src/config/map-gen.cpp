@@ -54,22 +54,6 @@ valid_or<string> InlandLakes::validate() const {
 }
 
 /****************************************************************
-** WeatherDistribution
-*****************************************************************/
-valid_or<string> WeatherDistribution::validate() const {
-  REFL_VALIDATE(
-      distribution.min >= -100 && distribution.min <= 100,
-      "min must be in the interval [-100, 100]" );
-  REFL_VALIDATE(
-      distribution.max >= -100 && distribution.max <= 100,
-      "min must be in the interval [-100, 100]" );
-  REFL_VALIDATE(
-      distribution.peak >= -100 && distribution.peak <= 100,
-      "peak must be in the interval [-100, 100]" );
-  return valid;
-}
-
-/****************************************************************
 ** RiverClimateParameters
 *****************************************************************/
 valid_or<string> RiverClimateParameters::validate() const {

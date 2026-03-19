@@ -140,37 +140,73 @@ terrain_generation {
   }
 
   weather {
+    # In the OG Temperature and Climate have a fixed set of named
+    # values (three each). For temperature it is "cool", "temper-
+    # ate", and "warm". For climate it is "arid", "normal", and
+    # "wet". In the NG, temperature and climate are internally
+    # represented by integers that can run from -200 to +200 and
+    # where the OG's three settings are represented by -100, 0,
+    # +100. This means that when start a new game using the
+    # "classic" customization style and you select one of those
+    # fixed values for temperature and climate, you are effec-
+    # tively selecting among the values -100, 0, +100 (see below
+    # for how those are mapped). However, in both the OG and the
+    # NG it is actually possible to go beyond those values (less
+    # than -100 or more than +100). The OG appears to do this
+    # (randomly) when the player selects "Start a Game in NEW
+    # WORLD", namely it randomly selects a temperature among the
+    # values [-100, 0, +100, +200]. The below configuration at-
+    # tempts to capture what has just been described above.
+    #
+    # Note that when starting a new game using the "modern" or
+    # "extreme" customization methods, you can select values for
+    # temperature and climate in the range [-200, +200], and so
+    # as with the other values in this file in general, there is
+    # typically no need to modify these values here; they are
+    # just defaults to make the game's default behavior mirror
+    # that of the OG when no customization is done.
     temperature {
       fully_random.distribution: {
-        min:  -100
-        peak:    0
-        max:   100
-        weight_min: .3
-        weight_max: .3
+        # NOTE: the max value extends past the value corre-
+        # sponding to "warm" (which is 100). This is what the OG
+        # appears to do when creating a random new game which is
+        # not customized.
+        min.value:  -100
+        max.value:   200
+      }
+
+      customized: {
+        cool.value:      -100
+        temperate.value:    0
+        warm.value:       100
       }
     }
+
     climate {
       fully_random.distribution: {
-        min:  -100
-        peak:    0
-        max:   100
-        weight_min: .3
-        weight_max: .3
+        min.value: -200
+        max.value:  100
+      }
+
+      customized: {
+        arid.value:   -100
+        normal.value:    0
+        wet.value:     100
       }
     }
   }
 
   rivers {
     min_length: 4
-    turn.probability: .28
-    fork.probability: .03
-    fork_is_major.probability: .90
+    turn.probability: .33
+    fork.probability: .10
+    fork_is_major.probability: .50
     for_land_form {
       archipelago {
         growth.probability: .62
       }
       normal {
-        growth.probability: .64
+        growth.probability: .63
       }
       continents {
         growth.probability: .71

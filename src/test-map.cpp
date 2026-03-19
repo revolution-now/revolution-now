@@ -1294,7 +1294,7 @@ struct RiverFrequencyStats : IGameStatsCollector {
       pair{ e_land_form::continents, e_climate::wet },
     };
 
-    for( auto const [land_form, climate] : kModes ) {
+    for( auto const& [land_form, climate] : kModes ) {
       ClassicGameSetupParamsCustom const params{
         .land_mass   = e_land_mass::moderate,
         .land_form   = land_form,

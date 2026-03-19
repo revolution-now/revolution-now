@@ -64,3 +64,29 @@ struct.PerlinSeed {
   base     'uint32_t',
   flip     'bool',
 }
+
+# Used to hold a parameter representing the temperature and cli-
+# mate. In the OG these take on discreet values but we allow a
+# spectrum.
+#
+# For Temperature, this can go from [-200,+200}, and has the fol-
+# lowing meaning:
+#
+#   * -100 ==> "Cool"     in the OG.
+#   *    0 ==> "Moderate" in the OG.
+#   * +100 ==> "Warm"     in the OG.
+#
+# Going beyond -100 or +100 makes it even cooler/warmer.
+
+# For Climate, this can go from [-200,+200}, and has the fol-
+# lowing meaning:
+#
+#   * -100 ==> "Arid"   in the OG.
+#   *    0 ==> "Normal" in the OG.
+#   * +100 ==> "Wet"    in the OG.
+#
+# Going beyond -100 or +100 makes it even more arid/wet.
+struct.WeatherValue {
+  value 'int',
+  _features { spaceship, validation }
+}

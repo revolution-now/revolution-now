@@ -68,16 +68,17 @@ struct.LandLayout {
 }
 
 struct.WeatherDistribution {
-  distribution 'config::Piecewise3Dist',
-  _features { equality, validation }
+  distribution 'config::UniformDistT<WeatherValue>',
 }
 
 struct.Temperature {
   fully_random 'WeatherDistribution',
+  customized 'refl::enum_map<e_temperature, WeatherValue>',
 }
 
 struct.Climate {
   fully_random 'WeatherDistribution',
+  customized 'refl::enum_map<e_climate, WeatherValue>',
 }
 
 struct.Weather {
