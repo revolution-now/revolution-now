@@ -1278,7 +1278,7 @@ struct RiverFrequencyStats : IGameStatsCollector {
     generate_single_map_new( engine, ss );
   };
 
-  bool const kDoCustom = true;
+  bool const kDoCustom = false;
   bool const kDoNew    = true;
 
   if( kDoCustom ) {

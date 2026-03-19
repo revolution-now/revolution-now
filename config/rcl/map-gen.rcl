@@ -47,7 +47,7 @@ terrain_generation {
       # any customization; essentially this is when the player
       # selects "Start New Game" without any customizations.
       fully_random {
-        scale:   { mean: 12, stddev: 2.50, min: 7.5, max: 16.5 }
+        scale:   { mean: 14.5, stddev: 2.50, min: 7.5, max: 16.5 }
         fractal: { n_octaves=5, persistence=.5, lacunarity=2.0 }
       }
 
@@ -171,27 +171,27 @@ terrain_generation {
         # sponding to "warm" (which is 100). This is what the OG
         # appears to do when creating a random new game which is
         # not customized.
-        min.value:  -100
-        max.value:   200
+        min.value: -100
+        max.value:  200
       }
 
       customized: {
-        cool.value:      -100
-        temperate.value:    0
-        warm.value:       100
+        cool.value:     -100
+        temperate.value:   0
+        warm.value:      100
       }
     }
 
     climate {
       fully_random.distribution: {
-        min.value: -200
+        min.value: -100
         max.value:  100
       }
 
       customized: {
-        arid.value:   -100
-        normal.value:    0
-        wet.value:     100
+        arid.value:  -100
+        normal.value:   0
+        wet.value:    100
       }
     }
   }
