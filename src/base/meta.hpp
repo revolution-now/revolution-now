@@ -183,7 +183,7 @@ struct callable_traits<R( Arg... ) const>
 
 // Function ref-qualified (abominable function type).
 template<typename R, typename... Arg>
-struct callable_traits<R( Arg... ) &>
+struct callable_traits<R( Arg... )&>
   : public detail::callable_traits_impl<R( Arg... )> {};
 
 // Function refref-qualified (abominable function type).
@@ -338,6 +338,32 @@ struct list_contains_impl<mp::list<Arg1, Args...>, T> {
 template<typename List, typename T>
 inline constexpr bool list_contains_v =
     detail::list_contains_impl<List, T>::value;
+
+/****************************************************************
+** Index of type in list.
+*****************************************************************/
+namespace detail {
+
+template<typename U, template<typename... T> typename V,
+         typename... T>
+[[nodiscard]] consteval size_t index_in_list_impl(
+    V<T...> const* const ) {
+  int found_idx    = -1;
+  int idx          = 0;
+  auto const check = [&]<typename O>( O const* const ) {
+    if constexpr( std::is_same_v<U, O> ) found_idx = idx;
+    ++idx;
+  };
+  ( check( (T*)nullptr ), ... );
+  if( found_idx < 0 ) throw "cannot find type";
+  return static_cast<size_t>( found_idx );
+}
+
+} // namespace detail
+
+template<typename L, typename U>
+inline size_t constexpr index_in_list_t =
+    detail::index_in_list_impl<U>( (L const* const)nullptr );
 
 /****************************************************************
 ** list to tuple

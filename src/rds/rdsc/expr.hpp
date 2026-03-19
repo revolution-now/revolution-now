@@ -40,6 +40,7 @@ struct MethodArg {
 
 enum class e_feature {
   equality,
+  spaceship,
   validation,
   offsets,
   nodiscard

@@ -18,6 +18,7 @@
 #include "auto-field.hpp"
 #include "error.hpp"
 #include "maybe.hpp"
+#include "meta.hpp"
 #include "to-str.hpp"
 
 // C++ standard library
@@ -38,9 +39,9 @@ using variant_to_enum_t = typename variant_to_enum<V>::type;
 /****************************************************************
 ** better variant.
 *****************************************************************/
-template<typename... Args>
-class variant : public std::variant<Args...> {
-  using Base = std::variant<Args...>;
+template<typename... V>
+class variant : public std::variant<V...> {
+  using Base = std::variant<V...>;
 
  public:
   /**************************************************************
@@ -178,6 +179,13 @@ class variant : public std::variant<Args...> {
     using Enum = variant_to_enum_t<variant>;
     return static_cast<Enum>( index() );
   }
+
+  /**************************************************************
+  ** index_of
+  ***************************************************************/
+  template<typename T>
+  inline static constexpr size_t index_of =
+      mp::index_in_list_t<variant, T>;
 
   /**************************************************************
   ** visit member

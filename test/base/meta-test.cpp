@@ -532,5 +532,14 @@ TEST_CASE( "[meta] tuple_tail" ) {
   REQUIRE( t6 == std::tuple<>{} );
 }
 
+/****************************************************************
+** index_in_list_t
+*****************************************************************/
+using Test = list<int, string, double>;
+
+static_assert( index_in_list_t<Test, int> == 0 );
+static_assert( index_in_list_t<Test, string> == 1 );
+static_assert( index_in_list_t<Test, double> == 2 );
+
 } // namespace
 } // namespace rn

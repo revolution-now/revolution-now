@@ -56,6 +56,8 @@ namespace rdstest::inner {
 
 namespace rn {
 
+    struct StructWrapper;
+    struct SumtypeWrapper;
     struct MySumtype;
     struct OnOffState;
     struct OnOffEvent;
@@ -1135,6 +1137,153 @@ namespace refl {
     using template_types = std::tuple<T, U>;
 
     static constexpr std::tuple fields{};
+  };
+
+} // namespace refl
+
+/****************************************************************
+*                     Struct: StructWrapper
+*****************************************************************/
+namespace rn {
+
+  struct StructWrapper {
+    int x = {};
+    int y = {};
+
+    auto operator<=>( StructWrapper const& ) const = default;
+  };
+
+} // namespace rn
+
+namespace refl {
+
+  // Reflection info for struct StructWrapper.
+  template<>
+  struct traits<rn::StructWrapper> {
+    using type = rn::StructWrapper;
+
+    static constexpr type_kind kind        = type_kind::struct_kind;
+    static constexpr std::string_view ns   = "rn";
+    static constexpr std::string_view name = "StructWrapper";
+    static constexpr bool is_sumtype_alternative = false;
+
+    using template_types = std::tuple<>;
+
+    static constexpr std::tuple fields{
+      refl::StructField{ "x", &rn::StructWrapper::x, /*offset=*/base::nothing },
+      refl::StructField{ "y", &rn::StructWrapper::y, /*offset=*/base::nothing },
+    };
+  };
+
+} // namespace refl
+
+/****************************************************************
+*                   Sum Type: SumtypeWrapper
+*****************************************************************/
+namespace rn {
+
+  namespace detail {
+
+    namespace SumtypeWrapper_alternatives {
+
+      struct alt1 {
+        int x = {};
+        // This requires that the types of the member variables
+        // also support the spaceship.
+        auto operator<=>( struct alt1 const& ) const = default;
+      };
+
+      struct alt2 {
+        int x = {};
+        int y = {};
+        // This requires that the types of the member variables
+        // also support the spaceship.
+        auto operator<=>( struct alt2 const& ) const = default;
+      };
+
+    } // namespace SumtypeWrapper_alternatives
+
+    using SumtypeWrapperBase = base::variant<
+      detail::SumtypeWrapper_alternatives::alt1,
+      detail::SumtypeWrapper_alternatives::alt2
+    >;
+
+  } // namespace detail
+
+  struct SumtypeWrapper : public detail::SumtypeWrapperBase {
+    using alt1 = detail::SumtypeWrapper_alternatives::alt1;
+    using alt2 = detail::SumtypeWrapper_alternatives::alt2;
+
+    enum class e {
+      alt1,
+      alt2,
+    };
+
+    using i_am_rds_variant = void;
+    using Base = detail::SumtypeWrapperBase;
+    using Base::Base;
+    SumtypeWrapper( Base&& b ) : Base( std::move( b ) ) {}
+    Base const& as_base() const& { return *this; }
+    Base&       as_base()      & { return *this; }
+
+    // Comparison with alternatives.
+    auto operator<=>( alt1 const& rhs ) const {
+      if( !this->template holds<alt1>() )
+        return this->index() <=> this->template index_of<alt1>;
+      return this->template get<alt1>() <=> rhs;
+    }
+    auto operator<=>( alt2 const& rhs ) const {
+      if( !this->template holds<alt2>() )
+        return this->index() <=> this->template index_of<alt2>;
+      return this->template get<alt2>() <=> rhs;
+    }
+  };
+
+
+} // namespace rn
+
+// This gives us the enum to use in a switch statement.
+template<>
+struct base::variant_to_enum<rn::detail::SumtypeWrapperBase> {
+  using type = rn::SumtypeWrapper::e;
+};
+
+// Reflection traits for alternatives.
+namespace refl {
+
+  // Reflection info for struct alt1.
+  template<>
+  struct traits<rn::detail::SumtypeWrapper_alternatives::alt1> {
+    using type = rn::detail::SumtypeWrapper_alternatives::alt1;
+
+    static constexpr type_kind kind        = type_kind::struct_kind;
+    static constexpr std::string_view ns   = "rn::SumtypeWrapper";
+    static constexpr std::string_view name = "alt1";
+    static constexpr bool is_sumtype_alternative = true;
+
+    using template_types = std::tuple<>;
+
+    static constexpr std::tuple fields{
+      refl::StructField{ "x", &rn::detail::SumtypeWrapper_alternatives::alt1::x, /*offset=*/base::nothing },
+    };
+  };
+
+  // Reflection info for struct alt2.
+  template<>
+  struct traits<rn::detail::SumtypeWrapper_alternatives::alt2> {
+    using type = rn::detail::SumtypeWrapper_alternatives::alt2;
+
+    static constexpr type_kind kind        = type_kind::struct_kind;
+    static constexpr std::string_view ns   = "rn::SumtypeWrapper";
+    static constexpr std::string_view name = "alt2";
+    static constexpr bool is_sumtype_alternative = true;
+
+    using template_types = std::tuple<>;
+
+    static constexpr std::tuple fields{
+      refl::StructField{ "x", &rn::detail::SumtypeWrapper_alternatives::alt2::x, /*offset=*/base::nothing },
+      refl::StructField{ "y", &rn::detail::SumtypeWrapper_alternatives::alt2::y, /*offset=*/base::nothing },
+    };
   };
 
 } // namespace refl

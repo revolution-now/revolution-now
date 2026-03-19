@@ -5,7 +5,7 @@
 *
 * Created by dsicilia on 2020-11-13.
 *
-* Description: [FILL ME IN]
+* Description: Validation for rds types.
 *
 *****************************************************************/
 #include "validate.hpp"
@@ -37,9 +37,17 @@ struct Validator {
     if( sumtype.features.has_value() ) {
       unordered_set<F> const& features = *sumtype.features;
 
+      if( features.contains( expr::e_feature::equality ) &&
+          features.contains( expr::e_feature::spaceship ) )
+        error(
+            "cannot have both `equality' and `spaceship` in "
+            "features." );
+
       for( expr::e_feature feat : features ) {
         switch( feat ) {
           case expr::e_feature::equality:
+            break;
+          case expr::e_feature::spaceship:
             break;
           case expr::e_feature::offsets:
             break;
@@ -57,11 +65,18 @@ struct Validator {
     if( e.features.has_value() ) {
       unordered_set<F> const& features = *e.features;
 
+      if( features.contains( expr::e_feature::equality ) &&
+          features.contains( expr::e_feature::spaceship ) )
+        error(
+            "cannot have both `equality' and `spaceship` in "
+            "features." );
+
       for( expr::e_feature feat : features ) {
         switch( feat ) {
           case expr::e_feature::nodiscard:
             break;
           case expr::e_feature::equality:
+          case expr::e_feature::spaceship:
           case expr::e_feature::offsets:
           case expr::e_feature::validation:
             error(

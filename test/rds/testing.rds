@@ -161,6 +161,23 @@ sumtype.CompositeTemplateTwo {
 
 namespace "rn"
 
+struct.StructWrapper {
+  x 'int',
+  y 'int',
+  _features { spaceship }
+}
+
+sumtype.SumtypeWrapper {
+  alt1 {
+    x 'int',
+  },
+  alt2 {
+    x 'int',
+    y 'int',
+  },
+  _features { spaceship }
+}
+
 sumtype.MySumtype {
   none {},
   some {

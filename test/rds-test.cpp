@@ -679,13 +679,103 @@ TEST_CASE( "[rds] validate method" ) {
                  test::MyTemplateStruct<int, int>> );
 }
 
-TEST_CASE( "[rds] equality_comparable" ) {
-  static_assert( equality_comparable<EmptyStruct> );
-  static_assert( !equality_comparable<EmptyStruct2> );
-  static_assert( equality_comparable<MyStruct> );
-  static_assert( equality_comparable<StructWithValidation> );
-  static_assert(
-      equality_comparable<test::MyTemplateStruct<int, int>> );
+// Equality comparable.
+static_assert( equality_comparable<EmptyStruct> );
+static_assert( !equality_comparable<EmptyStruct2> );
+static_assert( equality_comparable<MyStruct> );
+static_assert( equality_comparable<StructWithValidation> );
+static_assert(
+    equality_comparable<test::MyTemplateStruct<int, int>> );
+static_assert( equality_comparable<StructWrapper> );
+static_assert( equality_comparable<SumtypeWrapper> );
+
+// Three-way comparable.
+static_assert( !three_way_comparable<EmptyStruct> );
+static_assert( !three_way_comparable<EmptyStruct2> );
+static_assert( !three_way_comparable<MyStruct> );
+static_assert( !three_way_comparable<StructWithValidation> );
+static_assert(
+    !three_way_comparable<test::MyTemplateStruct<int, int>> );
+static_assert( three_way_comparable<StructWrapper> );
+static_assert( three_way_comparable<SumtypeWrapper> );
+
+TEST_CASE( "[rds] spaceship operator (struct)" ) {
+  StructWrapper const s1{ .x = 8, .y = 7 };
+  StructWrapper const s2{ .x = 6, .y = 6 };
+  StructWrapper const s3{ .x = 10, .y = 1 };
+  StructWrapper const s4{ .x = 6, .y = 7 };
+  StructWrapper const s5{ .x = 8, .y = 7 };
+
+  REQUIRE( ( s1 <=> s1 ) == strong_ordering::equal );
+  REQUIRE( ( s2 <=> s2 ) == strong_ordering::equal );
+  REQUIRE( ( s3 <=> s3 ) == strong_ordering::equal );
+  REQUIRE( ( s4 <=> s4 ) == strong_ordering::equal );
+  REQUIRE( ( s5 <=> s5 ) == strong_ordering::equal );
+
+  REQUIRE( ( s1 <=> s2 ) == strong_ordering::greater );
+  REQUIRE( ( s1 <=> s3 ) == strong_ordering::less );
+  REQUIRE( ( s1 <=> s4 ) == strong_ordering::greater );
+  REQUIRE( ( s1 <=> s5 ) == strong_ordering::equal );
+  REQUIRE( ( s2 <=> s1 ) == strong_ordering::less );
+  REQUIRE( ( s3 <=> s1 ) == strong_ordering::greater );
+  REQUIRE( ( s4 <=> s1 ) == strong_ordering::less );
+  REQUIRE( ( s5 <=> s1 ) == strong_ordering::equal );
+
+  REQUIRE( ( s2 <=> s3 ) == strong_ordering::less );
+  REQUIRE( ( s2 <=> s4 ) == strong_ordering::less );
+  REQUIRE( ( s2 <=> s5 ) == strong_ordering::less );
+  REQUIRE( ( s3 <=> s2 ) == strong_ordering::greater );
+  REQUIRE( ( s4 <=> s2 ) == strong_ordering::greater );
+  REQUIRE( ( s5 <=> s2 ) == strong_ordering::greater );
+
+  REQUIRE( ( s3 <=> s4 ) == strong_ordering::greater );
+  REQUIRE( ( s3 <=> s5 ) == strong_ordering::greater );
+  REQUIRE( ( s4 <=> s3 ) == strong_ordering::less );
+  REQUIRE( ( s5 <=> s3 ) == strong_ordering::less );
+
+  REQUIRE( ( s4 <=> s5 ) == strong_ordering::less );
+  REQUIRE( ( s5 <=> s4 ) == strong_ordering::greater );
+}
+
+TEST_CASE( "[rds] spaceship operator (sumtype)" ) {
+  SumtypeWrapper const s1 = SumtypeWrapper::alt1{ .x = 8 };
+  SumtypeWrapper const s2 = SumtypeWrapper::alt1{ .x = 6 };
+  SumtypeWrapper const s3 =
+      SumtypeWrapper::alt2{ .x = 10, .y = 1 };
+  SumtypeWrapper const s4 =
+      SumtypeWrapper::alt2{ .x = 6, .y = 7 };
+  SumtypeWrapper const s5 =
+      SumtypeWrapper::alt2{ .x = 8, .y = 7 };
+
+  REQUIRE( ( s1 <=> s1 ) == strong_ordering::equal );
+  REQUIRE( ( s2 <=> s2 ) == strong_ordering::equal );
+  REQUIRE( ( s3 <=> s3 ) == strong_ordering::equal );
+  REQUIRE( ( s4 <=> s4 ) == strong_ordering::equal );
+  REQUIRE( ( s5 <=> s5 ) == strong_ordering::equal );
+
+  REQUIRE( ( s1 <=> s2 ) == strong_ordering::greater );
+  REQUIRE( ( s1 <=> s3 ) == strong_ordering::less );
+  REQUIRE( ( s1 <=> s4 ) == strong_ordering::less );
+  REQUIRE( ( s1 <=> s5 ) == strong_ordering::less );
+  REQUIRE( ( s2 <=> s1 ) == strong_ordering::less );
+  REQUIRE( ( s3 <=> s1 ) == strong_ordering::greater );
+  REQUIRE( ( s4 <=> s1 ) == strong_ordering::greater );
+  REQUIRE( ( s5 <=> s1 ) == strong_ordering::greater );
+
+  REQUIRE( ( s2 <=> s3 ) == strong_ordering::less );
+  REQUIRE( ( s2 <=> s4 ) == strong_ordering::less );
+  REQUIRE( ( s2 <=> s5 ) == strong_ordering::less );
+  REQUIRE( ( s3 <=> s2 ) == strong_ordering::greater );
+  REQUIRE( ( s4 <=> s2 ) == strong_ordering::greater );
+  REQUIRE( ( s5 <=> s2 ) == strong_ordering::greater );
+
+  REQUIRE( ( s3 <=> s4 ) == strong_ordering::greater );
+  REQUIRE( ( s3 <=> s5 ) == strong_ordering::greater );
+  REQUIRE( ( s4 <=> s3 ) == strong_ordering::less );
+  REQUIRE( ( s5 <=> s3 ) == strong_ordering::less );
+
+  REQUIRE( ( s4 <=> s5 ) == strong_ordering::less );
+  REQUIRE( ( s5 <=> s4 ) == strong_ordering::greater );
 }
 
 TEST_CASE( "[rds] config" ) {

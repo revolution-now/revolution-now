@@ -161,5 +161,14 @@ TEST_CASE( "[variant] inner fields" ) {
   REQUIRE( v.inner_if<HasOneField>() == 7 );
 }
 
+/****************************************************************
+** index_of
+*****************************************************************/
+using IndexOfTest = V<int, string, double>;
+
+static_assert( IndexOfTest::index_of<int> == 0 );
+static_assert( IndexOfTest::index_of<string> == 1 );
+static_assert( IndexOfTest::index_of<double> == 2 );
+
 } // namespace
 } // namespace base

@@ -275,11 +275,11 @@ struct CodeGenerator {
 
   void emit_sumtype_alternative(
       vector<expr::TemplateParam> const& tmpls,
-      expr::Alternative const& alt, bool emit_equality,
-      bool emit_validation ) {
+      expr::Alternative const& alt, bool const emit_equality,
+      bool const emit_spaceship, bool emit_validation ) {
     emit_template_decl( tmpls );
     if( alt.members.empty() && !emit_equality &&
-        !emit_validation ) {
+        !emit_spaceship && !emit_validation ) {
       line( "struct {} {{}};", alt.name );
     } else {
       line( "struct {} {{", alt.name );
@@ -301,6 +301,20 @@ struct CodeGenerator {
           // ternative.
           line(
               "bool operator==( struct {} const& ) const = "
+              "default;",
+              alt.name );
+        }
+        if( emit_spaceship ) {
+          comment( "{}",
+                   "This requires that the types of the member "
+                   "variables " );
+          comment( "{}", "also support the spaceship." );
+          // We need the 'struct' keyword in front of the alter-
+          // native name to disambiguate in cases where there is
+          // an alternative member with the same name as the al-
+          // ternative.
+          line(
+              "auto operator<=>( struct {} const& ) const = "
               "default;",
               alt.name );
         }
@@ -480,14 +494,16 @@ struct CodeGenerator {
     section( "Struct: "s + strukt.name );
     open_ns( ns );
     emit_template_decl( strukt.tmpl_params );
-    bool comparable =
+    bool const comparable =
         item_has_feature( strukt, expr::e_feature::equality );
+    bool const spaceshipable =
+        item_has_feature( strukt, expr::e_feature::spaceship );
     bool has_members = !strukt.members.empty();
     string const nodiscard_str =
         item_has_feature( strukt, expr::e_feature::nodiscard )
             ? "[[nodiscard]] "
             : "";
-    if( !has_members && !comparable ) {
+    if( !has_members && !comparable && !spaceshipable ) {
       line( "struct {}{} {{}};", nodiscard_str, strukt.name );
     } else {
       line( "struct {}{} {{", nodiscard_str, strukt.name );
@@ -503,6 +519,11 @@ struct CodeGenerator {
         if( comparable ) {
           if( has_members ) newline();
           line( "bool operator==( {} const& ) const = default;",
+                strukt.name );
+        }
+        if( spaceshipable ) {
+          if( has_members ) newline();
+          line( "auto operator<=>( {} const& ) const = default;",
                 strukt.name );
         }
         if( item_has_feature( strukt,
@@ -535,6 +556,8 @@ struct CodeGenerator {
     open_ns( "detail" );
     bool const emit_equality =
         item_has_feature( sumtype, expr::e_feature::equality );
+    bool const emit_spaceship =
+        item_has_feature( sumtype, expr::e_feature::spaceship );
     bool const emit_validation =
         item_has_feature( sumtype, expr::e_feature::validation );
     string const nodiscard_str =
@@ -548,7 +571,7 @@ struct CodeGenerator {
       for( expr::Alternative const& alt :
            sumtype.alternatives ) {
         emit_sumtype_alternative( sumtype.tmpl_params, alt,
-                                  emit_equality,
+                                  emit_equality, emit_spaceship,
                                   emit_validation );
         newline();
       }
@@ -616,6 +639,35 @@ struct CodeGenerator {
                 "return this->template holds<{}>() && "
                 "(this->template get<{}>() == rhs);",
                 alt.name, alt.name );
+          }
+          line( "}" );
+        }
+      }
+      // Emit operator<=>.
+      if( emit_spaceship ) {
+        newline();
+        // These allow us to compare with an alternative object
+        // directly, which std::variant does not allow natively
+        // to avoid the ambiguity when two alternative types are
+        // same, a problem that we don't have here.
+        comment( "Comparison with alternatives." );
+        for( expr::Alternative const& alt :
+             sumtype.alternatives ) {
+          line( "auto operator<=>( {} const& rhs ) const {{",
+                alt.name );
+          {
+            auto _ = indent();
+            line( "if( !this->template holds<{}>() )",
+                  alt.name );
+            {
+              auto _ = indent();
+              line(
+                  "return this->index() <=> this->template "
+                  "index_of<{}>;",
+                  alt.name );
+            }
+            line( "return this->template get<{}>() <=> rhs;",
+                  alt.name );
           }
           line( "}" );
         }
