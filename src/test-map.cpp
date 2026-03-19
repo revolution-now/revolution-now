@@ -1002,7 +1002,6 @@ struct RiverFrequencyStats : IGameStatsCollector {
                          mode_, maps_ ),
       .x_label = "Y (map row)",
       .y_label = "Count Per Map",
-      .sep     = "comma",
       .x_range = "1:70",
       .y_range = "0:10",
     };
@@ -1061,7 +1060,6 @@ struct RiverFrequencyStats : IGameStatsCollector {
                   mode_, maps_ ),
       .x_label = "Length",
       .y_label = "Count Per Map",
-      .sep     = "comma",
       .x_range = "1:20",
       .y_range = "0:20",
     };
