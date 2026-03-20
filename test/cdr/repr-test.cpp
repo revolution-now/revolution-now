@@ -349,6 +349,7 @@ TEST_CASE( "[cdr] automatic operator[]" ) {
   REQUIRE( v["key"]["key2"][5].holds<integer_type>() );
   REQUIRE( v["key"]["key2"][4].holds<null_t>() );
   REQUIRE( v["key"]["key2"][5] == 8 );
+  REQUIRE( v["key"]["key2"].as<list>().size() == 6 );
 }
 
 } // namespace
