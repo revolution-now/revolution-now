@@ -100,6 +100,12 @@ struct table {
   using value_type = std::pair<std::string const, value>;
 
   table();
+  ~table();
+
+  table( table const& );
+  table( table&& );
+  table& operator=( table const& );
+  table& operator=( table&& );
 
   table( map_type<std::string, value> const& m );
   table( map_type<std::string, value>&& m );
@@ -159,6 +165,12 @@ struct list {
   using value_type = value;
 
   list();
+  ~list();
+
+  list( list const& );
+  list( list&& );
+  list& operator=( list const& );
+  list& operator=( list&& );
 
   // Initially it was not allowed to put an incomplete type in an
   // initializer list, but indications are that that was recti-
@@ -177,6 +189,8 @@ struct list {
 
   std::vector<value>::const_iterator begin() const;
   std::vector<value>::const_iterator end() const;
+
+  void resize( size_t n );
 
   template<typename... T>
   auto emplace_back( T&&... args ) {
@@ -221,22 +235,21 @@ struct value : public value_base {
 
   bool operator==( value const& ) const = default;
 
-  // Will attempt to call "as<table>()" (check-failing if this
-  // does not hold a table) and then to call operator[] on the
-  // result. Although this method will create the key if it
-  // doesn't exist (with initial value null), it will not change
-  // the value to a table if it isn't already a table.
+  // Will switch the value to a table if it is not already a
+  // table. Then will create the key in the table if it doesn't
+  // already exist.
   value& operator[]( std::string const& key );
-  // Same as above but will not create the key if it doesn't ex-
-  // ist.
+
+  // Same as above but will not switch the value type or create
+  // the key if it doesn't exist.
   ::base::maybe<value const&> operator[](
       std::string const& key ) const;
 
-  // Same as above but for list indexing. Will check-fail if this
-  // is not a list. NOTE: this will not resize the list; the idx
-  // mustin in bounds.
+  // Same as above but for list indexing. NOTE: this will resize
+  // the list if the idx is out of range.
   value& operator[]( size_t idx );
-  value const& operator[]( size_t idx ) const;
+
+  ::base::maybe<value const&> operator[]( size_t idx ) const;
 
   value( std::vector<value> const& v ) : value( list( v ) ) {}
   value( std::vector<value>&& v )

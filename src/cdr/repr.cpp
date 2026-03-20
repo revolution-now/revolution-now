@@ -38,7 +38,14 @@ void to_str( null_t const&, std::string& out,
 /****************************************************************
 ** table
 *****************************************************************/
-table::table() = default;
+table::table()  = default;
+table::~table() = default;
+
+table::table( table const& ) = default;
+table::table( table&& )      = default;
+
+table& table::operator=( table const& ) = default;
+table& table::operator=( table&& )      = default;
 
 // This is a template to break the cyclic dependency.
 table::table( map_type<std::string, value> const& m )
@@ -119,9 +126,16 @@ void to_str( table const& o, std::string& out,
 /****************************************************************
 ** list
 *****************************************************************/
-list::list() = default;
+list::list()  = default;
+list::~list() = default;
 
-list::list( initializer_list<value> il ) : o_( il ) {}
+list::list( list const& ) = default;
+list::list( list&& )      = default;
+
+list& list::operator=( list const& ) = default;
+list& list::operator=( list&& )      = default;
+
+list::list( initializer_list<value> const il ) : o_( il ) {}
 
 std::vector<value>::iterator list::begin() { return o_.begin(); }
 
@@ -149,9 +163,11 @@ value const& list::operator[]( size_t const idx ) const {
   return o_[idx];
 }
 
+void list::resize( size_t const n ) { o_.resize( n ); }
+
 long list::ssize() const { return long( size() ); }
 
-void list::reserve( size_t elems ) { o_.reserve( elems ); }
+void list::reserve( size_t const elems ) { o_.reserve( elems ); }
 
 size_t list::size() const { return o_.size(); }
 
@@ -204,20 +220,27 @@ void to_str( value const& o, std::string& out,
 }
 
 value& value::operator[]( std::string const& key ) {
+  if( !this->holds<table>() ) return this->emplace<table>()[key];
   return this->as<table>()[key];
 }
 
 maybe<value const&> value::operator[](
     std::string const& key ) const {
+  if( !this->holds<table>() ) return nothing;
   return this->as<table>()[key];
 }
 
 value& value::operator[]( size_t const idx ) {
-  return this->as<list>()[idx];
+  if( !this->holds<list>() ) this->emplace<list>();
+  list& l = this->get<list>();
+  if( idx >= l.size() ) l.resize( idx + 1 );
+  return l[idx];
 }
 
-value const& value::operator[]( size_t const idx ) const {
-  return this->as<list>()[idx];
+maybe<value const&> value::operator[]( size_t const idx ) const {
+  UNWRAP_RETURN_T( list const& l, this->get_if<list>() );
+  if( idx >= l.size() ) return nothing;
+  return l[idx];
 }
 
 } // namespace cdr

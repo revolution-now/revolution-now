@@ -337,6 +337,18 @@ TEST_CASE( "[cdr] automatic operator[]" ) {
     "one"_key = list{ 1, 2, 5, 4 },
   };
   REQUIRE( v == ex );
+
+  v                   = 5;
+  v["key"]            = "value";
+  v["key"]["key2"]    = 5.5;
+  v["key"]["key2"][5] = 8;
+
+  REQUIRE( v.holds<table>() );
+  REQUIRE( v["key"].holds<table>() );
+  REQUIRE( v["key"]["key2"].holds<list>() );
+  REQUIRE( v["key"]["key2"][5].holds<integer_type>() );
+  REQUIRE( v["key"]["key2"][4].holds<null_t>() );
+  REQUIRE( v["key"]["key2"][5] == 8 );
 }
 
 } // namespace
