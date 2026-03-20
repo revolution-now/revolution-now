@@ -38,21 +38,46 @@ void to_str( null_t const&, std::string& out,
 /****************************************************************
 ** table
 *****************************************************************/
-size_t table::size() const { return o_->size(); }
+table::table() = default;
 
-long table::ssize() const { return long( o_->size() ); }
+// This is a template to break the cyclic dependency.
+table::table( map_type<std::string, value> const& m )
+  : o_( m ) {}
 
-bool table::empty() const { return o_->empty(); }
+// This is a template to break the cyclic dependency.
+table::table( map_type<std::string, value>&& m )
+  : o_( std::move( m ) ) {}
 
-value& table::operator[]( string const& key ) {
-  return o_.get()[key];
+table::table( std::initializer_list<value_type> const il )
+  : o_( il.begin(), il.end() ) {}
+
+size_t table::size() const { return o_.size(); }
+
+long table::ssize() const { return long( o_.size() ); }
+
+bool table::empty() const { return o_.empty(); }
+
+map_type<std::string, value>::const_iterator table::begin()
+    const {
+  return o_.begin();
 }
+map_type<std::string, value>::const_iterator table::end() const {
+  return o_.end();
+}
+
+map_type<std::string, value>::iterator table::begin() {
+  return o_.begin();
+}
+map_type<std::string, value>::iterator table::end() {
+  return o_.end();
+}
+
+value& table::operator[]( string const& key ) { return o_[key]; }
 
 maybe<value const&> table::operator[](
     string const& key ) const {
-  auto& impl = o_.get();
-  auto it    = impl.find( key );
-  if( it == impl.end() ) return nothing;
+  auto it = o_.find( key );
+  if( it == o_.end() ) return nothing;
   return it->second;
 }
 
@@ -62,6 +87,11 @@ bool table::operator==( table const& rhs ) const {
 
 bool table::contains( string const& key ) const {
   return ( *this )[key].has_value();
+}
+
+void table::insert( value_type const& o ) { o_.insert( o ); }
+void table::insert( value_type&& o ) {
+  o_.insert( std::move( o ) );
 }
 
 void to_str( table const& o, std::string& out,
@@ -89,7 +119,21 @@ void to_str( table const& o, std::string& out,
 /****************************************************************
 ** list
 *****************************************************************/
+list::list() = default;
+
 list::list( initializer_list<value> il ) : o_( il ) {}
+
+std::vector<value>::iterator list::begin() { return o_.begin(); }
+
+std::vector<value>::iterator list::end() { return o_.end(); }
+
+std::vector<value>::const_iterator list::begin() const {
+  return o_.begin();
+}
+
+std::vector<value>::const_iterator list::end() const {
+  return o_.end();
+}
 
 list::list( vector<value> const& v ) : o_( v ) {}
 
@@ -110,6 +154,10 @@ long list::ssize() const { return long( size() ); }
 void list::reserve( size_t elems ) { o_.reserve( elems ); }
 
 size_t list::size() const { return o_.size(); }
+
+bool list::empty() const { return o_.empty(); }
+
+bool list::operator==( list const& ) const = default;
 
 void list::push_back( value&& v ) {
   o_.push_back( std::move( v ) );
@@ -135,7 +183,9 @@ void to_str( list const& o, std::string& out, base::tag<list> ) {
 string_view type_name( value const& v ) {
   struct visitor {
     string_view operator()( null_t ) const { return "null"; }
-    string_view operator()( double ) const { return "floating"; }
+    string_view operator()( float_type ) const {
+      return "floating";
+    }
     string_view operator()( integer_type ) const {
       return "integer";
     }
