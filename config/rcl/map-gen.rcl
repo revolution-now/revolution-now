@@ -227,7 +227,7 @@ terrain_generation {
         start_major.probability:   .30
         sustain_major.probability: .645
         turn.probability:          .32
-        fork.probability:          .105
+        fork.probability:          .11
         fork_is_major.probability: .55
       }
     }
