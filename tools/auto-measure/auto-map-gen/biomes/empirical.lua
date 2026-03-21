@@ -12,7 +12,6 @@ local plot = require( 'moon.plot' )
 -----------------------------------------------------------------
 local insert = table.insert
 local format = string.format
-local concat = table.concat
 local max = math.max
 
 -----------------------------------------------------------------
