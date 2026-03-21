@@ -38,6 +38,4 @@ RiverParameters derive_river_parameters( double scale,
 void add_rivers( MapMatrix& m, IRand& rand,
                  RiverParameters const& params );
 
-[[nodiscard]] int count_rivers( MapMatrix const& m );
-
 } // namespace rn

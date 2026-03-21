@@ -251,7 +251,7 @@ void generate_single_map_key( IEngine& engine, SS& ss,
     auto& native = generate_native.setup;
     if( reseed ) {
       auto const S = [&] {
-        return rand.generate_deterministic_seed();
+        return rand.new_deterministic_seed();
       };
       auto& surf_gen = native.surface_generator;
 

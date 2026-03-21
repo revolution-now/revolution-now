@@ -466,11 +466,4 @@ void add_rivers( MapMatrix& m, IRand& rand,
   }
 }
 
-int count_rivers( MapMatrix const& m ) {
-  int total = 0;
-  for( point const p : rect_iterator( m.rect() ) )
-    if( m[p].river.has_value() ) ++total;
-  return total;
-}
-
 } // namespace rn

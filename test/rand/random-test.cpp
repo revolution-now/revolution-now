@@ -337,11 +337,11 @@ TEST_CASE( "[rand/random] marsenne determinacy" ) {
   }
 }
 
-TEST_CASE( "[rand/random] generate_deterministic_seed" ) {
+TEST_CASE( "[rand/random] new_deterministic_seed" ) {
   random r;
 
   auto const f = [&] [[clang::noinline]] {
-    return r.generate_deterministic_seed();
+    return r.new_deterministic_seed();
   };
 
   // Should be deterministic because rand by default will not

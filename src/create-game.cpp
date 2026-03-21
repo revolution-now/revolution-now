@@ -439,6 +439,15 @@ valid_or<string> create_game_from_setup(
   lg.info( "creating game from:\n{}", rcl::to_rcl( setup ) );
 #endif
 
+  // MetaState state.
+  // ------------------------------------------------------------
+  // The gameplay seed will be used to initialize the random
+  // number generator just before this game begins. Note that it
+  // could be `nothing` in which case a random device will be
+  // used to seed it at that time. See the comments in ss/meta
+  // for more details on this mechanism.
+  root.meta.seeds.gameplay_seed = setup.gameplay_seed;
+
   // SettingsState state.
   // ------------------------------------------------------------
   lg.info( "game setup: setting settings state..." );

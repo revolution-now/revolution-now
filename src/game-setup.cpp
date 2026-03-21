@@ -137,7 +137,7 @@ GameSetup create_classic_game_setup(
   auto const& map_conf = config_map_gen.terrain_generation;
 
   PerlinSeed const perlin_seed =
-      generate_perlin_seed( rand.generate_deterministic_seed() );
+      generate_perlin_seed( rand.new_deterministic_seed() );
 
   PerlinMapSettings const perlin_settings{
     .land_form = params.land_form,
@@ -152,7 +152,7 @@ GameSetup create_classic_game_setup(
   };
 
   LakesSetup const lakes_setup{
-    .seed = rand.generate_deterministic_seed(),
+    .seed = rand.new_deterministic_seed(),
     .bias = sample_uniform(
         rand, map_conf.land_layout.inland_lakes.bias ),
   };
@@ -162,7 +162,7 @@ GameSetup create_classic_game_setup(
     .perlin_settings = perlin_settings,
     .lakes           = lakes_setup,
     .arctic{
-      .seed    = rand.generate_deterministic_seed(),
+      .seed    = rand.new_deterministic_seed(),
       .enabled = map_conf.land_layout.arctic.enabled &&
                  world_sz.h >=
                      map_conf.land_layout.arctic.min_map_height,
@@ -177,35 +177,35 @@ GameSetup create_classic_game_setup(
   };
 
   RiverSetup const rivers{
-    .seed       = rand.generate_deterministic_seed(),
+    .seed       = rand.new_deterministic_seed(),
     .parameters = RiverParametersSetup::derived{},
   };
 
   BiomesSetup const biomes{
-    .seed = rand.generate_deterministic_seed(),
+    .seed = rand.new_deterministic_seed(),
   };
 
   MountainsSetup const mountains{
-    .seed    = rand.generate_deterministic_seed(),
+    .seed    = rand.new_deterministic_seed(),
     .density = map_conf.overlay.mountain_density.fraction,
     .range_probability =
         map_conf.overlay.mountain_range_probability.probability,
   };
 
   HillsSetup const hills{
-    .seed    = rand.generate_deterministic_seed(),
+    .seed    = rand.new_deterministic_seed(),
     .density = map_conf.overlay.hills_density.fraction,
     .range_probability =
         map_conf.overlay.hills_range_probability.probability,
   };
 
   ForestSetup const forest{
-    .seed    = rand.generate_deterministic_seed(),
+    .seed    = rand.new_deterministic_seed(),
     .density = map_conf.overlay.forest_density.fraction,
   };
 
   BonusesSetup const bonuses{
-    .seed = rand.generate_deterministic_seed(),
+    .seed = rand.new_deterministic_seed(),
   };
 
   GeneratedMapSetup const generated_map_setup{
@@ -247,6 +247,12 @@ GameSetup create_classic_game_setup(
   // ------------------------------------------------------------
   setup.settings.starting_year =
       config_turn.game_start.starting_year;
+
+  // category: gameplay seed.
+  // ------------------------------------------------------------
+  // A random device will be used to init the generator when this
+  // game begins.
+  setup.gameplay_seed = nothing;
 
   return setup;
 }
@@ -324,7 +330,7 @@ GameSetup create_america_game_setup(
           .convert_islands_to_mountains = true,
           .bonuses =
               BonusesSetup{
-                .seed = rand.generate_deterministic_seed() } },
+                .seed = rand.new_deterministic_seed() } },
   };
 
   // TODO: see if we need to override any settings related to the

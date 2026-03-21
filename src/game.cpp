@@ -290,6 +290,24 @@ wait<> run_game( IEngine& engine, Planes& planes, IGui& gui,
   // won't continue to render in the background.
   SCOPE_EXIT { ts.map_updater().unrender(); };
 
+  // The save state is allowed to (optionally) specify a seed to
+  // use to seed the rng just before gameplay begins. It is not
+  // normally used, mainly either for testing or cheating. If it
+  // is specified then we will take it and then set it to noth-
+  // ing, that way if the game is saved subsequently it will have
+  // a value of nothing which will restore things to a state
+  // where a random device will be used on subsequent reloads.
+  // See the comments in ss/meta for an overview of how this
+  // mechanism works.
+  rng::seed const gameplay_seed = [&] {
+    if( !ss.meta.seeds.gameplay_seed.has_value() )
+      return rng::entropy::from_random_device();
+    return exchange( ss.meta.seeds.gameplay_seed, nothing )
+        .value();
+  }();
+  lg.info( "starting game with rng seed: {}", gameplay_seed );
+  engine.rand().reseed( gameplay_seed );
+
   // All of the above needs to stay alive, so we must wait.
   //
   // TODO: if this is a new game then Lua may have placed some
@@ -307,7 +325,7 @@ wait<> run_game( IEngine& engine, Planes& planes, IGui& gui,
   //
   // But this should not be done when loading an existing game.
   auto const loop = [&] { return turn_loop( engine, ss, ts ); };
-  co_await co::erase( co::try_<game_quit_interrupt>( loop ) );
+  (void)co_await co::try_<game_quit_interrupt>( loop );
 }
 
 wait<> handle_mode( IEngine& engine, Planes& planes, IGui& gui,

@@ -424,5 +424,9 @@ TEST_CASE( "[lua] run lua tests" ) {
   REQUIRE( st.script.run_safe( script ) == valid );
 }
 
+TEST_CASE( "[lua] injected rng methods" ) {
+  lua::state st;
+}
+
 } // namespace
 } // namespace rn

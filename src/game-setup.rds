@@ -226,6 +226,15 @@ struct.GameSetup {
   nations 'NationsSetup',
   natives 'NativesSetup',
   map 'MapSetup',
+  # This is a seed that, if specified, is used to seed the rng
+  # after all loading and initialization is done and gameplay is
+  # about to begin. If null then a truly random one will be gen-
+  # erated. This value works in conjunction with the corre-
+  # sponding value in the meta save state in order to give the
+  # player control over the state of the rng at the start of ei-
+  # ther a new game or a loaded game. See the comments in ss/meta
+  # for more details on that mechanism.
+  gameplay_seed 'base::maybe<rng::seed>',
 }
 
 struct.ClassicGameSetupParamsCommon {

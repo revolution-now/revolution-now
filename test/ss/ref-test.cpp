@@ -62,7 +62,7 @@ value cdr_game_state_default = table{
       table {
         "seeds"_key =
           table{
-            "rng"_key = "00000000000000000000000000000000",
+            "gameplay_seed"_key = null,
           },
       },
   "settings"_key =
@@ -466,6 +466,7 @@ value cdr_game_state_default = table{
 };
 
 // static_assert( equality_comparable<FormatVersion> );
+// static_assert( equality_comparable<MetaState> );
 // static_assert( equality_comparable<SettingsState> );
 // static_assert( equality_comparable<EventsState> );
 // static_assert( equality_comparable<UnitsState> );

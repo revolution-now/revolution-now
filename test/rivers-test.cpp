@@ -60,6 +60,10 @@ struct world : testing::World {
 /****************************************************************
 ** Test Cases
 *****************************************************************/
+TEST_CASE( "[map-gen] derive_river_parameters" ) {
+  world w;
+}
+
 TEST_CASE( "[map-gen] RiverParameterInterpolator" ) {
   world w;
 }

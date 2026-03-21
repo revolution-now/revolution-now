@@ -50,7 +50,7 @@ struct random {
 
   void reseed( entropy const& new_seed );
 
-  entropy generate_deterministic_seed();
+  entropy new_deterministic_seed();
 
   // Just get a raw random value from the engine of the type it
   // is defined with.

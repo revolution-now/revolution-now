@@ -49,8 +49,8 @@ double Rand::piecewise3( double const peak,
   } );
 }
 
-rng::seed Rand::generate_deterministic_seed() {
-  return rd_.generate_deterministic_seed();
+rng::seed Rand::new_deterministic_seed() {
+  return rd_.new_deterministic_seed();
 }
 
 } // namespace rn

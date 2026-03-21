@@ -85,8 +85,7 @@ struct IRand {
   // rent state of the pseudo-random generator; no true random-
   // ness here. This would be used to generate e.g. map genera-
   // tion seeds once the rng itself has been seeded.
-  [[nodiscard]] virtual rng::seed
-  generate_deterministic_seed() = 0;
+  [[nodiscard]] virtual rng::seed new_deterministic_seed() = 0;
 
   /**************************************************************
   ** For convenience.
@@ -240,7 +239,5 @@ T IRand::pick_from_weighted_values(
 ** Lua
 *****************************************************************/
 namespace lua {
-
 LUA_USERDATA_TRAITS( ::rn::IRand, owned_by_cpp ){};
-
 }

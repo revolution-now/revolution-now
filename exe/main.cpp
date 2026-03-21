@@ -17,6 +17,7 @@
 #include "error.hpp"
 #include "frame.hpp"
 #include "interrupts.hpp"
+#include "irand.hpp"
 #include "linking.hpp"
 #include "lua-ui.hpp"
 #include "map-edit.hpp"
@@ -68,6 +69,12 @@ void run( e_mode mode ) {
       frame_loop( engine, planes,
                   revolution_now( engine, planes ) );
       print_bar( '-', "[ Shutting Down ]" );
+      break;
+    }
+    case e_mode::generate_seed: {
+      engine.init( e_engine_mode::console );
+      fmt::println( "{}",
+                    engine.rand().new_deterministic_seed() );
       break;
     }
     case e_mode::map_editor: {

@@ -1,3 +1,8 @@
+# Seed with which to seed the random number generator just before
+# gameplay begins. Can be null, in which case a random device
+# will be used for the seeding.
+gameplay_seed: "6d8207fbe419be2446239a50771ea417"
+
 map.source.generate_native.setup {
   size { w: 56, h: 70 }
 
@@ -23,12 +28,12 @@ map.source.generate_native.setup {
       }
     }
     lakes {
-      seed: f4ff514737de39e717b047f54068b0a5
+      seed: "f4ff514737de39e717b047f54068b0a5"
       # Ranges from [-1, 1] with 0.0 => OG.
       bias: 0.0
     }
     arctic {
-      seed: ae5312d3978ed9ef0bedf14820419370
+      seed: "ae5312d3978ed9ef0bedf14820419370"
       enabled: true
       density: 0.6
     }
@@ -45,7 +50,7 @@ map.source.generate_native.setup {
   }
 
   rivers {
-    seed: ac0304879ebe1280b0f9ca5e56f762fc
+    seed: "ac0304879ebe1280b0f9ca5e56f762fc"
     parameters.derived {}
     #parameters.from_overrides.values {
     #  min_length:                4
@@ -80,7 +85,7 @@ map.source.generate_native.setup {
     seed: "59d6ae93e9e67fe65760c811dc941337"
   }
 
-  bonuses.seed: de7db42af1959c181457f2eb81adaf6c
+  bonuses.seed: "de7db42af1959c181457f2eb81adaf6c"
 }
 
 nations.nations {

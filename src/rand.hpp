@@ -61,7 +61,7 @@ struct Rand : IRand {
                                    double weight_at_0,
                                    double weight_at_1 ) override;
 
-  rng::seed generate_deterministic_seed() override;
+  rng::seed new_deterministic_seed() override;
 
  private:
   rng::random rd_;

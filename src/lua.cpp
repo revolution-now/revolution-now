@@ -165,21 +165,26 @@ void set_up_lua_rng( IEngine& engine, lua::state& st ) {
     return dummy
   )lua" );
 
-  auto const uniform_int = [&rand]( int const l, int const r ) {
+  auto const uniform_int = [&rand, &st]( int const l,
+                                         int const r ) {
+    LUA_CHECK( st, l <= r, "left bound must be <= right bound" )
     return rand.uniform_int( l, r );
   };
 
   auto const uniform_int64 = [&rand] {
     // A little hacky, but saves us from having to add another
     // api method for this.
-    rng::entropy const e = rand.generate_deterministic_seed();
+    rng::entropy const e = rand.new_deterministic_seed();
     uint64_t const ui =
         ( uint64_t( e.e2 ) << 32 ) + uint64_t( e.e1 );
     return bit_cast<int64_t>( ui );
   };
 
-  auto const uniform_double = [&rand]( double const l,
-                                       double const r ) {
+  auto const uniform_double = [&rand, &st]( double const l,
+                                            double const r ) {
+    // Note that uniform_double is a closed-open interval, thus
+    // it is UB if l == r, thus l must be < r.
+    LUA_CHECK( st, l < r, "left bound must be < right bound" )
     return rand.uniform_double( l, r );
   };
 

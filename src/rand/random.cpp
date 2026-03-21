@@ -75,7 +75,7 @@ void random::reseed( entropy const& seed_unmixed ) {
   engine_ = engine_t( seed_unmixed.mixed().consume<uint64_t>() );
 }
 
-entropy random::generate_deterministic_seed() {
+entropy random::new_deterministic_seed() {
   return entropy{
     .e1 = uniform<uint32_t>(),
     .e2 = uniform<uint32_t>(),

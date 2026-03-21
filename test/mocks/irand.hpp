@@ -35,8 +35,7 @@ struct MockIRand : IRand {
   MOCK_METHOD( double, normal, (double, double), () );
   MOCK_METHOD( double, piecewise3, (double, double, double),
                () );
-  MOCK_METHOD( rng::entropy, generate_deterministic_seed, (),
-               () );
+  MOCK_METHOD( rng::entropy, new_deterministic_seed, (), () );
 };
 
 static_assert( !std::is_abstract_v<MockIRand> );

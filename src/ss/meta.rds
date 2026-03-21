@@ -11,14 +11,13 @@
 # rand
 include "rand/entropy.hpp"
 
+# base
+include "base/maybe.hpp"
+
 namespace "rn"
 
 struct.Seeds {
-  rng 'rng::seed',
-
-  # map_exchange_key 'TerrainExchangeKey',
-
-  # game_exchange_key 'MapExchangeKey',
+  gameplay_seed 'base::maybe<rng::seed>',
 }
 
 struct.MetaState {
