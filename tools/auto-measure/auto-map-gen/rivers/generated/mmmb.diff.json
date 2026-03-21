@@ -2,20 +2,20 @@
   "fail": {
   },
   "good": {
-    "length_avg": 1.0077891880903838,
-    "num_connected_per_shore": 0.9661732449494473,
-    "num_connected_per_land": 1.015443829611707,
-    "any_per_land": 1.0233533125957557,
-    "turns_per_connected": 0.9864821937935623,
-    "any_forks_per_connected": 1.0047552143488663,
-    "num_connected": 0.9975541929354866,
-    "turns": 0.9840694486749924,
-    "maj": 1.0160398382259885,
-    "any": 1.0053243301746115,
-    "maj_on_water": 0.9827553681407091,
-    "any_on_water": 1.0088365042325969,
-    "maj_forks": 1.023231409444545,
-    "any_forks": 1.002297776947506,
-    "land": 0.9823824458285815
+    "length_avg": 1.0055380515836514,
+    "num_connected_per_shore": 0.9663731774430866,
+    "num_connected_per_land": 1.0174897665115952,
+    "any_per_land": 1.0231246773243574,
+    "turns_per_connected": 0.9833262247130603,
+    "any_forks_per_connected": 0.9994023504287545,
+    "num_connected": 0.9976820105363158,
+    "turns": 0.9810468848848379,
+    "maj": 1.0144917966636404,
+    "any": 1.0032072249747463,
+    "maj_on_water": 0.9893580425012484,
+    "any_on_water": 1.0081381683159885,
+    "maj_forks": 1.0216030396236655,
+    "any_forks": 0.9970857463104801,
+    "land": 0.9805327221686114
   }
 }
