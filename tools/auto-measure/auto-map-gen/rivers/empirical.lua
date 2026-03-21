@@ -5,7 +5,7 @@
 -----------------------------------------------------------------
 local Q = require( 'lib.query' )
 local json = require( 'moon.json' )
-local csv = require( 'ftcsv' )
+local plot = require( 'moon.plot' )
 
 -----------------------------------------------------------------
 -- Aliases.
@@ -31,51 +31,6 @@ local BIOME_ORDERING = {
   'marsh', --
   'arctic', --
 }
-
-local GNUPLOT_FILE_TEMPLATE = [[
-#!/usr/bin/env -S gnuplot -p
-set title "{{TITLE}} ({{MODE}} [{{COUNT}}])"
-set datafile separator ","
-set key outside right
-set grid
-set xlabel "{{XLABEL}}"
-set ylabel "{{YLABEL}}"
-
-# Use the first row as column headers for titles.
-set key autotitle columnhead
-
-set xrange [{{XRANGE}}]
-set yrange [{{YRANGE}}]
-
-# Plot: x is column 1, then plot columns 2..N as separate lines.
-plot for [col=2:*] "{{CSV_STEM}}" using 1:col with lines lw 2
-]]
-
-local function write_gnuplot_file( mode, stem, opts )
-  assert( mode )
-  assert( stem )
-  assert( opts )
-  local csv_fname = format( '%s.%s.csv', mode, stem )
-  local gnuplot_fname = format( '%s/%s.%s.gnuplot', PLOTS_DIR,
-                                mode, stem )
-  printfln( 'writing gnuplot file %s...', gnuplot_fname )
-  local f<close> = assert( io.open( gnuplot_fname, 'w' ) )
-  local body = GNUPLOT_FILE_TEMPLATE
-  local subs = {
-    { key='{{TITLE}}', val=assert( opts.title ) }, --
-    { key='{{XLABEL}}', val=assert( opts.x_label ) }, --
-    { key='{{YLABEL}}', val=assert( opts.y_label ) }, --
-    { key='{{XRANGE}}', val=assert( opts.x_range ) }, --
-    { key='{{YRANGE}}', val=assert( opts.y_range ) }, --
-    { key='{{CSV_STEM}}', val=assert( csv_fname ) }, --
-    { key='{{MODE}}', val=assert( opts.mode ) }, --
-    { key='{{COUNT}}', val=assert( opts.count ) }, --
-  }
-  for _, p in ipairs( subs ) do
-    body = body:gsub( assert( p.key ), assert( p.val ) )
-  end
-  f:write( body )
-end
 
 -----------------------------------------------------------------
 -- Data.
@@ -539,28 +494,17 @@ local function finished( mode )
   end
 
   do
-    local file = format( '%s/%s.rows.csv', PLOTS_DIR, mode )
-    printfln( 'writing file %s...', file )
-    local f<close> = assert( io.open( file, 'w' ) )
-    local rows = {}
-    for y = 2, 70 - 1 do
-      local row = {
-        y=y,
-        ['maj-by-row']=assert( D.maj_by_row[y] ) / D.savs,
-        ['min-by-row']=assert( D.min_by_row[y] ) / D.savs,
-        ['any-by-row']=assert( D.any_by_row[y] ) / D.savs,
-        ['starts-by-row']=assert( D.starts_by_row[y] ) / D.savs,
-        ['starts-by-row-adjusted']=100 *
-            assert( D.starts_by_row[y] ) /
-            assert( D.water_adjacent_to_land_per_row[y] ),
-        ['any-by-row-adjusted']=50 *
-            assert( D.any_on_land_by_row[y] ) /
-            assert( D.land_per_row[y] ),
-      }
-      insert( rows, row )
-    end
-    local csv_opts = {
-      fieldsToKeep={
+    local opts = {
+      title=format(
+          'River Frequency by Row (empirical) (%s) [%d]', mode,
+          D.savs ),
+      x_label='Y', --
+      y_label='Count per Map', --
+      x_range='1:70', --
+      y_range='0:10', --
+    }
+    local csv_data = {
+      header={
         'y', --
         'any-by-row', --
         'min-by-row', --
@@ -569,40 +513,50 @@ local function finished( mode )
         'starts-by-row-adjusted', --
         'any-by-row-adjusted', --
       },
+      rows={},
     }
-    f:write( csv.encode( rows, csv_opts ) )
-    write_gnuplot_file( mode, 'rows', {
-      title='River Frequency by Row', --
-      x_label='Y', --
-      y_label='Count per Map', --
-      x_range='1:70', --
-      y_range='0:10', --
-      mode=mode, --
-      count=assert( D.savs ), --
-    } )
+    for y = 2, 70 - 1 do
+      local row = {
+        y, --
+        --[[any-by-row]] assert( D.any_by_row[y] ) / D.savs,
+        --[[min-by-row]]
+        assert( D.min_by_row[y] ) / D.savs,
+        --[[maj-by-row]]
+        assert( D.maj_by_row[y] ) / D.savs,
+        --[[starts-by-row]]
+        assert( D.starts_by_row[y] ) / D.savs,
+        --[[starts-by-row-adjusted]]
+        100 * assert( D.starts_by_row[y] ) /
+            assert( D.water_adjacent_to_land_per_row[y] ),
+        --[[any-by-row-adjusted]]
+        50 * assert( D.any_on_land_by_row[y] ) /
+            assert( D.land_per_row[y] ),
+      }
+      insert( csv_data.rows, row )
+    end
+    local path = format( '%s/%s.rows.gnuplot', PLOTS_DIR, mode )
+    plot.line_graph_to_file( path, csv_data, opts )
   end
 
   do
-    local file = format( '%s/%s.lengths.csv', PLOTS_DIR, mode )
-    printfln( 'writing file %s...', file )
-    local f<close> = assert( io.open( file, 'w' ) )
-    local rows = {}
-    for length = 1, #D.lengths do
-      local count = D.lengths[length]
-      local row = { length=length, count=count / D.savs }
-      insert( rows, row )
-    end
-    local csv_opts = { fieldsToKeep={ 'length', 'count' } }
-    f:write( csv.encode( rows, csv_opts ) )
-    write_gnuplot_file( mode, 'lengths', {
-      title='River Length Histogram', --
+    local opts = {
+      title=format(
+          'River Length Histogram (empirical) (%s) [%d]', mode,
+          D.savs ),
       x_label='Length', --
       y_label='Count per Map', --
       x_range='1:20', --
       y_range='0:20', --
-      mode=mode, --
-      count=assert( D.savs ), --
-    } )
+    }
+    local csv_data = { header={ 'length', 'count' }, rows={} }
+    for length = 1, #D.lengths do
+      local count = D.lengths[length]
+      local row = { length, count / D.savs }
+      insert( csv_data.rows, row )
+    end
+    local path =
+        format( '%s/%s.lengths.gnuplot', PLOTS_DIR, mode )
+    plot.line_graph_to_file( path, csv_data, opts )
   end
 end
 
