@@ -53,6 +53,7 @@
 // base
 #include "base/keyval.hpp"
 #include "base/logger.hpp"
+#include "base/scope-exit.hpp"
 #include "base/string.hpp"
 #include "base/timer.hpp"
 #include "base/to-str-ext-std.hpp"
@@ -1451,6 +1452,9 @@ void testing_map_gen_default( IEngine& engine ) {
 }
 
 void testing_map_gen_stats( IEngine& engine ) {
+  base::e_log_level const old_level = base::global_log_level();
+  set_global_log_level( base::e_log_level::warn );
+  SCOPE_EXIT { set_global_log_level( old_level ); };
   // testing_map_gen_biome_density_stats( engine, formatter );
   // testing_map_gen_biome_adjacency_stats( engine, formatter );
   // testing_map_gen_lake_stats( engine );

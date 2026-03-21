@@ -135,7 +135,8 @@ void set_up_lua_rng( IEngine& engine, lua::state& st ) {
   IRand& rand = engine.rand();
 
   // This seeks to reproduce Lua 5.4's math.random function.
-  lua::rfunction const math_random = st.script.load( R"lua(
+  lua::rfunction const math_random =
+      st.script.run<lua::rfunction>( R"lua(
     -- NOTE: the math functions used below are injected from C++.
     local function random( l, r )
       if l == nil and r == nil then
@@ -158,7 +159,8 @@ void set_up_lua_rng( IEngine& engine, lua::state& st ) {
   // framework can't expose C++ functions with an arbitrary
   // number of parameters, and we want this to give the desired
   // error no matter how many parameters it is called with.
-  lua::rfunction const math_randomseed = st.script.load( R"lua(
+  lua::rfunction const math_randomseed =
+      st.script.run<lua::rfunction>( R"lua(
     local function dummy()
       error( "math.randomseed should not be used." )
     end
@@ -209,10 +211,10 @@ void run_lua_startup_routines( lua::state& st ) {
     ( *fn )( st );
 }
 
-void lua_init( IEngine&, lua::state& st ) {
+void lua_init( IEngine& engine, lua::state& st ) {
   st.lib.open_all();
 
-  (void)set_up_lua_rng; //( engine, st );
+  set_up_lua_rng( engine, st );
 
   st["require"] = [&]( string const& name ) {
     return require( st, name );

@@ -656,7 +656,7 @@ static const luaL_Reg randfuncs[] = {
 /*
 ** Register the random functions and initialize their state.
 */
-static void setrandfunc (lua_State *L) {
+[[maybe_unused]] static void setrandfunc (lua_State *L) { /* dsicilia */
   RanState *state = (RanState *)lua_newuserdatauv(L, sizeof(RanState), 0);
   randseed(L, state);  /* initialize with a "random" seed */
   lua_pop(L, 2);  /* remove pushed seeds */
@@ -752,8 +752,8 @@ static const luaL_Reg mathlib[] = {
   {"log10", math_log10},
 #endif
   /* placeholders */
-  {"random", NULL},
-  {"randomseed", NULL},
+  /* {"random", NULL}, dsicilia */
+  /* {"randomseed", NULL}, dsicilia */
   {"pi", NULL},
   {"huge", NULL},
   {"maxinteger", NULL},
@@ -775,7 +775,7 @@ LUAMOD_API int luaopen_math (lua_State *L) {
   lua_setfield(L, -2, "maxinteger");
   lua_pushinteger(L, LUA_MININTEGER);
   lua_setfield(L, -2, "mininteger");
-  setrandfunc(L);
+  /* setrandfunc(L); dsicilia */
   return 1;
 }
 
