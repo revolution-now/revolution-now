@@ -1,16 +1,68 @@
 #!/usr/bin/env -S gnuplot -p
-set title "River Length Histogram (new [2000])"
-set datafile separator ","
+set datafile separator comma
+
+$CSVData << EOF
+"length","count"
+"1","0.2955"
+"2","0.133"
+"3","0.078"
+"4","10.927"
+"5","5.757"
+"6","2.577"
+"7","2.1795"
+"8","1.601"
+"9","1.1615"
+"10","0.783"
+"11","0.602"
+"12","0.4295"
+"13","0.322"
+"14","0.2435"
+"15","0.1745"
+"16","0.121"
+"17","0.1015"
+"18","0.073"
+"19","0.0565"
+"20","0.044"
+"21","0.033"
+"22","0.023"
+"23","0.0235"
+"24","0.0165"
+"25","0.01"
+"26","0.009"
+"27","0.005"
+"28","0.004"
+"29","0.0035"
+"30","0.0045"
+"31","0.0015"
+"32","0.004"
+"33","0.0025"
+"34","0.0015"
+"35","0.0015"
+"36","0.0"
+"37","0.0015"
+"38","0.0015"
+"39","0.0005"
+"40","0.0"
+"41","0.0"
+"42","0.0"
+"43","0.0005"
+"44","0.0"
+"45","0.0005"
+"46","0.0"
+"47","0.0"
+"48","0.0005"
+"49","0.0"
+"50","0.0"
+"51","0.0"
+"52","0.0005"
+EOF
+
+set title "River Length Histogram (empirical) (new) [2000]"
 set key outside right
 set grid
 set xlabel "Length"
 set ylabel "Count per Map"
-
-# Use the first row as column headers for titles.
 set key autotitle columnhead
-
 set xrange [1:20]
 set yrange [0:20]
-
-# Plot: x is column 1, then plot columns 2..N as separate lines.
-plot for [col=2:*] "new.lengths.csv" using 1:col with lines lw 2
+plot for [col=2:*] $CSVData using 1:col with lines lw 2

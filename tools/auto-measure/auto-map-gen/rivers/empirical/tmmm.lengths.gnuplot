@@ -1,16 +1,53 @@
 #!/usr/bin/env -S gnuplot -p
-set title "River Length Histogram (tmmm [2000])"
-set datafile separator ","
+set datafile separator comma
+
+$CSVData << EOF
+"length","count"
+"1","0.172"
+"2","0.0775"
+"3","0.0605"
+"4","9.226"
+"5","4.3975"
+"6","1.638"
+"7","1.425"
+"8","0.953"
+"9","0.676"
+"10","0.41"
+"11","0.3025"
+"12","0.1995"
+"13","0.143"
+"14","0.113"
+"15","0.0805"
+"16","0.0515"
+"17","0.03"
+"18","0.021"
+"19","0.0175"
+"20","0.0105"
+"21","0.0095"
+"22","0.0075"
+"23","0.005"
+"24","0.0025"
+"25","0.0025"
+"26","0.0"
+"27","0.001"
+"28","0.001"
+"29","0.0"
+"30","0.0"
+"31","0.0"
+"32","0.0"
+"33","0.0005"
+"34","0.0"
+"35","0.0"
+"36","0.0"
+"37","0.0005"
+EOF
+
+set title "River Length Histogram (empirical) (tmmm) [2000]"
 set key outside right
 set grid
 set xlabel "Length"
 set ylabel "Count per Map"
-
-# Use the first row as column headers for titles.
 set key autotitle columnhead
-
 set xrange [1:20]
 set yrange [0:20]
-
-# Plot: x is column 1, then plot columns 2..N as separate lines.
-plot for [col=2:*] "tmmm.lengths.csv" using 1:col with lines lw 2
+plot for [col=2:*] $CSVData using 1:col with lines lw 2
