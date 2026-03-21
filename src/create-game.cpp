@@ -219,15 +219,27 @@ valid_or<string> generate_map_native_impl(
     RealTerrain& real_terrain, IRand& rand ) {
   CHECK( setup.size.area() > 0, "map has zero tiles" );
 
+  // Proto (off map) virtual tiles.
+  generate_proto_tiles( root.zzz_terrain );
+
   // Surface.
   GOOD_OR_RETURN(
       generate_land_perlin( setup, rand, real_terrain ) );
 
-  generate_proto_tiles( root.zzz_terrain );
-
   // Rivers.
   rand.reseed( setup.rivers.seed );
-  add_rivers( real_terrain.map, rand, setup.rivers.parameters );
+  RiverParameters const river_params = [&] {
+    SWITCH( setup.rivers.parameters ) {
+      CASE( derived ) {
+        return derive_river_parameters(
+            setup.surface_generator.perlin_settings.land_form
+                .scale,
+            setup.weather.climate );
+      }
+      CASE( from_overrides ) { return from_overrides.values; }
+    }
+  }();
+  add_rivers( real_terrain.map, rand, river_params );
 
   // Biomes.
   rand.reseed( setup.biomes.seed );

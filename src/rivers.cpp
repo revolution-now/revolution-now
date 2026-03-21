@@ -52,31 +52,51 @@ using ::refl::enum_values;
 using ::std::max;
 using ::std::min;
 
-/****************************************************************
-** Helpers.
-*****************************************************************/
-// Decays a probability the closer the y coordinate is to either
-// the top or bottom map edges.
-[[nodiscard]] double river_probability_decay(
-    double const edge_decay, int const map_height,
-    int const y ) {
-  double const half_height = map_height / 2.0;
-  double const tiles_from_equator =
-      abs( double( y ) - half_height );
-  double const tiles_from_equator_normalized =
-      tiles_from_equator / half_height;
-  double const tiles_from_edge_normalized =
-      1.0 - tiles_from_equator_normalized;
-  double const decay =
-      pow( tiles_from_edge_normalized, edge_decay );
-  return clamp( decay, 0.0, 1.0 );
-}
+struct RiverTile {
+  point tile;
+  e_river type = {};
+};
 
-} // namespace
+using RiverTiles = vector<RiverTile>;
 
 /****************************************************************
-** RiverParameterInterpolator
+** RiverParameterInterpolator.
 *****************************************************************/
+struct RiverParameterInterpolator {
+  RiverParameterInterpolator( double scale, int climate )
+    : scale_( scale ), climate_( climate ) {}
+
+  [[nodiscard]] config::Probability for_land_form(
+      auto const p_field ) const {
+    return config::Probability{
+      .probability =
+          land_form_interp_impl( [&]( auto const& val ) {
+            return ( val.*p_field ).probability;
+          } ) };
+  }
+
+  [[nodiscard]] config::Probability for_climate(
+      auto const p_field ) const {
+    return config::Probability{
+      .probability =
+          climate_interp_impl( [&]( auto const& val ) {
+            return ( val.*p_field ).probability;
+          } ) };
+  }
+
+ private:
+  using LandFormGetter = base::function_ref<double(
+      config::map_gen::RiverLandFormParameters const& )>;
+  using ClimateGetter  = base::function_ref<double(
+      config::map_gen::RiverClimateParameters const& )>;
+
+  double land_form_interp_impl( LandFormGetter fn ) const;
+  double climate_interp_impl( ClimateGetter fn ) const;
+
+  double const scale_;
+  int const climate_;
+};
+
 double RiverParameterInterpolator::land_form_interp_impl(
     LandFormGetter const fn ) const {
   auto const& map_conf = config_map_gen.terrain_generation;
@@ -132,17 +152,35 @@ double RiverParameterInterpolator::climate_interp_impl(
     return field_normal;
 }
 
+} // namespace
+
 /****************************************************************
 ** Public API.
 *****************************************************************/
-struct RiverTile {
-  point tile;
-  e_river type = {};
-
-  auto operator<=>( RiverTile const& ) const = default;
-};
-
-using RiverTiles = vector<RiverTile>;
+// NOTE: there should not be any randomness in this function be-
+// cause then otherwise map-gen keys which specify "derived" for
+// the river parameters will lead to non-deterministic maps.
+RiverParameters derive_river_parameters(
+    double const scale, WeatherValue const climate ) {
+  using RCP = config::map_gen::RiverClimateParameters;
+  using RLP = config::map_gen::RiverLandFormParameters;
+  RiverParameterInterpolator const river_interp( scale,
+                                                 climate.value );
+  auto const& river_conf =
+      config_map_gen.terrain_generation.rivers;
+  return RiverParameters{
+    .min_length = river_conf.min_length,
+    .turn       = river_interp.for_climate( &RCP::turn ),
+    .fork       = river_interp.for_climate( &RCP::fork ),
+    .fork_is_major =
+        river_interp.for_climate( &RCP::fork_is_major ),
+    .growth     = river_interp.for_land_form( &RLP::growth ),
+    .initiation = river_interp.for_climate( &RCP::initiation ),
+    .sustain_major =
+        river_interp.for_climate( &RCP::sustain_major ),
+    .start_major = river_interp.for_climate( &RCP::start_major ),
+  };
+}
 
 // NOTE: This function is given prev_river_tile because we can't
 // necessarily infer it from `river_tiles` in the case of forks.
@@ -163,10 +201,7 @@ static void add_river_land_components(
   CHECK( !m[start].river.has_value() );
   bool const should_grow =
       ( ssize( history ) < params.min_length ) ||
-      rand.bernoulli( params.growth.probability *
-                      river_probability_decay( params.edge_decay,
-                                               m.size().h,
-                                               start.y ) );
+      rand.bernoulli( params.growth.probability );
   if( !should_grow ) return;
 
   e_river const type = [&] {

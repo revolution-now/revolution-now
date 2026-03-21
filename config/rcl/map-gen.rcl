@@ -198,38 +198,37 @@ terrain_generation {
 
   rivers {
     min_length: 4
-    turn.probability: .33
-    fork.probability: .10
-    fork_is_major.probability: .50
+
     for_land_form {
-      archipelago {
-        growth.probability: .62
-      }
-      normal {
-        growth.probability: .63
-      }
-      continents {
-        growth.probability: .71
-      }
+      archipelago.growth.probability: .62
+      normal.growth.probability:      .60
+      continents.growth.probability:  .68
     }
+
     for_climate {
       arid {
-        initiation.probability:    .04
+        initiation.probability:    .041
         start_major.probability:   .18
         sustain_major.probability: .45
-        edge_decay:                .15
+        turn.probability:          .31
+        fork.probability:          .08
+        fork_is_major.probability: .32
       }
       normal {
         initiation.probability:    .052
         start_major.probability:   .25
         sustain_major.probability: .57
-        edge_decay:                .08
+        turn.probability:          .32
+        fork.probability:          .095
+        fork_is_major.probability: .47
       }
       wet {
-        initiation.probability:    .058
+        initiation.probability:    .057
         start_major.probability:   .30
         sustain_major.probability: .645
-        edge_decay:                .06
+        turn.probability:          .32
+        fork.probability:          .105
+        fork_is_major.probability: .55
       }
     }
   }

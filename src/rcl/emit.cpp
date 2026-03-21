@@ -338,4 +338,12 @@ string emit_json( cdr::value const& v,
   return res;
 }
 
+string emit_json( cdr::table const& tbl,
+                  JsonEmitOptions const options ) {
+  string res;
+  static int const indent = 1;
+  json_emitter{ options }.emit( tbl, res, indent );
+  return res;
+}
+
 } // namespace rcl

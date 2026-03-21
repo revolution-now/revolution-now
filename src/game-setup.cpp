@@ -176,28 +176,10 @@ GameSetup create_classic_game_setup(
     .climate     = params.climate,
   };
 
-  RiverParameterInterpolator const river_interp(
-      params.land_form.scale, params.climate.value );
-
-  using RCP = config::map_gen::RiverClimateParameters;
-  using RLP = config::map_gen::RiverLandFormParameters;
   RiverSetup const rivers{
     .seed       = rand.generate_deterministic_seed(),
-    .parameters = {
-      .min_length    = map_conf.rivers.min_length,
-      .turn          = map_conf.rivers.turn,
-      .fork          = map_conf.rivers.fork,
-      .fork_is_major = map_conf.rivers.fork_is_major,
-      .growth =
-          river_interp.for_land_form_probability( &RLP::growth ),
-      .initiation = river_interp.for_climate_probability(
-          &RCP::initiation ),
-      .sustain_major = river_interp.for_climate_probability(
-          &RCP::sustain_major ),
-      .start_major = river_interp.for_climate_probability(
-          &RCP::start_major ),
-      .edge_decay = river_interp.for_climate( &RCP::edge_decay ),
-    } };
+    .parameters = RiverParametersSetup::derived{},
+  };
 
   BiomesSetup const biomes{
     .seed = rand.generate_deterministic_seed(),

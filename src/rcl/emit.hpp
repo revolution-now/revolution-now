@@ -48,4 +48,7 @@ std::string emit_json( doc const& document,
 std::string emit_json( cdr::value const& v,
                        JsonEmitOptions options = {} );
 
+std::string emit_json( cdr::table const& tbl,
+                       JsonEmitOptions options = {} );
+
 } // namespace rcl

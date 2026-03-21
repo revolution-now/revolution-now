@@ -39,6 +39,7 @@
 #include "luapp/state.hpp"
 
 // rcl
+#include "rcl/emit.hpp"
 #include "rcl/parse.hpp"
 
 // cdr
@@ -59,6 +60,7 @@
 // C++ standard library
 #include <fstream>
 #include <iostream>
+#include <thread>
 
 namespace rn {
 
@@ -658,7 +660,9 @@ struct LakeFrequencyStats : IGameStatsCollector {
 };
 
 struct RiverFrequencyStats : IGameStatsCollector {
-  RiverFrequencyStats( string const& mode ) : mode_( mode ) {
+  RiverFrequencyStats( string const& mode,
+                       double const tolerance )
+    : mode_( mode ), tolerance_( tolerance ) {
     CHECK( !mode_.empty() );
   }
 
@@ -950,43 +954,104 @@ struct RiverFrequencyStats : IGameStatsCollector {
     }
     length_avg /= total_count;
 
-    // clang-format off
-    fmt::println( "savs:                       {}", int( maps ) );
-    fmt::println( "length_avg:                 {:.3f}", length_avg);
-    fmt::println( "any:                        {:.3f}", any);
-    fmt::println( "any_stddev:                 {:.3f}", any_stddev);
-    fmt::println( "num_connected:              {:.3f}", num_connected);
-    fmt::println( "num_connected_stddev:       {:.3f}", num_connected_stddev);
-    fmt::println( "num_connected_per_shore:    {:.3f}", num_connected_per_shore);
-    fmt::println( "num_connected_per_land:     {:.3f}", num_connected_per_land);
-    fmt::println( "land:                       {:.3f}", land);
-    fmt::println( "water_adjacent_to_land:     {:.3f}", water_adjacent_to_land);
-    fmt::println( "maj:                        {:.3f}", maj);
-    fmt::println( "min:                        {:.3f}", min);
-    fmt::println( "any_per_land:               {:.3f}", any_per_land);
-    fmt::println( "maj_on_water:               {:.3f}", maj_on_water);
-    fmt::println( "min_on_water:               {:.3f}", min_on_water);
-    fmt::println( "any_on_water:               {:.3f}", any_on_water);
-    fmt::println( "turns:                      {:.3f}", turns);
-    fmt::println( "turns_per_connected:        {:.3f}", turns_per_connected);
-    fmt::println( "tiles:                      {:.3f}", tiles);
-    fmt::println( "water:                      {:.3f}", water);
-    fmt::println( "maj_forks:                  {:.3f}", maj_forks);
-    fmt::println( "min_forks:                  {:.3f}", min_forks);
-    fmt::println( "any_forks:                  {:.3f}", any_forks);
-    fmt::println( "any_forks_per_connected:    {:.3f}", any_forks_per_connected);
-    fmt::println( "maj_crosses:                {:.3f}", maj_crosses);
-    fmt::println( "min_crosses:                {:.3f}", min_crosses);
-    fmt::println( "any_crosses:                {:.3f}", any_crosses);
-    fmt::println( "any_crosses_per_connected:  {:.3f}", any_crosses_per_connected);
-    fmt::println( "num_with_water:             {:.3f}", num_with_water);
-    fmt::println( "num_without_water:          {:.3f}", num_without_water);
-    fmt::println( "starts:                     {:.3f}", starts);
-    fmt::println( "ends:                       {:.3f}", ends);
-    fmt::println( "land_islands:               {:.3f}", land_islands);
-    fmt::println( "water_islands:              {:.3f}", water_islands);
-    fmt::println( "any_islands:                {:.3f}", any_islands);
-    // clang-format on
+    cdr::table o;
+    o["savs"]                      = int( maps );
+    o["length_avg"]                = length_avg;
+    o["any"]                       = any;
+    o["any_stddev"]                = any_stddev;
+    o["num_connected"]             = num_connected;
+    o["num_connected_stddev"]      = num_connected_stddev;
+    o["num_connected_per_shore"]   = num_connected_per_shore;
+    o["num_connected_per_land"]    = num_connected_per_land;
+    o["land"]                      = land;
+    o["water_adjacent_to_land"]    = water_adjacent_to_land;
+    o["maj"]                       = maj;
+    o["min"]                       = min;
+    o["any_per_land"]              = any_per_land;
+    o["maj_on_water"]              = maj_on_water;
+    o["min_on_water"]              = min_on_water;
+    o["any_on_water"]              = any_on_water;
+    o["turns"]                     = turns;
+    o["turns_per_connected"]       = turns_per_connected;
+    o["tiles"]                     = tiles;
+    o["water"]                     = water;
+    o["maj_forks"]                 = maj_forks;
+    o["min_forks"]                 = min_forks;
+    o["any_forks"]                 = any_forks;
+    o["any_forks_per_connected"]   = any_forks_per_connected;
+    o["maj_crosses"]               = maj_crosses;
+    o["min_crosses"]               = min_crosses;
+    o["any_crosses"]               = any_crosses;
+    o["any_crosses_per_connected"] = any_crosses_per_connected;
+    o["num_with_water"]            = num_with_water;
+    o["num_without_water"]         = num_without_water;
+    o["starts"]                    = starts;
+    o["ends"]                      = ends;
+    o["land_islands"]              = land_islands;
+    o["water_islands"]             = water_islands;
+    o["any_islands"]               = any_islands;
+    string const out_filename      = format(
+        "tools/auto-measure/auto-map-gen/rivers/generated/"
+             "{}.data.json",
+        mode_ );
+    ofstream out( out_filename );
+    CHECK( out.good() );
+    out << rcl::emit_json( o );
+
+    string const in_filename = format(
+        "tools/auto-measure/auto-map-gen/rivers/empirical/"
+        "{}.data.json",
+        mode_ );
+    UNWRAP_CHECK_T( rcl::doc const& empirical_doc,
+                    rcl::parse_file( in_filename ) );
+    cdr::table const& empirical = empirical_doc.top_tbl();
+
+    {
+      cdr::list const kDiffColumns = {
+        "length_avg",
+        "num_connected_per_shore",
+        "num_connected_per_land",
+        "any_per_land",
+        "turns_per_connected",
+        "any_forks_per_connected",
+        "num_connected",
+        "turns",
+        "maj",
+        "any",
+        "maj_on_water",
+        "any_on_water",
+        "maj_forks",
+        "any_forks",
+        "land",
+      };
+
+      cdr::table diff;
+      cdr::table& fail = diff["fail"].emplace<cdr::table>();
+      cdr::table& good = diff["good"].emplace<cdr::table>();
+      for( cdr::value const& col : kDiffColumns ) {
+        string const& colstr = col.get<string>();
+        UNWRAP_CONTINUE( double const l,
+                         o[colstr].get_if<double>() );
+        UNWRAP_CONTINUE( double const r,
+                         empirical[colstr].get_if<double>() );
+        double const ratio = l / r;
+        if( abs( ratio - 1.0 ) < tolerance_ )
+          good[colstr] = ratio;
+        else
+          fail[colstr] = ratio;
+      }
+      fail["__key_order"]            = kDiffColumns;
+      good["__key_order"]            = kDiffColumns;
+      string const diff_out_filename = format(
+          "tools/auto-measure/auto-map-gen/rivers/generated/"
+          "{}.diff.json",
+          mode_ );
+      ofstream diff_out( diff_out_filename );
+      CHECK( diff_out.good() );
+      diff_out << rcl::emit_json(
+          diff, rcl::JsonEmitOptions{ .key_order_tag =
+                                          "__key_order" } );
+    }
 
     write_per_row_plot();
 
@@ -1084,6 +1149,7 @@ struct RiverFrequencyStats : IGameStatsCollector {
 
  private:
   string const mode_;
+  double const tolerance_;
 
   // These need to be reset on each map.
   int __segments = 0;
@@ -1267,7 +1333,7 @@ struct RiverFrequencyStats : IGameStatsCollector {
 
 [[maybe_unused]] void testing_map_gen_river_stats(
     IEngine& engine ) {
-  int constexpr kNumSamples = 2000;
+  int constexpr kNumSamples = 10000;
 
   auto const generate =
       [&]( SS& ss, ClassicGameSetupParamsCustom const& custom ) {
@@ -1278,53 +1344,60 @@ struct RiverFrequencyStats : IGameStatsCollector {
     generate_single_map_new( engine, ss );
   };
 
-  bool const kDoCustom = false;
+  bool const kDoCustom = true;
   bool const kDoNew    = true;
+
+  vector<thread> ths;
 
   if( kDoCustom ) {
     static auto constexpr kModes = {
-      pair{ e_land_form::archipelago, e_climate::arid },
-      pair{ e_land_form::archipelago, e_climate::normal },
-      pair{ e_land_form::archipelago, e_climate::wet },
-      pair{ e_land_form::normal, e_climate::arid },
-      pair{ e_land_form::normal, e_climate::normal },
-      pair{ e_land_form::normal, e_climate::wet },
-      pair{ e_land_form::continents, e_climate::arid },
-      pair{ e_land_form::continents, e_climate::normal },
-      pair{ e_land_form::continents, e_climate::wet },
+      tuple{ e_land_form::archipelago, e_climate::arid, .15 },
+      tuple{ e_land_form::archipelago, e_climate::normal, .15 },
+      tuple{ e_land_form::archipelago, e_climate::wet, .15 },
+      tuple{ e_land_form::normal, e_climate::arid, .05 },
+      tuple{ e_land_form::normal, e_climate::normal, .05 },
+      tuple{ e_land_form::normal, e_climate::wet, .05 },
+      tuple{ e_land_form::continents, e_climate::arid, .15 },
+      tuple{ e_land_form::continents, e_climate::normal, .15 },
+      tuple{ e_land_form::continents, e_climate::wet, .15 },
     };
 
-    for( auto const& [land_form, climate] : kModes ) {
-      ClassicGameSetupParamsCustom const params{
-        .land_mass   = e_land_mass::moderate,
-        .land_form   = land_form,
-        .temperature = e_temperature::temperate,
-        .climate     = climate };
-      string const name = mode_name( params );
-      RiverFrequencyStats stats( name );
-      fmt::println( "generating for {}...", name );
-      for( int i = 0; i < kNumSamples; ++i ) {
-        SS ss;
-        generate( ss, params );
-        stats.collect( ss );
-      }
-      stats.write();
-      fmt::print( "\n" );
+    for( auto const& tpl : kModes ) {
+      ths.emplace_back( [tpl, &generate] {
+        auto const [land_form, climate, tolerance] = tpl;
+        ClassicGameSetupParamsCustom const params{
+          .land_mass   = e_land_mass::moderate,
+          .land_form   = land_form,
+          .temperature = e_temperature::temperate,
+          .climate     = climate };
+        string const name = mode_name( params );
+        RiverFrequencyStats stats( name, tolerance );
+        fmt::println( "generating for {}...", name );
+        for( int i = 0; i < kNumSamples; ++i ) {
+          SS ss;
+          generate( ss, params );
+          stats.collect( ss );
+        }
+        stats.write();
+      } );
     }
   }
 
   if( kDoNew ) {
-    string const name = "new";
-    RiverFrequencyStats stats( name );
-    fmt::println( "generating for {}...", name );
-    for( int i = 0; i < kNumSamples; ++i ) {
-      SS ss;
-      generate_new( ss );
-      stats.collect( ss );
-    }
-    stats.write();
-    fmt::print( "\n" );
+    ths.emplace_back( [&generate_new] {
+      string const name = "new";
+      RiverFrequencyStats stats( name, .05 );
+      fmt::println( "generating for {}...", name );
+      for( int i = 0; i < kNumSamples; ++i ) {
+        SS ss;
+        generate_new( ss );
+        stats.collect( ss );
+      }
+      stats.write();
+    } );
   }
+
+  for( thread& th : ths ) th.join();
 }
 
 } // namespace

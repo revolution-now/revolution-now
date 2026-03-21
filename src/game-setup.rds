@@ -88,9 +88,16 @@ struct.WeatherSetup {
   climate     'WeatherValue',
 }
 
+sumtype.RiverParametersSetup {
+  derived {},
+  from_overrides {
+    values 'RiverParameters',
+  },
+}
+
 struct.RiverSetup {
   seed 'rng::seed',
-  parameters 'RiverParameters',
+  parameters 'RiverParametersSetup',
 }
 
 struct.BiomesSetup {

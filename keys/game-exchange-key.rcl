@@ -40,23 +40,23 @@ map.source.generate_native.setup {
   }
 
   weather {
-    temperature:  0
-    climate:      0
+    temperature.value:  0
+    climate.value:      0
   }
 
   rivers {
     seed: ac0304879ebe1280b0f9ca5e56f762fc
-    parameters {
-      min_length:                4
-      turn.probability:          .33
-      fork.probability:          .10
-      fork_is_major.probability: .50
-      growth.probability:        .63
-      initiation.probability:    .052
-      start_major.probability:   .25
-      sustain_major.probability: .57
-      edge_decay:                .08
-    }
+    parameters.derived {}
+    #parameters.from_overrides.values {
+    #  min_length:                4
+    #  growth.probability:        .60
+    #  initiation.probability:    .052
+    #  start_major.probability:   .25
+    #  sustain_major.probability: .57
+    #  turn.probability:          .32
+    #  fork.probability:          .095
+    #  fork_is_major.probability: .47
+    #}
   }
 
   biomes {
