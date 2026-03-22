@@ -3511,6 +3511,6 @@ set grid
 set xlabel "Density"
 set ylabel "Frequency"
 set key autotitle columnhead
-set xrange [-.05:0.3]
+set xrange [0:0.3]
 set yrange [0:0.02]
 plot for [col=2:*] $CSVData using 1:col with lines lw 2

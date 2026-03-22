@@ -56,6 +56,7 @@ local D = {
     with_ocean_adjacent=0,
     with_river_or_ocean_adjacent=0,
     with_any_adjacent=0,
+    with_river=0,
   },
 
   marsh={
@@ -67,6 +68,7 @@ local D = {
     with_ocean_adjacent=0,
     with_river_or_ocean_adjacent=0,
     with_any_adjacent=0,
+    with_river=0,
   },
 
   -- Terrain adjacency.
@@ -200,6 +202,7 @@ local function lambda( json_o )
       local has_ocean_adjacent = false
       local has_river_or_ocean_adjacent = false
       local has_any_adjacent = false
+      local has_river = Q.has_river( json_o, tile )
       for _, cc in ipairs( surround ) do
         local terrain = terrain_at( json_o, cc )
         if terrain.surface == 'land' then
@@ -240,6 +243,7 @@ local function lambda( json_o )
               (has_river_or_ocean_adjacent and 1 or 0)
       S.with_any_adjacent = S.with_any_adjacent +
                                 (has_any_adjacent and 1 or 0)
+      S.with_river = S.with_river + (has_river and 1 or 0)
     end )
 
   end
@@ -344,6 +348,7 @@ local function finished( mode )
     O.with_river_or_ocean_adjacent =
         S.with_river_or_ocean_adjacent / S.count
     O.with_any_adjacent = S.with_any_adjacent / S.count
+    O.with_river = S.with_river / S.count
   end
 
   do
