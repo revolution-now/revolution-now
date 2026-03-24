@@ -88,28 +88,28 @@
   },
   "wet": {
     "marsh": {
-      "count": 108144,
-      "density": 0.045833419862929,
-      "with_any_adjacent": 0.98180204172215,
-      "with_marsh_adjacent": 0.36396841248705,
-      "with_ocean_adjacent": 0.85462901316763,
-      "with_river": 0.090952803669182,
-      "with_river_adjacent": 0.38309106376683,
-      "with_river_or_ocean_adjacent": 0.95431091877497,
       "with_swamp_adjacent": 0.2873575972777,
-      "with_swamp_or_marsh_adjacent": 0.36396841248705
+      "with_marsh_adjacent": 0.36396841248705,
+      "with_swamp_or_marsh_adjacent": 0.5511077822163,
+      "with_river_adjacent": 0.38309106376683,
+      "with_ocean_adjacent": 0.85462901316763,
+      "with_river_or_ocean_adjacent": 0.95431091877497,
+      "with_any_adjacent": 0.98180204172215,
+      "with_river": 0.090952803669182,
+      "count": 108144,
+      "density": 0.045833419862929
     },
     "swamp": {
-      "count": 124343,
-      "density": 0.05269885454594,
-      "with_any_adjacent": 0.99050207892684,
-      "with_marsh_adjacent": 0.71184545973637,
-      "with_ocean_adjacent": 0.84155923534095,
-      "with_river": 0.10322253765793,
-      "with_river_adjacent": 0.41988692568138,
-      "with_river_or_ocean_adjacent": 0.95268732457798,
       "with_swamp_adjacent": 0.67012216208391,
-      "with_swamp_or_marsh_adjacent": 0.71184545973637
+      "with_marsh_adjacent": 0.71184545973637,
+      "with_swamp_or_marsh_adjacent": 0.79518750552906,
+      "with_river_adjacent": 0.41988692568138,
+      "with_ocean_adjacent": 0.84155923534095,
+      "with_river_or_ocean_adjacent": 0.95268732457798,
+      "with_any_adjacent": 0.99050207892684,
+      "with_river": 0.10322253765793,
+      "count": 124343,
+      "density": 0.05269885454594
     }
   }
 }

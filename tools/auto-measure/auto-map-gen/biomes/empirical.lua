@@ -219,7 +219,8 @@ local function lambda( json_o )
           has_ocean_adjacent = true
         end
         has_swamp_or_marsh_adjacent =
-            has_swamp_adjacent or has_marsh_adjacent
+            has_swamp_or_marsh_adjacent or has_swamp_adjacent or
+                has_marsh_adjacent
         has_river_or_ocean_adjacent =
             has_river_or_ocean_adjacent or has_river_adjacent or
                 has_ocean_adjacent
@@ -337,6 +338,18 @@ local function finished( mode )
     o.wet = o.wet or {}
     o.wet[name] = {}
     local O = o.wet[name]
+    O.__key_order = {
+      'with_swamp_adjacent', --
+      'with_marsh_adjacent', --
+      'with_swamp_or_marsh_adjacent', --
+      'with_river_adjacent', --
+      'with_ocean_adjacent', --
+      'with_river_or_ocean_adjacent', --
+      'with_any_adjacent', --
+      'with_river', --
+      'count', --
+      'density', --
+    }
     O.count = S.count
     O.density = S.count / D.total_land
     O.with_swamp_adjacent = S.with_swamp_adjacent / S.count
