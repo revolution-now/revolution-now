@@ -99,7 +99,7 @@ struct.BiomeCurve {
   _features { equality, validation }
 }
 
-struct.Biomes {
+struct.BiomeDensities {
   normal_temperature_and_climate [[
     refl::enum_map<e_ground_terrain, BiomeCurve>
   ]],
@@ -109,6 +109,17 @@ struct.Biomes {
   climate_gradient [[
     refl::enum_map<e_ground_terrain, BiomeCurveParams>
   ]],
+}
+
+struct.BiomeClustering {
+  climate_normal 'refl::enum_map<e_ground_terrain, double>',
+  climate_gradient 'refl::enum_map<e_ground_terrain, double>',
+  swamp_marsh_water_gravity 'double',
+}
+
+struct.Biomes {
+  densities 'BiomeDensities',
+  clustering 'BiomeClustering',
 }
 
 struct.Overlay {

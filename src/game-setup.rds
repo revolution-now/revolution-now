@@ -20,6 +20,7 @@ include "config/map-gen-types.rds.hpp"
 # ss
 include "ss/difficulty.rds.hpp"
 include "ss/nation.rds.hpp"
+include "ss/terrain-enums.rds.hpp"
 include "ss/native-enums.rds.hpp"
 include "ss/player-enums.rds.hpp"
 
@@ -90,7 +91,7 @@ struct.WeatherSetup {
 
 sumtype.RiverParametersSetup {
   derived {},
-  from_overrides {
+  from_overridden {
     values 'RiverParameters',
   },
 }
@@ -100,8 +101,16 @@ struct.RiverSetup {
   parameters 'RiverParametersSetup',
 }
 
+sumtype.BiomeClustering {
+  derived {},
+  from_overridden {
+    values 'refl::enum_map<e_ground_terrain, double>',
+  }
+}
+
 struct.BiomesSetup {
   seed 'rng::seed',
+  clustering 'BiomeClustering',
 }
 
 struct.MountainsSetup {
@@ -143,21 +152,14 @@ struct.BonusesSetup {
 struct.GeneratedMapSetup {
   # Map Size.
   size 'gfx::size',
-
   surface_generator 'SurfaceGeneratorSetup',
-
   weather 'WeatherSetup',
-
   rivers 'RiverSetup',
-
   biomes 'BiomesSetup',
-
   mountains 'MountainsSetup',
   hills 'HillsSetup',
   forest 'ForestSetup',
-
   bonuses 'BonusesSetup',
-
   _features { equality, validation }
 }
 

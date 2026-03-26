@@ -52,7 +52,7 @@ map.source.generate_native.setup {
   rivers {
     seed: "ac0304879ebe1280b0f9ca5e56f762fc"
     parameters.derived {}
-    #parameters.from_overrides.values {
+    #parameters.from_overridden.values {
     #  min_length:                4
     #  growth.probability:        .60
     #  initiation.probability:    .052
@@ -66,6 +66,18 @@ map.source.generate_native.setup {
 
   biomes {
     seed: "48d55a01aef7295a21b2aabd78d68343"
+    clustering.derived {}
+    #clustering.from_overridden.values {
+    #  savannah:  1.079
+    #  grassland: 1.109
+    #  tundra:    1.688
+    #  plains:    1.105
+    #  prairie:   1.127
+    #  desert:    1.176
+    #  swamp:     1.056
+    #  marsh:     1.227
+    #  arctic:    1.000
+    #}
   }
 
   hills {

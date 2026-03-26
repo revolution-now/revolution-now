@@ -311,5 +311,119 @@
       "marsh": 1.4872313594308,
       "arctic": 0.91076098086369
     }
+  },
+  "wet": {
+    "bbtt": {
+      "marsh": {
+        "with_ocean_adjacent": 0.78996619013391
+      },
+      "swamp": {
+        "with_ocean_adjacent": 0.74821705048338
+      }
+    },
+    "bbtm": {
+      "marsh": {
+        "with_ocean_adjacent": 0.78359656127179
+      },
+      "swamp": {
+        "with_ocean_adjacent": 0.76749941827259
+      }
+    },
+    "bbtb": {
+      "marsh": {
+        "with_ocean_adjacent": 0.76006560255018
+      },
+      "swamp": {
+        "with_ocean_adjacent": 0.75973887194233
+      }
+    },
+    "bbmt": {
+      "marsh": {
+        "with_ocean_adjacent": 0.78643340885136
+      },
+      "swamp": {
+        "with_ocean_adjacent": 0.751203753422
+      }
+    },
+    "bbmm": {
+      "marsh": {
+        "with_ocean_adjacent": 0.78031053848695
+      },
+      "swamp": {
+        "with_ocean_adjacent": 0.7665083227127
+      }
+    },
+    "bbmb": {
+      "marsh": {
+        "with_ocean_adjacent": 0.75382749100644
+      },
+      "swamp": {
+        "with_ocean_adjacent": 0.75660078215833
+      }
+    },
+    "bbbt": {
+      "marsh": {
+        "with_ocean_adjacent": 0.7854476984634
+      },
+      "swamp": {
+        "with_ocean_adjacent": 0.755642173459
+      }
+    },
+    "bbbm": {
+      "marsh": {
+        "with_ocean_adjacent": 0.77765644246813
+      },
+      "swamp": {
+        "with_ocean_adjacent": 0.76760505387982
+      }
+    },
+    "bbbb": {
+      "marsh": {
+        "with_ocean_adjacent": 0.75379162599336
+      },
+      "swamp": {
+        "with_ocean_adjacent": 0.75988691420371
+      }
+    },
+    "tmmm": {
+      "marsh": {
+        "with_ocean_adjacent": 0.88990439681167
+      },
+      "swamp": {
+        "with_ocean_adjacent": 0.88664703446372
+      }
+    },
+    "bmmm": {
+      "marsh": {
+        "with_ocean_adjacent": 0.85462901316763
+      },
+      "swamp": {
+        "with_ocean_adjacent": 0.84155923534095
+      }
+    },
+    "mtmm": {
+      "marsh": {
+        "with_ocean_adjacent": 0.89800344453658
+      },
+      "swamp": {
+        "with_ocean_adjacent": 0.88903915775457
+      }
+    },
+    "mbmm": {
+      "marsh": {
+        "with_ocean_adjacent": 0.79679759377212
+      },
+      "swamp": {
+        "with_ocean_adjacent": 0.78601306416312
+      }
+    },
+    "new": {
+      "marsh": {
+        "with_ocean_adjacent": 0.79427509400385
+      },
+      "swamp": {
+        "with_ocean_adjacent": 0.78607944158218
+      }
+    }
   }
 }

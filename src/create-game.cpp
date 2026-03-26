@@ -236,7 +236,7 @@ valid_or<string> generate_map_native_impl(
                 .scale,
             setup.weather.climate );
       }
-      CASE( from_overrides ) { return from_overrides.values; }
+      CASE( from_overridden ) { return from_overridden.values; }
     }
   }();
   add_rivers( real_terrain.map, rand, river_params );

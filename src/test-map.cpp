@@ -13,6 +13,7 @@
 
 // Revolution Now
 #include "ascii-map.hpp"
+#include "biomes.hpp"
 #include "connectivity.hpp"
 #include "create-game.hpp"
 #include "game-setup.hpp"
@@ -20,8 +21,10 @@
 #include "iengine.hpp"
 #include "irand.hpp"
 #include "lua.hpp"
+#include "map-stats.hpp"
 #include "map-updater.hpp"
 #include "perlin-map.hpp"
+#include "terrain-enums.rds.hpp"
 #include "terrain-mgr.hpp"
 
 // ss
@@ -54,7 +57,6 @@
 #include "base/keyval.hpp"
 #include "base/logger.hpp"
 #include "base/scope-exit.hpp"
-#include "base/string.hpp"
 #include "base/timer.hpp"
 #include "base/to-str-ext-std.hpp"
 
@@ -129,42 +131,6 @@ string mode_name( ClassicGameSetupParamsCustom const params ) {
       break;
   }
   return res;
-}
-
-string_view mode_name( e_temperature const t,
-                       e_climate const c ) {
-  switch( t ) {
-    case e_temperature::cool:
-      switch( c ) {
-        case e_climate::arid:
-          return "bbtt";
-        case e_climate::normal:
-          return "bbtm";
-        case e_climate::wet:
-          return "bbtb";
-      }
-      break;
-    case e_temperature::temperate:
-      switch( c ) {
-        case e_climate::arid:
-          return "bbmt";
-        case e_climate::normal:
-          return "bbmm";
-        case e_climate::wet:
-          return "bbmb";
-      }
-      break;
-    case e_temperature::warm:
-      switch( c ) {
-        case e_climate::arid:
-          return "bbbt";
-        case e_climate::normal:
-          return "bbbm";
-        case e_climate::wet:
-          return "bbbb";
-      }
-      break;
-  }
 }
 
 string_view mode_name( e_land_mass const m,
@@ -296,18 +262,12 @@ void generate_single_map_key( IEngine& engine, SS& ss,
 /****************************************************************
 ** Stats collectors.
 *****************************************************************/
-struct IGameStatsCollector {
-  virtual ~IGameStatsCollector()            = default;
-  virtual void collect( SSConst const& ss ) = 0;
-  virtual void write() const                = 0;
-};
-
-struct LandDensityStats : IGameStatsCollector {
-  void collect( SSConst const& ss ) override {
-    map_sz_ = ss.terrain.world_size_tiles();
+struct LandDensityStats : IMapStatsCollector {
+  void collect( MapMatrix const& m ) override {
+    map_sz_ = m.size();
     ++maps_total_;
     on_all_tiles(
-        ss, [&]( point const tile, MapSquare const& square ) {
+        m, [&]( point const tile, MapSquare const& square ) {
           land_count_x_[tile.x];
           land_count_y_[tile.y];
           if( square.surface == e_surface::water ) return;
@@ -320,6 +280,8 @@ struct LandDensityStats : IGameStatsCollector {
           }
         } );
   }
+
+  void summarize() override {}
 
   void write() const override {
     fs::path const generated =
@@ -389,216 +351,15 @@ struct LandDensityStats : IGameStatsCollector {
   int maps_total_ = 0;
 };
 
-struct BiomeDensityStats : IGameStatsCollector {
-  static array<e_ground_terrain, 9> constexpr kGroundTypes = {
-    e_ground_terrain::savannah, e_ground_terrain::grassland,
-    e_ground_terrain::tundra,   e_ground_terrain::plains,
-    e_ground_terrain::prairie,  e_ground_terrain::desert,
-    e_ground_terrain::swamp,    e_ground_terrain::marsh,
-    e_ground_terrain::arctic,
-  };
-
-  BiomeDensityStats( string const& stem ) : stem_( stem ) {
-    CHECK( !stem_.empty() );
-  }
-
-  void collect( SSConst const& ss ) override {
-    map_sz_ = ss.terrain.world_size_tiles();
-    CHECK(
-        map_sz_.h == 70,
-        "this stats collector requires the standard map size." );
-    ++maps_total_;
-    on_all_tiles(
-        ss, [&]( point const tile, MapSquare const& square ) {
-          if( square.surface == e_surface::water ) return;
-          ++land_total_;
-          ++land_count_y_[tile.y + 1];
-          ++biome_count_y_[tile.y + 1][square.ground];
-        } );
-  }
-
-  void write() const override {
-    fs::path const generated =
-        "tools/auto-measure/auto-map-gen/biomes/generated";
-    ofstream csv( generated / format( "{}.csv", stem_ ) );
-    ofstream gnu( generated / format( "{}.gnuplot", stem_ ) );
-    CHECK( csv.good() );
-    CHECK( gnu.good() );
-    string const GNUPLOT_FILE_TEMPLATE = R"gnuplot(
-      #!/usr/bin/env -S gnuplot -p
-      set title "{{TITLE}} ({{MODE}} [{{COUNT}}])"
-      set datafile separator ","
-      set key outside right
-      set grid
-      set xlabel "Map Row (Y)"
-      set ylabel "Density"
-
-      # Use the first row as column headers for titles.
-      set key autotitle columnhead
-
-      set yrange [0:0.7]
-      set xrange [{{XRANGE}}]
-
-      plot for [col=2:*] "{{CSV_STEM}}.csv" using 1:col with lines lw 2
-    )gnuplot";
-    string const gnuplot_body = base::trim( str_replace_all(
-        GNUPLOT_FILE_TEMPLATE,
-        {
-          { "{{TITLE}}", "Biome Density (generated)" },
-          { "{{CSV_STEM}}", stem_ },
-          { "{{MODE}}", stem_ },
-          { "{{COUNT}}", to_string( maps_total_ ) },
-          { "{{XRANGE}}", "0:70" },
-        } ) );
-    gnu << gnuplot_body;
-
-    // Header.
-    csv << format( "y" );
-    for( auto const gt : kGroundTypes )
-      csv << ',' << base::to_str( gt );
-    csv << '\n';
-    for( int y = 0; y < map_sz_.h; ++y ) {
-      csv << y + 1;
-      for( auto const gt : kGroundTypes ) {
-        double value = 0.0;
-        {
-          auto const biome_count_y_row =
-              lookup( biome_count_y_, y + 1 );
-          if( !biome_count_y_row.has_value() ) goto skip;
-          auto const land_count_y_row =
-              lookup( land_count_y_, y + 1 );
-          if( !land_count_y_row.has_value() ) goto skip;
-          auto const biome_count_y_row_gt =
-              lookup( *biome_count_y_row, gt );
-          if( !biome_count_y_row_gt.has_value() ) goto skip;
-          value = double( *biome_count_y_row_gt ) /
-                  *land_count_y_row;
-        }
-      skip:
-        csv << ',' << value;
-      }
-      csv << '\n';
-    }
-  }
-
- private:
-  string const stem_;
-  size map_sz_ = {};
-  map<int /*y+1*/, map<e_ground_terrain, int /*count*/>>
-      biome_count_y_;
-  map<int /*y+1*/, int> land_count_y_;
-  int land_total_ = 0;
-  int maps_total_ = 0;
-};
-
-struct BiomeAdjacencyStats : IGameStatsCollector {
-  static array<e_ground_terrain, 9> constexpr kGroundTypes = {
-    e_ground_terrain::savannah, e_ground_terrain::grassland,
-    e_ground_terrain::tundra,   e_ground_terrain::plains,
-    e_ground_terrain::prairie,  e_ground_terrain::desert,
-    e_ground_terrain::swamp,    e_ground_terrain::marsh,
-    e_ground_terrain::arctic,
-  };
-
-  void collect( SSConst const& ss ) override {
-    map_sz_ = ss.terrain.world_size_tiles();
-    ++maps_total_;
-    on_all_tiles(
-        ss, [&]( point const tile, MapSquare const& center ) {
-          if( center.surface == e_surface::water ) return;
-          ++land_total_;
-          ++terrain_total_[center.ground];
-          ++land_per_row_[tile.y];
-          ++ground_per_row_[center.ground][tile.y];
-          on_surrounding(
-              ss, tile,
-              [&]( point const, MapSquare const& adjacent ) {
-                if( adjacent.surface == e_surface::water )
-                  return;
-                ++surrounding_per_row_[center.ground][tile.y];
-                if( adjacent.ground == center.ground )
-                  ++adjacency_[adjacent.ground];
-              } );
-        } );
-  }
-
-  void write() const override {
-    fmt::println( "maps_total: {}", maps_total_ );
-    fmt::println( "land_total: {}", land_total_ );
-    fmt::println( "" );
-    enum_map<e_ground_terrain, double> relative_adjacencies;
-    for( e_ground_terrain const gt : kGroundTypes ) {
-      double adjacency_baseline = 0;
-      for( auto const& [y, count] : ground_per_row_[gt] ) {
-        UNWRAP_CONTINUE( int const land_on_row,
-                         lookup( land_per_row_, y ) );
-        UNWRAP_CONTINUE( int const surrounding_on_row,
-                         lookup( surrounding_per_row_[gt], y ) );
-        double const density_at_row =
-            double( count ) / land_on_row;
-        double const adjacency_baseline_at_row =
-            density_at_row * surrounding_on_row;
-        adjacency_baseline += adjacency_baseline_at_row;
-      }
-      double const adjacency_avg =
-          double( adjacency_[gt] ) / terrain_total_[gt];
-      double const result = adjacency_[gt] / adjacency_baseline;
-      relative_adjacencies[gt] = result;
-      fmt::println( "{}: {:.3f} | {}/{:.3f} ==> {:.3f}", gt,
-                    adjacency_avg, adjacency_[gt],
-                    adjacency_baseline, result );
-    }
-#if 0
-    using enum e_ground_terrain;
-    enum_map<e_ground_terrain, double> const targets{
-      { e_ground_terrain::savannah, 1.083 },  //
-      { e_ground_terrain::grassland, 1.131 }, //
-      { e_ground_terrain::tundra, 1.754 },    //
-      { e_ground_terrain::plains, 1.143 },    //
-      { e_ground_terrain::prairie, 1.121 },   //
-      { e_ground_terrain::desert, 1.210 },    //
-      { e_ground_terrain::swamp, 1.067 },     //
-      { e_ground_terrain::marsh, 1.250 },     //
-      { e_ground_terrain::arctic, 1.000 },    //
-    };
-    fmt::println( "-----" );
-    for( e_ground_terrain const gt : kGroundTypes ) {
-      double const target = targets[gt];
-      if( gt == e_ground_terrain::arctic ) continue;
-      auto const g = relative_adjacencies[gt];
-      fmt::println( "{}: target={}, actual={:.3}, error={:.3}%",
-                    gt, target, g,
-                    100.0 * ( g - target ) / target );
-    }
-#endif
-  }
-
- private:
-  size map_sz_ = {};
-  enum_map<e_ground_terrain, int> adjacency_;
-  enum_map<e_ground_terrain, int> terrain_total_;
-  enum_map<e_ground_terrain, map<int /*y*/, int /*count*/>>
-      ground_per_row_;
-  map<int /*y*/, int /*count*/> land_per_row_;
-  // This gives the total number of surrounding land squares (of
-  // any biome) around tiles of the given biome on the given row.
-  enum_map<e_ground_terrain, map<int /*y*/, int /*count*/>>
-      surrounding_per_row_;
-  int land_total_ = 0;
-  int maps_total_ = 0;
-};
-
-struct LakeFrequencyStats : IGameStatsCollector {
-  void collect( SSConst const& ss ) override {
-    CHECK( map_sz_ == size{} or
-           map_sz_ == ss.terrain.world_size_tiles() );
-    map_sz_ = ss.terrain.world_size_tiles();
+struct LakeFrequencyStats : IMapStatsCollector {
+  void collect( MapMatrix const& m ) override {
+    CHECK( map_sz_ == size{} or map_sz_ == m.size() );
+    map_sz_ = m.size();
     ++total_maps_;
-    auto const& m = ss.terrain.real_terrain().map;
     TerrainConnectivity const connectivity =
-        compute_terrain_connectivity( ss );
+        compute_terrain_connectivity( m );
     on_all_tiles(
-        ss, [&]( point const tile, MapSquare const& center ) {
+        m, [&]( point const tile, MapSquare const& center ) {
           // Skip arctic rows.
           if( tile.y == 0 || tile.y == map_sz_.h - 1 ) return;
           if( center.surface == e_surface::land ) {
@@ -632,6 +393,8 @@ struct LakeFrequencyStats : IGameStatsCollector {
         } );
   }
 
+  void summarize() override {}
+
   void write() const override {
     double const metric = [&] {
       double const land_density =
@@ -660,25 +423,22 @@ struct LakeFrequencyStats : IGameStatsCollector {
   int total_land_tiles_adjacent_to_water_ = 0;
 };
 
-struct RiverFrequencyStats : IGameStatsCollector {
+struct RiverFrequencyStats : IMapStatsCollector {
   RiverFrequencyStats( string const& mode,
                        double const tolerance )
     : mode_( mode ), tolerance_( tolerance ) {
     CHECK( !mode_.empty() );
   }
 
-  void collect( SSConst const& ss ) override {
+  void collect( MapMatrix const& m ) override {
     __river_tile_segments_ = {};
     __segments             = {};
     __any_                 = {};
     __num_connected_       = {};
 
     ++maps_;
-    CHECK( map_sz_ == size{} or
-           map_sz_ == ss.terrain.world_size_tiles() );
-    map_sz_ = ss.terrain.world_size_tiles();
-
-    auto const& m = ss.terrain.real_terrain().map;
+    CHECK( map_sz_ == size{} or map_sz_ == m.size() );
+    map_sz_ = m.size();
 
     auto fn = [&]( point const tile, MapSquare const& center ) {
       using enum e_surface;
@@ -788,7 +548,7 @@ struct RiverFrequencyStats : IGameStatsCollector {
         }
       }
     };
-    on_all_tiles( ss, fn );
+    on_all_tiles( m, fn );
 
     find_connected( m );
 
@@ -796,6 +556,8 @@ struct RiverFrequencyStats : IGameStatsCollector {
     num_connected_squared_ = num_connected_squared_ +
                              __num_connected_ * __num_connected_;
   }
+
+  void summarize() override {}
 
   static double compute_stddev( double const s1, double const s2,
                                 double const denominator ) {
@@ -1233,22 +995,25 @@ struct RiverFrequencyStats : IGameStatsCollector {
 
   for( e_temperature const temperature : kTemps ) {
     for( e_climate const climate : kClimates ) {
-      string const name( mode_name( temperature, climate ) );
-      BiomeDensityStats stats( name );
+      ClassicGameSetupParamsCustom const params{
+        .land_mass   = e_land_mass::large,
+        .land_form   = e_land_form::continents,
+        .temperature = temperature,
+        .climate     = climate };
+      string const name( mode_name( params ) );
+      BiomeDensityStatsCollector stats( name );
       fmt::println( "generate for {}...", name );
       ScopedTimer const timer(
           format( "generate {} maps", kNumSamples ) );
       for( int i = 0; i < kNumSamples; ++i ) {
         fmt::print( "generating map {}...", i + 1 );
         SS ss;
-        generate( ss, { .land_mass   = e_land_mass::large,
-                        .land_form   = e_land_form::continents,
-                        .temperature = temperature,
-                        .climate     = climate } );
-        stats.collect( ss );
+        generate( ss, params );
+        stats.collect( ss.terrain.real_terrain().map );
         // fmt::print( "\r\033[2K" );
         fmt::print( "\n" );
       }
+      stats.summarize();
       stats.write();
       fmt::print( "\n" );
     }
@@ -1277,17 +1042,21 @@ struct RiverFrequencyStats : IGameStatsCollector {
 
   for( e_temperature const temperature : kTemps ) {
     for( e_climate const climate : kClimates ) {
-      string const name( mode_name( temperature, climate ) );
-      BiomeAdjacencyStats stats;
+      ClassicGameSetupParamsCustom const params{
+        .land_mass   = e_land_mass::large,
+        .land_form   = e_land_form::continents,
+        .temperature = temperature,
+        .climate     = climate };
+      string const name( mode_name( params ) );
+      BiomeAdjacencyStatsCollector stats;
       fmt::println( "generating for {}...", name );
       for( int i = 0; i < kNumSamples; ++i ) {
         SS ss;
-        generate( ss, { .land_mass   = e_land_mass::large,
-                        .land_form   = e_land_form::continents,
-                        .temperature = temperature,
-                        .climate     = climate } );
-        stats.collect( ss );
+        generate( ss, params );
+        stats.collect( ss.terrain.real_terrain().map );
+        // fmt::println( "#{}", i + 1 );
       }
+      stats.summarize();
       stats.write();
       fmt::print( "\n" );
     }
@@ -1325,8 +1094,9 @@ struct RiverFrequencyStats : IGameStatsCollector {
                       .land_form   = land_form,
                       .temperature = e_temperature::temperate,
                       .climate     = e_climate::normal } );
-      stats.collect( ss );
+      stats.collect( ss.terrain.real_terrain().map );
     }
+    stats.summarize();
     stats.write();
     fmt::print( "\n" );
   }
@@ -1351,23 +1121,27 @@ struct RiverFrequencyStats : IGameStatsCollector {
   vector<thread> ths;
 
   if( kDoCustom ) {
+    using enum e_climate;
+    using enum e_land_mass;
     static auto constexpr kModes = {
-      tuple{ e_land_form::archipelago, e_climate::arid, .15 },
-      tuple{ e_land_form::archipelago, e_climate::normal, .15 },
-      tuple{ e_land_form::archipelago, e_climate::wet, .15 },
-      tuple{ e_land_form::normal, e_climate::arid, .05 },
-      tuple{ e_land_form::normal, e_climate::normal, .05 },
-      tuple{ e_land_form::normal, e_climate::wet, .05 },
-      tuple{ e_land_form::continents, e_climate::arid, .15 },
-      tuple{ e_land_form::continents, e_climate::normal, .15 },
-      tuple{ e_land_form::continents, e_climate::wet, .15 },
+      tuple{ moderate, e_land_form::archipelago, arid, .15 },
+      tuple{ moderate, e_land_form::archipelago, normal, .15 },
+      tuple{ moderate, e_land_form::archipelago, wet, .15 },
+      tuple{ moderate, e_land_form::normal, arid, .05 },
+      tuple{ moderate, e_land_form::normal, normal, .05 },
+      tuple{ moderate, e_land_form::normal, wet, .05 },
+      tuple{ moderate, e_land_form::continents, arid, .15 },
+      tuple{ moderate, e_land_form::continents, normal, .15 },
+      tuple{ moderate, e_land_form::continents, wet, .15 },
+      tuple{ large, e_land_form::continents, normal, .15 },
     };
 
     for( auto const& tpl : kModes ) {
       ths.emplace_back( [tpl, &generate] {
-        auto const [land_form, climate, tolerance] = tpl;
+        auto const [land_mass, land_form, climate, tolerance] =
+            tpl;
         ClassicGameSetupParamsCustom const params{
-          .land_mass   = e_land_mass::moderate,
+          .land_mass   = land_mass,
           .land_form   = land_form,
           .temperature = e_temperature::temperate,
           .climate     = climate };
@@ -1377,8 +1151,9 @@ struct RiverFrequencyStats : IGameStatsCollector {
         for( int i = 0; i < kNumSamples; ++i ) {
           SS ss;
           generate( ss, params );
-          stats.collect( ss );
+          stats.collect( ss.terrain.real_terrain().map );
         }
+        stats.summarize();
         stats.write();
       } );
     }
@@ -1392,8 +1167,9 @@ struct RiverFrequencyStats : IGameStatsCollector {
       for( int i = 0; i < kNumSamples; ++i ) {
         SS ss;
         generate_new( ss );
-        stats.collect( ss );
+        stats.collect( ss.terrain.real_terrain().map );
       }
+      stats.summarize();
       stats.write();
     } );
   }
@@ -1424,7 +1200,7 @@ void testing_map_gen_key( IEngine& engine, bool const reseed ) {
   SS ss;
   generate_single_map_key( engine, ss, reseed );
   print_ascii_map( ss.terrain.real_terrain(),
-                   ascii_map_rivers_formatter(), cout );
+                   ascii_map_biome_formatter(), cout );
 }
 
 void testing_map_gen_fuzz( IEngine&, bool const ) {
@@ -1433,14 +1209,14 @@ void testing_map_gen_fuzz( IEngine&, bool const ) {
 void testing_map_gen_custom( IEngine& engine ) {
   SS ss;
   ClassicGameSetupParamsCustom const params{
-    .land_mass   = e_land_mass::moderate,
-    .land_form   = e_land_form::normal,
+    .land_mass   = e_land_mass::large,
+    .land_form   = e_land_form::continents,
     .temperature = e_temperature::temperate,
     .climate     = e_climate::normal };
   fmt::println( "mode: {}", mode_name( params ) );
   generate_single_map_custom( engine, ss, params );
   print_ascii_map( ss.terrain.real_terrain(),
-                   ascii_map_rivers_formatter(), cout );
+                   ascii_map_biome_formatter(), cout );
 }
 
 void testing_map_gen_default( IEngine& engine ) {
@@ -1448,17 +1224,17 @@ void testing_map_gen_default( IEngine& engine ) {
   fmt::println( "mode: new" );
   generate_single_map_new( engine, ss );
   print_ascii_map( ss.terrain.real_terrain(),
-                   ascii_map_rivers_formatter(), cout );
+                   ascii_map_biome_formatter(), cout );
 }
 
 void testing_map_gen_stats( IEngine& engine ) {
   base::e_log_level const old_level = base::global_log_level();
   set_global_log_level( base::e_log_level::warn );
   SCOPE_EXIT { set_global_log_level( old_level ); };
-  // testing_map_gen_biome_density_stats( engine, formatter );
-  // testing_map_gen_biome_adjacency_stats( engine, formatter );
+  // testing_map_gen_biome_density_stats( engine );
+  testing_map_gen_biome_adjacency_stats( engine );
   // testing_map_gen_lake_stats( engine );
-  testing_map_gen_river_stats( engine );
+  // testing_map_gen_river_stats( engine );
 }
 
 void drop_large_og_map( IEngine& engine ) {

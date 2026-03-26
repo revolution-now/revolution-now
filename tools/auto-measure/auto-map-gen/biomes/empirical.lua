@@ -586,6 +586,8 @@ local function collect()
   o.modes.__key_order = MODES
   o.biomes.__key_order = GROUND_TYPES
   o.biome_averages.__key_order = GROUND_TYPES
+  o.wet = {}
+  o.wet.__key_order = MODES
   local csv_buckets = {}
   for _, mode in ipairs( MODES ) do
     local adjacency_file = format( '%s/%s.adjacency.json',
@@ -608,6 +610,16 @@ local function collect()
           csv_buckets[biome][bucket] or 0
       csv_buckets[biome][bucket] = csv_buckets[biome][bucket] + 1
     end
+    o.wet[mode] = {
+      swamp={
+        with_ocean_adjacent=assert(
+            mode_json.wet.swamp.with_ocean_adjacent ),
+      },
+      marsh={
+        with_ocean_adjacent=assert(
+            mode_json.wet.marsh.with_ocean_adjacent ),
+      },
+    }
   end
 
   do
@@ -645,6 +657,64 @@ local function collect()
     local json_out<close> = assert(
                                 io.open( collected_json_file, 'w' ) )
     json.write( o, 2, function( bit ) json_out:write( bit ) end )
+  end
+
+  do
+    local path = format( '%s/biome.config.json', PLOTS_DIR )
+    printfln( 'writing %s...', path )
+    local config = {
+      __key_order={
+        'clustering', --
+      },
+      clustering={
+        __key_order={
+          'climate_normal', --
+          'climate_gradient', --
+          'swamp_marsh_water_gravity', --
+        },
+        climate_normal=assert( o.modes.bbmm ),
+        climate_gradient={
+          __key_order=GROUND_TYPES,
+          savannah=0.0,
+          grassland=0.0,
+          tundra=0.0,
+          plains=0.0,
+          prairie=0.0,
+          desert=0.0,
+          swamp=0.0,
+          marsh=0.0,
+          arctic=0.0,
+        },
+        swamp_marsh_water_gravity=0.0,
+      },
+    }
+    local function round( d )
+      return math.floor( d * 1000 ) / 1000
+    end
+    config.clustering.swamp_marsh_water_gravity = -- LuaFormatter off
+      assert( o.wet.bbmt.swamp.with_ocean_adjacent ) +
+      assert( o.wet.bbmt.marsh.with_ocean_adjacent ) +
+      assert( o.wet.bbmm.swamp.with_ocean_adjacent ) +
+      assert( o.wet.bbmm.marsh.with_ocean_adjacent ) +
+      assert( o.wet.bbmb.swamp.with_ocean_adjacent ) +
+      assert( o.wet.bbmb.marsh.with_ocean_adjacent ) +
+      0.0
+    config.clustering.swamp_marsh_water_gravity =
+      round( config.clustering.swamp_marsh_water_gravity / 6 )
+    -- LuaFormatter on
+    for _, biome in ipairs( GROUND_TYPES ) do
+      config.clustering.climate_normal[biome] = -- LuaFormatter off
+        round( config.clustering.climate_normal[biome] )
+      config.clustering.climate_gradient[biome] =
+        (assert(o.modes.bbmb[biome]) - assert(o.modes.bbmm[biome])) +
+        (assert(o.modes.bbmm[biome]) - assert(o.modes.bbmt[biome]))
+      config.clustering.climate_gradient[biome] =
+        round( config.clustering.climate_gradient[biome] / 2 )
+        -- LuaFormatter on
+    end
+    config.clustering.climate_normal.arctic = 1.0;
+    config.clustering.climate_gradient.arctic = 0.0;
+    json.write_file( path, config, 2 )
   end
 end
 

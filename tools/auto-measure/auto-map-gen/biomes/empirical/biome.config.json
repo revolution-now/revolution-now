@@ -1,0 +1,27 @@
+{
+  "clustering": {
+    "climate_normal": {
+      "savannah": 1.079,
+      "grassland": 1.109,
+      "tundra": 1.688,
+      "plains": 1.105,
+      "prairie": 1.127,
+      "desert": 1.176,
+      "swamp": 1.056,
+      "marsh": 1.227,
+      "arctic": 1.0
+    },
+    "climate_gradient": {
+      "savannah": 0.019,
+      "grassland": 0.059,
+      "tundra": 0.297,
+      "plains": 0.068,
+      "prairie": 0.019,
+      "desert": 0.061,
+      "swamp": 0.011,
+      "marsh": 0.069,
+      "arctic": 0.0
+    },
+    "swamp_marsh_water_gravity": 0.765
+  }
+}
