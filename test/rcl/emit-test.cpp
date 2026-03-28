@@ -670,5 +670,10 @@ TEST_CASE( "[emit] emit_json( cdr::value )" ) {
 
 }
 
+TEST_CASE( "[emit] emit_json( cdr::table )" ) {
+  using namespace cdr::literals;
+
+}
+
 } // namespace
 } // namespace rcl

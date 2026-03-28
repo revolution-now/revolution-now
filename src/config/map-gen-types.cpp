@@ -22,7 +22,27 @@ using namespace std;
 using ::base::valid;
 using ::base::valid_or;
 
+double constexpr kBiomeSelfAffinityMin = -3.0;
+double constexpr kBiomeSelfAffinityMax = 3.0;
+
 } // namespace
+
+/****************************************************************
+** BiomeAffinity
+*****************************************************************/
+valid_or<string> BiomeAffinity::validate() const {
+  REFL_VALIDATE( for_self >= kBiomeSelfAffinityMin &&
+                     for_self <= kBiomeSelfAffinityMax,
+                 "biome affinity for_self property must be in "
+                 "the range [{},{}], instead found {}.",
+                 kBiomeSelfAffinityMin, kBiomeSelfAffinityMax,
+                 for_self );
+  REFL_VALIDATE( !for_water.has_value() ||
+                     ( *for_water >= 0.0 && *for_water <= 1.0 ),
+                 "biome affinity for_water, if non-null, must "
+                 "be in the range [0,1]." );
+  return valid;
+}
 
 /****************************************************************
 ** PerlinLandForm

@@ -243,9 +243,18 @@ valid_or<string> generate_map_native_impl(
 
   // Biomes.
   rand.reseed( setup.biomes.seed );
-  GOOD_OR_RETURN( assign_biomes( rand, real_terrain,
-                                 setup.weather.temperature,
-                                 setup.weather.climate ) );
+  BiomeClustering const biome_clustering = [&] {
+    SWITCH( setup.biomes.clustering_mode ) {
+      CASE( derived ) {
+        return biome_clustering_for_climate(
+            setup.weather.climate );
+      }
+      CASE( varying ) { return varying.values; }
+    }
+  }();
+  GOOD_OR_RETURN( assign_biomes(
+      rand, real_terrain, setup.weather.temperature,
+      setup.weather.climate, biome_clustering ) );
 
   return valid;
 }

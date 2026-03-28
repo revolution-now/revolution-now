@@ -1048,7 +1048,9 @@ struct RiverFrequencyStats : IMapStatsCollector {
         .temperature = temperature,
         .climate     = climate };
       string const name( mode_name( params ) );
-      BiomeAdjacencyStatsCollector stats;
+      BiomeClustering const clustering =
+          biome_clustering_for_climate( climate );
+      BiomeAdjacencyStatsCollector stats( clustering );
       fmt::println( "generating for {}...", name );
       for( int i = 0; i < kNumSamples; ++i ) {
         SS ss;

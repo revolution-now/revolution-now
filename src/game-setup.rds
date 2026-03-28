@@ -101,16 +101,9 @@ struct.RiverSetup {
   parameters 'RiverParametersSetup',
 }
 
-sumtype.BiomeClustering {
-  derived {},
-  from_overridden {
-    values 'refl::enum_map<e_ground_terrain, double>',
-  }
-}
-
 struct.BiomesSetup {
   seed 'rng::seed',
-  clustering 'BiomeClustering',
+  clustering_mode 'BiomeClusteringMode',
 }
 
 struct.MountainsSetup {

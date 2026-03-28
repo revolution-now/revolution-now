@@ -66,17 +66,18 @@ map.source.generate_native.setup {
 
   biomes {
     seed: "48d55a01aef7295a21b2aabd78d68343"
-    clustering.derived {}
-    #clustering.from_overridden.values {
-    #  savannah:  1.079
-    #  grassland: 1.109
-    #  tundra:    1.688
-    #  plains:    1.105
-    #  prairie:   1.127
-    #  desert:    1.176
-    #  swamp:     1.056
-    #  marsh:     1.227
-    #  arctic:    1.000
+    clustering_mode.derived {}
+    # Ranges: for_self: [-3,3], for_water: [0,1].
+    #clustering_mode.varying.values.affinities {
+    #  savannah:  { for_self: 0.000, for_water: null }
+    #  grassland: { for_self: 0.000, for_water: null }
+    #  tundra:    { for_self: 0.000, for_water: null }
+    #  plains:    { for_self: 0.000, for_water: null }
+    #  prairie:   { for_self: 0.000, for_water: null }
+    #  desert:    { for_self: 0.000, for_water: null }
+    #  swamp:     { for_self: 0.000, for_water: null }
+    #  marsh:     { for_self: 0.000, for_water: null }
+    #  arctic:    { for_self: 0.000, for_water: null }
     #}
   }
 

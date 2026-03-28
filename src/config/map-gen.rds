@@ -111,15 +111,14 @@ struct.BiomeDensities {
   ]],
 }
 
-struct.BiomeClustering {
-  climate_normal 'refl::enum_map<e_ground_terrain, double>',
-  climate_gradient 'refl::enum_map<e_ground_terrain, double>',
-  swamp_marsh_water_gravity 'double',
+struct.BiomeClimateClustering {
+  climate_normal 'BiomeClustering',
+  climate_gradient 'BiomeClustering',
 }
 
 struct.Biomes {
   densities 'BiomeDensities',
-  clustering 'BiomeClustering',
+  clustering 'BiomeClimateClustering',
 }
 
 struct.Overlay {

@@ -182,7 +182,8 @@ GameSetup create_classic_game_setup(
   };
 
   BiomesSetup const biomes{
-    .seed = rand.new_deterministic_seed(),
+    .seed            = rand.new_deterministic_seed(),
+    .clustering_mode = BiomeClusteringMode::derived{},
   };
 
   MountainsSetup const mountains{
