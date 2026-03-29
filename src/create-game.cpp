@@ -264,7 +264,7 @@ valid_or<string> generate_map_native_impl(
       adjust_biome_clustering(
           rand, real_terrain, setup.weather.temperature,
           setup.weather.climate, biome_clustering ) );
-  lg.error( "biome adjacency results: {}", adjacency_results );
+  lg.debug( "biome adjacency results: {}", adjacency_results );
   if( setup.surface_generator.arctic.enabled )
     assign_arctic_biomes( rand, real_terrain );
 
