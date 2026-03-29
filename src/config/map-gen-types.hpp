@@ -22,6 +22,9 @@ int constexpr kWeatherValueCustomizationMagnitude = 100;
 // beyond the values representing the hard-coded customization
 // points (e.g., a temperature value of 150 is "warmer than war-
 // m").
-int constexpr kWeatherValueMaxMagnitude           = 200;
+int constexpr kWeatherValueMaxMagnitude = 200;
+
+double constexpr kBiomeSelfAffinityMin = -3.0;
+double constexpr kBiomeSelfAffinityMax = 3.0;
 
 } // namespace rn

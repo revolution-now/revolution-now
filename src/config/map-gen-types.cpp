@@ -22,9 +22,6 @@ using namespace std;
 using ::base::valid;
 using ::base::valid_or;
 
-double constexpr kBiomeSelfAffinityMin = -3.0;
-double constexpr kBiomeSelfAffinityMax = 3.0;
-
 } // namespace
 
 /****************************************************************

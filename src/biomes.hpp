@@ -48,4 +48,7 @@ base::expect<AdjacencyAdjustmentResult> adjust_biome_clustering(
 void assign_arctic_biomes( IRand& rand,
                            RealTerrain& real_terrain );
 
+void log_adjacency_results(
+    AdjacencyAdjustmentResult const& result );
+
 } // namespace rn

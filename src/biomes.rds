@@ -8,10 +8,20 @@
 # Description: Rds definitions for the biomes module.
 #
 # ===============================================================
+# ss
+include "ss/terrain-enums.rds.hpp"
+
+# refl
+include "refl/enum-map.hpp"
+
 namespace "rn"
 
 struct.AdjacencyAdjustmentResult {
   general_adjacency_iters 'int',
   swamp_marsh_adjacency_iters 'int',
   max_allowed_iters 'int',
+  xs_regen 'double',
+  general_adjacency_results [[
+    refl::enum_map<e_ground_terrain, double>
+  ]],
 }

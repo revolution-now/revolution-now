@@ -1037,9 +1037,9 @@ struct RiverFrequencyStats : IMapStatsCollector {
     // e_temperature::warm,
   };
   static auto constexpr kClimates = {
-    // e_climate::arid,
+    e_climate::arid,
     e_climate::normal,
-    // e_climate::wet,
+    e_climate::wet,
   };
 
   for( e_temperature const temperature : kTemps ) {

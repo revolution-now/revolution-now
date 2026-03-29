@@ -28,12 +28,16 @@
 // gfx
 #include "gfx/iter.hpp"
 
+// refl
+#include "refl/to-str.hpp"
+
 // base
 #include "base/expect.hpp"
 #include "base/function-ref.hpp"
 #include "base/keyval.hpp"
 #include "base/logger.hpp"
 #include "base/timer.hpp"
+#include "base/to-str-ext-std.hpp"
 
 namespace rn {
 
@@ -619,6 +623,9 @@ expect<AdjacencyAdjustmentResult> adjust_biome_clustering(
         if( swap_types[gt] == frozen ) continue;
         double const g =
             relative_adjacency( m, biome_dists, gt );
+        // Do the log2 to make the convention compatible with
+        // what is in the config.
+        result.general_adjacency_results[gt] = log2( g );
         if( g > pow( 2.0, clustering.affinities[gt].for_self ) *
                     ( 1.0 + general_tolerance ) )
           swap_types[gt] = antiglobbing;
@@ -704,6 +711,23 @@ void assign_arctic_biomes( IRand& rand,
         square.ground = arctic;
     }
   }
+}
+
+void log_adjacency_results(
+    AdjacencyAdjustmentResult const& result ) {
+  lg.debug( "biome adjacency results:" );
+  lg.debug( "  |-general_adjacency_iters: {}",
+            result.general_adjacency_iters );
+  lg.debug( "  |-swamp_marsh_adjacency_iters: {}",
+            result.swamp_marsh_adjacency_iters );
+  lg.debug( "  |-max_allowed_iters: {}",
+            result.max_allowed_iters );
+  lg.debug( "  |-xs_regen: {}", result.xs_regen );
+  lg.debug( "  |-general_adjacency_results [{},{}]:",
+            kBiomeSelfAffinityMin, kBiomeSelfAffinityMax );
+  for( auto const gt : enum_values<e_ground_terrain> )
+    lg.debug( "  |   {:>10}: {:.3f}", gt,
+              result.general_adjacency_results[gt] );
 }
 
 } // namespace rn
