@@ -16,6 +16,7 @@
 // base
 #include "base/ansi.hpp"
 #include "base/env.hpp"
+#include "base/logger.hpp"
 
 // C++ standard library
 #include <ostream>
@@ -189,10 +190,16 @@ void print_ascii_map( RealTerrain const& terrain,
     for( X x = 0; x < 0 + m.size().w; ++x ) out << format( "-" );
     out << format( "+\n" );
   };
+  if( m.size().h % 2 != 0 )
+    lg.error(
+        "The ascii printer requires an even map height for "
+        "proper rendering.  An odd map height will cause the "
+        "bottom row to be omitted." );
   bar();
-  CHECK( m.size().h % 2 == 0,
-         "The ascii printer requires an even map height." );
-  for( Y y = 0; y < 0 + m.size().h; y += 2 ) {
+  // We need an even map height because we draw two rows per ter-
+  // minal row.
+  int const h_even = ( m.size().h / 2 ) * 2;
+  for( Y y = 0; y < 0 + h_even; y += 2 ) {
     out << indent << format( "|" );
     for( X x = 0; x < 0 + m.size().w; ++x ) {
       auto const fmt = formatter.format( m[y][x], m[y + 1][x] );

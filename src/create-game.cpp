@@ -252,9 +252,21 @@ valid_or<string> generate_map_native_impl(
       CASE( varying ) { return varying.values; }
     }
   }();
-  GOOD_OR_RETURN( assign_biomes(
-      rand, real_terrain, setup.weather.temperature,
-      setup.weather.climate, biome_clustering ) );
+#if 0
+  lg.info( "biome clustering:\n{}",
+           rcl::to_rcl( biome_clustering ) );
+#endif
+  GOOD_OR_RETURN( assign_biomes( rand, real_terrain,
+                                 setup.weather.temperature,
+                                 setup.weather.climate ) );
+  UNWRAP_RETURN_T(
+      auto const adjacency_results,
+      adjust_biome_clustering(
+          rand, real_terrain, setup.weather.temperature,
+          setup.weather.climate, biome_clustering ) );
+  lg.error( "biome adjacency results: {}", adjacency_results );
+  if( setup.surface_generator.arctic.enabled )
+    assign_arctic_biomes( rand, real_terrain );
 
   return valid;
 }

@@ -313,6 +313,18 @@ terrain_generation {
         marsh:     { for_self: 0.082, for_water: 0.00 }
         arctic:    { for_self: 0.000, for_water: null }
       }
+
+      # Not recommended to change these... these are the toler-
+      # ances that the map generator tries to achieve with biome
+      # clustering (i.e., how close it tries to hit the clus-
+      # tering strength target). If these numbers are too small
+      # then it may significantly increase map generation time.
+      # If they are too large then then sufficient clustering may
+      # not happen (not a big deal, just saying...).
+      tolerances {
+        general_adjacency_tolerance: .05
+        ocean_adjacency_tolerance:   .10
+      }
     }
   }
 

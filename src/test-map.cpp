@@ -1001,7 +1001,9 @@ struct RiverFrequencyStats : IMapStatsCollector {
         .temperature = temperature,
         .climate     = climate };
       string const name( mode_name( params ) );
-      BiomeDensityStatsCollector stats( name );
+      auto const stats =
+          create_biome_density_stats_collector( name );
+      CHECK( stats );
       fmt::println( "generate for {}...", name );
       ScopedTimer const timer(
           format( "generate {} maps", kNumSamples ) );
@@ -1009,12 +1011,12 @@ struct RiverFrequencyStats : IMapStatsCollector {
         fmt::print( "generating map {}...", i + 1 );
         SS ss;
         generate( ss, params );
-        stats.collect( ss.terrain.real_terrain().map );
+        stats->collect( ss.terrain.real_terrain().map );
         // fmt::print( "\r\033[2K" );
         fmt::print( "\n" );
       }
-      stats.summarize();
-      stats.write();
+      stats->summarize();
+      stats->write();
       fmt::print( "\n" );
     }
   }
@@ -1050,16 +1052,17 @@ struct RiverFrequencyStats : IMapStatsCollector {
       string const name( mode_name( params ) );
       BiomeClustering const clustering =
           biome_clustering_for_climate( climate );
-      BiomeAdjacencyStatsCollector stats( clustering );
+      auto const stats =
+          create_biome_adjacency_stats_collector( clustering );
       fmt::println( "generating for {}...", name );
       for( int i = 0; i < kNumSamples; ++i ) {
         SS ss;
         generate( ss, params );
-        stats.collect( ss.terrain.real_terrain().map );
+        stats->collect( ss.terrain.real_terrain().map );
         // fmt::println( "#{}", i + 1 );
       }
-      stats.summarize();
-      stats.write();
+      stats->summarize();
+      stats->write();
       fmt::print( "\n" );
     }
   }

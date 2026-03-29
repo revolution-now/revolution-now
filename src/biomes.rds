@@ -1,0 +1,17 @@
+# ===============================================================
+# biomes.rds
+#
+# Project: Revolution Now
+#
+# Created by David P. Sicilia on 2026-03-29.
+#
+# Description: Rds definitions for the biomes module.
+#
+# ===============================================================
+namespace "rn"
+
+struct.AdjacencyAdjustmentResult {
+  general_adjacency_iters 'int',
+  swamp_marsh_adjacency_iters 'int',
+  max_allowed_iters 'int',
+}

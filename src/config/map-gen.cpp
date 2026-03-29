@@ -85,6 +85,21 @@ valid_or<string> BiomeCurve::validate() const {
   return valid;
 }
 
+/****************************************************************
+** BiomeClusteringTolerances
+*****************************************************************/
+valid_or<string> BiomeClusteringTolerances::validate() const {
+  REFL_VALIDATE( general_adjacency_tolerance > 0 &&
+                     general_adjacency_tolerance <= 1.0,
+                 "general_adjacency_tolerance must be in the "
+                 "range (0,1]." );
+  REFL_VALIDATE(
+      ocean_adjacency_tolerance > 0 &&
+          ocean_adjacency_tolerance <= 1.0,
+      "ocean_adjacency_tolerance must be in the range (0,1]." );
+  return valid;
+}
+
 } // namespace config::map_gen
 
 /****************************************************************
@@ -95,9 +110,8 @@ valid_or<string> config_map_gen_t::validate() const {
                  "map width must be >= {}", kMapWidthMin );
   REFL_VALIDATE( default_map_size.h >= kMapHeightMin,
                  "map height must be >= {}", kMapHeightMin );
-  // The biome distribution algo assumes even map height.
-  REFL_VALIDATE( default_map_size.h % 2 == 0,
-                 "map height must be even" );
+  REFL_VALIDATE( default_map_size.area() > 0,
+                 "map area must be > 0" );
   return valid;
 }
 

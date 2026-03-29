@@ -111,9 +111,16 @@ struct.BiomeDensities {
   ]],
 }
 
+struct.BiomeClusteringTolerances {
+  general_adjacency_tolerance 'double',
+  ocean_adjacency_tolerance 'double',
+  _features { equality, validation }
+}
+
 struct.BiomeClimateClustering {
   climate_normal 'BiomeClustering',
   climate_gradient 'BiomeClustering',
+  tolerances 'BiomeClusteringTolerances',
 }
 
 struct.Biomes {

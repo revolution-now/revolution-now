@@ -441,8 +441,7 @@ valid_or<string> GeneratedMapSetup::validate() const {
                  "map width must be >= {}", kMapWidthMin );
   REFL_VALIDATE( size.h >= kMapHeightMin,
                  "map height must be >= {}", kMapHeightMin );
-  // The biome distribution algo assumes even map height.
-  REFL_VALIDATE( size.h % 2 == 0, "map height must be even" );
+  REFL_VALIDATE( size.area() > 0, "map area must be > 0" );
   return valid;
 }
 

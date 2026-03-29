@@ -73,5 +73,13 @@ TEST_CASE( "[biomes] assign_biomes" ) {
   world w;
 }
 
+TEST_CASE( "[biomes] adjust_biome_clustering" ) {
+  world w;
+}
+
+TEST_CASE( "[biomes] assign_arctic_biomes" ) {
+  world w;
+}
+
 } // namespace
 } // namespace rn

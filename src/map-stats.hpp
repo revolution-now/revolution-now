@@ -5,39 +5,32 @@
 *
 * Created by David P. Sicilia on 2026-03-22.
 *
-* Description: Interface for collecting stats about the map.
+* Description: Some map statistics collectors.
 *
 *****************************************************************/
 #pragma once
+
+// Revolution Now
+#include "imap-stats.hpp"
+
+// C++ standard library
+#include <memory>
 
 namespace rn {
 
 /****************************************************************
 ** Fwd. Decls.
 *****************************************************************/
-struct MapMatrix;
+struct BiomeClustering;
 
 /****************************************************************
-** IMapStatsCollector
+** Public API.
 *****************************************************************/
-// Map statistics are used for a number of reasons:
-//   1. Calibrating the (fixed) config parameters in the config
-//      files to reproduce OG behavior.
-//   2. Testing map generation.
-//   3. They are also used during in-game map generation as part
-//      of iterative algorithms to determine when various proper-
-//      ties of the map have reach target values.
-struct IMapStatsCollector {
-  virtual ~IMapStatsCollector() = default;
+std::unique_ptr<IMapStatsCollector>
+create_biome_density_stats_collector( std::string const& stem );
 
-  virtual void collect( MapMatrix const& m ) = 0;
-  virtual void summarize()                   = 0;
-  virtual void write() const                 = 0;
-
-  void collect_and_summarize( MapMatrix const& m ) {
-    collect( m );
-    summarize();
-  }
-};
+std::unique_ptr<IMapStatsCollector>
+create_biome_adjacency_stats_collector(
+    BiomeClustering const& clustering );
 
 } // namespace rn
