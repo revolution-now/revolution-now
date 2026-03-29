@@ -24,4 +24,7 @@ struct.AdjacencyAdjustmentResult {
   general_adjacency_results [[
     refl::enum_map<e_ground_terrain, double>
   ]],
+  general_adjacency_ratios [[
+    refl::enum_map<e_ground_terrain, double>
+  ]],
 }

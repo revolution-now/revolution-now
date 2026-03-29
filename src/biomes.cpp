@@ -611,41 +611,59 @@ expect<AdjacencyAdjustmentResult> adjust_biome_clustering(
     return false;
   }();
 
+  auto const should_assess = [&]( int const iter ) {
+    return iter < 100 ||                        //
+           ( iter < 1000 && iter % 10 == 0 ) || //
+           iter % 100 == 0;
+  };
+
   if( need_clustering ) {
     using enum e_swap_type;
+    auto const record_adjacency =
+        [&]( e_ground_terrain const gt ) {
+          double const g =
+              relative_adjacency( m, biome_dists, gt );
+          result.general_adjacency_results[gt] = log2( g );
+          result.general_adjacency_ratios[gt] =
+              pow( 2.0, result.general_adjacency_results[gt] ) /
+              pow( 2.0, clustering.affinities[gt].for_self );
+          return g;
+        };
     enum_map<e_ground_terrain, e_swap_type> swap_types;
     for( auto const gt : enum_values<e_ground_terrain> )
       swap_types[gt] = globbing;
     swap_types[arctic] = frozen;
     int iter           = 0;
     for( iter = 0; iter < max_iters; ++iter ) {
-      for( auto const gt : enum_values<e_ground_terrain> ) {
-        if( swap_types[gt] == frozen ) continue;
-        double const g =
-            relative_adjacency( m, biome_dists, gt );
-        // Do the log2 to make the convention compatible with
-        // what is in the config.
-        result.general_adjacency_results[gt] = log2( g );
-        if( g > pow( 2.0, clustering.affinities[gt].for_self ) *
-                    ( 1.0 + general_tolerance ) )
-          swap_types[gt] = antiglobbing;
-        else if( g <
-                 pow( 2.0, clustering.affinities[gt].for_self ) *
-                     ( 1.0 - general_tolerance ) )
-          swap_types[gt] = globbing;
-        else
-          swap_types[gt] = frozen;
+      if( should_assess( iter ) ) {
+        for( auto const gt : enum_values<e_ground_terrain> ) {
+          if( swap_types[gt] == frozen ) continue;
+          double const g = record_adjacency( gt );
+          if( g >
+              pow( 2.0, clustering.affinities[gt].for_self ) *
+                  ( 1.0 + general_tolerance ) )
+            swap_types[gt] = antiglobbing;
+          else if( g <
+                   pow( 2.0,
+                        clustering.affinities[gt].for_self ) *
+                       ( 1.0 - general_tolerance ) )
+            swap_types[gt] = globbing;
+          else
+            swap_types[gt] = frozen;
+        }
+        bool const keep_going =
+            rg::find_if( swap_types, []( auto const& p ) {
+              return p.second != frozen;
+            } ) != swap_types.end();
+        if( !keep_going ) break;
       }
-      bool const keep_going =
-          rg::find_if( swap_types, []( auto const& p ) {
-            return p.second != frozen;
-          } ) != swap_types.end();
-      if( !keep_going ) break;
       for( int y = 1; y < sz.h - 1; ++y ) // Exclude artic rows.
         (void)mix_row_by_adjacency( m, y, land_tiles[y], rand,
                                     swap_types );
     }
     result.general_adjacency_iters = iter;
+    for( auto const gt : enum_values<e_ground_terrain> )
+      record_adjacency( gt );
   }
 
   // Mix swamp and marsh.
@@ -661,11 +679,13 @@ expect<AdjacencyAdjustmentResult> adjust_biome_clustering(
     swap_types[marsh] = globbing;
     int iter          = 0;
     for( iter = 0; iter < max_iters; ++iter ) {
-      auto const adjacency_ratio =
-          find_ocean_adjacency( m, clustering );
-      if( adjacency_ratio[swamp] >= 1 - ocean_tolerance &&
-          adjacency_ratio[marsh] >= 1 - ocean_tolerance )
-        break;
+      if( should_assess( iter ) ) {
+        auto const adjacency_ratio =
+            find_ocean_adjacency( m, clustering );
+        if( adjacency_ratio[swamp] >= 1 - ocean_tolerance &&
+            adjacency_ratio[marsh] >= 1 - ocean_tolerance )
+          break;
+      }
       for( int y = 1; y < sz.h - 1; ++y )
         (void)mix_row_by_wet_adjacency( m, y, land_tiles[y],
                                         rand, swap_types );
@@ -728,6 +748,10 @@ void log_adjacency_results(
   for( auto const gt : enum_values<e_ground_terrain> )
     lg.debug( "  |   {:>10}: {:.3f}", gt,
               result.general_adjacency_results[gt] );
+  lg.debug( "  |-general_adjacency_ratios [0,1]:" );
+  for( auto const gt : enum_values<e_ground_terrain> )
+    lg.debug( "  |   {:>10}: {:.3f}", gt,
+              result.general_adjacency_ratios[gt] );
 }
 
 } // namespace rn
