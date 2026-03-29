@@ -15,7 +15,7 @@ local U = require( 'test.unit' )
 
 local files = {
   'map-gen.classic.resource-dist',
-  'map-gen.classic.terrain-weights',
+  -- Add more here.
 }
 
 local function bar()

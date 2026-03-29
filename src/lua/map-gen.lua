@@ -16,7 +16,6 @@ local M = {}
 -----------------------------------------------------------------
 local dist = require( 'map-gen.classic.resource-dist' )
 local partition = require( 'map-gen.classic.land-partition' )
-local weights = require( 'map-gen.classic.terrain-weights' )
 local timer = require( 'util.timer' )
 local freeze = require( 'util.freeze' )
 
@@ -1154,59 +1153,6 @@ function M.distribute_bonuses( seed )
 end
 
 -----------------------------------------------------------------
--- Ground Terrain Assignment
------------------------------------------------------------------
-function M.assign_dry_ground_types()
-  local size = world_size()
-  local dry_weights = {}
-  for y = 0, size.h - 1 do
-    dry_weights[y] = weights.dry_weights_for_row( size.h, y )
-  end
-  on_all( function( coord, square )
-    if is_water( square ) then return end
-    if coord.y == 0 or coord.y == size.h - 1 then
-      square.ground = 'arctic'
-      return
-    end
-    square.ground = weights.select_from_weights(
-                        dry_weights[coord.y] )
-  end )
-end
-
--- Is this tile or an adjacent tile a direct water source, e.g.
--- an ocean/lake or river.
-local function has_water_source( coord )
-  local squares =
-      filter_on_map( surrounding_squares_3x3( coord ) )
-  table.insert( squares, coord )
-  for _, adjacent in ipairs( squares ) do
-    if square_is_indirect_water_source( square_at( adjacent ) ) then
-      return true
-    end
-  end
-  return false
-end
-
-function M.assign_wet_ground_types()
-  local size = world_size()
-  local wet_weights = {}
-  for y = 0, size.h - 1 do
-    wet_weights[y] = weights.wet_weights_for_row( size.h, y )
-  end
-  on_all( function( coord, square )
-    if is_water( square ) then return end
-    if coord.y == 0 or coord.y == size.h - 1 then return end
-    if not has_water_source( coord ) then return end
-    -- This is a land tile not on the border and it is on or ad-
-    -- jacent to a river or ocean/lake.
-    local type = weights.select_from_weights(
-                     wet_weights[coord.y] )
-    if type == 'none' then return end
-    square.ground = type
-  end )
-end
-
------------------------------------------------------------------
 -- Sanitization
 -----------------------------------------------------------------
 -- Although there is nothing wrong with river islands from the
@@ -1619,9 +1565,6 @@ local function generate( options )
     -- Assign ground types.
     map_gen.create_arctic( config.map_gen.terrain_generation
                                .land_form.arctic.density )
-    M.assign_dry_ground_types()
-    -- We need to have already created the rivers before this.
-    M.assign_wet_ground_types()
 
     -- These need to be done before the rivers since rivers don't
     -- seem to flow on hills/mountains in the OG.
