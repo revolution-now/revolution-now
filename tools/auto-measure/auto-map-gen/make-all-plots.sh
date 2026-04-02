@@ -1,8 +1,7 @@
 #!/bin/bash
 set -e
 
-#lambda=rivers/empirical
-lambda=biomes/empirical
+lambda=overlays/empirical
 
 this="$(dirname "$0")"
 sav="$(realpath "$this/../../sav")"
@@ -82,6 +81,17 @@ collect() {
 # go ttmm &
 # go ttmt &
 # go new  &
+
+# rivers.
+go mmmm &
+go tmmm &
+go bmmm &
+go mtmm &
+go mbmm &
+go mmmt &
+go mmmb &
+go mmtm &
+go mmbm &
 
 wait
 

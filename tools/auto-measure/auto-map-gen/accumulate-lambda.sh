@@ -15,4 +15,6 @@ lambda="$2"
 
 files="$(find "$gamegen" -name "COLONY*.*" | head -n2000)"
 
+# for file in $files; do echo "$file"; done
+
 "$tools/sav/conversion/lambda-on-binaries.sh" "$config" "$lambda" $files

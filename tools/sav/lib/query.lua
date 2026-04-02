@@ -5,11 +5,17 @@ local M = {}
 -- value, which is probably good to do anyway.
 
 -----------------------------------------------------------------
+-- Imports.
+-----------------------------------------------------------------
+local freeze = require( 'moon.freeze' )
+
+-----------------------------------------------------------------
 -- Aliases.
 -----------------------------------------------------------------
 local insert = table.insert
 local format = string.format
 local abs = math.abs
+local harden = assert( freeze.harden )
 
 -----------------------------------------------------------------
 -- Metadata.
@@ -185,8 +191,6 @@ local OG_REGION_ID_TO_INT = {
   ['15']=15, --
 }
 
--- TODO: need to freeze these to avoid inadvertently mutating
--- them.
 local OG_TERRAIN_TYPES = {
   -- LuaFormatter off
   -- Bare (no forest).
@@ -223,6 +227,8 @@ OG_TERRAIN_TYPES['grW'] = assert( OG_TERRAIN_TYPES['grF'] )
 OG_TERRAIN_TYPES['saW'] = assert( OG_TERRAIN_TYPES['saF'] )
 OG_TERRAIN_TYPES['mrW'] = assert( OG_TERRAIN_TYPES['mrF'] )
 OG_TERRAIN_TYPES['swW'] = assert( OG_TERRAIN_TYPES['swF'] )
+
+OG_TERRAIN_TYPES = harden( OG_TERRAIN_TYPES )
 
 -----------------------------------------------------------------
 -- Utilities.
@@ -339,16 +345,18 @@ end
 function M.on_non_arctic_surrounding_tiles( coord, fn )
   local tiles = M.surrounding_coords( coord )
   for _, tile in ipairs( tiles ) do
-    if tile.y == 1 or tile.y == 70 then return end
+    if tile.y == 1 or tile.y == 70 then goto continue end
     fn( tile )
+    ::continue::
   end
 end
 
 function M.on_non_arctic_surrounding_tiles_cardinal( coord, fn )
   local tiles = M.surrounding_coords_cardinal( coord )
   for _, tile in ipairs( tiles ) do
-    if tile.y == 1 or tile.y == 70 then return end
+    if tile.y == 1 or tile.y == 70 then goto continue end
     fn( tile )
+    ::continue::
   end
 end
 
@@ -694,6 +702,12 @@ function M.terrain_at( json, coord )
   local square = M.lookup_grid( json.TILE, coord )
   local tile = assert( square.tile )
   return assert( OG_TERRAIN_TYPES[tile] )
+end
+
+function M.has_forest( json, coord )
+  local square = M.terrain_at( json, coord )
+  if assert( square.surface ) == 'water' then return false end
+  return square.forest
 end
 
 function M.hill_river( json, coord )
