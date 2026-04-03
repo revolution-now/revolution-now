@@ -130,7 +130,12 @@ local function assign_segment( J, start, segment )
 end
 
 local function find_connected( J )
-  for rastorized_tile, segment in pairs( D.__river_tiles ) do
+  local rastorized_tiles = {}
+  for rastorized_tile, _ in pairs( D.__river_tiles ) do
+    insert( rastorized_tiles, rastorized_tile )
+  end
+  for _, rastorized_tile in ipairs( rastorized_tiles ) do
+    local segment = assert( D.__river_tiles[rastorized_tile] )
     local tile = Q.unrastorize( rastorized_tile )
     -- printfln( 'exploring river tile: %s', tile )
     assert( Q.has_river( J, tile ) )
@@ -205,8 +210,8 @@ local function lambda( J )
     D.tiles = D.tiles + 1
     local square = terrain_at( J, tile )
 
-    local biome = square.ground -- water won't have this.
-    if biome then
+    if square.surface == 'land' then
+      local biome = square.ground -- water won't have this.
       D.biome_counts[biome] = D.biome_counts[biome] + 1
       D.biome_counts_per_row[tile.y][biome] =
           D.biome_counts_per_row[tile.y][biome] + 1
