@@ -82,19 +82,19 @@ collect() {
 # go ttmt &
 # go new  &
 
-# rivers.
-go mmmm &
-go tmmm &
-go bmmm &
-go mtmm &
-go mbmm &
-go bbmm &
-go bbmt &
-go bbmb &
-go bbtm &
-go bbbm &
-go bbtt &
-go bbbb &
+# overlays.
+# go mmmm &
+# go tmmm &
+# go bmmm &
+# go mtmm &
+# go mbmm &
+# go bbmm &
+# go bbmt &
+# go bbmb &
+# go bbtm &
+# go bbbm &
+# go bbtt &
+# go bbbb &
 
 wait
 
