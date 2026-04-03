@@ -88,10 +88,13 @@ go tmmm &
 go bmmm &
 go mtmm &
 go mbmm &
-go mmmt &
-go mmmb &
-go mmtm &
-go mmbm &
+go bbmm &
+go bbmt &
+go bbmb &
+go bbtm &
+go bbbm &
+go bbtt &
+go bbbb &
 
 wait
 

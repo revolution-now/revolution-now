@@ -60,14 +60,14 @@ local D = {
   count_by_row={
     mountains={}, --
     hills={}, --
-    forest={}, --
+    inverse_forest={}, --
   },
 
   -- key=col
   count_by_col={
     mountains={}, --
     hills={}, --
-    forest={}, --
+    inverse_forest={}, --
   },
 
   -- Note this includes singletons.
@@ -289,14 +289,14 @@ local function lambda( J )
         D.count_by_row.mountains[tile.y] or 0
     D.count_by_row.hills[tile.y] =
         D.count_by_row.hills[tile.y] or 0
-    D.count_by_row.forest[tile.y] =
-        D.count_by_row.forest[tile.y] or 0
+    D.count_by_row.inverse_forest[tile.y] =
+        D.count_by_row.inverse_forest[tile.y] or 0
     D.count_by_col.mountains[tile.x] =
         D.count_by_col.mountains[tile.x] or 0
     D.count_by_col.hills[tile.x] =
         D.count_by_col.hills[tile.x] or 0
-    D.count_by_col.forest[tile.x] =
-        D.count_by_col.forest[tile.x] or 0
+    D.count_by_col.inverse_forest[tile.x] =
+        D.count_by_col.inverse_forest[tile.x] or 0
     D.count_large_range_by_row.mountains[tile.y] =
         D.count_large_range_by_row.mountains[tile.y] or 0
     D.count_large_range_by_row.hills[tile.y] =
@@ -411,16 +411,16 @@ local function lambda( J )
       assert( is_land )
       D.count.forest = D.count.forest + 1
       _D.count.forest = _D.count.forest + 1
-      D.count_by_row.forest[tile.y] =
-          D.count_by_row.forest[tile.y] + 1
-      D.count_by_col.forest[tile.x] =
-          D.count_by_col.forest[tile.x] + 1
     end
     local has_overlays = Q.has_mountains( J, tile ) or
                              Q.has_hills( J, tile ) or
                              Q.has_forest( J, tile )
     local inverse_forest = is_land and not has_overlays
     if inverse_forest then
+      D.count_by_row.inverse_forest[tile.y] =
+          D.count_by_row.inverse_forest[tile.y] + 1
+      D.count_by_col.inverse_forest[tile.x] =
+          D.count_by_col.inverse_forest[tile.x] + 1
       if has_ocean_adjacent then
         D.count_ocean_adjacent.inverse_forest =
             D.count_ocean_adjacent.inverse_forest + 1
@@ -616,7 +616,7 @@ local function finished( mode )
       x_label='Y (row)',
       y_label='Density',
       x_range='1:70',
-      y_range='0:1',
+      y_range='0:.2',
     }
 
     local csv_data = {
@@ -628,7 +628,7 @@ local function finished( mode )
       local row = { y, 0, 0, 0 }
       row[2] = D.count_by_row.mountains[y] / D.land_by_row[y]
       row[3] = D.count_by_row.hills[y] / D.land_by_row[y]
-      row[4] = D.count_by_row.forest[y] / D.land_by_row[y]
+      row[4] = D.count_by_row.inverse_forest[y] / D.land_by_row[y]
       insert( csv_data.rows, row )
     end
 
@@ -644,7 +644,7 @@ local function finished( mode )
       x_label='X (column)',
       y_label='Density',
       x_range='1:56',
-      y_range='0:1',
+      y_range='0:.2',
     }
 
     local csv_data = {
@@ -656,7 +656,7 @@ local function finished( mode )
       local row = { x, 0, 0, 0 }
       row[2] = D.count_by_col.mountains[x] / D.land_by_col[x]
       row[3] = D.count_by_col.hills[x] / D.land_by_col[x]
-      row[4] = D.count_by_col.forest[x] / D.land_by_col[x]
+      row[4] = D.count_by_col.inverse_forest[x] / D.land_by_col[x]
       insert( csv_data.rows, row )
     end
 
@@ -736,8 +736,9 @@ end
 -- separate processes) to collect all of their results.
 local function collect()
   print( 'collecting...' )
-  if true then return end
-  error( 'not implemented' )
+
+  -- local o = {}
+
 end
 
 -----------------------------------------------------------------
