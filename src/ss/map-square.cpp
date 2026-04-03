@@ -51,6 +51,26 @@ valid_or<string> MapSquare::validate() const {
         !forest_resource.has_value(),
         "water tiles cannot have a prime forest resource." );
   }
+  if( surface == e_surface::land ) {
+    // The OG cannot represent this. We can represent it in Map-
+    // Square but not in e_terrain, and we don't have game me-
+    // chanics or rendering worked out for it, so prohibit it.
+    bool const has_mountains_and_river =
+        overlay == e_land_overlay::mountains &&
+        river.has_value();
+    REFL_VALIDATE( !has_mountains_and_river,
+                   "cannot have both mountains and a river on "
+                   "the same tile." );
+
+    // The OG does not have a way of representing this. The NG
+    // can represent it in MapSquare but not in other cases (e.g.
+    // e_terrain cannot represent it) so we must prohibit it.
+    bool const has_forest_on_arctic =
+        overlay == e_land_overlay::forest &&
+        ground == e_ground_terrain::arctic;
+    REFL_VALIDATE( !has_forest_on_arctic,
+                   "cannot have forest on an arctic tile." );
+  }
   return valid;
 }
 

@@ -1,0 +1,92 @@
+{
+  "savs": 2000,
+  "tiles": 7840000,
+  "land": 1321.297,
+  "land_arctic_row": 56.6505,
+  "land_ocean_adjacent": 794.524,
+  "land_ocean_adjacent_cardinal": 555.8675,
+  "land_non_mounds": 1138.4085,
+  "count": {
+    "mountains": 107.5625,
+    "hills": 75.326,
+    "forest": 1001.9885
+  },
+  "stddev": {
+    "mountains": 17.345549681402,
+    "hills": 10.347788362737,
+    "forest": 80.063445889807
+  },
+  "density": {
+    "mountains": 0.08140675412114,
+    "hills": 0.057009135720432,
+    "forest": 0.75833707334536
+  },
+  "forest_density_non_mounds": 0.88016603881647,
+  "count_arctic_rows": {
+    "mountains": 0.0,
+    "hills": 0.0,
+    "forest": 0.0
+  },
+  "num_ranges": {
+    "mountains": 68.8395,
+    "hills": 66.102,
+    "inverse_forest": 63.6975
+  },
+  "num_ranges_1": {
+    "mountains": 56.7335,
+    "hills": 58.675,
+    "inverse_forest": 41.489
+  },
+  "count_ocean_adjacent": {
+    "mountains": 47.3375,
+    "hills": 43.4705,
+    "inverse_forest": 18.3985
+  },
+  "count_ocean_adjacent_cardinal": {
+    "mountains": 30.987,
+    "hills": 29.83,
+    "inverse_forest": 12.6935
+  },
+  "density_ocean_adjacent": {
+    "mountains": 0.059579698033036,
+    "hills": 0.054712632972698,
+    "inverse_forest": 0.023156632147047
+  },
+  "density_ocean_adjacent_cardinal": {
+    "mountains": 0.055745299014603,
+    "hills": 0.053663867738265,
+    "inverse_forest": 0.022835477879171
+  },
+  "count_large_range": {
+    "mountains": 28.258,
+    "hills": 0.343,
+    "inverse_forest": 53.268
+  },
+  "count_large_range_ocean_adjacent": {
+    "mountains": 2.8025,
+    "hills": 0.1085,
+    "inverse_forest": 7.2675
+  },
+  "count_large_range_ocean_adjacent_cardinal": {
+    "mountains": 1.1505,
+    "hills": 0.056,
+    "inverse_forest": 4.508
+  },
+  "density_large_range": {
+    "mountains": 0.021386561840374,
+    "hills": 0.00025959341465242,
+    "inverse_forest": 0.040314932978732
+  },
+  "density_large_range_ocean_adjacent": {
+    "mountains": 0.0035272691573823,
+    "hills": 0.00013655975149901,
+    "inverse_forest": 0.0091469861199913
+  },
+  "density_large_range_ocean_adjacent_cardinal": {
+    "mountains": 0.0020697378422016,
+    "hills": 0.00010074343256262,
+    "inverse_forest": 0.0081098463212906
+  },
+  "count_mountains_adjacent_to_hills": 21.167,
+  "count_hills_adjacent_to_mountains": 19.087
+}

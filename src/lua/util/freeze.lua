@@ -94,12 +94,23 @@ function M.harden( tbl, options )
   -- that we won't be overriding.
   local mt = getmetatable( tbl )
   if mt == false then
-    io.write( debug.traceback() )
     error( 'metatable is hidden; cannot harden table' )
   end
   mt = mt or {}
   mt.__index = function( _, k )
     local v = frozen[k]
+    if type( k ) == 'number' and math.type( k ) == 'integer' then
+      -- We cannot harded non-existent indices because in Lua
+      -- 5.4+, the __ipairs metamethod has been removed and in-
+      -- stead it uses the __index method. So that means when we
+      -- iterate over a hardened list with ipairs it will keep
+      -- calling __index with successive integers until it en-
+      -- counters nil, thus we cannot throw on an invalid key be-
+      -- cause then we wouldn't be able to iterate. We could only
+      -- avoid throwing on the integer that is one past the end,
+      -- but then that is inconsistent.
+      return v
+    end
     if harden_reads and v == nil then
       error(
           'attempt to read non-existent key: ' .. tostring( k ),
@@ -108,7 +119,7 @@ function M.harden( tbl, options )
     return v
   end
   mt.__pairs = function( _ ) return pairs( frozen ) end
-  mt.__ipairs = function( _ ) return ipairs( frozen ) end
+  --[[ NOTE: __ipairs removed in 5.4, uses __index method. ]]
   mt.__newindex = function( _, _, _ )
     error( 'attempt to modify a read-only table.', 2 )
   end

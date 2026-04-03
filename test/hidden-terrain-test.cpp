@@ -195,7 +195,7 @@ TEST_CASE(
 
   // NOTE: the coordinate lists below were randomly generated and
   // so may contain repeats and/or may lead to invalid land-
-  // scapes, but it should matter much for the purpose of this
+  // scapes, but it shouldn't matter much for the purpose of this
   // test.
 
   // Roads.
@@ -224,7 +224,7 @@ TEST_CASE(
   // Mountains.
   tiles = {
     { .x = 1, .y = 2 }, { .x = 0, .y = 1 }, { .x = 3, .y = 1 },
-    { .x = 1, .y = 3 }, { .x = 1, .y = 1 }, { .x = 0, .y = 2 },
+    { .x = 3, .y = 3 }, { .x = 2, .y = 2 }, { .x = 0, .y = 3 },
   };
   for( Coord const tile : tiles )
     W.square( tile ).overlay = e_land_overlay::mountains;
