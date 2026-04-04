@@ -1021,10 +1021,10 @@ local function collect()
       'forest_density', --
       'forest_density_non_mounds', --
     },
-    mountain_density={},
-    hills_density={},
-    forest_density={},
-    forest_density_non_mounds={},
+    mountain_density={ __key_order=MODES },
+    hills_density={ __key_order=MODES },
+    forest_density={ __key_order=MODES },
+    forest_density_non_mounds={ __key_order=MODES },
   }
   for _, mode in ipairs( MODES ) do
     do
