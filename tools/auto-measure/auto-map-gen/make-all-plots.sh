@@ -91,19 +91,19 @@ collect() {
 # run rivers new
 
 # overlays.
-run overlays mmmm
-run overlays tmmm
-run overlays bmmm
-run overlays mtmm
-run overlays mbmm
-run overlays bbmm
-run overlays bbmt
-run overlays bbmb
-run overlays bbtm
-run overlays bbbm
-run overlays bbtt
-run overlays bbbb
-run overlays new
+# run overlays mmmm
+# run overlays tmmm
+# run overlays bmmm
+# run overlays mtmm
+# run overlays mbmm
+# run overlays bbmm
+# run overlays bbmt
+# run overlays bbmb
+# run overlays bbtm
+# run overlays bbbm
+# run overlays bbtt
+# run overlays bbbb
+# run overlays new
 
 wait
 

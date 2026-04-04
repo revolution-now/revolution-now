@@ -805,9 +805,13 @@ local function finished( mode )
     for _, kind in ipairs( OVERLAY_ORDER_INVERSE_FOREST ) do
       o.density_on_biome[kind] = { __key_order=BIOME_ORDERING }
       for _, biome in ipairs( BIOME_ORDERING ) do
-        o.density_on_biome[kind][biome] =
-            D.count_with_biome[kind][biome] /
-                D.land_with_biome[biome]
+        if D.land_with_biome[biome] > 0 then
+          o.density_on_biome[kind][biome] =
+              D.count_with_biome[kind][biome] /
+                  D.land_with_biome[biome]
+        else
+          o.density_on_biome[kind][biome] = 0
+        end
       end
     end
     json.write_file( path, o, 2 )
@@ -985,7 +989,73 @@ end
 -- separate processes) to collect all of their results.
 local function collect()
   print( 'collecting...' )
-  -- local o = {}
+  local MODES = {
+    'bbtt', 'bbmm', 'bbbb', 'bbtm', 'bbbm', 'bbmt', 'bbmb',
+    'tmmm', 'mmmm', 'bmmm', 'mtmm', 'mbmm', 'new',
+  }
+  local KEY_ORDER = {
+    'savs', --
+    'density', --
+    'forest_density_non_mounds', --
+    'density_hills_plus_land_rivers', --
+    'num_ranges_1_per_land', --
+    'num_ranges_per_land', --
+    'density_ocean_adjacent', --
+    'density_ocean_adjacent_cardinal', --
+    'density_large_range', --
+    'density_large_range_ocean_adjacent', --
+    'density_large_range_ocean_adjacent_cardinal', --
+    'density_on_biome', --
+  }
+  local o = {
+    __key_order={
+      'properties', --
+      'modes', --
+    },
+  }
+  o.modes = { __key_order=MODES }
+  o.properties = {
+    __key_order={
+      'mountain_density', --
+      'hills_density', --
+      'forest_density', --
+      'forest_density_non_mounds', --
+    },
+    mountain_density={},
+    hills_density={},
+    forest_density={},
+    forest_density_non_mounds={},
+  }
+  for _, mode in ipairs( MODES ) do
+    do
+      local path = format( '%s/%s.json', PLOTS_DIR, mode )
+      printfln( 'reading file %s...', path )
+      local F = json.read_file( path )
+      o.modes[mode] = { __key_order=KEY_ORDER }
+      local om = o.modes[mode]
+      for _, key in ipairs( KEY_ORDER ) do
+        om[key] = assert( F[key] )
+        if type( om[key] ) == 'table' and om[key].inverse_forest then
+          om[key].__key_order = OVERLAY_ORDER_INVERSE_FOREST
+        end
+        if type( om[key] ) == 'table' and om[key].forest then
+          om[key].__key_order = OVERLAY_ORDER_FOREST
+        end
+      end
+      om.density_on_biome.mountains.__key_order = BIOME_ORDERING
+      om.density_on_biome.hills.__key_order = BIOME_ORDERING
+      om.density_on_biome.inverse_forest.__key_order =
+          BIOME_ORDERING
+    end
+    local op = o.properties
+    op.mountain_density[mode] = o.modes[mode].density.mountains
+    op.hills_density[mode] = o.modes[mode].density.hills
+    op.forest_density[mode] = o.modes[mode].density.forest
+    op.forest_density_non_mounds[mode] = o.modes[mode]
+                                             .forest_density_non_mounds
+  end
+  local path = format( '%s/overlays.json', PLOTS_DIR )
+  json.write_file( path, o, 2 )
 end
 
 -----------------------------------------------------------------
