@@ -573,6 +573,7 @@ local DATA_KEY_ORDER = {
   'count_arctic_rows', --
   'num_ranges', --
   'num_ranges_1', --
+  'num_ranges_1_per_land', --
   'num_ranges_per_land', --
   'count_ocean_adjacent', --
   'count_ocean_adjacent_cardinal', --
@@ -656,6 +657,15 @@ local function finished( mode )
     o.num_ranges_1.hills = D.count_range_length.hills[1] / D.savs
     o.num_ranges_1.inverse_forest =
         D.count_range_length.inverse_forest[1] / D.savs
+    o.num_ranges_1_per_land = {
+      __key_order=OVERLAY_ORDER_INVERSE_FOREST,
+    }
+    o.num_ranges_1_per_land.mountains =
+        D.count_range_length.mountains[1] / D.land
+    o.num_ranges_1_per_land.hills =
+        D.count_range_length.hills[1] / D.land
+    o.num_ranges_1_per_land.inverse_forest =
+        D.count_range_length.inverse_forest[1] / D.land
     o.num_ranges_per_land = {
       __key_order=OVERLAY_ORDER_INVERSE_FOREST,
     }

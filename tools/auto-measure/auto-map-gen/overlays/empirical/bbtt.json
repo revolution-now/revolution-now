@@ -39,6 +39,11 @@
     "hills": 67.2715,
     "inverse_forest": 43.699
   },
+  "num_ranges_1_per_land": {
+    "mountains": 0.043639217421144,
+    "hills": 0.050959512823679,
+    "inverse_forest": 0.033102870470882
+  },
   "num_ranges_per_land": {
     "mountains": 0.053107461042636,
     "hills": 0.059729322920967,
