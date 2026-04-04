@@ -1,101 +1,115 @@
 #!/bin/bash
 set -e
 
-lambda=overlays/empirical
-
 this="$(dirname "$0")"
 sav="$(realpath "$this/../../sav")"
 
-# export LUA_PATH="$this/?.lua;$sav/?.lua;$LUA_PATH"
+limit="$1"
+[[ -n "$limit" ]] || {
+  echo 'must specify sav file count as first argument.' >&2
+  exit 1
+}
+
 export LUA_PATH="$sav/?.lua;$LUA_PATH"
 
-go() {
-  local config="$1"
-  ./accumulate-lambda.sh "$config" "$lambda.lua"
+declare -A ran_lambdas
+
+run() {
+  local lambda="$1"
+  local config="$2"
+  ran_lambdas["$lambda"]=1
+  ./accumulate-lambda.sh "$limit" "$config" "$lambda/empirical.lua" &
 }
 
 collect() {
+  local lambda="$1.empirical"
   lua -e "require( '$lambda' ).collect()"
 }
 
 # biomes.
-# go bbtt &
-# go bbtm &
-# go bbtb &
-# go bbmt &
-# go bbmm &
-# go bbmb &
-# go bbbt &
-# go bbbm &
-# go bbbb &
-# go tmmm &
-# go bmmm &
-# go mtmm &
-# go mbmm &
-# go new  &
+# run biomes bbtt
+# run biomes bbtm
+# run biomes bbtb
+# run biomes bbmt
+# run biomes bbmm
+# run biomes bbmb
+# run biomes bbbt
+# run biomes bbbm
+# run biomes bbbb
+# run biomes tmmm
+# run biomes bmmm
+# run biomes mtmm
+# run biomes mbmm
+# run biomes new
 
 # land density.
-# go mmmm &
-# go tmmm &
-# go bmmm &
-# go mtmm &
-# go mbmm &
-# go ttmm &
-# go bbmm &
-# go tbmm &
-# go btmm &
-# go new  &
+# run landmmmm -density
+# run landtmmm -density
+# run landbmmm -density
+# run landmtmm -density
+# run landmbmm -density
+# run landttmm -density
+# run landbbmm -density
+# run landtbmm -density
+# run landbtmm -density
+# run landnew  -density
 
 # lakes.
-# go ttmm &
-# go tmmm &
-# go tbmm &
-# go mtmm &
-# go mmmm &
-# go mbmm &
-# go btmm &
-# go bmmm &
-# go bbmm &
-# go new  &
+# run lakes ttmm
+# run lakes tmmm
+# run lakes tbmm
+# run lakes mtmm
+# run lakes mmmm
+# run lakes mbmm
+# run lakes btmm
+# run lakes bmmm
+# run lakes bbmm
+# run lakes new
 
 # rivers.
-# go bbbb &
-# go bbbm &
-# go bbmb &
-# go bbmm &
-# go bbmt &
-# go bbtm &
-# go bbtt &
-# go bmmm &
-# go mbmb &
-# go mbmm &
-# go mbmt &
-# go mmmb &
-# go mmmm &
-# go mmmt &
-# go mtmb &
-# go mtmm &
-# go mtmt &
-# go tmmm &
-# go ttmb &
-# go ttmm &
-# go ttmt &
-# go new  &
+# run rivers bbbb
+# run rivers bbbm
+# run rivers bbmb
+# run rivers bbmm
+# run rivers bbmt
+# run rivers bbtm
+# run rivers bbtt
+# run rivers bmmm
+# run rivers mbmb
+# run rivers mbmm
+# run rivers mbmt
+# run rivers mmmb
+# run rivers mmmm
+# run rivers mmmt
+# run rivers mtmb
+# run rivers mtmm
+# run rivers mtmt
+# run rivers tmmm
+# run rivers ttmb
+# run rivers ttmm
+# run rivers ttmt
+# run rivers new
 
 # overlays.
-# go mmmm &
-# go tmmm &
-# go bmmm &
-# go mtmm &
-# go mbmm &
-# go bbmm &
-# go bbmt &
-# go bbmb &
-# go bbtm &
-# go bbbm &
-# go bbtt &
-# go bbbb &
+run overlays mmmm
+run overlays tmmm
+run overlays bmmm
+run overlays mtmm
+run overlays mbmm
+run overlays bbmm
+run overlays bbmt
+run overlays bbmb
+run overlays bbtm
+run overlays bbbm
+run overlays bbtt
+run overlays bbbb
+run overlays new
 
 wait
 
-collect
+for lambda in "${!ran_lambdas[@]}"; do
+  echo "collecting: $lambda"
+  collect "$lambda"
+done
+# If we need to force a collect.
+# collect overlays

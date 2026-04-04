@@ -25,6 +25,18 @@ local function printfln( ... ) print( string.format( ... ) ) end
 
 local PLOTS_DIR = 'overlays/empirical'
 
+local BIOME_ORDERING = {
+  'savannah', --
+  'grassland', --
+  'tundra', --
+  'plains', --
+  'prairie', --
+  'desert', --
+  'swamp', --
+  'marsh', --
+  'arctic', --
+}
+
 -----------------------------------------------------------------
 -- Data.
 -----------------------------------------------------------------
@@ -43,6 +55,9 @@ local D = {
   -- key=col
   land_by_col={},
 
+  -- key=biome
+  land_with_biome={},
+
   count={
     mountains=0, --
     hills=0, --
@@ -53,10 +68,19 @@ local D = {
     forest_squared=0, --
   },
 
+  count_rivers_on_land=0, --
+
   count_arctic_rows={
     mountains=0, --
     hills=0, --
     forest=0, --
+  },
+
+  -- key=biome
+  count_with_biome={
+    mountains={}, --
+    hills={}, --
+    inverse_forest={}, --
   },
 
   -- key=row
@@ -356,6 +380,13 @@ local function lambda( J )
         D.count_range_length.inverse_forest[i] or 0
   end
 
+  for _, biome in ipairs( BIOME_ORDERING ) do
+    D.land_with_biome[biome] = 0
+    D.count_with_biome.mountains[biome] = 0
+    D.count_with_biome.hills[biome] = 0
+    D.count_with_biome.inverse_forest[biome] = 0
+  end
+
   -- Gather data.
   Q.on_all_tiles( function( tile )
     D.tiles = D.tiles + 1
@@ -396,6 +427,8 @@ local function lambda( J )
         D.land_ocean_adjacent_cardinal =
             D.land_ocean_adjacent_cardinal + 1
       end
+      D.land_with_biome[square.ground] =
+          D.land_with_biome[square.ground] + 1
     end
     local has_hills_adjacent = false
     local has_mountains_adjacent = false
@@ -410,6 +443,9 @@ local function lambda( J )
         has_hills_adjacent = true
       end
     end )
+    if is_land and Q.has_river( J, tile ) then
+      D.count_rivers_on_land = D.count_rivers_on_land + 1
+    end
     if Q.has_mountains( J, tile ) then
       assert( is_land )
       D.count.mountains = D.count.mountains + 1
@@ -431,6 +467,8 @@ local function lambda( J )
             D.count_mountains_adjacent_to_hills + 1
       end
       _D.tile_to_segment.mountains[Q.rastorize( tile )] = 0
+      D.count_with_biome.mountains[square.ground] =
+          D.count_with_biome.mountains[square.ground] + 1
     end
     if Q.has_hills( J, tile ) then
       assert( is_land )
@@ -453,6 +491,8 @@ local function lambda( J )
             D.count_hills_adjacent_to_mountains + 1
       end
       _D.tile_to_segment.hills[Q.rastorize( tile )] = 0
+      D.count_with_biome.hills[square.ground] =
+          D.count_with_biome.hills[square.ground] + 1
     end
     if Q.has_forest( J, tile ) then
       assert( is_land )
@@ -479,6 +519,8 @@ local function lambda( J )
             D.count_ocean_adjacent_cardinal.inverse_forest + 1
       end
       _D.tile_to_segment.inverse_forest[Q.rastorize( tile )] = 0
+      D.count_with_biome.inverse_forest[square.ground] =
+          D.count_with_biome.inverse_forest[square.ground] + 1
     end
     if is_land and not Q.has_mountains( J, tile ) and
         not Q.has_hills( J, tile ) then
@@ -526,9 +568,12 @@ local DATA_KEY_ORDER = {
   'stddev', --
   'density', --
   'forest_density_non_mounds', --
+  'count_hills_plus_land_rivers', --
+  'density_hills_plus_land_rivers', --
   'count_arctic_rows', --
   'num_ranges', --
   'num_ranges_1', --
+  'num_ranges_per_land', --
   'count_ocean_adjacent', --
   'count_ocean_adjacent_cardinal', --
   'density_ocean_adjacent', --
@@ -541,6 +586,9 @@ local DATA_KEY_ORDER = {
   'density_large_range_ocean_adjacent_cardinal', --
   'count_mountains_adjacent_to_hills', --
   'count_hills_adjacent_to_mountains', --
+  'land_with_biome', --
+  'count_with_biome', --
+  'density_on_biome', --
 }
 
 local OVERLAY_ORDER_INVERSE_FOREST = {
@@ -586,6 +634,10 @@ local function finished( mode )
     o.density.forest = D.count.forest / D.land
     o.forest_density_non_mounds =
         D.count.forest / D.land_non_mounds
+    o.count_hills_plus_land_rivers =
+        D.count_rivers_on_land + D.count.hills
+    o.density_hills_plus_land_rivers =
+        (D.count_rivers_on_land + D.count.hills) / D.land
     o.count_arctic_rows = { __key_order=OVERLAY_ORDER_FOREST }
     o.count_arctic_rows.mountains =
         D.count_arctic_rows.mountains / D.savs
@@ -604,7 +656,15 @@ local function finished( mode )
     o.num_ranges_1.hills = D.count_range_length.hills[1] / D.savs
     o.num_ranges_1.inverse_forest =
         D.count_range_length.inverse_forest[1] / D.savs
-
+    o.num_ranges_per_land = {
+      __key_order=OVERLAY_ORDER_INVERSE_FOREST,
+    }
+    o.num_ranges_per_land.mountains =
+        D.num_ranges.mountains / D.land
+    o.num_ranges_per_land.hills = D.num_ranges.hills / D.land
+    o.num_ranges_per_land.inverse_forest = D.num_ranges
+                                               .inverse_forest /
+                                               D.land
     o.count_ocean_adjacent = {
       __key_order=OVERLAY_ORDER_INVERSE_FOREST,
     }
@@ -714,6 +774,32 @@ local function finished( mode )
         D.count_mountains_adjacent_to_hills / D.savs
     o.count_hills_adjacent_to_mountains =
         D.count_hills_adjacent_to_mountains / D.savs
+    o.land_with_biome = { __key_order=BIOME_ORDERING }
+    for _, biome in ipairs( BIOME_ORDERING ) do
+      o.land_with_biome[biome] =
+          assert( D.land_with_biome[biome] )
+    end
+    o.count_with_biome = {
+      __key_order=OVERLAY_ORDER_INVERSE_FOREST,
+    }
+    for _, kind in ipairs( OVERLAY_ORDER_INVERSE_FOREST ) do
+      o.count_with_biome[kind] = { __key_order=BIOME_ORDERING }
+      for _, biome in ipairs( BIOME_ORDERING ) do
+        o.count_with_biome[kind][biome] = assert(
+                                              D.count_with_biome[kind][biome] )
+      end
+    end
+    o.density_on_biome = {
+      __key_order=OVERLAY_ORDER_INVERSE_FOREST,
+    }
+    for _, kind in ipairs( OVERLAY_ORDER_INVERSE_FOREST ) do
+      o.density_on_biome[kind] = { __key_order=BIOME_ORDERING }
+      for _, biome in ipairs( BIOME_ORDERING ) do
+        o.density_on_biome[kind][biome] =
+            D.count_with_biome[kind][biome] /
+                D.land_with_biome[biome]
+      end
+    end
     json.write_file( path, o, 2 )
   end
 
@@ -724,8 +810,8 @@ local function finished( mode )
           D.savs ),
       x_label='Length (cardinal adjacent)',
       y_label='Frequency',
-      x_range='0:30',
-      y_range='-12:7',
+      x_range='1:30',
+      y_range='-20:0',
     }
 
     local csv_data = {
@@ -734,7 +820,9 @@ local function finished( mode )
     }
 
     local max_length = 0
+    local total_ranges = 0
     for _, kind in ipairs( OVERLAY_ORDER_INVERSE_FOREST ) do
+      total_ranges = total_ranges + D.num_ranges[kind]
       for length, count in pairs( D.count_range_length[kind] ) do
         if count > 0 then
           max_length = max( max_length, length )
@@ -743,9 +831,10 @@ local function finished( mode )
     end
     for i = 1, max_length do
       local row = { i, 0, 0, 0 }
-      row[2] = D.count_range_length.mountains[i] / D.savs
-      row[3] = D.count_range_length.hills[i] / D.savs
-      row[4] = D.count_range_length.inverse_forest[i] / D.savs
+      row[2] = D.count_range_length.mountains[i] / total_ranges
+      row[3] = D.count_range_length.hills[i] / total_ranges
+      row[4] = D.count_range_length.inverse_forest[i] /
+                   total_ranges
       row[2] = log( row[2], 2 )
       row[3] = log( row[3], 2 )
       row[4] = log( row[4], 2 )
@@ -822,22 +911,22 @@ local function finished( mode )
       x_label='Y (row)',
       y_label='Density',
       x_range='1:70',
-      y_range='0:.02',
+      y_range='0:.005',
     }
 
     local csv_data = {
-      header={ 'y', 'mountains', 'hills', 'inverse-forest' },
+      header={ 'y', 'mountains/10', 'hills', 'inverse-forest/10' },
       rows={},
     }
 
     for y = 2, 69 do
       local row = { y, 0, 0, 0 }
       row[2] = D.count_large_range_by_row.mountains[y] /
-                   D.land_by_row[y]
+                   D.land_by_row[y] / 10
       row[3] = D.count_large_range_by_row.hills[y] /
                    D.land_by_row[y]
       row[4] = D.count_large_range_by_row.inverse_forest[y] /
-                   D.land_by_row[y]
+                   D.land_by_row[y] / 10
       insert( csv_data.rows, row )
     end
 
@@ -854,22 +943,22 @@ local function finished( mode )
       x_label='X (column)',
       y_label='Density',
       x_range='1:56',
-      y_range='0:.02',
+      y_range='0:.005',
     }
 
     local csv_data = {
-      header={ 'x', 'mountains', 'hills', 'inverse-forest' },
+      header={ 'x', 'mountains/10', 'hills', 'inverse-forest/10' },
       rows={},
     }
 
     for x = 1, 56 do
       local row = { x, 0, 0, 0 }
       row[2] = D.count_large_range_by_col.mountains[x] /
-                   D.land_by_col[x]
+                   D.land_by_col[x] / 10
       row[3] = D.count_large_range_by_col.hills[x] /
                    D.land_by_col[x]
       row[4] = D.count_large_range_by_col.inverse_forest[x] /
-                   D.land_by_col[x]
+                   D.land_by_col[x] / 10
       insert( csv_data.rows, row )
     end
 
@@ -886,9 +975,7 @@ end
 -- separate processes) to collect all of their results.
 local function collect()
   print( 'collecting...' )
-
   -- local o = {}
-
 end
 
 -----------------------------------------------------------------

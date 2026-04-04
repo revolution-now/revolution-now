@@ -3,17 +3,20 @@ set -e
 
 tools=~/dev/revolution-now/tools
 
-config="$1"
+limit="$1"
+[[ -n "$limit" ]]
+
+config="$2"
 gamegen=$tools/auto-measure/auto-map-gen/gamegen/config/$config
 [[ -n "$gamegen" ]]
 [[ -d "$gamegen" ]]
 echo config=$config
 
-lambda="$2"
+lambda="$3"
 [[ -n "$lambda" ]]
 [[ -f "$lambda" ]]
 
-files="$(find "$gamegen" -name "COLONY*.*" | head -n2000)"
+files="$(find "$gamegen" -name "COLONY*.*" | head "-n$limit")"
 
 # for file in $files; do echo "$file"; done
 
