@@ -2,7 +2,7 @@
 set datafile separator comma
 
 $CSVData << EOF
-"y","mountains/10","hills","inverse-forest/10"
+"y","mountains/10","hills","clearing/10"
 "2","0.0","0.0","0.072497208783029"
 "3","7.7619663648124e-05","0.0","0.030827943078913"
 "4","0.00024623543896202","9.4705938062317e-05","0.0024907661710389"

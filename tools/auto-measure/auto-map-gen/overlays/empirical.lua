@@ -80,53 +80,53 @@ local D = {
   count_with_biome={
     mountains={}, --
     hills={}, --
-    inverse_forest={}, --
+    clearing={}, --
   },
 
   -- key=row
   count_by_row={
     mountains={}, --
     hills={}, --
-    inverse_forest={}, --
+    clearing={}, --
   },
 
   -- key=col
   count_by_col={
     mountains={}, --
     hills={}, --
-    inverse_forest={}, --
+    clearing={}, --
   },
 
   -- Note this includes singletons.
   num_ranges={
     mountains=0, --
     hills=0, --
-    inverse_forest=0, --
+    clearing=0, --
   },
 
   -- key=length
   count_range_length={
     mountains={}, --
     hills={}, --
-    inverse_forest={}, --
+    clearing={}, --
   },
 
   count_ocean_adjacent={
     mountains=0, --
     hills=0, --
-    inverse_forest=0, --
+    clearing=0, --
   },
 
   count_ocean_adjacent_cardinal={
     mountains=0, --
     hills=0, --
-    inverse_forest=0, --
+    clearing=0, --
   },
 
   count_large_range={
     mountains=0, --
     hills=0, --
-    inverse_forest=0, --
+    clearing=0, --
   },
 
   -- Count of tiles that are part of a large range that are adja-
@@ -134,7 +134,7 @@ local D = {
   count_large_range_by_row={
     mountains={}, --
     hills={}, --
-    inverse_forest={}, --
+    clearing={}, --
   },
 
   -- Count of tiles that are part of a large range that are adja-
@@ -142,7 +142,7 @@ local D = {
   count_large_range_by_col={
     mountains={}, --
     hills={}, --
-    inverse_forest={}, --
+    clearing={}, --
   },
 
   -- Count of tiles that are part of a large range that are adja-
@@ -150,13 +150,13 @@ local D = {
   count_large_range_ocean_adjacent={
     mountains=0, --
     hills=0, --
-    inverse_forest=0, --
+    clearing=0, --
   },
 
   count_large_range_ocean_adjacent_cardinal={
     mountains=0, --
     hills=0, --
-    inverse_forest=0, --
+    clearing=0, --
   },
 
   count_mountains_adjacent_to_hills=0,
@@ -176,27 +176,27 @@ local _D_TEMPLATE = {
   segments={
     mountains=0, --
     hills=0, --
-    inverse_forest=0, --
+    clearing=0, --
   },
 
   -- key=rastorized_tile, value=segment
   tile_to_segment={
     mountains={}, --
     hills={}, --
-    inverse_forest={}, --
+    clearing={}, --
   },
 
   segment_to_length={
     mountains={}, --
     hills={}, --
-    inverse_forest={}, --
+    clearing={}, --
   },
 
   -- Note this includes singletons.
   num_ranges={
     mountains=0, --
     hills=0, --
-    inverse_forest=0, --
+    clearing=0, --
   },
 }
 
@@ -347,28 +347,26 @@ local function lambda( J )
         D.count_by_row.mountains[tile.y] or 0
     D.count_by_row.hills[tile.y] =
         D.count_by_row.hills[tile.y] or 0
-    D.count_by_row.inverse_forest[tile.y] = D.count_by_row
-                                                .inverse_forest[tile.y] or
-                                                0
+    D.count_by_row.clearing[tile.y] =
+        D.count_by_row.clearing[tile.y] or 0
     D.count_by_col.mountains[tile.x] =
         D.count_by_col.mountains[tile.x] or 0
     D.count_by_col.hills[tile.x] =
         D.count_by_col.hills[tile.x] or 0
-    D.count_by_col.inverse_forest[tile.x] = D.count_by_col
-                                                .inverse_forest[tile.x] or
-                                                0
+    D.count_by_col.clearing[tile.x] =
+        D.count_by_col.clearing[tile.x] or 0
     D.count_large_range_by_row.mountains[tile.y] =
         D.count_large_range_by_row.mountains[tile.y] or 0
     D.count_large_range_by_row.hills[tile.y] =
         D.count_large_range_by_row.hills[tile.y] or 0
-    D.count_large_range_by_row.inverse_forest[tile.y] =
-        D.count_large_range_by_row.inverse_forest[tile.y] or 0
+    D.count_large_range_by_row.clearing[tile.y] =
+        D.count_large_range_by_row.clearing[tile.y] or 0
     D.count_large_range_by_col.mountains[tile.x] =
         D.count_large_range_by_col.mountains[tile.x] or 0
     D.count_large_range_by_col.hills[tile.x] =
         D.count_large_range_by_col.hills[tile.x] or 0
-    D.count_large_range_by_col.inverse_forest[tile.x] =
-        D.count_large_range_by_col.inverse_forest[tile.x] or 0
+    D.count_large_range_by_col.clearing[tile.x] =
+        D.count_large_range_by_col.clearing[tile.x] or 0
   end )
 
   for i = 1, 200 do
@@ -376,15 +374,18 @@ local function lambda( J )
         D.count_range_length.mountains[i] or 0
     D.count_range_length.hills[i] =
         D.count_range_length.hills[i] or 0
-    D.count_range_length.inverse_forest[i] =
-        D.count_range_length.inverse_forest[i] or 0
+    D.count_range_length.clearing[i] =
+        D.count_range_length.clearing[i] or 0
   end
 
   for _, biome in ipairs( BIOME_ORDERING ) do
-    D.land_with_biome[biome] = 0
-    D.count_with_biome.mountains[biome] = 0
-    D.count_with_biome.hills[biome] = 0
-    D.count_with_biome.inverse_forest[biome] = 0
+    D.land_with_biome[biome] = D.land_with_biome[biome] or 0
+    D.count_with_biome.mountains[biome] =
+        D.count_with_biome.mountains[biome] or 0
+    D.count_with_biome.hills[biome] =
+        D.count_with_biome.hills[biome] or 0
+    D.count_with_biome.clearing[biome] =
+        D.count_with_biome.clearing[biome] or 0
   end
 
   -- Gather data.
@@ -502,25 +503,23 @@ local function lambda( J )
     local has_overlays = Q.has_mountains( J, tile ) or
                              Q.has_hills( J, tile ) or
                              Q.has_forest( J, tile )
-    local inverse_forest = is_land and not has_overlays
-    if inverse_forest then
-      D.count_by_row.inverse_forest[tile.y] = D.count_by_row
-                                                  .inverse_forest[tile.y] +
-                                                  1
-      D.count_by_col.inverse_forest[tile.x] = D.count_by_col
-                                                  .inverse_forest[tile.x] +
-                                                  1
+    local clearing = is_land and not has_overlays
+    if clearing then
+      D.count_by_row.clearing[tile.y] =
+          D.count_by_row.clearing[tile.y] + 1
+      D.count_by_col.clearing[tile.x] =
+          D.count_by_col.clearing[tile.x] + 1
       if has_ocean_adjacent then
-        D.count_ocean_adjacent.inverse_forest =
-            D.count_ocean_adjacent.inverse_forest + 1
+        D.count_ocean_adjacent.clearing =
+            D.count_ocean_adjacent.clearing + 1
       end
       if has_ocean_adjacent_cardinal then
-        D.count_ocean_adjacent_cardinal.inverse_forest =
-            D.count_ocean_adjacent_cardinal.inverse_forest + 1
+        D.count_ocean_adjacent_cardinal.clearing =
+            D.count_ocean_adjacent_cardinal.clearing + 1
       end
-      _D.tile_to_segment.inverse_forest[Q.rastorize( tile )] = 0
-      D.count_with_biome.inverse_forest[square.ground] =
-          D.count_with_biome.inverse_forest[square.ground] + 1
+      _D.tile_to_segment.clearing[Q.rastorize( tile )] = 0
+      D.count_with_biome.clearing[square.ground] =
+          D.count_with_biome.clearing[square.ground] + 1
     end
     if is_land and not Q.has_mountains( J, tile ) and
         not Q.has_hills( J, tile ) then
@@ -532,7 +531,7 @@ local function lambda( J )
     return Q.has_mountains( J, tile )
   end
   local function is_hills( tile ) return Q.has_hills( J, tile ) end
-  local function is_inverse_forest( tile )
+  local function is_clearing( tile )
     local is_land = Q.is_land( J, tile )
     local has_overlays = Q.has_mountains( J, tile ) or
                              Q.has_hills( J, tile ) or
@@ -542,7 +541,7 @@ local function lambda( J )
 
   find_connected( J, 'mountains', is_mountains )
   find_connected( J, 'hills', is_hills )
-  find_connected( J, 'inverse_forest', is_inverse_forest )
+  find_connected( J, 'clearing', is_clearing )
 
   D.count.mountains_squared = D.count.mountains_squared +
                                   _D.count.mountains ^ 2
@@ -592,10 +591,10 @@ local DATA_KEY_ORDER = {
   'density_on_biome', --
 }
 
-local OVERLAY_ORDER_INVERSE_FOREST = {
+local OVERLAY_ORDER_CLEARING = {
   'mountains', --
   'hills', --
-  'inverse_forest', --
+  'clearing', --
 }
 
 local OVERLAY_ORDER_FOREST = {
@@ -646,66 +645,61 @@ local function finished( mode )
                                     D.savs
     o.count_arctic_rows.forest =
         D.count_arctic_rows.forest / D.savs
-    o.num_ranges = { __key_order=OVERLAY_ORDER_INVERSE_FOREST }
+    o.num_ranges = { __key_order=OVERLAY_ORDER_CLEARING }
     o.num_ranges.mountains = D.num_ranges.mountains / D.savs
     o.num_ranges.hills = D.num_ranges.hills / D.savs
-    o.num_ranges.inverse_forest =
-        D.num_ranges.inverse_forest / D.savs
-    o.num_ranges_1 = { __key_order=OVERLAY_ORDER_INVERSE_FOREST }
+    o.num_ranges.clearing = D.num_ranges.clearing / D.savs
+    o.num_ranges_1 = { __key_order=OVERLAY_ORDER_CLEARING }
     o.num_ranges_1.mountains =
         D.count_range_length.mountains[1] / D.savs
     o.num_ranges_1.hills = D.count_range_length.hills[1] / D.savs
-    o.num_ranges_1.inverse_forest =
-        D.count_range_length.inverse_forest[1] / D.savs
+    o.num_ranges_1.clearing = D.count_range_length.clearing[1] /
+                                  D.savs
     o.num_ranges_1_per_land = {
-      __key_order=OVERLAY_ORDER_INVERSE_FOREST,
+      __key_order=OVERLAY_ORDER_CLEARING,
     }
     o.num_ranges_1_per_land.mountains =
         D.count_range_length.mountains[1] / D.land
     o.num_ranges_1_per_land.hills =
         D.count_range_length.hills[1] / D.land
-    o.num_ranges_1_per_land.inverse_forest =
-        D.count_range_length.inverse_forest[1] / D.land
-    o.num_ranges_per_land = {
-      __key_order=OVERLAY_ORDER_INVERSE_FOREST,
-    }
+    o.num_ranges_1_per_land.clearing =
+        D.count_range_length.clearing[1] / D.land
+    o.num_ranges_per_land =
+        { __key_order=OVERLAY_ORDER_CLEARING }
     o.num_ranges_per_land.mountains =
         D.num_ranges.mountains / D.land
     o.num_ranges_per_land.hills = D.num_ranges.hills / D.land
-    o.num_ranges_per_land.inverse_forest = D.num_ranges
-                                               .inverse_forest /
-                                               D.land
-    o.count_ocean_adjacent = {
-      __key_order=OVERLAY_ORDER_INVERSE_FOREST,
-    }
+    o.num_ranges_per_land.clearing =
+        D.num_ranges.clearing / D.land
+    o.count_ocean_adjacent =
+        { __key_order=OVERLAY_ORDER_CLEARING }
     o.count_ocean_adjacent.mountains =
         D.count_ocean_adjacent.mountains / D.savs
     o.count_ocean_adjacent.hills =
         D.count_ocean_adjacent.hills / D.savs
-    o.count_ocean_adjacent.inverse_forest =
-        D.count_ocean_adjacent.inverse_forest / D.savs
+    o.count_ocean_adjacent.clearing =
+        D.count_ocean_adjacent.clearing / D.savs
 
     o.count_ocean_adjacent_cardinal = {
-      __key_order=OVERLAY_ORDER_INVERSE_FOREST,
+      __key_order=OVERLAY_ORDER_CLEARING,
     }
     o.count_ocean_adjacent_cardinal.mountains =
         D.count_ocean_adjacent_cardinal.mountains / D.savs
     o.count_ocean_adjacent_cardinal.hills =
         D.count_ocean_adjacent_cardinal.hills / D.savs
-    o.count_ocean_adjacent_cardinal.inverse_forest =
-        D.count_ocean_adjacent_cardinal.inverse_forest / D.savs
+    o.count_ocean_adjacent_cardinal.clearing =
+        D.count_ocean_adjacent_cardinal.clearing / D.savs
     o.density_ocean_adjacent = {
-      __key_order=OVERLAY_ORDER_INVERSE_FOREST,
+      __key_order=OVERLAY_ORDER_CLEARING,
     }
     o.density_ocean_adjacent.mountains =
         D.count_ocean_adjacent.mountains / D.land_ocean_adjacent
     o.density_ocean_adjacent.hills =
         D.count_ocean_adjacent.hills / D.land_ocean_adjacent
-    o.density_ocean_adjacent.inverse_forest =
-        D.count_ocean_adjacent.inverse_forest /
-            D.land_ocean_adjacent
+    o.density_ocean_adjacent.clearing =
+        D.count_ocean_adjacent.clearing / D.land_ocean_adjacent
     o.density_ocean_adjacent_cardinal = {
-      __key_order=OVERLAY_ORDER_INVERSE_FOREST,
+      __key_order=OVERLAY_ORDER_CLEARING,
     }
     o.density_ocean_adjacent_cardinal.mountains =
         D.count_ocean_adjacent_cardinal.mountains /
@@ -713,30 +707,27 @@ local function finished( mode )
     o.density_ocean_adjacent_cardinal.hills =
         D.count_ocean_adjacent_cardinal.hills /
             D.land_ocean_adjacent_cardinal
-    o.density_ocean_adjacent_cardinal.inverse_forest =
-        D.count_ocean_adjacent_cardinal.inverse_forest /
+    o.density_ocean_adjacent_cardinal.clearing =
+        D.count_ocean_adjacent_cardinal.clearing /
             D.land_ocean_adjacent_cardinal
-    o.count_large_range = {
-      __key_order=OVERLAY_ORDER_INVERSE_FOREST,
-    }
+    o.count_large_range = { __key_order=OVERLAY_ORDER_CLEARING }
     o.count_large_range.mountains =
         D.count_large_range.mountains / D.savs
     o.count_large_range.hills = D.count_large_range.hills /
                                     D.savs
-    o.count_large_range.inverse_forest =
-        D.count_large_range.inverse_forest / D.savs
+    o.count_large_range.clearing =
+        D.count_large_range.clearing / D.savs
     o.count_large_range_ocean_adjacent = {
-      __key_order=OVERLAY_ORDER_INVERSE_FOREST,
+      __key_order=OVERLAY_ORDER_CLEARING,
     }
     o.count_large_range_ocean_adjacent.mountains =
         D.count_large_range_ocean_adjacent.mountains / D.savs
     o.count_large_range_ocean_adjacent.hills =
         D.count_large_range_ocean_adjacent.hills / D.savs
-    o.count_large_range_ocean_adjacent.inverse_forest =
-        D.count_large_range_ocean_adjacent.inverse_forest /
-            D.savs
+    o.count_large_range_ocean_adjacent.clearing =
+        D.count_large_range_ocean_adjacent.clearing / D.savs
     o.count_large_range_ocean_adjacent_cardinal = {
-      __key_order=OVERLAY_ORDER_INVERSE_FOREST,
+      __key_order=OVERLAY_ORDER_CLEARING,
     }
     o.count_large_range_ocean_adjacent_cardinal.mountains =
         D.count_large_range_ocean_adjacent_cardinal.mountains /
@@ -744,20 +735,19 @@ local function finished( mode )
     o.count_large_range_ocean_adjacent_cardinal.hills =
         D.count_large_range_ocean_adjacent_cardinal.hills /
             D.savs
-    o.count_large_range_ocean_adjacent_cardinal.inverse_forest =
-        D.count_large_range_ocean_adjacent_cardinal
-            .inverse_forest / D.savs
-    o.density_large_range = {
-      __key_order=OVERLAY_ORDER_INVERSE_FOREST,
-    }
+    o.count_large_range_ocean_adjacent_cardinal.clearing =
+        D.count_large_range_ocean_adjacent_cardinal.clearing /
+            D.savs
+    o.density_large_range =
+        { __key_order=OVERLAY_ORDER_CLEARING }
     o.density_large_range.mountains =
         D.count_large_range.mountains / D.land
     o.density_large_range.hills =
         D.count_large_range.hills / D.land
-    o.density_large_range.inverse_forest =
-        D.count_large_range.inverse_forest / D.land
+    o.density_large_range.clearing =
+        D.count_large_range.clearing / D.land
     o.density_large_range_ocean_adjacent = {
-      __key_order=OVERLAY_ORDER_INVERSE_FOREST,
+      __key_order=OVERLAY_ORDER_CLEARING,
     }
     o.density_large_range_ocean_adjacent.mountains =
         D.count_large_range_ocean_adjacent.mountains /
@@ -765,11 +755,11 @@ local function finished( mode )
     o.density_large_range_ocean_adjacent.hills =
         D.count_large_range_ocean_adjacent.hills /
             D.land_ocean_adjacent
-    o.density_large_range_ocean_adjacent.inverse_forest =
-        D.count_large_range_ocean_adjacent.inverse_forest /
+    o.density_large_range_ocean_adjacent.clearing =
+        D.count_large_range_ocean_adjacent.clearing /
             D.land_ocean_adjacent
     o.density_large_range_ocean_adjacent_cardinal = {
-      __key_order=OVERLAY_ORDER_INVERSE_FOREST,
+      __key_order=OVERLAY_ORDER_CLEARING,
     }
     o.density_large_range_ocean_adjacent_cardinal.mountains =
         D.count_large_range_ocean_adjacent_cardinal.mountains /
@@ -777,9 +767,9 @@ local function finished( mode )
     o.density_large_range_ocean_adjacent_cardinal.hills =
         D.count_large_range_ocean_adjacent_cardinal.hills /
             D.land_ocean_adjacent_cardinal
-    o.density_large_range_ocean_adjacent_cardinal.inverse_forest =
-        D.count_large_range_ocean_adjacent_cardinal
-            .inverse_forest / D.land_ocean_adjacent_cardinal
+    o.density_large_range_ocean_adjacent_cardinal.clearing =
+        D.count_large_range_ocean_adjacent_cardinal.clearing /
+            D.land_ocean_adjacent_cardinal
     o.count_mountains_adjacent_to_hills =
         D.count_mountains_adjacent_to_hills / D.savs
     o.count_hills_adjacent_to_mountains =
@@ -789,20 +779,16 @@ local function finished( mode )
       o.land_with_biome[biome] =
           assert( D.land_with_biome[biome] )
     end
-    o.count_with_biome = {
-      __key_order=OVERLAY_ORDER_INVERSE_FOREST,
-    }
-    for _, kind in ipairs( OVERLAY_ORDER_INVERSE_FOREST ) do
+    o.count_with_biome = { __key_order=OVERLAY_ORDER_CLEARING }
+    for _, kind in ipairs( OVERLAY_ORDER_CLEARING ) do
       o.count_with_biome[kind] = { __key_order=BIOME_ORDERING }
       for _, biome in ipairs( BIOME_ORDERING ) do
         o.count_with_biome[kind][biome] = assert(
                                               D.count_with_biome[kind][biome] )
       end
     end
-    o.density_on_biome = {
-      __key_order=OVERLAY_ORDER_INVERSE_FOREST,
-    }
-    for _, kind in ipairs( OVERLAY_ORDER_INVERSE_FOREST ) do
+    o.density_on_biome = { __key_order=OVERLAY_ORDER_CLEARING }
+    for _, kind in ipairs( OVERLAY_ORDER_CLEARING ) do
       o.density_on_biome[kind] = { __key_order=BIOME_ORDERING }
       for _, biome in ipairs( BIOME_ORDERING ) do
         if D.land_with_biome[biome] > 0 then
@@ -829,13 +815,13 @@ local function finished( mode )
     }
 
     local csv_data = {
-      header={ 'length', 'mountains', 'hills', 'inverse-forest' },
+      header={ 'length', 'mountains', 'hills', 'clearing' },
       rows={},
     }
 
     local max_length = 0
     local total_ranges = 0
-    for _, kind in ipairs( OVERLAY_ORDER_INVERSE_FOREST ) do
+    for _, kind in ipairs( OVERLAY_ORDER_CLEARING ) do
       total_ranges = total_ranges + D.num_ranges[kind]
       for length, count in pairs( D.count_range_length[kind] ) do
         if count > 0 then
@@ -843,15 +829,27 @@ local function finished( mode )
         end
       end
     end
+    local length_1_val = {
+      mountains=1, --
+      hills=1, --
+      clearing=1, --
+    }
     for i = 1, max_length do
       local row = { i, 0, 0, 0 }
-      row[2] = D.count_range_length.mountains[i] / total_ranges
-      row[3] = D.count_range_length.hills[i] / total_ranges
-      row[4] = D.count_range_length.inverse_forest[i] /
-                   total_ranges
-      row[2] = log( row[2], 2 )
-      row[3] = log( row[3], 2 )
-      row[4] = log( row[4], 2 )
+      row[2] = log( D.count_range_length.mountains[i] /
+                        total_ranges )
+      row[3] =
+          log( D.count_range_length.hills[i] / total_ranges )
+      row[4] = log( D.count_range_length.clearing[i] /
+                        total_ranges )
+      if i == 1 then
+        length_1_val.mountains = row[2]
+        length_1_val.hills = row[3]
+        length_1_val.clearing = row[4]
+      end
+      row[2] = row[2] - length_1_val.mountains
+      row[3] = row[3] - length_1_val.hills
+      row[4] = row[4] - length_1_val.clearing
       table.insert( csv_data.rows, row )
     end
 
@@ -871,7 +869,7 @@ local function finished( mode )
     }
 
     local csv_data = {
-      header={ 'y', 'mountains', 'hills', 'inverse-forest' },
+      header={ 'y', 'mountains', 'hills', 'clearing' },
       rows={},
     }
 
@@ -879,8 +877,7 @@ local function finished( mode )
       local row = { y, 0, 0, 0 }
       row[2] = D.count_by_row.mountains[y] / D.land_by_row[y]
       row[3] = D.count_by_row.hills[y] / D.land_by_row[y]
-      row[4] = D.count_by_row.inverse_forest[y] /
-                   D.land_by_row[y]
+      row[4] = D.count_by_row.clearing[y] / D.land_by_row[y]
       insert( csv_data.rows, row )
     end
 
@@ -900,7 +897,7 @@ local function finished( mode )
     }
 
     local csv_data = {
-      header={ 'x', 'mountains', 'hills', 'inverse-forest' },
+      header={ 'x', 'mountains', 'hills', 'clearing' },
       rows={},
     }
 
@@ -908,8 +905,7 @@ local function finished( mode )
       local row = { x, 0, 0, 0 }
       row[2] = D.count_by_col.mountains[x] / D.land_by_col[x]
       row[3] = D.count_by_col.hills[x] / D.land_by_col[x]
-      row[4] = D.count_by_col.inverse_forest[x] /
-                   D.land_by_col[x]
+      row[4] = D.count_by_col.clearing[x] / D.land_by_col[x]
       insert( csv_data.rows, row )
     end
 
@@ -929,7 +925,7 @@ local function finished( mode )
     }
 
     local csv_data = {
-      header={ 'y', 'mountains/10', 'hills', 'inverse-forest/10' },
+      header={ 'y', 'mountains/10', 'hills', 'clearing/10' },
       rows={},
     }
 
@@ -939,7 +935,7 @@ local function finished( mode )
                    D.land_by_row[y] / 10
       row[3] = D.count_large_range_by_row.hills[y] /
                    D.land_by_row[y]
-      row[4] = D.count_large_range_by_row.inverse_forest[y] /
+      row[4] = D.count_large_range_by_row.clearing[y] /
                    D.land_by_row[y] / 10
       insert( csv_data.rows, row )
     end
@@ -961,7 +957,7 @@ local function finished( mode )
     }
 
     local csv_data = {
-      header={ 'x', 'mountains/10', 'hills', 'inverse-forest/10' },
+      header={ 'x', 'mountains/10', 'hills', 'clearing/10' },
       rows={},
     }
 
@@ -971,7 +967,7 @@ local function finished( mode )
                    D.land_by_col[x] / 10
       row[3] = D.count_large_range_by_col.hills[x] /
                    D.land_by_col[x]
-      row[4] = D.count_large_range_by_col.inverse_forest[x] /
+      row[4] = D.count_large_range_by_col.clearing[x] /
                    D.land_by_col[x] / 10
       insert( csv_data.rows, row )
     end
@@ -1035,8 +1031,8 @@ local function collect()
       local om = o.modes[mode]
       for _, key in ipairs( KEY_ORDER ) do
         om[key] = assert( F[key] )
-        if type( om[key] ) == 'table' and om[key].inverse_forest then
-          om[key].__key_order = OVERLAY_ORDER_INVERSE_FOREST
+        if type( om[key] ) == 'table' and om[key].clearing then
+          om[key].__key_order = OVERLAY_ORDER_CLEARING
         end
         if type( om[key] ) == 'table' and om[key].forest then
           om[key].__key_order = OVERLAY_ORDER_FOREST
@@ -1044,8 +1040,7 @@ local function collect()
       end
       om.density_on_biome.mountains.__key_order = BIOME_ORDERING
       om.density_on_biome.hills.__key_order = BIOME_ORDERING
-      om.density_on_biome.inverse_forest.__key_order =
-          BIOME_ORDERING
+      om.density_on_biome.clearing.__key_order = BIOME_ORDERING
     end
     local op = o.properties
     op.mountain_density[mode] = o.modes[mode].density.mountains
