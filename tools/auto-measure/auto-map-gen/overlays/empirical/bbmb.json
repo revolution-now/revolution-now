@@ -49,6 +49,16 @@
     "hills": 0.051789706629076,
     "clearing": 0.048968919809927
   },
+  "count_range_centers": {
+    "mountains": 69.8625,
+    "hills": 68.336,
+    "clearing": 64.614
+  },
+  "density_range_centers": {
+    "mountains": 0.052946593001842,
+    "hills": 0.051789706629076,
+    "clearing": 0.048968919809927
+  },
   "count_ocean_adjacent": {
     "mountains": 48.2435,
     "hills": 44.8995,

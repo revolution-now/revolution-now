@@ -16,6 +16,7 @@ local insert = table.insert
 local format = string.format
 local max = math.max
 local log = math.log
+local floor = math.floor
 local deep_copy = assert( tbl.deep_copy )
 
 -----------------------------------------------------------------
@@ -111,6 +112,26 @@ local D = {
     clearing={}, --
   },
 
+  count_range_centers={
+    mountains=0, --
+    hills=0, --
+    clearing=0, --
+  },
+
+  -- key=row
+  count_range_centers_by_row={
+    mountains={}, --
+    hills={}, --
+    clearing={}, --
+  },
+
+  -- key=col
+  count_range_centers_by_col={
+    mountains={}, --
+    hills={}, --
+    clearing={}, --
+  },
+
   count_ocean_adjacent={
     mountains=0, --
     hills=0, --
@@ -186,7 +207,15 @@ local _D_TEMPLATE = {
     clearing={}, --
   },
 
+  -- key=segment, value=int
   segment_to_length={
+    mountains={}, --
+    hills={}, --
+    clearing={}, --
+  },
+
+  -- key=segment, value=list
+  segment_to_tiles={
     mountains={}, --
     hills={}, --
     clearing={}, --
@@ -243,6 +272,9 @@ local function assign_segment( J, kind, has_kind, start, segment )
   local rastorized_start = Q.rastorize( start )
   assert( _D.tile_to_segment[kind][rastorized_start] == 0 )
   _D.tile_to_segment[kind][rastorized_start] = segment
+  _D.segment_to_tiles[kind][segment] =
+      _D.segment_to_tiles[kind][segment] or {}
+  insert( _D.segment_to_tiles[kind][segment], start )
   assert( not Q.is_water( J, start ) )
   Q.on_non_arctic_surrounding_tiles_cardinal( start,
                                               function( coord )
@@ -262,6 +294,22 @@ local function assign_segment( J, kind, has_kind, start, segment )
       assign_segment( J, kind, has_kind, coord, segment )
     end
   end )
+end
+
+local function find_center( segment, kind )
+  assert( segment )
+  assert( kind )
+  local tiles = assert( _D.segment_to_tiles[kind][segment] )
+  assert( #tiles > 0 )
+  local x = 0
+  local y = 0
+  for _, tile in ipairs( tiles ) do
+    x = x + tile.x
+    y = y + tile.y
+  end
+  x = floor( x / #tiles )
+  y = floor( y / #tiles )
+  return { x=x, y=y }
 end
 
 local function find_connected( J, kind, has_kind )
@@ -302,6 +350,12 @@ local function find_connected( J, kind, has_kind )
     D.count_range_length[kind][length] =
         D.count_range_length[kind][length] + 1
     _D.segment_to_length[kind][segment] = length
+    D.count_range_centers[kind] = D.count_range_centers[kind] + 1
+    local center = assert( find_center( segment, kind ) )
+    D.count_range_centers_by_row[kind][center.y] =
+        D.count_range_centers_by_row[kind][center.y] + 1
+    D.count_range_centers_by_col[kind][center.x] =
+        D.count_range_centers_by_col[kind][center.x] + 1
   end
   D.num_ranges[kind] = D.num_ranges[kind] +
                            assert( _D.segments[kind] )
@@ -367,6 +421,18 @@ local function lambda( J )
         D.count_large_range_by_col.hills[tile.x] or 0
     D.count_large_range_by_col.clearing[tile.x] =
         D.count_large_range_by_col.clearing[tile.x] or 0
+    D.count_range_centers_by_row.mountains[tile.y] =
+        D.count_range_centers_by_row.mountains[tile.y] or 0
+    D.count_range_centers_by_row.hills[tile.y] =
+        D.count_range_centers_by_row.hills[tile.y] or 0
+    D.count_range_centers_by_row.clearing[tile.y] =
+        D.count_range_centers_by_row.clearing[tile.y] or 0
+    D.count_range_centers_by_col.mountains[tile.x] =
+        D.count_range_centers_by_col.mountains[tile.x] or 0
+    D.count_range_centers_by_col.hills[tile.x] =
+        D.count_range_centers_by_col.hills[tile.x] or 0
+    D.count_range_centers_by_col.clearing[tile.x] =
+        D.count_range_centers_by_col.clearing[tile.x] or 0
   end )
 
   for i = 1, 200 do
@@ -574,6 +640,8 @@ local DATA_KEY_ORDER = {
   'num_ranges_1', --
   'num_ranges_1_per_land', --
   'num_ranges_per_land', --
+  'count_range_centers', --
+  'density_range_centers', --
   'count_ocean_adjacent', --
   'count_ocean_adjacent_cardinal', --
   'density_ocean_adjacent', --
@@ -671,6 +739,23 @@ local function finished( mode )
     o.num_ranges_per_land.hills = D.num_ranges.hills / D.land
     o.num_ranges_per_land.clearing =
         D.num_ranges.clearing / D.land
+    o.count_range_centers =
+        { __key_order=OVERLAY_ORDER_CLEARING }
+    o.count_range_centers.mountains =
+        D.count_range_centers.mountains / D.savs
+    o.count_range_centers.hills =
+        D.count_range_centers.hills / D.savs
+    o.count_range_centers.clearing =
+        D.count_range_centers.clearing / D.savs
+    o.density_range_centers = {
+      __key_order=OVERLAY_ORDER_CLEARING,
+    }
+    o.density_range_centers.mountains =
+        D.count_range_centers.mountains / D.land
+    o.density_range_centers.hills =
+        D.count_range_centers.hills / D.land
+    o.density_range_centers.clearing =
+        D.count_range_centers.clearing / D.land
     o.count_ocean_adjacent =
         { __key_order=OVERLAY_ORDER_CLEARING }
     o.count_ocean_adjacent.mountains =
@@ -881,7 +966,8 @@ local function finished( mode )
       insert( csv_data.rows, row )
     end
 
-    local path = format( '%s/%s.rows.gnuplot', PLOTS_DIR, mode )
+    local path = format( '%s/%s.rows.any.gnuplot', PLOTS_DIR,
+                         mode )
     plot.line_graph_to_file( path, csv_data, opts )
   end
 
@@ -909,7 +995,72 @@ local function finished( mode )
       insert( csv_data.rows, row )
     end
 
-    local path = format( '%s/%s.cols.gnuplot', PLOTS_DIR, mode )
+    local path = format( '%s/%s.cols.any.gnuplot', PLOTS_DIR,
+                         mode )
+    plot.line_graph_to_file( path, csv_data, opts )
+  end
+
+  do
+    local opts = {
+      title=format(
+          'Row Based Range Center Densities (empirical) (%s) [%d]',
+          mode, D.savs ),
+      x_label='Y (row)',
+      y_label='Density',
+      x_range='1:70',
+      y_range='0:.1',
+    }
+
+    local csv_data = {
+      header={ 'y', 'mountains', 'hills', 'clearing' },
+      rows={},
+    }
+
+    for y = 2, 69 do
+      local row = { y, 0, 0, 0 }
+      row[2] = D.count_range_centers_by_row.mountains[y] /
+                   D.land_by_row[y]
+      row[3] = D.count_range_centers_by_row.hills[y] /
+                   D.land_by_row[y]
+      row[4] = D.count_range_centers_by_row.clearing[y] /
+                   D.land_by_row[y]
+      insert( csv_data.rows, row )
+    end
+
+    local path = format( '%s/%s.rows.centers.gnuplot', PLOTS_DIR,
+                         mode )
+    plot.line_graph_to_file( path, csv_data, opts )
+  end
+
+  do
+    local opts = {
+      title=format(
+          'Column Based Range Center Densities (empirical) (%s) [%d]',
+          mode, D.savs ),
+      x_label='X (column)',
+      y_label='Density',
+      x_range='1:56',
+      y_range='0:.1',
+    }
+
+    local csv_data = {
+      header={ 'x', 'mountains', 'hills', 'clearing' },
+      rows={},
+    }
+
+    for x = 1, 56 do
+      local row = { x, 0, 0, 0 }
+      row[2] = D.count_range_centers_by_col.mountains[x] /
+                   D.land_by_col[x]
+      row[3] = D.count_range_centers_by_col.hills[x] /
+                   D.land_by_col[x]
+      row[4] = D.count_range_centers_by_col.clearing[x] /
+                   D.land_by_col[x]
+      insert( csv_data.rows, row )
+    end
+
+    local path = format( '%s/%s.cols.centers.gnuplot', PLOTS_DIR,
+                         mode )
     plot.line_graph_to_file( path, csv_data, opts )
   end
 
