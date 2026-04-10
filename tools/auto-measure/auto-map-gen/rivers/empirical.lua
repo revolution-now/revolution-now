@@ -384,6 +384,7 @@ local DATA_KEY_ORDER = {
   'any_islands', --
   'with_hills', --
   'biome_density', --
+  'biome_density_normalized', --
 }
 
 local function finished( mode )
@@ -459,10 +460,13 @@ local function finished( mode )
   end
 
   o.biome_density = {}
+  o.biome_density_normalized = {}
   for _, biome in ipairs( BIOME_ORDERING ) do
     o.biome_density[biome] = 0
+    o.biome_density_normalized[biome] = 0
   end
   o.biome_density.__key_order = BIOME_ORDERING
+  o.biome_density_normalized.__key_order = BIOME_ORDERING
   local expected_biome_rivers = {}
   for _, biome in ipairs( BIOME_ORDERING ) do
     expected_biome_rivers[biome] = 0
@@ -482,11 +486,17 @@ local function finished( mode )
     ::continue::
   end
   for _, biome in ipairs( BIOME_ORDERING ) do
-    if expected_biome_rivers[biome] > 0 then
+    if D.biome_counts[biome] > 0 then
       o.biome_density[biome] = D.biome_rivers[biome] /
-                                   expected_biome_rivers[biome]
+                                   D.biome_counts[biome]
     else
       o.biome_density[biome] = 0
+    end
+    if expected_biome_rivers[biome] > 0 then
+      o.biome_density_normalized[biome] =
+          D.biome_rivers[biome] / expected_biome_rivers[biome]
+    else
+      o.biome_density_normalized[biome] = 0
     end
   end
 
@@ -496,6 +506,65 @@ local function finished( mode )
     local f<close> = assert( io.open( file, 'w' ) )
     local emit = function( bit ) f:write( bit ) end
     json.write( o, 2, emit )
+  end
+
+  do
+    local opts = {
+      title=format(
+          'River on Biome by Row (empirical) (%s) [%d]', mode,
+          D.savs ),
+      x_label='Y', --
+      y_label='Count per Row', --
+      x_range='1:70', --
+      y_range='0:3', --
+    }
+    local csv_data = { header={ 'y' }, rows={} }
+    for _, biome in ipairs( BIOME_ORDERING ) do
+      insert( csv_data.header, biome )
+    end
+    for y = 1, 70 do
+      local row = { y }
+      for _, biome in ipairs( BIOME_ORDERING ) do
+        local val = D.biome_rivers_per_row[y][biome] / D.savs
+        insert( row, val )
+      end
+      insert( csv_data.rows, row )
+    end
+    local path = format( '%s/%s.biome.counts.rows.gnuplot',
+                         PLOTS_DIR, mode )
+    plot.line_graph_to_file( path, csv_data, opts )
+  end
+
+  do
+    local opts = {
+      title=format(
+          'River Density on Biome by Row (empirical) (%s) [%d]',
+          mode, D.savs ),
+      x_label='Y', --
+      y_label='Density', --
+      x_range='1:70', --
+      y_range='0:.3', --
+    }
+    local csv_data = { header={ 'y' }, rows={} }
+    for _, biome in ipairs( BIOME_ORDERING ) do
+      insert( csv_data.header, biome )
+    end
+    for y = 1, 70 do
+      local row = { y }
+      for _, biome in ipairs( BIOME_ORDERING ) do
+        if D.biome_counts_per_row[y][biome] > 0 then
+          local val = D.biome_rivers_per_row[y][biome] /
+                          D.biome_counts_per_row[y][biome]
+          insert( row, val )
+        else
+          insert( row, 0 )
+        end
+      end
+      insert( csv_data.rows, row )
+    end
+    local path = format( '%s/%s.biome.density.rows.gnuplot',
+                         PLOTS_DIR, mode )
+    plot.line_graph_to_file( path, csv_data, opts )
   end
 
   do
@@ -585,6 +654,8 @@ local function collect()
   o.avg.__key_order = DATA_KEY_ORDER
   o.avg.biome_density = {}
   o.avg.biome_density.__key_order = BIOME_ORDERING
+  o.avg.biome_density_normalized = {}
+  o.avg.biome_density_normalized.__key_order = BIOME_ORDERING
   for _, mode in ipairs( MODES ) do
     local file = format( '%s/%s.data.json', PLOTS_DIR, mode )
     printfln( 'reading file %s...', file )
@@ -594,6 +665,8 @@ local function collect()
     o.modes[mode] = results
     o.modes[mode].__key_order = DATA_KEY_ORDER
     o.modes[mode].biome_density.__key_order = BIOME_ORDERING
+    o.modes[mode].biome_density_normalized.__key_order =
+        BIOME_ORDERING
     for k, v in pairs( results ) do
       if type( v ) ~= 'table' then
         o.avg[k] = o.avg[k] or 0
@@ -609,16 +682,34 @@ local function collect()
       o.avg.biome_density[biome] = o.avg.biome_density[biome] + v
       ::continue::
     end
+    for biome, v in pairs( results.biome_density_normalized ) do
+      if biome == '__key_order' then goto continue end
+      assert( type( biome ) == 'string' )
+      assert( type( v ) == 'number' )
+      o.avg.biome_density_normalized[biome] = o.avg
+                                                  .biome_density_normalized[biome] or
+                                                  0
+      o.avg.biome_density_normalized[biome] = o.avg
+                                                  .biome_density_normalized[biome] +
+                                                  v
+      ::continue::
+    end
   end
   for k, v in pairs( o.avg ) do
     if k == '__key_order' then goto continue end
     if k == 'biome_density' then goto continue end
+    if k == 'biome_density_normalized' then goto continue end
     o.avg[k] = v / #MODES
     ::continue::
   end
   for k, v in pairs( o.avg.biome_density ) do
     if k == '__key_order' then goto continue end
     o.avg.biome_density[k] = v / #MODES
+    ::continue::
+  end
+  for k, v in pairs( o.avg.biome_density_normalized ) do
+    if k == '__key_order' then goto continue end
+    o.avg.biome_density_normalized[k] = v / #MODES
     ::continue::
   end
   local collected_json_file =

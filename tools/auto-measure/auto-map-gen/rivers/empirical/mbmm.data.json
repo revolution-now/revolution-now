@@ -36,6 +36,17 @@
   "any_islands": 0.283,
   "with_hills": 0.0,
   "biome_density": {
+    "savannah": 0.15724305457681,
+    "grassland": 0.1150756357619,
+    "tundra": 0.14487776196416,
+    "plains": 0.11955255104687,
+    "prairie": 0.1085898862867,
+    "desert": 0.15023981404181,
+    "swamp": 0.093189903582082,
+    "marsh": 0.083107258001101,
+    "arctic": 0.0
+  },
+  "biome_density_normalized": {
     "savannah": 1.1676998585623,
     "grassland": 0.91171423634887,
     "tundra": 1.3403540111269,
