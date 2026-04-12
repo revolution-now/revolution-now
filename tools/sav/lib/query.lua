@@ -21,12 +21,13 @@ local harden = assert( freeze.harden )
 -- Metadata.
 -----------------------------------------------------------------
 local OG_HILLS_RIVER = {
-  ['  ']={},
-  ['^ ']={ HILLS=true },
-  ['~ ']={ MINOR_RIVER=true },
-  ['~^']={ HILLS=true, MINOR_RIVER=true },
-  ['^^']={ MOUNTAINS=true },
-  ['~~']={ MAJOR_RIVER=true },
+  ['    ']={},
+  ['^   ']={ HILLS=true },
+  ['~   ']={ MINOR_RIVER=true },
+  ['~^  ']={ HILLS=true, MINOR_RIVER=true },
+  ['^^  ']={ MOUNTAINS=true },
+  ['~~  ']={ MAJOR_RIVER=true },
+  ['~~^^']={ MOUNTANIS=true, MAJOR_RIVER=true },
 }
 
 local NATION_NAMES = {
