@@ -21,6 +21,9 @@
 #include "src/ss/player.rds.hpp"
 #include "src/ss/root.hpp"
 
+// gfx
+#include "src/gfx/iter.hpp"
+
 // refl
 #include "src/refl/to-str.hpp"
 
@@ -38,6 +41,8 @@ using namespace std;
 
 using ::base::nothing;
 using ::base::valid;
+using ::gfx::point;
+using ::gfx::rect_iterator;
 
 /****************************************************************
 ** Helpers.
@@ -137,6 +142,7 @@ void og_bidirectional_scenario_1( sav::ColonySAV& out ) {
   out.tile[8 + 4].hill_river  = HR::tc;
   out.tile[8 + 5].hill_river  = HR::cc;
   out.tile[8 + 6].hill_river  = HR::tt;
+  out.tile[8 + 9].hill_river  = HR::ttcc;
   out.tile[8 + 21].hill_river = HR::empty;
   out.tile[8 + 26].hill_river = HR::cc;
 
@@ -265,12 +271,15 @@ void rn_bidirectional_scenario_1( rn::RootState& out ) {
                    .ground  = rn::e_ground_terrain::arctic,
                    .overlay = rn::e_land_overlay::mountains };
 
-  squares[1].overlay  = rn::e_land_overlay::hills;
-  squares[2].river    = rn::e_river::minor;
-  squares[3].overlay  = rn::e_land_overlay::hills;
-  squares[3].river    = rn::e_river::minor;
-  squares[4].overlay  = rn::e_land_overlay::mountains;
-  squares[5].river    = rn::e_river::major;
+  squares[1].overlay = rn::e_land_overlay::hills;
+  squares[2].river   = rn::e_river::minor;
+  squares[3].overlay = rn::e_land_overlay::hills;
+  squares[3].river   = rn::e_river::minor;
+  squares[4].overlay = rn::e_land_overlay::mountains;
+  squares[5].river   = rn::e_river::major;
+  squares[6].overlay = rn::e_land_overlay::mountains;
+  squares[6].river   = rn::e_river::major;
+
   squares[16].overlay = nothing;
   squares[19].overlay = rn::e_land_overlay::mountains;
 
@@ -386,6 +395,14 @@ TEST_CASE( "[sav/bridge] OG to NG [scenario 1]" ) {
   REQUIRE( to.land_view == exp.land_view );
   REQUIRE( to.map == exp.map );
   REQUIRE( to.trade_routes == exp.trade_routes );
+  for( point const p : rect_iterator(
+           to.zzz_terrain.refl().real_terrain.map.rect() ) ) {
+    INFO( format( "{}: {} != {}", p,
+                  to.zzz_terrain.refl().real_terrain.map[p],
+                  exp.zzz_terrain.refl().real_terrain.map[p] ) );
+    REQUIRE( to.zzz_terrain.refl().real_terrain.map[p] ==
+             exp.zzz_terrain.refl().real_terrain.map[p] );
+  }
   REQUIRE( to.zzz_terrain == exp.zzz_terrain );
 }
 
@@ -448,7 +465,7 @@ TEST_CASE( "[sav/bridge] NG to OG [scenario 1]" ) {
 *****************************************************************/
 // You can put things in this scenario that only support con-
 // verting from the OG to the NG.
-void og_unidirectional_scenario_1( sav::ColonySAV& out ) {
+void og_unidirectional_scenario_2( sav::ColonySAV& out ) {
   // Header.
   auto& H      = out.header;
   H.colonize   = { 'C', 'O', 'L', 'O', 'N', 'I', 'Z', 'E', 0 };
@@ -493,6 +510,7 @@ void og_unidirectional_scenario_1( sav::ColonySAV& out ) {
   out.tile[8 + 4].hill_river  = HR::tc;
   out.tile[8 + 5].hill_river  = HR::cc;
   out.tile[8 + 6].hill_river  = HR::tt;
+  out.tile[8 + 9].hill_river  = HR::ttcc;
   out.tile[8 + 21].hill_river = HR::empty;
   out.tile[8 + 26].hill_river = HR::cc;
 
@@ -520,7 +538,7 @@ void og_unidirectional_scenario_1( sav::ColonySAV& out ) {
   // TODO: Add more here.
 }
 
-void rn_unidirectional_scenario_1( rn::RootState& out ) {
+void rn_unidirectional_scenario_2( rn::RootState& out ) {
   rn::wrapped::TerrainState terrain_o;
 
   vector<rn::MapSquare> squares;
@@ -582,6 +600,8 @@ void rn_unidirectional_scenario_1( rn::RootState& out ) {
   squares[3].river    = rn::e_river::minor;
   squares[4].overlay  = rn::e_land_overlay::mountains;
   squares[5].river    = rn::e_river::major;
+  squares[6].overlay  = rn::e_land_overlay::mountains;
+  squares[6].river    = rn::e_river::major;
   squares[16].overlay = nothing;
   squares[19].overlay = rn::e_land_overlay::mountains;
 
@@ -646,10 +666,10 @@ TEST_CASE( "[sav/bridge] OG to NG [scenario 2]" ) {
   IdMap id_map, expected_id_map;
 
   sav::ColonySAV classic;
-  og_unidirectional_scenario_1( classic );
+  og_unidirectional_scenario_2( classic );
 
   rn::RootState expected;
-  rn_unidirectional_scenario_1( expected );
+  rn_unidirectional_scenario_2( expected );
 
   rn::RootState converted;
   REQUIRE( convert_to_ng( classic, converted,
@@ -666,6 +686,16 @@ TEST_CASE( "[sav/bridge] OG to NG [scenario 2]" ) {
   REQUIRE( converted.land_view == expected.land_view );
   REQUIRE( converted.map == expected.map );
   REQUIRE( converted.trade_routes == expected.trade_routes );
+  for( point const p :
+       rect_iterator( converted.zzz_terrain.refl()
+                          .real_terrain.map.rect() ) ) {
+    INFO( format(
+        "{}: {} != {}", p,
+        converted.zzz_terrain.refl().real_terrain.map[p],
+        expected.zzz_terrain.refl().real_terrain.map[p] ) );
+    REQUIRE( converted.zzz_terrain.refl().real_terrain.map[p] ==
+             expected.zzz_terrain.refl().real_terrain.map[p] );
+  }
   REQUIRE( converted.zzz_terrain == expected.zzz_terrain );
 
   expected_id_map = {};

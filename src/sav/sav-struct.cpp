@@ -417,13 +417,14 @@ cdr::result<has_unit_1bit_type> from_canonical(
 *****************************************************************/
 void to_str( hills_river_3bit_type const& o, std::string& out, base::tag<hills_river_3bit_type> ) {
   switch( o ) {
-    case hills_river_3bit_type::empty: out += "  "; return;
-    case hills_river_3bit_type::c: out += "^ "; return;
-    case hills_river_3bit_type::t: out += "~ "; return;
-    case hills_river_3bit_type::tc: out += "~^"; return;
-    case hills_river_3bit_type::qq: out += "??"; return;
-    case hills_river_3bit_type::cc: out += "^^"; return;
-    case hills_river_3bit_type::tt: out += "~~"; return;
+    case hills_river_3bit_type::empty: out += "    "; return;
+    case hills_river_3bit_type::c: out += "^   "; return;
+    case hills_river_3bit_type::t: out += "~   "; return;
+    case hills_river_3bit_type::tc: out += "~^  "; return;
+    case hills_river_3bit_type::null: out += "null"; return;
+    case hills_river_3bit_type::cc: out += "^^  "; return;
+    case hills_river_3bit_type::tt: out += "~~  "; return;
+    case hills_river_3bit_type::ttcc: out += "~~^^"; return;
   }
   out += "<unrecognized>";
 }
@@ -432,13 +433,14 @@ cdr::value to_canonical( cdr::converter&,
                          hills_river_3bit_type const& o,
                          cdr::tag_t<hills_river_3bit_type> ) {
   switch( o ) {
-    case hills_river_3bit_type::empty: return "  ";
-    case hills_river_3bit_type::c: return "^ ";
-    case hills_river_3bit_type::t: return "~ ";
-    case hills_river_3bit_type::tc: return "~^";
-    case hills_river_3bit_type::qq: return "??";
-    case hills_river_3bit_type::cc: return "^^";
-    case hills_river_3bit_type::tt: return "~~";
+    case hills_river_3bit_type::empty: return "    ";
+    case hills_river_3bit_type::c: return "^   ";
+    case hills_river_3bit_type::t: return "~   ";
+    case hills_river_3bit_type::tc: return "~^  ";
+    case hills_river_3bit_type::null: return "null";
+    case hills_river_3bit_type::cc: return "^^  ";
+    case hills_river_3bit_type::tt: return "~~  ";
+    case hills_river_3bit_type::ttcc: return "~~^^";
   }
   return cdr::null;
 }
@@ -449,13 +451,14 @@ cdr::result<hills_river_3bit_type> from_canonical(
                          cdr::tag_t<hills_river_3bit_type> ) {
   UNWRAP_RETURN( str, conv.ensure_type<std::string>( v ) );
   static std::map<std::string, hills_river_3bit_type> const m{
-    { "  ", hills_river_3bit_type::empty },
-    { "^ ", hills_river_3bit_type::c },
-    { "~ ", hills_river_3bit_type::t },
-    { "~^", hills_river_3bit_type::tc },
-    { "??", hills_river_3bit_type::qq },
-    { "^^", hills_river_3bit_type::cc },
-    { "~~", hills_river_3bit_type::tt },
+    { "    ", hills_river_3bit_type::empty },
+    { "^   ", hills_river_3bit_type::c },
+    { "~   ", hills_river_3bit_type::t },
+    { "~^  ", hills_river_3bit_type::tc },
+    { "null", hills_river_3bit_type::null },
+    { "^^  ", hills_river_3bit_type::cc },
+    { "~~  ", hills_river_3bit_type::tt },
+    { "~~^^", hills_river_3bit_type::ttcc },
   };
   if( auto it = m.find( str ); it != m.end() )
     return it->second;

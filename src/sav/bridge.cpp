@@ -456,15 +456,22 @@ expect<rn::MapSquare, string> map_square_from_tile(
   switch( tile.hill_river ) {
     case sav::hills_river_3bit_type::empty:
       break;
-    case sav::hills_river_3bit_type::c:
-      res.overlay = rn::e_land_overlay::hills;
-      break;
+    case sav::hills_river_3bit_type::null:
+      // Currently not sure what this value means, if it has any
+      // meaning at all. Experimentation on the OG seems to show
+      // that this value is equivalent to "empty".
+      return fmt::format(
+          "unsupported value for tile.hill_river: {:03b}",
+          to_underlying( tile.hill_river ) );
     case sav::hills_river_3bit_type::t:
       res.river = rn::e_river::minor;
       break;
-    case sav::hills_river_3bit_type::tc:
+    case sav::hills_river_3bit_type::c:
       res.overlay = rn::e_land_overlay::hills;
+      break;
+    case sav::hills_river_3bit_type::tc:
       res.river   = rn::e_river::minor;
+      res.overlay = rn::e_land_overlay::hills;
       break;
     case sav::hills_river_3bit_type::cc:
       res.overlay = rn::e_land_overlay::mountains;
@@ -472,10 +479,10 @@ expect<rn::MapSquare, string> map_square_from_tile(
     case sav::hills_river_3bit_type::tt:
       res.river = rn::e_river::major;
       break;
-    default:
-      return fmt::format(
-          "unsupported value for tile.hill_river: {:03b}",
-          to_underlying( tile.hill_river ) );
+    case sav::hills_river_3bit_type::ttcc:
+      res.river   = rn::e_river::major;
+      res.overlay = rn::e_land_overlay::mountains;
+      break;
   }
   return res;
 }
@@ -566,17 +573,38 @@ expect<sav::TILE, string> tile_from_map_square(
         break;
     }
   } else if( has_mound && has_river ) {
-    if( has_mountains )
-      return "The OG does not support rivers on mountains "
-             "tiles.";
-    if( square.river == rn::e_river::major )
-      return "The OG does not support major rivers on tiles "
-             "containing either mountains or hills.";
-    // At this point all that we can be left with is hills and
-    // minor river.
-    CHECK_EQ( square.river, rn::e_river::minor );
-    CHECK_EQ( square.overlay, rn::e_land_overlay::hills );
-    res.hill_river = sav::hills_river_3bit_type::tc;
+    CHECK( square.river.has_value() );
+    CHECK( square.overlay.has_value() );
+    switch( *square.river ) {
+      case rn::e_river::minor:
+        switch( *square.overlay ) {
+          case rn::e_land_overlay::hills:
+            // Minor river and hills.
+            res.hill_river = sav::hills_river_3bit_type::tc;
+            break;
+          case rn::e_land_overlay::mountains:
+            // Minor river and mountains.
+            return "The OG does not support minor rivers on "
+                   "mountain tiles.";
+          case rn::e_land_overlay::forest:
+            SHOULD_NOT_BE_HERE;
+        }
+        break;
+      case rn::e_river::major:
+        switch( *square.overlay ) {
+          case rn::e_land_overlay::hills:
+            // Major river and hills.
+            return "The OG does not support major rivers on "
+                   "hills tiles.";
+          case rn::e_land_overlay::mountains:
+            // Major river and mountains.
+            res.hill_river = sav::hills_river_3bit_type::ttcc;
+            break;
+          case rn::e_land_overlay::forest:
+            SHOULD_NOT_BE_HERE;
+        }
+        break;
+    }
   }
   return res;
 }

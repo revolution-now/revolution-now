@@ -234,13 +234,14 @@ cdr::result<has_unit_1bit_type> from_canonical(
 ** hills_river_3bit_type
 *****************************************************************/
 enum class hills_river_3bit_type : uint8_t {
-  empty = 0b000,  // original: "  "
-  c     = 0b001,  // original: "^ "
-  t     = 0b010,  // original: "~ "
-  tc    = 0b011,  // original: "~^"
-  qq    = 0b100,  // original: "??"
-  cc    = 0b101,  // original: "^^"
-  tt    = 0b110,  // original: "~~"
+  empty = 0b000,  // original: "    "
+  c     = 0b001,  // original: "^   "
+  t     = 0b010,  // original: "~   "
+  tc    = 0b011,  // original: "~^  "
+  null  = 0b100,
+  cc    = 0b101,  // original: "^^  "
+  tt    = 0b110,  // original: "~~  "
+  ttcc  = 0b111,  // original: "~~^^"
 };
 
 // String conversion.

@@ -262,6 +262,9 @@ local function lambda( J )
       D.any_by_row[tile.y] = D.any_by_row[tile.y] + 1
       if Q.has_hills( J, tile ) then
         D.with_hills = D.with_hills + 1
+        -- The game technically allows hills and minor rivers on
+        -- the same tile, but its maps never seem to have it.
+        error( 'found river and hills on same tile' )
       end
       if Q.has_minor_river( J, tile ) then
         D.min = D.min + 1
