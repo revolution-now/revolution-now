@@ -44,10 +44,12 @@ local D = {
   total_land=0,
 
   -- key=row
-  land={},
+  land_by_row={},
+  land_by_col={},
 
   -- key1=ground_type, key2=row, value=count
   ground_per_row={},
+  ground_per_col={},
 
   -- value={ count=N, metric=? }
   swamp={
@@ -124,6 +126,8 @@ local function lambda( json_o )
   for _, ground_type in ipairs( GROUND_TYPES ) do
     D.ground_per_row[ground_type] =
         D.ground_per_row[ground_type] or {}
+    D.ground_per_col[ground_type] =
+        D.ground_per_col[ground_type] or {}
     D.adjacency[ground_type] = D.adjacency[ground_type] or {}
     local A = assert( D.adjacency[ground_type] )
     A.count = A.count or 0
@@ -132,9 +136,16 @@ local function lambda( json_o )
 
   Q.on_all_tiles( function( tile )
     for _, ground_type in ipairs( GROUND_TYPES ) do
-      D.land[tile.y] = D.land[tile.y] or 0
-      local o = assert( D.ground_per_row[ground_type] )
-      o[tile.y] = o[tile.y] or 0
+      D.land_by_row[tile.y] = D.land_by_row[tile.y] or 0
+      D.land_by_col[tile.x] = D.land_by_col[tile.x] or 0
+      do
+        local o = assert( D.ground_per_row[ground_type] )
+        o[tile.y] = o[tile.y] or 0
+      end
+      do
+        local o = assert( D.ground_per_col[ground_type] )
+        o[tile.x] = o[tile.x] or 0
+      end
     end
   end )
 
@@ -151,16 +162,23 @@ local function lambda( json_o )
   Q.on_all_tiles( function( tile )
     local terrain = terrain_at( json_o, tile )
 
-    D.land[tile.y] = D.land[tile.y] or 0
+    D.land_by_row[tile.y] = D.land_by_row[tile.y] or 0
+    D.land_by_col[tile.x] = D.land_by_col[tile.x] or 0
     if terrain.surface == 'land' then
-      D.land[tile.y] = D.land[tile.y] + 1
+      D.land_by_row[tile.y] = D.land_by_row[tile.y] + 1
+      D.land_by_col[tile.x] = D.land_by_col[tile.x] + 1
       D.total_land = D.total_land + 1
     else
       return
     end
-
-    local o = assert( D.ground_per_row[terrain.ground] )
-    o[tile.y] = o[tile.y] + 1
+    do
+      local o = assert( D.ground_per_row[terrain.ground] )
+      o[tile.y] = o[tile.y] + 1
+    end
+    do
+      local o = assert( D.ground_per_col[terrain.ground] )
+      o[tile.x] = o[tile.x] + 1
+    end
   end )
 
   -- Terrain adjacency.
@@ -180,9 +198,9 @@ local function lambda( json_o )
       if terrain.surface == 'land' then
         A.surrounding_land_on_row[tile.y] =
             A.surrounding_land_on_row[tile.y] + 1
-      end
-      if terrain.ground == center.ground then
-        A.adjacency_count = A.adjacency_count + 1
+        if terrain.ground == center.ground then
+          A.adjacency_count = A.adjacency_count + 1
+        end
       end
     end
   end )
@@ -259,7 +277,7 @@ local function lambda( json_o )
   local max_savannah_dist = 0
   Q.on_all_tiles( function( tile )
     local terrain = terrain_at( json_o, tile )
-    if terrain.ground == 'savannah' then
+    if terrain.surface == 'land' and terrain.ground == 'savannah' then
       if tile.y >= 36 then
         local delta = tile.y - 36
         max_savannah_dist = max( max_savannah_dist, delta )
@@ -286,9 +304,9 @@ local function lambda( json_o )
     local terrain = terrain_at( json_o, tile )
     if terrain.surface == 'land' then
       land_count_center = land_count_center + 1
-    end
-    if terrain.ground == 'desert' then
-      desert_count_center = desert_count_center + 1
+      if terrain.ground == 'desert' then
+        desert_count_center = desert_count_center + 1
+      end
     end
   end )
   if land_count_center > 0 then
@@ -306,11 +324,13 @@ end
 local function finished( mode )
   do
     local opts = {
-      title=format( 'Terrain Distribution (empirical) (%s) [%d]',
-                    mode, D.total_savs ),
+      title=format(
+          'Terrain Row Distribution (empirical) (%s) [%d]', mode,
+          D.total_savs ),
       x_label='Map Row (Y)',
       y_label='Value',
       y_range='0:0.7',
+      x_range='1:70',
     }
     local csv_data = { header={ 'y' }, rows={} }
     for _, ground in ipairs( GROUND_TYPES ) do
@@ -319,7 +339,7 @@ local function finished( mode )
     for y_real = 1, 70 do
       local y = clamp( y_real, 4, 66 )
       local row = { y }
-      local land = assert( D.land[y] )
+      local land = assert( D.land_by_row[y] )
       for _, ground in ipairs( GROUND_TYPES ) do
         local count = assert( D.ground_per_row[ground][y] )
         local density = count / land
@@ -327,8 +347,36 @@ local function finished( mode )
       end
       table.insert( csv_data.rows, row )
     end
-    local path =
-        format( '%s/%s.spatial.gnuplot', PLOTS_DIR, mode )
+    local path = format( '%s/%s.rows.gnuplot', PLOTS_DIR, mode )
+    plot.line_graph_to_file( path, csv_data, opts )
+  end
+
+  do
+    local opts = {
+      title=format(
+          'Terrain Column Distribution (empirical) (%s) [%d]',
+          mode, D.total_savs ),
+      x_label='Map Column (X)',
+      y_label='Value',
+      y_range='0:0.4',
+      x_range='1:56',
+    }
+    local csv_data = { header={ 'x' }, rows={} }
+    for _, ground in ipairs( GROUND_TYPES ) do
+      insert( csv_data.header, ground )
+    end
+    for x_real = 1, 56 do
+      local x = clamp( x_real, 1, 56 )
+      local row = { x }
+      local land = assert( D.land_by_col[x] )
+      for _, ground in ipairs( GROUND_TYPES ) do
+        local count = assert( D.ground_per_col[ground][x] )
+        local density = count / land
+        table.insert( row, format( format( '%f', density ) ) )
+      end
+      table.insert( csv_data.rows, row )
+    end
+    local path = format( '%s/%s.cols.gnuplot', PLOTS_DIR, mode )
     plot.line_graph_to_file( path, csv_data, opts )
   end
 
@@ -388,7 +436,7 @@ local function finished( mode )
     for _, ground in ipairs( GROUND_TYPES ) do
       local adjacency_baseline = 0
       for y = 1, 70 do
-        local land_on_row = assert( D.land[y] )
+        local land_on_row = assert( D.land_by_row[y] )
         local biome_on_row =
             assert( D.ground_per_row[ground][y] )
         local surrounding_land_on_row = assert(

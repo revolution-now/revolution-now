@@ -75,11 +75,12 @@ $CSVData << EOF
 "66","0.000000","0.036739","0.234670","0.501525","0.221186","0.000000","0.000000","0.005880","0.000000"
 EOF
 
-set title "Terrain Distribution (empirical) (bbbt) [2000]"
+set title "Terrain Row Distribution (empirical) (bbbt) [2000]"
 set key outside right
 set grid
 set xlabel "Map Row (Y)"
 set ylabel "Value"
 set key autotitle columnhead
+set xrange [1:70]
 set yrange [0:0.7]
 plot for [col=2:*] $CSVData using 1:col with lines lw 2
