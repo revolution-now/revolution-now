@@ -47,6 +47,10 @@ local D = {
   land_by_row={},
   land_by_col={},
 
+  -- key=row
+  land_by_row_dry={},
+  land_by_row_wet={},
+
   -- key1=ground_type, key2=row, value=count
   ground_per_row={},
   ground_per_col={},
@@ -108,6 +112,18 @@ local GROUND_TYPES = {
   'arctic', --
 }
 
+local WET_DRY_TYPE = {
+  savannah='wet', --
+  grassland='dry', --
+  tundra='dry', --
+  plains='dry', --
+  prairie='dry', --
+  desert='dry', --
+  swamp='wet', --
+  marsh='wet', --
+  arctic='dry', --
+}
+
 -----------------------------------------------------------------
 -- Lambda.
 -----------------------------------------------------------------
@@ -138,6 +154,8 @@ local function lambda( json_o )
     for _, ground_type in ipairs( GROUND_TYPES ) do
       D.land_by_row[tile.y] = D.land_by_row[tile.y] or 0
       D.land_by_col[tile.x] = D.land_by_col[tile.x] or 0
+      D.land_by_row_dry[tile.y] = D.land_by_row_dry[tile.y] or 0
+      D.land_by_row_wet[tile.y] = D.land_by_row_wet[tile.y] or 0
       do
         local o = assert( D.ground_per_row[ground_type] )
         o[tile.y] = o[tile.y] or 0
@@ -164,9 +182,17 @@ local function lambda( json_o )
 
     D.land_by_row[tile.y] = D.land_by_row[tile.y] or 0
     D.land_by_col[tile.x] = D.land_by_col[tile.x] or 0
+    D.land_by_row_dry[tile.y] = D.land_by_row_dry[tile.y] or 0
+    D.land_by_row_wet[tile.y] = D.land_by_row_wet[tile.y] or 0
     if terrain.surface == 'land' then
       D.land_by_row[tile.y] = D.land_by_row[tile.y] + 1
       D.land_by_col[tile.x] = D.land_by_col[tile.x] + 1
+      if assert( WET_DRY_TYPE[terrain.ground] ) == 'dry' then
+        D.land_by_row_dry[tile.y] = D.land_by_row_dry[tile.y] + 1
+      end
+      if assert( WET_DRY_TYPE[terrain.ground] ) == 'wet' then
+        D.land_by_row_wet[tile.y] = D.land_by_row_wet[tile.y] + 1
+      end
       D.total_land = D.total_land + 1
     else
       return
@@ -348,6 +374,74 @@ local function finished( mode )
       table.insert( csv_data.rows, row )
     end
     local path = format( '%s/%s.rows.gnuplot', PLOTS_DIR, mode )
+    plot.line_graph_to_file( path, csv_data, opts )
+  end
+
+  do
+    local opts = {
+      title=format(
+          'Terrain Dry Row Distribution (empirical) (%s) [%d]',
+          mode, D.total_savs ),
+      x_label='Map Row (Y)',
+      y_label='Value',
+      y_range='0:1.0',
+      x_range='1:70',
+    }
+    local csv_data = { header={ 'y' }, rows={} }
+    for _, ground in ipairs( GROUND_TYPES ) do
+      insert( csv_data.header, ground )
+    end
+    for y_real = 1, 70 do
+      local y = clamp( y_real, 4, 66 )
+      local row = { y }
+      local land = assert( D.land_by_row_dry[y] )
+      for _, ground in ipairs( GROUND_TYPES ) do
+        if assert( WET_DRY_TYPE[ground] ) == 'dry' then
+          local count = assert( D.ground_per_row[ground][y] )
+          local density = count / land
+          table.insert( row, format( format( '%f', density ) ) )
+        else
+          table.insert( row, 0 )
+        end
+      end
+      table.insert( csv_data.rows, row )
+    end
+    local path = format( '%s/%s.rows.dry.gnuplot', PLOTS_DIR,
+                         mode )
+    plot.line_graph_to_file( path, csv_data, opts )
+  end
+
+  do
+    local opts = {
+      title=format(
+          'Terrain Wet Row Distribution (empirical) (%s) [%d]',
+          mode, D.total_savs ),
+      x_label='Map Row (Y)',
+      y_label='Value',
+      y_range='0:1.0',
+      x_range='1:70',
+    }
+    local csv_data = { header={ 'y' }, rows={} }
+    for _, ground in ipairs( GROUND_TYPES ) do
+      insert( csv_data.header, ground )
+    end
+    for y_real = 1, 70 do
+      local y = clamp( y_real, 4, 66 )
+      local row = { y }
+      local land = assert( D.land_by_row_wet[y] )
+      for _, ground in ipairs( GROUND_TYPES ) do
+        if assert( WET_DRY_TYPE[ground] ) == 'wet' then
+          local count = assert( D.ground_per_row[ground][y] )
+          local density = count / land
+          table.insert( row, format( format( '%f', density ) ) )
+        else
+          table.insert( row, 0 )
+        end
+      end
+      table.insert( csv_data.rows, row )
+    end
+    local path = format( '%s/%s.rows.wet.gnuplot', PLOTS_DIR,
+                         mode )
     plot.line_graph_to_file( path, csv_data, opts )
   end
 
