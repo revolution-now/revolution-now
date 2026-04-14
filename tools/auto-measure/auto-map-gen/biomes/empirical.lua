@@ -35,6 +35,23 @@ end
 
 local PLOTS_DIR = 'biomes/empirical'
 
+local function ocean_adjacent( J, tile )
+  local has = false
+  Q.on_surrounding_tiles( tile, function( coord )
+    local adjacent = Q.terrain_at( J, coord )
+    if adjacent.surface == 'water' then has = true end
+  end )
+  return has
+end
+
+local function river_adjacent( J, tile )
+  local has = false
+  Q.on_surrounding_tiles( tile, function( coord )
+    if Q.has_river( J, coord ) then has = true end
+  end )
+  return has
+end
+
 -----------------------------------------------------------------
 -- Data.
 -----------------------------------------------------------------
@@ -54,6 +71,10 @@ local D = {
   -- key1=ground_type, key2=row, value=count
   ground_per_row={},
   ground_per_col={},
+
+  -- key=biome, val=count
+  with_river_adjacent={},
+  with_ocean_adjacent={},
 
   -- value={ count=N, metric=? }
   swamp={
@@ -127,9 +148,9 @@ local WET_DRY_TYPE = {
 -----------------------------------------------------------------
 -- Lambda.
 -----------------------------------------------------------------
-local function terrain_at( json_o, tile )
+local function terrain_at( J, tile )
   -- Can intercept here.
-  return Q.terrain_at( json_o, tile )
+  return Q.terrain_at( J, tile )
   -- local t = Q.terrain_at( json, tile )
   -- return {
   --   surface=t.surface,
@@ -137,7 +158,7 @@ local function terrain_at( json_o, tile )
   -- }
 end
 
-local function lambda( json_o )
+local function lambda( J )
   D.total_savs = D.total_savs + 1
   for _, ground_type in ipairs( GROUND_TYPES ) do
     D.ground_per_row[ground_type] =
@@ -145,6 +166,10 @@ local function lambda( json_o )
     D.ground_per_col[ground_type] =
         D.ground_per_col[ground_type] or {}
     D.adjacency[ground_type] = D.adjacency[ground_type] or {}
+    D.with_ocean_adjacent[ground_type] =
+        D.with_ocean_adjacent[ground_type] or 0
+    D.with_river_adjacent[ground_type] =
+        D.with_river_adjacent[ground_type] or 0
     local A = assert( D.adjacency[ground_type] )
     A.count = A.count or 0
     A.adjacency_count = A.adjacency_count or 0
@@ -178,7 +203,7 @@ local function lambda( json_o )
   end )
 
   Q.on_all_tiles( function( tile )
-    local terrain = terrain_at( json_o, tile )
+    local terrain = terrain_at( J, tile )
 
     D.land_by_row[tile.y] = D.land_by_row[tile.y] or 0
     D.land_by_col[tile.x] = D.land_by_col[tile.x] or 0
@@ -209,18 +234,26 @@ local function lambda( json_o )
 
   -- Terrain adjacency.
   Q.on_all_tiles( function( tile )
-    local center = terrain_at( json_o, tile )
+    local center = terrain_at( J, tile )
     if center.surface == 'water' then return end
     assert( center )
     assert( center.ground )
     D.adjacency[center.ground] = D.adjacency[center.ground] or {}
+    if ocean_adjacent( J, tile ) then
+      D.with_ocean_adjacent[center.ground] =
+          D.with_ocean_adjacent[center.ground] + 1
+    end
+    if river_adjacent( J, tile ) then
+      D.with_river_adjacent[center.ground] =
+          D.with_river_adjacent[center.ground] + 1
+    end
     local A = assert( D.adjacency[center.ground] )
     A.count = A.count or 0
     A.adjacency_count = A.adjacency_count or 0
     A.count = A.count + 1
     local surround = Q.surrounding_coords( tile )
     for _, cc in ipairs( surround ) do
-      local terrain = terrain_at( json_o, cc )
+      local terrain = terrain_at( J, cc )
       if terrain.surface == 'land' then
         A.surrounding_land_on_row[tile.y] =
             A.surrounding_land_on_row[tile.y] + 1
@@ -236,7 +269,7 @@ local function lambda( json_o )
     assert( S )
     Q.on_all_tiles( function( tile )
       do
-        local terrain = terrain_at( json_o, tile )
+        local terrain = terrain_at( J, tile )
         if terrain.surface ~= 'land' then return end
         if terrain.ground ~= target_terrain then return end
       end
@@ -249,20 +282,20 @@ local function lambda( json_o )
       local has_ocean_adjacent = false
       local has_river_or_ocean_adjacent = false
       local has_any_adjacent = false
-      local has_river = Q.has_river( json_o, tile )
+      local has_river = Q.has_river( J, tile )
       for _, cc in ipairs( surround ) do
-        local terrain = terrain_at( json_o, cc )
+        local terrain = terrain_at( J, cc )
         if terrain.surface == 'land' then
           has_swamp_adjacent = has_swamp_adjacent or
                                    (terrain.ground == 'swamp')
           has_marsh_adjacent = has_swamp_adjacent or
                                    (terrain.ground == 'marsh')
           has_river_adjacent = has_river_adjacent or
-                                   Q.has_river( json_o, cc )
+                                   Q.has_river( J, cc )
         else
           -- Ocean tiles can have rivers as well.
           has_river_adjacent = has_river_adjacent or
-                                   Q.has_river( json_o, cc )
+                                   Q.has_river( J, cc )
           has_ocean_adjacent = true
         end
         has_swamp_or_marsh_adjacent =
@@ -302,7 +335,7 @@ local function lambda( json_o )
 
   local max_savannah_dist = 0
   Q.on_all_tiles( function( tile )
-    local terrain = terrain_at( json_o, tile )
+    local terrain = terrain_at( J, tile )
     if terrain.surface == 'land' and terrain.ground == 'savannah' then
       if tile.y >= 36 then
         local delta = tile.y - 36
@@ -327,7 +360,7 @@ local function lambda( json_o )
   Q.on_all_tiles( function( tile )
     if tile.y ~= 34 and tile.y ~= 35 and tile.y ~= 36 and tile.y ~=
         37 then return end
-    local terrain = terrain_at( json_o, tile )
+    local terrain = terrain_at( J, tile )
     if terrain.surface == 'land' then
       land_count_center = land_count_center + 1
       if terrain.ground == 'desert' then
@@ -524,6 +557,12 @@ local function finished( mode )
     general.biome = {}
     local biome = general.biome
     biome.__key_order = GROUND_TYPES
+    o.ocean = {}
+    local ocean = o.ocean
+    ocean.__key_order = GROUND_TYPES
+    o.river = {}
+    local river = o.river
+    river.__key_order = GROUND_TYPES
 
     -- General adjacency.
     local adjacency_relative = {}
@@ -563,6 +602,12 @@ local function finished( mode )
     for _, ground in ipairs( GROUND_TYPES ) do
       general.results[ground] = assert(
                                     adjacency_relative[ground] )
+    end
+    for _, ground in ipairs( GROUND_TYPES ) do
+      ocean[ground] = assert( D.with_ocean_adjacent[ground] /
+                                  D.adjacency[ground].count )
+      river[ground] = assert( D.with_river_adjacent[ground] /
+                                  D.adjacency[ground].count )
     end
     json.write( o, 2, emit )
   end
