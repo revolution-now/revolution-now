@@ -44,7 +44,7 @@ struct.MapSquare {
   # left of the water tile, then if there is no land there it
   # will check the one below, and so on in clockwise fashion
   # (left, bottom, right, top).
-  ground 'e_ground_terrain',
+  ground 'e_biome',
 
   # Forest, hills, or mountains.
   overlay 'base::maybe<e_land_overlay>',

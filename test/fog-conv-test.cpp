@@ -161,9 +161,9 @@ TEST_CASE( "[visibility] copy_real_square_to_frozen_square" ) {
   REQUIRE( output == expected );
 
   coord    = { .x = 1, .y = 0 };
-  expected = { .square = MapSquare{
-                 .surface = e_surface::land,
-                 .ground  = e_ground_terrain::grassland } };
+  expected = { .square =
+                   MapSquare{ .surface = e_surface::land,
+                              .ground  = e_biome::grassland } };
   f();
   REQUIRE( output == expected );
 
@@ -172,7 +172,7 @@ TEST_CASE( "[visibility] copy_real_square_to_frozen_square" ) {
   coord    = { .x = 1, .y = 0 };
   expected = {
     .square   = MapSquare{ .surface = e_surface::land,
-                           .ground  = e_ground_terrain::grassland,
+                           .ground  = e_biome::grassland,
                            .road    = true },
     .dwelling = Dwelling{ .id         = 0,
                           .population = 5,
@@ -187,7 +187,7 @@ TEST_CASE( "[visibility] copy_real_square_to_frozen_square" ) {
 
   expected = {
     .square   = MapSquare{ .surface = e_surface::land,
-                           .ground  = e_ground_terrain::grassland,
+                           .ground  = e_biome::grassland,
                            .road    = true },
     .dwelling = Dwelling{ .id         = 0,
                           .is_capital = true,
@@ -199,47 +199,45 @@ TEST_CASE( "[visibility] copy_real_square_to_frozen_square" ) {
   REQUIRE( output == expected );
 
   coord    = { .x = 0, .y = 1 };
-  expected = { .square = MapSquare{
-                 .surface = e_surface::land,
-                 .ground  = e_ground_terrain::grassland } };
+  expected = { .square =
+                   MapSquare{ .surface = e_surface::land,
+                              .ground  = e_biome::grassland } };
   f();
   REQUIRE( output == expected );
 
   Colony& colony =
       W.add_colony( { .x = 0, .y = 1 }, e_player::spanish );
   coord    = { .x = 0, .y = 1 };
-  expected = {
-    .square = MapSquare{ .surface = e_surface::land,
-                         .ground  = e_ground_terrain::grassland,
-                         .road    = true },
-    .colony = Colony{ .id        = 0,
-                      .player    = e_player::spanish,
-                      .name      = "1",
-                      .location  = { .x = 0, .y = 1 },
-                      .buildings = colony.buildings,
-                      .frozen    = FrozenColony{} } };
+  expected = { .square = MapSquare{ .surface = e_surface::land,
+                                    .ground = e_biome::grassland,
+                                    .road   = true },
+               .colony = Colony{ .id        = 0,
+                                 .player    = e_player::spanish,
+                                 .name      = "1",
+                                 .location  = { .x = 0, .y = 1 },
+                                 .buildings = colony.buildings,
+                                 .frozen    = FrozenColony{} } };
   f();
   REQUIRE( output == expected );
 
   colony.name = "hello";
   coord       = { .x = 0, .y = 1 };
-  expected    = {
-       .square = MapSquare{ .surface = e_surface::land,
-                            .ground  = e_ground_terrain::grassland,
-                            .road    = true },
-       .colony = Colony{ .id        = 0,
-                         .player    = e_player::spanish,
-                         .name      = "hello",
-                         .location  = { .x = 0, .y = 1 },
-                         .buildings = colony.buildings,
-                         .frozen    = FrozenColony{} } };
+  expected = { .square = MapSquare{ .surface = e_surface::land,
+                                    .ground = e_biome::grassland,
+                                    .road   = true },
+               .colony = Colony{ .id        = 0,
+                                 .player    = e_player::spanish,
+                                 .name      = "hello",
+                                 .location  = { .x = 0, .y = 1 },
+                                 .buildings = colony.buildings,
+                                 .frozen    = FrozenColony{} } };
   f();
   REQUIRE( output == expected );
 
   coord    = { .x = 1, .y = 0 };
   expected = {
     .square   = MapSquare{ .surface = e_surface::land,
-                           .ground  = e_ground_terrain::grassland,
+                           .ground  = e_biome::grassland,
                            .road    = true },
     .dwelling = Dwelling{ .id         = 0,
                           .is_capital = true,
@@ -253,7 +251,7 @@ TEST_CASE( "[visibility] copy_real_square_to_frozen_square" ) {
   coord    = { .x = 1, .y = 0 };
   expected = {
     .square   = MapSquare{ .surface = e_surface::land,
-                           .ground  = e_ground_terrain::grassland,
+                           .ground  = e_biome::grassland,
                            .road    = true },
     .dwelling = Dwelling{ .id         = 0,
                           .is_capital = true,

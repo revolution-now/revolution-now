@@ -394,7 +394,7 @@ TEST_CASE( "[anim-builders] anim_seq_for_colony_depixelation" ) {
                  .overrides = { .squares = { { { .x = 1, .y = 0 },
                                                { .surface =
                                                      e_surface::land,
-                                                 .ground = e_ground_terrain::grassland } } } } } },
+                                                 .ground = e_biome::grassland } } } } } },
         { .primitive =
                P::depixelate_colony{
                  .tile = { .x = 1, .y = 0 } } },
@@ -821,7 +821,7 @@ TEST_CASE( "[anim-builders] anim_seq_for_brave_attack_colony" ) {
                       { .squares =
                             { { { .x = 1, .y = 0 },
                                 { .surface = e_surface::land,
-                                  .ground  = e_ground_terrain::
+                                  .ground  = e_biome::
                                       grassland } } } } } },
           { .primitive =
                 P::depixelate_colony{
@@ -865,7 +865,7 @@ TEST_CASE( "[anim-builders] anim_seq_for_brave_attack_colony" ) {
                       { .squares =
                             { { { .x = 1, .y = 0 },
                                 { .surface = e_surface::land,
-                                  .ground  = e_ground_terrain::
+                                  .ground  = e_biome::
                                       grassland } } } } } },
           { .primitive =
                 P::depixelate_colony{
@@ -1201,8 +1201,8 @@ TEST_CASE( "[anim-builders] anim_seq_for_dwelling_burn" ) {
                     { .squares =
                           { { { .x = 1, .y = 1 },
                               { .surface = e_surface::land,
-                                .ground  = e_ground_terrain::
-                                    grassland } } },
+                                .ground =
+                                    e_biome::grassland } } },
                       .dwellings =
                           {
                             { { .x = 1, .y = 1 }, nothing },
@@ -1281,11 +1281,11 @@ TEST_CASE( "[anim-builders] anim_seq_for_cheat_kill_natives" ) {
                         { .squares =
                               { { { .x = 1, .y = 3 },
                                   { .surface = e_surface::land,
-                                    .ground  = e_ground_terrain::
+                                    .ground  = e_biome::
                                         grassland } },
                                 { { .x = 1, .y = 4 },
                                   { .surface = e_surface::land,
-                                    .ground  = e_ground_terrain::
+                                    .ground  = e_biome::
                                         grassland } } },
                           .dwellings =
                               {
@@ -1320,15 +1320,13 @@ TEST_CASE( "[anim-builders] anim_seq_for_cheat_kill_natives" ) {
                             {
                               .squares = { { { .x = 1, .y = 1 },
                                              { .surface =
-                                                   e_surface::
-                                                       land,
-                                               .ground = e_ground_terrain::grassland } },
+                                                   e_surface::land,
+                                               .ground = e_biome::grassland } },
                                            { { .x = 1, .y = 2 },
                                              { .surface =
                                                    e_surface::
                                                        land,
-                                               .ground = e_ground_terrain::
-                                                   grassland } } },
+                                               .ground = e_biome::grassland } } },
                               .dwellings =
                                   {
                                     { { .x = 1, .y = 1 },
@@ -1427,7 +1425,7 @@ TEST_CASE( "[anim-builders] anim_seq_for_cheat_kill_natives" ) {
                                              { .surface =
                                                    e_surface::
                                                        land,
-                                               .ground = e_ground_terrain::grassland } } },
+                                               .ground = e_biome::grassland } } },
                               .dwellings =
                                   {
                                     { { .x = 1, .y = 3 },
@@ -1461,7 +1459,7 @@ TEST_CASE( "[anim-builders] anim_seq_for_cheat_kill_natives" ) {
                                              { .surface =
                                                    e_surface::
                                                        land,
-                                               .ground = e_ground_terrain::grassland } } },
+                                               .ground = e_biome::grassland } } },
                               .dwellings =
                                   {
                                     { { .x = 1, .y = 1 },
@@ -1507,13 +1505,11 @@ TEST_CASE( "[anim-builders] anim_seq_for_cheat_kill_natives" ) {
                                     { { .x = 1, .y = 1 },
                                       { .surface =
                                             e_surface::land,
-                                        .ground =
-                                            e_ground_terrain::
-                                                grassland } },
+                                        .ground = e_biome::grassland } },
                                     { { .x = 1, .y = 3 },
                                       { .surface =
                                             e_surface::land,
-                                        .ground = e_ground_terrain::grassland } },
+                                        .ground = e_biome::grassland } },
                                   },
                               .dwellings =
                                   {

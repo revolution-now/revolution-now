@@ -213,7 +213,7 @@ function M.map_segment( nw, se )
   f:write(
       '    // NOTE: the below was generated using lua/capture/map.lua\n' )
   f:write( '    using enum e_surface;\n' )
-  f:write( '    using enum e_ground_terrain;\n' )
+  f:write( '    using enum e_biome;\n' )
   f:write( '    using enum e_land_overlay;\n' )
   f:write( '    using enum e_river;\n' )
   f:write( '\n' )

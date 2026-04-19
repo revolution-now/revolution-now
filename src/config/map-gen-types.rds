@@ -70,7 +70,7 @@ struct.BiomeAffinity {
 }
 
 struct.BiomeClustering {
-  affinities 'refl::enum_map<e_ground_terrain, BiomeAffinity>',
+  affinities 'refl::enum_map<e_biome, BiomeAffinity>',
 }
 
 sumtype.BiomeClusteringMode {

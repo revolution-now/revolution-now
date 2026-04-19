@@ -41,10 +41,10 @@ TEST_CASE( "[terrain] is_land, is_water" ) {
 TEST_CASE( "[terrain] cleared_forest" ) {
   REQUIRE( cleared_forest( e_terrain::grassland ) == nothing );
   REQUIRE( cleared_forest( e_terrain::conifer ) ==
-           e_ground_terrain::grassland );
+           e_biome::grassland );
   REQUIRE( cleared_forest( e_terrain::tundra ) == nothing );
   REQUIRE( cleared_forest( e_terrain::boreal ) ==
-           e_ground_terrain::tundra );
+           e_biome::tundra );
   REQUIRE( cleared_forest( e_terrain::ocean ) == nothing );
   REQUIRE( cleared_forest( e_terrain::hills ) == nothing );
   REQUIRE( cleared_forest( e_terrain::mountains ) == nothing );
@@ -64,25 +64,25 @@ TEST_CASE( "[terrain] has_forest" ) {
 
 TEST_CASE( "[terrain] to_ground_terrain" ) {
   REQUIRE( to_ground_terrain( e_terrain::grassland ) ==
-           e_ground_terrain::grassland );
+           e_biome::grassland );
   REQUIRE( to_ground_terrain( e_terrain::conifer ) == nothing );
   REQUIRE( to_ground_terrain( e_terrain::tundra ) ==
-           e_ground_terrain::tundra );
+           e_biome::tundra );
   REQUIRE( to_ground_terrain( e_terrain::boreal ) == nothing );
   REQUIRE( to_ground_terrain( e_terrain::ocean ) == nothing );
   REQUIRE( to_ground_terrain( e_terrain::hills ) == nothing );
   REQUIRE( to_ground_terrain( e_terrain::mountains ) ==
            nothing );
   REQUIRE( to_ground_terrain( e_terrain::arctic ) ==
-           e_ground_terrain::arctic );
+           e_biome::arctic );
 }
 
 TEST_CASE( "[terrain] from_ground_terrain" ) {
-  REQUIRE( from_ground_terrain( e_ground_terrain::grassland ) ==
+  REQUIRE( from_ground_terrain( e_biome::grassland ) ==
            e_terrain::grassland );
-  REQUIRE( from_ground_terrain( e_ground_terrain::tundra ) ==
+  REQUIRE( from_ground_terrain( e_biome::tundra ) ==
            e_terrain::tundra );
-  REQUIRE( from_ground_terrain( e_ground_terrain::arctic ) ==
+  REQUIRE( from_ground_terrain( e_biome::arctic ) ==
            e_terrain::arctic );
 }
 

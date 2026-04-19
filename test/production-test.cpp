@@ -5530,7 +5530,7 @@ TEST_CASE( "[production] with SoL bonuses/penalties" ) {
 
   Colony& colony = W.add_colony( { .x = 13, .y = 1 } );
   CHECK( W.square( { .x = 13, .y = 1 } ).ground ==
-         e_ground_terrain::savannah );
+         e_biome::savannah );
   Player& player = W.default_player();
 
   // Prepare colony with many workers. Use all experts so that we
@@ -6026,7 +6026,7 @@ TEST_CASE(
 
   Colony& colony = W.add_colony( { .x = 13, .y = 1 } );
   CHECK( W.square( { .x = 13, .y = 1 } ).ground ==
-         e_ground_terrain::savannah );
+         e_biome::savannah );
   Player& player = W.default_player();
 
   // Do tobacco on the prairie because we want one tile that pro-
@@ -6496,7 +6496,7 @@ TEST_CASE( "[production] SoL does not affect horses" ) {
 
   Colony& colony = W.add_colony( { .x = 13, .y = 1 } );
   CHECK( W.square( { .x = 13, .y = 1 } ).ground ==
-         e_ground_terrain::savannah );
+         e_biome::savannah );
   Player& player = W.default_player();
 
   // One expert farmer on plains will produce 5+2+XE. Center food
@@ -6630,7 +6630,7 @@ TEST_CASE(
 
   Colony& colony = W.add_colony( { .x = 10, .y = 1 } );
   CHECK( W.square( { .x = 10, .y = 1 } ).ground ==
-         e_ground_terrain::desert );
+         e_biome::desert );
 
   W.settings().game_setup_options.difficulty =
       e_difficulty::viceroy;

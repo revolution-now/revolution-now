@@ -100,7 +100,7 @@ TEST_CASE( "[goto] compute_goto_path" ) {
       w.ss(), w.default_player_type() );
 
   using enum e_surface;
-  using enum e_ground_terrain;
+  using enum e_biome;
   using enum e_land_overlay;
   using enum e_river;
 
@@ -743,7 +743,7 @@ TEST_CASE( "[goto] compute_harbor_goto_path" ) {
       w.ss(), w.default_player_type() );
 
   using enum e_surface;
-  using enum e_ground_terrain;
+  using enum e_biome;
   using enum e_land_overlay;
   using enum e_river;
 
@@ -1298,7 +1298,7 @@ TEST_CASE( "[goto] unit_has_reached_goto_target" ) {
   goto_target target;
 
   using enum e_surface;
-  using enum e_ground_terrain;
+  using enum e_biome;
   using enum e_land_overlay;
   using enum e_river;
   using enum e_unit_type;
@@ -1380,7 +1380,7 @@ TEST_CASE( "[goto] find_goto_port" ) {
         w.default_player_type(), unit_type, src );
   };
 
-  using enum e_ground_terrain;
+  using enum e_biome;
   using enum e_land_overlay;
   using enum e_player;
   using enum e_revolution_status;
@@ -2027,7 +2027,7 @@ TEST_CASE( "[goto] ask_goto_port" ) {
   };
 
   using enum e_surface;
-  using enum e_ground_terrain;
+  using enum e_biome;
   using enum e_land_overlay;
   using enum e_river;
   using enum e_unit_type;
@@ -2182,7 +2182,7 @@ TEST_CASE( "[goto] compute_goto_target_snapshot" ) {
 
   {
     using enum e_surface;
-    using enum e_ground_terrain;
+    using enum e_biome;
     using enum e_land_overlay;
     using enum e_river;
     using enum e_unit_type;
@@ -2460,7 +2460,7 @@ TEST_CASE( "[goto] create_goto_map_target" ) {
 
   {
     using enum e_surface;
-    using enum e_ground_terrain;
+    using enum e_biome;
     using enum e_land_overlay;
     using enum e_river;
     using enum e_unit_type;
@@ -2931,7 +2931,7 @@ TEST_CASE( "[goto] find_next_move_for_unit_with_goto_target" ) {
 
   {
     using enum e_surface;
-    using enum e_ground_terrain;
+    using enum e_biome;
     using enum e_land_overlay;
     using enum e_river;
     using enum e_unit_type;
@@ -3167,7 +3167,7 @@ TEST_CASE( "[goto] find_next_move_for_unit_with_goto_target" ) {
 
   {
     using enum e_surface;
-    using enum e_ground_terrain;
+    using enum e_biome;
     using enum e_land_overlay;
     using enum e_river;
     using enum e_unit_type;

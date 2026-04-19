@@ -222,53 +222,53 @@ void rn_bidirectional_scenario_1( rn::RootState& out ) {
   squares.resize( 6 * 8 );
   using M     = rn::MapSquare;
   squares[0]  = M{ .surface = rn::e_surface::land,
-                   .ground  = rn::e_ground_terrain::tundra };
+                   .ground  = rn::e_biome::tundra };
   squares[1]  = M{ .surface = rn::e_surface::land,
-                   .ground  = rn::e_ground_terrain::desert };
+                   .ground  = rn::e_biome::desert };
   squares[2]  = M{ .surface = rn::e_surface::land,
-                   .ground  = rn::e_ground_terrain::plains };
+                   .ground  = rn::e_biome::plains };
   squares[3]  = M{ .surface = rn::e_surface::land,
-                   .ground  = rn::e_ground_terrain::prairie };
+                   .ground  = rn::e_biome::prairie };
   squares[4]  = M{ .surface = rn::e_surface::land,
-                   .ground  = rn::e_ground_terrain::grassland };
+                   .ground  = rn::e_biome::grassland };
   squares[5]  = M{ .surface = rn::e_surface::land,
-                   .ground  = rn::e_ground_terrain::savannah };
+                   .ground  = rn::e_biome::savannah };
   squares[6]  = M{ .surface = rn::e_surface::land,
-                   .ground  = rn::e_ground_terrain::swamp };
+                   .ground  = rn::e_biome::swamp };
   squares[7]  = M{ .surface = rn::e_surface::land,
-                   .ground  = rn::e_ground_terrain::marsh };
+                   .ground  = rn::e_biome::marsh };
   squares[8]  = M{ .surface = rn::e_surface::land,
-                   .ground  = rn::e_ground_terrain::tundra,
+                   .ground  = rn::e_biome::tundra,
                    .overlay = rn::e_land_overlay::forest };
   squares[9]  = M{ .surface = rn::e_surface::land,
-                   .ground  = rn::e_ground_terrain::desert,
+                   .ground  = rn::e_biome::desert,
                    .overlay = rn::e_land_overlay::forest };
   squares[10] = M{ .surface = rn::e_surface::land,
-                   .ground  = rn::e_ground_terrain::plains,
+                   .ground  = rn::e_biome::plains,
                    .overlay = rn::e_land_overlay::forest };
   squares[11] = M{ .surface = rn::e_surface::land,
-                   .ground  = rn::e_ground_terrain::prairie,
+                   .ground  = rn::e_biome::prairie,
                    .overlay = rn::e_land_overlay::forest };
   squares[12] = M{ .surface = rn::e_surface::land,
-                   .ground  = rn::e_ground_terrain::grassland,
+                   .ground  = rn::e_biome::grassland,
                    .overlay = rn::e_land_overlay::forest };
   squares[13] = M{ .surface = rn::e_surface::land,
-                   .ground  = rn::e_ground_terrain::savannah,
+                   .ground  = rn::e_biome::savannah,
                    .overlay = rn::e_land_overlay::forest };
   squares[14] = M{ .surface = rn::e_surface::land,
-                   .ground  = rn::e_ground_terrain::swamp,
+                   .ground  = rn::e_biome::swamp,
                    .overlay = rn::e_land_overlay::forest };
   squares[15] = M{ .surface = rn::e_surface::land,
-                   .ground  = rn::e_ground_terrain::marsh,
+                   .ground  = rn::e_biome::marsh,
                    .overlay = rn::e_land_overlay::forest };
 
   squares[16] = M{ .surface = rn::e_surface::land,
-                   .ground  = rn::e_ground_terrain::arctic };
+                   .ground  = rn::e_biome::arctic };
   squares[17] = M{ .surface = rn::e_surface::water,
-                   .ground  = rn::e_ground_terrain::arctic };
+                   .ground  = rn::e_biome::arctic };
   squares[18] = M{ .sea_lane = true };
   squares[19] = M{ .surface = rn::e_surface::land,
-                   .ground  = rn::e_ground_terrain::arctic,
+                   .ground  = rn::e_biome::arctic,
                    .overlay = rn::e_land_overlay::mountains };
 
   squares[1].overlay = rn::e_land_overlay::hills;
@@ -545,53 +545,53 @@ void rn_unidirectional_scenario_2( rn::RootState& out ) {
   squares.resize( 6 * 8 );
   using M     = rn::MapSquare;
   squares[0]  = M{ .surface = rn::e_surface::land,
-                   .ground  = rn::e_ground_terrain::tundra };
+                   .ground  = rn::e_biome::tundra };
   squares[1]  = M{ .surface = rn::e_surface::land,
-                   .ground  = rn::e_ground_terrain::desert };
+                   .ground  = rn::e_biome::desert };
   squares[2]  = M{ .surface = rn::e_surface::land,
-                   .ground  = rn::e_ground_terrain::plains };
+                   .ground  = rn::e_biome::plains };
   squares[3]  = M{ .surface = rn::e_surface::land,
-                   .ground  = rn::e_ground_terrain::prairie };
+                   .ground  = rn::e_biome::prairie };
   squares[4]  = M{ .surface = rn::e_surface::land,
-                   .ground  = rn::e_ground_terrain::grassland };
+                   .ground  = rn::e_biome::grassland };
   squares[5]  = M{ .surface = rn::e_surface::land,
-                   .ground  = rn::e_ground_terrain::savannah };
+                   .ground  = rn::e_biome::savannah };
   squares[6]  = M{ .surface = rn::e_surface::land,
-                   .ground  = rn::e_ground_terrain::swamp };
+                   .ground  = rn::e_biome::swamp };
   squares[7]  = M{ .surface = rn::e_surface::land,
-                   .ground  = rn::e_ground_terrain::marsh };
+                   .ground  = rn::e_biome::marsh };
   squares[8]  = M{ .surface = rn::e_surface::land,
-                   .ground  = rn::e_ground_terrain::tundra,
+                   .ground  = rn::e_biome::tundra,
                    .overlay = rn::e_land_overlay::forest };
   squares[9]  = M{ .surface = rn::e_surface::land,
-                   .ground  = rn::e_ground_terrain::desert,
+                   .ground  = rn::e_biome::desert,
                    .overlay = rn::e_land_overlay::forest };
   squares[10] = M{ .surface = rn::e_surface::land,
-                   .ground  = rn::e_ground_terrain::plains,
+                   .ground  = rn::e_biome::plains,
                    .overlay = rn::e_land_overlay::forest };
   squares[11] = M{ .surface = rn::e_surface::land,
-                   .ground  = rn::e_ground_terrain::prairie,
+                   .ground  = rn::e_biome::prairie,
                    .overlay = rn::e_land_overlay::forest };
   squares[12] = M{ .surface = rn::e_surface::land,
-                   .ground  = rn::e_ground_terrain::grassland,
+                   .ground  = rn::e_biome::grassland,
                    .overlay = rn::e_land_overlay::forest };
   squares[13] = M{ .surface = rn::e_surface::land,
-                   .ground  = rn::e_ground_terrain::savannah,
+                   .ground  = rn::e_biome::savannah,
                    .overlay = rn::e_land_overlay::forest };
   squares[14] = M{ .surface = rn::e_surface::land,
-                   .ground  = rn::e_ground_terrain::swamp,
+                   .ground  = rn::e_biome::swamp,
                    .overlay = rn::e_land_overlay::forest };
   squares[15] = M{ .surface = rn::e_surface::land,
-                   .ground  = rn::e_ground_terrain::marsh,
+                   .ground  = rn::e_biome::marsh,
                    .overlay = rn::e_land_overlay::forest };
 
   squares[16] = M{ .surface = rn::e_surface::land,
-                   .ground  = rn::e_ground_terrain::arctic };
+                   .ground  = rn::e_biome::arctic };
   squares[17] = M{ .surface = rn::e_surface::water,
-                   .ground  = rn::e_ground_terrain::arctic };
+                   .ground  = rn::e_biome::arctic };
   squares[18] = M{ .sea_lane = true };
   squares[19] = M{ .surface = rn::e_surface::land,
-                   .ground  = rn::e_ground_terrain::arctic,
+                   .ground  = rn::e_biome::arctic,
                    .overlay = rn::e_land_overlay::mountains };
 
   squares[1].overlay  = rn::e_land_overlay::hills;
@@ -765,101 +765,101 @@ TEST_CASE( "[sav/bridge] OG to NG [MapFile]" ) {
   REQUIRE( map[{ .x = 1, .y = 0 }] == expected );
 
   expected = MS{ .surface = rn::e_surface::land,
-                 .ground  = rn::e_ground_terrain::tundra };
+                 .ground  = rn::e_biome::tundra };
   REQUIRE( map[{ .x = 2, .y = 0 }] == expected );
   expected = MS{ .surface = rn::e_surface::land,
-                 .ground  = rn::e_ground_terrain::marsh };
+                 .ground  = rn::e_biome::marsh };
   REQUIRE( map[{ .x = 3, .y = 0 }] == expected );
   expected = MS{ .surface = rn::e_surface::land,
-                 .ground  = rn::e_ground_terrain::swamp };
+                 .ground  = rn::e_biome::swamp };
   REQUIRE( map[{ .x = 4, .y = 0 }] == expected );
   expected = MS{ .surface = rn::e_surface::land,
-                 .ground  = rn::e_ground_terrain::arctic };
+                 .ground  = rn::e_biome::arctic };
   REQUIRE( map[{ .x = 0, .y = 1 }] == expected );
   expected = MS{ .surface = rn::e_surface::land,
-                 .ground  = rn::e_ground_terrain::desert,
+                 .ground  = rn::e_biome::desert,
                  .overlay = rn::e_land_overlay::hills };
   REQUIRE( map[{ .x = 1, .y = 1 }] == expected );
   expected = MS{ .surface = rn::e_surface::land,
-                 .ground  = rn::e_ground_terrain::plains,
+                 .ground  = rn::e_biome::plains,
                  .overlay = rn::e_land_overlay::mountains };
   REQUIRE( map[{ .x = 2, .y = 1 }] == expected );
   expected = MS{ .surface = rn::e_surface::land,
-                 .ground  = rn::e_ground_terrain::prairie,
+                 .ground  = rn::e_biome::prairie,
                  .river   = rn::e_river::minor };
   REQUIRE( map[{ .x = 3, .y = 1 }] == expected );
   expected = MS{ .surface = rn::e_surface::land,
-                 .ground  = rn::e_ground_terrain::savannah,
+                 .ground  = rn::e_biome::savannah,
                  .river   = rn::e_river::major };
   REQUIRE( map[{ .x = 4, .y = 1 }] == expected );
   expected = MS{ .surface = rn::e_surface::land,
-                 .ground  = rn::e_ground_terrain::grassland,
+                 .ground  = rn::e_biome::grassland,
                  .overlay = rn::e_land_overlay::hills,
                  .river   = rn::e_river::minor };
   REQUIRE( map[{ .x = 0, .y = 2 }] == expected );
   expected = MS{ .surface = rn::e_surface::land,
-                 .ground  = rn::e_ground_terrain::tundra,
+                 .ground  = rn::e_biome::tundra,
                  .overlay = rn::e_land_overlay::forest };
   REQUIRE( map[{ .x = 1, .y = 2 }] == expected );
   expected = MS{ .surface = rn::e_surface::land,
-                 .ground  = rn::e_ground_terrain::grassland,
+                 .ground  = rn::e_biome::grassland,
                  .overlay = rn::e_land_overlay::forest };
   REQUIRE( map[{ .x = 2, .y = 2 }] == expected );
   expected = MS{ .surface = rn::e_surface::land,
-                 .ground  = rn::e_ground_terrain::savannah,
+                 .ground  = rn::e_biome::savannah,
                  .overlay = rn::e_land_overlay::forest };
   REQUIRE( map[{ .x = 3, .y = 2 }] == expected );
   expected = MS{ .surface = rn::e_surface::land,
-                 .ground  = rn::e_ground_terrain::prairie,
+                 .ground  = rn::e_biome::prairie,
                  .overlay = rn::e_land_overlay::forest };
   REQUIRE( map[{ .x = 4, .y = 2 }] == expected );
   expected = MS{ .surface = rn::e_surface::land,
-                 .ground  = rn::e_ground_terrain::plains,
+                 .ground  = rn::e_biome::plains,
                  .overlay = rn::e_land_overlay::forest };
   REQUIRE( map[{ .x = 0, .y = 3 }] == expected );
   expected = MS{ .surface = rn::e_surface::land,
-                 .ground  = rn::e_ground_terrain::desert,
+                 .ground  = rn::e_biome::desert,
                  .overlay = rn::e_land_overlay::forest };
   REQUIRE( map[{ .x = 1, .y = 3 }] == expected );
   expected = MS{ .surface = rn::e_surface::land,
-                 .ground  = rn::e_ground_terrain::arctic,
+                 .ground  = rn::e_biome::arctic,
                  .overlay = rn::e_land_overlay::mountains };
   REQUIRE( map[{ .x = 2, .y = 3 }] == expected );
   expected = MS{ .surface = rn::e_surface::land,
-                 .ground  = rn::e_ground_terrain::swamp,
+                 .ground  = rn::e_biome::swamp,
                  .overlay = rn::e_land_overlay::forest };
   REQUIRE( map[{ .x = 3, .y = 3 }] == expected );
   expected = MS{ .surface = rn::e_surface::land,
-                 .ground  = rn::e_ground_terrain::marsh,
+                 .ground  = rn::e_biome::marsh,
                  .overlay = rn::e_land_overlay::forest };
   REQUIRE( map[{ .x = 4, .y = 3 }] == expected );
   expected = MS{ .surface = rn::e_surface::land,
-                 .ground  = rn::e_ground_terrain::tundra };
+                 .ground  = rn::e_biome::tundra };
   REQUIRE( map[{ .x = 0, .y = 4 }] == expected );
   expected = MS{ .surface = rn::e_surface::land,
-                 .ground  = rn::e_ground_terrain::tundra };
+                 .ground  = rn::e_biome::tundra };
   REQUIRE( map[{ .x = 1, .y = 4 }] == expected );
   expected = MS{ .surface = rn::e_surface::land,
-                 .ground  = rn::e_ground_terrain::tundra };
+                 .ground  = rn::e_biome::tundra };
   REQUIRE( map[{ .x = 2, .y = 4 }] == expected );
   expected = MS{ .surface = rn::e_surface::land,
-                 .ground  = rn::e_ground_terrain::tundra };
+                 .ground  = rn::e_biome::tundra };
   REQUIRE( map[{ .x = 3, .y = 4 }] == expected );
   expected = MS{ .surface = rn::e_surface::land,
-                 .ground  = rn::e_ground_terrain::tundra };
+                 .ground  = rn::e_biome::tundra };
   REQUIRE( map[{ .x = 4, .y = 4 }] == expected );
   REQUIRE( map[{ .x = 0, .y = 5 }] == expected );
   expected = MS{ .surface = rn::e_surface::land,
-                 .ground  = rn::e_ground_terrain::tundra };
+                 .ground  = rn::e_biome::tundra };
   REQUIRE( map[{ .x = 1, .y = 5 }] == expected );
   expected = MS{ .surface = rn::e_surface::land,
-                 .ground  = rn::e_ground_terrain::tundra };
+                 .ground  = rn::e_biome::tundra };
   REQUIRE( map[{ .x = 2, .y = 5 }] == expected );
   expected = MS{ .surface = rn::e_surface::land,
-                 .ground  = rn::e_ground_terrain::tundra };
+                 .ground  = rn::e_biome::tundra };
   REQUIRE( map[{ .x = 3, .y = 5 }] == expected );
   expected = MS{ .surface = rn::e_surface::land,
-                 .ground  = rn::e_ground_terrain::tundra };
+                 .ground  = rn::e_biome::tundra };
   REQUIRE( map[{ .x = 4, .y = 5 }] == expected );
 }
 
@@ -883,85 +883,85 @@ TEST_CASE( "[sav/bridge] NG to OG [MapFile]" ) {
 
   modern_at( { .x = 0, .y = 0 } ) =
       MS{ .surface = rn::e_surface::land,
-          .ground  = rn::e_ground_terrain::tundra };
+          .ground  = rn::e_biome::tundra };
   modern_at( { .x = 1, .y = 0 } ) =
       MS{ .surface = rn::e_surface::land,
-          .ground  = rn::e_ground_terrain::desert };
+          .ground  = rn::e_biome::desert };
   modern_at( { .x = 2, .y = 0 } ) =
       MS{ .surface = rn::e_surface::land,
-          .ground  = rn::e_ground_terrain::plains };
+          .ground  = rn::e_biome::plains };
   modern_at( { .x = 3, .y = 0 } ) =
       MS{ .surface = rn::e_surface::land,
-          .ground  = rn::e_ground_terrain::prairie };
+          .ground  = rn::e_biome::prairie };
   modern_at( { .x = 4, .y = 0 } ) =
       MS{ .surface = rn::e_surface::land,
-          .ground  = rn::e_ground_terrain::grassland };
+          .ground  = rn::e_biome::grassland };
   modern_at( { .x = 0, .y = 1 } ) =
       MS{ .surface = rn::e_surface::land,
-          .ground  = rn::e_ground_terrain::savannah };
+          .ground  = rn::e_biome::savannah };
   modern_at( { .x = 1, .y = 1 } ) =
       MS{ .surface = rn::e_surface::land,
-          .ground  = rn::e_ground_terrain::marsh };
+          .ground  = rn::e_biome::marsh };
   modern_at( { .x = 2, .y = 1 } ) =
       MS{ .surface = rn::e_surface::land,
-          .ground  = rn::e_ground_terrain::swamp };
+          .ground  = rn::e_biome::swamp };
   modern_at( { .x = 3, .y = 1 } ) =
       MS{ .surface = rn::e_surface::land,
-          .ground  = rn::e_ground_terrain::tundra,
+          .ground  = rn::e_biome::tundra,
           .overlay = rn::e_land_overlay::forest };
   modern_at( { .x = 4, .y = 1 } ) =
       MS{ .surface = rn::e_surface::land,
-          .ground  = rn::e_ground_terrain::desert,
+          .ground  = rn::e_biome::desert,
           .overlay = rn::e_land_overlay::forest };
   modern_at( { .x = 0, .y = 2 } ) =
       MS{ .surface = rn::e_surface::land,
-          .ground  = rn::e_ground_terrain::plains,
+          .ground  = rn::e_biome::plains,
           .overlay = rn::e_land_overlay::forest };
   modern_at( { .x = 1, .y = 2 } ) =
       MS{ .surface = rn::e_surface::land,
-          .ground  = rn::e_ground_terrain::prairie,
+          .ground  = rn::e_biome::prairie,
           .overlay = rn::e_land_overlay::forest };
   modern_at( { .x = 2, .y = 2 } ) =
       MS{ .surface = rn::e_surface::land,
-          .ground  = rn::e_ground_terrain::grassland,
+          .ground  = rn::e_biome::grassland,
           .overlay = rn::e_land_overlay::forest };
   modern_at( { .x = 3, .y = 2 } ) =
       MS{ .surface = rn::e_surface::land,
-          .ground  = rn::e_ground_terrain::savannah,
+          .ground  = rn::e_biome::savannah,
           .overlay = rn::e_land_overlay::forest };
   modern_at( { .x = 4, .y = 2 } ) =
       MS{ .surface = rn::e_surface::land,
-          .ground  = rn::e_ground_terrain::marsh,
+          .ground  = rn::e_biome::marsh,
           .overlay = rn::e_land_overlay::forest };
   modern_at( { .x = 0, .y = 3 } ) =
       MS{ .surface = rn::e_surface::land,
-          .ground  = rn::e_ground_terrain::swamp,
+          .ground  = rn::e_biome::swamp,
           .overlay = rn::e_land_overlay::forest };
   modern_at( { .x = 1, .y = 3 } ) =
       MS{ .surface = rn::e_surface::land,
-          .ground  = rn::e_ground_terrain::arctic };
+          .ground  = rn::e_biome::arctic };
   modern_at( { .x = 2, .y = 3 } ) =
       MS{ .surface = rn::e_surface::water, .sea_lane = true };
   modern_at( { .x = 3, .y = 3 } ) =
       MS{ .surface = rn::e_surface::land,
-          .ground  = rn::e_ground_terrain::arctic,
+          .ground  = rn::e_biome::arctic,
           .overlay = rn::e_land_overlay::mountains };
   modern_at( { .x = 4, .y = 3 } ) =
       MS{ .surface = rn::e_surface::land,
-          .ground  = rn::e_ground_terrain::grassland,
+          .ground  = rn::e_biome::grassland,
           .river   = rn::e_river::major };
   modern_at( { .x = 0, .y = 4 } ) =
       MS{ .surface = rn::e_surface::land,
-          .ground  = rn::e_ground_terrain::grassland,
+          .ground  = rn::e_biome::grassland,
           .overlay = rn::e_land_overlay::hills,
           .river   = rn::e_river::minor };
   modern_at( { .x = 1, .y = 4 } ) =
       MS{ .surface = rn::e_surface::land,
-          .ground  = rn::e_ground_terrain::grassland,
+          .ground  = rn::e_biome::grassland,
           .river   = rn::e_river::minor };
   modern_at( { .x = 2, .y = 4 } ) =
       MS{ .surface = rn::e_surface::land,
-          .ground  = rn::e_ground_terrain::grassland,
+          .ground  = rn::e_biome::grassland,
           .overlay = rn::e_land_overlay::hills };
 
   sav::TILE expected;

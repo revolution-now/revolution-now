@@ -110,23 +110,23 @@ gfx::pixel color_for_square( MapSquare const& square ) {
     }
   }
   switch( square.ground ) {
-    case e_ground_terrain::arctic:
+    case e_biome::arctic:
       return kArcticColor;
-    case e_ground_terrain::desert:
+    case e_biome::desert:
       return kDesertColor;
-    case e_ground_terrain::grassland:
+    case e_biome::grassland:
       return kGrasslandColor;
-    case e_ground_terrain::marsh:
+    case e_biome::marsh:
       return kMarshColor;
-    case e_ground_terrain::plains:
+    case e_biome::plains:
       return kPlainsColor;
-    case e_ground_terrain::prairie:
+    case e_biome::prairie:
       return kPrairieColor;
-    case e_ground_terrain::savannah:
+    case e_biome::savannah:
       return kSavannahColor;
-    case e_ground_terrain::swamp:
+    case e_biome::swamp:
       return kSwampColor;
-    case e_ground_terrain::tundra:
+    case e_biome::tundra:
       return kTundraColor;
   }
 }

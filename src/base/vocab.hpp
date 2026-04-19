@@ -45,8 +45,7 @@ struct NoCopy {
   NoCopy& operator=( T&& val_ ) { val = std::move( val_ ); }
 
   NoCopy& operator=( NoCopy&& ) &
-  requires( std::is_move_assignable_v<T> )
-  = default;
+      requires( std::is_move_assignable_v<T> ) = default;
 
   /**************************************************************
   ** Now Allowed

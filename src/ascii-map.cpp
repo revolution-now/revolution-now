@@ -66,7 +66,7 @@ struct AsciiMapBiomeFormatter : IAsciiMapFormatter {
   static string_view fg_color_for( MapSquare const& square ) {
     if( square.surface == e_surface::water ) return kOceanFg;
     switch( square.ground ) {
-      using enum e_ground_terrain;
+      using enum e_biome;
       case arctic:
         return kArcticFg;
       case desert:
@@ -91,7 +91,7 @@ struct AsciiMapBiomeFormatter : IAsciiMapFormatter {
   static string_view bg_color_for( MapSquare const& square ) {
     if( square.surface == e_surface::water ) return kOceanBg;
     switch( square.ground ) {
-      using enum e_ground_terrain;
+      using enum e_biome;
       case arctic:
         return kArcticBg;
       case desert:

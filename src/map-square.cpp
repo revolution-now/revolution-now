@@ -105,8 +105,7 @@ MapSquare map_square_for_terrain( e_terrain terrain ) {
   if( terrain == e_terrain::mountains )
     return MapSquare{ .surface = e_surface::land,
                       .overlay = e_land_overlay::mountains };
-  if( maybe<e_ground_terrain> cleared =
-          cleared_forest( terrain );
+  if( maybe<e_biome> cleared = cleared_forest( terrain );
       cleared )
     // Forest square.
     return MapSquare{ .surface = e_surface::land,

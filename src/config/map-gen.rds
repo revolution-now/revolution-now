@@ -101,13 +101,13 @@ struct.BiomeCurve {
 
 struct.BiomeDensities {
   normal_temperature_and_climate [[
-    refl::enum_map<e_ground_terrain, BiomeCurve>
+    refl::enum_map<e_biome, BiomeCurve>
   ]],
   temperature_gradient [[
-    refl::enum_map<e_ground_terrain, BiomeCurveParams>
+    refl::enum_map<e_biome, BiomeCurveParams>
   ]],
   climate_gradient [[
-    refl::enum_map<e_ground_terrain, BiomeCurveParams>
+    refl::enum_map<e_biome, BiomeCurveParams>
   ]],
 }
 

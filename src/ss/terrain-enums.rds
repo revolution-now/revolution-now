@@ -10,7 +10,7 @@
 # ===============================================================
 namespace "rn"
 
-enum.e_ground_terrain {
+enum.e_biome {
   arctic,
   desert,
   grassland,

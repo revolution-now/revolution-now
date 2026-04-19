@@ -225,7 +225,7 @@ TEST_CASE( "[map-square] effective_terrain" ) {
 
   square = MapSquare{
     .surface = e_surface::land,
-    .ground  = e_ground_terrain::savannah,
+    .ground  = e_biome::savannah,
     .road    = true,
   };
   expected = e_terrain::savannah;
@@ -233,7 +233,7 @@ TEST_CASE( "[map-square] effective_terrain" ) {
 
   square = MapSquare{
     .surface = e_surface::land,
-    .ground  = e_ground_terrain::savannah,
+    .ground  = e_biome::savannah,
     .overlay = e_land_overlay::forest,
     .road    = true,
   };
@@ -242,7 +242,7 @@ TEST_CASE( "[map-square] effective_terrain" ) {
 
   square = MapSquare{
     .surface = e_surface::land,
-    .ground  = e_ground_terrain::savannah,
+    .ground  = e_biome::savannah,
     .overlay = e_land_overlay::hills,
     .road    = true,
   };
@@ -251,7 +251,7 @@ TEST_CASE( "[map-square] effective_terrain" ) {
 
   square = MapSquare{
     .surface = e_surface::land,
-    .ground  = e_ground_terrain::savannah,
+    .ground  = e_biome::savannah,
     .overlay = e_land_overlay::mountains,
     .road    = true,
   };
@@ -260,7 +260,7 @@ TEST_CASE( "[map-square] effective_terrain" ) {
 
   square = MapSquare{
     .surface = e_surface::land,
-    .ground  = e_ground_terrain::arctic,
+    .ground  = e_biome::arctic,
     .road    = true,
   };
   expected = e_terrain::arctic;
@@ -280,7 +280,7 @@ TEST_CASE( "[map-square] has_forest" ) {
 
   square = MapSquare{
     .surface = e_surface::land,
-    .ground  = e_ground_terrain::savannah,
+    .ground  = e_biome::savannah,
     .road    = true,
   };
   expected = false;
@@ -288,7 +288,7 @@ TEST_CASE( "[map-square] has_forest" ) {
 
   square = MapSquare{
     .surface = e_surface::land,
-    .ground  = e_ground_terrain::savannah,
+    .ground  = e_biome::savannah,
     .overlay = e_land_overlay::forest,
     .road    = true,
   };
@@ -297,7 +297,7 @@ TEST_CASE( "[map-square] has_forest" ) {
 
   square = MapSquare{
     .surface = e_surface::land,
-    .ground  = e_ground_terrain::savannah,
+    .ground  = e_biome::savannah,
     .overlay = e_land_overlay::hills,
   };
   expected = false;
@@ -305,7 +305,7 @@ TEST_CASE( "[map-square] has_forest" ) {
 
   square = MapSquare{
     .surface = e_surface::land,
-    .ground  = e_ground_terrain::savannah,
+    .ground  = e_biome::savannah,
     .overlay = e_land_overlay::mountains,
   };
   expected = false;
@@ -313,7 +313,7 @@ TEST_CASE( "[map-square] has_forest" ) {
 
   square = MapSquare{
     .surface = e_surface::land,
-    .ground  = e_ground_terrain::arctic,
+    .ground  = e_biome::arctic,
   };
   expected = false;
   REQUIRE( has_forest( square ) == expected );
@@ -324,7 +324,7 @@ TEST_CASE( "[map-square] clear_forest" ) {
 
   square = expected = MapSquare{
     .surface         = e_surface::land,
-    .ground          = e_ground_terrain::savannah,
+    .ground          = e_biome::savannah,
     .overlay         = e_land_overlay::forest,
     .forest_resource = e_natural_resource::beaver,
   };
@@ -338,7 +338,7 @@ TEST_CASE( "[map-square] clear_forest" ) {
 
   square = expected = MapSquare{
     .surface = e_surface::land,
-    .ground  = e_ground_terrain::desert,
+    .ground  = e_biome::desert,
     .overlay = e_land_overlay::forest,
   };
   expected.overlay = nothing;
@@ -354,7 +354,7 @@ TEST_CASE( "[map-square] irrigate" ) {
 
   square = expected = MapSquare{
     .surface = e_surface::land,
-    .ground  = e_ground_terrain::savannah,
+    .ground  = e_biome::savannah,
   };
   expected.irrigation = true;
   irrigate( square );
@@ -362,7 +362,7 @@ TEST_CASE( "[map-square] irrigate" ) {
 
   square = expected = MapSquare{
     .surface = e_surface::land,
-    .ground  = e_ground_terrain::desert,
+    .ground  = e_biome::desert,
   };
   expected.irrigation = true;
   irrigate( square );
@@ -381,21 +381,21 @@ TEST_CASE( "[map-square] map_square_for_terrain" ) {
   square   = map_square_for_terrain( e_terrain::arctic );
   expected = MapSquare{
     .surface = e_surface::land,
-    .ground  = e_ground_terrain::arctic,
+    .ground  = e_biome::arctic,
   };
   REQUIRE( square == expected );
 
   square   = map_square_for_terrain( e_terrain::grassland );
   expected = MapSquare{
     .surface = e_surface::land,
-    .ground  = e_ground_terrain::grassland,
+    .ground  = e_biome::grassland,
   };
   REQUIRE( square == expected );
 
   square   = map_square_for_terrain( e_terrain::conifer );
   expected = MapSquare{
     .surface = e_surface::land,
-    .ground  = e_ground_terrain::grassland,
+    .ground  = e_biome::grassland,
     .overlay = e_land_overlay::forest,
   };
   REQUIRE( square == expected );
@@ -403,14 +403,14 @@ TEST_CASE( "[map-square] map_square_for_terrain" ) {
   square   = map_square_for_terrain( e_terrain::prairie );
   expected = MapSquare{
     .surface = e_surface::land,
-    .ground  = e_ground_terrain::prairie,
+    .ground  = e_biome::prairie,
   };
   REQUIRE( square == expected );
 
   square   = map_square_for_terrain( e_terrain::broadleaf );
   expected = MapSquare{
     .surface = e_surface::land,
-    .ground  = e_ground_terrain::prairie,
+    .ground  = e_biome::prairie,
     .overlay = e_land_overlay::forest,
   };
   REQUIRE( square == expected );

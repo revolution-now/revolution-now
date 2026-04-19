@@ -57,7 +57,7 @@ valid_or<string> MapSquare::validate() const {
     // e_terrain cannot represent it) so we must prohibit it.
     bool const has_forest_on_arctic =
         overlay == e_land_overlay::forest &&
-        ground == e_ground_terrain::arctic;
+        ground == e_biome::arctic;
     REFL_VALIDATE( !has_forest_on_arctic,
                    "cannot have forest on an arctic tile." );
   }

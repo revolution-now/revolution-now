@@ -68,50 +68,50 @@ TEST_CASE( "[classic-sav] load_classic_binary_map_file" ) {
 
   coord    = { .x = 0, .y = 0 };
   expected = MapSquare{ .surface = e_surface::land,
-                        .ground  = e_ground_terrain::tundra,
+                        .ground  = e_biome::tundra,
                         .overlay = e_land_overlay::hills };
   REQUIRE( real_terrain.map[coord] == expected );
 
   coord    = { .x = 23, .y = 19 };
   expected = MapSquare{ .surface = e_surface::land,
-                        .ground  = e_ground_terrain::grassland,
+                        .ground  = e_biome::grassland,
                         .overlay = e_land_overlay::hills };
   REQUIRE( real_terrain.map[coord] == expected );
 
   coord    = { .x = 21, .y = 21 };
   expected = MapSquare{ .surface = e_surface::land,
-                        .ground  = e_ground_terrain::prairie,
+                        .ground  = e_biome::prairie,
                         .overlay = e_land_overlay::forest,
                         .river   = e_river::major };
   REQUIRE( real_terrain.map[coord] == expected );
 
   coord    = { .x = 21, .y = 31 };
   expected = MapSquare{ .surface = e_surface::land,
-                        .ground  = e_ground_terrain::swamp,
+                        .ground  = e_biome::swamp,
                         .overlay = e_land_overlay::forest };
   REQUIRE( real_terrain.map[coord] == expected );
 
   coord    = { .x = 27, .y = 20 };
   expected = MapSquare{ .surface = e_surface::land,
-                        .ground  = e_ground_terrain::marsh,
+                        .ground  = e_biome::marsh,
                         .overlay = e_land_overlay::forest };
   REQUIRE( real_terrain.map[coord] == expected );
 
   coord    = { .x = 44, .y = 47 };
   expected = MapSquare{ .surface = e_surface::land,
-                        .ground  = e_ground_terrain::marsh,
+                        .ground  = e_biome::marsh,
                         .river   = e_river::minor };
   REQUIRE( real_terrain.map[coord] == expected );
 
   coord    = { .x = 7, .y = 14 };
   expected = MapSquare{ .surface = e_surface::land,
-                        .ground  = e_ground_terrain::desert,
+                        .ground  = e_biome::desert,
                         .overlay = e_land_overlay::mountains };
   REQUIRE( real_terrain.map[coord] == expected );
 
   coord    = { .x = 10, .y = 10 };
   expected = MapSquare{ .surface = e_surface::land,
-                        .ground  = e_ground_terrain::plains };
+                        .ground  = e_biome::plains };
   REQUIRE( real_terrain.map[coord] == expected );
 }
 

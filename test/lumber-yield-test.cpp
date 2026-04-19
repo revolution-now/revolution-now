@@ -168,7 +168,7 @@ TEST_CASE( "[lumber-yield] pioneer" ) {
       "one colony, empty capacity, lumber mill, broadleaf" ) {
     auto [colony, founder] =
         W.found_colony_with_new_unit( { .x = 2, .y = 2 } );
-    W.square( plow_loc ).ground = e_ground_terrain::prairie;
+    W.square( plow_loc ).ground = e_biome::prairie;
     colony.buildings[e_colony_building::lumber_mill] = true;
     colony.commodities[e_commodity::lumber]          = 0;
     expected = { LumberYield{ .colony_id              = 1,
@@ -329,7 +329,7 @@ TEST_CASE( "[lumber-yield] hardy_pioneer" ) {
       "one colony, empty capacity, lumber mill, broadleaf" ) {
     auto [colony, founder] =
         W.found_colony_with_new_unit( { .x = 2, .y = 2 } );
-    W.square( plow_loc ).ground = e_ground_terrain::prairie;
+    W.square( plow_loc ).ground = e_biome::prairie;
     colony.buildings[e_colony_building::lumber_mill] = true;
     colony.commodities[e_commodity::lumber]          = 0;
     expected = { LumberYield{ .colony_id              = 1,

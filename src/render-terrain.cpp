@@ -80,30 +80,30 @@ void render_pixelated_overlay_transitions(
     refl::enum_map<e_cdirection, bool> const& has_overlay,
     e_tile overlay_tile );
 
-e_tile tile_for_ground_terrain( e_ground_terrain terrain ) {
+e_tile tile_for_ground_terrain( e_biome terrain ) {
   switch( terrain ) {
-    case e_ground_terrain::arctic:
+    case e_biome::arctic:
       return e_tile::terrain_arctic;
-    case e_ground_terrain::desert:
+    case e_biome::desert:
       return e_tile::terrain_desert;
-    case e_ground_terrain::grassland:
+    case e_biome::grassland:
       return e_tile::terrain_grassland;
-    case e_ground_terrain::marsh:
+    case e_biome::marsh:
       return e_tile::terrain_marsh;
-    case e_ground_terrain::plains:
+    case e_biome::plains:
       return e_tile::terrain_plains;
-    case e_ground_terrain::prairie:
+    case e_biome::prairie:
       return e_tile::terrain_prairie;
-    case e_ground_terrain::savannah:
+    case e_biome::savannah:
       return e_tile::terrain_savannah;
-    case e_ground_terrain::swamp:
+    case e_biome::swamp:
       return e_tile::terrain_swamp;
-    case e_ground_terrain::tundra:
+    case e_biome::tundra:
       return e_tile::terrain_tundra;
   }
 }
 
-maybe<e_ground_terrain> ground_terrain_for_square(
+maybe<e_biome> ground_terrain_for_square(
     IVisibility const& viz, MapSquare const& square,
     Coord world_square ) {
   if( square.surface == e_surface::land ) return square.ground;
@@ -430,7 +430,7 @@ void render_adjacent_overlap( IVisibility const& viz,
         painter_mods.depixelate.stage_anchor,
         dst.to_gfx().to_double() );
     // Need a new painter since we changed the mods.
-    maybe<e_ground_terrain> ground = ground_terrain_for_square(
+    maybe<e_biome> ground = ground_terrain_for_square(
         viz, north, world_square - Delta{ .h = 1 } );
     if( ground )
       render_sprite_section( renderer,
@@ -456,7 +456,7 @@ void render_adjacent_overlap( IVisibility const& viz,
         painter_mods.depixelate.stage_anchor,
         dst.to_gfx().to_double() );
     // Need a new painter since we changed the mods.
-    maybe<e_ground_terrain> ground = ground_terrain_for_square(
+    maybe<e_biome> ground = ground_terrain_for_square(
         viz, south, world_square + Delta{ .h = 1 } );
     if( ground )
       render_sprite_section( renderer,
@@ -480,7 +480,7 @@ void render_adjacent_overlap( IVisibility const& viz,
         painter_mods.depixelate.stage_anchor,
         dst.to_gfx().to_double() );
     // Need a new painter since we changed the mods.
-    maybe<e_ground_terrain> ground = ground_terrain_for_square(
+    maybe<e_biome> ground = ground_terrain_for_square(
         viz, west, world_square - Delta{ .w = 1 } );
     if( ground )
       render_sprite_section( renderer,
@@ -504,7 +504,7 @@ void render_adjacent_overlap( IVisibility const& viz,
         painter_mods.depixelate.stage_anchor,
         dst.to_gfx().to_double() );
     // Need a new painter since we changed the mods.
-    maybe<e_ground_terrain> ground = ground_terrain_for_square(
+    maybe<e_biome> ground = ground_terrain_for_square(
         viz, east, world_square + Delta{ .w = 1 } );
     if( ground )
       render_sprite_section( renderer,
@@ -516,7 +516,7 @@ void render_adjacent_overlap( IVisibility const& viz,
 void render_terrain_ground( IVisibility const& viz,
                             rr::Renderer& renderer, Coord where,
                             Coord world_square,
-                            e_ground_terrain ground ) {
+                            e_biome ground ) {
   e_tile tile = tile_for_ground_terrain( ground );
   render_sprite( renderer, where, tile );
   render_adjacent_overlap(
@@ -949,19 +949,19 @@ bool has_surrounding_nonforest_river_squares(
   int res = 0;
 
   if( ( up.overlay != e_land_overlay::forest ||
-        up.ground == e_ground_terrain::desert ) &&
+        up.ground == e_biome::desert ) &&
       up.river.has_value() )
     ++res;
   if( ( right.overlay != e_land_overlay::forest ||
-        right.ground == e_ground_terrain::desert ) &&
+        right.ground == e_biome::desert ) &&
       right.river.has_value() )
     ++res;
   if( ( down.overlay != e_land_overlay::forest ||
-        down.ground == e_ground_terrain::desert ) &&
+        down.ground == e_biome::desert ) &&
       down.river.has_value() )
     ++res;
   if( ( left.overlay != e_land_overlay::forest ||
-        left.ground == e_ground_terrain::desert ) &&
+        left.ground == e_biome::desert ) &&
       left.river.has_value() )
     ++res;
 
@@ -999,7 +999,7 @@ void render_land_overlay( IVisibility const& viz,
     case e_land_overlay::forest: {
       render_forest( viz, renderer, where, world_square );
       if( square.river.has_value() ) {
-        if( square.ground != e_ground_terrain::desert )
+        if( square.ground != e_biome::desert )
           // This forest square, which contains a river, has al-
           // ready had its river rendered under the forest tile
           // (which it looks best), but that means that it won't
@@ -2276,7 +2276,7 @@ maybe<e_tile> forest_tile_for( IVisibility const& viz,
   MapSquare const& here = viz.square_at( tile );
   if( here.surface != e_surface::land ) return nothing;
   if( here.overlay != e_land_overlay::forest ) return nothing;
-  if( here.ground == e_ground_terrain::desert )
+  if( here.ground == e_biome::desert )
     return e_tile::terrain_forest_scrub_island;
 
   // Returns true if the the tile exists, it is land, it is
@@ -2285,7 +2285,7 @@ maybe<e_tile> forest_tile_for( IVisibility const& viz,
     MapSquare const& s = viz.square_at( tile.moved( d ) );
     return s.surface == e_surface::land &&
            s.overlay == e_land_overlay::forest &&
-           s.ground != e_ground_terrain::desert;
+           s.ground != e_biome::desert;
   };
 
   bool has_left  = is_forest( e_direction::w );

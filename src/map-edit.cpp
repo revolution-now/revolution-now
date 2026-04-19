@@ -486,7 +486,7 @@ wait<> MapEditPlane::Impl::click_on_tile( Coord tile,
     case editor::e_toolbar_item::forest:
       if( new_square.surface != e_surface::land ) break;
       if( action == e_action::add &&
-          new_square.ground != e_ground_terrain::arctic )
+          new_square.ground != e_biome::arctic )
         new_square.overlay = e_land_overlay::forest;
       else if( new_square.overlay == e_land_overlay::forest )
         new_square.overlay = nothing;

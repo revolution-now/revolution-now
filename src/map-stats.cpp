@@ -51,15 +51,12 @@ using ::refl::enum_map;
 /****************************************************************
 ** Global constants.
 *****************************************************************/
-static array<e_ground_terrain, 9> constexpr kGroundTypes = {
-  e_ground_terrain::savannah, e_ground_terrain::grassland,
-  e_ground_terrain::tundra,   e_ground_terrain::plains,
-  e_ground_terrain::prairie,  e_ground_terrain::desert,
-  e_ground_terrain::swamp,    e_ground_terrain::marsh,
-  e_ground_terrain::arctic,
+static array<e_biome, 9> constexpr kGroundTypes = {
+  e_biome::savannah, e_biome::grassland, e_biome::tundra,
+  e_biome::plains,   e_biome::prairie,   e_biome::desert,
+  e_biome::swamp,    e_biome::marsh,     e_biome::arctic,
 };
-static_assert( kGroundTypes.size() ==
-               enum_count<e_ground_terrain> );
+static_assert( kGroundTypes.size() == enum_count<e_biome> );
 
 } // namespace
 
@@ -77,8 +74,7 @@ struct BiomeDensityStatsCollector : IMapStatsCollector {
  private:
   std::string const stem_;
   size map_sz_ = {};
-  std::map<int /*y+1*/,
-           std::map<e_ground_terrain, int /*count*/>>
+  std::map<int /*y+1*/, std::map<e_biome, int /*count*/>>
       biome_count_y_;
   std::map<int /*y+1*/, int> land_count_y_;
   int land_total_ = 0;
@@ -204,29 +200,25 @@ struct BiomeAdjacencyStatsCollector : IMapStatsCollector {
 
  private:
   size map_sz_ = {};
-  refl::enum_map<e_ground_terrain, BiomeWetStats<double>> wet_;
-  refl::enum_map<e_ground_terrain, int> adjacency_;
-  refl::enum_map<e_ground_terrain, int> terrain_total_;
-  refl::enum_map<e_ground_terrain,
-                 std::map<int /*y*/, int /*count*/>>
+  refl::enum_map<e_biome, BiomeWetStats<double>> wet_;
+  refl::enum_map<e_biome, int> adjacency_;
+  refl::enum_map<e_biome, int> terrain_total_;
+  refl::enum_map<e_biome, std::map<int /*y*/, int /*count*/>>
       ground_per_row_;
   std::map<int /*y*/, int /*count*/> land_per_row_;
   // This gives the total number of surrounding land squares (of
   // any biome) around tiles of the given biome on the given row.
-  refl::enum_map<e_ground_terrain,
-                 std::map<int /*y*/, int /*count*/>>
+  refl::enum_map<e_biome, std::map<int /*y*/, int /*count*/>>
       surrounding_per_row_;
   int land_total_ = 0;
   int maps_total_ = 0;
 
  public: // Summary.
   BiomeClustering const clustering_;
-  refl::enum_map<e_ground_terrain, double> adjacency_baselines;
-  refl::enum_map<e_ground_terrain, double> relative_adjacencies;
-  refl::enum_map<e_ground_terrain, BiomeWetStats<double>>
-      wet_results;
-  refl::enum_map<e_ground_terrain, BiomeWetStats<double>>
-      wet_ratios;
+  refl::enum_map<e_biome, double> adjacency_baselines;
+  refl::enum_map<e_biome, double> relative_adjacencies;
+  refl::enum_map<e_biome, BiomeWetStats<double>> wet_results;
+  refl::enum_map<e_biome, BiomeWetStats<double>> wet_ratios;
 };
 
 BiomeAdjacencyStatsCollector::BiomeAdjacencyStatsCollector(
@@ -255,9 +247,9 @@ void BiomeAdjacencyStatsCollector::collect(
             return;
           }
           // Adjacent square is land.
-          if( adjacent.ground == e_ground_terrain::swamp )
+          if( adjacent.ground == e_biome::swamp )
             wet.with_swamp_adjacent = true;
-          if( adjacent.ground == e_ground_terrain::marsh )
+          if( adjacent.ground == e_biome::marsh )
             wet.with_marsh_adjacent = true;
           if( adjacent.river.has_value() )
             wet.with_river_adjacent = true;
@@ -291,9 +283,9 @@ void BiomeAdjacencyStatsCollector::collect(
 }
 
 void BiomeAdjacencyStatsCollector::summarize() {
-  using enum e_ground_terrain;
+  using enum e_biome;
 
-  for( e_ground_terrain const gt : kGroundTypes ) {
+  for( e_biome const gt : kGroundTypes ) {
     if( gt == arctic ) continue;
     adjacency_baselines[gt] = 0;
     for( auto const& [y, count] : ground_per_row_[gt] ) {
@@ -311,7 +303,7 @@ void BiomeAdjacencyStatsCollector::summarize() {
         adjacency_[gt] / adjacency_baselines[gt];
   }
 
-  for( e_ground_terrain const gt : kGroundTypes ) {
+  for( e_biome const gt : kGroundTypes ) {
     auto const for_water = clustering_.affinities[gt].for_water;
     if( !for_water.has_value() ) continue;
     double const count = terrain_total_[gt];
@@ -325,7 +317,7 @@ void BiomeAdjacencyStatsCollector::summarize() {
 }
 
 void BiomeAdjacencyStatsCollector::write() const {
-  using enum e_ground_terrain;
+  using enum e_biome;
   double const general_tolerance =
       config_map_gen.terrain_generation.biomes.clustering
           .tolerances.general_adjacency_tolerance;
@@ -338,7 +330,7 @@ void BiomeAdjacencyStatsCollector::write() const {
   fmt::println( "tolerance ocean:   {}", ocean_tolerance );
   fmt::println( "" );
 
-  for( e_ground_terrain const gt : kGroundTypes ) {
+  for( e_biome const gt : kGroundTypes ) {
     double const adjacency_avg =
         double( adjacency_[gt] ) / terrain_total_[gt];
     fmt::println( "{: >10}: {:.3f} | {}/{:.3f} ==> {:.3f}", gt,
@@ -358,7 +350,7 @@ void BiomeAdjacencyStatsCollector::write() const {
 
   fmt::println( "-----" );
 
-  for( e_ground_terrain const gt : kGroundTypes ) {
+  for( e_biome const gt : kGroundTypes ) {
     double const target =
         pow( 2.0, clustering_.affinities[gt].for_self );
     if( gt == arctic ) continue;
@@ -369,7 +361,7 @@ void BiomeAdjacencyStatsCollector::write() const {
   }
 
   fmt::println( "-----" );
-  for( e_ground_terrain const gt : { swamp, marsh } ) {
+  for( e_biome const gt : { swamp, marsh } ) {
     fmt::println( "{}:", gt );
     fmt::println(
         "  with_swamp_adjacent:          {:.3f} | ratio={}",

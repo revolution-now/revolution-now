@@ -32,7 +32,7 @@ e_surface surface_type( e_terrain terrain ) {
   return is_land( terrain ) ? e_surface::land : e_surface::water;
 }
 
-maybe<e_ground_terrain> cleared_forest( e_terrain terrain ) {
+maybe<e_biome> cleared_forest( e_terrain terrain ) {
   return config_terrain.types[terrain].cleared_forest;
 }
 

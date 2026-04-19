@@ -147,7 +147,7 @@ TEST_CASE( "[production] production_on_square/cotton" ) {
     };
 
     S()        = { .surface = e_surface::land };
-    S().ground = e_ground_terrain::grassland;
+    S().ground = e_biome::grassland;
     REQUIRE( f() == 0 );
     S().road = true;
     REQUIRE( f() == 0 );
@@ -163,7 +163,7 @@ TEST_CASE( "[production] production_on_square/cotton" ) {
     REQUIRE( f() == 0 );
 
     S()        = { .surface = e_surface::land };
-    S().ground = e_ground_terrain::prairie;
+    S().ground = e_biome::prairie;
     REQUIRE( f() == 3 );
     S().road = true;
     REQUIRE( f() == 3 );
@@ -187,7 +187,7 @@ TEST_CASE( "[production] production_on_square/cotton" ) {
     };
 
     S()        = { .surface = e_surface::land };
-    S().ground = e_ground_terrain::grassland;
+    S().ground = e_biome::grassland;
     REQUIRE( f() == 0 );
     S().road = true;
     REQUIRE( f() == 0 );
@@ -203,7 +203,7 @@ TEST_CASE( "[production] production_on_square/cotton" ) {
     REQUIRE( f() == 0 );
 
     S()        = { .surface = e_surface::land };
-    S().ground = e_ground_terrain::prairie;
+    S().ground = e_biome::prairie;
     REQUIRE( f() == 3 );
     S().road = true;
     REQUIRE( f() == 3 );
@@ -227,7 +227,7 @@ TEST_CASE( "[production] production_on_square/cotton" ) {
     };
 
     S()        = { .surface = e_surface::land };
-    S().ground = e_ground_terrain::grassland;
+    S().ground = e_biome::grassland;
     REQUIRE( f() == 0 );
     S().road = true;
     REQUIRE( f() == 0 );
@@ -243,7 +243,7 @@ TEST_CASE( "[production] production_on_square/cotton" ) {
     REQUIRE( f() == 0 );
 
     S()        = { .surface = e_surface::land };
-    S().ground = e_ground_terrain::prairie;
+    S().ground = e_biome::prairie;
     REQUIRE( f() == 4 );
     S().road = true;
     REQUIRE( f() == 4 );
@@ -268,7 +268,7 @@ TEST_CASE( "[production] production_on_square/cotton" ) {
     };
 
     S()        = { .surface = e_surface::land };
-    S().ground = e_ground_terrain::grassland;
+    S().ground = e_biome::grassland;
     REQUIRE( f() == 0 );
     S().road = true;
     REQUIRE( f() == 0 );
@@ -284,7 +284,7 @@ TEST_CASE( "[production] production_on_square/cotton" ) {
     REQUIRE( f() == 0 );
 
     S()        = { .surface = e_surface::land };
-    S().ground = e_ground_terrain::prairie;
+    S().ground = e_biome::prairie;
     REQUIRE( f() == 6 );
     S().road = true;
     REQUIRE( f() == 6 );
@@ -318,7 +318,7 @@ TEST_CASE( "[production] production_on_square/silver" ) {
     };
 
     S()        = { .surface = e_surface::land };
-    S().ground = e_ground_terrain::grassland;
+    S().ground = e_biome::grassland;
     REQUIRE( f() == 0 );
     S().irrigation = true;
     REQUIRE( f() == 0 );
@@ -351,7 +351,7 @@ TEST_CASE( "[production] production_on_square/silver" ) {
     };
 
     S()        = { .surface = e_surface::land };
-    S().ground = e_ground_terrain::grassland;
+    S().ground = e_biome::grassland;
     REQUIRE( f() == 0 );
     S().irrigation = true;
     REQUIRE( f() == 0 );
@@ -384,7 +384,7 @@ TEST_CASE( "[production] production_on_square/silver" ) {
     };
 
     S()        = { .surface = e_surface::land };
-    S().ground = e_ground_terrain::grassland;
+    S().ground = e_biome::grassland;
     REQUIRE( f() == 0 );
     S().irrigation = true;
     REQUIRE( f() == 0 );
@@ -418,7 +418,7 @@ TEST_CASE( "[production] production_on_square/silver" ) {
     };
 
     S()        = { .surface = e_surface::land };
-    S().ground = e_ground_terrain::grassland;
+    S().ground = e_biome::grassland;
     REQUIRE( f() == 0 );
     S().irrigation = true;
     REQUIRE( f() == 0 );
@@ -464,7 +464,7 @@ TEST_CASE( "[production] production_on_square/food" ) {
     };
 
     S()        = { .surface = e_surface::land };
-    S().ground = e_ground_terrain::grassland;
+    S().ground = e_biome::grassland;
     REQUIRE( f() == 3 );
     S().road = true;
     REQUIRE( f() == 3 );
@@ -489,7 +489,7 @@ TEST_CASE( "[production] production_on_square/food" ) {
     REQUIRE( f() == 3 );
 
     S()        = { .surface = e_surface::land };
-    S().ground = e_ground_terrain::plains;
+    S().ground = e_biome::plains;
     REQUIRE( f() == 5 );
     S().road = true;
     REQUIRE( f() == 5 );
@@ -522,7 +522,7 @@ TEST_CASE( "[production] production_on_square/food" ) {
     };
 
     S()        = { .surface = e_surface::land };
-    S().ground = e_ground_terrain::grassland;
+    S().ground = e_biome::grassland;
     REQUIRE( f() == 3 );
     S().road = true;
     REQUIRE( f() == 3 );
@@ -547,7 +547,7 @@ TEST_CASE( "[production] production_on_square/food" ) {
     REQUIRE( f() == 3 );
 
     S()        = { .surface = e_surface::land };
-    S().ground = e_ground_terrain::plains;
+    S().ground = e_biome::plains;
     REQUIRE( f() == 5 );
     S().road = true;
     REQUIRE( f() == 5 );
@@ -580,7 +580,7 @@ TEST_CASE( "[production] production_on_square/food" ) {
     };
 
     S()        = { .surface = e_surface::land };
-    S().ground = e_ground_terrain::grassland;
+    S().ground = e_biome::grassland;
     REQUIRE( f() == 4 );
     S().road = true;
     REQUIRE( f() == 4 );
@@ -605,7 +605,7 @@ TEST_CASE( "[production] production_on_square/food" ) {
     REQUIRE( f() == 4 );
 
     S()        = { .surface = e_surface::land };
-    S().ground = e_ground_terrain::plains;
+    S().ground = e_biome::plains;
     REQUIRE( f() == 6 );
     S().road = true;
     REQUIRE( f() == 6 );
@@ -638,7 +638,7 @@ TEST_CASE( "[production] production_on_square/food" ) {
     };
 
     S()        = { .surface = e_surface::land };
-    S().ground = e_ground_terrain::grassland;
+    S().ground = e_biome::grassland;
     REQUIRE( f() == 5 );
     S().road = true;
     REQUIRE( f() == 5 );
@@ -663,7 +663,7 @@ TEST_CASE( "[production] production_on_square/food" ) {
     REQUIRE( f() == 5 );
 
     S()        = { .surface = e_surface::land };
-    S().ground = e_ground_terrain::plains;
+    S().ground = e_biome::plains;
     REQUIRE( f() == 7 );
     S().road = true;
     REQUIRE( f() == 7 );
@@ -706,7 +706,7 @@ TEST_CASE( "[production] production_on_square/sugar" ) {
     };
 
     S()        = { .surface = e_surface::land };
-    S().ground = e_ground_terrain::grassland;
+    S().ground = e_biome::grassland;
     REQUIRE( f() == 0 );
     S().road = true;
     REQUIRE( f() == 0 );
@@ -729,7 +729,7 @@ TEST_CASE( "[production] production_on_square/sugar" ) {
     REQUIRE( f() == 0 );
 
     S()        = { .surface = e_surface::land };
-    S().ground = e_ground_terrain::savannah;
+    S().ground = e_biome::savannah;
     REQUIRE( f() == 3 );
     S().road = true;
     REQUIRE( f() == 3 );
@@ -760,7 +760,7 @@ TEST_CASE( "[production] production_on_square/sugar" ) {
     };
 
     S()        = { .surface = e_surface::land };
-    S().ground = e_ground_terrain::grassland;
+    S().ground = e_biome::grassland;
     REQUIRE( f() == 0 );
     S().road = true;
     REQUIRE( f() == 0 );
@@ -783,7 +783,7 @@ TEST_CASE( "[production] production_on_square/sugar" ) {
     REQUIRE( f() == 0 );
 
     S()        = { .surface = e_surface::land };
-    S().ground = e_ground_terrain::savannah;
+    S().ground = e_biome::savannah;
     REQUIRE( f() == 3 );
     S().road = true;
     REQUIRE( f() == 3 );
@@ -814,7 +814,7 @@ TEST_CASE( "[production] production_on_square/sugar" ) {
     };
 
     S()        = { .surface = e_surface::land };
-    S().ground = e_ground_terrain::grassland;
+    S().ground = e_biome::grassland;
     REQUIRE( f() == 0 );
     S().road = true;
     REQUIRE( f() == 0 );
@@ -837,7 +837,7 @@ TEST_CASE( "[production] production_on_square/sugar" ) {
     REQUIRE( f() == 0 );
 
     S()        = { .surface = e_surface::land };
-    S().ground = e_ground_terrain::savannah;
+    S().ground = e_biome::savannah;
     REQUIRE( f() == 4 );
     S().road = true;
     REQUIRE( f() == 4 );
@@ -869,7 +869,7 @@ TEST_CASE( "[production] production_on_square/sugar" ) {
     };
 
     S()        = { .surface = e_surface::land };
-    S().ground = e_ground_terrain::grassland;
+    S().ground = e_biome::grassland;
     REQUIRE( f() == 0 );
     S().road = true;
     REQUIRE( f() == 0 );
@@ -892,7 +892,7 @@ TEST_CASE( "[production] production_on_square/sugar" ) {
     REQUIRE( f() == 0 );
 
     S()        = { .surface = e_surface::land };
-    S().ground = e_ground_terrain::savannah;
+    S().ground = e_biome::savannah;
     REQUIRE( f() == 6 );
     S().road = true;
     REQUIRE( f() == 6 );
@@ -933,7 +933,7 @@ TEST_CASE( "[production] production_on_square/tobacco" ) {
     };
 
     S()        = { .surface = e_surface::land };
-    S().ground = e_ground_terrain::savannah;
+    S().ground = e_biome::savannah;
     REQUIRE( f() == 0 );
     S().road = true;
     REQUIRE( f() == 0 );
@@ -956,7 +956,7 @@ TEST_CASE( "[production] production_on_square/tobacco" ) {
     REQUIRE( f() == 0 );
 
     S()        = { .surface = e_surface::land };
-    S().ground = e_ground_terrain::grassland;
+    S().ground = e_biome::grassland;
     REQUIRE( f() == 3 );
     S().road = true;
     REQUIRE( f() == 3 );
@@ -987,7 +987,7 @@ TEST_CASE( "[production] production_on_square/tobacco" ) {
     };
 
     S()        = { .surface = e_surface::land };
-    S().ground = e_ground_terrain::savannah;
+    S().ground = e_biome::savannah;
     REQUIRE( f() == 0 );
     S().road = true;
     REQUIRE( f() == 0 );
@@ -1010,7 +1010,7 @@ TEST_CASE( "[production] production_on_square/tobacco" ) {
     REQUIRE( f() == 0 );
 
     S()        = { .surface = e_surface::land };
-    S().ground = e_ground_terrain::grassland;
+    S().ground = e_biome::grassland;
     REQUIRE( f() == 3 );
     S().road = true;
     REQUIRE( f() == 3 );
@@ -1041,7 +1041,7 @@ TEST_CASE( "[production] production_on_square/tobacco" ) {
     };
 
     S()        = { .surface = e_surface::land };
-    S().ground = e_ground_terrain::savannah;
+    S().ground = e_biome::savannah;
     REQUIRE( f() == 0 );
     S().road = true;
     REQUIRE( f() == 0 );
@@ -1064,7 +1064,7 @@ TEST_CASE( "[production] production_on_square/tobacco" ) {
     REQUIRE( f() == 0 );
 
     S()        = { .surface = e_surface::land };
-    S().ground = e_ground_terrain::grassland;
+    S().ground = e_biome::grassland;
     REQUIRE( f() == 4 );
     S().road = true;
     REQUIRE( f() == 4 );
@@ -1096,7 +1096,7 @@ TEST_CASE( "[production] production_on_square/tobacco" ) {
     };
 
     S()        = { .surface = e_surface::land };
-    S().ground = e_ground_terrain::savannah;
+    S().ground = e_biome::savannah;
     REQUIRE( f() == 0 );
     S().road = true;
     REQUIRE( f() == 0 );
@@ -1119,7 +1119,7 @@ TEST_CASE( "[production] production_on_square/tobacco" ) {
     REQUIRE( f() == 0 );
 
     S()        = { .surface = e_surface::land };
-    S().ground = e_ground_terrain::grassland;
+    S().ground = e_biome::grassland;
     REQUIRE( f() == 6 );
     S().road = true;
     REQUIRE( f() == 6 );
@@ -1160,7 +1160,7 @@ TEST_CASE( "[production] production_on_square/furs" ) {
     };
 
     S()        = { .surface = e_surface::land };
-    S().ground = e_ground_terrain::savannah;
+    S().ground = e_biome::savannah;
     REQUIRE( f() == 0 );
     S().road = true;
     REQUIRE( f() == 0 );
@@ -1174,7 +1174,7 @@ TEST_CASE( "[production] production_on_square/furs" ) {
     REQUIRE( f() == 0 );
 
     S()         = { .surface = e_surface::land };
-    S().ground  = e_ground_terrain::savannah;
+    S().ground  = e_biome::savannah;
     S().overlay = e_land_overlay::forest;
     REQUIRE( f() == 2 );
     S().road = true;
@@ -1204,7 +1204,7 @@ TEST_CASE( "[production] production_on_square/furs" ) {
     };
 
     S()        = { .surface = e_surface::land };
-    S().ground = e_ground_terrain::savannah;
+    S().ground = e_biome::savannah;
     REQUIRE( f() == 0 );
     S().road = true;
     REQUIRE( f() == 0 );
@@ -1218,7 +1218,7 @@ TEST_CASE( "[production] production_on_square/furs" ) {
     REQUIRE( f() == 0 );
 
     S()         = { .surface = e_surface::land };
-    S().ground  = e_ground_terrain::savannah;
+    S().ground  = e_biome::savannah;
     S().overlay = e_land_overlay::forest;
     REQUIRE( f() == 2 );
     S().road = true;
@@ -1247,7 +1247,7 @@ TEST_CASE( "[production] production_on_square/furs" ) {
     };
 
     S()        = { .surface = e_surface::land };
-    S().ground = e_ground_terrain::savannah;
+    S().ground = e_biome::savannah;
     REQUIRE( f() == 0 );
     S().road = true;
     REQUIRE( f() == 0 );
@@ -1261,7 +1261,7 @@ TEST_CASE( "[production] production_on_square/furs" ) {
     REQUIRE( f() == 0 );
 
     S()         = { .surface = e_surface::land };
-    S().ground  = e_ground_terrain::savannah;
+    S().ground  = e_biome::savannah;
     S().overlay = e_land_overlay::forest;
     REQUIRE( f() == 3 );
     S().road = true;
@@ -1291,7 +1291,7 @@ TEST_CASE( "[production] production_on_square/furs" ) {
     };
 
     S()        = { .surface = e_surface::land };
-    S().ground = e_ground_terrain::savannah;
+    S().ground = e_biome::savannah;
     REQUIRE( f() == 0 );
     S().road = true;
     REQUIRE( f() == 0 );
@@ -1305,7 +1305,7 @@ TEST_CASE( "[production] production_on_square/furs" ) {
     REQUIRE( f() == 0 );
 
     S()         = { .surface = e_surface::land };
-    S().ground  = e_ground_terrain::savannah;
+    S().ground  = e_biome::savannah;
     S().overlay = e_land_overlay::forest;
     REQUIRE( f() == 4 );
     S().road = true;
@@ -1344,7 +1344,7 @@ TEST_CASE( "[production] production_on_square/lumber" ) {
     };
 
     S()        = { .surface = e_surface::land };
-    S().ground = e_ground_terrain::savannah;
+    S().ground = e_biome::savannah;
     REQUIRE( f() == 0 );
     S().road = true;
     REQUIRE( f() == 0 );
@@ -1358,7 +1358,7 @@ TEST_CASE( "[production] production_on_square/lumber" ) {
     REQUIRE( f() == 0 );
 
     S()         = { .surface = e_surface::land };
-    S().ground  = e_ground_terrain::savannah;
+    S().ground  = e_biome::savannah;
     S().overlay = e_land_overlay::forest;
     REQUIRE( f() == 4 );
     S().road = true;
@@ -1387,7 +1387,7 @@ TEST_CASE( "[production] production_on_square/lumber" ) {
     };
 
     S()        = { .surface = e_surface::land };
-    S().ground = e_ground_terrain::savannah;
+    S().ground = e_biome::savannah;
     REQUIRE( f() == 0 );
     S().road = true;
     REQUIRE( f() == 0 );
@@ -1401,7 +1401,7 @@ TEST_CASE( "[production] production_on_square/lumber" ) {
     REQUIRE( f() == 0 );
 
     S()         = { .surface = e_surface::land };
-    S().ground  = e_ground_terrain::savannah;
+    S().ground  = e_biome::savannah;
     S().overlay = e_land_overlay::forest;
     REQUIRE( f() == 4 );
     S().road = true;
@@ -1430,7 +1430,7 @@ TEST_CASE( "[production] production_on_square/lumber" ) {
     };
 
     S()        = { .surface = e_surface::land };
-    S().ground = e_ground_terrain::savannah;
+    S().ground = e_biome::savannah;
     REQUIRE( f() == 0 );
     S().road = true;
     REQUIRE( f() == 0 );
@@ -1444,7 +1444,7 @@ TEST_CASE( "[production] production_on_square/lumber" ) {
     REQUIRE( f() == 0 );
 
     S()         = { .surface = e_surface::land };
-    S().ground  = e_ground_terrain::savannah;
+    S().ground  = e_biome::savannah;
     S().overlay = e_land_overlay::forest;
     REQUIRE( f() == 4 );
     S().road = true;
@@ -1473,7 +1473,7 @@ TEST_CASE( "[production] production_on_square/lumber" ) {
     };
 
     S()        = { .surface = e_surface::land };
-    S().ground = e_ground_terrain::savannah;
+    S().ground = e_biome::savannah;
     REQUIRE( f() == 0 );
     S().road = true;
     REQUIRE( f() == 0 );
@@ -1487,7 +1487,7 @@ TEST_CASE( "[production] production_on_square/lumber" ) {
     REQUIRE( f() == 0 );
 
     S()         = { .surface = e_surface::land };
-    S().ground  = e_ground_terrain::grassland;
+    S().ground  = e_biome::grassland;
     S().overlay = e_land_overlay::forest;
     REQUIRE( f() == 12 );
     S().road = true;
@@ -1528,7 +1528,7 @@ TEST_CASE( "[production] production_on_square/ore" ) {
     };
 
     S()        = { .surface = e_surface::land };
-    S().ground = e_ground_terrain::savannah;
+    S().ground = e_biome::savannah;
     REQUIRE( f() == 0 );
     S().road = true;
     REQUIRE( f() == 0 );
@@ -1571,7 +1571,7 @@ TEST_CASE( "[production] production_on_square/ore" ) {
     };
 
     S()        = { .surface = e_surface::land };
-    S().ground = e_ground_terrain::savannah;
+    S().ground = e_biome::savannah;
     REQUIRE( f() == 0 );
     S().road = true;
     REQUIRE( f() == 0 );
@@ -1614,7 +1614,7 @@ TEST_CASE( "[production] production_on_square/ore" ) {
     };
 
     S()        = { .surface = e_surface::land };
-    S().ground = e_ground_terrain::savannah;
+    S().ground = e_biome::savannah;
     REQUIRE( f() == 0 );
     S().road = true;
     REQUIRE( f() == 0 );
@@ -1657,7 +1657,7 @@ TEST_CASE( "[production] production_on_square/ore" ) {
     };
 
     S()        = { .surface = e_surface::land };
-    S().ground = e_ground_terrain::savannah;
+    S().ground = e_biome::savannah;
     REQUIRE( f() == 0 );
     S().road = true;
     REQUIRE( f() == 0 );
@@ -2556,7 +2556,7 @@ TEST_CASE( "[production] arctic food production" ) {
 
   using enum e_difficulty;
   using enum e_surface;
-  using enum e_ground_terrain;
+  using enum e_biome;
   using enum e_outdoor_job;
   using enum e_unit_type;
 

@@ -363,87 +363,87 @@ expect<rn::MapSquare, string> map_square_from_tile(
   switch( tile.tile ) {
     case sav::terrain_5bit_type::tu:
       res.surface = rn::e_surface::land;
-      res.ground  = rn::e_ground_terrain::tundra;
+      res.ground  = rn::e_biome::tundra;
       break;
     case sav::terrain_5bit_type::de:
       res.surface = rn::e_surface::land;
-      res.ground  = rn::e_ground_terrain::desert;
+      res.ground  = rn::e_biome::desert;
       break;
     case sav::terrain_5bit_type::pl:
       res.surface = rn::e_surface::land;
-      res.ground  = rn::e_ground_terrain::plains;
+      res.ground  = rn::e_biome::plains;
       break;
     case sav::terrain_5bit_type::pr:
       res.surface = rn::e_surface::land;
-      res.ground  = rn::e_ground_terrain::prairie;
+      res.ground  = rn::e_biome::prairie;
       break;
     case sav::terrain_5bit_type::gr:
       res.surface = rn::e_surface::land;
-      res.ground  = rn::e_ground_terrain::grassland;
+      res.ground  = rn::e_biome::grassland;
       break;
     case sav::terrain_5bit_type::sa:
       res.surface = rn::e_surface::land;
-      res.ground  = rn::e_ground_terrain::savannah;
+      res.ground  = rn::e_biome::savannah;
       break;
     case sav::terrain_5bit_type::sw:
       res.surface = rn::e_surface::land;
-      res.ground  = rn::e_ground_terrain::swamp;
+      res.ground  = rn::e_biome::swamp;
       break;
     case sav::terrain_5bit_type::mr:
       res.surface = rn::e_surface::land;
-      res.ground  = rn::e_ground_terrain::marsh;
+      res.ground  = rn::e_biome::marsh;
       break;
     case sav::terrain_5bit_type::tuf:
     case sav::terrain_5bit_type::tuw:
       res.surface = rn::e_surface::land;
-      res.ground  = rn::e_ground_terrain::tundra;
+      res.ground  = rn::e_biome::tundra;
       res.overlay = rn::e_land_overlay::forest;
       break;
     case sav::terrain_5bit_type::def:
     case sav::terrain_5bit_type::dew:
       res.surface = rn::e_surface::land;
-      res.ground  = rn::e_ground_terrain::desert;
+      res.ground  = rn::e_biome::desert;
       res.overlay = rn::e_land_overlay::forest;
       break;
     case sav::terrain_5bit_type::plf:
     case sav::terrain_5bit_type::plw:
       res.surface = rn::e_surface::land;
-      res.ground  = rn::e_ground_terrain::plains;
+      res.ground  = rn::e_biome::plains;
       res.overlay = rn::e_land_overlay::forest;
       break;
     case sav::terrain_5bit_type::prf:
     case sav::terrain_5bit_type::prw:
       res.surface = rn::e_surface::land;
-      res.ground  = rn::e_ground_terrain::prairie;
+      res.ground  = rn::e_biome::prairie;
       res.overlay = rn::e_land_overlay::forest;
       break;
     case sav::terrain_5bit_type::grf:
     case sav::terrain_5bit_type::grw:
       res.surface = rn::e_surface::land;
-      res.ground  = rn::e_ground_terrain::grassland;
+      res.ground  = rn::e_biome::grassland;
       res.overlay = rn::e_land_overlay::forest;
       break;
     case sav::terrain_5bit_type::saf:
     case sav::terrain_5bit_type::saw:
       res.surface = rn::e_surface::land;
-      res.ground  = rn::e_ground_terrain::savannah;
+      res.ground  = rn::e_biome::savannah;
       res.overlay = rn::e_land_overlay::forest;
       break;
     case sav::terrain_5bit_type::swf:
     case sav::terrain_5bit_type::sww:
       res.surface = rn::e_surface::land;
-      res.ground  = rn::e_ground_terrain::swamp;
+      res.ground  = rn::e_biome::swamp;
       res.overlay = rn::e_land_overlay::forest;
       break;
     case sav::terrain_5bit_type::mrf:
     case sav::terrain_5bit_type::mrw:
       res.surface = rn::e_surface::land;
-      res.ground  = rn::e_ground_terrain::marsh;
+      res.ground  = rn::e_biome::marsh;
       res.overlay = rn::e_land_overlay::forest;
       break;
     case sav::terrain_5bit_type::arc:
       res.surface = rn::e_surface::land;
-      res.ground  = rn::e_ground_terrain::arctic;
+      res.ground  = rn::e_biome::arctic;
       break;
     case sav::terrain_5bit_type::ttt:
       res.surface = rn::e_surface::water;
@@ -496,45 +496,45 @@ expect<sav::TILE, string> tile_from_map_square(
     return res;
   }
   switch( square.ground ) {
-    case rn::e_ground_terrain::arctic:
+    case rn::e_biome::arctic:
       res.tile = sav::terrain_5bit_type::arc;
       break;
-    case rn::e_ground_terrain::desert:
+    case rn::e_biome::desert:
       res.tile = ( square.overlay == rn::e_land_overlay::forest )
                      ? sav::terrain_5bit_type::def
                      : sav::terrain_5bit_type::de;
       break;
-    case rn::e_ground_terrain::grassland:
+    case rn::e_biome::grassland:
       res.tile = ( square.overlay == rn::e_land_overlay::forest )
                      ? sav::terrain_5bit_type::grf
                      : sav::terrain_5bit_type::gr;
       break;
-    case rn::e_ground_terrain::marsh:
+    case rn::e_biome::marsh:
       res.tile = ( square.overlay == rn::e_land_overlay::forest )
                      ? sav::terrain_5bit_type::mrf
                      : sav::terrain_5bit_type::mr;
       break;
-    case rn::e_ground_terrain::plains:
+    case rn::e_biome::plains:
       res.tile = ( square.overlay == rn::e_land_overlay::forest )
                      ? sav::terrain_5bit_type::plf
                      : sav::terrain_5bit_type::pl;
       break;
-    case rn::e_ground_terrain::prairie:
+    case rn::e_biome::prairie:
       res.tile = ( square.overlay == rn::e_land_overlay::forest )
                      ? sav::terrain_5bit_type::prf
                      : sav::terrain_5bit_type::pr;
       break;
-    case rn::e_ground_terrain::savannah:
+    case rn::e_biome::savannah:
       res.tile = ( square.overlay == rn::e_land_overlay::forest )
                      ? sav::terrain_5bit_type::saf
                      : sav::terrain_5bit_type::sa;
       break;
-    case rn::e_ground_terrain::swamp:
+    case rn::e_biome::swamp:
       res.tile = ( square.overlay == rn::e_land_overlay::forest )
                      ? sav::terrain_5bit_type::swf
                      : sav::terrain_5bit_type::sw;
       break;
-    case rn::e_ground_terrain::tundra:
+    case rn::e_biome::tundra:
       res.tile = ( square.overlay == rn::e_land_overlay::forest )
                      ? sav::terrain_5bit_type::tuf
                      : sav::terrain_5bit_type::tu;

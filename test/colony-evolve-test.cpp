@@ -604,7 +604,7 @@ TEST_CASE( "[colony-evolve] promotes units" ) {
   W.square( W.kColonySquare.moved( e_direction::nw ) ).surface =
       e_surface::land;
   W.square( W.kColonySquare.moved( e_direction::nw ) ).ground =
-      e_ground_terrain::savannah;
+      e_biome::savannah;
   W.add_unit_outdoors( colony.id, e_direction::nw,
                        e_outdoor_job::sugar,
                        e_unit_type::petty_criminal );
@@ -625,7 +625,7 @@ TEST_CASE( "[colony-evolve] promotes units" ) {
   W.square( W.kColonySquare.moved( e_direction::ne ) ).surface =
       e_surface::land;
   W.square( W.kColonySquare.moved( e_direction::ne ) ).ground =
-      e_ground_terrain::grassland;
+      e_biome::grassland;
   W.add_unit_outdoors( colony.id, e_direction::ne,
                        e_outdoor_job::tobacco,
                        e_unit_type::indentured_servant );
@@ -637,7 +637,7 @@ TEST_CASE( "[colony-evolve] promotes units" ) {
   W.square( W.kColonySquare.moved( e_direction::w ) ).surface =
       e_surface::land;
   W.square( W.kColonySquare.moved( e_direction::w ) ).ground =
-      e_ground_terrain::plains;
+      e_biome::plains;
   W.add_unit_outdoors( colony.id, e_direction::w,
                        e_outdoor_job::food,
                        e_unit_type::indentured_servant );
@@ -646,7 +646,7 @@ TEST_CASE( "[colony-evolve] promotes units" ) {
   W.square( W.kColonySquare.moved( e_direction::e ) ).surface =
       e_surface::land;
   W.square( W.kColonySquare.moved( e_direction::e ) ).ground =
-      e_ground_terrain::prairie;
+      e_biome::prairie;
   W.add_unit_outdoors( colony.id, e_direction::e,
                        e_outdoor_job::cotton,
                        e_unit_type::free_colonist );

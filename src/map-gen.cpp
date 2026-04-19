@@ -313,7 +313,7 @@ void generate_proto_tiles( TerrainState& terrain ) {
   auto const set_arctic = []( MapSquare& square ) {
     square         = {};
     square.surface = e_surface::land;
-    square.ground  = e_ground_terrain::arctic;
+    square.ground  = e_biome::arctic;
   };
   auto const set_sea_lane = []( MapSquare& square ) {
     square          = {};

@@ -27,7 +27,7 @@ struct.TerrainTypeInfo {
   # If a forest is added to this terrain (when possible) it be-
   # comes the following.
   with_forest 'base::maybe<e_terrain>',
-  cleared_forest 'base::maybe<e_ground_terrain>',
+  cleared_forest 'base::maybe<e_biome>',
 
   _features { equality, validation }
 }

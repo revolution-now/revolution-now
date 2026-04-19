@@ -22,9 +22,9 @@ struct.AdjacencyAdjustmentResult {
   max_allowed_iters 'int',
   xs_regen 'double',
   general_adjacency_results [[
-    refl::enum_map<e_ground_terrain, double>
+    refl::enum_map<e_biome, double>
   ]],
   general_adjacency_ratios [[
-    refl::enum_map<e_ground_terrain, double>
+    refl::enum_map<e_biome, double>
   ]],
 }

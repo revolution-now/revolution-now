@@ -92,7 +92,7 @@ TEST_CASE( "[plow] can_irrigate" ) {
 
   square = MapSquare{
     .surface = e_surface::land,
-    .ground  = e_ground_terrain::savannah,
+    .ground  = e_biome::savannah,
     .road    = true,
   };
   expected = true;
@@ -100,7 +100,7 @@ TEST_CASE( "[plow] can_irrigate" ) {
 
   square = MapSquare{
     .surface = e_surface::land,
-    .ground  = e_ground_terrain::savannah,
+    .ground  = e_biome::savannah,
     .overlay = e_land_overlay::forest,
     .road    = true,
   };
@@ -109,7 +109,7 @@ TEST_CASE( "[plow] can_irrigate" ) {
 
   square = MapSquare{
     .surface = e_surface::land,
-    .ground  = e_ground_terrain::savannah,
+    .ground  = e_biome::savannah,
     .overlay = e_land_overlay::hills,
   };
   expected = false;
@@ -117,7 +117,7 @@ TEST_CASE( "[plow] can_irrigate" ) {
 
   square = MapSquare{
     .surface = e_surface::land,
-    .ground  = e_ground_terrain::savannah,
+    .ground  = e_biome::savannah,
     .overlay = e_land_overlay::mountains,
   };
   expected = false;
@@ -125,7 +125,7 @@ TEST_CASE( "[plow] can_irrigate" ) {
 
   square = MapSquare{
     .surface = e_surface::land,
-    .ground  = e_ground_terrain::arctic,
+    .ground  = e_biome::arctic,
   };
   expected = true;
   REQUIRE( can_irrigate( square ) == expected );
