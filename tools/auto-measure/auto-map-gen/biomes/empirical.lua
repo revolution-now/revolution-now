@@ -14,6 +14,7 @@ local tbl = require( 'moon.tbl' )
 local insert = table.insert
 local format = string.format
 local max = math.max
+local min = math.min
 local log = math.log
 local deep_copy = assert( tbl.deep_copy )
 
@@ -37,7 +38,7 @@ local PLOTS_DIR = 'biomes/empirical'
 
 local function ocean_adjacent( J, tile )
   local has = false
-  Q.on_surrounding_tiles( tile, function( coord )
+  Q.on_surrounding_tiles_cardinal( tile, function( coord )
     local adjacent = Q.terrain_at( J, coord )
     if adjacent.surface == 'water' then has = true end
   end )
@@ -46,10 +47,60 @@ end
 
 local function river_adjacent( J, tile )
   local has = false
-  Q.on_surrounding_tiles( tile, function( coord )
+  Q.on_surrounding_tiles_cardinal( tile, function( coord )
     if Q.has_river( J, coord ) then has = true end
   end )
   return has
+end
+
+local function ocean_adjacent_side( J, tile )
+  local has = false
+  Q.on_surrounding_tiles_sides( tile, function( coord )
+    local adjacent = Q.terrain_at( J, coord )
+    if adjacent.surface == 'water' then has = true end
+  end )
+  return has
+end
+
+local function river_adjacent_side( J, tile )
+  local has = false
+  Q.on_surrounding_tiles_sides( tile, function( coord )
+    if Q.has_river( J, coord ) then has = true end
+  end )
+  return has
+end
+
+local function compute_wetness_full( J )
+  local m = {}
+  for y = 1, 70 do
+    insert( m, {} )
+    for _ = 1, 56 do insert( m[y], 0 ) end
+  end
+  local MAX_WETNESS = 1
+  local OCEAN_WETNESS = 1.0 / 3.0
+  for y = 1, 70 do
+    local wetness = MAX_WETNESS
+    for x = 1, 56 do
+      m[y][x] = m[y][x] + wetness
+      local square = Q.terrain_at( J, { x=x, y=y } )
+      if square.surface == 'water' then
+        wetness = min( wetness + OCEAN_WETNESS, MAX_WETNESS )
+      else
+        wetness = wetness / 2
+      end
+    end
+    wetness = MAX_WETNESS
+    for x = 56, 1, -1 do
+      m[y][x] = m[y][x] + wetness
+      local square = Q.terrain_at( J, { x=x, y=y } )
+      if square.surface == 'water' then
+        wetness = min( wetness + OCEAN_WETNESS, MAX_WETNESS )
+      else
+        wetness = wetness / 2
+      end
+    end
+  end
+  return m
 end
 
 -----------------------------------------------------------------
@@ -57,8 +108,11 @@ end
 -----------------------------------------------------------------
 -- The data here spans multiple savs.
 local D = {
-  total_savs=0,
-  total_land=0,
+  savs=0,
+  land=0,
+  land_ocean_adjacent=0,
+  land_ocean_adjacent_side=0,
+  land_wetness=0,
 
   -- key=row
   land_by_row={},
@@ -75,6 +129,9 @@ local D = {
   -- key=biome, val=count
   with_river_adjacent={},
   with_ocean_adjacent={},
+  with_river_adjacent_side={},
+  with_ocean_adjacent_side={},
+  wetness={},
 
   -- value={ count=N, metric=? }
   swamp={
@@ -121,7 +178,7 @@ local D = {
   desert_density_center={},
 }
 
-local GROUND_TYPES = {
+local BIOME_ORDERING = {
   'savannah', --
   'grassland', --
   'tundra', --
@@ -131,6 +188,17 @@ local GROUND_TYPES = {
   'swamp', --
   'marsh', --
   'arctic', --
+}
+
+local BIOME_ORDERING_NON_ARCTIC = {
+  'savannah', --
+  'grassland', --
+  'tundra', --
+  'plains', --
+  'prairie', --
+  'desert', --
+  'swamp', --
+  'marsh', --
 }
 
 local WET_DRY_TYPE = {
@@ -154,13 +222,16 @@ local function terrain_at( J, tile )
   -- local t = Q.terrain_at( json, tile )
   -- return {
   --   surface=t.surface,
-  --   ground=assert( GROUND_TYPES[math.random( #GROUND_TYPES - 1 )] ),
+  --   ground=assert( BIOME_ORDERING[math.random( #BIOME_ORDERING - 1 )] ),
   -- }
 end
 
 local function lambda( J )
-  D.total_savs = D.total_savs + 1
-  for _, ground_type in ipairs( GROUND_TYPES ) do
+  D.savs = D.savs + 1
+
+  local wetness_full = assert( compute_wetness_full( J ) )
+
+  for _, ground_type in ipairs( BIOME_ORDERING ) do
     D.ground_per_row[ground_type] =
         D.ground_per_row[ground_type] or {}
     D.ground_per_col[ground_type] =
@@ -170,13 +241,18 @@ local function lambda( J )
         D.with_ocean_adjacent[ground_type] or 0
     D.with_river_adjacent[ground_type] =
         D.with_river_adjacent[ground_type] or 0
+    D.with_ocean_adjacent_side[ground_type] =
+        D.with_ocean_adjacent_side[ground_type] or 0
+    D.with_river_adjacent_side[ground_type] =
+        D.with_river_adjacent_side[ground_type] or 0
+    D.wetness[ground_type] = D.wetness[ground_type] or 0
     local A = assert( D.adjacency[ground_type] )
     A.count = A.count or 0
     A.adjacency_count = A.adjacency_count or 0
   end
 
   Q.on_all_tiles( function( tile )
-    for _, ground_type in ipairs( GROUND_TYPES ) do
+    for _, ground_type in ipairs( BIOME_ORDERING ) do
       D.land_by_row[tile.y] = D.land_by_row[tile.y] or 0
       D.land_by_col[tile.x] = D.land_by_col[tile.x] or 0
       D.land_by_row_dry[tile.y] = D.land_by_row_dry[tile.y] or 0
@@ -193,7 +269,7 @@ local function lambda( J )
   end )
 
   Q.on_all_tiles( function( tile )
-    for _, ground_type in ipairs( GROUND_TYPES ) do
+    for _, ground_type in ipairs( BIOME_ORDERING ) do
       D.adjacency[ground_type] = D.adjacency[ground_type] or {}
       local o = D.adjacency[ground_type]
       o.surrounding_land_on_row = o.surrounding_land_on_row or {}
@@ -218,7 +294,7 @@ local function lambda( J )
       if assert( WET_DRY_TYPE[terrain.ground] ) == 'wet' then
         D.land_by_row_wet[tile.y] = D.land_by_row_wet[tile.y] + 1
       end
-      D.total_land = D.total_land + 1
+      D.land = D.land + 1
     else
       return
     end
@@ -239,13 +315,27 @@ local function lambda( J )
     assert( center )
     assert( center.ground )
     D.adjacency[center.ground] = D.adjacency[center.ground] or {}
+    -- local wetness = assert( compute_wetness( J, tile ) )
+    local wetness = assert( wetness_full[tile.y][tile.x] )
+    D.wetness[center.ground] = D.wetness[center.ground] + wetness
+    D.land_wetness = D.land_wetness + wetness
     if ocean_adjacent( J, tile ) then
+      D.land_ocean_adjacent = D.land_ocean_adjacent + 1
       D.with_ocean_adjacent[center.ground] =
           D.with_ocean_adjacent[center.ground] + 1
     end
     if river_adjacent( J, tile ) then
       D.with_river_adjacent[center.ground] =
           D.with_river_adjacent[center.ground] + 1
+    end
+    if ocean_adjacent_side( J, tile ) then
+      D.land_ocean_adjacent_side = D.land_ocean_adjacent_side + 1
+      D.with_ocean_adjacent_side[center.ground] =
+          D.with_ocean_adjacent_side[center.ground] + 1
+    end
+    if river_adjacent_side( J, tile ) then
+      D.with_river_adjacent_side[center.ground] =
+          D.with_river_adjacent_side[center.ground] + 1
     end
     local A = assert( D.adjacency[center.ground] )
     A.count = A.count or 0
@@ -267,7 +357,7 @@ local function lambda( J )
   local function swamp_marsh_adjacency( target_terrain, S )
     assert( target_terrain )
     assert( S )
-    Q.on_all_tiles( function( tile )
+    Q.on_all_non_arctic_tiles( function( tile )
       do
         local terrain = terrain_at( J, tile )
         if terrain.surface ~= 'land' then return end
@@ -334,7 +424,7 @@ local function lambda( J )
   swamp_marsh_adjacency( 'marsh', D.marsh )
 
   local max_savannah_dist = 0
-  Q.on_all_tiles( function( tile )
+  Q.on_all_non_arctic_tiles( function( tile )
     local terrain = terrain_at( J, tile )
     if terrain.surface == 'land' and terrain.ground == 'savannah' then
       if tile.y >= 36 then
@@ -357,7 +447,7 @@ local function lambda( J )
 
   local desert_count_center = 0
   local land_count_center = 0
-  Q.on_all_tiles( function( tile )
+  Q.on_all_non_arctic_tiles( function( tile )
     if tile.y ~= 34 and tile.y ~= 35 and tile.y ~= 36 and tile.y ~=
         37 then return end
     local terrain = terrain_at( J, tile )
@@ -385,21 +475,21 @@ local function finished( mode )
     local opts = {
       title=format(
           'Terrain Row Distribution (empirical) (%s) [%d]', mode,
-          D.total_savs ),
+          D.savs ),
       x_label='Map Row (Y)',
       y_label='Value',
       y_range='0:0.7',
       x_range='1:70',
     }
     local csv_data = { header={ 'y' }, rows={} }
-    for _, ground in ipairs( GROUND_TYPES ) do
+    for _, ground in ipairs( BIOME_ORDERING ) do
       insert( csv_data.header, ground )
     end
     for y_real = 1, 70 do
       local y = clamp( y_real, 4, 66 )
       local row = { y }
       local land = assert( D.land_by_row[y] )
-      for _, ground in ipairs( GROUND_TYPES ) do
+      for _, ground in ipairs( BIOME_ORDERING ) do
         local count = assert( D.ground_per_row[ground][y] )
         local density = count / land
         table.insert( row, format( format( '%f', density ) ) )
@@ -414,21 +504,21 @@ local function finished( mode )
     local opts = {
       title=format(
           'Terrain Dry Row Distribution (empirical) (%s) [%d]',
-          mode, D.total_savs ),
+          mode, D.savs ),
       x_label='Map Row (Y)',
       y_label='Value',
       y_range='0:1.0',
       x_range='1:70',
     }
     local csv_data = { header={ 'y' }, rows={} }
-    for _, ground in ipairs( GROUND_TYPES ) do
+    for _, ground in ipairs( BIOME_ORDERING ) do
       insert( csv_data.header, ground )
     end
     for y_real = 1, 70 do
       local y = clamp( y_real, 4, 66 )
       local row = { y }
       local land = assert( D.land_by_row_dry[y] )
-      for _, ground in ipairs( GROUND_TYPES ) do
+      for _, ground in ipairs( BIOME_ORDERING ) do
         if assert( WET_DRY_TYPE[ground] ) == 'dry' then
           local count = assert( D.ground_per_row[ground][y] )
           local density = count / land
@@ -448,21 +538,21 @@ local function finished( mode )
     local opts = {
       title=format(
           'Terrain Wet Row Distribution (empirical) (%s) [%d]',
-          mode, D.total_savs ),
+          mode, D.savs ),
       x_label='Map Row (Y)',
       y_label='Value',
       y_range='0:1.0',
       x_range='1:70',
     }
     local csv_data = { header={ 'y' }, rows={} }
-    for _, ground in ipairs( GROUND_TYPES ) do
+    for _, ground in ipairs( BIOME_ORDERING ) do
       insert( csv_data.header, ground )
     end
     for y_real = 1, 70 do
       local y = clamp( y_real, 4, 66 )
       local row = { y }
       local land = assert( D.land_by_row_wet[y] )
-      for _, ground in ipairs( GROUND_TYPES ) do
+      for _, ground in ipairs( BIOME_ORDERING ) do
         if assert( WET_DRY_TYPE[ground] ) == 'wet' then
           local count = assert( D.ground_per_row[ground][y] )
           local density = count / land
@@ -482,21 +572,21 @@ local function finished( mode )
     local opts = {
       title=format(
           'Terrain Column Distribution (empirical) (%s) [%d]',
-          mode, D.total_savs ),
+          mode, D.savs ),
       x_label='Map Column (X)',
       y_label='Value',
       y_range='0:0.4',
       x_range='1:56',
     }
     local csv_data = { header={ 'x' }, rows={} }
-    for _, ground in ipairs( GROUND_TYPES ) do
+    for _, ground in ipairs( BIOME_ORDERING ) do
       insert( csv_data.header, ground )
     end
     for x_real = 1, 56 do
       local x = clamp( x_real, 1, 56 )
       local row = { x }
       local land = assert( D.land_by_col[x] )
-      for _, ground in ipairs( GROUND_TYPES ) do
+      for _, ground in ipairs( BIOME_ORDERING ) do
         local count = assert( D.ground_per_col[ground][x] )
         local density = count / land
         table.insert( row, format( format( '%f', density ) ) )
@@ -507,7 +597,7 @@ local function finished( mode )
     plot.line_graph_to_file( path, csv_data, opts )
   end
 
-  printfln( 'Total Land: %d', D.total_land )
+  printfln( 'Total Land: %d', D.land )
 
   -- Swamp/Marsh adjacency.
   local function add_swamp_marsh_adjacency( o, name )
@@ -529,7 +619,7 @@ local function finished( mode )
       'density', --
     }
     O.count = S.count
-    O.density = S.count / D.total_land
+    O.density = S.count / D.land
     O.with_swamp_adjacent = S.with_swamp_adjacent / S.count
     O.with_marsh_adjacent = S.with_marsh_adjacent / S.count
     O.with_swamp_or_marsh_adjacent =
@@ -556,17 +646,38 @@ local function finished( mode )
     local general = o.general
     general.biome = {}
     local biome = general.biome
-    biome.__key_order = GROUND_TYPES
+    biome.__key_order = BIOME_ORDERING
     o.ocean = {}
     local ocean = o.ocean
-    ocean.__key_order = GROUND_TYPES
+    ocean.__key_order = BIOME_ORDERING
+    o.ocean_normalized = {}
+    local ocean_normalized = o.ocean_normalized
+    ocean_normalized.__key_order = BIOME_ORDERING
     o.river = {}
     local river = o.river
-    river.__key_order = GROUND_TYPES
+    river.__key_order = BIOME_ORDERING
+    o.ocean_side = {}
+    local ocean_side = o.ocean_side
+    ocean_side.__key_order = BIOME_ORDERING
+    o.ocean_side_normalized = {}
+    local ocean_side_normalized = o.ocean_side_normalized
+    ocean_side_normalized.__key_order = BIOME_ORDERING
+    o.river_side = {}
+    local river_side = o.river_side
+    river_side.__key_order = BIOME_ORDERING
+    o.wetness = {}
+    local wetness = o.wetness
+    wetness.__key_order = BIOME_ORDERING
+    o.wetness_normalized = {}
+    local wetness_normalized = o.wetness_normalized
+    wetness_normalized.__key_order = BIOME_ORDERING
+    o.wetness_zero_sum = {}
+    local wetness_zero_sum = o.wetness_zero_sum
+    wetness_zero_sum.__key_order = BIOME_ORDERING
 
     -- General adjacency.
     local adjacency_relative = {}
-    for _, ground in ipairs( GROUND_TYPES ) do
+    for _, ground in ipairs( BIOME_ORDERING ) do
       local adjacency_baseline = 0
       for y = 1, 70 do
         local land_on_row = assert( D.land_by_row[y] )
@@ -585,7 +696,7 @@ local function finished( mode )
         end
       end
       local A = assert( D.adjacency[ground] )
-      local density = A.count / D.total_land
+      local density = A.count / D.land
       local adjacency_avg = A.adjacency_count / A.count
       adjacency_relative[ground] =
           A.adjacency_count / adjacency_baseline
@@ -598,17 +709,43 @@ local function finished( mode )
       biome[ground].adjacency_baseline = adjacency_baseline
       biome[ground].adjacency_relative = result
     end
-    general.results = { __key_order=GROUND_TYPES }
-    for _, ground in ipairs( GROUND_TYPES ) do
+    general.results = { __key_order=BIOME_ORDERING }
+    for _, ground in ipairs( BIOME_ORDERING ) do
       general.results[ground] = assert(
                                     adjacency_relative[ground] )
     end
-    for _, ground in ipairs( GROUND_TYPES ) do
+    for _, ground in ipairs( BIOME_ORDERING ) do
       ocean[ground] = assert( D.with_ocean_adjacent[ground] /
                                   D.adjacency[ground].count )
       river[ground] = assert( D.with_river_adjacent[ground] /
                                   D.adjacency[ground].count )
+      ocean_side[ground] = assert(
+                               D.with_ocean_adjacent_side[ground] /
+                                   D.adjacency[ground].count )
+      river_side[ground] = assert(
+                               D.with_river_adjacent_side[ground] /
+                                   D.adjacency[ground].count )
+      wetness[ground] = assert( D.wetness[ground] /
+                                    D.adjacency[ground].count )
+      ocean_normalized[ground] =
+          10000 * ocean[ground] /
+              (D.land_ocean_adjacent / D.savs)
+      ocean_side_normalized[ground] =
+          10000 * ocean_side[ground] /
+              (D.land_ocean_adjacent_side / D.savs)
     end
+    local wetness_total = 0
+    for _, ground in ipairs( BIOME_ORDERING_NON_ARCTIC ) do
+      wetness_total = wetness_total + wetness[ground]
+    end
+    local wetness_avg = wetness_total /
+                            #BIOME_ORDERING_NON_ARCTIC
+    for _, ground in ipairs( BIOME_ORDERING_NON_ARCTIC ) do
+      wetness_normalized[ground] = wetness[ground] / wetness_avg
+      wetness_zero_sum[ground] = wetness_normalized[ground] - 1.0
+    end
+    wetness_normalized.arctic = 1.0
+    wetness_zero_sum.arctic = 0
     json.write( o, 2, emit )
   end
 
@@ -620,7 +757,7 @@ local function finished( mode )
       local opts = {
         title=format(
             'Savannah Row Limit Histograph (empirical) (%s) [%d]',
-            mode, D.total_savs ),
+            mode, D.savs ),
         x_label='Distance from Equator',
         y_label='Frequency',
         x_range='0:20',
@@ -639,7 +776,7 @@ local function finished( mode )
       for i = 0, max_dist do
         local row = { i, 0 }
         if D.max_savannah_row[i] then
-          row[2] = D.max_savannah_row[i] / D.total_savs
+          row[2] = D.max_savannah_row[i] / D.savs
         end
         table.insert( csv_data.rows, row )
       end
@@ -659,7 +796,7 @@ local function finished( mode )
       local opts = {
         title=format(
             'Temperature Histograph from Savannah (empirical) (%s) [%d]',
-            mode, D.total_savs ),
+            mode, D.savs ),
         x_label='Temperature',
         y_label='Frequency',
         x_range='-300:300',
@@ -690,7 +827,7 @@ local function finished( mode )
       local opts = {
         title=format(
             'Desert Center Density Histograph (empirical) (%s) [%d]',
-            mode, D.total_savs ),
+            mode, D.savs ),
         x_label='Density',
         y_label='Frequency',
         x_range='0:0.3',
@@ -709,7 +846,7 @@ local function finished( mode )
       for i = 0, max_bucket do
         local row = { i * DESERT_DENSITY_BUCKET_SIZE, 0 }
         if D.desert_density_center[i] then
-          row[2] = D.desert_density_center[i] / D.total_savs
+          row[2] = D.desert_density_center[i] / D.savs
         end
         table.insert( csv_data.rows, row )
       end
@@ -733,7 +870,7 @@ local function finished( mode )
       local opts = {
         title=format(
             'Temperature Histograph from Desert (empirical) (%s) [%d]',
-            mode, D.total_savs ),
+            mode, D.savs ),
         x_label='Temperature',
         y_label='Frequency',
         x_range='-300:300',
@@ -774,10 +911,15 @@ local function collect()
   o.biomes = {}
   o.biome_averages = {}
   o.modes.__key_order = MODES
-  o.biomes.__key_order = GROUND_TYPES
-  o.biome_averages.__key_order = GROUND_TYPES
+  o.biomes.__key_order = BIOME_ORDERING
+  o.biome_averages.__key_order = BIOME_ORDERING
   o.wet = {}
   o.wet.__key_order = MODES
+  local w = {}
+  w.modes = {}
+  w.modes.__key_order = MODES
+  w.biomes = {}
+  w.biomes.__key_order = BIOME_ORDERING
   local csv_buckets = {}
   for _, mode in ipairs( MODES ) do
     local adjacency_file = format( '%s/%s.adjacency.json',
@@ -786,8 +928,8 @@ local function collect()
     local mode_json = json.read( f:read( '*all' ) )
     local results = assert( mode_json.general.results )
     o.modes[mode] = results
-    o.modes[mode].__key_order = GROUND_TYPES
-    for _, biome in ipairs( GROUND_TYPES ) do
+    o.modes[mode].__key_order = BIOME_ORDERING
+    for _, biome in ipairs( BIOME_ORDERING ) do
       local result = assert( results[biome] )
       o.biomes[biome] = o.biomes[biome] or { __key_order=MODES }
       o.biomes[biome][mode] = assert( o.modes[mode][biome] )
@@ -810,26 +952,48 @@ local function collect()
             mode_json.wet.marsh.with_ocean_adjacent ),
       },
     }
+    w.modes[mode] = assert( mode_json.wetness_zero_sum )
+    for _, biome in ipairs( BIOME_ORDERING_NON_ARCTIC ) do
+      w.biomes[biome] = w.biomes[biome] or {}
+      w.biomes[biome][mode] = assert(
+                                  mode_json.wetness_zero_sum[biome] )
+    end
+    w.biomes.arctic = w.biomes.arctic or {}
+    w.biomes.arctic[mode] = 0
+  end
+
+  do
+    local collected_json_file = format( '%s/wetness.json',
+                                        PLOTS_DIR )
+    printfln( 'writing %s...', collected_json_file )
+    json.write_file( collected_json_file, w, 2 )
+  end
+
+  do
+    local collected_json_file = format( '%s/adjacency.json',
+                                        PLOTS_DIR )
+    printfln( 'writing %s...', collected_json_file )
+    json.write_file( collected_json_file, o, 2 )
   end
 
   do
     local opts = {
       title=format(
           'Biome Adjacency Histogram (empirical) (%s) [%d]',
-          'collected', D.total_savs ),
+          'collected', D.savs ),
       x_label='Relative Adjacency',
       y_label='Count',
       x_range='.6:2.5',
       y_range='0:6',
     }
     local csv_data = { header={ 'value' }, rows={} }
-    for _, biome in ipairs( GROUND_TYPES ) do
+    for _, biome in ipairs( BIOME_ORDERING ) do
       table.insert( csv_data.header, biome )
     end
     for i = 0, 3 * BUCKET_FRACTION do
       local row = {}
       table.insert( row, format( '%.3f', i / BUCKET_FRACTION ) )
-      for _, biome in ipairs( GROUND_TYPES ) do
+      for _, biome in ipairs( BIOME_ORDERING ) do
         csv_buckets[biome][i] = csv_buckets[biome][i] or 0
         table.insert( row, format( ',%d', csv_buckets[biome][i] ) )
       end
@@ -844,9 +1008,7 @@ local function collect()
     local collected_json_file = format( '%s/adjacency.json',
                                         PLOTS_DIR )
     printfln( 'writing %s...', collected_json_file )
-    local json_out<close> = assert(
-                                io.open( collected_json_file, 'w' ) )
-    json.write( o, 2, function( bit ) json_out:write( bit ) end )
+    json.write_file( collected_json_file, o, 2 )
   end
 
   do
@@ -854,7 +1016,20 @@ local function collect()
     printfln( 'writing %s...', path )
     local config = {
       __key_order={
+        'wetness_modulator', --
         'clustering', --
+      },
+      wetness_modulator={
+        __key_order=BIOME_ORDERING, --
+        savannah=0,
+        grassland=0,
+        tundra=0,
+        plains=0,
+        prairie=0,
+        desert=0,
+        swamp=0,
+        marsh=0,
+        arctic=0,
       },
       clustering={
         __key_order={
@@ -863,7 +1038,7 @@ local function collect()
         },
         climate_normal=assert( deep_copy( o.modes.bbmm ) ),
         climate_gradient={
-          __key_order=GROUND_TYPES,
+          __key_order=BIOME_ORDERING,
           savannah={},
           grassland={},
           tundra={},
@@ -892,7 +1067,7 @@ local function collect()
       0.0
     swamp_marsh_water_gravity = round( swamp_marsh_water_gravity/6 )
     -- LuaFormatter on
-    for _, biome in ipairs( GROUND_TYPES ) do
+    for _, biome in ipairs( BIOME_ORDERING ) do
       config.clustering.climate_normal[biome] = {
         for_self=cluster( config.clustering.climate_normal[biome] ),
         for_water=json.JNULL,
@@ -921,6 +1096,14 @@ local function collect()
       for_self=0.0,
       for_water=json.JNULL,
     }
+    for _, biome in ipairs( BIOME_ORDERING_NON_ARCTIC ) do
+      local mode_avg = 0
+      for _, mode in ipairs( MODES ) do
+        mode_avg = mode_avg + assert( w.modes[mode][biome] )
+      end
+      mode_avg = mode_avg / #MODES
+      config.wetness_modulator[biome] = mode_avg
+    end
     json.write_file( path, config, 2 )
   end
 end

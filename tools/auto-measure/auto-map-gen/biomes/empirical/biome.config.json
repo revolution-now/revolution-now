@@ -1,4 +1,15 @@
 {
+  "wetness_modulator": {
+    "savannah": -0.25549908459815,
+    "grassland": 0.24357439781768,
+    "tundra": -0.52262318779736,
+    "plains": -0.1551968473707,
+    "prairie": 0.17149896774703,
+    "desert": -0.32535229941433,
+    "swamp": 0.36764566249929,
+    "marsh": 0.47595239111655,
+    "arctic": 0
+  },
   "clustering": {
     "climate_normal": {
       "savannah": {

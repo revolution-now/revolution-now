@@ -259,6 +259,16 @@ local function coord_for( x, y )
 end
 M.coord_for = coord_for
 
+local function filter_tiles_exist( tiles )
+  local coords_exist = {}
+  for _, coord in ipairs( tiles ) do
+    if M.square_exists( coord ) then
+      insert( coords_exist, coord )
+    end
+  end
+  return coords_exist
+end
+
 -- Will return ONLY tiles that exist. Will NOT include input tile.
 function M.surrounding_coords( cc )
   local coords_all = {
@@ -271,13 +281,7 @@ function M.surrounding_coords( cc )
     coord_for( cc.x + 0, cc.y + 1 ),
     coord_for( cc.x + 1, cc.y + 1 ),
   }
-  local coords_exist = {}
-  for _, coord in ipairs( coords_all ) do
-    if M.square_exists( coord ) then
-      insert( coords_exist, coord )
-    end
-  end
-  return coords_exist
+  return filter_tiles_exist( coords_all )
 end
 
 -- Will return ONLY tiles that exist. Will NOT include input tile.
@@ -288,13 +292,16 @@ function M.surrounding_coords_cardinal( cc )
     coord_for( cc.x + 1, cc.y + 0 ),
     coord_for( cc.x + 0, cc.y + 1 ),
   }
-  local coords_exist = {}
-  for _, coord in ipairs( coords_all ) do
-    if M.square_exists( coord ) then
-      insert( coords_exist, coord )
-    end
-  end
-  return coords_exist
+  return filter_tiles_exist( coords_all )
+end
+
+-- Will return ONLY tiles that exist. Will NOT include input tile.
+function M.surrounding_coords_sides( cc )
+  local coords_all = {
+    coord_for( cc.x - 1, cc.y + 0 ),
+    coord_for( cc.x + 1, cc.y + 0 ),
+  }
+  return filter_tiles_exist( coords_all )
 end
 
 -- This will return true if the tiles are adjacent but NOT the
@@ -340,6 +347,11 @@ end
 
 function M.on_surrounding_tiles_cardinal( coord, fn )
   local tiles = M.surrounding_coords_cardinal( coord )
+  for _, tile in ipairs( tiles ) do fn( tile ) end
+end
+
+function M.on_surrounding_tiles_sides( coord, fn )
+  local tiles = M.surrounding_coords_sides( coord )
   for _, tile in ipairs( tiles ) do fn( tile ) end
 end
 
