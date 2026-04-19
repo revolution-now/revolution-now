@@ -2472,7 +2472,7 @@ void render_terrain_square_merged(
 void render_landscape_buffer(
     rr::Renderer& renderer, IVisibility const& viz,
     TerrainRenderOptions const& options,
-    gfx::Matrix<rr::VertexRange>& tile_bounds ) {
+    gfx::matrix<rr::VertexRange>& tile_bounds ) {
   auto start_time = chrono::system_clock::now();
   SCOPED_RENDERER_MOD_SET( painter_mods.repos.use_camera, true );
 
@@ -2506,7 +2506,7 @@ void render_landscape_buffer(
 void render_obfuscation_buffer(
     rr::Renderer& renderer, IVisibility const& viz,
     TerrainRenderOptions const& options,
-    gfx::Matrix<rr::VertexRange>& tile_bounds ) {
+    gfx::matrix<rr::VertexRange>& tile_bounds ) {
   auto start_time = chrono::system_clock::now();
   SCOPED_RENDERER_MOD_SET( painter_mods.repos.use_camera, true );
 

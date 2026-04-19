@@ -37,6 +37,6 @@ namespace rn {
 
 [[nodiscard]] base::valid_or<e_perlin_map_error> land_gen_perlin(
     PerlinMapSettings const& settings, double target_density,
-    gfx::size const world_sz, gfx::Matrix<e_surface>& surface );
+    gfx::size const world_sz, gfx::matrix<e_surface>& surface );
 
 } // namespace rn

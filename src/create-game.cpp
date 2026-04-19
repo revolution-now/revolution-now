@@ -65,7 +65,7 @@ using namespace std;
 using ::base::ScopedTimer;
 using ::base::valid;
 using ::base::valid_or;
-using ::gfx::Matrix;
+using ::gfx::matrix;
 using ::gfx::point;
 using ::gfx::rect;
 using ::gfx::rect_iterator;
@@ -150,7 +150,7 @@ valid_or<string> generate_land_perlin(
   {
     auto const& perlin_settings =
         surface_generator.perlin_settings;
-    Matrix<e_surface> surface;
+    matrix<e_surface> surface;
     auto const ok = TIMED_CALL( land_gen_perlin, perlin_settings,
                                 surface_generator.target_density,
                                 setup.size, surface );

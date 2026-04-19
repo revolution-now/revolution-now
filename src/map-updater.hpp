@@ -122,7 +122,7 @@ struct RenderingMapUpdater : NonRenderingMapUpdater {
     BufferTracking( Delta size ) : tile_bounds( size ) {}
 
     int tiles_redrawn = 0;
-    gfx::Matrix<rr::VertexRange> tile_bounds;
+    gfx::matrix<rr::VertexRange> tile_bounds;
   };
 
   void redraw_square_single_buffer(

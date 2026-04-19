@@ -38,7 +38,7 @@ using ::base::ScopedTimer;
 using ::base::valid;
 using ::base::valid_or;
 using ::gfx::dsize;
-using ::gfx::Matrix;
+using ::gfx::matrix;
 using ::gfx::point;
 using ::gfx::rect;
 using ::gfx::rect_iterator;
@@ -101,7 +101,7 @@ PerlinSeed generate_perlin_seed( rng::entropy entropy ) {
 valid_or<e_perlin_map_error> land_gen_perlin(
     PerlinMapSettings const& settings,
     double const target_density, size const world_sz,
-    Matrix<e_surface>& surface ) {
+    matrix<e_surface>& surface ) {
   size const sz = world_sz;
   rng::vec2 const kNoRepeat{ .x = 100'000'000,
                              .y = 100'000'000 };
@@ -130,7 +130,7 @@ valid_or<e_perlin_map_error> land_gen_perlin(
     // about that, but possible).
     return settings.seed.flip ? -noise : noise;
   };
-  Matrix<double> pm( sz );
+  matrix<double> pm( sz );
 
   auto const print_stats = [&]( string_view const name ) {
 #if 0
@@ -233,7 +233,7 @@ valid_or<e_perlin_map_error> land_gen_perlin(
   {
     using enum e_surface;
     auto& m = surface;
-    m       = Matrix<e_surface>( sz );
+    m       = matrix<e_surface>( sz );
     ScopedTimer const timer( "final map build" );
     for( point const p : rect_iterator( m.rect() ) )
       m[p] = ( pm[p] <= sea_level ) ? water : land;

@@ -29,11 +29,11 @@ namespace "rn"
 # What each player sees. Some tiles may not be visible, and
 # others might not be up to date with the real map.
 struct.PlayerTerrain {
-  map 'gfx::Matrix<PlayerSquare>',
+  map 'gfx::matrix<PlayerSquare>',
 }
 
 struct.RealTerrain {
-  # Use MapMatrix instead of Matrix<MapSquare> so that it can be
+  # Use MapMatrix instead of matrix<MapSquare> so that it can be
   # forward declared.
   map 'MapMatrix',
 }

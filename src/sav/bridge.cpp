@@ -707,7 +707,7 @@ ConvResult populate_player_terrain(
       [&]( rn::e_player const type ) -> rn::PlayerTerrain& {
     CHECK( !out.player_terrain[type].has_value() );
     auto& pterrain = out.player_terrain[type].emplace();
-    pterrain.map   = gfx::Matrix<rn::PlayerSquare>(
+    pterrain.map   = gfx::matrix<rn::PlayerSquare>(
         out.real_terrain.map.size() );
     return pterrain;
   };

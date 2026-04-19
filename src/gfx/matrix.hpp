@@ -40,13 +40,13 @@ namespace gfx {
 // span that can only be indexed by X; indexing that span will
 // return a value.
 template<typename T>
-struct Matrix {
+struct matrix {
  private:
   int w_ = 0;
   std::vector<T> data_{};
 
  public:
-  Matrix( rn::Delta delta ) : w_( delta.w ) {
+  matrix( rn::Delta delta ) : w_( delta.w ) {
     CHECK( delta.w >= 0 );
     CHECK( delta.h >= 0 );
     size_t size = delta.h * delta.w;
@@ -54,7 +54,7 @@ struct Matrix {
     CHECK( data_.size() == size );
   }
 
-  Matrix( rn::Delta delta, T init ) : w_( delta.w ) {
+  matrix( rn::Delta delta, T init ) : w_( delta.w ) {
     CHECK( delta.w >= 0 );
     CHECK( delta.h >= 0 );
     size_t size = delta.h * delta.w;
@@ -62,19 +62,19 @@ struct Matrix {
     CHECK( data_.size() == size );
   }
 
-  Matrix() : Matrix( rn::Delta{} ) {}
+  matrix() : matrix( rn::Delta{} ) {}
 
-  Matrix( Matrix&& )                 = default;
-  Matrix( Matrix const& )            = default;
-  Matrix& operator=( Matrix&& )      = default;
-  Matrix& operator=( Matrix const& ) = default;
+  matrix( matrix&& )                 = default;
+  matrix( matrix const& )            = default;
+  matrix& operator=( matrix&& )      = default;
+  matrix& operator=( matrix const& ) = default;
 
-  Matrix( std::vector<T>&& data, int w )
+  matrix( std::vector<T>&& data, int w )
     : w_{ w }, data_{ std::move( data ) } {}
 
-  void reset( rn::Delta size ) { *this = Matrix( size ); }
+  void reset( rn::Delta size ) { *this = matrix( size ); }
 
-  bool operator==( Matrix<T> const& rhs ) const {
+  bool operator==( matrix<T> const& rhs ) const {
     return w_ == rhs.w_ && data_ == rhs.data_;
   }
 
@@ -115,14 +115,14 @@ struct Matrix {
 
   std::vector<T> const& data() const { return data_; }
 
-  friend void to_str( Matrix const& o, std::string& out,
-                      base::tag<Matrix> ) {
+  friend void to_str( matrix const& o, std::string& out,
+                      base::tag<matrix> ) {
     out += fmt::format( "Matrix{{size={}}}", o.size() );
   }
 
   // Implement trv::Traversable.
-  friend void traverse( Matrix const& o, auto& fn,
-                        trv::tag_t<Matrix> ) {
+  friend void traverse( matrix const& o, auto& fn,
+                        trv::tag_t<matrix> ) {
     using namespace std::literals;
     auto const y_size = o.size().h;
     gfx::point p;
@@ -149,8 +149,8 @@ struct Matrix {
   }
 
   friend void define_usertype_for( lua::state& st,
-                                   lua::tag<Matrix<T>> ) {
-    define_usertype_for_template<Matrix<T>>( st );
+                                   lua::tag<matrix<T>> ) {
+    define_usertype_for_template<matrix<T>>( st );
   }
 };
 
@@ -160,12 +160,12 @@ struct Matrix {
 ** TypeTraverse Specializations.
 *****************************************************************/
 namespace trv {
-TRV_TYPE_TRAVERSE( ::gfx::Matrix, T );
+TRV_TYPE_TRAVERSE( ::gfx::matrix, T );
 }
 
 /****************************************************************
 ** Lua
 *****************************************************************/
 namespace lua {
-LUA_USERDATA_TRAITS_T( ::gfx::Matrix, owned_by_cpp ){};
+LUA_USERDATA_TRAITS_T( ::gfx::matrix, owned_by_cpp ){};
 }

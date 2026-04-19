@@ -137,7 +137,7 @@ struct world : testing::World {
             true;
   }
 
-  void clear_all_fog( gfx::Matrix<PlayerSquare>& m ) {
+  void clear_all_fog( gfx::matrix<PlayerSquare>& m ) {
     for( int y = 0; y < m.size().h; ++y ) {
       for( int x = 0; x < m.size().w; ++x ) {
         Coord const coord{ .x = x, .y = y };
@@ -470,7 +470,7 @@ TEST_CASE( "[visibility] Visibility" ) {
 
     REQUIRE( viz.player() == e_player::english );
 
-    gfx::Matrix<PlayerSquare>& player_map =
+    gfx::matrix<PlayerSquare>& player_map =
         W.terrain()
             .mutable_player_terrain( e_player::english )
             .map;
@@ -535,7 +535,7 @@ TEST_CASE( "[visibility] Visibility" ) {
 
     REQUIRE( viz.player() == e_player::english );
 
-    gfx::Matrix<PlayerSquare>& player_map =
+    gfx::matrix<PlayerSquare>& player_map =
         W.terrain()
             .mutable_player_terrain( e_player::english )
             .map;
@@ -651,12 +651,12 @@ TEST_CASE(
                               e_player::english );
   };
 
-  gfx::Matrix<PlayerSquare>& eng_map =
+  gfx::matrix<PlayerSquare>& eng_map =
       W.ss()
           .mutable_terrain_use_with_care
           .mutable_player_terrain( e_player::english )
           .map;
-  gfx::Matrix<PlayerSquare>& fr_map =
+  gfx::matrix<PlayerSquare>& fr_map =
       W.ss()
           .mutable_terrain_use_with_care
           .mutable_player_terrain( e_player::french )
@@ -976,12 +976,12 @@ TEST_CASE(
                               e_player::english );
   };
 
-  gfx::Matrix<PlayerSquare>& eng_map =
+  gfx::matrix<PlayerSquare>& eng_map =
       W.ss()
           .mutable_terrain_use_with_care
           .mutable_player_terrain( e_player::english )
           .map;
-  gfx::Matrix<PlayerSquare>& fr_map =
+  gfx::matrix<PlayerSquare>& fr_map =
       W.ss()
           .mutable_terrain_use_with_care
           .mutable_player_terrain( e_player::french )
@@ -1351,7 +1351,7 @@ TEST_CASE( "[visibility] VisibilityWithOverrides" ) {
   VisibilityWithOverrides viz_overrides_player(
       W.ss(), viz_player, overrides );
 
-  gfx::Matrix<PlayerSquare>& player_map =
+  gfx::matrix<PlayerSquare>& player_map =
       W.terrain()
           .mutable_player_terrain( e_player::english )
           .map;
@@ -1582,7 +1582,7 @@ TEST_CASE( "[visibility] resource_at" ) {
   VisibilityWithOverrides viz_overrides_player(
       W.ss(), viz_player, overrides );
 
-  gfx::Matrix<PlayerSquare>& player_map =
+  gfx::matrix<PlayerSquare>& player_map =
       W.terrain()
           .mutable_player_terrain( e_player::english )
           .map;

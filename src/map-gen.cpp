@@ -53,7 +53,7 @@ namespace {
 
 using ::base::ScopedTimer;
 using ::gfx::e_cardinal_direction;
-using ::gfx::Matrix;
+using ::gfx::matrix;
 using ::gfx::point;
 using ::gfx::rect;
 using ::gfx::rect_iterator;

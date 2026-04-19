@@ -44,8 +44,8 @@ namespace rn {
 // just allowing us to pass it around via forward-declared refer-
 // ence, which we wouldn't be able to do if it were Matrix<Map-
 // Square>.
-struct MapMatrix : public gfx::Matrix<MapSquare> {
-  using Base = gfx::Matrix<MapSquare>;
+struct MapMatrix : public gfx::matrix<MapSquare> {
+  using Base = gfx::matrix<MapSquare>;
 
   using Base::Base;
 
@@ -66,7 +66,7 @@ struct MapMatrix : public gfx::Matrix<MapSquare> {
   friend void traverse( MapMatrix const& o, auto& fn,
                         trv::tag_t<MapMatrix> ) {
     return traverse( o.as_base(), fn,
-                     trv::tag_t<Matrix<MapSquare>>{} );
+                     trv::tag_t<matrix<MapSquare>>{} );
   }
 
   // Implement cdr::ToCanonical.

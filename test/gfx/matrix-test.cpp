@@ -28,13 +28,13 @@ using namespace std;
 ** Test Cases
 *****************************************************************/
 TEST_CASE( "[gfx/matrix] construction" ) {
-  Matrix<int> m( rn::Delta{ .w = 2, .h = 3 } );
+  matrix<int> m( rn::Delta{ .w = 2, .h = 3 } );
   // TODO
   (void)m;
 }
 
 TEST_CASE( "[gfx/matrix] traverse" ) {
-  using T          = Matrix<string>;
+  using T          = matrix<string>;
   using K_expected = point;
   T o;
 
@@ -51,7 +51,7 @@ TEST_CASE( "[gfx/matrix] traverse" ) {
     trv::traverse( o, traversing_fn );
   };
 
-  o = Matrix<string>( size{ .w = 2, .h = 2 } );
+  o = matrix<string>( size{ .w = 2, .h = 2 } );
   o[{ .x = 0, .y = 0 }] = "hello";
   o[{ .x = 1, .y = 0 }] = "world";
   o[{ .x = 0, .y = 1 }] = "again";

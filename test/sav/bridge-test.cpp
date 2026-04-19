@@ -287,16 +287,16 @@ void rn_bidirectional_scenario_1( rn::RootState& out ) {
       rn::MapMatrix( std::move( squares ), 6 );
 
   terrain_o.player_terrain[rn::e_player::english].emplace().map =
-      gfx::Matrix<rn::PlayerSquare>(
+      gfx::matrix<rn::PlayerSquare>(
           gfx::size{ .w = 6, .h = 8 } );
   terrain_o.player_terrain[rn::e_player::french].emplace().map =
-      gfx::Matrix<rn::PlayerSquare>(
+      gfx::matrix<rn::PlayerSquare>(
           gfx::size{ .w = 6, .h = 8 } );
   terrain_o.player_terrain[rn::e_player::spanish].emplace().map =
-      gfx::Matrix<rn::PlayerSquare>(
+      gfx::matrix<rn::PlayerSquare>(
           gfx::size{ .w = 6, .h = 8 } );
   terrain_o.player_terrain[rn::e_player::dutch].emplace().map =
-      gfx::Matrix<rn::PlayerSquare>(
+      gfx::matrix<rn::PlayerSquare>(
           gfx::size{ .w = 6, .h = 8 } );
 
   terrain_o.pacific_ocean_endpoints = vector<int>( 8 );
@@ -606,16 +606,16 @@ void rn_unidirectional_scenario_2( rn::RootState& out ) {
   squares[19].overlay = rn::e_land_overlay::mountains;
 
   terrain_o.player_terrain[rn::e_player::english].emplace().map =
-      gfx::Matrix<rn::PlayerSquare>(
+      gfx::matrix<rn::PlayerSquare>(
           gfx::size{ .w = 6, .h = 8 } );
   terrain_o.player_terrain[rn::e_player::french].emplace().map =
-      gfx::Matrix<rn::PlayerSquare>(
+      gfx::matrix<rn::PlayerSquare>(
           gfx::size{ .w = 6, .h = 8 } );
   terrain_o.player_terrain[rn::e_player::spanish].emplace().map =
-      gfx::Matrix<rn::PlayerSquare>(
+      gfx::matrix<rn::PlayerSquare>(
           gfx::size{ .w = 6, .h = 8 } );
   terrain_o.player_terrain[rn::e_player::dutch].emplace().map =
-      gfx::Matrix<rn::PlayerSquare>(
+      gfx::matrix<rn::PlayerSquare>(
           gfx::size{ .w = 6, .h = 8 } );
 
   terrain_o.pacific_ocean_endpoints = vector<int>( 8 );

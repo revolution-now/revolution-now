@@ -107,10 +107,10 @@ value const cdr_2x4_with_default_elem = table{
   "data"_key = cdr::list{ 1, 2, 3, 4, 5, 0, 7, 8 },
 };
 
-Matrix<int> m_empty( rn::Delta{} );
+matrix<int> m_empty( rn::Delta{} );
 
-Matrix<int> make_m_2x4() {
-  Matrix<int> m_2x4( rn::Delta{ .w = 4, .h = 2 } );
+matrix<int> make_m_2x4() {
+  matrix<int> m_2x4( rn::Delta{ .w = 4, .h = 2 } );
   m_2x4[0][0] = 1;
   m_2x4[0][1] = 2;
   m_2x4[0][2] = 3;
@@ -127,24 +127,24 @@ Matrix<int> make_m_2x4() {
 *****************************************************************/
 TEST_CASE( "[gfx/cdr-matrix] cdr/empty matrix" ) {
   cdr::converter conv;
-  Matrix<int> m_empty( rn::Delta{} );
+  matrix<int> m_empty( rn::Delta{} );
   SECTION( "to_canonical" ) {
     REQUIRE( conv.to( m_empty ) == cdr_empty );
   }
   SECTION( "from_canonical" ) {
-    REQUIRE( conv_from_bt<Matrix<int>>( conv, cdr_empty ) ==
+    REQUIRE( conv_from_bt<matrix<int>>( conv, cdr_empty ) ==
              m_empty );
   }
 }
 
 TEST_CASE( "[gfx/cdr-matrix] cdr/include-defaults" ) {
   cdr::converter conv;
-  Matrix<int> m_2x4 = make_m_2x4();
+  matrix<int> m_2x4 = make_m_2x4();
   SECTION( "to_canonical" ) {
     REQUIRE( conv.to( m_2x4 ) == cdr_2x4_with_default_elem );
   }
   SECTION( "from_canonical" ) {
-    REQUIRE( conv_from_bt<Matrix<int>>(
+    REQUIRE( conv_from_bt<matrix<int>>(
                  conv, cdr_2x4_with_default_elem ) == m_2x4 );
   }
 }
@@ -154,12 +154,12 @@ TEST_CASE( "[gfx/cdr-matrix] cdr/no-include-defaults" ) {
     .write_fields_with_default_value  = false,
     .default_construct_missing_fields = true,
   } );
-  Matrix<int> m_2x4 = make_m_2x4();
+  matrix<int> m_2x4 = make_m_2x4();
   SECTION( "to_canonical" ) {
     REQUIRE( conv.to( m_2x4 ) == cdr_2x4_missing_default_elem );
   }
   SECTION( "from_canonical" ) {
-    REQUIRE( conv_from_bt<Matrix<int>>(
+    REQUIRE( conv_from_bt<matrix<int>>(
                  conv, cdr_2x4_missing_default_elem ) == m_2x4 );
   }
 }
@@ -167,7 +167,7 @@ TEST_CASE( "[gfx/cdr-matrix] cdr/no-include-defaults" ) {
 TEST_CASE( "[gfx/cdr-matrix] cdr/no data" ) {
   cdr::converter conv;
   REQUIRE(
-      conv.from<Matrix<int>>( cdr_no_data ) ==
+      conv.from<matrix<int>>( cdr_no_data ) ==
       conv.err(
           "inconsistent sizes between 'size' field and 'data' "
           "field ('size' implies 1 while 'data' implies 0)." ) );
@@ -176,7 +176,7 @@ TEST_CASE( "[gfx/cdr-matrix] cdr/no data" ) {
 TEST_CASE( "[gfx/cdr-matrix] cdr/inconsistent data" ) {
   cdr::converter conv;
   REQUIRE(
-      conv.from<Matrix<int>>( cdr_inconsistent_size ) ==
+      conv.from<matrix<int>>( cdr_inconsistent_size ) ==
       conv.err(
           "serialized matrix has more coordinates in 'data' (1) "
           "then are allowed by the 'size' (0)." ) );

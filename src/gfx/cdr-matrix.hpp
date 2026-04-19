@@ -5,7 +5,7 @@
 *
 * Created by dsicilia on 2023-03-22.
 *
-* Description: Cdr conversions for gfx::Matrix.
+* Description: Cdr conversions for gfx::matrix.
 *
 *****************************************************************/
 #pragma once
@@ -25,7 +25,7 @@
 namespace gfx {
 
 /****************************************************************
-** gfx::Matrix cdr conversions.
+** gfx::matrix cdr conversions.
 *****************************************************************/
 // The Matrix<T> class, although generic, happens to be used to
 // represent the world map in the game. Since this map can get
@@ -74,11 +74,11 @@ namespace gfx {
 //
 template<cdr::ToCanonical T>
 cdr::value to_canonical( cdr::converter& conv,
-                         Matrix<T> const& m,
-                         cdr::tag_t<Matrix<T>> ) {
+                         matrix<T> const& m,
+                         cdr::tag_t<matrix<T>> ) {
   bool write_defaults =
       conv.opts().write_fields_with_default_value;
-  if( !write_defaults && m == Matrix<T>{} ) return cdr::table{};
+  if( !write_defaults && m == matrix<T>{} ) return cdr::table{};
   cdr::table tbl;
   conv.to_field( tbl, "size", m.size() );
   cdr::list lst;
@@ -109,9 +109,9 @@ cdr::value to_canonical( cdr::converter& conv,
 }
 
 template<cdr::FromCanonical T>
-cdr::result<Matrix<T>> from_canonical( cdr::converter& conv,
+cdr::result<matrix<T>> from_canonical( cdr::converter& conv,
                                        cdr::value const& v,
-                                       cdr::tag_t<Matrix<T>> ) {
+                                       cdr::tag_t<matrix<T>> ) {
   UNWRAP_RETURN( tbl, conv.ensure_type<cdr::table>( v ) );
   std::set<std::string> used_keys;
   UNWRAP_RETURN(
@@ -146,18 +146,18 @@ cdr::result<Matrix<T>> from_canonical( cdr::converter& conv,
         conv.from_field<std::vector<std::pair<rn::Coord, T>>>(
             tbl, "data", used_keys ) );
     GOOD_OR_RETURN( check_sizes( data ) );
-    Matrix<T> res( size );
+    matrix<T> res( size );
     for( auto& [coord, elem] : data )
       res[coord] = std::move( elem );
     GOOD_OR_RETURN( conv.end_field_tracking( tbl, used_keys ) );
-    return cdr::result<Matrix<T>>( std::move( res ) );
+    return cdr::result<matrix<T>>( std::move( res ) );
   } else {
     UNWRAP_RETURN( data, conv.from_field<std::vector<T>>(
                              tbl, "data", used_keys ) );
     GOOD_OR_RETURN( check_sizes( data ) );
     GOOD_OR_RETURN( conv.end_field_tracking( tbl, used_keys ) );
-    return cdr::result<Matrix<T>>(
-        Matrix<T>( std::move( data ), size.w ) );
+    return cdr::result<matrix<T>>(
+        matrix<T>( std::move( data ), size.w ) );
   }
 }
 

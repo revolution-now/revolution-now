@@ -36,7 +36,7 @@ cdr::value to_canonical( cdr::converter& conv,
                          MapMatrix const& m,
                          cdr::tag_t<MapMatrix> ) {
   return to_canonical( conv, m.as_base(),
-                       cdr::tag_t<gfx::Matrix<MapSquare>>{} );
+                       cdr::tag_t<gfx::matrix<MapSquare>>{} );
 }
 
 // Implement cdr::FromCanonical.
@@ -45,7 +45,7 @@ cdr::result<MapMatrix> from_canonical( cdr::converter& conv,
                                        cdr::tag_t<MapMatrix> ) {
   UNWRAP_RETURN(
       res, from_canonical(
-               conv, v, cdr::tag_t<gfx::Matrix<MapSquare>>{} ) );
+               conv, v, cdr::tag_t<gfx::matrix<MapSquare>>{} ) );
   return MapMatrix( std::move( res ) );
 }
 
