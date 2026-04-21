@@ -182,7 +182,9 @@ GameSetup create_classic_game_setup(
   };
 
   BiomesSetup const biomes{
-    .seed            = rand.new_deterministic_seed(),
+    .seed = rand.new_deterministic_seed(),
+    .wet_dry_sensitivity =
+        map_conf.biomes.wet_dry_modulation.sensitivity,
     .clustering_mode = BiomeClusteringMode::derived{},
   };
 

@@ -33,4 +33,7 @@ std::unique_ptr<IMapStatsCollector>
 create_biome_adjacency_stats_collector(
     BiomeClustering const& clustering );
 
+std::unique_ptr<IMapStatsCollector>
+create_biome_wetness_stats_collector();
+
 } // namespace rn

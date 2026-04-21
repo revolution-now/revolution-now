@@ -18,6 +18,9 @@
 #include "irand.hpp"
 #include "terrain-mgr.hpp"
 
+// config
+#include "config/map-gen.hpp"
+
 // ss
 #include "ss/terrain.hpp"
 
@@ -59,6 +62,7 @@ using ::gfx::rect;
 using ::gfx::rect_iterator;
 using ::gfx::size;
 using ::refl::enum_values;
+using ::rv::iota;
 using ::std::max;
 using ::std::min;
 
@@ -384,8 +388,34 @@ void add_lakes( MapMatrix& m, IRand& rand, int const target ) {
     swap( m[water], m[land] );
 }
 
-void linker_dont_discard_module_map_gen();
-void linker_dont_discard_module_map_gen() {}
+void compute_wetness( MapMatrix const& m, matrix<double>& out ) {
+  auto const& conf = config_map_gen.terrain_generation.biomes
+                         .wet_dry_modulation;
+  size const sz              = m.size();
+  double const MAX_WETNESS   = 1.0;
+  double const ocean_wetness = MAX_WETNESS * conf.accumulation;
+  out                        = matrix<double>( sz );
+  double wetness             = 0;
+  auto const apply           = [&]( int const y, int const x ) {
+    CHECK_GE( wetness, 0.0 );
+    // Note that MAX_WETNESS is only the max for a given pass;
+    // the actual value can go above that because each pass con-
+    // tributes additively.
+    out[y][x] += wetness;
+    MapSquare const& square = m[y][x];
+    if( square.surface == e_surface::water )
+      wetness = min( wetness + ocean_wetness, MAX_WETNESS );
+    else
+      wetness *= conf.consumption;
+  };
+  for( int const y : iota( 0, sz.h ) ) {
+    wetness = MAX_WETNESS;
+    for( int const x : iota( 0, sz.w ) ) apply( y, x );
+    wetness = MAX_WETNESS;
+    for( int const x : rv::reverse( iota( 0, sz.w ) ) )
+      apply( y, x );
+  }
+}
 
 /****************************************************************
 ** Lua Bindings.

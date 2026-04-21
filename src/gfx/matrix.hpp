@@ -113,6 +113,15 @@ struct matrix {
     w_ = 0;
   }
 
+  void apply( this auto& self, auto&& fn )
+  requires requires( point const p ) { fn( self[p], p ); }
+  {
+    point p;
+    for( p.y = 0; p.y < self.size().h; ++p.y )
+      for( p.x = 0; p.x < self.size().w; ++p.x )
+        fn( self[p], p );
+  }
+
   std::vector<T> const& data() const { return data_; }
 
   friend void to_str( matrix const& o, std::string& out,

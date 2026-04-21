@@ -103,6 +103,7 @@ struct.RiverSetup {
 
 struct.BiomesSetup {
   seed 'rng::seed',
+  wet_dry_sensitivity 'double',
   clustering_mode 'BiomeClusteringMode',
 }
 

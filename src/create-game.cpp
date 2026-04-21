@@ -226,6 +226,41 @@ valid_or<string> generate_map_native_impl(
   GOOD_OR_RETURN(
       generate_land_perlin( setup, rand, real_terrain ) );
 
+  // Biomes.
+  rand.reseed( setup.biomes.seed );
+  GOOD_OR_RETURN( assign_biomes(
+      rand, real_terrain, setup.weather.temperature,
+      setup.weather.climate,
+      setup.biomes.wet_dry_sensitivity ) );
+  if( setup.surface_generator.arctic.enabled )
+    assign_arctic_biomes( rand, real_terrain );
+
+  UNWRAP_RETURN_T(
+      WetnessAdjustmentResult const& wetness_adjustment_result,
+      adjust_biome_wetness( rand, real_terrain.map,
+                            setup.biomes.wet_dry_sensitivity ) );
+
+#if 0
+  BiomeClustering const biome_clustering = [&] {
+    SWITCH( setup.biomes.clustering_mode ) {
+      CASE( derived ) {
+        return biome_clustering_for_climate(
+            setup.weather.climate );
+      }
+      CASE( varying ) { return varying.values; }
+    }
+  }();
+  lg.info( "biome clustering:\n{}",
+           rcl::to_rcl( biome_clustering ) );
+  UNWRAP_RETURN_T(
+      auto const adjacency_results,
+      adjust_biome_clustering(
+          rand, real_terrain, setup.weather.temperature,
+          setup.weather.climate, biome_clustering ) );
+  log_adjacency_results( adjacency_results );
+#endif
+
+#if 0
   // Rivers.
   rand.reseed( setup.rivers.seed );
   RiverParameters const river_params = [&] {
@@ -240,33 +275,7 @@ valid_or<string> generate_map_native_impl(
     }
   }();
   add_rivers( real_terrain.map, rand, river_params );
-
-  // Biomes.
-  rand.reseed( setup.biomes.seed );
-  BiomeClustering const biome_clustering = [&] {
-    SWITCH( setup.biomes.clustering_mode ) {
-      CASE( derived ) {
-        return biome_clustering_for_climate(
-            setup.weather.climate );
-      }
-      CASE( varying ) { return varying.values; }
-    }
-  }();
-#if 0
-  lg.info( "biome clustering:\n{}",
-           rcl::to_rcl( biome_clustering ) );
 #endif
-  GOOD_OR_RETURN( assign_biomes( rand, real_terrain,
-                                 setup.weather.temperature,
-                                 setup.weather.climate ) );
-  UNWRAP_RETURN_T(
-      auto const adjacency_results,
-      adjust_biome_clustering(
-          rand, real_terrain, setup.weather.temperature,
-          setup.weather.climate, biome_clustering ) );
-  log_adjacency_results( adjacency_results );
-  if( setup.surface_generator.arctic.enabled )
-    assign_arctic_biomes( rand, real_terrain );
 
   return valid;
 }

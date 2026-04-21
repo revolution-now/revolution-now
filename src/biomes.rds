@@ -16,6 +16,11 @@ include "refl/enum-map.hpp"
 
 namespace "rn"
 
+struct.WetnessAdjustmentResult {
+  iters 'int',
+  max_allowed_iters 'int',
+}
+
 struct.AdjacencyAdjustmentResult {
   general_adjacency_iters 'int',
   swamp_marsh_adjacency_iters 'int',

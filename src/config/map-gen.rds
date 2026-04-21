@@ -123,8 +123,17 @@ struct.BiomeClimateClustering {
   tolerances 'BiomeClusteringTolerances',
 }
 
+struct.WetDryModulation {
+  sensitivity 'double',
+  accumulation 'double',
+  consumption 'double',
+  for_biome 'refl::enum_map<e_biome, double>',
+  _features { equality, validation }
+}
+
 struct.Biomes {
   densities 'BiomeDensities',
+  wet_dry_modulation 'WetDryModulation',
   clustering 'BiomeClimateClustering',
 }
 

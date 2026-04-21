@@ -25,6 +25,7 @@ namespace rn {
 ** Fwd. Decls.
 *****************************************************************/
 struct IRand;
+struct MapMatrix;
 struct RealTerrain;
 
 /****************************************************************
@@ -38,7 +39,11 @@ BiomeClustering biome_clustering_for_climate(
 
 base::valid_or<std::string> assign_biomes(
     IRand& rand, RealTerrain& real_terrain,
-    WeatherValue temperature, WeatherValue climate );
+    WeatherValue temperature, WeatherValue climate,
+    double wet_dry_sensitivity );
+
+base::expect<WetnessAdjustmentResult> adjust_biome_wetness(
+    IRand& rand, MapMatrix& m, double wet_dry_sensitivity );
 
 base::expect<AdjacencyAdjustmentResult> adjust_biome_clustering(
     IRand& rand, RealTerrain& real_terrain,

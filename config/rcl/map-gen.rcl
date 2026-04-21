@@ -272,6 +272,23 @@ terrain_generation {
       }
     }
 
+    wet_dry_modulation {
+      sensitivity:  0.1
+      accumulation: 0.33333333333333
+      consumption:  0.20
+      for_biome {
+        tundra:    -0.698
+        desert:    -0.454
+        savannah:  -0.374
+        plains:    -0.205
+        arctic:     0.000
+        prairie:    0.216
+        grassland:  0.316
+        swamp:      0.559
+        marsh:      0.642
+      }
+    }
+
     clustering {
       climate_normal.affinities {
         # for_self: Ranges from [-3,3] with 0 being "no affini-

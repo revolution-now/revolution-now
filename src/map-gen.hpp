@@ -12,6 +12,7 @@
 
 // gfx
 #include "gfx/cartesian.hpp"
+#include "gfx/matrix-fwd.hpp"
 
 namespace rn {
 
@@ -34,6 +35,9 @@ void remove_crosses( RealTerrain& real_terrain );
 [[nodiscard]] gfx::rect compute_land_zone( gfx::size world_sz );
 
 void reset_terrain( IMapUpdater& map_updater, gfx::size sz );
+
+void compute_wetness( MapMatrix const& m,
+                      gfx::matrix<double>& out );
 
 // Returns realized density.
 double place_arctic( RealTerrain& real_terrain, IRand& rand,

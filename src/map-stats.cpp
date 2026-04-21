@@ -11,6 +11,7 @@
 #include "map-stats.hpp"
 
 // Revolution Now
+#include "map-gen.hpp"
 #include "terrain-mgr.hpp"
 
 // config
@@ -43,6 +44,7 @@ using namespace std;
 
 using ::base::lookup;
 using ::base::str_replace_all;
+using ::gfx::matrix;
 using ::gfx::point;
 using ::gfx::size;
 using ::refl::enum_count;
@@ -57,8 +59,6 @@ static array<e_biome, 9> constexpr kGroundTypes = {
   e_biome::swamp,    e_biome::marsh,     e_biome::arctic,
 };
 static_assert( kGroundTypes.size() == enum_count<e_biome> );
-
-} // namespace
 
 /****************************************************************
 ** BiomeDensityStatsCollector
@@ -167,11 +167,6 @@ void BiomeDensityStatsCollector::write() const {
     }
     csv << '\n';
   }
-}
-
-unique_ptr<IMapStatsCollector>
-create_biome_density_stats_collector( std::string const& stem ) {
-  return make_unique<BiomeDensityStatsCollector>( stem );
 }
 
 /****************************************************************
@@ -407,10 +402,131 @@ void BiomeAdjacencyStatsCollector::write() const {
   fmt::println( "-----" );
 }
 
+/****************************************************************
+** BiomeWetnessStatsCollector
+*****************************************************************/
+struct BiomeWetnessStatsCollector : IMapStatsCollector {
+  BiomeWetnessStatsCollector() = default;
+
+  static array<e_biome, 9> constexpr kWetOrdering = {
+    e_biome::tundra,    e_biome::desert, e_biome::savannah,
+    e_biome::plains,    e_biome::arctic, e_biome::prairie,
+    e_biome::grassland, e_biome::swamp,  e_biome::marsh,
+  };
+
+ public: // IMapStatsCollector
+  void collect( MapMatrix const& m ) override;
+  void summarize() override;
+  void write() const override;
+
+ private:
+  size map_sz_ = {};
+  refl::enum_map<e_biome, double> biome_wetness_;
+  refl::enum_map<e_biome, int> biome_count_;
+  int maps_total_ = 0;
+};
+
+void BiomeWetnessStatsCollector::collect( MapMatrix const& m ) {
+  map_sz_ = m.size();
+  ++maps_total_;
+
+  matrix<double> const wetness = [&] {
+    matrix<double> res;
+    compute_wetness( m, res );
+    CHECK_EQ( res.size(), m.size() );
+    return res;
+  }();
+
+  on_all_tiles(
+      m, [&]( point const tile, MapSquare const& center ) {
+        if( center.surface == e_surface::water ) return;
+        ++biome_count_[center.ground];
+        biome_wetness_[center.ground] += wetness[tile];
+      } );
+}
+
+void BiomeWetnessStatsCollector::summarize() {}
+
+void BiomeWetnessStatsCollector::write() const {
+  static enum_map<e_biome, double> const kTargets{
+    // clang-format off
+    {e_biome::tundra,    -0.698},
+    {e_biome::desert,    -0.454},
+    {e_biome::savannah,  -0.374},
+    {e_biome::plains,    -0.205},
+    {e_biome::arctic,     0.000},
+    {e_biome::prairie,    0.216},
+    {e_biome::grassland,  0.316},
+    {e_biome::swamp,      0.559},
+    {e_biome::marsh,      0.642},
+    // clang-format on
+  };
+  double avg = 0;
+  for( e_biome const biome : kWetOrdering ) {
+    if( biome == e_biome::arctic ) continue;
+    double const wetness =
+        biome_wetness_[biome] / biome_count_[biome];
+    avg += wetness;
+  }
+  avg /= 8; // 9-1 since no arctic.
+  fmt::println( "{:12}: {:>12} {:>12} {:>12}", "biome",
+                "wetness", "normalized", "ratio" );
+  fmt::println(
+      "-----------------------------------------------------" );
+  for( e_biome const biome : kWetOrdering ) {
+    if( biome == e_biome::arctic ) continue;
+    double const wetness =
+        biome_wetness_[biome] / biome_count_[biome];
+    double const normalized = ( wetness / avg ) - 1;
+    fmt::println( "{:12}: {:12.3f} {:12.3f} {:12.3f}", biome,
+                  wetness, normalized,
+                  normalized / kTargets[biome] );
+  }
+  fmt::println( "try next:" );
+  enum_map<e_biome, double> next;
+  double total = 0;
+  for( e_biome const biome : kWetOrdering ) {
+    if( biome == e_biome::arctic ) continue;
+    double const wetness =
+        biome_wetness_[biome] / biome_count_[biome];
+    double const normalized = ( wetness / avg ) - 1;
+    double const scale      = normalized / kTargets[biome];
+    next[biome] = config_map_gen.terrain_generation.biomes
+                      .wet_dry_modulation.for_biome[biome] /
+                  scale;
+    total += next[biome];
+  }
+  next[e_biome::arctic] = 0.0;
+  avg                   = total / 8;
+  // for( e_biome const biome : kWetOrdering ) {
+  //   if( biome == e_biome::arctic ) continue;
+  //   next[biome] -= avg;
+  // }
+  for( e_biome const biome : kWetOrdering )
+    fmt::println( "        {:11}{:>6.3f}  # {:>6.3f}",
+                  base::to_str( biome ) + ':', next[biome],
+                  kTargets[biome] );
+}
+
+} // namespace
+
+/****************************************************************
+** Public API
+*****************************************************************/
+unique_ptr<IMapStatsCollector>
+create_biome_density_stats_collector( std::string const& stem ) {
+  return make_unique<BiomeDensityStatsCollector>( stem );
+}
+
 unique_ptr<IMapStatsCollector>
 create_biome_adjacency_stats_collector(
     BiomeClustering const& clustering ) {
   return make_unique<BiomeAdjacencyStatsCollector>( clustering );
+}
+
+unique_ptr<IMapStatsCollector>
+create_biome_wetness_stats_collector() {
+  return make_unique<BiomeWetnessStatsCollector>();
 }
 
 } // namespace rn
