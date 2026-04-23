@@ -49,37 +49,6 @@ enum.e_climate {
   wet,
 }
 
-struct.BiomeAffinity {
-  # Ranges from [-3,3] with 0 being "no affinity", meaning that
-  # the biomes are left as if randomly placed. More positive num-
-  # bers means more clustering around like biomes, while more
-  # negative numbers means less clustering than what is random
-  # (i.e., repulsion). The OG behavior corresponds to most of
-  # these values being just above zero except for Tundra which is
-  # closer to 1, as it is more clustered.
-  for_self 'double',
-  # This ranges from [0,1] and can be interpreted as a proba-
-  # bility that the biome will be next to water. For example,
-  # swamp/marsh has a larger probability of being near water than
-  # other biomes. After the biome is placed (randomly) they will
-  # be randomly moved around in a best-effort attempt to make
-  # their adjacency to water reflect this value. If this is null
-  # then no alteration is done.
-  for_water 'base::maybe<double>',
-  _features { equality, validation }
-}
-
-struct.BiomeClustering {
-  affinities 'refl::enum_map<e_biome, BiomeAffinity>',
-}
-
-sumtype.BiomeClusteringMode {
-  derived {},
-  varying {
-    values 'BiomeClustering',
-  },
-}
-
 struct.PerlinLandForm {
   scale 'double',
   fractal 'rng::PerlinFractalOptions',

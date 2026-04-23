@@ -241,26 +241,6 @@ valid_or<string> generate_map_native_impl(
                             setup.biomes.wet_dry_sensitivity ) );
 
 #if 0
-  BiomeClustering const biome_clustering = [&] {
-    SWITCH( setup.biomes.clustering_mode ) {
-      CASE( derived ) {
-        return biome_clustering_for_climate(
-            setup.weather.climate );
-      }
-      CASE( varying ) { return varying.values; }
-    }
-  }();
-  lg.info( "biome clustering:\n{}",
-           rcl::to_rcl( biome_clustering ) );
-  UNWRAP_RETURN_T(
-      auto const adjacency_results,
-      adjust_biome_clustering(
-          rand, real_terrain, setup.weather.temperature,
-          setup.weather.climate, biome_clustering ) );
-  log_adjacency_results( adjacency_results );
-#endif
-
-#if 0
   // Rivers.
   rand.reseed( setup.rivers.seed );
   RiverParameters const river_params = [&] {

@@ -1025,52 +1025,6 @@ struct RiverFrequencyStats : IMapStatsCollector {
   }
 }
 
-[[maybe_unused]] void testing_map_gen_biome_adjacency_stats(
-    IEngine& engine ) {
-  int constexpr kNumSamples = 2000;
-
-  auto const generate =
-      [&]( SS& ss, ClassicGameSetupParamsCustom const& custom ) {
-        generate_single_map_custom( engine, ss, custom );
-      };
-
-  static auto constexpr kTemps = {
-    // e_temperature::cool,
-    e_temperature::temperate,
-    // e_temperature::warm,
-  };
-  static auto constexpr kClimates = {
-    e_climate::arid,
-    e_climate::normal,
-    e_climate::wet,
-  };
-
-  for( e_temperature const temperature : kTemps ) {
-    for( e_climate const climate : kClimates ) {
-      ClassicGameSetupParamsCustom const params{
-        .land_mass   = e_land_mass::large,
-        .land_form   = e_land_form::continents,
-        .temperature = temperature,
-        .climate     = climate };
-      string const name( mode_name( params ) );
-      BiomeClustering const clustering =
-          biome_clustering_for_climate( climate );
-      auto const stats =
-          create_biome_adjacency_stats_collector( clustering );
-      fmt::println( "generating for {}...", name );
-      for( int i = 0; i < kNumSamples; ++i ) {
-        SS ss;
-        generate( ss, params );
-        stats->collect( ss.terrain.real_terrain().map );
-        // fmt::println( "#{}", i + 1 );
-      }
-      stats->summarize();
-      stats->write();
-      fmt::print( "\n" );
-    }
-  }
-}
-
 [[maybe_unused]] void testing_map_gen_biome_wetness_stats(
     IEngine& engine ) {
   int constexpr kNumSamples = 500;

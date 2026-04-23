@@ -72,11 +72,19 @@ TEST_CASE( "[map-gen] compute_land_zone" ) {
   world w;
 }
 
+TEST_CASE( "[map-gen] reset_terrain" ) {
+  world w;
+}
+
+TEST_CASE( "[map-gen] compute_wetness" ) {
+  world w;
+}
+
 TEST_CASE( "[map-gen] place_arctic" ) {
   world w;
 }
 
-TEST_CASE( "[map-gen] reset_terrain" ) {
+TEST_CASE( "[map-gen] generate_proto_tiles" ) {
   world w;
 }
 

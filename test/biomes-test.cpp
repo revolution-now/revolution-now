@@ -60,20 +60,11 @@ struct world : testing::World {
 /****************************************************************
 ** Test Cases
 *****************************************************************/
-TEST_CASE( "[biomes] biome_clustering_for_climate( climate )" ) {
-  world w;
-}
-
-TEST_CASE(
-    "[biomes] biome_clustering_for_climate( WeatherValue )" ) {
-  world w;
-}
-
 TEST_CASE( "[biomes] assign_biomes" ) {
   world w;
 }
 
-TEST_CASE( "[biomes] adjust_biome_clustering" ) {
+TEST_CASE( "[biomes] adjust_biome_wetness" ) {
   world w;
 }
 

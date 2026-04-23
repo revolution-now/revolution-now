@@ -65,21 +65,8 @@ map.source.generate_native.setup {
   }
 
   biomes {
-    seed: "48d55a01aef7295a21b2aabd78d68343"
-    wet_dry_sensitivity: 0.1
-    clustering_mode.derived {}
-    # Ranges: for_self: [-3,3], for_water: [0,1].
-    #clustering_mode.varying.values.affinities {
-    #  savannah:  { for_self: 0.000, for_water: null }
-    #  grassland: { for_self: 0.000, for_water: null }
-    #  tundra:    { for_self: 0.000, for_water: null }
-    #  plains:    { for_self: 0.000, for_water: null }
-    #  prairie:   { for_self: 0.000, for_water: null }
-    #  desert:    { for_self: 0.000, for_water: null }
-    #  swamp:     { for_self: 0.000, for_water: null }
-    #  marsh:     { for_self: 0.000, for_water: null }
-    #  arctic:    { for_self: 0.000, for_water: null }
-    #}
+    seed: "48d55a01aef7295a21b2aabd78d68347"
+    wet_dry_sensitivity: 1.0
   }
 
   hills {

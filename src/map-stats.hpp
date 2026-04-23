@@ -19,19 +19,10 @@
 namespace rn {
 
 /****************************************************************
-** Fwd. Decls.
-*****************************************************************/
-struct BiomeClustering;
-
-/****************************************************************
 ** Public API.
 *****************************************************************/
 std::unique_ptr<IMapStatsCollector>
 create_biome_density_stats_collector( std::string const& stem );
-
-std::unique_ptr<IMapStatsCollector>
-create_biome_adjacency_stats_collector(
-    BiomeClustering const& clustering );
 
 std::unique_ptr<IMapStatsCollector>
 create_biome_wetness_stats_collector();

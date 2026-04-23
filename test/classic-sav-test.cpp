@@ -118,6 +118,5 @@ TEST_CASE( "[classic-sav] load_classic_binary_map_file" ) {
 TEST_CASE( "[classic-sav] load_classic_binary_sav_file" ) {
 }
 
-
 } // namespace
 } // namespace rn

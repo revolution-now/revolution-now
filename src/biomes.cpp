@@ -234,302 +234,11 @@ struct biome_dist {
   enum_map<e_biome, double> probabilities_;
 };
 
-/****************************************************************
-** Adjacency.
-*****************************************************************/
-// Computes the adjacency of the tile as if the contents of the
-// tile were `assumed`.
-[[nodiscard]] double adjacency( MapMatrix const& m,
-                                point const tile,
-                                MapSquare const& assumed ) {
-  CHECK( assumed.surface != e_surface::water );
-  double res   = 0;
-  auto const f = [&]( auto&& fn ) {
-    on_surrounding( m, tile, fn );
-  };
-  f( [&]( point const, MapSquare const& adjacent ) {
-    if( adjacent.surface == e_surface::water ) return;
-    if( adjacent.ground == assumed.ground ) res += 1.0;
-  } );
-  return res;
-}
-
-// Computes the adjacency of the tile to water-like entities as
-// if the contents of the tile were `assumed`.
-[[nodiscard]] double wet_adjacency( MapMatrix const& m,
-                                    point const tile,
-                                    MapSquare const& assumed ) {
-  using enum e_biome;
-  CHECK( assumed.surface != e_surface::water );
-  double res   = 0;
-  auto const f = [&]( auto&& fn ) {
-    on_surrounding( m, tile, fn );
-  };
-  if( assumed.ground == swamp ) {
-    f( [&]( point const, MapSquare const& adjacent ) {
-      if( adjacent.surface == e_surface::water ) res += 2.0;
-      if( adjacent.ground == assumed.ground ) res += 1.0;
-      if( adjacent.river.has_value() ) res += 1.0;
-      if( adjacent.ground == marsh ) res += 5.0;
-    } );
-  } else if( assumed.ground == marsh ) {
-    f( [&]( point const, MapSquare const& adjacent ) {
-      if( adjacent.surface == e_surface::water ) res += 2.0;
-      if( adjacent.ground == assumed.ground ) res += 1.0;
-      if( adjacent.river.has_value() ) res += 0.0;
-      if( adjacent.ground == swamp ) res += 0.5;
-    } );
-  } else {
-    f( [&]( point const, MapSquare const& adjacent ) {
-      if( adjacent.surface == e_surface::water ) return;
-      if( adjacent.ground == assumed.ground ) res += 1.0;
-    } );
-  }
-  return res;
-}
-
-// Order matters here in that frozen must be first so that a
-// std::max on a frozen and non-frozen one yields a non-frozen
-// value.
-enum class e_swap_type {
-  frozen,
-  globbing,
-  antiglobbing,
-};
-
-// Returns true if a swap happened.
-[[nodiscard]] bool mix(
-    MapMatrix& m, int const y,
-    vector<int /*x*/> const& land_tiles, IRand& rand,
-    enum_map<e_biome, e_swap_type> const& swap_types,
-    function_ref<double( MapMatrix const&, point,
-                         MapSquare const& )> const fn ) {
-  using enum e_swap_type;
-  if( land_tiles.size() <= 1 ) return false;
-  int const x1 = rand.pick_one( land_tiles );
-  int const x2 = rand.pick_one( land_tiles );
-  if( x1 == x2 ) return false;
-  point const tile1  = { .x = x1, .y = y };
-  point const tile2  = { .x = x2, .y = y };
-  MapSquare& square1 = m[tile1];
-  MapSquare& square2 = m[tile2];
-  CHECK( square1.surface != e_surface::water );
-  CHECK( square2.surface != e_surface::water );
-  if( square1.ground == square2.ground ) return false;
-  e_biome const gt1 = square1.ground;
-  e_biome const gt2 = square2.ground;
-  if( swap_types[gt1] == frozen && swap_types[gt2] == frozen )
-    return false;
-  e_swap_type const type =
-      std::max( swap_types[gt1], swap_types[gt2] );
-  CHECK( type == globbing || type == antiglobbing );
-  auto const adjacency_now =
-      fn( m, tile1, square1 ) *
-          ( swap_types[gt1] == frozen ? 0 : 1 ) +
-      fn( m, tile2, square2 ) *
-          ( swap_types[gt2] == frozen ? 0 : 1 );
-  auto const adjacency_swap =
-      fn( m, tile1, square2 ) *
-          ( swap_types[gt2] == frozen ? 0 : 1 ) +
-      fn( m, tile2, square1 ) *
-          ( swap_types[gt1] == frozen ? 0 : 1 );
-  if( type == globbing && adjacency_swap > adjacency_now ) {
-    swap( square1.ground, square2.ground );
-    return true;
-  }
-  if( type == antiglobbing && adjacency_swap < adjacency_now ) {
-    swap( square1.ground, square2.ground );
-    return true;
-  }
-  return false;
-}
-
-[[nodiscard]] bool mix_row_by_wet_adjacency(
-    MapMatrix& m, int const y,
-    vector<int /*x*/> const& land_tiles, IRand& rand,
-    enum_map<e_biome, e_swap_type> const& swap_types ) {
-  return mix( m, y, land_tiles, rand, swap_types,
-              wet_adjacency );
-}
-
-[[nodiscard]] bool mix_row_by_adjacency(
-    MapMatrix& m, int const y,
-    vector<int /*x*/> const& land_tiles, IRand& rand,
-    enum_map<e_biome, e_swap_type> const& swap_types ) {
-  return mix( m, y, land_tiles, rand, swap_types, adjacency );
-}
-
-[[nodiscard]] enum_map<e_biome, double> find_ocean_adjacency(
-    MapMatrix const& m, BiomeClustering const& clustering ) {
-  enum_map<e_biome, int> terrain_total;
-  enum_map<e_biome, double> with_ocean_adjacent;
-  enum_map<e_biome, double> with_ocean_adjacent_ratio;
-
-  on_all_tiles( m, [&]( point const tile,
-                        MapSquare const& center ) {
-    if( center.surface == e_surface::water ) return;
-    ++terrain_total[center.ground];
-
-    bool ocean_adjacent = false;
-    on_surrounding(
-        m, tile, [&]( point const, MapSquare const& adjacent ) {
-          if( adjacent.surface == e_surface::water )
-            ocean_adjacent = true;
-        } );
-
-    with_ocean_adjacent[center.ground] +=
-        ocean_adjacent ? 1.0 : 0.0;
-  } );
-
-  for( e_biome const biome : enum_values<e_biome> ) {
-    auto const target = clustering.affinities[biome].for_water;
-    if( !target.has_value() ) continue;
-    double const count = terrain_total[biome];
-    double const with_ocean_adjacent_result =
-        with_ocean_adjacent[biome] / count;
-    with_ocean_adjacent_ratio[biome] =
-        with_ocean_adjacent_result / *target;
-  }
-
-  return with_ocean_adjacent_ratio;
-}
-
-[[nodiscard]] double adjacency_total( MapMatrix const& m,
-                                      e_biome const biome ) {
-  double res = 0;
-  on_all_tiles(
-      m, [&]( point const tile, MapSquare const& square ) {
-        if( square.surface != e_surface::land ) return;
-        if( square.ground != biome ) return;
-        res += adjacency( m, tile, square );
-      } );
-  return res;
-}
-
-// The idx into `biome_dists` is the y map coordinate.
-[[nodiscard]] double relative_adjacency(
-    MapMatrix const& m, matrix<biome_dist> const& biome_dists,
-    e_biome const biome ) {
-  CHECK_EQ( m.size(), biome_dists.size() );
-  map<int /*y*/, int> const land_count_per_row = [&] {
-    map<int /*y*/, int> res;
-    for( point const p : rect_iterator( m.rect() ) )
-      if( m[p].surface == e_surface::land ) ++res[p.y];
-    return res;
-  }();
-  map<int /*y*/, int> const biome_count_per_row = [&] {
-    map<int /*y*/, int> res;
-    for( point const p : rect_iterator( m.rect() ) )
-      if( m[p].surface == e_surface::land &&
-          m[p].ground == biome )
-        ++res[p.y];
-    return res;
-  }();
-  map<int /*y*/, double> const avg_land_squares_in_row = [&] {
-    map<int /*y*/, double> res;
-    for( point const p : rect_iterator( m.rect() ) )
-      if( m[p].surface == e_surface::land &&
-          m[p].ground == biome )
-        res[p.y] += num_surrounding_land_tiles( m, p );
-    for( auto& [y, squares] : res ) {
-      UNWRAP_CONTINUE( int const biome_count,
-                       lookup( biome_count_per_row, y ) );
-      squares /= biome_count;
-    }
-    return res;
-  }();
-  double adjacency_baseline = 0;
-  for( auto const& [y, count] : biome_count_per_row ) {
-    // FIXME
-    biome_dist const& row_dist = biome_dists[y][0];
-    UNWRAP_CONTINUE( double const avg_surrounding_land,
-                     lookup( avg_land_squares_in_row, y ) );
-    // In the corresponding empirical data collector we use the
-    // following to compute density of the biome on the row:
-    //
-    //   density_at_row = biome_on_row / land_on_row
-    //
-    // That works because it only computes this after all maps
-    // have been seens, so it can get an accurate estimate based
-    // on averaging over all maps. Here, however, this method is
-    // called when generating a single map where we can't get a
-    // solid estimate of the density by just looking at what was
-    // randomly generated on a single row (too much variance). So
-    // instead we use the theoretical probability which is what
-    // was used to generate it. This produces more reliable re-
-    // sults and better convergence in the iterative algorithm
-    // that seeks to match target adjacency numbers.
-    double const density_at_row = row_dist.probability( biome );
-    double const adjacency_baseline_at_row =
-        density_at_row * avg_surrounding_land * count;
-    adjacency_baseline += adjacency_baseline_at_row;
-  }
-  double const adj_total = adjacency_total( m, biome );
-  double const result    = adj_total / adjacency_baseline;
-  return result;
-}
-
 } // namespace
 
 /****************************************************************
 ** Public API.
 *****************************************************************/
-BiomeClustering biome_clustering_for_climate(
-    e_climate const climate ) {
-  WeatherValue const wv =
-      config_map_gen.terrain_generation.weather.climate
-          .customized[climate];
-  return biome_clustering_for_climate( wv );
-}
-
-BiomeClustering biome_clustering_for_climate(
-    WeatherValue const climate ) {
-  BiomeClustering clustering;
-  auto const& conf =
-      config_map_gen.terrain_generation.biomes.clustering;
-  double const t = climate.value / 100.0;
-  for( e_biome const biome : enum_values<e_biome> ) {
-    if( t <= 0 ) {
-      {
-        double const l =
-            conf.climate_normal.affinities[biome].for_self;
-        double const r =
-            l - conf.climate_gradient.affinities[biome].for_self;
-        clustering.affinities[biome].for_self = lerp( l, r, -t );
-      }
-      do {
-        auto const l =
-            conf.climate_normal.affinities[biome].for_water;
-        if( !l.has_value() ) break;
-        auto const r =
-            *l - conf.climate_gradient.affinities[biome]
-                     .for_water.value_or( 0 );
-        clustering.affinities[biome].for_water =
-            lerp( *l, r, -t );
-      } while( false );
-    } else {
-      {
-        double const l =
-            conf.climate_normal.affinities[biome].for_self;
-        double const r =
-            l + conf.climate_gradient.affinities[biome].for_self;
-        clustering.affinities[biome].for_self = lerp( l, r, t );
-      }
-      do {
-        auto const l =
-            conf.climate_normal.affinities[biome].for_water;
-        if( !l.has_value() ) break;
-        auto const r =
-            *l + conf.climate_gradient.affinities[biome]
-                     .for_water.value_or( 0 );
-        clustering.affinities[biome].for_water =
-            lerp( *l, r, t );
-      } while( false );
-    }
-  }
-  return clustering;
-}
-
 static void normalize_wetness( MapMatrix const& m,
                                double const wet_dry_sensitivity,
                                matrix<double>& out ) {
@@ -602,7 +311,7 @@ create_biome_dists( MapMatrix& m, WeatherValue const temperature,
   matrix<double> const wetness = [&] {
     matrix<double> res;
     compute_wetness( m, res );
-    normalize_wetness( m, wet_dry_sensitivity, res );
+    // normalize_wetness( m, wet_dry_sensitivity, res );
     CHECK_EQ( res.size(), m.size() );
     return res;
   }();
@@ -673,26 +382,31 @@ valid_or<string> assign_biomes(
   for( e_biome const biome : enum_values<e_biome> )
     if( biome_count[biome] > 0 )
       wetness_total[biome] /= biome_count[biome];
-  double sum         = 0;
-  int count_non_zero = 0;
-  for( e_biome const biome : enum_values<e_biome> ) {
-    if( biome_count[biome] > 0 ) {
-      sum += wetness_total[biome];
-      ++count_non_zero;
-    }
-  }
-  CHECK_GT( count_non_zero, 0 );
-  double const avg = sum / count_non_zero;
-  for( e_biome const biome : enum_values<e_biome> ) {
-    wetness_total[biome] /= avg;
-    wetness_total[biome] -= 1.0;
-  }
+  // double sum         = 0;
+  // int count_non_zero = 0;
+  // for( e_biome const biome : enum_values<e_biome> ) {
+  //   if( biome_count[biome] > 0 ) {
+  //     sum += wetness_total[biome];
+  //     ++count_non_zero;
+  //   }
+  // }
+  // CHECK_GT( count_non_zero, 0 );
+  // double const avg = sum / count_non_zero;
+  // for( e_biome const biome : enum_values<e_biome> ) {
+  //   wetness_total[biome] /= avg;
+  //   wetness_total[biome] -= 1.0;
+  // }
   double metric = 0;
-  for( e_biome const biome : enum_values<e_biome> )
-    if( biome_count[biome] > 0 )
-      metric += abs( wetness_total[biome] -
-                     config_map_gen.terrain_generation.biomes
-                         .wet_dry_modulation.for_biome[biome] );
+  for( e_biome const biome : enum_values<e_biome> ) {
+    if( biome_count[biome] == 0 ) continue;
+    double const target =
+        config_map_gen.terrain_generation.biomes
+            .wet_dry_modulation.for_biome[biome];
+    if( target < 1e-6 ) continue;
+    double const biome_metric =
+        abs( wetness_total[biome] - target );
+    metric += biome_metric;
+  }
   return metric;
 }
 
@@ -706,8 +420,24 @@ valid_or<string> assign_biomes(
   vector<MapSquare> row;
   row.reserve( m[y].size() );
   for( int const x : iota( 0, sz.w ) ) row.push_back( m[y][x] );
+  enum_map<e_biome, int> const biome_count = [&] {
+    enum_map<e_biome, int> res;
+    for( int const x : land_tiles ) ++res[m[y][x].ground];
+    return res;
+  }();
+  enum_map<e_biome, bool> frozen;
+  for( e_biome const biome : enum_values<e_biome> )
+    if( biome_count[biome] == 0 ) frozen[biome] = true;
+  frozen[e_biome::arctic] = true;
+  auto const all_frozen   = [&] {
+    for( e_biome const biome : enum_values<e_biome> )
+      if( !frozen[biome] ) //
+        return false;
+    return true;
+  };
   double metric = wetness_metric_for_row( row, row_wetness );
   for( int i = 0; i < 1000; ++i ) {
+    if( all_frozen() ) break;
     ++iters;
     int const x1 = rand.pick_one( land_tiles );
     int const x2 = rand.pick_one( land_tiles );
@@ -717,6 +447,8 @@ valid_or<string> assign_biomes(
     CHECK( square1.surface != e_surface::water );
     CHECK( square2.surface != e_surface::water );
     if( square1.ground == square2.ground ) continue;
+    if( frozen[square1.ground] && frozen[square2.ground] )
+      continue;
     swap( square1.ground, square2.ground );
     double const new_metric =
         wetness_metric_for_row( row, row_wetness );
@@ -738,7 +470,7 @@ expect<WetnessAdjustmentResult> adjust_biome_wetness(
   matrix<double> const wetness = [&] {
     matrix<double> res;
     compute_wetness( m, res );
-    normalize_wetness( m, wet_dry_sensitivity, res );
+    // normalize_wetness( m, wet_dry_sensitivity, res );
     CHECK_EQ( res.size(), m.size() );
     return res;
   }();
@@ -752,13 +484,13 @@ expect<WetnessAdjustmentResult> adjust_biome_wetness(
     return res;
   }();
 
-  int const max_iters = [&] {
+  int const max_allowed_iters = [&] {
     double const w = sz.w;
     // Approximation to n*H_n where H_n = nth harmonic number.
     double const a = ( w * log( w ) + w * .577 ) / 257;
     return clamp( int( 1000 * a ), 1000, 10000 );
   }();
-  res.max_allowed_iters = max_iters;
+  res.max_allowed_iters = max_allowed_iters;
 
   // Clustering.
   bool const need_clustering = [&] {
@@ -769,12 +501,6 @@ expect<WetnessAdjustmentResult> adjust_biome_wetness(
         return true;
     return false;
   }();
-
-  // auto const should_assess = [&]( int const iter ) {
-  //   return iter < 100 ||                        //
-  //          ( iter < 1000 && iter % 10 == 0 ) || //
-  //          iter % 100 == 0;
-  // };
 
   if( !need_clustering ) return res;
 
@@ -787,138 +513,6 @@ expect<WetnessAdjustmentResult> adjust_biome_wetness(
   }
 
   return res;
-}
-
-expect<AdjacencyAdjustmentResult> adjust_biome_clustering(
-    IRand& rand, RealTerrain& real_terrain,
-    WeatherValue const temperature, WeatherValue const climate,
-    BiomeClustering const& clustering ) {
-  ScopedTimer const timer( "biome clustering" );
-  AdjacencyAdjustmentResult result;
-  double const general_tolerance =
-      config_map_gen.terrain_generation.biomes.clustering
-          .tolerances.general_adjacency_tolerance;
-  double const ocean_tolerance =
-      config_map_gen.terrain_generation.biomes.clustering
-          .tolerances.ocean_adjacency_tolerance;
-  using enum e_biome;
-  auto& m       = real_terrain.map;
-  size const sz = m.size();
-
-  double wet_dry_sensitivity = 0;
-  UNWRAP_RETURN_T(
-      matrix<biome_dist> const& biome_dists,
-      create_biome_dists( real_terrain.map, temperature, climate,
-                          wet_dry_sensitivity ) );
-
-  // Adjacency adjustment.
-  vector<vector<int /*x*/>> const land_tiles = [&] {
-    vector<vector<int /*x*/>> res;
-    res.resize( sz.h );
-    for( point const p : rect_iterator( m.rect() ) )
-      if( m[p].surface == e_surface::land )
-        res[p.y].push_back( p.x );
-    return res;
-  }();
-
-  int const max_iters = [&] {
-    double const w = sz.w;
-    // Approximation to n*H_n where H_n = nth harmonic number.
-    double const a = ( w * log( w ) + w * .577 ) / 257;
-    return clamp( int( 1000 * a ), 1000, 10000 );
-  }();
-  result.max_allowed_iters = max_iters;
-
-  // Clustering.
-  bool const need_clustering = [&] {
-    for( auto const biome : enum_values<e_biome> )
-      if( clustering.affinities[biome].for_self != 0 )
-        return true;
-    return false;
-  }();
-
-  auto const should_assess = [&]( int const iter ) {
-    return iter < 100 ||                        //
-           ( iter < 1000 && iter % 10 == 0 ) || //
-           iter % 100 == 0;
-  };
-
-  if( need_clustering ) {
-    using enum e_swap_type;
-    auto const record_adjacency = [&]( e_biome const biome ) {
-      double const g =
-          relative_adjacency( m, biome_dists, biome );
-      result.general_adjacency_results[biome] = log2( g );
-      result.general_adjacency_ratios[biome] =
-          pow( 2.0, result.general_adjacency_results[biome] ) /
-          pow( 2.0, clustering.affinities[biome].for_self );
-      return g;
-    };
-    enum_map<e_biome, e_swap_type> swap_types;
-    for( auto const biome : enum_values<e_biome> )
-      swap_types[biome] = globbing;
-    swap_types[arctic] = frozen;
-    int iter           = 0;
-    for( iter = 0; iter < max_iters; ++iter ) {
-      if( should_assess( iter ) ) {
-        for( auto const biome : enum_values<e_biome> ) {
-          if( swap_types[biome] == frozen ) continue;
-          double const g = record_adjacency( biome );
-          if( g >
-              pow( 2.0, clustering.affinities[biome].for_self ) *
-                  ( 1.0 + general_tolerance ) )
-            swap_types[biome] = antiglobbing;
-          else if( g <
-                   pow( 2.0,
-                        clustering.affinities[biome].for_self ) *
-                       ( 1.0 - general_tolerance ) )
-            swap_types[biome] = globbing;
-          else
-            swap_types[biome] = frozen;
-        }
-        bool const keep_going =
-            rg::find_if( swap_types, []( auto const& p ) {
-              return p.second != frozen;
-            } ) != swap_types.end();
-        if( !keep_going ) break;
-      }
-      for( int y = 1; y < sz.h - 1; ++y ) // Exclude artic rows.
-        (void)mix_row_by_adjacency( m, y, land_tiles[y], rand,
-                                    swap_types );
-    }
-    result.general_adjacency_iters = iter;
-    for( auto const biome : enum_values<e_biome> )
-      record_adjacency( biome );
-  }
-
-  // Mix swamp and marsh.
-  bool const mix_swamp_marsh =
-      clustering.affinities[swamp].for_water.has_value() &&
-      clustering.affinities[marsh].for_water.has_value();
-  if( mix_swamp_marsh ) {
-    using enum e_swap_type;
-    enum_map<e_biome, e_swap_type> swap_types;
-    for( auto const biome : enum_values<e_biome> )
-      swap_types[biome] = frozen;
-    swap_types[swamp] = globbing;
-    swap_types[marsh] = globbing;
-    int iter          = 0;
-    for( iter = 0; iter < max_iters; ++iter ) {
-      if( should_assess( iter ) ) {
-        auto const adjacency_ratio =
-            find_ocean_adjacency( m, clustering );
-        if( adjacency_ratio[swamp] >= 1 - ocean_tolerance &&
-            adjacency_ratio[marsh] >= 1 - ocean_tolerance )
-          break;
-      }
-      for( int y = 1; y < sz.h - 1; ++y )
-        (void)mix_row_by_wet_adjacency( m, y, land_tiles[y],
-                                        rand, swap_types );
-    }
-    result.swamp_marsh_adjacency_iters = iter;
-  }
-
-  return result;
 }
 
 void assign_arctic_biomes( IRand& rand,
@@ -956,27 +550,6 @@ void assign_arctic_biomes( IRand& rand,
         square.ground = arctic;
     }
   }
-}
-
-void log_adjacency_results(
-    AdjacencyAdjustmentResult const& result ) {
-  lg.debug( "biome adjacency results:" );
-  lg.debug( "  |-general_adjacency_iters: {}",
-            result.general_adjacency_iters );
-  lg.debug( "  |-swamp_marsh_adjacency_iters: {}",
-            result.swamp_marsh_adjacency_iters );
-  lg.debug( "  |-max_allowed_iters: {}",
-            result.max_allowed_iters );
-  lg.debug( "  |-xs_regen: {}", result.xs_regen );
-  lg.debug( "  |-general_adjacency_results [{},{}]:",
-            kBiomeSelfAffinityMin, kBiomeSelfAffinityMax );
-  for( auto const biome : enum_values<e_biome> )
-    lg.debug( "  |   {:>10}: {:.3f}", biome,
-              result.general_adjacency_results[biome] );
-  lg.debug( "  |-general_adjacency_ratios [0,1]:" );
-  for( auto const biome : enum_values<e_biome> )
-    lg.debug( "  |   {:>10}: {:.3f}", biome,
-              result.general_adjacency_ratios[biome] );
 }
 
 } // namespace rn

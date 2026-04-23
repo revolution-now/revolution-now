@@ -31,12 +31,6 @@ struct RealTerrain;
 /****************************************************************
 ** Public API.
 *****************************************************************/
-BiomeClustering biome_clustering_for_climate(
-    e_climate climate );
-
-BiomeClustering biome_clustering_for_climate(
-    WeatherValue climate );
-
 base::valid_or<std::string> assign_biomes(
     IRand& rand, RealTerrain& real_terrain,
     WeatherValue temperature, WeatherValue climate,
@@ -45,15 +39,7 @@ base::valid_or<std::string> assign_biomes(
 base::expect<WetnessAdjustmentResult> adjust_biome_wetness(
     IRand& rand, MapMatrix& m, double wet_dry_sensitivity );
 
-base::expect<AdjacencyAdjustmentResult> adjust_biome_clustering(
-    IRand& rand, RealTerrain& real_terrain,
-    WeatherValue const temperature, WeatherValue const climate,
-    BiomeClustering const& clustering );
-
 void assign_arctic_biomes( IRand& rand,
                            RealTerrain& real_terrain );
-
-void log_adjacency_results(
-    AdjacencyAdjustmentResult const& result );
 
 } // namespace rn

@@ -273,74 +273,39 @@ terrain_generation {
     }
 
     wet_dry_modulation {
-      sensitivity:  0.1
+      sensitivity:  1.0
       accumulation: 0.33333333333333
       consumption:  0.20
       for_biome {
-        tundra:    -0.698
-        desert:    -0.454
-        savannah:  -0.374
-        plains:    -0.205
+        #tundra:    -0.698
+        #desert:    -0.454
+        #savannah:  -0.374
+        #plains:    -0.205
+        #arctic:     0.000
+        #prairie:    0.216
+        #grassland:  0.316
+        #swamp:      0.559
+        #marsh:      0.642
+
+        tundra:     0.097
+        desert:     0.187
+        savannah:   0.209
+        plains:     0.283
+        prairie:    0.442
+        grassland:  0.477
+        swamp:      0.580
+        marsh:      0.614
+
+        #tundra:     0.333
+        #desert:     0.333
+        #savannah:   0.333
+        #plains:     0.333
+        #prairie:    0.333
+        #grassland:  0.333
+        #swamp:      0.333
+        #marsh:      0.333
+
         arctic:     0.000
-        prairie:    0.216
-        grassland:  0.316
-        swamp:      0.559
-        marsh:      0.642
-      }
-    }
-
-    clustering {
-      climate_normal.affinities {
-        # for_self: Ranges from [-3,3] with 0 being "no affini-
-        # ty", meaning that the biomes are left as if randomly
-        # placed. More positive numbers means more clustering
-        # around like biomes, while more negative numbers means
-        # less clustering than what is random (i.e., repulsion).
-        # The OG behavior corresponds to most of these values
-        # being just above zero except for Tundra which is closer
-        # to 1, as it is more clustered.
-        #
-        # for_water: This ranges from [0,1] and can be inter-
-        # preted as a probability that the biome will be next to
-        # water. For example, swamp/marsh has a larger proba-
-        # bility of being near water than other biomes. After the
-        # biome is placed (randomly) they will be randomly moved
-        # around in a best-effort attempt to make their adjacency
-        # to water reflect this value. If this is null then no
-        # alteration is done.
-        savannah:  { for_self: 0.109, for_water: null }
-        grassland: { for_self: 0.149, for_water: null }
-        tundra:    { for_self: 0.755, for_water: null }
-        plains:    { for_self: 0.144, for_water: null }
-        prairie:   { for_self: 0.173, for_water: null }
-        desert:    { for_self: 0.233, for_water: null }
-        swamp:     { for_self: 0.079, for_water: .765 }
-        marsh:     { for_self: 0.295, for_water: .765 }
-        arctic:    { for_self: 0.000, for_water: null }
-      }
-
-      climate_gradient.affinities {
-        savannah:  { for_self: 0.025, for_water: null }
-        grassland: { for_self: 0.078, for_water: null }
-        tundra:    { for_self: 0.248, for_water: null }
-        plains:    { for_self: 0.087, for_water: null }
-        prairie:   { for_self: 0.025, for_water: null }
-        desert:    { for_self: 0.074, for_water: null }
-        swamp:     { for_self: 0.015, for_water: 0.00 }
-        marsh:     { for_self: 0.082, for_water: 0.00 }
-        arctic:    { for_self: 0.000, for_water: null }
-      }
-
-      # Not recommended to change these... these are the toler-
-      # ances that the map generator tries to achieve with biome
-      # clustering (i.e., how close it tries to hit the clus-
-      # tering strength target). If these numbers are too small
-      # then it may significantly increase map generation time.
-      # If they are too large then then sufficient clustering may
-      # not happen (not a big deal, just saying...).
-      tolerances {
-        general_adjacency_tolerance: .05
-        ocean_adjacency_tolerance:   .10
       }
     }
   }
