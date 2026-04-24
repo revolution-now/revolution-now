@@ -15,6 +15,7 @@ local insert = table.insert
 local format = string.format
 local max = math.max
 local min = math.min
+local abs = math.abs
 local log = math.log
 local deep_copy = assert( tbl.deep_copy )
 
@@ -22,6 +23,9 @@ local deep_copy = assert( tbl.deep_copy )
 -- Constants.
 -----------------------------------------------------------------
 local DESERT_DENSITY_BUCKET_SIZE = .0001
+
+local WETNESS_ACCUMULATION = 1 / 3
+local WETNESS_CONSUMPTION = .20
 
 -----------------------------------------------------------------
 -- Helpers.
@@ -76,29 +80,31 @@ local function compute_wetness_full( J )
     insert( m, {} )
     for _ = 1, 56 do insert( m[y], 0 ) end
   end
-  local MAX_WETNESS = 1
-  local OCEAN_WETNESS = 1.0 / 3.0
+  -- There is no need to change MAX_WETNESS because all other ab-
+  -- solute quantities are scaled by it, and so it will only lead
+  -- to a change in the overall scale of the wetness, but that
+  -- will be normalized away anyway.
+  local MAX_WETNESS = 1.0
+  local OCEAN_WETNESS = MAX_WETNESS * WETNESS_ACCUMULATION
+  local wetness
+  local function apply( y, x )
+    assert( wetness )
+    -- Note that MAX_WETNESS is only the max for a given pass;
+    -- the actual value can go above that because each pass con-
+    -- tributes additively.
+    m[y][x] = m[y][x] + wetness
+    local square = Q.terrain_at( J, { x=x, y=y } )
+    if square.surface == 'water' then
+      wetness = min( wetness + OCEAN_WETNESS, MAX_WETNESS )
+    else
+      wetness = wetness * WETNESS_CONSUMPTION
+    end
+  end
   for y = 1, 70 do
-    local wetness = MAX_WETNESS
-    for x = 1, 56 do
-      m[y][x] = m[y][x] + wetness
-      local square = Q.terrain_at( J, { x=x, y=y } )
-      if square.surface == 'water' then
-        wetness = min( wetness + OCEAN_WETNESS, MAX_WETNESS )
-      else
-        wetness = wetness / 2
-      end
-    end
     wetness = MAX_WETNESS
-    for x = 56, 1, -1 do
-      m[y][x] = m[y][x] + wetness
-      local square = Q.terrain_at( J, { x=x, y=y } )
-      if square.surface == 'water' then
-        wetness = min( wetness + OCEAN_WETNESS, MAX_WETNESS )
-      else
-        wetness = wetness / 2
-      end
-    end
+    for x = 1, 56 do apply( y, x ) end
+    wetness = MAX_WETNESS
+    for x = 56, 1, -1 do apply( y, x ) end
   end
   return m
 end
@@ -1016,20 +1022,65 @@ local function collect()
     printfln( 'writing %s...', path )
     local config = {
       __key_order={
-        'wetness_modulator', --
+        'wetness', --
         'clustering', --
       },
-      wetness_modulator={
-        __key_order=BIOME_ORDERING, --
-        savannah=0,
-        grassland=0,
-        tundra=0,
-        plains=0,
-        prairie=0,
-        desert=0,
-        swamp=0,
-        marsh=0,
-        arctic=0,
+      wetness={
+        __key_order={
+          'parameters', --
+          'modulator', --
+        },
+        parameters={
+          __key_order={
+            'accumulation', --
+            'consumption', --
+          },
+          accumulation=WETNESS_ACCUMULATION,
+          consumption=WETNESS_CONSUMPTION,
+        },
+        modulator={
+          __key_order={
+            'value', --
+            'stddev', --
+            'relative_stddev', --
+          },
+          value={
+            __key_order=BIOME_ORDERING, --
+            savannah=0,
+            grassland=0,
+            tundra=0,
+            plains=0,
+            prairie=0,
+            desert=0,
+            swamp=0,
+            marsh=0,
+            arctic=0,
+          },
+          stddev={
+            __key_order=BIOME_ORDERING, --
+            savannah=0,
+            grassland=0,
+            tundra=0,
+            plains=0,
+            prairie=0,
+            desert=0,
+            swamp=0,
+            marsh=0,
+            arctic=0,
+          },
+          relative_stddev={
+            __key_order=BIOME_ORDERING, --
+            savannah=0,
+            grassland=0,
+            tundra=0,
+            plains=0,
+            prairie=0,
+            desert=0,
+            swamp=0,
+            marsh=0,
+            arctic=0,
+          },
+        },
       },
       clustering={
         __key_order={
@@ -1097,12 +1148,23 @@ local function collect()
       for_water=json.JNULL,
     }
     for _, biome in ipairs( BIOME_ORDERING_NON_ARCTIC ) do
-      local mode_avg = 0
+      local mode_total = 0
+      local mode_total2 = 0
       for _, mode in ipairs( MODES ) do
-        mode_avg = mode_avg + assert( w.modes[mode][biome] )
+        mode_total = mode_total + assert( w.modes[mode][biome] )
+        mode_total2 = mode_total2 +
+                          assert( w.modes[mode][biome] ) ^ 2
       end
-      mode_avg = mode_avg / #MODES
-      config.wetness_modulator[biome] = mode_avg
+      local mode_avg = mode_total / #MODES
+      local mode2_avg = mode_total2 / #MODES
+      local mode_stddev = (mode2_avg - mode_avg ^ 2) ^ .5
+      config.wetness.modulator.value[biome] = mode_avg
+      config.wetness.modulator.stddev[biome] = mode_stddev
+      -- LuaFormatter off
+      config.wetness.modulator.relative_stddev[biome] =
+          abs(config.wetness.modulator.stddev[biome] /
+              config.wetness.modulator.value[biome] )
+      -- LuaFormatter on
     end
     json.write_file( path, config, 2 )
   end
