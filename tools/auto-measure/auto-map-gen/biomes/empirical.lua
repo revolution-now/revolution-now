@@ -681,6 +681,8 @@ local function finished( mode )
     local wetness_zero_sum = o.wetness_zero_sum
     wetness_zero_sum.__key_order = BIOME_ORDERING
 
+    o.land_wetness = D.land_wetness / D.savs
+
     -- General adjacency.
     local adjacency_relative = {}
     for _, ground in ipairs( BIOME_ORDERING ) do
