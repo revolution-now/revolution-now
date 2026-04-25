@@ -370,12 +370,14 @@ valid_or<string> assign_biomes(
 
 [[nodiscard]] static double wetness_metric_for_row(
     vector<MapSquare> const& tiles,
-    span<double const> const tile_wetnesses ) {
+    span<double const> const tile_wetnesses,
+    enum_map<e_biome, bool>& frozen ) {
   CHECK_EQ( tiles.size(), tile_wetnesses.size() );
   enum_map<e_biome, int> biome_count;
   enum_map<e_biome, double> wetness_total;
   for( auto const [tile, wetness] :
        rv::zip( tiles, tile_wetnesses ) ) {
+    if( tile.surface != e_surface::land ) continue;
     ++biome_count[tile.ground];
     wetness_total[tile.ground] += wetness;
   }
@@ -404,7 +406,8 @@ valid_or<string> assign_biomes(
             .wet_dry_modulation.for_biome[biome];
     if( target < 1e-6 ) continue;
     double const biome_metric =
-        abs( wetness_total[biome] - target );
+        abs( wetness_total[biome] - target ) / target;
+    if( biome_metric <= .05 ) frozen[biome] = true;
     metric += biome_metric;
   }
   return metric;
@@ -420,6 +423,7 @@ valid_or<string> assign_biomes(
   vector<MapSquare> row;
   row.reserve( m[y].size() );
   for( int const x : iota( 0, sz.w ) ) row.push_back( m[y][x] );
+  CHECK_EQ( ssize( row ), sz.w );
   enum_map<e_biome, int> const biome_count = [&] {
     enum_map<e_biome, int> res;
     for( int const x : land_tiles ) ++res[m[y][x].ground];
@@ -427,7 +431,8 @@ valid_or<string> assign_biomes(
   }();
   enum_map<e_biome, bool> frozen;
   for( e_biome const biome : enum_values<e_biome> )
-    if( biome_count[biome] == 0 ) frozen[biome] = true;
+    if( biome_count[biome] == 0 ) //
+      frozen[biome] = true;
   frozen[e_biome::arctic] = true;
   auto const all_frozen   = [&] {
     for( e_biome const biome : enum_values<e_biome> )
@@ -435,7 +440,8 @@ valid_or<string> assign_biomes(
         return false;
     return true;
   };
-  double metric = wetness_metric_for_row( row, row_wetness );
+  double metric =
+      wetness_metric_for_row( row, row_wetness, frozen );
   for( int i = 0; i < 1000; ++i ) {
     if( all_frozen() ) break;
     ++iters;
@@ -447,11 +453,11 @@ valid_or<string> assign_biomes(
     CHECK( square1.surface != e_surface::water );
     CHECK( square2.surface != e_surface::water );
     if( square1.ground == square2.ground ) continue;
-    if( frozen[square1.ground] && frozen[square2.ground] )
+    if( frozen[square1.ground] || frozen[square2.ground] )
       continue;
     swap( square1.ground, square2.ground );
     double const new_metric =
-        wetness_metric_for_row( row, row_wetness );
+        wetness_metric_for_row( row, row_wetness, frozen );
     if( new_metric >= metric )
       swap( square1.ground, square2.ground );
     else
@@ -504,6 +510,8 @@ expect<WetnessAdjustmentResult> adjust_biome_wetness(
 
   if( !need_clustering ) return res;
 
+  int min_iters = numeric_limits<int>::max();
+  int max_iters = 0;
   for( int const y : iota( 0, sz.h ) ) {
     CHECK_LT( y, ssize( land_tiles ) );
     auto const& land_on_row                 = land_tiles[y];

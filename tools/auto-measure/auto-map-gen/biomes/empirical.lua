@@ -314,7 +314,7 @@ local function lambda( J )
     end
   end )
 
-  -- Terrain adjacency.
+  -- Terrain adjacency/wetness.
   Q.on_all_tiles( function( tile )
     local center = terrain_at( J, tile )
     if center.surface == 'water' then return end
