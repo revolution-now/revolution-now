@@ -277,25 +277,36 @@ terrain_generation {
       accumulation: 0.33333333333333
       consumption:  0.20
       for_biome {
-        #tundra:    -0.698
-        #desert:    -0.454
-        #savannah:  -0.374
-        #plains:    -0.205
-        #arctic:     0.000
-        #prairie:    0.216
-        #grassland:  0.316
-        #swamp:      0.559
-        #marsh:      0.642
+        # bbmm
+        #tundra:     0.097
+        #desert:     0.187
+        #savannah:   0.209
+        #plains:     0.283
+        #prairie:    0.442
+        #grassland:  0.477
+        #swamp:      0.580
+        #marsh:      0.614
 
-        tundra:     0.097
-        desert:     0.187
-        savannah:   0.209
-        plains:     0.283
-        prairie:    0.442
-        grassland:  0.477
-        swamp:      0.580
-        marsh:      0.614
+        # mmmm
+        #tundra:     0.140
+        #desert:     0.267
+        #savannah:   0.307
+        #plains:     0.364
+        #prairie:    0.546
+        #grassland:  0.602
+        #swamp:      0.689
+        #marsh:      0.715
 
+        tundra:     0.000
+        desert:     0.000
+        savannah:   0.000
+        plains:     0.000
+        prairie:    1.000
+        grassland:  1.000
+        swamp:      1.000
+        marsh:      1.000
+
+        # random
         #tundra:     0.333
         #desert:     0.333
         #savannah:   0.333

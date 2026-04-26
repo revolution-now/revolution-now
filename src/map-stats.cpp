@@ -11,6 +11,7 @@
 #include "map-stats.hpp"
 
 // Revolution Now
+#include "gnuplot.hpp"
 #include "map-gen.hpp"
 #include "terrain-mgr.hpp"
 
@@ -49,6 +50,7 @@ using ::gfx::point;
 using ::gfx::size;
 using ::refl::enum_count;
 using ::refl::enum_map;
+using ::refl::enum_values;
 
 /****************************************************************
 ** Global constants.
@@ -105,48 +107,21 @@ void BiomeDensityStatsCollector::collect( MapMatrix const& m ) {
 void BiomeDensityStatsCollector::summarize() {}
 
 void BiomeDensityStatsCollector::write() const {
-  fs::path const generated =
-      "tools/auto-measure/auto-map-gen/biomes/generated";
-  ofstream csv( generated / format( "{}.csv", stem_ ) );
-  ofstream gnu( generated / format( "{}.gnuplot", stem_ ) );
-  CHECK( csv.good() );
-  CHECK( gnu.good() );
-  // TODO: replace this with new gnuplot module.
-  string const GNUPLOT_FILE_TEMPLATE = R"gnuplot(
-      #!/usr/bin/env -S gnuplot -p
-      set title "{{TITLE}} ({{MODE}} [{{COUNT}}])"
-      set datafile separator ","
-      set key outside right
-      set grid
-      set xlabel "Map Row (Y)"
-      set ylabel "Density"
-
-      # Use the first row as column headers for titles.
-      set key autotitle columnhead
-
-      set yrange [0:0.7]
-      set xrange [{{XRANGE}}]
-
-      plot for [col=2:*] "{{CSV_STEM}}.csv" using 1:col with lines lw 2
-    )gnuplot";
-  string const gnuplot_body = base::trim( str_replace_all(
-      GNUPLOT_FILE_TEMPLATE,
-      {
-        { "{{TITLE}}", "Biome Density (generated)" },
-        { "{{CSV_STEM}}", stem_ },
-        { "{{MODE}}", stem_ },
-        { "{{COUNT}}", to_string( maps_total_ ) },
-        { "{{XRANGE}}", "0:70" },
-      } ) );
-  gnu << gnuplot_body;
-
-  // Header.
-  csv << format( "y" );
+  GnuPlotSettings const settings{
+    .title   = format( "Biome Density (generated) ({}) [{}]",
+                       stem_, maps_total_ ),
+    .x_label = "Map Row (Y)",
+    .y_label = "Density",
+    .x_range = "1:70",
+    .y_range = "0:0.7",
+  };
+  CsvData csv_data{ .header = { "y" }, .rows = {} };
   for( auto const gt : kGroundTypes )
-    csv << ',' << base::to_str( gt );
-  csv << '\n';
+    csv_data.header.push_back( base::to_str( gt ) );
+  fs::path const kGeneratedDir =
+      "tools/auto-measure/auto-map-gen/biomes/generated";
   for( int y = 0; y < map_sz_.h; ++y ) {
-    csv << y + 1;
+    vector<string> row{ /*y=*/to_string( y + 1 ) };
     for( auto const gt : kGroundTypes ) {
       double value = 0.0;
       {
@@ -163,10 +138,11 @@ void BiomeDensityStatsCollector::write() const {
             double( *biome_count_y_row_gt ) / *land_count_y_row;
       }
     skip:
-      csv << ',' << value;
+      row.push_back( to_string( value ) );
     }
-    csv << '\n';
+    csv_data.rows.push_back( std::move( row ) );
   }
+  generate_gnuplot( kGeneratedDir, stem_, settings, csv_data );
 }
 
 /****************************************************************
@@ -187,7 +163,9 @@ struct BiomeWetnessStatsCollector : IMapStatsCollector {
   void write() const override;
 
  private:
-  size map_sz_ = {};
+  size map_sz_         = {};
+  int land_            = 0;
+  double land_wetness_ = 0;
   refl::enum_map<e_biome, double> biome_wetness_;
   refl::enum_map<e_biome, int> biome_count_;
   int maps_total_ = 0;
@@ -209,70 +187,65 @@ void BiomeWetnessStatsCollector::collect( MapMatrix const& m ) {
         if( center.surface == e_surface::water ) return;
         ++biome_count_[center.ground];
         biome_wetness_[center.ground] += wetness[tile];
+        land_wetness_ += wetness[tile];
+        ++land_;
       } );
 }
 
 void BiomeWetnessStatsCollector::summarize() {}
 
 void BiomeWetnessStatsCollector::write() const {
-  static enum_map<e_biome, double> const kTargets{
+  // enum_map<e_biome, double> const& kTargets =
+  //     config_map_gen.terrain_generation.biomes.wet_dry_modulation
+  //         .for_biome;
+  enum_map<e_biome, double> const& kTargets{
     // clang-format off
-    {e_biome::tundra,    -0.698},
-    {e_biome::desert,    -0.454},
-    {e_biome::savannah,  -0.374},
-    {e_biome::plains,    -0.205},
-    {e_biome::arctic,     0.000},
-    {e_biome::prairie,    0.216},
-    {e_biome::grassland,  0.316},
-    {e_biome::swamp,      0.559},
-    {e_biome::marsh,      0.642},
+    // bbmm
+    // {e_biome::tundra,    0.097},
+    // {e_biome::desert,    0.187},
+    // {e_biome::savannah,  0.209},
+    // {e_biome::plains,    0.283},
+    // {e_biome::prairie,   0.442},
+    // {e_biome::grassland, 0.477},
+    // {e_biome::swamp,     0.580},
+    // {e_biome::marsh,     0.614},
+    // mmmm
+    {e_biome::tundra,    0.140},
+    {e_biome::desert,    0.267},
+    {e_biome::savannah,  0.307},
+    {e_biome::plains,    0.364},
+    {e_biome::prairie,   0.546},
+    {e_biome::grassland, 0.602},
+    {e_biome::swamp,     0.689},
+    {e_biome::marsh,     0.715},
     // clang-format on
   };
-  double avg = 0;
-  for( e_biome const biome : kWetOrdering ) {
-    if( biome == e_biome::arctic ) continue;
-    double const wetness =
-        biome_wetness_[biome] / biome_count_[biome];
-    avg += wetness;
-  }
-  avg /= 8; // 9-1 since no arctic.
+  fmt::println( "land:         {}",
+                double( land_ ) / maps_total_ );
+  for( e_biome const biome : enum_values<e_biome> )
+    fmt::println( "{:<12}:       {}", biome,
+                  double( biome_count_[biome] ) / maps_total_ );
+  fmt::println( "land_wetness: {}",
+                land_wetness_ / maps_total_ );
   fmt::println( "{:12}: {:>12} {:>12} {:>12}", "biome",
-                "wetness", "normalized", "ratio" );
+                "wetness", "target", "ratio" );
   fmt::println(
       "-----------------------------------------------------" );
+  double error_abs = 0;
   for( e_biome const biome : kWetOrdering ) {
     if( biome == e_biome::arctic ) continue;
     double const wetness =
         biome_wetness_[biome] / biome_count_[biome];
-    double const normalized = ( wetness / avg ) - 1;
     fmt::println( "{:12}: {:12.3f} {:12.3f} {:12.3f}", biome,
-                  wetness, normalized,
-                  normalized / kTargets[biome] );
+                  wetness, kTargets[biome],
+                  wetness / kTargets[biome] );
+    error_abs += abs( wetness / kTargets[biome] - 1 );
   }
-  fmt::println( "try next:" );
-  enum_map<e_biome, double> next;
-  double total = 0;
-  for( e_biome const biome : kWetOrdering ) {
-    if( biome == e_biome::arctic ) continue;
-    double const wetness =
-        biome_wetness_[biome] / biome_count_[biome];
-    double const normalized = ( wetness / avg ) - 1;
-    double const scale      = normalized / kTargets[biome];
-    next[biome] = config_map_gen.terrain_generation.biomes
-                      .wet_dry_modulation.for_biome[biome] /
-                  scale;
-    total += next[biome];
-  }
-  next[e_biome::arctic] = 0.0;
-  avg                   = total / 8;
-  // for( e_biome const biome : kWetOrdering ) {
-  //   if( biome == e_biome::arctic ) continue;
-  //   next[biome] -= avg;
-  // }
-  for( e_biome const biome : kWetOrdering )
-    fmt::println( "        {:11}{:>6.3f}  # {:>6.3f}",
-                  base::to_str( biome ) + ':', next[biome],
-                  kTargets[biome] );
+  double const error = error_abs / 8;
+  fmt::println(
+      "-----------------------------------------------------" );
+  fmt::println( "{:12}: {:>12} {:>12} {:12.3f}", "error", "", "",
+                error );
 }
 
 } // namespace

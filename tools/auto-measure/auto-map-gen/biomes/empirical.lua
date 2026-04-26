@@ -321,7 +321,6 @@ local function lambda( J )
     assert( center )
     assert( center.ground )
     D.adjacency[center.ground] = D.adjacency[center.ground] or {}
-    -- local wetness = assert( compute_wetness( J, tile ) )
     local wetness = assert( wetness_full[tile.y][tile.x] )
     D.wetness[center.ground] = D.wetness[center.ground] + wetness
     D.land_wetness = D.land_wetness + wetness

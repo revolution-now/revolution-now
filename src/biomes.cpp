@@ -74,6 +74,8 @@ using ::rv::iota;
 struct biome_curve {
   biome_curve() = default;
 
+  using map = enum_map<e_biome, biome_curve>;
+
   static expect<biome_curve> create(
       size const map_sz, e_biome const biome,
       WeatherValue const temperature,
@@ -173,54 +175,29 @@ struct biome_curve {
 struct biome_dist {
   [[maybe_unused]] biome_dist() = default;
 
-  biome_dist( enum_map<e_biome, biome_curve> const& curves,
-              double const fractional_row,
-              double const wetness_on_tile ) {
-    double total         = 0;
-    auto const normalize = [&] {
-      if( total <= 0.0 ) {
-        for( auto const biome : enum_values<e_biome> )
-          probabilities_[biome] = 1.0 / enum_count<e_biome>;
-        return;
-      }
-      for( auto const biome : enum_values<e_biome> )
-        probabilities_[biome] /= total;
-      total = 0;
-    };
-
+  biome_dist( enum_map<e_biome, double>&& probabilities )
+    : probabilities_( std::move( probabilities ) ) {
     normalize();
+  }
 
-    for( auto const biome : enum_values<e_biome> ) {
+  biome_dist( enum_map<e_biome, biome_curve> const& curves,
+              double const fractional_row ) {
+    for( auto const biome : enum_values<e_biome> )
       // Some curves can go below zero, e.g. the savannah and
       // swamp curves which are lowered slightly below the axis.
       // In that case they are interpreted as being zero in that
       // region.
       probabilities_[biome] =
           std::max( curves[biome]( fractional_row ), 0.0 );
-      total += probabilities_[biome];
-    }
     normalize();
+  }
 
-#if 0
-    for( auto const biome : enum_values<e_biome> ) {
-      double const wetness_mod =
-          wetness_on_tile *
-          config_map_gen.terrain_generation.biomes
-              .wet_dry_modulation.for_biome[biome];
-      probabilities_[biome] =
-          std::max( probabilities_[biome] + wetness_mod, 0.0 );
-      total += probabilities_[biome];
-    }
-    normalize();
-#endif
+  enum_map<e_biome, double> const& probabilities() const {
+    return probabilities_;
   }
 
   [[maybe_unused]] biome_dist( biome_dist&& ) = default;
   biome_dist& operator=( biome_dist&& )       = default;
-
-  [[nodiscard]] double probability( e_biome const biome ) const {
-    return probabilities_[biome];
-  }
 
   [[nodiscard]] maybe<e_biome> sample( IRand& rand ) const {
     return rand.pick_from_weighted_values_safe( probabilities_ );
@@ -231,6 +208,19 @@ struct biome_dist {
   }
 
  private:
+  void normalize() {
+    double total = 0;
+    for( auto const biome : enum_values<e_biome> )
+      total += probabilities_[biome];
+    if( total <= 0.0 ) {
+      for( auto const biome : enum_values<e_biome> )
+        probabilities_[biome] = 1.0 / enum_count<e_biome>;
+      return;
+    }
+    for( auto const biome : enum_values<e_biome> )
+      probabilities_[biome] /= total;
+  }
+
   enum_map<e_biome, double> probabilities_;
 };
 
@@ -239,53 +229,261 @@ struct biome_dist {
 /****************************************************************
 ** Public API.
 *****************************************************************/
-static void normalize_wetness( MapMatrix const& m,
-                               double const wet_dry_sensitivity,
-                               matrix<double>& out ) {
-  size const sz = out.size();
-  for( int const y : iota( 0, sz.h ) ) {
-    int const land_in_row = [&] {
-      int res = 0;
-      for( int const x : iota( 0, sz.w ) )
-        if( m[y][x].surface == e_surface::land ) //
-          ++res;
-      return res;
-    }();
-    if( land_in_row == 0 ) continue;
-    double const total_wetness = [&] {
-      double res = 0;
-      for( int const x : iota( 0, sz.w ) )
-        if( m[y][x].surface == e_surface::land ) //
-          res += out[y][x];
-      return res;
-    }();
-    if( total_wetness == 0 )
-      // Not normally expected to happen, but maybe could happen
-      // if config parameters are changed in the right way.
-      continue;
-    double const wetness_avg = total_wetness / land_in_row;
-    // First normalize so that average == 1, then normalize so
-    // that average == 0. That way we get predictable averages
-    // and magnitudes.
-    for( int const x : iota( 0, sz.w ) ) {
-      out[y][x] /= wetness_avg;
-      out[y][x] -= 1.0 / land_in_row;
-    }
+static void adjust_dists_with_wetness_on_row(
+    MapMatrix const& m, int const y,
+    double const wet_dry_sensitivity, biome_dist const& dist,
+    matrix<double>& wetness, matrix<biome_dist>& out_dists ) {
+  size const sz = m.size();
+
+  int const PRINT_ROW = 71; // 59 - 1;
+
+  auto const check_sum_zero =
+      [] [[clang::noinline]] (
+          enum_map<e_biome, double> const& o ) {
+        double total = 0.0;
+        for( e_biome const biome : enum_values<e_biome> )
+          total += o[biome];
+        CHECK_LT( abs( total - 0 ), 1e-6 );
+      };
+  auto const check_probabilities =
+      [] [[clang::noinline]] (
+          enum_map<e_biome, double> const& ps ) {
+        double total = 0.0;
+        for( e_biome const biome : enum_values<e_biome> )
+          total += ps[biome];
+        CHECK_LT( abs( total - 1 ), 1e-6 );
+      };
+  check_probabilities( dist.probabilities() );
+
+  int const land_in_row = [&] {
+    int res = 0;
+    for( int const x : iota( 0, sz.w ) )
+      if( m[y][x].surface == e_surface::land ) //
+        ++res;
+    return res;
+  }();
+  if( land_in_row == 0 ) return;
+  double const total_wetness = [&] {
+    double res = 0;
+    for( int const x : iota( 0, sz.w ) )
+      if( m[y][x].surface == e_surface::land ) //
+        res += wetness[y][x];
+    return res;
+  }();
+  if( total_wetness == 0 )
+    // Not normally expected to happen, but maybe could happen if
+    // config parameters are changed in the right way.
+    return;
+  double const wetness_avg = total_wetness / land_in_row;
+  // Normalize so that average=0.
+  for( int const x : iota( 0, sz.w ) ) {
+    wetness[y][x] /= wetness_avg;
+    wetness[y][x] -= 1.0;
   }
-  // Finally, weight all elements by the global weight.
-  out.apply( [&]( double& val, point const ) {
-    val *= wet_dry_sensitivity;
-  } );
-#if 0
-  for( int const y : iota( 0, sz.h ) ) {
-    double row_sum = 0;
-    for( int const x : iota( 0, sz.w ) ) {
-      row_sum += out[y][x];
-      fmt::print( "{:.1f},", out[y][x] );
+
+  enum_map<e_biome, bool> const should_adjust_biome = [&] {
+#if 1
+    enum_map<e_biome, bool> res;
+    for( e_biome const biome : enum_values<e_biome> )
+      if( biome != e_biome::arctic &&
+          dist.probabilities()[biome] >= .05 ) //
+        res[biome] = true;
+    return res;
+#else
+    array<e_biome, 8> arr;
+    static_assert( arr.size() == enum_count<e_biome> - 1 );
+    for( auto it = arr.begin();
+         e_biome const biome : enum_values<e_biome> )
+      if( biome != e_biome::arctic ) //
+        *it++ = biome;
+    rg::stable_sort( arr, std::greater<>{},
+                     [&]( e_biome const b ) {
+                       return dist.probabilities()[b];
+                     } );
+    if( y == PRINT_ROW ) fmt::println( "arr:  {}", arr );
+    if( y == PRINT_ROW )
+      fmt::println( "dist: {}", dist.probabilities() );
+    enum_map<e_biome, bool> res;
+    double total = 0.0;
+    for( int added = 0; e_biome const biome : arr ) {
+      CHECK_NEQ( biome, e_biome::arctic );
+      CHECK( !res[biome] );
+      if( added > 1 && total > .5 &&
+          dist.probabilities()[biome] < .05 )
+        break;
+      res[biome] = true;
+      ++added;
+      total += dist.probabilities()[biome];
     }
-    fmt::println( " -> {}", row_sum );
-  }
+    return res;
 #endif
+  }();
+  CHECK( !should_adjust_biome[e_biome::arctic] );
+
+  enum_map<e_biome, double> const modulation = [&] {
+    auto res = config_map_gen.terrain_generation.biomes
+                   .wet_dry_modulation.for_biome;
+    double modulation_total = 0;
+    int num_biomes          = 0;
+    for( e_biome const biome : enum_values<e_biome> ) {
+      if( !should_adjust_biome[biome] ) {
+        res[biome] = 0;
+        continue;
+      }
+      ++num_biomes;
+      modulation_total += res[biome];
+    }
+    if( num_biomes == 0 ) return res;
+    if( modulation_total <= 0 ) return res;
+    double const modulation_avg = modulation_total / num_biomes;
+    for( e_biome const biome : enum_values<e_biome> ) {
+      if( !should_adjust_biome[biome] ) continue;
+      res[biome] /= modulation_avg;
+      res[biome] -= 1.0;
+      if( y == PRINT_ROW ) {
+        fmt::println( "modulation.{}: {:.3f}", biome,
+                      res[biome] );
+      }
+    }
+    return res;
+  }();
+  check_sum_zero( modulation );
+
+  double sensitivity = 1e8;
+
+  auto const update_sensitivity = [&]( double const with ) {
+    CHECK_GE( with, 0 );
+    sensitivity = std::min( sensitivity, with );
+    CHECK_GE( sensitivity, 0 );
+  };
+
+  for( int const x : iota( 0, sz.w ) ) {
+    if( m[y][x].surface == e_surface::water ) continue;
+    auto probabilities_new = dist.probabilities();
+    for( e_biome const biome : enum_values<e_biome> ) {
+      if( !should_adjust_biome[biome] ) continue;
+      double const prob  = dist.probabilities()[biome];
+      double const mod   = modulation[biome];
+      double const delta = wetness[y][x] * sensitivity * mod;
+      CHECK_GT( prob, 0 );
+      if( prob + delta < 0.0 ) {
+        CHECK_LT( delta, 0 );
+        update_sensitivity( -prob / ( mod * wetness[y][x] ) );
+      }
+    }
+  }
+
+  auto const biomes_str = [&]( auto const& o ) {
+    string res;
+    for( e_biome const biome : enum_values<e_biome> ) {
+      if( !should_adjust_biome[biome] ) continue;
+      res += format( ", {}={:.3f}", biome, o[biome] );
+    }
+    return res;
+  };
+
+  if( y == PRINT_ROW ) {
+    fmt::println( "[{}] mod: {:.3f}, {}", y,
+                  sensitivity * wet_dry_sensitivity,
+                  biomes_str( dist.probabilities() ) );
+  }
+  // Should be checked by config validators.
+  CHECK_LE( wet_dry_sensitivity, 1.0 );
+  for( int const x : iota( 0, sz.w ) ) {
+    if( m[y][x].surface == e_surface::water ) continue;
+    auto probabilities_new = dist.probabilities();
+    for( e_biome const biome : enum_values<e_biome> ) {
+      if( !should_adjust_biome[biome] ) continue;
+      probabilities_new[biome] += wetness[y][x] * sensitivity *
+                                  modulation[biome] *
+                                  wet_dry_sensitivity;
+      CHECK_GE( probabilities_new[biome], -1e-12 );
+      probabilities_new[biome] =
+          std::max( probabilities_new[biome], 0.0 );
+    }
+    check_probabilities( probabilities_new );
+#if 1
+    if( wetness[y][x] > 0 ) {
+      probabilities_new[e_biome::tundra] = 0;
+      probabilities_new[e_biome::plains] /= 1.8;
+      probabilities_new[e_biome::prairie] /= 1.1;
+
+      probabilities_new[e_biome::swamp] *= 1.7;
+      probabilities_new[e_biome::grassland] *= 1.1;
+    } else {
+      probabilities_new[e_biome::tundra] *= 1.8;
+      probabilities_new[e_biome::plains] *= 1.8;
+      probabilities_new[e_biome::prairie] *= 1.1;
+
+      probabilities_new[e_biome::swamp] /= 1.7;
+      probabilities_new[e_biome::grassland] /= 1.1;
+    }
+#endif
+    out_dists[y][x] =
+        biome_dist( std::move( probabilities_new ) );
+    if( y == PRINT_ROW ) {
+      if( m[y][x].surface == e_surface::land )
+        fmt::println(
+            "[x={}] {}", x,
+            biomes_str( out_dists[y][x].probabilities() ) );
+    }
+  }
+  return;
+
+  enum_map<e_biome, double> total_before;
+  enum_map<e_biome, double> total_after;
+  for( int const x : iota( 0, sz.w ) ) {
+    if( m[y][x].surface == e_surface::water ) continue;
+    for( e_biome const biome : enum_values<e_biome> ) {
+      total_before[biome] += dist.probabilities()[biome];
+      total_after[biome] +=
+          out_dists[y][x].probabilities()[biome];
+    }
+  }
+  for( e_biome const biome : enum_values<e_biome> ) {
+    if( y == PRINT_ROW ) {
+      fmt::println( "total_before.{:<10.3} = {}", biome,
+                    total_before[biome] );
+      fmt::println( "total_before.{:<10.3} = {}", biome,
+                    total_after[biome] );
+    }
+    CHECK_LT( abs( total_after[biome] - total_before[biome] ),
+              1e-6 );
+  }
+  if( y == PRINT_ROW ) {
+    auto const print_tile = [&]( int const x ) {
+      fmt::println( "[{},{}] tundra before: {:.3f}", y, x,
+                    dist.probabilities()[e_biome::tundra] );
+      fmt::println(
+          "[{},{}] tundra after:  {:.3f}", y, x,
+          out_dists[y][x].probabilities()[e_biome::tundra] );
+    };
+    print_tile( 6 );
+    print_tile( 8 );
+    print_tile( 16 );
+    print_tile( 47 );
+    print_tile( 49 );
+  }
+}
+
+static void create_biome_dists_with_wetness(
+    MapMatrix const& m, biome_curve::map const& curves,
+    double const wet_dry_sensitivity,
+    matrix<biome_dist>& out_dists ) {
+  size const sz = m.size();
+  matrix<double> wetness;
+  compute_wetness( m, wetness );
+  CHECK_EQ( wetness.size(), m.size() );
+  for( int const y : iota( 0, sz.h ) ) {
+    double const yd = double( y ) / sz.h;
+    auto const dist = biome_dist( curves, yd );
+    // Set default curves first, then modulate them according to
+    // wetness later.
+    for( int const x : iota( 0, sz.w ) )
+      out_dists[y][x] = biome_dist( curves, yd );
+    adjust_dists_with_wetness_on_row( m, y, wet_dry_sensitivity,
+                                      dist, wetness, out_dists );
+  }
 }
 
 // The idx into the returned vector is the y map coordinate.
@@ -295,8 +493,7 @@ create_biome_dists( MapMatrix& m, WeatherValue const temperature,
                     double const wet_dry_sensitivity ) {
   size const sz = m.size();
 
-  using BiomeCurveMap     = enum_map<e_biome, biome_curve>;
-  auto const maybe_curves = [&] -> expect<BiomeCurveMap> {
+  auto const maybe_curves = [&] -> expect<biome_curve::map> {
     enum_map<e_biome, biome_curve> res;
     for( auto const biome : enum_values<e_biome> ) {
       UNWRAP_RETURN( curve,
@@ -306,25 +503,14 @@ create_biome_dists( MapMatrix& m, WeatherValue const temperature,
     }
     return res;
   }();
-  UNWRAP_RETURN_T( BiomeCurveMap const& curves, maybe_curves );
-
-  matrix<double> const wetness = [&] {
-    matrix<double> res;
-    compute_wetness( m, res );
-    // normalize_wetness( m, wet_dry_sensitivity, res );
-    CHECK_EQ( res.size(), m.size() );
-    return res;
-  }();
+  UNWRAP_RETURN_T( biome_curve::map const& curves,
+                   maybe_curves );
 
   matrix<biome_dist> biome_dists( m.size() );
-  for( int y = 0; y < sz.h; ++y ) {
-    for( int x = 0; x < sz.w; ++x ) {
-      double const yd = double( y ) / sz.h;
-      biome_dists[y][x] =
-          biome_dist( curves, yd, wetness[y][x] );
-    }
-  }
+  create_biome_dists_with_wetness(
+      m, curves, wet_dry_sensitivity, biome_dists );
   CHECK_EQ( biome_dists.size(), m.size() );
+
   return biome_dists;
 }
 
@@ -366,161 +552,6 @@ valid_or<string> assign_biomes(
   }
 
   return valid;
-}
-
-[[nodiscard]] static double wetness_metric_for_row(
-    vector<MapSquare> const& tiles,
-    span<double const> const tile_wetnesses,
-    enum_map<e_biome, bool>& frozen ) {
-  CHECK_EQ( tiles.size(), tile_wetnesses.size() );
-  enum_map<e_biome, int> biome_count;
-  enum_map<e_biome, double> wetness_total;
-  for( auto const [tile, wetness] :
-       rv::zip( tiles, tile_wetnesses ) ) {
-    if( tile.surface != e_surface::land ) continue;
-    ++biome_count[tile.ground];
-    wetness_total[tile.ground] += wetness;
-  }
-  for( e_biome const biome : enum_values<e_biome> )
-    if( biome_count[biome] > 0 )
-      wetness_total[biome] /= biome_count[biome];
-  // double sum         = 0;
-  // int count_non_zero = 0;
-  // for( e_biome const biome : enum_values<e_biome> ) {
-  //   if( biome_count[biome] > 0 ) {
-  //     sum += wetness_total[biome];
-  //     ++count_non_zero;
-  //   }
-  // }
-  // CHECK_GT( count_non_zero, 0 );
-  // double const avg = sum / count_non_zero;
-  // for( e_biome const biome : enum_values<e_biome> ) {
-  //   wetness_total[biome] /= avg;
-  //   wetness_total[biome] -= 1.0;
-  // }
-  double metric = 0;
-  for( e_biome const biome : enum_values<e_biome> ) {
-    if( biome_count[biome] == 0 ) continue;
-    double const target =
-        config_map_gen.terrain_generation.biomes
-            .wet_dry_modulation.for_biome[biome];
-    if( target < 1e-6 ) continue;
-    double const biome_metric =
-        abs( wetness_total[biome] - target ) / target;
-    if( biome_metric <= .05 ) frozen[biome] = true;
-    metric += biome_metric;
-  }
-  return metric;
-}
-
-[[nodiscard]] static int adjust_wetness_for_row(
-    IRand& rand, MapMatrix& m, int const y,
-    span<double const> const row_wetness,
-    vector<int /*x*/> const& land_tiles ) {
-  size const sz = m.size();
-  int iters     = 0;
-  if( land_tiles.size() <= 1 ) return iters;
-  vector<MapSquare> row;
-  row.reserve( m[y].size() );
-  for( int const x : iota( 0, sz.w ) ) row.push_back( m[y][x] );
-  CHECK_EQ( ssize( row ), sz.w );
-  enum_map<e_biome, int> const biome_count = [&] {
-    enum_map<e_biome, int> res;
-    for( int const x : land_tiles ) ++res[m[y][x].ground];
-    return res;
-  }();
-  enum_map<e_biome, bool> frozen;
-  for( e_biome const biome : enum_values<e_biome> )
-    if( biome_count[biome] == 0 ) //
-      frozen[biome] = true;
-  frozen[e_biome::arctic] = true;
-  auto const all_frozen   = [&] {
-    for( e_biome const biome : enum_values<e_biome> )
-      if( !frozen[biome] ) //
-        return false;
-    return true;
-  };
-  double metric =
-      wetness_metric_for_row( row, row_wetness, frozen );
-  for( int i = 0; i < 1000; ++i ) {
-    if( all_frozen() ) break;
-    ++iters;
-    int const x1 = rand.pick_one( land_tiles );
-    int const x2 = rand.pick_one( land_tiles );
-    if( x1 == x2 ) continue;
-    MapSquare& square1 = row[x1];
-    MapSquare& square2 = row[x2];
-    CHECK( square1.surface != e_surface::water );
-    CHECK( square2.surface != e_surface::water );
-    if( square1.ground == square2.ground ) continue;
-    if( frozen[square1.ground] || frozen[square2.ground] )
-      continue;
-    swap( square1.ground, square2.ground );
-    double const new_metric =
-        wetness_metric_for_row( row, row_wetness, frozen );
-    if( new_metric >= metric )
-      swap( square1.ground, square2.ground );
-    else
-      metric = new_metric;
-  }
-  for( int const x : iota( 0, sz.w ) ) m[y][x] = row[x];
-  return iters;
-}
-
-expect<WetnessAdjustmentResult> adjust_biome_wetness(
-    IRand& rand, MapMatrix& m,
-    double const wet_dry_sensitivity ) {
-  WetnessAdjustmentResult res;
-  size const sz = m.size();
-
-  matrix<double> const wetness = [&] {
-    matrix<double> res;
-    compute_wetness( m, res );
-    // normalize_wetness( m, wet_dry_sensitivity, res );
-    CHECK_EQ( res.size(), m.size() );
-    return res;
-  }();
-
-  vector<vector<int /*x*/>> const land_tiles = [&] {
-    vector<vector<int /*x*/>> res;
-    res.resize( sz.h );
-    for( point const p : rect_iterator( m.rect() ) )
-      if( m[p].surface == e_surface::land )
-        res[p.y].push_back( p.x );
-    return res;
-  }();
-
-  int const max_allowed_iters = [&] {
-    double const w = sz.w;
-    // Approximation to n*H_n where H_n = nth harmonic number.
-    double const a = ( w * log( w ) + w * .577 ) / 257;
-    return clamp( int( 1000 * a ), 1000, 10000 );
-  }();
-  res.max_allowed_iters = max_allowed_iters;
-
-  // Clustering.
-  bool const need_clustering = [&] {
-    for( auto const biome : enum_values<e_biome> )
-      // TODO: pass this in via game key.
-      if( config_map_gen.terrain_generation.biomes
-              .wet_dry_modulation.for_biome[biome] != 0 )
-        return true;
-    return false;
-  }();
-
-  if( !need_clustering ) return res;
-
-  int min_iters = numeric_limits<int>::max();
-  int max_iters = 0;
-  for( int const y : iota( 0, sz.h ) ) {
-    CHECK_LT( y, ssize( land_tiles ) );
-    auto const& land_on_row                 = land_tiles[y];
-    span<double const> const wetness_on_row = wetness[y];
-    res.iters += adjust_wetness_for_row(
-        rand, m, y, wetness_on_row, land_on_row );
-  }
-
-  return res;
 }
 
 void assign_arctic_biomes( IRand& rand,

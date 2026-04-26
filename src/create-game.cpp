@@ -235,11 +235,6 @@ valid_or<string> generate_map_native_impl(
   if( setup.surface_generator.arctic.enabled )
     assign_arctic_biomes( rand, real_terrain );
 
-  UNWRAP_RETURN_T(
-      WetnessAdjustmentResult const& wetness_adjustment_result,
-      adjust_biome_wetness( rand, real_terrain.map,
-                            setup.biomes.wet_dry_sensitivity ) );
-
 #if 0
   // Rivers.
   rand.reseed( setup.rivers.seed );

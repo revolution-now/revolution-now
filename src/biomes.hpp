@@ -36,9 +36,6 @@ base::valid_or<std::string> assign_biomes(
     WeatherValue temperature, WeatherValue climate,
     double wet_dry_sensitivity );
 
-base::expect<WetnessAdjustmentResult> adjust_biome_wetness(
-    IRand& rand, MapMatrix& m, double wet_dry_sensitivity );
-
 void assign_arctic_biomes( IRand& rand,
                            RealTerrain& real_terrain );
 

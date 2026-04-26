@@ -9,8 +9,3 @@
 #
 # ===============================================================
 namespace "rn"
-
-struct.WetnessAdjustmentResult {
-  iters 'int',
-  max_allowed_iters 'int',
-}

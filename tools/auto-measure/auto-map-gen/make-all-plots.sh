@@ -40,6 +40,7 @@ collect() {
 # run biomes bmmm
 # run biomes mtmm
 # run biomes mbmm
+# run biomes mmmm
 # run biomes new
 
 # land density.

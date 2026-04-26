@@ -1048,21 +1048,26 @@ struct RiverFrequencyStats : IMapStatsCollector {
   for( e_temperature const temperature : kTemps ) {
     for( e_climate const climate : kClimates ) {
       ClassicGameSetupParamsCustom const params{
-        .land_mass   = e_land_mass::large,
-        .land_form   = e_land_form::continents,
+        .land_mass   = e_land_mass::moderate,
+        .land_form   = e_land_form::normal,
         .temperature = temperature,
         .climate     = climate };
       string const name( mode_name( params ) );
-      auto const stats = create_biome_wetness_stats_collector();
+      auto const stats1 = create_biome_wetness_stats_collector();
+      auto const stats2 =
+          create_biome_density_stats_collector( name );
       fmt::println( "generating for {}...", name );
       for( int i = 0; i < kNumSamples; ++i ) {
         SS ss;
         generate( ss, params );
-        stats->collect( ss.terrain.real_terrain().map );
+        stats1->collect( ss.terrain.real_terrain().map );
+        stats2->collect( ss.terrain.real_terrain().map );
         // fmt::println( "#{}", i + 1 );
       }
-      stats->summarize();
-      stats->write();
+      stats1->summarize();
+      stats2->summarize();
+      stats1->write();
+      stats2->write();
       fmt::print( "\n" );
     }
   }
