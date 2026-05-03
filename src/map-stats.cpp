@@ -201,23 +201,23 @@ void BiomeWetnessStatsCollector::write() const {
   enum_map<e_biome, double> const& kTargets{
     // clang-format off
     // bbmm
-    // {e_biome::tundra,    0.097},
-    // {e_biome::desert,    0.187},
-    // {e_biome::savannah,  0.209},
-    // {e_biome::plains,    0.283},
-    // {e_biome::prairie,   0.442},
-    // {e_biome::grassland, 0.477},
-    // {e_biome::swamp,     0.580},
-    // {e_biome::marsh,     0.614},
+    {e_biome::tundra,    0.097},
+    {e_biome::desert,    0.187},
+    {e_biome::savannah,  0.209},
+    {e_biome::plains,    0.283},
+    {e_biome::prairie,   0.442},
+    {e_biome::grassland, 0.477},
+    {e_biome::swamp,     0.580},
+    {e_biome::marsh,     0.614},
     // mmmm
-    {e_biome::tundra,    0.140},
-    {e_biome::desert,    0.267},
-    {e_biome::savannah,  0.307},
-    {e_biome::plains,    0.364},
-    {e_biome::prairie,   0.546},
-    {e_biome::grassland, 0.602},
-    {e_biome::swamp,     0.689},
-    {e_biome::marsh,     0.715},
+    // {e_biome::tundra,    0.140},
+    // {e_biome::desert,    0.267},
+    // {e_biome::savannah,  0.307},
+    // {e_biome::plains,    0.364},
+    // {e_biome::prairie,   0.546},
+    // {e_biome::grassland, 0.602},
+    // {e_biome::swamp,     0.689},
+    // {e_biome::marsh,     0.715},
     // clang-format on
   };
   fmt::println( "land:         {}",
@@ -227,6 +227,7 @@ void BiomeWetnessStatsCollector::write() const {
                   double( biome_count_[biome] ) / maps_total_ );
   fmt::println( "land_wetness: {}",
                 land_wetness_ / maps_total_ );
+  fmt::println( "" );
   fmt::println( "{:12}: {:>12} {:>12} {:>12}", "biome",
                 "wetness", "target", "ratio" );
   fmt::println(

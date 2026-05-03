@@ -64,7 +64,7 @@ TEST_CASE( "[biomes] assign_biomes" ) {
   world w;
 }
 
-TEST_CASE( "[biomes] adjust_biome_wetness" ) {
+TEST_CASE( "[biomes] apply_biome_wetness_remix" ) {
   world w;
 }
 

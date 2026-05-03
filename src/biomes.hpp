@@ -33,8 +33,10 @@ struct RealTerrain;
 *****************************************************************/
 base::valid_or<std::string> assign_biomes(
     IRand& rand, RealTerrain& real_terrain,
-    WeatherValue temperature, WeatherValue climate,
-    double wet_dry_sensitivity );
+    WeatherValue temperature, WeatherValue climate );
+
+void apply_biome_wetness_remix( MapMatrix& m, IRand& rand,
+                                double wet_dry_sensitivity );
 
 void assign_arctic_biomes( IRand& rand,
                            RealTerrain& real_terrain );

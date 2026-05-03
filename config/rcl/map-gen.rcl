@@ -276,6 +276,17 @@ terrain_generation {
       sensitivity:  1.0
       accumulation: 0.33333333333333
       consumption:  0.20
+      is_wet {
+        tundra:     false
+        desert:     false
+        savannah:   false
+        plains:     false
+        arctic:     false
+        prairie:    true
+        grassland:  true
+        swamp:      true
+        marsh:      true
+      }
       for_biome {
         # bbmm
         #tundra:     0.097
@@ -298,13 +309,13 @@ terrain_generation {
         #marsh:      0.715
 
         tundra:     0.000
-        desert:     0.000
-        savannah:   0.000
-        plains:     0.000
-        prairie:    1.000
-        grassland:  1.000
-        swamp:      1.000
-        marsh:      1.000
+        desert:     0.100
+        savannah:   0.200
+        plains:     0.300
+        prairie:    0.400
+        grassland:  0.500
+        swamp:      0.800
+        marsh:      0.900
 
         # random
         #tundra:     0.333

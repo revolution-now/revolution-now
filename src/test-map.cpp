@@ -1048,8 +1048,8 @@ struct RiverFrequencyStats : IMapStatsCollector {
   for( e_temperature const temperature : kTemps ) {
     for( e_climate const climate : kClimates ) {
       ClassicGameSetupParamsCustom const params{
-        .land_mass   = e_land_mass::moderate,
-        .land_form   = e_land_form::normal,
+        .land_mass   = e_land_mass::large,
+        .land_form   = e_land_form::continents,
         .temperature = temperature,
         .climate     = climate };
       string const name( mode_name( params ) );

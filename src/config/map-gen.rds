@@ -115,6 +115,7 @@ struct.WetDryModulation {
   sensitivity 'double',
   accumulation 'double',
   consumption 'double',
+  is_wet 'refl::enum_map<e_biome, bool>',
   for_biome 'refl::enum_map<e_biome, double>',
   _features { equality, validation }
 }
