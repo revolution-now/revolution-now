@@ -1027,7 +1027,7 @@ struct RiverFrequencyStats : IMapStatsCollector {
 
 [[maybe_unused]] void testing_map_gen_biome_wetness_stats(
     IEngine& engine ) {
-  int constexpr kNumSamples = 500;
+  int constexpr kNumSamples = 2000;
 
   auto const generate =
       [&]( SS& ss, ClassicGameSetupParamsCustom const& custom ) {
@@ -1048,8 +1048,8 @@ struct RiverFrequencyStats : IMapStatsCollector {
   for( e_temperature const temperature : kTemps ) {
     for( e_climate const climate : kClimates ) {
       ClassicGameSetupParamsCustom const params{
-        .land_mass   = e_land_mass::large,
-        .land_form   = e_land_form::continents,
+        .land_mass   = e_land_mass::moderate,
+        .land_form   = e_land_form::normal,
         .temperature = temperature,
         .climate     = climate };
       string const name( mode_name( params ) );
