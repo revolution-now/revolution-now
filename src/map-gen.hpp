@@ -19,6 +19,7 @@ namespace rn {
 /****************************************************************
 ** Fwd. Decls.
 *****************************************************************/
+struct BiomeWetDryModulation;
 struct IMapUpdater;
 struct IRand;
 struct MapMatrix;
@@ -37,6 +38,7 @@ void remove_crosses( RealTerrain& real_terrain );
 void reset_terrain( IMapUpdater& map_updater, gfx::size sz );
 
 void compute_wetness( MapMatrix const& m,
+                      BiomeWetDryModulation const& config,
                       gfx::matrix<double>& out );
 
 // Returns realized density.

@@ -66,7 +66,33 @@ map.source.generate_native.setup {
 
   biomes {
     seed: "48d55a01aef7295a21b2aabd78d68347"
-    wet_dry_sensitivity: 1.0
+    wet_dry_modulation {
+      sensitivity.fraction: 1.0
+      consumption.fraction: 0.20
+      accumulation: 0.33333333333333
+      is_wet {
+        tundra:    false
+        desert:    false
+        savannah:  false
+        plains:    false
+        prairie:   true
+        grassland: true
+        swamp:     true
+        marsh:     true
+        arctic:    false  # not relevant.
+      }
+      for_biome {
+        tundra.fraction:    0.000
+        desert.fraction:    0.100
+        savannah.fraction:  0.200
+        plains.fraction:    0.300
+        prairie.fraction:   0.400
+        grassland.fraction: 0.500
+        swamp.fraction:     0.800
+        marsh.fraction:     0.900
+        arctic.fraction:    0.000  # not relevant.
+      }
+    }
   }
 
   hills {

@@ -50,4 +50,13 @@ valid_or<string> WeatherValue::validate() const {
   return valid;
 }
 
+/****************************************************************
+** BiomeWetDryModulation
+*****************************************************************/
+valid_or<string> BiomeWetDryModulation::validate() const {
+  REFL_VALIDATE( accumulation >= 0,
+                 "accumulation must be >= 0." );
+  return valid;
+}
+
 } // namespace rn

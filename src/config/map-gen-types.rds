@@ -8,6 +8,9 @@
 # Description: Config data for the map-gen-types module.
 #
 # ===============================================================
+# config
+include "range-helpers.rds.hpp"
+
 # ss
 include "ss/terrain-enums.rds.hpp"
 
@@ -98,4 +101,13 @@ struct.PerlinSeed {
 struct.WeatherValue {
   value 'int',
   _features { spaceship, validation }
+}
+
+struct.BiomeWetDryModulation {
+  sensitivity 'config::DoublePercent',
+  consumption 'config::DoublePercent',
+  accumulation 'double',
+  is_wet 'refl::enum_map<e_biome, bool>',
+  for_biome 'refl::enum_map<e_biome, config::DoublePercent>',
+  _features { equality, validation }
 }

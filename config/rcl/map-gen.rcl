@@ -273,61 +273,34 @@ terrain_generation {
     }
 
     wet_dry_modulation {
-      sensitivity:  1.0
+      sensitivity.fraction: 1.0
+      consumption.fraction: 0.20
       accumulation: 0.33333333333333
-      consumption:  0.20
       is_wet {
-        tundra:     false
-        desert:     false
-        savannah:   false
-        plains:     false
-        arctic:     false
-        prairie:    true
-        grassland:  true
-        swamp:      true
-        marsh:      true
+        tundra:    false
+        desert:    false
+        savannah:  false
+        plains:    false
+        prairie:   true
+        grassland: true
+        swamp:     true
+        marsh:     true
+        # Arctic isn't involved in the wet/dry modulation
+        # process, but we still have to include it.
+        arctic: false
       }
       for_biome {
-        # bbmm
-        #tundra:     0.097
-        #desert:     0.187
-        #savannah:   0.209
-        #plains:     0.283
-        #prairie:    0.442
-        #grassland:  0.477
-        #swamp:      0.580
-        #marsh:      0.614
-
-        # mmmm
-        #tundra:     0.140
-        #desert:     0.267
-        #savannah:   0.307
-        #plains:     0.364
-        #prairie:    0.546
-        #grassland:  0.602
-        #swamp:      0.689
-        #marsh:      0.715
-
-        tundra:     0.000
-        desert:     0.100
-        savannah:   0.200
-        plains:     0.300
-        prairie:    0.400
-        grassland:  0.500
-        swamp:      0.800
-        marsh:      0.900
-
-        # random
-        #tundra:     0.333
-        #desert:     0.333
-        #savannah:   0.333
-        #plains:     0.333
-        #prairie:    0.333
-        #grassland:  0.333
-        #swamp:      0.333
-        #marsh:      0.333
-
-        arctic:     0.000
+        tundra.fraction:    0.000
+        desert.fraction:    0.100
+        savannah.fraction:  0.200
+        plains.fraction:    0.300
+        prairie.fraction:   0.400
+        grassland.fraction: 0.500
+        swamp.fraction:     0.800
+        marsh.fraction:     0.900
+        # Arctic isn't involved in the wet/dry modulation
+        # process, but we still have to include it.
+        arctic.fraction: 0
       }
     }
   }

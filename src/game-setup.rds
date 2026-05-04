@@ -103,7 +103,7 @@ struct.RiverSetup {
 
 struct.BiomesSetup {
   seed 'rng::seed',
-  wet_dry_sensitivity 'double',
+  wet_dry_modulation 'BiomeWetDryModulation',
 }
 
 struct.MountainsSetup {

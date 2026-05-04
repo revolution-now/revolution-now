@@ -232,7 +232,7 @@ valid_or<string> generate_map_native_impl(
                                  setup.weather.temperature,
                                  setup.weather.climate ) );
   apply_biome_wetness_remix( real_terrain.map, rand,
-                             setup.biomes.wet_dry_sensitivity );
+                             setup.biomes.wet_dry_modulation );
   if( setup.surface_generator.arctic.enabled )
     assign_arctic_biomes( rand, real_terrain );
 

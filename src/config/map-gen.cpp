@@ -69,13 +69,6 @@ valid_or<string> Rivers::validate() const {
 }
 
 /****************************************************************
-** WetDryModulation
-*****************************************************************/
-valid_or<string> WetDryModulation::validate() const {
-  return valid;
-}
-
-/****************************************************************
 ** BiomeCurve
 *****************************************************************/
 valid_or<string> BiomeCurve::validate() const {

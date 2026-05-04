@@ -177,7 +177,10 @@ void BiomeWetnessStatsCollector::collect( MapMatrix const& m ) {
 
   matrix<double> const wetness = [&] {
     matrix<double> res;
-    compute_wetness( m, res );
+    compute_wetness( m,
+                     config_map_gen.terrain_generation.biomes
+                         .wet_dry_modulation,
+                     res );
     CHECK_EQ( res.size(), m.size() );
     return res;
   }();

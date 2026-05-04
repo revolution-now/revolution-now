@@ -41,6 +41,7 @@
 #include "base/to-str-ext-std.hpp"
 
 // C++ standard library
+#include <functional>
 #include <ranges>
 
 namespace rg = ::std::ranges;
@@ -277,11 +278,22 @@ valid_or<string> assign_biomes( IRand& rand,
 }
 
 static void apply_biome_wetness_remix_for_row(
-    MapMatrix& m, IRand& rand, matrix<double> const& wetness,
-    int const y, double const wet_dry_sensitivity ) {
-  size const sz    = m.size();
-  auto const& conf = config_map_gen.terrain_generation.biomes
-                         .wet_dry_modulation;
+    MapMatrix& m, IRand& rand, BiomeWetDryModulation const& conf,
+    matrix<double> const& wetness_unscaled, int const y ) {
+  size const sz = m.size();
+
+  auto const get_wetness = [&]( point const p ) {
+    auto const& w = wetness_unscaled;
+    // Catch this here so that we don't have to deal with 0^0.
+    if( conf.sensitivity.fraction <= 0.0 ) return 1.0;
+    // We can't just multiply by the sensitivity because then all
+    // tiles in the row would scale by the same proportion and it
+    // would have no effect. So we raise to the power of a number
+    // in [0,1] so that it will change their relative ratios. In
+    // the extreme case where sensitivity is zero, they all be-
+    // come x^0 == 1, i.e. all uniform.
+    return pow( w[p.y][p.x], conf.sensitivity.fraction );
+  };
 
   vector<int /*x*/> land_tiles = [&] {
     vector<int /*x*/> res;
@@ -323,7 +335,8 @@ static void apply_biome_wetness_remix_for_row(
 
   double const total_wetness = [&] {
     double res = 0;
-    for( int const x : land_tiles ) res += wetness[y][x];
+    for( int const x : land_tiles )
+      res += get_wetness( { .x = x, .y = y } );
     return res;
   }();
   if( total_wetness <= 1e-6 )
@@ -334,13 +347,19 @@ static void apply_biome_wetness_remix_for_row(
   auto const choose_next = [&]( double const p_wet ) {
     CHECK_GE( p_wet, 0 );
     CHECK_LE( p_wet, 1 );
-    auto const choose = [&]( vector<e_biome>& biomes ) {
+    double const kTundraAvoidWetness = .05;
+    auto const choose =
+        [&]( this auto const& self,
+             vector<e_biome>& biomes ) -> e_biome {
       CHECK( !biomes.empty() );
       auto const weight = [&]( e_biome const biome ) {
-        if( biome == e_biome::tundra && p_wet > .05 )
-          return 0.0000000001;
-        return ( 1 - conf.for_biome[biome] ) * ( 1 - p_wet ) +
-               conf.for_biome[biome] * p_wet;
+        // TODO: fix.
+        if( biome == e_biome::tundra &&
+            p_wet > kTundraAvoidWetness )
+          return 1e-6;
+        return ( 1 - conf.for_biome[biome].fraction ) *
+                   ( 1 - p_wet ) +
+               conf.for_biome[biome].fraction * p_wet;
       };
       double total = 0.0;
       for( e_biome const biome : biomes )
@@ -350,11 +369,20 @@ static void apply_biome_wetness_remix_for_row(
       for( e_biome const biome : biomes ) {
         total += weight( biome );
         if( total > d ) {
+          bool const has_dry_non_tundra =
+              rg::find_if_not(
+                  biomes,
+                  bind_front( equal_to{}, e_biome::tundra ) ) !=
+              biomes.end();
+          bool const has_wet_non_tundra = !wet_tiles.empty();
+          if( biome == e_biome::tundra &&
+              p_wet > kTundraAvoidWetness ) {
+            if( has_dry_non_tundra ) return self( dry_tiles );
+            if( has_wet_non_tundra ) return self( wet_tiles );
+          }
           auto const iter = rg::find( biomes, biome );
           CHECK( iter != biomes.end() );
           biomes.erase( iter );
-          if( biome == e_biome::tundra && p_wet > .05 )
-            return rand.pick_one<e_biome>( dry_tiles_orig );
           return biome;
         }
       }
@@ -377,8 +405,8 @@ static void apply_biome_wetness_remix_for_row(
 
   rand.shuffle( land_tiles );
   for( int const x : land_tiles )
-    m[y][x].ground =
-        choose_next( prob_for_wetness( wetness[y][x] ) );
+    m[y][x].ground = choose_next(
+        prob_for_wetness( get_wetness( { .x = x, .y = y } ) ) );
 
   CHECK( dry_tiles.empty() );
   CHECK( wet_tiles.empty() );
@@ -386,14 +414,14 @@ static void apply_biome_wetness_remix_for_row(
 
 void apply_biome_wetness_remix(
     MapMatrix& m, IRand& rand,
-    double const wet_dry_sensitivity ) {
+    BiomeWetDryModulation const& config ) {
   size const sz = m.size();
   matrix<double> wetness;
-  compute_wetness( m, wetness );
+  compute_wetness( m, config, wetness );
   CHECK_EQ( wetness.size(), m.size() );
   for( int const y : iota( 0, sz.h ) )
-    apply_biome_wetness_remix_for_row( m, rand, wetness, y,
-                                       wet_dry_sensitivity );
+    apply_biome_wetness_remix_for_row( m, rand, config, wetness,
+                                       y );
 }
 
 void assign_arctic_biomes( IRand& rand,
