@@ -198,9 +198,6 @@ void BiomeWetnessStatsCollector::collect( MapMatrix const& m ) {
 void BiomeWetnessStatsCollector::summarize() {}
 
 void BiomeWetnessStatsCollector::write() const {
-  // enum_map<e_biome, double> const& kTargets =
-  //     config_map_gen.terrain_generation.biomes.wet_dry_modulation
-  //         .for_biome;
   enum_map<e_biome, double> const& kTargets{
     // clang-format off
     // bbmm
