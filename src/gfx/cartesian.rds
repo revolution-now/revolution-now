@@ -35,9 +35,21 @@ enum.e_cardinal_direction {
       s,
 }
 
+enum.e_cardinal_cdirection {
+      n,
+   w, c,  e,
+      s,
+}
+
 enum.e_diagonal_direction {
   nw,    ne,
 
+  sw,    se,
+}
+
+enum.e_diagonal_cdirection {
+  nw,    ne,
+      c,
   sw,    se,
 }
 

@@ -308,6 +308,150 @@ base::maybe<e_cardinal_direction> to_cardinal(
 }
 
 /****************************************************************
+** e_cardinal_cdirection
+*****************************************************************/
+maybe<e_direction> to_direction(
+    e_cardinal_cdirection const d ) {
+  switch( d ) {
+    case e_cardinal_cdirection::c:
+      return nothing;
+    case e_cardinal_cdirection::n:
+      return e_direction::n;
+    case e_cardinal_cdirection::w:
+      return e_direction::w;
+    case e_cardinal_cdirection::e:
+      return e_direction::e;
+    case e_cardinal_cdirection::s:
+      return e_direction::s;
+  }
+}
+
+e_cdirection to_cdirection( e_cardinal_cdirection const d ) {
+  switch( d ) {
+    case e_cardinal_cdirection::c:
+      return e_cdirection::c;
+    case e_cardinal_cdirection::n:
+      return e_cdirection::n;
+    case e_cardinal_cdirection::w:
+      return e_cdirection::w;
+    case e_cardinal_cdirection::e:
+      return e_cdirection::e;
+    case e_cardinal_cdirection::s:
+      return e_cdirection::s;
+  }
+}
+
+e_cardinal_cdirection reverse_direction(
+    e_cardinal_cdirection const d ) {
+  using enum e_cardinal_cdirection;
+  switch( d ) {
+    case c:
+      return c;
+    case n:
+      return s;
+    case w:
+      return e;
+    case e:
+      return w;
+    case s:
+      return n;
+  }
+}
+
+e_cardinal_cdirection rotated_cw(
+    e_cardinal_cdirection const d ) {
+  using enum e_cardinal_cdirection;
+  switch( d ) {
+    case c:
+      return c;
+    case n:
+      return e;
+    case w:
+      return n;
+    case e:
+      return s;
+    case s:
+      return w;
+  }
+}
+
+e_cardinal_cdirection rotated_ccw(
+    e_cardinal_cdirection const d ) {
+  using enum e_cardinal_cdirection;
+  switch( d ) {
+    case c:
+      return c;
+    case n:
+      return w;
+    case w:
+      return s;
+    case e:
+      return n;
+    case s:
+      return e;
+  }
+}
+
+maybe<e_cardinal_cdirection> to_cardinal_c(
+    e_direction const d ) {
+  maybe<e_cardinal_cdirection> res;
+  switch( d ) {
+    case e_direction::nw:
+      break;
+    case e_direction::ne:
+      break;
+    case e_direction::sw:
+      break;
+    case e_direction::se:
+      break;
+    case e_direction::n:
+      res = e_cardinal_cdirection::n;
+      break;
+    case e_direction::w:
+      res = e_cardinal_cdirection::w;
+      break;
+    case e_direction::e:
+      res = e_cardinal_cdirection::e;
+      break;
+    case e_direction::s:
+      res = e_cardinal_cdirection::s;
+      break;
+  }
+  return res;
+}
+
+maybe<e_cardinal_cdirection> to_cardinal_c(
+    e_cdirection const cd ) {
+  maybe<e_cardinal_cdirection> res;
+  switch( cd ) {
+    case e_cdirection::nw:
+      break;
+    case e_cdirection::ne:
+      break;
+    case e_cdirection::sw:
+      break;
+    case e_cdirection::se:
+      break;
+    case e_cdirection::n:
+      res = e_cardinal_cdirection::n;
+      break;
+    case e_cdirection::w:
+      res = e_cardinal_cdirection::w;
+      break;
+    case e_cdirection::e:
+      res = e_cardinal_cdirection::e;
+      break;
+    case e_cdirection::s:
+      res = e_cardinal_cdirection::s;
+      break;
+    case e_cdirection::c:
+      res = e_cardinal_cdirection::c;
+      break;
+  }
+  return res;
+}
+
+/****************************************************************
 ** e_diagonal_direction
 *****************************************************************/
 e_direction to_direction( e_diagonal_direction d ) {
@@ -385,6 +529,111 @@ e_side side_for( e_diagonal_direction const d ) {
     case e_diagonal_direction::se:
       return e_side::right;
     case e_diagonal_direction::sw:
+      return e_side::left;
+  }
+}
+
+/****************************************************************
+** e_diagonal_cdirection
+*****************************************************************/
+maybe<e_direction> to_direction(
+    e_diagonal_cdirection const d ) {
+  switch( d ) {
+    case e_diagonal_cdirection::c:
+      return nothing;
+    case e_diagonal_cdirection::nw:
+      return e_direction::nw;
+    case e_diagonal_cdirection::ne:
+      return e_direction::ne;
+    case e_diagonal_cdirection::se:
+      return e_direction::se;
+    case e_diagonal_cdirection::sw:
+      return e_direction::sw;
+  }
+}
+
+e_cdirection to_cdirection( e_diagonal_cdirection const d ) {
+  switch( d ) {
+    case e_diagonal_cdirection::c:
+      return e_cdirection::c;
+    case e_diagonal_cdirection::nw:
+      return e_cdirection::nw;
+    case e_diagonal_cdirection::ne:
+      return e_cdirection::ne;
+    case e_diagonal_cdirection::se:
+      return e_cdirection::se;
+    case e_diagonal_cdirection::sw:
+      return e_cdirection::sw;
+  }
+}
+
+maybe<e_diagonal_cdirection> to_diagonal_c(
+    e_direction const d ) {
+  switch( d ) {
+    case e_direction::nw:
+      return e_diagonal_cdirection::nw;
+    case e_direction::ne:
+      return e_diagonal_cdirection::ne;
+    case e_direction::sw:
+      return e_diagonal_cdirection::sw;
+    case e_direction::se:
+      return e_diagonal_cdirection::se;
+    case e_direction::n:
+    case e_direction::w:
+    case e_direction::e:
+    case e_direction::s:
+      return base::nothing;
+  }
+}
+
+maybe<e_diagonal_cdirection> to_diagonal_c(
+    e_cdirection const d ) {
+  switch( d ) {
+    case e_cdirection::c:
+      return e_diagonal_cdirection::c;
+    case e_cdirection::nw:
+      return e_diagonal_cdirection::nw;
+    case e_cdirection::ne:
+      return e_diagonal_cdirection::ne;
+    case e_cdirection::sw:
+      return e_diagonal_cdirection::sw;
+    case e_cdirection::se:
+      return e_diagonal_cdirection::se;
+    case e_cdirection::n:
+    case e_cdirection::w:
+    case e_cdirection::e:
+    case e_cdirection::s:
+      return base::nothing;
+  }
+}
+
+e_diagonal_cdirection reverse_direction(
+    e_diagonal_cdirection const d ) {
+  switch( d ) {
+    case e_diagonal_cdirection::c:
+      return e_diagonal_cdirection::c;
+    case e_diagonal_cdirection::nw:
+      return e_diagonal_cdirection::se;
+    case e_diagonal_cdirection::ne:
+      return e_diagonal_cdirection::sw;
+    case e_diagonal_cdirection::se:
+      return e_diagonal_cdirection::nw;
+    case e_diagonal_cdirection::sw:
+      return e_diagonal_cdirection::ne;
+  }
+}
+
+maybe<e_side> side_for( e_diagonal_cdirection const d ) {
+  switch( d ) {
+    case e_diagonal_cdirection::c:
+      return nothing;
+    case e_diagonal_cdirection::nw:
+      return e_side::left;
+    case e_diagonal_cdirection::ne:
+      return e_side::right;
+    case e_diagonal_cdirection::se:
+      return e_side::right;
+    case e_diagonal_cdirection::sw:
       return e_side::left;
   }
 }
@@ -581,7 +830,7 @@ point point::moved( e_direction d ) const {
     case e_direction::sw: return {.x=x-1,.y=y+1};
     case e_direction::s:  return {.x=x,  .y=y+1};
     case e_direction::se: return {.x=x+1,.y=y+1};
-  };
+  }
   // clang-format on
 }
 
@@ -592,7 +841,7 @@ point point::moved( e_cardinal_direction const d ) const {
     case e_cardinal_direction::w:  return {.x=x-1,.y=y  };
     case e_cardinal_direction::e:  return {.x=x+1,.y=y  };
     case e_cardinal_direction::s:  return {.x=x,  .y=y+1};
-  };
+  }
   // clang-format on
 }
 
@@ -603,7 +852,31 @@ point point::moved( e_diagonal_direction const d ) const {
     case e_diagonal_direction::ne: return {.x=x+1,.y=y-1};
     case e_diagonal_direction::sw: return {.x=x-1,.y=y+1};
     case e_diagonal_direction::se: return {.x=x+1,.y=y+1};
-  };
+  }
+  // clang-format on
+}
+
+point point::moved( e_cardinal_cdirection const d ) const {
+  // clang-format off
+  switch( d ) {
+    case e_cardinal_cdirection::c: return {.x=x,  .y=y  };
+    case e_cardinal_cdirection::n: return {.x=x,  .y=y-1};
+    case e_cardinal_cdirection::w: return {.x=x-1,.y=y  };
+    case e_cardinal_cdirection::e: return {.x=x+1,.y=y  };
+    case e_cardinal_cdirection::s: return {.x=x,  .y=y+1};
+  }
+  // clang-format on
+}
+
+point point::moved( e_diagonal_cdirection const d ) const {
+  // clang-format off
+  switch( d ) {
+    case e_diagonal_cdirection::c:  return {.x=x,  .y=y  };
+    case e_diagonal_cdirection::nw: return {.x=x-1,.y=y-1};
+    case e_diagonal_cdirection::ne: return {.x=x+1,.y=y-1};
+    case e_diagonal_cdirection::sw: return {.x=x-1,.y=y+1};
+    case e_diagonal_cdirection::se: return {.x=x+1,.y=y+1};
+  }
   // clang-format on
 }
 
@@ -619,7 +892,7 @@ point point::moved( e_cdirection d ) const {
     case e_cdirection::s:  return {.x=x,  .y=y+1};
     case e_cdirection::se: return {.x=x+1,.y=y+1};
     case e_cdirection::c:  return {.x=x,  .y=y  };
-  };
+  }
   // clang-format on
 }
 
@@ -796,7 +1069,7 @@ point rect::point_at( e_cdirection const d ) const {
     case e_cdirection::s:  return { .x=center().x, .y=bottom()   };
     case e_cdirection::w:  return { .x=left(),     .y=center().y };
     case e_cdirection::e:  return { .x=right(),    .y=center().y };
-  };
+  }
   // clang-format on
 }
 
@@ -925,6 +1198,8 @@ rect rect::with_inc_size( int const n ) const {
   auto r = *this;
   r.size.w += n;
   r.size.h += n;
+  if( r.size.w < 0 ) r.size.w = 0;
+  if( r.size.h < 0 ) r.size.h = 0;
   return r;
 }
 
@@ -1019,6 +1294,14 @@ rect rect::moved( e_diagonal_direction const d ) const {
   return rect{ .origin = origin.moved( d ), .size = size };
 }
 
+rect rect::moved( e_cardinal_cdirection const d ) const {
+  return rect{ .origin = origin.moved( d ), .size = size };
+}
+
+rect rect::moved( e_diagonal_cdirection const d ) const {
+  return rect{ .origin = origin.moved( d ), .size = size };
+}
+
 rect rect::moved( e_cdirection const d ) const {
   return rect{ .origin = origin.moved( d ), .size = size };
 }
@@ -1062,8 +1345,7 @@ maybe<drect> drect::clipped_by( drect const other ) const {
     int delta    = static_cast<int>( other.top() - res.top() );
     res.origin.y = other.top();
     res.size.h -= delta;
-    if( res.bottom() > other.bottom() )
-      res.size.h -= ( res.bottom() - other.bottom() );
+    CHECK_LE( res.bottom(), other.bottom() );
   }
   if( res.size.negative() ) return nothing;
   CHECK_GE( res.top(), other.top() );

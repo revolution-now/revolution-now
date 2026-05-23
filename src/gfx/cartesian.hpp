@@ -70,6 +70,25 @@ base::maybe<e_cardinal_direction> to_cardinal( e_direction d );
 base::maybe<e_cardinal_direction> to_cardinal( e_cdirection d );
 
 /****************************************************************
+** e_cardinal_cdirection
+*****************************************************************/
+base::maybe<e_direction> to_direction( e_cardinal_cdirection d );
+
+e_cdirection to_cdirection( e_cardinal_cdirection d );
+
+e_cardinal_cdirection reverse_direction(
+    e_cardinal_cdirection d );
+
+e_cardinal_cdirection rotated_cw( e_cardinal_cdirection d );
+e_cardinal_cdirection rotated_ccw( e_cardinal_cdirection d );
+
+base::maybe<e_cardinal_cdirection> to_cardinal_c(
+    e_direction d );
+
+base::maybe<e_cardinal_cdirection> to_cardinal_c(
+    e_cdirection d );
+
+/****************************************************************
 ** e_diagonal_direction
 *****************************************************************/
 e_direction to_direction( e_diagonal_direction d );
@@ -81,6 +100,24 @@ base::maybe<e_diagonal_direction> to_diagonal( e_cdirection d );
 e_diagonal_direction reverse_direction( e_diagonal_direction d );
 
 e_side side_for( e_diagonal_direction d );
+
+/****************************************************************
+** e_diagonal_cdirection
+*****************************************************************/
+base::maybe<e_direction> to_direction( e_diagonal_cdirection d );
+
+e_cdirection to_cdirection( e_diagonal_cdirection d );
+
+base::maybe<e_diagonal_cdirection> to_diagonal_c(
+    e_direction d );
+
+base::maybe<e_diagonal_cdirection> to_diagonal_c(
+    e_cdirection d );
+
+e_diagonal_cdirection reverse_direction(
+    e_diagonal_cdirection d );
+
+base::maybe<e_side> side_for( e_diagonal_cdirection d );
 
 /****************************************************************
 ** size
@@ -239,7 +276,9 @@ struct point {
   [[nodiscard]] point moved( e_direction d ) const;
   [[nodiscard]] point moved( e_cdirection cd ) const;
   [[nodiscard]] point moved( e_cardinal_direction d ) const;
+  [[nodiscard]] point moved( e_cardinal_cdirection d ) const;
   [[nodiscard]] point moved( e_diagonal_direction d ) const;
+  [[nodiscard]] point moved( e_diagonal_cdirection d ) const;
 
   // Find the direction from this point to `dest`. If dest is not
   // adjacent (or equal, in the second case) to this coord then
@@ -416,7 +455,9 @@ struct rect {
   [[nodiscard]] rect moved( e_direction d ) const;
   [[nodiscard]] rect moved( e_cdirection cd ) const;
   [[nodiscard]] rect moved( e_cardinal_direction d ) const;
+  [[nodiscard]] rect moved( e_cardinal_cdirection d ) const;
   [[nodiscard]] rect moved( e_diagonal_direction d ) const;
+  [[nodiscard]] rect moved( e_diagonal_cdirection d ) const;
 
   [[nodiscard]] rect moved( struct size sz ) const;
 

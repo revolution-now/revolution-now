@@ -88,6 +88,17 @@ TEST_CASE( "[gfx/cartesian] e_direction/reverse_direction*" ) {
            e_diagonal_direction::ne );
   REQUIRE( reverse_direction( e_diagonal_direction::se ) ==
            e_diagonal_direction::nw );
+
+  REQUIRE( reverse_direction( e_diagonal_cdirection::nw ) ==
+           e_diagonal_cdirection::se );
+  REQUIRE( reverse_direction( e_diagonal_cdirection::ne ) ==
+           e_diagonal_cdirection::sw );
+  REQUIRE( reverse_direction( e_diagonal_cdirection::sw ) ==
+           e_diagonal_cdirection::ne );
+  REQUIRE( reverse_direction( e_diagonal_cdirection::se ) ==
+           e_diagonal_cdirection::nw );
+  REQUIRE( reverse_direction( e_diagonal_cdirection::c ) ==
+           e_diagonal_cdirection::c );
 }
 
 TEST_CASE( "[gfx/cartesian] to_diagonal( e_direction )" ) {
@@ -99,6 +110,18 @@ TEST_CASE( "[gfx/cartesian] to_diagonal( e_direction )" ) {
            e_diagonal_direction::sw );
   REQUIRE( to_diagonal( e_direction::se ) ==
            e_diagonal_direction::se );
+  REQUIRE( to_diagonal_c( e_direction::nw ) ==
+           e_diagonal_cdirection::nw );
+  REQUIRE( to_diagonal_c( e_direction::ne ) ==
+           e_diagonal_cdirection::ne );
+  REQUIRE( to_diagonal_c( e_direction::sw ) ==
+           e_diagonal_cdirection::sw );
+  REQUIRE( to_diagonal_c( e_direction::se ) ==
+           e_diagonal_cdirection::se );
+  REQUIRE( to_diagonal_c( e_direction::n ) == nothing );
+  REQUIRE( to_diagonal_c( e_direction::e ) == nothing );
+  REQUIRE( to_diagonal_c( e_direction::s ) == nothing );
+  REQUIRE( to_diagonal_c( e_direction::w ) == nothing );
   REQUIRE( to_diagonal( e_direction::n ) == base::nothing );
   REQUIRE( to_diagonal( e_direction::w ) == base::nothing );
   REQUIRE( to_diagonal( e_direction::e ) == base::nothing );
@@ -114,6 +137,20 @@ TEST_CASE( "[gfx/cartesian] to_diagonal( e_cdirection )" ) {
            e_diagonal_direction::sw );
   REQUIRE( to_diagonal( e_cdirection::se ) ==
            e_diagonal_direction::se );
+  REQUIRE( to_diagonal_c( e_cdirection::nw ) ==
+           e_diagonal_cdirection::nw );
+  REQUIRE( to_diagonal_c( e_cdirection::ne ) ==
+           e_diagonal_cdirection::ne );
+  REQUIRE( to_diagonal_c( e_cdirection::sw ) ==
+           e_diagonal_cdirection::sw );
+  REQUIRE( to_diagonal_c( e_cdirection::se ) ==
+           e_diagonal_cdirection::se );
+  REQUIRE( to_diagonal_c( e_cdirection::c ) ==
+           e_diagonal_cdirection::c );
+  REQUIRE( to_diagonal_c( e_cdirection::n ) == nothing );
+  REQUIRE( to_diagonal_c( e_cdirection::e ) == nothing );
+  REQUIRE( to_diagonal_c( e_cdirection::w ) == nothing );
+  REQUIRE( to_diagonal_c( e_cdirection::s ) == nothing );
   REQUIRE( to_diagonal( e_cdirection::n ) == base::nothing );
   REQUIRE( to_diagonal( e_cdirection::w ) == base::nothing );
   REQUIRE( to_diagonal( e_cdirection::e ) == base::nothing );
@@ -131,6 +168,26 @@ TEST_CASE(
            e_direction::sw );
   REQUIRE( to_direction( e_diagonal_direction::se ) ==
            e_direction::se );
+  REQUIRE( to_direction( e_diagonal_cdirection::nw ) ==
+           e_direction::nw );
+  REQUIRE( to_direction( e_diagonal_cdirection::ne ) ==
+           e_direction::ne );
+  REQUIRE( to_direction( e_diagonal_cdirection::sw ) ==
+           e_direction::sw );
+  REQUIRE( to_direction( e_diagonal_cdirection::se ) ==
+           e_direction::se );
+  REQUIRE( to_direction( e_diagonal_cdirection::c ) == nothing );
+  REQUIRE( to_cdirection( e_diagonal_cdirection::nw ) ==
+           e_cdirection::nw );
+  REQUIRE( to_cdirection( e_diagonal_cdirection::ne ) ==
+           e_cdirection::ne );
+  REQUIRE( to_cdirection( e_diagonal_cdirection::sw ) ==
+           e_cdirection::sw );
+  REQUIRE( to_cdirection( e_diagonal_cdirection::se ) ==
+           e_cdirection::se );
+  REQUIRE( to_cdirection( e_diagonal_cdirection::c ) ==
+           e_cdirection::c );
+  REQUIRE( to_direction( e_diagonal_cdirection::c ) == nothing );
   REQUIRE( to_direction( e_cardinal_direction::n ) ==
            e_direction::n );
   REQUIRE( to_direction( e_cardinal_direction::w ) ==
@@ -147,6 +204,25 @@ TEST_CASE(
            e_cdirection::e );
   REQUIRE( to_cdirection( e_cardinal_direction::s ) ==
            e_cdirection::s );
+  REQUIRE( to_direction( e_cardinal_cdirection::n ) ==
+           e_direction::n );
+  REQUIRE( to_direction( e_cardinal_cdirection::w ) ==
+           e_direction::w );
+  REQUIRE( to_direction( e_cardinal_cdirection::e ) ==
+           e_direction::e );
+  REQUIRE( to_direction( e_cardinal_cdirection::s ) ==
+           e_direction::s );
+  REQUIRE( to_direction( e_cardinal_cdirection::c ) == nothing );
+  REQUIRE( to_cdirection( e_cardinal_cdirection::n ) ==
+           e_cdirection::n );
+  REQUIRE( to_cdirection( e_cardinal_cdirection::w ) ==
+           e_cdirection::w );
+  REQUIRE( to_cdirection( e_cardinal_cdirection::e ) ==
+           e_cdirection::e );
+  REQUIRE( to_cdirection( e_cardinal_cdirection::s ) ==
+           e_cdirection::s );
+  REQUIRE( to_cdirection( e_cardinal_cdirection::c ) ==
+           e_cdirection::c );
 }
 
 /****************************************************************
@@ -242,6 +318,72 @@ TEST_CASE(
 }
 
 /****************************************************************
+** e_cardinal_cdirection
+*****************************************************************/
+TEST_CASE( "[gfx/cartesian] to_cardinal_c( e_direction )" ) {
+  REQUIRE( to_cardinal_c( e_direction::nw ) == nothing );
+  REQUIRE( to_cardinal_c( e_direction::n ) ==
+           e_cardinal_cdirection::n );
+  REQUIRE( to_cardinal_c( e_direction::ne ) == nothing );
+  REQUIRE( to_cardinal_c( e_direction::w ) ==
+           e_cardinal_cdirection::w );
+  REQUIRE( to_cardinal_c( e_direction::e ) ==
+           e_cardinal_cdirection::e );
+  REQUIRE( to_cardinal_c( e_direction::sw ) == nothing );
+  REQUIRE( to_cardinal_c( e_direction::s ) ==
+           e_cardinal_cdirection::s );
+  REQUIRE( to_cardinal_c( e_direction::se ) == nothing );
+}
+
+TEST_CASE( "[gfx/cartesian] to_cardinal_c( e_cdirection )" ) {
+  REQUIRE( to_cardinal_c( e_cdirection::nw ) == nothing );
+  REQUIRE( to_cardinal_c( e_cdirection::n ) ==
+           e_cardinal_cdirection::n );
+  REQUIRE( to_cardinal_c( e_cdirection::ne ) == nothing );
+  REQUIRE( to_cardinal_c( e_cdirection::w ) ==
+           e_cardinal_cdirection::w );
+  REQUIRE( to_cardinal_c( e_cdirection::c ) ==
+           e_cardinal_cdirection::c );
+  REQUIRE( to_cardinal_c( e_cdirection::e ) ==
+           e_cardinal_cdirection::e );
+  REQUIRE( to_cardinal_c( e_cdirection::sw ) == nothing );
+  REQUIRE( to_cardinal_c( e_cdirection::s ) ==
+           e_cardinal_cdirection::s );
+  REQUIRE( to_cardinal_c( e_cdirection::se ) == nothing );
+}
+
+TEST_CASE(
+    "[gfx/cartesian] reverse_direction( e_cardinal_cdirection "
+    ")" ) {
+  using enum e_cardinal_cdirection;
+  REQUIRE( reverse_direction( n ) == s );
+  REQUIRE( reverse_direction( s ) == n );
+  REQUIRE( reverse_direction( e ) == w );
+  REQUIRE( reverse_direction( w ) == e );
+  REQUIRE( reverse_direction( c ) == c );
+}
+
+TEST_CASE(
+    "[gfx/cartesian] rotated_cw( e_cardinal_cdirection )" ) {
+  using enum e_cardinal_cdirection;
+  REQUIRE( rotated_cw( n ) == e );
+  REQUIRE( rotated_cw( s ) == w );
+  REQUIRE( rotated_cw( e ) == s );
+  REQUIRE( rotated_cw( w ) == n );
+  REQUIRE( rotated_cw( c ) == c );
+}
+
+TEST_CASE(
+    "[gfx/cartesian] rotated_ccw( e_cardinal_cdirection )" ) {
+  using enum e_cardinal_cdirection;
+  REQUIRE( rotated_ccw( n ) == w );
+  REQUIRE( rotated_ccw( s ) == e );
+  REQUIRE( rotated_ccw( e ) == n );
+  REQUIRE( rotated_ccw( w ) == s );
+  REQUIRE( rotated_ccw( c ) == c );
+}
+
+/****************************************************************
 ** e_diagonal_direction
 *****************************************************************/
 TEST_CASE( "[gfx/cartesian] side_for( e_diagonal_direction )" ) {
@@ -253,6 +395,22 @@ TEST_CASE( "[gfx/cartesian] side_for( e_diagonal_direction )" ) {
            e_side::right );
   REQUIRE( side_for( e_diagonal_direction::nw ) ==
            e_side::left );
+}
+
+/****************************************************************
+** e_diagonal_cdirection
+*****************************************************************/
+TEST_CASE(
+    "[gfx/cartesian] side_for( e_diagonal_cdirection )" ) {
+  REQUIRE( side_for( e_diagonal_cdirection::se ) ==
+           e_side::right );
+  REQUIRE( side_for( e_diagonal_cdirection::sw ) ==
+           e_side::left );
+  REQUIRE( side_for( e_diagonal_cdirection::ne ) ==
+           e_side::right );
+  REQUIRE( side_for( e_diagonal_cdirection::nw ) ==
+           e_side::left );
+  REQUIRE( side_for( e_diagonal_cdirection::c ) == nothing );
 }
 
 /****************************************************************
@@ -689,11 +847,29 @@ TEST_CASE( "[gfx/cartesian] point::moved*" ) {
   }
 
   {
+    using enum e_cardinal_cdirection;
+    REQUIRE( p.moved( n ) == point{ .x = 3, .y = 4 } );
+    REQUIRE( p.moved( w ) == point{ .x = 2, .y = 5 } );
+    REQUIRE( p.moved( e ) == point{ .x = 4, .y = 5 } );
+    REQUIRE( p.moved( s ) == point{ .x = 3, .y = 6 } );
+    REQUIRE( p.moved( c ) == point{ .x = 3, .y = 5 } );
+  }
+
+  {
     using enum e_diagonal_direction;
     REQUIRE( p.moved( nw ) == point{ .x = 2, .y = 4 } );
     REQUIRE( p.moved( ne ) == point{ .x = 4, .y = 4 } );
     REQUIRE( p.moved( sw ) == point{ .x = 2, .y = 6 } );
     REQUIRE( p.moved( se ) == point{ .x = 4, .y = 6 } );
+  }
+
+  {
+    using enum e_diagonal_cdirection;
+    REQUIRE( p.moved( nw ) == point{ .x = 2, .y = 4 } );
+    REQUIRE( p.moved( ne ) == point{ .x = 4, .y = 4 } );
+    REQUIRE( p.moved( sw ) == point{ .x = 2, .y = 6 } );
+    REQUIRE( p.moved( se ) == point{ .x = 4, .y = 6 } );
+    REQUIRE( p.moved( c ) == point{ .x = 3, .y = 5 } );
   }
 }
 
@@ -1030,6 +1206,25 @@ TEST_CASE( "[gfx/cartesian] rect::moved*" ) {
   }
 
   {
+    using enum e_cardinal_cdirection;
+    REQUIRE( r.moved( n ) ==
+             rect{ .origin = { .x = 3, .y = 4 },
+                   .size   = { .w = 2, .h = 3 } } );
+    REQUIRE( r.moved( w ) ==
+             rect{ .origin = { .x = 2, .y = 5 },
+                   .size   = { .w = 2, .h = 3 } } );
+    REQUIRE( r.moved( e ) ==
+             rect{ .origin = { .x = 4, .y = 5 },
+                   .size   = { .w = 2, .h = 3 } } );
+    REQUIRE( r.moved( s ) ==
+             rect{ .origin = { .x = 3, .y = 6 },
+                   .size   = { .w = 2, .h = 3 } } );
+    REQUIRE( r.moved( c ) ==
+             rect{ .origin = { .x = 3, .y = 5 },
+                   .size   = { .w = 2, .h = 3 } } );
+  }
+
+  {
     using enum e_diagonal_direction;
     REQUIRE( r.moved( nw ) ==
              rect{ .origin = { .x = 2, .y = 4 },
@@ -1042,6 +1237,25 @@ TEST_CASE( "[gfx/cartesian] rect::moved*" ) {
                    .size   = { .w = 2, .h = 3 } } );
     REQUIRE( r.moved( se ) ==
              rect{ .origin = { .x = 4, .y = 6 },
+                   .size   = { .w = 2, .h = 3 } } );
+  }
+
+  {
+    using enum e_diagonal_cdirection;
+    REQUIRE( r.moved( nw ) ==
+             rect{ .origin = { .x = 2, .y = 4 },
+                   .size   = { .w = 2, .h = 3 } } );
+    REQUIRE( r.moved( ne ) ==
+             rect{ .origin = { .x = 4, .y = 4 },
+                   .size   = { .w = 2, .h = 3 } } );
+    REQUIRE( r.moved( sw ) ==
+             rect{ .origin = { .x = 2, .y = 6 },
+                   .size   = { .w = 2, .h = 3 } } );
+    REQUIRE( r.moved( se ) ==
+             rect{ .origin = { .x = 4, .y = 6 },
+                   .size   = { .w = 2, .h = 3 } } );
+    REQUIRE( r.moved( c ) ==
+             rect{ .origin = { .x = 3, .y = 5 },
                    .size   = { .w = 2, .h = 3 } } );
   }
 }
@@ -1495,6 +1709,10 @@ TEST_CASE( "[gfx/cartesian] rect::clamped" ) {
   r = { .origin = { .x = 4, .y = 2 },
         .size   = { .w = 7, .h = 4 } };
 
+  bounds   = { .origin = { .x = 6, .y = 3 }, .size = {} };
+  expected = { .origin = { .x = 6, .y = 3 }, .size = {} };
+  REQUIRE( r.clamped( bounds ) == expected );
+
   bounds   = { .origin = { .x = 6, .y = 3 },
                .size   = { .w = 13, .h = 5 } };
   expected = { .origin = { .x = 6, .y = 3 },
@@ -1732,6 +1950,13 @@ TEST_CASE( "[gfx/cartesian] rect::with_inc_size" ) {
   expected = { .origin = { .x = 4, .y = 2 },
                .size   = { .w = 4, .h = 6 } };
   REQUIRE( r.with_inc_size( 2 ) == expected );
+  r        = { .origin = { .x = 4, .y = 2 },
+               .size   = { .w = -2, .h = -4 } };
+  expected = { .origin = { .x = 4, .y = 2 },
+               .size   = { .w = 0, .h = 0 } };
+  REQUIRE( r.with_inc_size() == expected );
+  REQUIRE( r.with_inc_size( size{ .w = 0, .h = 0 } ) ==
+           expected );
 }
 
 TEST_CASE( "[gfx/cartesian] rect::with_dec_size" ) {
@@ -1963,6 +2188,10 @@ TEST_CASE( "[gfx/cartesian] drect::clamped" ) {
 
   r = { .origin = { .x = 4, .y = 2 },
         .size   = { .w = 7, .h = 4 } };
+
+  bounds   = { .origin = { .x = 6, .y = 3 }, .size = {} };
+  expected = { .origin = { .x = 6, .y = 3 }, .size = {} };
+  REQUIRE( r.clamped( bounds ) == expected );
 
   bounds   = { .origin = { .x = 6, .y = 3 },
                .size   = { .w = 13, .h = 5 } };
