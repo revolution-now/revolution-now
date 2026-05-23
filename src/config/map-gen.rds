@@ -116,12 +116,14 @@ struct.Biomes {
   wet_dry_modulation 'BiomeWetDryModulation',
 }
 
-struct.Overlay {
-  hills_density 'config::DoublePercent',
-  mountain_density 'config::DoublePercent',
-  hills_range_probability 'config::Probability',
-  mountain_range_probability 'config::Probability',
-  forest_density 'config::DoublePercent',
+struct.Formation {
+  density 'config::DoublePercent',
+  growth 'config::Probability',
+  max_length 'int',
+}
+
+struct.Formations {
+  formation 'refl::enum_map<e_terrain_formation, Formation>',
 }
 
 struct.RiverClimateParameters {
@@ -152,7 +154,7 @@ struct.TerrainGeneration {
   weather 'Weather',
   rivers 'Rivers',
   biomes 'Biomes',
-  overlay 'Overlay',
+  formations 'Formations',
 }
 
 struct.DwellingGeneration {

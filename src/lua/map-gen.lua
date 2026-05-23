@@ -78,18 +78,6 @@ function M.default_options()
     -- This is the probability that, given a land square, we will
     -- start creating a river from it.
     river_density=.10,
-    -- Probability that an eligible tile will get forest cover.
-    -- In the OG most tiles are initially covered in forest.
-    forest_density=.95,
-    -- Probability that each land square will have mountain-
-    -- s/hills on it.
-    hills_density=.05,
-    mountain_density=.1,
-    -- Probability that a tile that has been chosen to have a
-    -- mountain on it will be the start of a mountain range.
-    hills_range_probability=.05,
-    mountain_range_probability=.1,
-    -- Probability that an eligible tile will get arctic.
     arctic_tile_density=0.5,
     -- If the map height is not at least this tall then the
     -- arctic rows at the top and bottom of the map will be
@@ -473,78 +461,6 @@ local function square_has_surrounding_water( center )
     if square_at( coord ).surface == 'water' then return true end
   end
   return false
-end
-
------------------------------------------------------------------
--- Hills/Mountains Generation
------------------------------------------------------------------
-function M.create_hills( options )
-  on_all( function( coord )
-    local square = square_at( coord )
-    if square.surface == 'land' then
-      -- Make sure there are no hills/mountains on this tile.
-      if square.ground ~= 'arctic' and square.overlay == nil then
-        if math.random() <= options.hills_density then
-          square.overlay = 'hills'
-        end
-      end
-    end
-  end )
-end
-
-local function can_receive_mountain( square )
-  return
-      square.surface == 'land' and square.ground ~= 'arctic' and
-          square.overlay == nil
-end
-
-local function create_mountain_range( coord )
-  local range_length = math.random( 1, 10 )
-  local curr = coord
-  for _ = 1, range_length do
-    if square_exists( curr ) then
-      local square = square_at( curr )
-      if can_receive_mountain( square ) then
-        square.overlay = 'mountains'
-      end
-    end
-    local d = random_cardinal_direction()
-    curr.x = curr.x + d.w
-    curr.y = curr.y + d.h
-  end
-end
-
-function M.create_mountains( options )
-  on_all( function( coord )
-    local square = square_at( coord )
-    if can_receive_mountain( square ) then
-      if math.random() <= options.mountain_density then
-        if math.random() <= options.mountain_range_probability then
-          create_mountain_range( coord )
-        else
-          square.overlay = 'mountains'
-        end
-      end
-    end
-  end )
-end
-
------------------------------------------------------------------
--- Forest Generation
------------------------------------------------------------------
--- TODO: tweak the density of forest to match the original game.
-function M.forest_cover( options )
-  on_all( function( coord )
-    local square = square_at( coord )
-    if square.surface == 'land' then
-      -- Make sure there are no hills/mountains on this tile.
-      if square.ground ~= 'arctic' and square.overlay == nil then
-        if math.random() <= options.forest_density then
-          square.overlay = 'forest'
-        end
-      end
-    end
-  end )
 end
 
 -----------------------------------------------------------------
@@ -1566,12 +1482,7 @@ local function generate( options )
     map_gen.create_arctic( config.map_gen.terrain_generation
                                .land_form.arctic.density )
 
-    -- These need to be done before the rivers since rivers don't
-    -- seem to flow on hills/mountains in the OG.
-    M.create_hills( options )
-    M.create_mountains( options )
     M.create_rivers( options )
-    M.forest_cover( options )
     M.distribute_bonuses()
   end
 

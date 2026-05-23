@@ -77,5 +77,8 @@ TEST_CASE( "[gfx/matrix] traverse" ) {
 TEST_CASE( "[gfx/matrix] apply" ) {
 }
 
+TEST_CASE( "[gfx/matrix] exists" ) {
+}
+
 } // namespace
 } // namespace gfx

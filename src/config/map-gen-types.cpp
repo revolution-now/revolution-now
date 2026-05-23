@@ -10,6 +10,9 @@
 *****************************************************************/
 #include "map-gen-types.hpp"
 
+// ss
+#include "ss/map-square.rds.hpp"
+
 // refl
 #include "refl/ext.hpp"
 
@@ -19,6 +22,8 @@ namespace {
 
 using namespace std;
 
+using ::base::maybe;
+using ::base::nothing;
 using ::base::valid;
 using ::base::valid_or;
 
@@ -57,6 +62,23 @@ valid_or<string> BiomeWetDryModulation::validate() const {
   REFL_VALIDATE( accumulation >= 0,
                  "accumulation must be >= 0." );
   return valid;
+}
+
+/****************************************************************
+** Public API.
+*****************************************************************/
+maybe<e_terrain_formation> terrain_formation_for(
+    MapSquare const& square ) {
+  if( !square.overlay.has_value() )
+    return e_terrain_formation::clearing;
+  switch( *square.overlay ) {
+    case rn::e_land_overlay::forest:
+      return nothing;
+    case rn::e_land_overlay::hills:
+      return e_terrain_formation::hills;
+    case rn::e_land_overlay::mountains:
+      return e_terrain_formation::mountains;
+  }
 }
 
 } // namespace rn

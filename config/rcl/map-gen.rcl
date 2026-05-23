@@ -305,20 +305,24 @@ terrain_generation {
     }
   }
 
-  overlay {
-    # Probability that each land square will have mountains/hills
-    # on it.
-    hills_density:    { fraction: .05 }
-    mountain_density: { fraction: .1 }
+  formations.formation {
+    hills {
+      density.fraction:   .05
+      growth.probability: .13
+      max_length:          60
+    }
 
-    # Probability that a tile that has been chosen to have a
-    # mountain/hill on it will be the start of a range.
-    hills_range_probability:    { probability: .1 }
-    mountain_range_probability: { probability: .1 }
+    mountains {
+      density.fraction:   .05
+      growth.probability: .25
+      max_length:          60
+    }
 
-    # Probability that an eligible tile will get forest cover. In
-    # the OG most tiles are initially covered in forest.
-    forest_density: { fraction: .95 }
+    clearing {
+      density.fraction:   .05
+      growth.probability: .25
+      max_length:          60
+    }
   }
 }
 

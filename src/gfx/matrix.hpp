@@ -87,6 +87,10 @@ struct matrix {
     return rn::Rect::from( rn::Coord{}, size() );
   }
 
+  [[nodiscard]] bool exists( point const p ) const {
+    return p.is_inside( this->rect() );
+  }
+
   std::span<T const> operator[]( int y ) const
       ATTR_LIFETIMEBOUND {
     CHECK( y >= 0 && y < size().h );

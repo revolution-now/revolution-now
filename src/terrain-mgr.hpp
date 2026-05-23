@@ -26,6 +26,8 @@ struct RealTerrain;
 struct MapMatrix;
 struct SSConst;
 
+enum class e_terrain_formation;
+
 /****************************************************************
 ** Public API.
 *****************************************************************/
@@ -54,6 +56,11 @@ void on_all_tiles( MapMatrix const& m,
                        gfx::point, MapSquare const& square )>
                        fn );
 
+void on_all_tiles(
+    MapMatrix& m,
+    base::function_ref<void( gfx::point, MapSquare& square )>
+        fn );
+
 void on_surrounding( SSConst const& ss, gfx::point tile,
                      base::function_ref<void(
                          gfx::point, MapSquare const& square )>
@@ -69,5 +76,8 @@ void on_surrounding_cardinal(
     base::function_ref<void( gfx::point, MapSquare const&,
                              gfx::e_cardinal_direction )>
         fn );
+
+void assign_formation( MapSquare& square,
+                       e_terrain_formation const formation );
 
 } // namespace rn

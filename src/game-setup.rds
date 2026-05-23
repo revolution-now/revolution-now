@@ -106,29 +106,19 @@ struct.BiomesSetup {
   wet_dry_modulation 'BiomeWetDryModulation',
 }
 
-struct.MountainsSetup {
+struct.FormationSetup {
   seed 'rng::seed',
-  density 'double',
-  # Probability that a tile chosen to have a mountain on it will
-  # continue into a mountain range. This is applied recursively
-  # on each new mountain tile added in the range to determine
-  # whether to continue or not.
-  range_probability 'double',
+  density 'config::DoublePercent',
+  # Probability that a tile chosen to have this formation on it
+  # will continue into a range. This is applied recursively on
+  # each new such tile added in the range to determine whether to
+  # continue or not.
+  growth 'config::Probability',
+  max_length 'int',
 }
 
-struct.HillsSetup {
-  seed 'rng::seed',
-  density 'double',
-  # Probability that a tile chosen to have a hill on it will con-
-  # tinue into a hill range. This is applied recursively on each
-  # new hill tile added in the range to determine whether to con-
-  # tinue or not.
-  range_probability 'double',
-}
-
-struct.ForestSetup {
-  seed 'rng::seed',
-  density 'double',
+struct.FormationsSetup {
+  formation 'refl::enum_map<e_terrain_formation, FormationSetup>',
 }
 
 struct.BonusesSetup {
@@ -149,9 +139,7 @@ struct.GeneratedMapSetup {
   weather 'WeatherSetup',
   rivers 'RiverSetup',
   biomes 'BiomesSetup',
-  mountains 'MountainsSetup',
-  hills 'HillsSetup',
-  forest 'ForestSetup',
+  formations 'FormationsSetup',
   bonuses 'BonusesSetup',
   _features { equality, validation }
 }

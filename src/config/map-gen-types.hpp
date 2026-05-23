@@ -14,6 +14,14 @@
 
 namespace rn {
 
+/****************************************************************
+** Fwd. Decls.
+*****************************************************************/
+struct MapSquare;
+
+/****************************************************************
+** Constants.
+*****************************************************************/
 // This is the magnitude (+/-) that corresponds to the three op-
 // tions presented by the OG when customizing the game (e.g.
 // arid, normal, wet would be -100, 0, 100).
@@ -26,5 +34,11 @@ int constexpr kWeatherValueMaxMagnitude = 200;
 
 double constexpr kBiomeSelfAffinityMin = -3.0;
 double constexpr kBiomeSelfAffinityMax = 3.0;
+
+/****************************************************************
+** Public API.
+*****************************************************************/
+base::maybe<e_terrain_formation> terrain_formation_for(
+    MapSquare const& square );
 
 } // namespace rn

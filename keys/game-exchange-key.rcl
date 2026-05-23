@@ -95,21 +95,27 @@ map.source.generate_native.setup {
     }
   }
 
-  hills {
-    density: 0.05
-    range_probability: 0.1
-    seed: "799e3a0b501cf2b907f25c9955c4da6f"
-  }
+  formations.formation {
+    hills {
+      seed: "799e3a0b501cf2b907f25c9955c4da6f"
+      density.fraction:   .05
+      growth.probability: .13
+      max_length:          60
+    }
 
-  mountains {
-    density: 0.1
-    range_probability: 0.1
-    seed: "23edf70f1abb64d1b4e552f4ffa9cd9b"
-  }
+    mountains {
+      seed: "23edf70f1abb64d1b4e552f4ffa9cd9b"
+      density.fraction:   .05
+      growth.probability: .25
+      max_length:          60
+    }
 
-  forest {
-    density: 0.95
-    seed: "59d6ae93e9e67fe65760c811dc941337"
+    clearing {
+      seed: "59d6ae93e9e67fe65760c811dc941337"
+      density.fraction:   .05
+      growth.probability: .25
+      max_length:          60
+    }
   }
 
   bonuses.seed: "de7db42af1959c181457f2eb81adaf6c"

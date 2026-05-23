@@ -10,6 +10,9 @@
 *****************************************************************/
 #include "ascii-map.hpp"
 
+// config
+#include "config/map-gen-types.hpp"
+
 // ss
 #include "ss/terrain.rds.hpp"
 
@@ -163,6 +166,52 @@ struct AsciiMapRiversFormatter : IAsciiMapFormatter {
   }
 };
 
+struct AsciiMapOverlayFormatter : IAsciiMapFormatter {
+  Format format( MapSquare const& above,
+                 MapSquare const& below ) const override {
+    return { "▀", fg_color_for( above ), bg_color_for( below ) };
+  }
+
+ private:
+  static string_view fg_color_for( MapSquare const& square ) {
+    if( square.surface == e_surface::water ) return kOceanFg;
+    auto const formation = terrain_formation_for( square );
+    if( !formation.has_value() ) return base::ansi::green;
+    return fg_color_for( *formation );
+  }
+
+  static string_view bg_color_for( MapSquare const& square ) {
+    if( square.surface == e_surface::water ) return kOceanBg;
+    auto const formation = terrain_formation_for( square );
+    if( !formation.has_value() ) return base::ansi::on_green;
+    return bg_color_for( *formation );
+  }
+
+  static string_view fg_color_for(
+      e_terrain_formation const formation ) {
+    switch( formation ) {
+      case e_terrain_formation::hills:
+        return base::ansi::orange;
+      case e_terrain_formation::mountains:
+        return base::ansi::cyan;
+      case e_terrain_formation::clearing:
+        return base::ansi::white;
+    }
+  }
+
+  static string_view bg_color_for(
+      e_terrain_formation const formation ) {
+    switch( formation ) {
+      case e_terrain_formation::hills:
+        return base::ansi::on_orange;
+      case e_terrain_formation::mountains:
+        return base::ansi::on_cyan;
+      case e_terrain_formation::clearing:
+        return base::ansi::on_white;
+    }
+  }
+};
+
 } // namespace
 
 /****************************************************************
@@ -175,6 +224,11 @@ IAsciiMapFormatter const& ascii_map_biome_formatter() {
 
 IAsciiMapFormatter const& ascii_map_rivers_formatter() {
   static AsciiMapRiversFormatter const formatter;
+  return formatter;
+}
+
+IAsciiMapFormatter const& ascii_map_overlay_formatter() {
+  static AsciiMapOverlayFormatter const formatter;
   return formatter;
 }
 

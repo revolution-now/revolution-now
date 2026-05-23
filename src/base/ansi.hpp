@@ -38,6 +38,7 @@ inline constexpr std::string_view cyan    = "\033[36m";
 inline constexpr std::string_view white   = "\033[37m";
 inline constexpr std::string_view orange =
     "\033[38;2;255;165;0m";
+inline constexpr std::string_view grey = "\033[38;5;244m";
 
 // Background colors
 inline constexpr std::string_view on_black   = "\033[40m";
@@ -50,5 +51,6 @@ inline constexpr std::string_view on_cyan    = "\033[46m";
 inline constexpr std::string_view on_white   = "\033[47m";
 inline constexpr std::string_view on_orange =
     "\033[48;2;255;165;0m";
+inline constexpr std::string_view on_grey = "\033[48;5;244m";
 
 } // namespace base::ansi

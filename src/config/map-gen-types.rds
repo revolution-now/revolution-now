@@ -111,3 +111,9 @@ struct.BiomeWetDryModulation {
   for_biome 'refl::enum_map<e_biome, config::DoublePercent>',
   _features { equality, validation }
 }
+
+enum.e_terrain_formation {
+  hills,
+  mountains,
+  clearing,
+}

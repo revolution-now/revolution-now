@@ -14,6 +14,7 @@
 #include "biomes.hpp"
 #include "classic-sav.hpp"
 #include "co-wait.hpp"
+#include "formations.hpp"
 #include "irand.hpp"
 #include "map-gen.hpp"
 #include "perlin-map.hpp"
@@ -236,6 +237,27 @@ valid_or<string> generate_map_native_impl(
   if( setup.surface_generator.arctic.enabled )
     assign_arctic_biomes( rand, real_terrain );
 
+  // All non-arctic land tiles will be set with forest. Tiles
+  // without forest/hills/mountains are themselves a formation
+  // that is placed like hills and mountains below.
+  set_all_forest( real_terrain.map );
+
+  auto const kFormationOrder = {
+    e_terrain_formation::mountains,
+    e_terrain_formation::hills,
+    e_terrain_formation::clearing,
+  };
+
+  for( e_terrain_formation const formation : kFormationOrder ) {
+    auto const& formation_setup =
+        setup.formations.formation[formation];
+    rand.reseed( formation_setup.seed );
+    generate_formation( rand, real_terrain.map, formation,
+                        formation_setup.density.fraction,
+                        formation_setup.growth.probability,
+                        formation_setup.max_length );
+  }
+
 #if 0
   // Rivers.
   rand.reseed( setup.rivers.seed );
@@ -274,13 +296,6 @@ valid_or<string> generate_map_lua_impl(
       ( setup.surface_generator.sanitization.remove_crosses );
   options["min_map_height_for_arctic"] = 10;
 
-  options["hills_density"]    = setup.hills.density;
-  options["mountain_density"] = setup.mountains.density;
-  options["hills_range_probability"] =
-      setup.hills.range_probability;
-  options["mountain_range_probability"] =
-      setup.mountains.range_probability;
-  options["forest_density"] = setup.forest.density;
   options["arctic_tile_density"] =
       setup.surface_generator.arctic.density;
 

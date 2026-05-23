@@ -47,6 +47,8 @@ IAsciiMapFormatter const& ascii_map_biome_formatter();
 
 IAsciiMapFormatter const& ascii_map_rivers_formatter();
 
+IAsciiMapFormatter const& ascii_map_overlay_formatter();
+
 void print_ascii_map( RealTerrain const& terrain,
                       IAsciiMapFormatter const& formatter,
                       std::ostream& out );

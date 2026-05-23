@@ -186,24 +186,18 @@ GameSetup create_classic_game_setup(
     .wet_dry_modulation = map_conf.biomes.wet_dry_modulation,
   };
 
-  MountainsSetup const mountains{
-    .seed    = rand.new_deterministic_seed(),
-    .density = map_conf.overlay.mountain_density.fraction,
-    .range_probability =
-        map_conf.overlay.mountain_range_probability.probability,
-  };
-
-  HillsSetup const hills{
-    .seed    = rand.new_deterministic_seed(),
-    .density = map_conf.overlay.hills_density.fraction,
-    .range_probability =
-        map_conf.overlay.hills_range_probability.probability,
-  };
-
-  ForestSetup const forest{
-    .seed    = rand.new_deterministic_seed(),
-    .density = map_conf.overlay.forest_density.fraction,
-  };
+  FormationsSetup const formations = [&] {
+    FormationsSetup res;
+    for( auto const tf : enum_values<e_terrain_formation> ) {
+      auto const& conf     = map_conf.formations.formation[tf];
+      auto& formation      = res.formation[tf];
+      formation.seed       = rand.new_deterministic_seed();
+      formation.density    = conf.density;
+      formation.growth     = conf.growth;
+      formation.max_length = conf.max_length;
+    }
+    return res;
+  }();
 
   BonusesSetup const bonuses{
     .seed = rand.new_deterministic_seed(),
@@ -215,9 +209,7 @@ GameSetup create_classic_game_setup(
     .weather           = weather,
     .rivers            = rivers,
     .biomes            = biomes,
-    .mountains         = mountains,
-    .hills             = hills,
-    .forest            = forest,
+    .formations        = formations,
     .bonuses           = bonuses,
   };
 

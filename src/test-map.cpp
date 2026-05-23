@@ -83,6 +83,8 @@ using ::gfx::size;
 using ::refl::enum_map;
 using ::refl::enum_values;
 
+auto const& ascii_map_formatter = ascii_map_overlay_formatter;
+
 /****************************************************************
 ** Helpers.
 *****************************************************************/
@@ -231,6 +233,12 @@ void generate_single_map_key( IEngine& engine, SS& ss,
       native.rivers.seed   = S();
       surf_gen.arctic.seed = S();
       native.biomes.seed   = S();
+      native.formations.formation[e_terrain_formation::mountains]
+          .seed = S();
+      native.formations.formation[e_terrain_formation::hills]
+          .seed = S();
+      native.formations.formation[e_terrain_formation::clearing]
+          .seed = S();
     }
   };
   generate_single_map_impl( engine, ss, fn );
@@ -1210,7 +1218,7 @@ void testing_map_gen_key( IEngine& engine, bool const reseed ) {
   SS ss;
   generate_single_map_key( engine, ss, reseed );
   print_ascii_map( ss.terrain.real_terrain(),
-                   ascii_map_biome_formatter(), cout );
+                   ascii_map_formatter(), cout );
 }
 
 void testing_map_gen_fuzz( IEngine&, bool const ) {
@@ -1226,7 +1234,7 @@ void testing_map_gen_custom( IEngine& engine ) {
   fmt::println( "mode: {}", mode_name( params ) );
   generate_single_map_custom( engine, ss, params );
   print_ascii_map( ss.terrain.real_terrain(),
-                   ascii_map_biome_formatter(), cout );
+                   ascii_map_formatter(), cout );
 }
 
 void testing_map_gen_default( IEngine& engine ) {
@@ -1234,7 +1242,7 @@ void testing_map_gen_default( IEngine& engine ) {
   fmt::println( "mode: new" );
   generate_single_map_new( engine, ss );
   print_ascii_map( ss.terrain.real_terrain(),
-                   ascii_map_biome_formatter(), cout );
+                   ascii_map_formatter(), cout );
 }
 
 void testing_map_gen_stats( IEngine& engine ) {
@@ -1260,7 +1268,7 @@ void drop_large_og_map( IEngine& engine ) {
       "/home/dsicilia/dev/revolution-now/LARGE.MP";
   CHECK_HAS_VALUE( sav::save_map_file( filename, map_file ) );
   print_ascii_map( ss.terrain.real_terrain(),
-                   ascii_map_biome_formatter(), cout );
+                   ascii_map_formatter(), cout );
   fmt::println( "saved OG map file of size {} to {}.", sz,
                 filename );
 }

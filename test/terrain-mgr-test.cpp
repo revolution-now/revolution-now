@@ -215,5 +215,9 @@ TEST_CASE( "[terrain-mgr] on_surrounding_cardinal" ) {
   world w;
 }
 
+TEST_CASE( "[terrain-mgr] assign_formation" ) {
+  world w;
+}
+
 } // namespace
 } // namespace rn

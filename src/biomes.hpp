@@ -10,9 +10,6 @@
 *****************************************************************/
 #pragma once
 
-// rds
-#include "biomes.rds.hpp"
-
 // config
 #include "config/map-gen-types.rds.hpp"
 

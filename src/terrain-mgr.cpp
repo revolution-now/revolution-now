@@ -13,6 +13,9 @@
 // Revolution Now
 #include "map-square.hpp"
 
+// config
+#include "config/map-gen-types.rds.hpp"
+
 // ss
 #include "ss/ref.hpp"
 #include "ss/terrain.hpp"
@@ -98,6 +101,14 @@ void on_all_tiles( MapMatrix const& m,
   for( point const p : rect_iterator( world ) ) fn( p, m[p] );
 }
 
+void on_all_tiles(
+    MapMatrix& m,
+    base::function_ref<void( gfx::point, MapSquare& square )>
+        fn ) {
+  rect const world = m.rect();
+  for( point const p : rect_iterator( world ) ) fn( p, m[p] );
+}
+
 void on_surrounding(
     MapMatrix const& m, point const tile,
     base::function_ref<
@@ -127,6 +138,22 @@ void on_surrounding_cardinal(
     point const p = tile.moved( d );
     if( !p.is_inside( r ) ) continue;
     fn( p, m[p], d );
+  }
+}
+
+void assign_formation( MapSquare& square,
+                       e_terrain_formation const formation ) {
+  square.overlay = e_land_overlay::forest;
+  switch( formation ) {
+    case e_terrain_formation::hills:
+      square.overlay = e_land_overlay::hills;
+      return;
+    case e_terrain_formation::mountains:
+      square.overlay = e_land_overlay::mountains;
+      return;
+    case e_terrain_formation::clearing:
+      square.overlay.reset();
+      return;
   }
 }
 
