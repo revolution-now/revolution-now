@@ -1132,23 +1132,22 @@ rect rect::with_new_bottom_edge( int const edge ) const {
 }
 
 maybe<rect> rect::clipped_by( rect const other ) const {
-  rect res = this->normalized();
-  if( res.right() > other.right() )
-    res.size.w -= ( res.right() - other.right() );
-  if( res.bottom() > other.bottom() )
-    res.size.h -= ( res.bottom() - other.bottom() );
-  if( res.left() < other.left() ) {
-    int delta = ( other.left() - res.left() );
-    res.origin.x += delta;
-    res.size.w -= delta;
-  }
-  if( res.top() < other.top() ) {
-    int delta = ( other.top() - res.top() );
-    res.origin.y += delta;
-    res.size.h -= delta;
-  }
+  rect const a = normalized();
+  rect const b = other.normalized();
+
+  int const left   = std::max( a.left(), b.left() );
+  int const top    = std::max( a.top(), b.top() );
+  int const right  = std::min( a.right(), b.right() );
+  int const bottom = std::min( a.bottom(), b.bottom() );
+
+  rect res{
+    .origin = { .x = left, .y = top },
+    .size   = { .w = right - left, .h = bottom - top },
+  };
+
   if( res.size.negative() ) return nothing;
-  // Note that res.size.area() could be zero here.
+
+  // Zero-area intersections allowed.
   return res;
 }
 
@@ -1329,30 +1328,22 @@ rect rect::operator/( int const scale ) const {
 ** drect
 *****************************************************************/
 maybe<drect> drect::clipped_by( drect const other ) const {
-  drect res = this->normalized();
-  if( res.right() > other.right() )
-    res.size.w -= ( res.right() - other.right() );
-  if( res.bottom() > other.bottom() )
-    res.size.h -= ( res.bottom() - other.bottom() );
-  if( res.left() < other.left() ) {
-    int delta    = static_cast<int>( other.left() - res.left() );
-    res.origin.x = other.left();
-    res.size.w -= delta;
-    if( res.right() > other.right() )
-      res.size.w -= ( res.right() - other.right() );
-  }
-  if( res.top() < other.top() ) {
-    int delta    = static_cast<int>( other.top() - res.top() );
-    res.origin.y = other.top();
-    res.size.h -= delta;
-    CHECK_LE( res.bottom(), other.bottom() );
-  }
+  drect const a = normalized();
+  drect const b = other.normalized();
+
+  double const left   = std::max( a.left(), b.left() );
+  double const top    = std::max( a.top(), b.top() );
+  double const right  = std::min( a.right(), b.right() );
+  double const bottom = std::min( a.bottom(), b.bottom() );
+
+  drect res{
+    .origin = { .x = left, .y = top },
+    .size   = { .w = right - left, .h = bottom - top },
+  };
+
   if( res.size.negative() ) return nothing;
-  CHECK_GE( res.top(), other.top() );
-  CHECK_GE( res.left(), other.left() );
-  CHECK_LE( res.bottom(), other.bottom() );
-  CHECK_LE( res.right(), other.right() );
-  // Note that res.size.area() could be zero here.
+
+  // Zero-area intersections allowed.
   return res;
 }
 
