@@ -1058,6 +1058,92 @@ void FormationsStatsCollector::write() const {
 
     gnuplot( settings, csv_data, "lengths" );
   }
+
+  {
+    GnuPlotSettings const settings{
+      .title =
+          format( "Row Based Densities (generated) ({}) [{}]",
+                  mode_, maps_ ),
+      .x_label = "Y (row)",
+      .y_label = "Density",
+      .x_range = "1:70",
+      .y_range = "0:.2",
+    };
+
+    CsvData csv_data{
+      .header = { "y", "mountains", "hills", "clearing" },
+      .rows   = {},
+    };
+
+    for( int y = 1; y < map_sz_.h - 1; ++y ) {
+      vector<string> row{
+        /*y=*/to_string( y + 1 ),
+        /*mountains=*/"",
+        /*hills=*/"",
+        /*clearing=*/"",
+      };
+      double const mountains_value =
+          lookup( count_by_row_[mountains], y - 1 )
+              .value_or( 0 ) /
+          double( lookup( land_by_row_, y - 1 ).value_or( 0 ) );
+      double const hills_value =
+          lookup( count_by_row_[hills], y - 1 ).value_or( 0 ) /
+          double( lookup( land_by_row_, y - 1 ).value_or( 0 ) );
+      double const clearing_value =
+          lookup( count_by_row_[clearing], y - 1 )
+              .value_or( 0 ) /
+          double( lookup( land_by_row_, y - 1 ).value_or( 0 ) );
+      row[1] = to_string( mountains_value );
+      row[2] = to_string( hills_value );
+      row[3] = to_string( clearing_value );
+      csv_data.rows.push_back( std::move( row ) );
+    }
+
+    gnuplot( settings, csv_data, "rows.any" );
+  }
+
+  {
+    GnuPlotSettings const settings{
+      .title =
+          format( "Column Based Densities (generated) ({}) [{}]",
+                  mode_, maps_ ),
+      .x_label = "X (row)",
+      .y_label = "Density",
+      .x_range = "1:56",
+      .y_range = "0:.2",
+    };
+
+    CsvData csv_data{
+      .header = { "x", "mountains", "hills", "clearing" },
+      .rows   = {},
+    };
+
+    for( int x = 1; x < map_sz_.w - 1; ++x ) {
+      vector<string> row{
+        /*x=*/to_string( x + 1 ),
+        /*mountains=*/"",
+        /*hills=*/"",
+        /*clearing=*/"",
+      };
+      double const mountains_value =
+          lookup( count_by_col_[mountains], x - 1 )
+              .value_or( 0 ) /
+          double( lookup( land_by_col_, x - 1 ).value_or( 0 ) );
+      double const hills_value =
+          lookup( count_by_col_[hills], x - 1 ).value_or( 0 ) /
+          double( lookup( land_by_col_, x - 1 ).value_or( 0 ) );
+      double const clearing_value =
+          lookup( count_by_col_[clearing], x - 1 )
+              .value_or( 0 ) /
+          double( lookup( land_by_col_, x - 1 ).value_or( 0 ) );
+      row[1] = to_string( mountains_value );
+      row[2] = to_string( hills_value );
+      row[3] = to_string( clearing_value );
+      csv_data.rows.push_back( std::move( row ) );
+    }
+
+    gnuplot( settings, csv_data, "cols.any" );
+  }
 }
 
 } // namespace
