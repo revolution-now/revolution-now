@@ -37,9 +37,11 @@
 #include "traverse/ext-base.hpp"
 #include "traverse/ext-std.hpp"
 #include "traverse/ext.hpp"
+#include "traverse/recursive.hpp"
 
 // base
 #include "base/logger.hpp"
+#include "base/meta.hpp"
 
 namespace rn {
 
@@ -446,6 +448,18 @@ valid_or<string> ClassicGameSetupParamsEvaluated::validate()
 
 valid_or<string> validate_game_setup( GameSetup const& setup ) {
   return refl::validate_recursive( setup );
+}
+
+void reseed_game_setup( IRand& rand, GameSetup& setup ) {
+  auto const visitor = mp::overload{
+    [&]( rng::entropy& e ) {
+      e = rand.new_deterministic_seed();
+    },
+    [&]( auto const& ) {
+      // Don't change any other fields.
+    },
+  };
+  trv::traverse_recursive( setup, visitor );
 }
 
 } // namespace rn

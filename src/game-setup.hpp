@@ -58,4 +58,6 @@ wait<maybe<GameSetup>> create_customized_game_setup(
 base::valid_or<std::string> validate_game_setup(
     GameSetup const& setup );
 
+void reseed_game_setup( IRand& rand, GameSetup& setup );
+
 } // namespace rn
