@@ -72,12 +72,13 @@ concept Traversable = detail::TraversableImpl<T> &&
 /****************************************************************
 ** API methods.
 *****************************************************************/
-template<Traversable T, typename Fn>
-void traverse( T& o, Fn&& fn ) {
+template<typename T, typename Fn>
+requires Traversable<std::remove_reference_t<T>>
+void traverse( T&& o, Fn&& fn ) {
   // NOTE: don't forward the function because the below traverse
   // method is expected to take it as an l-value ref since it may
   // need to be called multiple times.
-  traverse( o, fn, tag<T> );
+  traverse( o, fn, tag<std::remove_reference_t<T>> );
 }
 
 /****************************************************************

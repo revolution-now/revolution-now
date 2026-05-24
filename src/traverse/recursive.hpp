@@ -45,13 +45,15 @@ void traverse_recursive( T const& o, Fn&& fn ) {
 // a string for logging or error message purposes. If you don't
 // need that then use the slimmer `traverse_recursive` function.
 struct RecursiveTraverserWithTracking {
-  template<trv::Traversable T>
-  void operator()( this auto&& self, T const& o ) {
+  template<typename T>
+  requires Traversable<std::remove_reference_t<T>>
+  void operator()( this auto&& self, T&& o ) {
     self( o, none );
   }
 
-  template<trv::Traversable T, typename K>
-  void operator()( this auto&& self, T const& o, K const& k ) {
+  template<typename T, typename K>
+  requires Traversable<std::remove_reference_t<T>>
+  void operator()( this auto&& self, T&& o, K const& k ) {
     self.push_key( self.stringify_key( k ) );
     SCOPE_EXIT { self.pop_key(); };
     trv::traverse( o, self );
