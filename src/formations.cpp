@@ -12,6 +12,7 @@
 
 // Revolution Now
 #include "irand.hpp"
+#include "map-square.hpp"
 #include "terrain-mgr.hpp"
 
 // config
@@ -51,6 +52,7 @@ void run_growth_single( IRand& rand, MapMatrix& m,
     for( auto const d : enum_values<e_cardinal_direction> ) {
       point const moved = p.moved( d );
       if( !m.exists( moved ) ) continue;
+      if( is_water( m[moved] ) ) continue;
       if( terrain_formation_for( m[moved] ).has_value() )
         continue;
       if( can_add ) points_can_grow.insert( p );
@@ -78,6 +80,7 @@ void run_growth_single( IRand& rand, MapMatrix& m,
     for( auto const d : ds ) {
       point const moved = p.moved( d );
       if( !m.exists( moved ) ) continue;
+      if( is_water( m[moved] ) ) continue;
       if( terrain_formation_for( m[moved] ).has_value() )
         continue;
       place( moved );

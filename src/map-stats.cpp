@@ -16,7 +16,7 @@
 #include "terrain-mgr.hpp"
 
 // config
-#include "config/map-gen-types.rds.hpp"
+#include "config/map-gen-types.hpp"
 #include "config/map-gen.rds.hpp"
 
 // ss
@@ -44,6 +44,8 @@ namespace {
 using namespace std;
 
 using ::base::lookup;
+using ::base::maybe;
+using ::base::nothing;
 using ::base::str_replace_all;
 using ::gfx::matrix;
 using ::gfx::point;
@@ -249,6 +251,385 @@ void BiomeWetnessStatsCollector::write() const {
                 error );
 }
 
+/****************************************************************
+** FormationsStatsCollector
+*****************************************************************/
+struct FormationsStatsCollector : IMapStatsCollector {
+  FormationsStatsCollector( string const& mode );
+
+ public: // IMapStatsCollector
+  void collect( MapMatrix const& m ) override;
+  void summarize() override;
+  void write() const override;
+
+  void assign_segment( MapMatrix const& m,
+                       e_terrain_formation const formation,
+                       point const start, int const segment );
+
+  point find_center( int segment, e_terrain_formation kind );
+
+  void find_connected( MapMatrix const& m,
+                       e_terrain_formation formation );
+
+  [[nodiscard]] bool is_large_range( int const length );
+
+  [[nodiscard]] bool ocean_adjacent( MapMatrix const& m,
+                                     point const p );
+
+  [[nodiscard]] bool ocean_adjacent_cardinal( MapMatrix const& m,
+                                              point const p );
+
+ private:
+  string const mode_;
+  size map_sz_    = {};
+  int land_       = 0;
+  int maps_total_ = 0;
+
+  int land_ocean_adjacent_          = 0;
+  int land_ocean_adjacent_cardinal_ = 0;
+  int land_non_mounds_              = 0;
+
+  template<typename T>
+  using M = enum_map<e_terrain_formation, T>;
+
+  map<int /*row*/, int> land_by_row_;
+  map<int /*col*/, int> land_by_col_;
+  enum_map<e_biome, int> land_with_biome_;
+  map<int /*y*/, enum_map<e_biome, int>> land_with_biome_by_row_;
+  M<int> count_;
+  int count_forest_ = 0;
+  M<int> count_squared_;
+  int count_rivers_on_land_ = 0;
+  enum_map<e_land_overlay, int> count_arctic_rows_;
+  M<enum_map<e_biome, int>> count_with_biome_;
+  M<map<int /*y*/, enum_map<e_biome, int>>>
+      count_with_biome_by_row_;
+  M<map<int /*row*/, int>> count_by_row_;
+  M<map<int /*col*/, int>> count_by_col_;
+  // Note this includes singletons.
+  M<int> num_ranges_;
+  M<map<int /*length*/, int>> count_range_length_;
+  M<int> count_range_centers_;
+  M<map<int /*row*/, int>> count_range_centers_by_row_;
+  M<map<int /*col*/, int>> count_range_centers_by_col_;
+  M<int> count_ocean_adjacent_;
+  M<int> count_ocean_adjacent_cardinal_;
+  M<int> count_large_range_;
+  // Count of tiles that are part of a large range that are adja-
+  // cent to water.
+  M<map<int /*row*/, int>> count_large_range_by_row_;
+  // Count of tiles that are part of a large range that are adja-
+  // cent to water.
+  M<map<int /*col*/, int>> count_large_range_by_col_;
+  // Count of tiles that are part of a large range that are adja-
+  // cent to water.
+  M<int> count_large_range_ocean_adjacent_;
+  M<int> count_large_range_ocean_adjacent_cardinal_;
+  int count_mountains_adjacent_to_hills_ = 0;
+  int count_hills_adjacent_to_mountains_ = 0;
+  struct PerMap {
+    // This per-map count is kept so that we can compute std.
+    // devi- ation of the densities.
+    M<int> count;
+    int count_forest = 0;
+    M<int> segments;
+    M<map<point /*tile*/, int>> tile_to_segment;
+    M<map<int /*segment*/, int>> segment_to_length;
+    M<map<int /*segment*/, vector<point>>> segment_to_tiles;
+    // Note this includes singletons.
+    M<int> num_ranges;
+  };
+  PerMap per_map_;
+};
+
+FormationsStatsCollector::FormationsStatsCollector(
+    string const& mode )
+  : mode_( mode ) {
+  CHECK( !mode.empty() );
+}
+
+bool FormationsStatsCollector::is_large_range(
+    int const length ) {
+  return length >= 5;
+}
+
+bool FormationsStatsCollector::ocean_adjacent(
+    MapMatrix const& m, point const p ) {
+  bool has = false;
+  on_surrounding( m, p, [&]( point, MapSquare const& adjacent ) {
+    if( adjacent.surface == e_surface::water ) has = true;
+  } );
+  return has;
+}
+
+bool FormationsStatsCollector::ocean_adjacent_cardinal(
+    MapMatrix const& m, point const p ) {
+  bool has = false;
+  on_surrounding_cardinal(
+      m, p,
+      [&]( point, MapSquare const& adjacent,
+           e_cardinal_direction ) {
+        if( adjacent.surface == e_surface::water ) has = true;
+      } );
+  return has;
+}
+
+void FormationsStatsCollector::assign_segment(
+    MapMatrix const& m, e_terrain_formation const kind,
+    point const start, int const segment ) {
+  using enum e_surface;
+  per_map_.tile_to_segment[kind][start] = segment;
+  per_map_.segment_to_tiles[kind][segment].push_back( start );
+  CHECK( m[start].surface != e_surface::water );
+  on_surrounding_cardinal(
+      m, start,
+      [&]( point const p, MapSquare const& adjacent,
+           e_cardinal_direction ) {
+        bool const is_arctic_row =
+            p.y == 0 || p.y == map_sz_.h - 1;
+        if( is_arctic_row ) return;
+        if( adjacent.surface == e_surface::water ) return;
+        if( per_map_.tile_to_segment[kind].contains( p ) &&
+            per_map_.tile_to_segment[kind][p] > 0 ) {
+          CHECK( terrain_formation_for( adjacent ) == kind );
+          CHECK( per_map_.tile_to_segment[kind][p] == segment );
+          return;
+        }
+        if( terrain_formation_for( adjacent ) == kind ) {
+          bool const is_surrounding_water =
+              m[p].surface == e_surface::water;
+          CHECK( !is_surrounding_water );
+          assign_segment( m, kind, p, segment );
+        }
+      } );
+}
+
+point FormationsStatsCollector::find_center(
+    int const segment, e_terrain_formation const kind ) {
+  CHECK( per_map_.segment_to_tiles[kind].contains( segment ) );
+  auto const& tiles = per_map_.segment_to_tiles[kind][segment];
+  CHECK( !tiles.empty() );
+  int x = 0;
+  int y = 0;
+  for( point const p : tiles ) {
+    x = x + p.x;
+    y = y + p.y;
+  }
+  x = static_cast<int>( floor( double( x ) / tiles.size() ) );
+  y = static_cast<int>( floor( double( y ) / tiles.size() ) );
+  return { .x = x, .y = y };
+}
+
+void FormationsStatsCollector::find_connected(
+    MapMatrix const& m, e_terrain_formation const kind ) {
+  for( auto const& [tile, segment] :
+       per_map_.tile_to_segment[kind] ) {
+    CHECK( terrain_formation_for( m[tile] ) == kind );
+    if( segment == 0 ) {
+      ++per_map_.segments[kind];
+      assign_segment( m, kind, tile, per_map_.segments[kind] );
+    }
+  }
+
+  map<int /*segment*/, int /*length*/> segment_length;
+  on_all_tiles(
+      m, [&]( point const tile, MapSquare const& center ) {
+        if( center.surface == e_surface::water ) return;
+        bool const is_arctic_row =
+            tile.y == 0 || tile.y == map_sz_.h - 1;
+        if( is_arctic_row ) return;
+        if( terrain_formation_for( center ) != kind ) return;
+        int const segment = per_map_.tile_to_segment[kind][tile];
+        CHECK_GT( segment, 0 );
+        ++segment_length[segment];
+      } );
+
+  int max_length = 0;
+  for( int segment = 1; segment <= per_map_.segments[kind];
+       ++segment ) {
+    int const length = segment_length[segment];
+    CHECK_GT( length, 0 );
+    max_length = std::max( max_length, length );
+    ++count_range_length_[kind][length];
+    per_map_.segment_to_length[kind][segment] = length;
+    ++count_range_centers_[kind];
+    point const center = find_center( segment, kind );
+    ++count_range_centers_by_row_[kind][center.y];
+    ++count_range_centers_by_col_[kind][center.x];
+  }
+
+  num_ranges_[kind] += per_map_.segments[kind];
+  per_map_.num_ranges[kind] = per_map_.segments[kind];
+
+  on_all_tiles( m, [&]( point const tile,
+                        MapSquare const& center ) {
+    bool const is_arctic_row =
+        tile.y == 0 || tile.y == map_sz_.h - 1;
+    if( is_arctic_row ) return;
+    if( center.surface == e_surface::water ) return;
+    if( !per_map_.tile_to_segment[kind].contains( tile ) )
+      return;
+    int const segment = per_map_.tile_to_segment[kind][tile];
+    CHECK( segment > 0 );
+    int const length = per_map_.segment_to_length[kind][segment];
+    if( !is_large_range( length ) ) return;
+    // We have a tile on a large range.
+    ++count_large_range_[kind];
+    ++count_large_range_by_row_[kind][tile.y];
+    ++count_large_range_by_col_[kind][tile.x];
+    bool const has_ocean_adjacent = ocean_adjacent( m, tile );
+    bool const has_ocean_adjacent_cardinal =
+        ocean_adjacent_cardinal( m, tile );
+    if( has_ocean_adjacent )
+      ++count_large_range_ocean_adjacent_[kind];
+    if( has_ocean_adjacent_cardinal )
+      ++count_large_range_ocean_adjacent_cardinal_[kind];
+  } );
+}
+
+void FormationsStatsCollector::collect( MapMatrix const& m ) {
+  per_map_ = {};
+  map_sz_  = m.size();
+  ++maps_total_;
+
+  using enum e_terrain_formation;
+
+  on_all_tiles( m, [&]( point const tile,
+                        MapSquare const& center ) {
+    auto const has_mountains = [&]( MapSquare const& square ) {
+      return square.overlay == e_land_overlay::mountains;
+    };
+    auto const has_hills = [&]( MapSquare const& square ) {
+      return square.overlay == e_land_overlay::hills;
+    };
+    auto const has_clearing = [&]( MapSquare const& square ) {
+      return square.surface == e_surface::land &&
+             square.overlay == nothing;
+    };
+    auto const has_forest = [&]( MapSquare const& square ) {
+      return square.overlay == e_land_overlay::forest;
+    };
+    auto const has_river = [&]( MapSquare const& square ) {
+      return square.river.has_value();
+    };
+
+    if( center.surface == e_surface::water ) return;
+    ++land_;
+    bool const is_arctic_row =
+        tile.y == 0 || tile.y == map_sz_.h - 1;
+
+    if( is_arctic_row ) {
+      if( has_mountains( center ) )
+        ++count_arctic_rows_[e_land_overlay::mountains];
+      if( has_hills( center ) )
+        ++count_arctic_rows_[e_land_overlay::hills];
+      if( has_forest( center ) )
+        ++count_arctic_rows_[e_land_overlay::forest];
+      return;
+    }
+
+    bool const has_ocean_adjacent = ocean_adjacent( m, tile );
+    bool const has_ocean_adjacent_cardinal =
+        ocean_adjacent_cardinal( m, tile );
+
+    ++land_by_row_[tile.y];
+    ++land_by_col_[tile.x];
+    if( has_ocean_adjacent ) ++land_ocean_adjacent_;
+    if( has_ocean_adjacent_cardinal )
+      ++land_ocean_adjacent_cardinal_;
+    ++land_with_biome_[center.ground];
+    ++land_with_biome_by_row_[tile.y][center.ground];
+
+    bool has_hills_adjacent     = false;
+    bool has_mountains_adjacent = false;
+    on_surrounding_cardinal(
+        m, tile,
+        [&]( point const, MapSquare const& adjacent,
+             e_cardinal_direction const ) {
+          if( adjacent.surface == e_surface::water ) return;
+          if( is_arctic_row ) return;
+          if( has_mountains( adjacent ) )
+            has_mountains_adjacent = true;
+          if( has_hills( adjacent ) ) has_hills_adjacent = true;
+        } );
+    if( has_river( center ) ) ++count_rivers_on_land_;
+
+    if( has_mountains( center ) ) {
+      ++count_[mountains];
+      ++per_map_.count[mountains];
+      ++count_by_row_[mountains][tile.y];
+      ++count_by_col_[mountains][tile.x];
+      if( has_ocean_adjacent )
+        ++count_ocean_adjacent_[mountains];
+      if( has_ocean_adjacent_cardinal )
+        ++count_ocean_adjacent_cardinal_[mountains];
+      if( has_hills_adjacent )
+        ++count_mountains_adjacent_to_hills_;
+      per_map_.tile_to_segment[mountains][tile] = 0;
+      ++count_with_biome_[mountains][center.ground];
+      ++count_with_biome_by_row_[mountains][tile.y]
+                                [center.ground];
+    }
+
+    if( has_hills( center ) ) {
+      ++count_[hills];
+      ++per_map_.count[hills];
+      ++count_by_row_[hills][tile.y];
+      ++count_by_col_[hills][tile.x];
+      if( has_ocean_adjacent ) ++count_ocean_adjacent_[hills];
+      if( has_ocean_adjacent_cardinal )
+        ++count_ocean_adjacent_cardinal_[hills];
+      if( has_mountains_adjacent )
+        ++count_hills_adjacent_to_mountains_;
+      per_map_.tile_to_segment[hills][tile] = 0;
+      ++count_with_biome_[hills][center.ground];
+      ++count_with_biome_by_row_[hills][tile.y][center.ground];
+    }
+
+    if( has_forest( center ) ) {
+      ++count_forest_;
+      ++per_map_.count_forest;
+    }
+
+    bool const has_overlays = has_mountains( center ) ||
+                              has_hills( center ) ||
+                              has_forest( center );
+    CHECK( has_clearing( center ) == !has_overlays );
+
+    if( has_clearing( center ) ) {
+      ++count_by_row_[clearing][tile.y];
+      ++count_by_col_[clearing][tile.x];
+      if( has_ocean_adjacent ) ++count_ocean_adjacent_[clearing];
+      if( has_ocean_adjacent_cardinal )
+        ++count_ocean_adjacent_cardinal_[clearing];
+      per_map_.tile_to_segment[clearing][tile] = 0;
+      ++count_with_biome_[clearing][center.ground];
+      ++count_with_biome_by_row_[clearing][tile.y]
+                                [center.ground];
+    }
+
+    if( !has_mountains( center ) && !has_hills( center ) )
+      ++land_non_mounds_;
+  } );
+
+  find_connected( m, mountains );
+  find_connected( m, hills );
+  find_connected( m, clearing );
+
+  count_squared_[mountains] +=
+      per_map_.count[mountains] * per_map_.count[mountains];
+  count_squared_[hills] +=
+      per_map_.count[hills] * per_map_.count[hills];
+  count_squared_[clearing] +=
+      per_map_.count[clearing] * per_map_.count[clearing];
+}
+
+void FormationsStatsCollector::summarize() {}
+
+void FormationsStatsCollector::write() const {
+  // TODO
+}
+
 } // namespace
 
 /****************************************************************
@@ -262,6 +643,11 @@ create_biome_density_stats_collector( std::string const& stem ) {
 unique_ptr<IMapStatsCollector>
 create_biome_wetness_stats_collector() {
   return make_unique<BiomeWetnessStatsCollector>();
+}
+
+unique_ptr<IMapStatsCollector> create_formations_stats_collector(
+    string const& mode ) {
+  return make_unique<FormationsStatsCollector>( mode );
 }
 
 } // namespace rn

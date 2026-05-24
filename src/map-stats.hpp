@@ -27,4 +27,7 @@ create_biome_density_stats_collector( std::string const& stem );
 std::unique_ptr<IMapStatsCollector>
 create_biome_wetness_stats_collector();
 
+std::unique_ptr<IMapStatsCollector>
+create_formations_stats_collector( std::string const& mode );
+
 } // namespace rn

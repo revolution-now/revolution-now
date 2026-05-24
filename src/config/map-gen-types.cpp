@@ -33,6 +33,7 @@ using ::base::valid_or;
 ** PerlinLandForm
 *****************************************************************/
 valid_or<string> PerlinLandForm::validate() const {
+  // TODO
   return valid;
 }
 
@@ -40,6 +41,7 @@ valid_or<string> PerlinLandForm::validate() const {
 ** PerlinEdgeSuppression
 *****************************************************************/
 valid_or<string> PerlinEdgeSuppression::validate() const {
+  // TODO
   return valid;
 }
 
@@ -69,6 +71,7 @@ valid_or<string> BiomeWetDryModulation::validate() const {
 *****************************************************************/
 maybe<e_terrain_formation> terrain_formation_for(
     MapSquare const& square ) {
+  CHECK( square.surface == e_surface::land );
   if( !square.overlay.has_value() )
     return e_terrain_formation::clearing;
   switch( *square.overlay ) {
