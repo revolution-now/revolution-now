@@ -217,29 +217,10 @@ void generate_single_map_key( IEngine& engine, SS& ss,
                               bool const reseed ) {
   auto const fn = [&]( IRand& rand, GameSetup& setup ) {
     load_testing_game_setup( setup );
-    UNWRAP_CHECK_T(
-        auto& generate_native,
-        setup.map.source.get_if<MapSource::generate_native>() );
-    auto& native = generate_native.setup;
-    if( reseed ) {
-      auto const S = [&] {
-        return rand.new_deterministic_seed();
-      };
-      auto& surf_gen = native.surface_generator;
-
-      surf_gen.perlin_settings.seed =
-          generate_perlin_seed( S() );
-      surf_gen.lakes.seed  = S();
-      native.rivers.seed   = S();
-      surf_gen.arctic.seed = S();
-      native.biomes.seed   = S();
-      native.formations.formation[e_terrain_formation::mountains]
-          .seed = S();
-      native.formations.formation[e_terrain_formation::hills]
-          .seed = S();
-      native.formations.formation[e_terrain_formation::clearing]
-          .seed = S();
-    }
+    if( reseed )
+      // Reseed all seeds in the structure, but keep all other
+      // parameters the same.
+      randomize_game_setup_seeds( rand, setup );
   };
   generate_single_map_impl( engine, ss, fn );
 }

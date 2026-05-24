@@ -114,6 +114,19 @@ wait<maybe<string>> choose_leader_name( IGui& gui,
                             .default_leader_name } );
 }
 
+struct Reseeder : public trv::RecursiveTraverserWithTracking {
+  Reseeder( IRand& rand ) : rand_( rand ) {}
+
+  [[maybe_unused]] void visit( rng::seed& e ) {
+    e = rand_.new_deterministic_seed();
+    lg.debug( "reseeding: {} with {}", path(), e );
+  }
+
+  [[maybe_unused]] void visit( auto const& ) {}
+
+  IRand& rand_;
+};
+
 } // namespace
 
 /****************************************************************
@@ -450,16 +463,23 @@ valid_or<string> validate_game_setup( GameSetup const& setup ) {
   return refl::validate_recursive( setup );
 }
 
-void reseed_game_setup( IRand& rand, GameSetup& setup ) {
-  auto const visitor = mp::overload{
-    [&]( rng::entropy& e ) {
-      e = rand.new_deterministic_seed();
-    },
-    [&]( auto const& ) {
-      // Don't change any other fields.
-    },
-  };
-  trv::traverse_recursive( setup, visitor );
+void randomize_game_setup_seeds( IRand& rand,
+                                 GameSetup& setup ) {
+  // We could just use the simpler `traverse_recursive` here, but
+  // using the object allows us to log the paths as we go.
+  Reseeder reseeder( rand );
+  reseeder( setup );
+
+  // The perlin seed is a non-standard one so it won't be covered
+  // by the operation above; must do it manually.
+  auto const perlin_entropy = rand.new_deterministic_seed();
+  lg.debug( "reseeding: (perlin) with {}", perlin_entropy );
+  UNWRAP_CHECK_T(
+      auto& generate_native,
+      setup.map.source.get_if<MapSource::generate_native>() );
+  auto& native = generate_native.setup;
+  native.surface_generator.perlin_settings.seed =
+      generate_perlin_seed( perlin_entropy );
 }
 
 } // namespace rn
