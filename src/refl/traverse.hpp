@@ -37,7 +37,20 @@ namespace trv {
 ** Structs
 *****************************************************************/
 template<refl::ReflectedStruct S, typename Fn>
-void traverse( S const& o, Fn& fn, trv::tag_t<S> ) {
+void traverse( S& o, Fn& fn,
+               trv::tag_t<std::remove_const_t<S>> ) {
+  using Tr = ::refl::traits<std::remove_const_t<S>>;
+  static constexpr size_t kNumFields =
+      std::tuple_size_v<decltype( Tr::fields )>;
+  FOR_CONSTEXPR_IDX( Idx, kNumFields ) {
+    auto& field_desc = std::get<Idx>( Tr::fields );
+    auto& field_val  = o.*field_desc.accessor;
+    fn( field_val, std::string_view{ field_desc.name } );
+  };
+}
+
+template<refl::ReflectedStruct S, typename Fn>
+void traverse( S const& o, Fn& fn, trv::tag_t<S const> ) {
   using Tr = ::refl::traits<S>;
   static constexpr size_t kNumFields =
       std::tuple_size_v<decltype( Tr::fields )>;
@@ -53,7 +66,7 @@ void traverse( S const& o, Fn& fn, trv::tag_t<S> ) {
 *****************************************************************/
 // For types that satisfy WrapsReflected.
 template<refl::WrapsReflected T, typename Fn>
-void traverse( T const& o, Fn& fn, trv::tag_t<T> ) {
+void traverse( T& o, Fn& fn, trv::tag_t<T> ) {
   fn( o.refl(), trv::none );
 }
 
@@ -64,8 +77,19 @@ void traverse( T const& o, Fn& fn, trv::tag_t<T> ) {
 // all reflected structs.
 template<refl::ReflectedStruct... Ts, typename Fn>
 void traverse( base::variant<Ts...> const& o, Fn& fn,
-               trv::tag_t<base::variant<Ts...>> ) {
+               trv::tag_t<base::variant<Ts...> const> ) {
   auto const visitor = [&]<typename T>( T const& alt ) {
+    using Tr = ::refl::traits<T>;
+    static constexpr std::string_view kName{ Tr::name };
+    fn( alt, kName );
+  };
+  return std::visit( visitor, o );
+}
+
+template<refl::ReflectedStruct... Ts, typename Fn>
+void traverse( base::variant<Ts...>& o, Fn& fn,
+               trv::tag_t<base::variant<Ts...>> ) {
+  auto const visitor = [&]<typename T>( T& alt ) {
     using Tr = ::refl::traits<T>;
     static constexpr std::string_view kName{ Tr::name };
     fn( alt, kName );

@@ -195,8 +195,13 @@ struct enum_map : public detail::EnumMapBase<E, V> {
   // ment overload which would give the key as a string field
   // named "first".
   friend void traverse( enum_map const& o, auto& fn,
-                        trv::tag_t<enum_map> ) {
+                        trv::tag_t<enum_map const> ) {
     for( auto const& [k, v] : o ) fn( v, k );
+  }
+
+  friend void traverse( enum_map& o, auto& fn,
+                        trv::tag_t<enum_map> ) {
+    for( auto& [k, v] : o ) fn( v, k );
   }
 
   friend void define_usertype_for( lua::state& st,

@@ -152,6 +152,12 @@ class ND MovementPoints {
       cdr::tag_t<MovementPoints> );
 
   friend void traverse( MovementPoints const& o, auto& fn,
+                        trv::tag_t<MovementPoints const> ) {
+    using namespace std::literals;
+    fn( o.atoms_, "atoms"sv );
+  }
+
+  friend void traverse( MovementPoints& o, auto& fn,
                         trv::tag_t<MovementPoints> ) {
     using namespace std::literals;
     fn( o.atoms_, "atoms"sv );

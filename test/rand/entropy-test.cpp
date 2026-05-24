@@ -538,7 +538,7 @@ LUA_TEST_CASE( "[rand/entropy] traverse" ) {
     v2.push_back( string( sv ) );
   };
 
-  traverse( e, fn, trv::tag<entropy> );
+  trv::traverse( e, fn );
 
   REQUIRE( v1 == vector<uint32_t>{ 0x6151c187, 0x6da636d6,
                                    0xfbe4a276, 0x00f00076 } );

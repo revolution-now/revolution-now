@@ -25,6 +25,12 @@ namespace trv {
 *****************************************************************/
 template<typename T, typename Fn>
 void traverse( base::maybe<T> const& o, Fn& fn,
+               tag_t<base::maybe<T> const> ) {
+  if( o.has_value() ) fn( *o, none );
+}
+
+template<typename T, typename Fn>
+void traverse( base::maybe<T>& o, Fn& fn,
                tag_t<base::maybe<T>> ) {
   if( o.has_value() ) fn( *o, none );
 }
@@ -34,6 +40,12 @@ void traverse( base::maybe<T> const& o, Fn& fn,
 *****************************************************************/
 template<typename T, typename Fn>
 void traverse( base::heap_value<T> const& o, Fn& fn,
+               tag_t<base::heap_value<T> const> ) {
+  fn( *o, none );
+}
+
+template<typename T, typename Fn>
+void traverse( base::heap_value<T>& o, Fn& fn,
                tag_t<base::heap_value<T>> ) {
   fn( *o, none );
 }
@@ -52,6 +64,10 @@ void traverse( base::heap_value<T> const& o, Fn& fn,
 // the relevant cases since it is more constrained.
 template<typename... Ts, typename Fn>
 void traverse( base::variant<Ts...> const& o, Fn& fn,
+               tag_t<base::variant<Ts...> const> ) = delete;
+
+template<typename... Ts, typename Fn>
+void traverse( base::variant<Ts...>& o, Fn& fn,
                tag_t<base::variant<Ts...>> ) = delete;
 
 /****************************************************************
@@ -59,7 +75,7 @@ void traverse( base::variant<Ts...> const& o, Fn& fn,
 *****************************************************************/
 template<typename T, typename Fn>
 requires requires { typename T::i_am_rds_variant; }
-void traverse( T const& o, Fn& fn, tag_t<T> ) {
+void traverse( T& o, Fn& fn, tag_t<T> ) {
   fn( o.as_base(), none );
 }
 

@@ -135,6 +135,16 @@ struct matrix {
 
   // Implement trv::Traversable.
   friend void traverse( matrix const& o, auto& fn,
+                        trv::tag_t<matrix const> ) {
+    using namespace std::literals;
+    auto const y_size = o.size().h;
+    gfx::point p;
+    for( p.y = 0; p.y < y_size; ++p.y )
+      for( p.x = 0; p.x < o.w_; ++p.x ) //
+        fn( o[p], p );
+  }
+
+  friend void traverse( matrix& o, auto& fn,
                         trv::tag_t<matrix> ) {
     using namespace std::literals;
     auto const y_size = o.size().h;

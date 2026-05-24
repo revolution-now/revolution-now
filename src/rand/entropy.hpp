@@ -104,6 +104,15 @@ struct entropy {
   // traverse
   // ------------------------------------------------------------
   friend void traverse( entropy const& o, auto& fn,
+                        trv::tag_t<entropy const> ) {
+    using namespace std::literals;
+    fn( o.e1, "e1"sv );
+    fn( o.e2, "e2"sv );
+    fn( o.e3, "e3"sv );
+    fn( o.e4, "e4"sv );
+  }
+
+  friend void traverse( entropy& o, auto& fn,
                         trv::tag_t<entropy> ) {
     using namespace std::literals;
     fn( o.e1, "e1"sv );

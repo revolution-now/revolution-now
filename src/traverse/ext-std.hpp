@@ -38,26 +38,41 @@ namespace trv {
 ** string
 *****************************************************************/
 template<typename Fn>
-void traverse( std::string const&, Fn&, tag_t<std::string> ) {}
+void traverse( std::string const&, Fn&,
+               tag_t<std::string const> ) {}
+
+template<typename Fn>
+void traverse( std::string&, Fn&, tag_t<std::string> ) {}
 
 /****************************************************************
 ** string_view
 *****************************************************************/
 template<typename Fn>
 void traverse( std::string_view const&, Fn&,
+               tag_t<std::string_view const> ) {}
+
+template<typename Fn>
+void traverse( std::string_view&, Fn&,
                tag_t<std::string_view> ) {}
 
 /****************************************************************
 ** std::filesystem::path
 *****************************************************************/
 template<typename Fn>
-void traverse( fs::path const&, Fn&, tag_t<fs::path> ) {}
+void traverse( fs::path const&, Fn&, tag_t<fs::path const> ) {}
+
+template<typename Fn>
+void traverse( fs::path&, Fn&, tag_t<fs::path> ) {}
 
 /****************************************************************
 ** std::chrono::seconds
 *****************************************************************/
 template<typename Fn>
 void traverse( std::chrono::seconds const&, Fn&,
+               tag_t<std::chrono::seconds const> ) {}
+
+template<typename Fn>
+void traverse( std::chrono::seconds&, Fn&,
                tag_t<std::chrono::seconds> ) {}
 
 /****************************************************************
@@ -65,6 +80,10 @@ void traverse( std::chrono::seconds const&, Fn&,
 *****************************************************************/
 template<typename Fn>
 void traverse( std::chrono::milliseconds const&, Fn&,
+               tag_t<std::chrono::milliseconds const> ) {}
+
+template<typename Fn>
+void traverse( std::chrono::milliseconds&, Fn&,
                tag_t<std::chrono::milliseconds> ) {}
 
 /****************************************************************
@@ -72,6 +91,10 @@ void traverse( std::chrono::milliseconds const&, Fn&,
 *****************************************************************/
 template<typename Fn>
 void traverse( std::chrono::microseconds const&, Fn&,
+               tag_t<std::chrono::microseconds const> ) {}
+
+template<typename Fn>
+void traverse( std::chrono::microseconds&, Fn&,
                tag_t<std::chrono::microseconds> ) {}
 
 /****************************************************************
@@ -79,6 +102,14 @@ void traverse( std::chrono::microseconds const&, Fn&,
 *****************************************************************/
 template<typename Fst, typename Snd, typename Fn>
 void traverse( std::pair<Fst, Snd> const& o, Fn& fn,
+               tag_t<std::pair<Fst, Snd> const> ) {
+  using namespace std::literals;
+  fn( o.first, "first"sv );
+  fn( o.second, "second"sv );
+}
+
+template<typename Fst, typename Snd, typename Fn>
+void traverse( std::pair<Fst, Snd>& o, Fn& fn,
                tag_t<std::pair<Fst, Snd>> ) {
   using namespace std::literals;
   fn( o.first, "first"sv );
@@ -90,6 +121,18 @@ void traverse( std::pair<Fst, Snd> const& o, Fn& fn,
 *****************************************************************/
 template<typename Fn, typename... T>
 void traverse( std::tuple<T...> const& o, Fn& fn,
+               tag_t<std::tuple<T...> const> ) {
+  using namespace std::literals;
+  [&]<size_t... I>( std::index_sequence<I...> ) {
+    ( fn( std::get<I>( o ),
+          std::string_view( "<"s + std::to_string( I ) +
+                            ">"s ) ),
+      ... );
+  }( std::make_index_sequence<sizeof...( T )>() );
+}
+
+template<typename Fn, typename... T>
+void traverse( std::tuple<T...>& o, Fn& fn,
                tag_t<std::tuple<T...>> ) {
   using namespace std::literals;
   [&]<size_t... I>( std::index_sequence<I...> ) {
@@ -101,18 +144,19 @@ void traverse( std::tuple<T...> const& o, Fn& fn,
 }
 
 /****************************************************************
-** std::ranges::range
-*****************************************************************/
-// This will be used to implement traverse for any range.
-template<std::ranges::range R, typename Fn>
-void traverse( R const& o, Fn& fn, tag_t<R> ) {
-  for( int i = 0; auto const& elem : o ) fn( elem, i++ );
-}
-
-/****************************************************************
 ** std::vector
 *****************************************************************/
-// traverse will use the std::ranges::range overload.
+template<Traversable T, typename Fn>
+void traverse( std::vector<T> const& o, Fn& fn,
+               tag_t<std::vector<T> const> ) {
+  for( int i = 0; auto& elem : o ) fn( elem, i++ );
+}
+
+template<Traversable T, typename Fn>
+void traverse( std::vector<T>& o, Fn& fn,
+               tag_t<std::vector<T>> ) {
+  for( int i = 0; auto& elem : o ) fn( elem, i++ );
+}
 
 /****************************************************************
 ** std::queue
@@ -120,17 +164,40 @@ void traverse( R const& o, Fn& fn, tag_t<R> ) {
 // Can't read from this one.
 template<typename T, typename Fn>
 void traverse( std::queue<T> const& o, Fn& fn,
+               tag_t<std::queue<T> const> ) = delete;
+
+template<typename T, typename Fn>
+void traverse( std::queue<T>& o, Fn& fn,
                tag_t<std::queue<T>> ) = delete;
 
 /****************************************************************
 ** std::deque
 *****************************************************************/
-// traverse will use the std::ranges::range overload.
+template<Traversable T, typename Fn>
+void traverse( std::deque<T> const& o, Fn& fn,
+               tag_t<std::deque<T> const> ) {
+  for( int i = 0; auto& elem : o ) fn( elem, i++ );
+}
+
+template<Traversable T, typename Fn>
+void traverse( std::deque<T>& o, Fn& fn, tag_t<std::deque<T>> ) {
+  for( int i = 0; auto& elem : o ) fn( elem, i++ );
+}
 
 /****************************************************************
 ** std::array
 *****************************************************************/
-// traverse will use the std::ranges::range overload.
+template<Traversable T, size_t N, typename Fn>
+void traverse( std::array<T, N> const& o, Fn& fn,
+               tag_t<std::array<T, N> const> ) {
+  for( int i = 0; auto& elem : o ) fn( elem, i++ );
+}
+
+template<Traversable T, size_t N, typename Fn>
+void traverse( std::array<T, N>& o, Fn& fn,
+               tag_t<std::array<T, N>> ) {
+  for( int i = 0; auto& elem : o ) fn( elem, i++ );
+}
 
 /****************************************************************
 ** unordered_map
@@ -138,6 +205,12 @@ void traverse( std::queue<T> const& o, Fn& fn,
 // Order not specified here.
 template<typename K, typename V, typename Fn>
 void traverse( std::unordered_map<K, V> const& o, Fn& fn,
+               tag_t<std::unordered_map<K, V> const> ) {
+  for( auto& [k, v] : o ) fn( v, k );
+}
+
+template<typename K, typename V, typename Fn>
+void traverse( std::unordered_map<K, V>& o, Fn& fn,
                tag_t<std::unordered_map<K, V>> ) {
   for( auto& [k, v] : o ) fn( v, k );
 }
@@ -148,6 +221,12 @@ void traverse( std::unordered_map<K, V> const& o, Fn& fn,
 // Order not specified here.
 template<typename T, typename Fn>
 void traverse( std::unordered_set<T> const& o, Fn& fn,
+               tag_t<std::unordered_set<T> const> ) {
+  for( auto& elem : o ) fn( elem, none );
+}
+
+template<typename T, typename Fn>
+void traverse( std::unordered_set<T>& o, Fn& fn,
                tag_t<std::unordered_set<T>> ) {
   for( auto& elem : o ) fn( elem, none );
 }
@@ -157,6 +236,12 @@ void traverse( std::unordered_set<T> const& o, Fn& fn,
 *****************************************************************/
 template<typename K, typename V, typename Fn>
 void traverse( std::map<K, V> const& o, Fn& fn,
+               tag_t<std::map<K, V> const> ) {
+  for( auto& [k, v] : o ) fn( v, k );
+}
+
+template<typename K, typename V, typename Fn>
+void traverse( std::map<K, V>& o, Fn& fn,
                tag_t<std::map<K, V>> ) {
   for( auto& [k, v] : o ) fn( v, k );
 }
@@ -166,7 +251,12 @@ void traverse( std::map<K, V> const& o, Fn& fn,
 *****************************************************************/
 template<typename T, typename Fn>
 void traverse( std::set<T> const& o, Fn& fn,
-               tag_t<std::set<T>> ) {
+               tag_t<std::set<T> const> ) {
+  for( auto& elem : o ) fn( elem, none );
+}
+
+template<typename T, typename Fn>
+void traverse( std::set<T>& o, Fn& fn, tag_t<std::set<T>> ) {
   for( auto& elem : o ) fn( elem, none );
 }
 
@@ -175,6 +265,12 @@ void traverse( std::set<T> const& o, Fn& fn,
 *****************************************************************/
 template<typename T, typename Fn>
 void traverse( std::unique_ptr<T> const& o, Fn& fn,
+               tag_t<std::unique_ptr<T> const> ) {
+  if( o ) fn( *o, none );
+}
+
+template<typename T, typename Fn>
+void traverse( std::unique_ptr<T>& o, Fn& fn,
                tag_t<std::unique_ptr<T>> ) {
   if( o ) fn( *o, none );
 }
@@ -184,6 +280,12 @@ void traverse( std::unique_ptr<T> const& o, Fn& fn,
 *****************************************************************/
 template<typename T, typename Fn>
 void traverse( std::shared_ptr<T> const& o, Fn& fn,
+               tag_t<std::shared_ptr<T> const> ) {
+  if( o ) fn( *o, none );
+}
+
+template<typename T, typename Fn>
+void traverse( std::shared_ptr<T>& o, Fn& fn,
                tag_t<std::shared_ptr<T>> ) {
   if( o ) fn( *o, none );
 }
@@ -202,6 +304,10 @@ void traverse( std::shared_ptr<T> const& o, Fn& fn,
 // the relevant cases since it is more constrained.
 template<typename... Ts, typename Fn>
 void traverse( std::variant<Ts...> const& o,
+               tag_t<std::variant<Ts...> const> ) = delete;
+
+template<typename... Ts, typename Fn>
+void traverse( std::variant<Ts...>& o,
                tag_t<std::variant<Ts...>> ) = delete;
 
 } // namespace trv

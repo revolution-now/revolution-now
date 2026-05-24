@@ -56,13 +56,18 @@ inline static auto const some_traversing_fn =
 // call traverse again. This is more flexible because it doesn't
 // force recursion on the user, and also the user can choose
 // whether they want e.g. depth-first or breadth-first traversal.
+namespace detail {
 template<typename T>
-concept Traversable = requires( T& o ) {
+concept TraversableImpl = requires( T& o ) {
   {
-    traverse( o, detail::some_traversing_fn,
-              tag<std::remove_const_t<T>> )
+    traverse( o, detail::some_traversing_fn, tag<T> )
   } -> std::same_as<void>;
 };
+}
+
+template<typename T>
+concept Traversable = detail::TraversableImpl<T> &&
+                      detail::TraversableImpl<T const>;
 
 /****************************************************************
 ** API methods.
@@ -72,7 +77,7 @@ void traverse( T& o, Fn&& fn ) {
   // NOTE: don't forward the function because the below traverse
   // method is expected to take it as an l-value ref since it may
   // need to be called multiple times.
-  traverse( o, fn, tag<std::remove_const_t<T>> );
+  traverse( o, fn, tag<T> );
 }
 
 /****************************************************************
@@ -80,6 +85,6 @@ void traverse( T& o, Fn&& fn ) {
 *****************************************************************/
 template<typename T, typename Fn>
 requires std::is_scalar_v<T>
-inline void traverse( T const, Fn&, tag_t<T> ) {}
+inline void traverse( T&, Fn&, tag_t<T> ) {}
 
 } // namespace trv

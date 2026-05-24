@@ -30,6 +30,16 @@ using namespace std;
 /****************************************************************
 ** Test Cases
 *****************************************************************/
+TEST_CASE( "[traverse/ext-std] string" ) {
+  using T = string;
+  T o;
+
+  auto const traversing_fn = [&]( auto&, auto const& ) {};
+
+  trv::traverse( o, traversing_fn );
+  trv::traverse( as_const( o ), traversing_fn );
+}
+
 TEST_CASE( "[traverse/ext-std] pair" ) {
   using T          = pair<string, int>;
   using K_expected = string_view;

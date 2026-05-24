@@ -93,7 +93,15 @@ struct pixel {
 
   // Implement trv::Traversable.
   friend void traverse( pixel const& o, auto& fn,
-                        trv::tag_t<pixel> ) {
+                        trv::tag_t<pixel const> ) {
+    using namespace std::literals;
+    fn( o.r, "r"sv );
+    fn( o.g, "g"sv );
+    fn( o.b, "b"sv );
+    fn( o.a, "a"sv );
+  }
+
+  friend void traverse( pixel& o, auto& fn, trv::tag_t<pixel> ) {
     using namespace std::literals;
     fn( o.r, "r"sv );
     fn( o.g, "g"sv );

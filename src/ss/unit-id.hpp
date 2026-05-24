@@ -130,6 +130,9 @@ struct GenericUnitId {
   friend void traverse( GenericUnitId, auto&,
                         trv::tag_t<GenericUnitId> ) {}
 
+  friend void traverse( GenericUnitId, auto&,
+                        trv::tag_t<GenericUnitId const> ) {}
+
   // lua
   friend void lua_push( lua::cthread L, GenericUnitId o );
 

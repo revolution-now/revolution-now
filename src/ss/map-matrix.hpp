@@ -64,6 +64,12 @@ struct MapMatrix : public gfx::matrix<MapSquare> {
 
   // Implement trv::Traversable.
   friend void traverse( MapMatrix const& o, auto& fn,
+                        trv::tag_t<MapMatrix const> ) {
+    return traverse( o.as_base(), fn,
+                     trv::tag_t<matrix<MapSquare> const>{} );
+  }
+
+  friend void traverse( MapMatrix& o, auto& fn,
                         trv::tag_t<MapMatrix> ) {
     return traverse( o.as_base(), fn,
                      trv::tag_t<matrix<MapSquare>>{} );
