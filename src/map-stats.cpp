@@ -299,7 +299,33 @@ struct FormationsStatsCollector : IMapStatsCollector {
         format( "{}.{}.json", mode_, label ) );
   }
 
+  void gnuplot( GnuPlotSettings const settings,
+                CsvData const& csv_data,
+                string const& label ) const {
+    generate_gnuplot( generated_dir(),
+                      format( "{}.{}", mode_, label ), settings,
+                      csv_data );
+  }
+
  private:
+  inline static auto const FORMATION_ORDER_CLEARING = {
+    e_terrain_formation::mountains, //
+    e_terrain_formation::hills,     //
+    e_terrain_formation::clearing,  //
+  };
+
+  inline static auto const BIOME_ORDERING = {
+    e_biome::savannah,  //
+    e_biome::grassland, //
+    e_biome::tundra,    //
+    e_biome::plains,    //
+    e_biome::prairie,   //
+    e_biome::desert,    //
+    e_biome::swamp,     //
+    e_biome::marsh,     //
+    e_biome::arctic,    //
+  };
+
   string const mode_;
   size map_sz_ = {};
   int land_    = 0;
@@ -704,13 +730,13 @@ void FormationsStatsCollector::write() const {
     "density_on_biome",                            //
   };
 
-  list const FORMATION_ORDER_CLEARING = {
+  list const FORMATION_ORDER_CLEARING_CDR = {
     "mountains", //
     "hills",     //
     "clearing",  //
   };
 
-  list const BIOME_ORDERING = {
+  list const BIOME_ORDERING_CDR = {
     "savannah",  //
     "grassland", //
     "tundra",    //
@@ -732,13 +758,13 @@ void FormationsStatsCollector::write() const {
       land_ocean_adjacent_cardinal_ / maps;
   o["land_non_mounds"] = land_non_mounds_ / maps;
   o["count"] =
-      table{ "__key_order"_key = FORMATION_ORDER_CLEARING };
+      table{ "__key_order"_key = FORMATION_ORDER_CLEARING_CDR };
   o["count"]["mountains"] = count_[mountains] / maps;
   o["count"]["hills"]     = count_[hills] / maps;
   o["count"]["clearing"]  = count_[clearing] / maps;
   o["count_forest"]       = count_forest_ / maps;
   o["stddev"] =
-      table{ "__key_order"_key = FORMATION_ORDER_CLEARING };
+      table{ "__key_order"_key = FORMATION_ORDER_CLEARING_CDR };
   o["stddev"]["mountains"] = stddev(
       count_[mountains], count_squared_[mountains], maps );
   o["stddev"]["hills"] =
@@ -746,7 +772,7 @@ void FormationsStatsCollector::write() const {
   o["stddev"]["clearing"] =
       stddev( count_[clearing], count_squared_[clearing], maps );
   o["density"] =
-      table{ "__key_order"_key = FORMATION_ORDER_CLEARING };
+      table{ "__key_order"_key = FORMATION_ORDER_CLEARING_CDR };
   o["density"]["mountains"] = count_[mountains] / land;
   o["density"]["hills"]     = count_[hills] / land;
   o["density"]["clearing"]  = count_[clearing] / land;
@@ -757,7 +783,7 @@ void FormationsStatsCollector::write() const {
   o["density_hills_plus_land_rivers"] =
       ( count_rivers_on_land_ + count_[hills] ) / land;
   o["count_arctic_rows"] =
-      table{ "__key_order"_key = FORMATION_ORDER_CLEARING };
+      table{ "__key_order"_key = FORMATION_ORDER_CLEARING_CDR };
   o["count_arctic_rows"]["mountains"] =
       count_arctic_rows_[mountains] / maps;
   o["count_arctic_rows"]["hills"] =
@@ -765,12 +791,12 @@ void FormationsStatsCollector::write() const {
   o["count_arctic_rows"]["clearing"] =
       count_arctic_rows_[clearing] / maps;
   o["num_ranges"] =
-      table{ "__key_order"_key = FORMATION_ORDER_CLEARING };
+      table{ "__key_order"_key = FORMATION_ORDER_CLEARING_CDR };
   o["num_ranges"]["mountains"] = num_ranges_[mountains] / maps;
   o["num_ranges"]["hills"]     = num_ranges_[hills] / maps;
   o["num_ranges"]["clearing"]  = num_ranges_[clearing] / maps;
   o["num_ranges_1"] =
-      table{ "__key_order"_key = FORMATION_ORDER_CLEARING };
+      table{ "__key_order"_key = FORMATION_ORDER_CLEARING_CDR };
   o["num_ranges_1"]["mountains"] =
       lookup( count_range_length_[mountains], 1 ).value_or( 0 ) /
       maps;
@@ -781,7 +807,7 @@ void FormationsStatsCollector::write() const {
       lookup( count_range_length_[clearing], 1 ).value_or( 0 ) /
       maps;
   o["num_ranges_1_per_land"] = table{
-    "__key_order"_key = FORMATION_ORDER_CLEARING,
+    "__key_order"_key = FORMATION_ORDER_CLEARING_CDR,
   };
   o["num_ranges_1_per_land"]["mountains"] =
       lookup( count_range_length_[mountains], 1 ).value_or( 0 ) /
@@ -793,14 +819,14 @@ void FormationsStatsCollector::write() const {
       lookup( count_range_length_[clearing], 1 ).value_or( 0 ) /
       land;
   o["num_ranges_per_land"] =
-      table{ "__key_order"_key = FORMATION_ORDER_CLEARING };
+      table{ "__key_order"_key = FORMATION_ORDER_CLEARING_CDR };
   o["num_ranges_per_land"]["mountains"] =
       num_ranges_[mountains] / land;
   o["num_ranges_per_land"]["hills"] = num_ranges_[hills] / land;
   o["num_ranges_per_land"]["clearing"] =
       num_ranges_[clearing] / land;
   o["count_range_centers"] =
-      table{ "__key_order"_key = FORMATION_ORDER_CLEARING };
+      table{ "__key_order"_key = FORMATION_ORDER_CLEARING_CDR };
   o["count_range_centers"]["mountains"] =
       count_range_centers_[mountains] / maps;
   o["count_range_centers"]["hills"] =
@@ -808,7 +834,7 @@ void FormationsStatsCollector::write() const {
   o["count_range_centers"]["clearing"] =
       count_range_centers_[clearing] / maps;
   o["density_range_centers"] = table{
-    "__key_order"_key = FORMATION_ORDER_CLEARING,
+    "__key_order"_key = FORMATION_ORDER_CLEARING_CDR,
   };
   o["density_range_centers"]["mountains"] =
       count_range_centers_[mountains] / land;
@@ -817,7 +843,7 @@ void FormationsStatsCollector::write() const {
   o["density_range_centers"]["clearing"] =
       count_range_centers_[clearing] / land;
   o["count_ocean_adjacent"] =
-      table{ "__key_order"_key = FORMATION_ORDER_CLEARING };
+      table{ "__key_order"_key = FORMATION_ORDER_CLEARING_CDR };
   o["count_ocean_adjacent"]["mountains"] =
       count_ocean_adjacent_[mountains] / maps;
   o["count_ocean_adjacent"]["hills"] =
@@ -825,7 +851,7 @@ void FormationsStatsCollector::write() const {
   o["count_ocean_adjacent"]["clearing"] =
       count_ocean_adjacent_[clearing] / maps;
   o["count_ocean_adjacent_cardinal"] = table{
-    "__key_order"_key = FORMATION_ORDER_CLEARING,
+    "__key_order"_key = FORMATION_ORDER_CLEARING_CDR,
   };
   o["count_ocean_adjacent_cardinal"]["mountains"] =
       count_ocean_adjacent_cardinal_[mountains] / maps;
@@ -834,7 +860,7 @@ void FormationsStatsCollector::write() const {
   o["count_ocean_adjacent_cardinal"]["clearing"] =
       count_ocean_adjacent_cardinal_[clearing] / maps;
   o["density_ocean_adjacent"] = table{
-    "__key_order"_key = FORMATION_ORDER_CLEARING,
+    "__key_order"_key = FORMATION_ORDER_CLEARING_CDR,
   };
   o["density_ocean_adjacent"]["mountains"] =
       count_ocean_adjacent_[mountains] /
@@ -846,7 +872,7 @@ void FormationsStatsCollector::write() const {
       count_ocean_adjacent_[clearing] /
       double( land_ocean_adjacent_ );
   o["density_ocean_adjacent_cardinal"] = table{
-    "__key_order"_key = FORMATION_ORDER_CLEARING,
+    "__key_order"_key = FORMATION_ORDER_CLEARING_CDR,
   };
   o["density_ocean_adjacent_cardinal"]["mountains"] =
       count_ocean_adjacent_cardinal_[mountains] /
@@ -858,7 +884,7 @@ void FormationsStatsCollector::write() const {
       count_ocean_adjacent_cardinal_[clearing] /
       double( land_ocean_adjacent_cardinal_ );
   o["count_large_range"] =
-      table{ "__key_order"_key = FORMATION_ORDER_CLEARING };
+      table{ "__key_order"_key = FORMATION_ORDER_CLEARING_CDR };
   o["count_large_range"]["mountains"] =
       count_large_range_[mountains] / maps;
   o["count_large_range"]["hills"] =
@@ -866,7 +892,7 @@ void FormationsStatsCollector::write() const {
   o["count_large_range"]["clearing"] =
       count_large_range_[clearing] / maps;
   o["count_large_range_ocean_adjacent"] = table{
-    "__key_order"_key = FORMATION_ORDER_CLEARING,
+    "__key_order"_key = FORMATION_ORDER_CLEARING_CDR,
   };
   o["count_large_range_ocean_adjacent"]["mountains"] =
       count_large_range_ocean_adjacent_[mountains] / maps;
@@ -875,7 +901,7 @@ void FormationsStatsCollector::write() const {
   o["count_large_range_ocean_adjacent"]["clearing"] =
       count_large_range_ocean_adjacent_[clearing] / maps;
   o["count_large_range_ocean_adjacent_cardinal"] = table{
-    "__key_order"_key = FORMATION_ORDER_CLEARING,
+    "__key_order"_key = FORMATION_ORDER_CLEARING_CDR,
   };
   o["count_large_range_ocean_adjacent_cardinal"]["mountains"] =
       count_large_range_ocean_adjacent_cardinal_[mountains] /
@@ -886,7 +912,7 @@ void FormationsStatsCollector::write() const {
       count_large_range_ocean_adjacent_cardinal_[clearing] /
       maps;
   o["density_large_range"] =
-      table{ "__key_order"_key = FORMATION_ORDER_CLEARING };
+      table{ "__key_order"_key = FORMATION_ORDER_CLEARING_CDR };
   o["density_large_range"]["mountains"] =
       count_large_range_[mountains] / land;
   o["density_large_range"]["hills"] =
@@ -894,7 +920,7 @@ void FormationsStatsCollector::write() const {
   o["density_large_range"]["clearing"] =
       count_large_range_[clearing] / land;
   o["density_large_range_ocean_adjacent"] = table{
-    "__key_order"_key = FORMATION_ORDER_CLEARING,
+    "__key_order"_key = FORMATION_ORDER_CLEARING_CDR,
   };
   o["density_large_range_ocean_adjacent"]["mountains"] =
       count_large_range_ocean_adjacent_[mountains] /
@@ -906,7 +932,7 @@ void FormationsStatsCollector::write() const {
       count_large_range_ocean_adjacent_[clearing] /
       double( land_ocean_adjacent_ );
   o["density_large_range_ocean_adjacent_cardinal"] = table{
-    "__key_order"_key = FORMATION_ORDER_CLEARING,
+    "__key_order"_key = FORMATION_ORDER_CLEARING_CDR,
   };
   o["density_large_range_ocean_adjacent_cardinal"]["mountains"] =
       count_large_range_ocean_adjacent_cardinal_[mountains] /
@@ -923,45 +949,35 @@ void FormationsStatsCollector::write() const {
       count_hills_adjacent_to_mountains_ / maps;
 
   o["land_with_biome"] =
-      table{ "__key_order"_key = BIOME_ORDERING };
-  for( auto const& biome_val : BIOME_ORDERING ) {
-    auto const& biome_str = biome_val.as<string>();
-    UNWRAP_CHECK_T( auto const biome,
-                    enum_from_string<e_biome>( biome_str ) );
+      table{ "__key_order"_key = BIOME_ORDERING_CDR };
+  for( e_biome const biome : BIOME_ORDERING ) {
+    auto const& biome_str           = base::to_str( biome );
     o["land_with_biome"][biome_str] = land_with_biome_[biome];
   }
 
   o["count_with_biome"] =
-      table{ "__key_order"_key = FORMATION_ORDER_CLEARING };
-  for( auto const& kind_val : FORMATION_ORDER_CLEARING ) {
-    auto const& kind_str = kind_val.as<string>();
-    UNWRAP_CHECK_T(
-        auto const kind,
-        enum_from_string<e_terrain_formation>( kind_str ) );
+      table{ "__key_order"_key = FORMATION_ORDER_CLEARING_CDR };
+  for( e_terrain_formation const kind :
+       FORMATION_ORDER_CLEARING ) {
+    auto const& kind_str = base::to_str( kind );
     o["count_with_biome"][kind_str] =
-        table{ "__key_order"_key = BIOME_ORDERING };
-    for( auto const& biome_val : BIOME_ORDERING ) {
-      auto const& biome_str = biome_val.as<string>();
-      UNWRAP_CHECK_T( auto const biome,
-                      enum_from_string<e_biome>( biome_str ) );
+        table{ "__key_order"_key = BIOME_ORDERING_CDR };
+    for( e_biome const biome : BIOME_ORDERING ) {
+      auto const& biome_str = base::to_str( biome );
       o["count_with_biome"][kind_str][biome_str] =
           count_with_biome_[kind][biome];
     }
   }
 
   o["density_on_biome"] =
-      table{ "__key_order"_key = FORMATION_ORDER_CLEARING };
-  for( auto const& kind_val : FORMATION_ORDER_CLEARING ) {
-    auto const& kind_str = kind_val.as<string>();
-    UNWRAP_CHECK_T(
-        auto const kind,
-        enum_from_string<e_terrain_formation>( kind_str ) );
+      table{ "__key_order"_key = FORMATION_ORDER_CLEARING_CDR };
+  for( e_terrain_formation const kind :
+       FORMATION_ORDER_CLEARING ) {
+    auto const& kind_str = base::to_str( kind );
     o["density_on_biome"][kind_str] =
-        table{ "__key_order"_key = BIOME_ORDERING };
-    for( auto const& biome_val : BIOME_ORDERING ) {
-      auto const& biome_str = biome_val.as<string>();
-      UNWRAP_CHECK_T( auto const biome,
-                      enum_from_string<e_biome>( biome_str ) );
+        table{ "__key_order"_key = BIOME_ORDERING_CDR };
+    for( e_biome const biome : BIOME_ORDERING ) {
+      auto const& biome_str = base::to_str( biome );
       if( land_with_biome_[biome] > 0 )
         o["density_on_biome"][kind_str][biome_str] =
             count_with_biome_[kind][biome] /
@@ -976,6 +992,72 @@ void FormationsStatsCollector::write() const {
   CHECK( out.good() );
   out << rcl::emit_json( o, rcl::JsonEmitOptions{
                               .key_order_tag = "__key_order" } );
+
+  {
+    GnuPlotSettings const settings{
+      .title =
+          format( "Range Length Histogram (generated) ({}) [{}]",
+                  mode_, maps_ ),
+      .x_label = "Length (carddinal adjacent)",
+      .y_label = "Frequency",
+      .x_range = "1:30",
+      .y_range = "-20:0",
+    };
+
+    CsvData csv_data{
+      .header = { "length", "mountains", "hills", "clearing" },
+      .rows   = {},
+    };
+
+    int max_length   = 0;
+    int total_ranges = 0;
+    for( e_terrain_formation const kind :
+         FORMATION_ORDER_CLEARING ) {
+      total_ranges += num_ranges_[kind];
+      for( auto const& [length, count] :
+           count_range_length_[kind] )
+        if( count > 0 )
+          max_length = std::max( max_length, length );
+    }
+    M<double> length_1_val;
+    length_1_val[mountains] = 1;
+    length_1_val[hills]     = 1;
+    length_1_val[clearing]  = 1;
+    for( int i = 1; i <= max_length; ++i ) {
+      vector<string> row{
+        /*length=*/to_string( i ),
+        /*mountains=*/"",
+        /*hills=*/"",
+        /*clearing=*/"",
+      };
+      double mountains_value =
+          log( lookup( count_range_length_[mountains], i )
+                   .value_or( 0 ) /
+               double( total_ranges ) );
+      double hills_value = log(
+          lookup( count_range_length_[hills], i ).value_or( 1 ) /
+          double( total_ranges ) );
+      double clearing_value =
+          log( lookup( count_range_length_[clearing], i )
+                   .value_or( 2 ) /
+               double( total_ranges ) );
+      if( i == 1 ) {
+        length_1_val[mountains] = mountains_value;
+        length_1_val[hills]     = hills_value;
+        length_1_val[clearing]  = clearing_value;
+      }
+      mountains_value =
+          mountains_value - length_1_val[mountains];
+      hills_value    = hills_value - length_1_val[hills];
+      clearing_value = clearing_value - length_1_val[clearing];
+      row[1]         = to_string( mountains_value );
+      row[2]         = to_string( hills_value );
+      row[3]         = to_string( clearing_value );
+      csv_data.rows.push_back( std::move( row ) );
+    }
+
+    gnuplot( settings, csv_data, "lengths" );
+  }
 }
 
 } // namespace
