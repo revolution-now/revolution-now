@@ -82,5 +82,5 @@ set xlabel "Y"
 set ylabel "Count per Row"
 set key autotitle columnhead
 set xrange [1:70]
-set yrange [0:2]
+set yrange [0:2.000000]
 plot for [col=2:*] $CSVData using 1:col with lines lw 2
