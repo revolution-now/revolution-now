@@ -39,6 +39,7 @@ using ::base::maybe;
 using ::base::nothing;
 using ::gfx::e_cardinal_cdirection;
 using ::gfx::point;
+using ::refl::enum_map;
 using ::refl::enum_values;
 
 void run_growth_single( IRand& rand, MapMatrix& m,
@@ -120,15 +121,16 @@ void set_all_forest( MapMatrix& m ) {
   } );
 }
 
-void generate_formation( IRand& rand, MapMatrix& m,
-                         e_terrain_formation const formation,
-                         double const density,
-                         double const growth,
-                         int const max_length ) {
+void generate_formation(
+    IRand& rand, MapMatrix& m,
+    e_terrain_formation const formation,
+    enum_map<e_biome, config::DoublePercent> const& densities,
+    double const growth, int const max_length ) {
   on_all_tiles(
       m, [&]( point const p, MapSquare const& square ) {
         if( square.surface == e_surface::water ) return;
         if( terrain_formation_for( square ).has_value() ) return;
+        double const density = densities[square.ground].fraction;
         if( !rand.bernoulli( density ) ) return;
         run_growth_single( rand, m, formation, growth,
                            max_length, p );

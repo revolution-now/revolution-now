@@ -307,19 +307,49 @@ terrain_generation {
 
   formations.formation {
     hills {
-      density.fraction:   .070
+      density {
+        savannah.fraction:  0.034
+        grassland.fraction: 0.025
+        tundra.fraction:    0.071
+        plains.fraction:    0.101
+        prairie.fraction:   0.059
+        desert.fraction:    0.040
+        swamp.fraction:     0.073
+        marsh.fraction:     0.078
+        arctic.fraction:    0.000
+      }
       growth.probability: .060
       max_length:          60
     }
 
     mountains {
-      density.fraction:   .052
+      density {
+        savannah.fraction:  0.075
+        grassland.fraction: 0.058
+        tundra.fraction:    0.075
+        plains.fraction:    0.100
+        prairie.fraction:   0.078
+        desert.fraction:    0.103
+        swamp.fraction:     0.056
+        marsh.fraction:     0.103
+        arctic.fraction:    0.000
+      }
       growth.probability: .250
       max_length:          60
     }
 
     clearing {
-      density.fraction:   .050
+      density {
+        savannah.fraction:  0.118
+        grassland.fraction: 0.073
+        tundra.fraction:    0.247
+        plains.fraction:    0.134
+        prairie.fraction:   0.082
+        desert.fraction:    0.115
+        swamp.fraction:     0.032
+        marsh.fraction:     0.030
+        arctic.fraction:    0.000
+      }
       growth.probability: .330
       max_length:          60
     }

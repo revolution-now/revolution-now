@@ -117,7 +117,7 @@ struct.Biomes {
 }
 
 struct.Formation {
-  density 'config::DoublePercent',
+  density 'refl::enum_map<e_biome, config::DoublePercent>',
   growth 'config::Probability',
   max_length 'int',
 }

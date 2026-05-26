@@ -62,6 +62,9 @@ local D = {
   -- key=y, value={ key=biome, value=count }
   land_with_biome_by_row={},
 
+  -- key=x, value={ key=biome, value=count }
+  land_with_biome_by_col={},
+
   count={
     mountains=0, --
     hills=0, --
@@ -89,6 +92,13 @@ local D = {
 
   -- key=y, value={ key=biome, value=count }
   count_with_biome_by_row={
+    mountains={}, --
+    hills={}, --
+    clearing={}, --
+  },
+
+  -- key=x, value={ key=biome, value=count }
+  count_with_biome_by_col={
     mountains={}, --
     hills={}, --
     clearing={}, --
@@ -449,6 +459,12 @@ local function lambda( J )
       D.land_with_biome_by_row[tile.y][biome] =
           D.land_with_biome_by_row[tile.y][biome] or 0
     end
+    D.land_with_biome_by_col[tile.x] =
+        D.land_with_biome_by_col[tile.x] or {}
+    for _, biome in ipairs( BIOME_ORDERING ) do
+      D.land_with_biome_by_col[tile.x][biome] =
+          D.land_with_biome_by_col[tile.x][biome] or 0
+    end
     D.count_with_biome_by_row.mountains[tile.y] =
         D.count_with_biome_by_row.mountains[tile.y] or {}
     D.count_with_biome_by_row.hills[tile.y] =
@@ -462,6 +478,20 @@ local function lambda( J )
           D.count_with_biome_by_row.hills[tile.y][biome] or 0
       D.count_with_biome_by_row.clearing[tile.y][biome] =
           D.count_with_biome_by_row.clearing[tile.y][biome] or 0
+    end
+    D.count_with_biome_by_col.mountains[tile.x] =
+        D.count_with_biome_by_col.mountains[tile.x] or {}
+    D.count_with_biome_by_col.hills[tile.x] =
+        D.count_with_biome_by_col.hills[tile.x] or {}
+    D.count_with_biome_by_col.clearing[tile.x] =
+        D.count_with_biome_by_col.clearing[tile.x] or {}
+    for _, biome in ipairs( BIOME_ORDERING ) do
+      D.count_with_biome_by_col.mountains[tile.x][biome] =
+          D.count_with_biome_by_col.mountains[tile.x][biome] or 0
+      D.count_with_biome_by_col.hills[tile.x][biome] =
+          D.count_with_biome_by_col.hills[tile.x][biome] or 0
+      D.count_with_biome_by_col.clearing[tile.x][biome] =
+          D.count_with_biome_by_col.clearing[tile.x][biome] or 0
     end
   end )
 
@@ -528,6 +558,8 @@ local function lambda( J )
           D.land_with_biome[square.ground] + 1
       D.land_with_biome_by_row[tile.y][square.ground] =
           D.land_with_biome_by_row[tile.y][square.ground] + 1
+      D.land_with_biome_by_col[tile.x][square.ground] =
+          D.land_with_biome_by_col[tile.x][square.ground] + 1
     end
     local has_hills_adjacent = false
     local has_mountains_adjacent = false
@@ -571,6 +603,9 @@ local function lambda( J )
       D.count_with_biome_by_row.mountains[tile.y][square.ground] =
           D.count_with_biome_by_row.mountains[tile.y][square.ground] +
               1
+      D.count_with_biome_by_col.mountains[tile.x][square.ground] =
+          D.count_with_biome_by_col.mountains[tile.x][square.ground] +
+              1
     end
     if Q.has_hills( J, tile ) then
       assert( is_land )
@@ -597,6 +632,9 @@ local function lambda( J )
           D.count_with_biome.hills[square.ground] + 1
       D.count_with_biome_by_row.hills[tile.y][square.ground] =
           D.count_with_biome_by_row.hills[tile.y][square.ground] +
+              1
+      D.count_with_biome_by_col.hills[tile.x][square.ground] =
+          D.count_with_biome_by_col.hills[tile.x][square.ground] +
               1
     end
     if Q.has_forest( J, tile ) then
@@ -626,6 +664,9 @@ local function lambda( J )
           D.count_with_biome.clearing[square.ground] + 1
       D.count_with_biome_by_row.clearing[tile.y][square.ground] =
           D.count_with_biome_by_row.clearing[tile.y][square.ground] +
+              1
+      D.count_with_biome_by_col.clearing[tile.x][square.ground] =
+          D.count_with_biome_by_col.clearing[tile.x][square.ground] +
               1
     end
     if is_land and not Q.has_mountains( J, tile ) and
@@ -1117,7 +1158,7 @@ local function finished( mode )
     }
 
     local csv_data = {
-      header={ 'y', 'mountains/10', 'hills', 'clearing/10' },
+      header={ 'y', 'mountains/10', 'hills', 'clearing/20' },
       rows={},
     }
 
@@ -1128,7 +1169,7 @@ local function finished( mode )
       row[3] = D.count_large_range_by_row.hills[y] /
                    D.land_by_row[y]
       row[4] = D.count_large_range_by_row.clearing[y] /
-                   D.land_by_row[y] / 10
+                   D.land_by_row[y] / 20
       insert( csv_data.rows, row )
     end
 
@@ -1149,7 +1190,7 @@ local function finished( mode )
     }
 
     local csv_data = {
-      header={ 'x', 'mountains/10', 'hills', 'clearing/10' },
+      header={ 'x', 'mountains/10', 'hills', 'clearing/20' },
       rows={},
     }
 
@@ -1160,7 +1201,7 @@ local function finished( mode )
       row[3] = D.count_large_range_by_col.hills[x] /
                    D.land_by_col[x]
       row[4] = D.count_large_range_by_col.clearing[x] /
-                   D.land_by_col[x] / 10
+                   D.land_by_col[x] / 20
       insert( csv_data.rows, row )
     end
 
@@ -1175,6 +1216,16 @@ local function finished( mode )
       hills='Hills',
       clearing='Clearing',
     })[type] )
+    local top_count = assert( ({
+      mountains=1.5,
+      hills=1.5,
+      clearing=1.5,
+    })[type] )
+    local top_density = assert( ({
+      mountains=.25,
+      hills=.25,
+      clearing=.25,
+    })[type] )
     do
       local opts = {
         title=format( '%s on Biome by Row (empirical) (%s) [%d]',
@@ -1182,7 +1233,7 @@ local function finished( mode )
         x_label='Y', --
         y_label='Count per Row', --
         x_range='1:70', --
-        y_range='0:2', --
+        y_range=format( '0:%f', top_count ), --
       }
       local csv_data = { header={ 'y' }, rows={} }
       for _, biome in ipairs( BIOME_ORDERING ) do
@@ -1205,12 +1256,40 @@ local function finished( mode )
     do
       local opts = {
         title=format(
+            '%s on Biome by Column (empirical) (%s) [%d]', name,
+            mode, D.savs ),
+        x_label='X', --
+        y_label='Count per Column', --
+        x_range='1:56', --
+        y_range=format( '0:%f', top_count ), --
+      }
+      local csv_data = { header={ 'x' }, rows={} }
+      for _, biome in ipairs( BIOME_ORDERING ) do
+        insert( csv_data.header, biome )
+      end
+      for x = 1, 56 do
+        local row = { x }
+        for _, biome in ipairs( BIOME_ORDERING ) do
+          local val = D.count_with_biome_by_col[type][x][biome] /
+                          D.savs
+          insert( row, val )
+        end
+        insert( csv_data.rows, row )
+      end
+      local path = format( '%s/%s.biome.counts.cols.%s.gnuplot',
+                           PLOTS_DIR, mode, type )
+      plot.line_graph_to_file( path, csv_data, opts )
+    end
+
+    do
+      local opts = {
+        title=format(
             '%s Density on Biome by Row (empirical) (%s) [%d]',
             name, mode, D.savs ),
         x_label='Y', --
         y_label='Density', --
         x_range='1:70', --
-        y_range='0:.3', --
+        y_range=format( '0:%f', top_density ), --
       }
       local csv_data = { header={ 'y' }, rows={} }
       for _, biome in ipairs( BIOME_ORDERING ) do
@@ -1231,6 +1310,39 @@ local function finished( mode )
         insert( csv_data.rows, row )
       end
       local path = format( '%s/%s.biome.density.rows.%s.gnuplot',
+                           PLOTS_DIR, mode, type )
+      plot.line_graph_to_file( path, csv_data, opts )
+    end
+
+    do
+      local opts = {
+        title=format(
+            '%s Density on Biome by Column (empirical) (%s) [%d]',
+            name, mode, D.savs ),
+        x_label='X', --
+        y_label='Density', --
+        x_range='1:56', --
+        y_range=format( '0:%f', top_density ), --
+      }
+      local csv_data = { header={ 'x' }, rows={} }
+      for _, biome in ipairs( BIOME_ORDERING ) do
+        insert( csv_data.header, biome )
+      end
+      for x = 1, 56 do
+        local row = { x }
+        for _, biome in ipairs( BIOME_ORDERING ) do
+          if D.land_with_biome_by_col[x][biome] > 0 then
+            local val =
+                D.count_with_biome_by_col[type][x][biome] /
+                    D.land_with_biome_by_col[x][biome]
+            insert( row, val )
+          else
+            insert( row, 0 )
+          end
+        end
+        insert( csv_data.rows, row )
+      end
+      local path = format( '%s/%s.biome.density.cols.%s.gnuplot',
                            PLOTS_DIR, mode, type )
       plot.line_graph_to_file( path, csv_data, opts )
     end

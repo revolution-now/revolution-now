@@ -108,7 +108,7 @@ struct.BiomesSetup {
 
 struct.FormationSetup {
   seed 'rng::seed',
-  density 'config::DoublePercent',
+  density 'refl::enum_map<e_biome, config::DoublePercent>',
   # Probability that a tile chosen to have this formation on it
   # will continue into a range. This is applied recursively on
   # each new such tile added in the range to determine whether to

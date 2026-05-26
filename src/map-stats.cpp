@@ -345,6 +345,7 @@ struct FormationsStatsCollector : IMapStatsCollector {
   map<int /*col*/, int> land_by_col_;
   enum_map<e_biome, int> land_with_biome_;
   map<int /*y*/, enum_map<e_biome, int>> land_with_biome_by_row_;
+  map<int /*x*/, enum_map<e_biome, int>> land_with_biome_by_col_;
   M<int> count_;
   int count_forest_ = 0;
   M<int> count_squared_;
@@ -353,6 +354,8 @@ struct FormationsStatsCollector : IMapStatsCollector {
   M<enum_map<e_biome, int>> count_with_biome_;
   M<map<int /*y*/, enum_map<e_biome, int>>>
       count_with_biome_by_row_;
+  M<map<int /*x*/, enum_map<e_biome, int>>>
+      count_with_biome_by_col_;
   M<map<int /*row*/, int>> count_by_row_;
   M<map<int /*col*/, int>> count_by_col_;
   // Note this includes singletons.
@@ -589,6 +592,7 @@ void FormationsStatsCollector::collect( MapMatrix const& m ) {
       ++land_ocean_adjacent_cardinal_;
     ++land_with_biome_[center.ground];
     ++land_with_biome_by_row_[tile.y][center.ground];
+    ++land_with_biome_by_col_[tile.x][center.ground];
 
     bool has_hills_adjacent     = false;
     bool has_mountains_adjacent = false;
@@ -619,6 +623,8 @@ void FormationsStatsCollector::collect( MapMatrix const& m ) {
       ++count_with_biome_[mountains][center.ground];
       ++count_with_biome_by_row_[mountains][tile.y]
                                 [center.ground];
+      ++count_with_biome_by_col_[mountains][tile.x]
+                                [center.ground];
     }
 
     if( has_hills( center ) ) {
@@ -634,6 +640,7 @@ void FormationsStatsCollector::collect( MapMatrix const& m ) {
       per_map_.tile_to_segment[hills][tile] = 0;
       ++count_with_biome_[hills][center.ground];
       ++count_with_biome_by_row_[hills][tile.y][center.ground];
+      ++count_with_biome_by_col_[hills][tile.x][center.ground];
     }
 
     if( has_forest( center ) ) {
@@ -657,6 +664,8 @@ void FormationsStatsCollector::collect( MapMatrix const& m ) {
       per_map_.tile_to_segment[clearing][tile] = 0;
       ++count_with_biome_[clearing][center.ground];
       ++count_with_biome_by_row_[clearing][tile.y]
+                                [center.ground];
+      ++count_with_biome_by_col_[clearing][tile.x]
                                 [center.ground];
     }
 
@@ -750,6 +759,7 @@ void FormationsStatsCollector::write() const {
   };
 
   table o;
+  o["__key_order"]         = DATA_KEY_ORDER;
   o["savs"]                = int( maps );
   o["tiles"]               = tiles_;
   o["land"]                = land_ / maps;
@@ -1321,14 +1331,24 @@ void FormationsStatsCollector::write() const {
   for( auto const type : enum_values<e_terrain_formation> ) {
     string const type_name =
         base::capitalize_initials( base::to_str( type ) );
-    double const top = [&] {
+    double const top_count = [&] {
       switch( type ) {
         case e_terrain_formation::clearing:
-          return 2.0;
+          return 1.5;
         case e_terrain_formation::hills:
           return 1.5;
         case e_terrain_formation::mountains:
-          return 2.0;
+          return 1.5;
+      }
+    }();
+    double const top_density = [&] {
+      switch( type ) {
+        case e_terrain_formation::clearing:
+          return .25;
+        case e_terrain_formation::hills:
+          return .25;
+        case e_terrain_formation::mountains:
+          return .25;
       }
     }();
     {
@@ -1339,7 +1359,7 @@ void FormationsStatsCollector::write() const {
         .x_label = "Y (row)",
         .y_label = "Count per Row",
         .x_range = "1:70",
-        .y_range = format( "0:{}", top ),
+        .y_range = format( "0:{}", top_count ),
       };
 
       CsvData csv_data{
@@ -1371,12 +1391,49 @@ void FormationsStatsCollector::write() const {
     {
       GnuPlotSettings const settings{
         .title = format(
+            "{} on Biome by Column (generated) ({}) [{}]",
+            type_name, mode_, maps_ ),
+        .x_label = "X (column)",
+        .y_label = "Count per Column",
+        .x_range = "1:56",
+        .y_range = format( "0:{}", top_count ),
+      };
+
+      CsvData csv_data{
+        .header = { "x" },
+        .rows   = {},
+      };
+      for( e_biome const biome : BIOME_ORDERING )
+        csv_data.header.push_back( base::to_str( biome ) );
+
+      for( int x = 0; x < map_sz_.w; ++x ) {
+        vector<string> row{ /*x=*/to_string( x + 1 ) };
+        auto const biomes =
+            lookup( count_with_biome_by_col_[type], x );
+        if( !biomes.has_value() ) {
+          for( e_biome const _ : BIOME_ORDERING )
+            row.push_back( to_string( 0 ) );
+          csv_data.rows.push_back( std::move( row ) );
+          continue;
+        }
+        for( e_biome const biome : BIOME_ORDERING )
+          row.push_back(
+              to_string( ( *biomes )[biome] / maps ) );
+        csv_data.rows.push_back( std::move( row ) );
+      }
+
+      gnuplot( settings, csv_data,
+               format( "biome.counts.cols.{}", type ) );
+    }
+    {
+      GnuPlotSettings const settings{
+        .title = format(
             "{} Density on Biome by Row (generated) ({}) [{}]",
             type_name, mode_, maps_ ),
         .x_label = "Y (row)",
         .y_label = "Density",
         .x_range = "1:70",
-        .y_range = "0:.3",
+        .y_range = format( "0:{}", top_density ),
       };
 
       CsvData csv_data{
@@ -1413,6 +1470,52 @@ void FormationsStatsCollector::write() const {
 
       gnuplot( settings, csv_data,
                format( "biome.density.rows.{}", type ) );
+    }
+    {
+      GnuPlotSettings const settings{
+        .title   = format( "{} Density on Biome by Column "
+                             "(generated) ({}) [{}]",
+                           type_name, mode_, maps_ ),
+        .x_label = "X (column)",
+        .y_label = "Density",
+        .x_range = "1:56",
+        .y_range = format( "0:{}", top_density ),
+      };
+
+      CsvData csv_data{
+        .header = { "x" },
+        .rows   = {},
+      };
+      for( e_biome const biome : BIOME_ORDERING )
+        csv_data.header.push_back( base::to_str( biome ) );
+
+      for( int x = 0; x < map_sz_.w; ++x ) {
+        vector<string> row{ /*y=*/to_string( x + 1 ) };
+        SCOPE_EXIT {
+          csv_data.rows.push_back( std::move( row ) );
+        };
+        auto const land = lookup( land_with_biome_by_col_, x );
+        auto const biomes =
+            lookup( count_with_biome_by_col_[type], x );
+        if( !land.has_value() ) goto skip2;
+        if( !biomes.has_value() ) goto skip2;
+        for( e_biome const biome : BIOME_ORDERING ) {
+          if( ( *land )[biome] == 0 ) {
+            row.push_back( to_string( 0 ) );
+            continue;
+          }
+          double const val =
+              ( *biomes )[biome] / double( ( *land )[biome] );
+          row.push_back( to_string( val ) );
+        }
+        continue;
+      skip2:
+        for( e_biome const _ : BIOME_ORDERING )
+          row.push_back( to_string( 0 ) );
+      }
+
+      gnuplot( settings, csv_data,
+               format( "biome.density.cols.{}", type ) );
     }
   }
 }

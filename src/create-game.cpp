@@ -243,8 +243,8 @@ valid_or<string> generate_map_native_impl(
   set_all_forest( real_terrain.map );
 
   auto const kFormationOrder = {
-    e_terrain_formation::mountains,
     e_terrain_formation::hills,
+    e_terrain_formation::mountains,
     e_terrain_formation::clearing,
   };
 
@@ -253,7 +253,7 @@ valid_or<string> generate_map_native_impl(
         setup.formations.formation[formation];
     rand.reseed( formation_setup.seed );
     generate_formation( rand, real_terrain.map, formation,
-                        formation_setup.density.fraction,
+                        formation_setup.density,
                         formation_setup.growth.probability,
                         formation_setup.max_length );
   }

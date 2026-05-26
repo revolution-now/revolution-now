@@ -82,5 +82,5 @@ set xlabel "Y"
 set ylabel "Density"
 set key autotitle columnhead
 set xrange [1:70]
-set yrange [0:.3]
+set yrange [0:0.250000]
 plot for [col=2:*] $CSVData using 1:col with lines lw 2
