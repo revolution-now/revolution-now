@@ -307,20 +307,20 @@ terrain_generation {
 
   formations.formation {
     hills {
-      density.fraction:   .05
-      growth.probability: .13
+      density.fraction:   .070
+      growth.probability: .060
       max_length:          60
     }
 
     mountains {
-      density.fraction:   .05
-      growth.probability: .25
+      density.fraction:   .052
+      growth.probability: .250
       max_length:          60
     }
 
     clearing {
-      density.fraction:   .05
-      growth.probability: .25
+      density.fraction:   .050
+      growth.probability: .330
       max_length:          60
     }
   }

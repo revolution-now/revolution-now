@@ -38,6 +38,7 @@
 // base
 #include "base/ansi.hpp"
 #include "base/keyval.hpp"
+#include "base/scope-exit.hpp"
 #include "base/string.hpp"
 
 // C++ standard library
@@ -998,7 +999,7 @@ void FormationsStatsCollector::write() const {
       .title =
           format( "Range Length Histogram (generated) ({}) [{}]",
                   mode_, maps_ ),
-      .x_label = "Length (carddinal adjacent)",
+      .x_label = "Length (cardinal adjacent)",
       .y_label = "Frequency",
       .x_range = "1:30",
       .y_range = "-20:0",
@@ -1083,16 +1084,14 @@ void FormationsStatsCollector::write() const {
         /*clearing=*/"",
       };
       double const mountains_value =
-          lookup( count_by_row_[mountains], y - 1 )
-              .value_or( 0 ) /
-          double( lookup( land_by_row_, y - 1 ).value_or( 0 ) );
+          lookup( count_by_row_[mountains], y ).value_or( 0 ) /
+          double( lookup( land_by_row_, y ).value_or( 0 ) );
       double const hills_value =
-          lookup( count_by_row_[hills], y - 1 ).value_or( 0 ) /
-          double( lookup( land_by_row_, y - 1 ).value_or( 0 ) );
+          lookup( count_by_row_[hills], y ).value_or( 0 ) /
+          double( lookup( land_by_row_, y ).value_or( 0 ) );
       double const clearing_value =
-          lookup( count_by_row_[clearing], y - 1 )
-              .value_or( 0 ) /
-          double( lookup( land_by_row_, y - 1 ).value_or( 0 ) );
+          lookup( count_by_row_[clearing], y ).value_or( 0 ) /
+          double( lookup( land_by_row_, y ).value_or( 0 ) );
       row[1] = to_string( mountains_value );
       row[2] = to_string( hills_value );
       row[3] = to_string( clearing_value );
@@ -1107,7 +1106,7 @@ void FormationsStatsCollector::write() const {
       .title =
           format( "Column Based Densities (generated) ({}) [{}]",
                   mode_, maps_ ),
-      .x_label = "X (row)",
+      .x_label = "X (column)",
       .y_label = "Density",
       .x_range = "1:56",
       .y_range = "0:.2",
@@ -1118,7 +1117,7 @@ void FormationsStatsCollector::write() const {
       .rows   = {},
     };
 
-    for( int x = 1; x < map_sz_.w - 1; ++x ) {
+    for( int x = 0; x < map_sz_.w; ++x ) {
       vector<string> row{
         /*x=*/to_string( x + 1 ),
         /*mountains=*/"",
@@ -1126,16 +1125,14 @@ void FormationsStatsCollector::write() const {
         /*clearing=*/"",
       };
       double const mountains_value =
-          lookup( count_by_col_[mountains], x - 1 )
-              .value_or( 0 ) /
-          double( lookup( land_by_col_, x - 1 ).value_or( 0 ) );
+          lookup( count_by_col_[mountains], x ).value_or( 0 ) /
+          double( lookup( land_by_col_, x ).value_or( 0 ) );
       double const hills_value =
-          lookup( count_by_col_[hills], x - 1 ).value_or( 0 ) /
-          double( lookup( land_by_col_, x - 1 ).value_or( 0 ) );
+          lookup( count_by_col_[hills], x ).value_or( 0 ) /
+          double( lookup( land_by_col_, x ).value_or( 0 ) );
       double const clearing_value =
-          lookup( count_by_col_[clearing], x - 1 )
-              .value_or( 0 ) /
-          double( lookup( land_by_col_, x - 1 ).value_or( 0 ) );
+          lookup( count_by_col_[clearing], x ).value_or( 0 ) /
+          double( lookup( land_by_col_, x ).value_or( 0 ) );
       row[1] = to_string( mountains_value );
       row[2] = to_string( hills_value );
       row[3] = to_string( clearing_value );
@@ -1143,6 +1140,280 @@ void FormationsStatsCollector::write() const {
     }
 
     gnuplot( settings, csv_data, "cols.any" );
+  }
+
+  {
+    GnuPlotSettings const settings{
+      .title   = format( "Row Based Range Center Densities "
+                           "(generated) ({}) [{}]",
+                         mode_, maps_ ),
+      .x_label = "Y (row)",
+      .y_label = "Density",
+      .x_range = "1:70",
+      .y_range = "0:.1",
+    };
+
+    CsvData csv_data{
+      .header = { "y", "mountains", "hills", "clearing" },
+      .rows   = {},
+    };
+
+    for( int y = 1; y < map_sz_.h - 1; ++y ) {
+      vector<string> row{
+        /*y=*/to_string( y + 1 ),
+        /*mountains=*/"",
+        /*hills=*/"",
+        /*clearing=*/"",
+      };
+      double const mountains_value =
+          lookup( count_range_centers_by_row_[mountains], y )
+              .value_or( 0 ) /
+          double( lookup( land_by_row_, y ).value_or( 0 ) );
+      double const hills_value =
+          lookup( count_range_centers_by_row_[hills], y )
+              .value_or( 0 ) /
+          double( lookup( land_by_row_, y ).value_or( 0 ) );
+      double const clearing_value =
+          lookup( count_range_centers_by_row_[clearing], y )
+              .value_or( 0 ) /
+          double( lookup( land_by_row_, y ).value_or( 0 ) );
+      row[1] = to_string( mountains_value );
+      row[2] = to_string( hills_value );
+      row[3] = to_string( clearing_value );
+      csv_data.rows.push_back( std::move( row ) );
+    }
+
+    gnuplot( settings, csv_data, "rows.centers" );
+  }
+
+  {
+    GnuPlotSettings const settings{
+      .title   = format( "Column Based Range Center Densities "
+                           "(generated) ({}) [{}]",
+                         mode_, maps_ ),
+      .x_label = "X (column)",
+      .y_label = "Density",
+      .x_range = "1:56",
+      .y_range = "0:.1",
+    };
+
+    CsvData csv_data{
+      .header = { "x", "mountains", "hills", "clearing" },
+      .rows   = {},
+    };
+
+    for( int x = 0; x < map_sz_.w; ++x ) {
+      vector<string> row{
+        /*x=*/to_string( x + 1 ),
+        /*mountains=*/"",
+        /*hills=*/"",
+        /*clearing=*/"",
+      };
+      double const mountains_value =
+          lookup( count_range_centers_by_col_[mountains], x )
+              .value_or( 0 ) /
+          double( lookup( land_by_col_, x ).value_or( 0 ) );
+      double const hills_value =
+          lookup( count_range_centers_by_col_[hills], x )
+              .value_or( 0 ) /
+          double( lookup( land_by_col_, x ).value_or( 0 ) );
+      double const clearing_value =
+          lookup( count_range_centers_by_col_[clearing], x )
+              .value_or( 0 ) /
+          double( lookup( land_by_col_, x ).value_or( 0 ) );
+      row[1] = to_string( mountains_value );
+      row[2] = to_string( hills_value );
+      row[3] = to_string( clearing_value );
+      csv_data.rows.push_back( std::move( row ) );
+    }
+
+    gnuplot( settings, csv_data, "cols.centers" );
+  }
+
+  {
+    GnuPlotSettings const settings{
+      .title = format(
+          "Row Based Large Densities (generated) ({}) [{}]",
+          mode_, maps_ ),
+      .x_label = "Y (row)",
+      .y_label = "Density",
+      .x_range = "1:70",
+      .y_range = "0:.005",
+    };
+
+    CsvData csv_data{
+      .header = { "y", "mountains/10", "hills", "clearing/20" },
+      .rows   = {},
+    };
+
+    for( int y = 1; y < map_sz_.h - 1; ++y ) {
+      vector<string> row{
+        /*y=*/to_string( y + 1 ),
+        /*mountains=*/"",
+        /*hills=*/"",
+        /*clearing=*/"",
+      };
+      double const mountains_value =
+          lookup( count_large_range_by_row_[mountains], y )
+              .value_or( 0 ) /
+          double( lookup( land_by_row_, y ).value_or( 0 ) ) / 10;
+      double const hills_value =
+          lookup( count_large_range_by_row_[hills], y )
+              .value_or( 0 ) /
+          double( lookup( land_by_row_, y ).value_or( 0 ) );
+      double const clearing_value =
+          lookup( count_large_range_by_row_[clearing], y )
+              .value_or( 0 ) /
+          double( lookup( land_by_row_, y ).value_or( 0 ) ) / 20;
+      row[1] = to_string( mountains_value );
+      row[2] = to_string( hills_value );
+      row[3] = to_string( clearing_value );
+      csv_data.rows.push_back( std::move( row ) );
+    }
+
+    gnuplot( settings, csv_data, "rows.large" );
+  }
+
+  {
+    GnuPlotSettings const settings{
+      .title = format(
+          "Column Based Large Densities (generated) ({}) [{}]",
+          mode_, maps_ ),
+      .x_label = "X (column)",
+      .y_label = "Density",
+      .x_range = "1:56",
+      .y_range = "0:.005",
+    };
+
+    CsvData csv_data{
+      .header = { "x", "mountains/10", "hills", "clearing/20" },
+      .rows   = {},
+    };
+
+    for( int x = 0; x < map_sz_.w; ++x ) {
+      vector<string> row{
+        /*x=*/to_string( x + 1 ),
+        /*mountains=*/"",
+        /*hills=*/"",
+        /*clearing=*/"",
+      };
+      double const mountains_value =
+          lookup( count_large_range_by_col_[mountains], x )
+              .value_or( 0 ) /
+          double( lookup( land_by_col_, x ).value_or( 0 ) ) / 10;
+      double const hills_value =
+          lookup( count_large_range_by_col_[hills], x )
+              .value_or( 0 ) /
+          double( lookup( land_by_col_, x ).value_or( 0 ) );
+      double const clearing_value =
+          lookup( count_large_range_by_col_[clearing], x )
+              .value_or( 0 ) /
+          double( lookup( land_by_col_, x ).value_or( 0 ) ) / 20;
+      row[1] = to_string( mountains_value );
+      row[2] = to_string( hills_value );
+      row[3] = to_string( clearing_value );
+      csv_data.rows.push_back( std::move( row ) );
+    }
+
+    gnuplot( settings, csv_data, "cols.large" );
+  }
+
+  for( auto const type : enum_values<e_terrain_formation> ) {
+    string const type_name =
+        base::capitalize_initials( base::to_str( type ) );
+    double const top = [&] {
+      switch( type ) {
+        case e_terrain_formation::clearing:
+          return 2.0;
+        case e_terrain_formation::hills:
+          return 1.5;
+        case e_terrain_formation::mountains:
+          return 2.0;
+      }
+    }();
+    {
+      GnuPlotSettings const settings{
+        .title =
+            format( "{} on Biome by Row (generated) ({}) [{}]",
+                    type_name, mode_, maps_ ),
+        .x_label = "Y (row)",
+        .y_label = "Count per Row",
+        .x_range = "1:70",
+        .y_range = format( "0:{}", top ),
+      };
+
+      CsvData csv_data{
+        .header = { "y" },
+        .rows   = {},
+      };
+      for( e_biome const biome : BIOME_ORDERING )
+        csv_data.header.push_back( base::to_str( biome ) );
+
+      for( int y = 0; y < map_sz_.h; ++y ) {
+        vector<string> row{ /*y=*/to_string( y + 1 ) };
+        auto const biomes =
+            lookup( count_with_biome_by_row_[type], y );
+        if( !biomes.has_value() ) {
+          for( e_biome const _ : BIOME_ORDERING )
+            row.push_back( to_string( 0 ) );
+          csv_data.rows.push_back( std::move( row ) );
+          continue;
+        }
+        for( e_biome const biome : BIOME_ORDERING )
+          row.push_back(
+              to_string( ( *biomes )[biome] / maps ) );
+        csv_data.rows.push_back( std::move( row ) );
+      }
+
+      gnuplot( settings, csv_data,
+               format( "biome.counts.rows.{}", type ) );
+    }
+    {
+      GnuPlotSettings const settings{
+        .title = format(
+            "{} Density on Biome by Row (generated) ({}) [{}]",
+            type_name, mode_, maps_ ),
+        .x_label = "Y (row)",
+        .y_label = "Density",
+        .x_range = "1:70",
+        .y_range = "0:.3",
+      };
+
+      CsvData csv_data{
+        .header = { "y" },
+        .rows   = {},
+      };
+      for( e_biome const biome : BIOME_ORDERING )
+        csv_data.header.push_back( base::to_str( biome ) );
+
+      for( int y = 0; y < map_sz_.h; ++y ) {
+        vector<string> row{ /*y=*/to_string( y + 1 ) };
+        SCOPE_EXIT {
+          csv_data.rows.push_back( std::move( row ) );
+        };
+        auto const land = lookup( land_with_biome_by_row_, y );
+        auto const biomes =
+            lookup( count_with_biome_by_row_[type], y );
+        if( !land.has_value() ) goto skip;
+        if( !biomes.has_value() ) goto skip;
+        for( e_biome const biome : BIOME_ORDERING ) {
+          if( ( *land )[biome] == 0 ) {
+            row.push_back( to_string( 0 ) );
+            continue;
+          }
+          double const val =
+              ( *biomes )[biome] / double( ( *land )[biome] );
+          row.push_back( to_string( val ) );
+        }
+        continue;
+      skip:
+        for( e_biome const _ : BIOME_ORDERING )
+          row.push_back( to_string( 0 ) );
+      }
+
+      gnuplot( settings, csv_data,
+               format( "biome.density.rows.{}", type ) );
+    }
   }
 }
 
