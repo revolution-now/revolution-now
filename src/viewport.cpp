@@ -365,8 +365,8 @@ double ViewportController::min_zoom_allowed() const {
   // super small maps (e.g. 4x4) the min zoom could be larger
   // than one, and would not allow the player to zoom out to 1.0
   // to make the sprites appear normal sized.
-  return std::min( 1.0, optimal_min_zoom() /
-                            config_rn.viewport.zoom_min_factor );
+  return std::min( config_rn.viewport.zoom_min_always_allowed,
+                   optimal_min_zoom() );
 }
 
 double ViewportController::x_world_pixels_in_viewport() const {

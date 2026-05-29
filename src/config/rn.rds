@@ -31,12 +31,12 @@ struct.main_window {
 # TODO: get rid of this after it is fully migrated to
 # config/land-view.
 struct.viewport {
+  # The zoom is always allowed to go down to this level, even if
+  # it is below the "optimal", where "optimal" is the value that
+  # just barely makes the entire map visible.
+  zoom_min_always_allowed 'double',
+
   pan_speed 'double',
-  # This is not the min zoom exactly, it is the factor that the
-  # "optimal" zoom will be divided by to get the minimum allowed
-  # zoom. The "optimal" zoom is the one that is just small enough
-  # to put the entire map on the screen, with a bit of border.
-  zoom_min_factor 'double',
   zoom_speed 'double',
   zoom_accel_coeff 'double',
   zoom_accel_drag_coeff 'double',
