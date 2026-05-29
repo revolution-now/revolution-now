@@ -277,5 +277,8 @@ TEST_CASE( "[igui] optional_choice_int_key" ) {
   REQUIRE( f() == 7 );
 }
 
+TEST_CASE( "[igui] optional_enum_choice initial selection" ) {
+}
+
 } // namespace
 } // namespace rn

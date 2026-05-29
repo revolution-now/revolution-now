@@ -377,7 +377,7 @@ create_classic_game_custom_params( IEngine&, Planes&,
     UNWRAP_CO_RETURN(
         params.land_mass,
         co_await gui.optional_enum_choice<e_land_mass>(
-            config ) );
+            config, e_land_mass::moderate ) );
   }
   {
     EnumChoiceConfig const config{
@@ -386,7 +386,7 @@ create_classic_game_custom_params( IEngine&, Planes&,
     UNWRAP_CO_RETURN(
         params.land_form,
         co_await gui.optional_enum_choice<e_land_form>(
-            config ) );
+            config, e_land_form::normal ) );
   }
   {
     EnumChoiceConfig const config{
@@ -395,7 +395,7 @@ create_classic_game_custom_params( IEngine&, Planes&,
     UNWRAP_CO_RETURN(
         params.temperature,
         co_await gui.optional_enum_choice<e_temperature>(
-            config ) );
+            config, e_temperature::temperate ) );
   }
   {
     EnumChoiceConfig const config{
@@ -403,7 +403,8 @@ create_classic_game_custom_params( IEngine&, Planes&,
     };
     UNWRAP_CO_RETURN(
         params.climate,
-        co_await gui.optional_enum_choice<e_climate>( config ) );
+        co_await gui.optional_enum_choice<e_climate>(
+            config, e_climate::normal ) );
   }
   co_return params;
 }
