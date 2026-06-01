@@ -68,11 +68,11 @@ local D = {
   count={
     mountains=0, --
     hills=0, --
-    forest=0, --
+    clearing=0, --
 
     mountains_squared=0, --
     hills_squared=0, --
-    forest_squared=0, --
+    clearing_squared=0, --
   },
 
   count_rivers_on_land=0, --
@@ -80,7 +80,7 @@ local D = {
   count_arctic_rows={
     mountains=0, --
     hills=0, --
-    forest=0, --
+    clearing=0, --
   },
 
   -- key=biome
@@ -211,7 +211,7 @@ local _D_TEMPLATE = {
   count={
     mountains=0, --
     hills=0, --
-    forest=0, --
+    clearing=0, --
   },
 
   segments={
@@ -528,15 +528,15 @@ local function lambda( J )
         assert( is_land )
         D.count_arctic_rows.mountains =
             D.count_arctic_rows.mountains + 1
-      end
-      if Q.has_hills( J, tile ) then
+      elseif Q.has_hills( J, tile ) then
         assert( is_land )
         D.count_arctic_rows.hills = D.count_arctic_rows.hills + 1
-      end
-      if Q.has_forest( J, tile ) then
+      elseif Q.has_forest( J, tile ) then
+        error( 'forest on arctic' )
+      elseif is_land then
         assert( is_land )
-        D.count_arctic_rows.forest =
-            D.count_arctic_rows.forest + 1
+        D.count_arctic_rows.clearing =
+            D.count_arctic_rows.clearing + 1
       end
       return
     end
@@ -637,16 +637,13 @@ local function lambda( J )
           D.count_with_biome_by_col.hills[tile.x][square.ground] +
               1
     end
-    if Q.has_forest( J, tile ) then
-      assert( is_land )
-      D.count.forest = D.count.forest + 1
-      _D.count.forest = _D.count.forest + 1
-    end
     local has_overlays = Q.has_mountains( J, tile ) or
                              Q.has_hills( J, tile ) or
                              Q.has_forest( J, tile )
     local clearing = is_land and not has_overlays
     if clearing then
+      D.count.clearing = D.count.clearing + 1
+      _D.count.clearing = _D.count.clearing + 1
       D.count_by_row.clearing[tile.y] =
           D.count_by_row.clearing[tile.y] + 1
       D.count_by_col.clearing[tile.x] =
@@ -695,8 +692,8 @@ local function lambda( J )
                                   _D.count.mountains ^ 2
   D.count.hills_squared =
       D.count.hills_squared + _D.count.hills ^ 2
-  D.count.forest_squared = D.count.forest_squared +
-                               _D.count.forest ^ 2
+  D.count.clearing_squared = D.count.clearing_squared +
+                                 _D.count.clearing ^ 2
 end
 
 local function stddev( s1, s2, denominator )
@@ -714,7 +711,6 @@ local DATA_KEY_ORDER = {
   'count', --
   'stddev', --
   'density', --
-  'forest_density_non_mounds', --
   'count_hills_plus_land_rivers', --
   'density_hills_plus_land_rivers', --
   'count_arctic_rows', --
@@ -741,16 +737,10 @@ local DATA_KEY_ORDER = {
   'density_on_biome', --
 }
 
-local OVERLAY_ORDER_CLEARING = {
+local FORMATION_ORDER = {
   'mountains', --
   'hills', --
   'clearing', --
-}
-
-local OVERLAY_ORDER_FOREST = {
-  'mountains', --
-  'hills', --
-  'forest', --
 }
 
 local function finished( mode )
@@ -766,80 +756,73 @@ local function finished( mode )
     o.land_ocean_adjacent_cardinal =
         D.land_ocean_adjacent_cardinal / D.savs
     o.land_non_mounds = D.land_non_mounds / D.savs
-    o.count = { __key_order=OVERLAY_ORDER_FOREST }
+    o.count = { __key_order=FORMATION_ORDER }
     o.count.mountains = D.count.mountains / D.savs
     o.count.hills = D.count.hills / D.savs
-    o.count.forest = D.count.forest / D.savs
-    o.stddev = { __key_order=OVERLAY_ORDER_FOREST }
+    o.count.clearing = D.count.clearing / D.savs
+    o.stddev = { __key_order=FORMATION_ORDER }
     o.stddev.mountains = stddev( D.count.mountains,
                                  D.count.mountains_squared,
                                  D.savs )
     o.stddev.hills = stddev( D.count.hills,
                              D.count.hills_squared, D.savs )
-    o.stddev.forest = stddev( D.count.forest,
-                              D.count.forest_squared, D.savs )
-    o.density = { __key_order=OVERLAY_ORDER_FOREST }
+    o.stddev.clearing = stddev( D.count.clearing,
+                                D.count.clearing_squared, D.savs )
+    o.density = { __key_order=FORMATION_ORDER }
     o.density.mountains = D.count.mountains / D.land
     o.density.hills = D.count.hills / D.land
-    o.density.forest = D.count.forest / D.land
-    o.forest_density_non_mounds =
-        D.count.forest / D.land_non_mounds
+    o.density.clearing = D.count.clearing / D.land
+    o.clearing_density_non_mounds =
+        D.count.clearing / D.land_non_mounds
     o.count_hills_plus_land_rivers =
         D.count_rivers_on_land + D.count.hills
     o.density_hills_plus_land_rivers =
         (D.count_rivers_on_land + D.count.hills) / D.land
-    o.count_arctic_rows = { __key_order=OVERLAY_ORDER_FOREST }
+    o.count_arctic_rows = { __key_order=FORMATION_ORDER }
     o.count_arctic_rows.mountains =
         D.count_arctic_rows.mountains / D.savs
     o.count_arctic_rows.hills = D.count_arctic_rows.hills /
                                     D.savs
-    o.count_arctic_rows.forest =
-        D.count_arctic_rows.forest / D.savs
-    o.num_ranges = { __key_order=OVERLAY_ORDER_CLEARING }
+    o.count_arctic_rows.clearing =
+        D.count_arctic_rows.clearing / D.savs
+    o.num_ranges = { __key_order=FORMATION_ORDER }
     o.num_ranges.mountains = D.num_ranges.mountains / D.savs
     o.num_ranges.hills = D.num_ranges.hills / D.savs
     o.num_ranges.clearing = D.num_ranges.clearing / D.savs
-    o.num_ranges_1 = { __key_order=OVERLAY_ORDER_CLEARING }
+    o.num_ranges_1 = { __key_order=FORMATION_ORDER }
     o.num_ranges_1.mountains =
         D.count_range_length.mountains[1] / D.savs
     o.num_ranges_1.hills = D.count_range_length.hills[1] / D.savs
     o.num_ranges_1.clearing = D.count_range_length.clearing[1] /
                                   D.savs
-    o.num_ranges_1_per_land = {
-      __key_order=OVERLAY_ORDER_CLEARING,
-    }
+    o.num_ranges_1_per_land = { __key_order=FORMATION_ORDER }
     o.num_ranges_1_per_land.mountains =
         D.count_range_length.mountains[1] / D.land
     o.num_ranges_1_per_land.hills =
         D.count_range_length.hills[1] / D.land
     o.num_ranges_1_per_land.clearing =
         D.count_range_length.clearing[1] / D.land
-    o.num_ranges_per_land =
-        { __key_order=OVERLAY_ORDER_CLEARING }
+    o.num_ranges_per_land = { __key_order=FORMATION_ORDER }
     o.num_ranges_per_land.mountains =
         D.num_ranges.mountains / D.land
     o.num_ranges_per_land.hills = D.num_ranges.hills / D.land
     o.num_ranges_per_land.clearing =
         D.num_ranges.clearing / D.land
-    o.count_range_centers =
-        { __key_order=OVERLAY_ORDER_CLEARING }
+    o.count_range_centers = { __key_order=FORMATION_ORDER }
     o.count_range_centers.mountains =
         D.count_range_centers.mountains / D.savs
     o.count_range_centers.hills =
         D.count_range_centers.hills / D.savs
     o.count_range_centers.clearing =
         D.count_range_centers.clearing / D.savs
-    o.density_range_centers = {
-      __key_order=OVERLAY_ORDER_CLEARING,
-    }
+    o.density_range_centers = { __key_order=FORMATION_ORDER }
     o.density_range_centers.mountains =
         D.count_range_centers.mountains / D.land
     o.density_range_centers.hills =
         D.count_range_centers.hills / D.land
     o.density_range_centers.clearing =
         D.count_range_centers.clearing / D.land
-    o.count_ocean_adjacent =
-        { __key_order=OVERLAY_ORDER_CLEARING }
+    o.count_ocean_adjacent = { __key_order=FORMATION_ORDER }
     o.count_ocean_adjacent.mountains =
         D.count_ocean_adjacent.mountains / D.savs
     o.count_ocean_adjacent.hills =
@@ -848,7 +831,7 @@ local function finished( mode )
         D.count_ocean_adjacent.clearing / D.savs
 
     o.count_ocean_adjacent_cardinal = {
-      __key_order=OVERLAY_ORDER_CLEARING,
+      __key_order=FORMATION_ORDER,
     }
     o.count_ocean_adjacent_cardinal.mountains =
         D.count_ocean_adjacent_cardinal.mountains / D.savs
@@ -856,9 +839,7 @@ local function finished( mode )
         D.count_ocean_adjacent_cardinal.hills / D.savs
     o.count_ocean_adjacent_cardinal.clearing =
         D.count_ocean_adjacent_cardinal.clearing / D.savs
-    o.density_ocean_adjacent = {
-      __key_order=OVERLAY_ORDER_CLEARING,
-    }
+    o.density_ocean_adjacent = { __key_order=FORMATION_ORDER }
     o.density_ocean_adjacent.mountains =
         D.count_ocean_adjacent.mountains / D.land_ocean_adjacent
     o.density_ocean_adjacent.hills =
@@ -866,7 +847,7 @@ local function finished( mode )
     o.density_ocean_adjacent.clearing =
         D.count_ocean_adjacent.clearing / D.land_ocean_adjacent
     o.density_ocean_adjacent_cardinal = {
-      __key_order=OVERLAY_ORDER_CLEARING,
+      __key_order=FORMATION_ORDER,
     }
     o.density_ocean_adjacent_cardinal.mountains =
         D.count_ocean_adjacent_cardinal.mountains /
@@ -877,7 +858,7 @@ local function finished( mode )
     o.density_ocean_adjacent_cardinal.clearing =
         D.count_ocean_adjacent_cardinal.clearing /
             D.land_ocean_adjacent_cardinal
-    o.count_large_range = { __key_order=OVERLAY_ORDER_CLEARING }
+    o.count_large_range = { __key_order=FORMATION_ORDER }
     o.count_large_range.mountains =
         D.count_large_range.mountains / D.savs
     o.count_large_range.hills = D.count_large_range.hills /
@@ -885,7 +866,7 @@ local function finished( mode )
     o.count_large_range.clearing =
         D.count_large_range.clearing / D.savs
     o.count_large_range_ocean_adjacent = {
-      __key_order=OVERLAY_ORDER_CLEARING,
+      __key_order=FORMATION_ORDER,
     }
     o.count_large_range_ocean_adjacent.mountains =
         D.count_large_range_ocean_adjacent.mountains / D.savs
@@ -894,7 +875,7 @@ local function finished( mode )
     o.count_large_range_ocean_adjacent.clearing =
         D.count_large_range_ocean_adjacent.clearing / D.savs
     o.count_large_range_ocean_adjacent_cardinal = {
-      __key_order=OVERLAY_ORDER_CLEARING,
+      __key_order=FORMATION_ORDER,
     }
     o.count_large_range_ocean_adjacent_cardinal.mountains =
         D.count_large_range_ocean_adjacent_cardinal.mountains /
@@ -905,8 +886,7 @@ local function finished( mode )
     o.count_large_range_ocean_adjacent_cardinal.clearing =
         D.count_large_range_ocean_adjacent_cardinal.clearing /
             D.savs
-    o.density_large_range =
-        { __key_order=OVERLAY_ORDER_CLEARING }
+    o.density_large_range = { __key_order=FORMATION_ORDER }
     o.density_large_range.mountains =
         D.count_large_range.mountains / D.land
     o.density_large_range.hills =
@@ -914,7 +894,7 @@ local function finished( mode )
     o.density_large_range.clearing =
         D.count_large_range.clearing / D.land
     o.density_large_range_ocean_adjacent = {
-      __key_order=OVERLAY_ORDER_CLEARING,
+      __key_order=FORMATION_ORDER,
     }
     o.density_large_range_ocean_adjacent.mountains =
         D.count_large_range_ocean_adjacent.mountains /
@@ -926,7 +906,7 @@ local function finished( mode )
         D.count_large_range_ocean_adjacent.clearing /
             D.land_ocean_adjacent
     o.density_large_range_ocean_adjacent_cardinal = {
-      __key_order=OVERLAY_ORDER_CLEARING,
+      __key_order=FORMATION_ORDER,
     }
     o.density_large_range_ocean_adjacent_cardinal.mountains =
         D.count_large_range_ocean_adjacent_cardinal.mountains /
@@ -946,16 +926,16 @@ local function finished( mode )
       o.land_with_biome[biome] =
           assert( D.land_with_biome[biome] )
     end
-    o.count_with_biome = { __key_order=OVERLAY_ORDER_CLEARING }
-    for _, kind in ipairs( OVERLAY_ORDER_CLEARING ) do
+    o.count_with_biome = { __key_order=FORMATION_ORDER }
+    for _, kind in ipairs( FORMATION_ORDER ) do
       o.count_with_biome[kind] = { __key_order=BIOME_ORDERING }
       for _, biome in ipairs( BIOME_ORDERING ) do
         o.count_with_biome[kind][biome] = assert(
                                               D.count_with_biome[kind][biome] )
       end
     end
-    o.density_on_biome = { __key_order=OVERLAY_ORDER_CLEARING }
-    for _, kind in ipairs( OVERLAY_ORDER_CLEARING ) do
+    o.density_on_biome = { __key_order=FORMATION_ORDER }
+    for _, kind in ipairs( FORMATION_ORDER ) do
       o.density_on_biome[kind] = { __key_order=BIOME_ORDERING }
       for _, biome in ipairs( BIOME_ORDERING ) do
         if D.land_with_biome[biome] > 0 then
@@ -988,7 +968,7 @@ local function finished( mode )
 
     local max_length = 0
     local total_ranges = 0
-    for _, kind in ipairs( OVERLAY_ORDER_CLEARING ) do
+    for _, kind in ipairs( FORMATION_ORDER ) do
       total_ranges = total_ranges + D.num_ranges[kind]
       for length, count in pairs( D.count_range_length[kind] ) do
         if count > 0 then
@@ -1363,7 +1343,6 @@ local function collect()
   local KEY_ORDER = {
     'savs', --
     'density', --
-    'forest_density_non_mounds', --
     'density_hills_plus_land_rivers', --
     'num_ranges_1_per_land', --
     'num_ranges_per_land', --
@@ -1385,13 +1364,11 @@ local function collect()
     __key_order={
       'mountain_density', --
       'hills_density', --
-      'forest_density', --
-      'forest_density_non_mounds', --
+      'clearing_density', --
     },
     mountain_density={ __key_order=MODES },
     hills_density={ __key_order=MODES },
-    forest_density={ __key_order=MODES },
-    forest_density_non_mounds={ __key_order=MODES },
+    clearing_density={ __key_order=MODES },
   }
   for _, mode in ipairs( MODES ) do
     do
@@ -1402,11 +1379,8 @@ local function collect()
       local om = o.modes[mode]
       for _, key in ipairs( KEY_ORDER ) do
         om[key] = assert( F[key] )
-        if type( om[key] ) == 'table' and om[key].clearing then
-          om[key].__key_order = OVERLAY_ORDER_CLEARING
-        end
-        if type( om[key] ) == 'table' and om[key].forest then
-          om[key].__key_order = OVERLAY_ORDER_FOREST
+        if type( om[key] ) == 'table' then
+          om[key].__key_order = FORMATION_ORDER
         end
       end
       om.density_on_biome.mountains.__key_order = BIOME_ORDERING
@@ -1416,9 +1390,7 @@ local function collect()
     local op = o.properties
     op.mountain_density[mode] = o.modes[mode].density.mountains
     op.hills_density[mode] = o.modes[mode].density.hills
-    op.forest_density[mode] = o.modes[mode].density.forest
-    op.forest_density_non_mounds[mode] = o.modes[mode]
-                                             .forest_density_non_mounds
+    op.clearing_density[mode] = o.modes[mode].density.clearing
   end
   local path = format( '%s/overlays.json', PLOTS_DIR )
   json.write_file( path, o, 2 )

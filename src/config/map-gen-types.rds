@@ -117,3 +117,10 @@ enum.e_terrain_formation {
   mountains,
   clearing,
 }
+
+struct.Formation {
+  biome_density 'refl::enum_map<e_biome, config::Probability>',
+  spawn 'config::Probability',
+  growth_factor 'double',
+  max_length 'int',
+}

@@ -16,13 +16,21 @@
 // refl
 #include "refl/ext.hpp"
 
-namespace rn {
+namespace rn::config {
 
+/****************************************************************
+** UniformDistT
+*****************************************************************/
 template<typename T>
-base::valid_or<std::string> config::UniformDistT<T>::validate()
-    const {
+base::valid_or<std::string> UniformDistT<T>::validate() const {
   REFL_VALIDATE( min <= max, "min must <= max." );
   return base::valid;
 }
 
-} // namespace rn
+/****************************************************************
+** Probability
+*****************************************************************/
+[[nodiscard]] Probability operator*( Probability l,
+                                     Probability r );
+
+} // namespace rn::config

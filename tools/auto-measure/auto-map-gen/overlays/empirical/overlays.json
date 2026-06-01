@@ -30,35 +30,20 @@
       "mbmm": 0.06299270231653,
       "new": 0.066340878872989
     },
-    "forest_density": {
-      "bbtt": 0.71630152935731,
-      "bbmm": 0.73727732492369,
-      "bbbb": 0.75833707334536,
-      "bbtm": 0.73377393456495,
-      "bbbm": 0.74438174013867,
-      "bbmt": 0.72222325648193,
-      "bbmb": 0.75330620163851,
-      "tmmm": 0.83360126402727,
-      "mmmm": 0.80813479915006,
-      "bmmm": 0.78228368479349,
-      "mtmm": 0.8352603131486,
-      "mbmm": 0.7646540332,
-      "new": 0.74572925907806
-    },
-    "forest_density_non_mounds": {
-      "bbtt": 0.84687832635429,
-      "bbmm": 0.86444640285718,
-      "bbbb": 0.88016603881647,
-      "bbtm": 0.8626446630935,
-      "bbbm": 0.86903558963741,
-      "bbmt": 0.85096333554625,
-      "bbmb": 0.87782062955312,
-      "tmmm": 0.94535993940423,
-      "mmmm": 0.92485881818651,
-      "bmmm": 0.90532754950851,
-      "mtmm": 0.94718614120634,
-      "mbmm": 0.88465756728946,
-      "new": 0.88533109997066
+    "clearing_density": {
+      "bbtt": 0.12951245249402,
+      "bbmm": 0.11561224982245,
+      "bbbb": 0.10324703681307,
+      "bbtm": 0.11683578454418,
+      "bbbm": 0.11217896809337,
+      "bbmt": 0.12648928648365,
+      "bbmb": 0.10484884311363,
+      "tmmm": 0.048180615319778,
+      "mmmm": 0.065657809255487,
+      "bmmm": 0.081805434352595,
+      "mtmm": 0.046573021199823,
+      "mbmm": 0.099696266252994,
+      "new": 0.096587540933565
     }
   },
   "modes": {
@@ -67,9 +52,8 @@
       "density": {
         "mountains": 0.082831413146155,
         "hills": 0.071354605002511,
-        "forest": 0.71630152935731
+        "clearing": 0.12951245249402
       },
-      "forest_density_non_mounds": 0.84687832635429,
       "density_hills_plus_land_rivers": 0.17705365590559,
       "num_ranges_1_per_land": {
         "mountains": 0.043639217421144,
@@ -147,9 +131,8 @@
       "density": {
         "mountains": 0.082890095345726,
         "hills": 0.064220329908143,
-        "forest": 0.73727732492369
+        "clearing": 0.11561224982245
       },
-      "forest_density_non_mounds": 0.86444640285718,
       "density_hills_plus_land_rivers": 0.19498468791194,
       "num_ranges_1_per_land": {
         "mountains": 0.043786225846744,
@@ -227,9 +210,8 @@
       "density": {
         "mountains": 0.08140675412114,
         "hills": 0.057009135720432,
-        "forest": 0.75833707334536
+        "clearing": 0.10324703681307
       },
-      "forest_density_non_mounds": 0.88016603881647,
       "density_hills_plus_land_rivers": 0.2087013744828,
       "num_ranges_1_per_land": {
         "mountains": 0.042937734665257,
@@ -307,9 +289,8 @@
       "density": {
         "mountains": 0.082900491657593,
         "hills": 0.066489789233275,
-        "forest": 0.73377393456495
+        "clearing": 0.11683578454418
       },
-      "forest_density_non_mounds": 0.8626446630935,
       "density_hills_plus_land_rivers": 0.19660237609228,
       "num_ranges_1_per_land": {
         "mountains": 0.043844650152714,
@@ -387,9 +368,8 @@
       "density": {
         "mountains": 0.082382306791067,
         "hills": 0.061056984976884,
-        "forest": 0.74438174013867
+        "clearing": 0.11217896809337
       },
-      "forest_density_non_mounds": 0.86903558963741,
       "density_hills_plus_land_rivers": 0.19172497863675,
       "num_ranges_1_per_land": {
         "mountains": 0.043511621494407,
@@ -467,9 +447,8 @@
       "density": {
         "mountains": 0.083617364266395,
         "hills": 0.06767009276803,
-        "forest": 0.72222325648193
+        "clearing": 0.12648928648365
       },
-      "forest_density_non_mounds": 0.85096333554625,
       "density_hills_plus_land_rivers": 0.17396750592409,
       "num_ranges_1_per_land": {
         "mountains": 0.043683457260864,
@@ -547,9 +526,8 @@
       "density": {
         "mountains": 0.082508393394418,
         "hills": 0.059336561853443,
-        "forest": 0.75330620163851
+        "clearing": 0.10484884311363
       },
-      "forest_density_non_mounds": 0.87782062955312,
       "density_hills_plus_land_rivers": 0.21100046229983,
       "num_ranges_1_per_land": {
         "mountains": 0.04363920908836,
@@ -627,9 +605,8 @@
       "density": {
         "mountains": 0.059309356824861,
         "hills": 0.058908763828091,
-        "forest": 0.83360126402727
+        "clearing": 0.048180615319778
       },
-      "forest_density_non_mounds": 0.94535993940423,
       "density_hills_plus_land_rivers": 0.19302551211496,
       "num_ranges_1_per_land": {
         "mountains": 0.04411511762021,
@@ -707,9 +684,8 @@
       "density": {
         "mountains": 0.065972195504277,
         "hills": 0.060235196090178,
-        "forest": 0.80813479915006
+        "clearing": 0.065657809255487
       },
-      "forest_density_non_mounds": 0.92485881818651,
       "density_hills_plus_land_rivers": 0.19540314540144,
       "num_ranges_1_per_land": {
         "mountains": 0.044516433277015,
@@ -787,9 +763,8 @@
       "density": {
         "mountains": 0.07433863976087,
         "hills": 0.061572241093047,
-        "forest": 0.78228368479349
+        "clearing": 0.081805434352595
       },
-      "forest_density_non_mounds": 0.90532754950851,
       "density_hills_plus_land_rivers": 0.1985030810151,
       "num_ranges_1_per_land": {
         "mountains": 0.044588498581981,
@@ -867,9 +842,8 @@
       "density": {
         "mountains": 0.059354361944669,
         "hills": 0.058812303706907,
-        "forest": 0.8352603131486
+        "clearing": 0.046573021199823
       },
-      "forest_density_non_mounds": 0.94718614120634,
       "density_hills_plus_land_rivers": 0.19924125381251,
       "num_ranges_1_per_land": {
         "mountains": 0.04430057230793,
@@ -947,9 +921,8 @@
       "density": {
         "mountains": 0.072656998230475,
         "hills": 0.06299270231653,
-        "forest": 0.7646540332
+        "clearing": 0.099696266252994
       },
-      "forest_density_non_mounds": 0.88465756728946,
       "density_hills_plus_land_rivers": 0.18458423698596,
       "num_ranges_1_per_land": {
         "mountains": 0.043557202597551,
@@ -1027,9 +1000,8 @@
       "density": {
         "mountains": 0.091342321115383,
         "hills": 0.066340878872989,
-        "forest": 0.74572925907806
+        "clearing": 0.096587540933565
       },
-      "forest_density_non_mounds": 0.88533109997066,
       "density_hills_plus_land_rivers": 0.19325957228769,
       "num_ranges_1_per_land": {
         "mountains": 0.050228646522515,

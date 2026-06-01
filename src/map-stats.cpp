@@ -1043,14 +1043,14 @@ void FormationsStatsCollector::write() const {
       };
       double mountains_value =
           log( lookup( count_range_length_[mountains], i )
-                   .value_or( 0 ) /
+                   .value_or( 1 ) /
                double( total_ranges ) );
       double hills_value = log(
           lookup( count_range_length_[hills], i ).value_or( 1 ) /
           double( total_ranges ) );
       double clearing_value =
           log( lookup( count_range_length_[clearing], i )
-                   .value_or( 2 ) /
+                   .value_or( 1 ) /
                double( total_ranges ) );
       if( i == 1 ) {
         length_1_val[mountains] = mountains_value;

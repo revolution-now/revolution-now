@@ -68,6 +68,17 @@ valid_or<string> Probability::validate() const {
   return valid;
 }
 
+Probability operator*( Probability const l,
+                       Probability const r ) {
+  Probability res;
+  res.probability = l.probability * r.probability;
+  // Shouldn't be necessary since if l and r are valid then res
+  // should be also mathematically speaking, but let's just do it
+  // anyway as a sanity check.
+  CHECK_HAS_VALUE( res.validate() );
+  return res;
+}
+
 valid_or<string> NormalDist::validate() const {
   REFL_VALIDATE( stddev >= 0.0, "stddev must be non-negative." );
   return valid;

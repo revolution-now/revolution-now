@@ -116,12 +116,6 @@ struct.Biomes {
   wet_dry_modulation 'BiomeWetDryModulation',
 }
 
-struct.Formation {
-  density 'refl::enum_map<e_biome, config::DoublePercent>',
-  growth 'config::Probability',
-  max_length 'int',
-}
-
 struct.Formations {
   formation 'refl::enum_map<e_terrain_formation, Formation>',
 }

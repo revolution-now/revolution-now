@@ -8,6 +8,7 @@ add_subdirectory( rds )
 # just take their sources for the target in this folder.
 file( GLOB src_base_sources   "base/[a-zA-Z]*.cpp"       )
 file( GLOB src_cdr_sources    "cdr/[a-zA-Z]*.cpp"        )
+file( GLOB src_config_sources "config/[a-zA-Z]*.cpp"     )
 file( GLOB src_fake_sources   "fake/[a-zA-Z]*.cpp"       )
 file( GLOB src_gfx_sources    "gfx/[a-zA-Z]*.cpp"        )
 file( GLOB src_gl_sources     "gl/[a-zA-Z]*.cpp"         )
@@ -34,6 +35,7 @@ add_executable(
   ${src_sources}
   ${src_base_sources}
   ${src_cdr_sources}
+  ${src_config_sources}
   ${src_fake_sources}
   ${src_gfx_sources}
   ${src_gl_sources}

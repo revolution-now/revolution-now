@@ -38,8 +38,9 @@ void set_all_forest( MapMatrix& m );
 
 void generate_formation(
     IRand& rand, MapMatrix& m, e_terrain_formation formation,
-    refl::enum_map<e_biome, config::DoublePercent> const&
-        densities,
-    double growth, int max_length );
+    refl::enum_map<e_biome, config::Probability> const&
+        biome_density,
+    config::Probability spawn, double growth_factor,
+    int max_length );
 
 } // namespace rn

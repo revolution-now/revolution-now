@@ -216,5 +216,8 @@ TEST_CASE( "[irand] pick_from_weighted_values_safe<double>" ) {
 TEST_CASE( "[irand] pick_one_safe" ) {
 }
 
+TEST_CASE( "[irand] bernoulli( Probability )" ) {
+}
+
 } // namespace
 } // namespace rn

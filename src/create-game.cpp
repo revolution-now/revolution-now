@@ -243,19 +243,17 @@ valid_or<string> generate_map_native_impl(
   set_all_forest( real_terrain.map );
 
   auto const kFormationOrder = {
-    e_terrain_formation::hills,
-    e_terrain_formation::mountains,
-    e_terrain_formation::clearing,
+    e_terrain_formation::mountains, //
+    e_terrain_formation::hills,     //
+    e_terrain_formation::clearing,  //
   };
 
+  rand.reseed( setup.formations.seed );
   for( e_terrain_formation const formation : kFormationOrder ) {
-    auto const& formation_setup =
-        setup.formations.formation[formation];
-    rand.reseed( formation_setup.seed );
+    auto const& conf = setup.formations.formation[formation];
     generate_formation( rand, real_terrain.map, formation,
-                        formation_setup.density,
-                        formation_setup.growth.probability,
-                        formation_setup.max_length );
+                        conf.biome_density, conf.spawn,
+                        conf.growth_factor, conf.max_length );
   }
 
 #if 0

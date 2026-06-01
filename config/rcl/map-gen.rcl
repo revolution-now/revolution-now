@@ -307,51 +307,63 @@ terrain_generation {
 
   formations.formation {
     hills {
-      density {
-        savannah.fraction:  0.034
-        grassland.fraction: 0.025
-        tundra.fraction:    0.071
-        plains.fraction:    0.101
-        prairie.fraction:   0.059
-        desert.fraction:    0.040
-        swamp.fraction:     0.073
-        marsh.fraction:     0.078
-        arctic.fraction:    0.000
+      biome_density {
+        savannah.probability:  0.034
+        grassland.probability: 0.025
+        tundra.probability:    0.071
+        plains.probability:    0.101
+        prairie.probability:   0.059
+        desert.probability:    0.040
+        swamp.probability:     0.073
+        marsh.probability:     0.078
+        arctic.probability:    0.000
       }
-      growth.probability: .060
-      max_length:          60
+      spawn.probability: 1.00
+      growth_factor:     0.60
+      max_length:        9
     }
 
     mountains {
-      density {
-        savannah.fraction:  0.075
-        grassland.fraction: 0.058
-        tundra.fraction:    0.075
-        plains.fraction:    0.100
-        prairie.fraction:   0.078
-        desert.fraction:    0.103
-        swamp.fraction:     0.056
-        marsh.fraction:     0.103
-        arctic.fraction:    0.000
+      biome_density {
+        #savannah.probability:  0.075
+        #grassland.probability: 0.058
+        #tundra.probability:    0.075
+        #plains.probability:    0.100
+        #prairie.probability:   0.078
+        #desert.probability:    0.103
+        #swamp.probability:     0.056
+        #marsh.probability:     0.103
+        #arctic.probability:    0.000
+        savannah.probability:  1.000
+        grassland.probability: 1.000
+        tundra.probability:    1.000
+        plains.probability:    1.000
+        prairie.probability:   1.000
+        desert.probability:    1.000
+        swamp.probability:     1.000
+        marsh.probability:     1.000
+        arctic.probability:    0.000
       }
-      growth.probability: .250
-      max_length:          60
+      spawn.probability: 0.053
+      growth_factor:     4.750
+      max_length:        60
     }
 
     clearing {
-      density {
-        savannah.fraction:  0.118
-        grassland.fraction: 0.073
-        tundra.fraction:    0.247
-        plains.fraction:    0.134
-        prairie.fraction:   0.082
-        desert.fraction:    0.115
-        swamp.fraction:     0.032
-        marsh.fraction:     0.030
-        arctic.fraction:    0.000
+      biome_density {
+        savannah.probability:  0.118
+        grassland.probability: 0.073
+        tundra.probability:    0.247
+        plains.probability:    0.134
+        prairie.probability:   0.082
+        desert.probability:    0.115
+        swamp.probability:     0.032
+        marsh.probability:     0.030
+        arctic.probability:    1.000
       }
-      growth.probability: .330
-      max_length:          60
+      spawn.probability: 0.5
+      growth_factor:     4.75
+      max_length:        60
     }
   }
 }

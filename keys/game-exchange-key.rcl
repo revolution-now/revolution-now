@@ -96,56 +96,7 @@ map.source.generate_native.setup {
   }
 
   formations.formation {
-    hills {
-      seed: "799e3a0b501cf2b907f25c9955c4da6f"
-      density {
-        savannah.fraction:  0.034
-        grassland.fraction: 0.025
-        tundra.fraction:    0.071
-        plains.fraction:    0.101
-        prairie.fraction:   0.059
-        desert.fraction:    0.040
-        swamp.fraction:     0.073
-        marsh.fraction:     0.078
-        arctic.fraction:    0.000
-      }
-      growth.probability: .13
-      max_length:          60
-    }
-
-    mountains {
-      seed: "23edf70f1abb64d1b4e552f4ffa9cd9b"
-      density {
-        savannah.fraction:  0.075
-        grassland.fraction: 0.058
-        tundra.fraction:    0.075
-        plains.fraction:    0.100
-        prairie.fraction:   0.078
-        desert.fraction:    0.103
-        swamp.fraction:     0.056
-        marsh.fraction:     0.103
-        arctic.fraction:    0.000
-      }
-      growth.probability: .25
-      max_length:          60
-    }
-
-    clearing {
-      seed: "59d6ae93e9e67fe65760c811dc941337"
-      density {
-        savannah.fraction:  0.118
-        grassland.fraction: 0.073
-        tundra.fraction:    0.247
-        plains.fraction:    0.134
-        prairie.fraction:   0.082
-        desert.fraction:    0.115
-        swamp.fraction:     0.032
-        marsh.fraction:     0.030
-        arctic.fraction:    0.000
-      }
-      growth.probability: .25
-      max_length:          60
-    }
+    seed: "799e3a0b501cf2b907f25c9955c4da6f"
   }
 
   bonuses.seed: "de7db42af1959c181457f2eb81adaf6c"

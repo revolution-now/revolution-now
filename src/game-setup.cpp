@@ -201,18 +201,10 @@ GameSetup create_classic_game_setup(
     .wet_dry_modulation = map_conf.biomes.wet_dry_modulation,
   };
 
-  FormationsSetup const formations = [&] {
-    FormationsSetup res;
-    for( auto const tf : enum_values<e_terrain_formation> ) {
-      auto const& conf     = map_conf.formations.formation[tf];
-      auto& formation      = res.formation[tf];
-      formation.seed       = rand.new_deterministic_seed();
-      formation.density    = conf.density;
-      formation.growth     = conf.growth;
-      formation.max_length = conf.max_length;
-    }
-    return res;
-  }();
+  FormationsSetup const formations{
+    .seed      = rand.new_deterministic_seed(),
+    .formation = map_conf.formations.formation,
+  };
 
   BonusesSetup const bonuses{
     .seed = rand.new_deterministic_seed(),

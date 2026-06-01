@@ -9,25 +9,24 @@
   "count": {
     "mountains": 108.869,
     "hills": 78.294,
-    "forest": 993.98
+    "clearing": 138.347
   },
   "stddev": {
     "mountains": 16.752129387036,
     "hills": 10.444164112077,
-    "forest": 78.069543357189
+    "clearing": 17.345967571744
   },
   "density": {
     "mountains": 0.082508393394418,
     "hills": 0.059336561853443,
-    "forest": 0.75330620163851
+    "clearing": 0.10484884311363
   },
-  "forest_density_non_mounds": 0.87782062955312,
   "count_hills_plus_land_rivers": 556826,
   "density_hills_plus_land_rivers": 0.21100046229983,
   "count_arctic_rows": {
     "mountains": 0.0,
     "hills": 0.0,
-    "forest": 0.0
+    "clearing": 56.6525
   },
   "num_ranges": {
     "mountains": 69.8625,
