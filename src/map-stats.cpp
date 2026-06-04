@@ -309,6 +309,9 @@ struct FormationsStatsCollector : IMapStatsCollector {
   }
 
  private:
+  void emit_data_file() const;
+  void emit_inputs_file() const;
+
   inline static auto const FORMATION_ORDER_CLEARING = {
     e_terrain_formation::mountains, //
     e_terrain_formation::hills,     //
@@ -687,7 +690,7 @@ void FormationsStatsCollector::collect( MapMatrix const& m ) {
 
 void FormationsStatsCollector::summarize() {}
 
-void FormationsStatsCollector::write() const {
+void FormationsStatsCollector::emit_data_file() const {
   using enum e_terrain_formation;
   using namespace cdr::literals;
   using cdr::list;
@@ -1003,6 +1006,70 @@ void FormationsStatsCollector::write() const {
   CHECK( out.good() );
   out << rcl::emit_json( o, rcl::JsonEmitOptions{
                               .key_order_tag = "__key_order" } );
+}
+
+void FormationsStatsCollector::emit_inputs_file() const {
+  using enum e_terrain_formation;
+  using namespace cdr::literals;
+  using cdr::list;
+  using cdr::table;
+
+  list const DATA_KEY_ORDER = {
+    "density_on_biome", //
+  };
+
+  list const FORMATION_ORDER_CLEARING_CDR = {
+    "mountains", //
+    "hills",     //
+    "clearing",  //
+  };
+
+  list const BIOME_ORDERING_CDR = {
+    "savannah",  //
+    "grassland", //
+    "tundra",    //
+    "plains",    //
+    "prairie",   //
+    "desert",    //
+    "swamp",     //
+    "marsh",     //
+    "arctic",    //
+  };
+
+  table o;
+  o["__key_order"] = DATA_KEY_ORDER;
+
+  o["density_on_biome"] =
+      table{ "__key_order"_key = FORMATION_ORDER_CLEARING_CDR };
+  for( e_terrain_formation const kind :
+       FORMATION_ORDER_CLEARING ) {
+    auto const& kind_str = base::to_str( kind );
+    o["density_on_biome"][kind_str] =
+        table{ "__key_order"_key = BIOME_ORDERING_CDR };
+    for( e_biome const biome : BIOME_ORDERING ) {
+      auto const& biome_str = base::to_str( biome );
+      o["density_on_biome"][kind_str][biome_str] =
+          config_map_gen.terrain_generation.formations
+              .formation[kind]
+              .biome_density[biome]
+              .probability;
+    }
+  }
+
+  string const out_filename = generated_json_path( "inputs" );
+  ofstream out( out_filename );
+  CHECK( out.good() );
+  out << rcl::emit_json( o, rcl::JsonEmitOptions{
+                              .key_order_tag = "__key_order" } );
+}
+
+void FormationsStatsCollector::write() const {
+  using enum e_terrain_formation;
+
+  emit_data_file();
+  emit_inputs_file();
+
+  double const maps = maps_;
 
   {
     GnuPlotSettings const settings{
@@ -1016,7 +1083,8 @@ void FormationsStatsCollector::write() const {
     };
 
     CsvData csv_data{
-      .header = { "length", "mountains", "hills", "clearing" },
+      .header = { "length", "mountains", "hills", "clearing",
+                  "fit" },
       .rows   = {},
     };
 
@@ -1040,6 +1108,7 @@ void FormationsStatsCollector::write() const {
         /*mountains=*/"",
         /*hills=*/"",
         /*clearing=*/"",
+        /*fit=*/"",
       };
       double mountains_value =
           log( lookup( count_range_length_[mountains], i )
@@ -1052,6 +1121,7 @@ void FormationsStatsCollector::write() const {
           log( lookup( count_range_length_[clearing], i )
                    .value_or( 1 ) /
                double( total_ranges ) );
+      double const fit_value = -2.5 * log( i );
       if( i == 1 ) {
         length_1_val[mountains] = mountains_value;
         length_1_val[hills]     = hills_value;
@@ -1064,6 +1134,7 @@ void FormationsStatsCollector::write() const {
       row[1]         = to_string( mountains_value );
       row[2]         = to_string( hills_value );
       row[3]         = to_string( clearing_value );
+      row[4]         = to_string( fit_value );
       csv_data.rows.push_back( std::move( row ) );
     }
 

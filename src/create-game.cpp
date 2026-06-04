@@ -243,8 +243,8 @@ valid_or<string> generate_map_native_impl(
   set_all_forest( real_terrain.map );
 
   auto const kFormationOrder = {
-    e_terrain_formation::mountains, //
     e_terrain_formation::hills,     //
+    e_terrain_formation::mountains, //
     e_terrain_formation::clearing,  //
   };
 
