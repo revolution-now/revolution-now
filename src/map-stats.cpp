@@ -1083,8 +1083,7 @@ void FormationsStatsCollector::write() const {
     };
 
     CsvData csv_data{
-      .header = { "length", "mountains", "hills", "clearing",
-                  "fit" },
+      .header = { "length", "mountains", "hills", "clearing" },
       .rows   = {},
     };
 
@@ -1108,7 +1107,6 @@ void FormationsStatsCollector::write() const {
         /*mountains=*/"",
         /*hills=*/"",
         /*clearing=*/"",
-        /*fit=*/"",
       };
       double mountains_value =
           log( lookup( count_range_length_[mountains], i )
@@ -1121,7 +1119,6 @@ void FormationsStatsCollector::write() const {
           log( lookup( count_range_length_[clearing], i )
                    .value_or( 1 ) /
                double( total_ranges ) );
-      double const fit_value = -2.5 * log( i );
       if( i == 1 ) {
         length_1_val[mountains] = mountains_value;
         length_1_val[hills]     = hills_value;
@@ -1134,7 +1131,6 @@ void FormationsStatsCollector::write() const {
       row[1]         = to_string( mountains_value );
       row[2]         = to_string( hills_value );
       row[3]         = to_string( clearing_value );
-      row[4]         = to_string( fit_value );
       csv_data.rows.push_back( std::move( row ) );
     }
 

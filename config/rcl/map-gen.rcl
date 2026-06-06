@@ -337,7 +337,7 @@ terrain_generation {
       }
       spawn.probability: 1.0
       growth_factor:     2.80
-      max_length:        60
+      max_length:        30
     }
 
     clearing {
@@ -354,7 +354,7 @@ terrain_generation {
       }
       spawn.probability: 1.0
       growth_factor:     1.70
-      max_length:        60
+      max_length:        30
     }
   }
 }

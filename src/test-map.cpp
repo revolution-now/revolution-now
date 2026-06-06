@@ -1178,7 +1178,7 @@ struct RiverFrequencyStats : IMapStatsCollector {
 
 [[maybe_unused]] void testing_map_gen_formation_stats(
     IEngine& engine ) {
-  int constexpr kNumSamples = 2000;
+  int constexpr kNumSamples = 10000;
 
   auto const generate =
       [&]( SS& ss, ClassicGameSetupParamsCustom const& custom ) {
@@ -1190,10 +1190,11 @@ struct RiverFrequencyStats : IMapStatsCollector {
   using T = e_temperature;
   using C = e_climate;
 
-  static auto constexpr kModes = {
-    // clang-format off
-    // tuple{ M::small,    F::archipelago, T::temperate, C::normal },
-    // tuple{ M::moderate, F::normal,      T::temperate, C::normal },
+  static auto constexpr kModes =
+      {
+        // clang-format off
+    tuple{ M::small,    F::archipelago, T::temperate, C::normal },
+    tuple{ M::moderate, F::normal,      T::temperate, C::normal },
     // tuple{ M::large,    F::continents,  T::temperate, C::normal },
     // tuple{ M::moderate, F::archipelago, T::temperate, C::normal },
     // tuple{ M::moderate, F::continents,  T::temperate, C::normal },
@@ -1201,17 +1202,17 @@ struct RiverFrequencyStats : IMapStatsCollector {
     // tuple{ M::large,    F::normal,      T::temperate, C::normal },
     // tuple{ M::small,    F::continents,  T::temperate, C::normal },
     // tuple{ M::large,    F::archipelago, T::temperate, C::normal },
-    // tuple{ M::large,    F::continents,  T::cool,      C::arid   },
-    // tuple{ M::large,    F::continents,  T::temperate, C::arid   },
+    tuple{ M::large,    F::continents,  T::cool,      C::arid   },
+    tuple{ M::large,    F::continents,  T::temperate, C::arid   },
     // tuple{ M::large,    F::continents,  T::warm,      C::arid   },
-    // tuple{ M::large,    F::continents,  T::cool,      C::normal },
+    tuple{ M::large,    F::continents,  T::cool,      C::normal },
     tuple{ M::large,    F::continents,  T::temperate, C::normal },
-    // tuple{ M::large,    F::continents,  T::warm,      C::normal },
+    tuple{ M::large,    F::continents,  T::warm,      C::normal },
     // tuple{ M::large,    F::continents,  T::cool,      C::wet    },
-    // tuple{ M::large,    F::continents,  T::temperate, C::wet    },
-    // tuple{ M::large,    F::continents,  T::warm,      C::wet    },
-    // clang-format on
-  };
+    tuple{ M::large,    F::continents,  T::temperate, C::wet    },
+    tuple{ M::large,    F::continents,  T::warm,      C::wet    },
+        // clang-format on
+      };
 
   for( auto const& [land_mass, land_form, temperature, climate] :
        kModes ) {
