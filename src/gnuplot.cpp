@@ -47,7 +47,12 @@ string generate_gnuplot( GnuPlotSettings const& settings,
   for( auto const& row : csv_data.rows ) emit_row( row );
   out << "EOF\n";
   out << '\n';
-
+  out << "outfile = system( \"mktemp /tmp/gnuplot-XXXXXX.png\" "
+         ")\n";
+  out << '\n';
+  out << "set term png size 1920,1200 font \"Fira Sans,14\"\n";
+  out << "set output outfile\n";
+  out << '\n';
   out << format( "set title \"{}\"\n", settings.title );
   out << "set key outside right\n";
   out << "set grid\n";
@@ -59,7 +64,11 @@ string generate_gnuplot( GnuPlotSettings const& settings,
   if( settings.y_range.has_value() )
     out << format( "set yrange [{}]\n", settings.y_range );
   out << "plot for [col=2:*] $CSVData using 1:col with lines lw "
-         "2\n";
+         "3\n";
+  out << '\n';
+  out << "set output\n";
+  out << "system sprintf( \"eog --fullscreen '%s' >/dev/null "
+         "2>&1 &\", outfile )\n";
   return out.str();
 }
 
