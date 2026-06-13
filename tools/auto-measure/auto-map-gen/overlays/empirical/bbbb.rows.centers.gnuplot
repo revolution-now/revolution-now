@@ -73,6 +73,11 @@ $CSVData << EOF
 "69","0.0","0.0","0.070344358858179"
 EOF
 
+outfile = system( "mktemp /tmp/gnuplot-XXXXXX.png" )
+
+set term png size 1920,1200 font "Fira Sans,14"
+set output outfile
+
 set title "Row Based Range Center Densities (empirical) (bbbb) [2000]"
 set key outside right
 set grid
@@ -81,4 +86,7 @@ set ylabel "Density"
 set key autotitle columnhead
 set xrange [1:70]
 set yrange [0:.1]
-plot for [col=2:*] $CSVData using 1:col with lines lw 2
+plot for [col=2:*] $CSVData using 1:col with lines lw 3
+
+set output
+system sprintf( "eog --fullscreen '%s' >/dev/null 2>&1 &", outfile )
