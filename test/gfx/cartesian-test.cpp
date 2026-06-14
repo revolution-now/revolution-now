@@ -591,6 +591,15 @@ TEST_CASE( "[gfx/cartesian] size::fits_inside" ) {
 /****************************************************************
 ** dsize
 *****************************************************************/
+TEST_CASE( "[gfx/cartesian] dsize::pythagorean" ) {
+  dsize s = {};
+
+  s = { .w = 4.3, .h = -2.2 };
+  REQUIRE( s.pythagorean() == Approx( 4.830113 ) );
+  s = { .w = 5, .h = 12 };
+  REQUIRE( s.pythagorean() == 13.0 );
+}
+
 TEST_CASE( "[gfx/cartesian] dsize::operator+=( size )" ) {
   dsize s1{ .w = 4.3, .h = 2.1 };
   dsize s2{ .w = 4, .h = 3 };

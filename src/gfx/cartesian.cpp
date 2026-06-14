@@ -703,6 +703,10 @@ bool size::fits_inside( size const rhs ) const {
 /****************************************************************
 ** dsize
 *****************************************************************/
+double dsize::pythagorean() const {
+  return sqrt( w * w + h * h );
+}
+
 void dsize::operator+=( dsize term ) {
   w += term.w;
   h += term.h;

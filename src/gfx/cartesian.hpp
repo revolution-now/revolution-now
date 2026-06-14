@@ -194,6 +194,8 @@ struct dsize {
     return size{ .w = int( w ), .h = int( h ) };
   }
 
+  [[nodiscard]] double pythagorean() const;
+
   void operator+=( dsize term );
 
   [[nodiscard]] dsize operator*( double scale ) const;
