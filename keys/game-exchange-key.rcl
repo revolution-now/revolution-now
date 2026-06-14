@@ -100,14 +100,14 @@ map.source.generate_native.setup {
     formation {
       hills {
         biome_density {
-          savannah.probability:  0.03360
-          grassland.probability: 0.02486
-          tundra.probability:    0.07595
-          plains.probability:    0.10917
-          prairie.probability:   0.06156
-          desert.probability:    0.03997
-          swamp.probability:     0.07309
-          marsh.probability:     0.08039
+          savannah.probability:  0.03358
+          grassland.probability: 0.02472
+          tundra.probability:    0.07601
+          plains.probability:    0.10919
+          prairie.probability:   0.06160
+          desert.probability:    0.04032
+          swamp.probability:     0.07330
+          marsh.probability:     0.08201
           arctic.probability:    0.00000
         }
         spawn.probability: 1.0
@@ -119,14 +119,14 @@ map.source.generate_native.setup {
 
       mountains {
         biome_density {
-          savannah.probability:  0.05978
-          grassland.probability: 0.04169
-          tundra.probability:    0.08777
-          plains.probability:    0.13875
-          prairie.probability:   0.08220
-          desert.probability:    0.09557
-          swamp.probability:     0.04370
-          marsh.probability:     0.11115
+          savannah.probability:  0.05930
+          grassland.probability: 0.04163
+          tundra.probability:    0.08806
+          plains.probability:    0.13823
+          prairie.probability:   0.08183
+          desert.probability:    0.09588
+          swamp.probability:     0.04348
+          marsh.probability:     0.11069
           arctic.probability:    0.00000
         }
         spawn.probability: 1.0
@@ -138,19 +138,19 @@ map.source.generate_native.setup {
 
       clearing {
         biome_density {
-          savannah.probability:  0.11679
-          grassland.probability: 0.05955
-          tundra.probability:    0.34534
-          plains.probability:    0.16525
-          prairie.probability:   0.07182
-          desert.probability:    0.12575
-          swamp.probability:     0.01676
-          marsh.probability:     0.00858
+          savannah.probability:  0.09097
+          grassland.probability: 0.05603
+          tundra.probability:    0.26036
+          plains.probability:    0.18998
+          prairie.probability:   0.09555
+          desert.probability:    0.10085
+          swamp.probability:     0.04441
+          marsh.probability:     0.04742
           arctic.probability:    0.00000
         }
         spawn.probability: 1.0
         growth_factor:     2.20
-        edge_decay.w:      0.30
+        edge_decay.w:      0.50
         edge_decay.h:      0.50
         max_length:        30
       }

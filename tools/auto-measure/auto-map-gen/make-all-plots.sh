@@ -92,6 +92,9 @@ collect() {
 # run rivers new
 
 # overlays.
+# run overlays tttt
+# run overlays ttmm
+# run overlays ttbb
 # run overlays mmmm
 # run overlays tmmm
 # run overlays bmmm
