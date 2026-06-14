@@ -23,14 +23,14 @@
       "arctic": 0
     },
     "clearing": {
-      "savannah": 0.11679,
-      "grassland": 0.05955,
-      "tundra": 0.34534,
-      "plains": 0.16525,
-      "prairie": 0.07182,
-      "desert": 0.12575,
-      "swamp": 0.01676,
-      "marsh": 0.00858,
+      "savannah": 0.10952,
+      "grassland": 0.06658,
+      "tundra": 0.26837,
+      "plains": 0.17176,
+      "prairie": 0.09203,
+      "desert": 0.116,
+      "swamp": 0.03908,
+      "marsh": 0.0396,
       "arctic": 0
     }
   }
