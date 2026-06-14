@@ -16,6 +16,9 @@
 // ss
 #include "ss/terrain-enums.rds.hpp"
 
+// gfx
+#include "gfx/cartesian.hpp"
+
 // refl
 #include "refl/enum-map.hpp"
 
@@ -41,6 +44,6 @@ void generate_formation(
     refl::enum_map<e_biome, config::Probability> const&
         biome_density,
     config::Probability spawn, double growth_factor,
-    int max_length );
+    gfx::dsize edge_decay, int max_length );
 
 } // namespace rn

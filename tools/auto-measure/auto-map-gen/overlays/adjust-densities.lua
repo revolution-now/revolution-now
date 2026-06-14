@@ -61,6 +61,7 @@ for _, focus in ipairs( FORMATION_ORDER ) do
     end
     print( string.format( '        %-23s%.5f  # %5s%%',
                           string.format( '%s.probability:', biome ),
-                          i * e / g, string.format( '%.1f', p ) ) )
+                          i * (e / g) ^ .5,
+                          string.format( '%.1f', p ) ) )
   end
 end

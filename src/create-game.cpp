@@ -253,7 +253,8 @@ valid_or<string> generate_map_native_impl(
     auto const& conf = setup.formations.formation[formation];
     generate_formation( rand, real_terrain.map, formation,
                         conf.biome_density, conf.spawn,
-                        conf.growth_factor, conf.max_length );
+                        conf.growth_factor, conf.edge_decay,
+                        conf.max_length );
   }
 
 #if 0

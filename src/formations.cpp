@@ -39,13 +39,26 @@ using namespace std;
 using ::base::function_ref;
 using ::base::maybe;
 using ::base::nothing;
+using ::gfx::dsize;
 using ::gfx::e_cardinal_cdirection;
 using ::gfx::point;
+using ::gfx::size;
 using ::refl::enum_map;
 using ::refl::enum_values;
 using ::rn::config::Probability;
 
-void run_growth_single(
+void on_spawnable(
+    MapMatrix& m,
+    function_ref<void( point, MapSquare& square )> fn ) {
+  on_all_tiles( m, [&]( point const p, MapSquare& square ) {
+    if( square.surface == e_surface::water ) return;
+    if( square.ground == e_biome::arctic ) return;
+    if( terrain_formation_for( square ).has_value() ) return;
+    fn( p, square );
+  } );
+}
+
+void run_organic_growth(
     IRand& rand, MapMatrix& m,
     e_terrain_formation const formation,
     function_ref<Probability( point ) const> const
@@ -124,7 +137,7 @@ void run_growth_single(
 ** Public API.
 *****************************************************************/
 void set_all_forest( MapMatrix& m ) {
-  on_all_tiles( m, [&]( point, MapSquare& square ) {
+  on_all_tiles( m, [&]( point const, MapSquare& square ) {
     if( square.surface == e_surface::water ) return;
     if( square.ground == e_biome::arctic ) return;
     square.overlay = e_land_overlay::forest;
@@ -136,19 +149,25 @@ void generate_formation(
     e_terrain_formation const formation,
     enum_map<e_biome, Probability> const& biome_density,
     Probability const spawn, double const growth_factor,
-    int const max_length ) {
+    dsize const edge_decay, int const max_length ) {
+  size const sz                = m.size();
+  double const wd2             = sz.w / 2.0;
+  double const hd2             = sz.h / 2.0;
   auto const spawn_probability = [&]( point const p ) {
-    return spawn * biome_density[m[p].ground];
+    double const x_dist  = pow( abs( p.x - wd2 ) / wd2, 4.0 );
+    double const y_dist  = pow( abs( p.y - hd2 ) / hd2, 1.0 );
+    double const decay_w = pow( 1.0 - edge_decay.w, x_dist );
+    double const decay_h = pow( 1.0 - edge_decay.h, y_dist );
+    double const decay   = decay_w * decay_h;
+    Probability const p_decay{ .probability = decay };
+    CHECK( p_decay.validate() );
+    return spawn * biome_density[m[p].ground] * p_decay;
   };
-  on_all_tiles(
-      m, [&]( point const p, MapSquare const& square ) {
-        if( square.surface == e_surface::water ) return;
-        if( square.ground == e_biome::arctic ) return;
-        if( terrain_formation_for( square ).has_value() ) return;
-        if( !rand.bernoulli( spawn_probability( p ) ) ) return;
-        run_growth_single( rand, m, formation, spawn_probability,
-                           growth_factor, max_length, p );
-      } );
+  on_spawnable( m, [&]( point const p, MapSquare const& ) {
+    if( rand.bernoulli( spawn_probability( p ) ) )
+      run_organic_growth( rand, m, formation, spawn_probability,
+                          growth_factor, max_length, p );
+  } );
 }
 
 } // namespace rn

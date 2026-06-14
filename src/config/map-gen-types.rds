@@ -122,5 +122,6 @@ struct.Formation {
   biome_density 'refl::enum_map<e_biome, config::Probability>',
   spawn 'config::Probability',
   growth_factor 'double',
+  edge_decay 'gfx::dsize',
   max_length 'int',
 }
