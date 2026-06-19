@@ -1437,6 +1437,130 @@ local function finished( mode )
       plot.line_graph_to_file( path, csv_data, opts )
     end
   end
+
+  do
+    local opts = {
+      title=format( 'Wetness by Row (empirical) (%s) [%d]', mode,
+                    D.savs ),
+      x_label='Y (row)',
+      y_label='Density',
+      x_range='1:70',
+      y_range='0:1',
+    }
+
+    local csv_data = { header={ 'y', 'wetness' }, rows={} }
+
+    for y = 2, 69 do
+      local row = { y, 0 }
+      assert( D.count_by_row.clearing[y] <=
+                  D.land_non_mound_by_row[y] )
+      row[2] = 1.0 -
+                   (D.count_by_row.clearing[y] /
+                       D.land_non_mound_by_row[y])
+      insert( csv_data.rows, row )
+    end
+
+    local path = format( '%s/%s.wetness.rows.gnuplot', PLOTS_DIR,
+                         mode )
+    plot.line_graph_to_file( path, csv_data, opts )
+  end
+
+  do
+    local opts = {
+      title=format( 'Wetness by Column (empirical) (%s) [%d]',
+                    mode, D.savs ),
+      x_label='X (column)',
+      y_label='Density',
+      x_range='1:56',
+      y_range='0:1',
+    }
+
+    local csv_data = { header={ 'x', 'wetness' }, rows={} }
+
+    for x = 1, 56 do
+      local row = { x, 0 }
+      assert( D.count_by_col.clearing[x] <=
+                  D.land_non_mound_by_col[x] )
+      row[2] = 1.0 -
+                   (D.count_by_col.clearing[x] /
+                       D.land_non_mound_by_col[x])
+      insert( csv_data.rows, row )
+    end
+
+    local path = format( '%s/%s.wetness.cols.gnuplot', PLOTS_DIR,
+                         mode )
+    plot.line_graph_to_file( path, csv_data, opts )
+  end
+
+  do
+    local opts = {
+      title=format(
+          'Wetness on Biome by Row (empirical) (%s) [%d]', mode,
+          D.savs ),
+      x_label='Y', --
+      y_label='Density', --
+      x_range='1:70', --
+      y_range='0:1.0', --
+    }
+    local csv_data = { header={ 'y' }, rows={} }
+    for _, biome in ipairs( BIOME_ORDERING ) do
+      insert( csv_data.header, biome )
+    end
+    for y = 1, 70 do
+      local row = { y }
+      for _, biome in ipairs( BIOME_ORDERING ) do
+        local land_count =
+            D.land_non_mound_with_biome_by_row[y][biome]
+        if land_count > 0 then
+          local val = 1.0 -
+                          (D.count_with_biome_by_row['clearing'][y][biome] /
+                              land_count)
+          insert( row, val )
+        else
+          insert( row, 0 )
+        end
+      end
+      insert( csv_data.rows, row )
+    end
+    local path = format( '%s/%s.biome.wetness.rows.gnuplot',
+                         PLOTS_DIR, mode )
+    plot.line_graph_to_file( path, csv_data, opts )
+  end
+
+  do
+    local opts = {
+      title=format(
+          'Wetness on Biome by Column (empirical) (%s) [%d]',
+          mode, D.savs ),
+      x_label='X', --
+      y_label='Density', --
+      x_range='1:56', --
+      y_range='0:1.0', --
+    }
+    local csv_data = { header={ 'x' }, rows={} }
+    for _, biome in ipairs( BIOME_ORDERING ) do
+      insert( csv_data.header, biome )
+    end
+    for x = 1, 56 do
+      local row = { x }
+      for _, biome in ipairs( BIOME_ORDERING ) do
+        local land_count =
+            D.land_non_mound_with_biome_by_col[x][biome]
+        if land_count > 0 then
+          local val = 1.0 -
+                          (D.count_with_biome_by_col['clearing'][x][biome] /
+                              land_count)
+          insert( row, val )
+        else
+          insert( row, 0 )
+        end
+      end
+      insert( csv_data.rows, row )
+    end
+    local path = format( '%s/%s.biome.wetness.cols.gnuplot',
+                         PLOTS_DIR, mode )
+    plot.line_graph_to_file( path, csv_data, opts )
+  end
 end
 
 -----------------------------------------------------------------
