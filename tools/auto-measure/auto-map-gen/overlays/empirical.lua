@@ -8,6 +8,7 @@ local Q = require( 'lib.query' )
 local json = require( 'moon.json' )
 local plot = require( 'moon.plot' )
 local tbl = require( 'moon.tbl' )
+local time = require( 'moon.time' )
 
 -----------------------------------------------------------------
 -- Aliases.
@@ -18,6 +19,7 @@ local max = math.max
 local log = math.log
 local floor = math.floor
 local deep_copy = assert( tbl.deep_copy )
+local timeit = assert( time.timeit )
 
 -----------------------------------------------------------------
 -- Helpers.
@@ -51,19 +53,24 @@ local D = {
   land_ocean_adjacent_cardinal=0,
   land_non_mounds=0,
 
-  -- key=row
-  land_by_row={},
-  -- key=col
-  land_by_col={},
+  land_by_row={}, -- key=row
+  land_by_col={}, -- key=col
+  land_non_mound_by_row={}, -- key=row
+  land_non_mound_by_col={}, -- key=col
 
   -- key=biome
   land_with_biome={},
-
   -- key=y, value={ key=biome, value=count }
   land_with_biome_by_row={},
-
   -- key=x, value={ key=biome, value=count }
   land_with_biome_by_col={},
+
+  -- key=biome
+  land_non_mound_with_biome={},
+  -- key=y, value={ key=biome, value=count }
+  land_non_mound_with_biome_by_row={},
+  -- key=x, value={ key=biome, value=count }
+  land_non_mound_with_biome_by_col={},
 
   count={
     mountains=0, --
@@ -417,6 +424,10 @@ local function lambda( J )
   Q.on_all_tiles( function( tile )
     D.land_by_row[tile.y] = D.land_by_row[tile.y] or 0
     D.land_by_col[tile.x] = D.land_by_col[tile.x] or 0
+    D.land_non_mound_by_row[tile.y] =
+        D.land_non_mound_by_row[tile.y] or 0
+    D.land_non_mound_by_col[tile.x] =
+        D.land_non_mound_by_col[tile.x] or 0
     D.count_by_row.mountains[tile.y] =
         D.count_by_row.mountains[tile.y] or 0
     D.count_by_row.hills[tile.y] =
@@ -465,6 +476,18 @@ local function lambda( J )
       D.land_with_biome_by_col[tile.x][biome] =
           D.land_with_biome_by_col[tile.x][biome] or 0
     end
+    D.land_non_mound_with_biome_by_row[tile.y] =
+        D.land_non_mound_with_biome_by_row[tile.y] or {}
+    for _, biome in ipairs( BIOME_ORDERING ) do
+      D.land_non_mound_with_biome_by_row[tile.y][biome] =
+          D.land_non_mound_with_biome_by_row[tile.y][biome] or 0
+    end
+    D.land_non_mound_with_biome_by_col[tile.x] =
+        D.land_non_mound_with_biome_by_col[tile.x] or {}
+    for _, biome in ipairs( BIOME_ORDERING ) do
+      D.land_non_mound_with_biome_by_col[tile.x][biome] =
+          D.land_non_mound_with_biome_by_col[tile.x][biome] or 0
+    end
     D.count_with_biome_by_row.mountains[tile.y] =
         D.count_with_biome_by_row.mountains[tile.y] or {}
     D.count_with_biome_by_row.hills[tile.y] =
@@ -506,6 +529,8 @@ local function lambda( J )
 
   for _, biome in ipairs( BIOME_ORDERING ) do
     D.land_with_biome[biome] = D.land_with_biome[biome] or 0
+    D.land_non_mound_with_biome[biome] =
+        D.land_non_mound_with_biome[biome] or 0
     D.count_with_biome.mountains[biome] =
         D.count_with_biome.mountains[biome] or 0
     D.count_with_biome.hills[biome] =
@@ -669,6 +694,18 @@ local function lambda( J )
     if is_land and not Q.has_mountains( J, tile ) and
         not Q.has_hills( J, tile ) then
       D.land_non_mounds = D.land_non_mounds + 1
+      D.land_non_mound_by_row[tile.y] =
+          D.land_non_mound_by_row[tile.y] + 1
+      D.land_non_mound_by_col[tile.x] =
+          D.land_non_mound_by_col[tile.x] + 1
+      D.land_non_mound_with_biome[square.ground] =
+          D.land_non_mound_with_biome[square.ground] + 1
+      D.land_non_mound_with_biome_by_row[tile.y][square.ground] =
+          D.land_non_mound_with_biome_by_row[tile.y][square.ground] +
+              1
+      D.land_non_mound_with_biome_by_col[tile.x][square.ground] =
+          D.land_non_mound_with_biome_by_col[tile.x][square.ground] +
+              1
     end
   end )
 
@@ -711,6 +748,7 @@ local DATA_KEY_ORDER = {
   'count', --
   'stddev', --
   'density', --
+  'clearing_density_non_mounds', --
   'count_hills_plus_land_rivers', --
   'density_hills_plus_land_rivers', --
   'count_arctic_rows', --
@@ -733,6 +771,7 @@ local DATA_KEY_ORDER = {
   'count_mountains_adjacent_to_hills', --
   'count_hills_adjacent_to_mountains', --
   'land_with_biome', --
+  'land_non_mound_with_biome', --
   'count_with_biome', --
   'density_on_biome', --
 }
@@ -741,6 +780,13 @@ local FORMATION_ORDER = {
   'mountains', --
   'hills', --
   'clearing', --
+}
+
+local FORMATION_ORDER_NM = {
+  'mountains', --
+  'hills', --
+  'clearing', --
+  'clearing-nm', --
 }
 
 local function finished( mode )
@@ -926,6 +972,11 @@ local function finished( mode )
       o.land_with_biome[biome] =
           assert( D.land_with_biome[biome] )
     end
+    o.land_non_mound_with_biome = { __key_order=BIOME_ORDERING }
+    for _, biome in ipairs( BIOME_ORDERING ) do
+      o.land_non_mound_with_biome[biome] = assert(
+                                               D.land_non_mound_with_biome[biome] )
+    end
     o.count_with_biome = { __key_order=FORMATION_ORDER }
     for _, kind in ipairs( FORMATION_ORDER ) do
       o.count_with_biome[kind] = { __key_order=BIOME_ORDERING }
@@ -934,14 +985,20 @@ local function finished( mode )
                                               D.count_with_biome[kind][biome] )
       end
     end
-    o.density_on_biome = { __key_order=FORMATION_ORDER }
-    for _, kind in ipairs( FORMATION_ORDER ) do
+    o.density_on_biome = { __key_order=FORMATION_ORDER_NM }
+    for _, kind in ipairs( FORMATION_ORDER_NM ) do
       o.density_on_biome[kind] = { __key_order=BIOME_ORDERING }
       for _, biome in ipairs( BIOME_ORDERING ) do
         if D.land_with_biome[biome] > 0 then
-          o.density_on_biome[kind][biome] =
-              D.count_with_biome[kind][biome] /
-                  D.land_with_biome[biome]
+          if kind == 'clearing-nm' then
+            o.density_on_biome[kind][biome] =
+                D.count_with_biome['clearing'][biome] /
+                    D.land_non_mound_with_biome[biome]
+          else
+            o.density_on_biome[kind][biome] =
+                D.count_with_biome[kind][biome] /
+                    D.land_with_biome[biome]
+          end
         else
           o.density_on_biome[kind][biome] = 0
         end
@@ -1016,15 +1073,19 @@ local function finished( mode )
     }
 
     local csv_data = {
-      header={ 'y', 'mountains', 'hills', 'clearing' },
+      header={
+        'y', 'mountains', 'hills', 'clearing', 'clearing-nm',
+      },
       rows={},
     }
 
     for y = 2, 69 do
-      local row = { y, 0, 0, 0 }
+      local row = { y, 0, 0, 0, 0 }
       row[2] = D.count_by_row.mountains[y] / D.land_by_row[y]
       row[3] = D.count_by_row.hills[y] / D.land_by_row[y]
       row[4] = D.count_by_row.clearing[y] / D.land_by_row[y]
+      row[5] = D.count_by_row.clearing[y] /
+                   D.land_non_mound_by_row[y]
       insert( csv_data.rows, row )
     end
 
@@ -1045,15 +1106,19 @@ local function finished( mode )
     }
 
     local csv_data = {
-      header={ 'x', 'mountains', 'hills', 'clearing' },
+      header={
+        'x', 'mountains', 'hills', 'clearing', 'clearing-nm',
+      },
       rows={},
     }
 
     for x = 1, 56 do
-      local row = { x, 0, 0, 0 }
+      local row = { x, 0, 0, 0, 0 }
       row[2] = D.count_by_col.mountains[x] / D.land_by_col[x]
       row[3] = D.count_by_col.hills[x] / D.land_by_col[x]
       row[4] = D.count_by_col.clearing[x] / D.land_by_col[x]
+      row[5] = D.count_by_col.clearing[x] /
+                   D.land_non_mound_by_col[x]
       insert( csv_data.rows, row )
     end
 
@@ -1074,18 +1139,22 @@ local function finished( mode )
     }
 
     local csv_data = {
-      header={ 'y', 'mountains', 'hills', 'clearing' },
+      header={
+        'y', 'mountains', 'hills', 'clearing', 'clearing-nm',
+      },
       rows={},
     }
 
     for y = 2, 69 do
-      local row = { y, 0, 0, 0 }
+      local row = { y, 0, 0, 0, 0 }
       row[2] = D.count_range_centers_by_row.mountains[y] /
                    D.land_by_row[y]
       row[3] = D.count_range_centers_by_row.hills[y] /
                    D.land_by_row[y]
       row[4] = D.count_range_centers_by_row.clearing[y] /
                    D.land_by_row[y]
+      row[5] = D.count_range_centers_by_row.clearing[y] /
+                   D.land_non_mound_by_row[y]
       insert( csv_data.rows, row )
     end
 
@@ -1106,18 +1175,22 @@ local function finished( mode )
     }
 
     local csv_data = {
-      header={ 'x', 'mountains', 'hills', 'clearing' },
+      header={
+        'x', 'mountains', 'hills', 'clearing', 'clearing-nm',
+      },
       rows={},
     }
 
     for x = 1, 56 do
-      local row = { x, 0, 0, 0 }
+      local row = { x, 0, 0, 0, 0 }
       row[2] = D.count_range_centers_by_col.mountains[x] /
                    D.land_by_col[x]
       row[3] = D.count_range_centers_by_col.hills[x] /
                    D.land_by_col[x]
       row[4] = D.count_range_centers_by_col.clearing[x] /
                    D.land_by_col[x]
+      row[5] = D.count_range_centers_by_col.clearing[x] /
+                   D.land_non_mound_by_col[x]
       insert( csv_data.rows, row )
     end
 
@@ -1138,18 +1211,23 @@ local function finished( mode )
     }
 
     local csv_data = {
-      header={ 'y', 'mountains/10', 'hills', 'clearing/20' },
+      header={
+        'y', 'mountains/10', 'hills', 'clearing/20',
+        'clearing-nm/20',
+      },
       rows={},
     }
 
     for y = 2, 69 do
-      local row = { y, 0, 0, 0 }
+      local row = { y, 0, 0, 0, 0 }
       row[2] = D.count_large_range_by_row.mountains[y] /
                    D.land_by_row[y] / 10
       row[3] = D.count_large_range_by_row.hills[y] /
                    D.land_by_row[y]
       row[4] = D.count_large_range_by_row.clearing[y] /
                    D.land_by_row[y] / 20
+      row[5] = D.count_large_range_by_row.clearing[y] /
+                   D.land_non_mound_by_row[y] / 20
       insert( csv_data.rows, row )
     end
 
@@ -1170,18 +1248,23 @@ local function finished( mode )
     }
 
     local csv_data = {
-      header={ 'x', 'mountains/10', 'hills', 'clearing/20' },
+      header={
+        'x', 'mountains/10', 'hills', 'clearing/20',
+        'clearing-nm/20',
+      },
       rows={},
     }
 
     for x = 1, 56 do
-      local row = { x, 0, 0, 0 }
+      local row = { x, 0, 0, 0, 0 }
       row[2] = D.count_large_range_by_col.mountains[x] /
                    D.land_by_col[x] / 10
       row[3] = D.count_large_range_by_col.hills[x] /
                    D.land_by_col[x]
       row[4] = D.count_large_range_by_col.clearing[x] /
                    D.land_by_col[x] / 20
+      row[5] = D.count_large_range_by_col.clearing[x] /
+                   D.land_non_mound_by_col[x] / 20
       insert( csv_data.rows, row )
     end
 
@@ -1200,11 +1283,6 @@ local function finished( mode )
       mountains=1.5,
       hills=1.5,
       clearing=1.5,
-    })[type] )
-    local top_density = assert( ({
-      mountains=.25,
-      hills=.25,
-      clearing=.25,
     })[type] )
     do
       local opts = {
@@ -1260,7 +1338,29 @@ local function finished( mode )
                            PLOTS_DIR, mode, type )
       plot.line_graph_to_file( path, csv_data, opts )
     end
+  end
 
+  for _, type in ipairs{
+    'mountains', 'hills', 'clearing', 'clearing-nm',
+  } do
+    local type_mapped = assert( ({
+      mountains='mountains',
+      hills='hills',
+      clearing='clearing',
+      ['clearing-nm']='clearing',
+    })[type] )
+    local name = assert( ({
+      mountains='Mountains',
+      hills='Hills',
+      clearing='Clearing',
+      ['clearing-nm']='Clearing/NM',
+    })[type] )
+    local top_density = assert( ({
+      mountains=.25,
+      hills=.25,
+      clearing=.25,
+      ['clearing-nm']=.25,
+    })[type] )
     do
       local opts = {
         title=format(
@@ -1278,10 +1378,15 @@ local function finished( mode )
       for y = 1, 70 do
         local row = { y }
         for _, biome in ipairs( BIOME_ORDERING ) do
-          if D.land_with_biome_by_row[y][biome] > 0 then
+          local land_count = D.land_with_biome_by_row[y][biome]
+          if type == 'clearing-nm' then
+            land_count =
+                D.land_non_mound_with_biome_by_row[y][biome]
+          end
+          if land_count > 0 then
             local val =
-                D.count_with_biome_by_row[type][y][biome] /
-                    D.land_with_biome_by_row[y][biome]
+                D.count_with_biome_by_row[type_mapped][y][biome] /
+                    land_count
             insert( row, val )
           else
             insert( row, 0 )
@@ -1311,10 +1416,15 @@ local function finished( mode )
       for x = 1, 56 do
         local row = { x }
         for _, biome in ipairs( BIOME_ORDERING ) do
-          if D.land_with_biome_by_col[x][biome] > 0 then
+          local land_count = D.land_with_biome_by_col[x][biome]
+          if type == 'clearing-nm' then
+            land_count =
+                D.land_non_mound_with_biome_by_col[x][biome]
+          end
+          if land_count > 0 then
             local val =
-                D.count_with_biome_by_col[type][x][biome] /
-                    D.land_with_biome_by_col[x][biome]
+                D.count_with_biome_by_col[type_mapped][x][biome] /
+                    land_count
             insert( row, val )
           else
             insert( row, 0 )
@@ -1399,4 +1509,14 @@ end
 -----------------------------------------------------------------
 -- Lambda.
 -----------------------------------------------------------------
-return { lambda=lambda, finished=finished, collect=collect }
+return {
+  lambda=function( ... )
+    -- local _<close> = timeit( 'lambda' )
+    return lambda( ... )
+  end,
+  finished=function( ... )
+    -- local _<close> = timeit( 'finished' )
+    return finished( ... )
+  end,
+  collect=collect,
+}
