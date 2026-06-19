@@ -1,0 +1,217 @@
+{
+  "savs": 1,
+  "tiles": 3920,
+  "land": 0.0,
+  "land_arctic_row": 0.0,
+  "land_ocean_adjacent": 0.0,
+  "land_ocean_adjacent_cardinal": 0.0,
+  "land_non_mounds": 0.0,
+  "count": {
+    "mountains": 0.0,
+    "hills": 0.0,
+    "clearing": 0.0
+  },
+  "stddev": {
+    "mountains": 0.0,
+    "hills": 0.0,
+    "clearing": 0.0
+  },
+  "density": {
+    "mountains": -nan,
+    "hills": -nan,
+    "clearing": -nan
+  },
+  "clearing_density_non_mounds": -nan,
+  "count_hills_plus_land_rivers": 0,
+  "density_hills_plus_land_rivers": -nan,
+  "count_arctic_rows": {
+    "mountains": 0.0,
+    "hills": 0.0,
+    "clearing": 0.0
+  },
+  "num_ranges": {
+    "mountains": 0.0,
+    "hills": 0.0,
+    "clearing": 0.0
+  },
+  "num_ranges_1": {
+    "mountains": 0.0,
+    "hills": 0.0,
+    "clearing": 0.0
+  },
+  "num_ranges_1_per_land": {
+    "mountains": -nan,
+    "hills": -nan,
+    "clearing": -nan
+  },
+  "num_ranges_per_land": {
+    "mountains": -nan,
+    "hills": -nan,
+    "clearing": -nan
+  },
+  "count_range_centers": {
+    "mountains": 0.0,
+    "hills": 0.0,
+    "clearing": 0.0
+  },
+  "density_range_centers": {
+    "mountains": -nan,
+    "hills": -nan,
+    "clearing": -nan
+  },
+  "count_ocean_adjacent": {
+    "mountains": 0.0,
+    "hills": 0.0,
+    "clearing": 0.0
+  },
+  "count_ocean_adjacent_cardinal": {
+    "mountains": 0.0,
+    "hills": 0.0,
+    "clearing": 0.0
+  },
+  "density_ocean_adjacent": {
+    "mountains": -nan,
+    "hills": -nan,
+    "clearing": -nan
+  },
+  "density_ocean_adjacent_cardinal": {
+    "mountains": -nan,
+    "hills": -nan,
+    "clearing": -nan
+  },
+  "count_large_range": {
+    "mountains": 0.0,
+    "hills": 0.0,
+    "clearing": 0.0
+  },
+  "count_large_range_ocean_adjacent": {
+    "mountains": 0.0,
+    "hills": 0.0,
+    "clearing": 0.0
+  },
+  "count_large_range_ocean_adjacent_cardinal": {
+    "mountains": 0.0,
+    "hills": 0.0,
+    "clearing": 0.0
+  },
+  "density_large_range": {
+    "mountains": -nan,
+    "hills": -nan,
+    "clearing": -nan
+  },
+  "density_large_range_ocean_adjacent": {
+    "mountains": -nan,
+    "hills": -nan,
+    "clearing": -nan
+  },
+  "density_large_range_ocean_adjacent_cardinal": {
+    "mountains": -nan,
+    "hills": -nan,
+    "clearing": -nan
+  },
+  "count_mountains_adjacent_to_hills": 0.0,
+  "count_hills_adjacent_to_mountains": 0.0,
+  "land_with_biome": {
+    "savannah": 0,
+    "grassland": 0,
+    "tundra": 0,
+    "plains": 0,
+    "prairie": 0,
+    "desert": 0,
+    "swamp": 0,
+    "marsh": 0,
+    "arctic": 0
+  },
+  "land_non_mound_with_biome": {
+    "savannah": 0,
+    "grassland": 0,
+    "tundra": 0,
+    "plains": 0,
+    "prairie": 0,
+    "desert": 0,
+    "swamp": 0,
+    "marsh": 0,
+    "arctic": 0
+  },
+  "count_with_biome": {
+    "mountains": {
+      "savannah": 0,
+      "grassland": 0,
+      "tundra": 0,
+      "plains": 0,
+      "prairie": 0,
+      "desert": 0,
+      "swamp": 0,
+      "marsh": 0,
+      "arctic": 0
+    },
+    "hills": {
+      "savannah": 0,
+      "grassland": 0,
+      "tundra": 0,
+      "plains": 0,
+      "prairie": 0,
+      "desert": 0,
+      "swamp": 0,
+      "marsh": 0,
+      "arctic": 0
+    },
+    "clearing": {
+      "savannah": 0,
+      "grassland": 0,
+      "tundra": 0,
+      "plains": 0,
+      "prairie": 0,
+      "desert": 0,
+      "swamp": 0,
+      "marsh": 0,
+      "arctic": 0
+    }
+  },
+  "density_on_biome": {
+    "mountains": {
+      "savannah": 0,
+      "grassland": 0,
+      "tundra": 0,
+      "plains": 0,
+      "prairie": 0,
+      "desert": 0,
+      "swamp": 0,
+      "marsh": 0,
+      "arctic": 0
+    },
+    "hills": {
+      "savannah": 0,
+      "grassland": 0,
+      "tundra": 0,
+      "plains": 0,
+      "prairie": 0,
+      "desert": 0,
+      "swamp": 0,
+      "marsh": 0,
+      "arctic": 0
+    },
+    "clearing": {
+      "savannah": 0,
+      "grassland": 0,
+      "tundra": 0,
+      "plains": 0,
+      "prairie": 0,
+      "desert": 0,
+      "swamp": 0,
+      "marsh": 0,
+      "arctic": 0
+    },
+    "clearing-nm": {
+      "savannah": 0,
+      "grassland": 0,
+      "tundra": 0,
+      "plains": 0,
+      "prairie": 0,
+      "desert": 0,
+      "swamp": 0,
+      "marsh": 0,
+      "arctic": 0
+    }
+  }
+}
