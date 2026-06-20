@@ -27,6 +27,7 @@ local timeit = assert( time.timeit )
 local function printfln( ... ) print( string.format( ... ) ) end
 
 local PLOTS_DIR = 'overlays/empirical'
+local WETNESS_PLOTS_DIR = 'wetness/empirical'
 
 local BIOME_ORDERING = {
   'savannah', --
@@ -1454,14 +1455,16 @@ local function finished( mode )
       local row = { y, 0 }
       assert( D.count_by_row.clearing[y] <=
                   D.land_non_mound_by_row[y] )
-      row[2] = 1.0 -
-                   (D.count_by_row.clearing[y] /
-                       D.land_non_mound_by_row[y])
+      local wetness = 1.0 -
+                          (D.count_by_row.clearing[y] /
+                              D.land_non_mound_by_row[y])
+      wetness = (wetness - 0.8) / .2
+      row[2] = wetness
       insert( csv_data.rows, row )
     end
 
-    local path = format( '%s/%s.wetness.rows.gnuplot', PLOTS_DIR,
-                         mode )
+    local path = format( '%s/%s.wetness.rows.gnuplot',
+                         WETNESS_PLOTS_DIR, mode )
     plot.line_graph_to_file( path, csv_data, opts )
   end
 
@@ -1481,14 +1484,16 @@ local function finished( mode )
       local row = { x, 0 }
       assert( D.count_by_col.clearing[x] <=
                   D.land_non_mound_by_col[x] )
-      row[2] = 1.0 -
-                   (D.count_by_col.clearing[x] /
-                       D.land_non_mound_by_col[x])
+      local wetness = 1.0 -
+                          (D.count_by_col.clearing[x] /
+                              D.land_non_mound_by_col[x])
+      wetness = (wetness - 0.8) / .2
+      row[2] = wetness
       insert( csv_data.rows, row )
     end
 
-    local path = format( '%s/%s.wetness.cols.gnuplot', PLOTS_DIR,
-                         mode )
+    local path = format( '%s/%s.wetness.cols.gnuplot',
+                         WETNESS_PLOTS_DIR, mode )
     plot.line_graph_to_file( path, csv_data, opts )
   end
 
@@ -1523,7 +1528,7 @@ local function finished( mode )
       insert( csv_data.rows, row )
     end
     local path = format( '%s/%s.biome.wetness.rows.gnuplot',
-                         PLOTS_DIR, mode )
+                         WETNESS_PLOTS_DIR, mode )
     plot.line_graph_to_file( path, csv_data, opts )
   end
 
@@ -1558,7 +1563,7 @@ local function finished( mode )
       insert( csv_data.rows, row )
     end
     local path = format( '%s/%s.biome.wetness.cols.gnuplot',
-                         PLOTS_DIR, mode )
+                         WETNESS_PLOTS_DIR, mode )
     plot.line_graph_to_file( path, csv_data, opts )
   end
 end
