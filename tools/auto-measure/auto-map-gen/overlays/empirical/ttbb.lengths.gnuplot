@@ -39,4 +39,4 @@ set yrange [-20:0]
 plot for [col=2:*] $CSVData using 1:col with lines lw 3
 
 set output
-system sprintf( "eog --fullscreen '%s' >/dev/null 2>&1 &", outfile )
+system sprintf( "eog --fullscreen '%s' >/dev/null 2>&1", outfile )
