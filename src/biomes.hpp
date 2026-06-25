@@ -34,8 +34,9 @@ base::valid_or<std::string> assign_biomes(
     WeatherValue temperature, WeatherValue climate );
 
 void apply_biome_wetness_remix(
-    MapMatrix& m, IRand& rand,
-    BiomeWetDryModulation const& config );
+    MapMatrix& m, IRand& rand, Wetness const& wetness_config,
+    WeatherValue climate,
+    BiomeWetDryModulation const& biome_wetness_config );
 
 void assign_arctic_biomes( IRand& rand,
                            RealTerrain& real_terrain );

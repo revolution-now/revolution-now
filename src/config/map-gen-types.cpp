@@ -46,6 +46,26 @@ valid_or<string> PerlinEdgeSuppression::validate() const {
 }
 
 /****************************************************************
+** WetnessRowModulation
+*****************************************************************/
+valid_or<string> WetnessRowModulation::validate() const {
+  // NOTE: amplitude is allowed to be negative.
+  REFL_VALIDATE( width > 0, "width must be > 0." );
+  return valid;
+}
+
+/****************************************************************
+** Wetness
+*****************************************************************/
+valid_or<string> Wetness::validate() const {
+  REFL_VALIDATE( amplitude >= 0, "amplitude must be >= 0." );
+  REFL_VALIDATE( consumption >= 0, "consumption must be >= 0." );
+  REFL_VALIDATE( accumulation >= 0,
+                 "accumulation must be >= 0." );
+  return valid;
+}
+
+/****************************************************************
 ** WeatherValue
 *****************************************************************/
 valid_or<string> WeatherValue::validate() const {
@@ -54,15 +74,6 @@ valid_or<string> WeatherValue::validate() const {
                  "an integer in the range [-{},{}].",
                  kWeatherValueMaxMagnitude,
                  kWeatherValueMaxMagnitude );
-  return valid;
-}
-
-/****************************************************************
-** BiomeWetDryModulation
-*****************************************************************/
-valid_or<string> BiomeWetDryModulation::validate() const {
-  REFL_VALIDATE( accumulation >= 0,
-                 "accumulation must be >= 0." );
   return valid;
 }
 

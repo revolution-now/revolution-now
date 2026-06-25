@@ -156,10 +156,146 @@ void BiomeDensityStatsCollector::write() const {
 }
 
 /****************************************************************
+** WetnessStatsCollector
+*****************************************************************/
+struct WetnessStatsCollector : IMapStatsCollector {
+  WetnessStatsCollector( string const& mode,
+                         WeatherValue const climate )
+    : mode_( mode ), climate_( climate ) {
+    CHECK( !mode.empty() );
+  }
+
+ public: // IMapStatsCollector
+  void collect( MapMatrix const& m ) override;
+  void summarize() override;
+  void write() const override;
+
+  string generated_dir() const {
+    return "tools/auto-measure/auto-map-gen/wetness/generated";
+  }
+
+  void gnuplot( GnuPlotSettings const settings,
+                CsvData const& csv_data,
+                string const& label ) const {
+    generate_gnuplot( generated_dir(),
+                      format( "{}.{}", mode_, label ), settings,
+                      csv_data );
+  }
+
+ private:
+  string const mode_;
+  WeatherValue const climate_;
+  size map_sz_         = {};
+  int land_            = 0;
+  double land_wetness_ = 0;
+  int maps_            = 0;
+  map<int /*row*/, int> land_by_row_;
+  map<int /*col*/, int> land_by_col_;
+  map<int /*row*/, double> wetness_by_row_;
+  map<int /*col*/, double> wetness_by_col_;
+};
+
+void WetnessStatsCollector::collect( MapMatrix const& m ) {
+  map_sz_ = m.size();
+  ++maps_;
+
+  matrix<double> const wetness = [&] {
+    matrix<double> res;
+    compute_wetness( m,
+                     config_map_gen.terrain_generation.wetness,
+                     climate_, res );
+    CHECK_EQ( res.size(), m.size() );
+    return res;
+  }();
+
+  on_all_tiles(
+      m, [&]( point const tile, MapSquare const& center ) {
+        if( center.surface == e_surface::water ) return;
+        ++land_;
+        ++land_by_row_[tile.y];
+        ++land_by_col_[tile.x];
+        land_wetness_ += wetness[tile];
+        wetness_by_row_[tile.y] += wetness[tile];
+        wetness_by_col_[tile.x] += wetness[tile];
+      } );
+}
+
+void WetnessStatsCollector::summarize() {}
+
+void WetnessStatsCollector::write() const {
+  using fmt::println;
+  println( "land:         {}", double( land_ ) / maps_ );
+  println( "land_wetness: {}", land_wetness_ / maps_ );
+
+  {
+    GnuPlotSettings const settings{
+      .title   = format( "Wetness by Row (generated) ({}) [{}]",
+                         mode_, maps_ ),
+      .x_label = "Y (row)",
+      .y_label = "Density",
+      .x_range = "1:70",
+      .y_range = "0:1",
+    };
+
+    CsvData csv_data{
+      .header = { "y", "wetness" },
+      .rows   = {},
+    };
+
+    for( int i = 2; i <= 69; ++i ) {
+      vector<string> row{
+        /*y=*/to_string( i ),
+        /*wetness=*/"",
+      };
+      int const y     = i - 1;
+      int const total = lookup( land_by_row_, y ).value_or( 0 );
+      if( total > 0 )
+        row[1] = to_string(
+            lookup( wetness_by_row_, y ).value_or( 0 ) / total );
+      csv_data.rows.push_back( std::move( row ) );
+    }
+
+    gnuplot( settings, csv_data, "wetness.rows" );
+  }
+
+  {
+    GnuPlotSettings const settings{
+      .title = format( "Wetness by Column (generated) ({}) [{}]",
+                       mode_, maps_ ),
+      .x_label = "X (column)",
+      .y_label = "Density",
+      .x_range = "1:56",
+      .y_range = "0:1",
+    };
+
+    CsvData csv_data{
+      .header = { "x", "wetness" },
+      .rows   = {},
+    };
+
+    for( int i = 1; i <= 56; ++i ) {
+      vector<string> row{
+        /*y=*/to_string( i ),
+        /*wetness=*/"",
+      };
+      int const x     = i - 1;
+      int const total = lookup( land_by_col_, x ).value_or( 0 );
+      if( total > 0 )
+        row[1] = to_string(
+            lookup( wetness_by_col_, x ).value_or( 0 ) / total );
+      csv_data.rows.push_back( std::move( row ) );
+    }
+
+    gnuplot( settings, csv_data, "wetness.cols" );
+  }
+}
+
+/****************************************************************
 ** BiomeWetnessStatsCollector
 *****************************************************************/
 struct BiomeWetnessStatsCollector : IMapStatsCollector {
-  BiomeWetnessStatsCollector() = default;
+  BiomeWetnessStatsCollector( WeatherValue const climate )
+    : climate_( climate ) {}
 
   static array<e_biome, 9> constexpr kWetOrdering = {
     e_biome::tundra,    e_biome::desert, e_biome::savannah,
@@ -173,6 +309,7 @@ struct BiomeWetnessStatsCollector : IMapStatsCollector {
   void write() const override;
 
  private:
+  WeatherValue const climate_;
   size map_sz_         = {};
   int land_            = 0;
   double land_wetness_ = 0;
@@ -188,9 +325,8 @@ void BiomeWetnessStatsCollector::collect( MapMatrix const& m ) {
   matrix<double> const wetness = [&] {
     matrix<double> res;
     compute_wetness( m,
-                     config_map_gen.terrain_generation.biomes
-                         .wet_dry_modulation,
-                     res );
+                     config_map_gen.terrain_generation.wetness,
+                     climate_, res );
     CHECK_EQ( res.size(), m.size() );
     return res;
   }();
@@ -1083,7 +1219,8 @@ void FormationsStatsCollector::write() const {
     };
 
     CsvData csv_data{
-      .header = { "length", "mountains", "hills", "clearing" },
+      .header = { "length", "mountains", "hills", "clearing",
+                  "fit" },
       .rows   = {},
     };
 
@@ -1107,6 +1244,7 @@ void FormationsStatsCollector::write() const {
         /*mountains=*/"",
         /*hills=*/"",
         /*clearing=*/"",
+        /*fit=*/"",
       };
       double mountains_value =
           log( lookup( count_range_length_[mountains], i )
@@ -1119,6 +1257,7 @@ void FormationsStatsCollector::write() const {
           log( lookup( count_range_length_[clearing], i )
                    .value_or( 1 ) /
                double( total_ranges ) );
+      double const fit_value = 0; //-2.0 * ( i - 1 );
       if( i == 1 ) {
         length_1_val[mountains] = mountains_value;
         length_1_val[hills]     = hills_value;
@@ -1131,6 +1270,7 @@ void FormationsStatsCollector::write() const {
       row[1]         = to_string( mountains_value );
       row[2]         = to_string( hills_value );
       row[3]         = to_string( clearing_value );
+      row[4]         = to_string( fit_value );
       csv_data.rows.push_back( std::move( row ) );
     }
 
@@ -1597,9 +1737,15 @@ create_biome_density_stats_collector( std::string const& stem ) {
   return make_unique<BiomeDensityStatsCollector>( stem );
 }
 
+unique_ptr<IMapStatsCollector> create_wetness_stats_collector(
+    string const& stem, WeatherValue const& climate ) {
+  return make_unique<WetnessStatsCollector>( stem, climate );
+}
+
 unique_ptr<IMapStatsCollector>
-create_biome_wetness_stats_collector() {
-  return make_unique<BiomeWetnessStatsCollector>();
+create_biome_wetness_stats_collector(
+    WeatherValue const& climate ) {
+  return make_unique<BiomeWetnessStatsCollector>( climate );
 }
 
 unique_ptr<IMapStatsCollector> create_formations_stats_collector(

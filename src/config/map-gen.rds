@@ -145,6 +145,7 @@ struct.Rivers {
 
 struct.TerrainGeneration {
   land_layout 'LandLayout',
+  wetness 'Wetness',
   weather 'Weather',
   rivers 'Rivers',
   biomes 'Biomes',

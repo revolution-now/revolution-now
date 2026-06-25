@@ -213,6 +213,7 @@ GameSetup create_classic_game_setup(
   GeneratedMapSetup const generated_map_setup{
     .size              = world_sz,
     .surface_generator = surface_generator,
+    .wetness           = wetness,
     .weather           = weather,
     .rivers            = rivers,
     .biomes            = biomes,

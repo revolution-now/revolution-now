@@ -29,6 +29,9 @@ local function printfln( ... ) print( string.format( ... ) ) end
 local PLOTS_DIR = 'overlays/empirical'
 local WETNESS_PLOTS_DIR = 'wetness/empirical'
 
+local CLEARING_TO_WETNESS_BASE = 0.7
+local CLEARING_TO_WETNESS_SCALE = 1.0 - CLEARING_TO_WETNESS_BASE
+
 local BIOME_ORDERING = {
   'savannah', --
   'grassland', --
@@ -1458,8 +1461,8 @@ local function finished( mode )
       local wetness = 1.0 -
                           (D.count_by_row.clearing[y] /
                               D.land_non_mound_by_row[y])
-      wetness = (wetness - 0.8) / .2
-      row[2] = wetness
+      row[2] = max( wetness - CLEARING_TO_WETNESS_BASE, 0 ) /
+                   CLEARING_TO_WETNESS_SCALE
       insert( csv_data.rows, row )
     end
 
@@ -1487,8 +1490,8 @@ local function finished( mode )
       local wetness = 1.0 -
                           (D.count_by_col.clearing[x] /
                               D.land_non_mound_by_col[x])
-      wetness = (wetness - 0.8) / .2
-      row[2] = wetness
+      row[2] = max( wetness - CLEARING_TO_WETNESS_BASE, 0 ) /
+                   CLEARING_TO_WETNESS_SCALE
       insert( csv_data.rows, row )
     end
 

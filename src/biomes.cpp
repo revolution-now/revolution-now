@@ -413,15 +413,16 @@ static void apply_biome_wetness_remix_for_row(
 }
 
 void apply_biome_wetness_remix(
-    MapMatrix& m, IRand& rand,
-    BiomeWetDryModulation const& config ) {
+    MapMatrix& m, IRand& rand, Wetness const& wetness_config,
+    WeatherValue const climate,
+    BiomeWetDryModulation const& biome_wetness_config ) {
   size const sz = m.size();
   matrix<double> wetness;
-  compute_wetness( m, config, wetness );
+  compute_wetness( m, wetness_config, climate, wetness );
   CHECK_EQ( wetness.size(), m.size() );
   for( int const y : iota( 0, sz.h ) )
-    apply_biome_wetness_remix_for_row( m, rand, config, wetness,
-                                       y );
+    apply_biome_wetness_remix_for_row(
+        m, rand, biome_wetness_config, wetness, y );
 }
 
 void assign_arctic_biomes( IRand& rand,

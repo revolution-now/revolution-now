@@ -77,6 +77,21 @@ struct.PerlinSeed {
   flip     'bool',
 }
 
+struct.WetnessRowModulation {
+  amplitude 'double',
+  width 'double',
+  _features { equality, validation }
+}
+
+struct.Wetness {
+  amplitude 'double',
+  climate_gradient 'double',
+  consumption 'double',
+  accumulation 'double',
+  row_modulation 'WetnessRowModulation',
+  _features { equality, validation }
+}
+
 # Used to hold a parameter representing the temperature and cli-
 # mate. In the OG these take on discreet values but we allow a
 # spectrum.
@@ -105,11 +120,8 @@ struct.WeatherValue {
 
 struct.BiomeWetDryModulation {
   sensitivity 'config::DoublePercent',
-  consumption 'config::DoublePercent',
-  accumulation 'double',
   is_wet 'refl::enum_map<e_biome, bool>',
   for_biome 'refl::enum_map<e_biome, config::DoublePercent>',
-  _features { equality, validation }
 }
 
 enum.e_terrain_formation {

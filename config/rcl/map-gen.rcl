@@ -139,6 +139,14 @@ terrain_generation {
     remove_crosses: true
   }
 
+  wetness {
+    climate_gradient: 0.002
+    amplitude:        3.5
+    consumption:      1.0
+    accumulation:     1.0
+    row_modulation:   { amplitude: 1.0, width: 0.2 }
+  }
+
   weather {
     # In the OG Temperature and Climate have a fixed set of named
     # values (three each). For temperature it is "cool", "temper-
@@ -274,8 +282,6 @@ terrain_generation {
 
     wet_dry_modulation {
       sensitivity.fraction: 1.0
-      consumption.fraction: 0.20
-      accumulation: 0.33333333333333
       is_wet {
         tundra:    false
         desert:    false

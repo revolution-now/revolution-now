@@ -19,12 +19,13 @@ namespace rn {
 /****************************************************************
 ** Fwd. Decls.
 *****************************************************************/
-struct BiomeWetDryModulation;
+struct Wetness;
 struct IMapUpdater;
 struct IRand;
 struct MapMatrix;
 struct RealTerrain;
 struct TerrainState;
+struct WeatherValue;
 
 /****************************************************************
 ** Public API.
@@ -37,8 +38,8 @@ void remove_crosses( RealTerrain& real_terrain );
 
 void reset_terrain( IMapUpdater& map_updater, gfx::size sz );
 
-void compute_wetness( MapMatrix const& m,
-                      BiomeWetDryModulation const& config,
+void compute_wetness( MapMatrix const& m, Wetness const& config,
+                      WeatherValue const& climate,
                       gfx::matrix<double>& out );
 
 // Returns realized density.

@@ -1014,6 +1014,66 @@ struct RiverFrequencyStats : IMapStatsCollector {
   }
 }
 
+[[maybe_unused]] void testing_map_gen_wetness_stats(
+    IEngine& engine ) {
+  int constexpr kNumSamples = 2000;
+
+  auto const generate =
+      [&]( SS& ss, ClassicGameSetupParamsCustom const& custom ) {
+        generate_single_map_custom( engine, ss, custom );
+      };
+
+  using M = e_land_mass;
+  using F = e_land_form;
+  using T = e_temperature;
+  using C = e_climate;
+
+  static auto constexpr kModes = {
+    // clang-format off
+      tuple{ M::small,    F::archipelago, T::cool,      C::arid   },
+      tuple{ M::small,    F::archipelago, T::temperate, C::arid   },
+      tuple{ M::small,    F::archipelago, T::temperate, C::normal },
+      tuple{ M::small,    F::archipelago, T::temperate, C::wet    },
+      tuple{ M::small,    F::archipelago, T::warm,      C::wet    },
+
+      tuple{ M::moderate, F::normal,      T::cool,      C::arid   },
+      tuple{ M::moderate, F::normal,      T::temperate, C::arid   },
+      tuple{ M::moderate, F::normal,      T::temperate, C::normal },
+      tuple{ M::moderate, F::normal,      T::temperate, C::wet    },
+      tuple{ M::moderate, F::normal,      T::warm,      C::wet    },
+
+      tuple{ M::large,    F::continents,  T::cool,      C::arid   },
+      tuple{ M::large,    F::continents,  T::temperate, C::arid   },
+      tuple{ M::large,    F::continents,  T::temperate, C::normal },
+      tuple{ M::large,    F::continents,  T::temperate, C::wet    },
+      tuple{ M::large,    F::continents,  T::warm,      C::wet    },
+    // clang-format on
+  };
+
+  for( auto const& [land_mass, land_form, temperature, climate] :
+       kModes ) {
+    ClassicGameSetupParamsCustom const params{
+      .land_mass   = land_mass,
+      .land_form   = land_form,
+      .temperature = temperature,
+      .climate     = climate };
+    string const name( mode_name( params ) );
+    auto const stats = create_wetness_stats_collector(
+        name, config_map_gen.terrain_generation.weather.climate
+                  .customized[climate] );
+    fmt::println( "generating for {}...", name );
+    for( int i = 0; i < kNumSamples; ++i ) {
+      fmt::println( "  #{}", i );
+      SS ss;
+      generate( ss, params );
+      stats->collect( ss.terrain.real_terrain().map );
+    }
+    stats->summarize();
+    stats->write();
+    // fmt::print( "\n" );
+  }
+}
+
 [[maybe_unused]] void testing_map_gen_biome_wetness_stats(
     IEngine& engine ) {
   int constexpr kNumSamples = 2000;
@@ -1042,7 +1102,9 @@ struct RiverFrequencyStats : IMapStatsCollector {
         .temperature = temperature,
         .climate     = climate };
       string const name( mode_name( params ) );
-      auto const stats1 = create_biome_wetness_stats_collector();
+      auto const stats1 = create_biome_wetness_stats_collector(
+          config_map_gen.terrain_generation.weather.climate
+              .customized[climate] );
       auto const stats2 =
           create_biome_density_stats_collector( name );
       fmt::println( "generating for {}...", name );
@@ -1178,7 +1240,7 @@ struct RiverFrequencyStats : IMapStatsCollector {
 
 [[maybe_unused]] void testing_map_gen_formation_stats(
     IEngine& engine ) {
-  int constexpr kNumSamples = 10000;
+  int constexpr kNumSamples = 2000;
 
   auto const generate =
       [&]( SS& ss, ClassicGameSetupParamsCustom const& custom ) {
@@ -1190,11 +1252,10 @@ struct RiverFrequencyStats : IMapStatsCollector {
   using T = e_temperature;
   using C = e_climate;
 
-  static auto constexpr kModes =
-      {
-        // clang-format off
-        tuple{ M::small,    F::archipelago, T::temperate, C::normal },
-        tuple{ M::moderate, F::normal,      T::temperate, C::normal },
+  static auto constexpr kModes = {
+    // clang-format off
+     // tuple{ M::small,    F::archipelago, T::temperate, C::normal },
+     // tuple{ M::moderate, F::normal,      T::temperate, C::normal },
      // tuple{ M::large,    F::continents,  T::temperate, C::normal },
      // tuple{ M::moderate, F::archipelago, T::temperate, C::normal },
      // tuple{ M::moderate, F::continents,  T::temperate, C::normal },
@@ -1202,17 +1263,17 @@ struct RiverFrequencyStats : IMapStatsCollector {
      // tuple{ M::large,    F::normal,      T::temperate, C::normal },
      // tuple{ M::small,    F::continents,  T::temperate, C::normal },
      // tuple{ M::large,    F::archipelago, T::temperate, C::normal },
-        tuple{ M::large,    F::continents,  T::cool,      C::arid   },
-        tuple{ M::large,    F::continents,  T::temperate, C::arid   },
+     // tuple{ M::large,    F::continents,  T::cool,      C::arid   },
+     // tuple{ M::large,    F::continents,  T::temperate, C::arid   },
      // tuple{ M::large,    F::continents,  T::warm,      C::arid   },
-        tuple{ M::large,    F::continents,  T::cool,      C::normal },
+     // tuple{ M::large,    F::continents,  T::cool,      C::normal },
         tuple{ M::large,    F::continents,  T::temperate, C::normal },
-        tuple{ M::large,    F::continents,  T::warm,      C::normal },
+     // tuple{ M::large,    F::continents,  T::warm,      C::normal },
      // tuple{ M::large,    F::continents,  T::cool,      C::wet    },
-        tuple{ M::large,    F::continents,  T::temperate, C::wet    },
-        tuple{ M::large,    F::continents,  T::warm,      C::wet    },
-        // clang-format on
-      };
+     // tuple{ M::large,    F::continents,  T::temperate, C::wet    },
+     // tuple{ M::large,    F::continents,  T::warm,      C::wet    },
+    // clang-format on
+  };
 
   for( auto const& [land_mass, land_form, temperature, climate] :
        kModes ) {
@@ -1295,11 +1356,11 @@ void testing_map_gen_stats( IEngine& engine ) {
   set_global_log_level( base::e_log_level::warn );
   SCOPE_EXIT { set_global_log_level( old_level ); };
   // testing_map_gen_biome_density_stats( engine );
-  // testing_map_gen_biome_adjacency_stats( engine );
+  testing_map_gen_wetness_stats( engine );
   // testing_map_gen_biome_wetness_stats( engine );
   // testing_map_gen_lake_stats( engine );
   // testing_map_gen_river_stats( engine );
-  testing_map_gen_formation_stats( engine );
+  // testing_map_gen_formation_stats( engine );
 }
 
 void drop_large_og_map( IEngine& engine ) {

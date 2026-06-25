@@ -93,9 +93,13 @@ collect() {
 
 # overlays.
 # run overlays tttt
+# run overlays ttmt
+# run overlays ttmb
 # run overlays ttmm
 # run overlays ttbb
 # run overlays mmmm
+# run overlays mmmt
+# run overlays mmmb
 # run overlays tmmm
 # run overlays bmmm
 # run overlays mtmm

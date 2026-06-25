@@ -21,9 +21,6 @@
 // ss
 #include "ss/terrain.hpp"
 
-// luapp
-#include "luapp/register.hpp"
-
 // refl
 #include "refl/to-str.hpp"
 
@@ -385,62 +382,60 @@ void add_lakes( MapMatrix& m, IRand& rand, int const target ) {
     swap( m[water], m[land] );
 }
 
-void compute_wetness( MapMatrix const& m,
-                      BiomeWetDryModulation const& conf,
+void compute_wetness( MapMatrix const& m, Wetness const& conf,
+                      WeatherValue const& climate,
                       matrix<double>& out ) {
-  size const sz              = m.size();
-  double const kMaxWetness   = 1.0;
-  double const ocean_wetness = kMaxWetness * conf.accumulation;
-  out                        = matrix<double>( sz );
-  double wetness             = 0;
-  auto const apply           = [&]( int const y, int const x ) {
-    CHECK_GE( wetness, 0.0 );
-    // Note that MAX_WETNESS is only the max for a given pass;
-    // the actual value can go above that because each pass con-
-    // tributes additively.
-    out[y][x] += wetness;
-    MapSquare const& square = m[y][x];
-    if( square.surface == e_surface::water )
-      wetness = min( wetness + ocean_wetness, kMaxWetness );
-    else
-      wetness *= conf.consumption.fraction;
+  using enum e_surface;
+  size const sz = m.size();
+  out           = matrix<double>( sz );
+  double const amplitude =
+      conf.amplitude *
+      ( 1.0 + climate.value * conf.climate_gradient );
+  auto const max_wetness = [&]( int const y ) {
+    double const A   = amplitude;
+    double const w   = conf.row_modulation.width;
+    double const a   = conf.row_modulation.amplitude;
+    double const v   = ( double( y ) / sz.h - .5 ) / w;
+    double const res = A * ( 1.0 + a * exp( -( v * v ) ) );
+    // Just in case the modulation amplitude is negative we
+    // should ensure this is positive.
+    return max( res, 0.0 );
   };
-  for( int const y : iota( 0, sz.h ) ) {
-    wetness = kMaxWetness;
-    for( int const x : iota( 0, sz.w ) ) apply( y, x );
-    wetness = kMaxWetness;
-    for( int const x : rv::reverse( iota( 0, sz.w ) ) )
-      apply( y, x );
-  }
+  double wetness     = 0;
+  auto const on_tile = [&]( int const y, int const x ) {
+    switch( m[y][x].surface ) {
+      case water:
+        wetness += conf.accumulation;
+        break;
+      case land:
+        if( wetness > 0.0 ) out[y][x] += conf.consumption;
+        wetness -= conf.consumption;
+        break;
+    }
+    wetness = clamp( wetness, 0.0, max_wetness( y ) );
+  };
+  auto const on_pass = [&]( int const y, auto const& rng ) {
+    wetness = max_wetness( y );
+    rg::for_each( rng, bind_front( on_tile, y ) );
+  };
+  auto const on_row = [&]( int const y ) {
+    on_pass( y, iota( 0, sz.w ) );
+    on_pass( y, rv::reverse( iota( 0, sz.w ) ) );
+  };
+  rg::for_each( iota( 0, sz.h ), on_row );
+  out.apply( [&]( double& d, point const p ) {
+    if( m[p].surface == water ) return;
+    // Multiply by two because the largest that a tile's wetness
+    // can be at this point is to have had `consumption` added to
+    // it twice (once for each left/right pass). The result is
+    // that it should then be in the range [0,1].
+    d /= conf.consumption * 2;
+    CHECK_GE( d, 0.0 ); // TODO: remove eventually.
+    CHECK_LE( d, 1.0 ); // TODO: remove eventually.
+    // This should already be true at this point, but we will
+    // protect against rounding errors.
+    d = clamp( d, 0.0, 1.0 );
+  } );
 }
-
-/****************************************************************
-** Lua Bindings.
-*****************************************************************/
-namespace {
-
-LUA_FN( remove_islands, void ) {
-  st["IMapUpdater"]
-      .as<IMapUpdater&>()
-      .modify_entire_map_no_redraw( remove_islands );
-}
-
-LUA_FN( remove_crosses, void ) {
-  st["IMapUpdater"]
-      .as<IMapUpdater&>()
-      .modify_entire_map_no_redraw( remove_crosses );
-}
-
-LUA_FN( create_arctic, void, double const density ) {
-  IRand& rand = st["IRand"].as<IRand&>();
-  st["IMapUpdater"]
-      .as<IMapUpdater&>()
-      .modify_entire_map_no_redraw(
-          [&]( RealTerrain& real_terrain ) {
-            place_arctic( real_terrain, rand, density );
-          } );
-}
-
-} // namespace
 
 } // namespace rn
