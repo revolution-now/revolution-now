@@ -86,7 +86,6 @@ struct.WetnessRowModulation {
 struct.Wetness {
   amplitude 'double',
   climate_gradient 'double',
-  consumption 'double',
   accumulation 'double',
   row_modulation 'WetnessRowModulation',
   _features { equality, validation }

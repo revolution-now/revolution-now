@@ -59,7 +59,6 @@ valid_or<string> WetnessRowModulation::validate() const {
 *****************************************************************/
 valid_or<string> Wetness::validate() const {
   REFL_VALIDATE( amplitude >= 0, "amplitude must be >= 0." );
-  REFL_VALIDATE( consumption >= 0, "consumption must be >= 0." );
   REFL_VALIDATE( accumulation >= 0,
                  "accumulation must be >= 0." );
   return valid;

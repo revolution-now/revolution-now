@@ -1016,7 +1016,7 @@ struct RiverFrequencyStats : IMapStatsCollector {
 
 [[maybe_unused]] void testing_map_gen_wetness_stats(
     IEngine& engine ) {
-  int constexpr kNumSamples = 2000;
+  int constexpr kNumSamples = 10000;
 
   auto const generate =
       [&]( SS& ss, ClassicGameSetupParamsCustom const& custom ) {
@@ -1030,23 +1030,17 @@ struct RiverFrequencyStats : IMapStatsCollector {
 
   static auto constexpr kModes = {
     // clang-format off
-      tuple{ M::small,    F::archipelago, T::cool,      C::arid   },
       tuple{ M::small,    F::archipelago, T::temperate, C::arid   },
       tuple{ M::small,    F::archipelago, T::temperate, C::normal },
       tuple{ M::small,    F::archipelago, T::temperate, C::wet    },
-      tuple{ M::small,    F::archipelago, T::warm,      C::wet    },
 
-      tuple{ M::moderate, F::normal,      T::cool,      C::arid   },
       tuple{ M::moderate, F::normal,      T::temperate, C::arid   },
       tuple{ M::moderate, F::normal,      T::temperate, C::normal },
       tuple{ M::moderate, F::normal,      T::temperate, C::wet    },
-      tuple{ M::moderate, F::normal,      T::warm,      C::wet    },
 
-      tuple{ M::large,    F::continents,  T::cool,      C::arid   },
       tuple{ M::large,    F::continents,  T::temperate, C::arid   },
       tuple{ M::large,    F::continents,  T::temperate, C::normal },
       tuple{ M::large,    F::continents,  T::temperate, C::wet    },
-      tuple{ M::large,    F::continents,  T::warm,      C::wet    },
     // clang-format on
   };
 
@@ -1063,14 +1057,15 @@ struct RiverFrequencyStats : IMapStatsCollector {
                   .customized[climate] );
     fmt::println( "generating for {}...", name );
     for( int i = 0; i < kNumSamples; ++i ) {
-      fmt::println( "  #{}", i );
+      fmt::print( "  #{} ({}%)          \r", i,
+                  i * 100.0 / kNumSamples );
       SS ss;
       generate( ss, params );
       stats->collect( ss.terrain.real_terrain().map );
     }
     stats->summarize();
     stats->write();
-    // fmt::print( "\n" );
+    fmt::print( "\n" );
   }
 }
 

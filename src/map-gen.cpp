@@ -388,12 +388,9 @@ void compute_wetness( MapMatrix const& m, Wetness const& conf,
   using enum e_surface;
   size const sz = m.size();
   out           = matrix<double>( sz );
-  // Somehow the affect of climate doesn't seem to be very pro-
-  // nounced on the arid side, it's mostly just the difference
-  // between "normal" and "wet", which are the positive values.
   double const amplitude =
       conf.amplitude *
-      ( 1.0 + max( climate.value, 0 ) * conf.climate_gradient );
+      ( 1.0 + climate.value * conf.climate_gradient );
   auto const max_wetness = [&]( int const y ) {
     double const A   = amplitude;
     double const w   = conf.row_modulation.width;
@@ -410,10 +407,12 @@ void compute_wetness( MapMatrix const& m, Wetness const& conf,
       case water:
         wetness += conf.accumulation;
         break;
-      case land:
-        if( wetness > 0.0 ) out[y][x] += conf.consumption;
-        wetness -= conf.consumption;
+      case land: {
+        double const consumed = wetness / 2;
+        out[y][x] += consumed;
+        wetness -= consumed;
         break;
+      }
     }
     wetness = clamp( wetness, 0.0, max_wetness( y ) );
   };
@@ -428,15 +427,7 @@ void compute_wetness( MapMatrix const& m, Wetness const& conf,
   rg::for_each( iota( 0, sz.h ), on_row );
   out.apply( [&]( double& d, point const p ) {
     if( m[p].surface == water ) return;
-    // Multiply by two because the largest that a tile's wetness
-    // can be at this point is to have had `consumption` added to
-    // it twice (once for each left/right pass). The result is
-    // that it should then be in the range [0,1].
-    d /= conf.consumption * 2;
-    CHECK_GE( d, 0.0 ); // TODO: remove eventually.
-    CHECK_LE( d, 1.0 ); // TODO: remove eventually.
-    // This should already be true at this point, but we will
-    // protect against rounding errors.
+    d /= 2.0; // two passes on each row.
     d = clamp( d, 0.0, 1.0 );
   } );
 }

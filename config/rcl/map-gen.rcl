@@ -140,11 +140,10 @@ terrain_generation {
   }
 
   wetness {
-    climate_gradient: 0.002
-    amplitude:        3.5
-    consumption:      1.0
+    climate_gradient: 0.004
+    amplitude:        5.5
     accumulation:     1.0
-    row_modulation:   { amplitude: 1.0, width: 0.2 }
+    row_modulation:   { amplitude: 3.0, width: 0.2 }
   }
 
   weather {
