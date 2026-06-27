@@ -388,9 +388,12 @@ void compute_wetness( MapMatrix const& m, Wetness const& conf,
   using enum e_surface;
   size const sz = m.size();
   out           = matrix<double>( sz );
+  // Somehow the affect of climate doesn't seem to be very pro-
+  // nounced on the arid side, it's mostly just the difference
+  // between "normal" and "wet", which are the positive values.
   double const amplitude =
       conf.amplitude *
-      ( 1.0 + climate.value * conf.climate_gradient );
+      ( 1.0 + max( climate.value, 0 ) * conf.climate_gradient );
   auto const max_wetness = [&]( int const y ) {
     double const A   = amplitude;
     double const w   = conf.row_modulation.width;
