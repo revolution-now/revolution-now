@@ -88,6 +88,7 @@ struct.Wetness {
   climate_gradient 'double',
   accumulation 'double',
   row_modulation 'WetnessRowModulation',
+  biome_affinity 'refl::enum_map<e_biome, config::DoublePercent>',
   _features { equality, validation }
 }
 
@@ -115,12 +116,6 @@ struct.Wetness {
 struct.WeatherValue {
   value 'int',
   _features { spaceship, validation }
-}
-
-struct.BiomeWetDryModulation {
-  sensitivity 'config::DoublePercent',
-  is_wet 'refl::enum_map<e_biome, bool>',
-  for_biome 'refl::enum_map<e_biome, config::DoublePercent>',
 }
 
 enum.e_terrain_formation {

@@ -191,6 +191,14 @@ struct WetnessStatsCollector : IMapStatsCollector {
   int maps_            = 0;
   map<int /*row*/, int> land_by_row_;
   map<int /*col*/, int> land_by_col_;
+  map<int /*row*/, enum_map<e_biome, int>>
+      land_with_biome_by_row_;
+  map<int /*col*/, enum_map<e_biome, int>>
+      land_with_biome_by_col_;
+  map<int /*row*/, enum_map<e_biome, double>>
+      wetness_on_biome_by_row_;
+  map<int /*col*/, enum_map<e_biome, double>>
+      wetness_on_biome_by_col_;
   map<int /*row*/, double> wetness_by_row_;
   map<int /*col*/, double> wetness_by_col_;
 };
@@ -210,10 +218,17 @@ void WetnessStatsCollector::collect( MapMatrix const& m ) {
 
   on_all_tiles(
       m, [&]( point const tile, MapSquare const& center ) {
+        using enum e_land_overlay;
         if( center.surface == e_surface::water ) return;
         ++land_;
         ++land_by_row_[tile.y];
         ++land_by_col_[tile.x];
+        ++land_with_biome_by_row_[tile.y][center.ground];
+        ++land_with_biome_by_col_[tile.x][center.ground];
+        wetness_on_biome_by_row_[tile.y][center.ground] +=
+            wetness[tile];
+        wetness_on_biome_by_col_[tile.x][center.ground] +=
+            wetness[tile];
         land_wetness_ += wetness[tile];
         wetness_by_row_[tile.y] += wetness[tile];
         wetness_by_col_[tile.x] += wetness[tile];
@@ -287,6 +302,88 @@ void WetnessStatsCollector::write() const {
     }
 
     gnuplot( settings, csv_data, "wetness.cols" );
+  }
+
+  {
+    using enum e_terrain_formation;
+    GnuPlotSettings const settings{
+      .title = format(
+          "Wetness on Biome by Row (generated) ({}) [{}]", mode_,
+          maps_ ),
+      .x_label = "Y",
+      .y_label = "Wetness",
+      .x_range = "1:70",
+      .y_range = "0:1.0",
+    };
+
+    CsvData csv_data{
+      .header = { "y" },
+      .rows   = {},
+    };
+
+    for( e_biome const biome : kGroundTypes )
+      csv_data.header.push_back( base::to_str( biome ) );
+    for( int y = 0; y < map_sz_.h; ++y ) {
+      vector<string> row{
+        /*y=*/to_string( y + 1 ),
+      };
+      auto const row_wetness =
+          lookup( wetness_on_biome_by_row_, y );
+      auto const row_land = lookup( land_with_biome_by_row_, y );
+      for( e_biome const biome : kGroundTypes ) {
+        if( biome == e_biome::arctic ||
+            !row_wetness.has_value() || !row_land.has_value() ||
+            ( *row_land )[biome] == 0 ) {
+          row.push_back( "0" );
+          continue;
+        }
+        row.push_back( to_string( ( *row_wetness )[biome] /
+                                  ( *row_land )[biome] ) );
+      }
+      csv_data.rows.push_back( std::move( row ) );
+    }
+    gnuplot( settings, csv_data, "biome.wetness.rows" );
+  }
+
+  {
+    using enum e_terrain_formation;
+    GnuPlotSettings const settings{
+      .title = format(
+          "Wetness on Biome by Column (generated) ({}) [{}]",
+          mode_, maps_ ),
+      .x_label = "X",
+      .y_label = "Wetness",
+      .x_range = "1:56",
+      .y_range = "0:1.0",
+    };
+
+    CsvData csv_data{
+      .header = { "x" },
+      .rows   = {},
+    };
+
+    for( e_biome const biome : kGroundTypes )
+      csv_data.header.push_back( base::to_str( biome ) );
+    for( int x = 0; x < map_sz_.w; ++x ) {
+      vector<string> row{
+        /*x=*/to_string( x + 1 ),
+      };
+      auto const col_wetness =
+          lookup( wetness_on_biome_by_col_, x );
+      auto const col_land = lookup( land_with_biome_by_col_, x );
+      for( e_biome const biome : kGroundTypes ) {
+        if( biome == e_biome::arctic ||
+            !col_wetness.has_value() || !col_land.has_value() ||
+            ( *col_land )[biome] == 0 ) {
+          row.push_back( "0" );
+          continue;
+        }
+        row.push_back( to_string( ( *col_wetness )[biome] /
+                                  ( *col_land )[biome] ) );
+      }
+      csv_data.rows.push_back( std::move( row ) );
+    }
+    gnuplot( settings, csv_data, "biome.wetness.cols" );
   }
 }
 

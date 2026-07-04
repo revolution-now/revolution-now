@@ -199,8 +199,7 @@ GameSetup create_classic_game_setup(
   };
 
   BiomesSetup const biomes{
-    .seed               = rand.new_deterministic_seed(),
-    .wet_dry_modulation = map_conf.biomes.wet_dry_modulation,
+    .seed = rand.new_deterministic_seed(),
   };
 
   FormationsSetup const formations{

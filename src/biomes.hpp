@@ -21,7 +21,6 @@ namespace rn {
 /****************************************************************
 ** Fwd. Decls.
 *****************************************************************/
-struct BiomeWetDryModulation;
 struct IRand;
 struct MapMatrix;
 struct RealTerrain;
@@ -33,10 +32,9 @@ base::valid_or<std::string> assign_biomes(
     IRand& rand, RealTerrain& real_terrain,
     WeatherValue temperature, WeatherValue climate );
 
-void apply_biome_wetness_remix(
-    MapMatrix& m, IRand& rand, Wetness const& wetness_config,
-    WeatherValue climate,
-    BiomeWetDryModulation const& biome_wetness_config );
+void apply_biome_wetness_remix( MapMatrix& m, IRand& rand,
+                                Wetness const& wetness_config,
+                                WeatherValue climate );
 
 void assign_arctic_biomes( IRand& rand,
                            RealTerrain& real_terrain );

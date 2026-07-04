@@ -69,6 +69,11 @@ using ::refl::enum_map;
 using ::refl::enum_values;
 using ::rv::iota;
 
+struct BiomeWeight {
+  e_biome biome = {};
+  double weight = {};
+};
+
 /****************************************************************
 ** biome_curve
 *****************************************************************/
@@ -278,151 +283,81 @@ valid_or<string> assign_biomes( IRand& rand,
 }
 
 static void apply_biome_wetness_remix_for_row(
-    MapMatrix& m, IRand& rand, BiomeWetDryModulation const& conf,
-    matrix<double> const& wetness_unscaled, int const y ) {
-  size const sz = m.size();
+    MapMatrix& m, IRand& rand, Wetness const& conf,
+    matrix<double> const& wetness, int const y ) {
+  double constexpr kEpsilon = 1e-6;
+  size const sz             = m.size();
 
-  auto const get_wetness = [&]( point const p ) {
-    auto const& w = wetness_unscaled;
-    // Catch this here so that we don't have to deal with 0^0.
-    if( conf.sensitivity.fraction <= 0.0 ) return 1.0;
-    // We can't just multiply by the sensitivity because then all
-    // tiles in the row would scale by the same proportion and it
-    // would have no effect. So we raise to the power of a number
-    // in [0,1] so that it will change their relative ratios. In
-    // the extreme case where sensitivity is zero, they all be-
-    // come x^0 == 1, i.e. all uniform.
-    return pow( w[p.y][p.x], conf.sensitivity.fraction );
-  };
-
-  vector<int /*x*/> land_tiles = [&] {
-    vector<int /*x*/> res;
-    res.reserve( sz.w );
-    for( int const x : iota( 0, sz.w ) )
-      if( m[y][x].surface == e_surface::land ) //
-        res.push_back( x );
-    return res;
-  }();
-  if( land_tiles.empty() ) return;
-
-  vector<e_biome> dry_tiles = [&] {
-    vector<e_biome> res;
+  vector<point> const shuffled_land_tiles = [&] {
+    vector<point> res;
     res.reserve( sz.w );
     for( int const x : iota( 0, sz.w ) ) {
-      if( m[y][x].surface != e_surface::land ) continue;
-      e_biome const biome = m[y][x].ground;
-      if( !conf.is_wet[biome] ) res.push_back( biome );
+      point const p{ .x = x, .y = y };
+      if( m[p].surface == e_surface::land ) //
+        res.push_back( p );
+    }
+    rand.shuffle( res );
+    return res;
+  }();
+
+  vector<e_biome> tile_biomes = [&] {
+    vector<e_biome> res;
+    res.reserve( sz.w );
+    for( point const p : shuffled_land_tiles ) {
+      CHECK_EQ( m[p].surface, e_surface::land );
+      e_biome const biome = m[p].ground;
+      res.push_back( biome );
     }
     return res;
   }();
-  auto const dry_tiles_orig = dry_tiles;
 
-  vector<e_biome> wet_tiles = [&] {
-    vector<e_biome> res;
-    res.reserve( sz.w );
-    for( int const x : iota( 0, sz.w ) ) {
-      if( m[y][x].surface != e_surface::land ) continue;
-      e_biome const biome = m[y][x].ground;
-      if( conf.is_wet[biome] ) res.push_back( biome );
-    }
-    return res;
-  }();
-  CHECK_EQ( land_tiles.size(),
-            dry_tiles.size() + wet_tiles.size() );
-  auto const wet_tiles_orig = wet_tiles;
-
-  if( wet_tiles.empty() || dry_tiles.empty() ) return;
-
-  double const total_wetness = [&] {
-    double res = 0;
-    for( int const x : land_tiles )
-      res += get_wetness( { .x = x, .y = y } );
-    return res;
-  }();
-  if( total_wetness <= 1e-6 )
-    // Not normally expected to happen, but maybe could happen if
-    // config parameters are changed in the right way.
-    return;
-
-  auto const choose_next = [&]( double const p_wet ) {
-    CHECK_GE( p_wet, 0 );
-    CHECK_LE( p_wet, 1 );
-    double const kTundraAvoidWetness = .05;
-    auto const choose =
-        [&]( this auto const& self,
-             vector<e_biome>& biomes ) -> e_biome {
-      CHECK( !biomes.empty() );
-      auto const weight = [&]( e_biome const biome ) {
-        // TODO: fix.
-        if( biome == e_biome::tundra &&
-            p_wet > kTundraAvoidWetness )
-          return 1e-6;
-        return ( 1 - conf.for_biome[biome].fraction ) *
-                   ( 1 - p_wet ) +
-               conf.for_biome[biome].fraction * p_wet;
-      };
-      double total = 0.0;
-      for( e_biome const biome : biomes )
-        total += weight( biome );
-      double const d = rand.uniform_double( 0.0, total );
-      total          = 0;
-      for( e_biome const biome : biomes ) {
-        total += weight( biome );
-        if( total > d ) {
-          bool const has_dry_non_tundra =
-              rg::find_if_not(
-                  biomes,
-                  bind_front( equal_to{}, e_biome::tundra ) ) !=
-              biomes.end();
-          bool const has_wet_non_tundra = !wet_tiles.empty();
-          if( biome == e_biome::tundra &&
-              p_wet > kTundraAvoidWetness ) {
-            if( has_dry_non_tundra ) return self( dry_tiles );
-            if( has_wet_non_tundra ) return self( wet_tiles );
-          }
-          auto const iter = rg::find( biomes, biome );
-          CHECK( iter != biomes.end() );
-          biomes.erase( iter );
-          return biome;
-        }
+  auto const choose_next = [&]( point const p ) -> e_biome {
+    vector<BiomeWeight> choices;
+    choices.reserve( tile_biomes.size() );
+    CHECK( !tile_biomes.empty() );
+    auto const weight = [&]( e_biome const biome ) {
+      if( biome == e_biome::tundra ) {
+        double const kEps = 1e-12;
+        double const kExp = 4.0;
+        double const w =
+            std::clamp( wetness[p], kEps, 1 - kEps );
+        return wetness[p] > .4 ? pow( 1.0 - w, kExp )
+                               : pow( 1.0 / w, kExp );
       }
-      FATAL( "failed to find biome: total={}, d={}", total, d );
+      double const delta =
+          std::max( abs( conf.biome_affinity[biome].fraction -
+                         wetness[p] ),
+                    kEpsilon );
+      return 1.0 / delta;
     };
-    auto const choose_wet = [&] { return choose( wet_tiles ); };
-    auto const choose_dry = [&] { return choose( dry_tiles ); };
-    if( dry_tiles.empty() ) return choose_wet();
-    if( wet_tiles.empty() ) return choose_dry();
-    return rand.bernoulli( p_wet ) ? choose_wet() : choose_dry();
+    for( e_biome const biome : tile_biomes )
+      choices.push_back( { biome, weight( biome ) } );
+    e_biome const biome =
+        rand.pick_from_weighted_values( choices );
+    {
+      auto const it = std::ranges::find( tile_biomes, biome );
+      CHECK( it != tile_biomes.end() );
+      tile_biomes.erase( it );
+    }
+    return biome;
   };
 
-  auto const prob_for_wetness = [&]( double const wetness ) {
-    // TODO: figure out why 9.0 is optimal.
-    double const probability =
-        9.0 * ( wetness / total_wetness ) *
-        ( double( wet_tiles_orig.size() ) / land_tiles.size() );
-    return clamp( probability, 0.0, 1.0 );
-  };
+  for( point const p : shuffled_land_tiles )
+    m[p].ground = choose_next( p );
 
-  rand.shuffle( land_tiles );
-  for( int const x : land_tiles )
-    m[y][x].ground = choose_next(
-        prob_for_wetness( get_wetness( { .x = x, .y = y } ) ) );
-
-  CHECK( dry_tiles.empty() );
-  CHECK( wet_tiles.empty() );
+  CHECK( tile_biomes.empty() );
 }
 
-void apply_biome_wetness_remix(
-    MapMatrix& m, IRand& rand, Wetness const& wetness_config,
-    WeatherValue const climate,
-    BiomeWetDryModulation const& biome_wetness_config ) {
+void apply_biome_wetness_remix( MapMatrix& m, IRand& rand,
+                                Wetness const& wetness_config,
+                                WeatherValue const climate ) {
   size const sz = m.size();
   matrix<double> wetness;
   compute_wetness( m, wetness_config, climate, wetness );
   CHECK_EQ( wetness.size(), m.size() );
   for( int const y : iota( 0, sz.h ) )
-    apply_biome_wetness_remix_for_row(
-        m, rand, biome_wetness_config, wetness, y );
+    apply_biome_wetness_remix_for_row( m, rand, wetness_config,
+                                       wetness, y );
 }
 
 void assign_arctic_biomes( IRand& rand,

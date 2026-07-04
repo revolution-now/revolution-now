@@ -113,7 +113,6 @@ struct.BiomeDensities {
 
 struct.Biomes {
   densities 'BiomeDensities',
-  wet_dry_modulation 'BiomeWetDryModulation',
 }
 
 struct.Formations {

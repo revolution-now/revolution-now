@@ -83,7 +83,7 @@ using ::gfx::size;
 using ::refl::enum_map;
 using ::refl::enum_values;
 
-auto const& ascii_map_formatter = ascii_map_overlay_formatter;
+auto const& ascii_map_formatter = ascii_map_biome_formatter;
 
 /****************************************************************
 ** Helpers.
@@ -1016,7 +1016,7 @@ struct RiverFrequencyStats : IMapStatsCollector {
 
 [[maybe_unused]] void testing_map_gen_wetness_stats(
     IEngine& engine ) {
-  int constexpr kNumSamples = 10000;
+  int constexpr kNumSamples = 2000;
 
   auto const generate =
       [&]( SS& ss, ClassicGameSetupParamsCustom const& custom ) {
@@ -1030,17 +1030,23 @@ struct RiverFrequencyStats : IMapStatsCollector {
 
   static auto constexpr kModes = {
     // clang-format off
+      tuple{ M::small,    F::archipelago, T::cool,      C::arid   },
       tuple{ M::small,    F::archipelago, T::temperate, C::arid   },
       tuple{ M::small,    F::archipelago, T::temperate, C::normal },
       tuple{ M::small,    F::archipelago, T::temperate, C::wet    },
+      tuple{ M::small,    F::archipelago, T::warm,      C::wet    },
 
+      tuple{ M::moderate, F::normal,      T::cool,      C::arid   },
       tuple{ M::moderate, F::normal,      T::temperate, C::arid   },
       tuple{ M::moderate, F::normal,      T::temperate, C::normal },
       tuple{ M::moderate, F::normal,      T::temperate, C::wet    },
+      tuple{ M::moderate, F::normal,      T::warm,      C::wet    },
 
+      tuple{ M::large,    F::continents,  T::cool,      C::arid   },
       tuple{ M::large,    F::continents,  T::temperate, C::arid   },
       tuple{ M::large,    F::continents,  T::temperate, C::normal },
       tuple{ M::large,    F::continents,  T::temperate, C::wet    },
+      tuple{ M::large,    F::continents,  T::warm,      C::wet    },
     // clang-format on
   };
 
@@ -1056,8 +1062,10 @@ struct RiverFrequencyStats : IMapStatsCollector {
         name, config_map_gen.terrain_generation.weather.climate
                   .customized[climate] );
     fmt::println( "generating for {}...", name );
+    fmt::print( "\033[?25l" );
+    SCOPE_EXIT { fmt::print( "\033[?25h" ); };
     for( int i = 0; i < kNumSamples; ++i ) {
-      fmt::print( "  #{} ({}%)          \r", i,
+      fmt::print( "  #{} ({:.3}%)          \r", i,
                   i * 100.0 / kNumSamples );
       SS ss;
       generate( ss, params );
