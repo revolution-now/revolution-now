@@ -25,6 +25,8 @@
 
 // C++ standard library
 #include <array>
+#include <cmath>
+#include <concepts>
 #include <map>
 #include <vector>
 
@@ -33,6 +35,24 @@ namespace rn {
 namespace config {
 struct Probability;
 }
+
+namespace detail {
+
+template<std::ranges::range R>
+using RangeValueKeyType =
+    std::remove_cvref_t<decltype( []( auto&& r ) {
+      for( auto&& [item, weight] : r ) return item;
+      std::unreachable();
+    }( std::declval<R>() ) )>;
+
+template<std::ranges::range R>
+using RangeValueValueType =
+    std::remove_cvref_t<decltype( []( auto&& r ) {
+      for( auto&& [item, weight] : r ) return weight;
+      std::unreachable();
+    }( std::declval<R>() ) )>;
+
+} // namespace detail
 
 /****************************************************************
 ** IRand
@@ -128,24 +148,37 @@ struct IRand {
 
   // Picks a random value given the weights. All weights should
   // be >= 0. A zero weight means that the value will never be
-  // chosen.
-  template<typename T>
-  [[nodiscard]] T pick_from_weighted_values(
-      std::map<T, int> const& weights );
+  // chosen. The "safe" variants allow the case where the total
+  // weights sum to zero, in which case there is no value re-
+  // turned.
 
-  // For doubles.
-  template<typename T>
-  [[nodiscard]] T pick_from_weighted_values(
-      std::map<T, double> const& weights );
-
-  // These variants allow the case where the total weights sum to
-  // zero, in which case there is no value returned.
   template<typename T>
   [[nodiscard]] base::maybe<T> pick_from_weighted_values_safe(
       std::map<T, int> const& weights );
   template<typename T>
   [[nodiscard]] base::maybe<T> pick_from_weighted_values_safe(
       std::map<T, double> const& weights );
+  template<typename O>
+  [[nodiscard]] auto pick_from_weighted_values_safe(
+      std::vector<O> const& weights );
+
+  template<typename O>
+  [[nodiscard]] auto pick_from_weighted_values(
+      std::vector<O> const& contents );
+  template<typename T>
+  [[nodiscard]] T pick_from_weighted_values(
+      std::map<T, int> const& weights );
+  template<typename T>
+  [[nodiscard]] T pick_from_weighted_values(
+      std::map<T, double> const& weights );
+
+ private:
+  template<std::ranges::range R>
+  [[nodiscard]] auto pick_from_weighted_values_double_safe_impl(
+      R const& contents );
+  template<std::ranges::range R>
+  [[nodiscard]] auto pick_from_weighted_values_int_safe_impl(
+      R const& contents );
 };
 
 void to_str( IRand const& o, std::string& out,
@@ -184,16 +217,27 @@ void IRand::shuffle( std::array<T, N>& arr ) {
 template<typename T>
 base::maybe<T> IRand::pick_from_weighted_values_safe(
     std::map<T, int> const& weights ) {
-  int total = 0;
-  for( auto const& [item, weight] : weights ) total += weight;
-  if( total == 0 ) return base::nothing;
-  int const stop = uniform_int( 0, total - 1 );
-  int running    = 0;
-  for( auto const& [item, weight] : weights ) {
-    running += weight;
-    if( running > stop ) return item;
-  }
-  SHOULD_NOT_BE_HERE;
+  return pick_from_weighted_values_int_safe_impl( weights );
+}
+
+template<typename T>
+base::maybe<T> IRand::pick_from_weighted_values_safe(
+    std::map<T, double> const& weights ) {
+  return pick_from_weighted_values_double_safe_impl( weights );
+}
+
+template<typename O>
+auto IRand::pick_from_weighted_values_safe(
+    std::vector<O> const& contents ) {
+  using T = detail::RangeValueValueType<std::vector<O> const&>;
+  if constexpr( std::is_same_v<T, double> )
+    return pick_from_weighted_values_double_safe_impl(
+        contents );
+  else if( std::is_same_v<T, int> )
+    return pick_from_weighted_values_int_safe_impl( contents );
+  else
+    static_assert( !std::is_same_v<T, T>,
+                   "Unsupported value type." );
 }
 
 template<typename T>
@@ -205,37 +249,80 @@ T IRand::pick_from_weighted_values(
 }
 
 template<typename T>
-base::maybe<T> IRand::pick_from_weighted_values_safe(
-    std::map<T, double> const& weights ) {
-  double total = 0;
-  for( auto const& [item, weight] : weights ) total += weight;
-  if( std::abs( total ) < 1e-12 ) return base::nothing;
-  // `stop` should always be less than `total`.
-  double const stop = uniform_double( 0.0, total );
-  CHECK_LT( stop, total );
-  double running = 0.0;
-  for( auto const& [item, weight] : weights ) {
-    running += weight;
-    // `running` will eventually equal `total` since it is accu-
-    // mulated using the exact same sequence of operations (sums)
-    // as is used to compute `total`. Thus, it will eventually
-    // always become larger than `stop`, thus this method should
-    // always return a value.
-    if( running > stop ) return item;
-  }
-  // It is claimed that, even in the face of rounding errors
-  // above, we should never get here.
-  FATAL(
-      "pick_from_weighted_values did not find a value: "
-      "running={}, total={}",
-      running, total );
-}
-
-template<typename T>
 T IRand::pick_from_weighted_values(
     std::map<T, double> const& weights ) {
   UNWRAP_CHECK_T( T res,
                   pick_from_weighted_values_safe( weights ) );
+  return res;
+}
+
+template<typename O>
+auto IRand::pick_from_weighted_values(
+    std::vector<O> const& contents ) {
+  UNWRAP_CHECK_T( auto res,
+                  pick_from_weighted_values_safe( contents ) );
+  return res;
+}
+
+template<std::ranges::range R>
+auto IRand::pick_from_weighted_values_int_safe_impl(
+    R const& contents ) {
+  using K = detail::RangeValueKeyType<R>;
+  base::maybe<K> res;
+  int total = 0;
+  for( auto const& [item, weight] : contents ) total += weight;
+  if( total == 0 ) return res;
+  int const stop = uniform_int( 0, total - 1 );
+  int running    = 0;
+  for( auto const& [item, weight] : contents ) {
+    running += weight;
+    if( running > stop ) {
+      res = item;
+      return res;
+    }
+  }
+  // This means programmer error -- should not get here even if
+  // the range is empty or total weights are empty.
+  SHOULD_NOT_BE_HERE;
+}
+
+template<std::ranges::range R>
+auto IRand::pick_from_weighted_values_double_safe_impl(
+    R const& contents ) {
+  using K = detail::RangeValueKeyType<R>;
+  base::maybe<K> res;
+  double total = 0.0;
+  for( auto const& [item, weight] : contents ) {
+    CHECK( std::isfinite( weight ), "non-finite weight" );
+    CHECK( weight >= 0.0, "negative weight" );
+    total += weight;
+  }
+  // A finite sum of finite, nonnegative values should itself be
+  // finite unless it overflows.
+  CHECK( std::isfinite( total ), "non-finite total weight" );
+  // No selectable items.
+  if( total == 0.0 ) return res;
+  // `stop` should always be strictly less than `total`.
+  double const stop = uniform_double( 0.0, total );
+  CHECK_LT( stop, total );
+
+  double running         = 0.0;
+  K const* last_positive = nullptr;
+  for( auto const& [item, weight] : contents ) {
+    if( weight == 0.0 ) continue;
+    last_positive = &item;
+    running += weight;
+    if( running > stop ) {
+      res = item;
+      return res;
+    }
+  }
+  // In theory we should never reach this point. However, if
+  // floating-point rounding or an inclusive RNG endpoint somehow
+  // prevents the comparison above from succeeding, fall back to
+  // the final positively weighted item.
+  CHECK( last_positive != nullptr );
+  res = *last_positive;
   return res;
 }
 

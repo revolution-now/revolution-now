@@ -201,16 +201,31 @@ TEST_CASE( "[irand] expect_shuffle" ) {
                                              "2", "5" } );
 }
 
-TEST_CASE( "[irand] pick_from_weighted_values<int>" ) {
+TEST_CASE( "[irand] pick_from_weighted_values<map,int>" ) {
 }
 
-TEST_CASE( "[irand] pick_from_weighted_values<double>" ) {
+TEST_CASE( "[irand] pick_from_weighted_values<map,double>" ) {
 }
 
-TEST_CASE( "[irand] pick_from_weighted_values_safe<int>" ) {
+TEST_CASE( "[irand] pick_from_weighted_values<vector,int>" ) {
 }
 
-TEST_CASE( "[irand] pick_from_weighted_values_safe<double>" ) {
+TEST_CASE( "[irand] pick_from_weighted_values<vector,double>" ) {
+}
+
+TEST_CASE( "[irand] pick_from_weighted_values_safe<map,int>" ) {
+}
+
+TEST_CASE(
+    "[irand] pick_from_weighted_values_safe<map,double>" ) {
+}
+
+TEST_CASE(
+    "[irand] pick_from_weighted_values_safe<vector,int>" ) {
+}
+
+TEST_CASE(
+    "[irand] pick_from_weighted_values_safe<vector,double>" ) {
 }
 
 TEST_CASE( "[irand] pick_one_safe" ) {
