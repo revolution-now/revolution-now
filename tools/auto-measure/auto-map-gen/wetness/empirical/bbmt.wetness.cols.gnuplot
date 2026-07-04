@@ -70,7 +70,7 @@ set title "Wetness by Column (empirical) (bbmt) [2000]"
 set key outside right
 set grid
 set xlabel "X (column)"
-set ylabel "Density"
+set ylabel "Wetness"
 set key autotitle columnhead
 set xrange [1:56]
 set yrange [0:1]
