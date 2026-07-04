@@ -1447,7 +1447,7 @@ local function finished( mode )
       title=format( 'Wetness by Row (empirical) (%s) [%d]', mode,
                     D.savs ),
       x_label='Y (row)',
-      y_label='Density',
+      y_label='Wetness',
       x_range='1:70',
       y_range='0:1',
     }
@@ -1476,7 +1476,7 @@ local function finished( mode )
       title=format( 'Wetness by Column (empirical) (%s) [%d]',
                     mode, D.savs ),
       x_label='X (column)',
-      y_label='Density',
+      y_label='Wetness',
       x_range='1:56',
       y_range='0:1',
     }
@@ -1506,7 +1506,7 @@ local function finished( mode )
           'Wetness on Biome by Row (empirical) (%s) [%d]', mode,
           D.savs ),
       x_label='Y', --
-      y_label='Density', --
+      y_label='Wetness', --
       x_range='1:70', --
       y_range='0:1.0', --
     }
@@ -1523,6 +1523,8 @@ local function finished( mode )
           local val = 1.0 -
                           (D.count_with_biome_by_row['clearing'][y][biome] /
                               land_count)
+          val = max( val - CLEARING_TO_WETNESS_BASE, 0 ) /
+                    CLEARING_TO_WETNESS_SCALE
           insert( row, val )
         else
           insert( row, 0 )
@@ -1541,7 +1543,7 @@ local function finished( mode )
           'Wetness on Biome by Column (empirical) (%s) [%d]',
           mode, D.savs ),
       x_label='X', --
-      y_label='Density', --
+      y_label='Wetness', --
       x_range='1:56', --
       y_range='0:1.0', --
     }
@@ -1558,6 +1560,8 @@ local function finished( mode )
           local val = 1.0 -
                           (D.count_with_biome_by_col['clearing'][x][biome] /
                               land_count)
+          val = max( val - CLEARING_TO_WETNESS_BASE, 0 ) /
+                    CLEARING_TO_WETNESS_SCALE
           insert( row, val )
         else
           insert( row, 0 )
