@@ -75,6 +75,11 @@ $CSVData << EOF
 "66","0.000000","0.000000","0.262604","0.535555","0.201841","0.000000","0.000000","0.000000","0.000000"
 EOF
 
+outfile = system( "mktemp /tmp/gnuplot-XXXXXX.png" )
+
+set term png size 1920,1200 font "Fira Sans,14"
+set output outfile
+
 set title "Terrain Row Distribution (empirical) (bbtt) [2000]"
 set key outside right
 set grid
@@ -83,4 +88,7 @@ set ylabel "Value"
 set key autotitle columnhead
 set xrange [1:70]
 set yrange [0:0.7]
-plot for [col=2:*] $CSVData using 1:col with lines lw 2
+plot for [col=2:*] $CSVData using 1:col with lines lw 3
+
+set output
+system sprintf( "eog --fullscreen '%s' >/dev/null 2>&1 &", outfile )
