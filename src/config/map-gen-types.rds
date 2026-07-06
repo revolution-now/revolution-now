@@ -88,6 +88,7 @@ struct.WetnessConfig {
   amplitude 'double',
   climate_gradient 'double',
   accumulation 'double',
+  consumption 'config::DoublePercent',
   row_modulation 'WetnessRowModulationConfig',
   biome_affinity 'refl::enum_map<e_biome, config::DoublePercent>',
   _features { equality, validation }

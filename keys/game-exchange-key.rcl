@@ -45,21 +45,24 @@ map.source.generate_native.setup {
   }
 
   wetness {
-    climate_gradient: 0.004
-    amplitude:        5.5
-    accumulation:     1.0
-    row_modulation:   { amplitude: 3.0, width: 0.2 }
+    climate_gradient:     0.004
+    amplitude:            5.5
+    accumulation:         1.0
+    consumption.fraction: 0.5
+    row_modulation: {
+      amplitude: 3.0
+      width:     0.2
+    }
     biome_affinity {
-      tundra.fraction:    0.001
-      plains.fraction:    0.001
-      desert.fraction:    0.700
-      savannah.fraction:  0.700
-      prairie.fraction:   0.770
-      grassland.fraction: 0.930
-      swamp.fraction:     0.990
-      marsh.fraction:     0.990
-      # NOTE: arctic tile placement is not affected by wetness.
-      arctic.fraction: 0
+      tundra.fraction:    0.00
+      plains.fraction:    0.00
+      desert.fraction:    0.70
+      savannah.fraction:  0.70
+      prairie.fraction:   0.77
+      grassland.fraction: 0.93
+      swamp.fraction:     0.99
+      marsh.fraction:     0.99
+      arctic.fraction:    0.00
     }
   }
 

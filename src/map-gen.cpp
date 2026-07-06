@@ -387,12 +387,29 @@ void compute_wetness( MapMatrix const& m,
                       WeatherValue const& climate,
                       Wetness& out ) {
   using enum e_surface;
-  size const sz = m.size();
-  out.m         = matrix<double>( sz );
+  size const sz      = m.size();
+  out.m              = matrix<double>( sz );
+  double wetness     = 0;
+  auto const on_tile = [&]( double const max_wetness,
+                            int const y, int const x ) {
+    switch( m[y][x].surface ) {
+      case water:
+        wetness += conf.accumulation;
+        break;
+      case land: {
+        double const consumed =
+            wetness * conf.consumption.fraction;
+        out.m[y][x] += consumed;
+        wetness -= consumed;
+        break;
+      }
+    }
+    wetness = clamp( wetness, 0.0, max_wetness );
+  };
   double const amplitude =
       conf.amplitude *
       ( 1.0 + climate.value * conf.climate_gradient );
-  auto const max_wetness = [&]( int const y ) {
+  auto const max_wetness_for = [&]( int const y ) {
     double const A   = amplitude;
     double const w   = conf.row_modulation.width;
     double const a   = conf.row_modulation.amplitude;
@@ -402,24 +419,10 @@ void compute_wetness( MapMatrix const& m,
     // should ensure this is positive.
     return max( res, 0.0 );
   };
-  double wetness     = 0;
-  auto const on_tile = [&]( int const y, int const x ) {
-    switch( m[y][x].surface ) {
-      case water:
-        wetness += conf.accumulation;
-        break;
-      case land: {
-        double const consumed = wetness / 2;
-        out.m[y][x] += consumed;
-        wetness -= consumed;
-        break;
-      }
-    }
-    wetness = clamp( wetness, 0.0, max_wetness( y ) );
-  };
   auto const on_pass = [&]( int const y, auto const& rng ) {
-    wetness = max_wetness( y );
-    rg::for_each( rng, bind_front( on_tile, y ) );
+    double const max_wetness = max_wetness_for( y );
+    wetness                  = max_wetness;
+    rg::for_each( rng, bind_front( on_tile, max_wetness, y ) );
   };
   auto const on_row = [&]( int const y ) {
     on_pass( y, iota( 0, sz.w ) );
