@@ -31,10 +31,6 @@ create_wetness_stats_collector( std::string const& stem,
                                 WeatherValue const& climate );
 
 std::unique_ptr<IMapStatsCollector>
-create_biome_wetness_stats_collector(
-    WeatherValue const& climate );
-
-std::unique_ptr<IMapStatsCollector>
 create_formations_stats_collector( std::string const& mode );
 
 } // namespace rn

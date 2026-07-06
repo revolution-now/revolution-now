@@ -32,9 +32,10 @@ base::valid_or<std::string> assign_biomes(
     IRand& rand, RealTerrain& real_terrain,
     WeatherValue temperature, WeatherValue climate );
 
-void apply_biome_wetness_remix( MapMatrix& m, IRand& rand,
-                                Wetness const& wetness_config,
-                                WeatherValue climate );
+void apply_biome_wetness_remix(
+    MapMatrix& m, IRand& rand,
+    WetnessConfig const& wetness_config,
+    Wetness const& wetness );
 
 void assign_arctic_biomes( IRand& rand,
                            RealTerrain& real_terrain );

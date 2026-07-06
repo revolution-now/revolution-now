@@ -12,20 +12,20 @@
 
 // gfx
 #include "gfx/cartesian.hpp"
-#include "gfx/matrix-fwd.hpp"
 
 namespace rn {
 
 /****************************************************************
 ** Fwd. Decls.
 *****************************************************************/
-struct Wetness;
 struct IMapUpdater;
 struct IRand;
 struct MapMatrix;
 struct RealTerrain;
 struct TerrainState;
 struct WeatherValue;
+struct Wetness;
+struct WetnessConfig;
 
 /****************************************************************
 ** Public API.
@@ -38,9 +38,10 @@ void remove_crosses( RealTerrain& real_terrain );
 
 void reset_terrain( IMapUpdater& map_updater, gfx::size sz );
 
-void compute_wetness( MapMatrix const& m, Wetness const& config,
+void compute_wetness( MapMatrix const& m,
+                      WetnessConfig const& config,
                       WeatherValue const& climate,
-                      gfx::matrix<double>& out );
+                      Wetness& out );
 
 // Returns realized density.
 double place_arctic( RealTerrain& real_terrain, IRand& rand,

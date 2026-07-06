@@ -46,9 +46,9 @@ valid_or<string> PerlinEdgeSuppression::validate() const {
 }
 
 /****************************************************************
-** WetnessRowModulation
+** WetnessRowModulationConfig
 *****************************************************************/
-valid_or<string> WetnessRowModulation::validate() const {
+valid_or<string> WetnessRowModulationConfig::validate() const {
   // NOTE: amplitude is allowed to be negative.
   REFL_VALIDATE( width > 0, "width must be > 0." );
   return valid;
@@ -57,7 +57,7 @@ valid_or<string> WetnessRowModulation::validate() const {
 /****************************************************************
 ** Wetness
 *****************************************************************/
-valid_or<string> Wetness::validate() const {
+valid_or<string> WetnessConfig::validate() const {
   REFL_VALIDATE( amplitude >= 0, "amplitude must be >= 0." );
   REFL_VALIDATE( accumulation >= 0,
                  "accumulation must be >= 0." );

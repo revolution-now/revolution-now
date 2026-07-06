@@ -218,6 +218,7 @@ valid_or<string> generate_land_perlin(
 valid_or<string> generate_map_native_impl(
     GeneratedMapSetup const& setup, RootState& root,
     RealTerrain& real_terrain, IRand& rand ) {
+  auto& m = real_terrain.map;
   CHECK( setup.size.area() > 0, "map has zero tiles" );
 
   // Proto (off map) virtual tiles.
@@ -227,21 +228,25 @@ valid_or<string> generate_map_native_impl(
   GOOD_OR_RETURN(
       generate_land_perlin( setup, rand, real_terrain ) );
 
+  // Wetness.
+  Wetness wetness;
+  compute_wetness( m, setup.wetness, setup.weather.climate,
+                   wetness );
+  CHECK_EQ( wetness.m.size(), m.size() );
+
   // Biomes.
   rand.reseed( setup.biomes.seed );
   GOOD_OR_RETURN( assign_biomes( rand, real_terrain,
                                  setup.weather.temperature,
                                  setup.weather.climate ) );
-  apply_biome_wetness_remix( real_terrain.map, rand,
-                             setup.wetness,
-                             setup.weather.climate );
+  apply_biome_wetness_remix( m, rand, setup.wetness, wetness );
   if( setup.surface_generator.arctic.enabled )
     assign_arctic_biomes( rand, real_terrain );
 
   // All non-arctic land tiles will be set with forest. Tiles
   // without forest/hills/mountains are themselves a formation
   // that is placed like hills and mountains below.
-  set_all_forest( real_terrain.map );
+  set_all_forest( m );
 
   auto const kFormationOrder = {
     e_terrain_formation::hills,     //
@@ -252,7 +257,7 @@ valid_or<string> generate_map_native_impl(
   rand.reseed( setup.formations.seed );
   for( e_terrain_formation const formation : kFormationOrder ) {
     auto const& conf = setup.formations.formation[formation];
-    generate_formation( rand, real_terrain.map, formation,
+    generate_formation( rand, m, formation,
                         conf.biome_density, conf.spawn,
                         conf.growth_factor, conf.edge_decay,
                         conf.max_length );
@@ -272,7 +277,7 @@ valid_or<string> generate_map_native_impl(
       CASE( from_overridden ) { return from_overridden.values; }
     }
   }();
-  add_rivers( real_terrain.map, rand, river_params );
+  add_rivers( m, rand, river_params );
 #endif
 
   return valid;

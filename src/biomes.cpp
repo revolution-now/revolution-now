@@ -283,10 +283,10 @@ valid_or<string> assign_biomes( IRand& rand,
 }
 
 static void apply_biome_wetness_remix_for_row(
-    MapMatrix& m, IRand& rand, Wetness const& conf,
-    matrix<double> const& wetness, int const y ) {
-  double constexpr kEpsilon = 1e-6;
-  size const sz             = m.size();
+    MapMatrix& m, IRand& rand, WetnessConfig const& conf,
+    Wetness const& wetness, int const y ) {
+  double constexpr kEps = 1e-12;
+  size const sz         = m.size();
 
   vector<point> const shuffled_land_tiles = [&] {
     vector<point> res;
@@ -317,18 +317,16 @@ static void apply_biome_wetness_remix_for_row(
     CHECK( !tile_biomes.empty() );
     auto const weight = [&]( e_biome const biome ) {
       if( biome == e_biome::tundra ) {
-        double const kEps = 1e-12;
-        double const kExp = 4.0;
-        double const w =
-            std::clamp( wetness[p], kEps, 1 - kEps );
-        return wetness[p] > .4 ? pow( 1.0 - w, kExp )
-                               : pow( 1.0 / w, kExp );
+        double const kExp    = 4.0;
+        double const kCutoff = 0.4;
+        double const w = clamp( wetness.m[p], kEps, 1 - kEps );
+        return wetness.m[p] > kCutoff ? pow( 1.0 - w, kExp )
+                                      : pow( 1.0 / w, kExp );
       }
-      double const delta =
-          std::max( abs( conf.biome_affinity[biome].fraction -
-                         wetness[p] ),
-                    kEpsilon );
-      return 1.0 / delta;
+      return 1.0 /
+             std::max( abs( conf.biome_affinity[biome].fraction -
+                            wetness.m[p] ),
+                       kEps );
     };
     for( e_biome const biome : tile_biomes )
       choices.push_back( { biome, weight( biome ) } );
@@ -348,13 +346,12 @@ static void apply_biome_wetness_remix_for_row(
   CHECK( tile_biomes.empty() );
 }
 
-void apply_biome_wetness_remix( MapMatrix& m, IRand& rand,
-                                Wetness const& wetness_config,
-                                WeatherValue const climate ) {
+void apply_biome_wetness_remix(
+    MapMatrix& m, IRand& rand,
+    WetnessConfig const& wetness_config,
+    Wetness const& wetness ) {
   size const sz = m.size();
-  matrix<double> wetness;
-  compute_wetness( m, wetness_config, climate, wetness );
-  CHECK_EQ( wetness.size(), m.size() );
+  CHECK_EQ( wetness.m.size(), m.size() );
   for( int const y : iota( 0, sz.h ) )
     apply_biome_wetness_remix_for_row( m, rand, wetness_config,
                                        wetness, y );

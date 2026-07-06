@@ -207,12 +207,12 @@ void WetnessStatsCollector::collect( MapMatrix const& m ) {
   map_sz_ = m.size();
   ++maps_;
 
-  matrix<double> const wetness = [&] {
-    matrix<double> res;
+  Wetness const wetness = [&] {
+    Wetness res;
     compute_wetness( m,
                      config_map_gen.terrain_generation.wetness,
                      climate_, res );
-    CHECK_EQ( res.size(), m.size() );
+    CHECK_EQ( res.m.size(), m.size() );
     return res;
   }();
 
@@ -226,12 +226,12 @@ void WetnessStatsCollector::collect( MapMatrix const& m ) {
         ++land_with_biome_by_row_[tile.y][center.ground];
         ++land_with_biome_by_col_[tile.x][center.ground];
         wetness_on_biome_by_row_[tile.y][center.ground] +=
-            wetness[tile];
+            wetness.m[tile];
         wetness_on_biome_by_col_[tile.x][center.ground] +=
-            wetness[tile];
-        land_wetness_ += wetness[tile];
-        wetness_by_row_[tile.y] += wetness[tile];
-        wetness_by_col_[tile.x] += wetness[tile];
+            wetness.m[tile];
+        land_wetness_ += wetness.m[tile];
+        wetness_by_row_[tile.y] += wetness.m[tile];
+        wetness_by_col_[tile.x] += wetness.m[tile];
       } );
 }
 
@@ -385,111 +385,6 @@ void WetnessStatsCollector::write() const {
     }
     gnuplot( settings, csv_data, "biome.wetness.cols" );
   }
-}
-
-/****************************************************************
-** BiomeWetnessStatsCollector
-*****************************************************************/
-struct BiomeWetnessStatsCollector : IMapStatsCollector {
-  BiomeWetnessStatsCollector( WeatherValue const climate )
-    : climate_( climate ) {}
-
-  static array<e_biome, 9> constexpr kWetOrdering = {
-    e_biome::tundra,    e_biome::desert, e_biome::savannah,
-    e_biome::plains,    e_biome::arctic, e_biome::prairie,
-    e_biome::grassland, e_biome::swamp,  e_biome::marsh,
-  };
-
- public: // IMapStatsCollector
-  void collect( MapMatrix const& m ) override;
-  void summarize() override;
-  void write() const override;
-
- private:
-  WeatherValue const climate_;
-  size map_sz_         = {};
-  int land_            = 0;
-  double land_wetness_ = 0;
-  refl::enum_map<e_biome, double> biome_wetness_;
-  refl::enum_map<e_biome, int> biome_count_;
-  int maps_total_ = 0;
-};
-
-void BiomeWetnessStatsCollector::collect( MapMatrix const& m ) {
-  map_sz_ = m.size();
-  ++maps_total_;
-
-  matrix<double> const wetness = [&] {
-    matrix<double> res;
-    compute_wetness( m,
-                     config_map_gen.terrain_generation.wetness,
-                     climate_, res );
-    CHECK_EQ( res.size(), m.size() );
-    return res;
-  }();
-
-  on_all_tiles(
-      m, [&]( point const tile, MapSquare const& center ) {
-        if( center.surface == e_surface::water ) return;
-        ++biome_count_[center.ground];
-        biome_wetness_[center.ground] += wetness[tile];
-        land_wetness_ += wetness[tile];
-        ++land_;
-      } );
-}
-
-void BiomeWetnessStatsCollector::summarize() {}
-
-void BiomeWetnessStatsCollector::write() const {
-  enum_map<e_biome, double> const& kTargets{
-    // clang-format off
-    // bbmm
-    // {e_biome::tundra,    0.097},
-    // {e_biome::desert,    0.187},
-    // {e_biome::savannah,  0.209},
-    // {e_biome::plains,    0.283},
-    // {e_biome::prairie,   0.442},
-    // {e_biome::grassland, 0.477},
-    // {e_biome::swamp,     0.580},
-    // {e_biome::marsh,     0.614},
-    // mmmm
-    {e_biome::tundra,    0.140},
-    {e_biome::desert,    0.267},
-    {e_biome::savannah,  0.307},
-    {e_biome::plains,    0.364},
-    {e_biome::prairie,   0.546},
-    {e_biome::grassland, 0.602},
-    {e_biome::swamp,     0.689},
-    {e_biome::marsh,     0.715},
-    // clang-format on
-  };
-  fmt::println( "land:         {}",
-                double( land_ ) / maps_total_ );
-  for( e_biome const biome : enum_values<e_biome> )
-    fmt::println( "{:<12}:       {}", biome,
-                  double( biome_count_[biome] ) / maps_total_ );
-  fmt::println( "land_wetness: {}",
-                land_wetness_ / maps_total_ );
-  fmt::println( "" );
-  fmt::println( "{:12}: {:>12} {:>12} {:>12}", "biome",
-                "wetness", "target", "ratio" );
-  fmt::println(
-      "-----------------------------------------------------" );
-  double error_abs = 0;
-  for( e_biome const biome : kWetOrdering ) {
-    if( biome == e_biome::arctic ) continue;
-    double const wetness =
-        biome_wetness_[biome] / biome_count_[biome];
-    fmt::println( "{:12}: {:12.3f} {:12.3f} {:12.3f}", biome,
-                  wetness, kTargets[biome],
-                  wetness / kTargets[biome] );
-    error_abs += abs( wetness / kTargets[biome] - 1 );
-  }
-  double const error = error_abs / 8;
-  fmt::println(
-      "-----------------------------------------------------" );
-  fmt::println( "{:12}: {:>12} {:>12} {:12.3f}", "error", "", "",
-                error );
 }
 
 /****************************************************************
@@ -1837,12 +1732,6 @@ create_biome_density_stats_collector( std::string const& stem ) {
 unique_ptr<IMapStatsCollector> create_wetness_stats_collector(
     string const& stem, WeatherValue const& climate ) {
   return make_unique<WetnessStatsCollector>( stem, climate );
-}
-
-unique_ptr<IMapStatsCollector>
-create_biome_wetness_stats_collector(
-    WeatherValue const& climate ) {
-  return make_unique<BiomeWetnessStatsCollector>( climate );
 }
 
 unique_ptr<IMapStatsCollector> create_formations_stats_collector(

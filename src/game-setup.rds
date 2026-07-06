@@ -126,7 +126,7 @@ struct.GeneratedMapSetup {
   # Map Size.
   size 'gfx::size',
   surface_generator 'SurfaceGeneratorSetup',
-  wetness 'Wetness',
+  wetness 'WetnessConfig',
   weather 'WeatherSetup',
   rivers 'RiverSetup',
   biomes 'BiomesSetup',

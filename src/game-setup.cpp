@@ -186,7 +186,7 @@ GameSetup create_classic_game_setup(
     .sanitization = surface_sanitization,
   };
 
-  Wetness const& wetness = map_conf.wetness;
+  WetnessConfig const& wetness = map_conf.wetness;
 
   WeatherSetup const weather{
     .temperature = params.temperature,

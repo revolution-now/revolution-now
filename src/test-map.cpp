@@ -1028,27 +1028,28 @@ struct RiverFrequencyStats : IMapStatsCollector {
   using T = e_temperature;
   using C = e_climate;
 
-  static auto constexpr kModes = {
-    // clang-format off
-      tuple{ M::small,    F::archipelago, T::cool,      C::arid   },
-      tuple{ M::small,    F::archipelago, T::temperate, C::arid   },
-      tuple{ M::small,    F::archipelago, T::temperate, C::normal },
-      tuple{ M::small,    F::archipelago, T::temperate, C::wet    },
-      tuple{ M::small,    F::archipelago, T::warm,      C::wet    },
+  static auto constexpr kModes =
+      {
+        // clang-format off
+      // tuple{ M::small,    F::archipelago, T::cool,      C::arid   },
+      // tuple{ M::small,    F::archipelago, T::temperate, C::arid   },
+      // tuple{ M::small,    F::archipelago, T::temperate, C::normal },
+      // tuple{ M::small,    F::archipelago, T::temperate, C::wet    },
+      // tuple{ M::small,    F::archipelago, T::warm,      C::wet    },
 
-      tuple{ M::moderate, F::normal,      T::cool,      C::arid   },
-      tuple{ M::moderate, F::normal,      T::temperate, C::arid   },
-      tuple{ M::moderate, F::normal,      T::temperate, C::normal },
-      tuple{ M::moderate, F::normal,      T::temperate, C::wet    },
-      tuple{ M::moderate, F::normal,      T::warm,      C::wet    },
+      // tuple{ M::moderate, F::normal,      T::cool,      C::arid   },
+      // tuple{ M::moderate, F::normal,      T::temperate, C::arid   },
+      // tuple{ M::moderate, F::normal,      T::temperate, C::normal },
+      // tuple{ M::moderate, F::normal,      T::temperate, C::wet    },
+      // tuple{ M::moderate, F::normal,      T::warm,      C::wet    },
 
-      tuple{ M::large,    F::continents,  T::cool,      C::arid   },
-      tuple{ M::large,    F::continents,  T::temperate, C::arid   },
+      // tuple{ M::large,    F::continents,  T::cool,      C::arid   },
+      // tuple{ M::large,    F::continents,  T::temperate, C::arid   },
       tuple{ M::large,    F::continents,  T::temperate, C::normal },
-      tuple{ M::large,    F::continents,  T::temperate, C::wet    },
-      tuple{ M::large,    F::continents,  T::warm,      C::wet    },
-    // clang-format on
-  };
+      // tuple{ M::large,    F::continents,  T::temperate, C::wet    },
+      // tuple{ M::large,    F::continents,  T::warm,      C::wet    },
+        // clang-format on
+      };
 
   for( auto const& [land_mass, land_form, temperature, climate] :
        kModes ) {
@@ -1074,56 +1075,6 @@ struct RiverFrequencyStats : IMapStatsCollector {
     stats->summarize();
     stats->write();
     fmt::print( "\n" );
-  }
-}
-
-[[maybe_unused]] void testing_map_gen_biome_wetness_stats(
-    IEngine& engine ) {
-  int constexpr kNumSamples = 2000;
-
-  auto const generate =
-      [&]( SS& ss, ClassicGameSetupParamsCustom const& custom ) {
-        generate_single_map_custom( engine, ss, custom );
-      };
-
-  static auto constexpr kTemps = {
-    // e_temperature::cool,
-    e_temperature::temperate,
-    // e_temperature::warm,
-  };
-  static auto constexpr kClimates = {
-    // e_climate::arid,
-    e_climate::normal,
-    // e_climate::wet,
-  };
-
-  for( e_temperature const temperature : kTemps ) {
-    for( e_climate const climate : kClimates ) {
-      ClassicGameSetupParamsCustom const params{
-        .land_mass   = e_land_mass::moderate,
-        .land_form   = e_land_form::normal,
-        .temperature = temperature,
-        .climate     = climate };
-      string const name( mode_name( params ) );
-      auto const stats1 = create_biome_wetness_stats_collector(
-          config_map_gen.terrain_generation.weather.climate
-              .customized[climate] );
-      auto const stats2 =
-          create_biome_density_stats_collector( name );
-      fmt::println( "generating for {}...", name );
-      for( int i = 0; i < kNumSamples; ++i ) {
-        SS ss;
-        generate( ss, params );
-        stats1->collect( ss.terrain.real_terrain().map );
-        stats2->collect( ss.terrain.real_terrain().map );
-        // fmt::println( "#{}", i + 1 );
-      }
-      stats1->summarize();
-      stats2->summarize();
-      stats1->write();
-      stats2->write();
-      fmt::print( "\n" );
-    }
   }
 }
 
@@ -1360,7 +1311,6 @@ void testing_map_gen_stats( IEngine& engine ) {
   SCOPE_EXIT { set_global_log_level( old_level ); };
   // testing_map_gen_biome_density_stats( engine );
   testing_map_gen_wetness_stats( engine );
-  // testing_map_gen_biome_wetness_stats( engine );
   // testing_map_gen_lake_stats( engine );
   // testing_map_gen_river_stats( engine );
   // testing_map_gen_formation_stats( engine );

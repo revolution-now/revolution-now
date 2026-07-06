@@ -382,12 +382,13 @@ void add_lakes( MapMatrix& m, IRand& rand, int const target ) {
     swap( m[water], m[land] );
 }
 
-void compute_wetness( MapMatrix const& m, Wetness const& conf,
+void compute_wetness( MapMatrix const& m,
+                      WetnessConfig const& conf,
                       WeatherValue const& climate,
-                      matrix<double>& out ) {
+                      Wetness& out ) {
   using enum e_surface;
   size const sz = m.size();
-  out           = matrix<double>( sz );
+  out.m         = matrix<double>( sz );
   double const amplitude =
       conf.amplitude *
       ( 1.0 + climate.value * conf.climate_gradient );
@@ -409,7 +410,7 @@ void compute_wetness( MapMatrix const& m, Wetness const& conf,
         break;
       case land: {
         double const consumed = wetness / 2;
-        out[y][x] += consumed;
+        out.m[y][x] += consumed;
         wetness -= consumed;
         break;
       }
@@ -425,7 +426,7 @@ void compute_wetness( MapMatrix const& m, Wetness const& conf,
     on_pass( y, rv::reverse( iota( 0, sz.w ) ) );
   };
   rg::for_each( iota( 0, sz.h ), on_row );
-  out.apply( [&]( double& d, point const p ) {
+  out.m.apply( [&]( double& d, point const p ) {
     if( m[p].surface == water ) return;
     d /= 2.0; // two passes on each row.
     d = clamp( d, 0.0, 1.0 );

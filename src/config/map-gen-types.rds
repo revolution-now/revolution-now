@@ -19,6 +19,7 @@ include "rand/perlin.rds.hpp"
 
 # cartesian
 include "gfx/cartesian.hpp"
+include "gfx/matrix.hpp"
 
 # refl
 include "refl/enum-map.hpp"
@@ -77,19 +78,23 @@ struct.PerlinSeed {
   flip     'bool',
 }
 
-struct.WetnessRowModulation {
+struct.WetnessRowModulationConfig {
   amplitude 'double',
   width 'double',
   _features { equality, validation }
 }
 
-struct.Wetness {
+struct.WetnessConfig {
   amplitude 'double',
   climate_gradient 'double',
   accumulation 'double',
-  row_modulation 'WetnessRowModulation',
+  row_modulation 'WetnessRowModulationConfig',
   biome_affinity 'refl::enum_map<e_biome, config::DoublePercent>',
   _features { equality, validation }
+}
+
+struct.Wetness {
+  m 'gfx::matrix<double>',
 }
 
 # Used to hold a parameter representing the temperature and cli-
