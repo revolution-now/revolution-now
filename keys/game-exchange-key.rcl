@@ -92,64 +92,6 @@ map.source.generate_native.setup {
 
   formations {
     seed: "799e3a0b501cf2b907f25c9955c4da6f"
-    formation {
-      hills {
-        biome_density {
-          savannah.probability:  0.03358
-          grassland.probability: 0.02472
-          tundra.probability:    0.07601
-          plains.probability:    0.10919
-          prairie.probability:   0.06160
-          desert.probability:    0.04032
-          swamp.probability:     0.07330
-          marsh.probability:     0.08201
-          arctic.probability:    0.00000
-        }
-        spawn.probability: 1.0
-        growth_factor:     0.50
-        edge_decay.w:      0.00
-        edge_decay.h:      0.15
-        max_length:        9
-      }
-
-      mountains {
-        biome_density {
-          savannah.probability:  0.05930
-          grassland.probability: 0.04163
-          tundra.probability:    0.08806
-          plains.probability:    0.13823
-          prairie.probability:   0.08183
-          desert.probability:    0.09588
-          swamp.probability:     0.04348
-          marsh.probability:     0.11069
-          arctic.probability:    0.00000
-        }
-        spawn.probability: 1.0
-        growth_factor:     3.40
-        edge_decay.w:      0.20
-        edge_decay.h:      0.55
-        max_length:        30
-      }
-
-      clearing {
-        biome_density {
-          savannah.probability:  0.09097
-          grassland.probability: 0.05603
-          tundra.probability:    0.26036
-          plains.probability:    0.18998
-          prairie.probability:   0.09555
-          desert.probability:    0.10085
-          swamp.probability:     0.04441
-          marsh.probability:     0.04742
-          arctic.probability:    0.00000
-        }
-        spawn.probability: 1.0
-        growth_factor:     2.20
-        edge_decay.w:      0.50
-        edge_decay.h:      0.50
-        max_length:        30
-      }
-    }
   }
 
   bonuses.seed: "de7db42af1959c181457f2eb81adaf6c"

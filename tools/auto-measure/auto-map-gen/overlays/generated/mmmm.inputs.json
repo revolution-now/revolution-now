@@ -1,0 +1,26 @@
+{
+  "density_on_biome": {
+    "mountains": {
+      "savannah": 0.0583,
+      "grassland": 0.04518,
+      "tundra": 0.08788,
+      "plains": 0.13404,
+      "prairie": 0.08252,
+      "desert": 0.09838,
+      "swamp": 0.04414,
+      "marsh": 0.11213,
+      "arctic": 0
+    },
+    "hills": {
+      "savannah": 0.03341,
+      "grassland": 0.02351,
+      "tundra": 0.06795,
+      "plains": 0.09907,
+      "prairie": 0.05737,
+      "desert": 0.03851,
+      "swamp": 0.07195,
+      "marsh": 0.07635,
+      "arctic": 0
+    }
+  }
+}

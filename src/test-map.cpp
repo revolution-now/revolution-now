@@ -83,7 +83,7 @@ using ::gfx::size;
 using ::refl::enum_map;
 using ::refl::enum_values;
 
-auto const& ascii_map_formatter = ascii_map_biome_formatter;
+auto const& ascii_map_formatter = ascii_map_overlay_formatter;
 
 /****************************************************************
 ** Helpers.
@@ -1207,24 +1207,24 @@ struct RiverFrequencyStats : IMapStatsCollector {
 
   static auto constexpr kModes = {
     // clang-format off
-     // tuple{ M::small,    F::archipelago, T::temperate, C::normal },
-     // tuple{ M::moderate, F::normal,      T::temperate, C::normal },
-     // tuple{ M::large,    F::continents,  T::temperate, C::normal },
-     // tuple{ M::moderate, F::archipelago, T::temperate, C::normal },
-     // tuple{ M::moderate, F::continents,  T::temperate, C::normal },
-     // tuple{ M::small,    F::normal,      T::temperate, C::normal },
-     // tuple{ M::large,    F::normal,      T::temperate, C::normal },
-     // tuple{ M::small,    F::continents,  T::temperate, C::normal },
-     // tuple{ M::large,    F::archipelago, T::temperate, C::normal },
-     // tuple{ M::large,    F::continents,  T::cool,      C::arid   },
-     // tuple{ M::large,    F::continents,  T::temperate, C::arid   },
-     // tuple{ M::large,    F::continents,  T::warm,      C::arid   },
-     // tuple{ M::large,    F::continents,  T::cool,      C::normal },
+        tuple{ M::small,    F::archipelago, T::temperate, C::normal },
+        tuple{ M::moderate, F::normal,      T::temperate, C::normal },
         tuple{ M::large,    F::continents,  T::temperate, C::normal },
-     // tuple{ M::large,    F::continents,  T::warm,      C::normal },
-     // tuple{ M::large,    F::continents,  T::cool,      C::wet    },
-     // tuple{ M::large,    F::continents,  T::temperate, C::wet    },
-     // tuple{ M::large,    F::continents,  T::warm,      C::wet    },
+        tuple{ M::moderate, F::archipelago, T::temperate, C::normal },
+        tuple{ M::moderate, F::continents,  T::temperate, C::normal },
+        tuple{ M::small,    F::normal,      T::temperate, C::normal },
+        tuple{ M::large,    F::normal,      T::temperate, C::normal },
+        tuple{ M::small,    F::continents,  T::temperate, C::normal },
+        tuple{ M::large,    F::archipelago, T::temperate, C::normal },
+        tuple{ M::large,    F::continents,  T::cool,      C::arid   },
+        tuple{ M::large,    F::continents,  T::temperate, C::arid   },
+        tuple{ M::large,    F::continents,  T::warm,      C::arid   },
+        tuple{ M::large,    F::continents,  T::cool,      C::normal },
+        tuple{ M::large,    F::continents,  T::temperate, C::normal },
+        tuple{ M::large,    F::continents,  T::warm,      C::normal },
+        tuple{ M::large,    F::continents,  T::cool,      C::wet    },
+        tuple{ M::large,    F::continents,  T::temperate, C::wet    },
+        tuple{ M::large,    F::continents,  T::warm,      C::wet    },
     // clang-format on
   };
 
@@ -1241,12 +1241,14 @@ struct RiverFrequencyStats : IMapStatsCollector {
     fmt::println( "generate for {}...", name );
     ScopedTimer const timer(
         format( "generate {} maps", kNumSamples ) );
+    fmt::print( "\033[?25l" );
+    SCOPE_EXIT { fmt::print( "\033[?25h" ); };
     for( int i = 0; i < kNumSamples; ++i ) {
-      fmt::print( "generating map {}...", i + 1 );
+      fmt::print( "  #{} ({:.3}%)          \r", i + 1,
+                  i * 100.0 / kNumSamples );
       SS ss;
       generate( ss, params );
       stats->collect( ss.terrain.real_terrain().map );
-      fmt::print( "\n" );
     }
     stats->summarize();
     stats->write();
@@ -1309,10 +1311,10 @@ void testing_map_gen_stats( IEngine& engine ) {
   set_global_log_level( base::e_log_level::warn );
   SCOPE_EXIT { set_global_log_level( old_level ); };
   // testing_map_gen_biome_density_stats( engine );
-  testing_map_gen_wetness_stats( engine );
+  // testing_map_gen_wetness_stats( engine );
   // testing_map_gen_lake_stats( engine );
   // testing_map_gen_river_stats( engine );
-  // testing_map_gen_formation_stats( engine );
+  testing_map_gen_formation_stats( engine );
 }
 
 void drop_large_og_map( IEngine& engine ) {

@@ -2,7 +2,11 @@ local EMPIRICAL_FILE = 'empirical/bbmm.json'
 local GENERATED_FILE = 'generated/bbmm.data.json'
 local INPUTS_FILE = 'generated/bbmm.inputs.json'
 
-FORMATION_ORDER = { 'hills', 'mountains', 'clearing' }
+FORMATION_ORDER = {
+  'hills', --
+  'mountains', --
+  -- 'clearing', --
+}
 
 local BIOME_ORDERING = {
   'savannah', --

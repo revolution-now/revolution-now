@@ -13,15 +13,6 @@
 // config
 #include "config/range-helpers.rds.hpp"
 
-// ss
-#include "ss/terrain-enums.rds.hpp"
-
-// gfx
-#include "gfx/cartesian.hpp"
-
-// refl
-#include "refl/enum-map.hpp"
-
 namespace rn {
 
 /****************************************************************
@@ -29,8 +20,10 @@ namespace rn {
 *****************************************************************/
 struct IRand;
 struct MapMatrix;
+struct FormationSpawnType;
+struct FormationGrowth;
+struct Wetness;
 
-enum class e_biome;
 enum class e_terrain_formation;
 
 /****************************************************************
@@ -39,11 +32,11 @@ enum class e_terrain_formation;
 // All non-arctic land tiles will be set with forest.
 void set_all_forest( MapMatrix& m );
 
-void generate_formation(
-    IRand& rand, MapMatrix& m, e_terrain_formation formation,
-    refl::enum_map<e_biome, config::Probability> const&
-        biome_density,
-    config::Probability spawn, double growth_factor,
-    gfx::dsize edge_decay, int max_length );
+void generate_formation( IRand& rand, MapMatrix& m,
+                         e_terrain_formation formation,
+                         FormationSpawnType const& spawn_type,
+                         config::Probability overall_spawn,
+                         FormationGrowth const& growth,
+                         Wetness const& wetness );
 
 } // namespace rn

@@ -251,16 +251,20 @@ valid_or<string> generate_map_native_impl(
   auto const kFormationOrder = {
     e_terrain_formation::hills,     //
     e_terrain_formation::mountains, //
+    // NOTE: clearing should be after the others because the
+    // probability that we sampled from the OG has in the denomi-
+    // nator the land count on tiles without hills or mountains,
+    // so in other words it is assumed that those will be placed
+    // first.
     e_terrain_formation::clearing,  //
   };
 
   rand.reseed( setup.formations.seed );
   for( e_terrain_formation const formation : kFormationOrder ) {
     auto const& conf = setup.formations.formation[formation];
-    generate_formation( rand, m, formation,
-                        conf.biome_density, conf.spawn,
-                        conf.growth_factor, conf.edge_decay,
-                        conf.max_length );
+    generate_formation( rand, m, formation, conf.spawn,
+                        conf.overall_spawn, conf.growth,
+                        wetness );
   }
 
 #if 0

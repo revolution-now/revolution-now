@@ -26,14 +26,17 @@
 // gfx
 #include "gfx/cartesian.hpp"
 
-// refl
-#include "refl/enum-map.hpp"
+// rds
+#include "rds/switch-macro.hpp"
 
 // rcl
 #include "rcl/emit.hpp"
 
 // cdr
 #include "cdr/ext-builtin.hpp"
+
+// refl
+#include "refl/enum-map.hpp"
 
 // base
 #include "base/ansi.hpp"
@@ -474,9 +477,15 @@ struct FormationsStatsCollector : IMapStatsCollector {
 
   map<int /*row*/, int> land_by_row_;
   map<int /*col*/, int> land_by_col_;
+  map<int /*row*/, int> land_non_mounds_by_row_;
+  map<int /*col*/, int> land_non_mounds_by_col_;
   enum_map<e_biome, int> land_with_biome_;
   map<int /*y*/, enum_map<e_biome, int>> land_with_biome_by_row_;
   map<int /*x*/, enum_map<e_biome, int>> land_with_biome_by_col_;
+  map<int /*y*/, enum_map<e_biome, int>>
+      land_non_mounds_with_biome_by_row_;
+  map<int /*x*/, enum_map<e_biome, int>>
+      land_non_mounds_with_biome_by_col_;
   M<int> count_;
   int count_forest_ = 0;
   M<int> count_squared_;
@@ -724,6 +733,14 @@ void FormationsStatsCollector::collect( MapMatrix const& m ) {
     ++land_with_biome_[center.ground];
     ++land_with_biome_by_row_[tile.y][center.ground];
     ++land_with_biome_by_col_[tile.x][center.ground];
+    if( !has_mountains( center ) && !has_hills( center ) ) {
+      ++land_non_mounds_by_row_[tile.y];
+      ++land_non_mounds_by_col_[tile.x];
+      ++land_non_mounds_with_biome_by_row_[tile.y]
+                                          [center.ground];
+      ++land_non_mounds_with_biome_by_col_[tile.x]
+                                          [center.ground];
+    }
 
     bool has_hills_adjacent     = false;
     bool has_mountains_adjacent = false;
@@ -1131,7 +1148,8 @@ void FormationsStatsCollector::emit_data_file() const {
 
   string const out_filename = generated_json_path( "data" );
   ofstream out( out_filename );
-  CHECK( out.good() );
+  CHECK( out.good(), "failed to generate file {}",
+         out_filename );
   out << rcl::emit_json( o, rcl::JsonEmitOptions{
                               .key_order_tag = "__key_order" } );
 }
@@ -1146,10 +1164,10 @@ void FormationsStatsCollector::emit_inputs_file() const {
     "density_on_biome", //
   };
 
-  list const FORMATION_ORDER_CLEARING_CDR = {
-    "mountains", //
-    "hills",     //
-    "clearing",  //
+  list const FORMATION_ORDER_CLEARING_NM_CDR = {
+    "mountains",   //
+    "hills",       //
+    "clearing-nm", //
   };
 
   list const BIOME_ORDERING_CDR = {
@@ -1167,20 +1185,34 @@ void FormationsStatsCollector::emit_inputs_file() const {
   table o;
   o["__key_order"] = DATA_KEY_ORDER;
 
-  o["density_on_biome"] =
-      table{ "__key_order"_key = FORMATION_ORDER_CLEARING_CDR };
+  o["density_on_biome"] = table{
+    "__key_order"_key = FORMATION_ORDER_CLEARING_NM_CDR };
   for( e_terrain_formation const kind :
        FORMATION_ORDER_CLEARING ) {
-    auto const& kind_str = base::to_str( kind );
-    o["density_on_biome"][kind_str] =
-        table{ "__key_order"_key = BIOME_ORDERING_CDR };
-    for( e_biome const biome : BIOME_ORDERING ) {
-      auto const& biome_str = base::to_str( biome );
-      o["density_on_biome"][kind_str][biome_str] =
-          config_map_gen.terrain_generation.formations
-              .formation[kind]
-              .biome_density[biome]
-              .probability;
+    auto const& kind_str = ( kind == clearing )
+                               ? "clearing-nm"
+                               : base::to_str( kind );
+    auto const& conf     = config_map_gen.terrain_generation
+                           .formations.formation[kind];
+    SWITCH( conf.spawn ) {
+      CASE( uniform ) {
+        // None
+        break;
+      }
+      CASE( by_wetness ) {
+        // None
+        break;
+      }
+      CASE( per_biome ) {
+        o["density_on_biome"][kind_str] =
+            table{ "__key_order"_key = BIOME_ORDERING_CDR };
+        for( e_biome const biome : BIOME_ORDERING ) {
+          auto const& biome_str = base::to_str( biome );
+          o["density_on_biome"][kind_str][biome_str] =
+              per_biome.density[biome].probability;
+        }
+        break;
+      }
     }
   }
 
@@ -1211,8 +1243,7 @@ void FormationsStatsCollector::write() const {
     };
 
     CsvData csv_data{
-      .header = { "length", "mountains", "hills", "clearing",
-                  "fit" },
+      .header = { "length", "mountains", "hills", "clearing" },
       .rows   = {},
     };
 
@@ -1236,7 +1267,6 @@ void FormationsStatsCollector::write() const {
         /*mountains=*/"",
         /*hills=*/"",
         /*clearing=*/"",
-        /*fit=*/"",
       };
       double mountains_value =
           log( lookup( count_range_length_[mountains], i )
@@ -1249,7 +1279,6 @@ void FormationsStatsCollector::write() const {
           log( lookup( count_range_length_[clearing], i )
                    .value_or( 1 ) /
                double( total_ranges ) );
-      double const fit_value = 0; //-2.0 * ( i - 1 );
       if( i == 1 ) {
         length_1_val[mountains] = mountains_value;
         length_1_val[hills]     = hills_value;
@@ -1262,7 +1291,6 @@ void FormationsStatsCollector::write() const {
       row[1]         = to_string( mountains_value );
       row[2]         = to_string( hills_value );
       row[3]         = to_string( clearing_value );
-      row[4]         = to_string( fit_value );
       csv_data.rows.push_back( std::move( row ) );
     }
 
@@ -1281,7 +1309,7 @@ void FormationsStatsCollector::write() const {
     };
 
     CsvData csv_data{
-      .header = { "y", "mountains", "hills", "clearing" },
+      .header = { "y", "mountains", "hills", "clearing-nm" },
       .rows   = {},
     };
 
@@ -1300,7 +1328,8 @@ void FormationsStatsCollector::write() const {
           double( lookup( land_by_row_, y ).value_or( 0 ) );
       double const clearing_value =
           lookup( count_by_row_[clearing], y ).value_or( 0 ) /
-          double( lookup( land_by_row_, y ).value_or( 0 ) );
+          double( lookup( land_non_mounds_by_row_, y )
+                      .value_or( 0 ) );
       row[1] = to_string( mountains_value );
       row[2] = to_string( hills_value );
       row[3] = to_string( clearing_value );
@@ -1322,7 +1351,7 @@ void FormationsStatsCollector::write() const {
     };
 
     CsvData csv_data{
-      .header = { "x", "mountains", "hills", "clearing" },
+      .header = { "x", "mountains", "hills", "clearing-nm" },
       .rows   = {},
     };
 
@@ -1341,7 +1370,8 @@ void FormationsStatsCollector::write() const {
           double( lookup( land_by_col_, x ).value_or( 0 ) );
       double const clearing_value =
           lookup( count_by_col_[clearing], x ).value_or( 0 ) /
-          double( lookup( land_by_col_, x ).value_or( 0 ) );
+          double( lookup( land_non_mounds_by_col_, x )
+                      .value_or( 0 ) );
       row[1] = to_string( mountains_value );
       row[2] = to_string( hills_value );
       row[3] = to_string( clearing_value );
@@ -1363,7 +1393,7 @@ void FormationsStatsCollector::write() const {
     };
 
     CsvData csv_data{
-      .header = { "y", "mountains", "hills", "clearing" },
+      .header = { "y", "mountains", "hills", "clearing-nm" },
       .rows   = {},
     };
 
@@ -1385,7 +1415,8 @@ void FormationsStatsCollector::write() const {
       double const clearing_value =
           lookup( count_range_centers_by_row_[clearing], y )
               .value_or( 0 ) /
-          double( lookup( land_by_row_, y ).value_or( 0 ) );
+          double( lookup( land_non_mounds_by_row_, y )
+                      .value_or( 0 ) );
       row[1] = to_string( mountains_value );
       row[2] = to_string( hills_value );
       row[3] = to_string( clearing_value );
@@ -1407,7 +1438,7 @@ void FormationsStatsCollector::write() const {
     };
 
     CsvData csv_data{
-      .header = { "x", "mountains", "hills", "clearing" },
+      .header = { "x", "mountains", "hills", "clearing-nm" },
       .rows   = {},
     };
 
@@ -1429,7 +1460,8 @@ void FormationsStatsCollector::write() const {
       double const clearing_value =
           lookup( count_range_centers_by_col_[clearing], x )
               .value_or( 0 ) /
-          double( lookup( land_by_col_, x ).value_or( 0 ) );
+          double( lookup( land_non_mounds_by_col_, x )
+                      .value_or( 0 ) );
       row[1] = to_string( mountains_value );
       row[2] = to_string( hills_value );
       row[3] = to_string( clearing_value );
@@ -1451,7 +1483,8 @@ void FormationsStatsCollector::write() const {
     };
 
     CsvData csv_data{
-      .header = { "y", "mountains/10", "hills", "clearing/20" },
+      .header = { "y", "mountains/10", "hills",
+                  "clearing-nm/20" },
       .rows   = {},
     };
 
@@ -1473,7 +1506,9 @@ void FormationsStatsCollector::write() const {
       double const clearing_value =
           lookup( count_large_range_by_row_[clearing], y )
               .value_or( 0 ) /
-          double( lookup( land_by_row_, y ).value_or( 0 ) ) / 20;
+          double( lookup( land_non_mounds_by_row_, y )
+                      .value_or( 0 ) ) /
+          20;
       row[1] = to_string( mountains_value );
       row[2] = to_string( hills_value );
       row[3] = to_string( clearing_value );
@@ -1495,7 +1530,8 @@ void FormationsStatsCollector::write() const {
     };
 
     CsvData csv_data{
-      .header = { "x", "mountains/10", "hills", "clearing/20" },
+      .header = { "x", "mountains/10", "hills",
+                  "clearing-nm/20" },
       .rows   = {},
     };
 
@@ -1517,7 +1553,9 @@ void FormationsStatsCollector::write() const {
       double const clearing_value =
           lookup( count_large_range_by_col_[clearing], x )
               .value_or( 0 ) /
-          double( lookup( land_by_col_, x ).value_or( 0 ) ) / 20;
+          double( lookup( land_non_mounds_by_col_, x )
+                      .value_or( 0 ) ) /
+          20;
       row[1] = to_string( mountains_value );
       row[2] = to_string( hills_value );
       row[3] = to_string( clearing_value );
@@ -1647,7 +1685,10 @@ void FormationsStatsCollector::write() const {
         SCOPE_EXIT {
           csv_data.rows.push_back( std::move( row ) );
         };
-        auto const land = lookup( land_with_biome_by_row_, y );
+        auto const land =
+            ( type == clearing )
+                ? lookup( land_non_mounds_with_biome_by_row_, y )
+                : lookup( land_with_biome_by_row_, y );
         auto const biomes =
             lookup( count_with_biome_by_row_[type], y );
         if( !land.has_value() ) goto skip;
@@ -1667,8 +1708,11 @@ void FormationsStatsCollector::write() const {
           row.push_back( to_string( 0 ) );
       }
 
+      string const type_name = ( type == clearing )
+                                   ? "clearing-nm"
+                                   : base::to_str( type );
       gnuplot( settings, csv_data,
-               format( "biome.density.rows.{}", type ) );
+               format( "biome.density.rows.{}", type_name ) );
     }
     {
       GnuPlotSettings const settings{
@@ -1693,7 +1737,10 @@ void FormationsStatsCollector::write() const {
         SCOPE_EXIT {
           csv_data.rows.push_back( std::move( row ) );
         };
-        auto const land = lookup( land_with_biome_by_col_, x );
+        auto const land =
+            ( type == clearing )
+                ? lookup( land_non_mounds_with_biome_by_col_, x )
+                : lookup( land_with_biome_by_col_, x );
         auto const biomes =
             lookup( count_with_biome_by_col_[type], x );
         if( !land.has_value() ) goto skip2;
@@ -1713,8 +1760,11 @@ void FormationsStatsCollector::write() const {
           row.push_back( to_string( 0 ) );
       }
 
+      string const type_name = ( type == clearing )
+                                   ? "clearing-nm"
+                                   : base::to_str( type );
       gnuplot( settings, csv_data,
-               format( "biome.density.cols.{}", type ) );
+               format( "biome.density.cols.{}", type_name ) );
     }
   }
 }

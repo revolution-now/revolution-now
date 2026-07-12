@@ -1,0 +1,196 @@
+{
+  "savs": 2000,
+  "tiles": 7840000,
+  "land": 1221.8515,
+  "land_arctic_row": 58.7415,
+  "land_ocean_adjacent": 792.269,
+  "land_ocean_adjacent_cardinal": 582.8545,
+  "land_non_mounds": 987.8785,
+  "count": {
+    "mountains": 98.4715,
+    "hills": 76.76,
+    "clearing": 156.9835
+  },
+  "count_forest": 830.895,
+  "stddev": {
+    "mountains": 19.977291802193776,
+    "hills": 12.061815783703508,
+    "clearing": 36.40439846708089
+  },
+  "density": {
+    "mountains": 0.08059203593890092,
+    "hills": 0.06282269162823796,
+    "clearing": 0.1284800157793316
+  },
+  "forest_density_non_mounds": 0.8410902757778411,
+  "count_hills_plus_land_rivers": 153520,
+  "density_hills_plus_land_rivers": 0.06282269162823796,
+  "count_arctic_rows": {
+    "mountains": 0,
+    "hills": 0,
+    "clearing": 58.7415
+  },
+  "num_ranges": {
+    "mountains": 57.1285,
+    "hills": 65.204,
+    "clearing": 71.339
+  },
+  "num_ranges_1": {
+    "mountains": 40.1825,
+    "hills": 56.2475,
+    "clearing": 44.251
+  },
+  "num_ranges_1_per_land": {
+    "mountains": 0.03288656600249703,
+    "hills": 0.04603464496299264,
+    "clearing": 0.03621634871340748
+  },
+  "num_ranges_per_land": {
+    "mountains": 0.04675568184840793,
+    "hills": 0.05336491382136045,
+    "clearing": 0.058385982257254665
+  },
+  "count_range_centers": {
+    "mountains": 57.1285,
+    "hills": 65.204,
+    "clearing": 71.339
+  },
+  "density_range_centers": {
+    "mountains": 0.04675568184840793,
+    "hills": 0.05336491382136045,
+    "clearing": 0.058385982257254665
+  },
+  "count_ocean_adjacent": {
+    "mountains": 63.982,
+    "hills": 51.955,
+    "clearing": 82.251
+  },
+  "count_ocean_adjacent_cardinal": {
+    "mountains": 44.832,
+    "hills": 37.8495,
+    "clearing": 48.773
+  },
+  "density_ocean_adjacent": {
+    "mountains": 0.08075792439184167,
+    "hills": 0.06557747431743512,
+    "clearing": 0.1038170116462969
+  },
+  "density_ocean_adjacent_cardinal": {
+    "mountains": 0.07691799582914775,
+    "hills": 0.06493816209705852,
+    "clearing": 0.08367954609598108
+  },
+  "count_large_range": {
+    "mountains": 22.9735,
+    "hills": 0.7065,
+    "clearing": 60.2515
+  },
+  "count_large_range_ocean_adjacent": {
+    "mountains": 12.6525,
+    "hills": 0.353,
+    "clearing": 25.8095
+  },
+  "count_large_range_ocean_adjacent_cardinal": {
+    "mountains": 7.9305,
+    "hills": 0.213,
+    "clearing": 14.4805
+  },
+  "density_large_range": {
+    "mountains": 0.018802203050043317,
+    "hills": 0.0005782208394391627,
+    "clearing": 0.04931163893484601
+  },
+  "density_large_range_ocean_adjacent": {
+    "mountains": 0.01596995464924161,
+    "hills": 0.0004455557392754229,
+    "clearing": 0.03257668796835418
+  },
+  "density_large_range_ocean_adjacent_cardinal": {
+    "mountains": 0.013606311695285873,
+    "hills": 0.0003654428335030441,
+    "clearing": 0.02484410774901798
+  },
+  "count_mountains_adjacent_to_hills": 17.9465,
+  "count_hills_adjacent_to_mountains": 16.764,
+  "land_with_biome": {
+    "savannah": 266988,
+    "grassland": 246256,
+    "tundra": 282029,
+    "plains": 673968,
+    "prairie": 448811,
+    "desert": 221523,
+    "swamp": 108822,
+    "marsh": 67713,
+    "arctic": 10110
+  },
+  "count_with_biome": {
+    "mountains": {
+      "savannah": 20120,
+      "grassland": 15289,
+      "tundra": 21174,
+      "plains": 67146,
+      "prairie": 36928,
+      "desert": 23228,
+      "swamp": 6071,
+      "marsh": 6987,
+      "arctic": 0
+    },
+    "hills": {
+      "savannah": 9295,
+      "grassland": 6238,
+      "tundra": 20228,
+      "plains": 68785,
+      "prairie": 26722,
+      "desert": 8917,
+      "swamp": 8092,
+      "marsh": 5243,
+      "arctic": 0
+    },
+    "clearing": {
+      "savannah": 38095,
+      "grassland": 22622,
+      "tundra": 58682,
+      "plains": 98295,
+      "prairie": 48343,
+      "desert": 29042,
+      "swamp": 5875,
+      "marsh": 2903,
+      "arctic": 10110
+    }
+  },
+  "density_on_biome": {
+    "mountains": {
+      "savannah": 0.07535919217343101,
+      "grassland": 0.06208579689428887,
+      "tundra": 0.0750773856589216,
+      "plains": 0.0996278755074425,
+      "prairie": 0.08227962327126563,
+      "desert": 0.10485592918116855,
+      "swamp": 0.05578835162007682,
+      "marsh": 0.10318550352221878,
+      "arctic": 0
+    },
+    "hills": {
+      "savannah": 0.03481429876998217,
+      "grassland": 0.025331362484568905,
+      "tundra": 0.07172312067198763,
+      "plains": 0.10205974170880516,
+      "prairie": 0.05953953891504442,
+      "desert": 0.040253156557106935,
+      "swamp": 0.07435996397787212,
+      "marsh": 0.07742974022713511,
+      "arctic": 0
+    },
+    "clearing": {
+      "savannah": 0.14268431539994306,
+      "grassland": 0.0918637515431096,
+      "tundra": 0.2080708012296608,
+      "plains": 0.14584520333309595,
+      "prairie": 0.10771349187074292,
+      "desert": 0.13110151090405964,
+      "swamp": 0.05398724522614912,
+      "marsh": 0.04287212204451139,
+      "arctic": 1
+    }
+  }
+}

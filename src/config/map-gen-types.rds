@@ -130,10 +130,25 @@ enum.e_terrain_formation {
   clearing,
 }
 
-struct.Formation {
-  biome_density 'refl::enum_map<e_biome, config::Probability>',
-  spawn 'config::Probability',
-  growth_factor 'double',
+sumtype.FormationSpawnType {
+  uniform {},
+  per_biome {
+    density 'refl::enum_map<e_biome, config::Probability>',
+  },
+  by_wetness {
+    mul 'double',
+    add 'double',
+  },
+}
+
+struct.FormationGrowth {
+  rate 'double',
   edge_decay 'gfx::dsize',
-  max_length 'int',
+  max_size 'int',
+}
+
+struct.Formation {
+  spawn 'FormationSpawnType',
+  overall_spawn 'config::Probability',
+  growth 'FormationGrowth',
 }

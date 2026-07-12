@@ -22,6 +22,9 @@
 // ss
 #include "ss/map-matrix.hpp"
 
+// rds
+#include "rds/switch-macro.hpp"
+
 // refl
 #include "refl/query-enum.hpp"
 
@@ -144,12 +147,13 @@ void set_all_forest( MapMatrix& m ) {
   } );
 }
 
-void generate_formation(
-    IRand& rand, MapMatrix& m,
-    e_terrain_formation const formation,
-    enum_map<e_biome, Probability> const& biome_density,
-    Probability const spawn, double const growth_factor,
-    dsize const edge_decay, int const max_length ) {
+void generate_formation( IRand& rand, MapMatrix& m,
+                         e_terrain_formation const formation,
+                         FormationSpawnType const& spawn_type,
+                         Probability const overall_spawn,
+                         FormationGrowth const& growth,
+                         Wetness const& wetness ) {
+  auto const& edge_decay       = growth.edge_decay;
   size const sz                = m.size();
   double const wd2             = sz.w / 2.0;
   double const hd2             = sz.h / 2.0;
@@ -161,12 +165,29 @@ void generate_formation(
     double const decay   = decay_w * decay_h;
     Probability const p_decay{ .probability = decay };
     CHECK( p_decay.validate() );
-    return spawn * biome_density[m[p].ground] * p_decay;
+    SWITCH( spawn_type ) {
+      CASE( uniform ) { NOT_IMPLEMENTED; }
+      CASE( by_wetness ) {
+        double const forest_probability = clamp(
+            wetness.m[p] * by_wetness.mul + by_wetness.add, 0.0,
+            1.0 );
+        double const clearing_probability =
+            clamp( 1.0 - forest_probability, 0.0, 1.0 );
+        auto const cp =
+            Probability{ .probability = clearing_probability };
+        CHECK( cp.validate() );
+        return overall_spawn * cp * p_decay;
+      }
+      CASE( per_biome ) {
+        return overall_spawn * per_biome.density[m[p].ground] *
+               p_decay;
+      }
+    }
   };
   on_spawnable( m, [&]( point const p, MapSquare const& ) {
     if( rand.bernoulli( spawn_probability( p ) ) )
       run_organic_growth( rand, m, formation, spawn_probability,
-                          growth_factor, max_length, p );
+                          growth.rate, growth.max_size, p );
   } );
 }
 

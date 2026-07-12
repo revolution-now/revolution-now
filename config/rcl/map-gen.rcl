@@ -297,60 +297,56 @@ terrain_generation {
 
   formations.formation {
     hills {
-      biome_density {
-        savannah.probability:  0.03358
-        grassland.probability: 0.02472
-        tundra.probability:    0.07601
-        plains.probability:    0.10919
-        prairie.probability:   0.06160
-        desert.probability:    0.04032
-        swamp.probability:     0.07330
-        marsh.probability:     0.08201
+      overall_spawn.probability: 1.0
+      spawn.per_biome.density {
+        savannah.probability:  0.03341
+        grassland.probability: 0.02351
+        tundra.probability:    0.06795
+        plains.probability:    0.09907
+        prairie.probability:   0.05737
+        desert.probability:    0.03851
+        swamp.probability:     0.07195
+        marsh.probability:     0.07635
         arctic.probability:    0.00000
       }
-      spawn.probability: 1.0
-      growth_factor:     0.50
-      edge_decay.w:      0.00
-      edge_decay.h:      0.15
-      max_length:        9
+      growth {
+        rate:         0.50
+        edge_decay.w: 0.00
+        edge_decay.h: 0.00
+        max_size:     9
+      }
     }
 
     mountains {
-      biome_density {
-        savannah.probability:  0.05930
-        grassland.probability: 0.04163
-        tundra.probability:    0.08806
-        plains.probability:    0.13823
-        prairie.probability:   0.08183
-        desert.probability:    0.09588
-        swamp.probability:     0.04348
-        marsh.probability:     0.11069
+      overall_spawn.probability: 1.0
+      spawn.per_biome.density {
+        savannah.probability:  0.05830
+        grassland.probability: 0.04518
+        tundra.probability:    0.08788
+        plains.probability:    0.13404
+        prairie.probability:   0.08252
+        desert.probability:    0.09838
+        swamp.probability:     0.04414
+        marsh.probability:     0.11213
         arctic.probability:    0.00000
       }
-      spawn.probability: 1.0
-      growth_factor:     3.40
-      edge_decay.w:      0.20
-      edge_decay.h:      0.55
-      max_length:        30
+      growth {
+        rate:         3.40
+        edge_decay.w: 0.20
+        edge_decay.h: 0.55
+        max_size:     30
+      }
     }
 
     clearing {
-      biome_density {
-        savannah.probability:  0.09097
-        grassland.probability: 0.05603
-        tundra.probability:    0.26036
-        plains.probability:    0.18998
-        prairie.probability:   0.09555
-        desert.probability:    0.10085
-        swamp.probability:     0.04441
-        marsh.probability:     0.04742
-        arctic.probability:    0.00000
+      overall_spawn.probability: 0.80
+      spawn.by_wetness: { mul=0.3, add=0.7 }
+      growth {
+        rate:         1.20
+        edge_decay.w: 0.00
+        edge_decay.h: 0.00
+        max_size:     30
       }
-      spawn.probability: 1.0
-      growth_factor:     2.20
-      edge_decay.w:      0.50
-      edge_decay.h:      0.50
-      max_length:        30
     }
   }
 }
