@@ -198,20 +198,33 @@ struct json_emitter {
   void emit_table_with_key_order( table const& o,
                                   list const& key_order,
                                   string& out, int indent ) {
-    // In this function we need to use key_order's size instead
-    // of the table's size because the table contains an extra
-    // key order tag that will be used but not emitted.
-    if( key_order.size() == 0 ) {
+    // In this function we need to take special care when looking
+    // at the table's size because 1) the table contains an extra
+    // key order tag that will be used but not emitted, and 2) we
+    // will allow some keys in the key order to not be present in
+    // the table just to be defensive.
+    int const keys_present = [&] {
+      int total = 0;
+      for( auto const& kvalue : key_order ) {
+        auto const k = kvalue.get_if<string>();
+        if( !k.has_value() ) continue;
+        auto const v = o[*k];
+        if( !v.has_value() ) continue;
+        ++total;
+      }
+      return total;
+    }();
+    if( keys_present == 0 ) {
       out += "{}";
       return;
     }
     out += "{\n";
 
     int idx = 0;
-    for( auto& kvalue : key_order ) {
-      base::maybe<string const&> k = kvalue.get_if<string>();
+    for( auto const& kvalue : key_order ) {
+      auto const k = kvalue.get_if<string>();
       if( !k.has_value() ) continue;
-      base::maybe<cdr::value const&> v = o[*k];
+      auto const v = o[*k];
       if( !v.has_value() ) continue;
       do_indent( indent, out );
       out += json_quote( *k );
@@ -219,7 +232,7 @@ struct json_emitter {
       visit(
           [&]( auto const& o ) { emit( o, out, indent + 1 ); },
           v->as_base() );
-      if( idx++ < int( key_order.size() - 1 ) ) out += ',';
+      if( idx++ < keys_present - 1 ) out += ',';
       out += '\n';
     }
 

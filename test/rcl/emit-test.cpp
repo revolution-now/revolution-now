@@ -663,16 +663,254 @@ TEST_CASE( "[emit] table value of empty string" ) {
 TEST_CASE( "[emit] emit( cdr::value )" ) {
   using namespace cdr::literals;
 
+  cdr::value v;
+  string expected;
+
+  v = cdr::table{ "some_key"_key = cdr::list{ 1, 2, 3 } };
+
+  expected = R"(some_key: [
+  1,
+  2,
+  3,
+]
+)";
+
+  REQUIRE( emit( v ) == expected );
+
+  v = cdr::table{
+    "some_key"_key = cdr::list{ 1, 2, 3 },
+    "key1"_key =
+        cdr::table{
+          "a"_key = 1,
+          "b"_key = 2,
+          "c"_key = 3,
+        },
+    "key2"_key =
+        cdr::table{
+          "a"_key = 1,
+          "c"_key = 3,
+          "b"_key = 2,
+        },
+    "key3"_key =
+        cdr::table{
+          "a"_key = 1,
+          "b"_key =
+              cdr::table{
+                "hello"_key =
+                    cdr::list{
+                      42,
+                      "world",
+                      99.5,
+                    },
+              },
+          "c"_key = 3,
+        },
+  };
+
+  expected = R"(key1 {
+  a: 1
+  b: 2
+  c: 3
+}
+
+key2 {
+  a: 1
+  b: 2
+  c: 3
+}
+
+key3 {
+  a: 1
+  b.hello: [
+    42,
+    world,
+    99.5,
+  ]
+  c: 3
+}
+
+some_key: [
+  1,
+  2,
+  3,
+]
+)";
+
+  REQUIRE( emit( v ) == expected );
 }
 
 TEST_CASE( "[emit] emit_json( cdr::value )" ) {
   using namespace cdr::literals;
 
+  cdr::value v;
+  JsonEmitOptions opts;
+  string expected;
+
+  v = cdr::table{ "some_key"_key = cdr::list{ 1, 2, 3 } };
+
+  expected = R"({
+  "some_key": [
+    1,
+    2,
+    3
+  ]
+})";
+
+  REQUIRE( emit_json( v, opts ) == expected );
+
+  v = cdr::table{
+    "some_key"_key = cdr::list{ 1, 2, 3 },
+    "key1"_key =
+        cdr::table{
+          "a"_key = 1,
+          "b"_key = 2,
+          "c"_key = 3,
+        },
+    "key2"_key =
+        cdr::table{
+          "a"_key = 1,
+          "c"_key = 3,
+          "b"_key = 2,
+        },
+    "key3"_key =
+        cdr::table{
+          "a"_key = 1,
+          "b"_key =
+              cdr::table{
+                "hello"_key =
+                    cdr::list{
+                      42,
+                      "world",
+                      99.5,
+                    },
+              },
+          "c"_key = 3,
+        },
+  };
+
+  expected = R"({
+  "key1": {
+    "a": 1,
+    "b": 2,
+    "c": 3
+  },
+  "key2": {
+    "a": 1,
+    "b": 2,
+    "c": 3
+  },
+  "key3": {
+    "a": 1,
+    "b": {
+      "hello": [
+        42,
+        "world",
+        99.5
+      ]
+    },
+    "c": 3
+  },
+  "some_key": [
+    1,
+    2,
+    3
+  ]
+})";
+
+  REQUIRE( emit_json( v, opts ) == expected );
 }
 
 TEST_CASE( "[emit] emit_json( cdr::table )" ) {
   using namespace cdr::literals;
 
+  cdr::table tbl;
+  JsonEmitOptions opts;
+  string expected;
+
+  tbl = cdr::table{ "some_key"_key = cdr::list{ 1, 2, 3 } };
+
+  expected = R"({
+  "some_key": [
+    1,
+    2,
+    3
+  ]
+})";
+
+  REQUIRE( emit_json( tbl, opts ) == expected );
+
+  // Note this tests (among other things) that a non-existent key
+  // in the key order does not cause an extra comma to be in-
+  // serted.
+  tbl = cdr::table{
+    "some_key"_key = cdr::list{ 1, 2, 3 },
+    "key1"_key =
+        cdr::table{
+          "a"_key = 1,
+          "b"_key = 2,
+          "c"_key = 3,
+        },
+    "key2"_key =
+        cdr::table{
+          "a"_key = 1,
+          "b"_key = 2,
+          "c"_key = 3,
+        },
+    "key3"_key =
+        cdr::table{
+          "a"_key = 1,
+          "b"_key =
+              cdr::table{
+                "hello"_key =
+                    cdr::list{
+                      42,
+                      "world",
+                      99.5,
+                    },
+              },
+          "c"_key = 3,
+        },
+    "__key_order"_key =
+        cdr::list{
+          "some_key", //
+          "key2",     //
+          "key1",     //
+          "key3",     //
+          "key4",     // non-existent
+        },
+  };
+
+  expected = R"({
+  "some_key": [
+    1,
+    2,
+    3
+  ],
+  "key2": {
+    "a": 1,
+    "b": 2,
+    "c": 3
+  },
+  "key1": {
+    "a": 1,
+    "b": 2,
+    "c": 3
+  },
+  "key3": {
+    "a": 1,
+    "b": {
+      "hello": [
+        42,
+        "world",
+        99.5
+      ]
+    },
+    "c": 3
+  }
+})";
+
+  opts = { .key_order_tag = "__key_order" };
+  REQUIRE( emit_json( tbl, opts ) == expected );
 }
 
 } // namespace
