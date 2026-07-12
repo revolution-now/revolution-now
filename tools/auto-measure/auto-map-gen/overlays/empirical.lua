@@ -1077,18 +1077,15 @@ local function finished( mode )
     }
 
     local csv_data = {
-      header={
-        'y', 'mountains', 'hills', 'clearing', 'clearing-nm',
-      },
+      header={ 'y', 'mountains', 'hills', 'clearing-nm' },
       rows={},
     }
 
     for y = 2, 69 do
-      local row = { y, 0, 0, 0, 0 }
+      local row = { y, 0, 0, 0 }
       row[2] = D.count_by_row.mountains[y] / D.land_by_row[y]
       row[3] = D.count_by_row.hills[y] / D.land_by_row[y]
-      row[4] = D.count_by_row.clearing[y] / D.land_by_row[y]
-      row[5] = D.count_by_row.clearing[y] /
+      row[4] = D.count_by_row.clearing[y] /
                    D.land_non_mound_by_row[y]
       insert( csv_data.rows, row )
     end
@@ -1110,18 +1107,15 @@ local function finished( mode )
     }
 
     local csv_data = {
-      header={
-        'x', 'mountains', 'hills', 'clearing', 'clearing-nm',
-      },
+      header={ 'x', 'mountains', 'hills', 'clearing-nm' },
       rows={},
     }
 
     for x = 1, 56 do
-      local row = { x, 0, 0, 0, 0 }
+      local row = { x, 0, 0, 0 }
       row[2] = D.count_by_col.mountains[x] / D.land_by_col[x]
       row[3] = D.count_by_col.hills[x] / D.land_by_col[x]
-      row[4] = D.count_by_col.clearing[x] / D.land_by_col[x]
-      row[5] = D.count_by_col.clearing[x] /
+      row[4] = D.count_by_col.clearing[x] /
                    D.land_non_mound_by_col[x]
       insert( csv_data.rows, row )
     end
@@ -1143,21 +1137,17 @@ local function finished( mode )
     }
 
     local csv_data = {
-      header={
-        'y', 'mountains', 'hills', 'clearing', 'clearing-nm',
-      },
+      header={ 'y', 'mountains', 'hills', 'clearing-nm' },
       rows={},
     }
 
     for y = 2, 69 do
-      local row = { y, 0, 0, 0, 0 }
+      local row = { y, 0, 0, 0 }
       row[2] = D.count_range_centers_by_row.mountains[y] /
                    D.land_by_row[y]
       row[3] = D.count_range_centers_by_row.hills[y] /
                    D.land_by_row[y]
       row[4] = D.count_range_centers_by_row.clearing[y] /
-                   D.land_by_row[y]
-      row[5] = D.count_range_centers_by_row.clearing[y] /
                    D.land_non_mound_by_row[y]
       insert( csv_data.rows, row )
     end
@@ -1179,21 +1169,17 @@ local function finished( mode )
     }
 
     local csv_data = {
-      header={
-        'x', 'mountains', 'hills', 'clearing', 'clearing-nm',
-      },
+      header={ 'x', 'mountains', 'hills', 'clearing-nm' },
       rows={},
     }
 
     for x = 1, 56 do
-      local row = { x, 0, 0, 0, 0 }
+      local row = { x, 0, 0, 0 }
       row[2] = D.count_range_centers_by_col.mountains[x] /
                    D.land_by_col[x]
       row[3] = D.count_range_centers_by_col.hills[x] /
                    D.land_by_col[x]
       row[4] = D.count_range_centers_by_col.clearing[x] /
-                   D.land_by_col[x]
-      row[5] = D.count_range_centers_by_col.clearing[x] /
                    D.land_non_mound_by_col[x]
       insert( csv_data.rows, row )
     end
@@ -1215,22 +1201,17 @@ local function finished( mode )
     }
 
     local csv_data = {
-      header={
-        'y', 'mountains/10', 'hills', 'clearing/20',
-        'clearing-nm/20',
-      },
+      header={ 'y', 'mountains/10', 'hills', 'clearing-nm/20' },
       rows={},
     }
 
     for y = 2, 69 do
-      local row = { y, 0, 0, 0, 0 }
+      local row = { y, 0, 0, 0 }
       row[2] = D.count_large_range_by_row.mountains[y] /
                    D.land_by_row[y] / 10
       row[3] = D.count_large_range_by_row.hills[y] /
                    D.land_by_row[y]
       row[4] = D.count_large_range_by_row.clearing[y] /
-                   D.land_by_row[y] / 20
-      row[5] = D.count_large_range_by_row.clearing[y] /
                    D.land_non_mound_by_row[y] / 20
       insert( csv_data.rows, row )
     end
@@ -1252,22 +1233,17 @@ local function finished( mode )
     }
 
     local csv_data = {
-      header={
-        'x', 'mountains/10', 'hills', 'clearing/20',
-        'clearing-nm/20',
-      },
+      header={ 'x', 'mountains/10', 'hills', 'clearing-nm/20' },
       rows={},
     }
 
     for x = 1, 56 do
-      local row = { x, 0, 0, 0, 0 }
+      local row = { x, 0, 0, 0 }
       row[2] = D.count_large_range_by_col.mountains[x] /
                    D.land_by_col[x] / 10
       row[3] = D.count_large_range_by_col.hills[x] /
                    D.land_by_col[x]
       row[4] = D.count_large_range_by_col.clearing[x] /
-                   D.land_by_col[x] / 20
-      row[5] = D.count_large_range_by_col.clearing[x] /
                    D.land_non_mound_by_col[x] / 20
       insert( csv_data.rows, row )
     end
@@ -1344,9 +1320,7 @@ local function finished( mode )
     end
   end
 
-  for _, type in ipairs{
-    'mountains', 'hills', 'clearing', 'clearing-nm',
-  } do
+  for _, type in ipairs{ 'mountains', 'hills', 'clearing-nm' } do
     local type_mapped = assert( ({
       mountains='mountains',
       hills='hills',
