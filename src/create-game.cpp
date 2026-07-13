@@ -249,14 +249,14 @@ valid_or<string> generate_map_native_impl(
   set_all_forest( m );
 
   auto const kFormationOrder = {
-    e_terrain_formation::hills,     //
-    e_terrain_formation::mountains, //
+    e_terrain_formation::hills,
+    e_terrain_formation::mountains,
     // NOTE: clearing should be after the others because the
     // probability that we sampled from the OG has in the denomi-
     // nator the land count on tiles without hills or mountains,
     // so in other words it is assumed that those will be placed
     // first.
-    e_terrain_formation::clearing, //
+    e_terrain_formation::clearing,
   };
 
   rand.reseed( setup.formations.seed );
@@ -267,7 +267,6 @@ valid_or<string> generate_map_native_impl(
                         wetness );
   }
 
-#if 0
   // Rivers.
   rand.reseed( setup.rivers.seed );
   RiverParameters const river_params = [&] {
@@ -282,7 +281,6 @@ valid_or<string> generate_map_native_impl(
     }
   }();
   add_rivers( m, rand, river_params );
-#endif
 
   return valid;
 }
