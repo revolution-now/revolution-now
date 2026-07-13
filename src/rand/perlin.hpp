@@ -25,7 +25,7 @@ namespace rng {
 ** Types.
 *****************************************************************/
 using PerlinInt   = uint32_t;
-using PerlinFloat = double;
+using PerlinFloat = long double;
 using PerlinVec2  = vec2;
 
 /****************************************************************

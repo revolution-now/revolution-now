@@ -93,13 +93,15 @@ PerlinFloat perlin_noise_2d_single_octave(
   };
 
   static auto const smooth_step = []( PerlinFloat const d ) {
+    auto constexpr kLower = static_cast<PerlinFloat>( 0.0 );
+    auto constexpr kUpper = static_cast<PerlinFloat>( 1.0 );
     // This function theoretically always yields values in [0,1]
     // so long as the input d is in that range. However, minute
     // rounding errors can sometimes yield values slightly larger
     // than one, so we need to guard against that otherwise it
     // will cause problems later.
-    return clamp( d * d * d * ( d * ( d * 6 - 15 ) + 10 ), 0.0,
-                  1.0 );
+    return clamp( d * d * d * ( d * ( d * 6 - 15 ) + 10 ),
+                  kLower, kUpper );
   };
 
   auto const [x1, y1] = to_grid( p );
