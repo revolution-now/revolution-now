@@ -32,7 +32,8 @@ using namespace std;
 using ::base::maybe;
 using ::base::nothing;
 
-size_t constexpr kHashStrSize = 32;
+size_t constexpr kHashStrSize     = 32;
+string_view constexpr kHashPrefix = "s";
 
 // Parses e.g. 1A4DC031 as a hex 32 bit unsigned int.
 maybe<uint32_t> parse8hex( string_view const sv ) {
@@ -82,12 +83,17 @@ void mix128( uint32_t& a, uint32_t& b, uint32_t& c,
 ** entropy
 *****************************************************************/
 maybe<entropy> entropy::from_string( string_view const sv ) {
-  if( sv.size() != kHashStrSize ) return nothing;
-  entropy res;
-  UNWRAP_RETURN_T( res.e4, parse8hex( sv.substr( 0, 8 ) ) );
-  UNWRAP_RETURN_T( res.e3, parse8hex( sv.substr( 8, 8 ) ) );
-  UNWRAP_RETURN_T( res.e2, parse8hex( sv.substr( 16, 8 ) ) );
-  UNWRAP_RETURN_T( res.e1, parse8hex( sv.substr( 24, 8 ) ) );
+  maybe<entropy> res;
+  if( sv.size() != kHashStrSize + kHashPrefix.size() )
+    return res;
+  string_view const prefix = sv.substr( 0, kHashPrefix.size() );
+  if( prefix != kHashPrefix ) return res;
+  auto& e               = res.emplace();
+  string_view const hex = sv.substr( kHashPrefix.size() );
+  UNWRAP_RETURN_T( e.e4, parse8hex( hex.substr( 0, 8 ) ) );
+  UNWRAP_RETURN_T( e.e3, parse8hex( hex.substr( 8, 8 ) ) );
+  UNWRAP_RETURN_T( e.e2, parse8hex( hex.substr( 16, 8 ) ) );
+  UNWRAP_RETURN_T( e.e1, parse8hex( hex.substr( 24, 8 ) ) );
   return res;
 }
 
@@ -136,8 +142,8 @@ entropy entropy::from_random_device() {
 *****************************************************************/
 void to_str( entropy const& o, string& out,
              base::tag<entropy> ) {
-  out += format( "{:08x}{:08x}{:08x}{:08x}", o.e4, o.e3, o.e2,
-                 o.e1 );
+  out += format( "{}{:08x}{:08x}{:08x}{:08x}", kHashPrefix, o.e4,
+                 o.e3, o.e2, o.e1 );
 }
 
 /****************************************************************
@@ -152,16 +158,22 @@ cdr::result<entropy> from_canonical( cdr::converter& conv,
                                      cdr::value const& v,
                                      cdr::tag_t<entropy> ) {
   UNWRAP_RETURN( hex, conv.from<string>( v ) );
-  if( hex.size() != kHashStrSize )
+  if( hex.size() != kHashStrSize + kHashPrefix.size() )
     return conv.err(
-        "hash/entropy strings must be {}-character hex strings.",
-        kHashStrSize );
+        "hash/entropy strings must be {}-character hex strings "
+        "preceded by \"{}\".",
+        kHashStrSize, kHashPrefix );
+  if( hex[0] != 's' )
+    return conv.err(
+        "hash/entropy strings must be {}-character hex strings "
+        "preceded by \"{}\".",
+        kHashStrSize, kHashPrefix );
   auto const entropy = entropy::from_string( hex );
   if( !entropy.has_value() )
     return conv.err(
         "hash/entropy strings must be {}-character hex strings "
-        "with characters 0-9, a-f, A-F.",
-        kHashStrSize );
+        "(with characters 0-9, a-f, A-F) preceded by \"{}\".",
+        kHashStrSize, kHashPrefix );
   return *entropy;
 }
 

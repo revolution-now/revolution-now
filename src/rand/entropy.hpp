@@ -57,7 +57,7 @@ struct entropy {
   // ------------------------------------------------------------
   void mix();
 
-  entropy mixed() const;
+  [[nodiscard]] entropy mixed() const;
 
   // ------------------------------------------------------------
   // Consuming.
