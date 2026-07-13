@@ -256,7 +256,7 @@ valid_or<string> generate_map_native_impl(
     // nator the land count on tiles without hills or mountains,
     // so in other words it is assumed that those will be placed
     // first.
-    e_terrain_formation::clearing,  //
+    e_terrain_formation::clearing, //
   };
 
   rand.reseed( setup.formations.seed );

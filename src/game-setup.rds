@@ -20,7 +20,6 @@ include "config/map-gen-types.rds.hpp"
 # ss
 include "ss/difficulty.rds.hpp"
 include "ss/nation.rds.hpp"
-include "ss/terrain-enums.rds.hpp"
 include "ss/native-enums.rds.hpp"
 include "ss/player-enums.rds.hpp"
 
@@ -103,7 +102,6 @@ struct.RiverSetup {
 
 struct.BiomesSetup {
   seed 'rng::seed',
-  wetness_affinity 'refl::enum_map<e_biome, config::DoublePercent>',
 }
 
 struct.FormationsSetup {

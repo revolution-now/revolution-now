@@ -1193,7 +1193,7 @@ struct RiverFrequencyStats : IMapStatsCollector {
 
 [[maybe_unused]] void testing_map_gen_formation_stats(
     IEngine& engine ) {
-  int constexpr kNumSamples = 2000;
+  int constexpr kNumSamples = 10000;
 
   auto const generate =
       [&]( SS& ss, ClassicGameSetupParamsCustom const& custom ) {
