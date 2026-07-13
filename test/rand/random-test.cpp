@@ -163,6 +163,12 @@ TEST_CASE( "[rand/random] bernoulli" ) {
 
 TEST_CASE( "[rand/random] uniform_int" ) {
   random r;
+
+  auto constexpr kMin = numeric_limits<int>::min();
+  auto constexpr kMax = numeric_limits<int>::max();
+
+  r = {};
+  // Sequence of results for fixed inputs.
   REQUIRE( r.uniform_int( 5, 8 ) == 8 );
   REQUIRE( r.uniform_int( 5, 8 ) == 5 );
   REQUIRE( r.uniform_int( 5, 8 ) == 8 );
@@ -177,6 +183,25 @@ TEST_CASE( "[rand/random] uniform_int" ) {
   REQUIRE( r.uniform_int( 5, 8 ) == 7 );
   REQUIRE( r.uniform_int( 5, 8 ) == 6 );
   REQUIRE( r.uniform_int( 5, 8 ) == 5 );
+
+  r = {};
+  // This one exercises the "delta == kMax" branch of the
+  // uniform_int function.
+  REQUIRE( r.uniform_int( kMin, kMax ) == 1351727964 );
+  // This one exercises the "unlikely" branch in the
+  // uniform_u32_below function, but not the recursive
+  // sub-branch.
+  REQUIRE( r.uniform_int( kMin, kMax - 1 ) == -1565614347 );
+
+  r = {};
+  // This one exercises the recursive branch of the
+  // uniform_u32_below method.
+  for( int i = 0; i < 3; ++i ) {
+    int a = r.uniform_int( kMin, kMax );
+    int b = r.uniform_int( kMin, kMax );
+    if( a > b ) swap( a, b );
+    (void)r.uniform_int( a, b );
+  }
 }
 
 TEST_CASE( "[rand/random] uniform_double" ) {
