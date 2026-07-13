@@ -37,7 +37,7 @@ string_view constexpr kHashPrefix = "s";
 
 // Parses e.g. 1A4DC031 as a hex 32 bit unsigned int.
 maybe<uint32_t> parse8hex( string_view const sv ) {
-  if( sv.size() != 8 ) return nothing;
+  CHECK_EQ( sv.size(), 8u );
   return base::from_chars<uint32_t>( sv, /*base=*/16 );
 }
 
@@ -90,6 +90,7 @@ maybe<entropy> entropy::from_string( string_view const sv ) {
   if( prefix != kHashPrefix ) return res;
   auto& e               = res.emplace();
   string_view const hex = sv.substr( kHashPrefix.size() );
+  CHECK_EQ( hex.size(), kHashStrSize );
   UNWRAP_RETURN_T( e.e4, parse8hex( hex.substr( 0, 8 ) ) );
   UNWRAP_RETURN_T( e.e3, parse8hex( hex.substr( 8, 8 ) ) );
   UNWRAP_RETURN_T( e.e2, parse8hex( hex.substr( 16, 8 ) ) );
@@ -163,7 +164,7 @@ cdr::result<entropy> from_canonical( cdr::converter& conv,
         "hash/entropy strings must be {}-character hex strings "
         "preceded by \"{}\".",
         kHashStrSize, kHashPrefix );
-  if( hex[0] != 's' )
+  if( !hex.starts_with( kHashPrefix ) )
     return conv.err(
         "hash/entropy strings must be {}-character hex strings "
         "preceded by \"{}\".",

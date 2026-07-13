@@ -159,6 +159,9 @@ TEST_CASE( "[rand/entropy] entropy::from_string" ) {
              .e4 = 0x320e5505,
            } );
 
+  // Non hex chars.
+  REQUIRE( f( "s320e55050bc0f5673652472c4114dbex" ) == nothing );
+
   // No 0x prefix allowed.
   REQUIRE( f( "0x320e55050bc0f5673652472c4114dbe2" ) ==
            nothing );
@@ -405,6 +408,11 @@ TEST_CASE( "[rand/entropy] from_canonical" ) {
   };
   REQUIRE( conv.from<entropy>(
                "s00f00076fbe4a2766da636d66151c187" ) == s1 );
+
+  REQUIRE( conv.from<entropy>(
+               "x00f00076fbe4a2766da636d66151c187" ) ==
+           conv.err( "hash/entropy strings must be 32-character "
+                     "hex strings preceded by \"s\"." ) );
 }
 
 TEST_CASE( "[rand/entropy] rotate_right_n_bytes" ) {
