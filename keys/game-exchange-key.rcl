@@ -1,7 +1,7 @@
 # Seed with which to seed the random number generator just before
 # gameplay begins. Can be null, in which case a random device
 # will be used for the seeding.
-gameplay_seed: "6d8207fbe419be2446239a50771ea417"
+gameplay_seed: s6d8207fbe419be2446239a50771ea417
 
 map.source.generate_native.setup {
   size { w: 56, h: 70 }
@@ -28,12 +28,12 @@ map.source.generate_native.setup {
       }
     }
     lakes {
-      seed: "f4ff514737de39e717b047f54068b0a5"
+      seed: sf4ff514737de39e717b047f54068b0a5
       # Ranges from [-1, 1] with 0.0 => OG.
       bias: 0.0
     }
     arctic {
-      seed: "ae5312d3978ed9ef0bedf14820419370"
+      seed: sae5312d3978ed9ef0bedf14820419370
       enabled: true
       density: 0.6
     }
@@ -72,7 +72,7 @@ map.source.generate_native.setup {
   }
 
   rivers {
-    seed: "ac0304879ebe1280b0f9ca5e56f762fc"
+    seed: sac0304879ebe1280b0f9ca5e56f762fc
     parameters.derived {}
     #parameters.from_overridden.values {
     #  min_length:                4
@@ -87,11 +87,11 @@ map.source.generate_native.setup {
   }
 
   biomes {
-    seed: "48d55a01aef7295a21b2aabd78d68347"
+    seed: s48d55a01aef7295a21b2aabd78d68347
   }
 
   formations {
-    seed: "799e3a0b501cf2b907f25c9955c4da6f"
+    seed: s799e3a0b501cf2b907f25c9955c4da6f
     formation {
       hills {
         overall_spawn.probability: 1.0
@@ -148,7 +148,7 @@ map.source.generate_native.setup {
     }
   }
 
-  bonuses.seed: "de7db42af1959c181457f2eb81adaf6c"
+  bonuses.seed: sde7db42af1959c181457f2eb81adaf6c
 }
 
 nations.nations {
