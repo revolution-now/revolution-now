@@ -69,7 +69,7 @@ struct matrix {
   matrix& operator=( matrix&& )      = default;
   matrix& operator=( matrix const& ) = default;
 
-  matrix( std::vector<T>&& data, int w )
+  matrix( int const w, std::vector<T>&& data )
     : w_{ w }, data_{ std::move( data ) } {}
 
   void reset( rn::Delta size ) { *this = matrix( size ); }

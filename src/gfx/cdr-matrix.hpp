@@ -157,7 +157,7 @@ cdr::result<matrix<T>> from_canonical( cdr::converter& conv,
     GOOD_OR_RETURN( check_sizes( data ) );
     GOOD_OR_RETURN( conv.end_field_tracking( tbl, used_keys ) );
     return cdr::result<matrix<T>>(
-        matrix<T>( std::move( data ), size.w ) );
+        matrix<T>( size.w, std::move( data ) ) );
   }
 }
 

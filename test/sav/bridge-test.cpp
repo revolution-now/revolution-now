@@ -284,7 +284,7 @@ void rn_bidirectional_scenario_1( rn::RootState& out ) {
   squares[19].overlay = rn::e_land_overlay::mountains;
 
   terrain_o.real_terrain.map =
-      rn::MapMatrix( std::move( squares ), 6 );
+      rn::MapMatrix( 6, std::move( squares ) );
 
   terrain_o.player_terrain[rn::e_player::english].emplace().map =
       gfx::matrix<rn::PlayerSquare>(
@@ -621,7 +621,7 @@ void rn_unidirectional_scenario_2( rn::RootState& out ) {
   terrain_o.pacific_ocean_endpoints = vector<int>( 8 );
 
   terrain_o.real_terrain.map =
-      rn::MapMatrix( std::move( squares ), 6 );
+      rn::MapMatrix( 6, std::move( squares ) );
   out.zzz_terrain = rn::TerrainState( std::move( terrain_o ) );
 
   // Land View.

@@ -634,7 +634,7 @@ ConvResult tiles_to_map_squares( int og_map_size_x,
     }
   }
   CHECK_EQ( int( squares.size() ), total_ng_tiles );
-  map = rn::MapMatrix( std::move( squares ), rn_map_size_x );
+  map = rn::MapMatrix( rn_map_size_x, std::move( squares ) );
   return valid;
 }
 
