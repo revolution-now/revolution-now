@@ -102,6 +102,7 @@ wait_bool create_from_setup( SS& ss, IGui& gui, IRand& rand,
   if( auto const ok =
           create_game_from_setup( ss, rand, lua, setup );
       !ok ) {
+    lg.error( "failed to create game: {}", ok.error() );
     co_await gui.message_box( "Failed to create game: {}",
                               ok.error() );
     co_return false;
