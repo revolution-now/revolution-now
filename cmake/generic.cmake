@@ -43,6 +43,11 @@ function( set_warning_options target )
             -Wno-ctad-maybe-unsupported
             -Wno-undefined-func-template
             -Wno-switch-default
+            -Wno-c2y-extensions
+            # Our relative header inclusions are sometimes am-
+            # biguous; would probably be good to fix that eventu-
+            # ally, but not necessary it seems.
+            -Wno-shadow-header
             # TODO: this looks like a new warning that is not
             # ready for primetime yet, and/or it flags too many
             # things. Try re-enabling it at some point in the fu-

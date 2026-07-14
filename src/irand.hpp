@@ -39,18 +39,26 @@ struct Probability;
 namespace detail {
 
 template<std::ranges::range R>
+decltype( auto ) range_value_key_type_probe( R&& r ) {
+  auto&& [item, weight] = *std::ranges::begin( r );
+  return item;
+}
+
+template<std::ranges::range R>
 using RangeValueKeyType =
-    std::remove_cvref_t<decltype( []( auto&& r ) {
-      for( auto&& [item, weight] : r ) return item;
-      std::unreachable();
-    }( std::declval<R>() ) )>;
+    std::remove_cvref_t<decltype( range_value_key_type_probe(
+        std::declval<R>() ) )>;
+
+template<std::ranges::range R>
+decltype( auto ) range_value_value_type_probe( R&& r ) {
+  auto&& [item, weight] = *std::ranges::begin( r );
+  return weight;
+}
 
 template<std::ranges::range R>
 using RangeValueValueType =
-    std::remove_cvref_t<decltype( []( auto&& r ) {
-      for( auto&& [item, weight] : r ) return weight;
-      std::unreachable();
-    }( std::declval<R>() ) )>;
+    std::remove_cvref_t<decltype( range_value_value_type_probe(
+        std::declval<R>() ) )>;
 
 } // namespace detail
 
@@ -175,10 +183,12 @@ struct IRand {
  private:
   template<std::ranges::range R>
   [[nodiscard]] auto pick_from_weighted_values_double_safe_impl(
-      R const& contents );
+      R const& contents )
+      -> base::maybe<detail::RangeValueKeyType<R>>;
   template<std::ranges::range R>
   [[nodiscard]] auto pick_from_weighted_values_int_safe_impl(
-      R const& contents );
+      R const& contents )
+      -> base::maybe<detail::RangeValueKeyType<R>>;
 };
 
 void to_str( IRand const& o, std::string& out,
@@ -266,20 +276,16 @@ auto IRand::pick_from_weighted_values(
 
 template<std::ranges::range R>
 auto IRand::pick_from_weighted_values_int_safe_impl(
-    R const& contents ) {
-  using K = detail::RangeValueKeyType<R>;
-  base::maybe<K> res;
+    R const& contents )
+    -> base::maybe<detail::RangeValueKeyType<R>> {
   int total = 0;
   for( auto const& [item, weight] : contents ) total += weight;
-  if( total == 0 ) return res;
+  if( total == 0 ) return base::nothing;
   int const stop = uniform_int( 0, total - 1 );
   int running    = 0;
   for( auto const& [item, weight] : contents ) {
     running += weight;
-    if( running > stop ) {
-      res = item;
-      return res;
-    }
+    if( running > stop ) return item;
   }
   // This means programmer error -- should not get here even if
   // the range is empty or total weights are empty.
@@ -288,9 +294,9 @@ auto IRand::pick_from_weighted_values_int_safe_impl(
 
 template<std::ranges::range R>
 auto IRand::pick_from_weighted_values_double_safe_impl(
-    R const& contents ) {
-  using K = detail::RangeValueKeyType<R>;
-  base::maybe<K> res;
+    R const& contents )
+    -> base::maybe<detail::RangeValueKeyType<R>> {
+  using K      = detail::RangeValueKeyType<R>;
   double total = 0.0;
   for( auto const& [item, weight] : contents ) {
     CHECK( std::isfinite( weight ), "non-finite weight" );
@@ -301,7 +307,7 @@ auto IRand::pick_from_weighted_values_double_safe_impl(
   // finite unless it overflows.
   CHECK( std::isfinite( total ), "non-finite total weight" );
   // No selectable items.
-  if( total == 0.0 ) return res;
+  if( total == 0.0 ) return base::nothing;
   // `stop` should always be strictly less than `total`.
   double const stop = uniform_double( 0.0, total );
   CHECK_LT( stop, total );
@@ -312,18 +318,14 @@ auto IRand::pick_from_weighted_values_double_safe_impl(
     if( weight == 0.0 ) continue;
     last_positive = &item;
     running += weight;
-    if( running > stop ) {
-      res = item;
-      return res;
-    }
+    if( running > stop ) return item;
   }
   // In theory we should never reach this point. However, if
   // floating-point rounding or an inclusive RNG endpoint somehow
   // prevents the comparison above from succeeding, fall back to
   // the final positively weighted item.
   CHECK( last_positive != nullptr );
-  res = *last_positive;
-  return res;
+  return *last_positive;
 }
 
 } // namespace rn

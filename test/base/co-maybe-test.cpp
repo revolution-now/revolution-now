@@ -21,7 +21,9 @@ namespace {
 
 using namespace std;
 
-#ifndef COMPILER_GCC
+// TODO: unfortunately the maybe coro is not ready for primetime
+// yet. We can try again in the future.
+#if 0
 
 maybe<int> get_num() { return 110; }
 maybe<int> get_den() { return 10; }

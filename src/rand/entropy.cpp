@@ -83,19 +83,18 @@ void mix128( uint32_t& a, uint32_t& b, uint32_t& c,
 ** entropy
 *****************************************************************/
 maybe<entropy> entropy::from_string( string_view const sv ) {
-  maybe<entropy> res;
   if( sv.size() != kHashStrSize + kHashPrefix.size() )
-    return res;
+    return nothing;
   string_view const prefix = sv.substr( 0, kHashPrefix.size() );
-  if( prefix != kHashPrefix ) return res;
-  auto& e               = res.emplace();
+  if( prefix != kHashPrefix ) return nothing;
   string_view const hex = sv.substr( kHashPrefix.size() );
   CHECK_EQ( hex.size(), kHashStrSize );
+  entropy e;
   UNWRAP_RETURN_T( e.e4, parse8hex( hex.substr( 0, 8 ) ) );
   UNWRAP_RETURN_T( e.e3, parse8hex( hex.substr( 8, 8 ) ) );
   UNWRAP_RETURN_T( e.e2, parse8hex( hex.substr( 16, 8 ) ) );
   UNWRAP_RETURN_T( e.e1, parse8hex( hex.substr( 24, 8 ) ) );
-  return res;
+  return e;
 }
 
 void entropy::mix() { mix128( e1, e2, e3, e4 ); }

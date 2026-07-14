@@ -64,8 +64,8 @@ maybe<e_natural_resource> depleted(
 }
 
 // TODO: unfortunately the maybe coro is not ready for primetime
-// yet on gcc. We can try again in the future.
-#ifndef COMPILER_GCC
+// yet. We can try again in the future.
+#if 0
 // This is a maybe coroutine.
 maybe<DepletionEvent> advance_tile_depletion_state(
     SSConst const& ss, IRand& rand, ResourceDepletion& depletion,
