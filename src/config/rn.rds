@@ -71,6 +71,14 @@ struct.user_settings {
   filename 'std::string',
 }
 
+struct.UnitTesting {
+  run_expensive_tests 'bool',
+}
+
+struct.Development {
+  unit_tests 'UnitTesting',
+}
+
 namespace "rn"
 
 struct.config_rn_t {
@@ -81,6 +89,9 @@ struct.config_rn_t {
   user_settings 'config::rn::user_settings',
 
   game_menu_options_defaults 'refl::enum_map<e_game_menu_option, bool>',
+
+  # TODO: move this into a separate config module.
+  development 'config::rn::Development',
 }
 
 config.rn {}

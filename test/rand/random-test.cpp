@@ -15,6 +15,7 @@
 
 // rand
 #include "src/rand/entropy.hpp"
+#include "src/rand/real.hpp"
 
 // Must be last.
 #include "test/catch-common.hpp" // IWYU pragma: keep
@@ -31,6 +32,14 @@ using namespace std;
 
 using ::base::nothing;
 using ::Catch::Detail::Approx;
+
+/****************************************************************
+** Helpers.
+*****************************************************************/
+[[nodiscard]] constexpr uint64_t bits_of(
+    double const value ) noexcept {
+  return bit_cast<uint64_t>( value );
+}
 
 /****************************************************************
 ** Test Cases
@@ -151,14 +160,44 @@ TEST_CASE( "[rand/random] pick_one" ) {
   }
 }
 
-// TODO: this is technically not deterministic until we implement
-// our own bernoulli distribution.
 TEST_CASE( "[rand/random] bernoulli" ) {
   random r;
-  REQUIRE( r.bernoulli( .7 ) == true );
-  REQUIRE( r.bernoulli( .7 ) == false );
-  REQUIRE( r.bernoulli( .7 ) == false );
-  REQUIRE( r.bernoulli( .7 ) == true );
+
+  // The same probability sequence must produce this exact
+  // Boolean sequence on every supported compiler and CPU.
+  constexpr array kProbabilities = {
+    0.50, 0.25, 0.75, 0.10, 0.90, 0.01, 0.99, 0.50,
+    0.25, 0.75, 0.10, 0.90, 0.01, 0.99, 0.50, 0.50,
+    0.20, 0.40, 0.60, 0.80, 0.05, 0.95, 0.33, 0.67,
+    0.50, 0.25, 0.75, 0.10, 0.90, 0.01, 0.99, 0.50,
+  };
+
+  // Populate this once from a trusted build after confirming the
+  // unit-value golden vectors. Thereafter, commit the values
+  // rather than regenerating them during the test.
+  constexpr array kExpected = {
+    false, false, true,  false, true,  false, true,  false,
+    false, false, false, false, false, true,  false, true,
+    false, false, false, false, false, true,  false, false,
+    false, false, true,  false, true,  false, true,  true,
+  };
+
+  static_assert( kProbabilities.size() == kExpected.size() );
+
+  for( size_t i = 0; i < kProbabilities.size(); ++i ) {
+    bool const actual = r.bernoulli( kProbabilities[i] );
+    CAPTURE( i );
+    CAPTURE( kProbabilities[i] );
+    CHECK( actual == kExpected[i] );
+  }
+
+  // The implementation deliberately consumes two mt19937 values
+  // even when the result is already implied by the endpoint
+  // probability.
+  for( int i = 0; i < 1000; ++i ) {
+    REQUIRE_FALSE( r.bernoulli( 0.0 ) );
+    REQUIRE( r.bernoulli( 1.0 ) );
+  }
 }
 
 TEST_CASE( "[rand/random] uniform_int" ) {
@@ -206,13 +245,65 @@ TEST_CASE( "[rand/random] uniform_int" ) {
 
 TEST_CASE( "[rand/random] uniform_double" ) {
   random r;
-  double const d = r.uniform_double( 5.5, 8.3 );
-  REQUIRE( ( d >= 5.5 && d <= 8.3 ) );
+
+  auto const f = [&] [[clang::noinline]] {
+    return bits_of( r.uniform_double( 5.5, 8.3 ) );
+  };
+
+  REQUIRE( f() == 0x401f1ff9cc07ead7ULL );
+  REQUIRE( f() == 0x4020128b16d31378ULL );
+  REQUIRE( f() == 0x40176c18b9f7a6bdULL );
+  REQUIRE( f() == 0x40201d6a6683a346ULL );
+  REQUIRE( f() == 0x401d1519b68d0d2eULL );
+  REQUIRE( f() == 0x401717aaf78e20fdULL );
+  REQUIRE( f() == 0x40191e8295621c21ULL );
+  REQUIRE( f() == 0x401c2004c8ffeb98ULL );
+  REQUIRE( f() == 0x40205cae89dffaedULL );
+  REQUIRE( f() == 0x40206743a2c49e7dULL );
+  REQUIRE( f() == 0x4017c3e880acededULL );
+  REQUIRE( f() == 0x40206f711a564b52ULL );
+  REQUIRE( f() == 0x40205c31cd523719ULL );
+  REQUIRE( f() == 0x401b6fab477c2388ULL );
+  REQUIRE( f() == 0x401ef6906da353a5ULL );
+  REQUIRE( f() == 0x401796d10806741eULL );
+  REQUIRE( f() == 0x401ab94622260f42ULL );
+  REQUIRE( f() == 0x402020cc67052ec4ULL );
+  REQUIRE( f() == 0x401edf6ab63b703dULL );
+  REQUIRE( f() == 0x40205f87415a0541ULL );
 }
 
-TEST_CASE( "[rand/random] normal" ) {
+TEST_CASE( "[rand/random] unit" ) {
   random r;
-  double const d = r.normal( 1.5, 2.3 );
+
+  auto const f = [&] [[clang::noinline]] {
+    return bits_of( r.unit() );
+  };
+
+  REQUIRE( f() == 0x3fea12376b8455d3ULL );
+  REQUIRE( f() == 0x3fecfc3f5ddab863ULL );
+  REQUIRE( f() == 0x3fc0411a967c03d8ULL );
+  REQUIRE( f() == 0x3fed3a6000a712b5ULL );
+  REQUIRE( f() == 0x3fe43c497749dc81ULL );
+  REQUIRE( f() == 0x3fb8f868638c16a0ULL );
+  REQUIRE( f() == 0x3fd1d2ea310c0e72ULL );
+  REQUIRE( f() == 0x3fe1800dabffc5afULL );
+  REQUIRE( f() == 0x3feea3e55cffe302ULL );
+  REQUIRE( f() == 0x3feee05deb3ef75bULL );
+  REQUIRE( f() == 0x3fc42caa50dce848ULL );
+  REQUIRE( f() == 0x3fef0f18967f6540ULL );
+  REQUIRE( f() == 0x3feea11c954383fcULL );
+  REQUIRE( f() == 0x3fdf10650633142aULL );
+  REQUIRE( f() == 0x3fe99be5cb898143ULL );
+  REQUIRE( f() == 0x3fc22954ee009cbcULL );
+  REQUIRE( f() == 0x3fdafe230c47329eULL );
+  REQUIRE( f() == 0x3fed4db495d478f1ULL );
+  REQUIRE( f() == 0x3fe959c32d3c1c1aULL );
+  REQUIRE( f() == 0x3feeb42975701e01ULL );
+}
+
+TEST_CASE( "[rand/random] NONPORTABLE__normal" ) {
+  random r;
+  double const d = r.NONPORTABLE__normal( 1.5, 2.3 );
 #ifdef _LIBCPP_VERSION
   REQUIRE( d == Approx( 1.1633219033 ) );
 #else
@@ -220,13 +311,13 @@ TEST_CASE( "[rand/random] normal" ) {
 #endif
 }
 
-TEST_CASE( "[rand/random] piecewise (3)" ) {
+TEST_CASE( "[rand/random] NONPORTABLE__piecewise (3)" ) {
   random r;
   random::piecewise3 const p3{
     .l = { .value = 2.5, .weight = .5 },
     .m = { .value = 3.0, .weight = 1.0 },
     .r = { .value = 4.2, .weight = 0.2 } };
-  double const d = r.piecewise( p3 );
+  double const d = r.NONPORTABLE__piecewise( p3 );
   REQUIRE( d == Approx( 2.7393880168 ) );
 }
 
@@ -264,8 +355,9 @@ TEST_CASE( "[rand/random] uniform_int full range coverage" ) {
   // raw(), it is effectively testing that as well.
   //
   // NOTE: This takes ~6 mins with 16 cores, thus it is disabled
-  //       by default.
-  //
+  //       by default.  Although we have a helper method called
+  //       testing::expensive_tests_enabled(), this test is even
+  //       too expensive for that, so it just stays off.
   SECTION( "full int range" ) {
 #if 0
     vector<atomic<uint8_t>> s( uint64_t( 0xffffffff ) + 1 );
@@ -292,12 +384,13 @@ TEST_CASE( "[rand/random] uniform_int full range coverage" ) {
     };
     auto const printer = [&] {
       while( true ) {
-        this_thread::sleep_for( chrono::milliseconds{ 10000 } );
         int64_t found = 0;
         for( auto const& e : s )
           if( e.load() ) //
             ++found;
-        fmt::println( "found={:L}", found );
+        if( found > 0 )
+          fmt::println( "found={:#010X}",
+                        uint32_t( found - 1 ) );
         if( found == uint64_t( 0xffffffff ) + 1 ) break;
       }
       for( auto& stop : stops ) stop = true;

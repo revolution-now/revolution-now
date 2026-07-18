@@ -17,6 +17,8 @@
 
 namespace testing {
 
+[[nodiscard]] bool expensive_tests_enabled();
+
 fs::path const& data_dir();
 
 } // namespace testing

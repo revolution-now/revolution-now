@@ -84,8 +84,8 @@ struct IRand {
   [[nodiscard]] virtual double uniform_double(
       double lower, double upper ) = 0;
 
-  [[nodiscard]] virtual double normal( double mean,
-                                       double stddev ) = 0;
+  [[nodiscard]] virtual double NONPORTABLE__normal(
+      double mean, double stddev ) = 0;
 
   // Example of a piecewise with three points:
   //
@@ -110,7 +110,7 @@ struct IRand {
   //      0 .1 .2 .3 .4 .5 .6 .7 .8 .9 1.
   //
   // All values must be in [0, 1.0].
-  [[nodiscard]] virtual double piecewise3(
+  [[nodiscard]] virtual double NONPORTABLE__piecewise3(
       double peak, double weight_at_0, double weight_at_1 ) = 0;
 
   // This generates a seed (entropy) object just using the cur-

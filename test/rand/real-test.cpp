@@ -16,6 +16,7 @@
 // C++ standard library
 #include <array>
 #include <bit>
+#include <cmath>
 #include <cstddef>
 #include <cstdint>
 #include <limits>
@@ -44,7 +45,7 @@ using namespace std;
 //
 // Using a fixed-width integer makes the intended seed value ex-
 // plicit.
-constexpr uint32_t kSeed = 0x12345678u;
+uint32_t constexpr kSeed = 0x12345678u;
 
 // These bounds are exactly representable binary floating-point
 // values:
@@ -54,13 +55,13 @@ constexpr uint32_t kSeed = 0x12345678u;
 //
 // Hexadecimal floating-point literals make their exact values
 // explicit.
-constexpr double kMin = -0x1.4p+5;
-constexpr double kMax = 0x1.9p+6;
+double constexpr kMin = -0x1.4p+5;
+double constexpr kMax = 0x1.9p+6;
 
 static_assert( kMin == -40.0 );
 static_assert( kMax == 100.0 );
 
-constexpr array<uint64_t, 32> kExpectedUnitResults = {
+array<uint64_t, 32> constexpr kExpectedUnitResults = {
   0x3fe8d2f268612c5aULL, 0x3fe4e744949c2314ULL,
   0x3fe6a8eb576c8c27ULL, 0x3fdbccbd36fc9efcULL,
   0x3fd193763725707eULL, 0x3fe6dbebff105720ULL,
@@ -79,7 +80,7 @@ constexpr array<uint64_t, 32> kExpectedUnitResults = {
   0x3fe674d23d0d384dULL, 0x3fbc27ac47cd1fb0ULL,
 };
 
-constexpr array<uint64_t, 32> kExpectedRangedResults = {
+array<uint64_t, 32> constexpr kExpectedRangedResults = {
   0x405126b9222a4882ULL, 0x4049b9e605158cbcULL,
   0x404d9182cf3d7294ULL, 0x4034cfdde8489bc8ULL,
   0xbff8d6d675e19ec0ULL, 0x404e01143df3be96ULL,
@@ -227,7 +228,7 @@ TEST_CASE(
   mt19937 distribution_generator( kSeed );
   mt19937 reference_generator( kSeed );
 
-  constexpr size_t kSampleCount = 10'000;
+  size_t constexpr kSampleCount = 10'000;
 
   for( size_t i = 0; i < kSampleCount; ++i ) {
     static_cast<void>( distribution( distribution_generator ) );
@@ -249,7 +250,7 @@ TEST_CASE(
   mt19937 first( kSeed );
   mt19937 second( kSeed );
 
-  constexpr size_t kSampleCount = 100'000;
+  size_t constexpr kSampleCount = 100'000;
 
   for( size_t i = 0; i < kSampleCount; ++i ) {
     double const first_value  = distribution( first );
@@ -269,7 +270,7 @@ TEST_CASE(
   mt19937 first( kSeed );
   mt19937 second( kSeed );
 
-  constexpr size_t kSampleCount = 100'000;
+  size_t constexpr kSampleCount = 100'000;
 
   for( size_t i = 0; i < kSampleCount; ++i ) {
     double const first_value = distribution( first, kMin, kMax );
@@ -298,7 +299,7 @@ TEST_CASE(
 
   // Every endpoint is written as an exact hexadecimal
   // floating-point literal so its bit pattern is unambiguous.
-  constexpr array ranges = {
+  array constexpr ranges = {
     Range{ 0x0p+0, 0x1p+0 },
     Range{ -0x1p+0, 0x1p+0 },
     Range{ -0x1.4p+5, 0x1.9p+6 },
@@ -313,7 +314,7 @@ TEST_CASE(
 
   portable_uniform_real_distribution distribution;
 
-  constexpr size_t kSamplesPerRange = 1'000;
+  size_t constexpr kSamplesPerRange = 1'000;
 
   for( size_t range_index = 0; range_index < ranges.size();
        ++range_index ) {
@@ -351,7 +352,7 @@ TEST_CASE(
   bool saw_upper_half = false;
   bool saw_nonzero    = false;
 
-  constexpr size_t kSampleCount = 100'000;
+  size_t constexpr kSampleCount = 100'000;
 
   for( size_t i = 0; i < kSampleCount; ++i ) {
     double const value = distribution( generator );
@@ -367,6 +368,256 @@ TEST_CASE(
   REQUIRE( saw_lower_half );
   REQUIRE( saw_upper_half );
   REQUIRE( saw_nonzero );
+}
+
+TEST_CASE(
+    "[rand/real] portable_uniform_real_distribution is "
+    "statistically uniform" ) {
+  if( !testing::expensive_tests_enabled() ) return;
+  uint32_t constexpr kSeed = 0x12345678u;
+  // NOTE: there are bounds further below that depend on the
+  // sample size, so changing this might break stuff.
+  uint64_t constexpr kSampleCount = 10'000'000;
+  size_t constexpr kBucketCount   = 1'024;
+
+  portable_uniform_real_distribution distribution;
+  mt19937 generator( kSeed );
+
+  array<uint64_t, kBucketCount> buckets{};
+
+  // CDF = cumulative distribution function.
+
+  // Empirical-CDF checkpoints at 0.1, 0.2, ..., 0.9.
+  array<double, 9> constexpr kCdfPoints = {
+    0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9,
+  };
+
+  array<uint64_t, kCdfPoints.size()> cdf_counts{};
+
+  // Long double reduces accumulation error. The tolerances below
+  // are much larger than any plausible accumulation differences
+  // between platforms.
+  long double sum         = 0.0L;
+  long double sum_squares = 0.0L;
+
+  long double adjacent_product_sum = 0.0L;
+  double previous                  = 0.0;
+
+  double minimum = 1.0;
+  double maximum = 0.0;
+
+  for( uint64_t i = 0; i < kSampleCount; ++i ) {
+    double const value = distribution( generator );
+
+    REQUIRE( value >= 0.0 );
+    REQUIRE( value < 1.0 );
+
+    minimum = min( minimum, value );
+    maximum = max( maximum, value );
+
+    long double const wide_value =
+        static_cast<long double>( value );
+
+    sum += wide_value;
+    sum_squares += wide_value * wide_value;
+
+    if( i != 0 )
+      adjacent_product_sum +=
+          static_cast<long double>( previous ) * wide_value;
+
+    previous = value;
+
+    // value is strictly less than 1.0, so the converted bucket
+    // index must be in [0, bucket_count).
+    size_t const bucket = static_cast<size_t>(
+        value * static_cast<double>( kBucketCount ) );
+
+    BASE_CHECK( bucket < kBucketCount );
+    ++buckets[bucket];
+
+    for( size_t checkpoint = 0; checkpoint < kCdfPoints.size();
+         ++checkpoint ) {
+      if( value < kCdfPoints[checkpoint] )
+        ++cdf_counts[checkpoint];
+    }
+  }
+
+  long double const n = static_cast<long double>( kSampleCount );
+
+  long double const mean = sum / n;
+
+  long double const second_moment = sum_squares / n;
+
+  long double const variance = second_moment - mean * mean;
+
+  INFO( "sample count: " << kSampleCount );
+  INFO( "minimum: " << minimum );
+  INFO( "maximum: " << maximum );
+  INFO( "mean: " << static_cast<double>( mean ) );
+  INFO( "variance: " << static_cast<double>( variance ) );
+
+  SECTION( "sample mean is consistent with U[0,1)" ) {
+    long double constexpr expected_mean = 0.5L;
+
+    // For U[0,1), standard error of the mean is:
+    //
+    //   sqrt((1/12) / N)
+    //
+    // At ten million samples this is about 9.13e-5. This toler-
+    // ance is roughly eight standard errors.
+    long double constexpr tolerance = 0.000'75L;
+
+    REQUIRE( abs( mean - expected_mean ) < tolerance );
+  }
+
+  SECTION( "sample variance is consistent with U[0,1)" ) {
+    long double constexpr expected_variance = 1.0L / 12.0L;
+
+    // At ten million samples, the standard error of the
+    // population-form variance estimate is approximately
+    // 2.36e-5. This is roughly an eight-standard-error toler-
+    // ance.
+    long double constexpr tolerance = 0.000'20L;
+
+    REQUIRE( abs( variance - expected_variance ) < tolerance );
+  }
+
+  SECTION( "histogram passes a chi-square test" ) {
+    long double constexpr expected_per_bucket =
+        static_cast<long double>( kSampleCount ) /
+        static_cast<long double>( kBucketCount );
+
+    long double chi_square = 0.0L;
+
+    uint64_t smallest_bucket_count = kSampleCount;
+    uint64_t largest_bucket_count  = 0;
+
+    for( size_t bucket = 0; bucket < kBucketCount; ++bucket ) {
+      uint64_t const observed = buckets[bucket];
+
+      smallest_bucket_count =
+          min( smallest_bucket_count, observed );
+
+      largest_bucket_count =
+          max( largest_bucket_count, observed );
+
+      long double const difference =
+          static_cast<long double>( observed ) -
+          expected_per_bucket;
+
+      chi_square +=
+          difference * difference / expected_per_bucket;
+    }
+
+    long double constexpr degrees_of_freedom =
+        static_cast<long double>( kBucketCount - 1 );
+
+    // A chi-square variable with k degrees of freedom has:
+    //
+    //   mean = k
+    //   standard deviation = sqrt(2k)
+    //
+    // We use a deliberately generous eight-standard-deviation
+    // interval.
+    long double const standard_deviation =
+        sqrt( 2.0L * degrees_of_freedom );
+
+    long double const lower_limit =
+        degrees_of_freedom - 8.0L * standard_deviation;
+
+    long double const upper_limit =
+        degrees_of_freedom + 8.0L * standard_deviation;
+
+    INFO( "chi square: " << static_cast<double>( chi_square ) );
+
+    INFO( "degrees of freedom: "
+          << static_cast<double>( degrees_of_freedom ) );
+
+    INFO( "allowed interval: ["
+          << static_cast<double>( lower_limit ) << ", "
+          << static_cast<double>( upper_limit ) << "]" );
+
+    INFO( "smallest bucket count: " << smallest_bucket_count );
+
+    INFO( "largest bucket count: " << largest_bucket_count );
+
+    REQUIRE( chi_square > lower_limit );
+    REQUIRE( chi_square < upper_limit );
+  }
+
+  SECTION( "empirical CDF matches the uniform CDF" ) {
+    // For each fixed threshold p, the count below p is binomial
+    // with:
+    //
+    //   mean = Np
+    //   standard deviation = sqrt(Np(1-p))
+    //
+    // Use an eight-standard-deviation bound at every checkpoint.
+    for( size_t i = 0; i < kCdfPoints.size(); ++i ) {
+      long double const p =
+          static_cast<long double>( kCdfPoints[i] );
+
+      long double const expected_count = n * p;
+
+      long double const standard_deviation =
+          sqrt( n * p * ( 1.0L - p ) );
+
+      long double const difference =
+          abs( static_cast<long double>( cdf_counts[i] ) -
+               expected_count );
+
+      CAPTURE( i );
+      CAPTURE( kCdfPoints[i] );
+      CAPTURE( cdf_counts[i] );
+      CAPTURE( static_cast<double>( expected_count ) );
+      CAPTURE( static_cast<double>( standard_deviation ) );
+      CAPTURE( static_cast<double>( difference ) );
+
+      REQUIRE( difference < 8.0L * standard_deviation );
+    }
+  }
+
+  SECTION( "successive values have negligible correlation" ) {
+    long double const pair_count =
+        static_cast<long double>( kSampleCount - 1 );
+
+    long double const adjacent_product_mean =
+        adjacent_product_sum / pair_count;
+
+    // For a uniform variable:
+    //
+    //   E[X]   = 1/2
+    //   Var(X) = 1/12
+    //
+    // Covariance at lag one is estimated as E[X_i X_(i+1)] -
+    // E[X]^2.
+    long double const covariance =
+        adjacent_product_mean - mean * mean;
+
+    long double const correlation = covariance / variance;
+
+    INFO( "lag-one covariance: "
+          << static_cast<double>( covariance ) );
+
+    INFO( "lag-one correlation: "
+          << static_cast<double>( correlation ) );
+
+    // For independent samples, the approximate standard error of
+    // a sample correlation is 1/sqrt(N), about 0.000316 here.
+    // This tolerance is comfortably greater than eight standard
+    // errors.
+    REQUIRE( abs( correlation ) < 0.003L );
+  }
+
+  SECTION( "samples cover the interval broadly" ) {
+    // These are coarse sanity checks. With ten million samples,
+    // failure would indicate a severe distribution defect.
+    REQUIRE( minimum < 0.000'01 );
+    REQUIRE( maximum > 0.999'99 );
+
+    REQUIRE( buckets.front() != 0 );
+    REQUIRE( buckets.back() != 0 );
+  }
 }
 
 } // namespace

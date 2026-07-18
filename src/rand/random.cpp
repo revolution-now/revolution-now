@@ -12,6 +12,7 @@
 
 // rand
 #include "entropy.hpp"
+#include "real.hpp"
 
 namespace rng {
 
@@ -85,10 +86,10 @@ entropy random::new_deterministic_seed() {
 }
 
 bool random::bernoulli( double const p ) {
+  CHECK( isfinite( p ) );
   CHECK_GE( p, 0 );
   CHECK_LE( p, 1.0 );
-  // TODO: make this deterministic.
-  return bernoulli_distribution( p )( engine_ );
+  return portable_uniform_real_distribution{}( engine_ ) < p;
 }
 
 int random::uniform_int( int const lower, int const upper ) {
@@ -106,21 +107,25 @@ int random::uniform_int( int const lower, int const upper ) {
 
 double random::uniform_double( double const lower,
                                double const upper ) {
-  // UB if they are equal, so check that.
   CHECK_LT( lower, upper );
-  // NOTE: this is not guaranteed to yield consistent values
-  // across implementations.
-  return uniform_real_distribution<double>( lower,
-                                            upper )( engine_ );
+  return portable_uniform_real_distribution{}( engine_, lower,
+                                               upper );
 }
 
-double random::normal( double const mean, double const stddev ) {
+double random::unit() {
+  return portable_uniform_real_distribution{}( engine_ );
+}
+
+double random::NONPORTABLE__normal( double const mean,
+                                    double const stddev ) {
   // NOTE: this is not guaranteed to yield consistent values
   // across implementations.
   return normal_distribution<double>( mean, stddev )( engine_ );
 }
 
-double random::piecewise( piecewise3 const& p ) {
+double random::NONPORTABLE__piecewise( piecewise3 const& p ) {
+  // NOTE: this is not guaranteed to yield consistent values
+  // across implementations.
   array<double, 3> const i{ p.l.value, p.m.value, p.r.value };
   array<double, 3> const w{ p.l.weight, p.m.weight, p.r.weight };
   return piecewise_linear_distribution<double>{

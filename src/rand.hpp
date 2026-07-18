@@ -54,12 +54,12 @@ struct Rand : IRand {
   [[nodiscard]] double uniform_double( double lower,
                                        double upper ) override;
 
-  [[nodiscard]] double normal( double mean,
-                               double stddev ) override;
+  [[nodiscard]] double NONPORTABLE__normal(
+      double mean, double stddev ) override;
 
-  [[nodiscard]] double piecewise3( double peak,
-                                   double weight_at_0,
-                                   double weight_at_1 ) override;
+  [[nodiscard]] double NONPORTABLE__piecewise3(
+      double peak, double weight_at_0,
+      double weight_at_1 ) override;
 
   rng::seed new_deterministic_seed() override;
 

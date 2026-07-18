@@ -57,8 +57,13 @@ using ::refl::enum_values;
 
 [[nodiscard]] double sample_normal(
     IRand& rand, config::BoundedNormalDist const& params ) {
-  return clamp( rand.normal( params.mean, params.stddev ),
-                params.min, params.max );
+  // NOTE: non-portable rng methods are allowed in this module
+  // because we are only generating the exchange key.  When
+  // that exchange key is later evaluated to generate the map
+  // then they are not allowed.
+  return clamp(
+      rand.NONPORTABLE__normal( params.mean, params.stddev ),
+      params.min, params.max );
 }
 
 [[nodiscard]] double sample_uniform(
@@ -77,8 +82,12 @@ using ::refl::enum_values;
   double const width = dist.max - dist.min;
   if( width < 1e-6 ) return dist.peak;
   double const peak = ( dist.peak - dist.min ) / width;
-  double const in_0_1 =
-      rand.piecewise3( peak, dist.weight_min, dist.weight_max );
+  // NOTE: non-portable rng methods are allowed in this module
+  // because we are only generating the exchange key.  When
+  // that exchange key is later evaluated to generate the map
+  // then they are not allowed.
+  double const in_0_1 = rand.NONPORTABLE__piecewise3(
+      peak, dist.weight_min, dist.weight_max );
   // clamp just in case there are rounding errors.
   return clamp( in_0_1 * width + dist.min, dist.min, dist.max );
 }

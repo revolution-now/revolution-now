@@ -66,7 +66,11 @@ struct random {
   [[nodiscard]] double uniform_double( double lower,
                                        double upper );
 
-  [[nodiscard]] double normal( double mean, double stddev );
+  // [0.0, 1.0)
+  [[nodiscard]] double unit();
+
+  [[nodiscard]] double NONPORTABLE__normal( double mean,
+                                            double stddev );
 
   struct piece {
     double value  = {};
@@ -79,7 +83,8 @@ struct random {
     piece r;
   };
 
-  [[nodiscard]] double piecewise( piecewise3 const& params );
+  [[nodiscard]] double NONPORTABLE__piecewise(
+      piecewise3 const& params );
 
   // Uniform over all values of the type.
   template<typename T>
