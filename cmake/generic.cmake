@@ -87,6 +87,49 @@ function( set_warning_options target )
             # Perhaps try re-enabling it sometime after we move
             # past clang 21.1.8.
             -Wno-thread-safety-negative
+
+            # ---------------------------------------------------
+            # Options for ensuring platform-independent double
+            # arithmetic and double-related RNG generation.
+            #   > Do NOT remove these.
+            # These should be kept in sync with the gcc ones.
+            # ---------------------------------------------------
+            # Disable the collection of unsafe floating-point op-
+            # timizations commonly enabled by -ffast-math, in-
+            # cluding reassociation and assumptions about NaNs,
+            # infinities, signed zero, and rounding behavior.
+            -fno-fast-math
+            # Prevent multiplication/addition expressions from
+            # being contracted into fused multiply-add instruc-
+            # tions. An FMA rounds once, while separate multipli-
+            # cation and addition round twice, potentially
+            # changing the result.
+            -ffp-contract=off
+            # Tell the compiler that the program may observe or
+            # depend on the active floating-point rounding mode.
+            # This prevents optimizations that assume the
+            # rounding mode is permanently the default.
+            -frounding-math
+            # Require excess floating-point precision to follow
+            # the language rules rather than retaining wider in-
+            # termediates where the target supports them.
+            -fexcess-precision=standard
+            # Do not reassociate expressions such as (a + b) + c
+            # into a + (b + c).
+            -fno-associative-math
+            # Disable transformations that disregard strict
+            # floating-point semantics.
+            -fno-unsafe-math-optimizations
+            # Do not assume all values are finite.
+            -fno-finite-math-only
+            # Preserve signed-zero semantics.
+            -fsigned-zeros
+            # Preserve trapping-math assumptions. This is not
+            # necessary for your distribution itself, but is con-
+            # sistent with strict floating-point behavior.
+            -ftrapping-math
+            # DO NOT use -ffast as it will break the above.
+            # ---------------------------------------------------
          >
         # gcc
         $<$<CXX_COMPILER_ID:GNU>:
@@ -131,10 +174,76 @@ function( set_warning_options target )
             # tracking limit, but that could increase compile
             # times further.
             -fno-var-tracking-assignments
+
+            # ---------------------------------------------------
+            # Options for ensuring platform-independent double
+            # arithmetic and double-related RNG generation.
+            #   > Do NOT remove these.
+            # These should be kept in sync with the clang ones.
+            # ---------------------------------------------------
+            # Disable the collection of unsafe floating-point op-
+            # timizations commonly enabled by -ffast-math, in-
+            # cluding reassociation and assumptions about NaNs,
+            # infinities, signed zero, and rounding behavior.
+            -fno-fast-math
+            # Prevent multiplication/addition expressions from
+            # being contracted into fused multiply-add instruc-
+            # tions. An FMA rounds once, while separate multipli-
+            # cation and addition round twice, potentially
+            # changing the result.
+            -ffp-contract=off
+            # Tell the compiler that the program may observe or
+            # depend on the active floating-point rounding mode.
+            # This prevents optimizations that assume the
+            # rounding mode is permanently the default.
+            -frounding-math
+            # Require excess floating-point precision to follow
+            # the language rules rather than retaining wider in-
+            # termediates where the target supports them.
+            -fexcess-precision=standard
+            # Do not reassociate expressions such as (a + b) + c
+            # into a + (b + c).
+            -fno-associative-math
+            # Disable transformations that disregard strict
+            # floating-point semantics.
+            -fno-unsafe-math-optimizations
+            # Do not assume all values are finite.
+            -fno-finite-math-only
+            # Preserve signed-zero semantics.
+            -fsigned-zeros
+            # Preserve trapping-math assumptions. This is not
+            # necessary for your distribution itself, but is con-
+            # sistent with strict floating-point behavior.
+            -ftrapping-math
+            # DO NOT use -ffast as it will break the above.
+            # ---------------------------------------------------
          >
         # msvc
         $<$<CXX_COMPILER_ID:MSVC>:
-            /Wall /WX > )
+            /Wall /WX
+            # Use MSVC's strict floating-point model. This is
+            # needed for reproducibility of floating point math,
+            # in particular during random number generation, so
+            # that all builds on all platforms e.g. interpret map
+            # exchange keys in the same way. Note that there are
+            # equivalent sets of flags added above for the case
+            # of gcc/clang.
+            #
+            # This does a few things:
+            # - preserves observable floating-point-environment
+            #   changes;
+            # - disables floating-point contraction such as FMA;
+            # - prevents unsafe reassociation and algebraic
+            #   transformations;
+            # - preserves IEEE behavior for NaN, infinity, and
+            #   signed zero;
+            # - implies floating-point exception awareness.
+            #
+            # This is the key flag for cross-architecture repro-
+            # ducibility.
+            /fp:strict
+            # DO NOT use /fp:fast as it will break the above.
+         > )
 endfunction( set_warning_options )
 
 # === build type ==================================================

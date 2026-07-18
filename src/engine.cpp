@@ -61,6 +61,9 @@
 // refl
 #include "refl/to-str.hpp"
 
+// rand
+#include "rand/real.hpp"
+
 // base
 #include "base/scope-exit.hpp"
 
@@ -156,6 +159,13 @@ struct Engine::Impl {
   // Random engine.
   // ============================================================
   void init_rand() {
+    // This is needed to ensure we have the correct floating
+    // point environment which is necessary for reproducible
+    // floating point math (in particular, floating point random
+    // number generation). Some of these checks can only be
+    // checked at runtime.
+    rng::check_floating_point_portability();
+
     CHECK( !rand_ );
     rand_ = make_unique<Rand>();
     // NOTE: the above will not have randomly seeded the genera-
