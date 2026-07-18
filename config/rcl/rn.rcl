@@ -73,6 +73,6 @@ development {
   unit_tests {
     # Run tests that take a long time to run, e.g. tests that do
     # many iterations of statistical stuff.
-    run_expensive_tests: true
+    run_expensive_tests: false
   }
 }

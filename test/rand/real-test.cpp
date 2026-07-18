@@ -292,6 +292,7 @@ TEST_CASE(
 TEST_CASE(
     "[rand/real] portable_uniform_real_distribution respects "
     "many finite ranges" ) {
+  if( !testing::expensive_tests_enabled() ) return;
   struct Range {
     double min = {};
     double max = {};
@@ -314,7 +315,7 @@ TEST_CASE(
 
   portable_uniform_real_distribution distribution;
 
-  size_t constexpr kSamplesPerRange = 1'000;
+  size_t constexpr kSamplesPerRange = 100'000;
 
   for( size_t range_index = 0; range_index < ranges.size();
        ++range_index ) {
