@@ -82,9 +82,20 @@ PerlinFloat perlin_noise_2d_single_octave(
     PerlinHashes const& hashes, PerlinVec2 p,
     PerlinVec2 const seamless_repeat, PerlinInt const base ) {
   auto const to_grid = [&]( PerlinVec2 const p ) {
+    // Need to mod the double at the integral max to avoid UB
+    // when converting it to the integral. Modding it seems to
+    // yield better results than just capping it. That said, in
+    // practice this doesn't matter too much because it is only
+    // relevant for weird map settings e.g. with high persis-
+    // tence; for normal map configurations this edge case isn't
+    // hit. But we need to handle it just in case.
     return pair{
-      PerlinInt( floor( fmod( p.x, seamless_repeat.x ) ) ),
-      PerlinInt( floor( fmod( p.y, seamless_repeat.y ) ) ),
+      PerlinInt(
+          fmod( floor( fmod( p.x, seamless_repeat.x ) ),
+                double( numeric_limits<PerlinInt>::max() ) ) ),
+      PerlinInt(
+          fmod( floor( fmod( p.y, seamless_repeat.y ) ),
+                double( numeric_limits<PerlinInt>::max() ) ) ),
     };
   };
 
