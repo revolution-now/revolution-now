@@ -57,6 +57,12 @@ using ::gfx::size;
 using ::std::max;
 using ::std::min;
 
+enum class e_sea_level {
+  too_low,
+  good,
+  too_high,
+};
+
 // This edge-suppression algo only makes sense with the Perlin
 // generator because it works by lowering the "height" of the
 // tiles near the edges, making it more likely that they will end
@@ -94,6 +100,81 @@ void perlin_suppress_edges(
   level -= sub.pythagorean();
 }
 
+[[nodiscard]] double land_density_for_sea_level(
+    matrix<double> const& m, double const sea_level ) {
+  int land_count = 0;
+  for( point const p : rect_iterator( m.rect() ) )
+    if( m[p] > sea_level ) //
+      ++land_count;
+  return land_count * 1.0L / m.size().area();
+}
+
+[[nodiscard]] expect<double, e_perlin_map_error> find_sea_level(
+    matrix<double> const& m, double const target_density ) {
+  ScopedTimer const timer( "sea level search" );
+  using enum e_sea_level;
+  double const kIdealTolerance = 1e-4;
+  double sea_level_min         = -1e6;
+  double sea_level_max         = 1e6;
+  double old_sea_level_min = -numeric_limits<double>::infinity();
+  double old_sea_level_max = numeric_limits<double>::infinity();
+  auto const sea_level_is  = [&]( double const sea_level,
+                                  double const tolerance ) {
+    double const density =
+        land_density_for_sea_level( m, sea_level );
+    lg.trace( "trying sea_level={} [{},{}] --> density={}",
+              sea_level, sea_level_min, sea_level_max, density );
+    double const target = target_density;
+    if( abs( density - target ) < tolerance )
+      return e_sea_level::good;
+    if( density < target ) return e_sea_level::too_high;
+    return e_sea_level::too_low;
+  };
+  lg.debug( "attempting to hit target land density: {}",
+            target_density );
+  double sea_level = {};
+  int iters        = 0;
+  for( iters = 0; iters < 10000; ++iters ) {
+    sea_level = ( sea_level_min + sea_level_max ) / 2.0;
+    switch( sea_level_is( sea_level, kIdealTolerance ) ) {
+      case good:
+        lg.debug( "perlin sea level bisections: {}", iters + 1 );
+        return sea_level;
+      case too_low:
+        sea_level_min = sea_level;
+        break;
+      case too_high:
+        sea_level_max = sea_level;
+        break;
+    }
+    if( sea_level_min == old_sea_level_min &&
+        sea_level_max == old_sea_level_max )
+      break;
+    old_sea_level_min = sea_level_min;
+    old_sea_level_max = sea_level_max;
+  }
+  double fallback_tolerance = kIdealTolerance;
+  // We want to allow up to .1, but compare a bit above that to
+  // avoid rounding errors. Actually, a tolerance of .1 is
+  // pretty bad... ideally we really don't want that, but there
+  // are some small map sizes that seem to need this when tar-
+  // getting certain densities, and we do want to try to flex-
+  // ibly support small map sizes.
+  while( fallback_tolerance < .1 + .000001 ) {
+    if( sea_level_is( sea_level, fallback_tolerance ) ==
+        e_sea_level::good ) {
+      lg.warn(
+          "land density did not meet ideal tolerance of {:.1} "
+          "after sea level search of {} iterations, tolerance "
+          "met: {:.1}",
+          kIdealTolerance, iters + 1, fallback_tolerance );
+      return sea_level;
+    }
+    fallback_tolerance *= 10;
+  }
+  return e_perlin_map_error::density_search_failed;
+}
+
 } // namespace
 
 // The entropy object is itself sufficient to generate the num-
@@ -118,7 +199,8 @@ PerlinSeed generate_perlin_seed( rng::entropy e ) {
 valid_or<e_perlin_map_error> land_gen_perlin(
     PerlinMapSettings const& settings,
     double const target_density, size const world_sz,
-    matrix<e_surface>& surface ) {
+    matrix<e_surface>& out ) {
+  using enum e_surface;
   size const sz = world_sz;
   lg.debug( "perlin: settings: {}", settings );
   lg.debug( "perlin: target_density: {}", target_density );
@@ -167,113 +249,23 @@ valid_or<e_perlin_map_error> land_gen_perlin(
       perlin_suppress_edges( p, sz, settings.edge_suppression,
                              pm[p] );
 
-  // Something bigger than `double` would be nice here, but ap-
-  // parently `long double` is not portable in that it is a dif-
-  // ferent size on different platforms, so would be difficult
-  // for map reproducibility.
-  using SeaLevelFloat = double;
-
-  auto const land_density =
-      [&]( SeaLevelFloat const sea_level ) {
-        int land_count = 0;
-        for( point const p : rect_iterator( pm.rect() ) )
-          if( pm[p] > sea_level ) //
-            ++land_count;
-        return land_count * 1.0L / pm.size().area();
-      };
-  enum class e_sea_level {
-    too_low,
-    good,
-    too_high,
-  };
-  SeaLevelFloat const kIdealTolerance = 1e-4;
-  SeaLevelFloat sea_level_min         = -1e6;
-  SeaLevelFloat sea_level_max         = 1e6;
-  SeaLevelFloat old_sea_level_min =
-      -numeric_limits<SeaLevelFloat>::infinity();
-  SeaLevelFloat old_sea_level_max =
-      numeric_limits<SeaLevelFloat>::infinity();
-  auto const sea_level_is = [&](
-                                SeaLevelFloat const sea_level,
-                                SeaLevelFloat const tolerance ) {
-    SeaLevelFloat const density = land_density( sea_level );
-    lg.trace( "trying sea_level={} [{},{}] --> density={}",
-              sea_level, sea_level_min, sea_level_max, density );
-    SeaLevelFloat const target = target_density;
-    if( abs( density - target ) < tolerance )
-      return e_sea_level::good;
-    if( density < target ) return e_sea_level::too_high;
-    return e_sea_level::too_low;
-  };
-  lg.debug( "attempting to hit target land density: {}",
-            target_density );
-  auto const found_level =
-      [&] -> expect<SeaLevelFloat, e_perlin_map_error> {
-    ScopedTimer const timer( "sea level search" );
-    using enum e_sea_level;
-    SeaLevelFloat sea_level = {};
-    int iters               = 0;
-    for( iters = 0; iters < 10000; ++iters ) {
-      sea_level = ( sea_level_min + sea_level_max ) / 2.0;
-      switch( sea_level_is( sea_level, kIdealTolerance ) ) {
-        case good:
-          lg.debug( "perlin sea level bisections: {}",
-                    iters + 1 );
-          return sea_level;
-        case too_low:
-          sea_level_min = sea_level;
-          break;
-        case too_high:
-          sea_level_max = sea_level;
-          break;
-      }
-      if( sea_level_min == old_sea_level_min &&
-          sea_level_max == old_sea_level_max )
-        break;
-      old_sea_level_min = sea_level_min;
-      old_sea_level_max = sea_level_max;
-    }
-    SeaLevelFloat fallback_tolerance = kIdealTolerance;
-    // We want to allow up to .1, but compare a bit above that to
-    // avoid rounding errors. Actually, a tolerance of .1 is
-    // pretty bad... ideally we really don't want that, but there
-    // are some small map sizes that seem to need this when tar-
-    // getting certain densities, and we do want to try to flex-
-    // ibly support small map sizes.
-    while( fallback_tolerance < .1 + .000001 ) {
-      if( sea_level_is( sea_level, fallback_tolerance ) ==
-          e_sea_level::good ) {
-        lg.warn(
-            "land density did not meet ideal tolerance of {:.1} "
-            "after sea level search of {} iterations, tolerance "
-            "met: {:.1}",
-            kIdealTolerance, iters + 1, fallback_tolerance );
-        return sea_level;
-      }
-      fallback_tolerance *= 10;
-    }
-    return e_perlin_map_error::density_search_failed;
-  }();
-  UNWRAP_RETURN_T( SeaLevelFloat const sea_level, found_level );
+  UNWRAP_RETURN_T( double const sea_level,
+                   find_sea_level( pm, target_density ) );
   lg.debug( "sea_level: {}", sea_level );
   lg.info( "perlin land density: {:.3}",
-           land_density( sea_level ) );
+           land_density_for_sea_level( pm, sea_level ) );
 
-  {
-    using enum e_surface;
-    auto& m = surface;
-    m       = matrix<e_surface>( sz );
-    ScopedTimer const timer( "final map build" );
-    int total_land = 0;
-    for( point const p : rect_iterator( m.rect() ) ) {
-      bool const is_land = pm[p] > sea_level;
-      if( is_land ) ++total_land;
-      m[p] = is_land ? land : water;
-    }
-    if( total_land == 0 && target_density > 0.0 )
-      return e_perlin_map_error::density_too_small_no_land;
+  out            = matrix<e_surface>( sz );
+  int total_land = 0;
+  for( point const p : rect_iterator( out.rect() ) ) {
+    bool const is_land = pm[p] > sea_level;
+    if( is_land ) ++total_land;
+    out[p] = is_land ? land : water;
   }
+  if( total_land == 0 && target_density > 0.0 )
+    return e_perlin_map_error::density_too_small_no_land;
 
+  CHECK( out.size().to_gfx() == world_sz );
   return valid;
 }
 
