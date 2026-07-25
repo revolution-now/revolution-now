@@ -50,7 +50,11 @@ void to_str( uint64_t o, std::string& out, tag<uint64_t> );
 
 void to_str( float o, std::string& out, tag<float> );
 void to_str( double o, std::string& out, tag<double> );
-void to_str( long double o, std::string& out, tag<long double> );
+
+// Should not be using `long double` in this code base because it
+// is not portable.
+void to_str( long double o, std::string& out,
+             tag<long double> ) = delete;
 
 void to_str( void const* o, std::string& out, tag<void*> );
 void to_str( void const* o, std::string& out, tag<void const*> );

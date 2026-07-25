@@ -395,14 +395,13 @@ TEST_CASE(
 
   array<uint64_t, kCdfPoints.size()> cdf_counts{};
 
-  // Long double reduces accumulation error. The tolerances below
-  // are much larger than any plausible accumulation differences
-  // between platforms.
-  long double sum         = 0.0L;
-  long double sum_squares = 0.0L;
+  // The tolerances below are much larger than any plausible ac-
+  // cumulation differences between platforms.
+  double sum         = 0.0L;
+  double sum_squares = 0.0L;
 
-  long double adjacent_product_sum = 0.0L;
-  double previous                  = 0.0;
+  double adjacent_product_sum = 0.0L;
+  double previous             = 0.0;
 
   double minimum = 1.0;
   double maximum = 0.0;
@@ -416,22 +415,19 @@ TEST_CASE(
     minimum = min( minimum, value );
     maximum = max( maximum, value );
 
-    long double const wide_value =
-        static_cast<long double>( value );
+    double const wide_value = value;
 
     sum += wide_value;
     sum_squares += wide_value * wide_value;
 
-    if( i != 0 )
-      adjacent_product_sum +=
-          static_cast<long double>( previous ) * wide_value;
+    if( i != 0 ) adjacent_product_sum += previous * wide_value;
 
     previous = value;
 
     // value is strictly less than 1.0, so the converted bucket
     // index must be in [0, bucket_count).
-    size_t const bucket = static_cast<size_t>(
-        value * static_cast<double>( kBucketCount ) );
+    size_t const bucket =
+        static_cast<size_t>( value * kBucketCount );
 
     BASE_CHECK( bucket < kBucketCount );
     ++buckets[bucket];
@@ -443,22 +439,22 @@ TEST_CASE(
     }
   }
 
-  long double const n = static_cast<long double>( kSampleCount );
+  double const n = kSampleCount;
 
-  long double const mean = sum / n;
+  double const mean = sum / n;
 
-  long double const second_moment = sum_squares / n;
+  double const second_moment = sum_squares / n;
 
-  long double const variance = second_moment - mean * mean;
+  double const variance = second_moment - mean * mean;
 
   INFO( "sample count: " << kSampleCount );
   INFO( "minimum: " << minimum );
   INFO( "maximum: " << maximum );
-  INFO( "mean: " << static_cast<double>( mean ) );
-  INFO( "variance: " << static_cast<double>( variance ) );
+  INFO( "mean: " << mean );
+  INFO( "variance: " << variance );
 
   SECTION( "sample mean is consistent with U[0,1)" ) {
-    long double constexpr expected_mean = 0.5L;
+    double constexpr expected_mean = 0.5L;
 
     // For U[0,1), standard error of the mean is:
     //
@@ -466,29 +462,28 @@ TEST_CASE(
     //
     // At ten million samples this is about 9.13e-5. This toler-
     // ance is roughly eight standard errors.
-    long double constexpr tolerance = 0.000'75L;
+    double constexpr tolerance = 0.000'75L;
 
     REQUIRE( abs( mean - expected_mean ) < tolerance );
   }
 
   SECTION( "sample variance is consistent with U[0,1)" ) {
-    long double constexpr expected_variance = 1.0L / 12.0L;
+    double constexpr expected_variance = 1.0L / 12.0L;
 
     // At ten million samples, the standard error of the
     // population-form variance estimate is approximately
     // 2.36e-5. This is roughly an eight-standard-error toler-
     // ance.
-    long double constexpr tolerance = 0.000'20L;
+    double constexpr tolerance = 0.000'20L;
 
     REQUIRE( abs( variance - expected_variance ) < tolerance );
   }
 
   SECTION( "histogram passes a chi-square test" ) {
-    long double constexpr expected_per_bucket =
-        static_cast<long double>( kSampleCount ) /
-        static_cast<long double>( kBucketCount );
+    double constexpr expected_per_bucket =
+        kSampleCount / kBucketCount;
 
-    long double chi_square = 0.0L;
+    double chi_square = 0.0L;
 
     uint64_t smallest_bucket_count = kSampleCount;
     uint64_t largest_bucket_count  = 0;
@@ -502,16 +497,13 @@ TEST_CASE(
       largest_bucket_count =
           max( largest_bucket_count, observed );
 
-      long double const difference =
-          static_cast<long double>( observed ) -
-          expected_per_bucket;
+      double const difference = observed - expected_per_bucket;
 
       chi_square +=
           difference * difference / expected_per_bucket;
     }
 
-    long double constexpr degrees_of_freedom =
-        static_cast<long double>( kBucketCount - 1 );
+    double constexpr degrees_of_freedom = kBucketCount - 1;
 
     // A chi-square variable with k degrees of freedom has:
     //
@@ -520,23 +512,21 @@ TEST_CASE(
     //
     // We use a deliberately generous eight-standard-deviation
     // interval.
-    long double const standard_deviation =
+    double const standard_deviation =
         sqrt( 2.0L * degrees_of_freedom );
 
-    long double const lower_limit =
+    double const lower_limit =
         degrees_of_freedom - 8.0L * standard_deviation;
 
-    long double const upper_limit =
+    double const upper_limit =
         degrees_of_freedom + 8.0L * standard_deviation;
 
-    INFO( "chi square: " << static_cast<double>( chi_square ) );
+    INFO( "chi square: " << chi_square );
 
-    INFO( "degrees of freedom: "
-          << static_cast<double>( degrees_of_freedom ) );
+    INFO( "degrees of freedom: " << degrees_of_freedom );
 
-    INFO( "allowed interval: ["
-          << static_cast<double>( lower_limit ) << ", "
-          << static_cast<double>( upper_limit ) << "]" );
+    INFO( "allowed interval: [" << lower_limit << ", "
+                                << upper_limit << "]" );
 
     INFO( "smallest bucket count: " << smallest_bucket_count );
 
@@ -555,34 +545,31 @@ TEST_CASE(
     //
     // Use an eight-standard-deviation bound at every checkpoint.
     for( size_t i = 0; i < kCdfPoints.size(); ++i ) {
-      long double const p =
-          static_cast<long double>( kCdfPoints[i] );
+      double const p = kCdfPoints[i];
 
-      long double const expected_count = n * p;
+      double const expected_count = n * p;
 
-      long double const standard_deviation =
+      double const standard_deviation =
           sqrt( n * p * ( 1.0L - p ) );
 
-      long double const difference =
-          abs( static_cast<long double>( cdf_counts[i] ) -
-               expected_count );
+      double const difference =
+          abs( cdf_counts[i] - expected_count );
 
       CAPTURE( i );
       CAPTURE( kCdfPoints[i] );
       CAPTURE( cdf_counts[i] );
-      CAPTURE( static_cast<double>( expected_count ) );
-      CAPTURE( static_cast<double>( standard_deviation ) );
-      CAPTURE( static_cast<double>( difference ) );
+      CAPTURE( expected_count );
+      CAPTURE( standard_deviation );
+      CAPTURE( difference );
 
       REQUIRE( difference < 8.0L * standard_deviation );
     }
   }
 
   SECTION( "successive values have negligible correlation" ) {
-    long double const pair_count =
-        static_cast<long double>( kSampleCount - 1 );
+    double const pair_count = kSampleCount - 1;
 
-    long double const adjacent_product_mean =
+    double const adjacent_product_mean =
         adjacent_product_sum / pair_count;
 
     // For a uniform variable:
@@ -592,16 +579,14 @@ TEST_CASE(
     //
     // Covariance at lag one is estimated as E[X_i X_(i+1)] -
     // E[X]^2.
-    long double const covariance =
+    double const covariance =
         adjacent_product_mean - mean * mean;
 
-    long double const correlation = covariance / variance;
+    double const correlation = covariance / variance;
 
-    INFO( "lag-one covariance: "
-          << static_cast<double>( covariance ) );
+    INFO( "lag-one covariance: " << covariance );
 
-    INFO( "lag-one correlation: "
-          << static_cast<double>( correlation ) );
+    INFO( "lag-one correlation: " << correlation );
 
     // For independent samples, the approximate standard error of
     // a sample correlation is 1/sqrt(N), about 0.000316 here.

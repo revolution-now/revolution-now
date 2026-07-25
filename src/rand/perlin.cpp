@@ -141,6 +141,10 @@ PerlinFloat perlin_noise_2d_single_octave(
 ** PerlinFractalOptions
 *****************************************************************/
 valid_or<string> PerlinFractalOptions::validate() const {
+  REFL_VALIDATE( n_octaves >= 1, "n_octaves must be >= 1" );
+  REFL_VALIDATE( persistence >= 0.0,
+                 "persistence must be >= 0" );
+  REFL_VALIDATE( lacunarity >= 0.0, "lacunarity must be >= 0" );
   return valid;
 }
 

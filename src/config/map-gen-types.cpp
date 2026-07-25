@@ -33,7 +33,13 @@ using ::base::valid_or;
 ** PerlinLandForm
 *****************************************************************/
 valid_or<string> PerlinLandForm::validate() const {
-  // TODO
+  // This value was found empirically... for some reason any
+  // value <= 1.0 gives non-sensical results. That's ok because a
+  // scal of one is ~ one tile which is the smallest unit anyway.
+  double constexpr kMinScale = 1.0;
+  // NOTE: this is > and not >= since 1.0 yields bad results.
+  REFL_VALIDATE( scale > kMinScale, "perlin scale must be > {}",
+                 kMinScale );
   return valid;
 }
 
@@ -41,7 +47,12 @@ valid_or<string> PerlinLandForm::validate() const {
 ** PerlinEdgeSuppression
 *****************************************************************/
 valid_or<string> PerlinEdgeSuppression::validate() const {
-  // TODO
+  REFL_VALIDATE(
+      strength.w >= 0.0,
+      "perlin edge suppression strengths must be >= 0.0" );
+  REFL_VALIDATE(
+      strength.h >= 0.0,
+      "perlin edge suppression strengths must be >= 0.0" );
   return valid;
 }
 

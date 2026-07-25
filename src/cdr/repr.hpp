@@ -274,6 +274,9 @@ std::string_view type_name( value const& v );
 *****************************************************************/
 namespace literals {
 
+// NOTE: long double is not portable, but unfortunately is re-
+// quired here by the standard unless we want to use the template
+// version which receives characters.
 inline value operator""_val( long double const d ) {
   return value{ float_type( d ) };
 }

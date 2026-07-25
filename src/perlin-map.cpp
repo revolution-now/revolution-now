@@ -14,10 +14,20 @@
 #include "gfx/iter.hpp"
 
 // rand
+#include "perlin-map.rds.hpp"
 #include "rand/perlin.hpp"
 
 // rand
 #include "rand/entropy.hpp"
+
+// refl
+#include "refl/traverse.hpp"
+#include "refl/validate.hpp"
+
+// traverse
+#include "traverse/ext-base.hpp"
+#include "traverse/ext-std.hpp"
+#include "traverse/ext.hpp"
 
 // base
 #include "base/error.hpp"
@@ -34,6 +44,7 @@ namespace rn {
 
 namespace {
 
+using ::base::expect;
 using ::base::ScopedTimer;
 using ::base::valid;
 using ::base::valid_or;
@@ -54,32 +65,33 @@ void perlin_suppress_edges(
     point const p, size const map_sz,
     PerlinEdgeSuppression const& edge_suppression,
     double& level ) {
-  int const dist_x_unscaled = abs( p.x - map_sz.w / 2 );
-  int const dist_y_unscaled = abs( p.y - map_sz.h / 2 );
-
+  dsize const dist_unscaled = ( p - map_sz / 2 )
+                                  .distance_from_origin()
+                                  .abs()
+                                  .to_double();
   // This will have the effect of doing less suppression at the
   // edges as the map size grows, which looks better. Don't let
   // it go above 1 otherwise small maps will have too much re-
-  // moved.
+  // moved. The 56 and 70 don't make this prefer that map size,
+  // it's just that this algo was calibrated at that (standard)
+  // map size, but it is intended to work for any size.
+  CHECK_GT( map_sz.area(), 0 );
   double const scale_x =
       min( pow( 56.0 / map_sz.w, .125 ), 1.0 );
   double const scale_y =
       min( pow( 70.0 / map_sz.h, .125 ), 1.0 );
 
   double const dist_x =
-      scale_x * double( dist_x_unscaled ) / ( map_sz.w / 2 );
+      scale_x * dist_unscaled.w / max( map_sz.w / 2, 1 );
   double const dist_y =
-      scale_y * double( dist_y_unscaled ) / ( map_sz.h / 2 );
+      scale_y * dist_unscaled.h / max( map_sz.h / 2, 1 );
 
-  auto const fn = []( double const d ) {
-    double constexpr kExp = 6;
-    return pow( d, kExp );
+  double constexpr kExp = 6;
+  dsize const sub{
+    .w = pow( dist_x * edge_suppression.strength.w, kExp ),
+    .h = pow( dist_y * edge_suppression.strength.h, kExp ),
   };
-  double const sub_x =
-      fn( dist_x * edge_suppression.strength.w );
-  double const sub_y =
-      fn( dist_y * edge_suppression.strength.h );
-  level -= sqrt( sub_x * sub_x + sub_y * sub_y );
+  level -= sub.pythagorean();
 }
 
 } // namespace
@@ -89,12 +101,17 @@ void perlin_suppress_edges(
 // stitute the perlin seed fit within the 128 bits that are pro-
 // vided by the rng::entropy type, so we can read the bits di-
 // rectly instead of generating random numbers.
-PerlinSeed generate_perlin_seed( rng::entropy entropy ) {
+PerlinSeed generate_perlin_seed( rng::entropy e ) {
+  // Make sure these get evaluated in order.
+  uint32_t const offset_x = e.consume<uint32_t>();
+  uint32_t const offset_y = e.consume<uint32_t>();
+  uint32_t const base     = e.consume<uint32_t>();
+  bool const flip         = e.consume<uint32_t>() % 2 == 0;
   return PerlinSeed{
-    .offset_x = entropy.consume<uint32_t>(),
-    .offset_y = entropy.consume<uint32_t>(),
-    .base     = entropy.consume<uint32_t>(),
-    .flip     = entropy.consume<uint32_t>() % 2 == 0,
+    .offset_x = offset_x,
+    .offset_y = offset_y,
+    .base     = base,
+    .flip     = flip,
   };
 }
 
@@ -103,6 +120,16 @@ valid_or<e_perlin_map_error> land_gen_perlin(
     double const target_density, size const world_sz,
     matrix<e_surface>& surface ) {
   size const sz = world_sz;
+  lg.debug( "perlin: settings: {}", settings );
+  lg.debug( "perlin: target_density: {}", target_density );
+  lg.debug( "perlin: world_sz: {}", world_sz );
+  if( sz.area() == 0 )
+    return e_perlin_map_error::invalid_map_size;
+  if( auto const ok = refl::validate_recursive( settings );
+      !ok ) {
+    lg.error( "invalid perlin settings: {}", ok.error() );
+    return e_perlin_map_error::invalid_settings;
+  }
   rng::vec2 const kNoRepeat{ .x = 100'000'000,
                              .y = 100'000'000 };
   // Repeat behavior of parameters:
@@ -132,84 +159,67 @@ valid_or<e_perlin_map_error> land_gen_perlin(
   };
   matrix<double> pm( sz );
 
-  auto const print_stats = [&]( string_view const name ) {
-#if 0
-    double max_val  = 0.0;
-    double min_val  = numeric_limits<double>::max();
-    double avg      = 0;
-    double variance = 0;
-    for( point const p : rect_iterator( pm.rect() ) ) {
-      double const val = pm[p];
-      if( val > max_val ) max_val = val;
-      if( val < min_val ) min_val = val;
-      avg += val;
-      variance += val * val;
-    }
-    avg /= pm.size().area();
-    double const stddev = sqrt( variance - avg * avg );
-    lg.info(
-        "{}: min_val={:.3}, max_val={:.3}, avg={:.3}, "
-        "stddev={:.3}",
-        name, min_val, max_val, avg, stddev );
-#else
-    (void)name;
-#endif
-  };
+  for( point const p : rect_iterator( pm.rect() ) )
+    pm[p] = perlin_noise( p );
 
-  print_stats( "1" );
-
-  {
-    ScopedTimer const timer( "noise generation" );
-    for( point const p : rect_iterator( pm.rect() ) )
-      pm[p] = perlin_noise( p );
-  }
-
-  print_stats( "2" );
-
-  if( settings.edge_suppression.enabled ) {
-    ScopedTimer const timer( "edge suppression" );
+  if( settings.edge_suppression.enabled )
     for( point const p : rect_iterator( pm.rect() ) )
       perlin_suppress_edges( p, sz, settings.edge_suppression,
                              pm[p] );
-  }
 
-  print_stats( "3" );
+  // Something bigger than `double` would be nice here, but ap-
+  // parently `long double` is not portable in that it is a dif-
+  // ferent size on different platforms, so would be difficult
+  // for map reproducibility.
+  using SeaLevelFloat = double;
 
-  double const kTolerance = 1e-3;
-  auto const land_density = [&]( double const sea_level ) {
-    int land_count = 0;
-    for( point const p : rect_iterator( pm.rect() ) )
-      if( pm[p] > sea_level ) //
-        ++land_count;
-    return land_count * 1.0 / pm.size().area();
-  };
+  auto const land_density =
+      [&]( SeaLevelFloat const sea_level ) {
+        int land_count = 0;
+        for( point const p : rect_iterator( pm.rect() ) )
+          if( pm[p] > sea_level ) //
+            ++land_count;
+        return land_count * 1.0L / pm.size().area();
+      };
   enum class e_sea_level {
     too_low,
     good,
     too_high,
   };
-  double sea_level_min    = -100000.0;
-  double sea_level_max    = 100000.0;
-  auto const sea_level_is = [&]( double const sea_level ) {
-    double const density = land_density( sea_level );
+  SeaLevelFloat const kIdealTolerance = 1e-4;
+  SeaLevelFloat sea_level_min         = -1e6;
+  SeaLevelFloat sea_level_max         = 1e6;
+  SeaLevelFloat old_sea_level_min =
+      -numeric_limits<SeaLevelFloat>::infinity();
+  SeaLevelFloat old_sea_level_max =
+      numeric_limits<SeaLevelFloat>::infinity();
+  auto const sea_level_is = [&](
+                                SeaLevelFloat const sea_level,
+                                SeaLevelFloat const tolerance ) {
+    SeaLevelFloat const density = land_density( sea_level );
     lg.trace( "trying sea_level={} [{},{}] --> density={}",
               sea_level, sea_level_min, sea_level_max, density );
-    double const target = target_density;
-    if( abs( density - target ) < kTolerance )
+    SeaLevelFloat const target = target_density;
+    if( abs( density - target ) < tolerance )
       return e_sea_level::good;
     if( density < target ) return e_sea_level::too_high;
     return e_sea_level::too_low;
   };
-  auto const found_level = [&] -> valid_or<e_perlin_map_error> {
+  lg.debug( "attempting to hit target land density: {}",
+            target_density );
+  auto const found_level =
+      [&] -> expect<SeaLevelFloat, e_perlin_map_error> {
     ScopedTimer const timer( "sea level search" );
     using enum e_sea_level;
-    for( int i = 0; i < 1000; ++i ) {
-      double const sea_level =
-          ( sea_level_min + sea_level_max ) / 2.0;
-      switch( sea_level_is( sea_level ) ) {
+    SeaLevelFloat sea_level = {};
+    int iters               = 0;
+    for( iters = 0; iters < 10000; ++iters ) {
+      sea_level = ( sea_level_min + sea_level_max ) / 2.0;
+      switch( sea_level_is( sea_level, kIdealTolerance ) ) {
         case good:
-          lg.info( "perlin sea level bisections: {}", i + 1 );
-          return valid;
+          lg.debug( "perlin sea level bisections: {}",
+                    iters + 1 );
+          return sea_level;
         case too_low:
           sea_level_min = sea_level;
           break;
@@ -217,16 +227,35 @@ valid_or<e_perlin_map_error> land_gen_perlin(
           sea_level_max = sea_level;
           break;
       }
+      if( sea_level_min == old_sea_level_min &&
+          sea_level_max == old_sea_level_max )
+        break;
+      old_sea_level_min = sea_level_min;
+      old_sea_level_max = sea_level_max;
+    }
+    SeaLevelFloat fallback_tolerance = kIdealTolerance;
+    // We want to allow up to .1, but compare a bit above that to
+    // avoid rounding errors. Actually, a tolerance of .1 is
+    // pretty bad... ideally we really don't want that, but there
+    // are some small map sizes that seem to need this when tar-
+    // getting certain densities, and we do want to try to flex-
+    // ibly support small map sizes.
+    while( fallback_tolerance < .1 + .000001 ) {
+      if( sea_level_is( sea_level, fallback_tolerance ) ==
+          e_sea_level::good ) {
+        lg.warn(
+            "land density did not meet ideal tolerance of {:.1} "
+            "after sea level search of {} iterations, tolerance "
+            "met: {:.1}",
+            kIdealTolerance, iters + 1, fallback_tolerance );
+        return sea_level;
+      }
+      fallback_tolerance *= 10;
     }
     return e_perlin_map_error::density_search_failed;
   }();
-  GOOD_OR_RETURN( found_level );
-  double const sea_level =
-      ( sea_level_min + sea_level_max ) / 2.0;
-  lg.info( "sea_level: {}", sea_level );
-
-  print_stats( "4" );
-
+  UNWRAP_RETURN_T( SeaLevelFloat const sea_level, found_level );
+  lg.debug( "sea_level: {}", sea_level );
   lg.info( "perlin land density: {:.3}",
            land_density( sea_level ) );
 
@@ -235,11 +264,16 @@ valid_or<e_perlin_map_error> land_gen_perlin(
     auto& m = surface;
     m       = matrix<e_surface>( sz );
     ScopedTimer const timer( "final map build" );
-    for( point const p : rect_iterator( m.rect() ) )
-      m[p] = ( pm[p] <= sea_level ) ? water : land;
+    int total_land = 0;
+    for( point const p : rect_iterator( m.rect() ) ) {
+      bool const is_land = pm[p] > sea_level;
+      if( is_land ) ++total_land;
+      m[p] = is_land ? land : water;
+    }
+    if( total_land == 0 && target_density > 0.0 )
+      return e_perlin_map_error::density_too_small_no_land;
   }
 
-  print_stats( "5" );
   return valid;
 }
 

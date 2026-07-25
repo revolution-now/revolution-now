@@ -24,8 +24,12 @@ namespace rng {
 /****************************************************************
 ** Types.
 *****************************************************************/
-using PerlinInt   = uint32_t;
-using PerlinFloat = long double;
+using PerlinInt = uint32_t;
+// Something bigger than `double` would be nice here, but appar-
+// ently `long double` is not portable in that it is a different
+// size on different platforms, so would be difficult for map re-
+// producibility.
+using PerlinFloat = double;
 using PerlinVec2  = vec2;
 
 /****************************************************************

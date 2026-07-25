@@ -24,6 +24,9 @@ using namespace std;
 /****************************************************************
 ** Test Cases
 *****************************************************************/
+TEST_CASE( "[rng/perlin] PerlinFractalOptions" ) {
+}
+
 TEST_CASE( "[rng/perlin] perlin_noise_2d" ) {
   // TODO
 }

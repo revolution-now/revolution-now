@@ -65,12 +65,6 @@ void to_str( double const o, string& out, tag<double> ) {
   out += std::format( "{}", o );
 }
 
-void to_str( long double const o, string& out,
-             tag<long double> ) {
-  // Using the fmt one suppresses extra decimal places.
-  out += std::format( "{}", o );
-}
-
 void to_str( void const* const o, string& out, tag<void*> ) {
   out += std::format(
       "0x{:x}", reinterpret_cast<unsigned long long>( o ) );

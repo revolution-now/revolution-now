@@ -32,8 +32,7 @@ namespace rn {
 /****************************************************************
 ** Public API.
 *****************************************************************/
-[[nodiscard]] PerlinSeed generate_perlin_seed(
-    rng::entropy entropy );
+[[nodiscard]] PerlinSeed generate_perlin_seed( rng::entropy e );
 
 [[nodiscard]] base::valid_or<e_perlin_map_error> land_gen_perlin(
     PerlinMapSettings const& settings, double target_density,
