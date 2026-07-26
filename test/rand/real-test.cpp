@@ -606,5 +606,14 @@ TEST_CASE(
   }
 }
 
+TEST_CASE( "[rand/real] result hits max due to rounding" ) {
+  portable_uniform_real_distribution distribution;
+  mt19937 generator( kSeed );
+
+  REQUIRE( distribution(
+               generator, 0.0,
+               numeric_limits<double>::denorm_min() ) == 0.0 );
+}
+
 } // namespace
 } // namespace rng

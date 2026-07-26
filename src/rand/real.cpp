@@ -242,11 +242,11 @@ double portable_uniform_real_distribution::operator()(
 
   // Floating-point rounding can occasionally produce max even
   // though unit is strictly less than 1.
-  if( !( res < max ) ) { res = nextafter( max, min ); }
+  if( !( res < max ) ) res = nextafter( max, min );
 
   // Guard against unexpected rounding outside the lower end-
   // point.
-  if( res < min ) { res = min; }
+  if( res < min ) res = min;
 
   CHECK( isfinite( res ) );
   CHECK( res >= min );
