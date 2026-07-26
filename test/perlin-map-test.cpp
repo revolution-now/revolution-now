@@ -278,6 +278,15 @@ TEST_CASE( "[perlin-map] land_gen_perlin" ) {
   // ------------------------------------------------------------
   // Map
   // ------------------------------------------------------------
+  world_sz       = { .w = 1, .h = 1 };
+  settings       = kSettings;
+  target_density = 0.7;
+
+  REQUIRE( f() == invalid( density_search_failed ) );
+
+  // ------------------------------------------------------------
+  // Map
+  // ------------------------------------------------------------
   world_sz                          = { .w = 1, .h = 16 };
   settings                          = kSettings;
   settings.edge_suppression.enabled = false;
