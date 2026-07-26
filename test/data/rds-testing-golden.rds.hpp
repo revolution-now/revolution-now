@@ -70,6 +70,15 @@ namespace rn {
 
 } // namespace rn
 
+namespace rcl::test {
+
+    struct Leaf;
+    struct Middle;
+    struct ThisOrThat;
+    struct Top;
+
+} // namespace rcl::test
+
 namespace rn::test {
 
     template<typename T, typename U>
@@ -2351,6 +2360,264 @@ namespace rn {
         ), ( const ) ); \
     }; \
   }
+
+/****************************************************************
+*                        Enum: e_numbers
+*****************************************************************/
+namespace rcl::test {
+
+  enum class e_numbers {
+    one,
+    two,
+    three,
+    four
+  };
+
+} // namespace rcl::test
+
+namespace refl {
+
+  // Reflection info for enum e_numbers.
+  template<>
+  struct traits<rcl::test::e_numbers> {
+    using type = rcl::test::e_numbers;
+
+    static constexpr type_kind kind        = type_kind::enum_kind;
+    static constexpr std::string_view ns   = "rcl::test";
+    static constexpr std::string_view name = "e_numbers";
+
+    static constexpr std::array<std::string_view, 4> value_names{
+      "one",
+      "two",
+      "three",
+      "four",
+    };
+  };
+
+} // namespace refl
+
+/****************************************************************
+*                         Struct: Leaf
+*****************************************************************/
+namespace rcl::test {
+
+  struct Leaf {
+    int       leaf1 = {};
+    double    leaf2 = {};
+    e_numbers leaf3 = {};
+
+    bool operator==( Leaf const& ) const = default;
+  };
+
+} // namespace rcl::test
+
+namespace refl {
+
+  // Reflection info for struct Leaf.
+  template<>
+  struct traits<rcl::test::Leaf> {
+    using type = rcl::test::Leaf;
+
+    static constexpr type_kind kind        = type_kind::struct_kind;
+    static constexpr std::string_view ns   = "rcl::test";
+    static constexpr std::string_view name = "Leaf";
+    static constexpr bool is_sumtype_alternative = false;
+
+    using template_types = std::tuple<>;
+
+    static constexpr std::tuple fields{
+      refl::StructField{ "leaf1", &rcl::test::Leaf::leaf1, /*offset=*/base::nothing },
+      refl::StructField{ "leaf2", &rcl::test::Leaf::leaf2, /*offset=*/base::nothing },
+      refl::StructField{ "leaf3", &rcl::test::Leaf::leaf3, /*offset=*/base::nothing },
+    };
+  };
+
+} // namespace refl
+
+/****************************************************************
+*                        Struct: Middle
+*****************************************************************/
+namespace rcl::test {
+
+  struct Middle {
+    bool                                           mid1 = {};
+    std::map<std::string, Leaf>                    mid2 = {};
+    std::vector<std::pair<e_numbers, std::string>> mid3 = {};
+
+    bool operator==( Middle const& ) const = default;
+  };
+
+} // namespace rcl::test
+
+namespace refl {
+
+  // Reflection info for struct Middle.
+  template<>
+  struct traits<rcl::test::Middle> {
+    using type = rcl::test::Middle;
+
+    static constexpr type_kind kind        = type_kind::struct_kind;
+    static constexpr std::string_view ns   = "rcl::test";
+    static constexpr std::string_view name = "Middle";
+    static constexpr bool is_sumtype_alternative = false;
+
+    using template_types = std::tuple<>;
+
+    static constexpr std::tuple fields{
+      refl::StructField{ "mid1", &rcl::test::Middle::mid1, /*offset=*/base::nothing },
+      refl::StructField{ "mid2", &rcl::test::Middle::mid2, /*offset=*/base::nothing },
+      refl::StructField{ "mid3", &rcl::test::Middle::mid3, /*offset=*/base::nothing },
+    };
+  };
+
+} // namespace refl
+
+/****************************************************************
+*                     Sum Type: ThisOrThat
+*****************************************************************/
+namespace rcl::test {
+
+  namespace detail {
+
+    namespace ThisOrThat_alternatives {
+
+      struct th1s {
+        int x = {};
+        int y = {};
+        // This requires that the types of the member variables
+        // also support equality.
+        bool operator==( struct th1s const& ) const = default;
+      };
+
+      struct that {
+        Leaf        leaf = {};
+        std::string name = {};
+        // This requires that the types of the member variables
+        // also support equality.
+        bool operator==( struct that const& ) const = default;
+      };
+
+    } // namespace ThisOrThat_alternatives
+
+    using ThisOrThatBase = base::variant<
+      detail::ThisOrThat_alternatives::th1s,
+      detail::ThisOrThat_alternatives::that
+    >;
+
+  } // namespace detail
+
+  struct ThisOrThat : public detail::ThisOrThatBase {
+    using th1s = detail::ThisOrThat_alternatives::th1s;
+    using that = detail::ThisOrThat_alternatives::that;
+
+    enum class e {
+      th1s,
+      that,
+    };
+
+    using i_am_rds_variant = void;
+    using Base = detail::ThisOrThatBase;
+    using Base::Base;
+    ThisOrThat( Base&& b ) : Base( std::move( b ) ) {}
+    Base const& as_base() const& { return *this; }
+    Base&       as_base()      & { return *this; }
+
+    // Comparison with alternatives.
+    bool operator==( th1s const& rhs ) const {
+      return this->template holds<th1s>() && (this->template get<th1s>() == rhs);
+    }
+    bool operator==( that const& rhs ) const {
+      return this->template holds<that>() && (this->template get<that>() == rhs);
+    }
+  };
+
+
+} // namespace rcl::test
+
+// This gives us the enum to use in a switch statement.
+template<>
+struct base::variant_to_enum<rcl::test::detail::ThisOrThatBase> {
+  using type = rcl::test::ThisOrThat::e;
+};
+
+// Reflection traits for alternatives.
+namespace refl {
+
+  // Reflection info for struct th1s.
+  template<>
+  struct traits<rcl::test::detail::ThisOrThat_alternatives::th1s> {
+    using type = rcl::test::detail::ThisOrThat_alternatives::th1s;
+
+    static constexpr type_kind kind        = type_kind::struct_kind;
+    static constexpr std::string_view ns   = "rcl::test::ThisOrThat";
+    static constexpr std::string_view name = "th1s";
+    static constexpr bool is_sumtype_alternative = true;
+
+    using template_types = std::tuple<>;
+
+    static constexpr std::tuple fields{
+      refl::StructField{ "x", &rcl::test::detail::ThisOrThat_alternatives::th1s::x, /*offset=*/base::nothing },
+      refl::StructField{ "y", &rcl::test::detail::ThisOrThat_alternatives::th1s::y, /*offset=*/base::nothing },
+    };
+  };
+
+  // Reflection info for struct that.
+  template<>
+  struct traits<rcl::test::detail::ThisOrThat_alternatives::that> {
+    using type = rcl::test::detail::ThisOrThat_alternatives::that;
+
+    static constexpr type_kind kind        = type_kind::struct_kind;
+    static constexpr std::string_view ns   = "rcl::test::ThisOrThat";
+    static constexpr std::string_view name = "that";
+    static constexpr bool is_sumtype_alternative = true;
+
+    using template_types = std::tuple<>;
+
+    static constexpr std::tuple fields{
+      refl::StructField{ "leaf", &rcl::test::detail::ThisOrThat_alternatives::that::leaf, /*offset=*/base::nothing },
+      refl::StructField{ "name", &rcl::test::detail::ThisOrThat_alternatives::that::name, /*offset=*/base::nothing },
+    };
+  };
+
+} // namespace refl
+
+/****************************************************************
+*                          Struct: Top
+*****************************************************************/
+namespace rcl::test {
+
+  struct Top {
+    std::vector<Middle> top1 = {};
+    ThisOrThat          top2 = {};
+    base::maybe<Leaf>   top3 = {};
+
+    bool operator==( Top const& ) const = default;
+  };
+
+} // namespace rcl::test
+
+namespace refl {
+
+  // Reflection info for struct Top.
+  template<>
+  struct traits<rcl::test::Top> {
+    using type = rcl::test::Top;
+
+    static constexpr type_kind kind        = type_kind::struct_kind;
+    static constexpr std::string_view ns   = "rcl::test";
+    static constexpr std::string_view name = "Top";
+    static constexpr bool is_sumtype_alternative = false;
+
+    using template_types = std::tuple<>;
+
+    static constexpr std::tuple fields{
+      refl::StructField{ "top1", &rcl::test::Top::top1, /*offset=*/base::nothing },
+      refl::StructField{ "top2", &rcl::test::Top::top2, /*offset=*/base::nothing },
+      refl::StructField{ "top3", &rcl::test::Top::top3, /*offset=*/base::nothing },
+    };
+  };
+
+} // namespace refl
 
 /****************************************************************
 *                   Struct: MyTemplateStruct

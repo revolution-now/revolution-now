@@ -334,6 +334,46 @@ interface.IWithContext {
   },
 }
 
+namespace "rcl.test"
+
+# Seeks to build a large composite type to test all the stuff.
+
+enum.e_numbers {
+  one,
+  two,
+  three,
+  four,
+}
+
+struct.Leaf {
+  leaf1 'int',
+  leaf2 'double',
+  leaf3 'e_numbers',
+}
+
+struct.Middle {
+  mid1 'bool',
+  mid2 'std::map<std::string, Leaf>',
+  mid3 'std::vector<std::pair<e_numbers, std::string>>',
+}
+
+sumtype.ThisOrThat {
+  th1s {
+    x 'int',
+    y 'int',
+  },
+  that {
+    leaf 'Leaf',
+    name 'std::string',
+  },
+}
+
+struct.Top {
+  top1 'std::vector<Middle>',
+  top2 'ThisOrThat',
+  top3 'base::maybe<Leaf>',
+}
+
 namespace "rn.test"
 
 struct.MyTemplateStruct {
