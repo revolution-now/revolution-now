@@ -60,6 +60,48 @@ valid_or<string> MapSquare::validate() const {
         ground == e_biome::arctic;
     REFL_VALIDATE( !has_forest_on_arctic,
                    "cannot have forest on an arctic tile." );
+
+    REFL_VALIDATE( !sea_lane,
+                   "cannot have Sea Lane on land tiles." );
+
+    REFL_VALIDATE(
+        ground_resource != e_natural_resource::fish,
+        "prime fishing resource not allowed on land tiles." );
+    REFL_VALIDATE( forest_resource != e_natural_resource::fish,
+                   "prime fishing resource not allowed on "
+                   "forest/land tiles." );
+
+    if( river == e_river::minor ) {
+      // NOTE: Although the OG never seems to produce maps with
+      // minor rivers and hills on the same tile, its data model
+      // does support it and our bridge does support it, so we
+      // will allow it here.
+      REFL_VALIDATE( true || // disabled
+                     overlay != e_land_overlay::hills );
+
+      // We do not support minor rivers on mountains tiles for
+      // compatibility with the original game which does not have
+      // a way to represent this.
+      REFL_VALIDATE( overlay != e_land_overlay::mountains,
+                     "cannot have a minor river and a mountain "
+                     "on the same tile." );
+    }
+
+    if( river == e_river::major ) {
+      // NOTE: Although the OG never seems to produce maps with
+      // major rivers and mountains on the same tile, its data
+      // model does support it and our bridge does support it, so
+      // we will allow it here.
+      REFL_VALIDATE( true || // disabled
+                     overlay != e_land_overlay::mountains );
+
+      // We do not support major rivers on hills tiles for com-
+      // patibility with the original game which does not have a
+      // way to represent this.
+      REFL_VALIDATE( overlay != e_land_overlay::hills,
+                     "cannot have a major river and hills on "
+                     "the same tile." );
+    }
   }
   return valid;
 }
