@@ -553,20 +553,89 @@ TEST_CASE( "[cdr/converter] allow_unrecognized_fields" ) {
 
 TEST_CASE( "[cdr/converter] backtrace" ) {
   converter conv;
-  using M = unordered_map<string, int>;
-  value v = list{ table{ { "key", "one" }, { "val", 1 } },
-                  table{ { "key", "two" }, { "val", "2" } } };
-  string expected =
-      "failed to convert value of type string to int.\n"
-      "frame trace (most recent frame last):\n"
-      "std::unordered_map<std::string, int, "
-      "std::hash<std::string>, s...\n"
-      " \\-index 1\n"
-      "  \\-std::pair<std::string const, int>\n"
-      "   \\-value for key 'val'\n"
-      "    \\-int";
-  REQUIRE( run_conversion_from_canonical<M>( v ) ==
-           conv.err( expected ) );
+
+  SECTION( "small" ) {
+    using M = unordered_map<string, int>;
+    value v = list{ table{ { "key", "one" }, { "val", 1 } },
+                    table{ { "key", "two" }, { "val", "2" } } };
+    string expected =
+        "failed to convert value of type string to int.\n"
+        "frame trace (most recent frame last):\n"
+        "index 1\n"
+        " \\-value for key 'val'";
+    REQUIRE( run_conversion_from_canonical<M>( v ) ==
+             conv.err( expected ) );
+  }
+
+  SECTION( "small" ) {
+    string expected;
+    using M =
+        unordered_map<string,
+                      vector<pair<string, map<string, string>>>>;
+    value v = list{
+      table{
+        { "key", "one" },
+        {
+          "val",
+          list{
+            table{
+              { "key", "first" },
+              { "val",
+                table{
+                  { "key", "aaa" },
+                  { "val", "bbb" },
+                } },
+            },
+            table{
+              { "key", "first" },
+              { "val",
+                table{
+                  { "key", "aaa" },
+                  { "val", "bbb" },
+                } },
+            },
+          },
+        },
+      },
+      table{
+        { "key", "two" },
+        {
+          "val",
+          list{
+            table{
+              { "key", "first" },
+              { "val",
+                table{
+                  { "key", "aaa" },
+                  { "val", "bbb" },
+                } },
+            },
+            table{
+              { "key", "first" },
+              { "val",
+                table{
+                  { "key", "aaa" },
+                  { "val", "bbb" },
+                } },
+            },
+          },
+        },
+      },
+    };
+    REQUIRE( run_conversion_from_canonical<M>( v ).has_value() );
+
+    v[1]["val"][0]["val"]["val"] = 5;
+    expected =
+        "expected type string, instead found type integer.\n" //
+        "frame trace (most recent frame last):\n"             //
+        "index 1\n"                                           //
+        " \\-value for key 'val'\n"                           //
+        "  \\-index 0\n"                                      //
+        "   \\-value for key 'val'\n"                         //
+        "    \\-value for key 'val'";
+    REQUIRE( run_conversion_from_canonical<M>( v ) ==
+             conv.err( expected ) );
+  }
 }
 
 } // namespace

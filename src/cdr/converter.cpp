@@ -51,26 +51,11 @@ vector<string> const& converter::error_stack() const {
 
 string converter::dump_error_stack() const {
   string out;
+  if( error_stack().empty() ) return out;
   out += "frame trace (most recent frame last):\n";
   string spaces;
-  // This will probably need to be tweaked when compiler versions
-  // change. The idea is to make whatever substitutions are nec-
-  // essary to make the output clean and readable.
-  static initializer_list<pair<string, string>> replacements{
-    { base::demangled_typename<string>(), "std::string" },
-    { "::__1", "" },
-    { "::(anonymous namespace)", "" },
-    { " >", ">" },
-  };
   for( string const& frame : error_stack() ) {
-    string sanitized =
-        base::str_replace_all( frame, replacements );
-    if( sanitized.size() > 62 ) {
-      sanitized.resize( 62 );
-      sanitized = base::trim( sanitized );
-      sanitized += "...";
-    }
-    out += fmt::format( "{}{}\n", spaces, sanitized );
+    out += fmt::format( "{}{}\n", spaces, frame );
     if( spaces.empty() )
       spaces = " \\-";
     else
@@ -83,8 +68,11 @@ string converter::dump_error_stack() const {
 
 error converter::from_canonical_readable_error(
     error const& err_obj ) const {
-  return error( fmt::format( "{}\n{}", err_obj.what(),
-                             dump_error_stack() ) );
+  string const stack = dump_error_stack();
+  if( stack.empty() )
+    return error( err_obj.what() );
+  else
+    return error( format( "{}\n{}", err_obj.what(), stack ) );
 }
 
 } // namespace cdr

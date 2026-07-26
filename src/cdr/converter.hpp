@@ -15,7 +15,6 @@
 #include "ext.hpp"
 
 // base
-#include "base/cc-specific.hpp"
 #include "base/valid.hpp"
 
 // C++ standard library
@@ -123,7 +122,6 @@ struct converter {
   // that you are going into.
   template<FromCanonical T>
   result<std::remove_const_t<T>> from( value const& v ) {
-    auto _ = frame( base::demangled_typename<T>() );
     // The function called below should be found via ADL.
     auto res =
         from_canonical( *this, v, tag<std::remove_const_t<T>> );
