@@ -62,8 +62,41 @@ TEST_CASE( "[rng/perlin] PerlinFractalOptions" ) {
   REQUIRE( o.validate() == valid );
 }
 
+// We don't really need ot test this exhaustively because it is
+// fully covered by the perlin-map tests, but we'll just do a few
+// basic tests with random inputs that cover all the code and
+// should be sufficient to lock it in.
 TEST_CASE( "[rng/perlin] perlin_noise_2d" ) {
-  // TODO
+  PerlinVec2 point;
+  PerlinFractalOptions fractal_options;
+  PerlinVec2 seamless_repeat;
+  PerlinInt base = {};
+
+  auto const f = [&] [[clang::noinline]] {
+    return perlin_noise_2d( point, fractal_options,
+                            seamless_repeat, base );
+  };
+
+  point           = { .x = 2.3, .y = 5.5 };
+  fractal_options = {
+    .n_octaves = 0, .persistence = 0.5, .lacunarity = 2.0 };
+  seamless_repeat = { .x = 1000, .y = 1000 };
+  base            = 0;
+  REQUIRE( f() == 0 );
+
+  point           = { .x = 2.3, .y = 5.5 };
+  fractal_options = {
+    .n_octaves = 5, .persistence = 0.5, .lacunarity = 2.0 };
+  seamless_repeat = { .x = 1000, .y = 1000 };
+  base            = 0;
+  REQUIRE( f() == Approx( -0.0625450181 ).epsilon( 1e-9 ) );
+
+  point           = { .x = 4.3, .y = 1.5 };
+  fractal_options = {
+    .n_octaves = 3, .persistence = 0.6, .lacunarity = 2.2 };
+  seamless_repeat = { .x = 3.3, .y = 1.2 };
+  base            = 1;
+  REQUIRE( f() == Approx( -0.0152986129 ).epsilon( 1e-8 ) );
 }
 
 } // namespace
