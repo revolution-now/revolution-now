@@ -1193,7 +1193,7 @@ void FormationsStatsCollector::emit_inputs_file() const {
                                ? "clearing-nm"
                                : base::to_str( kind );
     auto const& conf     = config_map_gen.terrain_generation
-                           .formations.formation[kind];
+                               .formations.formation[kind];
     SWITCH( conf.spawn ) {
       CASE( by_wetness ) {
         // None
@@ -1380,7 +1380,7 @@ void FormationsStatsCollector::write() const {
   {
     GnuPlotSettings const settings{
       .title   = format( "Row Based Range Center Densities "
-                           "(generated) ({}) [{}]",
+                         "(generated) ({}) [{}]",
                          mode_, maps_ ),
       .x_label = "Y (row)",
       .y_label = "Density",
@@ -1425,7 +1425,7 @@ void FormationsStatsCollector::write() const {
   {
     GnuPlotSettings const settings{
       .title   = format( "Column Based Range Center Densities "
-                           "(generated) ({}) [{}]",
+                         "(generated) ({}) [{}]",
                          mode_, maps_ ),
       .x_label = "X (column)",
       .y_label = "Density",
@@ -1713,7 +1713,7 @@ void FormationsStatsCollector::write() const {
     {
       GnuPlotSettings const settings{
         .title   = format( "{} Density on Biome by Column "
-                             "(generated) ({}) [{}]",
+                           "(generated) ({}) [{}]",
                            type_name, mode_, maps_ ),
         .x_label = "X (column)",
         .y_label = "Density",
