@@ -40,18 +40,17 @@ string const& to_colored_level_name( e_log_level level ) {
   CHECK( level != e_log_level::off );
   static unordered_map<e_log_level, string> const colored{
     { e_log_level::trace,
-      fmt::format( "{}TRCE{}", magenta, reset ) },
+      fmt::format( "{}TRC{}", magenta, reset ) },
     { e_log_level::debug,
-      fmt::format( "{}DEBG{}", cyan, reset ) },
+      fmt::format( "{}DBG{}", cyan, reset ) },
     { e_log_level::info,
-      fmt::format( "{}INFO{}", green, reset ) },
+      fmt::format( "{}INF{}", green, reset ) },
     { e_log_level::warn,
-      fmt::format( "{}{}WARN{}", yellow, bold, reset ) },
+      fmt::format( "{}{}WRN{}", yellow, bold, reset ) },
     { e_log_level::error,
-      fmt::format( "{}{}ERRO{}", red, bold, reset ) },
+      fmt::format( "{}{}ERR{}", red, bold, reset ) },
     { e_log_level::critical,
-      fmt::format( "{}{}{}CRIT{}", white, on_red, bold,
-                   reset ) },
+      fmt::format( "{}{}{}CRT{}", white, on_red, bold, reset ) },
     // Should not be used.
     { e_log_level::off, fmt::format( "OFF" ) },
   };
