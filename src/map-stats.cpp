@@ -1195,10 +1195,6 @@ void FormationsStatsCollector::emit_inputs_file() const {
     auto const& conf     = config_map_gen.terrain_generation
                            .formations.formation[kind];
     SWITCH( conf.spawn ) {
-      CASE( uniform ) {
-        // None
-        break;
-      }
       CASE( by_wetness ) {
         // None
         break;

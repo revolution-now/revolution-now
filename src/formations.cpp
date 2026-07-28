@@ -50,6 +50,19 @@ using ::refl::enum_map;
 using ::refl::enum_values;
 using ::rn::config::Probability;
 
+// These really can't be changed/tweaked (hence they are here and
+// not in the configs) because this was the transformation (mx+b)
+// applied to the empirical clearing density (from real maps) to
+// obtain what appeared to be the best estimate of "wetness". In
+// other words, our algo for wetness was calibrated using empir-
+// ical clearing density with this transformation applied, so
+// these numbers are kind of implicitly baked into our wetness
+// algo. I guess they could be tweaked, but I think it's better
+// to just hard code them since I'm not sure how much intuitive
+// sense it would really make to have these be adjustable anyway.
+double constexpr kWetnessToClearingMul = 0.7;
+double constexpr kWetnessToClearingAdd = 0.3;
+
 void on_spawnable(
     MapMatrix& m,
     function_ref<void( point, MapSquare& square )> fn ) {
@@ -66,7 +79,7 @@ void run_organic_growth(
     e_terrain_formation const formation,
     function_ref<Probability( point ) const> const
         spawn_probability,
-    double const growth_factor, int const max_length,
+    double const rate, int const max_length,
     point const start ) {
   set<point> points_can_grow;
   auto const update_can_grow = [&]( point const p,
@@ -124,8 +137,7 @@ void run_organic_growth(
     grew = false;
     for( point const p : can_grow ) {
       double const growth_probability = std::min(
-          spawn_probability( p ).probability * growth_factor,
-          1.0 );
+          spawn_probability( p ).probability * rate, 1.0 );
       if( !rand.bernoulli( growth_probability ) ) continue;
       grow_tile( p );
       grew = true;
@@ -166,11 +178,11 @@ void generate_formation( IRand& rand, MapMatrix& m,
     Probability const p_decay{ .probability = decay };
     CHECK( p_decay.validate() );
     SWITCH( spawn_type ) {
-      CASE( uniform ) { NOT_IMPLEMENTED; }
       CASE( by_wetness ) {
-        double const forest_probability = clamp(
-            wetness.m[p] * by_wetness.mul + by_wetness.add, 0.0,
-            1.0 );
+        double const forest_probability =
+            clamp( wetness.m[p] * kWetnessToClearingMul +
+                       kWetnessToClearingAdd,
+                   0.0, 1.0 );
         double const clearing_probability =
             clamp( 1.0 - forest_probability, 0.0, 1.0 );
         auto const cp =

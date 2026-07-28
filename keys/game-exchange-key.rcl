@@ -137,7 +137,7 @@ map.source.generate_native.setup {
 
       clearing {
         overall_spawn.probability: 0.80
-        spawn.by_wetness: { mul=0.3, add=0.7 }
+        spawn.by_wetness: {}
         growth {
           rate:         1.20
           edge_decay.w: 0.00
