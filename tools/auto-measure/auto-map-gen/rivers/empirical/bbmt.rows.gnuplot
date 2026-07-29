@@ -73,6 +73,11 @@ $CSVData << EOF
 "69","0.0955","0.0895","0.006","0.0955","3.5561347979892","0.0"
 EOF
 
+outfile = system( "mktemp /tmp/gnuplot-XXXXXX.png" )
+
+set term png size 1920,1200 font "Fira Sans,14"
+set output outfile
+
 set title "River Frequency by Row (empirical) (bbmt) [2000]"
 set key outside right
 set grid
@@ -81,4 +86,7 @@ set ylabel "Count per Map"
 set key autotitle columnhead
 set xrange [1:70]
 set yrange [0:10]
-plot for [col=2:*] $CSVData using 1:col with lines lw 2
+plot for [col=2:*] $CSVData using 1:col with lines lw 3
+
+set output
+system sprintf( "eog --fullscreen '%s' >/dev/null 2>&1 &", outfile )

@@ -57,6 +57,11 @@ $CSVData << EOF
 "52","0.0005"
 EOF
 
+outfile = system( "mktemp /tmp/gnuplot-XXXXXX.png" )
+
+set term png size 1920,1200 font "Fira Sans,14"
+set output outfile
+
 set title "River Length Histogram (empirical) (new) [2000]"
 set key outside right
 set grid
@@ -65,4 +70,7 @@ set ylabel "Count per Map"
 set key autotitle columnhead
 set xrange [1:20]
 set yrange [0:20]
-plot for [col=2:*] $CSVData using 1:col with lines lw 2
+plot for [col=2:*] $CSVData using 1:col with lines lw 3
+
+set output
+system sprintf( "eog --fullscreen '%s' >/dev/null 2>&1 &", outfile )
