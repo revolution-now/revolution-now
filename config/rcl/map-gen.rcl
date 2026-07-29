@@ -233,7 +233,7 @@ terrain_generation {
         start_major.probability:   .18
         sustain_major.probability: .45
         turn.probability:          .31
-        fork.probability:          .08
+        fork.probability:          .096
         fork_is_major.probability: .32
       }
       normal {
@@ -241,7 +241,7 @@ terrain_generation {
         start_major.probability:   .25
         sustain_major.probability: .57
         turn.probability:          .32
-        fork.probability:          .095
+        fork.probability:          .116
         fork_is_major.probability: .47
       }
       wet {
@@ -249,7 +249,7 @@ terrain_generation {
         start_major.probability:   .30
         sustain_major.probability: .645
         turn.probability:          .32
-        fork.probability:          .11
+        fork.probability:          .13
         fork_is_major.probability: .55
       }
     }

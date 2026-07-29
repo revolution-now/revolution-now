@@ -81,7 +81,7 @@ map.source.generate_native.setup {
     #  start_major.probability:   .25
     #  sustain_major.probability: .57
     #  turn.probability:          .32
-    #  fork.probability:          .095
+    #  fork.probability:          .116
     #  fork_is_major.probability: .47
     #}
   }
