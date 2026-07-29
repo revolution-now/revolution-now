@@ -220,7 +220,7 @@ void remove_crosses( RealTerrain& real_terrain ) {
   if( !remove() ) return;
   if( !remove() ) return;
 
-  if( has_crosses() ) lg.warn( "crosses remaininging on map." );
+  if( has_crosses() ) lg.warn( "crosses remaining on map." );
   // Although we try our best to eliminate crosses, it may not be
   // possible to eliminate them all for every possible map using
   // the finite number of iterations above. In any case, the game
