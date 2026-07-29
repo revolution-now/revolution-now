@@ -25,6 +25,7 @@
 
 // C++ standard library
 #include <functional>
+#include <memory>
 #include <stdexcept>
 #include <string>
 #include <type_traits>
@@ -122,7 +123,7 @@ class [[nodiscard]] maybe { /* clang-format on */
  private:
   constexpr void destroy_if_active() {
     if constexpr( !std::is_trivially_destructible_v<T> ) {
-      if( active_ ) ( **this ).T::~T();
+      if( active_ ) std::destroy_at( std::addressof( val_ ) );
       // Don't set active_ to false here. That is the purpose of
       // this function. If you want to destroy+deactivate then
       // call the public reset() function.
@@ -142,31 +143,10 @@ class [[nodiscard]] maybe { /* clang-format on */
   /**************************************************************
   ** Value Constructors
   ***************************************************************/
-  // For each one there are two copies, one for trivially default
-  // constructible and one not. This is to support constexpr. It
-  // seems that, in order for a non primitive type to be initial-
-  // ized with a value in a constexpr constext (i.e., by as-
-  // signing to it and not using placement new) it must already
-  // have been initialized, otherwise you cannot call its assign-
-  // ment operator. So these variations will ensure that the
-  // trivially default constructible ones will get initialized
-  // before calling new_val on them.  Not sure if this is the
-  // right way to go about this...
   constexpr maybe( T const& val ) /* clang-format off */
       noexcept( std::is_nothrow_copy_constructible_v<T> )
-      requires( std::is_copy_constructible_v<T> &&
-               !std::is_trivially_default_constructible_v<T>)
+      requires( std::is_copy_constructible_v<T> )
     : active_{ false } /* clang-format on */ {
-    new_val( val );
-    // Now set to true after no exception has happened.
-    active_ = true;
-  }
-
-  constexpr maybe( T const& val ) /* clang-format off */
-      noexcept( std::is_nothrow_copy_constructible_v<T> )
-      requires( std::is_copy_constructible_v<T> &&
-                std::is_trivially_default_constructible_v<T>)
-    : val_{}, active_{ false } {
     new_val( val );
     // Now set to true after no exception has happened.
     active_ = true;
@@ -174,19 +154,8 @@ class [[nodiscard]] maybe { /* clang-format on */
 
   constexpr maybe( T&& val ) /* clang-format off */
       noexcept( std::is_nothrow_move_constructible_v<T> )
-      requires( std::is_move_constructible_v<T> &&
-               !std::is_trivially_default_constructible_v<T> )
+      requires( std::is_move_constructible_v<T> )
     : active_{ false } /* clang-format on */ {
-    new_val( std::move( val ) );
-    // Now set to true after no exception has happened.
-    active_ = true;
-  }
-
-  constexpr maybe( T&& val ) /* clang-format off */
-      noexcept( std::is_nothrow_move_constructible_v<T> )
-      requires( std::is_move_constructible_v<T> &&
-                std::is_trivially_default_constructible_v<T>)
-    : val_{}, active_{ false } {
     new_val( std::move( val ) );
     // Now set to true after no exception has happened.
     active_ = true;
@@ -202,24 +171,8 @@ class [[nodiscard]] maybe { /* clang-format on */
       requires(
          std::is_constructible_v<T, U&&> &&
         !std::is_same_v<std::remove_cvref_t<U>, std::in_place_t> &&
-        !std::is_same_v<std::remove_cvref_t<U>, maybe<T>> &&
-        !std::is_trivially_default_constructible_v<T> )
+        !std::is_same_v<std::remove_cvref_t<U>, maybe<T>> )
     : active_{ false } { /* clang-format on */
-    new_val( std::forward<U>( val ) );
-    // Now set to true after no exception has happened.
-    active_ = true;
-  }
-
-  template<typename U = T> /* clang-format off */
-  explicit( !std::is_convertible_v<U&&, T> )
-  constexpr maybe( U&& val )
-      noexcept( std::is_nothrow_convertible_v<U, T> )
-      requires(
-         std::is_constructible_v<T, U&&> &&
-        !std::is_same_v<std::remove_cvref_t<U>, std::in_place_t> &&
-        !std::is_same_v<std::remove_cvref_t<U>, maybe<T>> &&
-         std::is_trivially_default_constructible_v<T> )
-    : val_{}, active_{ false } {
     new_val( std::forward<U>( val ) );
     // Now set to true after no exception has happened.
     active_ = true;
@@ -662,6 +615,7 @@ class [[nodiscard]] maybe { /* clang-format on */
   void reset() noexcept {
     if( active_ ) {
       destroy_if_active();
+      std::construct_at( std::addressof( empty_byte_ ) );
       active_ = false;
     }
   }
@@ -1040,19 +994,19 @@ class [[nodiscard]] maybe { /* clang-format on */
 
   template<typename... Vs> /* clang-format off */
   constexpr void new_val( Vs&&... v )
-    noexcept(
-      (std::is_trivially_constructible_v<
-            T, decltype( std::forward<Vs>( v ) )...> &&
-       std::is_trivially_move_assignable_v<T>)
-      ||
-      noexcept( new( &this->val_ ) T( std::forward<Vs>( v )... ) )
-    ) { /* clang-format on */
-    if constexpr( std::is_trivially_constructible_v<
-                      T, decltype( std::forward<Vs>( v ) )...> &&
-                  std::is_trivially_move_assignable_v<T> ) {
-      val_ = T( std::forward<Vs>( v )... );
+    noexcept( std::is_nothrow_constructible_v<T, Vs&&...> ) {
+    /* clang-format on */
+    if constexpr( std::is_nothrow_constructible_v<T, Vs&&...> ) {
+      std::construct_at( std::addressof( val_ ),
+                         std::forward<Vs>( v )... );
     } else {
-      new( &val_ ) T( std::forward<Vs>( v )... );
+      try {
+        std::construct_at( std::addressof( val_ ),
+                           std::forward<Vs>( v )... );
+      } catch( ... ) {
+        std::construct_at( std::addressof( empty_byte_ ) );
+        throw;
+      }
     }
   }
 

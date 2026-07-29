@@ -19,6 +19,7 @@
 
 // C++ standard library
 #include <concepts>
+#include <memory>
 #include <stdexcept>
 #include <type_traits>
 #include <utility>
@@ -89,19 +90,21 @@ class [[nodiscard]] expect { /* clang-format on */
  private:
   constexpr void destroy_val() {
     if constexpr( !std::is_trivially_destructible_v<T> )
-      val_.T::~T();
+      std::destroy_at( std::addressof( val_ ) );
   }
 
   constexpr void destroy_err() {
     if constexpr( !std::is_trivially_destructible_v<E> )
-      err_.E::~E();
+      std::destroy_at( std::addressof( err_ ) );
   }
 
   constexpr void destroy() {
+    if( !engaged_ ) return;
     if( good_ )
       destroy_val();
     else
       destroy_err();
+    engaged_ = false;
   }
 
  public:
@@ -114,7 +117,7 @@ class [[nodiscard]] expect { /* clang-format on */
       noexcept( std::is_nothrow_copy_constructible_v<T> )
       requires( std::is_copy_constructible_v<T> &&
                 std::is_trivially_default_constructible_v<T> )
-    : val_{}, good_{ false } {
+    : good_{ false } {
     new_val( val );
     good_ = true;
   }
@@ -132,7 +135,7 @@ class [[nodiscard]] expect { /* clang-format on */
       noexcept( std::is_nothrow_move_constructible_v<T> )
       requires( std::is_move_constructible_v<T> &&
                 std::is_trivially_default_constructible_v<T> )
-    : val_{}, good_{ false } {
+    : good_{ false } {
     new_val( std::move( val ) );
     good_ = true;
   }
@@ -150,7 +153,7 @@ class [[nodiscard]] expect { /* clang-format on */
       noexcept( std::is_nothrow_copy_constructible_v<E> )
       requires( std::is_copy_constructible_v<E> &&
                 std::is_trivially_default_constructible_v<E> )
-    : err_{}, good_{ false } {
+    : good_{ false } {
     new_err( err );
     good_ = false;
   }
@@ -168,7 +171,7 @@ class [[nodiscard]] expect { /* clang-format on */
       noexcept( std::is_nothrow_move_constructible_v<E> )
       requires( std::is_move_constructible_v<E> &&
                 std::is_trivially_default_constructible_v<E> )
-    : err_{}, good_{ false } {
+    : good_{ false } {
     new_err( std::move( err ) );
     good_ = false;
   }
@@ -224,7 +227,7 @@ class [[nodiscard]] expect { /* clang-format on */
       requires( std::is_copy_constructible_v<T> &&
                 std::is_copy_constructible_v<E> &&
                 std::is_trivially_default_constructible_v<T> )
-    : val_{}, good_{ false } {
+    : good_{ false } {
     if( other.has_value() )
       new_val( other.val_ );
     else
@@ -896,8 +899,8 @@ class [[nodiscard]] expect { /* clang-format on */
     requires( std::is_constructible_v<T, Args...> ) {
     /* clang-format on */
     destroy();
-    good_ = true;
     new_val( std::forward<Args>( args )... );
+    good_ = true;
     return **this;
   }
 
@@ -909,8 +912,8 @@ class [[nodiscard]] expect { /* clang-format on */
                   std::initializer_list<U>, Args...> ) {
                                          /* clang-format on */
     destroy();
-    good_ = true;
     new_val( ilist, std::forward<Args>( args )... );
+    good_ = true;
     return **this;
   }
 
@@ -1139,43 +1142,29 @@ class [[nodiscard]] expect { /* clang-format on */
 
   template<typename... Vs> /* clang-format off */
   constexpr void new_val( Vs&&... v )
-    noexcept(
-      (std::is_trivially_constructible_v<
-            T, decltype( std::forward<Vs>( v ) )...> &&
-       std::is_trivially_move_assignable_v<T>) ||
-      noexcept( new( &this->val_ ) T( std::forward<Vs>( v )... ) )
-    ) { /* clang-format on */
-    if constexpr( std::is_trivially_constructible_v<
-                      T, decltype( std::forward<Vs>( v ) )...> &&
-                  std::is_trivially_move_assignable_v<T> ) {
-      val_ = T( std::forward<Vs>( v )... );
-    } else {
-      new( &val_ ) T( std::forward<Vs>( v )... );
-    }
+    noexcept( std::is_nothrow_constructible_v<T, Vs&&...> ) {
+    /* clang-format on */
+    std::construct_at( std::addressof( val_ ),
+                       std::forward<Vs>( v )... );
+    engaged_ = true;
   }
 
   template<typename... Vs> /* clang-format off */
   constexpr void new_err( Vs&&... v )
-    noexcept(
-      (std::is_trivially_constructible_v<
-            E, decltype( std::forward<Vs>( v ) )...> &&
-       std::is_trivially_move_assignable_v<E>) ||
-      noexcept( new( &this->err_ ) E( std::forward<Vs>( v )... ) )
-    ) { /* clang-format on */
-    if constexpr( std::is_trivially_constructible_v<
-                      E, decltype( std::forward<Vs>( v ) )...> &&
-                  std::is_trivially_move_assignable_v<E> ) {
-      err_ = E( std::forward<Vs>( v )... );
-    } else {
-      new( &err_ ) E( std::forward<Vs>( v )... );
-    }
+    noexcept( std::is_nothrow_constructible_v<E, Vs&&...> ) {
+    /* clang-format on */
+    std::construct_at( std::addressof( err_ ),
+                       std::forward<Vs>( v )... );
+    engaged_ = true;
   }
 
   union {
+    unsigned char empty_ = 0;
     T val_;
     E err_;
   };
-  bool good_ = false;
+  bool good_    = false;
+  bool engaged_ = false;
 };
 
 /****************************************************************
@@ -1204,7 +1193,7 @@ class [[nodiscard]] expect<T&, E> { /* clang-format on */
   constexpr void destroy_if_err() {
     if( !p_ ) {
       if constexpr( !std::is_trivially_destructible_v<E> )
-        err_.E::~E();
+        std::destroy_at( std::addressof( err_ ) );
     }
   }
 
@@ -1544,19 +1533,10 @@ class [[nodiscard]] expect<T&, E> { /* clang-format on */
   ***************************************************************/
   template<typename... Vs> /* clang-format off */
   constexpr void new_err( Vs&&... v )
-    noexcept(
-      (std::is_trivially_constructible_v<
-            E, decltype( std::forward<Vs>( v ) )...> &&
-       std::is_trivially_move_assignable_v<E>) ||
-      noexcept( new( &this->err_ ) E( std::forward<Vs>( v )... ) )
-    ) { /* clang-format on */
-    if constexpr( std::is_trivially_constructible_v<
-                      E, decltype( std::forward<Vs>( v ) )...> &&
-                  std::is_trivially_move_assignable_v<E> ) {
-      err_ = E( std::forward<Vs>( v )... );
-    } else {
-      new( &err_ ) E( std::forward<Vs>( v )... );
-    }
+    noexcept( std::is_nothrow_constructible_v<E, Vs&&...> ) {
+    /* clang-format on */
+    std::construct_at( std::addressof( err_ ),
+                       std::forward<Vs>( v )... );
   }
 
   /**************************************************************
@@ -1564,6 +1544,7 @@ class [[nodiscard]] expect<T&, E> { /* clang-format on */
   ***************************************************************/
   T* p_ = nullptr;
   union {
+    unsigned char empty_ = 0;
     E err_;
   };
 };
