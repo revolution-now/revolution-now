@@ -26,6 +26,9 @@ struct WeatherValue;
 std::unique_ptr<IMapStatsCollector>
 create_biome_density_stats_collector( std::string const& stem );
 
+std::unique_ptr<IMapStatsCollector> create_river_stats_collector(
+    std::string const& stem, double tolerance );
+
 std::unique_ptr<IMapStatsCollector>
 create_wetness_stats_collector( std::string const& stem,
                                 WeatherValue const& climate );

@@ -258,6 +258,8 @@ static void add_river_land_components(
       if( moved.y == 0 || moved.y == m.size().h - 1 ) continue;
       if( square.river.has_value() ) continue;
       if( square.surface == e_surface::water ) continue;
+      if( square.overlay == e_land_overlay::mountains ) continue;
+      if( square.overlay == e_land_overlay::hills ) continue;
       if( has_tile_in_history( history, moved ) ) continue;
       bool const has_surrounding_river = [&] {
         bool res = false;
@@ -403,6 +405,8 @@ void add_rivers( MapMatrix& m, IRand& rand,
 
   auto const is_open_tile = [&]( point const p ) {
     if( m[p].river.has_value() ) return false;
+    if( m[p].overlay == e_land_overlay::mountains ) return false;
+    if( m[p].overlay == e_land_overlay::hills ) return false;
     bool has_surrounding_river = false;
     on_surrounding_cardinal(
         m, p,
@@ -457,6 +461,10 @@ void add_rivers( MapMatrix& m, IRand& rand,
           CHECK( m[rt.tile].surface == e_surface::land );
         CHECK( !m[rt.tile].river.has_value(),
                "tile {} already has a river. i={}", rt.tile, i );
+        CHECK( m[rt.tile].overlay != e_land_overlay::mountains,
+               "should not have rivers on mountain tiles" );
+        CHECK( m[rt.tile].overlay != e_land_overlay::hills,
+               "should not have rivers on hills tiles" );
         m[rt.tile].river = rt.type;
       }
       ++have;
