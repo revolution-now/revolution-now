@@ -996,13 +996,30 @@ class [[nodiscard]] maybe { /* clang-format on */
   constexpr void new_val( Vs&&... v )
     noexcept( std::is_nothrow_constructible_v<T, Vs&&...> ) {
     /* clang-format on */
-    if constexpr( std::is_nothrow_constructible_v<T, Vs&&...> ) {
-      std::construct_at( std::addressof( val_ ),
-                         std::forward<Vs>( v )... );
-    } else {
-      try {
+    auto const construct = [&] {
+      if constexpr( std::is_array_v<T> ) {
+        static_assert( sizeof...( Vs ) == 0 );
+        // Special case for std::array because of a quirk in the
+        // libc++ implementation of std::construct_at.
+        //
+        // Can't use this for all types because we'd have to add
+        // the constructor arguments but that would then change
+        // the construction from constructor semantics to brace
+        // initialization semantics. But for a C array this is ok
+        // because those don't support any constructor args.
+        ::new( static_cast<void*>( std::addressof( val_ ) ) )
+            T{};
+      } else {
         std::construct_at( std::addressof( val_ ),
                            std::forward<Vs>( v )... );
+      }
+    };
+
+    if constexpr( std::is_nothrow_constructible_v<T, Vs&&...> ) {
+      construct();
+    } else {
+      try {
+        construct();
       } catch( ... ) {
         std::construct_at( std::addressof( empty_byte_ ) );
         throw;

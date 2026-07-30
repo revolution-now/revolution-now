@@ -330,8 +330,7 @@ TEST_CASE( "[maybe] works with C arrays" ) {
   M<char[6]> m1;
   m1.emplace();
   ( *m1 )[0] = 'c';
-  // Error: does not work with const C arrays because of some
-  // issue with placement new.
+  // NOTE: does not currently work with const C arrays.
   // M<char const[6]> m2;
   // m2.emplace();
 }
