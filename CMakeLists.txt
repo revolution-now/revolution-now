@@ -49,10 +49,17 @@ force_compiler_color_diagnostics()
 
 # === compiler flags ==============================================
 
-# Might have to turn this one off for producing generic builds.
-# FIXME: put this behind a configure variable and include mention
-#        of it in the configuration identifier.
-set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native -mtune=native" )
+# NOTE: should not use -march/-mtune=native since that can have
+# different interpretations on different systems and thus does
+# not play nice with distributed builds both for artifact caching
+# reasons and also binary compatibility. We need to use values
+# that have a fixed interpretations (so hashing compile flags to
+# produce a cache key makes sense) and so that binaries get com-
+# piled consistently on all build hosts.
+#
+# TODO: Might have to adjust this one off for producing generic
+# builds.
+set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=x86-64-v3 -mtune=generic" )
 
 # === subdirectories ==============================================
 

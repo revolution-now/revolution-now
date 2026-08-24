@@ -88,6 +88,10 @@ function( set_warning_options target )
             # past clang 21.1.8.
             -Wno-thread-safety-negative
 
+            # This gets emitted as a result of compiling the pre-
+            # processed output as is done in build farm builds.
+            -Wno-gnu-line-marker
+
             # ---------------------------------------------------
             # Options for ensuring platform-independent double
             # arithmetic and double-related RNG generation.
