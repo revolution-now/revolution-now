@@ -18,7 +18,7 @@
 // config
 #include "src/config/rn.rds.hpp"
 
-#define CATCH_CONFIG_RUNNER
+#define CATCH_CONFIG_RUNNER ""
 #include "catch2/catch.hpp"
 
 namespace testing {
@@ -32,6 +32,7 @@ bool expensive_tests_enabled() {
 using namespace rn;
 
 int main( int argc, char** argv ) {
+  (void)( CATCH_CONFIG_RUNNER ); // hack for -Wunused-macro.
   linker_dont_discard_me();
   Engine engine;
   engine.init( e_engine_mode::unit_tests );
