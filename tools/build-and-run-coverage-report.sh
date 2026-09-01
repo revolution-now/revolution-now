@@ -71,6 +71,8 @@ make test
 log "step: generate report"
 # NOTE: no quotes around targets.
 ./tools/clang-coverage-report.sh "$HTML_OUT" $targets
+HTML_REAL="$(realpath "$HTML_OUT")"
+[[ -f "$HTML_REAL" ]] || die "failed to generate $HTML_REAL."
 
 # ---------------------------------------------------------------
 # Step: Open report.
@@ -83,7 +85,7 @@ log "coverage HTML file: $HTML_OUT"
 #   https://unix.stackexchange.com/questions/589556/
 #     piping-to-xclip-doesnt-survive-bash-script-termination
 #
-echo "$HTML_URL" | xclip -sel p -sel s -sel c
+echo "$HTML_REAL" | xclip -sel p -sel s -sel c
 echo
 echo "Copied report URL to clipboard, now paste in browser."
 echo "Select a line and use the L, B, R keys keys (with and"
