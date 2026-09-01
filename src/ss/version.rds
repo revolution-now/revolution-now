@@ -1,0 +1,19 @@
+# ===============================================================
+# version.rds
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2022-02-12.
+#
+# Description: Versioning of the save state.
+#
+# ===============================================================
+namespace "rn"
+
+struct.FormatVersion {
+  major 'int',
+  minor 'int',
+  patch 'int',
+
+  _features { equality, validation }
+}

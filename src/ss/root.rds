@@ -1,5 +1,5 @@
 # ===============================================================
-# gs-root.rds
+# root.rds
 #
 # Project: Revolution Now
 #
@@ -22,16 +22,7 @@ include "ss/terrain.hpp"
 include "ss/trade-route.rds.hpp"
 include "ss/turn.rds.hpp"
 include "ss/units.hpp"
-
-namespace "rn"
-
-struct.FormatVersion {
-  major 'int',
-  minor 'int',
-  patch 'int',
-
-  _features { equality, validation }
-}
+include "ss/version.rds.hpp"
 
 namespace "rn"
 

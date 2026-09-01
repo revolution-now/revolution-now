@@ -23,6 +23,7 @@
 
 // luapp
 #include "luapp/ext-refl.hpp"
+#include "luapp/register.hpp"
 #include "luapp/state.hpp"
 
 // refl
@@ -259,7 +260,9 @@ valid_or<string> validate_recursive_non_terrain(
   return res;
 }
 
-// Lua bindings.
+/****************************************************************
+** Lua
+*****************************************************************/
 void define_usertype_for( lua::state& st, lua::tag<RootState> ) {
   using U = RootState;
   auto u  = st.usertype.create<U>();
@@ -274,6 +277,21 @@ void define_usertype_for( lua::state& st, lua::tag<RootState> ) {
 
   // Now just add our additional alias.
   u["terrain"] = &U::zzz_terrain;
+}
+
+namespace {
+
+LUA_STARTUP( lua::state& st ) {
+  // NOTE: the reason this isn't done in the lua-root-?.cpp files
+  // is because we don't want to run the recursive lua binding
+  // starting at the root because it leads to a translation unit
+  // that takes too long to compile. So instead we just do a
+  // shallow definition here for the RootState itself, then we
+  // split up the recursive traversal among its members in those
+  // numbered files.
+  define_usertype_for( st, lua::tag<::rn::RootState>{} );
+};
+
 }
 
 } // namespace rn

@@ -1,5 +1,5 @@
 /****************************************************************
-**lua-root.cpp
+**lua-root-6.cpp
 *
 * Project: Revolution Now
 *
@@ -9,7 +9,7 @@
 *
 *****************************************************************/
 // ss
-#include "root.hpp"
+#include "terrain.hpp"
 
 // luapp
 #include "luapp/enum.hpp"
@@ -33,18 +33,8 @@ using namespace std;
 
 namespace rn {
 
-// This recursively traverses the entire root data structure in
-// the sense that it does a full type traversal and visits every
-// type mentioned in every field and sub field and registers for
-// its define_usertype_for method to be called when registration
-// methods are called.
-//
-// It is all done in this module and so nothing needs to be ex-
-// posed in header files. The exception to that is that if a
-// module wants to e.g. define a Lua function that needs to
-// push/pop type X then the header declaring type X will need to
-// expose its Lua type traits. But most will not have to.
-RUN_RECURSIVE_LUA_BINDER( ::rn::RootState );
+// NOTE: see the comment in lua-root-0.cpp for more info.
+RUN_RECURSIVE_LUA_BINDER( ::rn::TerrainState );
 
 } // namespace rn
 
@@ -52,6 +42,6 @@ RUN_RECURSIVE_LUA_BINDER( ::rn::RootState );
 ** Linker.
 *****************************************************************/
 namespace rn {
-void linker_dont_discard_module_ss_lua_root();
-void linker_dont_discard_module_ss_lua_root() {}
+void linker_dont_discard_module_ss_lua_root_6();
+void linker_dont_discard_module_ss_lua_root_6() {}
 } // namespace rn
