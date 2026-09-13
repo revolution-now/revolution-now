@@ -180,7 +180,7 @@ auto UserConfig::load_from_file( string const& path )
     .default_construct_missing_fields = false,
   };
   // Once again just because it is important.
-  CHECK( options.default_construct_missing_fields == false );
+  CHECK_EQ( options.default_construct_missing_fields, false );
   UNWRAP_RETURN(
       config, cdr::run_conversion_from_canonical<config_user_t>(
                   val, options ) );

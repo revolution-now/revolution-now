@@ -28,7 +28,7 @@ namespace rcl {
 
 namespace {
 
-#define FAIL_RESTORE ( ( g_cur = sav ), false )
+#define FAIL_RESTORE ( (void)( g_cur = sav ), false )
 
 /****************************************************************
 ** Global State

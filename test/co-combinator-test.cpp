@@ -532,8 +532,6 @@ wait<int> get_int1() {
   co_await get_int1_p.wait();
   LOG_PLACES( 'd', 'D' );
   throw runtime_error( "test-failed" );
-  LOG_PLACES( 'e', 'E' );
-  co_return 5;
 }
 
 wait<> get_int2() {

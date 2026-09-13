@@ -76,8 +76,7 @@ valid_or<string> MapSquare::validate() const {
       // minor rivers and hills on the same tile, its data model
       // does support it and our bridge does support it, so we
       // will allow it here.
-      REFL_VALIDATE( true || // disabled
-                     overlay != e_land_overlay::hills );
+      // REFL_VALIDATE( overlay != e_land_overlay::hills );
 
       // We do not support minor rivers on mountains tiles for
       // compatibility with the original game which does not have
@@ -92,8 +91,7 @@ valid_or<string> MapSquare::validate() const {
       // major rivers and mountains on the same tile, its data
       // model does support it and our bridge does support it, so
       // we will allow it here.
-      REFL_VALIDATE( true || // disabled
-                     overlay != e_land_overlay::mountains );
+      // REFL_VALIDATE( overlay != e_land_overlay::mountains );
 
       // We do not support major rivers on hills tiles for com-
       // patibility with the original game which does not have a

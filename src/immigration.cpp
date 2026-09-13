@@ -114,7 +114,6 @@ e_unit_type take_immigrant_from_pool(
     e_unit_type replacement ) {
   CHECK_GE( n, 0 );
   CHECK_LE( n, 2 );
-  DCHECK( immigration.immigrants_pool.size() >= 3 );
   e_unit_type taken = immigration.immigrants_pool[n];
   immigration.immigrants_pool[n] = replacement;
   return taken;
