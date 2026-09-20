@@ -19,6 +19,16 @@ function( set_warning_options target )
             # ======================================================
             -Weverything
 
+            # Debug info.
+            # ======================================================
+            # This preserves enough debug info to get stack
+            # traces, but omits the full debug info which
+            # markedly reduces object file size, so takes less
+            # space and improves compile times, especially in re-
+            # mote builds where object files need to be sent over
+            # the network.
+            -gline-tables-only
+
             # Turn some warnings to errors.
             # ======================================================
             # This will trigger when a function that is supposed
@@ -140,6 +150,21 @@ function( set_warning_options target )
             -Wall
             -Wextra
             -Wnrvo
+
+            # Debug info.
+            # ======================================================
+            # This preserves enough debug info to get stack
+            # traces, but omits the full debug info which
+            # markedly reduces object file size, so takes less
+            # space and improves compile times, especially in re-
+            # mote builds where object files need to be sent over
+            # the network. This is supposed to be roughly equiva-
+            # lent to clang's -gline-tables-only.
+            #
+            # On the gcc builds this also seems to significantly
+            # speed up linking (mold).
+            -g1
+
             # This is so that gcc does not warn about clang at-
             # tributes, e.g. [[clang::noinline]] which are conve-
             # nient to leave around.
