@@ -15,30 +15,34 @@ local M = {}
 -- This function, together with the appropriate config numbers,
 -- represents the object distribution algorithm used by the orig-
 -- inal game to distribute land resources, forest resources, and
--- lost city rumors. The numbers chosen in the config (which must
--- be precisely selected to replicate the patterns in the orig-
--- inal game) were likely chosen to provide even distribution
--- (i.e., without the clustering that is characteristic of a
--- purely random approach) but with some level of randomness in a
+-- lost city rumors. It matches the output of the original game's
+-- algorithm precisely. This algorithm was actually inherited by
+-- the OG from the Civilization 1 game which also used it to
+-- place its goody huts and resources. It was likely chosen to
+-- provide even a sufficiently random but even distribution in a
 -- way that can be computed very efficiently given a map square.
--- The efficiency is likely important because the original game
--- does not seem to store or precompute the locations of these
--- resources, since there are no bits in the map save files for
--- them, and so it probably computes them on the fly whenever it
--- needs to know what is on a square.
-local function OG_distribution_algo( config, coord )
-  local ROTATION = 12
-  local C = config
-  local X = coord.x + C.x_offset
-  local Y = coord.y + C.y_offset
-  -- WARNING: this Lua modulo is not the same as the C/C++ modulo
-  -- when negative numbers are involved.
-  local idx = (Y - C.seed * 20) % C.board_size
-  assert( #C.shifts == 4 )
-  local rotations = ((idx // 4) + C.shifts[idx % 4 + 1]) %
-                        (C.board_size // 4)
-  local column = X + ROTATION * rotations
-  return C.resources[column % C.board_size] ~= nil
+-- The latter is important because the original game does not
+-- store or precompute the locations of these resources; it needs
+-- to recompute them on each query of a tile.
+local function hashed_lattice_recurring_placement( config, coord )
+  local x = coord.x + 1
+  local y = coord.y + 1
+  local cell = assert( config.cell )
+  local cell_x = x // cell
+  local cell_y = y // cell
+  local cell_idx_x = x % cell
+  local cell_idx_y = y % cell
+  local hash = config.seed + cell_x * 17 + cell_y * 19 +
+                   config.shift
+  -- This needs to be non-negative because our modulo won't re-
+  -- ally work right if it is negative, and in the OG it is not
+  -- supposed to be negative.
+  assert( hash >= 0 )
+  hash = hash % assert( config.cycle )
+  local tile_idx_1 = cell_idx_x * cell + cell_idx_y
+  local tile_idx_2 = nil
+  if config.extra then tile_idx_2 = tile_idx_1 ~ 10 end
+  return tile_idx_1 == hash or tile_idx_2 == hash
 end
 
 local function distribute( config )
@@ -46,7 +50,7 @@ local function distribute( config )
   for y = 0, config.world_size.h - 1 do
     for x = 0, config.world_size.w - 1 do
       local coord = { x=x, y=y }
-      if OG_distribution_algo( config, coord ) then
+      if hashed_lattice_recurring_placement( config, coord ) then
         table.insert( res, coord )
       end
     end
@@ -54,65 +58,39 @@ local function distribute( config )
   return res
 end
 
--- This algorithm matches the original game's precisely. It takes
--- the world size (in tiles) as a parameter and the one-byte seed
--- used by the OG, which must be an integer.
 function M.compute_lost_city_rumors( world_size, seed )
   return distribute{
     world_size=world_size,
-    board_size=128,
     seed=seed,
-    x_offset=5,
-    y_offset=53,
-    shifts={ 0, 5, 10, 15 },
-    resources={
-      -- LuaFormatter off
-      [17*0]=1,
-      [17*1]=1,
-      [17*2]=1,
-      [17*3]=1,
-      -- LuaFormatter on
-    },
+    cell=4,
+    cycle=32,
+    shift=8,
+    extra=false,
   }
 end
 
--- This algorithm matches the original game's precisely. It takes
--- the world size (in tiles) as a parameter, the one-byte seed
--- used by the OG (must be an integer), and a horizontal shift.
-local function compute_prime_resources(world_size, seed, x_offset )
+local function compute_prime_resources( world_size, seed, shift )
   return distribute{
     world_size=world_size,
-    board_size=64,
     seed=seed,
-    x_offset=x_offset,
-    y_offset=10,
-    shifts={ 0, 4, 9, 12 },
-    resources={
-      -- LuaFormatter off
-      [0 + 17*0    ]=1,
-      [0 + 17*1    ]=1,
-      [0 + 17*2    ]=1,
-      [0 + 17*3 - 4]=1,
-      [7 + 17*0    ]=1,
-      [7 + 17*1    ]=1,
-      [7 + 17*2    ]=1,
-      [7 + 17*3    ]=1,
-      -- LuaFormatter on
-    },
+    cell=4,
+    cycle=16,
+    shift=shift,
+    extra=true,
   }
-end
-
-function M.compute_prime_ground_resources( world_size, seed )
-  local x_offset = 0
-  return compute_prime_resources( world_size, seed, x_offset )
 end
 
 function M.compute_prime_forest_resources( world_size, seed )
-  -- This offset of 4 (used by the OG) is chosen so that the
-  -- forest resources never fall on the same squares as the
-  -- non-forested resources.
-  local x_offset = -4
-  return compute_prime_resources( world_size, seed, x_offset )
+  -- The OG shifts the ground and forest resources relative to
+  -- each other so that they don't overlap. A shift of -1 here is
+  -- a shift to the right of 1 cell (4 tiles).
+  local shift = -1
+  return compute_prime_resources( world_size, seed, shift )
+end
+
+function M.compute_prime_ground_resources( world_size, seed )
+  local shift = 0
+  return compute_prime_resources( world_size, seed, shift )
 end
 
 return M

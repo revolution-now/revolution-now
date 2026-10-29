@@ -101,4 +101,27 @@ function Test.prime_forest_resources()
   validate_or_print( coords, data.EXPECTED_PRIME_FOREST_RESOURCES )
 end
 
+function Test.prime_resources_relative_offset()
+  local seed = 1
+  local g = dist.compute_prime_ground_resources( MAP_SIZE, seed )
+  local f = dist.compute_prime_forest_resources( MAP_SIZE, seed )
+
+  ASSERT_EQ( #g, 490, 'length of ground resource array' )
+  ASSERT_EQ( #f, 491, 'length of forest resource array' )
+
+  local function cmp( i, inc_f, inc_g )
+    local delta = f[i + inc_f].x - g[i + inc_g].x
+    ASSERT_EQ( delta, 4, 'delta for i=' .. i )
+  end
+
+  -- Only test a few of these because on many rows the first and
+  -- last elements won't be comparable because their shifted
+  -- counterpart is off the board in the other list, and so we'd
+  -- have to keep changing the increments to bypass those.
+  for i = 1, 6 do cmp( i, 1, 0 ) end
+  for i = 7, 12 do cmp( i, 2, 0 ) end
+  for i = 13, 26 do cmp( i, 2, 1 ) end
+  for i = 27, 40 do cmp( i, 3, 1 ) end
+end
+
 return Test
