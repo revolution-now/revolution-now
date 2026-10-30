@@ -116,23 +116,14 @@ bool can_remove_building( Colony const& colony,
   return colony.indoor_jobs[*job].empty();
 }
 
-} // namespace
-
-/****************************************************************
-** General.
-*****************************************************************/
-void enable_cheat_mode( SS& ss, TS& ts ) {
+void set_cheat_mode( SS& ss, TS& ts, bool const enabled ) {
   if( !config_cheat.can_enable_cheat_mode ) return;
-  ts.planes.get().menu.typed().enable_cheat_menu( true );
-  ss.settings.cheat_options.enabled = true;
+  ts.planes.get().menu.typed().enable_cheat_menu( enabled );
+  ss.settings.cheat_options.enabled = enabled;
 }
 
-bool cheat_mode_enabled( SSConst const& ss ) {
-  return ss.settings.cheat_options.enabled;
-}
-
-wait<> monitor_magic_key_sequence( co::stream<char>& chars ) {
-  auto const& seq = config_cheat.magic_sequence;
+wait<> monitor_key_sequence( co::stream<char>& chars,
+                             vector<char> const& seq ) {
   if( seq.empty() )
     // If there is no sequence to monitor then we will never
     // enter cheat mode and thus never return.
@@ -144,6 +135,34 @@ wait<> monitor_magic_key_sequence( co::stream<char>& chars ) {
     co_return;
   start_over:;
   }
+}
+
+} // namespace
+
+/****************************************************************
+** General.
+*****************************************************************/
+void enable_cheat_mode( SS& ss, TS& ts ) {
+  set_cheat_mode( ss, ts, true );
+}
+
+void disable_cheat_mode( SS& ss, TS& ts ) {
+  set_cheat_mode( ss, ts, false );
+}
+
+bool cheat_mode_enabled( SSConst const& ss ) {
+  return ss.settings.cheat_options.enabled;
+}
+
+wait<> monitor_cheat_key_sequence_on( co::stream<char>& chars ) {
+  auto const& seq = config_cheat.magic_sequence_on;
+  co_await monitor_key_sequence( chars, seq );
+}
+
+wait<> monitor_cheat_key_sequence_off(
+    co::stream<char>& chars ) {
+  auto const& seq = config_cheat.magic_sequence_off;
+  co_await monitor_key_sequence( chars, seq );
 }
 
 /****************************************************************
@@ -947,7 +966,7 @@ void cheat_toggle_boycott( SS& ss, Player& player,
   bool& boycott = old_world_state( ss, player.type )
                       .market.commodities[type]
                       .boycott;
-  boycott = !boycott;
+  boycott       = !boycott;
 }
 
 /****************************************************************

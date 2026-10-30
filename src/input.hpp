@@ -214,7 +214,9 @@ struct resolution_event_t : public event_base_t {
 // This event is sent when the magic cheat key sequence is de-
 // tected. It will be sent each time the sequence is detected,
 // although within a single game it is a one-way latch.
-struct cheat_event_t : public event_base_t {};
+struct cheat_event_t : public event_base_t {
+  bool enabled = {};
+};
 
 /****************************************************************
 ** Input Events

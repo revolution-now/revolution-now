@@ -145,8 +145,8 @@ TEST_CASE( "[cheat] cheat_{up,down}grade_unit_expertise" ) {
     Unit& unit = w.add_unit_outdoors( colony.id, e_direction::ne,
                                       e_outdoor_job::fish );
     expected   = UnitComposition( wrapped::UnitComposition{
-        .type      = e_unit_type::free_colonist,
-        .inventory = {},
+      .type      = e_unit_type::free_colonist,
+      .inventory = {},
     } );
     REQUIRE( unit.composition() == expected );
 
@@ -868,11 +868,34 @@ TEST_CASE( "[cheat] enable_cheat_mode" ) {
   REQUIRE( w.settings().cheat_options.enabled );
 }
 
-TEST_CASE( "[cheat] monitor_magic_key_sequence" ) {
+TEST_CASE( "[cheat] disable_cheat_mode" ) {
+  world w;
+  MockIMenuServer mock_menu_server;
+  w.planes().get().menu = mock_menu_server;
+
+  auto const f = [&] [[clang::noinline]] {
+    disable_cheat_mode( w.ss(), w.ts() );
+  };
+
+  REQUIRE_FALSE( w.settings().cheat_options.enabled );
+
+  w.settings().cheat_options.enabled = true;
+  REQUIRE( w.settings().cheat_options.enabled );
+
+  mock_menu_server.EXPECT__enable_cheat_menu( false );
+  f();
+  REQUIRE_FALSE( w.settings().cheat_options.enabled );
+
+  mock_menu_server.EXPECT__enable_cheat_menu( false );
+  f();
+  REQUIRE_FALSE( w.settings().cheat_options.enabled );
+}
+
+TEST_CASE( "[cheat] monitor_cheat_key_sequence_on" ) {
   co::stream<char> stream;
 
   auto const f = [&] [[clang::noinline]] {
-    return monitor_magic_key_sequence( stream );
+    return monitor_cheat_key_sequence_on( stream );
   };
 
   wait<> const w = f();
@@ -904,6 +927,30 @@ TEST_CASE( "[cheat] monitor_magic_key_sequence" ) {
   REQUIRE( !w.ready() );
 
   stream.send( 'n' );
+  run_all_coroutines();
+  REQUIRE( w.ready() );
+}
+
+TEST_CASE( "[cheat] monitor_cheat_key_sequence_off" ) {
+  co::stream<char> stream;
+
+  auto const f = [&] [[clang::noinline]] {
+    return monitor_cheat_key_sequence_off( stream );
+  };
+
+  wait<> const w = f();
+  run_all_coroutines();
+  REQUIRE( !w.ready() );
+
+  stream.send( 'x' );
+  run_all_coroutines();
+  REQUIRE( !w.ready() );
+
+  stream.send( 'y' );
+  run_all_coroutines();
+  REQUIRE( !w.ready() );
+
+  stream.send( 'w' );
   run_all_coroutines();
   REQUIRE( w.ready() );
 }

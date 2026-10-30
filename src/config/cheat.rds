@@ -20,7 +20,8 @@ struct.config_cheat_t {
 
   enable_cheat_mode_by_default 'bool',
 
-  magic_sequence 'std::vector<char>',
+  magic_sequence_on  'std::vector<char>',
+  magic_sequence_off 'std::vector<char>',
 
   animate_kill_natives 'bool',
 }

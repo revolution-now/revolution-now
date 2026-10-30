@@ -15,7 +15,6 @@
 
 // Revolution Now
 #include "aspect.hpp"
-#include "cheat.hpp"
 #include "co-combinator.hpp"
 #include "frame.hpp"
 #include "iengine.hpp"
@@ -225,29 +224,15 @@ struct OmniPlane::Impl : public IPlane, public IMenuHandler {
   IMenuServer& menu_server_;
   bool show_game_cursor_ = true;
   e_mouse_cursor cursor_ = e_mouse_cursor::standard;
-  co::stream<char> alt_key_seq;
-  wait<> magic_key_seq_thread;
 
   vector<IMenuServer::Deregistrar> dereg_;
 
   Impl( IEngine& engine, IMenuServer& menu_server )
     : engine_( engine ), menu_server_( menu_server ) {
-    magic_key_seq_thread = run_alt_key_seq_monitor();
     for( auto const& [item, enabled] : kSupportedMenuItems )
       if( enabled )
         dereg_.push_back(
             menu_server.register_handler( item, *this ) );
-  }
-
-  wait<> run_alt_key_seq_monitor() {
-    while( true ) {
-      // This function will return if/when the cheat key sequence
-      // is detected.
-      co_await monitor_magic_key_sequence( alt_key_seq );
-      input::event_queue().push( input::cheat_event_t{} );
-      // Since cheat mode is enabled per game, we need to keep
-      // this loop going in case the player starts a new game.
-    }
   }
 
   bool can_cycle_resolution_up() {
@@ -529,15 +514,6 @@ struct OmniPlane::Impl : public IPlane, public IMenuHandler {
       CASE( key_event ) {
         if( key_event.change != input::e_key_change::down )
           break;
-        if( key_event.mod.alt_down ) {
-          alt_key_seq.send( key_event.keycode );
-          // We need to allow other planes to handle this because
-          // we don't know if this key is intended to be part of
-          // a magic sequence (there are other Alt key combos in
-          // the game, such as to open menus).
-          handled = false;
-          break;
-        }
         switch( key_event.keycode ) {
           case ::SDLK_PAUSE: {
             // This will essentially block the thread until the

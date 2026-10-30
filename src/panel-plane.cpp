@@ -68,6 +68,7 @@
 #include "refl/to-str.hpp"
 
 // base
+#include "base/logger.hpp"
 #include "base/scope-exit.hpp"
 
 using namespace std;
@@ -98,6 +99,8 @@ struct PanelPlane::Impl : public IPlane, public IMenuHandler {
   wait_promise<> w_promise_;
   vector<IMenuServer::Deregistrar> dereg_;
   rect mini_map_area_;
+  co::stream<char> alt_key_seq_;
+  wait<> cheat_key_seq_thread_;
 
   Rect panel_rect() const {
     auto const r = main_window_logical_rect(
@@ -131,6 +134,7 @@ struct PanelPlane::Impl : public IPlane, public IMenuHandler {
       ss_( ss ),
       ts_( ts ),
       land_view_plane_( land_view_plane ) {
+    cheat_key_seq_thread_ = run_cheat_key_seq_monitor();
     // Register menu handlers.
     dereg_.push_back(
         ts.planes.get().menu.typed().register_handler(
@@ -230,7 +234,7 @@ struct PanelPlane::Impl : public IPlane, public IMenuHandler {
       gfx::rect const curr_player_rect{
         .origin = panel_rect().to_gfx().sw() +
                   size{ .h = -height } + padding,
-        .size = {
+        .size   = {
           .w = panel_rect().to_gfx().size.w - padding.w * 2,
           .h = height } };
       renderer.painter().draw_solid_rect(
@@ -268,9 +272,41 @@ struct PanelPlane::Impl : public IPlane, public IMenuHandler {
     draw_some_stats( renderer, p );
   }
 
+  wait<> wait_for_cheat_on() {
+    lg.debug( "waiting for cheat on" );
+    co_await monitor_cheat_key_sequence_on( alt_key_seq_ );
+    input::event_queue().push(
+        input::cheat_event_t{ .enabled = true } );
+  }
+
+  wait<> wait_for_cheat_off() {
+    lg.debug( "waiting for cheat off" );
+    co_await monitor_cheat_key_sequence_off( alt_key_seq_ );
+    input::event_queue().push(
+        input::cheat_event_t{ .enabled = false } );
+  }
+
+  wait<> run_cheat_key_seq_monitor() {
+    // NOTE: we can't assume that cheat mode is necessarily off
+    // at the start of this method, since we may be resuming a
+    // game where cheat mode was already turned on. So we need to
+    // support both situations.
+    auto flip1 = &Impl::wait_for_cheat_on;
+    auto flip2 = &Impl::wait_for_cheat_off;
+    if( cheat_mode_enabled( ss_ ) ) swap( flip1, flip2 );
+    while( true ) {
+      co_await ( this->*flip1 )();
+      co_await ( this->*flip2 )();
+    }
+  }
+
   bool on_input( input::event_t const& event ) override {
-    if( event.holds<input::cheat_event_t>() ) {
-      enable_cheat_mode( ss_, ts_ );
+    if( auto const cheat = event.get_if<input::cheat_event_t>();
+        cheat.has_value() ) {
+      if( cheat->enabled )
+        enable_cheat_mode( ss_, ts_ );
+      else
+        disable_cheat_mode( ss_, ts_ );
       return true;
     }
 
@@ -292,8 +328,27 @@ struct PanelPlane::Impl : public IPlane, public IMenuHandler {
         return true;
       }
       return false;
-    } else
-      return view_->input( event ) ? true : false;
+    }
+
+    SWITCH( event ) {
+      CASE( key_event ) {
+        if( key_event.change != input::e_key_change::down )
+          break;
+        if( key_event.mod.alt_down ) {
+          alt_key_seq_.send( key_event.keycode );
+          // We need to allow other planes to handle this because
+          // we don't know if this key is intended to be part of
+          // a magic sequence (there are other Alt key combos in
+          // the game, such as to open menus).
+          break;
+        }
+        break;
+      }
+      default:
+        break;
+    }
+
+    return view_->input( event ) ? true : false;
   }
 
   // Override IPlane.

@@ -40,10 +40,12 @@ struct UnitsState;
 ** General.
 *****************************************************************/
 void enable_cheat_mode( SS& ss, TS& ts );
+void disable_cheat_mode( SS& ss, TS& ts );
 
-bool cheat_mode_enabled( SSConst const& ss );
+[[nodiscard]] bool cheat_mode_enabled( SSConst const& ss );
 
-wait<> monitor_magic_key_sequence( co::stream<char>& chars );
+wait<> monitor_cheat_key_sequence_on( co::stream<char>& chars );
+wait<> monitor_cheat_key_sequence_off( co::stream<char>& chars );
 
 /****************************************************************
 ** In Land View

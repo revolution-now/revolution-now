@@ -199,9 +199,9 @@ bool MenuBar::handle_alt_shortcut(
       return true;
     }
   }
-  // This prevents an invalid shortcut key from passing through
-  // to underlying planes.
-  return true;
+  // This is needed to allow the alt-WIN/alt-W key sequence used
+  // to enable/disable cheat mode from getting swallowed.
+  return false;
 }
 
 bool MenuBar::handle_key_event(

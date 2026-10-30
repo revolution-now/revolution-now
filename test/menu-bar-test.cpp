@@ -118,6 +118,19 @@ TEST_CASE_METHOD( Harness, "[menu-bar] run_thread" ) {
              e_menu::game );
   }
 
+  // In the default config, alt-W... is reserved for enabling and
+  // disabling the cheat menu, so we want to make sure that it
+  // doesn't open anything.
+  SECTION( "Alt-W,I,N open nothing" ) {
+    wait<> const w = f();
+    REQUIRE( !w.ready() );
+    REQUIRE_FALSE( send_alt_key( ::SDLK_w ) );
+    REQUIRE_FALSE( send_alt_key( ::SDLK_i ) );
+    REQUIRE_FALSE( send_alt_key( ::SDLK_n ) );
+    // Sanity check.
+    REQUIRE( send_alt_key( ::SDLK_o ) );
+  }
+
   SECTION(
       "Alt-G opens game menu, then close w/ no selection" ) {
     wait<> const w = f();
@@ -275,6 +288,21 @@ TEST_CASE_METHOD( Harness, "[menu-bar] run_thread" ) {
     run_all_coroutines();
     REQUIRE( bar_.anim_state().opened_menu() == nothing );
     REQUIRE( bar_.anim_state().highlighted_menu() == nothing );
+  }
+}
+
+// This tests that none of the menu shortcut keys interfere with
+// the alt-WIN key sequence. Note that the menu shortcut keys and
+// the cheat key sequence can be changed in the config, so it
+// might be good to have some validation around that, but this
+// should suffice for now.
+TEST_CASE( "[menu-bar] shortcut keys compatible with alt-WIN" ) {
+  for( auto const& [menu, config] : config_menu.menus ) {
+    if( !config.shortcut.has_value() ) continue;
+    char const key = tolower( *config.shortcut );
+    REQUIRE( key != 'w' );
+    REQUIRE( key != 'i' );
+    REQUIRE( key != 'n' );
   }
 }
 
