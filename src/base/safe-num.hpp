@@ -129,11 +129,10 @@ struct integer {
   T value_;
 };
 
-// clang-format off
 template<typename T, typename U>
-requires( std::is_integral_v<U> )
-inline bool operator==( integer<T> l, U v ) {
-  // clang-format on
+requires( std::is_integral_v<U> &&
+          (std::is_signed_v<T> == std::is_signed_v<U>))
+inline bool operator==( integer<T> const l, U const v ) {
   return l == integer<T>( v );
 }
 

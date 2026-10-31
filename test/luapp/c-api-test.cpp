@@ -92,7 +92,9 @@ LUA_TEST_CASE( "[lua-c-api] {get,set}global" ) {
   REQUIRE( C.getglobal( "xyz" ) == type::number );
   REQUIRE( C.stack_size() == 1 );
   REQUIRE( C.get<int>( -1 ) == 1 );
+  REQUIRE( C.get<unsigned int>( -1 ) == 1u );
   REQUIRE( C.get<integer>( -1 ) == 1 );
+  REQUIRE( C.get<uinteger>( -1 ) == 1ULL );
   C.pop();
 }
 
@@ -241,7 +243,9 @@ LUA_TEST_CASE( "[lua-c-api] push, pop, get, and type_of" ) {
     REQUIRE( C.get<bool>( -1 ) == false );
     REQUIRE( C.get<boolean>( -1 ) == false );
     REQUIRE( C.get<int>( -1 ) == unexpected{} );
+    REQUIRE( C.get<unsigned int>( -1 ) == unexpected{} );
     REQUIRE( C.get<integer>( -1 ) == unexpected{} );
+    REQUIRE( C.get<uinteger>( -1 ) == unexpected{} );
     REQUIRE( C.get<double>( -1 ) == unexpected{} );
     REQUIRE( C.get<floating>( -1 ) == unexpected{} );
     REQUIRE( C.get<string>( -1 ) == unexpected{} );
@@ -260,7 +264,9 @@ LUA_TEST_CASE( "[lua-c-api] push, pop, get, and type_of" ) {
     REQUIRE( C.get<boolean>( -1 ) == true );
     REQUIRE( C.get<boolean>( -2 ) == false );
     REQUIRE( C.get<int>( -1 ) == unexpected{} );
+    REQUIRE( C.get<unsigned int>( -1 ) == unexpected{} );
     REQUIRE( C.get<integer>( -1 ) == unexpected{} );
+    REQUIRE( C.get<uinteger>( -1 ) == unexpected{} );
     REQUIRE( C.get<double>( -1 ) == unexpected{} );
     REQUIRE( C.get<floating>( -1 ) == unexpected{} );
     REQUIRE( C.get<string>( -1 ) == unexpected{} );
@@ -290,13 +296,64 @@ LUA_TEST_CASE( "[lua-c-api] push, pop, get, and type_of" ) {
     REQUIRE( C.get<boolean>( -3 ) == true );
     REQUIRE( C.get<boolean>( -4 ) == true );
     REQUIRE( C.get<int>( -1 ) == 5 );
+    REQUIRE( C.get<unsigned int>( -1 ) == 5u );
     REQUIRE( C.get<integer>( -1 ) == 5 );
     REQUIRE( C.get<int>( -2 ) == 7 );
+    REQUIRE( C.get<unsigned int>( -2 ) == 7u );
     REQUIRE( C.get<integer>( -2 ) == 7 );
     REQUIRE( C.get<int>( -3 ) == 9 );
+    REQUIRE( C.get<unsigned int>( -3 ) == 9u );
     REQUIRE( C.get<integer>( -3 ) == 9 );
     REQUIRE( C.get<int>( -4 ) == 0 );
+    REQUIRE( C.get<unsigned int>( -4 ) == 0u );
     REQUIRE( C.get<integer>( -4 ) == 0 );
+    REQUIRE( C.get<double>( -1 ) == 5.0 );
+    REQUIRE( C.get<double>( -2 ) == 7.0 );
+    REQUIRE( C.get<floating>( -1 ) == 5.0 );
+    REQUIRE( C.get<floating>( -2 ) == 7.0 );
+    REQUIRE( C.get<string>( -1 ) == "5" );
+    REQUIRE( C.get<string>( -2 ) == "7" );
+    REQUIRE( C.get<string>( -3 ) == "9" );
+    REQUIRE( C.get<string>( -4 ) == "0" );
+    C.pop();
+    C.pop();
+    C.pop();
+    C.pop();
+  }
+  SECTION( "uinteger" ) {
+    REQUIRE( C.stack_size() == 0 );
+    C.push( int( 0 ) );
+    REQUIRE( C.stack_size() == 1 );
+    C.push( 9LL );
+    REQUIRE( C.stack_size() == 2 );
+    C.push( 7L );
+    REQUIRE( C.stack_size() == 3 );
+    C.push( 5 );
+    REQUIRE( C.stack_size() == 4 );
+    REQUIRE( C.type_of( -1 ) == type::number );
+    REQUIRE( C.type_of( -2 ) == type::number );
+    REQUIRE( C.type_of( -3 ) == type::number );
+    REQUIRE( C.type_of( -4 ) == type::number );
+    REQUIRE( C.get<bool>( -1 ) == true );
+    REQUIRE( C.get<bool>( -2 ) == true );
+    REQUIRE( C.get<bool>( -3 ) == true );
+    REQUIRE( C.get<bool>( -4 ) == true );
+    REQUIRE( C.get<boolean>( -1 ) == true );
+    REQUIRE( C.get<boolean>( -2 ) == true );
+    REQUIRE( C.get<boolean>( -3 ) == true );
+    REQUIRE( C.get<boolean>( -4 ) == true );
+    REQUIRE( C.get<int>( -1 ) == 5 );
+    REQUIRE( C.get<unsigned int>( -1 ) == 5u );
+    REQUIRE( C.get<uinteger>( -1 ) == 5ULL );
+    REQUIRE( C.get<int>( -2 ) == 7 );
+    REQUIRE( C.get<unsigned int>( -2 ) == 7u );
+    REQUIRE( C.get<uinteger>( -2 ) == 7ULL );
+    REQUIRE( C.get<int>( -3 ) == 9 );
+    REQUIRE( C.get<unsigned int>( -3 ) == 9u );
+    REQUIRE( C.get<uinteger>( -3 ) == 9ULL );
+    REQUIRE( C.get<int>( -4 ) == 0 );
+    REQUIRE( C.get<unsigned int>( -4 ) == 0u );
+    REQUIRE( C.get<uinteger>( -4 ) == 0ULL );
     REQUIRE( C.get<double>( -1 ) == 5.0 );
     REQUIRE( C.get<double>( -2 ) == 7.0 );
     REQUIRE( C.get<floating>( -1 ) == 5.0 );
@@ -323,10 +380,14 @@ LUA_TEST_CASE( "[lua-c-api] push, pop, get, and type_of" ) {
     REQUIRE( C.get<boolean>( -1 ) == true );
     REQUIRE( C.get<boolean>( -2 ) == true );
     REQUIRE( C.get<int>( -1 ) == 5 );
+    REQUIRE( C.get<unsigned int>( -1 ) == 5u );
     REQUIRE( C.get<integer>( -1 ) == 5 );
+    REQUIRE( C.get<uinteger>( -1 ) == 5ULL );
     // No rounding.
     REQUIRE( C.get<int>( -2 ) == unexpected{} );
+    REQUIRE( C.get<unsigned int>( -2 ) == unexpected{} );
     REQUIRE( C.get<integer>( -2 ) == unexpected{} );
+    REQUIRE( C.get<uinteger>( -2 ) == unexpected{} );
     REQUIRE( C.get<double>( -1 ) == 5.0 );
     REQUIRE( C.get<double>( -2 ) == 7.1 );
     REQUIRE( C.get<floating>( -1 ) == 5.0 );
@@ -349,9 +410,13 @@ LUA_TEST_CASE( "[lua-c-api] push, pop, get, and type_of" ) {
     REQUIRE( C.get<boolean>( -1 ) == true );
     REQUIRE( C.get<boolean>( -2 ) == true );
     REQUIRE( C.get<int>( -1 ) == unexpected{} );
+    REQUIRE( C.get<unsigned int>( -1 ) == unexpected{} );
     REQUIRE( C.get<integer>( -1 ) == unexpected{} );
+    REQUIRE( C.get<uinteger>( -1 ) == unexpected{} );
     REQUIRE( C.get<int>( -2 ) == 5 );
+    REQUIRE( C.get<unsigned int>( -2 ) == 5u );
     REQUIRE( C.get<integer>( -2 ) == 5 );
+    REQUIRE( C.get<uinteger>( -2 ) == 5ULL );
     REQUIRE( C.get<double>( -1 ) == unexpected{} );
     REQUIRE( C.get<double>( -2 ) == 5.0 );
     REQUIRE( C.get<floating>( -1 ) == unexpected{} );
@@ -392,7 +457,9 @@ LUA_TEST_CASE( "[lua-c-api] call" ) {
     REQUIRE( C.stack_size() == 1 );
     REQUIRE( C.type_of( -1 ) == type::number );
     REQUIRE( C.get<int>( -1 ) == 42 );
+    REQUIRE( C.get<unsigned int>( -1 ) == 42u );
     REQUIRE( C.get<integer>( -1 ) == 42 );
+    REQUIRE( C.get<uinteger>( -1 ) == 42ULL );
     C.pop();
   }
 
@@ -412,7 +479,9 @@ LUA_TEST_CASE( "[lua-c-api] call" ) {
     REQUIRE( C.type_of( -2 ) == type::number );
     REQUIRE( C.get<string>( -1 ) == "hello" );
     REQUIRE( C.get<int>( -2 ) == 42 );
+    REQUIRE( C.get<unsigned int>( -2 ) == 42u );
     REQUIRE( C.get<integer>( -2 ) == 42 );
+    REQUIRE( C.get<uinteger>( -2 ) == 42ULL );
     C.pop();
     C.pop();
   }
@@ -435,7 +504,9 @@ LUA_TEST_CASE( "[lua-c-api] call" ) {
     REQUIRE( C.get<string>( -1 ) == "world" );
     REQUIRE( C.get<string>( -2 ) == "hello" );
     REQUIRE( C.get<int>( -3 ) == 42 );
+    REQUIRE( C.get<unsigned int>( -3 ) == 42u );
     REQUIRE( C.get<integer>( -3 ) == 42 );
+    REQUIRE( C.get<uinteger>( -3 ) == 42ULL );
     C.pop();
     C.pop();
     C.pop();
@@ -531,7 +602,9 @@ LUA_TEST_CASE( "[lua-c-api] pcall" ) {
     REQUIRE( C.stack_size() == 1 );
     REQUIRE( C.type_of( -1 ) == type::number );
     REQUIRE( C.get<int>( -1 ) == 42 );
+    REQUIRE( C.get<unsigned int>( -1 ) == 42u );
     REQUIRE( C.get<integer>( -1 ) == 42 );
+    REQUIRE( C.get<uinteger>( -1 ) == 42ULL );
     C.pop();
   }
 
@@ -551,7 +624,9 @@ LUA_TEST_CASE( "[lua-c-api] pcall" ) {
     REQUIRE( C.type_of( -2 ) == type::number );
     REQUIRE( C.get<string>( -1 ) == "hello" );
     REQUIRE( C.get<int>( -2 ) == 42 );
+    REQUIRE( C.get<unsigned int>( -2 ) == 42u );
     REQUIRE( C.get<integer>( -2 ) == 42 );
+    REQUIRE( C.get<uinteger>( -2 ) == 42ULL );
     C.pop();
     C.pop();
   }
@@ -575,7 +650,9 @@ LUA_TEST_CASE( "[lua-c-api] pcall" ) {
     REQUIRE( C.get<string>( -1 ) == "world" );
     REQUIRE( C.get<string>( -2 ) == "hello" );
     REQUIRE( C.get<int>( -3 ) == 42 );
+    REQUIRE( C.get<unsigned int>( -3 ) == 42u );
     REQUIRE( C.get<integer>( -3 ) == 42 );
+    REQUIRE( C.get<uinteger>( -3 ) == 42ULL );
     C.pop();
     C.pop();
     C.pop();
@@ -1044,6 +1121,7 @@ LUA_TEST_CASE(
   REQUIRE( C.stack_size() == 1 );
   REQUIRE( C.get<int>( -1 ) == 5 );
   REQUIRE( C.get<integer>( -1 ) == 5 );
+  REQUIRE( C.get<uinteger>( -1 ) == 5ULL );
   C.pop();
   REQUIRE( C.registry_get( r2 ) == type::string );
   REQUIRE( C.stack_size() == 1 );
@@ -1136,6 +1214,7 @@ LUA_TEST_CASE(
   REQUIRE( C.stack_size() == 2 );
   REQUIRE( C.get<int>( -1 ) == 42 );
   REQUIRE( C.get<integer>( -1 ) == 42 );
+  REQUIRE( C.get<uinteger>( -1 ) == 42ULL );
   C.pop( 2 );
   REQUIRE( C.stack_size() == 0 );
 }
@@ -1158,8 +1237,10 @@ LUA_TEST_CASE( "[lua-c-api] insert" ) {
   REQUIRE( C.type_of( -4 ) == type::number );
   REQUIRE( C.get<int>( -3 ) == 7 );
   REQUIRE( C.get<integer>( -3 ) == 7 );
+  REQUIRE( C.get<uinteger>( -3 ) == 7ULL );
   REQUIRE( C.get<int>( -4 ) == 5 );
   REQUIRE( C.get<integer>( -4 ) == 5 );
+  REQUIRE( C.get<uinteger>( -4 ) == 5ULL );
 
   C.pop( 4 );
 }
@@ -1182,6 +1263,7 @@ LUA_TEST_CASE( "[lua-c-api] swap_top" ) {
   REQUIRE( C.type_of( -4 ) == type::number );
   REQUIRE( C.get<int>( -2 ) == 7 );
   REQUIRE( C.get<integer>( -2 ) == 7 );
+  REQUIRE( C.get<uinteger>( -2 ) == 7ULL );
 
   C.pop( 4 );
 }
@@ -1311,14 +1393,17 @@ LUA_TEST_CASE( "[lua-c-api] pushvalue" ) {
   REQUIRE( C.stack_size() == 2 );
   REQUIRE( C.get<int>( -1 ) == 5 );
   REQUIRE( C.get<integer>( -1 ) == 5 );
+  REQUIRE( C.get<uinteger>( -1 ) == 5ULL );
   C.push( 7 );
   REQUIRE( C.stack_size() == 3 );
   REQUIRE( C.get<int>( -1 ) == 7 );
   REQUIRE( C.get<integer>( -1 ) == 7 );
+  REQUIRE( C.get<uinteger>( -1 ) == 7ULL );
   C.pushvalue( -2 );
   REQUIRE( C.stack_size() == 4 );
   REQUIRE( C.get<int>( -1 ) == 5 );
   REQUIRE( C.get<integer>( -1 ) == 5 );
+  REQUIRE( C.get<uinteger>( -1 ) == 5ULL );
   C.pop( 4 );
   REQUIRE( C.stack_size() == 0 );
 }
@@ -1583,6 +1668,16 @@ LUA_TEST_CASE( "[lua-c-api] tostring" ) {
     C.pop( 2 );
   }
 
+  SECTION( "uinteger" ) {
+    C.push( 5 );
+    REQUIRE( string( C.tostring( -1, &len ) ) == "5" );
+    REQUIRE( len == 1 );
+    REQUIRE( C.stack_size() == 2 );
+    REQUIRE( C.type_of( -1 ) == type::string );
+    REQUIRE( C.get<string>( -1 ) == "5" );
+    C.pop( 2 );
+  }
+
   SECTION( "float" ) {
     C.push( 5.5 );
     REQUIRE( string( C.tostring( -1, &len ) ) == "5.5" );
@@ -1640,6 +1735,9 @@ LUA_TEST_CASE( "[lua-c-api] isinteger" ) {
   // integer
   C.push( 5 );
   REQUIRE( C.isinteger( -1 ) );
+  // uinteger
+  C.push( 5UL );
+  REQUIRE( C.isinteger( -1 ) );
   // integer as double
   C.push( 5.0 );
   REQUIRE_FALSE( C.isinteger( -1 ) );
@@ -1653,8 +1751,8 @@ LUA_TEST_CASE( "[lua-c-api] isinteger" ) {
   C.newtable();
   REQUIRE_FALSE( C.isinteger( -1 ) );
 
-  REQUIRE( C.stack_size() == 6 );
-  C.pop( 6 );
+  REQUIRE( C.stack_size() == 7 );
+  C.pop( 7 );
 }
 
 // This demonstrates that different threads within a state have

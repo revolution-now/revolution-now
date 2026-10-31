@@ -95,6 +95,7 @@ struct type_traits<void> {
 using boolean  = base::safe::boolean;
 using floating = base::safe::floating<double>;
 using integer  = base::safe::integer<long long>;
+using uinteger = base::safe::integer<unsigned long long>;
 
 // This is just a value type.
 struct lightuserdata : public base::safe::pointer<void> {
@@ -121,23 +122,30 @@ void to_str( lightuserdata const& lud, std::string& out,
              base::tag<lightuserdata> );
 
 bool operator==( nil_t const& l, boolean const& r );
-bool operator==( nil_t const& l, lightuserdata const& r );
-bool operator==( nil_t const& l, integer const& r );
 bool operator==( nil_t const& l, floating const& r );
-bool operator==( boolean const& l, lightuserdata const& r );
-bool operator==( boolean const& l, integer const& r );
+bool operator==( nil_t const& l, integer const& r );
+bool operator==( nil_t const& l, uinteger const& r );
+bool operator==( nil_t const& l, lightuserdata const& r );
 bool operator==( boolean const& l, floating const& r );
-bool operator==( lightuserdata const& l, integer const& r );
-bool operator==( lightuserdata const& l, floating const& r );
-bool operator==( integer const& l, floating const& r );
+bool operator==( boolean const& l, integer const& r );
+bool operator==( boolean const& l, uinteger const& r );
+bool operator==( boolean const& l, lightuserdata const& r );
+bool operator==( floating const& l, integer const& r );
+bool operator==( floating const& l, uinteger const& r );
+bool operator==( floating const& l, lightuserdata const& r );
+bool operator==( integer const& l, uinteger const& r );
+bool operator==( integer const& l, lightuserdata const& r );
+bool operator==( uinteger const& l, lightuserdata const& r );
 
 /****************************************************************
 ** extension point: push
 *****************************************************************/
 void lua_push( cthread L, boolean b );
-void lua_push( cthread L, integer i );
 void lua_push( cthread L, floating f );
+void lua_push( cthread L, integer i );
+void lua_push( cthread L, uinteger i );
 void lua_push( cthread L, lightuserdata lud );
+
 void lua_push( cthread L, std::string_view sv );
 
 template<>
@@ -152,11 +160,15 @@ lua_expect<bool> lua_get( cthread L, int idx, tag<bool> );
 lua_expect<int> lua_get( cthread L, int idx, tag<int> );
 lua_expect<unsigned long> lua_get( cthread L, int idx,
                                    tag<unsigned long> );
+lua_expect<unsigned int> lua_get( cthread L, int idx,
+                                  tag<unsigned int> );
 lua_expect<int64_t> lua_get( cthread L, int idx, tag<int64_t> );
 lua_expect<double> lua_get( cthread L, int idx, tag<double> );
 lua_expect<void*> lua_get( cthread L, int idx, tag<void*> );
 lua_expect<boolean> lua_get( cthread L, int idx, tag<boolean> );
 lua_expect<integer> lua_get( cthread L, int idx, tag<integer> );
+lua_expect<uinteger> lua_get( cthread L, int idx,
+                              tag<uinteger> );
 lua_expect<floating> lua_get( cthread L, int idx,
                               tag<floating> );
 lua_expect<lightuserdata> lua_get( cthread L, int idx,

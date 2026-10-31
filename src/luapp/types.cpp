@@ -94,13 +94,18 @@ bool eq_value_and_value( Left const& l, Right const& r ) {
 EQ_VAL_VAL_IMPL( nil_t, boolean );
 EQ_VAL_VAL_IMPL( nil_t, lightuserdata );
 EQ_VAL_VAL_IMPL( nil_t, integer );
+EQ_VAL_VAL_IMPL( nil_t, uinteger );
 EQ_VAL_VAL_IMPL( nil_t, floating );
-EQ_VAL_VAL_IMPL( boolean, lightuserdata );
-EQ_VAL_VAL_IMPL( boolean, integer );
 EQ_VAL_VAL_IMPL( boolean, floating );
-EQ_VAL_VAL_IMPL( lightuserdata, integer );
-EQ_VAL_VAL_IMPL( lightuserdata, floating );
-EQ_VAL_VAL_IMPL( integer, floating );
+EQ_VAL_VAL_IMPL( boolean, integer );
+EQ_VAL_VAL_IMPL( boolean, uinteger );
+EQ_VAL_VAL_IMPL( boolean, lightuserdata );
+EQ_VAL_VAL_IMPL( floating, integer );
+EQ_VAL_VAL_IMPL( floating, uinteger );
+EQ_VAL_VAL_IMPL( floating, lightuserdata );
+EQ_VAL_VAL_IMPL( integer, uinteger );
+EQ_VAL_VAL_IMPL( integer, lightuserdata );
+EQ_VAL_VAL_IMPL( uinteger, lightuserdata );
 
 /******************************************************************
 ** push
@@ -116,6 +121,11 @@ void lua_push( cthread L, boolean b ) {
 }
 
 void lua_push( cthread L, integer i ) {
+  c_api C( L );
+  C.push( i );
+}
+
+void lua_push( cthread L, uinteger i ) {
   c_api C( L );
   C.push( i );
 }
@@ -155,6 +165,23 @@ lua_expect<unsigned long> lua_get( cthread L, int idx,
   UNWRAP_RETURN( i, c_api( L ).get<integer>( idx ) );
   if( i.get() < 0 ) return unexpected{};
   return static_cast<unsigned long>( i.get() );
+}
+
+lua_expect<unsigned int> lua_get( cthread L, int idx,
+                                  tag<unsigned int> ) {
+  UNWRAP_RETURN( i, c_api( L ).get<integer>( idx ) );
+  if( i.get() < numeric_limits<unsigned int>::min() )
+    return unexpected{};
+  if( i.get() > numeric_limits<unsigned int>::max() )
+    return unexpected{};
+  return static_cast<unsigned int>( i.get() );
+}
+
+lua_expect<uinteger> lua_get( cthread L, int idx,
+                              tag<uinteger> ) {
+  UNWRAP_RETURN( i, c_api( L ).get<integer>( idx ) );
+  if( i.get() < 0 ) return unexpected{};
+  return uinteger( static_cast<unsigned long long>( i.get() ) );
 }
 
 lua_expect<floating> lua_get( cthread L, int idx,

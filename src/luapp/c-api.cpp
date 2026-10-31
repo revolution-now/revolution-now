@@ -36,6 +36,8 @@ using ::base::lg;
 // Not sure if these are mandatory, but if they fail they will at
 // least alert us that something has changed.
 static_assert( sizeof( integer ) == sizeof( long long ) );
+static_assert( sizeof( uinteger ) ==
+               sizeof( unsigned long long ) );
 static_assert( sizeof( long long ) >= 8 );
 
 int msghandler( lua_State* L ) {
@@ -222,6 +224,11 @@ void c_api::push( integer n ) noexcept {
   lua_pushinteger( L_, n );
 }
 
+void c_api::push( uinteger n ) noexcept {
+  lua_pushinteger(
+      L_, integer( static_cast<long long>( n.get() ) ) );
+}
+
 void c_api::push( floating d ) noexcept {
   lua_pushnumber( L_, d );
 }
@@ -331,11 +338,27 @@ lua_expect<integer> c_api::get( int idx, integer* ) noexcept {
   return unexpected{};
 }
 
+lua_expect<uinteger> c_api::get( int idx, uinteger* ) noexcept {
+  UNWRAP_RETURN( signed_num, get( idx, (integer*)nullptr ) );
+  if( signed_num.get() < 0 ) return unexpected{};
+  return static_cast<unsigned long long>( signed_num.get() );
+}
+
 lua_expect<int> c_api::get( int idx, int* ) noexcept {
   validate_index( idx );
   auto i = get<integer>( idx );
   if( i )
     return static_cast<int>( *i );
+  else
+    return unexpected{};
+}
+
+lua_expect<unsigned int> c_api::get( int idx,
+                                     unsigned int* ) noexcept {
+  validate_index( idx );
+  auto i = get<uinteger>( idx );
+  if( i )
+    return static_cast<unsigned int>( *i );
   else
     return unexpected{};
 }

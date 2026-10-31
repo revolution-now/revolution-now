@@ -141,12 +141,10 @@ struct c_api {
   void push( LuaCFunction* f, int upvalues = 0 ) noexcept;
   void push( lightuserdata p ) noexcept;
   // We need to take these "safe" versions otherwise we get im-
-  // plicit conversions and ambiguities that mess things up. Note
-  // that we don't have one for unsigned integers, since Lua does
-  // not support those (it used to, but they are deprecated). You
-  // have to cast to one of the signed types before pushing.
+  // plicit conversions and ambiguities that mess things up.
   void push( boolean b ) noexcept;
   void push( integer n ) noexcept;
+  void push( uinteger n ) noexcept;
   void push( floating d ) noexcept;
 
   // We do not have an overload that takes a char const* because
@@ -610,8 +608,11 @@ struct c_api {
   bool get( int idx, bool* ) noexcept;
   boolean get( int idx, boolean* ) noexcept;
   lua_expect<integer> get( int idx, integer* ) noexcept;
+  lua_expect<uinteger> get( int idx, uinteger* ) noexcept;
   // This is for when you know the result will fit into an int.
   lua_expect<int> get( int idx, int* ) noexcept;
+  lua_expect<unsigned int> get( int idx,
+                                unsigned int* ) noexcept;
   lua_expect<double> get( int idx, double* ) noexcept;
   lua_expect<floating> get( int idx, floating* ) noexcept;
   lua_expect<std::string> get( int idx, std::string* ) noexcept;
