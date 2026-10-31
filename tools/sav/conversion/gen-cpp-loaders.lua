@@ -25,8 +25,9 @@ local exit = os.exit
 
 local format = string.format
 
-local err = logger.err
-local info = logger.info
+local err = assert( logger.err )
+local info = assert( logger.info )
+local warning = assert( logger.warning )
 
 local CppEmitter = cpp_emitter.CppEmitter
 local json_decode = json_transcode.decode
@@ -58,12 +59,13 @@ local function main( args )
     usage()
     return 1
   end
-  if #args > 2 then warn( 'extra unused arguments detected' ) end
+  if #args > 2 then warning( 'extra unused arguments detected' ) end
 
   -- Structure document.
   local structure_json = assert( args[1] )
   info( 'decoding json structure file %s...', structure_json )
-  local f_structure<close> = io.open( structure_json, 'r' )
+  local f_structure<close> = assert(
+                                 io.open( structure_json, 'r' ) )
   local structure = json_decode( f_structure:read( 'a' ) )
   info( 'producing reverse metadata mapping...' )
   assert( structure.__metadata )

@@ -24,9 +24,10 @@ logger.level = logger.levels.WARNING
 -----------------------------------------------------------------
 local exit = os.exit
 
-local err = logger.err
-local info = logger.info
-local check = logger.check
+local err = assert( logger.err )
+local info = assert( logger.info )
+local warning = assert( logger.warning )
+local check = assert( logger.check )
 
 -----------------------------------------------------------------
 -- Helpers.
@@ -46,7 +47,7 @@ local function main( args )
     usage()
     return 1
   end
-  if #args > 3 then warn( 'extra unused arguments detected' ) end
+  if #args > 3 then warning( 'extra unused arguments detected' ) end
 
   local structure_json = assert( args[1] )
   local colony_sav = assert( args[2] )
