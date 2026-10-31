@@ -30,6 +30,7 @@
 #include "views.hpp"
 
 // config
+#include "config/font-enum.rds.hpp"
 #include "config/tile-enum.rds.hpp"
 #include "config/ui.rds.hpp"
 
@@ -385,7 +386,7 @@ void WindowManager::draw_layout( rr::Renderer& renderer ) const {
         Delta{ .h = 5 };
     Rect const background = Rect::from( start, rendered_size )
                                 .with_border_added( 2 );
-    rr::Painter painter = renderer.painter();
+    rr::Painter painter   = renderer.painter();
     painter.draw_solid_rect( background, gfx::pixel::wood() );
     painter.draw_empty_rect( background,
                              rr::Painter::e_border_mode::outside,

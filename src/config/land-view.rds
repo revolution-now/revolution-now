@@ -8,8 +8,8 @@
 # Description: Config info for the land-view module.
 #
 # ===============================================================
-# Revolution Now
-include "font.hpp"
+# config
+include "font-enum.rds.hpp"
 
 # gfx
 include "gfx/coord.hpp"

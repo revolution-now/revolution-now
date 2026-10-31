@@ -10,20 +10,17 @@
 *****************************************************************/
 #pragma once
 
-#include "core-config.hpp"
-
-// Rds
-#include "font.rds.hpp"
-
 namespace rn {
+
+enum class e_font;
 
 namespace font {
 
-e_font standard();
-e_font nat_icon();
+[[nodiscard]] e_font standard();
+[[nodiscard]] e_font nat_icon();
 
-e_font small();
-e_font main_menu();
+[[nodiscard]] e_font small();
+[[nodiscard]] e_font main_menu();
 
 } // namespace font
 

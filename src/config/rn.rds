@@ -8,8 +8,8 @@
 # Description: General/miscellaneous config info.
 #
 # ===============================================================
-# Revolution Now
-include "font.hpp" # FIXME
+# config
+include "font-enum.rds.hpp"
 
 # ss
 include "ss/nation.rds.hpp"

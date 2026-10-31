@@ -10,19 +10,16 @@
 *****************************************************************/
 #include "font.hpp"
 
-using namespace std;
+// config
+#include "config/font-enum.rds.hpp"
 
 namespace rn {
 
-namespace {} // namespace
+namespace font {
 
 /****************************************************************
 ** Public API
 *****************************************************************/
-namespace font {
-
-// Until we add an OpenGL-compatible font system these are
-// meaningless.
 e_font standard() { return e_font::_6x6; }
 e_font nat_icon() { return e_font::_6x6; }
 e_font small() { return e_font::_6x6; }
