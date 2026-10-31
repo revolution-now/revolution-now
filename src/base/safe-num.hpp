@@ -33,13 +33,14 @@ struct Void;
 template<typename T>
 struct pointer {
   pointer() = delete;
-  // clang-format off
+
   template<typename U>
   requires( std::is_same_v<U, T*> )
-  pointer( U b ) noexcept : value_( b ) {}
-  // clang-format on
+  pointer( U const b ) noexcept : value_( b ) {}
 
-  pointer( std::nullptr_t ) noexcept : value_( nullptr ) {}
+  template<typename U>
+  requires( std::is_same_v<U, std::nullptr_t> )
+  pointer( U const ) noexcept : value_( nullptr ) {}
 
   auto operator<=>( pointer const& ) const = default;
 
