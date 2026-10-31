@@ -8,11 +8,9 @@
 # Description: Rds definitions for save-game settings data.
 #
 # ===============================================================
-# config
-include "config/options.rds.hpp"
-
 # ss
 include "ss/difficulty.rds.hpp"
+include "ss/options.rds.hpp"
 
 # refl
 include "refl/enum-map.hpp"
@@ -50,7 +48,7 @@ struct.GameSetupOptions {
   # values are chosen to mirror the OG's behavior, but they can
   # be changed when creating a new game. They cannot be changed
   # in-game, however.
-  customized_rules 'config::options::Values',
+  customized_rules 'GameRulesOptions',
 }
 
 struct.CheatOptions {

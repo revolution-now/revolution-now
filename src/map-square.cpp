@@ -125,4 +125,19 @@ maybe<e_natural_resource> effective_resource(
   return square.ground_resource;
 }
 
+maybe<e_terrain_formation> terrain_formation_for(
+    MapSquare const& square ) {
+  CHECK( square.surface == e_surface::land );
+  if( !square.overlay.has_value() )
+    return e_terrain_formation::clearing;
+  switch( *square.overlay ) {
+    case rn::e_land_overlay::forest:
+      return nothing;
+    case rn::e_land_overlay::hills:
+      return e_terrain_formation::hills;
+    case rn::e_land_overlay::mountains:
+      return e_terrain_formation::mountains;
+  }
+}
+
 } // namespace rn

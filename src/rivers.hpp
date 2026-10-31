@@ -10,12 +10,6 @@
 *****************************************************************/
 #pragma once
 
-// rds
-#include "rivers.rds.hpp"
-
-// config
-#include "config/range-helpers.rds.hpp"
-
 // base
 #include "base/function-ref.hpp"
 
@@ -32,8 +26,8 @@ struct WeatherValue;
 /****************************************************************
 ** Public API.
 *****************************************************************/
-RiverParameters derive_river_parameters( double scale,
-                                         WeatherValue climate );
+RiverParameters derive_river_parameters(
+    double scale, WeatherValue const& climate );
 
 void add_rivers( MapMatrix& m, IRand& rand,
                  RiverParameters const& params );

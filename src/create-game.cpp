@@ -458,7 +458,7 @@ valid_or<string> load_map_from_file(
 // later ones.
 valid_or<string> create_game_from_setup(
     SS& ss, IRand& rand, lua::state& lua,
-    GameSetup const& setup ) {
+    ExchangeKey const& setup ) {
   RootState& root = ss.root;
 
   root = {}; // Just in case.

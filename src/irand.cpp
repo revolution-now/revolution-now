@@ -11,7 +11,7 @@
 #include "irand.hpp"
 
 // config
-#include "config/range-helpers.rds.hpp"
+#include "ss/rds-helpers.rds.hpp"
 
 using namespace std;
 
@@ -25,7 +25,7 @@ void to_str( IRand const& o, string& out, base::tag<IRand> ) {
   out += fmt::format( "{}", static_cast<void const*>( &o ) );
 }
 
-bool IRand::bernoulli( config::Probability const& p ) {
+bool IRand::bernoulli( Probability const& p ) {
   return bernoulli( p.probability );
 }
 

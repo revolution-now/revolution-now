@@ -13,10 +13,10 @@
 // Revolution Now
 #include "gnuplot.hpp"
 #include "map-gen.hpp"
+#include "map-square.hpp"
 #include "terrain-mgr.hpp"
 
 // config
-#include "config/map-gen-types.hpp"
 #include "config/map-gen.rds.hpp"
 
 // ss

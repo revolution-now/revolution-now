@@ -1,28 +1,25 @@
 /****************************************************************
-**range-helpers.cpp
+**rds-helpers.cpp
 *
 * Project: Revolution Now
 *
-* Created by dsicilia on 2022-12-11.
+* Created by David P. Sicilia on 2026-08-08.
 *
 * Description: Helpers for specifying ranges in config data.
 *
 *****************************************************************/
-#include "range-helpers.hpp"
+#include "rds-helpers.hpp"
 
-// refl
-#include "refl/ext.hpp"
-
-using namespace std;
-
-namespace rn::config {
+namespace rn {
 
 namespace {
+
+using namespace std;
 
 using ::base::valid;
 using ::base::valid_or;
 
-}
+} // namespace
 
 valid_or<string> IntPercent::validate() const {
   REFL_VALIDATE(
@@ -108,4 +105,4 @@ valid_or<string> Piecewise3Dist::validate() const {
   return valid;
 }
 
-} // namespace rn::config
+} // namespace rn

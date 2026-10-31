@@ -17,11 +17,9 @@
 #include "test/fake/world.hpp"
 #include "test/mocks/igui.hpp"
 
-// config
-#include "src/config/options.rds.hpp"
-
 // ss
 #include "src/ss/old-world-state.rds.hpp"
+#include "src/ss/options.rds.hpp"
 #include "src/ss/player.hpp"
 #include "src/ss/ref.hpp"
 #include "src/ss/settings.rds.hpp"
@@ -88,7 +86,7 @@ TEST_CASE( "[construction] select building, borders ocean" ) {
     ChoiceConfig const config{
       .msg               = "Select One",
       .options           = { ChoiceConfigOption{
-                  .key = "none", .display_name = "(no production)" } },
+        .key = "none", .display_name = "(no production)" } },
       .sort              = false,
       .initial_selection = nothing };
 
@@ -358,7 +356,7 @@ TEST_CASE(
     ChoiceConfig const config{
       .msg               = "Select One",
       .options           = { ChoiceConfigOption{
-                  .key = "none", .display_name = "(no production)" } },
+        .key = "none", .display_name = "(no production)" } },
       .sort              = false,
       .initial_selection = nothing };
 
@@ -1070,7 +1068,7 @@ TEST_WORLD( "[construction] wagon_train_limit_exceeded" ) {
   auto& mode = settings()
                    .game_setup_options.customized_rules
                    .wagon_train_limit_mode;
-  using enum config::options::e_wagon_train_limit_mode;
+  using enum e_wagon_train_limit_mode;
 
   // _, L, _, L, L, L,
   // L, L, L, L, L, L,
@@ -1337,7 +1335,7 @@ TEST_CASE( "[construction] evolve_colony_construction" ) {
     .what = Construction::building{
       .what = e_colony_building::warehouse_expansion } } };
   expected               = ColonyBuilt::building{
-                  .what = e_colony_building::warehouse_expansion };
+    .what = e_colony_building::warehouse_expansion };
   REQUIRE( f() == expected );
   REQUIRE( notifications == expected_notifications );
   REQUIRE( colony.hammers == 0 ); // NOTE: not 2.

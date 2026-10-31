@@ -13,8 +13,15 @@
 // Under test.
 #include "src/perlin-map.hpp"
 
+// ss
+#include "src/ss/key.rds.hpp"
+
 // rand
 #include "src/rand/entropy.hpp"
+#include "src/rand/perlin.rds.hpp"
+
+// gfx
+#include "src/gfx/matrix.hpp"
 
 // refl
 #include "src/refl/to-str.hpp"
@@ -68,7 +75,7 @@ struct PrintableMap {
 *****************************************************************/
 TEST_CASE( "[perlin-map] generate_perlin_seed" ) {
   rng::entropy e;
-  PerlinSeed expected;
+  rng::PerlinSeed expected;
 
   auto const f = [&] [[clang::noinline]] {
     return generate_perlin_seed( e );
@@ -176,13 +183,13 @@ TEST_CASE( "[perlin-map] land_gen_perlin" ) {
   auto constexpr _ = e_surface::water;
   auto constexpr X = e_surface::land;
 
-  PerlinSeed const kSeed = {
+  rng::PerlinSeed const kSeed = {
     .offset_x = 876454408,
     .offset_y = 2451924743,
     .base     = 1152681597,
     .flip     = false,
   };
-  PerlinSeed const kSeedFlipped = [&] {
+  rng::PerlinSeed const kSeedFlipped = [&] {
     auto res = kSeed;
     res.flip = true;
     return res;
@@ -199,7 +206,7 @@ TEST_CASE( "[perlin-map] land_gen_perlin" ) {
     .lacunarity  = 2,
   };
 
-  PerlinLandForm const kLandForm{
+  rng::PerlinLandForm const kLandForm{
     .scale   = 12,
     .fractal = kFractalOptions,
   };

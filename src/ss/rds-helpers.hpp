@@ -1,22 +1,25 @@
 /****************************************************************
-**range-helpers.hpp
+**rds-helpers.hpp
 *
 * Project: Revolution Now
 *
-* Created by dsicilia on 2022-12-11.
+* Created by David P. Sicilia on 2026-08-08.
 *
 * Description: Helpers for specifying ranges in config data.
 *
 *****************************************************************/
 #pragma once
 
-// Rds
-#include "range-helpers.rds.hpp"
+// ss
+#include "rds-helpers.rds.hpp"
 
 // refl
 #include "refl/ext.hpp"
 
-namespace rn::config {
+// C++ standard library
+#include <string>
+
+namespace rn {
 
 /****************************************************************
 ** UniformDistT
@@ -33,4 +36,4 @@ base::valid_or<std::string> UniformDistT<T>::validate() const {
 [[nodiscard]] Probability operator*( Probability l,
                                      Probability r );
 
-} // namespace rn::config
+} // namespace rn

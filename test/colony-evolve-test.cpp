@@ -18,12 +18,10 @@
 #include "test/mocking.hpp"
 #include "test/mocks/irand.hpp"
 
-// config
-#include "src/config/options.rds.hpp"
-
 // ss
 #include "src/ss/colony.hpp"
 #include "src/ss/map.rds.hpp"
+#include "src/ss/options.rds.hpp"
 #include "src/ss/player.rds.hpp"
 #include "src/ss/ref.hpp"
 #include "src/ss/settings.rds.hpp"
@@ -940,7 +938,7 @@ TEST_CASE(
   w.settings()
       .game_setup_options.customized_rules
       .wagon_train_limit_mode =
-      config::options::e_wagon_train_limit_mode::classic;
+      e_wagon_train_limit_mode::classic;
   expected = ColonyNotificationMessage{
     .msg =
         "[my col] is producing Wagon Trains but we have reached "
@@ -950,7 +948,7 @@ TEST_CASE(
   w.settings()
       .game_setup_options.customized_rules
       .wagon_train_limit_mode =
-      config::options::e_wagon_train_limit_mode::population;
+      e_wagon_train_limit_mode::population;
   expected = ColonyNotificationMessage{
     .msg =
         "[my col] is producing Wagon Trains but we have reached "

@@ -10,8 +10,12 @@
 *****************************************************************/
 #include "perlin-map.hpp"
 
+// ss
+#include "ss/key.rds.hpp"
+
 // gfx
 #include "gfx/iter.hpp"
+#include "gfx/matrix.hpp"
 
 // rand
 #include "perlin-map.rds.hpp"
@@ -182,13 +186,13 @@ void perlin_suppress_edges(
 // stitute the perlin seed fit within the 128 bits that are pro-
 // vided by the rng::entropy type, so we can read the bits di-
 // rectly instead of generating random numbers.
-PerlinSeed generate_perlin_seed( rng::entropy e ) {
+rng::PerlinSeed generate_perlin_seed( rng::entropy e ) {
   // Make sure these get evaluated in order.
   uint32_t const offset_x = e.consume<uint32_t>();
   uint32_t const offset_y = e.consume<uint32_t>();
   uint32_t const base     = e.consume<uint32_t>();
   bool const flip         = e.consume<uint32_t>() % 2 == 0;
-  return PerlinSeed{
+  return rng::PerlinSeed{
     .offset_x = offset_x,
     .offset_y = offset_y,
     .base     = base,

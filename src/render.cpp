@@ -286,7 +286,7 @@ void render_large_sprite_with_forest_burrowing(
         rect{ .size = kMapTileSz }.clipped_by( rect{
           .origin = point{} - sprite_origin_pixel_delta -
                     size( tile_delta_from_center * kMapTileSz ),
-          .size = sprite_sz } );
+          .size   = sprite_sz } );
     if( !section.has_value() ) return;
     auto const forest_tile = forest_tile_for( viz, map_tile );
     if( !forest_tile.has_value() ) return;
@@ -532,7 +532,7 @@ void render_colony( rr::Renderer& renderer, Coord const where,
     Coord const name_coord =
         where + config_land_view.colony_name_offset;
     render_text_markup(
-        renderer, name_coord, config_land_view.colony_name_font,
+        renderer, name_coord, e_font::_7_12_serif_16pt,
         rr::TextLayout{},
         TextMarkupInfo{ .highlight = gfx::pixel::white(),
                         .shadow    = gfx::pixel::black() },

@@ -1,0 +1,295 @@
+# ===============================================================
+# key.rds
+#
+# Project: Revolution Now
+#
+# Created by David P. Sicilia on 2026-08-08.
+#
+# Description: Game Exchange Key.
+#
+# ===============================================================
+# ss
+include "difficulty.rds.hpp"
+include "nation.rds.hpp"
+include "native-enums.rds.hpp"
+include "options.rds.hpp"
+include "player-enums.rds.hpp"
+include "rds-helpers.rds.hpp"
+include "terrain-enums.rds.hpp"
+
+# rand
+include "rand/entropy.hpp"
+include "rand/perlin.rds.hpp"
+
+# gfx
+include "gfx/cartesian.hpp"
+
+# refl
+include "refl/enum-map.hpp"
+
+# base
+include "base/maybe.hpp"
+
+# C++ standard library
+include "<string>"
+
+namespace "rn"
+
+struct.NationSetup {
+  name 'std::string',
+  control 'e_player_control',
+}
+
+struct.NationsSetup {
+  nations 'refl::enum_map<e_nation, base::maybe<NationSetup>>',
+}
+
+struct.TribeSetup {
+  # TODO
+}
+
+struct.NativesSetup {
+  tribes 'refl::enum_map<e_tribe, base::maybe<TribeSetup>>',
+}
+
+struct.SurfaceSanitizationSetup {
+  remove_crosses 'bool',
+  remove_islands 'bool',
+}
+
+struct.ArcticSetup {
+  seed 'rng::seed',
+  enabled 'bool',
+  density 'double',
+}
+
+struct.LakesSetup {
+  seed 'rng::seed',
+  bias 'double',
+}
+
+struct.PerlinEdgeSuppression {
+  enabled 'bool',
+  strength 'gfx::dsize',
+  _features { equality, validation }
+}
+
+struct.PerlinMapSettings {
+  land_form 'rng::PerlinLandForm',
+  edge_suppression 'PerlinEdgeSuppression',
+  seed 'rng::PerlinSeed',
+}
+
+struct.SurfaceGeneratorSetup {
+  target_density 'double',
+  perlin_settings 'PerlinMapSettings',
+  lakes 'LakesSetup',
+  arctic 'ArcticSetup',
+  sanitization 'SurfaceSanitizationSetup',
+}
+
+# Used to hold a parameter representing the temperature and cli-
+# mate. In the OG these take on discreet values but we allow a
+# spectrum.
+#
+# For Temperature, this can go from [-200,+200}, and has the fol-
+# lowing meaning:
+#
+#   * -100 ==> "Cool"     in the OG.
+#   *    0 ==> "Moderate" in the OG.
+#   * +100 ==> "Warm"     in the OG.
+#
+# Going beyond -100 or +100 makes it even cooler/warmer.
+#
+# For Climate, this can go from [-200,+200}, and has the fol-
+# lowing meaning:
+#
+#   * -100 ==> "Arid"   in the OG.
+#   *    0 ==> "Normal" in the OG.
+#   * +100 ==> "Wet"    in the OG.
+#
+# Going beyond -100 or +100 makes it even more arid/wet.
+struct.WeatherValue {
+  value 'int',
+  _features { spaceship, validation }
+}
+
+struct.WeatherSetup {
+  # See comments above definition of WeatherValue for what values
+  # these can take on and their meanings.
+  temperature 'WeatherValue',
+  climate     'WeatherValue',
+}
+
+struct.RiverParameters {
+  # This length includes the water tile which initiates the
+  # river.
+  min_length 'int',
+  turn 'Probability',
+  fork 'Probability',
+  fork_is_major 'Probability',
+  growth 'Probability',
+  # This is the probability that, given a water square with land
+  # adjacent in a cardinal direction, that we will start creating
+  # a river from it.
+  initiation 'Probability',
+  sustain_major 'Probability',
+  start_major 'Probability',
+}
+
+sumtype.RiverParametersSetup {
+  derived {},
+  from_overridden {
+    values 'RiverParameters',
+  },
+}
+
+struct.RiverSetup {
+  seed 'rng::seed',
+  parameters 'RiverParametersSetup',
+}
+
+struct.BiomesSetup {
+  seed 'rng::seed',
+}
+
+sumtype.FormationSpawnType {
+  per_biome {
+    density 'refl::enum_map<e_biome, Probability>',
+  },
+  by_wetness {},
+}
+
+struct.FormationGrowth {
+  rate 'double',
+  edge_decay 'gfx::dsize',
+  max_size 'int',
+  _features { equality, validation }
+}
+
+struct.Formation {
+  spawn 'FormationSpawnType',
+  overall_spawn 'Probability',
+  growth 'FormationGrowth',
+}
+
+struct.FormationsSetup {
+  seed 'rng::seed',
+  formation 'refl::enum_map<e_terrain_formation, Formation>',
+}
+
+struct.BonusesSetup {
+  # This seed will be used to obtain an OG-style prime resource
+  # seed which will then be used for both the prime resources as
+  # well as the LCR placement, in accordance to how the OG does
+  # it. We must do this otherwise it wouldn't be possible to have
+  # interop between new and old save files.
+  seed 'rng::seed',
+}
+
+struct.WetnessRowModulationConfig {
+  amplitude 'double',
+  width 'double',
+  _features { equality, validation }
+}
+
+struct.WetnessConfig {
+  amplitude 'double',
+  climate_gradient 'double',
+  accumulation 'double',
+  consumption 'DoublePercent',
+  row_modulation 'WetnessRowModulationConfig',
+  biome_affinity 'refl::enum_map<e_biome, DoublePercent>',
+  _features { equality, validation }
+}
+
+# This will be the main body of the map exchange key, thus we
+# should try not to change this once it is set.
+struct.GeneratedMapSetup {
+  # Map Size.
+  size 'gfx::size',
+  surface_generator 'SurfaceGeneratorSetup',
+  wetness 'WetnessConfig',
+  weather 'WeatherSetup',
+  rivers 'RiverSetup',
+  biomes 'BiomesSetup',
+  formations 'FormationsSetup',
+  bonuses 'BonusesSetup',
+  _features { equality, validation }
+}
+
+enum.e_map_file_epoch {
+  classic,
+  modern,
+}
+
+enum.e_map_file_format {
+  binary,
+  json,
+  rcl,
+}
+
+enum.e_map_file_contents {
+  map_only,
+  full_save,
+}
+
+struct.MapFileType {
+  epoch 'e_map_file_epoch',
+  format 'e_map_file_format',
+  contents 'e_map_file_contents',
+}
+
+sumtype.MapSource {
+  load_from_file {
+    path 'std::string',
+    type 'MapFileType',
+    convert_islands_to_mountains 'bool',
+    # If we need to generate prime resources/LCRs (typically we
+    # will, unless we happen to be loading a modern map that al-
+    # ready contains them) then this seed will be used, otherwise
+    # it will be ignored.
+    bonuses 'BonusesSetup',
+  },
+  generate_native {
+    setup 'GeneratedMapSetup',
+  },
+  generate_lua {
+    setup 'GeneratedMapSetup',
+  },
+}
+
+struct.MapSetup {
+  source 'MapSource',
+}
+
+struct.GameSettingsSetup {
+  difficulty 'e_difficulty',
+  starting_year 'int',
+  rules 'GameRulesOptions',
+}
+
+# This struct contains all of the settings that can be specified
+# (customized) to create a new game. The higher the level of cus-
+# tomization that the player chooses, the more of these options
+# will be customizable in the UI when creating a new game. When
+# there is no customization at all then the vast majority of them
+# will be selected automatically.
+#
+# These are in the reverse order in which they are selected, vis-
+# ited and applied.
+struct.ExchangeKey {
+  settings 'GameSettingsSetup',
+  nations 'NationsSetup',
+  natives 'NativesSetup',
+  map 'MapSetup',
+  # This is a seed that, if specified, is used to seed the rng
+  # after all loading and initialization is done and gameplay is
+  # about to begin. If null then a truly random one will be gen-
+  # erated. This value works in conjunction with the corre-
+  # sponding value in the meta save state in order to give the
+  # player control over the state of the rng at the start of ei-
+  # ther a new game or a loaded game. See the comments in ss/meta
+  # for more details on that mechanism.
+  gameplay_seed 'base::maybe<rng::seed>',
+}

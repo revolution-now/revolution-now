@@ -160,6 +160,20 @@ valid_or<string> PerlinFractalOptions::validate() const {
 }
 
 /****************************************************************
+** PerlinLandForm
+*****************************************************************/
+valid_or<string> PerlinLandForm::validate() const {
+  // This value was found empirically... for some reason any
+  // value <= 1.0 gives non-sensical results. That's ok because a
+  // scal of one is ~ one tile which is the smallest unit anyway.
+  double constexpr kMinScale = 1.0;
+  // NOTE: this is > and not >= since 1.0 yields bad results.
+  REFL_VALIDATE( scale > kMinScale, "perlin scale must be > {}",
+                 kMinScale );
+  return valid;
+}
+
+/****************************************************************
 ** Perlin Noise.
 *****************************************************************/
 // Multi-octave perline noise.

@@ -47,8 +47,9 @@ struct Address {
   int street_number = {};
   string state      = {};
 
-  friend void to_str( Address const& o, string& out,
-                      base::tag<Address> ) {
+  [[maybe_unused]] friend void to_str( Address const& o,
+                                       string& out,
+                                       base::tag<Address> ) {
     out += fmt::format( "Address{{street_number={},state={}}}",
                         o.street_number, o.state );
   }
@@ -56,16 +57,17 @@ struct Address {
   bool operator==( Address const& ) const = default;
 };
 
-value to_canonical( converter& conv, Address const& o,
-                    tag_t<Address> ) {
+[[maybe_unused]] value to_canonical( converter& conv,
+                                     Address const& o,
+                                     tag_t<Address> ) {
   table tbl;
   CONV_TO_FIELD( street_number );
   CONV_TO_FIELD( state );
   return tbl;
 }
 
-result<Address> from_canonical( converter& conv, value const& v,
-                                tag_t<Address> ) {
+[[maybe_unused]] result<Address> from_canonical(
+    converter& conv, value const& v, tag_t<Address> ) {
   UNWRAP_RETURN( tbl, conv.ensure_type<table>( v ) );
   Address res{};
   set<string> used_keys;
@@ -87,7 +89,8 @@ enum class e_pet {
   frog
 };
 
-value to_canonical( converter&, e_pet const& o, tag_t<e_pet> ) {
+[[maybe_unused]] value to_canonical( converter&, e_pet const& o,
+                                     tag_t<e_pet> ) {
   switch( o ) {
     case e_pet::cat:
       return "cat";
@@ -98,8 +101,9 @@ value to_canonical( converter&, e_pet const& o, tag_t<e_pet> ) {
   }
 }
 
-result<e_pet> from_canonical( converter& conv, value const& v,
-                              tag_t<e_pet> ) {
+[[maybe_unused]] result<e_pet> from_canonical( converter& conv,
+                                               value const& v,
+                                               tag_t<e_pet> ) {
   UNWRAP_RETURN( str, conv.ensure_type<string>( v ) );
   if( str == "cat" ) return e_pet::cat;
   if( str == "dog" ) return e_pet::dog;
@@ -108,7 +112,8 @@ result<e_pet> from_canonical( converter& conv, value const& v,
                    str );
 }
 
-void to_str( e_pet const& o, string& out, base::tag<e_pet> ) {
+[[maybe_unused]] void to_str( e_pet const& o, string& out,
+                              base::tag<e_pet> ) {
   switch( o ) {
     case e_pet::cat:
       out += "cat";
@@ -135,8 +140,9 @@ struct Person {
   vector<Address> houses         = {};
   unordered_map<e_pet, int> pets = {};
 
-  friend void to_str( Person const& o, string& out,
-                      base::tag<Person> ) {
+  [[maybe_unused]] friend void to_str( Person const& o,
+                                       string& out,
+                                       base::tag<Person> ) {
     out += fmt::format(
         "Person{{name={},height={},male={},houses={},pets={}}}",
         o.name, o.height, o.male, o.houses, o.pets );
@@ -145,8 +151,9 @@ struct Person {
   bool operator==( Person const& ) const = default;
 };
 
-value to_canonical( converter& conv, Person const& o,
-                    tag_t<Person> ) {
+[[maybe_unused]] value to_canonical( converter& conv,
+                                     Person const& o,
+                                     tag_t<Person> ) {
   table tbl;
   CONV_TO_FIELD( name );
   CONV_TO_FIELD( height );
@@ -156,8 +163,9 @@ value to_canonical( converter& conv, Person const& o,
   return tbl;
 }
 
-result<Person> from_canonical( converter& conv, value const& v,
-                               tag_t<Person> ) {
+[[maybe_unused]] result<Person> from_canonical( converter& conv,
+                                                value const& v,
+                                                tag_t<Person> ) {
   UNWRAP_RETURN( tbl, conv.ensure_type<table>( v ) );
   Person res{};
   set<string> used_keys;
@@ -181,8 +189,9 @@ struct Rolodex {
   string updated                         = {};
   unordered_map<string, Person> contacts = {};
 
-  friend void to_str( Rolodex const& o, string& out,
-                      base::tag<Rolodex> ) {
+  [[maybe_unused]] friend void to_str( Rolodex const& o,
+                                       string& out,
+                                       base::tag<Rolodex> ) {
     out +=
         fmt::format( "Rolodex{{self={},updated={},contacts={}}}",
                      o.self, o.updated, o.contacts );
@@ -191,8 +200,9 @@ struct Rolodex {
   bool operator==( Rolodex const& ) const = default;
 };
 
-value to_canonical( converter& conv, Rolodex const& o,
-                    tag_t<Rolodex> ) {
+[[maybe_unused]] value to_canonical( converter& conv,
+                                     Rolodex const& o,
+                                     tag_t<Rolodex> ) {
   table tbl;
   CONV_TO_FIELD( self );
   CONV_TO_FIELD( updated );
@@ -200,8 +210,8 @@ value to_canonical( converter& conv, Rolodex const& o,
   return tbl;
 }
 
-result<Rolodex> from_canonical( converter& conv, value const& v,
-                                tag_t<Rolodex> ) {
+[[maybe_unused]] result<Rolodex> from_canonical(
+    converter& conv, value const& v, tag_t<Rolodex> ) {
   UNWRAP_RETURN( tbl, conv.ensure_type<table>( v ) );
   Rolodex res{};
   set<string> used_keys;

@@ -29,6 +29,6 @@ struct SS;
 *****************************************************************/
 base::valid_or<std::string> create_game_from_setup(
     SS& ss, IRand& rand, lua::state& lua,
-    GameSetup const& setup );
+    ExchangeKey const& setup );
 
 } // namespace rn

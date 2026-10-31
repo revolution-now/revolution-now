@@ -178,7 +178,7 @@ string_view mode_name( e_land_mass const m,
 *****************************************************************/
 void generate_single_map_impl(
     IEngine& engine, SS& ss,
-    function_ref<void( IRand&, GameSetup& ) const> const fn ) {
+    function_ref<void( IRand&, ExchangeKey& ) const> const fn ) {
   TerrainConnectivity connectivity;
   NonRenderingMapUpdater non_rendering_map_updater(
       ss, connectivity );
@@ -199,9 +199,9 @@ void generate_single_map_impl(
   rand.reseed( rng::entropy::from_random_device() );
 
   // ------------------------------------------------------------
-  // GameSetup
+  // ExchangeKey
   // ------------------------------------------------------------
-  GameSetup setup;
+  ExchangeKey setup;
   fn( rand, setup );
   CHECK_HAS_VALUE( validate_game_setup( setup ) );
 
@@ -214,7 +214,7 @@ void generate_single_map_impl(
 
 void generate_single_map_key( IEngine& engine, SS& ss,
                               bool const reseed ) {
-  auto const fn = [&]( IRand& rand, GameSetup& setup ) {
+  auto const fn = [&]( IRand& rand, ExchangeKey& setup ) {
     load_testing_game_setup( setup );
     if( reseed )
       // Reseed all seeds in the structure, but keep all other
@@ -226,7 +226,7 @@ void generate_single_map_key( IEngine& engine, SS& ss,
 
 [[maybe_unused]] void generate_single_map_new( IEngine& engine,
                                                SS& ss ) {
-  auto const fn = [&]( IRand& rand, GameSetup& setup ) {
+  auto const fn = [&]( IRand& rand, ExchangeKey& setup ) {
     ClassicGameSetupParamsCommon const params{
       .difficulty  = e_difficulty::conquistador,
       .player      = e_nation::english,
@@ -239,7 +239,7 @@ void generate_single_map_key( IEngine& engine, SS& ss,
 [[maybe_unused]] void generate_single_map_custom(
     IEngine& engine, SS& ss,
     ClassicGameSetupParamsCustom const& custom ) {
-  auto const fn = [&]( IRand& rand, GameSetup& setup ) {
+  auto const fn = [&]( IRand& rand, ExchangeKey& setup ) {
     ClassicGameSetupParams const params{
       .common = { .difficulty  = e_difficulty::conquistador,
                   .player      = e_nation::english,
@@ -715,7 +715,7 @@ struct LakeFrequencyStats : IMapStatsCollector {
 /****************************************************************
 ** Public API.
 *****************************************************************/
-void load_testing_game_setup( GameSetup& setup ) {
+void load_testing_game_setup( ExchangeKey& setup ) {
   UNWRAP_CHECK_T( rcl::doc const& doc,
                   rcl::parse_file( "keys/game-exchange-key.rcl",
                                    rcl::ProcessingOptions{} ) );
@@ -723,9 +723,9 @@ void load_testing_game_setup( GameSetup& setup ) {
     .allow_unrecognized_fields        = true,
     .default_construct_missing_fields = false,
   };
-  UNWRAP_CHECK_T( setup,
-                  cdr::run_conversion_from_canonical<GameSetup>(
-                      doc.top_val(), options ) );
+  UNWRAP_CHECK_T(
+      setup, cdr::run_conversion_from_canonical<ExchangeKey>(
+                 doc.top_val(), options ) );
   CHECK_HAS_VALUE( validate_game_setup( setup ) );
 }
 

@@ -9,45 +9,40 @@
 #
 # ===============================================================
 # config
-include "range-helpers.rds.hpp"
-include "map-gen-types.rds.hpp"
+include "map-gen-enums.rds.hpp"
 
 # ss
 include "ss/terrain-enums.rds.hpp"
+include "ss/rds-helpers.hpp"
+include "ss/key.rds.hpp"
 
 # gfx
 include "gfx/cartesian.hpp"
 
-# rand
-include "rand/entropy.hpp"
-
 # refl
 include "refl/enum-map.hpp"
-
-# base
-include "base/maybe.hpp"
 
 namespace "rn.config.map_gen"
 
 struct.LandMass {
-  fully_random 'config::Piecewise3Dist',
-  customized 'refl::enum_map<e_land_mass, config::BoundedNormalDist>',
+  fully_random 'Piecewise3Dist',
+  customized 'refl::enum_map<e_land_mass, BoundedNormalDist>',
   _features { equality, validation }
 }
 
 struct.Arctic {
   enabled 'bool',
   min_map_height 'int',
-  density 'config::DoublePercent',
+  density 'DoublePercent',
 }
 
 struct.InlandLakes {
-  bias 'config::UniformDist',
+  bias 'UniformDist',
   _features { equality, validation }
 }
 
 struct.PerlinLandFormRange {
-  scale 'config::BoundedNormalDist',
+  scale 'BoundedNormalDist',
   fractal 'rng::PerlinFractalOptions',
 }
 
@@ -68,7 +63,7 @@ struct.LandLayout {
 }
 
 struct.WeatherDistribution {
-  distribution 'config::UniformDistT<WeatherValue>',
+  distribution 'UniformDistT<WeatherValue>',
 }
 
 struct.Temperature {
@@ -122,17 +117,17 @@ struct.Formations {
 struct.RiverClimateParameters {
   # This length includes the water tile which initiates the
   # river.
-  initiation 'config::Probability',
-  start_major 'config::Probability',
-  sustain_major 'config::Probability',
-  turn 'config::Probability',
-  fork 'config::Probability',
-  fork_is_major 'config::Probability',
+  initiation 'Probability',
+  start_major 'Probability',
+  sustain_major 'Probability',
+  turn 'Probability',
+  fork 'Probability',
+  fork_is_major 'Probability',
   _features { equality, validation }
 }
 
 struct.RiverLandFormParameters {
-  growth 'config::Probability',
+  growth 'Probability',
 }
 
 struct.Rivers {

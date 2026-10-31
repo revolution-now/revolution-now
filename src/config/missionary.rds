@@ -9,8 +9,10 @@
 #
 # ===============================================================
 # config
-include "range-helpers.rds.hpp"
 include "unit-classes.rds.hpp"
+
+# ss
+include "ss/rds-helpers.rds.hpp"
 
 # refl
 include "refl/enum-map.hpp"
@@ -24,14 +26,14 @@ struct.MissionaryType {
 
   # When a dwelling contains a mission, each turn there is a
   # probability that a convert will be produced.
-  per_turn_convert 'config::Probability',
+  per_turn_convert 'Probability',
 
   # When attacking a dwelling containing a mission, this is the
   # probability (on each attack) that an additional native con-
   # vert will be produced, though it is only applied given that
   # the player's mission has not been burned after the attack,
   # which is also a possibility.
-  convert_on_attack 'config::Probability',
+  convert_on_attack 'Probability',
 }
 
 namespace "rn"
@@ -43,7 +45,7 @@ struct.config_missionary_t {
   # the probability that the tribe will burn the player's mis-
   # sions. It is applied each time a dwelling of the tribe is at-
   # tacked, and on each turn (TODO: same probability for both?).
-  burn_mission 'config::Probability',
+  burn_mission 'Probability',
 
   # When a jesuit missionary occupies a mission in a dwelling, a
   # cross will be rendered with the nation's flag color. But when

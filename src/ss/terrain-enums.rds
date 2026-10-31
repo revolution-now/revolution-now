@@ -81,3 +81,15 @@ enum.e_terrain {
   hills,
   mountains,
 }
+
+# This is relevant during map generation; hills, mountains, and
+# forests are generated using a similar algorithm. Actually, for
+# forests, the map starts with forests on all tiles (other than
+# ones with hills and mountains) and then forests are removed,
+# hence we are distributing "clearings" (which means the absence
+# of a forest).
+enum.e_terrain_formation {
+  hills,
+  mountains,
+  clearing,
+}

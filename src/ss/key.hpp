@@ -1,23 +1,18 @@
 /****************************************************************
-**map-gen-types.hpp
+**key.hpp
 *
 * Project: Revolution Now
 *
-* Created by David P. Sicilia on 2026-03-17.
+* Created by David P. Sicilia on 2026-08-08.
 *
-* Description: Config data for the map-gen-types module.
+* Description: Game Exchange Key.
 *
 *****************************************************************/
 #pragma once
 
-#include "map-gen-types.rds.hpp"
+#include "key.rds.hpp"
 
 namespace rn {
-
-/****************************************************************
-** Fwd. Decls.
-*****************************************************************/
-struct MapSquare;
 
 /****************************************************************
 ** Constants.
@@ -34,11 +29,5 @@ int constexpr kWeatherValueMaxMagnitude = 200;
 
 double constexpr kBiomeSelfAffinityMin = -3.0;
 double constexpr kBiomeSelfAffinityMax = 3.0;
-
-/****************************************************************
-** Public API.
-*****************************************************************/
-base::maybe<e_terrain_formation> terrain_formation_for(
-    MapSquare const& square );
 
 } // namespace rn

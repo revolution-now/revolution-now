@@ -8,10 +8,12 @@
 # Description: Rds definitions for the combat module.
 #
 # ===============================================================
-# config
-include "range-helpers.rds.hpp"
+# ss
+include "ss/rds-helpers.rds.hpp"
 
 namespace "rn.config.combat"
+
+# TBD
 
 namespace "rn"
 
@@ -19,7 +21,7 @@ struct.config_combat_t {
   # Given that a unit wins in combat and that they can be pro-
   # moted, this is the probability that will happen. Seems to be
   # about .45 in the OG on all difficulty levels.
-  promotion_in_combat 'config::Probability',
+  promotion_in_combat 'Probability',
 }
 
 config.combat {}

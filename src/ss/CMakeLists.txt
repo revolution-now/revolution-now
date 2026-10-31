@@ -4,6 +4,7 @@ add_rn_library(
   rn-base
   rn-cdr
   rn-gfx
+  rn-rand
   rn-refl
   rn-traverse
 )

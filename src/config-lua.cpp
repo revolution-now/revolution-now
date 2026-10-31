@@ -34,7 +34,6 @@
 #include "config/old-world.rds.hpp"
 #include "config/options.rds.hpp"
 #include "config/production.rds.hpp"
-#include "config/range-helpers.rds.hpp"
 #include "config/revolution.rds.hpp"
 #include "config/rn.rds.hpp"
 #include "config/savegame.rds.hpp"

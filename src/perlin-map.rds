@@ -8,9 +8,6 @@
 # Description: Rds definitions for the perlin-map module.
 #
 # ===============================================================
-# config
-include "config/map-gen-types.rds.hpp"
-
 namespace "rn"
 
 enum.e_perlin_map_error {
@@ -18,10 +15,4 @@ enum.e_perlin_map_error {
   invalid_map_size,
   density_search_failed,
   density_too_small_no_land,
-}
-
-struct.PerlinMapSettings {
-  land_form 'PerlinLandForm',
-  edge_suppression 'PerlinEdgeSuppression',
-  seed 'PerlinSeed',
 }

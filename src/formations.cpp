@@ -12,15 +12,14 @@
 
 // Revolution Now
 #include "irand.hpp"
+#include "map-gen.rds.hpp"
 #include "map-square.hpp"
 #include "terrain-mgr.hpp"
 
-// config
-#include "config/map-gen-types.hpp"
-#include "config/range-helpers.hpp"
-
 // ss
+#include "ss/key.rds.hpp"
 #include "ss/map-matrix.hpp"
+#include "ss/rds-helpers.hpp"
 
 // rds
 #include "rds/switch-macro.hpp"
@@ -30,6 +29,7 @@
 
 // C++ standard library
 #include <ranges>
+#include <set>
 
 namespace rn {
 
@@ -46,9 +46,7 @@ using ::gfx::dsize;
 using ::gfx::e_cardinal_cdirection;
 using ::gfx::point;
 using ::gfx::size;
-using ::refl::enum_map;
 using ::refl::enum_values;
-using ::rn::config::Probability;
 
 // These really can't be changed/tweaked (hence they are here and
 // not in the configs) because this was the transformation (mx+b)

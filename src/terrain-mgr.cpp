@@ -13,9 +13,6 @@
 // Revolution Now
 #include "map-square.hpp"
 
-// config
-#include "config/map-gen-types.rds.hpp"
-
 // ss
 #include "ss/ref.hpp"
 #include "ss/terrain.hpp"

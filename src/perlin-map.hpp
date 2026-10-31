@@ -18,21 +18,27 @@
 
 // gfx
 #include "gfx/cartesian.hpp"
-#include "gfx/matrix.hpp"
+#include "gfx/matrix-fwd.hpp"
+
+// rand
+#include "rand/entropy.hpp"
+#include "rand/perlin.rds.hpp"
 
 // base
 #include "base/valid.hpp"
 
-namespace rng {
-struct entropy;
-}
-
 namespace rn {
+
+/****************************************************************
+** Fwd. Decls.
+*****************************************************************/
+struct PerlinMapSettings;
 
 /****************************************************************
 ** Public API.
 *****************************************************************/
-[[nodiscard]] PerlinSeed generate_perlin_seed( rng::entropy e );
+[[nodiscard]] rng::PerlinSeed generate_perlin_seed(
+    rng::entropy e );
 
 [[nodiscard]] base::valid_or<e_perlin_map_error> land_gen_perlin(
     PerlinMapSettings const& settings, double target_density,

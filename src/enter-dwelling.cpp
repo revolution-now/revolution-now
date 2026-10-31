@@ -533,7 +533,7 @@ static ChiefAction compute_speak_with_chief_action(
   // First determine if we should eliminate the scout ("target
   // practice"); note that this can happen even if the scout has
   // already spoken to the chief.
-  config::IntRange const& elimiplayer_range =
+  IntRange const& elimiplayer_range =
       conf.alarm_range_for_target_practice;
   int const alarm = effective_dwelling_alarm(
       ss, dwelling, unit.player_type() );
@@ -571,7 +571,7 @@ static ChiefAction compute_speak_with_chief_action(
     case e_speak_with_chief_result::gift_money: {
       e_tribe const tribe =
           ss.natives.tribe_for( dwelling.id ).type;
-      config::IntRange const& gift_range =
+      IntRange const& gift_range =
           conf.gift_range[config_natives.tribes[tribe].level];
       int const quantity =
           rand.uniform_int( gift_range.min, gift_range.max );

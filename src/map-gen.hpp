@@ -10,6 +10,8 @@
 *****************************************************************/
 #pragma once
 
+#include "map-gen.rds.hpp"
+
 // gfx
 #include "gfx/cartesian.hpp"
 

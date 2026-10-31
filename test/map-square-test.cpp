@@ -482,5 +482,8 @@ TEST_CASE( "[map-square] effective_resource" ) {
   REQUIRE( effective_resource( square ) == expected );
 }
 
+TEST_CASE( "[map-square] terrain_formation_for" ) {
+}
+
 } // namespace
 } // namespace rn

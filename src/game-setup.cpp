@@ -21,12 +21,14 @@
 #include "rivers.hpp"
 
 // config
-#include "config/map-gen-types.hpp"
 #include "config/map-gen.hpp"
 #include "config/nation.rds.hpp"
 #include "config/options.rds.hpp"
-#include "config/range-helpers.rds.hpp"
 #include "config/turn.rds.hpp"
+
+// ss
+#include "ss/key.hpp"
+#include "ss/rds-helpers.hpp"
 
 // refl
 #include "refl/query-enum.hpp"
@@ -56,7 +58,7 @@ using ::refl::enum_map;
 using ::refl::enum_values;
 
 [[nodiscard]] double sample_normal(
-    IRand& rand, config::BoundedNormalDist const& params ) {
+    IRand& rand, BoundedNormalDist const& params ) {
   // NOTE: non-portable rng methods are allowed in this module
   // because we are only generating the exchange key.  When
   // that exchange key is later evaluated to generate the map
@@ -67,18 +69,17 @@ using ::refl::enum_values;
 }
 
 [[nodiscard]] double sample_uniform(
-    IRand& rand, config::UniformDist const& params ) {
+    IRand& rand, UniformDist const& params ) {
   return rand.uniform_double( params.min, params.max );
 }
 
 [[nodiscard]] double sample_uniform(
-    IRand& rand,
-    config::UniformDistT<WeatherValue> const& params ) {
+    IRand& rand, UniformDistT<WeatherValue> const& params ) {
   return rand.uniform_int( params.min.value, params.max.value );
 }
 
 [[nodiscard]] double sample_piecewise3(
-    IRand& rand, config::Piecewise3Dist const& dist ) {
+    IRand& rand, Piecewise3Dist const& dist ) {
   double const width = dist.max - dist.min;
   if( width < 1e-6 ) return dist.peak;
   double const peak = ( dist.peak - dist.min ) / width;
@@ -141,10 +142,10 @@ struct Reseeder : public trv::RecursiveTraverserWithTracking {
 /****************************************************************
 ** Public API.
 *****************************************************************/
-GameSetup create_classic_game_setup(
+ExchangeKey create_classic_game_setup(
     IRand& rand,
     ClassicGameSetupParamsEvaluated const& params ) {
-  GameSetup setup;
+  ExchangeKey setup;
 
   // category: settings_state
   // ------------------------------------------------------------
@@ -160,7 +161,7 @@ GameSetup create_classic_game_setup(
 
   auto const& map_conf = config_map_gen.terrain_generation;
 
-  PerlinSeed const perlin_seed =
+  rng::PerlinSeed const perlin_seed =
       generate_perlin_seed( rand.new_deterministic_seed() );
 
   PerlinMapSettings const perlin_settings{
@@ -268,10 +269,10 @@ GameSetup create_classic_game_setup(
   return setup;
 }
 
-GameSetup create_default_game_setup(
+ExchangeKey create_default_game_setup(
     IRand& rand, ClassicGameSetupParamsCommon const& common ) {
   auto const& map_conf = config_map_gen.terrain_generation;
-  PerlinLandForm const perlin_land_form{
+  rng::PerlinLandForm const perlin_land_form{
     .scale = sample_normal(
         rand,
         map_conf.land_layout.land_form.fully_random.scale ),
@@ -291,13 +292,13 @@ GameSetup create_default_game_setup(
   return create_classic_game_setup( rand, params );
 }
 
-GameSetup create_classic_customized_game_setup(
+ExchangeKey create_classic_customized_game_setup(
     IRand& rand, ClassicGameSetupParams const& params ) {
   auto const& map_conf      = config_map_gen.terrain_generation;
   double const land_density = sample_normal(
       rand, map_conf.land_layout.land_mass
                 .customized[params.custom.land_mass] );
-  PerlinLandForm const perlin_land_form{
+  rng::PerlinLandForm const perlin_land_form{
     .scale = sample_normal(
         rand, map_conf.land_layout.land_form
                   .customized[params.custom.land_form]
@@ -320,9 +321,9 @@ GameSetup create_classic_customized_game_setup(
   return create_classic_game_setup( rand, evaluated );
 }
 
-GameSetup create_america_game_setup(
+ExchangeKey create_america_game_setup(
     IRand& rand, ClassicGameSetupParamsCommon const& common ) {
-  GameSetup setup = create_default_game_setup( rand, common );
+  ExchangeKey setup = create_default_game_setup( rand, common );
 
   setup.map = MapSetup{
     .source =
@@ -412,7 +413,7 @@ create_classic_game_custom_params( IEngine&, Planes&,
   co_return params;
 }
 
-wait<maybe<GameSetup>> create_customized_game_setup(
+wait<maybe<ExchangeKey>> create_customized_game_setup(
     IEngine& engine, Planes& planes, IGui& gui,
     e_customization_mode const mode ) {
   switch( mode ) {
@@ -463,12 +464,13 @@ valid_or<string> ClassicGameSetupParamsEvaluated::validate()
   return valid;
 }
 
-valid_or<string> validate_game_setup( GameSetup const& setup ) {
+valid_or<string> validate_game_setup(
+    ExchangeKey const& setup ) {
   return refl::validate_recursive( setup );
 }
 
 void randomize_game_setup_seeds( IRand& rand,
-                                 GameSetup& setup ) {
+                                 ExchangeKey& setup ) {
   // We could just use the simpler `traverse_recursive` here, but
   // using the object allows us to log the paths as we go.
   Reseeder reseeder( rand );

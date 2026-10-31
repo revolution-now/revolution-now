@@ -66,18 +66,18 @@ struct RiverParameterInterpolator {
   RiverParameterInterpolator( double scale, int climate )
     : scale_( scale ), climate_( climate ) {}
 
-  [[nodiscard]] config::Probability for_land_form(
+  [[nodiscard]] Probability for_land_form(
       auto const p_field ) const {
-    return config::Probability{
+    return Probability{
       .probability =
           land_form_interp_impl( [&]( auto const& val ) {
             return ( val.*p_field ).probability;
           } ) };
   }
 
-  [[nodiscard]] config::Probability for_climate(
+  [[nodiscard]] Probability for_climate(
       auto const p_field ) const {
-    return config::Probability{
+    return Probability{
       .probability =
           climate_interp_impl( [&]( auto const& val ) {
             return ( val.*p_field ).probability;
@@ -161,7 +161,7 @@ double RiverParameterInterpolator::climate_interp_impl(
 // cause then otherwise map-gen keys which specify "derived" for
 // the river parameters will lead to non-deterministic maps.
 RiverParameters derive_river_parameters(
-    double const scale, WeatherValue const climate ) {
+    double const scale, WeatherValue const& climate ) {
   using RCP = config::map_gen::RiverClimateParameters;
   using RLP = config::map_gen::RiverLandFormParameters;
   RiverParameterInterpolator const river_interp( scale,

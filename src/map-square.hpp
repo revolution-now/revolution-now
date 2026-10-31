@@ -59,4 +59,7 @@ MapSquare map_square_for_terrain( e_terrain terrain );
 maybe<e_natural_resource> effective_resource(
     MapSquare const& square );
 
+maybe<e_terrain_formation> terrain_formation_for(
+    MapSquare const& square );
+
 } // namespace rn

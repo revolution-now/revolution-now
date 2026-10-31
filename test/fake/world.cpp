@@ -43,6 +43,7 @@
 #include "config/colony.rds.hpp"
 #include "config/market.rds.hpp"
 #include "config/natives.rds.hpp"
+#include "config/options.rds.hpp"
 #include "config/production.rds.hpp"
 #include "config/unit-type.rds.hpp"
 
@@ -906,7 +907,14 @@ World::World()
     uninitialized_lua_(),
     uninitialized_gui_(),
     uninitialized_native_agents_(),
-    uninitialized_ts_() {}
+    uninitialized_ts_() {
+  // Initialize these with default values. This is very important
+  // to do here since they need to be set even if the game is not
+  // customized because they affect game rules, and some of the
+  // default values are not simply default constructed values.
+  ss_->settings.game_setup_options.customized_rules =
+      config_options.default_values;
+}
 
 World::~World() noexcept = default;
 

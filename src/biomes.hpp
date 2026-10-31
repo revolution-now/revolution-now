@@ -10,9 +10,6 @@
 *****************************************************************/
 #pragma once
 
-// config
-#include "config/map-gen-types.rds.hpp"
-
 // base
 #include "base/valid.hpp"
 
@@ -24,13 +21,17 @@ namespace rn {
 struct IRand;
 struct MapMatrix;
 struct RealTerrain;
+struct WeatherValue;
+struct WetnessConfig;
+struct Wetness;
 
 /****************************************************************
 ** Public API.
 *****************************************************************/
 base::valid_or<std::string> assign_biomes(
     IRand& rand, RealTerrain& real_terrain,
-    WeatherValue temperature, WeatherValue climate );
+    WeatherValue const& temperature,
+    WeatherValue const& climate );
 
 void apply_biome_wetness_remix(
     MapMatrix& m, IRand& rand,

@@ -8,13 +8,11 @@
 # Description: Config data for the revolution module.
 #
 # ===============================================================
-# config
-include "range-helpers.rds.hpp"
-
 # ss
 include "ss/difficulty.rds.hpp"
 include "ss/revolution.rds.hpp"
 include "ss/unit-type.rds.hpp"
+include "ss/rds-helpers.rds.hpp"
 
 # refl
 include "refl/enum-map.hpp"

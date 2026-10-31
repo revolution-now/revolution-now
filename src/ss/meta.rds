@@ -8,11 +8,17 @@
 # Description: Rds definitions for the ss/meta module.
 #
 # ===============================================================
+# ss
+include "key.rds.hpp"
+
 # rand
 include "rand/entropy.hpp"
 
 # base
 include "base/maybe.hpp"
+
+# C++ standard library
+include "<string>"
 
 namespace "rn"
 
@@ -20,6 +26,17 @@ struct.Seeds {
   gameplay_seed 'base::maybe<rng::seed>',
 }
 
+sumtype.CreationStrategy {
+  unspecified {},
+  manual {
+    description 'std::string',
+  },
+  exchange_key {
+    value 'ExchangeKey',
+  },
+}
+
 struct.MetaState {
   seeds 'Seeds',
+  creation_strategy 'CreationStrategy',
 }

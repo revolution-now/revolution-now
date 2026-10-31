@@ -9,12 +9,12 @@
 #
 # ===============================================================
 # config
-include "config/range-helpers.rds.hpp"
 include "config/tile-enum-fwd.hpp"
 
 # ss
 include "ss/colony-enums.rds.hpp"
 include "ss/mv-points.hpp"
+include "ss/rds-helpers.rds.hpp"
 include "ss/native-enums.rds.hpp"
 include "ss/settings.rds.hpp"
 include "ss/unit-classes.rds.hpp"
@@ -290,14 +290,14 @@ struct.LandPrices {
 struct.SpeakWithChief {
   positive_outcome_weights 'refl::enum_map<e_speak_with_chief_result, int>',
 
-  gift_range 'refl::enum_map<e_native_level, config::IntRange>',
+  gift_range 'refl::enum_map<e_native_level, IntRange>',
 
   # This is the range wherein a scout will be eliminated with a
   # certain probability. Below this range it will never happen
   # and above this range it will always happen. Within the range,
   # the probability goes from 0% to 100% at the lower and upper
   # limits, respectively.
-  alarm_range_for_target_practice 'config::IntRange',
+  alarm_range_for_target_practice 'IntRange',
 
   # This is the length of the side of the large square of tiles
   # that will be revealed to the player; that square will be cen-
@@ -325,7 +325,7 @@ struct.TreasureYield {
 
   # If receiving a treasure, the amount will be chosen uniformly
   # over this range.
-  range 'config::IntRange',
+  range 'IntRange',
 
   # The treasure amount will be rounded to the nearest multiple
   # of this.
@@ -349,10 +349,10 @@ struct.ColonyAttack {
 
   building_slots_eligible_for_destruction 'refl::enum_map<e_colony_building_slot, bool>',
 
-  commodity_percent_stolen 'config::DoubleRange',
+  commodity_percent_stolen 'DoubleRange',
   min_commodity_quantity_for_stealing 'int',
 
-  money_percent_stolen 'config::DoubleRange',
+  money_percent_stolen 'DoubleRange',
   money_stolen_abs_range_max 'int',
 
   _features { equality, validation }
@@ -377,7 +377,7 @@ struct.Arms {
   display_muskets_per_armed_brave 'int',
   display_horses_per_mounted_brave 'int',
 
-  retention_after_death 'refl::enum_map<e_brave_equipment, config::Probability>',
+  retention_after_death 'refl::enum_map<e_brave_equipment, Probability>',
 
   max_horse_breeding 'refl::enum_map<e_native_level, MaxHorseBreeding>',
 
@@ -393,9 +393,9 @@ struct.Arms {
     >
   ]],
 
-  musket_depletion 'refl::enum_map<e_difficulty, config::Probability>',
+  musket_depletion 'refl::enum_map<e_difficulty, Probability>',
 
-  delay_equipping 'refl::enum_map<e_native_level, config::Probability>',
+  delay_equipping 'refl::enum_map<e_native_level, Probability>',
 
   _features { equality, validation }
 }

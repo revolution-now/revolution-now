@@ -32,9 +32,7 @@
 
 namespace rn {
 
-namespace config {
 struct Probability;
-}
 
 namespace detail {
 
@@ -122,7 +120,7 @@ struct IRand {
   /**************************************************************
   ** For convenience.
   ***************************************************************/
-  [[nodiscard]] bool bernoulli( config::Probability const& p );
+  [[nodiscard]] bool bernoulli( Probability const& p );
 
   // Shuffles the elements. Vector can be empty.
   template<typename T>

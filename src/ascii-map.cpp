@@ -10,8 +10,8 @@
 *****************************************************************/
 #include "ascii-map.hpp"
 
-// config
-#include "config/map-gen-types.hpp"
+// Revolution Now
+#include "map-square.hpp"
 
 // ss
 #include "ss/terrain.rds.hpp"

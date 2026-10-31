@@ -17,7 +17,7 @@ namespace rn {
 ** Fwd. Decls.
 *****************************************************************/
 struct IEngine;
-struct GameSetup;
+struct ExchangeKey;
 
 /****************************************************************
 ** Public API.
@@ -32,7 +32,7 @@ void testing_map_gen_default( IEngine& engine );
 
 void testing_map_gen_stats( IEngine& engine );
 
-void load_testing_game_setup( GameSetup& setup );
+void load_testing_game_setup( ExchangeKey& setup );
 
 void drop_large_og_map( IEngine& engine );
 

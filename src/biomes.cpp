@@ -17,11 +17,11 @@
 #include "terrain-mgr.hpp"
 
 // config
-#include "config/map-gen-types.hpp"
 #include "config/map-gen.rds.hpp"
 #include "terrain-enums.rds.hpp"
 
 // ss
+#include "ss/key.hpp"
 #include "ss/map-matrix.hpp"
 #include "ss/map-square.rds.hpp"
 #include "ss/terrain.hpp"
@@ -228,8 +228,8 @@ struct biome_dist {
 *****************************************************************/
 valid_or<string> assign_biomes( IRand& rand,
                                 RealTerrain& real_terrain,
-                                WeatherValue const temperature,
-                                WeatherValue const climate ) {
+                                WeatherValue const& temperature,
+                                WeatherValue const& climate ) {
   ScopedTimer const timer( "assign biomes" );
   auto& m       = real_terrain.map;
   size const sz = m.size();

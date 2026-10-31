@@ -8,11 +8,9 @@
 # Description: Config info related to Lost City Rumors.
 #
 # ===============================================================
-# config
-include "range-helpers.hpp"
-
 # ss
 include "ss/difficulty.rds.hpp"
+include "ss/rds-helpers.rds.hpp"
 
 # refl
 include "refl/enum-map.hpp"
@@ -125,10 +123,10 @@ struct.config_lcr_t {
   # could potentially contain native burial grounds (which cause
   # them to declare war) then this will be the probability that
   # it will actually happen.
-  burial_grounds_probability 'refl::enum_map<e_lcr_explorer_category, config::Probability>',
+  burial_grounds_probability 'refl::enum_map<e_lcr_explorer_category, Probability>',
   burial_grounds_radius 'int',
 
-  holy_shrines_alarm_increase 'refl::enum_map<e_difficulty, config::IntRange>',
+  holy_shrines_alarm_increase 'refl::enum_map<e_difficulty, IntRange>',
 
   _features { validation, equality },
 }

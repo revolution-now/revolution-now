@@ -52,7 +52,7 @@ int rand_int_range( IRand& rand, auto const& int_range ) {
 int rand_int_range_by_year(
     int const year, IRand& rand,
     config::old_world::TaxChangeRanges const& ranges ) {
-  config::IntRange const& range =
+  IntRange const& range =
       ( year < 1600 )   ? ranges.years_0000_to_1599
       : ( year < 1700 ) ? ranges.years_1600_to_1699
       : ( year < 1800 ) ? ranges.years_1700_to_1799

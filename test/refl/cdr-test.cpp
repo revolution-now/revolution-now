@@ -88,13 +88,14 @@ struct Address {
   int street_number = {};
   string state      = {};
 
-  friend void to_str( Address const& o, string& out,
-                      base::tag<Address> ) {
+  [[maybe_unused]] friend void to_str( Address const& o,
+                                       string& out,
+                                       base::tag<Address> ) {
     out += fmt::format( "Address{{street_number={},state={}}}",
                         o.street_number, o.state );
   }
 
-  base::valid_or<string> validate() const {
+  [[maybe_unused]] base::valid_or<string> validate() const {
     static unordered_set<string> valid_states{ "PA", "VA", "CA",
                                                "MD" };
     RETURN_IF_FALSE( valid_states.contains( state ),
@@ -142,7 +143,8 @@ enum class e_pet {
   frog
 };
 
-void to_str( e_pet const& o, string& out, base::tag<e_pet> ) {
+[[maybe_unused]] void to_str( e_pet const& o, string& out,
+                              base::tag<e_pet> ) {
   switch( o ) {
     case e_pet::cat:
       out += "cat";
@@ -191,8 +193,9 @@ struct Person {
   vector<Address> houses         = {};
   unordered_map<e_pet, int> pets = {};
 
-  friend void to_str( Person const& o, string& out,
-                      base::tag<Person> ) {
+  [[maybe_unused]] friend void to_str( Person const& o,
+                                       string& out,
+                                       base::tag<Person> ) {
     out += fmt::format(
         "Person{{name={},height={},male={},houses={},pets={}}}",
         o.name, o.height, o.male, o.houses, o.pets );
@@ -241,13 +244,14 @@ struct PersonWrapper {
     : wrapped( std::move( person ) ) {}
 
   // Implement refl::WrapsReflected.
-  Person const& refl() const { return wrapped; }
+  [[maybe_unused]] Person const& refl() const { return wrapped; }
   static constexpr string_view refl_ns   = "my_ns";
   static constexpr string_view refl_name = "PersonWrapper";
 
   // Implement base::Show.
-  friend void to_str( PersonWrapper const& o, string& out,
-                      base::tag<PersonWrapper> ) {
+  [[maybe_unused]] friend void to_str(
+      PersonWrapper const& o, string& out,
+      base::tag<PersonWrapper> ) {
     base::to_str( o.wrapped, out );
   }
 
@@ -274,8 +278,9 @@ struct Rolodex {
   string updated                         = {};
   unordered_map<string, Person> contacts = {};
 
-  friend void to_str( Rolodex const& o, string& out,
-                      base::tag<Rolodex> ) {
+  [[maybe_unused]] friend void to_str( Rolodex const& o,
+                                       string& out,
+                                       base::tag<Rolodex> ) {
     out +=
         fmt::format( "Rolodex{{self={},updated={},contacts={}}}",
                      o.self, o.updated, o.contacts );

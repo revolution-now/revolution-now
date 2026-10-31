@@ -16,3 +16,22 @@ struct.PerlinFractalOptions {
   lacunarity 'double',
   _features { equality, validation }
 }
+
+struct.PerlinLandForm {
+  scale 'double',
+  fractal 'PerlinFractalOptions',
+  _features { equality, validation }
+}
+
+# These are technically inputs to the Perlin map generation algo-
+# rithm, but they are typically generated randomly since they
+# don't really change any macroscopic properties of the map that
+# one might want to customize; they just create variations on the
+# same map style/type. Thus, together they can be thought of as a
+# kind of seed.
+struct.PerlinSeed {
+  offset_x 'uint32_t',
+  offset_y 'uint32_t',
+  base     'uint32_t',
+  flip     'bool',
+}

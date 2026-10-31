@@ -11,7 +11,7 @@
 #pragma once
 
 // config
-#include "config/range-helpers.rds.hpp"
+#include "ss/rds-helpers.rds.hpp"
 
 namespace rn {
 
@@ -35,7 +35,7 @@ void set_all_forest( MapMatrix& m );
 void generate_formation( IRand& rand, MapMatrix& m,
                          e_terrain_formation formation,
                          FormationSpawnType const& spawn_type,
-                         config::Probability overall_spawn,
+                         Probability overall_spawn,
                          FormationGrowth const& growth,
                          Wetness const& wetness );
 

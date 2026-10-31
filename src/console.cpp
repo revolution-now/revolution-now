@@ -75,7 +75,7 @@ struct ConsolePlane::Impl : public IPlane {
     // window size changes.
     auto const width = console_rect().size.w;
     le_view_.emplace(
-        engine_.textometer(), config_rn.console.font, width,
+        engine_.textometer(), e_font::_6x6, width,
         []( string const& ) {}, config_ui.dialog_text.normal,
         gfx::pixel::wood(), prompt,
         /*initial_text=*/"" );

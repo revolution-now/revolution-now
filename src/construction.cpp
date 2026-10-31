@@ -26,12 +26,12 @@
 // config
 #include "config/colony.hpp"
 #include "config/nation.hpp"
-#include "config/options.rds.hpp"
 #include "config/unit-type.hpp"
 
 // ss
 #include "ss/colonies.hpp"
 #include "ss/old-world-state.rds.hpp"
+#include "ss/options.rds.hpp"
 #include "ss/players.hpp"
 #include "ss/ref.hpp"
 #include "ss/settings.rds.hpp"
@@ -361,7 +361,7 @@ bool wagon_train_limit_exceeded( SSConst const& ss,
   int const max_allowed = [&] {
     switch( ss.settings.game_setup_options.customized_rules
                 .wagon_train_limit_mode ) {
-      using enum config::options::e_wagon_train_limit_mode;
+      using enum e_wagon_train_limit_mode;
       case classic:
         return int(
             ss.colonies.for_player( player.type ).size() );
