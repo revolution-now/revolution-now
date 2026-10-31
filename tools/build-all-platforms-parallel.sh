@@ -6,10 +6,25 @@ set -e
 export DSICILIA_NINJA_STATUS_PRINT_MODE=multiline
 export DSICILIA_NINJA_REFORMAT_MODE=pretty
 
+concurrency=
+
+export CCACHE_DEPEND=true
+
+if printenv | grep REMOTE; then
+  export CCACHE_PREFIX="$HOME/dev/redist/src/builder.sh"
+  export CCACHE_PREFIX_CPP=xxx
+  concurrency="$("$HOME/dev/redist/src/available-concurrency.sh")"
+  if [[ -n "$concurrency" ]]; then
+    concurrency="-j$concurrency"
+  fi
+fi
+
 go() {
   local d="$1"
   cd "$d"
-  ninja all
+  # No quotes around concurrency so that if it is empty then it
+  # won't be a parameter.
+  ninja all $concurrency
 }
 
 folders="$(ls -d .builds/*/)"
