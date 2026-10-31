@@ -44,13 +44,13 @@ struct.InlandLakes {
 struct.PerlinLandFormRange {
   scale 'BoundedNormalDist',
   fractal 'rng::PerlinFractalOptions',
+  _features { equality, validation }
 }
 
 struct.LandForm {
   fully_random 'PerlinLandFormRange',
   customized 'refl::enum_map<e_land_form, PerlinLandFormRange>',
   perlin_edge_suppression 'PerlinEdgeSuppression',
-  _features { equality, validation }
 }
 
 struct.LandLayout {
@@ -123,7 +123,6 @@ struct.RiverClimateParameters {
   turn 'Probability',
   fork 'Probability',
   fork_is_major 'Probability',
-  _features { equality, validation }
 }
 
 struct.RiverLandFormParameters {

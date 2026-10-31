@@ -31,13 +31,48 @@ namespace config::map_gen {
 ** LandMass
 *****************************************************************/
 valid_or<string> LandMass::validate() const {
+  REFL_VALIDATE( fully_random.min >= 0.0,
+                 "land mass min must be in [0,1]." );
+  REFL_VALIDATE( fully_random.min <= 1.0,
+                 "land mass min must be in [0,1]." );
+  REFL_VALIDATE( fully_random.max >= 0.0,
+                 "land mass max must be in [0,1]." );
+  REFL_VALIDATE( fully_random.max <= 1.0,
+                 "land mass max must be in [0,1]." );
+
+  for( e_land_mass const land_mass : enum_values<e_land_mass> ) {
+    REFL_VALIDATE( customized[land_mass].mean >= 0.0,
+                   "land mass mean must be in [0,1] for {}.",
+                   land_mass );
+    REFL_VALIDATE( customized[land_mass].mean <= 1.0,
+                   "land mass mean must be in [0,1] for {}.",
+                   land_mass );
+    REFL_VALIDATE( customized[land_mass].min >= 0.0,
+                   "land mass min must be in [0,1] for {}.",
+                   land_mass );
+    REFL_VALIDATE( customized[land_mass].min <= 1.0,
+                   "land mass min must be in [0,1] for {}.",
+                   land_mass );
+    REFL_VALIDATE( customized[land_mass].max >= 0.0,
+                   "land mass max must be in [0,1] for {}.",
+                   land_mass );
+    REFL_VALIDATE( customized[land_mass].max <= 1.0,
+                   "land mass max must be in [0,1] for {}.",
+                   land_mass );
+  }
   return valid;
 }
 
 /****************************************************************
-** LandForm
+** PerlinLandFormRange
 *****************************************************************/
-valid_or<string> LandForm::validate() const {
+valid_or<string> PerlinLandFormRange::validate() const {
+  REFL_VALIDATE( scale.mean >= 1.0,
+                 "Perlin land form scale must be >= 1.0" );
+  REFL_VALIDATE( scale.min >= 1.0,
+                 "Perlin land form min must be >= 1.0" );
+  REFL_VALIDATE( scale.max >= 1.0,
+                 "Perlin land form max must be >= 1.0" );
   return valid;
 }
 
@@ -50,13 +85,6 @@ valid_or<string> InlandLakes::validate() const {
       "Inland lake bias range must be within [-1, 1]." );
   REFL_VALIDATE( bias.min <= bias.max,
                  "Inland lake bias min must be <= max." );
-  return valid;
-}
-
-/****************************************************************
-** RiverClimateParameters
-*****************************************************************/
-valid_or<string> RiverClimateParameters::validate() const {
   return valid;
 }
 
