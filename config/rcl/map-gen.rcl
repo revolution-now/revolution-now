@@ -33,6 +33,9 @@ terrain_generation {
       }
 
       customized {
+        # NOTE: the min/max here are just overall bounds that we
+        # never want to exceed; we don't necessarily expect to
+        # reach them very often though.
         small:    { mean: .16, stddev: .03, min: .09, max: .46 }
         moderate: { mean: .23, stddev: .03, min: .09, max: .46 }
         large:    { mean: .30, stddev: .03, min: .09, max: .46 }
@@ -86,8 +89,7 @@ terrain_generation {
       # The `bias` determines this frequency and can be in the
       # range [-1, 1] with -1 meaning no additional inland lakes
       # generated and with +1 meaning maximal inland lake genera-
-      # tion. A value of 0.0 reproduces OG behavior and should be
-      # the default.
+      # tion. A value of 0.0 reproduces OG behavior.
       #
       # When generating a new gamie, the bias parameter will be
       # selected from a uniform distribution over the following
