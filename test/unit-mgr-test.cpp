@@ -983,5 +983,20 @@ TEST_CASE( "[unit-mgr] destroy_units" ) {
   REQUIRE( !w.units().exists( free_colonist_2 ) );
 }
 
+TEST_CASE( "[unit-mgr] has_full_mv_points" ) {
+  Player player;
+  player.type = e_player::english;
+  Unit unit   = create_unregistered_unit(
+      player, e_unit_type::missionary );
+
+  REQUIRE( has_full_mv_points( as_const( unit ) ) );
+
+  unit.consume_mv_points( MovementPoints::_1_3() );
+  REQUIRE_FALSE( has_full_mv_points( unit ) );
+
+  unit.forfeight_mv_points();
+  REQUIRE_FALSE( has_full_mv_points( unit ) );
+}
+
 } // namespace
 } // namespace rn

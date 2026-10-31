@@ -21,6 +21,7 @@
 
 // Revolution Now
 #include "src/imap-updater.hpp"
+#include "src/unit-mgr.hpp"
 
 // ss
 #include "src/ss/player.rds.hpp"
@@ -592,8 +593,8 @@ TEST_CASE( "[uprising] deploy_uprising_units" ) {
   REQUIRE( w.units().all().size() == 2 );
   Unit const& unit1 = w.units().unit_for( UnitId{ 1 } );
   Unit const& unit2 = w.units().unit_for( UnitId{ 2 } );
-  REQUIRE( unit1.has_full_mv_points() );
-  REQUIRE( unit2.has_full_mv_points() );
+  REQUIRE( has_full_mv_points( unit1 ) );
+  REQUIRE( has_full_mv_points( unit2 ) );
   REQUIRE( unit1.type() == e_unit_type::soldier );
   REQUIRE( unit2.type() == e_unit_type::dragoon );
   REQUIRE( as_const( w.units() ).ownership_of( unit1.id() ) ==

@@ -196,6 +196,13 @@ void change_unit_player_and_move( SS& ss, TS& ts, Unit& unit,
                                   Coord target );
 
 /****************************************************************
+** Movement.
+*****************************************************************/
+// Will be true at the start of a turn or when a unit has not yet
+// moved.
+[[nodiscard]] bool has_full_mv_points( Unit const& unit );
+
+/****************************************************************
 ** Native-specific
 *****************************************************************/
 Tribe const& tribe_for_unit( SSConst const& ss,

@@ -203,7 +203,9 @@ void change_unit_type( SS& ss, TS& ts, Unit& unit,
                        UnitComposition const& new_comp ) {
   Player const& player =
       player_for_player_or_die( ss.players, unit.player_type() );
-  unit.change_type( player, new_comp );
+  auto const& new_attr = unit_attr( new_comp.type() );
+  unit.change_type_impl( player, new_comp,
+                         new_attr.cargo_slots );
   // In order to make sure that fog of war is updated to reflect
   // the new type (i.e. maybe its sighting radius is different),
   // we will replace it on the map.
@@ -228,6 +230,16 @@ void change_unit_player_and_move( SS& ss, TS& ts, Unit& unit,
   unit.change_player( ss.units, new_player );
   UnitOwnershipChanger( ss, unit.id() )
       .change_to_map_non_interactive( ts.map_updater(), target );
+}
+
+/****************************************************************
+** Movement.
+*****************************************************************/
+// Will be true at the start of a turn or when a unit has not yet
+// moved.
+bool has_full_mv_points( Unit const& unit ) {
+  return unit.movement_points() ==
+         unit_attr( unit.type() ).base_movement_points;
 }
 
 /****************************************************************

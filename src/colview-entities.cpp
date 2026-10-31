@@ -320,7 +320,7 @@ void adjust_mv_points_from_drag( Unit& unit ) {
     // desire of the OG in preventing a ship from moving into a
     // colony, loading/unloading, and continuing to move all in
     // the same turn.
-    if( !unit.has_full_mv_points() ) unit.forfeight_mv_points();
+    if( !has_full_mv_points( unit ) ) unit.forfeight_mv_points();
     return;
   }
 
@@ -549,7 +549,7 @@ class MarketCommodities
     // zero quantity of it.
     return DraggableObjectWithBounds<ColViewObject>{
       .obj    = ColViewObject::commodity{ Commodity{
-           .type = type, .quantity = quantity } },
+        .type = type, .quantity = quantity } },
       .bounds = Rect::from(
           box_upper_left + rendered_commodity_offset(),
           Delta{ .w = 1, .h = 1 } * kCommodityTileSize ) };
@@ -1053,7 +1053,7 @@ class CargoView : public ui::View,
     int max                      = comm.obj.quantity;
     string text                  = fmt::format(
         "What quantity of [{}] would you like to move? "
-                         "({}-{}):",
+        "({}-{}):",
         lowercase_commodity_display_name( comm.obj.type ), min,
         max );
     maybe<int> quantity = co_await ts_.gui.optional_int_input(

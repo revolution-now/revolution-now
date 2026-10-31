@@ -25,6 +25,7 @@
 #include "src/imap-updater.hpp"
 #include "src/plane-stack.hpp"
 #include "src/ref.rds.hpp"
+#include "src/unit-mgr.hpp"
 #include "src/unit-ownership.hpp"
 #include "src/visibility.hpp"
 
@@ -125,55 +126,55 @@ TEST_CASE( "[ref] evolved_royal_money" ) {
   difficulty  = discoverer;
   royal_money = 0;
   expected    = {
-       .old_value         = 0,
-       .per_turn_increase = 10,
-       .new_value         = 10,
-       .new_unit_produced = false,
-       .amount_subtracted = 0,
+    .old_value         = 0,
+    .per_turn_increase = 10,
+    .new_value         = 10,
+    .new_unit_produced = false,
+    .amount_subtracted = 0,
   };
   REQUIRE( f() == expected );
 
   difficulty  = explorer;
   royal_money = 1781;
   expected    = {
-       .old_value         = 1781,
-       .per_turn_increase = 18,
-       .new_value         = 1799,
-       .new_unit_produced = false,
-       .amount_subtracted = 0,
+    .old_value         = 1781,
+    .per_turn_increase = 18,
+    .new_value         = 1799,
+    .new_unit_produced = false,
+    .amount_subtracted = 0,
   };
   REQUIRE( f() == expected );
 
   difficulty  = conquistador;
   royal_money = 30;
   expected    = {
-       .old_value         = 30,
-       .per_turn_increase = 26,
-       .new_value         = 56,
-       .new_unit_produced = false,
-       .amount_subtracted = 0,
+    .old_value         = 30,
+    .per_turn_increase = 26,
+    .new_value         = 56,
+    .new_unit_produced = false,
+    .amount_subtracted = 0,
   };
   REQUIRE( f() == expected );
 
   difficulty  = governor;
   royal_money = 1770;
   expected    = {
-       .old_value         = 1770,
-       .per_turn_increase = 34,
-       .new_value         = 4,
-       .new_unit_produced = true,
-       .amount_subtracted = 1800,
+    .old_value         = 1770,
+    .per_turn_increase = 34,
+    .new_value         = 4,
+    .new_unit_produced = true,
+    .amount_subtracted = 1800,
   };
   REQUIRE( f() == expected );
 
   difficulty  = viceroy;
   royal_money = 1758;
   expected    = {
-       .old_value         = 1758,
-       .per_turn_increase = 42,
-       .new_value         = 0,
-       .new_unit_produced = true,
-       .amount_subtracted = 1800,
+    .old_value         = 1758,
+    .per_turn_increase = 42,
+    .new_value         = 0,
+    .new_unit_produced = true,
+    .amount_subtracted = 1800,
   };
   REQUIRE( f() == expected );
 }
@@ -638,8 +639,8 @@ TEST_CASE( "[ref] ref_colony_selection_metrics" ) {
       .population      = 0,
       .valid_landings  = {
         { .ship_tile = { .tile           = { .x = 5, .y = 3 },
-                          .captured_units = {} },
-           .landings  = {
+                         .captured_units = {} },
+          .landings  = {
             { .tile = { .x = 4, .y = 2 }, .captured_units = {} },
             { .tile = { .x = 5, .y = 2 }, .captured_units = {} },
             { .tile = { .x = 4, .y = 4 }, .captured_units = {} },
@@ -658,8 +659,8 @@ TEST_CASE( "[ref] ref_colony_selection_metrics" ) {
       .population      = 2,
       .valid_landings  = {
         { .ship_tile = { .tile           = { .x = 5, .y = 3 },
-                          .captured_units = {} },
-           .landings  = {
+                         .captured_units = {} },
+          .landings  = {
             { .tile = { .x = 4, .y = 2 }, .captured_units = {} },
             { .tile = { .x = 5, .y = 2 }, .captured_units = {} },
             { .tile = { .x = 4, .y = 4 }, .captured_units = {} },
@@ -689,8 +690,8 @@ TEST_CASE( "[ref] ref_colony_selection_metrics" ) {
       .population      = 3,
       .valid_landings  = {
         { .ship_tile = { .tile           = { .x = 5, .y = 3 },
-                          .captured_units = {} },
-           .landings  = {
+                         .captured_units = {} },
+          .landings  = {
             { .tile = { .x = 4, .y = 2 }, .captured_units = {} },
             { .tile = { .x = 5, .y = 2 }, .captured_units = {} },
             { .tile = { .x = 4, .y = 4 }, .captured_units = {} },
@@ -708,8 +709,8 @@ TEST_CASE( "[ref] ref_colony_selection_metrics" ) {
       .population      = 3,
       .valid_landings  = {
         { .ship_tile = { .tile           = { .x = 5, .y = 3 },
-                          .captured_units = {} },
-           .landings  = {
+                         .captured_units = {} },
+          .landings  = {
             { .tile = { .x = 4, .y = 2 }, .captured_units = {} },
             { .tile = { .x = 5, .y = 2 }, .captured_units = {} },
             { .tile = { .x = 4, .y = 4 }, .captured_units = {} },
@@ -726,8 +727,8 @@ TEST_CASE( "[ref] ref_colony_selection_metrics" ) {
       .population      = 3,
       .valid_landings  = {
         { .ship_tile = { .tile           = { .x = 5, .y = 3 },
-                          .captured_units = {} },
-           .landings  = {
+                         .captured_units = {} },
+          .landings  = {
             { .tile = { .x = 4, .y = 2 }, .captured_units = {} },
             { .tile = { .x = 5, .y = 2 }, .captured_units = {} },
             { .tile = { .x = 4, .y = 4 }, .captured_units = {} },
@@ -744,8 +745,8 @@ TEST_CASE( "[ref] ref_colony_selection_metrics" ) {
       .population      = 3,
       .valid_landings  = {
         { .ship_tile = { .tile           = { .x = 5, .y = 3 },
-                          .captured_units = {} },
-           .landings  = {
+                         .captured_units = {} },
+          .landings  = {
             { .tile = { .x = 4, .y = 2 }, .captured_units = {} },
             { .tile = { .x = 5, .y = 2 }, .captured_units = {} },
             { .tile = { .x = 4, .y = 4 }, .captured_units = {} },
@@ -762,8 +763,8 @@ TEST_CASE( "[ref] ref_colony_selection_metrics" ) {
       .population      = 3,
       .valid_landings  = {
         { .ship_tile = { .tile           = { .x = 5, .y = 3 },
-                          .captured_units = {} },
-           .landings  = {
+                         .captured_units = {} },
+          .landings  = {
             { .tile = { .x = 4, .y = 2 }, .captured_units = {} },
             { .tile = { .x = 5, .y = 2 }, .captured_units = {} },
             { .tile = { .x = 4, .y = 4 }, .captured_units = {} },
@@ -795,16 +796,16 @@ TEST_CASE( "[ref] ref_colony_selection_metrics" ) {
       .population      = 0,
       .valid_landings  = {
         { .ship_tile = { .tile           = { .x = 5, .y = 3 },
-                          .captured_units = { GenericUnitId{
+                         .captured_units = { GenericUnitId{
                            3 } } },
-           .landings  = {
+          .landings  = {
             { .tile = { .x = 4, .y = 2 }, .captured_units = {} },
             { .tile           = { .x = 5, .y = 2 },
-                .captured_units = { GenericUnitId{ 1 } } },
+              .captured_units = { GenericUnitId{ 1 } } },
             { .tile           = { .x = 4, .y = 4 },
-                .captured_units = { GenericUnitId{ 5 } } },
+              .captured_units = { GenericUnitId{ 5 } } },
             { .tile           = { .x = 5, .y = 4 },
-                .captured_units = { GenericUnitId{ 2 } } },
+              .captured_units = { GenericUnitId{ 2 } } },
           } } } };
     REQUIRE( f( colony ) == expected );
   }
@@ -841,13 +842,13 @@ TEST_CASE( "[ref] ref_colony_selection_metrics (buggy spot)" ) {
     .population      = 0,
     .valid_landings  = {
       { .ship_tile = { .tile = { .x = 3, .y = 2 } },
-         .landings  = { { .tile = { .x = 3, .y = 3 } } } },
+        .landings  = { { .tile = { .x = 3, .y = 3 } } } },
       { .ship_tile = { .tile = { .x = 4, .y = 2 } },
-         .landings  = { { .tile = { .x = 3, .y = 3 } } } },
+        .landings  = { { .tile = { .x = 3, .y = 3 } } } },
       { .ship_tile = { .tile = { .x = 5, .y = 3 } },
-         .landings  = { { .tile = { .x = 4, .y = 4 } } } },
+        .landings  = { { .tile = { .x = 4, .y = 4 } } } },
       { .ship_tile = { .tile = { .x = 5, .y = 4 } },
-         .landings  = { { .tile = { .x = 4, .y = 4 } } } } } };
+        .landings  = { { .tile = { .x = 4, .y = 4 } } } } } };
   REQUIRE( f( colony ) == expected );
 }
 
@@ -1075,8 +1076,8 @@ TEST_CASE( "[ref] filter_ref_landing_tiles" ) {
   REQUIRE( tiles == expected );
 
   // Single landing, zero captured.
-  tiles    = { .ship_tile = { .tile = {}, .captured_units = {} },
-               .landings  = {
+  tiles = { .ship_tile = { .tile = {}, .captured_units = {} },
+            .landings  = {
               { .tile = { .x = 1 }, .captured_units = {} } } };
   expected = { .ship_tile = { .tile = {}, .captured_units = {} },
                .landings  = { { .tile           = { .x = 1 },
@@ -1085,20 +1086,20 @@ TEST_CASE( "[ref] filter_ref_landing_tiles" ) {
   REQUIRE( tiles == expected );
 
   // Single landing, some captured.
-  tiles    = { .ship_tile = { .tile = {}, .captured_units = {} },
-               .landings  = { { .tile           = { .x = 1 },
-                                .captured_units = { G{ 1 }, G{ 2 },
-                                                    G{ 3 } } } } };
+  tiles = { .ship_tile = { .tile = {}, .captured_units = {} },
+            .landings  = { { .tile           = { .x = 1 },
+                             .captured_units = { G{ 1 }, G{ 2 },
+                                                 G{ 3 } } } } };
   expected = { .ship_tile = { .tile = {}, .captured_units = {} },
                .landings  = { { .tile           = { .x = 1 },
                                 .captured_units = {
-                                 G{ 1 }, G{ 2 }, G{ 3 } } } } };
+                                  G{ 1 }, G{ 2 }, G{ 3 } } } } };
   f();
   REQUIRE( tiles == expected );
 
   // Multiple landings, all zero.
-  tiles    = { .ship_tile = { .tile = {}, .captured_units = {} },
-               .landings  = {
+  tiles = { .ship_tile = { .tile = {}, .captured_units = {} },
+            .landings  = {
               { .tile = { .x = 1 }, .captured_units = {} },
               { .tile = { .x = 2 }, .captured_units = {} },
               { .tile = { .x = 3 }, .captured_units = {} },
@@ -1118,7 +1119,7 @@ TEST_CASE( "[ref] filter_ref_landing_tiles" ) {
     .ship_tile = { .tile = {}, .captured_units = {} },
     .landings  = {
       { .tile           = { .x = 1 },
-         .captured_units = { G{ 1 }, G{ 2 }, G{ 3 } } },
+        .captured_units = { G{ 1 }, G{ 2 }, G{ 3 } } },
       { .tile = { .x = 2 }, .captured_units = {} },
       { .tile = { .x = 3 }, .captured_units = { G{ 4 } } },
       { .tile = { .x = 4 }, .captured_units = {} } } };
@@ -1131,14 +1132,14 @@ TEST_CASE( "[ref] filter_ref_landing_tiles" ) {
   REQUIRE( tiles == expected );
 
   // Multiple landings, one zero.
-  tiles    = { .ship_tile = { .tile = {}, .captured_units = {} },
-               .landings  = {
+  tiles = { .ship_tile = { .tile = {}, .captured_units = {} },
+            .landings  = {
               { .tile           = { .x = 1 },
-                    .captured_units = { G{ 1 }, G{ 2 }, G{ 3 } } },
+                .captured_units = { G{ 1 }, G{ 2 }, G{ 3 } } },
               { .tile           = { .x = 2 },
-                    .captured_units = { G{ 6 }, G{ 7 } } },
+                .captured_units = { G{ 6 }, G{ 7 } } },
               { .tile           = { .x = 3 },
-                    .captured_units = { G{ 4 }, G{ 9 }, G{ 10 } } },
+                .captured_units = { G{ 4 }, G{ 9 }, G{ 10 } } },
               { .tile = { .x = 4 }, .captured_units = {} } } };
   expected = { .ship_tile = { .tile = {}, .captured_units = {} },
                .landings  = { { .tile           = { .x = 4 },
@@ -1151,12 +1152,12 @@ TEST_CASE( "[ref] filter_ref_landing_tiles" ) {
     .ship_tile = { .tile = {}, .captured_units = {} },
     .landings  = {
       { .tile           = { .x = 1 },
-         .captured_units = { G{ 1 }, G{ 2 }, G{ 3 } } },
+        .captured_units = { G{ 1 }, G{ 2 }, G{ 3 } } },
       { .tile = { .x = 2 }, .captured_units = { G{ 5 } } },
       { .tile           = { .x = 3 },
-         .captured_units = { G{ 4 }, G{ 9 }, G{ 10 } } },
+        .captured_units = { G{ 4 }, G{ 9 }, G{ 10 } } },
       { .tile           = { .x = 4 },
-         .captured_units = { G{ 6 }, G{ 7 } } } } };
+        .captured_units = { G{ 6 }, G{ 7 } } } } };
   expected = {
     .ship_tile = { .tile = {}, .captured_units = {} },
     .landings  = {
@@ -2062,16 +2063,16 @@ TEST_CASE( "[ref] allocate_landing_units" ) {
   landing_tiles.ship_tile = { .tile = { .x = 6, .y = 4 } };
   landing_tiles.landings  = {
     RefLandingTile{
-       .tile           = { .x = 5, .y = 4 },
-       .captured_units = {},
+      .tile           = { .x = 5, .y = 4 },
+      .captured_units = {},
     },
     RefLandingTile{
-       .tile           = { .x = 5, .y = 5 },
-       .captured_units = { GenericUnitId{ 7 } },
+      .tile           = { .x = 5, .y = 5 },
+      .captured_units = { GenericUnitId{ 7 } },
     },
     RefLandingTile{
-       .tile           = { .x = 6, .y = 5 },
-       .captured_units = {},
+      .tile           = { .x = 6, .y = 5 },
+      .captured_units = {},
     },
   };
   n_units_requested                   = 0;
@@ -2090,16 +2091,16 @@ TEST_CASE( "[ref] allocate_landing_units" ) {
   landing_tiles.ship_tile = { .tile = { .x = 6, .y = 4 } };
   landing_tiles.landings  = {
     RefLandingTile{
-       .tile           = { .x = 5, .y = 4 },
-       .captured_units = {},
+      .tile           = { .x = 5, .y = 4 },
+      .captured_units = {},
     },
     RefLandingTile{
-       .tile           = { .x = 5, .y = 5 },
-       .captured_units = { GenericUnitId{ 7 } },
+      .tile           = { .x = 5, .y = 5 },
+      .captured_units = { GenericUnitId{ 7 } },
     },
     RefLandingTile{
-       .tile           = { .x = 6, .y = 5 },
-       .captured_units = {},
+      .tile           = { .x = 6, .y = 5 },
+      .captured_units = {},
     },
   };
   n_units_requested                   = 1;
@@ -2120,16 +2121,16 @@ TEST_CASE( "[ref] allocate_landing_units" ) {
   landing_tiles.ship_tile = { .tile = { .x = 6, .y = 4 } };
   landing_tiles.landings  = {
     RefLandingTile{
-       .tile           = { .x = 5, .y = 4 },
-       .captured_units = {},
+      .tile           = { .x = 5, .y = 4 },
+      .captured_units = {},
     },
     RefLandingTile{
-       .tile           = { .x = 5, .y = 5 },
-       .captured_units = { GenericUnitId{ 7 } },
+      .tile           = { .x = 5, .y = 5 },
+      .captured_units = { GenericUnitId{ 7 } },
     },
     RefLandingTile{
-       .tile           = { .x = 6, .y = 5 },
-       .captured_units = {},
+      .tile           = { .x = 6, .y = 5 },
+      .captured_units = {},
     },
   };
   n_units_requested                   = 3;
@@ -2155,16 +2156,16 @@ TEST_CASE( "[ref] allocate_landing_units" ) {
   landing_tiles.ship_tile = { .tile = { .x = 6, .y = 4 } };
   landing_tiles.landings  = {
     RefLandingTile{
-       .tile           = { .x = 5, .y = 4 },
-       .captured_units = {},
+      .tile           = { .x = 5, .y = 4 },
+      .captured_units = {},
     },
     RefLandingTile{
-       .tile           = { .x = 5, .y = 5 },
-       .captured_units = { GenericUnitId{ 7 } },
+      .tile           = { .x = 5, .y = 5 },
+      .captured_units = { GenericUnitId{ 7 } },
     },
     RefLandingTile{
-       .tile           = { .x = 6, .y = 5 },
-       .captured_units = {},
+      .tile           = { .x = 6, .y = 5 },
+      .captured_units = {},
     },
   };
   n_units_requested                   = 6;
@@ -2197,16 +2198,16 @@ TEST_CASE( "[ref] allocate_landing_units" ) {
   landing_tiles.ship_tile = { .tile = { .x = 6, .y = 4 } };
   landing_tiles.landings  = {
     RefLandingTile{
-       .tile           = { .x = 5, .y = 4 },
-       .captured_units = {},
+      .tile           = { .x = 5, .y = 4 },
+      .captured_units = {},
     },
     RefLandingTile{
-       .tile           = { .x = 5, .y = 5 },
-       .captured_units = { GenericUnitId{ 7 } },
+      .tile           = { .x = 5, .y = 5 },
+      .captured_units = { GenericUnitId{ 7 } },
     },
     RefLandingTile{
-       .tile           = { .x = 6, .y = 5 },
-       .captured_units = {},
+      .tile           = { .x = 6, .y = 5 },
+      .captured_units = {},
     },
   };
   n_units_requested                   = 6;
@@ -2239,16 +2240,16 @@ TEST_CASE( "[ref] allocate_landing_units" ) {
   landing_tiles.ship_tile = { .tile = { .x = 6, .y = 4 } };
   landing_tiles.landings  = {
     RefLandingTile{
-       .tile           = { .x = 5, .y = 4 },
-       .captured_units = {},
+      .tile           = { .x = 5, .y = 4 },
+      .captured_units = {},
     },
     RefLandingTile{
-       .tile           = { .x = 5, .y = 5 },
-       .captured_units = { GenericUnitId{ 7 } },
+      .tile           = { .x = 5, .y = 5 },
+      .captured_units = { GenericUnitId{ 7 } },
     },
     RefLandingTile{
-       .tile           = { .x = 6, .y = 5 },
-       .captured_units = {},
+      .tile           = { .x = 6, .y = 5 },
+      .captured_units = {},
     },
   };
   n_units_requested                   = 6;
@@ -2281,16 +2282,16 @@ TEST_CASE( "[ref] allocate_landing_units" ) {
   landing_tiles.ship_tile = { .tile = { .x = 6, .y = 4 } };
   landing_tiles.landings  = {
     RefLandingTile{
-       .tile           = { .x = 5, .y = 4 },
-       .captured_units = {},
+      .tile           = { .x = 5, .y = 4 },
+      .captured_units = {},
     },
     RefLandingTile{
-       .tile           = { .x = 5, .y = 5 },
-       .captured_units = { GenericUnitId{ 7 } },
+      .tile           = { .x = 5, .y = 5 },
+      .captured_units = { GenericUnitId{ 7 } },
     },
     RefLandingTile{
-       .tile           = { .x = 6, .y = 5 },
-       .captured_units = {},
+      .tile           = { .x = 6, .y = 5 },
+      .captured_units = {},
     },
   };
   n_units_requested                   = 6;
@@ -2323,16 +2324,16 @@ TEST_CASE( "[ref] allocate_landing_units" ) {
   landing_tiles.ship_tile = { .tile = { .x = 6, .y = 4 } };
   landing_tiles.landings  = {
     RefLandingTile{
-       .tile           = { .x = 5, .y = 4 },
-       .captured_units = {},
+      .tile           = { .x = 5, .y = 4 },
+      .captured_units = {},
     },
     RefLandingTile{
-       .tile           = { .x = 5, .y = 5 },
-       .captured_units = { GenericUnitId{ 7 } },
+      .tile           = { .x = 5, .y = 5 },
+      .captured_units = { GenericUnitId{ 7 } },
     },
     RefLandingTile{
-       .tile           = { .x = 6, .y = 5 },
-       .captured_units = {},
+      .tile           = { .x = 6, .y = 5 },
+      .captured_units = {},
     },
   };
   n_units_requested                   = 5;
@@ -2363,16 +2364,16 @@ TEST_CASE( "[ref] allocate_landing_units" ) {
   landing_tiles.ship_tile = { .tile = { .x = 6, .y = 4 } };
   landing_tiles.landings  = {
     RefLandingTile{
-       .tile           = { .x = 5, .y = 4 },
-       .captured_units = {},
+      .tile           = { .x = 5, .y = 4 },
+      .captured_units = {},
     },
     RefLandingTile{
-       .tile           = { .x = 5, .y = 5 },
-       .captured_units = { GenericUnitId{ 7 } },
+      .tile           = { .x = 5, .y = 5 },
+      .captured_units = { GenericUnitId{ 7 } },
     },
     RefLandingTile{
-       .tile           = { .x = 6, .y = 5 },
-       .captured_units = {},
+      .tile           = { .x = 6, .y = 5 },
+      .captured_units = {},
     },
   };
   n_units_requested                   = 5;
@@ -2403,16 +2404,16 @@ TEST_CASE( "[ref] allocate_landing_units" ) {
   landing_tiles.ship_tile = { .tile = { .x = 6, .y = 4 } };
   landing_tiles.landings  = {
     RefLandingTile{
-       .tile           = { .x = 5, .y = 4 },
-       .captured_units = {},
+      .tile           = { .x = 5, .y = 4 },
+      .captured_units = {},
     },
     RefLandingTile{
-       .tile           = { .x = 5, .y = 5 },
-       .captured_units = { GenericUnitId{ 7 } },
+      .tile           = { .x = 5, .y = 5 },
+      .captured_units = { GenericUnitId{ 7 } },
     },
     RefLandingTile{
-       .tile           = { .x = 6, .y = 5 },
-       .captured_units = {},
+      .tile           = { .x = 6, .y = 5 },
+      .captured_units = {},
     },
   };
   n_units_requested                   = 6;
@@ -2443,16 +2444,16 @@ TEST_CASE( "[ref] allocate_landing_units" ) {
   landing_tiles.ship_tile = { .tile = { .x = 6, .y = 4 } };
   landing_tiles.landings  = {
     RefLandingTile{
-       .tile           = { .x = 5, .y = 4 },
-       .captured_units = {},
+      .tile           = { .x = 5, .y = 4 },
+      .captured_units = {},
     },
     RefLandingTile{
-       .tile           = { .x = 5, .y = 5 },
-       .captured_units = { GenericUnitId{ 7 } },
+      .tile           = { .x = 5, .y = 5 },
+      .captured_units = { GenericUnitId{ 7 } },
     },
     RefLandingTile{
-       .tile           = { .x = 6, .y = 5 },
-       .captured_units = {},
+      .tile           = { .x = 6, .y = 5 },
+      .captured_units = {},
     },
   };
   n_units_requested                   = 6;
@@ -2480,16 +2481,16 @@ TEST_CASE( "[ref] allocate_landing_units" ) {
   landing_tiles.ship_tile = { .tile = { .x = 6, .y = 4 } };
   landing_tiles.landings  = {
     RefLandingTile{
-       .tile           = { .x = 5, .y = 4 },
-       .captured_units = {},
+      .tile           = { .x = 5, .y = 4 },
+      .captured_units = {},
     },
     RefLandingTile{
-       .tile           = { .x = 5, .y = 5 },
-       .captured_units = { GenericUnitId{ 7 } },
+      .tile           = { .x = 5, .y = 5 },
+      .captured_units = { GenericUnitId{ 7 } },
     },
     RefLandingTile{
-       .tile           = { .x = 6, .y = 5 },
-       .captured_units = {},
+      .tile           = { .x = 6, .y = 5 },
+      .captured_units = {},
     },
   };
   n_units_requested                   = 6;
@@ -2517,16 +2518,16 @@ TEST_CASE( "[ref] allocate_landing_units" ) {
   landing_tiles.ship_tile = { .tile = { .x = 6, .y = 4 } };
   landing_tiles.landings  = {
     RefLandingTile{
-       .tile           = { .x = 5, .y = 4 },
-       .captured_units = {},
+      .tile           = { .x = 5, .y = 4 },
+      .captured_units = {},
     },
     RefLandingTile{
-       .tile           = { .x = 5, .y = 5 },
-       .captured_units = { GenericUnitId{ 7 } },
+      .tile           = { .x = 5, .y = 5 },
+      .captured_units = { GenericUnitId{ 7 } },
     },
     RefLandingTile{
-       .tile           = { .x = 6, .y = 5 },
-       .captured_units = {},
+      .tile           = { .x = 6, .y = 5 },
+      .captured_units = {},
     },
   };
   n_units_requested                   = 6;
@@ -2550,16 +2551,16 @@ TEST_CASE( "[ref] allocate_landing_units" ) {
   landing_tiles.ship_tile = { .tile = { .x = 6, .y = 4 } };
   landing_tiles.landings  = {
     RefLandingTile{
-       .tile           = { .x = 5, .y = 4 },
-       .captured_units = {},
+      .tile           = { .x = 5, .y = 4 },
+      .captured_units = {},
     },
     RefLandingTile{
-       .tile           = { .x = 5, .y = 5 },
-       .captured_units = { GenericUnitId{ 7 } },
+      .tile           = { .x = 5, .y = 5 },
+      .captured_units = { GenericUnitId{ 7 } },
     },
     RefLandingTile{
-       .tile           = { .x = 6, .y = 5 },
-       .captured_units = {},
+      .tile           = { .x = 6, .y = 5 },
+      .captured_units = {},
     },
   };
   n_units_requested                   = 6;
@@ -2622,8 +2623,8 @@ TEST_CASE( "[ref] create_ref_landing_units" ) {
 
   SECTION( "multiple units" ) {
     plan = {
-      .ship_tile     = { .tile           = { .x = 7, .y = 4 },
-                         .captured_units = { GenericUnitId{ 5 } } },
+      .ship_tile = { .tile           = { .x = 7, .y = 4 },
+                     .captured_units = { GenericUnitId{ 5 } } },
       .landing_units = {
         { e_ref_land_type::regular,
           { .tile = { .x = 6, .y = 5 }, .captured_units = {} } },
@@ -2857,36 +2858,36 @@ TEST_CASE( "[ref] offboard_ref_units" ) {
   // Default.
   landing.colony_id = colony.id;
   landing.units     = {
-        .ship = { .unit_id = man_o_war_id,
-                  .landing_tile =
-                      { .tile           = { .x = 5, .y = 3 },
-                        .captured_units = { captured_ship_id } } },
-        .landed_units =
+    .ship = { .unit_id = man_o_war_id,
+              .landing_tile =
+                  { .tile           = { .x = 5, .y = 3 },
+                    .captured_units = { captured_ship_id } } },
+    .landed_units =
         {
           {
-                .unit_id = regular_id_1,
-                .landing_tile =
+            .unit_id = regular_id_1,
+            .landing_tile =
                 RefLandingTile{
-                      .tile           = { .x = 4, .y = 2 },
-                      .captured_units = { captured_unit_id_1,
-                                          captured_unit_id_2 },
+                  .tile           = { .x = 4, .y = 2 },
+                  .captured_units = { captured_unit_id_1,
+                                      captured_unit_id_2 },
                 },
           },
           {
-                .unit_id = regular_id_2,
-                .landing_tile =
+            .unit_id = regular_id_2,
+            .landing_tile =
                 RefLandingTile{
-                      .tile           = { .x = 5, .y = 2 },
-                      .captured_units = { captured_native_unit_id },
+                  .tile           = { .x = 5, .y = 2 },
+                  .captured_units = { captured_native_unit_id },
                 },
           },
           {
-                .unit_id = cavalry_id_1,
-                .landing_tile =
+            .unit_id = cavalry_id_1,
+            .landing_tile =
                 RefLandingTile{
-                      .tile           = { .x = 4, .y = 2 },
-                      .captured_units = { captured_unit_id_1,
-                                          captured_unit_id_2 },
+                  .tile           = { .x = 4, .y = 2 },
+                  .captured_units = { captured_unit_id_1,
+                                      captured_unit_id_2 },
                 },
           },
         },
@@ -2904,7 +2905,7 @@ TEST_CASE( "[ref] offboard_ref_units" ) {
   REQUIRE( as_const( w.units() ).ownership_of( cavalry_id_1 ) ==
            UnitOwnership::cargo{ .holder = man_o_war_id } );
   REQUIRE( man_o_war.orders().holds<unit_orders::none>() );
-  REQUIRE( man_o_war.has_full_mv_points() );
+  REQUIRE( has_full_mv_points( man_o_war ) );
   REQUIRE( w.units().exists( captured_ship_id ) );
   REQUIRE( w.units()
                .unit_for( regular_id_1 )
@@ -2919,11 +2920,11 @@ TEST_CASE( "[ref] offboard_ref_units" ) {
                .orders()
                .holds<unit_orders::sentry>() );
   REQUIRE(
-      w.units().unit_for( regular_id_1 ).has_full_mv_points() );
+      has_full_mv_points( w.units().unit_for( regular_id_1 ) ) );
   REQUIRE(
-      w.units().unit_for( regular_id_2 ).has_full_mv_points() );
+      has_full_mv_points( w.units().unit_for( regular_id_2 ) ) );
   REQUIRE(
-      w.units().unit_for( cavalry_id_1 ).has_full_mv_points() );
+      has_full_mv_points( w.units().unit_for( cavalry_id_1 ) ) );
   REQUIRE( w.units().exists( captured_unit_id_1 ) );
   REQUIRE( w.units().exists( captured_unit_id_2 ) );
   REQUIRE( w.units().exists( captured_native_unit_id ) );

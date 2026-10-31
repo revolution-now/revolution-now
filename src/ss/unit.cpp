@@ -70,7 +70,7 @@ void Unit::new_turn( Player const& player ) {
 }
 
 maybe<vector<UnitId>> Unit::units_in_cargo() const {
-  if( desc().cargo_slots == 0 ) return nothing;
+  if( o_.cargo.slots_total() == 0 ) return nothing;
   vector<UnitId> res;
   for( Cargo::unit const& u :
        o_.cargo.items_of_type<Cargo::unit>() )
@@ -87,10 +87,6 @@ void Unit::consume_mv_points( MovementPoints points ) {
   o_.mv_pts -= points;
   CHECK( o_.mv_pts >= 0 );
   CHECK_HAS_VALUE( o_.validate() );
-}
-
-bool Unit::has_full_mv_points() const {
-  return o_.mv_pts == desc().base_movement_points;
 }
 
 void Unit::start_fortify() {
@@ -125,22 +121,16 @@ void Unit::change_player( UnitsState& units_state,
   o_.player_type = player_type;
 }
 
-// TODO: see if we need to block changing the type for a unit
-// that can be in cargo but is changing to a unit with a dif-
-// ferent occupation number (e.g. changing a colonist to a trea-
-// sure), if it is being held as cargo.
-void Unit::change_type( Player const& player,
-                        UnitComposition new_comp ) {
+void Unit::change_type_impl( Player const& player,
+                             UnitComposition new_comp,
+                             int const new_cargo_slots ) {
   UnitType const& new_type = new_comp.type_obj();
   CHECK( o_.cargo.slots_occupied() == 0,
          "cannot change the type of a unit holding cargo." );
   CHECK( unit_attr( type() ).ship ==
              unit_attr( new_type.type() ).ship,
          "cannot change a ship to a non-ship or vice versa." );
-  // Most attributes remain the same, save for a few.
-  UnitTypeAttributes const& new_desc = unit_attr( new_type );
-  UnitTypeAttributes const& old_desc = desc();
-  o_.cargo = CargoHold( new_desc.cargo_slots );
+  o_.cargo = CargoHold( new_cargo_slots );
 
   // For movement points, just subtract the number of movement
   // points that they have already used from the new unit types
@@ -154,11 +144,11 @@ void Unit::change_type( Player const& player,
   // full four movement points. This will cause those used move-
   // ment points to persist across type changes.
   MovementPoints used =
-      rn::movement_points( player, old_desc.type ) - o_.mv_pts;
+      rn::movement_points( player, type() ) - o_.mv_pts;
 
   o_.mv_pts = std::max(
       MovementPoints{ 0 },
-      rn::movement_points( player, new_desc.type ) - used );
+      rn::movement_points( player, new_type.type() ) - used );
 
   // This should be done last.
   o_.composition = std::move( new_comp );
@@ -167,7 +157,7 @@ void Unit::change_type( Player const& player,
 string debug_string( Unit const& unit ) {
   return fmt::format(
       "unit{{id={},player_type={},type={},points={}}}",
-      unit.id(), unit.player_type(), unit.desc().name,
+      unit.id(), unit.player_type(), unit.type(),
       unit.movement_points() );
 }
 

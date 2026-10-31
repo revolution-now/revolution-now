@@ -21,6 +21,7 @@
 
 // Revolution Now
 #include "src/native-owned.hpp"
+#include "src/unit-mgr.hpp"
 
 // ss
 #include "src/ss/natives.hpp"
@@ -180,7 +181,7 @@ TEST_CASE( "[command-plow] no double pioneers" ) {
                .units_to_prioritize = {} };
   REQUIRE( f( pioneer1.id() ) == expected );
   REQUIRE( pioneer1.orders().holds<unit_orders::plow>() );
-  REQUIRE( pioneer1.has_full_mv_points() );
+  REQUIRE( has_full_mv_points( pioneer1 ) );
 
   W.agent().EXPECT__message_box(
       "There is already a pioneer working on this tile." );
@@ -188,14 +189,14 @@ TEST_CASE( "[command-plow] no double pioneers" ) {
                .units_to_prioritize = {} };
   REQUIRE( f( pioneer2.id() ) == expected );
   REQUIRE( pioneer2.orders().holds<unit_orders::none>() );
-  REQUIRE( pioneer2.has_full_mv_points() );
+  REQUIRE( has_full_mv_points( pioneer2 ) );
 
   pioneer1.clear_orders();
   expected = { .order_was_run       = true,
                .units_to_prioritize = {} };
   REQUIRE( f( pioneer2.id() ) == expected );
   REQUIRE( pioneer2.orders().holds<unit_orders::plow>() );
-  REQUIRE( pioneer2.has_full_mv_points() );
+  REQUIRE( has_full_mv_points( pioneer2 ) );
 }
 
 } // namespace

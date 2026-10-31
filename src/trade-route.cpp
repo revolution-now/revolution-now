@@ -633,7 +633,7 @@ wait_bool confirm_delete_trade_route(
   TradeRoute const& route = iter->second;
   string const msg        = format(
       "Are you sure that you want to delete the [{}] trade "
-             "route?",
+      "route?",
       route.name );
   auto const ok = co_await gui.optional_yes_no( YesNoConfig{
     .msg            = msg,
@@ -978,7 +978,7 @@ EvolveTradeRoute evolve_trade_route_human(
     return EvolveTradeRoute::abort{};
   };
 
-  if( unit.has_full_mv_points() &&
+  if( has_full_mv_points( unit ) &&
       goto_registry.units.contains( unit.id() ) ) {
     // If we're at the start of a unit's turn and the path has
     // already been computed and it is short enough then it

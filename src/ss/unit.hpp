@@ -100,9 +100,6 @@ struct ND Unit {
   // forfeight_mv_points) to mark the unit as having finished
   // their turn.
   void consume_mv_points( MovementPoints points );
-  // Will be true at the start of a turn or when a unit has not
-  // yet moved.
-  bool has_full_mv_points() const;
 
   /************************* Orders ****************************/
 
@@ -125,8 +122,9 @@ struct ND Unit {
  private:
   // Should not call this directly, instead should use
   // change_unit_type.
-  void change_type( Player const& player,
-                    UnitComposition new_comp );
+  void change_type_impl( Player const& player,
+                         UnitComposition new_comp,
+                         int new_cargo_slots );
 
   friend void change_unit_type(
       SS& ss, TS& ts, Unit& unit,
