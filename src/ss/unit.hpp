@@ -144,8 +144,6 @@ struct ND Unit {
                                            Coord target );
 
  public:
-  base::maybe<e_unit_type> demoted_type() const;
-
   // Implement refl::WrapsReflected.
   Unit( wrapped::Unit&& o ) : o_( std::move( o ) ) {}
   wrapped::Unit const& refl() const { return o_; }

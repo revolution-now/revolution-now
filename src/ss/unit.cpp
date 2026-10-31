@@ -10,12 +10,7 @@
 *****************************************************************/
 #include "unit.hpp"
 
-// Revolution Now
-#include "promotion.hpp"
-
 // config
-#include "config/nation.hpp"
-#include "config/tile-enum.rds.hpp"
 #include "config/unit-type.hpp"
 
 // ss
@@ -176,11 +171,6 @@ string debug_string( Unit const& unit ) {
       unit.movement_points() );
 }
 
-maybe<e_unit_type> Unit::demoted_type() const {
-  UNWRAP_RETURN( demoted, on_death_demoted_type( type_obj() ) );
-  return demoted.type();
-}
-
 // Lua bindings.
 void define_usertype_for( lua::state& st, lua::tag<Unit> ) {
   using U = Unit;
@@ -211,10 +201,8 @@ void define_usertype_for( lua::state& st, lua::tag<Unit> ) {
   u["clear_orders"]  = &U::clear_orders;
 
   u[lua::metatable_key]["__tostring"] = []( U const& u ) {
-    return fmt::format(
-        "{} {} (id={})",
-        player_obj( u.player_type() ).possessive_pre_declaration,
-        u.desc().name, u.id() );
+    return fmt::format( "{} (id={},player={})", u.desc().name,
+                        u.player_type(), u.id() );
   };
 };
 
