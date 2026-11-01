@@ -271,20 +271,7 @@ valid_or<string> generate_map_native_impl(
   // Rivers.
   if( setup.rivers.has_value() ) {
     rand.reseed( setup.rivers->seed );
-    RiverParameters const river_params = [&] {
-      SWITCH( setup.rivers->parameters ) {
-        CASE( derived ) {
-          return derive_river_parameters(
-              setup.surface_generator.perlin_settings.land_form
-                  .scale,
-              setup.weather.climate );
-        }
-        CASE( from_overridden ) {
-          return from_overridden.values;
-        }
-      }
-    }();
-    add_rivers( m, rand, river_params );
+    add_rivers( m, rand, setup.rivers->parameters );
   }
 
   return valid;

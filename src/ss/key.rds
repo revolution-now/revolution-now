@@ -139,16 +139,9 @@ struct.RiverParameters {
   _features { equality, validation }
 }
 
-sumtype.RiverParametersSetup {
-  derived {},
-  from_overridden {
-    values 'RiverParameters',
-  },
-}
-
 struct.RiverSetup {
   seed 'rng::seed',
-  parameters 'RiverParametersSetup',
+  parameters 'RiverParameters',
 }
 
 struct.BiomesSetup {

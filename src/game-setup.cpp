@@ -209,7 +209,9 @@ ExchangeKey create_classic_game_key(
 
   RiverSetup const rivers{
     .seed       = rand.new_deterministic_seed(),
-    .parameters = RiverParametersSetup::derived{},
+    .parameters = derive_river_parameters(
+        surface_generator.perlin_settings.land_form.scale,
+        weather.climate ),
   };
 
   BiomesSetup const biomes{

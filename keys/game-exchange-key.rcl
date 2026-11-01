@@ -71,19 +71,21 @@ map.source.generate_native.setup {
     climate.value:      0
   }
 
+  # NOTE: the river parameters normally vary by the chosen cli-
+  # mate and land form scale, so if you vary those you may want
+  # to vary these as well (see the map-gen config).
   rivers {
     seed: sac0304879ebe1280b0f9ca5e56f762fc
-    parameters.derived {}
-    #parameters.from_overridden.values {
-    #  min_length:                4
-    #  growth.probability:        .60
-    #  initiation.probability:    .052
-    #  start_major.probability:   .25
-    #  sustain_major.probability: .57
-    #  turn.probability:          .32
-    #  fork.probability:          .116
-    #  fork_is_major.probability: .47
-    #}
+    parameters {
+      min_length:                4
+      growth.probability:        .60
+      initiation.probability:    .052
+      start_major.probability:   .25
+      sustain_major.probability: .57
+      turn.probability:          .32
+      fork.probability:          .116
+      fork_is_major.probability: .47
+    }
   }
 
   biomes {
