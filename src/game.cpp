@@ -84,9 +84,10 @@ wait<> persistent_msg_box( IGui& gui, string_view const msg ) {
   while( true ) co_await gui.message_box( string( msg ) );
 }
 
-wait_bool create_from_setup( SS& ss, IGui& gui, IRand& rand,
-                             lua::state& lua,
-                             ExchangeKey const& setup ) {
+wait_bool create_from_setup(
+    SS& ss, IGui& gui, IRand& rand, lua::state& lua,
+    ExchangeKey const& setup,
+    ExchangeKeyGenerationMethod const& key_generation_method ) {
   auto const valid = validate_game_setup( setup );
   if( !valid ) {
     co_await gui.message_box( "Failed to create game: {}",
@@ -99,8 +100,8 @@ wait_bool create_from_setup( SS& ss, IGui& gui, IRand& rand,
   // TODO: we could consider putting the below function in a
   // sandbox of some kind and then running it in its own thread
   // so that we don't block the main thread.
-  if( auto const ok =
-          create_game_from_setup( ss, rand, lua, setup );
+  if( auto const ok = create_game_from_exchange_key(
+          ss, rand, lua, setup, key_generation_method );
       !ok ) {
     lg.error( "failed to create game: {}", ok.error() );
     co_await gui.message_box( "Failed to create game: {}",
@@ -121,8 +122,9 @@ wait_bool new_game_new_world( IEngine& engine, Planes& planes,
   if( !params.has_value() ) co_return false;
   ExchangeKey const setup =
       create_default_game_setup( engine.rand(), *params );
-  co_return co_await create_from_setup( ss, gui, engine.rand(),
-                                        lua, setup );
+  co_return co_await create_from_setup(
+      ss, gui, engine.rand(), lua, setup,
+      ExchangeKeyGenerationMethod::new_game{} );
 }
 
 wait_bool new_game_america( IEngine& engine, Planes& planes,
@@ -133,8 +135,9 @@ wait_bool new_game_america( IEngine& engine, Planes& planes,
   if( !params.has_value() ) co_return false;
   ExchangeKey const setup =
       create_america_game_setup( engine.rand(), *params );
-  co_return co_await create_from_setup( ss, gui, engine.rand(),
-                                        lua, setup );
+  co_return co_await create_from_setup(
+      ss, gui, engine.rand(), lua, setup,
+      ExchangeKeyGenerationMethod::america{} );
 }
 
 wait_bool new_game_exchange( IEngine& engine, Planes&, SS& ss,
@@ -142,8 +145,9 @@ wait_bool new_game_exchange( IEngine& engine, Planes&, SS& ss,
                              lua::state& lua ) {
   ExchangeKey setup;
   load_testing_game_setup( setup );
-  co_return co_await create_from_setup( ss, gui, engine.rand(),
-                                        lua, setup );
+  co_return co_await create_from_setup(
+      ss, gui, engine.rand(), lua, setup,
+      ExchangeKeyGenerationMethod::user_generated{} );
 }
 
 wait_bool customize_new_world( IEngine& engine, Planes& planes,
@@ -164,8 +168,9 @@ wait_bool customize_new_world( IEngine& engine, Planes& planes,
   auto const setup = co_await create_customized_game_setup(
       engine, planes, gui, *mode );
   if( !setup.has_value() ) co_return false;
-  co_return co_await create_from_setup( ss, gui, engine.rand(),
-                                        lua, *setup );
+  co_return co_await create_from_setup(
+      ss, gui, engine.rand(), lua, *setup,
+      ExchangeKeyGenerationMethod::customize_game{} );
 }
 
 using LoaderFunc = base::function_ref<wait_bool(

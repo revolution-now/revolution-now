@@ -208,8 +208,9 @@ void generate_single_map_impl(
   // ------------------------------------------------------------
   // Generate map.
   // ------------------------------------------------------------
-  CHECK_HAS_VALUE(
-      create_game_from_setup( ss, rand, st, setup ) );
+  CHECK_HAS_VALUE( create_game_from_exchange_key(
+      ss, rand, st, setup,
+      ExchangeKeyGenerationMethod::user_generated{} ) );
 }
 
 void generate_single_map_key( IEngine& engine, SS& ss,

@@ -456,15 +456,15 @@ valid_or<string> load_map_from_file(
 // NOTE: we visit each section in reverse order that it appears
 // in the struct, since some of the earlier ones depend on the
 // later ones.
-valid_or<string> create_game_from_setup(
-    SS& ss, IRand& rand, lua::state& lua,
-    ExchangeKey const& setup ) {
+valid_or<string> create_game_from_exchange_key(
+    SS& ss, IRand& rand, lua::state& lua, ExchangeKey const& key,
+    ExchangeKeyGenerationMethod const& key_generation_method ) {
   RootState& root = ss.root;
 
   root = {}; // Just in case.
 
 #if 0
-  lg.info( "creating game from:\n{}", rcl::to_rcl( setup ) );
+  lg.info( "creating game from:\n{}", rcl::to_rcl( key ) );
 #endif
 
   // MetaState state.
@@ -474,7 +474,10 @@ valid_or<string> create_game_from_setup(
   // could be `nothing` in which case a random device will be
   // used to seed it at that time. See the comments in ss/meta
   // for more details on this mechanism.
-  root.meta.seeds.gameplay_seed = setup.gameplay_seed;
+  root.meta.seeds.gameplay_seed = key.gameplay_seed;
+
+  root.meta.creation_strategy = CreationStrategy::exchange_key{
+    .key = key, .generation_method = key_generation_method };
 
   // SettingsState state.
   // ------------------------------------------------------------
@@ -489,12 +492,12 @@ valid_or<string> create_game_from_setup(
   // ------------------------------------------------------------
   lg.info( "game setup: setting rules..." );
   root.settings.game_setup_options.customized_rules =
-      setup.settings.rules;
+      key.settings.rules;
 
   // Map.
   // ------------------------------------------------------------
   lg.info( "game setup: generating map..." );
-  SWITCH( setup.map.source ) {
+  SWITCH( key.map.source ) {
     CASE( load_from_file ) {
       GOOD_OR_RETURN(
           load_map_from_file( load_from_file, lua, root ) );

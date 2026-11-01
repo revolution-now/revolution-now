@@ -21,14 +21,16 @@ namespace rn {
 /****************************************************************
 ** Fwd. Decls.
 *****************************************************************/
+struct ExchangeKeyGenerationMethod;
 struct IRand;
 struct SS;
 
 /****************************************************************
 ** Public API.
 *****************************************************************/
-base::valid_or<std::string> create_game_from_setup(
+base::valid_or<std::string> create_game_from_exchange_key(
     SS& ss, IRand& rand, lua::state& lua,
-    ExchangeKey const& setup );
+    ExchangeKey const& setup,
+    ExchangeKeyGenerationMethod const& key_creation_method );
 
 } // namespace rn
