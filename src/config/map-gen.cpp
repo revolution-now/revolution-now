@@ -10,6 +10,9 @@
 *****************************************************************/
 #include "map-gen.hpp"
 
+// ss
+#include "ss/key.hpp"
+
 // refl
 #include "refl/ext.hpp"
 

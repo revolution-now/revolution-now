@@ -21,7 +21,7 @@
 #include "rivers.hpp"
 
 // config
-#include "config/map-gen.hpp"
+#include "config/map-gen.rds.hpp"
 #include "config/nation.rds.hpp"
 #include "config/options.rds.hpp"
 #include "config/turn.rds.hpp"
@@ -142,18 +142,18 @@ struct Reseeder : public trv::RecursiveTraverserWithTracking {
 /****************************************************************
 ** Public API.
 *****************************************************************/
-ExchangeKey create_classic_game_setup(
+ExchangeKey create_classic_game_key(
     IRand& rand,
     ClassicGameSetupParamsEvaluated const& params ) {
-  ExchangeKey setup;
+  ExchangeKey key;
 
   // category: settings_state
   // ------------------------------------------------------------
-  setup.settings.difficulty = params.common.difficulty;
+  key.settings.difficulty = params.common.difficulty;
 
   // category: rules
   // ------------------------------------------------------------
-  setup.settings.rules = config_options.default_values;
+  key.settings.rules = config_options.default_values;
 
   // category: map
   // ------------------------------------------------------------
@@ -183,7 +183,8 @@ ExchangeKey create_classic_game_setup(
   };
 
   SurfaceGeneratorSetup const surface_generator{
-    .target_density  = params.land_density,
+    .target_density =
+        DoublePercent{ .fraction = params.land_density },
     .perlin_settings = perlin_settings,
     .lakes           = lakes_setup,
     .arctic{
@@ -191,7 +192,10 @@ ExchangeKey create_classic_game_setup(
       .enabled = map_conf.land_layout.arctic.enabled &&
                  world_sz.h >=
                      map_conf.land_layout.arctic.min_map_height,
-      .density = map_conf.land_layout.arctic.density.fraction,
+      .density =
+          DoublePercent{
+            .fraction =
+                map_conf.land_layout.arctic.density.fraction },
     },
     .sanitization = surface_sanitization,
   };
@@ -232,14 +236,13 @@ ExchangeKey create_classic_game_setup(
     .bonuses           = bonuses,
   };
 
-  setup.map = MapSetup{ .source = MapSource::generate_native{
-                          .setup = generated_map_setup } };
+  key.map = MapSetup{ .source = MapSource::generate_native{
+                        .setup = generated_map_setup } };
 
   // category: natives
   // ------------------------------------------------------------
   for( e_tribe const tribe_type : enum_values<e_tribe> ) {
-    auto& tribe_setup =
-        setup.natives.tribes[tribe_type].emplace();
+    auto& tribe_setup = key.natives.tribes[tribe_type].emplace();
     // TODO
     (void)tribe_setup;
   }
@@ -249,7 +252,7 @@ ExchangeKey create_classic_game_setup(
   e_nation const human_nation = params.common.player;
   for( e_nation const nation : enum_values<e_nation> ) {
     using enum e_player_control;
-    auto& o   = setup.nations.nations[nation].emplace();
+    auto& o   = key.nations.nations[nation].emplace();
     o.control = ( human_nation == nation ) ? human : ai;
     o.name = config_nation.nations[nation].default_leader_name;
     if( o.control == human ) o.name = params.common.player_name;
@@ -257,19 +260,19 @@ ExchangeKey create_classic_game_setup(
 
   // category: turns
   // ------------------------------------------------------------
-  setup.settings.starting_year =
+  key.settings.starting_year =
       config_turn.game_start.starting_year;
 
   // category: gameplay seed.
   // ------------------------------------------------------------
   // A random device will be used to init the generator when this
   // game begins.
-  setup.gameplay_seed = nothing;
+  key.gameplay_seed = nothing;
 
-  return setup;
+  return key;
 }
 
-ExchangeKey create_default_game_setup(
+ExchangeKey create_default_game_key(
     IRand& rand, ClassicGameSetupParamsCommon const& common ) {
   auto const& map_conf = config_map_gen.terrain_generation;
   rng::PerlinLandForm const perlin_land_form{
@@ -289,10 +292,10 @@ ExchangeKey create_default_game_setup(
     .climate = sample_weather_dist(
         rand, map_conf.weather.climate.fully_random ),
   };
-  return create_classic_game_setup( rand, params );
+  return create_classic_game_key( rand, params );
 }
 
-ExchangeKey create_classic_customized_game_setup(
+ExchangeKey create_classic_customized_game_key(
     IRand& rand, ClassicGameSetupParams const& params ) {
   auto const& map_conf      = config_map_gen.terrain_generation;
   double const land_density = sample_normal(
@@ -318,12 +321,12 @@ ExchangeKey create_classic_customized_game_setup(
                    .customized[params.custom.climate],
   };
 
-  return create_classic_game_setup( rand, evaluated );
+  return create_classic_game_key( rand, evaluated );
 }
 
-ExchangeKey create_america_game_setup(
+ExchangeKey create_america_game_key(
     IRand& rand, ClassicGameSetupParamsCommon const& common ) {
-  ExchangeKey setup = create_default_game_setup( rand, common );
+  ExchangeKey setup = create_default_game_key( rand, common );
 
   setup.map = MapSetup{
     .source =
@@ -413,7 +416,7 @@ create_classic_game_custom_params( IEngine&, Planes&,
   co_return params;
 }
 
-wait<maybe<ExchangeKey>> create_customized_game_setup(
+wait<maybe<ExchangeKey>> create_customized_game_key(
     IEngine& engine, Planes& planes, IGui& gui,
     e_customization_mode const mode ) {
   switch( mode ) {
@@ -428,7 +431,7 @@ wait<maybe<ExchangeKey>> create_customized_game_setup(
           params.common,
           co_await create_classic_game_common_params(
               engine, planes, gui ) );
-      co_return create_classic_customized_game_setup(
+      co_return create_classic_customized_game_key(
           engine.rand(), params );
     }
     case modern: {
@@ -448,15 +451,6 @@ wait<maybe<ExchangeKey>> create_customized_game_setup(
 /****************************************************************
 ** Validation.
 *****************************************************************/
-valid_or<string> GeneratedMapSetup::validate() const {
-  REFL_VALIDATE( size.w >= kMapWidthMin,
-                 "map width must be >= {}", kMapWidthMin );
-  REFL_VALIDATE( size.h >= kMapHeightMin,
-                 "map height must be >= {}", kMapHeightMin );
-  REFL_VALIDATE( size.area() > 0, "map area must be > 0" );
-  return valid;
-}
-
 valid_or<string> ClassicGameSetupParamsEvaluated::validate()
     const {
   REFL_VALIDATE( land_density > 0.0 && land_density <= 1.0,
@@ -464,13 +458,12 @@ valid_or<string> ClassicGameSetupParamsEvaluated::validate()
   return valid;
 }
 
-valid_or<string> validate_game_setup(
-    ExchangeKey const& setup ) {
+valid_or<string> validate_game_key( ExchangeKey const& setup ) {
   return refl::validate_recursive( setup );
 }
 
-void randomize_game_setup_seeds( IRand& rand,
-                                 ExchangeKey& setup ) {
+void randomize_game_key_seeds( IRand& rand,
+                               ExchangeKey& setup ) {
   // We could just use the simpler `traverse_recursive` here, but
   // using the object allows us to log the paths as we go.
   Reseeder reseeder( rand );

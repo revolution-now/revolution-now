@@ -35,13 +35,13 @@ map.source.generate_native.setup {
     arctic {
       seed: sae5312d3978ed9ef0bedf14820419370
       enabled: true
-      density: 0.6
+      density.fraction: 0.6
     }
     sanitization {
       remove_crosses: true
       remove_islands: true
     }
-    target_density: 0.23
+    target_density.fraction: 0.23
   }
 
   wetness {

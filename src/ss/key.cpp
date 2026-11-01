@@ -24,6 +24,24 @@ using ::base::valid_or;
 } // namespace
 
 /****************************************************************
+** NationSetup
+*****************************************************************/
+valid_or<string> NationSetup::validate() const {
+  REFL_VALIDATE( !name.empty(),
+                 "nation name must not be empty" );
+  return valid;
+}
+
+/****************************************************************
+** RiverParameters
+*****************************************************************/
+valid_or<string> RiverParameters::validate() const {
+  REFL_VALIDATE( min_length >= 2,
+                 "minimum river length must be >= 2" );
+  return valid;
+}
+
+/****************************************************************
 ** Wetness
 *****************************************************************/
 valid_or<string> WetnessConfig::validate() const {
@@ -81,6 +99,27 @@ valid_or<string> FormationGrowth::validate() const {
       "formation edge decay parameters must be in [0,1]" );
   REFL_VALIDATE( max_size >= 0,
                  "formation max size must be >= 0" );
+  return valid;
+}
+
+/****************************************************************
+** GameSettingsSetup
+*****************************************************************/
+valid_or<string> GameSettingsSetup::validate() const {
+  REFL_VALIDATE( starting_year >= 0,
+                 "starting_year must be >= 0." );
+  return valid;
+}
+
+/****************************************************************
+** GeneratedMapSetup
+*****************************************************************/
+valid_or<string> GeneratedMapSetup::validate() const {
+  REFL_VALIDATE( size.w >= kMapWidthMin,
+                 "map width must be >= {}", kMapWidthMin );
+  REFL_VALIDATE( size.h >= kMapHeightMin,
+                 "map height must be >= {}", kMapHeightMin );
+  REFL_VALIDATE( size.area() > 0, "map area must be > 0" );
   return valid;
 }
 

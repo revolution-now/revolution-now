@@ -88,7 +88,7 @@ wait_bool create_from_setup(
     SS& ss, IGui& gui, IRand& rand, lua::state& lua,
     ExchangeKey const& setup,
     ExchangeKeyGenerationMethod const& key_generation_method ) {
-  auto const valid = validate_game_setup( setup );
+  auto const valid = validate_game_key( setup );
   if( !valid ) {
     co_await gui.message_box( "Failed to create game: {}",
                               valid.error() );
@@ -121,7 +121,7 @@ wait_bool new_game_new_world( IEngine& engine, Planes& planes,
       engine, planes, gui );
   if( !params.has_value() ) co_return false;
   ExchangeKey const setup =
-      create_default_game_setup( engine.rand(), *params );
+      create_default_game_key( engine.rand(), *params );
   co_return co_await create_from_setup(
       ss, gui, engine.rand(), lua, setup,
       ExchangeKeyGenerationMethod::new_game{} );
@@ -134,7 +134,7 @@ wait_bool new_game_america( IEngine& engine, Planes& planes,
       engine, planes, gui );
   if( !params.has_value() ) co_return false;
   ExchangeKey const setup =
-      create_america_game_setup( engine.rand(), *params );
+      create_america_game_key( engine.rand(), *params );
   co_return co_await create_from_setup(
       ss, gui, engine.rand(), lua, setup,
       ExchangeKeyGenerationMethod::america{} );
@@ -165,7 +165,7 @@ wait_bool customize_new_world( IEngine& engine, Planes& planes,
       co_await gui.optional_enum_choice<e_customization_mode>(
           config, disabled );
   if( !mode.has_value() ) co_return false;
-  auto const setup = co_await create_customized_game_setup(
+  auto const setup = co_await create_customized_game_key(
       engine, planes, gui, *mode );
   if( !setup.has_value() ) co_return false;
   co_return co_await create_from_setup(

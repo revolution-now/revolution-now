@@ -38,6 +38,7 @@ namespace "rn"
 struct.NationSetup {
   name 'std::string',
   control 'e_player_control',
+  _features { equality, validation }
 }
 
 struct.NationsSetup {
@@ -60,7 +61,7 @@ struct.SurfaceSanitizationSetup {
 struct.ArcticSetup {
   seed 'rng::seed',
   enabled 'bool',
-  density 'double',
+  density 'DoublePercent',
 }
 
 struct.LakesSetup {
@@ -81,7 +82,7 @@ struct.PerlinMapSettings {
 }
 
 struct.SurfaceGeneratorSetup {
-  target_density 'double',
+  target_density 'DoublePercent',
   perlin_settings 'PerlinMapSettings',
   lakes 'LakesSetup',
   arctic 'ArcticSetup',
@@ -135,6 +136,7 @@ struct.RiverParameters {
   initiation 'Probability',
   sustain_major 'Probability',
   start_major 'Probability',
+  _features { equality, validation }
 }
 
 sumtype.RiverParametersSetup {
@@ -211,7 +213,7 @@ struct.GeneratedMapSetup {
   surface_generator 'SurfaceGeneratorSetup',
   wetness 'WetnessConfig',
   weather 'WeatherSetup',
-  rivers 'RiverSetup',
+  rivers 'base::maybe<RiverSetup>',  # rivers are optional.
   biomes 'BiomesSetup',
   formations 'FormationsSetup',
   bonuses 'BonusesSetup',
@@ -267,6 +269,7 @@ struct.GameSettingsSetup {
   difficulty 'e_difficulty',
   starting_year 'int',
   rules 'GameRulesOptions',
+  _features { equality, validation }
 }
 
 # This struct contains all of the settings that can be specified

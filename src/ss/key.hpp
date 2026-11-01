@@ -30,4 +30,10 @@ int constexpr kWeatherValueMaxMagnitude = 200;
 double constexpr kBiomeSelfAffinityMin = -3.0;
 double constexpr kBiomeSelfAffinityMax = 3.0;
 
+// These are not allowed to be configured since we don't want to
+// allow lowering them, and there isn't really a need to make
+// them higher.
+int constexpr kMapHeightMin = 6;
+int constexpr kMapWidthMin  = 6;
+
 } // namespace rn

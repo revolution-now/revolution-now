@@ -203,7 +203,7 @@ void generate_single_map_impl(
   // ------------------------------------------------------------
   ExchangeKey setup;
   fn( rand, setup );
-  CHECK_HAS_VALUE( validate_game_setup( setup ) );
+  CHECK_HAS_VALUE( validate_game_key( setup ) );
 
   // ------------------------------------------------------------
   // Generate map.
@@ -220,7 +220,7 @@ void generate_single_map_key( IEngine& engine, SS& ss,
     if( reseed )
       // Reseed all seeds in the structure, but keep all other
       // parameters the same.
-      randomize_game_setup_seeds( rand, setup );
+      randomize_game_key_seeds( rand, setup );
   };
   generate_single_map_impl( engine, ss, fn );
 }
@@ -232,7 +232,7 @@ void generate_single_map_key( IEngine& engine, SS& ss,
       .difficulty  = e_difficulty::conquistador,
       .player      = e_nation::english,
       .player_name = "David" };
-    setup = create_default_game_setup( rand, params );
+    setup = create_default_game_key( rand, params );
   };
   generate_single_map_impl( engine, ss, fn );
 }
@@ -246,7 +246,7 @@ void generate_single_map_key( IEngine& engine, SS& ss,
                   .player      = e_nation::english,
                   .player_name = "Conquistador David" },
       .custom = custom };
-    setup = create_classic_customized_game_setup( rand, params );
+    setup = create_classic_customized_game_key( rand, params );
   };
   generate_single_map_impl( engine, ss, fn );
 }
@@ -727,7 +727,7 @@ void load_testing_game_setup( ExchangeKey& setup ) {
   UNWRAP_CHECK_T(
       setup, cdr::run_conversion_from_canonical<ExchangeKey>(
                  doc.top_val(), options ) );
-  CHECK_HAS_VALUE( validate_game_setup( setup ) );
+  CHECK_HAS_VALUE( validate_game_key( setup ) );
 }
 
 void testing_map_gen_key( IEngine& engine, bool const reseed ) {

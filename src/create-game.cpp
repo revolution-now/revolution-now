@@ -152,9 +152,10 @@ valid_or<string> generate_land_perlin(
     auto const& perlin_settings =
         surface_generator.perlin_settings;
     matrix<e_surface> surface;
-    auto const ok = TIMED_CALL( land_gen_perlin, perlin_settings,
-                                surface_generator.target_density,
-                                setup.size, surface );
+    auto const ok =
+        TIMED_CALL( land_gen_perlin, perlin_settings,
+                    surface_generator.target_density.fraction,
+                    setup.size, surface );
     if( !ok ) return base::to_str( ok.error() );
     for( point const p : rect_iterator( surface.rect() ) )
       real_terrain.map[p].surface = surface[p];
@@ -188,16 +189,16 @@ valid_or<string> generate_land_perlin(
         pow( 2.0, surface_generator.lakes.bias * 6.0 ) * //
         ( ( kD12 * kNormalScale ) / land_form_scale ) *  //
         sz.area() *                                      //
-        pow( surface_generator.target_density, 2.5 ) );
+        pow( surface_generator.target_density.fraction, 2.5 ) );
     add_lakes( real_terrain.map, rand, need_lakes );
   }
 
   // Arctic. Should be done before exclusion/sanitization.
   if( setup.surface_generator.arctic.enabled ) {
     rand.reseed( setup.surface_generator.arctic.seed );
-    double const actual_density =
-        place_arctic( real_terrain, rand,
-                      setup.surface_generator.arctic.density );
+    double const actual_density = place_arctic(
+        real_terrain, rand,
+        setup.surface_generator.arctic.density.fraction );
     lg.debug( "arctic density: {:.3}%", actual_density * 100 );
   }
 
@@ -268,19 +269,23 @@ valid_or<string> generate_map_native_impl(
   }
 
   // Rivers.
-  rand.reseed( setup.rivers.seed );
-  RiverParameters const river_params = [&] {
-    SWITCH( setup.rivers.parameters ) {
-      CASE( derived ) {
-        return derive_river_parameters(
-            setup.surface_generator.perlin_settings.land_form
-                .scale,
-            setup.weather.climate );
+  if( setup.rivers.has_value() ) {
+    rand.reseed( setup.rivers->seed );
+    RiverParameters const river_params = [&] {
+      SWITCH( setup.rivers->parameters ) {
+        CASE( derived ) {
+          return derive_river_parameters(
+              setup.surface_generator.perlin_settings.land_form
+                  .scale,
+              setup.weather.climate );
+        }
+        CASE( from_overridden ) {
+          return from_overridden.values;
+        }
       }
-      CASE( from_overridden ) { return from_overridden.values; }
-    }
-  }();
-  add_rivers( m, rand, river_params );
+    }();
+    add_rivers( m, rand, river_params );
+  }
 
   return valid;
 }
@@ -298,18 +303,19 @@ valid_or<string> generate_map_lua_impl(
   lua::table options = st.table.create();
   options["brush"]   = "mixed";
   options["land_density"] =
-      setup.surface_generator.target_density;
+      setup.surface_generator.target_density.fraction;
   options["remove_crosses"] =
       ( setup.surface_generator.sanitization.remove_crosses );
   options["min_map_height_for_arctic"] = 10;
 
   options["arctic_tile_density"] =
-      setup.surface_generator.arctic.density;
+      setup.surface_generator.arctic.density.fraction;
 
   // Assign land vs. water.
   M["generate_land"]( options );
   if( setup.surface_generator.arctic.enabled )
-    M["create_arctic"]( setup.surface_generator.arctic.density );
+    M["create_arctic"](
+        setup.surface_generator.arctic.density.fraction );
   M["assign_dry_ground_types"]();
   // We need to have already created the rivers before this.
   M["assign_wet_ground_types"]();

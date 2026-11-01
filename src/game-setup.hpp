@@ -31,16 +31,16 @@ struct Planes;
 /****************************************************************
 ** Public API.
 *****************************************************************/
-ExchangeKey create_classic_game_setup(
+ExchangeKey create_classic_game_key(
     IRand& rand, ClassicGameSetupParamsEvaluated const& params );
 
-ExchangeKey create_default_game_setup(
+ExchangeKey create_default_game_key(
     IRand& rand, ClassicGameSetupParamsCommon const& common );
 
-ExchangeKey create_classic_customized_game_setup(
+ExchangeKey create_classic_customized_game_key(
     IRand& rand, ClassicGameSetupParams const& params );
 
-ExchangeKey create_america_game_setup(
+ExchangeKey create_america_game_key(
     IRand& rand, ClassicGameSetupParamsCommon const& common );
 
 wait<maybe<ClassicGameSetupParamsCommon>>
@@ -51,16 +51,15 @@ wait<maybe<ClassicGameSetupParamsCustom>>
 create_classic_game_custom_params( IEngine& engine,
                                    Planes& planes, IGui& gui );
 
-wait<maybe<ExchangeKey>> create_customized_game_setup(
+wait<maybe<ExchangeKey>> create_customized_game_key(
     IEngine& engine, Planes& planes, IGui& gui,
     e_customization_mode mode );
 
-base::valid_or<std::string> validate_game_setup(
+base::valid_or<std::string> validate_game_key(
     ExchangeKey const& setup );
 
 // Reseed all seeds in the structure, but keep all other parame-
 // ters the same.
-void randomize_game_setup_seeds( IRand& rand,
-                                 ExchangeKey& setup );
+void randomize_game_key_seeds( IRand& rand, ExchangeKey& setup );
 
 } // namespace rn
