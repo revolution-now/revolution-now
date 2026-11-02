@@ -315,7 +315,7 @@ static void apply_biome_wetness_remix_for_row(
     vector<BiomeWeight> choices;
     choices.reserve( tile_biomes.size() );
     CHECK( !tile_biomes.empty() );
-    auto const weight = [&]( e_biome const biome ) {
+    auto const weight_impl = [&]( e_biome const biome ) {
       if( biome == e_biome::tundra ) {
         double const kExp    = 4.0;
         double const kCutoff = 0.4;
@@ -327,6 +327,12 @@ static void apply_biome_wetness_remix_for_row(
              std::max( abs( conf.biome_affinity[biome].fraction -
                             wetness.m[p] ),
                        kEps );
+    };
+    auto const weight = [&]( e_biome const biome ) {
+      // Make sure that no weights are strictly zero since then
+      // it makes it complicated to know whether the random se-
+      // lection below will work.
+      return std::max( weight_impl( biome ), kEps );
     };
     for( e_biome const biome : tile_biomes )
       choices.push_back( { biome, weight( biome ) } );
