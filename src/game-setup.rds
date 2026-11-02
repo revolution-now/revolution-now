@@ -44,11 +44,15 @@ struct.ClassicGameSetupParams {
 }
 
 struct.ClassicGameSetupParamsEvaluated {
+  # These are the minimum that the user must provide when cre-
+  # ating any new game (difficulty, nation, leader name).
   common 'ClassicGameSetupParamsCommon',
+  # These four correspond to the four settings that the OG
+  # presents when customizing a game (land mass, land form, tem-
+  # perature, climate). See comments above definition of Weather-
+  # Value for what values these can take on and their meanings.
   land_density 'double',
   land_form 'rng::PerlinLandForm',
-  # See comments above definition of WeatherValue for what values
-  # these can take on and their meanings.
   temperature 'WeatherValue',
   climate     'WeatherValue',
   _features { equality, validation }
