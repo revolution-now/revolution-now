@@ -245,7 +245,7 @@ auto IRand::pick_from_weighted_values_safe(
   if constexpr( std::is_same_v<T, double> )
     return pick_from_weighted_values_double_safe_impl(
         contents );
-  else if( std::is_same_v<T, int> )
+  else if constexpr( std::is_same_v<T, int> )
     return pick_from_weighted_values_int_safe_impl( contents );
   else
     static_assert( !std::is_same_v<T, T>,
@@ -255,7 +255,7 @@ auto IRand::pick_from_weighted_values_safe(
 template<typename T>
 T IRand::pick_from_weighted_values(
     std::map<T, int> const& weights ) {
-  UNWRAP_CHECK_T( T res,
+  UNWRAP_CHECK_T( T const res,
                   pick_from_weighted_values_safe( weights ) );
   return res;
 }
@@ -263,7 +263,7 @@ T IRand::pick_from_weighted_values(
 template<typename T>
 T IRand::pick_from_weighted_values(
     std::map<T, double> const& weights ) {
-  UNWRAP_CHECK_T( T res,
+  UNWRAP_CHECK_T( T const res,
                   pick_from_weighted_values_safe( weights ) );
   return res;
 }
@@ -271,7 +271,7 @@ T IRand::pick_from_weighted_values(
 template<typename O>
 auto IRand::pick_from_weighted_values(
     std::vector<O> const& contents ) {
-  UNWRAP_CHECK_T( auto res,
+  UNWRAP_CHECK_T( auto&& res,
                   pick_from_weighted_values_safe( contents ) );
   return res;
 }
