@@ -254,167 +254,6 @@ void generate_single_map_key( IEngine& engine, SS& ss,
 /****************************************************************
 ** Stats collectors.
 *****************************************************************/
-struct LandDensityStats : IMapStatsCollector {
-  void collect( MapMatrix const& m ) override {
-    map_sz_ = m.size();
-    ++maps_total_;
-    on_all_tiles(
-        m, [&]( point const tile, MapSquare const& square ) {
-          land_count_x_[tile.x];
-          land_count_y_[tile.y];
-          if( square.surface == e_surface::water ) return;
-          bool const arctic_row =
-              tile.y == 0 || tile.y == map_sz_.h - 1;
-          if( !arctic_row ) {
-            ++land_total_;
-            ++land_count_x_[tile.x];
-            ++land_count_y_[tile.y];
-          }
-        } );
-  }
-
-  void summarize() override {}
-
-  void write() const override {
-    fs::path const generated =
-        "tools/auto-measure/auto-map-gen/land-density/generated";
-    ofstream csv( generated / "land-density.csv" );
-    ofstream gnu( generated / "land-density.gnuplot" );
-    string const GNUPLOT_FILE_TEMPLATE = R"gnuplot(
-      #!/usr/bin/env -S gnuplot -p
-      set title "{{TITLE}} ({{MODE}} [{{COUNT}}])"
-      set datafile separator ","
-      set key outside right
-      set grid
-      set xlabel "X or Y coordinate"
-      set ylabel "density"
-
-      # Use the first row as column headers for titles.
-      set key autotitle columnhead
-
-      set yrange [0:1.0]
-      set xrange [{{XRANGE}}]
-
-      plot for [col=2:*] "{{CSV_STEM}}" using 1:col with lines lw 2
-    )gnuplot";
-    string const gnuplot_body = base::trim( str_replace_all(
-        GNUPLOT_FILE_TEMPLATE,
-        {
-          { "{{TITLE}}", "Spatial Land Density (generated)" },
-          { "{{CSV_STEM}}", "land-density.csv" },
-          { "{{MODE}}", "c++" },
-          { "{{COUNT}}", to_string( maps_total_ ) },
-          { "{{XRANGE}}", "0:1.0" },
-        } ) );
-    gnu << gnuplot_body;
-
-    csv << format( "coordinate,x,y,overall\n" );
-    // NOTE: subtract two because we did not include the arctic
-    // rows when collecting land.
-    double const density =
-        land_total_ / ( double( map_sz_.w ) * ( map_sz_.h - 2 ) *
-                        maps_total_ );
-    for( double p = 0; p < 1; p += .001 ) {
-      csv << p;
-      int const x = int( floor( p * map_sz_.w ) );
-      int const y = int( floor( p * map_sz_.h ) );
-      CHECK( x >= 0 );
-      CHECK( y >= 0 );
-      CHECK( x < map_sz_.w );
-      CHECK( y < map_sz_.h );
-      UNWRAP_CHECK_T( int const count_x,
-                      lookup( land_count_x_, x ) );
-      UNWRAP_CHECK_T( int const count_y,
-                      lookup( land_count_y_, y ) );
-      double const density_x =
-          count_x / ( double( map_sz_.h - 2 ) * maps_total_ );
-      double const density_y =
-          count_y / ( double( map_sz_.w ) * maps_total_ );
-      csv << format( ",{},{},{}\n", density_x, density_y,
-                     density );
-    }
-  }
-
- private:
-  size map_sz_ = {};
-  map<int, int> land_count_x_;
-  map<int, int> land_count_y_;
-  int land_total_ = 0;
-  int maps_total_ = 0;
-};
-
-struct LakeFrequencyStats : IMapStatsCollector {
-  void collect( MapMatrix const& m ) override {
-    CHECK( map_sz_ == size{} or map_sz_ == m.size() );
-    map_sz_ = m.size();
-    ++total_maps_;
-    TerrainConnectivity const connectivity =
-        compute_terrain_connectivity( m );
-    on_all_tiles(
-        m, [&]( point const tile, MapSquare const& center ) {
-          // Skip arctic rows.
-          if( tile.y == 0 || tile.y == map_sz_.h - 1 ) return;
-          if( center.surface == e_surface::land ) {
-            // Land.
-            ++total_land_;
-            bool has_adjacent_water = false;
-            on_surrounding(
-                m, tile,
-                [&]( point const, MapSquare const& adjacent ) {
-                  if( adjacent.surface == e_surface::water )
-                    has_adjacent_water = true;
-                } );
-            if( has_adjacent_water )
-              ++total_land_tiles_adjacent_to_water_;
-          } else {
-            // Water.
-            ++total_water_;
-            bool has_adjacent_land = false;
-            on_surrounding(
-                m, tile,
-                [&]( point const, MapSquare const& adjacent ) {
-                  if( adjacent.surface == e_surface::land )
-                    has_adjacent_land = true;
-                } );
-            if( has_adjacent_land )
-              ++total_water_tiles_adjacent_to_land_;
-            bool const is_inland =
-                is_inland_lake( connectivity, tile );
-            if( is_inland ) ++total_inland_water_tiles_;
-          }
-        } );
-  }
-
-  void summarize() override {}
-
-  void write() const override {
-    double const metric = [&] {
-      double const land_density =
-          double( total_land_ ) / ( total_land_ + total_water_ );
-      return pow( 1.0 / land_density, 1.5 ) *
-             total_inland_water_tiles_ / total_land_;
-    }();
-    double const total_inland_water_tiles_per_map =
-        double( total_inland_water_tiles_ ) / total_maps_;
-
-    fmt::println( "total_maps:                       {}",
-                  total_maps_ );
-    fmt::println( "total_inland_water_tiles_per_map: {:.1f}",
-                  total_inland_water_tiles_per_map );
-    fmt::println( "metric:                           {:.3f}",
-                  metric );
-  }
-
- private:
-  size map_sz_                            = {};
-  int total_maps_                         = 0;
-  int total_land_                         = 0;
-  int total_water_                        = 0;
-  int total_inland_water_tiles_           = 0;
-  int total_water_tiles_adjacent_to_land_ = 0;
-  int total_land_tiles_adjacent_to_water_ = 0;
-};
-
 /****************************************************************
 ** Runners.
 *****************************************************************/
@@ -553,7 +392,7 @@ struct LakeFrequencyStats : IMapStatsCollector {
 
   for( auto const& [land_mass, land_form] : kModes ) {
     string const name( mode_name( land_mass, land_form ) );
-    LakeFrequencyStats stats;
+    auto const stats = create_lake_frequency_stats_collector();
     fmt::println( "generating for {}...", name );
     for( int i = 0; i < kNumSamples; ++i ) {
       SS ss;
@@ -561,10 +400,10 @@ struct LakeFrequencyStats : IMapStatsCollector {
                       .land_form   = land_form,
                       .temperature = e_temperature::temperate,
                       .climate     = e_climate::normal } );
-      stats.collect( ss.terrain.real_terrain().map );
+      stats->collect( ss.terrain.real_terrain().map );
     }
-    stats.summarize();
-    stats.write();
+    stats->summarize();
+    stats->write();
     fmt::print( "\n" );
   }
 }

@@ -36,4 +36,10 @@ create_wetness_stats_collector( std::string const& stem,
 std::unique_ptr<IMapStatsCollector>
 create_formations_stats_collector( std::string const& mode );
 
+std::unique_ptr<IMapStatsCollector>
+create_land_density_stats_collector();
+
+std::unique_ptr<IMapStatsCollector>
+create_lake_frequency_stats_collector();
+
 } // namespace rn
