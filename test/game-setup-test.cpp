@@ -60,15 +60,39 @@ struct world : testing::World {
 /****************************************************************
 ** Test Cases
 *****************************************************************/
-TEST_CASE( "[game-setup] create_default_game_setup" ) {
+TEST_CASE( "[game-setup] create_classic_game_key" ) {
   world w;
 }
 
-TEST_CASE( "[game-setup] create_america_game_setup" ) {
+TEST_CASE( "[game-setup] create_default_game_key" ) {
   world w;
 }
 
-TEST_CASE( "[game-setup] create_customized_game_setup" ) {
+TEST_CASE( "[game-setup] create_classic_customized_game_key" ) {
+  world w;
+}
+
+TEST_CASE( "[game-setup] create_america_game_key" ) {
+  world w;
+}
+
+TEST_CASE( "[game-setup] validate_game_key" ) {
+  world w;
+}
+
+TEST_CASE( "[game-setup] randomize_game_key_seeds" ) {
+  world w;
+}
+
+TEST_CASE( "[game-setup] create_classic_game_common_params" ) {
+  world w;
+}
+
+TEST_CASE( "[game-setup] create_classic_game_custom_params" ) {
+  world w;
+}
+
+TEST_CASE( "[game-setup] create_customized_game_key" ) {
   world w;
 }
 
