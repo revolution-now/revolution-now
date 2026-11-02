@@ -24,8 +24,6 @@ struct ExchangeKey;
 *****************************************************************/
 void testing_map_gen_key( IEngine& engine, bool reseed );
 
-void testing_map_gen_fuzz( IEngine& engine, bool reseed );
-
 void testing_map_gen_custom( IEngine& engine );
 
 void testing_map_gen_default( IEngine& engine );

@@ -576,9 +576,6 @@ void testing_map_gen_key( IEngine& engine, bool const reseed ) {
                    ascii_map_formatter(), cout );
 }
 
-void testing_map_gen_fuzz( IEngine&, bool const ) {
-}
-
 void testing_map_gen_custom( IEngine& engine ) {
   SS ss;
   ClassicGameSetupParamsCustom const params{
