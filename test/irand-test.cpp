@@ -234,5 +234,8 @@ TEST_CASE( "[irand] pick_one_safe" ) {
 TEST_CASE( "[irand] bernoulli( Probability )" ) {
 }
 
+TEST_CASE( "[irand] NONPORTABLE__sample_piecewise3" ) {
+}
+
 } // namespace
 } // namespace rn

@@ -33,6 +33,7 @@
 namespace rn {
 
 struct Probability;
+struct Piecewise3Dist;
 
 namespace detail {
 
@@ -110,6 +111,9 @@ struct IRand {
   // All values must be in [0, 1.0].
   [[nodiscard]] virtual double NONPORTABLE__piecewise3(
       double peak, double weight_at_0, double weight_at_1 ) = 0;
+
+  [[nodiscard]] double NONPORTABLE__sample_piecewise3(
+      Piecewise3Dist const& dist );
 
   // This generates a seed (entropy) object just using the cur-
   // rent state of the pseudo-random generator; no true random-

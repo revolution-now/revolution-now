@@ -78,21 +78,6 @@ using ::refl::enum_values;
   return rand.uniform_int( params.min.value, params.max.value );
 }
 
-[[nodiscard]] double sample_piecewise3(
-    IRand& rand, Piecewise3Dist const& dist ) {
-  double const width = dist.max - dist.min;
-  if( width < 1e-6 ) return dist.peak;
-  double const peak = ( dist.peak - dist.min ) / width;
-  // NOTE: non-portable rng methods are allowed in this module
-  // because we are only generating the exchange key.  When
-  // that exchange key is later evaluated to generate the map
-  // then they are not allowed.
-  double const in_0_1 = rand.NONPORTABLE__piecewise3(
-      peak, dist.weight_min, dist.weight_max );
-  // clamp just in case there are rounding errors.
-  return clamp( in_0_1 * width + dist.min, dist.min, dist.max );
-}
-
 [[nodiscard]] WeatherValue sample_weather_dist(
     IRand& rand,
     config::map_gen::WeatherDistribution const& params ) {
@@ -285,9 +270,13 @@ ExchangeKey create_default_game_key(
         map_conf.land_layout.land_form.fully_random.fractal };
 
   ClassicGameSetupParamsEvaluated const params{
-    .common       = common,
-    .land_density = sample_piecewise3(
-        rand, map_conf.land_layout.land_mass.fully_random ),
+    .common = common,
+    // NOTE: non-portable rng methods are allowed in this module
+    // because we are only generating the exchange key. When that
+    // exchange key is later evaluated to generate the map then
+    // they are not allowed.
+    .land_density = rand.NONPORTABLE__sample_piecewise3(
+        map_conf.land_layout.land_mass.fully_random ),
     .land_form   = perlin_land_form,
     .temperature = sample_weather_dist(
         rand, map_conf.weather.temperature.fully_random ),

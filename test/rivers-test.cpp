@@ -64,10 +64,6 @@ TEST_CASE( "[map-gen] derive_river_parameters" ) {
   world w;
 }
 
-TEST_CASE( "[map-gen] RiverParameterInterpolator" ) {
-  world w;
-}
-
 TEST_CASE( "[map-gen] add_rivers" ) {
   world w;
 }
