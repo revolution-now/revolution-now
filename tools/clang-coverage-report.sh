@@ -35,13 +35,13 @@ PROFDATA_PATH="$PROFRAW_DIR/$PROFRAW_STEM.profdata"
 # ---------------------------------------------------------------
 html_out="$1"; shift || true
 
-# This can be either a file to emit coverage for, or a folder.
-targets="$@"
+# This is a single file to emit coverage for.
+target="$1"
 
 # ---------------------------------------------------------------
 # Validation.
 # ---------------------------------------------------------------
-usage() { die "usage: $0 <html-out> <target> [<targets>...]"; }
+usage() { die "usage: $0 <html-out> <target>"; }
 
 [[ -e "$PROFRAW_PATH" ]] \
   || die "profraw file $PROFRAW_PATH not found." \
@@ -52,10 +52,10 @@ usage() { die "usage: $0 <html-out> <target> [<targets>...]"; }
 
 [[ -z "$html_out" ]] && usage
 
-[[ -z "$targets" ]] && {
-  error "Must specify files or folders as arguments to limit the" \
-        "coverage data.  By default it will produce coverage for" \
-        "the entire source folder which is too big."
+[[ -z "$target" ]] && {
+  error "Must specify a file to limit the coverage data. " \
+        "By default it will produce coverage for the entire " \
+        "source folder which is too big."
   usage
 }
 
@@ -70,8 +70,6 @@ merge() {
 }
 
 html_cov() {
-  # NOTE: no quotes around targets.
-  #
   # Add:
   #
   #   -show-branches=percent
@@ -82,7 +80,7 @@ html_cov() {
     ./.builds/current/test/unittest \
     -instr-profile="$PROFDATA_PATH" \
     -format=html                    \
-    $targets                        \
+    "$target"                       \
   > "$html_out"
 }
 
