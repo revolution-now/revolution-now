@@ -372,31 +372,24 @@ void assign_arctic_biomes( IRand& rand,
   size const sz = m.size();
   // This should not happen due to config validation, but we will
   // just be defensive here anyway.
-  if( sz.h < 2 ) return;
-  for( int x = 0; x < sz.w; ++x ) {
-    {
-      MapSquare& square = m[0][x];
-      if( square.surface == land ) square.ground = arctic;
-    }
-    {
-      MapSquare& square = m[sz.h - 1][x];
-      if( square.surface == land ) square.ground = arctic;
-    }
-  }
-  // This should not happen due to config validation, but we will
-  // just be defensive here anyway.
   if( sz.h < 4 ) return;
   for( int x = 0; x < sz.w; ++x ) {
-    {
-      MapSquare& square = m[1][x];
-      if( square.surface == land && rand.bernoulli( .5 ) )
-        square.ground = arctic;
-    }
-    {
-      MapSquare& square = m[sz.h - 2][x];
-      if( square.surface == land && rand.bernoulli( .5 ) )
-        square.ground = arctic;
-    }
+    MapSquare& square = m[0][x];
+    if( square.surface == land ) square.ground = arctic;
+  }
+  for( int x = 0; x < sz.w; ++x ) {
+    MapSquare& square = m[sz.h - 1][x];
+    if( square.surface == land ) square.ground = arctic;
+  }
+  for( int x = 0; x < sz.w; ++x ) {
+    MapSquare& square = m[1][x];
+    if( square.surface == land && rand.bernoulli( .5 ) )
+      square.ground = arctic;
+  }
+  for( int x = 0; x < sz.w; ++x ) {
+    MapSquare& square = m[sz.h - 2][x];
+    if( square.surface == land && rand.bernoulli( .5 ) )
+      square.ground = arctic;
   }
 }
 

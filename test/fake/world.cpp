@@ -286,6 +286,10 @@ MapSquare& World::square( point const p ) {
   return terrain().mutable_square_at( Coord::from_gfx( p ) );
 }
 
+RealTerrain& World::real_terrain() {
+  return terrain().mutable_real_terrain();
+}
+
 PlayerSquare& World::player_square(
     point const p, maybe<e_player> const player_type ) {
   return ss()

@@ -28,6 +28,9 @@ struct Wetness;
 /****************************************************************
 ** Public API.
 *****************************************************************/
+void assign_arctic_biomes( IRand& rand,
+                           RealTerrain& real_terrain );
+
 base::valid_or<std::string> assign_biomes(
     IRand& rand, RealTerrain& real_terrain,
     WeatherValue const& temperature,
@@ -37,8 +40,5 @@ void apply_biome_wetness_remix(
     MapMatrix& m, IRand& rand,
     WetnessConfig const& wetness_config,
     Wetness const& wetness );
-
-void assign_arctic_biomes( IRand& rand,
-                           RealTerrain& real_terrain );
 
 } // namespace rn

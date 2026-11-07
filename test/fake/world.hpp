@@ -76,6 +76,7 @@ struct Planes;
 struct Player;
 struct PlayerSquare;
 struct PlayersState;
+struct RealTerrain;
 struct SS;
 struct SSConst;
 struct SettingsState;
@@ -123,6 +124,8 @@ struct World {
   // always use the IMapUpdater interface to update the map.
   // Const versions of it are fine though.
   MapSquare& square( gfx::point p );
+
+  RealTerrain& real_terrain();
 
   // This gets the terrain info from the player-specific map.
   PlayerSquare& player_square(

@@ -123,6 +123,7 @@ struct TerrainState {
   base::maybe<MapSquare&> mutable_maybe_square_at(
       gfx::point tile );
   PlayerTerrain& mutable_player_terrain( e_player player );
+  RealTerrain& mutable_real_terrain();
 
   // Whenever the map matrix is modified as a whole (which could
   // involve changing its dimensions) it must always be done via

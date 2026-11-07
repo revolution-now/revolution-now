@@ -143,6 +143,10 @@ PlayerTerrain& TerrainState::mutable_player_terrain(
   return res;
 }
 
+RealTerrain& TerrainState::mutable_real_terrain() {
+  return o_.real_terrain;
+}
+
 base::maybe<MapSquare const&> TerrainState::maybe_square_at(
     point const tile ) const {
   if( !square_exists( tile ) ) return base::nothing;
