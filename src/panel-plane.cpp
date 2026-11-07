@@ -275,15 +275,17 @@ struct PanelPlane::Impl : public IPlane, public IMenuHandler {
   wait<> wait_for_cheat_on() {
     lg.debug( "waiting for cheat on" );
     co_await monitor_cheat_key_sequence_on( alt_key_seq_ );
-    input::event_queue().push(
-        input::cheat_event_t{ .enabled = true } );
+    input::cheat_event_t event;
+    event.enabled = true;
+    input::event_queue().push( event );
   }
 
   wait<> wait_for_cheat_off() {
     lg.debug( "waiting for cheat off" );
     co_await monitor_cheat_key_sequence_off( alt_key_seq_ );
-    input::event_queue().push(
-        input::cheat_event_t{ .enabled = false } );
+    input::cheat_event_t event;
+    event.enabled = false;
+    input::event_queue().push( event );
   }
 
   wait<> run_cheat_key_seq_monitor() {
