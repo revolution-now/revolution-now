@@ -141,7 +141,6 @@ void on_surrounding_cardinal(
 void assign_formation( MapSquare& square,
                        e_terrain_formation const formation ) {
   CHECK( square.surface == e_surface::land );
-  square.overlay = e_land_overlay::forest;
   switch( formation ) {
     case e_terrain_formation::hills:
       square.overlay = e_land_overlay::hills;
