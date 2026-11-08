@@ -2321,6 +2321,11 @@ void FormationsStatsCollector::write() const {
 ** LandDensityStatsCollector
 *****************************************************************/
 struct LandDensityStatsCollector : IMapStatsCollector {
+  LandDensityStatsCollector( string const& stem )
+    : stem_( stem ) {
+    CHECK( !stem_.empty() );
+  }
+
   void collect( MapMatrix const& m ) override {
     map_sz_ = m.size();
     ++maps_total_;
@@ -2342,46 +2347,29 @@ struct LandDensityStatsCollector : IMapStatsCollector {
   void summarize() override {}
 
   void write() const override {
-    fs::path const generated =
+    fs::path const kGeneratedDir =
         "tools/auto-measure/auto-map-gen/land-density/generated";
-    ofstream csv( generated / "land-density.csv" );
-    ofstream gnu( generated / "land-density.gnuplot" );
-    string const GNUPLOT_FILE_TEMPLATE = R"gnuplot(
-      #!/usr/bin/env -S gnuplot -p
-      set title "{{TITLE}} ({{MODE}} [{{COUNT}}])"
-      set datafile separator ","
-      set key outside right
-      set grid
-      set xlabel "X or Y coordinate"
-      set ylabel "density"
-
-      # Use the first row as column headers for titles.
-      set key autotitle columnhead
-
-      set yrange [0:1.0]
-      set xrange [{{XRANGE}}]
-
-      plot for [col=2:*] "{{CSV_STEM}}" using 1:col with lines lw 2
-    )gnuplot";
-    string const gnuplot_body = base::trim( str_replace_all(
-        GNUPLOT_FILE_TEMPLATE,
-        {
-          { "{{TITLE}}", "Spatial Land Density (generated)" },
-          { "{{CSV_STEM}}", "land-density.csv" },
-          { "{{MODE}}", "c++" },
-          { "{{COUNT}}", to_string( maps_total_ ) },
-          { "{{XRANGE}}", "0:1.0" },
-        } ) );
-    gnu << gnuplot_body;
-
-    csv << format( "coordinate,x,y,overall\n" );
+    GnuPlotSettings const settings{
+      .title =
+          format( "Spatial Land Density (generated) ({}) [{}]",
+                  stem_, maps_total_ ),
+      .x_label = "X or Y coordinate",
+      .y_label = "Density",
+      .x_range = "0:1.0",
+      .y_range = "0:1.0",
+    };
+    CsvData csv_data{
+      .header = { "coordinate", "x", "y", "overall" },
+      .rows   = {} };
+    for( auto const gt : kGroundTypes )
+      csv_data.header.push_back( base::to_str( gt ) );
     // NOTE: subtract two because we did not include the arctic
     // rows when collecting land.
     double const density =
         land_total_ / ( double( map_sz_.w ) * ( map_sz_.h - 2 ) *
                         maps_total_ );
     for( double p = 0; p < 1; p += .001 ) {
-      csv << p;
+      vector<string> row{ /*y=*/to_string( p ) };
       int const x = int( floor( p * map_sz_.w ) );
       int const y = int( floor( p * map_sz_.h ) );
       CHECK( x >= 0 );
@@ -2396,12 +2384,16 @@ struct LandDensityStatsCollector : IMapStatsCollector {
           count_x / ( double( map_sz_.h - 2 ) * maps_total_ );
       double const density_y =
           count_y / ( double( map_sz_.w ) * maps_total_ );
-      csv << format( ",{},{},{}\n", density_x, density_y,
-                     density );
+      row.push_back( to_string( density_x ) );
+      row.push_back( to_string( density_y ) );
+      row.push_back( to_string( density ) );
+      csv_data.rows.push_back( std::move( row ) );
     }
+    generate_gnuplot( kGeneratedDir, stem_, settings, csv_data );
   }
 
  private:
+  string stem_;
   size map_sz_ = {};
   map<int, int> land_count_x_;
   map<int, int> land_count_y_;
@@ -2510,8 +2502,8 @@ unique_ptr<IMapStatsCollector> create_formations_stats_collector(
 }
 
 unique_ptr<IMapStatsCollector>
-create_land_density_stats_collector() {
-  return make_unique<LandDensityStatsCollector>();
+create_land_density_stats_collector( string const& stem ) {
+  return make_unique<LandDensityStatsCollector>( stem );
 }
 
 unique_ptr<IMapStatsCollector>

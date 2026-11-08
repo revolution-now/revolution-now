@@ -92,7 +92,8 @@ string mode_name( ClassicGameSetupParamsCustom const params ) {
   res.resize( 4 );
   switch( params.climate ) {
     case e_climate::dry:
-      NOT_IMPLEMENTED;
+      res[3] = 'T';
+      break;
     case e_climate::arid:
       res[3] = 't';
       break;
@@ -103,11 +104,13 @@ string mode_name( ClassicGameSetupParamsCustom const params ) {
       res[3] = 'b';
       break;
     case e_climate::torrential:
-      NOT_IMPLEMENTED;
+      res[3] = 'B';
+      break;
   }
   switch( params.temperature ) {
     case e_temperature::cold:
-      NOT_IMPLEMENTED;
+      res[2] = 'T';
+      break;
     case e_temperature::cool:
       res[2] = 't';
       break;
@@ -118,11 +121,13 @@ string mode_name( ClassicGameSetupParamsCustom const params ) {
       res[2] = 'b';
       break;
     case e_temperature::hot:
-      NOT_IMPLEMENTED;
+      res[2] = 'B';
+      break;
   }
   switch( params.land_form ) {
     case e_land_form::isolated:
-      NOT_IMPLEMENTED;
+      res[1] = 'T';
+      break;
     case e_land_form::archipelago:
       res[1] = 't';
       break;
@@ -133,11 +138,13 @@ string mode_name( ClassicGameSetupParamsCustom const params ) {
       res[1] = 'b';
       break;
     case e_land_form::supercontinents:
-      NOT_IMPLEMENTED;
+      res[1] = 'B';
+      break;
   }
   switch( params.land_mass ) {
     case e_land_mass::tiny:
-      NOT_IMPLEMENTED;
+      res[0] = 'T';
+      break;
     case e_land_mass::small:
       res[0] = 't';
       break;
@@ -148,7 +155,8 @@ string mode_name( ClassicGameSetupParamsCustom const params ) {
       res[0] = 'b';
       break;
     case e_land_mass::huge:
-      NOT_IMPLEMENTED;
+      res[0] = 'B';
+      break;
   }
   return res;
 }
@@ -157,11 +165,23 @@ string_view mode_name( e_land_mass const m,
                        e_land_form const f ) {
   switch( m ) {
     case e_land_mass::tiny:
-      NOT_IMPLEMENTED;
+      switch( f ) {
+        case e_land_form::isolated:
+          return "TTmm";
+        case e_land_form::archipelago:
+          return "Ttmm";
+        case e_land_form::normal:
+          return "Tmmm";
+        case e_land_form::continents:
+          return "Tbmm";
+        case e_land_form::supercontinents:
+          return "TBmm";
+      }
+      break;
     case e_land_mass::small:
       switch( f ) {
         case e_land_form::isolated:
-          NOT_IMPLEMENTED;
+          return "tTmm";
         case e_land_form::archipelago:
           return "ttmm";
         case e_land_form::normal:
@@ -169,13 +189,13 @@ string_view mode_name( e_land_mass const m,
         case e_land_form::continents:
           return "tbmm";
         case e_land_form::supercontinents:
-          NOT_IMPLEMENTED;
+          return "tBmm";
       }
       break;
     case e_land_mass::moderate:
       switch( f ) {
         case e_land_form::isolated:
-          NOT_IMPLEMENTED;
+          return "mTmm";
         case e_land_form::archipelago:
           return "mtmm";
         case e_land_form::normal:
@@ -183,13 +203,13 @@ string_view mode_name( e_land_mass const m,
         case e_land_form::continents:
           return "mbmm";
         case e_land_form::supercontinents:
-          NOT_IMPLEMENTED;
+          return "mBmm";
       }
       break;
     case e_land_mass::large:
       switch( f ) {
         case e_land_form::isolated:
-          NOT_IMPLEMENTED;
+          return "bTmm";
         case e_land_form::archipelago:
           return "btmm";
         case e_land_form::normal:
@@ -197,11 +217,23 @@ string_view mode_name( e_land_mass const m,
         case e_land_form::continents:
           return "bbmm";
         case e_land_form::supercontinents:
-          NOT_IMPLEMENTED;
+          return "bBmm";
       }
       break;
     case e_land_mass::huge:
-      NOT_IMPLEMENTED;
+      switch( f ) {
+        case e_land_form::isolated:
+          return "BTmm";
+        case e_land_form::archipelago:
+          return "Btmm";
+        case e_land_form::normal:
+          return "Bmmm";
+        case e_land_form::continents:
+          return "Bbmm";
+        case e_land_form::supercontinents:
+          return "BBmm";
+      }
+      break;
   }
 }
 
@@ -335,6 +367,74 @@ void generate_single_map_key( IEngine& engine, SS& ss,
       stats->write();
       fmt::print( "\n" );
     }
+  }
+}
+
+[[maybe_unused]] void testing_map_gen_land_density_stats(
+    IEngine& engine ) {
+  int constexpr kNumSamples = 2000;
+
+  auto const generate =
+      [&]( SS& ss, ClassicGameSetupParamsCustom const& custom ) {
+        generate_single_map_custom( engine, ss, custom );
+      };
+
+  using M = e_land_mass;
+  using F = e_land_form;
+
+  static auto constexpr kModes = {
+    // clang-format off
+    tuple{ M::tiny,     F::isolated        },
+    tuple{ M::tiny,     F::archipelago     },
+    tuple{ M::tiny,     F::normal          },
+    tuple{ M::tiny,     F::continents      },
+    tuple{ M::tiny,     F::supercontinents },
+    tuple{ M::tiny,     F::isolated        },
+    tuple{ M::small,    F::archipelago     },
+    tuple{ M::small,    F::normal          },
+    tuple{ M::small,    F::continents      },
+    tuple{ M::small,    F::supercontinents },
+    tuple{ M::moderate, F::isolated        },
+    tuple{ M::moderate, F::archipelago     },
+    tuple{ M::moderate, F::normal          },
+    tuple{ M::moderate, F::continents      },
+    tuple{ M::moderate, F::supercontinents },
+    tuple{ M::large,    F::isolated        },
+    tuple{ M::large,    F::archipelago     },
+    tuple{ M::large,    F::normal          },
+    tuple{ M::large,    F::continents      },
+    tuple{ M::large,    F::supercontinents },
+    tuple{ M::huge,     F::isolated        },
+    tuple{ M::huge,     F::archipelago     },
+    tuple{ M::huge,     F::normal          },
+    tuple{ M::huge,     F::continents      },
+    tuple{ M::huge,     F::supercontinents },
+    // clang-format on
+  };
+
+  for( auto const& [land_mass, land_form] : kModes ) {
+    ClassicGameSetupParamsCustom const params{
+      .land_mass   = land_mass,
+      .land_form   = land_form,
+      .temperature = e_temperature::temperate,
+      .climate     = e_climate::normal,
+    };
+    string const name( mode_name( params ) );
+    auto const stats =
+        create_land_density_stats_collector( name );
+    fmt::println( "generating for {}...", name );
+    fmt::print( "\033[?25l" );
+    SCOPE_EXIT { fmt::print( "\033[?25h" ); };
+    for( int i = 0; i < kNumSamples; ++i ) {
+      fmt::print( "  #{} ({:.3}%)          \r", i,
+                  i * 100.0 / kNumSamples );
+      SS ss;
+      generate( ss, params );
+      stats->collect( ss.terrain.real_terrain().map );
+    }
+    stats->summarize();
+    stats->write();
+    fmt::print( "\n" );
   }
 }
 
@@ -631,12 +731,13 @@ void testing_map_gen_default( IEngine& engine ) {
 
 void testing_map_gen_stats( IEngine& engine ) {
   base::e_log_level const old_level = base::global_log_level();
-  set_global_log_level( base::e_log_level::warn );
+  set_global_log_level( base::e_log_level::error );
   SCOPE_EXIT { set_global_log_level( old_level ); };
+  testing_map_gen_land_density_stats( engine );
   // testing_map_gen_biome_density_stats( engine );
   // testing_map_gen_wetness_stats( engine );
   // testing_map_gen_lake_stats( engine );
-  testing_map_gen_river_stats( engine );
+  // testing_map_gen_river_stats( engine );
   // testing_map_gen_formation_stats( engine );
 }
 
