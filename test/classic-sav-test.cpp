@@ -15,10 +15,18 @@
 #include "src/classic-sav.hpp"
 
 // ss
+#include "ss/root.rds.hpp"
 #include "ss/terrain.rds.hpp"
+
+// sav
+#include "src/sav/bridge.hpp"
+#include "src/sav/sav-struct.hpp"
 
 // refl
 #include "src/refl/to-str.hpp"
+
+// base
+#include "src/base/binary-data.hpp"
 
 // Must be last.
 #include "test/catch-common.hpp" // IWYU pragma: keep
@@ -28,6 +36,7 @@ namespace {
 
 using namespace std;
 
+using ::base::FileBinaryIO;
 using ::base::valid;
 using ::testing::data_dir;
 
@@ -116,6 +125,32 @@ TEST_CASE( "[classic-sav] load_classic_binary_map_file" ) {
 }
 
 TEST_CASE( "[classic-sav] load_classic_binary_sav_file" ) {
+  fs::path const classic_dir = classic_sav_dir() / "1990s";
+  fs::path const sav_path    = classic_dir / "COLONY00.SAV";
+
+  RootState root;
+  sav::ColonySAV sav, sav2;
+
+  // TODO: Once the bridge is finished, remove this to enable
+  // this test. Currently it fails on the validation phase in
+  // load_classic_binary_sav_file because the bridge is incom-
+  // plete.
+  if constexpr( true ) return;
+
+  auto const ok = load_classic_binary_sav_file( sav_path, root );
+  REQUIRE( ok == valid );
+
+  // ------------------------------------------------------------
+  // Absolute tests.
+  // ------------------------------------------------------------
+  REQUIRE( root.colonies.all().size() == 30 );
+
+  // ------------------------------------------------------------
+  // Round trip test.
+  // ------------------------------------------------------------
+  bridge::IdMap dummy;
+  CHECK_HAS_VALUE( bridge::convert_to_og( root, sav2, dummy ) );
+  REQUIRE( sav2 == sav );
 }
 
 } // namespace
