@@ -10,26 +10,54 @@
 # ===============================================================
 namespace "rn"
 
+# NOTE: each of these has two additional elements as compared
+# with the OG, which only has the middle three in each category.
+# We add two additional ones (above and below) for two reasons:
+#
+#   1. So that in the extended customization modes the user has
+#      more to choose from.
+#   2. Because the OG actually includes the last value in the set
+#      over which it selects a random element when the user
+#      clicks "Start Game in NEW WORLD", even though that last
+#      element is not presented on the "Customize Game" screen.
+#      It could be a bug that it includes that additional value,
+#      but I think it works well because it tends to bias the map
+#      toward more land, larger continents, less desert, more sa-
+#      vannah/grassland, which overall probably makes the game
+#      more fun.
+#
+# In the NG's "classic" customization screen we still only in-
+# clude the middle three as the OG does, but the additional ones
+# are available in the extended customization screens.
+#
 enum.e_land_mass {
+  tiny,
   small,
   moderate,
   large,
+  huge,
 }
 
 enum.e_land_form {
+  isolated,
   archipelago,
   normal,
   continents,
+  supercontinents,
 }
 
 enum.e_temperature {
+  cold,
   cool,
   temperate,
   warm,
+  hot,
 }
 
 enum.e_climate {
+  dry,
   arid,
   normal,
   wet,
+  torrential,
 }

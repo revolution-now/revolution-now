@@ -17,54 +17,80 @@ default_map_size: { w: 56, h: 70 }
 
 terrain_generation {
   land_layout {
+    # Land Mass controls the overall volume of land on the map.
     land_mass {
+      # When the player selects "Start New Game" (i.e. with no
+      # customizations) then the land mass will be chosen ran-
+      # domly from these. The OG does the equivalent of choosing
+      # from the latter four of the extended options. This is in-
+      # teresting because the "customize game" options only
+      # present the middle three (small, moderate, large). It
+      # could potentially be a bug that it does that, but since
+      # it does have an effect on gameplay and because we do sup-
+      # port an extended set, we will replicate it. NOTE: this is
+      # a list, and so you can duplicate elements in it to make
+      # them more likely.
+      fully_random: [
+        #tiny
+        small
+        moderate
+        large
+        huge
+      ]
+
       # The parameters below define normal distributions with a
       # minimum and maximum values.
-
-      # This is for when the land mass is chosen randomly without
-      # any customization; essentially this is when the player
-      # selects "Start New Game" without any customizations.
-      fully_random: {
-        min:  .10
-        peak: .30
-        max:  .47
-        weight_min: 0
-        weight_max: 0
-      }
-
       customized {
-        # NOTE: the min/max here are just overall bounds that we
-        # never want to exceed; we don't necessarily expect to
-        # reach them very often though.
-        small:    { mean: .16, stddev: .03, min: .09, max: .46 }
-        moderate: { mean: .23, stddev: .03, min: .09, max: .46 }
-        large:    { mean: .30, stddev: .03, min: .09, max: .46 }
+        tiny:     { mean: .09, stddev: .03, min: .06, max: .46 }
+        small:    { mean: .16, stddev: .03, min: .06, max: .46 }
+        moderate: { mean: .23, stddev: .03, min: .06, max: .46 }
+        large:    { mean: .30, stddev: .03, min: .06, max: .46 }
+        huge:     { mean: .37, stddev: .03, min: .06, max: .46 }
       }
     }
 
+    # The Land Form (which we call "scale") controls the average
+    # size of land bodies. You likely don't need to change the
+    # fractal settings.
     land_form {
-      # The `scale` controls the average size of land bodies. You
-      # likely don't need to change the fractal settings.
-
-      # This is for when the land form is chosen randomly without
-      # any customization; essentially this is when the player
-      # selects "Start New Game" without any customizations.
-      fully_random {
-        scale:   { mean: 14.5, stddev: 2.50, min: 7.5, max: 16.5 }
-        fractal: { n_octaves=5, persistence=.5, lacunarity=2.0 }
-      }
+      # When the player selects "Start New Game" (i.e. with no
+      # customizations) then the land form will be chosen ran-
+      # domly from these. The OG does the equivalent of choosing
+      # from the latter four of the extended options. This is in-
+      # teresting because the "customize game" options only
+      # present the middle three (archipelago, noraml, conti-
+      # nents). It could potentially be a bug that it does that,
+      # but since it does have an effect on gameplay and because
+      # we do support an extended set, we will replicate it.
+      # NOTE: this is a list, and so you can duplicate elements
+      # in it to make them more likely.
+      fully_random: [
+        #isolated
+        archipelago
+        normal
+        continents
+        supercontinents
+      ]
 
       customized {
+        isolated {
+          scale:   { mean:  6, stddev: 1.25, min: 4.5, max: 19.5 }
+          fractal: { n_octaves=5, persistence=.5, lacunarity=2.0 }
+        }
         archipelago {
-          scale:   { mean:  9, stddev: 1.25, min: 7.5, max: 16.5 }
+          scale:   { mean:  9, stddev: 1.25, min: 4.5, max: 19.5 }
           fractal: { n_octaves=5, persistence=.5, lacunarity=2.0 }
         }
         normal {
-          scale:   { mean: 12, stddev: 1.25, min: 7.5, max: 16.5 }
+          scale:   { mean: 12, stddev: 1.25, min: 4.5, max: 19.5 }
           fractal: { n_octaves=5, persistence=.5, lacunarity=2.0 }
         }
         continents {
-          scale:   { mean: 15, stddev: 1.25, min: 7.5, max: 16.5 }
+          scale:   { mean: 15, stddev: 1.25, min: 4.5, max: 19.5 }
+          fractal: { n_octaves=5, persistence=.5, lacunarity=2.0 }
+        }
+        supercontinents {
+          scale:   { mean: 18, stddev: 1.25, min: 4.5, max: 19.5 }
           fractal: { n_octaves=5, persistence=.5, lacunarity=2.0 }
         }
       }
@@ -190,32 +216,60 @@ terrain_generation {
     # just defaults to make the game's default behavior mirror
     # that of the OG when no customization is done.
     temperature {
-      fully_random.distribution: {
-        # NOTE: the max value extends past the value corre-
-        # sponding to "warm" (which is 100). This is what the OG
-        # appears to do when creating a random new game which is
-        # not customized.
-        min.value: -100
-        max.value:  200
-      }
+      # When the player selects "Start New Game" (i.e. with no
+      # customizations) then the temperature will be chosen ran-
+      # domly from these. The OG does the equivalent of choosing
+      # from the latter four of the extended options. This is in-
+      # teresting because the "customize game" options only
+      # present the middle three (cool, temperate, warm). It
+      # could potentially be a bug that it does that, but since
+      # it does have an effect on gameplay and because we do sup-
+      # port an extended set, we will replicate it. NOTE: this is
+      # a list, and so you can duplicate elements in it to make
+      # them more likely.
+      fully_random: [
+        #cold
+        cool
+        temperate
+        warm
+        hot
+      ]
 
       customized: {
+        cold.value:     -200
         cool.value:     -100
         temperate.value:   0
         warm.value:      100
+        hot.value:       200
       }
     }
 
     climate {
-      fully_random.distribution: {
-        min.value: -100
-        max.value:  100
-      }
+      # When the player selects "Start New Game" (i.e. with no
+      # customizations) then the temperature will be chosen ran-
+      # domly from these. The OG does the equivalent of choosing
+      # from the latter four of the extended options. This is in-
+      # teresting because the "customize game" options only
+      # present the middle three (arid, normal, wet). It could
+      # potentially be a bug that it does that, but since it does
+      # have an effect on gameplay and because we do support an
+      # extended set, we will replicate it. NOTE: this is a list,
+      # and so you can duplicate elements in it to make them more
+      # likely.
+      fully_random: [
+        #dry
+        arid
+        normal
+        wet
+        torrential
+      ]
 
       customized: {
-        arid.value:  -100
-        normal.value:   0
-        wet.value:    100
+        dry.value:       -200
+        arid.value:      -100
+        normal.value:       0
+        wet.value:        100
+        torrential.value: 200
       }
     }
   }
@@ -224,12 +278,22 @@ terrain_generation {
     min_length: 4
 
     for_land_form {
-      archipelago.growth.probability: .62
-      normal.growth.probability:      .60
-      continents.growth.probability:  .68
+      isolated.growth.probability:        .62
+      archipelago.growth.probability:     .62
+      normal.growth.probability:          .60
+      continents.growth.probability:      .68
+      supercontinents.growth.probability: .68
     }
 
     for_climate {
+      dry {
+        initiation.probability:    .031
+        start_major.probability:   .18
+        sustain_major.probability: .45
+        turn.probability:          .31
+        fork.probability:          .096
+        fork_is_major.probability: .32
+      }
       arid {
         initiation.probability:    .041
         start_major.probability:   .18
@@ -248,6 +312,14 @@ terrain_generation {
       }
       wet {
         initiation.probability:    .057
+        start_major.probability:   .30
+        sustain_major.probability: .645
+        turn.probability:          .32
+        fork.probability:          .13
+        fork_is_major.probability: .55
+      }
+      torrential {
+        initiation.probability:    .067
         start_major.probability:   .30
         sustain_major.probability: .645
         turn.probability:          .32

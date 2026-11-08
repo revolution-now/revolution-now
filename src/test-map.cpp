@@ -91,6 +91,8 @@ string mode_name( ClassicGameSetupParamsCustom const params ) {
   string res;
   res.resize( 4 );
   switch( params.climate ) {
+    case e_climate::dry:
+      NOT_IMPLEMENTED;
     case e_climate::arid:
       res[3] = 't';
       break;
@@ -100,8 +102,12 @@ string mode_name( ClassicGameSetupParamsCustom const params ) {
     case e_climate::wet:
       res[3] = 'b';
       break;
+    case e_climate::torrential:
+      NOT_IMPLEMENTED;
   }
   switch( params.temperature ) {
+    case e_temperature::cold:
+      NOT_IMPLEMENTED;
     case e_temperature::cool:
       res[2] = 't';
       break;
@@ -111,8 +117,12 @@ string mode_name( ClassicGameSetupParamsCustom const params ) {
     case e_temperature::warm:
       res[2] = 'b';
       break;
+    case e_temperature::hot:
+      NOT_IMPLEMENTED;
   }
   switch( params.land_form ) {
+    case e_land_form::isolated:
+      NOT_IMPLEMENTED;
     case e_land_form::archipelago:
       res[1] = 't';
       break;
@@ -122,8 +132,12 @@ string mode_name( ClassicGameSetupParamsCustom const params ) {
     case e_land_form::continents:
       res[1] = 'b';
       break;
+    case e_land_form::supercontinents:
+      NOT_IMPLEMENTED;
   }
   switch( params.land_mass ) {
+    case e_land_mass::tiny:
+      NOT_IMPLEMENTED;
     case e_land_mass::small:
       res[0] = 't';
       break;
@@ -133,6 +147,8 @@ string mode_name( ClassicGameSetupParamsCustom const params ) {
     case e_land_mass::large:
       res[0] = 'b';
       break;
+    case e_land_mass::huge:
+      NOT_IMPLEMENTED;
   }
   return res;
 }
@@ -140,36 +156,52 @@ string mode_name( ClassicGameSetupParamsCustom const params ) {
 string_view mode_name( e_land_mass const m,
                        e_land_form const f ) {
   switch( m ) {
+    case e_land_mass::tiny:
+      NOT_IMPLEMENTED;
     case e_land_mass::small:
       switch( f ) {
+        case e_land_form::isolated:
+          NOT_IMPLEMENTED;
         case e_land_form::archipelago:
           return "ttmm";
         case e_land_form::normal:
           return "tmmm";
         case e_land_form::continents:
           return "tbmm";
+        case e_land_form::supercontinents:
+          NOT_IMPLEMENTED;
       }
       break;
     case e_land_mass::moderate:
       switch( f ) {
+        case e_land_form::isolated:
+          NOT_IMPLEMENTED;
         case e_land_form::archipelago:
           return "mtmm";
         case e_land_form::normal:
           return "mmmm";
         case e_land_form::continents:
           return "mbmm";
+        case e_land_form::supercontinents:
+          NOT_IMPLEMENTED;
       }
       break;
     case e_land_mass::large:
       switch( f ) {
+        case e_land_form::isolated:
+          NOT_IMPLEMENTED;
         case e_land_form::archipelago:
           return "btmm";
         case e_land_form::normal:
           return "bmmm";
         case e_land_form::continents:
           return "bbmm";
+        case e_land_form::supercontinents:
+          NOT_IMPLEMENTED;
       }
       break;
+    case e_land_mass::huge:
+      NOT_IMPLEMENTED;
   }
 }
 

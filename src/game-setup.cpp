@@ -57,12 +57,12 @@ using ::gfx::size;
 using ::refl::enum_map;
 using ::refl::enum_values;
 
-[[nodiscard]] double sample_normal(
+// NOTE: non-portable rng methods are allowed in this module be-
+// cause we are only generating the exchange key. When that ex-
+// change key is later evaluated to generate the map then they
+// are not allowed.
+[[nodiscard]] double NONPORTABLE__sample_normal(
     IRand& rand, BoundedNormalDist const& params ) {
-  // NOTE: non-portable rng methods are allowed in this module
-  // because we are only generating the exchange key.  When
-  // that exchange key is later evaluated to generate the map
-  // then they are not allowed.
   return clamp(
       rand.NONPORTABLE__normal( params.mean, params.stddev ),
       params.min, params.max );
@@ -71,24 +71,6 @@ using ::refl::enum_values;
 [[nodiscard]] double sample_uniform(
     IRand& rand, UniformDist const& params ) {
   return rand.uniform_double( params.min, params.max );
-}
-
-[[nodiscard]] double sample_uniform(
-    IRand& rand, UniformDistT<WeatherValue> const& params ) {
-  return rand.uniform_int( params.min.value, params.max.value );
-}
-
-[[nodiscard]] WeatherValue sample_weather_dist(
-    IRand& rand,
-    config::map_gen::WeatherDistribution const& params ) {
-  // Config validators should already have ensured that the
-  // values fall in the allowed range, but we'll just be defen-
-  // sive here anyway.
-  int const res = clamp( int( lround( sample_uniform(
-                             rand, params.distribution ) ) ),
-                         -kWeatherValueMaxMagnitude,
-                         kWeatherValueMaxMagnitude );
-  return WeatherValue{ .value = res };
 }
 
 wait<maybe<e_nation>> choose_human( IGui& gui ) {
@@ -262,26 +244,35 @@ ExchangeKey create_classic_game_key(
 ExchangeKey create_default_game_key(
     IRand& rand, ClassicGameSetupParamsCommon const& common ) {
   auto const& map_conf = config_map_gen.terrain_generation;
+  // These lists must be non-empty or check-fail, but that should
+  // have been validated during config validation.
+  auto const land_form = rand.pick_one(
+      map_conf.land_layout.land_form.fully_random );
+  auto const land_mass = rand.pick_one(
+      map_conf.land_layout.land_mass.fully_random );
+  auto const temperature =
+      rand.pick_one( map_conf.weather.temperature.fully_random );
+  auto const climate =
+      rand.pick_one( map_conf.weather.climate.fully_random );
+
   rng::PerlinLandForm const perlin_land_form{
-    .scale = sample_normal(
+    .scale = NONPORTABLE__sample_normal(
         rand,
-        map_conf.land_layout.land_form.fully_random.scale ),
+        map_conf.land_layout.land_form.customized[land_form]
+            .scale ),
     .fractal =
-        map_conf.land_layout.land_form.fully_random.fractal };
+        map_conf.land_layout.land_form.customized[land_form]
+            .fractal };
 
   ClassicGameSetupParamsEvaluated const params{
-    .common = common,
-    // NOTE: non-portable rng methods are allowed in this module
-    // because we are only generating the exchange key. When that
-    // exchange key is later evaluated to generate the map then
-    // they are not allowed.
-    .land_density = rand.NONPORTABLE__sample_piecewise3(
-        map_conf.land_layout.land_mass.fully_random ),
-    .land_form   = perlin_land_form,
-    .temperature = sample_weather_dist(
-        rand, map_conf.weather.temperature.fully_random ),
-    .climate = sample_weather_dist(
-        rand, map_conf.weather.climate.fully_random ),
+    .common       = common,
+    .land_density = NONPORTABLE__sample_normal(
+        rand,
+        map_conf.land_layout.land_mass.customized[land_mass] ),
+    .land_form = perlin_land_form,
+    .temperature =
+        map_conf.weather.temperature.customized[temperature],
+    .climate = map_conf.weather.climate.customized[climate],
   };
   return create_classic_game_key( rand, params );
 }
@@ -289,11 +280,11 @@ ExchangeKey create_default_game_key(
 ExchangeKey create_classic_customized_game_key(
     IRand& rand, ClassicGameSetupParams const& params ) {
   auto const& map_conf      = config_map_gen.terrain_generation;
-  double const land_density = sample_normal(
+  double const land_density = NONPORTABLE__sample_normal(
       rand, map_conf.land_layout.land_mass
                 .customized[params.custom.land_mass] );
   rng::PerlinLandForm const perlin_land_form{
-    .scale = sample_normal(
+    .scale = NONPORTABLE__sample_normal(
         rand, map_conf.land_layout.land_form
                   .customized[params.custom.land_form]
                   .scale ),

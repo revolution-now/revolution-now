@@ -25,7 +25,7 @@ include "refl/enum-map.hpp"
 namespace "rn.config.map_gen"
 
 struct.LandMass {
-  fully_random 'Piecewise3Dist',
+  fully_random 'std::vector<e_land_mass>',
   customized 'refl::enum_map<e_land_mass, BoundedNormalDist>',
   _features { equality, validation }
 }
@@ -48,9 +48,10 @@ struct.PerlinLandFormRange {
 }
 
 struct.LandForm {
-  fully_random 'PerlinLandFormRange',
+  fully_random 'std::vector<e_land_form>',
   customized 'refl::enum_map<e_land_form, PerlinLandFormRange>',
   perlin_edge_suppression 'PerlinEdgeSuppression',
+  _features { equality, validation }
 }
 
 struct.LandLayout {
@@ -62,18 +63,16 @@ struct.LandLayout {
   remove_crosses 'bool',
 }
 
-struct.WeatherDistribution {
-  distribution 'UniformDistT<WeatherValue>',
-}
-
 struct.Temperature {
-  fully_random 'WeatherDistribution',
+  fully_random 'std::vector<e_temperature>',
   customized 'refl::enum_map<e_temperature, WeatherValue>',
+  _features { equality, validation }
 }
 
 struct.Climate {
-  fully_random 'WeatherDistribution',
+  fully_random 'std::vector<e_climate>',
   customized 'refl::enum_map<e_climate, WeatherValue>',
+  _features { equality, validation }
 }
 
 struct.Weather {

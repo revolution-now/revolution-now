@@ -34,14 +34,9 @@ namespace config::map_gen {
 ** LandMass
 *****************************************************************/
 valid_or<string> LandMass::validate() const {
-  REFL_VALIDATE( fully_random.min >= 0.0,
-                 "land mass min must be in [0,1]." );
-  REFL_VALIDATE( fully_random.min <= 1.0,
-                 "land mass min must be in [0,1]." );
-  REFL_VALIDATE( fully_random.max >= 0.0,
-                 "land mass max must be in [0,1]." );
-  REFL_VALIDATE( fully_random.max <= 1.0,
-                 "land mass max must be in [0,1]." );
+  REFL_VALIDATE(
+      !fully_random.empty(),
+      "land mass fully_random list must be non-empty." );
 
   for( e_land_mass const land_mass : enum_values<e_land_mass> ) {
     REFL_VALIDATE( customized[land_mass].mean >= 0.0,
@@ -63,6 +58,36 @@ valid_or<string> LandMass::validate() const {
                    "land mass max must be in [0,1] for {}.",
                    land_mass );
   }
+  return valid;
+}
+
+/****************************************************************
+** LandForm
+*****************************************************************/
+valid_or<string> LandForm::validate() const {
+  REFL_VALIDATE(
+      !fully_random.empty(),
+      "land form fully_random list must be non-empty." );
+  return valid;
+}
+
+/****************************************************************
+** Temperature.
+*****************************************************************/
+valid_or<string> Temperature::validate() const {
+  REFL_VALIDATE(
+      !fully_random.empty(),
+      "temperature fully_random list must be non-empty." );
+  return valid;
+}
+
+/****************************************************************
+** Cilmate.
+*****************************************************************/
+valid_or<string> Climate::validate() const {
+  REFL_VALIDATE(
+      !fully_random.empty(),
+      "climate fully_random list must be non-empty." );
   return valid;
 }
 
