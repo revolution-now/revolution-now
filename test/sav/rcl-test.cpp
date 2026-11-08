@@ -39,10 +39,8 @@ fs::path classic_sav_dir() {
 
 bool file_contents_same( fs::path const& f1,
                          fs::path const& f2 ) {
-  UNWRAP_CHECK(
-      file1, FileBinaryIO::open_for_rw_fail_on_nonexist( f1 ) );
-  UNWRAP_CHECK(
-      file2, FileBinaryIO::open_for_rw_fail_on_nonexist( f2 ) );
+  UNWRAP_CHECK( file1, FileBinaryIO::open_readonly( f1 ) );
+  UNWRAP_CHECK( file2, FileBinaryIO::open_readonly( f2 ) );
   return file1.read_remainder() == file2.read_remainder();
 }
 
