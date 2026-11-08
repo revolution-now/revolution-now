@@ -43,10 +43,8 @@ fs::path classic_sav_dir() {
 
 bool file_contents_same( fs::path const& f1,
                          fs::path const& f2 ) {
-  UNWRAP_CHECK(
-      file1, FileBinaryIO::open_for_rw_fail_on_nonexist( f1 ) );
-  UNWRAP_CHECK(
-      file2, FileBinaryIO::open_for_rw_fail_on_nonexist( f2 ) );
+  UNWRAP_CHECK( file1, FileBinaryIO::open_readonly( f1 ) );
+  UNWRAP_CHECK( file2, FileBinaryIO::open_readonly( f2 ) );
   return file1.read_remainder() == file2.read_remainder();
 }
 
@@ -61,7 +59,7 @@ fs::path output_folder() {
 bool binary_sav_round_trip( fs::path const& folder,
                             fs::path const& file,
                             fs::path const& tmp ) {
-  static ColonySAV sav;
+  ColonySAV sav;
   fs::path const in  = folder / file;
   fs::path const out = tmp / file;
   CHECK_HAS_VALUE( load_sav_file( in, sav ) );
@@ -72,7 +70,7 @@ bool binary_sav_round_trip( fs::path const& folder,
 bool binary_map_round_trip( fs::path const& folder,
                             fs::path const& file,
                             fs::path const& tmp ) {
-  static MapFile map;
+  MapFile map;
   fs::path const in  = folder / file;
   fs::path const out = tmp / file;
   CHECK_HAS_VALUE( load_map_file( in, map ) );

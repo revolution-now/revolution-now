@@ -261,8 +261,7 @@ valid_or<string> write( IBinaryIO& b, ColonySAV const& out ) {
 valid_or<string> load_sav_file( string const& path,
                                 ColonySAV& out ) {
   ScopedTimer timer( "load SAV binary" );
-  UNWRAP_RETURN(
-      file, FileBinaryIO::open_for_rw_fail_on_nonexist( path ) );
+  UNWRAP_RETURN( file, FileBinaryIO::open_readonly( path ) );
   if( auto res = read( file, out ); !res )
     return fmt::format(
         "failed while reading save file data at offset {}: {}",
@@ -291,8 +290,7 @@ valid_or<string> save_sav_file( string const& path,
 valid_or<string> load_map_file( string const& path,
                                 MapFile& out ) {
   ScopedTimer timer( "load MP file" );
-  UNWRAP_RETURN(
-      file, FileBinaryIO::open_for_rw_fail_on_nonexist( path ) );
+  UNWRAP_RETURN( file, FileBinaryIO::open_readonly( path ) );
   if( auto res = read( file, out ); !res )
     return fmt::format(
         "failed while reading MP file data at offset {}: {}",
