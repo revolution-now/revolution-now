@@ -483,6 +483,21 @@ TEST_CASE( "[map-square] effective_resource" ) {
 }
 
 TEST_CASE( "[map-square] terrain_formation_for" ) {
+  MapSquare square;
+  square.surface = e_surface::land;
+
+  auto const f = [&] [[clang::noinline]] {
+    return terrain_formation_for( square );
+  };
+
+  square.overlay = e_land_overlay::forest;
+  REQUIRE( f() == nothing );
+  square.overlay = e_land_overlay::hills;
+  REQUIRE( f() == e_terrain_formation::hills );
+  square.overlay = e_land_overlay::mountains;
+  REQUIRE( f() == e_terrain_formation::mountains );
+  square.overlay = nothing;
+  REQUIRE( f() == e_terrain_formation::clearing );
 }
 
 } // namespace
