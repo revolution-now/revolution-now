@@ -39,6 +39,15 @@ vector<IBinaryIO::Byte> IBinaryIO::read_remainder() {
 /****************************************************************
 ** FileBinaryIO.
 *****************************************************************/
+expect<FileBinaryIO, string> FileBinaryIO::open_readonly(
+    std::string const& path ) {
+  FILE* const fp = std::fopen( path.c_str(), "rb" );
+  if( fp == nullptr )
+    return fmt::format(
+        "failed to open file \"{}\" for reading.", path );
+  return FileBinaryIO( fp );
+}
+
 expect<FileBinaryIO, string>
 FileBinaryIO::open_for_rw_fail_on_nonexist(
     std::string const& path ) {

@@ -92,6 +92,10 @@ struct IBinaryIO {
 *****************************************************************/
 // Reads or writes to a binary buffer.
 struct FileBinaryIO : IBinaryIO, zero<FileBinaryIO, FILE*> {
+  // This will fail if the file doesn't exist as it is read only.
+  static expect<FileBinaryIO, std::string>
+  open_readonly( std::string const& path );
+
   // This allows writing as well, but requires that the file
   // exist and won't truncate it.
   static expect<FileBinaryIO, std::string>

@@ -593,7 +593,55 @@ TEST_CASE(
   }
 }
 
-TEST_CASE( "[base/binary-data] FileBinaryIO read" ) {
+TEST_CASE( "[base/binary-data] FileBinaryIO read only" ) {
+  expect<FileBinaryIO, string> const nonexistent =
+      FileBinaryIO::open_readonly( "does-not-exist-j89j9j" );
+  REQUIRE(
+      nonexistent ==
+      "failed to open file \"does-not-exist-j89j9j\" for reading."s );
+
+  auto bin_files = testing::data_dir() / "binary-files";
+
+  UNWRAP_CHECK( five_numbers,
+                FileBinaryIO::open_readonly(
+                    bin_files / "five-numbers.bin" ) );
+  REQUIRE( !five_numbers.eof() );
+  REQUIRE( five_numbers.pos() == 0 );
+  REQUIRE( five_numbers.size() == 5 );
+  REQUIRE( five_numbers.remaining() == 5 );
+
+  uint16_t two_bytes = 0;
+  REQUIRE( five_numbers.read( two_bytes ) );
+  REQUIRE( two_bytes == 0x0301 );
+  REQUIRE( !five_numbers.eof() );
+  REQUIRE( five_numbers.pos() == 2 );
+  REQUIRE( five_numbers.size() == 5 );
+  REQUIRE( five_numbers.remaining() == 3 );
+
+  vector<unsigned char> const v = five_numbers.read_remainder();
+  REQUIRE( v == vector<unsigned char>{ 2, 4, 7 } );
+  REQUIRE( five_numbers.eof() );
+  REQUIRE( five_numbers.pos() == 5 );
+  REQUIRE( five_numbers.size() == 5 );
+  REQUIRE( five_numbers.remaining() == 0 );
+
+  int8_t one_byte = 111;
+  REQUIRE( !five_numbers.read( one_byte ) );
+  REQUIRE( one_byte == 111 ); // unchanged due to failure.
+  REQUIRE( five_numbers.eof() );
+  REQUIRE( five_numbers.pos() == 5 );
+  REQUIRE( five_numbers.size() == 5 );
+  REQUIRE( five_numbers.remaining() == 0 );
+
+  vector<unsigned char> const v2 = five_numbers.read_remainder();
+  REQUIRE( v2.empty() );
+  REQUIRE( five_numbers.eof() );
+  REQUIRE( five_numbers.pos() == 5 );
+  REQUIRE( five_numbers.size() == 5 );
+  REQUIRE( five_numbers.remaining() == 0 );
+}
+
+TEST_CASE( "[base/binary-data] FileBinaryIO read/write" ) {
   expect<FileBinaryIO, string> const nonexistent =
       FileBinaryIO::open_for_rw_fail_on_nonexist(
           "does-not-exist-j89j9j" );
