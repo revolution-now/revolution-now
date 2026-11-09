@@ -13,9 +13,6 @@
 // rds
 #include "perlin-map.rds.hpp"
 
-// ss
-#include "ss/terrain-enums.rds.hpp"
-
 // gfx
 #include "gfx/cartesian.hpp"
 #include "gfx/matrix-fwd.hpp"
@@ -42,6 +39,8 @@ struct PerlinMapSettings;
 
 [[nodiscard]] base::valid_or<e_perlin_map_error> land_gen_perlin(
     PerlinMapSettings const& settings, double target_density,
-    gfx::size const world_sz, gfx::matrix<e_surface>& surface );
+    base::maybe<double> mountains_density_divisor,
+    gfx::size const world_sz,
+    gfx::matrix<PerlinGenTile>& surface );
 
 } // namespace rn

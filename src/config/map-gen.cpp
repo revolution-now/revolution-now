@@ -82,7 +82,7 @@ valid_or<string> Temperature::validate() const {
 }
 
 /****************************************************************
-** Cilmate.
+** Climate.
 *****************************************************************/
 valid_or<string> Climate::validate() const {
   REFL_VALIDATE(

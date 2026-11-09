@@ -8,6 +8,9 @@
 # Description: Rds definitions for the perlin-map module.
 #
 # ===============================================================
+# ss
+include "ss/terrain-enums.rds.hpp"
+
 namespace "rn"
 
 enum.e_perlin_map_error {
@@ -15,4 +18,9 @@ enum.e_perlin_map_error {
   invalid_map_size,
   density_search_failed,
   density_too_small_no_land,
+}
+
+struct.PerlinGenTile {
+  surface 'e_surface',
+  has_mountains 'bool',
 }

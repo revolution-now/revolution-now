@@ -21,6 +21,7 @@
 #include "src/rand/perlin.rds.hpp"
 
 // gfx
+#include "src/gfx/iter.hpp"
 #include "src/gfx/matrix.hpp"
 
 // refl
@@ -41,26 +42,34 @@ using ::base::invalid;
 using ::base::valid;
 using ::gfx::dsize;
 using ::gfx::matrix;
+using ::gfx::point;
+using ::gfx::rect_iterator;
 using ::gfx::size;
 
-[[nodiscard]] string format_map( matrix<e_surface> const& m ) {
+[[nodiscard]] string format_map(
+    matrix<PerlinGenTile> const& m ) {
   string out;
   for( int y = 0; y < m.size().h; ++y ) {
     out += "    ";
     for( int x = 0; x < m.size().w; ++x )
       out += fmt::format(
-          "{},", m[y][x] == e_surface::land ? 'X' : '_' );
+          "{},",
+          m[y][x].surface == e_surface::land ? 'X' : '_' );
     out += '\n';
   }
   return out;
 }
 
 struct PrintableMap {
-  matrix<e_surface> const& m;
+  matrix<PerlinGenTile> const& m;
 
   [[nodiscard]] friend bool operator==( PrintableMap const& l,
                                         PrintableMap const& r ) {
-    return l.m == r.m;
+    if( l.m.size() != r.m.size() ) return false;
+    for( point const p : rect_iterator( l.m.rect() ) )
+      if( l.m[p].surface != r.m[p].surface ) //
+        return false;
+    return true;
   }
 
   [[maybe_unused]] friend void to_str(
@@ -131,23 +140,26 @@ TEST_CASE(
               .base     = 1152681597,
               .flip     = false },
   };
-  double const target_density = 0.6;
+  double const target_density            = 0.6;
+  double const mountains_density_divisor = 8.0;
   size const world_sz{ .w = 16, .h = 16 };
 
-  matrix<e_surface> surface, expected;
+  matrix<PerlinGenTile> surface, expected;
 
   auto const f = [&] [[clang::noinline]] {
     surface = {};
-    return land_gen_perlin( settings, target_density, world_sz,
+    return land_gen_perlin( settings, target_density,
+                            mountains_density_divisor, world_sz,
                             surface );
   };
 
   REQUIRE( f() == valid );
 
-  auto constexpr _ = e_surface::water;
-  auto constexpr X = e_surface::land;
+  auto constexpr _ =
+      PerlinGenTile{ .surface = e_surface::water };
+  auto constexpr X = PerlinGenTile{ .surface = e_surface::land };
 
-  expected = matrix<e_surface>(
+  expected = matrix<PerlinGenTile>(
       16,
       vector{
         // clang-format off
@@ -174,14 +186,15 @@ TEST_CASE(
 
 TEST_CASE( "[perlin-map] land_gen_perlin" ) {
   using enum e_perlin_map_error;
-  matrix<e_surface> surface, expected;
+  matrix<PerlinGenTile> surface, expected;
 
   PerlinMapSettings settings;
   double target_density = {};
   size world_sz         = {};
 
-  auto constexpr _ = e_surface::water;
-  auto constexpr X = e_surface::land;
+  auto constexpr _ =
+      PerlinGenTile{ .surface = e_surface::water };
+  auto constexpr X = PerlinGenTile{ .surface = e_surface::land };
 
   rng::PerlinSeed const kSeed = {
     .offset_x = 876454408,
@@ -217,9 +230,12 @@ TEST_CASE( "[perlin-map] land_gen_perlin" ) {
     .seed             = kSeed,
   };
 
+  double const mountains_density_divisor = 8.0;
+
   auto const f = [&] [[clang::noinline]] {
     surface = {};
-    return land_gen_perlin( settings, target_density, world_sz,
+    return land_gen_perlin( settings, target_density,
+                            mountains_density_divisor, world_sz,
                             surface );
   };
 
@@ -260,7 +276,7 @@ TEST_CASE( "[perlin-map] land_gen_perlin" ) {
   REQUIRE( f() == valid );
 
   // clang-format off
-  expected = matrix<e_surface>( world_sz.w, vector{
+  expected = matrix<PerlinGenTile>( world_sz.w, vector{
       _,
   } );
   // clang-format on
@@ -276,7 +292,7 @@ TEST_CASE( "[perlin-map] land_gen_perlin" ) {
   REQUIRE( f() == invalid( density_too_small_no_land ) );
 
   // clang-format off
-  expected = matrix<e_surface>( world_sz.w, vector{
+  expected = matrix<PerlinGenTile>( world_sz.w, vector{
       _,
   } );
   // clang-format on
@@ -302,7 +318,7 @@ TEST_CASE( "[perlin-map] land_gen_perlin" ) {
   REQUIRE( f() == valid );
 
   // clang-format off
-  expected = matrix<e_surface>( world_sz.w, vector{
+  expected = matrix<PerlinGenTile>( world_sz.w, vector{
       X,
       _,
       _,
@@ -334,7 +350,7 @@ TEST_CASE( "[perlin-map] land_gen_perlin" ) {
   REQUIRE( f() == valid );
 
   // clang-format off
-  expected = matrix<e_surface>( world_sz.w, vector{
+  expected = matrix<PerlinGenTile>( world_sz.w, vector{
       X,X,_,X,X,X,X,X,_,_,_,_,_,_,X,_,
   } );
   // clang-format on
@@ -350,7 +366,7 @@ TEST_CASE( "[perlin-map] land_gen_perlin" ) {
   REQUIRE( f() == valid );
 
   // clang-format off
-  expected = matrix<e_surface>( world_sz.w, vector{
+  expected = matrix<PerlinGenTile>( world_sz.w, vector{
       _,_,_,_,
       _,X,X,X,
       _,X,X,X,
@@ -369,7 +385,7 @@ TEST_CASE( "[perlin-map] land_gen_perlin" ) {
   REQUIRE( f() == valid );
 
   // clang-format off
-  expected = matrix<e_surface>( world_sz.w, vector{
+  expected = matrix<PerlinGenTile>( world_sz.w, vector{
       _,X,X,X,_,
       _,X,X,X,_,
       _,X,X,X,_,
@@ -389,7 +405,7 @@ TEST_CASE( "[perlin-map] land_gen_perlin" ) {
   REQUIRE( f() == valid );
 
   // clang-format off
-  expected = matrix<e_surface>( world_sz.w, vector{
+  expected = matrix<PerlinGenTile>( world_sz.w, vector{
       _,_,_,_,_,_,
       _,_,X,X,X,X,
       _,_,X,X,X,X,
@@ -410,7 +426,7 @@ TEST_CASE( "[perlin-map] land_gen_perlin" ) {
   REQUIRE( f() == valid );
 
   // clang-format off
-  expected = matrix<e_surface>( world_sz.w, vector{
+  expected = matrix<PerlinGenTile>( world_sz.w, vector{
       _,_,_,_,X,X,_,
       _,X,X,X,X,X,_,
       _,X,X,X,X,X,_,
@@ -432,7 +448,7 @@ TEST_CASE( "[perlin-map] land_gen_perlin" ) {
   REQUIRE( f() == valid );
 
   // clang-format off
-  expected = matrix<e_surface>( world_sz.w, vector{
+  expected = matrix<PerlinGenTile>( world_sz.w, vector{
       _,_,_,_,_,_,_,
       _,_,X,X,X,X,_,
       _,_,_,X,X,X,_,
@@ -454,7 +470,7 @@ TEST_CASE( "[perlin-map] land_gen_perlin" ) {
   REQUIRE( f() == valid );
 
   // clang-format off
-  expected = matrix<e_surface>( world_sz.w, vector{
+  expected = matrix<PerlinGenTile>( world_sz.w, vector{
       _,_,_,_,_,_,_,_,
       _,_,_,_,X,X,X,_,
       _,_,_,_,X,X,X,X,
@@ -477,7 +493,7 @@ TEST_CASE( "[perlin-map] land_gen_perlin" ) {
   REQUIRE( f() == valid );
 
   // clang-format off
-  expected = matrix<e_surface>( world_sz.w, vector{
+  expected = matrix<PerlinGenTile>( world_sz.w, vector{
       _,_,_,_,_,_,_,_,_,
       _,_,_,_,X,X,X,X,_,
       _,_,_,X,X,X,X,X,_,
@@ -501,7 +517,7 @@ TEST_CASE( "[perlin-map] land_gen_perlin" ) {
   REQUIRE( f() == valid );
 
   // clang-format off
-  expected = matrix<e_surface>( world_sz.w, vector{
+  expected = matrix<PerlinGenTile>( world_sz.w, vector{
       _,_,_,_,_,_,_,_,_,_,
       _,_,_,_,_,X,X,X,_,_,
       _,_,_,_,X,X,X,X,X,_,
@@ -526,7 +542,7 @@ TEST_CASE( "[perlin-map] land_gen_perlin" ) {
   REQUIRE( f() == valid );
 
   // clang-format off
-  expected = matrix<e_surface>( world_sz.w, vector{
+  expected = matrix<PerlinGenTile>( world_sz.w, vector{
       _,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,
       _,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,
       _,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,
@@ -557,7 +573,7 @@ TEST_CASE( "[perlin-map] land_gen_perlin" ) {
   REQUIRE( f() == valid );
 
   // clang-format off
-  expected = matrix<e_surface>( world_sz.w, vector{
+  expected = matrix<PerlinGenTile>( world_sz.w, vector{
       _,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,
       _,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,
       _,_,_,_,_,_,_,X,_,_,_,_,_,_,_,_,
@@ -588,7 +604,7 @@ TEST_CASE( "[perlin-map] land_gen_perlin" ) {
   REQUIRE( f() == valid );
 
   // clang-format off
-  expected = matrix<e_surface>( world_sz.w, vector{
+  expected = matrix<PerlinGenTile>( world_sz.w, vector{
       X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,
       X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,
       X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,
@@ -619,7 +635,7 @@ TEST_CASE( "[perlin-map] land_gen_perlin" ) {
   REQUIRE( f() == valid );
 
   // clang-format off
-  expected = matrix<e_surface>( world_sz.w, vector{
+  expected = matrix<PerlinGenTile>( world_sz.w, vector{
       _,_,X,X,X,X,X,X,X,X,_,_,X,X,X,_,
       _,_,X,X,X,X,X,X,X,X,X,X,X,X,X,X,
       _,_,X,X,X,X,X,X,X,X,X,X,X,X,X,X,
@@ -650,7 +666,7 @@ TEST_CASE( "[perlin-map] land_gen_perlin" ) {
   REQUIRE( f() == valid );
 
   // clang-format off
-  expected = matrix<e_surface>( world_sz.w, vector{
+  expected = matrix<PerlinGenTile>( world_sz.w, vector{
       _,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,
       _,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,
       _,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,
@@ -681,7 +697,7 @@ TEST_CASE( "[perlin-map] land_gen_perlin" ) {
   REQUIRE( f() == valid );
 
   // clang-format off
-  expected = matrix<e_surface>( world_sz.w, vector{
+  expected = matrix<PerlinGenTile>( world_sz.w, vector{
       _,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,
       _,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,
       _,_,_,_,_,X,X,X,X,_,X,_,X,X,_,_,
@@ -713,7 +729,7 @@ TEST_CASE( "[perlin-map] land_gen_perlin" ) {
   REQUIRE( f() == valid );
 
   // clang-format off
-  expected = matrix<e_surface>( world_sz.w, vector{
+  expected = matrix<PerlinGenTile>( world_sz.w, vector{
       _,_,_,_,_,_,_,_,_,_,_,X,_,_,_,_,
       _,_,X,X,_,_,_,_,_,X,X,X,X,_,_,_,
       _,_,X,X,X,X,X,_,X,X,X,X,X,_,_,_,
@@ -750,7 +766,7 @@ TEST_CASE( "[perlin-map] land_gen_perlin" ) {
   REQUIRE( f() == valid );
 
   // clang-format off
-  expected = matrix<e_surface>( world_sz.w, vector{
+  expected = matrix<PerlinGenTile>( world_sz.w, vector{
       _,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,
       _,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,
       _,_,_,_,_,X,X,X,X,_,_,X,X,X,X,_,
@@ -787,7 +803,7 @@ TEST_CASE( "[perlin-map] land_gen_perlin" ) {
   REQUIRE( f() == valid );
 
   // clang-format off
-  expected = matrix<e_surface>( world_sz.w, vector{
+  expected = matrix<PerlinGenTile>( world_sz.w, vector{
       _,_,X,X,X,_,_,_,_,_,_,_,_,_,_,_,
       _,_,X,X,X,X,X,X,_,_,_,X,_,_,_,_,
       _,_,X,X,X,X,X,X,X,_,_,X,_,_,_,_,
@@ -848,7 +864,7 @@ TEST_CASE( "[perlin-map] land_gen_perlin" ) {
   REQUIRE( f() == valid );
 
   // clang-format off
-  expected = matrix<e_surface>( world_sz.w, vector{
+  expected = matrix<PerlinGenTile>( world_sz.w, vector{
       _,_,X,_,_,_,X,X,_,_,_,X,_,X,_,_,
       _,X,_,_,_,_,X,_,_,X,_,X,_,X,_,_,
       _,_,_,_,X,X,_,X,_,_,X,X,X,X,_,_,
@@ -883,7 +899,7 @@ TEST_CASE( "[perlin-map] land_gen_perlin" ) {
   REQUIRE( f() == valid );
 
   // clang-format off
-  expected = matrix<e_surface>( world_sz.w, vector{
+  expected = matrix<PerlinGenTile>( world_sz.w, vector{
       _,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,
       _,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,
       _,_,_,_,_,_,_,X,_,_,_,_,X,_,_,_,
@@ -918,7 +934,7 @@ TEST_CASE( "[perlin-map] land_gen_perlin" ) {
   REQUIRE( f() == valid );
 
   // clang-format off
-  expected = matrix<e_surface>( world_sz.w, vector{
+  expected = matrix<PerlinGenTile>( world_sz.w, vector{
       _,_,_,_,_,_,_,_,_,_,X,_,_,_,X,_,
       _,_,_,X,_,_,_,_,_,_,_,_,_,X,_,_,
       _,_,_,X,_,_,_,_,_,_,_,_,_,X,_,_,
@@ -953,7 +969,7 @@ TEST_CASE( "[perlin-map] land_gen_perlin" ) {
   REQUIRE( f() == valid );
 
   // clang-format off
-  expected = matrix<e_surface>( world_sz.w, vector{
+  expected = matrix<PerlinGenTile>( world_sz.w, vector{
       _,_,_,_,_,_,_,_,_,X,_,_,_,_,_,_,
       _,_,_,_,_,_,X,_,_,X,X,_,_,_,_,_,
       _,_,_,_,_,_,_,_,_,_,X,_,_,X,_,_,
@@ -989,7 +1005,7 @@ TEST_CASE( "[perlin-map] land_gen_perlin" ) {
   REQUIRE( f() == valid );
 
   // clang-format off
-  expected = matrix<e_surface>( world_sz.w, vector{
+  expected = matrix<PerlinGenTile>( world_sz.w, vector{
       _,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,
       _,_,_,_,_,_,_,X,X,X,_,X,_,_,_,_,
       _,_,_,_,_,_,X,X,X,X,X,_,_,_,_,_,
@@ -1024,7 +1040,7 @@ TEST_CASE( "[perlin-map] land_gen_perlin" ) {
   REQUIRE( f() == valid );
 
   // clang-format off
-  expected = matrix<e_surface>( world_sz.w, vector{
+  expected = matrix<PerlinGenTile>( world_sz.w, vector{
       _,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,
       _,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,
       _,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,
@@ -1059,7 +1075,7 @@ TEST_CASE( "[perlin-map] land_gen_perlin" ) {
   REQUIRE( f() == valid );
 
   // clang-format off
-  expected = matrix<e_surface>( world_sz.w, vector{
+  expected = matrix<PerlinGenTile>( world_sz.w, vector{
       _,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,
       _,_,X,X,_,_,_,_,_,_,X,X,X,_,_,_,
       _,_,_,_,_,_,_,_,_,X,X,X,X,X,_,_,
@@ -1094,7 +1110,7 @@ TEST_CASE( "[perlin-map] land_gen_perlin" ) {
   REQUIRE( f() == valid );
 
   // clang-format off
-  expected = matrix<e_surface>( world_sz.w, vector{
+  expected = matrix<PerlinGenTile>( world_sz.w, vector{
       _,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,
       _,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,
       _,_,_,_,_,X,X,X,X,_,_,_,_,_,_,_,
@@ -1129,7 +1145,7 @@ TEST_CASE( "[perlin-map] land_gen_perlin" ) {
   REQUIRE( f() == valid );
 
   // clang-format off
-  expected = matrix<e_surface>( world_sz.w, vector{
+  expected = matrix<PerlinGenTile>( world_sz.w, vector{
       _,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,
       _,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,
       _,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,
@@ -1164,7 +1180,7 @@ TEST_CASE( "[perlin-map] land_gen_perlin" ) {
   REQUIRE( f() == valid );
 
   // clang-format off
-  expected = matrix<e_surface>( world_sz.w, vector{
+  expected = matrix<PerlinGenTile>( world_sz.w, vector{
       _,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,
       _,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,
       _,_,_,_,_,_,_,_,_,_,X,X,_,_,_,_,
@@ -1199,7 +1215,7 @@ TEST_CASE( "[perlin-map] land_gen_perlin" ) {
   REQUIRE( f() == valid );
 
   // clang-format off
-  expected = matrix<e_surface>( world_sz.w, vector{
+  expected = matrix<PerlinGenTile>( world_sz.w, vector{
       _,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,
       _,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,
       _,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,
@@ -1234,7 +1250,7 @@ TEST_CASE( "[perlin-map] land_gen_perlin" ) {
   REQUIRE( f() == valid );
 
   // clang-format off
-  expected = matrix<e_surface>( world_sz.w, vector{
+  expected = matrix<PerlinGenTile>( world_sz.w, vector{
       _,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,
       _,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,
       _,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,
@@ -1269,7 +1285,7 @@ TEST_CASE( "[perlin-map] land_gen_perlin" ) {
   REQUIRE( f() == valid );
 
   // clang-format off
-  expected = matrix<e_surface>( world_sz.w, vector{
+  expected = matrix<PerlinGenTile>( world_sz.w, vector{
       _,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,
       _,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,
       _,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,
@@ -1304,7 +1320,7 @@ TEST_CASE( "[perlin-map] land_gen_perlin" ) {
   REQUIRE( f() == valid );
 
   // clang-format off
-  expected = matrix<e_surface>( world_sz.w, vector{
+  expected = matrix<PerlinGenTile>( world_sz.w, vector{
       _,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,
       _,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,
       _,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,
@@ -1343,7 +1359,7 @@ TEST_CASE( "[perlin-map] land_gen_perlin" ) {
   REQUIRE( f() == valid );
 
   // clang-format off
-  expected = matrix<e_surface>( world_sz.w, vector{
+  expected = matrix<PerlinGenTile>( world_sz.w, vector{
       _,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,
       _,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,
       _,_,_,_,_,_,_,X,_,_,_,_,_,_,_,_,
@@ -1399,7 +1415,7 @@ TEST_CASE( "[perlin-map] land_gen_perlin" ) {
   REQUIRE( f() == valid );
 
   // clang-format off
-  expected = matrix<e_surface>( world_sz.w, vector{
+  expected = matrix<PerlinGenTile>( world_sz.w, vector{
       _,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,
       _,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,
       _,_,_,_,_,_,_,_,_,_,_,X,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,
@@ -1450,7 +1466,7 @@ TEST_CASE( "[perlin-map] land_gen_perlin" ) {
   REQUIRE( f() == valid );
 
   // clang-format off
-  expected = matrix<e_surface>( world_sz.w, vector{
+  expected = matrix<PerlinGenTile>( world_sz.w, vector{
       _,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,
       _,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,
       _,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,X,_,_,_,_,_,_,_,_,_,_,
@@ -1501,7 +1517,7 @@ TEST_CASE( "[perlin-map] land_gen_perlin" ) {
   REQUIRE( f() == valid );
 
   // clang-format off
-  expected = matrix<e_surface>( world_sz.w, vector{
+  expected = matrix<PerlinGenTile>( world_sz.w, vector{
       _,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,
       _,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,
       _,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,X,X,_,_,_,_,
@@ -1552,7 +1568,7 @@ TEST_CASE( "[perlin-map] land_gen_perlin" ) {
   REQUIRE( f() == valid );
 
   // clang-format off
-  expected = matrix<e_surface>( world_sz.w, vector{
+  expected = matrix<PerlinGenTile>( world_sz.w, vector{
       _,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,
       _,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,
       _,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,X,X,_,_,_,_,_,_,_,_,_,
@@ -1603,7 +1619,7 @@ TEST_CASE( "[perlin-map] land_gen_perlin" ) {
   REQUIRE( f() == valid );
 
   // clang-format off
-  expected = matrix<e_surface>( world_sz.w, vector{
+  expected = matrix<PerlinGenTile>( world_sz.w, vector{
       _,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,
       _,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,
       _,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,X,_,_,_,_,_,_,_,_,_,
@@ -1654,7 +1670,7 @@ TEST_CASE( "[perlin-map] land_gen_perlin" ) {
   REQUIRE( f() == valid );
 
   // clang-format off
-  expected = matrix<e_surface>( world_sz.w, vector{
+  expected = matrix<PerlinGenTile>( world_sz.w, vector{
       _,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,
       _,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,
       _,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,X,_,_,_,_,_,_,_,_,_,
@@ -1705,7 +1721,7 @@ TEST_CASE( "[perlin-map] land_gen_perlin" ) {
   REQUIRE( f() == valid );
 
   // clang-format off
-  expected = matrix<e_surface>( world_sz.w, vector{
+  expected = matrix<PerlinGenTile>( world_sz.w, vector{
       _,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,
       _,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,
       _,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,X,_,_,_,_,_,_,_,_,_,
@@ -1756,7 +1772,7 @@ TEST_CASE( "[perlin-map] land_gen_perlin" ) {
   REQUIRE( f() == valid );
 
   // clang-format off
-  expected = matrix<e_surface>( world_sz.w, vector{
+  expected = matrix<PerlinGenTile>( world_sz.w, vector{
       _,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,
       _,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,X,_,_,X,_,_,_,_,_,_,
       _,_,_,_,X,_,_,_,_,_,_,_,X,X,_,_,X,_,X,_,_,X,X,_,_,_,_,_,
@@ -1807,7 +1823,7 @@ TEST_CASE( "[perlin-map] land_gen_perlin" ) {
   REQUIRE( f() == valid );
 
   // clang-format off
-  expected = matrix<e_surface>( world_sz.w, vector{
+  expected = matrix<PerlinGenTile>( world_sz.w, vector{
       _,X,_,_,_,_,_,X,_,_,_,X,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,
       _,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,X,_,_,_,_,_,X,_,_,_,_,_,
       _,_,_,_,_,_,X,X,_,_,X,X,X,_,_,_,X,_,_,_,_,X,X,_,X,_,_,_,
@@ -1858,7 +1874,7 @@ TEST_CASE( "[perlin-map] land_gen_perlin" ) {
   REQUIRE( f() == valid );
 
   // clang-format off
-  expected = matrix<e_surface>( world_sz.w, vector{
+  expected = matrix<PerlinGenTile>( world_sz.w, vector{
       _,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,
       _,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,X,_,_,_,_,_,_,_,_,_,_,_,
       _,_,_,_,_,X,_,_,_,_,_,_,_,X,_,X,_,_,X,_,_,_,_,_,_,_,_,_,
@@ -1924,7 +1940,7 @@ TEST_CASE( "[perlin-map] land_gen_perlin" ) {
   REQUIRE( f() == valid );
 
   // clang-format off
-  expected = matrix<e_surface>( world_sz.w, vector{
+  expected = matrix<PerlinGenTile>( world_sz.w, vector{
       _,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,
       _,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,
       _,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,X,_,_,X,_,_,_,_,_,_,
@@ -1972,7 +1988,7 @@ TEST_CASE( "[perlin-map] land_gen_perlin" ) {
   REQUIRE( f() == valid );
 
   // clang-format off
-  expected = matrix<e_surface>( world_sz.w, vector{
+  expected = matrix<PerlinGenTile>( world_sz.w, vector{
       _,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,
       _,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,
       _,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,X,_,_,X,_,_,_,_,_,_,
@@ -2020,7 +2036,7 @@ TEST_CASE( "[perlin-map] land_gen_perlin" ) {
   REQUIRE( f() == valid );
 
   // clang-format off
-  expected = matrix<e_surface>( world_sz.w, vector{
+  expected = matrix<PerlinGenTile>( world_sz.w, vector{
       _,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,X,X,_,_,_,_,_,_,_,_,_,
       _,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,X,X,_,_,_,_,_,_,_,_,_,
       _,_,_,_,_,_,_,X,_,_,_,_,_,X,X,_,_,X,X,_,_,X,X,_,_,_,_,_,
@@ -2068,7 +2084,7 @@ TEST_CASE( "[perlin-map] land_gen_perlin" ) {
   REQUIRE( f() == valid );
 
   // clang-format off
-  expected = matrix<e_surface>( world_sz.w, vector{
+  expected = matrix<PerlinGenTile>( world_sz.w, vector{
       _,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,X,X,_,_,_,_,_,_,_,_,_,
       _,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,X,X,_,_,_,_,_,_,_,_,_,
       _,_,_,_,_,_,_,X,_,_,_,_,_,X,X,_,_,X,X,_,_,X,X,_,_,_,_,_,
@@ -2116,7 +2132,7 @@ TEST_CASE( "[perlin-map] land_gen_perlin" ) {
   REQUIRE( f() == valid );
 
   // clang-format off
-  expected = matrix<e_surface>( world_sz.w, vector{
+  expected = matrix<PerlinGenTile>( world_sz.w, vector{
       _,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,X,X,_,_,_,_,_,_,_,_,_,
       _,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,X,X,_,_,_,_,_,_,_,_,_,
       _,_,_,_,_,_,_,X,_,_,_,_,_,X,X,_,_,X,X,_,_,X,X,_,_,_,_,_,
@@ -2164,7 +2180,7 @@ TEST_CASE( "[perlin-map] land_gen_perlin" ) {
   REQUIRE( f() == valid );
 
   // clang-format off
-  expected = matrix<e_surface>( world_sz.w, vector{
+  expected = matrix<PerlinGenTile>( world_sz.w, vector{
       _,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,X,X,_,_,_,_,_,_,_,_,_,
       _,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,X,X,_,_,_,_,_,_,_,_,_,
       _,_,_,_,_,_,_,X,_,_,_,_,_,X,X,_,_,X,X,_,_,X,X,_,_,_,_,_,
@@ -2212,7 +2228,7 @@ TEST_CASE( "[perlin-map] land_gen_perlin" ) {
   REQUIRE( f() == valid );
 
   // clang-format off
-  expected = matrix<e_surface>( world_sz.w, vector{
+  expected = matrix<PerlinGenTile>( world_sz.w, vector{
       _,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,
       _,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,X,X,_,_,_,_,_,_,_,_,_,
       _,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,X,X,_,_,X,X,X,X,_,_,_,
@@ -2260,7 +2276,7 @@ TEST_CASE( "[perlin-map] land_gen_perlin" ) {
   REQUIRE( f() == valid );
 
   // clang-format off
-  expected = matrix<e_surface>( world_sz.w, vector{
+  expected = matrix<PerlinGenTile>( world_sz.w, vector{
       _,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,
       _,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,X,X,_,_,_,_,_,_,_,_,_,
       _,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,X,X,_,_,X,X,X,X,_,_,_,
@@ -2308,7 +2324,7 @@ TEST_CASE( "[perlin-map] land_gen_perlin" ) {
   REQUIRE( f() == valid );
 
   // clang-format off
-  expected = matrix<e_surface>( world_sz.w, vector{
+  expected = matrix<PerlinGenTile>( world_sz.w, vector{
       _,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,
       _,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,X,X,_,_,_,_,_,_,_,_,_,
       _,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,X,X,_,_,X,X,X,X,_,_,_,
@@ -2356,7 +2372,7 @@ TEST_CASE( "[perlin-map] land_gen_perlin" ) {
   REQUIRE( f() == valid );
 
   // clang-format off
-  expected = matrix<e_surface>( world_sz.w, vector{
+  expected = matrix<PerlinGenTile>( world_sz.w, vector{
       _,_,_,X,X,X,X,X,_,_,_,_,_,_,X,_,X,X,X,X,_,_,X,X,_,_,_,_,
       _,_,_,_,X,X,X,X,X,_,X,_,_,X,X,_,X,X,X,X,X,X,X,X,X,X,_,_,
       _,_,_,_,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,
@@ -2404,7 +2420,7 @@ TEST_CASE( "[perlin-map] land_gen_perlin" ) {
   REQUIRE( f() == valid );
 
   // clang-format off
-  expected = matrix<e_surface>( world_sz.w, vector{
+  expected = matrix<PerlinGenTile>( world_sz.w, vector{
       _,_,_,_,_,X,X,_,_,_,_,_,_,_,_,_,X,X,X,_,_,_,_,_,_,_,_,_,
       _,_,_,_,_,X,X,X,_,_,_,_,_,X,_,_,X,X,X,_,_,X,X,X,_,_,_,_,
       _,_,_,_,_,X,X,X,X,_,X,_,X,X,X,X,X,X,X,X,X,X,X,X,X,_,_,_,
@@ -2452,7 +2468,7 @@ TEST_CASE( "[perlin-map] land_gen_perlin" ) {
   REQUIRE( f() == valid );
 
   // clang-format off
-  expected = matrix<e_surface>( world_sz.w, vector{
+  expected = matrix<PerlinGenTile>( world_sz.w, vector{
       _,_,_,_,_,X,X,_,_,_,_,_,_,_,X,_,X,X,X,X,_,_,_,_,_,_,_,_,
       _,_,_,_,_,_,X,X,X,_,X,_,_,X,X,X,X,X,X,X,X,X,X,_,_,_,_,_,
       _,_,_,_,_,_,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,_,_,_,_,
@@ -2500,7 +2516,7 @@ TEST_CASE( "[perlin-map] land_gen_perlin" ) {
   REQUIRE( f() == valid );
 
   // clang-format off
-  expected = matrix<e_surface>( world_sz.w, vector{
+  expected = matrix<PerlinGenTile>( world_sz.w, vector{
       _,_,_,_,_,_,_,_,X,X,X,X,X,X,X,X,X,X,X,X,X,_,_,_,_,_,_,_,
       _,_,_,_,_,_,_,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,_,_,_,_,_,_,
       _,_,_,_,_,_,_,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,_,_,_,_,_,_,
@@ -2548,7 +2564,7 @@ TEST_CASE( "[perlin-map] land_gen_perlin" ) {
   REQUIRE( f() == valid );
 
   // clang-format off
-  expected = matrix<e_surface>( world_sz.w, vector{
+  expected = matrix<PerlinGenTile>( world_sz.w, vector{
       _,_,_,_,_,_,_,_,X,X,X,X,X,X,X,X,X,X,X,X,X,_,_,_,_,_,_,_,
       _,_,_,_,_,_,_,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,_,_,_,_,_,_,
       _,_,_,_,_,_,_,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,_,_,_,_,_,_,
@@ -2596,7 +2612,7 @@ TEST_CASE( "[perlin-map] land_gen_perlin" ) {
   REQUIRE( f() == valid );
 
   // clang-format off
-  expected = matrix<e_surface>( world_sz.w, vector{
+  expected = matrix<PerlinGenTile>( world_sz.w, vector{
       _,_,_,_,_,X,X,_,_,_,_,_,_,_,_,_,_,X,X,_,_,_,_,_,_,_,_,_,
       _,_,_,_,_,X,_,X,_,_,_,_,_,_,_,_,X,X,X,_,_,X,X,X,_,_,_,_,
       _,_,_,_,_,_,X,X,X,_,_,_,X,X,X,_,X,X,X,X,X,X,X,X,X,_,_,_,
@@ -2644,7 +2660,7 @@ TEST_CASE( "[perlin-map] land_gen_perlin" ) {
   REQUIRE( f() == valid );
 
   // clang-format off
-  expected = matrix<e_surface>( world_sz.w, vector{
+  expected = matrix<PerlinGenTile>( world_sz.w, vector{
       _,_,_,_,_,X,X,_,_,_,_,_,_,_,_,_,_,X,X,_,_,_,_,_,_,_,_,_,
       _,_,_,_,_,X,_,X,_,_,_,_,_,_,_,_,X,X,X,_,_,X,X,X,_,_,_,_,
       _,_,_,_,_,_,X,X,X,_,_,_,X,X,X,_,X,X,X,X,X,X,X,X,X,_,_,_,
@@ -2692,7 +2708,7 @@ TEST_CASE( "[perlin-map] land_gen_perlin" ) {
   REQUIRE( f() == valid );
 
   // clang-format off
-  expected = matrix<e_surface>( world_sz.w, vector{
+  expected = matrix<PerlinGenTile>( world_sz.w, vector{
       _,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,
       _,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,
       _,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,X,X,_,_,X,X,_,_,_,_,_,
@@ -2740,7 +2756,7 @@ TEST_CASE( "[perlin-map] land_gen_perlin" ) {
   REQUIRE( f() == valid );
 
   // clang-format off
-  expected = matrix<e_surface>( world_sz.w, vector{
+  expected = matrix<PerlinGenTile>( world_sz.w, vector{
       _,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,
       _,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,
       _,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,
@@ -2788,7 +2804,7 @@ TEST_CASE( "[perlin-map] land_gen_perlin" ) {
   REQUIRE( f() == valid );
 
   // clang-format off
-  expected = matrix<e_surface>( world_sz.w, vector{
+  expected = matrix<PerlinGenTile>( world_sz.w, vector{
       _,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,
       _,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,
       _,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,
@@ -2836,7 +2852,7 @@ TEST_CASE( "[perlin-map] land_gen_perlin" ) {
   REQUIRE( f() == valid );
 
   // clang-format off
-  expected = matrix<e_surface>( world_sz.w, vector{
+  expected = matrix<PerlinGenTile>( world_sz.w, vector{
       _,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,
       _,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,
       _,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,
@@ -2893,7 +2909,7 @@ TEST_CASE( "[perlin-map] land_gen_perlin" ) {
   REQUIRE( f() == valid );
 
   // clang-format off
-  expected = matrix<e_surface>( world_sz.w, vector{
+  expected = matrix<PerlinGenTile>( world_sz.w, vector{
       _,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,X,X,_,_,_,_,_,X,_,_,_,_,_,_,_,_,_,_,_,_,_,_,
       _,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,X,X,_,_,X,X,X,X,X,_,_,_,_,_,_,_,_,_,_,_,_,_,
       _,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,X,X,_,_,X,X,X,X,_,_,_,_,_,_,_,_,_,X,X,X,X,X,X,X,X,X,_,_,_,_,_,_,_,X,X,X,_,_,_,
@@ -2982,7 +2998,7 @@ TEST_CASE( "[perlin-map] land_gen_perlin" ) {
   REQUIRE( f() == valid );
 
   // clang-format off
-  expected = matrix<e_surface>( world_sz.w, vector{
+  expected = matrix<PerlinGenTile>( world_sz.w, vector{
       _,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,X,X,X,_,_,_,_,_,_,_,_,_,_,_,_,_,_,X,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,
       _,_,_,_,_,_,_,_,_,_,_,X,_,_,_,_,_,_,_,_,_,_,X,X,X,X,_,_,_,_,_,_,_,_,_,_,_,_,_,X,X,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,
       _,_,_,_,_,_,_,_,_,_,_,X,_,_,_,_,_,_,X,_,_,X,X,X,X,X,_,_,_,_,_,_,_,_,_,_,_,_,_,X,X,X,_,_,_,_,_,_,_,_,_,_,_,_,_,_,
@@ -3056,6 +3072,9 @@ TEST_CASE( "[perlin-map] land_gen_perlin" ) {
   } );
   // clang-format on
   REQUIRE( PrintableMap{ surface } == PrintableMap{ expected } );
+}
+
+TEST_CASE( "[perlin-map] land_gen_perlin( mountains )" ) {
 }
 
 } // namespace

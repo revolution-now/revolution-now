@@ -20,6 +20,10 @@ map.source.generate_native.setup {
         }
         scale: 12
       }
+      mountains {
+        enabled: true
+        density_divisor: 8.0
+      }
       seed {
         base: 1152681597
         offset_x: 876454408

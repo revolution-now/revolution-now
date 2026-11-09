@@ -106,6 +106,21 @@ terrain_generation {
       }
     }
 
+    # These are mountains that are generated during the perlin
+    # land generation step using knowledge of the height of the
+    # land, which would otherwise be lost in subsequent steps.
+    # That said, mountains are changed/added in subsequent steps
+    # on a more random basis which will have the effect of pep-
+    # pering the map with small (single/double) mountain tiles.
+    # In contrast, this step tends to build large mountain ranges
+    # in the inland part of the land as you would expect in real-
+    # istic land forms. These mountains are also used when as-
+    # signing biomes as they affect wetness calculations.
+    perlin_mountains {
+      enabled: true
+      density_divisor: 8.0
+    }
+
     inland_lakes {
       # The inland lake bias determines the frequency with which
       # inland lake tiles are generated in the interior of the

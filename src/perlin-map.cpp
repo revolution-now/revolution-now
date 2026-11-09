@@ -49,6 +49,7 @@ namespace rn {
 namespace {
 
 using ::base::expect;
+using ::base::maybe;
 using ::base::ScopedTimer;
 using ::base::valid;
 using ::base::valid_or;
@@ -104,16 +105,16 @@ void perlin_suppress_edges(
   level -= sub.pythagorean();
 }
 
-[[nodiscard]] double land_density_for_sea_level(
-    matrix<double> const& m, double const sea_level ) {
+[[nodiscard]] double land_density_above_level(
+    matrix<double> const& m, double const level ) {
   int land_count = 0;
   for( point const p : rect_iterator( m.rect() ) )
-    if( m[p] > sea_level ) //
+    if( m[p] > level ) //
       ++land_count;
   return land_count * 1.0L / m.size().area();
 }
 
-[[nodiscard]] expect<double, e_perlin_map_error> find_sea_level(
+[[nodiscard]] expect<double, e_perlin_map_error> find_level(
     matrix<double> const& m, double const target_density ) {
   ScopedTimer const timer( "sea level search" );
   using enum e_sea_level;
@@ -122,12 +123,11 @@ void perlin_suppress_edges(
   double sea_level_max         = 1e6;
   double old_sea_level_min = -numeric_limits<double>::infinity();
   double old_sea_level_max = numeric_limits<double>::infinity();
-  auto const sea_level_is  = [&]( double const sea_level,
+  auto const sea_level_is  = [&]( double const level,
                                   double const tolerance ) {
-    double const density =
-        land_density_for_sea_level( m, sea_level );
-    lg.trace( "trying sea_level={} [{},{}] --> density={}",
-              sea_level, sea_level_min, sea_level_max, density );
+    double const density = land_density_above_level( m, level );
+    lg.trace( "trying level={} [{},{}] --> density={}", level,
+              sea_level_min, sea_level_max, density );
     double const target = target_density;
     if( abs( density - target ) < tolerance )
       return e_sea_level::good;
@@ -136,19 +136,19 @@ void perlin_suppress_edges(
   };
   lg.debug( "attempting to hit target land density: {}",
             target_density );
-  double sea_level = {};
-  int iters        = 0;
+  double level = {};
+  int iters    = 0;
   for( iters = 0; iters < 10000; ++iters ) {
-    sea_level = ( sea_level_min + sea_level_max ) / 2.0;
-    switch( sea_level_is( sea_level, kIdealTolerance ) ) {
+    level = ( sea_level_min + sea_level_max ) / 2.0;
+    switch( sea_level_is( level, kIdealTolerance ) ) {
       case good:
         lg.debug( "perlin sea level bisections: {}", iters + 1 );
-        return sea_level;
+        return level;
       case too_low:
-        sea_level_min = sea_level;
+        sea_level_min = level;
         break;
       case too_high:
-        sea_level_max = sea_level;
+        sea_level_max = level;
         break;
     }
     if( sea_level_min == old_sea_level_min &&
@@ -165,14 +165,14 @@ void perlin_suppress_edges(
   // getting certain densities, and we do want to try to flex-
   // ibly support small map sizes.
   while( fallback_tolerance < .1 + .000001 ) {
-    if( sea_level_is( sea_level, fallback_tolerance ) ==
+    if( sea_level_is( level, fallback_tolerance ) ==
         e_sea_level::good ) {
       lg.warn(
           "land density did not meet ideal tolerance of {:.1} "
           "after sea level search of {} iterations, tolerance "
           "met: {:.1}",
           kIdealTolerance, iters + 1, fallback_tolerance );
-      return sea_level;
+      return level;
     }
     fallback_tolerance *= 10;
   }
@@ -202,8 +202,9 @@ rng::PerlinSeed generate_perlin_seed( rng::entropy e ) {
 
 valid_or<e_perlin_map_error> land_gen_perlin(
     PerlinMapSettings const& settings,
-    double const target_density, size const world_sz,
-    matrix<e_surface>& out ) {
+    double const target_density,
+    maybe<double> const mountains_density_divisor,
+    size const world_sz, matrix<PerlinGenTile>& out ) {
   using enum e_surface;
   size const sz = world_sz;
   lg.debug( "perlin: settings: {}", settings );
@@ -254,20 +255,38 @@ valid_or<e_perlin_map_error> land_gen_perlin(
                              pm[p] );
 
   UNWRAP_RETURN_T( double const sea_level,
-                   find_sea_level( pm, target_density ) );
+                   find_level( pm, target_density ) );
   lg.debug( "sea_level: {}", sea_level );
   lg.info( "perlin land density: {:.3}",
-           land_density_for_sea_level( pm, sea_level ) );
+           land_density_above_level( pm, sea_level ) );
 
-  out            = matrix<e_surface>( sz );
+  out            = matrix<PerlinGenTile>( sz );
   int total_land = 0;
   for( point const p : rect_iterator( out.rect() ) ) {
     bool const is_land = pm[p] > sea_level;
     if( is_land ) ++total_land;
-    out[p] = is_land ? land : water;
+    out[p].surface = is_land ? land : water;
   }
   if( total_land == 0 && target_density > 0.0 )
     return e_perlin_map_error::density_too_small_no_land;
+
+  if( mountains_density_divisor.has_value() ) {
+    // This should be checked via config validation.
+    CHECK( *mountains_density_divisor >= 1.0 );
+    UNWRAP_RETURN_T(
+        double const mountain_level,
+        find_level(
+            pm, target_density / *mountains_density_divisor ) );
+    lg.debug( "mountain_level: {}", mountain_level );
+    lg.info( "perlin mountain density: {:.3}",
+             land_density_above_level( pm, mountain_level ) );
+    for( point const p : rect_iterator( out.rect() ) )
+      // Since the mountain level is above the sea level we
+      // should always be on land if we have mountains, but let's
+      // just be defensive here.
+      if( out[p].surface == land )
+        out[p].has_mountains = pm[p] > mountain_level;
+  }
 
   CHECK( out.size().to_gfx() == world_sz );
   return valid;

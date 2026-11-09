@@ -57,9 +57,9 @@ struct.LandForm {
 struct.LandLayout {
   land_mass 'LandMass',
   land_form 'LandForm',
+  perlin_mountains 'PerlinMountains',
   inland_lakes 'InlandLakes',
   arctic 'Arctic',
-
   remove_crosses 'bool',
 }
 

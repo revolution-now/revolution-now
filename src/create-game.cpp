@@ -112,7 +112,7 @@ valid_or<string> sanitize_land( GeneratedMapSetup const& setup,
           if( p.x > 0 && p.x < sz.w - 1 ) //
             continue;
       }
-      m[p].surface = water;
+      m[p] = MapSquare{ .surface = water };
     }
   };
 
@@ -151,14 +151,22 @@ valid_or<string> generate_land_perlin(
   {
     auto const& perlin_settings =
         surface_generator.perlin_settings;
-    matrix<e_surface> surface;
-    auto const ok =
-        TIMED_CALL( land_gen_perlin, perlin_settings,
-                    surface_generator.target_density.fraction,
-                    setup.size, surface );
+    matrix<PerlinGenTile> surface;
+    auto const perlin_mountains_density_divisor =
+        surface_generator.perlin_settings.mountains.enabled
+            ? surface_generator.perlin_settings.mountains
+                  .density_divisor
+            : maybe<double>();
+    auto const ok = TIMED_CALL(
+        land_gen_perlin, perlin_settings,
+        surface_generator.target_density.fraction,
+        perlin_mountains_density_divisor, setup.size, surface );
     if( !ok ) return base::to_str( ok.error() );
-    for( point const p : rect_iterator( surface.rect() ) )
-      real_terrain.map[p].surface = surface[p];
+    for( point const p : rect_iterator( surface.rect() ) ) {
+      real_terrain.map[p].surface = surface[p].surface;
+      if( surface[p].has_mountains )
+        real_terrain.map[p].overlay = e_land_overlay::mountains;
+    }
   }
 
   // Inland lake generator.
