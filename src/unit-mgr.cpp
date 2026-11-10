@@ -201,6 +201,15 @@ wait<maybe<UnitId>> create_unit_on_map(
 *****************************************************************/
 void change_unit_type( SS& ss, TS& ts, Unit& unit,
                        UnitComposition const& new_comp ) {
+  // If we allow changing the type of a unit in a cargo hold then
+  // we have to worry about checking if the holding unit has
+  // enough free cargo space next to the held unit in the event
+  // that the new unit type occupies more slots. Since the game
+  // normally does not provide a mechanism that would allow doing
+  // this anyway, let's just keep it simple and not try to handle
+  // it, and instead just check fail.
+  CHECK( !is_unit_onboard( ss.units, unit.id() ),
+         "cannot change the type of a unit in a cargo hold" );
   Player const& player =
       player_for_player_or_die( ss.players, unit.player_type() );
   auto const& new_attr = unit_attr( new_comp.type() );
