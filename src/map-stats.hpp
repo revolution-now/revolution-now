@@ -30,10 +30,6 @@ std::unique_ptr<IMapStatsCollector> create_river_stats_collector(
     std::string const& stem, double tolerance );
 
 std::unique_ptr<IMapStatsCollector>
-create_wetness_stats_collector( std::string const& stem,
-                                WeatherValue const& climate );
-
-std::unique_ptr<IMapStatsCollector>
 create_formations_stats_collector( std::string const& mode );
 
 std::unique_ptr<IMapStatsCollector>

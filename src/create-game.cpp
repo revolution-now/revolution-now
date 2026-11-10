@@ -237,21 +237,17 @@ valid_or<string> generate_map_native_impl(
   GOOD_OR_RETURN(
       generate_land_perlin( setup, rand, real_terrain ) );
 
-  // Wetness.
-  Wetness wetness;
-  compute_wetness( m, setup.wetness, setup.weather.climate,
-                   wetness );
-  CHECK_EQ( wetness.m.size(), m.size() );
 
   // Biomes.
   rand.reseed( setup.biomes.seed );
-  GOOD_OR_RETURN( assign_biomes( rand, real_terrain,
+  GOOD_OR_RETURN( assign_biomes( rand, real_terrain.map,
                                  setup.weather.temperature,
                                  setup.weather.climate ) );
-  apply_biome_wetness_remix( m, rand, setup.wetness, wetness );
+
   if( setup.surface_generator.arctic.enabled )
     assign_arctic_biomes( rand, real_terrain );
 
+#if 0
   // All non-arctic land tiles will be set with forest. Tiles
   // without forest/hills/mountains are themselves a formation
   // that is placed like hills and mountains below.
@@ -281,6 +277,7 @@ valid_or<string> generate_map_native_impl(
     rand.reseed( setup.rivers->seed );
     add_rivers( m, rand, setup.rivers->parameters );
   }
+#endif
 
   return valid;
 }

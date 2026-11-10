@@ -31,7 +31,7 @@ struct Wetness;
 void assign_arctic_biomes( IRand& rand,
                            RealTerrain& real_terrain );
 
-base::valid_or<std::string> assign_biomes(
+base::valid_or<std::string> assign_biomes_old(
     IRand& rand, RealTerrain& real_terrain,
     WeatherValue const& temperature,
     WeatherValue const& climate );
@@ -40,5 +40,9 @@ void apply_biome_wetness_remix(
     MapMatrix& m, IRand& rand,
     WetnessConfig const& wetness_config,
     Wetness const& wetness );
+
+base::valid_or<std::string> assign_biomes(
+    IRand& rand, MapMatrix& m, WeatherValue const& temperature,
+    WeatherValue const& climate );
 
 } // namespace rn

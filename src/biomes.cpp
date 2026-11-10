@@ -226,10 +226,10 @@ struct biome_dist {
 /****************************************************************
 ** Public API.
 *****************************************************************/
-valid_or<string> assign_biomes( IRand& rand,
-                                RealTerrain& real_terrain,
-                                WeatherValue const& temperature,
-                                WeatherValue const& climate ) {
+valid_or<string> assign_biomes_old(
+    IRand& rand, RealTerrain& real_terrain,
+    WeatherValue const& temperature,
+    WeatherValue const& climate ) {
   ScopedTimer const timer( "assign biomes" );
   auto& m       = real_terrain.map;
   size const sz = m.size();
@@ -391,6 +391,58 @@ void assign_arctic_biomes( IRand& rand,
     if( square.surface == land && rand.bernoulli( .5 ) )
       square.ground = arctic;
   }
+}
+
+valid_or<string> assign_biomes(
+    IRand& rand, MapMatrix& m, WeatherValue const& temperature,
+    WeatherValue const& /*climate*/ ) {
+  size const sz            = m.size();
+  auto const band_to_biome = []( int const band ) {
+    switch( band ) {
+      using enum e_biome;
+      case 0:
+        return savannah;
+      case 1:
+        return grassland;
+      case 2:
+        return desert;
+      case 3:
+        return prairie;
+      case 4:
+      case 5:
+        return plains;
+      case 6:
+      case 7:
+      default:
+        return tundra;
+    }
+  };
+  on_all_tiles( m, [&]( point const p, MapSquare& s ) {
+    if( s.surface == e_surface::water ) return;
+    // `unity` is one for a standard game map height, and scales
+    // accordingly for other sizes.
+    double const unity        = sz.h / 70.0;
+    double const equator_dist = sz.h / 2.0 - p.y;
+    double const wiggle_width = std::max( unity * 8, 1.0 );
+    double const wiggle =
+        wiggle_width * rand.uniform_double( -1.0, 1.0 );
+    double const wiggle_dist = abs( equator_dist + wiggle );
+    // [-100,100] --> [-1,1] --> [1,-1].
+    //   or
+    // [-200,200] --> [-2,2] --> [2,-2].
+    double const temperature_rescale =
+        -temperature.value / 100.0;
+    // [-4,4].
+    double const wiggle_with_temp = std::max(
+        wiggle_dist + temperature_rescale * 2 * unity, 0.0 );
+    int const band = static_cast<int>( wiggle_with_temp ) / 4;
+
+    s.ground = band_to_biome( band );
+  } );
+
+  // TODO
+
+  return valid;
 }
 
 } // namespace rn

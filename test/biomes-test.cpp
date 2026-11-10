@@ -219,9 +219,5 @@ TEST_CASE( "[biomes] assign_biomes" ) {
   world w;
 }
 
-TEST_CASE( "[biomes] apply_biome_wetness_remix" ) {
-  world w;
-}
-
 } // namespace
 } // namespace rn

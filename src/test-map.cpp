@@ -438,69 +438,6 @@ void generate_single_map_key( IEngine& engine, SS& ss,
   }
 }
 
-[[maybe_unused]] void testing_map_gen_wetness_stats(
-    IEngine& engine ) {
-  int constexpr kNumSamples = 2000;
-
-  auto const generate =
-      [&]( SS& ss, ClassicGameSetupParamsCustom const& custom ) {
-        generate_single_map_custom( engine, ss, custom );
-      };
-
-  using M = e_land_mass;
-  using F = e_land_form;
-  using T = e_temperature;
-  using C = e_climate;
-
-  static auto constexpr kModes = {
-    // clang-format off
-      tuple{ M::small,    F::archipelago, T::cool,      C::arid   },
-      tuple{ M::small,    F::archipelago, T::temperate, C::arid   },
-      tuple{ M::small,    F::archipelago, T::temperate, C::normal },
-      tuple{ M::small,    F::archipelago, T::temperate, C::wet    },
-      tuple{ M::small,    F::archipelago, T::warm,      C::wet    },
-
-      tuple{ M::moderate, F::normal,      T::cool,      C::arid   },
-      tuple{ M::moderate, F::normal,      T::temperate, C::arid   },
-      tuple{ M::moderate, F::normal,      T::temperate, C::normal },
-      tuple{ M::moderate, F::normal,      T::temperate, C::wet    },
-      tuple{ M::moderate, F::normal,      T::warm,      C::wet    },
-
-      tuple{ M::large,    F::continents,  T::cool,      C::arid   },
-      tuple{ M::large,    F::continents,  T::temperate, C::arid   },
-      tuple{ M::large,    F::continents,  T::temperate, C::normal },
-      tuple{ M::large,    F::continents,  T::temperate, C::wet    },
-      tuple{ M::large,    F::continents,  T::warm,      C::wet    },
-    // clang-format on
-  };
-
-  for( auto const& [land_mass, land_form, temperature, climate] :
-       kModes ) {
-    ClassicGameSetupParamsCustom const params{
-      .land_mass   = land_mass,
-      .land_form   = land_form,
-      .temperature = temperature,
-      .climate     = climate };
-    string const name( mode_name( params ) );
-    auto const stats = create_wetness_stats_collector(
-        name, config_map_gen.terrain_generation.weather.climate
-                  .customized[climate] );
-    fmt::println( "generating for {}...", name );
-    fmt::print( "\033[?25l" );
-    SCOPE_EXIT { fmt::print( "\033[?25h" ); };
-    for( int i = 0; i < kNumSamples; ++i ) {
-      fmt::print( "  #{} ({:.3}%)          \r", i,
-                  i * 100.0 / kNumSamples );
-      SS ss;
-      generate( ss, params );
-      stats->collect( ss.terrain.real_terrain().map );
-    }
-    stats->summarize();
-    stats->write();
-    fmt::print( "\n" );
-  }
-}
-
 [[maybe_unused]] void testing_map_gen_lake_stats(
     IEngine& engine ) {
   int constexpr kNumSamples = 2000;
@@ -735,7 +672,6 @@ void testing_map_gen_stats( IEngine& engine ) {
   SCOPE_EXIT { set_global_log_level( old_level ); };
   testing_map_gen_land_density_stats( engine );
   // testing_map_gen_biome_density_stats( engine );
-  // testing_map_gen_wetness_stats( engine );
   // testing_map_gen_lake_stats( engine );
   // testing_map_gen_river_stats( engine );
   // testing_map_gen_formation_stats( engine );
