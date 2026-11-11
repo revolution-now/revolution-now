@@ -393,10 +393,29 @@ void assign_arctic_biomes( IRand& rand,
   }
 }
 
-valid_or<string> assign_biomes(
-    IRand& rand, MapMatrix& m, WeatherValue const& temperature,
-    WeatherValue const& /*climate*/ ) {
-  size const sz            = m.size();
+/****************************************************************
+** TerrainGenerator.
+*****************************************************************/
+TerrainGenerator::TerrainGenerator(
+    MapMatrix& m, IRand& rand, WeatherValue const& temperature,
+    WeatherValue const& climate )
+  : m_( m ),
+    rand_( rand ),
+    sz_( m.size() ),
+    temperature_( temperature ),
+    climate_( climate ),
+    scratch_( sz_ ) {}
+
+valid_or<string> TerrainGenerator::full() {
+  GOOD_OR_RETURN( temperature_pass() );
+  GOOD_OR_RETURN( wetness_pass_1() );
+  GOOD_OR_RETURN( wetness_pass_2() );
+  GOOD_OR_RETURN( scatter_pass() );
+  GOOD_OR_RETURN( forest_pass() );
+  return valid;
+}
+
+valid_or<string> TerrainGenerator::temperature_pass() {
   auto const band_to_biome = []( int const band ) {
     switch( band ) {
       using enum e_biome;
@@ -417,21 +436,21 @@ valid_or<string> assign_biomes(
         return tundra;
     }
   };
-  on_all_tiles( m, [&]( point const p, MapSquare& s ) {
+  on_all( [&]( point const p, MapSquare& s ) {
     if( s.surface == e_surface::water ) return;
     // `unity` is one for a standard game map height, and scales
     // accordingly for other sizes.
-    double const unity        = sz.h / 70.0;
-    double const equator_dist = sz.h / 2.0 - p.y;
+    double const unity        = sz_.h / 70.0;
+    double const equator_dist = sz_.h / 2.0 - p.y;
     double const wiggle_width = std::max( unity * 8, 1.0 );
     double const wiggle =
-        wiggle_width * rand.uniform_double( -1.0, 1.0 );
+        wiggle_width * rand_.uniform_double( -1.0, 1.0 );
     double const wiggle_dist = abs( equator_dist + wiggle );
     // [-100,100] --> [-1,1] --> [1,-1].
     //   or
     // [-200,200] --> [-2,2] --> [2,-2].
     double const temperature_rescale =
-        -temperature.value / 100.0;
+        -temperature_.value / 100.0;
     // [-4,4].
     double const wiggle_with_temp = std::max(
         wiggle_dist + temperature_rescale * 2 * unity, 0.0 );
@@ -440,8 +459,23 @@ valid_or<string> assign_biomes(
     s.ground = band_to_biome( band );
   } );
 
-  // TODO
+  return valid;
+}
 
+valid_or<string> TerrainGenerator::wetness_pass_1() {
+  // TODO
+  return valid;
+}
+
+valid_or<string> TerrainGenerator::wetness_pass_2() {
+  return valid;
+}
+
+valid_or<string> TerrainGenerator::scatter_pass() {
+  return valid;
+}
+
+valid_or<string> TerrainGenerator::forest_pass() {
   return valid;
 }
 

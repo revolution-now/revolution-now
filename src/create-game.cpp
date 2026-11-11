@@ -240,9 +240,10 @@ valid_or<string> generate_map_native_impl(
 
   // Biomes.
   rand.reseed( setup.biomes.seed );
-  GOOD_OR_RETURN( assign_biomes( rand, real_terrain.map,
-                                 setup.weather.temperature,
-                                 setup.weather.climate ) );
+  TerrainGenerator terrain_gen( m, rand,
+                                setup.weather.temperature,
+                                setup.weather.climate );
+  GOOD_OR_RETURN( terrain_gen.full() );
 
   if( setup.surface_generator.arctic.enabled )
     assign_arctic_biomes( rand, real_terrain );

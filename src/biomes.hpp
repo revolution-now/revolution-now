@@ -10,6 +10,12 @@
 *****************************************************************/
 #pragma once
 
+// Revolution Now
+#include "terrain-mgr.hpp"
+
+// gfx
+#include "gfx/matrix.hpp"
+
 // base
 #include "base/valid.hpp"
 
@@ -41,8 +47,51 @@ void apply_biome_wetness_remix(
     WetnessConfig const& wetness_config,
     Wetness const& wetness );
 
-base::valid_or<std::string> assign_biomes(
-    IRand& rand, MapMatrix& m, WeatherValue const& temperature,
-    WeatherValue const& climate );
+/****************************************************************
+** TerrainGenerator.
+*****************************************************************/
+struct TerrainGenerator {
+  TerrainGenerator( MapMatrix& m, IRand& rand,
+                    WeatherValue const& temperature,
+                    WeatherValue const& climate );
+
+  using Result = base::valid_or<std::string>;
+
+  Result full();
+
+  Result temperature_pass();
+
+  // Left-to-right.
+  Result wetness_pass_1();
+
+  // Right-to-left.
+  Result wetness_pass_2();
+
+  Result scatter_pass();
+
+  Result forest_pass();
+
+ private:
+  MapMatrix& m_;
+  IRand& rand_;
+  gfx::size const sz_;
+  WeatherValue const& temperature_;
+  WeatherValue const& climate_;
+
+  template<typename F>
+  void on_all( F&& fn ) {
+    on_all_tiles( m_, fn );
+  }
+
+  enum class e_forest_plan {
+    deferred,
+    suppress,
+    populate,
+  };
+  struct Scratch {
+    e_forest_plan forest_plan = e_forest_plan::deferred;
+  };
+  gfx::matrix<Scratch> scratch_;
+};
 
 } // namespace rn

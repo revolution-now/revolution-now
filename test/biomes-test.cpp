@@ -219,5 +219,25 @@ TEST_CASE( "[biomes] assign_biomes" ) {
   world w;
 }
 
+TEST_CASE( "[biomes] TerrainGenerator::temperature_pass" ) {
+  world w;
+}
+
+TEST_CASE( "[biomes] TerrainGenerator::wetness_pass_1" ) {
+  world w;
+}
+
+TEST_CASE( "[biomes] TerrainGenerator::wetness_pass_2" ) {
+  world w;
+}
+
+TEST_CASE( "[biomes] TerrainGenerator::scatter_pass" ) {
+  world w;
+}
+
+TEST_CASE( "[biomes] TerrainGenerator::forest_pass" ) {
+  world w;
+}
+
 } // namespace
 } // namespace rn
