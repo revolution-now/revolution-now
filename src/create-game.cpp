@@ -245,10 +245,10 @@ valid_or<string> generate_map_native_impl(
                                 setup.weather.climate );
   GOOD_OR_RETURN( terrain_gen.full() );
 
+#if 0
   if( setup.surface_generator.arctic.enabled )
     assign_arctic_biomes( rand, real_terrain );
 
-#if 0
   // All non-arctic land tiles will be set with forest. Tiles
   // without forest/hills/mountains are themselves a formation
   // that is placed like hills and mountains below.

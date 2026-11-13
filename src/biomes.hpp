@@ -71,12 +71,22 @@ struct TerrainGenerator {
 
   Result forest_pass();
 
+  Result rivers_pass();
+
+  Result arctic_tundra_pass();
+
  private:
   MapMatrix& m_;
   IRand& rand_;
   gfx::size const sz_;
   WeatherValue const& temperature_;
   WeatherValue const& climate_;
+
+  [[nodiscard]] bool ocean(
+      gfx::point const p ) const; // FIXME: remove
+  void enable_hills( gfx::point const p );
+  void enable_mountains( gfx::point const p );
+  [[nodiscard]] bool ocean_adjacent( gfx::point const p ) const;
 
   template<typename F>
   void on_all( F&& fn ) {

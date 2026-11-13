@@ -355,13 +355,14 @@ void generate_single_map_key( IEngine& engine, SS& ss,
       fmt::println( "generate for {}...", name );
       ScopedTimer const timer(
           format( "generate {} maps", kNumSamples ) );
+      fmt::print( "\033[?25l" );
+      SCOPE_EXIT { fmt::print( "\033[?25h" ); };
       for( int i = 0; i < kNumSamples; ++i ) {
-        fmt::print( "generating map {}...", i + 1 );
+        fmt::print( "  #{} ({:.3}%)          \r", i,
+                    i * 100.0 / kNumSamples );
         SS ss;
         generate( ss, params );
         stats->collect( ss.terrain.real_terrain().map );
-        // fmt::print( "\r\033[2K" );
-        fmt::print( "\n" );
       }
       stats->summarize();
       stats->write();
@@ -670,8 +671,8 @@ void testing_map_gen_stats( IEngine& engine ) {
   base::e_log_level const old_level = base::global_log_level();
   set_global_log_level( base::e_log_level::error );
   SCOPE_EXIT { set_global_log_level( old_level ); };
-  testing_map_gen_land_density_stats( engine );
-  // testing_map_gen_biome_density_stats( engine );
+  // testing_map_gen_land_density_stats( engine );
+  testing_map_gen_biome_density_stats( engine );
   // testing_map_gen_lake_stats( engine );
   // testing_map_gen_river_stats( engine );
   // testing_map_gen_formation_stats( engine );

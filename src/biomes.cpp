@@ -412,6 +412,8 @@ valid_or<string> TerrainGenerator::full() {
   GOOD_OR_RETURN( wetness_pass_2() );
   GOOD_OR_RETURN( scatter_pass() );
   GOOD_OR_RETURN( forest_pass() );
+  GOOD_OR_RETURN( rivers_pass() );
+  GOOD_OR_RETURN( arctic_tundra_pass() );
   return valid;
 }
 
@@ -443,8 +445,9 @@ valid_or<string> TerrainGenerator::temperature_pass() {
     double const unity        = sz_.h / 70.0;
     double const equator_dist = sz_.h / 2.0 - p.y;
     double const wiggle_width = std::max( unity * 8, 1.0 );
-    double const wiggle =
-        wiggle_width * rand_.uniform_double( -1.0, 1.0 );
+    double const wiggle      = wiggle_width * 1.0 *
+                               rand_.uniform_int( -1000, 1000 ) /
+                               1000.0;
     double const wiggle_dist = abs( equator_dist + wiggle );
     // [-100,100] --> [-1,1] --> [1,-1].
     //   or
@@ -463,19 +466,371 @@ valid_or<string> TerrainGenerator::temperature_pass() {
 }
 
 valid_or<string> TerrainGenerator::wetness_pass_1() {
-  // TODO
+  double const climate_adjusted =
+      ( climate_.value + 100 ) / 100.0;
+  int const climate_adjusted_integral = static_cast<int>(
+      round( ( climate_.value + 100 ) / 100.0 ) );
+  for( int const y : iota( 0, sz_.h ) ) {
+    double const equator_dist = abs( ( sz_.h / 2.0 ) - y );
+    int const max_wetness     = std::max(
+        0,
+        static_cast<int>( abs( ( sz_.h / 4.0 ) - equator_dist ) +
+                          climate_adjusted * 4 ) );
+    int wetness = rand_.uniform_int( 0, max_wetness );
+    for( int const x : iota( 0, sz_.w ) ) {
+      point const p{ .x = x, .y = y };
+      MapSquare& square = m_[p];
+      Scratch& scratch  = scratch_[p];
+      if( square.surface == e_surface::water ) {
+        if( wetness < max_wetness ) wetness++;
+      } else {
+        using enum e_biome;
+        if( square.overlay == e_land_overlay::mountains )
+          wetness -= 3;
+        else if( square.overlay == e_land_overlay::hills )
+          square.overlay.reset();
+        else if( wetness < 0 ) {
+          switch( square.ground ) {
+            case grassland:
+              square.ground = prairie;
+              break;
+            case prairie:
+              if( rand_.uniform_int( 0, abs( wetness ) ) != 0 )
+                square.ground = desert;
+              else {
+                square.ground = plains;
+                wetness--;
+              }
+              break;
+            case plains:
+              square.ground = tundra;
+              break;
+            case tundra:
+              scratch.forest_plan = e_forest_plan::suppress;
+              break;
+            case arctic:
+            case desert:
+            case marsh:
+            case savannah:
+            case swamp:
+              break;
+          }
+        } else if( wetness > 0 ) {
+          switch( square.ground ) {
+            case savannah:
+              wetness -= 2;
+              if( rand_.uniform_int( 0, 3 ) == 0 )
+                square.ground = swamp;
+              break;
+            case grassland:
+              wetness -= 2;
+              if( rand_.uniform_int( 0, 3 ) == 0 )
+                square.ground = marsh;
+              break;
+            case prairie:
+              square.ground = grassland;
+              break;
+            case plains:
+              square.ground = prairie;
+              break;
+            case tundra:
+              square.ground = plains;
+              break;
+            case arctic:
+            case desert:
+            case marsh:
+            case swamp:
+              break;
+          }
+        }
+        if( wetness > 0 )
+          wetness -= rand_.uniform_int(
+              1,
+              std::max( 1, 7 - climate_adjusted_integral * 2 ) );
+        else if( wetness < 0 )
+          wetness++;
+      }
+    }
+  }
   return valid;
 }
 
 valid_or<string> TerrainGenerator::wetness_pass_2() {
+  double const climate_adjusted =
+      ( climate_.value + 100 ) / 100.0;
+  int const climate_adjusted_integral = static_cast<int>(
+      round( ( climate_.value + 100 ) / 100.0 ) );
+  for( int const y : iota( 0, sz_.h ) ) {
+    double const equator_dist = abs( ( sz_.h / 2.0 ) - y );
+    int const max_wetness     = static_cast<int>( std::max(
+        0.0,
+        round( ( equator_dist / 2.0 ) + climate_adjusted ) ) );
+    int wetness               = 0;
+    for( int x = sz_.w - 1; x >= 0; x-- ) {
+      point const p{ .x = x, .y = y };
+      MapSquare& square = m_[p];
+      if( square.surface == e_surface::water ) {
+        if( wetness < max_wetness ) wetness++;
+      } else {
+        if( square.overlay == e_land_overlay::mountains )
+          wetness -= 3;
+        else if( square.overlay == e_land_overlay::hills )
+          square.overlay.reset();
+        else if( wetness < 0 ) {
+          // None.
+        } else if( wetness > 0 ) {
+          switch( square.ground ) {
+            using enum e_biome;
+            case savannah:
+              wetness -= 2;
+              square.ground = swamp;
+              break;
+            case grassland:
+              wetness -= 2;
+              if( rand_.uniform_int( 0, 1 ) == 0 )
+                square.ground = marsh;
+              break;
+            case prairie:
+              square.ground = grassland;
+              break;
+            case plains:
+              square.ground = prairie;
+              break;
+            case desert:
+              square.ground = prairie;
+              break;
+            case tundra:
+              square.ground = plains;
+              break;
+            case arctic:
+            case marsh:
+            case swamp:
+              break;
+          }
+        }
+        if( wetness > 0 )
+          wetness -= rand_.uniform_int(
+              1, 7 - climate_adjusted_integral * 2 );
+        else if( wetness < 0 )
+          wetness++;
+      }
+    }
+  }
   return valid;
+}
+
+bool TerrainGenerator::ocean( point const p ) const {
+  if( !m_.exists( p ) ) return false;
+  if( p.x == 0 || p.y == 0 ) return false;
+  if( p.x == sz_.w - 1 || p.y == sz_.h - 1 ) return false;
+  using enum e_surface;
+  if( m_[p.moved( e_direction::nw )].surface == water )
+    return false;
+  if( m_[p.moved( e_direction::sw )].surface == water )
+    return false;
+  if( m_[p.moved( e_direction::ne )].surface == water )
+    return false;
+  if( m_[p.moved( e_direction::se )].surface == water )
+    return false;
+  return true;
+}
+
+void TerrainGenerator::enable_hills( point const p ) {
+  MapSquare& square = m_[p];
+  if( !square.overlay.has_value() ) {
+    square.overlay = e_land_overlay::hills;
+    return;
+  }
+  switch( *square.overlay ) {
+    case rn::e_land_overlay::forest: {
+      square.overlay = e_land_overlay::hills;
+      break;
+    }
+    case rn::e_land_overlay::hills:
+      break;
+    case rn::e_land_overlay::mountains:
+      // Don't change mountains.
+      break;
+  }
+}
+
+void TerrainGenerator::enable_mountains( point const p ) {
+  MapSquare& square = m_[p];
+  if( !square.overlay.has_value() ) {
+    square.overlay = e_land_overlay::mountains;
+    return;
+  }
+  switch( ( *square.overlay ) ) {
+    case rn::e_land_overlay::forest: {
+      square.overlay = e_land_overlay::mountains;
+      break;
+    }
+    case rn::e_land_overlay::hills:
+      square.overlay = e_land_overlay::mountains;
+      break;
+    case rn::e_land_overlay::mountains:
+      break;
+  }
 }
 
 valid_or<string> TerrainGenerator::scatter_pass() {
+  int r = 0, x = 0, y = 0;
+  int const g_dir_dx[9] = { -1, 0, 1, 1, 1, 0, -1, -1, 0 };
+  int const g_dir_dy[9] = { -1, -1, -1, 0, 1, 1, 1, 0, 0 };
+  int pa = 0, pb = 0; // FIXME
+  for( int const n : iota( 0, 832 ) ) {
+    if( ( n & 1 ) != 0 ) {
+      r = rand_.uniform_int( 0, 8 );
+      x += g_dir_dx[r];
+      y += g_dir_dy[r];
+    } else {
+      x = rand_.uniform_int( 1, sz_.w - 2 );
+      y = rand_.uniform_int( 1, sz_.h - 2 );
+    }
+    point const p{ .x = x, .y = y };
+    MapSquare& square = m_[p];
+    Scratch& scratch  = scratch_[p];
+    if( square.overlay == e_land_overlay::mountains ) {
+      if( ocean( p ) != 0 ) square.overlay.reset();
+    } else if( square.overlay == e_land_overlay::hills ) {
+      square.overlay      = e_land_overlay::mountains;
+      scratch.forest_plan = e_forest_plan::populate;
+    } else {
+      pa = 0;
+      pb = 0;
+      switch( square.ground ) {
+        using enum e_biome;
+        case tundra:
+          pa = 1;
+          pb = 0;
+          if( rand_.uniform_int( 0, 1 ) == 0 )
+            square.ground = plains;
+          break;
+        case desert:
+          pa = 1;
+          pb = 1;
+          if( rand_.uniform_int( 0, 1 ) == 0 )
+            square.ground = prairie;
+          break;
+        case plains:
+        case prairie:
+          if( square.ground == prairie &&
+              rand_.uniform_int( 0, 2 ) == 0 )
+            square.ground = plains;
+          pa = pb = 2;
+          if( rand_.uniform_int( 0, 1 ) == 0 )
+            scratch.forest_plan = e_forest_plan::suppress;
+          break;
+        case grassland:
+          pa = 3;
+          pb = 1;
+          if( rand_.uniform_int( 0, 1 ) == 0 )
+            square.ground = marsh;
+          if( rand_.uniform_int( 0, 1 ) == 0 )
+            scratch.forest_plan = e_forest_plan::populate;
+          break;
+        case savannah:
+          pa = 3;
+          pb = 2;
+          if( rand_.uniform_int( 0, 1 ) == 0 )
+            square.ground = swamp;
+          if( rand_.uniform_int( 0, 1 ) == 0 )
+            scratch.forest_plan = e_forest_plan::populate;
+          break;
+        case marsh:
+          pa = 5;
+          pb = 3;
+          if( rand_.uniform_int( 0, 1 ) == 0 )
+            square.ground = grassland;
+          if( rand_.uniform_int( 0, 1 ) == 0 )
+            scratch.forest_plan = e_forest_plan::suppress;
+          break;
+        case swamp:
+          pa = 5;
+          pb = 3;
+          if( rand_.uniform_int( 0, 1 ) != 0 )
+            square.ground = savannah;
+          if( rand_.uniform_int( 0, 1 ) != 0 )
+            scratch.forest_plan = e_forest_plan::suppress;
+          break;
+        case arctic:
+          break;
+      }
+    }
+    if( pa != 0 && rand_.uniform_int( 0, pa ) == 0 ) {
+      enable_hills( p );
+      if( pb != 0 && rand_.uniform_int( 0, pb ) == 0 )
+        enable_mountains( p );
+    }
+  }
   return valid;
 }
 
+bool TerrainGenerator::ocean_adjacent( point const p ) const {
+  bool has = false;
+  on_surrounding( m_, p,
+                  [&]( point, MapSquare const& adjacent ) {
+                    if( adjacent.surface == e_surface::water )
+                      has = true;
+                  } );
+  return has;
+}
+
 valid_or<string> TerrainGenerator::forest_pass() {
+  for( int const y : iota( 0, sz_.h ) ) {
+    for( int const x : iota( 0, sz_.w ) ) {
+      point const p{ .x = x, .y = y };
+      MapSquare& square = m_[p];
+      Scratch& scratch  = scratch_[p];
+      if( square.surface == e_surface::water ) continue;
+      if( square.overlay.has_value() ) continue;
+      switch( scratch.forest_plan ) {
+        using enum e_forest_plan;
+        case populate:
+          square.overlay = e_land_overlay::forest;
+          break;
+        case deferred:
+        case suppress:
+          if( ocean_adjacent( p ) ) {
+            if( rand_.uniform_int( 0, 1 ) == 0 )
+              square.overlay = e_land_overlay::forest;
+            else if( rand_.uniform_int( 0, 4 ) != 0 )
+              square.overlay = e_land_overlay::forest;
+          }
+          break;
+      }
+    }
+  }
+  return valid;
+}
+
+valid_or<string> TerrainGenerator::rivers_pass() {
+  return valid;
+}
+
+valid_or<string> TerrainGenerator::arctic_tundra_pass() {
+  for( int const n : iota( 0, 2 ) ) {
+    for( int const x : iota( 0, sz_.w ) ) {
+      using enum e_surface;
+      using enum e_biome;
+      int y = ( n != 0 ) ? 1 : sz_.h - 2;
+      point const p{ .x = x, .y = y };
+      MapSquare& square = m_[p];
+      if( square.surface == land ) square.ground = arctic;
+      y = ( n != 0 ) ? 2 : sz_.h - 3;
+      if( square.surface == land )
+        square.ground =
+            ( rand_.uniform_int( 0, 1 ) != 0 ) ? arctic : tundra;
+      y = ( n != 0 ) ? 3 : sz_.h - 4;
+      if( rand_.uniform_int( 0, 1 ) != 0 &&
+          square.surface == land )
+        square.ground = tundra;
+      if( square.ground == arctic ) {
+        if( square.overlay == e_land_overlay::forest )
+          square.overlay.reset();
+      }
+    }
+  }
   return valid;
 }
 

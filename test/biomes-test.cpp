@@ -215,10 +215,6 @@ TEST_CASE( "[biomes] assign_arctic_biomes" ) {
   REQUIRE( S( 2, 2 ).ground == grassland );
 }
 
-TEST_CASE( "[biomes] assign_biomes" ) {
-  world w;
-}
-
 TEST_CASE( "[biomes] TerrainGenerator::temperature_pass" ) {
   world w;
 }
@@ -236,6 +232,14 @@ TEST_CASE( "[biomes] TerrainGenerator::scatter_pass" ) {
 }
 
 TEST_CASE( "[biomes] TerrainGenerator::forest_pass" ) {
+  world w;
+}
+
+TEST_CASE( "[biomes] TerrainGenerator::rivers_pass" ) {
+  world w;
+}
+
+TEST_CASE( "[biomes] TerrainGenerator::arctic_tundra_pass" ) {
   world w;
 }
 
