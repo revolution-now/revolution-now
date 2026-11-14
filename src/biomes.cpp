@@ -468,8 +468,8 @@ valid_or<string> TerrainGenerator::temperature_pass() {
 valid_or<string> TerrainGenerator::wetness_pass_1() {
   double const climate_adjusted =
       ( climate_.value + 100 ) / 100.0;
-  int const climate_adjusted_integral = static_cast<int>(
-      round( ( climate_.value + 100 ) / 100.0 ) );
+  int const climate_adjusted_integral =
+      static_cast<int>( round( climate_adjusted ) );
   for( int const y : iota( 0, sz_.h ) ) {
     double const equator_dist = abs( ( sz_.h / 2.0 ) - y );
     int const max_wetness     = std::max(
@@ -482,7 +482,7 @@ valid_or<string> TerrainGenerator::wetness_pass_1() {
       MapSquare& square = m_[p];
       Scratch& scratch  = scratch_[p];
       if( square.surface == e_surface::water ) {
-        if( wetness < max_wetness ) wetness++;
+        if( wetness < max_wetness ) ++wetness;
       } else {
         using enum e_biome;
         if( square.overlay == e_land_overlay::mountains )
@@ -499,7 +499,7 @@ valid_or<string> TerrainGenerator::wetness_pass_1() {
                 square.ground = desert;
               else {
                 square.ground = plains;
-                wetness--;
+                --wetness;
               }
               break;
             case plains:
@@ -548,7 +548,7 @@ valid_or<string> TerrainGenerator::wetness_pass_1() {
               1,
               std::max( 1, 7 - climate_adjusted_integral * 2 ) );
         else if( wetness < 0 )
-          wetness++;
+          ++wetness;
       }
     }
   }
@@ -558,19 +558,19 @@ valid_or<string> TerrainGenerator::wetness_pass_1() {
 valid_or<string> TerrainGenerator::wetness_pass_2() {
   double const climate_adjusted =
       ( climate_.value + 100 ) / 100.0;
-  int const climate_adjusted_integral = static_cast<int>(
-      round( ( climate_.value + 100 ) / 100.0 ) );
+  int const climate_adjusted_integral =
+      static_cast<int>( round( climate_adjusted ) );
   for( int const y : iota( 0, sz_.h ) ) {
     double const equator_dist = abs( ( sz_.h / 2.0 ) - y );
     int const max_wetness     = static_cast<int>( std::max(
         0.0,
         round( ( equator_dist / 2.0 ) + climate_adjusted ) ) );
     int wetness               = 0;
-    for( int x = sz_.w - 1; x >= 0; x-- ) {
+    for( int x = sz_.w - 1; x >= 0; --x ) {
       point const p{ .x = x, .y = y };
       MapSquare& square = m_[p];
       if( square.surface == e_surface::water ) {
-        if( wetness < max_wetness ) wetness++;
+        if( wetness < max_wetness ) ++wetness;
       } else {
         if( square.overlay == e_land_overlay::mountains )
           wetness -= 3;
@@ -610,9 +610,10 @@ valid_or<string> TerrainGenerator::wetness_pass_2() {
         }
         if( wetness > 0 )
           wetness -= rand_.uniform_int(
-              1, 7 - climate_adjusted_integral * 2 );
+              1,
+              std::max( 1, 7 - climate_adjusted_integral * 2 ) );
         else if( wetness < 0 )
-          wetness++;
+          ++wetness;
       }
     }
   }
@@ -678,12 +679,14 @@ valid_or<string> TerrainGenerator::scatter_pass() {
   int const g_dir_dx[9] = { -1, 0, 1, 1, 1, 0, -1, -1, 0 };
   int const g_dir_dy[9] = { -1, -1, -1, 0, 1, 1, 1, 0, 0 };
   int pa = 0, pb = 0; // FIXME
-  for( int const n : iota( 0, 832 ) ) {
+  for( int const n : iota( 0, 800 ) ) {
     if( ( n & 1 ) != 0 ) {
       r = rand_.uniform_int( 0, 8 );
       x += g_dir_dx[r];
       y += g_dir_dy[r];
     } else {
+      // This point can't be on the border because the next pass
+      // will try to take a point next to it.
       x = rand_.uniform_int( 1, sz_.w - 2 );
       y = rand_.uniform_int( 1, sz_.h - 2 );
     }
@@ -691,7 +694,7 @@ valid_or<string> TerrainGenerator::scatter_pass() {
     MapSquare& square = m_[p];
     Scratch& scratch  = scratch_[p];
     if( square.overlay == e_land_overlay::mountains ) {
-      if( ocean( p ) != 0 ) square.overlay.reset();
+      if( ocean( p ) ) square.overlay.reset();
     } else if( square.overlay == e_land_overlay::hills ) {
       square.overlay      = e_land_overlay::mountains;
       scratch.forest_plan = e_forest_plan::populate;
