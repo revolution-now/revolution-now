@@ -672,13 +672,13 @@ void TerrainGenerator::enable_mountains( point const p ) {
 }
 
 valid_or<string> TerrainGenerator::scatter_pass() {
-  int r = 0, x = 0, y = 0;
-  int const g_dir_dx[9] = { -1, 0, 1, 1, 1, 0, -1, -1, 0 };
-  int const g_dir_dy[9] = { -1, -1, -1, 0, 1, 1, 1, 0, 0 };
+  int x = 0, y = 0;
+  int const g_dir_dx[9] = { 0, 1, 1, 1, 0, -1, -1, -1, 0 };
+  int const g_dir_dy[9] = { -1, -1, 0, 1, 1, 1, 0, -1, 0 };
   int pa = 0, pb = 0; // FIXME
-  for( int const n : iota( 0, 800 ) ) {
+  for( size_t const n : iota( 0, 800 ) ) {
     if( ( n & 1 ) != 0 ) {
-      r = rand_.uniform_int( 0, 8 );
+      int const r = rand_.uniform_int( 0, 8 );
       x += g_dir_dx[r];
       y += g_dir_dy[r];
     } else {
