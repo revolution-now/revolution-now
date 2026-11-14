@@ -22,5 +22,6 @@ enum.e_perlin_map_error {
 
 struct.PerlinGenTile {
   surface 'e_surface',
+  has_hills 'bool',
   has_mountains 'bool',
 }

@@ -408,8 +408,8 @@ TerrainGenerator::TerrainGenerator(
 
 valid_or<string> TerrainGenerator::full() {
   GOOD_OR_RETURN( temperature_pass() );
-  GOOD_OR_RETURN( wetness_pass_1() );
-  GOOD_OR_RETURN( wetness_pass_2() );
+  GOOD_OR_RETURN( rainfall_pass_1() );
+  GOOD_OR_RETURN( rainfall_pass_2() );
   GOOD_OR_RETURN( scatter_pass() );
   GOOD_OR_RETURN( forest_pass() );
   GOOD_OR_RETURN( rivers_pass() );
@@ -445,9 +445,8 @@ valid_or<string> TerrainGenerator::temperature_pass() {
     double const unity        = sz_.h / 70.0;
     double const equator_dist = sz_.h / 2.0 - p.y;
     double const wiggle_width = std::max( unity * 8, 1.0 );
-    double const wiggle      = wiggle_width * 1.0 *
-                               rand_.uniform_int( -1000, 1000 ) /
-                               1000.0;
+    double const wiggle =
+        wiggle_width * rand_.uniform_int( -1000, 1000 ) / 1000.0;
     double const wiggle_dist = abs( equator_dist + wiggle );
     // [-100,100] --> [-1,1] --> [1,-1].
     //   or
@@ -465,41 +464,40 @@ valid_or<string> TerrainGenerator::temperature_pass() {
   return valid;
 }
 
-valid_or<string> TerrainGenerator::wetness_pass_1() {
+valid_or<string> TerrainGenerator::rainfall_pass_1() {
   double const climate_adjusted =
       ( climate_.value + 100 ) / 100.0;
   int const climate_adjusted_integral =
       static_cast<int>( round( climate_adjusted ) );
   for( int const y : iota( 0, sz_.h ) ) {
-    double const equator_dist = abs( ( sz_.h / 2.0 ) - y );
-    int const max_wetness     = std::max(
-        0,
-        static_cast<int>( abs( ( sz_.h / 4.0 ) - equator_dist ) +
-                          climate_adjusted * 4 ) );
-    int wetness = rand_.uniform_int( 0, max_wetness );
+    int const equator_dist = abs( sz_.h / 2 - y );
+    int const max_rainfall = std::max(
+        0, static_cast<int>( abs( sz_.h / 4 - equator_dist ) +
+                             climate_adjusted_integral * 4 ) );
+    int rainfall = rand_.uniform_int( 0, max_rainfall );
     for( int const x : iota( 0, sz_.w ) ) {
       point const p{ .x = x, .y = y };
       MapSquare& square = m_[p];
       Scratch& scratch  = scratch_[p];
       if( square.surface == e_surface::water ) {
-        if( wetness < max_wetness ) ++wetness;
+        if( rainfall < max_rainfall ) ++rainfall;
       } else {
         using enum e_biome;
         if( square.overlay == e_land_overlay::mountains )
-          wetness -= 3;
+          rainfall -= 3;
         else if( square.overlay == e_land_overlay::hills )
           square.overlay.reset();
-        else if( wetness < 0 ) {
+        else if( rainfall < 0 ) {
           switch( square.ground ) {
             case grassland:
               square.ground = prairie;
               break;
             case prairie:
-              if( rand_.uniform_int( 0, abs( wetness ) ) != 0 )
+              if( rand_.uniform_int( 0, abs( rainfall ) ) != 0 )
                 square.ground = desert;
               else {
                 square.ground = plains;
-                --wetness;
+                --rainfall;
               }
               break;
             case plains:
@@ -515,15 +513,15 @@ valid_or<string> TerrainGenerator::wetness_pass_1() {
             case swamp:
               break;
           }
-        } else if( wetness > 0 ) {
+        } else if( rainfall > 0 ) {
           switch( square.ground ) {
             case savannah:
-              wetness -= 2;
+              rainfall -= 2;
               if( rand_.uniform_int( 0, 3 ) == 0 )
                 square.ground = swamp;
               break;
             case grassland:
-              wetness -= 2;
+              rainfall -= 2;
               if( rand_.uniform_int( 0, 3 ) == 0 )
                 square.ground = marsh;
               break;
@@ -543,50 +541,49 @@ valid_or<string> TerrainGenerator::wetness_pass_1() {
               break;
           }
         }
-        if( wetness > 0 )
-          wetness -= rand_.uniform_int(
+        if( rainfall > 0 )
+          rainfall -= rand_.uniform_int(
               1,
               std::max( 1, 7 - climate_adjusted_integral * 2 ) );
-        else if( wetness < 0 )
-          ++wetness;
+        else if( rainfall < 0 )
+          ++rainfall;
       }
     }
   }
   return valid;
 }
 
-valid_or<string> TerrainGenerator::wetness_pass_2() {
+valid_or<string> TerrainGenerator::rainfall_pass_2() {
   double const climate_adjusted =
       ( climate_.value + 100 ) / 100.0;
   int const climate_adjusted_integral =
       static_cast<int>( round( climate_adjusted ) );
   for( int const y : iota( 0, sz_.h ) ) {
-    double const equator_dist = abs( ( sz_.h / 2.0 ) - y );
-    int const max_wetness     = static_cast<int>( std::max(
-        0.0,
-        round( ( equator_dist / 2.0 ) + climate_adjusted ) ) );
-    int wetness               = 0;
+    int const equator_dist = abs( sz_.h / 2 - y );
+    int const max_rainfall = static_cast<int>( std::max(
+        0, equator_dist / 2 + climate_adjusted_integral ) );
+    int rainfall           = 0;
     for( int x = sz_.w - 1; x >= 0; --x ) {
       point const p{ .x = x, .y = y };
       MapSquare& square = m_[p];
       if( square.surface == e_surface::water ) {
-        if( wetness < max_wetness ) ++wetness;
+        if( rainfall < max_rainfall ) ++rainfall;
       } else {
         if( square.overlay == e_land_overlay::mountains )
-          wetness -= 3;
+          rainfall -= 3;
         else if( square.overlay == e_land_overlay::hills )
           square.overlay.reset();
-        else if( wetness < 0 ) {
+        else if( rainfall < 0 ) {
           // None.
-        } else if( wetness > 0 ) {
+        } else if( rainfall > 0 ) {
           switch( square.ground ) {
             using enum e_biome;
             case savannah:
-              wetness -= 2;
+              rainfall -= 2;
               square.ground = swamp;
               break;
             case grassland:
-              wetness -= 2;
+              rainfall -= 2;
               if( rand_.uniform_int( 0, 1 ) == 0 )
                 square.ground = marsh;
               break;
@@ -608,12 +605,12 @@ valid_or<string> TerrainGenerator::wetness_pass_2() {
               break;
           }
         }
-        if( wetness > 0 )
-          wetness -= rand_.uniform_int(
+        if( rainfall > 0 )
+          rainfall -= rand_.uniform_int(
               1,
               std::max( 1, 7 - climate_adjusted_integral * 2 ) );
-        else if( wetness < 0 )
-          ++wetness;
+        else if( rainfall < 0 )
+          ++rainfall;
       }
     }
   }

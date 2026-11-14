@@ -62,10 +62,10 @@ struct TerrainGenerator {
   Result temperature_pass();
 
   // Left-to-right.
-  Result wetness_pass_1();
+  Result rainfall_pass_1();
 
   // Right-to-left.
-  Result wetness_pass_2();
+  Result rainfall_pass_2();
 
   Result scatter_pass();
 

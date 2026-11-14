@@ -273,10 +273,27 @@ valid_or<e_perlin_map_error> land_gen_perlin(
   if( mountains_density_divisor.has_value() ) {
     // This should be checked via config validation.
     CHECK( *mountains_density_divisor >= 1.0 );
-    UNWRAP_RETURN_T(
-        double const mountain_level,
-        find_level(
-            pm, target_density / *mountains_density_divisor ) );
+
+    double const mountain_density =
+        target_density / ( *mountains_density_divisor );
+    double const hill_density =
+        target_density /
+        std::max( ( *mountains_density_divisor ) / 2, 1.0 );
+
+    UNWRAP_RETURN_T( double const hill_level,
+                     find_level( pm, hill_density ) );
+    lg.debug( "hill_level: {}", hill_level );
+    lg.info( "perlin hill density: {:.3}",
+             land_density_above_level( pm, hill_level ) );
+    for( point const p : rect_iterator( out.rect() ) )
+      // Since the hill level is above the sea level we should
+      // always be on land if we have hills, but let's just be
+      // defensive here.
+      if( out[p].surface == land )
+        out[p].has_hills = pm[p] > hill_level;
+
+    UNWRAP_RETURN_T( double const mountain_level,
+                     find_level( pm, mountain_density ) );
     lg.debug( "mountain_level: {}", mountain_level );
     lg.info( "perlin mountain density: {:.3}",
              land_density_above_level( pm, mountain_level ) );

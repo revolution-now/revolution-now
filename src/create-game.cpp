@@ -164,6 +164,8 @@ valid_or<string> generate_land_perlin(
     if( !ok ) return base::to_str( ok.error() );
     for( point const p : rect_iterator( surface.rect() ) ) {
       real_terrain.map[p].surface = surface[p].surface;
+      if( surface[p].has_hills )
+        real_terrain.map[p].overlay = e_land_overlay::hills;
       if( surface[p].has_mountains )
         real_terrain.map[p].overlay = e_land_overlay::mountains;
     }
