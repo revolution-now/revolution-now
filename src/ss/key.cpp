@@ -80,15 +80,10 @@ valid_or<string> PerlinEdgeSuppression::validate() const {
 ** PerlinMountains.
 *****************************************************************/
 valid_or<string> PerlinMountains::validate() const {
-  if( enabled ) {
+  if( enabled )
     REFL_VALIDATE( density_divisor >= 1.0,
-                   "perlin mountains density divisor must be at "
-                   "least 1.0." );
-  } else {
-    REFL_VALIDATE( density_divisor == 0.0,
-                   "perlin mountains density divisor must be "
-                   "zero when disabled." );
-  }
+                   "when enabled, perlin mountains density "
+                   "divisor must be at least 1.0." );
   return valid;
 }
 
