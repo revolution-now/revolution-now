@@ -330,43 +330,59 @@ void generate_single_map_key( IEngine& engine, SS& ss,
         generate_single_map_custom( engine, ss, custom );
       };
 
-  static auto constexpr kTemps = {
-    e_temperature::cool,
-    e_temperature::temperate,
-    e_temperature::warm,
-  };
-  static auto constexpr kClimates = {
-    e_climate::arid,
-    e_climate::normal,
-    e_climate::wet,
+  static auto constexpr kLandMass = {
+    e_land_mass::small,
+    e_land_mass::moderate,
+    e_land_mass::large,
   };
 
-  for( e_temperature const temperature : kTemps ) {
-    for( e_climate const climate : kClimates ) {
-      ClassicGameSetupParamsCustom const params{
-        .land_mass   = e_land_mass::large,
-        .land_form   = e_land_form::continents,
-        .temperature = temperature,
-        .climate     = climate };
-      string const name( mode_name( params ) );
-      auto const stats =
-          create_biome_density_stats_collector( name );
-      CHECK( stats );
-      fmt::println( "generate for {}...", name );
-      ScopedTimer const timer(
-          format( "generate {} maps", kNumSamples ) );
-      fmt::print( "\033[?25l" );
-      SCOPE_EXIT { fmt::print( "\033[?25h" ); };
-      for( int i = 0; i < kNumSamples; ++i ) {
-        fmt::print( "  #{} ({:.3}%)          \r", i,
-                    i * 100.0 / kNumSamples );
-        SS ss;
-        generate( ss, params );
-        stats->collect( ss.terrain.real_terrain().map );
+  static auto constexpr kLandForm = {
+    e_land_form::archipelago,
+    e_land_form::normal,
+    e_land_form::continents,
+  };
+
+  static auto constexpr kTemps = {
+    // e_temperature::cool,
+    e_temperature::temperate,
+    // e_temperature::warm,
+  };
+  static auto constexpr kClimates = {
+    // e_climate::arid,
+    e_climate::normal,
+    // e_climate::wet,
+  };
+
+  for( e_land_mass const land_mass : kLandMass ) {
+    for( e_land_form const land_form : kLandForm ) {
+      for( e_temperature const temperature : kTemps ) {
+        for( e_climate const climate : kClimates ) {
+          ClassicGameSetupParamsCustom const params{
+            .land_mass   = land_mass,
+            .land_form   = land_form,
+            .temperature = temperature,
+            .climate     = climate };
+          string const name( mode_name( params ) );
+          auto const stats =
+              create_biome_density_stats_collector( name );
+          CHECK( stats );
+          fmt::println( "generate for {}...", name );
+          ScopedTimer const timer(
+              format( "generate {} maps", kNumSamples ) );
+          fmt::print( "\033[?25l" );
+          SCOPE_EXIT { fmt::print( "\033[?25h" ); };
+          for( int i = 0; i < kNumSamples; ++i ) {
+            fmt::print( "  #{} ({:.3}%)          \r", i,
+                        i * 100.0 / kNumSamples );
+            SS ss;
+            generate( ss, params );
+            stats->collect( ss.terrain.real_terrain().map );
+          }
+          stats->summarize();
+          stats->write();
+          fmt::print( "\n" );
+        }
       }
-      stats->summarize();
-      stats->write();
-      fmt::print( "\n" );
     }
   }
 }

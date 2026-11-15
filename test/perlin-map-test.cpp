@@ -140,17 +140,16 @@ TEST_CASE(
               .base     = 1152681597,
               .flip     = false },
   };
-  double const target_density            = 0.6;
-  double const mountains_density_divisor = 8.0;
+  double const target_density = 0.6;
+  PerlinElevation const elevation;
   size const world_sz{ .w = 16, .h = 16 };
 
   matrix<PerlinGenTile> surface, expected;
 
   auto const f = [&] [[clang::noinline]] {
     surface = {};
-    return land_gen_perlin( settings, target_density,
-                            mountains_density_divisor, world_sz,
-                            surface );
+    return land_gen_perlin( settings, target_density, elevation,
+                            world_sz, surface );
   };
 
   REQUIRE( f() == valid );
@@ -230,13 +229,12 @@ TEST_CASE( "[perlin-map] land_gen_perlin" ) {
     .seed             = kSeed,
   };
 
-  double const mountains_density_divisor = 8.0;
+  PerlinElevation const elevation;
 
   auto const f = [&] [[clang::noinline]] {
     surface = {};
-    return land_gen_perlin( settings, target_density,
-                            mountains_density_divisor, world_sz,
-                            surface );
+    return land_gen_perlin( settings, target_density, elevation,
+                            world_sz, surface );
   };
 
   // ------------------------------------------------------------

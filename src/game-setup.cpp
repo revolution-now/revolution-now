@@ -133,7 +133,7 @@ ExchangeKey create_classic_game_key(
 
   PerlinMapSettings const perlin_settings{
     .land_form = params.land_form,
-    .mountains = map_conf.land_layout.perlin_mountains,
+    .elevation = map_conf.land_layout.perlin_elevation,
     .edge_suppression =
         map_conf.land_layout.land_form.perlin_edge_suppression,
     .seed = perlin_seed,
@@ -168,8 +168,6 @@ ExchangeKey create_classic_game_key(
     .sanitization = surface_sanitization,
   };
 
-  WetnessConfig const& wetness = map_conf.wetness;
-
   WeatherSetup const weather{
     .temperature = params.temperature,
     .climate     = params.climate,
@@ -198,7 +196,6 @@ ExchangeKey create_classic_game_key(
   GeneratedMapSetup const generated_map_setup{
     .size              = world_sz,
     .surface_generator = surface_generator,
-    .wetness           = wetness,
     .weather           = weather,
     .rivers            = rivers,
     .biomes            = biomes,

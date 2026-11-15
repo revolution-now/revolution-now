@@ -106,19 +106,20 @@ terrain_generation {
       }
     }
 
-    # These are mountains that are generated during the perlin
-    # land generation step using knowledge of the height of the
-    # land, which would otherwise be lost in subsequent steps.
-    # That said, mountains are changed/added in subsequent steps
-    # on a more random basis which will have the effect of pep-
-    # pering the map with small (single/double) mountain tiles.
-    # In contrast, this step tends to build large mountain ranges
-    # in the inland part of the land as you would expect in real-
-    # istic land forms. These mountains are also used when as-
-    # signing biomes as they affect wetness calculations.
-    perlin_mountains {
+    # These are mountains and hills that are generated during the
+    # perlin land generation step using knowledge of the height
+    # of the land, which would otherwise be lost in subsequent
+    # steps. That said, mountains are changed/added in subsequent
+    # steps on a more random basis which will have the effect of
+    # peppering the map with small (single/double) mountain
+    # tiles. In contrast, this step tends to build large mountain
+    # ranges in the inland part of the land as you would expect
+    # in realistic land forms. These mountains are also used when
+    # assigning biomes as they affect rainfall calculations.
+    perlin_elevation {
       enabled: true
-      density_divisor: 8.0
+      hills_divisor:      4.00
+      mountains_divisor: 15.00
     }
 
     inland_lakes {
@@ -180,28 +181,6 @@ terrain_generation {
     # look good even in the NG; they seem to add noise to the map
     # and do actually still look slightly confusing to a player.
     remove_crosses: true
-  }
-
-  wetness {
-    climate_gradient:     0.004
-    amplitude:            5.5
-    accumulation:         1.0
-    consumption.fraction: 0.5
-    row_modulation: {
-      amplitude: 3.0
-      width:     0.2
-    }
-    biome_affinity {
-      tundra.fraction:    0.00
-      plains.fraction:    0.00
-      desert.fraction:    0.70
-      savannah.fraction:  0.70
-      prairie.fraction:   0.77
-      grassland.fraction: 0.93
-      swamp.fraction:     0.99
-      marsh.fraction:     0.99
-      arctic.fraction:    0.00
-    }
   }
 
   weather {

@@ -42,16 +42,6 @@ valid_or<string> RiverParameters::validate() const {
 }
 
 /****************************************************************
-** Wetness
-*****************************************************************/
-valid_or<string> WetnessConfig::validate() const {
-  REFL_VALIDATE( amplitude >= 0, "amplitude must be >= 0." );
-  REFL_VALIDATE( accumulation >= 0,
-                 "accumulation must be >= 0." );
-  return valid;
-}
-
-/****************************************************************
 ** WeatherValue
 *****************************************************************/
 valid_or<string> WeatherValue::validate() const {
@@ -77,22 +67,20 @@ valid_or<string> PerlinEdgeSuppression::validate() const {
 }
 
 /****************************************************************
-** PerlinMountains.
+** PerlinElevation.
 *****************************************************************/
-valid_or<string> PerlinMountains::validate() const {
-  if( enabled )
-    REFL_VALIDATE( density_divisor >= 1.0,
-                   "when enabled, perlin mountains density "
-                   "divisor must be at least 1.0." );
-  return valid;
-}
-
-/****************************************************************
-** WetnessRowModulationConfig
-*****************************************************************/
-valid_or<string> WetnessRowModulationConfig::validate() const {
-  // NOTE: amplitude is allowed to be negative.
-  REFL_VALIDATE( width > 0, "width must be > 0." );
+valid_or<string> PerlinElevation::validate() const {
+  if( !enabled ) return valid;
+  REFL_VALIDATE( hills_divisor >= 1.0,
+                 "when enabled, perlin hills density divisor "
+                 "must be at least 1.0." );
+  REFL_VALIDATE( mountains_divisor >= 1.0,
+                 "when enabled, perlin mountains density "
+                 "divisor must be at least 1.0." );
+  REFL_VALIDATE(
+      mountains_divisor >= hills_divisor,
+      "when enabled, perlin mountains density divisor must be "
+      "at least as large as the hills density divisor." );
   return valid;
 }
 

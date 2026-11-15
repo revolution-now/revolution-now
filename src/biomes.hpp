@@ -26,26 +26,7 @@ namespace rn {
 *****************************************************************/
 struct IRand;
 struct MapMatrix;
-struct RealTerrain;
 struct WeatherValue;
-struct WetnessConfig;
-struct Wetness;
-
-/****************************************************************
-** Public API.
-*****************************************************************/
-void assign_arctic_biomes( IRand& rand,
-                           RealTerrain& real_terrain );
-
-base::valid_or<std::string> assign_biomes_old(
-    IRand& rand, RealTerrain& real_terrain,
-    WeatherValue const& temperature,
-    WeatherValue const& climate );
-
-void apply_biome_wetness_remix(
-    MapMatrix& m, IRand& rand,
-    WetnessConfig const& wetness_config,
-    Wetness const& wetness );
 
 /****************************************************************
 ** TerrainGenerator.
@@ -92,6 +73,9 @@ struct TerrainGenerator {
   void on_all( F&& fn ) {
     on_all_tiles( m_, fn );
   }
+
+  [[nodiscard]] int uniform( int const l, int const h ) const;
+  [[nodiscard]] bool coin() const;
 
   enum class e_forest_plan {
     deferred,

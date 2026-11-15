@@ -57,7 +57,7 @@ struct.LandForm {
 struct.LandLayout {
   land_mass 'LandMass',
   land_form 'LandForm',
-  perlin_mountains 'PerlinMountains',
+  perlin_elevation 'PerlinElevation',
   inland_lakes 'InlandLakes',
   arctic 'Arctic',
   remove_crosses 'bool',
@@ -137,7 +137,6 @@ struct.Rivers {
 
 struct.TerrainGeneration {
   land_layout 'LandLayout',
-  wetness 'WetnessConfig',
   weather 'Weather',
   rivers 'Rivers',
   biomes 'Biomes',

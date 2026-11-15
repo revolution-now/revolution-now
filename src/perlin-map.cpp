@@ -203,8 +203,8 @@ rng::PerlinSeed generate_perlin_seed( rng::entropy e ) {
 valid_or<e_perlin_map_error> land_gen_perlin(
     PerlinMapSettings const& settings,
     double const target_density,
-    maybe<double> const mountains_density_divisor,
-    size const world_sz, matrix<PerlinGenTile>& out ) {
+    PerlinElevation const& elevation, size const world_sz,
+    matrix<PerlinGenTile>& out ) {
   using enum e_surface;
   size const sz = world_sz;
   lg.debug( "perlin: settings: {}", settings );
@@ -270,15 +270,17 @@ valid_or<e_perlin_map_error> land_gen_perlin(
   if( total_land == 0 && target_density > 0.0 )
     return e_perlin_map_error::density_too_small_no_land;
 
-  if( mountains_density_divisor.has_value() ) {
+  if( elevation.enabled ) {
     // This should be checked via config validation.
-    CHECK( *mountains_density_divisor >= 1.0 );
+    CHECK( elevation.mountains_divisor >= 1.0 );
+    CHECK( elevation.hills_divisor >= 1.0 );
+    CHECK( elevation.mountains_divisor >=
+           elevation.hills_divisor );
 
     double const mountain_density =
-        target_density / ( *mountains_density_divisor );
+        target_density / elevation.mountains_divisor;
     double const hill_density =
-        target_density /
-        std::max( ( *mountains_density_divisor ) / 2, 1.0 );
+        target_density / elevation.hills_divisor;
 
     UNWRAP_RETURN_T( double const hill_level,
                      find_level( pm, hill_density ) );

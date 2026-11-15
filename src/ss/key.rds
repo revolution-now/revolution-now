@@ -75,15 +75,16 @@ struct.PerlinEdgeSuppression {
   _features { equality, validation }
 }
 
-struct.PerlinMountains {
+struct.PerlinElevation {
   enabled 'bool',
-  density_divisor 'double',
+  hills_divisor 'double',
+  mountains_divisor 'double',
   _features { equality, validation }
 }
 
 struct.PerlinMapSettings {
   land_form 'rng::PerlinLandForm',
-  mountains 'PerlinMountains',
+  elevation 'PerlinElevation',
   edge_suppression 'PerlinEdgeSuppression',
   seed 'rng::PerlinSeed',
 }
@@ -189,29 +190,12 @@ struct.BonusesSetup {
   seed 'rng::seed',
 }
 
-struct.WetnessRowModulationConfig {
-  amplitude 'double',
-  width 'double',
-  _features { equality, validation }
-}
-
-struct.WetnessConfig {
-  amplitude 'double',
-  climate_gradient 'double',
-  accumulation 'double',
-  consumption 'DoublePercent',
-  row_modulation 'WetnessRowModulationConfig',
-  biome_affinity 'refl::enum_map<e_biome, DoublePercent>',
-  _features { equality, validation }
-}
-
 # This will be the main body of the map exchange key, thus we
 # should try not to change this once it is set.
 struct.GeneratedMapSetup {
   # Map Size.
   size 'gfx::size',
   surface_generator 'SurfaceGeneratorSetup',
-  wetness 'WetnessConfig',
   weather 'WeatherSetup',
   rivers 'base::maybe<RiverSetup>',  # rivers are optional.
   biomes 'BiomesSetup',

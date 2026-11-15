@@ -20,6 +20,11 @@ map.source.generate_native.setup {
         }
         scale: 12
       }
+      elevation {
+        enabled: true
+        hills_divisor:      4.00
+        mountains_divisor: 15.00
+      }
       mountains {
         enabled: true
         density_divisor: 8.0
@@ -46,28 +51,6 @@ map.source.generate_native.setup {
       remove_islands: true
     }
     target_density.fraction: 0.23
-  }
-
-  wetness {
-    climate_gradient:     0.004
-    amplitude:            5.5
-    accumulation:         1.0
-    consumption.fraction: 0.5
-    row_modulation: {
-      amplitude: 3.0
-      width:     0.2
-    }
-    biome_affinity {
-      tundra.fraction:    0.00
-      plains.fraction:    0.00
-      desert.fraction:    0.70
-      savannah.fraction:  0.70
-      prairie.fraction:   0.77
-      grassland.fraction: 0.93
-      swamp.fraction:     0.99
-      marsh.fraction:     0.99
-      arctic.fraction:    0.00
-    }
   }
 
   weather {

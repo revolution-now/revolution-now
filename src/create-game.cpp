@@ -152,15 +152,11 @@ valid_or<string> generate_land_perlin(
     auto const& perlin_settings =
         surface_generator.perlin_settings;
     matrix<PerlinGenTile> surface;
-    auto const perlin_mountains_density_divisor =
-        surface_generator.perlin_settings.mountains.enabled
-            ? surface_generator.perlin_settings.mountains
-                  .density_divisor
-            : maybe<double>();
-    auto const ok = TIMED_CALL(
-        land_gen_perlin, perlin_settings,
-        surface_generator.target_density.fraction,
-        perlin_mountains_density_divisor, setup.size, surface );
+    auto const ok =
+        TIMED_CALL( land_gen_perlin, perlin_settings,
+                    surface_generator.target_density.fraction,
+                    surface_generator.perlin_settings.elevation,
+                    setup.size, surface );
     if( !ok ) return base::to_str( ok.error() );
     for( point const p : rect_iterator( surface.rect() ) ) {
       real_terrain.map[p].surface = surface[p].surface;
