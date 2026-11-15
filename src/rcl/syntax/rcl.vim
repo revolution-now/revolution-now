@@ -69,7 +69,7 @@ hi def link rclBoolean       Boolean
 hi def link rclNull          Constant
 hi def link rclNumber        Number
 
-hi def link rclKey           Keyword
+hi def link rclKey           Identifier
 hi def link rclKeyDot        Delimiter
 hi def link rclDelimiter     Delimiter
 
