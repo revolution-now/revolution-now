@@ -14,7 +14,6 @@
 #include "biomes.hpp"
 #include "classic-sav.hpp"
 #include "co-wait.hpp"
-#include "formations.hpp"
 #include "irand.hpp"
 #include "map-gen.hpp"
 #include "perlin-map.hpp"

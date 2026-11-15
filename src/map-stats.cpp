@@ -1507,30 +1507,6 @@ void FormationsStatsCollector::emit_inputs_file() const {
 
   o["density_on_biome"] = table{
     "__key_order"_key = FORMATION_ORDER_CLEARING_NM_CDR };
-  for( e_terrain_formation const kind :
-       FORMATION_ORDER_CLEARING ) {
-    auto const& kind_str = ( kind == clearing )
-                               ? "clearing-nm"
-                               : base::to_str( kind );
-    auto const& conf     = config_map_gen.terrain_generation
-                               .formations.formation[kind];
-    SWITCH( conf.spawn ) {
-      CASE( by_wetness ) {
-        // None
-        break;
-      }
-      CASE( per_biome ) {
-        o["density_on_biome"][kind_str] =
-            table{ "__key_order"_key = BIOME_ORDERING_CDR };
-        for( e_biome const biome : BIOME_ORDERING ) {
-          auto const& biome_str = base::to_str( biome );
-          o["density_on_biome"][kind_str][biome_str] =
-              per_biome.density[biome].probability;
-        }
-        break;
-      }
-    }
-  }
 
   string const out_filename = generated_json_path( "inputs" );
   ofstream out( out_filename );

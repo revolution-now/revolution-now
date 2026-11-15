@@ -109,10 +109,6 @@ struct.Biomes {
   densities 'BiomeDensities',
 }
 
-struct.Formations {
-  formation 'refl::enum_map<e_terrain_formation, Formation>',
-}
-
 struct.RiverClimateParameters {
   # This length includes the water tile which initiates the
   # river.
@@ -140,7 +136,6 @@ struct.TerrainGeneration {
   weather 'Weather',
   rivers 'Rivers',
   biomes 'Biomes',
-  formations 'Formations',
 }
 
 struct.DwellingGeneration {

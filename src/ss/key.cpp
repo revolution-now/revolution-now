@@ -85,23 +85,6 @@ valid_or<string> PerlinElevation::validate() const {
 }
 
 /****************************************************************
-** FormationGrowth
-*****************************************************************/
-valid_or<string> FormationGrowth::validate() const {
-  REFL_VALIDATE( rate >= 0.0,
-                 "formation growth rate must be >= 0" );
-  REFL_VALIDATE(
-      edge_decay.w >= 0 && edge_decay.w <= 1.0,
-      "formation edge decay parameters must be in [0,1]" );
-  REFL_VALIDATE(
-      edge_decay.h >= 0 && edge_decay.h <= 1.0,
-      "formation edge decay parameters must be in [0,1]" );
-  REFL_VALIDATE( max_size >= 0,
-                 "formation max size must be >= 0" );
-  return valid;
-}
-
-/****************************************************************
 ** GameSettingsSetup
 *****************************************************************/
 valid_or<string> GameSettingsSetup::validate() const {

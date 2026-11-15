@@ -156,31 +156,6 @@ struct.BiomesSetup {
   seed 'rng::seed',
 }
 
-sumtype.FormationSpawnType {
-  per_biome {
-    density 'refl::enum_map<e_biome, Probability>',
-  },
-  by_wetness {},
-}
-
-struct.FormationGrowth {
-  rate 'double',
-  edge_decay 'gfx::dsize',
-  max_size 'int',
-  _features { equality, validation }
-}
-
-struct.Formation {
-  spawn 'FormationSpawnType',
-  overall_spawn 'Probability',
-  growth 'FormationGrowth',
-}
-
-struct.FormationsSetup {
-  seed 'rng::seed',
-  formation 'refl::enum_map<e_terrain_formation, Formation>',
-}
-
 struct.BonusesSetup {
   # This seed will be used to obtain an OG-style prime resource
   # seed which will then be used for both the prime resources as
@@ -199,7 +174,6 @@ struct.GeneratedMapSetup {
   weather 'WeatherSetup',
   rivers 'base::maybe<RiverSetup>',  # rivers are optional.
   biomes 'BiomesSetup',
-  formations 'FormationsSetup',
   bonuses 'BonusesSetup',
   _features { equality, validation }
 }

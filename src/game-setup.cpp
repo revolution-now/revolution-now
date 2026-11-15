@@ -184,11 +184,6 @@ ExchangeKey create_classic_game_key(
     .seed = rand.new_deterministic_seed(),
   };
 
-  FormationsSetup const formations{
-    .seed      = rand.new_deterministic_seed(),
-    .formation = map_conf.formations.formation,
-  };
-
   BonusesSetup const bonuses{
     .seed = rand.new_deterministic_seed(),
   };
@@ -199,7 +194,6 @@ ExchangeKey create_classic_game_key(
     .weather           = weather,
     .rivers            = rivers,
     .biomes            = biomes,
-    .formations        = formations,
     .bonuses           = bonuses,
   };
 
