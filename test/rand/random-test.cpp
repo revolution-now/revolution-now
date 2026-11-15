@@ -469,10 +469,10 @@ TEST_CASE( "[rand/random] new_deterministic_seed" ) {
   // consistent results, even across platforms it is said.
 
   REQUIRE( base::to_str( f() ) ==
-           "sd5c31f79e7e1faee22ae9ef6d091bb5c" );
+           "Xd5c31f79e7e1faee22ae9ef6d091bb5c" );
 
   REQUIRE( base::to_str( f() ) ==
-           "s3895afe1e9d30005f807b7df2082352c" );
+           "X3895afe1e9d30005f807b7df2082352c" );
 }
 
 } // namespace

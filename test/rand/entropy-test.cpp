@@ -56,7 +56,7 @@ TEST_CASE( "[rand/entropy] to_str" ) {
     .e4 = 0x4df00076,
   };
   REQUIRE( base::to_str( s1 ) ==
-           "s4df00076fbe4a2766da636d66151c187" );
+           "X4df00076fbe4a2766da636d66151c187" );
 
   // Starts with zeroes.
   entropy const s2{
@@ -66,7 +66,7 @@ TEST_CASE( "[rand/entropy] to_str" ) {
     .e4 = 0x00f00076,
   };
   REQUIRE( base::to_str( s2 ) ==
-           "s00f00076fbe4a2766da636d66151c187" );
+           "X00f00076fbe4a2766da636d66151c187" );
 
   // Starts with all zeroes.
   entropy const s3{
@@ -76,7 +76,7 @@ TEST_CASE( "[rand/entropy] to_str" ) {
     .e4 = 0x00000000,
   };
   REQUIRE( base::to_str( s3 ) ==
-           "s00000000fbe4a2766da636d66151c187" );
+           "X00000000fbe4a2766da636d66151c187" );
 
   // All zeroes.
   entropy const s4{
@@ -86,7 +86,7 @@ TEST_CASE( "[rand/entropy] to_str" ) {
     .e4 = 0,
   };
   REQUIRE( base::to_str( s4 ) ==
-           "s00000000000000000000000000000000" );
+           "X00000000000000000000000000000000" );
 }
 
 TEST_CASE( "[rand/entropy] entropy::from_string" ) {
@@ -95,7 +95,7 @@ TEST_CASE( "[rand/entropy] entropy::from_string" ) {
         return entropy::from_string( sv );
       };
 
-  REQUIRE( f( "s4df00076fbe4a2766da636d66151c187" ) ==
+  REQUIRE( f( "X4df00076fbe4a2766da636d66151c187" ) ==
            entropy{
              .e1 = 0x6151c187,
              .e2 = 0x6da636d6,
@@ -103,7 +103,7 @@ TEST_CASE( "[rand/entropy] entropy::from_string" ) {
              .e4 = 0x4df00076,
            } );
 
-  REQUIRE( f( "s31c1981050f9b08e8fe3fda12fcb0d0c" ) ==
+  REQUIRE( f( "X31c1981050f9b08e8fe3fda12fcb0d0c" ) ==
            entropy{
              .e1 = 0x2fcb0d0c,
              .e2 = 0x8fe3fda1,
@@ -111,7 +111,7 @@ TEST_CASE( "[rand/entropy] entropy::from_string" ) {
              .e4 = 0x31c19810,
            } );
 
-  REQUIRE( f( "s7ab4375984fb5c6291898d52e46ac2cd" ) ==
+  REQUIRE( f( "X7ab4375984fb5c6291898d52e46ac2cd" ) ==
            entropy{
              .e1 = 0xe46ac2cd,
              .e2 = 0x91898d52,
@@ -119,7 +119,7 @@ TEST_CASE( "[rand/entropy] entropy::from_string" ) {
              .e4 = 0x7ab43759,
            } );
 
-  REQUIRE( f( "sb26bf80619002f58ddb33904f2bdab07" ) ==
+  REQUIRE( f( "Xb26bf80619002f58ddb33904f2bdab07" ) ==
            entropy{
              .e1 = 0xf2bdab07,
              .e2 = 0xddb33904,
@@ -127,7 +127,7 @@ TEST_CASE( "[rand/entropy] entropy::from_string" ) {
              .e4 = 0xb26bf806,
            } );
 
-  REQUIRE( f( "sdf61d386b9660235b4a723c187140475" ) ==
+  REQUIRE( f( "Xdf61d386b9660235b4a723c187140475" ) ==
            entropy{
              .e1 = 0x87140475,
              .e2 = 0xb4a723c1,
@@ -135,7 +135,7 @@ TEST_CASE( "[rand/entropy] entropy::from_string" ) {
              .e4 = 0xdf61d386,
            } );
 
-  REQUIRE( f( "scc8846dfffedb6d0edd7e828bbc38bf2" ) ==
+  REQUIRE( f( "Xcc8846dfffedb6d0edd7e828bbc38bf2" ) ==
            entropy{
              .e1 = 0xbbc38bf2,
              .e2 = 0xedd7e828,
@@ -143,7 +143,7 @@ TEST_CASE( "[rand/entropy] entropy::from_string" ) {
              .e4 = 0xcc8846df,
            } );
 
-  REQUIRE( f( "s4bb3f9459059ff13fbbe120892de3c09" ) ==
+  REQUIRE( f( "X4bb3f9459059ff13fbbe120892de3c09" ) ==
            entropy{
              .e1 = 0x92de3c09,
              .e2 = 0xfbbe1208,
@@ -151,7 +151,7 @@ TEST_CASE( "[rand/entropy] entropy::from_string" ) {
              .e4 = 0x4bb3f945,
            } );
 
-  REQUIRE( f( "s320e55050bc0f5673652472c4114dbe2" ) ==
+  REQUIRE( f( "X320e55050bc0f5673652472c4114dbe2" ) ==
            entropy{
              .e1 = 0x4114dbe2,
              .e2 = 0x3652472c,
@@ -160,46 +160,46 @@ TEST_CASE( "[rand/entropy] entropy::from_string" ) {
            } );
 
   // Non hex chars.
-  REQUIRE( f( "s320e55050bc0f5673652472c4114dbex" ) == nothing );
+  REQUIRE( f( "X320e55050bc0f5673652472c4114dbex" ) == nothing );
 
   // No 0x prefix allowed.
   REQUIRE( f( "0x320e55050bc0f5673652472c4114dbe2" ) ==
            nothing );
 
   // No spaces at start allowed.
-  REQUIRE( f( " s320e55050bc0f5673652472c4114dbe2" ) ==
+  REQUIRE( f( " X320e55050bc0f5673652472c4114dbe2" ) ==
            nothing );
   // No spaces at end allowed.
-  REQUIRE( f( "s320e55050bc0f5673652472c4114dbe2 " ) ==
+  REQUIRE( f( "X320e55050bc0f5673652472c4114dbe2 " ) ==
            nothing );
   // No spaces in middle allowed.
-  REQUIRE( f( "s320e55050bc0f5673 652472c4114dbe2" ) ==
+  REQUIRE( f( "X320e55050bc0f5673 652472c4114dbe2" ) ==
            nothing );
 
   // Tricky... correct length but with space.
-  REQUIRE( f( " s320e55050bc0f5673652472c4114dbe" ) == nothing );
-  REQUIRE( f( "s320e55050bc0f5673652472c4114dbe " ) == nothing );
+  REQUIRE( f( " X320e55050bc0f5673652472c4114dbe" ) == nothing );
+  REQUIRE( f( "X320e55050bc0f5673652472c4114dbe " ) == nothing );
 
   // Too long.
-  REQUIRE( f( "s320e55050bc0f5673652472c4114dbe21" ) ==
+  REQUIRE( f( "X320e55050bc0f5673652472c4114dbe21" ) ==
            nothing );
-  REQUIRE( f( "s320e55050bc0f5673652472c4114dbe212" ) ==
+  REQUIRE( f( "X320e55050bc0f5673652472c4114dbe212" ) ==
            nothing );
-  REQUIRE( f( "s320e55050bc0f5673652472c4114dbe2123" ) ==
+  REQUIRE( f( "X320e55050bc0f5673652472c4114dbe2123" ) ==
            nothing );
 
   // Too short.
-  REQUIRE( f( "s320e55050bc0f5673652472c4114dbe" ) == nothing );
-  REQUIRE( f( "s320e55050bc0f56" ) == nothing );
-  REQUIRE( f( "s320e550" ) == nothing );
-  REQUIRE( f( "s320" ) == nothing );
-  REQUIRE( f( "s30" ) == nothing );
-  REQUIRE( f( "s1" ) == nothing );
-  REQUIRE( f( "s0" ) == nothing );
+  REQUIRE( f( "X320e55050bc0f5673652472c4114dbe" ) == nothing );
+  REQUIRE( f( "X320e55050bc0f56" ) == nothing );
+  REQUIRE( f( "X320e550" ) == nothing );
+  REQUIRE( f( "X320" ) == nothing );
+  REQUIRE( f( "X30" ) == nothing );
+  REQUIRE( f( "X1" ) == nothing );
+  REQUIRE( f( "X0" ) == nothing );
   REQUIRE( f( "" ) == nothing );
 
   // Zero.
-  REQUIRE( f( "s00000000000000000000000000000000" ) == entropy{
+  REQUIRE( f( "X00000000000000000000000000000000" ) == entropy{
                                                          .e1 = 0,
                                                          .e2 = 0,
                                                          .e3 = 0,
@@ -207,7 +207,7 @@ TEST_CASE( "[rand/entropy] entropy::from_string" ) {
                                                        } );
 
   // Capitals.
-  REQUIRE( f( "s320E55050BC0F5673652472C4114DBE2" ) ==
+  REQUIRE( f( "X320E55050BC0F5673652472C4114DBE2" ) ==
            entropy{
              .e1 = 0x4114dbe2,
              .e2 = 0x3652472c,
@@ -216,7 +216,7 @@ TEST_CASE( "[rand/entropy] entropy::from_string" ) {
            } );
 
   // Mixed case.
-  REQUIRE( f( "s320E55050Bc0f5673652472C4114dBe2" ) ==
+  REQUIRE( f( "X320E55050Bc0f5673652472C4114dBe2" ) ==
            entropy{
              .e1 = 0x4114dbe2,
              .e2 = 0x3652472c,
@@ -225,7 +225,7 @@ TEST_CASE( "[rand/entropy] entropy::from_string" ) {
            } );
 
   // Non-hex char.
-  REQUIRE( f( "s320e55050bc0f56x3652472c4114dbe2" ) == nothing );
+  REQUIRE( f( "X320e55050bc0f56x3652472c4114dbe2" ) == nothing );
 }
 
 TEST_CASE( "[rand/entropy] mix" ) {
@@ -240,33 +240,33 @@ TEST_CASE( "[rand/entropy] mix" ) {
   ++s3.e3;
 
   REQUIRE( base::to_str( s1 ) ==
-           "s320e55050bc0f5673652472c4114dbe2" );
+           "X320e55050bc0f5673652472c4114dbe2" );
   REQUIRE( base::to_str( s2 ) ==
-           "s320e55050bc0f5673652472c4114dbe2" );
+           "X320e55050bc0f5673652472c4114dbe2" );
   REQUIRE( base::to_str( s3 ) ==
-           "s320e55050bc0f5683652472c4114dbe2" );
+           "X320e55050bc0f5683652472c4114dbe2" );
 
   s1.mix();
   s2.mix();
   s3.mix();
 
   REQUIRE( base::to_str( s1 ) ==
-           "s0eb3a1c7894a1f11993c206b7efc5bca" );
+           "X0eb3a1c7894a1f11993c206b7efc5bca" );
   REQUIRE( base::to_str( s2 ) ==
-           "s0eb3a1c7894a1f11993c206b7efc5bca" );
+           "X0eb3a1c7894a1f11993c206b7efc5bca" );
   REQUIRE( base::to_str( s3 ) ==
-           "sc0bd1da88d8c8f6e53f40c7bb0f2e7a5" );
+           "Xc0bd1da88d8c8f6e53f40c7bb0f2e7a5" );
 
   s1.mix();
   s2.mix();
   s3.mix();
 
   REQUIRE( base::to_str( s1 ) ==
-           "se87fcaef1f1620934ce5e74140a109a3" );
+           "Xe87fcaef1f1620934ce5e74140a109a3" );
   REQUIRE( base::to_str( s2 ) ==
-           "se87fcaef1f1620934ce5e74140a109a3" );
+           "Xe87fcaef1f1620934ce5e74140a109a3" );
   REQUIRE( base::to_str( s3 ) ==
-           "sd3478ea9bf7a8b0cc8f4e27cb33f8ef5" );
+           "Xd3478ea9bf7a8b0cc8f4e27cb33f8ef5" );
 
   ++s1.e1;
   ++s2.e1;
@@ -276,11 +276,11 @@ TEST_CASE( "[rand/entropy] mix" ) {
   s3.mix();
 
   REQUIRE( base::to_str( s1 ) ==
-           "s492e461f3f6b755bec6192865ffcb46a" );
+           "X492e461f3f6b755bec6192865ffcb46a" );
   REQUIRE( base::to_str( s2 ) ==
-           "s492e461f3f6b755bec6192865ffcb46a" );
+           "X492e461f3f6b755bec6192865ffcb46a" );
   REQUIRE( base::to_str( s3 ) ==
-           "s6f2bd75473be42c4f283160cae49c348" );
+           "X6f2bd75473be42c4f283160cae49c348" );
 
   ++s2.e2;
   s1.mix();
@@ -288,11 +288,11 @@ TEST_CASE( "[rand/entropy] mix" ) {
   s3.mix();
 
   REQUIRE( base::to_str( s1 ) ==
-           "sd3b52594f480dd5a5a061560d0afbf37" );
+           "Xd3b52594f480dd5a5a061560d0afbf37" );
   REQUIRE( base::to_str( s2 ) ==
-           "s501b7200b69f0357a9125f17111e36ae" );
+           "X501b7200b69f0357a9125f17111e36ae" );
   REQUIRE( base::to_str( s3 ) ==
-           "sb2e1e4f71a4c6822847fa499bb3dae53" );
+           "Xb2e1e4f71a4c6822847fa499bb3dae53" );
 }
 
 TEST_CASE( "[rand/entropy] mixed" ) {
@@ -304,14 +304,14 @@ TEST_CASE( "[rand/entropy] mixed" ) {
   };
 
   REQUIRE( base::to_str( s1 ) ==
-           "s320e55050bc0f5673652472c4114dbe2" );
+           "X320e55050bc0f5673652472c4114dbe2" );
 
   entropy const s2 = s1.mixed();
 
   REQUIRE( base::to_str( s1 ) ==
-           "s320e55050bc0f5673652472c4114dbe2" );
+           "X320e55050bc0f5673652472c4114dbe2" );
   REQUIRE( base::to_str( s2 ) ==
-           "s0eb3a1c7894a1f11993c206b7efc5bca" );
+           "X0eb3a1c7894a1f11993c206b7efc5bca" );
 }
 
 TEST_CASE( "[rand/entropy] equality" ) {
@@ -345,7 +345,7 @@ TEST_CASE( "[rand/entropy] to_canonical" ) {
     .e4 = 0x4df00076,
   };
   REQUIRE( conv.to( s1 ) ==
-           "s4df00076fbe4a2766da636d66151c187" );
+           "X4df00076fbe4a2766da636d66151c187" );
 
   // Starts with zeroes.
   entropy const s2{
@@ -355,7 +355,7 @@ TEST_CASE( "[rand/entropy] to_canonical" ) {
     .e4 = 0x00f00076,
   };
   REQUIRE( conv.to( s2 ) ==
-           "s00f00076fbe4a2766da636d66151c187" );
+           "X00f00076fbe4a2766da636d66151c187" );
 
   // Starts with all zeroes.
   entropy const s3{
@@ -365,7 +365,7 @@ TEST_CASE( "[rand/entropy] to_canonical" ) {
     .e4 = 0x00000000,
   };
   REQUIRE( conv.to( s3 ) ==
-           "s00000000fbe4a2766da636d66151c187" );
+           "X00000000fbe4a2766da636d66151c187" );
 
   // All zeroes.
   entropy const s4{
@@ -375,7 +375,7 @@ TEST_CASE( "[rand/entropy] to_canonical" ) {
     .e4 = 0,
   };
   REQUIRE( conv.to( s4 ) ==
-           "s00000000000000000000000000000000" );
+           "X00000000000000000000000000000000" );
 }
 
 TEST_CASE( "[rand/entropy] from_canonical" ) {
@@ -388,17 +388,17 @@ TEST_CASE( "[rand/entropy] from_canonical" ) {
 
   REQUIRE( conv.from<entropy>( "" ) ==
            conv.err( "hash/entropy strings must be 32-character "
-                     "hex strings preceded by \"s\"." ) );
+                     "hex strings preceded by \"X\"." ) );
 
   REQUIRE( conv.from<entropy>(
-               "s00000000000000000000000000000000" ) ==
+               "X00000000000000000000000000000000" ) ==
            entropy{} );
 
   REQUIRE( conv.from<entropy>(
-               "s0000000000000000000000000000000x" ) ==
+               "X0000000000000000000000000000000x" ) ==
            conv.err( "hash/entropy strings must be 32-character "
                      "hex strings (with characters 0-9, a-f, "
-                     "A-F) preceded by \"s\"." ) );
+                     "A-F) preceded by \"X\"." ) );
 
   entropy const s1{
     .e1 = 0x6151c187,
@@ -407,12 +407,12 @@ TEST_CASE( "[rand/entropy] from_canonical" ) {
     .e4 = 0x00f00076,
   };
   REQUIRE( conv.from<entropy>(
-               "s00f00076fbe4a2766da636d66151c187" ) == s1 );
+               "X00f00076fbe4a2766da636d66151c187" ) == s1 );
 
   REQUIRE( conv.from<entropy>(
                "x00f00076fbe4a2766da636d66151c187" ) ==
            conv.err( "hash/entropy strings must be 32-character "
-                     "hex strings preceded by \"s\"." ) );
+                     "hex strings preceded by \"X\"." ) );
 }
 
 TEST_CASE( "[rand/entropy] rotate_right_n_bytes" ) {

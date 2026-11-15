@@ -86,6 +86,11 @@ struct IRand {
   [[nodiscard]] virtual double NONPORTABLE__normal(
       double mean, double stddev ) = 0;
 
+  // This is a piecewise distribution on the domain [0,1] and
+  // whose peak always has weight 1.0. NOTE: the weight of the
+  // center peak is not chosen via normalization, it is fixed at
+  // one. See exmaple below.
+  //
   // Example of a piecewise with three points:
   //
   //   {

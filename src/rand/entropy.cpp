@@ -33,7 +33,7 @@ using ::base::maybe;
 using ::base::nothing;
 
 size_t constexpr kHashStrSize     = 32;
-string_view constexpr kHashPrefix = "s";
+string_view constexpr kHashPrefix = "X";
 
 // Parses e.g. 1A4DC031 as a hex 32 bit unsigned int.
 maybe<uint32_t> parse8hex( string_view const sv ) {
