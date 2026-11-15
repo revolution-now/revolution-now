@@ -124,23 +124,6 @@ valid_or<string> Rivers::validate() const {
   return valid;
 }
 
-/****************************************************************
-** BiomeCurve
-*****************************************************************/
-valid_or<string> BiomeCurve::validate() const {
-  REFL_VALIDATE( exp >= 2, "exp must be >= 2" );
-  REFL_VALIDATE( exp % 2 == 0, "exp must be even" );
-  // NOTE: we don't do these validations in the BiomeCurveParams
-  // type itself because they don't need to apply in all cases
-  // where that type is used, namely they don't need to apply
-  // when it is used as a gradient.
-  REFL_VALIDATE( params.weight >= 0.0, "weight must be >= 0.0" );
-  REFL_VALIDATE( params.center >= 0.0, "center must be >= 0.0" );
-  REFL_VALIDATE( params.stddev > 0.0, "stddev must be > 0.0" );
-  REFL_VALIDATE( params.sub >= 0.0, "sub must be >= 0.0" );
-  return valid;
-}
-
 } // namespace config::map_gen
 
 /****************************************************************
