@@ -10,13 +10,13 @@ concurrency=
 
 export CCACHE_DEPEND=true
 
-if printenv | grep REMOTE; then
+if [[ -v REMOTE ]]; then
   export CCACHE_PREFIX="$HOME/dev/redist/src/builder.sh"
   export CCACHE_PREFIX_CPP=xxx
-  concurrency="$("$HOME/dev/redist/src/available-concurrency.sh")"
-  if [[ -n "$concurrency" ]]; then
-    concurrency="-j$concurrency"
-  fi
+  concurrency="-j$($HOME/dev/redist/src/available-concurrency.sh)" || {
+    printf '\r\033[2K\033[1m\033[31merror\033[00m: no available build farm workers'
+    exit 1
+  }
 fi
 
 go() {
