@@ -18,6 +18,9 @@
 #include "ss/key.hpp"
 #include "ss/map-matrix.hpp"
 
+// base
+#include "base/logger.hpp"
+
 // C++ standard library
 #include <ranges>
 
@@ -143,14 +146,12 @@ valid_or<string> TerrainGenerator::temperature_pass() {
 valid_or<string> TerrainGenerator::rainfall_pass_1() {
   double const climate_adjusted =
       ( climate_.value + 100 ) / 100.0;
-  int const climate_adjusted_integral =
-      static_cast<int>( round( climate_adjusted ) );
   for( int const y : iota( 0, sz_.h ) ) {
-    int const equator_dist = abs( sz_.h / 2 - y );
-    int const max_rainfall =
-        std::max( 0, abs( sz_.h / 4 - equator_dist ) +
-                         climate_adjusted_integral * 4 );
-    int rainfall = uniform( 0, max_rainfall );
+    double const equator_dist = abs( sz_.h / 2.0 - y );
+    int const max_rainfall    = static_cast<int>( std::max(
+        0.0, abs( ( sz_.h / 4.0 - equator_dist ) / scale_h() ) +
+                 climate_adjusted * 4 ) );
+    int rainfall              = uniform( 0, max_rainfall );
     for( int const x : iota( 0, sz_.w ) ) {
       point const p{ .x = x, .y = y };
       MapSquare& square = m_[p];
@@ -218,7 +219,8 @@ valid_or<string> TerrainGenerator::rainfall_pass_1() {
         if( rainfall > 0 )
           rainfall -= uniform(
               1,
-              std::max( 1, 7 - climate_adjusted_integral * 2 ) );
+              std::max( 1, static_cast<int>( round(
+                               7 - climate_adjusted * 2 ) ) ) );
         else if( rainfall < 0 )
           ++rainfall;
       }
@@ -230,13 +232,11 @@ valid_or<string> TerrainGenerator::rainfall_pass_1() {
 valid_or<string> TerrainGenerator::rainfall_pass_2() {
   double const climate_adjusted =
       ( climate_.value + 100 ) / 100.0;
-  int const climate_adjusted_integral =
-      static_cast<int>( round( climate_adjusted ) );
   for( int const y : iota( 0, sz_.h ) ) {
-    int const equator_dist = abs( sz_.h / 2 - y );
+    double const equator_dist = abs( sz_.h / 2.0 - y );
     // NOTE: this could be negative, but that's probably fine.
-    int const max_rainfall =
-        equator_dist / 2 + climate_adjusted_integral;
+    int const max_rainfall = static_cast<int>(
+        ( equator_dist / scale_h() ) / 2 + climate_adjusted );
     int rainfall = 0;
     for( int x = sz_.w - 1; x >= 0; --x ) {
       point const p{ .x = x, .y = y };
@@ -282,7 +282,8 @@ valid_or<string> TerrainGenerator::rainfall_pass_2() {
         if( rainfall > 0 )
           rainfall -= uniform(
               1,
-              std::max( 1, 7 - climate_adjusted_integral * 2 ) );
+              std::max( 1, static_cast<int>( round(
+                               7 - climate_adjusted * 2 ) ) ) );
         else if( rainfall < 0 )
           ++rainfall;
       }
@@ -349,8 +350,11 @@ valid_or<string> TerrainGenerator::scatter_pass() {
   int x = 0, y = 0;
   int const g_dir_dx[9] = { 0, 1, 1, 1, 0, -1, -1, -1, 0 };
   int const g_dir_dy[9] = { -1, -1, 0, 1, 1, 1, 0, -1, 0 };
-  int pa = 0, pb = 0; // FIXME
-  for( size_t const n : iota( 0, 800 ) ) {
+  int const iters =
+      static_cast<int>( round( 800 * scale_area() ) );
+  CHECK_GE( iters, 0 );
+  lg.debug( "iterations in biome scatter pass: {}", iters );
+  for( size_t const n : iota( 0, iters ) ) {
     if( ( n & 1 ) != 0 ) {
       int const r = uniform( 0, 8 );
       x += g_dir_dx[r];
@@ -370,52 +374,52 @@ valid_or<string> TerrainGenerator::scatter_pass() {
       square.overlay      = e_land_overlay::mountains;
       scratch.forest_plan = e_forest_plan::populate;
     } else {
-      pa = 0;
-      pb = 0;
+      int hills     = 0;
+      int mountains = 0;
       switch( square.ground ) {
         using enum e_biome;
         case tundra:
-          pa = 1;
-          pb = 0;
+          hills     = 1;
+          mountains = 0;
           if( coin() ) square.ground = plains;
           break;
         case desert:
-          pa = 1;
-          pb = 1;
+          hills     = 1;
+          mountains = 1;
           if( coin() ) square.ground = prairie;
           break;
         case plains:
         case prairie:
           if( square.ground == prairie && uniform( 0, 2 ) == 0 )
             square.ground = plains;
-          pa = pb = 2;
+          hills = mountains = 2;
           if( coin() )
             scratch.forest_plan = e_forest_plan::suppress;
           break;
         case grassland:
-          pa = 3;
-          pb = 1;
+          hills     = 3;
+          mountains = 1;
           if( coin() ) square.ground = marsh;
           if( coin() )
             scratch.forest_plan = e_forest_plan::populate;
           break;
         case savannah:
-          pa = 3;
-          pb = 2;
+          hills     = 3;
+          mountains = 2;
           if( coin() ) square.ground = swamp;
           if( coin() )
             scratch.forest_plan = e_forest_plan::populate;
           break;
         case marsh:
-          pa = 5;
-          pb = 3;
+          hills     = 5;
+          mountains = 3;
           if( coin() ) square.ground = grassland;
           if( coin() )
             scratch.forest_plan = e_forest_plan::suppress;
           break;
         case swamp:
-          pa = 5;
-          pb = 3;
+          hills     = 5;
+          mountains = 3;
           if( coin() ) square.ground = savannah;
           if( coin() )
             scratch.forest_plan = e_forest_plan::suppress;
@@ -423,11 +427,11 @@ valid_or<string> TerrainGenerator::scatter_pass() {
         case arctic:
           break;
       }
-    }
-    if( pa != 0 && uniform( 0, pa ) == 0 ) {
-      enable_hills( p );
-      if( pb != 0 && uniform( 0, pb ) == 0 )
-        enable_mountains( p );
+      if( hills != 0 && uniform( 0, hills ) == 0 ) {
+        enable_hills( p );
+        if( mountains != 0 && uniform( 0, mountains ) == 0 )
+          enable_mountains( p );
+      }
     }
   }
   return valid;
