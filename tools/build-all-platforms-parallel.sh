@@ -3,6 +3,8 @@ set -e
 # This script is meant for what you just need to compile a couple
 # of files and so can do it on multiple platforms simultaneously.
 
+source ~/dev/utilities/bashlib/util.sh
+
 export DSICILIA_NINJA_STATUS_PRINT_MODE=multiline
 export DSICILIA_NINJA_REFORMAT_MODE=pretty
 
@@ -22,7 +24,9 @@ fi
 go() {
   local d="$1"
   cd "$d"
-  # No quotes around concurrency so that if it is empty then it
+  env_vars=env-vars.sh
+  [[ -f "$env_vars" ]] || die "missing env-vars.sh: $d"
+  source "$env_vars"
   # won't be a parameter.
   ninja all $concurrency
 }
