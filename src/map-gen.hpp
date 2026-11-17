@@ -20,6 +20,7 @@ namespace rn {
 /****************************************************************
 ** Fwd. Decls.
 *****************************************************************/
+struct CorridorClearingSetup;
 struct IMapUpdater;
 struct IRand;
 struct MapMatrix;
@@ -45,5 +46,8 @@ double place_arctic( RealTerrain& real_terrain, IRand& rand,
 void generate_proto_tiles( TerrainState& root );
 
 void add_lakes( MapMatrix& m, IRand& rand, int target );
+
+void create_ocean_corridor( CorridorClearingSetup const& setup,
+                            bool arctic_enabled, MapMatrix& m );
 
 } // namespace rn

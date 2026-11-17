@@ -88,5 +88,9 @@ TEST_CASE( "[map-gen] add_lakes" ) {
   world w;
 }
 
+TEST_CASE( "[map-gen] create_ocean_corridor" ) {
+  world w;
+}
+
 } // namespace
 } // namespace rn

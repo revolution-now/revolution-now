@@ -382,4 +382,63 @@ void add_lakes( MapMatrix& m, IRand& rand, int const target ) {
     swap( m[water], m[land] );
 }
 
+void create_ocean_corridor( CorridorClearingSetup const& setup,
+                            bool const arctic_enabled,
+                            MapMatrix& m ) {
+  size const sz = m.size();
+
+  if( setup.suppress_on_path_found ) {
+    // Check if there is already a connection from the left edge
+    // to the right edge of the map.
+    TerrainConnectivity const conn =
+        compute_terrain_connectivity( m );
+    for( int const y : iota( 0, sz.h ) ) {
+      auto const has_both = [&]( int const x ) {
+        point const p{ .x = x, .y = y };
+        MapSquare const& square = m[p];
+        if( square.surface == e_surface::land ) return false;
+        return water_square_has_left_ocean_access( conn, p ) &&
+               water_square_has_right_ocean_access( conn, p );
+      };
+      if( has_both( 0 ) ) return;
+      if( has_both( sz.w - 1 ) ) return;
+    }
+  }
+
+  // At this point we must carve a path from the left edge to the
+  // right edge either because there aren't any already or be-
+  // cause we want to force it to always happen.
+
+  auto const [y_first, y_last] = [&] {
+    int y1 = {};
+    int y2 = {};
+    switch( setup.location ) {
+      case e_corridor_location::north:
+        y1 = 0;
+        y2 = setup.rows.value;
+        if( arctic_enabled ) {
+          ++y1;
+          ++y2;
+        }
+        break;
+      case e_corridor_location::south:
+        y1 = sz.h - setup.rows.value;
+        y2 = sz.h - 1;
+        if( arctic_enabled ) {
+          --y1;
+          --y2;
+        }
+        break;
+    }
+    CHECK_GE( y2, y1 );
+    return pair{ y1, y2 };
+  }();
+
+  CHECK_LE( y_first, y_last );
+  for( int y = y_first; y <= y_last; ++y )
+    for( int const x : iota( 0, sz.w ) )
+      m[point{ .x = x, .y = y }] =
+          MapSquare{ .surface = e_surface::water };
+}
+
 } // namespace rn

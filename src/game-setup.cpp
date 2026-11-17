@@ -109,6 +109,17 @@ struct Reseeder : public trv::RecursiveTraverserWithTracking {
 /****************************************************************
 ** Public API.
 *****************************************************************/
+int compute_corridor_rows( int const map_h ) {
+  auto const& conf = config_map_gen.terrain_generation
+                         .land_layout.ocean_corridor;
+  if( map_h < conf.min_map_height.value ) return 0;
+  double const clearing_level    = conf.clearing_level.value;
+  double const clearing_rows_min = conf.clearing_rows_min.value;
+  int const rows = static_cast<int>( round( std::max(
+      ( map_h / 35.0 ) * clearing_level, clearing_rows_min ) ) );
+  return rows;
+}
+
 ExchangeKey create_classic_game_key(
     IRand& rand,
     ClassicGameSetupParamsEvaluated const& params ) {
@@ -124,7 +135,7 @@ ExchangeKey create_classic_game_key(
 
   // category: map
   // ------------------------------------------------------------
-  size const world_sz = config_map_gen.default_map_size;
+  size const sz = config_map_gen.default_map_size;
 
   auto const& map_conf = config_map_gen.terrain_generation;
 
@@ -150,22 +161,56 @@ ExchangeKey create_classic_game_key(
         rand, map_conf.land_layout.inland_lakes.bias ),
   };
 
+  auto const clear_corridor = [&] {
+    maybe<CorridorClearingSetup> res;
+    auto const& conf = map_conf.land_layout.ocean_corridor;
+    int const rows   = compute_corridor_rows( sz.h );
+    switch( conf.mode ) {
+      using enum config::map_gen::e_corridor_mode;
+      case none:
+        break;
+      case north: {
+        auto& o                  = res.emplace();
+        o.location               = e_corridor_location::north;
+        o.rows.value             = rows;
+        o.suppress_on_path_found = conf.suppress_on_path_found;
+        break;
+      }
+      case south: {
+        auto& o                  = res.emplace();
+        o.location               = e_corridor_location::south;
+        o.rows.value             = rows;
+        o.suppress_on_path_found = conf.suppress_on_path_found;
+        break;
+      }
+      case random: {
+        auto& o         = res.emplace();
+        auto const& arr = enum_values<e_corridor_location>;
+        o.location      = rand.pick_one( arr );
+        o.rows.value    = rows;
+        o.suppress_on_path_found = conf.suppress_on_path_found;
+        break;
+      }
+    }
+    return res;
+  }();
+
   SurfaceGeneratorSetup const surface_generator{
-    .target_density =
-        DoublePercent{ .fraction = params.land_density },
+    .target_density  = { .fraction = params.land_density },
     .perlin_settings = perlin_settings,
     .lakes           = lakes_setup,
     .arctic{
-      .seed    = rand.new_deterministic_seed(),
-      .enabled = map_conf.land_layout.arctic.enabled &&
-                 world_sz.h >=
-                     map_conf.land_layout.arctic.min_map_height,
+      .seed = rand.new_deterministic_seed(),
+      .enabled =
+          map_conf.land_layout.arctic.enabled &&
+          sz.h >= map_conf.land_layout.arctic.min_map_height,
       .density =
           DoublePercent{
             .fraction =
                 map_conf.land_layout.arctic.density.fraction },
     },
-    .sanitization = surface_sanitization,
+    .clear_corridor = clear_corridor,
+    .sanitization   = surface_sanitization,
   };
 
   WeatherSetup const weather{
@@ -189,7 +234,7 @@ ExchangeKey create_classic_game_key(
   };
 
   GeneratedMapSetup const generated_map_setup{
-    .size              = world_sz,
+    .size              = sz,
     .surface_generator = surface_generator,
     .weather           = weather,
     .rivers            = rivers,

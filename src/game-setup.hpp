@@ -62,4 +62,7 @@ base::valid_or<std::string> validate_game_key(
 // ters the same.
 void randomize_game_key_seeds( IRand& rand, ExchangeKey& setup );
 
+// Exposed for testing.
+[[nodiscard]] int compute_corridor_rows( int map_h );
+
 } // namespace rn

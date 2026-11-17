@@ -89,11 +89,23 @@ struct.PerlinMapSettings {
   seed 'rng::PerlinSeed',
 }
 
+enum.e_corridor_location {
+  north,
+  south,
+}
+
+struct.CorridorClearingSetup {
+  location 'e_corridor_location',
+  rows 'NonNegativeInt',
+  suppress_on_path_found 'bool',
+}
+
 struct.SurfaceGeneratorSetup {
   target_density 'DoublePercent',
   perlin_settings 'PerlinMapSettings',
   lakes 'LakesSetup',
   arctic 'ArcticSetup',
+  clear_corridor 'base::maybe<CorridorClearingSetup>',
   sanitization 'SurfaceSanitizationSetup',
 }
 

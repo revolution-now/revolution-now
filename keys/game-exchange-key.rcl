@@ -46,6 +46,11 @@ map.source.generate_native.setup {
       enabled: true
       density.fraction: 0.6
     }
+    clear_corridor {
+      location:   north
+      rows.value: 2
+      suppress_on_path_found: true
+    }
     sanitization {
       remove_crosses: true
       remove_islands: true

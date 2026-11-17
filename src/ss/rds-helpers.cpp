@@ -21,6 +21,12 @@ using ::base::valid_or;
 
 } // namespace
 
+valid_or<string> NonNegativeInt::validate() const {
+  REFL_VALIDATE( value >= 0,
+                 "value must be a non-negative integer" );
+  return valid;
+}
+
 valid_or<string> IntPercent::validate() const {
   REFL_VALIDATE(
       percent >= 0 && percent <= 100,

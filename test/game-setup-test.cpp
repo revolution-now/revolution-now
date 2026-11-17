@@ -96,5 +96,9 @@ TEST_CASE( "[game-setup] create_customized_game_key" ) {
   world w;
 }
 
+TEST_CASE( "[game-setup] compute_corridor_rows" ) {
+  world w;
+}
+
 } // namespace
 } // namespace rn

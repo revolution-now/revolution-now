@@ -54,6 +54,21 @@ struct.LandForm {
   _features { equality, validation }
 }
 
+enum.e_corridor_mode {
+  none,
+  random,
+  north,
+  south,
+}
+
+struct.CorridorClearing {
+  mode 'e_corridor_mode',
+  clearing_level 'NonNegativeInt',
+  clearing_rows_min 'NonNegativeInt',
+  min_map_height 'NonNegativeInt',
+  suppress_on_path_found 'bool',
+}
+
 struct.LandLayout {
   land_mass 'LandMass',
   land_form 'LandForm',
@@ -61,6 +76,7 @@ struct.LandLayout {
   inland_lakes 'InlandLakes',
   arctic 'Arctic',
   remove_crosses 'bool',
+  ocean_corridor 'CorridorClearing',
 }
 
 struct.Temperature {

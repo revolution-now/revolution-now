@@ -115,9 +115,8 @@ valid_or<string> sanitize_land( GeneratedMapSetup const& setup,
     }
   };
 
-  // Run this the first time before the sanitization because re-
-  // moving some land tiles might create sanitization violations
-  // such as crosses.
+  // Apply this once since it could have the effect of creating
+  // new islands which we then want to remove.
   apply_exclusion();
 
   // Sanitization.
@@ -130,8 +129,12 @@ valid_or<string> sanitize_land( GeneratedMapSetup const& setup,
       TIMED_CALL( remove_islands, real_terrain );
   }
 
-  // Now run it again just in case e.g. the cross removal ends up
-  // putting a land tile in the exclusion zone.
+  // Shouldn't need to run this again, but we will anyway just to
+  // eb safe since 1) we really don't want to violate it, and 2)
+  // applying it just creates straight strips of water which
+  // cannot create new xs and cannot (at this point) create new
+  // islands since those would have already been created and re-
+  // moved by the last iteration.
   apply_exclusion();
 
   // FIXME: it is possible that we might still end up with is-
@@ -207,16 +210,13 @@ valid_or<string> generate_land_perlin(
     lg.debug( "arctic density: {:.3}%", actual_density * 100 );
   }
 
-  GOOD_OR_RETURN( sanitize_land( setup, real_terrain ) );
+  if( setup.surface_generator.clear_corridor.has_value() )
+    create_ocean_corridor(
+        *setup.surface_generator.clear_corridor,
+        setup.surface_generator.arctic.enabled,
+        real_terrain.map );
 
-  // TODO: we might want to have a setup flag that can be enabled
-  // to guaranteed there is an ocean path between the left and
-  // right edge of the map. We can use the goto algorithm to
-  // check, and, if there isn't, we can find the row with the
-  // smallest number of tiles and just cut a path through it.
-  // This is probably a good idea to do when the user select's
-  // New Game because we want them to be able to get to the pa-
-  // cific ocean.
+  GOOD_OR_RETURN( sanitize_land( setup, real_terrain ) );
 
   return valid;
 }

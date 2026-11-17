@@ -10,6 +10,11 @@
 # ===============================================================
 namespace "rn"
 
+struct.NonNegativeInt {
+  value 'int',
+  _features { equality, validation }
+}
+
 struct.IntPercent {
   percent 'int',
   _features { equality, validation }

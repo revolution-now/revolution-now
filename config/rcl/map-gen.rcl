@@ -181,6 +181,58 @@ terrain_generation {
     # look good even in the NG; they seem to add noise to the map
     # and do actually still look slightly confusing to a player.
     remove_crosses: true
+
+    # We want to make sure that the player can access the pacific
+    # ocean from the atlantic ocean since it probably makes for
+    # better gameplay. The OG does this by carving a corridor a
+    # few rows wide at either the top or the bottom of the map,
+    # chosen randomly. We provide similar options here, though
+    # note below that we have a "suppress" flag that can act a
+    # bit smarter and only create the corridor when there isn't
+    # already some path from the left to the right edge.
+    ocean_corridor {
+      # Location can be:
+
+      #   - none:   No corridor will be cleared.
+      #   - random: A corridor will be cleared, and location
+      #             (north/south) will be chosen randomly.
+      #   - north:  Clear corridor on the north.
+      #   - south.  Clear corridor on the south.
+      #
+      # That said, see the additional requirements below.
+      mode: random
+      # These numbers describe, given map height, how many land
+      # rows will be cleared just after the arctic row. Specifi-
+      # cally, clearing_level is the number of rows to clear per
+      # 35 tiles of map height (that way it scales appropriately
+      # with map height). This is chosen so that on a standard
+      # map height of 70 tiles there will be two rows cleared,
+      # corresponding to OG behavior. To be precise, the number
+      # of rows that will be cleared will be:
+      #
+      #   if map_height >= min_map_height:
+      #     round( max(
+      #       (map_height/35)*clearing_level, clearing_rows_min
+      #     ) )
+      #   else:
+      #     0
+      #
+      # Note that very small maps, the arctic row is omitted, and
+      # in that case the clearing (if any is done) will start
+      # from the arctic row.
+      clearing_level.value:    1
+      clearing_rows_min.value: 1
+      min_map_height.value:    6
+      # This flag allows modifying the above behavior in a way
+      # that departs from the OG but which might make more sense
+      # for some players. When it is on then the game, before
+      # clearing a corridor, will check if the left and right
+      # edges of the map are already joined via water and, if so,
+      # will skip creating the corridor, since there is already
+      # at least one path a ship can follow from one side to the
+      # other, which is presumably the point of a corridor.
+      suppress_on_path_found: true
+    }
   }
 
   weather {
