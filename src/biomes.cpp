@@ -49,6 +49,12 @@ TerrainGenerator::TerrainGenerator(
     climate_( climate ),
     scratch_( sz_ ) {}
 
+double TerrainGenerator::scale_h() const { return sz_.h / 70.0; }
+double TerrainGenerator::scale_w() const { return sz_.w / 56.0; }
+double TerrainGenerator::scale_area() const {
+  return scale_h() * scale_w();
+}
+
 int TerrainGenerator::uniform( int const l, int const h ) const {
   return rand_.uniform_int( l, h );
 }
@@ -68,7 +74,9 @@ valid_or<string> TerrainGenerator::full() {
   return valid;
 }
 
-#define ABS( v ) ( ( v ) > 0 ? ( v ) : ~( v ) + 1 )
+[[nodiscard]] double incorrect_macro_abs( auto const& fn ) {
+  return fn() > 0 ? fn() : -fn();
+}
 
 valid_or<string> TerrainGenerator::temperature_pass() {
   auto const band_to_biome = []( int const band ) {
@@ -87,39 +95,35 @@ valid_or<string> TerrainGenerator::temperature_pass() {
         return plains;
       case 6:
       case 7:
+      case 8:
       default:
         return tundra;
     }
   };
+
+  // Number of temperature bands in on half of the map.
+  double constexpr kNumBands = 9;
+  double const band_size     = ( sz_.h / 2.0 ) / kNumBands;
+
   on_all( [&]( point const p, MapSquare& s ) {
     if( s.surface == e_surface::water ) return;
-#if 0
-    double const equator      = sz_.h / 2.0;
-    double const noise        = uniform( -8, 7 );
-    double const rand_equator = equator + noise;
-    double const equator_dist = abs( rand_equator - p.y );
-    // [-100,100] --> [-1,1] --> [1,-1].
-    //   or
+    auto const signed_equator_dist = [&] {
+      double const equator      = sz_.h / 2.0;
+      double const noise        = scale_h() * uniform( -8, 7 );
+      double const rand_equator = equator + noise;
+      return rand_equator - p.y;
+    };
+    double const equator_dist =
+        incorrect_macro_abs( signed_equator_dist );
     // [-200,200] --> [-2,2] --> [2,-2].
     double const temperature_rescale =
         -temperature_.value / 100.0;
     // [-4,4].
     double const noise_with_temp = std::max(
-        equator_dist + temperature_rescale * 2 * unity, 0.0 );
-    int const band = static_cast<int>( noise_with_temp ) / 4;
-#else
-    double const temperature_adjusted =
-        ( temperature_.value + 100 ) / 100.0;
-    int const temperature_adjusted_integral =
-        static_cast<int>( round( temperature_adjusted ) );
-    int equator_dist = ABS( ( ( sz_.h >> 1 ) + 8 ) -
-                            ( uniform( 1, 0x10 ) + p.y ) );
-    // [0,1,2] --> [2,0,-2]
-    equator_dist += ( 1 - temperature_adjusted_integral ) * 2;
-    equator_dist = std::max( 0, equator_dist );
-    equator_dist = equator_dist >> 2;
-    int band     = equator_dist;
-#endif
+        equator_dist + temperature_rescale * 2 * scale_h(),
+        0.0 );
+    int const band =
+        static_cast<int>( noise_with_temp / band_size );
 
     s.ground = band_to_biome( band );
   } );

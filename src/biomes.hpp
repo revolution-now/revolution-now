@@ -74,6 +74,10 @@ struct TerrainGenerator {
     on_all_tiles( m_, fn );
   }
 
+  [[nodiscard]] double scale_h() const;
+  [[nodiscard]] double scale_w() const;
+  [[nodiscard]] double scale_area() const;
+
   [[nodiscard]] int uniform( int const l, int const h ) const;
   [[nodiscard]] bool coin() const;
 
