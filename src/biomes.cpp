@@ -75,6 +75,14 @@ valid_or<string> TerrainGenerator::full() {
 }
 
 [[nodiscard]] double incorrect_macro_abs( auto const& fn ) {
+  // This is generally incorrect because the function fn is not
+  // guaranteed to return the same result on each call (e.g. it
+  // could be random), and so one should not call the function
+  // again in the two branches. However, this appears to have
+  // been a bug in the OG when computing abs in some cases, and
+  // it has a noticeable effect on the map, and the map gen algo
+  // was probably tuned with this bug in place, and so we will
+  // preserve it.
   return fn() > 0 ? fn() : -fn();
 }
 
@@ -113,12 +121,13 @@ valid_or<string> TerrainGenerator::temperature_pass() {
       double const rand_equator = equator + noise;
       return rand_equator - p.y;
     };
+    // Using this "incorrect" abs as opposed to a normal abs()
+    // has the effect of increasing the amount of savannah around
+    // the equator.
     double const equator_dist =
         incorrect_macro_abs( signed_equator_dist );
-    // [-200,200] --> [-2,2] --> [2,-2].
     double const temperature_rescale =
         -temperature_.value / 100.0;
-    // [-4,4].
     double const noise_with_temp = std::max(
         equator_dist + temperature_rescale * 2 * scale_h(),
         0.0 );
