@@ -828,6 +828,7 @@ local function collect()
   local MODES = {
     'bbtt', 'bbtm', 'bbtb', 'bbmt', 'bbmm', 'bbmb', 'bbbt',
     'bbbm', 'bbbb', 'tmmm', 'bmmm', 'mtmm', 'mbmm', 'new',
+    'mmmm', 'btmm', 'mmmb', 'mmmt', 'tbmm', 'ttmm',
   }
   local o = {}
   o.modes = {}
