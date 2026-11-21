@@ -24,7 +24,8 @@ using namespace std;
 /****************************************************************
 ** Data.
 *****************************************************************/
-string_view const kExpected = R"gnuplot(#!/usr/bin/env -S gnuplot -p
+string_view const kExpected =
+    R"gnuplot(#!/usr/bin/env -S gnuplot -p
 set datafile separator comma
 
 $CSVData << EOF
@@ -73,6 +74,10 @@ TEST_CASE( "[gnuplot] generate_gnuplot" ) {
   };
 
   REQUIRE( generate_gnuplot( settings, csv_data ) == kExpected );
+}
+
+TEST_CASE( "[gnuplot] rms_plots" ) {
+  // TBD
 }
 
 } // namespace

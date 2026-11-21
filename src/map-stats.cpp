@@ -135,6 +135,8 @@ void BiomeDensityStatsCollector::write() const {
     csv_data.header.push_back( base::to_str( gt ) );
   fs::path const kGeneratedDir =
       "tools/auto-measure/auto-map-gen/biomes/generated";
+  fs::path const kEmpiricalDir =
+      "tools/auto-measure/auto-map-gen/biomes/empirical";
   for( int y = 0; y < map_sz_.h; ++y ) {
     vector<string> row{ /*y=*/to_string( y + 1 ) };
     for( auto const gt : kGroundTypes ) {
@@ -158,6 +160,14 @@ void BiomeDensityStatsCollector::write() const {
     csv_data.rows.push_back( std::move( row ) );
   }
   generate_gnuplot( kGeneratedDir, stem_, settings, csv_data );
+
+  fs::path const ng =
+      kGeneratedDir / format( "{}.gnuplot", stem_ );
+  fs::path const og =
+      kEmpiricalDir / format( "{}.rows.gnuplot", stem_ );
+  if( fs::exists( og ) )
+    // Remove 6 rows from each end to get rid of noise.
+    fmt::println( "rms error: {}", rms_plots( og, ng, 6 ) );
 }
 
 /****************************************************************

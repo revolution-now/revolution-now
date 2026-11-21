@@ -11,17 +11,27 @@
 #include "gnuplot.hpp"
 
 // base
+#include "base/io.hpp"
 #include "base/logger.hpp"
+#include "base/string.hpp"
+#include "base/to-str-ext-std.hpp"
 
 // C++ standard library.
+#include <cmath>
 #include <fstream>
+#include <ranges>
 #include <sstream>
+
+namespace rg = ::std::ranges;
+namespace rv = ::std::ranges::views;
 
 namespace rn {
 
 namespace {
 
 using namespace std;
+
+using ::rv::iota;
 
 } // namespace
 
@@ -81,6 +91,102 @@ void generate_gnuplot( fs::path const& dir,
   ofstream out( fname );
   CHECK( out.good(), "failed to open file {}", fname );
   out << generate_gnuplot( settings, csv_data );
+}
+
+namespace {
+
+struct ExtractedRow {
+  double idx = {};
+  vector<double> cols;
+};
+
+struct ExtractedPlotData {
+  string header;
+  vector<ExtractedRow> rows;
+};
+
+ExtractedPlotData extract_plot_data( fs::path const& p ) {
+  ExtractedPlotData res;
+  vector<string> lines;
+  CHECK( base::read_file_lines( p, lines ),
+         "failed to read file {}", p );
+  CHECK( lines.size() > 5 );
+  CHECK( lines[3] == "$CSVData << EOF" );
+  lines.erase( lines.begin(), lines.begin() + 4 );
+  auto const eof_it = rg::find( lines, "EOF" );
+  CHECK( eof_it != lines.end(), "cannot find EOF" );
+  lines.erase( eof_it, lines.end() );
+  CHECK_GT( lines.size(), 0u );
+
+  auto const split_line = []( string const& line ) {
+    ExtractedRow row;
+    auto entries = base::str_split( line, ',' );
+    for( int idx = 0; string const& entry : entries ) {
+      CHECK( !entry.empty() );
+      CHECK( entry[0] == '"' );
+      CHECK( entry[entry.size() - 1] == '"' );
+      string const val_str = entry.substr( 1, entry.size() - 1 );
+      double val           = {};
+      auto const [ptr, ec] = from_chars(
+          val_str.data(), val_str.data() + val_str.size(), val );
+      CHECK( ec == std::errc{}, "failed to parse '{}'",
+             val_str );
+      if( idx++ == 0 ) {
+        row.idx = val;
+        continue;
+      }
+      row.cols.push_back( val );
+    }
+    return row;
+  };
+
+  res.header = lines[0];
+  lines.erase( lines.begin() );
+  for( string const& line : lines )
+    res.rows.push_back( split_line( line ) );
+  return res;
+}
+
+} // namespace
+
+double rms_plots( fs::path const& l, fs::path const& r,
+                  int const cut ) {
+  ExtractedPlotData l_data = extract_plot_data( l );
+  ExtractedPlotData r_data = extract_plot_data( r );
+  CHECK( l_data.header == r_data.header, "header mismatch" );
+  CHECK_EQ( l_data.rows.size(), r_data.rows.size() );
+  CHECK_GE( cut, 0 );
+  for( int const _ : iota( 0, cut ) ) {
+    if( !l_data.rows.empty() )
+      l_data.rows.erase( l_data.rows.begin() );
+    if( !r_data.rows.empty() )
+      r_data.rows.erase( r_data.rows.begin() );
+    if( !l_data.rows.empty() ) l_data.rows.pop_back();
+    if( !r_data.rows.empty() ) r_data.rows.pop_back();
+  }
+  CHECK_EQ( l_data.rows.size(), r_data.rows.size() );
+  double err = 0.0;
+  int terms  = 0;
+  for( int const row : iota( 0u, l_data.rows.size() ) ) {
+    auto const& l_row = l_data.rows[row];
+    auto const& r_row = r_data.rows[row];
+    CHECK( l_row.idx == r_row.idx, "row mismatch: {}", row );
+    auto const& l_cols = l_row.cols;
+    auto const& r_cols = r_row.cols;
+    CHECK( !l_cols.empty(), "row {} empty", row );
+    CHECK( !r_cols.empty() );
+    CHECK_EQ( l_cols.size(), r_cols.size() );
+    for( auto const [l_val, r_val] :
+         rv::zip( l_cols, r_cols ) ) {
+      ++terms;
+      double const diff = l_val - r_val;
+      err += diff * diff;
+    }
+  }
+  err /= terms;
+  err = sqrt( err );
+  CHECK_GE( err, 0.0 );
+  return err;
 }
 
 } // namespace rn

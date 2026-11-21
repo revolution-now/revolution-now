@@ -237,9 +237,10 @@ valid_or<string> generate_map_native_impl(
 
   // Biomes.
   rand.reseed( setup.biomes.seed );
-  TerrainGenerator terrain_gen( m, rand,
-                                setup.weather.temperature,
-                                setup.weather.climate );
+  TerrainGenerator terrain_gen(
+      m, rand,
+      setup.surface_generator.perlin_settings.land_form.scale,
+      setup.weather.temperature, setup.weather.climate );
   GOOD_OR_RETURN( terrain_gen.full() );
 
 #if 0

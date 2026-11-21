@@ -32,7 +32,7 @@ struct WeatherValue;
 ** TerrainGenerator.
 *****************************************************************/
 struct TerrainGenerator {
-  TerrainGenerator( MapMatrix& m, IRand& rand,
+  TerrainGenerator( MapMatrix& m, IRand& rand, double scale,
                     WeatherValue const& temperature,
                     WeatherValue const& climate );
 
@@ -41,6 +41,8 @@ struct TerrainGenerator {
   Result full();
 
   Result temperature_pass();
+
+  Result elevate();
 
   // Left-to-right.
   Result rainfall_pass_1();
@@ -60,6 +62,8 @@ struct TerrainGenerator {
   MapMatrix& m_;
   IRand& rand_;
   gfx::size const sz_;
+  double const density_ = {};
+  double const scale_;
   WeatherValue const& temperature_;
   WeatherValue const& climate_;
 
@@ -77,6 +81,7 @@ struct TerrainGenerator {
   [[nodiscard]] double scale_h() const;
   [[nodiscard]] double scale_w() const;
   [[nodiscard]] double scale_area() const;
+  [[nodiscard]] double scale_linear() const;
 
   [[nodiscard]] int uniform( int const l, int const h ) const;
   [[nodiscard]] bool coin() const;

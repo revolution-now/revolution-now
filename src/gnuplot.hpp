@@ -43,4 +43,9 @@ void generate_gnuplot( fs::path const& dir,
 std::string generate_gnuplot( GnuPlotSettings const& settings,
                               CsvData const& csv_data );
 
+// Load two gnuplot files and read all of their values and com-
+// pute the root-mean-square error between the two.
+double rms_plots( fs::path const& l, fs::path const& r,
+                  int cut );
+
 } // namespace rn
