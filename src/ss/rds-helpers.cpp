@@ -27,6 +27,12 @@ valid_or<string> NonNegativeInt::validate() const {
   return valid;
 }
 
+valid_or<string> NonNegativeDouble::validate() const {
+  REFL_VALIDATE( value >= 0.0,
+                 "value must be a non-negative decimal number" );
+  return valid;
+}
+
 valid_or<string> IntPercent::validate() const {
   REFL_VALIDATE(
       percent >= 0 && percent <= 100,

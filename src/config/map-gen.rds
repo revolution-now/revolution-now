@@ -72,7 +72,7 @@ struct.CorridorClearing {
 struct.LandLayout {
   land_mass 'LandMass',
   land_form 'LandForm',
-  perlin_elevation 'PerlinElevation',
+  elevation 'ElevationParameters',
   inland_lakes 'InlandLakes',
   arctic 'Arctic',
   remove_crosses 'bool',
@@ -99,32 +99,10 @@ struct.Weather {
 struct.Biomes {
 }
 
-struct.RiverClimateParameters {
-  # This length includes the water tile which initiates the
-  # river.
-  initiation 'Probability',
-  start_major 'Probability',
-  sustain_major 'Probability',
-  turn 'Probability',
-  fork 'Probability',
-  fork_is_major 'Probability',
-}
-
-struct.RiverLandFormParameters {
-  growth 'Probability',
-}
-
-struct.Rivers {
-  min_length 'int',
-  for_land_form 'refl::enum_map<e_land_form, RiverLandFormParameters>',
-  for_climate 'refl::enum_map<e_climate, RiverClimateParameters>',
-  _features { equality, validation }
-}
-
 struct.TerrainGeneration {
   land_layout 'LandLayout',
   weather 'Weather',
-  rivers 'Rivers',
+  rivers 'RiverParameters',
   biomes 'Biomes',
 }
 

@@ -24,25 +24,26 @@ namespace rn {
 /****************************************************************
 ** Fwd. Decls.
 *****************************************************************/
+struct GeneratedMapSetup;
 struct IRand;
 struct MapMatrix;
+struct RiverParameters;
 struct WeatherValue;
 
 /****************************************************************
 ** TerrainGenerator.
 *****************************************************************/
 struct TerrainGenerator {
-  TerrainGenerator( MapMatrix& m, IRand& rand, double scale,
-                    WeatherValue const& temperature,
-                    WeatherValue const& climate );
+  TerrainGenerator( MapMatrix& m, IRand& rand,
+                    GeneratedMapSetup const& setup );
 
   using Result = base::valid_or<std::string>;
 
   Result full();
 
-  Result temperature_pass();
-
   Result elevate();
+
+  Result temperature_pass();
 
   // Left-to-right.
   Result rainfall_pass_1();
@@ -54,13 +55,14 @@ struct TerrainGenerator {
 
   Result forest_pass();
 
-  Result rivers_pass();
+  Result rivers_pass( RiverParameters const& params );
 
   Result arctic_tundra_pass();
 
  private:
   MapMatrix& m_;
   IRand& rand_;
+  GeneratedMapSetup const& setup_;
   gfx::size const sz_;
   double const density_ = {};
   double const scale_;
@@ -85,6 +87,15 @@ struct TerrainGenerator {
 
   [[nodiscard]] int uniform( int const l, int const h ) const;
   [[nodiscard]] bool coin() const;
+
+  [[nodiscard]] double og_land_mass() const;
+  [[nodiscard]] double og_land_form() const;
+  [[nodiscard]] double og_temperature() const;
+  [[nodiscard]] double og_climate() const;
+  [[nodiscard]] int og_land_mass_int() const;
+  [[nodiscard]] int og_land_form_int() const;
+  [[nodiscard]] int og_temperature_int() const;
+  [[nodiscard]] int og_climate_int() const;
 
   enum class e_forest_plan {
     deferred,

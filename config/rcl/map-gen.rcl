@@ -106,20 +106,10 @@ terrain_generation {
       }
     }
 
-    # These are mountains and hills that are generated during the
-    # perlin land generation step using knowledge of the height
-    # of the land, which would otherwise be lost in subsequent
-    # steps. That said, mountains are changed/added in subsequent
-    # steps on a more random basis which will have the effect of
-    # peppering the map with small (single/double) mountain
-    # tiles. In contrast, this step tends to build large mountain
-    # ranges in the inland part of the land as you would expect
-    # in realistic land forms. These mountains are also used when
-    # assigning biomes as they affect rainfall calculations.
-    perlin_elevation {
-      enabled: true
-      hills_divisor:      4.00
-      mountains_divisor: 15.00
+    elevation.weights {
+      none.value:      1
+      hills.value:     1
+      mountains.value: 1
     }
 
     inland_lakes {
@@ -322,57 +312,6 @@ terrain_generation {
 
   rivers {
     min_length: 4
-
-    for_land_form {
-      isolated.growth.probability:        .62
-      archipelago.growth.probability:     .62
-      normal.growth.probability:          .60
-      continents.growth.probability:      .68
-      supercontinents.growth.probability: .68
-    }
-
-    for_climate {
-      dry {
-        initiation.probability:    .031
-        start_major.probability:   .18
-        sustain_major.probability: .45
-        turn.probability:          .31
-        fork.probability:          .096
-        fork_is_major.probability: .32
-      }
-      arid {
-        initiation.probability:    .041
-        start_major.probability:   .18
-        sustain_major.probability: .45
-        turn.probability:          .31
-        fork.probability:          .096
-        fork_is_major.probability: .32
-      }
-      normal {
-        initiation.probability:    .052
-        start_major.probability:   .25
-        sustain_major.probability: .57
-        turn.probability:          .32
-        fork.probability:          .116
-        fork_is_major.probability: .47
-      }
-      wet {
-        initiation.probability:    .057
-        start_major.probability:   .30
-        sustain_major.probability: .645
-        turn.probability:          .32
-        fork.probability:          .13
-        fork_is_major.probability: .55
-      }
-      torrential {
-        initiation.probability:    .067
-        start_major.probability:   .30
-        sustain_major.probability: .645
-        turn.probability:          .32
-        fork.probability:          .13
-        fork_is_major.probability: .55
-      }
-    }
   }
 
   biomes {

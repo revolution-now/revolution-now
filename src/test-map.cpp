@@ -323,7 +323,7 @@ void generate_single_map_key( IEngine& engine, SS& ss,
 *****************************************************************/
 [[maybe_unused]] void testing_map_gen_biome_density_stats(
     IEngine& engine ) {
-  int constexpr kNumSamples = 2000;
+  int constexpr kNumSamples = 10000;
 
   auto const generate =
       [&]( SS& ss, ClassicGameSetupParamsCustom const& custom ) {
@@ -513,19 +513,28 @@ void generate_single_map_key( IEngine& engine, SS& ss,
   vector<thread> ths;
 
   if( kDoCustom ) {
-    using enum e_climate;
-    using enum e_land_mass;
+    using C = e_climate;
+    using M = e_land_mass;
+    using F = e_land_form;
+
     static auto constexpr kModes = {
-      tuple{ moderate, e_land_form::archipelago, arid, .15 },
-      tuple{ moderate, e_land_form::archipelago, normal, .15 },
-      tuple{ moderate, e_land_form::archipelago, wet, .15 },
-      tuple{ moderate, e_land_form::normal, arid, .05 },
-      tuple{ moderate, e_land_form::normal, normal, .05 },
-      tuple{ moderate, e_land_form::normal, wet, .05 },
-      tuple{ moderate, e_land_form::continents, arid, .15 },
-      tuple{ moderate, e_land_form::continents, normal, .15 },
-      tuple{ moderate, e_land_form::continents, wet, .15 },
-      tuple{ large, e_land_form::continents, normal, .15 },
+      // clang-format off
+      tuple{ M::large,     F::continents,   C::arid,    .10 },
+      tuple{ M::large,     F::continents,   C::normal,  .10 },
+      tuple{ M::large,     F::continents,   C::wet,     .10 },
+      tuple{ M::large,     F::normal,       C::normal,  .10 },
+      tuple{ M::moderate,  F::archipelago,  C::arid,    .10 },
+      tuple{ M::moderate,  F::archipelago,  C::normal,  .10 },
+      tuple{ M::moderate,  F::archipelago,  C::wet,     .10 },
+      tuple{ M::moderate,  F::continents,   C::arid,    .10 },
+      tuple{ M::moderate,  F::continents,   C::normal,  .10 },
+      tuple{ M::moderate,  F::continents,   C::wet,     .10 },
+      tuple{ M::moderate,  F::normal,       C::arid,    .10 },
+      tuple{ M::moderate,  F::normal,       C::normal,  .10 },
+      tuple{ M::moderate,  F::normal,       C::wet,     .10 },
+      tuple{ M::small,     F::archipelago,  C::normal,  .10 },
+      tuple{ M::small,     F::normal,       C::normal,  .10 },
+      // clang-format on
     };
 
     for( auto const& tpl : kModes ) {
@@ -541,7 +550,11 @@ void generate_single_map_key( IEngine& engine, SS& ss,
         auto const stats =
             create_river_stats_collector( name, tolerance );
         fmt::println( "generating for {}...", name );
+        fmt::print( "\033[?25l" );
+        SCOPE_EXIT { fmt::print( "\033[?25h" ); };
         for( int i = 0; i < kNumSamples; ++i ) {
+          fmt::print( "  #{} ({:.3}%)          \r", i + 1,
+                      i * 100.0 / kNumSamples );
           SS ss;
           generate( ss, params );
           stats->collect( ss.terrain.real_terrain().map );
@@ -558,7 +571,11 @@ void generate_single_map_key( IEngine& engine, SS& ss,
       auto const stats =
           create_river_stats_collector( name, .05 );
       fmt::println( "generating for {}...", name );
+      fmt::print( "\033[?25l" );
+      SCOPE_EXIT { fmt::print( "\033[?25h" ); };
       for( int i = 0; i < kNumSamples; ++i ) {
+        fmt::print( "  #{} ({:.3}%)          \r", i + 1,
+                    i * 100.0 / kNumSamples );
         SS ss;
         generate_new( ss );
         stats->collect( ss.terrain.real_terrain().map );
@@ -688,9 +705,9 @@ void testing_map_gen_stats( IEngine& engine ) {
   set_global_log_level( base::e_log_level::error );
   SCOPE_EXIT { set_global_log_level( old_level ); };
   // testing_map_gen_land_density_stats( engine );
-  testing_map_gen_biome_density_stats( engine );
+  // testing_map_gen_biome_density_stats( engine );
   // testing_map_gen_lake_stats( engine );
-  // testing_map_gen_river_stats( engine );
+  testing_map_gen_river_stats( engine );
   // testing_map_gen_formation_stats( engine );
 }
 

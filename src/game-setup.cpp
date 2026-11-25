@@ -18,7 +18,6 @@
 #include "igui.hpp"
 #include "irand.hpp"
 #include "perlin-map.hpp"
-#include "rivers.hpp"
 
 // config
 #include "config/map-gen.rds.hpp"
@@ -144,7 +143,6 @@ ExchangeKey create_classic_game_key(
 
   PerlinMapSettings const perlin_settings{
     .land_form = params.land_form,
-    .elevation = map_conf.land_layout.perlin_elevation,
     .edge_suppression =
         map_conf.land_layout.land_form.perlin_edge_suppression,
     .seed = perlin_seed,
@@ -220,9 +218,7 @@ ExchangeKey create_classic_game_key(
 
   RiverSetup const rivers{
     .seed       = rand.new_deterministic_seed(),
-    .parameters = derive_river_parameters(
-        surface_generator.perlin_settings.land_form.scale,
-        weather.climate ),
+    .parameters = map_conf.rivers,
   };
 
   BiomesSetup const biomes{
@@ -233,9 +229,15 @@ ExchangeKey create_classic_game_key(
     .seed = rand.new_deterministic_seed(),
   };
 
+  ElevationSetup const elevation{
+    .seed       = rand.new_deterministic_seed(),
+    .parameters = map_conf.land_layout.elevation,
+  };
+
   GeneratedMapSetup const generated_map_setup{
     .size              = sz,
     .surface_generator = surface_generator,
+    .elevation         = elevation,
     .weather           = weather,
     .rivers            = rivers,
     .biomes            = biomes,

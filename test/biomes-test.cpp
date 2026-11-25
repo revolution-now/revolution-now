@@ -73,11 +73,11 @@ TEST_CASE( "[biomes] TerrainGenerator::temperature_pass" ) {
   world w;
 }
 
-TEST_CASE( "[biomes] TerrainGenerator::wetness_pass_1" ) {
+TEST_CASE( "[biomes] TerrainGenerator::rainfall_pass_1" ) {
   world w;
 }
 
-TEST_CASE( "[biomes] TerrainGenerator::wetness_pass_2" ) {
+TEST_CASE( "[biomes] TerrainGenerator::rainfall_pass_2" ) {
   world w;
 }
 

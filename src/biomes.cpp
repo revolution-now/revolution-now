@@ -50,23 +50,30 @@ using ::rv::iota;
   return density;
 }
 
+template<same_as<double> T>
+[[nodiscard]] int rounded( T const d ) {
+  return static_cast<int>( std::round( d ) );
+}
+
 } // namespace
 
 /****************************************************************
 ** TerrainGenerator.
 *****************************************************************/
 TerrainGenerator::TerrainGenerator(
-    MapMatrix& m, IRand& rand, double const scale,
-    WeatherValue const& temperature,
-    WeatherValue const& climate )
+    MapMatrix& m, IRand& rand, GeneratedMapSetup const& setup )
   : m_( m ),
     rand_( rand ),
+    setup_( setup ),
     sz_( m.size() ),
     density_( compute_density( m_ ) ),
-    scale_( scale ),
-    temperature_( temperature ),
-    climate_( climate ),
-    scratch_( sz_ ) {}
+    scale_( setup.surface_generator.perlin_settings.land_form
+                .scale ),
+    temperature_( setup.weather.temperature ),
+    climate_( setup.weather.climate ),
+    scratch_( sz_ ) {
+  CHECK_EQ( m.size().to_gfx(), setup.size );
+}
 
 double TerrainGenerator::scale_h() const { return sz_.h / 70.0; }
 double TerrainGenerator::scale_w() const { return sz_.w / 56.0; }
@@ -86,13 +93,22 @@ bool TerrainGenerator::coin() const {
 }
 
 valid_or<string> TerrainGenerator::full() {
-  GOOD_OR_RETURN( temperature_pass() );
+  rand_.reseed( setup_.elevation.seed );
   GOOD_OR_RETURN( elevate() );
+
+  rand_.reseed( setup_.biomes.seed );
+  GOOD_OR_RETURN( temperature_pass() );
+
   GOOD_OR_RETURN( rainfall_pass_1() );
   GOOD_OR_RETURN( rainfall_pass_2() );
   GOOD_OR_RETURN( scatter_pass() );
   GOOD_OR_RETURN( forest_pass() );
-  GOOD_OR_RETURN( rivers_pass() );
+
+  if( setup_.rivers.has_value() ) {
+    rand_.reseed( setup_.rivers->seed );
+    GOOD_OR_RETURN( rivers_pass( setup_.rivers->parameters ) );
+  }
+
   GOOD_OR_RETURN( arctic_tundra_pass() );
   return valid;
 }
@@ -149,11 +165,10 @@ valid_or<string> TerrainGenerator::temperature_pass() {
     // the equator.
     double const equator_dist =
         incorrect_macro_abs( signed_equator_dist );
-    double const temperature_rescale =
-        -temperature_.value / 100.0;
-    double const noise_with_temp = std::max(
-        equator_dist + temperature_rescale * 2 * scale_h(),
-        0.0 );
+    double const noise_with_temp =
+        std::max( equator_dist +
+                      ( 1.0 - og_temperature() ) * 2 * scale_h(),
+                  0.0 );
     int const band =
         static_cast<int>( noise_with_temp / band_size );
 
@@ -164,37 +179,10 @@ valid_or<string> TerrainGenerator::temperature_pass() {
 }
 
 valid_or<string> TerrainGenerator::elevate() {
-  double density = 0.0;
-  on_all( [&]( point const _, MapSquare& s ) {
-    if( s.surface == e_surface::water ) return;
-    density += 1.0;
-  } );
-  density /= m_.size().area();
-  // This makes scale on mode m have 0, and each mode adds or
-  // subtracts 1.0 because in our config we use increments of 3.0
-  // for scale.
-  double const normalized_scale = ( scale_ - 12.0 ) / 3.0;
-  // This makes density on mode m have 0, and each mode adds or
-  // subtracts 1.0 because in our config we use increments of .07
-  // for land mass.
-  double const normalized_density = ( density - .23 ) / .07;
-  double const normalized_sum =
-      normalized_scale + normalized_density;
-  double const kProbMountains =
-      std::max( 0.0, ( .005 * normalized_sum ) + .01 );
-  double const kProbHills =
-      std::max( 0.0, ( .05 * normalized_sum ) + .20 );
-#if 0
-  [[maybe_unused]] static auto _ = [&] {
-    fmt::println( "density:            {}", density );
-    fmt::println( "normalized_scale:   {}", normalized_scale );
-    fmt::println( "normalized_density: {}", normalized_density );
-    fmt::println( "normalized_sum:     {}", normalized_sum );
-    fmt::println( "kProbMountains:     {}", kProbMountains );
-    fmt::println( "kProbHills:         {}", kProbHills );
-    return true;
-  }();
-#endif
+  double const og_target =
+      std::max( og_land_mass() + og_land_form(), 0.0 );
+  double const kProbMountains = ( .005 * og_target ) + .01;
+  double const kProbHills     = ( .05 * og_target ) + .20;
   on_all( [&]( point const _, MapSquare& s ) {
     if( s.surface == e_surface::water ) return;
     double const d = rand_.uniform_double( 0, 1.0 );
@@ -207,13 +195,11 @@ valid_or<string> TerrainGenerator::elevate() {
 }
 
 valid_or<string> TerrainGenerator::rainfall_pass_1() {
-  double const climate_adjusted =
-      ( climate_.value + 100 ) / 100.0;
   for( int const y : iota( 0, sz_.h ) ) {
     double const equator_dist = abs( sz_.h / 2.0 - y );
     int const max_rainfall    = static_cast<int>( std::max(
         0.0, abs( ( sz_.h / 4.0 - equator_dist ) / scale_h() ) +
-                 climate_adjusted * 4 ) );
+                 og_climate() * 4 ) );
     int rainfall              = uniform( 0, max_rainfall );
     for( int const x : iota( 0, sz_.w ) ) {
       point const p{ .x = x, .y = y };
@@ -282,8 +268,7 @@ valid_or<string> TerrainGenerator::rainfall_pass_1() {
         if( rainfall > 0 )
           rainfall -= uniform(
               1,
-              std::max( 1, static_cast<int>( round(
-                               7 - climate_adjusted * 2 ) ) ) );
+              std::max( 1, rounded( 7 - og_climate() * 2 ) ) );
         else if( rainfall < 0 )
           ++rainfall;
       }
@@ -293,13 +278,11 @@ valid_or<string> TerrainGenerator::rainfall_pass_1() {
 }
 
 valid_or<string> TerrainGenerator::rainfall_pass_2() {
-  double const climate_adjusted =
-      ( climate_.value + 100 ) / 100.0;
   for( int const y : iota( 0, sz_.h ) ) {
     double const equator_dist = abs( sz_.h / 2.0 - y );
     // NOTE: this could be negative, but that's probably fine.
     int const max_rainfall = static_cast<int>(
-        ( equator_dist / scale_h() ) / 2 + climate_adjusted );
+        ( equator_dist / scale_h() ) / 2 + og_climate() );
     int rainfall = 0;
     for( int x = sz_.w - 1; x >= 0; --x ) {
       point const p{ .x = x, .y = y };
@@ -345,8 +328,7 @@ valid_or<string> TerrainGenerator::rainfall_pass_2() {
         if( rainfall > 0 )
           rainfall -= uniform(
               1,
-              std::max( 1, static_cast<int>( round(
-                               7 - climate_adjusted * 2 ) ) ) );
+              std::max( 1, rounded( 7 - og_climate() * 2 ) ) );
         else if( rainfall < 0 )
           ++rainfall;
       }
@@ -413,8 +395,7 @@ valid_or<string> TerrainGenerator::scatter_pass() {
   int x = 0, y = 0;
   int const g_dir_dx[9] = { 0, 1, 1, 1, 0, -1, -1, -1, 0 };
   int const g_dir_dy[9] = { -1, -1, 0, 1, 1, 1, 0, -1, 0 };
-  int const iters =
-      static_cast<int>( round( 800 * scale_area() ) );
+  int const iters       = rounded( 800 * scale_area() );
   CHECK_GE( iters, 0 );
   lg.debug( "iterations in biome scatter pass: {}", iters );
   for( size_t const n : iota( 0, iters ) ) {
@@ -538,29 +519,58 @@ valid_or<string> TerrainGenerator::forest_pass() {
   return valid;
 }
 
-valid_or<string> TerrainGenerator::rivers_pass() {
-  double const climate_adjusted =
-      ( climate_.value + 100 ) / 100.0;
-  int const climate_adjusted_integral =
-      static_cast<int>( round( climate_adjusted ) );
-  int rivers = 0;
-  int tries  = 0;
-  // We ultimately don't use a "land mass" to generate land like
-  // the OG does; instead we use a density. This will roughly
-  // translate between our density and the OG's customization op-
-  // tion 0 ("land mass") which goes from [0,2] (though in our
-  // case it can extend beyond those boundaries).
-  double const og_land_mass = ( ( density_ - .23 ) / .07 ) + 1.0;
-  int const target_count    = static_cast<int>( round(
+double const kDensityM = .23;
+double const kScaleM   = 12;
+
+double TerrainGenerator::og_land_mass() const {
+  return 1.0 + 24 * ( density_ - kDensityM ) -
+         .38 * ( scale_ - kScaleM );
+}
+
+double TerrainGenerator::og_land_form() const {
+  return 1.0 + 13 * ( density_ - kDensityM ) -
+         .49 * ( scale_ - kScaleM );
+}
+
+double TerrainGenerator::og_temperature() const {
+  return ( temperature_.value + 100 ) / 100.0;
+}
+
+double TerrainGenerator::og_climate() const {
+  return ( climate_.value + 100 ) / 100.0;
+}
+
+int TerrainGenerator::og_land_mass_int() const {
+  return rounded( og_land_mass() );
+}
+
+int TerrainGenerator::og_land_form_int() const {
+  return rounded( og_land_form() );
+}
+
+int TerrainGenerator::og_temperature_int() const {
+  return rounded( og_temperature() );
+}
+
+int TerrainGenerator::og_climate_int() const {
+  return rounded( og_climate() );
+}
+
+valid_or<string> TerrainGenerator::rivers_pass(
+    RiverParameters const& params ) {
+  int rivers             = 0;
+  int tries              = 0;
+  int const target_count = rounded(
       scale_area() *
-      ( ( og_land_mass + climate_adjusted ) * 4 + 8 ) * 2 ) );
-  int const max_tries =
-      static_cast<int>( round( 512 * scale_area() ) );
+      ( ( og_land_mass() + og_climate() ) * 4 + 8 ) * 2 );
+  int const max_tries  = rounded( 512 * scale_area() );
+  auto const on_arctic = [&]( point const p ) {
+    return p.y == 0 || p.y == sz_.h - 1;
+  };
   vector<point> river;
   do {
     river.clear();
     ++tries;
-    int len = 0;
     point p;
     MapSquare* square = {};
     do {
@@ -569,25 +579,27 @@ valid_or<string> TerrainGenerator::rivers_pass() {
       square = &m_[p];
     } while( square->surface == e_surface::water ||
              square->overlay == e_land_overlay::mountains ||
-             square->overlay == e_land_overlay::hills );
+             square->overlay == e_land_overlay::hills ||
+             on_arctic( p ) );
     e_cardinal_direction dir =
         rand_.pick_one( enum_values<e_cardinal_direction> );
     e_side turn = rand_.pick_one( enum_values<e_side> );
     bool joined = false;
     do {
+      CHECK( !on_arctic( p ) );
       river.push_back( p );
-      ++len;
       for( auto const d : enum_values<e_cardinal_direction> ) {
         if( joined ) break;
         point const moved = p.moved( d );
         if( !m_.exists( moved ) ) continue;
+        if( on_arctic( moved ) ) continue;
         MapSquare& square_moved = m_[moved];
         if( square_moved.surface == e_surface::water ||
             square_moved.river.has_value() ) {
           joined = true;
           if( !square_moved.river.has_value() )
             // ocean.
-            square_moved.river = e_river::minor;
+            river.push_back( moved );
         }
       }
       if( joined ) break;
@@ -609,33 +621,35 @@ valid_or<string> TerrainGenerator::rivers_pass() {
       }
       p = p.moved( dir );
       if( !m_.exists( p ) ) break;
+      if( on_arctic( p ) ) break;
       if( m_[p].overlay == e_land_overlay::hills ) break;
       if( m_[p].overlay == e_land_overlay::mountains ) break;
       CHECK( !m_[p].river.has_value() );
     } while( true );
     if( !joined ) continue;
     if( !m_.exists( p ) ) continue;
-    if( len < 3 ) continue;
+    if( river.size() < 4 ) continue;
+    // Apply the river, all "minor" at this point.
     ++rivers;
-    int len2 = 0;
-    if( uniform( 1, climate_adjusted_integral * 2 + 12 ) > 6 ) {
-      len2 = uniform(
-          1, std::max( 1, static_cast<int>( round(
-                              ( climate_adjusted * 2 + 3 ) *
-                              scale_linear() ) ) ) );
+    for( point const p : river ) m_[p].river = e_river::minor;
+    // Convert some tiles to major.
+    if( uniform( 1, std::max( 1, rounded( og_climate() * 2 +
+                                          12 ) ) ) > 6 ) {
+      int const len_major = uniform(
+          1, std::max( 1, rounded( ( og_climate() * 2 + 3 ) *
+                                   scale_linear() ) ) );
       CHECK( !river.empty() );
-      CHECK( m_.exists( river.back() ) );
-      for( point const& p :
-           rv::take( rv::reverse( river ), len2 ) )
+      for( point const p :
+           rv::take( rv::reverse( river ), len_major ) )
         m_[p].river = e_river::major;
     }
     static size const ring[] = {
       // clang-format off
-                    {.w=-1,.h=-2},{.w=0,.h=-2},{.w=1,.h=-2},
-      {.w=-2,.h=-1},{.w=-1,.h=-1},{.w=0,.h=-1},{.w=1,.h=-1},{.w=2,.h=-1},
-      {.w=-2,.h= 0},{.w=-1,.h= 0},             {.w=1,.h= 0},{.w=2,.h= 0},
-      {.w=-2,.h= 1},{.w=-1,.h= 1},{.w=0,.h= 1},{.w=1,.h= 1},{.w=2,.h= 1},
-                    {.w=-1,.h= 2},{.w=0,.h= 2},{.w=1,.h= 2},
+              {-1,-2},{0,-2},{1,-2},
+      {-2,-1},{-1,-1},{0,-1},{1,-1},{2,-1},
+      {-2, 0},{-1, 0},       {1, 0},{2, 0},
+      {-2, 1},{-1, 1},{0, 1},{1, 1},{2, 1},
+              {-1, 2},{0, 2},{1, 2},
       // clang-format on
     };
     CHECK( !river.empty() );

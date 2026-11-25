@@ -75,20 +75,12 @@ function M.default_options()
     land_mass='moderate',
     remove_crosses=true,
     brush='mixed',
-    -- This is the probability that, given a land square, we will
-    -- start creating a river from it.
-    river_density=.10,
     arctic_tile_density=0.5,
     -- If the map height is not at least this tall then the
     -- arctic rows at the top and bottom of the map will be
     -- omitted to save space. That said, the top and bottom proto
     -- squares will still be artic.
     min_map_height_for_arctic=10,
-    -- This is the probability that a given river segment will be
-    -- a major river. This should really be smaller than .5 be-
-    -- cause major rivers give a production bonus over minor
-    -- rivers.
-    major_river_fraction=.15,
     native_tribes={
       'inca', 'aztec', 'apache', 'sioux', 'tupi', 'arawak',
       'cherokee', 'iroquois',
@@ -312,19 +304,6 @@ end
 local function set_sea_lane( coord )
   local square = square_at( coord )
   set_square_sea_lane( square )
-end
-
-local function square_has_river( square )
-  return square.river ~= nil
-end
-
-local function square_is_water_source( square )
-  return square_has_river( square ) or is_square_water( square )
-end
-
-local function square_is_indirect_water_source( square )
-  return square_is_water_source( square ) or square.ground ==
-             'marsh' or square.ground == 'swamp'
 end
 
 -- row is zero-based.
@@ -1069,126 +1048,6 @@ function M.distribute_bonuses( seed )
 end
 
 -----------------------------------------------------------------
--- Sanitization
------------------------------------------------------------------
--- Although there is nothing wrong with river islands from the
--- point of view of game rules, they don't look good and they are
--- not realistic (and the player might confuse them with ocean
--- lakes where ships can enter).
-local function remove_river_islands()
-  on_all( function( coord, square )
-    -- Note that we only consider the adjacent squares in the
-    -- cardinal directions because those are how rivers are
-    -- joined to each other in the game and visually.
-    local surrounding = filter_on_map(
-                            surrounding_squares_cardinal( coord ) )
-    local has_river = false
-    for _, surrounding_square in ipairs( surrounding ) do
-      if square_at( surrounding_square ).river ~= nil then
-        has_river = true
-        break
-      end
-    end
-    if not has_river then
-      -- We have an island.
-      square.river = nil
-    end
-  end )
-end
-
--- The river generation algorithm we are using has a tendency to
--- generate a lot of 2x2 squares of rivers, which look kind of
--- unnatural. This will remove them by removing the river from
--- the lower right tile.
-local function remove_river_quads()
-  local size = world_size()
-  on_all( function( coord, square )
-    if not square_has_river( square ) then return end
-    if coord.y == size.h - 1 or coord.x == size.w - 1 then
-      return
-    end
-    local square_right = square_at{ x=coord.x + 1, y=coord.y }
-    if not square_has_river( square_right ) then return end
-
-    local square_down = square_at{ x=coord.x, y=coord.y + 1 }
-    if not square_has_river( square_down ) then return end
-
-    local square_diag = square_at{ x=coord.x + 1, y=coord.y + 1 }
-    if not square_has_river( square_diag ) then return end
-
-    square_diag.river = nil
-  end )
-end
-
------------------------------------------------------------------
--- River Generation
------------------------------------------------------------------
-local function create_river_segment( coord, river_type )
-  local pos = { x=coord.x, y=coord.y }
-  -- This does not have to be long, since even a short range will
-  -- give rise to long segments since in many cases two consecu-
-  -- tive segments will be pointing in the same direction.
-  local length = math.random( 1, 3 )
-  local delta = random_cardinal_direction()
-  for _ = 1, length do
-    if not square_exists( pos ) then return nil end
-    local square = square_at( pos )
-    if is_arctic_square( square ) then return nil end
-    if square.overlay == 'hills' or square.overlay == 'mountains' then
-      return nil
-    end
-    square.river = river_type
-    pos.x = pos.x + delta.w
-    pos.y = pos.y + delta.h
-    -- If we reach the ocean that we have to stop since we have
-    -- no where else to go, but note that we did want to set the
-    -- river attribute on this final ocean tile because that is
-    -- what gives the river bonus to fisherman.
-    if is_water( square ) then return nil end
-  end
-  -- Keep going.
-  return pos
-end
-
-local function create_river( options, coord )
-  local num_segments = math.random( 1, 8 )
-  local river_type = 'minor'
-  if random_bool( options.major_river_fraction ) then
-    river_type = 'major'
-  end
-  for _ = 1, num_segments do
-    coord = create_river_segment( coord, river_type )
-    -- We've either reached the ocean or off-map.
-    if not coord then break end
-  end
-end
-
--- TODO: in the original game, all rivers seem to originate on
--- ocean tiles, even inland ocean tiles (which makes sense).
--- Also, it looks like rivers can fork mid-way.
-function M.create_rivers( options )
-  on_all( function( center, square )
-    if is_land( square ) then
-      if random_bool( options.river_density ) then
-        -- Before starting a new river make sure there are no ex-
-        -- isting rivers in the vicinity. Without this, the
-        -- rivers tend to clump too much.
-        local squares = filter_on_map(
-                            surrounding_squares_3x3( center ) )
-        for _, coord in ipairs( squares ) do
-          if square_at( coord ).river then goto skip end
-        end
-        create_river( options, center )
-        ::skip::
-      end
-    end
-  end )
-  remove_river_quads()
-  -- Should be last.
-  remove_river_islands()
-end
-
------------------------------------------------------------------
 -- Proto Squares.
 -----------------------------------------------------------------
 -- This will set the four squares that represent those off of the
@@ -1482,7 +1341,6 @@ local function generate( options )
     map_gen.create_arctic( config.map_gen.terrain_generation
                                .land_form.arctic.density )
 
-    M.create_rivers( options )
     M.distribute_bonuses()
   end
 

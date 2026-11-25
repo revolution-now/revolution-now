@@ -328,6 +328,7 @@ struct RiverStatsCollector : IMapStatsCollector {
     };
     auto const set_rts = [&]( point const p, int const val ) {
       CHECK( p == start );
+      CHECK( val > 0 );
       __river_tile_segments_[p] = val;
     };
     CHECK( look_up_rts( start ) == 0,
@@ -366,6 +367,16 @@ struct RiverStatsCollector : IMapStatsCollector {
         assign_segment( m, tile, __segments );
       }
     }
+    on_all_tiles(
+        m, [&]( point const tile, MapSquare const& center ) {
+          if( !center.river.has_value() ) return;
+          // We have a river.
+          auto const segment =
+              base::lookup( __river_tile_segments_, tile );
+          CHECK( segment.has_value(), "tile={}", tile );
+          CHECK( *segment > 0, "tile={}, segment={}", tile,
+                 *segment );
+        } );
     map<int /*segment*/, int> segment_length;
     map<int /*segment*/, bool> segment_has_water;
     auto fn = [&]( point const tile, MapSquare const& center ) {
@@ -508,7 +519,7 @@ struct RiverStatsCollector : IMapStatsCollector {
         "{}.data.json",
         mode_ );
     ofstream out( out_filename );
-    CHECK( out.good() );
+    CHECK( out.good(), "failed to open file {}", out_filename );
     out << rcl::emit_json( o );
 
     string const in_filename = format(

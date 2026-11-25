@@ -67,20 +67,15 @@ valid_or<string> PerlinEdgeSuppression::validate() const {
 }
 
 /****************************************************************
-** PerlinElevation.
+** ElevationParameters.
 *****************************************************************/
-valid_or<string> PerlinElevation::validate() const {
-  if( !enabled ) return valid;
-  REFL_VALIDATE( hills_divisor >= 1.0,
-                 "when enabled, perlin hills density divisor "
-                 "must be at least 1.0." );
-  REFL_VALIDATE( mountains_divisor >= 1.0,
-                 "when enabled, perlin mountains density "
-                 "divisor must be at least 1.0." );
+valid_or<string> ElevationParameters::validate() const {
+  int total = 0;
+  for( auto const& [elevation, weight] : weights )
+    total += weight.value;
   REFL_VALIDATE(
-      mountains_divisor >= hills_divisor,
-      "when enabled, perlin mountains density divisor must be "
-      "at least as large as the hills density divisor." );
+      total > 0,
+      "the sum of the elevation weights must be > 0" );
   return valid;
 }
 

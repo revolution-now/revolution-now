@@ -15,6 +15,11 @@ struct.NonNegativeInt {
   _features { equality, validation }
 }
 
+struct.NonNegativeDouble {
+  value 'double',
+  _features { equality, validation }
+}
+
 struct.IntPercent {
   percent 'int',
   _features { equality, validation }

@@ -141,15 +141,14 @@ TEST_CASE(
               .flip     = false },
   };
   double const target_density = 0.6;
-  PerlinElevation const elevation;
   size const world_sz{ .w = 16, .h = 16 };
 
   matrix<PerlinGenTile> surface, expected;
 
   auto const f = [&] [[clang::noinline]] {
     surface = {};
-    return land_gen_perlin( settings, target_density, elevation,
-                            world_sz, surface );
+    return land_gen_perlin( settings, target_density, world_sz,
+                            surface );
   };
 
   REQUIRE( f() == valid );
@@ -229,12 +228,10 @@ TEST_CASE( "[perlin-map] land_gen_perlin" ) {
     .seed             = kSeed,
   };
 
-  PerlinElevation const elevation;
-
   auto const f = [&] [[clang::noinline]] {
     surface = {};
-    return land_gen_perlin( settings, target_density, elevation,
-                            world_sz, surface );
+    return land_gen_perlin( settings, target_density, world_sz,
+                            surface );
   };
 
   // ------------------------------------------------------------

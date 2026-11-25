@@ -75,16 +75,8 @@ struct.PerlinEdgeSuppression {
   _features { equality, validation }
 }
 
-struct.PerlinElevation {
-  enabled 'bool',
-  hills_divisor 'double',
-  mountains_divisor 'double',
-  _features { equality, validation }
-}
-
 struct.PerlinMapSettings {
   land_form 'rng::PerlinLandForm',
-  elevation 'PerlinElevation',
   edge_suppression 'PerlinEdgeSuppression',
   seed 'rng::PerlinSeed',
 }
@@ -107,6 +99,23 @@ struct.SurfaceGeneratorSetup {
   arctic 'ArcticSetup',
   clear_corridor 'base::maybe<CorridorClearingSetup>',
   sanitization 'SurfaceSanitizationSetup',
+}
+
+enum.e_elevation {
+  none,
+  hills,
+  mountains,
+}
+
+struct.ElevationParameters {
+  # The sum of these weights must be > 0.
+  weights 'refl::enum_map<e_elevation, NonNegativeInt>',
+  _features { equality, validation }
+}
+
+struct.ElevationSetup {
+  seed 'rng::seed',
+  parameters 'ElevationParameters',
 }
 
 # Used to hold a parameter representing the temperature and cli-
@@ -143,19 +152,9 @@ struct.WeatherSetup {
 }
 
 struct.RiverParameters {
-  # This length includes the water tile which initiates the
+  # This length includes the water tiles which start and end the
   # river.
   min_length 'int',
-  turn 'Probability',
-  fork 'Probability',
-  fork_is_major 'Probability',
-  growth 'Probability',
-  # This is the probability that, given a water square with land
-  # adjacent in a cardinal direction, that we will start creating
-  # a river from it.
-  initiation 'Probability',
-  sustain_major 'Probability',
-  start_major 'Probability',
   _features { equality, validation }
 }
 
@@ -183,6 +182,7 @@ struct.GeneratedMapSetup {
   # Map Size.
   size 'gfx::size',
   surface_generator 'SurfaceGeneratorSetup',
+  elevation 'ElevationSetup',
   weather 'WeatherSetup',
   rivers 'base::maybe<RiverSetup>',  # rivers are optional.
   biomes 'BiomesSetup',

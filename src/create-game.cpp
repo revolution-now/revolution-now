@@ -18,7 +18,6 @@
 #include "map-gen.hpp"
 #include "perlin-map.hpp"
 #include "player-mgr.hpp" // FIXME
-#include "rivers.hpp"
 #include "terrain-mgr.hpp"
 
 // config
@@ -157,7 +156,6 @@ valid_or<string> generate_land_perlin(
     auto const ok =
         TIMED_CALL( land_gen_perlin, perlin_settings,
                     surface_generator.target_density.fraction,
-                    surface_generator.perlin_settings.elevation,
                     setup.size, surface );
     if( !ok ) return base::to_str( ok.error() );
     for( point const p : rect_iterator( surface.rect() ) ) {
@@ -235,42 +233,12 @@ valid_or<string> generate_map_native_impl(
       generate_land_perlin( setup, rand, real_terrain ) );
 
 
-  // Biomes.
-  rand.reseed( setup.biomes.seed );
-  TerrainGenerator terrain_gen(
-      m, rand,
-      setup.surface_generator.perlin_settings.land_form.scale,
-      setup.weather.temperature, setup.weather.climate );
+  // Biomes. Note that the TerrainGenerator will handle the rng
+  // seeding at each stage.
+  TerrainGenerator terrain_gen( m, rand, setup );
   GOOD_OR_RETURN( terrain_gen.full() );
 
 #if 0
-  if( setup.surface_generator.arctic.enabled )
-    assign_arctic_biomes( rand, real_terrain );
-
-  // All non-arctic land tiles will be set with forest. Tiles
-  // without forest/hills/mountains are themselves a formation
-  // that is placed like hills and mountains below.
-  set_all_forest( m );
-
-  auto const kFormationOrder = {
-    e_terrain_formation::hills,
-    e_terrain_formation::mountains,
-    // NOTE: clearing should be after the others because the
-    // probability that we sampled from the OG has in the denomi-
-    // nator the land count on tiles without hills or mountains,
-    // so in other words it is assumed that those will be placed
-    // first.
-    e_terrain_formation::clearing,
-  };
-
-  rand.reseed( setup.formations.seed );
-  for( e_terrain_formation const formation : kFormationOrder ) {
-    auto const& conf = setup.formations.formation[formation];
-    generate_formation( rand, m, formation, conf.spawn,
-                        conf.overall_spawn, conf.growth,
-                        wetness );
-  }
-
   // Rivers.
   if( setup.rivers.has_value() ) {
     rand.reseed( setup.rivers->seed );
