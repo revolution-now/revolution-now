@@ -44,7 +44,7 @@ struct matrix {
   std::vector<T> data_{};
 
  public:
-  matrix( size const delta ) : w_( delta.w ) {
+  matrix( struct gfx::size const delta ) : w_( delta.w ) {
     CHECK( delta.w >= 0 );
     CHECK( delta.h >= 0 );
     size_t size = delta.h * delta.w;
@@ -52,7 +52,8 @@ struct matrix {
     CHECK( data_.size() == size );
   }
 
-  matrix( size const delta, T const init ) : w_( delta.w ) {
+  matrix( struct gfx::size const delta, T const init )
+    : w_( delta.w ) {
     CHECK( delta.w >= 0 );
     CHECK( delta.h >= 0 );
     size_t size = delta.h * delta.w;
@@ -76,12 +77,12 @@ struct matrix {
     return w_ == rhs.w_ && data_ == rhs.data_;
   }
 
-  size size() const {
+  gfx::size size() const {
     if( data_.size() == 0 ) return {};
     return gfx::size{ .w = w_, .h = int( data_.size() / w_ ) };
   }
 
-  rect rect() const {
+  gfx::rect rect() const {
     return gfx::rect::from( point{}, size() );
   }
 
