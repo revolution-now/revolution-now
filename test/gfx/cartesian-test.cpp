@@ -1086,7 +1086,7 @@ TEST_CASE( "[gfx/cartesian] dpoint::origin_becomes_point" ) {
 /****************************************************************
 ** rect
 *****************************************************************/
-TEST_CASE( "[gfx/cartesian] rect::from" ) {
+TEST_CASE( "[gfx/cartesian] rect::from( p, p )" ) {
   point p1{ .x = 4, .y = 2 };
   point p2{ .x = 2, .y = 4 };
   REQUIRE( rect::from( p1, p2 ) ==
@@ -1101,6 +1101,25 @@ TEST_CASE( "[gfx/cartesian] rect::from" ) {
            rect{ .origin = { .x = 2, .y = 2 },
                  .size   = { .w = 2, .h = 2 } } );
   REQUIRE( rect::from( p4, p3 ) ==
+           rect{ .origin = { .x = 2, .y = 2 },
+                 .size   = { .w = 2, .h = 2 } } );
+}
+
+TEST_CASE( "[gfx/cartesian] rect::from( p, s )" ) {
+  point p{ .x = 4, .y = 2 };
+  size s{ .w = 2, .h = 2 };
+  REQUIRE( rect::from( p, s ) ==
+           rect{ .origin = { .x = 2, .y = 2 },
+                 .size   = { .w = 2, .h = 2 } } );
+  REQUIRE( rect::from( p + s, -s ) ==
+           rect{ .origin = { .x = 2, .y = 2 },
+                 .size   = { .w = 2, .h = 2 } } );
+  p = { .x = 2, .y = 2 };
+  s = { .w = 2, .h = 2 };
+  REQUIRE( rect::from( p, s ) ==
+           rect{ .origin = { .x = 2, .y = 2 },
+                 .size   = { .w = 2, .h = 2 } } );
+  REQUIRE( rect::from( p + s, -s ) ==
            rect{ .origin = { .x = 2, .y = 2 },
                  .size   = { .w = 2, .h = 2 } } );
 }

@@ -1029,6 +1029,10 @@ rect rect::from( point const first, point const opposite ) {
       .normalized();
 }
 
+rect rect::from( point const first, struct size const sz ) {
+  return rect{ .origin = first, .size = sz }.normalized();
+}
+
 point rect::nw() const { return normalized().origin; }
 
 point rect::ne() const {

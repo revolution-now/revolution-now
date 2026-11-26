@@ -383,6 +383,7 @@ struct rect {
   }
 
   static rect from( point first, point opposite );
+  static rect from( point first, struct size sz );
 
   [[nodiscard]] int area() const { return size.area(); }
 
