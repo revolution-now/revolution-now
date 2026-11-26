@@ -143,13 +143,16 @@ valid_or<string> TerrainGenerator::full() {
   GOOD_OR_RETURN( rainfall_pass_2() );
   GOOD_OR_RETURN( scatter_pass() );
   GOOD_OR_RETURN( forest_pass() );
+  if( setup_.surface_generator.arctic.enabled ) {
+    rand_.reseed( setup_.surface_generator.arctic.seed );
+    GOOD_OR_RETURN( arctic_tundra_pass() );
+  }
 
   if( setup_.rivers.has_value() ) {
     rand_.reseed( setup_.rivers->seed );
     GOOD_OR_RETURN( rivers_pass( setup_.rivers->parameters ) );
   }
 
-  GOOD_OR_RETURN( arctic_tundra_pass() );
   return valid;
 }
 
@@ -700,12 +703,14 @@ valid_or<string> TerrainGenerator::rivers_pass(
         m_[p].river = e_river::major;
     }
     CHECK( m_.exists( river.back() ) );
-    on_surrounding_20(
-        m_, river.back(), [&]( point const, MapSquare& square ) {
-          if( square.surface == e_surface::water ) return;
-          if( !square.overlay.has_value() )
-            square.overlay = e_land_overlay::forest;
-        } );
+    on_surrounding_20( m_, river.back(),
+                       [&]( point const, MapSquare& square ) {
+                         if( square.surface == e_surface::water )
+                           return;
+                         if( square.overlay.has_value() ) return;
+                         if( !coin() ) return;
+                         square.overlay = e_land_overlay::forest;
+                       } );
   }
   return valid;
 }

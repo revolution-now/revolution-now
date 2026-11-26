@@ -55,9 +55,9 @@ struct TerrainGenerator {
 
   Result forest_pass();
 
-  Result rivers_pass( RiverParameters const& params );
-
   Result arctic_tundra_pass();
+
+  Result rivers_pass( RiverParameters const& params );
 
  private:
   MapMatrix& m_;
