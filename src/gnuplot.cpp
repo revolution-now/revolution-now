@@ -17,6 +17,7 @@
 #include "base/to-str-ext-std.hpp"
 
 // C++ standard library.
+#include <charconv>
 #include <cmath>
 #include <fstream>
 #include <ranges>
