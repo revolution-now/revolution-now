@@ -88,6 +88,11 @@ struct TerrainGenerator {
   [[nodiscard]] int uniform( int const l, int const h ) const;
   [[nodiscard]] bool coin() const;
 
+  [[nodiscard]] int uniform_from_1_to( int d ) const;
+  [[nodiscard]] int uniform_from_1_to( double d ) const;
+  [[nodiscard]] int uniform_from_0_to( int d ) const;
+  [[nodiscard]] int uniform_from_0_to( double d ) const;
+
   [[nodiscard]] double og_land_mass() const;
   [[nodiscard]] double og_land_form() const;
   [[nodiscard]] double og_temperature() const;
@@ -96,6 +101,12 @@ struct TerrainGenerator {
   [[nodiscard]] int og_land_form_int() const;
   [[nodiscard]] int og_temperature_int() const;
   [[nodiscard]] int og_climate_int() const;
+
+  base::maybe<gfx::point> random_tile(
+      int max_tries,
+      base::function_ref<bool( gfx::point, MapSquare const& )
+                             const>
+          pred ) const;
 
   enum class e_forest_plan {
     deferred,

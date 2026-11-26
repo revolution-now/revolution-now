@@ -52,44 +52,45 @@ namespace rn {
 // tire save game state when it may not need all of it.
 struct RootState;
 
+struct Agents;
 struct ColoniesState;
 struct Colony;
 struct Dwelling;
-struct Agents;
 struct EventsState;
 struct FormatVersion;
 struct IMapUpdater;
 struct LandViewState;
+struct MapMatrix;
 struct MapState;
+struct MockIAgent;
 struct MockIColonyViewer;
 struct MockICombat;
-struct MockIAgent;
-struct OldWorldState;
+struct MockIEngine;
 struct MockIGui;
 struct MockINativeAgent;
 struct MockIRand;
-struct MockIEngine;
 struct NativeAgents;
-struct NativeUnit;
 struct NativesState;
+struct NativeUnit;
+struct OldWorldState;
 struct Planes;
 struct Player;
 struct PlayerSquare;
 struct PlayersState;
 struct RealTerrain;
+struct SettingsState;
 struct SS;
 struct SSConst;
-struct SettingsState;
-struct TS;
 struct TerrainConnectivity;
 struct TerrainState;
 struct TradeRouteState;
 struct Tribe;
+struct TS;
 struct TurnState;
 struct Unit;
 struct UnitComposition;
-struct UnitType;
 struct UnitsState;
+struct UnitType;
 
 } // namespace rn
 
@@ -126,6 +127,8 @@ struct World {
   MapSquare& square( gfx::point p );
 
   RealTerrain& real_terrain();
+
+  MapMatrix& map_matrix();
 
   // This gets the terrain info from the player-specific map.
   PlayerSquare& player_square(

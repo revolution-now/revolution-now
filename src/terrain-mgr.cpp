@@ -32,7 +32,19 @@ using namespace std;
 using ::gfx::point;
 using ::gfx::rect;
 using ::gfx::rect_iterator;
+using ::gfx::size;
 using ::refl::enum_values;
+
+// Surrounding 20 tiles, not including center.
+static size const kRing20[] = {
+  // clang-format off
+          {-1,-2},{0,-2},{1,-2},
+  {-2,-1},{-1,-1},{0,-1},{1,-1},{2,-1},
+  {-2, 0},{-1, 0},       {1, 0},{2, 0},
+  {-2, 1},{-1, 1},{0, 1},{1, 1},{2, 1},
+          {-1, 2},{0, 2},{1, 2},
+  // clang-format on
+};
 
 } // namespace
 
@@ -106,6 +118,30 @@ void on_all_tiles(
   for( point const p : rect_iterator( world ) ) fn( p, m[p] );
 }
 
+void on_surrounding_20(
+    MapMatrix const& m, point const tile,
+    base::function_ref<
+        void( gfx::point, MapSquare const& square )> const fn ) {
+  rect const r = m.rect();
+  for( size const sz : kRing20 ) {
+    point const p = tile + sz;
+    if( !p.is_inside( r ) ) continue;
+    fn( p, m[p] );
+  }
+}
+
+void on_surrounding_20(
+    MapMatrix& m, point const tile,
+    base::function_ref<void( gfx::point,
+                             MapSquare& square )> const fn ) {
+  rect const r = m.rect();
+  for( size const sz : kRing20 ) {
+    point const p = tile + sz;
+    if( !p.is_inside( r ) ) continue;
+    fn( p, m[p] );
+  }
+}
+
 void on_surrounding(
     MapMatrix const& m, point const tile,
     base::function_ref<
@@ -129,6 +165,18 @@ void on_surrounding(
 void on_surrounding_cardinal(
     MapMatrix const& m, point const tile,
     base::function_ref<void( gfx::point, MapSquare const&,
+                             e_cardinal_direction )> const fn ) {
+  rect const r = m.rect();
+  for( auto const d : enum_values<e_cardinal_direction> ) {
+    point const p = tile.moved( d );
+    if( !p.is_inside( r ) ) continue;
+    fn( p, m[p], d );
+  }
+}
+
+void on_surrounding_cardinal(
+    MapMatrix& m, point const tile,
+    base::function_ref<void( gfx::point, MapSquare&,
                              e_cardinal_direction )> const fn ) {
   rect const r = m.rect();
   for( auto const d : enum_values<e_cardinal_direction> ) {

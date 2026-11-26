@@ -290,6 +290,10 @@ RealTerrain& World::real_terrain() {
   return terrain().mutable_real_terrain();
 }
 
+MapMatrix& World::map_matrix() {
+  return terrain().mutable_real_terrain().map;
+}
+
 PlayerSquare& World::player_square(
     point const p, maybe<e_player> const player_type ) {
   return ss()

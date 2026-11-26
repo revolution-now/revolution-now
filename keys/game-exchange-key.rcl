@@ -20,11 +20,6 @@ map.source.generate_native.setup {
         }
         scale: 12
       }
-      elevation {
-        enabled: true
-        hills_divisor:      4.00
-        mountains_divisor: 15.00
-      }
       mountains {
         enabled: true
         density_divisor: 8.0
@@ -58,25 +53,28 @@ map.source.generate_native.setup {
     target_density.fraction: 0.23
   }
 
+  elevation {
+    seed: Xaf7b22fd14e0d515286ffb3e1df9c7e3
+    parameters.weights {
+      none.value:      1
+      hills.value:     1
+      mountains.value: 1
+    }
+  }
+
   weather {
     temperature.value:  0
     climate.value:      0
   }
 
-  # NOTE: the river parameters normally vary by the chosen cli-
-  # mate and land form scale, so if you vary those you may want
-  # to vary these as well (see the map-gen config).
   rivers {
     seed: Xac0304879ebe1280b0f9ca5e56f762fc
     parameters {
-      min_length:                4
-      growth.probability:        .60
-      initiation.probability:    .052
-      start_major.probability:   .25
-      sustain_major.probability: .57
-      turn.probability:          .32
-      fork.probability:          .116
-      fork_is_major.probability: .47
+      min_length: 4
+      density.value: 1.0
+      turning_frequency.probability: 0.60
+      major_strength.value: 1.0
+      major_length.value:   1.0
     }
   }
 

@@ -311,7 +311,27 @@ terrain_generation {
   }
 
   rivers {
+    # During river generation, when a new river is placed, it
+    # will only be placed if it is at least this many tiles long,
+    # including the start and end tile (where the end tile might
+    # be an existing river tile). This value must be >= 2.
     min_length: 4
+    # This allows changing the density of rivers. To make it
+    # easier to work with, a density of 1.0 will yield the den-
+    # sity of the OG given any other relevant parameters (cli-
+    # mate, land mass). It can be anywhere from [0,infinity].
+    density.value: 1.0
+    # How often does the river turn vs. remain straight. OG has
+    # this at around 60%.  Must be in [0,1].
+    turning_frequency.probability: 0.60
+    # Likely hood that a river will get a component converted to
+    # major river. Can be in [0,infinity]. A value of 1.0 corre-
+    # sponds to the OG.
+    major_strength.value: 1.0
+    # Scale the length of the segment that will be converted to
+    # major river. Can be in [0,infinity]. A value of 1.0 corre-
+    # sponds to the OG.
+    major_length.value: 1.0
   }
 
   biomes {

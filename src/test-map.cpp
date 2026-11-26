@@ -343,14 +343,14 @@ void generate_single_map_key( IEngine& engine, SS& ss,
   };
 
   static auto constexpr kTemps = {
-    // e_temperature::cool,
+    e_temperature::cool,
     e_temperature::temperate,
-    // e_temperature::warm,
+    e_temperature::warm,
   };
   static auto constexpr kClimates = {
-    // e_climate::arid,
+    e_climate::arid,
     e_climate::normal,
-    // e_climate::wet,
+    e_climate::wet,
   };
 
   for( e_land_mass const land_mass : kLandMass ) {
@@ -380,7 +380,6 @@ void generate_single_map_key( IEngine& engine, SS& ss,
           }
           stats->summarize();
           stats->write();
-          fmt::print( "\n" );
         }
       }
     }

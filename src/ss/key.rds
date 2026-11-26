@@ -155,6 +155,11 @@ struct.RiverParameters {
   # This length includes the water tiles which start and end the
   # river.
   min_length 'int',
+  density 'NonNegativeDouble',
+  # How often does the river turn.
+  turning_frequency 'Probability',
+  major_strength 'NonNegativeDouble',
+  major_length 'NonNegativeDouble',
   _features { equality, validation }
 }
 

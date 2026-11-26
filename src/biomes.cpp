@@ -32,6 +32,9 @@ namespace {
 
 using namespace std;
 
+using ::base::function_ref;
+using ::base::maybe;
+using ::base::nothing;
 using ::base::valid;
 using ::base::valid_or;
 using ::gfx::e_side;
@@ -84,8 +87,46 @@ double TerrainGenerator::scale_linear() const {
   return ( sz_.h + sz_.w ) / ( 70.0 + 56.0 );
 }
 
+maybe<point> TerrainGenerator::random_tile(
+    int const max_tries,
+    function_ref<bool( point, MapSquare const& ) const> pred )
+    const {
+  int tries = 0;
+  while( tries++ < max_tries ) {
+    point p;
+    p.x = uniform( 0, sz_.w - 1 );
+    p.y = uniform( 0, sz_.h - 1 );
+    if( pred( p, m_[p] ) ) return p;
+  }
+  return nothing;
+}
+
 int TerrainGenerator::uniform( int const l, int const h ) const {
   return rand_.uniform_int( l, h );
+}
+
+int TerrainGenerator::uniform_from_0_to( int const n ) const {
+  int upper = n;
+  upper     = std::max( 0, upper );
+  return uniform( 0, upper );
+}
+
+int TerrainGenerator::uniform_from_0_to( double const d ) const {
+  int upper = rounded( d );
+  upper     = std::max( 0, upper );
+  return uniform( 0, upper );
+}
+
+int TerrainGenerator::uniform_from_1_to( int const n ) const {
+  int upper = n;
+  upper     = std::max( 1, upper );
+  return uniform( 1, upper );
+}
+
+int TerrainGenerator::uniform_from_1_to( double const d ) const {
+  int upper = rounded( d );
+  upper     = std::max( 1, upper );
+  return uniform( 1, upper );
 }
 
 bool TerrainGenerator::coin() const {
@@ -98,7 +139,6 @@ valid_or<string> TerrainGenerator::full() {
 
   rand_.reseed( setup_.biomes.seed );
   GOOD_OR_RETURN( temperature_pass() );
-
   GOOD_OR_RETURN( rainfall_pass_1() );
   GOOD_OR_RETURN( rainfall_pass_2() );
   GOOD_OR_RETURN( scatter_pass() );
@@ -558,56 +598,59 @@ int TerrainGenerator::og_climate_int() const {
 
 valid_or<string> TerrainGenerator::rivers_pass(
     RiverParameters const& params ) {
-  int rivers             = 0;
-  int tries              = 0;
-  int const target_count = rounded(
-      scale_area() *
-      ( ( og_land_mass() + og_climate() ) * 4 + 8 ) * 2 );
-  int const max_tries  = rounded( 512 * scale_area() );
+  int const target_count = std::max(
+      rounded( ( ( og_land_mass() + og_climate() ) * 4 + 8 ) *
+               2 * scale_area() * params.density.value ),
+      0 );
+  // If the density is larger than 1.0 then that means we are
+  // asking for more rivers than the OG, so be sure to allow more
+  // tries to fulfill that request.
+  int const max_tries =
+      rounded( 512 * scale_area() *
+               std::max( params.density.value, 1.0 ) );
   auto const on_arctic = [&]( point const p ) {
     return p.y == 0 || p.y == sz_.h - 1;
   };
+  auto const allowed_land_for_river =
+      [&]( point const p, MapSquare const& square ) {
+        return square.surface != e_surface::water &&
+               square.overlay != e_land_overlay::mountains &&
+               square.overlay != e_land_overlay::hills &&
+               !on_arctic( p );
+      };
+  int rivers = 0;
+  int tries  = 0;
   vector<point> river;
-  do {
+  while( tries < max_tries && rivers < target_count ) {
     river.clear();
     ++tries;
-    point p;
-    MapSquare* square = {};
-    do {
-      p.x    = uniform( 0, sz_.w - 1 );
-      p.y    = uniform( 0, sz_.h - 1 );
-      square = &m_[p];
-    } while( square->surface == e_surface::water ||
-             square->overlay == e_land_overlay::mountains ||
-             square->overlay == e_land_overlay::hills ||
-             on_arctic( p ) );
+    auto const maybe_p =
+        random_tile( sz_.area(), allowed_land_for_river );
+    if( !maybe_p.has_value() )
+      // Probably won't do an error here, since it can happen.
+      break;
+    point p = *maybe_p;
     e_cardinal_direction dir =
-        rand_.pick_one( enum_values<e_cardinal_direction> );
-    e_side turn = rand_.pick_one( enum_values<e_side> );
-    bool joined = false;
-    do {
-      CHECK( !on_arctic( p ) );
+        rand_.pick_enum<e_cardinal_direction>();
+    e_side turn = rand_.pick_enum<e_side>();
+    while( true ) {
       river.push_back( p );
       for( auto const d : enum_values<e_cardinal_direction> ) {
-        if( joined ) break;
         point const moved = p.moved( d );
         if( !m_.exists( moved ) ) continue;
-        if( on_arctic( moved ) ) continue;
-        MapSquare& square_moved = m_[moved];
+        auto& square_moved = m_[moved];
         if( square_moved.surface == e_surface::water ||
             square_moved.river.has_value() ) {
-          joined = true;
-          if( !square_moved.river.has_value() )
-            // ocean.
-            river.push_back( moved );
+          // There may already be a river here but that's ok.
+          river.push_back( moved );
+          goto joined;
         }
       }
-      if( joined ) break;
-      int const r = uniform( 0, 99 );
-      if( r < 60 )
-        // No direction change
-        ;
-      else {
+      int const turn_threshold =
+          rounded( params.turning_frequency.probability * 100 );
+      if( int const r = uniform_from_0_to( 99 );
+          r >= turn_threshold ) {
+        // Direction change.
         if( r > 95 ) turn = reverse( turn );
         switch( turn ) {
           case e_side::left:
@@ -621,48 +664,49 @@ valid_or<string> TerrainGenerator::rivers_pass(
       }
       p = p.moved( dir );
       if( !m_.exists( p ) ) break;
-      if( on_arctic( p ) ) break;
-      if( m_[p].overlay == e_land_overlay::hills ) break;
-      if( m_[p].overlay == e_land_overlay::mountains ) break;
+      // If this new point that we've just moved to either has a
+      // river or is ocean then that means that we should have
+      // already joined and thus should not be here.
       CHECK( !m_[p].river.has_value() );
-    } while( true );
-    if( !joined ) continue;
-    if( !m_.exists( p ) ) continue;
-    if( river.size() < 4 ) continue;
-    // Apply the river, all "minor" at this point.
+      CHECK( m_[p].surface != e_surface::water );
+      if( !allowed_land_for_river( p, m_[p] ) ) break;
+    }
+    // We've not joined; start over.
+    continue;
+  joined:
+    // This is effectively 4 in the OG.
+    if( ssize( river ) < params.min_length ) continue;
+    // The config validator should ensure that min_length is at
+    // least 2, thus river should not be empty.
+    CHECK( !river.empty() );
+    // No rivers on arctic rows.
+    if( on_arctic( river.back() ) ) continue;
     ++rivers;
-    for( point const p : river ) m_[p].river = e_river::minor;
+    // Apply the river, all "minor" at this point, though don't
+    // override any that may already be major (which could poten-
+    // tially be at the joining point).
+    for( point const p : river )
+      m_[p].river = m_[p].river.value_or( e_river::minor );
     // Convert some tiles to major.
-    if( uniform( 1, std::max( 1, rounded( og_climate() * 2 +
-                                          12 ) ) ) > 6 ) {
-      int const len_major = uniform(
-          1, std::max( 1, rounded( ( og_climate() * 2 + 3 ) *
-                                   scale_linear() ) ) );
-      CHECK( !river.empty() );
-      for( point const p :
-           rv::take( rv::reverse( river ), len_major ) )
+    double const major_strength =
+        ( og_climate() * 2 + 12 ) * params.major_strength.value;
+    if( uniform_from_1_to( major_strength ) > 6 ) {
+      double const max_len_major = ( og_climate() * 2 + 3 ) *
+                                   scale_linear() *
+                                   params.major_length.value;
+      int const len_major = uniform_from_1_to( max_len_major );
+      auto const trail    = rv::reverse | rv::take( len_major );
+      for( point const p : trail( river ) )
         m_[p].river = e_river::major;
     }
-    static size const ring[] = {
-      // clang-format off
-              {-1,-2},{0,-2},{1,-2},
-      {-2,-1},{-1,-1},{0,-1},{1,-1},{2,-1},
-      {-2, 0},{-1, 0},       {1, 0},{2, 0},
-      {-2, 1},{-1, 1},{0, 1},{1, 1},{2, 1},
-              {-1, 2},{0, 2},{1, 2},
-      // clang-format on
-    };
-    CHECK( !river.empty() );
     CHECK( m_.exists( river.back() ) );
-    for( size const delta : ring ) {
-      point const moved = river.back() + delta;
-      if( !m_.exists( moved ) ) continue;
-      MapSquare& square_moved = m_[moved];
-      if( square_moved.surface == e_surface::water ) continue;
-      if( !square_moved.overlay.has_value() )
-        square_moved.overlay = e_land_overlay::forest;
-    }
-  } while( tries < max_tries && rivers < target_count );
+    on_surrounding_20(
+        m_, river.back(), [&]( point const, MapSquare& square ) {
+          if( square.surface == e_surface::water ) return;
+          if( !square.overlay.has_value() )
+            square.overlay = e_land_overlay::forest;
+        } );
+  }
   return valid;
 }
 

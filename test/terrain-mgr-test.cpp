@@ -328,7 +328,7 @@ TEST_CASE( "[terrain-mgr] on_surrounding" ) {
   REQUIRE( visited == expected );
 }
 
-TEST_CASE( "[terrain-mgr] on_surrounding_cardinal" ) {
+TEST_CASE( "[terrain-mgr] on_surrounding_cardinal( const )" ) {
   world w;
   vector<point> visited, expected;
   visited.reserve( 8 );
@@ -392,6 +392,73 @@ TEST_CASE( "[terrain-mgr] on_surrounding_cardinal" ) {
   REQUIRE( directions == expected_directions );
 }
 
+TEST_CASE(
+    "[terrain-mgr] on_surrounding_cardinal( non-const )" ) {
+  world w;
+  vector<point> visited, expected;
+  visited.reserve( 8 );
+  vector<e_cardinal_direction> directions, expected_directions;
+  directions.reserve( 4 );
+  point center;
+
+  MapMatrix m = w.map_matrix();
+
+  center = { .x = 2, .y = 3 };
+  // clang-format off
+  expected = {
+                        { .x = 2, .y = 2 },
+    { .x = 1, .y = 3 },                     { .x = 3, .y = 3 },
+                        { .x = 2, .y = 4 },
+  };
+  // clang-format on
+  expected_directions = {
+    e_cardinal_direction::n,
+    e_cardinal_direction::w,
+    e_cardinal_direction::e,
+    e_cardinal_direction::s,
+  };
+
+  // Variant 1.
+  visited.clear();
+  directions.clear();
+  on_surrounding_cardinal(
+      m, center,
+      [&]( point const p, MapSquare const& square,
+           e_cardinal_direction const d ) {
+        BASE_CHECK( w.terrain().square_at( p ) == square );
+        visited.push_back( p );
+        directions.push_back( d );
+      } );
+  REQUIRE( visited == expected );
+  REQUIRE( directions == expected_directions );
+
+  center = { .x = 7, .y = 0 };
+  // clang-format off
+  expected = {
+    { .x = 6, .y = 0 },
+                        { .x = 7, .y = 1 },
+  };
+  // clang-format on
+  expected_directions = {
+    e_cardinal_direction::w,
+    e_cardinal_direction::s,
+  };
+
+  // Variant 1.
+  visited.clear();
+  directions.clear();
+  on_surrounding_cardinal(
+      m, center,
+      [&]( point const p, MapSquare const& square,
+           e_cardinal_direction const d ) {
+        BASE_CHECK( w.terrain().square_at( p ) == square );
+        visited.push_back( p );
+        directions.push_back( d );
+      } );
+  REQUIRE( visited == expected );
+  REQUIRE( directions == expected_directions );
+}
+
 TEST_CASE( "[terrain-mgr] assign_formation" ) {
   world w;
   MapSquare square;
@@ -413,6 +480,100 @@ TEST_CASE( "[terrain-mgr] assign_formation" ) {
   REQUIRE( square.overlay == e_land_overlay::mountains );
   f( clearing );
   REQUIRE( square.overlay == nothing );
+}
+
+TEST_CASE( "[terrain-mgr] on_surrounding_20( const )" ) {
+  world w;
+  vector<point> visited, expected;
+  visited.reserve( 8 );
+  point center;
+
+  center = { .x = 2, .y = 3 };
+  // clang-format off
+  expected = {
+                {.x=1,.y=1},{.x=2,.y=1},{.x=3,.y=1},
+    {.x=0,.y=2},{.x=1,.y=2},{.x=2,.y=2},{.x=3,.y=2},{.x=4,.y=2},
+    {.x=0,.y=3},{.x=1,.y=3},            {.x=3,.y=3},{.x=4,.y=3},
+    {.x=0,.y=4},{.x=1,.y=4},{.x=2,.y=4},{.x=3,.y=4},{.x=4,.y=4},
+                {.x=1,.y=5},{.x=2,.y=5},{.x=3,.y=5},
+  };
+  // clang-format on
+
+  visited.clear();
+  on_surrounding_20(
+      w.map_matrix(), center,
+      [&]( point const p, MapSquare const& square ) {
+        BASE_CHECK( w.terrain().square_at( p ) == square );
+        visited.push_back( p );
+      } );
+  REQUIRE( visited == expected );
+
+  center = { .x = 1, .y = 3 };
+  // clang-format off
+  expected = {
+                {.x=0,.y=1},{.x=1,.y=1},{.x=2,.y=1},
+                {.x=0,.y=2},{.x=1,.y=2},{.x=2,.y=2},{.x=3,.y=2},
+                {.x=0,.y=3},            {.x=2,.y=3},{.x=3,.y=3},
+                {.x=0,.y=4},{.x=1,.y=4},{.x=2,.y=4},{.x=3,.y=4},
+                {.x=0,.y=5},{.x=1,.y=5},{.x=2,.y=5},
+  };
+  // clang-format on
+
+  visited.clear();
+  on_surrounding_20(
+      w.map_matrix(), center,
+      [&]( point const p, MapSquare const& square ) {
+        BASE_CHECK( w.terrain().square_at( p ) == square );
+        visited.push_back( p );
+      } );
+  REQUIRE( visited == expected );
+}
+
+TEST_CASE( "[terrain-mgr] on_surrounding_20( non-const )" ) {
+  world w;
+  vector<point> visited, expected;
+  visited.reserve( 8 );
+  point center;
+
+  MapMatrix m = w.map_matrix();
+
+  center = { .x = 2, .y = 3 };
+  // clang-format off
+  expected = {
+                {.x=1,.y=1},{.x=2,.y=1},{.x=3,.y=1},
+    {.x=0,.y=2},{.x=1,.y=2},{.x=2,.y=2},{.x=3,.y=2},{.x=4,.y=2},
+    {.x=0,.y=3},{.x=1,.y=3},            {.x=3,.y=3},{.x=4,.y=3},
+    {.x=0,.y=4},{.x=1,.y=4},{.x=2,.y=4},{.x=3,.y=4},{.x=4,.y=4},
+                {.x=1,.y=5},{.x=2,.y=5},{.x=3,.y=5},
+  };
+  // clang-format on
+
+  visited.clear();
+  on_surrounding_20(
+      m, center, [&]( point const p, MapSquare& square ) {
+        BASE_CHECK( w.terrain().square_at( p ) == square );
+        visited.push_back( p );
+      } );
+  REQUIRE( visited == expected );
+
+  center = { .x = 1, .y = 3 };
+  // clang-format off
+  expected = {
+                {.x=0,.y=1},{.x=1,.y=1},{.x=2,.y=1},
+                {.x=0,.y=2},{.x=1,.y=2},{.x=2,.y=2},{.x=3,.y=2},
+                {.x=0,.y=3},            {.x=2,.y=3},{.x=3,.y=3},
+                {.x=0,.y=4},{.x=1,.y=4},{.x=2,.y=4},{.x=3,.y=4},
+                {.x=0,.y=5},{.x=1,.y=5},{.x=2,.y=5},
+  };
+  // clang-format on
+
+  visited.clear();
+  on_surrounding_20(
+      m, center, [&]( point const p, MapSquare& square ) {
+        BASE_CHECK( w.terrain().square_at( p ) == square );
+        visited.push_back( p );
+      } );
+  REQUIRE( visited == expected );
 }
 
 } // namespace
