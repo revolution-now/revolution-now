@@ -127,7 +127,7 @@ void remove_islands( RealTerrain& real_terrain ) {
 // just live with it.
 void remove_crosses( RealTerrain& real_terrain ) {
   auto& m = real_terrain.map;
-  rect_iterator const tiles( m.rect().to_gfx().with_dec_size() );
+  rect_iterator const tiles( m.rect().with_dec_size() );
 
   // Will return true if at least one cross was found. Note that
   // the cross(es) in question may have been removed and so may

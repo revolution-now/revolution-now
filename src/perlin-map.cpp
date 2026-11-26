@@ -269,7 +269,7 @@ valid_or<e_perlin_map_error> land_gen_perlin(
   if( total_land == 0 && target_density > 0.0 )
     return e_perlin_map_error::density_too_small_no_land;
 
-  CHECK( out.size().to_gfx() == world_sz );
+  CHECK( out.size() == world_sz );
   return valid;
 }
 

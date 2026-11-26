@@ -55,10 +55,10 @@ base::valid_or<std::string> wrapped::TerrainState::validate()
   for( auto const& [type, pterrain] : player_terrain ) {
     if( !pterrain.has_value() ) continue;
     REFL_VALIDATE(
-        pterrain->map.size().to_gfx() == real_map_size,
+        pterrain->map.size() == real_map_size,
         "the player terrain map for the {} has a different size "
         "than the real map: {} != {}",
-        type, pterrain->map.size().to_gfx(), real_map_size );
+        type, pterrain->map.size(), real_map_size );
   }
 
   return base::valid;

@@ -417,7 +417,7 @@ void RenderingMapUpdater::modify_entire_map_no_redraw(
 
 void RenderingMapUpdater::redraw_landscape_buffer() {
   // No changing map size mid game.
-  CHECK( ss_.terrain.world_size_tiles() ==
+  CHECK( ss_.terrain.world_size_tiles().to_gfx() ==
          landscape_tracking_.tile_bounds.size() );
   TerrainRenderOptions const terrain_options =
       make_terrain_options( options() );
@@ -431,7 +431,7 @@ void RenderingMapUpdater::redraw_landscape_buffer() {
 
 void RenderingMapUpdater::redraw_obfuscation_buffer() {
   // No changing map size mid game.
-  CHECK( ss_.terrain.world_size_tiles() ==
+  CHECK( ss_.terrain.world_size_tiles().to_gfx() ==
          obfuscation_tracking_.tile_bounds.size() );
   TerrainRenderOptions const terrain_options =
       make_terrain_options( options() );

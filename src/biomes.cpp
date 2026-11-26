@@ -72,7 +72,7 @@ TerrainGenerator::TerrainGenerator(
     temperature_( setup.weather.temperature ),
     climate_( setup.weather.climate ),
     scratch_( sz_ ) {
-  CHECK_EQ( m.size().to_gfx(), setup.size );
+  CHECK_EQ( m.size(), setup.size );
 }
 
 double TerrainGenerator::scale_h() const { return sz_.h / 70.0; }

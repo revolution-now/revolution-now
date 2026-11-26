@@ -10,10 +10,8 @@
 *****************************************************************/
 #pragma once
 
-// Revolution Now
-
 // gfx
-#include "coord.hpp"
+#include "cartesian.hpp"
 
 // luapp
 #include "luapp/ext-userdata.hpp"
@@ -46,7 +44,7 @@ struct matrix {
   std::vector<T> data_{};
 
  public:
-  matrix( rn::Delta delta ) : w_( delta.w ) {
+  matrix( size const delta ) : w_( delta.w ) {
     CHECK( delta.w >= 0 );
     CHECK( delta.h >= 0 );
     size_t size = delta.h * delta.w;
@@ -54,7 +52,7 @@ struct matrix {
     CHECK( data_.size() == size );
   }
 
-  matrix( rn::Delta delta, T init ) : w_( delta.w ) {
+  matrix( size const delta, T const init ) : w_( delta.w ) {
     CHECK( delta.w >= 0 );
     CHECK( delta.h >= 0 );
     size_t size = delta.h * delta.w;
@@ -62,7 +60,7 @@ struct matrix {
     CHECK( data_.size() == size );
   }
 
-  matrix() : matrix( rn::Delta{} ) {}
+  matrix() : matrix( gfx::size{} ) {}
 
   matrix( matrix&& )                 = default;
   matrix( matrix const& )            = default;
@@ -72,19 +70,19 @@ struct matrix {
   matrix( int const w, std::vector<T>&& data )
     : w_{ w }, data_{ std::move( data ) } {}
 
-  void reset( rn::Delta size ) { *this = matrix( size ); }
+  void reset( size const size ) { *this = matrix( size ); }
 
   bool operator==( matrix<T> const& rhs ) const {
     return w_ == rhs.w_ && data_ == rhs.data_;
   }
 
-  rn::Delta size() const {
+  size size() const {
     if( data_.size() == 0 ) return {};
-    return rn::Delta{ .w = w_, .h = int( data_.size() / w_ ) };
+    return gfx::size{ .w = w_, .h = int( data_.size() / w_ ) };
   }
 
-  rn::Rect rect() const {
-    return rn::Rect::from( rn::Coord{}, size() );
+  rect rect() const {
+    return gfx::rect::from( point{}, size() );
   }
 
   [[nodiscard]] bool exists( point const p ) const {
@@ -138,7 +136,7 @@ struct matrix {
                         trv::tag_t<matrix const> ) {
     using namespace std::literals;
     auto const y_size = o.size().h;
-    gfx::point p;
+    point p;
     for( p.y = 0; p.y < y_size; ++p.y )
       for( p.x = 0; p.x < o.w_; ++p.x ) //
         fn( o[p], p );
@@ -148,7 +146,7 @@ struct matrix {
                         trv::tag_t<matrix> ) {
     using namespace std::literals;
     auto const y_size = o.size().h;
-    gfx::point p;
+    point p;
     for( p.y = 0; p.y < y_size; ++p.y )
       for( p.x = 0; p.x < o.w_; ++p.x ) //
         fn( o[p], p );

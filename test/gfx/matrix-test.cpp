@@ -28,7 +28,7 @@ using namespace std;
 ** Test Cases
 *****************************************************************/
 TEST_CASE( "[gfx/matrix] construction" ) {
-  matrix<int> m( rn::Delta{ .w = 2, .h = 3 } );
+  matrix<int> m( size{ .w = 2, .h = 3 } );
   // TODO
   (void)m;
 }
