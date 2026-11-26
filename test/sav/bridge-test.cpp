@@ -189,28 +189,28 @@ void og_bidirectional_scenario_1( sav::ColonySAV& out ) {
     .stops_count = 2,
     .stops       = {
       sav::Stops{
-              .colony_index            = 999,
-              .loads_and_unloads_count = { .unloads_count = 1,
-                                           .loads_count   = 2 },
-              .loads_cargo             = { .cargo_1 = C4T::cloth,
-                                           .cargo_2 = C4T::tools },
-              .unloads_cargo           = { .cargo_1 = C4T::food } },
+        .colony_index            = 999,
+        .loads_and_unloads_count = { .unloads_count = 1,
+                                     .loads_count   = 2 },
+        .loads_cargo             = { .cargo_1 = C4T::cloth,
+                                     .cargo_2 = C4T::tools },
+        .unloads_cargo           = { .cargo_1 = C4T::food } },
       sav::Stops{
-              .colony_index            = 2,
-              .loads_and_unloads_count = { .unloads_count = 2,
-                                           .loads_count   = 1 },
-              .loads_cargo             = { .cargo_1 = C4T::horses },
-              .unloads_cargo           = { .cargo_1 = C4T::cloth,
-                                           .cargo_2 = C4T::tools } } } };
+        .colony_index            = 2,
+        .loads_and_unloads_count = { .unloads_count = 2,
+                                     .loads_count   = 1 },
+        .loads_cargo             = { .cargo_1 = C4T::horses },
+        .unloads_cargo = { .cargo_1 = C4T::cloth,
+                           .cargo_2 = C4T::tools } } } };
   out.trade_route[1] = sav::TRADEROUTE{
     .name = { 'm', 'y', ' ', 'r', 'o', 'u', 't', 'e', ' ', '2',
               '\0' },
     .land_or_sea = sav::trade_route_type::land,
     .stops_count = 1,
     .stops       = { sav::Stops{
-            .colony_index            = 3,
-            .loads_and_unloads_count = { .unloads_count = 1 },
-            .unloads_cargo           = { .cargo_1 = C4T::goods } } } };
+      .colony_index            = 3,
+      .loads_and_unloads_count = { .unloads_count = 1 },
+      .unloads_cargo           = { .cargo_1 = C4T::goods } } } };
 
   // TODO: add more here.
 }
@@ -346,23 +346,23 @@ void rn_bidirectional_scenario_1( rn::RootState& out ) {
     .type   = rn::e_trade_route_type::sea,
     .stops  = {
       rn::TradeRouteStop{
-         .target  = rn::TradeRouteTarget::harbor{},
-         .loads   = { rn::e_commodity::cloth,
-                      rn::e_commodity::tools },
-         .unloads = { rn::e_commodity::food } },
+        .target  = rn::TradeRouteTarget::harbor{},
+        .loads   = { rn::e_commodity::cloth,
+                     rn::e_commodity::tools },
+        .unloads = { rn::e_commodity::food } },
       rn::TradeRouteStop{
-         .target = rn::TradeRouteTarget::colony{ .colony_id = 3 },
-         .loads  = { rn::e_commodity::horses },
-         .unloads = { rn::e_commodity::cloth,
-                      rn::e_commodity::tools } } } };
+        .target = rn::TradeRouteTarget::colony{ .colony_id = 3 },
+        .loads  = { rn::e_commodity::horses },
+        .unloads = { rn::e_commodity::cloth,
+                     rn::e_commodity::tools } } } };
   out.trade_routes.routes[5] = rn::TradeRoute{
     .id     = 5,
     .name   = "my route 2",
     .player = rn::e_player::french,
     .type   = rn::e_trade_route_type::land,
     .stops  = { rn::TradeRouteStop{
-       .target  = rn::TradeRouteTarget::colony{ .colony_id = 4 },
-       .unloads = { rn::e_commodity::trade_goods } } } };
+      .target  = rn::TradeRouteTarget::colony{ .colony_id = 4 },
+      .unloads = { rn::e_commodity::trade_goods } } } };
 
   // TODO: add more here.
 }
