@@ -700,8 +700,8 @@ valid_or<string> TerrainGenerator::rivers_pass(
       for( point const p : trail( river ) )
         m_[p].river = e_river::major;
     }
-    CHECK( m_.exists( river.back() ) );
-    on_surrounding_20( m_, river.back(),
+    CHECK( m_.exists( river.front() ) );
+    on_surrounding_20( m_, river.front(),
                        [&]( point const, MapSquare& square ) {
                          if( square.surface == e_surface::water )
                            return;
