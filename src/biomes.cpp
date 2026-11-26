@@ -143,10 +143,8 @@ valid_or<string> TerrainGenerator::full() {
   GOOD_OR_RETURN( rainfall_pass_2() );
   GOOD_OR_RETURN( scatter_pass() );
   GOOD_OR_RETURN( forest_pass() );
-  if( setup_.surface_generator.arctic.enabled ) {
-    rand_.reseed( setup_.surface_generator.arctic.seed );
+  if( setup_.surface_generator.arctic.enabled )
     GOOD_OR_RETURN( arctic_tundra_pass() );
-  }
 
   if( setup_.rivers.has_value() ) {
     rand_.reseed( setup_.rivers->seed );
