@@ -18,6 +18,9 @@
 // luapp
 #include "luapp/ext-userdata.hpp"
 
+// refl
+#include "refl/query-enum.hpp"
+
 // base
 #include "base/attributes.hpp"
 #include "base/error.hpp"
@@ -137,6 +140,14 @@ struct IRand {
 
   template<typename T, size_t N>
   void shuffle( std::array<T, N>& arr );
+
+  // Vector must be non-empty. Picks a random element.
+  template<refl::ReflectedEnum E>
+  [[nodiscard]] E pick_enum() {
+    static auto constexpr& values = refl::enum_values<E>;
+    static_assert( !values.empty() );
+    return pick_one( values );
+  }
 
   // Vector must be non-empty. Picks a random element.
   template<typename T>

@@ -15,6 +15,7 @@
 
 // Testing
 #include "test/mocks/irand.hpp"
+#include "test/rds/testing.rds.hpp"
 
 // ss
 #include "src/mock/matchers.hpp"
@@ -602,6 +603,22 @@ TEST_CASE( "[irand] pick_one_safe" ) {
 
   values = {};
   REQUIRE( f() == nothing );
+}
+
+TEST_CASE( "[irand] pick_enum" ) {
+  MockIRand impl;
+  IRand& irand = impl;
+
+  auto const f = [&] [[clang::noinline]] {
+    return irand.pick_enum<e_color>();
+  };
+
+  impl.EXPECT__uniform_int( 0, 2 ).returns( 0 );
+  REQUIRE( f() == e_color::red );
+  impl.EXPECT__uniform_int( 0, 2 ).returns( 1 );
+  REQUIRE( f() == e_color::green );
+  impl.EXPECT__uniform_int( 0, 2 ).returns( 2 );
+  REQUIRE( f() == e_color::blue );
 }
 
 TEST_CASE( "[irand] bernoulli( Probability )" ) {
