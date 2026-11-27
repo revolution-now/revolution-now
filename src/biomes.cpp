@@ -18,6 +18,9 @@
 #include "ss/key.hpp"
 #include "ss/map-matrix.hpp"
 
+// gfx
+#include "gfx/cartesian.hpp"
+
 // base
 #include "base/logger.hpp"
 
@@ -37,6 +40,7 @@ using ::base::maybe;
 using ::base::nothing;
 using ::base::valid;
 using ::base::valid_or;
+using ::gfx::e_cardinal_cdirection;
 using ::gfx::e_side;
 using ::gfx::point;
 using ::gfx::size;
@@ -220,10 +224,9 @@ valid_or<string> TerrainGenerator::temperature_pass() {
 }
 
 valid_or<string> TerrainGenerator::elevate() {
-  double const og_target =
-      std::max( og_land_mass() + og_land_form(), 0.0 );
-  double const kProbMountains = ( .005 * og_target ) + .01;
-  double const kProbHills     = ( .05 * og_target ) + .20;
+  double const kProbMountains =
+      std::max( density_ * scale_ * .01 - .017, 0.0 );
+  double const kProbHills = .25;
   on_all( [&]( point const _, MapSquare& s ) {
     if( s.surface == e_surface::water ) return;
     double const d = rand_.uniform_double( 0, 1.0 );
@@ -395,62 +398,33 @@ bool TerrainGenerator::ocean( point const p ) const {
 }
 
 void TerrainGenerator::enable_hills( point const p ) {
-  MapSquare& square = m_[p];
-  if( !square.overlay.has_value() ) {
-    square.overlay = e_land_overlay::hills;
-    return;
-  }
-  switch( *square.overlay ) {
-    case rn::e_land_overlay::forest: {
-      square.overlay = e_land_overlay::hills;
-      break;
-    }
-    case rn::e_land_overlay::hills:
-      break;
-    case rn::e_land_overlay::mountains:
-      // Don't change mountains.
-      break;
-  }
+  // In the OG, the hills representation is a subset of the moun-
+  // tains representation, so when hills are added to a mountains
+  // tile it has no effect.
+  if( m_[p].overlay == e_land_overlay::mountains ) return;
+  m_[p].overlay = e_land_overlay::hills;
 }
 
 void TerrainGenerator::enable_mountains( point const p ) {
-  MapSquare& square = m_[p];
-  if( !square.overlay.has_value() ) {
-    square.overlay = e_land_overlay::mountains;
-    return;
-  }
-  switch( ( *square.overlay ) ) {
-    case rn::e_land_overlay::forest: {
-      square.overlay = e_land_overlay::mountains;
-      break;
-    }
-    case rn::e_land_overlay::hills:
-      square.overlay = e_land_overlay::mountains;
-      break;
-    case rn::e_land_overlay::mountains:
-      break;
-  }
+  m_[p].overlay = e_land_overlay::mountains;
 }
 
 valid_or<string> TerrainGenerator::scatter_pass() {
-  int x = 0, y = 0;
-  int const g_dir_dx[9] = { 0, 1, 1, 1, 0, -1, -1, -1, 0 };
-  int const g_dir_dy[9] = { -1, -1, 0, 1, 1, 1, 0, -1, 0 };
-  int const iters       = rounded( 800 * scale_area() );
+  point p;
+  int const world_age = 1;
+  int const og_iters  = world_age * 800 + 800;
+  int const iters     = rounded( og_iters * scale_area() );
   CHECK_GE( iters, 0 );
   lg.debug( "iterations in biome scatter pass: {}", iters );
   for( size_t const n : iota( 0, iters ) ) {
-    if( ( n & 1 ) != 0 ) {
-      int const r = uniform( 0, 8 );
-      x += g_dir_dx[r];
-      y += g_dir_dy[r];
+    if( n % 2 == 1 ) {
+      p = p.moved( rand_.pick_enum<e_cardinal_cdirection>() );
     } else {
       // This point can't be on the border because the next pass
       // will try to take a point next to it.
-      x = uniform( 1, sz_.w - 2 );
-      y = uniform( 1, sz_.h - 2 );
+      p.x = uniform( 1, sz_.w - 2 );
+      p.y = uniform( 1, sz_.h - 2 );
     }
-    point const p{ .x = x, .y = y };
     MapSquare& square = m_[p];
     Scratch& scratch  = scratch_[p];
     if( square.overlay == e_land_overlay::mountains ) {
