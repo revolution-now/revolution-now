@@ -143,6 +143,7 @@ ExchangeKey create_classic_game_key(
 
   PerlinMapSettings const perlin_settings{
     .land_form = params.land_form,
+    .elevation = map_conf.land_layout.perlin_elevation,
     .edge_suppression =
         map_conf.land_layout.land_form.perlin_edge_suppression,
     .seed = perlin_seed,

@@ -72,6 +72,7 @@ struct.CorridorClearing {
 struct.LandLayout {
   land_mass 'LandMass',
   land_form 'LandForm',
+  perlin_elevation 'PerlinElevation',
   elevation 'ElevationParameters',
   inland_lakes 'InlandLakes',
   arctic 'Arctic',

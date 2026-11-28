@@ -202,7 +202,8 @@ rng::PerlinSeed generate_perlin_seed( rng::entropy e ) {
 
 valid_or<e_perlin_map_error> land_gen_perlin(
     PerlinMapSettings const& settings,
-    double const target_density, size const world_sz,
+    double const target_density,
+    PerlinElevation const& elevation, size const world_sz,
     matrix<PerlinGenTile>& out ) {
   using enum e_surface;
   size const sz = world_sz;
@@ -268,6 +269,43 @@ valid_or<e_perlin_map_error> land_gen_perlin(
   }
   if( total_land == 0 && target_density > 0.0 )
     return e_perlin_map_error::density_too_small_no_land;
+
+  if( elevation.enabled ) {
+    // This should be checked via config validation.
+    CHECK( elevation.mountains_divisor >= 1.0 );
+    CHECK( elevation.hills_divisor >= 1.0 );
+    CHECK( elevation.mountains_divisor >=
+           elevation.hills_divisor );
+
+    double const mountain_density =
+        target_density / elevation.mountains_divisor;
+    double const hill_density =
+        target_density / elevation.hills_divisor;
+
+    UNWRAP_RETURN_T( double const hill_level,
+                     find_level( pm, hill_density ) );
+    lg.debug( "hill_level: {}", hill_level );
+    lg.info( "perlin hill density: {:.3}",
+             land_density_above_level( pm, hill_level ) );
+    for( point const p : rect_iterator( out.rect() ) )
+      // Since the hill level is above the sea level we should
+      // always be on land if we have hills, but let's just be
+      // defensive here.
+      if( out[p].surface == land )
+        out[p].has_hills = pm[p] > hill_level;
+
+    UNWRAP_RETURN_T( double const mountain_level,
+                     find_level( pm, mountain_density ) );
+    lg.debug( "mountain_level: {}", mountain_level );
+    lg.info( "perlin mountain density: {:.3}",
+             land_density_above_level( pm, mountain_level ) );
+    for( point const p : rect_iterator( out.rect() ) )
+      // Since the mountain level is above the sea level we
+      // should always be on land if we have mountains, but let's
+      // just be defensive here.
+      if( out[p].surface == land )
+        out[p].has_mountains = pm[p] > mountain_level;
+  }
 
   CHECK( out.size() == world_sz );
   return valid;

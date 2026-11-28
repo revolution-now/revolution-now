@@ -75,8 +75,16 @@ struct.PerlinEdgeSuppression {
   _features { equality, validation }
 }
 
+struct.PerlinElevation {
+  enabled 'bool',
+  hills_divisor 'double',
+  mountains_divisor 'double',
+  _features { equality, validation }
+}
+
 struct.PerlinMapSettings {
   land_form 'rng::PerlinLandForm',
+  elevation 'PerlinElevation',
   edge_suppression 'PerlinEdgeSuppression',
   seed 'rng::PerlinSeed',
 }

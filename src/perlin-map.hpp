@@ -29,6 +29,7 @@ namespace rn {
 /****************************************************************
 ** Fwd. Decls.
 *****************************************************************/
+struct PerlinElevation;
 struct PerlinMapSettings;
 
 /****************************************************************
@@ -39,7 +40,7 @@ struct PerlinMapSettings;
 
 [[nodiscard]] base::valid_or<e_perlin_map_error> land_gen_perlin(
     PerlinMapSettings const& settings, double target_density,
-    gfx::size const world_sz,
+    PerlinElevation const& elevation, gfx::size const world_sz,
     gfx::matrix<PerlinGenTile>& surface );
 
 } // namespace rn

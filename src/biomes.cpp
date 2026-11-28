@@ -47,6 +47,17 @@ using ::gfx::size;
 using ::refl::enum_values;
 using ::rv::iota;
 
+/****************************************************************
+** Constants.
+*****************************************************************/
+// These are the values of density (land mass) and scale (land
+// form) that we use for the middle tier.
+double const kDensityM = .23;
+double const kScaleM   = 12;
+
+/****************************************************************
+** Helpers.
+*****************************************************************/
 [[nodiscard]] double compute_density( MapMatrix const& m ) {
   double density = 0.0;
   on_all_tiles( m, [&]( point const _, MapSquare const& s ) {
@@ -80,6 +91,40 @@ TerrainGenerator::TerrainGenerator(
     climate_( setup.weather.climate ),
     scratch_( sz_ ) {
   CHECK_EQ( m.size(), setup.size );
+}
+
+double TerrainGenerator::og_land_mass() const {
+  return 1.0 + 24 * ( density_ - kDensityM ) -
+         .38 * ( scale_ - kScaleM );
+}
+
+double TerrainGenerator::og_land_form() const {
+  return 1.0 + 13 * ( density_ - kDensityM ) -
+         .49 * ( scale_ - kScaleM );
+}
+
+double TerrainGenerator::og_temperature() const {
+  return ( temperature_.value + 100 ) / 100.0;
+}
+
+double TerrainGenerator::og_climate() const {
+  return ( climate_.value + 100 ) / 100.0;
+}
+
+int TerrainGenerator::og_land_mass_int() const {
+  return rounded( og_land_mass() );
+}
+
+int TerrainGenerator::og_land_form_int() const {
+  return rounded( og_land_form() );
+}
+
+int TerrainGenerator::og_temperature_int() const {
+  return rounded( og_temperature() );
+}
+
+int TerrainGenerator::og_climate_int() const {
+  return rounded( og_climate() );
 }
 
 double TerrainGenerator::scale_h() const { return sz_.h / 70.0; }
@@ -134,12 +179,14 @@ int TerrainGenerator::uniform_from_1_to( double const d ) const {
 }
 
 bool TerrainGenerator::coin() const {
-  return rand_.bernoulli( .5 );
+  return uniform( 0, 1 ) == 0;
 }
 
 valid_or<string> TerrainGenerator::full() {
   rand_.reseed( setup_.elevation.seed );
   GOOD_OR_RETURN( elevate() );
+
+  GOOD_OR_RETURN( init_forest_plan() );
 
   rand_.reseed( setup_.biomes.seed );
   GOOD_OR_RETURN( temperature_pass() );
@@ -226,7 +273,15 @@ valid_or<string> TerrainGenerator::temperature_pass() {
 valid_or<string> TerrainGenerator::elevate() {
   double const kProbMountains =
       std::max( density_ * scale_ * .01 - .017, 0.0 );
-  double const kProbHills = .25;
+  // This hill probability really matters because even though any
+  // hill placed in this pass will get removed in the rainfall
+  // passes, the presence of a hill at this point will affect how
+  // the forest plan is applied in the next step (namely, tiles
+  // given hills at this stage will get a forest plan of "popu-
+  // late if ocean adjacent"), and this makes a significant dif-
+  // ference.
+  double const kProbHills =
+      std::max( pow( density_ * scale_, .5 ) * .35 - .321, 0.0 );
   on_all( [&]( point const _, MapSquare& s ) {
     if( s.surface == e_surface::water ) return;
     double const d = rand_.uniform_double( 0, 1.0 );
@@ -234,6 +289,20 @@ valid_or<string> TerrainGenerator::elevate() {
       s.overlay = e_land_overlay::mountains;
     else if( d < kProbMountains + kProbHills )
       s.overlay = e_land_overlay::hills;
+  } );
+  return valid;
+}
+
+valid_or<string> TerrainGenerator::init_forest_plan() {
+  on_all( [&]( point const p, MapSquare& s ) {
+    Scratch& scratch = scratch_[p];
+    if( s.surface == e_surface::water ) return;
+    if( !s.overlay.has_value() ) {
+      scratch.forest_plan = e_forest_plan::populate;
+      return;
+    }
+    scratch.forest_plan =
+        e_forest_plan::populate_if_ocean_adjacent;
   } );
   return valid;
 }
@@ -274,7 +343,8 @@ valid_or<string> TerrainGenerator::rainfall_pass_1() {
               square.ground = tundra;
               break;
             case tundra:
-              scratch.forest_plan = e_forest_plan::suppress;
+              scratch.forest_plan =
+                  e_forest_plan::populate_if_ocean_adjacent;
               break;
             case arctic:
             case desert:
@@ -453,7 +523,8 @@ valid_or<string> TerrainGenerator::scatter_pass() {
             square.ground = plains;
           hills = mountains = 2;
           if( coin() )
-            scratch.forest_plan = e_forest_plan::suppress;
+            scratch.forest_plan =
+                e_forest_plan::populate_if_ocean_adjacent;
           break;
         case grassland:
           hills     = 3;
@@ -474,14 +545,16 @@ valid_or<string> TerrainGenerator::scatter_pass() {
           mountains = 3;
           if( coin() ) square.ground = grassland;
           if( coin() )
-            scratch.forest_plan = e_forest_plan::suppress;
+            scratch.forest_plan =
+                e_forest_plan::populate_if_ocean_adjacent;
           break;
         case swamp:
           hills     = 5;
           mountains = 3;
           if( coin() ) square.ground = savannah;
           if( coin() )
-            scratch.forest_plan = e_forest_plan::suppress;
+            scratch.forest_plan =
+                e_forest_plan::populate_if_ocean_adjacent;
           break;
         case arctic:
           break;
@@ -498,77 +571,38 @@ valid_or<string> TerrainGenerator::scatter_pass() {
 
 bool TerrainGenerator::ocean_adjacent( point const p ) const {
   bool has = false;
-  on_surrounding( m_, p,
-                  [&]( point, MapSquare const& adjacent ) {
-                    if( adjacent.surface == e_surface::water )
-                      has = true;
-                  } );
+  on_surrounding( m_, p, [&]( point, MapSquare const& s ) {
+    has = has || ( s.surface == e_surface::water );
+  } );
   return has;
 }
 
 valid_or<string> TerrainGenerator::forest_pass() {
-  for( int const y : iota( 0, sz_.h ) ) {
-    for( int const x : iota( 0, sz_.w ) ) {
-      point const p{ .x = x, .y = y };
-      MapSquare& square = m_[p];
-      Scratch& scratch  = scratch_[p];
-      if( square.surface == e_surface::water ) continue;
-      if( square.overlay.has_value() ) continue;
-      switch( scratch.forest_plan ) {
-        using enum e_forest_plan;
-        case populate:
-          square.overlay = e_land_overlay::forest;
-          break;
-        case deferred:
-        case suppress:
-          if( ocean_adjacent( p ) ) {
-            if( coin() )
-              square.overlay = e_land_overlay::forest;
-            else if( uniform( 0, 4 ) != 0 )
-              square.overlay = e_land_overlay::forest;
-          }
-          break;
-      }
+  on_all( [&]( point const p, MapSquare& square ) {
+    if( square.surface == e_surface::water ) return;
+    // The OG doesn't check this explicitly in this stage, but
+    // what it does do is later it will find any tiles with a
+    // hill and mountain and remove forest from them.
+    if( square.overlay.has_value() ) return;
+    Scratch& scratch = scratch_[p];
+    switch( scratch.forest_plan ) {
+      using enum e_forest_plan;
+      case populate:
+        square.overlay = e_land_overlay::forest;
+        break;
+      case deferred:
+        SHOULD_NOT_BE_HERE;
+      case populate_if_ocean_adjacent:
+        if( ocean_adjacent( p ) ) {
+          if( coin() )
+            square.overlay = e_land_overlay::forest;
+          else if( uniform( 0, 4 ) != 0 )
+            square.overlay = e_land_overlay::forest;
+        }
+        break;
     }
-  }
+  } );
   return valid;
-}
-
-double const kDensityM = .23;
-double const kScaleM   = 12;
-
-double TerrainGenerator::og_land_mass() const {
-  return 1.0 + 24 * ( density_ - kDensityM ) -
-         .38 * ( scale_ - kScaleM );
-}
-
-double TerrainGenerator::og_land_form() const {
-  return 1.0 + 13 * ( density_ - kDensityM ) -
-         .49 * ( scale_ - kScaleM );
-}
-
-double TerrainGenerator::og_temperature() const {
-  return ( temperature_.value + 100 ) / 100.0;
-}
-
-double TerrainGenerator::og_climate() const {
-  return ( climate_.value + 100 ) / 100.0;
-}
-
-int TerrainGenerator::og_land_mass_int() const {
-  return rounded( og_land_mass() );
-}
-
-int TerrainGenerator::og_land_form_int() const {
-  return rounded( og_land_form() );
-}
-
-int TerrainGenerator::og_temperature_int() const {
-  return rounded( og_temperature() );
-}
-
-int TerrainGenerator::og_climate_int() const {
-  return rounded( og_climate() );
 }
 
 valid_or<string> TerrainGenerator::rivers_pass(
@@ -675,14 +709,15 @@ valid_or<string> TerrainGenerator::rivers_pass(
         m_[p].river = e_river::major;
     }
     CHECK( m_.exists( river.front() ) );
-    on_surrounding_20( m_, river.front(),
-                       [&]( point const, MapSquare& square ) {
-                         if( square.surface == e_surface::water )
-                           return;
-                         if( square.overlay.has_value() ) return;
-                         if( !coin() ) return;
-                         square.overlay = e_land_overlay::forest;
-                       } );
+    on_20( river.front(), [&]( point const, MapSquare& square ) {
+      if( square.surface == e_surface::water ) return;
+      // The OG doesn't check this explicitly in this stage, but
+      // what it does do is later it will find any tiles with a
+      // hill and mountain and remove forest from them.
+      if( square.overlay.has_value() ) return;
+      if( !coin() ) return;
+      square.overlay = e_land_overlay::forest;
+    } );
   }
   return valid;
 }
@@ -717,6 +752,9 @@ valid_or<string> TerrainGenerator::arctic_tundra_pass() {
       if( coin() ) set_cold( tundra );
     }
   }
+  on_all( [&]( point const _, MapSquare& s ) {
+    if( s.ground == e_biome::arctic ) s.overlay.reset();
+  } );
   return valid;
 }
 

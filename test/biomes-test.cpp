@@ -69,6 +69,14 @@ struct world : testing::World {
 /****************************************************************
 ** Test Cases
 *****************************************************************/
+TEST_CASE( "[biomes] TerrainGenerator::elevate" ) {
+  world w;
+}
+
+TEST_CASE( "[biomes] TerrainGenerator::init_forest_plan" ) {
+  world w;
+}
+
 TEST_CASE( "[biomes] TerrainGenerator::temperature_pass" ) {
   world w;
 }

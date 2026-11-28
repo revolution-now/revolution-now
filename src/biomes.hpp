@@ -43,6 +43,8 @@ struct TerrainGenerator {
 
   Result elevate();
 
+  Result init_forest_plan();
+
   Result temperature_pass();
 
   // Left-to-right.
@@ -80,6 +82,11 @@ struct TerrainGenerator {
     on_all_tiles( m_, fn );
   }
 
+  template<typename F>
+  void on_20( gfx::point const p, F&& fn ) {
+    on_surrounding_20( m_, p, fn );
+  }
+
   [[nodiscard]] double scale_h() const;
   [[nodiscard]] double scale_w() const;
   [[nodiscard]] double scale_area() const;
@@ -110,7 +117,7 @@ struct TerrainGenerator {
 
   enum class e_forest_plan {
     deferred,
-    suppress,
+    populate_if_ocean_adjacent,
     populate,
   };
   struct Scratch {

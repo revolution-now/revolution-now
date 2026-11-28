@@ -156,6 +156,7 @@ valid_or<string> generate_land_perlin(
     auto const ok =
         TIMED_CALL( land_gen_perlin, perlin_settings,
                     surface_generator.target_density.fraction,
+                    surface_generator.perlin_settings.elevation,
                     setup.size, surface );
     if( !ok ) return base::to_str( ok.error() );
     for( point const p : rect_iterator( surface.rect() ) ) {
@@ -231,7 +232,6 @@ valid_or<string> generate_map_native_impl(
   // Surface.
   GOOD_OR_RETURN(
       generate_land_perlin( setup, rand, real_terrain ) );
-
 
   // Biomes. Note that the TerrainGenerator will handle the rng
   // seeding at each stage.

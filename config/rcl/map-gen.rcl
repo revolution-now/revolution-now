@@ -106,6 +106,12 @@ terrain_generation {
       }
     }
 
+    perlin_elevation {
+      enabled: false
+      hills_divisor:      4.00
+      mountains_divisor: 15.00
+    }
+
     elevation.weights {
       none.value:      1
       hills.value:     1
